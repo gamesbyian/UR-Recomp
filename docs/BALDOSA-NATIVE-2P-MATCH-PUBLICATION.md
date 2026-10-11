@@ -68,3 +68,22 @@ picker, acknowledged guest menu and paired-record nonpublication agree
 on the route. It does not synthesize a finish, claim a live match result,
 test a physical joystick device, or waive independent Windows
 controller/stock-rider/fresh-process Records acceptance.
+
+## Source-locked 2P match save retry (stacked follow-up)
+
+The native result observer still owns the **only** initial genuine 2P
+settlement. If its paired canonical append fails under temporary OS lease
+contention, a process-local pending result may retry at most five more
+times, 30 actual host gameplay frames apart, using the existing writer
+and exact originally selected P1/P2 catalog entries. It does not duplicate
+or synthesize the controller trace or accept anonymous stock 2P.
+
+Every retry requires **all** of the same live conditions: original stock
+two-player root handoff, original result menu `0xF9`, no new race,
+the current game's independently sampled SRAM result words equal to the
+original observed riders/times/outcome, and identical still-confirmed
+Modern profile IDs and racer identities. On any departure, mismatch,
+Restart, timeout or exhaustion, the pending result is discarded without
+writing a match or awarding a win. Failure/success is logged as
+`UR_BALDOSA_NATIVE_MATCH SAVE_PENDING / SAVE_RETRY / SAVE_ABANDONED`.
+No 2P save badge is claimed until a separate explicit UI acceptance.

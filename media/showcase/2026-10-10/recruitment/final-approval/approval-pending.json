@@ -42,16 +42,16 @@
       ],
       "kind": "editorial_graphic",
       "review_frame_sha256": {
-        "technical-decoded-frame-030.png": "4b13abc6c36d663f7bfa77143b929a527076092c4b27585fcf6b06034c23b020",
-        "technical-decoded-frame-135.png": "b6aeccfa615e1ff610bd2a738bc71214dc210d4b6284545601f0f6a298c921fa",
+        "technical-decoded-frame-030.png": "d73f4ef871b6d66104c88b8537ebbca7268482aeb0c67e84a108bde605f47b65",
+        "technical-decoded-frame-135.png": "847d8620d700370701eebde17be1c786522162c5d954f428b9c23f904ab4e629",
         "technical-decoded-frame-225.png": "e4487328e45c0de0cb3dc1c95e808a86ec9bd76fe5de9424c07dc69fef6ec4cb"
       },
-      "sha256": "ca59e2d4aaf2ee4d0e3bc2999603bb9f6c2fed8a7b56389ef16d643029c390a3",
+      "sha256": "c213ab1aa5472cb1940d5e35a5601bd30d9c00a9acb1e79cdf6dd1baca5e343d",
       "verified_fps": "30/1",
       "verified_frames": 270
     }
   },
   "schema": "UR-RECRUITMENT-MEDIA-APPROVAL/1",
   "status": "candidate_pending_independent_media_review",
-  "technical_sha_source_commit": "8bfb1e9c7e965c902190b78e9199f9f361b4a59b"
+  "technical_sha_source_commit": "d97a479552ba442bd76c2ef9b0707428564d69d8"
 }

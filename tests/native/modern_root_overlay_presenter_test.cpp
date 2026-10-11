@@ -137,11 +137,64 @@ int main() {
     assert(contains("READ ONLY - NO REPLAY"));
     assert(contains("A/ENTER  B/ESC BACK"));
     painted.clear();
+    // The existing 1P modal is still the default for old consumers.
+    // Native Baldosa alone advertises an explicit 2P page: no invented
+    // match results, only canonical already-paired history and a pad hint.
+    view.read_only_records_pages_available = true;
+    view.read_only_records_two_player = true;
+    view.records_status = "MY 2P 1  UNAVAILABLE 3";
+    view.records_recent = "W 1  L 0  D 0";
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("TWO PLAYER RECORDS"));
+    assert(contains("MY 2P 1  UNAVAILABLE 3"));
+    assert(contains("W 1  L 0  D 0"));
+    assert(contains("UP/DOWN 1P  B BACK"));
+    assert(contains("READ ONLY - NO REPLAY"));
+    painted.clear();
+    view.read_only_records_two_player = false;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("STORED RUNS"));
+    assert(contains("UP/DOWN 2P  B BACK"));
+    painted.clear();
     view.read_only_records_open = false;
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
                                       old_view,view));
     assert(!contains("STORED RUNS"));
     assert(!contains("READ ONLY - NO REPLAY"));
+
+    // The native P1/P2 join is now a child of this SAME renderer, never
+    // separately drawn by the execution adapter. Older hosts opt out by
+    // default. P1 is visibly fixed to the loaded profile; P2 alone browses.
+    painted.clear();
+    view.two_seat_join_open = true;
+    view.join_p1_name = "MIKE";
+    view.join_p2_name = "ANDREW";
+    view.join_p1_stock = "MIKE";
+    view.join_p2_stock = "ANDREW";
+    view.join_p1_confirmed = false;
+    view.join_p2_confirmed = false;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("TWO PLAYER PROFILES"));
+    assert(contains("P1 MIKE ACTIVE"));
+    assert(contains("P2 ANDREW CHOOSE"));
+    assert(contains("STOCK: MIKE / ANDREW"));
+    assert(contains("P1 A READY / B BACK"));
+    assert(contains("P2 DPAD+A / B CLEAR"));
+    painted.clear();
+    view.join_p1_confirmed = true;
+    view.join_p2_confirmed = true;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("P1 MIKE READY"));
+    assert(contains("P2 ANDREW READY"));
+    painted.clear();
+    view.two_seat_join_open = false;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(!contains("TWO PLAYER PROFILES"));
 
     painted.clear();
     assert(!render_modern_root_overlay({},pixels,256,224,1,240,

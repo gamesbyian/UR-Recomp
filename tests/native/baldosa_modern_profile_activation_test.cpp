@@ -8,6 +8,8 @@
 #include "baldosa_native_profile_sram_checkpoint.hpp"
 #include "baldosa_native_run_record_admission.hpp"
 #include "completed_run_store.hpp"
+#include "multiplayer_match_catalog.hpp"
+#include "multiplayer_match_record.hpp"
 
 #include <array>
 #include <cassert>
@@ -23,6 +25,12 @@ extern "C" int ur_baldosa_modern_try_activate_profile(void);
 extern "C" int ur_baldosa_modern_profile_before_native_save(void);
 extern "C" int ur_baldosa_modern_publish_settled_one_player_run(
     const ur::product::BaldosaSettledResult*);
+extern "C" int ur_baldosa_modern_publish_settled_two_player_match(
+    const ur::product::BaldosaSettledResult*,
+    const ur::product::HostProfileCatalogEntry*,
+    const ur::product::HostProfileCatalogEntry*);
+extern "C" int ur_baldosa_modern_profile_can_join_opponent(
+    const ur::product::HostProfileCatalogEntry*);
 extern "C" int ur_baldosa_modern_profile_finish_native_save(int);
 
 /* Real pinned framework provides these. Keep the unit executable's tiny RTL
@@ -195,9 +203,247 @@ int main() {
     assert(!ur_baldosa_modern_publish_settled_one_player_run(&bad_result));
     assert(fs::is_empty(foreign));
     fs::remove(original_run);
+    // Broken symlinks are filesystem entries too. The product preflight
+    // must reject them before canonical Records append is even attempted.
+    fs::create_directory_symlink(dir / "missing-run-target", original_run);
+    bad_result.first_race_host_frame = 220;
+    bad_result.observed_result_host_frame = 224;
+    assert(!ur_baldosa_modern_publish_settled_one_player_run(&bad_result));
+    assert(fs::is_symlink(original_run));
+    assert(!fs::exists(dir / "missing-run-target"));
+    fs::remove(original_run);
     fs::rename(dir / "moved-runs", original_run);
 
+    // The shared parent directory also must not be a dangling symlink.
+    fs::rename(dir / "runs", dir / "moved-parent");
+    fs::create_directory_symlink(dir / "missing-parent", dir / "runs");
+    bad_result.first_race_host_frame = 240;
+    bad_result.observed_result_host_frame = 244;
+    assert(!ur_baldosa_modern_publish_settled_one_player_run(&bad_result));
+    assert(!fs::exists(dir / "missing-parent"));
+    fs::remove(dir / "runs");
+    fs::rename(dir / "moved-parent", dir / "runs");
+    assert(load_valid_run_records(run_root.string()).size() == 1);
 
+
+
+    // This is a SYNTHETIC provider/persistence unit contract, not a played
+    // native guest result. Both explicitly named identities must exist in
+    // the existing Modern catalog and have independent, matching 8-KiB SRAM.
+    const auto identity2 = make_legacy_racer_identity(1);
+    assert(identity2);
+    const HostProfileCatalogEntry p1{"rider-1", *identity};
+    const HostProfileCatalogEntry p2{"rider-2", *identity2};
+    fs::create_directories("saves/profile-rider-2");
+    auto other_profile = make_default_host_profile_state("rider-2");
+    assert(other_profile);
+    other_profile->racer_identity = *identity2;
+    std::array<std::uint8_t, kStockSramBytes> opponent_sram{};
+    opponent_sram.fill(0x52u);
+    assert(capture_stock_sram_for_profile(
+        ExecutionMode::Modern, *other_profile,
+        opponent_sram.data(), opponent_sram.size()) ==
+        HostProfileTransferStatus::Applied);
+    assert(save_host_profile_state_file(
+        ExecutionMode::Modern,
+        "saves/profile-rider-2/host-profile.txt", *other_profile) ==
+        HostProfileSaveStatus::Saved);
+    {
+        std::ofstream raw("saves/profile-rider-2/save.srm", std::ios::binary);
+        assert(raw);
+        raw.write(reinterpret_cast<const char*>(opponent_sram.data()),
+                  opponent_sram.size());
+        assert(raw.good());
+    }
+    assert(save_host_profile_catalog_file(
+        "profiles-v1.txt", {p1, p2}));
+    assert(ur_baldosa_modern_profile_can_join_opponent(&p2));
+    assert(!ur_baldosa_modern_profile_can_join_opponent(&p1));
+    assert(!ur_baldosa_modern_profile_can_join_opponent(nullptr));
+    BaldosaSettledResult observed_2p{};
+    observed_2p.kind = BaldosaSettledResultKind::OrdinaryTwoPlayerRace;
+    observed_2p.first_race_host_frame = 500;
+    observed_2p.observed_result_host_frame = 504;
+    observed_2p.course_index = 1;
+    observed_2p.captured_input_frames = 4;
+    observed_2p.mapped_inputs = {{0, 2, 0x10u, 0x20u}};
+    ur::title::OrdinaryTwoPlayerRaceResult title_result{};
+    title_result.player1_rider = 0;
+    title_result.player2_rider = 1;
+    title_result.player1_hundredths = 2866;
+    title_result.player2_hundredths = 2977;
+    title_result.outcome =
+        ur::title::OrdinaryTwoPlayerRaceOutcome::Player1Win;
+    observed_2p.two_player = title_result;
+    const auto multiplayer_root = dir / "multiplayer-runs";
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        nullptr, &p1, &p2));
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &observed_2p, &p1, nullptr));
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &observed_2p, &p1, &p1));
+    {
+        auto mismatch = p2;
+        mismatch.identity.rider_index = 2;
+        assert(!ur_baldosa_modern_publish_settled_two_player_match(
+            &observed_2p, &p1, &mismatch));
+    }
+    const std::string selector_path = (dir / "host-state-v1.txt").string();
+    {
+        TournamentLaunchPathLock blocked(selector_path, true);
+        assert(blocked.acquired());
+        assert(!ur_baldosa_modern_publish_settled_two_player_match(
+            &observed_2p, &p1, &p2));
+        assert(!fs::exists(multiplayer_root));
+    }
+    assert(ur_baldosa_modern_publish_settled_two_player_match(
+        &observed_2p, &p1, &p2));
+    auto pairs = load_valid_multiplayer_matches(multiplayer_root.string());
+    assert(pairs.size() == 1);
+    assert(pairs[0].match.context.match.player1.profile_id == "rider-1");
+    assert(pairs[0].match.context.match.player2.profile_id == "rider-2");
+    assert(pairs[0].run.provenance.mode == "race-2p");
+    assert(pairs[0].run.provenance.course_id == "course:01");
+    assert(pairs[0].run.inputs[0].p1_mask == 0x10u);
+    assert(pairs[0].run.inputs[0].p2_mask == 0x20u);
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &observed_2p, &p1, &p2));
+    assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() == 1);
+
+    // The canonical shared match writer must reject both live and broken
+    // symlink substitutions before creating any stage/public run outside
+    // the authorized user root. An already published pair survives intact.
+    const auto moved_pairs = dir / "moved-multiplayer-runs";
+    const auto foreign_pairs = dir / "foreign-multiplayer-runs";
+    fs::create_directories(foreign_pairs);
+    fs::rename(multiplayer_root, moved_pairs);
+    fs::create_directory_symlink(foreign_pairs, multiplayer_root);
+    auto redirected_event = observed_2p;
+    redirected_event.first_race_host_frame = 540;
+    redirected_event.observed_result_host_frame = 544;
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &redirected_event, &p1, &p2));
+    assert(fs::is_empty(foreign_pairs));
+    fs::remove(multiplayer_root);
+    fs::create_directory_symlink(dir / "missing-multiplayer", multiplayer_root);
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &redirected_event, &p1, &p2));
+    assert(!fs::exists(dir / "missing-multiplayer"));
+    fs::remove(multiplayer_root);
+    fs::rename(moved_pairs, multiplayer_root);
+    assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() == 1);
+
+    // The inactive P2 SRAM is checked against the fully persisted typed
+    // profile, not against any guessed seat, original result or shared save.
+    {
+        auto wrong = opponent_sram;
+        wrong[0x20] ^= 0x44;
+        std::ofstream raw("saves/profile-rider-2/save.srm",
+                          std::ios::binary | std::ios::trunc);
+        assert(raw);
+        raw.write(reinterpret_cast<const char*>(wrong.data()), wrong.size());
+        assert(raw.good());
+    }
+    assert(!ur_baldosa_modern_profile_can_join_opponent(&p2));
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &redirected_event, &p1, &p2));
+    {
+        std::ofstream raw("saves/profile-rider-2/save.srm",
+                          std::ios::binary | std::ios::trunc);
+        assert(raw);
+        raw.write(reinterpret_cast<const char*>(opponent_sram.data()),
+                  opponent_sram.size());
+        assert(raw.good());
+    }
+    assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() == 1);
+
+    // Even a byte-identical off-root raw SRAM is not an authorized P2
+    // profile. Reject live and broken file symlinks BEFORE opening the
+    // canonical publisher leases, not merely after comparing their bytes.
+    const fs::path p2_raw = "saves/profile-rider-2/save.srm";
+    const fs::path p2_typed = "saves/profile-rider-2/host-profile.txt";
+    const fs::path parked_raw = dir / "parked-p2-raw.srm";
+    const fs::path parked_typed = dir / "parked-p2-typed.txt";
+    const fs::path foreign_raw = dir / "foreign-p2-raw.srm";
+    const fs::path foreign_typed = dir / "foreign-p2-typed.txt";
+    fs::copy_file(p2_raw, foreign_raw);
+    fs::copy_file(p2_typed, foreign_typed);
+    fs::rename(p2_raw, parked_raw);
+    fs::create_symlink(foreign_raw, p2_raw);
+    assert(!ur_baldosa_modern_profile_can_join_opponent(&p2));
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &redirected_event, &p1, &p2));
+    assert(fs::file_size(foreign_raw) == kStockSramBytes);
+    fs::remove(p2_raw);
+    fs::create_symlink(dir / "missing-p2-raw.srm", p2_raw);
+    assert(!ur_baldosa_modern_profile_can_join_opponent(&p2));
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &redirected_event, &p1, &p2));
+    assert(!fs::exists(dir / "missing-p2-raw.srm"));
+    fs::remove(p2_raw);
+    fs::rename(parked_raw, p2_raw);
+    assert(ur_baldosa_modern_profile_can_join_opponent(&p2));
+
+    fs::rename(p2_typed, parked_typed);
+    fs::create_symlink(foreign_typed, p2_typed);
+    assert(!ur_baldosa_modern_profile_can_join_opponent(&p2));
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &redirected_event, &p1, &p2));
+    fs::remove(p2_typed);
+    fs::create_symlink(dir / "missing-p2-typed.txt", p2_typed);
+    assert(!ur_baldosa_modern_profile_can_join_opponent(&p2));
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &redirected_event, &p1, &p2));
+    assert(!fs::exists(dir / "missing-p2-typed.txt"));
+    fs::remove(p2_typed);
+    fs::rename(parked_typed, p2_typed);
+    assert(ur_baldosa_modern_profile_can_join_opponent(&p2));
+    assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() == 1);
+
+    // A substituted P2 profile directory may NOT be used even to create
+    // an OS lockfile: redirecting the profile would escape the native
+    // user's original Modern save namespace before post-lock validation.
+    const fs::path second_dir = "saves/profile-rider-2";
+    const fs::path moved_second = dir / "moved-second-profile";
+    const fs::path redirected_second = dir / "outside-second-profile";
+    fs::create_directories(redirected_second);
+    fs::rename(second_dir, moved_second);
+    fs::create_directory_symlink(redirected_second, second_dir);
+    assert(!ur_baldosa_modern_profile_can_join_opponent(&p2));
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &redirected_event, &p1, &p2));
+    assert(fs::is_empty(redirected_second));
+    fs::remove(second_dir);
+    fs::create_directory_symlink(dir / "missing-second-profile", second_dir);
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &redirected_event, &p1, &p2));
+    assert(!fs::exists(dir / "missing-second-profile"));
+    fs::remove(second_dir);
+    fs::rename(moved_second, second_dir);
+    assert(ur_baldosa_modern_profile_can_join_opponent(&p2));
+    assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() == 1);
+
+    // An out-of-band profile identity change makes the confirmed P2
+    // catalog entry stale. No match may be minted against the old rider.
+    auto changed = *other_profile;
+    const auto new_identity = make_legacy_racer_identity(3);
+    assert(new_identity);
+    changed.racer_identity = *new_identity;
+    assert(save_host_profile_state_file(
+        ExecutionMode::Modern,
+        "saves/profile-rider-2/host-profile.txt", changed) ==
+        HostProfileSaveStatus::Saved);
+    auto new_event = observed_2p;
+    new_event.first_race_host_frame = 520;
+    new_event.observed_result_host_frame = 524;
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &new_event, &p1, &p2));
+    assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() == 1);
+    assert(save_host_profile_state_file(
+        ExecutionMode::Modern,
+        "saves/profile-rider-2/host-profile.txt", *other_profile) ==
+        HostProfileSaveStatus::Saved);
+    assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() == 1);
 
     // The original framework write MUST be preceded by a compatible typed
     // selection check under the canonical OS lock, retained until CAS.
@@ -284,6 +530,29 @@ int main() {
         assert(raw.good());
     }
     assert_raw_unchanged();
+
+    // Real canonical writer recovery: transient selector contention refuses
+    // the first attempt without creating a partial .urrun. The exact same
+    // source-settled event may succeed after lease release, but a third poll
+    // must not publish its result twice. The in-memory retry policy has its
+    // own timing/session test; this exercises the actual persistence seam.
+    bad_result = witnessed;
+    bad_result.first_race_host_frame = 400;
+    bad_result.observed_result_host_frame = 404;
+    const auto previous_runs = load_valid_run_records(run_root.string()).size();
+    {
+        TournamentLaunchPathLock blocked_selector(global_path, true);
+        assert(blocked_selector.acquired());
+        assert(!ur_baldosa_modern_publish_settled_one_player_run(&bad_result));
+        assert(load_valid_run_records(run_root.string()).size() ==
+               previous_runs);
+    }
+    assert(ur_baldosa_modern_publish_settled_one_player_run(&bad_result) == 1);
+    assert(load_valid_run_records(run_root.string()).size() ==
+           previous_runs + 1);
+    assert(!ur_baldosa_modern_publish_settled_one_player_run(&bad_result));
+    assert(load_valid_run_records(run_root.string()).size() ==
+           previous_runs + 1);
 
     // Failed upstream SRAM I/O must also release the selector lease.
     assert(ur_baldosa_modern_profile_before_native_save() == 1);

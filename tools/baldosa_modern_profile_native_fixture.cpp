@@ -9,6 +9,8 @@
 #include "host_profile_catalog.hpp"
 #include "host_profile_runtime.hpp"
 #include "completed_run_record.hpp"
+#include "multiplayer_match_record.hpp"
+#include "local_multiplayer_match_binding.hpp"
 
 #include <algorithm>
 #include <array>
@@ -191,12 +193,84 @@ static int seed_readonly_records_archive(
 }
 
 
+/* QA-only canonical historical 2P pair. The real native Windows Records
+ * path reads it but must never claim a guest-completed match. The incomplete
+ * run exercises fail-closed unavailable accounting on the same archive.
+ */
+static int seed_readonly_two_player_archive(
+    const std::filesystem::path& root, const std::string& id) {
+    namespace fs = std::filesystem;
+    using namespace ur::product;
+    using namespace ur::title;
+    if (!root.is_absolute() || !is_safe_profile_storage_id(id)) return 71;
+    const auto selected = load_host_product_state_file(
+        (root / "host-state-v1.txt").string());
+    const auto roster =
+        load_host_profile_catalog_file((root / "profiles-v1.txt").string());
+    const auto profile_root = resolve_host_profile_save_root(
+        ExecutionMode::Modern, std::optional<std::string>(id));
+    if (!selected.loaded() || selected.state->active_profile_id != id ||
+        !roster || !profile_root.isolated()) return 72;
+    const auto saved = load_host_profile_state_file(
+        ExecutionMode::Modern,
+        (root / profile_root.save_root / "host-profile.txt").string(), id);
+    if (!saved.loaded() ||
+        !profile_catalog_authorizes_state(*roster, *saved.state))
+        return 73;
+    auto opponent = make_legacy_racer_identity(1);
+    if (!opponent || !saved.state->racer_identity) return 74;
+    const auto directory = root / "multiplayer-runs";
+    std::error_code ec;
+    if (fs::exists(directory, ec) || ec ||
+        !fs::create_directories(directory, ec) || ec) return 75;
+
+    CompletedRunRecord run{};
+    run.provenance = {
+        "uniracers",
+        "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+        "fixture-historical-2p-not-played",
+        "course:01",
+        "race-2p",
+    };
+    run.elapsed_ticks60 = 1720;
+    run.frame_count = 200;
+    run.inputs = {{0, 200, 0x10u, 0x20u}};
+    OrdinaryTwoPlayerRaceResult source{};
+    source.player1_rider = saved.state->racer_identity->rider_index;
+    source.player2_rider = opponent->rider_index;
+    source.player1_hundredths = 2866;
+    source.player2_hundredths = 2977;
+    source.outcome = OrdinaryTwoPlayerRaceOutcome::Player1Win;
+    const auto bound = bind_local_multiplayer_match_context(
+        source,
+        HostProfileCatalogEntry{id, *saved.state->racer_identity},
+        HostProfileCatalogEntry{"historical-qa-opponent", *opponent},
+        UrUniracersCourseIdentity{1, 1});
+    if (!bound.bound()) return 76;
+    const auto pair = make_multiplayer_match_record(run, *bound.context);
+    if (!pair) return 77;
+    const auto valid_path = directory / "0001-match.urrun";
+    if (!save_completed_run_record_file(valid_path.string(), run) ||
+        !save_multiplayer_match_record_for_run(
+            valid_path.string(), run, *pair)) return 78;
+    // Deliberately incomplete second run: never invent match authority.
+    if (!save_completed_run_record_file(
+            (directory / "0002-incomplete.urrun").string(), run)) return 79;
+    std::printf(
+        "UR_BALDOSA_2P_RECORDS_FIXTURE selected=%s paired=1 unavailable=1 "
+        "scope=read_only_historical_not_played\n", id.c_str());
+    return 0;
+}
+
+
 int main(int argc, char** argv) {
     namespace fs = std::filesystem;
     using namespace ur::product;
     constexpr const char* kProfile = "native-ci-rider";
     if (argc == 4 && std::strcmp(argv[3], "--seed-readonly-records") == 0)
         return seed_readonly_records_archive(argv[1], argv[2]);
+    if (argc == 4 && std::strcmp(argv[3], "--seed-readonly-2p") == 0)
+        return seed_readonly_two_player_archive(argv[1], argv[2]);
     if (argc == 4 && std::strcmp(argv[3], "--verify-native-save") == 0)
         return verify_native_checkpoint(argv[1], argv[2]);
     if (argc == 4 && std::strcmp(argv[3], "--add-second") == 0)

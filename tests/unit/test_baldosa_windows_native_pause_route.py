@@ -12,6 +12,28 @@ import baldosa_windows_native_pause_route as probe
 
 
 class NativeWindowsPauseProbeTests(unittest.TestCase):
+    def test_native_records_physical_tab_navigation_order(self):
+        trace = (
+            "UR_BALDOSA_MODERN_ROOT records_page=1p\n"
+            "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=selected validated=1 unavailable=1\n"
+            "UR_BALDOSA_MODERN_ROOT records_page=2p\n"
+            "UR_BALDOSA_MODERN_ROOT records_page=1p\n"
+            "UR_BALDOSA_MODERN_ROOT records_closed=1\n"
+        )
+        self.assertIsNone(probe.verify_native_records_page_handoff(trace))
+        for bad in (
+            trace.replace("records_page=2p\n", ""),
+            trace.replace("records_page=2p\n",
+                          "records_page=2p\nrecords_page=2p\n"),
+            trace.replace("records_page=2p\n",
+                          "records_page=1p\n"),
+            trace.replace("records_closed=1\n",
+                          "records_closed=1\nrecords_page=2p\n"),
+        ):
+            with self.subTest(bad=bad[-150:]):
+                with self.assertRaisesRegex(ValueError, "Records 1P/2P"):
+                    probe.verify_native_records_page_handoff(bad)
+
     def test_modern_1p_2p_source_scripts_reach_go_without_selecting_stock_root(self):
         for players in (1, 2):
             with self.subTest(players=players):

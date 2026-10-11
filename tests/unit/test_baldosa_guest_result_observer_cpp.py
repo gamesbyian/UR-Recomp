@@ -43,7 +43,7 @@ class BaldosaGuestResultObserverTests(unittest.TestCase):
                 "PASS: source-backed Baldosa native result bridge",
                 executed.stdout)
 
-    def test_real_host_result_ownership_and_no_publisher(self):
+    def test_real_host_result_ownership_and_authorized_publication(self):
         source = (ROOT / "tools/baldosa_native_pause_lifecycle.cpp").read_text()
         root = (ROOT / "tools/baldosa_native_modern_root.cpp").read_text()
         observer = (PRODUCT / "baldosa_guest_result_observer.cpp").read_text()
@@ -56,7 +56,19 @@ class BaldosaGuestResultObserverTests(unittest.TestCase):
                                 source.index("void reconcile_after_native_restart() {"))]
         )
         self.assertIn("ur_baldosa_modern_root_guest_players()", source)
-        self.assertIn("published=0", source)
+        # A 2P outcome is not automatically published from the observer.
+        # Only the original root's acknowledged two-pad identity gate can
+        # hand the result to the existing canonical atomic pair writer.
+        self.assertIn("published=%d", source)
+        self.assertIn("ur_baldosa_modern_root_source_bound_2p_profiles(", source)
+        self.assertIn("ur_baldosa_modern_publish_settled_two_player_match(", source)
+        self.assertLess(
+            source.index("ur_baldosa_modern_root_source_bound_2p_profiles(",
+                         source.index("} else if (terminal->two_player)")),
+            source.index("ur_baldosa_modern_publish_settled_two_player_match(",
+                         source.index("} else if (terminal->two_player)")))
+        self.assertIn("g_two_seat_join.ready()", root)
+        self.assertIn("g_handed_off_players != 2u", root)
         self.assertIn("g_handed_off_players = static_cast<unsigned>(players);", root)
         self.assertIn("g_handed_off_players = 0;", root)
         self.assertIn("g_handed_off_saw_race = true;", root)

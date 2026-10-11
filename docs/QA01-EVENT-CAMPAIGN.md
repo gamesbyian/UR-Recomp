@@ -102,6 +102,16 @@ and native binaries are ephemeral CI build inputs; redistribute no ROM bytes.
 Only promote small durable, reviewed decision-bearing evidence to \`analysis/
 data/\` or the owning QA document. Run artifacts expire.
 
+## First full-run correction (2026-10-11)
+
+The first real dispatch, [run 38169094991](https://github.com/gamesbyian/UR-Recomp/actions/runs/38169094991), completed the shared build and all three case *jobs*, but **none produced a completed paired-event JSON**. Its aggregate was correctly red with three `producer_error` receipts, not three actual strict gameplay divergences:
+
+- Both Bowl and Switcher native calibration processes failed to load `libOpenGL.so.0` on the slimmer case runners. Case runners now install the required ELF runtime libraries and reject missing `ldd` dependencies before invoking any producer.
+- Zoom Zoo's independent 2014 original movie revealed the genuine 34-active-frame temporary course-ID=0 result handoff at source frames 8314–8347, restoring track 1 at 8348–8351 and entering the settled Circuit result at 8353. Its source selector previously permitted the equivalent narrowly attested terminal handoffs for Switcher and Bowl but rejected Zoom Zoo. The new *original-only* qualifier checks each exact boundary and stable `0xBC` result, with negative tests for shifts, foreign courses, bad return, prior active courses and unstable results. This does not alter native timing or the strict comparator.
+- Failed producers now fail the individual case job as well as the aggregate, with a bounded root-cause excerpt in each case receipt and summary. A genuine strict negative still means successfully completed research transport, not QA-01 acceptance.
+
+Run completion or green transport must not be inferred from three green job wrappers. A future dispatch is necessary to prove these repairs against real original/native binaries; do not claim that the failed first dispatch provided any complete paired-event evidence.
+
 ## Failure triage and extension
 
 When infrastructure is red, use the aggregate's first missing/invalid case,

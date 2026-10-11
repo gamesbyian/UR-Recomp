@@ -48,3 +48,7 @@ After the reopened Windows process restores the finished event and verifies byte
 ## Public release still needs separately recorded human authorization
 
 Even if every applicable gate is independently admitted, `candidate.release_decision=public_release` now additionally requires nonempty `candidate.release_approved_by` and timezone-aware `candidate.release_approved_at`, distinct from tests and individual gate-waiver reviews. The validator checks that the manual decision is explicitly present; it does **not** authenticate reviewer identity and it never grants permission to distribute proprietary ROMs. Physical test results, candidate pins, and owner/legal distribution decisions must be verified outside the bookkeeping validator.
+
+## Independent structured-evidence contract
+
+The existing shared `tools/evidence_contract.py` validator previously accepted an `outcome=accepted` JSON envelope with zero assertions, which is not affirmative proof, and could throw on nonstring outcomes. It now requires at least one actual passing assertion for accepted status, validates timezone-aware generation instants, rejects malformed schema-version/outcome/metrics scalars cleanly, and updates the existing JSON schema to constrain an accepted envelope to nonempty assertions. These are structural controls on a **declared** result, not remote log authentication or automatic conversion to L4/L5 release acceptance.

@@ -31,6 +31,50 @@ class EvidenceContractTest(unittest.TestCase):
             validate_envelope(envelope),
         )
 
+    def test_empty_or_malformed_accepted_envelopes_fail_closed(self):
+        base = make_envelope(
+            evidence_type="unit-demo", producer="test",
+            subject={}, inputs={},
+            assertions=[assertion("proof", True)],
+        )
+        base["assertions"] = []
+        self.assertIn("accepted evidence must contain a passing assertion",
+                      validate_envelope(base))
+        with self.assertRaisesRegex(ValueError, "accepted evidence must contain"):
+            make_envelope(evidence_type="unit-demo", producer="test",
+                          subject={}, inputs={}, assertions=[], outcome="accepted")
+        base["assertions"] = [{"name": "proof", "passed": True}]
+        for malformed in ([], {}, 123, False, None):
+            with self.subTest(outcome=malformed):
+                base["outcome"] = malformed
+                self.assertTrue(any("outcome must be one of" in x
+                                    for x in validate_envelope(base)))
+        base["outcome"] = "accepted"
+        base["schema_version"] = True
+        self.assertIn("schema_version must be 1", validate_envelope(base))
+
+    def test_timestamp_is_an_actual_timezone_aware_instant(self):
+        envelope = make_envelope(
+            evidence_type="unit-demo", producer="test",
+            subject={}, inputs={}, assertions=[assertion("proof", True)],
+        )
+        for instant in ("yesterday", "2026-10-11", "2026-10-11T16:30:00",
+                        "2026-99-99T12:00:00Z", [], None):
+            with self.subTest(instant=instant):
+                envelope["provenance"]["generated_at_utc"] = instant
+                self.assertTrue(any("timezone-aware instant" in x
+                                    for x in validate_envelope(envelope)))
+        envelope["provenance"]["generated_at_utc"] = "2026-10-11T16:30:00Z"
+        self.assertEqual(validate_envelope(envelope), [])
+
+    def test_metrics_must_match_documented_schema_when_present(self):
+        envelope = make_envelope(
+            evidence_type="unit-demo", producer="test",
+            subject={}, inputs={}, assertions=[assertion("proof", True)],
+        )
+        envelope["metrics"] = "not-an-object"
+        self.assertIn("metrics must be an object", validate_envelope(envelope))
+
     def test_duplicate_assertion_names_fail(self):
         envelope = make_envelope(
             evidence_type="unit-demo",

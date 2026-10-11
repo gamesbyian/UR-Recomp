@@ -4,7 +4,9 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
-      - ".github/ci/modern-native-*.txt"
+      - ".github/ci/modern-native-onboarding-paths.txt"
+      - ".github/ci/modern-native-shared-paths.txt"
+      - ".github/ci/modern-native-ui-paths.txt"
       - ".github/workflows/modern-native-heavy-router.yml"
       - ".github/workflows/modern-onboarding-practice-acceptance.yml"
       - ".github/workflows/modern-shared-native-acceptance.yml"
@@ -218,7 +220,7 @@ jobs:
 
   build:
     needs: classify
-    if: needs.classify.outputs.shared == 'true' && needs.classify.outputs.onboarding == 'true' && needs.classify.outputs.ui == 'true'
+    if: (needs.classify.outputs.shared == 'true' && needs.classify.outputs.onboarding == 'true') || (needs.classify.outputs.shared == 'true' && needs.classify.outputs.ui == 'true') || (needs.classify.outputs.onboarding == 'true' && needs.classify.outputs.ui == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

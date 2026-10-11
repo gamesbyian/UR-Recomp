@@ -883,6 +883,15 @@ def run_pinned_baldosa(work: Path, args, script: Path,
             env["UR_QA_SCENE_INPUT_FILE"] = str(input_file)
         else:
             env.pop("UR_QA_SCENE_INPUT_FILE", None)
+        # QA-01 optional native WRAM-read observer: isolate calibration and
+        # genuine replay processes so a calibration trace cannot impersonate
+        # a terminal-result reader. Never enable for generic event probes.
+        if os.environ.get("UR_QA_NATIVE_STACK_READ_ENABLE") == "1" and script.name == "complete.script":
+            read_path = output / "qa01-native-01dd-reads.log"
+            read_path.touch()
+            env["UR_QA_NATIVE_STACK_READ_PATH"] = str(read_path)
+        else:
+            env.pop("UR_QA_NATIVE_STACK_READ_PATH", None)
         proc = subprocess.run(
             ["xvfb-run", "-a", str(args.native),
              "--no-launcher", "--config", str(config),

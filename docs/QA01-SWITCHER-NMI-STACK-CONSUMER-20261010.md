@@ -18,9 +18,9 @@ Next prove whether original saved bytes are actually consumed, establish that re
 
 ## New optional original-only tooling
 
-- tools/qa01_original_nmi_stack_pull_patch.py inserts a narrowly gated **read-only** architectural pull-scope logger around the single original Snes9x opcode dispatch. It requires the existing Switcher stack/NMI observer and full-accumulator PHA observer installed first into a **disposable** snes9x-libretro/cpuexec.cpp. It observes only PLA, PLX, PLY, PLD, PLB, PLP when their pre-opcode S and actual M/X width imply stack reads touching 01DD or 01DE. Each QANMIPULL row contains original CPU frame, V-counter, opcode PC, P/A, SP movement and pre-opcode bytes.
+- tools/qa01_original_nmi_stack_pull_patch.py inserts a narrowly gated **read-only** architectural pull-scope logger around the single original Snes9x opcode dispatch. It requires the existing Switcher stack/NMI observer and full-accumulator PHA observer installed first into a **disposable** snes9x-libretro/cpuexec.cpp. It observes only PLA, PLX, PLY, PLD, PLB, PLP when their pre-opcode S and actual M/X width imply stack reads touching 01DD or 01DE. Each QANMIPULL row contains original CPU frame, V-counter, opcode PC, P/A, SP movement and pre-opcode bytes. The same gated opcode observer now also records candidate RTI scopes as QANMIRTI with handler PC, actual resumed guest PC/bank, pre/post A/P/S, PPU V-counter and CPU cycles. An RTI alone is not classified as an NMI: original IRQ/BRK exits can use the same instruction.
 - tools/qa01_original_nmi_stack_pull_report.py validates the existing actual five-NMI/01DD-PHA source witness **before** accepting any QANMIPULL candidate. It enforces original CPU-frame 5778..5782, finite event budget, chronological order, opcode width, stack-pointer delta, and exact target-byte coverage. A PLA candidate must also restore the observed target byte(s) into the corresponding low/high accumulator position, preserving B on 8-bit PLA. It rejects malformed lines and returns 0/45 release credit. A zero-pull capture is a **bounded negative**, never a claim that no consumers exist.
-- tests/unit/test_qa01_original_nmi_stack_pull.py supplies synthetic positive, zero and adversarial cases, plus read-only/one-opcode-dispatch patch checks. **Synthetic fixtures are not source-executed evidence.**
+- tests/unit/test_qa01_original_nmi_stack_pull.py supplies synthetic positive, zero and adversarial cases for pull and RTI, plus read-only/one-opcode-dispatch patch checks. **Synthetic fixtures are not source-executed evidence.**
 
 ### Existing-route reproduction
 
@@ -34,7 +34,7 @@ Set UR_QA_STACK_FIRST=5778 and UR_QA_STACK_LAST=5782 on the fresh original CPU-f
 
     python3 tools/qa01_original_nmi_stack_pull_report.py --original-log ORIGINAL_LOG --paired-report PAIRED_REPORT --out PULL_REPORT.json
 
-The parser checks original source NMI/stack-writing evidence and existing original/native paired provenance; compare any positive pull with native I_NMI writer sequence at a common CPU/beam phase. **No execution is claimed by this PR.**
+The parser also rejects impossible 3/4-byte RTI stack restores, A mutations or invalid resumed guest PC banks; a same-CPU-frame saved-A/RTI-A comparison is explicitly only a candidate correlation. The parser checks original source NMI/stack-writing evidence and existing original/native paired provenance; compare any positive pull with native I_NMI writer sequence at a common CPU/beam phase. **No execution is claimed by this PR.**
 
 Architectural pull-class logging does not cover RTI/RTS/RTL, indirect/direct memory reads, or reads outside the short window. Even a positive stack pull proves only a candidate address read, not a score/progression effect. A zero count leaves those other mechanisms open. Do not change the strict comparator or shift original/native controller inputs.
 

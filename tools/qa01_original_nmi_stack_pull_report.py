@@ -9,6 +9,7 @@ bounded negative, not proof no instruction read the addresses.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -343,10 +344,12 @@ def main() -> int:
     parser.add_argument("--paired-report", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
-    paired = json.loads(args.paired_report.read_text(encoding="utf-8"))
+    paired_bytes = args.paired_report.read_bytes()
+    paired = json.loads(paired_bytes.decode("utf-8"))
     authenticated = original.verify_original_native_pair(paired)
     result = summarize(args.original_log.read_text(encoding="utf-8"))
     result["independently_authenticated_original_native_pair"] = authenticated
+    result["paired_report_bytes_sha256"] = hashlib.sha256(paired_bytes).hexdigest()
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps({

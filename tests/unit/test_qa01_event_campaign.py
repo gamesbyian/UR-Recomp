@@ -149,6 +149,27 @@ class QA01CampaignTest(unittest.TestCase):
                      {"case": "injected"})
         self.assertFalse(c.aggregate(plan, out)[0]["transport_complete"])
 
+    def test_cross_shard_emulator_identity_must_match(self):
+        plan = self.plan("all")
+        out = self.root / "results"
+        for case in ("zoom-zoo", "bowl", "switcher"):
+            target = out / ("qa01-campaign-case-" + case) / "case-result.json"
+            c.write_json(target, c.classify(
+                case, 1, self.report_file(case), plan))
+        self.assertTrue(c.aggregate(plan, out)[0]["transport_complete"])
+        target = out/"qa01-campaign-case-switcher"/"case-result.json"
+        record = json.loads(target.read_text())
+        record["evidence"]["native_sha256"] = "f" * 64
+        c.write_json(target, record)
+        summary, _ = c.aggregate(plan, out)
+        self.assertFalse(summary["transport_complete"])
+        self.assertEqual(summary["counts"]["missing_evidence"], 1)
+        self.assertIn("identity mismatch", summary["results"][-1]["reason"])
+        record["evidence"]["native_sha256"] = "a" * 64
+        record["evidence"]["strict_candidate"] = True
+        c.write_json(target, record)
+        self.assertFalse(c.aggregate(plan, out)[0]["transport_complete"])
+
     def test_cli_aggregate_exit_status_and_plan_roundtrip(self):
         plan = self.plan("bowl")
         plan_path = self.root / "plan.json"

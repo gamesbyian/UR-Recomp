@@ -39,12 +39,12 @@ def approvals():
                            "artifact": ledger["review_basis"]["artifact_id"]}
     return result
 
-def load_pair(spec, approved):
+def load_pair(spec, approved, base):
     key = spec["representation_id"]
     if key not in approved:
         raise ValueError(f"Unapproved representation: {key}")
-    stock_path = Path(spec["stock_png"]).resolve()
-    authored_path = Path(spec["authored_png"]).resolve()
+    stock_path = (base / spec["stock_png"]).resolve()
+    authored_path = (base / spec["authored_png"]).resolve()
     stock = Image.open(stock_path).convert("RGBA")
     authored = Image.open(authored_path).convert("RGBA")
     if stock.size != (64,64) or authored.size != (256,256):
@@ -58,10 +58,10 @@ def load_pair(spec, approved):
         raise ValueError("Empty source artwork")
     return stock, authored, {
         **approved[key], "representation_id": key, "guest_frame": spec.get("frame"),
-        "stock_png": str(stock_path), "stock_file_sha256": sha(stock_path.read_bytes()),
+        "stock_png": spec["stock_png"], "stock_file_sha256": sha(stock_path.read_bytes()),
         "stock_rgba_sha256": sha(stock.tobytes()),
         "stock_source": spec["stock_source"], "stock_evidence": spec["stock_evidence"],
-        "authored_png": str(authored_path),
+        "authored_png": spec["authored_png"],
         "authored_file_sha256": sha(authored_path.read_bytes()),
         "authored_rgba_sha256": digest,
     }
@@ -197,7 +197,7 @@ def main():
     if not shutil.which("ffmpeg"):
         raise SystemExit("FFmpeg required")
     spec=json.loads(a.manifest.read_text())
-    pairs=[load_pair(x,approvals()) for x in spec["frames"]]
+    approved=approvals()\n    pairs=[load_pair(x,approved,a.manifest.resolve().parent) for x in spec["frames"]]
     if len(pairs)<2:
         raise ValueError("Need >=2 verified ordered poses for animation archaeology")
     a.output.mkdir(parents=True,exist_ok=True)

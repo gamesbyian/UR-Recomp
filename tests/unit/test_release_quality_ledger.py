@@ -165,7 +165,38 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
         gate["waiver_reason"] = "Documented limited-scope exception"
         gate["waiver_approved_by"] = "QA reviewer"
         gate["waiver_approved_at"] = "2026-10-10T20:00:00Z"
+        errors = validator.check_registry(data, ROOT)
+        self.assertTrue(any("waiver not tied to exact candidate" in x for x in errors))
+        gate["waiver_zip_sha256"] = "b" * 64
         self.assertEqual(validator.check_registry(data, ROOT), [])
+
+    def test_waiver_cannot_silently_survive_candidate_replacement(self):
+        data = baseline()
+        data["candidate"]["commit_sha"] = "a" * 40
+        data["candidate"]["zip_sha256"] = "b" * 64
+        gate = data["gates"][0]
+        gate["status"] = "waived"
+        gate["candidate_commit"] = "a" * 40
+        gate["waiver_zip_sha256"] = "b" * 64
+        gate["waiver_reason"] = "Only this particular limited release"
+        gate["waiver_approved_by"] = "QA reviewer"
+        gate["waiver_approved_at"] = "2026-10-10T20:00:00Z"
+        self.assertEqual(validator.check_registry(data, ROOT), [])
+        data["candidate"]["zip_sha256"] = "c" * 64
+        self.assertTrue(any("waiver not tied to exact candidate" in x
+                            for x in validator.check_registry(data, ROOT)))
+        data["candidate"]["zip_sha256"] = "b" * 64
+        data["candidate"]["commit_sha"] = "d" * 40
+        self.assertTrue(any("waiver not tied to exact candidate" in x
+                            for x in validator.check_registry(data, ROOT)))
+
+    def test_malformed_beta_gate_status_must_report_not_raise(self):
+        data = baseline()
+        data["candidate"]["release_decision"] = "beta"
+        data["gates"][0]["status"] = ["waived"]
+        errors = validator.check_registry(data, ROOT)
+        self.assertTrue(any("invalid status" in x for x in errors))
+        self.assertTrue(any("release decision with unresolved gates" in x for x in errors))
 
     def test_malformed_scalar_types_report_errors_instead_of_crashing(self):
         data = baseline()

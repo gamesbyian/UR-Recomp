@@ -126,6 +126,8 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
         if status == "passed" and minimum == "L5" and physical is not True:
             errors.append(f"{name} L5 pass without physical hardware verification")
         if status == "waived":
+            if not commit or not artifact or gate.get("candidate_commit") != commit or gate.get("waiver_zip_sha256") != artifact:
+                errors.append(f"{name} waiver not tied to exact candidate commit and ZIP")
             if not isinstance(gate.get("waiver_reason"), str) or not gate["waiver_reason"].strip():
                 errors.append(f"{name} waiver needs explicit rationale")
             if not isinstance(gate.get("waiver_approved_by"), str) or not gate["waiver_approved_by"].strip():
@@ -167,8 +169,11 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
     if extra:
         errors.append("unexpected gate IDs: " + ", ".join(sorted(extra)))
     if isinstance(decision, str) and decision in {"beta", "release_candidate", "public_release"}:
-        incomplete = [g.get("id", "?") for g in gates
-                      if not isinstance(g, dict) or g.get("status") not in {"passed", "waived"}]
+        incomplete = [g.get("id", "?") if isinstance(g, dict) else "?"
+                      for g in gates
+                      if not isinstance(g, dict)
+                      or not isinstance(g.get("status"), str)
+                      or g["status"] not in {"passed", "waived"}]
         if incomplete:
             errors.append("release decision with unresolved gates: " + ", ".join(incomplete))
         if not candidate.get("physical_hardware_verified"):

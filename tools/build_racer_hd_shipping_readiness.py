@@ -193,7 +193,15 @@ def build_shipping_readiness(
         "family_blockers": family_blockers,
         "unique_pose_count": len(poses),
         "counts": counts,
+        # The old hash-bound pose review predates the owner's 2026-10-10
+        # character-identity veto. Its shipping_ready field remains a legacy
+        # *technical* fixture contract, including old CLI acceptance jobs.
+        # It cannot clear present-day Remastered likeness or release approval.
+        "legacy_pose_art_technical_ready": shipping_ready,
         "shipping_ready": shipping_ready,
+        "current_character_likeness_approved": False,
+        "current_visual_remastered_shipping_ready": False,
+        "current_visual_review_status": "owner-veto-2026-10-10-needs-new-explicit-likeness-signoff",
         "poses": poses,
         "rule": (
             "Shipping-art approval is owned once per unique byte-identical visual pose "
@@ -214,7 +222,10 @@ def main() -> int:
         default=Path("analysis/data/racer-hd-art-approval.json"),
     )
     parser.add_argument("--out", type=Path)
-    parser.add_argument("--require-shipping-ready", action="store_true")
+    parser.add_argument("--require-shipping-ready", action="store_true",
+                        help="Legacy hash/pose technical readiness only; NOT current likeness sign-off")
+    parser.add_argument("--require-current-visual-ready", action="store_true",
+                        help="Fail closed until explicit owner likeness re-approval is implemented")
     args = parser.parse_args()
 
     result = build_shipping_readiness(
@@ -227,6 +238,8 @@ def main() -> int:
         args.out.write_text(rendered, encoding="utf-8")
     print(rendered, end="")
     if args.require_shipping_ready and not result["shipping_ready"]:
+        return 2
+    if args.require_current_visual_ready and not result["current_visual_remastered_shipping_ready"]:
         return 2
     return 0
 

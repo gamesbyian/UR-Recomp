@@ -126,6 +126,26 @@ class RacerHdShippingReadinessTest(unittest.TestCase):
         self.assertTrue(result["shipping_ready"])
         self.assertEqual(result["counts"]["approved"], 2)
 
+    def test_historic_hash_ready_is_not_current_owner_likeness_signoff(self):
+        # The old exact-reviewed procedural strip remains an important
+        # technical control, but the 2026-10-10 visual veto supersedes it.
+        result = build_shipping_readiness(
+            self.equivalence(),
+            self.decisions(a="approved", c="approved"),
+        )
+        self.assertTrue(result["shipping_ready"])  # Historic only.
+        self.assertTrue(result["legacy_pose_art_technical_ready"])
+        self.assertFalse(result["current_character_likeness_approved"])
+        self.assertFalse(result["current_visual_remastered_shipping_ready"])
+        self.assertIn("owner-veto-2026-10-10", result["current_visual_review_status"])
+
+    def test_unapproved_historic_family_is_not_current_art_either(self):
+        result = build_shipping_readiness(
+            self.equivalence(), self.decisions(a="needs-refinement"),
+        )
+        self.assertFalse(result["legacy_pose_art_technical_ready"])
+        self.assertFalse(result["current_visual_remastered_shipping_ready"])
+
     def test_family_blocker_prevents_shipping_even_when_every_pose_is_approved(self):
         result = build_shipping_readiness(
             self.equivalence(),

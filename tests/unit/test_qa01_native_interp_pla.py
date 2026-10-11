@@ -220,7 +220,7 @@ class NativeInterpreterPlaTests(unittest.TestCase):
         text = generated.read_text(encoding="utf-8")
         start = "RecompReturn I_NMI_M1X1(CpuState *cpu) {"
         self.assertEqual(text.count(start), 1)
-        segment = text.split(start, 1)[1].split("\\nRecompReturn ", 1)[0]
+        segment = text.split(start, 1)[1].split("\nRecompReturn ", 1)[0]
         self.assertIn("CPU_STACK_OP_PHA", segment)
         self.assertEqual(segment.count("CPU_STACK_OP_PHA"), 2)
         self.assertNotIn("CPU_STACK_OP_PLA", segment)

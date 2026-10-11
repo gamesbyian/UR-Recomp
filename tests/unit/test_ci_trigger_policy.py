@@ -264,10 +264,17 @@ class CiTriggerPolicyTest(unittest.TestCase):
             "uses: ./.github/workflows/native-ui-evidence.yml",
             text,
         )
-        self.assertIn(
-            "needs.classify.outputs.shared == 'true' && needs.classify.outputs.onboarding == 'true' && needs.classify.outputs.ui == 'true'",
-            text,
-        )
+        # Shared compilation is justified for any two selected suites.
+        # A single suite keeps its own build, avoiding needless upload hops.
+        for pair in (
+            ("shared", "onboarding"),
+            ("shared", "ui"),
+            ("onboarding", "ui"),
+        ):
+            self.assertIn(
+                f"needs.classify.outputs.{pair[0]} == 'true' && needs.classify.outputs.{pair[1]} == 'true'",
+                text,
+            )
         self.assertEqual(
             text.count("canonical_candidate: ${{ needs.build.result == 'success' }}"),
             3,

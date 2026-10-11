@@ -106,3 +106,46 @@ Human review after a coherent multiview canonical rig and game-scale
 two-pose sequence remains mandatory. Historic
 `analysis/data/racer-hd-art-approval*.json` hashes are preserved as
 prior technical evidence; they do not override the current art veto.
+
+
+## Source-grounded 1P silhouette identity observation (original PPU)
+
+As a complementary **pixel-exact sprite observation**, use
+`tools/export_native_racer_obj_source_reference.py` to obtain lossless
+source silhouettes and original alpha row/column profiles, then compare the
+two independently isolated PPU planes with:
+
+```sh
+python3 tools/art/compare_native_1p_silhouettes.py \
+  --source98 path/to/baldosa-ws342-live-1p-slot98/ur-baldosa-ws342-obj-slot98-frame002208.pam \
+  --source99 path/to/baldosa-ws342-live-1p-slot99/ur-baldosa-ws342-obj-slot99-frame002208.pam \
+  --validated-report path/to/baldosa-evidence/ws342_live_1p_top_slot98_99_source.json \
+  --out path/to/source-alpha-comparison.json
+```
+
+The recovered genuine five-process native AOT evidence
+[`38097914195`](https://github.com/gamesbyian/UR-Recomp/actions/runs/38097914195),
+artifact `11686843233`, produces the committed numerical digest
+[`qa08-live-1p-source-alpha-alignment-2208.json`](../analysis/data/qa08-live-1p-source-alpha-alignment-2208.json).
+It proves a narrowly useful thing for character reconstruction: in one
+original one-player post-GO source image, the two 98/99 PPU alpha silhouettes
+have **16 consecutive identical nonempty raster rows, y128 through143,
+after an explicit left-edge X translation**. Their upper-source rows do not
+share this exact profile, and their original whole-source bounding boxes
+differ: slot98 `[101,121,132,143]` (285 pixels) versus slot99
+`[36,120,71,143]` (293 pixels). This is excellent repeatable control
+for preserving the source's shared lower silhouette geometry when
+rebuilding a canonical articulated model. It **does not** identify that
+lower area anatomically as a specific mesh, establish the 1994 3D geometry
+or prove either source pixel owns the final PPU output. Distinct RGB values
+and possible palette identity changes do not affect the binary alpha
+comparison.
+
+The 16-row measurement is genuine ROM-era sprite-image geometry, not a
+validated wheel diameter or saddle width/height. Do not mix its bbox
+normalization with manually marked artist/packaging landmarks as though
+the cameras and perspectives match. Both original source planes and their
+native validation logs remain in the referenced external artifact; the
+committed JSON retains only numeric measurements and hashes, no proprietary
+ROM-derived sprite image bytes. The experiment **does not** approve the
+old procedural character, any new 4× geometry or Widescreen replacement.

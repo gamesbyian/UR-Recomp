@@ -1,0 +1,212 @@
+"""Synthetic tests for QA-01 campaign transport. No emulation or QA admission."""
+from __future__ import annotations
+
+import json
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "tools"))
+import qa01_event_campaign as c
+
+
+def producer(case: str, *, matched: bool = False) -> dict:
+    original = 5163
+    native = original if matched else original - 1
+    return {
+        "schema_version": 1,
+        "name": case,
+        "course_id": c.CASES[case]["course_id"],
+        "family": c.CASES[case]["family"],
+        "native_backend": "pinned-baldosa",
+        "admission": "investigative candidate; not a release-ledger pass",
+        "original_source_event": {"source_active_frames_to_result": original},
+        "comparison": {
+            "paired_event_candidate": matched,
+            "terminal_result_frame_matched": matched,
+            "terminal_result_guest_frame": {
+                "reference_relative": original,
+                "native_relative": native,
+            },
+            "first_sample_disagreement": None if matched else {"relative_frame": 100},
+            "diagnostic_exit_success_without_full_event_parity": False,
+        },
+        **{key: "a" * 64 for key in (
+            "rom_sha256", "original_movie_sha256",
+            "native_executable_sha256", "reference_core_sha256",
+            "input_sha256", "source_sram_sha256")},
+    }
+
+
+class QA01CampaignTest(unittest.TestCase):
+    SHA = "b" * 40
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+
+    def plan(self, selection="all"):
+        return c.make_plan(selection, self.SHA)
+
+    def report_file(self, case="bowl", *, matched=False):
+        path = self.root / "producer.json"
+        c.write_json(path, producer(case, matched=matched))
+        return path
+
+    def test_plan_is_allowlisted_bounded_and_sha_bound(self):
+        plan = self.plan()
+        self.assertEqual([r["id"] for r in plan["cases"]],
+                         ["zoom-zoo", "bowl", "switcher"])
+        self.assertEqual(len(plan["matrix"]["include"]), 3)
+        c.validate_plan(plan)
+        self.assertEqual(len(self.plan("switcher")["cases"]), 1)
+        for selection in ("45", "race", "../bowl", ""):
+            with self.assertRaises(ValueError):
+                self.plan(selection)
+        for bad_sha in ("a" * 39, "A" * 40, "g" * 40):
+            with self.assertRaises(ValueError):
+                c.make_plan("all", bad_sha)
+        corrupt = dict(plan, plan_sha256="0" * 64)
+        with self.assertRaises(ValueError):
+            c.validate_plan(corrupt)
+
+    def test_negative_strict_comparison_remains_negative_even_diagnostic_success(self):
+        plan = self.plan("bowl")
+        path = self.report_file()
+        result = c.classify("bowl", 1, path, plan)
+        self.assertEqual(result["disposition"], "strict_divergence")
+        self.assertEqual(result["release_credit"], 0)
+        record = producer("bowl")
+        record["comparison"]["diagnostic_exit_success_without_full_event_parity"] = True
+        c.write_json(path, record)
+        diagnostic = c.classify("bowl", 0, path, plan)
+        self.assertEqual(diagnostic["disposition"], "strict_divergence")
+        self.assertEqual(diagnostic["release_credit"], 0)
+
+    def test_strict_candidate_requires_consistent_complete_producer_evidence(self):
+        plan = self.plan("bowl")
+        path = self.report_file(matched=True)
+        result = c.classify("bowl", 0, path, plan)
+        self.assertEqual(result["disposition"], "strict_candidate")
+        self.assertEqual(result["release_credit"], 0)
+        self.assertIn("NOT", result["reason"])
+        self.assertRegex(result["evidence"]["producer_sha256"], r"^[0-9a-f]{64}$")
+        failed = c.classify("bowl", 1, path, plan)
+        self.assertEqual(failed["disposition"], "producer_error")
+
+    def test_invalid_identity_provenance_or_frame_is_not_scientific_negative(self):
+        plan = self.plan("bowl")
+        path = self.report_file()
+        for change in (
+            {"name": "switcher"},
+            {"native_backend": "legacy"},
+            {"rom_sha256": "not-a-hash"},
+            {"admission": "accepted"},
+            {"course_id": "course:04"},
+        ):
+            bad = {**producer("bowl"), **change}
+            c.write_json(path, bad)
+            self.assertEqual(c.classify("bowl", 1, path, plan)["disposition"],
+                             "producer_error")
+        bad = producer("bowl")
+        bad["comparison"]["terminal_result_frame_matched"] = True
+        c.write_json(path, bad)
+        self.assertEqual(c.classify("bowl", 1, path, plan)["disposition"],
+                         "producer_error")
+        self.assertEqual(c.classify("bowl", 124, self.root/"absent.json", plan)[
+                         "disposition"], "producer_error")
+
+    def test_aggregate_accounting_detects_missing_and_bad_foreign_artifacts(self):
+        plan = self.plan("all")
+        out = self.root / "results"
+        for case in ("bowl", "zoom-zoo"):
+            target = out / ("qa01-campaign-case-" + case) / "case-result.json"
+            c.write_json(target, c.classify(
+                case, 1, self.report_file(case), plan))
+        aggregate, markdown = c.aggregate(plan, out)
+        self.assertEqual(aggregate["completed"], 2)
+        self.assertEqual(aggregate["counts"]["missing_evidence"], 1)
+        self.assertFalse(aggregate["transport_complete"])
+        self.assertEqual(aggregate["release_admissions"], 0)
+        self.assertIn("switcher", markdown)
+        target = out / "qa01-campaign-case-switcher" / "case-result.json"
+        c.write_json(target, c.classify(
+            "switcher", 1, self.report_file("switcher"), plan))
+        aggregate, _ = c.aggregate(plan, out)
+        self.assertTrue(aggregate["transport_complete"])
+        self.assertEqual(aggregate["counts"]["strict_divergence"], 3)
+        spoofed = json.loads(target.read_text())
+        spoofed["plan_sha256"] = "0" * 64
+        c.write_json(target, spoofed)
+        self.assertFalse(c.aggregate(plan, out)[0]["transport_complete"])
+        c.write_json(target, c.classify(
+            "switcher", 1, self.report_file("switcher"), plan))
+        c.write_json(out/"qa01-campaign-case-injected"/"case-result.json",
+                     {"case": "injected"})
+        self.assertFalse(c.aggregate(plan, out)[0]["transport_complete"])
+
+    def test_cross_shard_emulator_identity_must_match(self):
+        plan = self.plan("all")
+        out = self.root / "results"
+        for case in ("zoom-zoo", "bowl", "switcher"):
+            target = out / ("qa01-campaign-case-" + case) / "case-result.json"
+            c.write_json(target, c.classify(
+                case, 1, self.report_file(case), plan))
+        self.assertTrue(c.aggregate(plan, out)[0]["transport_complete"])
+        target = out/"qa01-campaign-case-switcher"/"case-result.json"
+        record = json.loads(target.read_text())
+        record["evidence"]["native_sha256"] = "f" * 64
+        c.write_json(target, record)
+        summary, _ = c.aggregate(plan, out)
+        self.assertFalse(summary["transport_complete"])
+        self.assertEqual(summary["counts"]["missing_evidence"], 1)
+        self.assertIn("identity mismatch", summary["results"][-1]["reason"])
+        record["evidence"]["native_sha256"] = "a" * 64
+        record["evidence"]["strict_candidate"] = True
+        c.write_json(target, record)
+        self.assertFalse(c.aggregate(plan, out)[0]["transport_complete"])
+
+    def test_cli_aggregate_exit_status_and_plan_roundtrip(self):
+        plan = self.plan("bowl")
+        plan_path = self.root / "plan.json"
+        result_path = self.root / "aggregate.json"
+        summary_path = self.root / "summary.md"
+        c.write_json(plan_path, plan)
+        args = [sys.executable, str(ROOT/"tools/qa01_event_campaign.py"),
+                "aggregate", "--plan", str(plan_path),
+                "--results-dir", str(self.root/"evidence"),
+                "--out", str(result_path), "--summary", str(summary_path)]
+        fail = subprocess.run(args, capture_output=True, text=True)
+        self.assertEqual(fail.returncode, 1, fail.stderr)
+        self.assertEqual(json.loads(result_path.read_text())["release_admissions"], 0)
+        case_path = self.root/"evidence"/"qa01-campaign-case-bowl"/"case-result.json"
+        c.write_json(case_path, c.classify(
+            "bowl", 1, self.report_file("bowl"), plan))
+        passed = subprocess.run(args, capture_output=True, text=True)
+        self.assertEqual(passed.returncode, 0, passed.stderr)
+        self.assertIn("strict_divergence", summary_path.read_text())
+
+    def test_workflow_stays_manual_small_and_one_build(self):
+        workflow = (ROOT/".github/workflows/qa01-event-campaign.yml").read_text()
+        header = workflow.split("\njobs:", 1)[0]
+        self.assertIn("workflow_dispatch:", header)
+        self.assertNotIn("\n  push:", header)
+        self.assertNotIn("\n  pull_request:", header)
+        self.assertNotIn("\n  schedule:", header)
+        self.assertIn("cancel-in-progress: false", header)
+        self.assertIn("fail-fast: false", workflow)
+        self.assertIn("max-parallel: 2", workflow)
+        self.assertIn("timeout-minutes: 90", workflow)
+        self.assertEqual(workflow.count("cmake --build baldosa/build"), 1)
+        self.assertEqual(workflow.count("bootstrap_toolchain.py --offline --tool snes9x-libretro"), 1)
+        self.assertIn("tools/probe_original_event_complete.py", workflow)
+        self.assertIn("tools/qa01_event_campaign.py aggregate", workflow)
+        self.assertNotIn("contents: write", workflow)
+
+
+if __name__ == "__main__":
+    unittest.main()

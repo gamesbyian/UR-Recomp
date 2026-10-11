@@ -9,12 +9,12 @@ The full 58-second / 3480-frame horizontal 1920×1080 60-fps plan:
 | 00:00–00:04 | Verified native original title, 240 consecutive guest frames | Original stock title |
 | 00:04–00:14 | Verified native Modern root + original menu handoff, 600 frames | Real Modern frontend |
 | 00:14–00:21 | Accepted independently reviewed native 2P moving reveal | Genuine 342-wide Original world behind animated side mattes |
-| 00:21–00:26 | Accepted same-capture Original-centre/full-world comparison | **Editorial crop; not two WRAM-matched executions** |
-| 00:26–00:32 | Agent 2 accepted technical film | Clearly labeled editorial engineering visualization |
-| 00:32–00:38 | Agent 3 accepted approved-art comparison | Approved 4× limited-pose work only |
-| 00:38–00:43 | Agent 3 accepted animation archaeology | Editorial explanation, no new gameplay frames |
-| 00:43–00:53 | Verified real 600 consecutive native 2P race frames | Actual Original source-backed widescreen play |
-| 00:53–00:58 | Generated editorial final card | GitHub contribution invitation |
+| 00:21–00:25 | Accepted same-capture Original-centre/full-world comparison | **Editorial crop; not two WRAM-matched executions** |
+| 00:25–00:34 | Agent 2 accepted full nine-second technical film | Clearly labeled editorial engineering visualization |
+| 00:34–00:39 | Agent 3 accepted approved-art comparison | Approved 4× limited-pose work only |
+| 00:39–00:44 | Agent 3 accepted animation archaeology | Editorial explanation, no new gameplay frames |
+| 00:44–00:54 | Verified real 600 consecutive native 2P race frames | Actual Original source-backed widescreen play |
+| 00:54–00:58 | Generated editorial final card | GitHub contribution invitation |
 
 The accompanying 20-second 1080×1920 short uses two seconds of genuine title, four of real Modern frontend, six of uninterrupted moving widescreen reveal, five of genuine 2P gameplay and three of an editorial CTA. Both riders remain visible because the full 16:9 gameplay frame is fitted within the vertical canvas rather than vertically cropping one viewport.
 

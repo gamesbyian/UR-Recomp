@@ -20,12 +20,12 @@ REEL = [
     ("title", 4, "native Original title, frames 180..419"),
     ("modern", 10, "independent genuine Modern navigation and stock handoff, frames 1..600"),
     ("reveal", 7, "same-capture Original centre uncovered into 342-wide world"),
-    ("comparison", 5, "two views of one wide capture, NOT two native runs"),
-    ("technical", 6, "approved editorial reconstruction evidence"),
-    ("art", 6, "approved 4x artwork demonstration, limited coverage"),
+    ("comparison", 4, "two views of one wide capture, NOT two native runs"),
+    ("technical", 9, "approved editorial reconstruction evidence"),
+    ("art", 5, "approved 4x artwork demonstration, limited coverage"),
     ("archaeology", 5, "approved editorial animation archaeology"),
     ("race", 10, "real uninterrupted two-player native 342-wide recording, frames 2100..2699"),
-    ("cta", 5, "editorial invitation to contribute"),
+    ("cta", 4, "editorial invitation to contribute"),
 ]
 ROLE_LABELS = {
     "technical": "EDITORIAL ENGINEERING VISUALIZATION",
@@ -130,7 +130,7 @@ def build(args):
     # exact consecutive source frames, without minterpolate or synthetic pans.
     input_flags=[]
     for f in input_files: input_flags.extend(["-i",str(f)])
-    input_flags+=["-f","lavfi","-i","color=c=0x091421:s=1920x1080:r=60:d=5"]
+    input_flags+=["-f","lavfi","-i","color=c=0x091421:s=1920x1080:r=60:d=4"]
     input_flags+=["-f","lavfi","-i","color=c=0x091421:s=1080x1920:r=60:d=3"]
     horizontal=[]
     source_index={"title":0,"modern":1,"reveal":2,"comparison":3,
@@ -142,7 +142,7 @@ def build(args):
         if role=="title":
             filt=f"[{idx}:v]trim=start_frame=150:end_frame=390,setpts=PTS-STARTPTS"
         elif role=="cta":
-            filt=f"[{idx}:v]trim=duration=5,setpts=PTS-STARTPTS"
+            filt=f"[{idx}:v]trim=duration={duration},setpts=PTS-STARTPTS"
         else:
             filt=f"[{idx}:v]trim=duration={duration},setpts=PTS-STARTPTS"
         if role in ROLE_LABELS:

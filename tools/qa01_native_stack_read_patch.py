@@ -51,10 +51,17 @@ static FILE *ur_qa01_stack_read_file(void) {
     }
     return fp;
 }
+static unsigned ur_qa01_native_saved_writer_seen = 0;
+unsigned ur_qa01_stack_saved_writer_seen(void) {
+    return ur_qa01_native_saved_writer_seen;
+}
 static void ur_qa01_stack_read_arm(void) {
     FILE *fp = ur_qa01_stack_read_file();
-    if (fp) fputs("QANATIVEARM f=5781 bank=00 addr=01DD width=2 value=4004"
-                  " A=4004 S=01DD scope=I_NMI_M1X1\n", fp);
+    if (fp) {
+        fputs("QANATIVEARM f=5781 bank=00 addr=01DD width=2 value=4004"
+              " A=4004 S=01DD scope=I_NMI_M1X1\n", fp);
+        ++ur_qa01_native_saved_writer_seen;
+    }
 }
 static void ur_qa01_read_01dd(CpuState *cpu, uint8 bank, uint16 addr,
                               uint16 value, unsigned width) {

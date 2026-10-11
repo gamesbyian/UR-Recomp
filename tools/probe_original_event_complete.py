@@ -890,8 +890,12 @@ def run_pinned_baldosa(work: Path, args, script: Path,
             read_path = output / "qa01-native-01dd-reads.log"
             read_path.touch()
             env["UR_QA_NATIVE_STACK_READ_PATH"] = str(read_path)
+            interp_path = output / "qa01-native-interpreter-pla.log"
+            interp_path.touch()
+            env["UR_QA_NATIVE_INTERP_PLA_PATH"] = str(interp_path)
         else:
             env.pop("UR_QA_NATIVE_STACK_READ_PATH", None)
+            env.pop("UR_QA_NATIVE_INTERP_PLA_PATH", None)
         proc = subprocess.run(
             ["xvfb-run", "-a", str(args.native),
              "--no-launcher", "--config", str(config),

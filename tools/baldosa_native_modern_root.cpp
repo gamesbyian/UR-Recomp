@@ -132,6 +132,14 @@ void select_records_page(bool two_player) {
     std::fprintf(stderr,
         "UR_BALDOSA_MODERN_ROOT records_page=%s\n",
         two_player ? "2p" : "1p");
+    // Emit the real shared painter's last validated 2P detail only when
+    // the player actually navigates to that read-only Records page.
+    // This is archive-consumer evidence, not a guest-finished match.
+    if (two_player && !g_records_two_detail.empty())
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT records_last_2p=%s "
+            "source=historical_paired_archive\n",
+            g_records_two_detail.c_str());
 }
 void open_records_archive() {
     g_records_open = true;

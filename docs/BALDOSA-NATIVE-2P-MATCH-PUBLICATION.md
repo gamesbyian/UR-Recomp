@@ -130,3 +130,16 @@ change the selected player's last result; unavailable/corrupt pairs
 remain excluded. The existing shared presenter draws an optional third
 line only on native 2P Records, preserving its historic 1P presentation,
 no new data store and no replay, medal or standings claim.
+
+## Windows native Records latest-match consumer check
+
+The existing exact Windows x64 named-profile/SDL root route already seeds
+one validated **historical fixture** 2P run+sidecar and one incomplete
+run using the shipping codecs, then checks both archives remain byte
+identical after page navigation and fresh process reentry. Its 2P-page
+diagnostic now also requires the newly visible last-match text
+`LAST 01 WIN 00:28.66` read by the **real native Windows consumer**
+at the moment of `records_page=2p`. This proves the wired host
+uses the canonical checksum-bound paired archive and shared presenter
+rather than simply incrementing fake match counts; it remains explicitly
+**not evidence of an actual guest-played match** or human gamepad test.

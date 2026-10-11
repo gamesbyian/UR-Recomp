@@ -15,7 +15,8 @@ Use this for claims about the ROM, formats, routines, RAM, graphics or hardware 
 **Interpretation:** what it probably means.  
 **Discriminating test:** smallest test distinguishing this from alternatives.  
 **Dependencies:** assumptions this relies upon.  
-**Propagation:** after a supported/confirmed semantic claim, note any high-value readers/writers, callers/callees, sibling fields/tables, cross-ROM matches, existing gaps resolved/constrained, and concrete follow-up artifacts or tests. Write `none — bounded/no downstream value` when the pass finds nothing worth pursuing.
+**Propagation:** after a supported/confirmed semantic claim, note any high-value readers/writers, callers/callees, sibling fields/tables, cross-ROM matches, existing gaps resolved/constrained, and concrete follow-up artifacts or tests. Write `none — bounded/no downstream value` when the pass finds nothing worth pursuing.  
+**Corroboration (when applicable):** scoped behavioral claim; original-observed vs inferred sources and shared dependencies; ROM-region, opcode and state conditions; verdict (established / qualified lead / contradicted); permitted reuse; **reopen only if** trigger. Apply [the three-project corroboration pilot](CROSS-PROJECT-BEHAVIOR-CORROBORATION.md), not repository-count voting or release-gate promotion.
 
 ---
 

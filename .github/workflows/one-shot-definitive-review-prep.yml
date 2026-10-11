@@ -25,11 +25,11 @@ jobs:
         run: |
           set -euo pipefail
           git fetch --no-tags --depth=1 origin 8bfb1e9c7e965c902190b78e9199f9f361b4a59b
-          git fetch --no-tags --depth=1 origin 8b77797bfc7d183c4bd14703c7ed1ffb9545d19d
+          git fetch --no-tags --depth=1 origin 7fb683e2e6a2caabbd72c1f10f77ec08b97e818e
           mkdir -p /tmp/ur-review-inputs
           git show 8bfb1e9c7e965c902190b78e9199f9f361b4a59b:media/showcase/2026-10-10/technical-motion/04-machine-code-to-native.mp4 > /tmp/ur-review-inputs/technical.mp4
-          git show 8b77797bfc7d183c4bd14703c7ed1ffb9545d19d:media/showcase/art-reconstruction/2026-10-10/01-original-4x-remastered.mp4 > /tmp/ur-review-inputs/art.mp4
-          git show 8b77797bfc7d183c4bd14703c7ed1ffb9545d19d:media/showcase/art-reconstruction/2026-10-10/02-animation-archaeology.mp4 > /tmp/ur-review-inputs/archaeology.mp4
+          git show 7fb683e2e6a2caabbd72c1f10f77ec08b97e818e:media/showcase/art-reconstruction/2026-10-10/01-original-4x-remastered.mp4 > /tmp/ur-review-inputs/art.mp4
+          git show 7fb683e2e6a2caabbd72c1f10f77ec08b97e818e:media/showcase/art-reconstruction/2026-10-10/02-animation-archaeology.mp4 > /tmp/ur-review-inputs/archaeology.mp4
       - name: Independently decode, hash and retain nine inspection frames
         run: |
           set -euo pipefail
@@ -46,12 +46,12 @@ jobs:
               'links':['docs/QA08-NATIVE-STOCK-CENTER-PARITY-20261010.md',
                        'media/showcase/2026-10-10/technical-motion/04-provenance.json']},
             'art':{
-              'expected':'65a7f55b3801576cefcd5c90483cc22a226be277e9c1454ca612f0d320f26ff5',
+              'expected':'0ae94aaa407979ec749bef17d245331c7d8d3595d8a76347b2644f655924bfe4',
               'frames':210,'ordinals':[30,105,165],
               'links':['analysis/data/racer-hd-art-approval.json',
                        'media/showcase/art-reconstruction/2026-10-10/provenance.json']},
             'archaeology':{
-              'expected':'f04792d2a5d31dfd3b64d115a699500b0eb9c1a66ed82b4472d7de0c7357dd93',
+              'expected':'c1326b641eb119375bc7708a6780ce7950be81b7f287d4b010c0c11328750e2a',
               'frames':210,'ordinals':[30,105,165],
               'links':['analysis/data/racer-hd-replacement-prototype.json',
                        'media/showcase/art-reconstruction/2026-10-10/provenance.json']}
@@ -61,7 +61,7 @@ jobs:
                   'accepted_by': None,
                   'status':'candidate_pending_independent_media_review',
                   'technical_sha_source_commit':'8bfb1e9c7e965c902190b78e9199f9f361b4a59b',
-                  'art_sha_source_commit':'8b77797bfc7d183c4bd14703c7ed1ffb9545d19d',
+                  'art_sha_source_commit':'7fb683e2e6a2caabbd72c1f10f77ec08b97e818e',
                   'clips':{}}
           for role,r in roles.items():
               vid=src/(role+'.mp4')

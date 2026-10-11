@@ -81,9 +81,17 @@ def text(d, xy, content, size=42, color="#edf2ff"):
     d.text(xy, content, font=font(size), fill=color)
 
 def artwork(canvas, img, rect, nearest):
+    # Exact identical crop in source logical coordinates, applied at
+    # the source's declared 1x or approved authored 4x density.
+    # All frames in the retained first-family motion strip remain inside
+    # 12..52 x 0..48; the crop is editorial, never a gameplay admission.
+    factor = img.width // 64
+    if img.size != (64 * factor, 64 * factor) or factor not in (1,4):
+        raise ValueError("Unsupported source/approved art density")
+    crop = img.crop((12*factor,0,52*factor,48*factor))
     x,y,w,h = rect
-    scale = min(w/img.width, h/img.height)
-    rendered = img.resize((round(img.width*scale),round(img.height*scale)),
+    scale = min(w/crop.width,h/crop.height)
+    rendered = crop.resize((round(crop.width*scale),round(crop.height*scale)),
                           Image.Resampling.NEAREST if nearest else Image.Resampling.LANCZOS)
     canvas.alpha_composite(rendered,(x+(w-rendered.width)//2,y+(h-rendered.height)//2))
 
@@ -91,58 +99,84 @@ def backdrop(name, subtitle):
     im = Image.new("RGBA",SIZE,BG)
     d = ImageDraw.Draw(im)
     d.rectangle((0,0,1920,12),fill="#ef5783")
+    d.line((100,190,1820,190), fill="#2b3755",width=2)
     text(d,(110,68),name,62)
     text(d,(112,148),subtitle,27,"#b6c5df")
-    text(d,(112,1000),"VERIFIED ART SAMPLE | NOT CONTINUOUS NATIVE GAMEPLAY",24,"#b6c5df")
+    text(d,(112,1000),"VERIFIED ART SAMPLE | EDITORIAL MOTION, NOT NATIVE GAMEPLAY",24,"#b6c5df")
     return im
 
 def comparison(stock, authored, tick):
-    # 210 frames = seven seconds. Original -> registered nearest-4x -> authored 4x.
+    # Exactly registered crop and pose throughout all three stages.
     stage = min(2,tick//70)
-    names = ["ORIGINAL ROM SPRITE","EXACT 4x NEAREST","APPROVED REMASTERED POSE"]
+    names = ["01 / ROM PIXELS","02 / EXACT NEAREST 4x","03 / APPROVED AUTHORED 4x"]
     im = backdrop("ONE POSE. THREE PRESENTATIONS.",names[stage])
     d = ImageDraw.Draw(im)
-    large = (660,240,600,600)
-    artwork(im, stock if stage < 2 else authored, large, stage < 2)
+    d.rounded_rectangle((475,214,1445,918),radius=22,
+                        outline="#43516f",width=3)
+    artwork(im, stock if stage < 2 else authored, (555,224,800,668), stage < 2)
+    text(d,(135,315),"64 x 64",40)
+    text(d,(135,372),"ROM CANVAS",28,"#91a4c8")
+    text(d,(1460,315),"256 x 256",40)
+    text(d,(1460,372),"4x CANVAS",28,"#91a4c8")
     if stage == 0:
-        # Retain a visible pixel grid only during the source-pixel close-up.
-        for z in range(65):
-            x=660+z*600//64
-            y=240+z*600//64
-            d.line((x,240,x,840),fill=(180,190,220,36),width=1)
-            d.line((660,y,1260,y),fill=(180,190,220,36),width=1)
-    text(d,(690,890),"64 x 64 source  /  256 x 256 approved RGBA",25)
+        text(d,(130,760),"RAW 1x",31,"#ef5783")
+        text(d,(130,810),"Nearest-pixel close-up",25)
+    elif stage == 1:
+        text(d,(130,760),"SAME PIXELS",31,"#ef5783")
+        text(d,(130,810),"No newly authored detail",25)
+    else:
+        text(d,(130,760),"HASH APPROVED",31,"#ef5783")
+        text(d,(130,810),"New 4x authored detail",25)
+    text(d,(570,937),"Same registered pose, same contact point, exact source pixel coordinates",23)
     return im
 
 def archaeology(pairs, tick):
-    im = backdrop("ANIMATION ARCHAEOLOGY","ROM-derived ordered poses | editorial playback")
+    im = backdrop("ANIMATION ARCHAEOLOGY","Guest-ordered ROM poses -> extracted frames -> approved 4x reconstruction")
     d = ImageDraw.Draw(im)
     idx = (tick//8)%len(pairs)
-    # Choose evenly spaced timeline entries rather than treating repeated holds as distinct poses.
-    positions = [round(j*(len(pairs)-1)/7) for j in range(8)]
-    for j, pos in enumerate(positions):
-        stock,authored,meta = pairs[pos]
-        left=120+j*210
-        d.rectangle((left,295,left+190,490),outline="#405069",width=2)
-        artwork(im,stock,(left+15,310,160,160),True)
-        text(d,(left+65,510),f"{j+1:02d}",25)
-    artwork(im,pairs[idx][0],(580,610,300,300),True)
-    artwork(im,pairs[idx][1],(1080,610,300,300),False)
-    text(d,(630,930),"EXTRACTED",26)
-    text(d,(1110,930),"APPROVED 4x",26)
+    # Show unique byte-distinct poses in the strip; still animate every
+    # actual guest timeline frame below, including repeated hold frames.
+    positions = []
+    seen = set()
+    for k, (_,_,meta) in enumerate(pairs):
+        digest = meta["stock_rgba_sha256"]
+        if digest not in seen:
+            positions.append(k)
+            seen.add(digest)
+    for j,pos in enumerate(positions):
+        stock,authored,meta=pairs[pos]
+        left=112+round(j*1590/max(1,len(positions)-1))
+        current = meta["stock_rgba_sha256"] == pairs[idx][2]["stock_rgba_sha256"]
+        d.rounded_rectangle((left,273,left+170,479),radius=10,
+                            outline="#ef5783" if current else "#405069",
+                            width=4 if current else 2)
+        artwork(im,stock,(left+9,286,150,169),True)
+        text(d,(left+45,492),str(meta["guest_frame"]),23)
+    stock,authored,meta=pairs[idx]
+    artwork(im,stock,(285,582,540,355),True)
+    artwork(im,authored,(1090,582,540,355),False)
+    text(d,(390,941),"EXTRACTED SOURCE",26)
+    text(d,(1195,941),"APPROVED 4x",26)
+    text(d,(874,693),">",80,"#ef5783")
+    label=f"GUEST FRAME {meta['guest_frame']}  |  P1  |  ROM COMPOSITION VERIFIED"
+    text(d,(498,555),label,24,"#bacbe3")
     return im
 
 def montage(pairs,tick):
-    im = backdrop("RESTORING THE ORIGINAL MOTION","Hash-approved poses | density and palette are distinct")
+    im = backdrop("RESTORING THE ORIGINAL MOTION","Approved red and blue racers | exact pose and palette identities")
     n=len(pairs)
     idx=(tick//8)%n
-    stock,art,_=pairs[idx]
-    artwork(im,stock,(210,290,560,560),True)
-    artwork(im,art,(1100,290,560,560),False)
+    stock,art,meta=pairs[idx]
     d=ImageDraw.Draw(im)
-    text(d,(270,875),"SNES SOURCE",32)
-    text(d,(1130,875),"AUTHORED 4x",32)
-    text(d,(840,555),">",78,"#ef5783")
+    d.rounded_rectangle((135,235,825,907),radius=20,outline="#405069",width=2)
+    d.rounded_rectangle((1095,235,1785,907),radius=20,outline="#405069",width=2)
+    artwork(im,stock,(205,275,550,575),True)
+    artwork(im,art,(1165,275,550,575),False)
+    color = "#ef5783" if meta.get("player")=="p1" else "#5bb8f8"
+    label = "P1 / RED" if meta.get("player")=="p1" else "P2 / BLUE"
+    text(d,(142,921),f"ROM-EXTRACTED | GUEST {meta['guest_frame']}",26)
+    text(d,(1100,921),f"HASH-APPROVED 4x | {label}",26,color)
+    text(d,(893,560),">",82,color)
     return im
 
 def encode(outdir, name, frames, expected):
@@ -200,6 +234,7 @@ def main():
     p.add_argument("--manifest",type=Path,required=True,
                    help="JSON with frames [{representation_id,stock_png,authored_png,stock_source,stock_evidence}]")
     p.add_argument("--output",type=Path,required=True)
+    p.add_argument("--secondary-manifest",type=Path,help="Optional approved other-player strip for montage")
     a=p.parse_args()
     if not shutil.which("ffmpeg"):
         raise SystemExit("FFmpeg required")
@@ -209,14 +244,23 @@ def main():
     if len(pairs)<2:
         raise ValueError("Need >=2 verified ordered poses for animation archaeology")
     a.output.mkdir(parents=True,exist_ok=True)
-    clips=[
+    montage_pairs = pairs
+    if a.secondary_manifest:
+        extra = json.loads(a.secondary_manifest.read_text())
+        secondary = [load_pair(x,approved,a.secondary_manifest.resolve().parent) for x in extra["frames"]]
+        if len(secondary)!=len(pairs) or not all(x[2].get("player")=="p2" for x in secondary):
+            raise ValueError("Secondary strip must be a matching P2 timeline")
+        if [x[2]["guest_frame"] for x in secondary] != [x[2]["guest_frame"] for x in pairs]:
+            raise ValueError("P1/P2 guest frame order mismatch")
+        montage_pairs = [pose for pair in zip(pairs,secondary) for pose in pair]
+    clips=
         encode(a.output,"01-original-4x-remastered",(comparison(*pairs[0][:2],i) for i in range(210)),210),
         encode(a.output,"02-animation-archaeology",(archaeology(pairs,i) for i in range(210)),210),
-        encode(a.output,"03-remaster-progress",(montage(pairs,i) for i in range(150)),150),
+        encode(a.output,"03-remaster-progress",(montage(montage_pairs,i) for i in range(150)),150),
     ]
     provenance={"schema_version":1,"format":"1920x1080 h264 yuv420p",
                 "claim":"Verified art demonstrations. Editorial motion, not native gameplay.",
-                "approval_sources":LEDGERS,"assets":[x[2] for x in pairs],"clips":clips}
+                "approval_sources":LEDGERS,"assets":[x[2] for x in montage_pairs],"clips":clips}
     (a.output/"provenance.json").write_text(json.dumps(provenance,indent=2)+"\n")
     for clip in clips:
         print(f"{clip['filename']} {clip['frames']} frames {clip['seconds']:.1f}s {clip['sha256']}")

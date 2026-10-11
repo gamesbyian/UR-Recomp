@@ -12,10 +12,11 @@ host/input seam. A selected **named** Modern P1 with a canonical catalog
 of at least two safe distinct profiles can open a two-pad confirmation
 panel from Multiplayer.
 
-- P1 Up/Down highlights a named profile; P1 A/Start confirms. P2's
-  *independent* physical gamepad Up/Down/A/Start highlights and explicitly
-  confirms a different named profile. P2 B clears only P2's confirmation;
-  P1 B cancels the panel without a stock transition.
+- P1 A/Start explicitly confirms the already-booted named racer;
+  P1 cannot browse a different SRAM owner in this guest process.
+  P2's *independent* physical gamepad Up/Down/A/Start highlights and
+  explicitly confirms a different named profile. P2 B clears only P2's
+  confirmation; P1 B cancels the panel without a stock transition.
 - P1's identity is constrained to the already-authorized active native
   profile and its initialized cartridge SRAM. A cursor change cannot
   silently load a different profile's SRAM midway through a game.

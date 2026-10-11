@@ -42,6 +42,8 @@ def summarize(source: dict, guest: dict) -> dict:
             or b["stack_word_saved"] != "4004"
             or b["wram_write_destination"] != "7E:01DD"
             or not source["source_hcounter_vs_native_framework_hpos_unaligned"]
+            or guest.get("native_cpu_master_counter_is_precharged_basic_block_not_pha_cycle") is not True
+            or guest.get("modeled_beam_hpos_not_proven_instruction_aligned") is not True
             or not guest["framework_beam_vs_original_cpu_phase_unaligned"]):
         raise ValueError("one source writer or clock provenance diverged")
     o_h, n_h = a["source_original_cpu_hcounter_before"], b["framework_beam_hpos"]
@@ -62,6 +64,7 @@ def summarize(source: dict, guest: dict) -> dict:
         "original_saved_accumulator_word": "4042",
         "native_saved_accumulator_word": "4004",
         "clock_unit_origin_and_execution_phase_equivalence_not_proven": True,
+        "native_master_counter_is_basic_block_not_pha_cycle": True,
         "matching_scanline_alone_is_not_causal_parity": True,
         "cpu_architectural_return_parity_not_proven": True,
         "strict_guest_relative_result_original_native": [4704, 4702],

@@ -287,9 +287,13 @@ extern "C" int ur_baldosa_modern_publish_settled_one_player_run(
     const fs::path directory = parent / g_verified_native_profile_id;
     const auto safe_directory = [](const fs::path& candidate) {
         std::error_code ec;
-        if (!fs::exists(candidate, ec)) return !ec;
-        return !ec && !fs::is_symlink(candidate, ec) && !ec &&
-               fs::is_directory(candidate, ec) && !ec;
+        // Inspect the entry, not its target: exists() follows a dangling
+        // symlink and wrongly accepts it as an absent first-run directory.
+        const auto status = fs::symlink_status(candidate, ec);
+        if (status.type() == fs::file_type::not_found)
+            return !ec || ec == std::errc::no_such_file_or_directory;
+        return !ec && !fs::is_symlink(status) &&
+               fs::is_directory(status);
     };
     if (!safe_directory(parent) || !safe_directory(directory)) return 0;
 

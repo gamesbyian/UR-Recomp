@@ -203,7 +203,27 @@ int main() {
     assert(!ur_baldosa_modern_publish_settled_one_player_run(&bad_result));
     assert(fs::is_empty(foreign));
     fs::remove(original_run);
+    // Broken symlinks are filesystem entries too. The product preflight
+    // must reject them before canonical Records append is even attempted.
+    fs::create_directory_symlink(dir / "missing-run-target", original_run);
+    bad_result.first_race_host_frame = 220;
+    bad_result.observed_result_host_frame = 224;
+    assert(!ur_baldosa_modern_publish_settled_one_player_run(&bad_result));
+    assert(fs::is_symlink(original_run));
+    assert(!fs::exists(dir / "missing-run-target"));
+    fs::remove(original_run);
     fs::rename(dir / "moved-runs", original_run);
+
+    // The shared parent directory also must not be a dangling symlink.
+    fs::rename(dir / "runs", dir / "moved-parent");
+    fs::create_directory_symlink(dir / "missing-parent", dir / "runs");
+    bad_result.first_race_host_frame = 240;
+    bad_result.observed_result_host_frame = 244;
+    assert(!ur_baldosa_modern_publish_settled_one_player_run(&bad_result));
+    assert(!fs::exists(dir / "missing-parent"));
+    fs::remove(dir / "runs");
+    fs::rename(dir / "moved-parent", dir / "runs");
+    assert(load_valid_run_records(run_root.string()).size() == 1);
 
 
 

@@ -1,0 +1,252 @@
+name: QA-01 bounded original/native event campaign
+
+# Research workload: never PR/push/schedule. Existing QA-01 original-event
+# producer remains semantic authority; this is an execution/receipt fan-out.
+on:
+  workflow_dispatch:
+    inputs:
+      selected:
+        description: "Existing source-qualified event population (all = 3 cases)"
+        type: choice
+        required: true
+        default: all
+        options:
+          - all
+          - zoom-zoo
+          - bowl
+          - switcher
+
+permissions:
+  contents: read
+
+# Manual launches on the same ref queue instead of cancelling expensive evidence.
+concurrency:
+  group: qa01-event-campaign-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.select.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate dispatcher and freeze exact case population
+        id: select
+        shell: bash
+        env:
+          SELECTED: ${{ inputs.selected }}
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s tests/unit -p test_qa01_event_campaign.py
+          python3 tools/qa01_event_campaign.py plan \
+            --selected "$SELECTED" \
+            --source-sha "$(git rev-parse HEAD)" \
+            --out "$RUNNER_TEMP/qa01-plan.json" \
+            --gha-output "$GITHUB_OUTPUT" \
+            --summary "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qa01-campaign-plan
+          retention-days: 14
+          if-no-files-found: error
+          path: ${{ runner.temp }}/qa01-plan.json
+
+  build:
+    needs: plan
+    runs-on: ubuntu-22.04
+    timeout-minutes: 40
+    steps:
+      - name: Check out exact source and imported original inputs
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - name: Check out the existing pinned research guest
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+      - name: Verify original ROM, historical movie and pinned guest source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          test -s reference/imported/tas-bots/dessyreqt-4250-submission.smv
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          python3 -m unittest discover -s tests/unit -p test_probe_original_event_complete.py
+      - name: Build original Snes9x/snesref and research native exactly once
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build pkg-config build-essential cmake libsdl2-dev \
+            libgl-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxss-dev libwayland-dev \
+            libxkbcommon-dev libegl-dev libgles-dev libdrm-dev \
+            libgbm-dev libasound2-dev libpulse-dev libudev-dev \
+            libdbus-1-dev xvfb
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          cmake -S baldosa/snesrecomp/tools/snesref \
+            -B "$RUNNER_TEMP/qa01-snesref" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/qa01-snesref" -j2
+          # Existing QA-only host transport; never change guest gameplay.
+          python3 tools/baldosa_qa_dense_scene_input_patch.py \
+            --host baldosa/snesrecomp/runner/src/desktop/host_main.c
+          cmake -S baldosa -B baldosa/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
+          cmake --build baldosa/build --target UniracersSNESRecomp -j3
+          OUT="$RUNNER_TEMP/qa01-binaries"
+          mkdir -p "$OUT"
+          install -m 755 "$RUNNER_TEMP/qa01-snesref/snesref" "$OUT/snesref"
+          install -m 755 baldosa/build/UniracersSNESRecomp "$OUT/native"
+          cp .tools/src/snes9x-libretro/libretro/snes9x_libretro.so "$OUT/snes9x_libretro.so"
+          (cd "$OUT" && sha256sum snesref native snes9x_libretro.so > SHA256SUMS && \
+            sha256sum -c SHA256SUMS)
+      - name: Upload one immutable candidate for all case shards
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-campaign-reference-and-native-binaries
+          retention-days: 7
+          if-no-files-found: error
+          path: ${{ runner.temp }}/qa01-binaries/
+
+  cases:
+    needs: [plan, build]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: qa01-campaign-plan
+          path: ${{ runner.temp }}/qa01-input
+      - uses: actions/download-artifact@v4
+        with:
+          name: qa01-campaign-reference-and-native-binaries
+          path: ${{ runner.temp }}/qa01-binaries
+      - name: Verify binary integrity and runtime prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends \
+            libsdl2-2.0-0 libgl1 libx11-6 libxext6 libxrandr2 \
+            libxcursor1 libxi6 libxss1 libwayland-client0 \
+            libxkbcommon0 libegl1 libgles2 libdrm2 libgbm1 \
+            libasound2 libpulse0 libudev1 libdbus-1-3 xvfb
+          (cd "$RUNNER_TEMP/qa01-binaries" && sha256sum -c SHA256SUMS)
+          chmod +x "$RUNNER_TEMP/qa01-binaries/native" "$RUNNER_TEMP/qa01-binaries/snesref"
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+      - name: Run and classify source-qualified ${{ matrix.case }} without masking strict differences
+        shell: bash
+        env:
+          QA01_CASE: ${{ matrix.case }}
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/qa01-case"
+          BIN="$RUNNER_TEMP/qa01-binaries"
+          mkdir -p "$ROOT"
+          set +e
+          timeout --signal=TERM --kill-after=30s 75m \
+            python3 tools/probe_original_event_complete.py \
+              --case "$QA01_CASE" \
+              --native-backend pinned-baldosa \
+              --source-horizon 22000 \
+              --snesref "$BIN/snesref" \
+              --core "$BIN/snes9x_libretro.so" \
+              --native "$BIN/native" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --work-dir "$ROOT/work" \
+              --json-out "$ROOT/producer-report.json" \
+              > "$ROOT/producer.log" 2>&1
+          producer_rc=$?
+          set -e
+          echo "Original/native producer exit: $producer_rc"
+          tail -n 60 "$ROOT/producer.log" || true
+          python3 tools/qa01_event_campaign.py classify \
+            --plan "$RUNNER_TEMP/qa01-input/qa01-plan.json" \
+            --case "$QA01_CASE" \
+            --producer-exit "$producer_rc" \
+            --producer-report "$ROOT/producer-report.json" \
+            --out "$ROOT/case-result.json"
+          python3 - "$ROOT/case-result.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          v=json.load(open(sys.argv[1]))
+          with open(sys.argv[2],"a",encoding="utf-8") as f:
+              f.write("## " + v["case"] + "\n\n")
+              f.write("Disposition: **" + v["disposition"] + "**\n\n")
+              f.write(v.get("reason","") + "\n\n")
+              f.write("**Release course credit: 0.**\n")
+          PY
+      - name: Always retain per-case receipt and bounded diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-campaign-case-${{ matrix.case }}
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa01-case/case-result.json
+            ${{ runner.temp }}/qa01-case/producer-report.json
+            ${{ runner.temp }}/qa01-case/producer.log
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/source/source-scan.log
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/calibration/reference.log
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/calibration/native.log
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/reference.log
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/native.log
+
+  aggregate:
+    if: always() && needs.plan.result == 'success'
+    needs: [plan, build, cases]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: qa01-campaign-plan
+          path: ${{ runner.temp }}/qa01-input
+      - name: Retrieve case evidence, including partial-failure campaigns
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: qa01-campaign-case-*
+          path: ${{ runner.temp }}/qa01-results
+          merge-multiple: false
+      - name: Aggregate completed and absent cases; never award release credit
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa01-results"
+          python3 tools/qa01_event_campaign.py aggregate \
+            --plan "$RUNNER_TEMP/qa01-input/qa01-plan.json" \
+            --results-dir "$RUNNER_TEMP/qa01-results" \
+            --out "$RUNNER_TEMP/campaign-result.json" \
+            --summary "$GITHUB_STEP_SUMMARY"
+      - name: Upload final bounded campaign report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-campaign-aggregate
+          retention-days: 14
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/campaign-result.json

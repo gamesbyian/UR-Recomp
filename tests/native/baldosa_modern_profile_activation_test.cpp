@@ -29,6 +29,8 @@ extern "C" int ur_baldosa_modern_publish_settled_two_player_match(
     const ur::product::BaldosaSettledResult*,
     const ur::product::HostProfileCatalogEntry*,
     const ur::product::HostProfileCatalogEntry*);
+extern "C" int ur_baldosa_modern_profile_can_join_opponent(
+    const ur::product::HostProfileCatalogEntry*);
 extern "C" int ur_baldosa_modern_profile_finish_native_save(int);
 
 /* Real pinned framework provides these. Keep the unit executable's tiny RTL
@@ -235,6 +237,9 @@ int main() {
     }
     assert(save_host_profile_catalog_file(
         "profiles-v1.txt", {p1, p2}));
+    assert(ur_baldosa_modern_profile_can_join_opponent(&p2));
+    assert(!ur_baldosa_modern_profile_can_join_opponent(&p1));
+    assert(!ur_baldosa_modern_profile_can_join_opponent(nullptr));
     BaldosaSettledResult observed_2p{};
     observed_2p.kind = BaldosaSettledResultKind::OrdinaryTwoPlayerRace;
     observed_2p.first_race_host_frame = 500;
@@ -319,6 +324,7 @@ int main() {
         raw.write(reinterpret_cast<const char*>(wrong.data()), wrong.size());
         assert(raw.good());
     }
+    assert(!ur_baldosa_modern_profile_can_join_opponent(&p2));
     assert(!ur_baldosa_modern_publish_settled_two_player_match(
         &redirected_event, &p1, &p2));
     {
@@ -340,6 +346,7 @@ int main() {
     fs::create_directories(redirected_second);
     fs::rename(second_dir, moved_second);
     fs::create_directory_symlink(redirected_second, second_dir);
+    assert(!ur_baldosa_modern_profile_can_join_opponent(&p2));
     assert(!ur_baldosa_modern_publish_settled_two_player_match(
         &redirected_event, &p1, &p2));
     assert(fs::is_empty(redirected_second));
@@ -350,6 +357,7 @@ int main() {
     assert(!fs::exists(dir / "missing-second-profile"));
     fs::remove(second_dir);
     fs::rename(moved_second, second_dir);
+    assert(ur_baldosa_modern_profile_can_join_opponent(&p2));
     assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() == 1);
 
     // An out-of-band profile identity change makes the confirmed P2

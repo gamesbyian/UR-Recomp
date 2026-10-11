@@ -24,3 +24,7 @@ Before any real online feature, pin the complete R1 two-process original-guest s
 Platform socket API references: [Microsoft `setsockopt`](https://learn.microsoft.com/en-us/windows/win32/api/winsock/nf-winsock-setsockopt) and [POSIX receive timeout](https://linux.die.net/man/3/setsockopt). Those references support the socket option types, **not** cross-platform UR acceptance.
 
 See [decentralized P2P charter](SELF-SUSTAINING-P2P-MULTIPLAYER-RESEARCH.md), [R0 native seam audit](P2P-R0-NATIVE-SEAM-INVENTORY-20261011.md), and [offline R4 extinction model](P2P-R4-EXTINCTION-OVERLAY-PREFLIGHT-20261011.md).
+
+## Second check: simulation compatibility gating
+
+Both temporary peers also explicitly supply a distinct 32-byte (64-hex-character) opaque simulation identity. The experiment echoes the exact value in its lab-only HELLO/ACK and rejects a different identity, proving that an address being reachable does not by itself make two builds compatible. This synthetic token is **not** computed from the game or a secure signed handshake and does not establish R1 determinism. The test executes an incompatible negative connection in separate processes and verifies that neither side claims success. Updated lab grammar: `lab --allow-loopback-only listen NONCE32 SIM32` and `lab --allow-loopback-only dial NONCE32 SIM32 PORT`.

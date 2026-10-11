@@ -93,7 +93,7 @@ bool set_timeout(Socket socket) {
 #endif
 }
 
-int listen_once(std::string_view nonce) {
+int listen_once(std::string_view nonce, std::string_view sim) {
     const Socket fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (fd == kInvalid) return 3;
     const auto addr = loopback(0);
@@ -118,13 +118,15 @@ int listen_once(std::string_view nonce) {
 #endif
     const int got = recvfrom(fd, incoming.data(), static_cast<int>(incoming.size()),
         0, reinterpret_cast<sockaddr*>(&sender), &sender_len);
-    const std::string expected = "UR-LOOPBACK-HELLO-V0:" + std::string(nonce);
+    const std::string expected = "UR-LOOPBACK-HELLO-V0:" +
+        std::string(nonce) + ":" + std::string(sim);
     if (got != static_cast<int>(expected.size()) ||
         std::memcmp(incoming.data(), expected.data(), expected.size()) != 0 ||
         sender.sin_addr.s_addr != htonl(INADDR_LOOPBACK)) {
         close_socket(fd); return 6;
     }
-    const std::string reply = "UR-LOOPBACK-ACK-V0:" + std::string(nonce);
+    const std::string reply = "UR-LOOPBACK-ACK-V0:" +
+        std::string(nonce) + ":" + std::string(sim);
     const int sent = sendto(fd, reply.data(), static_cast<int>(reply.size()), 0,
         reinterpret_cast<const sockaddr*>(&sender), sender_len);
     close_socket(fd);
@@ -133,12 +135,14 @@ int listen_once(std::string_view nonce) {
     return 0;
 }
 
-int dial_once(std::uint16_t port, std::string_view nonce) {
+int dial_once(std::uint16_t port, std::string_view nonce,
+              std::string_view sim) {
     const Socket fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (fd == kInvalid) return 3;
     if (!set_timeout(fd)) { close_socket(fd); return 4; }
     const auto addr = loopback(port);
-    const std::string hello = "UR-LOOPBACK-HELLO-V0:" + std::string(nonce);
+    const std::string hello = "UR-LOOPBACK-HELLO-V0:" +
+        std::string(nonce) + ":" + std::string(sim);
     const int sent = sendto(fd, hello.data(), static_cast<int>(hello.size()), 0,
         reinterpret_cast<const sockaddr*>(&addr), sizeof(addr));
     if (sent != static_cast<int>(hello.size())) { close_socket(fd); return 5; }
@@ -152,7 +156,8 @@ int dial_once(std::uint16_t port, std::string_view nonce) {
     const int got = recvfrom(fd, response.data(), static_cast<int>(response.size()),
         0, reinterpret_cast<sockaddr*>(&sender), &from_size);
     close_socket(fd);
-    const std::string expected = "UR-LOOPBACK-ACK-V0:" + std::string(nonce);
+    const std::string expected = "UR-LOOPBACK-ACK-V0:" +
+        std::string(nonce) + ":" + std::string(sim);
     if (got != static_cast<int>(expected.size()) ||
         std::memcmp(response.data(), expected.data(), expected.size()) != 0 ||
         sender.sin_addr.s_addr != htonl(INADDR_LOOPBACK) ||
@@ -165,20 +170,21 @@ int dial_once(std::uint16_t port, std::string_view nonce) {
 int main(int argc, char** argv) {
     // Explicit action and scoped address are essential: no broadcast,
     // system default peers, remote route or automatic network activity.
-    if ((argc != 4 && argc != 5) ||
+    if ((argc != 5 && argc != 6) ||
         std::string_view(argv[1]) != "--allow-loopback-only" ||
-        !valid_nonce(argv[3])) {
-        std::cerr << "usage: lab --allow-loopback-only listen NONZERO_HEX32\n"
-                  << "   or: lab --allow-loopback-only dial NONZERO_HEX32 PORT\n";
+        !valid_nonce(argv[3]) || !valid_nonce(argv[4]) ||
+        std::string_view(argv[3]) == std::string_view(argv[4])) {
+        std::cerr << "usage: lab --allow-loopback-only listen NONCE32 SIM32\n"
+                  << "   or: lab --allow-loopback-only dial NONCE32 SIM32 PORT\n";
         return 2;
     }
     const Network network;
     if (!network.started) return 3;
-    if (std::string_view(argv[2]) == "listen" && argc == 4)
-        return listen_once(argv[3]);
+    if (std::string_view(argv[2]) == "listen" && argc == 5)
+        return listen_once(argv[3], argv[4]);
     std::uint16_t port = 0;
-    if (std::string_view(argv[2]) == "dial" && argc == 5 &&
-        parse_port(argv[4], port))
-        return dial_once(port, argv[3]);
+    if (std::string_view(argv[2]) == "dial" && argc == 6 &&
+        parse_port(argv[5], port))
+        return dial_once(port, argv[3], argv[4]);
     return 2;
 }

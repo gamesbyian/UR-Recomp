@@ -69,12 +69,16 @@ jobs:
           # Prove the uploaded exact ELF can resolve against THIS runner before
           # spending a 15-120 minute budget on gameplay or calling it a defect.
           echo "Stress runner libc: $(getconf GNU_LIBC_VERSION)"
-          ldd "$EXE" | tee "$RUNNER_TEMP/native-2p-elf-dependencies.txt"
+          ldd "$EXE" 2>&1 | tee "$RUNNER_TEMP/native-2p-elf-dependencies.txt"
           if grep -Eq 'version .+ not found|not found' "$RUNNER_TEMP/native-2p-elf-dependencies.txt"; then
             echo "Original build and stress runner libc/ELF dependencies differ" >&2
             exit 1
           fi
-          test "$(getconf GNU_LIBC_VERSION | awk '{print $2}' | cut -d. -f1)" -ge 2
+          libc_version="$(getconf GNU_LIBC_VERSION | awk '{print $2}')"
+          if ! dpkg --compare-versions "$libc_version" ge "2.38"; then
+            echo "Native ELF requires GLIBC_2.38 or newer; runner has $libc_version" >&2
+            exit 1
+          fi
           python3 -m unittest discover -s tests/unit -p test_qa02_native_2p_seeded_endurance.py
       - name: Exercise hundreds of distinct native 2P input trajectories and ablations
         shell: bash

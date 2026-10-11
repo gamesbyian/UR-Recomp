@@ -459,6 +459,16 @@ ur_baldosa_modern_profile_multiplayer_records_directory(void) {
     return path.c_str();
 }
 
+// The native Modern root must read the same absolute catalog already
+// verified by profile activation. No cwd-relative second profile namespace.
+extern "C" const char* ur_baldosa_modern_profile_catalog_path(void) {
+    static std::string path;
+    if (!activated() || g_verified_native_profile_id.empty() ||
+        g_native_user_root.empty()) return nullptr;
+    path = (g_native_user_root / "profiles-v1.txt").string();
+    return path.c_str();
+}
+
 extern "C" const char* ur_baldosa_modern_profile_selected_id(void) {
     return activated() && !g_verified_native_profile_id.empty()
         ? g_verified_native_profile_id.c_str() : nullptr;

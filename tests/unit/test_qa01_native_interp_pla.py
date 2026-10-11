@@ -213,6 +213,23 @@ class NativeInterpreterPlaTests(unittest.TestCase):
         self.assertEqual(patched.count("interp816_read(cpu, cpu->sp);"),
                          original.count("interp816_read(cpu, cpu->sp);"))
 
+    def test_pinned_generated_nmi_trampoline_requires_downstream_restore_probe(self):
+        generated = ROOT / "baldosa/src/gen/bank00_part00_v2.c"
+        if not generated.is_file():
+            self.skipTest("pinned generated native guest only checked out in opt-in workflow")
+        text = generated.read_text(encoding="utf-8")
+        start = "RecompReturn I_NMI_M1X1(CpuState *cpu) {"
+        self.assertEqual(text.count(start), 1)
+        segment = text.split(start, 1)[1].split("\\nRecompReturn ", 1)[0]
+        self.assertIn("CPU_STACK_OP_PHA", segment)
+        self.assertEqual(segment.count("CPU_STACK_OP_PHA"), 2)
+        self.assertNotIn("CPU_STACK_OP_PLA", segment)
+        self.assertNotIn("CPU_STACK_OP_RTI", segment)
+        for target in ("0x80f60c", "0x808610", "0x8085a5"):
+            self.assertIn(target, segment)
+        self.assertIn("interp_tier_dispatch_tail", segment)
+        self.assertIn("0x008599u", segment)
+
     def test_existing_manual_replay_path_only(self):
         workflow = (ROOT / ".github/workflows/qa01-switcher-original-2014.yml").read_text()
         host = (ROOT / "tools/probe_original_event_complete.py").read_text()

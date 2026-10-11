@@ -24,8 +24,11 @@ extern std::uint8_t g_ram[0x20000];
 const char* ur_baldosa_modern_profile_records_directory(void);
 const char* ur_baldosa_modern_profile_multiplayer_records_directory(void);
 const char* ur_baldosa_modern_profile_selected_id(void);
+int ur_baldosa_modern_profile_can_join_opponent(
+    const ur::product::HostProfileCatalogEntry* entry);
 }
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -33,6 +36,7 @@ const char* ur_baldosa_modern_profile_selected_id(void);
 #include <cstring>
 #include <string>
 #include <vector>
+#include <utility>
 
 namespace {
 using ur::product::ModernRootDestination;
@@ -247,7 +251,20 @@ void choose() {
         if (active && *active) {
             const auto roster = ur::product::load_host_profile_catalog_file(
                 "profiles-v1.txt");
-            if (!roster || !g_two_seat_join.begin(*roster, active)) {
+            std::vector<ur::product::HostProfileCatalogEntry> ready;
+            if (roster) {
+                ready = *roster;
+                // Never offer a roster-only or partially created P2 racer
+                // whose typed state and raw SRAM cannot be verified. The
+                // P1 active profile was separately verified at native boot.
+                ready.erase(std::remove_if(ready.begin(), ready.end(),
+                    [active](const auto& entry) {
+                        return entry.profile_id != active &&
+                            !ur_baldosa_modern_profile_can_join_opponent(
+                                &entry);
+                    }), ready.end());
+            }
+            if (!roster || !g_two_seat_join.begin(std::move(ready), active)) {
                 // A fresh named install can still play an unbound stock 2P
                 // session. It cannot acquire match-history identity until
                 // two real distinct profiles are confirmed. Do not strand

@@ -66,6 +66,11 @@ def launcher() -> bytes:
         'cd /d "%UR_RECOMP_USER_DATA_ROOT%"',
         'if errorlevel 1 (echo UR-BALDOSA-STARTUP-SAVE-ROOT: Cannot enter user folder. 1>&2 & exit /b 3)',
         f'"%UR_BALDOSA_PACKAGE_DIR%{EXE}" --no-launcher "%UR_BALDOSA_ROM%" %*',
+        # The pinned native after_config exits 7 before any guest frame when
+        # Modern selector/profile/SRAM authority is incomplete or mismatched.
+        # Keep that exact status and all save data; never start a default
+        # anonymous game or tell players to delete the affected profile.
+        'if "%ERRORLEVEL%"=="7" (echo UR-BALDOSA-STARTUP-PROFILE-REJECTED: Named racer data was not authorized. Preserve both the raw save and Modern profile files; see the diagnostic above. 1>&2 & exit /b 7)',
         'exit /b %ERRORLEVEL%',
     ]
     return ("\r\n".join(commands) + "\r\n").encode("utf-8")
@@ -78,8 +83,13 @@ def readme(revision: str) -> bytes:
         "This is a development candidate, NOT a completed remaster.\n"
         "The existing Modern root can enter original 1P/2P selection and\n"
         "provides native profile SRAM persistence where authorized.\n"
-        "Practice, Records and Options are not yet integrated; no complete\n"
-        "45-event fidelity, HD+widescreen product or run capture is claimed.\n\n"
+        "Practice and Options are not yet integrated into this native root.\n"
+        "Records shows the verified named racer's historical runs read-only.\n"
+        "The native backend can store source-confirmed 1P Race results, but\n"
+        "a real complete Windows event and fresh-process Records acceptance\n"
+        "have not yet passed. 2P match recording, ghost/replay equivalence,\n"
+        "polished integrated HD/widescreen and full 45-event fidelity remain\n"
+        "outstanding. This package is NOT a release or a beta approval.\n\n"
         "HOW TO LAUNCH\n"
         "1. Extract the ZIP to a normal Windows folder.\n"
         "2. Copy your own legally obtained USA retail Uniracers ROM dump as\n"
@@ -93,7 +103,10 @@ def readme(revision: str) -> bytes:
         "inside the extracted package. Saved data is NEVER shipped in a ZIP.\n"
         "An existing named Modern profile needs a complete valid catalog,\n"
         "host-profile state and 8192-byte native save; otherwise startup\n"
-        "refuses the profile instead of writing into another slot.\n\n"
+        "refuses the profile instead of writing into another slot.\n"
+        "If startup reports PROFILE-REJECTED or SAVE-MISMATCH, preserve\n"
+        "both save.srm and host-profile.txt. Do not delete or overwrite\n"
+        "either file: explicit recovery is not yet implemented.\n\n"
         "To report a problem, include the exact startup diagnostic and\n"
         "reproduction steps, but never share personal ROMs or profile data.\n\n"
         f"Project source revision: {revision}\n"

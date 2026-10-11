@@ -71,6 +71,10 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
                 readme = archive.read(
                     candidate.PREFIX + candidate.README).decode("utf-8")
                 self.assertIn("NOT a completed remaster", readme)
+                self.assertIn("historical runs read-only", readme)
+                self.assertIn("source-confirmed 1P Race results", readme)
+                self.assertIn("explicit recovery is not yet implemented", readme)
+                self.assertNotIn("Practice, Records and Options are not yet", readme)
                 self.assertIn(candidate.USA_SHA256, readme)
             with self.assertRaisesRegex(ValueError, "already exists"):
                 candidate.create_candidate(exe, first, revision)
@@ -107,6 +111,12 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
         self.assertIn("UR-BALDOSA-STARTUP-ROM-INVALID", script)
         self.assertIn("if errorlevel 3", script)
         self.assertIn("if errorlevel 2", script)
+        self.assertIn('if "%ERRORLEVEL%"=="7"', script)
+        self.assertIn("UR-BALDOSA-STARTUP-PROFILE-REJECTED", script)
+        self.assertIn("Preserve both the raw save and Modern profile files", script)
+        self.assertIn("exit /b 7", script)
+        self.assertLess(script.index('if "%ERRORLEVEL%"=="7"'),
+                        script.index("exit /b %ERRORLEVEL%"))
         self.assertNotIn("powershell.exe -ExecutionPolicy Bypass", script)
         self.assertNotIn("certutil -addstore", script)
 

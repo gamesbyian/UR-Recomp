@@ -136,6 +136,31 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int) -> dict:
                 encoding="utf-8"))["immutable_files"] if x["path"] == EXE),
             "tested installed executable differs from immutable manifest")
 
+    # Actual CMD forwarding: a malformed Modern selector is refused by the
+    # native after_config BEFORE gameplay. The batch file must preserve the
+    # original exit 7, explain the refusal, and never create/overwrite SRAM.
+    original_sram = save.read_bytes()
+    selector = user_root / "host-state-v1.txt"
+    if selector.exists():
+        raise ValueError("Unexpected host selector in anonymous launcher fixture")
+    selector.write_text("corrupt selected Modern profile fixture\n", encoding="utf-8")
+    rejected = invoke_launcher(launcher, env, args, timeout)
+    rejected_log = rejected.stdout + "\n" + rejected.stderr
+    (output / "profile-rejected-launch.log").write_text(
+        rejected_log, encoding="utf-8")
+    require(
+        rejected.returncode == 7 and
+        rejected.stderr.count("UR-BALDOSA-STARTUP-PROFILE-REJECTED") == 1 and
+        "UR_BALDOSA_NATIVE_PROFILE REJECTED reason=host_state_invalid" in
+        rejected_log,
+        f"actual CMD entrypoint lost native profile refusal: "
+        f"rc={rejected.returncode} tail={rejected_log[-1800:]}")
+    require(save.read_bytes() == original_sram and
+            selector.read_text(encoding="utf-8") ==
+                "corrupt selected Modern profile fixture\n" and
+            not list(user_root.rglob("*.urrun")),
+            "Rejected packaged launch mutated previously saved data")
+
     # The ROM is never retained in evidence, and source ZIP was not modified.
     installed_rom.unlink()
     report = {
@@ -145,6 +170,8 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int) -> dict:
         "wrong_rom_rejected_before_user_data": True,
         "package_local_and_relative_root_rejected": True,
         "real_extracted_launcher_accepted": True,
+        "exact_native_profile_refusal_code_and_guidance": True,
+        "rejected_profile_save_unchanged": True,
         "native_root_drawn": True,
         "canonical_8192_byte_save_outside_package": True,
         "published_zip_unchanged": True,

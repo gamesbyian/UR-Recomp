@@ -3,6 +3,7 @@ import unittest
 
 from tools.check_baldosa_2p_lower_rear_1856_gap import (
     classify, verify_upper_original_rear_source_mirrors,
+    check_candidate_preserves_rear_source_gaps,
     EXPECTED_MASKED_REAR_ONLY, WIDTH, HEIGHT
 )
 
@@ -152,6 +153,51 @@ class Original2PLowerRearExceptionTest(unittest.TestCase):
         lower[0]["xy"][1] = 100
         with self.assertRaisesRegex(ValueError, "cannot have top mirror"):
             verify_upper_original_rear_source_mirrors(self.stock, lower)
+
+    def test_hidden_lower_rear_gap_original_four_x_subpixels_all_protected(self):
+        gaps = self.measure()["rear_only_source_hidden_by_stock_rgb"]
+        expanded = self.scale_original_stock_four_x()
+        report = check_candidate_preserves_rear_source_gaps(
+            self.stock, expanded, 4, gaps)
+        self.assertEqual(report["status"],
+                         "original-hidden-rear-source-gap-preserved")
+        self.assertEqual(report["protected_density_subpixels"], 16)
+        self.assertEqual(report["changed_protected_density_subpixels"], 0)
+        self.assertFalse(report["approved_remastered_art"])
+
+    def test_hidden_rear_gap_one_four_x_subpixel_overpaint_is_detected(self):
+        gaps = self.measure()["rear_only_source_hidden_by_stock_rgb"]
+        expanded = bytearray(self.scale_original_stock_four_x())
+        x, y = self.positions["masked_rear"]
+        at = 4 * ((y * 4 + 3) * (WIDTH * 4) + x * 4 + 2)
+        expanded[at] ^= 1
+        report = check_candidate_preserves_rear_source_gaps(
+            self.stock, expanded, 4, gaps)
+        self.assertEqual(report["status"],
+                         "original-rear-source-gap-overpaint")
+        self.assertEqual(report["changed_protected_density_subpixels"], 1)
+        self.assertEqual(report["bounded_changed_examples"], [[188, 156, 2, 3]])
+
+    def test_guard_rejects_unknown_scale_and_cropped_candidate(self):
+        gaps = self.measure()["rear_only_source_hidden_by_stock_rgb"]
+        with self.assertRaisesRegex(ValueError, "1x..4x"):
+            check_candidate_preserves_rear_source_gaps(
+                self.stock, self.stock, 5, gaps)
+        with self.assertRaisesRegex(ValueError, "complete 342-wide"):
+            check_candidate_preserves_rear_source_gaps(
+                self.stock, self.stock[:-4], 1, gaps)
+
+    def scale_original_stock_four_x(self):
+        # Exact Original density fallback, not an authored HD texture.
+        out = bytearray()
+        stock = memoryview(self.stock)
+        for y in range(HEIGHT):
+            start = y * WIDTH * 4
+            row = stock[start:start + WIDTH * 4]
+            wide = b"".join(row[4*x:4*x + 4].tobytes() * 4
+                            for x in range(WIDTH))
+            out.extend(wide * 4)
+        return bytes(out)
 
     def test_real_native_witness_names_all_three_exact_coordinates(self):
         self.assertEqual(

@@ -66,3 +66,7 @@ The new dependency-free helper compares the inner ZIP, original ZIP sidecar, smo
 ## Optional independently nominated artifact pins
 
 The read-only historical auditor also accepts `--expected-source <40-hex>` **together with** `--expected-zip-sha256 <64-hex>` for negative checking against a reviewer-specified source and **inner** ZIP hash. A missing partner, malformed digest or mismatch rejects the packet. Its `nominated_candidate_pins_matched` metric means only that the supplied values match bytes, while `independent_candidate_approved` remains **false** because the offline script cannot establish the nomination's provenance. `outcome=inconclusive` is retained even on a completely matching candidate.
+
+## L5 physical witness minimum device matrix
+
+An explicitly recorded `layer=L5` witness now requires a `hardware` object with **nonempty** `windows_version`, `gpu`, `display`, `controller` and `audio` fields, plus the already required source/ZIP digest, witnessed test instant and physical validation state. Use only general device model/driver descriptions relevant to repeatable compatibility testing: **no personal computer names, user accounts, controller serials or device identifiers**. A text label such as “physical QA report” without the tested hardware classes is insufficient. This still checks only self-declared structured evidence and cannot verify that a person actually used those devices. It does not convert scripted dummy-audio/offscreen or synthetic pads into L5, and the present ledger has **no** accepted L5 witnesses.

@@ -151,6 +151,21 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
             min_rank = LAYER_RANK.get(minimum, 99) if isinstance(minimum, str) else 99
             if rank < min_rank:
                 errors.append(f"{name} witness below required layer {minimum}")
+            if rank >= LAYER_RANK["L5"]:
+                # An L5 assertion must identify representative real
+                # consumer-device *classes*, not a synthetic SDL shim or
+                # generic documentation page. Avoid serials/user IDs.
+                hardware = w.get("hardware")
+                required_device_classes = ("windows_version", "gpu",
+                                           "display", "controller", "audio")
+                if not isinstance(hardware, dict) or any(
+                    not isinstance(hardware.get(k), str)
+                    or not hardware[k].strip()
+                    for k in required_device_classes
+                ):
+                    errors.append(f"{name} L5 witness needs Windows/GPU/display/controller/audio device matrix")
+                if physical is not True:
+                    errors.append(f"{name} L5 witness without physical hardware confirmation")
         if status != "passed" and witnesses and gate.get("candidate_commit") != commit:
             errors.append(f"{name} witness candidate mismatch")
     if decision == "public_release":

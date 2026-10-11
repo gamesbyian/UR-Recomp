@@ -74,6 +74,18 @@ def summarize(source: dict, guest: dict) -> dict:
             or [x.get("original_cpu_frame_before") for x in all_orig]
                != list(range(5778, 5783))):
         raise ValueError("missing the five independently observed original NMI PHA clocks")
+    # The standalone saved-4042 witness must be the same event as the
+    # frame-5780 row in the five-NMI time series, not a splice from another
+    # original trace carrying the same paired replay SHA.
+    series_writer = all_orig[2]
+    for key in ("original_cpu_frame_before", "original_pha_pc",
+                "accumulator_before", "stack_pointer_before",
+                "ppu_vcounter_before",
+                "source_original_cpu_hcounter_before",
+                "source_original_cpu_hcounter_after",
+                "original_cpu_frame_after", "stack_pointer_after"):
+        if series_writer.get(key) != a.get(key):
+            raise ValueError("saved original 4042 PHA conflicts with five-NMI clock series")
     candidates = []
     for row in all_orig:
         if (row.get("original_pha_pc") != "00:858E"

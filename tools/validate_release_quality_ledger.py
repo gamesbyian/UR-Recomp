@@ -123,6 +123,36 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
                 errors.append(f"{name} {status} without exact pinned candidate")
             if not witnesses:
                 errors.append(f"{name} {status} without independent recorded witnesses")
+        # QA-01 is a complete USA-release census, not a representative-case
+        # gate. A single valid L4 report cannot accept an incomplete 45-event
+        # denominator or silently shrink that denominator to certify a pass.
+        # This is bookkeeping only: the independently compared course events
+        # must still be verified against the owning event census.
+        if name == "QA-01":
+            census = gate.get("coverage")
+            if not isinstance(census, dict):
+                errors.append("QA-01 missing course-event coverage census")
+            else:
+                keys = ("complete_event_passes", "partial", "unverified")
+                valid_counts = True
+                for key in keys:
+                    value = census.get(key)
+                    if type(value) is not int or value < 0:
+                        errors.append(f"QA-01 invalid USA coverage {key}")
+                        valid_counts = False
+                denominator = census.get("denominator")
+                if type(denominator) is not int or denominator != 45:
+                    errors.append("QA-01 USA coverage denominator must remain 45")
+                if valid_counts and sum(census[key] for key in keys) != 45:
+                    errors.append("QA-01 USA coverage counts must partition all 45 events")
+                if status == "passed" and any(
+                    census.get(key) != expected
+                    for key, expected in (
+                        ("complete_event_passes", 45), ("partial", 0),
+                        ("unverified", 0)
+                    )
+                ):
+                    errors.append("QA-01 passed without 45/45 independently accepted USA events")
         if status == "passed" and minimum == "L5" and physical is not True:
             errors.append(f"{name} L5 pass without physical hardware verification")
         if status == "waived":

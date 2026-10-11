@@ -26,7 +26,7 @@ Compact router for coding and research agents. **Current priority: merge the ver
 | External source, acquisition lead, or imported research artifact | `docs/EXTERNAL-EVIDENCE-INTAKE.md`, `reference/evidence-worklist.json`, `reference/catalog.yml`, then `docs/THIRD-PARTY-CODE-AUDIT.md` as applicable |
 | Tool choice / installing research software | `docs/TOOLCHAIN.md`, `tools/toolchain.json`; for producer/consumer chains and adapters, `docs/TOOL-INTEROPERABILITY.md` |
 | AI/LLM-assisted reverse-engineering method | `docs/AI-ASSISTED-REVERSE-ENGINEERING.md`; apply it as technique guidance, not as a second work queue |
-| Adopting or adapting imported scripts/source | `docs/THIRD-PARTY-CODE-AUDIT.md`, then the imported source |
+| Adopting or adapting imported scripts/source | `docs/TRUSTED-UPSTREAM-ADOPTION.md`, `docs/THIRD-PARTY-CODE-AUDIT.md`, then the imported source |
 | Periodic repository hygiene | Execute `docs/PERIODIC-REPOSITORY-HYGIENE.md` from current `main` |
 
 `docs/README.md` inventories document ownership. It is not a second agent guide.
@@ -52,7 +52,7 @@ If you have no project history, do **not** reconstruct priority from chronology,
 5. Close the loop. If code, tooling, or evidence changes a current conclusion, rerun the invalidated check and update the owning authority.
 6. Prefer cheap discovery before broad reading. For conceptual orientation, read the relevant `docs/knowledge/` page before opening large histories or imported corpora. Query filenames, symbols, generated manifests, and the source catalog for exact evidence.
 7. Generated bulk output is disposable unless a compact artifact has durable evidence value. Commit reproducible tooling and compact manifests/reports, not giant generated C, traces, dumps, extracted assets, or Ghidra workspaces.
-8. External claims are leads until reproduced locally. Record observation, evidence, interpretation, and uncertainty separately.
+8. External claims remain advisory until locally reproduced for canonical game truth. Bulk-consume pinned imported research at U1, and qualify trusted tool/runtime dependencies at U2/U3 through their tests and narrow contracts under `docs/TRUSTED-UPSTREAM-ADOPTION.md`; do not require independent rediscovery before every provisional engineering use.
 9. Preserve exact provenance for imported artifacts: source, retrieval date, original filename, hashes/revision, container relationship, and rights/licensing status where known.
 10. Do not weaken a deterministic validation guard to make a failure disappear. Fix the underlying assumption, dependency, or harness.
 11. Use the cheapest check that answers the current iteration question. GitHub Actions is execution infrastructure, not automatically research evidence.
@@ -72,7 +72,7 @@ If you have no project history, do **not** reconstruct priority from chronology,
 23. Policy/schema validator tests must synthesize the invalid state they are testing. Do not rely on a current production feature remaining in a temporary status such as `redesign_candidate`.
 24. On a CI-heavy branch, avoid pushing a rapid chain of tiny commits through the same high-fan-out paths when one coherent completed edit can be published once. Cancellation is useful for superseded work, but repeated cancellation before any useful result is an agent-throughput failure. Before accepting high fan-out as normal, audit whether each triggered workflow still deserves to be automatic.
 
-25. Imported executable code is raw material, not a trusted dependency. Preserve provenance, but normalize useful behavior into project-owned tools and add regression coverage before depending on it.
+25. Imported executable code starts as raw material. Cohesive, licensed, pinned upstream modules may become qualified engineering dependencies after upstream tests, dependency review, targeted local regression and rollback; preserving their tested implementation can beat rewriting it. High-risk simulation, original PPU, save/results and release claims still require independent exact-candidate evidence.
 26. Two-player fixture work is a required fidelity dependency. If touching shared input grammar or engine adapters, preserve or advance `docs/TWO-PLAYER-FIXTURE-PLAN.md`; do not let one-player coverage silently stand in for multiplayer coverage.
 27. A UI-atlas gap is not automatically project debt. Apply the completion tiers in `docs/UI-STATE-MAP.md`: close critical-fidelity gaps, harvest cheap evidence, and leave archaeology-only gaps open unless they become implementation-, validation-, compatibility-, or product-relevant.
 28. Apply **value-of-information discipline** before expensive evidence work. State the decision/uncertainty being resolved, the cheapest discriminator likely to change that decision, and the stopping condition. Do not collect every available surface merely because it can be collected.

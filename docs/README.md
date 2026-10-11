@@ -4,7 +4,7 @@
 
 ## Three-project R&D apparatus synthesis
 
-See the [Baldosa/malmazuke/UR apparatus synthesis](THREE-PROJECT-APPARATUS-SYNTHESIS-20261010.md), [shared route/evidence spine](THREE-PROJECT-SHARED-EVIDENCE-SPINE-20261010.md), and [ordered adoption roadmap](THREE-PROJECT-APPARATUS-ROADMAP-20261010.md). The pinned file inventories and 35-capability matrix are checked by `python3 tools/audit_three_project_apparatus.py`. These plans do not replace the work queue, technical reference or release ledger.
+See the [Baldosa/malmazuke/UR apparatus synthesis](THREE-PROJECT-APPARATUS-SYNTHESIS-20261010.md), [shared route/evidence spine](THREE-PROJECT-SHARED-EVIDENCE-SPINE-20261010.md), [ordered adoption roadmap](THREE-PROJECT-APPARATUS-ROADMAP-20261010.md), and [trusted upstream accelerated-adoption policy](TRUSTED-UPSTREAM-ADOPTION.md). The read-only `tools/query_upstream_knowledge.py` provides a bulk Baldosa-USA / malmazuke-PAL advisory search without promoting external interpretations to canonical symbols. The pinned file inventories and 35-capability matrix are checked by `python3 tools/audit_three_project_apparatus.py`. These plans do not replace the work queue, technical reference or release ledger.
 
 ## Enduring technical-reference charter
 

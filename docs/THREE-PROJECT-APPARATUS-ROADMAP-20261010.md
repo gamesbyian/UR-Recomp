@@ -18,6 +18,15 @@ Part of the [apparatus audit](THREE-PROJECT-APPARATUS-SYNTHESIS-20261010.md) and
 
 ## How adoption decisions are made
 
+**Fast development track:** `TRUSTED-UPSTREAM-ADOPTION.md` permits pinned
+Baldosa/Malmazuke data to be used immediately for advisory research (U1), and
+cohesive licensed modules to be reused after one bounded compatibility and
+regression qualification (U2). This is deliberately faster than source-by-source
+canonical semantic promotion. It never declares a new independently accepted
+original event or release gate. Use `tools/query_upstream_knowledge.py` to search
+both imported maps without maintaining another canonical symbol registry.
+
+
 All **35 concrete capability families** are enumerated in `analysis/data/three-project-apparatus-capability-matrix-20261010.json`; every reference path is validated against the pinned source trees.
 
 1. **Keep UR authority:** Native Baldosa Windows guest integration, original-multicore emulator QA, complete-event ledger, Modern product, profile persistence, true widescreen, HD/OBJ, packaging, recruitment capture and canonical symbols. Different upstream solutions become explanatory references, not parallel owners.

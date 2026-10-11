@@ -89,6 +89,11 @@ class OriginalPostGoPairedObjSourceTest(unittest.TestCase):
         self.assertEqual(report["original_prerace_source_translation_xy_not_assumed"],
                          [0, 113])
         self.assertFalse(report["remastered_source_erasure_allowed"])
+        for slot in (96, 97, 98, 99):
+            evidence = report["source_rgb_vs_actual_original_final_by_slot"][str(slot)]
+            self.assertEqual(evidence["source_opaque_emission"], 2)
+            self.assertEqual(evidence["source_rgb_equals_final_original_at_emission"], 0)
+            self.assertTrue(evidence["rgb_agreement_does_not_prove_unique_PPU_painter"])
 
     def test_colour_divergence_is_observed_without_falsely_failing_provenance(self):
         self.paint(self.sources[97], 112, 182, (9, 10, 11, 255))
@@ -122,6 +127,34 @@ class OriginalPostGoPairedObjSourceTest(unittest.TestCase):
         record = assess(self.root)["source_paired_upper_to_lower"]["98->97"]
         self.assertEqual(record["status"], "source-empty")
         self.assertFalse(record["exact_rgba_split_alias_observed"])
+
+    def test_one_real_source_rgb_stock_match_does_not_claim_ppu_owner(self):
+        # The Original P7 stock image is complete, even if its alpha is
+        # zero: a real source/stock *RGB* match still matters.
+        self.original = bytearray(self.original)
+        off = 4 * (70 * WIDTH + 125)
+        self.original[off:off + 4] = bytes((247, 165, 140, 0))
+        self.original = bytes(self.original)
+        self.flush()
+        row = assess(self.root)["source_rgb_vs_actual_original_final_by_slot"]["98"]
+        self.assertEqual(row["source_opaque_emission"], 2)
+        self.assertEqual(row["source_rgb_equals_final_original_at_emission"], 1)
+        self.assertTrue(row["rgb_agreement_does_not_prove_unique_PPU_painter"])
+
+    def test_source_overlap_is_bounded_and_not_assumed_opaque_priority(self):
+        # Add one upper/lower source overlap while preserving each
+        # independently exact source-pair translation.
+        self.paint(self.sources[99], 125, 70, (9, 12, 17, 255))
+        self.paint(self.sources[96], 112, 182, (9, 12, 17, 255))
+        self.flush()
+        report = assess(self.root)
+        upper = report["overlap_RGB_observations_source_vs_final_by_viewport"][
+            "upper_front98_rear99"]
+        lower = report["overlap_RGB_observations_source_vs_final_by_viewport"][
+            "lower_front96_rear97"]
+        self.assertEqual(upper["overlap_different_rgb"], 1)
+        self.assertEqual(lower["overlap_different_rgb"], 1)
+        self.assertTrue(report["postgo_translation_same_across_both_player_pairs"])
 
     def test_old_countdown_shift_is_valid_as_input_not_postgo_assumption(self):
         # Rebuild the P1 lower plane with the old (0,+113) raster shift.

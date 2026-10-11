@@ -91,6 +91,33 @@ class ManualCampaignTest(unittest.TestCase):
                     windows_zip=archive, windows_checksum=sidecar,
                 )
 
+    def test_cli_exit_is_red_for_failed_or_missing_required_suite(self):
+        # A well-formed negative receipt must not make the aggregate step
+        # green; the machine JSON and Actions summary must still survive.
+        for state, expected_exit, expected_disposition in (
+                ("success", 0, "component_suites_passed"),
+                ("failure", 1, "suite_failure"),
+                ("skipped", 1, "incomplete"),
+                ("cancelled", 1, "incomplete")):
+            with self.subTest(shared=state), tempfile.TemporaryDirectory() as folder:
+                root = Path(folder)
+                result_path, summary = root / "result.json", root / "summary.md"
+                cmd = [
+                    sys.executable, str(ROOT / "tools/qa_modern_batch_campaign.py"),
+                    "--source-sha", SOURCE, "--run-id", "123456",
+                    "--native", "success", "--shared", state,
+                    "--onboarding", "success", "--ui", "success",
+                    "--windows", "skipped", "--include-windows", "false",
+                    "--native-sha256", NATIVE_DIGEST,
+                    "--out", str(result_path), "--summary", str(summary),
+                ]
+                proc = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
+                self.assertEqual(proc.returncode, expected_exit, proc.stderr)
+                receipt = json.loads(result_path.read_text())
+                self.assertEqual(receipt["disposition"], expected_disposition)
+                self.assertEqual(receipt["release_gate_credit"], 0)
+                self.assertIn(expected_disposition, summary.read_text())
+
     def test_cli_retains_invalid_evidence_receipt(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

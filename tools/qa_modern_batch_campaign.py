@@ -132,7 +132,9 @@ def main() -> int:
             windows_zip=args.windows_zip,
             windows_checksum=args.windows_checksum,
         )
-        result = 0
+        # Transport is not green when any requested suite failed, cancelled
+        # or never ran. Preserve the receipt and summary before failing.
+        result = 0 if report["disposition"] == "component_suites_passed" else 1
     except (ValueError, OSError) as exc:
         report = {
             "schema": "ur-modern-candidate-campaign/1",

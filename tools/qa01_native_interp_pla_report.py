@@ -128,6 +128,40 @@ def corroborate_executed_pla_with_read_bus(
                is not True
             or not isinstance(read_report.get("native_stack_read_attempts"), list)):
         raise ValueError("missing authenticated native opcode/bus-read material")
+    # A caller may pass JSON to this reconciler. Re-derive interpreter
+    # witness counts from each exact opcode/returned-byte observation,
+    # rather than trusting the report's copy of the candidate frame list.
+    op_rows = result.get("native_interpreter_pla_records")
+    if (not isinstance(op_rows, list)
+            or type(result.get("native_interpreter_pla_observation_count")) is not int
+            or len(op_rows) != result["native_interpreter_pla_observation_count"]):
+        raise ValueError("native interpreter PLA opcode rows/count contradict")
+    derived_saved_frames = []
+    for row in op_rows:
+        if not isinstance(row, dict):
+            raise ValueError("invalid native interpreter opcode row")
+        direct = row.get("interpreter_exact_op_byte_reads")
+        width = row.get("interpreter_accumulator_width_bytes")
+        if (not isinstance(direct, list) or type(width) is not int
+                or len(direct) != width or width not in (1, 2)
+                or row.get("interpreter_byte_reads_reconstruct_accumulator") is not True):
+            raise ValueError("interpreter opcode byte return evidence is absent")
+        if (row.get("native_snes_frame_counter") in (5781, 5782)
+                and row.get("interpreter_pre_pull_stack_pointer") == "01DC"
+                and row.get("interpreter_post_pull_stack_pointer") == "01DE"
+                and row.get("interpreter_accumulator_after") == "4004"
+                and width == 2
+                and row.get("interpreter_emulation_mode_before") is False
+                and row.get("real_native_4004_writer_callback_precedes_interpreter_pla") is True):
+            if direct != [{"address": "7E:01DD", "value": "04"},
+                          {"address": "7E:01DE", "value": "40"}]:
+                raise ValueError("direct interpreter saved-A byte pair mutated")
+            derived_saved_frames.append(row["native_snes_frame_counter"])
+    if (result.get("native_interpreter_saved_4004_pla_candidate_frames") != derived_saved_frames
+            or type(result.get("native_interpreter_saved_4004_pla_candidate_count")) is not int
+            or result["native_interpreter_saved_4004_pla_candidate_count"]
+               != len(derived_saved_frames)):
+        raise ValueError("interpreter PLA candidate totals differ from actual opcode rows")
     records = read_report["native_stack_read_attempts"]
     qualified_by_frame = {}
     for lo, hi in zip(records, records[1:]):
@@ -145,7 +179,7 @@ def corroborate_executed_pla_with_read_bus(
                 and hi.get("read_value") == "0040"):
             qualified_by_frame[frame] = qualified_by_frame.get(frame, 0) + 1
     observed_by_frame = {}
-    for frame in result.get("native_interpreter_saved_4004_pla_candidate_frames", ()):
+    for frame in derived_saved_frames:
         if type(frame) is not int or frame not in (5781, 5782):
             raise ValueError("invalid native interpreter saved word candidate frame")
         observed_by_frame[frame] = observed_by_frame.get(frame, 0) + 1

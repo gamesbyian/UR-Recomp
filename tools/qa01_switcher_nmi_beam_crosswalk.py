@@ -42,20 +42,21 @@ def summarize(source: dict, guest: dict) -> dict:
             or b["stack_word_saved"] != "4004"
             or b["wram_write_destination"] != "7E:01DD"
             or not source["source_hcounter_vs_native_framework_hpos_unaligned"]
-            or guest.get("native_cpu_master_counter_is_precharged_basic_block_not_pha_cycle") is not True
+            or guest.get("native_cpu_master_counter_precharged_and_store_paced_not_pha_cycle") is not True
             or guest.get("native_pha_inside_basic_block_but_exact_instruction_cycle_unknown") is not True
+            or guest.get("cpu_write16_paced_charges_before_writer_log") is not True
             or guest.get("modeled_beam_hpos_not_proven_instruction_aligned") is not True
             or not guest["framework_beam_vs_original_cpu_phase_unaligned"]):
         raise ValueError("one source writer or clock provenance diverged")
     native_block_start = b.get("native_cpu_basic_block_start_master_cycles")
-    native_block_end = b.get("native_cpu_basic_block_end_master_cycles")
-    native_block_width = b.get("native_cpu_basic_block_bracket_width_master_cycles")
+    native_block_end = b.get("native_cpu_charged_counter_at_write")
+    native_block_width = b.get("native_cpu_charged_delta_from_block_entry")
     if (not all(type(t) is int for t in
                 (native_block_start, native_block_end, native_block_width))
             or native_block_start < 0
             or native_block_start > native_block_end
             or native_block_width != native_block_end - native_block_start):
-        raise ValueError("native NMI PHA missing valid basic-block clock bracket")
+        raise ValueError("native NMI PHA has invalid monotonic charged-counter pair")
     o_h, n_h = a["source_original_cpu_hcounter_before"], b["framework_beam_hpos"]
     o_v, n_v = a["ppu_vcounter_before"], b["framework_beam_vpos"]
     if not (type(o_h) is int and type(n_h) is int and type(n_v) is int):
@@ -76,9 +77,9 @@ def summarize(source: dict, guest: dict) -> dict:
         "clock_unit_origin_and_execution_phase_equivalence_not_proven": True,
         "native_master_counter_is_basic_block_not_pha_cycle": True,
         "native_basic_block_start_master_cycles": native_block_start,
-        "native_basic_block_end_master_cycles": native_block_end,
-        "native_basic_block_width_master_cycles": native_block_width,
-        "native_pha_exact_cycle_inside_bracket_not_observed": True,
+        "native_charged_counter_at_write": native_block_end,
+        "native_charged_delta_from_block_entry": native_block_width,
+        "native_pha_exact_cycle_not_reconstructable_from_charged_counters": True,
         "matching_scanline_alone_is_not_causal_parity": True,
         "cpu_architectural_return_parity_not_proven": True,
         "strict_guest_relative_result_original_native": [4704, 4702],

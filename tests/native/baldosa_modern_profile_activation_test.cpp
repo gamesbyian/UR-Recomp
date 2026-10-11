@@ -147,6 +147,19 @@ int main() {
                   initialized.size());
         assert(raw.good());
     }
+    // Matching typed/raw bytes reached through a redirected parent must
+    // never authorize native boot, even when all file contents are valid.
+    const fs::path selected_dir = "saves/profile-rider-1";
+    const fs::path redirected_dir = dir / "moved-selected-profile";
+    fs::rename(selected_dir, redirected_dir);
+    fs::create_directory_symlink(redirected_dir, selected_dir);
+    assert(ur_baldosa_modern_try_activate_profile() == 0);
+    assert(root == "saves");
+    fs::remove(selected_dir);
+    fs::create_directory_symlink(dir / "missing-selected-profile", selected_dir);
+    assert(ur_baldosa_modern_try_activate_profile() == 0);
+    fs::remove(selected_dir);
+    fs::rename(redirected_dir, selected_dir);
     assert(ur_baldosa_modern_try_activate_profile() == 1);
     assert(root == "saves/profile-rider-1");
     assert(selected_racer == identity->name);
@@ -169,6 +182,15 @@ int main() {
     witnessed.captured_input_frames = 4;
     witnessed.mapped_inputs = {{0, 2, 0x10u, 0}, {3, 1, 0x20u, 0}};
     const fs::path run_root = dir / "runs/rider-1";
+    // Redirect the same selected path AFTER native boot. Refuse both 1P
+    // immutable Records publication and post-guest SRAM save preflight.
+    fs::rename(selected_dir, redirected_dir);
+    fs::create_directory_symlink(redirected_dir, selected_dir);
+    assert(!ur_baldosa_modern_publish_settled_one_player_run(&witnessed));
+    assert(!ur_baldosa_modern_profile_before_native_save());
+    assert(!fs::exists(run_root));
+    fs::remove(selected_dir);
+    fs::rename(redirected_dir, selected_dir);
     assert(!ur_baldosa_modern_publish_settled_one_player_run(nullptr));
     assert(ur_baldosa_modern_publish_settled_one_player_run(&witnessed) == 1);
     auto recorded = load_valid_run_records(run_root.string());

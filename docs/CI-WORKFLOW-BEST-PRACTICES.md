@@ -226,6 +226,10 @@ concurrency:
 
 Do not allow two writer runs to race the same branch.
 
+**External branch advancement is a separate hazard.** Non-cancelling concurrency serializes runs *within one workflow group*; it cannot prevent a human or another agent from advancing that branch during a render. Keep ordinary non-force `git push` behavior so a stale workflow cannot overwrite newer commits. Such a non-fast-forward is a stale-producer conflict, not proof of failed media content. For expensive writers, capture hash-bound outputs to a bounded recovery artifact before attempting the push (or via a failure-safe upload) when losing the output would justify another render. Distinguish `produced but not integrated` from failed rendering in `GITHUB_STEP_SUMMARY`, and only re-run from the newest authoritative head. Never rebase stale generated products automatically into a newly changed source/approval contract.
+
+**Concrete October 10 example:** two active media PR branches contained push-triggered `git push` producers. The technical-motion writer used `cancel-in-progress: true` and the one-shot companion-review writer had no concurrency block; both were corrected to branch-scoped `cancel-in-progress: false`. A subsequent technical render completed successfully, while an older rendered candidate was correctly rejected by Git as non-fast-forward after newer agent commits. Existing `tests/unit/test_ci_trigger_policy.py::test_git_writers_serialize_without_cancellation` enforces the general invariant. Workflow changes should not make the current HEAD invisible by counting obsolete red runs as current regressions.
+
 Manual-only, read-only probes may omit concurrency when duplicate runs are intentionally independent, but adding a group is still preferred when duplicate execution has no evidentiary value.
 
 ## Failure triage and recent-run interpretation

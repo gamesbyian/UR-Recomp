@@ -120,7 +120,60 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
                     return mutated
                 return data
             resigned(archive, change)
-            with self.assertRaisesRegex(ValueError, "canonical source policy"):
+            with self.assertRaisesRegex(ValueError, "launcher missing canonical safety boundary"):
+                qa.audit(archive, source, qa.file_digest(archive))
+
+    def test_evolving_safe_product_launcher_is_not_rejected_by_old_qa_template(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            archive, source, digest = self.make(Path(tmp))
+            with zipfile.ZipFile(archive) as z:
+                originals = {n: z.read(n) for n in z.namelist()}
+            original_launcher = originals[producer.PREFIX + producer.LAUNCHER]
+            # A genuine later product revision adds this security guard.
+            # The old checkout template must not be used as an exact oracle.
+            future_launcher = original_launcher.replace(
+                b"Get-FileHash -LiteralPath $env:UR_BALDOSA_ROM",
+                b"[IO.FileAttributes]::ReparsePoint; Get-FileHash -LiteralPath $env:UR_BALDOSA_ROM",
+            )
+            self.assertNotEqual(future_launcher, original_launcher)
+            manifest = json.loads(originals[producer.PREFIX + producer.MANIFEST])
+            for item in manifest["immutable_files"]:
+                if item["path"] == producer.LAUNCHER:
+                    item["bytes"] = len(future_launcher)
+                    item["sha256"] = hashlib.sha256(future_launcher).hexdigest()
+            revised_manifest = (json.dumps(manifest, sort_keys=True, indent=2) + "\n").encode()
+            def revised(name, data):
+                if name.endswith(producer.LAUNCHER):
+                    return future_launcher
+                if name.endswith(producer.MANIFEST):
+                    return revised_manifest
+                return data
+            resigned(archive, revised)
+            reviewed = qa.audit(archive, source, qa.file_digest(archive))
+            self.assertTrue(reviewed["metrics"]["launcher_reparse_ancestor_guard_present"])
+            self.assertFalse(reviewed["metrics"]["template_bytes_compared_against_matching_source_commit"])
+            self.assertEqual(reviewed["outcome"], "inconclusive")
+
+    def test_non_pe_or_wrong_machine_rejected_despite_valid_manifest_and_zip_digest(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            archive, source, digest = self.make(Path(tmp))
+            with zipfile.ZipFile(archive) as z:
+                originals = {n: z.read(n) for n in z.namelist()}
+            payload = bytearray(originals[producer.PREFIX + producer.EXE])
+            payload[132:134] = b"\\x4c\\x01"  # Intel 386, not AMD64.
+            manifest = json.loads(originals[producer.PREFIX + producer.MANIFEST])
+            for item in manifest["immutable_files"]:
+                if item["path"] == producer.EXE:
+                    item["sha256"] = hashlib.sha256(payload).hexdigest()
+            revised_manifest = (json.dumps(manifest, sort_keys=True, indent=2) + "\n").encode()
+            def revised(name, data):
+                if name.endswith(producer.EXE):
+                    return bytes(payload)
+                if name.endswith(producer.MANIFEST):
+                    return revised_manifest
+                return data
+            resigned(archive, revised)
+            with self.assertRaisesRegex(ValueError, "AMD64 PE32"):
                 qa.audit(archive, source, qa.file_digest(archive))
 
     def test_extra_or_duplicate_archive_member_refused_even_with_new_pin(self):

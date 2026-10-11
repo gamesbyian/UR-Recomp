@@ -46,7 +46,7 @@ class OnePlayerTopOriginalSourcesTests(unittest.TestCase):
                        root / "slot98.pam", root / "slot99.pam",
                        root / "one.log", root / "four.log", root, root,
                        root / "probe98.crc", root / "probe99.crc", frame=2224)
-            with self.assertRaisesRegex(ValueError, "real native Original"):
+            with self.assertRaisesRegex(ValueError, "Missing real native"):
                 assess(stock, one, four, root, root,
                        root / "slot98.pam", root / "slot99.pam",
                        root / "one.log", root / "four.log", root, root,

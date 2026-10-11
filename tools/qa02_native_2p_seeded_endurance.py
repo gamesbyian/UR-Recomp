@@ -161,6 +161,13 @@ def execute(exe: Path, rom: Path, control: Path, script: Path,
     if root.exists():
         raise ValueError("refuse an existing/previously mutated process root")
     (root / "dumps").mkdir(parents=True)
+    (root / "user-data").mkdir()  # real host refuses an absent explicit writable root
+    config = root / "fast-real-guest.ini"
+    # Stock native emulator frame pacing need not idle an endurance worker.
+    # Direct local A/B smoke proved identical 128-KiB WRAM under this setting.
+    config.write_text(
+        "[General]\\nDisableFrameDelay = 1\\nSkipLauncher = 1\\nAutosave = 0\\n"
+        "[Sound]\\nEnableAudio = 0\\n", encoding="ascii")
     env = dict(os.environ)
     env.update({
         "SDL_AUDIODRIVER": "dummy",
@@ -170,7 +177,7 @@ def execute(exe: Path, rom: Path, control: Path, script: Path,
         "SNESRECOMP_INPUT_FILE": str(control),
         "SNESRECOMP_DUMP_DIR": str(root / "dumps"),
     })
-    cmd = ["xvfb-run", "-a", str(exe), str(rom), "--script", str(script)]
+    cmd = ["xvfb-run", "-a", str(exe), str(rom), "--config", str(config), "--script", str(script)]
     try:
         done = subprocess.run(cmd, cwd=root, env=env, capture_output=True,
                               text=True, errors="replace", timeout=timeout)

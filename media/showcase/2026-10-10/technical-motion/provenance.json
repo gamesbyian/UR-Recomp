@@ -1,0 +1,46 @@
+{
+  "type": "editorial-motion-graphics",
+  "source_commit": "eecdcd38fc12c35af15b752f043b00c1aa0b024e",
+  "fps": 30,
+  "source_evidence": {
+    "center": {
+      "run_id": 38083079741,
+      "artifact_id": 11681138053,
+      "frame": 1856,
+      "pixels": 57344,
+      "differences": 0,
+      "source": "docs/QA08-NATIVE-STOCK-CENTER-PARITY-20261010.md"
+    },
+    "recording": {
+      "run_id": 38089655141,
+      "artifact_id": 11683697184,
+      "guest_frames": "2100..2699",
+      "source": "media/showcase/2026-10-10/recruitment/continuous/README.md"
+    }
+  },
+  "disclosure": "Grid and bar illustrations are editorial, not PPU pixels or CRC values. Zero differences is a bounded same-frame Original source-centre result. CRC identity is capture non-interference on this native route; neither is a complete-game release certificate.",
+  "outputs": {
+    "01-source-centre-parity.mp4": {
+      "sha256": "7ebe9163aec9e2c0ab350cf7f402cf3b653202f14a1c544424c5ed879e48b4c6",
+      "bytes": 165939,
+      "frames": 180,
+      "fps": 30,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "decoded_frame_100_sha256": "b942ac086c184c24a4aff11c2c60af35de488f22d78d262a1174c1c65cf411d4"
+    },
+    "02-recording-noninterference.mp4": {
+      "sha256": "4b9e881c102661b41caf9396039822b3c62e7180baa8e4d6a0dff26687663f4e",
+      "bytes": 98154,
+      "frames": 180,
+      "fps": 30,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "decoded_frame_100_sha256": "d6b3fd53b228b2828964c43c4e761186c4a3d81f38b8d849bdecbf0745f5d40a"
+    }
+  }
+}

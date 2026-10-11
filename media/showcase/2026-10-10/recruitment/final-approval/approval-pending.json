@@ -1,0 +1,57 @@
+{
+  "accepted_by": null,
+  "art_sha_source_commit": "7fb683e2e6a2caabbd72c1f10f77ec08b97e818e",
+  "clips": {
+    "archaeology": {
+      "approved_for_trailer": false,
+      "evidence_links": [
+        "analysis/data/racer-hd-replacement-prototype.json",
+        "media/showcase/art-reconstruction/2026-10-10/provenance.json"
+      ],
+      "kind": "editorial_graphic",
+      "review_frame_sha256": {
+        "archaeology-decoded-frame-030.png": "1d7e6c99b8efabe13c9bc15d17929a604da85d90a06448f778be7aa75c4b21eb",
+        "archaeology-decoded-frame-105.png": "3da4aa8f72dd256fea6af9cf68489399541a92392782122b8a3c9fc330bf94dc",
+        "archaeology-decoded-frame-165.png": "2a4c03dcb09d3445dc0c78605ab6ecd37dcd920525f804741a3e2821d0181888"
+      },
+      "sha256": "c1326b641eb119375bc7708a6780ce7950be81b7f287d4b010c0c11328750e2a",
+      "verified_fps": "30/1",
+      "verified_frames": 210
+    },
+    "art": {
+      "approved_for_trailer": false,
+      "evidence_links": [
+        "analysis/data/racer-hd-art-approval.json",
+        "media/showcase/art-reconstruction/2026-10-10/provenance.json"
+      ],
+      "kind": "editorial_graphic",
+      "review_frame_sha256": {
+        "art-decoded-frame-030.png": "36760c2085d0b36a0f58aaea12de1bdf4a902c811fe9a49af6865e1fc910dd28",
+        "art-decoded-frame-105.png": "a45eb16112d601c06ef5261880c7027fc01d2f69b1a492971eb93e9b5418eff6",
+        "art-decoded-frame-165.png": "77032f88258705331d9fd741198dfb50b930026707b7f7bddcb7139c94b41b2b"
+      },
+      "sha256": "0ae94aaa407979ec749bef17d245331c7d8d3595d8a76347b2644f655924bfe4",
+      "verified_fps": "30/1",
+      "verified_frames": 210
+    },
+    "technical": {
+      "approved_for_trailer": false,
+      "evidence_links": [
+        "docs/QA08-NATIVE-STOCK-CENTER-PARITY-20261010.md",
+        "media/showcase/2026-10-10/technical-motion/04-provenance.json"
+      ],
+      "kind": "editorial_graphic",
+      "review_frame_sha256": {
+        "technical-decoded-frame-030.png": "4b13abc6c36d663f7bfa77143b929a527076092c4b27585fcf6b06034c23b020",
+        "technical-decoded-frame-135.png": "b6aeccfa615e1ff610bd2a738bc71214dc210d4b6284545601f0f6a298c921fa",
+        "technical-decoded-frame-225.png": "e4487328e45c0de0cb3dc1c95e808a86ec9bd76fe5de9424c07dc69fef6ec4cb"
+      },
+      "sha256": "ca59e2d4aaf2ee4d0e3bc2999603bb9f6c2fed8a7b56389ef16d643029c390a3",
+      "verified_fps": "30/1",
+      "verified_frames": 270
+    }
+  },
+  "schema": "UR-RECRUITMENT-MEDIA-APPROVAL/1",
+  "status": "candidate_pending_independent_media_review",
+  "technical_sha_source_commit": "8bfb1e9c7e965c902190b78e9199f9f361b4a59b"
+}

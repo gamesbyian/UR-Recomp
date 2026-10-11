@@ -38,7 +38,7 @@
     "reference/imported/reverse-engineering/baldosa-uniracers-recomp/src/gen/.snesrecomp-cache.json": "15aa390da419054d7c86602876ed05fd1daa2b9dadc36b5afb311d18350d9c3a",
     "media/showcase/2026-10-10/technical-motion/mainloop-aot-source-exhibit.txt": "8705be620bdd2bc22d23d9dd62cb628b373d84b88a5f812788c20cae6704227c"
   },
-  "source_commit": "bd9c7298b46c2c93c498d3fe0859652d0de76958",
+  "source_commit": "d97a479552ba442bd76c2ef9b0707428564d69d8",
   "limits": "This clip verifies the exact ROM MainLoop instruction and displays actual C generated for that same function in the pinned Baldosa guest; code omitted between displayed lines is labelled. Native host C is a distinct adapter. The genuine gameplay comes from previously accepted continuous native footage. No whole-game original/native equivalence is implied.",
   "decoded_frame_100_sha256": "14829ab4832cab9769ebe38d954905789371e5d08dda779b07ae1d8b8b44eace"
-}\n
+}

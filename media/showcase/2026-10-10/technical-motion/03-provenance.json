@@ -37,4 +37,4 @@
   "independent_comparator": "docs/QA08-NATIVE-STOCK-CENTER-PARITY-20261010.md",
   "disclosure": "Input is one composited source PPU image. Crop and tint are editorial; no independently extracted background, HUD, OBJ, masks, or depth order. Same-frame native fixed/wide centre is independently proven in the cited QA report.",
   "decoded_frame_100_sha256": "d67bab0441922e8c2dd17f4b86a5517c643131e323126048ffda415116efebf4"
-}\n
+}

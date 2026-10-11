@@ -46,6 +46,33 @@ def make_v1_pair() -> tuple[bytes, bytes]:
             (match_body + "checksum " + fnv_hex(match_body.encode("ascii")) + "\n").encode("ascii"))
 
 
+def make_v1_fixture(
+    run_bytes: bytes, run_name: str = "run-123.urrun",
+    tournament_id: str = "1" * 32, outcome: str = "p1",
+    source_p1: str = "join.alpha", run_checksum: str | None = None,
+) -> bytes:
+    from tools.verify_windows_tournament_acceptance_receipt import fnv_hex
+    checksum = run_checksum or run_bytes.decode().splitlines()[-1].split(" ")[1]
+    receipt = (
+        "UR-LOCAL-TOURNAMENT-FIXTURE/1\n"
+        f"tournament {tournament_id}\n"
+        "fixture 0\n"
+        f"run_checksum {checksum}\n"
+        "course course:01\n"
+        "source_p1 " + source_p1.encode().hex() + "\n"
+        "source_p2 " + "join.bravo".encode().hex() + "\n"
+        f"outcome {outcome}\n"
+        "swapped 0\n"
+    )
+    receipt += "checksum " + fnv_hex(receipt.encode()) + "\n"
+    link = (
+        "UR-LOCAL-TOURNAMENT-RESULT-LINK/1\n"
+        "run " + run_name.encode().hex() + "\n"
+        "receipt " + receipt.encode().hex() + "\n"
+    )
+    return (link + "checksum " + fnv_hex(link.encode()) + "\n").encode()
+
+
 class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
     def make(self, root):
         work = root / "tournament work"
@@ -59,7 +86,7 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
         run_bytes, match_bytes = make_v1_pair()
         p.write_bytes(run_bytes)
         q.write_bytes(match_bytes)
-        f.write_bytes(b"fake fixture")
+        f.write_bytes(make_v1_fixture(run_bytes))
         (work / "tournament.log").write_text(
             "\n".join((
                 "UR_LOCAL_MULTIPLAYER SESSION_READY",
@@ -127,6 +154,8 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
             r = verify(work, candidate, "a" * 40, "b" * 64)
             self.assertEqual(r["smoke_run_id"], "12345")
             self.assertIn("not physical", r["result"])
+            self.assertEqual(r["tournament_instance"], "1" * 32)
+            self.assertEqual(r["paired_winner"], "join.alpha")
 
     def test_harness_commit_and_smoke_run_reverified_against_job_inputs(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -144,6 +173,30 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
                             work, candidate, "a" * 40, "b" * 64,
                             expected_harness=harness, expected_smoke_run=run,
                         )
+
+    def test_rehashed_wrong_fixture_reference_fails_on_semantics(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work, candidate, run, match, fixture, report = self.make(Path(tmp))
+            original = fixture.read_bytes()
+            receipt = report.read_text(encoding="ascii")
+            for change in (
+                {"run_name": "another.urrun"},
+                {"tournament_id": "2" * 32},
+                {"outcome": "p2"},
+                {"source_p1": "impostor"},
+                {"run_checksum": "0" * 16},
+            ):
+                with self.subTest(change=change):
+                    edited = make_v1_fixture(run.read_bytes(), **change)
+                    fixture.write_bytes(edited)
+                    report.write_text(
+                        receipt.replace(digest(original), digest(edited)),
+                        encoding="ascii",
+                    )
+                    with self.assertRaisesRegex(ValueError, "fixture|tournament|result"):
+                        verify(work, candidate, "a" * 40, "b" * 64)
+            fixture.write_bytes(original)
+            report.write_text(receipt, encoding="ascii")
 
     def test_rehashed_wrong_paired_result_is_rejected_on_semantics_not_digest(self):
         from tools.verify_windows_tournament_acceptance_receipt import fnv_hex

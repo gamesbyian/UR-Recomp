@@ -240,6 +240,53 @@ def inspect_two_player_pair(run: Path, match: Path) -> dict[str, str]:
             "run_artifact_checksum": run_checksum, "elapsed_ticks60": str(ticks)}
 
 
+def inspect_fixture_link(fixture: Path, run: Path, pair: dict[str, str]) -> str:
+    """One known stock tournament fixture, not a general tournament decoder."""
+    if (fixture.parent.name != "fixtures"
+            or not re.fullmatch(r"[0-9a-f]{32}", fixture.parent.parent.name)
+            or fixture.parent.parent.parent.name != "local-tournaments"):
+        raise ValueError("fixture outside expected tournament instance")
+    instance = fixture.parent.parent.name
+    link = canonical_rows(fixture, 6144)
+    checked_checksum(link)
+    if len(link) != 4 or link[0] != "UR-LOCAL-TOURNAMENT-RESULT-LINK/1":
+        raise ValueError("fixture link has invalid schema")
+    if not link[1].startswith("run ") or not link[2].startswith("receipt "):
+        raise ValueError("fixture link has invalid fields")
+
+    def unhex(value: str) -> str:
+        if not re.fullmatch(r"(?:[0-9a-f]{2})+", value):
+            raise ValueError("fixture link contains noncanonical hex")
+        try:
+            return bytes.fromhex(value).decode("ascii")
+        except (UnicodeError, ValueError) as exc:
+            raise ValueError("fixture link contains invalid ASCII") from exc
+
+    if unhex(link[1][4:]) != run.name:
+        raise ValueError("fixture credits a different run")
+    embedded = unhex(link[2][8:])
+    if not embedded.endswith("\n") or "\r" in embedded:
+        raise ValueError("fixture embedded receipt lacks LF framing")
+    lines = embedded.splitlines()
+    checked_checksum(lines)
+    keys = ("tournament ", "fixture ", "run_checksum ", "course ",
+            "source_p1 ", "source_p2 ", "outcome ", "swapped ")
+    if len(lines) != 10 or lines[0] != "UR-LOCAL-TOURNAMENT-FIXTURE/1":
+        raise ValueError("fixture receipt has invalid schema")
+    if any(not lines[i + 1].startswith(k) or len(lines[i + 1]) <= len(k)
+           for i, k in enumerate(keys)):
+        raise ValueError("fixture receipt has invalid fields")
+    fields = {k.strip(): lines[i + 1][len(k):] for i, k in enumerate(keys)}
+    if (fields["tournament"] != instance or fields["fixture"] != "0"
+            or fields["run_checksum"] != pair["run_artifact_checksum"]
+            or fields["course"] != pair["course"]
+            or fields["outcome"] != "p1" or fields["swapped"] != "0"
+            or unhex(fields["source_p1"]) != "join.alpha"
+            or unhex(fields["source_p2"]) != "join.bravo"):
+        raise ValueError("fixture credits a different tournament, pair or result")
+    return instance
+
+
 def verify(work: Path, candidate_path: Path,
            expected_source: str, expected_zip: str,
            *, expected_harness: str | None = None,
@@ -318,6 +365,7 @@ def verify(work: Path, candidate_path: Path,
     # describe one genuine P1-win result. Independently inspect the narrow
     # v1 pair contract without altering the canonical C++ codecs or game.
     bound_pair = inspect_two_player_pair(run, match)
+    bound_tournament = inspect_fixture_link(fixture, run, bound_pair)
     # The producer asserted both launcher processes were successful, but a
     # bounded second read must independently see the event route, actual
     # stock-result notice and fresh process restore/history markers.
@@ -336,6 +384,7 @@ def verify(work: Path, candidate_path: Path,
         "backend": "snesrecomp",
         "run_sha256": receipt["run_sha256"],
         "paired_course": bound_pair["course"],
+        "tournament_instance": bound_tournament,
         "paired_winner": bound_pair["winner"],
         "paired_ticks60": bound_pair["elapsed_ticks60"],
         "match_sha256": receipt["match_sha256"],

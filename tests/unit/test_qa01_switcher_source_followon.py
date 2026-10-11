@@ -198,6 +198,22 @@ class SwitcherSourceFollowOnTests(unittest.TestCase):
         self.assertEqual(
             verified["original_result_interval_recomputed_from_changed_byte_trace"],
             [walk.RESULT, walk.RESULT_LAST_STABLE])
+        # A guest-owned horizon dump can attest frame 22000 even when
+        # the changed-byte trace ends at frame 17030. This is INCONCLUSIVE,
+        # not a false report of "no next race" or a critical NMI blocker.
+        bounded = {f: row for f, row in states.items()
+                   if f <= walk.RESULT}
+        shortened = event.source_event_diagnostic(bounded, 3, 0x99)
+        shortened.update({
+            "original_source_horizon_host_frame": walk.HORIZON,
+            "original_source_horizon_observed_from_guest_dump": True,
+            "original_source_horizon_wram_bytes": 0x20000,
+        })
+        sidecar = walk.reconcile_original_source_diagnostic(bounded, shortened)
+        self.assertIsNone(
+            sidecar["original_result_interval_recomputed_from_changed_byte_trace"])
+        self.assertTrue(
+            sidecar["result_interval_inconclusive_without_changed_byte_visibility"])
         for field in ("active_track_frames", "stable_original_results",
                       "source_event_candidate_entries",
                       "sampled_state_at_source_result_neighbors"):

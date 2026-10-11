@@ -96,20 +96,33 @@ def reconcile_original_source_diagnostic(
     for field in fields:
         if fresh[field] != recorded.get(field):
             raise ValueError("source changed-byte trace contradicts original scan: " + field)
-    if (fresh["source_trace_frames"] != [0, HORIZON]
-            or ENTRY not in fresh["source_event_candidate_entries"]
-            or not any(row.get("menu") == 0x99
-                       and row.get("start") == RESULT
-                       and row.get("end") == RESULT_LAST_STABLE
-                       and row.get("track_at_start") == 3
-                       and row.get("in_race") == 0
-                       for row in fresh["stable_original_results"])):
+    # Original horizon is independently proven by the guest-owned WRAM
+    # dump, NOT by the final changed-byte row. A valid no-change trace may
+    # stop exactly at the result. Preserve an inconclusive sidecar rather
+    # than aborting the unrelated NMI/stack probe for missing change rows.
+    last = fresh["source_trace_frames"]
+    if (not isinstance(last, list) or len(last) != 2
+            or type(last[0]) is not int or type(last[1]) is not int
+            or last[0] != 0 or not RESULT <= last[1] <= HORIZON
+            or ENTRY not in fresh["source_event_candidate_entries"]):
+        raise ValueError("original source trace lacks proven Switcher entry/result scope")
+    interval_proven = any(
+        row.get("menu") == 0x99
+        and row.get("start") == RESULT
+        and row.get("end") == RESULT_LAST_STABLE
+        and row.get("track_at_start") == 3
+        and row.get("in_race") == 0
+        for row in fresh["stable_original_results"]
+    )
+    if last[1] >= RESULT_LAST_STABLE and not interval_proven:
         raise ValueError("original source trace lacks proven Switcher result interval")
     return {
         "source_diagnostic_recomputed_from_same_decoded_trace": True,
         "original_source_horizon_guest_dump_attested": True,
-        "original_result_interval_recomputed_from_changed_byte_trace": [
-            RESULT, RESULT_LAST_STABLE],
+        "original_result_interval_recomputed_from_changed_byte_trace":
+            [RESULT, RESULT_LAST_STABLE] if interval_proven else None,
+        "result_interval_inconclusive_without_changed_byte_visibility":
+            not interval_proven,
         "source_diagnostic_consistency_not_separate_execution_or_identity_proof": True,
     }
 

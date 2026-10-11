@@ -129,6 +129,7 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
         self.assertEqual(row["pre_rti_stack_derived_return_pc"], "82:803A")
         self.assertTrue(row["post_rti_pc_equals_pre_stack_return"])
         self.assertTrue(row["same_cpu_frame_as_original_nmi_pha"])
+        self.assertTrue(row["same_cpu_frame_pha_observed_before_rti"])
         self.assertTrue(row["same_frame_pha_accumulator_equals_rti_A"])
         self.assertTrue(result["rti_instruction_source_cannot_prove_interrupt_vector"])
         self.assertEqual(result["release_complete_event_credit"], 0)
@@ -142,6 +143,15 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
         self.assertEqual(row["post_opcode_guest_pc"], "80:8584")
         self.assertFalse(row["post_rti_pc_equals_pre_stack_return"])
         self.assertEqual(result["release_complete_event_credit"], 0)
+
+    def test_same_frame_without_earlier_pha_is_not_correlated(self):
+        # A forged/reordered trace must not imply the saved value preceded
+        # a return just because the two labels share ICPU.Frame.
+        out = report.summarize(RTI + ORIGINAL)
+        row = out["candidate_rti_scopes"][0]
+        self.assertTrue(row["same_cpu_frame_as_original_nmi_pha"])
+        self.assertFalse(row["same_cpu_frame_pha_observed_before_rti"])
+        self.assertEqual(out["release_complete_event_credit"], 0)
 
     def test_rti_scope_rejects_malformed_or_impossible_return(self):
         for invalid in (

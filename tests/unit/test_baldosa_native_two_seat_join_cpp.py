@@ -64,7 +64,7 @@ class BaldosaNativeTwoSeatJoinTests(unittest.TestCase):
         # input as well as the selected identities, before guest handoff.
         back = source[source.index("void back() {"):
                       source.index("}  // namespace", source.index("void back() {"))]
-        self.assertIn('if (g_stock_target != -1)\\n'
+        self.assertIn('if (g_stock_target != -1)' + chr(10) +
                       '            stock_route_abort("cancelled");',
                       back)
         self.assertNotIn("g_ram[0x017d] =", source.lower())

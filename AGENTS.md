@@ -16,7 +16,7 @@ Compact router for coding and research agents. **Current priority: merge the ver
 | Shared original/native and release QA | `docs/QA-BOUNDED-RELEASE-CAMPAIGN.md`, `docs/QA-PLAYER-JOURNEYS.md`, `docs/RELEASE-QUALITY-LEDGER.json` (sole gate status owner) |
 | Native build / boot / runtime failure | `docs/BRINGUP.md`, `docs/VALIDATION.md`, then the changed workflow/runtime files |
 | First-party C / C ABI / guest-memory code | `docs/RECOMP-C-PRACTICES.md`, then `docs/VALIDATION.md` and the owning subsystem authority |
-| GitHub Actions / CI workflow design or optimization | `docs/CI-WORKFLOW-BEST-PRACTICES.md`, `docs/OPERATIONS-ACCELERATION.md`, then the affected workflow files |
+| GitHub Actions / CI workflow design or optimization | `docs/CI-WORKFLOW-BEST-PRACTICES.md`, `docs/OPERATIONS-ACCELERATION.md`, [latest bounded CI audit](docs/CI-RESEARCH-APPARATUS-AUDIT-20261010.md), then the affected workflow files |
 | ROM identity / preserved build comparison | `analysis/generated/reference-rom-inventory.md`, `analysis/generated/reference-rom-comparison.md` |
 | RNC / course-format work | `docs/COURSE-FORMAT.md`, then relevant generated analyses/tools |
 | Frontend / menu / screen-flow / UI-state work | `docs/UI-STATE-MAP.md`, `analysis/ui-state-map.yml`, then `analysis/ui-capture-manifest.json`; for 2P/VS input coverage also read `docs/TWO-PLAYER-FIXTURE-PLAN.md` |

@@ -1,6 +1,14 @@
 name: Modern native heavy router
 
 on:
+  # Manual, full-cohort campaign; PR routing remains path-selective.
+  workflow_dispatch:
+    inputs:
+      include_windows:
+        description: "Also run legacy Windows portable candidate smoke"
+        type: boolean
+        default: true
+        required: false
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
@@ -180,7 +188,8 @@ on:
 
 concurrency:
   group: modern-native-heavy-router-${{ github.ref }}
-  cancel-in-progress: true
+  # Preserve deliberately launched long evidence; superseded PRs may cancel.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   classify:
@@ -188,18 +197,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
-      shared: ${{ steps.classify.outputs.shared }}
-      onboarding: ${{ steps.classify.outputs.onboarding }}
-      ui: ${{ steps.classify.outputs.ui }}
-      any_heavy: ${{ steps.classify.outputs.any_heavy }}
+      shared: ${{ steps.classify.outputs.shared || steps.manual.outputs.shared }}
+      onboarding: ${{ steps.classify.outputs.onboarding || steps.manual.outputs.onboarding }}
+      ui: ${{ steps.classify.outputs.ui || steps.manual.outputs.ui }}
+      any_heavy: ${{ steps.classify.outputs.any_heavy || steps.manual.outputs.any_heavy }}
     steps:
       - name: Check out PR head and history
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
 
       - name: Collect changed paths
+        if: github.event_name == 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
@@ -210,6 +220,7 @@ jobs:
           cat "$RUNNER_TEMP/modern-native-changed-paths.txt"
 
       - name: Classify heavyweight Modern suites
+        if: github.event_name == 'pull_request'
         id: classify
         shell: bash
         run: |
@@ -234,9 +245,31 @@ jobs:
             exit 1
           }
 
+      - name: Select established suite cohort for manual campaign
+        if: github.event_name == 'workflow_dispatch'
+        id: manual
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo 'shared=true'
+            echo 'onboarding=true'
+            echo 'ui=true'
+            echo 'any_heavy=true'
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo '### Manual Modern candidate campaign'
+            echo
+            echo 'All three existing Linux-native suites are selected. One canonical build is shared.'
+            echo 'The optional Windows package is an independently built legacy candidate at the same source commit.'
+            echo 'Neither branch certifies Baldosa integration, original/native event parity or physical hardware.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
   build:
     needs: classify
-    if: (needs.classify.outputs.shared == 'true' && needs.classify.outputs.onboarding == 'true') || (needs.classify.outputs.shared == 'true' && needs.classify.outputs.ui == 'true') || (needs.classify.outputs.onboarding == 'true' && needs.classify.outputs.ui == 'true')
+    outputs:
+      candidate_sha256: ${{ steps.digest.outputs.candidate_sha256 }}
+    if: github.event_name == 'workflow_dispatch' || (needs.classify.outputs.shared == 'true' && needs.classify.outputs.onboarding == 'true') || (needs.classify.outputs.shared == 'true' && needs.classify.outputs.ui == 'true') || (needs.classify.outputs.onboarding == 'true' && needs.classify.outputs.ui == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -328,6 +361,13 @@ jobs:
           tar -czf "$RUNNER_TEMP/modern-native-canonical.tar.gz" \
             -C "$RUNNER_TEMP" modern-native-canonical
 
+      - name: Hash canonical native candidate
+        id: digest
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "candidate_sha256=$(sha256sum "$RUNNER_TEMP/modern-native-canonical.tar.gz" | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
+
       - name: Upload canonical Modern native candidate
         uses: actions/upload-artifact@v4
         with:
@@ -356,3 +396,60 @@ jobs:
     uses: ./.github/workflows/native-ui-evidence.yml
     with:
       canonical_candidate: ${{ needs.build.result == 'success' }}
+
+  windows:
+    if: github.event_name == 'workflow_dispatch' && inputs.include_windows == true
+    uses: ./.github/workflows/windows-native-smoke.yml
+
+  campaign-report:
+    if: ${{ always() && github.event_name == 'workflow_dispatch' }}
+    needs: [build, shared, onboarding, ui, windows]
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    steps:
+      - name: Check out reporting contract
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Download verified Windows package if available
+        if: needs.windows.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: ur-recomp-windows-x64-portable
+          path: ${{ runner.temp }}/windows-portable
+      - name: Write fail-closed candidate and suite manifest
+        shell: bash
+        env:
+          CAMPAIGN_NATIVE: ${{ needs.build.result }}
+          CAMPAIGN_SHARED: ${{ needs.shared.result }}
+          CAMPAIGN_ONBOARDING: ${{ needs.onboarding.result }}
+          CAMPAIGN_UI: ${{ needs.ui.result }}
+          CAMPAIGN_WINDOWS: ${{ needs.windows.result }}
+          CAMPAIGN_INCLUDE_WINDOWS: ${{ inputs.include_windows }}
+          CAMPAIGN_NATIVE_SHA256: ${{ needs.build.outputs.candidate_sha256 }}
+        run: |
+          set -euo pipefail
+          args=()
+          if [ "$CAMPAIGN_WINDOWS" = success ]; then
+            args+=(--windows-zip "$RUNNER_TEMP/windows-portable/UR-Recomp-Windows-x64.zip")
+            args+=(--windows-checksum "$RUNNER_TEMP/windows-portable/UR-Recomp-Windows-x64.zip.sha256")
+          fi
+          python3 tools/qa_modern_batch_campaign.py \
+            --source-sha "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" \
+            --native "$CAMPAIGN_NATIVE" --shared "$CAMPAIGN_SHARED" \
+            --onboarding "$CAMPAIGN_ONBOARDING" --ui "$CAMPAIGN_UI" \
+            --windows "$CAMPAIGN_WINDOWS" \
+            --include-windows "$CAMPAIGN_INCLUDE_WINDOWS" \
+            --native-sha256 "$CAMPAIGN_NATIVE_SHA256" \
+            --out "$RUNNER_TEMP/modern-campaign-result.json" \
+            --summary "$GITHUB_STEP_SUMMARY" "${args[@]}"
+      - name: Publish the complete or incomplete campaign receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-campaign-report
+          path: ${{ runner.temp }}/modern-campaign-result.json
+          if-no-files-found: warn
+          retention-days: 14

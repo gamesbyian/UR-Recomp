@@ -141,3 +141,16 @@ valid but exceptionally large stored duration. It preserves ordinary
 MM:SS.hh output and does not modify the source record, awarding rules,
 course chronology, guest clock, or original title behavior. A source
 regression tests normal values, roundoff and the full UINT64 limit.
+
+## Windows native Records latest-match consumer check
+
+The existing exact Windows x64 named-profile/SDL root route already seeds
+one validated **historical fixture** 2P run+sidecar and one incomplete
+run using the shipping codecs, then checks both archives remain byte
+identical after page navigation and fresh process reentry. Its 2P-page
+diagnostic now also requires the newly visible last-match text
+`LAST 01 WIN 00:28.66` read by the **real native Windows consumer**
+at the moment of `records_page=2p`. This proves the wired host
+uses the canonical checksum-bound paired archive and shared presenter
+rather than simply incrementing fake match counts; it remains explicitly
+**not evidence of an actual guest-played match** or human gamepad test.

@@ -68,11 +68,60 @@ class CoveredNativePairRemovalTest(unittest.TestCase):
                 "guest_crc_comparison": "Externally enforced byte-exact in native workflow",
             }), encoding="utf-8")
 
-    def assess(self):
+    def assess(self, frame=FRAME):
         return verify(self.stock, self.source[96], self.source[97],
                       self.removed, self.report[96], self.report[97],
                       self.crc["stock"], self.crc["source96"],
-                      self.crc["source97"], self.crc["removed"], self.log)
+                      self.crc["source97"], self.crc["removed"], self.log,
+                      frame=frame)
+
+    def retarget_moving_guest_frame1888(self):
+        # A deterministic synthetic second native process, NOT a claim
+        # that the same source pose remains true in the real second scene.
+        frame = 1888
+        self.stock = self.stock.with_name(f"ur-baldosa-ws342-{frame:06d}.pam")
+        self.removed = self.removed.with_name(f"ur-baldosa-ws342-{frame:06d}.pam")
+        self.source = {
+            slot: p.with_name(
+                f"ur-baldosa-ws342-obj-slot{slot}-frame{frame:06d}.pam")
+            for slot, p in self.source.items()
+        }
+        self.report = {
+            slot: p.with_name(f"ws342_obj_slot_{slot}_frame{frame}.json")
+            for slot, p in self.report.items()
+        }
+        self.log.write_text(
+            f"UR_RACER_HD_WIDE_REMOVE_PAIR frame={frame} "
+            "slots=96-97 status=armed guest_unchanged=1\\n", encoding="utf-8")
+        self.flush()
+
+    def test_second_moving_frame1888_reuses_exact_proof_contract(self):
+        self.retarget_moving_guest_frame1888()
+        result = self.assess(frame=1888)
+        self.assertEqual(result["guest_frame"], 1888)
+        self.assertEqual(result["status"], "native-covered-pair-final-unchanged")
+        self.assertEqual(result["guest_crc_equal_in_all_four_independent_native_processes"], 2473)
+        self.assertFalse(result["authored_hd_or_widescreen_remastered_allowed"])
+
+    def test_second_frame1888_can_report_actual_nonzero_ppu_delta(self):
+        self.retarget_moving_guest_frame1888()
+        self.final[4 * self.pixel97] = 73
+        self.removed.write_bytes(HEADER + self.final)
+        result = self.assess(frame=1888)
+        self.assertEqual(result["status"], "native-covered-pair-final-changed")
+        self.assertEqual(result["stock_vs_removed_full_final_rgba_changed_pixels"], 1)
+
+    def test_1888_wrong_exact_native_slot_arm_marker_rejected(self):
+        self.retarget_moving_guest_frame1888()
+        self.log.write_text(
+            "UR_RACER_HD_WIDE_REMOVE_PAIR frame=1872 slots=96-97 "
+            "status=armed guest_unchanged=1\\n", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "not exactly once armed"):
+            self.assess(frame=1888)
+
+    def test_unapproved_original_guest_frame_does_not_run_counterfactual(self):
+        with self.assertRaisesRegex(ValueError, "must be 1872 or 1888"):
+            self.assess(frame=1890)
 
     def test_valid_zero_final_delta_is_proven_native_negative(self):
         result = self.assess()

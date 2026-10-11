@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "status": "accepted-native-original-2p-cross-phase-actual-OBJ-source-alpha-shape-census",
+  "native_original_AOT_run_id": 38120828291,
+  "native_original_artifact_id": 11695173178,
+  "native_guest_frames": [
+    1856,
+    1872,
+    1888,
+    2208
+  ],
+  "source_slots": [
+    98,
+    99
+  ],
+  "logical_original_raster": [
+    342,
+    224
+  ],
+  "source_pixel_aspect": "7:6",
+  "real_native_source_rgba_SHA_by_guest": {
+    "1856": {
+      "98": "5122c86a797710965bf17caf99677ca2cf738fbff852101a9469ff66750fc2c5",
+      "99": "658b214071df7637abc308a0222e37cb15753b72c4ef42cf4c084311c031ec8f"
+    },
+    "1872": {
+      "98": "c8c2741ff948b070a69b555f6634199b82bb41d1753a099f3516ab4f605f48ea",
+      "99": "3d5322f0b226ea557960e9b2779ded06b0b57f7d6de977c348fd25d30998c0d5"
+    },
+    "1888": {
+      "98": "77e4ad17abca788a3c82850a4e862df7e6198ee99add5e3d2f399854ce80b6d1",
+      "99": "7679fa10e5188aab7bf0f2022b3fae4721f4d8ce8fab4ac1eac4d52fae51676f"
+    },
+    "2208": {
+      "98": "de587f5986b30663f0178a0140e746b84e601716941bb09dacab5426e8d56fe2",
+      "99": "836da1c261ce6ea07cc9a7a66f5a4443e494388e07cefb6da232a4b98764b564"
+    }
+  },
+  "alignment_contract": "For each independent native OBJ source, translate alpha-support minX to x=0 and maxY to y=0, preserve every source pixel and exact pixel shape; no rotation, scale, 3D pivot inference or source RGB manipulation",
+  "exact_upper_opaque_bbox_and_counts": {
+    "98": {
+      "1856": {
+        "count": 321,
+        "bbox": [
+          167,
+          43,
+          189,
+          78
+        ]
+      },
+      "1872": {
+        "count": 325,
+        "bbox": [
+          170,
+          44,
+          189,
+          78
+        ]
+      },
+      "1888": {
+        "count": 324,
+        "bbox": [
+          171,
+          43,
+          188,
+          78
+        ]
+      },
+      "2208": {
+        "count": 317,
+        "bbox": [
+          107,
+          47,
+          136,
+          78
+        ]
+      }
+    },
+    "99": {
+      "1856": {
+        "count": 319,
+        "bbox": [
+          170,
+          44,
+          190,
+          78
+        ]
+      },
+      "1872": {
+        "count": 330,
+        "bbox": [
+          170,
+          42,
+          187,
+          78
+        ]
+      },
+      "1888": {
+        "count": 322,
+        "bbox": [
+          169,
+          42,
+          188,
+          78
+        ]
+      },
+      "2208": {
+        "count": 313,
+        "bbox": [
+          120,
+          47,
+          149,
+          78
+        ]
+      }
+    }
+  },
+  "source_alpha_shape_overlap_current_vs_postgo": {
+    "98": {
+      "1856_to_2208": {
+        "intersection": 210,
+        "union": 428,
+        "jaccard": 0.49065420560747663,
+        "symmetric_difference": 218
+      },
+      "1872_to_2208": {
+        "intersection": 167,
+        "union": 475,
+        "jaccard": 0.35157894736842105,
+        "symmetric_difference": 308
+      },
+      "1888_to_2208": {
+        "intersection": 205,
+        "union": 436,
+        "jaccard": 0.4701834862385321,
+        "symmetric_difference": 231
+      }
+    },
+    "99": {
+      "1856_to_2208": {
+        "intersection": 145,
+        "union": 487,
+        "jaccard": 0.29774127310061604,
+        "symmetric_difference": 342
+      },
+      "1872_to_2208": {
+        "intersection": 205,
+        "union": 438,
+        "jaccard": 0.4680365296803653,
+        "symmetric_difference": 233
+      },
+      "1888_to_2208": {
+        "intersection": 207,
+        "union": 428,
+        "jaccard": 0.48364485981308414,
+        "symmetric_difference": 221
+      }
+    }
+  },
+  "sampled_source_max_y_all_eight_planes": 78,
+  "postgo_source_bbox_height": 32,
+  "postgo_source_bbox_width": 30,
+  "earlier_source_bbox_width_range_inclusive": [
+    18,
+    23
+  ],
+  "earlier_source_bbox_height_range_inclusive": [
+    35,
+    37
+  ],
+  "sampled_bottom_raster_row_constant_is_not_collision_contact": true,
+  "per_source_nonempty_original_slot_and_guest_identity_verified": true,
+  "source_rgba_not_final_PPU_priority": true,
+  "source_pixel_aspect_corrected_model_shape_not_yet_calibrated": true,
+  "authored_3d_rig_pose_reconstruction_or_character_likeness_approved": false,
+  "limits": "Eight native read-only original OBJ sources across two sampled phases show changing racer silhouette shape, width and height even when last opaque raster Y remains y78. Horizontal bbox translation and bottom-row registration establish comparable 2D source-alpha distributions but not original 3D model origin, dynamics/physics pivot or direct remastered author approval."
+}

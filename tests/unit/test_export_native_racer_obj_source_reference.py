@@ -9,7 +9,7 @@ import zlib
 
 from tools.check_baldosa_wide_single_slot_source import HEADER, WIDTH, HEIGHT, read_source
 from tools.export_native_racer_obj_source_reference import (
-    make_reference, lossless_png,
+    make_reference, lossless_png, original_alpha_shape,
 )
 
 
@@ -86,6 +86,16 @@ class NativeSourceRacerReferenceTests(unittest.TestCase):
                              {"FF424DFF": 2})
             self.assertEqual(result["cropped_raw_rgba_sha256"],
                              hashlib.sha256(expected).hexdigest())
+            silhouette = result["original_opaque_silhouette_profile"]
+            self.assertEqual(silhouette["crop_dimensions"], [3, 2])
+            self.assertEqual(silhouette["row_opaque_counts"], [1, 1])
+            self.assertEqual(silhouette["column_opaque_counts"], [1, 0, 1])
+            self.assertEqual(silhouette["per_row_min_max_x"], [[0, 0], [2, 2]])
+            self.assertEqual(silhouette["source_alpha_centroid_in_crop"], [1.0, 0.5])
+            self.assertEqual(silhouette["opaque_coverage_numerator_denominator"], [2, 6])
+            self.assertEqual(silhouette["alpha_mask_sha256"],
+                             hashlib.sha256(bytes([1, 0, 0, 0, 0, 1])).hexdigest())
+            self.assertFalse(silhouette["is_original_anatomical_proportion_or_3d_reconstruction"])
             self.assertFalse(result["new_4x_authored_art_approved"])
             self.assertFalse(result["final_bg_window_priority_proven"])
 
@@ -99,6 +109,23 @@ class NativeSourceRacerReferenceTests(unittest.TestCase):
             report.write_text(json.dumps(broken))
             with self.assertRaisesRegex(ValueError, "provenance"):
                 make_reference(source, report)
+
+    def test_exact_silhouette_mask_is_palette_invariant_but_alpha_sensitive(self):
+        data = bytearray(bytes((12, 22, 32, 255)) * 2)
+        one = original_alpha_shape(bytes(data), 2, 1)
+        data[0:3] = bytes((255, 0, 0))
+        data[4:7] = bytes((0, 50, 220))
+        other_color = original_alpha_shape(bytes(data), 2, 1)
+        self.assertEqual(one["alpha_mask_sha256"], other_color["alpha_mask_sha256"])
+        self.assertEqual(one["row_opaque_counts"], [2])
+        data[7] = 0
+        reduced = original_alpha_shape(bytes(data), 2, 1)
+        self.assertNotEqual(one["alpha_mask_sha256"], reduced["alpha_mask_sha256"])
+        self.assertEqual(reduced["per_row_min_max_x"], [[0, 0]])
+        with self.assertRaisesRegex(ValueError, "full RGBA"):
+            original_alpha_shape(bytes(data[:-1]), 2, 1)
+        with self.assertRaisesRegex(ValueError, "empty original OBJ"):
+            original_alpha_shape(bytes(8), 2, 1)
 
     def test_all_transparent_native_source_is_an_honest_negative(self):
         with tempfile.TemporaryDirectory() as td:
@@ -123,6 +150,7 @@ class NativeSourceRacerReferenceTests(unittest.TestCase):
             self.assertEqual(result["status"], "source-empty-no-image")
             self.assertEqual(result["native_original_source_opaque_pixels"], 0)
             self.assertFalse(result["png_rendered_from_original_source"])
+            self.assertIsNone(result["original_opaque_silhouette_profile"])
 
 
 if __name__ == "__main__":

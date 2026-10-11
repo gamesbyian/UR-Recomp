@@ -51,6 +51,53 @@ def lossless_png(data: bytes, width: int, height: int) -> bytes:
     )
 
 
+
+def original_alpha_shape(cropped: bytes, width: int, height: int) -> dict:
+    """Exact projection-only 2D source alpha statistics, never anatomy/HD.
+
+    The outer crop is already the native isolated OBJ source alpha bbox.
+    A threshold of nonzero alpha is the only geometry assumption here.
+    No upscale, skeletonization, inferred missing wheel/saddle or model fit.
+    """
+    if width < 1 or height < 1 or len(cropped) != width * height * 4:
+        raise ValueError("native original OBJ alpha geometry requires full RGBA crop")
+    row_counts = []
+    row_spans = []
+    column_counts = [0] * width
+    bitmap = bytearray(width * height)
+    sx = sy = total = 0
+    for y in range(height):
+        xs = []
+        for x in range(width):
+            index = y * width + x
+            if cropped[index * 4 + 3] == 0:
+                continue
+            bitmap[index] = 1
+            xs.append(x)
+            column_counts[x] += 1
+            sx += x
+            sy += y
+            total += 1
+        row_counts.append(len(xs))
+        row_spans.append([min(xs), max(xs)] if xs else None)
+    if total == 0:
+        raise ValueError("empty original OBJ alpha has no authentic silhouette profile")
+    if sum(row_counts) != total or sum(column_counts) != total:
+        raise ValueError("source OBJ alpha profile lost pixels")
+    return {
+        "image_space": "exact-native-original-OBJ-bbox-raw-square-pixel-grid",
+        "crop_dimensions": [width, height],
+        "opaque_pixels": total,
+        "opaque_coverage_numerator_denominator": [total, width * height],
+        "alpha_mask_sha256": hashlib.sha256(bitmap).hexdigest(),
+        "row_opaque_counts": row_counts,
+        "column_opaque_counts": column_counts,
+        "per_row_min_max_x": row_spans,
+        "source_alpha_centroid_in_crop": [round(sx / total, 6), round(sy / total, 6)],
+        "is_original_anatomical_proportion_or_3d_reconstruction": False,
+    }
+
+
 def make_reference(source_path: Path, report_path: Path,
                    slot: int = 97, frame: int = 2208) -> tuple[dict, bytes | None]:
     if slot not in (97, 98, 99) or frame != 2208:
@@ -122,6 +169,7 @@ def make_reference(source_path: Path, report_path: Path,
     crop_sha = None
     crop_dims = None
     colors: dict[str, int] = {}
+    exact_alpha_shape = None
     if total_alpha:
         left, top, right, bottom = bbox
         if not (0 <= left <= right < WIDTH and 0 <= top <= bottom < HEIGHT):
@@ -142,6 +190,9 @@ def make_reference(source_path: Path, report_path: Path,
             colors[label] = colors.get(label, 0) + 1
         if visible != total_alpha:
             raise ValueError("cropped pixel alpha does not match native source count")
+        exact_alpha_shape = original_alpha_shape(cropped, w, h)
+        if exact_alpha_shape["opaque_pixels"] != total_alpha:
+            raise ValueError("source alpha morphology count differs from native PPU")
         png = lossless_png(cropped, w, h)
         crop_sha = hashlib.sha256(cropped).hexdigest()
         crop_dims = [w, h]
@@ -160,6 +211,7 @@ def make_reference(source_path: Path, report_path: Path,
         "cropped_raw_rgba_sha256": crop_sha,
         "lossless_png_sha256": hashlib.sha256(png).hexdigest() if png else None,
         "original_visible_rgba_color_counts": dict(sorted(colors.items())),
+        "original_opaque_silhouette_profile": exact_alpha_shape,
         "png_rendered_from_original_source": png is not None,
         "new_4x_authored_art_approved": False,
         "final_bg_window_priority_proven": False,

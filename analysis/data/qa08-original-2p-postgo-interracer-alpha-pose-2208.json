@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "status": "authenticated-original-2p-postgo-interracer-alpha-shape-similarity",
+  "source_successful_aot_run": 38120828291,
+  "source_artifact_id": 11695173178,
+  "original_native_2p_guest_frame": 2208,
+  "source_raster": [
+    342,
+    224
+  ],
+  "upper_red_p1_slot98": {
+    "opaque_alpha_pixels": 317,
+    "bbox": [
+      107,
+      47,
+      136,
+      78
+    ],
+    "original_source_sha256": "de587f5986b30663f0178a0140e746b84e601716941bb09dacab5426e8d56fe2",
+    "source_unique_RGB_values": 15
+  },
+  "upper_green_p2_slot99": {
+    "opaque_alpha_pixels": 313,
+    "bbox": [
+      120,
+      47,
+      149,
+      78
+    ],
+    "original_source_sha256": "836da1c261ce6ea07cc9a7a66f5a4443e494388e07cefb6da232a4b98764b564",
+    "source_unique_RGB_values": 15
+  },
+  "registration_applied_to_green_alpha_to_compare_red_original_xy": [
+    -13,
+    0
+  ],
+  "registration_method": "bbox minX alignment, absolute original source raster y unchanged, no resizing, shape deformation, recolouring or sampling interpolation",
+  "registered_alpha_intersection_pixels": 301,
+  "registered_alpha_union_pixels": 329,
+  "registered_alpha_symmetric_difference_pixels": 28,
+  "registered_alpha_jaccard": 0.9148936170212766,
+  "source_bottom_y_shared_original": 78,
+  "shared_original_neutral_palette_family_observed": true,
+  "distinct_red_and_green_palette_families_observed": true,
+  "common_mesh_or_3D_Rig_historically_proven": false,
+  "source_racer_original_anatomical_part_segmentation_proven": false,
+  "final_PPU_BG_window_pixel_owner_proven": false,
+  "currently_disapproved_HD_art_resurrected": false,
+  "limits": "Only a single genuine 2P post-GO 342x224 source OAM frame2208 and binary alpha with explicitly aligned bbox lefts; high silhouette similarity suggests a candidate shared mesh/pose family, not established original 3D rig or artist approval."
+}

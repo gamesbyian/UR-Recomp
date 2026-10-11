@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "status": "authentic-original-2p-bbox-left-and-bottom-anchored-alpha-motion",
+  "original_native_AOT_run_id": 38115756178,
+  "original_native_artifact_id": 11693865103,
+  "real_original_guest_frames": [
+    1856,
+    1872,
+    1888
+  ],
+  "original_upper_OAM_slots": [
+    98,
+    99
+  ],
+  "alignment": "translate each source alpha crop bbox left to logical x0; keep genuine absolute raster y so shared bottom scanline y78 aligns; no RGB use, resizing, angle adjustment or inferred model origin",
+  "original_logical_raster": [
+    342,
+    224
+  ],
+  "sampled_source_bottom_y": 78,
+  "quantification": "Jaccard exact binary source mask intersection / union, row-major Original PPU pixels, with both masks translated to left bbox edge",
+  "per_slot": {
+    "98": {
+      "1856_to_1872": {
+        "intersection": 186,
+        "union": 460,
+        "jaccard": 0.4043478260869565
+      },
+      "1872_to_1888": {
+        "intersection": 252,
+        "union": 397,
+        "jaccard": 0.6347607052896725
+      },
+      "1856_to_1888": {
+        "intersection": 222,
+        "union": 423,
+        "jaccard": 0.524822695035461
+      }
+    },
+    "99": {
+      "1856_to_1872": {
+        "intersection": 208,
+        "union": 441,
+        "jaccard": 0.47165532879818595
+      },
+      "1872_to_1888": {
+        "intersection": 288,
+        "union": 364,
+        "jaccard": 0.7912087912087912
+      },
+      "1856_to_1888": {
+        "intersection": 183,
+        "union": 458,
+        "jaccard": 0.39956331877729256
+      }
+    }
+  },
+  "original_source_sha256": {
+    "1856": {
+      "98": "5122c86a797710965bf17caf99677ca2cf738fbff852101a9469ff66750fc2c5",
+      "99": "658b214071df7637abc308a0222e37cb15753b72c4ef42cf4c084311c031ec8f"
+    },
+    "1872": {
+      "98": "c8c2741ff948b070a69b555f6634199b82bb41d1753a099f3516ab4f605f48ea",
+      "99": "3d5322f0b226ea557960e9b2779ded06b0b57f7d6de977c348fd25d30998c0d5"
+    },
+    "1888": {
+      "98": "77e4ad17abca788a3c82850a4e862df7e6198ee99add5e3d2f399854ce80b6d1",
+      "99": "7679fa10e5188aab7bf0f2022b3fae4721f4d8ce8fab4ac1eac4d52fae51676f"
+    }
+  },
+  "true_3d_geometry_or_named_anatomical_parts_proven": false,
+  "native_final_BG_OBJ_winner_proven": false,
+  "character_likeness_or_HD_approval": false,
+  "limits": "Frame-bounded genuine original source alpha variation under explicit horizontal bbox registration and shared source image bottom-row alignment. These pixel IoUs are not camera-pose reconstruction, source mesh topology, collision pivot or general animation-loop coherence."
+}

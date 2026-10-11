@@ -22,6 +22,8 @@ These are qualitative starting points requiring measurement against specific off
 
 **No numerical ratio is signed off yet.** Measure and publish the wheel outside diameter, saddle width/height, saddle-to-wheel vertical interval, crown width, fork spread and pedal offset in normalized, perspective-tagged *reference views*. Do not eyeball those dimensions across different camera angles or distort the already-proven guest contact/pivot to force a poster illustration's foreshortening into a side-view sprite.
 
+**Reproducible measurement tool:** [Projected likeness landmark protocol](HD-RACER-PROJECTED-LANDMARKS.md) binds all manually annotated reference positions to exact local source-image SHA-256, perspective, pixel-aspect, source credits and rights notes. It computes **projected 2D measurements only**, with no 3D camera correction, visual sign-off, source-image redistribution or automatic HD admission. Use it before proposing numeric canonical rig proportions.
+
 ## Reference dossier and precedence by question
 
 Different evidence answers different questions; do **not** use a single undifferentiated "ROM always first" hierarchy for everything.

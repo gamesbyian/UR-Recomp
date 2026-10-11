@@ -1329,6 +1329,147 @@ def run_native_pause_quit(
     }
 
 
+
+def run_native_crash_between_raw_and_typed(
+    exe: Path, rom: Path, script: Path, root: Path,
+    fixture: Path, seed: Path, *, video: str, timeout: int,
+) -> dict[str, object]:
+    """Real paused-SDL Quit dies after upstream raw write, before typed CAS.
+
+    This is an explicitly destructive test of a NEW isolated named-profile
+    fixture, never of an existing personal save. The only fault injection is
+    an opt-in _Exit(86) *after* the pinned RtlWriteSram returns success. It
+    proves the last good typed snapshot survives and any raw mismatch fails
+    the next real native process closed. It does NOT repair the crash window.
+    """
+    output = root / "native_post_raw_pre_typed_crash"
+    output.mkdir(parents=True, exist_ok=False)
+    user_root = output / "Crash QA Named Racer With Spaces"
+    user_root.mkdir()
+    subprocess.run(
+        [str(fixture), str(user_root), str(seed)],
+        cwd=output, timeout=timeout, capture_output=True, text=True, check=True,
+    )
+    profile = user_root / "saves/profile-native-ci-rider"
+    raw = profile / "save.srm"
+    typed = profile / "host-profile.txt"
+    selector = user_root / "host-state-v1.txt"
+    roster = user_root / "profiles-v1.txt"
+    before = {p: p.read_bytes() for p in (raw, typed, selector, roster)}
+    if len(before[raw]) != 8192 or before[raw] != seed.read_bytes():
+        raise ValueError("Crash witness seed lacks exact authorized SRAM")
+    initial = subprocess.run(
+        [str(fixture), str(user_root), "native-ci-rider",
+         "--verify-native-save"],
+        capture_output=True, text=True, timeout=timeout,
+    )
+    if initial.returncode or "VERIFIED profile=native-ci-rider sram=8192" not in initial.stdout:
+        raise ValueError("Crash witness began with an invalid typed/raw profile")
+
+    config = output / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+    env = os.environ.copy()
+    env.update({
+        "SNESRECOMP_USER_DATA_DIR": str(user_root),
+        "UR_EXECUTION_MODE": "modern",
+        "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
+        "UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS": "1",
+        "UR_BALDOSA_MODERN_INPUT": "1",
+        "UR_BALDOSA_PAUSE_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_REQUIRE_RACE": "1",
+        "UR_BALDOSA_PAUSE_SMOKE_AT_FRAME": "1952",
+        "UR_BALDOSA_PHYSICAL_PAUSE_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_QUIT_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_PANEL_NAV_SMOKE": "0",
+        "UR_BALDOSA_DELAYED_RESTART_SMOKE": "0",
+        "UR_BALDOSA_RESTART_SAME_FRAME_SMOKE": "0",
+        "UR_BALDOSA_QA_CRASH_AFTER_NATIVE_SRAM_WRITE": "1",
+        "SDL_VIDEODRIVER": video,
+        "SDL_AUDIODRIVER": "dummy",
+    })
+    crashed = subprocess.run(
+        [str(exe), "--no-launcher", "--config", str(config),
+         "--script", str(script), str(rom)],
+        cwd=output, env=env, capture_output=True, text=True,
+        errors="replace", timeout=timeout,
+    )
+    log = crashed.stdout + "\n" + crashed.stderr
+    (output / "crash.log").write_text(log, encoding="utf-8")
+    if crashed.returncode != 86:
+        raise ValueError(
+            "The real native guest did not die exactly between raw SRAM "
+            f"and typed CAS: rc={crashed.returncode} tail={log[-1800:]}")
+    must_see = (
+        "UR_BALDOSA_NATIVE_PAUSE ARMED guest=1952 live_race=1",
+        "UR_BALDOSA_NATIVE_PAUSE_MENU QUIT_QUEUED=1 paused=1 guest_steps=0",
+        "UR_BALDOSA_NATIVE_PROFILE QA_CRASH_AFTER_RAW_WRITE exit=86 typed_checkpoint=0",
+    )
+    if any(log.count(marker) != 1 for marker in must_see):
+        raise ValueError("The crash was not in a verified paused real guest")
+    if ("UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=" in log or
+        "UR_BALDOSA_NATIVE_PAUSE RELEASED " in log):
+        raise ValueError("The faulty run crossed a forbidden typed/simulation boundary")
+    verify_named_profile_boot_bytes(log, before[raw])
+    for path in (typed, selector, roster):
+        if path.read_bytes() != before[path]:
+            raise ValueError(f"Crash mutated previously committed Modern metadata: {path}")
+    after_raw = raw.read_bytes()
+    if len(after_raw) != 8192:
+        raise ValueError("Original guest write produced invalid raw SRAM length")
+    if after_raw == before[raw]:
+        raise ValueError(
+            "This real race has no SRAM delta, so it cannot witness "
+            "a raw/typed crash mismatch without altering game state")
+    if (user_root / "saves/save.srm").exists() or list(user_root.rglob("*.urrun")):
+        raise ValueError("Fault injected guest created an unrelated save or result")
+
+    # New native process, no script simulation accepted: after_config must
+    # reject before the first RtlRunFrame. Preserve the mismatched raw evidence
+    # for an explicit future recovery decision, never silently auto-repair.
+    retry = output / "fresh_launch"
+    retry.mkdir()
+    short = retry / "no_guest.txt"
+    short.write_text("turbo on\nwait 6\nquit\n", encoding="ascii")
+    clean_env = env.copy()
+    clean_env.pop("UR_BALDOSA_QA_CRASH_AFTER_NATIVE_SRAM_WRITE", None)
+    fresh = subprocess.run(
+        [str(exe), "--no-launcher", "--config", str(config),
+         "--script", str(short), str(rom)],
+        cwd=retry, env=clean_env, capture_output=True,
+        text=True, errors="replace", timeout=timeout,
+    )
+    fresh_log = fresh.stdout + "\n" + fresh.stderr
+    (output / "fresh-rejection.log").write_text(
+        fresh_log, encoding="utf-8")
+    if (fresh.returncode != 7 or
+        fresh_log.count(
+            "UR_BALDOSA_NATIVE_PROFILE REJECTED reason="
+            "selected_profile_sram_not_initialized") != 1 or
+        "UR-STARTUP-SAVE-ROOT: selected Modern profile rejected" not in fresh_log or
+        "UR-BALDOSA-SAVE-MISMATCH: Named racer SRAM differs from " not in fresh_log or
+        "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in fresh_log):
+        raise ValueError(
+            "Fresh native process did not reject divergent SRAM before "
+            f"guest boot: rc={fresh.returncode} tail={fresh_log[-1600:]}")
+    for path in (typed, selector, roster):
+        if path.read_bytes() != before[path]:
+            raise ValueError("Rejected retry modified committed Modern metadata")
+    if raw.read_bytes() != after_raw:
+        raise ValueError("Failed fresh boot silently repaired/overwrote raw evidence")
+    if (user_root / "saves/save.srm").exists() or list(user_root.rglob("*.urrun")):
+        raise ValueError("Failed fresh boot invented an anonymous save or Records")
+
+    return {
+        "real_native_guest_paused_at_frame": 1952,
+        "real_raw_sram_write_completed": True,
+        "forced_process_exit_code": 86,
+        "typed_profile_and_roster_unchanged": True,
+        "raw_and_typed_sram_divergence_reproduced": True,
+        "fresh_process_rejected_before_guest": True,
+        "no_implicit_recovery_or_fake_result": True,
+        "cross_file_crash_atomicity_proven": False,
+    }
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--exe", type=Path, required=True)
@@ -1395,6 +1536,9 @@ def main() -> int:
     pause_quit_proof = run_native_pause_quit(
         exe, rom, script, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)
+    post_raw_crash_proof = run_native_crash_between_raw_and_typed(
+        exe, rom, script, root, fixture, sram_seed,
+        video=args.video, timeout=args.timeout)
     two_profiles_proof = run_second_named_profile_isolation(
         exe, rom, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)
@@ -1417,6 +1561,7 @@ def main() -> int:
     result = {
         "modern_root_source_menu_reentry": reentry_proof,
         "native_modern_paused_quit": pause_quit_proof,
+        "native_post_raw_pre_typed_crash": post_raw_crash_proof,
         "native_paused_quit_selector_conflict": conflict_proof,
         "modern_root_race_entry_p1": race_p1_proof,
         "modern_root_race_entry_p2": race_p2_proof,

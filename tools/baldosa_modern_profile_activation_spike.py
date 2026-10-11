@@ -86,6 +86,18 @@ def patch_framework_save(source: str) -> str:
         "  if (!g_netplay_session) {\n"
         "    if (ur_baldosa_modern_profile_before_native_save()) {\n"
         "      int native_saved = RtlWriteSram();\n"
+        # Opt-in deterministic power-loss boundary. Production never asks
+        # for it; no synthetic SRAM, guest results or second save writer.
+        "      const char* qa_crash = getenv(\"UR_BALDOSA_QA_CRASH_AFTER_NATIVE_SRAM_WRITE\");\n"
+        "      const char* qa_profile = getenv(\"UR_BALDOSA_MODERN_PROFILE_SELECT\");\n"
+        "      const char* qa_mode = getenv(\"UR_EXECUTION_MODE\");\n"
+        "      if (native_saved && qa_crash && strcmp(qa_crash, \"1\") == 0 &&\n"
+        "          qa_profile && strcmp(qa_profile, \"1\") == 0 &&\n"
+        "          qa_mode && strcmp(qa_mode, \"modern\") == 0) {\n"
+        '        fprintf(stderr, "UR_BALDOSA_NATIVE_PROFILE QA_CRASH_AFTER_RAW_WRITE exit=86 typed_checkpoint=0\\n");' "\n"
+        "        fflush(stderr);\n"
+        "        _Exit(86);\n"
+        "      }\n"
         "      if (!ur_baldosa_modern_profile_finish_native_save(native_saved))\n"
         '        fprintf(stderr, "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT rejected\\n");' "\n"
         "    } else {\n"

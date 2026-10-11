@@ -141,11 +141,28 @@ extern "C" int ur_baldosa_modern_try_activate_profile(void) {
     std::error_code ec;
     const std::filesystem::path sram_path =
         decision.save_root + "/save.srm";
-    if (std::filesystem::is_symlink(sram_path, ec) || ec ||
-        !ur::product::baldosa_sram_file_matches_exact(
-            sram_path, profile.state->stock_sram->data(),
-            ur::product::kStockSramBytes))
+    if (std::filesystem::is_symlink(sram_path, ec) || ec)
         return reject("selected_profile_sram_not_initialized");
+    if (!ur::product::baldosa_sram_file_matches_exact(
+            sram_path, profile.state->stock_sram->data(),
+            ur::product::kStockSramBytes)) {
+        // A missing/short initial save is not the same as a full-size raw
+        // image contradicting the previously committed Modern profile.
+        // Never silently make the raw copy authoritative or repair it:
+        // a crash after RtlWriteSram and before typed CAS can cause this,
+        // but so can corruption or an out-of-band writer.
+        ec.clear();
+        if (std::filesystem::is_regular_file(sram_path, ec) && !ec &&
+            std::filesystem::file_size(sram_path, ec) ==
+                ur::product::kStockSramBytes && !ec) {
+            std::fprintf(stderr,
+                "UR-BALDOSA-SAVE-MISMATCH: Named racer SRAM differs from "
+                "committed profile data. Preserve both files; recovery "
+                "requires an explicit decision. No guest started.\n");
+            std::fflush(stderr);
+        }
+        return reject("selected_profile_sram_not_initialized");
+    }
 
     RtlSetSaveRoot(decision.save_root.c_str());
     if (!RtlSaveRoot() ||

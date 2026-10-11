@@ -28,15 +28,22 @@ def summarize(states: dict[int, dict]) -> dict:
             or len(states) > HORIZON + 1
             or len(states) < 1000):
         raise ValueError("original source timeline is absent, oversized or out of bounds")
+    # The original changed-byte trace decoder expands every intervening
+    # frame. A sparse splice cannot masquerade as an unbroken movie path.
+    if (0 not in states
+            or any(f not in states for f in range(ENTRY, RESULT + 2))):
+        raise ValueError("missing original full entry-to-result source frame continuity")
     entered = states.get(ENTRY)
-    if (not isinstance(entered, dict) or entered.get("track") != 3
-            or entered.get("in_race") != 1):
+    if (not isinstance(entered, dict) or type(entered.get("track")) is not int
+            or entered["track"] != 3
+            or type(entered.get("in_race")) is not int
+            or entered["in_race"] != 1):
         raise ValueError("original 2014 movie source track-3 race entry at 12327 missing")
     result = states[RESULT]
     if (not isinstance(result, dict) or result.get("track") != 3
             or result.get("menu") != 0x99
             or type(result.get("in_race")) is not int
-            or result["in_race"] == 1):
+            or result["in_race"] != 0):
         raise ValueError("original archive does not show Switcher Race B result at 17030")
     frames = sorted(f for f in states if f > RESULT)
     if not frames:
@@ -65,7 +72,10 @@ def summarize(states: dict[int, dict]) -> dict:
             raise ValueError("malformed source movie trace frame")
         state = row.get("in_race")
         track = row.get("track")
-        if type(state) is not int or type(track) is not int or not 0 <= track <= 255:
+        menu = row.get("menu")
+        if (type(state) is not int or state not in (0, 1)
+                or type(track) is not int or not 0 <= track <= 255
+                or type(menu) is not int or not 0 <= menu <= 255):
             raise ValueError("malformed original movie in-race/track fields")
         active = state == 1
         if active and streak_last == f - 1 and streak_track == track:

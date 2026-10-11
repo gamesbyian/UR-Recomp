@@ -57,3 +57,5 @@ tests/input/ui-name-league-route.script
 tools/toolchain-entries/sdl3.json
 .github/workflows/native-ui-evidence.yml
 .github/workflows/modern-native-heavy-router.yml
+.github/ci/modern-native-ui-paths.txt
+tools/classify_modern_native_ci.py

@@ -1,0 +1,86 @@
+name: QA-02 unattended storage supercampaign
+
+# Manual-only coordinator for two existing distinct production-store fixtures.
+# Each subcampaign owns its own native compiler, shards and scientific oracle.
+# No invented shared binary across incompatible C12 and C09/14/15/16 targets.
+on:
+  workflow_dispatch:
+    inputs:
+      trials_per_scenario:
+        description: "Fresh OS-process contests/fault journeys per shard"
+        type: choice
+        default: "10"
+        required: true
+        options: ["10", "100", "500"]
+      c12_seed:
+        description: "Deterministic concurrency scheduling seed"
+        required: true
+        default: "11413"
+      recovery_seed:
+        description: "Deterministic fault-boundary jitter seed"
+        required: true
+        default: "20261011"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa02-all-storage-campaign-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ownership-races:
+    uses: ./.github/workflows/qa02-c12-process-race-campaign.yml
+    with:
+      trials_per_shard: ${{ inputs.trials_per_scenario }}
+      seed: ${{ inputs.c12_seed }}
+  fault-recovery:
+    uses: ./.github/workflows/qa02-recovery-cohort.yml
+    with:
+      iterations_per_scenario: ${{ inputs.trials_per_scenario }}
+      seed: ${{ inputs.recovery_seed }}
+  aggregate:
+    needs: [ownership-races, fault-recovery]
+    if: ${{ always() }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out aggregate validator, not a third storage implementation
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Retrieve C12 original aggregate receipt
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: qa02-c12-campaign-aggregate
+          path: ${{ runner.temp }}/qa02-collect/c12
+      - name: Retrieve C09/14/15/16/QA03 original aggregate receipt
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: qa02-recovery-aggregate
+          path: ${{ runner.temp }}/qa02-collect/recovery
+      - name: Fail closed on any incomplete or mismatched subcampaign
+        env:
+          REQUESTED: ${{ inputs.trials_per_scenario }}
+          C12_RESULT: ${{ needs.ownership-races.result }}
+          RECOVERY_RESULT: ${{ needs.fault-recovery.result }}
+        run: |
+          set -euo pipefail
+          python3 tools/qa02_unattended_storage_batch.py \
+            --source-sha "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" \
+            --trials "$REQUESTED" \
+            --c12-job "$C12_RESULT" --recovery-job "$RECOVERY_RESULT" \
+            --c12 "$RUNNER_TEMP/qa02-collect/c12/result.json" \
+            --recovery "$RUNNER_TEMP/qa02-collect/recovery/result.json" \
+            --out "$RUNNER_TEMP/qa02-full-aggregate/result.json" \
+            --summary "$GITHUB_STEP_SUMMARY"
+      - name: Always retain exact parent campaign outcome
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa02-storage-supercampaign-aggregate
+          path: ${{ runner.temp }}/qa02-full-aggregate/result.json
+          retention-days: 14
+          if-no-files-found: warn

@@ -42,6 +42,10 @@
 | External research and code intake (only on demand) | [RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md](RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md), [EXTERNAL-EVIDENCE-INTAKE.md](EXTERNAL-EVIDENCE-INTAKE.md), [THIRD-PARTY-CODE-AUDIT.md](THIRD-PARTY-CODE-AUDIT.md) |
 | Other platform targets (deferred) | [PLATFORM-TARGETS.md](PLATFORM-TARGETS.md), [SWITCH-HOMEBREW-PORT.md](SWITCH-HOMEBREW-PORT.md) |
 
+## External methodology and workflow calibration
+
+[malmazuke workflow lessons](MALMAZUKE-WORKFLOW-LESSONS.md) compares the independent PAL-native reconstruction's capability sizing, differential investigation, risk-scaled review, code coverage and evidence retention with **existing** UR-Recomp ownership and QA processes. It is advisory evidence, not a new task queue, import approval, reviewer mandate or release gate.
+
 ## Historical preservation and hygiene
 
 `docs/archive/` contains **verbatim prior planning snapshots** from 2026-10-09, not competing sources of truth. Earlier archaeology, PR reconciliations, dated QA audits and one-off native measurements in other docs also remain provenance/evidence, not live instructions. Start from current code/PR/head, then consult these when a specific question requires their history. The previous giant project plan, queue and research plan are preserved; their obsolete next-step statements are intentionally not copied into the active short documents.

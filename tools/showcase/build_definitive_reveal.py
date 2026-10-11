@@ -57,23 +57,24 @@ def main():
     assert int(info["nb_read_frames"]) == FRAMES
     args.outdir.mkdir(parents=True, exist_ok=True)
 
-    # 43 genuine extra columns on either side of the 256-column stock centre.
-    # 1920*(43/342) = 241.403... pixels. 241-pixel masks approximate
-    # a source-column boundary without resampling or shifting race imagery.
-    # Slide these opaque covers OUTWARD; source plays at native cadence beneath.
+    # The genuine 342-column video keeps playing while matte panels uncover
+    # 43 source columns on each side. All footage is uniformly fitted in a
+    # 1728x972 editorial viewport so the labels sit OUTSIDE the game raster.
+    # 1728 * (43/342) = 217.26px; 218px matte coverage is conservative.
     fade = "min(1,max(0,(t-1)/4.5))"
     reveal_graph = (
-        "[0:v]setpts=PTS-STARTPTS[base];"
-        "color=c=black:s=242x1080:r=60:d=7.5[left];"
-        "color=c=black:s=242x1080:r=60:d=7.5[right];"
-        f"[base][left]overlay=x='-242*{fade}':y=0:eval=frame[tmp];"
-        f"[tmp][right]overlay=x='W-242+242*{fade}':y=0:eval=frame,"
-        "drawtext=text='ORIGINAL 256-COLUMN CENTRE':fontsize=48:fontcolor=white:"
-        "x=(w-text_w)/2:y=64:box=1:boxcolor=black@0.7:boxborderw=16:"
-        "enable='lt(t,3.2)',"
-        "drawtext=text='WIDESCREEN 342-COLUMN WORLD':fontsize=48:fontcolor=white:"
-        "x=(w-text_w)/2:y=64:box=1:boxcolor=black@0.7:boxborderw=16:"
-        "enable='gte(t,3.2)',format=yuv420p[v]"
+        "[0:v]setpts=PTS-STARTPTS,"
+        "scale=1728:972:flags=neighbor,pad=1920:1080:96:54:black[base];"
+        "color=c=black:s=218x972:r=60:d=7.5[left];"
+        "color=c=black:s=218x972:r=60:d=7.5[right];"
+        f"[base][left]overlay=x='96-218*{fade}':y=54:eval=frame[tmp];"
+        f"[tmp][right]overlay=x='1606+218*{fade}':y=54:eval=frame,"
+        "drawtext=text='ORIGINAL 256-COLUMN CENTRE':fontsize=30:fontcolor=white:"
+        "x=96:y=8:enable='lt(t,3.2)',"
+        "drawtext=text='WIDESCREEN 342-COLUMN WORLD':fontsize=30:fontcolor=white:"
+        "x=96:y=8:enable='gte(t,3.2)',"
+        "drawtext=text='GENUINE CONTINUOUS 2P CAPTURE':fontsize=23:"
+        "fontcolor=white:x=w-text_w-96:y=13,format=yuv420p[v]"
     )
     # Only full-width source video is ever composited; covers cannot invent world.
     reveal = args.outdir / "authentic-widescreen-reveal-7s.mp4"
@@ -85,7 +86,7 @@ def main():
     comparison_graph = (
         "[0:v]setpts=PTS-STARTPTS,split=2[stock][wide];"
         "[stock]crop=w=1438:h=1080:x=241:y=0,"
-        "scale=960:720:flags=neighbor,pad=960:1080:0:180:black[a];"
+        "scale=720:540:flags=neighbor,pad=960:1080:120:270:black[a];"
         "[wide]scale=960:540:flags=neighbor,"
         "pad=960:1080:0:270:black[b];"
         "[a][b]hstack=inputs=2,"
@@ -124,13 +125,13 @@ def main():
             "duration_seconds": 7,
             "description": "Uninterrupted authentic 342-column world; side masks slide out to reveal already-recorded margins",
             "centre_original_columns": [43, 298],
-            "editorial_overlay": "Opaque black side panels only"
+            "editorial_overlay": "Animated black side mattes plus labels in exterior editorial letterbox"
         },
         "comparison": {
             "file": comparison.name, "sha256": digest(comparison),
             "duration_seconds": 5,
             "classification": "editorial_same_capture_crop_not_independent_original_render",
-            "description": "Two simultaneous views of the same recorded wide capture; left is centre crop, right is full field",
+            "description": "Same-capture exact-time centre crop and full world, both at identical display scale",
             "independent_original_capture": False,
             "independent_guest_wram_state_comparison": False
         },

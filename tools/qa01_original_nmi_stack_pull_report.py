@@ -27,7 +27,7 @@ PULL = re.compile(
     re.MULTILINE,
 )
 RTI = re.compile(
-    r"^QANMIRTI f=(\d+) v0=(\d+) v1=(\d+) pc=([0-9A-F]{6}) nextpc=([0-9A-F]{6}) "
+    r"^QANMIRTI f=(\d+) v0=(\d+) v1=(\d+) pc=([0-9A-F]{6}) postpc=([0-9A-F]{6}) "
     r"pb0=([0-9A-F]{2}) pb1=([0-9A-F]{2}) "
     r"sp0=([0-9A-F]{4}) sp1=([0-9A-F]{4}) "
     r"a0=([0-9A-F]{4}) a1=([0-9A-F]{4}) "
@@ -134,7 +134,7 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
     }
     rti_rows = []
     for match in rti_matches:
-        (f0s, v0s, v1s, pc, nextpc, pb0, pb1, sp0s, sp1s,
+        (f0s, v0s, v1s, pc, postpc, pb0, pb1, sp0s, sp1s,
          a0, a1, pl0, pl1, cyc0s, cyc1s, f1s) = match.groups()
         f0, f1 = int(f0s), int(f1s)
         v0, v1, sp0, sp1 = int(v0s), int(v1s), int(sp0s, 16), int(sp1s, 16)
@@ -144,7 +144,7 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
                 or not STACK_LOW <= sp0 <= STACK_HIGH
                 or not STACK_LOW <= sp1 <= STACK_HIGH
                 or sp1 - sp0 not in (3, 4)
-                or int(nextpc[:2], 16) != int(pb1, 16)
+                or int(postpc[:2], 16) != int(pb1, 16)
                 or a0 != a1 or not -1000000 <= cyc0 <= 1000000
                 or not -1000000 <= cyc1 <= 1000000):
             raise ValueError("impossible original RTI register or stack restoration")
@@ -154,7 +154,7 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
             "ppu_vcounter_before": v0,
             "ppu_vcounter_after": v1,
             "opcode_pc": f"{pc[:2]}:{pc[2:]}",
-            "resumed_guest_pc": f"{nextpc[:2]}:{nextpc[2:]}",
+            "post_opcode_guest_pc": f"{postpc[:2]}:{postpc[2:]}",
             "program_bank_before": pb0,
             "program_bank_after": pb1,
             "stack_pointer_before": f"{sp0:04X}",

@@ -46,6 +46,8 @@ Returning player: title -> root defaults to the last appropriate Play task/Conti
 
 Race: pre-race context/entry -> stock race -> host pause overlay -> authoritative stock results ritual -> contextual Modern results actions -> next race, retry, track/tour select, or frontend. Result actions are only offered if their current existing authority is valid; Quick Practice never acquires progression authority. Do not invent a universal save/continue checkpoint in arbitrary guest contexts.
 
+**Planned desktop finishing touch:** after a genuine eligible Modern race on Windows, macOS or Linux, the results action area must include an additive, controller-discoverable **Save Race Video / Discard Video** choice without interrupting the historical results ceremony, reordering existing authoritative navigation, or forcing players to make a decision before returning to play. An immediately playable video is acknowledged only after actual finished-file validation; deferred replay rendering shows a truthful durable **Saved for video export** state instead. Missing or unsupported full-race capture must not produce a pretend movie, and Discard never deletes run history/PB. This is **not an implemented screen**. Exact resource/OS/audio architecture and tests: [DESKTOP-POST-RACE-VIDEO.md](DESKTOP-POST-RACE-VIDEO.md).
+
 Modern and Authentic modes must be explicitly named on a discoverable startup/settings surface; do not silently switch modes mid-race or imply hot swapping of guest semantics. A mode change that requires restart should explain and confirm it.
 
 ## Screen IA and action contracts

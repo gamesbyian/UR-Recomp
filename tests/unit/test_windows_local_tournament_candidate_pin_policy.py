@@ -39,6 +39,17 @@ class WindowsLocalTournamentCandidatePinTests(unittest.TestCase):
         self.assertLess(s.index("- name: Refuse unapproved smoke-run candidate"),
                         s.index("- name: Download the smoke-built portable package"))
 
+    def test_receipts_reverified_against_independent_pins_after_game_reopen(self):
+        s = self.policy
+        self.assertIn("verify_windows_tournament_acceptance_receipt.py", s)
+        self.assertIn('--expected-source "$QA_APPROVED_SHA"', s)
+        self.assertIn('--expected-zip-sha256 "$QA_APPROVED_ZIP_SHA256"', s)
+        self.assertIn("tournament-receipt-verification.log", s)
+        self.assertLess(s.index("run_windows_local_tournament_package_acceptance.sh"),
+                        s.index("verify_windows_tournament_acceptance_receipt.py"))
+        self.assertLess(s.index("verify_windows_tournament_acceptance_receipt.py"),
+                        s.index("- name: Upload tournament evidence"))
+
     def test_uses_same_standalone_exact_zip_oracle_before_guest_route(self):
         s = self.policy
         for marker in (

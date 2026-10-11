@@ -285,6 +285,52 @@ int main() {
         &observed_2p, &p1, &p2));
     assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() == 1);
 
+    // The canonical shared match writer must reject both live and broken
+    // symlink substitutions before creating any stage/public run outside
+    // the authorized user root. An already published pair survives intact.
+    const auto moved_pairs = dir / "moved-multiplayer-runs";
+    const auto foreign_pairs = dir / "foreign-multiplayer-runs";
+    fs::create_directories(foreign_pairs);
+    fs::rename(multiplayer_root, moved_pairs);
+    fs::create_directory_symlink(foreign_pairs, multiplayer_root);
+    auto redirected_event = observed_2p;
+    redirected_event.first_race_host_frame = 540;
+    redirected_event.observed_result_host_frame = 544;
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &redirected_event, &p1, &p2));
+    assert(fs::is_empty(foreign_pairs));
+    fs::remove(multiplayer_root);
+    fs::create_directory_symlink(dir / "missing-multiplayer", multiplayer_root);
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &redirected_event, &p1, &p2));
+    assert(!fs::exists(dir / "missing-multiplayer"));
+    fs::remove(multiplayer_root);
+    fs::rename(moved_pairs, multiplayer_root);
+    assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() == 1);
+
+    // The inactive P2 SRAM is checked against the fully persisted typed
+    // profile, not against any guessed seat, original result or shared save.
+    {
+        auto wrong = opponent_sram;
+        wrong[0x20] ^= 0x44;
+        std::ofstream raw("saves/profile-rider-2/save.srm",
+                          std::ios::binary | std::ios::trunc);
+        assert(raw);
+        raw.write(reinterpret_cast<const char*>(wrong.data()), wrong.size());
+        assert(raw.good());
+    }
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &redirected_event, &p1, &p2));
+    {
+        std::ofstream raw("saves/profile-rider-2/save.srm",
+                          std::ios::binary | std::ios::trunc);
+        assert(raw);
+        raw.write(reinterpret_cast<const char*>(opponent_sram.data()),
+                  opponent_sram.size());
+        assert(raw.good());
+    }
+    assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() == 1);
+
     // An out-of-band profile identity change makes the confirmed P2
     // catalog entry stale. No match may be minted against the old rider.
     auto changed = *other_profile;

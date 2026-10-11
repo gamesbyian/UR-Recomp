@@ -29,7 +29,7 @@ The code is read with `tools/p2p/manual_invite_v0.py`. The decoder returns *untr
 
 To generate an **example** code for testing:
 
-```sh
+```bash
 python3 tools/p2p/manual_invite_v0.py create \
   --peer-key "$(printf '01%.0s' {1..32})" \
   --nonce "$(printf '02%.0s' {1..16})" \

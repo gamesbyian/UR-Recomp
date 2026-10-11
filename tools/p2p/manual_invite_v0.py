@@ -152,6 +152,9 @@ def read_code(text: str, *, now: int | None = None) -> dict[str, Any]:
     """Decode strict portable contact data. Result is NEVER an authenticated peer."""
     if not isinstance(text, str):
         raise InviteError("invite must be text")
+    # Refuse huge pasted text before making a trimmed copy or decoding it.
+    if len(text) > MAX_CODE + 8:
+        raise InviteError("oversized invitation")
     text = text.strip(" \r\n\t")
     if text.startswith(LINK_PREFIX):
         text = text[len(LINK_PREFIX):]
@@ -192,7 +195,8 @@ def parse_endpoint(text: str) -> dict[str, Any]:
         if value.count(":") != 1:
             raise InviteError("IPv6 endpoints require brackets")
         ip, port_str = value.rsplit(":", 1)
-    if not port_str.isdecimal():
+    # Bounded ASCII digits only, prior to int() allocation/parsing.
+    if not re.fullmatch(r"[0-9]{1,5}", port_str):
         raise InviteError("invalid endpoint port")
     return _endpoint({"ip": ip, "port": int(port_str), "transport": "udp"})
 

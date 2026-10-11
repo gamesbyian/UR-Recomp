@@ -137,7 +137,8 @@ class OfflinePeerInviteTests(unittest.TestCase):
             {"ip": "198.51.100.7", "port": 7777, "transport": "udp"})
         for malformed in ["tcp@127.0.0.1:8000", "udp@2001:db8::1:8000",
                           "udp@localhost:8000", "udp@[::1]", "udp@a:0",
-                          "udp@[::1]:-1"]:
+                          "udp@[::1]:-1", "udp@192.0.2.1:" + "9" * 9000,
+                          "udp@192.0.2.1:٣"]:
             with self.assertRaises(inv.InviteError):
                 inv.parse_endpoint(malformed)
 
@@ -148,6 +149,7 @@ class OfflinePeerInviteTests(unittest.TestCase):
             code.replace("URP0.", "URP1.", 1),
             "ur-recomp://evil/" + code,
             "URP0.bad.bad", "URP0.", "URP0." + "A" * 4096,
+            " " * 100000 + code,
             code[:-1] + ("A" if code[-1] != "A" else "B"),
         ]
         for text in malformed:

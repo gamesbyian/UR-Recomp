@@ -108,7 +108,7 @@ def validate_report(report: object) -> dict:
 
     if report["schema"] != SCHEMA:
         raise ValueError(f"report.schema: expected {SCHEMA}")
-    revision = _bounded_text(report["build_revision"], "report.build_revision", maximum=40)
+    revision = _bounded_text(report["build_revision"], "report.build_revision", maximum=128)
     if not SOURCE_SHA_RE.fullmatch(revision):
         raise ValueError("report.build_revision: must be a complete lowercase 40-hex source commit")
     digest = _bounded_text(report["artifact_sha256"], "report.artifact_sha256", maximum=64)

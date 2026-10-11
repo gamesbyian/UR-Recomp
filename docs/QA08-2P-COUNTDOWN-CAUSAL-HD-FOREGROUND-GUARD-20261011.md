@@ -18,27 +18,32 @@ identifiable blue countdown "2". The original slot sources must remain
 present to resume correctly after the countdown, yet those 411 pixels
 are *demonstrably invisible in the final Original at this exact frame*.
 
-Native [run 38117375415](https://github.com/gamesbyian/UR-Recomp/actions/runs/38117375415)
-artifact `11694242433` retains the stock, both independent OBJ source
+Native **accepted exact-head [run 38118239801](https://github.com/gamesbyian/UR-Recomp/actions/runs/38118239801)**
+artifact `11694303573` retains the stock, both independent OBJ source
 planes and actual paired-removal 342×224 PPU output, including the
 single authentic slot96-97 arm marker. Its PPU route finished and
-original/removal guest CRCs matched. The workflow itself was red because
-a validator incorrectly assumed the 5,447-frame **1P** CRC count
-rather than 2,473 for this **2P** route; the correction lives in
-[#1330](https://github.com/gamesbyian/UR-Recomp/pull/1330).
-The detailed causal evidence JSON belongs to the
-graphics observation [#1329](https://github.com/gamesbyian/UR-Recomp/pull/1329)
-at
-`analysis/data/qa08-original-2p-countdown-pair-native-causal-zero-1872.json`.
+original/removal guest CRCs matched. The prior run `38117375415` was red because the first version
+of a validator used the 5,447-frame **1P** CRC count instead of
+2,473 for this **2P** route; its correction in
+[#1330](https://github.com/gamesbyian/UR-Recomp/pull/1330)
+is now **native-green** on exactly the reviewed branch head.
+The official successful AOT artifact contains the independent,
+native-produced causal report
+`baldosa-evidence/ws342_pair96_97_countdown_causal_1872.json`,
+including **all four 2,473-line guest CRC stream parity checks**,
+the exact native PPU pair-removal arm status, source slot hashes,
+full stock/removal framebuffer hashes, positive source emission and
+zero final pixel change.
 
 ## Regression contract
 
 The new standard-library-only
 `tools/check_baldosa_2p_countdown_hd_foreground_guard.py` takes
 the **actual native original/source96/source97/pair-removed PAMs**,
-the small committed #1329 causal proof (including original and source
-SHA256, bounded slot identities, 2,473-frame native CRC assurance,
-zero final delta and denied HD permissions), and one proposed
+the successful native AOT's own
+`ws342_pair96_97_countdown_causal_1872.json` report (including stock
+and source SHA256, authenticated OAM pair removal, four 2,473-frame
+CRC stream equality, zero final delta and denied HD permission), and one proposed
 **candidate full RGBA presentation capture at 1×, 2×, 3× or 4×**.
 
 For each of the **411 source-alpha-union logical positions**, it
@@ -53,8 +58,9 @@ inconsistent source-slot/frame identifiers, incorrect output
 raster density/header, aliased candidate and any claim that the
 native proof authorizes remastering. It never erases or paints pixels.
 
-Extract prior native evidence artifact `11694242433` into a temporary
-directory, then, once the #1329 source report is present locally:
+Extract successful native evidence artifact `11694303573` into a
+temporary directory, which already contains the report and all
+necessary source PPU images:
 
 ```sh
 python3 tools/check_baldosa_2p_countdown_hd_foreground_guard.py \
@@ -77,7 +83,7 @@ candidate output.
 
 ## Real Native 4× Original control (no new build)
 
-The same genuine prior native artifact includes the 1368×896 4×
+The same genuine successful native artifact includes the 1368×896 4×
 Original density capture from frame1872. Independently expanding
 the complete original 342×224 RGBA to 4× and comparing that whole
 capture shows **zero pixel differences across all 1,225,728**

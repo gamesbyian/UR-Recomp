@@ -2,9 +2,9 @@
   "schema_version": 1,
   "status": "accepted-authentic-native-original-4x-2p-countdown-causal-hidden-racers-preserved",
   "exact_original_guest_frame": 1872,
-  "native_original_aot_run_id": 38117375415,
-  "native_original_artifact_id": 11694242433,
-  "artifact_native_workflow_conclusion": "failure-due-incorrect-one-player-crc-length-in-checker",
+  "native_original_aot_run_id": 38118239801,
+  "native_original_artifact_id": 11694303573,
+  "artifact_native_workflow_conclusion": "success",
   "original_2p_guest_frames_in_route": 2473,
   "logical_source": [
     342,
@@ -27,5 +27,7 @@
   "original_4x_all_raster_unauthorized_subpixels": 0,
   "original_4x_rgba_sha256": "05382b590d71b8bbd25e90e1616a9bb8c7aad87a78ee4b3d101d4b2527e542ce",
   "conclusion_scope": "Only source-backed Original 4x at exact native guest1872; not authored HD/Remastered or physical 4K approval",
-  "remastered_art_admitted": false
+  "remastered_art_admitted": false,
+  "authenticated_four_native_2p_guest_crc_streams_equal": 2473,
+  "native_generated_pair_removal_report": "baldosa-evidence/ws342_pair96_97_countdown_causal_1872.json"
 }

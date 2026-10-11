@@ -71,27 +71,24 @@ class CoveredRacerHDOverpaintTest(unittest.TestCase):
         h = lambda d: hashlib.sha256(d).hexdigest()
         self.evidence.write_text(json.dumps({
             "schema_version": 1,
-            "status": "recovered-authentic-native-ppu-two-slot-removal-zero-final-difference",
-            "native_guest_frame": FRAME,
-            "stock_native_source_full_raster": [WIDTH, HEIGHT],
-            "actual_native_pair_removed": [96, 97],
-            "whole_original_rgba_byte_exact_identical": True,
-            "stock_vs_pair_guest_crc_cmp_in_native_workflow_passed": True,
-            "source96_97_native_source_report_status": "passed",
-            "final_original_changed_rgba_pixels_on_pair_deletion": 0,
-            "final_original_changed_outside_emitted_original_source": 0,
-            "expected_full_guest_crc_entries_per_native_route": 2473,
-            "authorized_hd_widescreen_or_4x_art": False,
-            "safe_to_erase_stock_2p_racers_in_host": False,
-            "stock_full_original_rgba_sha256": h(self.original),
-            "paired_deletion_full_original_rgba_sha256": h(self.counterfactual),
-            "source96_original_rgba_sha256": h(self.alpha[96]),
-            "source97_original_rgba_sha256": h(self.alpha[97]),
-            "source96_original_alpha_pixels": 2,
-            "source97_original_alpha_pixels": 2,
-            "emitted_source_alpha_sum_counting_pair_overlap_twice": 4,
-            "distinct_original_source_coordinates": 3,
-            "distinct_original_source_coordinates_covered_by_final_blue": 3,
+            "status": "native-covered-pair-final-unchanged",
+            "guest_frame": FRAME,
+            "source_oam_slots_removed": [96, 97],
+            "exact_native_pair_removal_armed": True,
+            "guest_crc_equal_in_all_four_independent_native_processes": 2473,
+            "pair_removal_has_zero_observable_original_final_effect": True,
+            "stock_vs_removed_full_final_rgba_changed_pixels": 0,
+            "changed_outside_source_alpha_union": 0,
+            "source_slot_removal_allowed_in_product": False,
+            "authored_hd_or_widescreen_remastered_allowed": False,
+            "specific_foreground_bg_obj_layer_proven": False,
+            "original_final_sha256": h(self.original),
+            "original_without_pair_sha256": h(self.counterfactual),
+            "source96_sha256": h(self.alpha[96]),
+            "source97_sha256": h(self.alpha[97]),
+            "two_source_emissions_total_counting_overlap_twice": 4,
+            "source_alpha_union_coordinates": 3,
+            "source_coordinates_final_countdown_blue": 3,
         }), encoding="utf-8")
 
     def check(self):
@@ -142,7 +139,7 @@ class CoveredRacerHDOverpaintTest(unittest.TestCase):
             # Update hash to show even a self-consistent forged report
             # cannot override the actual native before/after mismatch.
             report = json.loads(self.evidence.read_text())
-            report["paired_deletion_full_original_rgba_sha256"] = (
+            report["original_without_pair_sha256"] = (
                 hashlib.sha256(self.counterfactual).hexdigest())
             self.evidence.write_text(json.dumps(report))
             self.check()
@@ -155,11 +152,11 @@ class CoveredRacerHDOverpaintTest(unittest.TestCase):
 
     def test_report_must_keep_guest_crc_and_no_art_admission(self):
         for key, value in [
-            ("expected_full_guest_crc_entries_per_native_route", 5447),
-            ("safe_to_erase_stock_2p_racers_in_host", True),
-            ("authorized_hd_widescreen_or_4x_art", True),
-            ("whole_original_rgba_byte_exact_identical", False),
-            ("actual_native_pair_removed", [98, 99]),
+            ("guest_crc_equal_in_all_four_independent_native_processes", 5447),
+            ("source_slot_removal_allowed_in_product", True),
+            ("authored_hd_or_widescreen_remastered_allowed", True),
+            ("pair_removal_has_zero_observable_original_final_effect", False),
+            ("source_oam_slots_removed", [98, 99]),
         ]:
             old = json.loads(self.evidence.read_text())
             report = dict(old)

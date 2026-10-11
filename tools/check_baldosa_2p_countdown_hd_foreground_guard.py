@@ -17,7 +17,7 @@ from pathlib import Path
 FRAME = 1872
 WIDTH, HEIGHT = 342, 224
 SOURCE_SLOTS = (96, 97)
-STATUS = "recovered-authentic-native-ppu-two-slot-removal-zero-final-difference"
+STATUS = "native-covered-pair-final-unchanged"
 
 
 def read_rgba(path: Path, width: int, height: int) -> bytes:
@@ -47,17 +47,16 @@ def verify(stock_path: Path, source96_path: Path, source97_path: Path,
     evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
     if (evidence.get("schema_version") != 1 or
             evidence.get("status") != STATUS or
-            evidence.get("native_guest_frame") != FRAME or
-            evidence.get("stock_native_source_full_raster") != [WIDTH, HEIGHT] or
-            evidence.get("actual_native_pair_removed") != [96, 97] or
-            evidence.get("whole_original_rgba_byte_exact_identical") is not True or
-            evidence.get("stock_vs_pair_guest_crc_cmp_in_native_workflow_passed") is not True or
-            evidence.get("source96_97_native_source_report_status") != "passed" or
-            evidence.get("final_original_changed_rgba_pixels_on_pair_deletion") != 0 or
-            evidence.get("final_original_changed_outside_emitted_original_source") != 0 or
-            evidence.get("expected_full_guest_crc_entries_per_native_route") != 2473 or
-            evidence.get("authorized_hd_widescreen_or_4x_art") is not False or
-            evidence.get("safe_to_erase_stock_2p_racers_in_host") is not False):
+            evidence.get("guest_frame") != FRAME or
+            evidence.get("source_oam_slots_removed") != [96, 97] or
+            evidence.get("exact_native_pair_removal_armed") is not True or
+            evidence.get("guest_crc_equal_in_all_four_independent_native_processes") != 2473 or
+            evidence.get("pair_removal_has_zero_observable_original_final_effect") is not True or
+            evidence.get("stock_vs_removed_full_final_rgba_changed_pixels") != 0 or
+            evidence.get("changed_outside_source_alpha_union") != 0 or
+            evidence.get("source_slot_removal_allowed_in_product") is not False or
+            evidence.get("authored_hd_or_widescreen_remastered_allowed") is not False or
+            evidence.get("specific_foreground_bg_obj_layer_proven") is not False):
         raise ValueError("source-native causal proof is incomplete or has unsafe admission")
     stock = read_rgba(stock_path, WIDTH, HEIGHT)
     removed = read_rgba(without_pair_path, WIDTH, HEIGHT)
@@ -67,10 +66,10 @@ def verify(stock_path: Path, source96_path: Path, source97_path: Path,
     }
     def sha(data: bytes) -> str:
         return hashlib.sha256(data).hexdigest()
-    if (sha(stock) != evidence.get("stock_full_original_rgba_sha256") or
-            sha(removed) != evidence.get("paired_deletion_full_original_rgba_sha256") or
+    if (sha(stock) != evidence.get("original_final_sha256") or
+            sha(removed) != evidence.get("original_without_pair_sha256") or
             any(sha(sources[s]) != evidence.get(
-                f"source{s}_original_rgba_sha256") for s in SOURCE_SLOTS)):
+                f"source{s}_sha256") for s in SOURCE_SLOTS)):
         raise ValueError("one or more native Original/source/counterfactual SHA mismatches")
     if stock != removed:
         raise ValueError("native Original changed when covered racer source pair was removed")
@@ -97,13 +96,12 @@ def verify(stock_path: Path, source96_path: Path, source97_path: Path,
                         changed += 1
                         if len(errors) < 12:
                             errors.append([x, y, dx, dy])
-    if (source96 != evidence.get("source96_original_alpha_pixels") or
-            source97 != evidence.get("source97_original_alpha_pixels") or
+    if (source96 == 0 or source97 == 0 or
             source96 + source97 != evidence.get(
-                "emitted_source_alpha_sum_counting_pair_overlap_twice") or
-            count != evidence.get("distinct_original_source_coordinates") or
+                "two_source_emissions_total_counting_overlap_twice") or
+            count != evidence.get("source_alpha_union_coordinates") or
             blue != count or count != evidence.get(
-                "distinct_original_source_coordinates_covered_by_final_blue")):
+                "source_coordinates_final_countdown_blue")):
         raise ValueError("native true source alpha/covered blue counts differ from causal proof")
     return {
         "schema_version": 1,

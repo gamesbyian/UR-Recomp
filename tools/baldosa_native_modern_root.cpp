@@ -9,6 +9,7 @@
 #include "modern_root_physical_edges.hpp"
 #include "baldosa_native_records_summary.hpp"
 #include "baldosa_native_multiplayer_records_summary.hpp"
+#include "baldosa_native_two_seat_join.hpp"
 #include "quick_practice_route.hpp"
 #include "quick_practice_input_mask.hpp"
 
@@ -31,6 +32,7 @@ const char* ur_baldosa_modern_profile_selected_id(void);
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <vector>
 
 namespace {
 using ur::product::ModernRootDestination;
@@ -44,6 +46,8 @@ constexpr std::uint8_t kNativeRootAvailable =
     (1u << static_cast<unsigned>(ModernRootDestination::Records));
 ModernRootMenu g_menu{};
 ur::product::ModernRootPhysicalEdges g_navigation_edges{};
+ur::product::ModernRootPhysicalEdges g_p2_join_edges{};
+ur::product::BaldosaNativeTwoSeatJoin g_two_seat_join{};
 std::string g_racer_name = "STOCK RACER - NO PROFILE";
 bool g_visible = false;
 bool g_confirm_quit = false;
@@ -71,6 +75,7 @@ bool g_reentry_needs_paint = false;
 
 void stock_route_abort(const char* reason) {
     ur_baldosa_product_cancel_stock_menu_input();
+    g_two_seat_join.cancel();
     std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT stock_rejected=%s\n", reason);
     g_stock_target = -1;
     g_stock_waiting_transition = false;
@@ -95,6 +100,8 @@ bool reopen_on_observed_stock_main() {
     g_visible = true;
     g_confirm_quit = false;
     g_records_open = false;
+    g_two_seat_join.cancel();
+    g_p2_join_edges.reset();
     g_stock_handed_off = false;
     g_handed_off_players = 0;
     g_handed_off_saw_race = false;
@@ -180,8 +187,33 @@ void open_records_archive() {
         matches.validated_pairs, matches.unavailable_pairs,
         matches.selected_profile_matches);
 }
+void request_stock_route(int players) {
+    g_stock_target = players - 1;
+    g_stock_settle = 0;
+    g_stock_budget = ur::product::kQuickPracticeLaunchMaxObservations;
+    g_stock_waiting_cursor = false;
+    g_stock_waiting_transition = false;
+    std::fprintf(stderr,
+        "UR_BALDOSA_MODERN_ROOT stock_requested players=%d\n", players);
+}
+void join_confirm(unsigned seat) {
+    if (!g_two_seat_join.open()) return;
+    if (!g_two_seat_join.confirm(seat)) {
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT join_rejected seat=%u\n", seat + 1u);
+        return;
+    }
+    std::fprintf(stderr,
+        "UR_BALDOSA_MODERN_ROOT join_confirmed seat=%u\n", seat + 1u);
+    if (g_two_seat_join.ready())
+        request_stock_route(2);
+}
 void choose() {
     if (g_stock_target != -1) return;
+    if (g_two_seat_join.open()) {
+        join_confirm(0);
+        return;
+    }
     if (g_records_open) {
         g_records_open = false;
         std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT records_closed=1\n");
@@ -207,16 +239,33 @@ void choose() {
             "UR_BALDOSA_MODERN_ROOT route=%zu unavailable=1\n", index);
         return;
     }
-    g_stock_target = selected == ModernRootDestination::Play ? 0 : 1;
-    g_stock_settle = 0;
-    g_stock_budget = ur::product::kQuickPracticeLaunchMaxObservations;
-    g_stock_waiting_cursor = false;
-    g_stock_waiting_transition = false;
-    std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT stock_requested players=%d\n",
-        g_stock_target + 1);
+    if (selected == ModernRootDestination::Multiplayer) {
+        // No anonymous match binding: historical stock 2P remains playable
+        // without manufacturing profile identities. A verified named P1
+        // with at least two catalog entries must explicitly confirm both.
+        const char* active = ur_baldosa_modern_profile_selected_id();
+        if (active && *active) {
+            const auto roster = ur::product::load_host_profile_catalog_file(
+                "profiles-v1.txt");
+            if (!roster || !g_two_seat_join.begin(*roster, active)) {
+                std::fprintf(stderr,
+                    "UR_BALDOSA_MODERN_ROOT join_unavailable=1\n");
+                return;
+            }
+            g_p2_join_edges.reset();
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2\n");
+            return;
+        }
+    }
+    request_stock_route(selected == ModernRootDestination::Play ? 1 : 2);
 }
 void navigate(int delta) {
     if (g_confirm_quit || g_stock_target != -1) return;
+    if (g_two_seat_join.open()) {
+        g_two_seat_join.move(0, delta);
+        return;
+    }
     if (g_records_open) {
         select_records_page(!g_records_two_player);
         return;
@@ -227,6 +276,11 @@ void navigate(int delta) {
             ur::product::modern_root_menu_selected(g_menu)));
 }
 void back() {
+    if (g_two_seat_join.open()) {
+        g_two_seat_join.cancel();
+        std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT join_closed=1\n");
+        return;
+    }
     if (g_records_open) {
         g_records_open = false;
         std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT records_closed=1\n");
@@ -249,6 +303,8 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     if (!configured()) return;
     g_menu = ur::product::modern_root_menu_reset();
     g_navigation_edges.reset();
+    g_p2_join_edges.reset();
+    g_two_seat_join.cancel();
     g_confirm_quit = false;
     g_records_open = false;
     g_visible = true;
@@ -292,6 +348,25 @@ extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
 
 extern "C" int ur_baldosa_modern_root_gamepad(
     int player, int button, int pressed) {
+    if (player == 1 && g_visible && g_two_seat_join.open()) {
+        int action = 0;
+        std::size_t physical = 0;
+        switch (button) {
+        case kGamepadBtn_DpadUp: physical = 0; action = -1; break;
+        case kGamepadBtn_DpadDown: physical = 1; action = 1; break;
+        case kGamepadBtn_A: physical = 2; action = 2; break;
+        case kGamepadBtn_Start: physical = 3; action = 2; break;
+        case kGamepadBtn_B: physical = 4; action = 3; break;
+        default: return 0;
+        }
+        const bool edge = g_p2_join_edges.p1_gamepad(physical, pressed != 0);
+        if (!edge) return 1;
+        if (g_stock_target != -1) return 1;
+        if (action == 2) join_confirm(1);
+        else if (action == 3) g_two_seat_join.clear(1);
+        else g_two_seat_join.move(1, action);
+        return 1;
+    }
     if (player != 0) return 0;
     int action = 0;
     std::size_t physical = 0;
@@ -341,6 +416,39 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         painter, reinterpret_cast<std::uint32_t*>(dst),
         static_cast<int>(pitch / 4), height, 1, 240,
         HostOverlayRect{8,10,240,204}, view);
+    if (drawn && g_two_seat_join.open()) {
+        const auto& pal = ur::product::kModernStockMenuPalette;
+        constexpr int x = 20, y = 56, w = 216, h = 130;
+        painter.fill_rect(reinterpret_cast<std::uint32_t*>(dst),
+            static_cast<int>(pitch / 4), height, x,y,w,h,pal.background);
+        painter.stroke_rect(reinterpret_cast<std::uint32_t*>(dst),
+            static_cast<int>(pitch / 4), height, x,y,w,h,pal.title_yellow);
+        painter.draw_text(reinterpret_cast<std::uint32_t*>(dst),
+            static_cast<int>(pitch / 4), height, x+10,y+9,
+            "TWO PLAYER PROFILES",pal.title_yellow,1);
+        for (unsigned seat = 0; seat != 2; ++seat) {
+            const auto* selected = g_two_seat_join.candidate(seat);
+            if (!selected) continue;
+            const std::string label =
+                (seat == 0 ? "P1 " : "P2 ") +
+                ur::product::fit_modern_overlay_text(
+                    selected->identity.name, 13) +
+                (g_two_seat_join.confirmed(seat) ? " READY" : " CHOOSE");
+            painter.draw_text(reinterpret_cast<std::uint32_t*>(dst),
+                static_cast<int>(pitch / 4), height, x+10,
+                y+37+static_cast<int>(seat)*26,label.c_str(),
+                g_two_seat_join.confirmed(seat)
+                    ? pal.title_yellow : 0xFFFFFFFFu, 1);
+        }
+        painter.draw_text(reinterpret_cast<std::uint32_t*>(dst),
+            static_cast<int>(pitch / 4), height, x+10,y+100,
+            "EACH PAD: UP/DOWN, A",
+            pal.secondary_grey,1);
+        painter.draw_text(reinterpret_cast<std::uint32_t*>(dst),
+            static_cast<int>(pitch / 4), height, x+10,y+114,
+            "P1 B: BACK  P2 B: CLEAR",
+            pal.secondary_grey,1);
+    }
     if (drawn) {
         ++g_paint_count;
         if (g_reentry_needs_paint) {

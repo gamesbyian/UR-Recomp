@@ -23,6 +23,7 @@
 #include "baldosa_guest_result_observer.hpp"
 #include "host_profile_catalog.hpp"
 #include "baldosa_native_run_publish_retry.hpp"
+#include "baldosa_native_match_publish_retry.hpp"
 
 extern "C" {
 #include "desktop/config.h"
@@ -62,6 +63,7 @@ namespace {
 bool g_smoke_initialized;
 ur::product::BaldosaGuestResultObserver g_native_result_observer;
 ur::product::BaldosaPendingOnePlayerRun g_pending_one_player_run;
+ur::product::BaldosaPendingTwoPlayerMatch g_pending_two_player_match;
 bool g_smoke_enabled;
 UrModernSession* g_modern_session;
 bool g_native_live_race;
@@ -119,6 +121,7 @@ void reconcile_after_native_restart() {
     // Pause/resume without Restart does not reset this observer.
     g_native_result_observer.reset();
     g_pending_one_player_run.reset();
+    g_pending_two_player_match.reset();
     ur_baldosa_modern_root_set_run_save_feedback(0);
     // This is the existing Modern host's post-restore audio reconciliation
     // and the already merged two-seat human input release latch. A paused
@@ -449,6 +452,52 @@ extern "C" void ur_baldosa_product_after_run_frame(
                     ? "pending" : "exhausted",
                 stats->frame);
         }
+        // A transient two-file match receipt failure may be retried only
+        // while exactly the SAME original title 0xF9 result is visible.
+        // A source result is never reconstructed from the stored payload:
+        // the original SRAM/result observer must still acknowledge it, and
+        // the root must still expose both independently confirmed profiles.
+        if (g_pending_two_player_match.pending()) {
+            ur::product::HostProfileCatalogEntry current_p1{}, current_p2{};
+            const bool profiles_still_bound =
+                ur_baldosa_modern_root_source_bound_2p_profiles(
+                    &current_p1, &current_p2) != 0;
+            const auto current_result =
+                profiles_still_bound && rooted_players == 2u &&
+                g_ram[0x0313u] != 0x01u &&
+                g_ram[0x009fu] ==
+                    ur::title::kOrdinaryTwoPlayerRaceResultMenu
+                    ? ur::title::observe_ordinary_two_player_race_result(
+                        true, g_ram, sizeof(g_ram), g_sram,
+                        g_sram_size > 0
+                            ? static_cast<std::size_t>(g_sram_size) : 0u)
+                    : std::nullopt;
+            const auto* retry = g_pending_two_player_match.ready_for_retry(
+                rooted_players, g_ram[0x0313u] == 0x01u,
+                g_ram[0x009fu], stats->frame,
+                current_result ? &*current_result : nullptr,
+                profiles_still_bound ? &current_p1 : nullptr,
+                profiles_still_bound ? &current_p2 : nullptr);
+            if (!g_pending_two_player_match.pending()) {
+                std::fprintf(stderr,
+                    "UR_BALDOSA_NATIVE_MATCH SAVE_ABANDONED=1 "
+                    "reason=changed_source_or_profiles\n");
+            } else if (retry) {
+                const int saved =
+                    ur_baldosa_modern_publish_settled_two_player_match(
+                        &retry->result, &retry->player1, &retry->player2);
+                const auto outcome = g_pending_two_player_match.after_retry(
+                    saved == 1, stats->frame);
+                std::fprintf(stderr,
+                    "UR_BALDOSA_NATIVE_MATCH SAVE_RETRY status=%s "
+                    "host_frame=%llu\n",
+                    outcome == ur::product::BaldosaRunRetryOutcome::Saved
+                        ? "saved" :
+                    outcome == ur::product::BaldosaRunRetryOutcome::Pending
+                        ? "pending" : "exhausted",
+                    static_cast<unsigned long long>(stats->frame));
+            }
+        }
         if (terminal) {
             if (terminal->kind ==
                 ur::product::BaldosaSettledResultKind::TimedOnePlayerRace) {
@@ -498,6 +547,13 @@ extern "C" void ur_baldosa_product_after_run_frame(
                     // real guest input trace under its canonical OS leases.
                     published = ur_baldosa_modern_publish_settled_two_player_match(
                         &*terminal, &p1, &p2);
+                    if (published != 1 &&
+                        g_pending_two_player_match.defer_failed_publication(
+                            *terminal, p1, p2, stats->frame)) {
+                        std::fprintf(stderr,
+                            "UR_BALDOSA_NATIVE_MATCH SAVE_PENDING=1 "
+                            "retry_while_original_result_visible=1\n");
+                    }
                 }
                 std::fprintf(stderr,
                     "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-2p "

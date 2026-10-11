@@ -30,15 +30,17 @@ BLUE = bytes((57, 57, 255))
 def verify(stock: Path, source96: Path, source97: Path, removed: Path,
            report96: Path, report97: Path, stock_crc: Path,
            source96_crc: Path, source97_crc: Path, removed_crc: Path,
-           log_file: Path) -> dict:
-    name = f"ur-baldosa-ws342-{FRAME:06d}.pam"
+           log_file: Path, frame: int = FRAME) -> dict:
+    if frame not in (1872, 1888):
+        raise ValueError("original 2P countdown pair PPU frame must be 1872 or 1888")
+    name = f"ur-baldosa-ws342-{frame:06d}.pam"
     if (stock.name != name or removed.name != name or
         stock.resolve() == removed.resolve()):
         raise ValueError("authentic independent native stock/removal frame required")
     sources = {96: source96, 97: source97}
     source_reports = {96: report96, 97: report97}
     for slot in SLOTS:
-        if sources[slot].name != f"ur-baldosa-ws342-obj-slot{slot}-frame{FRAME:06d}.pam":
+        if sources[slot].name != f"ur-baldosa-ws342-obj-slot{slot}-frame{frame:06d}.pam":
             raise ValueError("genuine lower OAM slot/source frame identity required")
 
     crcs = [p.read_bytes().splitlines() for p in
@@ -46,7 +48,7 @@ def verify(stock: Path, source96: Path, source97: Path, removed: Path,
     if len(crcs[0]) != GUEST_CRC_FRAMES or any(p != crcs[0] for p in crcs[1:]):
         raise ValueError("all four authentic complete 2473-line guest CRC streams must agree")
 
-    marker = (f"UR_RACER_HD_WIDE_REMOVE_PAIR frame={FRAME} "
+    marker = (f"UR_RACER_HD_WIDE_REMOVE_PAIR frame={frame} "
               "slots=96-97 status=armed guest_unchanged=1")
     if sum(line.strip() == marker for line in log_file.read_text(
             encoding="utf-8", errors="replace").splitlines()) != 1:
@@ -71,7 +73,7 @@ def verify(stock: Path, source96: Path, source97: Path, removed: Path,
             report.get("source_frame_main_raster_sha256") != original_sha or
             report.get("guest_crc_comparison") !=
                 "Externally enforced byte-exact in native workflow" or
-            meta["guest_frame"] != FRAME or
+            meta["guest_frame"] != frame or
             meta["top_opaque_source_pixels"] != 0 or
             meta["bottom_opaque_source_pixels"] <= 0):
             raise ValueError(f"independent original source slot{slot} proof incomplete")
@@ -103,7 +105,7 @@ def verify(stock: Path, source96: Path, source97: Path, removed: Path,
         "schema_version": 1,
         "status": ("native-covered-pair-final-unchanged"
                    if changed == 0 else "native-covered-pair-final-changed"),
-        "guest_frame": FRAME,
+        "guest_frame": frame,
         "source_oam_slots_removed": list(SLOTS),
         "guest_crc_equal_in_all_four_independent_native_processes": GUEST_CRC_FRAMES,
         "exact_native_pair_removal_armed": True,
@@ -138,14 +140,16 @@ def main() -> None:
                  "report97", "stock-crc", "source96-crc", "source97-crc",
                  "removed-crc", "removed-log", "out"):
         ap.add_argument("--" + flag, type=Path, required=True)
+    ap.add_argument("--frame", type=int, choices=(1872, 1888), default=FRAME)
     a = ap.parse_args()
     result = verify(a.stock, a.source96, a.source97, a.removed,
                     a.report96, a.report97, a.stock_crc, a.source96_crc,
-                    a.source97_crc, a.removed_crc, a.removed_log)
+                    a.source97_crc, a.removed_crc, a.removed_log, frame=a.frame)
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n",
                      encoding="utf-8")
     print("UR_QA08_2P_COVERED_PAIR_PPU " + result["status"] +
+          f" frame={a.frame}" +
           f" emitted={result['two_source_emissions_total_counting_overlap_twice']}" +
           f" union={result['source_alpha_union_coordinates']}" +
           f" final_changed={result['stock_vs_removed_full_final_rgba_changed_pixels']}" +

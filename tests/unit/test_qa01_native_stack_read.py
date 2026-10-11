@@ -72,7 +72,7 @@ class NativeStackReadTests(unittest.TestCase):
     def test_read_before_writer_arm_is_not_classified_as_later_restore(self):
         before = (
             "QANATIVEREAD f=5780 bank=80 addr=01DD width=2 value=4004 "
-            "A=0000 S=01DC M=0 scope=EarlierRead\\n"
+            "A=0000 S=01DC M=0 scope=EarlierRead\n"
         )
         data = report.summarize(before + ARM)
         self.assertEqual(data["native_bus_read_attempt_count"], 1)

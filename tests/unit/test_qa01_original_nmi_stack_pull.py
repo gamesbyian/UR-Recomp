@@ -20,6 +20,7 @@ ORIGINAL = (
     "QASTACKNMI f=5781 v=225 pc=828036 sp0=01F2 sp1=01EE addr=01DD old=42 new=42\n"
     "QASTACKNMI f=5782 v=225 pc=82807A sp0=01F0 sp1=01EC addr=01DD old=42 new=42\n"
     "QASTACKWRITE f=5780 v=225 pc=00858E op=48 sp0=01DE sp1=01DC addr=01DD old=08 new=42\n"
+    "QANMIPHABEAM f=5780 v=225 pc=00858E h0=816 h1=824 sp0=01DE sp1=01DC a0=4042 f1=5780\n"
     "QAPHAREG f=5780 v=225 pc=00858E op=48 sp0=01DE sp1=01DC a0=4042 a1=4042 pl0=00 pl1=00 m0=0 m1=0 dd0=08 dd1=42 de0=00 de1=40 f1=5780\n"
 )
 # This is a SYNTHETIC pull test fixture. The asserted real source trace
@@ -82,6 +83,7 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
         self.assertIn(patcher.STAMP, patched)
         self.assertIn("QANMIPULL f=", patched)
         self.assertIn("QANMIRTI f=", patched)
+        self.assertIn("QANMIPHABEAM f=", patched)
         self.assertIn("(Op == 0x40)", patched)
         self.assertIn("ur_qa_stack_gate", patched)
         self.assertIn("ur_qa_pull_sp0 + ur_qa_pull_width", patched)
@@ -102,6 +104,9 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
         result = report.summarize(ORIGINAL + PULL)
         self.assertEqual(result["schema"], report.SCHEMA)
         self.assertEqual(result["original_nmi_hardware_entries"], 5)
+        self.assertEqual(result["saved_4042_original_pha_horizontal_clock"][
+            "source_original_cpu_hcounter_before"], 816)
+        self.assertTrue(result["source_hcounter_vs_native_framework_hpos_unaligned"])
         self.assertEqual(result["observed_candidate_stack_pull_count"], 1)
         self.assertEqual(result["release_complete_event_credit"], 0)
         self.assertFalse(result["original_native_result_guest_relative_parity"])
@@ -256,6 +261,20 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
         # The same byte pull with E=0, M=0 is invalid, not an accepted 8-bit PLA.
         with self.assertRaises(ValueError):
             report.summarize(ORIGINAL + emu.replace("e0=1", "e0=0"))
+
+    def test_original_nmi_pha_hcounter_requires_real_source_order_and_registers(self):
+        for log in (
+            ORIGINAL.replace("h0=816", "h0=-1"),
+            ORIGINAL.replace("h1=824", "h1=oops"),
+            ORIGINAL.replace("h0=816", "h0=10000"),
+            ORIGINAL.replace("QANMIPHABEAM", "QANMIPHAH"),
+            ORIGINAL.replace("pc=00858E h0=", "pc=008590 h0="),
+            ORIGINAL.replace("a0=4042 f1=", "a0=4004 f1="),
+            ORIGINAL.replace("f1=5780\\n", "f1=5785\\n", 1),
+        ):
+            with self.subTest(log=log[-150:]):
+                with self.assertRaises(ValueError):
+                    report.summarize(log)
 
     def test_malformed_or_forged_original_nmi_reads_fail_closed(self):
         for log in (

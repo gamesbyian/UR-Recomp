@@ -18,6 +18,14 @@ int main() {
     fs::create_directories(root);
     auto missing = inspect_baldosa_native_records_archive(runs.string());
     assert(missing.directory_available);
+    assert(format_baldosa_native_record_ticks60(0) == "00:00.00");
+    assert(format_baldosa_native_record_ticks60(59) == "00:00.98");
+    assert(format_baldosa_native_record_ticks60(60) == "00:01.00");
+    assert(format_baldosa_native_record_ticks60(930) == "00:15.50");
+    // The portable codec permits UINT64 historical ticks; multiplication
+    // first overflowed at large values and silently fabricated a time.
+    assert(format_baldosa_native_record_ticks60(
+        UINT64_MAX) == "5124095576030431:00.25");
     assert(missing.total_artifacts == 0);
     assert(missing.validated_archives == 0);
     assert(!missing.recent_course.size());

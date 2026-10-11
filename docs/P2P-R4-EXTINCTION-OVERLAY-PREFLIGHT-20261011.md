@@ -18,6 +18,10 @@ Deterministic illustrative sequence:
 
 In a future authenticated protocol, peer-public-key signatures, explicit per-contact redistribution consent, replay protection, signed revocation/supersession and independent client conformance **must** replace every toy ID and model flag. Anyone can forge such a fixture contact; no tool here accepts it as trusted data. Sharing an endpoint may reveal an IP address and should require user consent. An existing recipient cannot reliably erase already shared endpoints when someone later revokes consent, so real-world TTLs and renegotiation, not promises of instant removal, define that limit.
 
+## Relationship to the owner-contact cache and R5 diagnostics
+
+This fixture owns only **logical peer topology and injected reachability/consent outcomes**. The distinct [owner-contact cache policy laboratory](P2P-R4-OFFLINE-PEER-ISLAND-RESURRECTION-20261011.md) owns independent bounds on signature-witness assumptions, expiry, monotonic sequence, signed local revocation, IP scope and redistributable contacts. The [R5 stage diagnostic policy](P2P-R5-OBSERVED-CONNECTION-DIAGNOSTICS-20261011.md) owns user-facing *observed failure* vocabulary. None is a competing production discovery stack, DNS service, live relay, actual signature verifier or substitute for real Windows/macOS experiments. A later shipping module should consume one audited owner-verified contact model, one measured transport and one truthful diagnostic path rather than carry these Python labs into the game.
+
 ## Invariants and next real experiments
 
 The test explicitly distinguishes `no-current-contact`, `peer-offline`, `simulation-incompatible`, `peer-refused`, and `direct-route-unavailable`. **No current contact** can be repaired by exchanging an invitation. **No direct route** may require port mapping, a separately opted-in reachable peer relay, a different network or might remain impossible. Peer exchange is *not* a packet tunnel or NAT traversal mechanism, and none of the model's positive outcomes are measured connections.

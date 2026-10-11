@@ -64,6 +64,8 @@ def summarize(writer: dict, reader: dict) -> dict:
     actual = {"7E:01DD": 0, "7E:01DE": 0}
     derived_broad = 0
     derived_strict = 0
+    derived_next_broad = 0
+    derived_next_strict = 0
     previous_frame = 5778
     armed_in_read_journal = False
     for row in rows:
@@ -125,36 +127,52 @@ def summarize(writer: dict, reader: dict) -> dict:
         # The archived read JSON must not be able to alter candidate
         # counts separately from the actual normalized underlying rows.
         is_broad = (row["observed_after_4004_writer_callback_started"] is True
-                    and frame == 5781 and width == 2
+                    and frame in (5781, 5782) and width == 2
                     and row["word_start"] == "01DD"
                     and row.get("read_value") == "4004")
         if is_broad:
-            derived_broad += 1
+            if frame == 5781:
+                derived_broad += 1
+            else:
+                derived_next_broad += 1
             if (row["stack_pointer_equals_read_start_at_callback"] is True
                     and row["memory_width_flag_at_read"] == 0):
-                derived_strict += 1
+                if frame == 5781:
+                    derived_strict += 1
+                else:
+                    derived_next_strict += 1
     if tally != actual:
         raise ValueError("journal read counts disagree with actual declared target bytes")
     # Independently rederive the two-byte interpreter-shaped candidate;
     # a separate count cannot be trusted without the actual ordered rows.
     expected_pairs = []
+    expected_next_pairs = []
     for index, (lo, hi) in enumerate(zip(rows, rows[1:])):
+        frame = lo["native_snes_frame_counter"]
         if (lo["observed_after_4004_writer_callback_started"] is True
                 and hi["observed_after_4004_writer_callback_started"] is True
-                and lo["native_snes_frame_counter"] == 5781
-                and hi["native_snes_frame_counter"] == 5781
+                and frame in (5781, 5782)
+                and hi["native_snes_frame_counter"] == frame
                 and lo["bus_read_width"] == hi["bus_read_width"] == 1
                 and lo["word_start"] == "01DD"
                 and hi["word_start"] == "01DE"
                 and lo["read_value"] == "0004"
                 and hi["read_value"] == "0040"):
-            expected_pairs.append([index, index + 1])
+            (expected_pairs if frame == 5781 else expected_next_pairs).append(
+                [index, index + 1])
     if (reader.get("native_post_writer_same_frame_4004_two_byte_target_row_pairs")
             != expected_pairs
             or type(reader.get(
                 "native_post_writer_same_frame_4004_two_byte_pair_candidate_count")) is not int
             or reader["native_post_writer_same_frame_4004_two_byte_pair_candidate_count"]
                != len(expected_pairs)
+            or reader.get(
+                "native_post_writer_following_frame_4004_two_byte_target_row_pairs")
+               != expected_next_pairs
+            or type(reader.get(
+                "native_post_writer_following_frame_4004_two_byte_pair_candidate_count")) is not int
+            or reader["native_post_writer_following_frame_4004_two_byte_pair_candidate_count"]
+               != len(expected_next_pairs)
             or reader.get("interpreter_16bit_pla_uses_two_independent_byte_bus_reads")
                is not True
             or reader.get("filtered_read_row_adjacency_does_not_prove_guest_opcode_adjacency")
@@ -164,9 +182,17 @@ def summarize(writer: dict, reader: dict) -> dict:
         raise ValueError("native interpreter-like byte-read pair is unverified")
     broad = reader.get("same_native_frame_post_writer_callback_read_4004_candidate_count")
     strict = reader.get("same_frame_post_writer_stack_position_consistent_word_4004_count")
+    next_broad = reader.get(
+        "following_frame_post_writer_callback_read_4004_candidate_count")
+    next_strict = reader.get(
+        "following_frame_post_writer_stack_position_consistent_word_4004_count")
     if (type(broad) is not int or type(strict) is not int
+            or type(next_broad) is not int or type(next_strict) is not int
             or broad != derived_broad or strict != derived_strict
+            or next_broad != derived_next_broad or next_strict != derived_next_strict
             or not 0 <= strict <= broad <= count
+            or not 0 <= next_strict <= next_broad <= count
+            or broad + next_broad > count
             or reader.get("stack_pointer_matches_bus_start_not_proof_of_pla") is not True):
         raise ValueError("native 4004 bus-read candidate classification metadata invalid")
     # Source-ordered within the read journal only. The independent write
@@ -183,6 +209,14 @@ def summarize(writer: dict, reader: dict) -> dict:
         "native_stack_pointer_consistent_4004_word_read_candidates": strict,
         "native_interpreter_shaped_4004_two_byte_candidate_pairs": expected_pairs,
         "native_interpreter_shaped_4004_two_byte_candidate_count": len(expected_pairs),
+        "native_following_frame_4004_word_read_candidates": next_broad,
+        "native_following_frame_stack_pointer_consistent_word_read_candidates":
+            next_strict,
+        "native_following_frame_interpreter_shaped_4004_two_byte_candidate_pairs":
+            expected_next_pairs,
+        "native_following_frame_interpreter_shaped_4004_two_byte_candidate_count":
+            len(expected_next_pairs),
+        "following_frame_saved_a_read_is_candidate_not_architectural_restore": True,
         "native_internal_interp_stack_state_not_observed_by_bus_logger": True,
         "writer_and_reader_share_pair_bytes": True,
         "single_physical_writer_event_correlated_by_callbacks_not_cpu_cycle": True,

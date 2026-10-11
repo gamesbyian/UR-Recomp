@@ -38,6 +38,7 @@ class NativeInterpreterPlaTests(unittest.TestCase):
         data = report.summarize(PLA)
         self.assertEqual(data["native_interpreter_pla_observation_count"], 1)
         self.assertEqual(data["native_interpreter_saved_4004_pla_candidate_count"], 1)
+        self.assertEqual(data["native_interpreter_saved_4004_pla_candidate_frames"], [5781])
         r = data["native_interpreter_pla_records"][0]
         self.assertEqual(r["physically_touched_stack_bytes"], ["7E:01DD","7E:01DE"])
         self.assertTrue(r["real_native_4004_writer_callback_precedes_interpreter_pla"])
@@ -45,6 +46,17 @@ class NativeInterpreterPlaTests(unittest.TestCase):
         self.assertTrue(r["interpreter_pc_is_post_fetch_not_exact_instruction_pc"])
         self.assertFalse(data["source_original_and_native_cpu_frame_alignment_proven"])
         self.assertEqual(data["release_complete_event_credit"], 0)
+
+    def test_authentic_saved_a_could_be_pulled_in_following_native_frame(self):
+        # The writer callback is frame 5781; a guest interpreter PLA might
+        # legitimately restore the saved A in frame 5782. Do not throw it
+        # away merely because this is not the writer's *same* host frame.
+        observed = PLA.replace("f=5781", "f=5782")
+        result = report.summarize(observed)
+        self.assertEqual(result["native_interpreter_saved_4004_pla_candidate_count"], 1)
+        self.assertEqual(result["native_interpreter_saved_4004_pla_candidate_frames"], [5782])
+        self.assertFalse(result["source_original_and_native_cpu_frame_alignment_proven"])
+        self.assertEqual(result["release_complete_event_credit"], 0)
 
     def test_empty_scope_does_not_downgrade_event_or_claim_no_aot_reader(self):
         r = report.summarize("")

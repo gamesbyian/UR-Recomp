@@ -70,7 +70,7 @@ def summarize(log: str) -> dict:
         })
     saved_word = [
         row for row in result
-        if row["native_snes_frame_counter"] == 5781
+        if row["native_snes_frame_counter"] in (5781, 5782)
         and row["interpreter_pre_pull_stack_pointer"] == "01DC"
         and row["interpreter_post_pull_stack_pointer"] == "01DE"
         and row["interpreter_accumulator_after"] == "4004"
@@ -83,6 +83,9 @@ def summarize(log: str) -> dict:
         "native_interpreter_pla_records": result,
         "native_interpreter_pla_observation_count": len(result),
         "native_interpreter_saved_4004_pla_candidate_count": len(saved_word),
+        "native_interpreter_saved_4004_pla_candidate_frames": [
+            row["native_snes_frame_counter"] for row in saved_word
+        ],
         "native_interpreter_pla_candidate_not_original_native_phase_or_gameplay_causality": True,
         "no_interpreter_pla_observed_does_not_rule_out_aot_or_other_reads": True,
         "interpreter_stack_sp_and_m_are_internal_registers_not_host_cpu_state": True,

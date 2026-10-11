@@ -83,6 +83,52 @@ comparisons and overlap partition live at
 [`analysis/data/qa08-original-2p-postgo-source-registration-2208.json`](../analysis/data/qa08-original-2p-postgo-source-registration-2208.json).
 No copyrighted source graphics are committed.
 
+## Four-frame native original 2P registration and visibility matrix
+
+A bounded retrospective review of the **same successfully validated
+native AOT artifact**, using original frame/source SHA identities from
+all four independent source-isolation processes, confirms **both
+P1 and P2 source RGBA planes are exact viewport-translated copies
+at each of four separate moving frames**. The actual source
+translation is **not constant over time**:
+
+| Original 2P guest frame | Exact source shift (upper → lower), dx/dy | Upper-source RGB matching final Original | Lower-source RGB matching final Original |
+| --- | --- | ---: | ---: |
+| 1856 | **0 / +113** | 497 / 640 emitted | 494 / 640 emitted |
+| 1872 | **0 / +113** | 448 / 655 emitted | **0 / 655** emitted |
+| 1888 | **0 / +113** | 444 / 646 emitted | **0 / 646** emitted |
+| **2208 (after GO)** | **−13 / +112** | 569 / 630 emitted | **591 / 630** emitted |
+
+All **eight independently captured source pairs** have zero
+source-support (alpha) disagreement and zero actual visible
+RGBA disagreement after applying the *frame-specific* measured
+translation. Fractions here **count per-source emission**,
+including source overlap counted twice; they are deliberately
+**not** numbers of independent final output pixels or unique
+PPU priority winners. During the blue countdown, the
+separately accepted real pair-deletion counterfactuals
+confirm zero final lower-racer contribution at 1872
+and1888. By2208, most source RGB coincides with
+final Original, but no equivalent post-GO deletion has yet
+established causality.
+
+This establishes **at least two different spatial
+registrations across these sampled original 2P phases**.
+It does not establish *which* intervening guest frame,
+camera instruction, WRAM selector, OAM scroll write or
+window/priority change produced the transition.
+A fixed +113Y/0X transform is unsuitable for post-GO
+source-faithful 2P reconstruction, but an equally fixed
+−13X/+112Y transform is *not* automatically justified for
+all later courses, motions and cameras.
+
+The full 4-frame numeric source emission/RGB comparison,
+transform, original-stock SHA and no-HD-admission record
+is retained in
+[`analysis/data/qa08-original-2p-source-registration-phase-matrix-1856-2208.json`](../analysis/data/qa08-original-2p-source-registration-phase-matrix-1856-2208.json).
+This is a definitive source-backed **sampled** graphics
+fact, not a generalized 3D camera model.
+
 The read-only tool distinguishes:
 
 - **Exact +113 RGBA source alias**: actual nonempty upper/lower

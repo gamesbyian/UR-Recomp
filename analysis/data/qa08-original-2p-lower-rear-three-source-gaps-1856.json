@@ -103,5 +103,85 @@
   "exact_bg_obj_window_paint_owner_proven": false,
   "original_3d_rig_geometry_inferred": false,
   "safe_for_future_HD_overpaint": false,
-  "limits": "Three rear-only original OAM alpha coordinates do not match stock Original RGB even with higher-priority front OAM source absent. This is a genuine native output compositing/visibility witness, not hardware layer ownership or an authorized generalized mask."
+  "limits": "Three rear-only original OAM alpha coordinates do not match stock Original RGB even with higher-priority front OAM source absent. This is a genuine native output compositing/visibility witness, not hardware layer ownership or an authorized generalized mask.",
+  "lower_rear_source_upper_viewport_mirror_translation_rows": 113,
+  "upper_stock_original_exact_source_colour_mirror_witness": [
+    {
+      "upper_original_xy": [
+        188,
+        43
+      ],
+      "upper_stock_rgb": [
+        49,
+        49,
+        49
+      ],
+      "lower_original_xy": [
+        188,
+        156
+      ],
+      "lower_stock_rgb": [
+        57,
+        57,
+        255
+      ],
+      "lower_rear_source_rgb": [
+        49,
+        49,
+        49
+      ]
+    },
+    {
+      "upper_original_xy": [
+        189,
+        43
+      ],
+      "upper_stock_rgb": [
+        74,
+        74,
+        74
+      ],
+      "lower_original_xy": [
+        189,
+        156
+      ],
+      "lower_stock_rgb": [
+        57,
+        57,
+        255
+      ],
+      "lower_rear_source_rgb": [
+        74,
+        74,
+        74
+      ]
+    },
+    {
+      "upper_original_xy": [
+        189,
+        44
+      ],
+      "upper_stock_rgb": [
+        16,
+        16,
+        8
+      ],
+      "lower_original_xy": [
+        189,
+        157
+      ],
+      "lower_stock_rgb": [
+        57,
+        57,
+        255
+      ],
+      "lower_rear_source_rgb": [
+        16,
+        16,
+        8
+      ]
+    }
+  ],
+  "all_three_source_rgbs_final_visible_in_mirror_upper_original": true,
+  "upper_lower_pixel_RGB_asymmetry_localized_three_coords": true
 }

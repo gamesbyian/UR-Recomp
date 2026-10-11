@@ -42,6 +42,17 @@ The three real mismatches are:
 | (189,156) | (74,74,74) | (57,57,255) | (57,57,255) |
 | (189,157) | (16,16,8) | (57,57,255) | (57,57,255) |
 
+The exactly corresponding **upper viewport pixels**, translated
+by the source-proven split-screen offset **−113 source rows**, tell a
+particularly useful story: (188,43), (189,43) and (189,44) have
+original stock **RGB equal to the actual rear source** colours
+(49,49,49), (74,74,74) and (16,16,8), respectively. The very same
+source colours fail to appear in the original lower screen at
+(188,156), (189,156) and (189,157). This is strong
+**viewport-dependent final-composite** evidence, not a malformed
+or absent racer texture. The new validator fails if the stock
+top counterpart does not reproduce each original colour.
+
 These points belong to the **original rear97 source alone**.
 Neither overlap with front96 nor deletion of front96 can explain
 their final RGB mismatch. An independent Original presentation

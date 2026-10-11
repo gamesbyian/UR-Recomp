@@ -21,6 +21,7 @@
 #include "modern_pause_input.h"
 #include "modern_pause_overlay_presenter.hpp"
 #include "baldosa_guest_result_observer.hpp"
+#include "baldosa_native_run_publish_retry.hpp"
 
 extern "C" {
 #include "desktop/config.h"
@@ -49,6 +50,7 @@ void ur_baldosa_guest_snapshot_after_run_frame(
 namespace {
 bool g_smoke_initialized;
 ur::product::BaldosaGuestResultObserver g_native_result_observer;
+ur::product::BaldosaPendingOnePlayerRun g_pending_one_player_run;
 bool g_smoke_enabled;
 UrModernSession* g_modern_session;
 bool g_native_live_race;
@@ -105,6 +107,7 @@ void reconcile_after_native_restart() {
     // official line-write, result and mapped input timeline are revoked.
     // Pause/resume without Restart does not reset this observer.
     g_native_result_observer.reset();
+    g_pending_one_player_run.reset();
     // This is the existing Modern host's post-restore audio reconciliation
     // and the already merged two-seat human input release latch. A paused
     // Restart never gives a held physical Start back to the guest.
@@ -397,17 +400,55 @@ extern "C" void ur_baldosa_product_after_run_frame(
         // exact cartridge SRAM: no alternate timer, game-rule write or
         // durability claim. The owning Modern record publisher must still
         // provide provenance/inputs and a committed settlement separately.
+        const unsigned rooted_players =
+            ur_baldosa_modern_root_guest_players();
         const auto terminal = g_native_result_observer.observe(
-            ur_baldosa_modern_root_guest_players(),
-            g_ram, sizeof(g_ram), g_sram,
+            rooted_players, g_ram, sizeof(g_ram), g_sram,
             g_sram_size > 0 ? static_cast<std::size_t>(g_sram_size) : 0u,
             stats->frame, stats->resolved_controller_word);
+        // A temporary Records lease/write failure must not silently lose
+        // a legitimate native result. Retry only while the very same
+        // observed 1P stock result remains visible and player-owned.
+        // No pause-only presentation advances the retry clock.
+        const bool had_pending = g_pending_one_player_run.pending();
+        const auto* retry = g_pending_one_player_run.ready_for_retry(
+            rooted_players, g_ram[0x0313u] == 0x01u,
+            g_ram[0x009fu], stats->frame);
+        if (had_pending && !g_pending_one_player_run.pending())
+            std::fprintf(stderr,
+                "UR_BALDOSA_NATIVE_RUN SAVE_ABANDONED=1 "
+                "reason=left_result_surface\n");
+        if (retry) {
+            const int saved =
+                ur_baldosa_modern_publish_settled_one_player_run(retry);
+            const auto outcome = g_pending_one_player_run.after_retry(
+                saved == 1, stats->frame);
+            std::fprintf(stderr,
+                "UR_BALDOSA_NATIVE_RUN SAVE_RETRY status=%s "
+                "host_frame=%u\n",
+                outcome == ur::product::BaldosaRunRetryOutcome::Saved
+                    ? "saved" :
+                outcome == ur::product::BaldosaRunRetryOutcome::Pending
+                    ? "pending" : "exhausted",
+                stats->frame);
+        }
         if (terminal) {
             if (terminal->kind ==
                 ur::product::BaldosaSettledResultKind::TimedOnePlayerRace) {
                 const int published =
                     ur_baldosa_modern_publish_settled_one_player_run(
                         &*terminal);
+                if (published != 1) {
+                    if (g_pending_one_player_run.defer_failed_publication(
+                            *terminal, stats->frame)) {
+                        std::fprintf(stderr,
+                            "UR_BALDOSA_NATIVE_RUN SAVE_PENDING=1 "
+                            "retry_while_result_visible=1\n");
+                    } else {
+                        std::fprintf(stderr,
+                            "UR_BALDOSA_NATIVE_RUN SAVE_PENDING_REJECTED=1\n");
+                    }
+                }
                 std::fprintf(stderr,
                     "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-1p "
                     "race_host=%llu result_host=%llu finish_ticks60=%llu "

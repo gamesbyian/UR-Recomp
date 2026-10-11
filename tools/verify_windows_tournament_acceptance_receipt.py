@@ -69,6 +69,10 @@ def verify(work: Path, candidate_path: Path,
            expected_source: str, expected_zip: str) -> dict[str, str]:
     if not SOURCE.fullmatch(expected_source) or not DIGEST.fullmatch(expected_zip):
         raise ValueError("independent source and portable ZIP pins must be canonical")
+    # Resolve for consistent on-disk lookup, but inspect the caller's
+    # original root first: Path.resolve() erases evidence of a symlink.
+    if work.is_symlink() or not work.is_dir():
+        raise ValueError("tournament work root is missing or linked")
     work = work.resolve(strict=True)
     candidate = fields(candidate_path, CANDIDATE_KEYS)
     receipt = fields(work / "tournament-artifacts.log", ARTIFACT_KEYS)

@@ -70,6 +70,18 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
                         verify(work, candidate, "a" * 40, "b" * 64)
                 target.write_bytes(before)
 
+    def test_symlinked_work_root_rejected_before_resolve(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            work, candidate, p, q, f, report = self.make(root)
+            link = root / "forged-work-root"
+            try:
+                link.symlink_to(work, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlinks unavailable")
+            with self.assertRaisesRegex(ValueError, "work root is missing or linked"):
+                verify(link, candidate, "a" * 40, "b" * 64)
+
     def test_spoofed_fields_and_reopen_fail(self):
         with tempfile.TemporaryDirectory() as tmp:
             work, candidate, p, q, f, report = self.make(Path(tmp))

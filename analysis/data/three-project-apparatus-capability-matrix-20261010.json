@@ -238,6 +238,74 @@
       ],
       "gap": "Requires original register state",
       "proof": "Bounded source producer and consumer"
+    },
+    {
+      "id": "first-divergence",
+      "domain": "qa",
+      "priority": "P0",
+      "decision": "keep_existing",
+      "ur": [
+        "tools/check_framedump_identity.py",
+        "tools/compare_wram_checkpoints.py"
+      ],
+      "baldosa": [
+        "tools/firstdiff.py"
+      ],
+      "malmazuke": [
+        "tools/unirally_lab/replay/commands.py"
+      ],
+      "gap": "Masked/shorter traces can conceal defects",
+      "proof": "Strict frame extent, unmasked stack and settled endpoint"
+    },
+    {
+      "id": "full-event-acceptance",
+      "domain": "qa",
+      "priority": "P0",
+      "decision": "keep_existing",
+      "ur": [
+        "docs/RELEASE-QUALITY-LEDGER.json",
+        "tools/probe_original_event_complete.py"
+      ],
+      "baldosa": [
+        "tools/compare_dumps.py"
+      ],
+      "malmazuke": [
+        "tools/unirally_lab/native/finish.py"
+      ],
+      "gap": "Partial checkpoint equivalence not a course pass",
+      "proof": "Source clock/winner/score/progression on exact USA event"
+    },
+    {
+      "id": "course-breadth",
+      "domain": "qa",
+      "priority": "P1",
+      "decision": "conditional",
+      "ur": [
+        "tools/audit_original_course_event_coverage.py"
+      ],
+      "baldosa": [
+        "tests/routes/race_2p_split.txt"
+      ],
+      "malmazuke": [
+        "tools/unirally_lab/native/track_reference.py"
+      ],
+      "gap": "Coverage across modes uneven",
+      "proof": "Accepted versus partial versus unverified complete events"
+    },
+    {
+      "id": "differential-fuzzing",
+      "domain": "qa",
+      "priority": "P2",
+      "decision": "defer_until_first_accept",
+      "ur": [
+        "tools/compare_input_runs.py"
+      ],
+      "baldosa": [],
+      "malmazuke": [
+        "tools/unirally_lab/native/dragster_diff_fuzz.py"
+      ],
+      "gap": "Needs accepted baseline to avoid noise",
+      "proof": "Reproducible small seeded cases and new regressions"
     }
   ]
 }

@@ -9,7 +9,10 @@ Key commands:
 ```bash
 python3 tools/check_repo_hygiene.py
 python3 tools/bootstrap_toolchain.py --list
-python3 tools/bootstrap_toolchain.py\npython3 tools/validate_tool_interop.py\npython3 tools/export_symbol_adapters.py --check\n```
+python3 tools/bootstrap_toolchain.py
+python3 tools/validate_tool_interop.py
+python3 tools/export_symbol_adapters.py --check
+```
 
 See `docs/TOOLCHAIN.md` for selection guidance, `docs/TOOL-INTEROPERABILITY.md` for producer/consumer chains, and `AGENTS.md` for task routing.
 
@@ -29,5 +32,7 @@ python3 tools/query_malmazuke_symbols.py --usa-candidate 81:8050
 python3 tools/query_malmazuke_symbols.py --grep 'race_progress|hunter' --limit 20
 python3 -m unittest tests.unit.test_query_malmazuke_symbols
 ```
+
+The lookup also joins the pinned malmazuke original-code labels to their upstream research records (using immutable source links). For example, `--grep 'R-0038'` locates cited addresses from a particular research document. Source records not copied into UR-Recomp still point to the pinned upstream commit.
 
 The lookup consumes the audited selected malmazuke native-symbol index and the existing bounded structural candidate JSON. A USA candidate is **not** a verified function correspondence; use the canonical USA ROM and PAL/USA analysis tools to adjudicate it. No core, ROM loader, network access or gameplay code is added.

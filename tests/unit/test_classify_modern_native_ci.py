@@ -104,6 +104,14 @@ class ModernNativeCiClassifierTests(unittest.TestCase):
             ["tools/classify_modern_native_ci.py"]
         ), {"shared": True, "onboarding": True, "ui": True})
 
+    def test_router_uses_same_merge_base_comparison_as_pr_paths(self):
+        router = (WORKFLOWS / "modern-native-heavy-router.yml").read_text()
+        self.assertIn(
+            "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}",
+            router,
+        )
+        self.assertIn("native router triggered without an owning suite", router)
+
     def test_pairwise_selection_shares_canonical_build(self):
         router = (WORKFLOWS / "modern-native-heavy-router.yml").read_text()
         self.assertIn("outputs.shared == 'true' && needs.classify.outputs.onboarding == 'true'", router)

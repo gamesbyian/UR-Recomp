@@ -32,6 +32,7 @@ RTI = re.compile(
     r"sp0=([0-9A-F]{4}) sp1=([0-9A-F]{4}) "
     r"a0=([0-9A-F]{4}) a1=([0-9A-F]{4}) "
     r"pl0=([0-9A-F]{2}) pl1=([0-9A-F]{2}) "
+    r"stack4=([01]) b1=([0-9A-F]{2}) b2=([0-9A-F]{2}) b3=([0-9A-F]{2}) b4=([0-9A-F]{2}) "
     r"cyc0=(-?\d+) cyc1=(-?\d+) f1=(\d+)$",
     re.MULTILINE,
 )
@@ -135,10 +136,28 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
     rti_rows = []
     for match in rti_matches:
         (f0s, v0s, v1s, pc, postpc, pb0, pb1, sp0s, sp1s,
-         a0, a1, pl0, pl1, cyc0s, cyc1s, f1s) = match.groups()
+         a0, a1, pl0, pl1, stack4s, b1, b2, b3, b4,
+         cyc0s, cyc1s, f1s) = match.groups()
         f0, f1 = int(f0s), int(f1s)
         v0, v1, sp0, sp1 = int(v0s), int(v1s), int(sp0s, 16), int(sp1s, 16)
         cyc0, cyc1 = int(cyc0s), int(cyc1s)
+        stack4 = stack4s == "1"
+        # The original CPU fetches P, PC low/high, and (native mode) PB
+        # from SP+1..SP+4, little endian. Post-RTI CHECK_FOR_IRQ can
+        # immediately change PC/PB, so compare without demanding equality.
+        expected_stack4 = STACK_LOW <= sp0 <= STACK_HIGH - 4
+        if stack4 != expected_stack4:
+            raise ValueError("incorrect original RTI stack-page read guard")
+        if not stack4 and any(byte != "00" for byte in (b1, b2, b3, b4)):
+            raise ValueError("out-of-range original RTI stack bytes were exposed")
+        restored_pc = (
+            f"{b4 if sp1 - sp0 == 4 else pb0}:{b3}{b2}"
+            if stack4 else None
+        )
+        matches_post_pc = (
+            restored_pc == f"{postpc[:2]}:{postpc[2:]}"
+            if restored_pc is not None else None
+        )
         if (not first <= f0 <= last or not f0 <= f1 <= last + 1
                 or not 0 <= v0 < 263 or not 0 <= v1 < 263
                 or not STACK_LOW <= sp0 <= STACK_HIGH
@@ -160,6 +179,14 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
             "stack_pointer_before": f"{sp0:04X}",
             "stack_pointer_after": f"{sp1:04X}",
             "architectural_return_frame_bytes": sp1-sp0,
+            "full_four_byte_stack_image_available": stack4,
+            "pre_rti_stacked_status": b1 if stack4 else None,
+            "pre_rti_stack_pc_low": b2 if stack4 else None,
+            "pre_rti_stack_pc_high": b3 if stack4 else None,
+            "pre_rti_stack_program_bank": b4 if stack4 else None,
+            "pre_rti_stack_derived_return_pc": restored_pc,
+            "post_rti_pc_equals_pre_stack_return": matches_post_pc,
+            "post_rti_pc_can_reflect_synchronous_irq": True,
             "accumulator_before": a0,
             "accumulator_after": a1,
             "processor_status_low_before": pl0,

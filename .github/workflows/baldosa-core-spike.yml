@@ -668,6 +668,47 @@ jobs:
           unset UR_BALDOSA_WS342_LATE_CAPTURE_AFTER
           echo "OBSERVED: actual later native 1P Original source-world 1x/4x matches 7 independent full-frame samples; Remastered admission withheld" >> "$GITHUB_STEP_SUMMARY"
 
+          # The final Original 1P image at frame2208 visibly has two
+          # unicycles ABOVE the split boundary. Both bottom OAM source
+          # slots96/97 are genuinely alpha-empty (#1271); isolate each
+          # actual TOP OAM source slot separately with PPU removal OFF.
+          # Two new source-only native guests are necessary to retain
+          # the already accepted two bottom-slot witnesses in the normal
+          # 1x/4x routes and distinguish the top riders individually.
+          export UR_BALDOSA_HD_DENSITY=1
+          export UR_BALDOSA_WS342_LATE_CAPTURE_AFTER=2200
+          export UR_RACER_HD_WIDE_SOURCE_FRAME=2208
+          for slot in 98 99; do
+            export UR_RACER_HD_WIDE_SOURCE_SLOT="$slot"
+            export UR_RACER_HD_WIDE_SOURCE_DIR="$RUNNER_TEMP/baldosa-ws342-live-1p-slot$slot"
+            export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-live-1p-probe-slot$slot"
+            mkdir -p "$UR_RACER_HD_WIDE_SOURCE_DIR" "$UR_BALDOSA_WS342_CAPTURE_DIR"
+            bash baldosa/tools/run_route.sh baldosa/tests/routes/race_1p.txt \
+              "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live_probe_slot$slot"
+            cmp "$RUNNER_TEMP/baldosa-evidence/race_1p/fd/crc.txt" \
+                "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live_probe_slot$slot/fd/crc.txt"
+            test -s "$UR_RACER_HD_WIDE_SOURCE_DIR/ur-baldosa-ws342-obj-slot$slot-frame002208.pam"
+          done
+          unset UR_RACER_HD_WIDE_SOURCE_SLOT UR_RACER_HD_WIDE_SOURCE_FRAME UR_RACER_HD_WIDE_SOURCE_DIR
+          unset UR_BALDOSA_WS342_LATE_CAPTURE_AFTER
+          python3 tools/check_baldosa_oneplayer_top_oam_sources.py \
+            --stock-crc "$RUNNER_TEMP/baldosa-evidence/race_1p/fd/crc.txt" \
+            --one-crc "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live/fd/crc.txt" \
+            --four-crc "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live_4x/fd/crc.txt" \
+            --one-dir "$RUNNER_TEMP/baldosa-ws342-live-1p" \
+            --four-dir "$RUNNER_TEMP/baldosa-ws342-live-1p-4x" \
+            --source98 "$RUNNER_TEMP/baldosa-ws342-live-1p-slot98/ur-baldosa-ws342-obj-slot98-frame002208.pam" \
+            --source99 "$RUNNER_TEMP/baldosa-ws342-live-1p-slot99/ur-baldosa-ws342-obj-slot99-frame002208.pam" \
+            --log98 "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live_probe_slot98/log.txt" \
+            --log99 "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live_probe_slot99/log.txt" \
+            --probe98-dir "$RUNNER_TEMP/baldosa-ws342-live-1p-probe-slot98" \
+            --probe99-dir "$RUNNER_TEMP/baldosa-ws342-live-1p-probe-slot99" \
+            --probe98-crc "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live_probe_slot98/fd/crc.txt" \
+            --probe99-crc "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live_probe_slot99/fd/crc.txt" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_live_1p_top_slot98_99_source.json"
+          echo "OBSERVED: independently isolated Original TOP racer slot98/99 PPU source from five original-CRC-equal 1P guest processes; no authored HD/OAM removal" >> "$GITHUB_STEP_SUMMARY"
+
+
 
 
           # QA-08 VS gameplay: compare three independent executions of
@@ -1301,6 +1342,11 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_late_source.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_0895_source_obj.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_bottom_slot96_97_source.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_top_slot98_99_source.json
+            ${{ runner.temp }}/baldosa-ws342-live-1p-slot98/ur-baldosa-ws342-obj-slot98-frame*.pam
+            ${{ runner.temp }}/baldosa-ws342-live-1p-slot99/ur-baldosa-ws342-obj-slot99-frame*.pam
+            ${{ runner.temp }}/baldosa-ws342-live-1p-probe-slot98/ur-baldosa-ws342-*.pam
+            ${{ runner.temp }}/baldosa-ws342-live-1p-probe-slot99/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-ws342-live-1p-slot96/ur-baldosa-ws342-obj-slot96-frame*.pam
             ${{ runner.temp }}/baldosa-ws342-live-1p-slot97/ur-baldosa-ws342-obj-slot97-frame*.pam
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_semantic_worklist.json

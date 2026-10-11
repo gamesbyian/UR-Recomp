@@ -20,3 +20,14 @@ python3 tools/query_ui_state.py --menu-id 0x99
 python3 tools/query_ui_state.py --state MAIN_MENU
 python3 tools/build_ui_atlas.py --help
 ```
+
+Pinned external research symbol lookup (read-only; PAL source is a lead, not USA oracle):
+
+```bash
+python3 tools/query_malmazuke_symbols.py --pal 81:8050
+python3 tools/query_malmazuke_symbols.py --usa-candidate 81:8050
+python3 tools/query_malmazuke_symbols.py --grep 'race_progress|hunter' --limit 20
+python3 -m unittest tests.unit.test_query_malmazuke_symbols
+```
+
+The lookup consumes the audited selected malmazuke native-symbol index and the existing bounded structural candidate JSON. A USA candidate is **not** a verified function correspondence; use the canonical USA ROM and PAL/USA analysis tools to adjudicate it. No core, ROM loader, network access or gameplay code is added.

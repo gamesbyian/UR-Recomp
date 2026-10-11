@@ -24,6 +24,16 @@ class ExperimentResultPublisherTests(unittest.TestCase):
             self.assertEqual(len(report["primary"]["sha256"]), 64)
             self.assertIn("Two instructions differ.", text)
 
+    def test_manual_coverage_producer_publishes_readable_receipt(self):
+        workflow = Path(".github/workflows/one-shot-execution-coverage-ab.yml").read_text()
+        top = workflow.split("\njobs:", 1)[0]
+        self.assertIn("  workflow_dispatch:", top)
+        self.assertNotIn("  pull_request:", top)
+        self.assertIn("tools/publish_experiment_result.py", workflow)
+        self.assertIn("--github-summary", workflow)
+        self.assertIn("execution-coverage-jump-ab-receipt.json", workflow)
+        self.assertIn("actions/upload-artifact@v4", workflow)
+
     def test_missing_input_rejects_receipt(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

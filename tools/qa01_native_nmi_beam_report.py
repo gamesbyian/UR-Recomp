@@ -78,6 +78,12 @@ def summarize(log: str) -> dict:
         "native_observation_host_frame_window": [5778, 5782],
         "native_original_nmi_writer_beam": witness[0],
         "framework_beam_vs_original_cpu_phase_unaligned": True,
+        # Pinned I_NMI_M1X1 generated L_8588_M1X1 charges
+        # cpu->master_cycles for the entire basic block BEFORE the PHB/PHD/
+        # PHX/PHY/PHA sequence, so the logged cumulative counter is not an
+        # individual PHA bus-cycle timestamp. This is source-verified.
+        "native_cpu_master_counter_is_precharged_basic_block_not_pha_cycle": True,
+        "modeled_beam_hpos_not_proven_instruction_aligned": True,
         "native_frame_counter_vs_original_icpu_frame_unaligned": True,
         "writer_attempt_not_guest_scoring_consumer": True,
         "accepted_usa_course_count_added": 0,

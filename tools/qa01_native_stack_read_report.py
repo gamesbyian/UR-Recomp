@@ -46,9 +46,14 @@ def summarize(log: str) -> dict:
         if not m:
             raise ValueError("malformed native original-result WRAM read row")
         f, bank, addr, w, value, a, sp, mode, scope = m.groups()
-        f, addr, w, word = int(f), int(addr, 16), int(w), int(value, 16)
+        f, bank_id, addr, w, word = int(f), int(bank, 16), int(addr, 16), int(w), int(value, 16)
+        # The pinned cpu_wram_offset in cpu_state.h maps all low WRAM
+        # mirrors 00..3F and 80..BF, plus canonical 7E. All may touch
+        # physical 7E:01DD/DE; 7F is a *different* 64KiB WRAM bank.
+        is_low_wram_alias = (bank_id == 0x7E or 0 <= bank_id <= 0x3F
+                             or 0x80 <= bank_id <= 0xBF)
         if (not 5778 <= f <= 5782 or f < last_frame
-                or bank not in ("00", "7E", "80")
+                or not is_low_wram_alias
                 or not (addr in (0x01DD, 0x01DE) if w == 1
                         else addr in (0x01DC, 0x01DD, 0x01DE))
                 or (w == 1 and word > 0xFF)

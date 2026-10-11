@@ -103,7 +103,7 @@ class SwitcherNmiBeamCrosswalkTests(unittest.TestCase):
         native = copy.deepcopy(NATIVE)
         native["native_original_nmi_writer_beam"]["framework_beam_hpos"] = 816
         data = cross.summarize(ORIGINAL, native)
-        rows = data["all_five_original_nmi_phase_candidates"]
+        rows = data["observed_original_nmi_pha_candidates"]
         writer = next(r for r in rows if r["original_cpu_frame"] == 5780)
         self.assertEqual(writer["raw_h_delta_native_minus_original"], 0)
         self.assertTrue(writer["same_pre_pha_stack_pointer_as_native_01de"])

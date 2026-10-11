@@ -69,7 +69,12 @@ class BaldosaModernProfileActivationStage(unittest.TestCase):
                          "baldosa_native_records_summary.cpp",
                          "completed_run_store.cpp",
                          "completed_run_record.cpp",
-                         "baldosa_native_run_record_admission.cpp"):
+                         "baldosa_native_run_record_admission.cpp",
+                         "baldosa_native_multiplayer_records_summary.cpp",
+                         "multiplayer_match_catalog.cpp",
+                         "multiplayer_match_summary.cpp",
+                         "multiplayer_match_record.cpp",
+                         "local_multiplayer_match_binding.cpp"):
                 (product / name).write_text("/* synthetic product */\n")
             pending = probe.plan(game, root)
             self.assertEqual(len(pending), 3)
@@ -78,6 +83,8 @@ class BaldosaModernProfileActivationStage(unittest.TestCase):
             self.assertIn("host_profile_catalog.cpp", pending[1][2])
             self.assertIn("host_product_store.cpp", pending[1][2])
             self.assertIn("baldosa_native_run_record_admission.cpp", pending[1][2])
+            self.assertIn("baldosa_native_multiplayer_records_summary.cpp", pending[1][2])
+            self.assertIn("multiplayer_match_record.cpp", pending[1][2])
             self.assertIn("after_config", pending[0][2])
             self.assertIn("ur-baldosa-modern-profile-fixture", pending[1][2])
             staged_host = pending[2][2]

@@ -641,6 +641,30 @@ def verify_native_named_records_root_log(log: str) -> None:
         raise ValueError("Native named Records used an unverified route")
 
 
+def verify_native_records_page_handoff(log: str) -> None:
+    """Use genuine native SDL page navigation, not a separate QA records UI."""
+    initial = "UR_BALDOSA_MODERN_ROOT records_page=1p"
+    opened = "UR_BALDOSA_MODERN_ROOT records_opened=1"
+    two = "UR_BALDOSA_MODERN_ROOT records_page=2p"
+    closed = "UR_BALDOSA_MODERN_ROOT records_closed=1"
+    # The initial 1P selection is emitted before the opened diagnostic.
+    # The second 1P selection must follow the physical Down-to-2P edge.
+    # Check suffix tokens as well as complete markers: truncated/duplicate
+    # diagnostic lines must not evade the strictly ordered route contract.
+    if (log.count("records_page=1p") != 2 or
+            log.count("records_page=2p") != 1 or
+            log.count("records_opened=1") != 1 or
+            log.count("records_closed=1") != 1):
+        raise ValueError("Native Records 1P/2P pages duplicated or missing")
+    positions = (
+        log.find(initial), log.find(opened), log.find(two),
+        log.find(initial, log.find(two) + len(two)), log.find(closed),
+    )
+    if -1 in positions or list(positions) != sorted(positions):
+        raise ValueError(
+            "Native Records 1P/2P SDL page handoff missing or out of order")
+
+
 def run_native_named_records_root(
     exe: Path, rom: Path, root: Path, fixture: Path, seed: Path,
     *, video: str, timeout: int,
@@ -669,6 +693,21 @@ def run_native_named_records_root(
     original = {path.name: path.read_bytes() for path in archive.iterdir()}
     if set(original) != {"0001.urrun", "0002.urrun"}:
         raise ValueError("Unexpected seeded Records fixture namespace")
+    paired_seed = subprocess.run(
+        [str(fixture), str(user_root), "native-ci-rider",
+         "--seed-readonly-2p"], cwd=output,
+        capture_output=True, text=True, timeout=timeout, check=True,
+    )
+    if ("paired=1 unavailable=1 "
+            "scope=read_only_historical_not_played") not in paired_seed.stdout:
+        raise ValueError("Historical 2P fixture did not use canonical paired codecs")
+    match_archive = user_root / "multiplayer-runs"
+    original_pairs = {path.name: path.read_bytes()
+                      for path in match_archive.iterdir()}
+    if set(original_pairs) != {
+            "0001-match.urrun", "0001-match.urrun.urmatch",
+            "0002-incomplete.urrun"}:
+        raise ValueError("Unexpected historical 2P fixture artifact set")
     script = output / "root_records.txt"
     script.write_text("turbo on\nwait 1800\nquit\n", encoding="ascii")
     config = output / "config.ini"
@@ -697,17 +736,32 @@ def run_native_named_records_root(
         raise RuntimeError(
             f"Named Records Windows guest rc={process.returncode}: {log[-2500:]}")
     verify_native_named_records_root_log(log)
+    verify_native_records_page_handoff(log)
+    if log.count(
+        "UR_BALDOSA_MODERN_ROOT matches_readonly=1 paired=1 "
+        "unavailable=1 selected=1"
+    ) != 1:
+        raise ValueError("Native named profile did not load the bound historical 2P pair")
     verify_named_profile_boot_bytes(log, seed.read_bytes())
     verify_native_profile_checkpoint(
         fixture, user_root, "native-ci-rider", log, timeout)
     observed = {path.name: path.read_bytes() for path in archive.iterdir()}
     if observed != original:
         raise ValueError("Opening native Records minted/altered an .urrun artifact")
+    observed_pairs = {path.name: path.read_bytes()
+                      for path in match_archive.iterdir()}
+    if observed_pairs != original_pairs:
+        raise ValueError("Native 2P Records modified or minted a match artifact")
     if (user_root / "saves/save.srm").exists() or (output / "saves").exists():
         raise ValueError("Native named Records leaked into the default save root")
     return {
         "selected_named_profile_sram_authorized": True,
         "canonical_valid_archives_read_on_real_windows": 1,
+        "canonical_2p_archive_readonly_tabs_checked": True,
+        "historical_2p_pairs_read": 1,
+        "incomplete_2p_pairs_reported_unavailable": 1,
+        "2p_archive_unchanged_after_guest": True,
+        "actual_native_2p_match_published": False,
         "malformed_archives_reported_unavailable": 1,
         "no_run_created_by_record_view_or_script_quit": True,
         "existing_profile_checkpoint_verified": True,

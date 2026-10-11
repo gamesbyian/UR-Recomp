@@ -1,0 +1,22 @@
+{
+  "media_only": true,
+  "review_images_sha256": {
+    "ur-recomp-definitive-recruitment-58s-1080p-frame-0090.png": "3303057e19047fe994a3ce5a6a79f573a34e4de1e5d3654b6c1d7b1c8abd67f8",
+    "ur-recomp-definitive-recruitment-58s-1080p-frame-0510.png": "e1a2cbcef8000a5382d38103d3e8d2a3f8192c8fa1b6ab9dce719f6fecf06921",
+    "ur-recomp-definitive-recruitment-58s-1080p-frame-1020.png": "ba1cdcab96c3fe6640892a02556e281b1232d59f981a70aed44855e331f056e3",
+    "ur-recomp-definitive-recruitment-58s-1080p-frame-1390.png": "1fc600df14ac3b54c44e48d77b45a0c2a5ae61cb8b2e39a0ae0ef7304c9fdeda",
+    "ur-recomp-definitive-recruitment-58s-1080p-frame-1860.png": "1959f6065120e1c64ed8482b30a51e8a744dd48d83f6918f345fc96a45fc444d",
+    "ur-recomp-definitive-recruitment-58s-1080p-frame-2160.png": "294c4d94896b7f04a2329f2e2ec475f30878e05d1555b712ef90bfe35302d6b7",
+    "ur-recomp-definitive-recruitment-58s-1080p-frame-2530.png": "99df8e4617b0506bae1d32920e175c4a6575a933994cdc3e1d2549391d3716e8",
+    "ur-recomp-definitive-recruitment-58s-1080p-frame-3000.png": "66c016d564dd473d5e22424f89726e140f43b122c2c79429daa3af9a2cd4c996",
+    "ur-recomp-definitive-recruitment-58s-1080p-frame-3420.png": "b81ba628740800b2df8d201366cf8b81161069963f4293282ff94a3dce4d5cbc",
+    "ur-recomp-recruitment-vertical-20s-1080x1920-frame-0090.png": "07820bcf5a6a4708cd59b1a6b1f176ff5016a85d9855972775456ef81f46fa63",
+    "ur-recomp-recruitment-vertical-20s-1080x1920-frame-0420.png": "5c34ccdfa105fb4097e521a3d42ac53fe842f475a51cb0247800c6bd90457b02",
+    "ur-recomp-recruitment-vertical-20s-1080x1920-frame-0690.png": "e6709293eec1bebf7d115dabc68c54a0326eff6556a5b26e47c4ed47e8d98a7c",
+    "ur-recomp-recruitment-vertical-20s-1080x1920-frame-0990.png": "d6dd7f3cba7dcec8515b16f301f565da6ee2afb055f11d14de435a9de78e3d00",
+    "ur-recomp-recruitment-vertical-20s-1080x1920-frame-1160.png": "e1bc27368e4fbad7d739a850ce1d0dea99b9ba6c19f4e524ab7ca32890a1c1b7"
+  },
+  "schema": "UR-RECRUITMENT-INDEPENDENT-DECODED-OUTPUT-WITNESSES/1",
+  "source_manifest_sha256": "bb6869b99734f573e179b8eeb9b654134a0a24497add49c6a7d9923db43ed8e9",
+  "status": "source_checked_pending_independent_final_screening"
+}

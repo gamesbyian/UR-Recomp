@@ -67,6 +67,16 @@ class ThreeProjectReuseTest(unittest.TestCase):
         self.assertNotIn("after_baseline", text)
         self.assertLess(len(text), 2300)
 
+    def test_cold_start_guide_and_live_queue_point_to_reuse_preflight(self):
+        agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        queue = (ROOT / "docs/WORK-QUEUE.md").read_text(encoding="utf-8")
+        self.assertIn("tools/select_three_project_reuse.py", agents)
+        self.assertIn("tools/select_three_project_reuse.py", readme)
+        self.assertIn("three-project reuse preflight", queue)
+        # The active queue has a strict compact-document budget.
+        self.assertLess(len(queue), 16000)
+
     def test_bad_rows_fail_closed(self):
         base = json.loads(json.dumps(self.register))
         base["entries"].append(dict(base["entries"][0]))

@@ -196,6 +196,7 @@ def audit(archive_path: Path, source_sha: str, zip_sha256: str) -> dict:
                 if member.file_size != entry["bytes"] or zip_member_digest(archive, member) != entry["sha256"]:
                     raise ValueError("Baldosa candidate payload digest or size mismatch")
             check_pe_header(archive, archive.getinfo(PREFIX + EXE))
+            exe_digest = next(entry["sha256"] for entry in listed if entry["path"] == EXE)
             reparse_protected = check_launcher_policy(archive.read(PREFIX + LAUNCHER))
             check_readme_policy(archive.read(PREFIX + README), source_sha)
     except zipfile.BadZipFile as exc:
@@ -214,7 +215,8 @@ def audit(archive_path: Path, source_sha: str, zip_sha256: str) -> dict:
             assertion("amd64-pe32plus-inside-archive", True),
             assertion("launcher-and-readme-safety-invariants", True),
         ],
-        metrics={"launcher_reparse_ancestor_guard_present": reparse_protected,
+        metrics={"executable_payload_sha256": exe_digest,
+                 "launcher_reparse_ancestor_guard_present": reparse_protected,
                  "template_bytes_compared_against_matching_source_commit": False,
                  "physical_windows_verified": False,
                  "integrated_native_1p_2p_journey_verified": False,
@@ -273,15 +275,122 @@ def audit_actions_wrapper(wrapper: Path, source_sha: str, inner_sha: str) -> dic
     return report
 
 
+RUNTIME_LAUNCHER = "Baldosa Native Extracted Launcher QA/launcher-acceptance.json"
+RUNTIME_REPORT = "UR Baldosa Win32 Pause Route/report.json"
+RUNTIME_ONE = "UR Baldosa Win32 Pause Route/modern_to_live_race_1p/log.txt"
+RUNTIME_TWO = "UR Baldosa Win32 Pause Route/modern_to_live_race_2p/log.txt"
+
+
+def check_runtime_actions_wrapper(wrapper: Path, candidate: dict) -> dict:
+    """Read the separately produced same-run log/report archive without executing it.
+
+    Positive claim: source-identical PE + bounded *entry to live race*.
+    Explicit non-claim: complete result, physical gamepad/audio, native Records.
+    """
+    if wrapper.is_symlink() or not wrapper.is_file() or wrapper.stat().st_size > 16 * 1024 * 1024:
+        raise ValueError("Baldosa Win32 runtime evidence ZIP missing, linked or oversized")
+    try:
+        with zipfile.ZipFile(wrapper) as archive:
+            names = archive.namelist()
+            if len(names) > 40 or len(names) != len(set(names)):
+                raise ValueError("Baldosa runtime evidence has excessive or duplicate members")
+            if any(name.lower().endswith((".sfc", ".smc", ".srm", ".urrun", ".urmatch"))
+                   for name in names):
+                raise ValueError("Baldosa runtime evidence unexpectedly contains protected player/game data")
+
+            def bounded(name: str, limit: int) -> bytes:
+                try:
+                    entry = archive.getinfo(name)
+                except KeyError as exc:
+                    raise ValueError("Baldosa runtime evidence missing required report/log") from exc
+                if entry.is_dir() or not 0 < entry.file_size <= limit:
+                    raise ValueError("Baldosa runtime evidence entry empty or oversized")
+                return archive.read(entry)
+
+            raw_report = bounded(RUNTIME_REPORT, 256 * 1024)
+            raw_launcher = bounded(RUNTIME_LAUNCHER, 64 * 1024)
+            log1 = bounded(RUNTIME_ONE, 2 * 1024 * 1024)
+            log2 = bounded(RUNTIME_TWO, 2 * 1024 * 1024)
+    except zipfile.BadZipFile as exc:
+        raise ValueError("Baldosa Win32 runtime evidence ZIP is corrupt") from exc
+    try:
+        reported = json.loads(raw_report.decode("utf-8"))
+        launcher = json.loads(raw_launcher.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError) as exc:
+        raise ValueError("Baldosa runtime reports contain invalid JSON") from exc
+    if not isinstance(reported, dict) or not isinstance(launcher, dict):
+        raise ValueError("Baldosa runtime reports must be JSON objects")
+    if (reported.get("exe_sha256") != candidate["metrics"]["executable_payload_sha256"]
+            or launcher.get("archive_sha256") != candidate["subject"]["candidate_zip_sha256"]):
+        raise ValueError("Win32 tested executable/launcher ZIP does not match candidate bytes")
+    if not all(launcher.get(field) is True for field in (
+        "real_extracted_launcher_accepted",
+        "published_zip_unchanged", "rom_not_in_archive",
+        "canonical_8192_byte_save_outside_package",
+    )):
+        raise ValueError("Win32 extracted CMD launcher was not confirmed")
+    if (reported.get("classification") != "windows_native_pause_and_named_profile_smoke_only"
+            or reported.get("course_complete_credit") != 0
+            or reported.get("physical_gamepad_hardware_tested") is not False
+            or not isinstance(reported.get("native_named_readonly_records"), dict)
+            or reported["native_named_readonly_records"].get("actual_native_2p_match_published") is not False):
+        raise ValueError("Baldosa runtime artifact cannot be admitted as incomplete hosted smoke")
+    for players, log, field in (
+        (1, log1, "modern_root_race_entry_p1"),
+        (2, log2, "modern_root_race_entry_p2"),
+    ):
+        entry = reported.get(field)
+        if (not isinstance(entry, dict) or entry.get("players") != players
+                or entry.get("native_root_handoff_observed") is not True
+                or entry.get("original_race_nmi_barrier_passed") is not True
+                or entry.get("original_go_ticker_barrier_passed") is not True
+                or entry.get("complete_event_outcome_claimed") is not False
+                or type(entry.get("actual_guest_frames")) is not int
+                or entry["actual_guest_frames"] <= 0):
+            raise ValueError("Baldosa hosted stock-race entry report inconsistent")
+        contents = log.decode("utf-8", "replace")
+        markers = (
+            f"UR_BALDOSA_MODERN_ROOT stock_entered players={players}",
+            "SDL reports 0 joystick(s)",
+            "audio=dummy",
+            " quit",
+        )
+        if (any(contents.count(marker) != 1 for marker in markers)
+                or "UR_MULTIPLAYER_MATCH CAPTURED" in contents
+                or "UR_RUN_RECORD CAPTURED" in contents):
+            raise ValueError("Baldosa stock-race entry log missing or contradicts smoke scope")
+    candidate["inputs"]["runtime_actions_wrapper_basename"] = wrapper.name
+    candidate["inputs"]["runtime_actions_wrapper_sha256"] = file_digest(wrapper)
+    for name, raw in (
+        ("win32_runtime_report_sha256", raw_report),
+        ("win32_extracted_launcher_report_sha256", raw_launcher),
+        ("win32_1p_entry_log_sha256", log1),
+        ("win32_2p_entry_log_sha256", log2),
+    ):
+        candidate["inputs"][name] = hashlib.sha256(raw).hexdigest()
+    candidate["assertions"].append(
+        assertion("same-run-win32-executable-identity-and-stock-race-entry-logs", True)
+    )
+    candidate["metrics"]["hosted_1p_stock_entry_observed"] = True
+    candidate["metrics"]["hosted_2p_stock_entry_observed"] = True
+    candidate["metrics"]["finished_native_event_or_new_match_observed"] = False
+    candidate["metrics"]["physical_gamepad_hardware_verified"] = False
+    return candidate
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     input_group = parser.add_mutually_exclusive_group(required=True)
     input_group.add_argument("--zip", type=Path, help="inner ROM-free candidate ZIP")
     input_group.add_argument("--actions-artifact", type=Path, help="two-member Actions ZIP as downloaded")
+    parser.add_argument("--runtime-evidence", type=Path,
+                        help="same-run small ROM-free Win32 report/log Actions artifact; requires --actions-artifact")
     parser.add_argument("--expected-source", required=True)
     parser.add_argument("--expected-zip-sha256", required=True)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
+    if args.runtime_evidence is not None and args.actions_artifact is None:
+        parser.error("--runtime-evidence requires the exact --actions-artifact ZIP")
     try:
         if args.actions_artifact is not None:
             result = audit_actions_wrapper(
@@ -289,6 +398,8 @@ def main() -> int:
             )
         else:
             result = audit(args.zip, args.expected_source, args.expected_zip_sha256)
+        if args.runtime_evidence is not None:
+            result = check_runtime_actions_wrapper(args.runtime_evidence, result)
     except (OSError, ValueError) as exc:
         parser.error(str(exc))
     rendered = json.dumps(result, indent=2, sort_keys=True) + "\n"

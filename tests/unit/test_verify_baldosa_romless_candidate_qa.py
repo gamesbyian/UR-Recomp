@@ -96,6 +96,76 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "exactly one inner ZIP"):
                 qa.audit_actions_wrapper(wrapper, source, digest)
 
+    def test_win32_runtime_wrapper_requires_exe_identity_and_real_entry_logs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            inner, source, digest = self.make(root)
+            candidate = qa.audit(inner, source, digest)
+            with zipfile.ZipFile(inner) as z:
+                manifest = json.loads(z.read(producer.PREFIX + producer.MANIFEST))
+            exe_sha = next(x["sha256"] for x in manifest["immutable_files"]
+                           if x["path"] == producer.EXE)
+            report = {
+                "classification": "windows_native_pause_and_named_profile_smoke_only",
+                "exe_sha256": exe_sha,
+                "course_complete_credit": 0,
+                "physical_gamepad_hardware_tested": False,
+                "native_named_readonly_records": {"actual_native_2p_match_published": False},
+            }
+            for players, key in ((1, "modern_root_race_entry_p1"),
+                                 (2, "modern_root_race_entry_p2")):
+                report[key] = {
+                    "players": players,
+                    "native_root_handoff_observed": True,
+                    "original_race_nmi_barrier_passed": True,
+                    "original_go_ticker_barrier_passed": True,
+                    "complete_event_outcome_claimed": False,
+                    "actual_guest_frames": 100,
+                }
+            launcher = {
+                "archive_sha256": digest,
+                "real_extracted_launcher_accepted": True,
+                "published_zip_unchanged": True,
+                "rom_not_in_archive": True,
+                "canonical_8192_byte_save_outside_package": True,
+            }
+            def make_log(players):
+                return (
+                    "SDL reports 0 joystick(s)\n"
+                    "SDL init ok: video=windows audio=dummy\n"
+                    f"UR_BALDOSA_MODERN_ROOT stock_entered players={players} menu=3c\n"
+                    "script f=100 quit\n"
+                ).encode()
+            evidence = root / "win32-logs-actions.zip"
+            def pack(contents1, contents2, summary=report, launcher_summary=launcher):
+                with zipfile.ZipFile(evidence, "w") as z:
+                    z.writestr(qa.RUNTIME_REPORT, json.dumps(summary))
+                    z.writestr(qa.RUNTIME_LAUNCHER, json.dumps(launcher_summary))
+                    z.writestr(qa.RUNTIME_ONE, contents1)
+                    z.writestr(qa.RUNTIME_TWO, contents2)
+            one, two = make_log(1), make_log(2)
+            pack(one, two)
+            accepted = qa.check_runtime_actions_wrapper(evidence, qa.audit(inner, source, digest))
+            self.assertEqual(accepted["outcome"], "inconclusive")
+            self.assertTrue(accepted["metrics"]["hosted_2p_stock_entry_observed"])
+            self.assertFalse(accepted["metrics"]["finished_native_event_or_new_match_observed"])
+            self.assertEqual(accepted["inputs"]["runtime_actions_wrapper_sha256"],
+                             qa.file_digest(evidence))
+
+            changed = {**report, "exe_sha256": "0" * 64}
+            pack(one, two, changed)
+            with self.assertRaisesRegex(ValueError, "tested executable"):
+                qa.check_runtime_actions_wrapper(evidence, qa.audit(inner, source, digest))
+
+            pack(one, two + b"UR_MULTIPLAYER_MATCH CAPTURED fake\n")
+            with self.assertRaisesRegex(ValueError, "contradicts smoke scope"):
+                qa.check_runtime_actions_wrapper(evidence, qa.audit(inner, source, digest))
+
+            changed = {**report, "course_complete_credit": 1}
+            pack(one, two, changed)
+            with self.assertRaisesRegex(ValueError, "incomplete hosted smoke"):
+                qa.check_runtime_actions_wrapper(evidence, qa.audit(inner, source, digest))
+
     def test_canonical_unexecuted_candidate_is_only_inconclusive(self):
         with tempfile.TemporaryDirectory() as tmp:
             archive, source, digest = self.make(Path(tmp))

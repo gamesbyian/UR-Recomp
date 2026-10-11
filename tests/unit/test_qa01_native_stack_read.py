@@ -15,6 +15,7 @@ import qa01_native_stack_read_report as report
 SRC = (
     'extern Snes *g_snes;\n'
     + gate.STAMP + "\n" + beam.STAMP + "\n"
+    + patcher.LOGGER_START + patcher.LOGGER_END
     + patcher.B8 + patcher.B16
 )
 VALID = (
@@ -33,6 +34,9 @@ class NativeStackReadTests(unittest.TestCase):
         self.assertIn('width == 1 ? (addr == 0x01DDu || addr == 0x01DEu)', x)
         self.assertIn("ur_qa01_read_01dd(cpu, bank, addr, cpu->ram[off], 1);", x)
         self.assertIn("ur_qa01_read_01dd(cpu, bank, addr,", x)
+        self.assertIn("if (ur_qa01_read_suppressed) return;", x)
+        self.assertIn("++ur_qa01_read_suppressed;", x)
+        self.assertIn("--ur_qa01_read_suppressed;", x)
         self.assertEqual(x.count("return cpu_latch_read8(cpu, cpu->ram[off]);"), 1)
         self.assertEqual(x.count("return cpu_latch_read16(cpu, (uint16)lo | ((uint16)hi << 8));"), 1)
         with self.assertRaisesRegex(ValueError, "already installed"):
@@ -41,6 +45,8 @@ class NativeStackReadTests(unittest.TestCase):
             patcher.patch(SRC.replace(beam.STAMP, ""))
         with self.assertRaisesRegex(ValueError, "ambiguous"):
             patcher.patch(SRC + patcher.B8)
+        with self.assertRaisesRegex(ValueError, "ambiguous"):
+            patcher.patch(SRC + patcher.LOGGER_START)
 
     def test_real_source_scope_is_attempt_not_result_consumer(self):
         data = report.summarize(VALID)

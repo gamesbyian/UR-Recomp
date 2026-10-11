@@ -298,6 +298,24 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
         self.assertIs(record["metrics"]["independent_release_candidate_approved"], False)
         self.assertIs(record["metrics"]["post_raw_pre_typed_crash_divergence_reported"], True)
 
+    def test_newest_hosted_win32_2p_records_visibility_is_only_historical(self):
+        from evidence_contract import validate_envelope
+        evidence = ROOT / "analysis/evidence/baldosa-win32-38150963449-readonly-2p-records.json"
+        record = json.loads(evidence.read_text(encoding="utf-8"))
+        self.assertEqual(validate_envelope(record), [])
+        self.assertEqual(record["outcome"], "inconclusive")
+        self.assertEqual(record["subject"]["backend"], "baldosa-aot-provisional")
+        self.assertEqual(record["subject"]["actual_checkout_source_merge_commit"],
+                         "d187c922ec75296ad8034d638178e10f7a7f1ee0")
+        self.assertEqual(record["inputs"]["native_win32_actions_artifact_id"], 11706228537)
+        self.assertEqual(record["metrics"]["readable_historical_2p_pairs"], 1)
+        self.assertEqual(record["metrics"]["incomplete_2p_pairs_unavailable"], 1)
+        self.assertTrue(record["metrics"]["records_2p_archive_unchanged_after_guest"])
+        self.assertFalse(record["metrics"]["new_2p_match_published"])
+        self.assertEqual(record["metrics"]["original_guest_course_complete_credit"], 0)
+        self.assertFalse(record["metrics"]["integrated_new_original_result_to_records_verified"])
+        self.assertFalse(record["metrics"]["physical_controller_audio_display_verified"])
+
     def test_canonical_unexecuted_candidate_is_only_inconclusive(self):
         with tempfile.TemporaryDirectory() as tmp:
             archive, source, digest = self.make(Path(tmp))

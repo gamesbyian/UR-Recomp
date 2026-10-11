@@ -14,11 +14,17 @@ if [ "$#" -ne 2 ]; then
 fi
 PACKAGE="$1"
 WORK="$2"
+# This is an independent test with a disposable profile root. Refuse an
+# existing work directory (including symlinks) rather than recursively
+# deleting a caller's saves, fixtures or earlier acceptance evidence.
+if [[ -z "$WORK" || -e "$WORK" || -L "$WORK" ]]; then
+  echo "Windows tournament QA requires a new, non-existing work directory" >&2
+  exit 2
+fi
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 USER_DATA="$WORK/user data"
 LOG="$WORK/tournament.log"
 REOPEN_LOG="$WORK/reopen.log"
-rm -rf "$USER_DATA"
 mkdir -p "$USER_DATA" "$WORK/multiplayer-runs"
 test -f "$PACKAGE/run-uniracers.cmd"
 

@@ -154,3 +154,8 @@ at the moment of `records_page=2p`. This proves the wired host
 uses the canonical checksum-bound paired archive and shared presenter
 rather than simply incrementing fake match counts; it remains explicitly
 **not evidence of an actual guest-played match** or human gamepad test.
+
+
+## Direct-file authority for 1P historical Records
+
+The shared completed-run inspector rejects live or dangling symbolic links inside the selected profile's `.urrun` archive. The links remain visible as unavailable artifacts for health reporting but cannot count as validated history, best times, or replay candidates. The native Records fixture verifies that a byte-identical off-root run and a broken link cannot contribute to the selected profile's validated count or alter canonical results. Existing immutable writes, saved artifacts and original guest behavior remain unchanged. This is a bounded entry-type check, not a claim of immunity against privileged concurrent filesystem changes.

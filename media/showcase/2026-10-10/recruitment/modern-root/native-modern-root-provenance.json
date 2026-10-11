@@ -1,0 +1,38 @@
+{
+  "ci_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38098687053",
+  "consecutive_host_presentations": 600,
+  "control_guest_crc_sha256": "9f08840b276ed7716474a9baed9f46377732e534ea20fcbb90dc5ad3ef55586e",
+  "dimensions": {
+    "actual_sdl_drawable": [
+      960,
+      540
+    ],
+    "logical_source": [
+      256,
+      224
+    ]
+  },
+  "dropped_or_skipped_host_frame_ids": 0,
+  "executable_sha256": "05518a5e2ca58f32a52479ab33279ed719a6872d1c3631a29d413384f92dee11",
+  "git_commit": "58fc144e84cb723a1d85a54f1853e08ddde50bd4",
+  "guest_frame_end": 600,
+  "guest_frame_start": 1,
+  "host_log_sha256": "3f9f14cb45d93f43cccb1a266f5eab7416467659e93afe90a0f2c697a70afc63",
+  "index_sha256": "626ccf92daee47dc8040b85755c745146411cb3a564460efe5eb5f5d9f007341",
+  "master": {
+    "codec": "ffv1",
+    "fps_nominal": "60/1",
+    "sha256": "37e00af400d1a091f05765366ac55618dec409202c72ac0887828b5517ca6094"
+  },
+  "native_framework_pin": "075fbe4c8e0d97b0013be541795c39cb644a9709",
+  "native_game_pin": "10b864b9d14a7b7416dd909eb7b054c88faef101",
+  "output_sha256": {
+    "ur-modern-root-600f.mp4": "e43b1c8b9461e94ac2380d164d850545742c958c0dfef98c99987e40197de7db"
+  },
+  "presentation": "actual Modern root, stock source, SDL 960x540, delivery 1920x1080; not expanded title artwork",
+  "recorded_guest_crc_sha256": "9f08840b276ed7716474a9baed9f46377732e534ea20fcbb90dc5ad3ef55586e",
+  "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "route": "modern-root-key-smoke-1",
+  "status": "verified_consecutive_host_presentations",
+  "warning": "60-fps encoded cadence describes consecutive host presentations, not independently certified 60-Hz guest timing"
+}

@@ -130,3 +130,14 @@ change the selected player's last result; unavailable/corrupt pairs
 remain excluded. The existing shared presenter draws an optional third
 line only on native 2P Records, preserving its historic 1P presentation,
 no new data store and no replay, medal or standings claim.
+
+## Overflow-safe native 1P historical time display
+
+The 1P Records view still reports its latest **validated historical**
+`.urrun` (not a PB or playback-compatible result). Tick-to-hundredths
+formatting now decomposes 60 Hz ticks into whole seconds and a bounded
+subsecond remainder, avoiding the prior `ticks * 100` overflow on a
+valid but exceptionally large stored duration. It preserves ordinary
+MM:SS.hh output and does not modify the source record, awarding rules,
+course chronology, guest clock, or original title behavior. A source
+regression tests normal values, roundoff and the full UINT64 limit.

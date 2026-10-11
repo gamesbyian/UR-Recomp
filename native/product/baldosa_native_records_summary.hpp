@@ -18,6 +18,10 @@ struct BaldosaNativeRecordsSummary {
     std::uint64_t recent_ticks60 = 0;
 };
 
+// Convert integer 60Hz ticks to honest MM:SS.hh without ever multiplying
+// a potentially unbounded historical duration by 100 before dividing.
+std::string format_baldosa_native_record_ticks60(std::uint64_t ticks60);
+
 BaldosaNativeRecordsSummary inspect_baldosa_native_records_archive(
     const std::string& directory);
 

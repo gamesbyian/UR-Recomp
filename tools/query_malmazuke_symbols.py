@@ -15,6 +15,8 @@ ROOT = Path(__file__).resolve().parents[1]
 PIN = "42d444594641d23f5d3c15da7b7c454bb5180e43"
 IMPORTED = ROOT / "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/docs/map/static/native-symbols.json"
 CROSSWALK = ROOT / "analysis/data/malmazuke-pal-structural-links-20261010.json"
+LABELS = IMPORTED.with_name("labels.json")
+UPSTREAM = "https://github.com/malmazuke/unirally-reconstruction/blob/" + PIN + "/"
 HEX = re.compile(r"^(?:\$|0x)?([0-9a-fA-F]{2}):?([0-9a-fA-F]{4})$")
 SHORT = re.compile(r"^\$([0-9a-fA-F]{4})$")
 
@@ -34,17 +36,23 @@ def canonical_address(value: str) -> str:
     return f"{bank:02X}:{addr:04X}"
 
 
-def load_inputs(source: Path = IMPORTED, crosswalk: Path = CROSSWALK) -> tuple[dict, dict]:
+def load_inputs(source: Path = IMPORTED, crosswalk: Path = CROSSWALK,
+                labels: Path = LABELS) -> tuple[dict, dict, list[dict]]:
     symbols = json.loads(source.read_text(encoding="utf-8"))
     links = json.loads(crosswalk.read_text(encoding="utf-8"))
+    research_labels = json.loads(labels.read_text(encoding="utf-8"))
     if (symbols.get("schema_version") != 1 or links.get("schema_version") != 1
-            or links.get("source", {}).get("commit") != PIN):
+            or links.get("source", {}).get("commit") != PIN
+            or links.get("source", {}).get("source_labels") != "docs/map/static/labels.json"
+            or not isinstance(research_labels, list)
+            or any(not isinstance(item, dict) or "address" not in item for item in research_labels)):
         raise ValueError("unrecognized or unpinned malmazuke evidence")
-    return symbols, links
+    return symbols, links, research_labels
 
 
 def query(symbols: dict, links: dict, *, address: str | None = None,
-          usa: str | None = None, pattern: str | None = None, limit: int = 100) -> dict:
+          usa: str | None = None, pattern: str | None = None, limit: int = 100,
+          labels: list[dict] | None = None) -> dict:
     if sum(x is not None for x in (address, usa, pattern)) != 1:
         raise ValueError("exactly one of address, usa or pattern is required")
     if limit < 1:
@@ -53,17 +61,20 @@ def query(symbols: dict, links: dict, *, address: str | None = None,
     usa_needle = canonical_address(usa) if usa else None
     rx = re.compile(pattern, re.IGNORECASE) if pattern is not None else None
     joined = {row["pal"]: row for row in links["entries"]}
+    records = {canonical_address(item["address"]): item for item in (labels or [])}
     rows = []
     for entry in symbols["addresses"]:
         a = entry["address"]
         normalized = canonical_address(a) if a.startswith(("$", "0x")) else a
         companion = joined.get(normalized)
+        record = records.get(normalized, {})
         if needle and normalized != needle:
             continue
         if usa_needle and (not companion or companion["correspondence"].get("usa") != usa_needle):
             continue
         if rx and not rx.search(" ".join([a, *entry.get("native", []),
-                                          (companion.get("pal_label") or "") if companion else ""])):
+                                          (companion.get("pal_label") or "") if companion else "",
+                                          *record.get("source_records", [])])):
             continue
         cross = companion["correspondence"] if companion else {"status": "not-indexed"}
         rows.append({
@@ -71,7 +82,10 @@ def query(symbols: dict, links: dict, *, address: str | None = None,
             "region": entry["region"],
             "native": entry.get("native", []),
             "range_ends": entry.get("range_ends", []),
-            "label": companion.get("pal_label") if companion else None,
+            "label": record.get("label") or (companion.get("pal_label") if companion else None),
+            "pal_original_code_class": record.get("class") or (companion.get("pal_symbol_class") if companion else None),
+            "source_records": record.get("source_records", []),
+            "research_record_urls": [UPSTREAM + path for path in record.get("source_records", [])],
             "domains": companion.get("domains", []) if companion else [],
             "usa_candidate": cross.get("usa"),
             "correspondence_status": cross["status"],
@@ -92,9 +106,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--limit", type=int, default=40)
     args = ap.parse_args(argv)
     try:
-        symbols, links = load_inputs()
+        symbols, links, labels = load_inputs()
         result = query(symbols, links, address=args.pal, usa=args.usa_candidate,
-                       pattern=args.grep, limit=args.limit)
+                       pattern=args.grep, limit=args.limit, labels=labels)
     except (OSError, ValueError, KeyError, re.error) as exc:
         ap.error(str(exc))
     print(json.dumps(result, indent=2, sort_keys=True))

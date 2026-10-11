@@ -237,6 +237,45 @@ The file retains no source screenshot or copyrighted sprite
 bytes. The actual GUI and release 4K-capable product
 gates remain independent.
 
+## Next discriminator: the actual SNES colour-math register path
+
+To determine whether this exact +13 native red5 signature
+really came from original PPU colour addition, collect
+**read-only native PPU register and scanline evidence**,
+not another colour-match heuristic. The historically
+imported independent MAME reference
+`reference/imported/emulators/mame/snes_ppu.cpp`
+identifies the required CPU-visible addresses:
+`CGWSEL=$2130`, `CGADSUB=$2131`,
+`COLDATA=$2132`. The independent imported bsnes
+`third_party/src/beetle-bsnes-libretro/mednafen/snes/src/ppu/bppu/render/addsub.cpp`
+implements saturating five-bit addition/subtraction
+and half-brightness as separate computations.
+Use these as **reference candidate semantics**,
+not evidence that our pinned native guest exercised
+any particular register setting.
+
+A future narrow source-only capture should distinguish
+register state and final PPU window/colour-math
+selection on the **13 upper and 13 lower front**
+source-supported pixels and on adjacent **unchanged
+source-colour control pixels**, using exactly the
+same independently verified original guest2208 and
+four native source planes. Compare whether red
+addition is enabled at those exact locations, what
+the sub-screen or fixed RGB operands are, and if
+`+13 red5` follows the real operand/half mode
+without altering any guest state. For any claim of
+layer ownership, retain an independent PPU removal
+and source-overlay negative control and do not
+infer from `CGADSUB` register values alone.
+The ongoing exact native front98/front96 causal
+counterfactual in [#1344](https://github.com/gamesbyian/UR-Recomp/pull/1344)
+provides the immediate *final-pixel effect*
+discriminator. Do not launch a new native colour
+register investigation merely to repeat this already
+running AOT.
+
 The read-only tool distinguishes:
 
 - **Exact +113 RGBA source alias**: actual nonempty upper/lower

@@ -46,8 +46,6 @@ def load_json(path: Path) -> dict:
 def make_plan(selection: str, source_sha: str) -> dict:
     if selection != "all" and selection not in CASES:
         raise ValueError("unknown case selection")
-    if not HEX256.fullmatch(source_sha):
-        raise ValueError("source revision must be a full 40-character SHA-1 plus checkout provenance") if len(source_sha) != 40 else None
     if not re.fullmatch(r"[0-9a-f]{40}", source_sha):
         raise ValueError("source revision must be an exact 40-character SHA-1")
     selected = list(CASES) if selection == "all" else [selection]

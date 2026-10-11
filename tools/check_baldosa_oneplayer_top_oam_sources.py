@@ -53,6 +53,100 @@ def observed_rgb(original: bytes, isolated: bytes) -> dict:
     }
 
 
+
+
+def classify_top_source_pair(original: bytes, slot98: bytes, slot99: bytes) -> dict:
+    """Bound ambiguity of two *emitted* OBJ planes versus finished Original.
+
+    The y=112 band partition is analytic; in 1P it is NOT a verified
+    viewport boundary. This is a read-only spatial census. Even exact
+    RGB equality is not a
+    PPU winner/priority proof; only a separately verified removal
+    counterfactual could begin to establish that.
+    """
+    n = LOGICAL_WIDTH * LOGICAL_HEIGHT * 4
+    if any(len(plane) != n for plane in (original, slot98, slot99)):
+        raise ValueError("paired OBJ and original RGBA dimensions disagree")
+    fields = (
+        "slot98_only", "slot99_only", "shared", "neither",
+        "exclusive98_rgb_differs_final", "exclusive99_rgb_differs_final",
+        "shared_source_rgb_conflict", "shared_final_matches_98_only",
+        "shared_final_matches_99_only", "shared_final_matches_both",
+        "shared_final_matches_neither",
+    )
+    bands = {band: {field: 0 for field in fields}
+             for band in ("raster_0_111", "raster_112_223")}
+    examples = {"conflicting_shared": [], "shared_matches_neither": [],
+                "exclusive_rgb_differs_final": []}
+    for offset in range(0, n, 4):
+        pixel = offset // 4
+        y, x = divmod(pixel, LOGICAL_WIDTH)
+        row = bands["raster_0_111" if y < 112 else "raster_112_223"]
+        a = slot98[offset + 3] != 0
+        b = slot99[offset + 3] != 0
+        if not a and not b:
+            row["neither"] += 1
+            continue
+        final_rgb = original[offset:offset + 3]
+        if a and b:
+            row["shared"] += 1
+            rgb98 = slot98[offset:offset + 3]
+            rgb99 = slot99[offset:offset + 3]
+            if rgb98 != rgb99:
+                row["shared_source_rgb_conflict"] += 1
+                if len(examples["conflicting_shared"]) < 12:
+                    examples["conflicting_shared"].append([x, y])
+            matching98 = rgb98 == final_rgb
+            matching99 = rgb99 == final_rgb
+            name = ("shared_final_matches_both" if matching98 and matching99
+                    else "shared_final_matches_98_only" if matching98
+                    else "shared_final_matches_99_only" if matching99
+                    else "shared_final_matches_neither")
+            row[name] += 1
+            if not matching98 and not matching99 and (
+                len(examples["shared_matches_neither"]) < 12
+            ):
+                examples["shared_matches_neither"].append([x, y])
+        else:
+            key = "slot98_only" if a else "slot99_only"
+            row[key] += 1
+            source_rgb = (slot98 if a else slot99)[offset:offset + 3]
+            if source_rgb != final_rgb:
+                mismatch_key = ("exclusive98_rgb_differs_final" if a
+                                else "exclusive99_rgb_differs_final")
+                row[mismatch_key] += 1
+                if len(examples["exclusive_rgb_differs_final"]) < 12:
+                    examples["exclusive_rgb_differs_final"].append([x, y])
+
+    totals = {key: sum(band[key] for band in bands.values())
+              for key in fields}
+    assert totals["slot98_only"] + totals["slot99_only"] + totals["shared"] + totals["neither"] == n // 4
+    assert sum(totals[key] for key in (
+        "shared_final_matches_98_only", "shared_final_matches_99_only",
+        "shared_final_matches_both", "shared_final_matches_neither",
+    )) == totals["shared"]
+    return {
+        "classification": "read-only-pre-BG-OBJ-overlap-and-final-RGB-census",
+        "logical_width": LOGICAL_WIDTH,
+        "logical_height": LOGICAL_HEIGHT,
+        "scanline_partition_y": 112,
+        "one_player_half_raster_is_gameplay_viewport_proven": False,
+        "band_counts": bands,
+        "total_counts": totals,
+        "emitted_slot98_pixels": totals["slot98_only"] + totals["shared"],
+        "emitted_slot99_pixels": totals["slot99_only"] + totals["shared"],
+        "distinct_emitted_coordinates": (
+            totals["slot98_only"] + totals["slot99_only"] + totals["shared"]
+        ),
+        "bounded_coordinate_examples": examples,
+        "final_pixel_ownership_or_HD_admission_proven": False,
+        "caveat": ("Emitted OBJ alpha and RGB matching the final Original "
+                   "frame cannot identify the winning PPU layer; RGB "
+                   "mismatches are candidate overpaint/occlusion locations, "
+                   "not attributed causes."),
+    }
+
+
 def assess(stock_crc: Path, original_1x_crc: Path, original_4x_crc: Path,
            source_1x_dir: Path, source_4x_dir: Path,
            source98: Path, source99: Path, log98: Path, log99: Path,
@@ -81,6 +175,7 @@ def assess(stock_crc: Path, original_1x_crc: Path, original_4x_crc: Path,
             raise ValueError("independent 4x source contains changed/padded original pixels")
         recovered[guest] = logical
     records = []
+    pair_rgba = {}
     for slot, path, log, probe_dir in (
         (98, source98, log98, probe98_dir),
         (99, source99, log99, probe99_dir),
@@ -101,6 +196,7 @@ def assess(stock_crc: Path, original_1x_crc: Path, original_4x_crc: Path,
         ):
             raise ValueError("native isolated source PPU plane corrupted")
         rgba = data[len(HEADER):]
+        pair_rgba[slot] = rgba
         colors = observed_rgb(first[frame], rgba)
         if colors["isolated_source_opaque"] != (
             meta["top_opaque_source_pixels"] + meta["bottom_opaque_source_pixels"]
@@ -113,7 +209,15 @@ def assess(stock_crc: Path, original_1x_crc: Path, original_4x_crc: Path,
             "rgb_vs_final_observation": colors,
             "original_1x_and_4x_remained_pixel_identical": True,
         })
+    pair_overlap = classify_top_source_pair(
+        first[frame], pair_rgba[98], pair_rgba[99])
+    for rec in records:
+        actual = pair_overlap["emitted_slot98_pixels" if rec["original_oam_slot"] == 98
+                              else "emitted_slot99_pixels"]
+        if actual != rec["rgb_vs_final_observation"]["isolated_source_opaque"]:
+            raise ValueError("source pair census is inconsistent with isolated OBJ alpha")
     return {
+        "top_pair_overlap_and_final_rgb_census": pair_overlap,
         "schema_version": 1,
         "status": "native-1p-paired-top-oam-source-truth",
         "native_guest_frame": frame,

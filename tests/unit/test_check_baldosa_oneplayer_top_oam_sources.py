@@ -4,7 +4,7 @@ import tempfile
 import unittest
 
 from tools.check_baldosa_oneplayer_top_oam_sources import (
-    observed_rgb, assess,
+    observed_rgb, classify_top_source_pair, assess,
 )
 
 
@@ -25,6 +25,84 @@ class OnePlayerTopOriginalSourcesTests(unittest.TestCase):
         self.assertEqual(observed_rgb(bytes(orig), bytes(slot))["isolated_source_opaque"], 0)
         with self.assertRaisesRegex(ValueError, "dimensions"):
             observed_rgb(bytes(orig[:-4]), bytes(slot))
+
+    def test_real_plane_pair_overlap_is_not_final_ppu_ownership(self):
+        width, height = 342, 224
+        finished = bytearray(bytes((0, 0, 0, 255)) * (width * height))
+        p1 = bytearray(width * height * 4)
+        p2 = bytearray(width * height * 4)
+
+        def paint(plane, x, y, rgb):
+            i = (y * width + x) * 4
+            plane[i:i + 4] = bytes((*rgb, 255))
+
+        paint(p1, 1, 1, (1, 2, 3))
+        paint(finished, 1, 1, (1, 2, 3))
+        paint(p2, 2, 2, (4, 5, 6))  # Exclusive emission, not final RGB
+        paint(p1, 3, 3, (10, 20, 30))
+        paint(p2, 3, 3, (50, 60, 70))
+        paint(finished, 3, 3, (10, 20, 30))
+        paint(p1, 4, 4, (70, 10, 10))
+        paint(p2, 4, 4, (10, 10, 70))  # Neither matches final RGB
+        paint(p1, 5, 150, (7, 8, 9))
+        paint(p2, 5, 150, (7, 8, 9))
+        paint(finished, 5, 150, (7, 8, 9))
+        paint(p1, 6, 151, (255, 255, 255))  # Bottom exclusive mismatch
+
+        a = classify_top_source_pair(bytes(finished), bytes(p1), bytes(p2))
+        self.assertEqual(a["scanline_partition_y"], 112)
+        self.assertFalse(a["one_player_half_raster_is_gameplay_viewport_proven"])
+        self.assertEqual(a["emitted_slot98_pixels"], 5)
+        self.assertEqual(a["emitted_slot99_pixels"], 4)
+        self.assertEqual(a["distinct_emitted_coordinates"], 6)
+        self.assertEqual(a["total_counts"]["slot98_only"], 2)
+        self.assertEqual(a["total_counts"]["slot99_only"], 1)
+        self.assertEqual(a["total_counts"]["shared"], 3)
+        self.assertEqual(a["total_counts"]["shared_source_rgb_conflict"], 2)
+        self.assertEqual(a["total_counts"]["shared_final_matches_98_only"], 1)
+        self.assertEqual(a["total_counts"]["shared_final_matches_neither"], 1)
+        self.assertEqual(a["total_counts"]["shared_final_matches_both"], 1)
+        self.assertEqual(a["total_counts"]["exclusive99_rgb_differs_final"], 1)
+        self.assertEqual(a["total_counts"]["exclusive98_rgb_differs_final"], 1)
+        self.assertEqual(a["band_counts"]["raster_0_111"]["shared"], 2)
+        self.assertEqual(a["band_counts"]["raster_112_223"]["shared"], 1)
+        self.assertEqual(a["bounded_coordinate_examples"]["conflicting_shared"],
+                         [[3, 3], [4, 4]])
+        self.assertEqual(a["bounded_coordinate_examples"]["shared_matches_neither"],
+                         [[4, 4]])
+        self.assertFalse(a["final_pixel_ownership_or_HD_admission_proven"])
+        self.assertEqual(sum(a["total_counts"][key] for key in
+                             ("slot98_only", "slot99_only", "shared", "neither")),
+                         width * height)
+        with self.assertRaisesRegex(ValueError, "dimensions"):
+            classify_top_source_pair(bytes(finished), bytes(p1[:-4]), bytes(p2))
+        with self.assertRaisesRegex(ValueError, "dimensions"):
+            classify_top_source_pair(bytes(finished[:-4]), bytes(p1), bytes(p2))
+
+    def test_source_on_y120_is_not_a_synthetic_one_player_viewport_claim(self):
+        size = 342 * 224 * 4
+        original = bytearray(size)
+        slot98 = bytearray(size)
+        slot99 = bytearray(size)
+        pos98 = (121 * 342 + 115) * 4
+        pos99 = (120 * 342 + 55) * 4
+        original[pos98:pos98 + 4] = slot98[pos98:pos98 + 4] = bytes((12, 22, 32, 255))
+        original[pos99:pos99 + 4] = slot99[pos99:pos99 + 4] = bytes((15, 25, 35, 255))
+        a = classify_top_source_pair(bytes(original), bytes(slot98), bytes(slot99))
+        self.assertEqual(a["band_counts"]["raster_0_111"]["slot98_only"], 0)
+        self.assertEqual(a["band_counts"]["raster_112_223"]["slot98_only"], 1)
+        self.assertEqual(a["band_counts"]["raster_112_223"]["slot99_only"], 1)
+        self.assertEqual(a["distinct_emitted_coordinates"], 2)
+        self.assertFalse(a["one_player_half_raster_is_gameplay_viewport_proven"])
+        self.assertFalse(a["final_pixel_ownership_or_HD_admission_proven"])
+
+    def test_pair_census_all_transparent_is_valid_negative(self):
+        blank = bytes(342 * 224 * 4)
+        a = classify_top_source_pair(blank, blank, blank)
+        self.assertEqual(a["distinct_emitted_coordinates"], 0)
+        self.assertEqual(a["total_counts"]["shared"], 0)
+        self.assertEqual(a["total_counts"]["neither"], 342 * 224)
+        self.assertFalse(a["final_pixel_ownership_or_HD_admission_proven"])
 
     def test_wrong_original_guest_identity_and_frames_fail_before_source(self):
         with tempfile.TemporaryDirectory() as td:

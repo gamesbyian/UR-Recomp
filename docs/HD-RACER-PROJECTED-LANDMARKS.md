@@ -237,3 +237,38 @@ all original slot/frame SHA identities are preserved in
 [`analysis/data/qa08-original-2p-three-pose-anchored-alpha-jaccard.json`](../analysis/data/qa08-original-2p-three-pose-anchored-alpha-jaccard.json).
 No copyrighted sprite imagery is included. Original character
 likeness still requires a separate explicit artistic review.
+
+
+## Native 2P moving camera/screen-source registration is phase-dependent
+
+For any eventual **single 3D character rig** with original-derived
+2P projections, distinguish *pose identity* from *viewport
+screen-space transformation*. The exact native original source
+captures at guest1856,1872,1888 each contain
+**byte-matching upper/lower RGBA silhouettes** for rider pairs
+slot98→97 and slot99→96 at source raster shift
+`(dx=0,dy=+113)`. At authenticated **post-GO
+guest2208**, both rider pairs remain exact source-RGBA copies
+(317+313 occupied pixels, **zero alpha/colour disagreement**),
+but the registered transform is **`(dx=-13,dy=+112)`**.
+That is a genuine difference in the original's sampled
+source viewport placement, not a reason to distort the model,
+re-author the lower rider pose or use a global static offset.
+
+The post-GO source AOT [38120828291](https://github.com/gamesbyian/UR-Recomp/actions/runs/38120828291)
+(artifact `11695173178`) independently checked four OAM
+slots, seven identical whole Original PPU captures and guest
+CRC parity, using unmodified ROM gameplay; cross-phase
+per-source pixel and original-stock SHA counts are retained
+in [`analysis/data/qa08-original-2p-source-registration-phase-matrix-1856-2208.json`](../analysis/data/qa08-original-2p-source-registration-phase-matrix-1856-2208.json)
+on graphics [PR #1342](https://github.com/gamesbyian/UR-Recomp/pull/1342).
+This evidence is currently **sampled across two phase regions
+only**. It does not establish the exact transition frame,
+WRAM camera instruction, generalized source pose transform,
+real 3D model origin, ground contact or replacement HD
+paint coordinates. Actual HD capture/animation must receive
+appropriate authentic dynamic screen projection and PPU
+foreground ordering; neither a hard-coded +113Y nor a
+hard-coded −13X is a sufficient multi-frame solution.
+The current owner-vetoed procedural 4× character remains
+unapproved.

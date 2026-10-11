@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 import qa01_original_nmi_stack_pull_report as original
@@ -22,6 +23,13 @@ def summarize(source: dict, guest: dict) -> dict:
     if ("independently_authenticated_original_native_pair" not in source
             or "exact_original_native_switcher_pair_provenance" not in guest):
         raise ValueError("neither source report may omit authenticated paired provenance")
+    source_sha = source.get("paired_report_bytes_sha256")
+    native_sha = guest.get("paired_report_bytes_sha256")
+    if (not isinstance(source_sha, str) or source_sha != native_sha
+            or re.fullmatch(r"[0-9a-f]{64}", source_sha) is None
+            or source["independently_authenticated_original_native_pair"]
+               != guest["exact_original_native_switcher_pair_provenance"]):
+        raise ValueError("original/native NMI clocks do not share exact paired result provenance")
     a = source["saved_4042_original_pha_horizontal_clock"]
     b = guest["native_original_nmi_writer_beam"]
     if (a["original_cpu_frame_before"] != 5780
@@ -42,6 +50,7 @@ def summarize(source: dict, guest: dict) -> dict:
         raise ValueError("invalid source-clock data type")
     return {
         "schema": SCHEMA,
+        "paired_report_bytes_sha256": source_sha,
         "original_cpu_frame": 5780,
         "native_host_frame": 5781,
         "original_cpu_ppu_vcounter": o_v,

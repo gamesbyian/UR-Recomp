@@ -1,24 +1,25 @@
-# Technical-motion-graphics handoff (2026-10-10)
+# UR-Recomp: evidence-backed technical motion graphics
 
-This lane is separate from the recruitment editor and the HD art editor. The master trailer, game guest, renderer, and source-of-truth research were not modified.
+Four **committed 1920×1080 H.264 MP4s at 30 fps**, independently decoded and frame-count checked. Artifacts include representative frames and per-clip SHA-256 manifests. No guest code, source-of-truth research ledger, native renderer, Modern frontend, master trailer or Agent 3 art files have been touched.
 
-## Independently backed candidate shots
+| Movie | Duration | Precise claim |
+| --- | ---: | --- |
+| [01. Original centre pixel parity](01-source-centre-parity.mp4) | 6 sec / 180f | 2P Original at native guest frame 1856: **0/57,344 RGBA centre pixel differences** between independent fixed and wide PPU renders; separate guest CRC streams **2473/2473** agree. Editorial grids, not real PPU pixels. |
+| [02. Recorder non-interference](02-recording-noninterference.mp4) | 6 sec / 180f | Capture-disabled and capture-enabled native guest WRAM CRC streams agree byte-for-byte on recorded 2P route; the real source video has 600 consecutive guest IDs. Editorial bars, not actual CRC magnitudes. |
+| [03. Genuine PPU raster anatomy](03-source-raster-xray.mp4) | 6 sec / 180f | One **real composited** 342×224 PPU source frame, exact 256×224 centre, 43 authentic extra source columns each side, and an editorial split-screen coordinate guide. No separate recovered BG/HUD/OBJ layers or recovered sprite masks asserted. |
+| [04. Same-function 65816 → AOT C → real native play](04-machine-code-to-native.mp4) | 9 sec / 270f | Real `MainLoop` at `80:8881`, US retail opcode `20 C6 AC` (`JSR $ACC6`) independently checked against the original ROM; the **same routine's** generated `L_8881_M1X0` C from pinned Baldosa, separate real host glue, and real continuous native gameplay sampled from 60fps down to 30fps without interpolation. |
 
-1. **Source-centre parity** (6s; 1920×1080, 30fps): an **editorial animated grid**, explaining the exact comparison between the 256×224 fixed native Original and the [43,299) centre of the separately executed 342×224 Original at 2P guest frame 1856. **0/57,344 RGBA centre pixels differ**, with matching complete 2,473-frame guest CRC sequences. Evidence: [accepted QA report](../../../../docs/QA08-NATIVE-STOCK-CENTER-PARITY-20261010.md); Actions run 38083079741; artifact 11681138053. This proves a bounded same-frame Original centre match, not all-game fidelity or 342-wide HD.
-2. **Recorder non-interference** (6s; 1920×1080, 30fps): animated editorial bars representing two independently executed matching guest WRAM CRC streams, recording disabled and enabled. Validated continuous capture includes 600 consecutive guest frame IDs 2100–2699. Evidence: [continuous capture package](../recruitment/continuous/README.md), source commit `4748ae337f38d801039260ca6ed849fd2ca1d7a3`, native CI run 38089655141, artifact 11683697184. This proves recording did not perturb this bounded guest trace, not original-emulator equivalence or perfect physical 60-Hz pacing.
+**Provenance:** Accepted [Original centre parity QA](../../../../docs/QA08-NATIVE-STOCK-CENTER-PARITY-20261010.md) run `38083079741`, artifact `11681138053`; [native continuous capture](../recruitment/continuous/README.md) run `38089655141`, artifact `11683697184`. Footage came from **960×540 physical SDL captured natively**, delivered 1080p; it is **not** a physical-4K or Remastered-wide capture. Original-source 342×224 PNG SHA256: `4dd40af5c80aa670de15c474f02c89f8e9ac7b6f689e894e67da66f59a18e79c`.
 
-**Important:** Grid artwork and bar lengths are editorial motion graphics, not real PPU rasters, recovered SNES layers or measured CRC values. All captions must preserve these scopes. Do not replace imagery with simulated game frames.
+**Correspondence exhibit:** The ROM instruction is verified in `04-mainloop-bytecode-evidence.json` by `tools/showcase/verify_mainloop_codegen.py` against canonical USA retail ROM SHA256 `859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478`. The generated C comes from [Baldosa pinned guest commit 10b864...](https://github.com/gamesbyian/uniracers-recomp/blob/10b864b9d14a7b7416dd909eb7b054c88faef101/src/gen/bank00_part01_v2.c), Git blob SHA1 `cc9ef833a5c7c0809aaab53ea00c182158241b83`. [Source exhibit](mainloop-aot-source-exhibit.txt) marks omitted code explicitly. The adjacent `GameRunOneFrame` C is separate host integration code, not the generated MainLoop.
 
-## Status and use
+Reproduction (checkout with original ROM, source videos, Python3/Pillow/FFmpeg/DejaVu):
+```sh
+python3 tools/showcase/render_technical_motion.py --repo-root . --outdir media/showcase/2026-10-10/technical-motion
+python3 tools/showcase/render_technical_source_xray.py --repo-root . --outdir media/showcase/2026-10-10/technical-motion
+python3 tools/showcase/render_technical_code_to_gameplay.py --repo-root . --outdir media/showcase/2026-10-10/technical-motion
+```
 
-The two standalone local MP4s and their decoded keyframes were produced and inspected, but **their binary media are not yet committed in this branch**. Do not advertise a repo-based delivery path for them until uploaded and independently decoded from GitHub. The local handoff contains `01-source-centre-parity.mp4`, `02-recording-noninterference.mp4`, `render.py`, representative PNGs, and `provenance.json`.
+The path/branch-limited `.github/workflows/technical-evidence-motion.yml` encodes, independently decodes and commits only this lane's assets. Read `provenance.json`, `03-provenance.json`, `04-provenance.json`, and `04-mainloop-bytecode-evidence.json` for exact identities. The workflow is inert after merge to main. Agent 1 owns final trailer assembly.
 
-Expected SHA-256 from the independently rendered local handoff:
-- `01-source-centre-parity.mp4`: `8f78907b1b444af84d40e887a0abd5e2e8df848faa7dbd29a1c6b197f8d26314`
-- `02-recording-noninterference.mp4`: `744128dc4ee8e2efd54bf7f22d04a19abcf3363fc8d515a2b81c5fe8903b765f`
-
-## Next shots
-
-The **65816 → identified function → generated native C** shot requires a *single* verified cross-linked function/source pair. The source-faithful X-ray requires actual extracted background/OBJ/HUD layers with independently checked priorities. Neither has been manufactured from unrelated code excerpts or speculative layer masks.
-
-Agent 1 can place the first clip before a real continuous native gameplay cut and the second after the gameplay to strengthen the evidence story. The existing 600-frame 1080p continuous source clip is Original mode, based on genuine 960×540 SDL output, and must not be labelled a 4K or Remastered clip.
+**Scope:** Source-centre pixel parity, native capture non-interference, generated-instruction correspondence, original/native gameplay equivalence and 4K physical output are separate evidence claims. No whole-game certification is implied.

@@ -86,7 +86,7 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
                 encoding="utf-8",
             )
             output = root / "assembled"
-            package.assemble(build, rom, output, "synthetic-clean-machine-test")
+            package.assemble(build, rom, output, "1" * 40)
             archive = root / "UR-Recomp-Windows-x64.zip"
             checksum = root / "UR-Recomp-Windows-x64.zip.sha256"
             package.create_archive(output, archive)
@@ -107,6 +107,53 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             self.assertTrue(
                 (destination / package.ARCHIVE_ROOT / package.EXE_NAME).is_file()
             )
+            # Separately nominated commit/inner-ZIP hash must bind the
+            # offline verifier to the exact tested release candidate.
+            exact_zip = hashlib.sha256(archive.read_bytes()).hexdigest()
+            pinned = cmd + [
+                "-ExpectedSourceSha", "1" * 40,
+                "-ExpectedZipSha256", exact_zip,
+            ]
+            pinned_result = subprocess.run(
+                pinned[:-1] if False else pinned, capture_output=True, text=True,
+                check=False,
+            )
+            self.assertEqual(pinned_result.returncode, 0,
+                             pinned_result.stdout + pinned_result.stderr)
+            self.assertIn("UR_PORTABLE_EXACT_CANDIDATE_PIN_VERIFIED",
+                          pinned_result.stdout)
+            # The verifier refuses a self-consistent package/sidecar when the
+            # independent hash or source revision differs. Invalid hash must
+            # be rejected before any extraction.
+            wrong_hash_dir = root / "wrong independent zip digest"
+            wrong_hash = cmd[:-1] + [str(wrong_hash_dir),
+                "-ExpectedSourceSha", "1" * 40,
+                "-ExpectedZipSha256", "0" * 64]
+            result_bad_hash = subprocess.run(
+                wrong_hash, capture_output=True, text=True, check=False)
+            self.assertNotEqual(result_bad_hash.returncode, 0)
+            self.assertIn("Release ZIP differs from independent candidate pin",
+                          result_bad_hash.stderr)
+            self.assertFalse(wrong_hash_dir.exists())
+
+            wrong_revision = cmd[:-1] + [str(root / "wrong source revision"),
+                "-ExpectedSourceSha", "2" * 40,
+                "-ExpectedZipSha256", exact_zip]
+            result_bad_revision = subprocess.run(
+                wrong_revision, capture_output=True, text=True, check=False)
+            self.assertNotEqual(result_bad_revision.returncode, 0)
+            self.assertIn("Packaged source revision differs from independent candidate pin",
+                          result_bad_revision.stderr)
+
+            one_pin_dir = root / "only one external pin must fail"
+            one_pin = cmd[:-1] + [str(one_pin_dir),
+                "-ExpectedZipSha256", exact_zip]
+            result_one_pin = subprocess.run(
+                one_pin, capture_output=True, text=True, check=False)
+            self.assertNotEqual(result_one_pin.returncode, 0)
+            self.assertIn("Independent candidate pin needs both canonical",
+                          result_one_pin.stderr)
+            self.assertFalse(one_pin_dir.exists())
             # A separately signed ZIP can have valid hashes but spell one
             # parent directory two ways. Both may extract into one directory
             # on NTFS; the standalone verifier must reject that manifest.
@@ -240,6 +287,19 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             self.assertNotEqual(tampered.returncode, 0)
             self.assertIn("Release ZIP does not match", tampered.stderr)
             self.assertFalse(bad_destination.exists())
+
+    def test_independent_candidate_pins_are_checked_before_claiming_acceptance(self):
+        self.assertIn("ExpectedSourceSha", self.script)
+        self.assertIn("ExpectedZipSha256", self.script)
+        self.assertIn("Independent candidate pin needs both canonical", self.script)
+        self.assertIn("Release ZIP differs from independent candidate pin", self.script)
+        self.assertIn("Packaged source revision differs from independent candidate pin",
+                      self.script)
+        self.assertIn("UR_PORTABLE_EXACT_CANDIDATE_PIN_VERIFIED", self.script)
+        self.assertLess(
+            self.script.index("Release ZIP differs from independent candidate pin"),
+            self.script.index("Expand-Archive -LiteralPath"),
+        )
 
     def test_case_aliased_windows_parent_names_fail_before_hashing(self):
         self.assertIn("$seenPrefixes = @{}", self.script)

@@ -87,3 +87,32 @@ legacy migration. Neither suite substitutes for the other.
 Because this is a private preservation project, do not publish a packaged
 ROM in public GitHub Releases or attach proprietary ROM bytes to support
 reports. Keep release ZIP distribution private and lawful.
+
+## Independent exact-candidate binding for L4/L5 QA
+
+The package-adjacent `.sha256` sidecar validates consistency, but does **not**
+authenticate the intended revision by itself: both files can be replaced
+together. The manifest's source revision is likewise internal to the ZIP.
+For a gate candidate, first obtain the full 40-hex Git source commit and the
+64-hex **inner portable ZIP** SHA-256 from an independently maintained QA
+nomination/ledger (never the Actions *outer artifact ZIP* digest). Supply both
+optional verifier arguments together:
+
+```powershell
+$sourceSha = 'PASTE_APPROVED_40_HEX_COMMIT'
+$portableZipSha = 'PASTE_APPROVED_64_HEX_INNER_ZIP_DIGEST'
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Test-URRecompPortable.ps1 `
+  -Archive .\UR-Recomp-Windows-x64.zip `
+  -Checksum .\UR-Recomp-Windows-x64.zip.sha256 `
+  -Destination "$env:TEMP\UR pinned candidate test" `
+  -ExpectedSourceSha $sourceSha -ExpectedZipSha256 $portableZipSha -Launch
+```
+
+These parameters are optional for legacy build smoke; **release QA evidence
+must include** `UR_PORTABLE_EXACT_CANDIDATE_PIN_VERIFIED`. The verifier rejects
+a missing partner pin, noncanonical pin, checksum mismatch before extraction,
+and manifest source revision mismatch before any launch. The real hardware,
+controller, gameplay, persistence and audio oracles remain separate; the new
+marker validates provenance, not those experiences. The supplied approved
+hash must itself come from a trusted, separately reviewed candidate
+nomination. A locally invented expected hash is not independent evidence.

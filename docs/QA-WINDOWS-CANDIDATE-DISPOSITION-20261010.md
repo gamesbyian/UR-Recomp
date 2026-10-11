@@ -19,3 +19,7 @@ Scope: QA evidence handoff, **not** a release gate promotion. Read `docs/RELEASE
 5. The ledger validator now rejects invented release decisions, nonboolean physical flags, unpinned release decisions, unsupported L5 pass claims, undated witnesses, unreviewed waivers and unsupported failed-gate assertions. Its passing result verifies bookkeeping only. For a waiver supply `waiver_reason`, `waiver_approved_by`, and timezone-aware `waiver_approved_at`; for a witness use a timezone-aware `tested_at` and the **inner portable ZIP** SHA-256.
 
 **Stop/revisit:** Reinspect after a product owner nominates a specific exact source SHA + ZIP checksum and fresh-process integrated route. Do not repeatedly rerun the older smoke or promote unexecuted journeys. Release blockers and gate status remain with their owning product/gameplay/graphics lanes and the independent ledger, respectively.
+
+## Independent package-pin acceptance hardening
+
+The existing clean-machine PowerShell verifier now accepts paired `-ExpectedSourceSha` and `-ExpectedZipSha256`, rejects a mismatch between the independently nominated candidate and the actual archive/revision, and emits `UR_PORTABLE_EXACT_CANDIDATE_PIN_VERIFIED` only with those external constraints. The existing no-pin hosted smoke remains valid for its bounded package-consistency claim, but is not by itself a candidate-pinned QA witness. See `docs/WINDOWS-CLEAN-MACHINE-ACCEPTANCE.md` for the manual L4/L5 invocation.

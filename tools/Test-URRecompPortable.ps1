@@ -20,11 +20,24 @@ param(
     [Parameter(Mandatory = $true)][string]$Checksum,
     [Parameter(Mandatory = $true)][string]$Destination,
     [switch]$Launch,
-    [string]$InputScript
+    [string]$InputScript,
+    [string]$ExpectedSourceSha,
+    [string]$ExpectedZipSha256
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+# A sidecar shipped *with* the ZIP proves consistency, not that this is the
+# independently nominated release candidate. Optional external pins must
+# arrive together; manual L4/L5 QA requires the pin-verified result marker.
+$independentPin = $PSBoundParameters.ContainsKey('ExpectedSourceSha') -or
+    $PSBoundParameters.ContainsKey('ExpectedZipSha256')
+if ($independentPin -and
+    ($ExpectedSourceSha -cnotmatch '\A[0-9a-f]{40}\z' -or
+     $ExpectedZipSha256 -cnotmatch '\A[0-9a-f]{64}\z')) {
+    throw 'Independent candidate pin needs both canonical source SHA and portable ZIP SHA-256'
+}
 
 # Canonical USA retail fingerprint, pinned independently of the ZIP manifest.
 # Keep this in sync with the tracked rom_identity.txt canonical source.
@@ -82,6 +95,9 @@ function Assert-PackageFiles {
         $manifest.package_format -cne 'ur-recomp-windows-x64-portable-v1' -or
         [string]::IsNullOrWhiteSpace([string]$manifest.source_revision)) {
         throw 'The package manifest has an unsupported schema or missing revision'
+    }
+    if ($independentPin -and $manifest.source_revision -cne $ExpectedSourceSha) {
+        throw 'Packaged source revision differs from independent candidate pin'
     }
     $entries = @($manifest.files)
     if ($entries.Count -lt 6 -or $entries.Count -gt 10000) {
@@ -229,6 +245,9 @@ $archiveHash = (Get-FileHash -LiteralPath $archivePath -Algorithm SHA256).Hash.T
 if ($archiveHash -cne $match.Groups[1].Value) {
     throw 'Release ZIP does not match the supplied SHA-256 sidecar'
 }
+if ($independentPin -and $archiveHash -cne $ExpectedZipSha256) {
+    throw 'Release ZIP differs from independent candidate pin'
+}
 Write-Output "UR_PORTABLE_ARCHIVE_VERIFIED sha256=$archiveHash"
 
 # The test directory must be new: never overlay or delete a player's install.
@@ -238,6 +257,9 @@ if (-not (Test-Path -LiteralPath $packageRoot -PathType Container)) {
     throw 'Expected UR-Recomp-Windows-x64 directory missing after extraction'
 }
 Assert-PackageFiles -PackageRoot $packageRoot
+if ($independentPin) {
+    Write-Output "UR_PORTABLE_EXACT_CANDIDATE_PIN_VERIFIED revision=$ExpectedSourceSha sha256=$ExpectedZipSha256"
+}
 if (Test-Path -LiteralPath (Join-Path $packageRoot 'config.ini')) {
     throw 'Mutable config.ini was shipped inside the immutable package'
 }

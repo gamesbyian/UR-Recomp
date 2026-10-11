@@ -38,6 +38,33 @@ low-viewport renderer defect. It highlights a serious HD fidelity risk:
 painting racer art above all final foreground/countdown elements would
 make a hidden racer incorrectly visible through the numeral.
 
+## Persistent countdown-colour foreground over moving racer sources
+
+A stronger **temporal source/foreground observation**, using the same
+unmodified Original PPU frames, records the full 342×224 binary mask
+of all pixels whose final native RGB equals `57,57,255`. The entire
+**16,770-pixel blue colour mask is byte-identical at both guest1872
+and1888**, SHA256
+`6c311efcd2377fcc40fdf76cff3d82e4b5926bbd9268b3d3f5feec7e282c3d36`
+over 76,608 row-major occupancy bytes. Its inclusive logical
+bounding box is `[103,8,260,200]`. At the earlier frame1856,
+the blue mask differs (9,286 pixels; SHA256
+`3dca34902e307495c64b1fbd87b4148e297b2052dff84dc0dca3ef258bcfcfdf`).
+Both original lower OAM rider **source alpha masks demonstrably
+change between1872 and1888**, independently of the stationary
+final blue colour region, and both moving source instances remain
+fully covered. That rules out a *frozen source racer* as the cause
+of its invisibility in these exact samples.
+
+The source-validated detector now fails if the full Original
+blue-colour mask drifts even at a pixel **outside** the rider
+silhouettes, or if lower rider alpha remains identical while it
+claims movement. Full mask RGB identity is an observational frame
+property, not an accepted hardware OBJ/BG layer ID or reusable
+production occlusion mask. Treat its countdown-“2” interpretation
+as supported by direct visual comparison, not proven compositor
+priority.
+
 ## Already-retained 4× Original density parity
 
 The **same authentic native AOT artifact** also retains complete

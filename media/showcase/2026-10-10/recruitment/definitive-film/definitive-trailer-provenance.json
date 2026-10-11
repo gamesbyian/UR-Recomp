@@ -6,12 +6,37 @@
   "film_duration_seconds": 58,
   "finished_beta_claim": false,
   "fps": "60/1",
+  "original_title_internal_edit": {
+    "faked_gameplay_frames": false,
+    "horizontal_source_ordinals": [
+      [
+        270,
+        359
+      ],
+      [
+        420,
+        569
+      ]
+    ],
+    "purpose": "skip proven black transition between authentic title and menu",
+    "vertical_source_ordinals": [
+      [
+        270,
+        359
+      ],
+      [
+        420,
+        449
+      ]
+    ]
+  },
   "original_widescreen_verified_2p_native_capture": true,
   "output_sha256": {
-    "ur-recomp-definitive-recruitment-58s-1080p.mp4": "9584a6cdeb0b8df08ef67bcbe517d28c6cd9fe4b26ed19d8f30ad2ccde263f59",
-    "ur-recomp-recruitment-final-poster.png": "b81dbbc1c72afb9df017a54e564b22489bafd6f444d6f8c144bdc797e5634948",
-    "ur-recomp-recruitment-vertical-20s-1080x1920.mp4": "cb908c3f11275c90c4b74ba54360f8d9db67047847c13e968fd0fd92c40cd4e3"
+    "ur-recomp-definitive-recruitment-58s-1080p.mp4": "88f22b68f5aae5466923f315bf924a5f9107472a3dfd262cea258ee10738a2bc",
+    "ur-recomp-recruitment-final-poster.png": "d9bcbda5335a2656f81c79607be1fd540ca7403acba403111ad12f4b4270189a",
+    "ur-recomp-recruitment-vertical-20s-1080x1920.mp4": "f1fc0b8ce1d6cb5383f8e6b63d9ed978d581941f352dede2ff982319c84024f7"
   },
+  "poster_hud_policy": "Editorial typography on separate top/bottom margins, gameplay fully visible between",
   "presentation_manifest_sha256": "cadc8b75f5ad302ef2a7a5f5ed23df3247e047afd0500bb253e438859ec35a6d",
   "remastered_widescreen_claim": false,
   "schema": "UR-RECRUITMENT-FINAL-MEDIA/1",
@@ -34,7 +59,7 @@
   "timeline": [
     {
       "at_frame": 0,
-      "description": "native Original title, frames 180..419",
+      "description": "Original title art ordinals 270..359 then real checkerboard menu ordinals 420..569; deliberate editorial cut across source black transition",
       "frame_count": 240,
       "source": "title"
     },

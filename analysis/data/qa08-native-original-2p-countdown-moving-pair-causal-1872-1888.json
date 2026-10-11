@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "status": "accepted-original-native-2p-moving-countdown-pair-causality",
+  "successful_native_exact_head_run_id": 38119117927,
+  "native_artifact_id": 11694649120,
+  "native_exact_head_commit": "3afaec0bffc5729687806cfe047442c6fc182caa",
+  "guest_route": "baldosa/tests/routes/race_2p_split.txt",
+  "per_2p_native_process_guest_crc_records": 2473,
+  "original_ppu_logical_rgba_size": [
+    342,
+    224
+  ],
+  "native_remove_oam_slots": [
+    96,
+    97
+  ],
+  "per_guest_frame": {
+    "1872": {
+      "source96_emitted:alpha": 330,
+      "source97_emitted:alpha": 325,
+      "source_union_coordinates": 411,
+      "source_overlap": 244,
+      "countdown_blue_source_coordinates": 411,
+      "full_original_sha256": "bdc3b13d2129e7fd7a20f4cf00539fc2976ba1b028f76386a395e6fdef4e2f2b",
+      "pair_removed_full_rgba_sha256": "bdc3b13d2129e7fd7a20f4cf00539fc2976ba1b028f76386a395e6fdef4e2f2b",
+      "slot96_source_sha256": "cf2bbaa6cd29d34d97bb1ce7c111c47cafb27a97f84f78f8cf08e7e8d00f4ce1",
+      "slot97_source_sha256": "29366b09277478d4f73a1971a3fdbadd0f56720949551a9e95551ca3ce7a2ad8",
+      "full_rgba_changed_pixels_after_pair_removal": 0,
+      "changed_outside_source": 0,
+      "native_validator_status": "native-covered-pair-final-unchanged"
+    },
+    "1888": {
+      "source96_emitted:alpha": 322,
+      "source97_emitted:alpha": 324,
+      "source_union_coordinates": 409,
+      "source_overlap": 237,
+      "countdown_blue_source_coordinates": 409,
+      "full_original_sha256": "7de0e805f07234d0b7b6c4c526eea79b5c6c523ff594c09ddc9970de238eede7",
+      "pair_removed_full_rgba_sha256": "7de0e805f07234d0b7b6c4c526eea79b5c6c523ff594c09ddc9970de238eede7",
+      "slot96_source_sha256": "52bdf0ccaf557ee6bbb9e068e392aa08a708dc1db85b6f6095a9bbe62f1f45cf",
+      "slot97_source_sha256": "4600999fee02ff708d04bd4b4debb22ca9a4e70aa53475422676d1de00e461a3",
+      "full_rgba_changed_pixels_after_pair_removal": 0,
+      "changed_outside_source": 0,
+      "native_validator_status": "native-covered-pair-final-unchanged"
+    }
+  },
+  "temporal_changes": {
+    "lower_source_union_symmetric_difference": 78,
+    "lower_union_intersection": 371,
+    "lower_union_combined": 449,
+    "final_frame_blue_mask_inter_frame_changed_coordinates": 0
+  },
+  "four_native_process_CRC_streams_per_guest_frame_identical": true,
+  "single_native_PPU_removal_arm_marker_per_frame": true,
+  "full_original_rgba_pixels_compared_per_frame": 76608,
+  "source_report_sha_proof_attested": true,
+  "layer_owner_proven": false,
+  "general_Bg_Obj_window_priority_proven": false,
+  "production_sprite_removal_permitted": false,
+  "artistic_HD_likeness_approved": false,
+  "HD_Widescreen_shipping_allowed": false,
+  "limits": "Only two authenticated source-moving original native USA 2P countdown frames (1872 and1888). Paired OAM removal has zero final PPU effect in both despite source-alpha motion and stable blue final mask. Not a general priority mask, collision contact, character art direction or release permission."
+}

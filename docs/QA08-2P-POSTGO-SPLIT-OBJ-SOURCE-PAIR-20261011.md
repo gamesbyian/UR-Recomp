@@ -162,6 +162,40 @@ is retained in
 This is a definitive source-backed **sampled** graphics
 fact, not a generalized 3D camera model.
 
+## Separately accepted native physical 4K Original source parity
+
+The **same authenticated native frame2208** also has a
+separately accepted **3840×2160 software physical-output
+Original** record
+`baldosa-evidence/ws342_physical_4k_frame2208.json`,
+from successful native AOT
+[38120828291](https://github.com/gamesbyian/UR-Recomp/actions/runs/38120828291).
+The physically captured raster was checked against the
+complete Original logical 342×224 PPU frame (SHA256
+`f9ca59c19dc3e8d51c7ca1dbce25d5dc14e56ba36011128abbadee8cec0e7b4a`),
+through the exact 1368×896 4× internal-density image
+(SHA256 `776963ddc3c50f8824a0b026251aee5ae05296a841a135c1ff55eff119cec108`)
+and the host's expected 7:6 source pixel-aspect nearest
+resampling to a full-screen 3840×2160 target.
+The independently recorded physical-output RGBA SHA256
+is `29f6ef1f9b5965d32818228182922e337a0570433b5929c89e285af2969a0fac`.
+The native report status is **`exact-native-capture-pixel-parity`**;
+its original full 224 logical rows are retained, and the
+horizontal 3840-wide mapping uses the recorded fixed-point
+nearest integer fit.
+
+This is exact **supplied software-output capture parity**,
+not evidence that a particular user's SDL display can
+successfully request/use that drawable, that a real monitor
+was connected, that 4K authored sprite/text assets are
+present, or that General 2P PPU foreground/camera priority
+is reconstructed. The numeric 1×/4×/physical provenance
+is preserved at
+[`analysis/data/qa08-original-2p-postgo-text-physical-4k-parity-2208.json`](../analysis/data/qa08-original-2p-postgo-text-physical-4k-parity-2208.json).
+The file retains no source screenshot or copyrighted sprite
+bytes. The actual GUI and release 4K-capable product
+gates remain independent.
+
 The read-only tool distinguishes:
 
 - **Exact +113 RGBA source alias**: actual nonempty upper/lower

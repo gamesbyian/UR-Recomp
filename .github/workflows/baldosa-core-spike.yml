@@ -1152,6 +1152,43 @@ jobs:
           unset UR_RACER_HD_WIDE_REMOVE_FRAME
           echo "PASS: real native slot98-99 final PPU source-union counterfactual; full guest CRC parity; no HD permission" >> "$GITHUB_STEP_SUMMARY"
 
+          # QA-08 real lower-viewport countdown-coverage causal discriminator.
+          # The existing Original PPU is source-blue at ALL 411 unique
+          # lower OBJ coordinates in native guest1872 (large countdown 2).
+          # Test whether removing BOTH lower OBJ slots96-97 for this one
+          # frame alters even one final Original pixel. Reuse the compiled
+          # AOT executable, baseline and both independently validated
+          # source planes. No authored art or game/renderer changes.
+          unset UR_RACER_HD_WIDE_REMOVE_SLOT UR_RACER_HD_WIDE_SOURCE_SLOT
+          unset UR_RACER_HD_WIDE_SOURCE_DIR
+          export UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC=counterfactual
+          export UR_RACER_HD_WIDE_REMOVE_PAIR=96-97
+          export UR_RACER_HD_WIDE_REMOVE_FRAME=1872
+          export UR_BALDOSA_HD_DENSITY=1
+          export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-counterfactual-pair96-97-frame1872"
+          mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_pair96_97_frame1872"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_pair96_97_frame1872/fd/crc.txt"
+          python3 tools/check_baldosa_2p_covered_pair_causality.py \
+            --stock "$RUNNER_TEMP/baldosa-ws342-captures/ur-baldosa-ws342-001872.pam" \
+            --source96 "$RUNNER_TEMP/baldosa-ws342-obj-slots/ur-baldosa-ws342-obj-slot96-frame001872.pam" \
+            --source97 "$RUNNER_TEMP/baldosa-ws342-obj-slots/ur-baldosa-ws342-obj-slot97-frame001872.pam" \
+            --removed "$UR_BALDOSA_WS342_CAPTURE_DIR/ur-baldosa-ws342-001872.pam" \
+            --report96 "$RUNNER_TEMP/baldosa-evidence/ws342_obj_slot_96_frame1872.json" \
+            --report97 "$RUNNER_TEMP/baldosa-evidence/ws342_obj_slot_97_frame1872.json" \
+            --stock-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/fd/crc.txt" \
+            --source96-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_slot_96/fd/crc.txt" \
+            --source97-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_slot_97/fd/crc.txt" \
+            --removed-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_pair96_97_frame1872/fd/crc.txt" \
+            --removed-log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_pair96_97_frame1872/log.txt" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_pair96_97_countdown_causal_1872.json"
+          unset UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC UR_RACER_HD_WIDE_REMOVE_PAIR
+          unset UR_RACER_HD_WIDE_REMOVE_FRAME
+          echo "OBSERVED: native lower96-97 pair removed under real 2P countdown at1872; exact full PPU delta recorded without HD admission" >> "$GITHUB_STEP_SUMMARY"
+
+
           python3 - <<'PY'
           import json
           import os
@@ -1420,6 +1457,9 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_rear99/log.txt
             ${{ runner.temp }}/baldosa-ws342-counterfactual-rear99/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-evidence/ws342_pair98_99_final_visibility_1856.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_pair96_97_countdown_causal_1872.json
+            ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_pair96_97_frame1872/log.txt
+            ${{ runner.temp }}/baldosa-ws342-counterfactual-pair96-97-frame1872/ur-baldosa-ws342-001872.pam
             ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_pair98_99/log.txt
             ${{ runner.temp }}/baldosa-ws342-counterfactual-pair98-99/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-evidence/ws342_slot96_final_visibility_1856.json

@@ -16,6 +16,8 @@ python3 tools/export_symbol_adapters.py --check
 
 See `docs/TOOLCHAIN.md` for selection guidance, `docs/TOOL-INTEROPERABILITY.md` for producer/consumer chains, and `AGENTS.md` for task routing.
 
+Regional-switch checkerboard **offline preview** (synthetic-only until menu measurement): `python3 tools/showcase/regional_checkerboard_wipe.py --synthetic-demo --outdir /tmp/ur-checker-demo`; calibration and island/reuse policy: [`tools/showcase/REGIONAL-CHECKERBOARD.md`](showcase/REGIONAL-CHECKERBOARD.md). Tests: `python3 -m unittest tests.unit.test_regional_checkerboard_wipe`. No runtime integration, new bootstrap dependency, or CI workflow.
+
 Pinned Baldosa/malmazuke/UR apparatus audit (file-level inventory and 35 grounded capability decisions):
 
 ```bash

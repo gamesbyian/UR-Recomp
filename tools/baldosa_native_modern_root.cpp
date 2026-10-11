@@ -164,15 +164,10 @@ void open_records_archive() {
         if (result.validated_archives == 0) {
             g_records_one_recent = "NO STORED RUNS YET";
         } else {
-            const auto hundredths =
-                (result.recent_ticks60 * 100u + 30u) / 60u;
-            char timing[24]{};
-            std::snprintf(timing, sizeof(timing), "%02llu:%02llu.%02llu",
-                static_cast<unsigned long long>(hundredths / 6000u),
-                static_cast<unsigned long long>((hundredths / 100u) % 60u),
-                static_cast<unsigned long long>(hundredths % 100u));
             g_records_one_recent =
-                "LAST: " + result.recent_course + " " + timing;
+                "LAST: " + result.recent_course + " " +
+                ur::product::format_baldosa_native_record_ticks60(
+                    result.recent_ticks60);
         }
     }
     const auto matches =

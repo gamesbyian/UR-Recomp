@@ -64,6 +64,12 @@ class BaldosaNativeTwoSeatJoinTests(unittest.TestCase):
         self.assertIn("g_stock_handed_off", source)
         self.assertIn("g_two_seat_join.cancel();", source)
         self.assertIn("request_stock_route(2);", source)
+        self.assertIn("g_unbound_two_player_warning_open = true;", source)
+        self.assertIn("g_unbound_two_player_warning_open = false;", source)
+        self.assertIn("unbound_2p_consented=1", source)
+        self.assertIn("unbound_2p_declined=1", source)
+        self.assertIn("view.unbound_two_player_warning_open", source)
+        self.assertIn("UNRECORDED TWO PLAYER", painter)
         # Back after the second confirm must revoke pending original menu
         # input as well as the selected identities, before guest handoff.
         back = source[source.index("void back() {"):

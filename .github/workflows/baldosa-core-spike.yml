@@ -668,10 +668,10 @@ jobs:
           unset UR_BALDOSA_WS342_LATE_CAPTURE_AFTER
           echo "OBSERVED: actual later native 1P Original source-world 1x/4x matches 7 independent full-frame samples; Remastered admission withheld" >> "$GITHUB_STEP_SUMMARY"
 
-          # The final Original 1P image at frame2208 visibly has two
-          # unicycles ABOVE the split boundary. Both bottom OAM source
-          # slots96/97 are genuinely alpha-empty (#1271); isolate each
-          # actual TOP OAM source slot separately with PPU removal OFF.
+          # The Original 1P frame2208 contains two original racers on
+          # raster rows 120-143. A y=112 analytics partition is NOT a
+          # proven 1P split viewport. Slots96/97 are source-empty (#1271);
+          # source-isolate the active slots98/99 with PPU removal OFF.
           # Two new source-only native guests are necessary to retain
           # the already accepted two bottom-slot witnesses in the normal
           # 1x/4x routes and distinguish the top riders individually.
@@ -707,6 +707,50 @@ jobs:
             --probe99-crc "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live_probe_slot99/fd/crc.txt" \
             --out "$RUNNER_TEMP/baldosa-evidence/ws342_live_1p_top_slot98_99_source.json"
           echo "OBSERVED: independently isolated Original TOP racer slot98/99 PPU source from five original-CRC-equal 1P guest processes; no authored HD/OAM removal" >> "$GITHUB_STEP_SUMMARY"
+
+          # QA-08 final native PPU contribution discriminator. Two *existing*
+          # original source planes are now positive/disjoint at frame2208.
+          # Reuse this SAME compiled guest/host and ORIGINAL 5447-frame 1P
+          # route. Each independently executed PPU run erases ONE stock OAM
+          # slot only at frame2208, with host HD disabled at 342 columns.
+          # The reference 1x/4x and isolated PPU-source runs above are
+          # preserved completely unchanged. This never authorizes gameplay
+          # mutation or replacement art.
+          unset UR_RACER_HD_WIDE_SOURCE_SLOT UR_RACER_HD_WIDE_SOURCE_DIR
+          unset UR_RACER_HD_WIDE_SOURCE_FRAME UR_RACER_HD_WIDE_REMOVE_PAIR
+          export UR_BALDOSA_HD_DENSITY=1
+          export UR_BALDOSA_WS342_LATE_CAPTURE_AFTER=2200
+          export UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC=counterfactual
+          export UR_RACER_HD_WIDE_REMOVE_FRAME=2208
+          for slot in 98 99; do
+            export UR_RACER_HD_WIDE_REMOVE_SLOT="$slot"
+            export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-live-1p-counterfactual-slot$slot"
+            mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+            bash baldosa/tools/run_route.sh baldosa/tests/routes/race_1p.txt \
+              "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_counterfactual_slot$slot"
+            cmp "$RUNNER_TEMP/baldosa-evidence/race_1p/fd/crc.txt" \
+                "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_counterfactual_slot$slot/fd/crc.txt"
+            test -s "$UR_BALDOSA_WS342_CAPTURE_DIR/ur-baldosa-ws342-002208.pam"
+          done
+          unset UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC UR_RACER_HD_WIDE_REMOVE_SLOT
+          unset UR_RACER_HD_WIDE_REMOVE_FRAME UR_BALDOSA_WS342_LATE_CAPTURE_AFTER
+          python3 tools/check_baldosa_oneplayer_top_final_contributions.py \
+            --original "$RUNNER_TEMP/baldosa-ws342-live-1p/ur-baldosa-ws342-002208.pam" \
+            --source98 "$RUNNER_TEMP/baldosa-ws342-live-1p-slot98/ur-baldosa-ws342-obj-slot98-frame002208.pam" \
+            --source99 "$RUNNER_TEMP/baldosa-ws342-live-1p-slot99/ur-baldosa-ws342-obj-slot99-frame002208.pam" \
+            --removed98 "$RUNNER_TEMP/baldosa-ws342-live-1p-counterfactual-slot98/ur-baldosa-ws342-002208.pam" \
+            --removed99 "$RUNNER_TEMP/baldosa-ws342-live-1p-counterfactual-slot99/ur-baldosa-ws342-002208.pam" \
+            --stock-crc "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live/fd/crc.txt" \
+            --probe98-crc "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live_probe_slot98/fd/crc.txt" \
+            --probe99-crc "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live_probe_slot99/fd/crc.txt" \
+            --removed98-crc "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_counterfactual_slot98/fd/crc.txt" \
+            --removed99-crc "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_counterfactual_slot99/fd/crc.txt" \
+            --log98 "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_counterfactual_slot98/log.txt" \
+            --log99 "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_counterfactual_slot99/log.txt" \
+            --source-report "$RUNNER_TEMP/baldosa-evidence/ws342_live_1p_top_slot98_99_source.json" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_live_1p_final_slots98_99.json"
+          echo "OBSERVED: 1P frame2208 native PPU final contributions of slots98/99 individually, Original guest parity held; no HD admission" >> "$GITHUB_STEP_SUMMARY"
+
 
 
 
@@ -1343,6 +1387,11 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_0895_source_obj.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_bottom_slot96_97_source.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_top_slot98_99_source.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_final_slots98_99.json
+            ${{ runner.temp }}/baldosa-evidence/race_1p_ur_ws342_counterfactual_slot98/log.txt
+            ${{ runner.temp }}/baldosa-evidence/race_1p_ur_ws342_counterfactual_slot99/log.txt
+            ${{ runner.temp }}/baldosa-ws342-live-1p-counterfactual-slot98/ur-baldosa-ws342-002208.pam
+            ${{ runner.temp }}/baldosa-ws342-live-1p-counterfactual-slot99/ur-baldosa-ws342-002208.pam
             ${{ runner.temp }}/baldosa-ws342-live-1p-slot98/ur-baldosa-ws342-obj-slot98-frame*.pam
             ${{ runner.temp }}/baldosa-ws342-live-1p-slot99/ur-baldosa-ws342-obj-slot99-frame*.pam
             ${{ runner.temp }}/baldosa-ws342-live-1p-probe-slot98/ur-baldosa-ws342-*.pam

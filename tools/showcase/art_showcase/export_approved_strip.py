@@ -84,7 +84,7 @@ def main():
         sfile,afile,generator,sampler,stock_sha = cache[rid]
         frames.append({
             "frame":row["frame"],"representation_id":rid,
-            "stock_png":str(sfile),"authored_png":str(afile),
+            "stock_png":str(sfile.relative_to(out)),"authored_png":str(afile.relative_to(out)),
             "stock_source":"Canonical USA ROM "+EXPECTED_ROM_SHA256+"; tools/prototype_racer_hd_replacement.py::build_stock_rgba",
             "stock_evidence":"Exact guarded ROM composition in analysis/data/racer-hd-replacement-prototype.json; validated first-family motion sequence, frames 1205..1220",
             "stock_rgba_sha256":stock_sha,

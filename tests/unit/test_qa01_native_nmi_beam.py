@@ -14,7 +14,7 @@ import qa01_native_nmi_beam_report as report
 WRITER = (
     "f5781   7E:01DD=4004 w2 I_NMI_M1X1 A=4004 X=0000 Y=0000 "
     "S=01DD D=0000 DB=80 M=0 Xf=1 IPC=00858E "
-    "QAbeam_v=225 QAbeam_h=816 QAbeam_master=1070052 QAcpu_master=945374\n"
+    "QAbeam_v=225 QAbeam_h=816 QAbeam_master=1070052 QAcpu_block_start=945130 QAcpu_master=945374\n"
 )
 
 
@@ -35,6 +35,7 @@ class OriginalNativeSwitcherBeamTests(unittest.TestCase):
         self.assertIn("#include <string.h>", instrumented)
         self.assertIn("g_snes->hPos", instrumented)
         self.assertIn("g_snes->beamMasterLast", instrumented)
+        self.assertIn("g_cpu.coprocessor_master_cycles", instrumented)
         self.assertIn("g_cpu.master_cycles", instrumented)
         self.assertIn("width == 2", instrumented)
         self.assertIn('strcmp(g_last_recomp_func, "I_NMI_M1X1")', instrumented)
@@ -54,6 +55,8 @@ class OriginalNativeSwitcherBeamTests(unittest.TestCase):
         self.assertEqual(row["framework_beam_vpos"], 225)
         self.assertEqual(row["framework_beam_hpos"], 816)
         self.assertEqual(row["native_cpu_master_cycles"], 945374)
+        self.assertEqual(row["native_cpu_basic_block_start_master_cycles"], 945130)
+        self.assertEqual(row["native_cpu_basic_block_bracket_width_master_cycles"], 244)
         self.assertTrue(data["framework_beam_vs_original_cpu_phase_unaligned"])
         self.assertTrue(data["native_cpu_master_counter_is_precharged_basic_block_not_pha_cycle"])
         self.assertTrue(data["modeled_beam_hpos_not_proven_instruction_aligned"])
@@ -88,6 +91,8 @@ class OriginalNativeSwitcherBeamTests(unittest.TestCase):
             WRITER.replace("QAbeam_h=816", "QAbeam_h=4000"),
             WRITER.replace("QAbeam_master=1070052", "QAbeam_master=nope"),
             WRITER.replace("QAcpu_master=945374", "QAcpu_master=-1"),
+            WRITER.replace("QAcpu_block_start=945130", "QAcpu_block_start=945375"),
+            WRITER.replace("QAcpu_block_start=945130", "QAcpu_block_start=nan"),
             WRITER + WRITER,
             WRITER.replace("QAbeam_h=816", "QAbeam_h=816 QAextra=7"),
         ):

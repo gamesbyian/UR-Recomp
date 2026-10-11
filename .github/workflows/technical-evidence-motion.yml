@@ -5,6 +5,8 @@ on:
     paths:
       - ".github/workflows/technical-evidence-motion.yml"
       - "tools/showcase/render_technical_motion.py"
+      - "tools/showcase/render_technical_source_xray.py"
+      - "tools/showcase/render_technical_code_to_gameplay.py"
 
 permissions:
   contents: write
@@ -32,6 +34,8 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/showcase/render_technical_motion.py --repo-root . --outdir media/showcase/2026-10-10/technical-motion
+          python3 tools/showcase/render_technical_source_xray.py --repo-root . --outdir media/showcase/2026-10-10/technical-motion
+          python3 tools/showcase/render_technical_code_to_gameplay.py --repo-root . --outdir media/showcase/2026-10-10/technical-motion
       - name: Re-decode and validate video frame counts and identity
         run: |
           set -euo pipefail
@@ -51,14 +55,25 @@ jobs:
               assert png.stat().st_size>10000
               witness['decoded_frame_100_sha256']=hashlib.sha256(png.read_bytes()).hexdigest()
           (p/'provenance.json').write_text(json.dumps(m,indent=2)+'\n')
-          print('PASS: two independently decoded 1080p / 30fps / 180-frame editorial clips')
+          for prefix, expected in [('03',180),('04',270)]:
+              witness=json.loads((p/(prefix+'-provenance.json')).read_text())
+              mp4=p/witness['clip']
+              assert hashlib.sha256(mp4.read_bytes()).hexdigest()==witness['sha256']
+              d=json.loads(subprocess.check_output(['ffprobe','-v','error','-count_frames','-select_streams','v:0','-show_entries','stream=width,height,nb_read_frames','-of','json',str(mp4)]))['streams'][0]
+              assert (int(d['width']),int(d['height']),int(d['nb_read_frames']))==(1920,1080,expected)
+              png=p/(prefix+'-independently-decoded-frame-100.png')
+              subprocess.run(['ffmpeg','-hide_banner','-loglevel','error','-y','-i',str(mp4),'-vf','select=eq(n\\,100)','-vsync','vfr','-frames:v','1',str(png)],check=True)
+              assert png.stat().st_size>10000
+              witness['decoded_frame_100_sha256']=hashlib.sha256(png.read_bytes()).hexdigest()
+              (p/(prefix+'-provenance.json')).write_text(json.dumps(witness,indent=2)+'\\n')
+          print('PASS: four independently decoded 1080p / 30fps source-scoped sequences')
           PY
       - name: Commit verified standalone movies (only showcase lane)
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add media/showcase/2026-10-10/technical-motion/01-* media/showcase/2026-10-10/technical-motion/02-* media/showcase/2026-10-10/technical-motion/provenance.json
+          git add media/showcase/2026-10-10/technical-motion/01-* media/showcase/2026-10-10/technical-motion/02-* media/showcase/2026-10-10/technical-motion/03-* media/showcase/2026-10-10/technical-motion/04-* media/showcase/2026-10-10/technical-motion/provenance.json
           git diff --cached --quiet && exit 0
           git commit -m "media: commit decoded technical proof clips [skip ci]"
           git push origin "HEAD:${GITHUB_REF_NAME}"

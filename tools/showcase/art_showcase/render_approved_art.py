@@ -60,7 +60,7 @@ def load_pair(spec, approved, base):
     if stock.getbbox() is None or authored.getbbox() is None:
         raise ValueError("Empty source artwork")
     return stock, authored, {
-        **approved[key], "representation_id": key, "guest_frame": spec.get("frame"),
+        **approved[key], "representation_id": key, "guest_frame": spec.get("frame"), "player": spec.get("player"),
         "stock_png": spec["stock_png"], "stock_file_sha256": sha(stock_path.read_bytes()),
         "stock_rgba_sha256": sha(stock.tobytes()),
         "stock_source": spec["stock_source"], "stock_evidence": spec["stock_evidence"],
@@ -165,7 +165,7 @@ def archaeology(pairs, tick):
 def montage(pairs,tick):
     im = backdrop("RESTORING THE ORIGINAL MOTION","Approved red and blue racers | exact pose and palette identities")
     n=len(pairs)
-    idx=(tick//8)%n
+    idx=(tick//5)%n
     stock,art,meta=pairs[idx]
     d=ImageDraw.Draw(im)
     d.rounded_rectangle((135,235,825,907),radius=20,outline="#405069",width=2)

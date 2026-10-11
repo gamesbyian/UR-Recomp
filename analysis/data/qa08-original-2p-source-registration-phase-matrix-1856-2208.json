@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "status": "four-independent-native-2p-original-paired-OAM-source-registration-phases",
+  "native_AOT_run_id": 38120828291,
+  "native_AOT_artifact_id": 11695173178,
+  "original_guest_frames": [
+    1856,
+    1872,
+    1888,
+    2208
+  ],
+  "native_raster_size": [
+    342,
+    224
+  ],
+  "authentic_source_slot_mapping": {
+    "upper_P1": 98,
+    "lower_P1": 97,
+    "upper_P2": 99,
+    "lower_P2": 96
+  },
+  "per_guest_frame": {
+    "1856": {
+      "original_full_sha256": "0e956fac212cb7413a32ee2a0de318540e58cfd5f2b7610472c2573ab6719dd9",
+      "upper_to_lower_translation_dx_dy": [
+        0,
+        113
+      ],
+      "exact_nonempty_RGBA_alias_pairs": [
+        "98->97",
+        "99->96"
+      ],
+      "alpha_differences": 0,
+      "rgba_differences": 0,
+      "source_emit_by_slot": {
+        "96": 319,
+        "97": 321,
+        "98": 321,
+        "99": 319
+      },
+      "source_rgb_matches_original_final_by_slot": {
+        "96": 319,
+        "97": 175,
+        "98": 321,
+        "99": 176
+      }
+    },
+    "1872": {
+      "original_full_sha256": "bdc3b13d2129e7fd7a20f4cf00539fc2976ba1b028f76386a395e6fdef4e2f2b",
+      "upper_to_lower_translation_dx_dy": [
+        0,
+        113
+      ],
+      "exact_nonempty_RGBA_alias_pairs": [
+        "98->97",
+        "99->96"
+      ],
+      "alpha_differences": 0,
+      "rgba_differences": 0,
+      "source_emit_by_slot": {
+        "96": 330,
+        "97": 325,
+        "98": 325,
+        "99": 330
+      },
+      "source_rgb_matches_original_final_by_slot": {
+        "96": 0,
+        "97": 0,
+        "98": 325,
+        "99": 123
+      }
+    },
+    "1888": {
+      "original_full_sha256": "7de0e805f07234d0b7b6c4c526eea79b5c6c523ff594c09ddc9970de238eede7",
+      "upper_to_lower_translation_dx_dy": [
+        0,
+        113
+      ],
+      "exact_nonempty_RGBA_alias_pairs": [
+        "98->97",
+        "99->96"
+      ],
+      "alpha_differences": 0,
+      "rgba_differences": 0,
+      "source_emit_by_slot": {
+        "96": 322,
+        "97": 324,
+        "98": 324,
+        "99": 322
+      },
+      "source_rgb_matches_original_final_by_slot": {
+        "96": 0,
+        "97": 0,
+        "98": 324,
+        "99": 120
+      }
+    },
+    "2208": {
+      "original_full_sha256": "f9ca59c19dc3e8d51c7ca1dbce25d5dc14e56ba36011128abbadee8cec0e7b4a",
+      "upper_to_lower_translation_dx_dy": [
+        -13,
+        112
+      ],
+      "exact_nonempty_RGBA_alias_pairs": [
+        "98->97",
+        "99->96"
+      ],
+      "alpha_differences": 0,
+      "rgba_differences": 0,
+      "source_emit_by_slot": {
+        "96": 313,
+        "97": 317,
+        "98": 317,
+        "99": 313
+      },
+      "source_rgb_matches_original_final_by_slot": {
+        "96": 300,
+        "97": 291,
+        "98": 304,
+        "99": 265
+      }
+    }
+  },
+  "cross_phase_registration_changes_from_countdown_to_postGO": {
+    "delta_dx": -13,
+    "delta_dy": -1
+  },
+  "two_native_countdown_lower_pair_deletion_zero_effect_frames": [
+    1872,
+    1888
+  ],
+  "all_four_guest_frames_source_plane_sha_and_original_stock_sha_verified_against_independent_native_reports": true,
+  "postGO_source_visible_alpha_not_unique_PPU_paint_proof": true,
+  "original_stock_RGB_match_not_same_as_causal_PPUpixel_contribution": true,
+  "no_confirmation_of_transition_moment_between1888_and2208": true,
+  "hd_artistic_or_product_admission": false,
+  "limits": "Four separately controlled genuine USA 2P PPU source snapshots. Both source pairs are exact RGBA aliases within each frame, but upper-to-lower pixel shift changes by frame2208. Source-vs-final RGB matches cannot establish full BG/window/OBJ pixel ownership. No causal PPU pair removal post-GO, no 4K acceptance, no commercial art authorization."
+}

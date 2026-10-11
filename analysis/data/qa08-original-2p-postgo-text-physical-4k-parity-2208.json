@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "status": "exact-native-capture-pixel-parity",
+  "successful_aot_run_id": 38120828291,
+  "native_artifact_id": 11695173178,
+  "exact_original_2p_guest_frame": 2208,
+  "original_source_logical_size": [
+    342,
+    224
+  ],
+  "original_source_full_rgba_sha256": "f9ca59c19dc3e8d51c7ca1dbce25d5dc14e56ba36011128abbadee8cec0e7b4a",
+  "native_internal_original_density": 4,
+  "native_density_original_size": [
+    1368,
+    896
+  ],
+  "native_original_density_rgba_sha256": "776963ddc3c50f8824a0b026251aee5ae05296a841a135c1ff55eff119cec108",
+  "software_physical_output_size": [
+    3840,
+    2160
+  ],
+  "output_viewport": [
+    0,
+    0,
+    3840,
+    2160
+  ],
+  "native_physical_original_capture_rgba_sha256": "29f6ef1f9b5965d32818228182922e337a0570433b5929c89e285af2969a0fac",
+  "native_source_pixel_aspect_ratio": [
+    7,
+    6
+  ],
+  "software_sdl2_nearest_fixed_point_bits": 16,
+  "wide_horizontal_fit": [
+    512,
+    513
+  ],
+  "source_original_full_224_rows_preserved": true,
+  "software_physical_capture_matches_exact_source_PAR_projection": true,
+  "original_ppu_alpha_is_not_output_opacity": true,
+  "output_alpha_opaque_255": true,
+  "physical_output_comparison_source": "baldosa-evidence/ws342_physical_4k_frame2208.json",
+  "full_screen_device_or_monitor_test_performed": false,
+  "native_renderer_widescreen_authored_HD_4K_certificate": false,
+  "foreground_text_BG_OBJ_colour_math_owner_established": false,
+  "artistic_remastered_racer_likeness_approved": false,
+  "limits": "Exact Native original 2P guest2208 complete source/4x/3840x2160 software physical screenshot pixel mapping with 7:6 PAR. This is not proof of real SDL hardware/device startup, text compositor cause, 3D remaster or Windows release quality."
+}

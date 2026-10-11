@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "status": "source-authenticated-original-native-2p-postgo-red5-add13-colour-math-signature",
+  "native_run_id": 38120828291,
+  "native_artifact_id": 11695173178,
+  "original_guest_frame": 2208,
+  "raster": [
+    342,
+    224
+  ],
+  "original_stock_sha256": "f9ca59c19dc3e8d51c7ca1dbce25d5dc14e56ba36011128abbadee8cec0e7b4a",
+  "real_original_source_rgba_sha256": {
+    "96": "658d79c05524ca40af81f92ce6bb0d49adbe6bbcbc07d599e7e8bcdbdd1eb580",
+    "97": "e9e924050ad5da46f24d4be4b3f587e80c80c8bb04bec19014e38cf06c0e5b44",
+    "98": "de587f5986b30663f0178a0140e746b84e601716941bb09dacab5426e8d56fe2",
+    "99": "836da1c261ce6ea07cc9a7a66f5a4443e494388e07cefb6da232a4b98764b564"
+  },
+  "original_native_channel_bits": 5,
+  "transfer_expand5": "(value_5bit << 3) | (value_5bit >> 2)",
+  "exact_text_signature_native5_RGB_delta": [
+    13,
+    0,
+    0
+  ],
+  "per_real_original_OAM_slot": {
+    "96": {
+      "source_emitted": 313,
+      "stock_RGB_nonmatch": 13,
+      "red5_add13": 13,
+      "other_nonmatches": 0,
+      "red8_delta_107": 13,
+      "red8_delta_108": 0
+    },
+    "97": {
+      "source_emitted": 317,
+      "stock_RGB_nonmatch": 26,
+      "red5_add13": 0,
+      "other_nonmatches": 26,
+      "red8_delta_107": 0,
+      "red8_delta_108": 0
+    },
+    "98": {
+      "source_emitted": 317,
+      "stock_RGB_nonmatch": 13,
+      "red5_add13": 13,
+      "other_nonmatches": 0,
+      "red8_delta_107": 13,
+      "red8_delta_108": 0
+    },
+    "99": {
+      "source_emitted": 313,
+      "stock_RGB_nonmatch": 48,
+      "red5_add13": 22,
+      "other_nonmatches": 26,
+      "red8_delta_107": 19,
+      "red8_delta_108": 3
+    }
+  },
+  "original_upper_lower_front13_colour_signature_screen_translation": [
+    0,
+    112
+  ],
+  "native5_examples": [
+    {
+      "source_red5": 2,
+      "final_red5": 15,
+      "source_RGB8": 16,
+      "final_RGB8": 123,
+      "deltaRGB8": 107
+    },
+    {
+      "source_red5": 3,
+      "final_red5": 16,
+      "source_RGB8": 24,
+      "final_RGB8": 132,
+      "deltaRGB8": 108
+    },
+    {
+      "source_red5": 6,
+      "final_red5": 19,
+      "source_RGB8": 49,
+      "final_RGB8": 156,
+      "deltaRGB8": 107
+    },
+    {
+      "source_red5": 9,
+      "final_red5": 22,
+      "source_RGB8": 74,
+      "final_RGB8": 181,
+      "deltaRGB8": 107
+    },
+    {
+      "source_red5": 14,
+      "final_red5": 27,
+      "source_RGB8": 115,
+      "final_RGB8": 222,
+      "deltaRGB8": 107
+    }
+  ],
+  "inference_fits_SNES_fixed_red_additive_color_math": true,
+  "actual_SNES_PPU_color_math_registers_proven": false,
+  "exact_compositor_owner_and_native_counterfactual_proven": false,
+  "authored_3d_art_HD_fidelity_or_source_erasure_authorized": false,
+  "limits": "Four original native source-isolated OAM planes vs stock final Original frame2208 show 48 source-positive pixels with red5 final=source+13, green5/blue5 unchanged; these observations cannot by themselves resolve exact PPU register/color-math enable/window or source-unique final contribution."
+}

@@ -2,12 +2,12 @@
   "capture_manifest_sha256": "2c14161830eb282033ff3294b63a8a4d3cce65c35b64d895d0f1ab67db5e9d86",
   "comparison": {
     "classification": "editorial_same_capture_crop_not_independent_original_render",
-    "description": "Two simultaneous views of the same recorded wide capture; left is centre crop, right is full field",
+    "description": "Same-capture exact-time centre crop and full world, both at identical display scale",
     "duration_seconds": 5,
     "file": "same-capture-centre-vs-wide-5s.mp4",
     "independent_guest_wram_state_comparison": false,
     "independent_original_capture": false,
-    "sha256": "9e34825e5a628d6484ab7567a3575af393c8a6aebcc6703f725545f0eed935e4"
+    "sha256": "6291abda1f52f47425405757c049c70aa245133a39a138b263a2b4e2bf335e5f"
   },
   "guest_crc_capture_off_equals_on": true,
   "no_temporal_interpolation": true,
@@ -24,17 +24,17 @@
     ],
     "description": "Uninterrupted authentic 342-column world; side masks slide out to reveal already-recorded margins",
     "duration_seconds": 7,
-    "editorial_overlay": "Opaque black side panels only",
+    "editorial_overlay": "Animated black side mattes plus labels in exterior editorial letterbox",
     "file": "authentic-widescreen-reveal-7s.mp4",
-    "sha256": "c2319c4d63d5822985d51d4f1469be166456d73aaf990c78e8e077802e82a539"
+    "sha256": "92ea56611a18ee001ae101f36bc0f2600dc9ca117581edd8072df9535f831414"
   },
   "review_frame_sha256": {
-    "authentic-widescreen-reveal-7s-review-00.png": "2affd20dd95932e1df458e1132ade8d98cc2fe51d93f2bdb3c22c74ad9349c1a",
-    "authentic-widescreen-reveal-7s-review-01.png": "5d5e23dd1b8157c288833379789655e97055c275f5d6353703dd062e905a884e",
-    "authentic-widescreen-reveal-7s-review-02.png": "d8d44d624e9fce35e503f8b2546d85790c64890274c21af1c2dcdc6d152c4fac",
-    "same-capture-centre-vs-wide-5s-review-00.png": "f7588536e23173aae5b0a34d6cfb73f89f4a2e8adb7886f3d8846b0b07d9a48f",
-    "same-capture-centre-vs-wide-5s-review-01.png": "82666b16db0c5c4d11fdddc14a38108d05421b5181e16d61c08837155e62f095",
-    "same-capture-centre-vs-wide-5s-review-02.png": "873e30829222f166f0a84901e7544d9b84565d41102fdea788594133fa30b016"
+    "authentic-widescreen-reveal-7s-review-00.png": "27dfcdb27999029cabcc1674bfed59e7d228c14f48652d634c7c144c03464cc6",
+    "authentic-widescreen-reveal-7s-review-01.png": "178c90111ddfc6a37be2ac804483d947d8ba0618af6514798f00f5742ba66851",
+    "authentic-widescreen-reveal-7s-review-02.png": "5ba5854f74388216e07c1a8c7a421e80e560c89bc457d2175a2c3ef519583152",
+    "same-capture-centre-vs-wide-5s-review-00.png": "22bc42c9589edce7162305c968ef680404cf8c33587eb5e8486288b22668312f",
+    "same-capture-centre-vs-wide-5s-review-01.png": "97ae0662ef1fba96a17118a0034573dff2cf65c26771f0389d1d5bf115b7817f",
+    "same-capture-centre-vs-wide-5s-review-02.png": "ec65be0714b094c72b3579fc65597b7d01c263ff549e402ffc856c36e0354e60"
   },
   "schema": "UR-RECRUITMENT-CONTINUOUS-PRESENTATION/1",
   "source": "media/showcase/2026-10-10/recruitment/continuous/ur-native-2p-clean-600f.mp4",

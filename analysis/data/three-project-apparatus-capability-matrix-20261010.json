@@ -497,6 +497,21 @@
       ],
       "gap": "Same input/ROM/candidate not always proven across producer routes",
       "proof": "Shared capture identity with separate independent acceptance results"
+    },
+    {
+      "id": "gate-cache-dependencies",
+      "domain": "operations",
+      "priority": "P1",
+      "decision": "pilot_read_only",
+      "ur": [
+        "docs/CI-WORKFLOW-BEST-PRACTICES.md"
+      ],
+      "baldosa": [],
+      "malmazuke": [
+        "tools/unirally_lab/native/gate_identity.py"
+      ],
+      "gap": "Need exact input identity for previously obtained tests",
+      "proof": "Adversarial dependency-changed regression"
     }
   ]
 }

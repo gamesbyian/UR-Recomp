@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "status": "accepted-2p-postgo-final-original-screen-fixed-red-channel-offset",
+  "accepted_native_AOT_id": 38120828291,
+  "artifact": 11695173178,
+  "original_guest_frame": 2208,
+  "full_original_sha256": "f9ca59c19dc3e8d51c7ca1dbce25d5dc14e56ba36011128abbadee8cec0e7b4a",
+  "source_slot98_sha256": "de587f5986b30663f0178a0140e746b84e601716941bb09dacab5426e8d56fe2",
+  "source_slot96_sha256": "658d79c05524ca40af81f92ce6bb0d49adbe6bbcbc07d599e7e8bcdbdd1eb580",
+  "source_positive_upper98_RGB_differing_count": 13,
+  "source_positive_lower96_RGB_differing_count": 13,
+  "exact_colour_delta_final_minus_source": [
+    107,
+    0,
+    0
+  ],
+  "upper_original_screen_logical_XY": [
+    [
+      133,
+      47
+    ],
+    [
+      132,
+      48
+    ],
+    [
+      133,
+      48
+    ],
+    [
+      135,
+      48
+    ],
+    [
+      136,
+      48
+    ],
+    [
+      132,
+      49
+    ],
+    [
+      133,
+      49
+    ],
+    [
+      135,
+      49
+    ],
+    [
+      132,
+      50
+    ],
+    [
+      133,
+      50
+    ],
+    [
+      132,
+      51
+    ],
+    [
+      133,
+      51
+    ],
+    [
+      132,
+      52
+    ]
+  ],
+  "lower_original_screen_logical_XY": [
+    [
+      133,
+      159
+    ],
+    [
+      132,
+      160
+    ],
+    [
+      133,
+      160
+    ],
+    [
+      135,
+      160
+    ],
+    [
+      136,
+      160
+    ],
+    [
+      132,
+      161
+    ],
+    [
+      133,
+      161
+    ],
+    [
+      135,
+      161
+    ],
+    [
+      132,
+      162
+    ],
+    [
+      133,
+      162
+    ],
+    [
+      132,
+      163
+    ],
+    [
+      133,
+      163
+    ],
+    [
+      132,
+      164
+    ]
+  ],
+  "full_rgb_source_upper_to_lower_compared_after_screen_shift": true,
+  "upper_lower_corresponding_final_original_rgb_equal": true,
+  "upper_lower_corresponding_source_RGB_equal": true,
+  "exact_full_original_screen_space_translation": [
+    0,
+    112
+  ],
+  "racer_upper_to_lower_rgba_registration_is_different": [
+    -13,
+    112
+  ],
+  "original_screenshot_text_overlay_visually_at_affected_coordinates": true,
+  "SNES_colour_math_BG_window_priority_owner_proven": false,
+  "renderer_HD_overpaint_authorized": false,
+  "limits": "At original USA native guest2208, 13 original source-positive upper and lower slot alpha positions share exact observed red RGB offset+107 on stock final PPU beneath on-screen GIVE text. This is no proof of actual SNES colour-math/overlay layer owner or a general masking rule."
+}

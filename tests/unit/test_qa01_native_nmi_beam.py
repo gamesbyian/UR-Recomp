@@ -55,7 +55,22 @@ class OriginalNativeSwitcherBeamTests(unittest.TestCase):
         self.assertEqual(row["framework_beam_hpos"], 816)
         self.assertEqual(row["native_cpu_master_cycles"], 945374)
         self.assertTrue(data["framework_beam_vs_original_cpu_phase_unaligned"])
+        self.assertTrue(data["native_cpu_master_counter_is_precharged_basic_block_not_pha_cycle"])
+        self.assertTrue(data["modeled_beam_hpos_not_proven_instruction_aligned"])
         self.assertEqual(data["accepted_usa_course_count_added"], 0)
+
+    def test_manual_workflow_enforces_exact_execution_and_no_redundant_job(self):
+        wf = (ROOT / ".github/workflows/qa01-switcher-original-2014.yml").read_text(encoding="utf-8")
+        self.assertEqual(wf.count("  fresh-paired-switcher-nmi:"), 1)
+        self.assertIn("if: ${{ !inputs.fresh_paired_nmi_probe }}", wf)
+        self.assertIn("if: ${{ inputs.fresh_paired_nmi_probe }}", wf)
+        self.assertIn('test "${{ inputs.source_horizon }}" = "22000"', wf)
+        self.assertIn('test "${{ inputs.stack_writer_probe }}" != "true"', wf)
+        self.assertIn("UR_QA_NATIVE_STACK_FIRST: \"5778\"", wf)
+        self.assertIn("UR_QA_NATIVE_STACK_LAST: \"5782\"", wf)
+        self.assertIn('SNESRECOMP_WLOG_ADDR_CAP: "2048"', wf)
+        self.assertIn("qa01_switcher_nmi_beam_crosswalk.py", wf)
+        self.assertEqual(wf.count("      - name: Reuse pinned fresh"), 0)
 
     def test_malformed_misphased_duplicate_or_unauthenticated_fails_closed(self):
         for invalid in (

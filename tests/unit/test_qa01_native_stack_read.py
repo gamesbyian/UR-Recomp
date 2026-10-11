@@ -114,6 +114,38 @@ class NativeStackReadTests(unittest.TestCase):
             with self.subTest(bank=bank), self.assertRaises(ValueError):
                 report.summarize(ARM + invalid)
 
+    def test_interpreter_two_byte_pull_shape_is_a_candidate_not_pla_proof(self):
+        # Pinned interp816_pullWord calls two interp816_pullByte reads,
+        # and bridge_bus_read routes them through cpu_read8.
+        observed = (
+            "QANATIVEREAD f=5781 bank=00 addr=01DD width=1 value=0004 "
+            "A=0000 S=01DC M=1 scope=I_NMI_M1X1\n"
+            "QANATIVEREAD f=5781 bank=00 addr=01DE width=1 value=0040 "
+            "A=0000 S=01DC M=1 scope=I_NMI_M1X1\n"
+        )
+        data = report.summarize(ARM + observed)
+        self.assertEqual(data[
+            "native_post_writer_same_frame_4004_two_byte_target_row_pairs"], [[0,1]])
+        self.assertEqual(data[
+            "native_post_writer_same_frame_4004_two_byte_pair_candidate_count"], 1)
+        self.assertEqual(data[
+            "same_native_frame_post_writer_callback_read_4004_candidate_count"], 0)
+        self.assertTrue(data[
+            "cpu_state_s_and_m_at_interpreter_bridge_callback_not_proven_internal_interp_registers"])
+        self.assertTrue(data[
+            "filtered_read_row_adjacency_does_not_prove_guest_opcode_adjacency"])
+        self.assertEqual(data["release_complete_event_credit"], 0)
+        for changed in (
+            observed.replace("value=0040", "value=0042"),
+            observed.replace("addr=01DE", "addr=01DD"),
+            observed.replace("f=5781 bank=00 addr=01DE",
+                             "f=5782 bank=00 addr=01DE"),
+            observed.replace("addr=01DD width=1", "addr=01DD width=2"),
+        ):
+            with self.subTest(sample=changed[-120:]):
+                self.assertEqual(report.summarize(ARM + changed)[
+                    "native_post_writer_same_frame_4004_two_byte_pair_candidate_count"], 0)
+
     def test_zero_rows_is_only_bounded_negative(self):
         data = report.summarize(ARM)
         self.assertTrue(data["zero_count_is_bounded_native_negative_not_no_reader_ever"])

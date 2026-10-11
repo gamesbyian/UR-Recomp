@@ -58,6 +58,11 @@ READ = {
     "same_native_frame_post_writer_callback_read_4004_candidate_count": 1,
     "same_frame_post_writer_stack_position_consistent_word_4004_count": 0,
     "stack_pointer_matches_bus_start_not_proof_of_pla": True,
+    "native_post_writer_same_frame_4004_two_byte_target_row_pairs": [],
+    "native_post_writer_same_frame_4004_two_byte_pair_candidate_count": 0,
+    "interpreter_16bit_pla_uses_two_independent_byte_bus_reads": True,
+    "filtered_read_row_adjacency_does_not_prove_guest_opcode_adjacency": True,
+    "cpu_state_s_and_m_at_interpreter_bridge_callback_not_proven_internal_interp_registers": True,
     "release_complete_event_credit": 0,
 }
 
@@ -71,6 +76,7 @@ class NativeStackReadPairCrosswalkTests(unittest.TestCase):
         self.assertTrue(out["writer_and_reader_share_pair_bytes"])
         self.assertEqual(out["native_same_frame_4004_word_read_candidates"], 1)
         self.assertEqual(out["native_stack_pointer_consistent_4004_word_read_candidates"], 0)
+        self.assertEqual(out["native_interpreter_shaped_4004_two_byte_candidate_count"], 0)
         self.assertFalse(out["native_guest_result_consumer_proven"])
         self.assertFalse(out["source_original_and_native_beam_phase_alignment_proven"])
         self.assertEqual(out["complete_usa_course_credit"], 0)
@@ -176,6 +182,32 @@ class NativeStackReadPairCrosswalkTests(unittest.TestCase):
             with self.subTest(frames=[r["native_snes_frame_counter"] for r in rows]):
                 with self.assertRaises(ValueError):
                     x.summarize(BEAM, candidate)
+
+    def test_real_report_parser_and_crosswalk_agree_on_two_byte_shape(self):
+        journal = (
+            "QANATIVEARM f=5781 bank=00 addr=01DD width=2 value=4004 "
+            "A=4004 S=01DD scope=I_NMI_M1X1\n"
+            "QANATIVEREAD f=5781 bank=00 addr=01DD width=1 value=0004 "
+            "A=0000 S=01DC M=1 scope=InterpPull\n"
+            "QANATIVEREAD f=5781 bank=00 addr=01DE width=1 value=0040 "
+            "A=0000 S=01DC M=1 scope=InterpPull\n"
+        )
+        parsed = reads.summarize(journal)
+        parsed["paired_report_bytes_sha256"] = SHA
+        parsed["independently_authenticated_original_native_pair"] = PAIR
+        result = x.summarize(BEAM, parsed)
+        self.assertEqual(result["native_interpreter_shaped_4004_two_byte_candidate_pairs"], [[0,1]])
+        self.assertEqual(result["native_interpreter_shaped_4004_two_byte_candidate_count"], 1)
+        self.assertFalse(result["native_guest_result_consumer_proven"])
+        for field, fake in (
+            ("native_post_writer_same_frame_4004_two_byte_pair_candidate_count", 0),
+            ("native_post_writer_same_frame_4004_two_byte_target_row_pairs", [[1,0]]),
+            ("interpreter_16bit_pla_uses_two_independent_byte_bus_reads", False),
+        ):
+            candidate = copy.deepcopy(parsed)
+            candidate[field] = fake
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                x.summarize(BEAM, candidate)
 
     def test_manual_workflow_produces_separate_crosscheck_from_existing_logs(self):
         wf = (ROOT / ".github/workflows/qa01-switcher-original-2014.yml").read_text()

@@ -95,6 +95,23 @@ def summarize(log: str) -> dict:
         if row["stack_pointer_equals_read_start_at_callback"]
         and row["memory_width_flag_at_read"] == 0
     ]
+    # The pinned interp816_pullWord() calls interp816_pullByte() twice,
+    # each through interp816_read -> bridge_bus_read -> cpu_read8. Native
+    # word restoration can therefore leave TWO byte rows rather than one
+    # cpu_read16 row. Adjacent *filtered target rows* do NOT establish
+    # consecutive guest instructions or a real PLA; this remains a candidate.
+    byte_pairs = []
+    for idx, (lo, hi) in enumerate(zip(result, result[1:])):
+        if (lo["observed_after_4004_writer_callback_started"]
+                and hi["observed_after_4004_writer_callback_started"]
+                and lo["native_snes_frame_counter"] == 5781
+                and hi["native_snes_frame_counter"] == 5781
+                and lo["bus_read_width"] == hi["bus_read_width"] == 1
+                and lo["word_start"] == "01DD"
+                and hi["word_start"] == "01DE"
+                and lo["read_value"] == "0004"
+                and hi["read_value"] == "0040"):
+            byte_pairs.append([idx, idx + 1])
     by_addr = {"7E:01DD": 0, "7E:01DE": 0}
     for row in result:
         for address in row["target_stack_bytes_touched"]:
@@ -105,6 +122,12 @@ def summarize(log: str) -> dict:
         "native_bus_read_attempt_count": len(result),
         "native_read_observer_armed_by_real_nmi_4004_writer": True,
         "native_bus_read_attempts_by_target": by_addr,
+        "native_post_writer_same_frame_4004_two_byte_target_row_pairs": byte_pairs,
+        "native_post_writer_same_frame_4004_two_byte_pair_candidate_count":
+            len(byte_pairs),
+        "interpreter_16bit_pla_uses_two_independent_byte_bus_reads": True,
+        "filtered_read_row_adjacency_does_not_prove_guest_opcode_adjacency": True,
+        "cpu_state_s_and_m_at_interpreter_bridge_callback_not_proven_internal_interp_registers": True,
         "native_stack_read_attempts": result,
         "same_native_frame_post_writer_callback_read_4004_candidate_count":
             len(post_writer_same_frame_word_4004),

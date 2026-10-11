@@ -135,6 +135,33 @@ def summarize(writer: dict, reader: dict) -> dict:
                 derived_strict += 1
     if tally != actual:
         raise ValueError("journal read counts disagree with actual declared target bytes")
+    # Independently rederive the two-byte interpreter-shaped candidate;
+    # a separate count cannot be trusted without the actual ordered rows.
+    expected_pairs = []
+    for index, (lo, hi) in enumerate(zip(rows, rows[1:])):
+        if (lo["observed_after_4004_writer_callback_started"] is True
+                and hi["observed_after_4004_writer_callback_started"] is True
+                and lo["native_snes_frame_counter"] == 5781
+                and hi["native_snes_frame_counter"] == 5781
+                and lo["bus_read_width"] == hi["bus_read_width"] == 1
+                and lo["word_start"] == "01DD"
+                and hi["word_start"] == "01DE"
+                and lo["read_value"] == "0004"
+                and hi["read_value"] == "0040"):
+            expected_pairs.append([index, index + 1])
+    if (reader.get("native_post_writer_same_frame_4004_two_byte_target_row_pairs")
+            != expected_pairs
+            or type(reader.get(
+                "native_post_writer_same_frame_4004_two_byte_pair_candidate_count")) is not int
+            or reader["native_post_writer_same_frame_4004_two_byte_pair_candidate_count"]
+               != len(expected_pairs)
+            or reader.get("interpreter_16bit_pla_uses_two_independent_byte_bus_reads")
+               is not True
+            or reader.get("filtered_read_row_adjacency_does_not_prove_guest_opcode_adjacency")
+               is not True
+            or reader.get("cpu_state_s_and_m_at_interpreter_bridge_callback_not_proven_internal_interp_registers")
+               is not True):
+        raise ValueError("native interpreter-like byte-read pair is unverified")
     broad = reader.get("same_native_frame_post_writer_callback_read_4004_candidate_count")
     strict = reader.get("same_frame_post_writer_stack_position_consistent_word_4004_count")
     if (type(broad) is not int or type(strict) is not int
@@ -154,6 +181,9 @@ def summarize(writer: dict, reader: dict) -> dict:
         "native_read_targets_tallied": actual,
         "native_same_frame_4004_word_read_candidates": broad,
         "native_stack_pointer_consistent_4004_word_read_candidates": strict,
+        "native_interpreter_shaped_4004_two_byte_candidate_pairs": expected_pairs,
+        "native_interpreter_shaped_4004_two_byte_candidate_count": len(expected_pairs),
+        "native_internal_interp_stack_state_not_observed_by_bus_logger": True,
         "writer_and_reader_share_pair_bytes": True,
         "single_physical_writer_event_correlated_by_callbacks_not_cpu_cycle": True,
         "read_callback_after_writer_callback_not_proven_guest_restore": True,

@@ -17,6 +17,21 @@ ORIGINAL = {
     "paired_report_bytes_sha256": "a" * 64,
     "independently_authenticated_original_native_pair": {"course_id": "course:04"},
     "source_hcounter_vs_native_framework_hpos_unaligned": True,
+    "observed_original_nmi_pha_horizontal_clocks": [
+        {"original_cpu_frame_before": frame,
+         "original_pha_pc": "00:858E",
+         "accumulator_before": saved_a,
+         "stack_pointer_before": stack,
+         "ppu_vcounter_before": 225,
+         "source_original_cpu_hcounter_before": h}
+        for frame, saved_a, stack, h in (
+            (5778, "4040", "01E2", 800),
+            (5779, "4004", "01EA", 807),
+            (5780, "4042", "01DE", 816),
+            (5781, "4042", "01E7", 832),
+            (5782, "4004", "01E5", 844),
+        )
+    ],
     "saved_4042_original_pha_horizontal_clock": {
         "original_cpu_frame_before": 5780,
         "ppu_vcounter_before": 225,
@@ -61,6 +76,11 @@ class SwitcherNmiBeamCrosswalkTests(unittest.TestCase):
         self.assertTrue(data["cpu_architectural_return_parity_not_proven"])
         self.assertEqual(data["strict_guest_relative_result_original_native"], [4704, 4702])
         self.assertEqual(data["completed_usa_course_credit"], 0)
+        self.assertEqual(data["source_4004_accumulator_match_frames"], [5779, 5782])
+        self.assertEqual(data["source_01de_stack_pointer_match_frames"], [5780])
+        self.assertTrue(data["no_original_nmi_matches_both_saved_a_and_pre_pha_s"])
+        self.assertEqual(len(data["all_five_original_nmi_phase_candidates"]), 5)
+        self.assertTrue(data["candidate_beam_reading_cannot_rank_interrupt_identity"])
         self.assertEqual(data["paired_report_bytes_sha256"], "a" * 64)
 
     def test_matching_raw_horizontal_number_is_still_not_phase_proof(self):
@@ -71,6 +91,20 @@ class SwitcherNmiBeamCrosswalkTests(unittest.TestCase):
         self.assertTrue(data["matching_scanline_alone_is_not_causal_parity"])
         self.assertTrue(data["clock_unit_origin_and_execution_phase_equivalence_not_proven"])
 
+    def test_accumulator_and_stack_agreements_are_different_source_nm_is(self):
+        native = copy.deepcopy(NATIVE)
+        native["native_original_nmi_writer_beam"]["framework_beam_hpos"] = 816
+        data = cross.summarize(ORIGINAL, native)
+        rows = data["all_five_original_nmi_phase_candidates"]
+        writer = next(r for r in rows if r["original_cpu_frame"] == 5780)
+        self.assertEqual(writer["raw_h_delta_native_minus_original"], 0)
+        self.assertTrue(writer["same_pre_pha_stack_pointer_as_native_01de"])
+        self.assertFalse(writer["same_saved_accumulator_word_as_native_4004"])
+        earlier = next(r for r in rows if r["original_cpu_frame"] == 5779)
+        self.assertTrue(earlier["same_saved_accumulator_word_as_native_4004"])
+        self.assertFalse(earlier["same_pre_pha_stack_pointer_as_native_01de"])
+        self.assertTrue(earlier["possible_same_interrupt_not_proven"])
+
     def test_invalid_source_or_native_writer_never_crosswalks(self):
         for key, value in (
             ("schema", "incorrect"),
@@ -78,6 +112,9 @@ class SwitcherNmiBeamCrosswalkTests(unittest.TestCase):
             ("saved_4042_original_pha_horizontal_clock.original_cpu_frame_before", 5781),
             ("saved_4042_original_pha_horizontal_clock.accumulator_before", "4004"),
             ("saved_4042_original_pha_horizontal_clock.original_pha_pc", "80:858F"),
+            ("observed_original_nmi_pha_horizontal_clocks", []),
+            ("observed_original_nmi_pha_horizontal_clocks", [
+                {"original_cpu_frame_before": 5780}]),
         ):
             src = copy.deepcopy(ORIGINAL)
             obj, member = (key.split(".", 1) + [None])[:2]

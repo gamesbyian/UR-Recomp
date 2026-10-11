@@ -79,3 +79,5 @@ tools/patches/snesrecomp-live-input-reload.patch
 tools/prepare_native_widescreen_product.py
 tools/toolchain-entries/sdl3.json
 tools/toolchain-entries/snesrecomp.json
+.github/ci/modern-native-shared-paths.txt
+tools/classify_modern_native_ci.py

@@ -160,7 +160,7 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
             with zipfile.ZipFile(archive) as z:
                 originals = {n: z.read(n) for n in z.namelist()}
             payload = bytearray(originals[producer.PREFIX + producer.EXE])
-            payload[132:134] = b"\\x4c\\x01"  # Intel 386, not AMD64.
+            payload[132:134] = b"\x4c\x01"  # Intel 386, not AMD64.
             manifest = json.loads(originals[producer.PREFIX + producer.MANIFEST])
             for item in manifest["immutable_files"]:
                 if item["path"] == producer.EXE:

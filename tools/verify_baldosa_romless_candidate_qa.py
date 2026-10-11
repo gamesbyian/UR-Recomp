@@ -66,7 +66,7 @@ def check_pe_header(archive: zipfile.ZipFile, info: zipfile.ZipInfo) -> None:
             raise ValueError("Baldosa candidate executable PE offset invalid")
         stream.seek(header_offset)
         header = stream.read(26)
-    if (len(header) != 26 or header[:4] != b"PE\\0\\0"
+    if (len(header) != 26 or header[:4] != b"PE\0\0"
             or struct.unpack_from("<H", header, 4)[0] != 0x8664
             or struct.unpack_from("<H", header, 24)[0] != 0x20B):
         raise ValueError("Baldosa candidate executable must be AMD64 PE32+")
@@ -74,10 +74,10 @@ def check_pe_header(archive: zipfile.ZipFile, info: zipfile.ZipInfo) -> None:
 
 def check_launcher_policy(payload: bytes) -> bool:
     """Check invariant safety boundaries, not the evolving producer's byte template."""
-    if (not payload.startswith(b"@echo off\\r\\nsetlocal DisableDelayedExpansion\\r\\n")
-            or not payload.endswith(b"\\r\\n")
-            or payload.replace(b"\\r\\n", b"").find(b"\\n") != -1
-            or b"\\0" in payload):
+    if (not payload.startswith(b"@echo off\r\nsetlocal DisableDelayedExpansion\r\n")
+            or not payload.endswith(b"\r\n")
+            or payload.replace(b"\r\n", b"").find(b"\n") != -1
+            or b"\0" in payload):
         raise ValueError("Baldosa launcher has noncanonical CMD encoding or entry")
     value = payload.decode("utf-8")
     critical = (
@@ -90,7 +90,6 @@ def check_launcher_policy(payload: bytes) -> bool:
         USA_SHA256,
         "UR-BALDOSA-STARTUP-ROM-MISSING",
         "UR-BALDOSA-STARTUP-ROM-INVALID",
-        "UR-BALDOSA-STARTUP-SAVE-ROOT",
         'set "SNESRECOMP_USER_DATA_DIR=%UR_RECOMP_USER_DATA_ROOT%"',
         'set "UR_BALDOSA_MODERN_ROOT=1"',
         'set "UR_BALDOSA_MODERN_PROFILE_SELECT=1"',
@@ -98,7 +97,8 @@ def check_launcher_policy(payload: bytes) -> bool:
         'if "%ERRORLEVEL%"=="7"',
         "exit /b %ERRORLEVEL%",
     )
-    if any(value.count(marker) != 1 for marker in critical):
+    if (any(value.count(marker) != 1 for marker in critical)
+            or "UR-BALDOSA-STARTUP-SAVE-ROOT" not in value):
         raise ValueError("Baldosa launcher missing canonical safety boundary")
     # Existing older source revisions do not have a reparse walk. Report
     # their limitation without incorrectly asserting current-source identity.
@@ -113,8 +113,8 @@ def check_launcher_policy(payload: bytes) -> bool:
 
 
 def check_readme_policy(payload: bytes, source_sha: str) -> None:
-    if (b"\\r" in payload or not payload.endswith(b"\\n")
-            or b"\\0" in payload):
+    if (b"\r" in payload or not payload.endswith(b"\n")
+            or b"\0" in payload):
         raise ValueError("Baldosa candidate README is not canonical LF text")
     value = payload.decode("utf-8")
     mandatory = (

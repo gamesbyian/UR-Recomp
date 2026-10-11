@@ -135,6 +135,51 @@ def verify_upper_original_rear_source_mirrors(stock: bytes, exceptions: list[dic
     return mirrors
 
 
+def check_candidate_preserves_rear_source_gaps(
+    stock: bytes, candidate: bytes, density: int,
+    source_gaps: list[dict],
+) -> dict:
+    """A strict negative guard at source-confirmed 1856 lower pixel gaps.
+
+    This does not authenticate the candidate process or prove any generic
+    BG/window priority. It only prevents overpainting exact stock RGBA.
+    """
+    if density not in (1, 2, 3, 4):
+        raise ValueError("only 1x..4x original/HD presentation density")
+    if len(stock) != WIDTH * HEIGHT * 4 or len(candidate) != (
+            WIDTH * HEIGHT * 4 * density * density):
+        raise ValueError("complete 342-wide stock and scaled RGBA required")
+    altered = 0
+    examples = []
+    for gap in source_gaps:
+        x, y = gap["xy"]
+        if not (0 <= x < WIDTH and 112 <= y < HEIGHT):
+            raise ValueError("not a genuine lower viewport source gap")
+        idx = 4 * (y * WIDTH + x)
+        actual = list(stock[idx:idx + 3])
+        if actual != gap["original_stock_rgb"]:
+            raise ValueError("candidate guard input does not match original gap RGB")
+        for dy in range(density):
+            for dx in range(density):
+                dst = 4 * ((y * density + dy) * (WIDTH * density) +
+                           x * density + dx)
+                if candidate[dst:dst + 4] != stock[idx:idx + 4]:
+                    altered += 1
+                    if len(examples) < 12:
+                        examples.append([x, y, dx, dy])
+    return {
+        "status": ("original-hidden-rear-source-gap-preserved"
+                   if altered == 0 else "original-rear-source-gap-overpaint"),
+        "native_original_guest_frame": FRAME,
+        "protected_logical_original_gap_pixels": len(source_gaps),
+        "protected_density_subpixels": len(source_gaps) * density * density,
+        "changed_protected_density_subpixels": altered,
+        "bounded_changed_examples": examples,
+        "approved_remastered_art": False,
+        "full_guest_candidate_authenticated": False,
+    }
+
+
 def assess(root: Path) -> dict:
     stock_path = root / "baldosa-ws342-captures" / "ur-baldosa-ws342-001856.pam"
     removed_path = (root / "baldosa-ws342-counterfactual-slot96-frame1856" /
@@ -234,14 +279,43 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--native-artifact-root", required=True, type=Path)
     ap.add_argument("--out", required=True, type=Path)
+    ap.add_argument("--candidate", type=Path)
+    ap.add_argument("--density", type=int, choices=(1, 2, 3, 4))
     a = ap.parse_args()
+    if (a.candidate is None) != (a.density is None):
+        ap.error("--candidate and --density must be supplied together")
     report = assess(a.native_artifact_root)
+    if a.candidate is not None:
+        stock = read_pam(a.native_artifact_root /
+                         "baldosa-ws342-captures/ur-baldosa-ws342-001856.pam")
+        header = (
+            f"P7\\nWIDTH {WIDTH * a.density}\\nHEIGHT {HEIGHT * a.density}"
+            "\\nDEPTH 4\\nMAXVAL 255\\nTUPLTYPE RGB_ALPHA\\nENDHDR\\n"
+        ).encode("ascii")
+        contents = a.candidate.read_bytes()
+        if (not contents.startswith(header) or
+                len(contents) != len(header) +
+                    WIDTH * HEIGHT * a.density * a.density * 4):
+            raise ValueError("candidate must be exact source-density P7 RGBA")
+        result = check_candidate_preserves_rear_source_gaps(
+            stock, contents[len(header):], a.density,
+            report["rear_only_source_hidden_by_stock_rgb"]
+        )
+        report["candidate_hidden_rear_source_gap_guard"] = result
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n",
                      encoding="utf-8")
     print("UR_QA08_LOWER_REAR_RGB_GAP " + report["status"] +
           " frame=1856 front96_changed=305 rear_only_visible=161/164" +
           " rear_only_hidden=3 unexpected=0 no_HD_admission=1")
+    if a.candidate is not None:
+        result = report["candidate_hidden_rear_source_gap_guard"]
+        print("UR_QA08_REAR_GAP_HD_GUARD " + result["status"] +
+              f" protected={result['protected_density_subpixels']}" +
+              f" changed={result['changed_protected_density_subpixels']}" +
+              " admitted=0")
+        if result["changed_protected_density_subpixels"]:
+            raise SystemExit(1)
 
 
 if __name__ == "__main__":

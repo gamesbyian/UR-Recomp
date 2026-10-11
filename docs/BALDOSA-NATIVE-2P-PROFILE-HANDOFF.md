@@ -59,6 +59,14 @@ physical-seat authorizations, P1 source profile restriction, duplicate
 IDs, invalid catalog entries, cursor revocation, cancellation and readiness.
 This does not replace the original guest Win32 test or independent QA.
 
+The existing Windows named Records fixture is also reused in an additional
+**fresh process** with one valid named profile and SDL root 2P navigation.
+It must still reach the authentic stock 0x3D setup, emit an explicitly
+unbound `join_unavailable` diagnostic, and leave all historical run+match
+archive files identical. This is a consumer regression for graceful play
+without inventing P2 identity, not a completed played 2P result.
+
+
 ## Shared painter and initialized opponent choice
 
 The two-pad selection UI now uses the **same**

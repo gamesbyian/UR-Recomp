@@ -66,7 +66,9 @@ jobs:
               subprocess.run(['ffmpeg','-hide_banner','-loglevel','error','-y','-i',str(mp4),'-vf','select=eq(n\\,100)','-vsync','vfr','-frames:v','1',str(png)],check=True)
               assert png.stat().st_size>10000
               witness['decoded_frame_100_sha256']=hashlib.sha256(png.read_bytes()).hexdigest()
-              (p/(prefix+'-provenance.json')).write_text(json.dumps(witness,indent=2)+'\\n')
+              (p/(prefix+'-provenance.json')).write_text(json.dumps(witness,indent=2)+'\n')
+          for name in ['provenance.json','03-provenance.json','04-provenance.json']:
+              json.loads((p/name).read_text())
           print('PASS: four independently decoded 1080p / 30fps source-scoped sequences')
           PY
       - name: Commit verified standalone movies (only showcase lane)

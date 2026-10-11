@@ -92,7 +92,7 @@ class CoveredNativePairRemovalTest(unittest.TestCase):
         }
         self.log.write_text(
             f"UR_RACER_HD_WIDE_REMOVE_PAIR frame={frame} "
-            "slots=96-97 status=armed guest_unchanged=1\\n", encoding="utf-8")
+            "slots=96-97 status=armed guest_unchanged=1\n", encoding="utf-8")
         self.flush()
 
     def test_second_moving_frame1888_reuses_exact_proof_contract(self):
@@ -115,7 +115,7 @@ class CoveredNativePairRemovalTest(unittest.TestCase):
         self.retarget_moving_guest_frame1888()
         self.log.write_text(
             "UR_RACER_HD_WIDE_REMOVE_PAIR frame=1872 slots=96-97 "
-            "status=armed guest_unchanged=1\\n", encoding="utf-8")
+            "status=armed guest_unchanged=1\n", encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "not exactly once armed"):
             self.assess(frame=1888)
 

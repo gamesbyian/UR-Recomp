@@ -76,6 +76,20 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
                 or not (tdd or tde)
                 or not re.fullmatch(r"[0-9A-F]{6}", pc)):
             raise ValueError("malformed original stack pull source scope")
+        # A real PLA must load any target byte that its architectural pull
+        # covers. This is stronger than merely observing the stack S delta.
+        # In 8-bit M mode, the accumulator's B/high byte is preserved.
+        verified_pla_bytes = 0
+        if opcode == 0x68:
+            after_a, before_a = int(a1, 16), int(a0, 16)
+            if width == 1 and (after_a & 0xFF00) != (before_a & 0xFF00):
+                raise ValueError("8-bit PLA unexpectedly changed preserved accumulator B")
+            for address, raw in ((TARGET_DD, dd), (TARGET_DE, de)):
+                displacement = address - (sp0 + 1)
+                if 0 <= displacement < width:
+                    if ((after_a >> (8 * displacement)) & 0xFF) != int(raw, 16):
+                        raise ValueError("observed original PLA does not restore target stack byte")
+                    verified_pla_bytes += 1
         # The preceding predicate separately validates numeric/architectural
         # fields. Changes in P or A are legal for PLP/PLA; do not equate them.
         rows.append({
@@ -95,6 +109,7 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
             "observed_01de_byte_before": de,
             "architecturally_touches_01dd": tdd,
             "architecturally_touches_01de": tde,
+            "pla_loaded_target_bytes_verified": verified_pla_bytes,
         })
     if any(a["original_cpu_frame_before"] > b["original_cpu_frame_before"]
            for a, b in zip(rows, rows[1:])):

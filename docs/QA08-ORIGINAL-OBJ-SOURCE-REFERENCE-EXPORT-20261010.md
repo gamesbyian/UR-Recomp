@@ -15,6 +15,40 @@ python3 tools/export_native_racer_obj_source_reference.py \
   --output-prefix path/to/qa08-p1-0895-source
 ```
 
+## Actual top-viewport racer source reference (once native verified)
+
+The earlier accepted native lower slot97 source frame2208 was
+entirely transparent, which **correctly yields no PNG**.
+Both bottom slots96/97 were independently source-empty in #1271.
+The two visible Original unicycles sit above original scanline112,
+so #1276 now tests **top source slots98/99** separately. Their
+alpha and final PPU ownership remain unknown until native acceptance.
+
+After a **successful** #1276 native artifact, the same exporter
+can produce a genuinely source-derived top-slot reference:
+
+```sh
+python3 tools/export_native_racer_obj_source_reference.py \
+  --slot 98 \
+  --source-file path/to/baldosa-ws342-live-1p-slot98/ur-baldosa-ws342-obj-slot98-frame002208.pam \
+  --validated-report path/to/baldosa-evidence/ws342_live_1p_top_slot98_99_source.json \
+  --output-prefix path/to/qa08-1p-frame2208-source-slot98
+```
+
+Change both `--slot`, the native source PAM and output prefix
+to `99` to export that slot separately. The tool explicitly
+requires **five** matching original/native 5,447-frame guest
+CRC streams, seven independent complete Original 1×/4× image
+matches, and both individually authenticated top-slot PPU source
+planes in the machine-readable report, including no source
+removal and no HD/final-BG permission. A forged or swapped
+source slot, changed alpha digest, partial evidence, or stale
+source-Original screenshot is rejected.
+
+An actual source-empty top slot remains **metadata only**.
+Do not synthesize an HD rider to fill it, and never treat
+original pre-BG OBJ alpha as final foreground ownership.
+
 The exporter requires actual source-PAM filename, complete 342×224
 RGBA file, exact slot97/frame2208 native read-only source metadata,
 a **5,447 original/native CRC match**, seven independent 1×/4×

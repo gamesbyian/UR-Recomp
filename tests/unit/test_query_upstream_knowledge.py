@@ -66,6 +66,16 @@ class UpstreamKnowledgeTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             mark_rows(native, labels, links)
 
+    def test_missing_external_label_keeps_an_unresolved_entry(self):
+        native, labels, links = fixtures()
+        labels.clear()
+        links["entries"][0]["pal_label"] = None
+        rows = mark_rows(native, labels, links)
+        found = search(rows, pattern="update_checkpoints")
+        self.assertEqual(len(found), 1)
+        self.assertEqual(found[0]["name"], "")
+        self.assertEqual(found[0]["correspondence"]["status"], "structural-interval-candidate")
+
     def test_duplicate_links_fail_closed(self):
         native, labels, links = fixtures()
         links["entries"].append(links["entries"][0])

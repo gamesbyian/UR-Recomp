@@ -95,9 +95,9 @@ def mark_rows(native: dict, labels: list[dict], links: dict) -> list[dict]:
             if ref not in row["native"]:
                 row["native"].append(ref)
         if not row["name"]:
-            row["name"] = entry.get("pal_label", "")
+            row["name"] = str(entry.get("pal_label") or "")
         if row["kind"] == "unknown":
-            row["kind"] = entry.get("pal_symbol_class", "unknown")
+            row["kind"] = str(entry.get("pal_symbol_class") or "unknown")
     return sorted(rows.values(), key=lambda x: x["address"])
 
 
@@ -147,10 +147,11 @@ def search(rows: list[dict], *, exact: str | None = None,
                 corr = row.get("correspondence", {})
                 if corr.get("status") != "structural-interval-candidate" or corr.get("usa") != target:
                     continue
-        haystack = " ".join([
-            row.get("name", ""), row.get("kind", ""), row.get("description", ""),
+        values = [
+            row.get("name"), row.get("kind"), row.get("description"),
             *row.get("native", []), *row.get("source_records", []),
-        ])
+        ]
+        haystack = " ".join(value for value in values if isinstance(value, str))
         if regex is not None and not regex.search(haystack):
             continue
         result.append(row)

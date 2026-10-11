@@ -40,6 +40,20 @@ class SwitcherSourceFollowOnTests(unittest.TestCase):
                 self.assertIsNone(data["first_original_source_post_result_active_candidate"])
                 self.assertTrue(data["bounded_source_only_negative_if_no_candidate"])
 
+    def test_no_post_result_changed_bytes_is_inconclusive_not_a_nmi_blocker(self):
+        # A successful original script horizon can extend beyond the last
+        # changed-byte record. The optional sidecar cannot reject that run.
+        bounded = {f: state for f, state in source_states().items()
+                   if f <= 17030}
+        data = walk.summarize(bounded)
+        self.assertIsNone(data["first_original_source_post_result_active_candidate"])
+        self.assertTrue(data["post_result_changed_byte_trace_inconclusive_if_empty"])
+        self.assertEqual(data["last_decoded_original_source_frame"], 17030)
+        self.assertEqual(data["observed_post_result_frames"], 0)
+        self.assertFalse(data["bounded_source_only_negative_if_no_candidate"])
+        self.assertFalse(data["actual_original_native_post_result_entry_comparison"])
+        self.assertEqual(data["release_complete_event_credit"], 0)
+
     def test_switcher_rematch_is_not_misidentified_as_new_track(self):
         data = walk.summarize(source_states(next_track=3))
         self.assertTrue(data["first_original_source_post_result_active_candidate"]

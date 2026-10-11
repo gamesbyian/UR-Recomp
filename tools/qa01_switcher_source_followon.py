@@ -46,9 +46,13 @@ def summarize(states: dict[int, dict]) -> dict:
             or result["in_race"] != 0):
         raise ValueError("original archive does not show Switcher Race B result at 17030")
     frames = sorted(f for f in states if f > RESULT)
-    if not frames:
-        raise ValueError("no original movie post-result observation")
-    if frames != list(range(RESULT + 1, frames[-1] + 1)):
+    # This is a CHANGED-byte trace. The separately authenticated original
+    # runner may have reached horizon 22000 with no further writes after
+    # result 17030; no event rows after RESULT means *no visibility*, not
+    # source failure or evidence of no next course. Do not prevent the NMI
+    # investigation from running merely because this optional sidecar lacks
+    # a post-result change.
+    if frames and frames != list(range(RESULT + 1, frames[-1] + 1)):
         raise ValueError("source movie post-result timeline is truncated or spliced")
     # Scan only fresh real active frames *after* the independently qualified
     # source result. A transient in_race=1 one-frame bit flip is insufficient.
@@ -94,12 +98,14 @@ def summarize(states: dict[int, dict]) -> dict:
         "schema": SCHEMA,
         "original_2014_source_movie_entry_frame": ENTRY,
         "original_2014_source_movie_result_frame": RESULT,
-        "last_decoded_original_source_frame": frames[-1],
+        "last_decoded_original_source_frame": frames[-1] if frames else RESULT,
         "observed_post_result_frames": len(frames),
+        "post_result_changed_byte_trace_inconclusive_if_empty": len(frames) == 0,
         "minimum_contiguous_active_frames": MIN_STABLE_ACTIVE,
         "first_original_source_post_result_active_candidate": first,
         "post_result_candidate_count": len(candidates),
-        "bounded_source_only_negative_if_no_candidate": first is None,
+        "bounded_source_only_negative_if_no_candidate":
+            first is None and len(frames) >= MIN_STABLE_ACTIVE,
         "original_movie_path_is_not_fresh_original_or_native_path": True,
         "candidate_not_proof_of_tour_continuation_or_next_native_event": True,
         "actual_original_native_post_result_entry_comparison": False,

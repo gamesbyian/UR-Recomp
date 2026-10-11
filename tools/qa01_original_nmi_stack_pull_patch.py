@@ -34,6 +34,7 @@ def patch(source: str) -> str:
             const uint16 ur_qa_pull_a0 = Registers.A.W;
             const unsigned ur_qa_pull_f0 = (unsigned)ICPU.Frame;
             const unsigned ur_qa_pull_v0 = (unsigned)CPU.V_Counter;
+            const int ur_qa_saved_pha_h0 = ur_qa_pha_gate ? (int)CPU.Cycles : 0;
             unsigned ur_qa_pull_width = 0;
             switch (ur_qa_pull_op) {
               case 0x68: /* PLA: accumulator M bit */
@@ -77,6 +78,16 @@ def patch(source: str) -> str:
             const uint8 ur_qa_rti_b4 = ur_qa_rti_stack4 ? Memory.RAM[ur_qa_pull_sp0 + 4u] : 0;
 """
     after = r"""
+            /* Source-original CPU horizontal/master timing at the true
+               I_NMI+6 PHA. Not assumed to equal native framework hPos. */
+            if (ur_qa_pha_gate)
+                fprintf(stderr,
+                    "QANMIPHABEAM f=%u v=%u pc=%06X h0=%d h1=%d sp0=%04X sp1=%04X a0=%04X f1=%u\n",
+                    ur_qa_pha_frame0, ur_qa_pha_v0,
+                    (unsigned)ur_qa_stack_pc, ur_qa_saved_pha_h0,
+                    (int)CPU.Cycles, (unsigned)ur_qa_pha_s0,
+                    (unsigned)Registers.S.W, (unsigned)ur_qa_pha_a0,
+                    (unsigned)ICPU.Frame);
             if (ur_qa_pull_gate)
                 fprintf(stderr,
                     "QANMIPULL f=%u v=%u pc=%06X op=%02X sp0=%04X sp1=%04X width=%u e0=%u pl0=%02X pl1=%02X a0=%04X a1=%04X dd=%02X de=%02X touches_dd=%u touches_de=%u f1=%u\n",

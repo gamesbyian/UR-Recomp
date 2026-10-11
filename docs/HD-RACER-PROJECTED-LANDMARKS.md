@@ -272,3 +272,36 @@ foreground ordering; neither a hard-coded +113Y nor a
 hard-coded −13X is a sufficient multi-frame solution.
 The current owner-vetoed procedural 4× character remains
 unapproved.
+
+
+## Real post-GO original racer palette stability
+
+The accepted 2P source-only AOT at guest2208 establishes that
+the original sprite colour families persist after the countdown,
+even though the source silhouette, OAM position and two-viewport
+translation change. Independently verifying the **actual occupied
+original PPU source RGBA** shows both racers have 15 distinct
+source colours at guest1856,1872 and **2208**, with 14 at1888
+when the same light `F7EFEF` shade is absent in both.
+No previously unseen RGB value appears at2208, versus the
+authenticated earlier source palette union.
+
+Across **all four** sampled 2P source poses, the six shared
+neutral colours remain `101008,181818,313131,4A4A4A,737373,A5A5A5`.
+Each rider also retains its own eight-colour variant palette:
+a rust/red ramp for OAM slot98 and green ramp for slot99;
+the ninth variable shared light shade `F7EFEF` is present
+at1856,1872 and2208 and absent at1888. This makes the
+original palette-family relationship a **well-sampled
+material-variant reference** for future author experiments,
+not a requirement to copy each RGB value literally as a
+physically based 3D material.
+
+The complete native source SHA/palette census is in
+[`analysis/data/qa08-original-2p-racer-palette-four-poses-through2208.json`](../analysis/data/qa08-original-2p-racer-palette-four-poses-through2208.json)
+using exact successful AOT [38120828291](https://github.com/gamesbyian/UR-Recomp/actions/runs/38120828291),
+artifact `11695173178`. Palette invariance cannot recover
+which raster pixels correspond to tire, saddle, fork, hub,
+lighting or original model mesh; source RGB is also earlier
+than final BG/window priority. No currently rejected
+procedural Remastered art receives renewed approval.

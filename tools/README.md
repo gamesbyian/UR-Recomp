@@ -67,3 +67,17 @@ python3 -m unittest tests.unit.test_snes9x_dma_entry_provenance
 ```
 
 The instrument records DMA **entry descriptor fields**, source A-bus address and B-bus data port, but no transfer completion, HDMA, VMADD/OAMADD/CGADD latch, PPU pixel ownership or verified USA result. A ROM/original executable trace is **not yet captured** by this pilot. No repo-tracked emulator sources or release artifacts are modified by this opt-in instrument. Do not claim full DMA-to-visible-pixel lineage without separately observing relevant PPU register writes and completing an independent original/native comparison.
+
+Baldosa native-interpreter coverage triage (read-only, no AOT promotion):
+
+```bash
+# Each report must come from the pinned Baldosa SNESRecomp
+# tools/tier2_ingest.py --json, retaining the original capture identity.
+python3 tools/report_baldosa_tier2_route_coverage.py \
+  --route race_1p=/tmp/captures/race_1p.ingest.json \
+  --route race_2p=/tmp/captures/race_2p.ingest.json \
+  --top 12 --json-out /tmp/baldosa-interpreter-work.json
+python3 -m unittest tests.unit.test_report_baldosa_tier2_route_coverage
+```
+
+The tool hashes the **unchanged pinned Baldosa route scripts and input reports**, but the route-to-capture association remains *caller-supplied and unverified* by Tier-2 identity; it preserves per-route ROM/program/build/module identities, orders exclusive interpreted CPU PC costs and M/X variants, and adds independent Baldosa source-name *leads*. Different builds are never silently pooled. Reports with incomplete identity are rejected; incomplete captures carry warnings. This is performance-investigation evidence **only**, not a safe-root list, original/native end-to-end oracle, evidence of a full course result, or permission to edit generated code. The upstream Tier-2 capture still must be run separately on the appropriate pinned emulator/backend; no capture or emulator build is performed by this command.

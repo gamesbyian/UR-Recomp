@@ -120,6 +120,8 @@ def evaluate(route: str, capture: dict, fixture: bytes,
     return {
         "route": route,
         "route_fixture_sha256": hashlib.sha256(fixture).hexdigest(),
+        "route_capture_binding_verified": False,
+        "route_association": "caller-supplied name, not independently bound by Tier-2 identity",
         "identity": identity, "capture_count": count,
         "warnings": warnings,
         "interpreted_instructions": instructions,
@@ -131,7 +133,8 @@ def evaluate(route: str, capture: dict, fixture: bytes,
         "listed_pcs": len(detailed), "top_truncated": len(detailed) > top,
         "aot_promotion_authorized": False,
         "route_qa_acceptance_proven": False,
-        "evidence_quality": "incomplete" if warnings else "capture_identity_present_not_validated_against_original",
+        "evidence_quality": "incomplete" if warnings or total_detailed != cycles
+                            else "capture_identity_present_not_validated_against_original",
     }
 
 

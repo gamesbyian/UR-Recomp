@@ -1,0 +1,68 @@
+name: One-shot sync merged media and review final technical exhibit
+on:
+  push:
+    branches: [media/definitive-trailer-assembly-20261010]
+    paths: [.github/workflows/one-shot-trailer-source-sync.yml]
+permissions:
+  contents: write
+concurrency:
+  group: ur-trailer-source-sync
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Merge accepted main media without touching partner agent branches
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git merge --no-edit origin/main
+      - name: Install FFmpeg for independent review
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Verify and independently decode latest technical source
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin d97a479552ba442bd76c2ef9b0707428564d69d8
+          git show d97a479552ba442bd76c2ef9b0707428564d69d8:media/showcase/2026-10-10/technical-motion/04-machine-code-to-native.mp4 > /tmp/ur-new-technical.mp4
+          python3 - <<'PY'
+          import json,hashlib,subprocess
+          from pathlib import Path
+          video=Path('/tmp/ur-new-technical.mp4')
+          sha=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
+          actual=sha(video)
+          assert actual=='c213ab1aa5472cb1940d5e35a5601bd30d9c00a9acb1e79cdf6dd1baca5e343d',actual
+          stream=json.loads(subprocess.check_output(['ffprobe','-v','error','-count_frames','-select_streams','v:0','-show_entries','stream=width,height,r_frame_rate,nb_read_frames','-of','json',str(video)]))['streams'][0]
+          assert (stream['width'],stream['height'],stream['r_frame_rate'],int(stream['nb_read_frames']))==(1920,1080,'30/1',270)
+          root=Path('media/showcase/2026-10-10/recruitment/final-approval')
+          pending=root/'approval-pending.json'
+          data=json.loads(pending.read_text())
+          for ordinal in (30,135,225):
+            path=root/f'technical-decoded-frame-{ordinal:03d}.png'
+            subprocess.run(['ffmpeg','-nostdin','-hide_banner','-loglevel','error','-y',
+              '-i',str(video),'-vf',f'select=eq(n\\,{ordinal})','-vsync','vfr',
+              '-frames:v','1',str(path)],check=True)
+            assert path.stat().st_size>10000
+            data['clips']['technical']['review_frame_sha256'][path.name]=sha(path)
+          data['technical_sha_source_commit']='d97a479552ba442bd76c2ef9b0707428564d69d8'
+          data['clips']['technical']['sha256']=actual
+          assert data['clips']['art']['sha256']=='0ae94aaa407979ec749bef17d245331c7d8d3595d8a76347b2644f655924bfe4'
+          assert data['clips']['archaeology']['sha256']=='c1326b641eb119375bc7708a6780ce7950be81b7f287d4b010c0c11328750e2a'
+          pending.write_text(json.dumps(data,indent=2,sort_keys=True)+'\n')
+          print('TECHNICAL_FRAME_REVIEW_SHA_READY',actual)
+          PY
+      - name: Retire one-shot; commit only exact review evidence
+        run: |
+          set -euo pipefail
+          git add media/showcase/2026-10-10/recruitment/final-approval/
+          git rm -f .github/workflows/one-shot-trailer-source-sync.yml
+          git commit -m "media: sync accepted main sources and independently decode updated technical exhibit"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

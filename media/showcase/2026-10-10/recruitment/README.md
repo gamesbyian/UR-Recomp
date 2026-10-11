@@ -2,6 +2,8 @@
 
 This subdirectory contains both the **original sampled-frame recruitment teasers** documented below and the **new verified continuous-gameplay recruitment campaign**. All are development communications, not a Windows beta demonstration.
 
+**New accepted standalone 1080p presentation sequences:** [7-second animated widescreen reveal](presentation-edits/authentic-widescreen-reveal-7s.mp4) · [5-second equal-scale Original-centre crop versus full recorded world](presentation-edits/same-capture-centre-vs-wide-5s.mp4) · [source provenance and review witnesses](presentation-edits/presentation-provenance.json). Both are edits of the same validated 600-frame continuous native source. The Original-centre view is an editorial crop, not a second independently executed 256-wide capture. [Full review and reproducibility details](REVEAL-EDITING-NOTES.md).
+
 **Latest videos:** [41-second 1080p continuous-gameplay-led trailer](continuous-edits/ur-recomp-recruitment-continuous-20261010.mp4) · [21-second vertical short](continuous-edits/ur-recomp-recruitment-continuous-vertical-20261010.mp4) · [10-second clean 600-frame native 2P race](continuous/ur-native-2p-clean-600f.mp4). Read the [source capture evidence](continuous/README.md) and [edited-source provenance](continuous-edits/README.md). The original teaser files listed next remain as honest historical sampled-frame media.
 
 ## Deliverables

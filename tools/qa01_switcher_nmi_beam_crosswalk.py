@@ -57,16 +57,30 @@ def summarize(source: dict, guest: dict) -> dict:
             or native_block_start > native_block_end
             or native_block_width != native_block_end - native_block_start):
         raise ValueError("native NMI PHA has invalid monotonic charged-counter pair")
+    # Authenticate scalar types before candidate arithmetic. Malformed
+    # external JSON must fail closed with ValueError, not leak TypeError.
+    if (not all(type(x) is int for x in
+                (b.get("framework_beam_vpos"), b.get("framework_beam_hpos"),
+                 a.get("ppu_vcounter_before"),
+                 a.get("source_original_cpu_hcounter_before")))
+            or not 0 <= b["framework_beam_vpos"] < 263
+            or not 0 <= b["framework_beam_hpos"] <= 1364
+            or not 0 <= a["ppu_vcounter_before"] < 263
+            or a["source_original_cpu_hcounter_before"] < 0):
+        raise ValueError("invalid original/native NMI timing scalar")
     all_orig = source.get("observed_original_nmi_pha_horizontal_clocks")
     if (not isinstance(all_orig, list) or len(all_orig) != 5
+            or any(not isinstance(x, dict) for x in all_orig)
             or [x.get("original_cpu_frame_before") for x in all_orig]
                != list(range(5778, 5783))):
         raise ValueError("missing the five independently observed original NMI PHA clocks")
     candidates = []
     for row in all_orig:
         if (row.get("original_pha_pc") != "00:858E"
-                or not isinstance(row.get("source_original_cpu_hcounter_before"), int)
-                or not isinstance(row.get("ppu_vcounter_before"), int)
+                or type(row.get("source_original_cpu_hcounter_before")) is not int
+                or type(row.get("ppu_vcounter_before")) is not int
+                or not 0 <= row["ppu_vcounter_before"] < 263
+                or row["source_original_cpu_hcounter_before"] < 0
                 or not isinstance(row.get("accumulator_before"), str)
                 or not isinstance(row.get("stack_pointer_before"), str)):
             raise ValueError("incomplete original NMI source frame/accumulator/stack/beam evidence")
@@ -99,8 +113,6 @@ def summarize(source: dict, guest: dict) -> dict:
         raise ValueError("real five-frame original NMI witness unexpectedly changed")
     o_h, n_h = a["source_original_cpu_hcounter_before"], b["framework_beam_hpos"]
     o_v, n_v = a["ppu_vcounter_before"], b["framework_beam_vpos"]
-    if not (type(o_h) is int and type(n_h) is int and type(n_v) is int):
-        raise ValueError("invalid source-clock data type")
     return {
         "schema": SCHEMA,
         "paired_report_bytes_sha256": source_sha,

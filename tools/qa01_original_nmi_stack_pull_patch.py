@@ -57,6 +57,12 @@ def patch(source: str) -> str:
                 ur_qa_pull_width != 0 && (ur_qa_pull_dd || ur_qa_pull_de);
             const uint8 ur_qa_pull_dd0 = ur_qa_pull_gate ? Memory.RAM[0x01DD] : 0;
             const uint8 ur_qa_pull_de0 = ur_qa_pull_gate ? Memory.RAM[0x01DE] : 0;
+            /* RTI restores the interrupted PC/P from the hardware frame.
+               Observe ALL RTIs in this tiny source CPU window; they may
+               include IRQ/BRK, so the report must not call them NMI returns. */
+            const bool ur_qa_rti_gate = ur_qa_stack_gate && (Op == 0x40);
+            const uint8 ur_qa_rti_pb0 = ur_qa_rti_gate ? Registers.PB : 0;
+            const int ur_qa_rti_cycle0 = ur_qa_rti_gate ? (int)CPU.Cycles : 0;
 """
     after = r"""
             if (ur_qa_pull_gate)
@@ -70,6 +76,16 @@ def patch(source: str) -> str:
                     (unsigned)ur_qa_pull_dd0, (unsigned)ur_qa_pull_de0,
                     (unsigned)ur_qa_pull_dd, (unsigned)ur_qa_pull_de,
                     (unsigned)ICPU.Frame);
+            if (ur_qa_rti_gate)
+                fprintf(stderr,
+                    "QANMIRTI f=%u v0=%u v1=%u pc=%06X pb0=%02X pb1=%02X sp0=%04X sp1=%04X a0=%04X a1=%04X pl0=%02X pl1=%02X cyc0=%d cyc1=%d f1=%u\\n",
+                    ur_qa_pull_f0, ur_qa_pull_v0, (unsigned)CPU.V_Counter,
+                    (unsigned)ur_qa_stack_pc, (unsigned)ur_qa_rti_pb0,
+                    (unsigned)Registers.PB, (unsigned)ur_qa_pull_sp0,
+                    (unsigned)Registers.S.W, (unsigned)ur_qa_pull_a0,
+                    (unsigned)Registers.A.W, (unsigned)ur_qa_pull_pl0,
+                    (unsigned)Registers.PL, ur_qa_rti_cycle0,
+                    (int)CPU.Cycles, (unsigned)ICPU.Frame);
 """
     replacement = before + stack.MARKER + "\n" + after
     if replacement.count("(*Opcodes[Op].S9xOpcode)();") != 1:

@@ -116,3 +116,33 @@ If it contradicts the red-addition hypothesis,
 preserve the contradictory data. Do not alter
 Original rendering, 4K, artistic HD or the
 independent release gate from this research.
+
+## Follow-on: lossless tagged CGADSUB chronology (same native capture)
+
+The original journal checker now derives, **from the existing unmodified
+completed/recording PPU entries**, an explicitly *line-tagged* CGADSUB
+timeline per field. It partitions all native tags 0–261 into contiguous
+inclusive intervals, starts from that field's independently recorded
+baseline, applies each original $2131 write, preserves the index and byte
+of **every** $2131 write, and retains same-line multiple-write order.
+Unrelated $2130/$2132 writes remain separately visible in the original
+colour-register list. This is a pure offline checker change: **no new
+native process, PPU hook, guest input, workflow or shipping asset**.
+
+The interval's effective value is the value *after the final write bearing
+that tag*. Earlier writes on the same line are retained as events; they are
+not silently collapsed out of the evidence. Native PPU raster line tags
+are **not yet aligned to final 342×224 screenshot Y**, and neither
+CGWSEL/fixed-colour baseline history nor pixel-specific window masks or
+subscreen eligibility are reconstructed here. Therefore neither the 13
+front-racer red-quanta changes at y47–52/y159–164 nor any other pixel
+receives a proved arithmetic operand or layer owner from these intervals.
+
+Fail-closed parsing also rejects forged duplicate JSON object keys and
+Python bool-as-int pseudo-frame/count/drop/scanline fields. The unit suite
+covers no $2131 writes, distinct tagged writes, multiple writes on one
+tag, explicit scanline end coverage, and adversarial JSON. The current
+pinned native journal experiment must independently pass exact Original
+raster and all 2,473 guest CRCs before these derived intervals may be
+treated as a measured actual frame. Keep the existing production Original
+fallback and withheld Remastered likeness approval.

@@ -153,11 +153,11 @@ class NativeStackReadTests(unittest.TestCase):
         # interpreter PLA can consume the saved word in f5782.
         following = (
             "QANATIVEREAD f=5782 bank=00 addr=01DD width=2 value=4004 "
-            "A=0000 S=01DD M=0 scope=AotReturn\\n"
+            "A=0000 S=01DD M=0 scope=AotReturn\n"
             "QANATIVEREAD f=5782 bank=00 addr=01DD width=1 value=0004 "
-            "A=0000 S=01DC M=1 scope=InterpPull\\n"
+            "A=0000 S=01DC M=1 scope=InterpPull\n"
             "QANATIVEREAD f=5782 bank=00 addr=01DE width=1 value=0040 "
-            "A=0000 S=01DC M=1 scope=InterpPull\\n"
+            "A=0000 S=01DC M=1 scope=InterpPull\n"
         )
         result = report.summarize(ARM + following)
         self.assertEqual(result[

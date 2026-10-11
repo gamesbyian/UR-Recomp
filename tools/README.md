@@ -55,3 +55,15 @@ python3 -m unittest tests.unit.test_report_ppu_direct_write_provenance
 ```
 
 This **only** consumes existing original Snes9x `PPUPCTRACE` lines from `tools/instrument_snesref_ppu_pc_trace.py`. It retains ordered CPU PCs and $2116–$2119 register writes, and accepts contiguous four-write sequences; absent $2115 state, DMA/HDMA observations, interleaved writes and final PPU priority are **not inferred**. Malformed events or reversed timestamps fail nonzero. Do not use this as source-OBJ/2P correctness proof or a substitute for original/native QA gates.
+
+Opt-in archived Snes9x 1.43 DMA entry provenance, inspired by malmazuke's DMA channel inventory:
+
+```bash
+# Run on a temporary, private working copy of archived Snes9x 1.43 dma.cpp.
+python3 tools/instrument_snes9x143_dma_entry.py /tmp/snes9x143/dma.cpp
+# Compile and run the appropriately pinned/reference emulator fixture separately.
+python3 tools/report_snes9x_dma_entry_provenance.py /tmp/dma-capture.log --from-frame 2208 --to-frame 2210 --json-out /tmp/dma-summary.json
+python3 -m unittest tests.unit.test_snes9x_dma_entry_provenance
+```
+
+The instrument records DMA **entry descriptor fields**, source A-bus address and B-bus data port, but no transfer completion, HDMA, VMADD/OAMADD/CGADD latch, PPU pixel ownership or verified USA result. A ROM/original executable trace is **not yet captured** by this pilot. No repo-tracked emulator sources or release artifacts are modified by this opt-in instrument. Do not claim full DMA-to-visible-pixel lineage without separately observing relevant PPU register writes and completing an independent original/native comparison.

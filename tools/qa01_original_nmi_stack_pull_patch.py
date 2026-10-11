@@ -62,7 +62,7 @@ def patch(source: str) -> str:
                Observe ALL RTIs in this tiny source CPU window; they may
                include IRQ/BRK, so the report must not call them NMI returns. */
             const bool ur_qa_rti_gate = ur_qa_stack_gate && (Op == 0x40);
-            const unsigned ur_qa_rti_emu0 = ur_qa_rti_gate ? (unsigned)CheckEmulation() : 0;
+            const unsigned ur_qa_rti_emu0 = ur_qa_rti_gate ? (unsigned)(CheckEmulation() != 0) : 0;
             const uint8 ur_qa_rti_pb0 = ur_qa_rti_gate ? Registers.PB : 0;
             const int ur_qa_rti_cycle0 = ur_qa_rti_gate ? (int)CPU.Cycles : 0;
             /* Pre-RTI stack image independently reconstructs P/PC/PB.

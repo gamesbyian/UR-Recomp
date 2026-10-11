@@ -49,6 +49,22 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
         self.assertFalse(report["metrics"]["integrated_fresh_process_1p_2p_records_verified"])
         self.assertFalse(report["metrics"]["physical_windows_controller_audio_display_verified"])
 
+    def test_native_runtime_archive_matches_provisional_executable_only(self):
+        from evidence_contract import validate_envelope
+        path = ROOT / "analysis/evidence/baldosa-windows-38118756830-runtime-correlation.json"
+        report = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(validate_envelope(report), [])
+        self.assertEqual(report["outcome"], "inconclusive")
+        self.assertEqual(report["subject"]["backend"], "baldosa-aot-provisional")
+        self.assertEqual(report["subject"]["win32_executable_sha256"],
+                         "29982231bd85dacdb5058c65ccc87deec4e1641603e95dd5d6fb9a37c0c8a439")
+        self.assertEqual(report["subject"]["inner_candidate_zip_sha256"],
+                         "5bb9f872fd0e97b5f99fc50d41bb7ee9a04ab00752e7745dbb6bbc5d7f593a78")
+        self.assertEqual(report["metrics"]["guest_course_complete_credit"], 0)
+        self.assertEqual(report["metrics"]["source_settled_native_2p_result_publications"], 0)
+        self.assertFalse(report["metrics"]["physical_controller_coverage"])
+        self.assertFalse(report["metrics"]["fresh_process_native_1p_2p_results_records_verified"])
+
     def test_canonical_unexecuted_candidate_is_only_inconclusive(self):
         with tempfile.TemporaryDirectory() as tmp:
             archive, source, digest = self.make(Path(tmp))

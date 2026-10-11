@@ -1446,6 +1446,7 @@ def run_native_crash_between_raw_and_typed(
             "UR_BALDOSA_NATIVE_PROFILE REJECTED reason="
             "selected_profile_sram_not_initialized") != 1 or
         "UR-STARTUP-SAVE-ROOT: selected Modern profile rejected" not in fresh_log or
+        "UR-BALDOSA-SAVE-MISMATCH: Named racer SRAM differs from " not in fresh_log or
         "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in fresh_log):
         raise ValueError(
             "Fresh native process did not reject divergent SRAM before "

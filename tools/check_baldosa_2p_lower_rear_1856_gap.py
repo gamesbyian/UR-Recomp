@@ -289,8 +289,8 @@ def main() -> None:
         stock = read_pam(a.native_artifact_root /
                          "baldosa-ws342-captures/ur-baldosa-ws342-001856.pam")
         header = (
-            f"P7\\nWIDTH {WIDTH * a.density}\\nHEIGHT {HEIGHT * a.density}"
-            "\\nDEPTH 4\\nMAXVAL 255\\nTUPLTYPE RGB_ALPHA\\nENDHDR\\n"
+            f"P7\nWIDTH {WIDTH * a.density}\nHEIGHT {HEIGHT * a.density}"
+            "\nDEPTH 4\nMAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n"
         ).encode("ascii")
         contents = a.candidate.read_bytes()
         if (not contents.startswith(header) or

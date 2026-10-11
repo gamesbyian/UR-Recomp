@@ -1,0 +1,57 @@
+{
+  "audio": "Original synthesized editorial soundtrack from existing recruitment teaser tool",
+  "editorial_splices_not_seamless_gameplay": true,
+  "encoded_rate": "60/1",
+  "limits": "Three different native runs, editorial splices; stock 256-wide title, genuine 342-wide racing. 1080p delivery from 960x540 SDL drawable. Not physical 4K or finished beta.",
+  "output_sha256": "47102c456f38f7a4a370ef3d093ef81c1dcc5e395f5f0445fdbf5112ca185d92",
+  "schema": "UR-THREE-VERIFIED-NATIVE-SOURCES/1",
+  "source_sha256": {
+    "modern": {
+      "manifest": "95c8227931b80204bbb08c07b09465a5a568c32b782b26ea902317749f6fae5a",
+      "mp4": "e43b1c8b9461e94ac2380d164d850545742c958c0dfef98c99987e40197de7db"
+    },
+    "race": {
+      "manifest": "2c14161830eb282033ff3294b63a8a4d3cce65c35b64d895d0f1ab67db5e9d86",
+      "mp4": "182ef43ccf34f501dea4051312e71bf4d974a53dc6634cd98a5cbf3fae8ac130"
+    },
+    "title": {
+      "manifest": "12db1c5e884ae22674e8b17590d0842286a4a1c5101f8bcf759be0765f1f373c",
+      "mp4": "d58e0b0e20226981767dc1c33e0f34d9652e8ecdb6aa97bd914f7d6ddf0f61d3"
+    }
+  },
+  "timeline": [
+    {
+      "count": 300,
+      "kind": "original_title",
+      "source_guest_frames": [
+        180,
+        479
+      ],
+      "start_frame": 0
+    },
+    {
+      "count": 600,
+      "kind": "modern_root_and_stock_handoff",
+      "source_guest_frames": [
+        1,
+        600
+      ],
+      "start_frame": 300
+    },
+    {
+      "count": 600,
+      "kind": "original_2p_genuine_342_wide_race",
+      "source_guest_frames": [
+        2100,
+        2699
+      ],
+      "start_frame": 900
+    },
+    {
+      "count": 300,
+      "kind": "editorial_text_card_not_gameplay",
+      "start_frame": 1500
+    }
+  ],
+  "total_encoded_frames": 1800
+}

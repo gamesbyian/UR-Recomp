@@ -36,7 +36,7 @@ PULL = (
 RTI = (
     "QANMIRTI f=5780 v0=225 v1=225 pc=0085A4 postpc=82803A pb0=80 pb1=82 "
     "sp0=01E0 sp1=01E4 a0=4042 a1=4042 pl0=05 pl1=00 "
-    "stack4=1 b1=00 b2=3A b3=80 b4=82 "
+    "emu0=0 stack4=1 b1=00 b2=3A b3=80 b4=82 "
     "cyc0=1000 cyc1=1100 f1=5780\n"
 )
 
@@ -128,35 +128,43 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
         self.assertTrue(row["full_four_byte_stack_image_available"])
         self.assertEqual(row["pre_rti_stack_derived_return_pc"], "82:803A")
         self.assertTrue(row["post_rti_pc_equals_pre_stack_return"])
+        self.assertTrue(row["post_return_pc_verified_when_stack_available"])
+        self.assertTrue(result["rti_instruction_source_cannot_prove_interrupt_vector"])
         self.assertTrue(row["same_cpu_frame_as_original_nmi_pha"])
         self.assertTrue(row["same_cpu_frame_pha_observed_before_rti"])
         self.assertTrue(row["same_frame_pha_accumulator_equals_rti_A"])
         self.assertTrue(result["rti_instruction_source_cannot_prove_interrupt_vector"])
         self.assertEqual(result["release_complete_event_credit"], 0)
 
-    def test_rti_post_opcode_pc_can_reflect_immediate_interrupt(self):
-        redirected = (RTI.replace("postpc=82803A", "postpc=808584")
-                      .replace("pb1=82", "pb1=80"))
-        result = report.summarize(ORIGINAL + redirected)
-        row = result["candidate_rti_scopes"][0]
-        self.assertEqual(row["pre_rti_stack_derived_return_pc"], "82:803A")
-        self.assertEqual(row["post_opcode_guest_pc"], "80:8584")
-        self.assertFalse(row["post_rti_pc_equals_pre_stack_return"])
-        self.assertEqual(result["release_complete_event_credit"], 0)
+    def test_post_rti_pc_must_match_stacked_native_return(self):
+        # cpuops.h defines CHECK_FOR_IRQ() as an empty macro in both builds.
+        # The pinned RTI opcode must return to the stacked location.
+        for corrupt in (
+            RTI.replace("postpc=82803A", "postpc=82803B"),
+            RTI.replace("postpc=82803A", "postpc=808584")
+                .replace("pb1=82", "pb1=80"),
+        ):
+            with self.subTest(corrupt=corrupt[-150:]):
+                with self.assertRaises(ValueError):
+                    report.summarize(ORIGINAL + corrupt)
 
-    def test_same_frame_without_earlier_pha_is_not_correlated(self):
-        # A forged/reordered trace must not imply the saved value preceded
-        # a return just because the two labels share ICPU.Frame.
-        out = report.summarize(RTI + ORIGINAL)
-        row = out["candidate_rti_scopes"][0]
-        self.assertTrue(row["same_cpu_frame_as_original_nmi_pha"])
-        self.assertFalse(row["same_cpu_frame_pha_observed_before_rti"])
-        self.assertEqual(out["release_complete_event_credit"], 0)
+    def test_original_emulation_mode_restores_three_stack_bytes(self):
+        # 65C816 E-mode RTI restores P and PC, preserving the previous PB.
+        emulated = (RTI.replace("emu0=0", "emu0=1")
+                    .replace("sp1=01E4", "sp1=01E3")
+                    .replace("postpc=82803A", "postpc=80803A")
+                    .replace("pb1=82", "pb1=80"))
+        row = report.summarize(ORIGINAL + emulated)["candidate_rti_scopes"][0]
+        self.assertTrue(row["emulation_mode_before_rti"])
+        self.assertEqual(row["architectural_return_frame_bytes"], 3)
+        self.assertEqual(row["pre_rti_stack_derived_return_pc"], "80:803A")
+        self.assertTrue(row["post_return_pc_verified_when_stack_available"])
 
     def test_rti_scope_rejects_malformed_or_impossible_return(self):
         for invalid in (
             RTI,
             ORIGINAL + RTI.replace("sp1=01E4", "sp1=01E2"),
+            ORIGINAL + RTI.replace("emu0=0", "emu0=1"),
             ORIGINAL + RTI.replace("postpc=82803A", "postpc=80803A"),
             ORIGINAL + RTI.replace("sp1=01E4", "sp1=0200"),
             ORIGINAL + RTI.replace("a1=4042", "a1=4004"),

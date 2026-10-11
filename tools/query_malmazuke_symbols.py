@@ -15,7 +15,8 @@ ROOT = Path(__file__).resolve().parents[1]
 PIN = "42d444594641d23f5d3c15da7b7c454bb5180e43"
 IMPORTED = ROOT / "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/docs/map/static/native-symbols.json"
 CROSSWALK = ROOT / "analysis/data/malmazuke-pal-structural-links-20261010.json"
-HEX = re.compile(r"^(?:\\$|0x)?([0-9a-fA-F]{2}):?([0-9a-fA-F]{4})$")\nSHORT = re.compile(r"^\\$([0-9a-fA-F]{4})$")
+HEX = re.compile(r"^(?:\\$|0x)?([0-9a-fA-F]{2}):?([0-9a-fA-F]{4})$")
+SHORT = re.compile(r"^\\$([0-9a-fA-F]{4})$")
 
 
 def canonical_address(value: str) -> str:

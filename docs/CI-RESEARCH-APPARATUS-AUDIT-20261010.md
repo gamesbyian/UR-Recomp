@@ -36,6 +36,14 @@ Every **maintained, decision-bearing** experimental workflow should make its pri
 
 Promote **small decision-bearing** artifacts from worthwhile runs into `analysis/data/`, existing `docs/RESEARCH-LEDGER.md`, technical-reference entries or owning native tests by reviewed commit. Do not automatically commit every run to `main` or carry multi-gigabyte raw outputs into Git; preserve the exact regeneration command, hashes and source-run ID. Retained CI artifacts expire, so results needed for future work must be promoted intentionally.
 
+## Follow-up validation and repaired policy regression
+
+Live [tooling run 38107403781](https://github.com/gamesbyian/UR-Recomp/actions/runs/38107403781) exposed a previously missed **existing assertion** in `tests/unit/test_ci_trigger_policy.py` still requiring *all three* suite flags before the canonical shared build. That outdated test failed after the optimization intentionally changed the build to run for *any pair*. The policy test was updated to require all three pairwise conjunctions while continuing to enforce exactly one build command, all three reusable consumers and the candidate-artifact handoff. The suite-specific classifier tests additionally enforce merge-base PR diff selection and fail-visible no-owner routing. This was a **test/policy disagreement**, not evidence of a broken native game, and it needed explicit correction before a green result could be claimed.
+
+Separate live [run 38107618717](https://github.com/gamesbyian/UR-Recomp/actions/runs/38107618717) failed its early Python syntax preflight in a new media/showcase script; it is unrelated to the native-router path narrowing. The tooling workflow appropriately identifies that first failure and now publishes an incomplete summary instead of declaring success. Avoid “fixing” legitimate tool-source syntax validation by excluding the new script from `tools/**`.
+
+The manual jump/control workflow additionally now writes a **specific inconclusive Actions summary if its producer fails before a valid receipt exists**. This summary is diagnostic; it cannot turn a failed run green or establish a positive or negative scientific outcome. Its regression test requires that fallback. As before, no executed jump/control result from the modified workflow has been claimed.
+
 ## Remaining work and limits
 
 - The sample demonstrates **trigger exposure**, not reliable runner-minute savings. Measure actual no-op native runs eliminated and whether two-suite canonical builds reduce elapsed time and runner usage after a real PR hits those paths. No live post-change PR workflow has been executed in this direct-main edit.

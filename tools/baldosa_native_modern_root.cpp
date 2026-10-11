@@ -26,6 +26,7 @@ extern std::uint8_t g_ram[0x20000];
 const char* ur_baldosa_modern_profile_records_directory(void);
 const char* ur_baldosa_modern_profile_multiplayer_records_directory(void);
 const char* ur_baldosa_modern_profile_selected_id(void);
+const char* ur_baldosa_modern_profile_catalog_path(void);
 int ur_baldosa_modern_profile_can_join_opponent(
     const ur::product::HostProfileCatalogEntry* entry);
 }
@@ -37,6 +38,7 @@ int ur_baldosa_modern_profile_can_join_opponent(
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <optional>
 #include <vector>
 #include <utility>
 
@@ -254,8 +256,13 @@ void choose() {
         // with at least two catalog entries must explicitly confirm both.
         const char* active = ur_baldosa_modern_profile_selected_id();
         if (active && *active) {
-            const auto roster = ur::product::load_host_profile_catalog_file(
-                "profiles-v1.txt");
+            // Reuse the boot-verified Modern user-root catalog, never CWD.
+            const char* catalog_path =
+                ur_baldosa_modern_profile_catalog_path();
+            const auto roster = catalog_path
+                ? ur::product::load_host_profile_catalog_file(catalog_path)
+                : std::optional<std::vector<
+                    ur::product::HostProfileCatalogEntry>>{};
             std::vector<ur::product::HostProfileCatalogEntry> ready;
             if (roster) {
                 ready = *roster;

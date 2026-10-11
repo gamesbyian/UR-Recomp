@@ -100,3 +100,13 @@ menu input and the two-seat identity selection together**. Dismissing
 only the child panel would falsely leave a stock 2P launch queued even
 though the player pressed Back. An already acknowledged source handoff
 continues to use the established title return/reentry path.
+
+## Canonical Modern catalog resolution
+
+The native Multiplayer join loads `profiles-v1.txt` only through the
+already-activated profile adapter's **absolute Modern user-data-root
+catalog path**, never from the executable's current working directory.
+This is the same catalog the native boot and locked 2P pair publisher
+verify. Missing or inaccessible catalog metadata preserves unbound stock
+2P play but cannot bind match history. The existing C++ unit checks the
+absence of a cwd-relative catalog lookup.

@@ -52,3 +52,13 @@ Even if every applicable gate is independently admitted, `candidate.release_deci
 ## Independent structured-evidence contract
 
 The existing shared `tools/evidence_contract.py` validator previously accepted an `outcome=accepted` JSON envelope with zero assertions, which is not affirmative proof, and could throw on nonstring outcomes. It now requires at least one actual passing assertion for accepted status, validates timezone-aware generation instants, rejects malformed schema-version/outcome/metrics scalars cleanly, and updates the existing JSON schema to constrain an accepted envelope to nonempty assertions. These are structural controls on a **declared** result, not remote log authentication or automatic conversion to L4/L5 release acceptance.
+
+## Reproducible read-only artifact re-audit
+
+QA can now re-audit the previously downloaded **two** GitHub Actions transport ZIPs (not their extracted ROMs) using the current, existing canonical portable archive validator:
+
+```sh
+python3 tools/audit_windows_smoke_artifact.py portable-actions-artifact.zip windows-smoke-evidence-artifact.zip --output historical-smoke-consistency.json
+```
+
+The new dependency-free helper compares the inner ZIP, original ZIP sidecar, smoke-bundle ZIP and repeated manifest, verifies the inner archive using `tools/assemble_windows_package.py` and retains a bounded structured `outcome=inconclusive` envelope. Its only log observations are whether the captured QA-09 log reported a joystick count, dummy vs real video/audio drivers, the synthetic pad label, packaged run-capture marker and standalone verifier marker. It emits no ROM bytes, framebuffer, log bodies or private player paths, and must **never** be used to promote release gates. Historical wrappers are not imported into Git, and the exact producing Actions run ID still needs independent GitHub verification. Synthetic positive and tampering tests protect this audit utility.

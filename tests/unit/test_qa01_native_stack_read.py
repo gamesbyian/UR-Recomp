@@ -85,7 +85,7 @@ class NativeStackReadTests(unittest.TestCase):
     def test_all_pinned_low_wram_mirrors_are_accepted_but_7f_is_not(self):
         for bank in ("01", "3F", "81", "BF", "7E"):
             read = (f"QANATIVEREAD f=5782 bank={bank} addr=01DD width=2 "
-                    "value=4004 A=0000 S=01DC M=0 scope=ReadAlias\\n")
+                    "value=4004 A=0000 S=01DC M=0 scope=ReadAlias\n")
             data = report.summarize(ARM + read.replace("\\\\n", "\\n"))
             self.assertEqual(data["native_bus_read_attempt_count"], 1)
             self.assertEqual(data["native_stack_read_attempts"][0]
@@ -94,7 +94,7 @@ class NativeStackReadTests(unittest.TestCase):
                              {"7E:01DD": 1, "7E:01DE": 1})
         for bank in ("40", "7F", "C0", "FF"):
             invalid = (f"QANATIVEREAD f=5782 bank={bank} addr=01DD width=1 "
-                       "value=0004 A=0000 S=01DD M=1 scope=BadAlias\\n")
+                       "value=0004 A=0000 S=01DD M=1 scope=BadAlias\n")
             with self.subTest(bank=bank), self.assertRaises(ValueError):
                 report.summarize(ARM + invalid.replace("\\\\n", "\\n"))
 

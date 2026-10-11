@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """QA-08: fail closed on HD overpaint of actual native PPU-hidden 2P racers.
 
-This is a *candidate presentation regression*, not HD admission. At one
-authenticated original two-player countdown frame the pinned native PPU
-emitted slots96/97 but removing both made ZERO difference to the final
-Original raster. Preserve the Original at all 411 source-alpha-covered
-coordinates, for every physical output subpixel at density 1x..4x.
+This is a *candidate presentation regression*, not HD admission. At two
+authenticated original 2P countdown frames 1872 and 1888 the pinned PPU
+emitted slots96/97 but their combined removal made ZERO final Original
+raster difference. Preserve every source-alpha-covered pixel in the
+respective frame, at every 1x..4x output subpixel.
 """
 from __future__ import annotations
 
@@ -31,10 +31,12 @@ def read_rgba(path: Path, width: int, height: int) -> bytes:
 
 def verify(stock_path: Path, source96_path: Path, source97_path: Path,
            without_pair_path: Path, candidate_path: Path,
-           evidence_path: Path, density: int) -> dict:
+           evidence_path: Path, density: int, frame: int = FRAME) -> dict:
+    if frame not in (1872, 1888):
+        raise ValueError("only independently native-proven countdown guest frames1872/1888")
     if density not in (1, 2, 3, 4):
         raise ValueError("only 1x..4x nearest-density Original RGBA candidates")
-    expected_stock_name = f"ur-baldosa-ws342-{FRAME:06d}.pam"
+    expected_stock_name = f"ur-baldosa-ws342-{frame:06d}.pam"
     if (stock_path.name != expected_stock_name or
             without_pair_path.name != expected_stock_name or
             stock_path.resolve() == without_pair_path.resolve() or
@@ -42,12 +44,12 @@ def verify(stock_path: Path, source96_path: Path, source97_path: Path,
             without_pair_path.resolve() == candidate_path.resolve()):
         raise ValueError("independent exact native stock/removal and candidate output required")
     for slot, source in ((96, source96_path), (97, source97_path)):
-        if source.name != f"ur-baldosa-ws342-obj-slot{slot}-frame{FRAME:06d}.pam":
-            raise ValueError(f"independent authentic native original slot{slot}/frame{FRAME} required")
+        if source.name != f"ur-baldosa-ws342-obj-slot{slot}-frame{frame:06d}.pam":
+            raise ValueError(f"independent authentic native original slot{slot}/frame{frame} required")
     evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
     if (evidence.get("schema_version") != 1 or
             evidence.get("status") != STATUS or
-            evidence.get("guest_frame") != FRAME or
+            evidence.get("guest_frame") != frame or
             evidence.get("source_oam_slots_removed") != [96, 97] or
             evidence.get("exact_native_pair_removal_armed") is not True or
             evidence.get("guest_crc_equal_in_all_four_independent_native_processes") != 2473 or
@@ -107,7 +109,7 @@ def verify(stock_path: Path, source96_path: Path, source97_path: Path,
         "schema_version": 1,
         "status": ("preserved-causally-hidden-original-countdown-source"
                    if changed == 0 else "failed-countdown-foreground-overpaint"),
-        "native_guest_frame": FRAME,
+        "native_guest_frame": frame,
         "native_causal_source_pair": [96, 97],
         "native_original_exact_sha256": sha(stock),
         "candidate_full_rgba_sha256": sha(candidate),
@@ -120,7 +122,8 @@ def verify(stock_path: Path, source96_path: Path, source97_path: Path,
         "candidate_original_foreground_preserved": changed == 0,
         "candidate_process_or_full_guest_event_authenticated_by_this_check": False,
         "general_2p_remastered_and_art_likeness_approved": False,
-        "limits": ("One exact 2P guest1872 native PPU pair-removal witness, not "
+        "limits": ("One explicitly selected, independently authenticated 2P "
+                   "guest1872/1888 native PPU pair-removal witness, not "
                    "a general priority mask. Pass means no source-covered "
                    "countdown pixel was overpainted, NOT graphics product "
                    "readiness, guest-process identity, or 4K authorization."),
@@ -133,14 +136,15 @@ def main() -> int:
                  "candidate", "causal-evidence", "out"):
         p.add_argument("--" + name, type=Path, required=True)
     p.add_argument("--density", type=int, required=True, choices=(1, 2, 3, 4))
+    p.add_argument("--frame", type=int, choices=(1872, 1888), default=FRAME)
     a = p.parse_args()
     result = verify(a.stock, a.source96, a.source97, a.without_pair,
-                    a.candidate, a.causal_evidence, a.density)
+                    a.candidate, a.causal_evidence, a.density, frame=a.frame)
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n",
                      encoding="utf-8")
     print("UR_QA08_COUNTDOWN_HD_GUARD " + result["status"] +
-          f" frame={FRAME} protected={result['protected_output_subpixels_checked']}" +
+          f" frame={a.frame} protected={result['protected_output_subpixels_checked']}" +
           f" overpaint={result['unauthorized_candidate_subpixel_overpaints']}" +
           " remastered_admitted=0")
     return int(result["unauthorized_candidate_subpixel_overpaints"] != 0)

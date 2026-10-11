@@ -20,7 +20,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: qa02-process-recovery-cohort-\${{ github.ref }}
+  group: qa02-process-recovery-cohort-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 15
     outputs:
-      binary_sha256: \${{ steps.digest.outputs.binary_sha256 }}
+      binary_sha256: ${{ steps.digest.outputs.binary_sha256 }}
     steps:
       - name: Check out exact source revision
         uses: actions/checkout@v4
@@ -60,7 +60,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: qa02-store-fixture-shared-binary
-          path: \${{ runner.temp }}/recovery-binary/
+          path: ${{ runner.temp }}/recovery-binary/
           retention-days: 7
           if-no-files-found: error
 
@@ -86,15 +86,15 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: qa02-store-fixture-shared-binary
-          path: \${{ runner.temp }}/recovery-binary/
+          path: ${{ runner.temp }}/recovery-binary/
       - name: Repeat real OS-process faults against isolated user-data roots
         shell: bash
         env:
-          ITERATIONS: \${{ inputs.iterations_per_scenario }}
-          SEED: \${{ inputs.seed }}
-          SUITE: \${{ matrix.suite }}
-          SUITE_INDEX: \${{ matrix.index }}
-          BINARY_SHA256: \${{ needs.build.outputs.binary_sha256 }}
+          ITERATIONS: ${{ inputs.iterations_per_scenario }}
+          SEED: ${{ inputs.seed }}
+          SUITE: ${{ matrix.suite }}
+          SUITE_INDEX: ${{ matrix.index }}
+          BINARY_SHA256: ${{ needs.build.outputs.binary_sha256 }}
         run: |
           set -euo pipefail
           [[ "$SEED" =~ ^[0-9]{1,8}$ ]] || { echo "Invalid bounded seed"; exit 2; }
@@ -112,14 +112,14 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: qa02-recovery-\${{ matrix.suite }}
-          path: \${{ runner.temp }}/recovery-result/result.json
+          name: qa02-recovery-${{ matrix.suite }}
+          path: ${{ runner.temp }}/recovery-result/result.json
           retention-days: 14
           if-no-files-found: warn
 
   aggregate:
     needs: [build, scenarios]
-    if: \${{ always() && needs.build.result == 'success' }}
+    if: ${{ always() && needs.build.result == 'success' }}
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
@@ -131,14 +131,14 @@ jobs:
         continue-on-error: true
         with:
           pattern: qa02-recovery-*
-          path: \${{ runner.temp }}/recovery-receipts/
+          path: ${{ runner.temp }}/recovery-receipts/
           merge-multiple: false
       - name: Reject missing results, false passes, impossible counts or stale binary
         shell: bash
         env:
-          ITERATIONS: \${{ inputs.iterations_per_scenario }}
-          SEED: \${{ inputs.seed }}
-          BINARY_SHA256: \${{ needs.build.outputs.binary_sha256 }}
+          ITERATIONS: ${{ inputs.iterations_per_scenario }}
+          SEED: ${{ inputs.seed }}
+          BINARY_SHA256: ${{ needs.build.outputs.binary_sha256 }}
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/recovery-receipts"
@@ -153,6 +153,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: qa02-recovery-aggregate
-          path: \${{ runner.temp }}/recovery-aggregate/result.json
+          path: ${{ runner.temp }}/recovery-aggregate/result.json
           retention-days: 14
           if-no-files-found: warn

@@ -6,6 +6,8 @@
 
 **Short-horizon coordination:** [Windows beta quality campaign](WINDOWS-BETA-QUALITY-CAMPAIGN-20261010.md) establishes a seven-day review target, no forced ship date, three non-overlapping agent lanes and player-visible beta criteria. Preserve full technical-reference ambition and independent release QA.
 
+**Task-selection reuse check:** For a nontrivial P0 task, run `python3 tools/select_three_project_reuse.py --lane <lane> --include-conditional` before building a new script, parser, renderer, controller layer or fixture. It consults verified UR/Baldosa/Malmazuke source paths, concrete reuse actions and qualification/stop criteria. A conditional upstream pilot is permitted *within* its owning P0 task if it materially accelerates the actual gate; it is not a new independent queue or excuse to delay the Windows vertical slice. The earlier handoff's #1251 media PR reference is historical; the live open-PR list was empty immediately after #1297 merged.
+
 ## October 10 verified handoff and decision policy
 
 - **Merged:** #1191 real fixed Original 256-wide physical 3840×2160 viewport/matte acceptance; #1185 real paired Original OAM 98/99 deletion with 483/483 final-colour differences inside source union; #1198 overlap counterfactual correlation; #1199 evidence report; #1193 opt-in same-host Switcher raw-memory offset comparison; #1194 visible native pause; #1200 Baldosa causal review; #1203 real Windows launcher diagnostics; #1208 native paused Quit with named-profile SRAM checkpoint.

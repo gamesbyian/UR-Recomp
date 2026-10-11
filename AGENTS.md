@@ -6,7 +6,7 @@ Compact router for coding and research agents. **Current priority: merge the ver
 
 | Task | Read first |
 |---|---|
-| Current priority / continue work | `docs/WORK-QUEUE.md`, then the owning specialist doc and live PR owner. For established lanes `python3 tools/build_agent_context.py <lane>` yields a bounded orientation packet |
+| Current priority / continue work | `docs/WORK-QUEUE.md`, then the owning specialist doc and live PR owner. For established lanes `python3 tools/build_agent_context.py <lane>` yields a bounded orientation packet with cross-project reuse hints |
 | Understand how the game currently appears to work / orient to a subsystem | `docs/knowledge/README.md`, then the relevant concept page |
 | Overall project architecture / product plan | `docs/PROJECT-PLAN.md` for current, `docs/archive/PROJECT-PLAN-THROUGH-20261009.md` only for old detail |
 | Widescreen feature implementation | `docs/WIDESCREEN.md`, then `docs/PROJECT-PLAN.md` |
@@ -27,6 +27,7 @@ Compact router for coding and research agents. **Current priority: merge the ver
 | Tool choice / installing research software | `docs/TOOLCHAIN.md`, `tools/toolchain.json`; for producer/consumer chains and adapters, `docs/TOOL-INTEROPERABILITY.md` |
 | AI/LLM-assisted reverse-engineering method | `docs/AI-ASSISTED-REVERSE-ENGINEERING.md`; apply it as technique guidance, not as a second work queue |
 | Adopting or adapting imported scripts/source | `docs/TRUSTED-UPSTREAM-ADOPTION.md`, `docs/THIRD-PARTY-CODE-AUDIT.md`, then the imported source |
+| Three-project reuse / tool adoption decision | `python3 tools/select_three_project_reuse.py --lane <lane> --include-conditional`, then the relevant pinned source and `docs/TRUSTED-UPSTREAM-ADOPTION.md` |
 | Periodic repository hygiene | Execute `docs/PERIODIC-REPOSITORY-HYGIENE.md` from current `main` |
 
 `docs/README.md` inventories document ownership. It is not a second agent guide.
@@ -39,6 +40,7 @@ If you have no project history, do **not** reconstruct priority from chronology,
 2. identify the first unresolved gate on the shipping critical path;
 3. use current generated evidence and specialist docs to attack that gate;
 4. prefer work that removes uncertainty for multiple downstream features over locally interesting archaeology.
+5. **Before substantial implementation**, run `python3 tools/select_three_project_reuse.py --lane <lane> --include-conditional` (or `--lane all` if unassigned). Check how UR, Baldosa and Malmazuke already approach the same problem; choose reuse, a bounded pilot or a fresh implementation based on the actual live blocker. `docs/WORK-QUEUE.md` still determines which problem to solve. Do not make a conditional tool pilot into an independent P0 assignment.
 
 **At present Baldosa-core incorporation and adversarial QA are coupled priorities.** The proven 1P/2P input, pause, moving HD, 4x Original fallback, +24 world and Windows build bridges must be consolidated into the existing Modern frontend/records/profiles; real original/native complete events, source-visible P1/P2 graphics, storage and controller-only Windows acceptance independently decide readiness. This is a single integration and QA pipeline, not two competing general framework programmes. Refresh the live work queue and PRs before touching shared code. Defer new platforms, generic source archaeology and post-baseline cosmetics unless a reproduced blocker changes that choice.
 

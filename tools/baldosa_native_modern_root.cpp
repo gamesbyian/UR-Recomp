@@ -8,6 +8,7 @@
 #include "modern_root_overlay_presenter.hpp"
 #include "modern_root_physical_edges.hpp"
 #include "baldosa_native_records_summary.hpp"
+#include "baldosa_native_run_save_feedback.hpp"
 #include "quick_practice_route.hpp"
 #include "quick_practice_input_mask.hpp"
 
@@ -45,6 +46,8 @@ std::string g_racer_name = "STOCK RACER - NO PROFILE";
 bool g_visible = false;
 bool g_confirm_quit = false;
 bool g_records_open = false;
+ur::product::BaldosaNativeRunSaveFeedback g_run_save_feedback =
+    ur::product::BaldosaNativeRunSaveFeedback::None;
 std::string g_records_status;
 std::string g_records_recent;
 bool g_render_reported = false;
@@ -87,6 +90,7 @@ bool reopen_on_observed_stock_main() {
     g_visible = true;
     g_confirm_quit = false;
     g_records_open = false;
+    g_run_save_feedback = ur::product::BaldosaNativeRunSaveFeedback::None;
     g_stock_handed_off = false;
     g_handed_off_players = 0;
     g_handed_off_saw_race = false;
@@ -191,6 +195,13 @@ void back() {
 }
 }  // namespace
 
+extern "C" void ur_baldosa_modern_root_set_run_save_feedback(unsigned status) {
+    using ur::product::BaldosaNativeRunSaveFeedback;
+    g_run_save_feedback = status >= 1u && status <= 3u
+        ? static_cast<BaldosaNativeRunSaveFeedback>(status)
+        : BaldosaNativeRunSaveFeedback::None;
+}
+
 extern "C" void ur_baldosa_modern_root_set_racer_name(const char* name) {
     g_racer_name = name && *name ? name : "STOCK RACER - NO PROFILE";
 }
@@ -201,6 +212,7 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     g_navigation_edges.reset();
     g_confirm_quit = false;
     g_records_open = false;
+    g_run_save_feedback = ur::product::BaldosaNativeRunSaveFeedback::None;
     g_visible = true;
     g_render_reported = false;
     g_paint_count = 0;
@@ -270,7 +282,9 @@ extern "C" int ur_baldosa_modern_root_gamepad(
 extern "C" int ur_baldosa_modern_root_draw_frame(
     std::uint8_t* dst, std::size_t pitch, const std::uint8_t* field,
     int width, int height, double) {
-    if (!g_visible) return 0;
+    if (!g_visible &&
+        g_run_save_feedback == ur::product::BaldosaNativeRunSaveFeedback::None)
+        return 0;
     // Retain the stock 256x224 output and exact pitch. The HD/widescreen
     // compositors own all other raster modes; no attempt to fake density.
     if (!dst || !field || width != 256 || height != 224 ||
@@ -282,6 +296,10 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
                     static_cast<std::size_t>(width) * 4);
     const ModernRootOverlayPainter painter{
         &snes_ovl_fill_rect, &snes_ovl_stroke_rect, &snes_ovl_draw_text};
+    if (!g_visible)
+        return ur::product::render_baldosa_native_run_save_feedback(
+            painter, reinterpret_cast<std::uint32_t*>(dst),
+            static_cast<int>(pitch / 4), height, g_run_save_feedback) ? 1 : 0;
     const ModernRootOverlayView view{
         g_menu, false, g_racer_name,
         false, g_confirm_quit, kNativeRootAvailable, false,
@@ -378,6 +396,13 @@ extern "C" void ur_baldosa_modern_root_stock_observe_guest(void) {
 
 extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     ur_baldosa_modern_root_stock_observe_guest();
+    // Feedback never survives a new guest attempt, stock menu transition
+    // or loss of the original 1P Modern root handoff.
+    if (g_run_save_feedback !=
+            ur::product::BaldosaNativeRunSaveFeedback::None &&
+        (g_visible || !g_stock_handed_off || g_handed_off_players != 1u ||
+         g_ram[0x0313u] == 0x01u || g_ram[0x009fu] != 0x99u))
+        g_run_save_feedback = ur::product::BaldosaNativeRunSaveFeedback::None;
     // The original guest can return to stock setup and let a player change
     // the mode without revisiting our root. Such a new session must NOT
     // inherit the previous acknowledged 1P/2P result authority.

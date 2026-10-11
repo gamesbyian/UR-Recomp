@@ -15,11 +15,11 @@ ROOT = Path(__file__).resolve().parents[1]
 PIN = "42d444594641d23f5d3c15da7b7c454bb5180e43"
 IMPORTED = ROOT / "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/docs/map/static/native-symbols.json"
 CROSSWALK = ROOT / "analysis/data/malmazuke-pal-structural-links-20261010.json"
-HEX = re.compile(r"^(?:\\$|0x)?([0-9a-fA-F]{2}):?([0-9a-fA-F]{4})$")
+HEX = re.compile(r"^(?:\\$|0x)?([0-9a-fA-F]{2}):?([0-9a-fA-F]{4})$")\nSHORT = re.compile(r"^\\$([0-9a-fA-F]{4})$")
 
 
 def canonical_address(value: str) -> str:
-    match = HEX.fullmatch(value.strip())
+    short = SHORT.fullmatch(value.strip())\n    if short:\n        return f"\\${int(short.group(1), 16):04X}"\n    match = HEX.fullmatch(value.strip())
     if not match:
         raise ValueError("expected a complete 24-bit SNES address (e.g. 81:8050)")
     bank, addr = (int(part, 16) for part in match.groups())
@@ -59,7 +59,7 @@ def query(symbols: dict, links: dict, *, address: str | None = None,
         if usa_needle and (not companion or companion["correspondence"].get("usa") != usa_needle):
             continue
         if rx and not rx.search(" ".join([a, *entry.get("native", []),
-                                          companion.get("pal_label") or "" if companion else ""])):
+                                          (companion.get("pal_label") or "") if companion else ""])):
             continue
         cross = companion["correspondence"] if companion else {"status": "not-indexed"}
         rows.append({

@@ -1,9 +1,13 @@
 # QA-08: independent moving 2P countdown lower-OBJ PPU counterfactual
 
-**Status: experimental second guest frame pending exact native AOT.
-No claim of the second-frame result until an authentic workflow report
-exists.** Stacked directly on the accepted original native one-frame
-counterfactual [#1330](https://github.com/gamesbyian/UR-Recomp/pull/1330).
+**Status: PASSED second moving guest frame on exact-head native AOT
+[38119117927](https://github.com/gamesbyian/UR-Recomp/actions/runs/38119117927),
+artifact `11694649120` (tested commit
+`3afaec0bffc5729687806cfe047442c6fc182caa`).**
+Stacked directly on the accepted first-frame native counterfactual
+[#1330](https://github.com/gamesbyian/UR-Recomp/pull/1330).
+The later documentation/data commit does not alter its accepted
+native executable or validator.
 This preserves the accepted 1872 branch/head and does not replace it.
 
 ## Accepted starting point: first genuine countdown frame
@@ -32,6 +36,38 @@ Those are **observational** facts. They cannot prove that deleting
 both lower source slots at1888 will also leave the final unchanged:
 two different source layers or background/window priority conditions
 could by chance produce the same final blue.
+
+## Real native results: two source-moving countdown moments
+
+Both frame-specific native PPU interventions **passed** at the exact
+tested branch head. Their actual source and final-output facts are:
+
+| Exact guest frame | Source96+97 opaque emission | Source union | Original full-frame changed by genuine pair removal | Full guest CRC |
+| --- | ---: | ---: | ---: | --- |
+| 1872 | 330 + 325 = **655** | **411** | **0 / 76,608** RGBA pixels | Four identical 2,473-line streams |
+| **1888** | 322 + 324 = **646** | **409** | **0 / 76,608** RGBA pixels | Four identical 2,473-line streams |
+
+The native run explicitly reports
+`UR_QA08_2P_COVERED_PAIR_PPU native-covered-pair-final-unchanged
+frame=1888 emitted=646 union=409 final_changed=0
+changed_outside=0 release_hd=0`. Both frames have one genuine
+`UR_RACER_HD_WIDE_REMOVE_PAIR` armed log marker, source-report
+attestations, unchanged guest CRC routes and complete stock-vs-
+removed PPU SHA identity. The second frame's complete Original
+and pair-removed hashes are both
+`7de0e805f07234d0b7b6c4c526eea79b5c6c523ff594c09ddc9970de238eede7`.
+
+This proves **two independent native causal zero-effect results**,
+while the lower OBJ source union has genuinely shifted at 78
+logical coordinates, including 409 current alpha positions under
+a full-frame stationary countdown-blue colour mask. It rejects
+the competing explanation of a trivially cached/frozen racer source
+at the second checkpoint. It does **not** prove all intervening
+frames or recover the exact BG/window hardware priority.
+
+The accepted two-frame hash and count witness is preserved at
+[`analysis/data/qa08-native-original-2p-countdown-moving-pair-causal-1872-1888.json`](../analysis/data/qa08-native-original-2p-countdown-moving-pair-causal-1872-1888.json).
+The raw PAM source graphics remain in the native GHA artifact.
 
 ## Single useful new experiment
 

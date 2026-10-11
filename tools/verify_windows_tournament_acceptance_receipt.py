@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import re
 from pathlib import Path
 
@@ -433,6 +434,8 @@ def main() -> int:
     p.add_argument("--expected-zip-sha256", required=True)
     p.add_argument("--expected-harness-sha", help="current checkout git SHA")
     p.add_argument("--expected-smoke-run-id", help="workflow-selected smoke run")
+    p.add_argument("--output-envelope", type=Path,
+                   help="create a new machine-readable, explicitly inconclusive QA witness")
     args = p.parse_args()
     try:
         result = verify(
@@ -443,6 +446,57 @@ def main() -> int:
         )
     except (OSError, ValueError) as exc:
         p.error(str(exc))
+    if args.output_envelope is not None:
+        # Same contract as other project QA files. No additional guest
+        # authority and no replacement of an existing reviewer's evidence.
+        if __package__:
+            from .evidence_contract import assertion, make_envelope
+        else:
+            from evidence_contract import assertion, make_envelope
+        witness = make_envelope(
+            evidence_type="windows-snesrecomp-packaged-tournament-receipt-consistency",
+            producer="tools/verify_windows_tournament_acceptance_receipt.py",
+            subject={
+                "backend": "snesrecomp",
+                "source_commit": result["source_commit"],
+                "inner_zip_sha256": result["inner_zip_sha256"],
+                "tournament_instance": result["tournament_instance"],
+            },
+            inputs={
+                "smoke_run_id": result["smoke_run_id"],
+                "qa_harness_commit": result["qa_harness_commit"],
+                "run_sha256": result["run_sha256"],
+                "match_sha256": result["match_sha256"],
+                "fixture_sha256": result["receipt_sha256"],
+                "create_log_sha256": result["create_log_sha256"],
+                "reopen_log_sha256": result["reopen_log_sha256"],
+            },
+            assertions=[
+                assertion("independently-nominated-source-and-package", True),
+                assertion("run-match-fixture-internal-and-external-integrity", True),
+                assertion("source-result-and-tournament-credit-semantics", True),
+                assertion("packaged-create-and-fresh-reopen-native-diagnostics", True),
+            ],
+            metrics={
+                "paired_course": result["paired_course"],
+                "paired_winner": result["paired_winner"],
+                "paired_ticks60": int(result["paired_ticks60"]),
+                "physical_controllers_audio_display_verified": False,
+                "baldosa_native_backend_verified": False,
+                "original_native_full_event_parity_verified": False,
+                "release_l4_l5_certified": False,
+            },
+            provenance={
+                "scope": "single-fixture read-only host acceptance; not original event oracle or physical hardware",
+            },
+            outcome="inconclusive",
+        )
+        try:
+            with args.output_envelope.open("x", encoding="utf-8") as output:
+                json.dump(witness, output, indent=2, sort_keys=True)
+                output.write("\n")
+        except OSError as exc:
+            p.error(f"cannot create immutable tournament QA envelope: {exc}")
     print("UR_WINDOWS_TOURNAMENT_RECEIPT_VERIFIED "
           f"source={result['source_commit']} zip={result['inner_zip_sha256']}")
     print("UR_WINDOWS_TOURNAMENT_RECEIPT_SCOPE exact_artifact_integrity_only "

@@ -53,6 +53,22 @@ class WindowsLocalTournamentCandidatePinTests(unittest.TestCase):
         )
         self.assertNotIn('--expected-smoke-run-id "${{ inputs.smoke_run_id }}"', s)
         self.assertIn("tournament-receipt-verification.log", s)
+        self.assertIn('--output-envelope "$RUNNER_TEMP/tournament-qa-envelope.json"', s)
+        self.assertIn('tools/evidence_contract.py "$RUNNER_TEMP/tournament-qa-envelope.json"', s)
+        for retained in (
+            "tournament-qa-envelope.json",
+            "tournament-artifacts.log",
+            "tournament-work/multiplayer-runs/*.urrun",
+            "tournament-work/multiplayer-runs/*.urmatch",
+            "tournament-work/user data/local-tournaments/",
+        ):
+            self.assertIn(retained, s)
+        # Only the precise synthetic QA outputs are uploaded. Never publish
+        # the private player's cartridge, mutable SRAM or a whole work root.
+        self.assertNotIn("tournament-work/**", s)
+        self.assertNotIn("tournament-work/user data/", s.split("path: |", 1)[1].replace(
+            "tournament-work/user data/local-tournaments/", ""
+        ))
         self.assertLess(s.index("run_windows_local_tournament_package_acceptance.sh"),
                         s.index("verify_windows_tournament_acceptance_receipt.py"))
         self.assertLess(s.index("verify_windows_tournament_acceptance_receipt.py"),

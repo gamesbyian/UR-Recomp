@@ -113,7 +113,9 @@ jobs:
             --expected-zip-sha256 "$QA_APPROVED_ZIP_SHA256" \
             --expected-harness-sha "$GITHUB_SHA" \
             --expected-smoke-run-id "$QA_SMOKE_RUN_ID" \
+            --output-envelope "$RUNNER_TEMP/tournament-qa-envelope.json" \
             | tee "$RUNNER_TEMP/tournament-receipt-verification.log"
+          python tools/evidence_contract.py "$RUNNER_TEMP/tournament-qa-envelope.json"
 
       - name: Upload tournament evidence
         if: always()
@@ -124,7 +126,11 @@ jobs:
             ${{ runner.temp }}/windows-tournament-candidate.txt
             ${{ runner.temp }}/tournament-package-verify.log
             ${{ runner.temp }}/tournament-receipt-verification.log
+            ${{ runner.temp }}/tournament-qa-envelope.json
+            ${{ runner.temp }}/tournament-work/tournament-artifacts.log
             ${{ runner.temp }}/tournament-work/*.log
+            ${{ runner.temp }}/tournament-work/multiplayer-runs/*.urrun
+            ${{ runner.temp }}/tournament-work/multiplayer-runs/*.urmatch
             ${{ runner.temp }}/tournament-work/user data/local-tournaments/
           if-no-files-found: warn
           retention-days: 7

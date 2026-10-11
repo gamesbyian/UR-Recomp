@@ -1,6 +1,9 @@
 """Read-only Windows tournament receipt checks without game/ROM data."""
 import hashlib
+import json
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -132,6 +135,44 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
             encoding="ascii",
         )
         return work, candidate, p, q, f, report
+
+    def test_cli_exports_create_only_inconclusive_replayable_evidence(self):
+        from tools.evidence_contract import validate_envelope
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            work, candidate, run, match, fixture, receipt = self.make(root)
+            script = Path(__file__).resolve().parents[2] / (
+                "tools/verify_windows_tournament_acceptance_receipt.py"
+            )
+            output = root / "bounded-tournament-evidence.json"
+            args = [
+                sys.executable, str(script),
+                "--work", str(work),
+                "--candidate", str(candidate),
+                "--expected-source", "a" * 40,
+                "--expected-zip-sha256", "b" * 64,
+                "--expected-harness-sha", "c" * 40,
+                "--expected-smoke-run-id", "12345",
+                "--output-envelope", str(output),
+            ]
+            launched = subprocess.run(args, capture_output=True, text=True)
+            self.assertEqual(launched.returncode, 0, launched.stderr)
+            self.assertIn("release_l4_l5_certified=0", launched.stdout)
+            report = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(validate_envelope(report), [])
+            self.assertEqual(report["outcome"], "inconclusive")
+            self.assertEqual(report["subject"]["backend"], "snesrecomp")
+            self.assertEqual(report["subject"]["tournament_instance"], "1" * 32)
+            self.assertEqual(report["inputs"]["run_sha256"], digest(run.read_bytes()))
+            self.assertEqual(report["inputs"]["match_sha256"], digest(match.read_bytes()))
+            self.assertEqual(report["inputs"]["fixture_sha256"], digest(fixture.read_bytes()))
+            self.assertIs(report["metrics"]["baldosa_native_backend_verified"], False)
+            self.assertIs(report["metrics"]["release_l4_l5_certified"], False)
+            saved = output.read_bytes()
+            refused = subprocess.run(args, capture_output=True, text=True)
+            self.assertEqual(refused.returncode, 2)
+            self.assertIn("cannot create immutable tournament QA envelope", refused.stderr)
+            self.assertEqual(output.read_bytes(), saved)
 
     def test_records_cannot_masquerade_as_baldosa_backend(self):
         with tempfile.TemporaryDirectory() as tmp:

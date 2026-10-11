@@ -3,6 +3,7 @@
 #include "completed_run_store.hpp"
 
 #include <filesystem>
+#include <system_error>
 
 namespace ur::product {
 

@@ -44,8 +44,7 @@ class BaldosaNativeTwoSeatJoinTests(unittest.TestCase):
         self.assertIn("ur_baldosa_modern_profile_can_join_opponent(", source)
         self.assertIn("ur_baldosa_modern_profile_catalog_path()", source)
         self.assertIn("load_host_profile_catalog_file(catalog_path)", source)
-        self.assertNotIn('load_host_profile_catalog_file(\\n'
-                         '                "profiles-v1.txt")', source)
+        self.assertNotIn('"profiles-v1.txt"', source)
         profile_adapter = (
             ROOT / "tools/baldosa_modern_profile_activation.cpp"
         ).read_text(encoding="utf-8")

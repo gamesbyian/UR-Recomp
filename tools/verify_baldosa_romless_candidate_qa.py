@@ -226,7 +226,10 @@ def audit(archive_path: Path, source_sha: str, zip_sha256: str) -> dict:
     )
 
 
-def audit_actions_wrapper(wrapper: Path, source_sha: str, inner_sha: str) -> dict:
+def audit_actions_wrapper(
+    wrapper: Path, source_sha: str, inner_sha: str,
+    *, expected_wrapper_sha: str | None = None,
+) -> dict:
     """Check the unmodified two-member GitHub artifact as downloaded.
 
     The Actions artifact has its own, different SHA-256. The nomination must
@@ -241,6 +244,11 @@ def audit_actions_wrapper(wrapper: Path, source_sha: str, inner_sha: str) -> dic
     if wrapper.stat().st_size > MAX_ZIP_BYTES + 2 * 1024 * 1024:
         raise ValueError("Actions artifact wrapper exceeds size limit")
     wrapper_digest = file_digest(wrapper)
+    if expected_wrapper_sha is not None:
+        if not isinstance(expected_wrapper_sha, str) or not SHA256.fullmatch(expected_wrapper_sha):
+            raise ValueError("Actions wrapper nomination needs full lowercase SHA-256")
+        if wrapper_digest != expected_wrapper_sha:
+            raise ValueError("Actions wrapper bytes differ from independent SHA-256 nomination")
     try:
         with zipfile.ZipFile(wrapper) as archive:
             infos = archive.infolist()
@@ -281,7 +289,10 @@ RUNTIME_ONE = "UR Baldosa Win32 Pause Route/modern_to_live_race_1p/log.txt"
 RUNTIME_TWO = "UR Baldosa Win32 Pause Route/modern_to_live_race_2p/log.txt"
 
 
-def check_runtime_actions_wrapper(wrapper: Path, candidate: dict) -> dict:
+def check_runtime_actions_wrapper(
+    wrapper: Path, candidate: dict,
+    *, expected_wrapper_sha: str | None = None,
+) -> dict:
     """Read the separately produced same-run log/report archive without executing it.
 
     Positive claim: source-identical PE + bounded *entry to live race*.
@@ -289,6 +300,11 @@ def check_runtime_actions_wrapper(wrapper: Path, candidate: dict) -> dict:
     """
     if wrapper.is_symlink() or not wrapper.is_file() or wrapper.stat().st_size > 16 * 1024 * 1024:
         raise ValueError("Baldosa Win32 runtime evidence ZIP missing, linked or oversized")
+    if expected_wrapper_sha is not None:
+        if not isinstance(expected_wrapper_sha, str) or not SHA256.fullmatch(expected_wrapper_sha):
+            raise ValueError("runtime evidence nomination needs full lowercase SHA-256")
+        if file_digest(wrapper) != expected_wrapper_sha:
+            raise ValueError("runtime evidence wrapper differs from independent SHA-256 nomination")
     try:
         with zipfile.ZipFile(wrapper) as archive:
             names = archive.namelist()
@@ -388,21 +404,33 @@ def main() -> int:
     input_group.add_argument("--actions-artifact", type=Path, help="two-member Actions ZIP as downloaded")
     parser.add_argument("--runtime-evidence", type=Path,
                         help="same-run small ROM-free Win32 report/log Actions artifact; requires --actions-artifact")
+    parser.add_argument("--expected-actions-artifact-sha256",
+                        help="externally nominated GitHub candidate wrapper SHA-256")
+    parser.add_argument("--expected-runtime-evidence-sha256",
+                        help="externally nominated Windows runtime evidence wrapper SHA-256")
     parser.add_argument("--expected-source", required=True)
     parser.add_argument("--expected-zip-sha256", required=True)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     if args.runtime_evidence is not None and args.actions_artifact is None:
         parser.error("--runtime-evidence requires the exact --actions-artifact ZIP")
+    if (args.actions_artifact is None) != (args.expected_actions_artifact_sha256 is None):
+        parser.error("--actions-artifact requires the externally nominated wrapper SHA-256")
+    if (args.runtime_evidence is None) != (args.expected_runtime_evidence_sha256 is None):
+        parser.error("--runtime-evidence requires the externally nominated wrapper SHA-256")
     try:
         if args.actions_artifact is not None:
             result = audit_actions_wrapper(
-                args.actions_artifact, args.expected_source, args.expected_zip_sha256
+                args.actions_artifact, args.expected_source, args.expected_zip_sha256,
+                expected_wrapper_sha=args.expected_actions_artifact_sha256,
             )
         else:
             result = audit(args.zip, args.expected_source, args.expected_zip_sha256)
         if args.runtime_evidence is not None:
-            result = check_runtime_actions_wrapper(args.runtime_evidence, result)
+            result = check_runtime_actions_wrapper(
+                args.runtime_evidence, result,
+                expected_wrapper_sha=args.expected_runtime_evidence_sha256,
+            )
     except (OSError, ValueError) as exc:
         parser.error(str(exc))
     rendered = json.dumps(result, indent=2, sort_keys=True) + "\n"

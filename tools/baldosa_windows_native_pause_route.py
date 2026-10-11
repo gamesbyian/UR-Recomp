@@ -781,6 +781,49 @@ def run_native_named_records_root(
             {p.name: p.read_bytes() for p in match_archive.iterdir()} !=
             original_pairs):
         raise ValueError("Unbound stock 2P changed canonical pair history")
+    # A third invocation uses the fixture's canonical transaction to
+    # register/initialize P2 and switch the selected SRAM to that racer.
+    # This is still test-synthetic host gamepad input, NEVER a physical-pad
+    # or played ordinary-2P result certification.
+    created_second = subprocess.run(
+        [str(fixture), str(user_root), str(seed), "--add-second"],
+        cwd=output, capture_output=True, text=True, timeout=timeout,
+        check=True)
+    if "switched=native-ci-second" not in created_second.stdout:
+        raise ValueError("Canonical named P2 fixture did not activate")
+    joined_env = {**env, "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "3"}
+    joined = subprocess.run(
+        [str(exe), "--no-launcher", "--config", str(config),
+         "--script", str(script), str(rom)],
+        cwd=output, env=joined_env, capture_output=True, text=True,
+        timeout=timeout, errors="replace")
+    joined_log = joined.stdout + "\n" + joined.stderr
+    (output / "named-two-profile-stock-2p.log").write_text(
+        joined_log, encoding="utf-8")
+    if joined.returncode:
+        raise RuntimeError(
+            "Named two-seat stock 2P rejected: " + joined_log[-2600:])
+    verify_native_modern_root_log(joined_log, players=2)
+    stages = (
+        "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=native-ci-second",
+        "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
+        "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1",
+        "UR_BALDOSA_MODERN_ROOT synthetic_join_edge seat=1",
+        "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
+        "UR_BALDOSA_MODERN_ROOT stock_requested players=2",
+        "UR_BALDOSA_MODERN_ROOT synthetic_join_edge seat=2",
+        "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d",
+    )
+    positions = [joined_log.find(marker) for marker in stages]
+    if (-1 in positions or positions != sorted(positions) or
+            any(joined_log.count(marker) != 1 for marker in stages)):
+        raise ValueError("Named native P1/P2 consent did not precede real stock 2P")
+    if ("UR_BALDOSA_NATIVE_MATCH CAPTURED=1" in joined_log or
+            {p.name: p.read_bytes() for p in match_archive.iterdir()} !=
+            original_pairs):
+        raise ValueError("Synthetic 2P join wrongly minted a real-match artifact")
+    verify_native_profile_checkpoint(
+        fixture, user_root, "native-ci-second", joined_log, timeout)
     return {
         "selected_named_profile_sram_authorized": True,
         "canonical_valid_archives_read_on_real_windows": 1,
@@ -791,6 +834,9 @@ def run_native_named_records_root(
         "actual_native_2p_match_published": False,
         "named_one_profile_2p_stock_guest_playable": True,
         "unbound_2p_never_attributed_to_a_record": True,
+        "two_named_profile_pad_semantic_confirmations": 2,
+        "two_named_profile_original_stock_2p_entered": True,
+        "synthetic_join_not_played_match_proof": True,
         "malformed_archives_reported_unavailable": 1,
         "no_run_created_by_record_view_or_script_quit": True,
         "existing_profile_checkpoint_verified": True,

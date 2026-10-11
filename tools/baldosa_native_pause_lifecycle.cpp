@@ -21,6 +21,7 @@
 #include "modern_pause_input.h"
 #include "modern_pause_overlay_presenter.hpp"
 #include "baldosa_guest_result_observer.hpp"
+#include "host_profile_catalog.hpp"
 #include "baldosa_native_run_publish_retry.hpp"
 
 extern "C" {
@@ -41,6 +42,14 @@ int ur_baldosa_modern_root_key(int key, int pressed);
 int ur_baldosa_modern_root_gamepad(int player, int button, int pressed);
 void ur_baldosa_modern_root_after_run_frame(unsigned frame);
 unsigned ur_baldosa_modern_root_guest_players(void);
+int ur_baldosa_modern_root_source_bound_2p_profiles(
+    ur::product::HostProfileCatalogEntry* p1,
+    ur::product::HostProfileCatalogEntry* p2);
+int ur_baldosa_modern_publish_settled_two_player_match(
+    const ur::product::BaldosaSettledResult* result,
+    const ur::product::HostProfileCatalogEntry* p1,
+    const ur::product::HostProfileCatalogEntry* p2);
+
 void ur_baldosa_modern_root_set_run_save_feedback(unsigned);
 const char* ur_baldosa_modern_profile_records_directory(void);
 int ur_baldosa_modern_publish_settled_one_player_run(
@@ -480,10 +489,20 @@ extern "C" void ur_baldosa_product_after_run_frame(
                     terminal->mapped_inputs.size(), published);
             } else if (terminal->two_player) {
                 const auto& result = *terminal->two_player;
+                ur::product::HostProfileCatalogEntry p1{}, p2{};
+                int published = 0;
+                if (ur_baldosa_modern_root_source_bound_2p_profiles(
+                        &p1, &p2)) {
+                    // The established native writer rechecks the selector,
+                    // both profile states, roster, original rider result and
+                    // real guest input trace under its canonical OS leases.
+                    published = ur_baldosa_modern_publish_settled_two_player_match(
+                        &*terminal, &p1, &p2);
+                }
                 std::fprintf(stderr,
                     "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-2p "
                     "race_host=%llu result_host=%llu riders=%u,%u "
-                    "hundredths=%u,%u winner=%u input_frames=%llu input_runs=%zu published=0\n",
+                    "hundredths=%u,%u winner=%u input_frames=%llu input_runs=%zu published=%d\n",
                     static_cast<unsigned long long>(
                         terminal->first_race_host_frame),
                     static_cast<unsigned long long>(
@@ -495,7 +514,7 @@ extern "C" void ur_baldosa_product_after_run_frame(
                     static_cast<unsigned>(result.outcome),
                     static_cast<unsigned long long>(
                         terminal->captured_input_frames),
-                    terminal->mapped_inputs.size());
+                    terminal->mapped_inputs.size(), published);
             }
             std::fflush(stderr);
         }

@@ -68,6 +68,9 @@ jobs:
             native/product/completed_run_record.cpp \
             native/product/completed_run_store.cpp \
             native/product/baldosa_native_run_record_admission.cpp \
+            native/product/local_multiplayer_match_binding.cpp \
+            native/product/multiplayer_match_record.cpp \
+            native/product/multiplayer_match_catalog.cpp \
             -o "$RUNNER_TEMP/baldosa-modern-profile-root-test"
           "$RUNNER_TEMP/baldosa-modern-profile-root-test"
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic \

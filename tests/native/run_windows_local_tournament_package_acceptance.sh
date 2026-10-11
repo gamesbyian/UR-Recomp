@@ -134,7 +134,7 @@ test "$(sha256sum "$REOPEN_LOG" | cut -d ' ' -f 1)" = "$reopen_log_hash"
 # Preserve a compact, non-ROM receipt beside existing logs. A developer
 # running the route outside the approved Windows workflow gets explicit
 # unpinned provenance, not an accidental candidate-bound certification.
-printf 'schema=ur-windows-tournament-artifacts/1\nsource_commit=%s\ninner_zip_sha256=%s\nrun_file=%s\nrun_sha256=%s\nmatch_file=%s\nmatch_sha256=%s\nreceipt_file=%s\nreceipt_sha256=%s\ncreate_log_sha256=%s\nreopen_log_sha256=%s\nfresh_process_reopen=passed\n' \
+printf 'schema=ur-windows-tournament-artifacts/1\nbackend=snesrecomp\nsource_commit=%s\ninner_zip_sha256=%s\nrun_file=%s\nrun_sha256=%s\nmatch_file=%s\nmatch_sha256=%s\nreceipt_file=%s\nreceipt_sha256=%s\ncreate_log_sha256=%s\nreopen_log_sha256=%s\nfresh_process_reopen=passed\n' \
   "${QA_APPROVED_SHA:-unbound}" "${QA_APPROVED_ZIP_SHA256:-unbound}" \
   "${runs[0]##*/}" "$run_hash" "${matches[0]##*/}" "$match_hash" \
   "${receipts[0]##*/}" "$receipt_hash" "$create_log_hash" "$reopen_log_hash" \

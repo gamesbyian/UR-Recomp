@@ -67,6 +67,7 @@ class WindowsLocalTournamentCandidatePinTests(unittest.TestCase):
             "UR_PORTABLE_EXACT_CANDIDATE_PIN_VERIFIED",
             "run_windows_local_tournament_package_acceptance.sh",
             "qa_harness_commit=%s",
+            "backend=snesrecomp",
             "windows-tournament-candidate.txt",
         ):
             self.assertIn(marker, s)

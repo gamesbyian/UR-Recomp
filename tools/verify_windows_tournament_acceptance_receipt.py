@@ -15,11 +15,11 @@ import re
 from pathlib import Path
 
 CANDIDATE_KEYS = (
-    "schema", "smoke_run_id", "source_commit", "inner_zip_sha256",
+    "schema", "backend", "smoke_run_id", "source_commit", "inner_zip_sha256",
     "qa_harness_commit",
 )
 ARTIFACT_KEYS = (
-    "schema", "source_commit", "inner_zip_sha256", "run_file",
+    "schema", "backend", "source_commit", "inner_zip_sha256", "run_file",
     "run_sha256", "match_file", "match_sha256", "receipt_file",
     "receipt_sha256", "create_log_sha256", "reopen_log_sha256",
     "fresh_process_reopen",
@@ -125,6 +125,9 @@ def verify(work: Path, candidate_path: Path,
     if (candidate["schema"] != "ur-windows-qa-candidate/1"
             or receipt["schema"] != "ur-windows-tournament-artifacts/1"):
         raise ValueError("unsupported QA receipt schema")
+    # This is the SNESRecomp portable package, not the provisional Baldosa ZIP.
+    if candidate["backend"] != "snesrecomp" or receipt["backend"] != "snesrecomp":
+        raise ValueError("QA backend does not match the SNESRecomp producer")
     if (candidate["source_commit"] != expected_source
             or receipt["source_commit"] != expected_source
             or candidate["inner_zip_sha256"] != expected_zip
@@ -189,6 +192,7 @@ def verify(work: Path, candidate_path: Path,
         "inner_zip_sha256": expected_zip,
         "qa_harness_commit": candidate["qa_harness_commit"],
         "smoke_run_id": candidate["smoke_run_id"],
+        "backend": "snesrecomp",
         "run_sha256": receipt["run_sha256"],
         "match_sha256": receipt["match_sha256"],
         "receipt_sha256": receipt["receipt_sha256"],

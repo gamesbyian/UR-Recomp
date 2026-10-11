@@ -47,6 +47,7 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
         candidate = root / "windows-tournament-candidate.txt"
         candidate.write_text(
             "schema=ur-windows-qa-candidate/1\n"
+            "backend=snesrecomp\n"
             "smoke_run_id=12345\n"
             "source_commit=" + "a" * 40 + "\n"
             "inner_zip_sha256=" + "b" * 64 + "\n"
@@ -56,6 +57,7 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
         report = work / "tournament-artifacts.log"
         report.write_text(
             "schema=ur-windows-tournament-artifacts/1\n"
+            "backend=snesrecomp\n"
             "source_commit=" + "a" * 40 + "\n"
             "inner_zip_sha256=" + "b" * 64 + "\n"
             "run_file=run-123.urrun\nrun_sha256=" + digest(p.read_bytes()) + "\n"
@@ -67,6 +69,21 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
             encoding="ascii",
         )
         return work, candidate, p, q, f, report
+
+    def test_records_cannot_masquerade_as_baldosa_backend(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work, candidate, p, q, f, report = self.make(Path(tmp))
+            good = verify(work, candidate, "a" * 40, "b" * 64)
+            self.assertEqual(good["backend"], "snesrecomp")
+            original = candidate.read_text()
+            candidate.write_text(original.replace("backend=snesrecomp", "backend=baldosa"))
+            with self.assertRaisesRegex(ValueError, "QA backend does not match"):
+                verify(work, candidate, "a" * 40, "b" * 64)
+            candidate.write_text(original)
+            first = report.read_text()
+            report.write_text(first.replace("backend=snesrecomp", "backend=baldosa"))
+            with self.assertRaisesRegex(ValueError, "QA backend does not match"):
+                verify(work, candidate, "a" * 40, "b" * 64)
 
     def test_real_files_and_exact_pins_are_cross_checked(self):
         with tempfile.TemporaryDirectory() as tmp:

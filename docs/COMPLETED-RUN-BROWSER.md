@@ -16,9 +16,9 @@ The list is newest-first and shows the stored chronological order, course, local
 
 Up/Down or the D-pad moves among playable records while skipping disabled rows. Enter/A launches the selected run. Escape/B returns to the existing paused product surface.
 
-## Future Export Race Video from Records (deferred)
+## Future recorded-video browsing and reconstructed replay export (deferred)
 
-An independently eligible `.urrun` may later offer **Export Video** within a selected **Records → Runs/Replays → Run Detail**. That feature must validate the selected artifact and its exact profile/course/run identity, and must not use the currently active course or an unrelated “Previous” record. Successful input replay **does not currently prove frame-exact visual or audio replay**, so any generated movie must be labeled as a reconstruction unless the audiovisual equivalence test passes. Export never overwrites `.urrun`, `.urghost`, `.urmatch` or PB state. The per-race **Save Race Video / Discard Video** results proposal also supports optional actual-live capture where an exact watched-race video is required. Entire specification and resource policy: [DESKTOP-POST-RACE-VIDEO.md](DESKTOP-POST-RACE-VIDEO.md). **No export action is implemented here yet.**
+The priority post-race **Save Race Video / Discard Video** must save the **actual live-captured** presentation and mixed audio, including glitches and nondeterministic artefacts, and **must not require a `.urrun`**. A successfully saved live MP4 may later be browsable beside its bound attempt identity. Separately, an independently eligible `.urrun` may one day offer **Render Replay to Video** within **Records → Runs/Replays → Run Detail**, validated against the selected artifact's exact profile/course/run identity. Such a movie is always a clearly labelled **reconstruction**, not a recorded witness of the original run, even if comparison shows matching outcomes. Replay output never overwrites actual-live recordings, `.urrun`, `.urghost`, `.urmatch` or PB state. Entire product and resource policy: [DESKTOP-POST-RACE-VIDEO.md](DESKTOP-POST-RACE-VIDEO.md). **No video action is implemented here yet.**
 
 ## Replay launch
 

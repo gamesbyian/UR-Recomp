@@ -111,18 +111,23 @@ def stock_rgb_relation(stock: bytes, source: bytes) -> dict:
     """Unmodified stock RGB agreement is observational, not PPU priority."""
     if len(stock) != WIDTH * HEIGHT * 4 or len(source) != len(stock):
         raise ValueError("exact original and isolated source RGBA required")
-    emitted = matched = stock_blue = 0
+    emitted = matched = stock_blue = exact_red_plus_13_native5 = 0
     for at in range(0, len(source), 4):
         if not source[at + 3]:
             continue
         emitted += 1
         matched += source[at:at + 3] == stock[at:at + 3]
         stock_blue += stock[at:at + 3] == bytes((57, 57, 255))
+        exact_red_plus_13_native5 += original_five_bit_red_add_13_matches(
+            source[at:at + 3], stock[at:at + 3])
     return {
         "source_opaque_emission": emitted,
         "source_rgb_equals_final_original_at_emission": matched,
         "source_rgb_differs_final_original_at_emission": emitted - matched,
         "source_coordinates_final_original_is_blue": stock_blue,
+        "native_5bit_red_add_13_green_blue_unchanged_pixels":
+            exact_red_plus_13_native5,
+        "native_5bit_addition_observed_not_ppu_register_attributed": True,
         "original_PPU_final_RGBA_alpha_not_source_alpha": True,
         "rgb_agreement_does_not_prove_unique_PPU_painter": True,
     }
@@ -155,6 +160,29 @@ def overlap_stock_rgb_relation(stock: bytes, front: bytes, rear: bytes) -> dict:
             out["overlap_different_front_rgb_match"] += stockrgb == front[at:at + 3]
             out["overlap_different_rear_rgb_match"] += stockrgb == rear[at:at + 3]
     return out
+
+
+# Authentic SNES native colour channels are 5-bit, and the
+# established presentation converts n to (n << 3) | (n >> 2).
+# This deliberately measures the exact 5-bit arithmetic signature;
+# it does NOT prove which CGADSUB, CGWSEL, BG or OBJ stage applied it.
+SNES5_TO_RGB8 = tuple((n << 3) | (n >> 2) for n in range(32))
+RGB8_TO_SNES5 = {value: index for index, value in enumerate(SNES5_TO_RGB8)}
+
+
+def original_five_bit_red_add_13_matches(
+    original_source_rgb: bytes, stock_final_rgb: bytes
+) -> bool:
+    if len(original_source_rgb) != 3 or len(stock_final_rgb) != 3:
+        raise ValueError("exact three-channel original PPU RGB required")
+    src5 = [RGB8_TO_SNES5.get(v) for v in original_source_rgb]
+    final5 = [RGB8_TO_SNES5.get(v) for v in stock_final_rgb]
+    return (
+        all(x is not None for x in src5 + final5) and
+        final5[0] == src5[0] + 13 and
+        final5[1] == src5[1] and
+        final5[2] == src5[2]
+    )
 
 
 def final_rgb_delta_signature(stock: bytes, source: bytes) -> dict:

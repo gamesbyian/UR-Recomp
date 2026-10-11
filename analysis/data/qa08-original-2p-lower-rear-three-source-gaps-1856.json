@@ -183,5 +183,12 @@
     }
   ],
   "all_three_source_rgbs_final_visible_in_mirror_upper_original": true,
-  "upper_lower_pixel_RGB_asymmetry_localized_three_coords": true
+  "upper_lower_pixel_RGB_asymmetry_localized_three_coords": true,
+  "native_4x_original_protected_rear_source_gap_subpixels": 48,
+  "native_4x_original_hidden_rear_gap_overpaint_subpixels": 0,
+  "original_4x_source_guest_frame": 1856,
+  "native_original_4x_sha256": "2c61d698f6922a2724acf550c6a42e185c0f3e1824db824a0aa741a9f06a6535",
+  "native_4x_raster_pixels": 1225728,
+  "full_original_4x_rgba_pixel_mismatches": 0,
+  "hd_candidate_validation_scope": "optional --candidate and --density 1-4 exact original-pixel guard at three masked rear-only coordinates; no general HD approval"
 }

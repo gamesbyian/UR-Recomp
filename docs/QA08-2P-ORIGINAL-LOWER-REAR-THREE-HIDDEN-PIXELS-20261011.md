@@ -96,6 +96,26 @@ different/same RGB overlap changes, out-of-source final changes,
 invalid shapes, improper reveal after removing front, and
 absence of genuine source alpha.
 
+## Candidate 1×–4× HD overpaint safety at those three points
+
+An optional read-only `--candidate file.pam --density 1|2|3|4`
+argument reuses the **same authenticated native PPU and three
+exact original source-gap coordinates** to compare every candidate
+density subpixel to its true Original stock **RGBA**, including
+alpha. It never paints or edits images. A single changed candidate
+subpixel raises a nonzero CLI exit status and retains a bounded
+logical/subpixel XY report. Pixels outside these three *specific*
+source gaps are not covered by this guard.
+
+The retained genuine native **1368×896 Original 4×** at frame1856
+is an exact byte-for-byte nearest repeat of the full original
+342×224 output, and consequently preserves all **48** source-gap
+output subpixels (3 × 4 × 4), with **zero** overpaint. This is
+an Original-only negative control, not a tested or permitted
+Remastered character art result. Synthetic tests cover full
+candidate preservation, one changed 4× subpixel, malformed
+output density and an invalid source gap.
+
 The copyright-safe numeric counts, original native SHA identities
 and the exact three RGB coordinate exceptions are recorded at
 [`analysis/data/qa08-original-2p-lower-rear-three-source-gaps-1856.json`](../analysis/data/qa08-original-2p-lower-rear-three-source-gaps-1856.json).

@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "evidence_type": "provisional-baldosa-win32-readonly-two-player-records-correlation",
+  "producer": "independent ROM-free GitHub Actions archive/manifest/hosted-Windows-evidence comparison",
+  "subject": {
+    "backend": "baldosa-aot-provisional",
+    "hosted_windows_run_id": 38150963449,
+    "actual_checkout_source_merge_commit": "d187c922ec75296ad8034d638178e10f7a7f1ee0",
+    "pr_head": "9fb662a52b13c419da72b8641231e176dbdc0aeb",
+    "candidate_inner_zip_sha256": "048f9e96fbea4d03c30c070cae8361e15d5091c19c38f09dd7703057fd64b6ce",
+    "candidate_executable_sha256": "06e9cd4050a36672d162eeb19a166c39e6129f454c54408368febaffb6f65591"
+  },
+  "inputs": {
+    "package_actions_artifact_id": 11705893919,
+    "package_actions_wrapper_sha256": "9fe7fd98dfe8dc55d512555d378e944b33e903806e8a426dab7587c08930eacb",
+    "native_win32_actions_artifact_id": 11706228537,
+    "native_win32_actions_wrapper_sha256": "20e85401cf30e29bf3760b7e3026ab0ba9d98f8f55d1197ebab772be20bf6b4c",
+    "candidate_manifest_sha256": "35df884816dbaafd62cd498cdd490081d1fdf73d923b7d9143b763a202369366",
+    "native_report_json_sha256": "536c9e72c463408dafbcdd84db7223357f9f0ea091c8e9aebf8b4c489e21f567",
+    "checkout_merge_first_parent": "5c1b9bab5afdaeaaa0543cd59d8544d37e35752f"
+  },
+  "assertions": [
+    {
+      "name": "hosted-win32-workflow-reports-success",
+      "passed": true
+    },
+    {
+      "name": "checkout-merge-commit-second-parent-matches-pr-head",
+      "passed": true
+    },
+    {
+      "name": "candidate-inner-zip-matches-adjacent-sha256-sidecar",
+      "passed": true
+    },
+    {
+      "name": "four-member-romless-package-manifest-and-exe-match",
+      "passed": true
+    },
+    {
+      "name": "packaged-amd64-pe32plus-executable-sha-matches-win32-runtime-report",
+      "passed": true
+    },
+    {
+      "name": "hosted-original-stock-1p-2p-entry-and-readonly-historical-records-observed",
+      "passed": true
+    },
+    {
+      "name": "hosted-win32-records-projection-preserves-original-archive",
+      "passed": true
+    }
+  ],
+  "metrics": {
+    "package_member_count": 4,
+    "immutable_payloads": 3,
+    "amd64_pe32plus": true,
+    "rom_bundled": false,
+    "player_save_bundled": false,
+    "existing_canonical_2p_archive_readonly_count": 1,
+    "readable_historical_2p_pairs": 1,
+    "incomplete_2p_pairs_unavailable": 1,
+    "records_2p_archive_unchanged_after_guest": true,
+    "unbound_2p_not_attributed_to_saved_record": true,
+    "two_named_profile_pad_semantic_confirmations": 2,
+    "physical_sdl_gamepads_observed": 0,
+    "hosted_audio_driver": "dummy",
+    "stock_1p_entry": true,
+    "stock_2p_entry": true,
+    "new_2p_match_published": false,
+    "original_guest_course_complete_credit": 0,
+    "post_raw_pre_typed_crash_divergence_reproduced": true,
+    "fresh_process_refuses_divergent_named_profile": true,
+    "physical_controller_audio_display_verified": false,
+    "integrated_new_original_result_to_records_verified": false
+  },
+  "outcome": "inconclusive",
+  "provenance": {
+    "generated_at_utc": "2026-10-11T15:59:36Z",
+    "workflow_run_id": 38150963449,
+    "source": "downloaded, original hosted Windows evidence + two-member package artifacts with independently recomputed SHA-256s; no ROM/EXE/save/log committed",
+    "scope": "hosted read-only historical 2P Records visibility, not newly earned 2P result, physical hardware, crash recovery or release certification"
+  }
+}

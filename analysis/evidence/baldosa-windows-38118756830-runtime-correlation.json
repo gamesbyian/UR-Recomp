@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "evidence_type": "baldosa-windows-provisional-package-runtime-correlation",
+  "producer": "read-only comparison of original Actions runtime report, two guest-entry logs and ROMless ZIP",
+  "subject": {
+    "backend": "baldosa-aot-provisional",
+    "producing_run_id": 38118756830,
+    "packaged_source_merge_commit": "8f7767444157b49a02b4b502cae01f300e57cda8",
+    "win32_executable_sha256": "29982231bd85dacdb5058c65ccc87deec4e1641603e95dd5d6fb9a37c0c8a439",
+    "inner_candidate_zip_sha256": "5bb9f872fd0e97b5f99fc50d41bb7ee9a04ab00752e7745dbb6bbc5d7f593a78"
+  },
+  "inputs": {
+    "win32_runtime_evidence_artifact_id": 11694653431,
+    "runtime_wrapper_sha256": "ef7d08eb46fdd9952cd92f8be7b117a40bfc32ec2bc8cc460aa2bbc89f51b0f0",
+    "native_report_json_sha256": "418de5550b2e0647675c8249744d7aa5ab1eb1e53d817d51267c379e9ab060d1",
+    "extracted_launcher_acceptance_json_sha256": "8efa9c7f77e247e8f030a3b09b1104b5d5166a86c09c3ba6430e1dd4eea0c895",
+    "one_player_entry_log_sha256": "8da43d835de4381a4fa8054d7c53aad9b195d167ea41e29cb09f7989a0780f6d",
+    "two_player_entry_log_sha256": "e34b560e7bf07ea032f151f1f3f679b191e5ea92c1d0f402689d2dae541d6b68"
+  },
+  "assertions": [
+    {
+      "name": "runtime-reported-executable-matches-romless-candidate-manifest",
+      "passed": true
+    },
+    {
+      "name": "extracted-launcher-report-zip-hash-matches-candidate",
+      "passed": true
+    },
+    {
+      "name": "native-one-player-stock-handoff-observed-once",
+      "passed": true
+    },
+    {
+      "name": "native-two-player-stock-handoff-observed-once",
+      "passed": true
+    },
+    {
+      "name": "both-entry-logs-report-zero-joysticks-and-dummy-audio",
+      "passed": true
+    },
+    {
+      "name": "native-authority-report-marks-incomplete-course-and-match",
+      "passed": true
+    }
+  ],
+  "metrics": {
+    "modern_1p_stock_entered_marker_count": 1,
+    "modern_2p_stock_entered_marker_count": 1,
+    "source_settled_native_2p_result_publications": 0,
+    "new_saved_native_2p_match_pairs_claimed": false,
+    "guest_course_complete_credit": 0,
+    "physical_controller_coverage": false,
+    "physical_audio_coverage": false,
+    "fresh_process_native_1p_2p_results_records_verified": false,
+    "rom_bundled_in_candidate": false,
+    "standalone_extracted_cmd_launcher_reported_success": true,
+    "runtime_report_classification": "windows_native_pause_and_named_profile_smoke_only"
+  },
+  "outcome": "inconclusive",
+  "provenance": {
+    "generated_at_utc": "2026-10-11T06:52:00Z",
+    "workflow_run_id": 38118756830,
+    "workflow_artifact_id": 11694653431,
+    "source": "GitHub Actions product-authored evidence, independently compared across exact artifact bytes; no real hardware or original-event oracle",
+    "comparison": "PR #1328 Windows run artifacts 11694498741 and 11694653431"
+  }
+}

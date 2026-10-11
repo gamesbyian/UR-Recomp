@@ -20,11 +20,24 @@ param(
     [Parameter(Mandatory = $true)][string]$Checksum,
     [Parameter(Mandatory = $true)][string]$Destination,
     [switch]$Launch,
-    [string]$InputScript
+    [string]$InputScript,
+    [string]$ExpectedSourceSha,
+    [string]$ExpectedZipSha256
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+# A sidecar shipped *with* the ZIP proves consistency, not that this is the
+# independently nominated release candidate. Optional external pins must
+# arrive together; manual L4/L5 QA requires the pin-verified result marker.
+$independentPin = $PSBoundParameters.ContainsKey('ExpectedSourceSha') -or
+    $PSBoundParameters.ContainsKey('ExpectedZipSha256')
+if ($independentPin -and
+    ($ExpectedSourceSha -cnotmatch '\A[0-9a-f]{40}\z' -or
+     $ExpectedZipSha256 -cnotmatch '\A[0-9a-f]{64}\z')) {
+    throw 'Independent candidate pin needs both canonical source SHA and portable ZIP SHA-256'
+}
 
 # Canonical USA retail fingerprint, pinned independently of the ZIP manifest.
 # Keep this in sync with the tracked rom_identity.txt canonical source.
@@ -82,6 +95,9 @@ function Assert-PackageFiles {
         $manifest.package_format -cne 'ur-recomp-windows-x64-portable-v1' -or
         [string]::IsNullOrWhiteSpace([string]$manifest.source_revision)) {
         throw 'The package manifest has an unsupported schema or missing revision'
+    }
+    if ($independentPin -and $manifest.source_revision -cne $ExpectedSourceSha) {
+        throw 'Packaged source revision differs from independent candidate pin'
     }
     $entries = @($manifest.files)
     if ($entries.Count -lt 6 -or $entries.Count -gt 10000) {
@@ -183,6 +199,16 @@ function Assert-PackageFiles {
             throw "Unmanifested extracted file: $relative"
         }
     }
+    # Expand-Archive also creates explicit empty ZIP directory members.
+    # Every extracted directory must be a parent of a manifest-admitted file;
+    # counting only files previously allowed signed extra empty trees.
+    foreach ($directory in @(Get-ChildItem -LiteralPath $PackageRoot -Recurse -Directory -Force)) {
+        $relative = $directory.FullName.Substring($PackageRoot.Length + 1).Replace('\', '/')
+        if (-not $seenPrefixes.ContainsKey($relative) -or
+            $seenPrefixes[$relative] -cne $relative) {
+            throw "Unmanifested extracted directory: $relative"
+        }
+    }
 
     $romConfig = [IO.File]::ReadAllBytes((Join-Path $PackageRoot 'rom.cfg'))
     $expectedConfig = [Text.Encoding]::ASCII.GetBytes("Uniracers_USA.sfc`n")
@@ -210,6 +236,24 @@ if (-not [IO.Path]::IsPathRooted($Destination) -or
     throw 'Destination must be a fully qualified absolute directory path'
 }
 $destinationPath = [IO.Path]::GetFullPath($Destination)
+
+# Resolve existing path components *without* accepting an NTFS junction,
+# directory symlink, or another reparse ancestor as the destination's root.
+# A new textual destination can otherwise be physically inside a caller's
+# private or immutable tree. This does not claim a defense against a concurrent
+# local administrator mutating the path after preflight.
+$ancestor = $destinationPath
+while (-not [string]::IsNullOrEmpty($ancestor)) {
+    $item = Get-Item -LiteralPath $ancestor -Force -ErrorAction SilentlyContinue
+    if ($null -ne $item -and
+        ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+        throw "Destination has a symlink or junction ancestor: $ancestor"
+    }
+    $parent = [IO.Directory]::GetParent($ancestor)
+    if ($null -eq $parent) { break }
+    $ancestor = $parent.FullName
+}
+
 if (Test-Path -LiteralPath $destinationPath) {
     throw "Destination already exists. Use a fresh test directory: $destinationPath"
 }
@@ -229,6 +273,9 @@ $archiveHash = (Get-FileHash -LiteralPath $archivePath -Algorithm SHA256).Hash.T
 if ($archiveHash -cne $match.Groups[1].Value) {
     throw 'Release ZIP does not match the supplied SHA-256 sidecar'
 }
+if ($independentPin -and $archiveHash -cne $ExpectedZipSha256) {
+    throw 'Release ZIP differs from independent candidate pin'
+}
 Write-Output "UR_PORTABLE_ARCHIVE_VERIFIED sha256=$archiveHash"
 
 # The test directory must be new: never overlay or delete a player's install.
@@ -238,6 +285,9 @@ if (-not (Test-Path -LiteralPath $packageRoot -PathType Container)) {
     throw 'Expected UR-Recomp-Windows-x64 directory missing after extraction'
 }
 Assert-PackageFiles -PackageRoot $packageRoot
+if ($independentPin) {
+    Write-Output "UR_PORTABLE_EXACT_CANDIDATE_PIN_VERIFIED revision=$ExpectedSourceSha sha256=$ExpectedZipSha256"
+}
 if (Test-Path -LiteralPath (Join-Path $packageRoot 'config.ini')) {
     throw 'Mutable config.ini was shipped inside the immutable package'
 }

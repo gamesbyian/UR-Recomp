@@ -1,0 +1,153 @@
+"""Regression: manual Windows QA must never recursively erase an existing user root."""
+from pathlib import Path
+import subprocess
+import tempfile
+import unittest
+
+ROOT = Path(__file__).resolve().parents[2]
+ROUTE = ROOT / "tests/native/run_windows_local_tournament_package_acceptance.sh"
+
+
+class PackagedTournamentWorkRootSafetyTests(unittest.TestCase):
+    def test_original_windows_package_route_has_valid_bash_syntax(self):
+        # Existing static/policy tests validate *what* the wrapper checks;
+        # parse the exact shipping wrapper too before expensive Win32 QA.
+        parsed = subprocess.run(
+            ["bash", "-n", str(ROUTE)],
+            capture_output=True, text=True, check=False,
+        )
+        self.assertEqual(parsed.returncode, 0, parsed.stderr)
+
+    def test_existing_work_root_is_refused_before_any_mutation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            package = root / "fake-extracted-package"
+            package.mkdir()
+            (package / "run-uniracers.cmd").write_text("exit /b 0\r\n")
+            existing = root / "existing-work"
+            existing.mkdir()
+            sentinel = existing / "user data" / "untouchable.srm"
+            sentinel.parent.mkdir()
+            sentinel.write_bytes(b"original saved fixture, must survive")
+            proc = subprocess.run(
+                ["bash", str(ROUTE), str(package), str(existing)],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(proc.returncode, 2, proc.stdout + proc.stderr)
+            self.assertIn("non-existing work directory", proc.stderr)
+            self.assertEqual(sentinel.read_bytes(), b"original saved fixture, must survive")
+
+    def test_empty_work_path_and_broken_symlink_are_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            package = root / "package"
+            package.mkdir()
+            for work in ("", str(root / "dangling")):
+                if work:
+                    try:
+                        (root / "dangling").symlink_to(root / "not-created", target_is_directory=True)
+                    except (OSError, NotImplementedError):
+                        continue
+                proc = subprocess.run(
+                    ["bash", str(ROUTE), str(package), work],
+                    capture_output=True, text=True, check=False,
+                )
+                self.assertEqual(proc.returncode, 2, proc.stdout + proc.stderr)
+                self.assertIn("non-existing work directory", proc.stderr)
+
+    def test_work_root_inside_immutable_package_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            package = root / "Extracted Package"
+            package.mkdir()
+            nested = package / "QA Output"
+            proc = subprocess.run(
+                ["bash", str(ROUTE), str(package), str(nested)],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(proc.returncode, 2, proc.stdout + proc.stderr)
+            self.assertIn("cannot be inside the package", proc.stderr)
+            self.assertFalse(nested.exists())
+
+    def test_nonexistent_parent_fails_without_creating_tree(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            package = root / "package"
+            package.mkdir()
+            nested = root / "missing-parent" / "qa"
+            proc = subprocess.run(
+                ["bash", str(ROUTE), str(package), str(nested)],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(proc.returncode, 2, proc.stdout + proc.stderr)
+            self.assertFalse(nested.parent.exists())
+
+    def test_real_run_sidecar_receipt_checked_across_fresh_process(self):
+        text = ROUTE.read_text(encoding="utf-8")
+        self.assertIn("-name '*.urmatch'", text)
+        self.assertIn("-name '*.urfixture'", text)
+        self.assertIn('test "${matches[0]}" = "${runs[0]}.urmatch"', text)
+        self.assertIn('run_hash="$(sha256sum "${runs[0]}"', text)
+        self.assertIn('match_hash="$(sha256sum "${matches[0]}"', text)
+        self.assertIn('receipt_hash="$(sha256sum "${receipts[0]}"', text)
+        self.assertIn('test "$(sha256sum "${runs[0]}"', text)
+        self.assertIn('test "$(sha256sum "${matches[0]}"', text)
+        self.assertIn('test "$(sha256sum "${receipts[0]}"', text)
+        self.assertLess(text.index("run_hash="), text.index("run_package reopen"))
+        self.assertGreater(text.index('test "$(sha256sum "${runs[0]}"'),
+                           text.index("run_package reopen"))
+
+    def test_windows_launcher_paths_are_bound_not_powershell_interpolated(self):
+        text = ROUTE.read_text(encoding="utf-8")
+        self.assertIn('QA_PACKAGE_LAUNCHER="$PACKAGE_WIN', text)
+        self.assertIn('QA_SCRIPT_PATH="$SCRIPT_WIN"', text)
+        self.assertIn(
+            "'& $env:QA_PACKAGE_LAUNCHER --script $env:QA_SCRIPT_PATH; exit $LASTEXITCODE'",
+            text,
+        )
+        self.assertNotIn("& '${PACKAGE_WIN}", text)
+        self.assertNotIn("--script '${SCRIPT_WIN}", text)
+
+    def test_reopened_receipt_is_hash_bound_and_labels_unpinned_manual_runs(self):
+        text = ROUTE.read_text(encoding="utf-8")
+        for field in ("schema=ur-windows-tournament-artifacts/1",
+                      "source_commit=%s", "inner_zip_sha256=%s",
+                      "run_file=%s", "run_sha256=%s",
+                      "match_file=%s", "match_sha256=%s",
+                      "receipt_file=%s", "receipt_sha256=%s",
+                      "fresh_process_reopen=passed"):
+            self.assertIn(field, text)
+        self.assertIn("${QA_APPROVED_SHA:-unbound}", text)
+        self.assertIn("${QA_APPROVED_ZIP_SHA256:-unbound}", text)
+        self.assertIn('"$WORK/tournament-artifacts.log"', text)
+        self.assertIn("backend=snesrecomp", text)
+        self.assertIn("create_log_sha256=%s", text)
+        self.assertIn("reopen_log_sha256=%s", text)
+        self.assertIn('create_log_hash="$(sha256sum "$LOG"', text)
+        self.assertIn('reopen_log_hash="$(sha256sum "$REOPEN_LOG"', text)
+        self.assertGreater(text.index("fresh_process_reopen=passed"),
+                           text.index('test "$(sha256sum "${receipts[0]}"'))
+
+    def test_reopen_transcript_is_not_hashed_before_second_process_creates_it(self):
+        text = ROUTE.read_text(encoding="utf-8")
+        self.assertLess(
+            text.index('RC="$(run_package reopen "$REOPEN_LOG" 300)"'),
+            text.index('reopen_log_hash="$(sha256sum "$REOPEN_LOG"'),
+        )
+        self.assertLess(
+            text.index('reopen_log_hash="$(sha256sum "$REOPEN_LOG"'),
+            text.index('"$WORK/tournament-artifacts.log"'),
+        )
+        self.assertLess(
+            text.index('create_log_hash="$(sha256sum "$LOG"'),
+            text.index('RC="$(run_package reopen "$REOPEN_LOG" 300)"'),
+        )
+
+    def test_no_recursive_delete_in_package_route(self):
+        text = ROUTE.read_text(encoding="utf-8")
+        self.assertNotIn("rm -rf", text)
+        self.assertIn('[[ -z "$WORK" || -e "$WORK" || -L "$WORK" ]]', text)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -8,6 +8,7 @@ Passing validates honest bookkeeping, not the underlying game or a release.
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import json
 import pathlib
 import re
@@ -15,6 +16,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 VALID_STATUSES = {"unverified", "in_progress", "passed", "failed", "blocked", "waived"}
+RELEASE_DECISIONS = {"not_assessed", "playtest_alpha", "beta", "release_candidate", "public_release"}
 REQUIRED_IDS = {f"QA-{n:02d}" for n in range(1, 13)}
 REQUIRED_LAYERS = {"L4", "L5"}
 VALID_PRIORITIES = {"P0", "P1", "P2"}
@@ -23,6 +25,16 @@ JOURNEY_ID = re.compile(r"J-[0-9]{2}\Z")
 SHA = re.compile(r"[0-9a-f]{40}\Z")
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 LAYER_RANK = {"L1": 1, "L2": 2, "L3": 3, "L4": 4, "L5": 5}
+
+def valid_evidence_timestamp(value: object) -> bool:
+    """Require a timezone-aware ISO-8601 witness/review instant."""
+    if not isinstance(value, str) or "T" not in value:
+        return False
+    try:
+        instant = dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    return instant.tzinfo is not None and instant.utcoffset() is not None
 
 
 def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
@@ -36,12 +48,22 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
         return errors + ["candidate must be an object"]
     commit = candidate.get("commit_sha")
     artifact = candidate.get("zip_sha256")
+    decision = candidate.get("release_decision")
+    physical = candidate.get("physical_hardware_verified")
+    if not isinstance(decision, str) or decision not in RELEASE_DECISIONS:
+        errors.append("candidate unknown release_decision")
+    if type(physical) is not bool:
+        errors.append("candidate physical_hardware_verified must be boolean")
     if commit is not None and (not isinstance(commit, str) or not SHA.fullmatch(commit)):
         errors.append("candidate commit_sha must be 40 lowercase hex or null")
     if artifact is not None and (not isinstance(artifact, str) or not SHA256.fullmatch(artifact)):
         errors.append("candidate zip_sha256 must be 64 lowercase hex or null")
     if (commit is None) != (artifact is None):
         errors.append("candidate SHA and artifact SHA-256 must be pinned together")
+    if isinstance(decision, str) and decision in RELEASE_DECISIONS - {"not_assessed"} and (not commit or not artifact):
+        errors.append("release decision requires an exact commit and ZIP SHA-256")
+    if physical is True and (not commit or not artifact):
+        errors.append("physical hardware claim requires an exact candidate")
     gates = registry.get("gates")
     if not isinstance(gates, list):
         return errors + ["gates must be an array"]
@@ -64,17 +86,17 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
         if name in seen:
             errors.append(f"duplicate gate {name}")
         seen.add(name)
-        if gate.get("priority") not in VALID_PRIORITIES:
+        if not isinstance(gate.get("priority"), str) or gate["priority"] not in VALID_PRIORITIES:
             errors.append(f"{name} invalid priority")
         if not isinstance(gate.get("claim"), str) or not gate["claim"].strip():
             errors.append(f"{name} missing claim")
         if not isinstance(gate.get("next_action"), str) or not gate["next_action"].strip():
             errors.append(f"{name} missing next_action")
         status = gate.get("status")
-        if status not in VALID_STATUSES:
+        if not isinstance(status, str) or status not in VALID_STATUSES:
             errors.append(f"{name} invalid status")
         minimum = gate.get("required_layer")
-        if minimum not in REQUIRED_LAYERS:
+        if not isinstance(minimum, str) or minimum not in REQUIRED_LAYERS:
             errors.append(f"{name} must require L4 or L5")
         journeys = gate.get("journeys")
         if not isinstance(journeys, list) or not journeys:
@@ -96,13 +118,22 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
         if not isinstance(witnesses, list):
             errors.append(f"{name} witnesses must be a list")
             witnesses = []
-        if status == "passed":
+        if isinstance(status, str) and status in {"passed", "failed"}:
             if not commit or not artifact or gate.get("candidate_commit") != commit:
-                errors.append(f"{name} passed without exact pinned candidate")
+                errors.append(f"{name} {status} without exact pinned candidate")
             if not witnesses:
-                errors.append(f"{name} passed without independent recorded witnesses")
-        if status == "waived" and not gate.get("waiver_reason"):
-            errors.append(f"{name} waiver needs explicit rationale")
+                errors.append(f"{name} {status} without independent recorded witnesses")
+        if status == "passed" and minimum == "L5" and physical is not True:
+            errors.append(f"{name} L5 pass without physical hardware verification")
+        if status == "waived":
+            if not commit or not artifact or gate.get("candidate_commit") != commit or gate.get("waiver_zip_sha256") != artifact:
+                errors.append(f"{name} waiver not tied to exact candidate commit and ZIP")
+            if not isinstance(gate.get("waiver_reason"), str) or not gate["waiver_reason"].strip():
+                errors.append(f"{name} waiver needs explicit rationale")
+            if not isinstance(gate.get("waiver_approved_by"), str) or not gate["waiver_approved_by"].strip():
+                errors.append(f"{name} waiver needs named reviewer")
+            if not valid_evidence_timestamp(gate.get("waiver_approved_at")):
+                errors.append(f"{name} waiver needs timezone-aware review instant")
         for w in witnesses:
             if not isinstance(w, dict):
                 errors.append(f"{name} malformed witness")
@@ -113,22 +144,56 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
                 errors.append(f"{name} witness not tied to exact candidate artifact")
             if not isinstance(w.get("source"), str) or not w["source"].strip():
                 errors.append(f"{name} witness must identify reproducible source")
-            if not isinstance(w.get("tested_at"), str) or not w["tested_at"]:
-                errors.append(f"{name} witness lacks tested_at")
-            rank = LAYER_RANK.get(w.get("layer"), 0)
-            if rank < LAYER_RANK.get(minimum, 99):
+            if not valid_evidence_timestamp(w.get("tested_at")):
+                errors.append(f"{name} witness tested_at must be a timezone-aware ISO-8601 instant")
+            layer = w.get("layer")
+            rank = LAYER_RANK.get(layer, 0) if isinstance(layer, str) else 0
+            min_rank = LAYER_RANK.get(minimum, 99) if isinstance(minimum, str) else 99
+            if rank < min_rank:
                 errors.append(f"{name} witness below required layer {minimum}")
+            if rank >= LAYER_RANK["L5"]:
+                # An L5 assertion must identify representative real
+                # consumer-device *classes*, not a synthetic SDL shim or
+                # generic documentation page. Avoid serials/user IDs.
+                hardware = w.get("hardware")
+                required_device_classes = ("windows_version", "gpu",
+                                           "display", "controller", "audio")
+                if not isinstance(hardware, dict) or any(
+                    not isinstance(hardware.get(k), str)
+                    or not hardware[k].strip()
+                    for k in required_device_classes
+                ):
+                    errors.append(f"{name} L5 witness needs Windows/GPU/display/controller/audio device matrix")
+                if physical is not True:
+                    errors.append(f"{name} L5 witness without physical hardware confirmation")
         if status != "passed" and witnesses and gate.get("candidate_commit") != commit:
             errors.append(f"{name} witness candidate mismatch")
+    if decision == "public_release":
+        if not isinstance(candidate.get("release_approved_by"), str) or not candidate["release_approved_by"].strip():
+            errors.append("public release requires a separately recorded human approver")
+        if not valid_evidence_timestamp(candidate.get("release_approved_at")):
+            errors.append("public release requires a timezone-aware human approval instant")
+    if physical is True:
+        # A bare boolean is not an independent physical witness. QA-04 is
+        # the consumer-hardware gate, and its accepted L5 witness must itself
+        # satisfy the candidate SHA/ZIP constraints above.
+        qa04 = next((gate for gate in gates
+                     if isinstance(gate, dict) and gate.get("id") == "QA-04"), None)
+        if not isinstance(qa04, dict) or qa04.get("status") != "passed":
+            errors.append("physical hardware claim requires passed QA-04 L5 gate")
+
     missing = REQUIRED_IDS - seen
     extra = seen - REQUIRED_IDS
     if missing:
         errors.append("missing mandatory gates: " + ", ".join(sorted(missing)))
     if extra:
         errors.append("unexpected gate IDs: " + ", ".join(sorted(extra)))
-    if candidate.get("release_decision") in {"beta", "release_candidate", "public_release"}:
-        incomplete = [g.get("id", "?") for g in gates
-                      if not isinstance(g, dict) or g.get("status") not in {"passed", "waived"}]
+    if isinstance(decision, str) and decision in {"beta", "release_candidate", "public_release"}:
+        incomplete = [g.get("id", "?") if isinstance(g, dict) else "?"
+                      for g in gates
+                      if not isinstance(g, dict)
+                      or not isinstance(g.get("status"), str)
+                      or g["status"] not in {"passed", "waived"}]
         if incomplete:
             errors.append("release decision with unresolved gates: " + ", ".join(incomplete))
         if not candidate.get("physical_hardware_verified"):

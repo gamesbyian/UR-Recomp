@@ -86,7 +86,7 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
                 encoding="utf-8",
             )
             output = root / "assembled"
-            package.assemble(build, rom, output, "synthetic-clean-machine-test")
+            package.assemble(build, rom, output, "1" * 40)
             archive = root / "UR-Recomp-Windows-x64.zip"
             checksum = root / "UR-Recomp-Windows-x64.zip.sha256"
             package.create_archive(output, archive)
@@ -106,6 +106,77 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             self.assertIn("UR_PORTABLE_CLEAN_MACHINE_PACKAGE_OK", result.stdout)
             self.assertTrue(
                 (destination / package.ARCHIVE_ROOT / package.EXE_NAME).is_file()
+            )
+            # Separately nominated commit/inner-ZIP hash must bind the
+            # offline verifier to the exact tested release candidate.
+            exact_zip = hashlib.sha256(archive.read_bytes()).hexdigest()
+            pinned = cmd[:-1] + [
+                str(root / "approved pinned candidate extraction"),
+                "-ExpectedSourceSha", "1" * 40,
+                "-ExpectedZipSha256", exact_zip,
+            ]
+            pinned_result = subprocess.run(
+                pinned, capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(pinned_result.returncode, 0,
+                             pinned_result.stdout + pinned_result.stderr)
+            self.assertIn("UR_PORTABLE_EXACT_CANDIDATE_PIN_VERIFIED",
+                          pinned_result.stdout)
+            # The verifier refuses a self-consistent package/sidecar when the
+            # independent hash or source revision differs. Invalid hash must
+            # be rejected before any extraction.
+            wrong_hash_dir = root / "wrong independent zip digest"
+            wrong_hash = cmd[:-1] + [str(wrong_hash_dir),
+                "-ExpectedSourceSha", "1" * 40,
+                "-ExpectedZipSha256", "0" * 64]
+            result_bad_hash = subprocess.run(
+                wrong_hash, capture_output=True, text=True, check=False)
+            self.assertNotEqual(result_bad_hash.returncode, 0)
+            self.assertIn("Release ZIP differs from independent candidate pin",
+                          result_bad_hash.stderr)
+            self.assertFalse(wrong_hash_dir.exists())
+
+            wrong_revision = cmd[:-1] + [str(root / "wrong source revision"),
+                "-ExpectedSourceSha", "2" * 40,
+                "-ExpectedZipSha256", exact_zip]
+            result_bad_revision = subprocess.run(
+                wrong_revision, capture_output=True, text=True, check=False)
+            self.assertNotEqual(result_bad_revision.returncode, 0)
+            self.assertIn("Packaged source revision differs from independent candidate pin",
+                          result_bad_revision.stderr)
+
+            one_pin_dir = root / "only one external pin must fail"
+            one_pin = cmd[:-1] + [str(one_pin_dir),
+                "-ExpectedZipSha256", exact_zip]
+            result_one_pin = subprocess.run(
+                one_pin, capture_output=True, text=True, check=False)
+            self.assertNotEqual(result_one_pin.returncode, 0)
+            self.assertIn("Independent candidate pin needs both canonical",
+                          result_one_pin.stderr)
+            self.assertFalse(one_pin_dir.exists())
+            # The verifier previously counted only files; a wholly
+            # self-consistent archive could smuggle extra empty directories
+            # without a manifest entry or checksum mismatch.
+            orphan_archive = root / "extra-empty-directory.zip"
+            orphan_checksum = root / "extra-empty-directory.zip.sha256"
+            with zipfile.ZipFile(archive) as original, zipfile.ZipFile(
+                orphan_archive, "w", compression=zipfile.ZIP_DEFLATED,
+            ) as forged_zip:
+                for info in original.infolist():
+                    forged_zip.writestr(info, original.read(info.filename))
+                forged_zip.writestr(f"{package.ARCHIVE_ROOT}/unexpected-empty/", b"")
+            package.write_archive_checksum(orphan_archive, orphan_checksum)
+            orphan_cmd = cmd[:-1] + [
+                str(root / "unmanifested empty directory must fail"),
+            ]
+            orphan_cmd[6] = str(orphan_archive)
+            orphan_cmd[8] = str(orphan_checksum)
+            orphan_result = subprocess.run(
+                orphan_cmd, capture_output=True, text=True, check=False,
+            )
+            self.assertNotEqual(orphan_result.returncode, 0)
+            self.assertIn(
+                "Unmanifested extracted directory", orphan_result.stderr,
             )
             # A separately signed ZIP can have valid hashes but spell one
             # parent directory two ways. Both may extract into one directory
@@ -240,6 +311,66 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             self.assertNotEqual(tampered.returncode, 0)
             self.assertIn("Release ZIP does not match", tampered.stderr)
             self.assertFalse(bad_destination.exists())
+
+    def test_real_windows_junction_ancestor_refused_before_unpacking(self):
+        if os.name != "nt":
+            self.skipTest("NTFS junction requires native Windows")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target = root / "private-existing-data"
+            target.mkdir()
+            preserved = target / "do-not-modify.srm"
+            preserved.write_bytes(b"existing save")
+            junction = root / "redirect"
+            proc = subprocess.run(
+                ["cmd.exe", "/c", "mklink", "/J", str(junction), str(target)],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+            untouched = target / "new QA extraction"
+            attempt = subprocess.run(
+                ["powershell.exe", "-NoProfile", "-NonInteractive",
+                 "-ExecutionPolicy", "Bypass", "-File", str(SCRIPT),
+                 "-Archive", str(root / "intentionally absent.zip"),
+                 "-Checksum", str(root / "intentionally absent.zip.sha256"),
+                 "-Destination", str(junction / "new QA extraction")],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertNotEqual(attempt.returncode, 0)
+            self.assertIn("Destination has a symlink or junction ancestor",
+                          attempt.stderr)
+            self.assertFalse(untouched.exists())
+            self.assertEqual(preserved.read_bytes(), b"existing save")
+
+    def test_no_reparse_ancestor_precedes_any_extraction(self):
+        self.assertIn("[IO.FileAttributes]::ReparsePoint", self.script)
+        self.assertIn("Destination has a symlink or junction ancestor",
+                      self.script)
+        self.assertLess(
+            self.script.index("Destination has a symlink or junction ancestor"),
+            self.script.index("Expand-Archive -LiteralPath"),
+        )
+
+    def test_independent_candidate_pins_are_checked_before_claiming_acceptance(self):
+        self.assertIn("ExpectedSourceSha", self.script)
+        self.assertIn("ExpectedZipSha256", self.script)
+        self.assertIn("Independent candidate pin needs both canonical", self.script)
+        self.assertIn("Release ZIP differs from independent candidate pin", self.script)
+        self.assertIn("Packaged source revision differs from independent candidate pin",
+                      self.script)
+        self.assertIn("UR_PORTABLE_EXACT_CANDIDATE_PIN_VERIFIED", self.script)
+        self.assertLess(
+            self.script.index("Release ZIP differs from independent candidate pin"),
+            self.script.index("Expand-Archive -LiteralPath"),
+        )
+
+    def test_extracted_extra_empty_directory_is_rejected(self):
+        self.assertIn(
+            "Get-ChildItem -LiteralPath $PackageRoot -Recurse -Directory -Force",
+            self.script,
+        )
+        self.assertIn("Unmanifested extracted directory", self.script)
+        self.assertIn("$seenPrefixes.ContainsKey($relative)", self.script)
 
     def test_case_aliased_windows_parent_names_fail_before_hashing(self):
         self.assertIn("$seenPrefixes = @{}", self.script)

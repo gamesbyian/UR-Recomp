@@ -55,7 +55,12 @@ The final-`main` Windows regression also exercises this path-punctuation scenari
 
 The example deliberately puts `&`, `!` and parentheses in the extracted-package path. The verifier also places its isolated user-data root and unrelated launch working directory below that path. This exercises ordinary, valid Windows path punctuation across extraction, CMD startup logging and persistence without relying on the developer machine’s default directory names. Keep the punctuation when performing the `-Launch` check, not just the no-launch checksum check.
 
-The destination must be a **fully qualified** Windows drive-rooted or UNC path. A drive-relative path such as `C:folder`, or a root-relative `\folder`, is not accepted because its actual location depends on the invoking shell. Validation happens before archive extraction. The destination **must not already exist**. To also verify actual player
+The destination must be a **fully qualified** Windows drive-rooted or UNC path. A drive-relative path such as `C:folder`, or a root-relative `\folder`, is not accepted because its actual location depends on the invoking shell. Validation happens before archive extraction. The destination **must not already exist**, and no existing ancestor
+may be an NTFS junction, directory symlink or other reparse point. This
+prevents the fresh textual destination from redirecting extraction into a
+different on-disk directory and is checked before opening the archive; it is
+not a guarantee against privileged, concurrent filesystem substitution.
+To also verify actual player
 startup, repeat with a different destination and `-Launch`. The game will
 open normally; reach the main menu, enter an ordinary race, check usable
 video/audio/input, then exit from the game. The script checks that the game
@@ -87,3 +92,32 @@ legacy migration. Neither suite substitutes for the other.
 Because this is a private preservation project, do not publish a packaged
 ROM in public GitHub Releases or attach proprietary ROM bytes to support
 reports. Keep release ZIP distribution private and lawful.
+
+## Independent exact-candidate binding for L4/L5 QA
+
+The package-adjacent `.sha256` sidecar validates consistency, but does **not**
+authenticate the intended revision by itself: both files can be replaced
+together. The manifest's source revision is likewise internal to the ZIP.
+For a gate candidate, first obtain the full 40-hex Git source commit and the
+64-hex **inner portable ZIP** SHA-256 from an independently maintained QA
+nomination/ledger (never the Actions *outer artifact ZIP* digest). Supply both
+optional verifier arguments together:
+
+```powershell
+$sourceSha = 'PASTE_APPROVED_40_HEX_COMMIT'
+$portableZipSha = 'PASTE_APPROVED_64_HEX_INNER_ZIP_DIGEST'
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Test-URRecompPortable.ps1 `
+  -Archive .\UR-Recomp-Windows-x64.zip `
+  -Checksum .\UR-Recomp-Windows-x64.zip.sha256 `
+  -Destination "$env:TEMP\UR pinned candidate test" `
+  -ExpectedSourceSha $sourceSha -ExpectedZipSha256 $portableZipSha -Launch
+```
+
+These parameters are optional for legacy build smoke; **release QA evidence
+must include** `UR_PORTABLE_EXACT_CANDIDATE_PIN_VERIFIED`. The verifier rejects
+a missing partner pin, noncanonical pin, checksum mismatch before extraction,
+and manifest source revision mismatch before any launch. The real hardware,
+controller, gameplay, persistence and audio oracles remain separate; the new
+marker validates provenance, not those experiences. The supplied approved
+hash must itself come from a trusted, separately reviewed candidate
+nomination. A locally invented expected hash is not independent evidence.

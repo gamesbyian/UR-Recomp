@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "evidence_type": "provisional-baldosa-win32-package-and-smoke-correlation",
+  "producer": "independent read-only exact-bytes audit of successful product PR #1336 Win32 Actions package and runtime artifacts",
+  "subject": {
+    "backend": "baldosa-aot-provisional",
+    "source_checkout_merge_commit": "b00e1c0b1404e0576ada008bdd80e80bc8973a94",
+    "producing_pr_head": "5df14813f93b7360e2032fad2b4d0574e4b98013",
+    "producing_workflow_run_id": 38120282979,
+    "inner_candidate_zip_sha256": "7c239381a389787afd01b5b74fb3ca5fa2b3ee42989af9858c06416957e5258e",
+    "win32_executable_sha256": "a72924e0e6aa1e8df8bc04abcdbee4b60ca879e7e159a2e61e1daf4ddd6d64d8"
+  },
+  "inputs": {
+    "candidate_artifact_id": 11695795748,
+    "runtime_artifact_id": 11694946969,
+    "candidate_actions_outer_sha256": "c3ed23d5e2e5cf72da24f9d656035fb8cb6087269e71de2dc2f6617ddd38da59",
+    "runtime_actions_outer_sha256": "c0b5ff74df90be5701ba4ceb694253331581572fba96c48649ebe6143026717d",
+    "candidate_manifest_sha256": "adb3c561e15eb181aa003bdbca21aa09b54b02fd5289ae0e4dd3bab8ba8c426e"
+  },
+  "assertions": [
+    {
+      "name": "producing-Windows-feasibility-workflow-successful",
+      "passed": true
+    },
+    {
+      "name": "github-checkout-merge-ancestry-has-reported-pr-head",
+      "passed": true
+    },
+    {
+      "name": "candidate-two-member-Actions-ZIP-has-matching-sha256-sidecar",
+      "passed": true
+    },
+    {
+      "name": "candidate-four-member-romless-ZIP-with-canonical-manifest",
+      "passed": true
+    },
+    {
+      "name": "all-three-immutable-payloads-match-size-and-sha256",
+      "passed": true
+    },
+    {
+      "name": "executable-has-AMD64-PE32plus-headers",
+      "passed": true
+    },
+    {
+      "name": "real-Windows-runtime-report-executable-sha256-matches-packaged-executable",
+      "passed": true
+    },
+    {
+      "name": "hosted-1p-and-2p-original-stock-race-entry-markers-found",
+      "passed": true
+    }
+  ],
+  "metrics": {
+    "immutable_payload_count": 3,
+    "executable_bytes": 19677696,
+    "launcher_reparse_ancestor_guard_present": true,
+    "rom_bundled": false,
+    "profile_or_run_record_bundled": false,
+    "stock_1p_entry_count": 1,
+    "stock_2p_entry_count": 1,
+    "hosted_sdl_joystick_count": 0,
+    "hosted_audio_driver": "dummy",
+    "completed_original_event_credit": 0,
+    "new_native_2p_match_published": false,
+    "post_raw_pre_typed_crash_divergence_reported": true,
+    "fresh_process_refuses_divergent_named_profile": true,
+    "independent_native_full_result_to_records_verified": false,
+    "physical_windows_controller_audio_display_verified": false,
+    "independent_release_candidate_approved": false
+  },
+  "outcome": "inconclusive",
+  "provenance": {
+    "generated_at_utc": "2026-10-11T07:25:00Z",
+    "workflow_run_id": 38120282979,
+    "source": "GitHub Actions artifact IDs 11695795748 and 11694946969, independently downloaded and byte-audited without exposing ROMs or save state",
+    "checkout_merge_first_parent": "88aee79425cf598d17ba367a92d3f4776007ce6d",
+    "checkout_merge_second_parent": "5df14813f93b7360e2032fad2b4d0574e4b98013",
+    "scope": "successful hosted source/package/entry evidence only, not L4/L5, not physical or complete 1P/2P Records"
+  }
+}

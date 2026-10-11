@@ -160,8 +160,11 @@ void open_records_archive() {
         g_records_two_status = "2P HISTORY UNAVAILABLE";
         g_records_two_recent = "NOTHING WAS LOADED";
     } else {
+        // Surface archive damage explicitly. Suppressed malformed matches
+        // must not disappear as if the selected racer had no history.
         g_records_two_status =
-            "2P MY MATCHES " + std::to_string(matches.selected_profile_matches);
+            "MY 2P " + std::to_string(matches.selected_profile_matches) +
+            "  UNAVAILABLE " + std::to_string(matches.unavailable_pairs);
         g_records_two_recent =
             "W " + std::to_string(matches.wins) +
             "  L " + std::to_string(matches.losses) +

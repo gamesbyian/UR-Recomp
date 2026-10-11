@@ -38,7 +38,9 @@ class BaldosaNativeTwoSeatJoinTests(unittest.TestCase):
     def test_native_root_consents_and_revokes_on_source_lifecycle(self):
         source = (ROOT / "tools/baldosa_native_modern_root.cpp").read_text(
             encoding="utf-8")
-        self.assertIn("g_two_seat_join.begin(*roster, active)", source)
+        self.assertIn("g_two_seat_join.begin(std::move(ready), active)", source)
+        self.assertIn("ready.erase(std::remove_if(", source)
+        self.assertIn("profile_id != active", source)
         self.assertIn("ur_baldosa_modern_profile_can_join_opponent(", source)
         profile_adapter = (
             ROOT / "tools/baldosa_modern_profile_activation.cpp"

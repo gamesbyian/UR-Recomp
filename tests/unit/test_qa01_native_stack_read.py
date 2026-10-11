@@ -86,7 +86,7 @@ class NativeStackReadTests(unittest.TestCase):
         for bank in ("01", "3F", "81", "BF", "7E"):
             read = (f"QANATIVEREAD f=5782 bank={bank} addr=01DD width=2 "
                     "value=4004 A=0000 S=01DC M=0 scope=ReadAlias\n")
-            data = report.summarize(ARM + read.replace("\\\\n", "\\n"))
+            data = report.summarize(ARM + read)
             self.assertEqual(data["native_bus_read_attempt_count"], 1)
             self.assertEqual(data["native_stack_read_attempts"][0]
                              ["memory_bank_alias"], bank)
@@ -96,7 +96,7 @@ class NativeStackReadTests(unittest.TestCase):
             invalid = (f"QANATIVEREAD f=5782 bank={bank} addr=01DD width=1 "
                        "value=0004 A=0000 S=01DD M=1 scope=BadAlias\n")
             with self.subTest(bank=bank), self.assertRaises(ValueError):
-                report.summarize(ARM + invalid.replace("\\\\n", "\\n"))
+                report.summarize(ARM + invalid)
 
     def test_zero_rows_is_only_bounded_negative(self):
         data = report.summarize(ARM)

@@ -58,6 +58,7 @@ class SwitcherSourceFollowOnTests(unittest.TestCase):
         x = source_states(); x[12327]["track"] = 2; cases.append(x)
         x = source_states(); x[12327]["in_race"] = True; cases.append(x)
         x = source_states(); x.pop(13000); cases.append(x)
+        x = source_states(); x.pop(17100); cases.append(x)
         x = source_states(); x[17300]["in_race"] = 2; cases.append(x)
         x = source_states(); x[17300]["menu"] = -1; cases.append(x)
         x = source_states(); x[17300]["track"] = "unknown"; cases.append(x)

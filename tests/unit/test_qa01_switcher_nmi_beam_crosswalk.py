@@ -144,6 +144,21 @@ class SwitcherNmiBeamCrosswalkTests(unittest.TestCase):
         self.assertEqual(len(result["observed_original_nmi_pha_candidates"]), 1)
         self.assertEqual(result["completed_usa_course_credit"], 0)
 
+    def test_sparse_duplicate_out_of_order_pha_source_rows_fail_closed(self):
+        base = ORIGINAL["observed_original_nmi_pha_horizontal_clocks"]
+        invalid = (
+            [base[2], base[2]],
+            [base[2], base[1]],
+            base + [base[2]],
+            [base[1]],
+        )
+        for series in invalid:
+            altered = copy.deepcopy(ORIGINAL)
+            altered["observed_original_nmi_pha_horizontal_clocks"] = series
+            with self.subTest(frames=[x["original_cpu_frame_before"]
+                                      for x in series]), self.assertRaises(ValueError):
+                cross.summarize(altered, NATIVE)
+
     def test_invalid_source_or_native_writer_never_crosswalks(self):
         for key, value in (
             ("schema", "incorrect"),

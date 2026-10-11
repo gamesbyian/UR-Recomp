@@ -48,6 +48,8 @@ def summarize(states: dict[int, dict]) -> dict:
     frames = sorted(f for f in states if f > RESULT)
     if not frames:
         raise ValueError("no original movie post-result observation")
+    if frames != list(range(RESULT + 1, frames[-1] + 1)):
+        raise ValueError("source movie post-result timeline is truncated or spliced")
     # Scan only fresh real active frames *after* the independently qualified
     # source result. A transient in_race=1 one-frame bit flip is insufficient.
     candidates = []

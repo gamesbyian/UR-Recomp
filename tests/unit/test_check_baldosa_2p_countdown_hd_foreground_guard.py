@@ -30,6 +30,7 @@ class CoveredRacerHDOverpaintTest(unittest.TestCase):
         self.candidate = root / "candidate" / "candidate-4x.pam"
         self.evidence = root / "proof.json"
         self.density = 4
+        self.frame = FRAME
         self.full = bytearray(bytes((10, 20, 30, 255)) * WIDTH * HEIGHT)
         self.alpha = {slot: bytearray(WIDTH * HEIGHT * 4) for slot in (96, 97)}
         # Both emit distinct pixels and also one shared coordinate.
@@ -72,7 +73,7 @@ class CoveredRacerHDOverpaintTest(unittest.TestCase):
         self.evidence.write_text(json.dumps({
             "schema_version": 1,
             "status": "native-covered-pair-final-unchanged",
-            "guest_frame": FRAME,
+            "guest_frame": self.frame,
             "source_oam_slots_removed": [96, 97],
             "exact_native_pair_removal_armed": True,
             "guest_crc_equal_in_all_four_independent_native_processes": 2473,
@@ -93,7 +94,61 @@ class CoveredRacerHDOverpaintTest(unittest.TestCase):
 
     def check(self):
         return verify(self.stock, self.sources[96], self.sources[97],
-                      self.removed, self.candidate, self.evidence, self.density)
+                      self.removed, self.candidate, self.evidence, self.density,
+                      frame=self.frame)
+
+    def retarget_to_frame1888(self):
+        self.frame = 1888
+        self.stock = self.stock.with_name("ur-baldosa-ws342-001888.pam")
+        self.removed = self.removed.with_name("ur-baldosa-ws342-001888.pam")
+        self.sources = {
+            slot: p.with_name(
+                f"ur-baldosa-ws342-obj-slot{slot}-frame001888.pam")
+            for slot, p in self.sources.items()
+        }
+        self.write_all()
+
+    def test_frame1888_native_pair_protects_every_subpixel(self):
+        self.retarget_to_frame1888()
+        output = self.check()
+        self.assertEqual(output["native_guest_frame"], 1888)
+        self.assertEqual(output["protected_output_subpixels_checked"], 48)
+        self.assertEqual(output["unauthorized_candidate_subpixel_overpaints"], 0)
+
+    def test_frame1888_single_occluded_subpixel_overpaint_fails(self):
+        self.retarget_to_frame1888()
+        x, y = self.pixels[2]
+        at = 4 * ((y * 4) * (WIDTH * 4) + x * 4 + 1)
+        pixels = bytearray(self.presented)
+        pixels[at] ^= 1
+        self.presented = bytes(pixels)
+        self.write_all()
+        result = self.check()
+        self.assertEqual(result["native_guest_frame"], 1888)
+        self.assertEqual(result["unauthorized_candidate_subpixel_overpaints"], 1)
+        self.assertEqual(result["bounded_overpaint_xy_subpixel_examples"],
+                         [[x, y, 1, 0]])
+
+    def test_forged_or_stale_cross_frame_1888_proof_rejected(self):
+        self.retarget_to_frame1888()
+        proof = json.loads(self.evidence.read_text(encoding="utf-8"))
+        proof["guest_frame"] = 1872
+        self.evidence.write_text(json.dumps(proof), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "proof is incomplete"):
+            self.check()
+
+    def test_wrong_source_frame_file_cannot_claim_1888(self):
+        self.retarget_to_frame1888()
+        self.sources[97] = self.sources[97].with_name(
+            "ur-baldosa-ws342-obj-slot97-frame001872.pam")
+        with self.assertRaisesRegex(ValueError, "slot97/frame1888"):
+            self.check()
+
+    def test_unsupported_other_guest_frame_denied(self):
+        with self.assertRaisesRegex(ValueError, "only independently native-proven"):
+            verify(self.stock, self.sources[96], self.sources[97],
+                   self.removed, self.candidate, self.evidence,
+                   self.density, frame=1890)
 
     def test_exact_4x_original_protects_all_48_countdown_subpixels(self):
         out = self.check()

@@ -81,6 +81,19 @@ jobs:
             --out analysis/generated/execution-coverage-jump-ab-receipt.json \
             --github-summary "$GITHUB_STEP_SUMMARY"
 
+      - name: Report incomplete experiment on failed producer
+        if: failure()
+        shell: bash
+        run: |
+          {
+            echo "### Experiment: Jump-versus-control instruction coverage"
+            echo
+            echo "**Outcome:** incomplete. One of the setup, comparator, or receipt-production steps failed."
+            echo
+            echo "This run does not establish a positive or negative coverage claim."
+            echo "Review the first failed step and any available compact evidence before rerunning."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload compact evidence
         if: always()
         uses: actions/upload-artifact@v4

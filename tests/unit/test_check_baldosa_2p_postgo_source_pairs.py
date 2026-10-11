@@ -8,7 +8,7 @@ import tempfile
 import unittest
 
 from tools.check_baldosa_2p_postgo_source_pairs import (
-    compare, assess, repeated_viewport_text_colour_witness,
+    compare, assess, registered_final_viewport_difference, repeated_viewport_text_colour_witness,
     original_five_bit_red_add_13_matches, SNES5_TO_RGB8,
     WIDTH, HEIGHT, FRAME,
 )
@@ -293,6 +293,59 @@ class OriginalPostGoPairedObjSourceTest(unittest.TestCase):
                 row["native_5bit_red_add_13_green_blue_unchanged_pixels"], 1)
             self.assertTrue(
                 row["native_5bit_addition_observed_not_ppu_register_attributed"])
+
+    def test_registered_original_final_viewport_RGB_can_differ_even_with_same_source(self):
+        original = bytearray(self.original)
+        # Valid original source registration, but the two Original
+        # final viewport RGBs differ at the front98-only sample.
+        top = 4 * (70 * WIDTH + 125)
+        bot = 4 * (182 * WIDTH + 112)
+        original[top:top + 4] = bytes((181, 74, 74, 0))
+        original[bot:bot + 4] = bytes((74, 74, 74, 0))
+        # Source fixture initially uses P1 RGB 247,165,140. Change both
+        # source copies to real quantized grey, still exact source twins.
+        self.paint(self.sources[98], 125, 70, (74, 74, 74, 255))
+        self.paint(self.sources[97], 112, 182, (74, 74, 74, 255))
+        self.original = bytes(original)
+        self.flush()
+        record = assess(self.root)[
+            "registered_source_footprint_final_original_viewport_RGB_comparison"]
+        self.assertEqual(record["status"],
+                         "source-registered-original-final-viewport-RGB-comparison")
+        self.assertEqual(record["source_registration_xy"], [-13, 112])
+        self.assertEqual(record["counts"]["different_final_rgb"], 1)
+        self.assertEqual(record["counts"]["differing_front98_only"], 1)
+        self.assertEqual(record["counts"]["differing_nonoverlap_native5_red_delta13"], 1)
+        self.assertTrue(record["source_similarity_not_final_compositor_similarity"])
+        self.assertFalse(record["remastered_2p_copy_rendering_admitted"])
+
+    def test_registered_different_source_overlap_counts_viewport_difference(self):
+        # Upper front P1 and rear P2 have distinct source colours at the
+        # same pixel. The final upper/lower originals may resolve them
+        # differently without violating exact source alias provenance.
+        self.paint(self.sources[99], 125, 70, (49, 181, 33, 255))
+        self.paint(self.sources[96], 112, 182, (49, 181, 33, 255))
+        original = bytearray(self.original)
+        at, bt = 4 * (70 * WIDTH + 125), 4 * (182 * WIDTH + 112)
+        original[at:at + 4] = bytes((247, 165, 140, 0))
+        original[bt:bt + 4] = bytes((49, 181, 33, 0))
+        self.original = bytes(original)
+        self.flush()
+        record = assess(self.root)[
+            "registered_source_footprint_final_original_viewport_RGB_comparison"]
+        self.assertEqual(record["counts"]["differing_overlap_different_source_rgb"], 1)
+        self.assertEqual(record["counts"]["differing_nonoverlap_native5_red_delta13"], 0)
+        self.assertFalse(record["5bit_delta_not_proven_CGADSUB_or_window_register"] is False)
+
+    def test_divergent_source_pair_cannot_fake_registered_final_comparison(self):
+        self.paint(self.sources[97], 112, 182, (9, 10, 11, 255))
+        self.flush()
+        self.assertIsNone(assess(self.root)[
+            "registered_source_footprint_final_original_viewport_RGB_comparison"])
+        with self.assertRaisesRegex(ValueError, "requires two exact"):
+            registered_final_viewport_difference(
+                self.original, self.sources[98], self.sources[99],
+                self.sources[96], self.sources[97])
 
     def test_invalid_cross_raster_size_fails(self):
         with self.assertRaisesRegex(ValueError, "complete"):

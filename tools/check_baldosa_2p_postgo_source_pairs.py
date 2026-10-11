@@ -251,6 +251,98 @@ def repeated_viewport_text_colour_witness(
     }
 
 
+def registered_final_viewport_difference(
+    stock: bytes, upper_front: bytes, upper_rear: bytes,
+    lower_front: bytes, lower_rear: bytes
+) -> dict:
+    """Original *final* RGB differences after independently proven OBJ registration.
+
+    Upper frontend slot98 corresponds to lower rear slot97, and upper
+    rear99 to lower front96. Source alias alone does NOT imply the PPU
+    final RGB is duplicated. Reject phase-mismatched/alpha-divergent
+    source pairs instead of inventing matching final pixels.
+    """
+    if len(stock) != WIDTH * HEIGHT * 4:
+        raise ValueError("authentic complete final Original 342x224 RGBA required")
+    p1 = compare(upper_front, lower_rear)
+    p2 = compare(upper_rear, lower_front)
+    if (not p1["exact_rgba_split_alias_observed"] or
+        not p2["exact_rgba_split_alias_observed"] or
+        p1["bbox_inferred_upper_to_lower_translation_xy"] !=
+            p2["bbox_inferred_upper_to_lower_translation_xy"]):
+        raise ValueError("final viewport comparison requires two exact same-transform source pairs")
+    dx, dy = p1["bbox_inferred_upper_to_lower_translation_xy"]
+    a, b = occupied_rgba(upper_front), occupied_rgba(upper_rear)
+    counts = dict(
+        upper_distinct_source_coordinates=0,
+        lower_distinct_source_coordinates=0,
+        same_final_rgb=0,
+        different_final_rgb=0,
+        differing_front98_only=0,
+        differing_rear99_only=0,
+        differing_overlap_different_source_rgb=0,
+        differing_overlap_equal_source_rgb=0,
+        differing_nonoverlap_native5_red_delta13=0,
+        differing_nonoverlap_other_rgb=0,
+    )
+    examples = []
+    for x, y in sorted(a.keys() | b.keys()):
+        xx, yy = x + dx, y + dy
+        if not (0 <= xx < WIDTH and 0 <= yy < HEIGHT):
+            raise ValueError("registered real lower viewport source lies outside full Original raster")
+        at = 4 * (y * WIDTH + x)
+        bt = 4 * (yy * WIDTH + xx)
+        top_rgb, bottom_rgb = stock[at:at + 3], stock[bt:bt + 3]
+        counts["upper_distinct_source_coordinates"] += 1
+        counts["lower_distinct_source_coordinates"] += 1
+        if top_rgb == bottom_rgb:
+            counts["same_final_rgb"] += 1
+            continue
+        counts["different_final_rgb"] += 1
+        front, rear = (x, y) in a, (x, y) in b
+        if front and not rear:
+            kind = "front98_only"
+        elif rear and not front:
+            kind = "rear99_only"
+        elif a[(x, y)][:3] != b[(x, y)][:3]:
+            kind = "overlap_different_source_rgb"
+        else:
+            kind = "overlap_equal_source_rgb"
+        counts["differing_" + kind] += 1
+        if not (front and rear):
+            # The genuine frame has 42 nonoverlap differences with
+            # exactly 13 quanta of 5-bit red and unchanged green/blue.
+            # This is a numeric image signature, NOT register causality.
+            tv = [RGB8_TO_SNES5.get(v) for v in top_rgb]
+            bv = [RGB8_TO_SNES5.get(v) for v in bottom_rgb]
+            red_only = (
+                all(v is not None for v in tv + bv) and
+                abs(tv[0] - bv[0]) == 13 and
+                tv[1:] == bv[1:]
+            )
+            counts["differing_nonoverlap_native5_red_delta13" if red_only
+                   else "differing_nonoverlap_other_rgb"] += 1
+        if len(examples) < 16:
+            examples.append({
+                "upper_xy": [x, y],
+                "lower_xy": [xx, yy],
+                "class": kind,
+                "upper_final_rgb": list(top_rgb),
+                "lower_final_rgb": list(bottom_rgb),
+            })
+    return {
+        "status": "source-registered-original-final-viewport-RGB-comparison",
+        "authenticated_native_guest_frame": FRAME,
+        "source_registration_xy": [dx, dy],
+        "counts": counts,
+        "bounded_difference_examples": examples,
+        "RGB_matches_not_unique_PPU_pixel_ownership": True,
+        "source_similarity_not_final_compositor_similarity": True,
+        "5bit_delta_not_proven_CGADSUB_or_window_register": True,
+        "remastered_2p_copy_rendering_admitted": False,
+    }
+
+
 def assess(root: Path) -> dict:
     original = read_pam(
         root / "baldosa-ws342-captures" / f"ur-baldosa-ws342-{FRAME:06d}.pam")
@@ -296,6 +388,16 @@ def assess(root: Path) -> dict:
     }
     repeated_colour_witness = repeated_viewport_text_colour_witness(
         original, sources[98], sources[96])
+    registered_final_comparison = None
+    raw_pair_p1 = compare(sources[98], sources[97])
+    raw_pair_p2 = compare(sources[99], sources[96])
+    if (raw_pair_p1["exact_rgba_split_alias_observed"] and
+        raw_pair_p2["exact_rgba_split_alias_observed"] and
+        raw_pair_p1["bbox_inferred_upper_to_lower_translation_xy"] ==
+            raw_pair_p2["bbox_inferred_upper_to_lower_translation_xy"]):
+        registered_final_comparison = registered_final_viewport_difference(
+            original, sources[98], sources[99],
+            sources[96], sources[97])
     pairs = {}
     for upper_slot, lower_slot in SLOT_PAIRS:
         pairs[f"{upper_slot}->{lower_slot}"] = compare(
@@ -312,6 +414,8 @@ def assess(root: Path) -> dict:
         "source_paired_upper_to_lower": pairs,
         "screen_fixed_cross_viewport_front_source_colour_witness":
             repeated_colour_witness,
+        "registered_source_footprint_final_original_viewport_RGB_comparison":
+            registered_final_comparison,
         "original_prerace_source_translation_xy_not_assumed": PRERACE_REFERENCE_SHIFT_XY,
         "postgo_translation_same_across_both_player_pairs": (
             pairs["98->97"]["exact_rgba_split_alias_observed"] and

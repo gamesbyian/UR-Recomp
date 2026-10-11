@@ -157,6 +157,52 @@ comparisons and overlap partition live at
 [`analysis/data/qa08-original-2p-postgo-source-registration-2208.json`](../analysis/data/qa08-original-2p-postgo-source-registration-2208.json).
 No copyrighted source graphics are committed.
 
+## Source-registered final-viewport RGB difference: shared source is not shared final pixels
+
+The successful original native 2P post-GO **full Original final raster**
+was compared at corresponding racer-source support positions using the
+**independently verified** `(-13,+112)` upper-to-lower OAM source transform,
+without assuming the finished viewports are identical. Each viewport
+contains **595 distinct opaque racer-source coordinates** (630 combined
+source emissions minus 35 overlaps). At that shared source support,
+the two **final Original RGB rasters** agree at **527** positions and
+differ at **68**:
+
+| Source-position category | Final RGB differences, upper vs lower |
+| --- | ---: |
+| Upper slot98-only source support | **13** |
+| Upper slot99-only source support | **29** |
+| Both emit distinct original source RGB | **26** |
+| Both emit exactly equal original source RGB | **0** |
+| **Total** | **68** |
+
+Every one of the **42 single-source final-viewport differences**
+has identical green/blue channels and an absolute **13-quanta red
+difference in source-native 5-bit colour** (8-bit differences
+`107` or `108` depending on quantized channel). The other 26
+differences are exactly at the actual distinct-colour racer
+source-overlap positions, consistent with each viewport presenting
+a different original source colour. This is a bounded **raster
+relationship**, not causal proof of PPU priority, a COLDATA
+write, CGADSUB mode or a physical 3D camera model.
+
+The newly added fail-closed comparison tool only performs
+this *final-Original viewport* analysis when **both** independent
+source-pair RGBA aliases have passed and inferred the **same**
+translation. Source-empty, mismatched source/alpha or separate
+translations remain valid source observations but produce
+no invented final-viewport comparison. The original source
+bytes and final RGB are never changed. Adversarial tests
+check exact source copy with different final colours,
+different-colour source overlap and divergent source
+attestations. The numeric counts and source/frame SHA
+are retained in
+[`analysis/data/qa08-original-2p-postgo-registered-final-viewport-rgb-2208.json`](../analysis/data/qa08-original-2p-postgo-registered-final-viewport-rgb-2208.json).
+The crucial negative rule for any later Remastered art is
+**do not blindly translate finished upper-viewport racer
+pixels into the lower viewport**. Identical source OAM
+does not imply identical final presentation.
+
 ## Four-frame native original 2P registration and visibility matrix
 
 A bounded retrospective review of the **same successfully validated

@@ -20,8 +20,13 @@ IDENTITY = dict(source_commit=SOURCE, exe_sha256="b"*64,
 def populate(dest: Path, trials: int = 1) -> Path:
     receipts = dest / "receipts"
     receipts.mkdir()
+    # A successfully completed real producer owns/creates its trial root.
+    # Mock that contract so cleanup is tested rather than treating a fake
+    # nonexistent directory as an actual failed Windows process.
+    def simulated_success(*args):
+        args[6].mkdir()
     with mock.patch.object(c, "identity_for", return_value=dict(IDENTITY)), \
-         mock.patch.object(c, "run_one") as runner:
+         mock.patch.object(c, "run_one", side_effect=simulated_success) as runner:
         for shard in c.SHARDS:
             row = c.run_shard(
                 source_sha=SOURCE, shard=shard, trials=trials,

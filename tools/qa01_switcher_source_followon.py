@@ -145,11 +145,17 @@ def summarize(states: dict[int, dict]) -> dict:
     if stable_screen_attested:
         for f in range(RESULT, RESULT_LAST_STABLE + 1):
             row = states.get(f)
+            # result_runs observes the stable MENU at every frame.
+            # It does NOT prove unchanged track/in_race scratch bytes in
+            # between separately sampled boundary frames. The original
+            # diagnostic attests their 17030 and 17087 values only.
             if (not isinstance(row, dict)
-                    or type(row.get("menu")) is not int or row["menu"] != 0x99
-                    or type(row.get("track")) is not int or row["track"] != 3
-                    or type(row.get("in_race")) is not int or row["in_race"] != 0):
+                    or type(row.get("menu")) is not int or row["menu"] != 0x99):
                 raise ValueError("archived original 17030..17087 stable result screen altered")
+        last = states[RESULT_LAST_STABLE]
+        if (type(last.get("track")) is not int or last["track"] != 3
+                or type(last.get("in_race")) is not int or last["in_race"] != 0):
+            raise ValueError("archived result-ending original sampled state altered")
     # This is a CHANGED-byte trace. The separately authenticated original
     # runner may have reached horizon 22000 with no further writes after
     # result 17030; no event rows after RESULT means *no visibility*, not

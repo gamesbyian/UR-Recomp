@@ -83,12 +83,26 @@ class SwitcherSourceFollowOnTests(unittest.TestCase):
 
     def test_stable_source_result_screen_blocks_transient_follow_on(self):
         self.assertEqual(walk.RESULT_LAST_STABLE, 17087)
-        for field, value in (("menu", 0x16), ("track", 4), ("in_race", 1),
-                             ("in_race", 60), ("menu", True)):
+        for value in (0x16, True):
+            states = source_states()
+            states[17078]["menu"] = value
+            with self.subTest(menu=value), self.assertRaisesRegex(
+                    ValueError, "stable result screen"):
+                walk.summarize(states)
+        for field, value in (("track", 4), ("in_race", 1),
+                             ("in_race", 60)):
             states = source_states()
             states[17078][field] = value
-            with self.subTest(field=field, value=value), self.assertRaisesRegex(
-                    ValueError, "stable result screen"):
+            # Only the stable menu, not these scratch bytes at 17078,
+            # is established by the real source stage scanner.
+            data = walk.summarize(states)
+            self.assertEqual(data["first_original_source_post_result_active_candidate"]
+                             ["original_source_first_active_frame"], 17300)
+        for field, value in (("track", 4), ("in_race", 1)):
+            states = source_states()
+            states[walk.RESULT_LAST_STABLE][field] = value
+            with self.subTest(boundary_field=field), self.assertRaisesRegex(
+                    ValueError, "result-ending"):
                 walk.summarize(states)
         result = walk.summarize(source_states())
         self.assertTrue(result["original_result_screen_stability_fully_observed"])

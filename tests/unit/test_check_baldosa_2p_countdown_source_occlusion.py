@@ -136,6 +136,16 @@ class Original2PCountdownCoverTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "alpha is static"):
             assess(self.root)
 
+    def test_racer_alpha_union_static_despite_slot_swap_fails_closed(self):
+        # Source individual masks change, but a swapped pair can preserve
+        # the SAME lower image-support union. That is not a valid motion
+        # witness for this authentic original countdown scene.
+        self.source[1888][96] = bytearray(self.source[1872][97])
+        self.source[1888][97] = bytearray(self.source[1872][96])
+        self.flush()
+        with self.assertRaisesRegex(ValueError, "source union is frozen"):
+            assess(self.root)
+
     def test_stale_or_forged_source_digest_rejected(self):
         plane = self.source[1888][97]
         at = (plane.index(255) // 4) * 4

@@ -53,7 +53,13 @@ the blue mask differs (9,286 pixels; SHA256
 Both original lower OAM rider **source alpha masks demonstrably
 change between1872 and1888**, independently of the stationary
 final blue colour region, and both moving source instances remain
-fully covered. That rules out a *frozen source racer* as the cause
+fully covered. Their combined lower OBJ source-alpha footprint
+also changes at **78 logical coordinates** (411 and409 per-frame
+union pixels, 371 intersection /449 combined), although the entire
+16,770-pixel final countdown-blue colour region changes at **zero**
+coordinates. This is explicitly measured source motion behind
+visually persistent foreground colour, not just recolouring a
+stationary unicycle or swapping the two identical-alpha slot masks. That rules out a *frozen source racer* as the cause
 of its invisibility in these exact samples.
 
 The source-validated detector now fails if the full Original

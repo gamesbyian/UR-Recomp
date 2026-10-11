@@ -104,6 +104,8 @@ def verified_frame(root: Path, frame: int) -> dict:
         blue = colours[COUNTDOWN_RGB]
         by_band[band] = {
             "distinct_original_emitted_coordinates": len(mask),
+            "source_alpha_union_mask_sha256": hashlib.sha256(bytes(
+                int(pos in mask) for pos in range(WIDTH * HEIGHT))).hexdigest(),
             "blue_final_original_coordinates": blue,
             "all_source_coordinates_final_blue": blue == len(mask),
             "bounded_most_common_original_rgb": [
@@ -141,6 +143,9 @@ def assess(root: Path) -> dict:
            frames["1888"]["per_slot"][str(slot)]["source_opaque_alpha_mask_sha256"]
            for slot in (96, 97)):
         raise ValueError("lower source OAM alpha is static, not independently changing behind the overlay")
+    if (frames["1872"]["source_union_by_raster_band"]["lower"]["source_alpha_union_mask_sha256"] ==
+            frames["1888"]["source_union_by_raster_band"]["lower"]["source_alpha_union_mask_sha256"]):
+        raise ValueError("lower source union is frozen despite independently moving per-slot OAM")
     for frame in FRAMES:
         row = frames[str(frame)]
         lower = row["source_union_by_raster_band"]["lower"]
@@ -164,6 +169,7 @@ def assess(root: Path) -> dict:
         "countdown_2_uniform_rgb": list(COUNTDOWN_RGB),
         "countdown_2_blue_final_mask_temporally_equal_1872_1888": True,
         "source_slot_rgb_and_alpha_changed_while_blue_mask_constant": True,
+        "source_union_changed_while_full_blue_mask_constant": True,
         "per_original_frame": frames,
         "foreground_numeral_source_layer_proven": False,
         "per_source_final_ppu_causality_proven": False,

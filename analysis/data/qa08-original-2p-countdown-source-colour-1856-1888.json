@@ -58,7 +58,8 @@
         268,
         176
       ],
-      "full_original_blue_rgb_mask_sha256": "3dca34902e307495c64b1fbd87b4148e297b2052dff84dc0dca3ef258bcfcfdf"
+      "full_original_blue_rgb_mask_sha256": "3dca34902e307495c64b1fbd87b4148e297b2052dff84dc0dca3ef258bcfcfdf",
+      "source_lower_alpha_union_mask_sha256": "2410cf32110ce9f8f9447bbf0c2305bd2ccbdc180fc94fdcab84219fc1f636f3"
     },
     "1872": {
       "original_sha256": "bdc3b13d2129e7fd7a20f4cf00539fc2976ba1b028f76386a395e6fdef4e2f2b",
@@ -94,7 +95,8 @@
         260,
         200
       ],
-      "full_original_blue_rgb_mask_sha256": "6c311efcd2377fcc40fdf76cff3d82e4b5926bbd9268b3d3f5feec7e282c3d36"
+      "full_original_blue_rgb_mask_sha256": "6c311efcd2377fcc40fdf76cff3d82e4b5926bbd9268b3d3f5feec7e282c3d36",
+      "source_lower_alpha_union_mask_sha256": "2f9f2cf8846d9830fbcff35de8676ec6b8a6bf4e444369b186ca0494f4dbb803"
     },
     "1888": {
       "original_sha256": "7de0e805f07234d0b7b6c4c526eea79b5c6c523ff594c09ddc9970de238eede7",
@@ -130,7 +132,8 @@
         260,
         200
       ],
-      "full_original_blue_rgb_mask_sha256": "6c311efcd2377fcc40fdf76cff3d82e4b5926bbd9268b3d3f5feec7e282c3d36"
+      "full_original_blue_rgb_mask_sha256": "6c311efcd2377fcc40fdf76cff3d82e4b5926bbd9268b3d3f5feec7e282c3d36",
+      "source_lower_alpha_union_mask_sha256": "7b9c71e2e3dd878309ac9724f1048bf3ac94a074957ffa6f69e85e7affd82ada"
     }
   },
   "foreground_countdown_layer_owner_proven": false,
@@ -140,5 +143,14 @@
   "full_original_blue_mask_temporally_identical_between_1872_1888": true,
   "source_racer_alpha_changes_while_blue_mask_is_unchanged": true,
   "countdown_blue_mask_sha256_convention": "sha256 of 342*224 row-major bytes (1 when final Original pixel RGB=57,57,255 else 0)",
-  "layer_owner_or_causal_foreground_priority_proven": false
+  "layer_owner_or_causal_foreground_priority_proven": false,
+  "original_lower_source_1872_1888_union_motion": {
+    "source_union_alpha_pixels_1872": 411,
+    "source_union_alpha_pixels_1888": 409,
+    "source_union_intersection": 371,
+    "source_union_or_combined": 449,
+    "source_union_symmetric_difference": 78,
+    "source_union_jaccard": 0.8262806236080178,
+    "final_countdown_blue_mask_symmetric_difference": 0
+  }
 }

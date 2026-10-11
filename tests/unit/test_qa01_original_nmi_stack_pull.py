@@ -72,6 +72,7 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
         self.assertTrue(pull["architecturally_touches_01de"])
         self.assertEqual(pull["observed_01dd_byte_before"], "42")
         self.assertEqual(pull["observed_01de_byte_before"], "40")
+        self.assertEqual(pull["pla_loaded_target_bytes_verified"], 2)
 
     def test_bounded_zero_read_witness_does_not_claim_no_consumers(self):
         result = report.summarize(ORIGINAL)
@@ -91,6 +92,21 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             report.expected_pull_width(0x48, 0)
 
+    def test_byte_width_pla_preserves_b_and_reads_only_declared_byte(self):
+        short = (PULL.replace("width=2", "width=1")
+                 .replace("sp1=01DE", "sp1=01DD")
+                 .replace("pl0=00", "pl0=20")
+                 .replace("a0=0000", "a0=4000")
+                 .replace("a1=4042", "a1=4042")
+                 .replace("touches_de=1", "touches_de=0"))
+        result = report.summarize(ORIGINAL + short)
+        self.assertEqual(result["candidate_stack_pull_scopes"][0]
+                         ["pla_loaded_target_bytes_verified"], 1)
+        for invalid in (short.replace("a1=4042", "a1=0042"),
+                        short.replace("a1=4042", "a1=4004")):
+            with self.assertRaises(ValueError):
+                report.summarize(ORIGINAL + invalid)
+
     def test_malformed_or_forged_original_nmi_reads_fail_closed(self):
         for log in (
             PULL,  # Not a real original source replay.
@@ -105,6 +121,8 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
             ORIGINAL + PULL.replace("f=5780", "f=5760"),
             ORIGINAL + PULL.replace("f1=5780", "f1=5784"),
             ORIGINAL + PULL.replace("v=225", "v=300"),
+            ORIGINAL + PULL.replace("a1=4042", "a1=4004"),
+            ORIGINAL + PULL.replace("dd=42", "dd=04"),
             ORIGINAL + PULL.replace("width=2", "width=bogus"),
             ORIGINAL + PULL * (report.MAX_PULLS + 1),
             ORIGINAL + PULL.replace("f=5780", "f=5781", 1) + PULL,

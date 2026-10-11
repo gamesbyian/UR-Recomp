@@ -331,6 +331,27 @@ int main() {
     }
     assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() == 1);
 
+    // A substituted P2 profile directory may NOT be used even to create
+    // an OS lockfile: redirecting the profile would escape the native
+    // user's original Modern save namespace before post-lock validation.
+    const fs::path second_dir = "saves/profile-rider-2";
+    const fs::path moved_second = dir / "moved-second-profile";
+    const fs::path redirected_second = dir / "outside-second-profile";
+    fs::create_directories(redirected_second);
+    fs::rename(second_dir, moved_second);
+    fs::create_directory_symlink(redirected_second, second_dir);
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &redirected_event, &p1, &p2));
+    assert(fs::is_empty(redirected_second));
+    fs::remove(second_dir);
+    fs::create_directory_symlink(dir / "missing-second-profile", second_dir);
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &redirected_event, &p1, &p2));
+    assert(!fs::exists(dir / "missing-second-profile"));
+    fs::remove(second_dir);
+    fs::rename(moved_second, second_dir);
+    assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() == 1);
+
     // An out-of-band profile identity change makes the confirmed P2
     // catalog entry stale. No match may be minted against the old rider.
     auto changed = *other_profile;

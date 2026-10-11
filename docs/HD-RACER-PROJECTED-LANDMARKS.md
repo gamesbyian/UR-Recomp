@@ -305,3 +305,49 @@ which raster pixels correspond to tire, saddle, fork, hub,
 lighting or original model mesh; source RGB is also earlier
 than final BG/window priority. No currently rejected
 procedural Remastered art receives renewed approval.
+
+
+## Post-GO original 2P pose shapes are significantly different from countdown poses
+
+The authentic read-only original native PPU at guest2208 now supplies
+**two more independently authenticated source silhouettes**, one
+per racer, to compare with frames1856,1872,1888. Keep the same
+objective 2D registration as the three-pose experiment:
+translate every source mask's opaque minimum X to zero, align
+its **last occupied Y** (observed at original raster y78 in
+all eight upper-plane captures), and compare the actual binary
+source alpha positions, **without scaling or deforming** either
+pose. This measures frame-to-frame silhouette shape; it is
+not the wheel's actual game physics contact point.
+
+| Genuine source mask, paired against post-GO guest2208 | Earlier guest1856 | Earlier guest1872 | Earlier guest1888 |
+| --- | ---: | ---: | ---: |
+| Upper slot98 alpha intersection/union | **210/428 (0.491)** | **167/475 (0.352)** | **205/436 (0.470)** |
+| Upper slot99 alpha intersection/union | **145/487 (0.298)** | **205/438 (0.468)** | **207/428 (0.484)** |
+
+Original slot98/99 each occupies a **30-pixel-wide by 32-pixel-high**
+bounding box at genuine post-GO frame2208 (317/313 opaque pixels).
+Earlier original racing-prelude poses had bounding boxes
+**18–23 pixels wide and 35–37 high** with 319–330 alpha
+pixels. The observed projected **bottom row remains y78**
+through these selected frames, but the pose spans and pixel
+outlines change significantly. A future shared Blender rig
+must be capable of producing both proportion families at
+the correct original viewing scale, *without* flattening
+the wide post-GO source pose to fit the earlier narrow
+source crop. The fixed bottom Y is a useful **sampling
+invariant**, never sufficient proof of the original 3D
+pivot, wheel-ground contact, collision geometry or any
+camera-state transition.
+
+Exact original OAM guest-slot source RGBA SHA,
+per-frame bounding boxes and all six source-mask
+intersections/unions and symmetric differences are
+preserved in
+[`analysis/data/qa08-original-2p-four-pose-source-alpha-through2208.json`](../analysis/data/qa08-original-2p-four-pose-source-alpha-through2208.json),
+using successful pinned native [AOT 38120828291](https://github.com/gamesbyian/UR-Recomp/actions/runs/38120828291)
+(artifact `11695173178`). This authentic 2D motion data
+is an artist review reference, not an optimization
+requirement or admission for owner-rejected procedural
+unicycle art. Original fallback and the project's
+**7:6 source pixel-aspect policy** remain unchanged.

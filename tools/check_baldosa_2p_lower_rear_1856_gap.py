@@ -168,6 +168,25 @@ def assess(root: Path) -> dict:
          tuple(r["original_stock_rgb"]))
         for r in out["rear_only_source_hidden_by_stock_rgb"]
     )
+    # The original upper split-source counterpart is exactly 113
+    # scanlines above each anomalous lower rear-only pixel. Verify that
+    # the unmodified full Original PPU actually shows the expected
+    # original rear source RGB above, even though it does not below.
+    upper_mirror = []
+    for exception in out["rear_only_source_hidden_by_stock_rgb"]:
+        x, y = exception["xy"]
+        if y < 113:
+            raise ValueError("real lower rear-only source gap cannot have top mirror")
+        at = 4 * ((y - 113) * WIDTH + x)
+        top_rgb = list(stock[at:at + 3])
+        if top_rgb != exception["isolated_rear_source_rgb"]:
+            raise ValueError("upper split-view Original does not corroborate rear source colour")
+        upper_mirror.append({
+            "upper_mirror_xy": [x, y - 113],
+            "upper_stock_original_rgb": top_rgb,
+            "lower_source_original_rgb": exception["isolated_rear_source_rgb"],
+            "lower_stock_original_rgb": exception["original_stock_rgb"],
+        })
     if (counts["front_emitted"] != 319 or counts["rear_emitted"] != 321 or
         counts["front_only"] != 162 or counts["rear_only"] != 164 or
         counts["overlap_different_rgb"] != 143 or
@@ -195,6 +214,8 @@ def assess(root: Path) -> dict:
         "native_rear97_source_sha256": meta[REAR]["source_sha256"],
         "native_front96_removed_final_sha256": REMOVED_SHA,
         "complete_guest_crc_parity_reported": True,
+        "three_upper_mirror_original_RGB_controls": upper_mirror,
+        "exact_upper_lower_split_translation_rows": 113,
         **out,
         "per_pixel_background_layer_or_window_owner_proven": False,
         "all_2p_race_frames_or_hd_art_admitted": False,

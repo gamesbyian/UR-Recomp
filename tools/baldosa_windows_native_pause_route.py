@@ -715,6 +715,11 @@ def run_native_named_records_root(
             f"Named Records Windows guest rc={process.returncode}: {log[-2500:]}")
     verify_native_named_records_root_log(log)
     verify_native_records_page_handoff(log)
+    if log.count(
+        "UR_BALDOSA_MODERN_ROOT matches_readonly=1 paired=0 "
+        "unavailable=0 selected=0"
+    ) != 1:
+        raise ValueError("Native named profile did not inspect the real empty 2P archive")
     verify_named_profile_boot_bytes(log, seed.read_bytes())
     verify_native_profile_checkpoint(
         fixture, user_root, "native-ci-rider", log, timeout)
@@ -726,6 +731,7 @@ def run_native_named_records_root(
     return {
         "selected_named_profile_sram_authorized": True,
         "canonical_valid_archives_read_on_real_windows": 1,
+        "canonical_2p_archive_readonly_tabs_checked": True,
         "malformed_archives_reported_unavailable": 1,
         "no_run_created_by_record_view_or_script_quit": True,
         "existing_profile_checkpoint_verified": True,

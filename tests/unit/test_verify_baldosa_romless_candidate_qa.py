@@ -124,6 +124,19 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
             self.assertEqual(result["subject"]["candidate_zip_sha256"], inner_digest)
             self.assertEqual(result["inputs"]["actions_wrapper_sha256"],
                              qa.file_digest(wrapper))
+            # A subsequent review must not destroy the original evidence or
+            # follow an output symlink. Explicitly choose another file.
+            initial_receipt = output.read_bytes()
+            repeated = subprocess.run(
+                base + [
+                    "--expected-actions-artifact-sha256",
+                    qa.file_digest(wrapper),
+                ],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(repeated.returncode, 2)
+            self.assertEqual(output.read_bytes(), initial_receipt)
+            self.assertIn("cannot create a new independent QA receipt", repeated.stderr)
             wrong = subprocess.run(
                 base + ["--expected-actions-artifact-sha256", "0" * 64],
                 capture_output=True, text=True, check=False,

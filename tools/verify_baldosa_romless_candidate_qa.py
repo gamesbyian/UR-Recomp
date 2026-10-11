@@ -435,7 +435,13 @@ def main() -> int:
         parser.error(str(exc))
     rendered = json.dumps(result, indent=2, sort_keys=True) + "\n"
     if args.output:
-        args.output.write_text(rendered, encoding="utf-8")
+        # A reviewed receipt is immutable. Never silently replace an existing
+        # output, including a symlink to another report or player file.
+        try:
+            with args.output.open("x", encoding="utf-8") as destination:
+                destination.write(rendered)
+        except OSError as exc:
+            parser.error(f"cannot create a new independent QA receipt: {exc}")
     else:
         print(rendered, end="")
     return 0

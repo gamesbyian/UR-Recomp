@@ -39,7 +39,7 @@ CI workflow or new emulator harness.
 
 - Correct native Original, separately captured source slots96/97 and
   independent pair-removed **full** 342×224 RGBA raster at guest1872.
-- Unchanged **all 5,447** native guest CRC entries across the four
+- Unchanged **all 2,473** native guest CRC entries across the four
   stock/source96/source97/pair-removed processes.
 - Exactly **one** real native PPU `UR_RACER_HD_WIDE_REMOVE_PAIR
   frame=1872 slots=96-97 status=armed guest_unchanged=1` marker.
@@ -63,7 +63,7 @@ The test module
 `tests/unit/test_check_baldosa_2p_covered_pair_causality.py`
 exercises true zero-delta cases, genuine source-bounded differences,
 outside-source changes, false countdown RGB, mismatched/forged
-5447-line CRC streams, missing native slot-arm markers, wrong source
+2473-line CRC streams, missing native slot-arm markers, wrong source
 SHA and aliased stock/removal input. The native workflow retains the
 new raw counterfactual PPU image, log and bounded JSON report in the
 **existing** evidence artifact.

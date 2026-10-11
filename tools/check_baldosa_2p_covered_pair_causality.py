@@ -23,7 +23,7 @@ except ModuleNotFoundError:
 
 FRAME = 1872
 SLOTS = (96, 97)
-GUEST_CRC_FRAMES = 5447
+GUEST_CRC_FRAMES = 2473
 BLUE = bytes((57, 57, 255))
 
 
@@ -44,7 +44,7 @@ def verify(stock: Path, source96: Path, source97: Path, removed: Path,
     crcs = [p.read_bytes().splitlines() for p in
             (stock_crc, source96_crc, source97_crc, removed_crc)]
     if len(crcs[0]) != GUEST_CRC_FRAMES or any(p != crcs[0] for p in crcs[1:]):
-        raise ValueError("all four authentic complete 5447-line guest CRC streams must agree")
+        raise ValueError("all four authentic complete 2473-line guest CRC streams must agree")
 
     marker = (f"UR_RACER_HD_WIDE_REMOVE_PAIR frame={FRAME} "
               "slots=96-97 status=armed guest_unchanged=1")

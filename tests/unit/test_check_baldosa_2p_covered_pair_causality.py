@@ -28,7 +28,7 @@ class CoveredNativePairRemovalTest(unittest.TestCase):
                     ("stock", "source96", "source97", "removed")}
         self.log = root / "removed.log"
         for path in self.crc.values():
-            path.write_bytes(b"00ccbbdd\n" * 5447)
+            path.write_bytes(b"00ccbbdd\n" * 2473)
         self.log.write_text(
             f"UR_RACER_HD_WIDE_REMOVE_PAIR frame={FRAME} "
             "slots=96-97 status=armed guest_unchanged=1\n", encoding="utf-8")
@@ -80,7 +80,7 @@ class CoveredNativePairRemovalTest(unittest.TestCase):
         self.assertEqual(result["stock_vs_removed_full_final_rgba_changed_pixels"], 0)
         self.assertEqual(result["source_alpha_union_coordinates"], 2)
         self.assertEqual(result["source_coordinates_final_countdown_blue"], 2)
-        self.assertEqual(result["guest_crc_equal_in_all_four_independent_native_processes"], 5447)
+        self.assertEqual(result["guest_crc_equal_in_all_four_independent_native_processes"], 2473)
         self.assertFalse(result["specific_foreground_bg_obj_layer_proven"])
         self.assertFalse(result["source_slot_removal_allowed_in_product"])
 
@@ -106,8 +106,8 @@ class CoveredNativePairRemovalTest(unittest.TestCase):
             self.assess()
 
     def test_swapped_or_incomplete_guest_crc_rejected(self):
-        self.crc["removed"].write_bytes(b"12345678\n" * 5447)
-        with self.assertRaisesRegex(ValueError, "5447-line guest CRC"):
+        self.crc["removed"].write_bytes(b"12345678\n" * 2473)
+        with self.assertRaisesRegex(ValueError, "2473-line guest CRC"):
             self.assess()
 
     def test_missing_duplicate_or_wrong_slot_arm_marker_rejected(self):

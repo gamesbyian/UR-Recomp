@@ -72,7 +72,10 @@ public:
     // Selection is explicit. Changing a highlighted profile revokes that
     // seat's prior confirmation without implicitly claiming another profile.
     bool move(unsigned seat, int delta) noexcept {
-        if (!open_ || seat >= 2 || !delta || catalog_.empty()) return false;
+        // Native P1's active SRAM was selected before guest boot. Until a
+        // real cross-profile reboot transaction exists, browsing another
+        // P1 identity would falsely promise a switch this process cannot do.
+        if (!open_ || seat != 1 || !delta || catalog_.empty()) return false;
         const auto count = catalog_.size();
         cursor_[seat] = delta > 0
             ? (cursor_[seat] + 1) % count

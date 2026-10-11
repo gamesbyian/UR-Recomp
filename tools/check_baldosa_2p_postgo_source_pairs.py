@@ -157,6 +157,72 @@ def overlap_stock_rgb_relation(stock: bytes, front: bytes, rear: bytes) -> dict:
     return out
 
 
+def final_rgb_delta_signature(stock: bytes, source: bytes) -> dict:
+    """All genuine source-positive RGB differences, not PPU layer identities."""
+    if len(stock) != WIDTH * HEIGHT * 4 or len(source) != len(stock):
+        raise ValueError("full original final/source native RGBA planes required")
+    changes = {}
+    histogram = {}
+    for at in range(0, len(source), 4):
+        if not source[at + 3]:
+            continue
+        s = source[at:at + 3]
+        f = stock[at:at + 3]
+        if s == f:
+            continue
+        difference = tuple(int(f[i]) - int(s[i]) for i in range(3))
+        index = at // 4
+        y, x = divmod(index, WIDTH)
+        changes[(x, y)] = difference
+        key = ",".join(str(k) for k in difference)
+        histogram[key] = histogram.get(key, 0) + 1
+    return {
+        "differing_source_rgb_coordinates": len(changes),
+        "bounded_delta_histogram": dict(sorted(histogram.items())),
+        "source_rgb_to_final_delta_by_xy": changes,
+    }
+
+
+def repeated_viewport_text_colour_witness(
+    stock: bytes, upper: bytes, lower: bytes
+) -> dict:
+    """Describe a matching local final-RGB change on two OAM source planes.
+
+    Unlike the original source alias, compare SCREEN-FIXED x coordinates
+    translated y+112 across the two viewport fields. This says nothing
+    about whether the same OBJ carries each colour change or why the PPU
+    selected the final colour. In the real 2208 frame this is 13 repeated
+    (+107,0,0) red-channel shifts on the upper/lower nominal front slots.
+    """
+    top = final_rgb_delta_signature(stock, upper)
+    bottom = final_rgb_delta_signature(stock, lower)
+    a = top["source_rgb_to_final_delta_by_xy"]
+    b = bottom["source_rgb_to_final_delta_by_xy"]
+    shifted = {(x, y + 112): delta for (x, y), delta in a.items()}
+    same_support = bool(a) and set(shifted) == set(b)
+    same_deltas = same_support and shifted == b
+    expected_delta = (107, 0, 0)
+    is_native_13_red = (
+        len(a) == 13 and len(b) == 13 and
+        same_deltas and all(delta == expected_delta for delta in a.values())
+    )
+    return {
+        "upper_source_only_final_rgb_differences": len(a),
+        "lower_source_only_final_rgb_differences": len(b),
+        "upper_delta_histogram": top["bounded_delta_histogram"],
+        "lower_delta_histogram": bottom["bounded_delta_histogram"],
+        "matching_diff_xy_offset_from_top_to_bottom": [0, 112],
+        "diff_support_exactly_matched_after_screen_translation": same_support,
+        "diff_rgb_delta_exactly_matched_after_screen_translation": same_deltas,
+        "actual_2208_13_pixels_each_with_red_plus_107": is_native_13_red,
+        "native_postgo_exact_mismatch_upper_xy": [
+            [x, y] for x, y in sorted(a)
+        ][:40],
+        "specific_SNES_BG_OBJ_priority_or_colour_math_proven": False,
+        "HD_foreground_overpaint_admitted": False,
+    }
+
+
 def assess(root: Path) -> dict:
     original = read_pam(
         root / "baldosa-ws342-captures" / f"ur-baldosa-ws342-{FRAME:06d}.pam")
@@ -200,6 +266,8 @@ def assess(root: Path) -> dict:
         "lower_front96_rear97": overlap_stock_rgb_relation(
             original, sources[96], sources[97]),
     }
+    repeated_colour_witness = repeated_viewport_text_colour_witness(
+        original, sources[98], sources[96])
     pairs = {}
     for upper_slot, lower_slot in SLOT_PAIRS:
         pairs[f"{upper_slot}->{lower_slot}"] = compare(
@@ -214,6 +282,8 @@ def assess(root: Path) -> dict:
         "overlap_RGB_observations_source_vs_final_by_viewport":
             viewport_source_overlap_rgb,
         "source_paired_upper_to_lower": pairs,
+        "screen_fixed_cross_viewport_front_source_colour_witness":
+            repeated_colour_witness,
         "original_prerace_source_translation_xy_not_assumed": PRERACE_REFERENCE_SHIFT_XY,
         "postgo_translation_same_across_both_player_pairs": (
             pairs["98->97"]["exact_rgba_split_alias_observed"] and
@@ -230,9 +300,10 @@ def assess(root: Path) -> dict:
         "artistic_likeness_approved": False,
         "limits": (
             "Only original native guest2208 after GO. Compared visible "
-            "prepriority OBJ source alpha and RGBA, under sample-specific "
-            "113-row registration. Genuine source aliases or divergences "
-            "do not prove final hardware BG/window/OBJ winners, author "
+            "prepriority OBJ source alpha and RGBA under measured per-sample "
+            "bbox registration, and compared final Original RGB colour. "
+            "Genuine source aliases, divergences or repeated foreground "
+            "pixel differences do not prove hardware BG/window/OBJ winners, author "
             "3D art or allow destructive source capture."
         ),
     }

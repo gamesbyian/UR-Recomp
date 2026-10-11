@@ -57,6 +57,46 @@ def summarize(source: dict, guest: dict) -> dict:
             or native_block_start > native_block_end
             or native_block_width != native_block_end - native_block_start):
         raise ValueError("native NMI PHA has invalid monotonic charged-counter pair")
+    all_orig = source.get("observed_original_nmi_pha_horizontal_clocks")
+    if (not isinstance(all_orig, list) or len(all_orig) != 5
+            or [x.get("original_cpu_frame_before") for x in all_orig]
+               != list(range(5778, 5783))):
+        raise ValueError("missing the five independently observed original NMI PHA clocks")
+    candidates = []
+    for row in all_orig:
+        if (row.get("original_pha_pc") != "00:858E"
+                or not isinstance(row.get("source_original_cpu_hcounter_before"), int)
+                or not isinstance(row.get("ppu_vcounter_before"), int)
+                or not isinstance(row.get("accumulator_before"), str)
+                or not isinstance(row.get("stack_pointer_before"), str)):
+            raise ValueError("incomplete original NMI source frame/accumulator/stack/beam evidence")
+        same_acc = row["accumulator_before"] == b["stack_word_saved"]
+        same_sp = row["stack_pointer_before"] == "01DE"
+        candidates.append({
+            "original_cpu_frame": row["original_cpu_frame_before"],
+            "original_observed_saved_accumulator": row["accumulator_before"],
+            "original_pre_pha_stack_pointer": row["stack_pointer_before"],
+            "original_ppu_vcounter": row["ppu_vcounter_before"],
+            "original_horizontal_cpu_cycles": row["source_original_cpu_hcounter_before"],
+            "raw_h_delta_native_minus_original": (
+                b["framework_beam_hpos"] - row["source_original_cpu_hcounter_before"]),
+            "same_saved_accumulator_word_as_native_4004": same_acc,
+            "same_pre_pha_stack_pointer_as_native_01de": same_sp,
+            "same_vertical_line_number_as_native": (
+                b["framework_beam_vpos"] == row["ppu_vcounter_before"]),
+            "native_cpu_frame_identity_not_proven": True,
+            "possible_same_interrupt_not_proven": True,
+        })
+    # A 4004 accumulator match and the 01DE pre-PHA stack-pointer match
+    # currently favor different original NMIs. Preserve the complete
+    # competing observations instead of selecting the nearest H counter.
+    same_acc_frames = [c["original_cpu_frame"] for c in candidates
+                       if c["same_saved_accumulator_word_as_native_4004"]]
+    same_sp_frames = [c["original_cpu_frame"] for c in candidates
+                      if c["same_pre_pha_stack_pointer_as_native_01de"]]
+    if (same_acc_frames != [5779, 5782]
+            or same_sp_frames != [5780]):
+        raise ValueError("real five-frame original NMI witness unexpectedly changed")
     o_h, n_h = a["source_original_cpu_hcounter_before"], b["framework_beam_hpos"]
     o_v, n_v = a["ppu_vcounter_before"], b["framework_beam_vpos"]
     if not (type(o_h) is int and type(n_h) is int and type(n_v) is int):
@@ -73,6 +113,11 @@ def summarize(source: dict, guest: dict) -> dict:
         "native_framework_beam_hpos": n_h,
         "raw_horizontal_numeric_difference_native_minus_original": n_h - o_h,
         "original_saved_accumulator_word": "4042",
+        "all_five_original_nmi_phase_candidates": candidates,
+        "source_4004_accumulator_match_frames": same_acc_frames,
+        "source_01de_stack_pointer_match_frames": same_sp_frames,
+        "no_original_nmi_matches_both_saved_a_and_pre_pha_s": True,
+        "candidate_beam_reading_cannot_rank_interrupt_identity": True,
         "native_saved_accumulator_word": "4004",
         "clock_unit_origin_and_execution_phase_equivalence_not_proven": True,
         "native_master_counter_is_precharged_and_store_paced": True,

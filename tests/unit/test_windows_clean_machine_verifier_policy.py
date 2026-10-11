@@ -312,6 +312,45 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             self.assertIn("Release ZIP does not match", tampered.stderr)
             self.assertFalse(bad_destination.exists())
 
+    def test_real_windows_junction_ancestor_refused_before_unpacking(self):
+        if os.name != "nt":
+            self.skipTest("NTFS junction requires native Windows")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target = root / "private-existing-data"
+            target.mkdir()
+            preserved = target / "do-not-modify.srm"
+            preserved.write_bytes(b"existing save")
+            junction = root / "redirect"
+            proc = subprocess.run(
+                ["cmd.exe", "/c", "mklink", "/J", str(junction), str(target)],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+            untouched = target / "new QA extraction"
+            attempt = subprocess.run(
+                ["powershell.exe", "-NoProfile", "-NonInteractive",
+                 "-ExecutionPolicy", "Bypass", "-File", str(SCRIPT),
+                 "-Archive", str(root / "intentionally absent.zip"),
+                 "-Checksum", str(root / "intentionally absent.zip.sha256"),
+                 "-Destination", str(junction / "new QA extraction")],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertNotEqual(attempt.returncode, 0)
+            self.assertIn("Destination has a symlink or junction ancestor",
+                          attempt.stderr)
+            self.assertFalse(untouched.exists())
+            self.assertEqual(preserved.read_bytes(), b"existing save")
+
+    def test_no_reparse_ancestor_precedes_any_extraction(self):
+        self.assertIn("[IO.FileAttributes]::ReparsePoint", self.script)
+        self.assertIn("Destination has a symlink or junction ancestor",
+                      self.script)
+        self.assertLess(
+            self.script.index("Destination has a symlink or junction ancestor"),
+            self.script.index("Expand-Archive -LiteralPath"),
+        )
+
     def test_independent_candidate_pins_are_checked_before_claiming_acceptance(self):
         self.assertIn("ExpectedSourceSha", self.script)
         self.assertIn("ExpectedZipSha256", self.script)

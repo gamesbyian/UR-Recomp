@@ -55,7 +55,12 @@ The final-`main` Windows regression also exercises this path-punctuation scenari
 
 The example deliberately puts `&`, `!` and parentheses in the extracted-package path. The verifier also places its isolated user-data root and unrelated launch working directory below that path. This exercises ordinary, valid Windows path punctuation across extraction, CMD startup logging and persistence without relying on the developer machine’s default directory names. Keep the punctuation when performing the `-Launch` check, not just the no-launch checksum check.
 
-The destination must be a **fully qualified** Windows drive-rooted or UNC path. A drive-relative path such as `C:folder`, or a root-relative `\folder`, is not accepted because its actual location depends on the invoking shell. Validation happens before archive extraction. The destination **must not already exist**. To also verify actual player
+The destination must be a **fully qualified** Windows drive-rooted or UNC path. A drive-relative path such as `C:folder`, or a root-relative `\folder`, is not accepted because its actual location depends on the invoking shell. Validation happens before archive extraction. The destination **must not already exist**, and no existing ancestor
+may be an NTFS junction, directory symlink or other reparse point. This
+prevents the fresh textual destination from redirecting extraction into a
+different on-disk directory and is checked before opening the archive; it is
+not a guarantee against privileged, concurrent filesystem substitution.
+To also verify actual player
 startup, repeat with a different destination and `-Launch`. The game will
 open normally; reach the main menu, enter an ordinary race, check usable
 video/audio/input, then exit from the game. The script checks that the game

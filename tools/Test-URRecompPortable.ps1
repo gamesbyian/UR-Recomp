@@ -236,6 +236,24 @@ if (-not [IO.Path]::IsPathRooted($Destination) -or
     throw 'Destination must be a fully qualified absolute directory path'
 }
 $destinationPath = [IO.Path]::GetFullPath($Destination)
+
+# Resolve existing path components *without* accepting an NTFS junction,
+# directory symlink, or another reparse ancestor as the destination's root.
+# A new textual destination can otherwise be physically inside a caller's
+# private or immutable tree. This does not claim a defense against a concurrent
+# local administrator mutating the path after preflight.
+$ancestor = $destinationPath
+while (-not [string]::IsNullOrEmpty($ancestor)) {
+    $item = Get-Item -LiteralPath $ancestor -Force -ErrorAction SilentlyContinue
+    if ($null -ne $item -and
+        ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+        throw "Destination has a symlink or junction ancestor: $ancestor"
+    }
+    $parent = [IO.Directory]::GetParent($ancestor)
+    if ($null -eq $parent) { break }
+    $ancestor = $parent.FullName
+}
+
 if (Test-Path -LiteralPath $destinationPath) {
     throw "Destination already exists. Use a fresh test directory: $destinationPath"
 }

@@ -29,7 +29,9 @@ def summarize(states: dict[int, dict]) -> dict:
         raise ValueError("original source timeline is absent, oversized or out of bounds")
     result = states[RESULT]
     if (not isinstance(result, dict) or result.get("track") != 3
-            or result.get("menu") != 0x99 or result.get("in_race") == 1):
+            or result.get("menu") != 0x99
+            or type(result.get("in_race")) is not int
+            or result["in_race"] == 1):
         raise ValueError("original archive does not show Switcher Race B result at 17030")
     frames = sorted(f for f in states if f > RESULT)
     if not frames:

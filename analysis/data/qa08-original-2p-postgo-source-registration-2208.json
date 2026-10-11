@@ -126,5 +126,27 @@
   },
   "source_positive_not_final_PPU_priority_claim": true,
   "causal_slot_removal_at_postgo_frame_proven": false,
-  "artistic_HD_3D_likeness_or_shipping_admission": false
+  "artistic_HD_3D_likeness_or_shipping_admission": false,
+  "screen_fixed_repeated_text_source_colour_signature": {
+    "upper_slot": 98,
+    "lower_slot": 96,
+    "postgo_exact_original_frame": 2208,
+    "per_viewport_source_rgb_nonmatch_count": 13,
+    "per_viewport_original_rgb_minus_source_rgb_delta": [
+      107,
+      0,
+      0
+    ],
+    "identical_screen_x_offset": 0,
+    "lower_screen_y_offset": 112,
+    "exact_screen_xy_support_and_delta_equal_after_translation": true,
+    "distinct_from_racer_split_source_translation": [
+      -13,
+      112
+    ],
+    "native_upper_source_98_sha256": "de587f5986b30663f0178a0140e746b84e601716941bb09dacab5426e8d56fe2",
+    "native_lower_source_96_sha256": "658d79c05524ca40af81f92ce6bb0d49adbe6bbcbc07d599e7e8bcdbdd1eb580",
+    "source_positive_and_final_RGB_different": true,
+    "hardware_BG_colour_math_owner_unproven": true
+  }
 }

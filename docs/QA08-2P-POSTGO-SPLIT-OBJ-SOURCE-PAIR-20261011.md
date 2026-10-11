@@ -65,6 +65,39 @@ colour matches as hardware priority bits:
 | Lower slot96 | 313 | 300 | 13 |
 | Lower slot97 | 317 | 291 | 26 |
 
+## Screen-fixed text/OBJ RGB interaction: repeated 13-pixel signature
+
+The genuine native 342×224 final PPU screenshot at guest2208 has
+large original on-screen **“GIVE YOU”** glyphs crossing both
+unicycles. At exactly **13 source-positive positions** in
+original upper OAM slot98, and **13 in lower slot96**, the final
+Original RGB differs from the authentic isolated OBJ source
+in one remarkably specific way: **(final minus source RGB) =
+(+107, 0, 0)**. Both 13-position mismatch sets are identical
+after **a screen-space offset of (0,+112)**; the actual
+underlying source RGB and final RGB also match at each paired
+screen position. The upper exceptions occupy source coordinates
+x132–136/y47–52; the lower exceptions occupy the same X
+at y159–164. This is **not** the 2P racer source-pair
+translation (−13,+112): those are two distinct phenomena.
+The screenshot visually places the mismatches directly beneath
+text glyphs, supporting a foreground/text interaction rather
+than missing racer source artwork.
+
+The read-only comparer now reports both 13-pixel RGB delta
+histograms, the coordinate translation, and distinct checks for
+identical support versus identical per-pixel delta. Four
+adversarial tests alter a colour channel, remove one affected
+source pixel, erase the entire effect, or preserve it exactly.
+The exact upper affected XY list and image/source hashes are
+preserved in
+[`analysis/data/qa08-original-2p-postgo-text-source-rgb-delta-2208.json`](../analysis/data/qa08-original-2p-postgo-text-source-rgb-delta-2208.json).
+This is **observational**, not proof whether hardware PPU
+colour addition, text BG priority, window or other raster
+compositing logic owns the effect. The measured pattern
+must not be transformed into a general hard-coded text
+occlusion mask or used to authorize HD racer painting.
+
 The upper and lower sources each have **35** overlapping
 source coordinates, of which **9** have the same source
 RGB and **26** have different source RGB. These are

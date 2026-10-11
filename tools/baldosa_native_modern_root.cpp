@@ -8,6 +8,7 @@
 #include "modern_root_overlay_presenter.hpp"
 #include "modern_root_physical_edges.hpp"
 #include "baldosa_native_records_summary.hpp"
+#include "baldosa_native_multiplayer_records_summary.hpp"
 #include "quick_practice_route.hpp"
 #include "quick_practice_input_mask.hpp"
 
@@ -20,6 +21,8 @@ int ur_baldosa_product_queue_stock_menu_input(std::uint16_t mask);
 void ur_baldosa_product_cancel_stock_menu_input(void);
 extern std::uint8_t g_ram[0x20000];
 const char* ur_baldosa_modern_profile_records_directory(void);
+const char* ur_baldosa_modern_profile_multiplayer_records_directory(void);
+const char* ur_baldosa_modern_profile_selected_id(void);
 }
 
 #include <cstddef>
@@ -47,6 +50,11 @@ bool g_confirm_quit = false;
 bool g_records_open = false;
 std::string g_records_status;
 std::string g_records_recent;
+std::string g_records_one_status;
+std::string g_records_one_recent;
+std::string g_records_two_status;
+std::string g_records_two_recent;
+bool g_records_two_player = false;
 bool g_render_reported = false;
 unsigned g_paint_count = 0;
 int g_stock_target = -1;
@@ -96,12 +104,28 @@ bool reopen_on_observed_stock_main() {
         "UR_BALDOSA_MODERN_ROOT reopened=1 menu=d7 guest_writes=0\n");
     return true;
 }
+void select_records_page(bool two_player) {
+    g_records_two_player = two_player;
+    g_records_status = two_player ? g_records_two_status : g_records_one_status;
+    g_records_recent = two_player ? g_records_two_recent : g_records_one_recent;
+    std::fprintf(stderr,
+        "UR_BALDOSA_MODERN_ROOT records_page=%s\n",
+        two_player ? "2p" : "1p");
+}
 void open_records_archive() {
     g_records_open = true;
+    g_records_two_player = false;
     const char* directory = ur_baldosa_modern_profile_records_directory();
-    if (!directory || !*directory) {
-        g_records_status = "NO ACTIVE NAMED RACER";
-        g_records_recent = "CREATE OR SELECT A RACER";
+    const char* match_directory =
+        ur_baldosa_modern_profile_multiplayer_records_directory();
+    const char* profile_id = ur_baldosa_modern_profile_selected_id();
+    if (!directory || !*directory || !match_directory ||
+        !*match_directory || !profile_id || !*profile_id) {
+        g_records_one_status = "NO ACTIVE NAMED RACER";
+        g_records_one_recent = "CREATE OR SELECT A RACER";
+        g_records_two_status = g_records_one_status;
+        g_records_two_recent = g_records_one_recent;
+        select_records_page(false);
         std::fprintf(stderr,
             "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=none validated=0 unavailable=0\n");
         return;
@@ -109,14 +133,14 @@ void open_records_archive() {
     const auto result =
         ur::product::inspect_baldosa_native_records_archive(directory);
     if (!result.directory_available) {
-        g_records_status = "RECORDS DIRECTORY INVALID";
-        g_records_recent = "NOTHING WAS LOADED";
+        g_records_one_status = "RECORDS DIRECTORY INVALID";
+        g_records_one_recent = "NOTHING WAS LOADED";
     } else {
-        g_records_status =
+        g_records_one_status =
             "VALID " + std::to_string(result.validated_archives) +
             "  UNAVAILABLE " + std::to_string(result.unavailable_artifacts);
         if (result.validated_archives == 0) {
-            g_records_recent = "NO STORED RUNS YET";
+            g_records_one_recent = "NO STORED RUNS YET";
         } else {
             const auto hundredths =
                 (result.recent_ticks60 * 100u + 30u) / 60u;
@@ -125,15 +149,34 @@ void open_records_archive() {
                 static_cast<unsigned long long>(hundredths / 6000u),
                 static_cast<unsigned long long>((hundredths / 100u) % 60u),
                 static_cast<unsigned long long>(hundredths % 100u));
-            g_records_recent =
+            g_records_one_recent =
                 "LAST: " + result.recent_course + " " + timing;
         }
     }
+    const auto matches =
+        ur::product::inspect_baldosa_native_two_player_records_archive(
+            match_directory, profile_id);
+    if (!matches.directory_available) {
+        g_records_two_status = "2P HISTORY UNAVAILABLE";
+        g_records_two_recent = "NOTHING WAS LOADED";
+    } else {
+        g_records_two_status =
+            "2P MY MATCHES " + std::to_string(matches.selected_profile_matches);
+        g_records_two_recent =
+            "W " + std::to_string(matches.wins) +
+            "  L " + std::to_string(matches.losses) +
+            "  D " + std::to_string(matches.draws);
+    }
+    select_records_page(false);
     std::fprintf(stderr,
         "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=selected validated=%zu unavailable=%zu\n",
         result.validated_archives, result.unavailable_artifacts);
+    std::fprintf(stderr,
+        "UR_BALDOSA_MODERN_ROOT matches_readonly=1 paired=%zu "
+        "unavailable=%zu selected=%zu\n",
+        matches.validated_pairs, matches.unavailable_pairs,
+        matches.selected_profile_matches);
 }
-
 void choose() {
     if (g_stock_target != -1) return;
     if (g_records_open) {
@@ -170,7 +213,11 @@ void choose() {
         g_stock_target + 1);
 }
 void navigate(int delta) {
-    if (g_confirm_quit || g_records_open || g_stock_target != -1) return;
+    if (g_confirm_quit || g_stock_target != -1) return;
+    if (g_records_open) {
+        select_records_page(!g_records_two_player);
+        return;
+    }
     g_menu = ur::product::modern_root_menu_move(g_menu, delta);
     std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT selected=%zu\n",
         ur::product::modern_root_destination_index(
@@ -285,7 +332,8 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     const ModernRootOverlayView view{
         g_menu, false, g_racer_name,
         false, g_confirm_quit, kNativeRootAvailable, false,
-        g_records_open, g_records_status, g_records_recent};
+        g_records_open, g_records_status, g_records_recent,
+        g_records_two_player};
     const bool drawn = ur::product::render_modern_root_overlay(
         painter, reinterpret_cast<std::uint32_t*>(dst),
         static_cast<int>(pitch / 4), height, 1, 240,

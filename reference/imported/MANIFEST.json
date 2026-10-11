@@ -1853,6 +1853,158 @@
       "size": 1356,
       "git_blob_sha1": "960849df2b8419a10280d5dbbfc84e360ccdf6ac",
       "review_status": "preservation-only"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/LICENSE",
+      "category": "license-notice",
+      "size": 1068,
+      "git_blob_sha1": "38b59fc3edb78e56bcc1fa6a625c5254ac3d8548",
+      "upstream_git_blob_sha1": "38b59fc3edb78e56bcc1fa6a625c5254ac3d8548",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/README.md",
+      "category": "pal-reconstruction-readme",
+      "size": 6583,
+      "git_blob_sha1": "8521844ba1f93c854aa227a0969947187a98f1b1",
+      "upstream_git_blob_sha1": "8521844ba1f93c854aa227a0969947187a98f1b1",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/docs/map/static/native-symbols.json",
+      "category": "pal-reconstruction-symbol-index",
+      "size": 474898,
+      "git_blob_sha1": "6dd446f924e8ca8aac096331346b0c67e14c63d3",
+      "upstream_git_blob_sha1": "6dd446f924e8ca8aac096331346b0c67e14c63d3",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/docs/map/static/labels.json",
+      "category": "pal-reconstruction-symbol-index",
+      "size": 622635,
+      "git_blob_sha1": "13b920b5422be33d1af804135c99c493d724de11",
+      "upstream_git_blob_sha1": "13b920b5422be33d1af804135c99c493d724de11",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/docs/research/R-0001-rom-identity.md",
+      "category": "pal-reconstruction-research",
+      "size": 4882,
+      "git_blob_sha1": "e9a8e69db3b355da4b46bcee41e22ee95bb61253",
+      "upstream_git_blob_sha1": "e9a8e69db3b355da4b46bcee41e22ee95bb61253",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/docs/research/R-0012-complete-race-evidence.md",
+      "category": "pal-reconstruction-research",
+      "size": 16391,
+      "git_blob_sha1": "0a5bb2c242678993b64aca8afcc13382973ddcaa",
+      "upstream_git_blob_sha1": "0a5bb2c242678993b64aca8afcc13382973ddcaa",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/docs/research/R-0034-zoom-zoo-race-completion.md",
+      "category": "pal-reconstruction-research",
+      "size": 12384,
+      "git_blob_sha1": "e4ca3055c1a5a36d832c5e007eee8e43875844ea",
+      "upstream_git_blob_sha1": "e4ca3055c1a5a36d832c5e007eee8e43875844ea",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/docs/research/R-0049-race-finish-breadth.md",
+      "category": "pal-reconstruction-research",
+      "size": 5304,
+      "git_blob_sha1": "2892959239667796ec3c421ec1de9bd1e9b686bb",
+      "upstream_git_blob_sha1": "2892959239667796ec3c421ec1de9bd1e9b686bb",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/docs/research/R-0053-result-title-printer.md",
+      "category": "pal-reconstruction-research",
+      "size": 5264,
+      "git_blob_sha1": "cb488104456d70212d9f718195b7d33d24ee93c3",
+      "upstream_git_blob_sha1": "cb488104456d70212d9f718195b7d33d24ee93c3",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/docs/research/R-0057-one-run-result.md",
+      "category": "pal-reconstruction-research",
+      "size": 13485,
+      "git_blob_sha1": "4b5ab602cda4031c8f83de6736823a9d142d7ce3",
+      "upstream_git_blob_sha1": "4b5ab602cda4031c8f83de6736823a9d142d7ce3",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/docs/research/R-0058-lap-result.md",
+      "category": "pal-reconstruction-research",
+      "size": 11355,
+      "git_blob_sha1": "463dbc84187ac492883d2dceca3274d6e229f37e",
+      "upstream_git_blob_sha1": "463dbc84187ac492883d2dceca3274d6e229f37e",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/docs/research/R-0092-wipe-ram.md",
+      "category": "pal-reconstruction-research",
+      "size": 4433,
+      "git_blob_sha1": "3f7ac1f766679bd1d49841b3531fe0516951c33e",
+      "upstream_git_blob_sha1": "3f7ac1f766679bd1d49841b3531fe0516951c33e",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/src/core/audio_cpu_interrupt.cpp",
+      "category": "pal-reconstruction-source",
+      "size": 3805,
+      "git_blob_sha1": "bd3bccd4f8160ffd86f2fe0f662d6e3306258e83",
+      "upstream_git_blob_sha1": "bd3bccd4f8160ffd86f2fe0f662d6e3306258e83",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/src/core/audio_cpu_clock_interrupt.cpp",
+      "category": "pal-reconstruction-source",
+      "size": 3729,
+      "git_blob_sha1": "dbff3618af422ff5a5a4be316d5a936fc8c84e3f",
+      "upstream_git_blob_sha1": "dbff3618af422ff5a5a4be316d5a936fc8c84e3f",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/src/core/input_timer.cpp",
+      "category": "pal-reconstruction-source",
+      "size": 4003,
+      "git_blob_sha1": "9d6047cdfc2168151d9d23ab72577fb5148ecab9",
+      "upstream_git_blob_sha1": "9d6047cdfc2168151d9d23ab72577fb5148ecab9",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/src/core/race_progress.cpp",
+      "category": "pal-reconstruction-source",
+      "size": 16188,
+      "git_blob_sha1": "b3487557cb8c92d14fe50cb83e8cb3276c31de0e",
+      "upstream_git_blob_sha1": "b3487557cb8c92d14fe50cb83e8cb3276c31de0e",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/src/core/race_result.cpp",
+      "category": "pal-reconstruction-source",
+      "size": 41813,
+      "git_blob_sha1": "b1735ccecbe7471e0a60f2edfa9022478b93f57e",
+      "upstream_git_blob_sha1": "b1735ccecbe7471e0a60f2edfa9022478b93f57e",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/src/core/race_state_io.cpp",
+      "category": "pal-reconstruction-source",
+      "size": 86922,
+      "git_blob_sha1": "2c146b86c2116043ee1c1fe138b6be5371ab1691",
+      "upstream_git_blob_sha1": "2c146b86c2116043ee1c1fe138b6be5371ab1691",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/src/core/front_end.cpp",
+      "category": "pal-reconstruction-source",
+      "size": 64108,
+      "git_blob_sha1": "ca6f7049097536fee6587ef53192d21dbe850ceb",
+      "upstream_git_blob_sha1": "ca6f7049097536fee6587ef53192d21dbe850ceb",
+      "review_status": "reference-only"
     }
   ]
 }

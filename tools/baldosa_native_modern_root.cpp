@@ -333,7 +333,7 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         g_menu, false, g_racer_name,
         false, g_confirm_quit, kNativeRootAvailable, false,
         g_records_open, g_records_status, g_records_recent,
-        g_records_two_player};
+        g_records_two_player, true};
     const bool drawn = ur::product::render_modern_root_overlay(
         painter, reinterpret_cast<std::uint32_t*>(dst),
         static_cast<int>(pitch / 4), height, 1, 240,

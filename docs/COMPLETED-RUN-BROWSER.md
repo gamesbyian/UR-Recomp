@@ -16,6 +16,10 @@ The list is newest-first and shows the stored chronological order, course, local
 
 Up/Down or the D-pad moves among playable records while skipping disabled rows. Enter/A launches the selected run. Escape/B returns to the existing paused product surface.
 
+## Future Export Race Video from Records (deferred)
+
+An independently eligible `.urrun` may later offer **Export Video** within a selected **Records → Runs/Replays → Run Detail**. That feature must validate the selected artifact and its exact profile/course/run identity, and must not use the currently active course or an unrelated “Previous” record. Successful input replay **does not currently prove frame-exact visual or audio replay**, so any generated movie must be labeled as a reconstruction unless the audiovisual equivalence test passes. Export never overwrites `.urrun`, `.urghost`, `.urmatch` or PB state. The per-race **Save Race Video / Discard Video** results proposal also supports optional actual-live capture where an exact watched-race video is required. Entire specification and resource policy: [DESKTOP-POST-RACE-VIDEO.md](DESKTOP-POST-RACE-VIDEO.md). **No export action is implemented here yet.**
+
 ## Replay launch
 
 Replay launch does not add a simulation model. The selected `.urrun` is validated, exported with `encode_completed_run_input_file()`, and staged as the same `INPUT_FILE` grammar already used by deterministic replay acceptance. Before staging, the selected record is reloaded from its existing on-disk path, checked against the live course/provenance and required to match the browser's canonical snapshot. A deleted, damaged, replaced, or foreign-profile artifact can no longer be launched solely from stale in-memory selection.

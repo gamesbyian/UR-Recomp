@@ -271,6 +271,23 @@ extern "C" int ur_baldosa_modern_publish_settled_one_player_run(
     return 1;
 }
 
+// The existing product's single shared ordinary-2P match archive is
+// user-rooted (not inside either player's SRAM or 1P run directory).
+// This is read-only from native Records; no 2P publication authority.
+extern "C" const char*
+ur_baldosa_modern_profile_multiplayer_records_directory(void) {
+    static std::string path;
+    if (!activated() || g_verified_native_profile_id.empty() ||
+        g_native_user_root.empty()) return nullptr;
+    path = (g_native_user_root / "multiplayer-runs").string();
+    return path.c_str();
+}
+
+extern "C" const char* ur_baldosa_modern_profile_selected_id(void) {
+    return activated() && !g_verified_native_profile_id.empty()
+        ? g_verified_native_profile_id.c_str() : nullptr;
+}
+
 extern "C" const char* ur_baldosa_modern_profile_records_directory(void) {
     static std::string path;
     if (!activated() || g_verified_native_profile_id.empty() ||

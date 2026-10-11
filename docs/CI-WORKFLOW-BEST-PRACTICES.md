@@ -4,6 +4,16 @@ This document is the canonical repository policy for designing, reviewing, and m
 
 The goal is not to minimize CI at any cost. The goal is to get the **cheapest trustworthy answer** for each repository invariant while keeping expensive research and evidence collection from waking on unrelated work.
 
+## Current measured audit and Pathfinder-inspired result transport
+
+The [2026-10-10 CI/research-apparatus audit](CI-RESEARCH-APPARATUS-AUDIT-20261010.md) records a bounded 300-run live sample, previous native-router overtriggering, two-suite redundant builds and a misleadingly costly unit-test log hunt. It is an historical measurement, not another priority owner.
+
+**Design experiments for a decision, not for maximum instrumentation.** Before a long route, establish the current original/native baseline, one discriminating hypothesis, immutable source/ROM/fixture/toolchain identity, matched control/treatment when applicable, short decisive route window and explicit stop/revisit condition. The first assertion failing should be visible without reading hundreds of thousands of log bytes. Reuse the same native candidate and original/input observations for multiple independent checks. Run broad frame/memory capture only if cheaper prior evidence cannot resolve the decision.
+
+**Result-first reporting:** maintained decision-bearing experiments should publish an Actions Job Summary describing the measured result, positive/negative/inconclusive status, population/frame coverage, important missingness and the exact next action. Upload a small machine-readable primary result plus hashed evidence/source receipt; upload large logs/shards only when needed. For a new workflow, prefer the tested `tools/publish_experiment_result.py` transport envelope (demonstrated in `one-shot-execution-coverage-ab.yml`) and existing domain-specific `tools/evidence_contract.py` validation, rather than introducing another framework. This generic publisher marks a produced report **not adjudicated**; it never decides whether the experiment proved the hypothesis. Distinguish actual assertion violations, scientific negative results, missing evidence and infra failures. Promote useful conclusions and bounded data by reviewed commit into the owning ledger/analysis, never automatic workflow writes to main.
+
+For cheap CI unit tests, `tools/summarize_unittest_ci.py` now emits `ci-tooling-unit-result.json` and a bounded summary, with full raw shard logs retained on failure. First read the summary, then the result artifact, then only the relevant failing logs. Pathfinder's `publish-solver-sweep-result`/retrieval pattern informed the transport boundary, but its solver-specific schemas and claims are not portable game-oracle authority.
+
 ## Workflow classes
 
 Every workflow must fit one primary class.

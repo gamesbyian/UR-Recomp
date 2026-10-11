@@ -138,6 +138,7 @@ def check_pair(top: bytes, bottom: bytes, top_slot: int, bottom_slot: int,
 def assess(root: Path) -> dict:
     frames = {}
     source_sha = {}
+    main_digests = []
     for frame in FRAMES:
         slots = {}
         planes = {}
@@ -161,13 +162,18 @@ def assess(root: Path) -> dict:
             # Two players may share an animation; do not claim unequal
             # anatomy merely because this happened to be a different slot.
             pass
+        main_digest = next(iter(frame_digest))
+        main_digests.append(main_digest)
         frames[str(frame)] = {
-            "source_main_original_ppu_sha256": next(iter(frame_digest)),
+            "source_main_original_ppu_sha256": main_digest,
             "pairs": pairs,
             "exact_duplicate_rgba_pair_count": len(pairs),
             "distinct_original_source_export_count": 4,
         }
+    if len(set(main_digests)) != len(FRAMES):
+        raise ValueError("moving 2P guest frames reuse the same Original main raster")
     return {
+        "distinct_original_main_raster_digests": len(set(main_digests)),
         "schema_version": 1,
         "status": "original-2p-six-exact-rgba-slot-aliases",
         "original_guest_frames": list(FRAMES),

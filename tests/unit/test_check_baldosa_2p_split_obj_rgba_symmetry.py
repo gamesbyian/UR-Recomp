@@ -121,6 +121,20 @@ class OriginalSplitObjAliasTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "disagree on frame1872"):
             assess(self.root)
 
+    def test_stale_original_main_raster_across_frames_fails_closed(self):
+        # Per-frame source exports can agree within each frame while a
+        # cached capture incorrectly claims that distinct guest frames
+        # produced the same stock raster. Do not call those moving scenes.
+        original = json.loads(self.report_file(98, FRAMES[0]).read_text())
+        stale_digest = original["source_frame_main_raster_sha256"]
+        for slot in SLOTS:
+            path = self.report_file(slot, 1872)
+            report = json.loads(path.read_text())
+            report["source_frame_main_raster_sha256"] = stale_digest
+            path.write_text(json.dumps(report))
+        with self.assertRaisesRegex(ValueError, "reuse the same Original"):
+            assess(self.root)
+
     def test_incorrect_slot_source_or_unverified_full_raster_rejected(self):
         path = self.source_file(99, 1888)
         path.unlink()

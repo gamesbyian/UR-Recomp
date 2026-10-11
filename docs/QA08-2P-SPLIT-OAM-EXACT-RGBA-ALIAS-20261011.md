@@ -58,8 +58,10 @@ main-image SHA, wrong original source/OAM trace attribution, an altered
 one-byte colour/alpha, or any shifted pixel outside the exact +113
 raster mapping. It requires all **12** independent original source
 exports with accepted existing read-only `status=passed` evidence,
-six identical Original full-raster samples, and exactly the three
-actual moving guest frames. Neither source RGB coincidence nor 2P
+six identical Original full-raster samples per capture, **three
+pairwise distinct whole-Original frame SHA256s** across guest1856/1872/1888,
+and exactly the three actual moving guest frames. Neither source RGB
+coincidence nor 2P
 rectangular OAM placement would be sufficient.
 
 ## What is and is not learned

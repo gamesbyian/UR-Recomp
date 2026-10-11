@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "status": "passed-native-original-2p-postgo-four-oam-source-isolations",
+  "accepted_native_aot_run_id": 38120828291,
+  "accepted_native_aot_artifact_id": 11695173178,
+  "accepted_exact_tested_head": "4e9cef954c4ed7c387c2ae5b3db419a09452620e",
+  "original_guest_frame": 2208,
+  "original_mode": "native-USA-ordinary-two-player-after-GO",
+  "original_raster_size": [
+    342,
+    224
+  ],
+  "original_full_rgba_sha256": "f9ca59c19dc3e8d51c7ca1dbce25d5dc14e56ba36011128abbadee8cec0e7b4a",
+  "seven_identical_full_stock_frames_per_isolated_source": [
+    1808,
+    1824,
+    1840,
+    1856,
+    1872,
+    1888,
+    2208
+  ],
+  "full_original_unchanged_differences": 0,
+  "native_2p_route_full_guest_crc_parity_attested": true,
+  "four_independent_ppu_source_reports_status": "passed",
+  "actual_slot_sources": {
+    "96": {
+      "viewport": "lower",
+      "alpha": 313,
+      "bbox": [
+        107,
+        159,
+        136,
+        190
+      ],
+      "sha256": "658d79c05524ca40af81f92ce6bb0d49adbe6bbcbc07d599e7e8bcdbdd1eb580"
+    },
+    "97": {
+      "viewport": "lower",
+      "alpha": 317,
+      "bbox": [
+        94,
+        159,
+        123,
+        190
+      ],
+      "sha256": "e9e924050ad5da46f24d4be4b3f587e80c80c8bb04bec19014e38cf06c0e5b44"
+    },
+    "98": {
+      "viewport": "upper",
+      "alpha": 317,
+      "bbox": [
+        107,
+        47,
+        136,
+        78
+      ],
+      "sha256": "de587f5986b30663f0178a0140e746b84e601716941bb09dacab5426e8d56fe2"
+    },
+    "99": {
+      "viewport": "upper",
+      "alpha": 313,
+      "bbox": [
+        120,
+        47,
+        149,
+        78
+      ],
+      "sha256": "836da1c261ce6ea07cc9a7a66f5a4443e494388e07cefb6da232a4b98764b564"
+    }
+  },
+  "no_original_PPU_removal": true,
+  "source_positive_final_BG_window_visibility_proven": false,
+  "source_paired_translation_claim_in_this_report": false,
+  "artistic_HD_likeness_or_release_approval": false
+}

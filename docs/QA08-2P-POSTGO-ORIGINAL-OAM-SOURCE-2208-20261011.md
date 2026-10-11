@@ -1,6 +1,10 @@
 # QA-08: genuine post-GO 2P original racer source at guest2208
 
-**Status: native evidence pending exact-head AOT.** This change adds
+**Status: accepted native AOT [38120828291](https://github.com/gamesbyian/UR-Recomp/actions/runs/38120828291), artifact `11695173178`; first tested head `4e9cef954c4ed7c387c2ae5b3db419a09452620e`.**
+All four source-only probes and seven full Original frame controls passed. The
+subsequent one-line workflow diagnostic change merely replaces a hard-coded
+print label with the *source-validated* frame ID, satisfying the existing
+automatic workflow policy test; it changes no source gating or guest route. This change adds
 a **read-only** original PPU source checkpoint to an already scheduled
 four-process 2P OAM isolation loop. It does not change source
 painter, guest state, BG/window priority, Modern, release authority,
@@ -69,13 +73,34 @@ through the **existing** source-plane artifact wildcard.
 No new standalone build, test route, emulator or
 redundant stock run is added.
 
-Until the native AOT succeeds, **do not** claim any particular
-top/bottom slot was source-positive after GO, or assign
-final visible pixel ownership from a source report. A
-source-positive plane establishes only original pre-priority
-racer emission. A genuine source-empty plane is also a
-valid observational outcome requiring a different
-investigation, not a reason to invent a HD racer.
+## Native source-positive witness
+
+The exact native original 2P guest2208 returns **all four source slots
+nonempty** with independently passed log/SHA/CRC and seven stock
+Original controls. Source bounds are **inclusive** native logical
+342×224 pixels:
+
+| OAM source slot | Viewport | Source alpha | Source bbox [xmin,ymin,xmax,ymax] |
+| --- | --- | ---: | --- |
+| 96 | lower | **313** | [107,159,136,190] |
+| 97 | lower | **317** | [94,159,123,190] |
+| 98 | upper | **317** | [107,47,136,78] |
+| 99 | upper | **313** | [120,47,149,78] |
+
+Every independent source report refers to the same unchanged
+post-GO full Original `342×224` RGBA SHA
+`f9ca59c19dc3e8d51c7ca1dbce25d5dc14e56ba36011128abbadee8cec0e7b4a`.
+The exact source metadata are retained in
+[`analysis/data/qa08-original-native-2p-postgo-obj-sources-2208.json`](../analysis/data/qa08-original-native-2p-postgo-obj-sources-2208.json).
+No ROM-derived pixel plane is checked into Git.
+
+The authenticated original source proves that both racers keep
+emitting after the countdown. It **does not** by itself establish
+final PPU BG/OBJ/window ownership. The observed source-coordinate
+upper/lower registration is analyzed separately in the stacked
+[#1342](https://github.com/gamesbyian/UR-Recomp/pull/1342)
+without assuming the countdown translation continues unchanged.
+No current 2P authored HD sprite is approved for shipping.
 
 After a verified native artifact, graphics QA may compare
 the post-GO source and final Original pixels, first

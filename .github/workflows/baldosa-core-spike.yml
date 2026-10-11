@@ -1043,7 +1043,8 @@ jobs:
                      r["shared_full_frame_guest_ids"][-1] == 2208 and
                      r["differing_original_rasters"] == []
                      for i, r in enumerate(rows))
-          print("UR_QA08_NATIVE_2P_POSTGO_SOURCE frame=2208 " +
+          print("UR_QA08_NATIVE_2P_POSTGO_SOURCE guest=" +
+                str(rows[0]["source"]["guest_frame"]) + " " +
                 " ".join(f"slot{r['source']['slot']}_top={r['source']['top_opaque_source_pixels']}"
                          f"_bottom={r['source']['bottom_opaque_source_pixels']}"
                          for r in rows) +

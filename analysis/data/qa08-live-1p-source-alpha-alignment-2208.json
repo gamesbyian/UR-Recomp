@@ -1,0 +1,63 @@
+{
+  "schema": "UR-QA08-ORIGINAL-1P-SILHOUETTE-COMPARISON/1",
+  "native_guest_frame": 2208,
+  "status": "exact-original-ppu-source-alpha-comparison",
+  "source_original_98_rgba_sha256": "563d829b274e151fd5b4da8079a944bfcab0d142c55ce985d15dc627cdf8b7d3",
+  "source_original_99_rgba_sha256": "c49e6656734fb44567a8f754e3d08ee6241357c6f95dbbe33b1a35a1e45af13c",
+  "source_98_alpha_sha256": "286484b1e9958307c3bb3ce5e14cefad4e6ca17ee916414bfb8ba9ef63a044e1",
+  "source_99_alpha_sha256": "f0d5f8e60f23319a51f3fac4e0d34b280576ffebe0b607600298154e338888b2",
+  "original_source_98_bbox": [
+    101,
+    121,
+    132,
+    143
+  ],
+  "original_source_99_bbox": [
+    36,
+    120,
+    71,
+    143
+  ],
+  "source_98_projected_crop_size": [
+    32,
+    23
+  ],
+  "source_99_projected_crop_size": [
+    36,
+    24
+  ],
+  "source_98_opaque_pixels": 285,
+  "source_99_opaque_pixels": 293,
+  "alignment": "left-anchored-independent-native-alpha-bboxes/shared-absolute-raster-Y",
+  "logical_pixel_aspect_ratio": "7:6",
+  "overlapping_occupied_absolute_source_rows": 23,
+  "exactly_matching_source_alpha_rows": 16,
+  "longest_contiguous_identical_nonempty_alpha_rows": [
+    128,
+    143
+  ],
+  "longest_identical_row_count": 16,
+  "all_equal_source_alpha_rows": [
+    128,
+    129,
+    130,
+    131,
+    132,
+    133,
+    134,
+    135,
+    136,
+    137,
+    138,
+    139,
+    140,
+    141,
+    142,
+    143
+  ],
+  "all_equal_source_alpha_row_count": 16,
+  "new_art_approved": false,
+  "original_3d_model_or_part_identity_proven": false,
+  "final_bg_or_obj_ownership_proven": false,
+  "limits": "Byte-exact alpha silhouette geometry in independently source-verified original PPU slot planes, under a declared translation only. Similar source rows do not prove identical 3D objects, rig hierarchy, anatomical parts, camera/lighting, final priority or artwork approval."
+}

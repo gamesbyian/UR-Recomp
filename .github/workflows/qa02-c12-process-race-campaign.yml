@@ -19,6 +19,17 @@ on:
         required: true
         default: "11413"
 
+  workflow_call:
+    inputs:
+      trials_per_shard:
+        description: "Bounded per-shard repeat count for manual parent campaign"
+        required: true
+        type: string
+      seed:
+        description: "Immutable parent-selected seed"
+        required: true
+        type: string
+
 permissions:
   contents: read
 

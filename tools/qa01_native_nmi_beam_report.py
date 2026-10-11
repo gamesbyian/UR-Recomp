@@ -8,6 +8,7 @@ one actual 16-bit native I_NMI_M1X1 writer of word 4004 at 7E:01DD.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -89,10 +90,12 @@ def main() -> int:
     ap.add_argument("--paired-report", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
     args = ap.parse_args()
-    paired = json.loads(args.paired_report.read_text(encoding="utf-8"))
+    paired_bytes = args.paired_report.read_bytes()
+    paired = json.loads(paired_bytes.decode("utf-8"))
     verified = original.verify_original_native_pair(paired)
     result = summarize(args.wlog.read_text(encoding="utf-8"))
     result["exact_original_native_switcher_pair_provenance"] = verified
+    result["paired_report_bytes_sha256"] = hashlib.sha256(paired_bytes).hexdigest()
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps({

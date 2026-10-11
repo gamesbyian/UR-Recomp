@@ -1,6 +1,7 @@
 """ROM-free, independently pinned provisional Baldosa consumer archive QA."""
 import hashlib
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -81,6 +82,54 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
         self.assertEqual(report["metrics"]["source_settled_native_2p_result_publications"], 0)
         self.assertFalse(report["metrics"]["physical_controller_coverage"])
         self.assertFalse(report["metrics"]["fresh_process_native_1p_2p_results_records_verified"])
+
+    def test_cli_requires_independent_actions_wrapper_nomination_and_writes_inconclusive_report(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            inner, source, inner_digest = self.make(root)
+            wrapper = root / "reviewed-actions.zip"
+            with zipfile.ZipFile(wrapper, "w") as artifact:
+                artifact.writestr(qa.ACTIONS_INNER, inner.read_bytes())
+                artifact.writestr(
+                    qa.ACTIONS_CHECKSUM,
+                    f"{inner_digest} *{qa.ACTIONS_INNER}\n",
+                )
+            output = root / "receipt.json"
+            tool = ROOT / "tools" / "verify_baldosa_romless_candidate_qa.py"
+            base = [
+                sys.executable, str(tool),
+                "--actions-artifact", str(wrapper),
+                "--expected-source", source,
+                "--expected-zip-sha256", inner_digest,
+                "--output", str(output),
+            ]
+            # The CLI must reject an unpinned downloaded wrapper even though
+            # the inner ZIP itself carries a perfectly good .sha256 sidecar.
+            no_pin = subprocess.run(
+                base, capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(no_pin.returncode, 2)
+            self.assertIn("externally nominated wrapper", no_pin.stderr)
+            self.assertFalse(output.exists())
+            approved = subprocess.run(
+                base + [
+                    "--expected-actions-artifact-sha256",
+                    qa.file_digest(wrapper),
+                ],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(approved.returncode, 0, approved.stderr)
+            result = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(result["outcome"], "inconclusive")
+            self.assertEqual(result["subject"]["candidate_zip_sha256"], inner_digest)
+            self.assertEqual(result["inputs"]["actions_wrapper_sha256"],
+                             qa.file_digest(wrapper))
+            wrong = subprocess.run(
+                base + ["--expected-actions-artifact-sha256", "0" * 64],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(wrong.returncode, 2)
+            self.assertIn("wrapper bytes differ", wrong.stderr)
 
     def test_original_actions_zip_wrapper_and_checksum_are_independently_checked(self):
         with tempfile.TemporaryDirectory() as tmp:

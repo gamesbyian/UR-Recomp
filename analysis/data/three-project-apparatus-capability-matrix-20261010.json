@@ -369,6 +369,69 @@
       ],
       "gap": "UR owns 342-wide/4K policy",
       "proof": "Logical extra world and real 4K output on exact candidate"
+    },
+    {
+      "id": "hd-art",
+      "domain": "presentation",
+      "priority": "P0",
+      "decision": "keep_existing",
+      "ur": [
+        "tools/check_racer_hd_foreground_occlusion.py",
+        "tools/build_racer_hd_shipping_readiness.py"
+      ],
+      "baldosa": [],
+      "malmazuke": [
+        "tools/unirally_lab/content/ppu.py"
+      ],
+      "gap": "PAL tile renderer not native P1/P2 visibility oracle",
+      "proof": "Authored art coherent in genuine source-visible 2P"
+    },
+    {
+      "id": "audio-timing",
+      "domain": "presentation",
+      "priority": "P2",
+      "decision": "conditional",
+      "ur": [
+        "tools/analyze_audio_phase_matrix.py"
+      ],
+      "baldosa": [],
+      "malmazuke": [
+        "tools/unirally_lab/reference/audio.py"
+      ],
+      "gap": "Audio comparisons can mix output and clock domains",
+      "proof": "Original event timing plus physical device/pause"
+    },
+    {
+      "id": "modern-controller-journey",
+      "domain": "product",
+      "priority": "P0",
+      "decision": "keep_existing",
+      "ur": [
+        "native/product/baldosa_modern_session_binding.hpp"
+      ],
+      "baldosa": [
+        "src/main.c"
+      ],
+      "malmazuke": [
+        "src/app/frontend.cpp"
+      ],
+      "gap": "External frontends omit UR Modern feature set",
+      "proof": "Controller-driven P1/P2 through final result and UI"
+    },
+    {
+      "id": "profile-sram-safety",
+      "domain": "product",
+      "priority": "P0",
+      "decision": "keep_existing",
+      "ur": [
+        "native/product/baldosa_native_profile_sram_checkpoint.hpp"
+      ],
+      "baldosa": [],
+      "malmazuke": [
+        "tasks/SAVE-FILES.md"
+      ],
+      "gap": "Data loss on abnormal exit cannot be excused by guest CRC",
+      "proof": "Fresh-process crash and isolated profile proof"
     }
   ]
 }

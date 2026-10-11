@@ -58,7 +58,12 @@ class BaldosaNativePublishRetryTests(unittest.TestCase):
         root = (ROOT / "tools/baldosa_native_modern_root.cpp").read_text(
             encoding="utf-8")
         self.assertIn("render_baldosa_native_run_save_feedback(", root)
-        self.assertIn("g_ram[0x009fu] != 0x99u", root)
+        # The shared result strip now covers both authentic stock terminals;
+        # 1P must still be gated by its original 0x99 result screen.
+        self.assertIn("g_handed_off_players == 1u", root)
+        self.assertIn("g_ram[0x009fu] == 0x99u", root)
+        self.assertIn("g_handed_off_players == 2u", root)
+        self.assertIn("ur::title::kOrdinaryTwoPlayerRaceResultMenu", root)
         self.assertNotIn("append_completed_run_record(", source)
         self.assertNotIn("RtlWriteSram(", source)
 

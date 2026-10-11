@@ -41,6 +41,14 @@ malmazuke [R-0086](https://github.com/malmazuke/unirally-reconstruction/blob/42d
 
 **Reuse:** treat Mark's order as a high-value hypothesis, avoid generic physics re-derivation. **Reopen/USA-promote only if:** verified USA opcode/operand homology and a bounded source-original USA contact observation show matching state/order, or a concrete player-visible discrepancy requires investigation.
 
+### Pilot D: two-human PAL pad gating and mode-7 latch
+
+**Verdict: PAL original-game findings with two independent USA discriminators; no current USA issue proven.** Malmazuke's [R-0095](https://github.com/malmazuke/unirally-reconstruction/blob/962fb9ba3f728e1ea0e72bc0c623d1447c322891/docs/research/R-0095-two-human-stunts.md) (11 October 2026 integration) reconstructs two-human stunt races, VS results and original controller handoff. Normal 2P/VS pre-race screens accept either pad after selection, but the second rider's selection uses pad 2 and VS challenger continuation uses only that challenger's pad. For **controller-only 2P lifecycle** discrepancies, first compare USA original pad ownership and the Modern/Baldosa release candidate on the *same* mode and menu transition; the PAL $77:0742 gate is a lead, not a USA RAM fact.
+
+The same R-0095 documents a more unusual bounded **PAL hardware-timing counterexample**: on two-view DOWNER, split HDMA writes the SNES $211B Mode 7 multiplier latch between the CPU's low/high writes, turning M7A from $0202 into $021C. PAL original rider 1 reaches -288 vertical velocity at frame 3558, versus -308 in the upstream native C++ run without cycle-accurate interleaving. This is **not** an observed Baldosa/UR bug. If a corresponding USA 2P event diverges, log *ordered original USA CPU/HDMA $211B accesses* and first multiplier consumer before touching physics or accepting PAL frame/scanline timing. Reopen only on a real USA source/trace contradiction or an exact-build two-human event mismatch. Full method and other source limits: [pinned October 11 intake](../reference/notes/malmazuke-pal-20261011-scenery-hdma-followup.md).
+
+**Reuse:** specialize an existing QA-02/03/05 controller fixture or QA-01/07 2P oracle only when its live owner has a relevant blocker. No second renderer, guest-timing patch, additional CI job, research-ledger promotion, or gate change follows from this source alone.
+
 ## Application by agents
 
 Consult these pilot conclusions only when their scope fits the current task; update the **existing** claim owner with new evidence, not this document as a running ledger. Use `docs/WORK-QUEUE.md` first, then `tools/select_three_project_reuse.py --lane <lane> --focus <term> --include-conditional` for live opportunities. A bounded investigation should end as soon as new evidence will not change a gameplay fix, acceptance decision or meaningful reference claim. Prefer delivering the Windows vertical slice over accumulating confirmations of already established mechanisms.

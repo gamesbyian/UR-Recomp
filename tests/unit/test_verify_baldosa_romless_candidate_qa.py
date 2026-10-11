@@ -278,6 +278,26 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "incomplete hosted smoke"):
                 qa.check_runtime_actions_wrapper(evidence, qa.audit(inner, source, digest))
 
+    def test_latest_baldosa_win32_candidate_archive_has_no_fictitious_event_credit(self):
+        from evidence_contract import validate_envelope
+        path = ROOT / (
+            "analysis/evidence/baldosa-windows-38120282979-package-runtime-consistency.json"
+        )
+        record = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(validate_envelope(record), [])
+        self.assertEqual(record["outcome"], "inconclusive")
+        self.assertEqual(record["subject"]["source_checkout_merge_commit"],
+                         "b00e1c0b1404e0576ada008bdd80e80bc8973a94")
+        self.assertEqual(record["provenance"]["checkout_merge_second_parent"],
+                         record["subject"]["producing_pr_head"])
+        self.assertEqual(record["subject"]["win32_executable_sha256"],
+                         "a72924e0e6aa1e8df8bc04abcdbee4b60ca879e7e159a2e61e1daf4ddd6d64d8")
+        self.assertEqual(record["metrics"]["completed_original_event_credit"], 0)
+        self.assertIs(record["metrics"]["new_native_2p_match_published"], False)
+        self.assertIs(record["metrics"]["physical_windows_controller_audio_display_verified"], False)
+        self.assertIs(record["metrics"]["independent_release_candidate_approved"], False)
+        self.assertIs(record["metrics"]["post_raw_pre_typed_crash_divergence_reported"], True)
+
     def test_canonical_unexecuted_candidate_is_only_inconclusive(self):
         with tempfile.TemporaryDirectory() as tmp:
             archive, source, digest = self.make(Path(tmp))

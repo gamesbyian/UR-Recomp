@@ -84,6 +84,19 @@ class BaldosaModernProfileActivationStage(unittest.TestCase):
             self.assertEqual(staged_host.count("RtlWriteSram()"), 1)
             self.assertIn("ur_baldosa_modern_profile_before_native_save()", staged_host)
             self.assertIn("ur_baldosa_modern_profile_finish_native_save(native_saved)", staged_host)
+            # The real original RtlWriteSram must complete before a QA-only
+            # fatal boundary, and the typed CAS must not have run yet.
+            self.assertEqual(
+                staged_host.count("UR_BALDOSA_QA_CRASH_AFTER_NATIVE_SRAM_WRITE"), 1)
+            self.assertIn("_Exit(86);", staged_host)
+            self.assertLess(
+                staged_host.index("int native_saved = RtlWriteSram();"),
+                staged_host.index("QA_CRASH_AFTER_RAW_WRITE"))
+            self.assertLess(
+                staged_host.index("QA_CRASH_AFTER_RAW_WRITE"),
+                staged_host.index("ur_baldosa_modern_profile_finish_native_save(native_saved)"))
+            self.assertEqual(probe.patch_framework_save(staged_host), staged_host)
+
             self.assertIn("int native_saved = RtlWriteSram();", staged_host)
             self.assertLess(staged_host.index("if (ur_baldosa_modern_profile_before_native_save())"), staged_host.index("RtlWriteSram();"))
             self.assertLess(staged_host.index("RtlWriteSram();"), staged_host.index("ur_baldosa_modern_profile_finish_native_save(native_saved)"))

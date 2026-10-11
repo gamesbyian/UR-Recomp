@@ -3,6 +3,55 @@ retrieved: 2026-09-28
 project: UR-Recomp
 
 sources:
+  - id: dkc2-recomp-reconstruct-shader-20261010
+    title: "DKC2Recomp experimental Reconstruct upscaler and display treatments"
+    type: upstream_recomp_visual_reference
+    url: "https://github.com/elliotttate/DKC2Recomp/blob/3b386cb4a6b67472bc6693664ce61a11190e7b5d/README.md"
+    revision: "3b386cb4a6b67472bc6693664ce61a11190e7b5d"
+    source_blob_sha: "735fbbb1eabd18d0573df6f0c97b796b48894e0e"
+    retrieved: "2026-10-10"
+    rights: "Root project-owned code MIT; third-party dependencies and assets preserve their own terms. Informational methodology reference, no executable source imported."
+    local: "docs/HD-UPSCALING-EXPERIMENT-PLAN.md"
+    relevance: "Direct SNESRecomp experience with optional reconstruction of xBR-like corners, dithering and display, to test on exact UR-Recomp captures before considering a renderer port."
+  - id: wave-race-64-hd-texture-methods-20261010
+    title: "Wave Race 64 HD_TEXTURES methodology and generative texture-pipeline evidence"
+    type: adjacent_recomp_art_pipeline_reference
+    url: "https://github.com/elliotttate/wave-race-64-recomp/blob/9041cc8024f6d2015859f88f5a0307b36cd4e50a/docs/HD_TEXTURES.md"
+    revision: "9041cc8024f6d2015859f88f5a0307b36cd4e50a"
+    source_blob_sha: "1682e6cb7ba8fff90c7e3f6f90e65d5101d4cc5f"
+    retrieved: "2026-10-10"
+    rights: "Root code MIT; replacement textures/artwork excluded from root MIT and subject to separate rights. Do not import generated assets, model output or N64-specific code."
+    local: "docs/HD-UPSCALING-EXPERIMENT-PLAN.md"
+    relevance: "Specific published source-sheet/paid-generation/reassembly/palette/alpha/seam/periodic-scroll/font review workflow; adaptation only to UR sprite, backdrop and UI research."
+  - id: fzero-snes-recomp-display-shaders-20261010
+    title: "FZeroSNESRecomp display shaders and Mode 7 controls"
+    type: snes_recomp_display_reference
+    url: "https://github.com/mstan/FZeroSNESRecomp/blob/1686df46d4fc7c22b5dc8fdfaa5282ca4bd78562/README.md"
+    revision: "1686df46d4fc7c22b5dc8fdfaa5282ca4bd78562"
+    source_blob_sha: "896a107dea2df6c690717956d259a43bb655a372"
+    retrieved: "2026-10-10"
+    rights: "Project source MIT, individual shader dependencies may have different terms; no source imported."
+    local: "docs/HD-UPSCALING-EXPERIMENT-PLAN.md"
+    relevance: "Preset grouping, external GLSL loader caveats, and explicit separation between 2x-10x HD Mode 7 and ordinary sprite asset replacement."
+  - id: chainner-offline-art-workbench-20261010
+    title: "chaiNNer node-based image workflow application"
+    type: optional_external_art_tool
+    url: "https://github.com/chaiNNer-org/chaiNNer/tree/bbbbe247c54d09f4f3752fd966118a4dfa85437a"
+    revision: "bbbbe247c54d09f4f3752fd966118a4dfa85437a"
+    retrieved: "2026-10-10"
+    rights: "GPL-3.0, with dependencies/models requiring their own audit. Not vendored, installed or approved for offline default toolchain."
+    local: "docs/HD-UPSCALING-EXPERIMENT-PLAN.md"
+    relevance: "Optional manual comparison workbench for batch image operations without requiring it in the runtime or CI."
+  - id: real-esrgan-local-model-reference-20261010
+    title: "Real-ESRGAN restoration and upscaling framework"
+    type: optional_external_art_tool
+    url: "https://github.com/xinntao/Real-ESRGAN/tree/a4abfb2979a7bbff3f69f58f58ae324608821e27"
+    revision: "a4abfb2979a7bbff3f69f58f58ae324608821e27"
+    retrieved: "2026-10-10"
+    rights: "Framework BSD-3-Clause; model weights, datasets and transitive dependency licenses are not qualified/vendored."
+    local: "docs/HD-UPSCALING-EXPERIMENT-PLAN.md"
+    relevance: "Optional local image-proposal method for a limited source-backed 4x comparison, not an Uniracers-approved model/preset."
+
   - id: switch-homebrew-public-toolchain
     title: "Nintendo Switch public homebrew toolchain references"
     type: platform_homebrew_reference

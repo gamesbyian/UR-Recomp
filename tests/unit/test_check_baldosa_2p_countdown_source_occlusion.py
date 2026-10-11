@@ -27,6 +27,14 @@ class Original2PCountdownCoverTest(unittest.TestCase):
         for frame in FRAMES:
             original = bytearray(bytes((110, 110, 110, 255)) * WIDTH * HEIGHT)
             self.source[frame] = {}
+            if frame in (1872, 1888):
+                # Stationary blue foreground rectangle covers *moving*
+                # lower OBJ alpha positions. Its mask must be exactly
+                # equal across these two distinct native-style frames.
+                for y in range(155, 161):
+                    for x in range(80, 122):
+                        at = (y * WIDTH + x) * 4
+                        original[at:at + 4] = bytes((*COUNTDOWN_RGB, 255))
             for slot in SLOTS:
                 plane = bytearray(WIDTH * HEIGHT * 4)
                 x = 70 + 8 * (slot & 1) + (frame - 1856)
@@ -95,6 +103,11 @@ class Original2PCountdownCoverTest(unittest.TestCase):
                          ["all_source_coordinates_final_blue"])
         self.assertFalse(witness["safe_to_promote_hd_racer_rendering"])
         self.assertFalse(witness["foreground_numeral_source_layer_proven"])
+        self.assertTrue(witness["countdown_2_blue_final_mask_temporally_equal_1872_1888"])
+        self.assertTrue(witness["source_slot_rgb_and_alpha_changed_while_blue_mask_constant"])
+        self.assertEqual(
+            witness["per_original_frame"]["1872"]["full_original_blue_rgb_mask_sha256"],
+            witness["per_original_frame"]["1888"]["full_original_blue_rgb_mask_sha256"])
 
     def test_single_blue_byte_difference_changes_witness(self):
         plane = self.source[1872][96]
@@ -102,6 +115,24 @@ class Original2PCountdownCoverTest(unittest.TestCase):
         self.original[1872][at + 2] = 254
         self.flush()
         with self.assertRaisesRegex(ValueError, "countdown-covering witness"):
+            assess(self.root)
+
+    def test_countdown_blue_mask_drift_outside_racers_fails_closed(self):
+        # The source alpha can remain fully covered while unrelated blue
+        # countdown pixels shift. Compare the WHOLE native Original colour
+        # mask, not just pixels under original emitted OAM slots.
+        pos = (155 * WIDTH + 120) * 4
+        self.original[1888][pos:pos + 4] = bytes((110, 110, 110, 255))
+        self.flush()
+        with self.assertRaisesRegex(ValueError, "blue overlay mask changed"):
+            assess(self.root)
+
+    def test_static_lower_alpha_behind_blue_mask_fails_motion_claim(self):
+        # Preserve the stationary blue rectangle; instead duplicate an
+        # older lower rider source so the supposed motion witness is false.
+        self.source[1888][96] = bytearray(self.source[1872][96])
+        self.flush()
+        with self.assertRaisesRegex(ValueError, "alpha is static"):
             assess(self.root)
 
     def test_stale_or_forged_source_digest_rejected(self):

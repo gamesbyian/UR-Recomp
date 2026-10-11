@@ -42,6 +42,25 @@ RTI = (
 
 
 class SwitcherNmiStackPullTests(unittest.TestCase):
+    def test_exact_pinned_reference_irq_macro_is_inert(self):
+        # This source pin justifies strict post-RTI == stack return address.
+        # If the emulator pin changes, we must revisit this assumption.
+        core = ROOT / "third_party/src/snes9x-libretro"
+        header = (core / "cpuops.h").read_text(encoding="utf-8")
+        defs = [line.strip() for line in header.splitlines()
+                if line.strip().startswith("#define CHECK_FOR_IRQ()")]
+        self.assertEqual(len(defs), 2)
+        for definition in defs:
+            self.assertRegex(
+                definition, r"^#define CHECK_FOR_IRQ\\(\\)\\s+\\{\\}(?:\\s*//.*)?$"
+                .replace("\\\\", "\\"))
+        implementation = (core / "cpuops.cpp").read_text(encoding="utf-8")
+        rti = implementation.split("Op40Slow (void)", 1)[1].split(
+            "/* STP/WAI", 1)[0]
+        self.assertIn("CHECK_FOR_IRQ();", rti)
+        self.assertIn("PullW(Registers.PCw)", rti)
+        self.assertIn("PullB(Registers.PB)", rti)
+
     def test_patch_preserves_one_original_instruction_and_is_read_only(self):
         source = "head\n" + stack.NMI_MARKER + "\n" + stack.MARKER + "\ntail"
         observed = stack.patch(source, targets=(0x01DD,), watch_nmi=True)

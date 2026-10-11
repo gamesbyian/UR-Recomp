@@ -46,3 +46,12 @@ python3 -m unittest tests.unit.test_report_malmazuke_mapping_gaps
 ```
 
 This report distinguishes **not covered by the current structural interval index** from unimplemented code, untested gameplay, or a proved USA/PAL difference. The worklist is ordered by upstream original-code evidence class and address, not product urgency. Domain counts overlap and must not be summed.
+
+Bounded CPU-direct PPU register-write provenance (inspired by malmazuke's register-order provenance):
+
+```bash
+python3 tools/report_ppu_direct_write_provenance.py reference-trace.log --from-frame 1005 --to-frame 1010 --json-out /tmp/ppu-direct.json
+python3 -m unittest tests.unit.test_report_ppu_direct_write_provenance
+```
+
+This **only** consumes existing original Snes9x `PPUPCTRACE` lines from `tools/instrument_snesref_ppu_pc_trace.py`. It retains ordered CPU PCs and $2116–$2119 register writes, and accepts contiguous four-write sequences; absent $2115 state, DMA/HDMA observations, interleaved writes and final PPU priority are **not inferred**. Malformed events or reversed timestamps fail nonzero. Do not use this as source-OBJ/2P correctness proof or a substitute for original/native QA gates.

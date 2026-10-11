@@ -243,7 +243,7 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
                     return mutated
                 return data
             resigned(archive, change)
-            with self.assertRaisesRegex(ValueError, "launcher missing canonical safety boundary"):
+            with self.assertRaisesRegex(ValueError, "noncanonical CMD encoding or entry"):
                 qa.audit(archive, source, qa.file_digest(archive))
 
     def test_evolving_safe_product_launcher_is_not_rejected_by_old_qa_template(self):

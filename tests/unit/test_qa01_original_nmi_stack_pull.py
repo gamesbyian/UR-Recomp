@@ -105,6 +105,7 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
             ORIGINAL + PULL.replace("f=5780", "f=5760"),
             ORIGINAL + PULL.replace("f1=5780", "f1=5784"),
             ORIGINAL + PULL.replace("v=225", "v=300"),
+            ORIGINAL + PULL.replace("width=2", "width=bogus"),
             ORIGINAL + PULL * (report.MAX_PULLS + 1),
             ORIGINAL + PULL.replace("f=5780", "f=5781", 1) + PULL,
         ):

@@ -307,7 +307,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertIn("tools/qa_modern_batch_campaign.py", text)
         # The manual cohort uses the existing canonical build, not three new ones.
         self.assertEqual(text.count("cmake --build"), 1)
-        self.assertEqual(text.count("modern-native-canonical-candidate"), 2)
+        self.assertEqual(text.count("modern-native-canonical-candidate"), 1)
 
     def test_shared_modern_native_acceptance_builds_once_and_fans_out(self):
         text = (WORKFLOWS / "modern-shared-native-acceptance.yml").read_text()

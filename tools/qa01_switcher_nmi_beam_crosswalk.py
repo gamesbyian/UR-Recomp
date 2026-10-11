@@ -75,7 +75,7 @@ def summarize(source: dict, guest: dict) -> dict:
         "original_saved_accumulator_word": "4042",
         "native_saved_accumulator_word": "4004",
         "clock_unit_origin_and_execution_phase_equivalence_not_proven": True,
-        "native_master_counter_is_basic_block_not_pha_cycle": True,
+        "native_master_counter_is_precharged_and_store_paced": True,
         "native_basic_block_start_master_cycles": native_block_start,
         "native_charged_counter_at_write": native_block_end,
         "native_charged_delta_from_block_entry": native_block_width,

@@ -153,6 +153,10 @@
     {
       "id": "malmazuke-symbol-search-json",
       "description": "Offline query report of upstream PAL source, research backlinks and explicitly unverified USA candidates."
+    },
+    {
+      "id": "malmazuke-structural-gap-report",
+      "description": "ROM-free totals and bounded original-evidence worklist for missing PAL/USA structural interval correspondences; no gameplay authority."
     }
   ],
   "components": [
@@ -523,6 +527,17 @@
       "produces": [
         "malmazuke-symbol-search-json"
       ]
+    },
+    {
+      "id": "malmazuke-gap-report",
+      "kind": "project",
+      "consumes": [
+        "malmazuke-research-label-index",
+        "malmazuke-pal-usa-candidates"
+      ],
+      "produces": [
+        "malmazuke-structural-gap-report"
+      ]
     }
   ],
   "handoffs": [
@@ -777,6 +792,20 @@
       "format": "malmazuke-pal-usa-candidates",
       "status": "supported",
       "evidence": "tools/query_malmazuke_symbols.py reads pinned imported evidence and bounded links; tests/unit/test_query_malmazuke_symbols.py exercises exact PAL address lookup and no-USA-authority policy."
+    },
+    {
+      "from": "malmazuke-pinned-research",
+      "to": "malmazuke-gap-report",
+      "format": "malmazuke-research-label-index",
+      "status": "supported",
+      "evidence": "tools/report_malmazuke_mapping_gaps.py reads pinned imports and bounded structural candidates; tests/unit/test_report_malmazuke_mapping_gaps.py verifies genuine pinned counts and no-USA-promotion invariants."
+    },
+    {
+      "from": "malmazuke-pinned-research",
+      "to": "malmazuke-gap-report",
+      "format": "malmazuke-pal-usa-candidates",
+      "status": "supported",
+      "evidence": "tools/report_malmazuke_mapping_gaps.py reads pinned imports and bounded structural candidates; tests/unit/test_report_malmazuke_mapping_gaps.py verifies genuine pinned counts and no-USA-promotion invariants."
     }
   ],
   "chains": [
@@ -936,6 +965,15 @@
         "malmazuke-symbol-query"
       ],
       "purpose": "Find a PAL cited address, original observed/inferred/data classification, research source records and candidate USA interval without elevating an unverified mapping or running a ROM."
+    },
+    {
+      "id": "malmazuke-structural-gap-triage",
+      "status": "supported",
+      "steps": [
+        "malmazuke-pinned-research",
+        "malmazuke-gap-report"
+      ],
+      "purpose": "Identify unmapped result/frontend and other PAL research citations in one bounded reproducible report, without promoting index absence into a missing USA feature or opening a second mapping framework."
     }
   ]
 }

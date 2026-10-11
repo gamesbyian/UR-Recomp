@@ -52,6 +52,8 @@ Flips produces ordinary derived ROMs and IPS/BPS patches. A derived ROM is there
 
 The local [malmazuke symbol query](../tools/README.md) is a read-only join from the audited imported `native-symbols.json` and `labels.json` to the bounded `analysis/data/malmazuke-pal-structural-links-20261010.json` index. It reports original PAL cited source, observed/inferred/data/unknown classification, permanent upstream research-record links and optional **unverified** USA structural candidates. The catalog registers a *supported* transport chain, not a verified function-semantic correspondence or gameplay acceptance. Use the actual canonical USA ROM and original/runtime oracle before promoting claims. This is an extension of the existing cross-build research atlas, not a rival symbol authority.
 
+The complementary `tools/report_malmazuke_mapping_gaps.py --domain result` uses those same pinned index inputs to summarize **structural interval gaps**, not runtime coverage. It emits a bounded, source-linked list of existing PAL observations that lack a validated USA mapping. The counters are overlap-aware by domain and do not imply missing mechanics; the current Windows/QA owners decide whether any candidate merits a discriminating original USA probe.
+
 ## Useful chains that still need adapters
 
 ### Mesen CDL → disassembly evidence

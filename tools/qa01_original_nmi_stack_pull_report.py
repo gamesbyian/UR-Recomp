@@ -129,6 +129,12 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
         raise ValueError("malformed original QANMIRTI trace row")
     if len(rti_matches) > MAX_RTIS:
         raise ValueError("unbounded original RTI scope observation")
+    # A same-frame A value alone is ambiguous: preserve raw opcode-log
+    # ordering before even calling an RTI a possible post-PHA return.
+    pha_positions_by_frame = {}
+    for pha_match in nmi.PHA.finditer(log):
+        pha_frame = int(pha_match.group(1))
+        pha_positions_by_frame.setdefault(pha_frame, []).append(pha_match.start())
     pha_by_frame = {
         event["original_cpu_frame_before"]: event["accumulator_before"]
         for event in original_context["all_bounded_original_I_NMI_pha_register_scopes"]
@@ -167,6 +173,10 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
                 or a0 != a1 or not -1000000 <= cyc0 <= 1000000
                 or not -1000000 <= cyc1 <= 1000000):
             raise ValueError("impossible original RTI register or stack restoration")
+        original_pha_before = any(
+            position < match.start()
+            for position in pha_positions_by_frame.get(f0, ())
+        )
         rti_rows.append({
             "original_cpu_frame_before": f0,
             "original_cpu_frame_after": f1,
@@ -194,6 +204,7 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
             "cpu_cycles_before": cyc0,
             "cpu_cycles_after": cyc1,
             "same_cpu_frame_as_original_nmi_pha": f0 in pha_by_frame,
+            "same_cpu_frame_pha_observed_before_rti": original_pha_before,
             "same_frame_pha_accumulator_equals_rti_A": (
                 pha_by_frame[f0] == a0 if f0 in pha_by_frame else None
             ),

@@ -38,12 +38,12 @@ def stage(n):
         tx(d,94,148,'01 / ORIGINAL 65816 PROGRAM',63,WHITE,True)
         tx(d,99,244,'Source-mapped behaviour from the US ROM',29,MUTED)
         panel(d,(145,349),(1630,488),'CARTRIDGE ADDRESS / NAMED RECONSTRUCTION',[
-           ('80:8881     MainLoop',WHITE),
-           ('80:88B2     ModeHandlerTable',BLUE),
-           ('             PER  /  JMP ($005D)',CYAN),
-           ('             one of six mode handlers',MUTED),
-           ('             waits for a real VBlank edge',MUTED)],CYAN)
-        tx(d,151,864,'65816 behaviour documented by source research. This is not raw hex.',25,GOLD)
+           ('80:8881    20 C6 AC  /  MainLoop',GOLD),
+           ('            JSR $ACC6',CYAN),
+           ('            calls MainMenu_Draw',WHITE),
+           ('            returns at $8884',MUTED),
+           ('            original USA retail ROM',BLUE)],CYAN)
+        tx(d,151,864,'Actual instruction bytes validated directly from USA retail ROM.',25,GOLD)
     elif t<3.6:
         tx(d,94,148,'02 / ADDRESSES BECOME RECOMP INPUT',54,WHITE,True)
         tx(d,99,244,'Exact MainLoop entry from Baldosa recomp/symbols.toml',29,MUTED)
@@ -56,23 +56,26 @@ def stage(n):
             ('entry_m = 1  /  entry_x = 0',BLUE)],CYAN)
     elif t<5.6:
         tx(d,94,147,'03 / AOT C + NATIVE FRAME DRIVER',56,WHITE,True)
-        tx(d,100,245,'Generated-code inventory + genuine C host glue',29,MUTED)
-        panel(d,(112,338),(840,532),'GENERATED OUTPUT INVENTORY',[
-            ('src/gen/bank80_part*.c',CYAN),
-            ('tracked in .snesrecomp-cache.json',MUTED),
-            ('AOT variant compilation',WHITE),
-            ('not a pasted C translation',GOLD)],CYAN)
+        tx(d,100,245,'Actual MainLoop generated C and distinct native host frame driver',29,MUTED)
+        panel(d,(112,338),(840,532),'GENUINE GENERATED C / MAINLOOP M1X0',[
+            ('L_8881_M1X0:',GOLD),
+            ('  cpu_trace_block(cpu, 0x008881);',WHITE),
+            ('  cpu->cycles += 6;',WHITE),
+            ('  ... [omitted C] ...',MUTED),
+            ('  case 2: _r =',WHITE),
+            ('    MainMenu_Draw_M1X0(cpu);',CYAN)],CYAN)
         panel(d,(968,338),(840,532),'ACTUAL NATIVE HOST C',[
             ('void GameRunOneFrame(void)',BLUE),
             ('{',WHITE),
             ('    snes_beam_frame_driver_',WHITE),
             ('        run_frame();',WHITE),
             ('}',WHITE)],GOLD)
-        tx(d,122,899,'Host adapter shown is separate from the generated MainLoop body.',25,GOLD)
+        tx(d,122,899,'Pinned Baldosa bank00_part01_v2.c. Host driver is separate code.',25,GOLD)
     return im
 def main():
     ap=argparse.ArgumentParser();ap.add_argument('--repo-root',type=Path,default=Path(__file__).resolve().parents[2]);ap.add_argument('--outdir',type=Path,required=True)
     a=ap.parse_args();root=a.repo_root; out=a.outdir;out.mkdir(parents=True,exist_ok=True)
+    subprocess.run(['python3',str(root/'tools/showcase/verify_mainloop_codegen.py'),'--repo-root',str(root),'--out',str(out/'04-mainloop-bytecode-evidence.json')],check=True,stdout=subprocess.DEVNULL)
     v=root/VIDEO
     assert v.exists() and sha(v)==VIDEO_SHA,'Continuous native gameplay source SHA mismatch'
     symbols=root/(ROOT+'recomp/symbols.toml')
@@ -82,7 +85,7 @@ def main():
     assert re.search(r'void GameRunOneFrame\(void\)\s*\{\s*snes_beam_frame_driver_run_frame\(\);\s*\}',driver.read_text())
     inventory=root/(ROOT+'src/gen/.snesrecomp-cache.json')
     cache=json.loads(inventory.read_text())
-    assert 'bank80_part00_v2.c' in cache['bank_outputs']['80']
+    assert 'bank00_part01_v2.c' in cache['bank_outputs']['00']
     # Decode 102 genuine footage frames from the 60 fps master with integer
     # temporal decimation to 30 fps. No interpolation or simulated gameplay.
     rd=subprocess.Popen(['ffmpeg','-hide_banner','-loglevel','error','-ss','2','-i',str(v),'-vf','fps=30','-frames:v','102','-pix_fmt','rgb24','-f','rawvideo','-'],stdout=subprocess.PIPE)
@@ -112,12 +115,17 @@ def main():
     assert (int(details['width']),int(details['height']),details['r_frame_rate'],int(details['nb_frames']))==(W,H,'30/1',N)
     report={'clip':dest.name,'sha256':sha(dest),'bytes':dest.stat().st_size,'fps':FPS,'frames':N,'seconds':9,'size':[W,H],
       'mapping':{'source_address':'80:8881','symbol':'MainLoop','source':ROOT+'recomp/symbols.toml',
-       'generated_code_inventory':ROOT+'src/gen/.snesrecomp-cache.json','real_host_c':ROOT+'src/game_rtl.c'},
+       'generated_code_inventory':ROOT+'src/gen/.snesrecomp-cache.json','real_host_c':ROOT+'src/game_rtl.c',
+       'same_function_65816':'80:8881 20 C6 AC JSR $ACC6',
+       'upstream_generated_C':'gamesbyian/uniracers-recomp@10b864b9d14a7b7416dd909eb7b054c88faef101:src/gen/bank00_part01_v2.c',
+       'upstream_generated_C_blob_sha1':'cc9ef833a5c7c0809aaab53ea00c182158241b83',
+       'generated_C_exhibit':'media/showcase/2026-10-10/technical-motion/mainloop-aot-source-exhibit.txt',
+       'ROM_opcode_gate':'04-mainloop-bytecode-evidence.json'},
       'input_video':{'path':VIDEO,'sha256':VIDEO_SHA,'original_guest_frame_range':[2100,2699],
          'original_fps':60,'output_fps':30,'selection':'integer decimation, no interpolated gameplay'},
-      'source_sha256':{p:sha(root/p) for p in [ROOT+'recomp/symbols.toml',ROOT+'src/game_rtl.c',ROOT+'src/gen/.snesrecomp-cache.json']},
+      'source_sha256':{p:sha(root/p) for p in [ROOT+'recomp/symbols.toml',ROOT+'src/game_rtl.c',ROOT+'src/gen/.snesrecomp-cache.json','media/showcase/2026-10-10/technical-motion/mainloop-aot-source-exhibit.txt']},
       'source_commit':subprocess.check_output(['git','-C',str(root),'rev-parse','HEAD'],text=True).strip(),
-      'limits':'Source 65816 instructions are described from named disassembly/documentation, not invented hex. Native C example is actual host integration, not alleged same-function generated C. The checked generated-code output inventory proves named output artifacts, not a line-by-line instruction-to-C correspondence. Gameplay comes from a genuine previously validated native capture, not this script executing the game.'}
+      'limits':'This clip verifies the exact ROM MainLoop instruction and displays actual C generated for that same function in the pinned Baldosa guest; code omitted between displayed lines is labelled. Native host C is a distinct adapter. The genuine gameplay comes from previously accepted continuous native footage. No whole-game original/native equivalence is implied.'}
     (out/'04-provenance.json').write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps(report,indent=2))
 if __name__=='__main__':main()

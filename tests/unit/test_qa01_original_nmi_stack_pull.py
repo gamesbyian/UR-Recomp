@@ -58,6 +58,18 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
         self.assertIn("CHECK_FOR_IRQ();", rti)
         self.assertIn("PullW(Registers.PCw)", rti)
         self.assertIn("PullB(Registers.PB)", rti)
+        status = (core / "65c816.h").read_text(encoding="utf-8")
+        self.assertIn("#define Emulation\t256", status)
+        self.assertIn("(Registers.P.W & Emulation)", status)
+        for name, body in (
+            ("Op68Slow (void)", "if (CheckMemory())"),
+            ("OpFASlow (void)", "if (CheckIndex())"),
+            ("Op7ASlow (void)", "if (CheckIndex())"),
+        ):
+            candidate = implementation.split(name, 1)[1]
+            self.assertLess(candidate.index("if (CheckEmulation())"),
+                            candidate.index(body),
+                            msg=f"{name} must first check CPU emulation mode")
 
     def test_patch_preserves_one_original_instruction_and_is_read_only(self):
         source = "head\n" + stack.NMI_MARKER + "\n" + stack.MARKER + "\ntail"
@@ -76,6 +88,8 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
         self.assertIn("case 0x68:", patched)
         self.assertIn("case 0x2B:", patched)
         self.assertIn("case 0x28:", patched)
+        self.assertIn("ur_qa_pull_e0 ||", patched)
+        self.assertIn("CheckEmulation() != 0", patched)
         self.assertIn("Memory.RAM[0x01DD]", patched)
         with self.assertRaisesRegex(ValueError, "already installed"):
             patcher.patch(patched)

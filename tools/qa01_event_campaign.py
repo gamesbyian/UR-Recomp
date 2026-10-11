@@ -168,10 +168,34 @@ def aggregate(plan: dict, results_dir: Path) -> tuple[dict, str]:
                 row.get("course_id") != CASES[case]["course_id"] or
                 row.get("source_sha") != plan["source_sha"] or
                 row.get("plan_sha256") != plan["plan_sha256"] or
+                type(row.get("release_credit")) is not int or
                 row.get("release_credit") != 0 or
                 row.get("disposition") not in
                     ("strict_candidate", "strict_divergence", "producer_error")):
                 raise ValueError("case identity, schema or status mismatch")
+            if row["disposition"] != "producer_error":
+                ev = row.get("evidence")
+                if not isinstance(ev, dict) or any(
+                    not isinstance(ev.get(k), str) or
+                    not HEX256.fullmatch(ev[k]) for k in (
+                        "producer_sha256", "rom_sha256", "movie_sha256",
+                        "core_sha256", "native_sha256", "input_sha256")
+                ):
+                    raise ValueError("incomplete case hash provenance")
+                frames = ev.get("terminal_guest_relative_frames")
+                if not isinstance(frames, dict) or any(
+                    type(frames.get(k)) is not int or frames[k] < 0 for k in
+                    ("reference_relative", "native_relative")
+                ):
+                    raise ValueError("case terminal frame evidence invalid")
+                match = frames["reference_relative"] == frames["native_relative"]
+                if (type(ev.get("terminal_frame_matched")) is not bool or
+                    ev["terminal_frame_matched"] != match or
+                    type(ev.get("strict_candidate")) is not bool or
+                    ev["strict_candidate"] != (row["disposition"] == "strict_candidate") or
+                    (row["disposition"] == "strict_candidate" and
+                     (not match or row.get("producer_exit_code") != 0))):
+                    raise ValueError("contradictory strict candidate receipt")
             if row["disposition"] == "producer_error":
                 row["reason"] = str(row.get("reason") or "producer error")
         except (OSError, ValueError, TypeError) as exc:
@@ -181,6 +205,20 @@ def aggregate(plan: dict, results_dir: Path) -> tuple[dict, str]:
                 "reason": str(exc), "release_credit": 0,
             }
         results.append(row)
+    # The entire research population must have used the exact same original
+    # movie, ROM, reference core and pinned native binary. Input hashes vary.
+    identity_keys = ("rom_sha256", "movie_sha256", "core_sha256", "native_sha256")
+    baseline = None
+    for row in results:
+        if row["disposition"] not in ("strict_candidate", "strict_divergence"):
+            continue
+        identity = tuple(row["evidence"][key] for key in identity_keys)
+        if baseline is None:
+            baseline = identity
+        elif identity != baseline:
+            row["disposition"] = "missing_evidence"
+            row["reason"] = "cross-case ROM/movie/reference/native identity mismatch"
+            row["release_credit"] = 0
     totals = {
         key: sum(row["disposition"] == key for row in results)
         for key in ("strict_candidate", "strict_divergence",

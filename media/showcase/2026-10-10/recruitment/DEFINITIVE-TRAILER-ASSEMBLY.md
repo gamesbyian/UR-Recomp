@@ -1,12 +1,12 @@
 # Evidence-gated definitive UR-Recomp recruitment assembly
 
-**Status:** ready-to-run assembly tool, **not an approved finished trailer**. This branch owns final media composition only; it does not modify the native emulator, renderer, guest gameplay, Modern frontend, HD art approval or source findings.
+**Status:** source-locked assembly and fully rendered media candidate; final visible-title cut and independent full-frame review pending. This branch owns final media composition only; it does not modify the native emulator, renderer, guest gameplay, Modern frontend, HD art approval or source findings.
 
 The full 58-second / 3480-frame horizontal 1920×1080 60-fps plan:
 
 | Time | Source | Claim |
 | --- | --- | --- |
-| 00:00–00:04 | Verified native original title, guest frames 330–569, 240 consecutive frames | Original stock title with blank startup excluded |
+| 00:00–00:04 | Verified native Original source ordinals 270–359 (title art) and 420–569 (checkerboard menu), two individually consecutive clips | Genuine title-to-menu editorial cut removes only the independently audited black transition |
 | 00:04–00:14 | Verified native Modern root + original menu handoff, 600 frames | Real Modern frontend |
 | 00:14–00:21 | Accepted independently reviewed native 2P moving reveal | Genuine 342-wide Original world behind animated side mattes |
 | 00:21–00:25 | Accepted same-capture Original-centre/full-world comparison | **Editorial crop; not two WRAM-matched executions** |
@@ -16,7 +16,7 @@ The full 58-second / 3480-frame horizontal 1920×1080 60-fps plan:
 | 00:44–00:54 | Verified real 600 consecutive native 2P race frames | Actual Original source-backed widescreen play |
 | 00:54–00:58 | Generated editorial final card | GitHub contribution invitation |
 
-The accompanying 20-second 1080×1920 short uses two seconds of visible original title, four of real Modern frontend, six of uninterrupted moving widescreen reveal, five of genuine 2P gameplay and three of an editorial CTA. Both riders remain visible because the full 16:9 gameplay frame is fitted within the vertical canvas rather than vertically cropping one viewport.
+The accompanying 20-second 1080×1920 short uses 90 genuine title frames followed by 30 genuine checkerboard-menu frames, four seconds of real Modern frontend, six of uninterrupted moving widescreen reveal, five of genuine 2P gameplay and three of an editorial CTA. Both riders remain visible because the full 16:9 gameplay frame is fitted within the vertical canvas rather than vertically cropping one viewport.
 
 ## Runtime command
 
@@ -50,3 +50,9 @@ The assembler performs exact SHA and FFprobe checks on all three native sources 
 The final media can be merged only after fresh output review and a media-only CI acceptance pass. No finished-beta, 4K continuous recording, complete 4× art coverage or Remastered widescreen gameplay claim is authorized. External public redistribution still requires asset-rights review.
 
 **Important:** Do not merge this PR as finished footage until all three agent media outputs and their review witnesses exist and a final source audit accepts the resulting 58s and 20s binaries. This branch may remain open as a build contract without blocking standalone widescreen reveal PR #1299.
+
+## Original native title visual audit and exact edit points
+
+[The 25-frame native title timing audit](final-approval/original-native-title-timing-audit.json) and [source-derived contact sheet](final-approval/original-native-title-timing-contact-sheet.png) independently verify that stock title art is visible across source ordinals 270–360, followed by an intentionally black transition at ordinals ~375–405. Real 1994 checkerboard menu art appears at source ordinal 420. The final horizontal film uses two true, unaltered source segments: title ordinals **270–359** (90 frames), then menu ordinals **420–569** (150 frames). The 20s mobile version uses title ordinals 270–359, then menu ordinals 420–449, making its first two seconds 120 native frames. Both are explicit editorial cuts within **the same independently accepted native execution**. The black transition is intentionally omitted, not restored, synthesized or interpolated. The final-source manifest records these exact ranges.
+
+The earlier full-length render contained a black opening and was retained as a superseded review candidate, not as release-ready footage. The opening QA gate inspects frame 90 of both new cuts and **rejects** a black source image. No extra heavy gameplay CI is triggered for media edits.

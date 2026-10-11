@@ -1,4 +1,4 @@
-"""No-credit crosswalk between separately authenticated Switcher NMI clocks."""
+"""Synthetic-only NMI A/S fixtures; never claim five-frame original execution."""
 from __future__ import annotations
 
 import copy
@@ -85,6 +85,7 @@ class SwitcherNmiBeamCrosswalkTests(unittest.TestCase):
         self.assertEqual(data["source_4004_accumulator_match_frames"], [5779, 5782])
         self.assertEqual(data["source_01de_stack_pointer_match_frames"], [5780])
         self.assertTrue(data["no_original_nmi_matches_both_saved_a_and_pre_pha_s"])
+        self.assertEqual(data["source_both_accumulator_and_stack_match_frames"], [])
         self.assertEqual(len(data["all_five_original_nmi_phase_candidates"]), 5)
         self.assertTrue(data["candidate_beam_reading_cannot_rank_interrupt_identity"])
         self.assertEqual(data["paired_report_bytes_sha256"], "a" * 64)
@@ -97,7 +98,7 @@ class SwitcherNmiBeamCrosswalkTests(unittest.TestCase):
         self.assertTrue(data["matching_scanline_alone_is_not_causal_parity"])
         self.assertTrue(data["clock_unit_origin_and_execution_phase_equivalence_not_proven"])
 
-    def test_accumulator_and_stack_agreements_are_different_source_nm_is(self):
+    def test_synthetic_accumulator_and_stack_agreements_differ(self):
         native = copy.deepcopy(NATIVE)
         native["native_original_nmi_writer_beam"]["framework_beam_hpos"] = 816
         data = cross.summarize(ORIGINAL, native)
@@ -110,6 +111,26 @@ class SwitcherNmiBeamCrosswalkTests(unittest.TestCase):
         self.assertTrue(earlier["same_saved_accumulator_word_as_native_4004"])
         self.assertFalse(earlier["same_pre_pha_stack_pointer_as_native_01de"])
         self.assertTrue(earlier["possible_same_interrupt_not_proven"])
+
+    def test_other_original_frame_values_are_measured_not_expected_fixtures(self):
+        # Only the independently pinned 5780 PHA is fixed. These neighboring
+        # example frames are not real five-frame runtime observations.
+        src = copy.deepcopy(ORIGINAL)
+        src["observed_original_nmi_pha_horizontal_clocks"][1].update({
+            "accumulator_before": "4099", "stack_pointer_before": "01DE",
+        })
+        src["observed_original_nmi_pha_horizontal_clocks"][4].update({
+            "accumulator_before": "4004", "stack_pointer_before": "01DE",
+        })
+        data = cross.summarize(src, NATIVE)
+        self.assertEqual(data["source_4004_accumulator_match_frames"], [5782])
+        self.assertEqual(data["source_01de_stack_pointer_match_frames"],
+                         [5779, 5780, 5782])
+        self.assertEqual(data["source_both_accumulator_and_stack_match_frames"],
+                         [5782])
+        self.assertFalse(data["no_original_nmi_matches_both_saved_a_and_pre_pha_s"])
+        self.assertTrue(data["candidate_beam_reading_cannot_rank_interrupt_identity"])
+        self.assertEqual(data["completed_usa_course_credit"], 0)
 
     def test_invalid_source_or_native_writer_never_crosswalks(self):
         for key, value in (

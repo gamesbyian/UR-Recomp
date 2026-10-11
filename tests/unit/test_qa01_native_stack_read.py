@@ -43,6 +43,7 @@ class NativeStackReadTests(unittest.TestCase):
         self.assertIn("--ur_qa01_read_suppressed;", x)
         self.assertIn("ur_qa01_stack_read_arm();", x)
         self.assertIn("QANATIVEOVERFLOW", x)
+        self.assertIn("bank == 0x00u", x)
         self.assertEqual(x.count("return cpu_latch_read8(cpu, cpu->ram[off]);"), 1)
         self.assertEqual(x.count("return cpu_latch_read16(cpu, (uint16)lo | ((uint16)hi << 8));"), 1)
         with self.assertRaisesRegex(ValueError, "already installed"):
@@ -117,7 +118,9 @@ class NativeStackReadTests(unittest.TestCase):
         self.assertIn('UR_QA_NATIVE_STACK_READ_ENABLE: "1"', wf)
         self.assertIn('if os.environ.get("UR_QA_NATIVE_STACK_READ_ENABLE")', host)
         self.assertIn('script.name == "complete.script"', host)
-        self.assertIn('str(output / "qa01-native-01dd-reads.log")', host)
+        self.assertIn('read_path = output / "qa01-native-01dd-reads.log"', host)
+        self.assertIn('env["UR_QA_NATIVE_STACK_READ_PATH"] = str(read_path)', host)
+        self.assertIn('env.pop("UR_QA_NATIVE_STACK_READ_PATH", None)', host)
 
 
 if __name__ == "__main__":

@@ -96,7 +96,8 @@ static void ur_qa01_read_01dd(CpuState *cpu, uint8 bank, uint16 addr,
                             """    --ur_qa01_read_suppressed;
     /* Observed exact native PHA writer arms the read journal, even if no
      * guest reader occurs. Avoid confusing a dead probe with zero reads. */
-    if (snes_frame_counter == 5781 && addr == 0x01DDu && width == 2 &&
+    if (snes_frame_counter == 5781 && bank == 0x00u &&
+        addr == 0x01DDu && width == 2 &&
         v == 0x4004u && g_cpu.A == 0x4004u && g_cpu.S == 0x01DDu &&
         g_last_recomp_func && strcmp(g_last_recomp_func, "I_NMI_M1X1") == 0)
         ur_qa01_stack_read_arm();

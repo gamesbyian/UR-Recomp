@@ -113,16 +113,16 @@ def summarize(source: dict, guest: dict) -> dict:
             "native_cpu_frame_identity_not_proven": True,
             "possible_same_interrupt_not_proven": True,
         })
-    # A 4004 accumulator match and the 01DE pre-PHA stack-pointer match
-    # currently favor different original NMIs. Preserve the complete
-    # competing observations instead of selecting the nearest H counter.
+    # Classify measured rows without pre-assigning values to original
+    # CPU frames. Other-frame A and S values in unit tests are SYNTHETIC;
+    # the combined five-NMI original/native runtime trace has not run yet.
     same_acc_frames = [c["original_cpu_frame"] for c in candidates
                        if c["same_saved_accumulator_word_as_native_4004"]]
     same_sp_frames = [c["original_cpu_frame"] for c in candidates
                       if c["same_pre_pha_stack_pointer_as_native_01de"]]
-    if (same_acc_frames != [5779, 5782]
-            or same_sp_frames != [5780]):
-        raise ValueError("real five-frame original NMI witness unexpectedly changed")
+    both_match_frames = [c["original_cpu_frame"] for c in candidates
+                         if c["same_saved_accumulator_word_as_native_4004"]
+                         and c["same_pre_pha_stack_pointer_as_native_01de"]]
     o_h, n_h = a["source_original_cpu_hcounter_before"], b["framework_beam_hpos"]
     o_v, n_v = a["ppu_vcounter_before"], b["framework_beam_vpos"]
     return {
@@ -140,7 +140,9 @@ def summarize(source: dict, guest: dict) -> dict:
         "all_five_original_nmi_phase_candidates": candidates,
         "source_4004_accumulator_match_frames": same_acc_frames,
         "source_01de_stack_pointer_match_frames": same_sp_frames,
-        "no_original_nmi_matches_both_saved_a_and_pre_pha_s": True,
+        "source_both_accumulator_and_stack_match_frames": both_match_frames,
+        "no_original_nmi_matches_both_saved_a_and_pre_pha_s":
+            not bool(both_match_frames),
         "candidate_beam_reading_cannot_rank_interrupt_identity": True,
         "native_saved_accumulator_word": "4004",
         "clock_unit_origin_and_execution_phase_equivalence_not_proven": True,

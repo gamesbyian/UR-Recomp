@@ -194,6 +194,7 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int) -> dict:
         "missing_rom_rejected_before_user_data": True,
         "wrong_rom_rejected_before_user_data": True,
         "package_local_and_relative_root_rejected": True,
+        "external_junction_to_package_rejected": True,
         "real_extracted_launcher_accepted": True,
         "exact_native_profile_refusal_code_and_guidance": True,
         "rejected_profile_save_unchanged": True,

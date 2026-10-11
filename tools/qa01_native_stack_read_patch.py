@@ -73,10 +73,10 @@ static void ur_qa01_read_01dd(CpuState *cpu, uint8 bank, uint16 addr,
     # The pinned WRAM *write* logger prints extensive read8/read16 snapshot
     # fields. Those diagnostic reads must not impersonate game consumers.
     source = source.replace(LOGGER_START,
-                            "    ++ur_qa01_read_suppressed;\\n".replace("\\\\n", "\\n")
+                            "    ++ur_qa01_read_suppressed;\n"
                             + LOGGER_START, 1)
     source = source.replace(LOGGER_END,
-                            "    --ur_qa01_read_suppressed;\\n".replace("\\\\n", "\\n")
+                            "    --ur_qa01_read_suppressed;\n"
                             + LOGGER_END, 1)
     source = source.replace(B8, """    if (off >= 0) {
         ur_qa01_read_01dd(cpu, bank, addr, cpu->ram[off], 1);

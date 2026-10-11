@@ -115,6 +115,19 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
                 fields(linked, ARTIFACT_KEYS)
             self.assertEqual(fields(candidate, CANDIDATE_KEYS)["smoke_run_id"], "12345")
 
+    def test_orphan_sidecar_and_extra_fixture_receipt_fail_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work, candidate, p, q, f, report = self.make(Path(tmp))
+            other = q.parent / "orphan.urmatch"
+            other.write_bytes(b"unclaimed match sidecar")
+            with self.assertRaisesRegex(ValueError, "exactly one"):
+                verify(work, candidate, "a" * 40, "b" * 64)
+            other.unlink()
+            unexpected = f.parent / "fixture-1.urfixture"
+            unexpected.write_bytes(b"unexpected credited fixture")
+            with self.assertRaisesRegex(ValueError, "exactly one"):
+                verify(work, candidate, "a" * 40, "b" * 64)
+
     def test_missing_or_duplicate_sidecar_fail(self):
         with tempfile.TemporaryDirectory() as tmp:
             work, candidate, p, q, f, report = self.make(Path(tmp))

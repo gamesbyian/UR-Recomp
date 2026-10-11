@@ -75,7 +75,8 @@ class PackagedTournamentWorkRootSafetyTests(unittest.TestCase):
 
     def test_real_run_sidecar_receipt_checked_across_fresh_process(self):
         text = ROUTE.read_text(encoding="utf-8")
-        self.assertIn("*.urrun.urmatch", text)
+        self.assertIn("-name '*.urmatch'", text)
+        self.assertIn("-name '*.urfixture'", text)
         self.assertIn('test "${matches[0]}" = "${runs[0]}.urmatch"', text)
         self.assertIn('run_hash="$(sha256sum "${runs[0]}"', text)
         self.assertIn('match_hash="$(sha256sum "${matches[0]}"', text)

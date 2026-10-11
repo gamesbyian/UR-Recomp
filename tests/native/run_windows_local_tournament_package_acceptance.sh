@@ -92,14 +92,14 @@ grep -q "UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT RESULT_NOTICE screen=F9 text=CHAMPION: MIKE" "$LOG"
 ! grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE UNEXPECTED_PAGE" "$LOG"
 ! grep -q "UR_LOCAL_TOURNAMENT FIXTURE_COMMIT_REJECTED" "$LOG"
-test "$(find "$USER_DATA/local-tournaments" -type f -name 'fixture-0.urfixture' | wc -l)" -eq 1
+test "$(find "$USER_DATA/local-tournaments" -type f -name '*.urfixture' | wc -l)" -eq 1
 
 # Inspect real files, not only a success log emitted before durable I/O.
 # Capture hashes before the fresh process: opening Standings/History must
 # neither rewrite a completed run nor produce a duplicate sidecar/receipt.
 mapfile -d '' -t runs < <(find "$WORK/multiplayer-runs" -maxdepth 1 -type f -name '*.urrun' -print0)
-mapfile -d '' -t matches < <(find "$WORK/multiplayer-runs" -maxdepth 1 -type f -name '*.urrun.urmatch' -print0)
-mapfile -d '' -t receipts < <(find "$USER_DATA/local-tournaments" -type f -name 'fixture-0.urfixture' -print0)
+mapfile -d '' -t matches < <(find "$WORK/multiplayer-runs" -maxdepth 1 -type f -name '*.urmatch' -print0)
+mapfile -d '' -t receipts < <(find "$USER_DATA/local-tournaments" -type f -name '*.urfixture' -print0)
 test "${#runs[@]}" -eq 1
 test "${#matches[@]}" -eq 1
 test "${#receipts[@]}" -eq 1
@@ -121,8 +121,8 @@ grep -q "UR_LOCAL_TOURNAMENT PANEL_OPENED page=overview" "$REOPEN_LOG"
 grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE DONE mode=reopen step=2 armed=0" "$REOPEN_LOG"
 ! grep -q "UR_LOCAL_TOURNAMENT SESSION_RESTORE_REJECTED" "$REOPEN_LOG"
 test "$(find "$WORK/multiplayer-runs" -maxdepth 1 -type f -name '*.urrun' | wc -l)" -eq 1
-test "$(find "$WORK/multiplayer-runs" -maxdepth 1 -type f -name '*.urrun.urmatch' | wc -l)" -eq 1
-test "$(find "$USER_DATA/local-tournaments" -type f -name 'fixture-0.urfixture' | wc -l)" -eq 1
+test "$(find "$WORK/multiplayer-runs" -maxdepth 1 -type f -name '*.urmatch' | wc -l)" -eq 1
+test "$(find "$USER_DATA/local-tournaments" -type f -name '*.urfixture' | wc -l)" -eq 1
 test "$(sha256sum "${runs[0]}" | cut -d ' ' -f 1)" = "$run_hash"
 test "$(sha256sum "${matches[0]}" | cut -d ' ' -f 1)" = "$match_hash"
 test "$(sha256sum "${receipts[0]}" | cut -d ' ' -f 1)" = "$receipt_hash"

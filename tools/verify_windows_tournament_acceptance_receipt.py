@@ -105,8 +105,8 @@ def verify(work: Path, candidate_path: Path,
         if folder.is_symlink() or not folder.is_dir():
             raise ValueError("tournament evidence root is missing or linked")
     runs = list(runs_root.glob("*.urrun"))
-    matches = list(runs_root.glob("*.urrun.urmatch"))
-    fixture_receipts = list(tournament_root.glob("*/fixtures/fixture-0.urfixture"))
+    matches = list(runs_root.glob("*.urmatch"))
+    fixture_receipts = list(tournament_root.glob("*/fixtures/*.urfixture"))
     if (len(runs), len(matches), len(fixture_receipts)) != (1, 1, 1):
         raise ValueError("expected exactly one run, one match and one fixture receipt")
     run = runs_root / receipt["run_file"]

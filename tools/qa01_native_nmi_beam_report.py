@@ -68,8 +68,8 @@ def summarize(log: str) -> dict:
                 "framework_beam_hpos": h,
                 "framework_beam_master_timestamp": bm,
                 "native_cpu_basic_block_start_master_cycles": cs,
-                "native_cpu_basic_block_end_master_cycles": cm,
-                "native_cpu_basic_block_bracket_width_master_cycles": cm - cs,
+                "native_cpu_charged_counter_at_write": cm,
+                "native_cpu_charged_delta_from_block_entry": cm - cs,
                 "native_cpu_master_cycles": cm,
             })
         elif "QAbeam_" in scope:
@@ -83,10 +83,13 @@ def summarize(log: str) -> dict:
         "framework_beam_vs_original_cpu_phase_unaligned": True,
         # Pinned I_NMI_M1X1 generated L_8588_M1X1 charges
         # cpu->master_cycles for the entire basic block BEFORE the PHB/PHD/
-        # PHX/PHY/PHA sequence, so the logged cumulative counter is not an
-        # individual PHA bus-cycle timestamp. This is source-verified.
-        "native_cpu_master_counter_is_precharged_basic_block_not_pha_cycle": True,
+        # PHX/PHY/PHA sequence. The framework also charges extra bus clocks
+        # in cpu_write8/16_paced BEFORE each corresponding WRAM write hook.
+        # Thus the logged counter is cumulative post-write-pacing, not a PHA
+        # instruction timestamp or even the end of the basic block.
+        "native_cpu_master_counter_precharged_and_store_paced_not_pha_cycle": True,
         "native_pha_inside_basic_block_but_exact_instruction_cycle_unknown": True,
+        "cpu_write16_paced_charges_before_writer_log": True,
         "modeled_beam_hpos_not_proven_instruction_aligned": True,
         "native_frame_counter_vs_original_icpu_frame_unaligned": True,
         "writer_attempt_not_guest_scoring_consumer": True,

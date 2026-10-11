@@ -21,6 +21,39 @@ HORIZON = 22000
 MIN_STABLE_ACTIVE = 8
 
 
+def decode_checked_changed_byte_trace(lines: list[str]) -> dict[int, dict]:
+    """Validate source log sequence before calling the established decoder.
+
+    This secondary observer does not qualify the input movie or source ROM.
+    It merely refuses impossible/nonmonotonic JSONL events before building
+    its own optional changed-byte follow-on classification.
+    """
+    previous_frame = 0
+    for line in lines:
+        try:
+            event = json.loads(line)
+        except (TypeError, json.JSONDecodeError) as exc:
+            raise ValueError("malformed original source changed-byte JSON row") from exc
+        if not isinstance(event, dict):
+            raise ValueError("original changed-byte trace row is not an event")
+        frame = event.get("f")
+        address = event.get("adr")
+        value = event.get("val")
+        if (type(frame) is not int or not previous_frame <= frame <= HORIZON
+                or type(address) is not str or not 1 <= len(address) <= 6
+                or type(value) is not str or not 1 <= len(value) <= 2):
+            raise ValueError("original source changed-byte frame/address/value invalid")
+        try:
+            a = int(address, 16)
+            v = int(value, 16)
+        except ValueError as exc:
+            raise ValueError("original changed-byte record has invalid hexadecimal fields") from exc
+        if not 0 <= a <= 0xFFFFFF or not 0 <= v <= 255:
+            raise ValueError("original changed-byte record outside CPU byte/address range")
+        previous_frame = frame
+    return trace.frame_states(lines)
+
+
 def summarize(states: dict[int, dict]) -> dict:
     if not isinstance(states, dict) or RESULT not in states:
         raise ValueError("no original movie source result frame 17030")
@@ -121,7 +154,8 @@ def main() -> int:
     args = ap.parse_args()
     pair = json.loads(args.paired_report.read_text(encoding="utf-8"))
     authenticated = paired_auth.verify_original_native_pair(pair)
-    states = trace.frame_states(args.trace_jsonl.read_text(encoding="utf-8").splitlines())
+    states = decode_checked_changed_byte_trace(
+        args.trace_jsonl.read_text(encoding="utf-8").splitlines())
     result = summarize(states)
     result["independent_2014_source_and_fresh_guest_pair_provenance"] = authenticated
     args.out.parent.mkdir(parents=True, exist_ok=True)

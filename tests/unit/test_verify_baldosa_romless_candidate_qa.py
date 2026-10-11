@@ -65,6 +65,37 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
         self.assertFalse(report["metrics"]["physical_controller_coverage"])
         self.assertFalse(report["metrics"]["fresh_process_native_1p_2p_results_records_verified"])
 
+    def test_original_actions_zip_wrapper_and_checksum_are_independently_checked(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            inner, source, digest = self.make(root)
+            wrapper = root / "downloaded-gh-actions.zip"
+            with zipfile.ZipFile(wrapper, "w") as artifact:
+                artifact.writestr(qa.ACTIONS_INNER, inner.read_bytes())
+                artifact.writestr(
+                    qa.ACTIONS_CHECKSUM,
+                    f"{digest} *{qa.ACTIONS_INNER}\n",
+                )
+            report = qa.audit_actions_wrapper(wrapper, source, digest)
+            self.assertEqual(report["outcome"], "inconclusive")
+            self.assertTrue(report["metrics"]["original_actions_sidecar_verified"])
+            self.assertEqual(report["inputs"]["actions_wrapper_sha256"],
+                             qa.file_digest(wrapper))
+            self.assertEqual(report["subject"]["candidate_zip_sha256"], digest)
+            with self.assertRaisesRegex(ValueError, "nominated digest|sidecar"):
+                qa.audit_actions_wrapper(wrapper, source, "0" * 64)
+
+            with zipfile.ZipFile(wrapper, "w") as artifact:
+                artifact.writestr(qa.ACTIONS_INNER, inner.read_bytes())
+                artifact.writestr(qa.ACTIONS_CHECKSUM, f"{'f'*64} *{qa.ACTIONS_INNER}\n")
+            with self.assertRaisesRegex(ValueError, "sidecar"):
+                qa.audit_actions_wrapper(wrapper, source, digest)
+
+            with zipfile.ZipFile(wrapper, "a") as artifact:
+                artifact.writestr("unmanifested-extra.txt", "injected")
+            with self.assertRaisesRegex(ValueError, "exactly one inner ZIP"):
+                qa.audit_actions_wrapper(wrapper, source, digest)
+
     def test_canonical_unexecuted_candidate_is_only_inconclusive(self):
         with tempfile.TemporaryDirectory() as tmp:
             archive, source, digest = self.make(Path(tmp))

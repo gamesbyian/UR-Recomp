@@ -13,6 +13,7 @@ import hashlib
 import json
 import re
 import struct
+import tempfile
 import zipfile
 from pathlib import Path
 
@@ -31,6 +32,8 @@ MAX_MANIFEST_BYTES = 16 * 1024
 MAX_LAUNCHER_BYTES = 32 * 1024
 MAX_README_BYTES = 64 * 1024
 BLOCK = 1 << 20
+ACTIONS_INNER = "UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip"
+ACTIONS_CHECKSUM = ACTIONS_INNER + ".sha256"
 
 
 def file_digest(path: Path) -> str:
@@ -221,15 +224,71 @@ def audit(archive_path: Path, source_sha: str, zip_sha256: str) -> dict:
     )
 
 
+def audit_actions_wrapper(wrapper: Path, source_sha: str, inner_sha: str) -> dict:
+    """Check the unmodified two-member GitHub artifact as downloaded.
+
+    The Actions artifact has its own, different SHA-256. The nomination must
+    name the *inner* ZIP used by the actual Windows package, not this wrapper.
+    A bounded temporary ROM-free ZIP is checked by the same strict consumer.
+    """
+    if (not isinstance(inner_sha, str) or not SHA256.fullmatch(inner_sha)
+            or not isinstance(source_sha, str) or not SHA40.fullmatch(source_sha)):
+        raise ValueError("Actions artifact needs externally nominated exact source and inner ZIP pins")
+    if wrapper.is_symlink() or not wrapper.is_file():
+        raise ValueError("Actions artifact wrapper missing or symlink-backed")
+    if wrapper.stat().st_size > MAX_ZIP_BYTES + 2 * 1024 * 1024:
+        raise ValueError("Actions artifact wrapper exceeds size limit")
+    wrapper_digest = file_digest(wrapper)
+    try:
+        with zipfile.ZipFile(wrapper) as archive:
+            infos = archive.infolist()
+            if [entry.filename for entry in infos] != [ACTIONS_INNER, ACTIONS_CHECKSUM]:
+                raise ValueError("Actions artifact needs exactly one inner ZIP and checksum sidecar")
+            if (infos[0].is_dir() or infos[1].is_dir()
+                    or infos[0].file_size > MAX_ZIP_BYTES
+                    or infos[1].file_size > 256):
+                raise ValueError("Actions artifact contains oversized or directory members")
+            sidecar = archive.read(ACTIONS_CHECKSUM)
+            if sidecar != (inner_sha + " *" + ACTIONS_INNER + "\n").encode("ascii"):
+                raise ValueError("Actions artifact sidecar does not match nominated inner ZIP SHA-256")
+            with tempfile.TemporaryDirectory(prefix="ur-baldosa-qa-") as temporary:
+                path = Path(temporary) / ACTIONS_INNER
+                size = 0
+                digest = hashlib.sha256()
+                with archive.open(infos[0]) as reader, path.open("xb") as output:
+                    while chunk := reader.read(BLOCK):
+                        size += len(chunk)
+                        if size > MAX_ZIP_BYTES:
+                            raise ValueError("Actions inner ZIP exceeded size budget")
+                        digest.update(chunk)
+                        output.write(chunk)
+                if digest.hexdigest() != inner_sha:
+                    raise ValueError("Actions artifact inner ZIP bytes differ from nominated digest")
+                report = audit(path, source_sha, inner_sha)
+    except zipfile.BadZipFile as exc:
+        raise ValueError("Actions artifact ZIP corrupt") from exc
+    report["inputs"]["actions_wrapper_basename"] = wrapper.name
+    report["inputs"]["actions_wrapper_sha256"] = wrapper_digest
+    report["metrics"]["original_actions_sidecar_verified"] = True
+    return report
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--zip", required=True, type=Path)
+    input_group = parser.add_mutually_exclusive_group(required=True)
+    input_group.add_argument("--zip", type=Path, help="inner ROM-free candidate ZIP")
+    input_group.add_argument("--actions-artifact", type=Path, help="two-member Actions ZIP as downloaded")
     parser.add_argument("--expected-source", required=True)
     parser.add_argument("--expected-zip-sha256", required=True)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     try:
-        result = audit(args.zip, args.expected_source, args.expected_zip_sha256)
+        if args.actions_artifact is not None:
+            result = audit_actions_wrapper(
+                args.actions_artifact, args.expected_source, args.expected_zip_sha256
+            )
+        else:
+            result = audit(args.zip, args.expected_source, args.expected_zip_sha256)
     except (OSError, ValueError) as exc:
         parser.error(str(exc))
     rendered = json.dumps(result, indent=2, sort_keys=True) + "\n"

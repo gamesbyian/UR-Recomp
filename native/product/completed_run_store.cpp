@@ -159,20 +159,35 @@ inspect_completed_run_record_artifacts(const std::string& directory) {
     std::vector<fs::path> paths;
     for (fs::directory_iterator it(directory, ec), end;
          !ec && it != end; it.increment(ec)) {
-        if (!it->is_regular_file()) continue;
-        if (it->path().extension() == ".urrun") paths.push_back(it->path());
+        if (it->path().extension() != ".urrun") continue;
+        // directory_entry::is_regular_file() follows symlinks, silently
+        // importing another player's perfectly valid run into this profile
+        // archive. Keep live/dangling links as UNAVAILABLE health entries.
+        std::error_code status_error;
+        const auto status = it->symlink_status(status_error);
+        if (!status_error && !fs::is_regular_file(status) &&
+            !fs::is_symlink(status)) continue;
+        paths.push_back(it->path());
     }
     if (ec) return {};
 
     std::sort(paths.begin(), paths.end());
     out.reserve(paths.size());
     for (const auto& path : paths) {
-        auto loaded = load_completed_run_record_file(path.string());
         InspectedRunRecordArtifact artifact;
         artifact.path = path.string();
-        artifact.status = loaded.status;
-        artifact.detail = std::move(loaded.detail);
-        artifact.record = std::move(loaded.record);
+        std::error_code status_error;
+        const auto status = fs::symlink_status(path, status_error);
+        if (status_error || !fs::is_regular_file(status) ||
+            fs::is_symlink(status)) {
+            artifact.status = RunRecordLoadStatus::IoError;
+            artifact.detail = "run artifact is not a direct regular file";
+        } else {
+            auto loaded = load_completed_run_record_file(path.string());
+            artifact.status = loaded.status;
+            artifact.detail = std::move(loaded.detail);
+            artifact.record = std::move(loaded.record);
+        }
         out.push_back(std::move(artifact));
     }
     return out;

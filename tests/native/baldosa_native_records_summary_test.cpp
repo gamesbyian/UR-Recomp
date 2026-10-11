@@ -57,6 +57,29 @@ int main() {
     assert(result.recent_course == "course:02");
     assert(result.recent_ticks60 == 930);
 
+    // A byte-identical direct external run cannot be smuggled into 1P
+    // archive history, even through a live link; a dangling link is also
+    // reported as unavailable rather than treated as a missing record.
+    const auto foreign_run = root / "foreign-run.urrun";
+    fs::copy_file(runs / "0002.urrun", foreign_run);
+    fs::create_symlink(foreign_run, runs / "0004-alias.urrun");
+    fs::create_symlink(root / "missing-run.urrun",
+                       runs / "0005-dangling.urrun");
+    const auto aliases =
+        inspect_completed_run_record_artifacts(runs.string());
+    assert(aliases.size() == 5);
+    assert(aliases[3].status == RunRecordLoadStatus::IoError);
+    assert(aliases[4].status == RunRecordLoadStatus::IoError);
+    assert(load_valid_run_records(runs.string()).size() == 2);
+    const auto protected_result =
+        inspect_baldosa_native_records_archive(runs.string());
+    assert(protected_result.directory_available);
+    assert(protected_result.total_artifacts == 5);
+    assert(protected_result.validated_archives == 2);
+    assert(protected_result.unavailable_artifacts == 3);
+    assert(protected_result.recent_course == "course:02");
+    assert(protected_result.recent_ticks60 == 930);
+
     // The native frontend never grants cross-backend replay authority or
     // rewrites any of these original existing-host artifacts.
     assert(fs::file_size(runs / "0001.urrun") != 0);

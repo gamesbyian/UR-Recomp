@@ -141,3 +141,7 @@ valid but exceptionally large stored duration. It preserves ordinary
 MM:SS.hh output and does not modify the source record, awarding rules,
 course chronology, guest clock, or original title behavior. A source
 regression tests normal values, roundoff and the full UINT64 limit.
+
+## Direct-file authority for 1P historical Records
+
+The shared completed-run inspector now rejects live or dangling symbolic links in a selected profile's .urrun archive, mirroring the earlier 2P run+sidecar protection. Such aliases remain visible as unavailable artifacts for health reporting, not as valid history, best times or replay candidates. The existing native Records fixture proves that a byte-identical off-root run and a broken link cannot contribute to the selected profile's validated count or change the latest canonical course/time. The existing immutable writer/codec, persisted bytes, result oracle and original guest behavior are unchanged. This is a bounded entry-type check, not a promise of immunity against concurrent privileged filesystem replacement.

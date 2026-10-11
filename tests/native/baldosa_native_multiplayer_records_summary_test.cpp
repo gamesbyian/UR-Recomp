@@ -85,6 +85,12 @@ int main() {
     assert(view.unavailable_pairs == 3);
     assert(view.selected_profile_matches == 1);
     assert(view.wins == 1 && view.losses == 0 && view.draws == 0);
+    assert(view.latest_match_line == "LAST 01 WIN 00:28.76");
+    const auto beta =
+        inspect_baldosa_native_two_player_records_archive(
+            directory.string(), "BeTa");
+    assert(beta.selected_profile_matches == 1);
+    assert(beta.latest_match_line == "LAST 01 LOSS DNF");
 
     const auto uninvolved =
         inspect_baldosa_native_two_player_records_archive(
@@ -92,6 +98,32 @@ int main() {
     assert(uninvolved.validated_pairs == 1);
     assert(uninvolved.selected_profile_matches == 0);
     assert(uninvolved.wins == 0 && uninvolved.losses == 0);
+    assert(uninvolved.latest_match_line.empty());
+
+    // The newest run may belong to OTHER profiles; it must not replace the
+    // selected profile's last valid result. An unrelated corrupt sidecar also
+    // cannot change the displayed source outcome or course.
+    const auto later = directory / "005-other.urrun";
+    assert(save_completed_run_record_file(later.string(), run));
+    OrdinaryTwoPlayerRaceResult outside = source;
+    outside.player1_rider = 2;
+    outside.player2_rider = 3;
+    const auto outside_context = bind_local_multiplayer_match_context(
+        outside,
+        HostProfileCatalogEntry{"gamma", HostRacerIdentity{"MARTIN", 2}},
+        HostProfileCatalogEntry{"delta", HostRacerIdentity{"MELISSA", 3}},
+        UrUniracersCourseIdentity{1, 1});
+    assert(outside_context.bound());
+    const auto outside_pair =
+        make_multiplayer_match_record(run, *outside_context.context);
+    assert(outside_pair);
+    assert(save_multiplayer_match_record_for_run(
+        later.string(), run, *outside_pair));
+    const auto still_selected =
+        inspect_baldosa_native_two_player_records_archive(
+            directory.string(), "alpha");
+    assert(still_selected.latest_match_line == "LAST 01 WIN 00:28.76");
+    assert(still_selected.selected_profile_matches == 1);
 
     // Never enumerate a substituted foreign archive directory, including
     // broken symlinks that exists() would wrongly classify as missing.

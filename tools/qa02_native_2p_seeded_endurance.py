@@ -166,8 +166,8 @@ def execute(exe: Path, rom: Path, control: Path, script: Path,
     # Stock native emulator frame pacing need not idle an endurance worker.
     # Direct local A/B smoke proved identical 128-KiB WRAM under this setting.
     config.write_text(
-        "[General]\\nDisableFrameDelay = 1\\nSkipLauncher = 1\\nAutosave = 0\\n"
-        "[Sound]\\nEnableAudio = 0\\n", encoding="ascii")
+        "[General]\nDisableFrameDelay = 1\nSkipLauncher = 1\nAutosave = 0\n"
+        "[Sound]\nEnableAudio = 0\n", encoding="ascii")
     env = dict(os.environ)
     env.update({
         "SDL_AUDIODRIVER": "dummy",

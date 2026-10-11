@@ -269,6 +269,73 @@ class CompleteEventProducerTests(unittest.TestCase):
         with self.assertRaisesRegex(target.CompleteEventError, "only"):
             target.stock_crawler_script(1)
 
+    def test_zoo_fixed_host_phase_is_read_only_and_two_clock_axes(self):
+        script = target.zoo_terminal_script(5163)
+        self.assertEqual(script.count("dump zoo-phase-"), 18)
+        self.assertIn("dump zoo-phase-05156", script)
+        self.assertIn("dump zoo-phase-05173", script)
+        self.assertNotIn("poke ", script)
+        self.assertNotIn("until 009F == BC", script)
+        self.assertTrue(script.endswith("quit\n"))
+        with self.assertRaisesRegex(target.CompleteEventError, "proven source"):
+            target.zoo_terminal_script(5162)
+        with tempfile.TemporaryDirectory() as td:
+            phase = Path(td)
+            ref, nat = phase / "ref", phase / "native"
+            ref.mkdir()
+            nat.mkdir()
+            logs = []
+            for side, directory, entry, first_result in (
+                    ("reference", ref, 1017, 5163),
+                    ("native", nat, 1019, 5162)):
+                lines = [f"script f={entry} dump race-entered ok"]
+                for frame in target.ZOO_TERMINAL_FRAMES:
+                    tag = f"zoo-phase-{frame:05d}"
+                    # The actual original source restores course 1 after
+                    # +5157; both guests may legitimately display track 0
+                    # during the preceding handoff.
+                    w = bytearray(0x20000)
+                    w[0x00CE] = 0 if frame <= 5157 else 1
+                    w[0x009F] = 0xBC if frame >= first_result else 0x16
+                    w[0x0313] = 0x3D if frame >= first_result else 1
+                    w[0x0EF1:0x0EF3] = (0).to_bytes(2, "little")
+                    (directory / f"{tag}.wram.bin").write_bytes(w)
+                    lines.append(f"script f={entry+frame} dump {tag} ok")
+                logs.append("\n".join(lines) + "\n")
+            report = target.summarize_zoo_terminal_phase(
+                phase, *logs, 1017, 1019, 5163, 5162)
+            self.assertEqual(report["fixed_vs_until_result_frame_delta"],
+                             {"reference": 0, "native": 0})
+            self.assertEqual(report["samples_per_guest"], 18)
+            self.assertEqual(report["release_complete_event_credit"], 0)
+            self.assertFalse(report["original_controller_masks_modified"])
+            self.assertEqual(len(report["relative_frame_comparisons"]), 18)
+            # A same-relative +5162 pair differs, but at the actual same
+            # host 6180 the source has already reached result and the
+            # native is still pre-result. These comparisons must not be
+            # conflated or used as parity normalization.
+            relative = next(r for r in report["relative_frame_comparisons"]
+                            if r["relative_frame"] == 5162)
+            self.assertIn("menu", relative["different_named_fields"])
+            host = next(r for r in report["same_host_frame_comparisons"]
+                        if r["absolute_host_frame"] == 6180)
+            self.assertEqual(host["reference_relative_frame"], 5163)
+            self.assertEqual(host["native_relative_frame"], 5161)
+            self.assertIn("menu", host["different_named_fields"])
+            self.assertFalse(host["wram_sha256_equal"])
+            invalid = ref / "zoo-phase-05160.wram.bin"
+            invalid.write_bytes(b"short")
+            with self.assertRaisesRegex(target.CompleteEventError, "invalid Zoo"):
+                target.summarize_zoo_terminal_phase(
+                    phase, *logs, 1017, 1019, 5163, 5162)
+            invalid.write_bytes(bytes(0x20000))
+            bad_log = logs[0].replace(
+                "script f=6177 dump zoo-phase-05160",
+                "script f=6178 dump zoo-phase-05160")
+            with self.assertRaisesRegex(target.CompleteEventError, "host relation"):
+                target.summarize_zoo_terminal_phase(
+                    phase, bad_log, logs[1], 1017, 1019, 5163, 5162)
+
     def test_switcher_terminal_phase_samples_are_source_anchored_and_bounded(self):
         source_duration = 4703  # actually observed 2014 original Switcher
         frames = target.sample_frames("switcher", source_duration)

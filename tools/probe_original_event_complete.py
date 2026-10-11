@@ -591,6 +591,155 @@ def observe_bowl_tally_phase(reference_dir: Path, native_dir: Path,
     }
 
 
+
+# The original 2014 Zoo source result is at +5163, after a short track-zero
+# prelude that restores track 1 at +5158. Deliberately cross the boundary.
+ZOO_TERMINAL_DURATION = 5163
+ZOO_TERMINAL_FRAMES = tuple(range(5156, 5174))
+ZOO_TERMINAL_FIELDS = ("menu", "track", "in_race", "p1_laps", "p2_laps",
+                       "p1_checkpoint", "p1_finish_gate", "p1_contact",
+                       "p2_contact", "clock_raw")
+
+
+def zoo_terminal_script(source_duration: int) -> str:
+    """Independent fixed-frame captures, with no result polling or guest mutations."""
+    if source_duration != ZOO_TERMINAL_DURATION:
+        raise CompleteEventError("Zoo phase requires proven source +5163 result")
+    lines = stock_crawler_script(2).rstrip().splitlines()
+    last = 0
+    for frame in ZOO_TERMINAL_FRAMES:
+        lines += [f"wait {frame - last}", f"dump zoo-phase-{frame:05d}"]
+        last = frame
+    return "\n".join(lines + ["quit", ""])
+
+
+def zoo_terminal_state(path: Path) -> dict:
+    if not path.is_file():
+        raise CompleteEventError(f"missing Zoo fixed-frame guest WRAM {path}")
+    w = path.read_bytes()
+    if len(w) != 0x20000:
+        raise CompleteEventError("invalid Zoo fixed-frame guest WRAM size")
+    if w[0x00CE] not in (0, 1):
+        raise CompleteEventError("Zoo fixed-window guest entered unrelated course")
+    u = lambda a: int.from_bytes(w[a:a + 2], "little")
+    return {
+        "menu": w[0x009F], "track": w[0x00CE], "in_race": w[0x0313],
+        "p1_laps": u(0x0EF1), "p2_laps": u(0x0EF3),
+        "p1_checkpoint": u(0x1199), "p1_finish_gate": u(0x119D),
+        "p1_contact": u(0x0E95), "p2_contact": u(0x0E97),
+        "clock_raw": [w[a] for a in (0x0E0F, 0x0E13, 0x0E17,
+                                     0x0E1B, 0x0E1F)],
+        "wram_sha256": hashlib.sha256(w).hexdigest(),
+    }
+
+
+def summarize_zoo_terminal_phase(phase: Path, reference_log: str,
+                                 native_log: str, reference_entry: int,
+                                 native_entry: int, ref_onset: int,
+                                 nat_onset: int) -> dict:
+    """Compare real event frames on separate guest-relative and host axes."""
+    entries = {"reference": reference_entry, "native": native_entry}
+    logs = {"reference": reference_log, "native": native_log}
+    directories = {"reference": "ref", "native": "native"}
+    rows = {}
+    for side in entries:
+        if engine.race_entry_frame(logs[side]) != entries[side]:
+            raise CompleteEventError("Zoo fixed-window entry changed on replay")
+        frames = {}
+        for frame in ZOO_TERMINAL_FRAMES:
+            tag = f"zoo-phase-{frame:05d}"
+            host = observed_dump_frame(logs[side], tag)
+            if host != entries[side] + frame:
+                raise CompleteEventError("Zoo fixed-window sample host relation changed")
+            guest = zoo_terminal_state(phase / directories[side] /
+                                       f"{tag}.wram.bin")
+            frames[frame] = {"relative_frame": frame, "host_frame": host,
+                             **guest}
+        rows[side] = frames
+
+    def first_result(side: str) -> dict:
+        for frame in ZOO_TERMINAL_FRAMES[:-3]:
+            if all(rows[side][t]["menu"] == 0xBC and
+                   rows[side][t]["in_race"] != 1
+                   for t in range(frame, frame + 4)):
+                return {"relative_frame": frame,
+                        "host_frame": rows[side][frame]["host_frame"]}
+        raise CompleteEventError("Zoo fixed window missing four-frame stable result")
+
+    first = {side: first_result(side) for side in entries}
+    def compare(ref: dict, nat: dict) -> dict:
+        return {"different_named_fields": [
+                    field for field in ZOO_TERMINAL_FIELDS
+                    if ref[field] != nat[field]],
+                "wram_sha256_equal": ref["wram_sha256"] == nat["wram_sha256"],
+                "reference": {k: ref[k] for k in ("menu", "track", "in_race")},
+                "native": {k: nat[k] for k in ("menu", "track", "in_race")}}
+
+    relative = [{
+        "relative_frame": frame,
+        "reference_host_frame": rows["reference"][frame]["host_frame"],
+        "native_host_frame": rows["native"][frame]["host_frame"],
+        **compare(rows["reference"][frame], rows["native"][frame])
+    } for frame in ZOO_TERMINAL_FRAMES]
+    ref_host = {v["host_frame"]: v for v in rows["reference"].values()}
+    nat_host = {v["host_frame"]: v for v in rows["native"].values()}
+    hosts = sorted(set(ref_host) & set(nat_host))
+    if not hosts:
+        raise CompleteEventError("Zoo fixed window has no common actual host frames")
+    same_host = [{
+        "absolute_host_frame": host,
+        "reference_relative_frame": ref_host[host]["relative_frame"],
+        "native_relative_frame": nat_host[host]["relative_frame"],
+        **compare(ref_host[host], nat_host[host])
+    } for host in hosts]
+    return {
+        "schema": "UR-QA01-ZOO-TERMINAL-HOST-PHASE/1",
+        "original_source_duration": ZOO_TERMINAL_DURATION,
+        "reference_entry_host_frame": reference_entry,
+        "native_entry_host_frame": native_entry,
+        "fixed_window_first_stable_circuit_result": first,
+        "primary_until_result_relative_frames": {
+            "reference": ref_onset, "native": nat_onset},
+        "fixed_vs_until_result_frame_delta": {
+            "reference": first["reference"]["relative_frame"] - ref_onset,
+            "native": first["native"]["relative_frame"] - nat_onset},
+        "relative_frame_comparisons": relative,
+        "same_host_frame_comparisons": same_host,
+        "samples_per_guest": len(ZOO_TERMINAL_FRAMES),
+        "full_guest_wram_bytes_per_sample": 0x20000,
+        "raw_guest_memory_retained_in_report": False,
+        "original_controller_masks_modified": False,
+        "release_complete_event_credit": 0,
+        "limitation": ("Separate fixed-frame observation cannot normalize away "
+                       "the strict guest-relative terminal mismatch, prove "
+                       "CPU/NMI phase, or certify progression.")
+    }
+
+
+def observe_zoo_terminal_phase(work: Path, args, stream: int, source_duration: int,
+                               events: list[tuple[int, int, int]],
+                               ref_entry: int, nat_entry: int,
+                               terminal_frames: dict) -> dict:
+    if (args.case != "zoom-zoo" or stream != 2 or
+            args.native_backend != "pinned-baldosa"):
+        raise CompleteEventError("Zoo phase probe requires source-qualified pinned Circuit")
+    phase = work / "zoo-terminal-phase"
+    phase.mkdir()
+    script = phase / "fixed-window.script"
+    script.write_text(zoo_terminal_script(source_duration))
+    rl = engine.run_reference(phase, args, script, events)
+    (phase / "reference.log").write_text(rl)
+    nl = replay_native(phase, args, script, events, nat_entry - ref_entry)
+    (phase / "native.log").write_text(nl)
+    result = summarize_zoo_terminal_phase(
+        phase, rl, nl, ref_entry, nat_entry,
+        terminal_frames["reference_relative"],
+        terminal_frames["native_relative"])
+    result["fixed_window_script_sha256"] = sha(script)
+    return result
+
+
+
 def load_state(path: Path, decoded: bytes, track: int, active: bool) -> dict:
     if not path.is_file():
         raise CompleteEventError(f"missing guest frame {path}")
@@ -994,6 +1143,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="read-only original/native same-host 5782 WRAM/VRAM/CGRAM difference offsets; requires penultimate witness")
     ap.add_argument("--bowl-tally-phase", action="store_true",
                     help="retain 8 exact-host-frame WRAM/VRAM/CGRAM captures after real 0x2F Bowl tally")
+    ap.add_argument("--zoo-terminal-phase", action="store_true",
+                    help="opt-in Zoo +5156..+5173 fixed-frame/host phase comparison; no admission")
     ap.add_argument("--observe-one-frame-stunt-lead", action="store_true",
                     help="report a verified narrow Stunt phase gap as diagnostic CI success; never admit a course")
     ap.add_argument("--snesref", type=Path, required=True)
@@ -1062,6 +1213,8 @@ def main(argv: list[str] | None = None) -> int:
     script = replay / "complete.script"
     if args.bowl_tally_phase and args.case != "bowl":
         raise CompleteEventError("Bowl tally phase tracing only applies to verified Bowl source")
+    if args.zoo_terminal_phase and args.case != "zoom-zoo":
+        raise CompleteEventError("Zoo terminal phase tracing only applies to verified Zoo source")
     script.write_text(replay_script(stream, menu, frames, kind == "stunt",
                                    tally_phase=args.bowl_tally_phase))
     reference_script = script
@@ -1117,6 +1270,10 @@ def main(argv: list[str] | None = None) -> int:
     phase = (observe_bowl_tally_phase(
         replay / "ref", replay / "native", rl, nl)
         if args.bowl_tally_phase else None)
+    zoo_phase = (observe_zoo_terminal_phase(
+        work, args, stream, original_event["source_active_frames_to_result"],
+        events, rf, nf, terminal_frames)
+        if args.zoo_terminal_phase else None)
     switcher_same_host = (observe_switcher_same_host_penultimate(
         replay / "ref", replay / "native", rl, nl,
         original_event["source_active_frames_to_result"], rf, nf, decoded)
@@ -1136,6 +1293,7 @@ def main(argv: list[str] | None = None) -> int:
         "reference_entry": rf, "native_entry": nf, "native_frame_shift": nf-rf, "native_backend": args.native_backend,
         "relative_sample_frames": frames, "comparison": comparison,
         "tally_anchored_guest_phase": phase,
+        "zoo_terminal_host_phase": zoo_phase,
         "switcher_same_host_penultimate": switcher_same_host,
         "switcher_same_host_full_memory_offsets": switcher_same_host_memory,
         "reference_script_sha256": sha(reference_script),

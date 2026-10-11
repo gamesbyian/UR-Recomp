@@ -112,6 +112,52 @@ The first real dispatch, [run 38169094991](https://github.com/gamesbyian/UR-Reco
 
 Run completion or green transport must not be inferred from three green job wrappers. A future dispatch is necessary to prove these repairs against real original/native binaries; do not claim that the failed first dispatch provided any complete paired-event evidence.
 
+## Zoo boundary discriminator (manual, optional)
+
+The successful three-case [run 38171397687](https://github.com/gamesbyian/UR-Recomp/actions/runs/38171397687)
+confirms **3/3 coherent completed transports, 3 strict scientific divergences,
+zero native/reference producer errors and zero release admissions**. Zoo source
+and fresh guests match entry signatures and all 43 sparsely sampled gameplay
+states, with identical settled PPU result but a genuine *guest-relative* 1-frame
+result-onset delta (+5163 original vs +5162 native). The prior executed input
+latch experiment ruled out a blanket +/-1 input-stream correction. Existing
+[original event census](ORIGINAL-COURSE-EVENT-CENSUS.md) identifies the
+remaining decision: whether host polling or gameplay phase first separates
+during the authentic +5158..+5173 Zoo result boundary.
+
+**Cheapest new discriminator:** manually dispatch this *existing* workflow
+with **selected=zoom-zoo** and **zoo_terminal_phase=true**. The opt-in causes
+one separate fresh original/native pair, using the same pinned ROM/movie,
+SRAM, reference core and research Baldosa binary, and identical controller
+stream and real independently calibrated entries. It captures full actual
+128-KiB guest WRAM (not synthetic result state) at fixed relative offsets
++5156..+5173. Its auxiliary script uses waits and dumps, *not* a terminal
+"until" poll, patch, altered game rules or input rebase. The primary strict
+replay still runs and determines the scientific disposition, unchanged.
+
+The optional result is in the existing producer JSON under
+"zoo_terminal_host_phase". It provides independently observed host frame
+for each snapshot, first four-frame-stable Circuit result for each guest,
+offset from that guest's original primary "until"-observed result,
+named field and full WRAM-hash equality on **both** distinct alignment axes,
+the script SHA-256 and 0 release credit. Aux logs are uploaded; raw guest
+memory is not published. A missing dump, invalid 128-KiB capture,
+unexpected course, changed entry or forged host/guest relation fails closed.
+
+**Interpretation:** first compare the fixed-frame onset to each primary
+"until" result. If one is offset, investigate that core/script polling
+boundary before touching game logic. If first fixed result transitions
+really disagree, inspect same-host versus same-relative menu/track/race
+and lap/clock progression at the first differing frame to select a targeted
+writer/reader or scheduler experiment. Never call equal named-field hashes
+CPU/interrupt parity; never globally add a frame or admit a course.
+The experiment intentionally does **not** resolve Switcher's actively
+owned NMI/stack work or the already executed Bowl 8-frame tally phase.
+
+**Stop:** one source-qualified diagnostic is enough to choose which
+clock boundary needs causal tracing. If it cannot distinguish them,
+record that inability; do not commission another unbounded replay batch.
+
 ## Failure triage and extension
 
 When infrastructure is red, use the aggregate's first missing/invalid case,

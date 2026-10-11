@@ -15,6 +15,11 @@ on:
           - zoom-zoo
           - bowl
           - switcher
+      zoo_terminal_phase:
+        description: "Opt-in Zoo fixed +5156..+5173 guest/host phase witness (requires selected=zoom-zoo)"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -39,8 +44,13 @@ jobs:
         shell: bash
         env:
           SELECTED: ${{ inputs.selected }}
+          ZOO_TERMINAL: ${{ inputs.zoo_terminal_phase }}
         run: |
           set -euo pipefail
+          if [[ "$ZOO_TERMINAL" == "true" && "$SELECTED" != "zoom-zoo" ]]; then
+            echo "Zoo fixed-host phase is scoped to selected=zoom-zoo only" >&2
+            exit 1
+          fi
           python3 -m unittest discover -s tests/unit -p test_qa01_event_campaign.py
           python3 tools/qa01_event_campaign.py plan \
             --selected "$SELECTED" \
@@ -165,8 +175,13 @@ jobs:
         shell: bash
         env:
           QA01_CASE: ${{ matrix.case }}
+          QA01_ZOO_TERMINAL: ${{ inputs.zoo_terminal_phase }}
         run: |
           set -euo pipefail
+          extra_args=()
+          if [[ "$QA01_ZOO_TERMINAL" == "true" ]]; then
+            extra_args+=(--zoo-terminal-phase)
+          fi
           ROOT="$RUNNER_TEMP/qa01-case"
           BIN="$RUNNER_TEMP/qa01-binaries"
           mkdir -p "$ROOT"
@@ -182,6 +197,7 @@ jobs:
               --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
               --work-dir "$ROOT/work" \
               --json-out "$ROOT/producer-report.json" \
+              "${extra_args[@]}" \
               > "$ROOT/producer.log" 2>&1
           producer_rc=$?
           set -e
@@ -223,6 +239,8 @@ jobs:
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/calibration/native.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/reference.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/native.log
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/zoo-terminal-phase/reference.log
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/zoo-terminal-phase/native.log
 
   aggregate:
     if: always() && needs.plan.result == 'success'

@@ -253,7 +253,7 @@ def main():
         if [x[2]["guest_frame"] for x in secondary] != [x[2]["guest_frame"] for x in pairs]:
             raise ValueError("P1/P2 guest frame order mismatch")
         montage_pairs = [pose for pair in zip(pairs,secondary) for pose in pair]
-    clips=
+    clips=[
         encode(a.output,"01-original-4x-remastered",(comparison(*pairs[0][:2],i) for i in range(210)),210),
         encode(a.output,"02-animation-archaeology",(archaeology(pairs,i) for i in range(210)),210),
         encode(a.output,"03-remaster-progress",(montage(montage_pairs,i) for i in range(150)),150),

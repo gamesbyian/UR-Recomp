@@ -27,13 +27,20 @@ on:
       - "native/product/session_runtime_adapter.*"
       - "native/product/baldosa_modern_session_binding.hpp"
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      export_campaign_inputs:
+        description: "Export the one source-bound Windows executable and ROMless ZIP for manual cohort reuse"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
   group: baldosa-windows-probe-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   native-windows-x64:
@@ -210,3 +217,27 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/with_named_profile/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/corrupt_named_profile/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/different_named_profile/log.txt
+
+      - name: Export verified shared Windows inputs for bounded manual reliability campaigns
+        if: ${{ inputs.export_campaign_inputs == true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/qa-win32-reuse-inputs"
+          mkdir -p "$root"
+          cp baldosa/build-ur-win/UniracersSNESRecomp.exe "$root/UniracersSNESRecomp.exe"
+          cp baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe "$root/ur-baldosa-modern-profile-fixture.exe"
+          cp "$RUNNER_TEMP/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip" "$root/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip"
+          (cd "$root" && sha256sum UniracersSNESRecomp.exe ur-baldosa-modern-profile-fixture.exe UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip > SHA256SUMS)
+          printf '%s\n' "$GITHUB_SHA" > "$root/source-commit.txt"
+          test "$(find "$root" -maxdepth 1 -type f | wc -l)" -eq 5
+          echo "Prepared one exact ROM-free Windows binary/launcher cohort for independent guest and CMD routes." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload exact reusable Windows candidate only for requested campaign
+        if: ${{ inputs.export_campaign_inputs == true }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-baldosa-native-export
+          path: ${{ runner.temp }}/qa-win32-reuse-inputs/
+          if-no-files-found: error
+          retention-days: 7

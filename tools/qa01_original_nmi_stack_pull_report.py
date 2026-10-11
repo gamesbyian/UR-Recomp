@@ -81,6 +81,8 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
         f0, v, h0, h1, f1 = map(int, (f0, v, h0, h1, f1))
         if (beam_match.start() >= pha_match.start()
                 or f0 != int(pha_match.group(1))
+                or v != int(pha_match.group(2))
+                or f1 != int(pha_match.group(17))
                 or pc != pha_match.group(3)
                 or sp0 != pha_match.group(5) or sp1 != pha_match.group(6)
                 or a0 != pha_match.group(7)

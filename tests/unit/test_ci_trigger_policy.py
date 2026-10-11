@@ -294,6 +294,21 @@ class CiTriggerPolicyTest(unittest.TestCase):
             self.assertFalse(_block(suite, "pull_request"))
             self.assertIn("canonical_candidate", suite)
 
+    def test_manual_modern_campaign_preserves_pr_router_and_acceptance_boundary(self):
+        text = (WORKFLOWS / "modern-native-heavy-router.yml").read_text()
+        self.assertIn("  workflow_dispatch:", text)
+        self.assertIn("if: github.event_name == 'pull_request'", text)
+        self.assertIn("if: github.event_name == 'workflow_dispatch'", text)
+        self.assertIn("cancel-in-progress: ${{ github.event_name == 'pull_request' }}", text)
+        self.assertIn("Select established suite cohort for manual campaign", text)
+        self.assertIn("uses: ./.github/workflows/windows-native-smoke.yml", text)
+        self.assertIn("if: github.event_name == 'workflow_dispatch' && inputs.include_windows == true", text)
+        self.assertIn("  campaign-report:", text)
+        self.assertIn("tools/qa_modern_batch_campaign.py", text)
+        # The manual cohort uses the existing canonical build, not three new ones.
+        self.assertEqual(text.count("cmake --build"), 1)
+        self.assertEqual(text.count("modern-native-canonical-candidate"), 1)
+
     def test_shared_modern_native_acceptance_builds_once_and_fans_out(self):
         text = (WORKFLOWS / "modern-shared-native-acceptance.yml").read_text()
         self.assertIn("  build:", text)

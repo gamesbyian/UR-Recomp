@@ -69,6 +69,10 @@ Shared expectations:
 
 The canonical simulation rate remains fixed to the original game. No platform may reinterpret a user-selected display FPS as a request to change physics, timers, AI, RNG, stunt windows, replay timing or records.
 
+## Desktop post-race video scope
+
+Windows x64, current macOS and Linux are the three explicitly intended **desktop** hosts for the optional **Save Race Video / Discard Video** result action. The [desktop post-race video contract](DESKTOP-POST-RACE-VIDEO.md) keeps result UI/export-job semantics shared, while Media Foundation (Windows), VideoToolbox/AVFoundation (macOS), and qualified FFmpeg/GStreamer or system encoders (Linux) remain platform adapters. **This is a design requirement, not a statement that recording/export is implemented or available on Linux/macOS today.** The feature must never force web/console hosts or High Sierra to depend on unavailable video encoders, and must not alter authoritative simulation/replay or the Windows-first schedule.
+
 ## SDL backend policy
 
 **SDL3 is UR-Recomp's canonical desktop host backend. SDL2 exists only as a compatibility/platform fallback, and new cross-platform product code must not be designed against the SDL2 API.**

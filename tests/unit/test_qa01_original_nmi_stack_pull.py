@@ -84,12 +84,19 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
         self.assertEqual(pull["observed_01dd_byte_before"], "42")
         self.assertEqual(pull["observed_01de_byte_before"], "40")
         self.assertEqual(pull["pla_loaded_target_bytes_verified"], 2)
+        self.assertTrue(result["saved_a_restoration_observed_in_window"])
+        pair = result["candidate_original_saved_a_restore_pairs"][0]
+        self.assertEqual(pair["original_saved_a_pc"], "00:858E")
+        self.assertEqual(pair["candidate_pla_pc"], "00:85A0")
+        self.assertTrue(pair["word_bytes_and_stack_roundtrip_match"])
+        self.assertFalse(pair["actual_interruption_chain_proven"])
 
     def test_bounded_zero_read_witness_does_not_claim_no_consumers(self):
         result = report.summarize(ORIGINAL)
         self.assertEqual(result["observed_candidate_stack_pull_count"], 0)
         self.assertTrue(result["zero_count_is_bounded_negative_only"])
         self.assertTrue(result["stack_reads_outside_named_pulls_not_excluded"])
+        self.assertFalse(result["saved_a_restoration_observed_in_window"])
         self.assertEqual(result["release_complete_event_credit"], 0)
 
     def test_valid_pull_widths_respect_original_p_status(self):
@@ -180,6 +187,19 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
             with self.subTest(invalid=invalid[-110:]):
                 with self.assertRaises(ValueError):
                     report.summarize(invalid)
+
+    def test_same_pla_before_save_is_not_a_matched_restore(self):
+        result = report.summarize(PULL + ORIGINAL)
+        self.assertEqual(result["observed_candidate_stack_pull_count"], 1)
+        self.assertEqual(result["candidate_original_saved_a_restore_pairs"], [])
+        self.assertFalse(result["saved_a_restoration_observed_in_window"])
+        self.assertEqual(result["release_complete_event_credit"], 0)
+
+    def test_different_cpu_frame_pla_is_not_a_matched_restore(self):
+        later = PULL.replace("f=5780", "f=5781", 1).replace("f1=5780", "f1=5781")
+        result = report.summarize(ORIGINAL + later)
+        self.assertEqual(result["observed_candidate_stack_pull_count"], 1)
+        self.assertFalse(result["saved_a_restoration_observed_in_window"])
 
     def test_malformed_or_forged_original_nmi_reads_fail_closed(self):
         for log in (

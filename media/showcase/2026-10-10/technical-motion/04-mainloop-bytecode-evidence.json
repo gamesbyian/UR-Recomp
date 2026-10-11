@@ -1,0 +1,25 @@
+{
+  "result": "accepted_exact_65816_opcode_witness",
+  "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "rom_path": "reference/roms/retail/Uniracers_USA.sfc",
+  "rom_lorom_offset_hex": "0x0881",
+  "cpu_address": "80:8881 (00:8881 LoROM mirror)",
+  "decoded_65816_instruction": "JSR $ACC6",
+  "instruction_hex": "20c6ac",
+  "source_symbol": "MainLoop",
+  "source_function_address": "00:8881",
+  "recompiler_mx": "M1X0",
+  "recompiler_configuration": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/recomp/symbols.toml",
+  "generated_C_inventory": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/src/gen/.snesrecomp-cache.json",
+  "generated_C_upstream_git_commit": "10b864b9d14a7b7416dd909eb7b054c88faef101",
+  "generated_C_upstream_blob_sha1": "cc9ef833a5c7c0809aaab53ea00c182158241b83",
+  "generated_C_upstream_path": "src/gen/bank00_part01_v2.c",
+  "generated_C_excerpt_path": "media/showcase/2026-10-10/technical-motion/mainloop-aot-source-exhibit.txt",
+  "source_files_sha256": {
+    "media/showcase/2026-10-10/technical-motion/mainloop-aot-source-exhibit.txt": "8705be620bdd2bc22d23d9dd62cb628b373d84b88a5f812788c20cae6704227c",
+    "reference/imported/reverse-engineering/baldosa-uniracers-recomp/recomp/symbols.toml": "dddcfa7564c681648f336fe5206cd63483004c80464ac9dc0bf4d1404e738cd7",
+    "reference/imported/reverse-engineering/baldosa-uniracers-recomp/decomp/symbols.txt": "791ce1db45a046f1ac83eca9bd7b25738642ce8c706f3daca59dc29d62a76177",
+    "reference/imported/reverse-engineering/baldosa-uniracers-recomp/src/gen/.snesrecomp-cache.json": "15aa390da419054d7c86602876ed05fd1daa2b9dadc36b5afb311d18350d9c3a"
+  },
+  "limits": "Exact ROM opcode and project symbol map are checked locally. The excerpt attribution to the pinned upstream AOT blob was independently reviewed against the GitHub source; the manifest does not imply a new original-vs-native gameplay equivalence test."
+}

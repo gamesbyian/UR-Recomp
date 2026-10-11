@@ -1,0 +1,51 @@
+{
+  "capture_manifest_sha256": "2c14161830eb282033ff3294b63a8a4d3cce65c35b64d895d0f1ab67db5e9d86",
+  "comparison": {
+    "classification": "editorial_same_capture_crop_not_independent_original_render",
+    "description": "Same-capture exact-time centre crop and full world, both at identical display scale",
+    "duration_seconds": 5,
+    "file": "same-capture-centre-vs-wide-5s.mp4",
+    "independent_guest_wram_state_comparison": false,
+    "independent_original_capture": false,
+    "sha256": "6291abda1f52f47425405757c049c70aa245133a39a138b263a2b4e2bf335e5f"
+  },
+  "guest_crc_capture_off_equals_on": true,
+  "no_temporal_interpolation": true,
+  "output_encoded": [
+    1920,
+    1080
+  ],
+  "physical_4k_claim": false,
+  "remastered_art_claim": false,
+  "reveal": {
+    "centre_original_columns": [
+      43,
+      298
+    ],
+    "description": "Uninterrupted authentic 342-column world; side masks slide out to reveal already-recorded margins",
+    "duration_seconds": 7,
+    "editorial_overlay": "Animated black side mattes plus labels in exterior editorial letterbox",
+    "file": "authentic-widescreen-reveal-7s.mp4",
+    "sha256": "92ea56611a18ee001ae101f36bc0f2600dc9ca117581edd8072df9535f831414"
+  },
+  "review_frame_sha256": {
+    "authentic-widescreen-reveal-7s-review-00.png": "27dfcdb27999029cabcc1674bfed59e7d228c14f48652d634c7c144c03464cc6",
+    "authentic-widescreen-reveal-7s-review-01.png": "178c90111ddfc6a37be2ac804483d947d8ba0618af6514798f00f5742ba66851",
+    "authentic-widescreen-reveal-7s-review-02.png": "5ba5854f74388216e07c1a8c7a421e80e560c89bc457d2175a2c3ef519583152",
+    "same-capture-centre-vs-wide-5s-review-00.png": "22bc42c9589edce7162305c968ef680404cf8c33587eb5e8486288b22668312f",
+    "same-capture-centre-vs-wide-5s-review-01.png": "97ae0662ef1fba96a17118a0034573dff2cf65c26771f0389d1d5bf115b7817f",
+    "same-capture-centre-vs-wide-5s-review-02.png": "ec65be0714b094c72b3579fc65597b7d01c263ff549e402ffc856c36e0354e60"
+  },
+  "schema": "UR-RECRUITMENT-CONTINUOUS-PRESENTATION/1",
+  "source": "media/showcase/2026-10-10/recruitment/continuous/ur-native-2p-clean-600f.mp4",
+  "source_60fps_frames": 600,
+  "source_guest_frames": [
+    2100,
+    2699
+  ],
+  "source_host_drawable": [
+    960,
+    540
+  ],
+  "source_sha256": "182ef43ccf34f501dea4051312e71bf4d974a53dc6634cd98a5cbf3fae8ac130"
+}

@@ -1,0 +1,40 @@
+{
+  "clip": "03-source-raster-xray.mp4",
+  "sha256": "b818ad56f8da43e6db94b75561373bc3caf258b516abaca81d6ce8ac14285d5b",
+  "bytes": 150188,
+  "dimensions": [
+    1920,
+    1080
+  ],
+  "fps": 30,
+  "frames": 180,
+  "seconds": 6,
+  "source": "media/showcase/2026-10-10/native-widescreen-source-frame-1856.png",
+  "source_sha256": "4dd40af5c80aa670de15c474f02c89f8e9ac7b6f689e894e67da66f59a18e79c",
+  "original_capture_run": 38083079741,
+  "original_artifact_id": 11681138053,
+  "geometry": {
+    "wide": [
+      342,
+      224
+    ],
+    "centre_crop_xyxy": [
+      43,
+      0,
+      299,
+      224
+    ],
+    "left_extension_x": [
+      0,
+      43
+    ],
+    "right_extension_x": [
+      299,
+      342
+    ],
+    "split_guide_y": 112
+  },
+  "independent_comparator": "docs/QA08-NATIVE-STOCK-CENTER-PARITY-20261010.md",
+  "disclosure": "Input is one composited source PPU image. Crop and tint are editorial; no independently extracted background, HUD, OBJ, masks, or depth order. Same-frame native fixed/wide centre is independently proven in the cited QA report.",
+  "decoded_frame_100_sha256": "d67bab0441922e8c2dd17f4b86a5517c643131e323126048ffda415116efebf4"
+}

@@ -1,0 +1,44 @@
+{
+  "clip": "04-machine-code-to-native.mp4",
+  "sha256": "c213ab1aa5472cb1940d5e35a5601bd30d9c00a9acb1e79cdf6dd1baca5e343d",
+  "bytes": 1296345,
+  "fps": 30,
+  "frames": 270,
+  "seconds": 9,
+  "size": [
+    1920,
+    1080
+  ],
+  "mapping": {
+    "source_address": "80:8881",
+    "symbol": "MainLoop",
+    "source": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/recomp/symbols.toml",
+    "generated_code_inventory": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/src/gen/.snesrecomp-cache.json",
+    "real_host_c": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/src/game_rtl.c",
+    "same_function_65816": "80:8881 20 C6 AC JSR $ACC6",
+    "upstream_generated_C": "gamesbyian/uniracers-recomp@10b864b9d14a7b7416dd909eb7b054c88faef101:src/gen/bank00_part01_v2.c",
+    "upstream_generated_C_blob_sha1": "cc9ef833a5c7c0809aaab53ea00c182158241b83",
+    "generated_C_exhibit": "media/showcase/2026-10-10/technical-motion/mainloop-aot-source-exhibit.txt",
+    "ROM_opcode_gate": "04-mainloop-bytecode-evidence.json"
+  },
+  "input_video": {
+    "path": "media/showcase/2026-10-10/recruitment/continuous/ur-native-2p-clean-600f.mp4",
+    "sha256": "182ef43ccf34f501dea4051312e71bf4d974a53dc6634cd98a5cbf3fae8ac130",
+    "original_guest_frame_range": [
+      2100,
+      2699
+    ],
+    "original_fps": 60,
+    "output_fps": 30,
+    "selection": "integer decimation, no interpolated gameplay"
+  },
+  "source_sha256": {
+    "reference/imported/reverse-engineering/baldosa-uniracers-recomp/recomp/symbols.toml": "dddcfa7564c681648f336fe5206cd63483004c80464ac9dc0bf4d1404e738cd7",
+    "reference/imported/reverse-engineering/baldosa-uniracers-recomp/src/game_rtl.c": "3c6877ea0d09cfa8f49afa7862dad2ceac7f785bc82a0138b6f5cb96b56e1ce8",
+    "reference/imported/reverse-engineering/baldosa-uniracers-recomp/src/gen/.snesrecomp-cache.json": "15aa390da419054d7c86602876ed05fd1daa2b9dadc36b5afb311d18350d9c3a",
+    "media/showcase/2026-10-10/technical-motion/mainloop-aot-source-exhibit.txt": "8705be620bdd2bc22d23d9dd62cb628b373d84b88a5f812788c20cae6704227c"
+  },
+  "source_commit": "d97a479552ba442bd76c2ef9b0707428564d69d8",
+  "limits": "This clip verifies the exact ROM MainLoop instruction and displays actual C generated for that same function in the pinned Baldosa guest; code omitted between displayed lines is labelled. Native host C is a distinct adapter. The genuine gameplay comes from previously accepted continuous native footage. No whole-game original/native equivalence is implied.",
+  "decoded_frame_100_sha256": "14829ab4832cab9769ebe38d954905789371e5d08dda779b07ae1d8b8b44eace"
+}

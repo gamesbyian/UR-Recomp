@@ -432,6 +432,71 @@
       ],
       "gap": "Data loss on abnormal exit cannot be excused by guest CRC",
       "proof": "Fresh-process crash and isolated profile proof"
+    },
+    {
+      "id": "runs-replays-ghosts",
+      "domain": "product",
+      "priority": "P0",
+      "decision": "keep_existing",
+      "ur": [
+        "native/product/baldosa_native_run_record_admission.cpp",
+        "native/product/completed_run_capture.cpp"
+      ],
+      "baldosa": [],
+      "malmazuke": [
+        "tools/unirally_lab/replay/manifest.py"
+      ],
+      "gap": "Original result and host-issued credit are separate",
+      "proof": "Real .urrun/.urghost/.urmatch and deterministic verification"
+    },
+    {
+      "id": "windows-portable",
+      "domain": "product",
+      "priority": "P0",
+      "decision": "keep_existing",
+      "ur": [
+        "tools/assemble_windows_package.py",
+        "tools/check_windows_portable_binary.py"
+      ],
+      "baldosa": [
+        "scripts/package_release.sh"
+      ],
+      "malmazuke": [
+        "tools/unirally_lab/toolchain.py"
+      ],
+      "gap": "Linux CI smoke not physical Windows acceptance",
+      "proof": "Pinned ZIP, graphics/input/audio, fresh machine and data root"
+    },
+    {
+      "id": "recruitment-video",
+      "domain": "product",
+      "priority": "P1",
+      "decision": "keep_existing",
+      "ur": [
+        "tools/showcase/stage_continuous_native_capture.py"
+      ],
+      "baldosa": [],
+      "malmazuke": [],
+      "gap": "Sampled teaser not real gameplay and video cannot award QA",
+      "proof": "Continuous authentic motion and source-backed frame provenance"
+    },
+    {
+      "id": "candidate-evidence-envelope",
+      "domain": "operations",
+      "priority": "P0",
+      "decision": "integrate_seam",
+      "ur": [
+        "tools/evidence_contract.py",
+        "tools/tool_interop.json"
+      ],
+      "baldosa": [
+        "tools/routes.sh"
+      ],
+      "malmazuke": [
+        "tools/unirally_lab/replay/manifest.py"
+      ],
+      "gap": "Same input/ROM/candidate not always proven across producer routes",
+      "proof": "Shared capture identity with separate independent acceptance results"
     }
   ]
 }

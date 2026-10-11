@@ -1,0 +1,79 @@
+{
+  "schema": "UR-QA01-SWITCHER-2014-SOURCE-DIAGNOSTIC-CROSS-EVENT-0313/1",
+  "execution": {
+    "workflow_run_id": 38064406315,
+    "artifact_id": 11674751560,
+    "artifact_zip_sha256": "1a1a8a67fd5809255f5606028821325ea515c942759cca50fb960d28e53780bc",
+    "artifact_member": "switcher/source/source-event-diagnostic.json",
+    "member_sha256": "6e116814d848d1946880627adc241b5738b9e363d5f051e8c31b9b001bf6aab8",
+    "actual_job_conclusion": "failure",
+    "failure_is_strict_original_native_terminal_phase_rejection": true
+  },
+  "original_movie_context": {
+    "source_horizon_host_frame": 22000,
+    "source_trace_frames": [
+      0,
+      22000
+    ],
+    "source_movie_switcher_entry": 12327,
+    "source_movie_switcher_result": 17030,
+    "original_source_result_menu": 153,
+    "original_source_result_track": 3,
+    "original_source_result_in_race": 0,
+    "original_source_result_stable_end": 17087,
+    "independent_source_qualification_only": true
+  },
+  "source_state_examples": [
+    {
+      "frame": 11915,
+      "menu": 47,
+      "track": 2,
+      "raw_0313": 60,
+      "event_context": "Bowl Stunt scored tally"
+    },
+    {
+      "frame": 11985,
+      "menu": 24,
+      "track": 2,
+      "raw_0313": 60,
+      "event_context": "Bowl Stunt result onset"
+    },
+    {
+      "frame": 11997,
+      "menu": 24,
+      "track": 2,
+      "raw_0313": 0,
+      "event_context": "Bowl Stunt result after state reset"
+    },
+    {
+      "frame": 17030,
+      "menu": 153,
+      "track": 3,
+      "raw_0313": 0,
+      "event_context": "Switcher Race B source result onset"
+    },
+    {
+      "frame": 17087,
+      "menu": 153,
+      "track": 3,
+      "raw_0313": 0,
+      "event_context": "Switcher Race B stable result"
+    }
+  ],
+  "source_foreign_active_track_zero_prelude": {
+    "start": 16991,
+    "end_inclusive": 17024,
+    "track": 0,
+    "length": 34
+  },
+  "limitations": [
+    "Original 0313 is reused as a timer/scoring state and cannot be treated as a binary flag across all event families",
+    "Original-source trace observation does not prove native post-result progression",
+    "Original/native complete event guest-relative onset still fails 4704 versus 4702"
+  ],
+  "release": {
+    "usa_accepted_events": 0,
+    "usa_total_events": 45,
+    "qa_credit": 0
+  }
+}

@@ -1,0 +1,64 @@
+name: Technical evidence motion graphics (single-lane render)
+on:
+  push:
+    branches: [media/technical-evidence-motion-20261010]
+    paths:
+      - ".github/workflows/technical-evidence-motion.yml"
+      - "tools/showcase/render_technical_motion.py"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: technical-evidence-motion-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  produce:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out exact branch head
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Provision rendering dependencies
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg fonts-dejavu-core
+          python3 -m pip install --user --disable-pip-version-check Pillow
+      - name: Render bounded proof animations
+        run: |
+          set -euo pipefail
+          python3 tools/showcase/render_technical_motion.py --repo-root . --outdir media/showcase/2026-10-10/technical-motion
+      - name: Re-decode and validate video frame counts and identity
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,json,subprocess
+          from pathlib import Path
+          p=Path('media/showcase/2026-10-10/technical-motion')
+          m=json.loads((p/'provenance.json').read_text())
+          assert sorted(m['outputs'])==['01-source-centre-parity.mp4','02-recording-noninterference.mp4']
+          for name,witness in m['outputs'].items():
+              mp4=p/name
+              assert hashlib.sha256(mp4.read_bytes()).hexdigest()==witness['sha256']
+              d=json.loads(subprocess.check_output(['ffprobe','-v','error','-count_frames','-select_streams','v:0','-show_entries','stream=width,height,nb_read_frames','-of','json',str(mp4)]))['streams'][0]
+              assert (int(d['width']),int(d['height']),int(d['nb_read_frames']))==(1920,1080,180)
+              png=p/(name.removesuffix('.mp4')+'-decoded-frame-100.png')
+              subprocess.run(['ffmpeg','-hide_banner','-loglevel','error','-y','-i',str(mp4),'-vf','select=eq(n\\,100)','-vsync','vfr','-frames:v','1',str(png)],check=True)
+              assert png.stat().st_size>10000
+              witness['decoded_frame_100_sha256']=hashlib.sha256(png.read_bytes()).hexdigest()
+          (p/'provenance.json').write_text(json.dumps(m,indent=2)+'\n')
+          print('PASS: two independently decoded 1080p / 30fps / 180-frame editorial clips')
+          PY
+      - name: Commit verified standalone movies (only showcase lane)
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add media/showcase/2026-10-10/technical-motion/01-* media/showcase/2026-10-10/technical-motion/02-* media/showcase/2026-10-10/technical-motion/provenance.json
+          git diff --cached --quiet && exit 0
+          git commit -m "media: commit decoded technical proof clips [skip ci]"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

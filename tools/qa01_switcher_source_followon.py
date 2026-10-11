@@ -13,6 +13,7 @@ import re
 from pathlib import Path
 
 import probe_attract_cycle as trace
+import probe_original_event_complete as source_oracle
 import qa01_original_fresh_switcher_01dd_report as paired_auth
 
 SCHEMA = "UR-QA01-SWITCHER-ORIGINAL-2014-POSTRESULT-WALK/1"
@@ -60,6 +61,57 @@ def decode_checked_changed_byte_trace(lines: list[str]) -> dict[int, dict]:
             raise ValueError("original changed-byte record outside CPU byte/address range")
         previous_frame = frame
     return trace.frame_states(lines)
+
+
+def reconcile_original_source_diagnostic(
+        states: dict[int, dict], recorded: dict) -> dict:
+    """Compare this trace with the existing original source scan's own oracle.
+
+    This is a consistency check, not a fresh original replay or independent
+    hash proof. The reference movie, ROM, source horizon and paired native
+    event have already been authenticated by the existing producer.
+    """
+    if (not isinstance(recorded, dict)
+            or recorded.get("schema") != "UR-QA01-SOURCE-RESULT-PROBE/1"
+            or recorded.get("wanted_course_track") != 3
+            or recorded.get("wanted_result_menu") != 0x99
+            or recorded.get("original_source_horizon_host_frame") != HORIZON
+            or recorded.get("original_source_horizon_observed_from_guest_dump")
+               is not True
+            or recorded.get("original_source_horizon_wram_bytes") != 0x20000
+            or recorded.get("complete_event_qa_credit") != 0):
+        raise ValueError("missing authenticated original 22000-frame source diagnostic")
+    fresh = source_oracle.source_event_diagnostic(states, 3, 0x99)
+    fields = (
+        "source_trace_frames",
+        "active_track_frames",
+        "active_track_first_last",
+        "source_event_candidate_entries",
+        "source_intervening_foreign_active_window",
+        "source_intervening_foreign_active_runs_8_frames",
+        "source_intervening_foreign_active_raw_frame_count",
+        "stable_original_results",
+        "sampled_state_at_source_result_neighbors",
+    )
+    for field in fields:
+        if fresh[field] != recorded.get(field):
+            raise ValueError("source changed-byte trace contradicts original scan: " + field)
+    if (fresh["source_trace_frames"] != [0, HORIZON]
+            or ENTRY not in fresh["source_event_candidate_entries"]
+            or not any(row.get("menu") == 0x99
+                       and row.get("start") == RESULT
+                       and row.get("end") == RESULT_LAST_STABLE
+                       and row.get("track_at_start") == 3
+                       and row.get("in_race") == 0
+                       for row in fresh["stable_original_results"])):
+        raise ValueError("original source trace lacks proven Switcher result interval")
+    return {
+        "source_diagnostic_recomputed_from_same_decoded_trace": True,
+        "original_source_horizon_guest_dump_attested": True,
+        "original_result_interval_recomputed_from_changed_byte_trace": [
+            RESULT, RESULT_LAST_STABLE],
+        "source_diagnostic_consistency_not_separate_execution_or_identity_proof": True,
+    }
 
 
 def summarize(states: dict[int, dict]) -> dict:
@@ -184,6 +236,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--trace-jsonl", type=Path, required=True)
     ap.add_argument("--paired-report", type=Path, required=True)
+    ap.add_argument("--source-diagnostic", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
     args = ap.parse_args()
     pair = json.loads(args.paired_report.read_text(encoding="utf-8"))
@@ -191,6 +244,8 @@ def main() -> int:
     states = decode_checked_changed_byte_trace(
         args.trace_jsonl.read_text(encoding="utf-8").splitlines())
     result = summarize(states)
+    diagnostic = json.loads(args.source_diagnostic.read_text(encoding="utf-8"))
+    result.update(reconcile_original_source_diagnostic(states, diagnostic))
     result["independent_2014_source_and_fresh_guest_pair_provenance"] = authenticated
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(result, sort_keys=True, indent=2) + "\n", encoding="utf-8")

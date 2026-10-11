@@ -273,6 +273,7 @@ jobs:
           python3 tools/qa01_switcher_source_followon.py \
             --trace-jsonl "$OUT/switcher/source/trace.jsonl" \
             --paired-report "$OUT/paired-switcher.json" \
+            --source-diagnostic "$OUT/switcher/source/source-event-diagnostic.json" \
             --out "$OUT/source-followon.json"
           cat "$OUT/source-followon.json" >> "$GITHUB_STEP_SUMMARY"
           python3 tools/qa01_original_nmi_stack_pull_report.py \

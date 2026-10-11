@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "status": "native-original-2p-racer-palette-cross-pose-observation",
+  "original_native_run_id": 38115756178,
+  "original_native_artifact_id": 11693865103,
+  "guest_frames": [
+    1856,
+    1872,
+    1888
+  ],
+  "authentic_ppu_slots_per_racer": {
+    "red": 98,
+    "green": 99
+  },
+  "per_pose_rgba_source_alpha_not_final_owner": true,
+  "stable_rgb_shared_across_six_racer_pose_sources": [
+    "101008",
+    "181818",
+    "313131",
+    "4A4A4A",
+    "737373",
+    "A5A5A5"
+  ],
+  "stable_rgb_unique_to_red_slot98_across_three_poses": [
+    "421008",
+    "633931",
+    "7B2110",
+    "AD2108",
+    "C62110",
+    "CEC6C6",
+    "E73921",
+    "F7A58C"
+  ],
+  "stable_rgb_unique_to_green_slot99_across_three_poses": [
+    "083908",
+    "101810",
+    "105210",
+    "187B10",
+    "212918",
+    "31B521",
+    "63E752",
+    "CED6CE"
+  ],
+  "intermittent_shared_light_rgb": {
+    "rgb": "F7EFEF",
+    "present_frames": [
+      1856,
+      1872
+    ],
+    "absent_frames": [
+      1888
+    ]
+  },
+  "unique_visible_rgb_per_slot_frame": {
+    "1856": {
+      "slot98": 15,
+      "slot99": 15
+    },
+    "1872": {
+      "slot98": 15,
+      "slot99": 15
+    },
+    "1888": {
+      "slot98": 14,
+      "slot99": 14
+    }
+  },
+  "source_sha256": {
+    "1856": {
+      "98": "5122c86a797710965bf17caf99677ca2cf738fbff852101a9469ff66750fc2c5",
+      "99": "658b214071df7637abc308a0222e37cb15753b72c4ef42cf4c084311c031ec8f"
+    },
+    "1872": {
+      "98": "c8c2741ff948b070a69b555f6634199b82bb41d1753a099f3516ab4f605f48ea",
+      "99": "3d5322f0b226ea557960e9b2779ded06b0b57f7d6de977c348fd25d30998c0d5"
+    },
+    "1888": {
+      "98": "77e4ad17abca788a3c82850a4e862df7e6198ee99add5e3d2f399854ce80b6d1",
+      "99": "7679fa10e5188aab7bf0f2022b3fae4721f4d8ce8fab4ac1eac4d52fae51676f"
+    }
+  },
+  "source_palette_appearance_constant_across_frames_1856_1872": true,
+  "frame1888_has_one_fewer_shared_highlight_rgb": true,
+  "inferred_3d_material_assignment": false,
+  "palette_art_direction_or_current_likeness_approved": false,
+  "safe_to_promote_wide_hd_sprite_art": false,
+  "limits": "Byte-identical color-set membership in separately captured original PPU OBJ source planes, not palette hardware writes, canonical VRAM texture IDs, anatomical 3D part segmentation, final PPU ownership or approved stylized replacement."
+}

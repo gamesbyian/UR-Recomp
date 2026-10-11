@@ -151,7 +151,7 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
             work, candidate, run, match, fixture, report = self.make(Path(tmp))
             original = match.read_bytes()
             receipt = report.read_text(encoding="ascii")
-            body = original.decode("ascii").split("checksum ", 1)[0]
+            body = original.decode("ascii").rsplit("\nchecksum ", 1)[0] + "\n"
             for change in (
                 body.replace("outcome p1", "outcome p2"),
                 body.replace("p2_profile " + "join.bravo".encode().hex(),
@@ -177,7 +177,7 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
             work, candidate, run, match, fixture, report = self.make(Path(tmp))
             original = run.read_bytes()
             receipt = report.read_text(encoding="ascii")
-            body = original.decode("ascii").split("checksum ", 1)[0]
+            body = original.decode("ascii").rsplit("\nchecksum ", 1)[0] + "\n"
             edited = body.replace("input 0 60 10 20", "input 0 60 10 0")
             edited_run = (edited + "checksum " + fnv_hex(edited.encode()) + "\n").encode()
             run.write_bytes(edited_run)
@@ -185,7 +185,7 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
             # internal FNV, so the assertion tests missing P2 input, not
             # stale standalone or cross-artifact hashes.
             old_side = match.read_bytes()
-            side_body = old_side.decode("ascii").split("checksum ", 1)[0]
+            side_body = old_side.decode("ascii").rsplit("\nchecksum ", 1)[0] + "\n"
             side_body = side_body.replace(
                 "run_checksum " + fnv_hex(body.encode()),
                 "run_checksum " + fnv_hex(edited.encode()),

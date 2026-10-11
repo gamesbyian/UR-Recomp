@@ -82,6 +82,14 @@ def summarize(two_source: dict, switcher: dict) -> dict:
     release = switcher.get("release")
     if not all(isinstance(x, dict) for x in (ex, origin, source, r, release)):
         raise ValueError("missing original Switcher source, replay, or release evidence")
+    expected_final = {
+        "menu": 153, "in_race": 0, "p1_laps": 0, "p2_laps": 0,
+        "p1_finish_gate": 1, "p1_checkpoint": 1,
+    }
+    expected_result_rows = [
+        "SWITCHER", "COMPLETE", "PLAYER     TIME", "MIKE", "1:08.81",
+        "SOMEONE", "NO TIME", "SOMEONE", "NO TIME", "SOMEONE", "NO TIME",
+    ]
     if (ex.get("workflow_run_id") != 38064406315
             or ex.get("artifact_id") != 11674751560
             or ex.get("job_conclusion") != "failure"
@@ -102,7 +110,12 @@ def summarize(two_source: dict, switcher: dict) -> dict:
             or r.get("full_event_parity_admitted") is not False
             or r.get("player_one") != "MIKE"
             or r.get("player_one_time") != "1:08.81"
-            or r.get("original_final_guest") != r.get("native_final_guest")
+            or r.get("original_final_guest") != expected_final
+            or r.get("native_final_guest") != expected_final
+            or r.get("identical_result_screen_text_stable") != expected_result_rows
+            or r.get("first_sample_disagreement", "missing") is not None
+            or r.get("active_sample_count") != 28
+            or r.get("active_latest_relative_frame") != 2400
             or release != {"usa_accepted_events": 0, "usa_total_events": 45,
                            "qa_credit": 0}):
         raise ValueError("Switcher genuine Race B result/source identity is unverified")

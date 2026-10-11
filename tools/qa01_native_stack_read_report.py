@@ -95,23 +95,42 @@ def summarize(log: str) -> dict:
         if row["stack_pointer_equals_read_start_at_callback"]
         and row["memory_width_flag_at_read"] == 0
     ]
+    # The writer is attested in native frame 5781. A saved register may be
+    # read during the *next* host frame. Keep that phase distinct from the
+    # earlier, same-frame candidates; neither proves a real PLA or liveness.
+    post_writer_following_frame_word_4004 = [
+        row for row in result
+        if row["observed_after_4004_writer_callback_started"]
+        and row["native_snes_frame_counter"] == 5782
+        and row["word_start"] == "01DD"
+        and row["bus_read_width"] == 2
+        and row["read_value"] == "4004"
+    ]
+    following_frame_stack_position_consistent = [
+        row for row in post_writer_following_frame_word_4004
+        if row["stack_pointer_equals_read_start_at_callback"]
+        and row["memory_width_flag_at_read"] == 0
+    ]
     # The pinned interp816_pullWord() calls interp816_pullByte() twice,
     # each through interp816_read -> bridge_bus_read -> cpu_read8. Native
     # word restoration can therefore leave TWO byte rows rather than one
     # cpu_read16 row. Adjacent *filtered target rows* do NOT establish
     # consecutive guest instructions or a real PLA; this remains a candidate.
     byte_pairs = []
+    following_frame_byte_pairs = []
     for idx, (lo, hi) in enumerate(zip(result, result[1:])):
+        frame = lo["native_snes_frame_counter"]
         if (lo["observed_after_4004_writer_callback_started"]
                 and hi["observed_after_4004_writer_callback_started"]
-                and lo["native_snes_frame_counter"] == 5781
-                and hi["native_snes_frame_counter"] == 5781
+                and frame in (5781, 5782)
+                and hi["native_snes_frame_counter"] == frame
                 and lo["bus_read_width"] == hi["bus_read_width"] == 1
                 and lo["word_start"] == "01DD"
                 and hi["word_start"] == "01DE"
                 and lo["read_value"] == "0004"
                 and hi["read_value"] == "0040"):
-            byte_pairs.append([idx, idx + 1])
+            (byte_pairs if frame == 5781 else following_frame_byte_pairs).append(
+                [idx, idx + 1])
     by_addr = {"7E:01DD": 0, "7E:01DE": 0}
     for row in result:
         for address in row["target_stack_bytes_touched"]:
@@ -125,6 +144,10 @@ def summarize(log: str) -> dict:
         "native_post_writer_same_frame_4004_two_byte_target_row_pairs": byte_pairs,
         "native_post_writer_same_frame_4004_two_byte_pair_candidate_count":
             len(byte_pairs),
+        "native_post_writer_following_frame_4004_two_byte_target_row_pairs":
+            following_frame_byte_pairs,
+        "native_post_writer_following_frame_4004_two_byte_pair_candidate_count":
+            len(following_frame_byte_pairs),
         "interpreter_16bit_pla_uses_two_independent_byte_bus_reads": True,
         "filtered_read_row_adjacency_does_not_prove_guest_opcode_adjacency": True,
         "cpu_state_s_and_m_at_interpreter_bridge_callback_not_proven_internal_interp_registers": True,
@@ -133,6 +156,10 @@ def summarize(log: str) -> dict:
             len(post_writer_same_frame_word_4004),
         "same_frame_post_writer_stack_position_consistent_word_4004_count":
             len(stack_position_consistent),
+        "following_frame_post_writer_callback_read_4004_candidate_count":
+            len(post_writer_following_frame_word_4004),
+        "following_frame_post_writer_stack_position_consistent_word_4004_count":
+            len(following_frame_stack_position_consistent),
         "stack_pointer_matches_bus_start_not_proof_of_pla": True,
         "matched_word_read_is_stack_restore_candidate_not_proof": True,
         "zero_count_is_bounded_native_negative_not_no_reader_ever": len(result) == 0,

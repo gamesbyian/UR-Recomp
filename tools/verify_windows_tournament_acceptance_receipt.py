@@ -108,6 +108,136 @@ def sha256(path: Path) -> str:
     return h.hexdigest()
 
 
+def fnv_hex(data: bytes) -> str:
+    """The existing v1 run/match trailer checksum, not a new file format."""
+    value = 14695981039346656037
+    for byte in data:
+        value = ((value ^ byte) * 1099511628211) & 0xffffffffffffffff
+    return f"{value:016x}"
+
+
+def canonical_rows(path: Path, maximum: int) -> list[str]:
+    if (not path.is_file() or path.is_symlink()
+            or not 0 < path.stat().st_size <= maximum):
+        raise ValueError("saved two-player artifact absent, linked or oversized")
+    raw = path.read_bytes()
+    if not raw.endswith(b"\n") or b"\r" in raw or b"\0" in raw:
+        raise ValueError("saved two-player artifact has noncanonical LF framing")
+    try:
+        return raw.decode("ascii").splitlines()
+    except UnicodeError as exc:
+        raise ValueError("saved two-player artifact must be ASCII") from exc
+
+
+def checked_checksum(rows: list[str]) -> str:
+    if (len(rows) < 2 or not re.fullmatch(r"checksum [0-9a-f]{16}", rows[-1])):
+        raise ValueError("saved artifact lacks canonical v1 checksum trailer")
+    encoded = ("\n".join(rows[:-1]) + "\n").encode("ascii")
+    expected = fnv_hex(encoded)
+    if rows[-1] != "checksum " + expected:
+        raise ValueError("saved artifact v1 internal checksum mismatch")
+    return expected
+
+
+def inspect_two_player_pair(run: Path, match: Path) -> dict[str, str]:
+    """Narrow independent admission of the one stock P1-win/no-time event.
+
+    The repository's native C++ codecs remain authoritative for full record
+    parsing. This second reader checks only the known packaged QA scenario
+    and is deliberately not a replacement general-purpose decoder.
+    """
+    rr = canonical_rows(run, MAX_FILE_BYTES)
+    side = canonical_rows(match, 4096)
+    run_checksum = checked_checksum(rr)
+    checked_checksum(side)
+    if (len(rr) < 12 or rr[0] != "URRUN 1" or rr[-2] != "END"
+            or len(side) != 13 or side[0] != "UR-MULTIPLAYER-MATCH/1"):
+        raise ValueError("stock 2P run/match has unexpected v1 structure")
+
+    scalars = (
+        "game ", "rom_sha256 ", "build_compat ", "course ", "mode ",
+        "elapsed_ticks60 ", "frame_count ", "terminal_digest ",
+    )
+    if any(not rr[i + 1].startswith(key) or len(rr[i + 1]) <= len(key)
+           for i, key in enumerate(scalars)):
+        raise ValueError("stock 2P run scalar provenance incomplete")
+    run_fields = {
+        key.rstrip(): rr[i + 1][len(key):]
+        for i, key in enumerate(scalars)
+    }
+    if (run_fields["course"] != "course:01"
+            or run_fields["mode"] != "race-2p"
+            or not re.fullmatch(r"[0-9a-fA-F]{64}", run_fields["rom_sha256"])):
+        raise ValueError("stock 2P run has unexpected ROM/course/mode provenance")
+    if not re.fullmatch(r"[0-9]+", run_fields["frame_count"]):
+        raise ValueError("stock 2P run has invalid frame count")
+    frames = int(run_fields["frame_count"])
+    if not 0 < frames < 2**64:
+        raise ValueError("stock 2P run has invalid frame count")
+    if not re.fullmatch(r"[0-9]+", run_fields["elapsed_ticks60"]):
+        raise ValueError("stock 2P run has invalid timing")
+    ticks = int(run_fields["elapsed_ticks60"])
+    if not 0 < ticks < 2**64:
+        raise ValueError("stock 2P run has invalid timing")
+
+    saw_p1 = saw_p2 = False
+    previous_end = 0
+    for line in rr[9:-2]:
+        values = line.split(" ")
+        if len(values) != 5 or values[0] != "input":
+            raise ValueError("stock 2P run contains unexpected split or input shape")
+        if not (re.fullmatch(r"[0-9]+", values[1])
+                and re.fullmatch(r"[0-9]+", values[2])
+                and re.fullmatch(r"[0-9a-fA-F]+", values[3])
+                and re.fullmatch(r"[0-9a-fA-F]+", values[4])):
+            raise ValueError("stock 2P run has malformed mapped input")
+        start, duration = int(values[1]), int(values[2])
+        p1, p2 = int(values[3], 16), int(values[4], 16)
+        if (duration <= 0 or start < previous_end or start + duration > frames
+                or p1 > 0xfff or p2 > 0xfff or not (p1 or p2)):
+            raise ValueError("stock 2P run has invalid input span or mask")
+        previous_end = start + duration
+        saw_p1 |= bool(p1)
+        saw_p2 |= bool(p2)
+    if not (saw_p1 and saw_p2):
+        raise ValueError("stock 2P run is missing either captured input lane")
+
+    keys = (
+        "run_checksum ", "course ", "outcome ", "p1_result ", "p2_result ",
+        "p1_profile ", "p1_name ", "p1_rider ",
+        "p2_profile ", "p2_name ", "p2_rider ",
+    )
+    if any(not side[i + 1].startswith(key) or len(side[i + 1]) <= len(key)
+           for i, key in enumerate(keys)):
+        raise ValueError("stock 2P sidecar has malformed v1 fields")
+    m = {key.rstrip(): side[i + 1][len(key):] for i, key in enumerate(keys)}
+    # These are the exact identities seeded by the existing packaged
+    # join.alpha/join.bravo acceptance, never inferred from arbitrary names.
+    identity = (
+        ("p1_profile", "join.alpha"), ("p2_profile", "join.bravo"),
+        ("p1_name", "MIKE"), ("p2_name", "ANDREW"),
+    )
+    for field, expected in identity:
+        try:
+            actual = bytes.fromhex(m[field]).decode("ascii")
+        except (ValueError, UnicodeError) as exc:
+            raise ValueError("stock 2P sidecar identity is not hex-encoded") from exc
+        if actual != expected:
+            raise ValueError("stock 2P sidecar has unexpected participant identity")
+    if (m["run_checksum"] != run_checksum
+            or m["course"] != run_fields["course"]
+            or m["outcome"] != "p1"
+            or m["p1_rider"] != "0" or m["p2_rider"] != "1"
+            or not re.fullmatch(r"[0-9]+", m["p1_result"])
+            or m["p2_result"] != "60000"):
+        raise ValueError("stock 2P sidecar is not bound to the expected result")
+    hundredths = int(m["p1_result"])
+    if not 0 < hundredths < 60000 or ticks != (hundredths * 60 + 50) // 100:
+        raise ValueError("stock 2P run timing differs from settled winner")
+    return {"course": m["course"], "winner": "join.alpha",
+            "run_artifact_checksum": run_checksum, "elapsed_ticks60": str(ticks)}
+
+
 def verify(work: Path, candidate_path: Path,
            expected_source: str, expected_zip: str,
            *, expected_harness: str | None = None,
@@ -182,6 +312,10 @@ def verify(work: Path, candidate_path: Path,
                       (fixture, "receipt_sha256")):
         if not path.stat().st_size or sha256(path) != receipt[key]:
             raise ValueError(f"on-disk artifact digest differs from receipt: {path.name}")
+    # Hashes prove bytes did not change, not that the two saved files
+    # describe one genuine P1-win result. Independently inspect the narrow
+    # v1 pair contract without altering the canonical C++ codecs or game.
+    bound_pair = inspect_two_player_pair(run, match)
     # The producer asserted both launcher processes were successful, but a
     # bounded second read must independently see the event route, actual
     # stock-result notice and fresh process restore/history markers.
@@ -199,6 +333,9 @@ def verify(work: Path, candidate_path: Path,
         "smoke_run_id": candidate["smoke_run_id"],
         "backend": "snesrecomp",
         "run_sha256": receipt["run_sha256"],
+        "paired_course": bound_pair["course"],
+        "paired_winner": bound_pair["winner"],
+        "paired_ticks60": bound_pair["elapsed_ticks60"],
         "match_sha256": receipt["match_sha256"],
         "receipt_sha256": receipt["receipt_sha256"],
         "create_log_sha256": receipt["create_log_sha256"],

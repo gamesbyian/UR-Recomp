@@ -11,6 +11,41 @@ def digest(data):
     return hashlib.sha256(data).hexdigest()
 
 
+def make_v1_pair() -> tuple[bytes, bytes]:
+    """Independent minimal canonical 2P fixture; no production fixture reuse."""
+    from tools.verify_windows_tournament_acceptance_receipt import fnv_hex
+    run_body = (
+        "URRUN 1\n"
+        "game uniracers\n"
+        "rom_sha256 " + "d" * 64 + "\n"
+        "build_compat harness\n"
+        "course course:01\n"
+        "mode race-2p\n"
+        "elapsed_ticks60 60\n"
+        "frame_count 120\n"
+        "terminal_digest -\n"
+        "input 0 60 10 20\n"
+        "END\n"
+    )
+    run_checksum = fnv_hex(run_body.encode("ascii"))
+    match_body = (
+        "UR-MULTIPLAYER-MATCH/1\n"
+        f"run_checksum {run_checksum}\n"
+        "course course:01\n"
+        "outcome p1\n"
+        "p1_result 100\n"
+        "p2_result 60000\n"
+        "p1_profile " + "join.alpha".encode().hex() + "\n"
+        "p1_name " + "MIKE".encode().hex() + "\n"
+        "p1_rider 0\n"
+        "p2_profile " + "join.bravo".encode().hex() + "\n"
+        "p2_name " + "ANDREW".encode().hex() + "\n"
+        "p2_rider 1\n"
+    )
+    return ((run_body + "checksum " + run_checksum + "\n").encode("ascii"),
+            (match_body + "checksum " + fnv_hex(match_body.encode("ascii")) + "\n").encode("ascii"))
+
+
 class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
     def make(self, root):
         work = root / "tournament work"
@@ -21,8 +56,9 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
         p = runs / "run-123.urrun"
         q = runs / "run-123.urrun.urmatch"
         f = fixtures / "fixture-0.urfixture"
-        p.write_bytes(b"fake canonical primary")
-        q.write_bytes(b"fake canonical sidecar")
+        run_bytes, match_bytes = make_v1_pair()
+        p.write_bytes(run_bytes)
+        q.write_bytes(match_bytes)
         f.write_bytes(b"fake fixture")
         (work / "tournament.log").write_text(
             "\n".join((
@@ -108,6 +144,61 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
                             work, candidate, "a" * 40, "b" * 64,
                             expected_harness=harness, expected_smoke_run=run,
                         )
+
+    def test_rehashed_wrong_paired_result_is_rejected_on_semantics_not_digest(self):
+        from tools.verify_windows_tournament_acceptance_receipt import fnv_hex
+        with tempfile.TemporaryDirectory() as tmp:
+            work, candidate, run, match, fixture, report = self.make(Path(tmp))
+            original = match.read_bytes()
+            receipt = report.read_text(encoding="ascii")
+            body = original.decode("ascii").split("checksum ", 1)[0]
+            for change in (
+                body.replace("outcome p1", "outcome p2"),
+                body.replace("p2_profile " + "join.bravo".encode().hex(),
+                             "p2_profile " + "impostor".encode().hex()),
+                body.replace("run_checksum ", "run_checksum 0"),
+                body.replace("p2_result 60000", "p2_result 20"),
+            ):
+                with self.subTest(mutated=change[:50]):
+                    mutated = (change + "checksum " + fnv_hex(change.encode()) + "\n").encode()
+                    match.write_bytes(mutated)
+                    report.write_text(
+                        receipt.replace(digest(original), digest(mutated)),
+                        encoding="ascii",
+                    )
+                    with self.assertRaisesRegex(ValueError, "sidecar|result|checksum"):
+                        verify(work, candidate, "a" * 40, "b" * 64)
+            match.write_bytes(original)
+            report.write_text(receipt, encoding="ascii")
+
+    def test_rehashed_missing_second_input_lane_is_rejected(self):
+        from tools.verify_windows_tournament_acceptance_receipt import fnv_hex
+        with tempfile.TemporaryDirectory() as tmp:
+            work, candidate, run, match, fixture, report = self.make(Path(tmp))
+            original = run.read_bytes()
+            receipt = report.read_text(encoding="ascii")
+            body = original.decode("ascii").split("checksum ", 1)[0]
+            edited = body.replace("input 0 60 10 20", "input 0 60 10 0")
+            edited_run = (edited + "checksum " + fnv_hex(edited.encode()) + "\n").encode()
+            run.write_bytes(edited_run)
+            # Also update the match's internal run checksum and its own
+            # internal FNV, so the assertion tests missing P2 input, not
+            # stale standalone or cross-artifact hashes.
+            old_side = match.read_bytes()
+            side_body = old_side.decode("ascii").split("checksum ", 1)[0]
+            side_body = side_body.replace(
+                "run_checksum " + fnv_hex(body.encode()),
+                "run_checksum " + fnv_hex(edited.encode()),
+            )
+            new_side = (side_body + "checksum " + fnv_hex(side_body.encode()) + "\n").encode()
+            match.write_bytes(new_side)
+            report.write_text(
+                receipt.replace(digest(original), digest(edited_run))
+                       .replace(digest(old_side), digest(new_side)),
+                encoding="ascii",
+            )
+            with self.assertRaisesRegex(ValueError, "missing either captured input lane"):
+                verify(work, candidate, "a" * 40, "b" * 64)
 
     def test_wrong_nominated_pins_or_mutated_files_fail(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -256,10 +347,11 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
     def test_missing_or_duplicate_sidecar_fail(self):
         with tempfile.TemporaryDirectory() as tmp:
             work, candidate, p, q, f, report = self.make(Path(tmp))
+            original_match = q.read_bytes()
             q.unlink()
             with self.assertRaisesRegex(ValueError, "exactly one"):
                 verify(work, candidate, "a" * 40, "b" * 64)
-            q.write_bytes(b"fake canonical sidecar")
+            q.write_bytes(original_match)
             (q.parent / "other.urrun.urmatch").write_bytes(b"extra")
             with self.assertRaisesRegex(ValueError, "exactly one"):
                 verify(work, candidate, "a" * 40, "b" * 64)

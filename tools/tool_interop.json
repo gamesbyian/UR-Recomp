@@ -137,6 +137,22 @@
     {
       "id": "ui-menu-index",
       "description": "Compact reverse index from Uniracers currentMenu byte at 7E:009F to conceptual UI states with evidence status."
+    },
+    {
+      "id": "malmazuke-native-symbol-index",
+      "description": "MIT-licensed pinned malmazuke PAL address → readable C++ citation index, read-only original evidence."
+    },
+    {
+      "id": "malmazuke-research-label-index",
+      "description": "Pinned upstream PAL address classifications and source research record citations; no USA authority."
+    },
+    {
+      "id": "malmazuke-pal-usa-candidates",
+      "description": "Bounded UR-Recomp structural PAL/USA interval candidate index; does not prove semantic correspondence."
+    },
+    {
+      "id": "malmazuke-symbol-search-json",
+      "description": "Offline query report of upstream PAL source, research backlinks and explicitly unverified USA candidates."
     }
   ],
   "components": [
@@ -485,6 +501,28 @@
         "ui-menu-index"
       ],
       "produces": []
+    },
+    {
+      "id": "malmazuke-pinned-research",
+      "kind": "project",
+      "consumes": [],
+      "produces": [
+        "malmazuke-native-symbol-index",
+        "malmazuke-research-label-index",
+        "malmazuke-pal-usa-candidates"
+      ]
+    },
+    {
+      "id": "malmazuke-symbol-query",
+      "kind": "project",
+      "consumes": [
+        "malmazuke-native-symbol-index",
+        "malmazuke-research-label-index",
+        "malmazuke-pal-usa-candidates"
+      ],
+      "produces": [
+        "malmazuke-symbol-search-json"
+      ]
     }
   ],
   "handoffs": [
@@ -718,6 +756,27 @@
       "format": "neutral-input-runs",
       "status": "supported",
       "evidence": "tools/replay_input_mesen.py and tests/unit/test_replay_input_mesen.py exercise the shared P1/P2 transport; canonical-ROM replay remains to be promoted."
+    },
+    {
+      "from": "malmazuke-pinned-research",
+      "to": "malmazuke-symbol-query",
+      "format": "malmazuke-native-symbol-index",
+      "status": "supported",
+      "evidence": "tools/query_malmazuke_symbols.py reads pinned imported evidence and bounded links; tests/unit/test_query_malmazuke_symbols.py exercises exact PAL address lookup and no-USA-authority policy."
+    },
+    {
+      "from": "malmazuke-pinned-research",
+      "to": "malmazuke-symbol-query",
+      "format": "malmazuke-research-label-index",
+      "status": "supported",
+      "evidence": "tools/query_malmazuke_symbols.py reads pinned imported evidence and bounded links; tests/unit/test_query_malmazuke_symbols.py exercises exact PAL address lookup and no-USA-authority policy."
+    },
+    {
+      "from": "malmazuke-pinned-research",
+      "to": "malmazuke-symbol-query",
+      "format": "malmazuke-pal-usa-candidates",
+      "status": "supported",
+      "evidence": "tools/query_malmazuke_symbols.py reads pinned imported evidence and bounded links; tests/unit/test_query_malmazuke_symbols.py exercises exact PAL address lookup and no-USA-authority policy."
     }
   ],
   "chains": [
@@ -868,6 +927,15 @@
         "mesen-input-replay"
       ],
       "purpose": "Drive the same backward-compatible P1/P2 frame-mask stream through native Lua, patched snesref/libretro, and Mesen without emulator-specific controller scripts."
+    },
+    {
+      "id": "malmazuke-source-and-research-lookup",
+      "status": "supported",
+      "steps": [
+        "malmazuke-pinned-research",
+        "malmazuke-symbol-query"
+      ],
+      "purpose": "Find a PAL cited address, original observed/inferred/data classification, research source records and candidate USA interval without elevating an unverified mapping or running a ROM."
     }
   ]
 }

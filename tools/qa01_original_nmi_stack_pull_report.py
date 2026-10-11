@@ -19,7 +19,7 @@ import qa01_original_fresh_switcher_01dd_report as original
 SCHEMA = "UR-QA01-ORIGINAL-SWITCHER-NMI-STACK-PULL-SCOPES/1"
 PULL = re.compile(
     r"^QANMIPULL f=(\d+) v=(\d+) pc=([0-9A-F]{6}) op=([0-9A-F]{2}) "
-    r"sp0=([0-9A-F]{4}) sp1=([0-9A-F]{4}) width=(\d+) "
+    r"sp0=([0-9A-F]{4}) sp1=([0-9A-F]{4}) width=(\d+) e0=([01]) "
     r"pl0=([0-9A-F]{2}) pl1=([0-9A-F]{2}) "
     r"a0=([0-9A-F]{4}) a1=([0-9A-F]{4}) "
     r"dd=([0-9A-F]{2}) de=([0-9A-F]{2}) "
@@ -42,11 +42,11 @@ STACK_LOW, STACK_HIGH = 0x0100, 0x01FF
 TARGET_DD, TARGET_DE = 0x01DD, 0x01DE
 
 
-def expected_pull_width(opcode: int, p: int) -> int:
+def expected_pull_width(opcode: int, p: int, emulation: bool = False) -> int:
     if opcode == 0x68:  # PLA
-        return 1 if p & 0x20 else 2
+        return 1 if emulation or p & 0x20 else 2
     if opcode in (0xFA, 0x7A):  # PLX / PLY
-        return 1 if p & 0x10 else 2
+        return 1 if emulation or p & 0x10 else 2
     if opcode == 0x2B:  # PLD
         return 2
     if opcode in (0xAB, 0x28):  # PLB / PLP
@@ -86,13 +86,13 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
     candidate_saved_a_restorations = []
     rows = []
     for match in matches:
-        (frame_s, v_s, pc, op_s, sp0_s, sp1_s, width_s,
+        (frame_s, v_s, pc, op_s, sp0_s, sp1_s, width_s, e0_s,
          pl0_s, pl1_s, a0, a1, dd, de, tdd_s, tde_s, f1_s) = match.groups()
         frame, frame_after = int(frame_s), int(f1_s)
         v, opcode, sp0, sp1 = int(v_s), int(op_s, 16), int(sp0_s, 16), int(sp1_s, 16)
         width, p0, p1 = int(width_s), int(pl0_s, 16), int(pl1_s, 16)
         tdd, tde = tdd_s == "1", tde_s == "1"
-        exp_width = expected_pull_width(opcode, p0)
+        exp_width = expected_pull_width(opcode, p0, e0_s == "1")
         exp_dd = sp0 < TARGET_DD <= sp0 + width
         exp_de = sp0 < TARGET_DE <= sp0 + width
         if (not first <= frame <= last
@@ -148,6 +148,7 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
             "stack_pointer_before": f"{sp0:04X}",
             "stack_pointer_after": f"{sp1:04X}",
             "architectural_stack_pull_bytes": width,
+            "emulation_mode_before_pull": e0_s == "1",
             "processor_status_low_before": f"{p0:02X}",
             "processor_status_low_after": f"{p1:02X}",
             "accumulator_before": a0,

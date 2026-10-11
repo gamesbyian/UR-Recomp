@@ -20,7 +20,10 @@ SHORT = re.compile(r"^\\$([0-9a-fA-F]{4})$")
 
 
 def canonical_address(value: str) -> str:
-    short = SHORT.fullmatch(value.strip())\n    if short:\n        return f"${int(short.group(1), 16):04X}"\n    match = HEX.fullmatch(value.strip())
+    short = SHORT.fullmatch(value.strip())
+    if short:
+        return f"${int(short.group(1), 16):04X}"
+    match = HEX.fullmatch(value.strip())
     if not match:
         raise ValueError("expected a complete 24-bit SNES address (e.g. 81:8050)")
     bank, addr = (int(part, 16) for part in match.groups())

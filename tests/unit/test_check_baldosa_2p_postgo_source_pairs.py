@@ -30,8 +30,8 @@ class OriginalPostGoPairedObjSourceTest(unittest.TestCase):
         ):
             self.paint(self.sources[upper], x, 70, (*rgb, 255))
             self.paint(self.sources[upper], x + 1, 78, (*rgb, 255))
-            self.paint(self.sources[lower], x, 183, (*rgb, 255))
-            self.paint(self.sources[lower], x + 1, 191, (*rgb, 255))
+            self.paint(self.sources[lower], x - 13, 182, (*rgb, 255))
+            self.paint(self.sources[lower], x - 12, 190, (*rgb, 255))
         self.flush()
 
     @staticmethod
@@ -78,26 +78,31 @@ class OriginalPostGoPairedObjSourceTest(unittest.TestCase):
                          ["98->97", "99->96"])
         for record in report["source_paired_upper_to_lower"].values():
             self.assertEqual(record["status"],
-                             "source-positive-exact-split-rgba-alias")
-            self.assertEqual(record["upper_in_registered_rows_0_to_110"], 2)
-            self.assertEqual(record["lower_in_registered_rows_113_to_223"], 2)
-            self.assertEqual(record["different_rgba_registered_coordinates"], 0)
+                             "source-positive-exact-translated-rgba-alias")
+            self.assertEqual(record["upper_source_opaque_pixels"], 2)
+            self.assertEqual(record["lower_source_opaque_pixels"], 2)
+            self.assertEqual(record["different_rgba_after_registration"], 0)
             self.assertTrue(record["exact_rgba_split_alias_observed"])
+            self.assertEqual(record["bbox_inferred_upper_to_lower_translation_xy"],
+                             [-13, 112])
+        self.assertTrue(report["postgo_translation_same_across_both_player_pairs"])
+        self.assertEqual(report["original_prerace_source_translation_xy_not_assumed"],
+                         [0, 113])
         self.assertFalse(report["remastered_source_erasure_allowed"])
 
     def test_colour_divergence_is_observed_without_falsely_failing_provenance(self):
-        self.paint(self.sources[97], 125, 183, (9, 10, 11, 255))
+        self.paint(self.sources[97], 112, 182, (9, 10, 11, 255))
         self.flush()
         report = assess(self.root)
         one = report["source_paired_upper_to_lower"]["98->97"]
         self.assertEqual(one["status"], "source-visible-split-divergence")
-        self.assertEqual(one["different_alpha_registered_coordinates"], 0)
-        self.assertEqual(one["different_rgba_registered_coordinates"], 1)
-        self.assertEqual(one["bounded_differences"][0]["lower_xy"], [125, 183])
+        self.assertEqual(one["different_alpha_after_registration"], 0)
+        self.assertEqual(one["different_rgba_after_registration"], 1)
+        self.assertEqual(one["bounded_differences"][0]["lower_xy"], [112, 182])
         self.assertTrue(report["result_is_observational_not_required_exact_alias"])
 
     def test_alpha_missing_in_lower_source_is_real_divergence(self):
-        self.paint(self.sources[97], 126, 191, (0, 0, 0, 0))
+        self.paint(self.sources[97], 113, 190, (0, 0, 0, 0))
         self.flush()
         record = assess(self.root)["source_paired_upper_to_lower"]["98->97"]
         self.assertEqual(record["different_alpha_registered_coordinates"], 1)
@@ -107,7 +112,7 @@ class OriginalPostGoPairedObjSourceTest(unittest.TestCase):
         self.paint(self.sources[98], 144, 111, (22, 22, 22, 255))
         self.flush()
         record = assess(self.root)["source_paired_upper_to_lower"]["98->97"]
-        self.assertEqual(record["upper_unpaired_row111_alpha"], 1)
+        self.assertGreater(record["different_alpha_after_registration"], 0)
         self.assertEqual(record["status"], "source-visible-split-divergence")
 
     def test_source_empty_for_one_pair_is_legitimate_not_invented_rider(self):
@@ -117,6 +122,45 @@ class OriginalPostGoPairedObjSourceTest(unittest.TestCase):
         record = assess(self.root)["source_paired_upper_to_lower"]["98->97"]
         self.assertEqual(record["status"], "source-empty")
         self.assertFalse(record["exact_rgba_split_alias_observed"])
+
+    def test_old_countdown_shift_is_valid_as_input_not_postgo_assumption(self):
+        # Rebuild the P1 lower plane with the old (0,+113) raster shift.
+        # Exact source copy is measured, not forced to the later (-13,+112).
+        lower = bytearray(WIDTH * HEIGHT * 4)
+        upper = self.sources[98]
+        for x, y in ((125, 70), (126, 78)):
+            at = 4 * (y * WIDTH + x)
+            self.paint(lower, x, y + 113, tuple(upper[at:at + 4]))
+        self.sources[97] = lower
+        self.flush()
+        report = assess(self.root)
+        one = report["source_paired_upper_to_lower"]["98->97"]
+        self.assertTrue(one["exact_rgba_split_alias_observed"])
+        self.assertEqual(one["bbox_inferred_upper_to_lower_translation_xy"],
+                         [0, 113])
+        self.assertFalse(report["postgo_translation_same_across_both_player_pairs"])
+
+    def test_mismatched_source_viewport_geometry_is_reported_not_blessed(self):
+        self.paint(self.sources[98], 130, 160, (20, 25, 30, 255))
+        self.flush()
+        record = assess(self.root)["source_paired_upper_to_lower"]["98->97"]
+        self.assertEqual(record["upper_source_in_lower_analytic_half"], 1)
+        self.assertFalse(record["exact_rgba_split_alias_observed"])
+
+    def test_true_pair_specific_translations_do_not_get_falsely_conflated(self):
+        # P1 alone shifts one more pixel right, preserving its *own*
+        # exact alias but no longer sharing P2's observed transform.
+        old = self.sources[97]
+        source = bytearray(WIDTH * HEIGHT * 4)
+        for x, y in ((112, 182), (113, 190)):
+            at = 4 * (y * WIDTH + x)
+            self.paint(source, x + 1, y, tuple(old[at:at + 4]))
+        self.sources[97] = source
+        self.flush()
+        report = assess(self.root)
+        self.assertTrue(report["source_paired_upper_to_lower"]
+                        ["98->97"]["exact_rgba_split_alias_observed"])
+        self.assertFalse(report["postgo_translation_same_across_both_player_pairs"])
 
     def test_invalid_cross_raster_size_fails(self):
         with self.assertRaisesRegex(ValueError, "complete"):

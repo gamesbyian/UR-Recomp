@@ -60,7 +60,10 @@
     "external_source_nomination_authenticated": false,
     "original_event_oracle_verified": false,
     "integrated_fresh_process_1p_2p_records_verified": false,
-    "physical_windows_controller_audio_display_verified": false
+    "physical_windows_controller_audio_display_verified": false,
+    "executable_payload_sha256": "29982231bd85dacdb5058c65ccc87deec4e1641603e95dd5d6fb9a37c0c8a439",
+    "launcher_reparse_ancestor_guard_present": true,
+    "template_bytes_compared_against_matching_source_commit": false
   },
   "outcome": "inconclusive",
   "provenance": {

@@ -73,6 +73,20 @@ class PackagedTournamentWorkRootSafetyTests(unittest.TestCase):
             self.assertEqual(proc.returncode, 2, proc.stdout + proc.stderr)
             self.assertFalse(nested.parent.exists())
 
+    def test_real_run_sidecar_receipt_checked_across_fresh_process(self):
+        text = ROUTE.read_text(encoding="utf-8")
+        self.assertIn("*.urrun.urmatch", text)
+        self.assertIn('test "${matches[0]}" = "${runs[0]}.urmatch"', text)
+        self.assertIn('run_hash="$(sha256sum "${runs[0]}"', text)
+        self.assertIn('match_hash="$(sha256sum "${matches[0]}"', text)
+        self.assertIn('receipt_hash="$(sha256sum "${receipts[0]}"', text)
+        self.assertIn('test "$(sha256sum "${runs[0]}"', text)
+        self.assertIn('test "$(sha256sum "${matches[0]}"', text)
+        self.assertIn('test "$(sha256sum "${receipts[0]}"', text)
+        self.assertLess(text.index("run_hash="), text.index("run_package reopen"))
+        self.assertGreater(text.index('test "$(sha256sum "${runs[0]}"'),
+                           text.index("run_package reopen"))
+
     def test_no_recursive_delete_in_package_route(self):
         text = ROUTE.read_text(encoding="utf-8")
         self.assertNotIn("rm -rf", text)

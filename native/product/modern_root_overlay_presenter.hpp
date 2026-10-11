@@ -48,6 +48,7 @@ struct ModernRootOverlayView {
     // Native source-only Records may switch to existing paired 2P history.
     // All older root callers default to the historical 1P RUNS view.
     bool read_only_records_two_player = false;
+    bool read_only_records_pages_available = false;
 };
 
 inline bool render_modern_root_overlay(
@@ -212,9 +213,11 @@ inline bool render_modern_root_overlay(
                         "READ ONLY - NO REPLAY", palette.cursor_blue, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 114 * scale,
-                        view.read_only_records_two_player
-                            ? "UP/DOWN 1P  B BACK"
-                            : "UP/DOWN 2P  B BACK",
+                        !view.read_only_records_pages_available
+                            ? "A/ENTER  B/ESC BACK"
+                            : view.read_only_records_two_player
+                                ? "UP/DOWN 1P  B BACK"
+                                : "UP/DOWN 2P  B BACK",
                         0xFFFFFFFFu, scale);
     }
     return true;

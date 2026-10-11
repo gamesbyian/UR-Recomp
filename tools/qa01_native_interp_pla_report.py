@@ -17,7 +17,9 @@ ROW = re.compile(
     r"^QANATIVEINTPLA f=(\d+) k=([0-9A-F]{2}) pcnext=([0-9A-F]{4})"
     r" sp0=([0-9A-F]{4}) sp1=([0-9A-F]{4})"
     r" a0=([0-9A-F]{4}) a1=([0-9A-F]{4})"
-    r" m0=([01]) e0=([01]) armed=([01])$"
+    r" m0=([01]) e0=([01]) armed=([01])"
+    r" reads=([012]) ra0=([0-9A-F]{4}) rv0=([0-9A-F]{2})"
+    r" ra1=([0-9A-F]{4}) rv1=([0-9A-F]{2})$"
 )
 
 
@@ -31,10 +33,25 @@ def summarize(log: str) -> dict:
         m = ROW.fullmatch(line)
         if not m:
             raise ValueError("malformed native interpreter PLA or overflow record")
-        f, k, pc, sp0, sp1, a0, a1, m0, e0, armed = m.groups()
+        (f, k, pc, sp0, sp1, a0, a1, m0, e0, armed,
+         reads, ra0, rv0, ra1, rv1) = m.groups()
         f, sp0n, sp1n = int(f), int(sp0, 16), int(sp1, 16)
         width = 1 if m0 == "1" else 2
         observed_arm = armed == "1"
+        nbytes = int(reads)
+        actual_bytes = [{"address": f"7E:{ra0}", "value": rv0}] if nbytes else []
+        if nbytes == 2:
+            actual_bytes.append({"address": f"7E:{ra1}", "value": rv1})
+        # Exact returned bytes inside this interpreter opcode, not an
+        # arbitrary neighboring host read that happens to match the word.
+        read_word = int(rv0, 16) | ((int(rv1, 16) << 8) if nbytes == 2 else 0)
+        if (nbytes != width
+                or int(ra0, 16) != sp0n + 1
+                or int(rv0, 16) != (int(a1, 16) & 0xFF)
+                or (nbytes == 2 and
+                    (int(ra1, 16) != sp0n + 2 or read_word != int(a1, 16)))
+                or (nbytes == 1 and (ra1 != "0000" or rv1 != "00"))):
+            raise ValueError("interpreter PLA read bytes do not reconstruct opcode accumulator")
         if (not 5778 <= f <= 5782 or f < previous_frame
                 or not 0x01DB <= sp0n <= 0x01DD
                 or sp1n != sp0n + width
@@ -65,6 +82,8 @@ def summarize(log: str) -> dict:
             "interpreter_emulation_mode_before": e0 == "1",
             "real_native_4004_writer_callback_precedes_interpreter_pla": observed_arm,
             "physically_touched_stack_bytes": touched,
+            "interpreter_exact_op_byte_reads": actual_bytes,
+            "interpreter_byte_reads_reconstruct_accumulator": True,
             "guest_pla_opcode_executed": True,
             "interpreter_pc_is_post_fetch_not_exact_instruction_pc": True,
         })

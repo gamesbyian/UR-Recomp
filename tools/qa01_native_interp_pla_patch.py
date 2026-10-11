@@ -12,6 +12,12 @@ from pathlib import Path
 
 STAMP = "UR_QA01_NATIVE_INTERPRETER_PLA_V1"
 INCLUDE = '#include "interp816.h"\n'
+PULLBYTE = """static uint8_t interp816_pullByte(Interp816* cpu) {
+  cpu->sp++;
+  if(cpu->e) cpu->sp = (cpu->sp & 0xff) | 0x100;
+  return interp816_read(cpu, cpu->sp);
+}
+"""
 OPCODE = """    case 0x68: { // pla imp
       if(cpu->mf) {
         cpu->a = (cpu->a & 0xff00) | interp816_pullByte(cpu);
@@ -28,7 +34,8 @@ OPCODE = """    case 0x68: { // pla imp
 def patch(source: str) -> str:
     if STAMP in source:
         raise ValueError("original native interpreter PLA observer already installed")
-    if source.count(OPCODE) != 1 or source.count(INCLUDE) != 1:
+    if (source.count(OPCODE) != 1 or source.count(INCLUDE) != 1
+            or source.count(PULLBYTE) != 1):
         raise ValueError("pinned interpreter case-68/opcode header absent or ambiguous")
     if source.count("static uint16_t interp816_pullWord(Interp816* cpu) {") != 1:
         raise ValueError("pinned 16-bit interpreter pull implementation absent")
@@ -39,6 +46,11 @@ def patch(source: str) -> str:
  * PC here is the interpreter's POST-OPCODE-FETCH cursor. */
 extern unsigned ur_qa01_stack_saved_writer_seen(void);
 extern int snes_frame_counter;
+/* Record the byte reads within the *current* PLA, not other bus traffic. */
+static unsigned ur_qa01_pla_active = 0;
+static unsigned ur_qa01_pla_read_count = 0;
+static uint16_t ur_qa01_pla_read_addr[2] = {0, 0};
+static uint8_t ur_qa01_pla_read_value[2] = {0, 0};
 static void ur_qa01_note_interp_pla(Interp816 *cpu, uint16_t sp0,
                                     uint16_t a0, unsigned m0, unsigned e0) {
     int frame = snes_frame_counter;
@@ -66,11 +78,15 @@ static void ur_qa01_note_interp_pla(Interp816 *cpu, uint16_t sp0,
     ++count;
     fprintf(fp, "QANATIVEINTPLA f=%d k=%02X pcnext=%04X"
             " sp0=%04X sp1=%04X a0=%04X a1=%04X"
-            " m0=%u e0=%u armed=%u\n",
+            " m0=%u e0=%u armed=%u"
+            " reads=%u ra0=%04X rv0=%02X ra1=%04X rv1=%02X\n",
             frame, (unsigned)cpu->k, (unsigned)cpu->pc,
             (unsigned)sp0, (unsigned)cpu->sp,
             (unsigned)a0, (unsigned)cpu->a, m0, e0,
-            ur_qa01_stack_saved_writer_seen() ? 1u : 0u);
+            ur_qa01_stack_saved_writer_seen() ? 1u : 0u,
+            ur_qa01_pla_read_count,
+            (unsigned)ur_qa01_pla_read_addr[0], (unsigned)ur_qa01_pla_read_value[0],
+            (unsigned)ur_qa01_pla_read_addr[1], (unsigned)ur_qa01_pla_read_value[1]);
 }
 """
     before = """    case 0x68: { // pla imp
@@ -91,9 +107,37 @@ static void ur_qa01_note_interp_pla(Interp816 *cpu, uint16_t sp0,
       break;
     }
 """
+    # Activate only within the existing original PLA opcode and capture
+    # the single returned byte from each original interpreter read.
+    before = before.replace(
+        "      if(cpu->mf) {",
+        """      ur_qa01_pla_read_count = 0;
+      ur_qa01_pla_read_addr[0] = ur_qa01_pla_read_addr[1] = 0;
+      ur_qa01_pla_read_value[0] = ur_qa01_pla_read_value[1] = 0;
+      ur_qa01_pla_active = 1;
+      if(cpu->mf) {""", 1)
+    before = before.replace(
+        "      ur_qa01_note_interp_pla(cpu,",
+        "      ur_qa01_pla_active = 0;\\n      ur_qa01_note_interp_pla(cpu,".replace("\\\\n", "\\n"), 1)
     if before.count("interp816_pullWord(cpu)") != 1:
         raise AssertionError("original 16-bit PLA implementation must remain unchanged")
-    return source.replace(INCLUDE, INCLUDE + helper, 1).replace(OPCODE, before, 1)
+    observed_byte = """static uint8_t interp816_pullByte(Interp816* cpu) {
+  cpu->sp++;
+  if(cpu->e) cpu->sp = (cpu->sp & 0xff) | 0x100;
+  uint8_t ur_qa_pla_byte = interp816_read(cpu, cpu->sp);
+  if (ur_qa01_pla_active && ur_qa01_pla_read_count < 2) {
+    unsigned i = ur_qa01_pla_read_count++;
+    ur_qa01_pla_read_addr[i] = cpu->sp;
+    ur_qa01_pla_read_value[i] = ur_qa_pla_byte;
+  }
+  return ur_qa_pla_byte;
+}
+"""
+    if observed_byte.count("interp816_read(cpu, cpu->sp)") != 1:
+        raise AssertionError("read-only interpreter byte observation must not double-read")
+    return (source.replace(INCLUDE, INCLUDE + helper, 1)
+                  .replace(PULLBYTE, observed_byte, 1)
+                  .replace(OPCODE, before, 1))
 
 
 def main() -> int:

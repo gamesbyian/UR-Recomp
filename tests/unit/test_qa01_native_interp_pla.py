@@ -10,13 +10,14 @@ sys.path.insert(0, str(ROOT / "tools"))
 import qa01_native_interp_pla_patch as patcher
 import qa01_native_interp_pla_report as report
 
-C_SOURCE = (patcher.INCLUDE +
+C_SOURCE = (patcher.INCLUDE + patcher.PULLBYTE +
             "static uint16_t interp816_pullWord(Interp816* cpu) {\n"
             "  return interp816_pullByte(cpu);\n"
             "}\n" + patcher.OPCODE)
 PLA = (
     "QANATIVEINTPLA f=5781 k=80 pcnext=859A sp0=01DC sp1=01DE "
-    "a0=0000 a1=4004 m0=0 e0=0 armed=1\n"
+    "a0=0000 a1=4004 m0=0 e0=0 armed=1 "
+    "reads=2 ra0=01DD rv0=04 ra1=01DE rv1=40\n"
 )
 
 
@@ -29,6 +30,9 @@ class NativeInterpreterPlaTests(unittest.TestCase):
         self.assertEqual(source.count("interp816_setZN(cpu, cpu->a, cpu->mf);"), 1)
         self.assertIn("ur_qa01_note_interp_pla(cpu", source)
         self.assertIn("UR_QA_NATIVE_INTERP_PLA_PATH", source)
+        self.assertEqual(source.count("interp816_read(cpu, cpu->sp)"), 1)
+        self.assertIn("ur_qa01_pla_read_value[i] = ur_qa_pla_byte;", source)
+        self.assertIn("ur_qa01_pla_active = 0;", source)
         with self.assertRaisesRegex(ValueError, "already installed"):
             patcher.patch(source)
         with self.assertRaisesRegex(ValueError, "ambiguous"):
@@ -43,6 +47,10 @@ class NativeInterpreterPlaTests(unittest.TestCase):
         self.assertEqual(r["physically_touched_stack_bytes"], ["7E:01DD","7E:01DE"])
         self.assertTrue(r["real_native_4004_writer_callback_precedes_interpreter_pla"])
         self.assertTrue(r["guest_pla_opcode_executed"])
+        self.assertEqual(r["interpreter_exact_op_byte_reads"],
+                         [{"address": "7E:01DD", "value": "04"},
+                          {"address": "7E:01DE", "value": "40"}])
+        self.assertTrue(r["interpreter_byte_reads_reconstruct_accumulator"])
         self.assertTrue(r["interpreter_pc_is_post_fetch_not_exact_instruction_pc"])
         self.assertFalse(data["source_original_and_native_cpu_frame_alignment_proven"])
         self.assertEqual(data["release_complete_event_credit"], 0)
@@ -67,6 +75,8 @@ class NativeInterpreterPlaTests(unittest.TestCase):
     def test_8bit_pla_only_restores_one_byte_and_preserves_high_a(self):
         one = PLA.replace("sp1=01DE", "sp1=01DD").replace("m0=0", "m0=1")
         one = one.replace("a0=0000 a1=4004", "a0=4000 a1=4004")
+        one = one.replace("reads=2 ra0=01DD rv0=04 ra1=01DE rv1=40",
+                          "reads=1 ra0=01DD rv0=04 ra1=0000 rv1=00")
         data = report.summarize(one)
         self.assertEqual(data["native_interpreter_saved_4004_pla_candidate_count"], 0)
         self.assertEqual(data["native_interpreter_pla_records"][0]
@@ -83,6 +93,11 @@ class NativeInterpreterPlaTests(unittest.TestCase):
             PLA.replace("a1=4004", "a1=zzzz"),
             PLA.replace("e0=0", "e0=1"),
             PLA.replace("pcnext=859A", "pcnext=????"),
+            PLA.replace("reads=2", "reads=1"),
+            PLA.replace("ra0=01DD", "ra0=01DE"),
+            PLA.replace("rv0=04", "rv0=42"),
+            PLA.replace("ra1=01DE", "ra1=01DF"),
+            PLA.replace("rv1=40", "rv1=41"),
             PLA + PLA.replace("f=5781", "f=5780"),
             PLA * (report.LIMIT+1),
             "QANATIVEINTPLAOVERFLOW\n",

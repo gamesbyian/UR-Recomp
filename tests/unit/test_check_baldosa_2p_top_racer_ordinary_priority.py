@@ -172,10 +172,14 @@ class NativeTop2PCausalSourceTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "source slot99"):
             verify(self.root, 1856)
 
-    def test_native_wrong_unchanged_overlap_claim_rejected(self):
-        self.paint(self.scenes[1856]["without"],
-                   self.scenes[1856]["positions"][2], (0, 0, 0, 255))
-        self.flush(1856)  # Even a matching forged native final report cannot bless bad PPU.
+    def test_rear_only_not_visible_despite_valid_same_frame_reports_rejected(self):
+        scene = self.scenes[1856]
+        # Invented black foreground over a rear-only source has no
+        # front deletion delta. Native report counts still match, but
+        # an erroneous source-priority observation must be rejected.
+        self.paint(scene["stock"], scene["positions"][3], (0, 0, 0, 255))
+        self.paint(scene["without"], scene["positions"][3], (0, 0, 0, 255))
+        self.flush(1856)
         with self.assertRaisesRegex(ValueError, "does not satisfy expected PPU"):
             verify(self.root, 1856)
 

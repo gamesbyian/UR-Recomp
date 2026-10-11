@@ -98,9 +98,39 @@ jobs:
           wait "$p1"; r1=$?
           set -e
 
-          echo "===== unit shard 0 ====="
-          cat "$RUNNER_TEMP/unit-shard0.log"
-          echo "===== unit shard 1 ====="
-          cat "$RUNNER_TEMP/unit-shard1.log"
+          # Persist the observed per-shard process result before asserting.
+          # A reporting step later publishes the concise diagnosis even on red.
+          printf 'shard0=%s\nshard1=%s\n' "$r0" "$r1" > "$RUNNER_TEMP/unit-shard-exits.txt"
+          echo "Tooling unit exit codes: shard0=$r0 shard1=$r1"
+          grep -E '^(Ran [0-9]+ tests?|OK|FAILED|FAIL:|ERROR:)' "$RUNNER_TEMP"/unit-shard*.log || true
           test "$r0" -eq 0
           test "$r1" -eq 0
+
+      - name: Publish bounded unit result and job summary
+        if: always()
+        shell: bash
+        env:
+          SOURCE_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python3 tools/summarize_unittest_ci.py \
+            --root "$RUNNER_TEMP" \
+            --out "$RUNNER_TEMP/ci-tooling-unit-result.json" \
+            --summary "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload compact unit result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-tooling-unit-result
+          path: ${{ runner.temp }}/ci-tooling-unit-result.json
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Preserve full failing-shard diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-tooling-unit-failure-logs
+          path: ${{ runner.temp }}/unit-shard*.log
+          if-no-files-found: warn
+          retention-days: 7

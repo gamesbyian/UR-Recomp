@@ -353,11 +353,14 @@ def check_runtime_actions_wrapper(wrapper: Path, candidate: dict) -> dict:
             f"UR_BALDOSA_MODERN_ROOT stock_entered players={players}",
             "SDL reports 0 joystick(s)",
             "audio=dummy",
-            " quit",
         )
+        # The real guest transcript includes both "script f=... quit" and
+        # "exit: script quit"; counting the substring " quit" double-counts.
+        script_exits = re.findall(r"(?m)^script f=[0-9]+ quit\\r?$", contents)
         if (any(contents.count(marker) != 1 for marker in markers)
-                or "UR_MULTIPLAYER_MATCH CAPTURED" in contents
-                or "UR_RUN_RECORD CAPTURED" in contents):
+                or len(script_exits) != 1
+                or "UR_MULTIPLAYER_MATCH " in contents
+                or "UR_RUN_RECORD " in contents):
             raise ValueError("Baldosa stock-race entry log missing or contradicts smoke scope")
     candidate["inputs"]["runtime_actions_wrapper_basename"] = wrapper.name
     candidate["inputs"]["runtime_actions_wrapper_sha256"] = file_digest(wrapper)

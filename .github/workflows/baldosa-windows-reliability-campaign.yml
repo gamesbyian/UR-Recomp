@@ -1,0 +1,130 @@
+name: Baldosa Windows shared-build reliability campaign
+
+# Manual and expensive. One verified Win32 Baldosa build, four independent
+# research cohorts. No complete-event, physical hardware or release credit.
+on:
+  workflow_dispatch:
+    inputs:
+      trials_per_shard:
+        description: "Real Windows whole-journey repetitions per shard"
+        type: choice
+        required: true
+        default: "1"
+        options: ["1", "3", "10"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: baldosa-win32-reliability-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  candidate:
+    uses: ./.github/workflows/baldosa-windows-native-bridge.yml
+    with:
+      export_campaign_inputs: true
+
+  scenario:
+    needs: candidate
+    runs-on: windows-2022
+    timeout-minutes: 240
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        shard: [guest-0, guest-1, launcher-0, launcher-1]
+    steps:
+      - name: Checkout exact UR candidate source and research owner
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Checkout exact archived Baldosa controller script
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          persist-credentials: false
+      - name: Retrieve single candidate binary and verified ROM-free ZIP
+        uses: actions/download-artifact@v4
+        with:
+          name: qa-baldosa-native-export
+          path: ${{ runner.temp }}/qa-win32-inputs
+      - name: Verify binary hashes, source revision and campaign contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/qa-win32-inputs"
+          sha256sum -c SHA256SUMS
+          test "$(cat source-commit.txt)" = "$GITHUB_SHA"
+          test -s UniracersSNESRecomp.exe
+          test -s ur-baldosa-modern-profile-fixture.exe
+          test -s UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip
+          cd "$GITHUB_WORKSPACE"
+          python -m unittest discover -s tests/unit -p test_qa_baldosa_windows_reliability_batch.py
+      - name: Repeat source-bound genuine Windows native/CMD journeys
+        shell: bash
+        env:
+          SHARD: ${{ matrix.shard }}
+          TRIALS: ${{ inputs.trials_per_shard }}
+        run: |
+          set -euo pipefail
+          python tools/qa_baldosa_windows_reliability_batch.py run \
+            --source-sha "$GITHUB_SHA" \
+            --shard "$SHARD" --trials "$TRIALS" \
+            --exe "$RUNNER_TEMP/qa-win32-inputs/UniracersSNESRecomp.exe" \
+            --fixture "$RUNNER_TEMP/qa-win32-inputs/ur-baldosa-modern-profile-fixture.exe" \
+            --archive "$RUNNER_TEMP/qa-win32-inputs/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/baldosa/tests/routes/race_2p_split.txt" \
+            --work "$RUNNER_TEMP/win32-private-work" \
+            --out "$RUNNER_TEMP/win32-result/result.json"
+          python -c 'import json,sys; d=json.load(open(sys.argv[1])); print("### "+d["shard"]+"\n\n"+str(d["passed_trials"])+"/"+str(d["expected_trials"])+" real Windows journeys passed.")' "$RUNNER_TEMP/win32-result/result.json" >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain only bounded receipt, not ROM or private saves
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-win32-batch-${{ matrix.shard }}
+          path: ${{ runner.temp }}/win32-result/result.json
+          retention-days: 14
+          if-no-files-found: warn
+
+  aggregate:
+    needs: [candidate, scenario]
+    if: ${{ always() && needs.candidate.result == 'success' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Collect all four original receipts, including partial runs
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: qa-win32-batch-*
+          path: ${{ runner.temp }}/qa-win32-results
+          merge-multiple: false
+      - name: Fail closed on missing evidence, stale binaries or false credit
+        env:
+          TRIALS: ${{ inputs.trials_per_shard }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa-win32-results"
+          python3 tools/qa_baldosa_windows_reliability_batch.py aggregate \
+            --source-sha "$GITHUB_SHA" --trials "$TRIALS" \
+            --results "$RUNNER_TEMP/qa-win32-results" \
+            --out "$RUNNER_TEMP/qa-win32-aggregate/result.json" \
+            --summary "$GITHUB_STEP_SUMMARY"
+      - name: Always publish aggregate machine receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-win32-reliability-aggregate
+          path: ${{ runner.temp }}/qa-win32-aggregate/result.json
+          retention-days: 14
+          if-no-files-found: warn

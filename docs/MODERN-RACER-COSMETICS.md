@@ -39,8 +39,10 @@ When a **modern racer's entered name contains** any of the following exact ASCII
 - `halamantariel`
 - `dessyreqt`
 - `nitrodon`
+- `baldosa`
+- `malmazuke`
 
-Examples that trigger: `The Real Halamantariel`, `DESSYREQT`, `Sir Nitrodon III`. Nonmatching prefixes, approximate spellings and confusables do not trigger; match substrings rather than token boundaries. Evaluate after the accepted racer-name input has been normalized through the existing name-validation/identity path; do not silently change what the name editor accepts. No announcement is required. This reward is a **derived appearance rule**, not a persisted grant and not an unlock. Renaming to a nonmatching value immediately removes it; renaming back restores it. Do not consume the player's ordinary headwear selection: resolve a separate forced honorary head-layer appearance, with an explicit deterministic rule to suppress or layer conflicting ordinary hats while the crown is active. Never write into stock SRAM for the crown and never conflate the crown with the preexisting stock forbidden-name / **COOL NAME!** Easter egg.
+Examples that trigger: `The Real Halamantariel`, `DESSYREQT`, `Sir Nitrodon III`, `BALDOSA`, `Team Malmazuke`. Nonmatching prefixes, approximate spellings and confusables do not trigger; match substrings rather than token boundaries. Evaluate after the accepted racer-name input has been normalized through the existing name-validation/identity path; do not silently change what the name editor accepts. No announcement is required. This reward is a **derived appearance rule**, not a persisted grant and not an unlock. Renaming to a nonmatching value immediately removes it; renaming back restores it. Do not consume the player's ordinary headwear selection: resolve a separate forced honorary head-layer appearance, with an explicit deterministic rule to suppress or layer conflicting ordinary hats while the crown is active. Never write into stock SRAM for the crown and never conflate the crown with the preexisting stock forbidden-name / **COOL NAME!** Easter egg.
 
 An appearance record may persist normal choices (e.g. `head`, `scarf`, `wheel`, `aura`, `trail`), but **must not persist the derived crown boolean as authority**. Re-evaluate from racer name on load, edit, profile activation, and racer selection. If content is missing, show the standard rider without disrupting player selection or saves. Show the crown on named AI/guest riders only if a deliberate later policy opts in; initial requirement is player-entered modern racer names.
 
@@ -67,7 +69,7 @@ Suggested code ownership: presentation-only `racer_cosmetic_pose.*`, `racer_cosm
 
 ## Delivery and acceptance sequence
 
-**Phase 0: policy and fixtures.** Pure name-matching tests for lower/upper/mixed case, substring forms, renamed-to-nonmatching behavior, false positives, empty/max-length inputs and existing forbidden-name Easter egg independence. Define appearance precedence and unsupported content fallback.
+**Phase 0: policy and fixtures.** Pure name-matching tests for **all five** names (`halamantariel`, `dessyreqt`, `nitrodon`, `baldosa`, `malmazuke`): lower/upper/mixed case, containing substrings (e.g. `TheBaldosaOne`, `Team Malmazuke`), renamed-to-nonmatching behavior, false positives (`baldos`, `malmazuk`, Unicode lookalikes), empty/max-length inputs and existing forbidden-name Easter egg independence. Define appearance precedence and unsupported content fallback.
 
 **Phase 1: measured pose pilot.** Extract and validate seat, wheel and rear attachment anchors for the most common original/HD poses; include an upside-down flip and transition. Provide visual/native snapshots, not just synthetic geometry tests.
 

@@ -51,9 +51,7 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
                 if line.strip().startswith("#define CHECK_FOR_IRQ()")]
         self.assertEqual(len(defs), 2)
         for definition in defs:
-            self.assertRegex(
-                definition, r"^#define CHECK_FOR_IRQ\\(\\)\\s+\\{\\}(?:\\s*//.*)?$"
-                .replace("\\\\", "\\"))
+            self.assertRegex(definition, r"^#define CHECK_FOR_IRQ\(\)\s+\{\}(?:\s*//.*)?$")
         implementation = (core / "cpuops.cpp").read_text(encoding="utf-8")
         rti = implementation.split("Op40Slow (void)", 1)[1].split(
             "/* STP/WAI", 1)[0]

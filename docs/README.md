@@ -2,6 +2,10 @@
 
 **For agents:** start at [AGENTS.md](../AGENTS.md) and the *short, current* [WORK-QUEUE.md](WORK-QUEUE.md). A dated investigation or historical implementation phase never independently schedules work. This index owns only **where facts live**, not a second backlog.
 
+## Three-project R&D apparatus synthesis
+
+See the [Baldosa/malmazuke/UR apparatus synthesis](THREE-PROJECT-APPARATUS-SYNTHESIS-20261010.md), [shared route/evidence spine](THREE-PROJECT-SHARED-EVIDENCE-SPINE-20261010.md), and [ordered adoption roadmap](THREE-PROJECT-APPARATUS-ROADMAP-20261010.md). The pinned file inventories and 35-capability matrix are checked by `python3 tools/audit_three_project_apparatus.py`. These plans do not replace the work queue, technical reference or release ledger.
+
 ## Enduring technical-reference charter
 
 [DEFINITIVE-UNIRACERS-TECHNICAL-REFERENCE.md](DEFINITIVE-UNIRACERS-TECHNICAL-REFERENCE.md) defines the second permanent deliverable alongside the playable game, with mechanical/evidential/architectural/explanatory completeness criteria and a Technical Atlas format. It is a durable scope/quality charter, not a competing live queue or release ledger. The bounded [Baldosa/legacy causal comparison](BALDOSA-LEGACY-RECOMP-CAUSAL-COMPARISON-20261010.md) and [same-host Switcher memory witness](QA01-SWITCHER-5782-RAW-MEMORY-EVIDENCE-20261010.md) retain focused October 10 evidence.

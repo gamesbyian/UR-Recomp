@@ -16,6 +16,15 @@ python3 tools/export_symbol_adapters.py --check
 
 See `docs/TOOLCHAIN.md` for selection guidance, `docs/TOOL-INTEROPERABILITY.md` for producer/consumer chains, and `AGENTS.md` for task routing.
 
+Pinned Baldosa/malmazuke/UR apparatus audit (file-level inventory and 35 grounded capability decisions):
+
+```bash
+python3 tools/audit_three_project_apparatus.py
+python3 -m unittest tests.unit.test_audit_three_project_apparatus
+```
+
+An inventoried tool is not a verified original-game or native-execution feature; consult the [three-project synthesis](../docs/THREE-PROJECT-APPARATUS-SYNTHESIS-20261010.md) before adoption.
+
 UI-state helpers:
 
 ```bash

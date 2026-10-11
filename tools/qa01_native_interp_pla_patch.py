@@ -12,10 +12,6 @@ from pathlib import Path
 
 STAMP = "UR_QA01_NATIVE_INTERPRETER_PLA_V1"
 INCLUDE = '#include "interp816.h"\n'
-INIT = """  cpu->brkHookEnabled = true;
-  return cpu;
-}
-"""
 PULLBYTE = """static uint8_t interp816_pullByte(Interp816* cpu) {
   cpu->sp++;
   if(cpu->e) cpu->sp = (cpu->sp & 0xff) | 0x100;
@@ -39,8 +35,7 @@ def patch(source: str) -> str:
     if STAMP in source:
         raise ValueError("original native interpreter PLA observer already installed")
     if (source.count(OPCODE) != 1 or source.count(INCLUDE) != 1
-            or source.count(PULLBYTE) != 1
-            or source.count(INIT) != 1):
+            or source.count(PULLBYTE) != 1):
         raise ValueError("pinned interpreter case-68/opcode header absent or ambiguous")
     if source.count("static uint16_t interp816_pullWord(Interp816* cpu) {") != 1:
         raise ValueError("pinned 16-bit interpreter pull implementation absent")
@@ -72,6 +67,12 @@ static FILE *ur_qa01_interp_pla_output(void) {
         initialized = 1;
     }
     return fp;
+}
+/* Real production interp_bridge.c constructs a LOCAL Interp816 in;
+ * interp816_init() is not part of this game's live fallback path.
+ * The attested native 4004 NMI writer invokes this from cpu_state.c. */
+void ur_qa01_interp_pla_arm(void) {
+    (void)ur_qa01_interp_pla_output();
 }
 static void ur_qa01_note_interp_pla(Interp816 *cpu, uint16_t sp0,
                                     uint16_t a0, unsigned m0, unsigned e0) {
@@ -148,13 +149,7 @@ static void ur_qa01_note_interp_pla(Interp816 *cpu, uint16_t sp0,
 """
     if observed_byte.count("interp816_read(cpu, cpu->sp)") != 1:
         raise AssertionError("read-only interpreter byte observation must not double-read")
-    initialized = INIT.replace(
-        "  return cpu;",
-        "  /* Eager observer-ready attestation, even with zero matching PLA. */\n"
-        "  (void)ur_qa01_interp_pla_output();\n"
-        "  return cpu;", 1)
     return (source.replace(INCLUDE, INCLUDE + helper, 1)
-                  .replace(INIT, initialized, 1)
                   .replace(PULLBYTE, observed_byte, 1)
                   .replace(OPCODE, before, 1))
 

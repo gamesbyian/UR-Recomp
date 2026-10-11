@@ -11,7 +11,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 import qa01_native_interp_pla_patch as patcher
 import qa01_native_interp_pla_report as report
 
-C_SOURCE = (patcher.INCLUDE + patcher.INIT + patcher.PULLBYTE +
+C_SOURCE = (patcher.INCLUDE + patcher.PULLBYTE +
             "static uint16_t interp816_pullWord(Interp816* cpu) {\n"
             "  return interp816_pullByte(cpu);\n"
             "}\n" + patcher.OPCODE)
@@ -36,7 +36,9 @@ class NativeInterpreterPlaTests(unittest.TestCase):
         self.assertIn("ur_qa01_pla_read_value[i] = ur_qa_pla_byte;", source)
         self.assertIn("ur_qa01_pla_active = 0;", source)
         self.assertIn("QANATIVEINTPLAREADY", source)
+        self.assertIn("void ur_qa01_interp_pla_arm(void)", source)
         self.assertIn("(void)ur_qa01_interp_pla_output();", source)
+        self.assertNotIn("interp816_init(void*", source)
         with self.assertRaisesRegex(ValueError, "already installed"):
             patcher.patch(source)
         with self.assertRaisesRegex(ValueError, "ambiguous"):
@@ -218,7 +220,13 @@ class NativeInterpreterPlaTests(unittest.TestCase):
         self.assertIn("uint8_t ur_qa_pla_byte = interp816_read(cpu, cpu->sp);", patched)
         self.assertIn("ur_qa01_pla_read_addr[i] = cpu->sp;", patched)
         self.assertIn("ur_qa01_pla_read_value[i] = ur_qa_pla_byte;", patched)
-        self.assertIn("(void)ur_qa01_interp_pla_output();", patched)
+        self.assertIn("void ur_qa01_interp_pla_arm(void)", patched)
+        bridge = ROOT / "baldosa/snesrecomp/runner/src/snes/interp_bridge.c"
+        if bridge.is_file():
+            live_bridge = bridge.read_text(encoding="utf-8")
+            self.assertIn("Interp816 in;", live_bridge)
+            self.assertIn("memset(&in, 0, sizeof in);", live_bridge)
+            self.assertNotIn("interp816_init(", live_bridge)
         self.assertEqual(patched.count("interp816_read(cpu, cpu->sp);"),
                          original.count("interp816_read(cpu, cpu->sp);"))
 

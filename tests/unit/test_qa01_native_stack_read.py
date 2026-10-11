@@ -42,6 +42,8 @@ class NativeStackReadTests(unittest.TestCase):
         self.assertIn("++ur_qa01_read_suppressed;", x)
         self.assertIn("--ur_qa01_read_suppressed;", x)
         self.assertIn("ur_qa01_stack_read_arm();", x)
+        self.assertIn("extern void ur_qa01_interp_pla_arm(void);", x)
+        self.assertIn("        ur_qa01_interp_pla_arm();", x)
         self.assertIn("QANATIVEOVERFLOW", x)
         self.assertIn("bank == 0x00u", x)
         self.assertEqual(x.count("return cpu_latch_read8(cpu, cpu->ram[off]);"), 1)

@@ -55,12 +55,18 @@ static unsigned ur_qa01_native_saved_writer_seen = 0;
 unsigned ur_qa01_stack_saved_writer_seen(void) {
     return ur_qa01_native_saved_writer_seen;
 }
+/* Defined only by the opt-in disposable interpreter observer, which this
+ * paired workflow installs in the same native guest build. */
+extern void ur_qa01_interp_pla_arm(void);
 static void ur_qa01_stack_read_arm(void) {
     FILE *fp = ur_qa01_stack_read_file();
     if (fp) {
         fputs("QANATIVEARM f=5781 bank=00 addr=01DD width=2 value=4004"
               " A=4004 S=01DD scope=I_NMI_M1X1\n", fp);
         ++ur_qa01_native_saved_writer_seen;
+        /* Attest even if the live stack-local interpreter has zero PLAs.
+         * Never depend on unused interp816_init() to open its log. */
+        ur_qa01_interp_pla_arm();
     }
 }
 static void ur_qa01_read_01dd(CpuState *cpu, uint8 bank, uint16 addr,

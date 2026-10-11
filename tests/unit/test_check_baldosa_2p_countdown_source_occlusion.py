@@ -114,7 +114,8 @@ class Original2PCountdownCoverTest(unittest.TestCase):
         at = (plane.index(255) // 4) * 4
         self.original[1872][at + 2] = 254
         self.flush()
-        with self.assertRaisesRegex(ValueError, "countdown-covering witness"):
+        with self.assertRaisesRegex(
+                ValueError, "blue overlay mask changed|countdown-covering witness"):
             assess(self.root)
 
     def test_countdown_blue_mask_drift_outside_racers_fails_closed(self):

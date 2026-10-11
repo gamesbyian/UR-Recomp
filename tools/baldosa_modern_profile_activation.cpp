@@ -295,7 +295,7 @@ extern "C" int ur_baldosa_modern_publish_settled_two_player_match(
         p1->profile_id != g_verified_native_profile_id ||
         p1->profile_id != g_launch_profile->profile_id ||
         !g_launch_profile->racer_identity ||
-        p1->identity != *g_launch_profile->racer_identity)
+        !(p1->identity == *g_launch_profile->racer_identity))
         return 0;
     const auto event = std::make_pair(
         result->first_race_host_frame, result->observed_result_host_frame);

@@ -12,17 +12,18 @@ BaldosaNativeRecordsSummary inspect_baldosa_native_records_archive(
     if (directory.empty()) return out;
     const std::filesystem::path root(directory);
     std::error_code ec;
-    // Do not follow a substituted run-directory symlink into an unrelated
-    // user's records. Missing first-run directory is a valid empty archive.
-    // Check existence before symlink status: symlink_status(nonexistent)
-    // reports ENOENT on Linux and must not turn a fresh install into an
-    // invalid directory. After existence succeeds, reject symlinks.
-    if (!std::filesystem::exists(root, ec)) {
-        if (!ec) out.directory_available = true;
+    // A missing first-run directory is a valid empty archive, but a
+    // dangling symlink is NOT missing: exists() follows its target and
+    // otherwise quietly misclassifies it as an empty profile archive.
+    // Inspect the entry itself, rejecting all symlinks before reading runs.
+    const auto status = std::filesystem::symlink_status(root, ec);
+    if (status.type() == std::filesystem::file_type::not_found) {
+        if (!ec || ec == std::errc::no_such_file_or_directory)
+            out.directory_available = true;
         return out;
     }
-    if (ec || std::filesystem::is_symlink(root, ec) || ec ||
-        !std::filesystem::is_directory(root, ec) || ec)
+    if (ec || std::filesystem::is_symlink(status) ||
+        !std::filesystem::is_directory(status))
         return out;
     out.directory_available = true;
     const auto artifacts = inspect_completed_run_record_artifacts(directory);

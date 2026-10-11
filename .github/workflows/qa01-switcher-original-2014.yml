@@ -171,6 +171,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Do not silently ignore the historical-source horizon input when
+          # selecting the independent fresh-paired host-frame experiment.
+          test "${{ inputs.source_horizon }}" = "22000" || {
+            echo "fresh_paired_nmi_probe requires source_horizon=22000" >&2
+            exit 2
+          }
+          test "${{ inputs.stack_writer_probe }}" != "true" || {
+            echo "fresh_paired_nmi_probe cannot combine with historical-source-only stack_writer_probe" >&2
+            exit 2
+          }
           python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
           test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
           test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709

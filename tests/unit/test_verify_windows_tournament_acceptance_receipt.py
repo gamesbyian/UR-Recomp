@@ -61,6 +61,8 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
             "run_file=run-123.urrun\nrun_sha256=" + digest(p.read_bytes()) + "\n"
             "match_file=run-123.urrun.urmatch\nmatch_sha256=" + digest(q.read_bytes()) + "\n"
             "receipt_file=fixture-0.urfixture\nreceipt_sha256=" + digest(f.read_bytes()) + "\n"
+            "create_log_sha256=" + digest((work / "tournament.log").read_bytes()) + "\n"
+            "reopen_log_sha256=" + digest((work / "reopen.log").read_bytes()) + "\n"
             "fresh_process_reopen=passed\n",
             encoding="ascii",
         )
@@ -131,6 +133,27 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
                 verify(work, candidate, "a" * 40, "b" * 64)
             reopen.unlink()
             with self.assertRaisesRegex(ValueError, "missing, linked or oversized"):
+                verify(work, candidate, "a" * 40, "b" * 64)
+
+    def test_transcript_edits_with_all_expected_markers_still_fail_digest(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work, candidate, p, q, f, report = self.make(Path(tmp))
+            for filename in ("tournament.log", "reopen.log"):
+                log = work / filename
+                before = log.read_bytes()
+                log.write_bytes(before + b"untrusted extra transcript evidence\n")
+                with self.subTest(filename=filename):
+                    with self.assertRaisesRegex(ValueError, "native transcript digest differs"):
+                        verify(work, candidate, "a" * 40, "b" * 64)
+                log.write_bytes(before)
+
+    def test_nested_orphan_fixture_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work, candidate, p, q, f, report = self.make(Path(tmp))
+            extra = work / "user data" / "local-tournaments" / "nested" / "future" / "fixtures" / "fixture-2.urfixture"
+            extra.parent.mkdir(parents=True)
+            extra.write_bytes(b"unexpected fixture beyond immediate session directory")
+            with self.assertRaisesRegex(ValueError, "exactly one"):
                 verify(work, candidate, "a" * 40, "b" * 64)
 
     def test_symlinked_work_root_rejected_before_resolve(self):

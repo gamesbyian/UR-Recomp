@@ -21,7 +21,8 @@ CANDIDATE_KEYS = (
 ARTIFACT_KEYS = (
     "schema", "source_commit", "inner_zip_sha256", "run_file",
     "run_sha256", "match_file", "match_sha256", "receipt_file",
-    "receipt_sha256", "fresh_process_reopen",
+    "receipt_sha256", "create_log_sha256", "reopen_log_sha256",
+    "fresh_process_reopen",
 )
 SOURCE = re.compile(r"[0-9a-f]{40}\Z")
 DIGEST = re.compile(r"[0-9a-f]{64}\Z")
@@ -148,7 +149,8 @@ def verify(work: Path, candidate_path: Path,
     if not RECEIPT.fullmatch(receipt["receipt_file"]):
         raise ValueError("unexpected fixture-receipt filename")
     if any(not DIGEST.fullmatch(receipt[key])
-           for key in ("run_sha256", "match_sha256", "receipt_sha256")):
+           for key in ("run_sha256", "match_sha256", "receipt_sha256",
+                       "create_log_sha256", "reopen_log_sha256")):
         raise ValueError("receipt artifact checksums must be SHA-256")
     runs_root = work / "multiplayer-runs"
     tournament_root = work / "user data" / "local-tournaments"
@@ -157,7 +159,7 @@ def verify(work: Path, candidate_path: Path,
             raise ValueError("tournament evidence root is missing or linked")
     runs = list(runs_root.glob("*.urrun"))
     matches = list(runs_root.glob("*.urmatch"))
-    fixture_receipts = list(tournament_root.glob("*/fixtures/*.urfixture"))
+    fixture_receipts = list(tournament_root.rglob("*.urfixture"))
     if (len(runs), len(matches), len(fixture_receipts)) != (1, 1, 1):
         raise ValueError("expected exactly one run, one match and one fixture receipt")
     run = runs_root / receipt["run_file"]
@@ -175,8 +177,13 @@ def verify(work: Path, candidate_path: Path,
     # The producer asserted both launcher processes were successful, but a
     # bounded second read must independently see the event route, actual
     # stock-result notice and fresh process restore/history markers.
-    check_native_log(work / "tournament.log", EXPECTED_CREATE_MARKERS)
-    check_native_log(work / "reopen.log", EXPECTED_REOPEN_MARKERS)
+    for logfile, field, expected in (
+        (work / "tournament.log", "create_log_sha256", EXPECTED_CREATE_MARKERS),
+        (work / "reopen.log", "reopen_log_sha256", EXPECTED_REOPEN_MARKERS),
+    ):
+        check_native_log(logfile, expected)
+        if sha256(logfile) != receipt[field]:
+            raise ValueError(f"post-reopen native transcript digest differs: {logfile.name}")
     return {
         "source_commit": expected_source,
         "inner_zip_sha256": expected_zip,
@@ -185,6 +192,8 @@ def verify(work: Path, candidate_path: Path,
         "run_sha256": receipt["run_sha256"],
         "match_sha256": receipt["match_sha256"],
         "receipt_sha256": receipt["receipt_sha256"],
+        "create_log_sha256": receipt["create_log_sha256"],
+        "reopen_log_sha256": receipt["reopen_log_sha256"],
         "result": "read-only receipt consistency only, not physical or full schedule acceptance",
     }
 

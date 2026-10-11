@@ -111,6 +111,10 @@ class PackagedTournamentWorkRootSafetyTests(unittest.TestCase):
         self.assertIn("${QA_APPROVED_SHA:-unbound}", text)
         self.assertIn("${QA_APPROVED_ZIP_SHA256:-unbound}", text)
         self.assertIn('"$WORK/tournament-artifacts.log"', text)
+        self.assertIn("create_log_sha256=%s", text)
+        self.assertIn("reopen_log_sha256=%s", text)
+        self.assertIn('create_log_hash="$(sha256sum "$LOG"', text)
+        self.assertIn('reopen_log_hash="$(sha256sum "$REOPEN_LOG"', text)
         self.assertGreater(text.index("fresh_process_reopen=passed"),
                            text.index('test "$(sha256sum "${receipts[0]}"'))
 

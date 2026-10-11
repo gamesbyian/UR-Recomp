@@ -66,7 +66,7 @@ static FILE *ur_qa01_interp_pla_output(void) {
             if (fp) {
                 setvbuf(fp, NULL, _IONBF, 0);
                 /* A zero-PLA report requires proof the observer started. */
-                fputs("QANATIVEINTPLAREADY\\n", fp);
+                fputs("QANATIVEINTPLAREADY\n", fp);
             }
         }
         initialized = 1;
@@ -150,9 +150,9 @@ static void ur_qa01_note_interp_pla(Interp816 *cpu, uint16_t sp0,
         raise AssertionError("read-only interpreter byte observation must not double-read")
     initialized = INIT.replace(
         "  return cpu;",
-        "  /* Eager observer-ready attestation, even with zero matching PLA. */\\n"
-        "  (void)ur_qa01_interp_pla_output();\\n"
-        "  return cpu;".replace("\\\\n", "\\n"), 1)
+        "  /* Eager observer-ready attestation, even with zero matching PLA. */\n"
+        "  (void)ur_qa01_interp_pla_output();\n"
+        "  return cpu;", 1)
     return (source.replace(INCLUDE, INCLUDE + helper, 1)
                   .replace(INIT, initialized, 1)
                   .replace(PULLBYTE, observed_byte, 1)

@@ -16,7 +16,7 @@ C_SOURCE = (patcher.INCLUDE + patcher.INIT + patcher.PULLBYTE +
             "  return interp816_pullByte(cpu);\n"
             "}\n" + patcher.OPCODE)
 PLA = (
-    "QANATIVEINTPLAREADY\\n"
+    "QANATIVEINTPLAREADY\n"
     "QANATIVEINTPLA f=5781 k=80 pcnext=859A sp0=01DC sp1=01DE "
     "a0=0000 a1=4004 m0=0 e0=0 armed=1 "
     "reads=2 ra0=01DD rv0=04 ra1=01DE rv1=40\n"
@@ -75,7 +75,7 @@ class NativeInterpreterPlaTests(unittest.TestCase):
         self.assertEqual(r["native_interpreter_pla_observation_count"], 0)
         self.assertTrue(r["no_interpreter_pla_observed_does_not_rule_out_aot_or_other_reads"])
         self.assertTrue(r["native_interpreter_probe_initialized_even_if_no_pla"])
-        for bad in ("", "QANATIVEINTPLAREADY\\nQANATIVEINTPLAREADY\\n",
+        for bad in ("", "QANATIVEINTPLAREADY\nQANATIVEINTPLAREADY\n",
                     "QANATIVEINTPLAOVERFLOW\\n"):
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 report.summarize(bad)

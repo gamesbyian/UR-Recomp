@@ -43,6 +43,40 @@ Neither case changes original QA-01 acceptance or awards medals/trophies.
 The symlink check is preflight, not a race-free directory-handle defense
 against an adversarial process ignoring profile locks.
 
+## Transient native 1P publication retry (bounded product integration)
+
+The source-settled 1P result's existing post-frame callback originally made
+**one** canonical append attempt. An unavailable lock or transient I/O error
+could leave a finished race without a stored run. The native product host now
+retains at most one already-observed in-memory result/input trace when this
+first attempt fails, and calls the **same** profile-locked publisher again at
+30 executed-host-frame intervals, up to six total attempts. A successful
+canonical append consumes the pending receipt; the existing publisher also
+guards the identical host-frame event against duplicate publication.
+
+The retry is cancelled without publication when the source guest begins a
+new race, leaves its exact 0x99 1P result screen, or loses the root's
+source-confirmed 1P handoff. Native Restart explicitly clears it. If all six
+attempts fail, the host logs exhausted/not saved; this is a **bounded best
+effort**, not a durable outbox, receipt transaction or a guarantee of saving
+on Quit. It neither bypasses the current profile/selector/catalog locks nor
+awards guest progression. A genuinely failed save is still a player-journey
+QA blocker; independent exact Windows process and crash tests remain needed.
+
+The same stock-density native Modern overlay callback can now display
+**RECORD SAVED** only when the canonical append returns success,
+**RECORD SAVE PENDING** while a verified named profile has an in-memory
+retry receipt, and **RECORD NOT SAVED** when the receipt is exhausted or
+no named archive is authorized. This paints onto a host-owned copy of the
+settled 256x224 result raster; it never changes PPU/OAM, guest WRAM or SRAM.
+The banner clears on any new race, stock menu departure or withdrawn
+1P handoff. This is a real product-state message, but full 4x/widescreen
+composition and hardware-level legibility remain independently unaccepted.
+`tests/unit/test_baldosa_native_run_publish_retry_cpp.py` also exercises
+the reusable painter's text/visibility contract.
+`tests/unit/test_baldosa_native_run_publish_retry_cpp.py` exercises the
+source-scoped retry policy in C++ and checks its live callback binding.
+
 ## Required next integration and proof
 
 1. Snapshot source-confirmed named Modern catalog/profile authorization at

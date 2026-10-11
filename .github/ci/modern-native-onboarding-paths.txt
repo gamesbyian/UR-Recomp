@@ -44,3 +44,5 @@ tools/toolchain-entries/snesrecomp.json
 tools/toolchain-entries/sdl3.json
 .github/workflows/modern-onboarding-practice-acceptance.yml
 .github/workflows/modern-native-heavy-router.yml
+.github/ci/modern-native-onboarding-paths.txt
+tools/classify_modern_native_ci.py

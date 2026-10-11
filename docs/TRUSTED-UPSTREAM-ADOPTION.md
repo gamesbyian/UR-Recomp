@@ -80,7 +80,9 @@ python3 -m unittest tests.unit.test_query_upstream_knowledge
 ```
 
 The `--address` flag looks up a **literal address** within each named ROM
-region, with PAL and USA results kept distinct. The `--usa-address` flag
+region, with PAL and USA results kept distinct. Unbanked 16-bit PAL
+WRAM/direct-page labels (such as `$0000`) appear as `WRAM:0000`, not as bank
+`00` ROM offsets. The `--usa-address` flag
 adds only precomputed *code-region interval candidates* from the frozen
 PAL/USA index alongside exact USA results; these are never validated homologs.
 Malformed/stale map schema or duplicate correspondence entries fail closed.

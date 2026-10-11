@@ -19,15 +19,22 @@ MARK_ROOT = ROOT / "reference/imported/reverse-engineering/malmazuke-unirally-re
 LINKS = ROOT / "analysis/data/malmazuke-pal-structural-links-20261010.json"
 MARK_PIN = "42d444594641d23f5d3c15da7b7c454bb5180e43"
 HEX = re.compile(r"^(?:\$|0[xX])?([0-9a-fA-F]{2}):?([0-9a-fA-F]{4})$")
+WRAM_WORD = re.compile(r"^(?:\$|0[xX])?([0-9a-fA-F]{4})$")
 
 
 def address(raw: str) -> str:
     """Normalize LoROM $00..$03 ROM mirrors, but never guess PAL/USA offsets."""
     if not isinstance(raw, str):
         raise ValueError("address must be a string")
-    m = HEX.fullmatch(raw.strip())
+    value = raw.strip()
+    word = WRAM_WORD.fullmatch(value)
+    if word:
+        # Upstream short addresses describe direct-page/WRAM references, not
+        # a ROM address in bank $00 and not a cross-region correspondence.
+        return f"WRAM:{word.group(1).upper()}"
+    m = HEX.fullmatch(value)
     if not m:
-        raise ValueError(f"invalid banked address: {raw!r}")
+        raise ValueError(f"invalid ROM or WRAM address: {raw!r}")
     bank, offset = int(m.group(1), 16), int(m.group(2), 16)
     if bank <= 3 and offset >= 0x8000:
         bank |= 0x80

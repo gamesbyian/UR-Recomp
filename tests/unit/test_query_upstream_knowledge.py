@@ -30,6 +30,8 @@ class UpstreamKnowledgeTest(unittest.TestCase):
         self.assertEqual(address("$01:8050"), "81:8050")
         self.assertEqual(address("0x818050"), "81:8050")
         self.assertEqual(address("7E:0F09"), "7E:0F09")
+        self.assertEqual(address("$0000"), "WRAM:0000")
+        self.assertEqual(address("00A1"), "WRAM:00A1")
         self.assertEqual(address("81:8139"), "81:8139")
         with self.assertRaises(ValueError):
             address("81:garbage")

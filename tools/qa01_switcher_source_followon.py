@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 import probe_attract_cycle as trace
@@ -39,9 +40,14 @@ def decode_checked_changed_byte_trace(lines: list[str]) -> dict[int, dict]:
         frame = event.get("f")
         address = event.get("adr")
         value = event.get("val")
+        # Actual snesref JSONL uses C-style prefixed hexadecimal strings:
+        # e.g. adr="0x0009f", val="0xd7". The stock decoder already accepts
+        # these via int(value, 16); do not accidentally reject its format.
         if (type(frame) is not int or not previous_frame <= frame <= HORIZON
-                or type(address) is not str or not 1 <= len(address) <= 6
-                or type(value) is not str or not 1 <= len(value) <= 2):
+                or type(address) is not str
+                or re.fullmatch(r"(?:0[xX])?[0-9A-Fa-f]{1,6}", address) is None
+                or type(value) is not str
+                or re.fullmatch(r"(?:0[xX])?[0-9A-Fa-f]{1,2}", value) is None):
             raise ValueError("original source changed-byte frame/address/value invalid")
         try:
             a = int(address, 16)

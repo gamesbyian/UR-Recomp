@@ -84,10 +84,10 @@ class SwitcherSourceFollowOnTests(unittest.TestCase):
         # No invented true gameplay observations: the historic trace decoder
         # is reused after checking JSON shape, source frame order and bounds.
         sequence = [
-            '{"f":0,"adr":"009F","val":"84"}',
-            '{"f":12327,"adr":"00CE","val":"03"}',
+            '{"f":0,"adr":"0x0009f","val":"0x84"}',
+            '{"f":12327,"adr":"0x000ce","val":"0x03"}',
             '{"f":17030,"adr":"009F","val":"99"}',
-            '{"f":17031,"adr":"0313","val":"00"}',
+            '{"f":17031,"adr":"0x00313","val":"0x00"}',
         ]
         data = walk.decode_checked_changed_byte_trace(sequence)
         self.assertEqual(data[17031]["menu"], 0x99)
@@ -99,8 +99,10 @@ class SwitcherSourceFollowOnTests(unittest.TestCase):
             [sequence[0], '{"f":true,"adr":"0313","val":"01"}'],
             [sequence[0], '{"f":3,"adr":"0313","val":"ZZ"}'],
             [sequence[0], '{"f":3,"adr":"0313","val":"100"}'],
+            [sequence[0], '{"f":3,"adr":"0x00313","val":"0x100"}'],
             [sequence[0], '{"f":3,"adr":"NOPE","val":"00"}'],
             [sequence[0], '{"f":3,"adr":"-01","val":"00"}'],
+            [sequence[0], '{"f":3,"adr":"0x01junk","val":"00"}'],
             [sequence[0], '{"f":3,"adr":"0313","val":0}'],
             [sequence[0], "not a JSON line"],
             [sequence[0], "[]"],

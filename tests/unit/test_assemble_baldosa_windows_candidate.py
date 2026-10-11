@@ -107,6 +107,13 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
         self.assertIn("UR_BALDOSA_MODERN_INPUT=1", script)
         self.assertIn("UR_RECOMP_USER_DATA_ROOT", script)
         self.assertIn("APPDATA", script)
+        # Textual package-path checks are insufficient when a junction
+        # outside the bundle resolves back into the extracted executable.
+        self.assertIn("[IO.FileAttributes]::ReparsePoint", script)
+        self.assertIn("Get-Item -LiteralPath $walk", script)
+        self.assertIn("GetDirectoryName($walk)", script)
+        self.assertLess(script.index("ReparsePoint"),
+                        script.index("Get-FileHash"))
         self.assertIn("package-local user-data root", script)
         self.assertIn("UR-BALDOSA-STARTUP-ROM-INVALID", script)
         self.assertIn("if errorlevel 3", script)

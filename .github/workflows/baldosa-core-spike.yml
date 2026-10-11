@@ -471,11 +471,24 @@ jobs:
           # One later authentic native PPU frame from this SAME guest run;
           # the ordinary first-six-frame evidence remains unchanged.
           export UR_BALDOSA_WS342_LATE_CAPTURE_AFTER=2200
+          # One read-only original PPU colour-register raster journal.
+          # Pin only the existing stock 2P process, never the separately
+          # isolated source/diagnostic removal processes. The pinned PPU
+          # already records its register write journal during beam replay.
+          export UR_QA08_PPU_COLOUR_JOURNAL_FRAME=2208
           mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
           bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
             "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342"
+          unset UR_QA08_PPU_COLOUR_JOURNAL_FRAME
           cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
               "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/fd/crc.txt"
+          python3 tools/check_baldosa_2p_ppu_colour_journal.py \
+            --stock "$RUNNER_TEMP/baldosa-ws342-captures/ur-baldosa-ws342-002208.pam" \
+            --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/log.txt" \
+            --reference-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+            --candidate-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/fd/crc.txt" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_2p_original_colour_journal_2208.json"
+          echo "OBSERVED: original native PPU raster colour-register journal at verified post-GO guest; no owner/HD admission" >> "$GITHUB_STEP_SUMMARY"
           python3 tools/baldosa_ws24_presentation_report.py \
             --view ws342 \
             --base "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
@@ -1134,6 +1147,37 @@ jobs:
           PY
           echo "PASS: four independent source-only original 2P post-GO OAM slot captures at guest2208; seven full Original frames and native guest CRC unchanged; no HD art" >> "$GITHUB_STEP_SUMMARY"
 
+          # QA-08: two independently rerun diagnostic front-slot PPU
+          # deletions at real post-GO 2P guest2208, upper front98 and
+          # lower front96. This discriminates causal final pixel changes
+          # under the on-screen text; the source-positive planes are
+          # already captured/validated by FOUR source-only runs above.
+          # A full Original stock frame already exists. No game writes,
+          # no host HD painting and no extra AOT executable compilation.
+          unset UR_RACER_HD_WIDE_SOURCE_SLOT UR_RACER_HD_WIDE_SOURCE_DIR
+          unset UR_RACER_HD_WIDE_REMOVE_PAIR
+          export UR_BALDOSA_HD_DENSITY=1
+          export UR_BALDOSA_WS342_LATE_CAPTURE_AFTER=2200
+          export UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC=counterfactual
+          export UR_RACER_HD_WIDE_REMOVE_FRAME=2208
+          for visible_slot in 98 96; do
+            export UR_RACER_HD_WIDE_REMOVE_SLOT="$visible_slot"
+            export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-counterfactual-slot${visible_slot}-frame2208"
+            mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+            bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_slot${visible_slot}_frame2208"
+            cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+                "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_slot${visible_slot}_frame2208/fd/crc.txt"
+            test -s "$UR_BALDOSA_WS342_CAPTURE_DIR/ur-baldosa-ws342-002208.pam"
+          done
+          python3 tools/check_baldosa_2p_postgo_front_text_causality.py \
+            --native-root "$RUNNER_TEMP" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_postgo_front_text_causal_2208.json"
+          unset UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC UR_RACER_HD_WIDE_REMOVE_SLOT
+          unset UR_RACER_HD_WIDE_REMOVE_FRAME UR_BALDOSA_WS342_LATE_CAPTURE_AFTER
+          echo "PASS: original native 2P post-GO front98+front96 independent PPU removals, four-guest CRC/source per front, bounded HUD RGB overlap, no HD admission" >> "$GITHUB_STEP_SUMMARY"
+
+
           # Diagnostic final-composite attribution, NEVER HD admission.
           # Compare the exact original 342x224 PPU frame with a second
           # native process that removes only slot 98 on guest frame 1856.
@@ -1264,6 +1308,45 @@ jobs:
           unset UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC UR_RACER_HD_WIDE_REMOVE_PAIR
           unset UR_RACER_HD_WIDE_REMOVE_FRAME
           echo "OBSERVED: native lower96-97 pair removed under real 2P countdown at1872; exact full PPU delta recorded without HD admission" >> "$GITHUB_STEP_SUMMARY"
+
+          # Second *moving* countdown-frame discriminator: both lower racer
+          # PPU source silhouettes changed at guest1888, even though
+          # the complete original countdown-blue raster mask is unchanged
+          # from1872. Reuse the SAME compiled AOT and exact stock/source
+          # 2P CRC routes; one further independent full guest execution
+          # arms the native PPU pair96-97 deletion only at1888.
+          unset UR_RACER_HD_WIDE_SOURCE_SLOT UR_RACER_HD_WIDE_SOURCE_DIR
+          unset UR_RACER_HD_WIDE_REMOVE_SLOT
+          export UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC=counterfactual
+          export UR_RACER_HD_WIDE_REMOVE_PAIR=96-97
+          export UR_RACER_HD_WIDE_REMOVE_FRAME=1888
+          export UR_BALDOSA_HD_DENSITY=1
+          export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-counterfactual-pair96-97-frame1888"
+          mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_pair96_97_frame1888"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_pair96_97_frame1888/fd/crc.txt"
+          python3 tools/check_baldosa_2p_covered_pair_causality.py \
+            --frame 1888 \
+            --stock "$RUNNER_TEMP/baldosa-ws342-captures/ur-baldosa-ws342-001888.pam" \
+            --source96 "$RUNNER_TEMP/baldosa-ws342-obj-slots/ur-baldosa-ws342-obj-slot96-frame001888.pam" \
+            --source97 "$RUNNER_TEMP/baldosa-ws342-obj-slots/ur-baldosa-ws342-obj-slot97-frame001888.pam" \
+            --removed "$UR_BALDOSA_WS342_CAPTURE_DIR/ur-baldosa-ws342-001888.pam" \
+            --report96 "$RUNNER_TEMP/baldosa-evidence/ws342_obj_slot_96_frame1888.json" \
+            --report97 "$RUNNER_TEMP/baldosa-evidence/ws342_obj_slot_97_frame1888.json" \
+            --stock-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/fd/crc.txt" \
+            --source96-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_slot_96/fd/crc.txt" \
+            --source97-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_slot_97/fd/crc.txt" \
+            --removed-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_pair96_97_frame1888/fd/crc.txt" \
+            --removed-log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_pair96_97_frame1888/log.txt" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_pair96_97_countdown_causal_1888.json"
+          unset UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC UR_RACER_HD_WIDE_REMOVE_PAIR
+          unset UR_RACER_HD_WIDE_REMOVE_FRAME
+          echo "OBSERVED: moving original 2P lower source pair96-97 removed at guest1888; native PPU final change/zero requires own accepted report; no HD admission" >> "$GITHUB_STEP_SUMMARY"
+
+
+
 
 
           python3 - <<'PY'
@@ -1536,6 +1619,13 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_rear99/log.txt
             ${{ runner.temp }}/baldosa-ws342-counterfactual-rear99/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-evidence/ws342_pair98_99_final_visibility_1856.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_pair96_97_countdown_causal_1888.json
+            ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_pair96_97_frame1888/log.txt
+            ${{ runner.temp }}/baldosa-ws342-counterfactual-pair96-97-frame1888/ur-baldosa-ws342-001888.pam
+            ${{ runner.temp }}/baldosa-evidence/ws342_postgo_front_text_causal_2208.json
+            ${{ runner.temp }}/baldosa-ws342-counterfactual-slot98-frame2208/ur-baldosa-ws342-002208.pam
+            ${{ runner.temp }}/baldosa-ws342-counterfactual-slot96-frame2208/ur-baldosa-ws342-002208.pam
+            ${{ runner.temp }}/baldosa-evidence/ws342_2p_original_colour_journal_2208.json
             ${{ runner.temp }}/baldosa-evidence/ws342_pair96_97_countdown_causal_1872.json
             ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_pair96_97_frame1872/log.txt
             ${{ runner.temp }}/baldosa-ws342-counterfactual-pair96-97-frame1872/ur-baldosa-ws342-001872.pam

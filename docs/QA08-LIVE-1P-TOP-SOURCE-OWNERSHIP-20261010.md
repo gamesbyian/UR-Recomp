@@ -1,6 +1,6 @@
-# QA-08: identify original top-viewport unicycle source at 1P frame2208
+# QA-08: isolate authentic OAM slots98/99 at 1P frame2208
 
-**Status: native candidate, not yet accepted.** This experiment
+**Status: native source emission accepted (run `38097914195`, artifact `11686843233`); final PPU ownership and Remastered still unapproved.** This experiment
 reads the unchanged native PPU, not guest WRAM-derived synthetic pixels.
 
 Merged #1264 (AOT `38095455347`) proved original bottom
@@ -10,12 +10,17 @@ independently proved original bottom slot96 also emitted **0**.
 Both source screenshots and full original 1×/4× pixel sources
 remained unchanged, with full original guest CRC identity.
 
-The **real image** at 1P frame2208 places both unicycles
-above the blue/green split horizontal band at source scanline112.
-The unicycles are in the **top viewport**, whereas previous
-source-plane experiments observed bottom slots96/97.
-This explains why top-source ownership needs its own test
-and does not imply any CPU/PPU bug or permit HD sprite drawing.
+**Correction from actual 2026-10-11 native pixels:** The earlier claim
+that the unicycles were above a 1P "split" at scanline112 was false.
+The authentic 342×224 1P Original output shows the racers directly above
+the colored horizontal course strip near y144. The isolated original PPU
+OAM slots98 and99 actually emit at **raster y121–143** and **y120–143**
+respectively, entirely in rows112–223. Those are source/image coordinates,
+**not** evidence of a bottom split-screen player or of a 1P viewport
+boundary at y112. "Top" in "top OAM slot98/99" was a slot name, not a
+proven final on-screen viewport. Slots96/97 were authentically empty in
+their separate 1P probes. Do not infer raster region or in-game player
+identity from OAM slot number or begin-frame WRAM state.
 
 ## Controlled native source planes
 
@@ -69,7 +74,7 @@ authenticated native slot98 and slot99 342×224 RGBA PAMs and frame2208
 complete Original 342×224 image; the existing five-way guest CRCs, 7-frame
 Original/4× identity, slot attribution and source SHA checks still run first.
 
-The `band_counts` field distinguishes scanlines 0–111 and 112–223, each
+The `band_counts` field partitions raster scanlines 0–111 and 112–223 for analysis only (it does not assert a 1P viewport split), each
 reporting slot98-only emission, slot99-only emission, shared emission, and
 neither. For shared alpha positions it separately reports whether the two
 source RGB values conflict and whether the final Original RGB matches only
@@ -96,3 +101,28 @@ and an all-transparent negative. The next native use is to apply this amended
 analyzer to the retained **actual** top-slot evidence and then seek a paired
 source-vs-final PPU ownership counterfactual for any disputed coordinates.
 This document makes no unobserved quantitative native overlap claim.
+
+
+## Observed same-native-artifact pair result
+
+Reuse existing accepted AOT run `38097914195`, artifact `11686843233`.
+The independent full Original 1P frame2208, separately isolated slot98 and
+slot99 **real PPU RGBA planes**, and both corresponding untouched Original
+probe captures were recovered from the artifact. Full untouched Original
+capture pixels match both probes exactly; each emitted source-plane
+SHA-256 matches the original native validator report.
+
+The offline exact-byte pair census in
+`analysis/data/qa08-oneplayer-top-pair-native-2208.json` found:
+**slot98-only=285**, **slot99-only=293**, **source-alpha overlap=0**,
+**578 distinct emitted pixels**, and **0 upper-half emitted pixels**.
+All 578 source RGB values match the final Original RGB at their coordinates,
+with no mismatches in this frame. The two source bboxes are [101,121,132,143]
+and [36,120,71,143], so their separation is directly measurable.
+This closes the **frame2208 pair-source-overlap** question without another
+emulator run or duplicated native compilation.
+
+Final BG/window or other OBJ priority ownership is **not** established by
+RGB coincidence. A source pixel matching the final colour can be hidden by
+another same-colour source; no full-window race coverage, removal decision,
+HD replacement, 342-wide Remastered or release authorization follows.

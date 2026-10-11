@@ -58,7 +58,9 @@ def observed_rgb(original: bytes, isolated: bytes) -> dict:
 def classify_top_source_pair(original: bytes, slot98: bytes, slot99: bytes) -> dict:
     """Bound ambiguity of two *emitted* OBJ planes versus finished Original.
 
-    This is a read-only spatial census. Even exact RGB equality is not a
+    The y=112 band partition is analytic; in 1P it is NOT a verified
+    viewport boundary. This is a read-only spatial census. Even exact
+    RGB equality is not a
     PPU winner/priority proof; only a separately verified removal
     counterfactual could begin to establish that.
     """
@@ -73,13 +75,13 @@ def classify_top_source_pair(original: bytes, slot98: bytes, slot99: bytes) -> d
         "shared_final_matches_neither",
     )
     bands = {band: {field: 0 for field in fields}
-             for band in ("top", "bottom")}
+             for band in ("raster_0_111", "raster_112_223")}
     examples = {"conflicting_shared": [], "shared_matches_neither": [],
                 "exclusive_rgb_differs_final": []}
     for offset in range(0, n, 4):
         pixel = offset // 4
         y, x = divmod(pixel, LOGICAL_WIDTH)
-        row = bands["top" if y < 112 else "bottom"]
+        row = bands["raster_0_111" if y < 112 else "raster_112_223"]
         a = slot98[offset + 3] != 0
         b = slot99[offset + 3] != 0
         if not a and not b:
@@ -127,7 +129,8 @@ def classify_top_source_pair(original: bytes, slot98: bytes, slot99: bytes) -> d
         "classification": "read-only-pre-BG-OBJ-overlap-and-final-RGB-census",
         "logical_width": LOGICAL_WIDTH,
         "logical_height": LOGICAL_HEIGHT,
-        "viewport_split_y": 112,
+        "scanline_partition_y": 112,
+        "one_player_half_raster_is_gameplay_viewport_proven": False,
         "band_counts": bands,
         "total_counts": totals,
         "emitted_slot98_pixels": totals["slot98_only"] + totals["shared"],

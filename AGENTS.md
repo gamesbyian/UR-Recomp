@@ -10,6 +10,7 @@ Compact router for coding and research agents. **Current priority: merge the ver
 | Understand how the game currently appears to work / orient to a subsystem | `docs/knowledge/README.md`, then the relevant concept page |
 | Overall project architecture / product plan | `docs/PROJECT-PLAN.md` for current, `docs/archive/PROJECT-PLAN-THROUGH-20261009.md` only for old detail |
 | Widescreen feature implementation | `docs/WIDESCREEN.md`, then `docs/PROJECT-PLAN.md` |
+| Display scaler / AI upscaling / generative HD art proposals | `docs/HD-UPSCALING-EXPERIMENT-PLAN.md`, then `docs/HD-ART-DIRECTION.md`, `docs/DISPLAY-PRESENTATION-POLICY.md` and `docs/TOOLCHAIN.md`; candidate trial manifests never approve shipping art |
 | Bonus emulator-assisted widescreen ROM hack | `docs/bonus/WIDESCREEN-ROM-HACK.md`; keep isolated from the shipping/native path |
 | Research strategy / external-resource work | `docs/RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md` |
 | Baldosa native / Modern integration | `docs/BALDOSA-FIRST-CORE-MIGRATION-20261009.md`, `docs/BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md`, relevant active PR, then exact source adapters |

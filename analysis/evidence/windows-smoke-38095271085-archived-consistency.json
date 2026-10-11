@@ -1,0 +1,55 @@
+{
+  "assertions": [
+    {
+      "name": "portable-inner-zip-sidecar-consistent",
+      "passed": true
+    },
+    {
+      "name": "smoke-and-portable-artifact-byte-identical",
+      "passed": true
+    },
+    {
+      "name": "canonical-manifest-and-payload-hashes-match",
+      "passed": true
+    },
+    {
+      "name": "archived-smoke-manifest-match",
+      "passed": true
+    },
+    {
+      "name": "archived-verifier-claimed-success",
+      "passed": true
+    }
+  ],
+  "evidence_type": "archived-windows-smoke-artifact-consistency",
+  "inputs": {
+    "portable_manifest_sha256": "4835e04e98261f63ce3cbeab89074bd7c2ef8f0c75d5accf843bea27d0755714",
+    "portable_transport_sha256": "f487a049fe19ed1df745d8916cc21ae070b815ea7e169d5e9bc68d2c1a1f77a4",
+    "smoke_transport_sha256": "d42b9658bc83fafd3cc318e0e20fe596eafc22f0ba9af6c639d2ec2f1e9f6129"
+  },
+  "metrics": {
+    "captured_scripted_race_course": "course:01",
+    "captured_scripted_race_ticks60": 1714,
+    "current_native_1p_2p_complete": false,
+    "independent_candidate_approved": false,
+    "physical_hardware_verified": false,
+    "portable_manifest_entries": 6,
+    "reported_real_joysticks": 0,
+    "reported_sdl_audio_driver": "dummy",
+    "reported_sdl_video_driver": "windows",
+    "synthetic_controller_label_observed": true
+  },
+  "outcome": "inconclusive",
+  "producer": "offline archived Windows artifact comparison (Python stdlib, no launch)",
+  "provenance": {
+    "generated_at_utc": "2026-10-11T06:29:04Z",
+    "source": "2026-10-11 locally retained Actions ZIP pair; human review still required",
+    "workflow_run_id": 38095271085
+  },
+  "schema_version": 1,
+  "subject": {
+    "inner_portable_zip_sha256": "f0401d21c9e8286794a5d247a2b50377470a74acb1148faa7b9827cf24b4969e",
+    "run_id": 38095271085,
+    "source_revision_claim": "1afe05edee2617c6a5b8cf67fce806fbfe939bf2"
+  }
+}

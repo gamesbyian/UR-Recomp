@@ -91,6 +91,11 @@ def check_native_log(path: Path, expected: tuple[str, ...]) -> None:
     for forbidden in FORBIDDEN_NATIVE_MARKERS:
         if forbidden in body:
             raise ValueError(f"native QA log includes failed event: {forbidden}")
+    if path.name == "tournament.log":
+        for marker in ("UR_MULTIPLAYER_MATCH CAPTURED",
+                       "UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED"):
+            if body.count(marker) != 1:
+                raise ValueError(f"native QA log has duplicate/missing settled event: {marker}")
 
 
 def sha256(path: Path) -> str:

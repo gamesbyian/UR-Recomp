@@ -173,6 +173,28 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "exactly one"):
                 verify(work, candidate, "a" * 40, "b" * 64)
 
+    def test_duplicate_settled_match_notice_fails_even_if_log_is_resigned(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work, candidate, p, q, f, report = self.make(Path(tmp))
+            log = work / "tournament.log"
+            receipt = report.read_text()
+            for duplicate in (
+                "UR_MULTIPLAYER_MATCH CAPTURED",
+                "UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED",
+            ):
+                with self.subTest(duplicate=duplicate):
+                    original = log.read_bytes()
+                    modified = original + duplicate.encode("ascii") + b"\n"
+                    log.write_bytes(modified)
+                    old_hash = digest(original)
+                    new_hash = digest(modified)
+                    self.assertIn(old_hash, receipt)
+                    report.write_text(receipt.replace(old_hash, new_hash))
+                    with self.assertRaisesRegex(ValueError, "duplicate/missing settled event"):
+                        verify(work, candidate, "a" * 40, "b" * 64)
+                    log.write_bytes(original)
+                    report.write_text(receipt)
+
     def test_symlinked_work_root_rejected_before_resolve(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

@@ -237,7 +237,7 @@ jobs:
         if: ${{ inputs.export_campaign_inputs == true }}
         uses: actions/upload-artifact@v4
         with:
-          name: qa-win32-batch-shared-inputs
+          name: qa-baldosa-native-export
           path: ${{ runner.temp }}/qa-win32-reuse-inputs/
           if-no-files-found: error
           retention-days: 7

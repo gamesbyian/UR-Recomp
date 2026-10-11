@@ -179,6 +179,18 @@ class SeededNativeInputContractTests(unittest.TestCase):
         self.assertNotIn("schedule:",wf)
         self.assertIn("cancel-in-progress: false",wf)
         self.assertIn("modern-shared-native-acceptance.yml",wf)
+        # The actual compiled Linux candidate links GLIBC_2.38. It ran on the
+        # producer's ubuntu-latest, but both 22.04 shards in 38182883707
+        # exited before their FIRST guest frame. Keep producer and consumer
+        # on the exact same Actions runner generation.
+        producer=(ROOT/".github/workflows/modern-shared-native-acceptance.yml").read_text()
+        self.assertIn("  build:\\n    if:",producer)
+        self.assertIn("    runs-on: ubuntu-latest",producer)
+        stress=wf.split("  stress:\\n",1)[1].split("  aggregate:\\n",1)[0]
+        self.assertIn("    runs-on: ubuntu-latest",stress)
+        self.assertNotIn("    runs-on: ubuntu-22.04",stress)
+        self.assertIn('ldd "$EXE" 2>&1',stress)
+        self.assertIn('dpkg --compare-versions "$libc_version" ge "2.38"',stress)
         self.assertIn("max-parallel: 2",wf)
         self.assertIn("wall_minutes_per_shard:",wf)
         self.assertIn("timeout-minutes: 145",wf)

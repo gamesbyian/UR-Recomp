@@ -110,3 +110,7 @@ This is the same catalog the native boot and locked 2P pair publisher
 verify. Missing or inaccessible catalog metadata preserves unbound stock
 2P play but cannot bind match history. The existing C++ unit checks the
 absence of a cwd-relative catalog lookup.
+
+## Explicit unrecorded stock 2P consent
+
+When a distinct initialized P2 profile is unavailable, or P1 is anonymous, the native Multiplayer destination now shows an explicit host-only warning instead of silently launching an unrecorded session. P1 A/Enter accepts stock 2P; B/Escape dismisses with zero guest menu writes and no identities. P1 Up/Down cannot escape the warning. Both named profiles still use their separate independently confirmed join, and anonymous stock 2P remains playable only after acknowledging that no match history will be saved. The existing Windows source-menu route now tests the visible warning and second consent before reaching the untouched guest 0x3D menu, without asserting a completed or physically played match.

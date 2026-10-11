@@ -777,6 +777,12 @@ def run_native_named_records_root(
             "UR_BALDOSA_MODERN_ROOT join_unavailable=1 "
             "stock_2p_without_record_identity=1") != 1:
         raise ValueError("Named single-profile 2P fabricated or bypassed join authority")
+    if (unbound_log.count(
+            "UR_BALDOSA_MODERN_ROOT unbound_2p_warning_open=1") != 1 or
+            unbound_log.count(
+                "UR_BALDOSA_MODERN_ROOT unbound_2p_consented=1") != 1 or
+            "UR_BALDOSA_MODERN_ROOT unbound_2p_declined=1" in unbound_log):
+        raise ValueError("Unrecorded stock 2P bypassed explicit P1 consent")
     if ("UR_BALDOSA_NATIVE_MATCH CAPTURED=1" in unbound_log or
             {p.name: p.read_bytes() for p in match_archive.iterdir()} !=
             original_pairs):

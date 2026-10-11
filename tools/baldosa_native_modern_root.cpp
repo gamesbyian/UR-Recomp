@@ -60,6 +60,7 @@ std::string g_racer_name = "STOCK RACER - NO PROFILE";
 bool g_visible = false;
 bool g_confirm_quit = false;
 bool g_records_open = false;
+bool g_unbound_two_player_warning_open = false;
 ur::product::BaldosaNativeRunSaveFeedback g_run_save_feedback =
     ur::product::BaldosaNativeRunSaveFeedback::None;
 std::string g_records_status;
@@ -112,6 +113,7 @@ bool reopen_on_observed_stock_main() {
     g_visible = true;
     g_confirm_quit = false;
     g_records_open = false;
+    g_unbound_two_player_warning_open = false;
     g_run_save_feedback = ur::product::BaldosaNativeRunSaveFeedback::None;
     g_two_seat_join.cancel();
     g_p2_join_edges.reset();
@@ -221,6 +223,14 @@ void join_confirm(unsigned seat) {
 }
 void choose() {
     if (g_stock_target != -1) return;
+    if (g_unbound_two_player_warning_open) {
+        // Separate explicit consent for a playable unrecorded session.
+        g_unbound_two_player_warning_open = false;
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT unbound_2p_consented=1\n");
+        request_stock_route(2);
+        return;
+    }
     if (g_two_seat_join.open()) {
         join_confirm(0);
         return;
@@ -284,7 +294,9 @@ void choose() {
                 std::fprintf(stderr,
                     "UR_BALDOSA_MODERN_ROOT join_unavailable=1 "
                     "stock_2p_without_record_identity=1\n");
-                request_stock_route(2);
+                g_unbound_two_player_warning_open = true;
+                std::fprintf(stderr,
+                    "UR_BALDOSA_MODERN_ROOT unbound_2p_warning_open=1\n");
                 return;
             }
             g_p2_join_edges.reset();
@@ -293,10 +305,18 @@ void choose() {
             return;
         }
     }
-    request_stock_route(selected == ModernRootDestination::Play ? 1 : 2);
+    if (selected == ModernRootDestination::Multiplayer) {
+        // Anonymous P1 needs the same explicit unrecorded-play consent.
+        g_unbound_two_player_warning_open = true;
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT unbound_2p_warning_open=1\n");
+        return;
+    }
+    request_stock_route(1);
 }
 void navigate(int delta) {
-    if (g_confirm_quit || g_stock_target != -1) return;
+    if (g_confirm_quit || g_stock_target != -1 ||
+        g_unbound_two_player_warning_open) return;
     if (g_two_seat_join.open()) {
         g_two_seat_join.move(0, delta);
         return;
@@ -311,6 +331,12 @@ void navigate(int delta) {
             ur::product::modern_root_menu_selected(g_menu)));
 }
 void back() {
+    if (g_unbound_two_player_warning_open) {
+        g_unbound_two_player_warning_open = false;
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT unbound_2p_declined=1\n");
+        return;
+    }
     if (g_two_seat_join.open()) {
         // Both confirmations may already have queued original stock menu
         // inputs. B/ESC must cancel that source route as well as the child
@@ -372,6 +398,7 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     g_two_seat_join.cancel();
     g_confirm_quit = false;
     g_records_open = false;
+    g_unbound_two_player_warning_open = false;
     g_run_save_feedback = ur::product::BaldosaNativeRunSaveFeedback::None;
     g_visible = true;
     g_render_reported = false;
@@ -485,6 +512,8 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         g_records_open, g_records_status, g_records_recent,
         g_records_two_player, true};
     view.records_detail = g_records_detail;
+    view.unbound_two_player_warning_open =
+        g_unbound_two_player_warning_open;
     view.two_seat_join_open = g_two_seat_join.open();
     if (view.two_seat_join_open) {
         const auto* p1 = g_two_seat_join.candidate(0);
@@ -686,7 +715,9 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     if (std::strcmp(opt, "2") == 0 ||
         std::strcmp(opt, "3") == 0) {
         if (frame == 60 || frame == 62) key = SDLK_DOWN;
-        else if (frame == 64) key = SDLK_RETURN;
+        else if (frame == 64 ||
+                 (frame == 66 && std::strcmp(opt, "2") == 0))
+            key = SDLK_RETURN;
     } else {
         if (frame >= 60 && frame <= 62) key = SDLK_DOWN;
         else if (frame == 63 || frame == 70) key = SDLK_RETURN;

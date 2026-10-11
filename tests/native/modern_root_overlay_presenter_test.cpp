@@ -198,6 +198,20 @@ int main() {
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
                                       old_view,view));
     assert(!contains("TWO PLAYER PROFILES"));
+    painted.clear();
+    view.unbound_two_player_warning_open = true;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("UNRECORDED TWO PLAYER"));
+    assert(contains("NEED TWO NAMED RACERS"));
+    assert(contains("NO MATCH HISTORY SAVED"));
+    assert(contains("PLAY STOCK 2P ANYWAY?"));
+    assert(contains("P1 A YES  B BACK"));
+    painted.clear();
+    view.unbound_two_player_warning_open = false;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(!contains("UNRECORDED TWO PLAYER"));
 
     painted.clear();
     assert(!render_modern_root_overlay({},pixels,256,224,1,240,

@@ -147,12 +147,19 @@ jobs:
           set -euo pipefail
           sudo apt-get -o Acquire::Retries=3 update
           sudo apt-get install -y --no-install-recommends \
-            libsdl2-2.0-0 libgl1 libx11-6 libxext6 libxrandr2 \
+            libsdl2-2.0-0 libgl1 libopengl0 libfreetype6 libdecor-0-0 \
+            libx11-6 libxext6 libxrandr2 \
             libxcursor1 libxi6 libxss1 libwayland-client0 \
             libxkbcommon0 libegl1 libgles2 libdrm2 libgbm1 \
             libasound2 libpulse0 libudev1 libdbus-1-3 xvfb
           (cd "$RUNNER_TEMP/qa01-binaries" && sha256sum -c SHA256SUMS)
           chmod +x "$RUNNER_TEMP/qa01-binaries/native" "$RUNNER_TEMP/qa01-binaries/snesref"
+          ldd "$RUNNER_TEMP/qa01-binaries/native" > "$RUNNER_TEMP/qa01-native-ldd.log"
+          cat "$RUNNER_TEMP/qa01-native-ldd.log"
+          if grep -q 'not found' "$RUNNER_TEMP/qa01-native-ldd.log"; then
+            echo "Missing case-runner native shared libraries; cannot produce an event witness" >&2
+            exit 1
+          fi
           python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
       - name: Run and classify source-qualified ${{ matrix.case }} without masking strict differences
         shell: bash
@@ -180,12 +187,16 @@ jobs:
           set -e
           echo "Original/native producer exit: $producer_rc"
           tail -n 60 "$ROOT/producer.log" || true
+          set +e
           python3 tools/qa01_event_campaign.py classify \
             --plan "$RUNNER_TEMP/qa01-input/qa01-plan.json" \
             --case "$QA01_CASE" \
             --producer-exit "$producer_rc" \
             --producer-report "$ROOT/producer-report.json" \
+            --producer-log "$ROOT/producer.log" \
             --out "$ROOT/case-result.json"
+          case_rc=$?
+          set -e
           python3 - "$ROOT/case-result.json" "$GITHUB_STEP_SUMMARY" <<'PY'
           import json,sys
           v=json.load(open(sys.argv[1]))
@@ -195,6 +206,7 @@ jobs:
               f.write(v.get("reason","") + "\n\n")
               f.write("**Release course credit: 0.**\n")
           PY
+          exit "$case_rc"
       - name: Always retain per-case receipt and bounded diagnostic logs
         if: always()
         uses: actions/upload-artifact@v4

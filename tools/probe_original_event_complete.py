@@ -248,6 +248,38 @@ def proven_switcher_race_result_prelude(
     )
 
 
+def proven_zoo_circuit_result_prelude(
+        states: dict[int, dict], track: int,
+        result_frame: int, foreign: dict) -> bool:
+    """Source-original Zoom Zoo result transition, not a second race.
+
+    The observed 2014 source is active on Zoo track 1 from frame 3190,
+    transiently writes ID 0 at 8314..8347 (34 active frames), restores
+    track 1 for 8348..8351, leaves active gameplay at 8352, and enters
+    the stable 0xBC Circuit result at 8353. Require precisely that
+    terminal shape. This is source-entry qualification ONLY; it neither
+    masks native timing nor awards a matched event.
+    """
+    return bool(
+        track == 1
+        and foreign.get("track") == 0
+        and foreign.get("start") == result_frame - 39
+        and foreign.get("end") == result_frame - 6
+        and states.get(foreign["start"] - 1, {}).get("track") == track
+        and states.get(foreign["start"] - 1, {}).get("in_race") == 1
+        and all(states.get(f, {}).get("track") == track
+                and states.get(f, {}).get("in_race") == 1
+                for f in range(result_frame - 5, result_frame - 1))
+        and states.get(result_frame - 1, {}).get("track") == track
+        and states.get(result_frame - 1, {}).get("in_race") != 1
+        and all(states.get(f, {}).get("track") == track
+                and states.get(f, {}).get("menu") == 0xBC
+                and states.get(f, {}).get("in_race") != 1
+                for f in range(result_frame, result_frame + 8))
+    )
+
+
+
 def source_event(states: dict[int, dict], track: int, result_menu: int) -> dict:
     """Detect source-original course entry and terminal result, never infer
     either from an approximate movie timestamp."""
@@ -307,7 +339,10 @@ def source_event(states: dict[int, dict], track: int, result_menu: int) -> dict:
         race_prelude = bool(
             result_menu == 0x99 and track == 3 and len(foreign) == 1
             and proven_switcher_race_result_prelude(states, track, stop, foreign[0]))
-        if foreign and not (stunt_prelude or race_prelude):
+        circuit_prelude = bool(
+            result_menu == 0xBC and track == 1 and len(foreign) == 1
+            and proven_zoo_circuit_result_prelude(states, track, stop, foreign[0]))
+        if foreign and not (stunt_prelude or race_prelude or circuit_prelude):
             continue
         return {"original_entry_frame": start, "original_result_frame": stop,
                 "source_stunt_tally_frame": tally,
@@ -315,6 +350,8 @@ def source_event(states: dict[int, dict], track: int, result_menu: int) -> dict:
                 "original_only_transient_handoff": (
                     "switcher_34_frame_track0_terminal_prelude"
                     if race_prelude else
+                    "zoo_34_frame_track0_terminal_prelude"
+                    if circuit_prelude else
                     "bowl_stunt_tally_prelude" if stunt_prelude else None)}
     raise CompleteEventError("source movie never demonstrated this course/result pair")
 

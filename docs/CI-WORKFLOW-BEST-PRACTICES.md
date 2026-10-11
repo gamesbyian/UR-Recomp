@@ -322,6 +322,8 @@ When a fast gate grows, split evidence collection out before raising the timeout
 
 ## Parameterized experiment harnesses
 
+Manual historical original/native event batches use [QA01-EVENT-CAMPAIGN.md](QA01-EVENT-CAMPAIGN.md) and `.github/workflows/qa01-event-campaign.yml`. Its three source-qualified cases share a pinned research build and emit non-admission candidate/divergence receipts; no scheduled/PR trigger or release-ledger credit. Expand only after the next genuine independent complete-event producer is accepted, not from an RNC stream census alone.
+
 When a research sequence differs only by a numeric depth, margin, frame range or other monotonic parameter, prefer one parameterized harness over sibling workflows. A new workflow is justified by a new invariant or execution substrate, not merely a new parameter value.
 
 For accepted capacity-style experiments, test the product-relevant endpoint once monotonicity is established. If the endpoint fails, localize the first failing value with the same harness. This avoids paying full setup/build cost for every intermediate rung.

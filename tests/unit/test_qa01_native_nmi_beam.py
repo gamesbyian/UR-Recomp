@@ -70,7 +70,8 @@ class OriginalNativeSwitcherBeamTests(unittest.TestCase):
         self.assertIn("UR_QA_NATIVE_STACK_LAST: \"5782\"", wf)
         self.assertIn('SNESRECOMP_WLOG_ADDR_CAP: "2048"', wf)
         self.assertIn("qa01_switcher_nmi_beam_crosswalk.py", wf)
-        self.assertEqual(wf.count("      - name: Reuse pinned fresh"), 0)
+        self.assertIn("      - name: Existing fresh-paired Switcher source movie replay", wf)
+        self.assertNotIn("\n  pull_request:", wf)
 
     def test_malformed_misphased_duplicate_or_unauthenticated_fails_closed(self):
         for invalid in (

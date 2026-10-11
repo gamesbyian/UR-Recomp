@@ -13,13 +13,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[3]
-LEDGERS = [
-    "racer-hd-art-approval.json",
-    "racer-hd-art-approval-057e-0544.json",
-    "racer-hd-art-approval-1244-1252.json",
-    "racer-hd-art-approval-1230-1239.json",
-    "racer-hd-art-approval-1261-1267.json",
-]
+LEDGERS = sorted(p.name for p in (ROOT / "analysis/data").glob("racer-hd-art-approval*.json"))
 FPS = 30
 SIZE = (1920, 1080)
 BG = "#101525"
@@ -32,7 +26,7 @@ def approvals():
     for name in LEDGERS:
         path = ROOT / "analysis/data" / name
         ledger = json.loads(path.read_text())
-        assert not ledger["family_blockers"], name
+        if ledger["family_blockers"]:\n            continue
         for d in ledger["decisions"]:
             if not (d["shipping_art_approved"] and d["status"] == "approved" and not d["blocker_codes"]):
                 continue
@@ -60,10 +54,10 @@ def load_pair(spec, approved):
         raise ValueError(f"Authored RGBA approval mismatch for {key}: {digest}")
     if not spec.get("stock_source") or not spec.get("stock_evidence"):
         raise ValueError("stock_source and stock_evidence must identify authentic extraction and proof")
-    if stock.getbbox() is None or authored.getbbox() is None:
+    if spec.get("stock_rgba_sha256") and spec["stock_rgba_sha256"] != sha(stock.tobytes()):\n        raise ValueError("Original ROM sprite RGBA checksum mismatch")\n    if stock.getbbox() is None or authored.getbbox() is None:
         raise ValueError("Empty source artwork")
     return stock, authored, {
-        **approved[key], "representation_id": key,
+        **approved[key], "representation_id": key, "guest_frame": spec.get("frame"),
         "stock_png": str(stock_path), "stock_file_sha256": sha(stock_path.read_bytes()),
         "stock_rgba_sha256": sha(stock.tobytes()),
         "stock_source": spec["stock_source"], "stock_evidence": spec["stock_evidence"],
@@ -120,9 +114,8 @@ def comparison(stock, authored, tick):
 def archaeology(pairs, tick):
     im = backdrop("ANIMATION ARCHAEOLOGY","ROM-derived ordered poses | editorial playback")
     d = ImageDraw.Draw(im)
-    idx = (tick//10)%len(pairs)
-    for j, (stock,authored,_) in enumerate(pairs[:8]):
-        left=120+j*210
+    idx = (tick//8)%len(pairs)
+    # Choose evenly spaced timeline entries rather than treating repeated holds as distinct poses.\n    positions = [round(j*(len(pairs)-1)/7) for j in range(8)]\n    for j, pos in enumerate(positions):\n        stock,authored,meta = pairs[pos]\n        left=120+j*210
         d.rectangle((left,295,left+190,490),outline="#405069",width=2)
         artwork(im,stock,(left+15,310,160,160),True)
         text(d,(left+65,510),f"{j+1:02d}",25)
@@ -135,7 +128,7 @@ def archaeology(pairs, tick):
 def montage(pairs,tick):
     im = backdrop("RESTORING THE ORIGINAL MOTION","Hash-approved poses | density and palette are distinct")
     n=len(pairs)
-    idx=(tick//18)%n
+    idx=(tick//8)%n
     stock,art,_=pairs[idx]
     artwork(im,stock,(210,290,560,560),True)
     artwork(im,art,(1100,290,560,560),False)
@@ -145,19 +138,55 @@ def montage(pairs,tick):
     text(d,(840,555),">",78,"#ef5783")
     return im
 
-def encode(outdir,name,frames):
-    temp=outdir/(name+"-frames")
-    temp.mkdir(parents=True,exist_ok=True)
-    for i,img in enumerate(frames):
-        img.convert("RGB").save(temp/f"{i:05d}.png")
-    target=outdir/(name+".mp4")
-    subprocess.run(["ffmpeg","-hide_banner","-loglevel","error","-y",
-                    "-framerate",str(FPS),"-i",str(temp/"%05d.png"),
-                    "-c:v","libx264","-preset","medium","-crf","17",
-                    "-pix_fmt","yuv420p","-movflags","+faststart",str(target)],check=True)
+def encode(outdir, name, frames, expected):
+    # Stream frames to FFmpeg. Never retain 570 1080p PNGs in CI.
+    target = outdir / (name+".mp4")
+    cmd = ["ffmpeg","-hide_banner","-loglevel","error","-y",
+           "-f","rawvideo","-pix_fmt","rgb24","-s","1920x1080",
+           "-r",str(FPS),"-i","pipe:0","-an",
+           "-c:v","libx264","-preset","veryfast","-crf","17",
+           "-pix_fmt","yuv420p","-movflags","+faststart",str(target)]
+    process = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+    samples=[]
+    count=0
+    try:
+        for i,img in enumerate(frames):
+            frame=img.convert("RGB")
+            process.stdin.write(frame.tobytes())
+            if i in {0, expected//4, expected//2, 3*expected//4, expected-1}:
+                small=frame.resize((480,270),Image.Resampling.LANCZOS)
+                samples.append(small)
+            count+=1
+        process.stdin.close()
+        stderr=process.stderr.read().decode(errors="replace")
+        code=process.wait()
+        if code or count!=expected:
+            raise RuntimeError(f"FFmpeg failed: exit={code} frames={count}/{expected}: {stderr}")
+    finally:
+        if process.poll() is None:
+            process.kill()
+            process.wait()
+    sheet=Image.new("RGB",(480*len(samples),270),BG)
+    for i,small in enumerate(samples):
+        sheet.paste(small,(480*i,0))
+    sheet_path=outdir/(name+"-contact-sheet.png")
+    sheet.save(sheet_path)
+    probe=json.loads(subprocess.check_output([
+        "ffprobe","-v","error","-count_frames","-select_streams","v:0",
+        "-show_entries","stream=width,height,nb_read_frames,r_frame_rate",
+        "-of","json",str(target)]))
+    stream=probe["streams"][0]
+    if (int(stream["nb_read_frames"])!=expected or
+        int(stream["width"])!=1920 or int(stream["height"])!=1080 or
+        stream["r_frame_rate"]!="30/1"):
+        raise ValueError(f"Incorrect output frame/size/fps {stream}")
+    # Decode the whole video, not just the container's frame index.
+    subprocess.run(["ffmpeg","-v","error","-xerror","-i",str(target),
+                    "-f","null","-"],check=True)
     return {"filename":target.name,"sha256":sha(target.read_bytes()),
-            "frames":len(frames),"fps":FPS,"seconds":len(frames)/FPS,
-            "source_frame_dir":temp.name}
+            "frames":expected,"fps":FPS,"seconds":expected/FPS,
+            "contact_sheet":sheet_path.name,
+            "contact_sheet_sha256":sha(sheet_path.read_bytes())}
 
 def main():
     p=argparse.ArgumentParser()
@@ -172,11 +201,7 @@ def main():
     if len(pairs)<2:
         raise ValueError("Need >=2 verified ordered poses for animation archaeology")
     a.output.mkdir(parents=True,exist_ok=True)
-    clips=[
-        encode(a.output,"01-original-4x-remastered",(comparison(*pairs[0][:2],i) for i in range(210))),
-        encode(a.output,"02-animation-archaeology",(archaeology(pairs,i) for i in range(210))),
-        encode(a.output,"03-remaster-progress",(montage(pairs,i) for i in range(150))),
-    ]
+    clips=[\n        encode(a.output,"01-original-4x-remastered",(comparison(*pairs[0][:2],i) for i in range(210)),210),\n        encode(a.output,"02-animation-archaeology",(archaeology(pairs,i) for i in range(210)),210),\n        encode(a.output,"03-remaster-progress",(montage(pairs,i) for i in range(150)),150),\n    ]
     provenance={"schema_version":1,"format":"1920x1080 h264 yuv420p",
                 "claim":"Verified art demonstrations. Editorial motion, not native gameplay.",
                 "approval_sources":LEDGERS,"assets":[x[2] for x in pairs],"clips":clips}

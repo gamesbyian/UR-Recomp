@@ -8,6 +8,8 @@
 #include "baldosa_native_profile_sram_checkpoint.hpp"
 #include "baldosa_native_run_record_admission.hpp"
 #include "completed_run_store.hpp"
+#include "multiplayer_match_catalog.hpp"
+#include "multiplayer_match_record.hpp"
 
 #include <array>
 #include <cassert>
@@ -23,6 +25,10 @@ extern "C" int ur_baldosa_modern_try_activate_profile(void);
 extern "C" int ur_baldosa_modern_profile_before_native_save(void);
 extern "C" int ur_baldosa_modern_publish_settled_one_player_run(
     const ur::product::BaldosaSettledResult*);
+extern "C" int ur_baldosa_modern_publish_settled_two_player_match(
+    const ur::product::BaldosaSettledResult*,
+    const ur::product::HostProfileCatalogEntry*,
+    const ur::product::HostProfileCatalogEntry*);
 extern "C" int ur_baldosa_modern_profile_finish_native_save(int);
 
 /* Real pinned framework provides these. Keep the unit executable's tiny RTL
@@ -198,6 +204,108 @@ int main() {
     fs::rename(dir / "moved-runs", original_run);
 
 
+
+    // This is a SYNTHETIC provider/persistence unit contract, not a played
+    // native guest result. Both explicitly named identities must exist in
+    // the existing Modern catalog and have independent, matching 8-KiB SRAM.
+    const auto identity2 = make_legacy_racer_identity(1);
+    assert(identity2);
+    const HostProfileCatalogEntry p1{"rider-1", *identity};
+    const HostProfileCatalogEntry p2{"rider-2", *identity2};
+    fs::create_directories("saves/profile-rider-2");
+    auto other_profile = make_default_host_profile_state("rider-2");
+    assert(other_profile);
+    other_profile->racer_identity = *identity2;
+    std::array<std::uint8_t, kStockSramBytes> opponent_sram{};
+    opponent_sram.fill(0x52u);
+    assert(capture_stock_sram_for_profile(
+        ExecutionMode::Modern, *other_profile,
+        opponent_sram.data(), opponent_sram.size()) ==
+        HostProfileTransferStatus::Applied);
+    assert(save_host_profile_state_file(
+        ExecutionMode::Modern,
+        "saves/profile-rider-2/host-profile.txt", *other_profile) ==
+        HostProfileSaveStatus::Saved);
+    {
+        std::ofstream raw("saves/profile-rider-2/save.srm", std::ios::binary);
+        assert(raw);
+        raw.write(reinterpret_cast<const char*>(opponent_sram.data()),
+                  opponent_sram.size());
+        assert(raw.good());
+    }
+    assert(save_host_profile_catalog_file(
+        "profiles-v1.txt", {p1, p2}));
+    BaldosaSettledResult observed_2p{};
+    observed_2p.kind = BaldosaSettledResultKind::OrdinaryTwoPlayerRace;
+    observed_2p.first_race_host_frame = 500;
+    observed_2p.observed_result_host_frame = 504;
+    observed_2p.course_index = 1;
+    observed_2p.captured_input_frames = 4;
+    observed_2p.mapped_inputs = {{0, 2, 0x10u, 0x20u}};
+    ur::title::OrdinaryTwoPlayerRaceResult title_result{};
+    title_result.player1_rider = 0;
+    title_result.player2_rider = 1;
+    title_result.player1_hundredths = 2866;
+    title_result.player2_hundredths = 2977;
+    title_result.outcome =
+        ur::title::OrdinaryTwoPlayerRaceOutcome::Player1Win;
+    observed_2p.two_player = title_result;
+    const auto multiplayer_root = dir / "multiplayer-runs";
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        nullptr, &p1, &p2));
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &observed_2p, &p1, nullptr));
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &observed_2p, &p1, &p1));
+    {
+        auto mismatch = p2;
+        mismatch.identity.rider_index = 2;
+        assert(!ur_baldosa_modern_publish_settled_two_player_match(
+            &observed_2p, &p1, &mismatch));
+    }
+    const std::string selector_path = (dir / "host-state-v1.txt").string();
+    {
+        TournamentLaunchPathLock blocked(selector_path, true);
+        assert(blocked.acquired());
+        assert(!ur_baldosa_modern_publish_settled_two_player_match(
+            &observed_2p, &p1, &p2));
+        assert(!fs::exists(multiplayer_root));
+    }
+    assert(ur_baldosa_modern_publish_settled_two_player_match(
+        &observed_2p, &p1, &p2));
+    auto pairs = load_valid_multiplayer_matches(multiplayer_root.string());
+    assert(pairs.size() == 1);
+    assert(pairs[0].match.context.match.player1.profile_id == "rider-1");
+    assert(pairs[0].match.context.match.player2.profile_id == "rider-2");
+    assert(pairs[0].run.provenance.mode == "race-2p");
+    assert(pairs[0].run.provenance.course_id == "course:01");
+    assert(pairs[0].run.inputs[0].p1_mask == 0x10u);
+    assert(pairs[0].run.inputs[0].p2_mask == 0x20u);
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &observed_2p, &p1, &p2));
+    assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() == 1);
+
+    // A changed opponent profile revokes the earlier confirmation. Refuse
+    // silently counting matches for a name/rider no longer in typed storage.
+    auto changed = *other_profile;
+    changed.recent_track = 4;
+    assert(save_host_profile_state_file(
+        ExecutionMode::Modern,
+        "saves/profile-rider-2/host-profile.txt", changed) ==
+        HostProfileSaveStatus::Saved);
+    auto new_event = observed_2p;
+    new_event.first_race_host_frame = 520;
+    new_event.observed_result_host_frame = 524;
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &new_event, &p1, &p2) ||
+        load_valid_multiplayer_matches(multiplayer_root.string()).size() == 2);
+    // Restore the original opponent state, then ensure the existing
+    // canonical reader still finds the exactly paired first match.
+    assert(save_host_profile_state_file(
+        ExecutionMode::Modern,
+        "saves/profile-rider-2/host-profile.txt", *other_profile) ==
+        HostProfileSaveStatus::Saved);
+    assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() >= 1);
 
     // The original framework write MUST be preceded by a compatible typed
     // selection check under the canonical OS lock, retained until CAS.

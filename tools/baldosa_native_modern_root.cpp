@@ -480,16 +480,19 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     if (!g_visible || !opt || (std::strcmp(opt, "1") != 0 &&
                              std::strcmp(opt, "2") != 0)) return;
     int key = 0;
-    // In mode 1 open and close the actual read-only Records archive,
-    // then enter 1P. Mode 2 proves the actual stock 2P handoff.
+    // In mode 1 open and switch 1P/2P read-only Records pages using
+    // real SDL key edges, then close and enter 1P. Mode 2 proves the
+    // actual stock 2P handoff.
     if (std::strcmp(opt, "2") == 0) {
         if (frame == 60 || frame == 62) key = SDLK_DOWN;
         else if (frame == 64) key = SDLK_RETURN;
     } else {
         if (frame >= 60 && frame <= 62) key = SDLK_DOWN;
-        else if (frame == 63 || frame == 68) key = SDLK_RETURN;
-        else if (frame == 64) key = SDLK_ESCAPE;
-        else if (frame >= 65 && frame <= 67) key = SDLK_UP;
+        else if (frame == 63 || frame == 70) key = SDLK_RETURN;
+        else if (frame == 64) key = SDLK_DOWN; // open 2P archive page
+        else if (frame == 65) key = SDLK_UP;   // return to 1P page
+        else if (frame == 66) key = SDLK_ESCAPE;
+        else if (frame >= 67 && frame <= 69) key = SDLK_UP;
     }
     if (!key) return;
     SDL_Event event{};

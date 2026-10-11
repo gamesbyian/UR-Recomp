@@ -36,7 +36,7 @@ class WindowsSmokeArtifactArchiveTests(unittest.TestCase):
             "qa09-root-win32.log": (
                 b"SDL init ok: video=windows audio=dummy\n"
                 b"[Gamepad] SDL reports 0 joystick(s)\n"
-                b"Found controller 'UR hotplug acceptance pad'\n"
+                b"UR_CONTROLLER SEAT_CONNECTED seat=1 name=UR HOTPLUG ACCEPTA\n"
             ),
             "package-race-result.log": b"UR_RUN_RECORD CAPTURED\n",
             "standalone-windows-verifier.log": b"UR_PORTABLE_MANIFEST_VERIFIED\n",
@@ -79,6 +79,23 @@ class WindowsSmokeArtifactArchiveTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "archived source differs"):
                     audit.audit(portable, smoke, expected_source="b" * 40,
                                 expected_zip_sha256=good_digest)
+
+    def test_real_qa09_truncated_synthetic_pad_marker_is_required(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            portable, smoke, inner, checksum, manifest = self.prepare(root)
+            with zipfile.ZipFile(smoke, "r") as old:
+                original = {name: old.read(name) for name in old.namelist()}
+            original["qa09-root-win32.log"] = (
+                b"[host +0.031s] SDL init ok: video=windows audio=dummy\\n"
+                b"[Gamepad] SDL reports 0 joystick(s). enable_gamepad=[1,1]\\n"
+                b"UR_CONTROLLER SEAT_CONNECTED seat=1 name=GENERIC PHYSICAL\\n"
+            )
+            _wrap(smoke, original)
+            with mock.patch.object(audit.package, "verify_archive", return_value=manifest):
+                report = audit.audit(portable, smoke)
+            self.assertFalse(report["metrics"]["qa09_synthetic_pad_label_observed"])
+            self.assertEqual(report["metrics"]["qa09_reported_joystick_count"], 0)
 
     def test_wrong_independent_transport_sidecar_fails_before_package_parser(self):
         with tempfile.TemporaryDirectory() as temp:

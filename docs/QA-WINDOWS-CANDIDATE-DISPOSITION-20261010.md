@@ -78,3 +78,7 @@ The existing manual Windows tournament QA workflow now reads back its two **sepa
 ## Orphan and duplicate artifact cardinality
 
 The exact Windows tournament script and its separate receipt consumer now count **all** `*.urmatch` sidecars and `*.urfixture` receipts within the accepted roots, not only the already expected `*.urrun.urmatch` / `fixture-0.urfixture` filenames. One legitimate canonical run + attached sidecar + fixture-0 receipt is necessary; any unclaimed or duplicate sidecar, or unexpected extra credited receipt from the supposedly single-fixture event, fails QA even if the documented three files still match their SHA-256s. This detects otherwise silent output pollution without changing production persistence semantics.
+
+## Historical QA-09 pad-label parsing correction
+
+The retained 2026-10-11 Windows smoke logs use the literal **upper-case, truncated** label `UR_CONTROLLER SEAT_CONNECTED seat=1 name=UR HOTPLUG ACCEPTA`, not the original full mixed-case pad name. The archived artifact auditor now checks this exact observable production diagnostic, preventing a false `qa09_synthetic_pad_label_observed=false` conclusion for the historical smoke artifact. Test fixtures include both a positive real-format line and a negative unrelated controller label; historic zero physical SDL joysticks and dummy audio remain explicit.

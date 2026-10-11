@@ -118,7 +118,13 @@ def audit(
             "qa09_reported_joystick_count": int(pads.group(1)) if pads else None,
             "qa09_video_driver": audio.group(1) if audio else None,
             "qa09_audio_driver": audio.group(2) if audio else None,
-            "qa09_synthetic_pad_label_observed": "UR hotplug acceptance pad" in pad_log,
+            # The real Windows SDL name is uppercase and truncated to 16
+            # visible bytes: "UR_CONTROLLER ... name=UR HOTPLUG ACCEPTA".
+            # Do not silently misclassify actual synthetic-pad evidence.
+            "qa09_synthetic_pad_label_observed": bool(re.search(
+                r"(?im)^UR_CONTROLLER SEAT_CONNECTED seat=1 name=UR HOTPLUG ACCEPTA(?:\\s|$)",
+                pad_log,
+            )),
             "logged_package_race_record_capture": "UR_RUN_RECORD CAPTURED" in race_log,
             "logged_standalone_manifest_verified": "UR_PORTABLE_MANIFEST_VERIFIED" in verify_log,
             "nominated_candidate_pins_matched": expected_source is not None,

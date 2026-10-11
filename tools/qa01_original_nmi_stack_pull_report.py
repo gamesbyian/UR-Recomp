@@ -50,6 +50,9 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
     # rather than admitting a synthetic stand-alone QANMIPULL line.
     original_context = nmi.summarize(log, first=first, last=last)
     matches = list(PULL.finditer(log))
+    # Do not silently drop truncated or modified instrumentation lines.
+    if sum(line.startswith("QANMIPULL") for line in log.splitlines()) != len(matches):
+        raise ValueError("malformed original QANMIPULL trace row")
     if len(matches) > MAX_PULLS:
         raise ValueError("unbounded original stack pull trace")
     rows = []

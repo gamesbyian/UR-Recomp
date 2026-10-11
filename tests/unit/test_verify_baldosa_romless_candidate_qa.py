@@ -152,6 +152,11 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
             self.assertEqual(accepted["inputs"]["runtime_actions_wrapper_sha256"],
                              qa.file_digest(evidence))
 
+            # The downloaded real Windows logs are CRLF, not Linux LF.
+            pack(one.replace(b"\n", b"\r\n"), two.replace(b"\n", b"\r\n"))
+            crlf = qa.check_runtime_actions_wrapper(evidence, qa.audit(inner, source, digest))
+            self.assertTrue(crlf["metrics"]["hosted_1p_stock_entry_observed"])
+
             changed = {**report, "exe_sha256": "0" * 64}
             pack(one, two, changed)
             with self.assertRaisesRegex(ValueError, "tested executable"):

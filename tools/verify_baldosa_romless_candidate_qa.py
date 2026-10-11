@@ -356,7 +356,7 @@ def check_runtime_actions_wrapper(wrapper: Path, candidate: dict) -> dict:
         )
         # The real guest transcript includes both "script f=... quit" and
         # "exit: script quit"; counting the substring " quit" double-counts.
-        script_exits = re.findall(r"(?m)^script f=[0-9]+ quit\\r?$", contents)
+        script_exits = re.findall(r"(?m)^script f=[0-9]+ quit\r?$", contents)
         if (any(contents.count(marker) != 1 for marker in markers)
                 or len(script_exits) != 1
                 or "UR_MULTIPLAYER_MATCH " in contents

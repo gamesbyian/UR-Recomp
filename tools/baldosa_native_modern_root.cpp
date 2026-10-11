@@ -295,6 +295,23 @@ void back() {
 }
 }  // namespace
 
+// Only genuine root-controlled 2P handoff with two distinct explicit pad
+// confirmations may expose identities to the existing source-result binder.
+// A stock 2P race entered anonymously remains playable but unbound.
+extern "C" int ur_baldosa_modern_root_source_bound_2p_profiles(
+    ur::product::HostProfileCatalogEntry* p1,
+    ur::product::HostProfileCatalogEntry* p2) {
+    if (!p1 || !p2 || g_visible || !g_stock_handed_off ||
+        g_handed_off_players != 2u || !g_two_seat_join.ready())
+        return 0;
+    const auto* first = g_two_seat_join.participant(0);
+    const auto* second = g_two_seat_join.participant(1);
+    if (!first || !second) return 0;
+    *p1 = *first;
+    *p2 = *second;
+    return 1;
+}
+
 extern "C" void ur_baldosa_modern_root_set_racer_name(const char* name) {
     g_racer_name = name && *name ? name : "STOCK RACER - NO PROFILE";
 }
@@ -551,6 +568,9 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             (menu == 0x3cu || menu == 0x3du ||
              menu == 0x6du || menu == 0xf6u);
         if (menu == 0xd7u || opposite_mode || setup_after_race) {
+            // Returning to title/setup invalidates both source event and
+            // the separately pad-confirmed human profile identities.
+            g_two_seat_join.cancel();
             g_handed_off_players = 0;
             g_handed_off_saw_race = false;
         }

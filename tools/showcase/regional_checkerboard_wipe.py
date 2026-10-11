@@ -13,7 +13,10 @@ import json
 import math
 from pathlib import Path
 
-from PIL import Image
+try:
+    from PIL import Image
+except ImportError:  # Geometry/unit tests remain runnable without preview deps.
+    Image = None
 
 CALIBRATION_SCHEMA = "UR-REGIONAL-CHECKER-CALIBRATION/1"
 OUTPUT_SCHEMA = "UR-REGIONAL-CHECKER-PREVIEW/1"
@@ -61,6 +64,8 @@ def render(source: Image.Image, target: Image.Image, *,
     the destination texture in its canonical orientation. All texels are
     nearest-neighbour samples, never blends.
     """
+    if Image is None:
+        raise RuntimeError("Pillow is required to render PNG previews")
     if source.mode != "RGB" or target.mode != "RGB" or source.size != target.size:
         raise ValueError("source and target must be equal-sized RGB images")
     if len(grey) != 3 or any(type(v) is not int or not 0 <= v <= 255 for v in grey):
@@ -112,6 +117,8 @@ def render(source: Image.Image, target: Image.Image, *,
 
 
 def calibration(path: Path, menu_path: Path):
+    if Image is None:
+        raise RuntimeError("Pillow is required to inspect menu screenshots")
     data = json.loads(path.read_text(encoding="utf-8"))
     if data.get("schema") != CALIBRATION_SCHEMA or data.get("status") != "measured-original-main-menu":
         raise ValueError("calibration must be identified as measured original main-menu evidence")
@@ -133,6 +140,8 @@ def calibration(path: Path, menu_path: Path):
 
 def demo_images():
     """Clearly synthetic demo, never evidence of actual game artwork/colour."""
+    if Image is None:
+        raise RuntimeError("Pillow is required for synthetic preview")
     size = (80, 56)
     menu = Image.new("RGB", size, (120, 120, 120))
     a = Image.new("RGB", size)

@@ -63,6 +63,15 @@ def patch(source: str) -> str:
             const bool ur_qa_rti_gate = ur_qa_stack_gate && (Op == 0x40);
             const uint8 ur_qa_rti_pb0 = ur_qa_rti_gate ? Registers.PB : 0;
             const int ur_qa_rti_cycle0 = ur_qa_rti_gate ? (int)CPU.Cycles : 0;
+            /* Pre-RTI stack image independently reconstructs P/PC/PB.
+               Guard the full four-byte native return against stack-page
+               overflow; emulation mode can still be classified as partial. */
+            const bool ur_qa_rti_stack4 = ur_qa_rti_gate &&
+                ur_qa_pull_sp0 >= 0x0100u && ur_qa_pull_sp0 <= 0x01FBu;
+            const uint8 ur_qa_rti_b1 = ur_qa_rti_stack4 ? Memory.RAM[ur_qa_pull_sp0 + 1u] : 0;
+            const uint8 ur_qa_rti_b2 = ur_qa_rti_stack4 ? Memory.RAM[ur_qa_pull_sp0 + 2u] : 0;
+            const uint8 ur_qa_rti_b3 = ur_qa_rti_stack4 ? Memory.RAM[ur_qa_pull_sp0 + 3u] : 0;
+            const uint8 ur_qa_rti_b4 = ur_qa_rti_stack4 ? Memory.RAM[ur_qa_pull_sp0 + 4u] : 0;
 """
     after = r"""
             if (ur_qa_pull_gate)
@@ -78,7 +87,7 @@ def patch(source: str) -> str:
                     (unsigned)ICPU.Frame);
             if (ur_qa_rti_gate)
                 fprintf(stderr,
-                    "QANMIRTI f=%u v0=%u v1=%u pc=%06X postpc=%06X pb0=%02X pb1=%02X sp0=%04X sp1=%04X a0=%04X a1=%04X pl0=%02X pl1=%02X cyc0=%d cyc1=%d f1=%u\n",
+                    "QANMIRTI f=%u v0=%u v1=%u pc=%06X postpc=%06X pb0=%02X pb1=%02X sp0=%04X sp1=%04X a0=%04X a1=%04X pl0=%02X pl1=%02X stack4=%u b1=%02X b2=%02X b3=%02X b4=%02X cyc0=%d cyc1=%d f1=%u\n",
                     ur_qa_pull_f0, ur_qa_pull_v0, (unsigned)CPU.V_Counter,
                     (unsigned)ur_qa_stack_pc,
                     (unsigned)(((uint32)Registers.PB << 16) | Registers.PCw),
@@ -86,8 +95,11 @@ def patch(source: str) -> str:
                     (unsigned)Registers.PB, (unsigned)ur_qa_pull_sp0,
                     (unsigned)Registers.S.W, (unsigned)ur_qa_pull_a0,
                     (unsigned)Registers.A.W, (unsigned)ur_qa_pull_pl0,
-                    (unsigned)Registers.PL, ur_qa_rti_cycle0,
-                    (int)CPU.Cycles, (unsigned)ICPU.Frame);
+                    (unsigned)Registers.PL,
+                    (unsigned)ur_qa_rti_stack4,
+                    (unsigned)ur_qa_rti_b1, (unsigned)ur_qa_rti_b2,
+                    (unsigned)ur_qa_rti_b3, (unsigned)ur_qa_rti_b4,
+                    ur_qa_rti_cycle0, (int)CPU.Cycles, (unsigned)ICPU.Frame);
 """
     replacement = before + stack.MARKER + "\n" + after
     if replacement.count("(*Opcodes[Op].S9xOpcode)();") != 1:

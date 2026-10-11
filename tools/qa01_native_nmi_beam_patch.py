@@ -13,7 +13,7 @@ from pathlib import Path
 import qa01_native_switcher_stack_gate as gate
 
 STAMP = "UR_QA01_NATIVE_NMI_WRITER_BEAM_V1"
-HEADER = '#include "cpu_state.h"\\n'
+HEADER = '#include "cpu_state.h"\n'
 MARKER = "    fputc('\\n', g_wlog_addr_fp);\n    if (g_wlog_halt_off >= 0) {"
 
 

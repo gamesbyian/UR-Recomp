@@ -62,6 +62,8 @@ def summarize(writer: dict, reader: dict) -> dict:
                is not (count == 0)):
         raise ValueError("read journal counts/zero-witness metadata invalid")
     actual = {"7E:01DD": 0, "7E:01DE": 0}
+    derived_broad = 0
+    derived_strict = 0
     for row in rows:
         if not isinstance(row, dict):
             raise ValueError("malformed read row in paired native journal")
@@ -72,11 +74,35 @@ def summarize(writer: dict, reader: dict) -> dict:
             raise ValueError("native read row does not touch pinned stack targets")
         for target in targets:
             actual[target] += 1
+        frame = row.get("native_snes_frame_counter")
+        width = row.get("bus_read_width")
+        if (type(frame) is not int or not 5778 <= frame <= 5782
+                or type(width) is not int or width not in (1, 2)
+                or row.get("word_start") not in ("01DC", "01DD", "01DE")
+                or row.get("observed_after_4004_writer_callback_started")
+                   not in (True, False)
+                or type(row.get("memory_width_flag_at_read")) is not int
+                or row["memory_width_flag_at_read"] not in (0, 1)
+                or row.get("stack_pointer_equals_read_start_at_callback")
+                   not in (True, False)):
+            raise ValueError("unqualified native stack read row timing/width/stack fields")
+        # The archived read JSON must not be able to alter candidate
+        # counts separately from the actual normalized underlying rows.
+        is_broad = (row["observed_after_4004_writer_callback_started"] is True
+                    and frame == 5781 and width == 2
+                    and row["word_start"] == "01DD"
+                    and row.get("read_value") == "4004")
+        if is_broad:
+            derived_broad += 1
+            if (row["stack_pointer_equals_read_start_at_callback"] is True
+                    and row["memory_width_flag_at_read"] == 0):
+                derived_strict += 1
     if tally != actual:
         raise ValueError("journal read counts disagree with actual declared target bytes")
     broad = reader.get("same_native_frame_post_writer_callback_read_4004_candidate_count")
     strict = reader.get("same_frame_post_writer_stack_position_consistent_word_4004_count")
     if (type(broad) is not int or type(strict) is not int
+            or broad != derived_broad or strict != derived_strict
             or not 0 <= strict <= broad <= count
             or reader.get("stack_pointer_matches_bus_start_not_proof_of_pla") is not True):
         raise ValueError("native 4004 bus-read candidate classification metadata invalid")

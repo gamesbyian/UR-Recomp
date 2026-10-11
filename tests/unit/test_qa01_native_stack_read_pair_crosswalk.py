@@ -42,6 +42,10 @@ READ = {
         "target_stack_bytes_touched": ["7E:01DD", "7E:01DE"],
         "native_snes_frame_counter": 5781,
         "read_value": "4004",
+        "word_start": "01DD",
+        "bus_read_width": 2,
+        "memory_width_flag_at_read": 0,
+        "stack_pointer_equals_read_start_at_callback": False,
         "observed_after_4004_writer_callback_started": True,
     }],
     "native_bus_read_attempts_by_target": {"7E:01DD": 1, "7E:01DE": 1},
@@ -98,6 +102,29 @@ class NativeStackReadPairCrosswalkTests(unittest.TestCase):
             (writer if obj == "beam" else reader)[key] = value
             with self.subTest(obj=obj, field=key), self.assertRaises(ValueError):
                 x.summarize(writer, reader)
+
+    def test_counters_are_rederived_from_actual_rows_not_just_bounded(self):
+        for field, replacement in (
+            ("read_value", "4042"),
+            ("word_start", "01DE"),
+            ("bus_read_width", 1),
+            ("native_snes_frame_counter", 5782),
+            ("observed_after_4004_writer_callback_started", False),
+            ("memory_width_flag_at_read", "0"),
+        ):
+            doc = copy.deepcopy(READ)
+            doc["native_stack_read_attempts"][0][field] = replacement
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                x.summarize(BEAM, doc)
+        doc = copy.deepcopy(READ)
+        doc["native_stack_read_attempts"][0][
+            "stack_pointer_equals_read_start_at_callback"] = True
+        with self.assertRaises(ValueError):
+            x.summarize(BEAM, doc)
+        doc["same_frame_post_writer_stack_position_consistent_word_4004_count"] = 1
+        result = x.summarize(BEAM, doc)
+        self.assertEqual(result["native_stack_pointer_consistent_4004_word_read_candidates"], 1)
+        self.assertFalse(result["native_guest_result_consumer_proven"])
 
     def test_manual_workflow_produces_separate_crosscheck_from_existing_logs(self):
         wf = (ROOT / ".github/workflows/qa01-switcher-original-2014.yml").read_text()

@@ -1124,3 +1124,17 @@ sources:
     retrieved: "2026-10-05"
     rights: "Public forum discussion; preserve claim and provenance only."
     relevance: "A console player reports having fallen through the track at least four times and being in a twisting state every time. Useful as a hypothesis that orientation/stunt state contributes to collision fall-through."
+
+  - id: malmazuke-unirally-reconstruction-20261010
+    title: "Mark Feaver (malmazuke) PAL Unirally reconstruction and original-reference research"
+    type: independent_pal_reconstruction_source
+    url: "https://github.com/malmazuke/unirally-reconstruction"
+    fork: "https://github.com/gamesbyian/unirally-reconstruction"
+    author: "Mark Feaver (malmazuke)"
+    revision: "42d444594641d23f5d3c15da7b7c454bb5180e43"
+    retrieved: "2026-10-10"
+    rights: "MIT for project-owned code/documentation; excludes original ROM, copyrighted artwork and content. Selected text-only snapshot preserved with original license."
+    local_paths:
+      - "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/"
+      - "analysis/data/malmazuke-pal-structural-links-20261010.json"
+    relevance: "Independent PAL bsnes experiments and native reconstruction with detailed finish/result, timing, NMI and frontend evidence. Structural PAL/USA candidates are nonauthoritative until validated on exact USA ROM."

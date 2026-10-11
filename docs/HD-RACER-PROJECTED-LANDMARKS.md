@@ -381,12 +381,64 @@ or part of the character's model/material. Use
 authentic **source-isolated OAM** for the unicycle's
 pixel colours and silhouette; use the final unmodified
 Original PPU screen as a **separate foreground
-compositing** reference. A bounded independent
-native deletion of original front slots98/96 at2208
-([PR #1344](https://github.com/gamesbyian/UR-Recomp/pull/1344))
-will adjudicate which of the 13 text-overlap positions
-have actual final-source causal contribution.
-Do not claim the text BG/window/colour-math
-implementation yet or generate HD art from the
-combined screenshot. This is a source separation
-rule, **not** model likeness approval.
+compositing** reference. The bounded independent native deletion of original
+front slots98 and96 at2208 has now **PASSED** in
+[PR #1344](https://github.com/gamesbyian/UR-Recomp/pull/1344)
+([AOT 38122996301](https://github.com/gamesbyian/UR-Recomp/actions/runs/38122996301),
+artifact `11696027598`): all **13/13** such red-tinted
+front-source pixels change the actual final Original
+when each slot is removed (top98 contributes 308/317,
+bottom96 contributes 304/313 original pixels total).
+This proves real causal *front-slot involvement* at those
+13 positions, not that the red tint itself is part of
+the sprite or which BG/window/colour-math component
+provides the added red. Do not claim the text
+BG/window/CGADSUB implementation yet or generate HD
+art from the combined screenshot. This is a source
+separation rule, **not** model likeness approval.
+
+
+## Post-GO inter-racer alpha pose similarity: common rig, separate animation
+
+A further direct measurement within the **same**
+independently authenticated native frame2208 compares
+the upper source OAM racer slot98 (red) and99 (green)
+as *two simultaneously moving riders*, not as
+upper/lower duplicate viewports. Each source alpha
+occupies exactly a 30×32 bbox on the same original
+scanlines y47–78; slot98 has 317 opaque pixels at
+x107–136 and slot99 has 313 at x120–149. Translate
+the latter source **−13 logical X pixels**, without
+resizing or altering a single real source alpha bit.
+
+Of the **329** unique source positions occupied by
+either normalized racer, **301** are occupied by both,
+an exact source silhouette Jaccard overlap
+**301/329 = 0.914894**. The other **28** positions
+are genuine differing occupied pixels. Both rider
+source colour groups retain the earlier verified
+shared neutral greys and distinct rust/red versus
+green original palette families.
+
+This is useful empirical evidence for a
+**single skeleton/mesh family with pose animation
+and selectable material variants**, but it is
+not proof the original DMA asset was a 3D rig,
+that the two racers used identical mesh topology,
+or that they were at exactly the same angle.
+A rigid identical output silhouette is *not*
+adequate, because even one authentic single
+original guest frame shows 28 separate source
+alpha differences between simultaneously
+visible racers. The full Source OAM pixel
+hashes, bounded positions, palette count and
+honest assumptions are in
+[`analysis/data/qa08-original-2p-postgo-interracer-alpha-pose-2208.json`](../analysis/data/qa08-original-2p-postgo-interracer-alpha-pose-2208.json).
+
+As with every existing art reference, real 
+original source is rendered at source
+pixel-aspect **7:6** for visual review. Do
+not promote owner-rejected procedural sprites
+or invent per-wheel/per-seat geometry from
+raster support counts. The source-faithful
+Original fallback remains mandatory.

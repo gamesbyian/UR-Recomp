@@ -89,6 +89,9 @@ class BaldosaModernProfileActivationStage(unittest.TestCase):
             self.assertEqual(
                 staged_host.count("UR_BALDOSA_QA_CRASH_AFTER_NATIVE_SRAM_WRITE"), 1)
             self.assertIn("_Exit(86);", staged_host)
+            self.assertIn('strcmp(qa_profile, "1") == 0', staged_host)
+            self.assertIn('strcmp(qa_mode, "modern") == 0', staged_host)
+            self.assertIn('strcmp(qa_crash, "1") == 0', staged_host)
             self.assertLess(
                 staged_host.index("int native_saved = RtlWriteSram();"),
                 staged_host.index("QA_CRASH_AFTER_RAW_WRITE"))

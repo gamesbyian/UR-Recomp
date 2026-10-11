@@ -183,6 +183,45 @@ extern "C" int ur_baldosa_modern_try_activate_profile(void) {
 }
 
 
+// Read-only admission used solely to display P2 profile choices in the
+// real native root. A catalog name is not enough: the opponent must have
+// independently initialized typed identity and exactly matching raw SRAM.
+// This does not authorize a future result or cache a file capability; the
+// pair writer must revalidate under its own selector/profile OS locks.
+extern "C" int ur_baldosa_modern_profile_can_join_opponent(
+    const ur::product::HostProfileCatalogEntry* entry) {
+    namespace fs = std::filesystem;
+    using namespace ur::product;
+    if (!entry || !activated() || !g_launch_global ||
+        !g_launch_profile || g_verified_native_profile_id.empty() ||
+        g_native_user_root.empty() ||
+        entry->profile_id == g_verified_native_profile_id ||
+        !is_safe_profile_storage_id(entry->profile_id) ||
+        !valid_racer_identity(entry->identity))
+        return 0;
+    const auto location = resolve_host_profile_save_root(
+        ExecutionMode::Modern, entry->profile_id);
+    if (!location.isolated()) return 0;
+    const auto root = g_native_user_root / location.save_root;
+    const auto is_real_directory = [](const fs::path& value) {
+        std::error_code ec;
+        const auto status = fs::symlink_status(value, ec);
+        return !ec && fs::is_directory(status) && !fs::is_symlink(status);
+    };
+    if (!is_real_directory(g_native_user_root / "saves") ||
+        !is_real_directory(root)) return 0;
+    const auto profile = load_host_profile_state_file(
+        ExecutionMode::Modern, (root / "host-profile.txt").string(),
+        entry->profile_id);
+    if (!profile.loaded() ||
+        !catalog_entry_matches_profile_state(*entry, *profile.state) ||
+        !profile.state->stock_sram)
+        return 0;
+    return baldosa_sram_file_matches_exact(
+        root / "save.srm", profile.state->stock_sram->data(),
+        kStockSramBytes) ? 1 : 0;
+}
+
 // Read-only native Modern root adapter: expose only the verified profile's
 // canonical archive directory. Never infer identity from a display name or
 // enumerate a different root. Records inspection has NO write authority.
@@ -284,6 +323,16 @@ ur_baldosa_modern_profile_multiplayer_records_directory(void) {
     if (!activated() || g_verified_native_profile_id.empty() ||
         g_native_user_root.empty()) return nullptr;
     path = (g_native_user_root / "multiplayer-runs").string();
+    return path.c_str();
+}
+
+// The native Modern root must read the same absolute catalog already
+// verified by profile activation. No cwd-relative second profile namespace.
+extern "C" const char* ur_baldosa_modern_profile_catalog_path(void) {
+    static std::string path;
+    if (!activated() || g_verified_native_profile_id.empty() ||
+        g_native_user_root.empty()) return nullptr;
+    path = (g_native_user_root / "profiles-v1.txt").string();
     return path.c_str();
 }
 

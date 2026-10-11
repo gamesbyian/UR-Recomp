@@ -14,6 +14,8 @@ The [2026-10-10 CI/research-apparatus audit](CI-RESEARCH-APPARATUS-AUDIT-2026101
 
 For cheap CI unit tests, `tools/summarize_unittest_ci.py` now emits `ci-tooling-unit-result.json` and a bounded summary, with full raw shard logs retained on failure. First read the summary, then the result artifact, then only the relevant failing logs. Pathfinder's `publish-solver-sweep-result`/retrieval pattern informed the transport boundary, but its solver-specific schemas and claims are not portable game-oracle authority.
 
+**Change coupling rule:** whenever a workflow changes its trigger, routing predicate, build-sharing threshold, or summary contract, update *all* existing policy tests that assert the previous behavior in the same change. Search both focused classifier tests and `tests/unit/test_ci_trigger_policy.py`, then verify the actual first failing assertion on the current head. The 2026-10-10 pairwise-build rollout exposed a stale three-suite assertion; the follow-up audit records the correction. A newly green classifier unit test does not imply the broader CI policy suite is green.
+
 ## Workflow classes
 
 Every workflow must fit one primary class.

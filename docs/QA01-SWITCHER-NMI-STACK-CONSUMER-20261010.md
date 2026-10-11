@@ -28,6 +28,14 @@ The existing `.github/workflows/qa01-switcher-original-2014.yml` now has an **op
 
 The manual job is not scheduled on every PR or rerun automatically. It is an **unexecuted route** until a human or authorized dispatcher explicitly runs it. The existing original-only source scan runs exactly once as part of the paired producer, rather than in a second concurrent job. Artifacts retain only reports and bounded text logs, never game ROM, movie input bytes or player saves. Build and artifact hashes must be retained before drawing cross-engine CPU-phase conclusions.
 
+### First dual-engine beam discriminator (configured, not executed)
+
+The optional paired workflow additionally patches the **disposable pinned** `baldosa/snesrecomp/runner/src/cpu_state.c` using the existing `qa01_native_switcher_stack_gate.py` then `qa01_native_nmi_beam_patch.py`. It activates the existing frame/address-capped `SNESRECOMP_WLOG_ADDR` logger only around native host frames **5778–5782** and address **01DD**. A specifically source-owned, 16-bit `I_NMI_M1X1` write of `4004` at native frame **5781**, with A=`4004`, S=`01DD` and M=0, now captures the framework's modeled `Snes.hPos/vPos/beamMasterLast` and the CPU's `master_cycles` read-only. This is a source-grounded clock *observation*, not proof the framework's beam is synchronized to the original CPU.
+
+On the **original Snes9x** side, the same one-opcode observer adds `QANMIPHABEAM` for the genuine `I_NMI+6 PHA`, retaining `CPU.Cycles` before/after, `ICPU.Frame`, `CPU.V_Counter`, original PC, A and stack. The fail-closed original report requires each clock stamp to match its actual `QAPHAREG` writer, and a unique saved **`4042`** witness at original frame **5780**. The new native report independently authenticates the matched `4004` original/native pairing and exact capped writer. `qa01_switcher_nmi_beam_crosswalk.py` retains both readings, whether scanline *numbers* agree, and the raw horizontal-number difference, but explicitly **refuses to equate those clocks, identify the same logical instruction, or normalize away the strict +4704/+4702 result failure**.
+
+The three reporter outputs and compact raw logs are preserved in the manually selected `fresh_paired_nmi_probe` job. They have not yet been executed against both engines. Even a 0 raw H-count difference is only an observed numeric equality, not NMI causal alignment. A future native CPU/guest-PC and interrupt-chain investigation must account for host frame origin, different CPU-cycle units, dispatcher phase, and the actual stacked return PC before crediting Switcher.
+
 ### Existing-route reproduction
 
 Use the already authenticated **fresh calibrated paired original/native Switcher replay**, **not** the historical 2014 original-source 17030 movie-frame scan. In an isolated original Snes9x source tree, apply these patches in order:

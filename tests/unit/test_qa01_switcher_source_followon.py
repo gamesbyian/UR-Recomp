@@ -13,6 +13,7 @@ import qa01_switcher_source_followon as walk
 def source_states(*, first_next=17300, next_track=4, next_length=10):
     s = {f: {"menu": 0x99, "track": 3, "in_race": 0}
          for f in range(0, 17500)}
+    s[12327] = {"menu": 0x16, "track": 3, "in_race": 1}
     for f in range(first_next, first_next + next_length):
         s[f] = {"menu": 0x16, "track": next_track, "in_race": 1}
     return s
@@ -22,6 +23,7 @@ class SwitcherSourceFollowOnTests(unittest.TestCase):
     def test_source_followon_is_candidate_not_native_or_complete_event(self):
         result = walk.summarize(source_states())
         self.assertEqual(result["schema"], walk.SCHEMA)
+        self.assertEqual(result["original_2014_source_movie_entry_frame"], 12327)
         self.assertEqual(result["original_2014_source_movie_result_frame"], 17030)
         candidate = result["first_original_source_post_result_active_candidate"]
         self.assertEqual(candidate["original_source_first_active_frame"], 17300)
@@ -51,6 +53,8 @@ class SwitcherSourceFollowOnTests(unittest.TestCase):
         x = source_states(); x[17030].pop("in_race"); cases.append(x)
         x = source_states(); x[22001] = x[17499]; cases.append(x)
         x = source_states(); x.pop(17030); cases.append(x)
+        x = source_states(); x.pop(12327); cases.append(x)
+        x = source_states(); x[12327]["track"] = 2; cases.append(x)
         x = source_states(); x[17300]["track"] = "unknown"; cases.append(x)
         for state in cases:
             with self.subTest(bad=repr(state.get(17030))), self.assertRaises(ValueError):

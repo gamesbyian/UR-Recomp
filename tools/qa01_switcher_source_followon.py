@@ -15,6 +15,7 @@ import probe_attract_cycle as trace
 import qa01_original_fresh_switcher_01dd_report as paired_auth
 
 SCHEMA = "UR-QA01-SWITCHER-ORIGINAL-2014-POSTRESULT-WALK/1"
+ENTRY = 12327
 RESULT = 17030
 HORIZON = 22000
 MIN_STABLE_ACTIVE = 8
@@ -27,6 +28,10 @@ def summarize(states: dict[int, dict]) -> dict:
             or len(states) > HORIZON + 1
             or len(states) < 1000):
         raise ValueError("original source timeline is absent, oversized or out of bounds")
+    entered = states.get(ENTRY)
+    if (not isinstance(entered, dict) or entered.get("track") != 3
+            or entered.get("in_race") != 1):
+        raise ValueError("original 2014 movie source track-3 race entry at 12327 missing")
     result = states[RESULT]
     if (not isinstance(result, dict) or result.get("track") != 3
             or result.get("menu") != 0x99
@@ -75,6 +80,7 @@ def summarize(states: dict[int, dict]) -> dict:
     first = candidates[0] if candidates else None
     return {
         "schema": SCHEMA,
+        "original_2014_source_movie_entry_frame": ENTRY,
         "original_2014_source_movie_result_frame": RESULT,
         "last_decoded_original_source_frame": frames[-1],
         "observed_post_result_frames": len(frames),

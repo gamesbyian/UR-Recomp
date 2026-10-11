@@ -95,6 +95,10 @@ instruction/state evidence, and the appropriate PAL/USA homolog analysis.
 One verified concept may fan out to multiple downstream tools at once;
 do not demand a separate rediscovery for each consumer.
 
+## Reuse corroborated mechanics without re-research
+
+For original-game **behavior**, use [cross-project behavioral corroboration](CROSS-PROJECT-BEHAVIOR-CORROBORATION.md) in addition to U1-U4 *implementation* qualification. Baldosa USA, malmazuke PAL, and UR claims agree only within their exact region/inputs/semantic bounds. Before probing physics, course, finish or result mechanisms, check existing confirmed ledger entries and the three evidence-constrained pilots. Reuse established structural/semantic facts; describe incomplete cross-region evidence as a qualified lead. If a mechanism is settled, spend work on the real Windows candidate and QA instead of repeating discovery. Evidence convergence can close redundant research, **never** grant complete-event, record, PPU or release acceptance. Record any new supported decision in the existing research owner with its reopening trigger; do not maintain a second claim authority.
+
 ## Fast dependency qualification: one packet, not N separate studies
 
 Before admitting a **new executable upstream module** at U2:

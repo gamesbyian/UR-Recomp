@@ -1,0 +1,135 @@
+name: QA-01 native NMI PHA sequences from archived trace ONE-SHOT
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa01-native-nmi-sequence-artifact-one-shot-20261010.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  classify:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Hash-verify genuine archived native source log, do not rerun emulator
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 3 \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/11684141556/zip" \
+            -o "$RUNNER_TEMP/qa01-native-writer-source-38090897908.zip"
+          echo "9b202ec36bfd60dc1cece9e0d2c9027275d669f8ab4100d349c69848f250eaf9  $RUNNER_TEMP/qa01-native-writer-source-38090897908.zip" |
+            sha256sum --check
+
+      - name: Recover actual complete six-push native NMI prologues in the saved WLOG
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - "$RUNNER_TEMP/qa01-native-writer-source-38090897908.zip" \
+                    "$RUNNER_TEMP/qa01-native-nmi-complete-prologues.json" <<'PY'
+          import collections,json,re,sys
+          from pathlib import Path
+          from zipfile import ZipFile
+          zp,out=map(Path,sys.argv[1:])
+          with ZipFile(zp) as z:
+              names=[n for n in z.namelist() if n.endswith("native-wram-writes.log")]
+              assert len(names)==1,names
+              lines=z.read(names[0]).decode("utf-8").splitlines()
+          write=re.compile(
+              r"^f\s*(\d+)\s+([0-9A-Fa-f]{2}):([0-9A-Fa-f]{4})=([0-9A-Fa-f]{2,4}) "
+              r"w([12])\s+(.+)$")
+          reg=re.compile(r"\b(A|X|Y|S|D|DB|M|Xf|IPC)=([0-9A-Fa-f]+)")
+          events=[]
+          for ordinal,line in enumerate(lines):
+              m=write.fullmatch(line)
+              if not m: continue
+              f,bank,off,value,width,rest=m.groups()
+              scope=rest.split(" A=",1)[0]
+              if scope!="I_NMI_M1X1":continue
+              regs={k:int(v,16) for k,v in reg.findall(rest)}
+              if not {"A","X","Y","S","D","DB","M","Xf","IPC"} <= regs.keys():
+                  raise ValueError("untrusted/incomplete genuine native register trace")
+              events.append({"ordinal":ordinal,"f":int(f),"bank":int(bank,16),
+                             "off":int(off,16),"word":int(value,16),
+                             "width":int(width),"regs":regs,"raw":line})
+          bursts=[]
+          for k in range(len(events)-5):
+              six=events[k:k+6]
+              if any(a["ordinal"]+1!=b["ordinal"] for a,b in zip(six,six[1:])):
+                  continue
+              if len({e["f"] for e in six})!=1:continue
+              if [e["width"] for e in six]!=[1,2,2,2,2,1]:continue
+              if any(e["bank"]!=0 for e in six):continue
+              base=six[4]["off"]
+              if [e["off"] for e in six]!=[base+8,base+6,base+4,base+2,base,base-1]:
+                  continue
+              if not all(e["regs"]["S"]==e["off"] for e in six):continue
+              if not (six[0]["word"]==six[0]["regs"]["DB"] and
+                      six[1]["word"]==six[1]["regs"]["D"] and
+                      six[2]["word"]==six[2]["regs"]["X"] and
+                      six[3]["word"]==six[3]["regs"]["Y"] and
+                      six[4]["word"]==six[4]["regs"]["A"]):
+                  continue
+              if six[4]["regs"]["M"]!=0 or six[5]["regs"]["M"]!=1:
+                  continue
+              bursts.append({
+                  "native_frame":six[4]["f"],
+                  "native_nmi_pha_accumulator":f'{six[4]["word"]:04X}',
+                  "native_nmi_pha_SP_before_inferred":f'{base+1:04X}',
+                  "native_nmi_pha_SP_write_observed":f'{base:04X}',
+                  "native_nmi_pha_SP_after_inferred":f'{base-1:04X}',
+                  "native_nmi_pha_stack_word_address":f'{base:04X}',
+                  "native_nmi_pha_low_byte":f'{six[4]["word"] & 255:02X}',
+                  "native_nmi_pha_high_byte":f'{six[4]["word"] >>8:02X}',
+                  "original_wlog_ordinal":six[4]["ordinal"],
+                  "exact_order": ["PHB","PHD","PHX","PHY","PHA16","PHA8"],
+                  "native_raw_prologue_lines":[e["raw"] for e in six],
+              })
+          if not 1 <= len(bursts) <= 32:
+              raise ValueError(f"bounded real captured six-push NMI scope count unexpected: {len(bursts)}")
+          matches=[b for b in bursts if b["native_frame"]==5781 and
+                   b["native_nmi_pha_stack_word_address"]=="01DD" and
+                   b["native_nmi_pha_accumulator"]=="4004"]
+          if len(matches)!=1:
+              raise ValueError(f"expected exactly one original native NMI 01DD=A4004, got {len(matches)}")
+          outdata={
+              "schema":"UR-QA01-NATIVE-NMI-COMPLETE-6PUSH-PROLOGUES/1",
+              "source_run_id":38090897908,
+              "source_job_id":114326935017,
+              "source_artifact_id":11684141556,
+              "verified_zip_sha256":"9b202ec36bfd60dc1cece9e0d2c9027275d669f8ab4100d349c69848f250eaf9",
+              "native_logged_I_NMI_scoped_stack_write_events":len(events),
+              "complete_consecutive_six_push_nmi_prologues":bursts,
+              "complete_native_nmi_prologue_count":len(bursts),
+              "native_nmi_prologue_frames":dict(sorted(collections.Counter(b["native_frame"] for b in bursts).items())),
+              "captured_scope_only":"I_NMI_M1X1; require all six register-matching consecutive native writes within original logged WRAM address window; partial/invisible events are not negative evidence",
+              "original_cpu_and_native_frame_clock_alignment_not_established":True,
+              "official_usa_course_release_credit":0,
+          }
+          out.write_text(json.dumps(outdata,indent=2,sort_keys=True)+"\n")
+          print("QA01_NATIVE_NMI_BURSTS="+json.dumps({
+              "count":len(bursts),
+              "source_I_NMI_event_count":len(events),
+              "frames":outdata["native_nmi_prologue_frames"],
+              "records":[{k:v for k,v in row.items() if k!="native_raw_prologue_lines"} for row in bursts],
+              "official_release_credit":0
+          },sort_keys=True))
+          PY
+          echo "Source-only complete six-write NMI sequence. Missing/incomplete within WLOG bounds is not evidence of no native NMI. Official USA 0/45." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain small native NMI prologue evidence, not raw ROM/memory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-native-nmi-complete-prologues-20261010
+          path: ${{ runner.temp }}/qa01-native-nmi-complete-prologues.json
+          retention-days: 7
+          if-no-files-found: warn

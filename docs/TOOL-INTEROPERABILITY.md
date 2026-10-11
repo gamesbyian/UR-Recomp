@@ -48,6 +48,10 @@ Flips produces ordinary derived ROMs and IPS/BPS patches. A derived ROM is there
 
 `snesref` normalizes multiple libretro cores behind one fixture/dump interface. That is a major interoperability asset: Snes9x and a WRAM-capable independent core can be swapped without rewriting the test workload.
 
+## Pinned malmazuke research lookup
+
+The local [malmazuke symbol query](../tools/README.md) is a read-only join from the audited imported `native-symbols.json` and `labels.json` to the bounded `analysis/data/malmazuke-pal-structural-links-20261010.json` index. It reports original PAL cited source, observed/inferred/data/unknown classification, permanent upstream research-record links and optional **unverified** USA structural candidates. The catalog registers a *supported* transport chain, not a verified function-semantic correspondence or gameplay acceptance. Use the actual canonical USA ROM and original/runtime oracle before promoting claims. This is an extension of the existing cross-build research atlas, not a rival symbol authority.
+
 ## Useful chains that still need adapters
 
 ### Mesen CDL → disassembly evidence

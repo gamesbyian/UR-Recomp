@@ -66,3 +66,18 @@ unbound `join_unavailable` diagnostic, and leave all historical run+match
 archive files identical. This is a consumer regression for graceful play
 without inventing P2 identity, not a completed played 2P result.
 
+
+## Shared painter and initialized opponent choice
+
+The two-pad selection UI now uses the **same**
+`modern_root_overlay_presenter.hpp` as 1P/2P Records and the existing
+five-way root. The native adapter only passes names/confirmation state,
+never draws a separate modal raster. Both READY and ACTIVE states have
+narrow 256×224 shared-painter regression assertions.
+
+Only P2 catalog entries whose real isolated profile directory, typed
+stored racer identity, and complete 8192-byte on-disk SRAM match are
+offered. A roster entry with missing/corrupt profile data is not an
+actionable opponent. This preflight only improves menu honesty; it
+never replaces the canonical result writer's subsequent locked
+authorization. A lone initialized player retains unbound stock 2P.

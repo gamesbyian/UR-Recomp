@@ -39,6 +39,16 @@ class BaldosaNativeTwoSeatJoinTests(unittest.TestCase):
         source = (ROOT / "tools/baldosa_native_modern_root.cpp").read_text(
             encoding="utf-8")
         self.assertIn("g_two_seat_join.begin(*roster, active)", source)
+        self.assertIn("ur_baldosa_modern_profile_can_join_opponent(", source)
+        profile_adapter = (
+            ROOT / "tools/baldosa_modern_profile_activation.cpp"
+        ).read_text(encoding="utf-8")
+        self.assertIn("catalog_entry_matches_profile_state(", profile_adapter)
+        self.assertIn("baldosa_sram_file_matches_exact(", profile_adapter)
+        painter = (PRODUCT / "modern_root_overlay_presenter.hpp").read_text(
+            encoding="utf-8")
+        self.assertIn("view.two_seat_join_open", painter)
+        self.assertIn("TWO PLAYER PROFILES", painter)
         self.assertIn("player == 1 && g_visible && g_two_seat_join.open()",
                       source)
         self.assertIn("join_confirm(1)", source)

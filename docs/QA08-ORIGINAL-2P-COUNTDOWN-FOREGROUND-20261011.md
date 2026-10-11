@@ -65,6 +65,46 @@ production occlusion mask. Treat its countdown-“2” interpretation
 as supported by direct visual comparison, not proven compositor
 priority.
 
+## Actual PPU pair-removal counterfactual: no final effect at1872
+
+A further **independent native PPU intervention** has now
+completed at the same genuine original 2P guest1872 in the
+already existing AOT workflow:
+[run `38117375415`](https://github.com/gamesbyian/UR-Recomp/actions/runs/38117375415),
+artifact **`11694242433`**. The native log authenticates an
+exactly-armed `UR_RACER_HD_WIDE_REMOVE_PAIR frame=1872
+slots=96-97 status=armed guest_unchanged=1` counterfactual, and
+the workflow's stock-vs-removed-route full guest CRC comparison
+completed successfully.
+
+Independently reading every one of the **76,608 Original RGBA
+pixels** in both archived stock and pair-deleted 342×224 PPU
+images gives an **identical complete frame**, SHA256
+`bdc3b13d2129e7fd7a20f4cf00539fc2976ba1b028f76386a395e6fdef4e2f2b`
+in both. The lower source planes still emit 330 and325
+pixels (655 counted with overlaps, **411 distinct coordinates**),
+all covered by countdown-blue final Original RGB. Removing **both**
+lower original slots together causes **zero** final Original pixel
+change in this authenticated frame. This is stronger than the
+earlier source/final-colour observation and closes the specific
+*causal* 2P countdown pixel-effect question.
+
+The AOT workflow itself remained **red** solely because its new
+checker mistakenly required 5,447 **one-player** guest CRC records
+on this **2,473-frame two-player** route. The native execution and
+`cmp` had already succeeded. That validator-count defect was
+corrected on [PR #1330](https://github.com/gamesbyian/UR-Recomp/pull/1330)
+(commit `164ca851815300f596e1aad382cc38360f13b2da`);
+do not claim its corrected exact-head native job is already
+accepted until confirmed. The independently recovered
+source/image/marker provenance and zero-result count are retained
+at [`analysis/data/qa08-original-2p-countdown-pair-native-causal-zero-1872.json`](../analysis/data/qa08-original-2p-countdown-pair-native-causal-zero-1872.json)
+without redistributing ROM graphics. This single-frame zero
+result cannot identify which SNES layer painted the blue numeral,
+or justify disabling the original two racers outside an explicit
+native diagnostic. Any normal HD overpaint would still risk a
+countdown fidelity defect.
+
 ## Already-retained 4× Original density parity
 
 The **same authentic native AOT artifact** also retains complete

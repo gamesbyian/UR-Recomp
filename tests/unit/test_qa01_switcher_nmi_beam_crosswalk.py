@@ -32,6 +32,7 @@ NATIVE = {
     "exact_original_native_switcher_pair_provenance": {"course_id": "course:04"},
     "framework_beam_vs_original_cpu_phase_unaligned": True,
     "native_cpu_master_counter_is_precharged_basic_block_not_pha_cycle": True,
+    "native_pha_inside_basic_block_but_exact_instruction_cycle_unknown": True,
     "modeled_beam_hpos_not_proven_instruction_aligned": True,
     "native_original_nmi_writer_beam": {
         "native_host_frame": 5781,
@@ -40,6 +41,9 @@ NATIVE = {
         "wram_write_destination": "7E:01DD",
         "framework_beam_vpos": 225,
         "framework_beam_hpos": 821,
+        "native_cpu_basic_block_start_master_cycles": 945130,
+        "native_cpu_basic_block_end_master_cycles": 945374,
+        "native_cpu_basic_block_bracket_width_master_cycles": 244,
     },
 }
 
@@ -51,6 +55,8 @@ class SwitcherNmiBeamCrosswalkTests(unittest.TestCase):
         self.assertEqual(data["raw_horizontal_numeric_difference_native_minus_original"], 5)
         self.assertTrue(data["clock_unit_origin_and_execution_phase_equivalence_not_proven"])
         self.assertTrue(data["native_master_counter_is_basic_block_not_pha_cycle"])
+        self.assertTrue(data["native_pha_exact_cycle_inside_bracket_not_observed"])
+        self.assertEqual(data["native_basic_block_width_master_cycles"], 244)
         self.assertTrue(data["cpu_architectural_return_parity_not_proven"])
         self.assertEqual(data["strict_guest_relative_result_original_native"], [4704, 4702])
         self.assertEqual(data["completed_usa_course_credit"], 0)
@@ -89,6 +95,9 @@ class SwitcherNmiBeamCrosswalkTests(unittest.TestCase):
             ("framework_beam_vs_original_cpu_phase_unaligned", False),
             ("native_cpu_master_counter_is_precharged_basic_block_not_pha_cycle", False),
             ("modeled_beam_hpos_not_proven_instruction_aligned", False),
+            ("native_pha_inside_basic_block_but_exact_instruction_cycle_unknown", False),
+            ("native_original_nmi_writer_beam.native_cpu_basic_block_start_master_cycles", 945375),
+            ("native_original_nmi_writer_beam.native_cpu_basic_block_bracket_width_master_cycles", 243),
             ("native_original_nmi_writer_beam.native_host_frame", 5782),
             ("native_original_nmi_writer_beam.stack_word_saved", "4042"),
             ("native_original_nmi_writer_beam.framework_beam_hpos", "oops"),

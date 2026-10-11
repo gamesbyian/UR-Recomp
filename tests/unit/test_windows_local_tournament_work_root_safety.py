@@ -9,6 +9,15 @@ ROUTE = ROOT / "tests/native/run_windows_local_tournament_package_acceptance.sh"
 
 
 class PackagedTournamentWorkRootSafetyTests(unittest.TestCase):
+    def test_original_windows_package_route_has_valid_bash_syntax(self):
+        # Existing static/policy tests validate *what* the wrapper checks;
+        # parse the exact shipping wrapper too before expensive Win32 QA.
+        parsed = subprocess.run(
+            ["bash", "-n", str(ROUTE)],
+            capture_output=True, text=True, check=False,
+        )
+        self.assertEqual(parsed.returncode, 0, parsed.stderr)
+
     def test_existing_work_root_is_refused_before_any_mutation(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

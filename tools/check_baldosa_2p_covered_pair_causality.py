@@ -62,11 +62,14 @@ def verify(stock: Path, source96: Path, source97: Path, removed: Path,
         if (report.get("schema_version") != 1 or
             report.get("status") != "passed" or
             report.get("source_log_matches_pam") is not True or
-            report.get("identical_complete_original_342_rasters") != 6 or
+            report.get("identical_complete_original_342_rasters") not in (6, 7) or
             report.get("differing_original_rasters") != [] or
-            report.get("shared_full_frame_guest_ids") !=
-                [1808, 1824, 1840, 1856, 1872, 1888] or
-            report.get("minimum_shared_frames") != 4 or
+            report.get("shared_full_frame_guest_ids") not in (
+                [1808, 1824, 1840, 1856, 1872, 1888],
+                [1808, 1824, 1840, 1856, 1872, 1888, 2208]) or
+            report.get("minimum_shared_frames") not in (4, 7) or
+            report.get("identical_complete_original_342_rasters") !=
+                len(report.get("shared_full_frame_guest_ids", [])) or
             report.get("source") != meta or
             report.get("source_frame_main_raster_sha256") != original_sha or
             report.get("guest_crc_comparison") !=

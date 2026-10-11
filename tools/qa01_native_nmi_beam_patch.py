@@ -13,6 +13,7 @@ from pathlib import Path
 import qa01_native_switcher_stack_gate as gate
 
 STAMP = "UR_QA01_NATIVE_NMI_WRITER_BEAM_V1"
+HEADER = '#include "cpu_state.h"\\n'
 MARKER = "    fputc('\\n', g_wlog_addr_fp);\n    if (g_wlog_halt_off >= 0) {"
 
 
@@ -23,6 +24,8 @@ def patch(source: str) -> str:
         raise ValueError("install existing native frame-range logger gate first")
     if source.count(MARKER) != 1:
         raise ValueError("pinned native WRAM log terminator absent or ambiguous")
+    if source.count(HEADER) != 1:
+        raise ValueError("pinned native framework include absent or ambiguous")
     extra = """    /* UR_QA01_NATIVE_NMI_WRITER_BEAM_V1: already address+frame gated.
      * Framework beam position is a MODELED snapshot, not proof the CPU
      * reached the same instruction/hardware phase as source Snes9x. */
@@ -37,6 +40,9 @@ def patch(source: str) -> str:
                 (unsigned long long)g_cpu.master_cycles);
     }
 """
+    # Explicit declaration: this pinned C source does not itself include
+    # <string.h>, and a transitive declaration cannot be relied upon.
+    source = source.replace(HEADER, HEADER + "#include <string.h>\n", 1)
     return source.replace(MARKER, extra + MARKER, 1)
 
 

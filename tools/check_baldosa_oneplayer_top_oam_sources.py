@@ -114,7 +114,7 @@ def assess(stock_crc: Path, original_1x_crc: Path, original_4x_crc: Path,
         "source_p1_semantic": "0895",
         "native_original_guest_crc_identical": 5447,
         "native_1x_and_4x_source_frames_identical": 7,
-        "original_bottom_slot98_and_slot99_sources": records,
+        "original_top_slot98_and_slot99_sources": records,
         "no_sprite_removal_or_guest_mutation": True,
         "source_slot_emission_accepted": True,
         "individual_final_bg_or_obj_priority_accepted": False,
@@ -141,8 +141,8 @@ def main() -> None:
     a.out.write_text(json.dumps(report, sort_keys=True, indent=2) + "\n")
     print("UR_BALDOSA_1P_TOP_SOURCE_98_99 "
           f"status={report['status']} "
-          f"slot98={report['original_bottom_slot98_and_slot99_sources'][0]['rgb_vs_final_observation']['isolated_source_opaque']} "
-          f"slot99={report['original_bottom_slot98_and_slot99_sources'][1]['rgb_vs_final_observation']['isolated_source_opaque']} "
+          f"slot98={report['original_top_slot98_and_slot99_sources'][0]['rgb_vs_final_observation']['isolated_source_opaque']} "
+          f"slot99={report['original_top_slot98_and_slot99_sources'][1]['rgb_vs_final_observation']['isolated_source_opaque']} "
           "BGpriority_proven=0 HDadmitted=0")
 
 

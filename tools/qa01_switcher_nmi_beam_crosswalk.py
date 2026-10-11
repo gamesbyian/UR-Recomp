@@ -69,15 +69,23 @@ def summarize(source: dict, guest: dict) -> dict:
             or a["source_original_cpu_hcounter_before"] < 0):
         raise ValueError("invalid original/native NMI timing scalar")
     all_orig = source.get("observed_original_nmi_pha_horizontal_clocks")
-    if (not isinstance(all_orig, list) or len(all_orig) != 5
-            or any(not isinstance(x, dict) for x in all_orig)
-            or [x.get("original_cpu_frame_before") for x in all_orig]
-               != list(range(5778, 5783))):
-        raise ValueError("missing the five independently observed original NMI PHA clocks")
-    # The standalone saved-4042 witness must be the same event as the
-    # frame-5780 row in the five-NMI time series, not a splice from another
-    # original trace carrying the same paired replay SHA.
-    series_writer = all_orig[2]
+    # Five source NMI hardware-entry events are known, but not every
+    # hardware NMI is guaranteed to produce this PARTICULAR 16-bit PHA.
+    # Require the unique demonstrated 5780 saved-A opcode, not five guessed
+    # PHA register states. Source reporter separately verifies its NMI count.
+    if (not isinstance(all_orig, list)
+            or not 1 <= len(all_orig) <= original.MAX_PHA_BEAMS
+            or any(not isinstance(x, dict) for x in all_orig)):
+        raise ValueError("missing bounded independently observed original NMI PHA clocks")
+    observed_frames = [x.get("original_cpu_frame_before") for x in all_orig]
+    if (any(type(frame) is not int or not 5778 <= frame <= 5782
+            for frame in observed_frames)
+            or observed_frames != sorted(observed_frames)
+            or observed_frames.count(5780) != 1):
+        raise ValueError("real source PHA frames missing, unordered or writer duplicated")
+    # The standalone saved-4042 witness must be identical to the single
+    # frame-5780 row, not a splice from another original trace.
+    series_writer = all_orig[observed_frames.index(5780)]
     for key in ("original_cpu_frame_before", "original_pha_pc",
                 "accumulator_before", "stack_pointer_before",
                 "ppu_vcounter_before",
@@ -137,7 +145,9 @@ def summarize(source: dict, guest: dict) -> dict:
         "native_framework_beam_hpos": n_h,
         "raw_horizontal_numeric_difference_native_minus_original": n_h - o_h,
         "original_saved_accumulator_word": "4042",
-        "all_five_original_nmi_phase_candidates": candidates,
+        "observed_original_nmi_pha_candidates": candidates,
+        "observed_original_nmi_pha_row_count": len(candidates),
+        "five_original_nmi_hardware_entries_do_not_prove_five_matching_phas": True,
         "source_4004_accumulator_match_frames": same_acc_frames,
         "source_01de_stack_pointer_match_frames": same_sp_frames,
         "source_both_accumulator_and_stack_match_frames": both_match_frames,

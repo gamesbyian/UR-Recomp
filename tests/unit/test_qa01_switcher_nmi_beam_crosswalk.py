@@ -86,7 +86,8 @@ class SwitcherNmiBeamCrosswalkTests(unittest.TestCase):
         self.assertEqual(data["source_01de_stack_pointer_match_frames"], [5780])
         self.assertTrue(data["no_original_nmi_matches_both_saved_a_and_pre_pha_s"])
         self.assertEqual(data["source_both_accumulator_and_stack_match_frames"], [])
-        self.assertEqual(len(data["all_five_original_nmi_phase_candidates"]), 5)
+        self.assertEqual(len(data["observed_original_nmi_pha_candidates"]), 5)
+        self.assertTrue(data["five_original_nmi_hardware_entries_do_not_prove_five_matching_phas"])
         self.assertTrue(data["candidate_beam_reading_cannot_rank_interrupt_identity"])
         self.assertEqual(data["paired_report_bytes_sha256"], "a" * 64)
 
@@ -132,6 +133,17 @@ class SwitcherNmiBeamCrosswalkTests(unittest.TestCase):
         self.assertTrue(data["candidate_beam_reading_cannot_rank_interrupt_identity"])
         self.assertEqual(data["completed_usa_course_credit"], 0)
 
+    def test_only_one_actual_original_pha_is_enough_to_admit_bounded_crosswalk(self):
+        source = copy.deepcopy(ORIGINAL)
+        source["observed_original_nmi_pha_horizontal_clocks"] = [
+            source["observed_original_nmi_pha_horizontal_clocks"][2]]
+        result = cross.summarize(source, NATIVE)
+        self.assertEqual(result["observed_original_nmi_pha_row_count"], 1)
+        self.assertEqual(result["source_4004_accumulator_match_frames"], [])
+        self.assertEqual(result["source_01de_stack_pointer_match_frames"], [5780])
+        self.assertEqual(len(result["observed_original_nmi_pha_candidates"]), 1)
+        self.assertEqual(result["completed_usa_course_credit"], 0)
+
     def test_invalid_source_or_native_writer_never_crosswalks(self):
         for key, value in (
             ("schema", "incorrect"),
@@ -143,6 +155,8 @@ class SwitcherNmiBeamCrosswalkTests(unittest.TestCase):
             ("observed_original_nmi_pha_horizontal_clocks", []),
             ("observed_original_nmi_pha_horizontal_clocks", [
                 {"original_cpu_frame_before": 5780}]),
+            ("observed_original_nmi_pha_horizontal_clocks", [
+                ORIGINAL["observed_original_nmi_pha_horizontal_clocks"][1]]),
         ):
             src = copy.deepcopy(ORIGINAL)
             obj, member = (key.split(".", 1) + [None])[:2]

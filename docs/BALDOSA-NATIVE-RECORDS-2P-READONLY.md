@@ -43,10 +43,15 @@ it has no write functions.
   regression, **not** a played 2P match.
 - Presenter: `tests/native/modern_root_overlay_presenter_test.cpp` checks
   1P/2P labels, pad navigation hints and old-client presentation defaults.
-- Existing real native Win32 named-profile root smoke now dispatches Down
-  and Up while Records is open, requires an actual empty 2P archive report
-  and then enters the original stock 1P menu. This proves modal navigation
-  and read-only consumption, not actual 2P match publication.
+- The existing real Win32 named-profile root smoke now seeds one isolated,
+  synthetic **historical** checksum-bound ordinary-2P run+match pair and one
+  incomplete run through the canonical writer, not a new data format.
+  The genuine native executable must display the resulting 1 valid / 1
+  unavailable archive health, navigate 1P → 2P → 1P with SDL key edges,
+  then enter the original stock 1P menu. The QA harness compares all three
+  paired archive files byte-for-byte afterward. This proves compiled
+  modal consumption and fail-closed readback, **not** an actually played
+  or newly captured 2P event.
 - Next blocker: verified 2P participant identities and native source-result
   to canonical paired `.urrun/.urmatch` publication, followed by a fresh
   Windows process reading that **newly played** pair. This work must reuse

@@ -26,6 +26,16 @@ PULL = re.compile(
     r"touches_dd=([01]) touches_de=([01]) f1=(\d+)$",
     re.MULTILINE,
 )
+RTI = re.compile(
+    r"^QANMIRTI f=(\d+) v0=(\d+) v1=(\d+) pc=([0-9A-F]{6}) "
+    r"pb0=([0-9A-F]{2}) pb1=([0-9A-F]{2}) "
+    r"sp0=([0-9A-F]{4}) sp1=([0-9A-F]{4}) "
+    r"a0=([0-9A-F]{4}) a1=([0-9A-F]{4}) "
+    r"pl0=([0-9A-F]{2}) pl1=([0-9A-F]{2}) "
+    r"cyc0=(-?\d+) cyc1=(-?\d+) f1=(\d+)$",
+    re.MULTILINE,
+)
+MAX_RTIS = 16
 MAX_PULLS = 64
 STACK_LOW, STACK_HIGH = 0x0100, 0x01FF
 TARGET_DD, TARGET_DE = 0x01DD, 0x01DE
@@ -111,6 +121,57 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
             "architecturally_touches_01de": tde,
             "pla_loaded_target_bytes_verified": verified_pla_bytes,
         })
+    # RTI records the interrupted CPU's architectural return, but a bare
+    # opcode cannot prove whether this was NMI, IRQ or BRK.
+    rti_matches = list(RTI.finditer(log))
+    if sum(line.startswith("QANMIRTI") for line in log.splitlines()) != len(rti_matches):
+        raise ValueError("malformed original QANMIRTI trace row")
+    if len(rti_matches) > MAX_RTIS:
+        raise ValueError("unbounded original RTI scope observation")
+    pha_by_frame = {
+        event["original_cpu_frame_before"]: event["accumulator_before"]
+        for event in original_context["all_bounded_original_I_NMI_pha_register_scopes"]
+    }
+    rti_rows = []
+    for match in rti_matches:
+        (f0s, v0s, v1s, pc, pb0, pb1, sp0s, sp1s,
+         a0, a1, pl0, pl1, cyc0s, cyc1s, f1s) = match.groups()
+        f0, f1 = int(f0s), int(f1s)
+        v0, v1, sp0, sp1 = int(v0s), int(v1s), int(sp0s, 16), int(sp1s, 16)
+        cyc0, cyc1 = int(cyc0s), int(cyc1s)
+        if (not first <= f0 <= last or not f0 <= f1 <= last + 1
+                or not 0 <= v0 < 263 or not 0 <= v1 < 263
+                or not STACK_LOW <= sp0 <= STACK_HIGH
+                or not STACK_LOW <= sp1 <= STACK_HIGH
+                or sp1 - sp0 not in (3, 4)
+                or a0 != a1 or not -1000000 <= cyc0 <= 1000000
+                or not -1000000 <= cyc1 <= 1000000):
+            raise ValueError("impossible original RTI register or stack restoration")
+        rti_rows.append({
+            "original_cpu_frame_before": f0,
+            "original_cpu_frame_after": f1,
+            "ppu_vcounter_before": v0,
+            "ppu_vcounter_after": v1,
+            "opcode_pc": f"{pc[:2]}:{pc[2:]}",
+            "program_bank_before": pb0,
+            "program_bank_after": pb1,
+            "stack_pointer_before": f"{sp0:04X}",
+            "stack_pointer_after": f"{sp1:04X}",
+            "architectural_return_frame_bytes": sp1-sp0,
+            "accumulator_before": a0,
+            "accumulator_after": a1,
+            "processor_status_low_before": pl0,
+            "processor_status_low_after": pl1,
+            "cpu_cycles_before": cyc0,
+            "cpu_cycles_after": cyc1,
+            "same_cpu_frame_as_original_nmi_pha": f0 in pha_by_frame,
+            "same_frame_pha_accumulator_equals_rti_A": (
+                pha_by_frame[f0] == a0 if f0 in pha_by_frame else None
+            ),
+        })
+    if any(a["original_cpu_frame_before"] > b["original_cpu_frame_before"]
+           for a, b in zip(rti_rows, rti_rows[1:])):
+        raise ValueError("original RTI candidates out of CPU-frame order")
     if any(a["original_cpu_frame_before"] > b["original_cpu_frame_before"]
            for a, b in zip(rows, rows[1:])):
         raise ValueError("original NMI stack pull observations out of order")
@@ -123,6 +184,9 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
         "original_01dd_pha_writer_confirmed": True,
         "observed_candidate_stack_pull_count": len(rows),
         "candidate_stack_pull_scopes": rows,
+        "candidate_rti_scope_count": len(rti_rows),
+        "candidate_rti_scopes": rti_rows,
+        "rti_instruction_source_cannot_prove_interrupt_vector": True,
         "zero_count_is_bounded_negative_only": len(rows) == 0,
         "stack_reads_outside_named_pulls_not_excluded": True,
         "native_same_logical_cpu_beam_phase_not_proven": True,
@@ -146,6 +210,7 @@ def main() -> int:
     print(json.dumps({
         "original_nmi_entries": result["original_nmi_hardware_entries"],
         "candidate_stack_pulls": result["observed_candidate_stack_pull_count"],
+        "candidate_rti_scopes": result["candidate_rti_scope_count"],
         "original_native_guest_relative_result_parity": False,
         "release_event_credit": 0,
     }, sort_keys=True))

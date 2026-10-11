@@ -149,3 +149,30 @@ native validation logs remain in the referenced external artifact; the
 committed JSON retains only numeric measurements and hashes, no proprietary
 ROM-derived sprite image bytes. The experiment **does not** approve the
 old procedural character, any new 4× geometry or Widescreen replacement.
+
+
+## Native cross-pose 2P racer palette census
+
+Separately recovered **authentic original PPU** 2P source slot98/99 at
+native guest frames1856,1872,1888 (accepted AOT
+[`38115756178`](https://github.com/gamesbyian/UR-Recomp/actions/runs/38115756178),
+artifact `11693865103`) offers a small invariant for future **single-rig
+with colour-variant** reconstruction. Every source alpha pixel's
+original RGB was counted and validated against the independent native
+source hashes. Six RGB colours recur in **both** racer source palettes
+over **all three** different poses: `101008,181818,313131,4A4A4A,737373,A5A5A5`.
+Each racer also retains eight pose-stable, mutually exclusive colour
+variants, a warm red/rust group on slot98 and a green group on slot99.
+A ninth shared light colour `F7EFEF` appears in the first two poses
+and disappears from both at frame1888; the two racer palettes therefore
+have 15 unique colours in each first two frames and 14 at1888.
+
+The complete source SHA/racer-colour evidence is preserved in
+[`analysis/data/qa08-original-2p-racer-cross-pose-palette-1856-1888.json`](../analysis/data/qa08-original-2p-racer-cross-pose-palette-1856-1888.json).
+The material resemblance suggests a **constraint for later variant
+testing**, not an established per-wheel/per-saddle material assignment:
+sprite colours alone cannot identify the actual 3D mesh/rig part, all
+original PPU priority layers, lighting math or a safe replacement
+palette. The owner-disapproved procedural HD shapes stay vetoed.
+Preserve the original palette families as a reviewer reference, not a
+new default shader or shipping art authority.

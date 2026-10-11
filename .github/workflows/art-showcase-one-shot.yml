@@ -1,5 +1,5 @@
 name: Art showcase one-shot production
-# Revision 3: permit proved same-player stock-identical timeline aliases
+# Revision 4: cropped editorial closeups + verified P1/P2 palette montage
 
 on:
   push:
@@ -39,7 +39,10 @@ jobs:
           set -euo pipefail
           OUT=media/showcase/art-reconstruction/2026-10-10
           python3 tools/showcase/art_showcase/export_approved_strip.py --player p1 --output "$OUT"
-          python3 tools/showcase/art_showcase/render_approved_art.py --manifest "$OUT/inputs.json" --output "$OUT"
+          python3 tools/showcase/art_showcase/export_approved_strip.py --player p2 --output "$OUT"
+          python3 tools/showcase/art_showcase/render_approved_art.py \
+            --manifest "$OUT/inputs-p1.json" --secondary-manifest "$OUT/inputs-p2.json" --output "$OUT"
+          rm -f "$OUT/inputs.json"
       - name: Independent video verification and source evidence
         run: |
           set -euo pipefail
@@ -50,7 +53,10 @@ jobs:
           from PIL import Image
           p=Path("media/showcase/art-reconstruction/2026-10-10")
           data=json.loads((p/"provenance.json").read_text())
-          manifest=json.loads((p/"inputs.json").read_text())
+          manifest=json.loads((p/"inputs-p1.json").read_text())
+          p2=json.loads((p/"inputs-p2.json").read_text())
+          assert len(p2["frames"])==16
+          assert [e["frame"] for e in p2["frames"]]==list(range(1205,1221))
           assert len(manifest["frames"])==16
           assert [e["frame"] for e in manifest["frames"]]==list(range(1205,1221))
           assert len(data["clips"])==3
@@ -65,20 +71,20 @@ jobs:
                   "-count_frames","-select_streams","v:0","-show_entries","stream=nb_read_frames",
                   "-of","json",str(f)]))["streams"][0]["nb_read_frames"]
               assert int(frames)==c["frames"]
-          for e in manifest["frames"]:
+          for e in manifest["frames"]+p2["frames"]:
               for k in ["stock_png","authored_png"]:
                   assert (p/e[k]).is_file()
-          print("UR_ART_SHOWCASE_ACCEPTANCE PASS 3 MP4, 570 video frames, 16 ordered source poses, 3 contact sheets")
+          print("UR_ART_SHOWCASE_ACCEPTANCE PASS 3 MP4, 570 video frames, 32 source pose observations (16 P1 + 16 P2), 3 contact sheets")
           PY
-          find "$OUT" -type f -print0 | sort -z | xargs -0 sha256sum > "$OUT/SHA256SUMS"
+          find "$OUT" -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > "$OUT/SHA256SUMS"
           du -sh "$OUT"
       - name: Commit reproducible media to the isolated art lane
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add media/showcase/art-reconstruction/2026-10-10/
-          git commit -m "Render verified first-family sprite remaster showcase clips"
+          git add -A media/showcase/art-reconstruction/2026-10-10/
+          git commit -m "Polish verified P1 and P2 remaster-art showcase clips"
           git push origin HEAD:media/art-showcase-approved-gated-20261010
       - name: Retain exact outputs for independent review
         if: always()

@@ -2,6 +2,10 @@
 
 **For agents:** start at [AGENTS.md](../AGENTS.md) and the *short, current* [WORK-QUEUE.md](WORK-QUEUE.md). A dated investigation or historical implementation phase never independently schedules work. This index owns only **where facts live**, not a second backlog.
 
+## Regional presentation effect
+
+The [regional-presentation specification](REGIONAL-PRESENTATION.md) owns the approved directional checkerboard title flip. Its [offline preview and source-calibration runbook](../tools/showcase/REGIONAL-CHECKERBOARD.md) describes reusable media tooling, research provenance and islanding; these do not constitute shipped native presenter behavior.
+
 ## Three-project R&D apparatus synthesis
 
 See the [Baldosa/malmazuke/UR apparatus synthesis](THREE-PROJECT-APPARATUS-SYNTHESIS-20261010.md), [shared route/evidence spine](THREE-PROJECT-SHARED-EVIDENCE-SPINE-20261010.md), [ordered adoption roadmap](THREE-PROJECT-APPARATUS-ROADMAP-20261010.md), and [trusted upstream accelerated-adoption policy](TRUSTED-UPSTREAM-ADOPTION.md). The read-only `tools/query_upstream_knowledge.py` provides a bulk Baldosa-USA / malmazuke-PAL advisory search without promoting external interpretations to canonical symbols. The source-grounded [reuse opportunity register](../analysis/three-project-reuse-opportunities.json) is queried via `python3 tools/select_three_project_reuse.py --lane <lane> --include-conditional` and automatically appears in lane context packets. It is a decision overlay, not a second backlog. The pinned file inventories and 35-capability matrix are checked by `python3 tools/audit_three_project_apparatus.py`. These plans do not replace the work queue, technical reference or release ledger.

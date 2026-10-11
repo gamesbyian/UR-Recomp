@@ -61,6 +61,7 @@ struct ModernRootOverlayView {
     // Extra optional read-only detail, supplied by native Records only.
     // Older Modern presenters retain their exact two-line layout by default.
     std::string_view records_detail{};
+    bool unbound_two_player_warning_open = false;
 };
 
 inline bool render_modern_root_overlay(
@@ -282,6 +283,30 @@ inline bool render_modern_root_overlay(
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 113 * scale,
                         "P2 DPAD+A / B CLEAR", palette.secondary_grey, scale);
+    }
+    if (view.unbound_two_player_warning_open) {
+        // An unbound stock session is playable, but not attributable.
+        const int bx = x + 12 * scale, by = y + 43 * scale;
+        const int bw = (panel_w - 24) * scale, bh = 137 * scale;
+        paint.fill_rect(pixels, stride, surface_height,
+                        bx, by, bw, bh, palette.background);
+        paint.stroke_rect(pixels, stride, surface_height,
+                          bx, by, bw, bh, palette.title_yellow);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 12 * scale,
+                        "UNRECORDED TWO PLAYER", palette.title_yellow, scale);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 43 * scale,
+                        "NEED TWO NAMED RACERS", 0xFFFFFFFFu, scale);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 63 * scale,
+                        "NO MATCH HISTORY SAVED", palette.secondary_grey, scale);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 92 * scale,
+                        "PLAY STOCK 2P ANYWAY?", 0xFFFFFFFFu, scale);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 115 * scale,
+                        "P1 A YES  B BACK", palette.cursor_blue, scale);
     }
     return true;
 }

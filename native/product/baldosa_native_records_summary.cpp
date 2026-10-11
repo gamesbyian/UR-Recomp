@@ -2,10 +2,25 @@
 
 #include "completed_run_store.hpp"
 
+#include <cstdio>
 #include <filesystem>
 #include <system_error>
 
 namespace ur::product {
+
+std::string format_baldosa_native_record_ticks60(std::uint64_t ticks60) {
+    // floor ticks + round leftover 1/60 second to a hundredth. The
+    // intermediate residual is at most 59, so even UINT64_MAX is safe.
+    const std::uint64_t minutes = ticks60 / 3600u;
+    const std::uint64_t seconds = (ticks60 / 60u) % 60u;
+    const std::uint64_t hundredths = ((ticks60 % 60u) * 100u + 30u) / 60u;
+    char buffer[64]{};
+    std::snprintf(buffer, sizeof(buffer), "%02llu:%02llu.%02llu",
+        static_cast<unsigned long long>(minutes),
+        static_cast<unsigned long long>(seconds),
+        static_cast<unsigned long long>(hundredths));
+    return buffer;
+}
 
 BaldosaNativeRecordsSummary inspect_baldosa_native_records_archive(
     const std::string& directory) {

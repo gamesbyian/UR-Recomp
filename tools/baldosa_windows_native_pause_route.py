@@ -737,6 +737,16 @@ def run_native_named_records_root(
             f"Named Records Windows guest rc={process.returncode}: {log[-2500:]}")
     verify_native_named_records_root_log(log)
     verify_native_records_page_handoff(log)
+    # The actual native Windows Records presenter must consume the
+    # original shipping match codecs, not merely display pre-seeded counts.
+    # This historical fixture is explicitly NOT an actual played race.
+    if log.count(
+        "UR_BALDOSA_MODERN_ROOT records_last_2p="
+        "LAST 01 WIN 00:28.66 source=historical_paired_archive"
+    ) != 1:
+        raise ValueError(
+            "Native Windows 2P Records did not expose its validated "
+            "source-paired latest-match result")
     if log.count(
         "UR_BALDOSA_MODERN_ROOT matches_readonly=1 paired=1 "
         "unavailable=1 selected=1"
@@ -777,6 +787,12 @@ def run_native_named_records_root(
             "UR_BALDOSA_MODERN_ROOT join_unavailable=1 "
             "stock_2p_without_record_identity=1") != 1:
         raise ValueError("Named single-profile 2P fabricated or bypassed join authority")
+    if (unbound_log.count(
+            "UR_BALDOSA_MODERN_ROOT unbound_2p_warning_open=1") != 1 or
+            unbound_log.count(
+                "UR_BALDOSA_MODERN_ROOT unbound_2p_consented=1") != 1 or
+            "UR_BALDOSA_MODERN_ROOT unbound_2p_declined=1" in unbound_log):
+        raise ValueError("Unrecorded stock 2P bypassed explicit P1 consent")
     if ("UR_BALDOSA_NATIVE_MATCH CAPTURED=1" in unbound_log or
             {p.name: p.read_bytes() for p in match_archive.iterdir()} !=
             original_pairs):

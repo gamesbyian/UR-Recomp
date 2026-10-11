@@ -1,0 +1,129 @@
+{
+  "schema": "UR-QA01-NATIVE-SWITCHER-NMI-COMPLETE-6PUSH-PROLOGUES/1",
+  "source": {
+    "original_paired_native_execution_run": 38090897908,
+    "original_paired_native_execution_job": 114326935017,
+    "original_native_wram_artifact": 11684141556,
+    "original_native_zip_sha256": "9b202ec36bfd60dc1cece9e0d2c9027275d669f8ab4100d349c69848f250eaf9",
+    "hash_verified_source_recovery_run": 38098340646,
+    "hash_verified_source_recovery_job": 114348854452,
+    "compact_native_recovered_artifact": 11687077615,
+    "compact_native_recovered_zip_sha256": "fb25b33c44ec0539fa7aeb623a3117d61c446740dd4ea57ff659092b775a373c",
+    "temporary_workflow_never_merge_pr": 1285,
+    "native_source_game_pin": "gamesbyian/uniracers-recomp@10b864b9d14a7b7416dd909eb7b054c88faef101",
+    "native_source_generated_function": "I_NMI_M1X1",
+    "native_wlog_scope": "native snes_frame_counter 5775–5790; 01DC–01F3 address range; write attempts, not changed bytes; only captured complete 6-push prologues recorded"
+  },
+  "native_original_wram_writer_log_observations_with_I_NMI_scope": 27,
+  "complete_six_push_prologues_count": 4,
+  "verified_native_complete_six_push_frame_histogram": {
+    "5781": 1,
+    "5786": 1,
+    "5787": 1,
+    "5788": 1
+  },
+  "actual_native_complete_six_push_PHA_events": [
+    {
+      "exact_order": [
+        "PHB",
+        "PHD",
+        "PHX",
+        "PHY",
+        "PHA16",
+        "PHA8"
+      ],
+      "native_frame": 5781,
+      "native_nmi_pha_SP_after_inferred": "01DC",
+      "native_nmi_pha_SP_before_inferred": "01DE",
+      "native_nmi_pha_SP_write_observed": "01DD",
+      "native_nmi_pha_accumulator": "4004",
+      "native_nmi_pha_high_byte": "40",
+      "native_nmi_pha_low_byte": "04",
+      "native_nmi_pha_stack_word_address": "01DD",
+      "original_wlog_ordinal": 15083
+    },
+    {
+      "exact_order": [
+        "PHB",
+        "PHD",
+        "PHX",
+        "PHY",
+        "PHA16",
+        "PHA8"
+      ],
+      "native_frame": 5786,
+      "native_nmi_pha_SP_after_inferred": "01E1",
+      "native_nmi_pha_SP_before_inferred": "01E3",
+      "native_nmi_pha_SP_write_observed": "01E2",
+      "native_nmi_pha_accumulator": "4040",
+      "native_nmi_pha_high_byte": "40",
+      "native_nmi_pha_low_byte": "40",
+      "native_nmi_pha_stack_word_address": "01E2",
+      "original_wlog_ordinal": 21108
+    },
+    {
+      "exact_order": [
+        "PHB",
+        "PHD",
+        "PHX",
+        "PHY",
+        "PHA16",
+        "PHA8"
+      ],
+      "native_frame": 5787,
+      "native_nmi_pha_SP_after_inferred": "01E1",
+      "native_nmi_pha_SP_before_inferred": "01E3",
+      "native_nmi_pha_SP_write_observed": "01E2",
+      "native_nmi_pha_accumulator": "4004",
+      "native_nmi_pha_high_byte": "40",
+      "native_nmi_pha_low_byte": "04",
+      "native_nmi_pha_stack_word_address": "01E2",
+      "original_wlog_ordinal": 22745
+    },
+    {
+      "exact_order": [
+        "PHB",
+        "PHD",
+        "PHX",
+        "PHY",
+        "PHA16",
+        "PHA8"
+      ],
+      "native_frame": 5788,
+      "native_nmi_pha_SP_after_inferred": "01E1",
+      "native_nmi_pha_SP_before_inferred": "01E3",
+      "native_nmi_pha_SP_write_observed": "01E2",
+      "native_nmi_pha_accumulator": "4004",
+      "native_nmi_pha_high_byte": "40",
+      "native_nmi_pha_low_byte": "04",
+      "native_nmi_pha_stack_word_address": "01E2",
+      "original_wlog_ordinal": 24382
+    }
+  ],
+  "original_live_source_comparison": {
+    "independent_original_nmi_full_A_run": 38097707477,
+    "independent_original_event_artifact": 11686632783,
+    "original_cpu_frame_5778_through_5782_full_A": [
+      "4040",
+      "4004",
+      "4042",
+      "4042",
+      "4004"
+    ],
+    "original_cpu_frame_5778_through_5782_sp_before": [
+      "01E2",
+      "01EA",
+      "01DE",
+      "01E7",
+      "01E5"
+    ],
+    "qualification": "Original five CPU frames and native complete sequences are from independently executed source Snes9x and pinned native guest, with different and NOT yet calibrated ICPU.Frame vs snes_frame_counter clocks. The native complete-capture filter does NOT imply absent NMI for omitted or partially logged frames."
+  },
+  "adjudication": {
+    "proven": "The archived native guest has four complete, consecutive, register-matching six-step I_NMI_M1X1 stack save bursts in the bounded original result/postresult window. At native frames 5781,5786,5787,5788, native 16-bit PHA writes accumulator words 4004,4040,4004,4004 respectively, with original native SP before/after inferred from the emitted source. All qualifying sequences match PHB/DB, PHD/D, PHX/X, PHY/Y, 16-bit PHA/A, 8-bit PHA with M=1 after SEP. The frame 5781 A=4004, stack 01DD event exactly reproduces the separately proven raw PHA writer.",
+    "not_proven": "All NMI entries are observable in the bounded WRAM logger; frame-to-frame original ICPU.Frame/native snes_frame_counter clock equivalence; original/native same logical guest-state accumulator equality; whether the original/native guest-relative result +4704/+4702 timing discrepancy is causal; the NMI-saved accumulator's next read/use and actual course release acceptance.",
+    "next": "Correlate original NMI entry PC/scanline/register state with native actual NMI start and postresult stage at a common host/beam timestamp; inspect stack restore reader; no controller retime or quality waiver.",
+    "release_complete_event_credit": 0,
+    "official_usa_course_total": 45
+  }
+}

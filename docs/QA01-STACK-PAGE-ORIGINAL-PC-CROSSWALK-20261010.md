@@ -2,6 +2,19 @@
 
 **Observed evidence and scope (2026-10-10).** This note retains an already-executed original Snes9x opcode-scope observation and relates it to independently executed original/native Race/Stunt memory differences. **It does not claim an original/native complete-event pass, an instruction-semantic proof or a player-facing bug.** Primary release census remains **0/45** USA complete pairs.
 
+## Hash-verified native NMI sequences from the existing archive (no new emulator run)
+
+A lightweight [source-artifact recovery run 38098340646](https://github.com/gamesbyian/UR-Recomp/actions/runs/38098340646) (green; artifact **11687077615**, ZIP SHA-256 `fb25b33c44ec0539fa7aeb623a3117d61c446740dd4ea57ff659092b775a373c`) scanned the **already executed** native writer log from run 38090897908, without rebuilding or replaying either game. It accepted only exactly **six consecutive register-consistent native `I_NMI_M1X1` writes** matching PHB/DB, PHD/D, PHX/X, PHY/Y, 16-bit PHA/A, and final 8-bit PHA after SEP. Twenty-seven WLOG rows carried the `I_NMI_M1X1` function scope; **four complete prologues** survived the stringent address-range/sequence filter. [Bounded machine witness and original source artifact provenance](../analysis/data/switcher-native-nmi-complete-stack-prologues-20261010.json).
+
+| Native `snes_frame_counter` | PHA full native A (M=0) | Native SP before→after, inferred | Word destination |
+| --- | --- | --- | --- |
+| **5781** | **`4004`** | `01DE→01DC` | `01DD` |
+| **5786** | `4040` | `01E3→01E1` | `01E2` |
+| **5787** | `4004` | `01E3→01E1` | `01E2` |
+| **5788** | `4004` | `01E3→01E1` | `01E2` |
+
+This independently revalidates the true native **`A=4004 @ 01DD`** event within an ordered NMI register-save prologue, and demonstrates that **`4040` and `4004`** recur in the later native postresult NMI saves. Original Snes9x NMI PHA A was directly measured at its *different* `ICPU.Frame` 5778–5782 as `4040/4004/4042/4042/4004`. Do **not** infer a shared CPU frame merely because those accumulator words recur: the logger only covered stack addresses `01DC–01F3`, and failed-to-qualify native frames may have invisible, partially captured or differently implemented NMIs. The original/native guest CPU/host/NMI-beam alignment, caller A liveness and strict `+4704/+4702` result-timing discrepancy remain open; USA **0/45**.
+
 ## Executed full original I_NMI PHA accumulator: five observed CPU frames
 
 The last unknown original register is now **measured directly**, not inferred from a single changed stack byte. [Genuine paired original/native replay 38097707477](https://github.com/gamesbyian/UR-Recomp/actions/runs/38097707477) completed green, job 114346974308, artifact **11686632783** (ZIP SHA-256 `c2bb347de619e4e17418a3645c2a678a6624794199fa5120ee7b5eb235472a19`). It used the unchanged archived 2014 Switcher movie and canonical US ROM, a disposable read-only original Snes9x observer at **`00:858E`** (original `I_NMI+6`), independently qualified source/stock original/native course entries, genuine same-host 5782 eight-WRAM-only comparison and positive MIKE `1:08.81` results at host 5783. The strict guest-relative result onset remains **original +4704 / native +4702, FAIL**. The [machine-readable five-frame actual register witness](../analysis/data/switcher-original-nmi-pha-full-accumulator-executed-20261010.json) pins each A/P/M/SP and actual low/high stack-byte result.

@@ -143,6 +143,9 @@ def patch_cmake(source: str, root: Path) -> str:
         product / "output_resolution_policy.cpp",
         product / "host_product_state.cpp",
         product / "completed_run_record.cpp",  # QA-only historical archive seed
+        product / "completed_run_store.cpp",
+        product / "multiplayer_match_record.cpp",
+        product / "local_multiplayer_match_binding.cpp",
         *(product / s for s in SOURCES),
     ))
     return source.rstrip() + (

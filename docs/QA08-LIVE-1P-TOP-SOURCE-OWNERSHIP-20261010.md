@@ -57,3 +57,42 @@ HDMA-driven sprite state. Record negative findings honestly.
 No `RemoveFromGame`, source sprite replacement, new art,
 Remastered 342-wide authorization, Windows UI change, scoring
 or beta-release acceptance is part of this experiment.
+
+
+## Existing-process paired-source overlap census (candidate)
+
+The top-slot validator now includes a **read-only, pixel-exact pair census**
+under `top_pair_overlap_and_final_rgb_census` in its existing JSON report.
+There is no new emulator/guest process, frame capture, workflow, OBJ deletion,
+graphics asset or presentation setting. Reuse the same independently
+authenticated native slot98 and slot99 342×224 RGBA PAMs and frame2208
+complete Original 342×224 image; the existing five-way guest CRCs, 7-frame
+Original/4× identity, slot attribution and source SHA checks still run first.
+
+The `band_counts` field distinguishes scanlines 0–111 and 112–223, each
+reporting slot98-only emission, slot99-only emission, shared emission, and
+neither. For shared alpha positions it separately reports whether the two
+source RGB values conflict and whether the final Original RGB matches only
+slot98, only slot99, both or neither. Non-overlapping source emissions that
+differ from final Original RGB are also counted. Bounded logical `[x,y]`
+coordinates in `bounded_coordinate_examples` support targeted visual review
+without persisting another full image or a fabricated sprite.
+
+Two invariants make the census harder to misread:
+
+- Unique emitted pixel coordinates are `98-only + 99-only + shared`, **not**
+  the sum of the two per-slot alpha counts. That sum double-counts shared
+  source pixels. Each slot's reconstructed alpha must equal its independently
+  verified isolated source count.
+- Matching final Original RGB is **not proof** that an emitted OBJ owned that
+  pixel. A mismatch can arise from BG/window priority, another OBJ or color
+  processing; it is a review candidate, not a diagnosed occlusion cause.
+  Neither an exclusive emission nor matching RGB authorizes destructive
+  `RemoveFromGame` or wide Remastered painting.
+
+The synthetic regression includes both halves of scanline112, conflicting
+overlaps, exclusive mismatches, coincident final/source RGB, malformed planes
+and an all-transparent negative. The next native use is to apply this amended
+analyzer to the retained **actual** top-slot evidence and then seek a paired
+source-vs-final PPU ownership counterfactual for any disputed coordinates.
+This document makes no unobserved quantitative native overlap claim.

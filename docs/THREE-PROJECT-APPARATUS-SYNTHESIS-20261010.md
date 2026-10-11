@@ -2,6 +2,8 @@
 
 **Working audit, 2026-10-10 (UTC 2026-10-11).** This is a bounded engineering plan, not a new task queue, an AOT promotion authority, a release gate, a distribution approval, or an assertion that upstream systems have all been executed. The live [WORK-QUEUE](WORK-QUEUE.md), enduring [PROJECT-PLAN](PROJECT-PLAN.md) and sole [release ledger](RELEASE-QUALITY-LEDGER.json) retain their existing authority. Keep the recruitment-media agent's exclusive lane independent.
 
+Implementation details: [shared route/evidence spine](THREE-PROJECT-SHARED-EVIDENCE-SPINE-20261010.md) and [adoption roadmap with gates and stop rules](THREE-PROJECT-APPARATUS-ROADMAP-20261010.md). Both are advisory to the established owners, not additional authorities.
+
 ## 1. Scope and what has actually been inspected
 
 This audit uses **frozen Git trees**, not changing default-branch URLs:

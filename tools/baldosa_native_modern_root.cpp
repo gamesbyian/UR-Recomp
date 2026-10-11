@@ -248,8 +248,14 @@ void choose() {
             const auto roster = ur::product::load_host_profile_catalog_file(
                 "profiles-v1.txt");
             if (!roster || !g_two_seat_join.begin(*roster, active)) {
+                // A fresh named install can still play an unbound stock 2P
+                // session. It cannot acquire match-history identity until
+                // two real distinct profiles are confirmed. Do not strand
+                // multiplayer behind missing optional product metadata.
                 std::fprintf(stderr,
-                    "UR_BALDOSA_MODERN_ROOT join_unavailable=1\n");
+                    "UR_BALDOSA_MODERN_ROOT join_unavailable=1 "
+                    "stock_2p_without_record_identity=1\n");
+                request_stock_route(2);
                 return;
             }
             g_p2_join_edges.reset();

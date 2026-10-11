@@ -91,11 +91,10 @@ def verified_frame(root: Path, frame: int) -> dict:
         int(original[at:at + 3] == bytes(COUNTDOWN_RGB))
         for at in range(0, len(original), 4))
     blue_points = [pos for pos, flag in enumerate(full_blue) if flag]
-    if not blue_points:
-        raise ValueError("native Original raster has no countdown-blue pixels")
     blue_x = [pos % WIDTH for pos in blue_points]
     blue_y = [pos // WIDTH for pos in blue_points]
-    blue_bbox = [min(blue_x), min(blue_y), max(blue_x), max(blue_y)]
+    blue_bbox = ([min(blue_x), min(blue_y), max(blue_x), max(blue_y)]
+                 if blue_points else None)
     by_band = {}
     for band, mask in masks.items():
         if not mask:

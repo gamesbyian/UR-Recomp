@@ -112,3 +112,17 @@ The manual `windows-local-tournament-package-acceptance.yml` downloads its ZIP f
 ## Duplicated settled-result notifications are not benign
 
 The independent packaged Windows tournament reader now requires exactly one `UR_MULTIPLAYER_MATCH CAPTURED` and `UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED` notification in the create-process transcript, regardless of saved run/match/fixture inventory. Two settled results or credits in a single-fixture run are unacceptable even if storage de-duplicates a second output. The negative unit modifies a transcript, recomputes its digest in the receipt, and checks for **semantic duplication**, not simply an obsolete SHA.
+
+## Independent provisional Baldosa ROMless ZIP admission (not gameplay)
+
+The provisional **Baldosa AOT** Windows artifact is structurally different from the older SNESRecomp ZIP and intentionally **does not contain any ROM**. The existing producer self-check is not independent evidence that a later delivered ZIP is still byte-identical to an externally nominated candidate. A separate, read-only QA consumer now provides that exact negative check:
+
+```sh
+python tools/verify_baldosa_romless_candidate_qa.py \\
+  --zip path/to/private-Baldosa-candidate.zip \\
+  --expected-source FULL_40_LOWERCASE_HEX_COMMIT \\
+  --expected-zip-sha256 LOWERCASE_64_HEX_ZIP_DIGEST \\
+  --output candidate-consistency.json
+```
+
+The caller must source these hashes **outside the archive and its producer's self-report**. The consumer uses the existing Baldosa manifest/launcher/README definitions, independently streams each admitted member, rejects hidden ROM/save payloads, duplicate members, forged revision, mismatched digest, noncanonical metadata, altered launch scripts (even when the internal manifest was re-signed), and budget overflow. It neither builds nor extracts the game nor starts another GHA job. Its envelope always remains **`outcome=inconclusive`** and `physical_windows_verified=false`, `integrated_native_1p_2p_journey_verified=false`: a well-formed ZIP must still be launched and exercised on the exact approved source candidate, and this verifier makes no claim about guest event parity, Windows hardware or public distribution authorization. It is complementary to `verify_baldosa_windows_extracted_launcher.py`, not an alternative production builder or codec.

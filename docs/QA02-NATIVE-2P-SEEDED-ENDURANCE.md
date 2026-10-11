@@ -21,6 +21,12 @@ All four must share the original first-race active WRAM checkpoint before new ac
 
 **Dimensions intentionally exercised:** varied legal masks (left, right, A, combined movement/A), durations, neutral gaps, simultaneous opposing inputs, repeated state evolution after legitimate source race entry, deterministic independent process replay, and independently ablated P1/P2 inputs. This is currently one ordinary 2P event family, not a 45-course sweep, source-visible graphics or a screen/controller test.
 
+## First live-run diagnosis, 2026-10-11
+
+[First manual workflow run 38182883707](https://github.com/gamesbyian/UR-Recomp/actions/runs/38182883707) **failed before a single stress guest process could execute**. The existing native producer and all its source-owned acceptance jobs passed, but both downstream stress shards ran on Ubuntu **22.04**, while the shared executable built under `ubuntu-latest` requires `GLIBC_2.38`. Both shard receipts faithfully recorded zero accepted cases and native process startup errors; the aggregate correctly failed. This is runner ABI skew, not evidence of a native gameplay determinism or dual-seat bug.
+
+The stress job now matches its producing workflow's `ubuntu-latest` runner family, with an explicit ELF/linkage check (`ldd`) and minimum GLIBC 2.38 guard **before the case loop**. The workflow regression asserts the producer/consumer compatibility boundary. This repair does not change any input, guest WRAM, case acceptance, source identity, or missing-shard assertion. Re-dispatch **15 minutes** after the fix merges; no campaign execution pass has yet been established by this incident.
+
 ## Runtime and dispatch
 
 The manual workflow runs the existing production native build once via a reusable workflow, then two independent Linux stress shards with at most two simultaneous runner jobs. Choose 15, 60 or 120 **wall minutes of actual trial work per shard**. The default is **15**, deliberately an initial smoke; after demonstrated run correctness, choose **120** for the extended workload. Each shard tests distinct seeds, starting with `base_seed + shard*1000003 + case_index`. Up to 3,000 unique trials per shard keep the campaign bounded even on unexpectedly fast hardware; each process has a 120-second watchdog and each shard a 145-minute hard runner limit. Every trial performs four native guest sessions, not four synthetic predictions.

@@ -32,6 +32,15 @@ class MultiplayerMatchCatalogCppTests(unittest.TestCase):
             )
             subprocess.run([str(exe)], cwd=ROOT, check=True)
 
+    def test_catalog_never_follows_run_or_sidecar_links(self):
+        src = (ROOT / "native" / "product" /
+               "multiplayer_match_catalog.cpp").read_text(encoding="utf-8")
+        self.assertIn("entry.symlink_status(", src)
+        self.assertIn("std::filesystem::symlink_status(", src)
+        self.assertIn("multiplayer_match_record_path_for_run(", src)
+        self.assertIn("MatchMissingOrUnreadable", src)
+        self.assertIn("RunUnreadable", src)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -43,7 +43,12 @@ READ = {
         "native_snes_frame_counter": 5781,
         "read_value": "4004",
         "word_start": "01DD",
+        "memory_bank_alias": "00",
         "bus_read_width": 2,
+        "stack_pointer_at_read": "01DC",
+        "register_a_at_read": "0000",
+        "generated_or_interpreter_scope": "I_NMI_M1X1",
+        "register_s_does_not_prove_stack_instruction": True,
         "memory_width_flag_at_read": 0,
         "stack_pointer_equals_read_start_at_callback": False,
         "observed_after_4004_writer_callback_started": True,
@@ -121,10 +126,56 @@ class NativeStackReadPairCrosswalkTests(unittest.TestCase):
             "stack_pointer_equals_read_start_at_callback"] = True
         with self.assertRaises(ValueError):
             x.summarize(BEAM, doc)
+        doc["native_stack_read_attempts"][0]["stack_pointer_at_read"] = "01DD"
         doc["same_frame_post_writer_stack_position_consistent_word_4004_count"] = 1
         result = x.summarize(BEAM, doc)
         self.assertEqual(result["native_stack_pointer_consistent_4004_word_read_candidates"], 1)
         self.assertFalse(result["native_guest_result_consumer_proven"])
+
+    def test_rejects_forged_stack_alias_target_and_callback_order(self):
+        for key, bad in (
+            ("memory_bank_alias", "7F"),
+            ("memory_bank_alias", "40"),
+            ("memory_bank_alias", True),
+            ("stack_pointer_at_read", "01DD"),
+            ("stack_pointer_at_read", "broken"),
+            ("word_start", "01DC"),
+            ("target_stack_bytes_touched", ["7E:01DD"]),
+            ("target_stack_bytes_touched", ["7E:01DE", "7E:01DD"]),
+            ("register_a_at_read", "fake"),
+            ("generated_or_interpreter_scope", ""),
+            ("register_s_does_not_prove_stack_instruction", False),
+            ("observed_after_4004_writer_callback_started", 1),
+        ):
+            candidate = copy.deepcopy(READ)
+            candidate["native_stack_read_attempts"][0][key] = bad
+            with self.subTest(key=key, bad=bad), self.assertRaises(ValueError):
+                x.summarize(BEAM, candidate)
+
+    def test_rejects_out_of_order_or_impossible_writer_arm_frames(self):
+        first = copy.deepcopy(READ["native_stack_read_attempts"][0])
+        variants = (
+            [dict(first, native_snes_frame_counter=5780)],
+            [dict(first, native_snes_frame_counter=5782,
+                  observed_after_4004_writer_callback_started=False)],
+            [dict(first, native_snes_frame_counter=5782),
+             dict(first, native_snes_frame_counter=5781)],
+            [dict(first, native_snes_frame_counter=5781),
+             dict(first, native_snes_frame_counter=5781,
+                  observed_after_4004_writer_callback_started=False)],
+        )
+        for rows in variants:
+            candidate = copy.deepcopy(READ)
+            candidate["native_stack_read_attempts"] = rows
+            candidate["native_bus_read_attempt_count"] = len(rows)
+            candidate["native_bus_read_attempts_by_target"] = {
+                "7E:01DD": len(rows), "7E:01DE": len(rows)}
+            candidate["same_native_frame_post_writer_callback_read_4004_candidate_count"] = sum(
+                int(r["native_snes_frame_counter"] == 5781 and
+                    r["observed_after_4004_writer_callback_started"] is True) for r in rows)
+            with self.subTest(frames=[r["native_snes_frame_counter"] for r in rows]):
+                with self.assertRaises(ValueError):
+                    x.summarize(BEAM, candidate)
 
     def test_manual_workflow_produces_separate_crosscheck_from_existing_logs(self):
         wf = (ROOT / ".github/workflows/qa01-switcher-original-2014.yml").read_text()

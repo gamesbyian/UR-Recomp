@@ -64,6 +64,8 @@ def summarize(writer: dict, reader: dict) -> dict:
     actual = {"7E:01DD": 0, "7E:01DE": 0}
     derived_broad = 0
     derived_strict = 0
+    previous_frame = 5778
+    armed_in_read_journal = False
     for row in rows:
         if not isinstance(row, dict):
             raise ValueError("malformed read row in paired native journal")
@@ -72,20 +74,54 @@ def summarize(writer: dict, reader: dict) -> dict:
                 or len(targets) > 2 or len(set(targets)) != len(targets)
                 or any(target not in actual for target in targets)):
             raise ValueError("native read row does not touch pinned stack targets")
-        for target in targets:
-            actual[target] += 1
         frame = row.get("native_snes_frame_counter")
         width = row.get("bus_read_width")
+        bank = row.get("memory_bank_alias")
+        start = row.get("word_start")
+        word = row.get("read_value")
+        sp = row.get("stack_pointer_at_read")
+        a = row.get("register_a_at_read")
+        scope = row.get("generated_or_interpreter_scope")
+        armed = row.get("observed_after_4004_writer_callback_started")
+        same_sp = row.get("stack_pointer_equals_read_start_at_callback")
         if (type(frame) is not int or not 5778 <= frame <= 5782
+                or frame < previous_frame
                 or type(width) is not int or width not in (1, 2)
-                or row.get("word_start") not in ("01DC", "01DD", "01DE")
-                or row.get("observed_after_4004_writer_callback_started")
-                   not in (True, False)
+                or type(bank) is not str
+                or re.fullmatch(r"[0-9A-F]{2}", bank) is None
+                or not (int(bank, 16) == 0x7E
+                        or 0 <= int(bank, 16) <= 0x3F
+                        or 0x80 <= int(bank, 16) <= 0xBF)
+                or type(start) is not str
+                or re.fullmatch(r"[0-9A-F]{4}", start) is None
+                or type(word) is not str
+                or re.fullmatch(r"[0-9A-F]{4}", word) is None
+                or (width == 1 and int(word, 16) > 0xFF)
+                or type(sp) is not str or re.fullmatch(r"[0-9A-F]{4}", sp) is None
+                or type(a) is not str or re.fullmatch(r"[0-9A-F]{4}", a) is None
+                or type(scope) is not str
+                or re.fullmatch(r"[A-Za-z0-9_?]{1,120}", scope) is None
+                or type(armed) is not bool or type(same_sp) is not bool
                 or type(row.get("memory_width_flag_at_read")) is not int
                 or row["memory_width_flag_at_read"] not in (0, 1)
-                or row.get("stack_pointer_equals_read_start_at_callback")
-                   not in (True, False)):
+                or row.get("register_s_does_not_prove_stack_instruction") is not True):
             raise ValueError("unqualified native stack read row timing/width/stack fields")
+        start_num = int(start, 16)
+        expected = [f"7E:{start_num + byte:04X}"
+                    for byte in range(width)
+                    if start_num + byte in (0x01DD, 0x01DE)]
+        if targets != expected or same_sp is not (sp == start):
+            raise ValueError("reported stack bytes/S equality contradict original read address")
+        if frame < 5781 and armed:
+            raise ValueError("native read cannot precede frame-5781 arming")
+        if frame > 5781 and not armed:
+            raise ValueError("native frame after writer cannot be marked pre-arm")
+        if armed_in_read_journal and not armed:
+            raise ValueError("native read journal reverted to pre-writer status")
+        previous_frame = frame
+        armed_in_read_journal = armed_in_read_journal or armed
+        for target in targets:
+            actual[target] += 1
         # The archived read JSON must not be able to alter candidate
         # counts separately from the actual normalized underlying rows.
         is_broad = (row["observed_after_4004_writer_callback_started"] is True

@@ -36,3 +36,13 @@ python3 -m unittest tests.unit.test_query_malmazuke_symbols
 The lookup also joins the pinned malmazuke original-code labels to their upstream research records (using immutable source links). For example, `--grep 'R-0038'` locates cited addresses from a particular research document. Source records not copied into UR-Recomp still point to the pinned upstream commit.
 
 The lookup consumes the audited selected malmazuke native-symbol index and the existing bounded structural candidate JSON. A USA candidate is **not** a verified function correspondence; use the canonical USA ROM and PAL/USA analysis tools to adjudicate it. No core, ROM loader, network access or gameplay code is added.
+
+Structural PAL/USA mapping gap report (derived only from the existing pinned candidate index):
+
+```bash
+python3 tools/report_malmazuke_mapping_gaps.py --domain result --limit 15
+python3 tools/report_malmazuke_mapping_gaps.py --domain frontend --json-out /tmp/frontend-gap.json
+python3 -m unittest tests.unit.test_report_malmazuke_mapping_gaps
+```
+
+This report distinguishes **not covered by the current structural interval index** from unimplemented code, untested gameplay, or a proved USA/PAL difference. The worklist is ordered by upstream original-code evidence class and address, not product urgency. Domain counts overlap and must not be summed.

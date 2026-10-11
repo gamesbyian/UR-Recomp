@@ -87,6 +87,17 @@ class PackagedTournamentWorkRootSafetyTests(unittest.TestCase):
         self.assertGreater(text.index('test "$(sha256sum "${runs[0]}"'),
                            text.index("run_package reopen"))
 
+    def test_windows_launcher_paths_are_bound_not_powershell_interpolated(self):
+        text = ROUTE.read_text(encoding="utf-8")
+        self.assertIn('QA_PACKAGE_LAUNCHER="$PACKAGE_WIN', text)
+        self.assertIn('QA_SCRIPT_PATH="$SCRIPT_WIN"', text)
+        self.assertIn(
+            "'& $env:QA_PACKAGE_LAUNCHER --script $env:QA_SCRIPT_PATH; exit $LASTEXITCODE'",
+            text,
+        )
+        self.assertNotIn("& '${PACKAGE_WIN}", text)
+        self.assertNotIn("--script '${SCRIPT_WIN}", text)
+
     def test_no_recursive_delete_in_package_route(self):
         text = ROUTE.read_text(encoding="utf-8")
         self.assertNotIn("rm -rf", text)

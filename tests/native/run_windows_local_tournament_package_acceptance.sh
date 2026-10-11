@@ -69,8 +69,10 @@ run_package() {
       UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE="$mode" \
       UR_PRODUCT_DIAGNOSTICS=1 \
       SNESRECOMP_INPUT_FILE="$INPUT_WIN" \
-    timeout "$limit" powershell.exe -NoProfile -Command \
-      "& '${PACKAGE_WIN}\\run-uniracers.cmd' --script '${SCRIPT_WIN}'; exit \$LASTEXITCODE" \
+      QA_PACKAGE_LAUNCHER="$PACKAGE_WIN\\run-uniracers.cmd" \
+      QA_SCRIPT_PATH="$SCRIPT_WIN" \
+    timeout "$limit" powershell.exe -NoProfile -NonInteractive -Command \
+      '& $env:QA_PACKAGE_LAUNCHER --script $env:QA_SCRIPT_PATH; exit $LASTEXITCODE' \
       >"$log" 2>&1
   local rc=$?
   set -e

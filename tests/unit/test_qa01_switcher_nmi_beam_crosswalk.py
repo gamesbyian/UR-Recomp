@@ -14,6 +14,7 @@ import qa01_switcher_nmi_beam_crosswalk as cross
 
 ORIGINAL = {
     "schema": o.SCHEMA,
+    "paired_report_bytes_sha256": "a" * 64,
     "independently_authenticated_original_native_pair": {"course_id": "course:04"},
     "source_hcounter_vs_native_framework_hpos_unaligned": True,
     "saved_4042_original_pha_horizontal_clock": {
@@ -27,6 +28,7 @@ ORIGINAL = {
 }
 NATIVE = {
     "schema": n.SCHEMA,
+    "paired_report_bytes_sha256": "a" * 64,
     "exact_original_native_switcher_pair_provenance": {"course_id": "course:04"},
     "framework_beam_vs_original_cpu_phase_unaligned": True,
     "native_original_nmi_writer_beam": {
@@ -49,6 +51,7 @@ class SwitcherNmiBeamCrosswalkTests(unittest.TestCase):
         self.assertTrue(data["cpu_architectural_return_parity_not_proven"])
         self.assertEqual(data["strict_guest_relative_result_original_native"], [4704, 4702])
         self.assertEqual(data["completed_usa_course_credit"], 0)
+        self.assertEqual(data["paired_report_bytes_sha256"], "a" * 64)
 
     def test_matching_raw_horizontal_number_is_still_not_phase_proof(self):
         native = copy.deepcopy(NATIVE)
@@ -77,6 +80,9 @@ class SwitcherNmiBeamCrosswalkTests(unittest.TestCase):
                     cross.summarize(src, NATIVE)
         for key, value in (
             ("schema", "wrong"),
+            ("paired_report_bytes_sha256", "b" * 64),
+            ("paired_report_bytes_sha256", "invalid"),
+            ("exact_original_native_switcher_pair_provenance", {"different": "guest"}),
             ("framework_beam_vs_original_cpu_phase_unaligned", False),
             ("native_original_nmi_writer_beam.native_host_frame", 5782),
             ("native_original_nmi_writer_beam.stack_word_saved", "4042"),

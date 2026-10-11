@@ -162,34 +162,17 @@ class SwitcherSourceFollowOnTests(unittest.TestCase):
     def test_source_diagnostic_must_match_decoded_original_trace_exactly(self):
         import copy
         import probe_original_event_complete as event
-        states = source_states()
-        # Synthetic states cannot impersonate a fully attested source scan;
-        # this unit test exercises only the diagnostic recomputation guard.
-        diag = event.source_event_diagnostic(states, 3, 0x99)
-        diag.update({
-            "original_source_horizon_host_frame": walk.HORIZON,
-            "original_source_horizon_observed_from_guest_dump": True,
-            "original_source_horizon_wram_bytes": 0x20000,
-        })
-        # Synthetic state extends to 17499, not original horizon 22000.
-        with self.assertRaisesRegex(ValueError, "proven Switcher result"):
-            walk.reconcile_original_source_diagnostic(states, diag)
-        for frame in range(17500, walk.HORIZON + 1):
-            states[frame] = {"menu": 0, "track": 3, "in_race": 0}
-        diag = event.source_event_diagnostic(states, 3, 0x99)
-        diag.update({
-            "original_source_horizon_host_frame": walk.HORIZON,
-            "original_source_horizon_observed_from_guest_dump": True,
-            "original_source_horizon_wram_bytes": 0x20000,
-        })
-        # Synthetic frame map's continuous 0x99 result lasts to 17299,
-        # unlike the genuine archive 17030..17087.
-        with self.assertRaisesRegex(ValueError, "proven Switcher result"):
-            walk.reconcile_original_source_diagnostic(states, diag)
-        # Independently fake the stable result interval in a synthetic test
-        # trace to exercise the *format*, not establish a runtime witness.
-        for frame in range(17088, 17300):
-            states[frame] = {"menu": 0, "track": 3, "in_race": 0}
+        # Explicitly SYNTHETIC full source shape; only the real downloaded
+        # scan artifact can establish original movie or input provenance.
+        states = {f: {"menu": 0x16, "track": 0, "in_race": 0}
+                  for f in range(walk.HORIZON + 1)}
+        for f in range(walk.ENTRY, walk.RESULT - 1):
+            states[f] = {"menu": 0x16, "track": 3, "in_race": 1}
+        states[walk.RESULT - 1] = {"menu": 0x16, "track": 3, "in_race": 0}
+        for f in range(walk.RESULT, walk.RESULT_LAST_STABLE + 1):
+            states[f] = {"menu": 0x99, "track": 3, "in_race": 0}
+        for f in range(walk.RESULT_LAST_STABLE + 1, walk.HORIZON + 1):
+            states[f] = {"menu": 0xF6, "track": 3, "in_race": 0}
         diag = event.source_event_diagnostic(states, 3, 0x99)
         diag.update({
             "original_source_horizon_host_frame": walk.HORIZON,
@@ -200,7 +183,7 @@ class SwitcherSourceFollowOnTests(unittest.TestCase):
         self.assertTrue(verified["source_diagnostic_recomputed_from_same_decoded_trace"])
         self.assertEqual(
             verified["original_result_interval_recomputed_from_changed_byte_trace"],
-            [17030, 17087])
+            [walk.RESULT, walk.RESULT_LAST_STABLE])
         for field in ("active_track_frames", "stable_original_results",
                       "source_event_candidate_entries",
                       "sampled_state_at_source_result_neighbors"):
@@ -213,6 +196,10 @@ class SwitcherSourceFollowOnTests(unittest.TestCase):
         forged["original_source_horizon_observed_from_guest_dump"] = False
         with self.assertRaisesRegex(ValueError, "authenticated original"):
             walk.reconcile_original_source_diagnostic(states, forged)
+        replaced = copy.deepcopy(states)
+        replaced[walk.RESULT_LAST_STABLE]["menu"] = 0x16
+        with self.assertRaisesRegex(ValueError, "contradicts original scan"):
+            walk.reconcile_original_source_diagnostic(replaced, diag)
 
     def test_source_trace_budget_and_real_tooling_wiring(self):
         self.assertEqual(walk.RESULT, 17030)

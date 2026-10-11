@@ -118,7 +118,7 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
         if not isinstance(witnesses, list):
             errors.append(f"{name} witnesses must be a list")
             witnesses = []
-        if status in {"passed", "failed"}:
+        if isinstance(status, str) and status in {"passed", "failed"}:
             if not commit or not artifact or gate.get("candidate_commit") != commit:
                 errors.append(f"{name} {status} without exact pinned candidate")
             if not witnesses:
@@ -146,7 +146,8 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
                 errors.append(f"{name} witness tested_at must be a timezone-aware ISO-8601 instant")
             layer = w.get("layer")
             rank = LAYER_RANK.get(layer, 0) if isinstance(layer, str) else 0
-            if rank < LAYER_RANK.get(minimum, 99):
+            min_rank = LAYER_RANK.get(minimum, 99) if isinstance(minimum, str) else 99
+            if rank < min_rank:
                 errors.append(f"{name} witness below required layer {minimum}")
         if status != "passed" and witnesses and gate.get("candidate_commit") != commit:
             errors.append(f"{name} witness candidate mismatch")
@@ -156,7 +157,7 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
         errors.append("missing mandatory gates: " + ", ".join(sorted(missing)))
     if extra:
         errors.append("unexpected gate IDs: " + ", ".join(sorted(extra)))
-    if decision in {"beta", "release_candidate", "public_release"}:
+    if isinstance(decision, str) and decision in {"beta", "release_candidate", "public_release"}:
         incomplete = [g.get("id", "?") for g in gates
                       if not isinstance(g, dict) or g.get("status") not in {"passed", "waived"}]
         if incomplete:

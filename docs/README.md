@@ -2,6 +2,10 @@
 
 **For agents:** start at [AGENTS.md](../AGENTS.md) and the *short, current* [WORK-QUEUE.md](WORK-QUEUE.md). A dated investigation or historical implementation phase never independently schedules work. This index owns only **where facts live**, not a second backlog.
 
+## Desktop post-race video
+
+[DESKTOP-POST-RACE-VIDEO.md](DESKTOP-POST-RACE-VIDEO.md) owns the Windows/macOS/Linux Modern **Save Race Video / Discard Video** result feature, evidence-backed capture/export backend choices, concrete resource/latency expectations, playback/job confirmation semantics, and staged acceptance. It is not an implemented feature or a new P0. Existing `COMPLETED-RUN-RECORDS.md`, `COMPLETED-RUN-BROWSER.md` and `MODERN-RESULTS-NAVIGATION.md` retain their separate run/replay/navigation authorities.
+
 ## Regional presentation effect
 
 The [regional-presentation specification](REGIONAL-PRESENTATION.md) owns the approved directional checkerboard title flip. Its [offline preview and source-calibration runbook](../tools/showcase/REGIONAL-CHECKERBOARD.md) describes reusable media tooling, research provenance and islanding; these do not constitute shipped native presenter behavior.

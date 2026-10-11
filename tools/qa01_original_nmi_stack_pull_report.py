@@ -36,6 +36,13 @@ RTI = re.compile(
     r"cyc0=(-?\d+) cyc1=(-?\d+) f1=(\d+)$",
     re.MULTILINE,
 )
+PHA_BEAM = re.compile(
+    r"^QANMIPHABEAM f=(\d+) v=(\d+) pc=([0-9A-F]{6}) "
+    r"h0=(-?\d+) h1=(-?\d+) sp0=([0-9A-F]{4}) "
+    r"sp1=([0-9A-F]{4}) a0=([0-9A-F]{4}) f1=(\d+)$",
+    re.MULTILINE,
+)
+MAX_PHA_BEAMS = 12
 MAX_RTIS = 16
 MAX_PULLS = 64
 STACK_LOW, STACK_HIGH = 0x0100, 0x01FF
@@ -60,6 +67,49 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
     # This crosschecks actual independent original NMI entries and 01DD writer,
     # rather than admitting a synthetic stand-alone QANMIPULL line.
     original_context = nmi.summarize(log, first=first, last=last)
+    beam_matches = list(PHA_BEAM.finditer(log))
+    if sum(line.startswith("QANMIPHABEAM") for line in log.splitlines()) != len(beam_matches):
+        raise ValueError("malformed original I_NMI PHA horizontal-clock row")
+    pha_matches = list(nmi.PHA.finditer(log))
+    if (len(beam_matches) != len(pha_matches)
+            or not 1 <= len(beam_matches) <= MAX_PHA_BEAMS):
+        raise ValueError("missing source original PHA CPU horizontal-clock observation")
+    beam_rows = []
+    for beam_match, pha_match in zip(beam_matches, pha_matches):
+        f0, v, pc, h0, h1, sp0, sp1, a0, f1 = beam_match.groups()
+        f0, v, h0, h1, f1 = map(int, (f0, v, h0, h1, f1))
+        if (beam_match.start() >= pha_match.start()
+                or f0 != int(pha_match.group(1))
+                or pc != pha_match.group(3)
+                or sp0 != pha_match.group(5) or sp1 != pha_match.group(6)
+                or a0 != pha_match.group(7)
+                or not first <= f0 <= last or not f0 <= f1 <= last + 1
+                or not 0 <= v < 263 or not 0 <= h0 < 10000
+                or not 0 <= h1 < 10000):
+            raise ValueError("source horizontal-clock stamp disagrees with real I_NMI PHA")
+        beam_rows.append({
+            "original_cpu_frame_before": f0,
+            "original_cpu_frame_after": f1,
+            "ppu_vcounter_before": v,
+            "source_original_cpu_hcounter_before": h0,
+            "source_original_cpu_hcounter_after": h1,
+            "original_pha_pc": f"{pc[:2]}:{pc[2:]}",
+            "stack_pointer_before": sp0,
+            "stack_pointer_after": sp1,
+            "accumulator_before": a0,
+        })
+    if [x["original_cpu_frame_before"] for x in beam_rows] != sorted(
+            x["original_cpu_frame_before"] for x in beam_rows):
+        raise ValueError("original NMI PHA horizontal stamps out of order")
+    matching_saved_pha_beam = [
+        row for row in beam_rows
+        if row["original_cpu_frame_before"] == 5780
+        and row["original_pha_pc"] == "00:858E"
+        and row["stack_pointer_before"] == "01DE"
+        and row["accumulator_before"] == "4042"
+    ]
+    if len(matching_saved_pha_beam) != 1:
+        raise ValueError("no unique original saved 4042 PHA beam clock")
     matches = list(PULL.finditer(log))
     # Do not silently drop truncated or modified instrumentation lines.
     if sum(line.startswith("QANMIPULL") for line in log.splitlines()) != len(matches):
@@ -267,6 +317,9 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
         "original_cpu_frame_window": [first, last],
         "independent_original_nmi_pha_context_schema": original_context["schema"],
         "original_nmi_hardware_entries": len(original_context["original_nmi_hardware_entry_events"]),
+        "observed_original_nmi_pha_horizontal_clocks": beam_rows,
+        "saved_4042_original_pha_horizontal_clock": matching_saved_pha_beam[0],
+        "source_hcounter_vs_native_framework_hpos_unaligned": True,
         "original_01dd_pha_writer_confirmed": True,
         "observed_candidate_stack_pull_count": len(rows),
         "candidate_stack_pull_scopes": rows,

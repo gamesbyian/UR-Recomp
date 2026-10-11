@@ -63,10 +63,32 @@ jobs:
           python3 tools/compare_fixture_cdl.py             reference/roms/retail/Uniracers_USA.sfc             tests/input/race-jump-control.script             tests/input/race-jump.script             --json-out analysis/generated/execution-coverage-jump-ab.json             --md-out analysis/generated/execution-coverage-jump-ab.md
           cat analysis/generated/execution-coverage-jump-ab.md
 
+      - name: Publish compact decision-and-provenance receipt
+        shell: bash
+        run: |
+          python3 tools/publish_experiment_result.py \
+            --name "Jump-versus-control instruction coverage" \
+            --question "Which additional code bytes execute under the jump fixture relative to the control?" \
+            --result analysis/generated/execution-coverage-jump-ab.json \
+            --source-summary analysis/generated/execution-coverage-jump-ab.md \
+            --input reference/roms/retail/Uniracers_USA.sfc \
+            --input tests/input/race-jump-control.script \
+            --input tests/input/race-jump.script \
+            --input tools/compare_fixture_cdl.py \
+            --input tools/bootstrap_toolchain.py \
+            --input tools/toolchain-entries/mesence.json \
+            --input tools/toolchain-entries/mesen-for-ai.json \
+            --out analysis/generated/execution-coverage-jump-ab-receipt.json \
+            --github-summary "$GITHUB_STEP_SUMMARY"
+
       - name: Upload compact evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: execution-coverage-jump-ab
+          if-no-files-found: warn
+          retention-days: 14
           path: |
             analysis/generated/execution-coverage-jump-ab.json
             analysis/generated/execution-coverage-jump-ab.md
+            analysis/generated/execution-coverage-jump-ab-receipt.json

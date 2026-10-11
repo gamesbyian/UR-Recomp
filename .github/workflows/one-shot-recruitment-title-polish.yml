@@ -62,6 +62,10 @@ jobs:
           assert manifest['schema']=='UR-RECRUITMENT-FINAL-MEDIA/1'
           assert manifest['film_duration_seconds']==58
           assert manifest['editorial_splices_not_continuous_title_to_race']
+          title=manifest['original_title_internal_edit']
+          assert title['horizontal_source_ordinals']==[[270,359],[420,569]]
+          assert title['vertical_source_ordinals']==[[270,359],[420,449]]
+          assert title['faked_gameplay_frames'] is False
           assert not manifest['remastered_widescreen_claim'] and not manifest['finished_beta_claim'] and not manifest['continuous_4k_claim']
           assert len(manifest['timeline'])==9 and sum(x['frame_count'] for x in manifest['timeline'])==3480
           sha=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()

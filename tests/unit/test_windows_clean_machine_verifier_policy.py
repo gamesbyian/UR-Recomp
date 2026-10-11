@@ -154,6 +154,30 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             self.assertIn("Independent candidate pin needs both canonical",
                           result_one_pin.stderr)
             self.assertFalse(one_pin_dir.exists())
+            # The verifier previously counted only files; a wholly
+            # self-consistent archive could smuggle extra empty directories
+            # without a manifest entry or checksum mismatch.
+            orphan_archive = root / "extra-empty-directory.zip"
+            orphan_checksum = root / "extra-empty-directory.zip.sha256"
+            with zipfile.ZipFile(archive) as original, zipfile.ZipFile(
+                orphan_archive, "w", compression=zipfile.ZIP_DEFLATED,
+            ) as forged_zip:
+                for info in original.infolist():
+                    forged_zip.writestr(info, original.read(info.filename))
+                forged_zip.writestr(f"{package.ARCHIVE_ROOT}/unexpected-empty/", b"")
+            package.write_archive_checksum(orphan_archive, orphan_checksum)
+            orphan_cmd = cmd[:-1] + [
+                str(root / "unmanifested empty directory must fail"),
+            ]
+            orphan_cmd[6] = str(orphan_archive)
+            orphan_cmd[8] = str(orphan_checksum)
+            orphan_result = subprocess.run(
+                orphan_cmd, capture_output=True, text=True, check=False,
+            )
+            self.assertNotEqual(orphan_result.returncode, 0)
+            self.assertIn(
+                "Unmanifested extracted directory", orphan_result.stderr,
+            )
             # A separately signed ZIP can have valid hashes but spell one
             # parent directory two ways. Both may extract into one directory
             # on NTFS; the standalone verifier must reject that manifest.
@@ -300,6 +324,14 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             self.script.index("Release ZIP differs from independent candidate pin"),
             self.script.index("Expand-Archive -LiteralPath"),
         )
+
+    def test_extracted_extra_empty_directory_is_rejected(self):
+        self.assertIn(
+            "Get-ChildItem -LiteralPath $PackageRoot -Recurse -Directory -Force",
+            self.script,
+        )
+        self.assertIn("Unmanifested extracted directory", self.script)
+        self.assertIn("$seenPrefixes.ContainsKey($relative)", self.script)
 
     def test_case_aliased_windows_parent_names_fail_before_hashing(self):
         self.assertIn("$seenPrefixes = @{}", self.script)

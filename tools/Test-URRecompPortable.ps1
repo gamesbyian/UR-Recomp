@@ -199,6 +199,16 @@ function Assert-PackageFiles {
             throw "Unmanifested extracted file: $relative"
         }
     }
+    # Expand-Archive also creates explicit empty ZIP directory members.
+    # Every extracted directory must be a parent of a manifest-admitted file;
+    # counting only files previously allowed signed extra empty trees.
+    foreach ($directory in @(Get-ChildItem -LiteralPath $PackageRoot -Recurse -Directory -Force)) {
+        $relative = $directory.FullName.Substring($PackageRoot.Length + 1).Replace('\', '/')
+        if (-not $seenPrefixes.ContainsKey($relative) -or
+            $seenPrefixes[$relative] -cne $relative) {
+            throw "Unmanifested extracted directory: $relative"
+        }
+    }
 
     $romConfig = [IO.File]::ReadAllBytes((Join-Path $PackageRoot 'rom.cfg'))
     $expectedConfig = [Text.Encoding]::ASCII.GetBytes("Uniracers_USA.sfc`n")

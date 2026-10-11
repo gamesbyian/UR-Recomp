@@ -2,7 +2,7 @@
 
 **Reconciled 2026-10-11 00:39 UTC (recheck live GitHub for later work):** Baldosa integration and adversarial QA share one playable Windows x64 candidate. This queue owns live work; the [release ledger](RELEASE-QUALITY-LEDGER.json) alone owns gate status. Refresh `main` and PRs before assigning lanes.
 
-**Integration/forensic reconciliation:** [October 10–11 handoff](INTEGRATION-RECONCILIATION-20261010.md) records accepted Windows/QA-01/QA-08/malmazuke work, PR/orphan disposition, and deduplicated tooling. **#1276 and #1287 merged**; #1251 remains the recruitment-video agent's exclusive active PR. Refresh integrated-head QA before promoting claims.
+**Latest reconciliation:** [October 10–11 handoff](INTEGRATION-RECONCILIATION-20261010.md). #1276/#1287 merged; active media #1251 remains independently owned. Recheck integrated-head QA before promotion.
 
 **Short-horizon coordination:** [Windows beta quality campaign](WINDOWS-BETA-QUALITY-CAMPAIGN-20261010.md) establishes a seven-day review target, no forced ship date, three non-overlapping agent lanes and player-visible beta criteria. Preserve full technical-reference ambition and independent release QA.
 

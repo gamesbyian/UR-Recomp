@@ -56,10 +56,11 @@ class OriginalNativeSwitcherBeamTests(unittest.TestCase):
         self.assertEqual(row["framework_beam_hpos"], 816)
         self.assertEqual(row["native_cpu_master_cycles"], 945374)
         self.assertEqual(row["native_cpu_basic_block_start_master_cycles"], 945130)
-        self.assertEqual(row["native_cpu_basic_block_bracket_width_master_cycles"], 244)
+        self.assertEqual(row["native_cpu_charged_delta_from_block_entry"], 244)
         self.assertTrue(data["framework_beam_vs_original_cpu_phase_unaligned"])
-        self.assertTrue(data["native_cpu_master_counter_is_precharged_basic_block_not_pha_cycle"])
+        self.assertTrue(data["native_cpu_master_counter_precharged_and_store_paced_not_pha_cycle"])
         self.assertTrue(data["modeled_beam_hpos_not_proven_instruction_aligned"])
+        self.assertTrue(data["cpu_write16_paced_charges_before_writer_log"])
         self.assertEqual(data["accepted_usa_course_count_added"], 0)
 
     def test_manual_workflow_enforces_exact_execution_and_no_redundant_job(self):

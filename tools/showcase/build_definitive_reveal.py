@@ -68,7 +68,12 @@ def main():
         "color=c=black:s=242x1080:r=60:d=7.5[right];"
         f"[base][left]overlay=x='-242*{fade}':y=0:eval=frame[tmp];"
         f"[tmp][right]overlay=x='W-242+242*{fade}':y=0:eval=frame,"
-        "format=yuv420p[v]"
+        "drawtext=text='ORIGINAL 256-COLUMN CENTRE':fontsize=48:fontcolor=white:"
+        "x=(w-text_w)/2:y=64:box=1:boxcolor=black@0.7:boxborderw=16:"
+        "enable='lt(t,3.2)',"
+        "drawtext=text='WIDESCREEN 342-COLUMN WORLD':fontsize=48:fontcolor=white:"
+        "x=(w-text_w)/2:y=64:box=1:boxcolor=black@0.7:boxborderw=16:"
+        "enable='gte(t,3.2)',format=yuv420p[v]"
     )
     # Only full-width source video is ever composited; covers cannot invent world.
     reveal = args.outdir / "authentic-widescreen-reveal-7s.mp4"
@@ -83,13 +88,31 @@ def main():
         "scale=960:720:flags=neighbor,pad=960:1080:0:180:black[a];"
         "[wide]scale=960:540:flags=neighbor,"
         "pad=960:1080:0:270:black[b];"
-        "[a][b]hstack=inputs=2,format=yuv420p[v]"
+        "[a][b]hstack=inputs=2,"
+        "drawtext=text='256-COLUMN CENTRE CROP':fontsize=34:fontcolor=white:"
+        "x=(960-text_w)/2:y=110:box=1:boxcolor=black@0.7:boxborderw=12,"
+        "drawtext=text='342-COLUMN RECORDED WORLD':fontsize=34:fontcolor=white:"
+        "x=960+(960-text_w)/2:y=110:box=1:boxcolor=black@0.7:boxborderw=12,"
+        "drawtext=text='SAME SOURCE VIDEO - NOT TWO INDEPENDENT EXECUTIONS':"
+        "fontsize=24:fontcolor=white:x=(w-text_w)/2:y=1023:"
+        "box=1:boxcolor=black@0.7:boxborderw=10,format=yuv420p[v]"
     )
     comparison = args.outdir / "same-capture-centre-vs-wide-5s.mp4"
     render(args.race, comparison, comparison_graph, 5)
 
+    # Retain review frames as direct decoded witnesses of the finished renders.
+    stills = {}
+    for video, moments in ((reveal, (0.25, 3.5, 6.5)),
+                           (comparison, (0.25, 2.5, 4.5))):
+        for index, moment in enumerate(moments):
+            still = args.outdir / f"{video.stem}-review-{index:02d}.png"
+            run("ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                "-ss", str(moment), "-i", str(video), "-frames:v", "1", str(still))
+            stills[still.name] = digest(still)
+
     output = {
         "schema": "UR-RECRUITMENT-CONTINUOUS-PRESENTATION/1",
+        "review_frame_sha256": stills,
         "source": str(args.race),
         "source_sha256": RACE_SHA,
         "capture_manifest_sha256": digest(args.manifest),

@@ -17,7 +17,11 @@ The 2P subview reads **only** the existing shared
 `<modern-user-root>/multiplayer-runs` namespace and the verified native
 selected profile ID. It reuses
 `multiplayer_match_catalog` plus `multiplayer_match_summary`, and displays
-the selected profile's validated match count and W/L/D. Only checksum- and
+the selected profile's validated match count, W/L/D and a separate
+unavailable-artifact count for damaged or incomplete archive entries. Loaded
+match records are moved into the shared aggregator rather than duplicating
+their potentially long input timelines during this read-only summary.
+Only checksum- and
 course-bound `race-2p` .urrun/.urmatch pairs count; wrong-mode, incomplete,
 corrupt, mismatched and absent sidecars never count as a win or loss. Other
 profile matches are not attributed to the selected racer. A missing

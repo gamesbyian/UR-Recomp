@@ -32,20 +32,25 @@ class OnePlayerTopOriginalSourcesTests(unittest.TestCase):
             stock, one, four = (root / p for p in ("base.crc", "one.crc", "four.crc"))
             stock.write_bytes(b"00000000\n" * 5447)
             one.write_bytes(stock.read_bytes())
+            for probe in (root / "probe98.crc", root / "probe99.crc"):
+                probe.write_bytes(stock.read_bytes())
             four.write_bytes(stock.read_bytes()[:-9])
             with self.assertRaisesRegex(ValueError, "CRC"):
                 assess(stock, one, four, root, root,
                        root / "slot98.pam", root / "slot99.pam",
-                       root / "one.log", root / "four.log")
+                       root / "one.log", root / "four.log", root, root,
+                       root / "probe98.crc", root / "probe99.crc")
             four.write_bytes(stock.read_bytes())
             with self.assertRaisesRegex(ValueError, "only guest2208"):
                 assess(stock, one, four, root, root,
                        root / "slot98.pam", root / "slot99.pam",
-                       root / "one.log", root / "four.log", frame=2224)
-            with self.assertRaisesRegex(ValueError, "Missing real native"):
+                       root / "one.log", root / "four.log", root, root,
+                       root / "probe98.crc", root / "probe99.crc", frame=2224)
+            with self.assertRaisesRegex(ValueError, "real native Original"):
                 assess(stock, one, four, root, root,
                        root / "slot98.pam", root / "slot99.pam",
-                       root / "one.log", root / "four.log")
+                       root / "one.log", root / "four.log", root, root,
+                       root / "probe98.crc", root / "probe99.crc")
 
     def test_native_workflow_retains_existing_bottom_controls_and_separately_isolates_top(self):
         root = Path(__file__).resolve().parents[2]

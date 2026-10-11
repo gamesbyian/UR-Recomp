@@ -51,12 +51,15 @@ struct Network {
 #endif
 };
 
-bool valid_nonce(std::string_view value) {
-    if (value.size() != 32) return false;
-    for (const char ch : value)
+bool valid_hex(std::string_view value, std::size_t count) {
+    if (value.size() != count) return false;
+    bool nonzero = false;
+    for (const char ch : value) {
         if (!((ch >= '0' && ch <= '9') ||
               (ch >= 'a' && ch <= 'f'))) return false;
-    return value != "00000000000000000000000000000000";
+        nonzero |= ch != '0';
+    }
+    return nonzero;
 }
 
 bool parse_port(std::string_view input, std::uint16_t& port) {
@@ -172,8 +175,7 @@ int main(int argc, char** argv) {
     // system default peers, remote route or automatic network activity.
     if ((argc != 5 && argc != 6) ||
         std::string_view(argv[1]) != "--allow-loopback-only" ||
-        !valid_nonce(argv[3]) || !valid_nonce(argv[4]) ||
-        std::string_view(argv[3]) == std::string_view(argv[4])) {
+        !valid_hex(argv[3], 32) || !valid_hex(argv[4], 64)) {
         std::cerr << "usage: lab --allow-loopback-only listen NONCE32 SIM32\n"
                   << "   or: lab --allow-loopback-only dial NONCE32 SIM32 PORT\n";
         return 2;

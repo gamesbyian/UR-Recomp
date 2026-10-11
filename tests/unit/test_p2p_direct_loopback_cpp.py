@@ -11,8 +11,8 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / 'tools/p2p/direct_udp_loopback_lab.cpp'
 NONCE = '1234567890abcdef1234567890abcdef'
-SIM = 'ab' * 16
-WRONG_SIM = 'cd' * 16
+SIM = 'ab' * 32
+WRONG_SIM = 'cd' * 32
 
 
 class DirectLoopbackOnlyLabTests(unittest.TestCase):
@@ -59,7 +59,7 @@ class DirectLoopbackOnlyLabTests(unittest.TestCase):
                     self.assertIsNotNone(incompatible.stdout)
                     ready2 = incompatible.stdout.readline().strip()
                     found2 = re.fullmatch(
-                        r'READY udp@127\\.0\\.0\\.1:([1-9][0-9]{0,4})',ready2)
+                        r'READY udp@127\.0\.0\.1:([1-9][0-9]{0,4})',ready2)
                     self.assertIsNotNone(found2, ready2)
                     mismatch = subprocess.run(
                         [str(exe), '--allow-loopback-only', 'dial', NONCE,

@@ -84,6 +84,24 @@ class CoveredNativePairRemovalTest(unittest.TestCase):
         self.assertFalse(result["specific_foreground_bg_obj_layer_proven"])
         self.assertFalse(result["source_slot_removal_allowed_in_product"])
 
+    def test_valid_seven_frame_postgo_source_proof(self):
+        for slot in (96, 97):
+            report = self.report[slot]
+            data = json.loads(report.read_text())
+            data["identical_complete_original_342_rasters"] = 7
+            data["shared_full_frame_guest_ids"].append(2208)
+            data["minimum_shared_frames"] = 7
+            report.write_text(json.dumps(data))
+        self.assertEqual(self.assess()["status"], "native-covered-pair-final-unchanged")
+
+    def test_source_frame_count_mismatch_rejected(self):
+        report = self.report[96]
+        data = json.loads(report.read_text())
+        data["identical_complete_original_342_rasters"] = 7
+        report.write_text(json.dumps(data))
+        with self.assertRaisesRegex(ValueError, "proof incomplete"):
+            self.assess()
+
     def test_valid_changed_under_source_is_observed_not_prejudged(self):
         self.final[4 * self.pixel96] = 60
         self.removed.write_bytes(HEADER + self.final)

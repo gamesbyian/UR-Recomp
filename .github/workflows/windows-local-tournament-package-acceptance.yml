@@ -58,6 +58,7 @@ jobs:
             echo "Selected run is not a successful main Windows smoke for approved commit" >&2
             exit 1
           fi
+          echo "QA_SMOKE_RUN_ID=$SMOKE_RUN_ID" >> "$GITHUB_ENV"
           echo "QA_APPROVED_SHA=$APPROVED_SHA" >> "$GITHUB_ENV"
           echo "QA_APPROVED_ZIP_SHA256=$APPROVED_ZIP_SHA256" >> "$GITHUB_ENV"
           printf 'schema=ur-windows-qa-candidate/1\nsmoke_run_id=%s\nsource_commit=%s\ninner_zip_sha256=%s\nqa_harness_commit=%s\n' \
@@ -111,7 +112,7 @@ jobs:
             --expected-source "$QA_APPROVED_SHA" \
             --expected-zip-sha256 "$QA_APPROVED_ZIP_SHA256" \
             --expected-harness-sha "$GITHUB_SHA" \
-            --expected-smoke-run-id "${{ inputs.smoke_run_id }}" \
+            --expected-smoke-run-id "$QA_SMOKE_RUN_ID" \
             | tee "$RUNNER_TEMP/tournament-receipt-verification.log"
 
       - name: Upload tournament evidence

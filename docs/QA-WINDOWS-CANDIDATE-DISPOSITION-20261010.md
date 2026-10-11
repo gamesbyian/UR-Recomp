@@ -100,3 +100,7 @@ The post-reopen receipt checker now additionally supports `--expected-harness-sh
 ## Tamper-evident native launch transcripts and full fixture inventory
 
 The packaged Windows tournament producer now hashes **both actual native launch transcripts** after the first/create and second/reopen processes and records their canonical SHA-256 values as `create_log_sha256` and `reopen_log_sha256` alongside the three immutable saved-artifact digests. The read-only consumer checks their bounded contents for the already established guest/result/history event markers **and** rehashes the exact log bytes, rejecting modification even when the mutated log retains all the expected success strings. The consumer also inventories `*.urfixture` recursively below the accepted tournament root rather than only one directory depth, rejecting stray nested fixture outputs the original producer already counts. This is a locally self-consistent evidence check, not digital signature of reviewer identity or a claim of independent guest authority.
+
+## Verified smoke run, not raw dispatch interpolation
+
+The manual Windows job now passes `QA_SMOKE_RUN_ID` from its original **validated decimal** smoke-run preflight through the workflow environment to the post-reopen receipt checker, rather than inlining an untrusted user-provided `workflow_dispatch` expression in a later shell command. The source and inner ZIP pins, producing workflow path/main branch, and logged harness SHA remain separately checked. No extra CI job or build is introduced.

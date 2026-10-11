@@ -45,7 +45,13 @@ class WindowsLocalTournamentCandidatePinTests(unittest.TestCase):
         self.assertIn('--expected-source "$QA_APPROVED_SHA"', s)
         self.assertIn('--expected-zip-sha256 "$QA_APPROVED_ZIP_SHA256"', s)
         self.assertIn('--expected-harness-sha "$GITHUB_SHA"', s)
-        self.assertIn('--expected-smoke-run-id "${{ inputs.smoke_run_id }}"', s)
+        self.assertIn('--expected-smoke-run-id "$QA_SMOKE_RUN_ID"', s)
+        self.assertIn('echo "QA_SMOKE_RUN_ID=$SMOKE_RUN_ID" >> "$GITHUB_ENV"', s)
+        self.assertLess(
+            s.index('[[ "$SMOKE_RUN_ID" =~ ^[0-9]+$ ]]'),
+            s.index('echo "QA_SMOKE_RUN_ID=$SMOKE_RUN_ID"'),
+        )
+        self.assertNotIn('--expected-smoke-run-id "${{ inputs.smoke_run_id }}"', s)
         self.assertIn("tournament-receipt-verification.log", s)
         self.assertLess(s.index("run_windows_local_tournament_package_acceptance.sh"),
                         s.index("verify_windows_tournament_acceptance_receipt.py"))

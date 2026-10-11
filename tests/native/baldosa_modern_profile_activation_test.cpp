@@ -285,10 +285,12 @@ int main() {
         &observed_2p, &p1, &p2));
     assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() == 1);
 
-    // A changed opponent profile revokes the earlier confirmation. Refuse
-    // silently counting matches for a name/rider no longer in typed storage.
+    // An out-of-band profile identity change makes the confirmed P2
+    // catalog entry stale. No match may be minted against the old rider.
     auto changed = *other_profile;
-    changed.recent_track = 4;
+    const auto new_identity = make_legacy_racer_identity(3);
+    assert(new_identity);
+    changed.racer_identity = *new_identity;
     assert(save_host_profile_state_file(
         ExecutionMode::Modern,
         "saves/profile-rider-2/host-profile.txt", changed) ==
@@ -297,15 +299,13 @@ int main() {
     new_event.first_race_host_frame = 520;
     new_event.observed_result_host_frame = 524;
     assert(!ur_baldosa_modern_publish_settled_two_player_match(
-        &new_event, &p1, &p2) ||
-        load_valid_multiplayer_matches(multiplayer_root.string()).size() == 2);
-    // Restore the original opponent state, then ensure the existing
-    // canonical reader still finds the exactly paired first match.
+        &new_event, &p1, &p2));
+    assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() == 1);
     assert(save_host_profile_state_file(
         ExecutionMode::Modern,
         "saves/profile-rider-2/host-profile.txt", *other_profile) ==
         HostProfileSaveStatus::Saved);
-    assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() >= 1);
+    assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() == 1);
 
     // The original framework write MUST be preceded by a compatible typed
     // selection check under the canonical OS lock, retained until CAS.

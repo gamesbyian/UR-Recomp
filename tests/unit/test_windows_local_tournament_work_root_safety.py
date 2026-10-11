@@ -118,6 +118,21 @@ class PackagedTournamentWorkRootSafetyTests(unittest.TestCase):
         self.assertGreater(text.index("fresh_process_reopen=passed"),
                            text.index('test "$(sha256sum "${receipts[0]}"'))
 
+    def test_reopen_transcript_is_not_hashed_before_second_process_creates_it(self):
+        text = ROUTE.read_text(encoding="utf-8")
+        self.assertLess(
+            text.index('RC="$(run_package reopen "$REOPEN_LOG" 300)"'),
+            text.index('reopen_log_hash="$(sha256sum "$REOPEN_LOG"'),
+        )
+        self.assertLess(
+            text.index('reopen_log_hash="$(sha256sum "$REOPEN_LOG"'),
+            text.index('"$WORK/tournament-artifacts.log"'),
+        )
+        self.assertLess(
+            text.index('create_log_hash="$(sha256sum "$LOG"'),
+            text.index('RC="$(run_package reopen "$REOPEN_LOG" 300)"'),
+        )
+
     def test_no_recursive_delete_in_package_route(self):
         text = ROUTE.read_text(encoding="utf-8")
         self.assertNotIn("rm -rf", text)

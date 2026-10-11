@@ -111,7 +111,6 @@ run_hash="$(sha256sum "${runs[0]}" | cut -d ' ' -f 1)"
 match_hash="$(sha256sum "${matches[0]}" | cut -d ' ' -f 1)"
 receipt_hash="$(sha256sum "${receipts[0]}" | cut -d ' ' -f 1)"
 create_log_hash="$(sha256sum "$LOG" | cut -d ' ' -f 1)"
-reopen_log_hash="$(sha256sum "$REOPEN_LOG" | cut -d ' ' -f 1)"
 
 # Relaunch the PACKAGED game: restore, Standings, History, then stop.
 RC="$(run_package reopen "$REOPEN_LOG" 300)"
@@ -122,6 +121,8 @@ grep -q "UR_LOCAL_TOURNAMENT HISTORY completed=1 unavailable=0" "$REOPEN_LOG"
 grep -q "UR_LOCAL_TOURNAMENT PANEL_OPENED page=overview" "$REOPEN_LOG"
 grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE DONE mode=reopen step=2 armed=0" "$REOPEN_LOG"
 ! grep -q "UR_LOCAL_TOURNAMENT SESSION_RESTORE_REJECTED" "$REOPEN_LOG"
+# This transcript does not exist until after the second process exits.
+reopen_log_hash="$(sha256sum "$REOPEN_LOG" | cut -d ' ' -f 1)"
 test "$(find "$WORK/multiplayer-runs" -maxdepth 1 -type f -name '*.urrun' | wc -l)" -eq 1
 test "$(find "$WORK/multiplayer-runs" -maxdepth 1 -type f -name '*.urmatch' | wc -l)" -eq 1
 test "$(find "$USER_DATA/local-tournaments" -type f -name '*.urfixture' | wc -l)" -eq 1

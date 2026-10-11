@@ -92,3 +92,7 @@ The record contains **no ZIP, ROM, footage, user paths or full logs**, is explic
 ## Independent two-process native log consistency
 
 Alongside rehashing the actual saved `.urrun`, `.urmatch` and fixture receipt, the read-only Windows QA receipt consumer now opens the two **existing** capped launcher transcripts (`tournament.log` and `reopen.log`). It requires the existing fixture, genuine stock match-capture/result notice, and fresh-process restore/History evidence markers; any missing log, rejected commit or restore, unexpected page, symlink or oversized transcript fails. These are second-reader integrity assertions on the same existing native route, not a new video/gameplay oracle and not a new Windows runner. A falsified/malicious log could still be forged, so they do not count as independent player or L5 physical certification.
+
+## Independent harness and producing-run identity confirmation
+
+The post-reopen receipt checker now additionally supports `--expected-harness-sha` and `--expected-smoke-run-id` arguments. The **existing** manual Windows Actions workflow passes its checked-out `GITHUB_SHA` and originally selected `inputs.smoke_run_id`, so those recorded values must match the producer's QA candidate receipt rather than merely look like SHA/run identifiers. A mismatch makes the current QA job red. The separate source/ZIP nomination and artifact rehashing checks remain in place; no second build or package, and no automatic release promotion.

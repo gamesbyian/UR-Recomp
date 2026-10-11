@@ -103,9 +103,17 @@ def sha256(path: Path) -> str:
 
 
 def verify(work: Path, candidate_path: Path,
-           expected_source: str, expected_zip: str) -> dict[str, str]:
+           expected_source: str, expected_zip: str,
+           *, expected_harness: str | None = None,
+           expected_smoke_run: str | None = None) -> dict[str, str]:
     if not SOURCE.fullmatch(expected_source) or not DIGEST.fullmatch(expected_zip):
         raise ValueError("independent source and portable ZIP pins must be canonical")
+    if expected_harness is not None and not SOURCE.fullmatch(expected_harness):
+        raise ValueError("expected QA harness SHA must be 40 lowercase hex")
+    if expected_smoke_run is not None and (
+        not expected_smoke_run.isdecimal() or int(expected_smoke_run) <= 0
+    ):
+        raise ValueError("expected smoke run ID must be a positive decimal integer")
     # Resolve for consistent on-disk lookup, but inspect the caller's
     # original root first: Path.resolve() erases evidence of a symlink.
     if work.is_symlink() or not work.is_dir():
@@ -125,6 +133,12 @@ def verify(work: Path, candidate_path: Path,
             or not candidate["smoke_run_id"].isdecimal()
             or int(candidate["smoke_run_id"]) <= 0):
         raise ValueError("invalid producing smoke run or QA harness identity")
+    if (expected_harness is not None
+            and candidate["qa_harness_commit"] != expected_harness):
+        raise ValueError("candidate QA harness SHA differs from running checkout")
+    if (expected_smoke_run is not None
+            and candidate["smoke_run_id"] != expected_smoke_run):
+        raise ValueError("candidate smoke run differs from selected run")
     if receipt["fresh_process_reopen"] != "passed":
         raise ValueError("actual separate-process reopen was not recorded as passed")
     if not RUN.fullmatch(receipt["run_file"]):
@@ -181,10 +195,16 @@ def main() -> int:
     p.add_argument("--candidate", type=Path, required=True)
     p.add_argument("--expected-source", required=True)
     p.add_argument("--expected-zip-sha256", required=True)
+    p.add_argument("--expected-harness-sha", help="current checkout git SHA")
+    p.add_argument("--expected-smoke-run-id", help="workflow-selected smoke run")
     args = p.parse_args()
     try:
-        result = verify(args.work, args.candidate,
-                        args.expected_source, args.expected_zip_sha256)
+        result = verify(
+            args.work, args.candidate,
+            args.expected_source, args.expected_zip_sha256,
+            expected_harness=args.expected_harness_sha,
+            expected_smoke_run=args.expected_smoke_run_id,
+        )
     except (OSError, ValueError) as exc:
         p.error(str(exc))
     print("UR_WINDOWS_TOURNAMENT_RECEIPT_VERIFIED "

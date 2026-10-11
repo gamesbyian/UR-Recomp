@@ -110,6 +110,8 @@ jobs:
             --candidate "$RUNNER_TEMP/windows-tournament-candidate.txt" \
             --expected-source "$QA_APPROVED_SHA" \
             --expected-zip-sha256 "$QA_APPROVED_ZIP_SHA256" \
+            --expected-harness-sha "$GITHUB_SHA" \
+            --expected-smoke-run-id "${{ inputs.smoke_run_id }}" \
             | tee "$RUNNER_TEMP/tournament-receipt-verification.log"
 
       - name: Upload tournament evidence

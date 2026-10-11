@@ -73,6 +73,23 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
             self.assertEqual(r["smoke_run_id"], "12345")
             self.assertIn("not physical", r["result"])
 
+    def test_harness_commit_and_smoke_run_reverified_against_job_inputs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work, candidate, p, q, f, report = self.make(Path(tmp))
+            good = verify(
+                work, candidate, "a" * 40, "b" * 64,
+                expected_harness="c" * 40, expected_smoke_run="12345",
+            )
+            self.assertEqual(good["qa_harness_commit"], "c" * 40)
+            for harness, run in (("d" * 40, "12345"), ("c" * 40, "98765"),
+                                 ("main", "12345"), ("c" * 40, "bad-id")):
+                with self.subTest(harness=harness, run=run):
+                    with self.assertRaises(ValueError):
+                        verify(
+                            work, candidate, "a" * 40, "b" * 64,
+                            expected_harness=harness, expected_smoke_run=run,
+                        )
+
     def test_wrong_nominated_pins_or_mutated_files_fail(self):
         with tempfile.TemporaryDirectory() as tmp:
             work, candidate, p, q, f, report = self.make(Path(tmp))

@@ -10,6 +10,7 @@ Compact router for coding and research agents. **Current priority: merge the ver
 | Understand how the game currently appears to work / orient to a subsystem | `docs/knowledge/README.md`, then the relevant concept page |
 | Overall project architecture / product plan | `docs/PROJECT-PLAN.md` for current, `docs/archive/PROJECT-PLAN-THROUGH-20261009.md` only for old detail |
 | Widescreen feature implementation | `docs/WIDESCREEN.md`, then `docs/PROJECT-PLAN.md` |
+| Racer HD art, appearance, proportions, shipping-art review or promotional character claims | **Read [docs/HD-RACER-CHARACTER-RECONSTRUCTION.md](docs/HD-RACER-CHARACTER-RECONSTRUCTION.md) first**, then \`docs/HD-ART-DIRECTION.md\`. Owner veto (2026-10-10): current procedural 4× racer forms lack current artistic approval despite old hash/pose shipping-art manifests. Preserve their technical evidence; demand original title/packaging likeness, multi-pose reference comparison and explicit new visual sign-off. Coordinate with media agents; do not show WIP as finished HD. |
 | Display scaler / AI upscaling / generative HD art proposals | `docs/HD-UPSCALING-EXPERIMENT-PLAN.md`, then `docs/HD-ART-DIRECTION.md`, `docs/DISPLAY-PRESENTATION-POLICY.md` and `docs/TOOLCHAIN.md`; candidate trial manifests never approve shipping art |
 | Bonus emulator-assisted widescreen ROM hack | `docs/bonus/WIDESCREEN-ROM-HACK.md`; keep isolated from the shipping/native path |
 | Research strategy / external-resource work | `docs/RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md` |

@@ -1,3 +1,5 @@
+> **2026-10-10 visual-approval override (supersedes visual sign-off only):** The project owner rejects the current procedural HD unicycle appearance after reviewing recruitment footage. The old 4× pose/hash approval artifacts remain valid *historical technical and motion evidence* but **do not constitute current approval of character proportions, personality or Remastered shipping visuals**. Before any new art sign-off or finished-HD promotional claim, apply the original-title/packaging likeness and separate artistic gate in [HD-RACER-CHARACTER-RECONSTRUCTION.md](HD-RACER-CHARACTER-RECONSTRUCTION.md). Preserve deterministic timing, pivots, contact, ROM-backed pose selection, QA-08 source visibility and Original fallback; redesign the authored forms without pretending old green tests settle aesthetic likeness.
+
 > **2026-10-09 evidence boundary:** Existing approved 4× racer pixel work is **procedural authored C++ art**, not a missing set of PNG files: `native/presentation/racer_hd_presenter.hpp` and approval manifests already feed merged Baldosa moving-rider/Original fallback (#1074/#1080). This is limited pose/source coverage, **not all animation families, P2 source-visible correctness or finished HD environment art**. Open #1045 owns real source-OBJ gating. Reuse this presenter and the existing density compositor; do not commission a replacement asset pipeline or confuse internal 4× density with final physical 4K output. Source/asset map: [BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md](BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md).
 
 # HD Presentation visual-language specification
@@ -9,7 +11,7 @@ The job is to reconstruct Uniracers' presentation coherently at modern resolutio
 ## Non-negotiable rules
 
 1. Original simulation/state selects presentation state and timing.
-2. Original silhouette, pose, contact and composition outrank decorative detail.
+2. Original gameplay pose, contact and composition outrank decorative detail. For Remastered character **model identity, proportions and personality**, authentic large-scale title/intro renders and official original promotional depictions must also be evaluated before artistic approval. A 32-pixel envelope is an engineering constraint, not a complete art brief.
 3. Replacement art must remain coherent across an animation sequence, not merely attractive frame-by-frame.
 4. Where source evidence is ambiguous, retain the ambiguity in the asset dossier until a deliberate design decision is recorded.
 5. Authentic stock presentation remains available as fallback and comparison.
@@ -92,7 +94,7 @@ The material model is still partially open, but the faithful Remastered racer no
 
 **Edge treatment follows form, not source-pixel stair-steps.** Preserve the strong dark silhouette and internal value boundaries that survive across registered neighboring frames, but reconstruct them on smooth high-resolution contours consistent with the original 3D source-render pipeline. Do not impose a uniform new cartoon outline where the stock sequence does not support one.
 
-The conservative material baseline is now also constrained. This is a synthesis of the ROM-derived dossier, developer testimony about the detailed 3D source model, and official packaging/promotional imagery. Packaging is a secondary appearance reference, not geometry authority.
+The conservative material baseline is now also constrained. This is a synthesis of the ROM-derived dossier, developer testimony about the detailed 3D source model, and official packaging/promotional imagery. Period title/intro artwork and packaging are **first-class character-model appearance and likeness references**, interpreted with perspective/provenance and gameplay sprites. Packaging does not override guest contact, timing, perspective or exact pose registration.
 
 - **tire:** dark rubber, with broad stable highlights rather than a chrome/mirror response;
 - **saddle:** dark vinyl/leather-like surface, again with restrained broad highlights;
@@ -190,7 +192,7 @@ Reference provenance:
 - high-resolution North American packaging scan catalog: https://openretro.org/snes/uniracers/edit
 - additional packaging-image catalog used only as a visual cross-check: https://gamesdb.launchbox-app.com/games/images/2104-uniracers
 
-These web/scan references are supporting interpretation only. Canonical geometry, palette identity, timing and replacement registration remain ROM/runtime derived.
+These web/scan references are first-class **large-form character identity and aesthetic proportion** evidence, cross-checked for viewpoint and marketing exaggeration. Canonical *gameplay pose registration, contact, motion cadence and palette identity* remain ROM/runtime derived. Artistic model shape must pass the separate likeness gate even if its ROM-envelope test passes.
 
 ## Palette relationship
 

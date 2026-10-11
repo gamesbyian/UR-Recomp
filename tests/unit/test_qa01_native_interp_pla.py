@@ -25,7 +25,6 @@ class NativeInterpreterPlaTests(unittest.TestCase):
         source = patcher.patch(C_SOURCE)
         self.assertIn(patcher.STAMP, source)
         self.assertIn("ur_qa01_stack_saved_writer_seen()", source)
-        self.assertIn("interp816_post", "interp816_post") if False else None
         self.assertEqual(source.count("interp816_pullWord(cpu)"), 1)
         self.assertEqual(source.count("interp816_setZN(cpu, cpu->a, cpu->mf);"), 1)
         self.assertIn("ur_qa01_note_interp_pla(cpu", source)

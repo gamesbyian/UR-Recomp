@@ -28,6 +28,12 @@ Prefer:
 
 No single upscaler or model output is evidence of authorial intent by itself.
 
+### Upscaling and generative candidate intake
+
+The source-linked, bounded [recomp upscaling and generative-art experiment plan](HD-UPSCALING-EXPERIMENT-PLAN.md) describes DKC2's Reconstruct filter, Wave Race 64's reviewed generation/atlas process, F-Zero's display presets, a small first-pass shader matrix, and GPU/model acquisition gates. **Those sources are advisory and do not change this document's visual geometry, pose equivalence or shipping-art approval contract.** The existing C++ 4× Racer-HD presenter and approved pose manifests remain the sole active replacement path. New models produce *candidate art only*; even a manifest marked `candidate_for_hd_review` is not approved art. Reuse adjacent-frame, silhouette, wheel contact, palette alias and 1P/2P motion witnesses before touching implementation.
+
+New offline `tools/art/validate_upscale_trials.py` checks trial source/candidate hashes, 4× dimensions, settings, source identity, model provenance and review decision bookkeeping without importing weights or changing runtime code; see the linked plan for schema, test and status limits.
+
 ## Geometry
 
 For moving gameplay art, preserve:

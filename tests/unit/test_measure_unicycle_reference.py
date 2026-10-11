@@ -147,15 +147,15 @@ class ReferenceLandmarkTest(unittest.TestCase):
             self.record["landmarks"]["wheel_left"] = coord
             with self.subTest(coord=coord), self.assertRaises(ValueError):
                 self.run_manifest()
-        self.record = before
+        self.record = deepcopy(before)
         self.record["landmarks"]["wheel_left"] = [120, 60]
         with self.assertRaisesRegex(ValueError, "inverted wheel"):
             self.run_manifest()
-        self.record = before
+        self.record = deepcopy(before)
         self.record["landmarks"]["wheel_top"] = [80, 100]
         with self.assertRaisesRegex(ValueError, "inverted wheel"):
             self.run_manifest()
-        self.record = before
+        self.record = deepcopy(before)
         with self.assertRaisesRegex(ValueError, "duplicate reference IDs"):
             self.run_manifest([self.record, deepcopy(self.record)])
 

@@ -127,6 +127,9 @@ def corroborate_executed_pla_with_read_bus(
     tag; it cannot prove a cross-engine instruction clock or scoring impact.
     """
     if (not isinstance(result, dict) or result.get("schema") != SCHEMA
+            or result.get("native_interpreter_probe_initialized_even_if_no_pla")
+               is not True
+            or result.get("release_complete_event_credit") != 0
             or not isinstance(read_report, dict)
             or read_report.get("schema") != reads.SCHEMA
             or read_report.get("native_read_observer_armed_by_real_nmi_4004_writer")

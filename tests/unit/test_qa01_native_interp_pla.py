@@ -191,6 +191,8 @@ class NativeInterpreterPlaTests(unittest.TestCase):
             ("native_interpreter_saved_4004_pla_candidate_count", 0),
             ("native_interpreter_saved_4004_pla_candidate_frames", []),
             ("native_interpreter_pla_observation_count", 0),
+            ("native_interpreter_probe_initialized_even_if_no_pla", False),
+            ("release_complete_event_credit", 1),
         ):
             bad = copy.deepcopy(data)
             bad[field] = replacement

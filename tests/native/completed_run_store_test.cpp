@@ -169,5 +169,28 @@ int main(int argc, char** argv) {
         assert(entry.is_regular_file());
     }
 
+    // The generic reader and writer must reject an entire archive-root
+    // symlink even if all target files are valid and the writer could
+    // otherwise reserve its staging directory in that foreign namespace.
+    const auto root_alias = dir / "linked-parallel-archive";
+    std::filesystem::create_directory_symlink(parallel_dir, root_alias);
+    assert(inspect_completed_run_record_artifacts(root_alias.string()).empty());
+    assert(load_valid_run_records(root_alias.string()).empty());
+    std::string refused_detail;
+    assert(!append_completed_run_record(
+        root_alias.string(), run(3000), nullptr, &refused_detail));
+    assert(refused_detail == "run-record directory is not a direct directory");
+    assert(load_valid_run_records(parallel_dir.string()).size() == kWriters);
+
+    const auto dangling_alias = dir / "missing-archive-link";
+    const auto missing_target = dir / "missing-archive";
+    std::filesystem::create_directory_symlink(missing_target, dangling_alias);
+    assert(inspect_completed_run_record_artifacts(
+        dangling_alias.string()).empty());
+    // On some platforms create_directories may reject dangling links
+    // before our direct-file validation. Either way no foreign root exists.
+    assert(!append_completed_run_record(
+        dangling_alias.string(), run(3001)));
+    assert(!std::filesystem::exists(missing_target));
     return 0;
 }

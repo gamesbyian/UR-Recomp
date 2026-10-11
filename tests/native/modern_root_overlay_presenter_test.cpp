@@ -171,6 +171,8 @@ int main() {
     view.two_seat_join_open = true;
     view.join_p1_name = "MIKE";
     view.join_p2_name = "ANDREW";
+    view.join_p1_stock = "MIKE";
+    view.join_p2_stock = "ANDREW";
     view.join_p1_confirmed = false;
     view.join_p2_confirmed = false;
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
@@ -178,6 +180,7 @@ int main() {
     assert(contains("TWO PLAYER PROFILES"));
     assert(contains("P1 MIKE ACTIVE"));
     assert(contains("P2 ANDREW CHOOSE"));
+    assert(contains("STOCK: MIKE / ANDREW"));
     assert(contains("P1 A READY / B BACK"));
     assert(contains("P2 DPAD+A / B CLEAR"));
     painted.clear();

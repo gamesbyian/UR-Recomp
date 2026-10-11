@@ -458,6 +458,12 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         const auto* p2 = g_two_seat_join.candidate(1);
         view.join_p1_name = p1 ? std::string_view(p1->identity.name) : "";
         view.join_p2_name = p2 ? std::string_view(p2->identity.name) : "";
+        // Show the true cartridge rider presets the two Modern identities
+        // are bound to. A completed 2P result only admits their exact
+        // source-observed rider indices, never a guessed name match.
+        const auto& stock = ur::product::legacy_racer_presets();
+        view.join_p1_stock = p1 ? stock[p1->identity.rider_index].name : "";
+        view.join_p2_stock = p2 ? stock[p2->identity.rider_index].name : "";
         view.join_p1_confirmed = g_two_seat_join.confirmed(0);
         view.join_p2_confirmed = g_two_seat_join.confirmed(1);
     }

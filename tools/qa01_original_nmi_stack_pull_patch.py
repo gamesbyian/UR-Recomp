@@ -78,9 +78,11 @@ def patch(source: str) -> str:
                     (unsigned)ICPU.Frame);
             if (ur_qa_rti_gate)
                 fprintf(stderr,
-                    "QANMIRTI f=%u v0=%u v1=%u pc=%06X pb0=%02X pb1=%02X sp0=%04X sp1=%04X a0=%04X a1=%04X pl0=%02X pl1=%02X cyc0=%d cyc1=%d f1=%u\n",
+                    "QANMIRTI f=%u v0=%u v1=%u pc=%06X nextpc=%06X pb0=%02X pb1=%02X sp0=%04X sp1=%04X a0=%04X a1=%04X pl0=%02X pl1=%02X cyc0=%d cyc1=%d f1=%u\n",
                     ur_qa_pull_f0, ur_qa_pull_v0, (unsigned)CPU.V_Counter,
-                    (unsigned)ur_qa_stack_pc, (unsigned)ur_qa_rti_pb0,
+                    (unsigned)ur_qa_stack_pc,
+                    (unsigned)(((uint32)Registers.PB << 16) | Registers.PCw),
+                    (unsigned)ur_qa_rti_pb0,
                     (unsigned)Registers.PB, (unsigned)ur_qa_pull_sp0,
                     (unsigned)Registers.S.W, (unsigned)ur_qa_pull_a0,
                     (unsigned)Registers.A.W, (unsigned)ur_qa_pull_pl0,

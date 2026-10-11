@@ -39,7 +39,7 @@ python3 tools/showcase/art_showcase/render_approved_art.py \
   --output media/showcase/art-reconstruction/2026-10-10
 ```
 
-Requires Python Pillow and FFmpeg/FFprobe. The approved production witness is [one-shot CI run 38107987386](https://github.com/gamesbyian/UR-Recomp/actions/runs/38107987386). Its temporary, push-triggered production workflow was **removed** from the branch after successfully producing and verifying the assets, at the recruitment-trailer editor's request. There is no permanent art-production push trigger to duplicate expensive builds. The production run verified complete video decoding, exact 210+210+150 frames, 30/1 fps, 1080p dimensions, accompanying sheets and SHA256 receipts before committing. See `provenance.json` for file-specific hashes and source approval references and `SHA256SUMS` for a directory-wide manifest (the checksums file excludes itself).
+Requires Python Pillow and FFmpeg/FFprobe. The approved production witness is [one-shot CI run 38107987386](https://github.com/gamesbyian/UR-Recomp/actions/runs/38107987386). Its temporary, push-triggered production workflow was **removed** from the branch after successfully producing and verifying the assets, at the recruitment-trailer editor's request. There is no permanent art-production push trigger to duplicate expensive builds. The production run verified complete video decoding, exact 210+210+150 frames, 30/1 fps, 1080p dimensions, accompanying sheets and SHA256 receipts before committing. See `provenance.json` for file-specific hashes and source approval references and `SHA256SUMS` for verified media, source images and generated data (the checksum receipt intentionally excludes itself and this editable README).
 
 ## Claim limits
 

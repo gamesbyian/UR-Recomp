@@ -41,6 +41,8 @@ int ur_baldosa_modern_root_key(int key, int pressed);
 int ur_baldosa_modern_root_gamepad(int player, int button, int pressed);
 void ur_baldosa_modern_root_after_run_frame(unsigned frame);
 unsigned ur_baldosa_modern_root_guest_players(void);
+void ur_baldosa_modern_root_set_run_save_feedback(unsigned);
+const char* ur_baldosa_modern_profile_records_directory(void);
 int ur_baldosa_modern_publish_settled_one_player_run(
     const ur::product::BaldosaSettledResult* result);
 void ur_baldosa_guest_snapshot_after_run_frame(
@@ -108,6 +110,7 @@ void reconcile_after_native_restart() {
     // Pause/resume without Restart does not reset this observer.
     g_native_result_observer.reset();
     g_pending_one_player_run.reset();
+    ur_baldosa_modern_root_set_run_save_feedback(0);
     // This is the existing Modern host's post-restore audio reconciliation
     // and the already merged two-seat human input release latch. A paused
     // Restart never gives a held physical Start back to the guest.
@@ -414,15 +417,20 @@ extern "C" void ur_baldosa_product_after_run_frame(
         const auto* retry = g_pending_one_player_run.ready_for_retry(
             rooted_players, g_ram[0x0313u] == 0x01u,
             g_ram[0x009fu], stats->frame);
-        if (had_pending && !g_pending_one_player_run.pending())
+        if (had_pending && !g_pending_one_player_run.pending()) {
+            ur_baldosa_modern_root_set_run_save_feedback(0);
             std::fprintf(stderr,
                 "UR_BALDOSA_NATIVE_RUN SAVE_ABANDONED=1 "
                 "reason=left_result_surface\n");
+        }
         if (retry) {
             const int saved =
                 ur_baldosa_modern_publish_settled_one_player_run(retry);
             const auto outcome = g_pending_one_player_run.after_retry(
                 saved == 1, stats->frame);
+            ur_baldosa_modern_root_set_run_save_feedback(
+                outcome == ur::product::BaldosaRunRetryOutcome::Saved ? 2u :
+                outcome == ur::product::BaldosaRunRetryOutcome::Pending ? 1u : 3u);
             std::fprintf(stderr,
                 "UR_BALDOSA_NATIVE_RUN SAVE_RETRY status=%s "
                 "host_frame=%u\n",
@@ -438,16 +446,24 @@ extern "C" void ur_baldosa_product_after_run_frame(
                 const int published =
                     ur_baldosa_modern_publish_settled_one_player_run(
                         &*terminal);
-                if (published != 1) {
-                    if (g_pending_one_player_run.defer_failed_publication(
-                            *terminal, stats->frame)) {
-                        std::fprintf(stderr,
-                            "UR_BALDOSA_NATIVE_RUN SAVE_PENDING=1 "
-                            "retry_while_result_visible=1\n");
-                    } else {
-                        std::fprintf(stderr,
-                            "UR_BALDOSA_NATIVE_RUN SAVE_PENDING_REJECTED=1\n");
-                    }
+                if (published == 1) {
+                    // Only a completed canonical append means Records saved.
+                    ur_baldosa_modern_root_set_run_save_feedback(2);
+                } else if (ur_baldosa_modern_profile_records_directory() &&
+                           g_pending_one_player_run.defer_failed_publication(
+                               *terminal, stats->frame)) {
+                    ur_baldosa_modern_root_set_run_save_feedback(1);
+                    std::fprintf(stderr,
+                        "UR_BALDOSA_NATIVE_RUN SAVE_PENDING=1 "
+                        "retry_while_result_visible=1\n");
+                } else {
+                    // Anonymous/invalid selections cannot publish to an
+                    // authorized named Records archive. No false 'pending'
+                    // promise, and no write into a default shared save.
+                    ur_baldosa_modern_root_set_run_save_feedback(3);
+                    std::fprintf(stderr,
+                        "UR_BALDOSA_NATIVE_RUN NOT_SAVED=1 "
+                        "reason=no_retry_authority\n");
                 }
                 std::fprintf(stderr,
                     "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-1p "

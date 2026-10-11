@@ -22,14 +22,17 @@ ORIGINAL = {
          "original_pha_pc": "00:858E",
          "accumulator_before": saved_a,
          "stack_pointer_before": stack,
+         "stack_pointer_after": next_sp,
+         "original_cpu_frame_after": frame,
          "ppu_vcounter_before": 225,
-         "source_original_cpu_hcounter_before": h}
-        for frame, saved_a, stack, h in (
-            (5778, "4040", "01E2", 800),
-            (5779, "4004", "01EA", 807),
-            (5780, "4042", "01DE", 816),
-            (5781, "4042", "01E7", 832),
-            (5782, "4004", "01E5", 844),
+         "source_original_cpu_hcounter_before": h,
+         "source_original_cpu_hcounter_after": h + 8}
+        for frame, saved_a, stack, next_sp, h in (
+            (5778, "4040", "01E2", "01E0", 800),
+            (5779, "4004", "01EA", "01E8", 807),
+            (5780, "4042", "01DE", "01DC", 816),
+            (5781, "4042", "01E7", "01E5", 832),
+            (5782, "4004", "01E5", "01E3", 844),
         )
     ],
     "saved_4042_original_pha_horizontal_clock": {
@@ -38,7 +41,10 @@ ORIGINAL = {
         "original_pha_pc": "00:858E",
         "accumulator_before": "4042",
         "stack_pointer_before": "01DE",
+        "stack_pointer_after": "01DC",
+        "original_cpu_frame_after": 5780,
         "source_original_cpu_hcounter_before": 816,
+        "source_original_cpu_hcounter_after": 824,
     },
 }
 NATIVE = {
@@ -112,6 +118,7 @@ class SwitcherNmiBeamCrosswalkTests(unittest.TestCase):
             ("saved_4042_original_pha_horizontal_clock.original_cpu_frame_before", 5781),
             ("saved_4042_original_pha_horizontal_clock.accumulator_before", "4004"),
             ("saved_4042_original_pha_horizontal_clock.original_pha_pc", "80:858F"),
+            ("saved_4042_original_pha_horizontal_clock.source_original_cpu_hcounter_after", 823),
             ("observed_original_nmi_pha_horizontal_clocks", []),
             ("observed_original_nmi_pha_horizontal_clocks", [
                 {"original_cpu_frame_before": 5780}]),

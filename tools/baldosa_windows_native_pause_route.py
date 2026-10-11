@@ -649,8 +649,12 @@ def verify_native_records_page_handoff(log: str) -> None:
     closed = "UR_BALDOSA_MODERN_ROOT records_closed=1"
     # The initial 1P selection is emitted before the opened diagnostic.
     # The second 1P selection must follow the physical Down-to-2P edge.
-    if (log.count(initial) != 2 or log.count(two) != 1 or
-            log.count(opened) != 1 or log.count(closed) != 1):
+    # Check suffix tokens as well as complete markers: truncated/duplicate
+    # diagnostic lines must not evade the strictly ordered route contract.
+    if (log.count("records_page=1p") != 2 or
+            log.count("records_page=2p") != 1 or
+            log.count("records_opened=1") != 1 or
+            log.count("records_closed=1") != 1):
         raise ValueError("Native Records 1P/2P pages duplicated or missing")
     positions = (
         log.find(initial), log.find(opened), log.find(two),

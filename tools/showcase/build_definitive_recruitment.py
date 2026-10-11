@@ -216,11 +216,11 @@ def build(args):
     # conspicuously editorial title typography, never a remastered title shot.
     execute(["ffmpeg","-nostdin","-hide_banner","-loglevel","error","-y",
         "-ss","48","-i",str(h),"-vf",
-        "drawtext=text='UNIRACERS RECOMP':fontsize=86:fontcolor=white:"
-        "x=(w-text_w)/2:y=70:box=1:boxcolor=black@0.7:boxborderw=18,"
+        "scale=1700:956:flags=neighbor,pad=1920:1080:110:62:0x091421,"
+        "drawtext=text='UNIRACERS RECOMP':fontsize=48:fontcolor=white:"
+        "x=(w-text_w)/2:y=5,"
         "drawtext=text='REAL NATIVE GAMEPLAY - HELP BUILD WHAT COMES NEXT':"
-        "fontsize=36:fontcolor=white:x=(w-text_w)/2:y=930:"
-        "box=1:boxcolor=black@0.7:boxborderw=13",
+        "fontsize=27:fontcolor=white:x=(w-text_w)/2:y=1040",
         "-frames:v","1",str(poster)])
     result={
       "schema":"UR-RECRUITMENT-FINAL-MEDIA/1",

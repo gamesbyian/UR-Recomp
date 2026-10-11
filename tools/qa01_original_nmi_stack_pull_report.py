@@ -66,6 +66,24 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
         raise ValueError("malformed original QANMIPULL trace row")
     if len(matches) > MAX_PULLS:
         raise ValueError("unbounded original stack pull trace")
+    # The previously verified +5780 original PHA is the sole changing
+    # writer to 01DD in this bounded trace. Source-order correlation with
+    # a later same-frame PLA can identify a *candidate* save/restore pair,
+    # not prove full instruction-by-instruction interrupt equivalence.
+    saved_pha = original_context["confirmed_original_01dd_pha_register_scope"]
+    pha_positions = [
+        m.start() for m in nmi.PHA.finditer(log)
+        if (int(m.group(1)) ==
+            saved_pha["original_cpu_frame_before"]
+            and m.group(5) == saved_pha["stack_pointer_before"]
+            and m.group(6) == saved_pha["stack_pointer_after"]
+            and m.group(7) == saved_pha["accumulator_before"]
+            and m.group(14) == saved_pha["01dd_after"]
+            and m.group(16) == saved_pha["01de_after"])
+    ]
+    if len(pha_positions) != 1:
+        raise ValueError("unable to identify unique source-order original 01DD saved-A writer")
+    candidate_saved_a_restorations = []
     rows = []
     for match in matches:
         (frame_s, v_s, pc, op_s, sp0_s, sp1_s, width_s,
@@ -101,6 +119,24 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
                     if ((after_a >> (8 * displacement)) & 0xFF) != int(raw, 16):
                         raise ValueError("observed original PLA does not restore target stack byte")
                     verified_pla_bytes += 1
+        if (opcode == 0x68 and width == 2
+                and frame == saved_pha["original_cpu_frame_before"]
+                and match.start() > pha_positions[0]
+                and sp0_s == saved_pha["stack_pointer_after"]
+                and sp1_s == saved_pha["stack_pointer_before"]
+                and dd == saved_pha["01dd_after"]
+                and de == saved_pha["01de_after"]
+                and a1 == saved_pha["accumulator_before"]):
+            candidate_saved_a_restorations.append({
+                "source_original_cpu_frame": frame,
+                "original_saved_a_pc": saved_pha["original_instruction_pc"],
+                "candidate_pla_pc": f"{pc[:2]}:{pc[2:]}",
+                "saved_accumulator": a1,
+                "original_save_precedes_pull": True,
+                "word_bytes_and_stack_roundtrip_match": True,
+                "actual_interruption_chain_proven": False,
+                "native_same_cpu_phase_proven": False,
+            })
         # The preceding predicate separately validates numeric/architectural
         # fields. Changes in P or A are legal for PLP/PLA; do not equate them.
         rows.append({
@@ -230,6 +266,9 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
         "original_01dd_pha_writer_confirmed": True,
         "observed_candidate_stack_pull_count": len(rows),
         "candidate_stack_pull_scopes": rows,
+        "candidate_original_saved_a_restore_pairs": candidate_saved_a_restorations,
+        "saved_a_restoration_observed_in_window": bool(candidate_saved_a_restorations),
+        "saved_a_restore_pair_is_not_event_acceptance": True,
         "candidate_rti_scope_count": len(rti_rows),
         "candidate_rti_scopes": rti_rows,
         "rti_instruction_source_cannot_prove_interrupt_vector": True,
@@ -256,6 +295,7 @@ def main() -> int:
     print(json.dumps({
         "original_nmi_entries": result["original_nmi_hardware_entries"],
         "candidate_stack_pulls": result["observed_candidate_stack_pull_count"],
+        "source_saved_a_restore_candidates": len(result["candidate_original_saved_a_restore_pairs"]),
         "candidate_rti_scopes": result["candidate_rti_scope_count"],
         "original_native_guest_relative_result_parity": False,
         "release_event_credit": 0,

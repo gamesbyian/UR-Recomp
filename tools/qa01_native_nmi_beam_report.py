@@ -17,8 +17,8 @@ import qa01_native_switcher_stack_report as native
 
 SCHEMA = "UR-QA01-NATIVE-SWITCHER-I_NMI-BEAM-WRITER/1"
 BEAM = re.compile(
-    r"(?:^| )QAbeam_v=(\\d+) QAbeam_h=(\\d+) "
-    r"QAbeam_master=(\\d+) QAcpu_master=(\\d+)$"
+    r"(?:^| )QAbeam_v=(\d+) QAbeam_h=(\d+) "
+    r"QAbeam_master=(\d+) QAcpu_master=(\d+)$"
 )
 MAX_LINES = 50000
 

@@ -13,6 +13,7 @@ UR-Recomp is a private personal-use preservation/remaster project. The intended 
 | Windows x64 | Primary reference shipping build | planned | native C/C++ desktop host; SDL-backed input/audio/windowing; modern compositor |
 | macOS current | Native desktop peer | planned | native C/C++ host sharing product/runtime code with Windows |
 | macOS 10.13 High Sierra | Best-effort legacy build | feasibility target | separate legacy toolchain/build lane; do not constrain the whole project to obsolete SDKs |
+| Linux desktop | Desktop host peer for Modern post-race video and other appropriate features | deferred/engineering builds already exist | reuse Modern host contracts; probe codec/VA-API/encoder availability instead of assuming it |
 | Web | Browser build | feasibility target | WebAssembly/Emscripten host over the same authoritative simulation; browser storage/input/audio/presentation adapters |
 | Nintendo Switch homebrew | Personal-use console build | feasibility target | devkitPro/devkitA64 + libnx, preferably reusing SDL2-facing host seams first |
 | PlayStation 5 homebrew/dev environment | Personal-use console build | feasibility target | platform host port only when lawful tooling/access is available; no proprietary SDK material in this repository |

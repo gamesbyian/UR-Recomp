@@ -144,11 +144,13 @@ int main() {
     view.read_only_records_two_player = true;
     view.records_status = "MY 2P 1  UNAVAILABLE 3";
     view.records_recent = "W 1  L 0  D 0";
+    view.records_detail = "LAST 01 WIN 00:28.76";
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
                                       old_view,view));
     assert(contains("TWO PLAYER RECORDS"));
     assert(contains("MY 2P 1  UNAVAILABLE 3"));
     assert(contains("W 1  L 0  D 0"));
+    assert(contains("LAST 01 WIN 00:28.76"));
     assert(contains("UP/DOWN 1P  B BACK"));
     assert(contains("READ ONLY - NO REPLAY"));
     painted.clear();
@@ -156,6 +158,7 @@ int main() {
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
                                       old_view,view));
     assert(contains("STORED RUNS"));
+    assert(!contains("LAST 01 WIN 00:28.76"));
     assert(contains("UP/DOWN 2P  B BACK"));
     painted.clear();
     view.read_only_records_open = false;

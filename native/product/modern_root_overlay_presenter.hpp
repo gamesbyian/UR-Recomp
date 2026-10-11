@@ -58,6 +58,9 @@ struct ModernRootOverlayView {
     std::string_view join_p2_stock{};
     bool join_p1_confirmed = false;
     bool join_p2_confirmed = false;
+    // Extra optional read-only detail, supplied by native Records only.
+    // Older Modern presenters retain their exact two-line layout by default.
+    std::string_view records_detail{};
 };
 
 inline bool render_modern_root_overlay(
@@ -217,8 +220,19 @@ inline bool render_modern_root_overlay(
                             view.records_recent, modern_overlay_text_cells(
                                 panel_w - 30)).c_str(),
                         palette.secondary_grey, scale);
+        if (!view.records_detail.empty() &&
+            view.read_only_records_two_player) {
+            paint.draw_text(pixels, stride, surface_height,
+                            bx + 9 * scale, by + 82 * scale,
+                            fit_modern_overlay_text(
+                                view.records_detail,
+                                modern_overlay_text_cells(panel_w - 30)).c_str(),
+                            0xFFFFFFFFu, scale);
+        }
         paint.draw_text(pixels, stride, surface_height,
-                        bx + 9 * scale, by + 85 * scale,
+                        bx + 9 * scale,
+                        by + (view.read_only_records_two_player &&
+                              !view.records_detail.empty() ? 99 : 85) * scale,
                         "READ ONLY - NO REPLAY", palette.cursor_blue, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 114 * scale,

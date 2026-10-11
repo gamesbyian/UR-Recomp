@@ -15,6 +15,9 @@ struct BaldosaNativeTwoPlayerRecordsSummary {
     std::size_t wins = 0;
     std::size_t losses = 0;
     std::size_t draws = 0;
+    // Last fully validated pair involving this selected profile, not an
+    // unpaired .urrun or a replay/tournament/award claim.
+    std::string latest_match_line;
 };
 
 BaldosaNativeTwoPlayerRecordsSummary

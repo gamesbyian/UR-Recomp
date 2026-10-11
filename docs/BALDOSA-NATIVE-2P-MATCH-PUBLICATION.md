@@ -115,3 +115,18 @@ These are bounded entry-type checks, not a general guarantee against
 a privileged filesystem actor racing file replacements. Synthetic
 C++ fixtures verify exact-byte off-root aliases are still refused and
 existing canonical pair history remains unchanged.
+
+## Native 2P Records: latest source-bound match
+
+The read-only **TWO PLAYER RECORDS** page now retains the validated
+archive health count and selected racer's W/L/D summary, and includes one
+extra compact line for that racer's most recent admitted pair in filename
+chronology: e.g. `LAST 01 WIN 00:28.76` or `LAST 01 LOSS DNF`.
+The result is oriented to the selected profile, not the winner's device
+seat. Both exact player IDs, course, source outcome and finish time come
+only from an admitted checksummed `.urrun` plus matched `.urmatch` pair.
+Case-insensitive Modern profile IDs and unrelated later matches do not
+change the selected player's last result; unavailable/corrupt pairs
+remain excluded. The existing shared presenter draws an optional third
+line only on native 2P Records, preserving its historic 1P presentation,
+no new data store and no replay, medal or standings claim.

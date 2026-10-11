@@ -64,10 +64,12 @@ ur::product::BaldosaNativeRunSaveFeedback g_run_save_feedback =
     ur::product::BaldosaNativeRunSaveFeedback::None;
 std::string g_records_status;
 std::string g_records_recent;
+std::string g_records_detail;
 std::string g_records_one_status;
 std::string g_records_one_recent;
 std::string g_records_two_status;
 std::string g_records_two_recent;
+std::string g_records_two_detail;
 bool g_records_two_player = false;
 bool g_render_reported = false;
 unsigned g_paint_count = 0;
@@ -126,6 +128,7 @@ void select_records_page(bool two_player) {
     g_records_two_player = two_player;
     g_records_status = two_player ? g_records_two_status : g_records_one_status;
     g_records_recent = two_player ? g_records_two_recent : g_records_one_recent;
+    g_records_detail = two_player ? g_records_two_detail : "";
     std::fprintf(stderr,
         "UR_BALDOSA_MODERN_ROOT records_page=%s\n",
         two_player ? "2p" : "1p");
@@ -133,6 +136,7 @@ void select_records_page(bool two_player) {
 void open_records_archive() {
     g_records_open = true;
     g_records_two_player = false;
+    g_records_two_detail.clear();
     const char* directory = ur_baldosa_modern_profile_records_directory();
     const char* match_directory =
         ur_baldosa_modern_profile_multiplayer_records_directory();
@@ -187,6 +191,7 @@ void open_records_archive() {
             "W " + std::to_string(matches.wins) +
             "  L " + std::to_string(matches.losses) +
             "  D " + std::to_string(matches.draws);
+        g_records_two_detail = matches.latest_match_line;
     }
     select_records_page(false);
     std::fprintf(stderr,
@@ -484,6 +489,7 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         false, g_confirm_quit, kNativeRootAvailable, false,
         g_records_open, g_records_status, g_records_recent,
         g_records_two_player, true};
+    view.records_detail = g_records_detail;
     view.two_seat_join_open = g_two_seat_join.open();
     if (view.two_seat_join_open) {
         const auto* p1 = g_two_seat_join.candidate(0);

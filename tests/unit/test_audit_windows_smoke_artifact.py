@@ -56,6 +56,30 @@ class WindowsSmokeArtifactArchiveTests(unittest.TestCase):
             self.assertFalse(result["metrics"]["physical_hardware_verified"])
             self.assertNotIn("synthetic test file", json.dumps(result))
 
+    def test_external_candidate_pins_are_paired_and_fail_closed(self):
+        with tempfile.TemporaryDirectory() as temp:
+            portable, smoke, inner, _, manifest = self.prepare(Path(temp))
+            good_digest = hashlib.sha256(inner).hexdigest()
+            with mock.patch.object(audit.package, "verify_archive", return_value=manifest):
+                good = audit.audit(
+                    portable, smoke, expected_source="a" * 40,
+                    expected_zip_sha256=good_digest,
+                )
+                self.assertTrue(good["metrics"]["nominated_candidate_pins_matched"])
+                self.assertEqual(good["outcome"], "inconclusive")
+                self.assertFalse(good["metrics"]["independent_candidate_approved"])
+                with self.assertRaisesRegex(ValueError, "both exact candidate pins"):
+                    audit.audit(portable, smoke, expected_source="a" * 40)
+                with self.assertRaisesRegex(ValueError, "candidate source pin"):
+                    audit.audit(portable, smoke, expected_source="main",
+                                expected_zip_sha256=good_digest)
+                with self.assertRaisesRegex(ValueError, "nominated candidate"):
+                    audit.audit(portable, smoke, expected_source="a" * 40,
+                                expected_zip_sha256="0" * 64)
+                with self.assertRaisesRegex(ValueError, "archived source differs"):
+                    audit.audit(portable, smoke, expected_source="b" * 40,
+                                expected_zip_sha256=good_digest)
+
     def test_wrong_independent_transport_sidecar_fails_before_package_parser(self):
         with tempfile.TemporaryDirectory() as temp:
             portable, smoke, inner, _, manifest = self.prepare(Path(temp))

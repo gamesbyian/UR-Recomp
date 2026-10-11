@@ -62,3 +62,7 @@ python3 tools/audit_windows_smoke_artifact.py portable-actions-artifact.zip wind
 ```
 
 The new dependency-free helper compares the inner ZIP, original ZIP sidecar, smoke-bundle ZIP and repeated manifest, verifies the inner archive using `tools/assemble_windows_package.py` and retains a bounded structured `outcome=inconclusive` envelope. Its only log observations are whether the captured QA-09 log reported a joystick count, dummy vs real video/audio drivers, the synthetic pad label, packaged run-capture marker and standalone verifier marker. It emits no ROM bytes, framebuffer, log bodies or private player paths, and must **never** be used to promote release gates. Historical wrappers are not imported into Git, and the exact producing Actions run ID still needs independent GitHub verification. Synthetic positive and tampering tests protect this audit utility.
+
+## Optional independently nominated artifact pins
+
+The read-only historical auditor also accepts `--expected-source <40-hex>` **together with** `--expected-zip-sha256 <64-hex>` for negative checking against a reviewer-specified source and **inner** ZIP hash. A missing partner, malformed digest or mismatch rejects the packet. Its `nominated_candidate_pins_matched` metric means only that the supplied values match bytes, while `independent_candidate_approved` remains **false** because the offline script cannot establish the nomination's provenance. `outcome=inconclusive` is retained even on a completely matching candidate.

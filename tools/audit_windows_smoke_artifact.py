@@ -55,12 +55,24 @@ def _open_transport(path: Path, *, exactly: set[str] | None = None) -> zipfile.Z
     return archive
 
 
-def audit(portable_artifact: Path, smoke_artifact: Path) -> dict:
+def audit(
+    portable_artifact: Path, smoke_artifact: Path,
+    *, expected_source: str | None = None, expected_zip_sha256: str | None = None,
+) -> dict:
     """Cross-check archived portable bytes and emit *inconclusive* evidence."""
+    if (expected_source is None) != (expected_zip_sha256 is None):
+        raise ValueError("both exact candidate pins must be supplied together")
+    if expected_source is not None:
+        if not re.fullmatch(r"[0-9a-f]{40}", expected_source):
+            raise ValueError("candidate source pin must be 40 lowercase hex")
+        if not re.fullmatch(r"[0-9a-f]{64}", expected_zip_sha256):
+            raise ValueError("candidate ZIP pin must be 64 lowercase hex")
     with _open_transport(portable_artifact, exactly=PORTABLE_MEMBERS) as portable:
         inner = _read(portable, "UR-Recomp-Windows-x64.zip", limit=MAX_TRANSPORT_BYTES)
         sidecar = _read(portable, "UR-Recomp-Windows-x64.zip.sha256", limit=1024)
     inner_sha = hashlib.sha256(inner).hexdigest()
+    if expected_zip_sha256 is not None and inner_sha != expected_zip_sha256:
+        raise ValueError("archived inner ZIP differs from nominated candidate")
     if sidecar != f"{inner_sha}  UR-Recomp-Windows-x64.zip\n".encode("ascii"):
         raise ValueError("transport sidecar does not match inner portable ZIP")
     # Reuse the existing canonical producer/consumer archive oracle, not
@@ -69,6 +81,8 @@ def audit(portable_artifact: Path, smoke_artifact: Path) -> dict:
         inner_path = Path(temp) / "UR-Recomp-Windows-x64.zip"
         inner_path.write_bytes(inner)
         manifest = package.verify_archive(inner_path)
+    if expected_source is not None and manifest["source_revision"] != expected_source:
+        raise ValueError("archived source differs from nominated candidate")
     with _open_transport(smoke_artifact) as smoke:
         another = _read(smoke, "UR-Recomp-Windows-x64.zip", limit=MAX_TRANSPORT_BYTES)
         another_sidecar = _read(smoke, "UR-Recomp-Windows-x64.zip.sha256", limit=1024)
@@ -107,6 +121,7 @@ def audit(portable_artifact: Path, smoke_artifact: Path) -> dict:
             "qa09_synthetic_pad_label_observed": "UR hotplug acceptance pad" in pad_log,
             "logged_package_race_record_capture": "UR_RUN_RECORD CAPTURED" in race_log,
             "logged_standalone_manifest_verified": "UR_PORTABLE_MANIFEST_VERIFIED" in verify_log,
+            "nominated_candidate_pins_matched": expected_source is not None,
             "independent_candidate_approved": False,
             "physical_hardware_verified": False,
             "current_native_1p_2p_journeys_verified": False,
@@ -119,10 +134,16 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("portable_artifact", type=Path)
     parser.add_argument("smoke_artifact", type=Path)
+    parser.add_argument("--expected-source", help="externally nominated 40-hex source commit (paired)")
+    parser.add_argument("--expected-zip-sha256", help="externally nominated inner portable ZIP digest (paired)")
     parser.add_argument("--output", type=Path, help="write ROM-free structured evidence")
     args = parser.parse_args()
     try:
-        report = audit(args.portable_artifact, args.smoke_artifact)
+        report = audit(
+            args.portable_artifact, args.smoke_artifact,
+            expected_source=args.expected_source,
+            expected_zip_sha256=args.expected_zip_sha256,
+        )
     except (OSError, ValueError, KeyError, UnicodeError, zipfile.BadZipFile) as exc:
         parser.error(str(exc))
     result = json.dumps(report, indent=2, sort_keys=True) + "\n"

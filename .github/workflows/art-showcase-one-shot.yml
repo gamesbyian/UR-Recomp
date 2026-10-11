@@ -1,4 +1,5 @@
 name: Art showcase one-shot production
+# Revision 3: permit proved same-player stock-identical timeline aliases
 
 on:
   push:

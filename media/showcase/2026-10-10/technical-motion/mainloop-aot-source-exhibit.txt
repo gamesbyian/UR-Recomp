@@ -1,0 +1,31 @@
+# MainLoop 65816 → generated C exhibit
+#
+# ROM: Uniracers USA retail SHA-256 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478
+# ROM bank $80/$00 mirror: $8881 → LoROM offset 0x0881.
+# Baldosa generated C: gamesbyian/uniracers-recomp at commit
+# 10b864b9d14a7b7416dd909eb7b054c88faef101
+# File: src/gen/bank00_part01_v2.c
+# Git blob: cc9ef833a5c7c0809aaab53ea00c182158241b83
+# Code excerpt below is NONCONTIGUOUS; ellipses denote omitted code.
+# The original lines are individually present and in the same order.
+# This file is a promotional exhibit, not an independent disassembly authority.
+#
+# Source instruction at $80:8881: JSR $ACC6 (6 cycles).
+# AOT CPU state: M=1 (8-bit A), X=0 (16-bit X/Y).
+#
+L_8881_M1X0:
+    cpu_trace_block(cpu, 0x008881);
+    WatchdogCheck();
+    // ... pacing / native interpreter fallback (omitted) ...
+    cpu->cycles += 6;
+    cpu->master_cycles += 3 * ((g_memsel && (cpu->PB & 0x80)) ? 6 : 8) + 6;
+    {
+      /* JSR return frame -> cpu->S (Option-1) */
+      cpu_write8_paced(cpu, 0x00, cpu->S, 0x88); cpu->S = (uint16)(cpu->S - 1);
+      cpu_write8_paced(cpu, 0x00, cpu->S, 0x83); cpu->S = (uint16)(cpu->S - 1);
+      cpu->host_return_valid = 2;  /* paired host caller, JSR frame */
+      // ... register-state selection (omitted) ...
+        case 2: _r = MainMenu_Draw_M1X0(cpu); break;
+      // ... error propagation and return (omitted) ...
+    }
+    goto L_8884_M1X0; /* implicit fall-through */

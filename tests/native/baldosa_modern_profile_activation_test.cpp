@@ -285,6 +285,29 @@ int main() {
     }
     assert_raw_unchanged();
 
+    // Real canonical writer recovery: transient selector contention refuses
+    // the first attempt without creating a partial .urrun. The exact same
+    // source-settled event may succeed after lease release, but a third poll
+    // must not publish its result twice. The in-memory retry policy has its
+    // own timing/session test; this exercises the actual persistence seam.
+    bad_result = witnessed;
+    bad_result.first_race_host_frame = 400;
+    bad_result.observed_result_host_frame = 404;
+    const auto previous_runs = load_valid_run_records(run_root.string()).size();
+    {
+        TournamentLaunchPathLock blocked_selector(global_path, true);
+        assert(blocked_selector.acquired());
+        assert(!ur_baldosa_modern_publish_settled_one_player_run(&bad_result));
+        assert(load_valid_run_records(run_root.string()).size() ==
+               previous_runs);
+    }
+    assert(ur_baldosa_modern_publish_settled_one_player_run(&bad_result) == 1);
+    assert(load_valid_run_records(run_root.string()).size() ==
+           previous_runs + 1);
+    assert(!ur_baldosa_modern_publish_settled_one_player_run(&bad_result));
+    assert(load_valid_run_records(run_root.string()).size() ==
+           previous_runs + 1);
+
     // Failed upstream SRAM I/O must also release the selector lease.
     assert(ur_baldosa_modern_profile_before_native_save() == 1);
     assert(ur_baldosa_modern_profile_finish_native_save(0) == 0);

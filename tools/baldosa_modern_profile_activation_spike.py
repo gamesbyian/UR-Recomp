@@ -122,6 +122,13 @@ def patch_cmake(source: str, root: Path) -> str:
         product / "completed_run_store.cpp",
         product / "completed_run_record.cpp",
         product / "baldosa_native_run_record_admission.cpp",
+        # One established checksum/course-bound 2P catalog and W/L/D
+        # aggregator, consumed read-only by the same native Records modal.
+        product / "baldosa_native_multiplayer_records_summary.cpp",
+        product / "multiplayer_match_catalog.cpp",
+        product / "multiplayer_match_summary.cpp",
+        product / "multiplayer_match_record.cpp",
+        product / "local_multiplayer_match_binding.cpp",
     )
     selected = [bridge, *(product / s for s in SOURCES), *records_sources]
     for path in selected:

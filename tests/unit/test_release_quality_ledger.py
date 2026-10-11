@@ -46,6 +46,7 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
         self.assertTrue(any("below required layer" in x
                             for x in validator.check_registry(data, ROOT)))
         gate["witnesses"][0]["layer"] = "L4"
+        gate["coverage"].update(complete_event_passes=45, partial=0, unverified=0)
         self.assertEqual(validator.check_registry(data, ROOT), [])
 
     def test_qa01_l4_witness_cannot_override_zero_of_45_release_census(self):
@@ -237,6 +238,7 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
         self.assertTrue(any("timezone-aware ISO-8601" in x
                             for x in validator.check_registry(data, ROOT)))
         gate["witnesses"][0]["tested_at"] = "2026-10-10T20:00:00+00:00"
+        gate["coverage"].update(complete_event_passes=45, partial=0, unverified=0)
         self.assertEqual(validator.check_registry(data, ROOT), [])
 
         gate["status"] = "waived"

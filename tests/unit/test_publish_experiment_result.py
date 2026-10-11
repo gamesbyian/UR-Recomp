@@ -31,6 +31,8 @@ class ExperimentResultPublisherTests(unittest.TestCase):
         self.assertNotIn("  pull_request:", top)
         self.assertIn("tools/publish_experiment_result.py", workflow)
         self.assertIn("--github-summary", workflow)
+        self.assertIn("if: failure()", workflow)
+        self.assertIn("This run does not establish a positive or negative coverage claim.", workflow)
         self.assertIn("execution-coverage-jump-ab-receipt.json", workflow)
         self.assertIn("actions/upload-artifact@v4", workflow)
 

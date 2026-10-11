@@ -38,7 +38,8 @@ struct RunRecordArtifactHealth {
     }
 };
 
-/* Append one immutable run artifact to a directory. The filename is
+/* Append one immutable run artifact to a direct real archive directory.
+ * Symlinked archive roots are rejected, not followed. The filename is
  * host-owned ordering metadata; the record body remains the authoritative
  * portable artifact. The fully closed file is published atomically with
  * no-replace semantics; uncommitted staging paths are invisible to scans. */
@@ -48,7 +49,8 @@ bool append_completed_run_record(
     std::string* stored_path = nullptr,
     std::string* detail = nullptr);
 
-/* Inspect every direct .urrun entry in filename order without granting
+/* Inspect only a direct real archive directory and its direct .urrun
+ * entries in filename order without granting
  * invalid or symlinked artifacts record authority. Live/dangling .urrun
  * aliases are reported as unavailable instead of followed or hidden.
  * Callers may surface health/status while replay uses loaded records only. */

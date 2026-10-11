@@ -103,6 +103,17 @@ bool append_completed_run_record(
     }
 
     const fs::path directory_path(directory);
+    // An explicitly selected archive directory must be a REAL local
+    // directory, not a symlink to another named profile or user root.
+    // create_directories() can report success through an existing link;
+    // that must never authorize a record write outside this namespace.
+    ec.clear();
+    const auto archive_status = fs::symlink_status(directory_path, ec);
+    if (ec || !fs::is_directory(archive_status) ||
+        fs::is_symlink(archive_status)) {
+        set_detail(detail, "run-record directory is not a direct directory");
+        return false;
+    }
     fs::path staging;
     if (!reserve_staging_directory(directory_path, staging)) {
         set_detail(detail, "cannot reserve run-record staging directory");
@@ -154,7 +165,12 @@ std::vector<InspectedRunRecordArtifact>
 inspect_completed_run_record_artifacts(const std::string& directory) {
     std::vector<InspectedRunRecordArtifact> out;
     std::error_code ec;
-    if (!fs::exists(directory, ec) || ec) return out;
+    // The generic run reader is also used outside the Baldosa Records UI:
+    // do not bypass that UI's direct-directory guard through Local Runs,
+    // replay-target selection or another native product consumer.
+    const auto directory_status = fs::symlink_status(directory, ec);
+    if (ec || !fs::is_directory(directory_status) ||
+        fs::is_symlink(directory_status)) return out;
 
     std::vector<fs::path> paths;
     for (fs::directory_iterator it(directory, ec), end;

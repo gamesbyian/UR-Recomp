@@ -48,6 +48,9 @@ class ThreeProjectReuseTest(unittest.TestCase):
                          include_conditional=True)
         self.assertIn("rider-oam-hdma", {x["id"] for x in gfx})
         self.assertNotIn("gate-cache-dependencies", {x["id"] for x in gfx})
+        qa = candidates(self.register, self.matrix, lane="release-qa",
+                        include_conditional=True)
+        self.assertNotIn("dma-entry-provenance", {x["id"] for x in qa})
         self.assertFalse(candidates(self.register, self.matrix, focus="definitely-not-a-source"))
 
     def test_routing_uses_existing_ur_and_pinned_external_paths(self):

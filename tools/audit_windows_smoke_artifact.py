@@ -122,7 +122,7 @@ def audit(
             # visible bytes: "UR_CONTROLLER ... name=UR HOTPLUG ACCEPTA".
             # Do not silently misclassify actual synthetic-pad evidence.
             "qa09_synthetic_pad_label_observed": bool(re.search(
-                r"(?im)^UR_CONTROLLER SEAT_CONNECTED seat=1 name=UR HOTPLUG ACCEPTA(?:\\s|$)",
+                r"(?im)^UR_CONTROLLER SEAT_CONNECTED seat=1 name=UR HOTPLUG ACCEPTA(?:\s|$)",
                 pad_log,
             )),
             "logged_package_race_record_capture": "UR_RUN_RECORD CAPTURED" in race_log,

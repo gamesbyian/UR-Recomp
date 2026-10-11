@@ -87,9 +87,9 @@ class WindowsSmokeArtifactArchiveTests(unittest.TestCase):
             with zipfile.ZipFile(smoke, "r") as old:
                 original = {name: old.read(name) for name in old.namelist()}
             original["qa09-root-win32.log"] = (
-                b"[host +0.031s] SDL init ok: video=windows audio=dummy\\n"
-                b"[Gamepad] SDL reports 0 joystick(s). enable_gamepad=[1,1]\\n"
-                b"UR_CONTROLLER SEAT_CONNECTED seat=1 name=GENERIC PHYSICAL\\n"
+                b"[host +0.031s] SDL init ok: video=windows audio=dummy\n"
+                b"[Gamepad] SDL reports 0 joystick(s). enable_gamepad=[1,1]\n"
+                b"UR_CONTROLLER SEAT_CONNECTED seat=1 name=GENERIC PHYSICAL\n"
             )
             _wrap(smoke, original)
             with mock.patch.object(audit.package, "verify_archive", return_value=manifest):

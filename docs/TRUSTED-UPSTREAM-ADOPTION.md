@@ -128,6 +128,39 @@ separate owner decision. The [apparatus roadmap](THREE-PROJECT-APPARATUS-ROADMAP
 records an outstanding public-ROM-history concern; this policy does not
 authorize deletion, history rewriting, distribution or commercial licensing.
 
+## Every-task three-project leverage check
+
+Before substantial work, **first choose the real task from WORK-QUEUE**, then
+run `python3 tools/select_three_project_reuse.py --lane <lane> --include-conditional`.
+`--focus NMI` (or another keyword) narrows candidates to the current
+technical problem. `--lane all` works for an unassigned fresh agent.
+`--include-future` displays deliberately baseline-blocked candidates
+without scheduling them. `--audit` validates the register against the pinned
+35-capability matrix and known agent lanes. The existing
+`tools/build_agent_context.py <lane>` automatically embeds a very short
+version of the immediately relevant opportunities.
+
+The source-grounded register at
+`analysis/three-project-reuse-opportunities.json` supplies, for each
+choice, its expected benefit, activation trigger, reuse action, entry test and
+stop condition. It does **not** duplicate the full source inventory; the
+existing pinned matrix supplies the exact UR/Baldosa/Malmazuke file paths.
+
+The task owner should make an explicit fast decision: **reuse existing UR
+machinery, reuse pinned upstream as U1 information, qualify a coherent U2
+dependency, or implement a genuinely missing seam**. Spend only enough time
+to compare the relevant solutions; do not read all three repositories or
+stage broad tooling adoption before any real blocker. A worthwhile shared
+apparatus change may preempt narrower work when it reduces repeat effort for
+multiple active gates *and* has an immediate measurable discriminator.
+Otherwise deliver the currently assigned player-facing or fidelity milestone.
+
+After a pilot, update its register disposition, evidence and stop trigger
+when that changes, rather than submitting another permanent planning memo.
+Do not elevate `on_blocker` or `after_baseline` entries into immediate P0
+work. Use one established downstream owner, one candidate and one verification
+packet; original/native acceptance remains independently judged.
+
 ## Measure outcomes, not ceremony
 
 Report qualified module families, agents/teams using each shared research

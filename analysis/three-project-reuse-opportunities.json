@@ -1,0 +1,193 @@
+{
+  "schema_version": 1,
+  "policy": "docs/TRUSTED-UPSTREAM-ADOPTION.md",
+  "capability_matrix": "analysis/data/three-project-apparatus-capability-matrix-20261010.json",
+  "authority": "Advisory task-selection overlay only. WORK-QUEUE is priority authority; RELEASE-QUALITY-LEDGER alone owns passes.",
+  "entries": [
+    {
+      "id": "baldosa-native-core",
+      "activation": "now",
+      "lanes": [
+        "baldosa-integration",
+        "modern-product"
+      ],
+      "payoff": "Avoid a second execution engine; reuse the already integrated pinned USA AOT guest while closing the actual Windows journey.",
+      "trigger": "Any change to the running game backend or native/Modern integration.",
+      "action": "Extend existing Baldosa guest/Modern C ABI and verified route instead of rebuilding a guest or introducing another game simulator.",
+      "qualification": "Authentic guest P1/P2 input, pause/result and lifecycle observed through the same host candidate, followed by the relevant independent QA.",
+      "stop": "Never declare a complete original event from short guest checks; retain legacy rollback."
+    },
+    {
+      "id": "modern-controller-journey",
+      "activation": "now",
+      "lanes": [
+        "baldosa-integration",
+        "modern-product"
+      ],
+      "payoff": "Reuse completed Modern frontend/controller state machines and avoid inventing another menu or session coordinator.",
+      "trigger": "Controller-first profile to race/result/Records workflow is incomplete.",
+      "action": "Bind the existing Modern states to Baldosa execution through the current typed host adapter and the original run/record stores.",
+      "qualification": "One authentic 1P plus local 2P journey, controller-only navigation, genuine results and restart-safe records on the same candidate.",
+      "stop": "Do not fabricate results, rewrite existing product ownership or substitute source-only component tests for a real journey."
+    },
+    {
+      "id": "candidate-evidence-envelope",
+      "activation": "now",
+      "lanes": [
+        "baldosa-integration",
+        "modern-product",
+        "release-qa",
+        "racer-hd",
+        "widescreen"
+      ],
+      "payoff": "Let gameplay, renderer and Windows agents reuse one captured ROM/candidate/input provenance instead of recapturing the route.",
+      "trigger": "A real candidate route is captured for two or more existing test consumers.",
+      "action": "Extend existing evidence_contract.py and tool_interop.json to bind original/native observed P1/P2 input, SRAM and candidate hash to independently checked outputs.",
+      "qualification": "A single real route receipt with positive and missing/mismatched-input negative-path tests; existing QA judges each domain separately.",
+      "stop": "No second runner, release ledger or assumption that a stored script proves the guest consumed those masks."
+    },
+    {
+      "id": "route-input-identity",
+      "activation": "now",
+      "lanes": [
+        "baldosa-integration",
+        "release-qa"
+      ],
+      "payoff": "Turn route provenance into reusable evidence for several tests instead of repeated source/guest alignment investigations.",
+      "trigger": "A course route or original/native comparison must be replayed or published.",
+      "action": "Reuse Baldosa's route conventions, Malmazuke's replay manifest techniques and UR's existing controller_input adapters; record observed consumed masks, not just intended ones.",
+      "qualification": "One exact USA route with source-logged frame/controller consumption and a fail-closed mismatch case.",
+      "stop": "Do not change input frame offsets merely to make checksum agreement pass."
+    },
+    {
+      "id": "first-divergence",
+      "activation": "now",
+      "lanes": [
+        "release-qa"
+      ],
+      "payoff": "Avoid parallel first-difference implementations and localize QA-01 disagreement using existing trace/checkpoint tools.",
+      "trigger": "A strict original/native event differs in timing or relevant state.",
+      "action": "Use the existing UR checkpoint/first-difference chain first, consulting Baldosa firstdiff and Malmazuke replay methods for bounded improvements.",
+      "qualification": "First relevant divergent writer or state boundary tied to exact source and guest clocks, with unmasked original endpoint.",
+      "stop": "Stale stack/cosmetic differences alone are not gameplay defects or acceptable result waivers."
+    },
+    {
+      "id": "effective-address-access",
+      "activation": "on_blocker",
+      "lanes": [
+        "release-qa"
+      ],
+      "payoff": "Reuse Malmazuke's complete 65816 indirect/stack/RMW decoder rather than individually reconstructing writer addresses for QA-01.",
+      "trigger": "Existing bounded trace cannot identify a NMI/stack or course-state writer and has pre-instruction registers/opcode bytes available.",
+      "action": "Pilot the cohesive MIT-licensed malmazuke access modes/derive plus coverage opcode dependencies read-only on one 3–5-frame original trace; keep UR trace acquisition.",
+      "qualification": "Run upstream ROM-free mode tests plus one real USA trace window, compare sampled effective addresses to existing reference watch results, reject missing register fields.",
+      "stop": "If source trace lacks register inputs, improve the existing capture schema first; never infer PAL/USA semantics from same address."
+    },
+    {
+      "id": "rider-oam-hdma",
+      "activation": "on_blocker",
+      "lanes": [
+        "racer-hd",
+        "widescreen"
+      ],
+      "payoff": "Use Malmazuke's PPU/decode knowledge to select original-source discriminators instead of repeating graphics reconstruction.",
+      "trigger": "2P racer occlusion or top-slot final-color ownership remains unresolved after current original source probes.",
+      "action": "Consult malmazuke PPU, Baldosa visible native renderer and UR original OAM/PPU probes; adapt only a read-only producer or decoder missing from UR.",
+      "qualification": "One original P1/P2 live source-visible test and native final pixel comparison that distinguishes sprite/BG/OBJ ordering.",
+      "stop": "Tile decoding, OAM rectangles or alpha-empty bottom slots do not establish the final visible pixel."
+    },
+    {
+      "id": "dma-entry-provenance",
+      "activation": "on_blocker",
+      "lanes": [
+        "racer-hd"
+      ],
+      "payoff": "Build on existing UR PPU direct-write/DMA lineage and reuse Malmazuke port chronology only for a concrete missing link.",
+      "trigger": "Live 2P source attribution needs a missing original DMA latch/register write or completion observation.",
+      "action": "Extend report_snes9x_dma_entry_provenance.py rather than adding another graphics tracer, using Malmazuke content/provenance as a selective algorithm reference.",
+      "qualification": "Exact original CPU write order, port latch/state and completed transfer contrasted with native output on bounded frames.",
+      "stop": "Descriptor creation or DMA-entry observation alone is not a completed VRAM/OAM/CGRAM transfer."
+    },
+    {
+      "id": "source-name-fanout",
+      "activation": "now",
+      "lanes": [
+        "release-qa",
+        "racer-hd",
+        "baldosa-integration"
+      ],
+      "payoff": "Immediately query all imported Baldosa names and Malmazuke PAL annotations before hand-labeling an address.",
+      "trigger": "A source symbol, CPU address or game-state name is required for a current investigation.",
+      "action": "Run query_upstream_knowledge.py and existing Baldosa crosswalk first; link attributed external names in research notes, and promote only proven canonical concepts.",
+      "qualification": "Source commit and ROM region retained; USA original instruction/state check before any canonical docs/SYMBOLS.md promotion.",
+      "stop": "No global PAL shift, automatic name equivalence or new canonical symbol registry."
+    },
+    {
+      "id": "framework-delta-porting",
+      "activation": "on_blocker",
+      "lanes": [
+        "baldosa-integration",
+        "modern-product"
+      ],
+      "payoff": "Avoid redundant recompiler/emulator fixes when a pinned Baldosa framework delta solves a reproduced issue.",
+      "trigger": "A measured native M/X, clock, PPU or host-runtime failure persists in the exact Baldosa Windows candidate.",
+      "action": "Select a cohesive compatible Baldosa framework patch group using the existing delta inventory; keep an isolated rollback rather than rebasing everything.",
+      "qualification": "Failing reproducer before patch, targeted tests plus current 1P/2P source/state and packaging regression afterward; license reviewed.",
+      "stop": "Never bulk-merge dozens of independent patches or reinterpret existing accepted routes without cause."
+    },
+    {
+      "id": "gate-cache-dependencies",
+      "activation": "on_blocker",
+      "lanes": [
+        "ci"
+      ],
+      "payoff": "Avoid repeated expensive identical tests after a stable acceptance witness exists.",
+      "trigger": "A stable expensive CI gate has reproducible inputs and duplicated runs materially slow real work.",
+      "action": "Pilot Malmazuke's transitive Ninja dependency identity logic read-only against one existing UR gate; compare every relevant source, header, toolchain, fixture and candidate.",
+      "qualification": "Unchanged inputs permit citation in dry-run; actual transitive source/header/fixture/toolchain mutation forces rerun; missing inputs fail closed.",
+      "stop": "Do not enable a CI bypass or cache based only on filenames, SHA of one source or untested dependency closure."
+    },
+    {
+      "id": "tier2-coverage-promotion",
+      "activation": "after_baseline",
+      "lanes": [
+        "baldosa-integration",
+        "release-qa"
+      ],
+      "payoff": "Spend recompilation optimization effort only on actual hot code instead of speculative low-level work.",
+      "trigger": "At least one complete USA original/native event is accepted and a repeatable Baldosa route is available.",
+      "action": "Use existing report_baldosa_tier2_route_coverage.py, then optionally port bounded Baldosa coverage/promote_roots techniques for the measured hot functions.",
+      "qualification": "Before/after route speed and strict accepted original/native gameplay/graphics regression on exact candidate.",
+      "stop": "No speculative framework or opcode promotion before valid real-route performance and parity baseline."
+    },
+    {
+      "id": "differential-fuzzing",
+      "activation": "after_baseline",
+      "lanes": [
+        "release-qa"
+      ],
+      "payoff": "Transfer Malmazuke's seeded differential fuzz discipline to widen course coverage only after the baseline oracle is dependable.",
+      "trigger": "A source-authentic complete USA event is independently accepted in the intended test family.",
+      "action": "Pilot 3–10 reproducible seeds through the existing original/native runner; use the malmazuke seed/shrink strategy, not its PAL native simulator as the oracle.",
+      "qualification": "Seeded replay can reproduce every novel counterexample, distinguishing false positives and source/guest clock models.",
+      "stop": "No broad fuzz campaign on an unaccepted comparison oracle."
+    },
+    {
+      "id": "agent-work-packets",
+      "activation": "now",
+      "lanes": [
+        "baldosa-integration",
+        "modern-product",
+        "release-qa",
+        "racer-hd",
+        "widescreen",
+        "ci"
+      ],
+      "payoff": "Expose shared source/tool opportunities in lane context without making every agent read three entire repositories.",
+      "trigger": "Every fresh agent selects a lane or starts a substantial task.",
+      "action": "Read one bounded lane context and reuse overlay; consult full upstream machinery only for relevant candidate paths, not all 35 rows.",
+      "qualification": "Unit test validates source-backed registry, lane filtering, sorting and nonpromotion; no duplicated live queue authority.",
+      "stop": "Do not replace WORK-QUEUE ownership or accumulate exhaustive intake notes in every prompt."
+    }
+  ]
+}

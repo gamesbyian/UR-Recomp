@@ -2,9 +2,11 @@
 
 **Reconciled 2026-10-11 00:39 UTC (recheck live GitHub for later work):** Baldosa integration and adversarial QA share one playable Windows x64 candidate. This queue owns live work; the [release ledger](RELEASE-QUALITY-LEDGER.json) alone owns gate status. Refresh `main` and PRs before assigning lanes.
 
-**Latest reconciliation:** [October 10–11 handoff](INTEGRATION-RECONCILIATION-20261010.md). #1276/#1287 merged; active media #1251 remains independently owned. Recheck integrated-head QA before promotion.
+**Latest reconciliation:** [October 10–11 handoff](INTEGRATION-RECONCILIATION-20261010.md). #1276/#1287 merged. Recheck live PRs and integrated-head QA before promotion.
 
 **Short-horizon coordination:** [Windows beta quality campaign](WINDOWS-BETA-QUALITY-CAMPAIGN-20261010.md) establishes a seven-day review target, no forced ship date, three non-overlapping agent lanes and player-visible beta criteria. Preserve full technical-reference ambition and independent release QA.
+
+**Before substantial work:** use the three-project reuse preflight in `AGENTS.md`; this does not create a new priority queue.
 
 ## October 10 verified handoff and decision policy
 

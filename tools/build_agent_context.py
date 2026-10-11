@@ -9,6 +9,11 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
+if __package__:
+    from .select_three_project_reuse import REGISTER as REUSE_REGISTER, MATRIX as REUSE_MATRIX, read_json as read_reuse_json, context_hint
+else:
+    from select_three_project_reuse import REGISTER as REUSE_REGISTER, MATRIX as REUSE_MATRIX, read_json as read_reuse_json, context_hint
+
 ROOT = Path(__file__).resolve().parents[1]
 
 def git_text(*args: str) -> str:
@@ -124,6 +129,7 @@ def build_context(config: dict[str, Any], lane: str) -> str:
             entries = matching_json_entries(data, keywords)
             if entries:
                 lines += ["",f"### {path}","","```text",*entries,"```"]
+    lines += ["", context_hint(read_reuse_json(REUSE_REGISTER), read_reuse_json(REUSE_MATRIX), lane)]
     lines += ["","## Admission rule","","Before opening new investigation work, name the decision changed, downstream gate, cheapest discriminator, success condition, and stop condition. Prefer extending shared structured evidence or a parameterized harness over adding a sibling one-off workflow.",""]
     return "\n".join(lines)
 

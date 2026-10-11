@@ -211,6 +211,9 @@ void dump_wide_obj_source() noexcept {
     const char* requested = std::getenv("UR_RACER_HD_WIDE_SOURCE_FRAME");
     const char* additional = std::getenv("UR_RACER_HD_WIDE_SOURCE_EXTRA_FRAME");
     const char* last = std::getenv("UR_RACER_HD_WIDE_SOURCE_LAST_FRAME");
+    // A fourth read-only source snapshot from the same 2P guest route,
+    // after the GO/countdown phase. Do not change/remove any stock OBJ.
+    const char* post_go = std::getenv("UR_RACER_HD_WIDE_SOURCE_POST_GO_FRAME");
     const char* directory = std::getenv("UR_RACER_HD_WIDE_SOURCE_DIR");
     if (!requested || !*requested || !directory || !*directory) return;
     const auto matches_frame = [](const char* value, unsigned frame) noexcept {
@@ -221,7 +224,8 @@ void dump_wide_obj_source() noexcept {
     };
     if (!matches_frame(requested, g_sim_frame) &&
         !matches_frame(additional, g_sim_frame) &&
-        !matches_frame(last, g_sim_frame)) return;
+        !matches_frame(last, g_sim_frame) &&
+        !matches_frame(post_go, g_sim_frame)) return;
     g_wide_probe_dumped = true;  // at most one dump per matching guest frame
 
     char path[1024];

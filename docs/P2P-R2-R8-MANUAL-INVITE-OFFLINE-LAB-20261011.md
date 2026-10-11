@@ -67,3 +67,13 @@ Run `python3 -m unittest tests.unit.test_p2p_manual_invite_v0 -v`. The suite che
 5. Only then offer code/link UX. The deep-link handler may launch the game but must require explicit user approval before any network request, even with a syntactically valid code.
 
 See [research charter](SELF-SUSTAINING-P2P-MULTIPLAYER-RESEARCH.md), [R0 native seam inventory](P2P-R0-NATIVE-SEAM-INVENTORY-20261011.md), and [trusted upstream intake](TRUSTED-UPSTREAM-ADOPTION.md).
+
+## Frozen cross-client vector
+
+`tests/data/p2p-urp0-v0-golden.json` contains a complete static code,
+canonical payload and checksum `1d5ad590813e31a861ad3306`. It is
+non-live, expired test data using IANA documentation prefixes. The unit
+suite independently computes and decodes the exact wire bytes so later
+non-Python implementations can test interoperability. Manual CLI
+`inspect` checks the current time by default; `--at` explicitly opts
+into historical fixture evaluation.

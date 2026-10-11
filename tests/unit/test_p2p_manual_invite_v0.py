@@ -55,6 +55,20 @@ class OfflinePeerInviteTests(unittest.TestCase):
         self.assertEqual(inv.read_code("  " + code + "\n"), data)
         self.assertEqual(inv.make_code(inv.read_code(code)), code)
 
+    def test_frozen_golden_vector(self):
+        # Do not derive expected bytes from the production encoder.
+        fixture = json.loads((ROOT / "tests/data/p2p-urp0-v0-golden.json")
+                             .read_text(encoding="utf-8"))
+        self.assertEqual(fixture["format"], "UNTRUSTED_OFFLINE_URP0")
+        self.assertEqual(fixture["payload"], sample())
+        self.assertEqual(inv.make_code(sample()), fixture["code"])
+        self.assertEqual(inv.read_code(fixture["code"]), fixture["payload"])
+        raw = json.dumps(sample(), sort_keys=True, separators=(",", ":")
+                         ).encode("ascii")
+        self.assertEqual(hashlib.sha256(
+            b"UR-RECOMP-OFFLINE-UNTRUSTED-CONTACT-V0\x00" + raw
+        ).digest()[:12].hex(), fixture["checksum_hex"])
+
     def test_independent_canonical_json_framing(self):
         raw = json.dumps(sample(), sort_keys=True, separators=(",", ":"),
                          ensure_ascii=True).encode("ascii")
@@ -181,6 +195,11 @@ class OfflinePeerInviteTests(unittest.TestCase):
         self.assertEqual(inspected.returncode, 0, inspected.stderr)
         self.assertEqual(json.loads(inspected.stdout)["trust"],
                          "UNAUTHENTICATED_OFFLINE_RESEARCH_ONLY")
+        expired = subprocess.run(
+            [sys.executable, str(MODULE_PATH), "inspect", made.stdout.strip()],
+            text=True, capture_output=True)
+        self.assertEqual(expired.returncode, 2)
+        self.assertIn("not presently valid", expired.stderr)
 
 
 if __name__ == "__main__":

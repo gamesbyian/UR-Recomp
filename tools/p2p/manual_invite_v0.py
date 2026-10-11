@@ -15,6 +15,7 @@ import hmac
 import ipaddress
 import json
 import re
+import time
 from typing import Any
 
 PREFIX = "URP0."
@@ -229,7 +230,10 @@ def main() -> int:
                 fields["reply_to"] = args.reply_to
             print(make_code(fields))
         else:
-            fields = read_code(args.code, now=args.at)
+            # Default to current time: old contact information is not a
+            # presently usable invitation. --at supports historical vectors.
+            fields = read_code(args.code, now=(
+                args.at if args.at is not None else int(time.time())))
             print(json.dumps({"trust": "UNAUTHENTICATED_OFFLINE_RESEARCH_ONLY",
                               "contact": fields}, sort_keys=True, indent=2))
     except InviteError as exc:

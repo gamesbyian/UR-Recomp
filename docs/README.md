@@ -6,6 +6,10 @@
 
 [DESKTOP-POST-RACE-VIDEO.md](DESKTOP-POST-RACE-VIDEO.md) owns the Windows/macOS/Linux Modern **Save Race Video / Discard Video** result feature, evidence-backed capture/export backend choices, concrete resource/latency expectations, playback/job confirmation semantics, and staged acceptance. It is not an implemented feature or a new P0. Existing `COMPLETED-RUN-RECORDS.md`, `COMPLETED-RUN-BROWSER.md` and `MODERN-RESULTS-NAVIGATION.md` retain their separate run/replay/navigation authorities.
 
+## Future online multiplayer preservation contract
+
+[SELF-SUSTAINING-P2P-MULTIPLAYER-RESEARCH.md](SELF-SUSTAINING-P2P-MULTIPLAYER-RESEARCH.md) owns the **deferred** Windows/macOS online-multiplayer research charter: infrastructure-independent cold start and recovery, candidate networking stacks, NAT/volunteer-relay limits, deterministic guest input synchronization, security and bounded experiments. No networking work or release gate is activated by this document; follow the live WORK-QUEUE.
+
 ## Regional presentation effect
 
 The [regional-presentation specification](REGIONAL-PRESENTATION.md) owns the approved directional checkerboard title flip. Its [offline preview and source-calibration runbook](../tools/showcase/REGIONAL-CHECKERBOARD.md) describes reusable media tooling, research provenance and islanding; these do not constitute shipped native presenter behavior.

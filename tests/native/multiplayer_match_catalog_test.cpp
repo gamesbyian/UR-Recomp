@@ -124,6 +124,36 @@ int main() {
     assert(filter_multiplayer_matches_for_course(
         loaded, "course:02").empty());
 
+    // Live and dangling run aliases remain visible as UNAVAILABLE instead
+    // of being read as another archive's valid run, or silently omitted.
+    std::filesystem::create_symlink(
+        valid_path, root / "005-redirected.urrun");
+    std::filesystem::create_symlink(
+        root / "missing-run.urrun", root / "006-dangling.urrun");
+    // A direct run with a symlinked *matching* sidecar must also remain
+    // unavailable: matching bytes outside this directory grant no record.
+    const auto sidecar_alias = root / "007-sidecar-alias.urrun";
+    assert(save_completed_run_record_file(sidecar_alias.string(), valid));
+    const auto real_sidecar =
+        multiplayer_match_record_path_for_run(valid_path.string());
+    const auto aliased_sidecar =
+        multiplayer_match_record_path_for_run(sidecar_alias.string());
+    std::filesystem::create_symlink(real_sidecar, aliased_sidecar);
+    const auto rejected = inspect_multiplayer_match_artifacts(root.string());
+    assert(rejected.size() == 7);
+    assert(rejected[4].status == MultiplayerMatchArtifactStatus::RunUnreadable);
+    assert(rejected[5].status == MultiplayerMatchArtifactStatus::RunUnreadable);
+    assert(rejected[6].status ==
+           MultiplayerMatchArtifactStatus::MatchMissingOrUnreadable);
+    const auto rejected_health =
+        summarize_multiplayer_match_artifact_health(rejected);
+    assert(rejected_health.total_run_artifacts == 7);
+    assert(rejected_health.loaded_pairs == 1);
+    assert(rejected_health.unreadable_runs == 3);
+    assert(rejected_health.unavailable_match_metadata == 2);
+    assert(rejected_health.wrong_mode_runs == 1);
+    assert(load_valid_multiplayer_matches(root.string()).size() == 1);
+
     std::filesystem::remove_all(root);
     return 0;
 }

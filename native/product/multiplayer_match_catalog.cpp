@@ -8,8 +8,14 @@ namespace {
 
 bool is_run_artifact(const std::filesystem::directory_entry& entry) {
     std::error_code ec;
-    if (!entry.is_regular_file(ec) || ec) return false;
-    return entry.path().extension() == ".urrun";
+    // directory_entry::is_regular_file follows links, which would silently
+    // admit a different archive's run. Preserve symlinked .urrun entries
+    // as unavailable evidence rather than loading them or hiding them.
+    const auto status = entry.symlink_status(ec);
+    if (ec) return false;
+    return entry.path().extension() == ".urrun" &&
+        (std::filesystem::is_regular_file(status) ||
+         std::filesystem::is_symlink(status));
 }
 
 }  // namespace
@@ -34,6 +40,19 @@ inspect_multiplayer_match_artifacts(const std::string& directory) {
         InspectedMultiplayerMatchArtifact artifact;
         artifact.run_path = path.string();
 
+        // An archive entry is only authoritative when it is a real file in
+        // this directory, not a live/dangling alias outside the user root.
+        std::error_code file_error;
+        const auto run_status = std::filesystem::symlink_status(
+            path, file_error);
+        if (file_error || !std::filesystem::is_regular_file(run_status) ||
+            std::filesystem::is_symlink(run_status)) {
+            artifact.status = MultiplayerMatchArtifactStatus::RunUnreadable;
+            artifact.detail = "run artifact is not a direct regular file";
+            inspected.push_back(std::move(artifact));
+            continue;
+        }
+
         const auto run = load_completed_run_record_file(artifact.run_path);
         if (!run.loaded()) {
             artifact.status = MultiplayerMatchArtifactStatus::RunUnreadable;
@@ -48,6 +67,23 @@ inspect_multiplayer_match_artifacts(const std::string& directory) {
             continue;
         }
 
+        // Sidecars must also be local direct files. A symlink to another
+        // match (even one whose checksum fits) is not this run's canonical
+        // sibling artifact and must not contribute to match totals.
+        file_error.clear();
+        const auto sidecar_path =
+            multiplayer_match_record_path_for_run(artifact.run_path);
+        const auto sidecar_status = std::filesystem::symlink_status(
+            sidecar_path, file_error);
+        if (file_error ||
+            !std::filesystem::is_regular_file(sidecar_status) ||
+            std::filesystem::is_symlink(sidecar_status)) {
+            artifact.status =
+                MultiplayerMatchArtifactStatus::MatchMissingOrUnreadable;
+            artifact.detail = "match sidecar is not a direct regular file";
+            inspected.push_back(std::move(artifact));
+            continue;
+        }
         const auto match =
             load_multiplayer_match_record_for_run(
                 artifact.run_path, *run.record);

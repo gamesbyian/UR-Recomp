@@ -83,6 +83,22 @@ class ModernNativeCiClassifierTests(unittest.TestCase):
         self.assertTrue(result["onboarding"])
         self.assertTrue(result["ui"])
 
+    def test_router_trigger_is_exact_manifest_union(self):
+        # GitHub should not schedule a classify-only runner for unrelated
+        # tools, references or research. Keep the event prefilter and the
+        # authoritative per-suite classifier in sync.
+        selected = set()
+        for manifest in MANIFESTS.values():
+            selected.update(classifier.load_patterns(manifest))
+        selected.update({
+            ".github/ci/modern-native-*.txt",
+            "tools/classify_modern_native_ci.py",
+        })
+        self.assertEqual(set(workflow_pr_paths(WORKFLOWS / "modern-native-heavy-router.yml")), selected)
+        self.assertFalse(any(pattern in selected for pattern in (
+            "tools/**", "tests/**", "native/**", "analysis/**", "reference/**",
+        )))
+
     def test_unrelated_docs_do_not_select_heavy_suites(self):
         self.assertEqual(
             classifier.classify_paths(["docs/WORK-QUEUE.md"]),

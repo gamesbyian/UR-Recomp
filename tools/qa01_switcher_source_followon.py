@@ -96,6 +96,7 @@ def summarize(states: dict[int, dict]) -> dict:
     # Scan only fresh real active frames *after* the independently qualified
     # source result. A transient in_race=1 one-frame bit flip is insufficient.
     candidates = []
+    nonbinary_race_state_frames = 0
     streak_start, streak_last, streak_track = None, None, None
 
     def flush() -> None:
@@ -118,10 +119,16 @@ def summarize(states: dict[int, dict]) -> dict:
         state = row.get("in_race")
         track = row.get("track")
         menu = row.get("menu")
-        if (type(state) is not int or state not in (0, 1)
+        if (type(state) is not int or not 0 <= state <= 255
                 or type(track) is not int or not 0 <= track <= 255
                 or type(menu) is not int or not 0 <= menu <= 255):
             raise ValueError("malformed original movie in-race/track fields")
+        # 0313 is also timer/scoring scratch: the real 2014 Bowl Stunt
+        # source diagnostic records the value 60. Only 1 is an ordinary
+        # active-race witness; other nonbinary values remain ambiguous,
+        # not a fabricated new race or an impossible original CPU state.
+        if state not in (0, 1):
+            nonbinary_race_state_frames += 1
         active = state == 1
         if active and streak_last == f - 1 and streak_track == track:
             streak_last = f
@@ -141,10 +148,14 @@ def summarize(states: dict[int, dict]) -> dict:
         "observed_post_result_frames": len(frames),
         "post_result_changed_byte_trace_inconclusive_if_empty": len(frames) == 0,
         "minimum_contiguous_active_frames": MIN_STABLE_ACTIVE,
+        "nonbinary_post_result_race_state_frame_count":
+            nonbinary_race_state_frames,
+        "nonbinary_0313_frames_are_ambiguous_timing_or_scratch_not_active_race_proof": True,
         "first_original_source_post_result_active_candidate": first,
         "post_result_candidate_count": len(candidates),
         "bounded_source_only_negative_if_no_candidate":
-            first is None and len(frames) >= MIN_STABLE_ACTIVE,
+            first is None and len(frames) >= MIN_STABLE_ACTIVE
+            and nonbinary_race_state_frames == 0,
         "original_movie_path_is_not_fresh_original_or_native_path": True,
         "candidate_not_proof_of_tour_continuation_or_next_native_event": True,
         "actual_original_native_post_result_entry_comparison": False,

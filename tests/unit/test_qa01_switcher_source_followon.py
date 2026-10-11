@@ -54,6 +54,24 @@ class SwitcherSourceFollowOnTests(unittest.TestCase):
         self.assertFalse(data["actual_original_native_post_result_entry_comparison"])
         self.assertEqual(data["release_complete_event_credit"], 0)
 
+    def test_original_stunt_scratch_0313_is_ambiguous_not_corrupt(self):
+        # Actual executed 2014 Bowl Stunt diagnostic shows 0313==60.
+        # A later Stunt after Switcher could carry that same non-race
+        # meaning, so do not reject the source movie or call it no event.
+        states = source_states(next_length=0)
+        for f in range(17150, 17165):
+            states[f] = {"menu": 0x2F, "track": 4, "in_race": 60}
+        data = walk.summarize(states)
+        self.assertEqual(data["nonbinary_post_result_race_state_frame_count"], 15)
+        self.assertIsNone(data["first_original_source_post_result_active_candidate"])
+        self.assertFalse(data["bounded_source_only_negative_if_no_candidate"])
+        self.assertTrue(data[
+            "nonbinary_0313_frames_are_ambiguous_timing_or_scratch_not_active_race_proof"])
+        self.assertEqual(data["release_complete_event_credit"], 0)
+        states[17151]["in_race"] = 256
+        with self.assertRaises(ValueError):
+            walk.summarize(states)
+
     def test_switcher_rematch_is_not_misidentified_as_new_track(self):
         data = walk.summarize(source_states(next_track=3))
         self.assertTrue(data["first_original_source_post_result_active_candidate"]
@@ -73,7 +91,6 @@ class SwitcherSourceFollowOnTests(unittest.TestCase):
         x = source_states(); x[12327]["in_race"] = True; cases.append(x)
         x = source_states(); x.pop(13000); cases.append(x)
         x = source_states(); x.pop(17100); cases.append(x)
-        x = source_states(); x[17300]["in_race"] = 2; cases.append(x)
         x = source_states(); x[17300]["menu"] = -1; cases.append(x)
         x = source_states(); x[17300]["track"] = "unknown"; cases.append(x)
         for state in cases:

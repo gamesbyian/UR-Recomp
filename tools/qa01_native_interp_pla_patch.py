@@ -12,6 +12,10 @@ from pathlib import Path
 
 STAMP = "UR_QA01_NATIVE_INTERPRETER_PLA_V1"
 INCLUDE = '#include "interp816.h"\n'
+INIT = """  cpu->brkHookEnabled = true;
+  return cpu;
+}
+"""
 PULLBYTE = """static uint8_t interp816_pullByte(Interp816* cpu) {
   cpu->sp++;
   if(cpu->e) cpu->sp = (cpu->sp & 0xff) | 0x100;
@@ -35,7 +39,8 @@ def patch(source: str) -> str:
     if STAMP in source:
         raise ValueError("original native interpreter PLA observer already installed")
     if (source.count(OPCODE) != 1 or source.count(INCLUDE) != 1
-            or source.count(PULLBYTE) != 1):
+            or source.count(PULLBYTE) != 1
+            or source.count(INIT) != 1):
         raise ValueError("pinned interpreter case-68/opcode header absent or ambiguous")
     if source.count("static uint16_t interp816_pullWord(Interp816* cpu) {") != 1:
         raise ValueError("pinned 16-bit interpreter pull implementation absent")
@@ -51,23 +56,31 @@ static unsigned ur_qa01_pla_active = 0;
 static unsigned ur_qa01_pla_read_count = 0;
 static uint16_t ur_qa01_pla_read_addr[2] = {0, 0};
 static uint8_t ur_qa01_pla_read_value[2] = {0, 0};
+static FILE *ur_qa01_interp_pla_output(void) {
+    static int initialized = 0;
+    static FILE *fp = NULL;
+    if (!initialized) {
+        const char *path = getenv("UR_QA_NATIVE_INTERP_PLA_PATH");
+        if (path && path[0]) {
+            fp = fopen(path, "w");
+            if (fp) {
+                setvbuf(fp, NULL, _IONBF, 0);
+                /* A zero-PLA report requires proof the observer started. */
+                fputs("QANATIVEINTPLAREADY\\n", fp);
+            }
+        }
+        initialized = 1;
+    }
+    return fp;
+}
 static void ur_qa01_note_interp_pla(Interp816 *cpu, uint16_t sp0,
                                     uint16_t a0, unsigned m0, unsigned e0) {
     int frame = snes_frame_counter;
     if (frame < 5778 || frame > 5782 ||
         sp0 < 0x01DBu || sp0 > 0x01DDu)
         return;
-    static int initialized = 0;
-    static FILE *fp = NULL;
     static unsigned count = 0;
-    if (!initialized) {
-        const char *p = getenv("UR_QA_NATIVE_INTERP_PLA_PATH");
-        if (p && p[0]) {
-            fp = fopen(p, "w");
-            if (fp) setvbuf(fp, NULL, _IONBF, 0);
-        }
-        initialized = 1;
-    }
+    FILE *fp = ur_qa01_interp_pla_output();
     if (!fp) return;
     if (count == 64) {
         fputs("QANATIVEINTPLAOVERFLOW\n", fp);
@@ -135,7 +148,13 @@ static void ur_qa01_note_interp_pla(Interp816 *cpu, uint16_t sp0,
 """
     if observed_byte.count("interp816_read(cpu, cpu->sp)") != 1:
         raise AssertionError("read-only interpreter byte observation must not double-read")
+    initialized = INIT.replace(
+        "  return cpu;",
+        "  /* Eager observer-ready attestation, even with zero matching PLA. */\\n"
+        "  (void)ur_qa01_interp_pla_output();\\n"
+        "  return cpu;".replace("\\\\n", "\\n"), 1)
     return (source.replace(INCLUDE, INCLUDE + helper, 1)
+                  .replace(INIT, initialized, 1)
                   .replace(PULLBYTE, observed_byte, 1)
                   .replace(OPCODE, before, 1))
 

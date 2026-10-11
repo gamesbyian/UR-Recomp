@@ -13,6 +13,7 @@ import qa01_native_stack_read_report as reads
 
 SCHEMA = "UR-QA01-SWITCHER-NATIVE-INTERPRETER-PLA-SCOPE/1"
 LIMIT = 64
+READY = "QANATIVEINTPLAREADY"
 ROW = re.compile(
     r"^QANATIVEINTPLA f=(\d+) k=([0-9A-F]{2}) pcnext=([0-9A-F]{4})"
     r" sp0=([0-9A-F]{4}) sp1=([0-9A-F]{4})"
@@ -24,12 +25,15 @@ ROW = re.compile(
 
 
 def summarize(log: str) -> dict:
-    if len(log) > 20000 or len(log.splitlines()) > LIMIT:
-        raise ValueError("unbounded original/native Switcher interpreter PLA scope")
+    lines = log.splitlines()
+    if (len(log) > 20000 or len(lines) > LIMIT + 1
+            or not lines or lines[0] != READY
+            or lines.count(READY) != 1):
+        raise ValueError("interpreter scope missing unique initialized observer attestation")
     result = []
     previous_frame = 5778
     previously_armed = False
-    for line in log.splitlines():
+    for line in lines[1:]:
         m = ROW.fullmatch(line)
         if not m:
             raise ValueError("malformed native interpreter PLA or overflow record")
@@ -101,6 +105,7 @@ def summarize(log: str) -> dict:
         "schema": SCHEMA,
         "native_interpreter_pla_records": result,
         "native_interpreter_pla_observation_count": len(result),
+        "native_interpreter_probe_initialized_even_if_no_pla": True,
         "native_interpreter_saved_4004_pla_candidate_count": len(saved_word),
         "native_interpreter_saved_4004_pla_candidate_frames": [
             row["native_snes_frame_counter"] for row in saved_word

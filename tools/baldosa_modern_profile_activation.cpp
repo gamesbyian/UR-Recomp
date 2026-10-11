@@ -320,6 +320,26 @@ extern "C" int ur_baldosa_modern_publish_settled_two_player_match(
     const fs::path second_root = g_native_user_root / second.save_root;
     const fs::path first_state = first_root / "host-profile.txt";
     const fs::path second_state = second_root / "host-profile.txt";
+    // No lockfile creation in a redirected P1/P2 profile directory.
+    // The product's existing per-user root/selector is the only profile
+    // namespace authority. Explicitly reject both live and dangling links
+    // before opening any per-profile lock handles.
+    const auto real_directory = [](const fs::path& path) {
+        std::error_code status_error;
+        const auto status = fs::symlink_status(path, status_error);
+        return !status_error && fs::is_directory(status) &&
+            !fs::is_symlink(status);
+    };
+    const auto real_file = [](const fs::path& path) {
+        std::error_code status_error;
+        const auto status = fs::symlink_status(path, status_error);
+        return !status_error && fs::is_regular_file(status) &&
+            !fs::is_symlink(status);
+    };
+    if (!real_directory(g_native_user_root / "saves") ||
+        !real_directory(first_root) || !real_directory(second_root) ||
+        !real_file(first_state) || !real_file(second_state))
+        return 0;
     TournamentLaunchPathLock selector(
         (g_native_user_root / "host-state-v1.txt").string(), true);
     if (!selector.acquired()) return 0;

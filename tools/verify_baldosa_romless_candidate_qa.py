@@ -351,6 +351,31 @@ def check_runtime_actions_wrapper(
             or not isinstance(reported.get("native_named_readonly_records"), dict)
             or reported["native_named_readonly_records"].get("actual_native_2p_match_published") is not False):
         raise ValueError("Baldosa runtime artifact cannot be admitted as incomplete hosted smoke")
+    history = reported["native_named_readonly_records"]
+    historical_fields = (
+        "canonical_2p_archive_readonly_tabs_checked",
+        "historical_2p_pairs_read",
+        "incomplete_2p_pairs_reported_unavailable",
+        "2p_archive_unchanged_after_guest",
+        "unbound_2p_never_attributed_to_a_record",
+        "no_run_created_by_record_view_or_script_quit",
+    )
+    has_history = any(key in history for key in historical_fields)
+    if has_history:
+        # Do not cherry-pick a reassuring count from an incomplete report:
+        # every safety qualifier must be present and consistent.
+        if (any(key not in history for key in historical_fields)
+                or any(history[key] is not True for key in (
+                    "canonical_2p_archive_readonly_tabs_checked",
+                    "2p_archive_unchanged_after_guest",
+                    "unbound_2p_never_attributed_to_a_record",
+                    "no_run_created_by_record_view_or_script_quit",
+                ))
+                or any(type(history[key]) is not int
+                       or not 0 <= history[key] <= 10000
+                       for key in ("historical_2p_pairs_read",
+                                   "incomplete_2p_pairs_reported_unavailable"))):
+            raise ValueError("hosted 2P read-only Records report has missing or contradictory safety claims")
     for players, log, field in (
         (1, log1, "modern_root_race_entry_p1"),
         (2, log2, "modern_root_race_entry_p2"),
@@ -392,6 +417,15 @@ def check_runtime_actions_wrapper(
     )
     candidate["metrics"]["hosted_1p_stock_entry_observed"] = True
     candidate["metrics"]["hosted_2p_stock_entry_observed"] = True
+    candidate["metrics"]["historical_2p_records_readonly_observed"] = has_history
+    if has_history:
+        candidate["metrics"]["historical_2p_pairs_read"] = history["historical_2p_pairs_read"]
+        candidate["metrics"]["incomplete_2p_pairs_unavailable"] = (
+            history["incomplete_2p_pairs_reported_unavailable"]
+        )
+        candidate["assertions"].append(
+            assertion("hosted-historical-2p-records-visible-without-mutation-or-publication", True)
+        )
     candidate["metrics"]["finished_native_event_or_new_match_observed"] = False
     candidate["metrics"]["physical_gamepad_hardware_verified"] = False
     return candidate

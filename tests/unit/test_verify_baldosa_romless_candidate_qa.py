@@ -264,6 +264,42 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
             crlf = qa.check_runtime_actions_wrapper(evidence, qa.audit(inner, source, digest))
             self.assertTrue(crlf["metrics"]["hosted_1p_stock_entry_observed"])
 
+            # Newer Win32 reports may prove read-only *historical*
+            # Records visibility. Require a complete set of nonmutation
+            # qualifiers rather than admitting cherry-picked counters.
+            prior_history = report["native_named_readonly_records"]
+            safe_history = {
+                "actual_native_2p_match_published": False,
+                "canonical_2p_archive_readonly_tabs_checked": True,
+                "historical_2p_pairs_read": 1,
+                "incomplete_2p_pairs_reported_unavailable": 1,
+                "2p_archive_unchanged_after_guest": True,
+                "unbound_2p_never_attributed_to_a_record": True,
+                "no_run_created_by_record_view_or_script_quit": True,
+            }
+            reported_history = {**report, "native_named_readonly_records": safe_history}
+            pack(one, two, reported_history)
+            good_history = qa.check_runtime_actions_wrapper(
+                evidence, qa.audit(inner, source, digest),
+            )
+            self.assertTrue(good_history["metrics"]["historical_2p_records_readonly_observed"])
+            self.assertEqual(good_history["metrics"]["historical_2p_pairs_read"], 1)
+            self.assertFalse(good_history["metrics"]["finished_native_event_or_new_match_observed"])
+            for change in (
+                {"2p_archive_unchanged_after_guest": False},
+                {"unbound_2p_never_attributed_to_a_record": False},
+                {"no_run_created_by_record_view_or_script_quit": False},
+                {"historical_2p_pairs_read": -1},
+                {"historical_2p_pairs_read": True},
+            ):
+                with self.subTest(change=change):
+                    damaged = {**safe_history, **change}
+                    pack(one, two, {**report, "native_named_readonly_records": damaged})
+                    with self.assertRaisesRegex(ValueError, "missing or contradictory safety claims"):
+                        qa.check_runtime_actions_wrapper(
+                            evidence, qa.audit(inner, source, digest),
+                        )
+            report["native_named_readonly_records"] = prior_history
             changed = {**report, "exe_sha256": "0" * 64}
             pack(one, two, changed)
             with self.assertRaisesRegex(ValueError, "tested executable"):

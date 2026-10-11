@@ -50,3 +50,21 @@ distinct profiles, select the corresponding original stock riders, race
 to a genuine title result, produce a newly canonical pair, and show the
 selected winner/loser after a **fresh Windows process** loads the same
 archive. This must be recorded in the independent release ledger.
+
+## Bounded, named two-seat native Windows handoff route
+
+The existing named Records Windows route now exercises a third fresh
+process, after the canonical fixture registers a separate initialized
+P2 profile and selects its real SRAM. A test-only semantic edge invokes
+the **same production** root P1/P2 gamepad callbacks once for each seat
+(mode `UR_BALDOSA_MODERN_ROOT_KEY_SMOKE=3`). The runner requires ordered
+named-profile activation, explicit P1 and P2 confirmations, the already
+owned stock request, and the **actual original guest** stock 0x3D
+transition. Both historical run+match archives must remain byte-identical
+after the process exits.
+
+This narrow smoke only proves that the compiled host, verified profile
+picker, acknowledged guest menu and paired-record nonpublication agree
+on the route. It does not synthesize a finish, claim a live match result,
+test a physical joystick device, or waive independent Windows
+controller/stock-rider/fresh-process Records acceptance.

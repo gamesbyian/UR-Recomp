@@ -608,12 +608,32 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     }
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
     if (!g_visible || !opt || (std::strcmp(opt, "1") != 0 &&
-                             std::strcmp(opt, "2") != 0)) return;
+                             std::strcmp(opt, "2") != 0 &&
+                             std::strcmp(opt, "3") != 0)) return;
+    // Mode 3 is a deliberately TEST-ONLY synthetic gamepad semantic
+    // injection, not an SDL hardware controller or guest memory write.
+    // All stock menu transitions still occur inside the original guest.
+    // The real direct gamepad entrypoints and physical-edge latches are
+    // exercised; exact real-device routing needs independent QA later.
+    if (std::strcmp(opt, "3") == 0 && (frame == 66 || frame == 68)) {
+        if (!g_two_seat_join.open()) std::abort();
+        const int player = frame == 66 ? 0 : 1;
+        if (!ur_baldosa_modern_root_gamepad(
+                player, kGamepadBtn_A, 1) ||
+            !ur_baldosa_modern_root_gamepad(
+                player, kGamepadBtn_A, 0))
+            std::abort();
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT synthetic_join_edge seat=%d\n",
+            player + 1);
+        return;
+    }
     int key = 0;
     // In mode 1 open and switch 1P/2P read-only Records pages using
     // real SDL key edges, then close and enter 1P. Mode 2 proves the
     // actual stock 2P handoff.
-    if (std::strcmp(opt, "2") == 0) {
+    if (std::strcmp(opt, "2") == 0 ||
+        std::strcmp(opt, "3") == 0) {
         if (frame == 60 || frame == 62) key = SDLK_DOWN;
         else if (frame == 64) key = SDLK_RETURN;
     } else {

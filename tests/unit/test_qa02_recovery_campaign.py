@@ -146,6 +146,9 @@ class RecoveryCohortContractTests(unittest.TestCase):
         self.assertIn("qa02_recovery_campaign.py run", wf)
         self.assertIn("qa02_recovery_campaign.py aggregate", wf)
         self.assertIn("if: always()", wf)
+        self.assertIn("name: qa02-store-fixture-shared-binary", wf)
+        self.assertNotIn("qa02-recovery-shared-binary", wf)
+        self.assertIn("pattern: qa02-recovery-*", wf)
         self.assertNotIn("recovery-work/trial-", wf)  # no real private roots uploaded
         self.assertIn("release_gate_credit", (ROOT / "tools/qa02_recovery_campaign.py").read_text())
 

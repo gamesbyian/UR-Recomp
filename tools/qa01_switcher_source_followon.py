@@ -70,7 +70,7 @@ def summarize(states: dict[int, dict]) -> dict:
     # The original changed-byte trace decoder expands every intervening
     # frame. A sparse splice cannot masquerade as an unbroken movie path.
     if (0 not in states
-            or any(f not in states for f in range(ENTRY, RESULT + 2))):
+            or any(f not in states for f in range(ENTRY, RESULT + 1))):
         raise ValueError("missing original full entry-to-result source frame continuity")
     entered = states.get(ENTRY)
     if (not isinstance(entered, dict) or type(entered.get("track")) is not int

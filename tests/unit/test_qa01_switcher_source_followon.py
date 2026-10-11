@@ -54,6 +54,15 @@ class SwitcherSourceFollowOnTests(unittest.TestCase):
         self.assertFalse(data["actual_original_native_post_result_entry_comparison"])
         self.assertEqual(data["release_complete_event_credit"], 0)
 
+    def test_source_frames_missing_before_result_fail_but_no_future_change_is_allowed(self):
+        states = source_states(next_length=0)
+        clipped = {f: row for f, row in states.items() if f <= walk.RESULT}
+        self.assertTrue(walk.summarize(clipped)[
+            "post_result_changed_byte_trace_inconclusive_if_empty"])
+        clipped.pop(walk.RESULT - 1)
+        with self.assertRaisesRegex(ValueError, "continuity"):
+            walk.summarize(clipped)
+
     def test_original_stunt_scratch_0313_is_ambiguous_not_corrupt(self):
         # Actual executed 2014 Bowl Stunt diagnostic shows 0313==60.
         # A later Stunt after Switcher could carry that same non-race

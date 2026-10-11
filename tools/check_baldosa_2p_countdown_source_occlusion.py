@@ -81,6 +81,18 @@ def verified_frame(root: Path, frame: int) -> dict:
         }
     if masks["upper"] & masks["lower"]:
         raise ValueError("original OBJ bands overlap unexpectedly")
+    # Count every stock Original RGB match to the visually observed
+    # countdown-blue colour, not only those inside racer source alpha.
+    # This is a temporal colour mask, emphatically not an OBJ/BG owner mask.
+    full_blue = bytes(
+        int(original[at:at + 3] == bytes(COUNTDOWN_RGB))
+        for at in range(0, len(original), 4))
+    blue_points = [pos for pos, flag in enumerate(full_blue) if flag]
+    if not blue_points:
+        raise ValueError("native Original raster has no countdown-blue pixels")
+    blue_x = [pos % WIDTH for pos in blue_points]
+    blue_y = [pos // WIDTH for pos in blue_points]
+    blue_bbox = [min(blue_x), min(blue_y), max(blue_x), max(blue_y)]
     by_band = {}
     for band, mask in masks.items():
         if not mask:
@@ -101,6 +113,9 @@ def verified_frame(root: Path, frame: int) -> dict:
         "guest_frame": frame,
         "original_unmodified_342x224_sha256": stock_digest,
         "verified_independent_slot_sources": 4,
+        "full_original_blue_rgb_mask_sha256": hashlib.sha256(full_blue).hexdigest(),
+        "full_original_blue_rgb_pixel_count": len(blue_points),
+        "full_original_blue_rgb_bbox": blue_bbox,
         "per_slot": per_slot,
         "source_union_by_raster_band": by_band,
     }
@@ -110,6 +125,16 @@ def assess(root: Path) -> dict:
     frames = {str(frame): verified_frame(root, frame) for frame in FRAMES}
     if len({r["original_unmodified_342x224_sha256"] for r in frames.values()}) != 3:
         raise ValueError("not three distinct complete Original moving frames")
+    # The blue "2" spans an identical set of native Original raster pixels
+    # while real moving racer source planes change underneath it.
+    if (frames["1872"]["full_original_blue_rgb_mask_sha256"] !=
+            frames["1888"]["full_original_blue_rgb_mask_sha256"] or
+            frames["1872"]["full_original_blue_rgb_pixel_count"] !=
+                frames["1888"]["full_original_blue_rgb_pixel_count"]):
+        raise ValueError("native full-frame countdown blue overlay mask changed across moving 2P frames")
+    if (frames["1856"]["full_original_blue_rgb_mask_sha256"] ==
+            frames["1872"]["full_original_blue_rgb_mask_sha256"]):
+        raise ValueError("pre-countdown and covered original blue masks incorrectly identical")
     for frame in FRAMES:
         row = frames[str(frame)]
         lower = row["source_union_by_raster_band"]["lower"]
@@ -131,6 +156,8 @@ def assess(root: Path) -> dict:
         "source_slot_per_view": {"upper": [98, 99], "lower": [96, 97]},
         "original_logical_raster": [WIDTH, HEIGHT],
         "countdown_2_uniform_rgb": list(COUNTDOWN_RGB),
+        "countdown_2_blue_final_mask_temporally_equal_1872_1888": True,
+        "source_slot_rgb_and_alpha_changed_while_blue_mask_constant": True,
         "per_original_frame": frames,
         "foreground_numeral_source_layer_proven": False,
         "per_source_final_ppu_causality_proven": False,

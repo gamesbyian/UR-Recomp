@@ -110,13 +110,13 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             # Separately nominated commit/inner-ZIP hash must bind the
             # offline verifier to the exact tested release candidate.
             exact_zip = hashlib.sha256(archive.read_bytes()).hexdigest()
-            pinned = cmd + [
+            pinned = cmd[:-1] + [
+                str(root / "approved pinned candidate extraction"),
                 "-ExpectedSourceSha", "1" * 40,
                 "-ExpectedZipSha256", exact_zip,
             ]
             pinned_result = subprocess.run(
-                pinned[:-1] if False else pinned, capture_output=True, text=True,
-                check=False,
+                pinned, capture_output=True, text=True, check=False,
             )
             self.assertEqual(pinned_result.returncode, 0,
                              pinned_result.stdout + pinned_result.stderr)

@@ -1,0 +1,68 @@
+name: One-shot verified recruitment reveals
+
+on:
+  push:
+    branches:
+      - media/definitive-reveal-comparison-20261010
+    paths:
+      - .github/workflows/one-shot-recruitment-reveal-20261010.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: one-shot-recruitment-reveal
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Verify available media tools
+        run: |
+          ffmpeg -hide_banner -version | head -n 1
+          ffprobe -hide_banner -version | head -n 1
+          python3 -V
+      - name: Render real-source reveal and same-capture comparison
+        run: |
+          set -euo pipefail
+          root=media/showcase/2026-10-10/recruitment
+          python3 tools/showcase/build_definitive_reveal.py \
+            --race "$root/continuous/ur-native-2p-clean-600f.mp4" \
+            --manifest "$root/continuous/native-continuous-provenance.json" \
+            --outdir "$root/presentation-edits"
+      - name: Validate delivery and annotate source limitations
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, pathlib, subprocess
+          folder=pathlib.Path("media/showcase/2026-10-10/recruitment/presentation-edits")
+          manifest=json.loads((folder/"presentation-provenance.json").read_text())
+          assert manifest["no_temporal_interpolation"] is True
+          assert manifest["comparison"]["independent_original_capture"] is False
+          assert manifest["comparison"]["independent_guest_wram_state_comparison"] is False
+          for segment,expected in (("reveal",420),("comparison",300)):
+              path=folder/manifest[segment]["file"]
+              streams=json.loads(subprocess.check_output([
+                "ffprobe","-v","error","-count_frames","-select_streams","v:0",
+                "-show_entries","stream=width,height,nb_read_frames,r_frame_rate",
+                "-of","json",str(path)]))["streams"]
+              assert len(streams)==1
+              s=streams[0]
+              assert (s["width"],s["height"],s["r_frame_rate"],int(s["nb_read_frames"])) == (1920,1080,"60/1",expected)
+              print(segment,expected,manifest[segment]["sha256"])
+          assert len(manifest["review_frame_sha256"])==6
+          PY
+      - name: Publish exactly the verified media and remove one-shot workflow
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add media/showcase/2026-10-10/recruitment/presentation-edits/
+          git rm -f .github/workflows/one-shot-recruitment-reveal-20261010.yml
+          git commit -m "media: publish verified reveal and same-capture comparison; retire one-shot workflow"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

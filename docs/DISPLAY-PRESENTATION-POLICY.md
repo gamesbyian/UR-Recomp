@@ -23,7 +23,7 @@ Treat these as independent coordinates:
 3. **Logical view** — how much game world is intentionally exposed, such as Original, 16:9, ultrawide, or Adaptive.
 4. **Overscan / safe area** — which logical rows or margins are intentionally shown or cropped.
 5. **Graphics representation** — Original, Remastered, or Reimagined presentation assets.
-6. **Filtering / display treatment** — nearest/raw, optional CRT/NTSC reconstruction, and later curated scalers.
+6. **Filtering / display treatment** — nearest/raw, optional CRT/NTSC reconstruction, and later curated scalers. DKC2-style Reconstruct/xBR/ScaleFX candidate results belong here as final-composite hypotheses, not as replacement Racer-HD art. The bounded comparison is in [HD-UPSCALING-EXPERIMENT-PLAN.md](HD-UPSCALING-EXPERIMENT-PLAN.md); current product filtering remains the existing validated path until separately accepted.
 7. **Output resolution** — host framebuffer/window/display resolution.
 8. **Presentation cadence** — host refresh/FPS policy, independent of authoritative simulation cadence.
 

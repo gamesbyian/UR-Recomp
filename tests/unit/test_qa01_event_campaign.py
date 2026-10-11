@@ -170,6 +170,44 @@ class QA01CampaignTest(unittest.TestCase):
         c.write_json(target, record)
         self.assertFalse(c.aggregate(plan, out)[0]["transport_complete"])
 
+    def test_producer_failure_has_real_error_and_fails_case_job(self):
+        plan = self.plan("bowl")
+        log = self.root / "producer.log"
+        log.write_text(
+            "source prior output\n"
+            "/tmp/native: error while loading shared libraries: "
+            "libOpenGL.so.0: cannot open shared object file\n")
+        result = c.classify("bowl", 1, self.root / "absent.json", plan, log)
+        self.assertEqual(result["disposition"], "producer_error")
+        self.assertEqual(result["release_credit"], 0)
+        self.assertIn("libOpenGL.so.0", result["reason"])
+        self.assertLess(len(result["reason"]), 420)
+        log.write_text("Traceback (most recent call last):\n"
+                       "__main__.CompleteEventError: "
+                       "source movie never demonstrated this course/result pair\n")
+        result = c.classify("bowl", 1, self.root/"absent.json", plan, log)
+        self.assertIn("source movie never demonstrated", result["reason"])
+        plan_path = self.root / "plan.json"
+        output = self.root / "case-result.json"
+        c.write_json(plan_path, plan)
+        args = [sys.executable, str(ROOT / "tools/qa01_event_campaign.py"),
+                "classify", "--plan", str(plan_path),
+                "--case", "bowl", "--producer-exit", "1",
+                "--producer-report", str(self.root / "absent.json"),
+                "--producer-log", str(log), "--out", str(output)]
+        proc = subprocess.run(args, capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 1, proc.stderr)
+        self.assertIn("source movie never demonstrated",
+                      json.loads(output.read_text())["reason"])
+        # Scientific negative is a valid experiment and must remain a
+        # green transport even though it cannot pass QA-01.
+        producer_path = self.report_file("bowl")
+        args[args.index(str(self.root / "absent.json"))] = str(producer_path)
+        proc = subprocess.run(args, capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(json.loads(output.read_text())["disposition"],
+                         "strict_divergence")
+
     def test_cli_aggregate_exit_status_and_plan_roundtrip(self):
         plan = self.plan("bowl")
         plan_path = self.root / "plan.json"
@@ -205,6 +243,10 @@ class QA01CampaignTest(unittest.TestCase):
         self.assertEqual(workflow.count("bootstrap_toolchain.py --offline --tool snes9x-libretro"), 1)
         self.assertIn("tools/probe_original_event_complete.py", workflow)
         self.assertIn("tools/qa01_event_campaign.py aggregate", workflow)
+        self.assertIn("libopengl0", workflow)
+        self.assertIn("ldd \"$RUNNER_TEMP/qa01-binaries/native\"", workflow)
+        self.assertIn("--producer-log \"$ROOT/producer.log\"", workflow)
+        self.assertIn('exit "$case_rc"', workflow)
         self.assertNotIn("contents: write", workflow)
 
 

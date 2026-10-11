@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "status": "recovered-authentic-native-ppu-two-slot-removal-zero-final-difference",
+  "native_guest_frame": 1872,
+  "original_2p_route": "baldosa/tests/routes/race_2p_split.txt",
+  "expected_full_guest_crc_entries_per_native_route": 2473,
+  "native_full_baldosa_aot_run_id": 38117375415,
+  "native_full_baldosa_aot_artifact_id": 11694242433,
+  "native_workflow_conclusion": "failure",
+  "failure_cause": "checker demanded 5447 one-player CRC records; authentic 2P route has 2473; guest execution and stock-vs-counterfactual CRC cmp passed",
+  "corrected_checker_commit": "164ca851815300f596e1aad382cc38360f13b2da",
+  "actual_native_pair_removed": [
+    96,
+    97
+  ],
+  "exactly_one_native_ppu_removal_arm_marker": "UR_RACER_HD_WIDE_REMOVE_PAIR frame=1872 slots=96-97 status=armed guest_unchanged=1",
+  "stock_native_source_full_raster": [
+    342,
+    224
+  ],
+  "stock_full_original_rgba_sha256": "bdc3b13d2129e7fd7a20f4cf00539fc2976ba1b028f76386a395e6fdef4e2f2b",
+  "paired_deletion_full_original_rgba_sha256": "bdc3b13d2129e7fd7a20f4cf00539fc2976ba1b028f76386a395e6fdef4e2f2b",
+  "source96_original_rgba_sha256": "cf2bbaa6cd29d34d97bb1ce7c111c47cafb27a97f84f78f8cf08e7e8d00f4ce1",
+  "source97_original_rgba_sha256": "29366b09277478d4f73a1971a3fdbadd0f56720949551a9e95551ca3ce7a2ad8",
+  "source96_original_alpha_pixels": 330,
+  "source97_original_alpha_pixels": 325,
+  "emitted_source_alpha_sum_counting_pair_overlap_twice": 655,
+  "distinct_original_source_coordinates": 411,
+  "overlapping_original_source_coordinates": 244,
+  "distinct_original_source_coordinates_covered_by_final_blue": 411,
+  "final_original_countdown_rgb": [
+    57,
+    57,
+    255
+  ],
+  "final_original_changed_rgba_pixels_on_pair_deletion": 0,
+  "final_original_changed_outside_emitted_original_source": 0,
+  "whole_original_rgba_byte_exact_identical": true,
+  "stock_vs_pair_guest_crc_cmp_in_native_workflow_passed": true,
+  "source96_97_native_source_report_status": "passed",
+  "corrected_native_checker_exact_head_accepted": false,
+  "cause_of_foreground_paint_layer_established": false,
+  "safe_to_erase_stock_2p_racers_in_host": false,
+  "authorized_hd_widescreen_or_4x_art": false,
+  "bounded_scope": "Genuine original PPU 2P guest1872 only. Neither general frame temporal visibility nor authoritative BG/window/OBJ ownership nor source erasure in shipping graphics is inferred."
+}

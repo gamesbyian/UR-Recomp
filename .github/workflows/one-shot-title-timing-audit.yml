@@ -1,0 +1,69 @@
+name: One-shot original native title frame visibility audit
+on:
+  push:
+    branches: [media/definitive-trailer-assembly-20261010]
+    paths: [.github/workflows/one-shot-title-timing-audit.yml]
+permissions:
+  contents: write
+concurrency:
+  group: ur-title-timing-audit
+  cancel-in-progress: false
+jobs:
+  timeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install source video decoder
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg python3-pil
+      - name: Decode verified original title source at 23 true ordinals
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from PIL import Image,ImageDraw,ImageFont,ImageStat
+          from pathlib import Path
+          import hashlib,subprocess,json,math,tempfile
+          source=Path("media/showcase/2026-10-10/recruitment/native-menu/ur-native-title-menu-900f.mp4")
+          sha=hashlib.sha256(source.read_bytes()).hexdigest()
+          assert sha=="d58e0b0e20226981767dc1c33e0f34d9652e8ecdb6aa97bd914f7d6ddf0f61d3"
+          frames=[60,120,180,210,240,270,285,300,315,330,345,360,375,390,405,420,435,450,465,480,510,540,570,600,630]
+          with tempfile.TemporaryDirectory() as tmp:
+            file=Path(tmp)/"source-%02d.png"
+            expr="+".join(f"eq(n\\,{v})" for v in frames)
+            subprocess.run(["ffmpeg","-nostdin","-hide_banner","-loglevel","error","-y","-i",str(source),
+              "-vf",f"select={expr},scale=320:180","-vsync","vfr","-frames:v",str(len(frames)),"-start_number","0",str(file)],check=True)
+            width=5*330;height=math.ceil(len(frames)/5)*220
+            sheet=Image.new("RGB",(width,height),(10,16,30))
+            painter=ImageDraw.Draw(sheet)
+            audit=[]
+            for i,ordinal in enumerate(frames):
+              path=Path(tmp)/f"source-{i:02d}.png"
+              with Image.open(path) as im: im=im.convert("RGB")
+              mean=ImageStat.Stat(im).mean
+              threshold=sum((r+g+b)>80 for r,g,b in im.resize((160,90)).getdata())/(160*90)
+              x=(i%5)*330+5;y=(i//5)*220+5
+              sheet.paste(im,(x,y+25))
+              painter.text((x+2,y),f"ordinal {ordinal:03d}  guest {ordinal+30:03d}",fill=(255,255,255))
+              painter.text((x+2,y+207),f"lit={threshold:.2f} rgb={sum(mean)/3:.0f}",fill=(200,210,225))
+              audit.append({"source_ordinal":ordinal,"guest_frame":ordinal+30,"rgb_mean":[round(v,2) for v in mean],"fraction_visible_brightness":round(threshold,4)})
+            out=Path("media/showcase/2026-10-10/recruitment/final-approval")
+            out.mkdir(parents=True,exist_ok=True)
+            poster=out/"original-native-title-timing-contact-sheet.png"
+            sheet.save(poster,optimize=True)
+            (out/"original-native-title-timing-audit.json").write_text(json.dumps({
+              "schema":"UR-TITLE-EDIT-ORDINAL-IDENTITY/1","source_sha256":sha,
+              "note":"25 genuine ordinal-decoded frames, downsized ONLY for diagnostic contact sheet, no invented guest art",
+              "frames":audit},indent=2)+"\n")
+          print("SOURCE_TITLE_TIMING_VISIBILITY",[(x["source_ordinal"],x["fraction_visible_brightness"]) for x in audit])
+          PY
+      - name: Publish audit and retire short-lived workflow
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add media/showcase/2026-10-10/recruitment/final-approval/original-native-title-timing-*
+          git rm -f .github/workflows/one-shot-title-timing-audit.yml
+          git commit -m "media: audit original title visibility before final cut selection"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

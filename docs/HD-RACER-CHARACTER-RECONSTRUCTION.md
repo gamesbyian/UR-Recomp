@@ -42,6 +42,17 @@ Reference index (link to original source, record capture date and usage rights; 
 
 Before calling a reference "the source model", annotate image origin, artist/region, frame/context, view angle, likely exaggeration/foreshortening, and what features it can actually prove. The North American cover is illustrative packaging credited to David Harto, not an authenticated render of Martin Good's source 3D mesh.
 
+## Relation to community upscaling experiments
+
+The reviewed external methods in [HD-UPSCALING-EXPERIMENT-PLAN.md](HD-UPSCALING-EXPERIMENT-PLAN.md) are intended to **feed this character reconstruction**, never override its visual-identity review:
+
+- **Wave Race 64:** reuse the discipline of coherent assembled images/atlases, exact mappings, provenance, reviewed generation, and deterministic extraction. For this SNES racer, the corresponding semantic unit is a **whole character + registered neighboring poses**, ideally derived from one canonical rig rather than N64 texture fragments.
+- **Real-ESRGAN/chaiNNer and constrained generation:** restoration/look-development/paintover proposals from official large-scale references and *newly validated model geometry*, with tracked model/weights, rights and settings. A stylized hallucination inconsistent in saddle/wheel/fork proportions or across motion is rejected regardless of pixel quality.
+- **DKC2Recomp Reconstruct, Slang xBR/ScaleFX and F-Zero-like display presets:** Original/fallback and optional postcomposite comparison; these cannot discover a missing 3D racer model or certify the new Remastered character.
+- **Existing project assets:** reuse our source-specific alpha/pose/OAM/temporal masks, exact frame captures, deterministic palette transformations and `tools/art/validate_upscale_trials.py`. Extend the validated provenance records to name the canonical blockout/camera and reference views when needed; retain old approved art/hashes only as technical controls.
+
+Recommended first acceptance artifact: one contact sheet and **side + expressive-pose short loop** with four aligned columns (original high-detail source reference where available; raw gameplay sprite; old C++ 4× technical baseline; geometry-rebuilt candidate). Evaluate both enlarged and normal gameplay/split-screen sizes. The project owner must approve **likeness** separately from byte-exact mechanics. Do not treat a model output or smooth shader as a substitute for that approval.
+
 ## Required workflow
 
 1. **Freeze promotions, not the pipeline.** Existing 4× drawings remain reversible comparison and engineering fixtures; preserve their exact hashes, ROM registration, runtime fallbacks, coverage data and prior reviews. Do not rewrite historical `approved` records to pretend the original reviewer didn't approve them. Their **character-likeness visual sign-off is now explicitly withheld** in this current authority.

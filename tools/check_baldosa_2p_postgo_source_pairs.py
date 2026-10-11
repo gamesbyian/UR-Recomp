@@ -22,68 +22,87 @@ except ModuleNotFoundError:
 
 FRAME = 2208
 SLOT_PAIRS = ((98, 97), (99, 96))
-SPLIT_DELTA_Y = 113
+PRERACE_REFERENCE_SHIFT_XY = [0, 113]  # observed before GO, not a post-GO rule
 MIN_UNCHANGED_STOCK_FRAMES = 7
 
 
-def compare(upper: bytes, lower: bytes) -> dict:
-    if len(upper) != WIDTH * HEIGHT * 4 or len(lower) != len(upper):
-        raise ValueError("authentic complete 342x224 PPU source planes required")
-    top_count = bottom_count = differing_alpha = differing_rgba = 0
-    examples = []
-    for y in range(HEIGHT - SPLIT_DELTA_Y):
+def occupied_rgba(data: bytes) -> dict[tuple[int, int], bytes]:
+    if len(data) != WIDTH * HEIGHT * 4:
+        raise ValueError("authentic complete 342x224 PPU source plane required")
+    pixels = {}
+    for y in range(HEIGHT):
         for x in range(WIDTH):
-            a = 4 * (y * WIDTH + x)
-            b = 4 * ((y + SPLIT_DELTA_Y) * WIDTH + x)
-            ua, la = upper[a + 3] != 0, lower[b + 3] != 0
-            top_count += ua
-            bottom_count += la
-            mismatch_alpha = ua != la
-            mismatch_rgb = ua and la and upper[a:a + 4] != lower[b:b + 4]
-            differing_alpha += mismatch_alpha
-            differing_rgba += mismatch_alpha or mismatch_rgb
-            if (mismatch_alpha or mismatch_rgb) and len(examples) < 12:
-                examples.append({
-                    "upper_xy": [x, y],
-                    "lower_xy": [x, y + SPLIT_DELTA_Y],
-                    "upper_rgba": list(upper[a:a + 4]) if ua else [0, 0, 0, 0],
-                    "lower_rgba": list(lower[b:b + 4]) if la else [0, 0, 0, 0],
-                })
-    # y111 cannot be matched to a +113 target within 224 rows, and
-    # lower y112 cannot come from the upper nonnegative source raster.
-    upper_unpaired = sum(upper[4 * (111 * WIDTH + x) + 3] != 0
-                         for x in range(WIDTH))
-    lower_unpaired = sum(lower[4 * (112 * WIDTH + x) + 3] != 0
-                         for x in range(WIDTH))
-    upper_wrong_band = sum(upper[4 * (y * WIDTH + x) + 3] != 0
-                           for y in range(112, HEIGHT)
-                           for x in range(WIDTH))
-    lower_wrong_band = sum(lower[4 * (y * WIDTH + x) + 3] != 0
-                           for y in range(112)
-                           for x in range(WIDTH))
-    observed_alias = (
-        top_count > 0 and top_count == bottom_count and
-        differing_rgba == 0 and upper_unpaired == 0 and
-        lower_unpaired == 0 and upper_wrong_band == 0 and
-        lower_wrong_band == 0
-    )
+            at = 4 * (y * WIDTH + x)
+            if data[at + 3]:
+                pixels[(x, y)] = data[at:at + 4]
+    return pixels
+
+
+def compare(upper: bytes, lower: bytes) -> dict:
+    """Infer *candidate* full-source translation from independent alpha bboxes.
+
+    Exact translation implies identical source alpha geometry including
+    the translated bbox, so its minX/minY delta is necessary and unique.
+    Then verify every occupied source RGBA and all support coordinates;
+    do not assume the earlier countdown (0,+113) offset persists after GO.
+    """
+    top = occupied_rgba(upper)
+    bottom = occupied_rgba(lower)
+    top_wrong_band = sum(y >= HEIGHT // 2 for _, y in top)
+    bottom_wrong_band = sum(y < HEIGHT // 2 for _, y in bottom)
+    delta = None
+    differences = []
+    different_alpha = different_rgba = 0
+    if top and bottom:
+        dx = min(x for x, _ in bottom) - min(x for x, _ in top)
+        dy = min(y for _, y in bottom) - min(y for _, y in top)
+        delta = [dx, dy]
+        shifted = {(x + dx, y + dy): rgba for (x, y), rgba in top.items()}
+        missing_up = shifted.keys() - bottom.keys()
+        missing_bottom = bottom.keys() - shifted.keys()
+        different_alpha = len(missing_up) + len(missing_bottom)
+        shared = shifted.keys() & bottom.keys()
+        different_rgba = sum(shifted[xy] != bottom[xy] for xy in shared)
+        for x, y in sorted(missing_up | missing_bottom | {
+                xy for xy in shared if shifted[xy] != bottom[xy]}):
+            if len(differences) >= 12:
+                break
+            differences.append({
+                "upper_xy": [x - dx, y - dy],
+                "lower_xy": [x, y],
+                "upper_rgba": list(shifted.get((x, y), bytes(4))),
+                "lower_rgba": list(bottom.get((x, y), bytes(4))),
+            })
+    else:
+        # One-sided emission is a measurable failure of pair equivalence,
+        # not a missing file or automatically approved substitute rider.
+        different_alpha = len(top) + len(bottom)
+        for (x, y), rgba in list(sorted(top.items()))[:6]:
+            differences.append({"upper_xy": [x, y], "lower_xy": None,
+                                "upper_rgba": list(rgba),
+                                "lower_rgba": [0, 0, 0, 0]})
+        for (x, y), rgba in list(sorted(bottom.items()))[:6]:
+            differences.append({"upper_xy": None, "lower_xy": [x, y],
+                                "upper_rgba": [0, 0, 0, 0],
+                                "lower_rgba": list(rgba)})
+    alias = (bool(top) and bool(bottom) and
+             different_alpha == 0 and different_rgba == 0 and
+             top_wrong_band == 0 and bottom_wrong_band == 0)
     return {
-        "status": ("source-positive-exact-split-rgba-alias" if observed_alias
-                   else "source-empty" if not (top_count or bottom_count or
-                                              upper_unpaired or lower_unpaired or
-                                              upper_wrong_band or lower_wrong_band)
+        "status": ("source-positive-exact-translated-rgba-alias" if alias
+                   else "source-empty" if not (top or bottom)
                    else "source-visible-split-divergence"),
-        "upper_in_registered_rows_0_to_110": top_count,
-        "lower_in_registered_rows_113_to_223": bottom_count,
-        "different_alpha_registered_coordinates": differing_alpha,
-        "different_rgba_registered_coordinates": differing_rgba,
-        "upper_unpaired_row111_alpha": upper_unpaired,
-        "lower_unpaired_row112_alpha": lower_unpaired,
-        "upper_source_in_lower_analytic_half": upper_wrong_band,
-        "lower_source_in_upper_analytic_half": lower_wrong_band,
-        "exact_rgba_split_alias_observed": observed_alias,
-        "bounded_differences": examples,
-        "all_original_PPU_BG_window_priority_proven": False,
+        "upper_source_opaque_pixels": len(top),
+        "lower_source_opaque_pixels": len(bottom),
+        "bbox_inferred_upper_to_lower_translation_xy": delta,
+        "different_alpha_after_registration": different_alpha,
+        "different_rgba_after_registration": different_rgba,
+        "upper_source_in_lower_analytic_half": top_wrong_band,
+        "lower_source_in_upper_analytic_half": bottom_wrong_band,
+        "exact_rgba_split_alias_observed": alias,
+        "bounded_differences": differences,
+        "source_bbox_alone_is_not_sufficient_for_alpha_or_rgba_match": True,
+        "hardware_obj_bg_window_owner_proven": False,
         "HD_character_art_approved": False,
     }
 
@@ -132,7 +151,13 @@ def assess(root: Path) -> dict:
         "real_stock_original_sha256": original_sha,
         "source_metadata_by_slot": reports,
         "source_paired_upper_to_lower": pairs,
-        "exact_original_split_translation_pixels": [0, SPLIT_DELTA_Y],
+        "original_prerace_source_translation_xy_not_assumed": PRERACE_REFERENCE_SHIFT_XY,
+        "postgo_translation_same_across_both_player_pairs": (
+            pairs["98->97"]["exact_rgba_split_alias_observed"] and
+            pairs["99->96"]["exact_rgba_split_alias_observed"] and
+            pairs["98->97"]["bbox_inferred_upper_to_lower_translation_xy"] ==
+            pairs["99->96"]["bbox_inferred_upper_to_lower_translation_xy"]
+        ),
         "minimum_complete_unaltered_original_frame_controls_per_slot":
             MIN_UNCHANGED_STOCK_FRAMES,
         "source_report_native_guest_crc_parity_attested_not_replayed_here": True,
@@ -162,9 +187,11 @@ def main() -> None:
     for name, record in report["source_paired_upper_to_lower"].items():
         print("UR_QA08_POSTGO_2P_SOURCE_PAIR " +
               f"guest={FRAME} slots={name} state={record['status']} " +
-              f"top={record['upper_in_registered_rows_0_to_110']} " +
-              f"bottom={record['lower_in_registered_rows_113_to_223']} " +
-              f"different={record['different_rgba_registered_coordinates']} " +
+              f"top={record['upper_source_opaque_pixels']} " +
+              f"bottom={record['lower_source_opaque_pixels']} " +
+              f"shift={record['bbox_inferred_upper_to_lower_translation_xy']} " +
+              f"alpha_diff={record['different_alpha_after_registration']} " +
+              f"rgba_diff={record['different_rgba_after_registration']} " +
               "source_only=1 remastered_admitted=0")
 
 

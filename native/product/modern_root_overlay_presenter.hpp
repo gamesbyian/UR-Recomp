@@ -49,6 +49,13 @@ struct ModernRootOverlayView {
     // All older root callers default to the historical 1P RUNS view.
     bool read_only_records_two_player = false;
     bool read_only_records_pages_available = false;
+    // Optional product-owned, controller-confirmed 2P profile selection;
+    // hosts without this feature retain the exact same default root UI.
+    bool two_seat_join_open = false;
+    std::string_view join_p1_name{};
+    std::string_view join_p2_name{};
+    bool join_p1_confirmed = false;
+    bool join_p2_confirmed = false;
 };
 
 inline bool render_modern_root_overlay(
@@ -219,6 +226,40 @@ inline bool render_modern_root_overlay(
                                 ? "UP/DOWN 1P  B BACK"
                                 : "UP/DOWN 2P  B BACK",
                         0xFFFFFFFFu, scale);
+    }
+    if (view.two_seat_join_open) {
+        // The same shared Modern root painter owns the 2P child modal.
+        // Baldosa only supplies catalog-backed names and pad acknowledgments.
+        const int bx = x + 12 * scale, by = y + 43 * scale;
+        const int bw = (panel_w - 24) * scale, bh = 137 * scale;
+        paint.fill_rect(pixels, stride, surface_height,
+                        bx, by, bw, bh, palette.background);
+        paint.stroke_rect(pixels, stride, surface_height,
+                          bx, by, bw, bh, palette.title_yellow);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 9 * scale,
+                        "TWO PLAYER PROFILES", palette.title_yellow, scale);
+        const auto cells = modern_overlay_text_cells(panel_w - 34);
+        const std::string p1 = fit_modern_overlay_text(
+            std::string("P1 ") + std::string(view.join_p1_name) +
+            (view.join_p1_confirmed ? " READY" : " ACTIVE"), cells);
+        const std::string p2 = fit_modern_overlay_text(
+            std::string("P2 ") + std::string(view.join_p2_name) +
+            (view.join_p2_confirmed ? " READY" : " CHOOSE"), cells);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 37 * scale, p1.c_str(),
+                        view.join_p1_confirmed
+                            ? palette.title_yellow : 0xFFFFFFFFu, scale);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 63 * scale, p2.c_str(),
+                        view.join_p2_confirmed
+                            ? palette.title_yellow : 0xFFFFFFFFu, scale);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 98 * scale,
+                        "P1 A READY / B BACK", palette.secondary_grey, scale);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 113 * scale,
+                        "P2 DPAD+A / B CLEAR", palette.secondary_grey, scale);
     }
     return true;
 }

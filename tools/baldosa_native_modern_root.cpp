@@ -430,49 +430,24 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
                     static_cast<std::size_t>(width) * 4);
     const ModernRootOverlayPainter painter{
         &snes_ovl_fill_rect, &snes_ovl_stroke_rect, &snes_ovl_draw_text};
-    const ModernRootOverlayView view{
+    ModernRootOverlayView view{
         g_menu, false, g_racer_name,
         false, g_confirm_quit, kNativeRootAvailable, false,
         g_records_open, g_records_status, g_records_recent,
         g_records_two_player, true};
+    view.two_seat_join_open = g_two_seat_join.open();
+    if (view.two_seat_join_open) {
+        const auto* p1 = g_two_seat_join.candidate(0);
+        const auto* p2 = g_two_seat_join.candidate(1);
+        view.join_p1_name = p1 ? std::string_view(p1->identity.name) : "";
+        view.join_p2_name = p2 ? std::string_view(p2->identity.name) : "";
+        view.join_p1_confirmed = g_two_seat_join.confirmed(0);
+        view.join_p2_confirmed = g_two_seat_join.confirmed(1);
+    }
     const bool drawn = ur::product::render_modern_root_overlay(
         painter, reinterpret_cast<std::uint32_t*>(dst),
         static_cast<int>(pitch / 4), height, 1, 240,
         HostOverlayRect{8,10,240,204}, view);
-    if (drawn && g_two_seat_join.open()) {
-        const auto& pal = ur::product::kModernStockMenuPalette;
-        constexpr int x = 20, y = 56, w = 216, h = 130;
-        painter.fill_rect(reinterpret_cast<std::uint32_t*>(dst),
-            static_cast<int>(pitch / 4), height, x,y,w,h,pal.background);
-        painter.stroke_rect(reinterpret_cast<std::uint32_t*>(dst),
-            static_cast<int>(pitch / 4), height, x,y,w,h,pal.title_yellow);
-        painter.draw_text(reinterpret_cast<std::uint32_t*>(dst),
-            static_cast<int>(pitch / 4), height, x+10,y+9,
-            "TWO PLAYER PROFILES",pal.title_yellow,1);
-        for (unsigned seat = 0; seat != 2; ++seat) {
-            const auto* selected = g_two_seat_join.candidate(seat);
-            if (!selected) continue;
-            const std::string label =
-                (seat == 0 ? "P1 " : "P2 ") +
-                ur::product::fit_modern_overlay_text(
-                    selected->identity.name, 13) +
-                (g_two_seat_join.confirmed(seat) ? " READY" :
-                 seat == 0 ? " ACTIVE" : " CHOOSE");
-            painter.draw_text(reinterpret_cast<std::uint32_t*>(dst),
-                static_cast<int>(pitch / 4), height, x+10,
-                y+37+static_cast<int>(seat)*26,label.c_str(),
-                g_two_seat_join.confirmed(seat)
-                    ? pal.title_yellow : 0xFFFFFFFFu, 1);
-        }
-        painter.draw_text(reinterpret_cast<std::uint32_t*>(dst),
-            static_cast<int>(pitch / 4), height, x+10,y+100,
-            "P1 A READY  P2 UP/DOWN A",
-            pal.secondary_grey,1);
-        painter.draw_text(reinterpret_cast<std::uint32_t*>(dst),
-            static_cast<int>(pitch / 4), height, x+10,y+114,
-            "P1 B: BACK  P2 B: CLEAR",
-            pal.secondary_grey,1);
-    }
     if (drawn) {
         ++g_paint_count;
         if (g_reentry_needs_paint) {

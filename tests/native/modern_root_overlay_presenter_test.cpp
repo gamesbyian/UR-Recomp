@@ -164,6 +164,35 @@ int main() {
     assert(!contains("STORED RUNS"));
     assert(!contains("READ ONLY - NO REPLAY"));
 
+    // The native P1/P2 join is now a child of this SAME renderer, never
+    // separately drawn by the execution adapter. Older hosts opt out by
+    // default. P1 is visibly fixed to the loaded profile; P2 alone browses.
+    painted.clear();
+    view.two_seat_join_open = true;
+    view.join_p1_name = "MIKE";
+    view.join_p2_name = "ANDREW";
+    view.join_p1_confirmed = false;
+    view.join_p2_confirmed = false;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("TWO PLAYER PROFILES"));
+    assert(contains("P1 MIKE ACTIVE"));
+    assert(contains("P2 ANDREW CHOOSE"));
+    assert(contains("P1 A READY / B BACK"));
+    assert(contains("P2 DPAD+A / B CLEAR"));
+    painted.clear();
+    view.join_p1_confirmed = true;
+    view.join_p2_confirmed = true;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("P1 MIKE READY"));
+    assert(contains("P2 ANDREW READY"));
+    painted.clear();
+    view.two_seat_join_open = false;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(!contains("TWO PLAYER PROFILES"));
+
     painted.clear();
     assert(!render_modern_root_overlay({},pixels,256,224,1,240,
                                        old_view,view));

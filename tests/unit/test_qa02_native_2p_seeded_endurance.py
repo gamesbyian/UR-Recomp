@@ -30,6 +30,10 @@ class SeededNativeInputContractTests(unittest.TestCase):
         self.assertIn("dump two-player-both-post-1620", generated)
         self.assertIn("dump endurance-1740", generated)
         self.assertIn("dump endurance-3420", generated)
+        runner = (ROOT/"tools/qa02_native_2p_seeded_endurance.py").read_text()
+        self.assertIn('(root / "user-data").mkdir()', runner)
+        self.assertIn("DisableFrameDelay = 1", runner)
+        self.assertIn('"--config", str(config)', runner)
         self.assertEqual(generated.strip().splitlines()[-1], "quit")
         self.assertEqual(generated.count("dump endurance-"), len(c.FRAMES))
 

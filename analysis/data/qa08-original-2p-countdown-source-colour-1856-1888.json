@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "status": "observed-original-2p-lower-source-covered-by-countdown-color",
+  "accepted_aot": {
+    "source_run_id": 38097914195,
+    "source_artifact_id": 11686843233,
+    "reproduced_run_id": 38115756178,
+    "reproduced_artifact_id": 11693865103
+  },
+  "source_guest_frame_ids": [
+    1856,
+    1872,
+    1888
+  ],
+  "source_guest_crc": "equal in 12 authentic already validated independent native source reports",
+  "native_original_raster": [
+    342,
+    224
+  ],
+  "countdown_2_rgb": [
+    57,
+    57,
+    255
+  ],
+  "independent_source_plane_count": 12,
+  "per_original_frame": {
+    "1856": {
+      "original_sha256": "0e956fac212cb7413a32ee2a0de318540e58cfd5f2b7610472c2573ab6719dd9",
+      "lower_union": 483,
+      "upper_union": 483,
+      "lower_blue_final": 3,
+      "slots": {
+        "96": {
+          "emitted": 319,
+          "final_rgb_matched": 319,
+          "source_sha256": "03a5132e5ee0accf438ba1175db660c2227ac429eb32a9d0199d6c14bb99ea08"
+        },
+        "97": {
+          "emitted": 321,
+          "final_rgb_matched": 175,
+          "source_sha256": "9fa904eb073185520e8707615c69801ba05364557b20c7c45659280752ecdcc1"
+        },
+        "98": {
+          "emitted": 321,
+          "final_rgb_matched": 321,
+          "source_sha256": "5122c86a797710965bf17caf99677ca2cf738fbff852101a9469ff66750fc2c5"
+        },
+        "99": {
+          "emitted": 319,
+          "final_rgb_matched": 176,
+          "source_sha256": "658b214071df7637abc308a0222e37cb15753b72c4ef42cf4c084311c031ec8f"
+        }
+      }
+    },
+    "1872": {
+      "original_sha256": "bdc3b13d2129e7fd7a20f4cf00539fc2976ba1b028f76386a395e6fdef4e2f2b",
+      "lower_union": 411,
+      "upper_union": 411,
+      "lower_blue_final": 411,
+      "slots": {
+        "96": {
+          "emitted": 330,
+          "final_rgb_matched": 0,
+          "source_sha256": "cf2bbaa6cd29d34d97bb1ce7c111c47cafb27a97f84f78f8cf08e7e8d00f4ce1"
+        },
+        "97": {
+          "emitted": 325,
+          "final_rgb_matched": 0,
+          "source_sha256": "29366b09277478d4f73a1971a3fdbadd0f56720949551a9e95551ca3ce7a2ad8"
+        },
+        "98": {
+          "emitted": 325,
+          "final_rgb_matched": 325,
+          "source_sha256": "c8c2741ff948b070a69b555f6634199b82bb41d1753a099f3516ab4f605f48ea"
+        },
+        "99": {
+          "emitted": 330,
+          "final_rgb_matched": 123,
+          "source_sha256": "3d5322f0b226ea557960e9b2779ded06b0b57f7d6de977c348fd25d30998c0d5"
+        }
+      }
+    },
+    "1888": {
+      "original_sha256": "7de0e805f07234d0b7b6c4c526eea79b5c6c523ff594c09ddc9970de238eede7",
+      "lower_union": 409,
+      "upper_union": 409,
+      "lower_blue_final": 409,
+      "slots": {
+        "96": {
+          "emitted": 322,
+          "final_rgb_matched": 0,
+          "source_sha256": "52bdf0ccaf557ee6bbb9e068e392aa08a708dc1db85b6f6095a9bbe62f1f45cf"
+        },
+        "97": {
+          "emitted": 324,
+          "final_rgb_matched": 0,
+          "source_sha256": "4600999fee02ff708d04bd4b4debb22ca9a4e70aa53475422676d1de00e461a3"
+        },
+        "98": {
+          "emitted": 324,
+          "final_rgb_matched": 324,
+          "source_sha256": "77e4ad17abca788a3c82850a4e862df7e6198ee99add5e3d2f399854ce80b6d1"
+        },
+        "99": {
+          "emitted": 322,
+          "final_rgb_matched": 120,
+          "source_sha256": "7679fa10e5188aab7bf0f2022b3fae4721f4d8ce8fab4ac1eac4d52fae51676f"
+        }
+      }
+    }
+  },
+  "foreground_countdown_layer_owner_proven": false,
+  "per_source_final_ppu_causal_priority_proven": false,
+  "shipping_hd_admitted": false,
+  "limitations": "Source OBJ emission is pre-final priority. At 1872/1888 all lower source coordinates in the existing stock Original screenshot have blue RGB of the visible giant countdown 2. This is a spatial/temporal observation, not a PPU-layer winner proof or authorization for HD replacement."
+}

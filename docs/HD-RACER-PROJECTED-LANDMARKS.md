@@ -351,3 +351,42 @@ is an artist review reference, not an optimization
 requirement or admission for owner-rejected procedural
 unicycle art. Original fallback and the project's
 **7:6 source pixel-aspect policy** remain unchanged.
+
+
+## Do not bake original HUD foreground tint into the 3D racer materials
+
+One more source/final native PPU discrimination is valuable
+for artist review. At genuine original 2P guest2208, large
+coloured original **“GIVE YOU”** screen text crosses the
+rider silhouettes. Original OBJ planes have **no such
+screen text**. At exactly **13 source-positive pixels in
+upper source slot98** and 13 in lower slot96, the
+complete Original PPU output differs from isolated
+source RGB by precisely **(+107,0,0)**. These affected
+source coordinates are the **same X/Y shape shifted
+down 112 rows** between the two viewports, a fixed
+screen-text registration distinct from the dynamic
+actual racer-source pair shift of **(−13,+112)**.
+See source-comparison [PR #1342](https://github.com/gamesbyian/UR-Recomp/pull/1342)
+and the exact original source/file SHA and coordinate
+record
+[`analysis/data/qa08-original-2p-postgo-text-source-rgb-delta-2208.json`](../analysis/data/qa08-original-2p-postgo-text-source-rgb-delta-2208.json)
+in that branch.
+
+**Artist and reviewer rule:** When tracing real gameplay
+screenshots or evaluating a Blender turntable, do
+not interpret this screen-fixed red tint or the
+superimposed letters as a coloured tire, seat, fork
+or part of the character's model/material. Use
+authentic **source-isolated OAM** for the unicycle's
+pixel colours and silhouette; use the final unmodified
+Original PPU screen as a **separate foreground
+compositing** reference. A bounded independent
+native deletion of original front slots98/96 at2208
+([PR #1344](https://github.com/gamesbyian/UR-Recomp/pull/1344))
+will adjudicate which of the 13 text-overlap positions
+have actual final-source causal contribution.
+Do not claim the text BG/window/colour-math
+implementation yet or generate HD art from the
+combined screenshot. This is a source separation
+rule, **not** model likeness approval.

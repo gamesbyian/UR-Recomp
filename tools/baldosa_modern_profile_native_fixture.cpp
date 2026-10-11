@@ -258,7 +258,7 @@ static int seed_readonly_two_player_archive(
             (directory / "0002-incomplete.urrun").string(), run)) return 79;
     std::printf(
         "UR_BALDOSA_2P_RECORDS_FIXTURE selected=%s paired=1 unavailable=1 "
-        "scope=read_only_historical_not_played\\n", id.c_str());
+        "scope=read_only_historical_not_played\n", id.c_str());
     return 0;
 }
 

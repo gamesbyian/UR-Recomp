@@ -12,7 +12,8 @@ on:
 
 concurrency:
   group: modern-shared-native-acceptance-${{ github.ref }}
-  cancel-in-progress: true
+  # Preserve deliberate manual/reusable endurance; PR supersession may cancel.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:

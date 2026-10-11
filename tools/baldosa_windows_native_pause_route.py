@@ -754,6 +754,33 @@ def run_native_named_records_root(
         raise ValueError("Native 2P Records modified or minted a match artifact")
     if (user_root / "saves/save.srm").exists() or (output / "saves").exists():
         raise ValueError("Native named Records leaked into the default save root")
+
+    # Reuse this exact extracted native binary, named profile and original
+    # SDL root smoke in a SECOND process. With only one registered profile,
+    # Multiplayer must remain playable but its unbound 2P route may never
+    # manufacture a pair or assign an opponent from a controller seat.
+    unbound_env = {**env, "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "2"}
+    unbound = subprocess.run(
+        [str(exe), "--no-launcher", "--config", str(config),
+         "--script", str(script), str(rom)],
+        cwd=output, env=unbound_env, capture_output=True, text=True,
+        timeout=timeout, errors="replace")
+    unbound_log = unbound.stdout + "\n" + unbound.stderr
+    (output / "named-single-profile-stock-2p.log").write_text(
+        unbound_log, encoding="utf-8")
+    if unbound.returncode:
+        raise RuntimeError(
+            "Named single-profile stock 2P rejected: " +
+            unbound_log[-2400:])
+    verify_native_modern_root_log(unbound_log, players=2)
+    if unbound_log.count(
+            "UR_BALDOSA_MODERN_ROOT join_unavailable=1 "
+            "stock_2p_without_record_identity=1") != 1:
+        raise ValueError("Named single-profile 2P fabricated or bypassed join authority")
+    if ("UR_BALDOSA_NATIVE_MATCH CAPTURED=1" in unbound_log or
+            {p.name: p.read_bytes() for p in match_archive.iterdir()} !=
+            original_pairs):
+        raise ValueError("Unbound stock 2P changed canonical pair history")
     return {
         "selected_named_profile_sram_authorized": True,
         "canonical_valid_archives_read_on_real_windows": 1,
@@ -762,6 +789,8 @@ def run_native_named_records_root(
         "incomplete_2p_pairs_reported_unavailable": 1,
         "2p_archive_unchanged_after_guest": True,
         "actual_native_2p_match_published": False,
+        "named_one_profile_2p_stock_guest_playable": True,
+        "unbound_2p_never_attributed_to_a_record": True,
         "malformed_archives_reported_unavailable": 1,
         "no_run_created_by_record_view_or_script_quit": True,
         "existing_profile_checkpoint_verified": True,

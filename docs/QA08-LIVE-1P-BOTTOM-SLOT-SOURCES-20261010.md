@@ -1,8 +1,6 @@
 # QA-08: genuine bottom OBJ source slots 96 and 97, one live 1P frame
 
-**Status: native candidate, no merged acceptance yet.** Source-owning
-original PPU slot attribution is separate from semantic WRAM,
-screen-rectangle geometry, or HD artwork.
+**Status: native-accepted, both original bottom slots source-empty.** Merged #1271, exact native AOT `38096082799`, artifact `11685889818`, all four CI workflows green. Original PPU slot attribution is separate from stale semantic WRAM, one-point OAM snapshots, HDMA scanline changes and 4× authored artwork.
 
 Merged #1264, native AOT `38095455347`, artifact
 `11685169167`, captured a real **transparent** source
@@ -13,7 +11,41 @@ CRCs remained identical. This was a defensible negative:
 zero source OBJ alpha despite live WRAM `0895`
 and a valid large64 source screen rectangle.
 
-## The next smallest discriminator, without any new guest process
+## Exact result: both bottom sources empty, Original unaffected
+
+At real live 1P source frame **2208** (WRAM semantic `0895`),
+the independent native original PPU isolated bottom OAM slots
+**96 and 97** each produce **0 opaque RGBA pixels**. Both
+source planes use the full 342×224 original logical field;
+each has bounding box `[342,224,-1,-1]` (empty sentinel)
+and identical all-transparent RGBA SHA256
+`9b6357cacc96805cd8a1fcc3edc28d935f47f22b41fd2dbeb21f438b3b7bd58c`.
+They were captured from **different actual guest processes**,
+each using the same original ROM and controller route with
+`RemoveFromGame` **off**.
+
+The full independent **5,447** stock/1×/4× guest CRCs
+matched and **seven** source 342×224/1368×896 Original
+frame pairs stayed exact across every pixel.
+Machine-readable report:
+`ws342_live_1p_bottom_slot96_97_source.json`.
+
+Crucially, directly inspecting the original frame2208 image
+shows both racing unicycles **above** the horizontal green/blue
+divider at scanline **112**. The empty bottom planes
+are not evidence that the game's source racer sprites have
+vanished; they are evidence that the prior choice of
+bottom sprite source was wrong for this *visible* scene.
+
+The correct next experiment is the separately isolated
+**top PPU OAM slots 98 and 99**, not new 4× art. [#1276](https://github.com/gamesbyian/UR-Recomp/pull/1276)
+adds strictly read-only native top probes, with original
+complete-image and guest-CRC acceptance, and retains this
+bottom result. The source OAM begin-frame y-coordinate
+and WRAM semantic state alone cannot substitute for
+what scanline-HDMA-dependent native PPU renders.
+
+## Historical experimental design
 
 The existing real **1× 1P world process**, which already generates
 the original worklist, now exports **bottom slot96**

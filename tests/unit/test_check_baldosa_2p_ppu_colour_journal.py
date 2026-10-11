@@ -131,11 +131,18 @@ class Original2PColourRegisterJournalTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "scanline"):
             self.read()
         self.trace["completed"]["entries"][0]["l"] = 43
-        self.trace["completed"]["count"] = True
+        # The recording field has exactly ONE entry: True == 1 is
+        # accepted by ordinary Python equality unless types are checked.
+        self.trace["recording"]["count"] = True
         self.flush()
         with self.assertRaisesRegex(ValueError, "incomplete"):
             self.read()
-        self.trace["completed"]["count"] = 3
+        self.trace["recording"]["count"] = 1
+        self.trace["armed"] = True
+        self.flush()
+        with self.assertRaisesRegex(ValueError, "not armed/completed"):
+            self.read()
+        self.trace["armed"] = 1
         self.trace["completed"]["dropped"] = False
         self.flush()
         with self.assertRaisesRegex(ValueError, "dropped"):

@@ -44,6 +44,14 @@ Separate live [run 38107618717](https://github.com/gamesbyian/UR-Recomp/actions/
 
 The manual jump/control workflow additionally now writes a **specific inconclusive Actions summary if its producer fails before a valid receipt exists**. This summary is diagnostic; it cannot turn a failed run green or establish a positive or negative scientific outcome. Its regression test requires that fallback. As before, no executed jump/control result from the modified workflow has been claimed.
 
+## Active media Git-writer follow-up
+
+Cross-PR review exposed two more concurrency-policy violations in **open media branches**. [PR #1300](https://github.com/gamesbyian/UR-Recomp/pull/1300) had a push-triggered technical proof renderer with `git push` but `cancel-in-progress: true`; this was corrected in branch commit `2f96e965`. [PR #1302](https://github.com/gamesbyian/UR-Recomp/pull/1302) had a push-triggered source-review renderer with `git push` and no concurrency block; branch commit `787cb406` added a branch-scoped, non-cancelling group. Both retain `contents: write`, ordinary (non-force) Git pushes, existing scientific/media validation, and active media-lane ownership. PR comments document coordination.
+
+[Technical production run 38108184260](https://github.com/gamesbyian/UR-Recomp/actions/runs/38108184260) completed successfully after the safety fix. An earlier [run 38108133658](https://github.com/gamesbyian/UR-Recomp/actions/runs/38108133658) rendered valid outputs but failed its `git push` because another agent had moved the branch: stale output correctly was **not** forced onto newer source. This is a distinct external-writer race, not fixed by serializing a single workflow; consider bounded artifact fallback and early obsolete-head checks if repeated real evidence loss justifies them. No forced rebases, automatic cherry-picking or weakening of approval hashes.
+
+A separate [companion review run 38108204565](https://github.com/gamesbyian/UR-Recomp/actions/runs/38108204565) failed an `AssertionError: art` in source-media hash/identity checks, **not** the writer concurrency rule. That input/provenance question belongs to the media PR owner and must not be bypassed to obtain a green status. Do not count any of these PR-branch results as integrated-main release acceptance.
+
 ## Remaining work and limits
 
 - The sample demonstrates **trigger exposure**, not reliable runner-minute savings. Measure actual no-op native runs eliminated and whether two-suite canonical builds reduce elapsed time and runner usage after a real PR hits those paths. No live post-change PR workflow has been executed in this direct-main edit.

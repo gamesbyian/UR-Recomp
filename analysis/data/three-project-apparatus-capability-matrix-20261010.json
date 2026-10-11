@@ -170,6 +170,74 @@
       ],
       "gap": "86 post-pin commits include unrelated CPU/PPU/host changes.",
       "proof": "Only measured isolated patch A/B with regression and rollback."
+    },
+    {
+      "id": "usa-byte-exact-assembly",
+      "domain": "archaeology",
+      "priority": "P1",
+      "decision": "reference",
+      "ur": [
+        "tools/build_comparative_code_atlas.py"
+      ],
+      "baldosa": [
+        "tools/decomp/decode_dump.py",
+        "tools/decomp/gen_disasm.py"
+      ],
+      "malmazuke": [
+        "tools/unirally_lab/coverage/static_map.py"
+      ],
+      "gap": "Shared analyzer assumptions",
+      "proof": "Independent opcode and M/X byte roundtrip"
+    },
+    {
+      "id": "pal-static-coverage",
+      "domain": "archaeology",
+      "priority": "P1",
+      "decision": "integrated_reference",
+      "ur": [
+        "tools/report_malmazuke_mapping_gaps.py"
+      ],
+      "baldosa": [],
+      "malmazuke": [
+        "tools/unirally_lab/coverage/static_map.py"
+      ],
+      "gap": "PAL reach is not USA coverage",
+      "proof": "Independent ROM homolog correspondence"
+    },
+    {
+      "id": "source-name-fanout",
+      "domain": "archaeology",
+      "priority": "P1",
+      "decision": "integrated_reference",
+      "ur": [
+        "tools/query_baldosa_symbols.py",
+        "tools/export_symbol_adapters.py"
+      ],
+      "baldosa": [
+        "tools/decomp/export_names.py"
+      ],
+      "malmazuke": [
+        "tools/unirally_lab/coverage/native_symbols.py"
+      ],
+      "gap": "External labels not canonical",
+      "proof": "Original instruction and reviewer evidence"
+    },
+    {
+      "id": "effective-address-access",
+      "domain": "archaeology",
+      "priority": "P1",
+      "decision": "pilot_on_demand",
+      "ur": [
+        "tools/trace_native_wram_writers.py"
+      ],
+      "baldosa": [
+        "decomp/ram.txt"
+      ],
+      "malmazuke": [
+        "tools/unirally_lab/access/derive.py"
+      ],
+      "gap": "Requires original register state",
+      "proof": "Bounded source producer and consumer"
     }
   ]
 }

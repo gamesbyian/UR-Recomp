@@ -27,9 +27,8 @@ int main() {
     assert(!join.confirmed(0) && !join.confirmed(1));
     assert(join.confirm(1)); // physical P2 confirms a distinct profile
     assert(join.confirmed(1) && !join.ready());
-    assert(join.move(0, 1));
-    assert(!join.confirm(0)); // P1 cannot replace selected SRAM mid-session
-    assert(join.move(0, -1));
+    assert(!join.move(0, 1)); // P1 cannot browse a different SRAM owner
+    assert(join.candidate(0)->profile_id == "alpha");
     assert(join.confirm(0));
     assert(join.ready());
     assert(join.participant(0)->profile_id == "alpha");

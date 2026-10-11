@@ -60,6 +60,20 @@ int main() {
     const auto unsafe = inspect_baldosa_native_records_archive(linked.string());
     assert(!unsafe.directory_available);
     assert(!unsafe.validated_archives);
+    // A broken directory symlink must not masquerade as a valid empty
+    // first-run archive. This is distinct from an actually absent path.
+    const auto dangling = root / "dangling-runs";
+    fs::create_directory_symlink(root / "missing-target", dangling);
+    const auto broken = inspect_baldosa_native_records_archive(dangling.string());
+    assert(!broken.directory_available);
+    assert(broken.total_artifacts == 0);
+    assert(broken.validated_archives == 0);
+    // An ordinary file is likewise an invalid profile archive root.
+    const auto regular = root / "regular-file";
+    { std::ofstream file(regular); file << "not a directory"; }
+    const auto non_directory = inspect_baldosa_native_records_archive(regular.string());
+    assert(!non_directory.directory_available);
+    assert(non_directory.total_artifacts == 0);
     fs::remove_all(root);
     std::puts("PASS: native Records reads only canonical selected-profile archives");
 }

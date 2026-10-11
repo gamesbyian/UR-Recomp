@@ -210,6 +210,8 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
                 or sp1 - sp0 != return_width
                 or (stack4 and matches_post_pc is not True)
                 or int(postpc[:2], 16) != int(pb1, 16)
+                or (stack4 and int(pl1, 16) !=
+                    (int(b1, 16) | (0x30 if emu0 else 0)))
                 or a0 != a1 or not -1000000 <= cyc0 <= 1000000
                 or not -1000000 <= cyc1 <= 1000000):
             raise ValueError("impossible original RTI register or stack restoration")
@@ -233,6 +235,7 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
             "post_return_pc_verified_when_stack_available": stack4 and matches_post_pc is True,
             "full_four_byte_stack_image_available": stack4,
             "pre_rti_stacked_status": b1 if stack4 else None,
+            "stacked_processor_status_restored_when_available": stack4,
             "pre_rti_stack_pc_low": b2 if stack4 else None,
             "pre_rti_stack_pc_high": b3 if stack4 else None,
             "pre_rti_stack_program_bank": b4 if stack4 else None,

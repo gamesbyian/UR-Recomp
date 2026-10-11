@@ -13,7 +13,8 @@ permissions:
 
 concurrency:
   group: technical-evidence-motion-${{ github.ref }}
-  cancel-in-progress: true
+  # Writer persists verified media back to this branch. Never cancel an in-flight commit.
+  cancel-in-progress: false
 
 jobs:
   produce:

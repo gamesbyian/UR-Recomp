@@ -26,6 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 import qa02_native_2p_seeded_endurance as guest
 import qa_frontier_coverage as coverage
+import qa_frontier_exact as exact
 from controller_input import load_controller_runs
 from summarize_paired_player_slots import state
 
@@ -451,6 +452,7 @@ def aggregate(plan_data: dict, root: Path) -> dict:
     global_seeds=set()
     global_inputs=set()
     global_tokens=set()
+    global_witness={}
     first_identity=None
     arms={arm:{"attempted":0,"new_bins_local":0} for arm in ARMS}
     feature_counts=dict.fromkeys(FEATURES,0)
@@ -523,6 +525,8 @@ def aggregate(plan_data: dict, root: Path) -> dict:
                             "seed":seed,"arm":case["arm"],"shard":shard}
                 shard_bins.update(case["tokens"])
                 global_tokens.update(case["tokens"])
+                for token in case["tokens"]:
+                    global_witness.setdefault(token,(seed,case["arm"],shard))
             if seen_arms!=row["arm_attempts"] or set(row["semantic_bins"])!=shard_bins:
                 raise ValueError("arm/captured semantic coverage count inconsistent")
             if any(type(v) is not int or v<0 or v>3*seen_arms[a]
@@ -558,6 +562,7 @@ def aggregate(plan_data: dict, root: Path) -> dict:
         "source_feature_reproduction_seeds":feature_repros if not issues else {},
         "semantic_epoch": coverage.EPOCH,
         "semantic_hll_b64": coverage.encode(coverage.observe(global_tokens)) if not issues else coverage.encode(coverage.empty()),
+        "semantic_exact_witnesses_b64": exact.encode_run(global_witness) if not issues else exact.encode_run({}),
         "strategy_summary":arms,
         "reproduction_seeds_by_fingerprint":{
             token: seed

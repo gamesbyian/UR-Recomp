@@ -35,12 +35,12 @@ SOURCES = {
 }
 SHA = re.compile(r"^[a-f0-9]{40}$")
 SHA256 = re.compile(r"^[a-f0-9]{64}$")
-# Exactly one reserved 5k seed window per run; the 3k native input plans,
+# Exactly one reserved 12k seed window per run; the 3k native input plans,
 # 2 independent shards, and original fault 1009-multiple case seeds remain
 # distinguishable. Never reinterpret already consumed failed seeds as fresh.
-WINDOW = 5000
+WINDOW = 12000
 BASE = 50000000
-MAX_SEQUENCE = 8999
+MAX_SEQUENCE = 4083
 ALLOWED_WINDOWS_TRIALS = (1, 3, 10, 30, 60)
 ALLOWED_MINUTES = (15, 60, 120)
 

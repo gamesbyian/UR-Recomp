@@ -1,0 +1,261 @@
+name: Cumulative research campaigns (six independent lanes)
+
+# One serialized, source-bound run at a time, no canceled expensive experiments.
+# Twice weekly the auto selector rotates six distinct research families.
+# Manual dispatch can choose any lane and a bounded real-work budget.
+# Only this coordinator writes to research/qa-cumulative-ledger.
+on:
+  workflow_dispatch:
+    inputs:
+      campaign:
+        description: "Research family (auto chooses next lane)"
+        required: true
+        type: choice
+        default: auto
+        options: [auto, native-2p, windows, fault-recovery, graphics, performance, original-native]
+      wall_minutes_per_shard:
+        description: "Real native/fault workload budget (graphics/performance included)"
+        type: choice
+        required: true
+        default: "15"
+        options: ["15", "60", "120"]
+      windows_trials_per_shard:
+        description: "Real Windows producer repetitions, not unique controller trajectories"
+        type: choice
+        required: true
+        default: "3"
+        options: ["1", "3", "10", "30", "60"]
+  schedule:
+    - cron: "17 9 * * 2,5"
+
+permissions:
+  contents: write
+
+# This group has no github.ref suffix. A single writer serializes ALL
+# seed reservations + immutable evidence on any ref, including scheduled runs.
+concurrency:
+  group: qa-cumulative-research-single-ledger-writer
+  cancel-in-progress: false
+
+jobs:
+  reserve:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    outputs:
+      campaign: ${{ steps.plan.outputs.campaign }}
+      base_seed: ${{ steps.plan.outputs.base_seed }}
+      minutes: ${{ steps.plan.outputs.minutes }}
+      windows_trials: ${{ steps.plan.outputs.windows_trials }}
+      plan_sha256: ${{ steps.plan.outputs.plan_sha256 }}
+    steps:
+      - name: Checkout exact coordinator and original research implementation
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Read cumulative ledger at separate evidence-only branch
+        uses: actions/checkout@v4
+        with:
+          ref: research/qa-cumulative-ledger
+          path: research-evidence
+          persist-credentials: false
+      - name: Verify ledger signatures and reserve unique non-overlapping seed window
+        id: plan
+        shell: bash
+        env:
+          SELECTED: ${{ inputs.campaign || 'auto' }}
+          MINUTES: ${{ inputs.wall_minutes_per_shard || '15' }}
+          WINDOWS_TRIALS: ${{ inputs.windows_trials_per_shard || '3' }}
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s tests/unit -p test_qa_cumulative_ledger.py
+          python3 tools/qa_cumulative_ledger.py plan \
+            --ledger research-evidence/.github/qa-cumulative/ledger.json \
+            --selected "$SELECTED" --source-sha "$GITHUB_SHA" \
+            --minutes "$MINUTES" --windows-trials "$WINDOWS_TRIALS" \
+            --run-id "$GITHUB_RUN_ID" \
+            --out "$RUNNER_TEMP/cumulative-plan/plan.json" \
+            --gha-output "$GITHUB_OUTPUT"
+      - name: Immutable plan receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-cumulative-plan
+          path: ${{ runner.temp }}/cumulative-plan/plan.json
+          retention-days: 14
+          if-no-files-found: error
+
+  native-2p:
+    if: ${{ needs.reserve.outputs.campaign == 'native-2p' }}
+    needs: reserve
+    uses: ./.github/workflows/qa02-native-2p-seeded-endurance.yml
+    with:
+      wall_minutes_per_shard: ${{ needs.reserve.outputs.minutes }}
+      base_seed: ${{ needs.reserve.outputs.base_seed }}
+
+  windows:
+    if: ${{ needs.reserve.outputs.campaign == 'windows' }}
+    needs: reserve
+    uses: ./.github/workflows/baldosa-windows-reliability-campaign.yml
+    with:
+      trials_per_shard: ${{ needs.reserve.outputs.windows_trials }}
+
+  fault-recovery:
+    if: ${{ needs.reserve.outputs.campaign == 'fault-recovery' }}
+    needs: reserve
+    uses: ./.github/workflows/qa02-real-fault-endurance.yml
+    with:
+      wall_minutes_per_shard: ${{ needs.reserve.outputs.minutes }}
+      base_seed: ${{ needs.reserve.outputs.base_seed }}
+
+  graphics:
+    if: ${{ needs.reserve.outputs.campaign == 'graphics' }}
+    needs: reserve
+    uses: ./.github/workflows/qa-cumulative-native-metrics.yml
+    with:
+      mode: graphics
+      wall_minutes_per_shard: ${{ needs.reserve.outputs.minutes }}
+      base_seed: ${{ needs.reserve.outputs.base_seed }}
+
+  performance:
+    if: ${{ needs.reserve.outputs.campaign == 'performance' }}
+    needs: reserve
+    uses: ./.github/workflows/qa-cumulative-native-metrics.yml
+    with:
+      mode: performance
+      wall_minutes_per_shard: ${{ needs.reserve.outputs.minutes }}
+      base_seed: ${{ needs.reserve.outputs.base_seed }}
+
+  original-native:
+    if: ${{ needs.reserve.outputs.campaign == 'original-native' }}
+    needs: reserve
+    uses: ./.github/workflows/qa01-event-campaign.yml
+    with:
+      selected: all
+      zoo_terminal_phase: false
+
+  commit-evidence:
+    if: ${{ always() && needs.reserve.result == 'success' }}
+    needs: [reserve, native-2p, windows, fault-recovery, graphics, performance, original-native]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout research verifier at exact workload source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Checkout append-only evidence branch with GitHub Actions credentials
+        uses: actions/checkout@v4
+        with:
+          ref: research/qa-cumulative-ledger
+          path: research-evidence
+          persist-credentials: true
+      - name: Retrieve exact seed reservation
+        uses: actions/download-artifact@v4
+        with:
+          name: qa-cumulative-plan
+          path: ${{ runner.temp }}/cumulative-plan
+      - name: Classify completed research family and expected source-owned receipt
+        id: target
+        shell: bash
+        env:
+          SELECTED: ${{ needs.reserve.outputs.campaign }}
+          NATIVE_RESULT: ${{ needs.native-2p.result }}
+          WINDOWS_RESULT: ${{ needs.windows.result }}
+          FAULT_RESULT: ${{ needs.fault-recovery.result }}
+          GRAPHICS_RESULT: ${{ needs.graphics.result }}
+          PERFORMANCE_RESULT: ${{ needs.performance.result }}
+          ORIGINAL_RESULT: ${{ needs.original-native.result }}
+        run: |
+          set -euo pipefail
+          case "$SELECTED" in
+            native-2p)
+              artifact=native-2p-endurance-aggregate
+              filename=result.json
+              status="$NATIVE_RESULT"
+              ;;
+            windows)
+              artifact=qa-win32-reliability-aggregate
+              filename=result.json
+              status="$WINDOWS_RESULT"
+              ;;
+            fault-recovery)
+              artifact=qa02-real-fault-endurance-aggregate
+              filename=result.json
+              status="$FAULT_RESULT"
+              ;;
+            graphics)
+              artifact=qa-cumulative-graphics-aggregate
+              filename=result.json
+              status="$GRAPHICS_RESULT"
+              ;;
+            performance)
+              artifact=qa-cumulative-performance-aggregate
+              filename=result.json
+              status="$PERFORMANCE_RESULT"
+              ;;
+            original-native)
+              artifact=qa01-campaign-aggregate
+              filename=campaign-result.json
+              status="$ORIGINAL_RESULT"
+              ;;
+            *) echo "unknown selected research workflow"; exit 2 ;;
+          esac
+          echo "artifact=$artifact" >> "$GITHUB_OUTPUT"
+          echo "filename=$filename" >> "$GITHUB_OUTPUT"
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          echo "Source-owned $SELECTED workflow result: $status"
+      - name: Retrieve source-owned aggregate even if underlying workload failed
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: ${{ steps.target.outputs.artifact }}
+          path: ${{ runner.temp }}/cumulative-producer
+      - name: Validate exact source/seed receipts and prepare new ledger revision
+        id: classify
+        shell: bash
+        env:
+          JOB_RESULT: ${{ steps.target.outputs.status }}
+          AGGREGATE_FILE: ${{ steps.target.outputs.filename }}
+        run: |
+          set -euo pipefail
+          set +e
+          python3 tools/qa_cumulative_ledger.py append \
+            --ledger research-evidence/.github/qa-cumulative/ledger.json \
+            --plan "$RUNNER_TEMP/cumulative-plan/plan.json" \
+            --aggregate "$RUNNER_TEMP/cumulative-producer/$AGGREGATE_FILE" \
+            --job-result "$JOB_RESULT" \
+            --out research-evidence/.github/qa-cumulative/ledger.json \
+            --receipt "$RUNNER_TEMP/cumulative-final/record.json"
+          classified=$?
+          set -e
+          # Incomplete and failed runs MUST still consume their seed reservation.
+          echo "classified_rc=$classified" >> "$GITHUB_OUTPUT"
+          test -s "$RUNNER_TEMP/cumulative-final/record.json"
+      - name: Atomically append result (including scientific failures) to evidence branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd research-evidence
+          git config user.name "ur-cumulative-research[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/qa-cumulative/ledger.json
+          git diff --cached --quiet && { echo "No new reserved research evidence"; exit 1; }
+          git commit -m "research: record ${{ needs.reserve.outputs.campaign }} run ${{ github.run_id }} (no release credit)"
+          # Serialized coordinator protects the read-then-append transaction.
+          # This is a normal non-force, fail-closed push. No silent overwrite.
+          git push origin HEAD:refs/heads/research/qa-cumulative-ledger
+      - name: Retain proposed recorded outcome independently of push availability
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-cumulative-final-receipt
+          path: ${{ runner.temp }}/cumulative-final/record.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Scientific failures must remain red after their receipt is safely committed
+        shell: bash
+        env:
+          CLASSIFIED_RC: ${{ steps.classify.outputs.classified_rc }}
+        run: |
+          set -euo pipefail
+          test "$CLASSIFIED_RC" = 0
+          echo "Cumulative source-bound record committed; no release or hardware credit"

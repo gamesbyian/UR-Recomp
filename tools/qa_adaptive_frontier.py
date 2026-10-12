@@ -203,6 +203,39 @@ def execute_once(*, exe: Path, rom: Path, source_input: str, script: Path,
             "tokens": list(tokens), "observation_count": len(observed), **info}
 
 
+
+def verify_sample(*,exe: Path, rom: Path, source_input: str, script: Path,
+                  root: Path, seed: int, arm: str, timeout: int) -> None:
+    """Strict replay/seat-ablation witness, on every 25th tested case.
+
+    These are real additional native processes; the source fixture's active
+    race and pre-intervention state are still checked by guest.execute().
+    """
+    actions,_=actions_for(seed,arm)
+    baseline=guest.observe(root/"dumps")
+    treatment=root.parent/f"case-{seed}.input"
+    repeat=guest.execute(exe,rom,treatment,script,
+                         root.parent/f"verify-repeat-{seed}",timeout)
+    if baseline!=repeat:
+        raise ValueError("same actual 2P input produced changed full-WRAM checkpoints")
+    for muted in ("p1","p2"):
+        input_path=root.parent/f"verify-{muted}-{seed}.input"
+        input_path.write_text(
+            guest.render_input(source_input,actions,muted),encoding="utf8")
+        load_controller_runs(input_path)
+        probe_dir=root.parent/f"verify-{muted}-{seed}"
+        alt=guest.execute(exe,rom,input_path,script,probe_dir,timeout)
+        if alt[guest.BASE_CHECK]!=baseline[guest.BASE_CHECK]:
+            raise ValueError(f"independent {muted} removal changed original pre-stimulus race")
+        if alt[guest.FIRST_PROBE]==baseline[guest.FIRST_PROBE]:
+            raise ValueError(f"independent {muted} removal caused no post-stimulus native change")
+    for suffix in (f"verify-repeat-{seed}",f"verify-p1-{seed}",f"verify-p2-{seed}"):
+        shutil.rmtree(root.parent/suffix)
+    for muted in ("p1","p2"):
+        (root.parent/f"verify-{muted}-{seed}.input").unlink()
+
+
+
 def fail_class(exc: BaseException) -> str:
     # Error type is useful for reproducible experiments; don't use volatile
     # stdout or runtime-dependent path strings as reproduction identity.
@@ -266,6 +299,12 @@ def run_shard(*, plan_data: dict, shard: int, exe: Path, rom: Path,
             result = execute_once(exe=exe,rom=rom,source_input=source_input,
                                   script=script,root=root,seed=seed,arm=arm,
                                   timeout=timeout)
+            if index % 25 == 0:
+                verify_sample(exe=exe,rom=rom,source_input=source_input,
+                              script=script,root=root,seed=seed,arm=arm,
+                              timeout=timeout)
+            result["verified_ablation"] = index % 25 == 0
+            result["real_native_processes"] = 4 if index % 25 == 0 else 1
             unique = set(result["tokens"])-seen
             gains[arm] += len(unique)
             seen.update(result["tokens"])
@@ -296,6 +335,8 @@ def _receipt(plan_data,shard,identity,attempts,gains,successful,
         "identity":identity,"requested_cases":assigned(plan_data,shard)[1],
         "attempted_cases":len(successful)+(failure is not None),
         "passed_cases":len(successful),"failures":[failure] if failure else [],
+        "real_native_processes":sum(row["real_native_processes"] for row in successful),
+        "metamorphic_verified_cases":sum(bool(row["verified_ablation"]) for row in successful),
         "arm_attempts":dict(attempts),"arm_new_bins":dict(gains),
         "semantic_bins":sorted(seen),
         "case_results":list(successful),
@@ -353,7 +394,9 @@ def aggregate(plan_data: dict, root: Path) -> dict:
                     row["failures"]!=[] or
                     set(row["arm_attempts"])!=set(ARMS) or
                     set(row["arm_new_bins"])!=set(ARMS) or
-                    sum(row["arm_attempts"].values())!=len(cases)):
+                    sum(row["arm_attempts"].values())!=len(cases) or
+                    row.get("real_native_processes")!=len(cases)+3*((len(cases)+24)//25) or
+                    row.get("metamorphic_verified_cases")!=(len(cases)+24)//25):
                 raise ValueError("incomplete scientific population")
             shard_bins=set()
             seen_arms=dict.fromkeys(ARMS,0)
@@ -366,7 +409,9 @@ def aggregate(plan_data: dict, root: Path) -> dict:
                         not isinstance(case.get("tokens"),list) or
                         len(case["tokens"])!=len(FRAME_NAMES) or
                         any(not re.fullmatch(r"[a-f0-9]{24}",str(t)) for t in case["tokens"]) or
-                        case.get("observation_count")!=len(guest.FRAMES)+1):
+                        case.get("observation_count")!=len(guest.FRAMES)+1 or
+                        case.get("verified_ablation") is not (index%25==0) or
+                        case.get("real_native_processes")!=(4 if index%25==0 else 1)):
                     raise ValueError("case lacks source-authenticated native state evidence")
                 seen_arms[case["arm"]]+=1
                 if seed in global_seeds or case["input_sha256"] in global_inputs:
@@ -386,6 +431,7 @@ def aggregate(plan_data: dict, root: Path) -> dict:
             row["receipt_sha256"]=sig
             records.append({"shard":shard,"cases":len(cases),
                             "elapsed_seconds":row["elapsed_seconds"],
+                            "processes":row["real_native_processes"],
                             "receipt_sha256":sig,
                             "new_local_semantic_bins":len(shard_bins)})
         except (OSError,ValueError,KeyError,TypeError,json.JSONDecodeError) as exc:
@@ -402,7 +448,8 @@ def aggregate(plan_data: dict, root: Path) -> dict:
         "plan_sha256":plan_data["plan_sha256"],
         "requested_cases":plan_data["requested_cases"],
         "completed_cases":len(global_seeds),"observed_shards":len(records),
-        "native_processes":len(global_seeds),
+        "native_processes":sum(1+3*(i%25==0) for i in range(plan_data["requested_cases"])) if not issues else sum(r.get("processes",0) for r in records),
+        "metamorphic_verified_cases":sum((n+24)//25 for n in (assigned(plan_data,s)[1] for s in range(plan_data["shards"]))) if not issues else 0,
         "semantic_bins_observed":len(global_tokens),
         "strategy_summary":arms,
         "reproduction_seeds_by_fingerprint":{

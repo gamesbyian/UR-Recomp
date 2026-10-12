@@ -1,4 +1,4 @@
-name: QA research frontier: adaptive native 2P state exploration
+name: "QA research frontier: adaptive native 2P state exploration"
 
 # Genuine OS guest execution. Source-owned first-race fixture; state novelty is
 # NOT original/reference correctness. Up to 10k cases, one shared candidate.

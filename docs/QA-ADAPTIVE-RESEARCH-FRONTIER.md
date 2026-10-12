@@ -1,0 +1,66 @@
+# Adaptive research frontier: high-volume discovery and development handoffs
+
+**Classification:** native research only. See [live WORK-QUEUE](WORK-QUEUE.md) for the priority and exclusive implementation owners, [PROJECT-PLAN](PROJECT-PLAN.md) for the definitive original-game technical-reference goal, and [cumulative coordinator](QA-CUMULATIVE-RESEARCH.md) for source-bound evidence. Research runs cannot edit gameplay/original oracles, source-faithful rendering, the Modern product, or the independent release ledger.
+
+This is the first real **discovery** campaign beyond the three endurance cohorts. It answers *what new gameplay states or possible crash boundaries do many legal dual-controller inputs reach?*, not *is the complete remake identical to the original SNES?*
+
+## Ready today: 10,000 genuine compiled-native 2P experiments in one dispatch
+
+[QA adaptive frontier](../.github/workflows/qa-adaptive-frontier.yml) offers **100 / 1,000 / 10,000 exact independent case populations**. It reuses exactly one existing shared native candidate built and source-smoked by \`modern-shared-native-acceptance.yml\`. Each case starts from the **original established two-player controller/movie prefix** and alters only legal post-entry inputs. It captures all standard **16 full 128-KiB guest WRAM source-owned checkpoints**, and three source-mapped *semantic bins* at frames 1740, 2580 and 3420. The player/race/viewport field offsets come from \`summarize_paired_player_slots.py\`, not arbitrary changing stack bytes. Merely changing an unclassified scratch register cannot manufacture coverage.
+
+The matrix distributes work as:
+
+| Whole campaign | Shards | Cases per shard | Max concurrent jobs | Actual native guest processes (if complete) |
+| ---: | ---: | ---: | ---: | ---: |
+| 100 | 4 | 25 | 4 | 112 |
+| 1,000 | 10 | 100 | 4 | 1,120 |
+| 10,000 | 40 | 250 | 4 | 11,200 |
+
+**Every 25th case additionally executes three genuine native runs**: identical replay plus independent mute-P1 and mute-P2 interventions. Their pre-intervention full-WRAM hashes must agree, the identical-treatment full-WRAM checkpoints must all agree, and both controller-removal counterfactuals must affect the first post-intervention game state. Thus the 10k option is **10k independent native controller scripts** with **400 deeper deterministic/dual-seat metamorphic checks**, not 10k strict original-SNES comparisons. Source-qualified event acceptance remains **0/45 until the independent original/native gate actually accepts an event**.
+
+The campaign explores five legal-input strategies: balanced, P1-heavy, P2-heavy, alternating seat focus, and rotation/airborne pulses. Per-shard deterministic upper-confidence selection favours strategies that discover *new semantic-state bins* while still exploring every strategy. These normalized bins are **advisory research coverage**, not proof the original emulator produced the same behaviour. Cases are reproducible by source revision, binary SHA, original ROM hash, exact global seed, source script and selected arm. The immutable first dual-seat intervention is preserved.
+
+### Bounded operations and fail-closed evidence
+
+- All matrix case IDs and seed windows are frozen before the native candidate is compiled. A 40-shard matrix uses **at most 4 simultaneously running experiment jobs**. Each shard runs at most 250 cases, with 120-second timeout **per actual guest invocation** and a 180-minute per-job hard limit. No artificial sleeps to fill time budgets. The complete 10k population may take hours of real runner time and is not presumed finished until **40 intact machine receipts** validate.
+- No raw ROM, guest WRAM, unbounded output frames or player save files are uploaded. Successful private roots are removed from the runner. Native failures preserve private roots only until its ephemeral job is destroyed; the public receipt records the bounded failure class/seed and any available reproduction evidence.
+- The aggregator rejects **missing or partial shards, duplicate inputs or seeds, wrong source/binary/ROM hashes, changed first-entry fixture, forged controller/semantic counts and any false release admission**. A single missing case makes the campaign red, not a dishonest \`9,999/10,000\` pass. The source-specific semantic hashes can be reproduced, compared and investigated, but they're not release evidence.
+- Every real successful run produces the compact \`qa-frontier-aggregate\` plus \`handoff.json\` / \`handoff.md\`. Handoffs rank which input strategies were productive and identify bounded novel-state reproduction seeds. They refer findings **to the existing gameplay, QA-08/10, and Modern/QA owners** without automatically creating speculative bugs, approving new HD art or writing gameplay patches.
+
+### Cumulative and automatic versus standalone
+
+To advance the **persistent** evidence ledger, dispatch [Cumulative research campaigns](../.github/workflows/qa-cumulative-research.yml) with \`campaign=frontier\`, \`frontier_cases=100\` first, on \`main\`. On actual success, increase to 1,000 and then 10,000. This is a **manual high-compute promotion**, not a fresh 10k automatic run twice weekly. The general twice-weekly auto rotation (now seven lanes) uses only **100 frontier cases** when it reaches this lane, avoiding GHA concurrency explosions. Each coordinator launch reserves a distinct integer-seed range, records source/run identity and a compact observed strategy/novelty summary, and permanently logs both passes and fails. A direct dispatch is useful for exploratory debugging but does **not** advance the cumulative ledger.
+
+**One-seed reproduction:** download the exact \`qa-frontier-plan\` and use its source SHA to rebuild/retrieve the identical executable, then:
+
+\`\`\`bash
+python3 tools/qa_adaptive_frontier.py repro \
+  --plan path/to/plan.json \
+  --seed 50000019 --arm rotation \
+  --exe /path/to/EXACT_NATIVE_BINARY \
+  --rom /path/to/verified/Uniracers_USA.sfc \
+  --work /unique/private/repro-root \
+  --out /path/to/repro.json
+\`\`\`
+
+This executes the real candidate again and compares its newly observed semantic signatures with the original receipt. The example seed/arm illustrates syntax only; use the **actual** emitted handoff for evidence-driven reproduction.
+
+## Remaining research frontiers: what must be qualified next
+
+The system can already plan thousands of real **native two-seat state-space** experiments; it is not entitled to call other domains "10,000 correctness tests" when there is no independent truth oracle. Expand one new population only when it can preserve its original source and acceptance boundary.
+
+| Priority / owner | Existing evidence and limitation | What is needed before 10k-case discovery |
+| --- | --- | --- |
+| **P0 Gameplay / QA-01/07** | Three source-qualified complete-event movies: Zoo, Bowl and Switcher; strict guest-relative result-phase disagreements remain | Resolve first strictly accepted USA event and define a genuine original/native perturbation oracle. Then add multi-seed replay from independent original emulator, with alignment and exact result state unaffected |
+| **P0 Graphics / QA-08/10** | OAM/PPU frame2208 top-vs-bottom ambiguity, original alpha/depth history unresolved | Qualify original PPU/OBJ visibility and DMA latch history; then enumerate verified visible sprite/occlusion scenes. Self-vs-self pixels are not source truth |
+| **P0 Windows native/Modern** | Native guest, profile, results and storage components exist but true controller-first settled 1P/2P result to fresh-process Records still requires integrated acceptance | Capture an **exact complete real Windows player journey**, then fuzz transitions and lifecycle faults over the observed same candidate and source-backed guest results |
+| **Course breadth / technical atlas** | 45 decoded streams and normalized corpus exist, but the course/event acceptance matrix isn't complete | Source-qualify checkpoint/finish/score observers and course-specific original behavior before any 45×N correctness sweep |
+| **Performance / CI** | Long native process performance and graphics replay campaigns are already separate cumulative lanes | Reuse their data to form measured hot-path regressions; don't generate wall-clock padding or meaningless pseudo-baselines |
+
+A useful research cycle is **observed novel state → exact reproduction → independent original oracle → causal source/writer hypothesis → focused owning implementation PR → strict regression and coverage refresh**. Repeated cases within an unqualified oracle cannot satisfy that contract, irrespective of scale.
+
+## Scientific stopping rules
+
+Do not promote large novelty counts as accepted gameplay. If broad exploration produces no new meaningful semantic categories or only trivial motion variation, shift to the next **qualified question** instead of repeatedly paying for 10k nearly identical states. Revisit inputs after changes to the actual gameplay or source observability. Three non-discriminating source probes should trigger explicit hypothesis revision per the existing project research policy, not a hidden relaxation of the original parity comparator.
+
+**Ownership and risk:** This new tool does not write to \`docs/RELEASE-QUALITY-LEDGER.json\`, the original game, native renderer, Modern frontend, product storage or an art-approval manifest. No automatic issues or code-writing agents are invoked by unreviewed novelty; generated reproducible packets are suitable input for the owner's next autonomous research/development turn.

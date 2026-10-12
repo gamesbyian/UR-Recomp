@@ -73,6 +73,32 @@ class ExactFrontierTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             e._parse(e._pack(b"\x00" * (e.RUN_WIDTH * 2)), False)
 
+    def test_lookup_preserves_first_run_and_exact_replay_coordinates(self):
+        original, _ = e.make_record(None, tokens(0, 21), 38171000000, 10)
+        second, _ = e.make_record(original, tokens(15, 21, 50012000), 38171000001, 10)
+        rows = []
+        for run_id, gain in ((38171000000, 21), (38171000001, 15)):
+            record = {
+                "campaign": "frontier", "origin": "coordinator",
+                "source_sha": "a" * 40, "github_run_id": run_id,
+                "disposition": "completed_positive",
+                "metrics": {"exact_new_unique_fingerprints": gain},
+            }
+            record["record_sha256"] = h.checksum(record)
+            rows.append(record)
+        ledger = {"frontier_exact_coverage": second, "records": rows}
+        first = e.lookup_witness(ledger, f"{16:024x}")
+        self.assertEqual(first["github_run_id"], 38171000000)
+        self.assertEqual(first["seed"], 50000005)
+        self.assertEqual(first["arm"], "balanced")
+        self.assertEqual(first["source_sha"], "a" * 40)
+        self.assertEqual(first["release_gate_credit"], 0)
+        with self.assertRaises(ValueError):
+            e.lookup_witness(ledger, f"{10000:024x}")
+        with self.assertRaises(ValueError):
+            e.lookup_witness({"frontier_exact_coverage": second, "records": []},
+                             f"{16:024x}")
+
     def test_prior_legacy_hll_is_not_converted_to_exact(self):
         record, _ = e.make_record(None, tokens(4, 30), 38171000000, 10)
         self.assertTrue(record["legacy_sketch_campaigns_excluded"])

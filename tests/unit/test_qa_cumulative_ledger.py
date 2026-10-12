@@ -85,12 +85,17 @@ class CumulativeLedgerContracts(unittest.TestCase):
 
     def test_source_rejection_and_incomplete_population(self):
         p=make()
-        with self.assertRaisesRegex(ValueError,"exact planned"):
-            c.append(LEDGER,p,{**native_report(),"source_commit":"b"*40},"success")
-        with self.assertRaisesRegex(ValueError,"process counts"):
-            c.append(LEDGER,p,{**native_report(),"total_real_native_processes":100},"success")
-        with self.assertRaisesRegex(ValueError,"release"):
-            c.append(LEDGER,p,{**native_report(),"release_gate_credit":1},"success")
+        for report,reason in (
+            ({**native_report(),"source_commit":"b"*40},"exact planned"),
+            ({**native_report(),"total_real_native_processes":100},"process counts"),
+            ({**native_report(),"release_gate_credit":1},"release"),
+        ):
+            with self.subTest(reason=reason):
+                state,record=c.append(LEDGER,p,report,"success")
+                self.assertEqual(record["disposition"],"incomplete_or_failed")
+                self.assertIn(reason,record["metrics"]["reason"])
+                self.assertEqual(state["records"][0]["base_seed"],p["base_seed"])
+                self.assertEqual(record["release_gate_credit"],0)
         state,row=c.append(LEDGER,p,{**native_report(),"disposition":"incomplete_or_failed"},"success")
         self.assertEqual(row["disposition"],"incomplete_or_failed")
         self.assertEqual(row["release_gate_credit"],0)

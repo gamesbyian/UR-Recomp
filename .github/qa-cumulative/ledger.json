@@ -1,0 +1,73 @@
+{
+  "schema": "ur-cumulative-campaign-ledger/1",
+  "records": [
+    {
+      "campaign": "native-2p",
+      "origin": "adopted",
+      "source_sha": "af16d4872b637b3b06779c613ed4ed6bc1a530e0",
+      "github_run_id": 38184676684,
+      "disposition": "completed_positive",
+      "base_seed": 20261011,
+      "metrics": {
+        "cases": 22,
+        "observations": 88
+      },
+      "artifact": "native-2p-endurance-aggregate",
+      "note": "15-minute original complete research aggregate; read-only historical adoption"
+    },
+    {
+      "campaign": "native-2p",
+      "origin": "adopted",
+      "source_sha": "af16d4872b637b3b06779c613ed4ed6bc1a530e0",
+      "github_run_id": 38186378050,
+      "disposition": "completed_positive",
+      "base_seed": 20261011,
+      "metrics": {
+        "cases": 165,
+        "observations": 660
+      },
+      "artifact": "native-2p-endurance-aggregate",
+      "note": "120-minute same-seed run overlaps early case indices from first campaign; do not count as 187 independent seeds"
+    },
+    {
+      "campaign": "windows",
+      "origin": "adopted",
+      "source_sha": "1385bdb11137a91f38951309e4eb8ae774ac553c",
+      "github_run_id": 38178553870,
+      "disposition": "completed_positive",
+      "metrics": {
+        "cases": 40,
+        "observations": 40
+      },
+      "artifact": "qa-win32-reliability-aggregate",
+      "note": "Fixed routes, fresh Windows OS processes, not unique gameplay inputs"
+    },
+    {
+      "campaign": "windows",
+      "origin": "adopted",
+      "source_sha": "b61e2d258a52b2c5a7669212ed5ac178838813ae",
+      "github_run_id": 38186885659,
+      "disposition": "completed_positive",
+      "metrics": {
+        "cases": 120,
+        "observations": 120
+      },
+      "artifact": "qa-win32-reliability-aggregate",
+      "note": "Repeated real Windows bridge/profile/launcher scripts and fresh user-data roots"
+    },
+    {
+      "campaign": "fault-recovery",
+      "origin": "adopted",
+      "source_sha": "3c13b2aff0f69317e0d09b40d4aef9286b515c10",
+      "github_run_id": 38190769624,
+      "disposition": "completed_positive",
+      "base_seed": 20261011,
+      "metrics": {
+        "cases": 16951,
+        "observations": 169510
+      },
+      "artifact": "qa02-real-fault-endurance-aggregate",
+      "note": "Five source-authenticated fault suites, micro-jitter case seeds; real OS processes, not hardware power cuts"
+    }
+  ]
+}

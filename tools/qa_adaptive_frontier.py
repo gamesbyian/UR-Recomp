@@ -32,6 +32,16 @@ from summarize_paired_player_slots import state
 SCHEMA = "ur-research-frontier-2p/1"
 PLAN_SCHEMA = "ur-research-frontier-plan/1"
 ARMS = ("balanced", "p1-focus", "p2-focus", "alternating", "rotation")
+FEATURES = (
+    "both-air-raw",
+    "both-moving-raw",
+    "both-rotation-registers-change",
+    "checkpoint-pointer-changes",
+    "offscreen-register-nonzero",
+    "opposing-x-motion-raw",
+    "split-register-changes",
+    "split-register-nonzero",
+)
 FRAME_NAMES = ("endurance-1740", "endurance-2580", "endurance-3420")
 COUNT_TO_SHARDS = {100: 4, 1000: 10, 10000: 40}
 SOURCE = "existing original-fixture-qualified native 2P first-race route"
@@ -215,6 +225,59 @@ def semantic_bins(dumps: Path) -> tuple[str, ...]:
     return tuple(tokens)
 
 
+def source_features(dumps: Path) -> tuple[str, ...]:
+    """Observed WRAM-derived raw categories, not independent game semantics.
+
+    Prefer these *named source fields* over invented "graphics correct" and
+    "event finished" classifications. An "air" or "offscreen" bit is merely
+    recorded as a nonzero original-field candidate, not a true OBJ visibility
+    or final-pixel assertion.
+    """
+    observed=[]
+    for name in FRAME_NAMES:
+        path=dumps/(name+".wram.bin")
+        if not path.is_file() or path.is_symlink() or path.stat().st_size != 131072:
+            raise ValueError(f"missing true 128KiB semantic feature source snapshot {name}")
+        observed.append(state(path))
+    found=set()
+    if any(
+        row["slot1"]["air_effective"] and row["slot2"]["air"]
+        for row in observed
+    ):
+        found.add("both-air-raw")
+    if any(
+        (row["slot1"]["x_speed"] or row["slot1"]["y_speed"]) and
+        (row["slot2"]["x_speed"] or row["slot2"]["y_speed"])
+        for row in observed
+    ):
+        found.add("both-moving-raw")
+    if any(row["slot1"]["x_speed"]*row["slot2"]["x_speed"] < 0
+           for row in observed):
+        found.add("opposing-x-motion-raw")
+    if (len({row["slot1"]["rotation_candidate"] for row in observed}) > 1
+            and len({row["slot2"]["rotation_candidate"] for row in observed}) > 1):
+        found.add("both-rotation-registers-change")
+    modes=[row["camera_and_viewport"]["mode"] for row in observed]
+    if len({row["split_screen_active_raw"] for row in modes}) > 1:
+        found.add("split-register-changes")
+    if any(row["split_screen_active_raw"] for row in modes):
+        found.add("split-register-nonzero")
+    if any(row["player1_offscreen_raw"] or row["player2_offscreen_raw"]
+           for row in modes):
+        found.add("offscreen-register-nonzero")
+    progress=[row["race_progress"] for row in observed]
+    keys=("next_checkpoint","finish_gate","laps_remaining")
+    if any(
+        tuple(row[player][key] for player in ("player1","player2") for key in keys)
+        != tuple(progress[0][player][key] for player in ("player1","player2") for key in keys)
+        for row in progress[1:]
+    ):
+        found.add("checkpoint-pointer-changes")
+    if not found.issubset(FEATURES):
+        raise ValueError("source feature vocabulary unexpectedly changed")
+    return tuple(sorted(found))
+
+
 def execute_once(*, exe: Path, rom: Path, source_input: str, script: Path,
                  root: Path, seed: int, arm: str, timeout: int) -> dict:
     actions, info = actions_for(seed, arm)
@@ -223,9 +286,11 @@ def execute_once(*, exe: Path, rom: Path, source_input: str, script: Path,
     load_controller_runs(generated)  # legal input grammar, unchanged stock prefix
     observed = guest.execute(exe, rom, generated, script, root, timeout)
     tokens = semantic_bins(root/"dumps")
+    features = source_features(root/"dumps")
     return {"seed": seed, "arm": arm, "input_sha256": guest.sha256(generated),
             "post_entry_wram_sha256": observed[guest.FIRST_PROBE],
-            "tokens": list(tokens), "observation_count": len(observed), **info}
+            "tokens": list(tokens), "features": list(features),
+            "observation_count": len(observed), **info}
 
 
 
@@ -388,6 +453,8 @@ def aggregate(plan_data: dict, root: Path) -> dict:
     global_tokens=set()
     first_identity=None
     arms={arm:{"attempted":0,"new_bins_local":0} for arm in ARMS}
+    feature_counts=dict.fromkeys(FEATURES,0)
+    feature_repros={}
     for shard in range(plan_data["shards"]):
         path=root/f"research-frontier-{shard}"/"result.json"
         try:
@@ -438,6 +505,9 @@ def aggregate(plan_data: dict, root: Path) -> dict:
                         len(case["tokens"])!=len(FRAME_NAMES) or
                         any(not re.fullmatch(r"[a-f0-9]{24}",str(t)) for t in case["tokens"]) or
                         case.get("observation_count")!=len(guest.FRAMES)+1 or
+                        type(case.get("features")) is not list or
+                        case["features"] != sorted(set(case["features"])) or
+                        any(feature not in FEATURES for feature in case["features"]) or
                         case.get("verified_ablation") is not (index%25==0) or
                         case.get("real_native_processes")!=(4 if index%25==0 else 1)):
                     raise ValueError("case lacks source-authenticated native state evidence")
@@ -446,6 +516,11 @@ def aggregate(plan_data: dict, root: Path) -> dict:
                     raise ValueError("duplicate native case across original shards")
                 global_seeds.add(seed)
                 global_inputs.add(case["input_sha256"])
+                for feature in case["features"]:
+                    feature_counts[feature]+=1
+                    if feature not in feature_repros:
+                        feature_repros[feature]={
+                            "seed":seed,"arm":case["arm"],"shard":shard}
                 shard_bins.update(case["tokens"])
                 global_tokens.update(case["tokens"])
             if seen_arms!=row["arm_attempts"] or set(row["semantic_bins"])!=shard_bins:
@@ -479,6 +554,8 @@ def aggregate(plan_data: dict, root: Path) -> dict:
         "native_processes":sum(1+3*(i%25==0) for i in range(plan_data["requested_cases"])) if not issues else sum(r.get("processes",0) for r in records),
         "metamorphic_verified_cases":sum((n+24)//25 for n in (assigned(plan_data,s)[1] for s in range(plan_data["shards"]))) if not issues else 0,
         "semantic_bins_observed":len(global_tokens),
+        "source_feature_counts":feature_counts,
+        "source_feature_reproduction_seeds":feature_repros if not issues else {},
         "semantic_epoch": coverage.EPOCH,
         "semantic_hll_b64": coverage.encode(coverage.observe(global_tokens)) if not issues else coverage.encode(coverage.empty()),
         "strategy_summary":arms,
@@ -520,7 +597,13 @@ def summary(report:dict)->str:
            "| --- | ---: | ---: |"]
     for arm,v in report["strategy_summary"].items():
         lines.append(f"| {arm} | {v['attempted']} | {v['new_bins_local']} |")
-    lines+=["","First-capture seeds for unusual states are in the compact JSON artifact.",""]
+    lines+=["","### Actual source-slot feature categories", "",
+            "| Raw-observed category | Native input cases |",
+            "| --- | ---: |"]
+    for name,count in sorted(report["source_feature_counts"].items(),key=lambda row:(row[1],row[0])):
+        lines.append(f"| {name} | {count} |")
+    lines+=["","Exact seed/arm witnesses for source-slot categories are in the compact JSON artifact.",
+            "Source register flags, unlike independent SNES PPU pixel evidence, are not final visual truth.",""]
     lines.extend("- "+s for s in report["issues"])
     return "\n".join(lines)+"\n"
 

@@ -56,13 +56,57 @@ def report(plan_data:dict, observed:dict)->dict:
             raise ValueError("invalid purported native state reproduction")
         witnesses.append({"fingerprint":fingerprint,
                           "seed":case["seed"],"arm":case["arm"],"shard":case.get("shard")})
+    # Do not rank arbitrary hashes alphabetically when a real observed
+    # source-slot category has an exact, finite-grammar reproduction seed.
+    source_counts=observed.get("source_feature_counts",{})
+    source_repros=observed.get("source_feature_reproduction_seeds",{})
+    if successful and (
+        type(source_counts) is not dict or
+        set(source_counts)!=set(frontier.FEATURES) or
+        type(source_repros) is not dict
+    ):
+        raise ValueError("missing bounded source-slot discovery categories")
+    category_witnesses=[]
+    for feature,n in sorted(source_counts.items(),key=lambda x:(x[1],x[0])):
+        if (feature not in frontier.FEATURES or type(n) is not int
+                or not 0<=n<=observed.get("completed_cases",0)):
+            raise ValueError("invented native source-slot category count")
+        if n==0:
+            if feature in source_repros:
+                raise ValueError("unsupported source slot witness for zero observed cases")
+            continue
+        w=source_repros.get(feature)
+        if (type(w) is not dict or w.get("arm") not in frontier.ARMS
+                or type(w.get("seed")) is not int
+                or not plan_data["base_seed"]<=w["seed"]<
+                       plan_data["base_seed"]+plan_data["requested_cases"]
+                or type(w.get("shard")) is not int
+                or not 0<=w["shard"]<plan_data["shards"]):
+            raise ValueError("source category missing exact original-input reproducer")
+        category_witnesses.append({"feature":feature,"cases":n,
+                                   "seed":w["seed"],"arm":w["arm"],
+                                   "shard":w["shard"]})
+    if set(source_repros)-set(source_counts):
+        raise ValueError("extra non-source native category witness")
+    def first_matching(*features):
+        return next((w for w in category_witnesses
+                     if w["feature"] in features),None)
+    graphics_hint=first_matching("both-air-raw","offscreen-register-nonzero",
+                                 "split-register-changes","split-register-nonzero")
+    gameplay_hint=first_matching("checkpoint-pointer-changes",
+                                 "opposing-x-motion-raw",
+                                 "both-rotation-registers-change")
+    def hint_text(hint):
+        return (f" Candidate source-state reproduction: seed {hint['seed']},"
+                f" arm {hint['arm']}, observed category {hint['feature']}."
+                if hint else " No special source-slot category nominated yet.")
     owner_queue=[
         {"lane":"QA-01/07 original gameplay fidelity",
          "hypothesis":"Which novel native state bins diverge under authenticated original SNES inputs?",
-         "next_proof":"Use one selected reproducible seed plus independent original USA observation; strict comparator stays unchanged."},
+         "next_proof":"Use one selected reproducible seed plus independent original USA observation; strict comparator stays unchanged."+hint_text(gameplay_hint)},
         {"lane":"QA-08/10 graphics and original PPU",
          "hypothesis":"Do sampled split/airborne racer states expose previously absent source-visible OBJ occlusion cases?",
-         "next_proof":"Capture source reference PPU/OAM and compare final depth, not a hash-only frame."},
+         "next_proof":"Capture source reference PPU/OAM and compare final depth, not a hash-only frame."+hint_text(graphics_hint)},
         {"lane":"Modern Windows product / independent QA",
          "hypothesis":"Which actually played native transitions now expose missing 2P result and Records publication paths?",
          "next_proof":"Single exact native Windows candidate, complete result, fresh-process Records acceptance."},
@@ -82,6 +126,7 @@ def report(plan_data:dict, observed:dict)->dict:
         "observed_semantic_bins":observed.get("semantic_bins_observed",0),
         "strategies_ranked_by_within_shard_coverage":ranking,
         "reproducers":witnesses,
+        "source_feature_reproducers":category_witnesses,
         "owning_lanes":owner_queue,
         "recommendation":("Review and qualify a small selection of unusual observed states with their "
                           "independent original source, rather than automatically generating 10k release passes."
@@ -111,7 +156,13 @@ def markdown(data:dict)->str:
                      "\`python3 tools/qa_adaptive_frontier.py repro --plan PLAN "
                      f"--seed {row['seed']} --arm {row['arm']} --exe EXACT_EXE "
                      "--rom VERIFIED_USA_ROM --work NEW_PRIVATE_ROOT --out repro.json\`.")
-    lines+=["","## Decisions for the existing owners",""]
+    lines+=["","## Source-observed categories worth an independent source-oracle check","",
+            "| Raw WRAM-derived category | Real native inputs | Exact repro seed | Arm |",
+            "| --- | ---: | ---: | --- |"]
+    for row in data["source_feature_reproducers"]:
+        lines.append(f"| {row['feature']} | {row['cases']} | {row['seed']} | {row['arm']} |")
+    lines+=["","**These are sampled native register observations, not independent original SNES or PPU truth.**",
+            "","## Decisions for the existing owners",""]
     for owner in data["owning_lanes"]:
         lines.append(f"- **{owner['lane']}:** {owner['hypothesis']} "
                      f"Next: {owner['next_proof']}")

@@ -163,6 +163,8 @@ class CumulativeLedgerContracts(unittest.TestCase):
                     "completed_cases":count,"observed_shards":shards,
                     "native_processes":count+3*shards*((count//shards+24)//25),
                     "semantic_bins_observed":count*2,
+                    "source_feature_counts":{name:0 for name in __import__("qa_adaptive_frontier").FEATURES},
+                    "source_feature_reproduction_seeds":{},
                     "semantic_epoch":EPOCH,
                     "semantic_hll_b64":coverage_encode(coverage_observe(
                         [format(i,"024x") for i in range(count*2)])),

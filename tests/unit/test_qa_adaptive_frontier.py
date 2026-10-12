@@ -37,7 +37,10 @@ def report_tree(root: Path, count: int = 100) -> tuple[dict,Path]:
                 "seed":seed,"arm":arm,
                 "input_sha256":f.digest(["legal-controller",seed]),
                 "post_entry_wram_sha256":f.digest(["native-observed",seed]),
-                "tokens":obs,"observation_count":len(f.guest.FRAMES)+1,
+                "tokens":obs,
+                "features": ([f.FEATURES[index%len(f.FEATURES)]]
+                             if index%3 != 0 else []),
+                "observation_count":len(f.guest.FRAMES)+1,
                 "verified_ablation":index%25==0,
                 "real_native_processes":4 if index%25==0 else 1,
                 "intervals":20,"p1_intervals":17,"p2_intervals":14,
@@ -112,6 +115,39 @@ class ResearchFrontierContracts(unittest.TestCase):
             path.write_bytes(blob)
             self.assertNotEqual(a,f.semantic_bins(directory))
 
+    def test_real_wram_named_source_category_features_are_distinct_from_random_hashes(self):
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td)
+            for name in f.FRAME_NAMES:
+                (root/(name+".wram.bin")).write_bytes(bytes(131072))
+            self.assertEqual(f.source_features(root),())
+            cases=[]
+            for index,name in enumerate(f.FRAME_NAMES):
+                path=root/(name+".wram.bin")
+                data=bytearray(path.read_bytes())
+                if index==1:
+                    data[0x0545]=1
+                    data[0x0547]=1
+                    data[0x04B7:0x04B9]=(12).to_bytes(2,"little")
+                    data[0x04B9:0x04BB]=(65520).to_bytes(2,"little")
+                    data[0x0DDB]=1
+                    data[0x121B]=1
+                    data[0x1199:0x119B]=(2).to_bytes(2,"little")
+                    data[0x04C7]=4
+                    data[0x04C9]=8
+                path.write_bytes(data)
+                cases.append(data)
+            categories=set(f.source_features(root))
+            self.assertEqual(categories,{
+                "both-air-raw","both-moving-raw",
+                "both-rotation-registers-change",
+                "checkpoint-pointer-changes","offscreen-register-nonzero",
+                "opposing-x-motion-raw",
+                "split-register-changes","split-register-nonzero",
+            })
+            self.assertTrue(categories.issubset(f.FEATURES))
+            self.assertEqual(f.source_features(root),tuple(sorted(categories)))
+
     def test_one_in_25_real_process_and_seat_mutation_budget(self):
         for count,shards in ((100,4),(1000,10),(10000,40)):
             with self.subTest(count=count):
@@ -153,11 +189,15 @@ class ResearchFrontierContracts(unittest.TestCase):
             self.assertGreater(data["semantic_bins_observed"],200)
             self.assertLessEqual(len(data["reproduction_seeds_by_fingerprint"]),256)
             self.assertEqual(sum(s["attempted"] for s in data["strategy_summary"].values()),100)
+            self.assertEqual(set(data["source_feature_counts"]),set(f.FEATURES))
+            self.assertGreater(sum(data["source_feature_counts"].values()),0)
+            self.assertTrue(data["source_feature_reproduction_seeds"])
 
     def test_source_identity_wrong_count_duplicate_input_fake_credit_and_partial(self):
         for corruption in ("missing","extra","sha","wrong_source","fake_credit",
                            "partial","count","duplicate_seed","duplicate_input",
-                           "forged_arm","wrong_observations","semantic_tokens"):
+                           "forged_arm","wrong_observations","semantic_tokens",
+                           "fake_source_category","repeated_source_category"):
             with self.subTest(corruption=corruption),tempfile.TemporaryDirectory() as td:
                 p,receipts=report_tree(Path(td))
                 path=receipts/"research-frontier-1/result.json"
@@ -177,6 +217,8 @@ class ResearchFrontierContracts(unittest.TestCase):
                     elif corruption=="forged_arm": row["case_results"][2]["arm"]="not-a-controller-arm"
                     elif corruption=="wrong_observations": row["case_results"][1]["observation_count"]=0
                     elif corruption=="semantic_tokens": row["semantic_bins"]=["0"*24]
+                    elif corruption=="fake_source_category": row["case_results"][2]["features"]=["unknown-original-ppu"]
+                    elif corruption=="repeated_source_category": row["case_results"][2]["features"]=[f.FEATURES[0],f.FEATURES[0]]
                     if corruption!="sha":
                         row["receipt_sha256"]=f.digest({
                             k:v for k,v in row.items() if k!="receipt_sha256"})

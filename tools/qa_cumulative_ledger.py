@@ -246,6 +246,22 @@ def outcome(plan: dict, producer: dict | None, job_result: str) -> tuple[str, di
             raise ValueError("frontier strategy cases do not sum to observed real inputs")
         metrics["semantic_bins_observed"]=producer.get("semantic_bins_observed")
         metrics["strategy_summary"]=summary
+        from qa_adaptive_frontier import FEATURES
+        feature_counts=producer.get("source_feature_counts")
+        feature_repros=producer.get("source_feature_reproduction_seeds")
+        if (type(feature_counts) is not dict or set(feature_counts)!=set(FEATURES)
+                or type(feature_repros) is not dict
+                or any(type(v) is not int or not 0<=v<=n
+                       for v in feature_counts.values())
+                or set(feature_repros)!={key for key,v in feature_counts.items() if v}):
+            raise ValueError("missing or impossible source-observed development-category population")
+        for feature,w in feature_repros.items():
+            if (type(w) is not dict
+                    or w.get("arm") not in summary
+                    or type(w.get("seed")) is not int
+                    or not plan["base_seed"]<=w["seed"]<plan["base_seed"]+n):
+                raise ValueError("unbound source feature reproduction seed or strategy")
+        metrics["source_feature_counts"]=feature_counts
         if type(metrics["semantic_bins_observed"]) is not int or metrics["semantic_bins_observed"]<0:
             raise ValueError("frontier provided no semantic-state discovery measurement")
     return status, metrics

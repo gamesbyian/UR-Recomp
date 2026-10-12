@@ -106,6 +106,8 @@ class FrontierCoverageContracts(unittest.TestCase):
                 "disposition":"completed_observational","completed_cases":100,
                 "native_processes":112,"observed_shards":4,
                 "semantic_bins_observed":100,"semantic_epoch":c.EPOCH,
+                "source_feature_counts":{name:0 for name in __import__("qa_adaptive_frontier").FEATURES},
+                "source_feature_reproduction_seeds":{},
                 "semantic_hll_b64":c.encode(samples),
                 "strategy_summary":{
                     "balanced":{"attempted":100,"new_bins_local":100},

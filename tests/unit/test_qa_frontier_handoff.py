@@ -26,6 +26,15 @@ class FrontierHandoffContracts(unittest.TestCase):
             "original_native_parity":False,
             "semantic_bins_observed":60,
             "strategy_summary":rows,
+            "source_feature_counts":{
+                name:(3 if name=="both-air-raw" else
+                      2 if name=="checkpoint-pointer-changes" else 0)
+                for name in f.FEATURES
+            },
+            "source_feature_reproduction_seeds":{
+                "both-air-raw":{"seed":50000019,"arm":"rotation","shard":0},
+                "checkpoint-pointer-changes":{"seed":50000025,"arm":"balanced","shard":1},
+            },
             "reproduction_seeds_by_fingerprint":{
                 "0"*24:{"seed":50000019,"arm":"rotation","shard":0},
                 "1"*24:{"seed":50000025,"arm":"balanced","shard":1},
@@ -37,6 +46,10 @@ class FrontierHandoffContracts(unittest.TestCase):
         self.assertFalse(handoff["independently_adjudicated_original_fidelity"])
         self.assertEqual(len(handoff["reproducers"]),2)
         self.assertEqual(handoff["reproducers"][0]["arm"],"rotation")
+        self.assertEqual(len(handoff["source_feature_reproducers"]),2)
+        self.assertEqual(handoff["source_feature_reproducers"][0]["feature"],"checkpoint-pointer-changes")
+        self.assertIn("seed 50000025",handoff["owning_lanes"][0]["next_proof"])
+        self.assertIn("seed 50000019",handoff["owning_lanes"][1]["next_proof"])
         self.assertEqual(handoff["strategies_ranked_by_within_shard_coverage"][0]["arm"],"rotation")
         md=h.markdown(handoff)
         self.assertIn("--seed 50000019 --arm rotation",md)
@@ -54,6 +67,44 @@ class FrontierHandoffContracts(unittest.TestCase):
                                             if k!="receipt_sha256"})
         with self.assertRaisesRegex(ValueError,"partial"):
             h.report(plan,missing)
+
+    def test_invalid_or_forged_source_category_never_becomes_owner_direction(self):
+        plan=f.plan("a"*40,50000000,100)
+        def source_report():
+            row={
+                "schema":f.SCHEMA,"source_sha":plan["source_sha"],
+                "plan_sha256":plan["plan_sha256"],
+                "disposition":"completed_observational",
+                "completed_cases":100,"observed_shards":4,
+                "issues":[],"release_gate_credit":0,
+                "original_native_parity":False,"semantic_bins_observed":20,
+                "strategy_summary":{},
+                "reproduction_seeds_by_fingerprint":{},
+                "source_feature_counts":{name:0 for name in f.FEATURES},
+                "source_feature_reproduction_seeds":{},
+            }
+            row["receipt_sha256"]=f.digest(row)
+            return row
+        for scenario in ("count","missing","wrong-seed","fake-feature","zero-with-repro"):
+            with self.subTest(scenario=scenario):
+                row=source_report()
+                if scenario=="count":
+                    row["source_feature_counts"]["both-air-raw"]=101
+                elif scenario=="missing":
+                    row.pop("source_feature_counts")
+                elif scenario=="wrong-seed":
+                    row["source_feature_counts"]["both-air-raw"]=1
+                    row["source_feature_reproduction_seeds"]["both-air-raw"]={
+                        "seed":9,"arm":"balanced","shard":0}
+                elif scenario=="fake-feature":
+                    row["source_feature_counts"]["invented-renderer-correct"]=1
+                elif scenario=="zero-with-repro":
+                    row["source_feature_reproduction_seeds"]["both-air-raw"]={
+                        "seed":50000001,"arm":"balanced","shard":0}
+                row["receipt_sha256"]=f.digest({k:v for k,v in row.items()
+                                                 if k!="receipt_sha256"})
+                with self.assertRaises(ValueError):
+                    h.report(plan,row)
 
     def test_negative_transport_has_no_development_certification(self):
         plan=f.plan("a"*40,50000000,100)
@@ -80,6 +131,8 @@ class FrontierHandoffContracts(unittest.TestCase):
               "disposition":"completed_observational","issues":[],
               "completed_cases":100,"observed_shards":4,
               "semantic_bins_observed":2,"strategy_summary":{},
+              "source_feature_counts":{name:0 for name in f.FEATURES},
+              "source_feature_reproduction_seeds":{},
               "reproduction_seeds_by_fingerprint":{
                   "0"*24:{"seed":99,"arm":"fake","shard":0}}}
         data["receipt_sha256"]=f.digest(data)

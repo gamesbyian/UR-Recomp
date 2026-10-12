@@ -59,6 +59,16 @@ The system can already plan thousands of real **native two-seat state-space** ex
 
 A useful research cycle is **observed novel state → exact reproduction → independent original oracle → causal source/writer hypothesis → focused owning implementation PR → strict regression and coverage refresh**. Repeated cases within an unqualified oracle cannot satisfy that contract, irrespective of scale.
 
+## Cumulative semantic-state saturation (not correctness)
+
+In addition to the exact per-run source-field state fingerprint count, the completed native discovery aggregate now exports a **4,096-register HyperLogLog (HLL)** sketch over its genuinely observed 24-hex-character semantic-state digests. The serialized cumulative coordinator checks the same source-linked disposition, count, planned seed population and claimed release exclusions **before** merging the sketch. Its append-only evidence branch holds `frontier_coverage` with the current extraction epoch, signed/canonical register sketch, running real case count, and **estimated** union cardinality. A red or missing source-run consumes its seed window but never adds invented coverage.
+
+The sketch uses approximately 5.5 KiB of base64 per ledger snapshot, so a 10,000-input campaign does not leave a continuously expanding raw-WRAM or per-frame record corpus. The expected relative standard error is **1.625%**. Identical states across multiple green runs are expected to increase the number of real process journeys without increasing the union cardinality. A new observed state can still register no apparent increase because sketches are approximate. Never call estimated novelty an exact count, release acceptance, a proven defect, or original-SNES state coverage.
+
+A change to field selection, quantization, frame sampling or token semantics requires an explicit `tools/qa_frontier_coverage.py` epoch review before comparing new states with the previous ledger sketch; fail closed rather than silently combining incompatible populations. The `qa_frontier_coverage` tests include duplicate-run union, disjoint populations, bad sketches, epoch mutation and failed coordinator runs. Prior historical 2P endurance receipts remain **uncensused** here: they recorded WRAM determinism but not source-field token catalogs.
+
+Use the estimated *marginal* new-state gain alongside source-meaningful state categories and the existing development gates when deciding whether another 10,000-input batch is worth paying for. This measurement makes prioritization better; it does not itself identify or fix the underlying source/NMI/OAM defect.
+
 ## Scientific stopping rules
 
 Do not promote large novelty counts as accepted gameplay. If broad exploration produces no new meaningful semantic categories or only trivial motion variation, shift to the next **qualified question** instead of repeatedly paying for 10k nearly identical states. Revisit inputs after changes to the actual gameplay or source observability. Three non-discriminating source probes should trigger explicit hypothesis revision per the existing project research policy, not a hidden relaxation of the original parity comparator.

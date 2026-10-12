@@ -22,6 +22,9 @@ SHA1 = re.compile(r"[0-9a-f]{40}\Z")
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 SUITES = ("guest", "launcher")
 SHARDS = tuple(f"{suite}-{i}" for suite in SUITES for i in range(2))
+# 60 Windows native guest repeats took ~150 minutes at prior measured pace.
+# Bound at 60 per shard to retain headroom under the 240-minute job timeout.
+TRIAL_POPULATIONS = (1, 3, 10, 30, 60)
 SCHEMA = "ur-baldosa-win32-reliability-batch/1"
 ROM_SHA = "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
 GUEST_FLAGS = (
@@ -158,7 +161,7 @@ def run_one(suite: str, exe: Path, fixture: Path, archive: Path, rom: Path,
 def run_shard(*, source_sha: str, shard: str, trials: int,
               exe: Path, fixture: Path, archive: Path, rom: Path,
               script: Path, work: Path) -> dict:
-    if shard not in SHARDS or trials not in (1, 3, 10):
+    if shard not in SHARDS or trials not in TRIAL_POPULATIONS:
         raise ValueError("unsupported Windows shard or trial population")
     identity = identity_for(exe, fixture, archive, rom, script, source_sha)
     if work.exists():
@@ -200,7 +203,7 @@ def run_shard(*, source_sha: str, shard: str, trials: int,
 
 
 def aggregate(root: Path, source_sha: str, trials: int) -> dict:
-    if not SHA1.fullmatch(source_sha) or trials not in (1, 3, 10):
+    if not SHA1.fullmatch(source_sha) or trials not in TRIAL_POPULATIONS:
         raise ValueError("invalid expected campaign population")
     observed = []
     issues = []

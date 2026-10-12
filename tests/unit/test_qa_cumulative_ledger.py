@@ -42,6 +42,17 @@ class CumulativeLedgerContracts(unittest.TestCase):
         self.assertEqual(sum(r["metrics"]["observations"] for r in state["records"]),4800)
         self.assertEqual(sum(r["release_gate_credit"] for r in state["records"]),0)
 
+    def test_native_cross_shard_seed_intervals_are_disjoint_across_run_sequences(self):
+        # Source fixture seeds: base + shard*1,000,003 + case_index
+        # (case_index 0..2999). This proves no later run's shard can reuse
+        # the other shard's cases even after hundreds of reservations.
+        self.assertGreaterEqual(c.WINDOW,3000)
+        remainder=1000003 % c.WINDOW
+        self.assertGreater(min(remainder,c.WINDOW-remainder),2999)
+        last_base=c.BASE+c.MAX_SEQUENCE*c.WINDOW
+        self.assertLessEqual(last_base+1000003+2999,99999999)
+        self.assertGreater(c.BASE,20261011)
+
     def test_failure_consumes_seed_and_remains_auditable(self):
         p=make()
         newer,failed=c.append(LEDGER,p,None,"failure")

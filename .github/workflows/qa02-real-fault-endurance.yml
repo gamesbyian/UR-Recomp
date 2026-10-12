@@ -4,6 +4,14 @@ name: QA-02 genuine OS-process fault-recovery endurance
 # exact native fixture is built once; real hard-kills, outages and restore actions
 # are not simulated gameplay, hardware power failures or independent release QA.
 on:
+  workflow_call:
+    inputs:
+      wall_minutes_per_shard:
+        required: true
+        type: string
+      base_seed:
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       wall_minutes_per_shard:

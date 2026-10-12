@@ -164,6 +164,13 @@ class CumulativeLedgerContracts(unittest.TestCase):
                     "completed_cases":count,"observed_shards":shards,
                     "native_processes":count+3*shards*((count//shards+24)//25),
                     "semantic_bins_observed":count*2,
+                    "identity":{
+                        "source_commit":p["source_sha"],
+                        "native_executable_sha256":"b"*64,
+                        "rom_sha256":__import__("qa02_native_2p_seeded_endurance").ROM_SHA,
+                        "stock_input_sha256":"c"*64,
+                        "stock_script_sha256":"d"*64,
+                    },
                     "source_feature_counts":{name:0 for name in __import__("qa_adaptive_frontier").FEATURES},
                     "source_feature_reproduction_seeds":{},
                     "semantic_epoch":EPOCH,

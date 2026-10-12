@@ -168,3 +168,51 @@ def make_record(prior: dict | None, observed: dict, run_id: int, cases: int) -> 
         "fingerprint_identity_does_not_prove_raw_state_or_original_game_parity": True,
     }
     return value, delta
+
+
+def lookup_witness(ledger: dict, token: str) -> dict:
+    """Resolve an exact observed fingerprint to its first retained source run."""
+    if not isinstance(token, str) or not HEX.fullmatch(token):
+        raise ValueError("expected an exact 24-character lowercase source fingerprint")
+    seen = validate_record(ledger.get("frontier_exact_coverage"))
+    if token not in seen:
+        raise ValueError("fingerprint was not observed in the post-upgrade exact corpus")
+    run_id, seed, arm, shard = seen[token]
+    matching = [r for r in ledger.get("records", [])
+                if r.get("github_run_id") == run_id and
+                r.get("campaign") == "frontier"]
+    if len(matching) != 1:
+        raise ValueError("first-witness source run is missing or ambiguous")
+    row = matching[0]
+    if (row.get("origin") != "coordinator" or
+            row.get("disposition") != "completed_positive" or
+            not re.fullmatch(r"[0-9a-f]{40}", str(row.get("source_sha", ""))) or
+            row.get("record_sha256") != coverage.checksum({
+                k: v for k, v in row.items() if k != "record_sha256"
+            }) or not row.get("metrics", {}).get("exact_new_unique_fingerprints", 0) > 0):
+        raise ValueError("witness points to an unqualified or tampered source run")
+    return {
+        "fingerprint": token,
+        "source_sha": row["source_sha"],
+        "github_run_id": run_id,
+        "github_run_url": f"https://github.com/gamesbyian/UR-Recomp/actions/runs/{run_id}",
+        "seed": seed,
+        "arm": arm,
+        "shard": shard,
+        "evidence": "normalized native checkpoint only; original/native parity unverified",
+        "release_gate_credit": 0,
+    }
+
+
+if __name__ == "__main__":
+    import argparse
+    import json
+    from pathlib import Path
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--ledger", required=True, type=Path)
+    parser.add_argument("--fingerprint", required=True)
+    args = parser.parse_args()
+    report = lookup_witness(json.loads(args.ledger.read_text(encoding="utf8")),
+                            args.fingerprint)
+    print(json.dumps(report, indent=2, sort_keys=True))

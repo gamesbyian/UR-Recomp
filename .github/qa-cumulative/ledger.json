@@ -158,6 +158,23 @@
       "sequence": 0,
       "source_sha": "7f3fbff42673ff43b23f3fc74034acd6f5873a30",
       "windows_trials": 3
+    },
+    {
+      "base_seed": 50000000,
+      "campaign": "windows",
+      "disposition": "incomplete_or_failed",
+      "frontier_cases": 10000,
+      "github_run_id": 38306716093,
+      "metrics": {
+        "reason": "original workflow or aggregate unavailable"
+      },
+      "minutes": 15,
+      "origin": "coordinator",
+      "record_sha256": "51b25450f2bb0363ab33e1af8b9777a6df580cf3728fd0e63397888acfad2478",
+      "release_gate_credit": 0,
+      "sequence": 0,
+      "source_sha": "7f3fbff42673ff43b23f3fc74034acd6f5873a30",
+      "windows_trials": 3
     }
   ],
   "schema": "ur-cumulative-campaign-ledger/1"

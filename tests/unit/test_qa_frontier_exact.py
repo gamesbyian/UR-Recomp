@@ -82,7 +82,14 @@ class ExactFrontierTests(unittest.TestCase):
                 "campaign": "frontier", "origin": "coordinator",
                 "source_sha": "a" * 40, "github_run_id": run_id,
                 "disposition": "completed_positive",
-                "metrics": {"exact_new_unique_fingerprints": gain},
+                "metrics": {
+                    "exact_new_unique_fingerprints": gain,
+                    "native_executable_sha256": "b" * 64,
+                    "original_rom_sha256": "c" * 64,
+                    "stock_input_sha256": "d" * 64,
+                    "stock_script_sha256": "e" * 64,
+                    "frontier_source_plan_sha256": "f" * 64,
+                },
             }
             record["record_sha256"] = h.checksum(record)
             rows.append(record)
@@ -92,6 +99,7 @@ class ExactFrontierTests(unittest.TestCase):
         self.assertEqual(first["seed"], 50000005)
         self.assertEqual(first["arm"], "balanced")
         self.assertEqual(first["source_sha"], "a" * 40)
+        self.assertEqual(first["native_executable_sha256"], "b" * 64)
         self.assertEqual(first["release_gate_credit"], 0)
         with self.assertRaises(ValueError):
             e.lookup_witness(ledger, f"{10000:024x}")

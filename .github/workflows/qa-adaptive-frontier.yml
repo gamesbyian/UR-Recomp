@@ -24,6 +24,10 @@ on:
       base_seed:
         required: true
         type: string
+      strategy_prior_json:
+        required: false
+        type: string
+        default: "{}"
 
 permissions:
   contents: read
@@ -49,6 +53,7 @@ jobs:
         env:
           CASES: ${{ inputs.cases }}
           SEED: ${{ inputs.base_seed }}
+          STRATEGY_PRIOR: ${{ inputs.strategy_prior_json || '{}' }}
         run: |
           set -euo pipefail
           [[ "$CASES" =~ ^(100|1000|10000)$ ]] || exit 2
@@ -56,6 +61,7 @@ jobs:
           python3 -m unittest discover -s tests/unit -p test_qa_adaptive_frontier.py
           python3 tools/qa_adaptive_frontier.py plan \
             --source-sha "$GITHUB_SHA" --base-seed "$SEED" --cases "$CASES" \
+            --strategy-prior-json "$STRATEGY_PRIOR" \
             --out "$RUNNER_TEMP/frontier-plan/plan.json" \
             --gha-output "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4

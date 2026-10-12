@@ -38,6 +38,8 @@ def report_tree(root: Path, count: int = 100) -> tuple[dict,Path]:
                 "input_sha256":f.digest(["legal-controller",seed]),
                 "post_entry_wram_sha256":f.digest(["native-observed",seed]),
                 "tokens":obs,"observation_count":len(f.guest.FRAMES)+1,
+                "verified_ablation":index%25==0,
+                "real_native_processes":4 if index%25==0 else 1,
                 "intervals":20,"p1_intervals":17,"p2_intervals":14,
             })
             attempts[arm]+=1
@@ -110,6 +112,19 @@ class ResearchFrontierContracts(unittest.TestCase):
             path.write_bytes(blob)
             self.assertNotEqual(a,f.semantic_bins(directory))
 
+    def test_one_in_25_real_process_and_seat_mutation_budget(self):
+        for count,shards in ((100,4),(1000,10),(10000,40)):
+            with self.subTest(count=count):
+                per=count//shards
+                sampled=shards*((per+24)//25)
+                self.assertEqual(sampled, {100:4,1000:40,10000:400}[count])
+                self.assertLessEqual(count+3*sampled,11200)
+        code=(ROOT/"tools/qa_adaptive_frontier.py").read_text()
+        self.assertIn("if index % 25 == 0:",code)
+        self.assertIn("guest.execute(exe,rom,treatment",code)
+        self.assertIn("guest.BASE_CHECK",code)
+        self.assertIn("guest.FIRST_PROBE",code)
+
     def test_bounded_ddmin_keeps_immutable_source_entry_and_repro(self):
         actions=[(1650,60,128,64),*[(1750+i*42,10,128,0)
                                      for i in range(12)]]
@@ -130,7 +145,8 @@ class ResearchFrontierContracts(unittest.TestCase):
             data=f.aggregate(p,receipts)
             self.assertEqual(data["disposition"],"completed_observational")
             self.assertEqual(data["completed_cases"],100)
-            self.assertEqual(data["native_processes"],100)
+            self.assertEqual(data["native_processes"],112)
+            self.assertEqual(data["metamorphic_verified_cases"],4)
             self.assertEqual(data["observed_shards"],4)
             self.assertEqual(data["release_gate_credit"],0)
             self.assertFalse(data["original_native_parity"])

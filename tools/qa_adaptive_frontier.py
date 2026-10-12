@@ -25,6 +25,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 import qa02_native_2p_seeded_endurance as guest
+import qa_frontier_coverage as coverage
 from controller_input import load_controller_runs
 from summarize_paired_player_slots import state
 
@@ -478,6 +479,8 @@ def aggregate(plan_data: dict, root: Path) -> dict:
         "native_processes":sum(1+3*(i%25==0) for i in range(plan_data["requested_cases"])) if not issues else sum(r.get("processes",0) for r in records),
         "metamorphic_verified_cases":sum((n+24)//25 for n in (assigned(plan_data,s)[1] for s in range(plan_data["shards"]))) if not issues else 0,
         "semantic_bins_observed":len(global_tokens),
+        "semantic_epoch": coverage.EPOCH,
+        "semantic_hll_b64": coverage.encode(coverage.observe(global_tokens)) if not issues else coverage.encode(coverage.empty()),
         "strategy_summary":arms,
         "reproduction_seeds_by_fingerprint":{
             token: seed

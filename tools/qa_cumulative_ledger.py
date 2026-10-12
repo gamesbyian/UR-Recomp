@@ -14,6 +14,8 @@ import json
 import re
 from pathlib import Path
 
+import qa_frontier_coverage as coverage
+
 SCHEMA = "ur-cumulative-campaign-ledger/1"
 PLAN_SCHEMA = "ur-cumulative-campaign-plan/1"
 CAMPAIGNS = ("native-2p", "windows", "fault-recovery",
@@ -91,6 +93,12 @@ def validate_ledger(ledger: dict) -> None:
             content = {k: v for k, v in row.items() if k != "record_sha256"}
             if not isinstance(h, str) or not SHA256.fullmatch(h) or digest(content) != h:
                 raise ValueError("mutated coordinator record signature")
+
+
+    # Validate the separately tamper-evident cumulative state sketch, if present.
+    # Older historical ledger branches legitimately have no such record.
+    if "frontier_coverage" in ledger:
+        coverage.validate_record(ledger["frontier_coverage"])
 
 
 def next_seed(ledger: dict, campaign: str) -> tuple[int, int]:
@@ -256,8 +264,16 @@ def append(ledger: dict, plan: dict, producer: dict | None,
                          run_id=plan["github_run_id"])
     if expected != plan:
         raise ValueError("stale or forged campaign reservation")
+    frontier_state = None
     try:
         state, metrics = outcome(plan, producer, job_result)
+        if state == "completed_positive" and plan["campaign"] == "frontier":
+            # Update real semantic-state coverage only after the original
+            # source-bound experiment has passed its exact-count assertions.
+            observed = coverage.observed_report(producer)
+            frontier_state, new_metrics = coverage.make_record(
+                ledger.get("frontier_coverage"), observed, plan["frontier_cases"])
+            metrics.update(new_metrics)
     except (ValueError, KeyError, TypeError) as exc:
         # A malformed/contradictory source receipt is a red research outcome.
         # It still consumes the reserved seed and is retained in the ledger.
@@ -274,6 +290,8 @@ def append(ledger: dict, plan: dict, producer: dict | None,
     }
     record["record_sha256"] = digest(record)
     new = {**ledger, "records": [*ledger["records"], record]}
+    if frontier_state is not None:
+        new["frontier_coverage"] = frontier_state
     validate_ledger(new)
     return new, record
 

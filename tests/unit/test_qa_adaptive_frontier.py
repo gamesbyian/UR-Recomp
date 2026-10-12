@@ -1,0 +1,190 @@
+"""Synthetic contracts; never a real guest gameplay witness."""
+from __future__ import annotations
+import json
+import sys
+import tempfile
+import time
+import unittest
+from pathlib import Path
+
+ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/"tools"))
+import qa_adaptive_frontier as f
+
+SOURCE="a"*40
+
+
+def report_tree(root: Path, count: int = 100) -> tuple[dict,Path]:
+    p=f.plan(SOURCE,50000000,count)
+    receipts=root/"receipts"
+    receipts.mkdir()
+    ident={
+        "source_commit":SOURCE,"native_executable_sha256":"b"*64,
+        "rom_sha256":f.guest.ROM_SHA,"stock_input_sha256":"c"*64,
+        "stock_script_sha256":"d"*64,
+    }
+    for shard in range(p["shards"]):
+        attempts=dict.fromkeys(f.ARMS,0)
+        gains=dict.fromkeys(f.ARMS,0)
+        rows=[]
+        tokens=set()
+        _,n=f.assigned(p,shard)
+        for index in range(n):
+            seed=f.seed_for(p,shard,index)
+            arm=f.ARMS[index%len(f.ARMS)]
+            obs=[f.digest(["state",seed,k])[:24] for k in range(3)]
+            rows.append({
+                "seed":seed,"arm":arm,
+                "input_sha256":f.digest(["legal-controller",seed]),
+                "post_entry_wram_sha256":f.digest(["native-observed",seed]),
+                "tokens":obs,"observation_count":len(f.guest.FRAMES)+1,
+                "intervals":20,"p1_intervals":17,"p2_intervals":14,
+            })
+            attempts[arm]+=1
+            gains[arm]+=len(set(obs)-tokens)
+            tokens.update(obs)
+        row=f._receipt(p,shard,ident,attempts,gains,rows,tokens,
+                       failure=None,started=time.monotonic(),complete=True)
+        f.save(receipts/f"research-frontier-{shard}"/"result.json",row)
+    return p,receipts
+
+
+class ResearchFrontierContracts(unittest.TestCase):
+    def test_exact_100_1000_10000_plans_cover_every_global_case_once(self):
+        for cases,shards in ((100,4),(1000,10),(10000,40)):
+            with self.subTest(cases=cases):
+                p=f.plan(SOURCE,50000000,cases)
+                f.validate_plan(p)
+                self.assertEqual(p["shards"],shards)
+                self.assertEqual(p["max_parallel"],4)
+                generated=[f.seed_for(p,shard,i)
+                           for shard in range(shards)
+                           for i in range(f.assigned(p,shard)[1])]
+                self.assertEqual(len(generated),cases)
+                self.assertEqual(generated,list(range(50000000,50000000+cases)))
+                self.assertEqual(p["release_gate_credit"],0)
+                self.assertFalse(p["original_native_parity"])
+        for bad in (0,11,500,9999,10001):
+            with self.subTest(bad=bad),self.assertRaises(ValueError):
+                f.plan(SOURCE,50000000,bad)
+
+    def test_proven_source_prefix_is_never_mutated(self):
+        for arm in f.ARMS:
+            with self.subTest(arm=arm):
+                a,info=f.actions_for(50000001,arm)
+                self.assertEqual(a[0],(1650,60,0x080,0x040))
+                self.assertGreaterEqual(info["p1_intervals"],2)
+                self.assertGreaterEqual(info["p2_intervals"],2)
+                self.assertTrue(all(0<=p1<=0x1ff and 0<=p2<=0x1ff
+                                    for _,_,p1,p2 in a))
+                self.assertGreaterEqual(len(a),8)
+        seen={f.digest(f.actions_for(i,"balanced")[0]) for i in range(50000000,50000020)}
+        self.assertEqual(len(seen),20)
+
+    def test_ucb_reacts_to_novelty_and_explores_every_arm(self):
+        attempted=dict.fromkeys(f.ARMS,0)
+        gains=dict.fromkeys(f.ARMS,0)
+        for arm in f.ARMS:
+            self.assertEqual(f.select_arm(attempted,gains),arm)
+            attempted[arm]+=1
+        gains["rotation"]=50
+        self.assertEqual(f.select_arm(attempted,gains),"rotation")
+        with self.assertRaises(ValueError):
+            f.select_arm({"unproven":0},gains)
+
+    def test_semantic_coverage_uses_source_fields_not_raw_wram_hashes(self):
+        with tempfile.TemporaryDirectory() as td:
+            directory=Path(td)
+            for name in f.FRAME_NAMES:
+                (directory/(name+".wram.bin")).write_bytes(bytes(131072))
+            a=f.semantic_bins(directory)
+            self.assertEqual(len(a),3)
+            self.assertTrue(all(len(x)==24 for x in a))
+            self.assertEqual(a,f.semantic_bins(directory))
+            path=directory/(f.FRAME_NAMES[0]+".wram.bin")
+            blob=bytearray(path.read_bytes())
+            blob[0x2000]=99
+            path.write_bytes(blob)
+            self.assertEqual(a,f.semantic_bins(directory))
+            blob[0x411:0x413]=(320).to_bytes(2,"little")
+            path.write_bytes(blob)
+            self.assertNotEqual(a,f.semantic_bins(directory))
+
+    def test_bounded_ddmin_keeps_immutable_source_entry_and_repro(self):
+        actions=[(1650,60,128,64),*[(1750+i*42,10,128,0)
+                                     for i in range(12)]]
+        bad=actions[6]
+        result=f.minimize_actions(
+            actions=actions,predicate=lambda candidate: bad in candidate,
+            budget=12)
+        self.assertEqual(result["actions"][0],actions[0])
+        self.assertIn(bad,result["actions"])
+        self.assertLessEqual(result["probes"],12)
+        self.assertLess(result["remaining_actions"],len(actions))
+        with self.assertRaises(ValueError):
+            f.minimize_actions(actions=[],predicate=lambda _:True)
+
+    def test_four_shards_100_case_receipts_fail_closed(self):
+        with tempfile.TemporaryDirectory() as td:
+            p,receipts=report_tree(Path(td))
+            data=f.aggregate(p,receipts)
+            self.assertEqual(data["disposition"],"completed_observational")
+            self.assertEqual(data["completed_cases"],100)
+            self.assertEqual(data["native_processes"],100)
+            self.assertEqual(data["observed_shards"],4)
+            self.assertEqual(data["release_gate_credit"],0)
+            self.assertFalse(data["original_native_parity"])
+            self.assertGreater(data["semantic_bins_observed"],200)
+            self.assertLessEqual(len(data["reproduction_seeds_by_fingerprint"]),256)
+            self.assertEqual(sum(s["attempted"] for s in data["strategy_summary"].values()),100)
+
+    def test_source_identity_wrong_count_duplicate_input_fake_credit_and_partial(self):
+        for corruption in ("missing","extra","sha","wrong_source","fake_credit",
+                           "partial","count","duplicate_seed","duplicate_input",
+                           "forged_arm","wrong_observations","semantic_tokens"):
+            with self.subTest(corruption=corruption),tempfile.TemporaryDirectory() as td:
+                p,receipts=report_tree(Path(td))
+                path=receipts/"research-frontier-1/result.json"
+                if corruption=="missing":
+                    path.unlink()
+                elif corruption=="extra":
+                    (receipts/"unknown-shard").mkdir()
+                else:
+                    row=f.read(path)
+                    if corruption=="sha": row["receipt_sha256"]="0"*64
+                    elif corruption=="wrong_source": row["source_sha"]="f"*40
+                    elif corruption=="fake_credit": row["release_gate_credit"]=1
+                    elif corruption=="partial": row["disposition"]="in_progress"
+                    elif corruption=="count": row["passed_cases"]-=1
+                    elif corruption=="duplicate_seed": row["case_results"][2]["seed"]=row["case_results"][1]["seed"]
+                    elif corruption=="duplicate_input": row["case_results"][2]["input_sha256"]=row["case_results"][1]["input_sha256"]
+                    elif corruption=="forged_arm": row["case_results"][2]["arm"]="not-a-controller-arm"
+                    elif corruption=="wrong_observations": row["case_results"][1]["observation_count"]=0
+                    elif corruption=="semantic_tokens": row["semantic_bins"]=["0"*24]
+                    if corruption!="sha":
+                        row["receipt_sha256"]=f.digest({
+                            k:v for k,v in row.items() if k!="receipt_sha256"})
+                    f.save(path,row)
+                result=f.aggregate(p,receipts)
+                self.assertEqual(result["disposition"],"incomplete_or_failed")
+                self.assertTrue(result["issues"])
+                self.assertEqual(result["release_gate_credit"],0)
+
+    def test_manual_only_large_matrix_one_build_and_artifact_safety(self):
+        wf=(ROOT/".github/workflows/qa-adaptive-frontier.yml").read_text()
+        self.assertIn("workflow_dispatch:",wf)
+        self.assertIn("workflow_call:",wf)
+        self.assertNotIn("\n  schedule:",wf)
+        self.assertNotIn("\n  pull_request:",wf)
+        self.assertNotIn("\n  push:",wf)
+        self.assertIn("max-parallel: 4",wf)
+        self.assertIn("modern-shared-native-acceptance.yml",wf)
+        self.assertIn("fromJSON(needs.plan.outputs.matrix)",wf)
+        self.assertIn("timeout-minutes: 180",wf)
+        self.assertIn("qa-frontier-aggregate",wf)
+        self.assertNotIn(chr(92)+chr(36)+"{{",wf)
+        self.assertNotIn("persist-credentials: true",wf)
+
+
+if __name__=="__main__":
+    unittest.main()

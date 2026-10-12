@@ -466,7 +466,7 @@ def aggregate(plan_data: dict, root: Path) -> dict:
     return result
 
 
-def _bounded_examples(plan_data:dict,root:Path)->dict[str,int]:
+def _bounded_examples(plan_data:dict,root:Path)->dict[str,dict]:
     """Deterministic first-seed repro dictionary, 256 entries max, no WRAM/ROM."""
     examples={}
     for shard in range(plan_data["shards"]):
@@ -474,7 +474,8 @@ def _bounded_examples(plan_data:dict,root:Path)->dict[str,int]:
         for case in row["case_results"]:
             for token in case["tokens"]:
                 if token not in examples and len(examples)<256:
-                    examples[token]=case["seed"]
+                    examples[token]={"seed":case["seed"],"arm":case["arm"],
+                                     "shard":shard}
     return examples
 
 
@@ -511,6 +512,14 @@ def main()->int:
     r.add_argument("--work",type=Path,required=True)
     r.add_argument("--out",type=Path,required=True)
     r.add_argument("--timeout",type=int,default=120)
+    repro=cmds.add_parser("repro")
+    repro.add_argument("--plan",type=Path,required=True)
+    repro.add_argument("--seed",type=int,required=True)
+    repro.add_argument("--arm",choices=ARMS,required=True)
+    repro.add_argument("--exe",type=Path,required=True)
+    repro.add_argument("--rom",type=Path,required=True)
+    repro.add_argument("--work",type=Path,required=True)
+    repro.add_argument("--out",type=Path,required=True)
     a=cmds.add_parser("aggregate")
     a.add_argument("--plan",type=Path,required=True)
     a.add_argument("--results",type=Path,required=True)
@@ -534,6 +543,28 @@ def main()->int:
         print(f"shard {args.shard}: {result['disposition']} "
               f"{result['passed_cases']}/{result['requested_cases']} real guest cases")
         return 0 if result["disposition"]=="completed_observational" else 1
+    if args.cmd=="repro":
+        plan_data=read(args.plan)
+        validate_plan(plan_data)
+        if not plan_data["base_seed"]<=args.seed<plan_data["base_seed"]+plan_data["requested_cases"]:
+            raise ValueError("reproducer seed not within exact source-bound planned population")
+        proof=guest.identity(args.exe.resolve(),args.rom.resolve(),plan_data["source_sha"])
+        if args.work.exists():
+            raise ValueError("refuse reused external reproduction root")
+        args.work.mkdir(parents=True)
+        original_input,original_script=guest.base_source()
+        script=args.work/"route.script"
+        script.write_text(guest.render_script(original_script),encoding="utf8")
+        witness=execute_once(exe=args.exe.resolve(),rom=args.rom.resolve(),
+                             source_input=original_input,script=script,
+                             root=args.work/"repro",seed=args.seed,arm=args.arm,timeout=120)
+        witness.update(identity=proof,plan_sha256=plan_data["plan_sha256"],
+                       original_native_parity=False,release_gate_credit=0,
+                       disposition="observed_native_not_original_parity")
+        save(args.out,witness)
+        print(f"Real native semantic repro seed={args.seed} arm={args.arm} "
+              f"bins={','.join(witness['tokens'])}")
+        return 0
     result=aggregate(read(args.plan),args.results)
     save(args.out,result)
     args.summary.write_text(summary(result),encoding="utf8")

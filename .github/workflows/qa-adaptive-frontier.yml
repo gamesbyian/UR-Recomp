@@ -160,11 +160,27 @@ jobs:
             --results "$RUNNER_TEMP/qa-frontier-results" \
             --out "$RUNNER_TEMP/qa-frontier-aggregate/result.json" \
             --summary "$GITHUB_STEP_SUMMARY"
+      - name: Produce reproducible research questions for existing development owners
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          PLAN="$RUNNER_TEMP/qa-frontier-plan/plan.json"
+          AGG="$RUNNER_TEMP/qa-frontier-aggregate/result.json"
+          if [ -s "$PLAN" ] && [ -s "$AGG" ]; then
+            python3 tools/qa_frontier_handoff.py \
+              --plan "$PLAN" --aggregate "$AGG" \
+              --out-json "$RUNNER_TEMP/qa-frontier-aggregate/handoff.json" \
+              --out-markdown "$RUNNER_TEMP/qa-frontier-aggregate/handoff.md"
+            cat "$RUNNER_TEMP/qa-frontier-aggregate/handoff.md" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No source-bounded aggregate; no scientific handoff can be produced."
+          fi
       - name: Always retain fail-closed research aggregate
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: qa-frontier-aggregate
-          path: ${{ runner.temp }}/qa-frontier-aggregate/result.json
+          path: ${{ runner.temp }}/qa-frontier-aggregate/
           if-no-files-found: warn
           retention-days: 14

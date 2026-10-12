@@ -196,7 +196,13 @@ def append(ledger: dict, plan: dict, producer: dict | None,
                          run_id=plan["github_run_id"])
     if expected != plan:
         raise ValueError("stale or forged campaign reservation")
-    state, metrics = outcome(plan, producer, job_result)
+    try:
+        state, metrics = outcome(plan, producer, job_result)
+    except (ValueError, KeyError, TypeError) as exc:
+        # A malformed/contradictory source receipt is a red research outcome.
+        # It still consumes the reserved seed and is retained in the ledger.
+        state = "incomplete_or_failed"
+        metrics = {"reason": "producer evidence rejected: " + str(exc)[:400]}
     record = {
         "campaign": plan["campaign"], "origin": "coordinator",
         "sequence": plan["sequence"], "base_seed": plan["base_seed"],

@@ -557,6 +557,7 @@ def aggregate(plan_data: dict, root: Path) -> dict:
         "completed_cases":len(global_seeds),"observed_shards":len(records),
         "native_processes":sum(1+3*(i%25==0) for i in range(plan_data["requested_cases"])) if not issues else sum(r.get("processes",0) for r in records),
         "metamorphic_verified_cases":sum((n+24)//25 for n in (assigned(plan_data,s)[1] for s in range(plan_data["shards"]))) if not issues else 0,
+        "identity":first_identity if not issues else None,
         "semantic_bins_observed":len(global_tokens),
         "source_feature_counts":feature_counts,
         "source_feature_reproduction_seeds":feature_repros if not issues else {},

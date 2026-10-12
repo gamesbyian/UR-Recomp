@@ -1,7 +1,7 @@
-name: Cumulative research campaigns (six independent lanes)
+name: Cumulative research campaigns (seven independent lanes)
 
 # One serialized, source-bound run at a time, no canceled expensive experiments.
-# Twice weekly the auto selector rotates six distinct research families.
+# Twice weekly the auto selector rotates seven distinct research families.
 # Manual dispatch can choose any lane and a bounded real-work budget.
 # Only this coordinator writes to research/qa-cumulative-ledger.
 on:
@@ -12,7 +12,7 @@ on:
         required: true
         type: choice
         default: auto
-        options: [auto, native-2p, windows, fault-recovery, graphics, performance, original-native]
+        options: [auto, native-2p, windows, fault-recovery, graphics, performance, original-native, frontier]
       wall_minutes_per_shard:
         description: "Real native/fault workload budget (graphics/performance included)"
         type: choice
@@ -25,6 +25,12 @@ on:
         required: true
         default: "3"
         options: ["1", "3", "10", "30", "60"]
+      frontier_cases:
+        description: "Actual real native state-space cases (up to 10,000), manual large batches"
+        type: choice
+        required: true
+        default: "100"
+        options: ["100", "1000", "10000"]
   schedule:
     - cron: "17 9 * * 2,5"
 
@@ -46,6 +52,7 @@ jobs:
       base_seed: ${{ steps.plan.outputs.base_seed }}
       minutes: ${{ steps.plan.outputs.minutes }}
       windows_trials: ${{ steps.plan.outputs.windows_trials }}
+      frontier_cases: ${{ steps.plan.outputs.frontier_cases }}
       plan_sha256: ${{ steps.plan.outputs.plan_sha256 }}
     steps:
       - name: Checkout exact coordinator and original research implementation
@@ -68,6 +75,7 @@ jobs:
           SELECTED: ${{ inputs.campaign || 'auto' }}
           MINUTES: ${{ inputs.wall_minutes_per_shard || '15' }}
           WINDOWS_TRIALS: ${{ inputs.windows_trials_per_shard || '3' }}
+          FRONTIER_CASES: ${{ inputs.frontier_cases || '100' }}
         run: |
           set -euo pipefail
           python3 -m unittest discover -s tests/unit -p test_qa_cumulative_ledger.py
@@ -75,6 +83,7 @@ jobs:
             --ledger research-evidence/.github/qa-cumulative/ledger.json \
             --selected "$SELECTED" --source-sha "$GITHUB_SHA" \
             --minutes "$MINUTES" --windows-trials "$WINDOWS_TRIALS" \
+            --frontier-cases "$FRONTIER_CASES" \
             --run-id "$GITHUB_RUN_ID" \
             --out "$RUNNER_TEMP/cumulative-plan/plan.json" \
             --gha-output "$GITHUB_OUTPUT"
@@ -135,9 +144,17 @@ jobs:
       selected: all
       zoo_terminal_phase: false
 
+  frontier:
+    if: ${{ needs.reserve.outputs.campaign == 'frontier' }}
+    needs: reserve
+    uses: ./.github/workflows/qa-adaptive-frontier.yml
+    with:
+      cases: ${{ needs.reserve.outputs.frontier_cases }}
+      base_seed: ${{ needs.reserve.outputs.base_seed }}
+
   commit-evidence:
     if: ${{ always() && needs.reserve.result == 'success' }}
-    needs: [reserve, native-2p, windows, fault-recovery, graphics, performance, original-native]
+    needs: [reserve, native-2p, windows, fault-recovery, graphics, performance, original-native, frontier]
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
@@ -170,6 +187,7 @@ jobs:
           GRAPHICS_RESULT: ${{ needs.graphics.result }}
           PERFORMANCE_RESULT: ${{ needs.performance.result }}
           ORIGINAL_RESULT: ${{ needs.original-native.result }}
+          FRONTIER_RESULT: ${{ needs.frontier.result }}
         run: |
           set -euo pipefail
           case "$SELECTED" in
@@ -202,6 +220,11 @@ jobs:
               artifact=qa01-campaign-aggregate
               filename=campaign-result.json
               status="$ORIGINAL_RESULT"
+              ;;
+            frontier)
+              artifact=qa-frontier-aggregate
+              filename=result.json
+              status="$FRONTIER_RESULT"
               ;;
             *) echo "unknown selected research workflow"; exit 2 ;;
           esac

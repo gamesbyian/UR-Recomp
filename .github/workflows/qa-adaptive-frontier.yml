@@ -1,0 +1,170 @@
+name: QA research frontier: adaptive native 2P state exploration
+
+# Genuine OS guest execution. Source-owned first-race fixture; state novelty is
+# NOT original/reference correctness. Up to 10k cases, one shared candidate.
+# Manual or the serialized cumulative coordinator; never PR/push/schedule.
+on:
+  workflow_dispatch:
+    inputs:
+      cases:
+        description: "Exact independent real native guest population"
+        type: choice
+        required: true
+        default: "100"
+        options: ["100", "1000", "10000"]
+      base_seed:
+        description: "Fresh source-bound deterministic seed namespace"
+        required: true
+        default: "50000000"
+  workflow_call:
+    inputs:
+      cases:
+        required: true
+        type: string
+      base_seed:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa-adaptive-frontier-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.freeze.outputs.matrix }}
+      plan_sha256: ${{ steps.freeze.outputs.plan_sha256 }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate source-aware frontier experiments and freeze all exact case IDs
+        id: freeze
+        shell: bash
+        env:
+          CASES: ${{ inputs.cases }}
+          SEED: ${{ inputs.base_seed }}
+        run: |
+          set -euo pipefail
+          [[ "$CASES" =~ ^(100|1000|10000)$ ]] || exit 2
+          [[ "$SEED" =~ ^[0-9]{1,8}$ ]] || exit 2
+          python3 -m unittest discover -s tests/unit -p test_qa_adaptive_frontier.py
+          python3 tools/qa_adaptive_frontier.py plan \
+            --source-sha "$GITHUB_SHA" --base-seed "$SEED" --cases "$CASES" \
+            --out "$RUNNER_TEMP/frontier-plan/plan.json" \
+            --gha-output "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qa-frontier-plan
+          path: ${{ runner.temp }}/frontier-plan/plan.json
+          if-no-files-found: error
+          retention-days: 14
+
+  candidate:
+    needs: plan
+    uses: ./.github/workflows/modern-shared-native-acceptance.yml
+    with:
+      canonical_candidate: false
+
+  experiments:
+    needs: [plan, candidate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install authentic headless native runtime dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends xvfb
+      - uses: actions/download-artifact@v4
+        with:
+          name: qa-frontier-plan
+          path: ${{ runner.temp }}/qa-frontier-plan
+      - uses: actions/download-artifact@v4
+        with:
+          name: shared-modern-native-candidate
+          path: ${{ runner.temp }}/qa-frontier-candidate
+      - name: Verify shared executable ABI and original source ROM before measuring game state
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -xzf "$RUNNER_TEMP/qa-frontier-candidate/shared-modern-native.tar.gz" -C "$RUNNER_TEMP"
+          EXE="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          test -x "$EXE"
+          ldd "$EXE" 2>&1 | tee "$RUNNER_TEMP/frontier-native-ldd.log"
+          ! grep -q 'not found' "$RUNNER_TEMP/frontier-native-ldd.log"
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+      - name: Run allocated real two-seat native state-space experiments
+        shell: bash
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: |
+          set -euo pipefail
+          python3 tools/qa_adaptive_frontier.py run \
+            --plan "$RUNNER_TEMP/qa-frontier-plan/plan.json" \
+            --shard "$SHARD" \
+            --exe "$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --work "$RUNNER_TEMP/qa-frontier-private" \
+            --out "$RUNNER_TEMP/qa-frontier-result/result.json" \
+            --timeout 120
+      - name: Preserve compact per-shard evidence, including incomplete runs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-frontier-${{ matrix.shard }}
+          path: ${{ runner.temp }}/qa-frontier-result/result.json
+          retention-days: 14
+          if-no-files-found: warn
+
+  aggregate:
+    needs: [plan, candidate, experiments]
+    if: ${{ always() && needs.plan.result == 'success' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: qa-frontier-plan
+          path: ${{ runner.temp }}/qa-frontier-plan
+      - name: Retrieve bounded shard results even on experimental failure
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: research-frontier-*
+          path: ${{ runner.temp }}/qa-frontier-results
+          merge-multiple: false
+      - name: Reject incomplete or duplicate test populations, summarize actual state discoveries
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa-frontier-results"
+          python3 tools/qa_adaptive_frontier.py aggregate \
+            --plan "$RUNNER_TEMP/qa-frontier-plan/plan.json" \
+            --results "$RUNNER_TEMP/qa-frontier-results" \
+            --out "$RUNNER_TEMP/qa-frontier-aggregate/result.json" \
+            --summary "$GITHUB_STEP_SUMMARY"
+      - name: Always retain fail-closed research aggregate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-frontier-aggregate
+          path: ${{ runner.temp }}/qa-frontier-aggregate/result.json
+          if-no-files-found: warn
+          retention-days: 14

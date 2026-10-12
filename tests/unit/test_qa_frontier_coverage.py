@@ -12,6 +12,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/"tools"))
 import qa_frontier_coverage as c
+import qa_frontier_exact as exact
 import qa_cumulative_ledger as ledger
 
 
@@ -109,6 +110,9 @@ class FrontierCoverageContracts(unittest.TestCase):
                 "source_feature_counts":{name:0 for name in __import__("qa_adaptive_frontier").FEATURES},
                 "source_feature_reproduction_seeds":{},
                 "semantic_hll_b64":c.encode(samples),
+                "semantic_exact_witnesses_b64":exact.encode_run({
+                    token:(plan["base_seed"]+i,"balanced",i//25)
+                    for i,token in enumerate(tokens(0,100))}),
                 "strategy_summary":{
                     "balanced":{"attempted":100,"new_bins_local":100},
                     "p1-focus":{"attempted":0,"new_bins_local":0},
@@ -123,8 +127,11 @@ class FrontierCoverageContracts(unittest.TestCase):
             self.assertEqual(row["disposition"],"completed_positive")
             if run_id==11:
                 self.assertEqual(row["metrics"]["estimated_new_unique_bins"],0)
+                self.assertEqual(row["metrics"]["exact_new_unique_fingerprints"],0)
         ledger.validate_ledger(data)
         self.assertEqual(data["frontier_coverage"]["updates"],2)
+        self.assertEqual(data["frontier_exact_coverage"]["updates"],2)
+        self.assertEqual(data["frontier_exact_coverage"]["exact_unique_observed_fingerprints"],100)
         self.assertEqual(data["frontier_coverage"]["real_cases_observed"],200)
 
     def test_failed_campaign_consumes_seed_but_keeps_observed_corpus_unchanged(self):

@@ -111,6 +111,26 @@ def choose(ledger: dict, selected: str) -> str:
     return CAMPAIGNS[len(previous) % len(CAMPAIGNS)]
 
 
+
+def frontier_strategy_prior(ledger: dict) -> dict:
+    """Bounded six-recent-run adaptive learning from actual completed receipts.
+
+    These are *prior* local novelty counts; never billed as fresh test cases.
+    """
+    from qa_adaptive_frontier import ARMS, normalized_prior
+    total={arm:{"attempted":0,"new_bins_local":0} for arm in ARMS}
+    recent=[row for row in ledger["records"]
+            if row["campaign"]=="frontier" and
+               row["origin"]=="coordinator" and
+               row["disposition"]=="completed_positive"][-6:]
+    for row in recent:
+        observations=normalized_prior(row.get("metrics",{}).get("strategy_summary"))
+        for arm in ARMS:
+            for key in ("attempted","new_bins_local"):
+                total[arm][key]+=observations[arm][key]
+    return normalized_prior(total)
+
+
 def make_plan(ledger: dict, *, selected: str, source_sha: str,
               minutes: int, windows_trials: int, run_id: int,
               frontier_cases: int = 100) -> dict:
@@ -130,6 +150,7 @@ def make_plan(ledger: dict, *, selected: str, source_sha: str,
         "source_sha": source_sha, "github_run_id": run_id,
         "minutes": minutes, "windows_trials": windows_trials,
         "frontier_cases": frontier_cases,
+        "frontier_prior": frontier_strategy_prior(ledger),
         "ledger_before_sha256": digest(ledger),
         "release_gate_credit": 0,
     }
@@ -183,7 +204,8 @@ def outcome(plan: dict, producer: dict | None, job_result: str) -> tuple[str, di
         raise ValueError("production fault trial counts are inconsistent")
     if campaign == "frontier":
         from qa_adaptive_frontier import plan as frontier_plan
-        expected=frontier_plan(plan["source_sha"],plan["base_seed"],plan["frontier_cases"])
+        expected=frontier_plan(plan["source_sha"],plan["base_seed"],plan["frontier_cases"],
+                               plan["frontier_prior"])
         if (n != plan["frontier_cases"] or processes != n+3*(
                 expected["shards"]*((n//expected["shards"]+24)//25))
                 or producer.get("observed_shards")!=expected["shards"]
@@ -284,8 +306,9 @@ def main() -> int:
                          frontier_cases=args.frontier_cases)
         save(args.out, data)
         with args.gha_output.open("a", encoding="utf8") as out:
-            for key in ("campaign", "base_seed", "minutes", "windows_trials", "frontier_cases", "plan_sha256"):
-                out.write(f"{key}={data[key]}\n")
+            for key in ("campaign", "base_seed", "minutes", "windows_trials", "frontier_cases", "frontier_prior", "plan_sha256"):
+                value=json.dumps(data[key],sort_keys=True,separators=(",",":")) if key=="frontier_prior" else data[key]
+                out.write(f"{key}={value}\n")
         print(f"RESERVED {data['campaign']} sequence={data['sequence']} "
               f"seed_window_start={data['base_seed']} on exact source={data['source_sha']}")
         return 0

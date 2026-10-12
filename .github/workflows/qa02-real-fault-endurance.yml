@@ -1,0 +1,162 @@
+name: QA-02 genuine OS-process fault-recovery endurance
+
+# Manual, bounded production-store recovery research. The SAME already established
+# exact native fixture is built once; real hard-kills, outages and restore actions
+# are not simulated gameplay, hardware power failures or independent release QA.
+on:
+  workflow_dispatch:
+    inputs:
+      wall_minutes_per_shard:
+        description: "Active production fault work per shard (five real scenarios)"
+        type: choice
+        default: "15"
+        required: true
+        options: ["15", "60", "120"]
+      base_seed:
+        description: "Deterministic distinct per-case fault timing seed"
+        required: true
+        default: "20261011"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa02-fault-recovery-endurance-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    outputs:
+      binary_sha: ${{ steps.bind.outputs.binary_sha }}
+    steps:
+      - name: Exact source checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate existing production test sources and new research contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s tests/unit -p test_qa02_real_fault_endurance.py
+          python3 -m unittest discover -s tests/unit -p test_qa02_recovery_campaign.py
+      - name: Build the existing production recovery fixture once
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/qa02_recovery_campaign.py build \
+            --exe "$RUNNER_TEMP/fault-build/qa02-fixture-hardkill"
+          test -x "$RUNNER_TEMP/fault-build/qa02-fixture-hardkill"
+      - name: Bind exact native build identity
+        id: bind
+        shell: bash
+        run: |
+          set -euo pipefail
+          digest=$(sha256sum "$RUNNER_TEMP/fault-build/qa02-fixture-hardkill" | cut -d' ' -f1)
+          echo "binary_sha=$digest" >> "$GITHUB_OUTPUT"
+          echo "$GITHUB_SHA" > "$RUNNER_TEMP/fault-build/source-commit.txt"
+          printf '%s  qa02-fixture-hardkill\n' "$digest" > "$RUNNER_TEMP/fault-build/SHA256SUMS"
+      - name: Export one immutable production fixture to all fault shards
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa02-real-fault-endurance-binary
+          path: ${{ runner.temp }}/fault-build/
+          retention-days: 14
+          if-no-files-found: error
+
+  stress:
+    needs: build
+    runs-on: ubuntu-22.04
+    timeout-minutes: 145
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        suite: [c09-orphan, c14-c15-receipt, qa03-midseries, hardkill-owner, c16-storage-outage]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: qa02-real-fault-endurance-binary
+          path: ${{ runner.temp }}/fault-exact-binary
+      - name: Verify immutable producer, same Linux libc, and fixture executable
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ needs.build.outputs.binary_sha }}
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/fault-exact-binary"
+          sha256sum -c SHA256SUMS
+          test "$(cat source-commit.txt)" = "$GITHUB_SHA"
+          test "$(sha256sum qa02-fixture-hardkill | cut -d' ' -f1)" = "$EXPECTED_SHA"
+          chmod +x qa02-fixture-hardkill
+          ldd qa02-fixture-hardkill
+      - name: Real-process fault death, restoring, orphan/receipt and storage-outage endurance
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ needs.build.outputs.binary_sha }}
+          SUITE: ${{ matrix.suite }}
+          MINUTES: ${{ inputs.wall_minutes_per_shard }}
+          SEED: ${{ inputs.base_seed }}
+        run: |
+          set -euo pipefail
+          [[ "$SEED" =~ ^[0-9]{1,8}$ ]] || { echo "Bounded seed must contain <=8 digits"; exit 2; }
+          python3 tools/qa02_real_fault_endurance.py run \
+            --exe "$RUNNER_TEMP/fault-exact-binary/qa02-fixture-hardkill" \
+            --source-sha "$GITHUB_SHA" --binary-sha "$EXPECTED_SHA" \
+            --suite "$SUITE" --seed "$SEED" --minutes "$MINUTES" \
+            --max-chunks 20000 \
+            --work "$RUNNER_TEMP/fault-endurance-private" \
+            --out "$RUNNER_TEMP/fault-endurance-receipt/result.json"
+          python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print("### "+d["suite"]+"\n\n"+str(d["real_process_fault_journeys"])+" genuine process-fault journeys, "+str(d["observed_complete_chunks"])+" timed independent batches. Actual wall: "+str(d["elapsed_seconds"])+"s. Stop: "+d["stop_reason"]+". Release credit: zero.")' "$RUNNER_TEMP/fault-endurance-receipt/result.json" >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain compact observed progress, even on run failure or timeout
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fault-endurance-${{ matrix.suite }}
+          path: ${{ runner.temp }}/fault-endurance-receipt/result.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  aggregate:
+    needs: [build, stress]
+    if: ${{ always() && needs.build.result == 'success' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Download all five bounded source-observed receipts
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: fault-endurance-*
+          path: ${{ runner.temp }}/fault-endurance-results
+          merge-multiple: false
+      - name: Fail closed on missing/partial producer or false release assertions
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ needs.build.outputs.binary_sha }}
+          MINUTES: ${{ inputs.wall_minutes_per_shard }}
+          SEED: ${{ inputs.base_seed }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/fault-endurance-results"
+          python3 tools/qa02_real_fault_endurance.py aggregate \
+            --source-sha "$GITHUB_SHA" --binary-sha "$EXPECTED_SHA" \
+            --minutes "$MINUTES" --seed "$SEED" --max-chunks 20000 \
+            --results "$RUNNER_TEMP/fault-endurance-results" \
+            --out "$RUNNER_TEMP/fault-endurance-aggregate/result.json" \
+            --summary "$GITHUB_STEP_SUMMARY"
+      - name: Retain final incomplete-or-positive aggregate without private files
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa02-real-fault-endurance-aggregate
+          path: ${{ runner.temp }}/fault-endurance-aggregate/result.json
+          if-no-files-found: warn
+          retention-days: 14

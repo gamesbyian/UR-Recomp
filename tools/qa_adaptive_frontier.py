@@ -58,7 +58,29 @@ def read(path: Path) -> dict:
     return result
 
 
-def plan(source_sha: str, base_seed: int, count: int) -> dict:
+
+def normalized_prior(value: dict | None) -> dict:
+    """Rolling *observed* strategy yield carried by the cumulative ledger.
+
+    Prior counts are advisory for selection only, not fresh experiments.
+    All statistics on the new run are counted from zero.
+    """
+    if value is None or value=={}:
+        return {arm:{"attempted":0,"new_bins_local":0} for arm in ARMS}
+    if not isinstance(value,dict) or set(value)!=set(ARMS):
+        raise ValueError("malformed frontier prior strategies")
+    for arm,row in value.items():
+        if (type(row) is not dict or set(row)!={"attempted","new_bins_local"} or
+                type(row["attempted"]) is not int or
+                type(row["new_bins_local"]) is not int or
+                not 0<=row["attempted"]<=1000000 or
+                not 0<=row["new_bins_local"]<=3*row["attempted"]):
+            raise ValueError(f"invalid prior for {arm}")
+    return {arm:dict(value[arm]) for arm in ARMS}
+
+
+def plan(source_sha: str, base_seed: int, count: int,
+         strategy_prior: dict | None = None) -> dict:
     if (not HEX40.fullmatch(source_sha) or type(base_seed) is not int or
             not 0 <= base_seed <= MAX_SEED-1000003-count or
             count not in COUNT_TO_SHARDS):
@@ -74,6 +96,7 @@ def plan(source_sha: str, base_seed: int, count: int) -> dict:
         "matrix": {"include": [{"shard": n, "first_index": n*per,
                                  "count": per} for n in range(shards)]},
         "fixture": SOURCE, "oracle": "compiled-native-2p-wram-observer",
+        "strategy_prior": normalized_prior(strategy_prior),
         "disposition": "planned_not_executed", "release_gate_credit": 0,
         "original_native_parity": False, "complete_event_verified": False,
         "graphics_source_truth": False,
@@ -86,7 +109,8 @@ def validate_plan(data: dict) -> None:
     if type(data) is not dict or data.get("schema") != PLAN_SCHEMA:
         raise ValueError("missing research plan")
     expected = plan(data.get("source_sha", ""),
-                    data.get("base_seed"), data.get("requested_cases"))
+                    data.get("base_seed"), data.get("requested_cases"),
+                    data.get("strategy_prior"))
     if data != expected:
         raise ValueError("altered or noncanonical frontier case allocation")
 
@@ -292,7 +316,10 @@ def run_shard(*, plan_data: dict, shard: int, exe: Path, rom: Path,
     started = time.monotonic()
     for index in range(count):
         seed = seed_for(plan_data,shard,index)
-        arm = select_arm(attempts,gains)
+        prior=plan_data["strategy_prior"]
+        selection_attempts={a:attempts[a]+prior[a]["attempted"] for a in ARMS}
+        selection_gains={a:gains[a]+prior[a]["new_bins_local"] for a in ARMS}
+        arm = select_arm(selection_attempts,selection_gains)
         root = work/f"native-{index:04d}"
         attempts[arm] += 1
         try:
@@ -502,6 +529,7 @@ def main()->int:
     p.add_argument("--source-sha",required=True)
     p.add_argument("--base-seed",type=int,required=True)
     p.add_argument("--cases",type=int,required=True)
+    p.add_argument("--strategy-prior-json",default="{}")
     p.add_argument("--out",type=Path,required=True)
     p.add_argument("--gha-output",type=Path)
     r=cmds.add_parser("run")
@@ -527,7 +555,8 @@ def main()->int:
     a.add_argument("--summary",type=Path,required=True)
     args=ap.parse_args()
     if args.cmd=="plan":
-        data=plan(args.source_sha,args.base_seed,args.cases)
+        data=plan(args.source_sha,args.base_seed,args.cases,
+                  json.loads(args.strategy_prior_json))
         save(args.out,data)
         if args.gha_output:
             with args.gha_output.open("a") as f:

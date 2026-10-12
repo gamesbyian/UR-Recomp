@@ -3,6 +3,11 @@ name: Baldosa Windows shared-build reliability campaign
 # Manual and expensive. One verified Win32 Baldosa build, four independent
 # research cohorts. No complete-event, physical hardware or release credit.
 on:
+  workflow_call:
+    inputs:
+      trials_per_shard:
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       trials_per_shard:

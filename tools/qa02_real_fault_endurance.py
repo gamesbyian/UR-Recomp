@@ -40,9 +40,9 @@ def save(path: Path, value: dict) -> None:
 
 
 def case_seed(base_seed: int, suite: str, index: int) -> int:
-    if base_seed < 10000000:
+    if base_seed < 50000000:
         # Preserve the reproducibility of previously published noncumulative
-        # 20261011-style historical experiments only if their base is below
+        # 20261011-style historical experiments because their base is below
         # the reserved cumulative namespace.
         return base_seed + SUITES.index(suite) * 1000003 + index * 1009
     if not 0 <= index < MAX_CHUNKS:

@@ -51,6 +51,29 @@ class WindowsBatchTests(unittest.TestCase):
             self.assertFalse(data["physical_hardware_witness"])
             self.assertFalse(data["integrated_complete_1p_2p_event_certified"])
 
+    def test_long_running_windows_populations_stay_bounded_and_receipted(self):
+        wf = (ROOT/".github/workflows/baldosa-windows-reliability-campaign.yml").read_text()
+        self.assertIn('options: ["1", "3", "10", "30", "60"]', wf)
+        self.assertEqual(c.TRIAL_POPULATIONS, (1, 3, 10, 30, 60))
+        self.assertIn("timeout-minutes: 240", wf)
+        for trials in (30, 60):
+            with self.subTest(trials=trials), tempfile.TemporaryDirectory() as folder:
+                receipts = populate(Path(folder), trials)
+                result = c.aggregate(receipts, SOURCE, trials)
+                self.assertEqual(result["disposition"], "completed_positive")
+                self.assertEqual(result["passed_trials"], 4 * trials)
+                self.assertEqual(result["requested_trials"], 4 * trials)
+                self.assertEqual(result["observed_shards"], 4)
+                self.assertEqual(result["release_gate_credit"], 0)
+                for row in result["shards"]:
+                    self.assertEqual(row["expected_trials"], trials)
+                    self.assertEqual(row["attempted_trials"], trials)
+                    self.assertEqual(row["failed_trials"], 0)
+        for invalid in (0, 2, 20, 61, 100, 500):
+            with self.subTest(invalid=invalid):
+                with self.assertRaises(ValueError):
+                    c.aggregate(Path("unused"), SOURCE, invalid)
+
     def test_fail_closed_on_missing_altered_extra_and_false_claims(self):
         for kind in ("missing", "extra", "receipt_hash", "source",
                      "candidate", "credit", "count", "status", "hardware"):

@@ -53,6 +53,7 @@ jobs:
       minutes: ${{ steps.plan.outputs.minutes }}
       windows_trials: ${{ steps.plan.outputs.windows_trials }}
       frontier_cases: ${{ steps.plan.outputs.frontier_cases }}
+      frontier_prior: ${{ steps.plan.outputs.frontier_prior }}
       plan_sha256: ${{ steps.plan.outputs.plan_sha256 }}
     steps:
       - name: Checkout exact coordinator and original research implementation
@@ -151,6 +152,7 @@ jobs:
     with:
       cases: ${{ needs.reserve.outputs.frontier_cases }}
       base_seed: ${{ needs.reserve.outputs.base_seed }}
+      strategy_prior_json: ${{ needs.reserve.outputs.frontier_prior }}
 
   commit-evidence:
     if: ${{ always() && needs.reserve.result == 'success' }}

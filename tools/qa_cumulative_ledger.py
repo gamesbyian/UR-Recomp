@@ -246,6 +246,7 @@ def append(ledger: dict, plan: dict, producer: dict | None,
         "sequence": plan["sequence"], "base_seed": plan["base_seed"],
         "source_sha": plan["source_sha"], "github_run_id": plan["github_run_id"],
         "minutes": plan["minutes"], "windows_trials": plan["windows_trials"],
+        "frontier_cases": plan.get("frontier_cases",100),
         "disposition": state, "metrics": metrics,
         "release_gate_credit": 0,
     }

@@ -453,6 +453,8 @@ def aggregate(plan_data: dict, root: Path) -> dict:
     global_tokens=set()
     first_identity=None
     arms={arm:{"attempted":0,"new_bins_local":0} for arm in ARMS}
+    feature_counts=dict.fromkeys(FEATURES,0)
+    feature_repros={}
     for shard in range(plan_data["shards"]):
         path=root/f"research-frontier-{shard}"/"result.json"
         try:
@@ -503,6 +505,9 @@ def aggregate(plan_data: dict, root: Path) -> dict:
                         len(case["tokens"])!=len(FRAME_NAMES) or
                         any(not re.fullmatch(r"[a-f0-9]{24}",str(t)) for t in case["tokens"]) or
                         case.get("observation_count")!=len(guest.FRAMES)+1 or
+                        type(case.get("features")) is not list or
+                        case["features"] != sorted(set(case["features"])) or
+                        any(feature not in FEATURES for feature in case["features"]) or
                         case.get("verified_ablation") is not (index%25==0) or
                         case.get("real_native_processes")!=(4 if index%25==0 else 1)):
                     raise ValueError("case lacks source-authenticated native state evidence")
@@ -511,6 +516,11 @@ def aggregate(plan_data: dict, root: Path) -> dict:
                     raise ValueError("duplicate native case across original shards")
                 global_seeds.add(seed)
                 global_inputs.add(case["input_sha256"])
+                for feature in case["features"]:
+                    feature_counts[feature]+=1
+                    if feature not in feature_repros:
+                        feature_repros[feature]={
+                            "seed":seed,"arm":case["arm"],"shard":shard}
                 shard_bins.update(case["tokens"])
                 global_tokens.update(case["tokens"])
             if seen_arms!=row["arm_attempts"] or set(row["semantic_bins"])!=shard_bins:
@@ -544,6 +554,8 @@ def aggregate(plan_data: dict, root: Path) -> dict:
         "native_processes":sum(1+3*(i%25==0) for i in range(plan_data["requested_cases"])) if not issues else sum(r.get("processes",0) for r in records),
         "metamorphic_verified_cases":sum((n+24)//25 for n in (assigned(plan_data,s)[1] for s in range(plan_data["shards"]))) if not issues else 0,
         "semantic_bins_observed":len(global_tokens),
+        "source_feature_counts":feature_counts,
+        "source_feature_reproduction_seeds":feature_repros if not issues else {},
         "semantic_epoch": coverage.EPOCH,
         "semantic_hll_b64": coverage.encode(coverage.observe(global_tokens)) if not issues else coverage.encode(coverage.empty()),
         "strategy_summary":arms,
@@ -585,7 +597,13 @@ def summary(report:dict)->str:
            "| --- | ---: | ---: |"]
     for arm,v in report["strategy_summary"].items():
         lines.append(f"| {arm} | {v['attempted']} | {v['new_bins_local']} |")
-    lines+=["","First-capture seeds for unusual states are in the compact JSON artifact.",""]
+    lines+=["","### Actual source-slot feature categories", "",
+            "| Raw-observed category | Native input cases |",
+            "| --- | ---: |"]
+    for name,count in sorted(report["source_feature_counts"].items(),key=lambda row:(row[1],row[0])):
+        lines.append(f"| {name} | {count} |")
+    lines+=["","Exact seed/arm witnesses for source-slot categories are in the compact JSON artifact.",
+            "Source register flags, unlike independent SNES PPU pixel evidence, are not final visual truth.",""]
     lines.extend("- "+s for s in report["issues"])
     return "\n".join(lines)+"\n"
 

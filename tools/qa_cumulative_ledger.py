@@ -248,6 +248,23 @@ def outcome(plan: dict, producer: dict | None, job_result: str) -> tuple[str, di
             raise ValueError("frontier contains impossible semantic novelty metrics")
         if sum(row["attempted"] for row in summary.values())!=n:
             raise ValueError("frontier strategy cases do not sum to observed real inputs")
+        from qa_adaptive_frontier import guest
+        ident = producer.get("identity")
+        required_identity = {
+            "source_commit", "native_executable_sha256", "rom_sha256",
+            "stock_input_sha256", "stock_script_sha256",
+        }
+        if (type(ident) is not dict or set(ident) != required_identity
+                or ident.get("source_commit") != plan["source_sha"]
+                or ident.get("rom_sha256") != guest.ROM_SHA
+                or any(not SHA256.fullmatch(str(ident.get(key, "")))
+                       for key in required_identity - {"source_commit"})):
+            raise ValueError("frontier lacks original ROM, fixture or compiled-native exact provenance")
+        metrics["native_executable_sha256"] = ident["native_executable_sha256"]
+        metrics["original_rom_sha256"] = ident["rom_sha256"]
+        metrics["stock_input_sha256"] = ident["stock_input_sha256"]
+        metrics["stock_script_sha256"] = ident["stock_script_sha256"]
+        metrics["frontier_source_plan_sha256"] = producer["plan_sha256"]
         metrics["semantic_bins_observed"]=producer.get("semantic_bins_observed")
         metrics["strategy_summary"]=summary
         from qa_adaptive_frontier import FEATURES

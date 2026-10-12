@@ -149,6 +149,7 @@ class CumulativeLedgerContracts(unittest.TestCase):
     def test_10k_frontier_uses_real_source_plan_and_retains_novelty_without_release_credit(self):
         from qa_adaptive_frontier import plan as source_plan
         from qa_frontier_coverage import EPOCH, observe as coverage_observe, encode as coverage_encode
+        from qa_frontier_exact import encode_run as encode_exact
         for count,shards in ((100,4),(1000,10),(10000,40)):
             with self.subTest(count=count):
                 p=c.make_plan(LEDGER,selected="frontier",
@@ -163,11 +164,23 @@ class CumulativeLedgerContracts(unittest.TestCase):
                     "completed_cases":count,"observed_shards":shards,
                     "native_processes":count+3*shards*((count//shards+24)//25),
                     "semantic_bins_observed":count*2,
+                    "identity":{
+                        "source_commit":p["source_sha"],
+                        "native_executable_sha256":"b"*64,
+                        "rom_sha256":__import__("qa02_native_2p_seeded_endurance").ROM_SHA,
+                        "stock_input_sha256":"c"*64,
+                        "stock_script_sha256":"d"*64,
+                    },
                     "source_feature_counts":{name:0 for name in __import__("qa_adaptive_frontier").FEATURES},
                     "source_feature_reproduction_seeds":{},
                     "semantic_epoch":EPOCH,
                     "semantic_hll_b64":coverage_encode(coverage_observe(
                         [format(i,"024x") for i in range(count*2)])),
+                    "semantic_exact_witnesses_b64":encode_exact({
+                        format(i,"024x"): (
+                            p["base_seed"]+i//2,"balanced",
+                            (i//2)//(count//shards))
+                        for i in range(count*2)}),
                     "strategy_summary":{
                         "balanced":{"attempted":count-4,"new_bins_local":count-4},
                         "p1-focus":{"attempted":1,"new_bins_local":3},
@@ -185,6 +198,8 @@ class CumulativeLedgerContracts(unittest.TestCase):
                 self.assertEqual(record["metrics"]["strategy_summary"],observed["strategy_summary"])
                 self.assertGreaterEqual(record["metrics"]["estimated_post_unique_bins"],1)
                 self.assertTrue(record["metrics"]["approximate_not_an_exact_new_case_count"])
+                self.assertEqual(record["metrics"]["exact_new_unique_fingerprints"],count*2)
+                self.assertEqual(new["frontier_exact_coverage"]["exact_unique_observed_fingerprints"],count*2)
                 self.assertIn("frontier_coverage",new)
                 self.assertEqual(new["frontier_coverage"]["real_cases_observed"],count)
                 self.assertEqual(record["frontier_cases"],count)

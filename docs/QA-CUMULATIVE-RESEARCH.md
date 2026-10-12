@@ -25,6 +25,12 @@ Every run (including red runs) follows **reserve → exact source-owned producer
 
 The coordinator fetches the **source workflow's actual machine aggregate**, rejects wrong source/ROM/build identity and inconsistent counts, records only permitted positive research counts, and explicitly retains incomplete, producer-negative and false-credit assertions as **red** ledger rows. It commits a normally pushed, non-force Git revision to the evidence branch. It uploads a separate compact Actions final receipt; if the Git push fails, the workflow goes red. **Do not treat an uncommitted/failed ledger run as cumulatively recorded, and repair its push before trusting the next automatic allocation.** Never force-push, reset or rebase the evidence branch while a coordinator is active.
 
+## Exact discovery accounting (frontier only)
+
+Beginning with the first post-upgrade *completed* adaptive-frontier producer, the separate `frontier_exact_coverage` ledger contains the **losslessly deduplicated normalized fingerprint census and earliest run/seed/arm/shard witness**. Per-run metrics expose `exact_prior_unique_fingerprints`, `exact_new_unique_fingerprints` and `exact_post_unique_fingerprints`. Old HLL-only observations are explicitly **excluded from this new exact corpus**, not retroactively invented. Malformed, missing or contradictory source witnesses reject the run without granting novelty.
+
+The earlier `frontier_coverage` HyperLogLog numbers remain estimates for legacy review only. A lossless 96-bit fingerprint census is still an observation of projected native WRAM fields, **never strict original/native correctness or full raw gameplay-state enumeration**. See [adaptive frontier](QA-ADAPTIVE-RESEARCH-FRONTIER.md) for limits, migration, hard capacity bound and the original-reference follow-up cycle.
+
 ## What to compare
 
 For analysis, group cumulative evidence by **campaign, exact code revision and binary digest**, and then distinguish input trajectories from repeated processes. Coverage grows across revisions, but a new build requires new acceptance for that exact build. Summing Windows producer repetitions is legitimate durability evidence; calling them all "new gameplay states" is false. Reports always keep raw GitHub run ID, original aggregate SHA-256, observed trial/sample counts and zero release credit.

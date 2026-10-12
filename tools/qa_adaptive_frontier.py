@@ -26,6 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 import qa02_native_2p_seeded_endurance as guest
 import qa_frontier_coverage as coverage
+import qa_frontier_exact as exact
 from controller_input import load_controller_runs
 from summarize_paired_player_slots import state
 
@@ -451,6 +452,7 @@ def aggregate(plan_data: dict, root: Path) -> dict:
     global_seeds=set()
     global_inputs=set()
     global_tokens=set()
+    global_witness={}
     first_identity=None
     arms={arm:{"attempted":0,"new_bins_local":0} for arm in ARMS}
     feature_counts=dict.fromkeys(FEATURES,0)
@@ -523,6 +525,8 @@ def aggregate(plan_data: dict, root: Path) -> dict:
                             "seed":seed,"arm":case["arm"],"shard":shard}
                 shard_bins.update(case["tokens"])
                 global_tokens.update(case["tokens"])
+                for token in case["tokens"]:
+                    global_witness.setdefault(token,(seed,case["arm"],shard))
             if seen_arms!=row["arm_attempts"] or set(row["semantic_bins"])!=shard_bins:
                 raise ValueError("arm/captured semantic coverage count inconsistent")
             if any(type(v) is not int or v<0 or v>3*seen_arms[a]
@@ -553,11 +557,13 @@ def aggregate(plan_data: dict, root: Path) -> dict:
         "completed_cases":len(global_seeds),"observed_shards":len(records),
         "native_processes":sum(1+3*(i%25==0) for i in range(plan_data["requested_cases"])) if not issues else sum(r.get("processes",0) for r in records),
         "metamorphic_verified_cases":sum((n+24)//25 for n in (assigned(plan_data,s)[1] for s in range(plan_data["shards"]))) if not issues else 0,
+        "identity":first_identity if not issues else None,
         "semantic_bins_observed":len(global_tokens),
         "source_feature_counts":feature_counts,
         "source_feature_reproduction_seeds":feature_repros if not issues else {},
         "semantic_epoch": coverage.EPOCH,
         "semantic_hll_b64": coverage.encode(coverage.observe(global_tokens)) if not issues else coverage.encode(coverage.empty()),
+        "semantic_exact_witnesses_b64": exact.encode_run(global_witness) if not issues else exact.encode_run({}),
         "strategy_summary":arms,
         "reproduction_seeds_by_fingerprint":{
             token: seed

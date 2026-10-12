@@ -15,6 +15,7 @@ import re
 from pathlib import Path
 
 import qa_frontier_coverage as coverage
+import qa_frontier_exact as exact
 
 SCHEMA = "ur-cumulative-campaign-ledger/1"
 PLAN_SCHEMA = "ur-cumulative-campaign-plan/1"
@@ -99,6 +100,9 @@ def validate_ledger(ledger: dict) -> None:
     # Older historical ledger branches legitimately have no such record.
     if "frontier_coverage" in ledger:
         coverage.validate_record(ledger["frontier_coverage"])
+    # Legacy HLL-only runs are never credited to the exact census.
+    if "frontier_exact_coverage" in ledger:
+        exact.validate_record(ledger["frontier_exact_coverage"])
 
 
 def next_seed(ledger: dict, campaign: str) -> tuple[int, int]:
@@ -244,6 +248,23 @@ def outcome(plan: dict, producer: dict | None, job_result: str) -> tuple[str, di
             raise ValueError("frontier contains impossible semantic novelty metrics")
         if sum(row["attempted"] for row in summary.values())!=n:
             raise ValueError("frontier strategy cases do not sum to observed real inputs")
+        from qa_adaptive_frontier import guest
+        ident = producer.get("identity")
+        required_identity = {
+            "source_commit", "native_executable_sha256", "rom_sha256",
+            "stock_input_sha256", "stock_script_sha256",
+        }
+        if (type(ident) is not dict or set(ident) != required_identity
+                or ident.get("source_commit") != plan["source_sha"]
+                or ident.get("rom_sha256") != guest.ROM_SHA
+                or any(not SHA256.fullmatch(str(ident.get(key, "")))
+                       for key in required_identity - {"source_commit"})):
+            raise ValueError("frontier lacks original ROM, fixture or compiled-native exact provenance")
+        metrics["native_executable_sha256"] = ident["native_executable_sha256"]
+        metrics["original_rom_sha256"] = ident["rom_sha256"]
+        metrics["stock_input_sha256"] = ident["stock_input_sha256"]
+        metrics["stock_script_sha256"] = ident["stock_script_sha256"]
+        metrics["frontier_source_plan_sha256"] = producer["plan_sha256"]
         metrics["semantic_bins_observed"]=producer.get("semantic_bins_observed")
         metrics["strategy_summary"]=summary
         from qa_adaptive_frontier import FEATURES
@@ -281,6 +302,7 @@ def append(ledger: dict, plan: dict, producer: dict | None,
     if expected != plan:
         raise ValueError("stale or forged campaign reservation")
     frontier_state = None
+    frontier_exact_state = None
     try:
         state, metrics = outcome(plan, producer, job_result)
         if state == "completed_positive" and plan["campaign"] == "frontier":
@@ -290,6 +312,14 @@ def append(ledger: dict, plan: dict, producer: dict | None,
             frontier_state, new_metrics = coverage.make_record(
                 ledger.get("frontier_coverage"), observed, plan["frontier_cases"])
             metrics.update(new_metrics)
+            from qa_adaptive_frontier import COUNT_TO_SHARDS
+            exact_observed = exact.observed_report(
+                producer, plan["base_seed"], plan["frontier_cases"],
+                COUNT_TO_SHARDS[plan["frontier_cases"]])
+            frontier_exact_state, exact_metrics = exact.make_record(
+                ledger.get("frontier_exact_coverage"), exact_observed,
+                plan["github_run_id"], plan["frontier_cases"])
+            metrics.update(exact_metrics)
     except (ValueError, KeyError, TypeError) as exc:
         # A malformed/contradictory source receipt is a red research outcome.
         # It still consumes the reserved seed and is retained in the ledger.
@@ -306,8 +336,9 @@ def append(ledger: dict, plan: dict, producer: dict | None,
     }
     record["record_sha256"] = digest(record)
     new = {**ledger, "records": [*ledger["records"], record]}
-    if frontier_state is not None:
+    if frontier_state is not None and frontier_exact_state is not None:
         new["frontier_coverage"] = frontier_state
+        new["frontier_exact_coverage"] = frontier_exact_state
     validate_ledger(new)
     return new, record
 

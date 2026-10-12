@@ -77,6 +77,16 @@ This census covers **exactly the persisted normalized 96-bit fingerprint identit
 
 **Migration:** previously recorded HLL-only batches are *not* silently reconstructed or counted in the exact union. The new `frontier_exact_coverage` ledger object begins with the first newly executed source producer that exports an exact catalog; its `legacy_sketch_campaigns_excluded: true` marker is mandatory. The older `frontier_coverage` sketch remains available only as legacy trend/compatibility telemetry. Do not compare the exact post-migration count to historic HLL counts as though they were the same population.
 
+**Find the first reproducible witness:** from a trusted checkout of the evidence branch, run
+
+```bash
+python3 tools/qa_frontier_exact.py \\
+  --ledger path/to/research-evidence/.github/qa-cumulative/ledger.json \\
+  --fingerprint <24-character-lowercase-token>
+```
+
+The result identifies the first green coordinator GitHub run, original exact source SHA, deterministic seed, arm and shard. Retrieve that run's retained `qa-cumulative-plan` artifact (if still available) and use the documented `qa_adaptive_frontier.py repro` procedure with the **original pinned source and binary**. This witness proves an observed native checkpoint identity only. The long-term source/binary replay recipe must be preserved before expiring CI artifacts are deleted; the exact census itself does not archive complete executables or ROMs.
+
 **Bounded lifecycle:** the packed ledger format currently caps the combined exact corpus at one million normalized fingerprints (26 bytes per entry before compression, including first-source-run witness). This is a safety/resource bound, not a stopping rule for research: before reaching capacity, archive immutable source-qualified catalogs and implement a validated, partitioned exact store. If the bound is hit, fail closed and preserve the reproducible run, rather than revert silently to estimates or fabricate exact counts. The active cumulative coordinator and its original 100/1,000/10,000 case controls remain unchanged.
 
 **Correctness is a separate, higher bar:** no fingerprint novelty grants QA-01/07 event admission, independent PPU correctness, Modern Windows controller-to-Records acceptance or release credit. The exact original/native event matrix and source-qualified comparison rules are authoritative. Route first-seen witnesses to those owners for original-oracle generation, causal debugging and permanent strict regressions. The target research progression is exact witnessed discovery → independent original fixture → strict original/native comparison → causal fix → accepted complete event.

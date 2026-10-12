@@ -57,6 +57,9 @@ jobs:
         with:
           ref: research/qa-cumulative-ledger
           path: research-evidence
+          sparse-checkout: |
+            .github/qa-cumulative
+          sparse-checkout-cone-mode: false
           persist-credentials: false
       - name: Verify ledger signatures and reserve unique non-overlapping seed window
         id: plan
@@ -147,6 +150,9 @@ jobs:
         with:
           ref: research/qa-cumulative-ledger
           path: research-evidence
+          sparse-checkout: |
+            .github/qa-cumulative
+          sparse-checkout-cone-mode: false
           persist-credentials: true
       - name: Retrieve exact seed reservation
         uses: actions/download-artifact@v4

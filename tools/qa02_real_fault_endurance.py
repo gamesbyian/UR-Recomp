@@ -40,7 +40,17 @@ def save(path: Path, value: dict) -> None:
 
 
 def case_seed(base_seed: int, suite: str, index: int) -> int:
-    return base_seed + SUITES.index(suite) * 1000003 + index * 1009
+    if base_seed < 50000000:
+        # Preserve the reproducibility of previously published noncumulative
+        # 20261011-style historical experiments because their base is below
+        # the reserved cumulative namespace.
+        return base_seed + SUITES.index(suite) * 1000003 + index * 1009
+    if not 0 <= index < MAX_CHUNKS:
+        raise ValueError("fault jitter index exceeds reserved seed namespace")
+    # Bijective integer seed over cumulative (base, source suite, chunk).
+    # Python random.Random accepts arbitrarily large integer seeds, while
+    # only the externally supplied base has the original 8-digit UI bound.
+    return base_seed * (len(SUITES)*MAX_CHUNKS) + SUITES.index(suite)*MAX_CHUNKS + index
 
 
 def validate_original(row: dict, suite: str, source_sha: str,

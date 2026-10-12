@@ -3,6 +3,15 @@ name: QA-01 bounded original/native event campaign
 # Research workload: never PR/push/schedule. Existing QA-01 original-event
 # producer remains semantic authority; this is an execution/receipt fan-out.
 on:
+  workflow_call:
+    inputs:
+      selected:
+        required: true
+        type: string
+      zoo_terminal_phase:
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       selected:

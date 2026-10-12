@@ -4,6 +4,14 @@ name: QA-02 native 2P seeded gameplay endurance
 # build and authoritative ordinary 2P controller+observation grammar.
 # Does not claim Baldosa original/native course parity or physical Windows QA.
 on:
+  workflow_call:
+    inputs:
+      wall_minutes_per_shard:
+        required: true
+        type: string
+      base_seed:
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       wall_minutes_per_shard:

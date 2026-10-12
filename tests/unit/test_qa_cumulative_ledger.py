@@ -111,7 +111,7 @@ class CumulativeLedgerContracts(unittest.TestCase):
         self.assertEqual(row["disposition"],"incomplete_or_failed")
         self.assertEqual(row["release_gate_credit"],0)
 
-    def test_round_robin_is_bounded_across_all_six_research_families(self):
+    def test_round_robin_is_bounded_across_all_seven_research_families(self):
         state=LEDGER
         sequence=[]
         for index,campaign in enumerate(c.CAMPAIGNS):
@@ -145,6 +145,44 @@ class CumulativeLedgerContracts(unittest.TestCase):
                 _,record=c.append(LEDGER,p,row,"success")
                 self.assertEqual(record["metrics"]["observations"],units)
                 self.assertEqual(record["release_gate_credit"],0)
+
+    def test_10k_frontier_uses_real_source_plan_and_retains_novelty_without_release_credit(self):
+        from qa_adaptive_frontier import plan as source_plan
+        for count,shards in ((100,4),(1000,10),(10000,40)):
+            with self.subTest(count=count):
+                p=c.make_plan(LEDGER,selected="frontier",
+                              source_sha=SHA,minutes=15,windows_trials=3,
+                              frontier_cases=count,run_id=123)
+                expected=source_plan(SHA,p["base_seed"],count)
+                observed={
+                    "schema":"ur-research-frontier-2p/1",
+                    "source_sha":SHA,"plan_sha256":expected["plan_sha256"],
+                    "disposition":"completed_observational",
+                    "release_gate_credit":0,"issues":[],
+                    "completed_cases":count,"observed_shards":shards,
+                    "native_processes":count+3*shards*((count//shards+24)//25),
+                    "semantic_bins_observed":count*2,
+                    "strategy_summary":{
+                        "balanced":{"attempted":count-4,"new_bins_local":count-4},
+                        "p1-focus":{"attempted":1,"new_bins_local":3},
+                        "p2-focus":{"attempted":1,"new_bins_local":3},
+                        "alternating":{"attempted":1,"new_bins_local":3},
+                        "rotation":{"attempted":1,"new_bins_local":3},
+                    },
+                    "original_native_parity":False,
+                    "complete_event_verified":False,
+                }
+                new,record=c.append(LEDGER,p,observed,"success")
+                self.assertEqual(record["disposition"],"completed_positive")
+                self.assertEqual(record["metrics"]["cases"],count)
+                self.assertEqual(record["metrics"]["semantic_bins_observed"],count*2)
+                self.assertEqual(record["metrics"]["strategy_summary"],observed["strategy_summary"])
+                self.assertEqual(record["frontier_cases"],count)
+                self.assertEqual(record["release_gate_credit"],0)
+                self.assertEqual(len(new["records"]),1)
+                broken={**observed,"native_processes":count}
+                _,rejected=c.append(LEDGER,p,broken,"success")
+                self.assertEqual(rejected["disposition"],"incomplete_or_failed")
 
     def test_no_unbounded_or_forged_source_requests(self):
         for n in (0,121,10000):

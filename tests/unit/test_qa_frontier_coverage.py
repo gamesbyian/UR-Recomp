@@ -107,6 +107,13 @@ class FrontierCoverageContracts(unittest.TestCase):
                 "disposition":"completed_observational","completed_cases":100,
                 "native_processes":112,"observed_shards":4,
                 "semantic_bins_observed":100,"semantic_epoch":c.EPOCH,
+                "identity":{
+                    "source_commit":source,
+                    "native_executable_sha256":"b"*64,
+                    "rom_sha256":__import__("qa02_native_2p_seeded_endurance").ROM_SHA,
+                    "stock_input_sha256":"c"*64,
+                    "stock_script_sha256":"d"*64,
+                },
                 "source_feature_counts":{name:0 for name in __import__("qa_adaptive_frontier").FEATURES},
                 "source_feature_reproduction_seeds":{},
                 "semantic_hll_b64":c.encode(samples),

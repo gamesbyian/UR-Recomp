@@ -17,7 +17,7 @@ from pathlib import Path
 SCHEMA = "ur-cumulative-campaign-ledger/1"
 PLAN_SCHEMA = "ur-cumulative-campaign-plan/1"
 CAMPAIGNS = ("native-2p", "windows", "fault-recovery",
-             "graphics", "performance", "original-native")
+             "graphics", "performance", "original-native", "frontier")
 SOURCES = {
     "native-2p": ("ur-native-2p-input-endurance/1", "source_commit",
                   "total_unique_cases", "total_real_native_processes"),
@@ -32,6 +32,8 @@ SOURCES = {
                     "completed_processes", "sampled_process_seconds"),
     "original-native": ("ur-qa01-event-campaign/1", "source_sha",
                         "selected_cases", "completed"),
+    "frontier": ("ur-research-frontier-2p/1", "source_sha",
+                 "completed_cases", "native_processes"),
 }
 SHA = re.compile(r"^[a-f0-9]{40}$")
 SHA256 = re.compile(r"^[a-f0-9]{64}$")
@@ -43,6 +45,7 @@ BASE = 50000000
 MAX_SEQUENCE = 4083
 ALLOWED_WINDOWS_TRIALS = (1, 3, 10, 30, 60)
 ALLOWED_MINUTES = (15, 60, 120)
+ALLOWED_FRONTIER_CASES = (100, 1000, 10000)
 
 
 def digest(value: object) -> str:
@@ -109,10 +112,12 @@ def choose(ledger: dict, selected: str) -> str:
 
 
 def make_plan(ledger: dict, *, selected: str, source_sha: str,
-              minutes: int, windows_trials: int, run_id: int) -> dict:
+              minutes: int, windows_trials: int, run_id: int,
+              frontier_cases: int = 100) -> dict:
     validate_ledger(ledger)
     if (not SHA.fullmatch(source_sha) or minutes not in ALLOWED_MINUTES
             or windows_trials not in ALLOWED_WINDOWS_TRIALS
+            or frontier_cases not in ALLOWED_FRONTIER_CASES
             or type(run_id) is not int or run_id <= 0):
         raise ValueError("invalid source, budget or exact workflow run identity")
     if any(row["github_run_id"] == run_id for row in ledger["records"]):
@@ -124,6 +129,7 @@ def make_plan(ledger: dict, *, selected: str, source_sha: str,
         "campaign": campaign, "sequence": seq, "base_seed": seed,
         "source_sha": source_sha, "github_run_id": run_id,
         "minutes": minutes, "windows_trials": windows_trials,
+        "frontier_cases": frontier_cases,
         "ledger_before_sha256": digest(ledger),
         "release_gate_credit": 0,
     }
@@ -152,7 +158,8 @@ def outcome(plan: dict, producer: dict | None, job_result: str) -> tuple[str, di
         raise ValueError("aggregate is not bound to the exact planned source/producer schema")
     if producer.get("release_gate_credit", producer.get("release_admissions", None)) != 0:
         raise ValueError("research attempted release gate credit")
-    if producer.get("disposition") == "completed_positive":
+    if producer.get("disposition") == "completed_positive" or (
+            campaign == "frontier" and producer.get("disposition") == "completed_observational"):
         status = "completed_positive"
     elif campaign == "original-native" and producer.get("transport_complete") is True:
         counts = producer.get("counts")
@@ -174,6 +181,17 @@ def outcome(plan: dict, producer: dict | None, job_result: str) -> tuple[str, di
     if (campaign == "fault-recovery" and
             (n < 5 or processes != 10*n or producer.get("observed_suites") != 5)):
         raise ValueError("production fault trial counts are inconsistent")
+    if campaign == "frontier":
+        from qa_adaptive_frontier import plan as frontier_plan
+        expected=frontier_plan(plan["source_sha"],plan["base_seed"],plan["frontier_cases"])
+        if (n != plan["frontier_cases"] or processes != n+3*(
+                expected["shards"]*((n//expected["shards"]+24)//25))
+                or producer.get("observed_shards")!=expected["shards"]
+                or producer.get("plan_sha256")!=expected["plan_sha256"]
+                or producer.get("release_gate_credit")!=0
+                or producer.get("original_native_parity") is not False
+                or producer.get("complete_event_verified") is not False):
+            raise ValueError("frontier input/oracle identity or case/ablation population not complete")
     if campaign == "original-native":
         if n < 1 or processes > n or producer.get("release_admissions") != 0:
             raise ValueError("original comparator completeness is inconsistent")
@@ -181,7 +199,26 @@ def outcome(plan: dict, producer: dict | None, job_result: str) -> tuple[str, di
         raise ValueError("no actual inspected frames/processes")
     if producer.get("issues") not in (None, []):
         raise ValueError("aggregate contains unresolved evidence issues")
-    return status, {"cases": n, "observations": processes, "aggregate_sha256": digest(producer)}
+    metrics={"cases": n, "observations": processes,
+             "aggregate_sha256": digest(producer)}
+    if campaign == "frontier":
+        summary=producer.get("strategy_summary")
+        if (not isinstance(summary,dict) or
+                set(summary)!={"balanced","p1-focus","p2-focus","alternating","rotation"}):
+            raise ValueError("frontier strategy/novelty evidence absent")
+        if any(type(row) is not dict or
+               any(type(row.get(key)) is not int or row[key]<0
+                   for key in ("attempted","new_bins_local")) or
+               row["new_bins_local"]>3*row["attempted"]
+               for row in summary.values()):
+            raise ValueError("frontier contains impossible semantic novelty metrics")
+        if sum(row["attempted"] for row in summary.values())!=n:
+            raise ValueError("frontier strategy cases do not sum to observed real inputs")
+        metrics["semantic_bins_observed"]=producer.get("semantic_bins_observed")
+        metrics["strategy_summary"]=summary
+        if type(metrics["semantic_bins_observed"]) is not int or metrics["semantic_bins_observed"]<0:
+            raise ValueError("frontier provided no semantic-state discovery measurement")
+    return status, metrics
 
 
 def append(ledger: dict, plan: dict, producer: dict | None,
@@ -193,6 +230,7 @@ def append(ledger: dict, plan: dict, producer: dict | None,
     expected = make_plan(ledger, selected=plan["campaign"],
                          source_sha=plan["source_sha"], minutes=plan["minutes"],
                          windows_trials=plan["windows_trials"],
+                         frontier_cases=plan.get("frontier_cases",100),
                          run_id=plan["github_run_id"])
     if expected != plan:
         raise ValueError("stale or forged campaign reservation")
@@ -226,6 +264,7 @@ def main() -> int:
     plan.add_argument("--source-sha", required=True)
     plan.add_argument("--minutes", type=int, required=True)
     plan.add_argument("--windows-trials", type=int, required=True)
+    plan.add_argument("--frontier-cases", type=int, default=100)
     plan.add_argument("--run-id", type=int, required=True)
     plan.add_argument("--out", type=Path, required=True)
     plan.add_argument("--gha-output", type=Path, required=True)
@@ -240,10 +279,11 @@ def main() -> int:
     if args.mode == "plan":
         data = make_plan(read_json(args.ledger), selected=args.selected,
                          source_sha=args.source_sha, minutes=args.minutes,
-                         windows_trials=args.windows_trials, run_id=args.run_id)
+                         windows_trials=args.windows_trials, run_id=args.run_id,
+                         frontier_cases=args.frontier_cases)
         save(args.out, data)
         with args.gha_output.open("a", encoding="utf8") as out:
-            for key in ("campaign", "base_seed", "minutes", "windows_trials", "plan_sha256"):
+            for key in ("campaign", "base_seed", "minutes", "windows_trials", "frontier_cases", "plan_sha256"):
                 out.write(f"{key}={data[key]}\n")
         print(f"RESERVED {data['campaign']} sequence={data['sequence']} "
               f"seed_window_start={data['base_seed']} on exact source={data['source_sha']}")

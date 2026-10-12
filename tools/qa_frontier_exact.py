@@ -191,9 +191,19 @@ def lookup_witness(ledger: dict, token: str) -> dict:
                 k: v for k, v in row.items() if k != "record_sha256"
             }) or not row.get("metrics", {}).get("exact_new_unique_fingerprints", 0) > 0):
         raise ValueError("witness points to an unqualified or tampered source run")
+    metrics = row["metrics"]
+    required_digests = (
+        "native_executable_sha256", "original_rom_sha256",
+        "stock_input_sha256", "stock_script_sha256",
+        "frontier_source_plan_sha256",
+    )
+    if any(not re.fullmatch(r"[0-9a-f]{64}", str(metrics.get(key, "")))
+           for key in required_digests):
+        raise ValueError("first-witness source binary or fixture hashes unavailable")
     return {
         "fingerprint": token,
         "source_sha": row["source_sha"],
+        **{key: metrics[key] for key in required_digests},
         "github_run_id": run_id,
         "github_run_url": f"https://github.com/gamesbyian/UR-Recomp/actions/runs/{run_id}",
         "seed": seed,

@@ -59,6 +59,14 @@ The system can already plan thousands of real **native two-seat state-space** ex
 
 A useful research cycle is **observed novel state → exact reproduction → independent original oracle → causal source/writer hypothesis → focused owning implementation PR → strict regression and coverage refresh**. Repeated cases within an unqualified oracle cannot satisfy that contract, irrespective of scale.
 
+## Named, source-observed feature families for development handoff
+
+The 10,000-input campaign no longer hands off arbitrary lexicographically sorted state hashes alone. Every sampled real 128-KiB guest checkpoint at frames **1740, 2580, and 3420** also supplies a small, closed vocabulary of **raw WRAM-source-slot categories**: both players have nonzero air fields, both have nonzero motion fields, opposite X-speed signs, both rotation candidate fields vary, the split-screen register changes or is nonzero, an offscreen register is nonzero, or the two players' course-progress pointers change. These are observations of existing source-indexed offsets from `tools/summarize_paired_player_slots.py`, *not* visual pixels, exact gameplay semantics or independently accepted original behaviour.
+
+Each real case records a sorted subset of this vocabulary, and the source-bound aggregate counts how often each category occurred plus the **first exact (seed, arm, shard)** witness. The final handoff ranks less common categories first, nominates source-observed dual-air/split/offscreen candidate seeds to the graphics/QA-08 lane, and source checkpoint/rotation/contrasting-motion candidate seeds to the gameplay/QA-01 lane. Both must still capture the matching **independent original USA emulator / PPU** evidence before making fidelity or shipping claims. The signed cumulative ledger preserves per-category counts; missing categories, forged witness seeds, unsupported labels and inconsistent source cohorts fail closed.
+
+This is a practical prioritization mechanism, not an AI automatically editing gameplay code. Production records, actual physical 4K, PPU/OBJ depth and native-to-Records completed events remain the established independent acceptance authorities.
+
 ## Cumulative semantic-state saturation (not correctness)
 
 In addition to the exact per-run source-field state fingerprint count, the completed native discovery aggregate now exports a **4,096-register HyperLogLog (HLL)** sketch over its genuinely observed 24-hex-character semantic-state digests. The serialized cumulative coordinator checks the same source-linked disposition, count, planned seed population and claimed release exclusions **before** merging the sketch. Its append-only evidence branch holds `frontier_coverage` with the current extraction epoch, signed/canonical register sketch, running real case count, and **estimated** union cardinality. A red or missing source-run consumes its seed window but never adds invented coverage.

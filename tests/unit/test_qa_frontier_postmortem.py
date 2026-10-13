@@ -68,6 +68,39 @@ class FrontierPostmortemContracts(unittest.TestCase):
             self.assertIn(witness["arm"], run["strategy_summary"])
             self.assertTrue(0 <= witness["shard"] < run["shards"])
 
+    def test_all_forty_shard_frame_census_conserves_source_tokens(self):
+        info = json.loads(SNAPSHOT.read_text(encoding="utf8"))
+        audit = info["checkpoint_audit"]
+        frames = audit["frames"]
+        run = info["completed_run"]
+        self.assertEqual(audit["verified_shard_receipts"], run["shards"])
+        self.assertEqual(audit["complete_cases"], run["cases"])
+        self.assertEqual(frames["endurance-1740"], 1)
+        self.assertEqual(audit["cases_sharing_fixed_checkpoint_fingerprint_1740"],
+                         run["cases"])
+        self.assertEqual(audit["cross_checkpoint_fingerprint_overlaps"], 0)
+        self.assertEqual(sum(frames.values()), audit["all_three_checkpoint_union"])
+        self.assertEqual(audit["all_three_checkpoint_union"],
+                         run["unique_fingerprints_within_run"])
+        self.assertRegex(audit["fixed_checkpoint_fingerprint_1740"],
+                         r"^[a-f0-9]{24}$")
+        self.assertEqual(
+            audit["per_shard_unique_fingerprints_at_frames"]["endurance-2580"],
+            run["cases_per_shard"])
+        self.assertEqual(
+            audit["per_shard_unique_fingerprints_at_frames"]["endurance-3420"],
+            run["cases_per_shard"])
+        for arm, details in audit["per_arm"].items():
+            self.assertEqual(details["cases"],
+                             run["strategy_summary"][arm]["attempted"])
+            self.assertEqual(details["distinct_tokens_by_frame"][0], 1)
+            self.assertTrue(all(1 <= n <= details["cases"]
+                                for n in details["distinct_tokens_by_frame"]))
+        for feature, total in run["source_feature_counts"].items():
+            self.assertEqual(
+                sum(details["positive_source_feature_counts"].get(feature, 0)
+                    for details in audit["per_arm"].values()), total)
+
     def test_research_report_is_linked_and_does_not_claim_source_parity(self):
         info = json.loads(SNAPSHOT.read_text(encoding="utf8"))
         report = REPORT.read_text(encoding="utf8")

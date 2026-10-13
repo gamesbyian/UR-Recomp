@@ -19,6 +19,19 @@ enum class BaldosaRunRetryOutcome : std::uint8_t {
     Exhausted,
 };
 
+// A source-authenticated P1 finish snapshot is stable across normal 1P
+// results frames. The shared timer is not: it continues advancing.
+inline bool baldosa_same_one_player_finish_line(
+    const UrUniracersLineSnapshot& saved,
+    const UrUniracersLineSnapshot& live) noexcept {
+    return saved.valid && live.valid &&
+           saved.minutes == live.minutes &&
+           saved.tens_seconds == live.tens_seconds &&
+           saved.seconds == live.seconds &&
+           saved.tenths == live.tenths &&
+           saved.hundredths == live.hundredths;
+}
+
 class BaldosaPendingOnePlayerRun {
 public:
     static constexpr unsigned kMaxTotalAttempts = 6;
@@ -28,6 +41,7 @@ public:
         pending_.reset();
         failed_attempts_ = 0;
         next_retry_host_frame_ = 0;
+        finish_line_ = {};
     }
 
     bool pending() const noexcept { return pending_.has_value(); }
@@ -35,27 +49,36 @@ public:
 
     // Called exclusively after an actual source-settled result's first
     // synchronous publication failed. Keep at most one bounded input trace.
-    bool defer_failed_publication(BaldosaSettledResult result,
-                                  std::uint64_t host_frame) {
+    bool defer_failed_publication(
+        BaldosaSettledResult result, std::uint64_t host_frame,
+        const UrUniracersLineSnapshot& observed_finish_line,
+        int laps_remaining) {
         if (pending_ ||
             result.kind != BaldosaSettledResultKind::TimedOnePlayerRace ||
             result.observed_result_host_frame != host_frame ||
+            !observed_finish_line.valid || laps_remaining != 0 ||
             host_frame > std::numeric_limits<std::uint64_t>::max() -
                              kRetryIntervalHostFrames)
             return false;
+        finish_line_ = observed_finish_line;
         pending_.emplace(std::move(result));
         failed_attempts_ = 1;
         next_retry_host_frame_ = host_frame + kRetryIntervalHostFrames;
         return true;
     }
 
-    // Any departure, new race, or change in the root's acknowledged seat
-    // revokes the pending result. Never replay it into another guest session.
+    // Result menu visibility alone cannot prove that its source result
+    // survived unchanged. Check the original stock P1 line and lap count.
     const BaldosaSettledResult* ready_for_retry(
         unsigned handed_off_players, bool race_active,
-        std::uint8_t guest_menu, std::uint64_t host_frame) noexcept {
+        std::uint8_t guest_menu, std::uint64_t host_frame,
+        const UrUniracersLineSnapshot* live_finish_line,
+        int laps_remaining) noexcept {
         if (!pending_) return nullptr;
-        if (handed_off_players != 1u || race_active || guest_menu != 0x99u) {
+        if (handed_off_players != 1u || race_active || guest_menu != 0x99u ||
+            !live_finish_line || laps_remaining != 0 ||
+            !baldosa_same_one_player_finish_line(
+                finish_line_, *live_finish_line)) {
             reset();
             return nullptr;
         }
@@ -80,6 +103,7 @@ public:
 
 private:
     std::optional<BaldosaSettledResult> pending_;
+    UrUniracersLineSnapshot finish_line_{};
     unsigned failed_attempts_ = 0;
     std::uint64_t next_retry_host_frame_ = 0;
 };

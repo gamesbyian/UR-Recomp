@@ -35,6 +35,21 @@ class FrontierHandoffContracts(unittest.TestCase):
                 "both-air-raw":{"seed":50000019,"arm":"rotation","shard":0},
                 "checkpoint-pointer-changes":{"seed":50000025,"arm":"balanced","shard":1},
             },
+            "dense_observer_epoch":f.DENSE_EPOCH,
+            "dense_feature_counts":{
+                name:(3 if name=="both-air-raw" else
+                      2 if name=="checkpoint-pointer-changes" else
+                      1 if name=="offscreen-register-nonzero" else 0)
+                for name in f.FEATURES
+            },
+            "dense_feature_reproduction_seeds":{
+                "both-air-raw":{"seed":50000019,"arm":"rotation","shard":0,
+                                 "first_frame":"endurance-1860"},
+                "checkpoint-pointer-changes":{"seed":50000025,"arm":"balanced",
+                                               "shard":1,"first_frame":"endurance-2580"},
+                "offscreen-register-nonzero":{"seed":50000036,"arm":"p1-focus",
+                                               "shard":1,"first_frame":"endurance-1980"}
+            },
             "reproduction_seeds_by_fingerprint":{
                 "0"*24:{"seed":50000019,"arm":"rotation","shard":0},
                 "1"*24:{"seed":50000025,"arm":"balanced","shard":1},
@@ -47,6 +62,14 @@ class FrontierHandoffContracts(unittest.TestCase):
         self.assertEqual(len(handoff["reproducers"]),2)
         self.assertEqual(handoff["reproducers"][0]["arm"],"rotation")
         self.assertEqual(len(handoff["source_feature_reproducers"]),2)
+        self.assertEqual(len(handoff["dense_feature_reproducers"]),3)
+        self.assertTrue(any(
+            w["newly_visible_at_dense_cadence"] and
+            w["feature"]=="offscreen-register-nonzero" and
+            w["first_frame"]=="endurance-1980"
+            for w in handoff["dense_feature_reproducers"]))
+        self.assertIn("seed 50000036",handoff["owning_lanes"][1]["next_proof"])
+
         self.assertEqual(handoff["source_feature_reproducers"][0]["feature"],"checkpoint-pointer-changes")
         self.assertIn("seed 50000025",handoff["owning_lanes"][0]["next_proof"])
         self.assertIn("seed 50000019",handoff["owning_lanes"][1]["next_proof"])

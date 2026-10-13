@@ -1,6 +1,7 @@
 """QA-01 dual-air exact legal-input reconstruction and fail-closed paired observer."""
 from __future__ import annotations
 
+import json
 import sys
 import tempfile
 import unittest
@@ -54,6 +55,12 @@ class DualAirPaired(unittest.TestCase):
         executable = self.root / "exe"
         for p in (rom, core, executable):
             p.write_bytes(p.name.encode())
+        # Synthetic ROM stand-in is intentionally not canonical: patch only
+        # the isolated manifest and ROM identity expected by these tests.
+        manifest_path = self.case / "manifest.json"
+        manifest = json.loads(manifest_path.read_text())
+        manifest["original_rom_sha256"] = m.sha(rom)
+        manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
         return row, original, native, rom, core, executable
 
     def test_synthetic_samples_can_only_be_classified_as_nonadmitting(self):

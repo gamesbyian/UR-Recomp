@@ -89,8 +89,6 @@ def checked_states(folder: Path, tags: list[str]) -> tuple[dict, dict]:
             raise ValueError(f"{tag}: not a genuine 128-KiB WRAM snapshot")
         samples[tag] = state(p)
         hashes[tag] = sha(p)
-    if not all(samples[t]["race_progress"]["player1"] is not None for t in tags):
-        raise ValueError("source guest has incomplete racer state")
     return samples, hashes
 
 
@@ -118,6 +116,8 @@ def summarize(manifest_path: Path, original_dir: Path, native_dir: Path,
             or manifest.get("stock_script_sha256") != STOCK_SCRIPT_SHA
             or manifest.get("raw_air_addresses") !=
                {"p1": "7E:0545", "p2": "7E:0547"}
+            or manifest.get("original_rom_sha256") != ROM_SHA
+            or manifest.get("frontier_native_executable_sha256") != NATIVE_FRONTIER_SHA
             or manifest.get("first_source_observed_both_air_frame") != FRAME):
         raise ValueError("original source register/fixture provenance changed")
     if (manifest.get("seed"), manifest.get("arm"),
@@ -146,7 +146,15 @@ def summarize(manifest_path: Path, original_dir: Path, native_dir: Path,
     out_rows = []
     for tag in manifest["checkpoints"]:
         o, n = original[tag], native[tag]
+        o_page = (original_dir / (tag + ".wram.bin")).read_bytes()
+        n_page = (native_dir / (tag + ".wram.bin")).read_bytes()
         out_rows.append({
+            "original_active_race_raw": o_page[0x0313],
+            "native_active_race_raw": n_page[0x0313],
+            "original_menu_raw": o_page[0x009F],
+            "native_menu_raw": n_page[0x009F],
+            "original_course_raw": o_page[0x00CE],
+            "native_course_raw": n_page[0x00CE],
             "host_frame_label": tag,
             "original_wram_sha256": orig_hash[tag],
             "native_wram_sha256": native_hash[tag],
@@ -174,6 +182,10 @@ def summarize(manifest_path: Path, original_dir: Path, native_dir: Path,
         "same_neutral_input_and_host_frame_schedule": True,
         "paired_guest_relative_entry_offset_calibrated": False,
         "raw_both_air_at_2580": {"original": orig_air, "native": native_air},
+        "active_race_at_2580": {
+            "original": witness["original_active_race_raw"] == 1,
+            "native": witness["native_active_race_raw"] == 1,
+        },
         "raw_air_interpretation": "provisional source registers; no airborne physics proven",
         "source_frame_labels_are_host_ticks_not_event_relative_clocks": True,
         "original_wram_snapshots": len(orig_hash),

@@ -22,6 +22,23 @@ Each fingerprint is a **96-bit truncated SHA-256 identity of a deliberately norm
 
 Wall-clock workflow: **2026-10-12 20:50:24 UTC to 2026-10-13 12:44:35 UTC**, or **15h 54m 11s**, with individual shard execution from ~56 to ~107 minutes (180-minute per-shard hard cap). Avoid linear extrapolation from the 100-case run without accounting for shared build overhead, worker scheduling and per-shard execution.
 
+## Follow-up forensic audit: all 40 signed shard receipts
+
+After the initial coordinator success, every original `research-frontier-0` through `research-frontier-39` artifact was independently retrieved and each source-owned `result.json` checksum was checked against its aggregate shard receipt SHA-256. **All 40 matched.** The 10,000 cases were then regrouped by the **three real checkpoint frames**, instead of treating every token as an indistinguishable discovery:
+
+| Actual sampled checkpoint | Exact distinct fingerprints | Interpretation |
+| --- | ---: | --- |
+| `endurance-1740` | **1** | Same `b49fd909c5fd16ae947c3b55` signature on **all 10,000 inputs** |
+| `endurance-2580` | **9,987** | Wide normalized variation after input mutations |
+| `endurance-3420` | **9,992** | Wide later normalized variation |
+| **Exact union** | **19,980** | No collisions *between the three sampled checkpoint populations* |
+
+Within **every** 250-case shard, there was one fingerprint at frame 1740 and exactly 250 distinct fingerprints at each of frames 2580 and 3420. The fewer than 10,000 global distinct fingerprints at the later frames come from repetition **across shards**. The first checkpoint is behaving as a common starting-state/control witness, not a useful diversity signal. The first checkpoint's invariance does **not** by itself establish pre-entry source parity or anything about the original ROM emulator.
+
+This sharper decomposition means that the headline **19,978 newly observed** fingerprints are overwhelmingly varied **late-state projected position, velocity, rotation and progress records**. High cardinality alone is a weak proxy for discovering new behaviours. Future aggregates now calculate and report exact **per-checkpoint** unique counts alongside the deduplicated union, so a broad random exploration campaign cannot obscure how much novelty comes from a fixed observation point.
+
+The audited per-arm breakdown also shows that each of the three exercised strategies had one fixed first-frame fingerprint. At frame 2580 / 3420, respectively: `balanced` **5,752 / 5,755**, `p1-focus` **2,837 / 2,840**, and `p2-focus` **1,400 / 1,400** distinct values. Across the real cases, opposing X motion occurred in **3,990 / 5,760** balanced cases, **1,702 / 2,840** P1-focus cases and **862 / 1,400** P2-focus cases. These are descriptive counts, not controlled original-game physics comparisons.
+
 ## Source-observed feature census
 
 The following categories are **case counts** (a case may satisfy several categories) computed solely from already-indexed guest WRAM observations, not independent CPU/PPU ground truth:
@@ -29,7 +46,7 @@ The following categories are **case counts** (a case may satisfy several categor
 | Raw category | Cases / 10,000 |
 | --- | ---: |
 | Both moving | 10,000 |
-| Both racers' checkpoint/progress fields change | 10,000 |
+| Checkpoint/progress pointer tuple changes | 10,000 |
 | Both tracked rotation registers change | 9,689 |
 | Opposing horizontal speed signs | 6,554 |
 | Split-register nonzero at sampled snapshots | 10,000 |

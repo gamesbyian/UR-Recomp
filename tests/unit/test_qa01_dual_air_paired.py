@@ -1,8 +1,6 @@
 """QA-01 dual-air exact legal-input reconstruction and fail-closed paired observer."""
 from __future__ import annotations
 
-import hashlib
-import json
 import sys
 import tempfile
 import unittest
@@ -83,7 +81,6 @@ class DualAirPaired(unittest.TestCase):
             (self.case / "case.input").write_text("altered")
             with self.assertRaisesRegex(ValueError, "mutated paired"):
                 m.summarize(**kwargs)
-            m.prepare  # Reconstruct the actual file from source, never weaken a check.
             raw, _ = m.guest.base_source()
             actions, _ = m.frontier.actions_for(m.SEED, m.ARM)
             (self.case / "case.input").write_text(

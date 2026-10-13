@@ -15,6 +15,7 @@
 #include "host_profile_store.hpp"
 #include "host_profile_catalog.hpp"
 #include "baldosa_native_profile_sram_checkpoint.hpp"
+#include "baldosa_native_profile_path_guard.hpp"
 #include "baldosa_native_run_record_admission.hpp"
 #include "completed_run_store.hpp"
 #include "local_multiplayer_match_binding.hpp"
@@ -121,6 +122,11 @@ extern "C" int ur_baldosa_modern_try_activate_profile(void) {
     if (!decision.isolated())
         return reject("active_profile_id_invalid");
 
+    // A regular SRAM file can still be reached through a symlinked parent.
+    // Admit the complete existing Modern profile path before reading data.
+    if (!ur::product::baldosa_native_selected_profile_paths_are_real(
+            native_root, decision.save_root))
+        return reject("selected_profile_path_redirected_or_incomplete");
     const std::string profile_path = decision.save_root + "/host-profile.txt";
     const auto profile = ur::product::load_host_profile_state_file(
         ur::product::ExecutionMode::Modern, profile_path, *id);
@@ -207,23 +213,9 @@ extern "C" int ur_baldosa_modern_profile_can_join_opponent(
         ExecutionMode::Modern, entry->profile_id);
     if (!location.isolated()) return 0;
     const auto root = g_native_user_root / location.save_root;
-    const auto is_real_directory = [](const fs::path& value) {
-        std::error_code ec;
-        const auto status = fs::symlink_status(value, ec);
-        return !ec && fs::is_directory(status) && !fs::is_symlink(status);
-    };
-    const auto is_real_file = [](const fs::path& value) {
-        std::error_code ec;
-        const auto status = fs::symlink_status(value, ec);
-        return !ec && fs::is_regular_file(status) &&
-            !fs::is_symlink(status);
-    };
-    // A candidate may not resolve typed state or raw SRAM via any live
-    // or dangling link outside its authorized isolated Modern directory.
-    if (!is_real_directory(g_native_user_root / "saves") ||
-        !is_real_directory(root) ||
-        !is_real_file(root / "host-profile.txt") ||
-        !is_real_file(root / "save.srm")) return 0;
+    // Same canonical profile-path admission as P1 native boot and writer.
+    if (!baldosa_native_selected_profile_paths_are_real(
+            g_native_user_root, location.save_root)) return 0;
     const auto profile = load_host_profile_state_file(
         ExecutionMode::Modern, (root / "host-profile.txt").string(),
         entry->profile_id);
@@ -267,6 +259,9 @@ extern "C" int ur_baldosa_modern_publish_settled_one_player_run(
     if (!selected_root.isolated()) return 0;
     const fs::path profile_root = g_native_user_root / selected_root.save_root;
     const fs::path profile_path = profile_root / "host-profile.txt";
+    // Refuse redirected P1 profile path before acquiring any lock handles.
+    if (!ur::product::baldosa_native_selected_profile_paths_are_real(
+            g_native_user_root, selected_root.save_root)) return 0;
     ur::product::TournamentLaunchPathLock selector(
         (g_native_user_root / "host-state-v1.txt").string(), true);
     if (!selector.acquired()) return 0;
@@ -275,6 +270,8 @@ extern "C" int ur_baldosa_modern_publish_settled_one_player_run(
     if (!roster.acquired()) return 0;
     ur::product::TournamentLaunchPathLock profile(profile_path.string(), true);
     if (!profile.acquired()) return 0;
+    if (!ur::product::baldosa_native_selected_profile_paths_are_real(
+            g_native_user_root, selected_root.save_root)) return 0;
 
     // Recheck all three typed sources while their existing nonblocking OS
     // leases remain owned across immutable run publication.
@@ -373,27 +370,12 @@ extern "C" int ur_baldosa_modern_publish_settled_two_player_match(
     const fs::path second_root = g_native_user_root / second.save_root;
     const fs::path first_state = first_root / "host-profile.txt";
     const fs::path second_state = second_root / "host-profile.txt";
-    // No lockfile creation in a redirected P1/P2 profile directory.
-    // The product's existing per-user root/selector is the only profile
-    // namespace authority. Explicitly reject both live and dangling links
-    // before opening any per-profile lock handles.
-    const auto real_directory = [](const fs::path& path) {
-        std::error_code status_error;
-        const auto status = fs::symlink_status(path, status_error);
-        return !status_error && fs::is_directory(status) &&
-            !fs::is_symlink(status);
-    };
-    const auto real_file = [](const fs::path& path) {
-        std::error_code status_error;
-        const auto status = fs::symlink_status(path, status_error);
-        return !status_error && fs::is_regular_file(status) &&
-            !fs::is_symlink(status);
-    };
-    if (!real_directory(g_native_user_root / "saves") ||
-        !real_directory(first_root) || !real_directory(second_root) ||
-        !real_file(first_state) || !real_file(second_state) ||
-        !real_file(first_root / "save.srm") ||
-        !real_file(second_root / "save.srm"))
+    // The common no-follow check covers both participants before any
+    // profile lock handle is opened, including dangling parent symlinks.
+    if (!baldosa_native_selected_profile_paths_are_real(
+            g_native_user_root, first.save_root) ||
+        !baldosa_native_selected_profile_paths_are_real(
+            g_native_user_root, second.save_root))
         return 0;
     TournamentLaunchPathLock selector(
         (g_native_user_root / "host-state-v1.txt").string(), true);
@@ -405,6 +387,11 @@ extern "C" int ur_baldosa_modern_publish_settled_two_player_match(
     if (!profile1.acquired()) return 0;
     TournamentLaunchPathLock profile2(second_state.string(), true);
     if (!profile2.acquired()) return 0;
+    if (!baldosa_native_selected_profile_paths_are_real(
+            g_native_user_root, first.save_root) ||
+        !baldosa_native_selected_profile_paths_are_real(
+            g_native_user_root, second.save_root))
+        return 0;
 
     // Still-authorized P1 has the exact selector, catalog, typed profile and
     // raw named SRAM from process start. Do not replace it with new metadata.
@@ -542,6 +529,13 @@ extern "C" int ur_baldosa_modern_profile_before_native_save(void) {
         g_sram_size != static_cast<int>(ur::product::kStockSramBytes))
         return reject("save_preflight_missing_context");
 
+    const auto profile_root = ur::product::resolve_host_profile_save_root(
+        ur::product::ExecutionMode::Modern, g_verified_native_profile_id);
+    if (!profile_root.isolated())
+        return reject("save_profile_root_invalid");
+    if (!ur::product::baldosa_native_selected_profile_paths_are_real(
+            g_native_user_root, profile_root.save_root))
+        return reject("save_profile_path_redirected_or_incomplete");
     auto candidate = std::make_unique<ur::product::TournamentLaunchPathLock>(
         (g_native_user_root / "host-state-v1.txt").string(), true);
     if (!candidate->acquired())
@@ -554,10 +548,6 @@ extern "C" int ur_baldosa_modern_profile_before_native_save(void) {
             (g_native_user_root / "profiles-v1.txt").string(), true);
     if (!catalog_candidate->acquired())
         return reject("save_catalog_lock_unavailable");
-    const auto profile_root = ur::product::resolve_host_profile_save_root(
-        ur::product::ExecutionMode::Modern, g_verified_native_profile_id);
-    if (!profile_root.isolated())
-        return reject("save_profile_root_invalid");
     const auto profile_path = g_native_user_root /
         profile_root.save_root / "host-profile.txt";
     auto profile_candidate =
@@ -565,6 +555,9 @@ extern "C" int ur_baldosa_modern_profile_before_native_save(void) {
             profile_path.string(), true);
     if (!profile_candidate->acquired())
         return reject("save_profile_lock_unavailable");
+    if (!ur::product::baldosa_native_selected_profile_paths_are_real(
+            g_native_user_root, profile_root.save_root))
+        return reject("save_profile_path_changed_under_lock");
     const ur::product::BaldosaSramCheckpoint request{
         g_native_user_root, *g_launch_global, *g_launch_profile,
         g_sram, static_cast<std::size_t>(g_sram_size)};
@@ -622,6 +615,15 @@ extern "C" int ur_baldosa_modern_profile_finish_native_save(int saved) {
         std::fprintf(stderr,
             "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT status=invalid_context\n");
         std::fflush(stderr);
+        return 0;
+    }
+    const auto save_root = ur::product::resolve_host_profile_save_root(
+        ur::product::ExecutionMode::Modern, g_verified_native_profile_id);
+    if (!save_root.isolated() ||
+        !ur::product::baldosa_native_selected_profile_paths_are_real(
+            g_native_user_root, save_root.save_root)) {
+        std::fprintf(stderr,
+            "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT status=profile_path_redirected\n");
         return 0;
     }
     const ur::product::BaldosaSramCheckpoint request{

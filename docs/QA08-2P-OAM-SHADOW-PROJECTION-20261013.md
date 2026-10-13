@@ -37,9 +37,15 @@ camera-1 candidates, with offscreen sentinels.
 **Neither zeroed $121B/$121D nor a constant $0DDB=1 proves a
 malfunctioning split/culling path**; the latter enables updating the
 second camera in the reconstructed bank-81 camera-control chain.
-The values/locations of visibility sentinels and their applicability
-to each active display half still need original disassembly
-writer-branch and matched native PPU witnesses.
+Existing source evidence is narrower and stronger than an unknown
+sentinel: [`docs/SYMBOLS.md`](SYMBOLS.md) identifies a **`0x70` offscreen
+fallback** for P1 `$1509/$150A` and P2 `$150E`. The separately accepted
+[original/native Jumpover offscreen experiment](RESEARCH-LEDGER.md)
+observed **P1 `$121B=1` for 18 frames** simultaneously with P1
+screen X/Y `0x70`. Those observations establish a real offscreen branch,
+but an isolated `0x70` value is not a generally safe *visible pixel*
+predicate: distinguish active camera, viewport, OAM physical write
+schedule and final PPU result before applying a replacement mask.
 
 ## Reusable diagnostic without more GHA runners
 

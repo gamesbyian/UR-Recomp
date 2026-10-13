@@ -93,6 +93,35 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
         self.assertTrue(any("missing course-event coverage census" in error
                             for error in validator.check_registry(data, ROOT)))
 
+    def test_qa01_regional_and_all_build_counts_cannot_be_forged(self):
+        data = baseline()
+        self.assertEqual(validator.check_registry(data, ROOT), [])
+        # The 90 comparative cases do not require shipping USA acceptance,
+        # but every declared denominator and partition remains factual.
+        for key, bad in (
+            ("regional_comparison_denominator", 89),
+            ("regional_comparison_denominator", True),
+            ("regional_comparison_complete", -1),
+            ("regional_comparison_complete", "1"),
+            ("regional_comparison_unverified", False),
+            ("regional_comparison_unverified", 89),
+            ("total_tracked_course_rom_pairs", 134),
+            ("total_tracked_course_rom_pairs", "135"),
+        ):
+            with self.subTest(key=key, bad=bad):
+                broken = copy.deepcopy(data)
+                broken["gates"][0]["coverage"][key] = bad
+                self.assertTrue(
+                    any("QA-01" in err for err in validator.check_registry(broken, ROOT))
+                )
+        # An actual partition can change as separately accepted evidence
+        # arrives without requiring completion of all regional comparisons.
+        data["gates"][0]["coverage"].update(
+            regional_comparison_complete=1,
+            regional_comparison_unverified=89,
+        )
+        self.assertEqual(validator.check_registry(data, ROOT), [])
+
     def test_current_source_contracts_and_journey_denominators_are_real(self):
         data = baseline()
         gate = data["gates"][0]

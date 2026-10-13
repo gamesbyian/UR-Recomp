@@ -55,6 +55,24 @@ int main() {
     assert(join.clear(0));
     assert(!join.ready());
     assert(join.confirm(0) && join.ready());
+    assert(join.confirmed_profiles_match_catalog(valid()));
+    auto changed_roster = valid();
+    changed_roster[2].identity.name = "REPLACED";
+    assert(!join.confirmed_profiles_match_catalog(changed_roster));
+    changed_roster = valid();
+    changed_roster.erase(changed_roster.begin() + 2);
+    assert(!join.confirmed_profiles_match_catalog(changed_roster));
+    changed_roster = valid();
+    changed_roster[2].profile_id = "GAMMA";
+    assert(!join.confirmed_profiles_match_catalog(changed_roster));
+    changed_roster = valid();
+    changed_roster.push_back(changed_roster[2]);
+    assert(!join.confirmed_profiles_match_catalog(changed_roster));
+    changed_roster = valid();
+    changed_roster[1].identity.name = "IRRELEVANT";
+    assert(join.confirmed_profiles_match_catalog(changed_roster));
+    join.clear(1);
+    assert(!join.confirmed_profiles_match_catalog(valid()));
 
     join.cancel();
     assert(!join.open() && !join.ready());

@@ -101,6 +101,27 @@ class FrontierPostmortemContracts(unittest.TestCase):
                 sum(details["positive_source_feature_counts"].get(feature, 0)
                     for details in audit["per_arm"].values()), total)
 
+    def test_cross_run_overlap_has_exact_original_and_new_seed_witnesses(self):
+        data = json.loads(SNAPSHOT.read_text(encoding="utf8"))
+        audit = data["baseline_overlap_audit"]
+        self.assertEqual(audit["verified_baseline_shard_receipts"], 4)
+        self.assertEqual(audit["exact_distinct_fingerprint_overlap"], 2)
+        self.assertEqual(len(audit["overlaps"]), 2)
+        self.assertEqual(
+            data["historical_baseline"]["unique_fingerprints"] +
+            data["completed_run"]["unique_fingerprints_within_run"] -
+            audit["exact_distinct_fingerprint_overlap"],
+            data["completed_run"]["unique_fingerprints_cumulative"])
+        self.assertEqual(
+            audit["overlaps"][0]["fingerprint"],
+            data["checkpoint_audit"]["fixed_checkpoint_fingerprint_1740"])
+        second = audit["overlaps"][1]
+        self.assertEqual(second["frame"], "endurance-3420")
+        self.assertEqual(second["baseline_witness"]["seed"], 50000016)
+        self.assertEqual(second["run10000_witness"]["seed"], 50012078)
+        for row in audit["overlaps"]:
+            self.assertRegex(row["fingerprint"], r"^[0-9a-f]{24}$")
+
     def test_research_report_is_linked_and_does_not_claim_source_parity(self):
         info = json.loads(SNAPSHOT.read_text(encoding="utf8"))
         report = REPORT.read_text(encoding="utf8")

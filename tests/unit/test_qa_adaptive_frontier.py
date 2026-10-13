@@ -119,7 +119,7 @@ class ResearchFrontierContracts(unittest.TestCase):
                         self.assertEqual(arm,required)
                 self.assertTrue(all(n>=1 for n in local.values()))
                 if per==250:
-                    self.assertTrue(all(n>=5 for n in local.values()))
+                    self.assertTrue(all(n>=6 for n in local.values()))
             self.assertEqual(sum(all_attempts.values()),count)
             self.assertTrue(all(all_attempts.values()))
         self.assertEqual(f.forced_fresh_arm(0,0),"balanced")

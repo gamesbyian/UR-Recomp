@@ -181,6 +181,7 @@ class CumulativeLedgerContracts(unittest.TestCase):
                     "full_trace_feature_counts":{name:0 for name in __import__("qa_adaptive_frontier").FEATURES},
                     "full_trace_only_feature_counts":{name:0 for name in __import__("qa_adaptive_frontier").FEATURES},
                     "full_trace_source_feature_witnesses":{},
+                    "full_trace_only_feature_witnesses":{},
                     "full_trace_raw_field_values":{name:[0] for name in __import__("qa_adaptive_frontier").TRACE_RAW_FIELDS},
                     "semantic_epoch":EPOCH,
                     "semantic_hll_b64":coverage_encode(coverage_observe(

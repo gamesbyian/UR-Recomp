@@ -52,6 +52,8 @@ class BaldosaNativeTwoPlayerPublicationTests(unittest.TestCase):
                              executed.stderr + executed.stdout)
             self.assertIn("PASS: native Modern pre-SRAM profile root",
                           executed.stdout)
+            self.assertIn("PASS: fresh-process native Modern 1P and paired 2P Records readback",
+                          executed.stdout)
 
     def test_guest_observer_publishes_only_after_explicit_join(self):
         bridge = (ROOT / "tools/baldosa_native_pause_lifecycle.cpp").read_text(

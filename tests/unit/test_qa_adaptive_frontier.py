@@ -31,7 +31,7 @@ def report_tree(root: Path, count: int = 100) -> tuple[dict,Path]:
         _,n=f.assigned(p,shard)
         for index in range(n):
             seed=f.seed_for(p,shard,index)
-            arm=f.ARMS[index%len(f.ARMS)]
+            arm=f.forced_fresh_arm(index,shard) or f.ARMS[index%len(f.ARMS)]
             obs=[f.digest(["state",seed,k])[:24] for k in range(3)]
             rows.append({
                 "seed":seed,"arm":arm,
@@ -96,6 +96,37 @@ class ResearchFrontierContracts(unittest.TestCase):
         self.assertEqual(f.select_arm(attempted,gains),"rotation")
         with self.assertRaises(ValueError):
             f.select_arm({"unproven":0},gains)
+
+    def test_fresh_exploration_is_independent_of_historical_strategy_prior(self):
+        # This was the root cause of zero alternating and rotation trials in
+        # the genuine 10,000-case run: every prior count was already nonzero.
+        for count,shards in ((100,4),(1000,10),(10000,40)):
+            per=count//shards
+            all_attempts=dict.fromkeys(f.ARMS,0)
+            for shard in range(shards):
+                local=dict.fromkeys(f.ARMS,0)
+                historical={arm:100000 for arm in f.ARMS}
+                historical["balanced"]=10000000
+                gains={arm:0 for arm in f.ARMS}
+                gains["balanced"]=30000000
+                for index in range(per):
+                    required=f.forced_fresh_arm(index,shard)
+                    arm=required or f.select_arm(
+                        {k:historical[k]+local[k] for k in f.ARMS},gains)
+                    local[arm]+=1
+                    all_attempts[arm]+=1
+                    if required is not None:
+                        self.assertEqual(arm,required)
+                self.assertTrue(all(n>=1 for n in local.values()))
+                if per==250:
+                    self.assertTrue(all(n>=5 for n in local.values()))
+            self.assertEqual(sum(all_attempts.values()),count)
+            self.assertTrue(all(all_attempts.values()))
+        self.assertEqual(f.forced_fresh_arm(0,0),"balanced")
+        self.assertEqual(f.forced_fresh_arm(0,1),"p1-focus")
+        self.assertIsNone(f.forced_fresh_arm(5,0))
+        with self.assertRaises(ValueError):
+            f.forced_fresh_arm(250,0)
 
     def test_semantic_coverage_uses_source_fields_not_raw_wram_hashes(self):
         with tempfile.TemporaryDirectory() as td:
@@ -197,6 +228,7 @@ class ResearchFrontierContracts(unittest.TestCase):
         for corruption in ("missing","extra","sha","wrong_source","fake_credit",
                            "partial","count","duplicate_seed","duplicate_input",
                            "forged_arm","wrong_observations","semantic_tokens",
+                           "forged_forced_arm",
                            "fake_source_category","repeated_source_category"):
             with self.subTest(corruption=corruption),tempfile.TemporaryDirectory() as td:
                 p,receipts=report_tree(Path(td))
@@ -215,6 +247,7 @@ class ResearchFrontierContracts(unittest.TestCase):
                     elif corruption=="duplicate_seed": row["case_results"][2]["seed"]=row["case_results"][1]["seed"]
                     elif corruption=="duplicate_input": row["case_results"][2]["input_sha256"]=row["case_results"][1]["input_sha256"]
                     elif corruption=="forged_arm": row["case_results"][2]["arm"]="not-a-controller-arm"
+                    elif corruption=="forged_forced_arm": row["case_results"][0]["arm"]="rotation"
                     elif corruption=="wrong_observations": row["case_results"][1]["observation_count"]=0
                     elif corruption=="semantic_tokens": row["semantic_bins"]=["0"*24]
                     elif corruption=="fake_source_category": row["case_results"][2]["features"]=["unknown-original-ppu"]

@@ -88,14 +88,59 @@ def report(plan_data:dict, observed:dict)->dict:
                                    "shard":w["shard"]})
     if set(source_repros)-set(source_counts):
         raise ValueError("extra non-source native category witness")
+    # A separately epoch-marked fifteen-frame diagnostic can surface a
+    # previously unsampled raw source predicate. Do not silently merge its
+    # case count into the established three-frame corpus.
+    dense_counts=observed.get("dense_feature_counts",{})
+    dense_repros=observed.get("dense_feature_reproduction_seeds",{})
+    dense_witnesses=[]
+    if dense_counts:
+        if (observed.get("dense_observer_epoch")!=frontier.DENSE_EPOCH or
+                type(dense_counts) is not dict or
+                set(dense_counts)!=set(frontier.FEATURES) or
+                type(dense_repros) is not dict or
+                set(dense_repros)!={key for key,n in dense_counts.items() if n}):
+            raise ValueError("unbound fifteen-frame source-feature handoff")
+        for feature,n in sorted(dense_counts.items(),key=lambda item:(item[1],item[0])):
+            if (type(n) is not int or
+                    not source_counts[feature]<=n<=observed["completed_cases"]):
+                raise ValueError("dense feature count less than historical three-frame evidence")
+            if n==0:
+                continue
+            w=dense_repros[feature]
+            if (type(w) is not dict or w.get("arm") not in frontier.ARMS or
+                    type(w.get("seed")) is not int or
+                    not plan_data["base_seed"]<=w["seed"]<
+                      plan_data["base_seed"]+plan_data["requested_cases"] or
+                    type(w.get("shard")) is not int or
+                    not 0<=w["shard"]<plan_data["shards"] or
+                    w.get("first_frame") not in frontier.DENSE_FRAME_NAMES):
+                raise ValueError("invalid first fifteen-frame diagnostic reproduction")
+            dense_witnesses.append({
+                "feature":feature,"cases":n,"historical_three_frame_cases":source_counts[feature],
+                "newly_visible_at_dense_cadence":source_counts[feature]==0,
+                "seed":w["seed"],"arm":w["arm"],"shard":w["shard"],
+                "first_frame":w["first_frame"]})
     def first_matching(*features):
         return next((w for w in category_witnesses
                      if w["feature"] in features),None)
+    dense_graphics_hint=next((
+        w for w in dense_witnesses
+        if w["newly_visible_at_dense_cadence"] and w["feature"] in (
+            "both-air-raw","offscreen-register-nonzero","split-register-changes")),
+        None)
     graphics_hint=first_matching("both-air-raw","offscreen-register-nonzero",
                                  "split-register-changes","split-register-nonzero")
     gameplay_hint=first_matching("checkpoint-pointer-changes",
                                  "opposing-x-motion-raw",
                                  "both-rotation-registers-change")
+    def dense_hint_text():
+        if not dense_graphics_hint:
+            return ""
+        w=dense_graphics_hint
+        return (f" New 15-frame raw-register observation: {w['feature']} at "
+                f"{w['first_frame']}, seed {w['seed']}, arm {w['arm']}, "
+                f"shard {w['shard']}; validate original source semantics.")
     def hint_text(hint):
         return (f" Candidate source-state reproduction: seed {hint['seed']},"
                 f" arm {hint['arm']}, observed category {hint['feature']}."
@@ -106,7 +151,7 @@ def report(plan_data:dict, observed:dict)->dict:
          "next_proof":"Use one selected reproducible seed plus independent original USA observation; strict comparator stays unchanged."+hint_text(gameplay_hint)},
         {"lane":"QA-08/10 graphics and original PPU",
          "hypothesis":"Do sampled split/airborne racer states expose previously absent source-visible OBJ occlusion cases?",
-         "next_proof":"Capture source reference PPU/OAM and compare final depth, not a hash-only frame."+hint_text(graphics_hint)},
+         "next_proof":"Capture source reference PPU/OAM and compare final depth, not a hash-only frame."+hint_text(graphics_hint)+dense_hint_text()},
         {"lane":"Modern Windows product / independent QA",
          "hypothesis":"Which actually played native transitions now expose missing 2P result and Records publication paths?",
          "next_proof":"Single exact native Windows candidate, complete result, fresh-process Records acceptance."},
@@ -127,6 +172,7 @@ def report(plan_data:dict, observed:dict)->dict:
         "strategies_ranked_by_within_shard_coverage":ranking,
         "reproducers":witnesses,
         "source_feature_reproducers":category_witnesses,
+        "dense_feature_reproducers":dense_witnesses,
         "owning_lanes":owner_queue,
         "recommendation":("Review and qualify a small selection of unusual observed states with their "
                           "independent original source, rather than automatically generating 10k release passes."

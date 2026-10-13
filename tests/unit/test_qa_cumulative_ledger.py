@@ -179,6 +179,11 @@ class CumulativeLedgerContracts(unittest.TestCase):
                     "full_trace_probe_policy":"full-existing-15-wram-frames-raw-fields-v1",
                     "full_trace_checkpoint_count":15,
                     "full_trace_feature_counts":{name:0 for name in __import__("qa_adaptive_frontier").FEATURES},
+                    "full_trace_feature_counts_by_arm":{
+                        arm:{name:0 for name in __import__("qa_adaptive_frontier").FEATURES}
+                        for arm in __import__("qa_adaptive_frontier").ARMS},
+                    "full_trace_first_detection_frame_counts":{
+                        name:{} for name in __import__("qa_adaptive_frontier").FEATURES},
                     "full_trace_only_feature_counts":{name:0 for name in __import__("qa_adaptive_frontier").FEATURES},
                     "full_trace_source_feature_witnesses":{},
                     "full_trace_only_feature_witnesses":{},

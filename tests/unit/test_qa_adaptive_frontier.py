@@ -284,6 +284,15 @@ class ResearchFrontierContracts(unittest.TestCase):
             self.assertEqual(set(data["full_trace_only_feature_counts"]),set(f.FEATURES))
             self.assertEqual(set(data["full_trace_raw_field_values"]),set(f.TRACE_RAW_FIELDS))
             self.assertEqual(data["full_trace_feature_counts"]["both-air-raw"],100)
+            self.assertEqual(set(data["full_trace_feature_counts_by_arm"]),set(f.ARMS))
+            self.assertEqual(data["full_trace_first_detection_frame_counts"]["both-air-raw"],
+                             {str(f.guest.FRAMES[0]):100})
+            for feature in f.FEATURES:
+                self.assertEqual(sum(data["full_trace_feature_counts_by_arm"][arm][feature]
+                                     for arm in f.ARMS),
+                                 data["full_trace_feature_counts"][feature])
+                self.assertEqual(sum(data["full_trace_first_detection_frame_counts"][feature].values()),
+                                 data["full_trace_feature_counts"][feature])
             self.assertGreater(data["full_trace_only_feature_counts"]["both-air-raw"],0)
             self.assertEqual(data["full_trace_source_feature_witnesses"]["both-air-raw"]["first_frame"],1740)
 

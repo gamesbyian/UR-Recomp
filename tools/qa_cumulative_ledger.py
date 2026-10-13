@@ -265,6 +265,16 @@ def outcome(plan: dict, producer: dict | None, job_result: str) -> tuple[str, di
         metrics["stock_input_sha256"] = ident["stock_input_sha256"]
         metrics["stock_script_sha256"] = ident["stock_script_sha256"]
         metrics["frontier_source_plan_sha256"] = producer["plan_sha256"]
+        from qa_adaptive_frontier import FRAME_NAMES
+        per_checkpoint = producer.get("checkpoint_unique_fingerprints")
+        if (type(per_checkpoint) is not dict or
+                set(per_checkpoint) != set(FRAME_NAMES) or
+                any(type(v) is not int or not 1 <= v <= n
+                    for v in per_checkpoint.values()) or
+                sum(per_checkpoint.values()) <
+                    producer.get("semantic_bins_observed", n * 3 + 1)):
+            raise ValueError("frontier source checkpoint-specific census is missing or inconsistent")
+        metrics["checkpoint_unique_fingerprints"] = per_checkpoint
         metrics["semantic_bins_observed"]=producer.get("semantic_bins_observed")
         metrics["strategy_summary"]=summary
         from qa_adaptive_frontier import FEATURES

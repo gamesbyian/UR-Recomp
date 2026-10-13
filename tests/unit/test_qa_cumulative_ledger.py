@@ -164,6 +164,9 @@ class CumulativeLedgerContracts(unittest.TestCase):
                     "completed_cases":count,"observed_shards":shards,
                     "native_processes":count+3*shards*((count//shards+24)//25),
                     "semantic_bins_observed":count*2,
+                    "checkpoint_unique_fingerprints":{
+                        "endurance-1740":1,"endurance-2580":count,
+                        "endurance-3420":count},
                     "identity":{
                         "source_commit":p["source_sha"],
                         "native_executable_sha256":"b"*64,
@@ -208,6 +211,17 @@ class CumulativeLedgerContracts(unittest.TestCase):
                 broken={**observed,"native_processes":count}
                 _,rejected=c.append(LEDGER,p,broken,"success")
                 self.assertEqual(rejected["disposition"],"incomplete_or_failed")
+                changed={
+                    **observed,
+                    "checkpoint_unique_fingerprints":{
+                        **observed["checkpoint_unique_fingerprints"],
+                        "endurance-1740":0,
+                    }
+                }
+                _,rejected_checkpoint=c.append(LEDGER,p,changed,"success")
+                self.assertEqual(rejected_checkpoint["disposition"],"incomplete_or_failed")
+                self.assertNotIn("frontier_exact_coverage", _)
+
 
     def test_no_unbounded_or_forged_source_requests(self):
         for n in (0,121,10000):

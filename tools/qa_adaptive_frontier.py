@@ -51,6 +51,7 @@ HEX64 = re.compile(r"^[a-f0-9]{64}$")
 MAX_SEED = 99999999
 MAX_CASES_PER_SHARD = 250
 REPRO_ATTEMPTS = 12
+STRATEGY_POLICY = "fresh-five-arm-warmup-plus-decile-v1"
 
 
 def digest(value: object) -> str:
@@ -109,6 +110,7 @@ def plan(source_sha: str, base_seed: int, count: int,
                                  "count": per} for n in range(shards)]},
         "fixture": SOURCE, "oracle": "compiled-native-2p-wram-observer",
         "strategy_prior": normalized_prior(strategy_prior),
+        "strategy_policy": STRATEGY_POLICY,
         "disposition": "planned_not_executed", "release_gate_credit": 0,
         "original_native_parity": False, "complete_event_verified": False,
         "graphics_source_truth": False,
@@ -143,6 +145,24 @@ def seed_for(plan_data: dict, shard: int, local_index: int) -> int:
         raise ValueError("noncanonical case index")
     # Exact global identity independent of worker counts or execution order.
     return plan_data["base_seed"] + first + local_index
+
+
+def forced_fresh_arm(index: int, shard: int) -> str | None:
+    """Guaranteed fresh 5-way control coverage, regardless of historical prior.
+
+    Every shard tests all five input strategies in its first five cases.
+    Every tenth subsequent case is also a deterministic rotating exploration
+    trial. This prevents an older high-reward prior from starving legal arms.
+    The other cases retain the original adaptive UCB policy.
+    """
+    if (type(index) is not int or not 0 <= index < MAX_CASES_PER_SHARD
+            or type(shard) is not int or not 0 <= shard < 40):
+        raise ValueError("invalid deterministic fresh exploration coordinate")
+    if index < len(ARMS):
+        return ARMS[(index + shard) % len(ARMS)]
+    if (index + 1) % 10 == 0:
+        return ARMS[(((index + 1)//10) - 1 + shard) % len(ARMS)]
+    return None
 
 
 def select_arm(attempts: dict[str, int], gains: dict[str, int]) -> str:
@@ -386,7 +406,7 @@ def run_shard(*, plan_data: dict, shard: int, exe: Path, rom: Path,
         prior=plan_data["strategy_prior"]
         selection_attempts={a:attempts[a]+prior[a]["attempted"] for a in ARMS}
         selection_gains={a:gains[a]+prior[a]["new_bins_local"] for a in ARMS}
-        arm = select_arm(selection_attempts,selection_gains)
+        arm = forced_fresh_arm(index, shard) or select_arm(selection_attempts,selection_gains)
         root = work/f"native-{index:04d}"
         attempts[arm] += 1
         try:
@@ -452,6 +472,7 @@ def aggregate(plan_data: dict, root: Path) -> dict:
     global_seeds=set()
     global_inputs=set()
     global_tokens=set()
+    checkpoint_tokens={name:set() for name in FRAME_NAMES}
     global_witness={}
     first_identity=None
     arms={arm:{"attempted":0,"new_bins_local":0} for arm in ARMS}
@@ -513,6 +534,9 @@ def aggregate(plan_data: dict, root: Path) -> dict:
                         case.get("verified_ablation") is not (index%25==0) or
                         case.get("real_native_processes")!=(4 if index%25==0 else 1)):
                     raise ValueError("case lacks source-authenticated native state evidence")
+                required_arm = forced_fresh_arm(index, shard)
+                if required_arm is not None and case["arm"] != required_arm:
+                    raise ValueError("source strategy policy violated fresh-shard exploration")
                 seen_arms[case["arm"]]+=1
                 if seed in global_seeds or case["input_sha256"] in global_inputs:
                     raise ValueError("duplicate native case across original shards")
@@ -525,7 +549,8 @@ def aggregate(plan_data: dict, root: Path) -> dict:
                             "seed":seed,"arm":case["arm"],"shard":shard}
                 shard_bins.update(case["tokens"])
                 global_tokens.update(case["tokens"])
-                for token in case["tokens"]:
+                for frame_name,token in zip(FRAME_NAMES,case["tokens"]):
+                    checkpoint_tokens[frame_name].add(token)
                     global_witness.setdefault(token,(seed,case["arm"],shard))
             if seen_arms!=row["arm_attempts"] or set(row["semantic_bins"])!=shard_bins:
                 raise ValueError("arm/captured semantic coverage count inconsistent")
@@ -559,6 +584,9 @@ def aggregate(plan_data: dict, root: Path) -> dict:
         "metamorphic_verified_cases":sum((n+24)//25 for n in (assigned(plan_data,s)[1] for s in range(plan_data["shards"]))) if not issues else 0,
         "identity":first_identity if not issues else None,
         "semantic_bins_observed":len(global_tokens),
+        "checkpoint_unique_fingerprints":{
+            name:len(checkpoint_tokens[name]) for name in FRAME_NAMES
+        } if not issues else {},
         "source_feature_counts":feature_counts,
         "source_feature_reproduction_seeds":feature_repros if not issues else {},
         "semantic_epoch": coverage.EPOCH,
@@ -580,17 +608,47 @@ def aggregate(plan_data: dict, root: Path) -> dict:
 
 
 def _bounded_examples(plan_data:dict,root:Path)->dict[str,dict]:
-    """Deterministic first-seed repro dictionary, 256 entries max, no WRAM/ROM."""
-    examples={}
-    for shard in range(plan_data["shards"]):
-        row=read(root/f"research-frontier-{shard}"/"result.json")
-        for case in row["case_results"]:
-            for token in case["tokens"]:
-                if token not in examples and len(examples)<256:
-                    examples[token]={"seed":case["seed"],"arm":case["arm"],
-                                     "shard":shard}
-    return examples
+    """Bounded, shard/strategy-stratified reproducible native witnesses.
 
+    The previous first-256 insertion order selected almost exclusively shard
+    zero, so even successful large campaigns handed out misleadingly narrow
+    reproduction examples. First cover every actually observed (shard, arm)
+    cohort, then round-robin fill by case index across shards. These samples
+    are *advisory reproducible witnesses*, not necessarily the earliest source
+    sighting; that stronger claim belongs to the exact cumulative ledger.
+    """
+    rows=[read(root/f"research-frontier-{shard}"/"result.json")
+          for shard in range(plan_data["shards"])]
+    examples={}
+
+    def include(case:dict,shard:int)->bool:
+        for token in case["tokens"]:
+            if token not in examples:
+                examples[token]={"seed":case["seed"],"arm":case["arm"],
+                                 "shard":shard}
+                return True
+        return False
+
+    # At 40 shards * five arms this uses <=200 of 256 witness slots.
+    for shard,row in enumerate(rows):
+        seen_arms=set()
+        for case in row["case_results"]:
+            arm=case["arm"]
+            if arm not in seen_arms and include(case,shard):
+                seen_arms.add(arm)
+            if len(seen_arms)==len(ARMS):
+                break
+
+    # Remaining slots cover more temporal/input variation across all shards,
+    # not a monotonically filled prefix of the first shard's seeds.
+    count=max((len(row["case_results"]) for row in rows),default=0)
+    for index in range(count):
+        for shard,row in enumerate(rows):
+            if len(examples)>=256:
+                return examples
+            if index<len(row["case_results"]):
+                include(row["case_results"][index],shard)
+    return examples
 
 def summary(report:dict)->str:
     lines=["## Adaptive native 2P research frontier","",

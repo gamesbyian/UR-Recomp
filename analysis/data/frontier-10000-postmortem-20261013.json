@@ -1,0 +1,236 @@
+{
+  "schema": "ur-frontier-10000-postmortem/1",
+  "documented_at_utc": "2026-10-13",
+  "authoritative_ledger": {
+    "branch": "research/qa-cumulative-ledger",
+    "path": ".github/qa-cumulative/ledger.json",
+    "ledger_record_sha256": "21f97b747a9851bc3d70acdc6308d2bc75e887bdede1c2a5947dbf765d1b4c29"
+  },
+  "source_of_truth": "Accepted cumulative ledger + sha256-verified 10,000-case qa-frontier-aggregate artifact; not release ledger.",
+  "scope": "normalized 96-bit source-field fingerprints from real compiled-native two-controller first race, three WRAM checkpoints per case; no independently qualified original/native fidelity",
+  "acceptance": {
+    "transport": "completed_positive",
+    "research_disposition": "completed_observational",
+    "release_gate_credit": 0,
+    "original_native_parity": false,
+    "complete_event_verified": false,
+    "graphics_source_truth": false,
+    "issues": []
+  },
+  "historical_baseline": {
+    "run_id": 38304551380,
+    "unique_fingerprints": 201,
+    "cases": 100,
+    "source_sha": "7f3fbff42673ff43b23f3fc74034acd6f5873a30"
+  },
+  "completed_run": {
+    "run_id": 38306802282,
+    "actions_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38306802282",
+    "aggregate_artifact_id": 11814737360,
+    "aggregate_artifact_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38306802282/artifacts/11814737360",
+    "aggregate_receipt_sha256": "22dbcdc32e998865bc26e01deacb34943050cdbf4883717cb4dbbafbfa57c4a8",
+    "aggregate_object_sha256": "71267ab4cd9105ea45c82237bd2dd330087d88e5833b03746ffd2768260cf2fe",
+    "source_sha": "7f3fbff42673ff43b23f3fc74034acd6f5873a30",
+    "native_executable_sha256": "28501fa3268f82d83672122cddbd2628ce5b2458e625f46d93766f50befbe515",
+    "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "stock_input_sha256": "28f2842fd262030e434b3aef88eb360f74de94fbf558f0eb0ba8edce645fb490",
+    "stock_script_sha256": "ebac1a3505281e9793c8197006081c5d88f6ab3383df48f23ba2475159e9e6e3",
+    "experiment_plan_sha256": "751bbd5962614a48097e67fa196c8a3e9c4d3bf6123dd62c8c8301047dbf0451",
+    "seed_range": {
+      "first": 50012000,
+      "last": 50021999,
+      "inclusive": true
+    },
+    "cases": 10000,
+    "native_processes": 11200,
+    "replay_and_ablation_verified_cases": 400,
+    "shards": 40,
+    "cases_per_shard": 250,
+    "unique_fingerprints_within_run": 19980,
+    "unique_fingerprints_prior": 201,
+    "exact_new_fingerprints": 19978,
+    "unique_fingerprints_cumulative": 20179,
+    "source_feature_counts": {
+      "both-air-raw": 0,
+      "both-moving-raw": 10000,
+      "both-rotation-registers-change": 9689,
+      "checkpoint-pointer-changes": 10000,
+      "offscreen-register-nonzero": 0,
+      "opposing-x-motion-raw": 6554,
+      "split-register-changes": 0,
+      "split-register-nonzero": 10000
+    },
+    "strategy_summary": {
+      "alternating": {
+        "attempted": 0,
+        "new_bins_local": 0
+      },
+      "balanced": {
+        "attempted": 5760,
+        "new_bins_local": 11560
+      },
+      "p1-focus": {
+        "attempted": 2840,
+        "new_bins_local": 5680
+      },
+      "p2-focus": {
+        "attempted": 1400,
+        "new_bins_local": 2800
+      },
+      "rotation": {
+        "attempted": 0,
+        "new_bins_local": 0
+      }
+    },
+    "started_utc": "2026-10-12T20:50:24Z",
+    "completed_utc": "2026-10-13T12:44:35Z",
+    "elapsed_seconds": 57251,
+    "shard_elapsed_seconds_min": 3354.927,
+    "shard_elapsed_seconds_max": 6407.276,
+    "per_shard_hard_limit_minutes": 180
+  },
+  "first_witnesses_from_handoff": {
+    "both-moving-raw": {
+      "seed": 50012000,
+      "arm": "balanced",
+      "shard": 0
+    },
+    "both-rotation-registers-change": {
+      "seed": 50012000,
+      "arm": "balanced",
+      "shard": 0
+    },
+    "checkpoint-pointer-changes": {
+      "seed": 50012000,
+      "arm": "balanced",
+      "shard": 0
+    },
+    "opposing-x-motion-raw": {
+      "seed": 50012000,
+      "arm": "balanced",
+      "shard": 0
+    },
+    "split-register-nonzero": {
+      "seed": 50012000,
+      "arm": "balanced",
+      "shard": 0
+    }
+  },
+  "negative_findings": {
+    "source_feature_categories_zero": [
+      "both-air-raw",
+      "offscreen-register-nonzero",
+      "split-register-changes"
+    ],
+    "strategy_arms_zero": [
+      "alternating",
+      "rotation"
+    ],
+    "interpretation": "No observation at three fixed checkpoints for the feature definitions; not evidence these mechanics are absent from the original game."
+  },
+  "next_action": "Guarantee fresh five-arm experiment allocation per shard independently of historical strategy prior; validate missing categories with targeted source-oracle/observer research; no blanket repeat 10,000-case dispatch.",
+  "checkpoint_audit": {
+    "method": "Reconstructed exact token sets from all 40 retained source shard result.json artifacts; independently checked every shard receipt SHA256 against the accepted aggregate shard receipt SHA256. This is an archived analysis of the original 10k source-run receipts, not a new gameplay oracle.",
+    "verified_shard_receipts": 40,
+    "complete_cases": 10000,
+    "frames": {
+      "endurance-1740": 1,
+      "endurance-2580": 9987,
+      "endurance-3420": 9992
+    },
+    "fixed_checkpoint_fingerprint_1740": "b49fd909c5fd16ae947c3b55",
+    "cases_sharing_fixed_checkpoint_fingerprint_1740": 10000,
+    "cross_checkpoint_fingerprint_overlaps": 0,
+    "all_three_checkpoint_union": 19980,
+    "per_shard_unique_fingerprints_at_frames": {
+      "endurance-1740": 1,
+      "endurance-2580": 250,
+      "endurance-3420": 250
+    },
+    "per_arm": {
+      "balanced": {
+        "cases": 5760,
+        "distinct_tokens_by_frame": [
+          1,
+          5752,
+          5755
+        ],
+        "positive_source_feature_counts": {
+          "both-moving-raw": 5760,
+          "both-rotation-registers-change": 5572,
+          "checkpoint-pointer-changes": 5760,
+          "opposing-x-motion-raw": 3990,
+          "split-register-nonzero": 5760
+        }
+      },
+      "p1-focus": {
+        "cases": 2840,
+        "distinct_tokens_by_frame": [
+          1,
+          2837,
+          2840
+        ],
+        "positive_source_feature_counts": {
+          "both-moving-raw": 2840,
+          "both-rotation-registers-change": 2722,
+          "checkpoint-pointer-changes": 2840,
+          "opposing-x-motion-raw": 1702,
+          "split-register-nonzero": 2840
+        }
+      },
+      "p2-focus": {
+        "cases": 1400,
+        "distinct_tokens_by_frame": [
+          1,
+          1400,
+          1400
+        ],
+        "positive_source_feature_counts": {
+          "both-moving-raw": 1400,
+          "both-rotation-registers-change": 1395,
+          "checkpoint-pointer-changes": 1400,
+          "opposing-x-motion-raw": 862,
+          "split-register-nonzero": 1400
+        }
+      }
+    },
+    "implications": "One control/prefix checkpoint was invariant under all tested post-entry mutations. Nearly all measured fingerprint novelty comes from two later position/motion/progress observations. Source-field hashes alone cannot establish new gameplay behavior."
+  },
+  "baseline_overlap_audit": {
+    "source": "All four 100-case baseline source shard JSON receipts and all forty 10k shard receipts, SHA256-checked against their published aggregate records.",
+    "verified_baseline_shard_receipts": 4,
+    "baseline_per_checkpoint_unique_fingerprints": {
+      "endurance-1740": 1,
+      "endurance-2580": 100,
+      "endurance-3420": 100
+    },
+    "exact_distinct_fingerprint_overlap": 2,
+    "overlaps": [
+      {
+        "fingerprint": "b49fd909c5fd16ae947c3b55",
+        "frame": "endurance-1740",
+        "baseline_occurrences": 100,
+        "run10000_occurrences": 10000,
+        "classification": "common source-prefix checkpoint across all cases"
+      },
+      {
+        "fingerprint": "53babb022c6ea1d403f2d0b1",
+        "frame": "endurance-3420",
+        "baseline_occurrences": 1,
+        "run10000_occurrences": 1,
+        "baseline_witness": {
+          "seed": 50000016,
+          "arm": "balanced",
+          "shard": 0
+        },
+        "run10000_witness": {
+          "seed": 50012078,
+          "arm": "balanced",
+          "shard": 0
+        },
+        "classification": "same normalized projected late-state fingerprint observed under different legal input seeds; does not prove identical full WRAM"
+      }
+    ],
+    "interpretation": "Intersection explains 201 + 19980 - 2 = 20179 exact distinct normalized fingerprints across both green source runs."
+  }
+}

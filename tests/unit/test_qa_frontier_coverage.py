@@ -107,6 +107,9 @@ class FrontierCoverageContracts(unittest.TestCase):
                 "disposition":"completed_observational","completed_cases":100,
                 "native_processes":112,"observed_shards":4,
                 "semantic_bins_observed":100,"semantic_epoch":c.EPOCH,
+                "checkpoint_unique_fingerprints":{
+                    "endurance-1740":1,"endurance-2580":100,
+                    "endurance-3420":100},
                 "identity":{
                     "source_commit":source,
                     "native_executable_sha256":"b"*64,

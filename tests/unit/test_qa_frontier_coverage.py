@@ -119,6 +119,17 @@ class FrontierCoverageContracts(unittest.TestCase):
                 },
                 "source_feature_counts":{name:0 for name in __import__("qa_adaptive_frontier").FEATURES},
                 "source_feature_reproduction_seeds":{},
+                "dense_observer_epoch":__import__("qa_adaptive_frontier").DENSE_EPOCH,
+                "dense_observed_frame_count":15,
+                "dense_feature_counts":{
+                    feature:0 for feature in __import__("qa_adaptive_frontier").FEATURES},
+                "dense_feature_counts_by_arm":{
+                    arm:{feature:0 for feature in __import__("qa_adaptive_frontier").FEATURES}
+                    for arm in __import__("qa_adaptive_frontier").ARMS},
+                "dense_feature_reproduction_seeds":{},
+                "dense_raw_field_summary":{
+                    field:{"min":0,"max":0,"nonzero_cases":0,"varying_cases":0}
+                    for field in __import__("qa_adaptive_frontier").DENSE_RAW_FIELDS},
                 "semantic_hll_b64":c.encode(samples),
                 "semantic_exact_witnesses_b64":exact.encode_run({
                     token:(plan["base_seed"]+i,"balanced",i//25)

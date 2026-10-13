@@ -176,6 +176,17 @@ class CumulativeLedgerContracts(unittest.TestCase):
                     },
                     "source_feature_counts":{name:0 for name in __import__("qa_adaptive_frontier").FEATURES},
                     "source_feature_reproduction_seeds":{},
+                    "dense_observer_epoch":__import__("qa_adaptive_frontier").DENSE_EPOCH,
+                    "dense_observed_frame_count":15,
+                    "dense_feature_counts":{
+                        feature:0 for feature in __import__("qa_adaptive_frontier").FEATURES},
+                    "dense_feature_counts_by_arm":{
+                        arm:{feature:0 for feature in __import__("qa_adaptive_frontier").FEATURES}
+                        for arm in __import__("qa_adaptive_frontier").ARMS},
+                    "dense_feature_reproduction_seeds":{},
+                    "dense_raw_field_summary":{
+                        field:{"min":0,"max":0,"nonzero_cases":0,"varying_cases":0}
+                        for field in __import__("qa_adaptive_frontier").DENSE_RAW_FIELDS},
                     "semantic_epoch":EPOCH,
                     "semantic_hll_b64":coverage_encode(coverage_observe(
                         [format(i,"024x") for i in range(count*2)])),
@@ -198,6 +209,8 @@ class CumulativeLedgerContracts(unittest.TestCase):
                 self.assertEqual(record["disposition"],"completed_positive")
                 self.assertEqual(record["metrics"]["cases"],count)
                 self.assertEqual(record["metrics"]["semantic_bins_observed"],count*2)
+                self.assertEqual(record["metrics"]["dense_observed_frame_count"],15)
+                self.assertEqual(sum(record["metrics"]["dense_feature_counts"].values()),0)
                 self.assertEqual(record["metrics"]["strategy_summary"],observed["strategy_summary"])
                 self.assertGreaterEqual(record["metrics"]["estimated_post_unique_bins"],1)
                 self.assertTrue(record["metrics"]["approximate_not_an_exact_new_case_count"])
@@ -221,6 +234,11 @@ class CumulativeLedgerContracts(unittest.TestCase):
                 _,rejected_checkpoint=c.append(LEDGER,p,changed,"success")
                 self.assertEqual(rejected_checkpoint["disposition"],"incomplete_or_failed")
                 self.assertNotIn("frontier_exact_coverage", _)
+                forged_dense={**observed,
+                    "dense_feature_counts":{**observed["dense_feature_counts"],
+                                            "both-air-raw":count+1}}
+                _,rejected_dense=c.append(LEDGER,p,forged_dense,"success")
+                self.assertEqual(rejected_dense["disposition"],"incomplete_or_failed")
 
 
     def test_no_unbounded_or_forged_source_requests(self):

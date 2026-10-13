@@ -51,6 +51,7 @@ HEX64 = re.compile(r"^[a-f0-9]{64}$")
 MAX_SEED = 99999999
 MAX_CASES_PER_SHARD = 250
 REPRO_ATTEMPTS = 12
+STRATEGY_POLICY = "fresh-five-arm-warmup-plus-decile-v1"
 
 
 def digest(value: object) -> str:
@@ -109,6 +110,7 @@ def plan(source_sha: str, base_seed: int, count: int,
                                  "count": per} for n in range(shards)]},
         "fixture": SOURCE, "oracle": "compiled-native-2p-wram-observer",
         "strategy_prior": normalized_prior(strategy_prior),
+        "strategy_policy": STRATEGY_POLICY,
         "disposition": "planned_not_executed", "release_gate_credit": 0,
         "original_native_parity": False, "complete_event_verified": False,
         "graphics_source_truth": False,
@@ -143,6 +145,24 @@ def seed_for(plan_data: dict, shard: int, local_index: int) -> int:
         raise ValueError("noncanonical case index")
     # Exact global identity independent of worker counts or execution order.
     return plan_data["base_seed"] + first + local_index
+
+
+def forced_fresh_arm(index: int, shard: int) -> str | None:
+    """Guaranteed fresh 5-way control coverage, regardless of historical prior.
+
+    Every shard tests all five input strategies in its first five cases.
+    Every tenth subsequent case is also a deterministic rotating exploration
+    trial. This prevents an older high-reward prior from starving legal arms.
+    The other cases retain the original adaptive UCB policy.
+    """
+    if (type(index) is not int or not 0 <= index < MAX_CASES_PER_SHARD
+            or type(shard) is not int or not 0 <= shard < 40):
+        raise ValueError("invalid deterministic fresh exploration coordinate")
+    if index < len(ARMS):
+        return ARMS[(index + shard) % len(ARMS)]
+    if (index + 1) % 10 == 0:
+        return ARMS[(((index + 1)//10) - 1 + shard) % len(ARMS)]
+    return None
 
 
 def select_arm(attempts: dict[str, int], gains: dict[str, int]) -> str:
@@ -386,7 +406,7 @@ def run_shard(*, plan_data: dict, shard: int, exe: Path, rom: Path,
         prior=plan_data["strategy_prior"]
         selection_attempts={a:attempts[a]+prior[a]["attempted"] for a in ARMS}
         selection_gains={a:gains[a]+prior[a]["new_bins_local"] for a in ARMS}
-        arm = select_arm(selection_attempts,selection_gains)
+        arm = forced_fresh_arm(index, shard) or select_arm(selection_attempts,selection_gains)
         root = work/f"native-{index:04d}"
         attempts[arm] += 1
         try:
@@ -513,6 +533,9 @@ def aggregate(plan_data: dict, root: Path) -> dict:
                         case.get("verified_ablation") is not (index%25==0) or
                         case.get("real_native_processes")!=(4 if index%25==0 else 1)):
                     raise ValueError("case lacks source-authenticated native state evidence")
+                required_arm = forced_fresh_arm(index, shard)
+                if required_arm is not None and case["arm"] != required_arm:
+                    raise ValueError("source strategy policy violated fresh-shard exploration")
                 seen_arms[case["arm"]]+=1
                 if seed in global_seeds or case["input_sha256"] in global_inputs:
                     raise ValueError("duplicate native case across original shards")

@@ -528,6 +528,8 @@ def aggregate(plan_data: dict, root: Path) -> dict:
     feature_counts=dict.fromkeys(FEATURES,0)
     feature_repros={}
     trace_counts=dict.fromkeys(FEATURES,0)
+    trace_by_arm={arm:dict.fromkeys(FEATURES,0) for arm in ARMS}
+    trace_first_frame_histograms={feature:{} for feature in FEATURES}
     trace_new_counts=dict.fromkeys(FEATURES,0)
     trace_repros={}
     trace_only_repros={}
@@ -622,6 +624,10 @@ def aggregate(plan_data: dict, root: Path) -> dict:
                     raise ValueError("full source trace raw bytes contradict feature labels")
                 for feature in trace["features"]:
                     trace_counts[feature]+=1
+                    trace_by_arm[case["arm"]][feature]+=1
+                    frame=str(trace["first_frames"][feature])
+                    frame_hist=trace_first_frame_histograms[feature]
+                    frame_hist[frame]=frame_hist.get(frame,0)+1
                     trace_repros.setdefault(feature,{
                         "seed":seed,"arm":case["arm"],"shard":shard,
                         "first_frame":trace["first_frames"][feature]})
@@ -684,6 +690,8 @@ def aggregate(plan_data: dict, root: Path) -> dict:
         "full_trace_probe_policy":TRACE_PROBE_POLICY,
         "full_trace_checkpoint_count":len(ALL_FRAME_NAMES),
         "full_trace_feature_counts":trace_counts if not issues else {},
+        "full_trace_feature_counts_by_arm":trace_by_arm if not issues else {},
+        "full_trace_first_detection_frame_counts":trace_first_frame_histograms if not issues else {},
         "full_trace_only_feature_counts":trace_new_counts if not issues else {},
         "full_trace_source_feature_witnesses":trace_repros if not issues else {},
         "full_trace_only_feature_witnesses":trace_only_repros if not issues else {},

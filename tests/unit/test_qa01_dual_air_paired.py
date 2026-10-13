@@ -64,6 +64,9 @@ class DualAirPaired(unittest.TestCase):
             )
         self.assertEqual(report["raw_both_air_at_2580"],
                          {"original": True, "native": True})
+        self.assertEqual(report["active_race_at_2580"],
+                         {"original": False, "native": False})
+        self.assertEqual(report["read_only_paired_samples"][8]["original_menu_raw"], 0)
         self.assertEqual(report["original_wram_snapshots"], 16)
         self.assertEqual(report["native_wram_snapshots"], 16)
         self.assertFalse(report["paired_guest_relative_entry_offset_calibrated"])
@@ -114,6 +117,9 @@ class DualAirPaired(unittest.TestCase):
         self.assertFalse(result["paired_guest_relative_entry_offset_calibrated"])
         self.assertTrue(result["source_frame_labels_are_host_ticks_not_event_relative_clocks"])
         self.assertFalse(result["strict_complete_event_accepted"])
+        self.assertEqual(result["active_race_at_2580"],
+                         {"original": False, "native": False})
+        self.assertEqual(result["read_only_paired_samples"][8]["native_course_raw"], 0)
 
 
 if __name__ == "__main__":

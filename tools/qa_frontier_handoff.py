@@ -207,6 +207,16 @@ def markdown(data:dict)->str:
             "| --- | ---: | ---: | --- |"]
     for row in data["source_feature_reproducers"]:
         lines.append(f"| {row['feature']} | {row['cases']} | {row['seed']} | {row['arm']} |")
+    if data.get("dense_feature_reproducers"):
+        lines+=["","## Fifteen-frame raw-observer findings (separate epoch)","",
+                "| Raw category | All 15 frames: cases | Legacy 3 frames: cases | Earliest frame | Seed | Arm |",
+                "| --- | ---: | ---: | --- | ---: | --- |"]
+        for row in data["dense_feature_reproducers"]:
+            lines.append(f"| {row['feature']} | {row['cases']} | "
+                         f"{row['historical_three_frame_cases']} | "
+                         f"{row['first_frame']} | {row['seed']} | {row['arm']} |")
+        lines+=["","These extra frame observations are not extra native runs "
+                "and do not establish original-SNES gameplay acceptance.",""]
     lines+=["","**These are sampled native register observations, not independent original SNES or PPU truth.**",
             "","## Decisions for the existing owners",""]
     for owner in data["owning_lanes"]:

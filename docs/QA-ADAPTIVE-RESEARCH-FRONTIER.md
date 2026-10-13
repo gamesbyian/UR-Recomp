@@ -61,6 +61,10 @@ The system can already plan thousands of real **native two-seat state-space** ex
 
 A useful research cycle is **observed novel state → exact reproduction → independent original oracle → causal source/writer hypothesis → focused owning implementation PR → strict regression and coverage refresh**. Repeated cases within an unqualified oracle cannot satisfy that contract, irrespective of scale.
 
+## Fifteen-frame source observability diagnostic
+
+The [independently epoch-marked dense field audit](QA-FRONTIER-15-FRAME-DIAGNOSTICS.md) now reads all **15 already-recorded WRAM snapshots per native case**, rather than only the three original frontier samples. It preserves the exact fingerprint epoch and the original three-frame category totals unchanged while reporting per-arm fifteen-frame feature counts, first exact frame witnesses, and raw mode/air/offscreen register ranges. These are *new research diagnostics*, not certified gameplay behavior. The next useful experiment after merge is a **100-case cumulative frontier run** to see whether the previously missing categories are observed at intermediate frames. No extra native process is required.
+
 ## Named, source-observed feature families for development handoff
 
 The 10,000-input campaign no longer hands off arbitrary lexicographically sorted state hashes alone. Every sampled real 128-KiB guest checkpoint at frames **1740, 2580, and 3420** also supplies a small, closed vocabulary of **raw WRAM-source-slot categories**: both players have nonzero air fields, both have nonzero motion fields, opposite X-speed signs, both rotation candidate fields vary, the split-screen register changes or is nonzero, an offscreen register is nonzero, or the two players' course-progress pointers change. These are observations of existing source-indexed offsets from `tools/summarize_paired_player_slots.py`, *not* visual pixels, exact gameplay semantics or independently accepted original behaviour.

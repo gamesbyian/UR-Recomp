@@ -472,6 +472,7 @@ def aggregate(plan_data: dict, root: Path) -> dict:
     global_seeds=set()
     global_inputs=set()
     global_tokens=set()
+    checkpoint_tokens={name:set() for name in FRAME_NAMES}
     global_witness={}
     first_identity=None
     arms={arm:{"attempted":0,"new_bins_local":0} for arm in ARMS}
@@ -548,7 +549,8 @@ def aggregate(plan_data: dict, root: Path) -> dict:
                             "seed":seed,"arm":case["arm"],"shard":shard}
                 shard_bins.update(case["tokens"])
                 global_tokens.update(case["tokens"])
-                for token in case["tokens"]:
+                for frame_name,token in zip(FRAME_NAMES,case["tokens"]):
+                    checkpoint_tokens[frame_name].add(token)
                     global_witness.setdefault(token,(seed,case["arm"],shard))
             if seen_arms!=row["arm_attempts"] or set(row["semantic_bins"])!=shard_bins:
                 raise ValueError("arm/captured semantic coverage count inconsistent")
@@ -582,6 +584,9 @@ def aggregate(plan_data: dict, root: Path) -> dict:
         "metamorphic_verified_cases":sum((n+24)//25 for n in (assigned(plan_data,s)[1] for s in range(plan_data["shards"]))) if not issues else 0,
         "identity":first_identity if not issues else None,
         "semantic_bins_observed":len(global_tokens),
+        "checkpoint_unique_fingerprints":{
+            name:len(checkpoint_tokens[name]) for name in FRAME_NAMES
+        } if not issues else {},
         "source_feature_counts":feature_counts,
         "source_feature_reproduction_seeds":feature_repros if not issues else {},
         "semantic_epoch": coverage.EPOCH,

@@ -76,10 +76,21 @@ public:
         // real cross-profile reboot transaction exists, browsing another
         // P1 identity would falsely promise a switch this process cannot do.
         if (!open_ || seat != 1 || !delta || catalog_.empty()) return false;
+        // P2 may never own the already-booted P1 profile. Skipping that
+        // cursor avoids offering an impossible match that can be confirmed
+        // before P1 has even pressed A. With only two profiles, moving is
+        // a no-op and must not revoke an already confirmed P2 identity.
         const auto count = catalog_.size();
-        cursor_[seat] = delta > 0
+        if (count == 2) return false;
+        auto next = delta > 0
             ? (cursor_[seat] + 1) % count
             : (cursor_[seat] + count - 1) % count;
+        if (next == active_index_)
+            next = delta > 0
+                ? (next + 1) % count
+                : (next + count - 1) % count;
+        if (next == cursor_[seat]) return false;
+        cursor_[seat] = next;
         chosen_[seat].reset();
         return true;
     }
@@ -88,7 +99,8 @@ public:
         const auto& selected = catalog_[cursor_[seat]];
         // The native guest boots exactly one named SRAM; P1 must be the
         // already-authorized active identity. Do not switch SRAM in flight.
-        if (seat == 0 && cursor_[seat] != active_index_) return false;
+        if ((seat == 0 && cursor_[seat] != active_index_) ||
+            (seat == 1 && cursor_[seat] == active_index_)) return false;
         const auto& other = chosen_[1 - seat];
         if (other && same_id(selected.profile_id, other->profile_id))
             return false;

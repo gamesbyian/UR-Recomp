@@ -60,6 +60,10 @@ READ = {
     "stack_pointer_matches_bus_start_not_proof_of_pla": True,
     "native_post_writer_same_frame_4004_two_byte_target_row_pairs": [],
     "native_post_writer_same_frame_4004_two_byte_pair_candidate_count": 0,
+    "native_post_writer_following_frame_4004_two_byte_target_row_pairs": [],
+    "native_post_writer_following_frame_4004_two_byte_pair_candidate_count": 0,
+    "following_frame_post_writer_callback_read_4004_candidate_count": 0,
+    "following_frame_post_writer_stack_position_consistent_word_4004_count": 0,
     "interpreter_16bit_pla_uses_two_independent_byte_bus_reads": True,
     "filtered_read_row_adjacency_does_not_prove_guest_opcode_adjacency": True,
     "cpu_state_s_and_m_at_interpreter_bridge_callback_not_proven_internal_interp_registers": True,
@@ -208,6 +212,42 @@ class NativeStackReadPairCrosswalkTests(unittest.TestCase):
             candidate[field] = fake
             with self.subTest(field=field), self.assertRaises(ValueError):
                 x.summarize(BEAM, candidate)
+
+    def test_following_frame_candidates_are_checked_against_real_journal_rows(self):
+        journal = (
+            "QANATIVEARM f=5781 bank=00 addr=01DD width=2 value=4004 "
+            "A=4004 S=01DD scope=I_NMI_M1X1\n"
+            "QANATIVEREAD f=5782 bank=00 addr=01DD width=2 value=4004 "
+            "A=0000 S=01DD M=0 scope=AotReturn\n"
+            "QANATIVEREAD f=5782 bank=00 addr=01DD width=1 value=0004 "
+            "A=0000 S=01DC M=1 scope=InterpPull\n"
+            "QANATIVEREAD f=5782 bank=00 addr=01DE width=1 value=0040 "
+            "A=0000 S=01DC M=1 scope=InterpPull\n"
+        )
+        parsed = reads.summarize(journal)
+        parsed["paired_report_bytes_sha256"] = SHA
+        parsed["independently_authenticated_original_native_pair"] = PAIR
+        observed = x.summarize(BEAM, parsed)
+        self.assertEqual(observed["native_same_frame_4004_word_read_candidates"], 0)
+        self.assertEqual(observed["native_following_frame_4004_word_read_candidates"], 1)
+        self.assertEqual(observed[
+            "native_following_frame_stack_pointer_consistent_word_read_candidates"], 1)
+        self.assertEqual(observed[
+            "native_following_frame_interpreter_shaped_4004_two_byte_candidate_pairs"], [[1, 2]])
+        self.assertTrue(observed[
+            "following_frame_saved_a_read_is_candidate_not_architectural_restore"])
+        self.assertFalse(observed["native_guest_result_consumer_proven"])
+        self.assertEqual(observed["complete_usa_course_credit"], 0)
+        for field, fake in (
+            ("following_frame_post_writer_callback_read_4004_candidate_count", 0),
+            ("following_frame_post_writer_stack_position_consistent_word_4004_count", 0),
+            ("native_post_writer_following_frame_4004_two_byte_target_row_pairs", []),
+            ("native_post_writer_following_frame_4004_two_byte_pair_candidate_count", 0),
+        ):
+            tampered = copy.deepcopy(parsed)
+            tampered[field] = fake
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                x.summarize(BEAM, tampered)
 
     def test_manual_workflow_produces_separate_crosscheck_from_existing_logs(self):
         wf = (ROOT / ".github/workflows/qa01-switcher-original-2014.yml").read_text()

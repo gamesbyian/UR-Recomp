@@ -21,6 +21,15 @@ def with_full_trace(data):
         "full_trace_probe_policy":f.TRACE_PROBE_POLICY,
         "full_trace_checkpoint_count":len(f.ALL_FRAME_NAMES),
         "full_trace_feature_counts":traced,
+        "full_trace_feature_counts_by_arm":{
+            arm:{name:(traced[name] if
+                (name=="checkpoint-pointer-changes" and arm=="balanced") or
+                (name!="checkpoint-pointer-changes" and arm=="rotation") else 0)
+                 for name in f.FEATURES}
+            for arm in f.ARMS},
+        "full_trace_first_detection_frame_counts":{
+            name:({("1860" if name=="offscreen-register-nonzero" else "1740"):n}
+                  if n else {}) for name,n in traced.items()},
         "full_trace_only_feature_counts":{
             name:traced[name]-sparse[name] for name in f.FEATURES},
         "full_trace_only_feature_witnesses":{
@@ -74,6 +83,8 @@ class FrontierHandoffContracts(unittest.TestCase):
         self.assertEqual(handoff["full_trace_only_feature_reproducers"][0]["first_frame"],1860)
         self.assertEqual(handoff["full_trace_feature_counts"]["offscreen-register-nonzero"],1)
         self.assertEqual(handoff["full_trace_only_feature_counts"]["offscreen-register-nonzero"],1)
+        self.assertEqual(sum(handoff["full_trace_first_detection_frame_counts"]["offscreen-register-nonzero"].values()),1)
+        self.assertEqual(handoff["full_trace_feature_counts_by_arm"]["rotation"]["offscreen-register-nonzero"],1)
         self.assertEqual(handoff["source_feature_reproducers"][0]["feature"],"checkpoint-pointer-changes")
         self.assertIn("seed 50000025",handoff["owning_lanes"][0]["next_proof"])
         self.assertIn("seed 50000019",handoff["owning_lanes"][1]["next_proof"])

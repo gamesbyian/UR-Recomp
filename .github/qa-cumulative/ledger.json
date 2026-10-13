@@ -242,6 +242,25 @@
       "sequence": 1,
       "source_sha": "7f3fbff42673ff43b23f3fc74034acd6f5873a30",
       "windows_trials": 3
+    },
+    {
+      "base_seed": 50000000,
+      "campaign": "graphics",
+      "disposition": "completed_positive",
+      "frontier_cases": 100,
+      "github_run_id": 38434647895,
+      "metrics": {
+        "aggregate_sha256": "c364a43aa67f7696a70e83afcdd559fb7dd14695d3ff327ae27a807e3c912f9d",
+        "cases": 25,
+        "observations": 19525
+      },
+      "minutes": 15,
+      "origin": "coordinator",
+      "record_sha256": "e556c721ee252209b6d69253761a223e05ad314d8d20cf8405ca8495b54e8926",
+      "release_gate_credit": 0,
+      "sequence": 0,
+      "source_sha": "7f3fbff42673ff43b23f3fc74034acd6f5873a30",
+      "windows_trials": 3
     }
   ],
   "schema": "ur-cumulative-campaign-ledger/1"

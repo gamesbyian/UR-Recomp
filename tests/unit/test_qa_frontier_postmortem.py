@@ -126,7 +126,7 @@ class FrontierPostmortemContracts(unittest.TestCase):
         info = json.loads(SNAPSHOT.read_text(encoding="utf8"))
         report = REPORT.read_text(encoding="utf8")
         self.assertIn(str(info["completed_run"]["run_id"]), report)
-        self.assertIn(str(info["completed_run"]["exact_new_fingerprints"]), report)
+        self.assertIn(f'{info["completed_run"]["exact_new_fingerprints"]:,}', report)
         self.assertIn("0/45", report)
         self.assertIn("STRATEGY_POLICY", (ROOT / "tools/qa_adaptive_frontier.py").read_text())
         self.assertIn("fresh-five-arm-warmup-plus-decile-v1", report)

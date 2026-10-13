@@ -47,6 +47,26 @@ but an isolated `0x70` value is not a generally safe *visible pixel*
 predicate: distinguish active camera, viewport, OAM physical write
 schedule and final PPU result before applying a replacement mask.
 
+## Why `0x70` alone cannot classify visibility
+
+The **existing known active-display high-OAM bytes**, `0xA5` for the top
+half and `0x5A` for the lower half, reverse X-bit-8 for the two sprite
+pairs. Holding a hypothetical low-X byte `0x70` fixed illustrates why
+a WRAM screen-coordinate byte alone has no visibility semantics:
+
+| High-OAM byte | Reserved slots 96/97 X9 | Slots 98/99 X9 |
+| --- | --- | --- |
+| `0xA5` (top-half rip) | `0x170` (signed -144) | `0x070` (+112) |
+| `0x5A` (bottom-half rip) | `0x070` (+112) | `0x170` (signed -144) |
+
+This table is **pure OAM bit arithmetic on synthetic low-X values**,
+not a new real native capture, complete sprite bbox, output pixel
+owner or proof that every source sentinel is used identically.
+It explicitly leaves sprite size, Y wrapping, priority, window,
+intervening writes and actual 342-wide physical OAM unresolved.
+A sampled `$1599` shadow still must not be equated with the active
+PPU high-OAM byte at either scanline.
+
 ## Reusable diagnostic without more GHA runners
 
 ```sh

@@ -88,11 +88,64 @@ def report(plan_data:dict, observed:dict)->dict:
                                    "shard":w["shard"]})
     if set(source_repros)-set(source_counts):
         raise ValueError("extra non-source native category witness")
+    trace_counts=observed.get("full_trace_feature_counts",{})
+    trace_by_arm=observed.get("full_trace_feature_counts_by_arm",{})
+    trace_first_frames=observed.get("full_trace_first_detection_frame_counts",{})
+    only_counts=observed.get("full_trace_only_feature_counts",{})
+    raw_values=observed.get("full_trace_raw_field_values",{})
+    only_witnesses=observed.get("full_trace_only_feature_witnesses",{})
+    extra=[]
+    if successful:
+        if (observed.get("full_trace_probe_policy")!=frontier.TRACE_PROBE_POLICY
+                or observed.get("full_trace_checkpoint_count")!=len(frontier.ALL_FRAME_NAMES)
+                or type(trace_counts) is not dict or set(trace_counts)!=set(frontier.FEATURES)
+                or type(trace_by_arm) is not dict or set(trace_by_arm)!=set(frontier.ARMS)
+                or type(trace_first_frames) is not dict or set(trace_first_frames)!=set(frontier.FEATURES)
+                or type(only_counts) is not dict or set(only_counts)!=set(frontier.FEATURES)
+                or type(only_witnesses) is not dict
+                or set(only_witnesses)!={key for key,v in only_counts.items() if v}
+                or type(raw_values) is not dict or set(raw_values)!=set(frontier.TRACE_RAW_FIELDS)):
+            raise ValueError("missing source-bound full-checkpoint observer diagnostics")
+        for arm,counts in trace_by_arm.items():
+            if (type(counts) is not dict or set(counts)!=set(frontier.FEATURES) or
+                    any(type(v) is not int or not 0<=v<=observed["completed_cases"]
+                        for v in counts.values())):
+                raise ValueError("invalid full-trace input-arm feature results")
+        for feature,frame_hist in trace_first_frames.items():
+            if (type(frame_hist) is not dict or
+                    any(type(v) is not int or v<=0 or
+                        str(k) not in {str(x) for x in frontier.guest.FRAMES}
+                        for k,v in frame_hist.items())):
+                raise ValueError("invented native source feature first-frame histogram")
+        for feature in frontier.FEATURES:
+            total,novel,old=trace_counts[feature],only_counts[feature],source_counts[feature]
+            if (type(total) is not int or type(novel) is not int
+                    or not 0<=old<=total<=observed["completed_cases"] or novel!=total-old
+                    or sum(trace_by_arm[arm][feature] for arm in frontier.ARMS)!=total
+                    or sum(trace_first_frames[feature].values())!=total):
+                raise ValueError("full trace source category contradicts original sampled census")
+            if novel:
+                w=only_witnesses[feature]
+                if (type(w) is not dict or set(w)!={"seed","arm","shard","first_frame"}
+                        or type(w["seed"]) is not int or
+                        not plan_data["base_seed"]<=w["seed"]<plan_data["base_seed"]+plan_data["requested_cases"]
+                        or w["arm"] not in frontier.ARMS
+                        or type(w["shard"]) is not int or not 0<=w["shard"]<plan_data["shards"]
+                        or type(w["first_frame"]) is not int or w["first_frame"] not in frontier.guest.FRAMES):
+                    raise ValueError("unbound source frame-specific reproduction witness")
+                extra.append({"feature":feature,"cases":novel,**w})
+        for field,values in raw_values.items():
+            if (type(values) is not list or not 1<=len(values)<=256 or
+                    values!=sorted(set(values)) or
+                    any(type(x) is not int or not 0<=x<=255 for x in values)):
+                raise ValueError("invented native WRAM raw register population")
     def first_matching(*features):
         return next((w for w in category_witnesses
                      if w["feature"] in features),None)
-    graphics_hint=first_matching("both-air-raw","offscreen-register-nonzero",
-                                 "split-register-changes","split-register-nonzero")
+    graphics_hint=(next((w for w in extra if w["feature"] in
+                          ("both-air-raw","offscreen-register-nonzero","split-register-changes")),None)
+                   or first_matching("both-air-raw","offscreen-register-nonzero",
+                                     "split-register-changes","split-register-nonzero"))
     gameplay_hint=first_matching("checkpoint-pointer-changes",
                                  "opposing-x-motion-raw",
                                  "both-rotation-registers-change")
@@ -127,6 +180,12 @@ def report(plan_data:dict, observed:dict)->dict:
         "strategies_ranked_by_within_shard_coverage":ranking,
         "reproducers":witnesses,
         "source_feature_reproducers":category_witnesses,
+        "full_trace_feature_counts":trace_counts if successful else {},
+        "full_trace_feature_counts_by_arm":trace_by_arm if successful else {},
+        "full_trace_first_detection_frame_counts":trace_first_frames if successful else {},
+        "full_trace_only_feature_counts":only_counts if successful else {},
+        "full_trace_raw_field_values":raw_values if successful else {},
+        "full_trace_only_feature_reproducers":extra,
         "owning_lanes":owner_queue,
         "recommendation":("Review and qualify a small selection of unusual observed states with their "
                           "independent original source, rather than automatically generating 10k release passes."
@@ -161,6 +220,23 @@ def markdown(data:dict)->str:
             "| --- | ---: | ---: | --- |"]
     for row in data["source_feature_reproducers"]:
         lines.append(f"| {row['feature']} | {row['cases']} | {row['seed']} | {row['arm']} |")
+    if data["full_trace_feature_counts"]:
+        lines+=["","## Denser observations from all 15 already dumped native frames","",
+                "| Raw feature | Old 3 frames | All 15 frames | Missed by 3-frame sample |",
+                "| --- | ---: | ---: | ---: |"]
+        for feature,n in sorted(data["full_trace_feature_counts"].items()):
+            extra=data["full_trace_only_feature_counts"][feature]
+            lines.append(f"| {feature} | {n-extra} | {n} | {extra} |")
+        lines+=["","### First source-checkpoint witnesses only visible between old probes","",
+                "| Feature | Cases | Exact seed | Arm | First frame |",
+                "| --- | ---: | ---: | --- | ---: |"]
+        for row in data["full_trace_only_feature_reproducers"]:
+            lines.append(f"| {row['feature']} | {row['cases']} | "
+                         f"{row['seed']} | {row['arm']} | {row['first_frame']} |")
+        lines+=["","Native WRAM raw-register byte values across all 15 checkpoints:",""]
+        for key,values in data["full_trace_raw_field_values"].items():
+            lines.append(f"- {key}: {values[:24]}"+(
+                f" ... ({len(values)} values)" if len(values)>24 else ""))
     lines+=["","**These are sampled native register observations, not independent original SNES or PPU truth.**",
             "","## Decisions for the existing owners",""]
     for owner in data["owning_lanes"]:

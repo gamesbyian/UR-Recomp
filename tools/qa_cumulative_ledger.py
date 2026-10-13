@@ -293,6 +293,76 @@ def outcome(plan: dict, producer: dict | None, job_result: str) -> tuple[str, di
                     or not plan["base_seed"]<=w["seed"]<plan["base_seed"]+n):
                 raise ValueError("unbound source feature reproduction seed or strategy")
         metrics["source_feature_counts"]=feature_counts
+        from qa_adaptive_frontier import TRACE_PROBE_POLICY, TRACE_RAW_FIELDS, ALL_FRAME_NAMES, guest as native_guest
+        traced=producer.get("full_trace_feature_counts")
+        by_arm=producer.get("full_trace_feature_counts_by_arm")
+        first_frames=producer.get("full_trace_first_detection_frame_counts")
+        only=producer.get("full_trace_only_feature_counts")
+        repros=producer.get("full_trace_source_feature_witnesses")
+        only_repros=producer.get("full_trace_only_feature_witnesses")
+        raw=producer.get("full_trace_raw_field_values")
+        if (producer.get("full_trace_probe_policy")!=TRACE_PROBE_POLICY or
+                producer.get("full_trace_checkpoint_count")!=len(ALL_FRAME_NAMES) or
+                type(traced) is not dict or set(traced)!=set(FEATURES) or
+                type(by_arm) is not dict or set(by_arm)!=set(summary) or
+                type(first_frames) is not dict or set(first_frames)!=set(FEATURES) or
+                type(only) is not dict or set(only)!=set(FEATURES) or
+                type(repros) is not dict or
+                set(repros)!={k for k,v in traced.items() if v} or
+                type(only_repros) is not dict or
+                set(only_repros)!={k for k,v in only.items() if v} or
+                type(raw) is not dict or set(raw)!=set(TRACE_RAW_FIELDS)):
+            raise ValueError("missing or inconsistent all-checkpoint native WRAM source probe")
+        for arm,counts in by_arm.items():
+            if (type(counts) is not dict or set(counts)!=set(FEATURES)
+                    or any(type(v) is not int or not 0<=v<=summary[arm]["attempted"]
+                           for v in counts.values())):
+                raise ValueError("unbound source feature arm-specific observation counts")
+        for feature,histogram in first_frames.items():
+            if (type(histogram) is not dict or
+                    any(not str(k).isdigit() or int(k) not in native_guest.FRAMES
+                            or str(int(k))!=k or type(v) is not int or v<=0
+                            for k,v in histogram.items())):
+                raise ValueError("invalid native first-detection frame histogram")
+        for feature in FEATURES:
+            old,new,only_count=feature_counts[feature],traced[feature],only[feature]
+            if (type(new) is not int or type(only_count) is not int or
+                    not 0<=old<=new<=n or only_count!=new-old
+                    or sum(by_arm[arm][feature] for arm in summary)!=new
+                    or sum(first_frames[feature].values())!=new):
+                raise ValueError("full-trace observation contradicts canonical sparse source counts")
+            for witness in (repros[feature],only_repros[feature]) if only_count else (
+                    (repros[feature],) if new else ()):
+                if (type(witness) is not dict or
+                        set(witness)!={"seed","arm","shard","first_frame"} or
+                        type(witness["seed"]) is not int or
+                        not plan["base_seed"]<=witness["seed"]<plan["base_seed"]+n or
+                        witness["arm"] not in summary or
+                        type(witness["shard"]) is not int or
+                        not 0<=witness["shard"]<expected["shards"] or
+                        witness["first_frame"] not in native_guest.FRAMES):
+                    raise ValueError("unbound all-checkpoint source feature witness")
+        for field,values in raw.items():
+            if (type(values) is not list or not 1<=len(values)<=256 or
+                    values!=sorted(set(values)) or
+                    any(type(v) is not int or not 0<=v<=255 for v in values)):
+                raise ValueError("invalid recorded native raw-register byte population")
+        if ((traced["split-register-changes"] and len(raw["split"])<2) or
+                (traced["split-register-nonzero"] and not any(raw["split"])) or
+                (traced["offscreen-register-nonzero"] and
+                 not (any(raw["p1_offscreen"]) or any(raw["p2_offscreen"]))) or
+                (traced["both-air-raw"] and
+                 not (any(raw["p1_air"]) and any(raw["p2_air"])))):
+            raise ValueError("aggregate native register values contradict claimed source features")
+        metrics["full_trace_probe_policy"]=TRACE_PROBE_POLICY
+        metrics["full_trace_checkpoint_count"]=len(ALL_FRAME_NAMES)
+        metrics["full_trace_feature_counts"]=traced
+        metrics["full_trace_feature_counts_by_arm"]=by_arm
+        metrics["full_trace_first_detection_frame_counts"]=first_frames
+        metrics["full_trace_only_feature_counts"]=only
+        metrics["full_trace_raw_field_values"]=raw
+        metrics["full_trace_source_feature_witnesses"]=repros
+        metrics["full_trace_only_feature_witnesses"]=only_repros
         if type(metrics["semantic_bins_observed"]) is not int or metrics["semantic_bins_observed"]<0:
             raise ValueError("frontier provided no semantic-state discovery measurement")
     return status, metrics

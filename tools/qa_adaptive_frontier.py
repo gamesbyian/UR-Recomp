@@ -44,6 +44,9 @@ FEATURES = (
     "split-register-nonzero",
 )
 FRAME_NAMES = ("endurance-1740", "endurance-2580", "endurance-3420")
+ALL_FRAME_NAMES = tuple(f"endurance-{frame}" for frame in guest.FRAMES)
+TRACE_RAW_FIELDS = ("p1_air", "p2_air", "p1_offscreen", "p2_offscreen", "split")
+TRACE_PROBE_POLICY = "full-existing-15-wram-frames-raw-fields-v1"
 COUNT_TO_SHARDS = {100: 4, 1000: 10, 10000: 40}
 SOURCE = "existing original-fixture-qualified native 2P first-race route"
 HEX40 = re.compile(r"^[a-f0-9]{40}$")
@@ -111,6 +114,7 @@ def plan(source_sha: str, base_seed: int, count: int,
         "fixture": SOURCE, "oracle": "compiled-native-2p-wram-observer",
         "strategy_prior": normalized_prior(strategy_prior),
         "strategy_policy": STRATEGY_POLICY,
+        "trace_probe_policy": TRACE_PROBE_POLICY,
         "disposition": "planned_not_executed", "release_gate_credit": 0,
         "original_native_parity": False, "complete_event_verified": False,
         "graphics_source_truth": False,
@@ -246,20 +250,10 @@ def semantic_bins(dumps: Path) -> tuple[str, ...]:
     return tuple(tokens)
 
 
-def source_features(dumps: Path) -> tuple[str, ...]:
-    """Observed WRAM-derived raw categories, not independent game semantics.
-
-    Prefer these *named source fields* over invented "graphics correct" and
-    "event finished" classifications. An "air" or "offscreen" bit is merely
-    recorded as a nonzero original-field candidate, not a true OBJ visibility
-    or final-pixel assertion.
-    """
-    observed=[]
-    for name in FRAME_NAMES:
-        path=dumps/(name+".wram.bin")
-        if not path.is_file() or path.is_symlink() or path.stat().st_size != 131072:
-            raise ValueError(f"missing true 128KiB semantic feature source snapshot {name}")
-        observed.append(state(path))
+def _feature_labels(observed: list[dict]) -> tuple[str,...]:
+    """Raw WRAM-feature observer shared without changing the legacy 3-frame census."""
+    if not observed:
+        raise ValueError("no authenticated native WRAM observations")
     found=set()
     if any(
         row["slot1"]["air_effective"] and row["slot2"]["air"]
@@ -299,6 +293,57 @@ def source_features(dumps: Path) -> tuple[str, ...]:
     return tuple(sorted(found))
 
 
+def source_features(dumps: Path) -> tuple[str, ...]:
+    """Retain the historical three-frame raw-field feature definitions, unchanged."""
+    observed=[]
+    for name in FRAME_NAMES:
+        path=dumps/(name+".wram.bin")
+        if not path.is_file() or path.is_symlink() or path.stat().st_size != 131072:
+            raise ValueError(f"missing true 128KiB semantic feature source snapshot {name}")
+        observed.append(state(path))
+    return _feature_labels(observed)
+
+
+def _raw_trace_fields(row: dict) -> dict[str,int]:
+    mode=row["camera_and_viewport"]["mode"]
+    return {
+        "p1_air":row["slot1"]["air_effective"],
+        "p2_air":row["slot2"]["air"],
+        "p1_offscreen":mode["player1_offscreen_raw"],
+        "p2_offscreen":mode["player2_offscreen_raw"],
+        "split":mode["split_screen_active_raw"],
+    }
+
+
+def probe_all_checkpoints(dumps: Path) -> dict:
+    """Diagnose raw source fields at all 15 ALREADY-DUMPED WRAM frames.
+
+    Keep the original 3-frame fingerprint extraction epoch unchanged.
+    This additional source-observed diagnostic is NOT a new emulator execution
+    or evidence of original SNES correctness or visible sprite occlusion.
+    """
+    snapshots=[]
+    for name in ALL_FRAME_NAMES:
+        p=dumps/(name+".wram.bin")
+        if not p.is_file() or p.is_symlink() or p.stat().st_size != 131072:
+            raise ValueError(f"missing full-trace 128KiB original native dump {name}")
+        snapshots.append(state(p))
+    values={key:set() for key in TRACE_RAW_FIELDS}
+    first={}
+    for i,snapshot in enumerate(snapshots):
+        for key,value in _raw_trace_fields(snapshot).items():
+            if type(value) is not int or not 0<=value<=255:
+                raise ValueError("raw source register out of byte range")
+            values[key].add(value)
+        for feature in _feature_labels(snapshots[:i+1]):
+            first.setdefault(feature,guest.FRAMES[i])
+    return {
+        "features":list(_feature_labels(snapshots)),
+        "first_frames":first,
+        "raw_values":{key:sorted(values[key]) for key in TRACE_RAW_FIELDS},
+    }
+
+
 def execute_once(*, exe: Path, rom: Path, source_input: str, script: Path,
                  root: Path, seed: int, arm: str, timeout: int) -> dict:
     actions, info = actions_for(seed, arm)
@@ -308,9 +353,13 @@ def execute_once(*, exe: Path, rom: Path, source_input: str, script: Path,
     observed = guest.execute(exe, rom, generated, script, root, timeout)
     tokens = semantic_bins(root/"dumps")
     features = source_features(root/"dumps")
+    full_trace = probe_all_checkpoints(root/"dumps")
+    if not set(features).issubset(full_trace["features"]):
+        raise ValueError("full native WRAM trace contradicts sampled source categories")
     return {"seed": seed, "arm": arm, "input_sha256": guest.sha256(generated),
             "post_entry_wram_sha256": observed[guest.FIRST_PROBE],
             "tokens": list(tokens), "features": list(features),
+            "full_trace": full_trace,
             "observation_count": len(observed), **info}
 
 
@@ -478,6 +527,13 @@ def aggregate(plan_data: dict, root: Path) -> dict:
     arms={arm:{"attempted":0,"new_bins_local":0} for arm in ARMS}
     feature_counts=dict.fromkeys(FEATURES,0)
     feature_repros={}
+    trace_counts=dict.fromkeys(FEATURES,0)
+    trace_by_arm={arm:dict.fromkeys(FEATURES,0) for arm in ARMS}
+    trace_first_frame_histograms={feature:{} for feature in FEATURES}
+    trace_new_counts=dict.fromkeys(FEATURES,0)
+    trace_repros={}
+    trace_only_repros={}
+    trace_values={name:set() for name in TRACE_RAW_FIELDS}
     for shard in range(plan_data["shards"]):
         path=root/f"research-frontier-{shard}"/"result.json"
         try:
@@ -540,6 +596,48 @@ def aggregate(plan_data: dict, root: Path) -> dict:
                 seen_arms[case["arm"]]+=1
                 if seed in global_seeds or case["input_sha256"] in global_inputs:
                     raise ValueError("duplicate native case across original shards")
+                trace=case.get("full_trace")
+                if (type(trace) is not dict or set(trace)!={"features","first_frames","raw_values"}
+                        or type(trace["features"]) is not list
+                        or trace["features"]!=sorted(set(trace["features"]))
+                        or any(feature not in FEATURES for feature in trace["features"])
+                        or not set(case["features"]).issubset(trace["features"])
+                        or type(trace["first_frames"]) is not dict
+                        or set(trace["first_frames"])!=set(trace["features"])
+                        or any(type(frame) is not int or frame not in guest.FRAMES
+                               for frame in trace["first_frames"].values())
+                        or type(trace["raw_values"]) is not dict
+                        or set(trace["raw_values"])!=set(TRACE_RAW_FIELDS)
+                        or any(type(v) is not list or not 1<=len(v)<=len(guest.FRAMES)
+                               or v!=sorted(set(v))
+                               or any(type(x) is not int or not 0<=x<=255 for x in v)
+                               for v in trace["raw_values"].values())):
+                    raise ValueError("incomplete or fabricated full source trace observations")
+                raw=trace["raw_values"]
+                if (("split-register-changes" in trace["features"]) != (len(raw["split"])>1)
+                        or ("split-register-nonzero" in trace["features"]) !=
+                           any(raw["split"])
+                        or ("offscreen-register-nonzero" in trace["features"]) !=
+                           (any(raw["p1_offscreen"]) or any(raw["p2_offscreen"]))
+                        or ("both-air-raw" in trace["features"] and
+                            (not any(raw["p1_air"]) or not any(raw["p2_air"])))):
+                    raise ValueError("full source trace raw bytes contradict feature labels")
+                for feature in trace["features"]:
+                    trace_counts[feature]+=1
+                    trace_by_arm[case["arm"]][feature]+=1
+                    frame=str(trace["first_frames"][feature])
+                    frame_hist=trace_first_frame_histograms[feature]
+                    frame_hist[frame]=frame_hist.get(frame,0)+1
+                    trace_repros.setdefault(feature,{
+                        "seed":seed,"arm":case["arm"],"shard":shard,
+                        "first_frame":trace["first_frames"][feature]})
+                    if feature not in case["features"]:
+                        trace_new_counts[feature]+=1
+                        trace_only_repros.setdefault(feature,{
+                            "seed":seed,"arm":case["arm"],"shard":shard,
+                            "first_frame":trace["first_frames"][feature]})
+                for name,values in raw.items():
+                    trace_values[name].update(values)
                 global_seeds.add(seed)
                 global_inputs.add(case["input_sha256"])
                 for feature in case["features"]:
@@ -589,6 +687,17 @@ def aggregate(plan_data: dict, root: Path) -> dict:
         } if not issues else {},
         "source_feature_counts":feature_counts,
         "source_feature_reproduction_seeds":feature_repros if not issues else {},
+        "full_trace_probe_policy":TRACE_PROBE_POLICY,
+        "full_trace_checkpoint_count":len(ALL_FRAME_NAMES),
+        "full_trace_feature_counts":trace_counts if not issues else {},
+        "full_trace_feature_counts_by_arm":trace_by_arm if not issues else {},
+        "full_trace_first_detection_frame_counts":trace_first_frame_histograms if not issues else {},
+        "full_trace_only_feature_counts":trace_new_counts if not issues else {},
+        "full_trace_source_feature_witnesses":trace_repros if not issues else {},
+        "full_trace_only_feature_witnesses":trace_only_repros if not issues else {},
+        "full_trace_raw_field_values":{
+            name:sorted(trace_values[name]) for name in TRACE_RAW_FIELDS
+        } if not issues else {},
         "semantic_epoch": coverage.EPOCH,
         "semantic_hll_b64": coverage.encode(coverage.observe(global_tokens)) if not issues else coverage.encode(coverage.empty()),
         "semantic_exact_witnesses_b64": exact.encode_run(global_witness) if not issues else exact.encode_run({}),

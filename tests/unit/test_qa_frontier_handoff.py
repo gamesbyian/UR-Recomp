@@ -12,6 +12,36 @@ import qa_adaptive_frontier as f
 import qa_frontier_handoff as h
 
 
+def with_full_trace(data):
+    """Synthetic source receipt with one extra-frame-only offscreen observation."""
+    sparse=data["source_feature_counts"]
+    traced={name:sparse[name]+(1 if name=="offscreen-register-nonzero" else 0)
+            for name in f.FEATURES}
+    data.update({
+        "full_trace_probe_policy":f.TRACE_PROBE_POLICY,
+        "full_trace_checkpoint_count":len(f.ALL_FRAME_NAMES),
+        "full_trace_feature_counts":traced,
+        "full_trace_feature_counts_by_arm":{
+            arm:{name:(traced[name] if
+                (name=="checkpoint-pointer-changes" and arm=="balanced") or
+                (name!="checkpoint-pointer-changes" and arm=="rotation") else 0)
+                 for name in f.FEATURES}
+            for arm in f.ARMS},
+        "full_trace_first_detection_frame_counts":{
+            name:({("1860" if name=="offscreen-register-nonzero" else "1740"):n}
+                  if n else {}) for name,n in traced.items()},
+        "full_trace_only_feature_counts":{
+            name:traced[name]-sparse[name] for name in f.FEATURES},
+        "full_trace_only_feature_witnesses":{
+            "offscreen-register-nonzero":{
+                "seed":50000019,"arm":"rotation","shard":0,"first_frame":1860}},
+        "full_trace_raw_field_values":{
+            "p1_air":[0,1],"p2_air":[0,1],
+            "p1_offscreen":[0,1],"p2_offscreen":[0],"split":[0]},
+    })
+    return data
+
+
 class FrontierHandoffContracts(unittest.TestCase):
     def test_handoff_preserves_real_seed_arm_source_and_no_false_gate_credit(self):
         plan=f.plan("a"*40,50000000,100)
@@ -40,6 +70,7 @@ class FrontierHandoffContracts(unittest.TestCase):
                 "1"*24:{"seed":50000025,"arm":"balanced","shard":1},
             },
         }
+        with_full_trace(data)
         data["receipt_sha256"]=f.digest(data)
         handoff=h.report(plan,data)
         self.assertEqual(handoff["release_gate_credit"],0)
@@ -47,6 +78,13 @@ class FrontierHandoffContracts(unittest.TestCase):
         self.assertEqual(len(handoff["reproducers"]),2)
         self.assertEqual(handoff["reproducers"][0]["arm"],"rotation")
         self.assertEqual(len(handoff["source_feature_reproducers"]),2)
+        self.assertEqual(handoff["full_trace_only_feature_reproducers"][0]["feature"],
+                         "offscreen-register-nonzero")
+        self.assertEqual(handoff["full_trace_only_feature_reproducers"][0]["first_frame"],1860)
+        self.assertEqual(handoff["full_trace_feature_counts"]["offscreen-register-nonzero"],1)
+        self.assertEqual(handoff["full_trace_only_feature_counts"]["offscreen-register-nonzero"],1)
+        self.assertEqual(sum(handoff["full_trace_first_detection_frame_counts"]["offscreen-register-nonzero"].values()),1)
+        self.assertEqual(handoff["full_trace_feature_counts_by_arm"]["rotation"]["offscreen-register-nonzero"],1)
         self.assertEqual(handoff["source_feature_reproducers"][0]["feature"],"checkpoint-pointer-changes")
         self.assertIn("seed 50000025",handoff["owning_lanes"][0]["next_proof"])
         self.assertIn("seed 50000019",handoff["owning_lanes"][1]["next_proof"])
@@ -54,6 +92,8 @@ class FrontierHandoffContracts(unittest.TestCase):
         md=h.markdown(handoff)
         self.assertIn("--seed 50000019 --arm rotation",md)
         self.assertIn("QA-01/07",md)
+        self.assertIn("Denser observations from all 15",md)
+        self.assertIn("50000019 | rotation | 1860",md)
         self.assertIn("source revision",md.lower())
         with self.assertRaisesRegex(ValueError,"untrusted"):
             h.report(plan,{**data,"source_sha":"f"*40})
@@ -83,6 +123,7 @@ class FrontierHandoffContracts(unittest.TestCase):
                 "source_feature_counts":{name:0 for name in f.FEATURES},
                 "source_feature_reproduction_seeds":{},
             }
+            with_full_trace(row)
             row["receipt_sha256"]=f.digest(row)
             return row
         for scenario in ("count","missing","wrong-seed","fake-feature","zero-with-repro"):

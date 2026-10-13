@@ -176,6 +176,12 @@ class CumulativeLedgerContracts(unittest.TestCase):
                     },
                     "source_feature_counts":{name:0 for name in __import__("qa_adaptive_frontier").FEATURES},
                     "source_feature_reproduction_seeds":{},
+                    "full_trace_probe_policy":"full-existing-15-wram-frames-raw-fields-v1",
+                    "full_trace_checkpoint_count":15,
+                    "full_trace_feature_counts":{name:0 for name in __import__("qa_adaptive_frontier").FEATURES},
+                    "full_trace_only_feature_counts":{name:0 for name in __import__("qa_adaptive_frontier").FEATURES},
+                    "full_trace_source_feature_witnesses":{},
+                    "full_trace_raw_field_values":{name:[0] for name in __import__("qa_adaptive_frontier").TRACE_RAW_FIELDS},
                     "semantic_epoch":EPOCH,
                     "semantic_hll_b64":coverage_encode(coverage_observe(
                         [format(i,"024x") for i in range(count*2)])),

@@ -44,6 +44,9 @@ FEATURES = (
     "split-register-nonzero",
 )
 FRAME_NAMES = ("endurance-1740", "endurance-2580", "endurance-3420")
+DENSE_FRAME_NAMES = tuple(f"endurance-{frame}" for frame in guest.FRAMES)
+DENSE_EPOCH = "native-2p-source-field-120-frame-trace-v1"
+DENSE_RAW_FIELDS = ("p1_air", "p2_air", "p1_offscreen", "p2_offscreen", "split")
 COUNT_TO_SHARDS = {100: 4, 1000: 10, 10000: 40}
 SOURCE = "existing original-fixture-qualified native 2P first-race route"
 HEX40 = re.compile(r"^[a-f0-9]{40}$")
@@ -246,20 +249,19 @@ def semantic_bins(dumps: Path) -> tuple[str, ...]:
     return tuple(tokens)
 
 
-def source_features(dumps: Path) -> tuple[str, ...]:
-    """Observed WRAM-derived raw categories, not independent game semantics.
-
-    Prefer these *named source fields* over invented "graphics correct" and
-    "event finished" classifications. An "air" or "offscreen" bit is merely
-    recorded as a nonzero original-field candidate, not a true OBJ visibility
-    or final-pixel assertion.
-    """
-    observed=[]
-    for name in FRAME_NAMES:
+def _read_source_rows(dumps: Path, names: tuple[str, ...]) -> list[dict]:
+    """Read only existing source-named WRAM dumps, never infer missing frames."""
+    rows=[]
+    for name in names:
         path=dumps/(name+".wram.bin")
-        if not path.is_file() or path.is_symlink() or path.stat().st_size != 131072:
+        if not path.is_file() or path.is_symlink() or path.stat().st_size!=131072:
             raise ValueError(f"missing true 128KiB semantic feature source snapshot {name}")
-        observed.append(state(path))
+        rows.append(state(path))
+    return rows
+
+
+def _source_features_from_rows(observed: list[dict]) -> tuple[str, ...]:
+    """Frozen eight original raw-register predicates, for arbitrary frame sequences."""
     found=set()
     if any(
         row["slot1"]["air_effective"] and row["slot2"]["air"]
@@ -299,6 +301,47 @@ def source_features(dumps: Path) -> tuple[str, ...]:
     return tuple(sorted(found))
 
 
+def source_features(dumps: Path) -> tuple[str, ...]:
+    """Frozen three-checkpoint feature baseline; not graphics/gameplay correctness."""
+    return _source_features_from_rows(_read_source_rows(dumps, FRAME_NAMES))
+
+
+def dense_source_diagnostics(dumps: Path) -> dict:
+    """Inspect all 15 *already produced* native WRAM dumps without extra runs.
+
+    Separate diagnostic epoch. Never extend the exact semantic fingerprint
+    epoch or count this as original/native gameplay correctness.
+    """
+    if (len(DENSE_FRAME_NAMES)!=15 or len(set(DENSE_FRAME_NAMES))!=15
+            or not set(FRAME_NAMES).issubset(DENSE_FRAME_NAMES)):
+        raise ValueError("unexpected source-owned native WRAM frame contract")
+    rows=_read_source_rows(dumps,DENSE_FRAME_NAMES)
+    first={}
+    for index,name in enumerate(DENSE_FRAME_NAMES):
+        for feature in _source_features_from_rows(rows[:index+1]):
+            first.setdefault(feature,name)
+    series={
+        "p1_air":[s["slot1"]["air_effective"] for s in rows],
+        "p2_air":[s["slot2"]["air"] for s in rows],
+        "p1_offscreen":[s["camera_and_viewport"]["mode"]["player1_offscreen_raw"] for s in rows],
+        "p2_offscreen":[s["camera_and_viewport"]["mode"]["player2_offscreen_raw"] for s in rows],
+        "split":[s["camera_and_viewport"]["mode"]["split_screen_active_raw"] for s in rows],
+    }
+    if set(series)!=set(DENSE_RAW_FIELDS):
+        raise ValueError("unexpected source diagnostic field vocabulary")
+    return {
+        "epoch":DENSE_EPOCH, "frames_observed":len(DENSE_FRAME_NAMES),
+        "features":sorted(first), "first_frame":first,
+        "raw_fields":{
+            name:{"min":min(v),"max":max(v),
+                  "nonzero_frames":sum(bool(x) for x in v),
+                  "transitions":sum(a!=b for a,b in zip(v,v[1:]))}
+            for name,v in series.items()
+        },
+    }
+
+
+
 def execute_once(*, exe: Path, rom: Path, source_input: str, script: Path,
                  root: Path, seed: int, arm: str, timeout: int) -> dict:
     actions, info = actions_for(seed, arm)
@@ -308,9 +351,13 @@ def execute_once(*, exe: Path, rom: Path, source_input: str, script: Path,
     observed = guest.execute(exe, rom, generated, script, root, timeout)
     tokens = semantic_bins(root/"dumps")
     features = source_features(root/"dumps")
+    dense = dense_source_diagnostics(root/"dumps")
+    if not set(features).issubset(dense["features"]):
+        raise ValueError("dense source observations lost a historical feature")
     return {"seed": seed, "arm": arm, "input_sha256": guest.sha256(generated),
             "post_entry_wram_sha256": observed[guest.FIRST_PROBE],
             "tokens": list(tokens), "features": list(features),
+             "dense_diagnostics":dense,
             "observation_count": len(observed), **info}
 
 

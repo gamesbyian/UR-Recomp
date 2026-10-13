@@ -107,6 +107,19 @@ def summarize(manifest_path: Path, original_dir: Path, native_dir: Path,
         regular(p)
         if sha(p) != manifest.get(key):
             raise ValueError(f"mutated paired {name}")
+    source_input, source_script = guest.base_source()
+    actions, _ = frontier.actions_for(SEED, ARM)
+    if (manifest.get("input_sha256") != digest(
+            guest.render_input(source_input, actions, None))
+            or manifest.get("script_sha256") != digest(
+                guest.render_script(source_script))):
+        raise ValueError("source-independent regenerated paired input does not match manifest")
+    if (manifest.get("stock_input_sha256") != STOCK_INPUT_SHA
+            or manifest.get("stock_script_sha256") != STOCK_SCRIPT_SHA
+            or manifest.get("raw_air_addresses") !=
+               {"p1": "7E:0545", "p2": "7E:0547"}
+            or manifest.get("first_source_observed_both_air_frame") != FRAME):
+        raise ValueError("original source register/fixture provenance changed")
     if (manifest.get("seed"), manifest.get("arm"),
             manifest.get("source_sha"), manifest.get("frontier_run"),
             manifest.get("release_gate_credit"),

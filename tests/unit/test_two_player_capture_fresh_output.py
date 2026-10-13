@@ -58,5 +58,20 @@ class TwoPlayerFreshOutputTests(unittest.TestCase):
             self.assertIn("requires unused output paths", result.stderr)
 
 
+    def test_one_process_native_capture_marker_cannot_claim_fresh_process_records(self):
+        # The historical Linux capture launches the guest once and then
+        # checks the persisted pair with a codec executable. It does not
+        # reopen the game/Records page in a new consumer process.
+        source = CAPTURE.read_text(encoding="utf-8")
+        self.assertEqual(source.count('timeout 390s xvfb-run -a "$EXE"'), 1)
+        marker = next(
+            line for line in source.splitlines()
+            if line.startswith('echo "UR_TWO_PLAYER_REAL_JOIN_CAPTURE=')
+        )
+        self.assertIn("authoritative_saved_pair", marker)
+        self.assertIn("single_guest_process", marker)
+        self.assertNotIn("fresh_process", marker)
+
+
 if __name__ == "__main__":
     unittest.main()

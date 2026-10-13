@@ -195,5 +195,42 @@
       }
     },
     "implications": "One control/prefix checkpoint was invariant under all tested post-entry mutations. Nearly all measured fingerprint novelty comes from two later position/motion/progress observations. Source-field hashes alone cannot establish new gameplay behavior."
+  },
+  "baseline_overlap_audit": {
+    "source": "All four 100-case baseline source shard JSON receipts and all forty 10k shard receipts, SHA256-checked against their published aggregate records.",
+    "verified_baseline_shard_receipts": 4,
+    "baseline_per_checkpoint_unique_fingerprints": {
+      "endurance-1740": 1,
+      "endurance-2580": 100,
+      "endurance-3420": 100
+    },
+    "exact_distinct_fingerprint_overlap": 2,
+    "overlaps": [
+      {
+        "fingerprint": "b49fd909c5fd16ae947c3b55",
+        "frame": "endurance-1740",
+        "baseline_occurrences": 100,
+        "run10000_occurrences": 10000,
+        "classification": "common source-prefix checkpoint across all cases"
+      },
+      {
+        "fingerprint": "53babb022c6ea1d403f2d0b1",
+        "frame": "endurance-3420",
+        "baseline_occurrences": 1,
+        "run10000_occurrences": 1,
+        "baseline_witness": {
+          "seed": 50000016,
+          "arm": "balanced",
+          "shard": 0
+        },
+        "run10000_witness": {
+          "seed": 50012078,
+          "arm": "balanced",
+          "shard": 0
+        },
+        "classification": "same normalized projected late-state fingerprint observed under different legal input seeds; does not prove identical full WRAM"
+      }
+    ],
+    "interpretation": "Intersection explains 201 + 19980 - 2 = 20179 exact distinct normalized fingerprints across both green source runs."
   }
 }

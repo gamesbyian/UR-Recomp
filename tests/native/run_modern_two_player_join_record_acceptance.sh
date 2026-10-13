@@ -80,4 +80,7 @@ RUN="$(find "$MATCHES" -maxdepth 1 -type f -name '*.urrun' -print -quit)"
 grep -q "UR_MULTIPLAYER_MATCH_PAIR_CHECK PASS course=course:01 p1=join.alpha p2=join.bravo" \
   "$WORK/real-joined-pair-check.log"
 
-echo "UR_TWO_PLAYER_REAL_JOIN_CAPTURE=two_framework_pads distinct_confirmed_profiles stock_race authoritative_saved_pair fresh_process"
+# Exactly one guest process is launched above. The pair checker validates
+# the newly saved archive, but no second native game process opens Records.
+# Do not advertise fresh-process consumer evidence here.
+echo "UR_TWO_PLAYER_REAL_JOIN_CAPTURE=two_framework_pads distinct_confirmed_profiles stock_race authoritative_saved_pair single_guest_process"

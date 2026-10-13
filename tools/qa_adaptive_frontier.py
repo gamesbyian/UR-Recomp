@@ -342,6 +342,54 @@ def dense_source_diagnostics(dumps: Path) -> dict:
 
 
 
+def validate_dense_diagnostics(case: dict) -> dict:
+    """Validate bounded 15-frame source diagnostics without claiming original parity."""
+    d=case.get("dense_diagnostics")
+    if (type(d) is not dict or
+            set(d)!={"epoch","frames_observed","features","first_frame","raw_fields"}
+            or d["epoch"]!=DENSE_EPOCH or
+            d["frames_observed"]!=len(DENSE_FRAME_NAMES) or
+            type(d["features"]) is not list or
+            d["features"]!=sorted(set(d["features"])) or
+            not set(d["features"]).issubset(FEATURES) or
+            not set(case["features"]).issubset(d["features"]) or
+            type(d["first_frame"]) is not dict or
+            set(d["first_frame"])!=set(d["features"]) or
+            any(type(frame) is not str or frame not in DENSE_FRAME_NAMES
+                for frame in d["first_frame"].values()) or
+            type(d["raw_fields"]) is not dict or
+            set(d["raw_fields"])!=set(DENSE_RAW_FIELDS)):
+        raise ValueError("missing or inconsistent fifteen-frame source diagnostics")
+    for name,stats in d["raw_fields"].items():
+        if (type(stats) is not dict or
+                set(stats)!={"min","max","nonzero_frames","transitions"} or
+                any(type(v) is not int for v in stats.values()) or
+                not 0<=stats["min"]<=stats["max"]<=255 or
+                not 0<=stats["nonzero_frames"]<=len(DENSE_FRAME_NAMES) or
+                not 0<=stats["transitions"]<len(DENSE_FRAME_NAMES) or
+                (stats["max"]==0)!=(stats["nonzero_frames"]==0) or
+                (stats["min"]>0 and stats["nonzero_frames"]!=len(DENSE_FRAME_NAMES))):
+            raise ValueError(f"impossible native source register summary: {name}")
+    raw=d["raw_fields"]
+    expected={
+        "split-register-nonzero":raw["split"]["max"]>0,
+        "split-register-changes":raw["split"]["transitions"]>0,
+        "offscreen-register-nonzero":(
+            raw["p1_offscreen"]["max"]>0 or raw["p2_offscreen"]["max"]>0),
+    }
+    if any((name in d["features"])!=seen for name,seen in expected.items()):
+        raise ValueError("raw source mode predicates contradict diagnostic field values")
+    if ("both-air-raw" in d["features"] and
+            (raw["p1_air"]["max"]==0 or raw["p2_air"]["max"]==0)):
+        raise ValueError("both-air reported without source air fields")
+    for feature in ("split-register-changes","both-rotation-registers-change",
+                    "checkpoint-pointer-changes"):
+        if (feature in d["features"] and
+                d["first_frame"][feature]==DENSE_FRAME_NAMES[0]):
+            raise ValueError("source field change cannot first occur at first snapshot")
+    return d
+
+
 def execute_once(*, exe: Path, rom: Path, source_input: str, script: Path,
                  root: Path, seed: int, arm: str, timeout: int) -> dict:
     actions, info = actions_for(seed, arm)

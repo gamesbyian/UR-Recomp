@@ -493,3 +493,37 @@ Neither a numeric match nor a small adjacent delta proves original
 procedural shipping-art veto remains in force pending a multiview,
 two-pose human review. No runtime selector, guest gameplay, Original
 fallback, PPU priority, render asset or release authority changes.
+
+
+## October 13 period-reference discovery and acquisition priorities
+
+The manual measurement pipeline above needs *specific independently
+auditable images*, not a higher-resolution recreation of the same
+illustration. Newly located period sources and their current limits:
+
+| Candidate source | What the public catalogue establishes | Decision before a landmark annotation |
+| --- | --- | --- |
+| [VGHF's DMA Design press-material provenance](https://gamehistory.org/dma-design-art/) and its [Internet Archive upload](https://archive.org/details/dma_press_material) | Frank Cifaldi's Dec 28, 2021 article explicitly links the original media kit/scanned-paper collection; [Hidden Palace](https://hiddenpalace.org/Assets/DMA_Design_Miscellaneous_Press_Material) catalogues Uniracers among its games. | **High-priority original-period intake**, but archive content/individual Uniracers files were not independently inspected in this pass; the Hidden Palace inline file download currently reports unavailable. Do not assert the presence of a source CG mesh, distinct viewpoint, or any Uniracers image in the actual downloadable item until filenames and pixels have been checked. |
+| [MobyGames period German magazine advertisement](https://www.mobygames.com/game/8085/uniracers/promo/group-99320/image-778809/) | A *Video Games* (Germany) issue **07/1995** advertisement is catalogued at **1231×1757**, contributed in 2021. [N.i.n.Retro](https://www.ninretro.net/game-1-779.html) independently lists historic print advertising and review scans. | Potential independent period printing. Compare its **actual image composition** and crop against regional box art before counting it as another render/model view. A catalogue entry is not verified new geometry; retail/magazine rights still apply. |
+| [LaunchBox regional box scans](https://gamesdb.launchbox-app.com/games/images/2104-uniracers) | North American front at **2100×1534**, UK front at **2103×1476**, Australia front **1402×980** (sizes are listed, not verified native scan detail). | Useful for enlarged silhouette/material inspection, but region/crop/print variation does **not** prove independent camera angles or independently authored model art. Assign each authenticated asset its own provenance hash and mark duplicate artwork families. |
+
+**Next bounded likeness witness:** inspect the image bytes, rights and
+actual unicycle content of the press archive/advert first. Select a
+clearly labelled non-duplicate 1994–95 reference image *only if it
+exists*, and at least two already-authenticated neighboring Original
+source poses from the exact 2P slot98/99 guest1856/1872/1888 captures.
+Apply `tools/art/measure_unicycle_reference.py` with exact hashes,
+declared perspective and 7:6 PAR to each pose independently, then run
+`tools/art/audit_unicycle_pose_sequence.py` (merged #1375) on
+registered landmarks. Compare against the original technical 4×
+baseline only in an explicit artist-blockout column.
+
+For review, the source reference column, Original source-raster pose
+column and blockout column must carry **distinct origin labels**. A
+packaging foreshortening effect must not be "corrected" by inventing a
+3D wheel ratio. The authoritative deliverable is a multi-pose
+comparison with measurable deviations and unmeasurable parts
+explicitly recorded, followed by owner visual sign-off. This
+discovery pass supplies links and acquisition priorities, **no
+inspected original press-art pixels, numeric rig proportions, newly
+approved art, or new PPU acceptance**.

@@ -61,6 +61,33 @@ public:
     bool confirmed(unsigned seat) const noexcept {
         return seat < 2 && chosen_[seat].has_value();
     }
+    // A confirmation snapshots identity. Other Modern processes can edit the
+    // catalog while this controller-only join panel is open. Revalidate the
+    // exact confirmed entries before allowing the guest to start stock 2P.
+    // The result writer still performs its own locked admission at finish.
+    bool confirmed_profiles_match_catalog(
+        const std::vector<HostProfileCatalogEntry>& current) const noexcept {
+        if (!ready()) return false;
+        for (unsigned seat = 0; seat < 2; ++seat) {
+            const auto& selected = *chosen_[seat];
+            unsigned matches = 0;
+            for (const auto& entry : current) {
+                if (!same_id(entry.profile_id, selected.profile_id))
+                    continue;
+                // Case-fold aliases share Windows storage identity but do
+                // not preserve this exact confirmed canonical catalog entry.
+                if (++matches != 1 ||
+                    entry.profile_id != selected.profile_id ||
+                    !(entry.identity == selected.identity))
+                    return false;
+            }
+            if (matches != 1) return false;
+        }
+        return same_id(chosen_[0]->profile_id,
+                       catalog_[active_index_].profile_id) &&
+               !same_id(chosen_[0]->profile_id,
+                        chosen_[1]->profile_id);
+    }
     const HostProfileCatalogEntry* candidate(unsigned seat) const noexcept {
         return open_ && seat < 2 && cursor_[seat] < catalog_.size()
             ? &catalog_[cursor_[seat]] : nullptr;

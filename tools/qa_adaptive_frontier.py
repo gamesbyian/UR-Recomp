@@ -603,17 +603,47 @@ def aggregate(plan_data: dict, root: Path) -> dict:
 
 
 def _bounded_examples(plan_data:dict,root:Path)->dict[str,dict]:
-    """Deterministic first-seed repro dictionary, 256 entries max, no WRAM/ROM."""
-    examples={}
-    for shard in range(plan_data["shards"]):
-        row=read(root/f"research-frontier-{shard}"/"result.json")
-        for case in row["case_results"]:
-            for token in case["tokens"]:
-                if token not in examples and len(examples)<256:
-                    examples[token]={"seed":case["seed"],"arm":case["arm"],
-                                     "shard":shard}
-    return examples
+    """Bounded, shard/strategy-stratified reproducible native witnesses.
 
+    The previous first-256 insertion order selected almost exclusively shard
+    zero, so even successful large campaigns handed out misleadingly narrow
+    reproduction examples. First cover every actually observed (shard, arm)
+    cohort, then round-robin fill by case index across shards. These samples
+    are *advisory reproducible witnesses*, not necessarily the earliest source
+    sighting; that stronger claim belongs to the exact cumulative ledger.
+    """
+    rows=[read(root/f"research-frontier-{shard}"/"result.json")
+          for shard in range(plan_data["shards"])]
+    examples={}
+
+    def include(case:dict,shard:int)->bool:
+        for token in case["tokens"]:
+            if token not in examples:
+                examples[token]={"seed":case["seed"],"arm":case["arm"],
+                                 "shard":shard}
+                return True
+        return False
+
+    # At 40 shards * five arms this uses <=200 of 256 witness slots.
+    for shard,row in enumerate(rows):
+        seen_arms=set()
+        for case in row["case_results"]:
+            arm=case["arm"]
+            if arm not in seen_arms and include(case,shard):
+                seen_arms.add(arm)
+            if len(seen_arms)==len(ARMS):
+                break
+
+    # Remaining slots cover more temporal/input variation across all shards,
+    # not a monotonically filled prefix of the first shard's seeds.
+    count=max((len(row["case_results"]) for row in rows),default=0)
+    for index in range(count):
+        for shard,row in enumerate(rows):
+            if len(examples)>=256:
+                return examples
+            if index<len(row["case_results"]):
+                include(row["case_results"][index],shard)
+    return examples
 
 def summary(report:dict)->str:
     lines=["## Adaptive native 2P research frontier","",

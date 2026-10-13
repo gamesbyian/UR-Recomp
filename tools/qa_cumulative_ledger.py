@@ -292,6 +292,52 @@ def outcome(plan: dict, producer: dict | None, job_result: str) -> tuple[str, di
                     or type(w.get("seed")) is not int
                     or not plan["base_seed"]<=w["seed"]<plan["base_seed"]+n):
                 raise ValueError("unbound source feature reproduction seed or strategy")
+        from qa_adaptive_frontier import DENSE_EPOCH, DENSE_FRAME_NAMES, DENSE_RAW_FIELDS, ARMS
+        dense_counts=producer.get("dense_feature_counts")
+        by_arm=producer.get("dense_feature_counts_by_arm")
+        dense_repros=producer.get("dense_feature_reproduction_seeds")
+        raw_summary=producer.get("dense_raw_field_summary")
+        if (producer.get("dense_observer_epoch")!=DENSE_EPOCH or
+                producer.get("dense_observed_frame_count")!=len(DENSE_FRAME_NAMES) or
+                type(dense_counts) is not dict or set(dense_counts)!=set(FEATURES) or
+                type(by_arm) is not dict or set(by_arm)!=set(ARMS) or
+                type(dense_repros) is not dict or
+                set(dense_repros)!={k for k,v in dense_counts.items() if v} or
+                type(raw_summary) is not dict or set(raw_summary)!=set(DENSE_RAW_FIELDS)):
+            raise ValueError("frontier missing fifteen-frame source observability audit")
+        for name,number in dense_counts.items():
+            if (type(number) is not int or not feature_counts[name]<=number<=n or
+                    any(type(by_arm[arm]) is not dict or
+                        set(by_arm[arm])!=set(FEATURES) or
+                        type(by_arm[arm].get(name)) is not int or
+                        not 0<=by_arm[arm][name]<=summary[arm]["attempted"]
+                        for arm in ARMS) or
+                    sum(by_arm[arm][name] for arm in ARMS)!=number):
+                raise ValueError("dense source category counts not bounded by fresh inputs")
+        for name,witness in dense_repros.items():
+            if (type(witness) is not dict or
+                    set(witness)!={"seed","arm","shard","first_frame"} or
+                    type(witness["seed"]) is not int or
+                    not plan["base_seed"]<=witness["seed"]<plan["base_seed"]+n or
+                    witness["arm"] not in ARMS or
+                    type(witness["shard"]) is not int or
+                    not 0<=witness["shard"]<expected["shards"] or
+                    witness["first_frame"] not in DENSE_FRAME_NAMES):
+                raise ValueError("unbound first source frame in fifteen-frame experiment")
+        for name,stats in raw_summary.items():
+            if (type(stats) is not dict or
+                    set(stats)!={"min","max","nonzero_cases","varying_cases"} or
+                    any(type(v) is not int for v in stats.values()) or
+                    not 0<=stats["min"]<=stats["max"]<=255 or
+                    not 0<=stats["varying_cases"]<=n or
+                    not 0<=stats["nonzero_cases"]<=n):
+                raise ValueError(f"invalid native dense raw register summary: {name}")
+        metrics["dense_observer_epoch"]=DENSE_EPOCH
+        metrics["dense_observed_frame_count"]=len(DENSE_FRAME_NAMES)
+        metrics["dense_feature_counts"]=dense_counts
+        metrics["dense_feature_counts_by_arm"]=by_arm
+        metrics["dense_feature_reproduction_seeds"]=dense_repros
+        metrics["dense_raw_field_summary"]=raw_summary
         metrics["source_feature_counts"]=feature_counts
         if type(metrics["semantic_bins_observed"]) is not int or metrics["semantic_bins_observed"]<0:
             raise ValueError("frontier provided no semantic-state discovery measurement")

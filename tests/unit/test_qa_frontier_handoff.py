@@ -76,6 +76,8 @@ class FrontierHandoffContracts(unittest.TestCase):
         self.assertEqual(handoff["strategies_ranked_by_within_shard_coverage"][0]["arm"],"rotation")
         md=h.markdown(handoff)
         self.assertIn("--seed 50000019 --arm rotation",md)
+        self.assertIn("Fifteen-frame raw-observer findings",md)
+        self.assertIn("endurance-1980",md)
         self.assertIn("QA-01/07",md)
         self.assertIn("source revision",md.lower())
         with self.assertRaisesRegex(ValueError,"untrusted"):

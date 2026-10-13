@@ -164,6 +164,9 @@ class CumulativeLedgerContracts(unittest.TestCase):
                     "completed_cases":count,"observed_shards":shards,
                     "native_processes":count+3*shards*((count//shards+24)//25),
                     "semantic_bins_observed":count*2,
+                    "checkpoint_unique_fingerprints":{
+                        "endurance-1740":1,"endurance-2580":count,
+                        "endurance-3420":count},
                     "identity":{
                         "source_commit":p["source_sha"],
                         "native_executable_sha256":"b"*64,

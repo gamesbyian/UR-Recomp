@@ -40,6 +40,15 @@ def report_tree(root: Path, count: int = 100) -> tuple[dict,Path]:
                 "tokens":obs,
                 "features": ([f.FEATURES[index%len(f.FEATURES)]]
                              if index%3 != 0 else []),
+                "full_trace":{
+                    "features":list(sorted(f.FEATURES)),
+                    "first_frames":{name:f.guest.FRAMES[0] for name in f.FEATURES},
+                    "raw_values":{
+                        "p1_air":[0,1],"p2_air":[0,1],
+                        "p1_offscreen":[0,1],"p2_offscreen":[0,1],
+                        "split":[0,1],
+                    },
+                },
                 "observation_count":len(f.guest.FRAMES)+1,
                 "verified_ablation":index%25==0,
                 "real_native_processes":4 if index%25==0 else 1,
@@ -179,6 +188,41 @@ class ResearchFrontierContracts(unittest.TestCase):
             self.assertTrue(categories.issubset(f.FEATURES))
             self.assertEqual(f.source_features(root),tuple(sorted(categories)))
 
+    def test_all_fifteen_existing_checkpoints_find_transient_raw_source_features(self):
+        # The old 3-frame observer cannot see a raw flag that rises and
+        # falls between its snapshots. No executable or original emulator
+        # required for this deliberately synthetic source-field fixture.
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td)
+            for frame in f.guest.FRAMES:
+                data=bytearray(131072)
+                data[0x0DDB]=1   # unchanged split register throughout
+                if frame==1860:
+                    data[0x0545]=2   # dual-air between old sparse samples
+                    data[0x0547]=3
+                    data[0x121B]=4  # source offscreen flag
+                    data[0x121D]=5
+                    data[0x0DDB]=0  # split toggles, then recovers
+                (root/f"endurance-{frame}.wram.bin").write_bytes(data)
+            self.assertEqual(f.source_features(root),("split-register-nonzero",))
+            full=f.probe_all_checkpoints(root)
+            self.assertEqual(full["features"],[
+                "both-air-raw","offscreen-register-nonzero",
+                "split-register-changes","split-register-nonzero",
+            ])
+            self.assertEqual(full["first_frames"]["both-air-raw"],1860)
+            self.assertEqual(full["first_frames"]["split-register-changes"],1860)
+            self.assertEqual(full["raw_values"]["p1_air"],[0,2])
+            self.assertEqual(full["raw_values"]["p2_air"],[0,3])
+            self.assertEqual(full["raw_values"]["p1_offscreen"],[0,4])
+            self.assertEqual(full["raw_values"]["split"],[0,1])
+            self.assertEqual(len(f.ALL_FRAME_NAMES),15)
+            self.assertEqual(f.FRAME_NAMES,
+                             ("endurance-1740","endurance-2580","endurance-3420"))
+            (root/"endurance-1860.wram.bin").unlink()
+            with self.assertRaisesRegex(ValueError,"missing full-trace"):
+                f.probe_all_checkpoints(root)
+
     def test_one_in_25_real_process_and_seat_mutation_budget(self):
         for count,shards in ((100,4),(1000,10),(10000,40)):
             with self.subTest(count=count):
@@ -234,13 +278,22 @@ class ResearchFrontierContracts(unittest.TestCase):
             self.assertEqual(set(data["source_feature_counts"]),set(f.FEATURES))
             self.assertGreater(sum(data["source_feature_counts"].values()),0)
             self.assertTrue(data["source_feature_reproduction_seeds"])
+            self.assertEqual(data["full_trace_probe_policy"],f.TRACE_PROBE_POLICY)
+            self.assertEqual(data["full_trace_checkpoint_count"],15)
+            self.assertEqual(set(data["full_trace_feature_counts"]),set(f.FEATURES))
+            self.assertEqual(set(data["full_trace_only_feature_counts"]),set(f.FEATURES))
+            self.assertEqual(set(data["full_trace_raw_field_values"]),set(f.TRACE_RAW_FIELDS))
+            self.assertEqual(data["full_trace_feature_counts"]["both-air-raw"],100)
+            self.assertGreater(data["full_trace_only_feature_counts"]["both-air-raw"],0)
+            self.assertEqual(data["full_trace_source_feature_witnesses"]["both-air-raw"]["first_frame"],1740)
 
     def test_source_identity_wrong_count_duplicate_input_fake_credit_and_partial(self):
         for corruption in ("missing","extra","sha","wrong_source","fake_credit",
                            "partial","count","duplicate_seed","duplicate_input",
                            "forged_arm","wrong_observations","semantic_tokens",
                            "forged_forced_arm",
-                           "fake_source_category","repeated_source_category"):
+                           "fake_source_category","repeated_source_category",
+                           "missing_full_trace","contradictory_trace","bad_trace_frame"):
             with self.subTest(corruption=corruption),tempfile.TemporaryDirectory() as td:
                 p,receipts=report_tree(Path(td))
                 path=receipts/"research-frontier-1/result.json"
@@ -259,6 +312,9 @@ class ResearchFrontierContracts(unittest.TestCase):
                     elif corruption=="duplicate_input": row["case_results"][2]["input_sha256"]=row["case_results"][1]["input_sha256"]
                     elif corruption=="forged_arm": row["case_results"][2]["arm"]="not-a-controller-arm"
                     elif corruption=="forged_forced_arm": row["case_results"][0]["arm"]="rotation"
+                    elif corruption=="missing_full_trace": row["case_results"][1].pop("full_trace")
+                    elif corruption=="contradictory_trace": row["case_results"][1]["full_trace"]["raw_values"]["split"]=[0]
+                    elif corruption=="bad_trace_frame": row["case_results"][1]["full_trace"]["first_frames"]["both-air-raw"]=9999
                     elif corruption=="wrong_observations": row["case_results"][1]["observation_count"]=0
                     elif corruption=="semantic_tokens": row["semantic_bins"]=["0"*24]
                     elif corruption=="fake_source_category": row["case_results"][2]["features"]=["unknown-original-ppu"]

@@ -530,6 +530,7 @@ def aggregate(plan_data: dict, root: Path) -> dict:
     trace_counts=dict.fromkeys(FEATURES,0)
     trace_new_counts=dict.fromkeys(FEATURES,0)
     trace_repros={}
+    trace_only_repros={}
     trace_values={name:set() for name in TRACE_RAW_FIELDS}
     for shard in range(plan_data["shards"]):
         path=root/f"research-frontier-{shard}"/"result.json"
@@ -626,6 +627,9 @@ def aggregate(plan_data: dict, root: Path) -> dict:
                         "first_frame":trace["first_frames"][feature]})
                     if feature not in case["features"]:
                         trace_new_counts[feature]+=1
+                        trace_only_repros.setdefault(feature,{
+                            "seed":seed,"arm":case["arm"],"shard":shard,
+                            "first_frame":trace["first_frames"][feature]})
                 for name,values in raw.items():
                     trace_values[name].update(values)
                 global_seeds.add(seed)
@@ -682,6 +686,7 @@ def aggregate(plan_data: dict, root: Path) -> dict:
         "full_trace_feature_counts":trace_counts if not issues else {},
         "full_trace_only_feature_counts":trace_new_counts if not issues else {},
         "full_trace_source_feature_witnesses":trace_repros if not issues else {},
+        "full_trace_only_feature_witnesses":trace_only_repros if not issues else {},
         "full_trace_raw_field_values":{
             name:sorted(trace_values[name]) for name in TRACE_RAW_FIELDS
         } if not issues else {},

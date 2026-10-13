@@ -49,6 +49,27 @@ class SplitOamShadowTest(unittest.TestCase):
                          [0, 0, 1, 1])
         self.assertEqual(row["reserved_slots"][2]["x_unsigned9"], 0x120)
 
+    def test_synthetic_0x70_low_x_flips_between_split_bands(self):
+        # Structural bit arithmetic only; this isn't a real raster capture.
+        for slot in range(4):
+            self.data[0x1501 + 4 * slot] = 0x70
+        self.data[0x1599] = 0xA5
+        upper = inspect_bytes(bytes(self.data))
+        self.data[0x1599] = 0x5A
+        lower = inspect_bytes(bytes(self.data))
+        self.assertEqual(
+            [s["x_unsigned9"] for s in upper["reserved_slots"]],
+            [0x170, 0x170, 0x070, 0x070],
+        )
+        self.assertEqual(
+            [s["x_unsigned9"] for s in lower["reserved_slots"]],
+            [0x070, 0x070, 0x170, 0x170],
+        )
+        self.assertEqual(
+            [s["x_signed9_wrapped"] for s in upper["reserved_slots"]],
+            [-144, -144, 112, 112],
+        )
+
     def test_repeated_unchanged_offscreen_flags_do_not_mask_oam_changes(self):
         self.write("endurance-1740")
         self.data[0x1599] = 0x5A

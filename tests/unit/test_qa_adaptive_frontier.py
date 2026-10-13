@@ -296,6 +296,22 @@ class ResearchFrontierContracts(unittest.TestCase):
             self.assertEqual(set(data["source_feature_counts"]),set(f.FEATURES))
             self.assertGreater(sum(data["source_feature_counts"].values()),0)
             self.assertTrue(data["source_feature_reproduction_seeds"])
+            self.assertEqual(data["dense_observer_epoch"],f.DENSE_EPOCH)
+            self.assertEqual(data["dense_observed_frame_count"],15)
+            self.assertEqual(set(data["dense_feature_counts"]),set(f.FEATURES))
+            self.assertEqual(set(data["dense_feature_counts_by_arm"]),set(f.ARMS))
+            self.assertTrue(all(
+                data["dense_feature_counts"][feature]>=data["source_feature_counts"][feature]
+                for feature in f.FEATURES))
+            self.assertEqual(set(data["dense_feature_reproduction_seeds"]),
+                             {f for f,n in data["dense_feature_counts"].items() if n})
+            for field,stats in data["dense_raw_field_summary"].items():
+                self.assertIn(field,f.DENSE_RAW_FIELDS)
+                self.assertTrue(0<=stats["min"]<=stats["max"]<=255)
+            self.assertEqual(
+                sum(data["dense_feature_counts_by_arm"][arm]["both-air-raw"]
+                    for arm in f.ARMS),
+                data["dense_feature_counts"]["both-air-raw"])
 
     def test_source_identity_wrong_count_duplicate_input_fake_credit_and_partial(self):
         for corruption in ("missing","extra","sha","wrong_source","fake_credit",

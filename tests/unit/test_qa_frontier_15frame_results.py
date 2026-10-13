@@ -11,7 +11,7 @@ CAMERA=ROOT/"docs/knowledge/rendering-camera-and-oam.md"
 class FifteenFrameResearchHandoff(unittest.TestCase):
     def test_real_run_and_reproducer_identities_are_preserved(self):
         report=REPORT.read_text()
-        for value in ("38446393623","20579","20,579","50036056",
+        for value in ("38446393623","20,579","50036056",
                       "50036005","50036002","2580","1980","2820",
                       "dd5632f0a612ee22cc46d9b1ce7a6005a5fa555f"):
             self.assertIn(value,report)

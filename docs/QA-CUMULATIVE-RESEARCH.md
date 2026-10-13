@@ -16,6 +16,8 @@
 
 For future cases not yet supported by source-owned original/native fixtures, don't count "all 45 events" just by looping over names. A strict source comparator's negative result is recorded as `strict_divergence` with **zero release credit**, even when the runner/transport reports green.
 
+**Hybrid runner allocation:** see [four-agent and research capacity policy](HYBRID-AGENT-RESEARCH-CAPACITY.md). The frontier coordinator now exposes `frontier_parallel=1/2/4` (default `2`) to limit simultaneous experiment shards while the account's 20-runner maximum also serves other agents and repositories. It does not change scientific fingerprints or allow concurrent cumulative ledger writes. The single-writer coordinator still serializes all seven campaigns.
+
 ## How to run and continue
 
 Use **Actions → Cumulative research campaigns (seven independent lanes) → Run workflow** on `main`. Select `auto` for the next lane in the rotation, or name a specific lane. Configure one bounded native workload per-shard budget (`15`, `60`, `120` minutes) and the Windows existing original-producer repetitions (`1`, `3`, `10`, `30`, `60`). The default is **15 minutes / 3 Windows repeats** for initial smoke. Existing standalone workflows remain available for diagnostics, but **their direct dispatches do not advance the cumulative ledger**. Always use the coordinator for cumulative testing.

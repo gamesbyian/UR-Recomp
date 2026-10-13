@@ -1,8 +1,8 @@
-# Cumulative research program (six source-bound campaigns)
+# Cumulative research program (seven source-bound campaigns)
 
 **Status:** CI-only orchestration. Research observations are not gameplay-release gates and never alter `RELEASE-QUALITY-LEDGER.json`. The [single entry point](../.github/workflows/qa-cumulative-research.yml) makes every experiment leave an append-only source- and run-linked receipt; the mutable ledger lives on branch `research/qa-cumulative-ledger`, path `.github/qa-cumulative/ledger.json`, **not on `main`**. Do not delete that branch or force-push its history.
 
-## The six independent campaigns
+## The seven independent campaigns
 
 | Coordinator selection | What is actually executed | What cumulative coverage means | Does not prove |
 | --- | --- | --- | --- |
@@ -12,14 +12,15 @@
 | `graphics` | New **actual native rendered frame consistency**: varied legal two-seat input to the existing race, rerun product with identical input and compare each retained framebuffer and guest-WRAM file bit for bit | New unique seeded visual-input stream; retained source-bound pixel/W RAM frame comparisons | Independent original PPU/OAM truth, correctness of HD art or physical 4K |
 | `performance` | New **single-process long-horizon native guest** (over 40k additional guest frames), authentic 2P controls, periodic real Linux `/proc/PID` resident-memory and descriptor sampling | More fresh uninterrupted processes and actual measured process seconds/peak RSS/fds, not 40k fake clicks | Benchmarked 4K GPU throughput, Windows memory leaks, physical power use |
 | `original-native` | Existing strict QA-01 original/native Zoo, Bowl, Switcher comparison, untouched comparator and evidence | A new **exact build/revision** scientific observation, often a strict divergence again. The original movies are fixed; a rerun on same code does **not** add new course trajectories | Release admission, source equality unless explicitly strictly accepted and independently adjudicated |
+| `frontier` | 100 / 1,000 / 10,000 source-qualified real native 2P input trajectories, checkpoint fingerprints and 25-case deterministic/seat-mute interventions | Exact deduplicated normalized fingerprint identities and reproducible first-source witnesses; five-arm trial allocation | Original emulator parity, complete accepted events or semantic meaning of every new fingerprint |
 
 For future cases not yet supported by source-owned original/native fixtures, don't count "all 45 events" just by looping over names. A strict source comparator's negative result is recorded as `strict_divergence` with **zero release credit**, even when the runner/transport reports green.
 
 ## How to run and continue
 
-Use **Actions → Cumulative research campaigns (six independent lanes) → Run workflow** on `main`. Select `auto` for the next lane in the rotation, or name a specific lane. Configure one bounded native workload per-shard budget (`15`, `60`, `120` minutes) and the Windows existing original-producer repetitions (`1`, `3`, `10`, `30`, `60`). The default is **15 minutes / 3 Windows repeats** for initial smoke. Existing standalone workflows remain available for diagnostics, but **their direct dispatches do not advance the cumulative ledger**. Always use the coordinator for cumulative testing.
+Use **Actions → Cumulative research campaigns (seven independent lanes) → Run workflow** on `main`. Select `auto` for the next lane in the rotation, or name a specific lane. Configure one bounded native workload per-shard budget (`15`, `60`, `120` minutes) and the Windows existing original-producer repetitions (`1`, `3`, `10`, `30`, `60`). The default is **15 minutes / 3 Windows repeats** for initial smoke. Existing standalone workflows remain available for diagnostics, but **their direct dispatches do not advance the cumulative ledger**. Always use the coordinator for cumulative testing.
 
-A conservative **twice-weekly Tuesday/Friday 09:17 UTC** scheduler chooses the next lane in the six-family rotation. Only one coordinator run can reserve/write at a time, across all refs, and it never cancels an in-flight experiment. Scheduled runs use the 15-minute native budget and 3-repeat Windows budget. The runner always records actual work, not an artificially slept time target. Expensive two-hour campaigns remain manual, not automatically launched every day.
+A conservative **twice-weekly Tuesday/Friday 09:17 UTC** scheduler chooses the next lane in the seven-family rotation. Only one coordinator run can reserve/write at a time, across all refs, and it never cancels an in-flight experiment. Scheduled runs use the 15-minute native budget and 3-repeat Windows budget. The runner always records actual work, not an artificially slept time target. Expensive two-hour campaigns remain manual, not automatically launched every day.
 
 Every run (including red runs) follows **reserve → exact source-owned producer → inspect aggregate → append ledger**. Reservation captures the old ledger digest, exact commit SHA and GitHub run ID; the next seed range is `50,000,000 + sequence*12,000` (8 digits, bounded at 4,084 new runs per lane). The 12k window is larger than the 3k two-seat/native case cap; different shards have separate 1,000,003 offsets. The offset modulo 12,000 is 4,003, strictly larger than the maximum 2,999-case input-index difference, so even across different coordinator runs, neither P1/P2 shard can reuse another shard's numbered seed. For cumulative fault-recovery jobs, internal micro-timing seeds use a bijective (base, suite, chunk) namespace, while the older 20261011-style seed remains reproducible. A failed run **consumes** its window and is never quietly repeated as new evidence. Legacy historical records are adopted without claiming all past seeds were disjoint: the original 15- and 120-minute native runs reused the same seed, so the 15-minute cases partly overlap the longer run.
 
@@ -30,6 +31,8 @@ The coordinator fetches the **source workflow's actual machine aggregate**, reje
 Beginning with the first post-upgrade *completed* adaptive-frontier producer, the separate `frontier_exact_coverage` ledger contains the **losslessly deduplicated normalized fingerprint census and earliest run/seed/arm/shard witness**. Per-run metrics expose `exact_prior_unique_fingerprints`, `exact_new_unique_fingerprints` and `exact_post_unique_fingerprints`. Old HLL-only observations are explicitly **excluded from this new exact corpus**, not retroactively invented. Malformed, missing or contradictory source witnesses reject the run without granting novelty.
 
 The earlier `frontier_coverage` HyperLogLog numbers remain estimates for legacy review only. A lossless 96-bit fingerprint census is still an observation of projected native WRAM fields, **never strict original/native correctness or full raw gameplay-state enumeration**. See [adaptive frontier](QA-ADAPTIVE-RESEARCH-FRONTIER.md) for limits, migration, hard capacity bound and the original-reference follow-up cycle.
+
+**First exact frontier field result:** [2026-10-13 postmortem](QA-FRONTIER-10000-POSTMORTEM-20261013.md) documents the complete 10,000-case run, 19,978 new fingerprint identities, exact 20,179 cumulative union, five raw source-feature categories seen, three unseen, and the strategy starvation corrected in the source plan. It does not grant release credit. The recommended next run is a fresh 100-case policy smoke from merged `main`, not an automatic repeat of 10,000 inputs.
 
 ## What to compare
 

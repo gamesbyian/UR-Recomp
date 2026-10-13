@@ -89,6 +89,8 @@ def report(plan_data:dict, observed:dict)->dict:
     if set(source_repros)-set(source_counts):
         raise ValueError("extra non-source native category witness")
     trace_counts=observed.get("full_trace_feature_counts",{})
+    trace_by_arm=observed.get("full_trace_feature_counts_by_arm",{})
+    trace_first_frames=observed.get("full_trace_first_detection_frame_counts",{})
     only_counts=observed.get("full_trace_only_feature_counts",{})
     raw_values=observed.get("full_trace_raw_field_values",{})
     only_witnesses=observed.get("full_trace_only_feature_witnesses",{})
@@ -97,15 +99,30 @@ def report(plan_data:dict, observed:dict)->dict:
         if (observed.get("full_trace_probe_policy")!=frontier.TRACE_PROBE_POLICY
                 or observed.get("full_trace_checkpoint_count")!=len(frontier.ALL_FRAME_NAMES)
                 or type(trace_counts) is not dict or set(trace_counts)!=set(frontier.FEATURES)
+                or type(trace_by_arm) is not dict or set(trace_by_arm)!=set(frontier.ARMS)
+                or type(trace_first_frames) is not dict or set(trace_first_frames)!=set(frontier.FEATURES)
                 or type(only_counts) is not dict or set(only_counts)!=set(frontier.FEATURES)
                 or type(only_witnesses) is not dict
                 or set(only_witnesses)!={key for key,v in only_counts.items() if v}
                 or type(raw_values) is not dict or set(raw_values)!=set(frontier.TRACE_RAW_FIELDS)):
             raise ValueError("missing source-bound full-checkpoint observer diagnostics")
+        for arm,counts in trace_by_arm.items():
+            if (type(counts) is not dict or set(counts)!=set(frontier.FEATURES) or
+                    any(type(v) is not int or not 0<=v<=observed["completed_cases"]
+                        for v in counts.values())):
+                raise ValueError("invalid full-trace input-arm feature results")
+        for feature,frame_hist in trace_first_frames.items():
+            if (type(frame_hist) is not dict or
+                    any(type(v) is not int or v<=0 or
+                        str(k) not in {str(x) for x in frontier.guest.FRAMES}
+                        for k,v in frame_hist.items())):
+                raise ValueError("invented native source feature first-frame histogram")
         for feature in frontier.FEATURES:
             total,novel,old=trace_counts[feature],only_counts[feature],source_counts[feature]
             if (type(total) is not int or type(novel) is not int
-                    or not 0<=old<=total<=observed["completed_cases"] or novel!=total-old):
+                    or not 0<=old<=total<=observed["completed_cases"] or novel!=total-old
+                    or sum(trace_by_arm[arm][feature] for arm in frontier.ARMS)!=total
+                    or sum(trace_first_frames[feature].values())!=total):
                 raise ValueError("full trace source category contradicts original sampled census")
             if novel:
                 w=only_witnesses[feature]
@@ -164,6 +181,8 @@ def report(plan_data:dict, observed:dict)->dict:
         "reproducers":witnesses,
         "source_feature_reproducers":category_witnesses,
         "full_trace_feature_counts":trace_counts if successful else {},
+        "full_trace_feature_counts_by_arm":trace_by_arm if successful else {},
+        "full_trace_first_detection_frame_counts":trace_first_frames if successful else {},
         "full_trace_only_feature_counts":only_counts if successful else {},
         "full_trace_raw_field_values":raw_values if successful else {},
         "full_trace_only_feature_reproducers":extra,

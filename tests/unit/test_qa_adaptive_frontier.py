@@ -33,13 +33,36 @@ def report_tree(root: Path, count: int = 100) -> tuple[dict,Path]:
             seed=f.seed_for(p,shard,index)
             arm=f.forced_fresh_arm(index,shard) or f.ARMS[index%len(f.ARMS)]
             obs=[f.digest(["state",seed,k])[:24] for k in range(3)]
+            source_features=([f.FEATURES[index%len(f.FEATURES)]]
+                             if index%3 != 0 else [])
+            dense_features=set(source_features)
+            raw={name:{"min":0,"max":0,"nonzero_frames":0,"transitions":0}
+                 for name in f.DENSE_RAW_FIELDS}
+            if "split-register-changes" in dense_features or "split-register-nonzero" in dense_features:
+                dense_features.update(("split-register-changes","split-register-nonzero"))
+                raw["split"].update(max=1,nonzero_frames=1,transitions=1)
+            if "offscreen-register-nonzero" in dense_features:
+                raw["p1_offscreen"].update(max=1,nonzero_frames=1,transitions=1)
+            if "both-air-raw" in dense_features:
+                for name in ("p1_air","p2_air"):
+                    raw[name].update(max=1,nonzero_frames=1,transitions=1)
+            dense={
+                "epoch":f.DENSE_EPOCH,"frames_observed":len(f.DENSE_FRAME_NAMES),
+                "features":sorted(dense_features),
+                "first_frame":{
+                    feature:f.DENSE_FRAME_NAMES[1] if feature in (
+                        "split-register-changes","both-rotation-registers-change",
+                        "checkpoint-pointer-changes") else f.DENSE_FRAME_NAMES[0]
+                    for feature in dense_features},
+                "raw_fields":raw,
+            }
             rows.append({
                 "seed":seed,"arm":arm,
                 "input_sha256":f.digest(["legal-controller",seed]),
                 "post_entry_wram_sha256":f.digest(["native-observed",seed]),
                 "tokens":obs,
-                "features": ([f.FEATURES[index%len(f.FEATURES)]]
-                             if index%3 != 0 else []),
+                "features": source_features,
+                "dense_diagnostics":dense,
                 "observation_count":len(f.guest.FRAMES)+1,
                 "verified_ablation":index%25==0,
                 "real_native_processes":4 if index%25==0 else 1,
@@ -179,6 +202,45 @@ class ResearchFrontierContracts(unittest.TestCase):
             self.assertTrue(categories.issubset(f.FEATURES))
             self.assertEqual(f.source_features(root),tuple(sorted(categories)))
 
+    def test_dense_observer_detects_transient_raw_categories_old_three_frames_miss(self):
+        with tempfile.TemporaryDirectory() as td:
+            dumps=Path(td)
+            for frame in f.guest.FRAMES:
+                blob=bytearray(131072)
+                blob[0x0DDB]=1  # split raw is nonzero across historic 3 frames
+                if frame==1860:
+                    blob[0x0545]=3  # both air candidates only for one intermediate frame
+                    blob[0x0547]=2
+                if frame==1980:
+                    blob[0x121B]=5  # transient P1 offscreen
+                if frame==2220:
+                    blob[0x0DDB]=2  # transient split transition
+                (dumps/f"endurance-{frame}.wram.bin").write_bytes(blob)
+            historical=set(f.source_features(dumps))
+            self.assertEqual(historical,{"split-register-nonzero"})
+            diag=f.dense_source_diagnostics(dumps)
+            self.assertEqual(diag["epoch"],f.DENSE_EPOCH)
+            self.assertEqual(diag["frames_observed"],15)
+            self.assertTrue(historical.issubset(diag["features"]))
+            self.assertEqual(diag["first_frame"]["both-air-raw"],"endurance-1860")
+            self.assertEqual(diag["first_frame"]["offscreen-register-nonzero"],
+                             "endurance-1980")
+            self.assertEqual(diag["first_frame"]["split-register-changes"],
+                             "endurance-2220")
+            self.assertEqual(diag["raw_fields"]["split"]["max"],2)
+            self.assertEqual(diag["raw_fields"]["p1_air"]["nonzero_frames"],1)
+            f.validate_dense_diagnostics({"features":list(historical),
+                                          "dense_diagnostics":diag})
+            fake={"features":list(historical),"dense_diagnostics":{
+                **diag,"raw_fields":{**diag["raw_fields"],
+                                    "split":{**diag["raw_fields"]["split"],
+                                             "transitions":0}}}}
+            with self.assertRaises(ValueError):
+                f.validate_dense_diagnostics(fake)
+            (dumps/"endurance-1980.wram.bin").unlink()
+            with self.assertRaises(ValueError):
+                f.dense_source_diagnostics(dumps)
+
     def test_one_in_25_real_process_and_seat_mutation_budget(self):
         for count,shards in ((100,4),(1000,10),(10000,40)):
             with self.subTest(count=count):
@@ -240,6 +302,7 @@ class ResearchFrontierContracts(unittest.TestCase):
                            "partial","count","duplicate_seed","duplicate_input",
                            "forged_arm","wrong_observations","semantic_tokens",
                            "forged_forced_arm",
+                           "missing_dense","forged_dense",
                            "fake_source_category","repeated_source_category"):
             with self.subTest(corruption=corruption),tempfile.TemporaryDirectory() as td:
                 p,receipts=report_tree(Path(td))
@@ -259,6 +322,8 @@ class ResearchFrontierContracts(unittest.TestCase):
                     elif corruption=="duplicate_input": row["case_results"][2]["input_sha256"]=row["case_results"][1]["input_sha256"]
                     elif corruption=="forged_arm": row["case_results"][2]["arm"]="not-a-controller-arm"
                     elif corruption=="forged_forced_arm": row["case_results"][0]["arm"]="rotation"
+                    elif corruption=="missing_dense": del row["case_results"][1]["dense_diagnostics"]
+                    elif corruption=="forged_dense": row["case_results"][1]["dense_diagnostics"]["epoch"]="fake"
                     elif corruption=="wrong_observations": row["case_results"][1]["observation_count"]=0
                     elif corruption=="semantic_tokens": row["semantic_bins"]=["0"*24]
                     elif corruption=="fake_source_category": row["case_results"][2]["features"]=["unknown-original-ppu"]

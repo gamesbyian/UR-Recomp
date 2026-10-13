@@ -442,3 +442,54 @@ not promote owner-rejected procedural sprites
 or invent per-wheel/per-seat geometry from
 raster support counts. The source-faithful
 Original fallback remains mandatory.
+
+## Offline temporal landmark audit for a proposed coherent rig
+
+`tools/art/audit_unicycle_pose_sequence.py` now consumes the **same
+private, hash-checked original or candidate PNG landmark manifest** as
+`measure_unicycle_reference.py`, with an optional extra top-level
+`sequences` array. For each sequence give its unique `id`,
+`camera_mode` (`declared-fixed` or `unverified-or-moving`), a
+substantive `camera_notes` description and at least two
+`frames: [{"reference_id": "...", "time_ms": 0}, ...]`
+with unique image-view references and strictly increasing integer
+timestamps. Milliseconds are provided by the annotator/capture record;
+**the tool never invents an original game frame rate**.
+
+Example command:
+
+```sh
+python3 tools/art/audit_unicycle_pose_sequence.py \
+  /private/uniracer-review/landmarks-with-sequences.json \
+  --out /private/uniracer-review/projected-motion.json
+python3 -m unittest tests.unit.test_audit_unicycle_pose_sequence
+```
+
+The audit rehashes each actual local PNG and validates reference
+provenance, source angle, pixel aspect, crops, landmarks and all the
+original single-pose ratios. Within a sequence, source category, creator,
+version and PAR must match. A claimed fixed projection also requires
+matching angle, source-image size and crop history, but **those metadata
+matches cannot independently prove a physically stationary camera**.
+Moving/uncertain camera sequences are admitted with their lack of
+registration made explicit.
+
+The report records each frame's six projected saddle/wheel geometry
+metrics, adjacent signed changes over the supplied time interval and
+the observed total metric spans. Saddle-centre offsets are normalized
+to the measured wheel's *vertical projected diameter* and use 7:6 PAR
+on horizontal coordinates when declared. This is a useful transparent
+ruler for wheel/saddle shape drift and animated posture, **not a magic
+threshold**: authentic tricks, 3D rotation, occlusion and changes in
+camera perspective can all create large legitimate 2D differences.
+Images, original sprite content, candidate rig assets and human aesthetic
+scores stay out of committed reports.
+
+A candidate can now be reviewed alongside the accepted original 2P
+source-shape changes and fixed-bottom-raster observations elsewhere
+in this document, provided each sample is individually authenticated.
+Neither a numeric match nor a small adjacent delta proves original
+1994 rig geometry, full animation coherence or visual likeness. Old
+procedural shipping-art veto remains in force pending a multiview,
+two-pose human review. No runtime selector, guest gameplay, Original
+fallback, PPU priority, render asset or release authority changes.

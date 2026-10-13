@@ -46,7 +46,52 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
         self.assertTrue(any("below required layer" in x
                             for x in validator.check_registry(data, ROOT)))
         gate["witnesses"][0]["layer"] = "L4"
+        gate["coverage"].update(complete_event_passes=45, partial=0, unverified=0)
         self.assertEqual(validator.check_registry(data, ROOT), [])
+
+    def test_qa01_l4_witness_cannot_override_zero_of_45_release_census(self):
+        data = baseline()
+        data["candidate"]["commit_sha"] = "a" * 40
+        data["candidate"]["zip_sha256"] = "b" * 64
+        gate = data["gates"][0]
+        gate["status"] = "passed"
+        gate["candidate_commit"] = "a" * 40
+        gate["witnesses"] = [{
+            "source_commit": "a" * 40,
+            "artifact_sha256": "b" * 64,
+            "source": "independent candidate-bound complete-event report",
+            "tested_at": "2026-10-11T18:00:00Z",
+            "layer": "L4",
+        }]
+        self.assertTrue(any("without 45/45" in error
+                            for error in validator.check_registry(data, ROOT)))
+        # A complete, consistently partitioned census clears only this
+        # structural condition; the validator cannot authenticate the report.
+        gate["coverage"].update(
+            complete_event_passes=45, partial=0, unverified=0
+        )
+        self.assertEqual(validator.check_registry(data, ROOT), [])
+
+    def test_qa01_release_census_rejects_shrunk_or_malformed_counts(self):
+        data = baseline()
+        census = data["gates"][0]["coverage"]
+        self.assertEqual(validator.check_registry(data, ROOT), [])
+        for key, bad in (
+            ("denominator", 1),
+            ("denominator", True),
+            ("complete_event_passes", -1),
+            ("complete_event_passes", False),
+            ("partial", "4"),
+            ("unverified", 40),
+        ):
+            with self.subTest(key=key, value=bad):
+                broken = copy.deepcopy(data)
+                broken["gates"][0]["coverage"][key] = bad
+                self.assertTrue(any("QA-01" in error
+                                    for error in validator.check_registry(broken, ROOT)))
+        del data["gates"][0]["coverage"]
+        self.assertTrue(any("missing course-event coverage census" in error
+                            for error in validator.check_registry(data, ROOT)))
 
     def test_current_source_contracts_and_journey_denominators_are_real(self):
         data = baseline()
@@ -193,6 +238,7 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
         self.assertTrue(any("timezone-aware ISO-8601" in x
                             for x in validator.check_registry(data, ROOT)))
         gate["witnesses"][0]["tested_at"] = "2026-10-10T20:00:00+00:00"
+        gate["coverage"].update(complete_event_passes=45, partial=0, unverified=0)
         self.assertEqual(validator.check_registry(data, ROOT), [])
 
         gate["status"] = "waived"

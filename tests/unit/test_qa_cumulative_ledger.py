@@ -212,6 +212,10 @@ class CumulativeLedgerContracts(unittest.TestCase):
                 self.assertEqual(record["metrics"]["semantic_bins_observed"],count*2)
                 self.assertEqual(record["metrics"]["strategy_summary"],observed["strategy_summary"])
                 self.assertEqual(record["metrics"]["full_trace_checkpoint_count"],15)
+                self.assertEqual(record["metrics"]["full_trace_feature_counts_by_arm"],
+                                 observed["full_trace_feature_counts_by_arm"])
+                self.assertEqual(record["metrics"]["full_trace_first_detection_frame_counts"],
+                                 observed["full_trace_first_detection_frame_counts"])
                 self.assertEqual(record["metrics"]["full_trace_feature_counts"],
                                  observed["full_trace_feature_counts"])
                 self.assertEqual(record["metrics"]["full_trace_raw_field_values"],
@@ -240,6 +244,8 @@ class CumulativeLedgerContracts(unittest.TestCase):
                 self.assertNotIn("frontier_exact_coverage", _)
                 for key,bad in (
                     ("full_trace_checkpoint_count",3),
+                    ("full_trace_feature_counts_by_arm",{"balanced":{}}),
+                    ("full_trace_first_detection_frame_counts",{"both-air-raw":{"1740":1}}),
                     ("full_trace_probe_policy","unknown-trace"),
                     ("full_trace_feature_counts",{"both-air-raw":1}),
                     ("full_trace_raw_field_values",{"split":[1,1]}),

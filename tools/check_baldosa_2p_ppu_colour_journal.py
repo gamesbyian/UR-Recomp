@@ -31,22 +31,86 @@ REGEX = re.compile(
 )
 COLOR_REGS = {0x2130: "CGWSEL", 0x2131: "CGADSUB", 0x2132: "COLDATA"}
 
+MAX_NATIVE_SCANLINE = 261
+
+
+def reject_duplicate_json_keys(pairs: list[tuple[str, object]]) -> dict:
+    """A forged duplicate field must not silently override genuine evidence."""
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate native PPU journal JSON key: {key}")
+        result[key] = value
+    return result
+
+
+def cgadsub_line_intervals(baseline: str, entries: list[dict]) -> dict:
+    """Lossless register chronology in native line tags, not a pixel oracle.
+
+    Retain all same-line writes in journal order, but show intervals after the
+    final write on each tag. SNES line tags are not calibrated to final PPU y.
+    """
+    initial = int(baseline, 16)
+    by_line = {}
+    events = []
+    for index, entry in enumerate(entries):
+        if int(entry["r"], 16) != 0x2131:
+            continue
+        line = entry["l"]
+        value = int(entry["v"], 16)
+        events.append({
+            "journal_index": index,
+            "native_scanline_tag": line,
+            "written_value": f"0x{value:02X}",
+        })
+        by_line.setdefault(line, []).append(value)
+    intervals = []
+    previous = 0
+    current = initial
+    for line in sorted(by_line):
+        if line > previous:
+            intervals.append({
+                "first_scanline_tag": previous,
+                "last_scanline_tag": line - 1,
+                "cgadsub": f"0x{current:02X}",
+            })
+        current = by_line[line][-1]
+        previous = line
+    if previous <= MAX_NATIVE_SCANLINE:
+        intervals.append({
+            "first_scanline_tag": previous,
+            "last_scanline_tag": MAX_NATIVE_SCANLINE,
+            "cgadsub": f"0x{current:02X}",
+        })
+    return {
+        "initial_cgadsub": f"0x{initial:02X}",
+        "cgadsub_write_count": len(events),
+        "cgadsub_writes_in_original_journal_order": events,
+        "same_scanline_rewrites": sum(len(values) - 1 for values in by_line.values()),
+        "line_tag_intervals_after_last_same_line_write": intervals,
+        "tag_to_original_output_y_calibrated": False,
+        "effective_per_pixel_colour_math_proven": False,
+    }
+
 
 def parse_record(line: str) -> dict:
     m = REGEX.fullmatch(line.strip())
     if not m:
         raise ValueError("one exact genuine guest2208 read-only original PPU journal required")
     end_adsub, end_wsel, end_fixed = (int(x, 16) for x in m.group(1, 2, 3))
-    trace = json.loads(m.group(4))
-    if (trace.get("armed") != 1 or trace.get("have_completed") != 1):
+    trace = json.loads(m.group(4), object_pairs_hook=reject_duplicate_json_keys)
+    if (type(trace.get("armed")) is not int or trace["armed"] != 1 or
+        type(trace.get("have_completed")) is not int or trace["have_completed"] != 1):
         raise ValueError("raster journal was not armed/completed in native PPU")
     field_reports = {}
     for field_name in ("completed", "recording"):
         field = trace.get(field_name)
-        if not isinstance(field, dict) or field.get("dropped") != 0:
+        if (not isinstance(field, dict) or type(field.get("dropped")) is not int
+            or field["dropped"] != 0):
             raise ValueError("missing or dropped original PPU raster journal field")
         entries = field.get("entries")
-        if not isinstance(entries, list) or field.get("count") != len(entries):
+        if (not isinstance(entries, list) or type(field.get("count")) is not int
+            or field["count"] != len(entries)):
             raise ValueError("incomplete native PPU raster journal entries")
         base = field.get("base")
         if (not isinstance(base, dict) or
@@ -55,11 +119,11 @@ def parse_record(line: str) -> dict:
             raise ValueError("raster CGADSUB baseline missing")
         matched = []
         for entry in entries:
-            if not isinstance(entry, dict) or not isinstance(entry.get("l"), int):
+            if not isinstance(entry, dict) or type(entry.get("l")) is not int:
                 raise ValueError("raster entry has no original SNES scanline")
             line_no = entry["l"]
             reg, val = entry.get("r"), entry.get("v")
-            if (not 0 <= line_no <= 261 or
+            if (not 0 <= line_no <= MAX_NATIVE_SCANLINE or
                 not isinstance(reg, str) or
                 not isinstance(val, str) or
                 re.fullmatch(r"0x[0-9A-Fa-f]{4}", reg) is None or
@@ -78,6 +142,8 @@ def parse_record(line: str) -> dict:
             "colour_register_write_examples_bounded": matched[:128],
             "colour_write_examples_truncated": len(matched) > 128,
             "raster_journal_dropped": 0,
+            "cgadsub_scanline_tag_chronology":
+                cgadsub_line_intervals(base["cgadsub"], entries),
         }
     return {
         "schema_version": 1,
@@ -96,12 +162,13 @@ def parse_record(line: str) -> dict:
         "field_register_journals": field_reports,
         "13_red5_original_racer_source_signature_already_known": True,
         "PPU_registers_per_racer_pixel_or_line_proven": False,
+        "native_scanline_tag_to_final_PPU_row_alignment_proven": False,
         "specific_PPU_window_BG_OBJ_ownership_proven": False,
         "native_graphics_changed": False,
         "remastered_HD_art_approved": False,
         "limits": (
             "Captured the pinned SNESRecomp original native PPU field's "
-            "read-only register journal and sampled end-of-frame state. "
+            "read-only register journal, CGADSUB line-tag intervals and sampled end-of-frame state. "
             "A baseline plus written values are not necessarily the "
             "effective per-PIXEL colour operands, windows or priority; "
             "this does not prove what made any of the 13 +red5 pixels."

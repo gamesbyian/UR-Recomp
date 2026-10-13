@@ -206,6 +206,11 @@ class CumulativeLedgerContracts(unittest.TestCase):
                 self.assertEqual(record["metrics"]["cases"],count)
                 self.assertEqual(record["metrics"]["semantic_bins_observed"],count*2)
                 self.assertEqual(record["metrics"]["strategy_summary"],observed["strategy_summary"])
+                self.assertEqual(record["metrics"]["full_trace_checkpoint_count"],15)
+                self.assertEqual(record["metrics"]["full_trace_feature_counts"],
+                                 observed["full_trace_feature_counts"])
+                self.assertEqual(record["metrics"]["full_trace_raw_field_values"],
+                                 observed["full_trace_raw_field_values"])
                 self.assertGreaterEqual(record["metrics"]["estimated_post_unique_bins"],1)
                 self.assertTrue(record["metrics"]["approximate_not_an_exact_new_case_count"])
                 self.assertEqual(record["metrics"]["exact_new_unique_fingerprints"],count*2)
@@ -228,6 +233,19 @@ class CumulativeLedgerContracts(unittest.TestCase):
                 _,rejected_checkpoint=c.append(LEDGER,p,changed,"success")
                 self.assertEqual(rejected_checkpoint["disposition"],"incomplete_or_failed")
                 self.assertNotIn("frontier_exact_coverage", _)
+                for key,bad in (
+                    ("full_trace_checkpoint_count",3),
+                    ("full_trace_probe_policy","unknown-trace"),
+                    ("full_trace_feature_counts",{"both-air-raw":1}),
+                    ("full_trace_raw_field_values",{"split":[1,1]}),
+                    ("full_trace_only_feature_witnesses",{"both-air-raw":{
+                        "seed":p["base_seed"],"arm":"balanced",
+                        "shard":0,"first_frame":1860}}),
+                ):
+                    with self.subTest(field=key):
+                        _,rejected_probe=c.append(LEDGER,p,{**observed,key:bad},"success")
+                        self.assertEqual(rejected_probe["disposition"],"incomplete_or_failed")
+                        self.assertNotIn("frontier_exact_coverage",_)
 
 
     def test_no_unbounded_or_forged_source_requests(self):

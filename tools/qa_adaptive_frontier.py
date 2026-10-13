@@ -573,6 +573,13 @@ def aggregate(plan_data: dict, root: Path) -> dict:
     arms={arm:{"attempted":0,"new_bins_local":0} for arm in ARMS}
     feature_counts=dict.fromkeys(FEATURES,0)
     feature_repros={}
+    dense_counts=dict.fromkeys(FEATURES,0)
+    dense_repros={}
+    dense_counts_by_arm={arm:dict.fromkeys(FEATURES,0) for arm in ARMS}
+    dense_field_summary={
+        name:{"min":255,"max":0,"nonzero_cases":0,"varying_cases":0}
+        for name in DENSE_RAW_FIELDS
+    }
     for shard in range(plan_data["shards"]):
         path=root/f"research-frontier-{shard}"/"result.json"
         try:
@@ -629,6 +636,19 @@ def aggregate(plan_data: dict, root: Path) -> dict:
                         case.get("verified_ablation") is not (index%25==0) or
                         case.get("real_native_processes")!=(4 if index%25==0 else 1)):
                     raise ValueError("case lacks source-authenticated native state evidence")
+                dense=validate_dense_diagnostics(case)
+                for feature in dense["features"]:
+                    dense_counts[feature]+=1
+                    dense_counts_by_arm[case["arm"]][feature]+=1
+                    dense_repros.setdefault(feature,{
+                        "seed":seed,"arm":case["arm"],"shard":shard,
+                        "first_frame":dense["first_frame"][feature]})
+                for name,stats in dense["raw_fields"].items():
+                    total=dense_field_summary[name]
+                    total["min"]=min(total["min"],stats["min"])
+                    total["max"]=max(total["max"],stats["max"])
+                    total["nonzero_cases"]+=int(stats["nonzero_frames"]>0)
+                    total["varying_cases"]+=int(stats["transitions"]>0)
                 required_arm = forced_fresh_arm(index, shard)
                 if required_arm is not None and case["arm"] != required_arm:
                     raise ValueError("source strategy policy violated fresh-shard exploration")
@@ -684,6 +704,12 @@ def aggregate(plan_data: dict, root: Path) -> dict:
         } if not issues else {},
         "source_feature_counts":feature_counts,
         "source_feature_reproduction_seeds":feature_repros if not issues else {},
+        "dense_observer_epoch":DENSE_EPOCH,
+        "dense_observed_frame_count":len(DENSE_FRAME_NAMES),
+        "dense_feature_counts":dense_counts if not issues else {},
+        "dense_feature_counts_by_arm":dense_counts_by_arm if not issues else {},
+        "dense_feature_reproduction_seeds":dense_repros if not issues else {},
+        "dense_raw_field_summary":dense_field_summary if not issues else {},
         "semantic_epoch": coverage.EPOCH,
         "semantic_hll_b64": coverage.encode(coverage.observe(global_tokens)) if not issues else coverage.encode(coverage.empty()),
         "semantic_exact_witnesses_b64": exact.encode_run(global_witness) if not issues else exact.encode_run({}),
@@ -761,6 +787,16 @@ def summary(report:dict)->str:
             "| --- | ---: |"]
     for name,count in sorted(report["source_feature_counts"].items(),key=lambda row:(row[1],row[0])):
         lines.append(f"| {name} | {count} |")
+    if report.get("dense_feature_counts"):
+        lines+=["","### All 15 sampled frames: separate native source diagnostic","",
+                "| Raw source category | 3 frames | All 15 frames |",
+                "| --- | ---: | ---: |"]
+        for name in FEATURES:
+            lines.append(f"| {name} | {report['source_feature_counts'][name]} | "
+                         f"{report['dense_feature_counts'][name]} |")
+        lines+=["","First observation frames and raw register summaries are in the "
+                "source artifact. This does not modify the three-checkpoint exact "
+                "fingerprint epoch or establish original SNES correctness.",""]
     lines+=["","Exact seed/arm witnesses for source-slot categories are in the compact JSON artifact.",
             "Source register flags, unlike independent SNES PPU pixel evidence, are not final visual truth.",""]
     lines.extend("- "+s for s in report["issues"])

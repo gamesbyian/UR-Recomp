@@ -4,7 +4,7 @@
 
 ## What genuinely ran
 
-The pinned native two-player harness executed **10,000 different post-entry legal-controller case scripts** (40 independent shards × 250), plus identical-replay and separate P1/P2-mute checks on **400** cases (three extra native processes per verification case). That is **11,200 real compiled-native process executions**. All 40 source-receipt shards were present, internally coherent, and independently aggregated. The research coordinator classified the result `completed_positive` and appended a signed ledger record; the source producer classified it `completed_observational`. The producer had **no recorded evidence issues**. A green workflow indicates successful experiments and recording, **not** correctness versus the original SNES.
+The pinned native two-player harness executed **10,000 different post-entry legal-controller case scripts** (40 independent shards × 250), plus identical-replay and separate P1/P2-mute checks on **400** cases (three extra native processes per verification case). That is **11,200 real compiled-native process executions**. All 40 source-receipt shards were present, internally coherent, and independently aggregated. The research coordinator classified the result `completed_positive` and appended a SHA-256-checksummed ledger record; the source producer classified it `completed_observational`. The producer had **no recorded evidence issues**. A green workflow indicates successful experiments and recording, **not** correctness versus the original SNES.
 
 | Exact observation (new fingerprint epoch) | Count |
 | --- | ---: |
@@ -22,7 +22,7 @@ Each fingerprint is a **96-bit truncated SHA-256 identity of a deliberately norm
 
 Wall-clock workflow: **2026-10-12 20:50:24 UTC to 2026-10-13 12:44:35 UTC**, or **15h 54m 11s**, with individual shard execution from ~56 to ~107 minutes (180-minute per-shard hard cap). Avoid linear extrapolation from the 100-case run without accounting for shared build overhead, worker scheduling and per-shard execution.
 
-## Follow-up forensic audit: all 40 signed shard receipts
+## Follow-up forensic audit: all 40 hash-checked shard receipts
 
 After the initial coordinator success, every original `research-frontier-0` through `research-frontier-39` artifact was independently retrieved and each source-owned `result.json` checksum was checked against its aggregate shard receipt SHA-256. **All 40 matched.** The 10,000 cases were then regrouped by the **three real checkpoint frames**, instead of treating every token as an indistinguishable discovery:
 
@@ -74,7 +74,7 @@ The follow-up patch records the policy as `fresh-five-arm-warmup-plus-decile-v1`
 
 ## Decision, next experiments and ownership
 
-1. **Keep the original run's successful evidence unchanged.** The signed exact ledger and source artifacts remain the authority; do not rerun the original seeds as if they were new experiments.
+1. **Keep the original run's successful evidence unchanged.** The hash-attested exact ledger and source artifacts remain the authority; do not rerun the original seeds as if they were new experiments.
 2. **Qualify the new policy cheaply.** Once merged, dispatch a **100-case** cumulative frontier run from `main` and verify all five arms receive new trials, plan/aggregate signatures match, fresh-case reproducibility passes and the exact union updates without fabricated source-parity credit. Only scale to 1,000 or 10,000 if the new evidence justifies it.
 3. **Investigate the feature zeros as specific hypotheses.** A source-observer/graphics owner should identify known original cases with dual-air/offscreen or split transitions and validate slot semantics at higher temporal resolution. Feed genuinely qualified states to the existing QA-01/07 original/native comparator, rather than count hash novelty as gameplay correctness.
 4. **Promote verified discrepancies into focused regression tests.** Preserve original and native source SHA, ROM, movie, exact frame alignment and event-specific terminal result. Official USA complete-event acceptance remains **0/45** until the strict owning authority admits an event.

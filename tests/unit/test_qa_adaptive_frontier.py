@@ -218,6 +218,10 @@ class ResearchFrontierContracts(unittest.TestCase):
             self.assertEqual(data["release_gate_credit"],0)
             self.assertFalse(data["original_native_parity"])
             self.assertGreater(data["semantic_bins_observed"],200)
+            self.assertEqual(set(data["checkpoint_unique_fingerprints"]),set(f.FRAME_NAMES))
+            self.assertTrue(all(1<=n<=100 for n in data["checkpoint_unique_fingerprints"].values()))
+            self.assertGreaterEqual(sum(data["checkpoint_unique_fingerprints"].values()),
+                                    data["semantic_bins_observed"])
             self.assertLessEqual(len(data["reproduction_seeds_by_fingerprint"]),256)
             # Large experiments must not hand off 256 examples all from the
             # first worker: retain distinct source-qualified arm/shard cohorts.

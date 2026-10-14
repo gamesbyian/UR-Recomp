@@ -228,6 +228,29 @@ class QA01CampaignTest(unittest.TestCase):
         self.assertEqual(passed.returncode, 0, passed.stderr)
         self.assertIn("strict_divergence", summary_path.read_text())
 
+    def test_opt_in_switcher_nmi_reuses_source_event_classification_for_both_exits(self):
+        workflow=(ROOT/".github/workflows/qa01-switcher-original-2014.yml").read_text()
+        scope=workflow.split("      - name: Existing fresh-paired Switcher",1)[1]
+        scope=scope.split("      - name: Preserve original/native logs",1)[0]
+        self.assertIn('qa.classify("switcher",int(rc),Path(report),',scope)
+        self.assertIn('("strict_candidate","strict_divergence")',scope)
+        self.assertNotIn('test "$rc" -eq 1',scope)
+        self.assertIn("paired-classification.json",workflow)
+        self.assertIn("qa01_switcher_nmi_beam_crosswalk.py",scope)
+        p=self.plan("switcher")
+        file=self.report_file("switcher",matched=True)
+        candidate=c.classify("switcher",0,file,p)
+        self.assertEqual(candidate["disposition"],"strict_candidate")
+        self.assertEqual(candidate["release_credit"],0)
+        contradiction=c.classify("switcher",1,file,p)
+        self.assertEqual(contradiction["disposition"],"producer_error")
+        file=self.report_file("switcher",matched=False)
+        divergence=c.classify("switcher",1,file,p)
+        self.assertEqual(divergence["disposition"],"strict_divergence")
+        self.assertEqual(divergence["release_credit"],0)
+        invalid=c.classify("switcher",2,file,p)
+        self.assertEqual(invalid["disposition"],"producer_error")
+
     def test_workflow_stays_manual_small_and_one_build(self):
         workflow = (ROOT/".github/workflows/qa01-event-campaign.yml").read_text()
         header = workflow.split("\njobs:", 1)[0]

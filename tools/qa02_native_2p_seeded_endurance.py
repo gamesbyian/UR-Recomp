@@ -190,7 +190,7 @@ def execute(exe: Path, rom: Path, control: Path, script: Path,
     if runtime_log is not None:
         if runtime_log.exists() or runtime_log.is_symlink():
             raise ValueError("refuse to overwrite prior native runtime transcript")
-        runtime_log.write_text(done.stdout + "\\n" + done.stderr, encoding="utf-8")
+        runtime_log.write_text(done.stdout + "\n" + done.stderr, encoding="utf-8")
     if done.returncode != 0:
         raise RuntimeError(f"guest exited {done.returncode}; "
                            f"stdout/stderr tail={(done.stdout + done.stderr)[-900:]}")

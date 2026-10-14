@@ -12,6 +12,8 @@ on:
       - "tools/baldosa_native_1p_records_probe.py"
       - "tools/baldosa_native_2p_records_probe.py"
       - "tools/baldosa_native_first_racer_probe.py"
+      - "tools/baldosa_native_second_racer_probe.py"
+      - "tests/unit/test_baldosa_native_second_racer_probe.py"
       - "tools/baldosa_native_first_racer_real_run_probe.py"
       - "tests/unit/test_baldosa_native_first_racer_real_run_probe.py"
       - "native/product/baldosa_native_first_profile.hpp"
@@ -85,6 +87,7 @@ jobs:
           python tests/unit/test_baldosa_native_2p_records_probe.py
           python tests/unit/test_baldosa_native_first_profile_cpp.py
           python tests/unit/test_baldosa_native_first_racer_probe.py
+          python tests/unit/test_baldosa_native_second_racer_probe.py
           python tests/unit/test_baldosa_native_first_racer_real_run_probe.py
           python tests/unit/test_baldosa_modern_user_data_spike.py
           python tests/unit/test_baldosa_modern_profile_activation_spike.py
@@ -239,6 +242,17 @@ jobs:
             --preset 1 --video windows --timeout 110
           echo "PASS: actual native first-run P1 Down/A selected ANDREW, first private full 8192-byte source SRAM rider byte=1, exact existing typed/catalog/raw codec and a second real Windows game BOOT_SRAM fingerprint. This is scripted input, NOT physical hardware or original/emulator gameplay parity." >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Native named P1 explicitly creates independent P2 then both enter stock 2P
+        run: |
+          set -euo pipefail
+          python tools/baldosa_native_second_racer_probe.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_real_second_racer" \
+            --video windows --timeout 180
+          echo "PASS: actual native P1 Mike created isolated Andrew P2 with canonical typed/raw/catalog, retained active P1 selector, and a third real native game confirmed both seats and entered original 2P GO. No completed match, physical pads or original/native parity credit." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Native first-racer creation through genuine earned 1P Records in three separate games
         run: |
           set -euo pipefail
@@ -304,6 +318,10 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_2p_records/fresh_game_2p_records/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_first_racer/report.json
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_first_racer_andrew/report.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_second_racer/report.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_second_racer/first_P1_mike/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_second_racer/named_P1_adds_P2/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_second_racer/fresh_two_seat_source_go/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_first_racer_andrew/first_anonymous_process/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_first_racer_andrew/fresh_named_process/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_first_racer_earned_records/report.json

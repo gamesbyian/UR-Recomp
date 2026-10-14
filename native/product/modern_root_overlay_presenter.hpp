@@ -64,6 +64,9 @@ struct ModernRootOverlayView {
     bool unbound_two_player_warning_open = false;
     // Optional native first-time preset, committed for NEXT guest process.
     bool first_racer_shortcut_available = false;
+    bool second_racer_shortcut_available = false;
+    bool second_racer_created = false;
+    bool first_racer_is_second = false;
     bool first_racer_open = false;
     bool first_racer_created = false;
     bool first_racer_failed = false;
@@ -181,11 +184,13 @@ inline bool render_modern_root_overlay(
         0xFFFFFFFFu, scale);
     paint.draw_text(pixels, stride, surface_height,
         x + 8 * scale, y + 193 * scale,
-        view.first_racer_created
+        view.first_racer_created || view.second_racer_created
             ? "RESTART FOR NEW RACER"
             : view.first_racer_shortcut_available
                 ? "X CREATE STOCK RACER"
-                : view.racer_shortcuts_available
+                : view.second_racer_shortcut_available
+                    ? "X ADD SECOND RACER"
+                    : view.racer_shortcuts_available
                     ? "X/F2 RACERS   F1 HELP"
                     : "RACER SETUP NOT YET LINKED",
         palette.cursor_blue, scale);
@@ -306,7 +311,9 @@ inline bool render_modern_root_overlay(
                           bx, by, bw, bh, palette.title_yellow);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 10 * scale,
-                        "FIRST STOCK RACER", palette.title_yellow, scale);
+                        view.first_racer_is_second
+                            ? "SECOND STOCK RACER" : "FIRST STOCK RACER",
+                        palette.title_yellow, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 40 * scale,
                         fit_modern_overlay_text(

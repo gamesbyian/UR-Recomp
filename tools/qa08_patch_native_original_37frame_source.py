@@ -63,19 +63,19 @@ def patch_host(source: str) -> str:
     """Stage single read-only completed-simulation PPU capture host callback."""
     if MARK in source:
         raise ValueError("native host 37-frame source hook already present")
-    anchor = "static const SnesDesktopHostGame kGameHost = {\\n"
-    begin = "    .begin_sim_frame    = &ur_baldosa_hd_begin_sim_frame,\\n"
+    anchor = "static const SnesDesktopHostGame kGameHost = {\n"
+    begin = "    .begin_sim_frame    = &ur_baldosa_hd_begin_sim_frame,\n"
     if source.count(anchor) != 1 or source.count(begin) != 1:
         raise ValueError("pinned native host simulation completion ABI changed")
     declaration = (
-        "/* " + MARK + ": read-only completed true guest frame PPU source. */\\n"
+        "/* " + MARK + ": read-only completed true guest frame PPU source. */\n"
         "extern void ur_qa08_original_source_37_end_sim_frame("
-        "const uint8_t*, unsigned);\\n"
+        "const uint8_t*, unsigned);\n"
     )
     source = source.replace(anchor, declaration + anchor, 1)
     return source.replace(
         begin,
-        begin + "    .end_sim_frame      = &ur_qa08_original_source_37_end_sim_frame;\\n".replace(";", ","),
+        begin + "    .end_sim_frame      = &ur_qa08_original_source_37_end_sim_frame,\n",
         1
     )
 

@@ -80,6 +80,54 @@ def events(raw: str, prefix: str, keys: tuple[str, ...],
     return out
 
 
+def pair_original_ack_reads(source: list[dict]) -> dict:
+    """Link executed original $2142 loads to *their own* observed BNE.
+
+    The source trace is a sparse executed-PC stream. Pair only adjacent
+    recorded 82:803C -> 82:8043 events with a bounded original frame
+    transition. Do not use PL.Z as proof of branch direction: Snes9x may
+    maintain lazy processor flags outside Registers.PL. Never align these
+    original CPU frames with native AOT host/APU frames here.
+    """
+    pairs = []
+    used_reads = set()
+    branches = 0
+    for i, event in enumerate(source):
+        if event["pc"] != 0x828043:
+            continue
+        branches += 1
+        if i == 0:
+            continue
+        previous = source[i - 1]
+        if (previous["pc"] != 0x82803C or
+            event["f0"] < previous["f1"] or
+            event["f0"] - previous["f1"] > 1):
+            continue
+        used_reads.add(i - 1)
+        pairs.append({
+            "original_read_frame": previous["f0"],
+            "original_read_end_frame": previous["f1"],
+            "original_branch_frame": event["f0"],
+            "read_low_byte": previous["a1"] & 0xFF,
+            "original_read_data_bank": previous["db0"],
+            "observed_bne_destination": f"{event['next']:06X}",
+            "observed_bne_taken": event["next"] == 0x828077,
+            "source_queue_read_index": previous["rd1"],
+            "source_queue_write_index": previous["wr1"],
+            "source_apu_toggle": previous["ack1"],
+        })
+    read_count = sum(event["pc"] == 0x82803C for event in source)
+    return {
+        "original_ack_read_branch_pairs_count": len(pairs),
+        "original_ack_read_branch_pairs_sample": pairs[:16],
+        "original_unpaired_apu_reads": read_count - len(used_reads),
+        "original_unpaired_ack_branches": branches - len(pairs),
+        "original_ack_read_branch_pairs_complete": (
+            len(pairs) == read_count == branches),
+        "original_ack_pairs_same_original_cpu_stream_only": True,
+    }
+
+
 def analyze(original_log: str, native_log: str) -> dict:
     ref = events(original_log, ORIGINAL, ORIG_KEYS, ORIG_HEX)
     guest = events(native_log, NATIVE, NATIVE_KEYS, NATIVE_HEX)
@@ -129,8 +177,10 @@ def analyze(original_log: str, native_log: str) -> dict:
     native_read = [e for e in guest if e["dir"] == "R"]
     if not original_read or not ack_branch or not native_read:
         raise ValueError("missing actual original 82:803C/8043 or native $2142 read")
+    ack_pairs = pair_original_ack_reads(ref)
     return {
         "schema": SCHEMA,
+        **ack_pairs,
         "original_events": len(ref),
         "native_events": len(guest),
         "original_first_frame": ref[0]["f0"],

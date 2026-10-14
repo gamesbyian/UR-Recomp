@@ -90,5 +90,20 @@ class OriginalCountdownNativePrimeTests(unittest.TestCase):
             target.native(b"no archive", strict_archive=False)
 
 
+    def test_wrong_real_prime_pixel_is_retained_as_negative_not_tolerated(self):
+        original = {frame: source_rgb565() for frame in target.WINDOW}
+        captures = witness()
+        wrong = bytearray(native_rgb5())
+        wrong[4 * (99 * target.W + 42)] = 0
+        captures["global_prime"] = bytes(wrong)
+        r = target.compare(original, captures)
+        self.assertEqual(
+            r["prespecified_phase_global_prime_minus_stock_matching_pixels"], -1)
+        self.assertFalse(
+            r["does_prespecified_global_prime_match_more_original_pixels"])
+        self.assertEqual(
+            r["results"][1855 - target.WINDOW[0]]["global_prime_different_pixels"], 1)
+
+
 if __name__ == "__main__":
     unittest.main()

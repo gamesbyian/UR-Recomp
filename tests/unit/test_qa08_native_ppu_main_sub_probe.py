@@ -81,6 +81,11 @@ class NativePixelProbeTests(unittest.TestCase):
             p.write_text(log_line(50, fixed="0260")+"\n"+log_line(162)+"\n")
             with self.assertRaisesRegex(ValueError,"field registers"):
                 checker.read_samples(p,bytes(raw))
+            # Restore the stock synthetic raster after the two deliberately
+            # different after-removal output colours before testing duplicate
+            # log lines, otherwise the SHA/RGB guard correctly rejects first.
+            raw[raw_top:raw_top+4]=bytes((156,49,49,255))
+            raw[raw_bottom:raw_bottom+4]=bytes((156,49,49,255))
             p.write_text(log_line(50)+"\n"+log_line(50)+"\n")
             with self.assertRaisesRegex(ValueError, "duplicate"):
                 checker.read_samples(p,raw)

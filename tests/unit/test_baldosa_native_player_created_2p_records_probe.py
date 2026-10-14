@@ -154,6 +154,16 @@ class NativePlayerCreated2PJourneyUnit(unittest.TestCase):
         self.assertNotIn("--seed-readonly-records", probe)
         self.assertNotIn("--seed-readonly-2p", probe)
         self.assertIn("native_existing_p1_profile_selector_UI_proved", probe)
+        self.assertIn('require_switch(ui_switch, P1, P2)', probe)
+        self.assertIn('"mike_ui_selects_martin", "7"', probe)
+        self.assertIn('synthetic_p1_switch_gamepad=', probe)
+        root = (ROOT / "tools/baldosa_native_modern_root.cpp").read_text()
+        self.assertIn('std::strcmp(opt, "7") == 0', root)
+        self.assertIn('ur_baldosa_modern_root_gamepad(0, button, 1)', root)
+        self.assertIn('kGamepadBtn_X', root)
+        self.assertIn('kGamepadBtn_B', root)
+        self.assertNotIn('subprocess.run(', probe)
+        self.assertNotIn('"--select-existing-next-boot"', probe)
 
 
 if __name__ == "__main__":

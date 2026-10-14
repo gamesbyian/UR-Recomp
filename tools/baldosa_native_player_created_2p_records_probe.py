@@ -11,12 +11,12 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
-import subprocess
 
 from baldosa_native_first_racer_probe import (
     run_game, verify_creation, verify_boot_sram, verify_native_save_codec,
 )
 from baldosa_native_second_racer_probe import require_p2_creation
+from baldosa_native_existing_p1_ui_probe import require_switch
 from baldosa_native_2p_records_probe import (
     source_match_script, run_guest,
     source_match_published, source_paired_records_reopened,
@@ -108,9 +108,8 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
     first = run_game(exe, rom, user, out / "first_P1_mike", "4",
                      "turbo on\nwait 900\nquit\n", video, timeout)
     verify_creation(first, preset=0)
-    # A source guest with NO selected profile may create the historical
-    # anonymous save at its own first shutdown; capture it once, then ban
-    # any further writes while verified named racers own the save root.
+    # Anonymous first-boot source guest may have written its fallback SRAM.
+    # Preserve that exact image, but never let named games change or use it.
     legacy_bootstrap = anonymous_bootstrap_sram(user)
     verify_native_save_codec(fixture, user, timeout, profile=P1)
     catalog = user / "profiles-v1.txt"
@@ -170,27 +169,37 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
     verify_native_save_codec(fixture, user, timeout, profile=P1)
     verify_native_save_codec(fixture, user, timeout, profile=P2)
 
-    # The existing next-process selector backend validates both profiles
-    # under OS-handle locks. Its test-only CLI caller makes no claim that
-    # the player-facing profile-switch UI has shipped.
+    # Game 5: actual native controller root X/A chooses the already-created
+    # Martin P1 identity. This goes through production selector/CAS and the
+    # same sticky guest-safety barrier as standalone native #1513. The
+    # fixture does NOT create a player, select a profile or seed Records.
     old_selector = selector.read_bytes()
     old_catalog = catalog.read_bytes()
     old_p1 = profile_sram(user, P1)
     old_p2 = profile_sram(user, P2)
-    switched = subprocess.run(
-        [str(fixture), str(user), P1, P2, "--select-existing-next-boot"],
-        text=True, capture_output=True, timeout=timeout)
-    if (switched.returncode or
-            "existing_next_boot=martin previous=mike no_guest_swap=1"
-            not in switched.stdout or selector.read_bytes() == old_selector):
-        raise ValueError("Safe next-boot selector rejected: " +
-                         switched.stdout[-700:] + switched.stderr[-700:])
-    if (catalog.read_bytes() != old_catalog or profile_sram(user, P1) != old_p1 or
+    ui_switch = run_game(
+        exe, rom, user, out / "mike_ui_selects_martin", "7",
+        "turbo on\nwait 900\nquit\n", video, timeout)
+    verify_boot_sram(ui_switch, old_p1, profile=P1)
+    require_switch(ui_switch, P1, P2)
+    require_legacy_untouched(user, legacy_bootstrap)
+    if (ui_switch.count("UR_BALDOSA_MODERN_ROOT synthetic_p1_switch_gamepad=")
+            != 4):
+        raise ValueError("P1 X/A/B/A controller-dispatch sequence not executed")
+    if selector.read_bytes() == old_selector:
+        raise ValueError("Controller X/A failed to change next-boot P1 selector")
+    if (catalog.read_bytes() != old_catalog or
             profile_sram(user, P2) != old_p2 or
             exact_pair_digest(user / "multiplayer-runs") != paired):
-        raise ValueError("Existing P1 switch modified other participant data")
+        raise ValueError("Real UI profile selection mutated match or other P2")
+    verify_native_save_codec(fixture, user, timeout, profile=P1)
+    verify_native_save_codec(fixture, user, timeout, profile=P2)
+    # P1's real game may checkpoint its own SRAM during shutdown even if it
+    # never enters the guest race; all later checks use the last canonical
+    # verified bytes instead of a prior-process stale snapshot.
+    after_ui_p1 = profile_sram(user, P1)
 
-    # Game 5: native guest *boots* Martin's own bytes and its Records
+    # Game 6: native guest *boots* Martin's own bytes and its Records
     # includes the same one original-played match as Mike's did.
     martin_view = run_guest(
         exe, rom, out / "fresh_martin_records", user,
@@ -201,14 +210,14 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
     require_legacy_untouched(user, legacy_bootstrap)
     if (exact_pair_digest(user / "multiplayer-runs") != paired or
             catalog.read_bytes() != old_catalog or
-            profile_sram(user, P1) != old_p1):
+            profile_sram(user, P1) != after_ui_p1):
         raise ValueError("P2 viewing Records mutated the match or Mike")
     verify_native_save_codec(fixture, user, timeout, profile=P1)
     verify_native_save_codec(fixture, user, timeout, profile=P2)
     require_legacy_untouched(user, legacy_bootstrap)
 
     return {
-        "scope": "two-native-controller-created-profiles-played-source-2p-and-both-records",
+        "scope": "two-native-ui-created-players-played-source-2p-and-both-ui-selected-records",
         "actual_frontend_created_profiles": [P1, P2],
         "observed_stock_riders": [0, 2],
         "observed_source_guest_result": source_result,
@@ -216,8 +225,8 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
         "anonymous_first_boot_sram_present": legacy_bootstrap is not None,
         "anonymous_bootstrap_bytes_unchanged_by_all_named_games": True,
         "fresh_native_records_for_each": True,
-        "p2_existing_profile_select_via_fixture_not_player_UI": True,
-        "native_existing_p1_profile_selector_UI_proved": False,
+        "p2_existing_profile_select_via_fixture_not_player_UI": False,
+        "native_existing_p1_profile_selector_UI_proved": True,
         "physical_pad_hardware_accepted": False,
         "original_native_strict_event_accepted": False,
         "release_gate_credit": 0,

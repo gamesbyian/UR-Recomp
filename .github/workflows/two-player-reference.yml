@@ -390,23 +390,25 @@ jobs:
               >"$ROOT/original.log" 2>&1
           # Reuse the EXACT frontier guest's isolated user-data root, config,
           # unpaced execution, neutral input and dump transport.
-          python3 - "$EXE" "$ROM" "$ROOT" >"$ROOT/native.log" 2>&1 <<'PY'
+          python3 - "$EXE" "$ROM" "$ROOT" >"$ROOT/native-wrapper.log" 2>&1 <<'PY'
           import pathlib,sys
           sys.path.insert(0,"tools")
           import qa02_native_2p_seeded_endurance as guest
           exe,rom,root=map(pathlib.Path,sys.argv[1:])
           guest.execute(exe,rom,root/"case.input",root/"case.script",
-                        root/"native-run",120)
+                        root/"native-run",120,runtime_log=root/"native.log")
           PY
           python3 tools/qa01_dual_air_paired.py classify \
             --manifest "$ROOT/manifest.json" \
             --original-dir "$ROOT/original" --native-dir "$ROOT/native-run/dumps" \
+            --original-log "$ROOT/original.log" --native-log "$ROOT/native.log" \
             --rom "$ROM" --core "$CORE" --native-exe "$EXE" \
             --out "$ROOT/paired-report.json"
           python3 - "$ROOT/paired-report.json" "$GITHUB_STEP_SUMMARY" <<'PY'
           import json,sys
           r=json.load(open(sys.argv[1]))
           assert r["same_executable_as_frontier_witness"], "wrong frontier executable"
+          assert r["both_engine_actual_dump_frame_receipts_verified"], "unattested host ticks"
           with open(sys.argv[2],"a") as f:
               f.write("### QA-01 same-input original/native raw-air observation\\n\\n")
               f.write("At host 2580 original/native raw both-air: "

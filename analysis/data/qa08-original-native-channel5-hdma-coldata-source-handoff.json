@@ -1,0 +1,77 @@
+{
+  "schema": "qa08-original-native-channel5-coldata-source-handoff/1",
+  "status": "strict-native-AOT-coldata-source-provenance-accepted",
+  "original_native_AOT_run": 38504531564,
+  "original_native_AOT_artifact": 11867072862,
+  "downloaded_zip_sha256": "2716fc6a21b7ac75a05b9ce26d270b7bf0c1e575e75e74e550665b2a899e5302",
+  "original_source_report_file": "baldosa-evidence/ws342_hdma_coldata_source_2208.json",
+  "original_source_report_sha256": "659ee309b9f79cc1bd2ae1b8d56eaa8f8e8634b49b049ef4421d2f1f066ad51d",
+  "native_PPU_2P_guest_frame": 2208,
+  "identical_original_guest_CRC_records": 2473,
+  "source_overlay_BG3_OBJ_pixels_native_accepted": 26,
+  "PPU_BBUS_register": "$2132",
+  "HDMA_channel": 5,
+  "HDMA_mode": 1,
+  "HDMA_indirect": false,
+  "A_bus_WRAM_bank": "$7E",
+  "native_writes": [
+    {
+      "ordinal": 0,
+      "A_bus_byte_address": "7E:2086",
+      "COLDATA_value": "0x2F",
+      "native_write_log_tag": 0,
+      "fixed_RGB15_after_write": "0x026F"
+    },
+    {
+      "ordinal": 1,
+      "A_bus_byte_address": "7E:2086",
+      "COLDATA_value": "0x2F",
+      "native_write_log_tag": 2,
+      "fixed_RGB15_after_write": "0x026F"
+    },
+    {
+      "ordinal": 2,
+      "A_bus_byte_address": "7E:2089",
+      "COLDATA_value": "0x40",
+      "native_write_log_tag": 3,
+      "fixed_RGB15_after_write": "0x000F"
+    },
+    {
+      "ordinal": 3,
+      "A_bus_byte_address": "7E:208C",
+      "COLDATA_value": "0x80",
+      "native_write_log_tag": 4,
+      "fixed_RGB15_after_write": "0x000F"
+    },
+    {
+      "ordinal": 4,
+      "A_bus_byte_address": "7E:208F",
+      "COLDATA_value": "0x20",
+      "native_write_log_tag": 113,
+      "fixed_RGB15_after_write": "0x0000"
+    },
+    {
+      "ordinal": 5,
+      "A_bus_byte_address": "7E:2092",
+      "COLDATA_value": "0x53",
+      "native_write_log_tag": 114,
+      "fixed_RGB15_after_write": "0x0260"
+    },
+    {
+      "ordinal": 6,
+      "A_bus_byte_address": "7E:2095",
+      "COLDATA_value": "0x80",
+      "native_write_log_tag": 115,
+      "fixed_RGB15_after_write": "0x0260"
+    }
+  ],
+  "original_native_beam_driver_HDMI_written_after_ppu_runLine": true,
+  "native_write_log_tag_to_next_framebuffer_row": "for normal in-frame tags L=2..224, the transfer is written after row L-2 and before row L-1",
+  "upper_output_row50_live_fixed_RGB15": "0x000F",
+  "lower_output_row162_live_fixed_RGB15": "0x0260",
+  "writer_original_65816_PC_observed": false,
+  "source_table_original_ROM_instruction_proven": false,
+  "physical_SNES_HBlank_timing_proven": false,
+  "original_renderer_or_guest_modified": false,
+  "HD_character_likeness_approved": false
+}

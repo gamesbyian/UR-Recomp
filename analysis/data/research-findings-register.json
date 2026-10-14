@@ -281,9 +281,9 @@
     "docs/QA01-SWITCHER-2014-ORIGINAL-SOURCE-PROBE.md (1P: original 0x84 +4665..+4698 = 34 frames)",
     "docs/QA01-2014-COMPLETE-EVENT-TRANSPLANT.md (0x84->0x16 by 83:988A / Sram_RestoreDirectPage)"
    ],
-   "observation": "9 of 9 seeds across all five arms: race state identical through both laps reaching 0 and through 0x84 onset; result phase 34 frames on Snes9x (and 34 on Beetle-bsnes for 50036056), 35 on native (36 for 50024003). All later field differences follow from it.",
-   "uncertainty": "Whether the extra frame is a native host-loop/vblank-boundary effect or a guest-visible behaviour difference; the 1P Switcher case shows the native phase shorter, not longer, so the mechanism may be boundary-sensitive rather than a constant offset.",
-   "resolving_experiment": "QA-01: on this 70-second 2P reproducer, trace native writers of 7E:009F and the restore routine around native 5230-5234 against the original 83:988A opcode trace; decide whether the extra frame is guest-visible.",
+   "observation": "Decoded source fields are identical through laps-zero and result-menu onset in every seed. Raw semantic WRAM ($0200+) first differs 1-2 native frames BEFORE result-menu (0x84) onset in 17 of 17 seeds. For 50036056 at native 5196-5198 the original builds the 10-byte list at 7E:2000 in one frame (first word 01->02->04); native shows a different intermediate one frame later (01->03->04). 7E:0BDE/0BFE start at 0xCC->0xC8 on the original but 0xC4->0xC0 on native, an offset of 8 held through the whole phase. The 0x84 phase then lasts 34 frames on Snes9x (and on Beetle-bsnes for 50036056) and 35 on native (36 for 50024003).",
+   "uncertainty": "Semantics of 7E:2000 (update list?) and 7E:0BDE/0BFE (unnamed in the repo) are unknown; whether the 8-unit offset is guest-visible (sprite Y or banner position) or only scheduling is unproven.",
+   "resolving_experiment": "QA-01 (with QA-08 if 0BDE/0BFE are OAM-shadow Y): trace writers of 7E:2000-2009 and 7E:0BDE/0BFE at native 5195-5198 against original 5193-5196 on the 50036056 reproducer; the first differing writer names the mechanism.",
    "consequence": "A cheap deterministic 2P reproducer of the same result-handoff seam behind the open 1P Switcher +4704/+4702 strict divergence; it does not change any comparator or acceptance."
   },
   {

@@ -383,6 +383,13 @@ class CiTriggerPolicyTest(unittest.TestCase):
             f"fan out CI when agents update them: {offenders}",
         )
 
+    def test_release_ledger_mutations_run_existing_structural_validator(self):
+        # Ledger evidence_refs are machine-adjudicated contracts; a docs-only
+        # PR must not bypass the unit suite that rejects unsafe source paths.
+        workflow = (WORKFLOWS / "tooling-unit-tests.yml").read_text()
+        self.assertIn('"docs/RELEASE-QUALITY-LEDGER.json"',
+                      _block(workflow, "pull_request"))
+
     def test_deferred_switch_shared_core_is_manual_only(self):
         path = WORKFLOWS / "switch-shared-core-portability.yml"
         text = path.read_text()

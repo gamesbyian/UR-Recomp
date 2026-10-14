@@ -60,6 +60,7 @@ jobs:
             libxkbcommon-dev libegl-dev libgles-dev libdrm-dev libgbm-dev \
             libasound2-dev libpulse-dev libudev-dev libdbus-1-dev xvfb x11-utils
           python3 tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python3 tools/baldosa_single_presentation_scale_patch.py --root "$GITHUB_WORKSPACE" --framework baldosa/snesrecomp
           python3 tools/baldosa_hd_host_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python3 tools/qa08_patch_hdma_coldata_source.py --framework baldosa/snesrecomp
           cmake -S baldosa -B baldosa/build -G Ninja \

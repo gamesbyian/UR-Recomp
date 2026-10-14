@@ -44,6 +44,14 @@ python3 tools/verify_baldosa_romless_candidate_qa.py \
 
 The **expected independent QA result is still `outcome=inconclusive` for release**. The narrow positive is a real played native Windows 2P result and log-grounded fresh-game paired Records, coarchived with verified candidate source/ZIP identity. The consumer must reject only-one-or-two-of-three 2P reports/logs, wrong riders/time/outcome, duplicate publications, missing fresh-game Records or independent-approval claims that no fixture supports.
 
+## Independent fresh-Records visible-result binding (QA-12 follow-up)
+
+The original hosted log admissibility required `records_last_2p=` plus `source=historical_paired_archive` but **did not verify the displayed line against the accepted source result**. Its earlier unit-positive fixture even contained P1 `WIN 00:27.57` while the test source reported rider-2 winning and P1 taking `00:27.61`. This is a **QA false-positive allowance**, not evidence of a production display error: the actual green 38497178182 Windows log correctly shows `LAST 01 LOSS 00:27.61`.
+
+The QA consumer now checks that the fresh game shows the **selected P1's** original-source outcome (`WIN`, `LOSS`, or `DRAW`) and time in the native Records painter's genuine `MM:SS.hh` / `DNF` convention, including the correct `course:01` display label. It also requires the match writer's source `frames` count to agree with the settled input count, and the writer's `multiplayer-runs/<new-run>.urrun` filename to match the *same* `.urrun` stem whose exact pair of SHA-256 strings the product producer reported. Regression tests deliberately substitute opponent clocks, wrong winners, different course labels, unrelated run paths, mismatched basenames and mismatched frame counts; legitimate P1-win, draw and DNF values remain supported.
+
+This establishes better **causal consistency of coarchived game logs and producer receipts**, still **not** independent verification of absent `.urrun`/`.urmatch` bytes. No new original-emulator or physical-hardware acceptance is inferred.
+
 ## What is still actually missing
 
 An **independently reviewable canonical new pair** means retaining those two **ROM-free synthetic CI-player saved artifacts**, bound to the exact existing digest and candidate, and independently parsing their real run/match codecs. This is a reasonable narrow next product/QA handshake, but cannot be achieved by retroactively inferring bytes from this artifact. Then complete one **packaged, human-controller-first native 1P/2P → Records** Windows journey and actual hardware gamepad/audio/display acceptance. A strictly accepted complete USA original-versus-native event and other **45/45** original-release coverage remain separately owned QA-01 work.

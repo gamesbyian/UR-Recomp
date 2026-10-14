@@ -16,7 +16,8 @@ def original(pc: str, op: str, *, nxt: str, f: int = 5195,
     vals = {
         "f0": str(f), "f1": str(f), "v0": "225", "v1": "225",
         "h0": "100", "h1": "125", "pc": pc, "next": nxt, "op": op,
-        "p0": p0, "p1": p0, "a0": "0000", "a1": a1,
+        "p0": p0, "p1": p0, "db0": "00", "db1": "00",
+        "a0": "0000", "a1": a1,
         "rd0": "00", "rd1": "00", "wr0": "01", "wr1": "01",
         "ack0": "42", "ack1": "42", "c60": "1E", "c61": "1E",
     }
@@ -49,6 +50,7 @@ class ApuPhaseObserversTest(unittest.TestCase):
         self.assertIn("Memory.RAM[0x2000]", compiled)
         self.assertIn("Registers.A.W", compiled)
         self.assertIn("Registers.PL", compiled)
+        self.assertIn("Registers.DB", compiled)
         self.assertIn("QA01APUORIG_TRUNCATED", compiled)
         self.assertIn("UR_QA01_APU_ORIGINAL_FIRST", compiled)
         with self.assertRaisesRegex(ValueError, "already installed"):
@@ -96,6 +98,8 @@ class ApuPhaseObserversTest(unittest.TestCase):
         ref, guest = self.logs()
         r = report.analyze(ref, guest)
         self.assertEqual(r["original_apu_read_count"], 1)
+        self.assertEqual(r["original_apu_data_banks_observed"], [0])
+        self.assertIs(r["original_apu_opcode_effective_bank_hw_mapped"], True)
         self.assertEqual(r["original_apu_read_low_bytes_sample"], [0x42])
         self.assertEqual(r["original_ack_branch_not_taken"], 1)
         self.assertEqual(r["original_ack_branch_taken"], 0)
@@ -130,6 +134,18 @@ class ApuPhaseObserversTest(unittest.TestCase):
         self.assertNotIn("  schedule:", workflow)
         self.assertNotIn("  pull_request:", workflow)
 
+    def test_original_cpu_bank80_mirror_is_valid_but_wram_is_not(self):
+        ref, guest = self.logs()
+        shadow = ref.replace("db0=00", "db0=80").replace("db1=00", "db1=80")
+        self.assertEqual(report.analyze(shadow, guest)[
+            "original_apu_data_banks_observed"], [0x80])
+        for bank in ("40", "7E", "C0", "FF"):
+            with self.subTest(data_bank=bank):
+                bad = ref.replace("db0=00", f"db0={bank}").replace(
+                    "db1=00", f"db1={bank}")
+                with self.assertRaisesRegex(ValueError, "hardware|I/O"):
+                    report.analyze(bad, guest)
+
     def test_branch_taken_is_recorded_not_invented_from_ack_bytes(self):
         ref, native_log = self.logs()
         ref = ref.replace("next=828045", "next=828077")
@@ -149,6 +165,8 @@ class ApuPhaseObserversTest(unittest.TestCase):
             ("wrong original PC", ref.replace("pc=82803C", "pc=83803C"), guest),
             ("wrong source branch", ref.replace("next=828045", "next=828046"), guest),
             ("wrong A width", ref.replace("p0=30", "p0=10"), guest),
+            ("wrong original DBR", ref.replace("db0=00", "db0=7E"), guest),
+            ("changed DBR inside read", ref.replace("db1=00", "db1=7E"), guest),
             ("spurious release credit", ref + " release_gate_credit=1", guest),
             ("native frame invalid", ref, guest.replace("frame_clock=1", "frame_clock=2")),
             ("native PORT incorrect", ref, guest.replace("reg=2142", "reg=2140")),

@@ -15,8 +15,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-MARKER = "\t\t\tRegisters.PCw++;\n\t\t\t(*Opcodes[Op].S9xOpcode)();
-{RETURN_POST}"
+MARKER = "\t\t\tRegisters.PCw++;\n\t\t\t(*Opcodes[Op].S9xOpcode)();"
 STAMP = "UR-QA01 original Zoo menu opcode writer probe"
 # Exact 69-byte WRAM original(+5156)/Baldosa(+5156) difference surface,
 # plus authoritatively observed menu/track/race mode controls.
@@ -110,6 +109,7 @@ def patch(source: str) -> str:
 \t\t\t\t\tur_qa_zoo_before[ur_i] = Memory.RAM[ur_qa_zoo_addr[ur_i]];
 \t\t\tRegisters.PCw++;
 \t\t\t(*Opcodes[Op].S9xOpcode)();
+{RETURN_POST}
 \t\t\tif (ur_qa_zoo_gate)
 \t\t\t{{
 \t\t\t\tfor (unsigned ur_i = 0; ur_i < sizeof(ur_qa_zoo_addr) / sizeof(ur_qa_zoo_addr[0]); ++ur_i)

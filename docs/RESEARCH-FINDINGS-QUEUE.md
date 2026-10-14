@@ -55,12 +55,14 @@ A coarse agreement is equality of the quantized census fields (position/64 and /
 
 `80:FAC9` waits for the next vblank on `$4212`. `80:FADF` then decrements direct-page `7E:00C6` modulo 32 and writes `table[$C6>>1]` (table at `80:FBAF`) to `7E:0BDE/0BFE`. Each decrement of `$C6` is therefore one completed game frame, and a host frame without one is a lag frame. [`tools/qa_lag_frame_census.py`](../tools/qa_lag_frame_census.py) counts decrements between dense dumps on every engine for the same controller stream, with no instrumentation.
 
-| Stock 2P route, host frames 2–1126 | Game frames | Lag frames |
+| Stock 2P route, host frames 2–1126 | Game frames (`$C6` passes) | Host frames without a pass |
 | --- | ---: | ---: |
 | Snes9x | 801 | 323 |
 | Beetle-bsnes | 802 | 322 |
 | Modern native (`4c1c8b56…`) | **773** | **351** |
 | Generic SNESRecomp native (no Modern patches) | **772** | **352** |
+
+The no-input attract cycle (host 2–4002, one counter-rewrite window excluded) shows the same pattern: native **1,311** passes, Snes9x 1,326, Beetle-bsnes 1,327. A frame without a pass is a lag frame only where the game runs the wait every frame (menus, loads); races and demos don't use it.
 
 The two independent reference cores agree within one frame. Both native builds complete 28–30 fewer game frames, so the deficit is in the shared SNESRecomp runtime or generated code, not the Modern product host. Every one of the 27 differing windows is a screen transition or menu slide (menus `0x84`, `0xD7`, `0x3D`, `0x6D`, `0x91`); in steady menus all three run one game frame per host frame. At one-frame resolution the sharpest window is the `0x84→0xD7` load: all engines hold `$C6` from host 426, the reference cores resume at 436–437 and show menu `0xD7` at 440, native resumes at 442 and shows `0xD7` at 446. Native needs about 5 extra host frames for the same load. The resulting `$C6` offset (4 mod 32) is frozen during the race and explains RF-012's `$0BDE/$0BFE` offset of 8 exactly. Native losing game frames at heavy transitions is the most economical common explanation for RF-012 (longer result phase), RF-013 (later, phase-dependent entry) and the 1P result-handoff seams QA-01 is chasing. It is a hypothesis to adjudicate, not a ruling. AGENTS forbids tuning `$4212` merely to match one emulator; the question is why native spends extra host frames on the same guest work.
 

@@ -33,16 +33,26 @@ class Census(unittest.TestCase):
         })
         self.assertEqual(result["host_frames"], 12)
         self.assertEqual(result["game_frames"], {"native": 9, "snes9x": 12})
-        self.assertEqual(result["lag_frames"], {"native": 3, "snes9x": 0})
+        self.assertEqual(result["frames_without_vblank_wait_pass"], {"native": 3, "snes9x": 0})
         self.assertEqual(result["differing_windows"], [
             {"host_frames": [4, 8], "menu": {"native": 0x84, "snes9x": 0xD7},
              "game_frames": {"native": 1, "snes9x": 4}}])
         self.assertEqual(result["release_gate_credit"], 0)
 
-    def test_rejects_samples_too_sparse_or_impossible_counts(self):
+    def test_rejects_samples_too_sparse(self):
         with self.assertRaisesRegex(ValueError, "period"):
             m.census([0, 40], {"a": pages([0, 0])})
-        with self.assertRaisesRegex(ValueError, "impossible"):
+
+    def test_counter_rewrites_are_excluded_for_every_engine(self):
+        # native jumps 0x10 -> 0x0C in 2 frames (4 "passes"): a rewrite.
+        result = m.census([0, 2, 4], {
+            "native": pages([0x10, 0x0C, 0x0A]),
+            "snes9x": pages([0x10, 0x0E, 0x0C]),
+        })
+        self.assertEqual(result["host_frames"], 2)
+        self.assertEqual(result["game_frames"], {"native": 2, "snes9x": 2})
+        self.assertEqual(result["excluded_counter_rewrites"][0]["host_frames"], [0, 2])
+        with self.assertRaisesRegex(ValueError, "no window"):
             m.census([0, 2], {"a": pages([0x10, 0x0C])})
 
 

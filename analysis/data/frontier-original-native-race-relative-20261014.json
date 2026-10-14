@@ -53,9 +53,751 @@
  },
  "date": "2026-10-14",
  "findings": {
-  "lag_frames": "stock route host 2-1126: game frames (7E:00C6 decrements) native 773, Snes9x 801, Beetle-bsnes 802",
+  "lag_frames": "7E:00C6 vblank-wait passes: stock 2P route host 2-1126 native 773, Snes9x 801, Beetle-bsnes 802; no-input attract cycle host 2-4002 (one rewrite window excluded) native 1311, Snes9x 1326, Beetle-bsnes 1327; generic SNESRecomp native (stock route) 772",
   "mid_race": "26 of 26 non-terminal comparisons: zero differing decoded fields and zero differing WRAM bytes at $0200+",
   "result_phase": "49 terminal seeds across all five arms: decoded fields identical until the reference's 0x16 restoration; first $0200+ byte difference 1-2 native frames before result-menu onset; 0x84 phase {'(35, 34)': 48, '(36, 34)': 1} (native, reference)"
+ },
+ "lag_frame_census_attract_cycle_no_input": {
+  "differing_windows": [
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 2,
+     "native": 2,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     114,
+     118
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 0,
+     "native": 0,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 0,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     118,
+     122
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 0,
+     "native": 0,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 3
+    },
+    "host_frames": [
+     122,
+     126
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 0,
+     "native": 0,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 1,
+     "native": 2,
+     "snes9x_libretro": 2
+    },
+    "host_frames": [
+     246,
+     250
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 3,
+     "native": 0,
+     "snes9x_libretro": 2
+    },
+    "host_frames": [
+     274,
+     278
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     302,
+     306
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     402,
+     406
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 1,
+     "native": 0,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     434,
+     438
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 3,
+     "native": 1,
+     "snes9x_libretro": 2
+    },
+    "host_frames": [
+     438,
+     442
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 215,
+     "native": 132,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 0,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     442,
+     446
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     466,
+     470
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     534,
+     538
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     666,
+     670
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     782,
+     786
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     890,
+     894
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     942,
+     946
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 132,
+     "native": 215,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     946,
+     950
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 132,
+     "native": 215,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     950,
+     954
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 1,
+     "native": 0,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     974,
+     978
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 1,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     986,
+     990
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 1,
+     "native": 0,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     1094,
+     1098
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 0,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     1098,
+     1102
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 0,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     1102,
+     1106
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 0,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     1106,
+     1110
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 2,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     1110,
+     1114
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     1114,
+     1118
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     1382,
+     1386
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     1414,
+     1418
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     1422,
+     1426
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 0,
+     "native": 132,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     1426,
+     1430
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 0,
+     "native": 132,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     1430,
+     1434
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 0,
+     "native": 132,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     1434,
+     1438
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 0,
+     "native": 132,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 2,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     1438,
+     1442
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 0,
+     "native": 0,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 2,
+     "native": 0,
+     "snes9x_libretro": 2
+    },
+    "host_frames": [
+     3718,
+     3722
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 132,
+     "native": 0,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 1,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     3734,
+     3738
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 132,
+     "native": 0,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 1,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     3738,
+     3742
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 1,
+     "native": 0,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     3754,
+     3758
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 0,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     3758,
+     3762
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 215,
+     "native": 132,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 0,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     3762,
+     3766
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 215,
+     "native": 132,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 0,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     3766,
+     3770
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 215,
+     "native": 132,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     3774,
+     3778
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     3886,
+     3890
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     3986,
+     3990
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   }
+  ],
+  "excluded_counter_rewrites": [
+   {
+    "host_frames": [
+     3770,
+     3774
+    ],
+    "menu": {
+     "mednafen_snes_libretro": 215,
+     "native": 132,
+     "snes9x_libretro": 215
+    },
+    "raw_steps": {
+     "mednafen_snes_libretro": 4,
+     "native": 30,
+     "snes9x_libretro": 4
+    }
+   }
+  ],
+  "first_sample": 2,
+  "frames_without_vblank_wait_pass": {
+   "mednafen_snes_libretro": 2669,
+   "native": 2685,
+   "snes9x_libretro": 2670
+  },
+  "game_frames": {
+   "mednafen_snes_libretro": 1327,
+   "native": 1311,
+   "snes9x_libretro": 1326
+  },
+  "host_frames": 3996,
+  "identity": {
+   "mednafen_snes_libretro": {
+    "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "snes9x_core_sha256": "e1278b2a87bf2df10b9ba795131a949936d4d1d87f6ac15ac2e1cb672b9f2cb5",
+    "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+   },
+   "native": {
+    "executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f"
+   },
+   "snes9x_libretro": {
+    "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "snes9x_core_sha256": "040a61a06138543eba335e385b776f67a6cf9f69a924adbc4412a049e2c40189",
+    "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+   }
+  },
+  "input_sha256": "d7438ffab4234d168c7a496ef33ded7771fcca0cb0b4e2e08b18c99b9cfd21a7",
+  "last_sample": 4002,
+  "original_native_parity_claimed": false,
+  "release_gate_credit": 0,
+  "schema": "ur-lag-frame-census/1"
  },
  "lag_frame_census_stock_route": {
   "differing_windows": [
@@ -492,7 +1234,13 @@
     }
    }
   ],
+  "excluded_counter_rewrites": [],
   "first_sample": 2,
+  "frames_without_vblank_wait_pass": {
+   "mednafen_snes_libretro": 322,
+   "native": 351,
+   "snes9x_libretro": 323
+  },
   "game_frames": {
    "mednafen_snes_libretro": 802,
    "native": 773,
@@ -515,11 +1263,6 @@
    }
   },
   "input_sha256": "28f2842fd262030e434b3aef88eb360f74de94fbf558f0eb0ba8edce645fb490",
-  "lag_frames": {
-   "mednafen_snes_libretro": 322,
-   "native": 351,
-   "snes9x_libretro": 323
-  },
   "last_sample": 1126,
   "original_native_parity_claimed": false,
   "release_gate_credit": 0,

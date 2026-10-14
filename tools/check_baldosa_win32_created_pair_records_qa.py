@@ -110,6 +110,17 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
         logs = [x.decode("utf-8") for x in raw_logs]
     except (ValueError, UnicodeError) as exc:
         raise ValueError("invalid Win32 native five-process evidence encoding") from exc
+    expected_report_fields = {
+        "scope", "actual_frontend_created_profiles", "observed_stock_riders",
+        "observed_source_guest_result", "canonical_one_pair_sha256",
+        "fresh_native_records_for_each",
+        "p2_existing_profile_select_via_fixture_not_player_UI",
+        "native_existing_p1_profile_selector_UI_proved",
+        "physical_pad_hardware_accepted", "original_native_strict_event_accepted",
+        "release_gate_credit",
+    }
+    require(type(report) is dict and set(report) == expected_report_fields,
+            "unexpected producer report claim or missing canonical field")
     require(type(report) is dict and
             report.get("scope") ==
             "two-native-controller-created-profiles-played-source-2p-and-both-records" and
@@ -187,8 +198,13 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
     run = PureWindowsPath(match[2])
     require(run.is_absolute() and ".." not in run.parts and
             run.parent.name == "multiplayer-runs" and
+            run.parent.parent == root and
             run.suffix == ".urrun" and run.name.startswith("run-"),
             "match published to untrusted path or name")
+    term = list(re.finditer(r"(?m)^script f=(\\d+) quit\\r?$", played))
+    require(len(term) == 1 and term[0].start() > source.end()
+            and int(term[0][1]) >= result_host,
+            "source race quit or finished before captured scored event")
     observed = report.get("observed_source_guest_result")
     require(type(observed) is dict and
             observed == {

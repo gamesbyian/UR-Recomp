@@ -90,6 +90,13 @@ def audit_guest_script(
     title, race = menu
     tick, dump, end = ticker[0], dumped[0], quit[0]
     source_entry = "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d"
+    script_lines = [line for line in log.splitlines() if "script f=" in line]
+    if (
+        len(script_lines) != 6
+        or script_lines[0] != "script f=0 turbo on"
+        or any(not line.startswith("script f=") for line in script_lines)
+    ):
+        raise ValueError("ambiguous or shadowed native GO-script execution receipts")
     if (
         not (log.index(source_entry) < race.start() < tick.start() <
              dump.start() < end.start())
@@ -125,9 +132,16 @@ def read_bounded_runtime(path: Path) -> tuple[bytes, bytes, bytes, bytes]:
         names = [i.filename for i in infos]
         if len(names) != len(set(names)):
             raise ValueError("duplicated Windows evidence ZIP member")
-        for name in (PREFIX + part for part in FILES):
+        limits = (64 * 1024, 2 * 1024 * 1024,
+                  2 * 1024 * 1024, 2 * 1024 * 1024)
+        for part, limit in zip(FILES, limits):
+            name = PREFIX + part
             if name not in names:
                 raise ValueError("absent exact source-owned P1/P2 Win32 evidence: " + name)
+            info = archive.getinfo(name)
+            if (not 0 < info.file_size <= limit
+                    or ((info.external_attr >> 16) & 0o170000) == 0o120000):
+                raise ValueError("oversized or linked native source evidence member")
         return tuple(archive.read(PREFIX + part) for part in FILES)
 
 

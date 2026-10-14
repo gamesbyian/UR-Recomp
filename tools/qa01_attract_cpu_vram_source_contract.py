@@ -106,6 +106,111 @@ def hud_direct_caller_source_contract(bank81: str, bank82: str) -> dict:
     }
 
 
+# The original menu/logo load has its own direct upload call chain. This
+# is not an executed-PC receipt or an assertion that the first dark run was
+# necessarily produced by either function.
+ORIGINAL_ATTRACT_UPLOAD_ANCHORS = {
+    "bank80_attract": (
+        "80/93FB: E2 20        SEP #$20",
+        "80/9400: A9 80        LDA #$80",
+        "80/9402: 8D 00 21     STA $2100",
+        "80/9419: A9 4E        LDA #$4E",
+        "80/941B: 22 D8 B1 82  JSR $82B1D8",
+        "80/9422: A9 48        LDA #$48",
+        "80/9424: 22 D8 B1 82  JSR $82B1D8",
+    ),
+    "bank80_logo": (
+        "80/B0A4: A9 50        LDA #$50",
+        "80/B0A6: 22 D8 B1 82  JSR $82B1D8",
+        "80/B0AD: A9 4A        LDA #$4A",
+        "80/B0AF: 22 D8 B1 82  JSR $82B1D8",
+        "80/B0C3: 20 C9 FA     JSR $FAC9",
+    ),
+    "bank82_cpu_upload": (
+        "82/B1D8: 08           PHP",
+        "82/B1DB: E2 20        SEP #$20",
+        "82/B1DD: 8E 16 21     STX $2116",
+        "82/B1E9: A5 4D        LDA $4D",
+        "82/B1EB: C9 80        CMP #$80",
+        "82/B1ED: F0 19        BEQ $B208",
+        "82/B1F2: 20 93 B2     JSR $B293",
+        "82/B1F5: 8F 18 21 00  STA $002118",
+        "82/B1F9: 20 93 B2     JSR $B293",
+        "82/B1FC: 8F 19 21 00  STA $002119",
+        "82/B200: CA           DEX",
+        "82/B201: CA           DEX",
+        "82/B202: D0 EE        BNE $B1F2",
+        "82/B216: 22 89 BB 81  JSR $81BB89",
+    ),
+    "bank81_decompress_cpu_upload": (
+        "81/BB89: C2 39        REP #$39",
+        "81/BCEE: 8F 19 21 00  STA $002119",
+        "81/BCF4: 8F 18 21 00  STA $002118",
+    ),
+}
+
+
+def attract_upload_direct_source_contract(bank80: str, bank81: str,
+                                          bank82: str) -> dict:
+    sources = {
+        "bank80_attract": bank80,
+        "bank80_logo": bank80,
+        "bank82_cpu_upload": bank82,
+        "bank81_decompress_cpu_upload": bank81,
+    }
+    for label, anchor_lines in ORIGINAL_ATTRACT_UPLOAD_ANCHORS.items():
+        actual = sources[label].splitlines()
+        positions = []
+        for anchor in anchor_lines:
+            matches = [i for i, line in enumerate(actual)
+                       if line.startswith(anchor)]
+            if len(matches) != 1:
+                raise ValueError(f"missing/duplicate/altered original upload source: {anchor}")
+            positions.append(matches[0])
+        if positions != sorted(set(positions)):
+            raise ValueError(f"original upload caller/store ordering changed: {label}")
+    return {
+        "source_attract_entry_pc": "80:93FB",
+        "source_attract_upload_call_pcs": ["80:941B", "80:9424"],
+        "source_logo_upload_call_pcs": ["80:B0A6", "80:B0AF"],
+        "source_cpu_upload_entry_pc": "82:B1D8",
+        "source_byte_upload_loop_pcs": ["82:B1F2", "82:B1F5", "82:B1F9",
+                                       "82:B1FC", "82:B200", "82:B201",
+                                       "82:B202"],
+        "source_compressed_branch_pc": "82:B1ED",
+        "source_compressed_call_pc": "82:B216",
+        "source_decompress_entry_pc": "81:BB89",
+        "source_decompress_byte_store_pcs": ["81:BCEE", "81:BCF4"],
+        "source_upload_m8_mode": "82:B1DB SEP #$20",
+        "full_source_upload_word_count_executed_proven": False,
+        "actual_original_host_248_278_writer_pcs_observed": False,
+        "selected_original_compression_branch_dynamically_observed": False,
+        "original_memory_speed_at_upload_proven": False,
+        "full_first_load_timing_causality_proven": False,
+    }
+
+
+def conditional_long_store_master_clocks(width_bytes: int, memsel: int) -> dict:
+    """One STA long to SNES PPU I/O; does not assume observed CPU mode."""
+    if width_bytes not in (1, 2):
+        raise ValueError("STA long requires 8-bit or 16-bit data width")
+    if memsel not in (0, 1):
+        raise ValueError("MEMSEL must be 0 or 1")
+    code_speed = 6 if memsel else 8  # bank 82:$B1xx or bank 81:$BBxx
+    fetch_bytes = 4  # STA long opcode plus 24-bit operand
+    old = (fetch_bytes + width_bytes) * code_speed
+    paced = fetch_bytes * code_speed + width_bytes * 6  # bank00 PPU I/O
+    return {
+        "width_bytes": width_bytes,
+        "memsel": memsel,
+        "old_uniform_master_clocks": old,
+        "baldosa_paced_master_clocks": paced,
+        "old_minus_paced_master_clocks": old - paced,
+        "actual_source_pc_executed_in_host_window": False,
+        "first_load_timing_causality_proven": False,
+    }
+
+
 MEMSEL_ORIGINAL_OPCODE_ANCHORS = {
     "bank80_boot_fastrom_set": (
         "80/91E8: A9 01        LDA #$01",
@@ -266,6 +371,15 @@ def main() -> int:
     result = report(BANK81.read_text(encoding="utf-8"),
                     BALDOSA_BANK00.read_text(encoding="utf-8"),
                     BALDOSA_BANK81.read_text(encoding="utf-8"))
+    result["original_attract_upload_direct_source"] = attract_upload_direct_source_contract(
+        BANK80.read_text(encoding="utf-8"),
+        BANK81.read_text(encoding="utf-8"),
+        BANK82.read_text(encoding="utf-8"),
+    )
+    result["conditional_sta_long_ppu_clock_scenarios"] = [
+        conditional_long_store_master_clocks(width, memsel)
+        for memsel in (0, 1) for width in (1, 2)
+    ]
     result["original_hud_direct_caller_source"] = hud_direct_caller_source_contract(
         BANK81.read_text(encoding="utf-8"),
         BANK82.read_text(encoding="utf-8"),

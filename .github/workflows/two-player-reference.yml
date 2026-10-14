@@ -460,7 +460,7 @@ jobs:
               >"$ROOT/original.log" 2>&1
           # The EXACT pinned native ELF already has source CPU-helper address
           # logging. No replacement/rebuilt guest or release candidate.
-          export SNESRECOMP_WLOG_ADDR="0415:0547:$ROOT/native-writers.log"
+          export SNESRECOMP_WLOG_ADDR="0415:0548:$ROOT/native-writers.log"
           export SNESRECOMP_WLOG_ADDR_CAP=100000
           python3 - "$EXE" "$ROM" "$ROOT" >"$ROOT/native-wrapper.log" 2>&1 <<'PY'
           import pathlib,sys

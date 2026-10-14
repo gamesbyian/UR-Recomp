@@ -93,6 +93,7 @@ def run_game_hard_killed(exe: Path, rom: Path, user: Path, work: Path,
     log_path = work / "log.txt"
     deadline = time.monotonic() + timeout
     reached = False
+    killed_live = False
     with open(log_path, "wb") as sink:
         proc = subprocess.Popen(
             [str(exe), "--no-launcher", "--config", str(ini),
@@ -106,13 +107,27 @@ def run_game_hard_killed(exe: Path, rom: Path, user: Path, work: Path,
                     reached = True
                     break
         finally:
-            if proc.poll() is None:
+            # Fail closed: only a child demonstrably alive at this instant is
+            # killed; one that already exited or crashed proves nothing.
+            if reached and proc.poll() is None:
+                proc.kill()
+                killed_live = True
+            elif proc.poll() is None:
                 proc.kill()
             proc.wait(timeout=30)
     log = log_path.read_bytes().decode("utf-8", "replace")
     if not reached:
         raise RuntimeError("Practice never reached live source GO before kill: "
                            + log[-1800:])
+    if not killed_live:
+        raise RuntimeError("Practice process was no longer live at the kill "
+                           "point (exited/crashed after GO): " + log[-1800:])
+    # TerminateProcess/SIGKILL always yield a non-zero, non-clean status; a
+    # script `quit` or normal shutdown would have returned 0.
+    if proc.returncode in (0, None):
+        raise RuntimeError("Killed Practice process reported a clean exit")
+    if "script f=" in log and " quit" in log.split("until 00E1F ok", 1)[-1]:
+        raise RuntimeError("Practice reached script quit/normal shutdown")
     return log
 
 

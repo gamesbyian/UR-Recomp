@@ -135,7 +135,7 @@ def frame_receipts(log_path: Path, tags: list[str], *, side: str) -> dict:
             raise ValueError("unexpected frame label in pinned replay manifest")
         expected.append((frame, tag))
     matches = [(int(frame), label) for frame, label in re.findall(
-        r"script f=(\\d+) dump ([A-Za-z0-9-]+) ok\\b", log)]
+        r"script f=(\d+) dump ([A-Za-z0-9-]+) ok\b", log)]
     selected = [row for row in matches if row[1] in tags]
     if selected != expected:
         raise ValueError(

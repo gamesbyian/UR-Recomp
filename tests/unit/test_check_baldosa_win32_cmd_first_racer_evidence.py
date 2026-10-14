@@ -156,6 +156,10 @@ class NativeFirstRacerCMDReview(unittest.TestCase):
             self.assertEqual(checked["outcome"], "inconclusive")
             self.assertTrue(checked["metrics"][
                 "hosted_cmd_two_native_roots_one_first_racer_restart_log_consistent"])
+            self.assertTrue(checked["metrics"][
+                "hosted_cmd_noargs_first_racer_restart_producer_reported"])
+            self.assertFalse(checked["metrics"][
+                "hosted_cmd_noargs_first_racer_restart_producer_reported_only"])
             self.assertFalse(checked["metrics"]["strict_original_native_complete_event_accepted"])
             self.assertIn(
                 "hosted-cmd-noargs-first-racer-two-native-roots-source-log-consistent",

@@ -25,8 +25,8 @@ def observed():
         "p2_profile": "native-ci-second",
         "played_guest_2p_result_published": True,
         "canonical_match_artifact_sha256": {
-            "run-123.urrun": "a" * 64,
-            "run-123.urrun.urmatch": "b" * 64,
+            "run-0001791946896142-0000.urrun": "a" * 64,
+            "run-0001791946896142-0000.urrun.urmatch": "b" * 64,
         },
         "new_native_process_reopened_paired_2p_records": True,
         "p2_named_profile_sram_preserved": True,
@@ -49,7 +49,7 @@ def observed():
         "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2\n"
         "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d\n"
         "UR_BALDOSA_NATIVE_MATCH CAPTURED=1 profile1=native-ci-rider "
-        "profile2=native-ci-second course=course:01 frames=2231 path=C:\\CI\\multiplayer-runs\\run-123.urrun\n"
+        "profile2=native-ci-second course=course:01 frames=2231 path=C:\\CI\\multiplayer-runs\\run-0001791946896142-0000.urrun\n"
         "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-2p race_host=2146 "
         "result_host=4377 riders=0,2 hundredths=2761,2757 winner=2 "
         "input_frames=2231 input_runs=5 published=1\n"
@@ -86,7 +86,7 @@ class HostedNativeWindowsTwoPlayerRecordsQA(unittest.TestCase):
         self.assertEqual(result["hosted_native_2p_source_riders"], [0, 2])
         self.assertEqual(result["hosted_native_2p_source_times_hundredths"], [2761, 2757])
         self.assertEqual(result["hosted_native_2p_source_winner"], 2)
-        self.assertEqual(result["hosted_native_2p_saved_run_capture_basename"], "run-123.urrun")
+        self.assertEqual(result["hosted_native_2p_saved_run_capture_basename"], "run-0001791946896142-0000.urrun")
         self.assertEqual(result["hosted_native_2p_player1_records_display_verified"],
                          "LAST 01 LOSS 00:27.61 source=historical_paired_archive")
         self.assertFalse(result["hosted_saved_2p_pair_bytes_independently_reopened"])
@@ -106,8 +106,12 @@ class HostedNativeWindowsTwoPlayerRecordsQA(unittest.TestCase):
             played.replace("input_frames=2231", "input_frames=9999"),
             played.replace("CAPTURED=1", "NOT_SAVED=1"),
             played.replace("frames=2231 path=", "frames=2230 path="),
-            played.replace("run-123.urrun", "different-run.urrun"),
+            played.replace("run-0001791946896142-0000.urrun", "different-run.urrun"),
             played.replace("multiplayer-runs", "unrelated-runs"),
+            played.replace("path=C:\\\\CI", "path=relative"),
+            played.replace("path=C:\\\\CI", "path=C:\\\\CI\\\\..\\\\"),
+            played.replace("run-0001791946896142-0000.urrun",
+                           "run-1791946896142-0000.urrun"),
             played.replace("course=course:01", "course=course:02"),
             played.replace("join_confirmed seat=2", "join_rejected seat=2"),
             played + played,
@@ -171,10 +175,10 @@ class HostedNativeWindowsTwoPlayerRecordsQA(unittest.TestCase):
             ("release_gate_credit", False),
             ("original_native_strict_event_pass", True),
             ("physical_gamepads_tested", True),
-            ("canonical_match_artifact_sha256", {"run-123.urrun": "a" * 64}),
+            ("canonical_match_artifact_sha256", {"run-0001791946896142-0000.urrun": "a" * 64}),
             ("canonical_match_artifact_sha256", {
-                "run-123.urrun": "a" * 64,
-                "run-123.urrun.urmatch": "bad-hash",
+                "run-0001791946896142-0000.urrun": "a" * 64,
+                "run-0001791946896142-0000.urrun.urmatch": "bad-hash",
             }),
             ("source_result", {
                 **report["source_result"], "source_result_host": True,

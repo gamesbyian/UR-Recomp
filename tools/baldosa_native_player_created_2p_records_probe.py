@@ -145,10 +145,13 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
     old_p1 = profile_sram(user, P1)
     old_p2 = profile_sram(user, P2)
     ui_switch = run_game(
-        exe, rom, user, out / "mike_ui_selects_martin", "6",
+        exe, rom, user, out / "mike_ui_selects_martin", "7",
         "turbo on\nwait 900\nquit\n", video, timeout)
     verify_boot_sram(ui_switch, old_p1, profile=P1)
     require_switch(ui_switch, P1, P2)
+    if (ui_switch.count("UR_BALDOSA_MODERN_ROOT synthetic_p1_switch_gamepad=")
+            != 4):
+        raise ValueError("P1 X/A/B/A controller-dispatch sequence not executed")
     if selector.read_bytes() == old_selector:
         raise ValueError("Controller X/A failed to change next-boot P1 selector")
     if (catalog.read_bytes() != old_catalog or

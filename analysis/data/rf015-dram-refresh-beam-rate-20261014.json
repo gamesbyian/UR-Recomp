@@ -720,6 +720,43 @@
     "core_sha256": "3504cb55668e354a7a741e20f42b919609b8534fb0b975daf86d3fb4264747ef",
     "movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
     "input_sha256": "1163b26e1f1c37cb600f64dfcd884990a22f4cbd7b5a87928d93cb482fab11a8"
+   },
+   "merged_producer_with_followthrough": {
+    "base": {
+     "disposition": "strict_divergence",
+     "terminal_guest_relative_frames": {
+      "native_relative": 5162,
+      "reference_relative": 5163
+     },
+     "producer_sha256": "f624c49d9ff3d67abcd8a31ff8599dc2de98881faeca8dc9481481cfd57abadd"
+    },
+    "fixed": {
+     "disposition": "strict_candidate",
+     "terminal_guest_relative_frames": {
+      "native_relative": 5163,
+      "reference_relative": 5163
+     },
+     "producer_sha256": "717efd20a0f280e6a37c757edf8f6593c13211d8d1d478916c72df07182310e8"
+    },
+    "fixed_followthrough_menu": {
+     "+8": [
+      188,
+      188
+     ],
+     "+16": [
+      188,
+      246
+     ],
+     "+24": [
+      246,
+      246
+     ],
+     "+32": [
+      246,
+      246
+     ]
+    },
+    "note": "[original, native] per each guest's own onset; race-relative 0x16->F6: original 5180, both Baldosa builds 5179 (RF-017)"
    }
   },
   "switcher": {
@@ -881,5 +918,14 @@
     5012
    ]
   }
+ },
+ "rf017_post_result": {
+  "original_wait_arrival": "host 6181 V=224 H=1242; NMI at V=225 inside 82:8035 (handler 1020 clocks)",
+  "native_first_4212_read": "observer frame 6182 V=224 H=1336 value $40",
+  "hdmaen": "$00",
+  "dma_bytes": 2048,
+  "dma_cost_snes9x": 16930,
+  "dma_cost_baldosa_plus_refresh_estimate": 16884,
+  "unattributed_clocks_per_field": 544
  }
 }

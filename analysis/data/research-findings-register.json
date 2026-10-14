@@ -382,6 +382,28 @@
    "uncertainty": "Disposable A/B executed 2026-10-14 (refresh-corrected build + RTL_APU_CYCLES_PER_FRAME 17060, exe 81315543...): the 941 load then ends on bsnes's frame (1098) and the next starts on it (1423), but 1423-1548 vs 1547 and 3633-3763 vs 3632-3762 move one frame late. The SPC rate therefore participates, but the references' nominal 32040 Hz x 32 over-corrects other loads and the ~19k-clock IPL-phase lead is unattributed. Real consoles' APU resonators vary; Baldosa's audio pipeline is built around 534 samples per field, so the rate is a design constant, not a one-line fix.",
    "resolving_experiment": "Attribute the IPL-phase lead (1009-1025: SPC reset to $BBAA ready, small port-0/1 blocks) with an SPC-side PC/cycle trace on Baldosa and bsnes, then re-test the per-field stream rate; adopt no SPC-rate change until every attract load and the 2P/Zoo witnesses agree.",
    "consequence": "Result-screen song uploads decide the 0x84 onset field when the original reaches the wait just after VBlank (2P seed 50048000; likely QA-01 Switcher +4664), and attract loads end a fraction of a field early. Affects strict frame-exact event comparison."
+  },
+  {
+   "id": "RF-017",
+   "title": "Zoom Zoo post-result: the refresh-corrected core passes the 80:FAC9 wait one field early at result +2 (original arrives 122 clocks before VBlank and is caught by NMI); both Baldosa builds show it",
+   "class": "original_native_discrepancy",
+   "status": "handed_off",
+   "evidence": "original_and_native",
+   "owner_lane": "qa01-gameplay",
+   "reproducer": {
+    "command": "python3 tools/probe_original_event_complete.py --case zoom-zoo --native-backend pinned-baldosa --source-horizon 22000 --source-followthrough --snesref <Baldosa snesref> --core <snes9x> --native <Baldosa 10b864b + QA scene-input shim + refresh patch> ...; then replay replay/ref.input and replay/pinned-baldosa.input from anchored.srm with complete.script's tail replaced by one dump per frame for 30 frames after 'dump result-onset'",
+    "race_relative_lag": 0,
+    "case": "zoom-zoo",
+    "runs": []
+   },
+   "source_artifacts": [
+    "docs/QA01-RF015-DRAM-REFRESH-BEAM-RATE-20261014.md",
+    "analysis/data/rf015-dram-refresh-beam-rate-20261014.json"
+   ],
+   "observation": "With the onset corrected (+5163 = +5163), the merged producer's follow-through shows native at menu 246 by result +16 while the original and the archived source movie are still at 188. Dense per-frame replay: identical through +1; from +2 the native $C6 cursor wait runs one field ahead and the 0x16->F6 transition is race-relative 5179 on both Baldosa builds vs 5180 on the original (the unpatched build's coarse samples only matched because its onset was already one frame early). Snes9x reaches 80:FAC9 at host 6181 V=224 H=1242; NMI is taken at V=225 inside 82:8035 (handler 1,020 clocks) and the first $4212 read sees VBlank set. Baldosa's first read is at V=224 H=1336 (bit 7 clear). HDMAEN=$00 in these fields; the 2,048-byte channel-7 DMA is charged within ~46 clocks of Snes9x.",
+   "uncertainty": "About 544 master clocks (~0.15%) of the field's CPU work separate the outcomes. Mid-block observer checkpoints are biased by block-entry cycle charging and are not used for attribution. Candidates: native NMI handler cost, per-instruction costs in this field's code, or 82:8035's $2142 path. Not caused by the RF-015 correction.",
+   "resolving_experiment": "Function-level timing for host 6181 (original) / observer frame 6182 (native) from the V=225 NMI to 80:FACD: Snes9x executed-PC costs per routine vs a SNESRECOMP_TRACE Baldosa build's per-function master clocks; attribute the ~544 clocks before any change.",
+   "consequence": "Next earliest difference in the Zoom Zoo complete event after RF-015: the result screen advances one field early, which blocks strict return-to-menu and progression parity."
   }
  ]
 }

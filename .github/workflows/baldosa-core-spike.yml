@@ -20,6 +20,7 @@ on:
       # or disposable diagnostic patch changes, even with no workflow edit.
       - "tools/qa08_patch_ppu_pixel_compose_probe.py"
       - "tools/check_qa08_native_main_sub_pixel_probe.py"
+      - "tests/unit/test_qa08_native_ppu_main_sub_probe.py"
       - "tools/baldosa_native_ws24_presentation.cpp"
       - "tools/baldosa_ws24_presentation_report.py"
       - "native/title/uniracers_ws_margins.c"

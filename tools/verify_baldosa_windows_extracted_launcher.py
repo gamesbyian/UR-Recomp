@@ -118,7 +118,9 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
     # Fail closed on the complete immutable ZIP before creating even the
     # disposable extraction root, let alone executing the native PE.
     audit = audit_candidate_archive(archive, expected_revision=expected_revision)
-    approved_archive_sha256 = str(audit["zip_sha256"])
+    approved_archive_sha256 = digest(archive)
+    require(approved_archive_sha256 == audit["zip_sha256"],
+            "candidate ZIP changed between manifest validation and extraction")
     output.mkdir(parents=True)
     installed = output / "Extracted Baldosa Candidate With Spaces"
     installed.mkdir()

@@ -86,6 +86,68 @@ int main() {
     assert(baldosa_sram_file_matches_exact(
         raw, expected_mike.data(), expected_mike.size()));
 
+    // Simulate the exact durable shape left by a process death after
+    // catalog/typed/raw publication but before the selector's last CAS.
+    // A WRONG preset may never choose another person's interrupted identity.
+    const auto interrupted = workspace / "interrupted-catalog-publication";
+    assert(fs::create_directory(interrupted));
+    const auto initially_complete =
+        create_baldosa_first_preset_for_next_boot(interrupted, 1);
+    assert(initially_complete.created() &&
+           initially_complete.profile_id == "andrew");
+    const auto missing_selector = interrupted / "host-state-v1.txt";
+    assert(fs::remove(missing_selector)); // test-only crash fixture
+    const auto interrupted_typed =
+        interrupted / "saves/profile-andrew/host-profile.txt";
+    const auto interrupted_raw =
+        interrupted / "saves/profile-andrew/save.srm";
+    const auto interrupted_catalog = interrupted / "profiles-v1.txt";
+    const auto exact_contents = [](const fs::path& p) {
+        std::ifstream stream(p, std::ios::binary);
+        return std::string(std::istreambuf_iterator<char>(stream),
+                           std::istreambuf_iterator<char>());
+    };
+    const auto typed_bytes = exact_contents(interrupted_typed);
+    const auto raw_bytes = exact_contents(interrupted_raw);
+    const auto catalog_bytes = exact_contents(interrupted_catalog);
+    assert(!typed_bytes.empty() && raw_bytes.size() == kStockSramBytes &&
+           !catalog_bytes.empty());
+    assert(recover_baldosa_first_preset_for_next_boot(interrupted, 0).status ==
+           BaldosaFirstRacerStatus::ExistingData);
+    assert(!fs::exists(missing_selector));
+    const auto resumed =
+        recover_baldosa_first_preset_for_next_boot(interrupted, 1);
+    assert(resumed.status == BaldosaFirstRacerStatus::Recovered &&
+           resumed.created() && resumed.profile_id == "andrew");
+    const auto reselected =
+        load_host_product_state_file(missing_selector.string());
+    assert(reselected.loaded() &&
+           reselected.state->active_profile_id == "andrew");
+    assert(exact_contents(interrupted_typed) == typed_bytes);
+    assert(exact_contents(interrupted_raw) == raw_bytes);
+    assert(exact_contents(interrupted_catalog) == catalog_bytes);
+    assert(recover_baldosa_first_preset_for_next_boot(interrupted, 1).status ==
+           BaldosaFirstRacerStatus::AlreadyConfigured);
+
+    // Correct profile name is not enough: a power-loss/corruption during raw
+    // write must remain nonrecoverable by a generic one-button adoption.
+    const auto interrupted_bad = workspace / "interrupted-bad-sram";
+    assert(fs::create_directory(interrupted_bad));
+    assert(create_baldosa_first_preset_for_next_boot(interrupted_bad, 0)
+               .created());
+    assert(fs::remove(interrupted_bad / "host-state-v1.txt"));
+    const auto corrupted = interrupted_bad / "saves/profile-mike/save.srm";
+    {
+        std::fstream output(corrupted,
+                            std::ios::binary | std::ios::in | std::ios::out);
+        output.seekp(0x0748);
+        output.put(static_cast<char>(0x7F));
+        output.flush();
+    }
+    assert(recover_baldosa_first_preset_for_next_boot(interrupted_bad, 0)
+               .status == BaldosaFirstRacerStatus::ExistingData);
+    assert(!fs::exists(interrupted_bad / "host-state-v1.txt"));
+
     // A foreign/broken catalog, a dangling redirected save path, and
     // corrupted global state may not be silently overwritten.
     const auto foreign = workspace / "foreign";

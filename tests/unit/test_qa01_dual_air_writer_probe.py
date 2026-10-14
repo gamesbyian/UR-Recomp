@@ -226,5 +226,24 @@ class AirWriterProbe(unittest.TestCase):
             [("2580", "7E", "0548", "01", "1", "Source_P2_Writeback")])
 
 
+    def test_archived_bank82_stunt_reads_full_candidate_word_and_branches(self):
+        # Read-side *static* source discriminators, no executing USA-PC
+        # claim. These guard follow-on source trace selection.
+        bank82 = (ROOT / "reference/imported/reverse-engineering/"
+                  "nitrodon/bank 82.txt").read_text(encoding="utf-8")
+        for sequence in (
+            ("82/9A42: C2 30        REP #$30",
+             "82/9A60: AD 29 0F     LDA $0F29",
+             "82/9A63: C9 02 00     CMP #$0002"),
+            ("82/9C4A: C2 20        REP #$20",
+             "82/9C54: B9 45 05     LDA $0545,Y",
+             "82/9C57: D0 0F        BNE $9C68"),
+        ):
+            with self.subTest(sequence=sequence):
+                a, b, c = (bank82.index(part) for part in sequence)
+                self.assertLess(a, b)
+                self.assertLess(b, c)
+
+
 if __name__ == "__main__":
     unittest.main()

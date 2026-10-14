@@ -252,12 +252,21 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
         require(boot[1] == "mike" and ui_switch.index(stages[1]) <
                 boot.start() < ui_switch.index(stages[2]),
                 "native controller profile switch hot-swapped current running guest")
-        require(ui_switch.count("UR_BALDOSA_MODERN_ROOT synthetic_p1_switch_gamepad=") == 4
+        edges = list(re.finditer(
+            r"(?m)^UR_BALDOSA_MODERN_ROOT synthetic_p1_switch_gamepad=(\\d+)\\r?$",
+            ui_switch,
+        ))
+        require([edge[1] for edge in edges] == ["2", "0", "1", "0"]
+                and ui_switch.index(stages[2]) < edges[0].start() <
+                ui_switch.index(stages[3]) <
+                ui_switch.index(stages[4]) < edges[1].start() <
+                ui_switch.index(stages[5]) < edges[2].start() <
+                edges[3].start() < ui_switch.index(stages[6])
                 and "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=martin" not in ui_switch
                 and "UR_BALDOSA_MODERN_ROOT stock_entered players=" not in ui_switch
                 and not any(x in ui_switch for x in NO_CREATION_RESULT)
                 and "UR_BALDOSA_NATIVE_PROFILE PREFLIGHT_REJECTED status=3" in ui_switch,
-                "controller switch lacked real four-pad-edge/stale-safety/next-boot isolation")
+                "controller switch lacked source-real X/A/B/A order or next-boot stale safety")
     for profile, log, cents, seat in (
         ("mike", mike_view, t1, 1),
         ("martin", martin_view, t2, 2),

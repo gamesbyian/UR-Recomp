@@ -97,7 +97,8 @@ def memsel_direct_source_writers(bank80: str, bank83: str) -> dict:
             offsets.append(hits[0])
         if offsets != sorted(set(offsets)):
             raise ValueError(f"original MEMSEL source ordering changed: {name}")
-        result[name] = lines[-1].split(":", 1)[0].replace("/", ":")
+        writer_line = next(line for line in lines if "$420D" in line)
+        result[name] = writer_line.split(":", 1)[0].replace("/", ":")
     for bank, source in (("80", bank80), ("83", bank83)):
         writers = [x.split(":", 1)[0].replace("/", ":") for x in source.splitlines()
                    if x.startswith(bank + "/") and "$420D" in x]

@@ -129,7 +129,7 @@ def audit_archive(path: Path, *, expected_sha256: str) -> dict:
                     RESTORE not in idle_log,
                     "idle-control source entered stock play or lacked named closure")
             require(len(BOOT.findall(idle_log)) == 1 and
-                    re.search(r"(?m)^script f=\\d+ quit\\r?$", idle_log) is not None,
+                    re.search(r"(?m)^script f=\d+ quit\r?$", idle_log) is not None,
                     "idle-control process boot and quit not source-verified")
         idle_control_fvn = sole(BOOT, logs[IDLE[1]], "second idle control SRAM")
         require(idle_control_fvn == a,

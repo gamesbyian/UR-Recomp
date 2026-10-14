@@ -106,3 +106,16 @@ The newer Baldosa `recompiler/snes_cycles.py::region_speed` maps bank-81 high-RO
 These cases are reproduced by the read-only `conditional_abs_store_master_clocks` model and unit-tested for all four legitimate inputs plus invalid widths/MEMSEL. Thus, **if the executed bank-81 store uses slow ROM (MEMSEL=0)**, the legacy model overcharges this individual I/O store by 2 or 4 master clocks. **If MEMSEL=1**, this particular PPU port-store cost cannot account for any difference between the implementations. This does **not** include surrounding guest fetch/data/stack instructions, NMI time, PPU register side effects, calls, loops, or scheduler behavior; it is not evidence that 2–4 clocks accumulated into a host-frame skip. Another regional-memory change could have the opposite sign.
 
 The critical next receipt is therefore actual `$420D` MEMSEL at the **first executed** `81:CD70..D09C` store, actual M/X widths and source-PC hit counts, plus CPU master-clock deltas and vblank boundaries for *the same* original/native work. With MEMSEL=1, discard the proposed PPU-store clock-overcharge mechanism for these instructions immediately and investigate the first differing neighboring operation. Never patch or shift frames on the strength of this conditional model; compare separately against the exact newer Baldosa execution that already matches the no-input attract reference.
+
+### Original MEMSEL writers that distinguish the two models
+
+The same source contract now independently pins **four explicit bank-80/bank-83 `$420D` writer instructions** in the USA archive:
+
+| Source instruction | Nearby original bytes | Static possible effect |
+| --- | --- | --- |
+| `80:91EA STA $420D` | `80:91E8 LDA #$01` | Reset/boot initialization selects FastROM (set 1) |
+| `80:92E8 STZ $420D` | Later linear init, followed by `80:9311 JMP $885B` | Boot setup subsequently clears MEMSEL (0) |
+| `83:CC6F STA $420D` | `83:CC6D LDA #$01` | Another game-path set to FastROM |
+| `83:FA39 STZ $420D` | Original bank-83 setup/reset sequence | Another path clears MEMSEL |
+
+These are *static direct operands*, not a complete runtime writer history or proof of the exact order at host 248. The potential FastROM set at `83:CC6F` means the simple "boot cleared `$420D`" deduction cannot establish the mode during the relevant first-load CPU writer. An actual original register write/PC receipt for `$420D` and a sampled native `g_memsel` at the first `81:CD70` execution are the cheapest discriminators. The test deliberately refuses to set `first_load_memsel_value_proven` or infer unobserved indirect writers.

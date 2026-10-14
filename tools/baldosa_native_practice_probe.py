@@ -79,7 +79,16 @@ def run(exe: Path, rom: Path, out: Path,
         "dump source_practice_go\n"
         "quit\n",
         video, timeout)
-    require_native_practice_source(log)
+    try:
+        require_native_practice_source(log)
+    except ValueError as exc:
+        # The genuine Win32 test saves the complete log on disk; expose only
+        # bounded source-stage tags in CI, never ROM bytes or user paths.
+        tags = [line.strip() for line in log.splitlines()
+                if line.startswith("UR_BALDOSA_MODERN_ROOT practice_") or
+                line.startswith("UR_BALDOSA_NATIVE_PROFILE DEFAULT")]
+        raise ValueError(str(exc) + " | source practice trace: " +
+                         " ; ".join(tags[-22:])) from exc
     if "UR_BALDOSA_MODERN_ROOT practice_sram_sandbox=1 bytes=8192 " not in log or (
         "UR_BALDOSA_MODERN_ROOT practice_sram_restored=1 bytes=8192 " not in log):
         raise ValueError("Anonymous Practice did not own and restore isolated stock SRAM")

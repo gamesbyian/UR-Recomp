@@ -228,6 +228,20 @@ def summarize(record: dict, word_rows: list[dict]) -> dict:
                        source_scope="bank_81_8D18_M0X0")
     p1o, p2o = s("0545", "81:8E26"), s("0547", "81:8F7A")
     p1n, p2n = n("0545"), n("0547")
+    scratch = record["original_cpu_shared_working_scopes"]
+    p1_load = _unique(scratch, frame=2579, address="7E:0F29", pc="81:8DB1")
+    p2_load = _unique(scratch, frame=2579, address="7E:0F29", pc="81:8F0B")
+    p2_collision_increment = _unique(
+        scratch, frame=2579, address="7E:0F29", pc="81:9268")
+    p2_landing_reset = _unique(
+        scratch, frame=2580, address="7E:0F29", pc="81:966D")
+    require((p1_load["old"], p1_load["new"], p1_load["vcounter"],
+             p2_load["old"], p2_load["new"], p2_load["vcounter"],
+             p2_collision_increment["old"], p2_collision_increment["new"],
+             p2_collision_increment["vcounter"],
+             p2_landing_reset["old"], p2_landing_reset["new"]) ==
+            ("01", "00", 56, "00", "01", 82, "01", "02", 103, "02", "00"),
+            "observed original P1/P2 collision scratch staging changed")
     require((p1o["old"], p1o["new"], p1o["static_candidate_pc"],
              p1o["vcounter"]) == ("00", "00", True, 80)
             and (p2o["old"], p2o["new"], p2o["vcounter"]) ==
@@ -265,6 +279,13 @@ def summarize(record: dict, word_rows: list[dict]) -> dict:
             "p1_vertical_writeback": s("04BB", "81:8E48"),
             "p2_early_projection": s("0417", "82:928F"),
         },
+        "original_cpu_collision_scratch_2579": {
+            "p1_stage_from_prior_p2": p1_load,
+            "p2_stage_from_prior_state": p2_load,
+            "p2_actual_collision_state_increment": p2_collision_increment,
+            "p2_next_cpu_frame_collision_state_reset": p2_landing_reset,
+        },
+        "native_cpu_internal_collision_scratch_observed": False,
         "native_helper_pre_run_host_2579": {
             "p1_state": p1n, "p2_state": p2n,
             "p1_y_writeback": n("0415"),
@@ -279,7 +300,10 @@ def summarize(record: dict, word_rows: list[dict]) -> dict:
         "strict_complete_usa_events_admitted": 0,
         "conclusion": (
             "Original actually executes 81:8E26 P1 unchanged 00 while native "
-            "bank-81 helper writes 0001; executed original P2 81:8F7A "
+            "bank-81 helper writes 0001. Original 81:9268 explicitly "
+            "increments P2 collision-state scratch from 01 to 02, with "
+            "no equivalent changed P1 0F29 write in its scoped receipts; "
+            "native internal 0F29 was not watched. Executed original P2 81:8F7A "
             "updates 01 to 02, native writes 0002. Both original/native "
             "host 2580 snapshots corroborate a short P1 state/Y/vY "
             "difference. Original ICPU.Frame, native pre-run host, "

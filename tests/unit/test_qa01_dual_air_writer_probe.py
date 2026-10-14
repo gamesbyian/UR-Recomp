@@ -222,7 +222,7 @@ class AirWriterProbe(unittest.TestCase):
             workflow)
         self.assertEqual(
             m.NATIVE_WRITER.findall(
-                "f 2580 7E:0548=01 w1 Source_P2_Writeback\\n"),
+                "f 2580 7E:0548=01 w1 Source_P2_Writeback\n"),
             [("2580", "7E", "0548", "01", "1", "Source_P2_Writeback")])
 
 

@@ -113,6 +113,26 @@ PATCH=r'''    debug_server_on_reg_write((uint16_t)(0x2100u + bAdr), val);
                   (unsigned)(ch->mode & 7), (unsigned)ch->indirect,
                   (unsigned)ch->tableAdr, (unsigned)ch->aBank,
                   (unsigned)dma->snes->ppu->inidisp);
+          /* UR_QA08_HDMA_INIDISP_TABLE_STATE: read-only native table
+           * descriptor evidence from exactly the already witnessed
+           * direct channel-7 WRAM-to-$2100 transfer. Direct mode0 puts
+           * its single byte immediately after a descriptor header.
+           * Print the ACTUAL adjacent WRAM byte, not a guessed count. */
+          if (channel == 7 && (ch->mode & 7) == 0 && !ch->indirect &&
+              aBank == 0x7e && aAdr >= 0x2065 && aAdr <= 0x2069) {
+            uint8_t header = snes_read(dma->snes,
+                ((uint32_t)aBank << 16) | (uint16_t)(aAdr - 1));
+            fprintf(stderr,
+                    "UR_QA08_HDMA_INIDISP_TABLE_STATE frame=%d "
+                    "tagframe=%u line=%d channel=%d value=%02X "
+                    "src=%02X:%04X table=%04X count=%02X transfer=%u "
+                    "live_header=%02X live_inidisp=%02X\n",
+                    snes_frame_counter, tagged_frame, tagged_line,
+                    channel, val, aBank, aAdr, (unsigned)ch->tableAdr,
+                    (unsigned)ch->repCount, (unsigned)ch->doTransfer,
+                    (unsigned)header,
+                    (unsigned)dma->snes->ppu->inidisp);
+          }
         }
         qa08_inidisp_writes++;
       }

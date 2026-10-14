@@ -108,3 +108,23 @@ source scanline-112 boundary, with actual table source, live PPU
 frame SHA. Then apply a minimal guarded source fix only if
 same input/PPU owner evidence demonstrates causality and rerun
 the exact real original/native per-pixel oracle.
+
+## Clarification: INIDISP brightness zero versus hardware forced blank
+
+The original pinned Snes9x `ppu.cpp::S9xSetPPU` handler
+(`case 0x2100`) explicitly calculates
+`PPU.Brightness = Byte & 0x0F` and *separately*
+`PPU.ForcedBlanking = (Byte >> 7) & 1`.
+Original `$2100=00` at V111 therefore sets
+**brightness 0**, with the **hardware forced-blank bit clear**;
+`$2100=0F` at V113 returns brightness 15, also without forced blank.
+The black rows111–112 are a **zero-brightness split band**, not a
+validated bit7 forced-blank interval. Historical descriptions of
+"forced-black" in this research refer to *observed black output*,
+not the independent INIDISP bit7 state.
+
+An additional bounded original Snes9x after-register-write probe
+(`tools/check_qa08_original_inidisp_brightness.py`) measures
+the actual original HDMA writer channel, table source, PPU
+brightness and bit7 state independently; no guessed channel
+nor native timing outcome is promoted before exact-head execution.

@@ -31,6 +31,7 @@ jobs:
       UR_BALDOSA_HD: "1"
       UR_BALDOSA_HD_DENSITY: "1"
       UR_QA08_HDMA_COLDATA_FRAME: "2208"
+      # Three real host-presented original-source frames; no fabricated adjacent PPU frames.
       UR_BALDOSA_FIXED_ORIGINAL_SOURCE_FRAME: "400"
       UR_BALDOSA_FIXED_ORIGINAL_SOURCE_EXTRA_FRAME: "1856"
       UR_BALDOSA_FIXED_ORIGINAL_SOURCE_LATE_FRAME: "2208"

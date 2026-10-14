@@ -12,6 +12,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 from baldosa_native_second_racer_probe import (
     require_p2_creation,
     require_actual_two_seat_go,
+    require_native_p2_recovery,
 )
 
 
@@ -41,6 +42,51 @@ class SecondNativeRacerProofTests(unittest.TestCase):
             with self.subTest(bad=bad[-100:]):
                 with self.assertRaises(ValueError):
                     require_p2_creation(bad)
+
+    def test_interrupted_p2_catalog_requires_real_controller_source_recovery(self):
+        # Source-log fixture only; no actual original guest or OS crash.
+        good = (
+            "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=mike "
+            "root=saves/profile-mike\n"
+            "UR_BALDOSA_MODERN_ROOT opened=1\n"
+            "UR_BALDOSA_MODERN_ROOT second_racer_opened=1 preset=1 "
+            "activation=next_process\n"
+            "UR_BALDOSA_MODERN_ROOT synthetic_profile_gamepad mode=9 button=X\n"
+            "UR_BALDOSA_MODERN_ROOT second_racer_preset=2\n"
+            "UR_BALDOSA_MODERN_ROOT synthetic_profile_gamepad mode=9 "
+            "button=DPAD_DOWN\n"
+            "UR_BALDOSA_NATIVE_SECOND_RACER_RECOVERY restored=1 "
+            "catalog_only=1 p1_unchanged=1 activation=next_process\n"
+            "UR_BALDOSA_NATIVE_SECOND_RACER status=4 preset=2 "
+            "id=martin activation=next_process\n"
+            "UR_BALDOSA_MODERN_ROOT second_racer_created=1 "
+            "activation=next_process\n"
+            "UR_BALDOSA_MODERN_ROOT synthetic_profile_gamepad mode=9 button=A\n"
+        )
+        require_native_p2_recovery(good)
+        failures = (
+            good.replace("status=4", "status=0"),
+            good.replace("status=4", "status=2"),
+            good.replace("id=martin", "id=andrew"),
+            good.replace("catalog_only=1", "catalog_only=0"),
+            good.replace("p1_unchanged=1", "p1_unchanged=0"),
+            good.replace("preset=2", "preset=1"),
+            good.replace("button=DPAD_DOWN", "button=DPAD_UP"),
+            good.replace("mode=9 button=A", "mode=8 button=A"),
+            good.replace("status=4", "status=4") + good,
+            good.replace(
+                "UR_BALDOSA_NATIVE_SECOND_RACER_RECOVERY restored=1 "
+                "catalog_only=1 p1_unchanged=1 activation=next_process\n", ""),
+            good.replace(
+                "UR_BALDOSA_MODERN_ROOT synthetic_profile_gamepad mode=9 "
+                "button=DPAD_DOWN\n", ""),
+            good + "UR_BALDOSA_NATIVE_MATCH CAPTURED=1\n",
+            good + "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d\n",
+            good + "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=martin\n",
+        )
+        for bad in failures:
+            with self.subTest(reason=bad[-90:]), self.assertRaises(ValueError):
+                require_native_p2_recovery(bad)
 
     def test_two_distinct_confirmed_seats_before_real_stock_handoff(self):
         good = (

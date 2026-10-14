@@ -1,0 +1,65 @@
+{
+  "schema": "QA12-WIN32-ACTUAL-CONTROLLER-SEMANTIC-SIX-NATIVE-SOURCE-SCORED-RECORDS/1",
+  "exact_modern_pr": 1522,
+  "exact_product_head_sha": "8b39ef7398ba8b6643334a69bd8824bc7afc83cf",
+  "successful_win32_run_id": 38522931497,
+  "runtime_evidence_artifact_id": 11874324323,
+  "runtime_zip_sha256": "7c4e1b941a12aeb2938782d4767b065cfcaa8364336aa92c560f74c9e6deb410",
+  "runtime_zip_bytes": 51663,
+  "source_group_file_sha256": {
+    "report.json": "82cc91df3ba63088a45bae6cc86a5d2c88cda089f417f8c7214c717e315f3c9c",
+    "first_P1_mike/log.txt": "3d0df183f0dc782b83f64d18886cd60a48bf33a461577f800f80683ba68c9a8f",
+    "named_P1_adds_P2/log.txt": "24122f3a207738b98903df4849a5b5a7550e839bccae1faae7d3a7f77e2c6926",
+    "played_native_2p/log.txt": "5d8a234ccb6984dad315946106c86222b4c8c516255bc1b01c5986058d34cc34",
+    "fresh_mike_records/log.txt": "41040ca3c988c665dafe0e05bea727f37ac23a60ab73fdbc1cdc31783da40758",
+    "mike_ui_selects_martin/log.txt": "2e10cfc39f44ada48ae956a3d349a7232a48aff28d07ad4d25bb3071ba4afffe",
+    "fresh_martin_records/log.txt": "950e7f571864077626da7b7995d1e09de53dad6602eeee692d159ee4c78867a8"
+  },
+  "six_fresh_native_game_processes_on_same_root": true,
+  "source_scored_original_guest_riders": [
+    0,
+    2
+  ],
+  "source_guest_GO_ticker_host_frame": 2353,
+  "source_result_host_frame": 4378,
+  "source_scored_winner": 2,
+  "source_scored_clocks_hundredths": [
+    2761,
+    2757
+  ],
+  "source_input_frames": 2231,
+  "source_input_runs": 5,
+  "source_reported_single_pair_basename": "run-0001791960168882-0000.urrun",
+  "source_reported_pair_hashes_not_independently_file_decoded": {
+    "run-0001791960168882-0000.urrun": "346296f664ccf37fd0310666a60d837269a6d1627b4f28162ad051d6c66c8a41",
+    "run-0001791960168882-0000.urrun.urmatch": "e1440b455b617a1726ccf17aa7a2e7dc96af7faabe302d9006693923125259c4"
+  },
+  "fresh_mike_earned_records": "LOSS 00:27.61",
+  "fresh_martin_earned_records": "WIN 00:27.57",
+  "sixth_native_controller_semantic_ui_switch_mike_to_martin": true,
+  "native_ui_switch_gamepad_semantic_receipts": [
+    "2",
+    "0",
+    "1",
+    "0"
+  ],
+  "source_post_switch_guest_stale_race_blocked": true,
+  "fifth_selector_uses_test_only_backend_fixture": false,
+  "actual_physical_gamepads_verified": false,
+  "SDL_joystick_count": 0,
+  "audio_driver": "dummy",
+  "actual_raw_run_match_saved_file_bytes_archived": false,
+  "original_native_completed_USA_event_parity_accepted": false,
+  "outer_candidate_artifact_id": 11874503846,
+  "outer_candidate_sha256": "5094d68b89522b85b56c35e7bfa693bb9ebb2fb5976223e3d8dcadecc2daeb2f",
+  "inner_ROMless_portable_zip_sha256": "7d18497181af92bf887a40078176640b9eed459c76ec8b1b0b05b117bfacfc28",
+  "inner_ROMless_portable_zip_bytes": 5946902,
+  "exe_amd64_SHA256": "68a9a4b81161e4a0c8475b227956839088d4891032a42a1d7d81a2eab8aa989d",
+  "manifest_revision": "8ba39e59d5b9e385e3ab99265a347c571ba7aa08",
+  "manifest_files_rehashed": true,
+  "retail_rom_not_archived": true,
+  "release_candidate_nominated": false,
+  "strict_USA_completed_courses_accepted": 0,
+  "release_gate_credit": 0,
+  "classification": "authentic_HOSTED_single-connected-six-process-native_UI-semantic-scored_2P_and_both_records;_not_physical_release_certification"
+}

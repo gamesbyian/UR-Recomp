@@ -1,0 +1,57 @@
+{
+  "schema": "UR-QA12-FIRST-CREATED-P1-P2-WINDOWS-FAILED-SOURCE-ROUTE/1",
+  "review_date_utc": "2026-10-14",
+  "pr": 1510,
+  "exact_pr_head_sha": "471a018e390dee7e8eb69137be3aad84adc4e98d",
+  "workflow_name": "Baldosa native Windows x64 bridge feasibility",
+  "failing_run_id": 38519209600,
+  "job_id": 115704794783,
+  "failing_step": "Native-created P1 and P2 complete source race and reopen paired Records",
+  "original_actions_artifact_id": 11873004439,
+  "runtime_archive_sha256": "0c0a9c1c7dd43c43d4fd73e86aab3eb8e4fb047eee4774a0bb2d78f6b7db67d0",
+  "runtime_archive_bytes": 33665,
+  "bounded_ci_source_logs": {
+    "native_player_created_2p_records/first_P1_mike/log.txt": "94b5b5f2cf1bbc19e28dfe9a0aa2858b3d9b609e156d02cf53ebfbab781d9528",
+    "native_player_created_2p_records/named_P1_adds_P2/log.txt": "ec93fa981328db44e2c7fe631a911304c12bbc1b4958204c376f0f2e6fb0b032",
+    "native_player_created_2p_records/played_native_2p/log.txt": "f1752787934553f6b37c35dd83d206fc316c7ac7396cd4563b4470dc36cbb50c"
+  },
+  "observed": {
+    "fresh_distinct_created_p1_and_p2_process_logs_archived": true,
+    "played_guest_selected_named_p1": "mike",
+    "played_guest_boot_sram_bytes": 8192,
+    "played_guest_p1_boot_fnv": "2adcbf8d",
+    "joined_host_seats": [
+      1,
+      2
+    ],
+    "stock_source_2p_menu": "3d",
+    "first_menu_wait_address": "0053",
+    "first_menu_ready_host_frame": 248,
+    "second_menu_wait_address": "0053",
+    "second_menu_expected_source_value": "8610",
+    "second_menu_wait_timed_out_after_frames": 36000,
+    "exit_host_frame": 37963,
+    "process_exit_code": 3,
+    "source_guest_GO_ticker_after_failure": false,
+    "source_scored_2p_result_observed": false,
+    "pair_run_and_match_published": false,
+    "fresh_mike_records_process": false,
+    "fresh_andrew_records_process": false,
+    "producer_report_json_archived": false
+  },
+  "source_discriminator": {
+    "former_successful_1490_go_route_input": "press p2:down 2 then wait 30 then press p2:start 2",
+    "failing_1510_new_created_0_1_route_input": "press p2:start 2 without prior p2:down 2",
+    "cause_proven": false,
+    "candidate_hypothesis": "original source P2 stock rider picker input acceptance or cursor phase not yet traced",
+    "next_minimal_repro": "same Win32 named player root; source guest compare P2 menu accept/selected rider 7E:0749 and script 0053/0E1F around source stock handoff and second start press"
+  },
+  "quality": {
+    "classified_result": "red_exact_head_real_windows_guest_source_wait_timeout",
+    "original_native_USA_completed_courses_accepted": 0,
+    "release_gate_credit": 0,
+    "physical_controller_acceptance": false,
+    "compatible_with_prior_green_1490_stock_go": true,
+    "represents_completed_connected_first_created_pair": false
+  }
+}

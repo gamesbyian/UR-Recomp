@@ -1018,7 +1018,8 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                              std::strcmp(opt, "3") != 0 &&
                              std::strcmp(opt, "4") != 0 &&
                              std::strcmp(opt, "5") != 0 &&
-                             std::strcmp(opt, "6") != 0)) return;
+                             std::strcmp(opt, "6") != 0 &&
+                             std::strcmp(opt, "7") != 0)) return;
     // Controlled host-root edge on an anonymous install. No created racer
     // is activated in this guest; a new process must load canonical SRAM.
     if (std::strcmp(opt, "4") == 0) {
@@ -1085,8 +1086,17 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                 "existing_p1_stale_race_blocked=1\n");
             return;
         }
+        // Test-only existing P2 creation selects Martin via X/Down/A,
+        // matching the already-proven original 2P source picker exactly.
+        // Mode 6's existing P1 selector path remains unchanged.
+        const char* preset_probe =
+            std::getenv("UR_BALDOSA_SECOND_RACER_TEST_PRESET");
+        const bool source_martin = !selector_smoke && preset_probe &&
+            std::strcmp(preset_probe, "2") == 0;
         const int key = frame == 60 ? SDLK_x :
-                        frame == 62 ? SDLK_RETURN :
+                        source_martin && frame == 61 ? SDLK_DOWN :
+                        frame == (source_martin ? 63u : 62u)
+                            ? SDLK_RETURN :
                         selector_smoke && frame == 76 ? SDLK_ESCAPE :
                         selector_smoke && frame == 80 ? SDLK_RETURN : 0;
         if (!key) return;
@@ -1100,6 +1110,33 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if (SDL_PushEvent(&event) != 1) std::abort();
         event.type = SDL_KEYUP;
         if (SDL_PushEvent(&event) != 1) std::abort();
+        return;
+    }
+    // Test-only mode 7 exercises the REAL P1 gamepad dispatch/physical-edge
+    // owner for selecting an existing racer. It is semantic gamepad input,
+    // NOT a physical USB/Bluetooth controller or artificial guest event.
+    // The source guest cannot race after next-boot selection is committed.
+    if (std::strcmp(opt, "7") == 0) {
+        if (frame == 90) {
+            if (!g_named_profile_stale || !g_existing_switch_saved ||
+                !g_visible || g_stock_target != -1)
+                std::abort();
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_ROOT "
+                "existing_p1_stale_race_blocked=1\n");
+            return;
+        }
+        const int button = frame == 60 ? kGamepadBtn_X :
+                           frame == 62 ? kGamepadBtn_A :
+                           frame == 76 ? kGamepadBtn_B :
+                           frame == 80 ? kGamepadBtn_A : -1;
+        if (button < 0) return;
+        if (!ur_baldosa_modern_root_gamepad(0, button, 1) ||
+            !ur_baldosa_modern_root_gamepad(0, button, 0))
+            std::abort();
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT synthetic_p1_switch_gamepad=%d\n",
+            button);
         return;
     }
     // Mode 3 is a deliberately TEST-ONLY synthetic gamepad semantic

@@ -108,3 +108,63 @@ These are **original Snes9x PPU and RGB source** outputs, not
 independently aligned against Baldosa's native frame2208
 or its 342-pixel-wide presentation. A real mismatch is evidence
 to investigate, not a reason to force expected channel5 native values.
+
+
+## Authenticated original runtime result (2026-10-14)
+
+**Original Snes9x run [38521827670](https://github.com/gamesbyian/UR-Recomp/actions/runs/38521827670) succeeded.**
+Source artifact **11873899132**, downloaded ZIP SHA-256
+`17380f2e8d5c7d2f43eac5bd98cf5661d9fb1c3900cd7cafb1b9479784ada234`.
+The actual generated original live PPU report SHA-256 is
+`cb48890b00c9247a20cf5ec0aeec44bd06fec709120c86a36c5b9ad5b8b39ef9`.
+The instrumented original Snes9x core SHA-256 is
+`77e5a54bf91acec539eeb6475c7910d5ad546172624c6d70fd9e1dea545f6986`.
+The genuine 2P script and original t480 WRAM SHA match the earlier
+authenticated 18-writer and two-selector results **byte-for-byte**.
+
+The original's live PPU observer measured **96 real channel5/direct/mode1
+register writes, 48 adjacent $2131/$2132 pairs**, across eight original
+Snes9x frames **1988, 1989, 1990, 2231, 2232, 2233, 2471, 2472**.
+**All 96** original HDMA BBUS bytes agree with the independently read
+live original WRAM source and all 96 match the originally executed
+18-writer table bytes. The unproductive early window 1781–1783 is
+a true negative observation, explained by the source instrumentation
+not yet observing those live transfers there. It is **not** proof
+of globally absent original HDMA.
+
+| True original emulator V | Original $2131 + $2132 source | Live original RGB15 after transfer |
+| --- | --- | --- |
+| 0 | `7E:2085/2086` → `04/2F` | `026F` |
+| 1 | `7E:2088/2089` → `04/40` | `000F` |
+| 2 | `7E:208B/208C` → `04/80` | `000F` |
+| 111 | `7E:208E/208F` → `04/20` | `0000` |
+| 112 | `7E:2091/2092` → `04/53` | `0260` |
+| 113 | `7E:2094/2095` → `04/80` | `0260` |
+
+The original `snesref` independent per-register PPUW journal at **GO
+frame1989** reproduces all six live-register pairs at the same V tags,
+including two horizontal PPU writes separated by **two reported SNES
+dot units** within each pair. The normal journal also includes CPU
+`$2130` writes that cannot be inferred from the channel5-only observer.
+The two source observers have different logging owners within the same
+emulator, so agreement is a **same-core instrumentation crosscheck**,
+not independence between emulators or proof of original hardware.
+
+The separately accepted **native** channel5 writes retained a
+before-first-line prime and tags 2,3,4,113,114,115. The original
+captures above report tags 0,1,2,111,112,113. The *written values
+and final fixed-colour states match*, while source event tags and
+priming presentation differ. The exact cause of those tag offsets
+remains a renderer/beam-phase alignment question; **do not patch
+either core or declare final original/native source-image parity**.
+
+The pinned archived source manifest
+[`analysis/data/qa08-original-snes9x-2p-hdma-live-pixel-source-handoff-20261014.json`](../analysis/data/qa08-original-snes9x-2p-hdma-live-pixel-source-handoff-20261014.json)
+contains both source report hashes and exact original
+`go`/`t480` framebuffer, `ppuw.tsv` and metadata SHA-256.
+`tools/qa08_original_snesref_raster_source.py` verifies the
+256x224 original BGRX and per-frame PPUW transport; new
+`tools/qa08_crosscheck_original_live_ppuw.py` verifies original
+GO PPUW register and byte order against the genuine live PPU report.
+The original framebuffer outputs do **not** yet carry an
+input/frame-aligned native 256x224 pixel oracle.

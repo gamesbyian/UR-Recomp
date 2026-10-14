@@ -256,7 +256,9 @@ jobs:
       - name: Native-created P1 and P2 complete source race and reopen paired Records
         run: |
           set -euo pipefail
-          # Actual Win32 root creates both. Same original guest observer
+          # Actual Win32 root creates Mike/Martin; this keeps the original
+          # P2 Down picker and source 2P race drive exactly unchanged.
+          # Same original guest observer
           # publishes exactly one bound match; next-process profile selector
           # is test-fixture only and cannot create a racer or a result.
           python tools/baldosa_native_player_created_2p_records_probe.py \
@@ -338,7 +340,7 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/named_P1_adds_P2/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/played_native_2p/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/fresh_mike_records/log.txt
-            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/fresh_andrew_records/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/fresh_martin_records/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_second_racer/first_P1_mike/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_second_racer/named_P1_adds_P2/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_second_racer/fresh_two_seat_source_go/log.txt

@@ -63,7 +63,7 @@ SNIPPET = r'''
                         if (qa08_codepc == 0xD5D1u || qa08_codepc == 0xD61Eu) {
                             fprintf(stderr,
                                 "UR_QA08_ORIGINAL_RACER_LUT frame=%u pc=82%04X "
-                                "kind=selector a=%04X x=%04X\\n",
+                                "kind=selector a=%04X x=%04X\n",
                                 (unsigned)ICPU.Frame, qa08_codepc,
                                 (unsigned)Registers.A.W, (unsigned)Registers.X.W);
                         }
@@ -74,12 +74,12 @@ SNIPPET = r'''
                                 qa08_lut_base + 3u > 0xD66Fu) {
                                 fprintf(stderr,
                                     "UR_QA08_ORIGINAL_RACER_LUT_INVALID "
-                                    "frame=%u pc=82%04X x=%04X\\n",
+                                    "frame=%u pc=82%04X x=%04X\n",
                                     (unsigned)ICPU.Frame, qa08_codepc, qa08_lut_idx);
                             } else {
                                 fprintf(stderr,
                                     "UR_QA08_ORIGINAL_RACER_LUT frame=%u pc=82%04X "
-                                    "kind=lookup a=%04X x=%04X bytes=%02X%02X%02X%02X\\n",
+                                    "kind=lookup a=%04X x=%04X bytes=%02X%02X%02X%02X\n",
                                     (unsigned)ICPU.Frame, qa08_codepc,
                                     (unsigned)Registers.A.W, qa08_lut_idx,
                                     (unsigned)CPU.PCBase[qa08_lut_base],

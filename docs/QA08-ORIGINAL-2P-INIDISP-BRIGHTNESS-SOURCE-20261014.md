@@ -138,3 +138,39 @@ qualification. The native descriptor repetition evidence, original PPU
 after-write brightness and **actual RGB5 pixels** remain independent
 components of the causal chain. Cross-title HDMA startup remains a
 separate compatibility gate for any production correction.
+
+### Independently executed opcode bytes, accepted original replay
+
+Original source run
+[38624765047](https://github.com/gamesbyian/UR-Recomp/actions/runs/38624765047)
+completed the exact ten-window Snes9x 2P opcode experiment.
+Downloaded artifact `11923402069` has ZIP SHA256
+`b5b903bfaf64889281eecb6246ed14cbafc4fe843193c85d681a3b0a54a3c3ef`;
+the full 8-PC original executed opcode report has SHA256
+`fdbdaed61353f2103b89a363e17b9bfd586c12d90062c37ddbc488db29ee749f`.
+All eight original CPU-fetched ROM instructions are **STA absolute long**
+with original 65816 4-byte source instruction bytes:
+
+| Original executed 65816 PC | Real fetched original USA opcode bytes | WRAM destination |
+| --- | --- | --- |
+| `$82:D67D` | `8F 64 20 7E` | `$7E:2064` |
+| `$82:D683` | `8F 65 20 7E` | `$7E:2065` |
+| `$82:D689` | `8F 66 20 7E` | `$7E:2066` |
+| `$82:D695` | `8F 68 20 7E` | `$7E:2068` |
+| `$82:D699` | `8F 69 20 7E` | `$7E:2069` |
+| `$80:8625` | `8F 65 20 7E` | `$7E:2065` |
+| `$80:884C` | `8F 65 20 7E` | `$7E:2065` |
+| `$80:8850` | `8F 69 20 7E` | `$7E:2069` |
+
+These bytes were observed through original Snes9x `PCBase` before
+dispatch, with mapped/fetched checks and CPU-mode-dependent instruction
+length, and joined against the separate 1,403 true WRAM source changes.
+The 17 bounded source opcode observations across original replay windows
+covered all eight exact writer PCs and their actual destinations. A
+compact exact-run receipt is in
+`analysis/data/qa08-original-channel7-executed-opcode-byte-handoff-20261014.json`.
+
+The missing `$7E:2067=00` changed-byte producer remains explicitly
+**unobserved**, despite the real source GO table containing zero.
+No PPU brightness seam or original/native video equality is inferred
+from the STA source instructions alone.

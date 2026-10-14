@@ -50,6 +50,14 @@ All **35 concrete capability families** are enumerated in `analysis/data/three-p
 | Baldosa framework delta | 86-commit audit exists; selected patch experiments | Isolated failing witness, independent original/native acceptance, no regression across 1P/2P, Windows and graphics |
 | Three-way same-route evidence | Concept and existing envelopes, not one fully accepted shared end-to-end packet | Actual original/Baldosa/Modern route with observed same inputs and independent QA/product/graphics verdicts |
 
+## 13 October external-search reduction (no new stage)
+
+A new [Uniracers code-search closeout](../reference/notes/github-uniracers-code-search-closeout-20261013.md) checked the *current* public sources against UR's already-imported source and original-game evidence. The old Snes9x/MAME/jgenesis `$2104` active-display seam, `$A5/$5A` 112-line HDMA table, effective high-OAM byte `0x218`, window-XOR and historical colour-math A/B are **not outstanding discovery stages**. The remaining graphics decision is the **exact active candidate's original/native final visible source pixels** and priority/occlusion, using the existing PPU/OAM and 2P instrumentation. Do not schedule another emulator mirror, generic graphics tracer, broad original replay or historical compatibility study from these GitHub matches.
+
+The upstream malmazuke revision `e3048680` is 13 commits after UR's October 11 `962fb9ba` intake; its substantive delta is bounded PAL demo-audio work, **not** a new native-USA 2P correction or the missing strict complete event. Treat it as a conditional reference if QA-06/audio finds an exact sound blocker; do not replace the pinned three-project inventory or reopen PAL R-0093/R-0095 investigations. RustySNES's per-dot **evaluation-phase** redirect is not proven for the HBlank fetch-phase write and should not be integrated speculatively.
+
+This supplements stage 3's PPU test choice and reduces duplicate labor. It adds **zero** new critical-path tasks, owners, automatic Actions triggers or release passes. The live `WORK-QUEUE.md` and existing lanes remain authoritative.
+
 ## Continuous effectiveness checks
 
 Every accepted lane update should state **what changed for a player or original-game truth**, exact candidate, now-reproducible source witness, which prior experiment was superseded and how much costly repeated capture/review it eliminated. Compare accepted end-to-end journeys and independently adjudicated knowledge against agent-hours where measurable, not commits, total PRs or misleading unscoped percentage.

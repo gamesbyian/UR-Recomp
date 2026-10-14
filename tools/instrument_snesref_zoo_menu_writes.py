@@ -37,6 +37,51 @@ CHANGED = (
 CONTROLS = (0x009F, 0x00CE, 0x0313)
 TARGETS = tuple(dict.fromkeys((*CONTROLS, *CHANGED)))
 
+# Static historical candidate PCs. A source Snes9x *executed* log qualifies
+# an original USA candidate; a PAL annotation by itself qualifies nothing.
+# Keep this observer cheap: no WRAM full byte scan on these earlier frames.
+RETURN_SCOPE = r"""
+			/* UR-QA01: read-only race-return original source PC scopes.
+			 * Separate narrow gate from the opcode WRAM-delta observer. */
+			static const uint32 ur_return_pcs[] = {
+				0x83C8DD, 0x83C8E0, 0x80A09A, 0x83987D, 0x80951C
+			};
+			static unsigned ur_return_first = []() -> unsigned {
+				const char *v = getenv("UR_QA_ZOO_RETURN_FIRST");
+				return v ? (unsigned)strtoul(v, nullptr, 10) : 0xffffffffu;
+			}();
+			static unsigned ur_return_last = []() -> unsigned {
+				const char *v = getenv("UR_QA_ZOO_RETURN_LAST");
+				return v ? (unsigned)strtoul(v, nullptr, 10) : 0u;
+			}();
+			bool ur_return_gate = ur_return_first <= (unsigned)ICPU.Frame &&
+				(unsigned)ICPU.Frame <= ur_return_last;
+			const uint8 ur_return_inidisp_before =
+				ur_return_gate ? Memory.FillRAM[0x2100] : 0;
+			if (ur_return_gate)
+				for (unsigned ur_i = 0;
+					 ur_i < sizeof(ur_return_pcs) / sizeof(ur_return_pcs[0]);
+					 ++ur_i)
+					if (ur_qa_zoo_pc == ur_return_pcs[ur_i])
+						fprintf(stderr, "ZOOPCRETURN f=%u v=%u pc=%06X\n",
+							(unsigned)ICPU.Frame, (unsigned)CPU.V_Counter,
+							(unsigned)ur_qa_zoo_pc);
+"""
+
+RETURN_POST = r"""
+			/* Capture the actually executing original CPU opcode that
+			 * changes the PPU forced-blank register. A static PC list
+			 * cannot by itself establish the USA source owner. */
+			if (ur_return_gate && ur_return_inidisp_before !=
+				Memory.FillRAM[0x2100])
+				fprintf(stderr,
+					"ZOOPPUWRITE f=%u v=%u pc=%06X old=%02X new=%02X\n",
+					(unsigned)ICPU.Frame, (unsigned)CPU.V_Counter,
+					(unsigned)ur_qa_zoo_pc,
+					(unsigned)ur_return_inidisp_before,
+					(unsigned)Memory.FillRAM[0x2100]);
+"""
+
 
 def patch(source: str) -> str:
     if STAMP in source:
@@ -58,11 +103,13 @@ def patch(source: str) -> str:
 \t\t\t\t(unsigned)ICPU.Frame <= ur_qa_zoo_frame_last;
 \t\t\tuint8 ur_qa_zoo_before[sizeof(ur_qa_zoo_addr) / sizeof(ur_qa_zoo_addr[0])];
 \t\t\tuint32 ur_qa_zoo_pc = ((uint32)Registers.PB << 16) | Registers.PCw;
+{RETURN_SCOPE}
 \t\t\tif (ur_qa_zoo_gate)
 \t\t\t\tfor (unsigned ur_i = 0; ur_i < sizeof(ur_qa_zoo_addr) / sizeof(ur_qa_zoo_addr[0]); ++ur_i)
 \t\t\t\t\tur_qa_zoo_before[ur_i] = Memory.RAM[ur_qa_zoo_addr[ur_i]];
 \t\t\tRegisters.PCw++;
 \t\t\t(*Opcodes[Op].S9xOpcode)();
+{RETURN_POST}
 \t\t\tif (ur_qa_zoo_gate)
 \t\t\t{{
 \t\t\t\tfor (unsigned ur_i = 0; ur_i < sizeof(ur_qa_zoo_addr) / sizeof(ur_qa_zoo_addr[0]); ++ur_i)

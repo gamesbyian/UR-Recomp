@@ -31,8 +31,17 @@ PROGRESS_FRAMES = (218, 604, 841, 1532, 1721)
 # Narrow interstitial-menu prelude bisection. The seven active guest samples match in
 # course/contact/time. At +5158 the native DP C6/C8 scratch is already one
 # step ahead; establish when this emerges before the actual result transition.
-BOUNDARY_FRAMES = (4700, 4800, 5000, 5100, 5110, 5120, 5130, 5140,
-                   5145, 5150, 5152, 5153, 5154, 5155, 5156, 5157) + tuple(range(5158, 5176))
+# Independently observed original/native both show game PPU brightness 0x0F
+# at +5000, and forced blank 0x80 at +5100. The historical PAL result-return
+# routine predicts a transfer near +5057, but that is NOT a USA event clock.
+# Sample the candidate producer neighborhood directly in both real guests.
+# Executed follow-up 38510127487 showed BOTH guests already forced blank
+# at +5048. Retarget BEFORE that first observed blank: +5000 was lit.
+RETURN_BRACKET_FRAMES = tuple(range(5001, 5050))
+BOUNDARY_FRAMES = ((4700, 4800, 5000) + RETURN_BRACKET_FRAMES +
+                   (5100, 5110, 5120, 5130, 5140,
+                    5145, 5150, 5152, 5153, 5154, 5155, 5156, 5157) +
+                   tuple(range(5158, 5176)))
 GO_GATE = "until 0E1F != 00\n"
 START_GATE = "until16 0053 == 8610\n"
 

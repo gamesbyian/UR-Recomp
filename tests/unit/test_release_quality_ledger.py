@@ -141,7 +141,14 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
             regional_comparison_complete=1,
             regional_comparison_unverified=89,
         )
-        self.assertEqual(validator.check_registry(data, ROOT), [])
+        self.assertTrue(any("regional_comparison_complete disagrees" in e
+                            for e in validator.check_registry(data, ROOT)))
+        future_source = validator.source_event_register_summary(ROOT)
+        future_source["regional_comparison_complete"] = 1
+        future_source["regional_comparison_unverified"] = 89
+        with mock.patch.object(validator, "source_event_register_summary",
+                               return_value=future_source):
+            self.assertEqual(validator.check_registry(data, ROOT), [])
 
     def test_source_register_counts_reconcile_with_checked_in_release_ledger(self):
         counts = validator.source_event_register_summary(ROOT)

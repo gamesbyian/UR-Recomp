@@ -4,6 +4,10 @@ This document defines how public third-party research moves from an interesting 
 
 The source registry is `reference/catalog.yml`. The actionable queue is `reference/evidence-worklist.json`. The worklist owns current uncertainty, acquisition state, next discriminator, expected deliverables, and whether human download assistance is actually required. It is intentionally separate from the chronological `docs/RESEARCH-LEDGER.md`.
 
+## October 2026 code-search deduplication decision
+
+The [13 October Uniracers GitHub code-search closeout](../reference/notes/github-uniracers-code-search-closeout-20261013.md) reconciles Snes9x, MAME/bsnes, jgenesis, ZSNES, RustySNES, PAL malmazuke, game databases and sound-driver build notes against the existing repository. It is a **read-only source delta**, not a new source import or direct game-truth claim. Check it before accepting another OAM/2P emulator fork as an independent source. The worklist entries `active-display-oam-behavior` and `historical-emulator-failure-matrix` now identify previously completed original-USA experiments and the **remaining conditional** first-difference tests. Do not duplicate already-landed source patches, observability tools, replay routes, graphics surveys or ROM downloads.
+
 ## Evidence pipeline
 
 Use the smallest path that can answer the current question:

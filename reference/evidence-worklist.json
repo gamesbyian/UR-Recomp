@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "updated": "2026-09-30",
+  "updated": "2026-10-13",
   "purpose": "Actionable external evidence queue. Source provenance lives in reference/catalog.yml; this file owns uncertainty, next discriminator, acquisition state, and expected project deliverables.",
   "leads": [
     {
       "id": "active-display-oam-behavior",
       "value": "critical",
       "cost": "medium",
-      "status": "local-reproduction-pending",
+      "status": "ready",
       "source_ids": [
         "snes9x-uniracers-oam",
         "mame-uniracers-oam",
@@ -16,11 +16,11 @@
         "sluffy-canoe-patch"
       ],
       "question": "What exact active-display OAM addressing behavior does Uniracers depend on, especially in Vs. split-screen, and where should the correct SNESRecomp fix live?",
-      "next_discriminator": "Replay a deterministic Vs. fixture while tracing writes to $2104/OAM around the known scanline 0 and 112 events; compare native, jgenesis/Mesen-class hardware behavior, and the Canoe workaround without treating the workaround as the oracle.",
+      "next_discriminator": "Only if the current QA-08 owner still has a native/original visible mismatch after inspecting newer merged graphics PRs: reuse existing frozen VS input, journal, OAM decoder and paired original renderers; capture one ordered 0/112 beam transition with high-OAM bytes, evaluated/fetched sprite slot, and genuine source-to-final-pixel BG/OBJ depth; then compare exact native candidate. Stop on existing proof or an unrelated host-compositing defect. Do not rerun discovery of A5/5A, 0x218 or construct a second tracer.",
       "deliverables": [
-        "deterministic OAM/PPU regression fixture",
-        "guest-routine ownership map for the relevant $2104 writes",
-        "documented generic-runtime versus game-code fix decision"
+        "ALREADY LANDED: deterministic original-USA VS HDMA write fixture, table-source and high-OAM decoder",
+        "CONDITIONAL: exact candidate/source-backed P1/P2 final-visible sprite pixel and occlusion witness only if not already proven in active graphics PRs",
+        "CONDITIONAL: native fix-location decision (hardware model versus host presenter), tied to first meaningful original/native difference"
       ],
       "tags": [
         "emulation",
@@ -35,24 +35,25 @@
         "user_action_required": false,
         "request": ""
       },
-      "acquisition_tier": "closed-or-local"
+      "acquisition_tier": "closed-or-local",
+      "status_note": "2026-10-13 reconciliation: original USA split-screen write sequence is already locally reproduced and checked (HDMA channel 1 mode 0; 7E:206C table 70 A5 70 5A 00; line 0 A5, line 112 5A, OAM[0x218]=5A). Acquisition, HDMA scene reachability and effective-byte target are closed. The conditional open question is source-backed *final* visible P1/P2 pixel ownership and native phase/occlusion on a current exact candidate. The RustySNES eval-only model does not establish fetch-phase HBlank behavior. See reference/notes/github-uniracers-code-search-closeout-20261013.md."
     },
     {
       "id": "historical-emulator-failure-matrix",
       "value": "high",
       "cost": "low",
-      "status": "local-reproduction-pending",
+      "status": "ready",
       "source_ids": [
         "dorando-compatibility",
         "snes9x-143-changelog",
         "zsnes-uniracers-history"
       ],
       "question": "Which historically independent emulator failures expose distinct Uniracers-sensitive subsystems rather than variations of the OAM problem?",
-      "next_discriminator": "Use reference/notes/emulator-compatibility-seams.md to exercise the cheapest independent local scene for each fault family, beginning with already-supported frontend/first-race/2P fixtures; add PPU/OAM/APU capture only when the observed symptom requires it.",
+      "next_discriminator": "Only on an actual current candidate failure, consult existing compatibility-seam note and choose the smallest established original USA frontend/VS/race checkpoint for that fault family. Do not rerun the full old-emulator matrix or duplicate OAM/XOR/colour-math/race-onset surveys. Stop when the first current meaningful difference is attributed or absent.",
       "deliverables": [
-        "compatibility-seam matrix (landed at reference/notes/emulator-compatibility-seams.md)",
-        "one discriminator per independently reported failure class",
-        "explicit duplicates-versus-independent-evidence classification"
+        "ALREADY LANDED: historical compatibility fault-family matrix and distinct test recipes",
+        "ALREADY LANDED: OAM, XOR, colour-math A/B and race-onset local evidence",
+        "CONDITIONAL: one first-difference regression for a reproduced as-yet-unresolved candidate failure"
       ],
       "tags": [
         "emulation",
@@ -67,7 +68,8 @@
         "user_action_required": false,
         "request": ""
       },
-      "acquisition_tier": "closed-or-local"
+      "acquisition_tier": "closed-or-local",
+      "status_note": "2026-10-13 reconciliation: historical fault-family inventory is already landed; original-USA local reproductions cover active-display OAM, XOR race-entry configuration, early/later fixed-versus-backdrop A/B, and race-start presentation transition. Remaining historical cases are conditional issue-specific discriminators, not an unstarted global campaign. See reference/notes/emulator-compatibility-seams.md and reference/notes/github-uniracers-code-search-closeout-20261013.md."
     },
     {
       "id": "regional-and-prototype-differential",

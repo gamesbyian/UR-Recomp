@@ -49,6 +49,12 @@ The same R-0095 documents a more unusual bounded **PAL hardware-timing counterex
 
 **Reuse:** specialize an existing QA-02/03/05 controller fixture or QA-01/07 2P oracle only when its live owner has a relevant blocker. No second renderer, guest-timing patch, additional CI job, research-ledger promotion, or gate change follows from this source alone.
 
+### Pilot E: active-display OAM emulator implementations versus actual USA visible output
+
+**Verdict: original USA write/table/target established; candidate native PPU/pixel mechanism only qualified.** The existing [active-display note](../reference/notes/oam-active-display.md), [historical emulator matrix](../reference/notes/emulator-compatibility-seams.md) and Research Ledger R-EXT-002/004 already fix the two-player `$2104 <- $A5/$5A` 112-line HDMA pair, mode-0 source `7E:206C` and resulting high-OAM byte `0x218`. jgenesis's `last_fetched_oam_idx` is imported and already studied. The [13 October search closeout](../reference/notes/github-uniracers-code-search-closeout-20261013.md) compares a newer RustySNES evaluation-phase redirect description against that jgenesis HBlank case. RustySNES explicitly leaves its *fetch-phase* index unfinished, so it does not prove the required HBlank target mechanism. Repeated emulator hacks at the same address are also correlated implementation evidence, not multiple independent hardware measurements.
+
+**Reuse / stop rediscovery:** never spend another campaign finding the known scanline values or mirroring jgenesis. If the active QA-08 graphics owner has a remaining exact native failure after current OAM/beam PRs are reconciled, capture only source-backed scanline effective OAM, actual P1/P2 source pixel winners and BG/OBJ occlusion at the first difference. Stop if the present evidence already settles the bug's owning layer. This does not approve authored HD art or the Windows candidate.
+
 ## Application by agents
 
 Consult these pilot conclusions only when their scope fits the current task; update the **existing** claim owner with new evidence, not this document as a running ledger. Use `docs/WORK-QUEUE.md` first, then `tools/select_three_project_reuse.py --lane <lane> --focus <term> --include-conditional` for live opportunities. A bounded investigation should end as soon as new evidence will not change a gameplay fix, acceptance decision or meaningful reference claim. Prefer delivering the Windows vertical slice over accumulating confirmations of already established mechanisms.

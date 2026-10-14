@@ -211,3 +211,7 @@ Durable reports:
 - `analysis/generated/race-start-cross-core-frames.json`
 - `analysis/generated/race-visible-onset-snes9x.json`
 - `analysis/generated/race-visible-onset-cross-core.json`
+
+## 13 October 2026 disposition of further GitHub code-search hits
+
+The [deduplicated source audit](github-uniracers-code-search-closeout-20261013.md) confirms that the OAM events, `0x218` target, XOR checkpoint, colour-math fallback A/B and race-visibility transition documented above are **already harvested original-USA evidence**. Any older “next run” wording in this chronological note represents the step that *preceded* those measurements, not a live independent to-do. The current conditional QA-08 frontier is the **exact native candidate's genuine top/bottom racer final pixels and occlusion**, not another Snes9x/jgenesis/bsnes clone comparison. Use existing original journal, high-OAM decoder and active graphics owner; stop when one real source/native first difference identifies a fix. Other historical compatibility fault families remain conditional on an actual presently failing scene; do not start a broad recheck because another GitHub fork repeats a hack.

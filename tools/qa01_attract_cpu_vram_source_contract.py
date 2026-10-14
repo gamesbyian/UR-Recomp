@@ -31,7 +31,7 @@ SOURCE_ANCHORS = (
     "81/CD7D: 8D 18 21     STA $2118",
     "81/D09C: 8D 18 21     STA $2118",
     "81/BB89: C2 39        REP #$39",
-    "81/BCEC: 8F 19 21 00  STA $002119",
+    "81/BCEE: 8F 19 21 00  STA $002119",
     "81/BCF4: 8F 18 21 00  STA $002118",
 )
 EXPECTED_STORES = {"$2116": 28, "$2118": 29}
@@ -108,7 +108,7 @@ def report(bank81: str, bank00_cfg: str, bank81_cfg: str) -> dict:
         "direct_cpu_ppu_data_site_count": 29,
         "separate_decompress_to_vram_source": "81:BB89",
         "separate_decompress_ppu_low_byte_writer": "81:BCF4",
-        "separate_decompress_ppu_high_byte_writer": "81:BCEC",
+        "separate_decompress_ppu_high_byte_writer": "81:BCEE",
         "baldosa_config_has_paced_bus": True,
         "paced_bus_is_globally_requested_via_bank00": True,
         "source_instruction_width_per_executed_site_proven": False,

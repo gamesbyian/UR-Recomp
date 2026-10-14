@@ -193,6 +193,7 @@ jobs:
           python3 -m unittest discover -s tests/unit -p test_qa01_switcher_nmi_beam_crosswalk.py
           python3 -m unittest discover -s tests/unit -p test_qa01_switcher_source_followon.py
           python3 -m unittest discover -s tests/unit -p test_probe_original_event_complete.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_event_campaign.py
       - name: Build exactly one pinned native and one original guest
         shell: bash
         run: |
@@ -266,9 +267,32 @@ jobs:
           rc=$?
           set -e
           tail -n 70 "$OUT/paired-attempt.log"
-          echo "Strict paired producer exit $rc; original/native phase has NOT been normalized." >> "$GITHUB_STEP_SUMMARY"
-          test "$rc" -eq 1
+          echo "Paired producer exit $rc; original/native phase has NOT been normalized." >> "$GITHUB_STEP_SUMMARY"
+          # Exit 0 can mean an investigative strict *candidate*; exit 1 can
+          # mean a genuine original/native divergence. Neither is a release
+          # admission. Reject crashes and misleading/contradictory JSON
+          # using the existing source-owned event-campaign classifier.
           test -s "$OUT/paired-switcher.json"
+          python3 - "$OUT/paired-switcher.json" "$rc" "$GITHUB_SHA" \
+                    "$OUT/paired-classification.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,"tools")
+          import qa01_event_campaign as qa
+          report,rc,source,out,summary=sys.argv[1:]
+          row=qa.classify("switcher",int(rc),Path(report),
+                          qa.make_plan("switcher",source))
+          if row["disposition"] not in ("strict_candidate","strict_divergence"):
+              raise ValueError("fresh paired NMI probe failed source-owned classification: "
+                               +str(row["reason"]))
+          if row["release_credit"] != 0:
+              raise ValueError("investigative classification attempted release admission")
+          Path(out).write_text(json.dumps(row,indent=2,sort_keys=True)+"\\n",
+                               encoding="utf-8")
+          with open(summary,"a",encoding="utf-8") as f:
+              f.write("\\nQA-01 source classifier: **"+row["disposition"]
+                      +"**; zero accepted USA events and no release credit.\\n")
+          PY
           test -s "$OUT/switcher/replay/reference.log"
           python3 tools/qa01_switcher_source_followon.py \
             --trace-jsonl "$OUT/switcher/source/trace.jsonl" \
@@ -318,6 +342,7 @@ jobs:
           path: |
             ${{ runner.temp }}/qa01-switcher-fresh/paired-attempt.log
             ${{ runner.temp }}/qa01-switcher-fresh/paired-switcher.json
+            ${{ runner.temp }}/qa01-switcher-fresh/paired-classification.json
             ${{ runner.temp }}/qa01-switcher-fresh/stack-pull-rti-report.json
             ${{ runner.temp }}/qa01-switcher-fresh/native-01dd-beam.log
             ${{ runner.temp }}/qa01-switcher-fresh/native-beam-report.json

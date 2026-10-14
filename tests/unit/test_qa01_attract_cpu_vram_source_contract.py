@@ -14,10 +14,54 @@ class AttractCpuVramSourceContract(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.bank80_source = m.BANK80.read_text(encoding="utf-8")
+        cls.bank82_source = m.BANK82.read_text(encoding="utf-8")
         cls.source = m.BANK81.read_text(encoding="utf-8")
         cls.bank83_source = m.BANK83.read_text(encoding="utf-8")
         cls.bank00 = m.BALDOSA_BANK00.read_text(encoding="utf-8")
         cls.bank81 = m.BALDOSA_BANK81.read_text(encoding="utf-8")
+
+    def test_archived_race_setup_wrapper_caller_chain(self):
+        obj = m.hud_direct_caller_source_contract(
+            self.source, self.bank82_source)
+        self.assertEqual(obj["source_wrapper_pc"], "81:CCE6")
+        self.assertEqual(obj["source_wrapper_target_pc"], "81:CD07")
+        self.assertEqual(obj["source_race_setup_caller_pc"], "82:DC1A")
+        self.assertEqual(obj["race_setup_lap_initialization_pcs"],
+                         ["82:DBF7", "82:DBFA"])
+        self.assertEqual(obj["race_setup_before_hud_call_pcs"],
+                         ["82:DC13", "82:DC17"])
+        for claim in (
+            "original_cpu_executed_hud_in_host_248_to_278_proven",
+            "hud_path_exclusive_vram_writer_in_first_load_proven",
+            "all_indirect_callers_excluded",
+        ):
+            self.assertIs(obj[claim], False)
+
+    def test_original_hud_caller_mutations_and_duplicate_pc_rejected(self):
+        caller = "82/DC1A: 22 E6 CC 81  JSR $81CCE6"
+        wrapper = "81/CCE6: 20 07 CD     JSR $CD07"
+        self.assertIn(caller, self.bank82_source)
+        self.assertIn(wrapper, self.source)
+        with self.assertRaisesRegex(ValueError, "original HUD caller"):
+            m.hud_direct_caller_source_contract(
+                self.source,
+                self.bank82_source.replace(
+                    caller, "82/DC1A: 22 E7 CC 81  JSR $81CCE7"))
+        with self.assertRaisesRegex(ValueError, "original HUD caller"):
+            m.hud_direct_caller_source_contract(
+                self.source.replace(
+                    wrapper, "81/CCE6: 20 09 CD     JSR $CD09"),
+                self.bank82_source)
+        with self.assertRaisesRegex(ValueError, "original HUD caller"):
+            m.hud_direct_caller_source_contract(
+                self.source, self.bank82_source + "\n" + caller + "\n")
+        lap = "82/DBF7: 8D F1 0E     STA $0EF1"
+        self.assertIn(lap, self.bank82_source)
+        with self.assertRaisesRegex(ValueError, "original HUD caller"):
+            m.hud_direct_caller_source_contract(
+                self.source,
+                self.bank82_source.replace(
+                    lap, "82/DBF7: 8D F2 0E     STA $0EF2"))
 
     def test_original_cpu_vram_sites_and_explicit_preflight_limits(self):
         r = m.report(self.source, self.bank00, self.bank81)

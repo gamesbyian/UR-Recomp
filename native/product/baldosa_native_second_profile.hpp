@@ -249,7 +249,7 @@ inline BaldosaSecondRacerResult recover_baldosa_second_preset_for_next_boot(
     const auto active = load_host_profile_state_file(
         ExecutionMode::Modern, active_typed.string(),
         std::string(expected_active_profile));
-    if (!current.loaded() || *current.state != *selected.state ||
+    if (!current.loaded() || !(*current.state == *selected.state) ||
         !current_roster || *current_roster != *roster ||
         !active.loaded() || !active.state->stock_sram ||
         !catalog_entry_matches_profile_state(roster->front(), *active.state) ||

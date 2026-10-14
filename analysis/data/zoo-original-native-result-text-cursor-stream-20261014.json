@@ -58,7 +58,18 @@
     },
     "first_logged_cursor_value": "22",
     "final_009f": "BC",
-    "native_cursor_reset_witness_available": false
+    "native_cursor_reset_observed_in_this_narrow_text_helper_log": false,
+    "independent_prior_direct_page_restore_receipt": {
+      "workflow_run_id": 38018081196,
+      "evidence": "analysis/data/zoo-original-native-sram-restore-source-owner-20261009.json",
+      "native_scope": "Sram_RestoreDirectPage_FastRom_M1X0",
+      "native_pre_run_host_frame": 6762,
+      "word_start": "80:009E",
+      "overlapping_high_byte": "7E:009F",
+      "written_value": "16",
+      "original_pc": "83:988A",
+      "original_icpu_frame": 6760
+    }
   },
   "comparison": {
     "all_167_observed_changed_byte_values_equal_in_order": true,
@@ -69,7 +80,8 @@
     "native_guest_relative_result_menu_host": 5162,
     "cpu_nmi_beam_phase_equivalence_proven": false,
     "complete_event_accepted": false,
-    "release_gate_credit": 0
+    "release_gate_credit": 0,
+    "limitations": "Complete result/menu timing cannot be inferred from 009F text cursor; native 84→16 reset was independently executed in an earlier run but is absent from this narrower text-writer journal."
   },
   "limitations": [
     "Source and native observer capture contracts differ: original emits only actual byte changes and native records every qualifying helper store attempt.",

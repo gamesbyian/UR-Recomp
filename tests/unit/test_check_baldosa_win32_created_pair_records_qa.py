@@ -30,7 +30,10 @@ def fixture():
     _, first, second, third = example()
     first = ROOT_LINE + PRELUDE + first
     second = ROOT_LINE + PRELUDE + second.replace(
-        "preset=1", "preset=2").replace("id=andrew", "id=martin")
+        "UR_BALDOSA_NATIVE_SECOND_RACER status=0",
+        "UR_BALDOSA_MODERN_ROOT second_racer_preset=2\n"
+        "UR_BALDOSA_NATIVE_SECOND_RACER status=0").replace(
+        "status=0 preset=1 id=andrew", "status=0 preset=2 id=martin")
     # The GO script's first $0053 title condition is BEFORE menu=3d.
     third = ROOT_LINE + PRELUDE + "script f=0 turbo on\n" + third
     third = third.replace(

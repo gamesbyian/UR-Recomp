@@ -79,7 +79,7 @@ def verify_creation(log: str) -> None:
 def verify_boot_sram(log: str, raw: bytes) -> None:
     expected = (
         "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=mike "
-        "root=saves/profile-mike\\n")
+        "root=saves/profile-mike\n")
     match = re.findall(
         r"(?m)^UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM "
         r"profile=mike bytes=8192 fnv=([0-9a-fA-F]{8})$", log)

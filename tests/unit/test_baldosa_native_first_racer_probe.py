@@ -31,6 +31,27 @@ class FirstNativeRacerLogTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     probe.verify_creation(bad)
 
+    def test_exact_first_racer_sram_boot_line_and_hash(self):
+        # Real native trace line delimiters are actual newlines.
+        stock = bytes(range(256)) * 32
+        good = (
+            "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=mike "
+            "root=saves/profile-mike\n"
+            "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=mike "
+            f"bytes=8192 fnv={probe.fnv32(stock)}\n"
+        )
+        probe.verify_boot_sram(good, stock)
+        for bad in (
+            good.replace("profile-mike", "profile-another"),
+            good.replace(probe.fnv32(stock), "deadbeef"),
+            good + good,
+            good.replace("bytes=8192", "bytes=8191"),
+            good.replace("APPLIED profile=mike", "APPLIED profile=other"),
+        ):
+            with self.subTest(bad=bad[-110:]):
+                with self.assertRaises(ValueError):
+                    probe.verify_boot_sram(bad, stock)
+
     def test_reboot_requires_real_selected_native_sram_and_stock_handoff(self):
         valid = (
             "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=mike root=saves/profile-mike\n"

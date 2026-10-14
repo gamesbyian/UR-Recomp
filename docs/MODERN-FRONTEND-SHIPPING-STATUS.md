@@ -63,6 +63,35 @@ handler with a synthetic storage fault cut. It does **not** reproduce actual
 power loss, physical controller hardware, a completed scored result within
 the recovery subroute, or grant independent release ledger credit.
 
+## P2 recovery independent raw-byte transport candidate (2026-10-14)
+
+Independent QA #1571 downloaded and source-decoded the four real native Windows
+P2 recovery logs from merged #1564, but correctly separated source producer
+claims about on-disk selector, profile, 8-KiB SRAM, catalog and CAS mutex
+equality from **independently reviewed source bytes**. The existing dedicated
+P2 recovery smoke ZIP retains exactly one report and four process logs; the
+QA-12 source-scored match ZIP remains unchanged.
+
+The Modern follow-up retains, from the **same existing actual four-game
+Windows source and throwaway user root**, an additional bounded, no-follow
+CI-only raw archive of five precise stages: after P1 creation, after P2
+creation, after the deliberately lost catalog row, after controller-confirmed
+P2 recovery and after original stock 2P GO. Each stage contains only a
+known fixed allowlist of canonical selector, roster, P1/P2 typed/raw SRAM and
+the exact empty existing P2 typed-CAS `.urmutex` file, plus a member SHA-256
+manifest. The first stage has no P2 entries; all later stages require both
+8192-byte native-created SRAM images. No ROM, PE, random user directory,
+new persistence format, result or source gameplay change is involved.
+
+These raw files go in **another separate Actions artifact** to keep both the
+QA-12 earned-match archive and #1571's independently pinned four-log ZIP
+byte-exact. The existing live fixture checks stage equality against real
+source files but independent QA must download both artifacts, rehash/parse
+them and establish provenance itself. Exact-head native Windows CI must pass
+before source-transport acceptance; actual power-loss timing, two physical
+controllers, scored 2P results within this recovery subroute and full Windows
+L4 release remain unaccepted.
+
 ## Merged and independently decoded: pre/post fresh Records raw-pair snapshots (2026-10-14)
 
 Merged Modern #1550's six-process Windows source route checks that its only

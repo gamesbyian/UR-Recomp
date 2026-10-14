@@ -59,3 +59,55 @@ Run local adversarial checker tests:
 ```sh
 python3 -m unittest tests.unit.test_qa08_compare_native_hdma_prime_trial
 ```
+
+## Actual 2P source PPU execution and independently read original video result
+
+**Executed original/native source proof, 2026-10-14, experimental renderer only.**
+The real bounded native test emitted the full raw P7 and guest-CRC artifact
+[native experiment 38625005621](https://github.com/gamesbyian/UR-Recomp/actions/runs/38625005621),
+artifact `11924132279`, independently downloaded ZIP SHA256
+`4a3d9af21f509e8b5daeb17e4ba27932ba8a3dcd4bb167832ff4d33fd6bf3df7`.
+The unmodified native baseline P7 is SHA256
+`a946c9ebb54775639b8fd87a6861af0408cceed4896e58be05908c4a4491c67f`,
+identical to the earlier independent native accepted source.
+The disposable consumed-prime trial P7 is SHA256
+`bf8b4218fb72f94338b19da5c1386bd5ce09c0dc0c767093286e80895fa3353c`.
+
+All **2,473 guest WRAM CRC lines were bytewise identical** across
+these two native emulator processes. There are 2,292 distinct CRC
+values; repeated early and stationary frames are genuine source
+observations, not missing records. The first run's appended CI pixel
+checker mistakenly required all CRC values unique and therefore its
+job was red **after both runs completed and produced full artifacts**.
+The erroneous constraint has been removed. Changed native pixels were
+exactly 512 RGBA source pixels, all 256 pixels on y111 and y113;
+every other pixel in the full 256x224 Original raster is unchanged.
+Native brightness0 moves from y112–113 to y111–112. The trial's
+real channel7 `$2100` writes change from tags 0,2,113,115 to
+0,112,114, eliminating the duplicated initial `0F`.
+
+Independently fetched accepted original Snes9x reference archive
+[38543766102](https://github.com/gamesbyian/UR-Recomp/actions/runs/38543766102),
+artifact `11884155561`, ZIP SHA256
+`6e5d488230c11d3dfcd144b6a7cbc8c25d7acfcb4f95b776a85071dd3487f5e3`.
+The actual source callback frame2207 BGRX8888 image SHA256 is
+`e76c6010b3fb339ecbdae2fec985a00019345723cdff122d9bbc78d71481c8aa`.
+Using only the previously justified Snes9x RGB565 expanded green6
+to native 5-bit green reduction, baseline native was 56,832/57,344
+identical RGB pixels while the **experimental native image was
+57,344/57,344 exactly identical** to real independent original.
+No tolerance, scanline ignore mask, alternate sprite image or
+colour-bias correction is used. The separate source-grade receipt is
+`analysis/data/qa08-original-native-hdma-prime-exact-2p-rgb5-20261014.json`.
+
+**Shipping boundary remains closed.** The counterfactual changes
+global HDMA priming for *every* active channel, although this one
+frame ended with only the 512 visible seam pixels changing. The
+pinned SNESRecomp source explicitly documents why the non-consuming
+prime was introduced for Gundam Wing. Before any production merge,
+run unchanged-input original/native comparisons on several separated
+active 1P and 2P frames, scanline112 effective OAM/P1/P2 alpha,
+channel5 effective CGADSUB/COLDATA, window/mosaic, genuine 342px
+world and 4x Original presentation, and a cross-game first-line
+regression. The source-original one-frame 100% RGB5 result proves
+this specific timing discrepancy, not whole-title hardware fidelity.

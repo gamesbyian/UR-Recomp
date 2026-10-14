@@ -43,7 +43,7 @@ def fixture(root):
         lines=["#frame\tvcounter\thcounter\taddr\tvalue\tsource"]
         for i in range(12):
             lines.append(f"{f}\t{subject.EXPECTED_V[i//2]}\t{200+(i%2)*2}\t"
-                         f"{2131+(i%2):04X}\t{subject.EXPECTED_BYTES[i]}\thdma")
+                         f"{0x2131+(i%2):04X}\t{subject.EXPECTED_BYTES[i]}\thdma")
         (root/f"{tag}.ppuw.tsv").write_text("\n".join(lines)+"\n")
     return lp
 

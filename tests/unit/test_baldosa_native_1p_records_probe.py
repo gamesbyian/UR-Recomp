@@ -22,9 +22,9 @@ class NativeOnePlayerRecordsProbeTests(unittest.TestCase):
         self.assertTrue(script.startswith(parent.removesuffix("dump go\nquit\n")))
         self.assertIn("until16 0053 == 8610", script)
         self.assertIn("until 0E1F != 00", script)
-        self.assertEqual(script.count("until 009F == 99 12000"), 1)
+        self.assertNotIn("until 009F == 99 12000", script)
         self.assertEqual(script.count("press right 1200"), 1)
-        self.assertTrue(script.endswith("dump observed-source-result\nquit\n"))
+        self.assertTrue(script.endswith("dump after-source-drive\nquit\n"))
 
     def test_real_result_requires_one_committed_guest_provenance(self):
         complete = (

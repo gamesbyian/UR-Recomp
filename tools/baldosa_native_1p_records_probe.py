@@ -37,15 +37,15 @@ FINISH_CONTROLS = (
 
 
 def source_finish_script() -> str:
-    """Extend the already-executed Modern root -> source GO route, not menus."""
+    """Drive source stock inputs; result may have passed before route ends."""
     base = native_modern_race_entry_script(1)
     tail = "dump go\nquit\n"
     if not base.endswith(tail):
         raise ValueError("Native Modern stock GO grammar changed")
     return (base[:-len(tail)] + "dump go\n" +
             "\n".join(FINISH_CONTROLS) +
-            "\nuntil 009F == 99 12000\nwait 60\n"
-            "dump observed-source-result\nquit\n")
+            "\nwait 60\n"
+            "dump after-source-drive\nquit\n")
 
 
 def source_result_published(log: str) -> None:

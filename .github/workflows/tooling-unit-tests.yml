@@ -65,46 +65,37 @@ jobs:
         run: |
           python3 -m compileall -q tests/unit tools
           ruby -e 'require "yaml"; Dir[".github/workflows/*.{yml,yaml}"].sort.each { |path| YAML.parse_file(path) }'
-      - name: Run dependency-free Python unit tests in two shards
+      - name: Run dependency-free Python unit tests in timing-balanced shards
         shell: bash
         run: |
           set -euo pipefail
-          mapfile -t tests < <(find tests/unit -maxdepth 1 -type f -name 'test_*.py' -printf '%f\n' | sort)
-          shard0=()
-          shard1=()
-          for test_file in "${tests[@]}"; do
-            module="tests.unit.${test_file%.py}"
-            # Stable hash partitioning keeps every discovered module in exactly
-            # one shard without moving half the suite when a filename is added.
-            first_byte=$(printf '%s' "$module" | sha256sum | cut -c1-2)
-            if (( 16#$first_byte % 2 == 0 )); then
-              shard0+=("$module")
-            else
-              shard1+=("$module")
-            fi
+          # One shard per vCPU (max 4). tools/partition_unit_tests.py assigns
+          # every discovered module to exactly one shard, balanced by recorded
+          # runtime (unknown modules get a default weight, so coverage never
+          # depends on the timing file being current).
+          shards=$(nproc); (( shards > 4 )) && shards=4; (( shards < 2 )) && shards=2
+          pids=()
+          for ((i = 0; i < shards; i++)); do
+            mapfile -t mods < <(python3 tools/partition_unit_tests.py --shards "$shards" --index "$i")
+            python3 -m unittest -v "${mods[@]}" >"$RUNNER_TEMP/unit-shard$i.log" 2>&1 &
+            pids+=($!)
           done
 
-          run_shard() {
-            local name="$1"; shift
-            python3 -m unittest -v "$@" >"$RUNNER_TEMP/unit-$name.log" 2>&1
-          }
-
           set +e
-          run_shard shard0 "${shard0[@]}" &
-          p0=$!
-          run_shard shard1 "${shard1[@]}" &
-          p1=$!
-          wait "$p0"; r0=$?
-          wait "$p1"; r1=$?
+          : > "$RUNNER_TEMP/unit-shard-exits.txt"
+          rc=0
+          for ((i = 0; i < shards; i++)); do
+            wait "${pids[$i]}"; r=$?
+            echo "shard$i=$r" >> "$RUNNER_TEMP/unit-shard-exits.txt"
+            (( r != 0 )) && rc=1
+          done
           set -e
 
-          # Persist the observed per-shard process result before asserting.
-          # A reporting step later publishes the concise diagnosis even on red.
-          printf 'shard0=%s\nshard1=%s\n' "$r0" "$r1" > "$RUNNER_TEMP/unit-shard-exits.txt"
-          echo "Tooling unit exit codes: shard0=$r0 shard1=$r1"
+          # Persist per-shard results before asserting; the reporting step
+          # publishes the concise diagnosis even on red.
+          echo "Tooling unit shards=$shards"; cat "$RUNNER_TEMP/unit-shard-exits.txt"
           grep -E '^(Ran [0-9]+ tests?|OK|FAILED|FAIL:|ERROR:)' "$RUNNER_TEMP"/unit-shard*.log || true
-          test "$r0" -eq 0
-          test "$r1" -eq 0
+          test "$rc" -eq 0
 
       - name: Publish bounded unit result and job summary
         if: always()

@@ -104,7 +104,7 @@ The tool hashes the **unchanged pinned Baldosa route scripts and input reports**
 
 ## Compact CI and experiment result reporting
 
-- `tools/summarize_unittest_ci.py`: publishes the two-shard tooling unit-test outcome, bounded failures, observed test totals and hashed raw-log receipts to `ci-tooling-unit-result.json` and `GITHUB_STEP_SUMMARY`. Missing or incomplete shard evidence is never a pass. The original failing test step retains its failure verdict; full logs are uploaded only when necessary.
+- `tools/summarize_unittest_ci.py`: publishes the timing-balanced (per-vCPU, max 4) shard tooling unit-test outcome, bounded failures, observed test totals and hashed raw-log receipts to `ci-tooling-unit-result.json` and `GITHUB_STEP_SUMMARY`. Missing or incomplete shard evidence is never a pass. The original failing test step retains its failure verdict; full logs are uploaded only when necessary.
 - `tools/publish_experiment_result.py`: small transport receipt for manual or maintained research runs. Requires a real primary JSON object and every declared input; records exact SHA-256/byte counts, source-run identity, question and a domain-provided readable summary. Its `produced_not_adjudicated` status explicitly does not certify original-game fidelity. Example: `.github/workflows/one-shot-execution-coverage-ab.yml`.
 
 Results valuable after Actions artifact expiry must be promoted into the **existing** research ledger/compact `analysis/data` with actual conclusions, provenance and reproduction commands by a reviewed commit. Never schedule more CI or copy large captures into Git just to make a report. See `docs/CI-RESEARCH-APPARATUS-AUDIT-20261010.md`.

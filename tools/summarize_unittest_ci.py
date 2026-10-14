@@ -22,11 +22,16 @@ def summarize(root: Path, metadata: dict[str, str]) -> dict:
     receipt = root / "unit-shard-exits.txt"
     if receipt.is_file():
         for line in receipt.read_text(encoding="utf-8").splitlines():
-            if re.fullmatch(r"shard[01]=[0-9]+", line):
+            if re.fullmatch(r"shard[0-9]+=[0-9]+", line):
                 key, value = line.split("=", 1)
                 exits[key] = int(value)
     shards = []
-    for name in ("shard0", "shard1"):
+    found = set(exits) | {m.group(1) for f in root.glob("unit-shard*.log")
+                          if (m := re.fullmatch(r"unit-(shard[0-9]+)\.log", f.name))}
+    # Always expect at least the historical two shards so a missing log is
+    # reported as not_run rather than silently omitted.
+    names = sorted(found | {"shard0", "shard1"}, key=lambda n: int(n[5:]))
+    for name in names:
         path = root / f"unit-{name}.log"
         if not path.is_file():
             shards.append({"id": name, "outcome": "not_run", "tests": None,

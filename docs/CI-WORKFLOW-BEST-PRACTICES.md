@@ -465,3 +465,7 @@ The repository hygiene pass must review:
 Use the manual `CI runtime report` and recent Actions history to rank actual cost, but do not wait for a runtime crisis before retiring workflows whose decision value is already zero.
 
 See `PERIODIC-REPOSITORY-HYGIENE.md` for the broader recurring audit.
+
+## Tooling unit-test sharding — 2026-10-14
+
+`Project tooling unit tests` was the most frequent PR workflow (16 of 50 sampled PR runs) with a ~148 s test step split into two hash-partitioned shards. It now runs one shard per vCPU (max 4) from `tools/partition_unit_tests.py`, a deterministic longest-first partition using `tools/unit_test_timings.json`. Every discovered `tests/unit/test_*.py` module lands in exactly one shard (unknown modules get a default weight, so a stale timing file costs balance, never coverage; covered by `test_partition_unit_tests.py`). No test was made optional. Local 4-core measurement of the identical module set: 2 shards 188 s wall → 4 balanced shards 97 s wall. Refresh the timing file occasionally; its only purpose is balance.

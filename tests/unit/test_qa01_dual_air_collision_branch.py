@@ -1,7 +1,10 @@
 """QA-01 original Snes9x collision-PC observer and strict branch receipt tests."""
 from __future__ import annotations
 
+import shutil
+import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -50,6 +53,34 @@ class BoundedOriginalCollisionGate(unittest.TestCase):
                 "            Registers.PCw++;\n"
                 "            (*Opcodes[Op].S9xOpcode)();\n"
                 "            if (ur_qa_air_gate)\n", "bogus state\n"))
+
+    def test_composed_observer_compiles_as_cpp_without_snes_runtime(self):
+        compiler = shutil.which("g++")
+        if not compiler:
+            self.skipTest("g++ is unavailable for compiled instrumentation check")
+        stub = (
+            "#include <cstdint>\\n#include <cstdio>\\n"
+            "using uint8 = std::uint8_t;\\n"
+            "using uint16 = std::uint16_t;\\n"
+            "using uint32 = std::uint32_t;\\n"
+            "struct { unsigned Frame; } ICPU;\\n"
+            "struct { unsigned V_Counter; } CPU;\\n"
+            "struct { uint8 RAM[131072]; } Memory;\\n"
+            "struct { uint8 PB; uint16 PCw; } Registers;\\n"
+            "struct Opcode { void (*S9xOpcode)(); };\\n"
+            "Opcode Opcodes[256]; unsigned Op = 0;\\n"
+            "void execute_one_65816_opcode() {\\n"
+            + base.MARKER + "\\n}\\n"
+        ).replace("\\\\n", "\\n")
+        source = injector.patch(base.patch(stub))
+        with tempfile.TemporaryDirectory(prefix="qa01-original-pc-") as td:
+            path = Path(td) / "source-observer.cpp"
+            path.write_text(source, encoding="utf-8")
+            result = subprocess.run(
+                [compiler, "-std=c++17", "-Wall", "-Wextra", "-Werror",
+                 "-pedantic", "-fsyntax-only", str(path)],
+                capture_output=True, text=True, timeout=30, check=False)
+            self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_original_bpl_reports_actual_next_pc_with_seat_and_clock_unmerged(self):
         original = "".join((

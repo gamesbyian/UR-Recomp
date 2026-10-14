@@ -207,6 +207,25 @@ class FiveStageIndependentReaderTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.evaluate(stages, changed)
 
+    def test_native_created_rider_and_hardware_claim_cannot_be_forged(self):
+        stages, source = example_members()
+        mutations = (
+            ("first_native_mike/log.txt",
+             b"UR_BALDOSA_NATIVE_FIRST_RACER status=0 preset=0 id=mike",
+             b"UR_BALDOSA_NATIVE_FIRST_RACER status=0 preset=1 id=andrew"),
+            ("fourth_native_two_seat_go/log.txt",
+             b"[Gamepad] SDL reports 0 joystick(s).",
+             b"[Gamepad] SDL reports 2 joystick(s)."),
+            ("fourth_native_two_seat_go/log.txt",
+             b"video=windows audio=dummy",
+             b"video=windows audio=wasapi"),
+        )
+        for name, old, new in mutations:
+            changed = dict(source)
+            changed[name] = changed[name].replace(old, new)
+            with self.subTest(file=name, mutation=new), self.assertRaises(ValueError):
+                self.evaluate(stages, changed)
+
     def test_exact_actions_sha_and_symlink_fail_closed(self):
         with self.assertRaisesRegex(ValueError, "SHA-256"):
             self.evaluate(corrupt_source_sha=True)

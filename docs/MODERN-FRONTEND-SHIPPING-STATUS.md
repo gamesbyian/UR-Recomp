@@ -108,6 +108,9 @@ raw SRAM byte-identical to their pre-Practice bytes; no `.urrun`; a fresh
 ordinary Mike boot whose guest `BOOT_SRAM` FNV equals those raw bytes; and a
 further Practice launch that is still admitted despite the stale
 `practice-session` directory and restores/exits normally with the same bytes.
+The ordinary reboot may legitimately rewrite the typed profile via its normal
+native checkpoint, so the final Practice is compared against the post-reboot
+bytes while raw SRAM, selector and catalog must still equal the originals.
 Pending exact-head native Windows CI; this adds no product code and is not an
 OS power-loss, physical-pad or release-ledger claim.
 

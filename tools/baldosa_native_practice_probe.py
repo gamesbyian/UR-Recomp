@@ -255,6 +255,18 @@ def run(exe: Path, rom: Path, out: Path,
         "turbo on\nwait 1800\nquit\n", video, timeout)
     verify_boot_sram(rebooted, named_files["saves/profile-mike/save.srm"],
                      profile="mike")
+    # An ordinary Mike boot enters stock play and ends in the normal native
+    # shutdown/typed checkpoint, which may legitimately rewrite typed
+    # metadata. The stricter pre-boot comparison above already proved the
+    # killed Practice changed nothing. Raw SRAM, selector and catalog must
+    # still match the original; the post-kill Practice below is then judged
+    # against the bytes this ordinary boot left behind.
+    for name in ("host-state-v1.txt", "profiles-v1.txt",
+                 "saves/profile-mike/save.srm"):
+        if (named_user / name).read_bytes() != named_files[name]:
+            raise ValueError("Ordinary boot after kill changed " + name)
+    named_files = {
+        name: (named_user / name).read_bytes() for name in named_files}
     retried = run_game(
         exe, rom, named_user, out / "named_p1_practice_after_kill", "11",
         "turbo on\n"

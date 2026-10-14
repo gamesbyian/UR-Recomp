@@ -141,7 +141,8 @@ def classify(case: str, producer_rc: int, producer_path: Path,
                 event["source_active_frames_to_result"] <= 0):
             raise ValueError("original archived event entry/result interval is incomplete or contradictory")
         if (any(type(report.get(k)) is not int or report[k] < 0
-                for k in ("reference_entry", "native_entry", "native_frame_shift"))
+                for k in ("reference_entry", "native_entry"))
+                or type(report.get("native_frame_shift")) is not int
                 or report["native_entry"] - report["reference_entry"]
                 != report["native_frame_shift"]):
             raise ValueError("fresh reference/native entry and input shift disagree")
@@ -230,8 +231,8 @@ def aggregate(plan: dict, results_dir: Path) -> tuple[dict, str]:
                         for k in ("original_movie_entry_frame",
                                   "original_movie_result_frame",
                                   "original_event_frames",
-                                  "reference_entry_frame", "native_entry_frame",
-                                  "native_frame_shift"))
+                                  "reference_entry_frame", "native_entry_frame"))
+                        or type(ev.get("native_frame_shift")) is not int
                         or ev["original_movie_result_frame"] - ev["original_movie_entry_frame"]
                         != ev["original_event_frames"]
                         or ev["original_event_frames"] <= 0

@@ -28,6 +28,7 @@ def require_switch(log: str, current: str, next_id: str) -> None:
         f"UR_BALDOSA_NATIVE_P1_SWITCH status=0 from={current} "
         f"to={next_id} activation=next_process",
         "UR_BALDOSA_MODERN_ROOT existing_p1_saved=1 activation=next_process",
+        "UR_BALDOSA_MODERN_ROOT existing_p1_stale_race_blocked=1",
     )
     offsets = []
     for step in steps:

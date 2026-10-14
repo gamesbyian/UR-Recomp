@@ -1,0 +1,79 @@
+{
+  "schema": "qa08-original-Snes9x-2P-postGO-source-motion-diversity/1",
+  "status": "genuine_original_source_motion_diversity_only",
+  "original_Snes9x_source_ZIP_SHA256": "6e5d488230c11d3dfcd144b6a7cbc8c25d7acfcb4f95b776a85071dd3487f5e3",
+  "original_source_dimensions": [
+    256,
+    224
+  ],
+  "observed_original_callbacks": [
+    2191,
+    2207,
+    2223
+  ],
+  "accepted_original_full_callback_window": [
+    2188,
+    2224
+  ],
+  "original_source_SHA256": {
+    "2191": "a1785485e4ad9cbeb9b8f822cbc37ec99c4b85daa7ee7ad0ce23517e3635aeae",
+    "2207": "e76c6010b3fb339ecbdae2fec985a00019345723cdff122d9bbc78d71481c8aa",
+    "2223": "ed77c53f2c1d15287c27a68c2d81103da89f2d1823ab3e2aada675d68f7ae39b"
+  },
+  "real_original_full_RGB_pairwise_differences": [
+    {
+      "original_callback_frames": [
+        2191,
+        2207
+      ],
+      "original_script_frames_one_based": [
+        2192,
+        2208
+      ],
+      "top_rows_0_to_110_changed_RGB_pixels": 18257,
+      "split_rows_111_to_112_changed_RGB_pixels": 0,
+      "bottom_rows_113_to_223_changed_RGB_pixels": 17248,
+      "total_changed_RGB_pixels": 35505,
+      "source_pixels_compared": 57344
+    },
+    {
+      "original_callback_frames": [
+        2191,
+        2223
+      ],
+      "original_script_frames_one_based": [
+        2192,
+        2224
+      ],
+      "top_rows_0_to_110_changed_RGB_pixels": 13021,
+      "split_rows_111_to_112_changed_RGB_pixels": 0,
+      "bottom_rows_113_to_223_changed_RGB_pixels": 16069,
+      "total_changed_RGB_pixels": 29090,
+      "source_pixels_compared": 57344
+    },
+    {
+      "original_callback_frames": [
+        2207,
+        2223
+      ],
+      "original_script_frames_one_based": [
+        2208,
+        2224
+      ],
+      "top_rows_0_to_110_changed_RGB_pixels": 15440,
+      "split_rows_111_to_112_changed_RGB_pixels": 0,
+      "bottom_rows_113_to_223_changed_RGB_pixels": 20715,
+      "total_changed_RGB_pixels": 36155,
+      "source_pixels_compared": 57344
+    }
+  ],
+  "proposed_additional_native_frames": [
+    2192,
+    2224
+  ],
+  "native_host_has_emitted_these_additional_frames": false,
+  "source_original_native_guest_phase_for_additional_frames_proven": false,
+  "original_native_RGB5_pixel_parity_for_additional_frames_proven": false,
+  "source_2P_rider_OAM_winner_or_4x_HD_proven": false,
+  "release_or_renderer_promotion_authorized": false
+}

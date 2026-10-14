@@ -14,9 +14,14 @@ import json
 from pathlib import Path
 import zipfile
 
-from tools.qa08_accept_original_native_split_seam import (
-    ORIGINAL_ZIP_SHA, ORIGINAL_2207_SHA, rgb5_match, W, H,
-)
+try:
+    from tools.qa08_accept_original_native_split_seam import (
+        ORIGINAL_ZIP_SHA, ORIGINAL_2207_SHA, rgb5_match, W, H,
+    )
+except ModuleNotFoundError:
+    from qa08_accept_original_native_split_seam import (
+        ORIGINAL_ZIP_SHA, ORIGINAL_2207_SHA, rgb5_match, W, H,
+    )
 
 ORIGINAL_FRAME_MEMBER = "qa08-original-source-window/frame_002207_256x224.raw"
 P7_HEADER = b"P7\nWIDTH 256\nHEIGHT 224\nDEPTH 4\nMAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n"

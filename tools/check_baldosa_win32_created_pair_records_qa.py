@@ -121,11 +121,13 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
         "physical_pad_hardware_accepted", "original_native_strict_event_accepted",
         "release_gate_credit",
     }
-    if ui:
-        expected_report_fields |= {
-            "anonymous_first_boot_sram_present",
-            "anonymous_bootstrap_bytes_unchanged_by_all_named_games",
-        }
+    anonymous_source_fields = {
+        "anonymous_first_boot_sram_present",
+        "anonymous_bootstrap_bytes_unchanged_by_all_named_games",
+    }
+    if ui or (type(report) is dict and
+              bool(anonymous_source_fields & set(report))):
+        expected_report_fields |= anonymous_source_fields
     require(type(report) is dict and set(report) == expected_report_fields,
             "unexpected producer report claim or missing canonical field")
     require(type(report) is dict and
@@ -143,10 +145,11 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
             type(report.get("release_gate_credit")) is int and
             report["release_gate_credit"] == 0,
             "producer report claimed new riders, profile UI or release gate")
-    if ui:
+    if anonymous_source_fields <= set(report):
         require(type(report["anonymous_first_boot_sram_present"]) is bool and
                 report["anonymous_bootstrap_bytes_unchanged_by_all_named_games"] is True,
                 "anonymous legacy boot source preservation not attested")
+    if ui:
         first, second, played, mike_view, ui_switch, martin_view = logs
     else:
         first, second, played, mike_view, martin_view = logs

@@ -65,7 +65,9 @@ class DualAirPaired(unittest.TestCase):
             lines = []
             for tag in row["checkpoints"]:
                 frame = 1620 if tag == m.BASE else int(tag.rsplit("-", 1)[-1])
-                lines.append(f"script f={frame} dump {tag} ok")
+                descriptor = ("fb=256x224 RGB565 sram=8192 ppuw=961"
+                              if side == "original" else "ok")
+                lines.append(f"script f={frame} dump {tag} {descriptor}")
             (self.root / (side + ".log")).write_text(
                 "guest started\n" + "\n".join(lines) + "\n",encoding="utf-8")
         # Synthetic ROM stand-in is intentionally not canonical: patch only
@@ -154,13 +156,54 @@ class DualAirPaired(unittest.TestCase):
                     m.summarize(**kwargs)
             (self.root / "native.log").write_text(native_text)
             (self.root / "original.log").write_text(
-                original_text.replace("script f=2580 dump endurance-2580 ok",
-                                      "script f=2579 dump endurance-2580 ok"))
+                original_text.replace(
+                    "script f=2580 dump endurance-2580 "
+                    "fb=256x224 RGB565 sram=8192 ppuw=961",
+                    "script f=2579 dump endurance-2580 "
+                    "fb=256x224 RGB565 sram=8192 ppuw=961"))
             with self.assertRaisesRegex(ValueError,"original real guest dump frame"):
                 m.summarize(**kwargs)
             (self.root / "original.log").unlink()
             with self.assertRaisesRegex(ValueError,"missing or symlinked"):
                 m.summarize(**kwargs)
+
+    def test_only_real_source_and_native_dump_receipt_grammars_admitted(self):
+        row, original, native, rom, core, executable = self._evidence()
+        source_log = self.root / "original.log"
+        native_log = self.root / "native.log"
+        expected = row["checkpoints"]
+        source_text = source_log.read_text()
+        native_text = native_log.read_text()
+        source = m.frame_receipts(source_log, expected, side="original")
+        target = m.frame_receipts(native_log, expected, side="native")
+        self.assertEqual(len(source["observed_frame_label_pairs"]), 18)
+        self.assertEqual(len(target["observed_frame_label_pairs"]), 18)
+        self.assertEqual(source["observed_frame_label_pairs"][9],
+                         (2580, "endurance-2580"))
+        # The exact pinned Snes9x logs in the failed real workflow use fb
+        # descriptors, not 'ok'; the old parser falsely saw zero receipts.
+        for altered in (
+            source_text.replace(
+                "dump endurance-2580 fb=256x224 RGB565 sram=8192 ppuw=961",
+                "dump endurance-2580 ok"),
+            source_text.replace(
+                "dump endurance-2580 fb=256x224 RGB565 sram=8192 ppuw=961",
+                "dump endurance-2580 fb=0x0 RGB565 sram=8192 ppuw=961"),
+            source_text.replace(
+                "dump endurance-2580 fb=256x224 RGB565 sram=8192 ppuw=961",
+                "dump endurance-2580 fb=256x224 RGB565 sram=8192 ppuw=961 BAD"),
+        ):
+            source_log.write_text(altered)
+            with self.assertRaisesRegex(ValueError, "receipt grammar invalid"):
+                m.frame_receipts(source_log, expected, side="original")
+        source_log.write_text(source_text)
+        native_log.write_text(native_text.replace(
+            "dump endurance-2580 ok", "dump endurance-2580 partial"))
+        with self.assertRaisesRegex(ValueError, "receipt grammar invalid"):
+            m.frame_receipts(native_log, expected, side="native")
+        native_log.write_text(native_text)
+        # Still never upgrade synthetic observer fixtures to accepted events.
+        self.assertEqual(source["frame_labels_from_actual_guest_transcript"], True)
 
     def test_original_active_2p_is_a_precondition_not_assumed(self):
         _, original, native, rom, core, executable = self._evidence()

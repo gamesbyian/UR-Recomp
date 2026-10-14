@@ -76,6 +76,9 @@ def fixture():
             side: {
                 "p1_candidate_state_word": row[side]["p1_raw_air"],
                 "p2_candidate_state_word": row[side]["p2_raw_air"],
+                "postrun_shared_collision_02c0_word":
+                    0xFF if row["absolute_host_frame"] in (2579, 2580) else 1,
+                "postrun_active_seat_selector_0fef_word": 2,
             } for side in ("original", "native")
         })
     scratch = [
@@ -141,6 +144,12 @@ class OriginalNativeExecuted2PAir(unittest.TestCase):
         self.assertEqual(
             original_scratch["p2_actual_collision_state_increment"]["new"], "02")
         self.assertFalse(result["native_cpu_internal_collision_scratch_observed"])
+        self.assertEqual(
+            result["posthost_2579_2580_collision_control"]
+            ["original_native_02c0_word"], "00FF")
+        self.assertFalse(
+            result["posthost_2579_2580_collision_control"]
+            ["these_are_pre_p1_branch_preconditions"])
         self.assertFalse(result["cpu_instruction_or_ppu_beam_phase_aligned"])
         self.assertFalse(result["native_helper_scope_is_opcode_pc"])
         self.assertFalse(result["first_causal_upstream_condition_proven"])
@@ -163,7 +172,7 @@ class OriginalNativeExecuted2PAir(unittest.TestCase):
 
     def test_snapshot_contamination_never_becomes_a_zero_credit_pass(self):
         for action in ("phase","award","frame","state","word",
-                       "delta","count","scope","collision"):
+                       "delta","count","scope","collision","last_seat"):
             with self.subTest(action=action):
                 a,w = fixture()
                 if action == "phase":
@@ -182,6 +191,8 @@ class OriginalNativeExecuted2PAir(unittest.TestCase):
                     a["original_cpu_source_receipts_qualified"] = 330
                 elif action == "collision":
                     a["original_cpu_shared_working_scopes"][2]["new"] = "03"
+                elif action == "last_seat":
+                    w[4]["original"]["postrun_shared_collision_02c0_word"] = 0x0002
                 else:
                     a["original_cpu_opcode_changes"][0]["pc"] = "81:8E27"
                 with self.assertRaises(ValueError):

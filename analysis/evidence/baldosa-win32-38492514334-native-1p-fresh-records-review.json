@@ -1,0 +1,72 @@
+{
+  "schema": "UR-QA-WIN32-INDEPENDENT-CANDIDATE-REVIEW/1",
+  "assessment": "hosted_native_product_1p_result_and_fresh_process_records_log_evidence",
+  "workflow_run_id": 38492514334,
+  "workflow_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38492514334",
+  "pr_number": 1416,
+  "pr_head_sha": "fd3ccdf5f67364a09b8d7b4b68d214598ee1afff",
+  "checkout_merge_commit_sha": "5fd490beb905f111a296f46685efd4a3b19d0236",
+  "checkout_parent_base_sha": "a62c370519e385b4a79457ad7c5d639dd9892876",
+  "checkout_parent_feature_sha": "fd3ccdf5f67364a09b8d7b4b68d214598ee1afff",
+  "candidate": {
+    "actions_artifact_id": 11862436040,
+    "actions_wrapper_sha256": "9d38555daa39c6dcf4b5651ceef5730ff9ead34eeb1dd59ea6764e6865243f6d",
+    "inner_romless_zip_sha256": "ab482697ab0cfca6a2c0db31520c11ba88eea872b3b9d3240b4f13c9bdf80739",
+    "sidecar_matches_inner_bytes": true,
+    "manifest_project_revision": "5fd490beb905f111a296f46685efd4a3b19d0236",
+    "canonical_four_member_romless_zip": true,
+    "all_three_manifest_payload_sha256_and_byte_counts_match": true,
+    "pe32plus_amd64_confirmed": true,
+    "executable_sha256": "e090e7eafdb8355acbd844f74aca0219fcb5d4d768dd481e48ffc2ce88b016f1",
+    "rom_bundled": false,
+    "player_data_bundled": false
+  },
+  "runtime": {
+    "actions_artifact_id": 11861599510,
+    "actions_wrapper_sha256": "1a00d912388e2c0bc0c07ce671f191e1a986372edfe4ef5486ef4ad203771f35",
+    "runtime_executable_sha256_matches_inner_manifest": true,
+    "extracted_launcher_archive_sha256_matches_inner_zip": true,
+    "launcher_report_sha256": "5b43fbea155b5af3e8a94a5796c6caaafa431b438961e1b116399e7bc9618187",
+    "native_runtime_report_sha256": "35379036393ac728a93e4d38ab923b915246a65f8fc1c48a42f04f9596ece5f4",
+    "new_1p_probe": {
+      "report_sha256": "a64ee2d9aeb23b8ca2e781b3ad1a53abe5b30bd40e0ffe61a2a4acf99955adcd",
+      "played_game_log_sha256": "835a3ab71e932f2d82b0bfcf6390880334d1c0a9d659731c18f4aa9615a360bb",
+      "fresh_game_log_sha256": "24122f525f028512cb3aa444e1a401c8334774124ec7b4af06fee4bb33a9f830",
+      "profile_id": "native-ci-rider",
+      "source_course_id": "course:01",
+      "source_race_host_frame": 1910,
+      "source_result_host_frame": 4163,
+      "source_finish_ticks60": 1679,
+      "captured_input_frames": 2253,
+      "captured_input_runs": 5,
+      "source_result_observed": true,
+      "new_run_published": true,
+      "new_run_count_producer_reported": 1,
+      "new_run_sha256_producer_reported": "b73b9d8b2bfeb3379ff35e4a8db14d73a56eb7dce96fa481e1288f8ef6aca4a4",
+      "fresh_native_game_boot_sram_bytes": 8192,
+      "fresh_game_records_opened_validated_count": 1,
+      "fresh_game_readonly_no_second_published_result": true,
+      "fresh_process_distinct_host_run_logs": true
+    }
+  },
+  "independent_admission_limits": {
+    "saved_urrun_bytes_retained_in_actions_artifact": false,
+    "saved_urrun_sha256_independently_recomputed": false,
+    "source_result_and_second_game_logs_independently_inspected": true,
+    "hosted_source_driven_1p_product_journey_supported": true,
+    "original_emulator_strict_course_comparison_accepted": false,
+    "genuine_source_bound_2p_match_accepted": false,
+    "physical_gamepads_audio_display_accepted": false,
+    "unified_packaged_human_controller_journey_accepted": false,
+    "release_qa_gate_promotion": false,
+    "official_usa_complete_event_passes": 0,
+    "candidate_nominated_for_release_ledger": false
+  },
+  "notes": [
+    "Exact SHA-256 hashes were independently recomputed from two downloaded GitHub Actions wrapper ZIPs; the inner ZIP SHA is not interchangeable with the Actions wrapper SHA.",
+    "The manifest project_revision is the synthetic pull_request checkout merge (parents recorded above), NOT the PR feature head or present-day main.",
+    "CI's producer did compare the canonical new .urrun file before and after the second game; only its reported SHA and hosted process logs survive in the downloaded runtime artifact, not the raw run bytes.",
+    "The existing source/native strict event comparator is a distinct authority and did not accept course:01 from this hosted product integration run.",
+    "Status remains inconclusive for independent release QA even though the hosted native Windows 1P product integration route succeeded."
+  ]
+}

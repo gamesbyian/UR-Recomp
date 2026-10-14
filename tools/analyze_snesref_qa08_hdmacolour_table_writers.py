@@ -21,16 +21,51 @@ RX = re.compile(
 )
 SOURCES = {"2086":"2F","2089":"40","208C":"80","208F":"20","2092":"53","2095":"80"}
 
-def report(log: Path, native: Path) -> dict:
-    j=json.loads(native.read_text(encoding="utf8"))
-    if (j.get("schema")!="qa08-native-HDMA-COLDATA-original-source-provenance/1" or
-            j.get("direct_native_HDMA_COLDATA_written_bytes")!=7 or
-            j.get("HDMA_channels_recorded")!={"5":7}):
+def accepted_native_sources(native: Path) -> dict[str, str]:
+    """Reconcile exact original-native source report OR its hash-bound handoff."""
+    j = json.loads(native.read_text(encoding="utf8"))
+    if j.get("schema") == "qa08-original-native-channel5-coldata-source-handoff/1":
+        if (j.get("status") != "strict-native-AOT-coldata-source-provenance-accepted"
+                or j.get("HDMA_channel") != 5 or j.get("HDMA_mode") != 1
+                or j.get("HDMA_indirect") is not False
+                or j.get("identical_original_guest_CRC_records") != 2473
+                or j.get("source_overlay_BG3_OBJ_pixels_native_accepted") != 26
+                or j.get("PPU_BBUS_register") != "$2132"
+                or j.get("A_bus_WRAM_bank") != "$7E"
+                or len(j.get("native_writes", [])) != 7):
+            raise ValueError("accepted native channel5 source-byte handoff invalid")
+        rows = j["native_writes"]
+        if [r["ordinal"] for r in rows] != list(range(7)):
+            raise ValueError("native channel5 write order invalid")
+        if (len(j.get("downloaded_zip_sha256", "")) != 64 or
+                len(j.get("original_source_report_sha256", "")) != 64):
+            raise ValueError("native channel5 source archive provenance invalid")
+        pairs = [
+            (r["A_bus_byte_address"].split(":")[1],
+             r["COLDATA_value"].removeprefix("0x"))
+            for r in rows
+            if r["A_bus_byte_address"].startswith("7E:")
+        ]
+        if len(pairs) != 7:
+            raise ValueError("native channel5 writer bank changed")
+        observed = dict(pairs)
+    elif j.get("schema") == "qa08-native-HDMA-COLDATA-original-source-provenance/1":
+        if (j.get("direct_native_HDMA_COLDATA_written_bytes") != 7
+                or j.get("HDMA_channels_recorded") != {"5": 7}):
+            raise ValueError("independently accepted native channel5 source-byte report required")
+        observed = {
+            x["A_bus_source"].split(":")[1]: x["COLDATA_written_byte"][2:]
+            for x in j["records"]
+        }
+    else:
         raise ValueError("independently accepted native channel5 source-byte report required")
-    observed={x["A_bus_source"].split(":")[1]:x["COLDATA_written_byte"][2:]
-              for x in j["records"]}
     if observed != SOURCES:
         raise ValueError("native observed colour-table byte identity changed")
+    return observed
+
+
+def report(log: Path, native: Path) -> dict:
+    accepted_native_sources(native)
     text=log.read_text(encoding="utf8",errors="replace").splitlines()
     if any("UR_QA08_COLDATA_TABLE_WRITER_OVERFLOW" in line for line in text):
         raise ValueError("bounded guest writer trace truncated")

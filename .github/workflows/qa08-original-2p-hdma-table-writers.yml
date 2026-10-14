@@ -1,0 +1,186 @@
+name: QA-08 original 2P HDMA source-table writer trace
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa08-original-2p-hdma-table-writers.yml"
+      - "tools/instrument_snesref_qa08_hdmacolour_table_writers.py"
+      - "tools/analyze_snesref_qa08_hdmacolour_table_writers.py"
+      - "tests/unit/test_qa08_original_hdma_table_writer_tools.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa08-snes9x-2p-writer-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  executed-original-2p:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout original reference tooling
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Checkout exact pinned 2P controller route and snesref
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Verify USA guest ROM and exact original route pins
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          cmp baldosa/tests/routes/race_2p_split.txt \
+            reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p_split.txt
+          # Drop ONLY pinned native host's unsupported turbo directive.
+          grep -v '^turbo ' baldosa/tests/routes/race_2p_split.txt \
+            > "$RUNNER_TEMP/qa08-original-2p.script"
+          sha256sum baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/qa08-original-2p.script"
+
+      - name: Build original Snes9x and instrument disposable original opcode core
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake pkg-config libsdl2-dev
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          python3 tools/instrument_snesref_qa08_hdmacolour_table_writers.py \
+            "$SRC/cpuexec.cpp"
+          make -C "$SRC/libretro" -j2
+          test -s "$SRC/libretro/snes9x_libretro.so"
+          cmake -S baldosa/snesrecomp/tools/snesref \
+            -B "$RUNNER_TEMP/qa08-snesref" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/qa08-snesref" -j2
+          test -x "$RUNNER_TEMP/qa08-snesref/snesref"
+
+      - name: Execute ten disjoint bounded original 2P writer windows
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-original-windows"
+          : > "$RUNNER_TEMP/qa08-original.log"
+          # Exhaust original Snes9x frame 0..2559. The initial source route
+          # finished at original frame 2473 with real P2 state, but the
+          # 1781..2036 active-only window had no bytes changed.
+          for first in 0 256 512 768 1024 1280 1536 1792 2048 2304; do
+            last=$((first+255))
+            stem="$RUNNER_TEMP/qa08-original-windows/frames-${first}-${last}"
+            mkdir -p "$stem"
+            set +e
+            SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+            UR_QA08_ORIGINAL_WRITER_FRAME_FIRST="$first" \
+            UR_QA08_ORIGINAL_WRITER_FRAME_LAST="$last" \
+            SNESREF_SCRIPT="$RUNNER_TEMP/qa08-original-2p.script" \
+            SNESREF_DUMP_DIR="$stem" \
+              timeout 90 "$RUNNER_TEMP/qa08-snesref/snesref" \
+                "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+                "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+                > "$stem/original.log" 2>&1
+            status=$?
+            set -e
+            echo "$status" > "$stem/original.exit"
+            if [ "$status" -ne 0 ]; then
+              tail -n 30 "$stem/original.log"
+              echo "::error::Original 2P route failed in window ${first}-${last}"
+              exit "$status"
+            fi
+            test -s "$stem/go.wram.bin"
+            test -s "$stem/t480.wram.bin"
+            grep -q '^script f=2473 quit' "$stem/original.log"
+            ! grep -q 'UR_QA08_COLDATA_TABLE_WRITER_OVERFLOW' "$stem/original.log"
+            count=$(grep -c '^UR_QA08_COLDATA_TABLE_WRITER frame=' "$stem/original.log" || true)
+            # Append in numeric frame order, never lexical glob order.
+            grep '^UR_QA08_COLDATA_TABLE_WRITER frame=' "$stem/original.log" \
+              >> "$RUNNER_TEMP/qa08-original.log" || true
+            printf 'original frame window %s-%s: observed byte changes=%s\n' "$first" "$last" "$count"
+          done
+          # Every original replay must independently reach the identical final
+          # WRAM state. Never poke or change original guest data to achieve it.
+          distinct=$(sha256sum "$RUNNER_TEMP"/qa08-original-windows/frames-*/t480.wram.bin \
+            | cut -d' ' -f1 | sort -u | wc -l)
+          test "$distinct" -eq 1
+          if [ ! -s "$RUNNER_TEMP/qa08-original.log" ]; then
+            echo "::error::No executed writer across all 0..2559 original emulator frames"
+            exit 1
+          fi
+          wc -l "$RUNNER_TEMP/qa08-original.log"
+
+      - name: Reconcile real executed original guest PCs with native accepted bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/analyze_snesref_qa08_hdmacolour_table_writers.py \
+            --log "$RUNNER_TEMP/qa08-original.log" \
+            --native-source analysis/data/qa08-original-native-channel5-hdma-coldata-source-handoff.json \
+            --out "$RUNNER_TEMP/qa08-executed-original-writers.json"
+          python3 - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          root=Path(os.environ["RUNNER_TEMP"])
+          data=(root/"qa08-original-windows/frames-1536-1791/t480.wram.bin").read_bytes()
+          assert len(data)>=0x2100, "no real USA original WRAM dump"
+          rep=json.loads((root/"qa08-executed-original-writers.json").read_text())
+          src=Path("baldosa/tests/routes/race_2p_split.txt")
+          converted=root/"qa08-original-2p.script"
+          receipt={
+            "schema":"qa08-original-snes9x-two-player-writer-source/1",
+            "original_script_sha256":hashlib.sha256(src.read_bytes()).hexdigest(),
+            "converted_script_sha256":hashlib.sha256(converted.read_bytes()).hexdigest(),
+            "original_core_sha256":hashlib.sha256(Path(".tools/src/snes9x-libretro/libretro/snes9x_libretro.so").read_bytes()).hexdigest(),
+            "original_source_guest_frame_alignment_to_native2208_proven":False,
+            "original_guest_t480_second_camera_0DDB":data[0x0DDB],
+            "original_writer_observation_frame_coverage":"0..2559, ten disjoint 256-frame windows",
+            "original_guest_t480_race_flag_0313":data[0x0313],
+            "original_guest_t480_progress_0E1F":data[0x0E1F],
+            "original_t480_WRAM_sha256":hashlib.sha256(data).hexdigest(),
+            "original_GO_table_byte_values":{
+              f"7E:{a:04X}":(root/"qa08-original-windows/frames-1536-1791/go.wram.bin").read_bytes()[a]
+              for a in (0x2086,0x2089,0x208c,0x208f,0x2092,0x2095)
+            },
+            "original_T480_table_byte_values":{
+              f"7E:{a:04X}":data[a]
+              for a in (0x2086,0x2089,0x208c,0x208f,0x2092,0x2095)
+            },
+            "executed_guest_WRAM_writer_events":rep["original_emulator_writer_events"],
+            "executed_guest_PC_candidate_counts":rep["distinct_executed_guest_PCs"],
+            "full_original_native_replay_parity_proven":False,
+            "physical_SNES_confirmation":False,
+          }
+          (root/"qa08-original-writer-receipt.json").write_text(json.dumps(receipt,indent=2,sort_keys=True)+"\n")
+          print(json.dumps(receipt,indent=2,sort_keys=True))
+          if receipt["original_guest_t480_second_camera_0DDB"]!=1:
+            raise SystemExit("Actual original Snes9x 2P second-camera state not confirmed")
+          PY
+          echo "Only executed original opcode WRAM writes admitted; not physical hardware or original/native same-frame parity" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain original executable provenance (no ROM or SRAM)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-original-2p-executed-hdma-writers
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa08-original-2p.script
+            ${{ runner.temp }}/qa08-original.log
+            ${{ runner.temp }}/qa08-original-windows/frames-*/original.log
+            ${{ runner.temp }}/qa08-original-windows/frames-*/original.exit
+            ${{ runner.temp }}/qa08-executed-original-writers.json
+            ${{ runner.temp }}/qa08-original-writer-receipt.json

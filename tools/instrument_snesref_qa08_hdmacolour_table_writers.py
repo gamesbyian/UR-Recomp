@@ -2,7 +2,7 @@
 """Bounded original-Snes9x source probe for the Uniracers colour-HDMA WRAM writer.
 
 Opt-in, opcode-by-opcode, compares only $7E:2084..2097 before/after each
-original guest instruction. The probe reports actual executed PC candidates
+original guest instruction. Optional semantic two-player arming is bounded\nto 256 original frames and requires live 0DDB=01 and 0313=01.\nThe probe reports actual executed PC candidates
 without changing RAM, game, opcode, DMA or PPU behaviour. Must be compared
 with native channel5 transfer observations before calling any PC the writer.
 """
@@ -15,11 +15,31 @@ OPCODE = "\t\t\tRegisters.PCw++;\n\t\t\t(*Opcodes[Op].S9xOpcode)();"
 CODE = r'''			/* UR_QA08_COLDATA_TABLE_WRITER: guarded original-emulator
 			 * observation of the direct HDMA colour table in WRAM.
 			 * Disabled unless BOTH original-emulator frame bounds are
-			 * explicitly supplied. No write or flow-control effects. */
+			 * explicitly supplied, OR the separate strict original two-player\n\t\t\t * semantic arm gate is enabled. No write or flow-control effects. */
 			{
 				static int qa08_writer_init = 0;
 				static unsigned long qa08_writer_first, qa08_writer_last;
 				static unsigned qa08_writer_count;
+				static int qa08_writer_2p_armed = -1;
+				static unsigned long qa08_writer_2p_first = ~0ul;
+				if (qa08_writer_2p_armed < 0)
+				{
+					const char *setting = getenv("UR_QA08_ORIGINAL_WRITER_ARM_ON_2P");
+					qa08_writer_2p_armed = (setting && setting[0] == '1' &&
+					                         setting[1] == '\0') ? 1 : 0;
+				}
+				/* The independently observed second camera flag remains 1
+				 * during active two-player play. Do not equate the libretro
+				 * frame clock with native Baldosa guest frame 2208. */
+				if (qa08_writer_2p_armed &&
+				    qa08_writer_2p_first == ~0ul &&
+				    Memory.RAM[0x0DDB] == 1 && Memory.RAM[0x0313] == 1)
+				{
+					qa08_writer_2p_first = (unsigned long)ICPU.Frame;
+					fprintf(stderr,
+					  "UR_QA08_COLDATA_TABLE_ARM frame=%u v=%u camera=01 race=01 mode=2p\n",
+					  (unsigned)ICPU.Frame, (unsigned)CPU.V_Counter);
+				}
 				if (!qa08_writer_init)
 				{
 					const char *first = getenv("UR_QA08_ORIGINAL_WRITER_FRAME_FIRST");
@@ -41,9 +61,13 @@ CODE = r'''			/* UR_QA08_COLDATA_TABLE_WRITER: guarded original-emulator
 						}
 					}
 				}
+				const unsigned long qa08_now = (unsigned long)ICPU.Frame;
 				const bool qa08_writer_active =
-					(unsigned long)ICPU.Frame >= qa08_writer_first &&
-					(unsigned long)ICPU.Frame <= qa08_writer_last;
+					(qa08_now >= qa08_writer_first &&
+					 qa08_now <= qa08_writer_last) ||
+					(qa08_writer_2p_armed && qa08_writer_2p_first != ~0ul &&
+					 qa08_now >= qa08_writer_2p_first &&
+					 qa08_now - qa08_writer_2p_first <= 255ul);
 				uint8 qa08_prior[20];
 				const uint32 qa08_executed_pc =
 					((uint32)Registers.PB << 16) | (uint32)Registers.PCw;

@@ -36,13 +36,13 @@ def six():
         "script f=0 turbo on\n"
         "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=mike bytes=8192 fnv=85c4e6d1\n"
         "UR_BALDOSA_MODERN_ROOT existing_p1_opened=1 from=mike to=martin activation=next_process\n"
-        "UR_BALDOSA_MODERN_ROOT synthetic_p1_switch_gamepad=5\n"
         "UR_BALDOSA_MODERN_ROOT synthetic_p1_switch_gamepad=2\n"
-        "UR_BALDOSA_MODERN_ROOT synthetic_p1_switch_gamepad=4\n"
         "UR_BALDOSA_NATIVE_P1_SWITCH status=0 from=mike to=martin activation=next_process\n"
         "UR_BALDOSA_MODERN_ROOT existing_p1_saved=1 activation=next_process\n"
-        "UR_BALDOSA_MODERN_ROOT synthetic_p1_switch_gamepad=2\n"
+        "UR_BALDOSA_MODERN_ROOT synthetic_p1_switch_gamepad=0\n"
         "UR_BALDOSA_MODERN_ROOT existing_p1_closed=1\n"
+        "UR_BALDOSA_MODERN_ROOT synthetic_p1_switch_gamepad=1\n"
+        "UR_BALDOSA_MODERN_ROOT synthetic_p1_switch_gamepad=0\n"
         "UR_BALDOSA_MODERN_ROOT existing_p1_stale_race_blocked=1\n"
         "script f=900 quit\n"
         "UR_BALDOSA_NATIVE_PROFILE PREFLIGHT_REJECTED status=3\n"
@@ -96,7 +96,7 @@ class IndependentUiSelectedRecords(unittest.TestCase):
             ("status=0 from=mike to=martin", "status=1 from=mike to=martin"),
             ("existing_p1_saved=1", "existing_p1_saved=0"),
             ("existing_p1_stale_race_blocked=1", "existing_p1_stale_race_blocked=0"),
-            ("synthetic_p1_switch_gamepad=4\n", ""),
+            ("synthetic_p1_switch_gamepad=1\n", ""),
             ("PREFLIGHT_REJECTED status=3", "PREFLIGHT_REJECTED status=0"),
         ):
             with self.subTest(old=old):

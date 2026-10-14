@@ -33,6 +33,11 @@ class OriginalColourTableProducerTests(unittest.TestCase):
         self.assertIn("UR_QA08_ORIGINAL_WRITER_FRAME_FIRST",source)
         self.assertIn("UR_QA08_ORIGINAL_WRITER_FRAME_LAST",source)
         self.assertIn("b-a <= 255ul",source)
+        self.assertIn("UR_QA08_ORIGINAL_WRITER_ARM_ON_2P",source)
+        self.assertIn("Memory.RAM[0x0DDB] == 1",source)
+        self.assertIn("Memory.RAM[0x0313] == 1",source)
+        self.assertIn("UR_QA08_COLDATA_TABLE_ARM frame=",source)
+        self.assertIn("qa08_now - qa08_writer_2p_first <= 255ul",source)
         self.assertIn('#include <stdlib.h>',source)
         self.assertIn('0x2084 + j',source)
         self.assertEqual(source.count("(*Opcodes[Op].S9xOpcode)();"),1)
@@ -69,6 +74,38 @@ class OriginalColourTableProducerTests(unittest.TestCase):
             result=analyze.report(original,native)
             self.assertEqual(len(result["last_guest_writer_matching_native_source_value"]),5)
             self.assertFalse(result["all_six_native_table_source_bytes_matched_at_last_observed_write"])
+
+    def test_accepted_compact_channel5_source_handoff(self):
+        from tools import analyze_snesref_qa08_hdmacolour_table_writers as analyzer
+        with tempfile.TemporaryDirectory() as tmp:
+            p=Path(tmp)/"source.json"
+            writes=[]
+            for i,(addr,value) in enumerate([
+                ("2086","2F"), ("2086","2F"), ("2089","40"),
+                ("208C","80"), ("208F","20"), ("2092","53"), ("2095","80")
+            ]):
+                writes.append({"ordinal":i,"A_bus_byte_address":"7E:"+addr,
+                               "COLDATA_value":"0x"+value})
+            receipt={"schema":"qa08-original-native-channel5-coldata-source-handoff/1",
+                     "status":"strict-native-AOT-coldata-source-provenance-accepted",
+                     "HDMA_channel":5,"HDMA_mode":1,"HDMA_indirect":False,
+                     "identical_original_guest_CRC_records":2473,
+                     "source_overlay_BG3_OBJ_pixels_native_accepted":26,
+                     "PPU_BBUS_register":"$2132","A_bus_WRAM_bank":"$7E",
+                     "downloaded_zip_sha256":"a"*64,
+                     "original_source_report_sha256":"b"*64,
+                     "native_writes":writes}
+            p.write_text(json.dumps(receipt))
+            self.assertEqual(analyzer.accepted_native_sources(p),analyzer.SOURCES)
+            receipt["HDMA_channel"]=4
+            p.write_text(json.dumps(receipt))
+            with self.assertRaisesRegex(ValueError,"handoff invalid"):
+                analyzer.accepted_native_sources(p)
+            receipt["HDMA_channel"]=5
+            receipt["native_writes"][4]["COLDATA_value"]="0x21"
+            p.write_text(json.dumps(receipt))
+            with self.assertRaisesRegex(ValueError,"byte identity"):
+                analyzer.accepted_native_sources(p)
 
     def test_overflow_incorrect_native_or_forged_original_source_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:

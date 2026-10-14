@@ -778,7 +778,18 @@
     "core_sha256": "3504cb55668e354a7a741e20f42b919609b8534fb0b975daf86d3fb4264747ef",
     "movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
     "input_sha256": "425c1d721fd668267189cb1c1295acdf9185bed8b73388a792fb346c9b119b8d"
-   }
+   },
+   "entries_host": {
+    "original": 1079,
+    "native_base": 1081,
+    "native_fixed": 1081
+   },
+   "absolute_result_host": {
+    "original": 5783,
+    "native_base": 5783,
+    "native_fixed": 5784
+   },
+   "reading": "Guest-relative is the oracle axis. The race matches guest-relatively through +4663; the 0x84 onset is one frame early at +4664 (open); the result phase was one frame short and is corrected (+4702 -> +4703 vs +4704). The +2 native entry lag is separate and unchanged, so the baseline's equal absolute result frame (5783) was two errors cancelling; corrected native presents it at 5784."
   }
  },
  "rf016_spc_upload": {
@@ -852,6 +863,23 @@
    "executable_sha256": "8131554346ebb3d2c820b64608fea17ff4f3998d04e82daa3e48f7010dcc14d4",
    "adopted": false,
    "reading": "941 load and 1423 start now match bsnes; 1548 and 3633-3763 become one frame late"
+  },
+  "result_onset_link": {
+   "seed": 50048000,
+   "arm": "balanced",
+   "original_upload_end": "host 5013 V=230; 80:FAC9 at V=232",
+   "refresh_corrected_onset_native_original": [
+    5014,
+    5015
+   ],
+   "spc_17060_onset_native_original": [
+    5015,
+    5015
+   ],
+   "spc_17060_max_semantic_wram_bytes": 7,
+   "spc_17060_differing_frames": [
+    5012
+   ]
   }
  }
 }

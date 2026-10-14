@@ -362,7 +362,7 @@
   },
   {
    "id": "RF-016",
-   "title": "Baldosa runs the SPC700 at 17088 cycles per 357368-clock field (~1.02696 MHz) where Snes9x and bsnes use ~1.02528 MHz: the no-input attract SPC upload ends ~54 lines early",
+   "title": "Baldosa runs the SPC700 at 17088 cycles per field (~1.02696 MHz) where Snes9x and bsnes use ~1.02528 MHz: SPC uploads end early, explaining the attract 941-1098 load and the remaining one-field-early 2P result onset (seed 50048000)",
    "class": "original_native_discrepancy",
    "status": "handed_off",
    "evidence": "original_and_native",
@@ -378,10 +378,10 @@
     "analysis/data/rf015-dram-refresh-beam-rate-20261014.json",
     "snesrecomp runner/src/apu_frame_clock.h RTL_APU_CYCLES_PER_FRAME 17088 at baldosa/snesrecomp@075fbe4"
    ],
-   "observation": "Low WRAM ($0200-$1DFF) is identical on Snes9x, bsnes and both Baldosa builds every frame 2-1096. The 941-1098 black load is Snd_UploadBlockList (82:82A9): 64 block headers via JSR $8328 and CPU decompression (82:812A) feeding a byte stream (82:82EF STA $2143/STA $2142, 82:8301 CMP $2142/BNE). All 46,414 port-2 writes align one-to-one by value; Baldosa gains ~19k master clocks during the IPL/handshake phase (1009-1025) and ~50k steadily across the ~71-field stream (655 vs 653-654 bytes per field), ending ~73k clocks (~54 lines) ahead. The black screen therefore ends at 1097 vs 1098 and the next starts at 1422 vs 1423; unaffected by the RF-015 refresh correction, which fixed the 3632-3762 load.",
+   "observation": "Low WRAM ($0200-$1DFF) is identical on Snes9x, bsnes and both Baldosa builds every frame 2-1096. The 941-1098 black load is Snd_UploadBlockList (82:82A9): 64 block headers via JSR $8328 and CPU decompression (82:812A) feeding a byte stream (82:82EF STA $2143/STA $2142, 82:8301 CMP $2142/BNE). All 46,414 port-2 writes align one-to-one by value; Baldosa gains ~19k master clocks during the IPL/handshake phase (1009-1025) and ~50k steadily across the ~71-field stream (655 vs 653-654 bytes per field), ending ~73k clocks (~54 lines) ahead. The black screen therefore ends at 1097 vs 1098 and the next starts at 1422 vs 1423; unaffected by the RF-015 refresh correction, which fixed the 3632-3762 load. The remaining 2P onset residual is the same mechanism: on seed 50048000 the original CPU is in the result-screen song upload (Snd_UploadBlockList) until 5013 V=230 and reaches 80:FAC9 at V=232, seven lines after VBlank; the refresh-corrected core onsets at 5014. With the disposable 17060-cycle build the paired run gives onset 5015 = 5015, 34 = 34 and one transient 7-byte frame (5012).",
    "uncertainty": "Disposable A/B executed 2026-10-14 (refresh-corrected build + RTL_APU_CYCLES_PER_FRAME 17060, exe 81315543...): the 941 load then ends on bsnes's frame (1098) and the next starts on it (1423), but 1423-1548 vs 1547 and 3633-3763 vs 3632-3762 move one frame late. The SPC rate therefore participates, but the references' nominal 32040 Hz x 32 over-corrects other loads and the ~19k-clock IPL-phase lead is unattributed. Real consoles' APU resonators vary; Baldosa's audio pipeline is built around 534 samples per field, so the rate is a design constant, not a one-line fix.",
    "resolving_experiment": "Attribute the IPL-phase lead (1009-1025: SPC reset to $BBAA ready, small port-0/1 blocks) with an SPC-side PC/cycle trace on Baldosa and bsnes, then re-test the per-field stream rate; adopt no SPC-rate change until every attract load and the 2P/Zoo witnesses agree.",
-   "consequence": "Load lengths that wait on the SPC (song uploads at screen transitions) can end a fraction of a field early on the product core; affects strict frame-exact transition comparisons, not decoded gameplay state."
+   "consequence": "Result-screen song uploads decide the 0x84 onset field when the original reaches the wait just after VBlank (2P seed 50048000; likely QA-01 Switcher +4664), and attract loads end a fraction of a field early. Affects strict frame-exact event comparison."
   }
  ]
 }

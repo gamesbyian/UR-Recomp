@@ -16,6 +16,7 @@ from pathlib import Path
 
 import qa_frontier_coverage as coverage
 import qa_frontier_exact as exact
+import research_admission as admission
 
 SCHEMA = "ur-cumulative-campaign-ledger/1"
 PLAN_SCHEMA = "ur-cumulative-campaign-plan/1"
@@ -94,6 +95,10 @@ def validate_ledger(ledger: dict) -> None:
             content = {k: v for k, v in row.items() if k != "record_sha256"}
             if not isinstance(h, str) or not SHA256.fullmatch(h) or digest(content) != h:
                 raise ValueError("mutated coordinator record signature")
+            if "producer_digest" in row and not SHA256.fullmatch(str(row["producer_digest"])):
+                raise ValueError("invalid scheduling producer digest")
+            if "runner_usage" in row:
+                admission.validate_usage(row["runner_usage"])
 
 
     # Validate the separately tamper-evident cumulative state sketch, if present.
@@ -145,7 +150,7 @@ def frontier_strategy_prior(ledger: dict) -> dict:
 
 def make_plan(ledger: dict, *, selected: str, source_sha: str,
               minutes: int, windows_trials: int, run_id: int,
-              frontier_cases: int = 100) -> dict:
+              frontier_cases: int = 100, producer_digest: str | None = None) -> dict:
     validate_ledger(ledger)
     if (not SHA.fullmatch(source_sha) or minutes not in ALLOWED_MINUTES
             or windows_trials not in ALLOWED_WINDOWS_TRIALS
@@ -166,6 +171,12 @@ def make_plan(ledger: dict, *, selected: str, source_sha: str,
         "ledger_before_sha256": digest(ledger),
         "release_gate_credit": 0,
     }
+    if producer_digest is not None:
+        # Scheduling heuristic only (see research_admission.auto_lane); it is
+        # not part of seed allocation or scientific identity.
+        if not SHA256.fullmatch(producer_digest):
+            raise ValueError("invalid producer digest")
+        body["producer_digest"] = producer_digest
     body["plan_sha256"] = digest(body)
     return body
 
@@ -204,7 +215,13 @@ def outcome(plan: dict, producer: dict | None, job_result: str) -> tuple[str, di
                 "first_failed_child_step_verified": False,
             }
     elif job_result != "success" or producer is None:
-        return "incomplete_or_failed", {"reason": "original workflow or aggregate unavailable"}
+        # Record the observed reusable-job result: an operator cancellation
+        # and a producer failure are different operational facts.
+        return "incomplete_or_failed", {
+            "reason": "original workflow or aggregate unavailable",
+            "reusable_job_result": str(job_result)[:40],
+            "aggregate_present": producer is not None,
+        }
     schema, source_key, cases_key, unit_key = SOURCES[campaign]
     if producer.get("schema") != schema or producer.get(source_key) != plan["source_sha"]:
         raise ValueError("aggregate is not bound to the exact planned source/producer schema")
@@ -388,7 +405,7 @@ def outcome(plan: dict, producer: dict | None, job_result: str) -> tuple[str, di
 
 
 def append(ledger: dict, plan: dict, producer: dict | None,
-           job_result: str) -> tuple[dict, dict]:
+           job_result: str, usage: dict | None = None) -> tuple[dict, dict]:
     validate_ledger(ledger)
     validate_plan(plan)
     if digest(ledger) != plan["ledger_before_sha256"]:
@@ -397,7 +414,8 @@ def append(ledger: dict, plan: dict, producer: dict | None,
                          source_sha=plan["source_sha"], minutes=plan["minutes"],
                          windows_trials=plan["windows_trials"],
                          frontier_cases=plan.get("frontier_cases",100),
-                         run_id=plan["github_run_id"])
+                         run_id=plan["github_run_id"],
+                         producer_digest=plan.get("producer_digest"))
     if expected != plan:
         raise ValueError("stale or forged campaign reservation")
     frontier_state = None
@@ -433,6 +451,16 @@ def append(ledger: dict, plan: dict, producer: dict | None,
         "disposition": state, "metrics": metrics,
         "release_gate_credit": 0,
     }
+    if "producer_digest" in plan:
+        record["producer_digest"] = plan["producer_digest"]
+    if usage is not None:
+        # Operational cost, measured from the run's own jobs: lets yield be
+        # expressed per runner-hour. Malformed usage is dropped, never fatal.
+        try:
+            admission.validate_usage(usage)
+            record["runner_usage"] = usage
+        except ValueError:
+            record["runner_usage_rejected"] = True
     record["record_sha256"] = digest(record)
     new = {**ledger, "records": [*ledger["records"], record]}
     if frontier_state is not None and frontier_exact_state is not None:
@@ -453,6 +481,7 @@ def main() -> int:
     plan.add_argument("--windows-trials", type=int, required=True)
     plan.add_argument("--frontier-cases", type=int, default=100)
     plan.add_argument("--run-id", type=int, required=True)
+    plan.add_argument("--producer-digest")
     plan.add_argument("--out", type=Path, required=True)
     plan.add_argument("--gha-output", type=Path, required=True)
     finish = sub.add_parser("append")
@@ -462,12 +491,14 @@ def main() -> int:
     finish.add_argument("--job-result", required=True)
     finish.add_argument("--out", type=Path, required=True)
     finish.add_argument("--receipt", type=Path, required=True)
+    finish.add_argument("--usage", type=Path)
     args = ap.parse_args()
     if args.mode == "plan":
         data = make_plan(read_json(args.ledger), selected=args.selected,
                          source_sha=args.source_sha, minutes=args.minutes,
                          windows_trials=args.windows_trials, run_id=args.run_id,
-                         frontier_cases=args.frontier_cases)
+                         frontier_cases=args.frontier_cases,
+                         producer_digest=args.producer_digest or None)
         save(args.out, data)
         with args.gha_output.open("a", encoding="utf8") as out:
             for key in ("campaign", "base_seed", "minutes", "windows_trials", "frontier_cases", "frontier_prior", "plan_sha256"):
@@ -479,8 +510,14 @@ def main() -> int:
     producer = None
     if args.aggregate is not None and args.aggregate.is_file():
         producer = read_json(args.aggregate)
+    usage = None
+    if args.usage is not None and args.usage.is_file():
+        try:
+            usage = read_json(args.usage)
+        except (ValueError, OSError):
+            usage = {"schema": "unreadable"}
     old = read_json(args.ledger)
-    new, row = append(old, read_json(args.plan), producer, args.job_result)
+    new, row = append(old, read_json(args.plan), producer, args.job_result, usage)
     save(args.out, new)
     save(args.receipt, row)
     print(f"LEDGER {row['campaign']} {row['disposition']} "

@@ -4,6 +4,8 @@ name: Cumulative research campaigns (seven independent lanes)
 # Twice weekly the auto selector rotates seven distinct research families.
 # Manual dispatch can choose any lane and a bounded real-work budget.
 # Only this coordinator writes to research/qa-cumulative-ledger.
+# Runner-aware admission runs BEFORE seed reservation: a deferred run reserves
+# nothing, writes no ledger row and occupies one small runner for ~1 minute.
 on:
   workflow_dispatch:
     inputs:
@@ -37,11 +39,19 @@ on:
         required: true
         default: "100"
         options: ["100", "1000", "10000"]
+      admission:
+        description: "auto: defer/downsize when agent CI needs runners; force: operator override"
+        type: choice
+        required: true
+        default: auto
+        options: [auto, force]
   schedule:
     - cron: "17 9 * * 2,5"
 
 permissions:
   contents: write
+  # Read-only queue inspection for admission and runner-usage receipts.
+  actions: read
 
 # This group has no github.ref suffix. A single writer serializes ALL
 # seed reservations + immutable evidence on any ref, including scheduled runs.
@@ -54,7 +64,9 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 5
     outputs:
+      # Empty when admission deferred: every producer and the writer skip.
       campaign: ${{ steps.plan.outputs.campaign }}
+      frontier_parallel: ${{ steps.admission.outputs.frontier_parallel }}
       base_seed: ${{ steps.plan.outputs.base_seed }}
       minutes: ${{ steps.plan.outputs.minutes }}
       windows_trials: ${{ steps.plan.outputs.windows_trials }}
@@ -75,11 +87,52 @@ jobs:
             .github/qa-cumulative
           sparse-checkout-cone-mode: false
           persist-credentials: false
-      - name: Verify ledger signatures and reserve unique non-overlapping seed window
-        id: plan
+      - name: Snapshot this repository's Actions queue (advisory, not a reservation)
+        continue-on-error: true
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 tools/research_admission.py snapshot \
+            --repo "$GITHUB_REPOSITORY" --exclude-run-id "$GITHUB_RUN_ID" \
+            --out "$RUNNER_TEMP/cumulative-admission/snapshot.json"
+      - name: Runner-aware admission and failure-aware lane selection
+        id: admission
         shell: bash
         env:
           SELECTED: ${{ inputs.campaign || 'auto' }}
+          ADMISSION: ${{ inputs.admission || 'auto' }}
+          PARALLEL: ${{ inputs.frontier_parallel || '2' }}
+          MINUTES: ${{ inputs.wall_minutes_per_shard || '15' }}
+          WINDOWS_TRIALS: ${{ inputs.windows_trials_per_shard || '3' }}
+          FRONTIER_CASES: ${{ inputs.frontier_cases || '100' }}
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s tests/unit -p test_research_admission.py
+          python3 tools/research_admission.py decide \
+            --ledger research-evidence/.github/qa-cumulative/ledger.json \
+            --snapshot "$RUNNER_TEMP/cumulative-admission/snapshot.json" \
+            --selected "$SELECTED" --event "$GITHUB_EVENT_NAME" --admission "$ADMISSION" \
+            --frontier-parallel "$PARALLEL" --frontier-cases "$FRONTIER_CASES" \
+            --minutes "$MINUTES" --windows-trials "$WINDOWS_TRIALS" \
+            --out "$RUNNER_TEMP/cumulative-admission/decision.json" \
+            --gha-output "$GITHUB_OUTPUT" --summary "$GITHUB_STEP_SUMMARY"
+      - name: Retain admission receipt (including deferrals)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-cumulative-admission
+          path: ${{ runner.temp }}/cumulative-admission/
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Verify ledger signatures and reserve unique non-overlapping seed window
+        if: ${{ steps.admission.outputs.admitted == 'true' }}
+        id: plan
+        shell: bash
+        env:
+          SELECTED: ${{ steps.admission.outputs.campaign }}
+          PRODUCER_DIGEST: ${{ steps.admission.outputs.producer_digest }}
           MINUTES: ${{ inputs.wall_minutes_per_shard || '15' }}
           WINDOWS_TRIALS: ${{ inputs.windows_trials_per_shard || '3' }}
           FRONTIER_CASES: ${{ inputs.frontier_cases || '100' }}
@@ -91,10 +144,11 @@ jobs:
             --selected "$SELECTED" --source-sha "$GITHUB_SHA" \
             --minutes "$MINUTES" --windows-trials "$WINDOWS_TRIALS" \
             --frontier-cases "$FRONTIER_CASES" \
-            --run-id "$GITHUB_RUN_ID" \
+            --run-id "$GITHUB_RUN_ID" --producer-digest "$PRODUCER_DIGEST" \
             --out "$RUNNER_TEMP/cumulative-plan/plan.json" \
             --gha-output "$GITHUB_OUTPUT"
       - name: Immutable plan receipt
+        if: ${{ steps.admission.outputs.admitted == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: qa-cumulative-plan
@@ -159,10 +213,11 @@ jobs:
       cases: ${{ needs.reserve.outputs.frontier_cases }}
       base_seed: ${{ needs.reserve.outputs.base_seed }}
       strategy_prior_json: ${{ needs.reserve.outputs.frontier_prior }}
-      max_parallel: ${{ inputs.frontier_parallel || '2' }}
+      # Admission may only lower shard parallelism; cases/seeds/plan are fixed.
+      max_parallel: ${{ needs.reserve.outputs.frontier_parallel }}
 
   commit-evidence:
-    if: ${{ always() && needs.reserve.result == 'success' }}
+    if: ${{ always() && needs.reserve.result == 'success' && needs.reserve.outputs.campaign != '' }}
     needs: [reserve, native-2p, windows, fault-recovery, graphics, performance, original-native, frontier]
     runs-on: ubuntu-22.04
     timeout-minutes: 10
@@ -247,6 +302,17 @@ jobs:
         with:
           name: ${{ steps.target.outputs.artifact }}
           path: ${{ runner.temp }}/cumulative-producer
+      - name: Measure runner-minutes consumed by this run's jobs (operational cost)
+        continue-on-error: true
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 tools/research_admission.py usage \
+            --repo "$GITHUB_REPOSITORY" --run-id "$GITHUB_RUN_ID" \
+            --exclude-job commit-evidence \
+            --out "$RUNNER_TEMP/cumulative-usage/usage.json"
       - name: Validate exact source/seed receipts and prepare new ledger revision
         id: classify
         shell: bash
@@ -261,6 +327,7 @@ jobs:
             --plan "$RUNNER_TEMP/cumulative-plan/plan.json" \
             --aggregate "$RUNNER_TEMP/cumulative-producer/$AGGREGATE_FILE" \
             --job-result "$JOB_RESULT" \
+            --usage "$RUNNER_TEMP/cumulative-usage/usage.json" \
             --out research-evidence/.github/qa-cumulative/ledger.json \
             --receipt "$RUNNER_TEMP/cumulative-final/record.json"
           classified=$?

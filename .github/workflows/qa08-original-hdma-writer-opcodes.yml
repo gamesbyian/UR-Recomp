@@ -69,7 +69,7 @@ jobs:
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/qa08-original-opcode-dumps"
           SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
-          UR_QA08_ORIGINAL_HDMA_OPCODE_FRAME=1781 UR_QA08_ORIGINAL_HDMA_PPU_WINDOW=1781-1783 \
+          UR_QA08_ORIGINAL_HDMA_OPCODE_FRAME=1781 UR_QA08_ORIGINAL_HDMA_PPU_WINDOW=source-go-t480 \
           SNESREF_SCRIPT="$RUNNER_TEMP/qa08-original-2p.script" \
           SNESREF_DUMP_DIR="$RUNNER_TEMP/qa08-original-opcode-dumps" \
             timeout 100 "$RUNNER_TEMP/qa08-snesref/snesref" \
@@ -129,3 +129,9 @@ jobs:
             ${{ runner.temp }}/qa08-original-opcode-receipt.json
             ${{ runner.temp }}/qa08-original-racer-LUT.json
             ${{ runner.temp }}/qa08-original-live-hdma-ppu.json
+            ${{ runner.temp }}/qa08-original-opcode-dumps/go.info.json
+            ${{ runner.temp }}/qa08-original-opcode-dumps/go.ppuw.tsv
+            ${{ runner.temp }}/qa08-original-opcode-dumps/go.fb.bgrx
+            ${{ runner.temp }}/qa08-original-opcode-dumps/t480.info.json
+            ${{ runner.temp }}/qa08-original-opcode-dumps/t480.ppuw.tsv
+            ${{ runner.temp }}/qa08-original-opcode-dumps/t480.fb.bgrx

@@ -65,7 +65,6 @@ def verify_first_user_cmd_relaunch_log(log: str) -> None:
         "activation=next_process",
         "UR_BALDOSA_MODERN_ROOT first_racer_created=1 "
         "activation=next_process",
-        "UR-BALDOSA-FIRST-RACER: Restarting with newly created racer.",
         "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=mike "
         "root=saves/profile-mike",
         "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=mike ",
@@ -75,8 +74,16 @@ def verify_first_user_cmd_relaunch_log(log: str) -> None:
         require(log.count(token) == 1,
                 "No unique actual CMD first-racer stage: " + token)
         positions.append(log.index(token))
+    # Native AOT diagnostics are emitted to stderr while the .cmd launcher
+    # restart echo is printed to stdout. subprocess captures those streams
+    # separately and then concatenates them for the retained log, so stdout
+    # position has NO cross-process chronological significance. Require the
+    # exact restart echo once, and require ordered *native* source receipts.
+    require(log.count(
+        "UR-BALDOSA-FIRST-RACER: Restarting with newly created racer.") == 1,
+        "Actual native CMD never issued exactly one launcher restart")
     require(positions == sorted(positions),
-            "Native first-user CMD opened named game before canonical create")
+            "Native first-user game opened selected profile before creation")
     require(log.count("UR_BALDOSA_MODERN_ROOT opened=1") == 2,
             "CMD must launch exactly two original native game processes")
 
@@ -218,7 +225,14 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int) -> dict:
     require(first_launch.returncode == 0,
             "Actual no-argument extracted launcher failed first-racer "
             f"handoff: rc={first_launch.returncode} tail={first_log[-2000:]}")
-    verify_first_user_cmd_relaunch_log(first_log)
+    try:
+        verify_first_user_cmd_relaunch_log(first_log)
+    except ValueError as exc:
+        # Keep source-host diagnostics visible on a red Windows job even
+        # if its optional evidence artifact is not retained.
+        raise ValueError(
+            "Actual no-args native CMD restart log was rejected: "
+            f"{exc}; retained log tail={first_log[-2800:]!r}") from exc
     for artifact in (
         first_user / "host-state-v1.txt",
         first_user / "profiles-v1.txt",

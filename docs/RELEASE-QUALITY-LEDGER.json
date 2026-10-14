@@ -259,8 +259,7 @@
       "status": "unverified",
       "candidate_commit": null,
       "evidence_refs": [
-        "docs/MODERN-UI-VISUAL-FIDELITY.md",
-        "analysis/evidence/baldosa-win32-38501679761-first-racer-1p-2p-review.json"
+        "docs/MODERN-UI-VISUAL-FIDELITY.md"
       ],
       "journeys": [
         "J-01",
@@ -321,8 +320,7 @@
         "docs/QA-INTEGRATED-WINDOWS-WITNESS-INVENTORY-20261013.md",
         "docs/QA01-RELEASE-LEDGER-SOURCE-ALIGNMENT-20261013.md",
         "docs/QA-WIN32-NATIVE-1P-2P-SOURCE-BOUND-DISPOSITION-20261013.md",
-        "docs/QA-WIN32-FIRST-NATIVE-2P-PAIRED-RECORDS-20261013.md",
-        "analysis/evidence/baldosa-win32-38501679761-first-racer-1p-2p-review.json"
+        "docs/QA-WIN32-FIRST-NATIVE-2P-PAIRED-RECORDS-20261013.md"
       ],
       "journeys": [
         "J-20"

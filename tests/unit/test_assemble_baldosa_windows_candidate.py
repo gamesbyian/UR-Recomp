@@ -161,6 +161,14 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
             "UR_BALDOSA_MODERN_ROOT opened=1\n"
         )
         verify_first_user_cmd_relaunch_log(valid)
+        # subprocess supplies stdout then stderr, not their interleaved
+        # chronology. Native event ordering is still strict; the .cmd echo
+        # may appear first in the combined diagnostic without being a
+        # premature game launch.
+        cmd_echo = ("UR-BALDOSA-FIRST-RACER: Restarting with newly "
+                    "created racer.\n")
+        verify_first_user_cmd_relaunch_log(
+            cmd_echo + valid.replace(cmd_echo, ""))
         for invalid in (
             valid.replace("status=0", "status=2"),
             valid.replace("profile=mike", "profile=other", 1),

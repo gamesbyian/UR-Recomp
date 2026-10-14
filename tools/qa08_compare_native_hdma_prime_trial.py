@@ -40,7 +40,9 @@ def assess(baseline: bytes, trial: bytes, baseline_crc: bytes, trial_crc: bytes,
         raise ValueError("baseline unmodified real native P7 differs from accepted original-source image")
     if (not baseline_crc or baseline_crc != trial_crc
         or len(baseline_crc.splitlines()) != 2473
-        or len(set(baseline_crc.splitlines())) != 2473):
+        or any(not row.startswith(b"0x") or len(row) != 10 or
+               any(v not in b"0123456789ABCDEF" for v in row[2:])
+               for row in baseline_crc.splitlines())):
         raise ValueError("real two-player independent 2473-frame guest CRC series differ or are incomplete")
     row_differences = []
     total = 0

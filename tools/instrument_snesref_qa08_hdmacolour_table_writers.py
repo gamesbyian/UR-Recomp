@@ -21,6 +21,7 @@ CODE = r'''			/* UR_QA08_COLDATA_TABLE_WRITER: guarded original-emulator
 				static unsigned long qa08_writer_first, qa08_writer_last;
 				static unsigned qa08_writer_count;
 				static unsigned qa08_brightness_count;
+				static unsigned qa08_brightness_opcode_seen_mask;
 				static int qa08_writer_2p_armed = -1;
 				static unsigned long qa08_writer_2p_first = ~0ul;
 				if (qa08_writer_2p_armed < 0)
@@ -79,6 +80,47 @@ CODE = r'''			/* UR_QA08_COLDATA_TABLE_WRITER: guarded original-emulator
 						qa08_prior[j] = Memory.RAM[0x2084 + j];
 					for (unsigned j = 0; j < 6; ++j)
 						qa08_brightness_prior[j] = Memory.RAM[0x2064 + j];
+				}
+				/* UR_QA08_INIDISP_TABLE_OPCODE: retain original ROM instruction
+				 * bytes at ONLY the eight separately accepted executed
+				 * $7E:2064..2069 WRAM writer PCs. CPU.PCBase is the
+				 * already mapped instruction bank: no extra bus read. */
+				if (qa08_writer_active && qa08_brightness_opcode_seen_mask != 255u)
+				{
+					int qa08_opcode_idx = -1;
+					switch (qa08_executed_pc)
+					{
+						case 0x808625u: qa08_opcode_idx = 0; break;
+						case 0x80884Cu: qa08_opcode_idx = 1; break;
+						case 0x808850u: qa08_opcode_idx = 2; break;
+						case 0x82D67Du: qa08_opcode_idx = 3; break;
+						case 0x82D683u: qa08_opcode_idx = 4; break;
+						case 0x82D689u: qa08_opcode_idx = 5; break;
+						case 0x82D695u: qa08_opcode_idx = 6; break;
+						case 0x82D699u: qa08_opcode_idx = 7; break;
+					}
+					if (qa08_opcode_idx >= 0 &&
+					    !(qa08_brightness_opcode_seen_mask &
+					      (1u << qa08_opcode_idx)))
+					{
+						const unsigned mapped = CPU.PCBase != NULL;
+						uint8 bytes[4] = {0,0,0,0};
+						if (mapped)
+							for (unsigned k = 0; k < 4; ++k)
+								bytes[k] = CPU.PCBase[Registers.PCw + k];
+						fprintf(stderr,
+							"UR_QA08_INIDISP_TABLE_OPCODE frame=%u v=%u "
+							"pc=%06X op=%02X oplen=%u "
+							"bytes=%02X%02X%02X%02X mapped=%u fetched=%u\n",
+							(unsigned)ICPU.Frame, (unsigned)CPU.V_Counter,
+							(unsigned)qa08_executed_pc, (unsigned)Op,
+							(unsigned)ICPU.S9xOpLengths[Op],
+							(unsigned)bytes[0], (unsigned)bytes[1],
+							(unsigned)bytes[2], (unsigned)bytes[3],
+							mapped, (unsigned)(mapped && bytes[0] == Op));
+						qa08_brightness_opcode_seen_mask |=
+							1u << qa08_opcode_idx;
+					}
 				}
 				Registers.PCw++;
 				(*Opcodes[Op].S9xOpcode)();

@@ -113,3 +113,51 @@ executed opcode/source result and original/native input alignment
 have **not** yet been accepted. This additional paired-register
 requirement preserves the physical hardware gap and the procedural
 HD character art veto.
+
+
+### Original-emulator producer bytes observed; native SETINI transfers still unmeasured
+
+Independent real original Snes9x USA two-player execution
+[run 38510398955](https://github.com/gamesbyian/UR-Recomp/actions/runs/38510398955),
+artifact **11869807231**, ZIP SHA256
+646dc27a6a549e0450a326536359a8f3e1e332863529dd62a3cf474427cd1841,
+spanned ten deterministic 256-frame opcode-bracket windows covering
+original emulator frames **0–2559**. Its 18 WRAM byte changes all
+occurred at **original frame 1781**, and all ten unmodified
+controller-route replays produced byte-identical end-of-route
+WRAM SHA256
+9350bcb02f3cbf490678c5276245ec2c7fe36b9078bfab9e912d86c5cbc93bf6.
+The original executed-writer source JSON SHA256 is
+fb2a5e80dfa0738009bdab22eaa43f7f8948b60b083b335d770d61cb60990c26.
+
+The genuine original emulator independently recorded **five**
+of the six source-predicted companion byte values from executed
+65816 opcode brackets:
+
+| Paired source WRAM byte | Actual executed original PC changing byte | New original WRAM byte | Actual native $2133 write observed? |
+| --- | --- | --- | --- |
+| $7E:2087 | $82:D602 | **01** | **No** |
+| $7E:208A | $82:D608 | **6D** | **No** |
+| $7E:208D | $82:D64B | **01** | **No** |
+| $7E:2090 | $82:D64F | **01** | **No** |
+| $7E:2093 | $82:D655 | **6D** | **No** |
+| $7E:2096 | No changed-byte opcode recorded across frames 0–2559 | **Not independently sampled as a byte value** | **No** |
+
+The same original source report found all **six** independently
+native-accepted $2132 COLDATA bytes, with genuine executed
+original PC brackets at $82:D5D8, D5E0, D5E8, D625, D62D, D635.
+These values are original **table-write provenance**, not yet
+a strict same-input original/native writer comparison.
+The earlier native tracer had bAdr==0x32 filtering and so did not
+observe even one actual $2133 SETINI source transfer. Original
+opcode bytes matching source-predicted companion addresses cannot
+substitute for a native transfer witness or physical SNES timing
+measurement. Do not interpret an unchanged original byte at
+$7E:2096 as an independently observed $2133 hardware zero.
+
+This original producer observation comes from
+[PR #1481](https://github.com/gamesbyian/UR-Recomp/pull/1481).
+The remaining original-native **graphics** gate is to capture
+real channel-5 bAdr=0x33 and post-write PPU setini values during
+the same pinned native guest2208 field and compare against
+the original-emulator byte producer candidate set.

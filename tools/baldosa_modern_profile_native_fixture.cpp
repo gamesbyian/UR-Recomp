@@ -27,7 +27,8 @@
  * CAS writers with existing Modern format validation.
  */
 static int add_second_named_profile(const std::filesystem::path& root,
-                                    const std::filesystem::path& seed) {
+                                    const std::filesystem::path& seed,
+                                    bool activate_second = true) {
     namespace fs = std::filesystem;
     using namespace ur::product;
     constexpr const char* kFirst = "native-ci-rider";
@@ -58,7 +59,11 @@ static int add_second_named_profile(const std::filesystem::path& root,
     const auto second_dir = root / second_root.save_root;
     if (fs::exists(second_dir, ec) || ec) return 25;
 
-    auto identity = make_legacy_racer_identity(1);
+    // Preserve the existing --add-second ANDREW/index 1 for boot tests.
+    // The separate played-stock-2P route presses P2 Down in the original
+    // picker, selecting source rider index 2. A bound saved match must
+    // reflect that actual guest identity without modifying guest rules.
+    auto identity = make_legacy_racer_identity(activate_second ? 1u : 2u);
     auto second = make_default_host_profile_state(kSecond);
     if (!identity || !second) return 26;
     std::array<std::uint8_t, kStockSramBytes> bytes{};
@@ -90,16 +95,27 @@ static int add_second_named_profile(const std::filesystem::path& root,
             roster_path, before_roster, *roster) !=
             HostProfileCatalogSaveStatus::Saved) return 32;
 
-    auto next = *original.state;
-    next.active_profile_id = kSecond;
-    // This pointer is the last publication. If another process raced it,
-    // fail closed and leave a legitimate orphan for explicit QA teardown.
-    if (save_host_product_state_file_if_current(
-            global_path, *original.state, next) !=
-            HostProductSaveStatus::Saved) return 33;
-    std::fprintf(stdout,
-        "UR_BALDOSA_NATIVE_PROFILE_FIXTURE switched=%s sram=%zu distinct=1\n",
-        kSecond, bytes.size());
+    if (activate_second) {
+        auto next = *original.state;
+        next.active_profile_id = kSecond;
+        // Existing historical fixture transition. Preserve the exact same
+        // CAS and failure behavior for all previous 2P/boot consumers.
+        if (save_host_product_state_file_if_current(
+                global_path, *original.state, next) !=
+                HostProductSaveStatus::Saved) return 33;
+        std::fprintf(stdout,
+            "UR_BALDOSA_NATIVE_PROFILE_FIXTURE switched=%s sram=%zu distinct=1\n",
+            kSecond, bytes.size());
+    } else {
+        // A played 2P match requires the P1 stock rider to match the selected
+        // Modern P1 identity, not the incidental second registered profile.
+        // Retain the first profile selector; no synthetic guest memory or
+        // duplicate save files are introduced.
+        std::fprintf(stdout,
+            "UR_BALDOSA_NATIVE_PROFILE_FIXTURE registered=%s "
+            "selected=%s sram=%zu distinct=1\n",
+            kSecond, kFirst, bytes.size());
+    }
     return 0;
 }
 
@@ -275,6 +291,8 @@ int main(int argc, char** argv) {
         return verify_native_checkpoint(argv[1], argv[2]);
     if (argc == 4 && std::strcmp(argv[3], "--add-second") == 0)
         return add_second_named_profile(argv[1], argv[2]);
+    if (argc == 4 && std::strcmp(argv[3], "--add-second-keep-first") == 0)
+        return add_second_named_profile(argv[1], argv[2], false);
     if (argc != 3) return 2;
 
     const fs::path root(argv[1]);

@@ -426,9 +426,15 @@ extern "C" void ur_baldosa_product_after_run_frame(
         // observed 1P stock result remains visible and player-owned.
         // No pause-only presentation advances the retry clock.
         const bool had_pending = g_pending_one_player_run.pending();
+        // Preserve the original P1 finish digits as retry source evidence.
+        // The live shared timer is free-running and cannot be compared.
+        const auto p1_line = ur_uniracers_read_line_snapshot(
+            g_ram, sizeof(g_ram), 0);
+        const int p1_laps = ur_uniracers_read_laps_remaining(
+            g_ram, sizeof(g_ram), 0);
         const auto* retry = g_pending_one_player_run.ready_for_retry(
             rooted_players, g_ram[0x0313u] == 0x01u,
-            g_ram[0x009fu], stats->frame);
+            g_ram[0x009fu], stats->frame, &p1_line, p1_laps);
         if (had_pending && !g_pending_one_player_run.pending()) {
             ur_baldosa_modern_root_set_run_save_feedback(0);
             std::fprintf(stderr,
@@ -513,7 +519,7 @@ extern "C" void ur_baldosa_product_after_run_frame(
                     ur_baldosa_modern_root_set_run_save_feedback(2);
                 } else if (ur_baldosa_modern_profile_records_directory() &&
                            g_pending_one_player_run.defer_failed_publication(
-                               *terminal, stats->frame)) {
+                               *terminal, stats->frame, p1_line, p1_laps)) {
                     ur_baldosa_modern_root_set_run_save_feedback(1);
                     std::fprintf(stderr,
                         "UR_BALDOSA_NATIVE_RUN SAVE_PENDING=1 "

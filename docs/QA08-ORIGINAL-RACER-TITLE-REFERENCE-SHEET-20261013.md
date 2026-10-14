@@ -50,3 +50,16 @@ multiple independent artist perspectives. A human artist must accept
 the coherent candidate design before promoting any source-family HD
 assets. This tool adds no original/emulator/gameplay/Modern/QA release
 path or GitHub Actions campaign.
+
+
+## Newly located period-source archive, pending actual image inspection
+
+The [HD racer period press research ledger](HD-RACER-PERIOD-PR-ART-SOURCES-20261014.md)
+records an independently catalogued original DMA Design press-material
+collection, an original 1995 German magazine advertisement and sources for
+regional print imagery. The archive is catalogued as containing Uniracers/
+Unirally material, but its individual images are **not inspected yet**;
+no external artwork is admitted into the reference contact sheet or
+presented as a third verified pose. Human likeness approval remains
+mandatory. Existing SHA-verified title PPU and multi-pose OBJ source
+images remain authoritative for original projected game pixels.

@@ -1,0 +1,131 @@
+#!/usr/bin/env python3
+"""Source ledger structural guards, not synthetic course/physical acceptance."""
+from __future__ import annotations
+import copy
+import json
+from pathlib import Path
+import sys
+import unittest
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "tools"))
+import check_release_quality_ledger_integrity as qa
+
+
+def snapshot():
+    return json.loads(qa.DEFAULT.read_text(encoding="utf-8"))
+
+
+class ReleaseQualityAuthority(unittest.TestCase):
+    def check(self, changed):
+        return qa.audit(changed)
+
+    def test_live_ledger_preserves_gates_without_awarding_new_credit(self):
+        result = self.check(snapshot())
+        self.assertFalse(result["candidate_fully_pinned"])
+        self.assertFalse(result["release_decision_structurally_admissible"])
+        self.assertEqual(result["original_USA_complete_event_passes"], 0)
+        self.assertEqual(result["original_USA_total"], 45)
+        self.assertEqual(result["approved_gate_count"], 0)
+        self.assertEqual(result["pending_or_failed_gate_count"], 12)
+        self.assertFalse(result["physical_windows_executed_here"])
+
+    def test_free_prose_may_describe_green_hosted_smoke_without_promoting_gate(self):
+        data = snapshot()
+        data["gates"][4]["next_action"] += (
+            " TEST ONLY: all virtual pads passed on synthetic fixture. "
+            "This narrative alone is never a release decision."
+        )
+        self.assertEqual(self.check(data)["approved_gate_count"], 0)
+
+    def test_forged_candidate_pins_waiver_and_zero_witness_gate_rejected(self):
+        src, pin = "a" * 40, "b" * 64
+        base = snapshot()
+        cases = []
+        def modified(fn):
+            data = copy.deepcopy(base)
+            fn(data)
+            cases.append(data)
+        modified(lambda d: d["candidate"].update(commit_sha=src))
+        modified(lambda d: d["candidate"].update(zip_sha256=pin))
+        modified(lambda d: d["candidate"].update(commit_sha=True))
+        modified(lambda d: d["candidate"].update(
+            commit_sha=src, zip_sha256="not-a-digest"))
+        modified(lambda d: d["candidate"].update(physical_hardware_verified=1))
+        modified(lambda d: d["candidate"].update(release_decision="approved"))
+        modified(lambda d: d["gates"][4].update(status="passed"))
+        modified(lambda d: d["gates"][4].update(status="failed"))
+        modified(lambda d: d["gates"][4].update(status="waived"))
+        modified(lambda d: d["gates"][4].update(
+            waiver_reason="source-only green proves everything"))
+        modified(lambda d: d["gates"][0].update(status="passed"))
+        modified(lambda d: d["gates"][8].update(status="passed"))
+        modified(lambda d: d["gates"][6].update(required_layer="synthetic"))
+        for index, case in enumerate(cases):
+            with self.subTest(case=index), self.assertRaises(ValueError):
+                self.check(case)
+
+    def test_full_witness_cannot_assume_45_courseruns_from_fewer_events(self):
+        data = snapshot()
+        bad_counts = (
+            (1, 4, 41), (1, 4, 40), (46, 0, 0),
+            (45, 0, 1), (-1, 4, 42), (True, 4, 40),
+        )
+        for complete, partial, missing in bad_counts:
+            changed = copy.deepcopy(data)
+            changed["gates"][0]["coverage"].update(
+                complete_event_passes=complete,
+                partial=partial,
+                unverified=missing,
+            )
+            with self.subTest(count=complete), self.assertRaises(ValueError):
+                self.check(changed)
+        data["gates"][0]["coverage"].update(
+            complete_event_passes=1, partial=4, unverified=40,
+        )
+        with self.assertRaisesRegex(ValueError, "oracle witness"):
+            self.check(data)
+
+    def test_legitimate_pinned_future_pass_needs_source_witness(self):
+        data = snapshot()
+        src, zip_digest = "a" * 40, "b" * 64
+        data["candidate"].update(commit_sha=src, zip_sha256=zip_digest)
+        gate = data["gates"][4]
+        gate.update(status="passed", candidate_commit=src,
+                    witnesses=[{"kind": "actual-windows-native",
+                                "sha256": "c" * 64}])
+        report = self.check(data)
+        self.assertEqual(report["approved_gate_count"], 1)
+        self.assertFalse(report["release_decision_structurally_admissible"])
+        changed = copy.deepcopy(data)
+        changed["gates"][4]["candidate_commit"] = "d" * 40
+        with self.assertRaises(ValueError):
+            self.check(changed)
+
+    def test_completed_45_usa_gate_requires_all_scored_events_and_exact_witness(self):
+        data = snapshot()
+        data["candidate"].update(commit_sha="a" * 40,
+                                 zip_sha256="b" * 64)
+        gate = data["gates"][0]
+        gate.update(status="passed", candidate_commit="a" * 40,
+                    witnesses=[{"kind": "original-native-event-comparator",
+                                "sha256": "c" * 64}])
+        with self.assertRaisesRegex(ValueError, "unfinished"):
+            self.check(data)
+        gate["coverage"].update(complete_event_passes=45,
+                                partial=0, unverified=0)
+        self.assertEqual(self.check(data)["original_USA_complete_event_passes"], 45)
+        self.assertFalse(self.check(data)["release_decision_structurally_admissible"])
+
+    def test_release_ready_needs_all_gates_hardware_and_exact_candidate(self):
+        data = snapshot()
+        data["candidate"].update(commit_sha="a" * 40,
+                                 zip_sha256="b" * 64,
+                                 physical_hardware_verified=True,
+                                 release_decision="approved")
+        with self.assertRaisesRegex(ValueError, "pending gates"):
+            self.check(data)
+
+
+if __name__ == "__main__":
+    unittest.main()

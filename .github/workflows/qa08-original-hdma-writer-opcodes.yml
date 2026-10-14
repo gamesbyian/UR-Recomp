@@ -10,6 +10,8 @@ on:
       - "tools/instrument_snesref_qa08_original_hdma_ppu.py"
       - "tools/check_qa08_original_hdma_ppu.py"
       - "tests/unit/test_qa08_original_hdma_ppu.py"
+      - "tools/qa08_auth_original_2p_frame_window.py"
+      - "tests/unit/test_qa08_auth_original_2p_frame_window.py"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snes9x-libretro.json"
   workflow_dispatch:
@@ -47,7 +49,7 @@ jobs:
           test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
           cmp baldosa/tests/routes/race_2p_split.txt reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p_split.txt
           grep -v '^turbo ' baldosa/tests/routes/race_2p_split.txt > "$RUNNER_TEMP/qa08-original-2p.script"
-          python3 -m unittest tests.unit.test_qa08_original_hdma_opcode_context tests.unit.test_qa08_original_hdma_ppu
+          python3 -m unittest tests.unit.test_qa08_original_hdma_opcode_context tests.unit.test_qa08_original_hdma_ppu tests.unit.test_qa08_auth_original_2p_frame_window
       - name: Build one disposable original emulator with only read-only source code fetch
         shell: bash
         run: |
@@ -67,11 +69,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/qa08-original-opcode-dumps"
+          mkdir -p "$RUNNER_TEMP/qa08-original-opcode-dumps" "$RUNNER_TEMP/qa08-original-source-window"
           SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
           UR_QA08_ORIGINAL_HDMA_OPCODE_FRAME=1781 UR_QA08_ORIGINAL_HDMA_PPU_WINDOW=source-go-t480 \
           SNESREF_SCRIPT="$RUNNER_TEMP/qa08-original-2p.script" \
           SNESREF_DUMP_DIR="$RUNNER_TEMP/qa08-original-opcode-dumps" \
+          SNESREF_FRAME_DUMP_DIR="$RUNNER_TEMP/qa08-original-source-window" \
+          SNESREF_FRAME_DUMP_NATIVE=1 SNESREF_FRAME_DUMP_FROM=2188 \
+          SNESREF_FRAME_DUMP_TO=2224 SNESREF_FRAME_DUMP_STEP=1 \
             timeout 100 "$RUNNER_TEMP/qa08-snesref/snesref" \
               "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
               "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
@@ -114,6 +119,12 @@ jobs:
             --layout analysis/data/qa08-original-2p-channel5-executed-opcode-table-layout.json \
             --receipt "$RUNNER_TEMP/qa08-original-opcode-receipt.json" \
             --out "$RUNNER_TEMP/qa08-original-racer-LUT.json"
+          python3 tools/qa08_auth_original_2p_frame_window.py \
+            --root "$RUNNER_TEMP/qa08-original-source-window" \
+            --receipt "$RUNNER_TEMP/qa08-original-opcode-receipt.json" \
+            --live "$RUNNER_TEMP/qa08-original-live-hdma-ppu.json" \
+            --original-go "$RUNNER_TEMP/qa08-original-opcode-dumps" \
+            --out "$RUNNER_TEMP/qa08-original-37frame-window.json"
           echo "PASS: true original ROM opcode bytes at all 18 executed source writers, two actual original racer selector/index/LUT records; no same-frame native or physical SNES claim" >> "$GITHUB_STEP_SUMMARY"
       - name: Retain executable original-source evidence without ROM or SRAM
         if: always()
@@ -129,6 +140,8 @@ jobs:
             ${{ runner.temp }}/qa08-original-opcode-receipt.json
             ${{ runner.temp }}/qa08-original-racer-LUT.json
             ${{ runner.temp }}/qa08-original-live-hdma-ppu.json
+            ${{ runner.temp }}/qa08-original-37frame-window.json
+            ${{ runner.temp }}/qa08-original-source-window/*.raw
             ${{ runner.temp }}/qa08-original-opcode-dumps/go.info.json
             ${{ runner.temp }}/qa08-original-opcode-dumps/go.ppuw.tsv
             ${{ runner.temp }}/qa08-original-opcode-dumps/go.fb.bgrx

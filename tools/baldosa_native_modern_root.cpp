@@ -837,8 +837,29 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     // Controlled host-root edge on an anonymous install. No created racer
     // is activated in this guest; a new process must load canonical SRAM.
     if (std::strcmp(opt, "4") == 0) {
-        int key = frame == 60 ? SDLK_x :
+        // No-argument real CMD-launcher acceptance only. The existing stock
+        // profile creation smoke remains identical without this explicit
+        // test-only environment flag. Exercise Quit in process one and Quit
+        // again after the CMD launcher restarted the *same* native game.
+        const char* launcher_probe =
+            std::getenv("UR_BALDOSA_LAUNCHER_RESTART_SMOKE");
+        const bool launcher_smoke = launcher_probe &&
+            std::strcmp(launcher_probe, "1") == 0;
+        int key = 0;
+        if (!launcher_smoke) {
+            key = frame == 60 ? SDLK_x :
                   frame == 62 ? SDLK_RETURN : 0;
+        } else if (ur_baldosa_modern_profile_selected_id()) {
+            // Second game: no first-racer creation or stock-route input.
+            key = frame == 90 ? SDLK_ESCAPE :
+                  frame == 92 ? SDLK_RETURN : 0;
+        } else {
+            // First game: create; close modal; request Quit; confirm Quit.
+            key = frame == 60 ? SDLK_x :
+                  frame == 62 ? SDLK_RETURN :
+                  (frame == 90 || frame == 92) ? SDLK_ESCAPE :
+                  frame == 94 ? SDLK_RETURN : 0;
+        }
         if (!key) return;
         SDL_Event event{};
         event.type = SDL_KEYDOWN;

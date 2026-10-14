@@ -52,6 +52,42 @@ def require_archive_unchanged(archive: Path, starting_sha256: str) -> None:
             "candidate ZIP changed during Windows launcher acceptance")
 
 
+def verify_first_user_cmd_relaunch_log(log: str) -> None:
+    """Accept one actual no-args CMD create -> quit -> native reentry receipt.
+
+    Synthetic fixture strings here are parser-only, never release or physical
+    pad credit. The Windows acceptance additionally runs the real two child
+    processes, validates on-disk profile data, and hashes the immutable ZIP.
+    """
+    mandatory = (
+        "UR_BALDOSA_NATIVE_PROFILE DEFAULT no_host_state=1",
+        "UR_BALDOSA_NATIVE_FIRST_RACER status=0 preset=0 id=mike "
+        "activation=next_process",
+        "UR_BALDOSA_MODERN_ROOT first_racer_created=1 "
+        "activation=next_process",
+        "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=mike "
+        "root=saves/profile-mike",
+        "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=mike ",
+    )
+    positions = []
+    for token in mandatory:
+        require(log.count(token) == 1,
+                "No unique actual CMD first-racer stage: " + token)
+        positions.append(log.index(token))
+    # Native AOT diagnostics are emitted to stderr while the .cmd launcher
+    # restart echo is printed to stdout. subprocess captures those streams
+    # separately and then concatenates them for the retained log, so stdout
+    # position has NO cross-process chronological significance. Require the
+    # exact restart echo once, and require ordered *native* source receipts.
+    require(log.count(
+        "UR-BALDOSA-FIRST-RACER: Restarting with newly created racer.") == 1,
+        "Actual native CMD never issued exactly one launcher restart")
+    require(positions == sorted(positions),
+            "Native first-user game opened selected profile before creation")
+    require(log.count("UR_BALDOSA_MODERN_ROOT opened=1") == 2,
+            "CMD must launch exactly two original native game processes")
+
+
 def run(archive: Path, personal_rom: Path, output: Path, timeout: int) -> dict:
     if os.name != "nt":
         raise ValueError("actual Windows CMD executable is required")
@@ -169,6 +205,50 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int) -> dict:
                 encoding="utf-8"))["immutable_files"] if x["path"] == EXE),
             "tested installed executable differs from immutable manifest")
 
+    # The exact extracted .cmd launcher must ALSO complete a first-run
+    # identity transition without ANY synthetic --script CLI argument. Only
+    # the native Modern root's explicitly test-gated SDL key events drive
+    # this first process to Create -> Quit. The launcher itself must detect
+    # the newly durable selector and relaunch the SAME PE exactly once.
+    first_user = output / "First Modern Racer Through CMD With Spaces"
+    first_env = {
+        **env,
+        "UR_RECOMP_USER_DATA_ROOT": str(first_user),
+        "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "4",
+        "UR_BALDOSA_LAUNCHER_RESTART_SMOKE": "1",
+        "UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS": "1",
+    }
+    first_launch = invoke_launcher(launcher, first_env, [], timeout)
+    first_log = first_launch.stdout + "\n" + first_launch.stderr
+    (output / "first-racer-autorelaunch.log").write_text(
+        first_log, encoding="utf-8")
+    require(first_launch.returncode == 0,
+            "Actual no-argument extracted launcher failed first-racer "
+            f"handoff: rc={first_launch.returncode} tail={first_log[-2000:]}")
+    try:
+        verify_first_user_cmd_relaunch_log(first_log)
+    except ValueError as exc:
+        # Keep source-host diagnostics visible on a red Windows job even
+        # if its optional evidence artifact is not retained.
+        raise ValueError(
+            "Actual no-args native CMD restart log was rejected: "
+            f"{exc}; retained log tail={first_log[-2800:]!r}") from exc
+    for artifact in (
+        first_user / "host-state-v1.txt",
+        first_user / "profiles-v1.txt",
+        first_user / "saves/profile-mike/host-profile.txt",
+        first_user / "saves/profile-mike/save.srm",
+    ):
+        require(artifact.is_file() and not artifact.is_symlink(),
+                "No-args launcher did not publish canonical first-racer data")
+    require((first_user / "saves/profile-mike/save.srm").stat().st_size == 8192,
+            "Relaunched first racer lost canonical 8192-byte saved SRAM")
+    require(not list(first_user.rglob("*.urrun")),
+            "First-run launcher smoke minted a synthetic completed race")
+    require(not (installed / "saves").exists(),
+            "First-run native CMD wrote mutable SRAM into ROM-free package")
+    require_archive_unchanged(archive, approved_archive_sha256)
+
     # Actual CMD forwarding: a malformed Modern selector is refused by the
     # native after_config BEFORE gameplay. The batch file must preserve the
     # original exit 7, explain the refusal, and never create/overwrite SRAM.
@@ -206,6 +286,8 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int) -> dict:
         "package_local_and_relative_root_rejected": True,
         "external_junction_to_package_rejected": True,
         "real_extracted_launcher_accepted": True,
+        "no_argument_first_racer_cmd_one_shot_restart_accepted": True,
+        "fresh_named_game_after_actual_cmd_restart": True,
         "exact_native_profile_refusal_code_and_guidance": True,
         "rejected_profile_save_unchanged": True,
         "native_root_drawn": True,

@@ -12,6 +12,10 @@ on:
         required: false
         type: boolean
         default: false
+      qa01_apu_phase:
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       selected:
@@ -26,6 +30,12 @@ on:
           - switcher
       zoo_terminal_phase:
         description: "Opt-in Zoo fixed +5156..+5173 guest/host phase witness (requires selected=zoom-zoo)"
+        type: boolean
+        required: false
+        default: false
+
+      qa01_apu_phase:
+        description: "Opt-in read-only original/Baldosa APU port-2 and CPU-source opcode trace around Zoo result"
         type: boolean
         required: false
         default: false
@@ -54,10 +64,15 @@ jobs:
         env:
           SELECTED: ${{ inputs.selected }}
           ZOO_TERMINAL: ${{ inputs.zoo_terminal_phase }}
+          QA01_APU_PHASE: ${{ inputs.qa01_apu_phase }}
         run: |
           set -euo pipefail
           if [[ "$ZOO_TERMINAL" == "true" && "$SELECTED" != "zoom-zoo" ]]; then
             echo "Zoo fixed-host phase is scoped to selected=zoom-zoo only" >&2
+            exit 1
+          fi
+          if [[ "$QA01_APU_PHASE" == "true" && "$SELECTED" != "zoom-zoo" ]]; then
+            echo "RF-015 APU trace only supports selected=zoom-zoo" >&2
             exit 1
           fi
           python3 -m unittest discover -s tests/unit -p test_qa01_event_campaign.py
@@ -114,6 +129,14 @@ jobs:
             libgbm-dev libasound2-dev libpulse-dev libudev-dev \
             libdbus-1-dev xvfb
           python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          # Explicitly opted-in, disposable source+native observers only.
+          if [[ "${{ inputs.qa01_apu_phase }}" == "true" ]]; then
+            CORE_SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+            python3 tools/qa01_apu_phase_observers.py original "$CORE_SRC/cpuexec.cpp"
+            make -C "$CORE_SRC/libretro" -j2
+            python3 tools/qa01_apu_phase_observers.py native \
+              baldosa/snesrecomp/runner/src/common_rtl.c
+          fi
           cmake -S baldosa/snesrecomp/tools/snesref \
             -B "$RUNNER_TEMP/qa01-snesref" -DCMAKE_BUILD_TYPE=Release
           cmake --build "$RUNNER_TEMP/qa01-snesref" -j2
@@ -185,6 +208,13 @@ jobs:
         env:
           QA01_CASE: ${{ matrix.case }}
           QA01_ZOO_TERMINAL: ${{ inputs.zoo_terminal_phase }}
+          QA01_APU_PHASE: ${{ inputs.qa01_apu_phase }}
+          # Distinct original and native clock axes; historical Zoo result
+          # windows, NOT time-shifted input or assumed frame equivalence.
+          UR_QA01_APU_ORIGINAL_FIRST: "6748"
+          UR_QA01_APU_ORIGINAL_LAST: "6778"
+          UR_QA01_APU_NATIVE_FIRST: "6748"
+          UR_QA01_APU_NATIVE_LAST: "6778"
         run: |
           set -euo pipefail
           extra_args=()
@@ -231,6 +261,13 @@ jobs:
               f.write(v.get("reason","") + "\n\n")
               f.write("**Release course credit: 0.**\n")
           PY
+          if [[ "$QA01_APU_PHASE" == "true" ]]; then
+            python3 tools/qa01_apu_phase_report.py \
+              --original-log "$ROOT/work/zoom-zoo/replay/reference.log" \
+              --native-log "$ROOT/work/zoom-zoo/replay/native.log" \
+              --out "$ROOT/qa01-apu-edge-report.json"
+            echo 'QA-01 source/native APU clock receipts retained (no release credit)' >> "$GITHUB_STEP_SUMMARY"
+          fi
           exit "$case_rc"
       - name: Always retain per-case receipt and bounded diagnostic logs
         if: always()
@@ -241,6 +278,7 @@ jobs:
           if-no-files-found: warn
           path: |
             ${{ runner.temp }}/qa01-case/case-result.json
+            ${{ runner.temp }}/qa01-case/qa01-apu-edge-report.json
             ${{ runner.temp }}/qa01-case/producer-report.json
             ${{ runner.temp }}/qa01-case/producer.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/source/source-scan.log

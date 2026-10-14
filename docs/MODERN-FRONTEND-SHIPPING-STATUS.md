@@ -1,4 +1,4 @@
-> **2026-10-09 live integration qualifier:** The legacy Windows Modern state models and typed five-destination root are reusable, but **controller-only root on a completed Baldosa Modern product has not yet been admitted**. Open #1056 owns visible root/Restart Return guest-input release on the established host; the Baldosa C ABI/lifecycle lane must *consume* that work, not fork a new frontend. Merged #1085 proves native Win32 2P/pause behavior, not the complete Modern root or packaged record journey. [WORK-QUEUE.md](WORK-QUEUE.md) owns the current feature/QA join.
+> **2026-10-13 Modern/Baldosa integration checkpoint:** The pinned Baldosa Windows candidate now renders the existing five-destination Modern root and actually routes Play, Multiplayer and read-only Records to source-observed stock menus and canonical archives. Practice and Options remain disabled in that native root; first-time named racer creation and in-process P1 profile switching have not been integrated, so a cold anonymous start cannot complete the named-profile Records journey. The named P1 boot uses the existing catalog/typed SRAM state; 2P uses two explicitly confirmed profiles, original source results and the canonical paired writer, but no played full Win32 2P paired-result journey is accepted. Exact fresh-process 1P/paired 2P **real-codec fixture** readback merged in #1407, identity handoff freshness in #1404 and source-finish retry protection in #1409. [PR #1416](https://github.com/gamesbyian/UR-Recomp/pull/1416) is a pending same-build Win32 played native 1P result-to-fresh-game Records witness, **not yet evidence**. Preserve the legacy Windows product as rollback. Independent complete USA event acceptance is still 0/45, and physical controller/audio/display release QA remains separate. [WORK-QUEUE.md](WORK-QUEUE.md) and the independent release ledger own priorities and admission.
 
 # Windows x64 Modern frontend: shipped surfaces and remaining integration
 
@@ -13,11 +13,11 @@ The Racer Studio design now calls for an animated 2D hero and independently edit
 
 A distinct confirmed defect, [#890](https://github.com/gamesbyian/UR-Recomp/issues/890), links Modern Restart's Return confirmation to guest Start and subsequent silence. Frontend/input owns the host/guest release correction and first resumed guest-word witness; QA-06 reuses its **audible tail** as a co-oracle. Do not redirect this to original SPC/DSP archaeology or accept `Start=None` as the consumer fix.
 
-## QA-05/09 pending implementation candidate (2026-10-08, unmerged)
+## Historical QA-05/09 candidate at 2026-10-08 (subsequently merged)
 
 Branch `qa05-modern-root-and-restart-ownership-20261008` adds a rendered five-destination host shell and controller/keyboard focus handoffs to the **existing** stock 1P/2P, Quick Practice, Records, Options and Racer/Profiles authorities. It introduces a physical-key-release barrier for default Return-as-guest-Start after Restart and targeted guest-word diagnostics. `tests/native/run_modern_root_acceptance.sh` and `tests/native/modern_restart_key_release_test.cpp` provide fresh-process root smoke and pure edge-policy coverage. Details and independent evidence requirements: [QA05-QA09-FRONTEND-INTEGRATION-EVIDENCE.md](QA05-QA09-FRONTEND-INTEGRATION-EVIDENCE.md).
 
-**Status: under review, not shipped.** Local pure restart filter assertions pass, but native integrated build, packaged Windows pad-only journey, 5/5 audible default-Return Restart tails, and approved visual fidelity are **unverified**. The table and main-branch assertions below remain unchanged until a reviewed merge. Do not close #890 or #1053 on source-only evidence.
+**At that historical checkpoint** the candidate was under review. #1056 later merged; the remaining native/physical integrated journey and audible default-Return Restart repeatability have not acquired release credit. The table and main-branch assertions below remain unchanged until a reviewed merge. Do not close #890 or #1053 on source-only evidence.
 
 ## Target design and current-status boundary
 
@@ -25,7 +25,7 @@ The cross-screen proposed information architecture, detailed screen behavior, in
 
 Status snapshot: **2026-10-08 UTC**, reviewed through `main` `7d2a75312`. This is a routing/readiness index, not a new frontend specification. The source of truth for behavior remains the implementation and native acceptance; update this index when the corresponding merge changes a shipping claim.
 
-## Player-facing surfaces already on main
+## Legacy host player-facing surfaces (2026-10-08 snapshot)
 
 | User entry | Required title/host context | Existing authority | Evidence |
 | --- | --- | --- | --- |
@@ -41,7 +41,7 @@ Status snapshot: **2026-10-08 UTC**, reviewed through `main` `7d2a75312`. This i
 | Local Tournament **F4 / mapped P1 L** | Modern, stock 2P select (`0x3D`) after both join seats are confirmed | Existing tournament coordinator: create (OS-minted IDs), standings, fixtures, history, arm seated fixture | `run_modern_local_tournament_panel_acceptance.sh` (`docs/MODERN-LOCAL-TOURNAMENT-PANEL.md`) |
 | In-race Pause, Options, Controls, Run Data, Records, Exit to Frontend, Quit | Modern race/results pause authority | Host session pause + real paused-frame presentation, not guest simulation while frozen | `docs/PAUSE-CONTROLLER-NAVIGATION.md` and Native UI evidence |
 
-The entries above are **shortcuts and existing stock frontend flow**, not proof that the eventual five-destination Modern top-level menu exists as a rendered and routed player-facing root. `native/product/modern_root_menu.hpp` is currently a pure typed model (Play / Practice / Multiplayer / Records / Options); its labels and localization boundary are implemented, but the full live root router is not. Play and Multiplayer still follow stock title administration; the Records browser is now also admitted read-only from the settled main menu, but no rendered root routes to it. Do not declare a fully integrated Modern root, and do not invent a second route, records model, progression model or paused-session policy to make the root appear complete.
+At the 2026-10-08 snapshot, these entries were **shortcuts and existing stock frontend flow**, not an integrated Baldosa product. The top checkpoint documents later native-root progress without promoting the full player journey. `native/product/modern_root_menu.hpp` is currently a pure typed model (Play / Practice / Multiplayer / Records / Options); its labels and localization boundary are implemented, but the full live root router is not. Play and Multiplayer still follow stock title administration; the Records browser is now also admitted read-only from the settled main menu, but no rendered root routes to it. Do not declare a fully integrated Modern root, and do not invent a second route, records model, progression model or paused-session policy to make the root appear complete.
 
 ## Additional whole-player acceptance (release level)
 

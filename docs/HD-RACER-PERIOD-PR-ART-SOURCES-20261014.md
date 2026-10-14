@@ -10,31 +10,25 @@ Their six top/bottom paired source RGBA aliases **are not six new
 independent character poses**. A native title frame captured during
 a fade is not reliable for full-bright title colours.
 
-## Highest-value newly located primary-material collection
+## Closed duplicate: DMA Design miscellaneous press archive
 
-- **DMA Design Miscellaneous Press Material**, catalogued at
-  https://hiddenpalace.org/Assets/DMA_Design_Miscellaneous_Press_Material .
-  The Hidden Palace record says the collection was released by
-  **Frank Cifaldi on 2021-12-28**, assembled from electronic press
-  kits and printed publicity scans for a NoClip DMA history project,
-  and expressly **includes Uniracers/Unirally** alongside other DMA
-  games. Its own direct download is currently shown as absent; its
-  externally linked Internet Archive mirror is live:
-  https://archive.org/details/dma_press_material .
-- The Internet Archive directory lists **dma_press_material.zip**,
-  approximately **635.1 MB** at
-  https://archive.org/download/dma_press_material/dma_press_material.zip .
-  **Important provenance boundary:** Archive catalogue and ZIP
-  existence were verified; individual Uniracers members, individual
-  image dates, resolution, 3D model angles and original art metadata
-  have **not** been inspected. The collection description alone
-  does not prove it includes a usable alternate pose or actual
-  original-render production asset.
+**Retired as a new Uniracers art lead on owner archive inspection (2026-10-14).**
+The full DMA Design archive has **only one Uniracers-related PDF**. That PDF
+was already acquired into UR-Recomp during the project's initial research.
+The archive does **not** offer a newly discovered reference-render atlas,
+additional independent character pose, or missing Uniracers promotional
+image. Earlier speculative enthusiasm about the 635 MB archive was based
+only on collection metadata and is explicitly superseded by the actual
+archive-member inspection. **Do not download, inventory, index, or
+re-pursue this collection** for the character reconstruction without
+specific newly evidenced change to its contents.
 
-This is potentially a **different provenance class** from
-web-spread gameplay screenshots or repeated box-cover artwork:
-actual contemporary DMA-supplied PR files or period physical
-advertisements. Inspect before treating it as visual authority.
+Archival provenance for why this lead was checked and closed:
+https://hiddenpalace.org/Assets/DMA_Design_Miscellaneous_Press_Material
+and https://archive.org/details/dma_press_material .
+The already retained local PDF is authoritative; no new copy is needed.
+The exact local PDF path/hash was not rechecked in this correction and is
+deliberately not invented.
 
 ## Independently catalogued period image and cross-checks
 
@@ -62,23 +56,13 @@ advertisements. Inspect before treating it as visual authority.
 
 ## Inspection protocol (offline, no CI factory)
 
-1. Download the externally hosted press ZIP **on demand**, outside
-   repository history and only when bandwidth/storage are warranted.
-   Record its whole-file SHA256, archive version and source URL. Do not
-   upload the 635 MB archive or any copyrighted images into Git.
-2. Enumerate the **actual ZIP central directory** (e.g.
-   `unzip -Z1 dma_press_material.zip`), inspect folder names under
-   `Uniracers`, `Unirally`, `Unicycle` and possible DMA-wide
-   image directories. Avoid treating a negative name search as
-   proof the asset is absent. Retain directory member path, file
-   size and CRC and record SHA256 for each selected visual.
-3. Inspect **only** likely original unicycle art or relevant
-   genuine PR/manual/period advertising files. Record source
-   classification, dimensions, crop and scan provenance, whether
-   the image is original paper art, source-render, emulator pixel
-   art or later reconstructed/fan art. Detect identical or
-   recompressed duplicates across regional covers and gallery sites.
-4. For each genuinely **independent** original rendered viewpoint,
+1. Exclude the closed DMA press archive as a source of *new* Uniracers
+   character reference poses; reuse the existing repository PDF where relevant.
+2. For any *other*, independently substantiated period reference, record
+   source URL, artist/region/date, exact SHA256, image dimensions and whether
+   it is authentic print art, source render, actual emulator output or fanart.
+   Detect recompressed duplicates and regional cover aliases first.
+3. For each genuinely **independent** original rendered viewpoint,
    annotate tyre diameter, axle/hub position, fork length/angle,
    saddle arc, frame/tube angle, silhouette bounding polygon and
    coloured model components. Record image-space perspective
@@ -86,7 +70,7 @@ advertisements. Inspect before treating it as visual authority.
    single projection. *Do not apply SNES 7:6 pixel aspect to
    photographic/scanned press art*. Apply it only to bona fide
    SNES raster source when displaying proportions.
-5. Compare shapes at exact original source atlas captures
+4. Compare shapes at exact original source atlas captures
    (12 isolated native slot layers, 6 proven mirrored same-pose
    pairs) plus the title render with provenance and fade caveats.
    Build an **A/B human character-model decision sheet** with each

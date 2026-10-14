@@ -16,22 +16,45 @@ def snapshot():
     return json.loads(qa.DEFAULT.read_text(encoding="utf-8"))
 
 
+def synthetic_baseline():
+    """Future valid release progress must not break adversarial fixture tests."""
+    data = snapshot()
+    data["candidate"].update(
+        commit_sha=None, zip_sha256=None,
+        physical_hardware_verified=False, release_decision="not_assessed")
+    for gate in data["gates"]:
+        gate.update(status="unverified", candidate_commit=None,
+                    witnesses=[], waiver_reason=None)
+    data["gates"][0]["coverage"].update(
+        complete_event_passes=0, partial=4, unverified=41,
+        regional_comparison_complete=0, regional_comparison_unverified=90)
+    data["gates"][6]["coverage"]["complete_expert_event_passes"] = 0
+    return data
+
+
 class ReleaseQualityAuthority(unittest.TestCase):
     def check(self, changed):
         return qa.audit(changed)
 
-    def test_live_ledger_preserves_gates_without_awarding_new_credit(self):
-        result = self.check(snapshot())
-        self.assertFalse(result["candidate_fully_pinned"])
-        self.assertFalse(result["release_decision_structurally_admissible"])
-        self.assertEqual(result["original_USA_complete_event_passes"], 0)
+    def test_live_ledger_preserves_explicit_current_authority(self):
+        data = snapshot()
+        result = self.check(data)
+        self.assertEqual(
+            result["candidate_fully_pinned"],
+            data["candidate"]["commit_sha"] is not None)
+        self.assertEqual(
+            result["original_USA_complete_event_passes"],
+            data["gates"][0]["coverage"]["complete_event_passes"])
         self.assertEqual(result["original_USA_total"], 45)
-        self.assertEqual(result["approved_gate_count"], 0)
-        self.assertEqual(result["pending_or_failed_gate_count"], 12)
+        self.assertEqual(result["approved_gate_count"], sum(
+            gate["status"] == "passed" for gate in data["gates"]))
+        self.assertEqual(result["pending_or_failed_gate_count"], sum(
+            gate["status"] not in ("passed", "waived")
+            for gate in data["gates"]))
         self.assertFalse(result["physical_windows_executed_here"])
 
     def test_free_prose_may_describe_green_hosted_smoke_without_promoting_gate(self):
-        data = snapshot()
+        data = synthetic_baseline()
         data["gates"][4]["next_action"] += (
             " TEST ONLY: all virtual pads passed on synthetic fixture. "
             "This narrative alone is never a release decision."
@@ -40,7 +63,7 @@ class ReleaseQualityAuthority(unittest.TestCase):
 
     def test_forged_candidate_pins_waiver_and_zero_witness_gate_rejected(self):
         src, pin = "a" * 40, "b" * 64
-        base = snapshot()
+        base = synthetic_baseline()
         cases = []
         def modified(fn):
             data = copy.deepcopy(base)
@@ -66,7 +89,7 @@ class ReleaseQualityAuthority(unittest.TestCase):
                 self.check(case)
 
     def test_full_witness_cannot_assume_45_courseruns_from_fewer_events(self):
-        data = snapshot()
+        data = synthetic_baseline()
         bad_counts = (
             (1, 4, 41), (1, 4, 40), (46, 0, 0),
             (45, 0, 1), (-1, 4, 42), (True, 4, 40),
@@ -87,7 +110,7 @@ class ReleaseQualityAuthority(unittest.TestCase):
             self.check(data)
 
     def test_legitimate_pinned_future_pass_needs_source_witness(self):
-        data = snapshot()
+        data = synthetic_baseline()
         src, zip_digest = "a" * 40, "b" * 64
         data["candidate"].update(commit_sha=src, zip_sha256=zip_digest)
         gate = data["gates"][4]
@@ -103,7 +126,7 @@ class ReleaseQualityAuthority(unittest.TestCase):
             self.check(changed)
 
     def test_completed_45_usa_gate_requires_all_scored_events_and_exact_witness(self):
-        data = snapshot()
+        data = synthetic_baseline()
         data["candidate"].update(commit_sha="a" * 40,
                                  zip_sha256="b" * 64)
         gate = data["gates"][0]
@@ -118,7 +141,7 @@ class ReleaseQualityAuthority(unittest.TestCase):
         self.assertFalse(self.check(data)["release_decision_structurally_admissible"])
 
     def test_release_ready_needs_all_gates_hardware_and_exact_candidate(self):
-        data = snapshot()
+        data = synthetic_baseline()
         data["candidate"].update(commit_sha="a" * 40,
                                  zip_sha256="b" * 64,
                                  physical_hardware_verified=True,

@@ -21,7 +21,7 @@ from baldosa_windows_native_pause_route import (
 )
 
 P1 = "mike"  # Historical first-user default; existing full 1P journey imports this.
-STOCK_TEST_PRESETS = ("mike", "andrew")
+STOCK_TEST_PRESETS = ("mike", "andrew", "martin")
 
 
 def run_game(exe: Path, rom: Path, user: Path, work: Path, smoke: str,
@@ -45,6 +45,8 @@ def run_game(exe: Path, rom: Path, user: Path, work: Path, smoke: str,
            "SDL_AUDIODRIVER": "dummy"}
     if smoke == "4" and preset == 1:
         env["UR_BALDOSA_FIRST_RACER_TEST_PRESET"] = "1"
+    if smoke == "5" and preset == 2:
+        env["UR_BALDOSA_SECOND_RACER_TEST_PRESET"] = "2"
     proc = subprocess.run(
         [str(exe), "--no-launcher", "--config", str(ini),
          "--script", str(route), str(rom)],

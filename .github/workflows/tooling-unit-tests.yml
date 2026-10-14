@@ -65,6 +65,27 @@ jobs:
         run: |
           python3 -m compileall -q tests/unit tools
           ruby -e 'require "yaml"; Dir[".github/workflows/*.{yml,yaml}"].sort.each { |path| YAML.parse_file(path) }'
+      - name: Restore compile cache
+        id: cxx-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/cxx-cache
+          key: ur-unit-cxx-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            ur-unit-cxx-${{ runner.os }}-
+      - name: Enable content-addressed compile cache for unit-test fixtures
+        shell: bash
+        run: |
+          # Keys hash the preprocessed translation unit and every compile flag,
+          # so a stale or partial cache can only miss, never return wrong code.
+          shim="$RUNNER_TEMP/cxx-shim"
+          mkdir -p "$shim" "$RUNNER_TEMP/cxx-cache"
+          for name in g++ gcc c++ cc clang clang++; do
+            ln -sf "$PWD/tools/ci_compile_cache.py" "$shim/$name"
+          done
+          echo "$shim" >> "$GITHUB_PATH"
+          echo "UR_COMPILE_CACHE_DIR=$RUNNER_TEMP/cxx-cache" >> "$GITHUB_ENV"
+
       - name: Run dependency-free Python unit tests in timing-balanced shards
         shell: bash
         run: |
@@ -125,3 +146,10 @@ jobs:
           path: ${{ runner.temp }}/unit-shard*.log
           if-no-files-found: warn
           retention-days: 7
+
+      - name: Save compile cache
+        if: always() && steps.cxx-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/cxx-cache
+          key: ur-unit-cxx-${{ runner.os }}-${{ github.run_id }}

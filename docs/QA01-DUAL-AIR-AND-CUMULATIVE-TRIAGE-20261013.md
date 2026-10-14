@@ -67,6 +67,18 @@ The *first* paired original/native opt-in run [38502953689](https://github.com/g
 The existing opt-in artifact now **also** retains all original `original/*.wram.bin` and native `native-run/dumps/*.wram.bin` snapshots in the **same** 14-day artifact, including failures. The existing independently emitted real guest transcript `original.log`/`native.log`, manifest, input and exact binary SHA gate remain mandatory for accepting a comparison; a correctly named saved image alone does **not** attest its real capture frame or guest identity. This is preservation and forensic reproducibility only, not an additional emitter, extra guest simulation, invented register semantics or permission to attribute airborne physics from a nonzero raw byte. The workflow remains manual opt-in and strict 0/45 original/native release-event credit remains unchanged.
 
 
+## Race-relative cross-check of the paired result (research lane, 2026-10-14)
+
+**Read the same-host table below as phase-confounded.** The ordinary 2P route enters the race at host **1134** on Snes9x (and on the pinned Beetle-bsnes) but at **1136** on the Modern native. This was measured per case by `tools/qa_frontier_original_crosscheck.py paired`, with native first `inRace=1`/`race_tick=1` at 1136 in every one of 36 cases. Identical absolute-frame input therefore reaches the original two race ticks later than it reaches native, and host 2580 is not the same race instant on both. With post-entry input shifted by −2 for the original and native host F compared with original host F−2, the original reproduces the **native** column exactly:
+
+| Native host (original host) | Original `0545/0547`, P1 Y / P2 Y | Native, same-input run 38509912672 |
+| --- | --- | --- |
+| 2579 (2577) | `00/01`, 857/860 | `00/01`, 857/860 |
+| 2580 (2578) | **`01/02`**, 858/862 | **`01/02`**, 858/862 |
+| 2581 (2579) | `00/00`, 858/864 | `00/00`, 858/864 |
+
+Unshifted, the same local original replay gives `00/02` at host 2580, identical to the original column of run 38509912672. A locally built current-`main` Modern native, run against the aligned original over the whole race, shows **zero** differing semantic WRAM bytes (`$0200+`) at every sampled frame, including every frame 2570–2590. The 2580 observation is a one-frame simultaneous hop that the original also produces, not an original/native divergence. The P1 `$0545` writer trace across 2578–2582 recommended below would compare different race ticks; if it is still wanted, run it race-relatively. The genuine original/native difference this tooling did find is in the **result handoff**: the `0x84` phase lasts 35 native frames versus 34 on both reference cores ([RF-012](RESEARCH-FINDINGS-QUEUE.md), [evidence](../analysis/data/frontier-original-native-race-relative-20261014.json)). QA-01 owns both adjudications; this section changes no admission, comparator or release state.
+
 ## Successfully executed paired 2P discriminator (2026-10-14)
 
 **The original/native comparison is now executed and classified**, superseding the earlier no-verdict transport failure. [Actual successful workflow 38509912672](https://github.com/gamesbyian/UR-Recomp/actions/runs/38509912672), artifact **11869806880**, retains manifest, source/native actual runtime transcripts and `paired-report.json` with **18 verified 128-KiB WRAM snapshots per guest**, true frame-label receipts and the frozen **seed 50036056 / rotation / frame 2580**. The native executable SHA-256 matches the original frontier `28501fa3268f82d83672122cddbd2628ce5b2458e625f46d93766f50befbe515`, and the stock-USA ROM/input fixture fingerprints match their manifest. **No controller input timing was rebased.**

@@ -51,9 +51,9 @@
     ".github/workflows/two-player-reference.yml step 'QA-01 paired source dual-air seed 50036056' (run 38509912672, artifact qa01-dual-air-paired-50036056)",
     "docs/TWO-PLAYER-FIXTURE-PLAN.md race-entry staircase (Beetle 1133 / Snes9x 1134 / native 1135)"
    ],
-   "observation": "With identical absolute-frame input the original sees P1 air 0 at host 2580 while the native frontier case had both nonzero; at L=0 the original's 2580 token is absent from the census. The difference is the entry phase, not gameplay.",
-   "uncertainty": "The CI report itself could not be fetched from this session (artifact blob egress blocked); its original side is reproduced locally with the same ROM, core and input.",
-   "resolving_experiment": "QA-01: read raw_both_air_at_2580 from run 38509912672 as phase-confounded; for any future same-input paired replay apply a measured race-relative input shift as the ordinary 2P regression already does.",
+   "observation": "Run 38509912672 recorded raw_both_air_at_2580 = {original: false, native: true} and QA-01 classified it as a provisional state divergence. A local unshifted original replay reproduces the hosted original column byte for byte (2579 00/01, 2580 00/02, 2581 00/00). The race-relative original (lag 2) reproduces the native column exactly.",
+   "uncertainty": "None for the dual-air reading; the hazard applies to any same-absolute-host paired replay on a route whose engines enter at different host frames.",
+   "resolving_experiment": "QA-01: supersede the same-host divergence reading (cross-reference added to docs/QA01-DUAL-AIR-AND-CUMULATIVE-TRIAGE-20261013.md); run any further writer trace race-relatively.",
    "consequence": "Prevents a false original/native dual-air discrepancy from entering the QA-01 queue."
   },
   {

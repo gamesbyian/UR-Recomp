@@ -20,11 +20,11 @@ from qa01_zoo_terminal_writer_crosswalk import logged_frames
 SCHEMA = "UR-QA01-ZOO-RESULT-TEXT-CURSOR-CROSSWALK/1"
 ADDR = "7E:009F"
 ORIGINAL = re.compile(
-    r"^ZOOPCWRITE f=(\\d+) v=(\\d+) pc=([0-9A-Fa-f]{6}) "
+    r"^ZOOPCWRITE f=(\d+) v=(\d+) pc=([0-9A-Fa-f]{6}) "
     r"addr=009F old=([0-9A-Fa-f]{2}) new=([0-9A-Fa-f]{2})$"
 )
 NATIVE = re.compile(
-    r"^f\\s*(\\d+)\\s+([0-9A-Fa-f]{2}):009F=([0-9A-Fa-f]{2,4}) "
+    r"^f\s*(\d+)\s+([0-9A-Fa-f]{2}):009F=([0-9A-Fa-f]{2,4}) "
     r"w([12]) (.+)$"
 )
 PINNED_ORIGINAL_LOG_SHA = "c51fadac1005bdcf7cf3b1925ba50d5829fc14230a2ee76b21f349082826cd62"

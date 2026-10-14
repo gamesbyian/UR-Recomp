@@ -59,19 +59,19 @@ class BoundedOriginalCollisionGate(unittest.TestCase):
         if not compiler:
             self.skipTest("g++ is unavailable for compiled instrumentation check")
         stub = (
-            "#include <cstdint>\\n#include <cstdio>\\n"
-            "using uint8 = std::uint8_t;\\n"
-            "using uint16 = std::uint16_t;\\n"
-            "using uint32 = std::uint32_t;\\n"
-            "struct { unsigned Frame; } ICPU;\\n"
-            "struct { unsigned V_Counter; } CPU;\\n"
-            "struct { uint8 RAM[131072]; } Memory;\\n"
-            "struct { uint8 PB; uint16 PCw; } Registers;\\n"
-            "struct Opcode { void (*S9xOpcode)(); };\\n"
-            "Opcode Opcodes[256]; unsigned Op = 0;\\n"
-            "void execute_one_65816_opcode() {\\n"
-            + base.MARKER + "\\n}\\n"
-        ).replace("\\\\n", "\\n")
+            "#include <cstdint>\n#include <cstdio>\n"
+            "using uint8 = std::uint8_t;\n"
+            "using uint16 = std::uint16_t;\n"
+            "using uint32 = std::uint32_t;\n"
+            "struct { unsigned Frame; } ICPU;\n"
+            "struct { unsigned V_Counter; } CPU;\n"
+            "struct { uint8 RAM[131072]; } Memory;\n"
+            "struct { uint8 PB; uint16 PCw; } Registers;\n"
+            "struct Opcode { void (*S9xOpcode)(); };\n"
+            "Opcode Opcodes[256]; unsigned Op = 0;\n"
+            "void execute_one_65816_opcode() {\n"
+            + base.MARKER + "\n}\n"
+        ).replace("\\\n", "\n")
         source = injector.patch(base.patch(stub))
         with tempfile.TemporaryDirectory(prefix="qa01-original-pc-") as td:
             path = Path(td) / "source-observer.cpp"

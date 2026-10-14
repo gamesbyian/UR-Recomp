@@ -1,0 +1,170 @@
+name: "Research: race-relative paired original/native replay"
+
+# Classification: manual research (never PR/push/schedule). Replays named
+# frontier cases on the shared Modern native candidate AND on original-USA
+# reference cores (Snes9x, Beetle-bsnes) at a per-case MEASURED race-entry
+# lag, comparing every decoded source field and all semantic WRAM exactly.
+# Optional declared finish stimulus exercises the 2P result handoff (RF-012).
+# One candidate build, one paired job; no product acceptance fan-out.
+# Grants no gameplay, original-parity or release credit.
+on:
+  workflow_dispatch:
+    inputs:
+      cases:
+        description: "Space-separated seed:arm list (max 12), e.g. 50036056:rotation 50012000:balanced"
+        required: true
+        default: "50036056:rotation 50012000:balanced 50024003:alternating"
+      finish_hold:
+        description: "Frames of the declared both-Right finish stimulus (0 = mid-race only)"
+        required: true
+        default: "4000"
+      lag:
+        description: "Declared native-minus-reference entry lag; each case also measures it"
+        required: true
+        default: "2"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: research-race-relative-paired-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  candidate:
+    uses: ./.github/workflows/modern-shared-native-acceptance.yml
+    with:
+      canonical_candidate: false
+      candidate_only: true
+
+  paired:
+    needs: candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - name: Validate request
+        shell: bash
+        env:
+          CASES: ${{ inputs.cases }}
+          HOLD: ${{ inputs.finish_hold }}
+          LAG: ${{ inputs.lag }}
+        run: |
+          set -euo pipefail
+          [[ "$HOLD" =~ ^[0-9]{1,5}$ ]] || { echo "invalid finish_hold" >&2; exit 2; }
+          [[ "$LAG" =~ ^[0-8]$ ]] || { echo "invalid lag" >&2; exit 2; }
+          n=0
+          for c in $CASES; do
+            [[ "$c" =~ ^[0-9]{8}:(balanced|p1-focus|p2-focus|alternating|rotation)$ ]] \
+              || { echo "invalid case $c" >&2; exit 2; }
+            n=$((n + 1))
+          done
+          (( n >= 1 && n <= 12 )) || { echo "1-12 cases" >&2; exit 2; }
+      - name: Install reference and headless runtime dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends \
+            xvfb build-essential cmake pkg-config libsdl2-dev
+      - name: Build original reference cores and snesref
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          git -C snesrecomp apply "$GITHUB_WORKSPACE/tools/patches/snesrecomp-dual-controller-input.patch"
+          python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
+          python3 tools/bootstrap_toolchain.py --tool beetle-bsnes-libretro --jobs 2
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+      - uses: actions/download-artifact@v4
+        with:
+          name: shared-modern-native-candidate
+          path: ${{ runner.temp }}/candidate
+      - name: Fetch the signed frontier ledger (read-only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --depth=1 origin research/qa-cumulative-ledger
+          git show FETCH_HEAD:.github/qa-cumulative/ledger.json > "$RUNNER_TEMP/ledger.json"
+      - name: Paired race-relative replay on both reference cores
+        shell: bash
+        env:
+          CASES: ${{ inputs.cases }}
+          HOLD: ${{ inputs.finish_hold }}
+          LAG: ${{ inputs.lag }}
+        run: |
+          set -euo pipefail
+          tar -xzf "$RUNNER_TEMP/candidate/shared-modern-native.tar.gz" -C "$RUNNER_TEMP"
+          EXE="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          test -x "$EXE"
+          FRAMES="1128-1140,1620-4000/60,4001-7000"
+          [ "$HOLD" = 0 ] && FRAMES="1128-1140,1620-3420/30"
+          OUT="$RUNNER_TEMP/paired"
+          mkdir -p "$OUT/snes9x" "$OUT/beetle"
+          for c in $CASES; do
+            seed="${c%%:*}"; arm="${c##*:}"
+            for core in snes9x beetle; do
+              case "$core" in
+                snes9x) SO=.tools/src/snes9x-libretro/libretro/snes9x_libretro.so ;;
+                beetle) SO=.tools/src/beetle-bsnes-libretro/mednafen_snes_libretro.so ;;
+              esac
+              python3 tools/qa_frontier_original_crosscheck.py paired \
+                --ledger "$RUNNER_TEMP/ledger.json" \
+                --snesref "$RUNNER_TEMP/snesref-build/snesref" --core "$SO" \
+                --native-exe "$EXE" --seed "$seed" --arm "$arm" --lag "$LAG" \
+                --finish-hold "$HOLD" --frames "$FRAMES" \
+                --work "$RUNNER_TEMP/work/$core-$seed" --out "$OUT/$core/$seed.json"
+            done
+          done
+          for core in snes9x beetle; do
+            args=()
+            for f in "$OUT/$core"/*.json; do args+=(--paired "$f"); done
+            python3 tools/qa_frontier_original_crosscheck.py summarize "${args[@]}" \
+              --out "$OUT/summary-$core.json"
+          done
+      - name: Publish compact SHA-bound result
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - "$RUNNER_TEMP/paired" > "$RUNNER_TEMP/paired/summary.md" <<'PY'
+          import json, sys, pathlib
+          root = pathlib.Path(sys.argv[1])
+          print("### Race-relative paired original/native replay\n")
+          print("| Core | Seed | Arm | Entry native/ref | Lag ok | Disposition | 0x84 frames native/ref |")
+          print("| --- | --- | --- | --- | --- | --- | --- |")
+          for core in ("snes9x", "beetle"):
+              s = json.loads((root / f"summary-{core}.json").read_text())
+              for p in s["paired_exact"]:
+                  t = p.get("terminal") or {}
+                  dur = (f'{t["native"]["result_phase_frames"]}/{t["original"]["result_phase_frames"]}'
+                         if t else "-")
+                  e = p["measured_entry_host"]
+                  print(f'| {core} | {p["seed"]} | {p["arm"]} | {e["native"]}/{e["original"]} '
+                        f'| {p["declared_lag_confirmed"]} | {p["disposition"]} | {dur} |')
+          print("\n**Research observation only; no original-parity or release credit.**")
+          PY
+          python3 tools/publish_experiment_result.py \
+            --name research-race-relative-paired \
+            --question "Do native and original agree at the measured race-relative frame, and how long is each engine's 2P result phase?" \
+            --result "$RUNNER_TEMP/paired/summary-snes9x.json" \
+            --input "$RUNNER_TEMP/paired/summary-beetle.json" \
+            --source-summary "$RUNNER_TEMP/paired/summary.md" \
+            --out "$RUNNER_TEMP/paired/receipt.json" \
+            --github-summary "$GITHUB_STEP_SUMMARY"
+      - name: Retain compact evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-race-relative-paired
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/paired/summary-*.json
+            ${{ runner.temp }}/paired/summary.md
+            ${{ runner.temp }}/paired/receipt.json
+            ${{ runner.temp }}/paired/snes9x/*.json
+            ${{ runner.temp }}/paired/beetle/*.json

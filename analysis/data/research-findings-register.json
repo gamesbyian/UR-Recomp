@@ -285,6 +285,27 @@
    "uncertainty": "Whether the extra frame is a native host-loop/vblank-boundary effect or a guest-visible behaviour difference; the 1P Switcher case shows the native phase shorter, not longer, so the mechanism may be boundary-sensitive rather than a constant offset.",
    "resolving_experiment": "QA-01: on this 70-second 2P reproducer, trace native writers of 7E:009F and the restore routine around native 5230-5234 against the original 83:988A opcode trace; decide whether the extra frame is guest-visible.",
    "consequence": "A cheap deterministic 2P reproducer of the same result-handoff seam behind the open 1P Switcher +4704/+4702 strict divergence; it does not change any comparator or acceptance."
+  },
+  {
+   "id": "RF-013",
+   "title": "Native race-entry lag is phase-dependent (2 or 3 frames) when the 2P menu route is delayed",
+   "class": "reproducible_anomaly",
+   "status": "handed_off",
+   "evidence": "original_and_native",
+   "owner_lane": "qa01-gameplay",
+   "reproducer": {
+    "command": "shift every event of tests/input/two-player-first-race.input by +k (k=0..7), dump 1120+k..1149+k on Snes9x and the Modern native, take first inRace=1",
+    "runs": [],
+    "race_relative_lag": 2
+   },
+   "source_artifacts": [
+    "Snes9x entry 1134..1141 (exactly +k)",
+    "Modern native (4c1c8b56..., fda6ace) entry 1136, 1137, 1139, 1139, 1141, 1141, 1142, 1143"
+   ],
+   "observation": "Lag native minus Snes9x = 2,2,3,2,3,2,2,2 for k = 0..7. The original absorbs a k-frame delay one for one; native quantizes it, as if a vblank/fade-gated wait sometimes costs one extra frame.",
+   "uncertainty": "Mechanism unproven; staircase notes point at the 80:FAC9 / $4212 vblank-sensitive fade for entry. Whether the same mechanism lengthens the 0x84 result phase (RF-012) is a hypothesis.",
+   "resolving_experiment": "QA-01: compare native and original iteration counts of the entry fade wait loop for k=1 (lag 2) and k=2 (lag 3); if the extra frame is the wait loop, test the same loop in the 0x84 phase.",
+   "consequence": "Race-relative comparisons must measure lag per case on any route other than the fixed stock prefix; gives RF-012 a cheap, input-only mechanism discriminator."
   }
  ]
 }

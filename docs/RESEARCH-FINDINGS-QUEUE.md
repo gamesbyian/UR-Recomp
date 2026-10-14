@@ -49,6 +49,8 @@ A coarse agreement is equality of the quantized census fields (position/64 and /
 * **Mid-race:** 26 of 26 cases (5 per arm from three held-out runs, plus the witness) show **zero** differing fields and **zero** differing semantic WRAM bytes at 30-frame spacing from 1620 to 3420. The witness was also checked at every frame from 2570 to 2590. In total 39,747 race-relative frames were compared across all paired runs.
 * **Race terminal (RF-012, handed to QA-01):** a declared both-Right finish stimulus completes the ordinary 2P race in about 1,500 extra frames. In 9 of 9 seeds, state stays identical through both laps reaching 0 and through the onset of result menu `0x84`. The `0x84` phase then lasts **34 frames on Snes9x and on Beetle-bsnes, but 35 on native** (36 for seed 50024003). Every later difference follows the reference's `0x16` restoration. This is the same `Sram_RestoreDirectPage` (`83:988A`) handoff behind QA-01's open 1P Switcher strict divergence, where the original's phase is also 34 frames. It is now a 70-second deterministic 2P reproducer with two independent reference cores.
 
+* **Entry lag is phase-dependent (RF-013, handed to QA-01):** delaying the whole menu route by k = 0…7 frames moves Snes9x entry by exactly k (1134…1141), but native entry by 0, 1, 3, 3, 5, 5, 6, 7. The lag is therefore 2 or 3. The census cross-check stays valid because the frontier never alters the stock prefix (k = 0, lag 2). Any other route must measure its lag per case, which `paired` does. Native seems to quantize a vblank- or fade-gated wait, the same kind of one-frame transition cost seen in RF-012.
+
 What this means for the frontier: on this route, native frontier states correspond exactly to original states for the whole race. Native fingerprint novelty here is therefore authentic original-game state novelty. But more random mid-race input will not find discrepancies. The measured discrepancy surface is the **transitions**: entry phase and the result handoff.
 
 ## Live queue
@@ -58,6 +60,7 @@ Generate with `python3 tools/research_findings.py --queue`. As of 2026-10-14:
 | ID | Class | Owner | What would resolve it |
 | --- | --- | --- | --- |
 | RF-012 | original_native_discrepancy | qa01-gameplay | Trace native `7E:009F`/restore writers at native 5230–5234 on the 2P reproducer against the original `83:988A` opcode trace |
+| RF-013 | reproducible_anomaly | qa01-gameplay | Compare native vs original iteration counts of the entry fade wait for route delay k=1 (lag 2) against k=2 (lag 3) |
 | RF-004 | untested_circumstance | research | Finish the 10,000-case census cross-check; bisect any divergent seed densely |
 | RF-005 | graphics_observation_gap | qa08-graphics | Replace the dead `$121B/$121D` predicate with the bank-82 sentinel observer, only if QA-08 names a question |
 | RF-008 | reproducible_anomaly | qa01-gameplay | One single-case `qa01-event-campaign.yml` dispatch before any long original-native campaign |
@@ -68,7 +71,7 @@ Closed and retired items (dual-air witness, `$0DDB`, sparse sampling, Windows an
 ## Next experiments, in priority order
 
 1. **Terminal-phase population (research, local or one CI job).** Run the finish stimulus on 100 seeds with both reference cores. Record the result-phase duration distribution and its dependence on finish state (who wins, the frame margin, laps-zero parity). That turns RF-012 from "9 of 9" into a measured rate and tells QA-01 whether the extra frame tracks scheduler parity. Stop at 100: the question is the mechanism, not a tighter rate.
-2. **Entry-phase invariance check (research).** Vary the pre-entry menu route timing by a few frames and confirm the measured lag stays 2. If it does not, every race-relative comparison must measure its lag per case, as `paired` already does.
+2. ~~Entry-phase invariance check~~ — done: the lag is not invariant (RF-013).
 3. **Rare-state branching.** Branch new inputs from agreed original trajectories that reached rare states (the dual-air hop, opponent-offscreen sentinels). Record each selection decision and replay the same recorded input on both engines, so the selector never defines correctness.
 4. **Second route.** Only after a second source-qualified 2P route exists. The frontier currently varies input on one course and one mode.
 

@@ -76,6 +76,32 @@ class FirstRacerPlayedRecordAcceptance(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     native_records_reopened(broken, profile="mike")
 
+    def test_real_first_racer_boot_fingerprint_accepts_exact_mike_only(self):
+        from baldosa_windows_native_pause_route import (
+            fnv32, verify_named_profile_boot_bytes,
+        )
+        raw = bytes(range(256)) * 32
+        log = (
+            "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=mike "
+            "root=saves/profile-mike\\n"
+            "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=mike "
+            f"bytes=8192 fnv={fnv32(raw)}\\n"
+        )
+        self.assertEqual(
+            verify_named_profile_boot_bytes(log, raw, profile_id="mike")["bytes"],
+            8192)
+        for bad in (
+            log.replace(fnv32(raw), "12345678"),
+            log.replace("profile=mike ", "profile=other ", 1),
+            log + log,
+            log.replace("bytes=8192", "bytes=8191"),
+        ):
+            with self.subTest(bad=bad[-100:]):
+                with self.assertRaises(ValueError):
+                    verify_named_profile_boot_bytes(bad, raw, profile_id="mike")
+        with self.assertRaises(ValueError):
+            verify_named_profile_boot_bytes(log, raw, profile_id="unsupported")
+
     def test_archive_admission_refuses_empty_duplicates_or_redirects(self):
         with tempfile.TemporaryDirectory() as temp:
             user = Path(temp)

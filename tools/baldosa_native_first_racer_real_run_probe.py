@@ -126,7 +126,7 @@ def run(exe: Path, rom: Path, fixture: Path, output: Path,
     fresh = run_game(
         exe, rom, user, output / "new_game_reopens_earned_records", "1",
         "turbo on\nwait 1800\nquit\n", video, timeout)
-    verify_named_profile_boot_bytes(fresh, saved_after_race)
+    verify_named_profile_boot_bytes(fresh, saved_after_race, profile_id=P1)
     native_records_reopened(fresh, profile=P1)
     verify_native_profile_checkpoint(fixture, user, P1, fresh, timeout)
     newest_path, newest_digest = assert_exact_one_named_run(user, P1)

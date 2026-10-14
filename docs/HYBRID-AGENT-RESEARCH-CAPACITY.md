@@ -34,6 +34,13 @@ Admission is a point-in-time check, not a reservation. It cannot hold capacity f
 
 **Failure-aware fair rotation.** `auto` now picks the least-recently-recorded lane, with never-run lanes first. It skips a lane whose latest receipt failed while its producer files are unchanged (`producer_digest` in the plan and record, a scheduling heuristic only). Legacy failures without a digest rank after every healthy lane. If every lane is failing unchanged, automation stops red for investigation.
 
+**Yield-aware rotation (`auto` only; explicit dispatch is never gated).** A lane is skipped when its next automatic run cannot change a decision:
+* **Repetition lanes:** the cumulative zero-failure 95% bound has met the lane's target **and** the latest positive run used the current producer digest. Starting targets: fault-recovery 1e-4, graphics 1e-4, native-2p 1e-3, Windows 5e-3 per observation.
+* **Frontier:** a completed run already exists with the current producer digest. Only a changed observer, plan or execution policy earns another (100-case) run.
+* **Original-native and performance:** only failure-gated, because their meaning depends on guest code outside the digest.
+
+When only yield gates remain, `auto` defers green and lists the reasons. On 2026-10-14 this rests fault-recovery: its bound is 8.0e-6 after 373,220 journeys.
+
 **Measured cost.** Each new ledger record carries a signed `runner_usage` receipt measured from the run's own job timings, so yield can be expressed per runner-hour. Research producers also stopped running seven unrelated product-acceptance jobs: the shared candidate's new `candidate_only` input skips them. That saves 13–16 runner-minutes and a 7-runner burst per research run (measured on runs 38446393623, 38438864232 and 38434647895). It also prevents an unrelated red product gate from blocking research.
 
 ## Measured load profile (24 h to 2026-10-14 02:45 UTC, this repository only)

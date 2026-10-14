@@ -83,6 +83,33 @@ PRODUCER_PATHS = {
                  "tools/qa_frontier_handoff.py"),
 }
 FAILED = "incomplete_or_failed"
+POSITIVE = ("completed_positive", "strict_divergence")
+# Starting durability targets: the per-observation failure rate a lane's
+# zero-failure 95% bound (3/N) must reach before automatic rotation stops
+# buying more repeats of an unchanged producer. Explicit dispatch is never
+# gated; revise targets in HYBRID-AGENT-RESEARCH-CAPACITY.md, not ad hoc.
+DURABILITY_TARGETS = {"fault-recovery": 1e-4, "graphics": 1e-4,
+                      "native-2p": 1e-3, "windows": 5e-3}
+YIELD_SATURATED = "yield"
+
+
+def yield_exclusions(records: list[dict], digests: dict[str, str]) -> dict[str, str]:
+    """Lanes whose next automatic run cannot plausibly change a decision."""
+    excluded = {}
+    for lane, target in DURABILITY_TARGETS.items():
+        rows = [r for r in records if r.get("campaign") == lane
+                and r.get("disposition") in POSITIVE]
+        observations = sum(int(r.get("metrics", {}).get("observations", 0)) for r in rows)
+        latest = rows[-1] if rows else None
+        if (observations and 3 / observations <= target and latest is not None
+                and latest.get("producer_digest") == digests.get(lane)):
+            excluded[lane] = (f"{YIELD_SATURATED}: zero-failure bound {3 / observations:.2e} <= "
+                              f"target {target:g} on the current producer")
+    if any(r.get("campaign") == "frontier" and r.get("disposition") == "completed_positive"
+           and r.get("producer_digest") == digests.get("frontier") for r in records):
+        excluded["frontier"] = (f"{YIELD_SATURATED}: current observer/plan/execution already "
+                                "validated; fingerprint growth is non-saturating")
+    return excluded
 
 
 def _parse_time(value: str) -> dt.datetime:
@@ -243,7 +270,7 @@ def producer_digest(root: Path, campaign: str) -> str:
     return h.hexdigest()
 
 
-def auto_lane(records: list[dict], digests: dict[str, str]) -> tuple[str, dict]:
+def auto_lane(records: list[dict], digests: dict[str, str]) -> tuple[str | None, dict]:
     """Fair, failure-aware rotation for ``auto``.
 
     Least-recently-recorded lane first (never-run lanes before all others,
@@ -251,8 +278,10 @@ def auto_lane(records: list[dict], digests: dict[str, str]) -> tuple[str, dict]:
     *ineligible* while its recorded producer digest still matches: re-running
     an unchanged failing producer adds cost, not information. Legacy failed
     receipts without a digest cannot prove "unchanged"; they stay eligible
-    but rank after every healthy lane.
+    but rank after every healthy lane. Lanes in ``yield_exclusions`` are
+    skipped; if only those remain, returns ``None`` (defer: nothing to learn).
     """
+    saturated = yield_exclusions(records, digests)
     last_index: dict[str, int] = {}
     last_row: dict[str, dict] = {}
     for index, row in enumerate(records):
@@ -268,8 +297,13 @@ def auto_lane(records: list[dict], digests: dict[str, str]) -> tuple[str, dict]:
         if failed and recorded is not None and recorded == digests.get(lane):
             excluded[lane] = "latest receipt failed and producer files are unchanged"
             continue
+        if lane in saturated:
+            excluded[lane] = saturated[lane]
+            continue
         legacy_failed = failed and recorded is None
         ranked.append((legacy_failed, last_index.get(lane, -1), order, lane))
+    if not ranked and any(r.startswith(YIELD_SATURATED) for r in excluded.values()):
+        return None, excluded
     if not ranked:
         raise ValueError("every lane's latest receipt failed on an unchanged producer; "
                          "investigate before automatic research resumes")
@@ -436,6 +470,23 @@ def main() -> int:
     campaign = args.selected
     if campaign == "auto":
         campaign, excluded = auto_lane(ledger.get("records", []), digests)
+        if campaign is None:
+            decision = {"schema": SCHEMA, "decision": "defer", "admitted": False,
+                        "campaign": "none", "selected": "auto", "event": args.event,
+                        "reason": "no lane's next automatic run can change a decision",
+                        "auto_excluded_lanes": excluded, "release_gate_credit": 0}
+            args.out.parent.mkdir(parents=True, exist_ok=True)
+            args.out.write_text(json.dumps(decision, indent=2, sort_keys=True) + "\n")
+            if args.gha_output:
+                _write_outputs(args.gha_output, {"admitted": "false", "campaign": "none",
+                                                 "frontier_parallel": 1, "producer_digest": ""})
+            if args.summary:
+                with args.summary.open("a", encoding="utf8") as out:
+                    out.write("### Research admission: **defer** (auto)\n\nNo lane's next "
+                              "automatic run can change a decision:\n\n" + "".join(
+                                  f"* {k}: {v}\n" for k, v in sorted(excluded.items())))
+            print("ADMISSION defer auto: no informative lane")
+            return 0
     snapshot = None
     if args.snapshot is not None and args.snapshot.is_file():
         snapshot = json.loads(args.snapshot.read_text())

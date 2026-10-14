@@ -75,6 +75,25 @@ The independently downloaded green native three-process run [38503716264](https:
 
 The reader now requires drive-absolute `[A-Za-z]:/...`, disallows empty, `.`, `..`, colon-bearing or control-character interior segments, and requires the final directory segments to be exactly `runs/mike/<canonical-run>.urrun`. It also refuses a second, otherwise-unparsed `CAPTURED=1` or `RESULT observed=1` event in the played guest. Adversarial tests exercise relative, traversing, alternate-data-stream, duplicated slash, nested saved-run and conflicting second-result logs. The original downloaded Windows path shape is retained as a synthetic test reference and passes. No actual saved bytes were archived, so source-path consistency still does not prove saved codec bytes or original/native parity. All independent release gates remain unchanged.
 
+## Prospective raw first-created MIKE 1P .urrun codec proof, not retrospective acceptance
+
+The first real source-connected first-racer → native 1P result → third-game Records Windows run [38503716264](https://github.com/gamesbyian/UR-Recomp/actions/runs/38503716264) is green, and QA #1462 independently checked the **four archived coowned report/process logs**. Its actual `run-0001791946926220-0000.urrun` was saved to the CI-created named `runs/mike/` directory on ephemeral Windows storage, but **the Windows Actions archive did not retain the newly saved file**. The producer report records only its SHA-256 `b73b9d8b2bfeb3379ff35e4a8db14d73a56eb7dce96fa481e1288f8ef6aca4a4`. Therefore neither a forged synthetic fixture nor the report alone can verify the real run's checksum, native captured controller inputs or replay codec.
+
+Independent read-only `tools/check_baldosa_native_mike_1p_run_bytes_qa.py` now prepares the missing evidence consumer. If the product-owned Windows producer later retains **only the synthetic CI-created MIKE `.urrun` file**, coarchived with the exact four existing source report/creating/played/third-game-Records logs, QA can inspect it without a ROM or user data folder:
+
+```bash
+python3 tools/check_baldosa_native_mike_1p_run_bytes_qa.py \
+  --report report.json \
+  --created-log new_user_creates_first_racer.log \
+  --played-log fresh_named_player_completes_race.log \
+  --fresh-log new_game_reopens_earned_records.log \
+  --run run-XXXXXXXXXXXXXXXX-XXXX.urrun
+```
+
+It uses the **already established independently reviewed** source-log/filename checker, requires the actual file SHA-256 to equal the producer's claimed digest and the exact captured basename, recomputes the file's FNV-1a64 v1 trailer, checks the fixed USA ROM hash and Baldosa build compatibility fields, course/mode, native source finish ticks, input frame count and number of P1 input runs. The v1 codec decoder refuses overlapping input spans, P2 inputs in a 1P source event, malformed splits, uncanonical masks and duplicate unmerged runs. Positive fixtures are **synthetic and explicitly nonrelease**; negative fixtures forge self-consistent SHA/FNV bytes with wrong source fields to prove the cross-check genuinely rejects them. A future source-consistent real-file reading would only establish **byte/codec consistency of that CI-synthetic source run**, not a matched original-emulator USA event, a continuous human-controller player journey, an approved packaged candidate or physical audio/TV/display acceptance.
+
+Do not upload the ROM, raw SRAM, personal player roots or any unrelated user's named records. Do not retrofit a raw-file acceptance to historical run 38503716264. The actual saved bytes were not preserved there, and QA-01 remains **0/45** accepted complete original/native USA events.
+
 ## No-argument Windows CMD first-racer relaunch: product pass versus independently reviewed log
 
 Modern product [#1463](https://github.com/gamesbyian/UR-Recomp/pull/1463) passed its [actual Windows native job 38504990847](https://github.com/gamesbyian/UR-Recomp/actions/runs/38504990847) on in-flight PR code. Independent QA downloaded the ROM-free candidate outer Actions artifact ID **11867738348**, SHA-256 `193df8107ec60898fe5c0c246548207e439b09e684fc618f764d608ad2edd40d`, whose **inner ROM-free ZIP** is SHA-256 `608ac9224280bd0a1da7434fe2457e4c93df29140e6382d32d53bcfc5a15a469`. Its native executable SHA-256 is `8926363566c64315893696bf1201060aa09696295a7e40e1c09e5700b729e5d2` and embedded manifest revision `ae60a3b5188f17306350dd7d5b1d7a06148d4993`. The coarchived runtime Actions artifact ID **11867663476**, SHA-256 `247688408e7c3edba4b21c61da904aba357402835ed59fb0783bcd00e1f48398`, has 18 previously reviewed members.

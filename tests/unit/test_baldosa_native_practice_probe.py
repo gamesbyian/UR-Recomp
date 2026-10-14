@@ -109,6 +109,11 @@ class NativePracticeProbeTests(unittest.TestCase):
             '"profiles-v1.txt"',
             "p.read_bytes() != before",
             "Named Practice minted an earned completed run",
+            "run_game_hard_killed(",
+            "proc.kill()",
+            "Hard-killed Practice altered named data: ",
+            "verify_boot_sram(rebooted,",
+            "Practice after hard kill failed: ",
         ):
             self.assertIn(token, probe)
 

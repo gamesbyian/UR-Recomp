@@ -109,3 +109,25 @@ pixels disagree with the prediction, reject the hypothesis; inspect
 descriptor semantics and cross-core beam timing, not a black-row mask.
 Original 256x224 logical, 7:6 PAR, world-space Widescreen, and
 owner-vetoed Remastered procedural rider art remain untouched.
+
+
+## Source correction: the non-consuming prime has an upstream cross-game reason
+
+The pinned `runner/src/snes/dma.h` comment at lines 86–93 explicitly
+describes a deliberate *register-only* first-line prime that leaves the
+channel counter and table cursor untouched. The source author reports it
+solved an early bright-row letterbox defect in **Gundam Wing**. That is
+real cross-title engineering context. The observed Uniracers one-row
+displacement therefore does **not** license globally replacing the
+prime, regardless of how closely the model matches one screenshot.
+
+The follow-on source probe `tools/check_qa08_native_inidisp_table_state.py`
+reads the **actual live WRAM header byte** adjacent to each channel7
+direct-mode0 source value, simultaneously with the genuine after-BBUS
+write and channel repetition state in the existing guest2208 2P route.
+The strict decoder accepts *negative* evidence that contradicts the
+hypothesized 111/2 non-repeating durations. Its resulting report must be
+read before executing a disposable counterfactual. Only after validated
+multi-channel live PPU/OBJ source and finished pixels, plus Gundam Wing
+(or a general hardware-equivalent first-line contract) regressions,
+could a title-specific correction be considered.

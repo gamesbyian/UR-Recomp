@@ -130,12 +130,30 @@ def audit_hosted_native_2p_records(
     # successful run whose stored digest happens to appear in a JSON report.
     captured_path = c[2].replace("\\", "/")
     captured_name = captured_path.rsplit("/", 1)[-1]
+    # Source-observed Win32 CI captures use a drive-absolute path ending
+    # exactly in multiplayer-runs/<canonical run>. A convincing basename
+    # plus an interior /multiplayer-runs/ substring used to admit renamed
+    # subdirectories, duplicate separators and ADS/redirected roots.
+    segments = (
+        captured_path[3:].split("/")
+        if re.match(r"^[A-Za-z]:/", captured_path) else []
+    )
+    canonical_capture_path = (
+        len(segments) >= 2
+        and all(
+            part not in ("", ".", "..")
+            and ":" not in part
+            and not any(ord(char) < 32 for char in part)
+            for part in segments
+        )
+        and segments[-2].lower() == "multiplayer-runs"
+        and segments[-1] == run_names[0]
+    )
     source_capture_bound = (
         int(c[1]) == frames
         and captured_name == run_names[0]
-        and re.match(r"^[A-Za-z]:/", captured_path) is not None
-        and "/multiplayer-runs/" in captured_path.lower()
-        and "/../" not in captured_path and "/./" not in captured_path
+        and canonical_capture_path
+        and last - first == frames
     )
     if (
         not source_capture_bound

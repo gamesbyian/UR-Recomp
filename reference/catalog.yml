@@ -1207,3 +1207,30 @@ sources:
       - "reference/imported/reverse-engineering/malmazuke-unirally-reconstruction/"
       - "analysis/data/malmazuke-pal-structural-links-20261010.json"
     relevance: "Independent PAL bsnes experiments and native reconstruction with detailed finish/result, timing, NMI and frontend evidence. Structural PAL/USA candidates are nonauthoritative until validated on exact USA ROM."
+
+  - id: rustysnes-ppu-uniracers-eval-limit-20261013
+    title: "RustySNES per-dot sprite evaluation OAM write redirect specification"
+    type: emulator_mechanism_comparison_not_game_oracle
+    url: "https://github.com/doublegate/RustySNES/blob/98f8d398020b8798b16076fae315960031c6b3b7/docs/ppu.md"
+    revision: "98f8d398020b8798b16076fae315960031c6b3b7"
+    source_blob_sha: "dfceb00665601642b72a63a1a040ec83f416309d"
+    retrieved: "2026-10-13"
+    rights: "Public third-party source; implementation license not assessed for reuse. Read-only interpretation, no source bytes imported or executable dependency."
+    local: "reference/notes/github-uniracers-code-search-closeout-20261013.md"
+    relevance: "Evaluation-phase OAM index redirect is a candidate mechanism; the document explicitly leaves HBlank fetch-phase index unfinished. Does not establish the jgenesis Uniracers H≈282-284 write target."
+  - id: sneslab-uniracers-trick-20261013
+    title: "SnesLab Uniracers trick terminology and hardware-manual pointers"
+    type: snes_developer_glossary
+    url: "https://sneslab.net/wiki/Uniracers_trick"
+    retrieved: "2026-10-13"
+    rights: "SnesLab page content CC BY 4.0 according to site footer; no text imported."
+    local: "reference/notes/github-uniracers-code-search-closeout-20261013.md"
+    relevance: "Identifies in-HBlank OAM writes without forced blank and links period hardware documentation; no additional local-original runtime evidence."
+  - id: software-creations-audio-build-list-20261013
+    title: "Software Creations SNES sound-driver build sorting notes"
+    type: software_creations_audio_provenance_hint
+    url: "https://github.com/loveemu/vgm-disasm/blob/master/snes/Software%20Creations/Software%20Creations%20Build%20Sorting%20Notes.txt"
+    retrieved: "2026-10-13"
+    rights: "Public third-party text; reuse license not independently verified. Link/brief identifying facts only; no code or audio assets imported."
+    local: "reference/notes/github-uniracers-code-search-closeout-20261013.md"
+    relevance: "Lists Uniracers/Unirally audio driver fingerprint 7D 13 at $0400; a conditional family-correlation lead, not a reason to rebuild the existing sound pipeline."

@@ -61,7 +61,7 @@ class ExecutedOriginalOpcodeByteTests(unittest.TestCase):
         self.assertEqual(wrapped.count("(*Opcodes[Op].S9xOpcode)();"), 1)
         self.assertEqual(wrapped.count("UR_QA08_INIDISP_TABLE_WRITER frame="), 1)
 
-    def test_exact eight_independently_known_pcs_from_synthetic_ROM_reads(self):
+    def test_exact_eight_independently_known_pcs_from_synthetic_ROM_reads(self):
         j = source.check("\n".join(logs()), original_report(), evidence())
         self.assertEqual(j["actual_unique_original_65816_writer_PCs"], 8)
         self.assertTrue(j["every_executed_writer_PC_ROM_bytes_observed"])

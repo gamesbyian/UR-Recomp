@@ -26,6 +26,7 @@ from check_baldosa_win32_native_1p_records_evidence import audit_hosted_native_1
 from check_baldosa_win32_native_2p_records_evidence import audit_hosted_native_2p_records
 from check_baldosa_win32_first_racer_evidence import audit_hosted_win32_first_racer
 from check_baldosa_win32_first_racer_earned_records_qa import audit_hosted_first_racer_earned_1p
+from check_baldosa_win32_cmd_first_racer_evidence import audit_win32_cmd_first_racer_source
 
 SHA40 = re.compile(r"[0-9a-f]{40}\Z")
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
@@ -323,6 +324,12 @@ RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS = (
 # New 3-game Windows product proof, distinct from the already accepted
 # two-game first-racer boot and the fixture-created 1P/2P sources.
 # A failed producer may upload three logs but no report; that MUST stay red.
+# Optional raw launcher transcript. The original green no-arguments Windows
+# producer archived its two success booleans but NOT this already-created log.
+# Even when present, it is hosted script-driven evidence, not physical input.
+RUNTIME_NOARGS_FIRST_RACER_LOG = (
+    "Baldosa Native Extracted Launcher QA/first-racer-autorelaunch.log"
+)
 RUNTIME_FIRST_RACER_EARNED_GROUP = (
     "UR Baldosa Win32 Pause Route/native_first_racer_earned_records/report.json",
     "UR Baldosa Win32 Pause Route/native_first_racer_earned_records/new_user_creates_first_racer/log.txt",
@@ -343,7 +350,9 @@ RUNTIME_ALLOWED_MEMBERS = frozenset((
 )) | RUNTIME_DIAGNOSTIC_LOGS | frozenset(
     name for group in RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS
     for name in group
-) | frozenset(RUNTIME_FIRST_RACER_EARNED_GROUP)
+) | frozenset(RUNTIME_FIRST_RACER_EARNED_GROUP) | frozenset((
+    RUNTIME_NOARGS_FIRST_RACER_LOG,
+))
 
 
 def check_runtime_actions_wrapper(
@@ -451,6 +460,10 @@ def check_runtime_actions_wrapper(
                       for i, member in enumerate(RUNTIME_FIRST_RACER_EARNED_GROUP))
                 if earned_count == 4 else None
             )
+            noargs_launcher_log = (
+                bounded(RUNTIME_NOARGS_FIRST_RACER_LOG, 2 * 1024 * 1024)
+                if RUNTIME_NOARGS_FIRST_RACER_LOG in names else None
+            )
     except zipfile.BadZipFile as exc:
         raise ValueError("Baldosa Win32 runtime evidence ZIP is corrupt") from exc
     try:
@@ -469,6 +482,32 @@ def check_runtime_actions_wrapper(
         "canonical_8192_byte_save_outside_package",
     )):
         raise ValueError("Win32 extracted CMD launcher was not confirmed")
+    # Future real native CMD no-args evidence must preserve BOTH explicit
+    # product assertions if either is mentioned. An unarchived log is not
+    # an independently observed source sequence, even when both are true.
+    cmd_report_fields = (
+        "no_argument_first_racer_cmd_one_shot_restart_accepted",
+        "fresh_named_game_after_actual_cmd_restart",
+    )
+    cmd_reported = any(field in launcher for field in cmd_report_fields)
+    if cmd_reported and any(launcher.get(field) is not True
+                            for field in cmd_report_fields):
+        raise ValueError("incomplete/contradictory no-args CMD producer report")
+    if noargs_launcher_log is not None:
+        if not cmd_reported:
+            raise ValueError("CMD raw launcher trace is unbound to a positive producer report")
+        cmd_metrics = audit_win32_cmd_first_racer_source(noargs_launcher_log)
+        candidate["metrics"].update(cmd_metrics)
+        candidate["assertions"].append(
+            assertion("hosted-cmd-noargs-first-racer-two-native-roots-source-log-consistent", True)
+        )
+    else:
+        candidate["metrics"]["hosted_cmd_two_native_roots_one_first_racer_restart_log_consistent"] = False
+        candidate["metrics"]["hosted_cmd_log_independently_recomputed"] = False
+        candidate["metrics"]["hosted_physical_gamepad_verified"] = False
+    candidate["metrics"]["hosted_cmd_noargs_first_racer_restart_producer_reported_only"] = (
+        cmd_reported
+    )
     if (reported.get("classification") != "windows_native_pause_and_named_profile_smoke_only"
             or type(reported.get("course_complete_credit")) is not int
             or reported["course_complete_credit"] != 0

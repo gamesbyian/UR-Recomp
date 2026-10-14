@@ -30,6 +30,10 @@ on:
       - "tests/unit/test_qa08_analyze_hdma_coldata_source.py"
       - "tools/check_qa08_native_hdma_cgadsub_source.py"
       - "tests/unit/test_qa08_native_hdma_cgadsub_source.py"
+      - "tools/check_qa08_native_split_inidisp_source.py"
+      - "tests/unit/test_qa08_native_split_inidisp_source.py"
+      - "tools/check_qa08_native_inidisp_table_state.py"
+      - "tests/unit/test_qa08_native_inidisp_table_state.py"
       - "tools/baldosa_native_ws24_presentation.cpp"
       - "tools/baldosa_ws24_presentation_report.py"
       - "native/title/uniracers_ws_margins.c"
@@ -1246,6 +1250,18 @@ jobs:
             --coldata-report "$RUNNER_TEMP/baldosa-evidence/ws342_hdma_coldata_source_2208.json" \
             --text26-report "$RUNNER_TEMP/baldosa-evidence/ws342_native_text26_2208.json" \
             --out "$RUNNER_TEMP/baldosa-evidence/ws342_native_mode1_cgadsub_2208.json"
+          python3 tools/check_qa08_native_split_inidisp_source.py \
+            --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/log.txt" \
+            --native-evidence analysis/data/qa08-original-native-channel5-hdma-coldata-source-handoff.json \
+            --pixel-seam-evidence analysis/data/qa08-original-native-2p-split-seam-rgb5-pixel-parity-20261014.json \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_native_hdma_inidisp_split_2208.json"
+          # Reuse the actual channel7 $2100 transfer in this 2P native guest.
+          # Record negative/falsifying descriptor counts without refitting.
+          python3 tools/check_qa08_native_inidisp_table_state.py \
+            --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/log.txt" \
+            --handoff analysis/data/qa08-original-native-2p-brightness-split-channel7-handoff-20261014.json \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_native_inidisp_table_state_2208.json"
+          echo "OBSERVED: genuine channel7 HDMA WRAM header and repeat counter; full PPU timing remains separate" >> "$GITHUB_STEP_SUMMARY"
           unset UR_QA08_PPU_TEXT26_FRAME
           unset UR_QA08_PPU_PIXEL_FRAME
           unset UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC UR_RACER_HD_WIDE_REMOVE_SLOT
@@ -1702,6 +1718,8 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/ws342_native_text26_2208.json
             ${{ runner.temp }}/baldosa-evidence/ws342_hdma_coldata_source_2208.json
             ${{ runner.temp }}/baldosa-evidence/ws342_native_mode1_cgadsub_2208.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_native_hdma_inidisp_split_2208.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_native_inidisp_table_state_2208.json
             ${{ runner.temp }}/baldosa-ws342-counterfactual-slot98-frame2208/ur-baldosa-ws342-002208.pam
             ${{ runner.temp }}/baldosa-ws342-counterfactual-slot96-frame2208/ur-baldosa-ws342-002208.pam
             ${{ runner.temp }}/baldosa-evidence/ws342_2p_original_colour_journal_2208.json

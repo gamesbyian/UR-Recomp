@@ -14,6 +14,12 @@ The input is a `--framedump` directory of per-frame WRAM images. The game's
 OAM shadow (low table at $1381, high table at $1581) holds each frame's
 positions. Only frames whose high-OAM byte $18 shadow is one of the two rip
 values count as split-screen frames.
+
+This is a **WRAM-shadow geometry screening model**, not an actual effective
+PPU OAM/OBJ raster validator. The CPU high-OAM shadow alone does not prove
+the scanline-112 physical OAMDATA transfer, OBJ winner or final displayed
+wide margin. A passing envelope must remain observational and cannot approve
+HD racer, source visibility, widescreen OBJ culling or QA-08 fidelity.
 """
 
 from __future__ import annotations
@@ -21,6 +27,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 from typing import Any
 
 try:
@@ -36,6 +43,8 @@ SPLIT_LINE = 112
 VISIBLE_LINES = 224
 SMALL_SIZE = 32  # OBSEL $83: 32x32 small / 64x64 large
 DEFAULT_MARGIN = 43  # accepted 16:9 exposure per side (342x224)
+WRAM_BYTES = 0x20000
+FRAME_FILENAME = re.compile(r"frame_(\d{6})_wram\.bin\Z")
 
 # Sprite -> lines on which the rip hides it (X bit 8 set, small size).
 HIDDEN_BAND = {
@@ -47,7 +56,11 @@ HIDDEN_BAND = {
 
 
 def scan_frame(wram: bytes, margin: int) -> list[dict[str, int]] | None:
-    """Hidden copies in this frame, or None when it is not a split frame."""
+    """WRAM-shadow hidden-copy projection, NEVER measured final PPU pixels."""
+    if len(wram) != WRAM_BYTES:
+        raise ValueError("must read a complete 128 KiB WRAM shadow, not OAM alone")
+    if not 0 <= margin <= 128:
+        raise ValueError("logical left margin must be in the bounded 0..128 range")
     if wram[OAM_HIGH + RIP_BYTE] not in RIP_VALUES:
         return None
     hidden = []
@@ -72,12 +85,19 @@ def scan(frames: Path, margin: int) -> dict[str, Any]:
     hidden = 0
     leaks: list[dict[str, int]] = []
     max_right_edge = None
+    seen_ids = set()
     for path in sorted(frames.glob("frame_*_wram.bin")):
+        marker = FRAME_FILENAME.fullmatch(path.name)
+        if marker is None:
+            raise ValueError(f"WRAM filename is not an exact six-digit frame: {path.name}")
+        frame = int(marker.group(1))
+        if frame in seen_ids:
+            raise ValueError(f"duplicate actual guest WRAM frame {frame}")
+        seen_ids.add(frame)
         result = scan_frame(path.read_bytes(), margin)
         if result is None:
             continue
         split_frames += 1
-        frame = int(path.name[6:12])
         for item in result:
             hidden += 1
             if max_right_edge is None or item["right_edge"] > max_right_edge:
@@ -87,6 +107,10 @@ def scan(frames: Path, margin: int) -> dict[str, Any]:
     return {
         "split_frames": split_frames,
         "hidden_copies": hidden,
+        "source_basis": "WRAM high-OAM shadow and synthetic physical-rip geometry",
+        "actual_live_PPU_OAM_HDMA_state_observed": False,
+        "final_PPU_visible_sprite_pixels_checked": False,
+        "authorizes_widescreen_HD_sprite_admission": False,
         "max_hidden_right_edge": max_right_edge,
         "clearance_px": None if max_right_edge is None else -margin - max_right_edge,
         "leaks": leaks,
@@ -94,6 +118,10 @@ def scan(frames: Path, margin: int) -> dict[str, Any]:
 
 
 def check(route: str, frames: Path, margin: int, min_split_frames: int) -> dict[str, Any]:
+    if min_split_frames < 1:
+        raise ValueError("at least one independently identified split WRAM frame is required")
+    if not 0 <= margin <= 128:
+        raise ValueError("logical left margin must be in the bounded 0..128 range")
     metrics = scan(frames, margin)
     return make_envelope(
         evidence_type="split-sprite-rip-margin",

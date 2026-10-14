@@ -20,6 +20,7 @@ CODE = r'''			/* UR_QA08_COLDATA_TABLE_WRITER: guarded original-emulator
 				static int qa08_writer_init = 0;
 				static unsigned long qa08_writer_first, qa08_writer_last;
 				static unsigned qa08_writer_count;
+				static unsigned qa08_brightness_count;
 				static int qa08_writer_2p_armed = -1;
 				static unsigned long qa08_writer_2p_first = ~0ul;
 				if (qa08_writer_2p_armed < 0)
@@ -69,15 +70,43 @@ CODE = r'''			/* UR_QA08_COLDATA_TABLE_WRITER: guarded original-emulator
 					 qa08_now >= qa08_writer_2p_first &&
 					 qa08_now - qa08_writer_2p_first <= 255ul);
 				uint8 qa08_prior[20];
+				uint8 qa08_brightness_prior[6];
 				const uint32 qa08_executed_pc =
 					((uint32)Registers.PB << 16) | (uint32)Registers.PCw;
 				if (qa08_writer_active)
+				{
 					for (unsigned j = 0; j < 20; ++j)
 						qa08_prior[j] = Memory.RAM[0x2084 + j];
+					for (unsigned j = 0; j < 6; ++j)
+						qa08_brightness_prior[j] = Memory.RAM[0x2064 + j];
+				}
 				Registers.PCw++;
 				(*Opcodes[Op].S9xOpcode)();
 				if (qa08_writer_active)
 				{
+					/* Source-grade executed 65816 bytes constructing CH7
+					 * INIDISP table. No guest state is mutated, and a table
+					 * byte change does not imply a final PPU register write. */
+					for (unsigned j = 0; j < 6; ++j)
+					{
+						const uint8 after = Memory.RAM[0x2064 + j];
+						if (qa08_brightness_prior[j] != after)
+						{
+							if (qa08_brightness_count == 4096u)
+								fprintf(stderr,
+									"UR_QA08_INIDISP_TABLE_WRITER_OVERFLOW limit=4096\n");
+							else if (qa08_brightness_count < 4096u)
+								fprintf(stderr,
+									"UR_QA08_INIDISP_TABLE_WRITER frame=%u v=%u pc=%06X "
+									"addr=7E:%04X before=%02X after=%02X\n",
+									(unsigned)ICPU.Frame, (unsigned)CPU.V_Counter,
+									(unsigned)qa08_executed_pc,
+									(unsigned)(0x2064 + j),
+									(unsigned)qa08_brightness_prior[j],
+									(unsigned)after);
+							++qa08_brightness_count;
+						}
+					}
 					for (unsigned j = 0; j < 20; ++j)
 					{
 						const uint8 after = Memory.RAM[0x2084 + j];

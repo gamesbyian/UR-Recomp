@@ -18,7 +18,10 @@ from baldosa_native_first_racer_probe import (
 )
 from baldosa_native_second_racer_probe import require_p2_creation
 from baldosa_native_existing_p1_ui_probe import require_switch
-from baldosa_native_ci_paired_evidence_export import export_ci_created_pair
+from baldosa_native_ci_paired_evidence_export import (
+    EVIDENCE_FOLDER, PRE_RECORDS_FOLDER,
+    export_ci_created_pair, export_ci_pre_records_pair,
+)
 from baldosa_native_2p_records_probe import (
     source_match_script, run_guest,
     source_match_published, source_paired_records_reopened,
@@ -180,6 +183,15 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
     verify_native_save_codec(fixture, user, timeout, profile=P1)
     verify_native_save_codec(fixture, user, timeout, profile=P2)
     paired = exact_pair_digest(user / "multiplayer-runs")
+    # Preserve the real original-played pair before any Records process.
+    # The post-view exporter runs after both separately authenticated viewers.
+    before_records = export_ci_pre_records_pair(user, out)
+    before_pair = {
+        name.rsplit("/", 1)[-1]: detail["sha256"]
+        for name, detail in before_records["members"].items()
+    }
+    if before_pair != paired:
+        raise ValueError("Pre-Records CI bytes differ from source-published pair")
 
     # Game 4: P1 views the source-earned pair in an independent fresh
     # game process without publishing, mutating or duplicating that pair.
@@ -255,6 +267,12 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
     }
     if actual_pair != paired:
         raise ValueError("Exported real CI match bytes do not match played pair")
+    for name in paired:
+        relative = Path("multiplayer-runs") / name
+        first = (out / PRE_RECORDS_FOLDER / relative).read_bytes()
+        last = (out / EVIDENCE_FOLDER / relative).read_bytes()
+        if first != last:
+            raise ValueError("Records processes changed archived source pair bytes")
 
     return {
         "scope": "two-native-ui-created-players-played-source-2p-and-both-ui-selected-records",

@@ -19,6 +19,79 @@ The already-verified extracted **ROM-free Windows ZIP** double-click CMD test us
 
 Independent QA's [#1530](https://github.com/gamesbyian/UR-Recomp/pull/1530) correctly distinguished the passing six-native-process source-log evidence from independently verified **raw** `.urrun/.urmatch`, named typed/raw SRAM and canonical catalog bytes. This product-side extension retains only an **explicit allowlist from the same disposable scratch Windows user root** after the native match is played, both fresh Records viewers pass, and the one-pair source SHA manifest remains identical. The copy includes one `.urrun` and its matched `.urmatch`, canonical `host-state-v1.txt` / `profiles-v1.txt`, each selected player's `host-profile.txt` and 8,192-byte `save.srm`, plus the optional unchanged anonymous first-boot SRAM. A checked SHA-256/size manifest is retained in the existing Windows evidence upload. Unknown files are never traversed or exported; a retail ROM, binary package and any non-disposable user root are outside the allowlist. This is for independent artifact/atomicity QA, **not an automatic release-ledger promotion**. The scoped exact-head native Windows [#1536 run](https://github.com/gamesbyian/UR-Recomp/actions/runs/38543163396) passed, and the resulting [Actions artifact](https://github.com/gamesbyian/UR-Recomp/actions/runs/38543163396/artifacts/11883577178) contains all nine manifest-listed raw files, each separately SHA-256 verified after download. Both run and match canonical FNV-1a 64-bit checksums also match their retained body bytes. These are product/byte-transport observations, not independent release-ledger acceptance.
 
+## Explicit recovery for interrupted second-racer publication (2026-10-14)
+
+The native stock P2 creation publishes its independently initialized typed
+profile and 8-KiB raw SRAM **before** appending the second catalog row. A
+terminated process between those steps leaves a full, unregistered
+`saves/profile-<preset>/` directory, and a subsequent ordinary second-racer
+creation must refuse overwriting it. This otherwise strands the second-racer
+setup flow. The first-racer path already has exact-selector recovery.
+
+**Merged #1560** extends that **same existing** controller
+X / preset / A action with narrowly admitted recovery: after normal creation
+reports pre-existing data, only a complete, exact stock-initial P2 with the
+requested original preset, correct deterministic profile ID, exactly the
+canonical typed and raw files plus the existing empty typed-store `.urmutex`
+OS lock artifact, unmodified raw SRAM and a one-entry verified
+P1 catalog can have its **missing catalog row appended**. The global P1
+selector, P1 profile/SRAM, orphan's profile bytes and live guest are never
+modified or adopted automatically. Locks are held in existing selector →
+catalog → P1 typed → P2 typed order, and all authorities are rechecked under
+lock before publication. Partial saves, altered profiles, foreign files,
+redirection, changed selector or roster and duplicate/repeated recovery
+reject without repair or destructive cleanup. Success still requires a fresh
+native process before either user's authenticated match identity is usable.
+
+**Evidence classification:** #1560 passed exact-head C++ fault-cut,
+unit/hygiene, native boot, Baldosa integration and full native Windows
+non-regression. **Merged #1564** additionally passed the actual Win32
+controller-recovery route on source head `f9d4f27e` in
+[Windows run 38621761011](https://github.com/gamesbyian/UR-Recomp/actions/runs/38621761011).
+Its focused native-evidence [artifact 11922687264](https://github.com/gamesbyian/UR-Recomp/actions/runs/38621761011/artifacts/11922687264) retains only bounded source logs and report. The added source route reuses
+the existing Win32 executable, four fresh native processes and production P1
+semantic gamepad handler: genuine first-user MIKE creation, genuine MARTIN P2
+creation, a **test-only** restoration of the previously retained one-entry
+catalog to reproduce the post-P2-files/pre-catalog failure shape, explicit
+X/Down/A catalog recovery, and a fresh original stock 2P GO. It independently
+compares the pre-fault and post-recovery original P2 typed/raw/OS-mutex bytes,
+canonical full roster and active P1 selector, and retains only bounded logs
+in a **separate** Windows artifact to preserve QA-12's source ZIP allowlist.
+
+This test exercises real source guest processes and the real controller-input
+handler with a synthetic storage fault cut. It does **not** reproduce actual
+power loss, physical controller hardware, a completed scored result within
+the recovery subroute, or grant independent release ledger credit.
+
+## Merged and independently decoded: pre/post fresh Records raw-pair snapshots (2026-10-14)
+
+Merged Modern #1550's six-process Windows source route checks that its only
+genuine guest-earned paired match is unchanged after each Records viewer.
+Independent QA #1554 has since downloaded and byte-compared both actual
+before/after ZIPs, as well as their source process logs, saved P1/P2 typed/raw
+SRAM, `.urrun/.urmatch` checksums, and exact portable candidate artifacts.
+That independent QA still awards **no physical OS crash, two-controller
+hardware, strict original-USA 45/45 event, or final Windows release gate**.
+Previously only the final post-view bytes were retained, preventing QA from
+independently comparing two actual on-disk timepoints. The merged Modern producer
+exports a separate **CI-owned, no-follow, pair-only** snapshot immediately
+after authentic original guest play and before the first fresh Records process.
+Its two byte files and SHA-256 manifest are retained under
+`ci-owned-pre-records-pair/` in a **separate Actions artifact from the same
+native Windows run**, not in the existing QA-12 strictly allowlisted source ZIP.
+The final source ZIP retains its existing `ci-owned-raw-artifacts/` full profile
+and post-view pair snapshot unchanged. The Windows producer
+fails closed if the two archived file sets are not byte-identical. ROM-free
+unit tests exercise duplicate/missing/symlinked and stale/foreign inputs.
+
+**Acceptance boundary:** Modern #1550's exact-head native Windows route
+passed and independent QA #1554 downloaded and rehashed the real pre/post
+archives, confirmed matching original paired run/match bytes and pinned the
+source and Windows package hashes. This supplies native source-stage
+immutability evidence, **not** observed real OS power-loss timing or a
+candidate-wide L4 release verdict. It adds no save format, product router,
+scripted result, physical controller or strict original-USA release approval.
+
 ## Existing named-P1 controller selector (native verified 2026-10-14)
 
 After [#1490](https://github.com/gamesbyian/UR-Recomp/pull/1490) passes the real native root's anonymous-P1 / named-P2 / joined stock 2P sequence, the missing controller selector for *two already-created* named P1 identities is now merged and native-Windows validated in [#1513](https://github.com/gamesbyian/UR-Recomp/pull/1513). P1 X opens the shared stock-aware chooser only when both verified catalog+typed+raw SRAM owners exist; A invokes the **existing** [#1499](https://github.com/gamesbyian/UR-Recomp/pull/1499) locked next-process selector, B cancels. Success latches a no-races barrier until a true native game process restart; no guest-memory, result or persistence codec is replaced. The pinned Windows job proved Mike → Andrew → Mike fresh-source-boot changes on #1513's exact head. The synthetic SDL-input route is not physical-controller hardware acceptance. This small UI closure complements, but does not replace, [#1510](https://github.com/gamesbyian/UR-Recomp/pull/1510)'s separate source-earned 2P paired Records test.

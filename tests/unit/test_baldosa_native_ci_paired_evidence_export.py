@@ -14,8 +14,9 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 from baldosa_native_ci_paired_evidence_export import (
-    ALLOWED_STATE_PATHS, EVIDENCE_FOLDER, OPTIONAL_BOOTSTRAP,
-    _read_owned_file, export_ci_created_pair,
+    ALLOWED_STATE_PATHS, EVIDENCE_FOLDER, PRE_RECORDS_FOLDER,
+    OPTIONAL_BOOTSTRAP, _read_owned_file,
+    export_ci_created_pair, export_ci_pre_records_pair,
 )
 
 
@@ -64,6 +65,55 @@ class DisposableNativePairEvidenceExportTest(unittest.TestCase):
             self.assertFalse((out / EVIDENCE_FOLDER / "private_note.txt").exists())
             with self.assertRaisesRegex(ValueError, "stale or replaced"):
                 export_ci_created_pair(user, out)
+
+    def test_pre_records_export_retains_only_pair_and_real_stage_bytes(self):
+        # These placeholder bytes test transport only, not native game results.
+        with tempfile.TemporaryDirectory() as directory:
+            out = Path(directory)
+            user = make_ci_root(out)
+            (user / "private_note.txt").write_bytes(b"must-never-export")
+            before = export_ci_pre_records_pair(user, out)
+            self.assertEqual(before["stage"],
+                             "after-real-play-before-first-records-viewer")
+            self.assertEqual(set(before["members"]), {
+                "multiplayer-runs/synthetic.urrun",
+                "multiplayer-runs/synthetic.urrun.urmatch",
+            })
+            self.assertEqual(before["release_gate_credit"], 0)
+            self.assertFalse(before["includes_rom"])
+            self.assertEqual(
+                json.loads((out / PRE_RECORDS_FOLDER / "manifest.json").read_text()),
+                before)
+            snapshot = out / PRE_RECORDS_FOLDER / "multiplayer-runs/synthetic.urrun"
+            first_bytes = snapshot.read_bytes()
+            (user / "multiplayer-runs/synthetic.urrun").write_bytes(b"changed-after-view")
+            self.assertEqual(snapshot.read_bytes(), first_bytes)
+            after = export_ci_created_pair(user, out)
+            self.assertNotEqual(
+                before["members"]["multiplayer-runs/synthetic.urrun"]["sha256"],
+                after["members"]["multiplayer-runs/synthetic.urrun"]["sha256"])
+            self.assertFalse((out / PRE_RECORDS_FOLDER / "private_note.txt").exists())
+            with self.assertRaisesRegex(ValueError, "stale or replaced"):
+                export_ci_pre_records_pair(user, out)
+
+    def test_pre_records_rejects_duplicate_missing_and_redirected_pair(self):
+        with tempfile.TemporaryDirectory() as directory:
+            out = Path(directory)
+            user = make_ci_root(out)
+            archive = user / "multiplayer-runs"
+            duplicate = archive / "another.urrun"
+            duplicate.write_bytes(b"duplicate")
+            with self.assertRaisesRegex(ValueError, "exactly two"):
+                export_ci_pre_records_pair(user, out)
+            duplicate.unlink()
+            pair = archive / "synthetic.urrun.urmatch"
+            pair.unlink()
+            pair.symlink_to(out / "outside")
+            with self.assertRaisesRegex(ValueError, "exactly two"):
+                export_ci_pre_records_pair(user, out)
+            pair.unlink()
+            with self.assertRaisesRegex(ValueError, "exactly two"):
+                export_ci_pre_records_pair(user, out)
 
     def test_reject_unexpected_pair_duplication_partial_and_symlink(self):
         with tempfile.TemporaryDirectory() as directory:

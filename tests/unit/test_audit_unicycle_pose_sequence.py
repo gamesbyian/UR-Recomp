@@ -14,11 +14,15 @@ from tools.art.audit_unicycle_pose_sequence import audit
 from tools.art.measure_unicycle_reference import SCHEMA
 
 
-def png(width=160, height=120):
+def png(width=160, height=120, marker=0):
     def chunk(name, data):
         return (struct.pack(">I", len(data)) + name + data +
                 struct.pack(">I", zlib.crc32(name + data) & 0xffffffff))
-    rows = (b"\x00" + bytes((0, 0, 0, 0)) * width) * height
+    pixels = bytearray(bytes((0, 0, 0, 0)) * width * height)
+    if marker:
+        pixels[:4] = bytes((marker, 0, 0, 255))
+    rows = b"".join(b"\x00" + pixels[y * width * 4:(y + 1) * width * 4]
+                    for y in range(height))
     return (b"\x89PNG\r\n\x1a\n" +
             chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0)) +
             chunk(b"IDAT", zlib.compress(rows)) + chunk(b"IEND", b""))
@@ -30,7 +34,9 @@ class ProjectedRacerMotionAuditTest(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.original = png()
+        self.second_original = png(marker=1)
         (self.root / "source.png").write_bytes(self.original)
+        (self.root / "source2.png").write_bytes(self.second_original)
         self.view = {
             "id": "same-camera-frame0",
             "source": {
@@ -64,6 +70,10 @@ class ProjectedRacerMotionAuditTest(unittest.TestCase):
         }
         self.second = deepcopy(self.view)
         self.second["id"] = "same-camera-frame1"
+        self.second["image"] = {
+            "path": "source2.png",
+            "sha256": hashlib.sha256(self.second_original).hexdigest(),
+        }
         self.second["view"]["pose"] = "turning"
         self.second["landmarks"]["saddle_left"] = [70, 20]
         self.second["landmarks"]["saddle_right"] = [100, 20]
@@ -94,6 +104,9 @@ class ProjectedRacerMotionAuditTest(unittest.TestCase):
         self.assertEqual(result["sequence_count"], 1)
         r = result["sequences"][0]
         self.assertEqual(r["frame_count"], 2)
+        self.assertEqual(r["unique_exact_source_PNG_count"], 2)
+        self.assertEqual(r["identical_source_PNG_reference_aliases"], [])
+        self.assertTrue(r["distinct_PNGs_required_for_independent_motion"])
         self.assertTrue(r["source_tags_consistent_for_fixed_projection"])
         self.assertEqual(r["adjacent_projected_changes"][0]["elapsed_ms"], 50)
         self.assertEqual(
@@ -106,6 +119,27 @@ class ProjectedRacerMotionAuditTest(unittest.TestCase):
         self.assertFalse(result["shipping_art_approved"])
         self.assertFalse(result["original_character_likeness_approved"])
         self.assertNotIn("source.png", json.dumps(result))
+
+
+    def test_identical_source_png_cannot_generate_invented_motion(self):
+        self.second["image"] = deepcopy(self.view["image"])
+        with self.assertRaisesRegex(ValueError, "identical source PNG has inconsistent landmarks"):
+            self.run_manifest()
+
+    def test_explicit_hold_or_cross_view_alias_is_not_independent_pose(self):
+        self.second["image"] = deepcopy(self.view["image"])
+        self.second["landmarks"] = deepcopy(self.view["landmarks"])
+        r = self.run_manifest()["sequences"][0]
+        self.assertEqual(r["frame_count"], 2)
+        self.assertEqual(r["unique_exact_source_PNG_count"], 1)
+        self.assertFalse(r["distinct_PNGs_required_for_independent_motion"])
+        self.assertEqual(r["identical_source_PNG_reference_aliases"], [{
+            "image_sha256": hashlib.sha256(self.original).hexdigest(),
+            "reference_ids": [self.view["id"], self.second["id"]],
+        }])
+        self.assertEqual(
+            r["adjacent_projected_changes"][0]["projected_metric_deltas"]
+            ["saddle_center_x_from_wheel_center_over_diameter"], 0.0)
 
     def test_real_pixel_aspect_changes_normalized_horizontal_pose_metric(self):
         self.view["view"]["pixel_aspect"] = "snes_7_6"

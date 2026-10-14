@@ -201,3 +201,7 @@ tour sequence with authentic input, then independently recalibrate.
 First admit one completed Circuit, one scored 45-second Stunt and
 one non-Dragster Race. Then scale input producers to the USA 45-row
 census and keep complete/partial/blocked/unverified distinct.
+
+## 2026-10-14 source-level RF-014 transition-clock discriminator
+
+[The original $4212 two-edge VBlank wait contract](QA01-VBLANK-WAIT-SOURCE-CONTRACT-20261014.md) pins `80:FAC9/FAD0/FAD9/FADB/FAE2` against the archived USA opcodes and qualifies `7E:00C6` as the imported `wCursorAnimTimer` rather than a universal game-frame counter. Research PR #1537's native/reference deficit at load transitions is a valuable *wait-continuation throughput* candidate; its CPU/NMI/beam cause is not yet independently demonstrated. The newer pinned-upstream Baldosa `96b7e9f5` HVBJOY and `b7b4318f` paced-bus changes are controlled A/B leads, not authorized blanket timing fixes. Zoom Zoo remains the closest documented original/native complete-Circuit candidate; preserve exactly the same controller movie, actual source-result phases and USA 0/45 until an independently reproduced terminal/lifecycle parity witness qualifies.

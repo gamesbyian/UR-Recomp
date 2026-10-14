@@ -1,0 +1,132 @@
+{
+  "schema": "qa08-original-native-2p-live-inidisp-hdma-source-paired-handoff/1",
+  "evidence_class": "independent-executed-Snes9x-and-Baldosa-after-PPU-register-write-sources",
+  "original": {
+    "run_id": 38546562780,
+    "artifact_id": 11884792090,
+    "archive_SHA256": "4127ca46f83c19de07af4f808522f447ba7f6ce8109febf74ec0e93e0e898ee6",
+    "report_member": "qa08-original-brightness-hdma.json",
+    "report_SHA256": "1ba9e66283cd8d660dc82f8641851d27a2bc5e83ab346b3328f8dcb6815f0e0a",
+    "status": "source-accepted",
+    "original_emulator_frame_at_GO": 1989,
+    "actual_observed_register_events_in_all_windows": 24,
+    "writer_HDMA_channel": 7,
+    "writer_mode": 0,
+    "writer_indirect": false,
+    "write_values": [
+      {
+        "v": 0,
+        "source": "7E:2065",
+        "INIDISP": "0x0F",
+        "PPU_brightness": 15,
+        "PPU_forced_blank_bit": false
+      },
+      {
+        "v": 111,
+        "source": "7E:2067",
+        "INIDISP": "0x00",
+        "PPU_brightness": 0,
+        "PPU_forced_blank_bit": false
+      },
+      {
+        "v": 113,
+        "source": "7E:2069",
+        "INIDISP": "0x0F",
+        "PPU_brightness": 15,
+        "PPU_forced_blank_bit": false
+      }
+    ],
+    "original_PPUW_GO_events_independently_agree": true
+  },
+  "native": {
+    "run_id": 38545867736,
+    "artifact_id": 11885605603,
+    "archive_SHA256": "17fa55e5e12631c488b946db3c01328512a443a3c84566f002e0910aff1a2dba",
+    "report_member": "baldosa-evidence/ws342_native_hdma_inidisp_split_2208.json",
+    "report_SHA256": "5a275455b41ee0b824fab620539479eb60385fe63a3443a3579d9386ba96f6af",
+    "status": "source-accepted",
+    "native_guest_frame": 2208,
+    "actual_observed_register_events": 4,
+    "writer_HDMA_channel": 7,
+    "writer_mode": 0,
+    "writer_indirect": false,
+    "write_values": [
+      {
+        "native_tag": 0,
+        "source": "7E:2065",
+        "INIDISP": "0x0F",
+        "live_INIDISP_after_write": "0x0F",
+        "type": "first-line-transfer"
+      },
+      {
+        "native_tag": 2,
+        "source": "7E:2065",
+        "INIDISP": "0x0F",
+        "live_INIDISP_after_write": "0x0F",
+        "type": "regular-transfer"
+      },
+      {
+        "native_tag": 113,
+        "source": "7E:2067",
+        "INIDISP": "0x00",
+        "live_INIDISP_after_write": "0x00",
+        "type": "brightness-zero"
+      },
+      {
+        "native_tag": 115,
+        "source": "7E:2069",
+        "INIDISP": "0x0F",
+        "live_INIDISP_after_write": "0x0F",
+        "type": "brightness-restore"
+      }
+    ]
+  },
+  "finished_source_frame_reference": {
+    "original_run": 38543766102,
+    "native_run": 38504531564,
+    "original_callback": 2207,
+    "original_retro_run": 2208,
+    "native_guest_frame": 2208,
+    "original_raster_size": [
+      256,
+      224
+    ],
+    "native_original_source_size": [
+      256,
+      224
+    ],
+    "identical_after_Snes9x_RGB565_G6_to_native_G5": 56832,
+    "total_pixels": 57344,
+    "mismatched_pixels_by_row": [
+      {
+        "y": 111,
+        "count": 256
+      },
+      {
+        "y": 113,
+        "count": 256
+      }
+    ],
+    "original_zero_brightness_black_rows": [
+      111,
+      112
+    ],
+    "native_zero_brightness_black_rows": [
+      112,
+      113
+    ]
+  },
+  "findings": {
+    "BBUS_values_channels_sources_match": true,
+    "source_write_tag_native_minus_original": 2,
+    "black_band_output_row_offset_native_minus_original": 1,
+    "actual_native_raw_ppu_brightness_after_write_not_independently_instrumented": true,
+    "actual_native_INIDISP_byte_after_write_observed": true,
+    "production_renderer_changed": false,
+    "one_row_split_scheduler_causality_proven": false,
+    "physical_SNES_HBlank_timing_proven": false,
+    "exact_original_native_guest_WRAM_state_parity_proven": false,
+    "HD_racer_art_approved": false
+  },
+  "next_research": "Determine source-accurate V-counter-to-zero-based-output-row mapping for channel 7 INIDISP on both cores; compare same-phase visible row before making a guarded raster scheduler change."
+}

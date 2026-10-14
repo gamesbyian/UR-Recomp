@@ -205,7 +205,7 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
             log, (f"UR_BALDOSA_NATIVE_PROFILE APPLIED profile={profile} "
                   f"root=saves/profile-{profile}",
                   "UR_BALDOSA_MODERN_ROOT opened=1",
-                  "UR_BALDOSA_MODERN_ROOT records_page=1p",
+                  "UR_BALDOSA_MODERN_ROOT selected=3",
                   "UR_BALDOSA_MODERN_ROOT records_page=2p",
                   "UR_BALDOSA_MODERN_ROOT records_closed=1"),
             "fresh named source read-only " + profile,
@@ -228,10 +228,16 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
             "WIN" if winner == seat else "LOSS")
         require(view[1] == expected_result and view[2] == clock(cents),
                 "fresh record display swapped winner, profile or time")
-        require(log.index("UR_BALDOSA_MODERN_ROOT records_page=2p") <
-                view.start() <
-                log.index("UR_BALDOSA_MODERN_ROOT records_closed=1"),
-                "view was not rendered on authentic read-only Records page")
+        first_page = log.find("UR_BALDOSA_MODERN_ROOT records_page=1p")
+        second_page = log.find(
+            "UR_BALDOSA_MODERN_ROOT records_page=1p", first_page + 1)
+        opened = log.index("UR_BALDOSA_MODERN_ROOT records_opened=1 ")
+        matched = log.index("UR_BALDOSA_MODERN_ROOT matches_readonly=1 ")
+        last_page = log.index("UR_BALDOSA_MODERN_ROOT records_page=2p")
+        closed = log.index("UR_BALDOSA_MODERN_ROOT records_closed=1")
+        require(0 <= first_page < opened < matched < last_page <
+                view.start() < second_page < closed,
+                "view was not rendered in chronological read-only Records pages")
 
     require(all("SDL reports 0 joystick(s)" in log and "audio=dummy" in log
                 for log in logs),

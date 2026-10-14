@@ -24,6 +24,8 @@
 #include "local_multiplayer_match_binding.hpp"
 #include "multiplayer_match_record.hpp"
 extern "C" void ur_baldosa_modern_root_set_racer_name(const char* name);
+extern "C" int ur_baldosa_modern_root_practice_active(void);
+extern "C" int ur_baldosa_modern_root_restore_practice_on_shutdown(void);
 
 #include <cstdio>
 #include <cstdint>
@@ -361,7 +363,8 @@ extern "C" int ur_baldosa_modern_profile_can_begin_race(void) {
 extern "C" int ur_baldosa_modern_publish_settled_one_player_run(
     const ur::product::BaldosaSettledResult* result) {
     namespace fs = std::filesystem;
-    if (!result || !activated() || g_verified_native_profile_id.empty() ||
+    if (!result || ur_baldosa_modern_root_practice_active() ||
+        !activated() || g_verified_native_profile_id.empty() ||
         !g_launch_global || !g_launch_profile || g_native_user_root.empty() ||
         !g_sram ||
         g_sram_size != static_cast<int>(ur::product::kStockSramBytes))
@@ -644,6 +647,13 @@ extern "C" void ur_baldosa_modern_profile_before_run_frame(void) {
 // write and the one typed post-save publication. No save or metadata mutation
 // happens when selection/profile/catalog authority has been lost.
 extern "C" int ur_baldosa_modern_profile_before_native_save(void) {
+    // The first-party Quick Practice contract owns a temporary SRAM image
+    // and scratch save root. BEFORE any ordinary native RtlWriteSram, return
+    // to the exact active P1/anonymous original SRAM and save-root bytes.
+    // A failed restore rejects the write instead of committing practice
+    // medals to the player's actual profile.
+    if (!ur_baldosa_modern_root_restore_practice_on_shutdown())
+        return reject("practice_sram_restore_failed");
     if (!activated() || g_verified_native_profile_id.empty()) return 1;
     if (g_native_shutdown_selector_lock || g_native_shutdown_catalog_lock ||
         g_native_shutdown_profile_lock)

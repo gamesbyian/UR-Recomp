@@ -51,6 +51,15 @@ extern "C" void ur_baldosa_modern_root_set_racer_name(const char* name) {
     selected_racer = name ? name : "";
 }
 
+// The real native root is linked only into Baldosa's production runtime.
+// This standalone codec/profile admission fixture deliberately has NO
+// Practice/renderer/SDL root. Its inert stubs represent an ordinary guest
+// and exercise the actual activation/save/record authority unchanged.
+extern "C" int ur_baldosa_modern_root_practice_active(void) { return 0; }
+extern "C" int ur_baldosa_modern_root_restore_practice_on_shutdown(void) {
+    return 1;
+}
+
 extern "C" void RtlSetSaveRoot(const char* value) {
     root = value && *value ? value : "saves";
 }

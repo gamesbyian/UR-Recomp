@@ -63,6 +63,41 @@ handler with a synthetic storage fault cut. It does **not** reproduce actual
 power loss, physical controller hardware, a completed scored result within
 the recovery subroute, or grant independent release ledger credit.
 
+## Critical native Practice progression-isolation correction (2026-10-14)
+
+Merged #1578 proves original Dragster course entry from P1 Down/A/A on
+real native Windows; however, the first source route **did not yet enforce**
+the existing Modern Quick Practice's separate scratch SRAM/save-root
+contract. Entering stock Practice with the active named SRAM/save namespace
+can mutate authoritative career progression or mistakenly publish an earned
+Records run even when original course identity is correct. Native Practice
+must not be considered product-safe on that initial source-only evidence.
+
+This focused Modern correction reuses the established 8-KiB snapshot and
+`practice-session` temporary save-root pattern from
+`native/product/uniracers_modern_host.cpp`. The Baldosa root snapshots the
+whole original cartridge SRAM, owns the scratch root before sending any
+stock-menu input, and reactivates the original stock bytes and save root
+before the framework's **normal** native shutdown SRAM writer. Named-profile
+typed/raw catalog CAS continues to be the only checkpoint authority.
+Practice never grants the guest observer a result-admission player
+capability, and the run publisher rejects Practice explicitly. Returning
+to the Modern root through the real stock MAIN surface restores the same
+snapshot first; failed restoration blocks the source write or root reentry.
+
+**Required acceptance:** rerun the existing actual Windows Dragster source
+route on both an anonymous native guest and a separately controller-created
+Mike profile, and compare every original selector, catalog, typed profile
+and exact 8-KiB raw SRAM **byte-for-byte before and after** the source guest
+race/normal process shutdown. Reject any named completed-run publication.
+The reusable original guest menus/route/input/painter and all other player
+journeys must remain unchanged. Source-focused unit tests supplement but
+never replace these actual Windows process checks.
+
+This does **not** prove a hard-killed process can recover an in-memory
+Practice session or perform a strict original-emulator full-event parity
+check. Release quality, hardware and all other stock tours remain pending.
+
 ## Native first source-qualified Practice route (candidate, 2026-10-14)
 
 The existing shared Modern frontend has a 45-course Quick Practice catalog,

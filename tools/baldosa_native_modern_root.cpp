@@ -23,6 +23,11 @@ extern "C" {
 #include "desktop/config.h"
 #include "desktop/sdl_compat.h"
 #include "snes_overlay_draw.h"
+void RtlSetSaveRoot(const char*);
+const char* RtlSaveRoot(void);
+void RtlEnsureSaveDir(void);
+extern unsigned char* g_sram;
+extern int g_sram_size;
 void ur_baldosa_product_set_host_focus(int);
 int ur_baldosa_product_queue_stock_menu_input(std::uint16_t mask);
 void ur_baldosa_product_cancel_stock_menu_input(void);
@@ -45,6 +50,7 @@ int ur_baldosa_modern_select_existing_p1_next_boot(const char* profile_id);
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <string>
 #include <optional>
 #include <vector>
@@ -66,6 +72,11 @@ constexpr std::uint8_t kNativeRootAvailable =
 constexpr ur::product::QuickPracticeAvailability kNativePracticeAvailable{1u};
 ur::product::QuickPracticeSelection g_practice_picker{};
 ur::product::QuickPracticeLaunchState g_practice_launch{};
+// This is the existing Modern Practice contract: source play in a scratch
+// save root with a retained exact stock-SRAM snapshot, never career data.
+bool g_practice_session_active = false;
+std::vector<std::uint8_t> g_practice_sram_snapshot;
+std::string g_practice_previous_save_root;
 ModernRootMenu g_menu{};
 ur::product::ModernRootPhysicalEdges g_navigation_edges{};
 ur::product::ModernRootPhysicalEdges g_p2_join_edges{};
@@ -117,8 +128,97 @@ bool g_handed_off_saw_race = false;
 bool g_reentry_smoke_queued = false;
 bool g_reentry_needs_paint = false;
 
+bool restore_practice_session() {
+    if (!g_practice_session_active) return true;
+    if (!g_sram || g_sram_size !=
+            static_cast<int>(ur::product::kStockSramBytes) ||
+        g_practice_sram_snapshot.size() !=
+            ur::product::kStockSramBytes)
+        return false;
+    std::memcpy(g_sram, g_practice_sram_snapshot.data(),
+                ur::product::kStockSramBytes);
+    RtlSetSaveRoot(g_practice_previous_save_root.empty()
+                       ? nullptr : g_practice_previous_save_root.c_str());
+    const char* restored = RtlSaveRoot();
+    if ((restored ? std::string_view(restored) : std::string_view{}) !=
+        g_practice_previous_save_root)
+        return false;
+    g_practice_session_active = false;
+    g_practice_sram_snapshot.clear();
+    g_practice_previous_save_root.clear();
+    std::fprintf(stderr,
+        "UR_BALDOSA_MODERN_ROOT practice_sram_restored=1 "
+        "bytes=8192 original_root=1\n");
+    return true;
+}
+bool begin_practice_session() {
+    namespace fs = std::filesystem;
+    const auto deny = [](const char* reason) {
+        std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT practice_sandbox_rejected=%s\n", reason);
+        return false;
+    };
+    if (g_practice_session_active || !g_sram ||
+        g_sram_size != static_cast<int>(ur::product::kStockSramBytes) ||
+        g_ram[0x0313] == 1u || !g_visible || g_stock_target != -1)
+        return deny("source_guest_not_ready");
+    // The root is visible before the original title MAIN is guaranteed to
+    // settle. The existing QuickPracticeLaunch::AwaitMain stage waits for
+    // 0xD7 and its source-qualified 60-frame stable window; requiring MAIN
+    // here prematurely rejects a valid real P1 Down/A/A root gesture.
+    const char* configured_root = std::getenv("SNESRECOMP_USER_DATA_DIR");
+    if (!configured_root || !*configured_root) return deny("user_root_absent");
+    const fs::path user_root(configured_root);
+    if (!user_root.is_absolute()) return deny("user_root_not_absolute");
+    std::error_code ec;
+    if (!fs::is_directory(user_root, ec) || ec ||
+        fs::is_symlink(user_root, ec) || ec) return deny("user_root_untrusted");
+    const fs::path session_path = user_root / "practice-session";
+    const auto status = fs::symlink_status(session_path, ec);
+    if (status.type() == fs::file_type::not_found) {
+        ec.clear();
+        if (!fs::create_directory(session_path, ec) || ec) return deny("scratch_create_failed");
+    } else if (ec || !fs::is_directory(status) || fs::is_symlink(status)) {
+        return deny("scratch_root_untrusted");
+    }
+    ec.clear();
+    const auto scratch_save = fs::symlink_status(
+        session_path / "save.srm", ec);
+    // A never-used scratch directory normally has NO save.srm. Standard
+    // std::filesystem reports ENOENT even through is_symlink(path, ec):
+    // that absence is safe, unlike an actual redirected or special file.
+    if (scratch_save.type() == fs::file_type::not_found) {
+        if (ec && ec != std::errc::no_such_file_or_directory)
+            return deny("scratch_missing_unexpected_error");
+    } else if (ec || !fs::is_regular_file(scratch_save)) {
+        return deny("scratch_save_untrusted");
+    }
+    const char* original = RtlSaveRoot();
+    g_practice_previous_save_root = original ? original : "";
+    g_practice_sram_snapshot.assign(
+        g_sram, g_sram + ur::product::kStockSramBytes);
+    // Baldosa pins its mutable cwd to the validated explicit user root.
+    // Keep the original fixed relative save-root spelling within the
+    // framework\'s bounded save-root buffer, even when the user root has
+    // a long Windows pathname.
+    const std::string requested_root = "practice-session";
+    RtlSetSaveRoot(requested_root.c_str());
+    if (!RtlSaveRoot() ||
+        std::string_view(RtlSaveRoot()) != requested_root) {
+        RtlSetSaveRoot(g_practice_previous_save_root.c_str());
+        g_practice_sram_snapshot.clear();
+        g_practice_previous_save_root.clear();
+        return deny("scratch_save_root_not_accepted");
+    }
+    RtlEnsureSaveDir();
+    g_practice_session_active = true;
+    std::fprintf(stderr,
+        "UR_BALDOSA_MODERN_ROOT practice_sram_sandbox=1 bytes=8192 "
+        "root=practice-session publication=disabled\n");
+    return true;
+}
 void practice_route_abort(const char* reason) {
     ur_baldosa_product_cancel_stock_menu_input();
+    if (!restore_practice_session()) g_named_profile_stale = true;
     g_practice_launch = {};
     std::fprintf(stderr,
         "UR_BALDOSA_MODERN_ROOT practice_rejected=%s source_course_admitted=0\n",
@@ -147,6 +247,7 @@ bool reopen_on_observed_stock_main() {
     if (!configured() || g_visible || !g_stock_handed_off ||
         g_stock_target != -1 || g_ram[0x009f] != 0xd7u ||
         g_ram[0x0313] == 0x01u) return false;
+    if (!restore_practice_session()) return false;
     g_menu = ur::product::modern_root_menu_reset();
     g_visible = true;
     g_confirm_quit = false;
@@ -381,6 +482,12 @@ void choose() {
             kNativePracticeAvailable);
         if (selected.result != ur::product::QuickPracticeSelectionResult::Confirmed ||
             !selected.target.valid || selected.target.track_id != 0u) return;
+        if (!begin_practice_session()) {
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_ROOT practice_rejected=save_sandbox "
+                "source_course_admitted=0\n");
+            return;
+        }
         g_practice_picker = selected.state;
         g_practice_launch = ur::product::begin_quick_practice_launch(selected.target);
         std::fprintf(stderr,
@@ -702,6 +809,7 @@ extern "C" void ur_baldosa_modern_root_set_racer_name(const char* name) {
 
 extern "C" void ur_baldosa_modern_root_after_config(void) {
     if (!configured()) return;
+    if (!restore_practice_session()) std::abort();
     g_menu = ur::product::modern_root_menu_reset();
     g_navigation_edges.reset();
     g_p2_join_edges.reset();
@@ -1409,8 +1517,15 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
 // Read-only handoff witnessed by the root after its exact expected stock
 // 0x3C/0x3D guest transition. A root preview or arbitrary native script has
 // no authority to classify guest results as player-owned.
+extern "C" int ur_baldosa_modern_root_practice_active(void) {
+    return configured() && g_practice_session_active ? 1 : 0;
+}
+extern "C" int ur_baldosa_modern_root_restore_practice_on_shutdown(void) {
+    return restore_practice_session() ? 1 : 0;
+}
 extern "C" unsigned ur_baldosa_modern_root_guest_players(void) {
-    return configured() && !g_visible && g_stock_handed_off
+    return configured() && !g_practice_session_active &&
+        !g_visible && g_stock_handed_off
         ? g_handed_off_players : 0u;
 }
 

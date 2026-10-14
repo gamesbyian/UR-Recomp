@@ -947,7 +947,68 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
 // Advance exclusively from the native guest's actual post-frame WRAM.
 // Buttons travel on the existing host-only input filter, not RAM writes,
 // fake menu flags, scripted debug inputs, or a competing emulator loop.
+// Reuse the shipping QuickPracticeLaunch state machine and stock input
+// transport. The original guest must enter the requested original course,
+// not merely show a 1P picker, before the host releases controller focus.
+void observe_practice_guest() {
+    using namespace ur::product;
+    if (!quick_practice_launch_owns_player_input(g_practice_launch)) return;
+    if (!named_profile_still_playable()) {
+        practice_route_abort("active_profile_stale");
+        return;
+    }
+    const bool in_race = g_ram[0x0313] == 1u;
+    const auto identity = in_race
+        ? ur_uniracers_identify_course(g_ram + 0x10000u, 0x10000u)
+        : UrUniracersCourseIdentity{};
+    const QuickPracticeLaunchObservation observation{
+        g_ram[0x009f], g_ram[0x009b], in_race,
+        identity.valid ? identity.course_index - 1 : -1};
+    const auto step = advance_quick_practice_launch(
+        g_practice_launch, observation);
+    if (step.route_violation || step.course_mismatch || step.timed_out) {
+        practice_route_abort(step.course_mismatch ? "wrong_source_course" :
+                             step.timed_out ? "timeout" : "source_route_violation");
+        // A wrong source race is playable but cannot gain this root's
+        // profile/result authority. Do not leave its human controls frozen.
+        if (in_race) {
+            g_visible = false;
+            g_stock_handed_off = false;
+            g_handed_off_players = 0;
+            ur_baldosa_product_set_host_focus(0);
+        }
+        return;
+    }
+    if (step.input != QuickPracticeLaunchInput::None) {
+        const auto mask = quick_practice_runner_mask(step.input);
+        if (!quick_practice_runner_mask_is_discrete_menu_input(mask) ||
+            !ur_baldosa_product_queue_stock_menu_input(mask)) {
+            g_practice_launch = quick_practice_launch_retry_state(
+                g_practice_launch);
+            if (g_practice_launch.observations_remaining == 0u)
+                practice_route_abort("source_input_unavailable");
+            return;
+        }
+    }
+    g_practice_launch = step.state;
+    if (!step.race_ready) return;
+    if (!in_race || !identity.valid || identity.course_index != 1) {
+        practice_route_abort("course_identity_unverified");
+        return;
+    }
+    g_practice_launch = {};
+    g_visible = false;
+    g_stock_handed_off = true;
+    g_ever_entered_stock = true;
+    g_handed_off_players = 1u;
+    g_handed_off_saw_race = true;
+    ur_baldosa_product_set_host_focus(0);
+    std::fprintf(stderr,
+        "UR_BALDOSA_MODERN_ROOT practice_entered=1 course=0 "
+        "original_course=1 race=1 source_identity=verified\n");
+}
 extern "C" void ur_baldosa_modern_root_stock_observe_guest(void) {
+    observe_practice_guest();
     if (g_stock_target == -1) return;
     // The stock-menu route itself takes several frames. Do not release host
     // input using participants revoked after their second confirmation.
@@ -1102,7 +1163,8 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                              std::strcmp(opt, "7") != 0 &&
                              std::strcmp(opt, "8") != 0 &&
                              std::strcmp(opt, "9") != 0 &&
-                             std::strcmp(opt, "10") != 0)) return;
+                             std::strcmp(opt, "10") != 0 &&
+                             std::strcmp(opt, "11") != 0)) return;
     // Controlled host-root edge on an anonymous install. No created racer
     // is activated in this guest; a new process must load canonical SRAM.
     if (std::strcmp(opt, "4") == 0) {
@@ -1275,6 +1337,20 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             "UR_BALDOSA_MODERN_ROOT noargs_launcher_gamepad "
             "profile=%s button=%s\n",
             named ? "mike" : "anonymous", action);
+        return;
+    }
+    // CI-only mode 11 traverses the real P1 handler: Down, A to open
+    // Practice, A to confirm Dragster. The original tour/racer/track/GO
+    // navigation thereafter belongs solely to the shared route state.
+    if (std::strcmp(opt, "11") == 0) {
+        const int button = frame == 60 ? kGamepadBtn_DpadDown :
+                           frame == 62 || frame == 64 ? kGamepadBtn_A : -1;
+        if (button < 0) return;
+        if (!ur_baldosa_modern_root_gamepad(0, button, 1) ||
+            !ur_baldosa_modern_root_gamepad(0, button, 0))
+            std::abort();
+        std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT practice_gamepad=%s\n",
+                     button == kGamepadBtn_DpadDown ? "DOWN" : "A");
         return;
     }
     // Mode 3 is a deliberately TEST-ONLY synthetic gamepad semantic

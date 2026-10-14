@@ -1,0 +1,101 @@
+{
+  "schema": "UR-QA01-ZOO-SOURCE-NATIVE-ABSOLUTE-HOST-PPU-FADE/1",
+  "observed_real_workflow": 38511451553,
+  "real_artifact": 11870616073,
+  "real_artifact_sha256": "fa4257054694749d2519445008076a7924df0d951ead8a57b4be7c846cf51591",
+  "source_pc_log_sha256": "990200f791ed3fd7790f7d9c3131132d7db06e536f290236a24515444062cb3d",
+  "original_guest_entry_absolute_host": 1604,
+  "native_guest_entry_absolute_host": 1606,
+  "first_persistent_ppu_blank": {
+    "original_relative": 5034,
+    "native_relative": 5034,
+    "original_absolute_host": 6638,
+    "native_absolute_host": 6640,
+    "inidisp": 128
+  },
+  "actual_original_source_return_pc": {
+    "cpu_pc": "80:A09A",
+    "icpu_frame": 6636,
+    "v_counter": 248,
+    "source_receipt": "ZOOPCRETURN f=6636 v=248 pc=80A09A",
+    "executed_real_original": true,
+    "direct_gameplay_finish_instruction_proven": false
+  },
+  "fade_brightness_steps": [
+    {
+      "ppu_brightness": 2,
+      "original_scene_relative": 5166,
+      "native_scene_relative": 5164,
+      "original_absolute_host": 6770,
+      "native_absolute_host": 6770,
+      "original_ppu_regs_sha256": "fec608ee14e921f19960ad9e201794f0407d997ca7fd4f82f1d9700623d25372",
+      "native_ppu_regs_sha256": "b3cecca22f303beecb4581ea448f34fa25f55ea2bc23e8f00d8b83fe1febceee"
+    },
+    {
+      "ppu_brightness": 4,
+      "original_scene_relative": 5167,
+      "native_scene_relative": 5165,
+      "original_absolute_host": 6771,
+      "native_absolute_host": 6771,
+      "original_ppu_regs_sha256": "6000d41f3152754a4a2e6dc2ac008dd6ce1c5f0990061fd5c7c9f4e39f6a3650",
+      "native_ppu_regs_sha256": "9a94d931b1f7c80e2830d8744b57efb5ee13e78c47a170f4ddcb70f981d2c67d"
+    },
+    {
+      "ppu_brightness": 6,
+      "original_scene_relative": 5168,
+      "native_scene_relative": 5166,
+      "original_absolute_host": 6772,
+      "native_absolute_host": 6772,
+      "original_ppu_regs_sha256": "48f2953f3b3c5fc2c82505a34438f738225fb9993fb5e8b981712e684ebccdb3",
+      "native_ppu_regs_sha256": "94b70944d10e6a3f2707e155e344088c1ecd14287e78f3ac197a7519b8263bf4"
+    },
+    {
+      "ppu_brightness": 8,
+      "original_scene_relative": 5169,
+      "native_scene_relative": 5167,
+      "original_absolute_host": 6773,
+      "native_absolute_host": 6773,
+      "original_ppu_regs_sha256": "557a9b93dea74e4b1ac667deb2193964b07c57a7eaec767f83959288f3ff5292",
+      "native_ppu_regs_sha256": "f0e10ff93da01d3fb36e52f5096abd915f36befb6237da1a86f9f855d28230d6"
+    },
+    {
+      "ppu_brightness": 10,
+      "original_scene_relative": 5170,
+      "native_scene_relative": 5168,
+      "original_absolute_host": 6774,
+      "native_absolute_host": 6774,
+      "original_ppu_regs_sha256": "bbd06afb2e4ec6aa2c6d37fc68feea6345fa5dc1718fe08ec8fb356cc245a13f",
+      "native_ppu_regs_sha256": "54a5bb95116f50cfb45b058cffa5c997621e1dc48566c4b47ec1850944a6e110"
+    },
+    {
+      "ppu_brightness": 12,
+      "original_scene_relative": 5171,
+      "native_scene_relative": 5169,
+      "original_absolute_host": 6775,
+      "native_absolute_host": 6775,
+      "original_ppu_regs_sha256": "fff97ef63d5f829eb887fda395cf27cea6a486c7df2910f4b3fa25f09e8ae31d",
+      "native_ppu_regs_sha256": "4653ec2dd60bca6f1b007ac9ff429d6d8120d431618db94bcab006885fdbdb65"
+    },
+    {
+      "ppu_brightness": 14,
+      "original_scene_relative": 5172,
+      "native_scene_relative": 5170,
+      "original_absolute_host": 6776,
+      "native_absolute_host": 6776,
+      "original_ppu_regs_sha256": "6187928ff6d1bf5bbcb10fed158a73ac6513160e38a624a3602852fdfe942d8f",
+      "native_ppu_regs_sha256": "ea3132b4d9760c8e58092d58e2a38b0aee6915bfc600f6c56e29e176d3edf3ce"
+    }
+  ],
+  "interpretation": {
+    "seven_brightness_steps_exact_absolute_host_aligned": true,
+    "scene_relative_first_fade_offset_native_minus_original": -2,
+    "source_result_menu_onset_guest_relative": 5163,
+    "native_result_menu_onset_guest_relative": 5162,
+    "original_native_guest_cpu_ppu_scanline_phase_proven_equivalent": false,
+    "source_gameplay_finish_instruction_identified": false,
+    "original_native_race_return_fade_result_complete_event_strict_equal": false,
+    "approved_usa_events": 0,
+    "total_usa_events": 45
+  },
+  "limitation": "The original source PPU register is the last written FillRAM $2100 byte; native is the exported PPU INIDISP register, both anchored at separately logged script host ticks. Matching brightness value and host frame does not certify guest physics, CPU cycles, NMI phase, or course completion."
+}

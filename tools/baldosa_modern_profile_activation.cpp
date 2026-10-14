@@ -17,6 +17,8 @@
 #include "baldosa_native_profile_sram_checkpoint.hpp"
 #include "baldosa_native_profile_path_guard.hpp"
 #include "baldosa_native_first_profile.hpp"
+#include "baldosa_native_second_profile.hpp"
+#include "baldosa_native_existing_profile_next_boot.hpp"
 #include "baldosa_native_run_record_admission.hpp"
 #include "completed_run_store.hpp"
 #include "local_multiplayer_match_binding.hpp"
@@ -222,6 +224,47 @@ extern "C" int ur_baldosa_modern_create_first_preset(unsigned index) {
             "UR_BALDOSA_NATIVE_FIRST_RACER_RECOVERY restored=1 "
             "catalog_and_sram_unchanged=1 activation=next_process\n");
     return result.created() ? 1 : 0;
+}
+
+// Create one independent stock P2 with canonical Modern typed+raw SRAM.
+// No active P1 selector or live cartridge switch. Requires clean new guest
+// process before admitting bound paired result identity.
+extern "C" int ur_baldosa_modern_create_second_preset(unsigned index) {
+    if (!activated() || g_verified_native_profile_id.empty() ||
+        !g_launch_global || !g_launch_profile) return 0;
+    const char* path = std::getenv("SNESRECOMP_USER_DATA_DIR");
+    if (!path || !*path) return 0;
+    const auto result = ur::product::create_baldosa_second_preset_for_next_boot(
+        path, g_verified_native_profile_id, index);
+    std::fprintf(stderr,
+        "UR_BALDOSA_NATIVE_SECOND_RACER status=%u preset=%u id=%s "
+        "activation=next_process\n",
+        static_cast<unsigned>(result.status), index,
+        result.profile_id.c_str());
+    return result.created() ? 1 : 0;
+}
+
+// User-confirmed X/A selection of an ALREADY EXISTING catalogued racer.
+// The production profile transaction locks selector/catalog/typed/raw and
+// updates ONLY the next-boot selector. Live guest SRAM remains old P1, so
+// the native root must latch no-new-races until process restart.
+extern "C" int ur_baldosa_modern_select_existing_p1_next_boot(
+    const char* requested_profile) {
+    using namespace ur::product;
+    if (!activated() || !requested_profile || !*requested_profile ||
+        !is_safe_profile_storage_id(requested_profile) ||
+        g_verified_native_profile_id.empty() || !g_launch_global ||
+        !g_launch_profile || g_native_user_root.empty())
+        return 0;
+    const auto selected = select_baldosa_existing_profile_for_next_boot(
+        g_native_user_root, g_verified_native_profile_id,
+        requested_profile);
+    std::fprintf(stderr,
+        "UR_BALDOSA_NATIVE_P1_SWITCH status=%u from=%s to=%s "
+        "activation=next_process\n",
+        static_cast<unsigned>(selected.status),
+        g_verified_native_profile_id.c_str(), requested_profile);
+    return selected.selected() ? 1 : 0;
 }
 
 // Read-only admission used solely to display P2 profile choices in the

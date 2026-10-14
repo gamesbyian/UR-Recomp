@@ -20,6 +20,23 @@ class DualAirPaired(unittest.TestCase):
         self.root = Path(self.tmp.name)
         self.case = self.root / "case"
 
+    def test_failed_paired_emulator_run_retains_original_and_native_raw_guest_wram(self):
+        # The first real opt-in run retained logs only; its classifier
+        # transport bug prevented a retrospective original/native air verdict.
+        workflow = (ROOT / ".github/workflows/two-player-reference.yml").read_text()
+        section = workflow.split(
+            "      - name: Retain opt-in QA-01 paired raw-air evidence", 1)[1]
+        section = section.split("      - uses: actions/upload-artifact@v4", 1)[0]
+        self.assertIn("if: ${{ always() && inputs.qa01_dual_air_50036056 }}", section)
+        self.assertIn("retention-days: 14", section)
+        self.assertIn("/qa01-dual-air-50036056/original/*.wram.bin", section)
+        self.assertIn("/qa01-dual-air-50036056/native-run/dumps/*.wram.bin", section)
+        self.assertIn("/qa01-dual-air-50036056/*.log", section)
+        self.assertIn("/qa01-dual-air-50036056/manifest.json", section)
+        self.assertIn("/qa01-dual-air-50036056/case.script", section)
+        self.assertIn("--native-dir \"$ROOT/native-run/dumps\"", workflow)
+        self.assertIn(' --original-dir \"$ROOT/original\"', workflow)
+
     def test_exact_source_plan_is_deterministic_and_cannot_overwrite(self):
         row = m.prepare(self.case)
         self.assertEqual(row["seed"], 50036056)

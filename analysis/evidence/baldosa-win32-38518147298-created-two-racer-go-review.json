@@ -1,0 +1,79 @@
+{
+  "schema": "UR-QA12-INDEPENDENT-WIN32-CREATED-TWO-RACER-GO-ARTIFACT/1",
+  "review_date_utc": "2026-10-14",
+  "provenance": {
+    "pr": 1490,
+    "pr_head_sha": "c078ddf9c48c951074d534f20ea40e28aeeaa248",
+    "pr_merged": true,
+    "successful_exact_head_workflow_run": 38518147298,
+    "workflow_job_id": 115701777573,
+    "artifacts": {
+      "runtime": {
+        "artifact_id": 11873505363,
+        "sha256": "a72b4cf147880c35c842d4c21e6a9a0aa02ff0d0b8eecbbf06c60e056a474b5c",
+        "bytes": 35148
+      },
+      "candidate_wrapper": {
+        "artifact_id": 11873160951,
+        "sha256": "0c8f87a62bd5f3f87ecb920e01594fe659b1dbd8ba981a44ecb4729f0fd80243",
+        "bytes": 5934305
+      }
+    },
+    "inner_consumer_zip_sha256": "f1cf69814a7cf2ab49c12f854fc114cbbdd1d499dec28fa5ac5e641ad85f7f25",
+    "inner_consumer_zip_bytes": 5940988,
+    "inner_manifest_sha256": "51769578d3f68b3f23cf71dfef03fa928af0162bead403646a6bf2a390a635a0",
+    "manifest_project_revision": "3e0c1d348a97fd3b641890726639c986a0017dd6",
+    "manifest_required_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "exe_sha256": "abd08e4d9d4227ccb36fa72b3ad19434e1677ee324ec26b35077954708c93b1c",
+    "launcher_cmd_sha256": "aeec348f4c5980d61a7b1d00f3740de7df1656ed386bfbf72502cfeffb411a5c"
+  },
+  "independently_checked": {
+    "runtime_named_group_complete": true,
+    "source_log_sha256": {
+      "report.json": "39d5d9a1c736b3fa1b803fefab464de3a1f02e279b23609c31e8004400ea8d52",
+      "first_P1_mike/log.txt": "037c3574d5be52e1201b12ed39cad7e700bd342a0d7336c888fe5bd7b8c1038d",
+      "named_P1_adds_P2/log.txt": "a572aefbdfadae28ab4d5139a3456fd102e4148b180967fa4e109cddd3c1565d",
+      "fresh_two_seat_source_go/log.txt": "0a50b7da8abdc61f9f95e879643eb2f44b020f5fd8ef4c8474dee7aa4ff3c485"
+    },
+    "p1_created_from_anonymous_actual_native_process": true,
+    "p2_created_through_second_named_native_process": true,
+    "third_native_stock_entry_both_seat_receipts": true,
+    "third_native_stock_2p_menu_code": "3d",
+    "source_wait_F60C_first_log_frame": 248,
+    "source_wait_8610_second_log_frame": 2002,
+    "source_wait_0E1F_nonzero_log_frame": 2353,
+    "script_dump_go_log_frame": 2353,
+    "script_quit_log_frame": 2353,
+    "guest_go_script_wait_receipts_present": true,
+    "source_awaited_values_read_from_checked_repo_script_not_printed_as_register_values": true,
+    "consumer_archive_exact_manifest_file_sha256_verified": 3,
+    "consumer_rom_in_zip": false,
+    "consumer_sram_in_zip": false,
+    "PE32_plus_machine": "AMD64 0x8664",
+    "launcher_guard_tokens_present": true,
+    "physical_joysticks_observed": 0,
+    "audio_driver": "dummy",
+    "producer_report_completed_2p_result": false,
+    "producer_report_fresh_paired_records": false,
+    "hosted_three_native_processes_not_one_continuous_physical_user_session": true
+  },
+  "unverified": {
+    "actual_p2_typed_catalog_raw_file_bytes_independently_rehashed": false,
+    "original_guest_memory_dump_WRAM_bytes_archived": false,
+    "authentic_scored_2p_new_pair_published": false,
+    "fresh_named_MIKE_2p_records_reopened": false,
+    "fresh_named_ANDREW_2p_records_reopened": false,
+    "actual_new_pair_run_match_file_bytes_rehashed": false,
+    "no_argument_launcher_raw_restart_log_archived": false,
+    "physical_two_pad_or_audio_playback": false,
+    "clean_physical_windows_candidate_accepted": false,
+    "strict_original_native_complete_USA_event_parity": false
+  },
+  "candidate_release_status": "not_nominated",
+  "candidate_ledger_commit_sha": null,
+  "candidate_ledger_zip_sha256": null,
+  "release_gate_credit": 0,
+  "official_USA_complete_events_accepted": 0,
+  "official_USA_complete_events_denominator": 45,
+  "outcome": "hosted_created_profiles_source_go_script_consistent_but_result_and_records_unverified"
+}

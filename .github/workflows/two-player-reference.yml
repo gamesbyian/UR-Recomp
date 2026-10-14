@@ -8,6 +8,11 @@ on:
         type: boolean
         required: false
         default: false
+      qa01_dual_air_writer_50036056:
+        description: "Optional original/native CPU writer trace near real P1 air discrepancy at frame 2580"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -351,7 +356,7 @@ jobs:
       # Optional source research. Do not substitute this workflow's ordinary
       # 2P reference-native build for the exact Modern frontier ELF.
       - name: Restore exact frontier-source native candidate (opt-in)
-        if: ${{ inputs.qa01_dual_air_50036056 }}
+        if: ${{ inputs.qa01_dual_air_50036056 || inputs.qa01_dual_air_writer_50036056 }}
         uses: actions/download-artifact@v4
         with:
           name: shared-modern-native-candidate
@@ -419,6 +424,88 @@ jobs:
               f.write("**No strict complete-event acceptance or gameplay physics proof.**\\n")
           PY
 
+      # Additional opt-in source/native causal research. This is executed
+      # only AFTER ordinary reference tests: the original Snes9x core below
+      # is rebuilt with read-only opcode-delta scopes in a disposable runner.
+      - name: QA-01 original/native dense P1/P2 writer-causality trace
+        if: ${{ inputs.qa01_dual_air_writer_50036056 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/qa01-dual-air-writer-50036056"
+          python3 tools/qa01_dual_air_writer_probe.py prepare --root "$ROOT"
+          mkdir "$ROOT/original"
+          tar -xzf "$RUNNER_TEMP/qa01-dual-air-exact-native/shared-modern-native.tar.gz" -C "$RUNNER_TEMP"
+          EXE="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          CORE_SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          CORE="$CORE_SRC/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          python3 - "$EXE" <<'PY'
+          import hashlib,pathlib,sys
+          p=pathlib.Path(sys.argv[1])
+          assert p.is_file() and not p.is_symlink(), "no exact source-frontier ELF"
+          assert hashlib.sha256(p.read_bytes()).hexdigest() == (
+              "28501fa3268f82d83672122cddbd2628ce5b2458e625f46d93766f50befbe515"
+          ), "refuse another executable's P1 movement trace"
+          PY
+          # Instrument ONLY the disposable original Snes9x core after ordinary
+          # original reference tests have finished, retaining the ROM/input.
+          python3 tools/instrument_snesref_2p_air_writes.py "$CORE_SRC/cpuexec.cpp"
+          make -C "$CORE_SRC/libretro" -j2
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+            SNESREF_INPUT_FILE="$ROOT/case.input" \
+            SNESREF_SCRIPT="$ROOT/dense.script" \
+            SNESREF_DUMP_DIR="$ROOT/original" \
+            timeout 180s "$RUNNER_TEMP/snesref-build/snesref" "$CORE" "$ROM" \
+              >"$ROOT/original.log" 2>&1
+          # The EXACT pinned native ELF already has source CPU-helper address
+          # logging. No replacement/rebuilt guest or release candidate.
+          export SNESRECOMP_WLOG_ADDR="0415:0548:$ROOT/native-writers.log"
+          export SNESRECOMP_WLOG_ADDR_CAP=100000
+          python3 - "$EXE" "$ROM" "$ROOT" >"$ROOT/native-wrapper.log" 2>&1 <<'PY'
+          import pathlib,sys
+          sys.path.insert(0,"tools")
+          import qa02_native_2p_seeded_endurance as guest
+          exe,rom,root=map(pathlib.Path,sys.argv[1:])
+          guest.execute(exe,rom,root/"case.input",root/"dense.script",
+                        root/"native-run",180,runtime_log=root/"native.log")
+          PY
+          unset SNESRECOMP_WLOG_ADDR SNESRECOMP_WLOG_ADDR_CAP
+          python3 tools/qa01_dual_air_writer_probe.py classify \
+            --root "$ROOT" --rom "$ROM" --native-exe "$EXE" \
+            --out "$ROOT/qa01-writer-crosswalk.json"
+          python3 - "$ROOT/qa01-writer-crosswalk.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          r=json.load(open(sys.argv[1],encoding="utf-8"))
+          with open(sys.argv[2],"a",encoding="utf-8") as f:
+              f.write("### QA-01 original/native air + vertical source writers\n\n")
+              f.write("First named difference in dense original/native window: "
+                      +str(r["earliest_named_difference_in_observed_dense_window"])+"\n\n")
+              f.write("Executed original opcode scopes: "
+                      +str(len(r["original_cpu_opcode_changes"]))+"\n\n")
+              f.write("Executed native CPU-helper write scopes: "
+                      +str(len(r["native_cpu_helper_writes"]))+"\n\n")
+              f.write("**CPU/scanline parity NOT established; USA accepted events: 0/45.**\n")
+          PY
+
+      - name: Retain QA-01 read-only dense 2P air writer evidence
+        if: ${{ always() && inputs.qa01_dual_air_writer_50036056 }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-dual-air-source-writers-50036056
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa01-dual-air-writer-50036056/manifest.json
+            ${{ runner.temp }}/qa01-dual-air-writer-50036056/dense-manifest.json
+            ${{ runner.temp }}/qa01-dual-air-writer-50036056/qa01-writer-crosswalk.json
+            ${{ runner.temp }}/qa01-dual-air-writer-50036056/*.log
+            ${{ runner.temp }}/qa01-dual-air-writer-50036056/case.input
+            ${{ runner.temp }}/qa01-dual-air-writer-50036056/case.script
+            ${{ runner.temp }}/qa01-dual-air-writer-50036056/dense.script
+            ${{ runner.temp }}/qa01-dual-air-writer-50036056/original/*.wram.bin
+            ${{ runner.temp }}/qa01-dual-air-writer-50036056/native-run/dumps/*.wram.bin
+
       - name: Retain opt-in QA-01 paired raw-air evidence
         if: ${{ always() && inputs.qa01_dual_air_50036056 }}
         uses: actions/upload-artifact@v4
@@ -432,6 +519,11 @@ jobs:
             ${{ runner.temp }}/qa01-dual-air-50036056/*.log
             ${{ runner.temp }}/qa01-dual-air-50036056/case.input
             ${{ runner.temp }}/qa01-dual-air-50036056/case.script
+            # Preserve the actual 18 original/native 128-KiB guest witnesses
+            # even when a future classifier breaks; a tagged file is NOT a
+            # self-attested tick, so retain the two original runtime logs too.
+            ${{ runner.temp }}/qa01-dual-air-50036056/original/*.wram.bin
+            ${{ runner.temp }}/qa01-dual-air-50036056/native-run/dumps/*.wram.bin
 
       - uses: actions/upload-artifact@v4
         if: always()

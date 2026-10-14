@@ -11,7 +11,7 @@ The user did not hide the feeling: “I know it's petty and emotional, but I don
 
 ## Three lanes, one product
 
-Three new autonomous agents received exclusive mandates: actual Baldosa Windows product integration; gorgeous and faithful 4K/widescreen graphics; and complete-event original/native gameplay QA. An additional lane was assigned recruitment footage, and another the malmazuke research intake. The user's repeated “keep working, go as far as you can” and reports of stalled sessions had an edge of impatience. There were enormous nominal agent-hours available, yet useful progress was only what persisted into current main, verified artifacts and completed player journeys.
+Three new autonomous agents received exclusive mandates: actual Baldosa Windows product integration; gorgeous and faithful 4K/widescreen graphics; and complete-event original/native gameplay QA. An additional lane was assigned recruitment footage, and another the malmazuke research intake. The user's repeated “keep working, go as far as you can” reflected a preference for sustained autonomous work. Reports of stalled sessions were operational recovery instructions, not impatience or criticism. There were enormous nominal agent-hours available, yet useful progress was only what persisted into current main, verified artifacts and completed player journeys.
 
 The target became a polished Windows beta in roughly seven days, while the user explicitly said nine days would be acceptable if they produced a better game. That sentence carried unusual strategic weight: speed remained desirable, but arbitrary schedule pressure was not permitted to erode authenticity, persistence integrity or player experience.
 
@@ -53,7 +53,7 @@ This tension explains the scale of the undertaking. One group is trying to publi
 
 ## The emotional center of the project
 
-The last few days have held delight, irritation, competitiveness and a nearly archival instinct for completeness. The user wants to *win* on presentation, without faking fidelity; wants outside collaborators, without surrendering product direction; wants to accelerate, without pretending every green Actions job is an independent playable beta; and wants nothing significant about the original game to remain a mystery.
+The last few days have held delight, competitiveness and a nearly archival instinct for completeness. The user wants to *win* on presentation, without faking fidelity; wants outside collaborators, without surrendering product direction; wants to accelerate, without pretending every green Actions job is an independent playable beta; and wants nothing significant about the original game to remain a mystery.
 
 There is something revealing in the demand for a definitive repo. It is not enough that the modern executable feels right. A hypothetical reader should be able to follow every decision to a source byte, emulator trace, test and carefully bounded conclusion. This makes the work slower in places, but it also turns an eleven-day burst of parallel agents into an accumulating body of knowledge rather than an opaque pile of code.
 

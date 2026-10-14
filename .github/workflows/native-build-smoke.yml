@@ -40,6 +40,7 @@ on:
       - "tests/native/modern_restart_key_release_test.cpp"
       - "tests/input/widescreen-product-acceptance.script"
       - ".github/workflows/native-build-smoke.yml"
+      - ".github/actions/native-build-cache/**"
       - "third_party/archives/SDL3-3.4.10.tar.gz"
       - "tools/toolchain-entries/sdl3.json"
 concurrency:
@@ -68,6 +69,9 @@ jobs:
             libgl-dev libx11-dev libxext-dev libxrandr-dev \
             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Enable native compiler cache
+        uses: ./.github/actions/native-build-cache
 
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
@@ -136,7 +140,7 @@ jobs:
             -DSNESRECOMP_SDL_BACKEND=SDL3 \
             -DSNESRECOMP_SDL3_FETCH=ON \
             -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
-          cmake --build "$ROOT/build" -j2
+          cmake --build "$ROOT/build" -j"$(nproc)"
           test -x "$ROOT/build/UniracersSNESRecomp"
 
       - name: Locate game executable

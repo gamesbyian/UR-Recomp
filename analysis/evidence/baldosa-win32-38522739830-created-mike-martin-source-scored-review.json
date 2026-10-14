@@ -1,0 +1,63 @@
+{
+  "schema": "UR-QA12-REAL-UI-CREATED-MIKE-MARTIN-FIVE-PROCESS-WIN32-SOURCE-REVIEW/1",
+  "observed_utc_date": "2026-10-14",
+  "modern_pr": 1510,
+  "exact_product_pr_head_sha": "dddd8b5acf92502010f8b48436bf6c4595ea280f",
+  "real_green_native_windows_run_id": 38522739830,
+  "evidence_artifact_id": 11874846942,
+  "runtime_evidence_zip_sha256": "fd7a2b6cbc7c4a40ffd0d6c552b3e441423d8b375c1d30d97b869996a21c8e78",
+  "runtime_evidence_zip_bytes": 50259,
+  "runtime_source_members_sha256": {
+    "report.json": "e0d677a3afe8a5ea5d5ffc6bb77c48a780cfad958b8747ec566ccb52dcd92e88",
+    "first_P1_mike/log.txt": "caaacb2137b137e54561b55a4a3d2614436872fee1539a39c986eb83277b6553",
+    "named_P1_adds_P2/log.txt": "741e8411727a36f4d82e07094b72613a39c1305e61c44a9ed99a0ba266da9594",
+    "played_native_2p/log.txt": "e449a80254b6b6417334b3778d9537e1730620d3eb7d3a86197e1f49aa6a57be",
+    "fresh_mike_records/log.txt": "50dce1462da9bf939609d1482209811f2ee284c478b3d3c41e0a657bd8aa62a3",
+    "fresh_martin_records/log.txt": "29123087a1e403b51c0dc08dcd65edeb64a05c71b4b47323e5ad5c9a63fb45a5"
+  },
+  "real_five_native_processes_distinct_on_same_root": true,
+  "first_rider_source_profile": "mike",
+  "second_rider_source_profile": "martin",
+  "source_riders": [
+    0,
+    2
+  ],
+  "source_original_guest_scored_race_host": 2147,
+  "source_original_guest_scored_result_host": 4378,
+  "original_guest_go_script_nmi_host": 2002,
+  "original_guest_go_script_ticker_host": 2353,
+  "scored_hundredths": [
+    2761,
+    2757
+  ],
+  "source_winner_seat": 2,
+  "input_frames": 2231,
+  "input_runs": 5,
+  "canonical_pair_publication_path_reported": "run-0001791960085845-0000.urrun",
+  "source_pair_sha256_producer_reported_only": {
+    "run-0001791960085845-0000.urrun": "346296f664ccf37fd0310666a60d837269a6d1627b4f28162ad051d6c66c8a41",
+    "run-0001791960085845-0000.urrun.urmatch": "e1440b455b617a1726ccf17aa7a2e7dc96af7faabe302d9006693923125259c4"
+  },
+  "fresh_mike_records_source": "LOSS 00:27.61",
+  "fresh_martin_records_source": "WIN 00:27.57",
+  "actual_p2_next_boot_selection_used_backend_fixture": true,
+  "actual_controller_existing_P1_selector_used": false,
+  "physical_hardware_joysticks_observed": 0,
+  "audio_driver": "dummy",
+  "source_saves_and_catalog_raw_bytes_coarchived": false,
+  "source_pair_run_match_raw_bytes_coarchived": false,
+  "source_original_emulator_complete_course_adjudication_accepted": false,
+  "packaged_launcher_actual_human_first_run_accepted": false,
+  "packaging_outer_wrapper_artifact_id": 11874831965,
+  "packaging_outer_wrapper_sha256": "3f0bb5e20ec1dfeafd2d10e59fcecf7991f68ee3eb200dca69883f1d0d2ae96b",
+  "packaging_inner_portable_zip_sha256": "37054f58ceb7099845acd532a492246a92fb3a4c31d299ac2e1dc23e7b22c6cd",
+  "packaging_inner_portable_zip_bytes": 5946733,
+  "packaging_EXE_sha256": "94209484e9d0ab4afc90267a06b208941ad74f94980a5642bcd62c6e69dd7acb",
+  "packaging_manifest_project_revision": "952d6a660cc9c5188b94bd2f3e85d8348ca667ae",
+  "packaging_ROM_SHA256_expected": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "sha256_and_manifest_entries_independently_rehashed": true,
+  "release_candidate_nominated": false,
+  "USA_complete_course_parity_pass": 0,
+  "release_gate_credit": 0,
+  "classification": "authentic_hosted_source-scored_created_two_racers_and_fresh_paired_records_only"
+}

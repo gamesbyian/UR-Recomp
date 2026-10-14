@@ -44,6 +44,8 @@ def observed():
     played = (
         "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=native-ci-rider "
         "root=saves/profile-native-ci-rider\n"
+        "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=native-ci-rider "
+        "bytes=8192 fnv=63568e07\n"
         "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2\n"
         "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1\n"
         "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2\n"
@@ -53,12 +55,13 @@ def observed():
         "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-2p race_host=2146 "
         "result_host=4377 riders=0,2 hundredths=2761,2757 winner=2 "
         "input_frames=2231 input_runs=5 published=1\n"
+        "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=native-ci-rider status=committed\n"
     )
     fresh = (
         "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=native-ci-rider "
         "root=saves/profile-native-ci-rider\n"
         "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=native-ci-rider "
-        "bytes=8192 fnv=abcd1234\n"
+        "bytes=8192 fnv=85c4e6d1\n"
         "UR_BALDOSA_MODERN_ROOT records_page=1p\n"
         "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=selected "
         "validated=0 unavailable=0\n"
@@ -69,6 +72,7 @@ def observed():
         "source=historical_paired_archive\n"
         "UR_BALDOSA_MODERN_ROOT records_page=1p\n"
         "UR_BALDOSA_MODERN_ROOT records_closed=1\n"
+        "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=native-ci-rider status=committed\n"
     )
     return report, played, fresh
 
@@ -94,6 +98,114 @@ class HostedNativeWindowsTwoPlayerRecordsQA(unittest.TestCase):
         self.assertFalse(result["hosted_physical_gamepads_verified"])
         self.assertEqual(result["hosted_native_2p_played_log_sha256"],
                          hashlib.sha256(played.encode()).hexdigest())
+
+    def test_real_source_p1_named_sram_boot_and_checkpoint_are_part_of_2p_evidence(self):
+        report, played, fresh = observed()
+        verified = self.check(report, played, fresh)
+        self.assertEqual(
+            verified["hosted_native_2p_played_p1_boot_sram_fnv_observed"],
+            "63568e07",
+        )
+        self.assertEqual(
+            verified["hosted_native_2p_fresh_p1_boot_sram_fnv_observed"],
+            "85c4e6d1",
+        )
+        self.assertTrue(verified["hosted_native_2p_named_p1_checkpoints_source_observed"])
+        self.assertFalse(
+            verified["hosted_native_2p_p2_sram_bytes_independently_rehashed"]
+        )
+        played_boot = ("UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM "
+                       "profile=native-ci-rider bytes=8192 fnv=63568e07\n")
+        played_checkpoint = ("UR_BALDOSA_NATIVE_PROFILE CHECKPOINT "
+                             "profile=native-ci-rider status=committed\n")
+        for wrong in (
+            played.replace(played_boot, ""),
+            played.replace("bytes=8192 fnv=63568e07", "bytes=8191 fnv=63568e07"),
+            played.replace("fnv=63568e07", "fnv=bad"),
+            played.replace("profile=native-ci-rider bytes=8192", "profile=other bytes=8192"),
+            played.replace(played_checkpoint, ""),
+            played.replace(played_boot, "") + played_boot,
+            played + played_boot,
+            played + played_checkpoint,
+            played.replace(played_checkpoint, "").replace(
+                "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2\n",
+                played_checkpoint +
+                "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2\n",
+            ),
+        ):
+            with self.subTest(played=wrong[-140:]):
+                with self.assertRaises(ValueError):
+                    self.check(report, wrong, fresh)
+
+        fresh_boot = ("UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM "
+                      "profile=native-ci-rider bytes=8192 fnv=85c4e6d1\n")
+        fresh_checkpoint = played_checkpoint
+        for wrong in (
+            fresh.replace(fresh_boot, ""),
+            fresh.replace("bytes=8192 fnv=85c4e6d1", "bytes=8193 fnv=85c4e6d1"),
+            fresh.replace("fnv=85c4e6d1", "fnv=garbled"),
+            fresh.replace(fresh_checkpoint, ""),
+            fresh + fresh_boot,
+            fresh + fresh_checkpoint,
+            fresh.replace(fresh_checkpoint, "").replace(
+                "UR_BALDOSA_MODERN_ROOT records_page=1p\n",
+                fresh_checkpoint +
+                "UR_BALDOSA_MODERN_ROOT records_page=1p\n",
+                1,
+            ),
+        ):
+            with self.subTest(fresh=wrong[-140:]):
+                with self.assertRaises(ValueError):
+                    self.check(report, played, wrong)
+
+    def test_source_host_frame_span_must_equal_exact_captured_input_count(self):
+        report, played, fresh = observed()
+        # Live Win32 run 38497178182: race_host=2146,
+        # result_host=4377, captured input_frames=2231.
+        self.assertEqual(4377 - 2146, 2231)
+        accepted = self.check(report, played, fresh)
+        self.assertTrue(
+            accepted["hosted_native_2p_result_to_fresh_records_logs_consistent"]
+        )
+        for manipulated_first in (2145, 2147, 1):
+            with self.subTest(first=manipulated_first):
+                with self.assertRaises(ValueError):
+                    self.check(
+                        report,
+                        played.replace("race_host=2146",
+                                       f"race_host={manipulated_first}"),
+                        fresh,
+                    )
+        # A forged producer SOURCE-RESULT JSON and forged native result line
+        # can agree on a new host frame and still disagree with the input
+        # timeline. The old checker accepted this collusion.
+        tampered = copy.deepcopy(report)
+        tampered["source_result"]["source_result_host"] = 4378
+        with self.assertRaises(ValueError):
+            self.check(
+                tampered,
+                played.replace("result_host=4377", "result_host=4378"),
+                fresh,
+            )
+
+    def test_true_source_capture_must_end_at_single_multiplayer_run_directory(self):
+        report, played, fresh = observed()
+        canonical = r"C:\CI\multiplayer-runs\run-0001791946896142-0000.urrun"
+        self.assertIn(canonical, played)
+        for altered in (
+            r"C:\CI\multiplayer-runs\nested\run-0001791946896142-0000.urrun",
+            r"C:\CI\multiplayer-runs\\run-0001791946896142-0000.urrun",
+            r"C:\CI:stream\multiplayer-runs\run-0001791946896142-0000.urrun",
+            r"C:\CI\..\elsewhere\multiplayer-runs\run-0001791946896142-0000.urrun",
+            r"C:\CI\multiplayer-runs\.\run-0001791946896142-0000.urrun",
+            r"C:\CI\multiplayer-runs\nested\..\run-0001791946896142-0000.urrun",
+            r"relative\multiplayer-runs\run-0001791946896142-0000.urrun",
+        ):
+            with self.subTest(altered=altered):
+                candidate = played.replace(canonical, altered)
+                self.assertNotEqual(candidate, played)
+                with self.assertRaises(ValueError):
+                    self.check(report, candidate, fresh)
 
     def test_matching_forged_report_and_noncanonical_capture_still_fail(self):
         # The original checker accepted any basename ending '.urrun' if

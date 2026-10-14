@@ -1,6 +1,6 @@
 # UR-Recomp Production Diary, Bayou Edition
 
-**Period:** 2026-09-28 through 2026-10-10  
+**Period:** 2026-09-28 through 2026-10-13  
 **Project:** UR-Recomp  
 **Repository:** `gamesbyian/UR-Recomp`
 
@@ -2429,3 +2429,63 @@ De polished beta still ahead. For de first time, though, more of de dream can ac
 ### Evidence an’ chronology note
 
 Dis Bayou Edition continues de regular diary's October 8, 9 an’ 10 entries in de same narrative register. Conversation reconstructions under `prod_diary/PROJECT-CONVERSATIONS-2026-10-07-TO-2026-10-08-RECONSTRUCTED.md`, `PROJECT-CONVERSATIONS-2026-10-09-RECONSTRUCTED.md` and `PROJECT-CONVERSATIONS-2026-10-10-RECONSTRUCTED.md` ain't verbatim transcripts. PR references describe source evidence or merged mainline at de respective historical cutoff; proposals ain't silently counted as releases. Temporary NEVER MERGE workflows remain outside product main. Dis copy retains de older September 28–October 6 text and carries de story through October 10.
+
+---
+
+## 2026-10-11 an’ 2026-10-12 — De research factory get a throttle, a compass, an’ a reason to stop
+
+Cher, all dat AI horsepower been chasin’ game secrets so fast dat GitHub Actions runners start lookin’ like chairs at a crowded supper. User got **20 concurrent runners** account-wide, an’ three or four agents still need enough room to build, test an’ merge. Big research factories can eat de whole table if nobody watches de bill.
+
+User ask de obvious big question: why not run ten thousand tests at once? Then de harder one: if dey come back with estimates and fingerprints instead of exact original/native correctness, what exactly did we buy? De answer now be a hybrid. Keep separate agents building useful product work. Send experiments when a result could actually decide somethin’. Let cumulative batches pick up where dey left off. Stop or rest when de next batch ain't likely to change a conclusion.
+
+#1444 lay down research admission, yield an’ stopping rules, resumable series an’ retention. #1470 try a guarded turbo frontier, #1475 rest low-yield lanes instead of automatically wastin’ runner slots, an’ #1476 record roughly **36–40%** measured savings in de pilot. #1445 speed regular CI with better unit sharding an’ compile caches without removin’ acceptance gates.
+
+Dat sound bureaucratic till you consider de alternative: twenty runners cookin’ evidence nobody can interpret, while a developer who knows what to fix can't get a build. Experiments ought to ask questions, not just make bigger numbers.
+
+User also dream ahead to self-sustainin’ PC/Mac multiplayer: decentralized P2P, no permanent server, no central account overlord, no dependency on de repo still bein’ maintained. Give players a shareable link or code when automatic discovery can't find de other wheel. Lovely architectural aim, but dis diary won't pretend it already run in de shipped game.
+
+---
+
+## 2026-10-13 — Four work crews, one race, an’ de ledger keeps everybody honest
+
+Now dis project sound like four machine shops all workin’ on different pieces of de same unicycle, with de owner yellin’, “Go on, as far as you can!” from de porch. Modern Windows/Baldosa got profiles, native races, Records an’ recovery. Gameplay research got original/native event proof an’ de Switcher NMI puzzle. Graphics got PPU/OAM, scanlines, widescreen an’ actual authored racer poses. Independent QA got authority to say **no**, even when everybody else want de answer to be yes.
+
+Sometimes sessions stall an’ need another shove. Dat start to grate. But user want durable branches and exact tests, so one stalled chat don't take de project down with it. Meanwhile long experiment factories and agents fight over runner time, makin’ scheduling a real engineering problem instead of a convenience.
+
+### A person can finally play an’ leave a record
+
+Merged #1416 an’ #1425 make actual hosted Windows 1P and joined 2P result-to-Records journeys much more concrete. QA #1431/#1432/#1435/#1438 inspect saved paired `.urrun`/`.urmatch` identity against real source results an’ fresh-process views, rather than believin’ producer logs on faith.
+
+#1439 give an anonymous first-time player a real stock racer creation path, #1442/#1463 narrow clean next-process restart, an’ #1451 show dat first-created racer earnin’ a genuine 1P result an’ reopenin’ Records. #1459 guard interrupted selector publication, #1478 try a different original racer preset, an’ #1485 preserve P1 identity while admittin’ a second racer profile for P2. De all-controller two-seat journey still got work (#1490 at de cutoff).
+
+Dat be a mighty change from a collection of fine tools. Now dere a game a player might recognize. But don't put de Windows beta ribbon on it just yet. Real physical consumer-machine acceptance, complete controller-only routes an’ failure recovery still got open tickets.
+
+### De archaeologists keep spoil-in’ easy answers
+
+QA-01 dig into Zoo result-state and SRAM restoration (#1450/#1460/#1472/#1486), down to exact guest memory snapshots and cursor mutation order. Switcher NMI stack instructions get treated like evidence at a crime scene: separate hardware interrupt pushes from source PHA writers. Dat dual-air seed **50036056**, rotation arm, frame **2580**, gain proper paired provenance (#1410/#1428/#1464/#1488). A register happenin’ to say “air” don't prove two racers truly flew de same physics path.
+
+And dat painful denominator remain: **zero independently strict-accepted complete USA original/native events** in de stated census, however much original-only and partial evidence be useful. A hosted Windows race really playin’ an’ a forensic parity gate still sayin’ “not proven” can both be true.
+
+### Four-K colour got to come from de original light
+
+Graphics team stop guessin’ what dey see. #1405/#1408 correct $1599/OAM-shadow meaning. #1433/#1453 bring authentic 2P BG3/OBJ composition pixels into evidence, #1461/#1474 follow actual HDMA COLDATA, an’ #1481 retain executed original Snes9x writer source. #1458 preserve twelve real source racer poses as a hash-attested atlas. #1468 record original shade classes.
+
+User keep de authentic **256×224, 7:6 pixel aspect**, true extra wide world an’ faithful two-player scene. De procedural HD character still ain't aesthetically approved. Beautiful replacement art need real source-grounded motion an’ likeness; a fancy algorithm ain't its own art director.
+
+### De release auditor ain't here to cheer
+
+QA-12 make candidate ZIP identity, source logs, canonical file names, race host-frame intervals an’ fresh Records match up (#1454/#1462/#1467/#1479/#1489). Hosted native evidence count where it belong. Synthetic fixtures count for what dey actually test. Physical hardware stay an uncovered gap until de box itself get exercised.
+
+Dat separation is what keep dis project trustworthy. A factory can find a million patterns an’ a CI run can go green enough to light de swamp, but neither make a physical Windows consumer signoff appear out of mist.
+
+### De mood under de machinery
+
+October 10 had rivalry and amazement in it. Dese days feel more relentless. User want agents busy, research exact, campaigns economical an’ de real first-player journey closed. Every stalled session interrupt de rhythm. Every accepted native result buy some relief. Every stricter oracle expose another bit nobody ought to call solved yet.
+
+Maybe dat de strangest thing about dis whole little wheel: de game get more playable at de very same moment de project get less willing to claim it understands everything. Dat ain't contradiction to sweep under de rug. Dat tension be how a modern product an’ a definitive technical reference grow beside each other.
+
+De next stretch call for de same plain standards: finish de controller journey; test real failure recovery; bring a real consumer Windows machine into de story; use research runners on questions what change decisions. Let de wheel roll, cher, but keep track of where it touch de ground.
+
+### Evidence boundaries
+
+Dis section follows de regular diary `PRODUCTION-DIARY-2026-10-11-TO-2026-10-13.md` and reconstructed project conversation archives for October 11–13. Conversation reconstructions ain't full transcripts. Historical PR references distinguish integrated source/product work from unfinished strict original/native and physical-hardware acceptance.

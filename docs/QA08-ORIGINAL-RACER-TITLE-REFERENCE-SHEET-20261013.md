@@ -50,3 +50,17 @@ multiple independent artist perspectives. A human artist must accept
 the coherent candidate design before promoting any source-family HD
 assets. This tool adds no original/emulator/gameplay/Modern/QA release
 path or GitHub Actions campaign.
+
+
+## Period-source intake correction (2026-10-14)
+
+The proposed DMA Design press archive was **inspected by the project
+owner** and contains only one Uniracers-related PDF, **already present
+in the repository from its first research days**. This is a completed,
+duplicate lead: no additional authentic model view or new visual
+reference came from it. Do not download the archive again or promote it
+into the title/OAM reference contact sheet. The
+[period-source research ledger](HD-RACER-PERIOD-PR-ART-SOURCES-20261014.md)
+records the explicit retirement and the independent remaining sources.
+Previously SHA-authenticated original PPU/OAM atlas references are unchanged,
+and current procedural 4× art still lacks aesthetic approval.

@@ -61,3 +61,103 @@ The real native beam source explicitly draws `ppu_runLine(line)` at framebuffer 
 **Unclosed:** the executed **original 65816 guest PC(s)** that populate those six source bytes in WRAM; proof of original instruction producer requires the original Snes9x reference trace on a fixed aligned 2P route, not just nearby disassembly or equal memory values. The candidate routine `$A59E` is known to prepare neighbouring scroll HDMA tables, but is **not asserted** to be channel5's table writer. A bounded original-opcode writer probe is prepared in [#1473](https://github.com/gamesbyian/UR-Recomp/pull/1473).
 
 No gameplay/oracle, Modern, independent QA certification, native graphics output, true widened world, original 7:6 PAR and 4× fallback, or artist-rejected HD racer is changed by this diagnostic ledger.
+
+
+## Unmeasured paired writes: HDMA mode 1 also targets $2133 SETINI
+
+A source-backed consequence of the accepted channel-5 trace deserves its
+**own unresolved evidence gate**. In pinned `baldosa/snesrecomp@075fbe4c`
+`runner/src/snes/dma.c`, HDMA mode 1 has
+`transferLength[1] = 2` and
+`bAdrOffsets[1] = {0,1,0,1}`. The actual native PPU trace
+independently recorded channel 5 as mode 1, direct, starting at
+B-bus register `0x32`, with six distinct COLDATA source addresses.
+`dma_doHdma` reads successive direct bytes from
+`ch->tableAdr++` during its two-byte transfer. The **next**
+source address therefore targets **$2133**, rather than another $2132:
+
+| Real channel5 first source | Measured write to $2132 COLDATA | Source of paired write to $2133 SETINI | Paired byte **actually measured?** |
+| --- | --- | --- | --- |
+| $7E:2086 | 2F (twice) | $7E:2087 | **No** |
+| $7E:2089 | 40 | $7E:208A | **No** |
+| $7E:208C | 80 | $7E:208D | **No** |
+| $7E:208F | 20 | $7E:2090 | **No** |
+| $7E:2092 | 53 | $7E:2093 | **No** |
+| $7E:2095 | 80 | $7E:2096 | **No** |
+
+The original pinned PPU's `ppu_write` path **does handle**
+`case SETINI & 0xff` by assigning `ppu->setini = val`.
+Thus it would be incorrect to assume a mode-1 HDMA pair writes
+only fixed colours. However, none of the six paired **actual SETINI
+data bytes**, their actual values at the two original screenshot
+rows, or any original physical console effects has yet been
+captured by the `bAdr == 0x32`-filtered native tracer.
+The table above is a precise **source-derived address/target
+prediction**, not six additional empirically observed writes.
+
+Next narrowly scoped QA-08 test: extend the existing opt-in
+read-only channel5 native byte probe to record **$2133** as well as
+$2132 at the same guest2208 field. Read real `bAdr=0x33`
+value, A-bus address, channel/mode/tag and live `ppu->setini`
+after write, then correlate its bounds with the accepted
+two-viewport PPU samples. Reuse the *existing stock 2P process*,
+all 2,473 guest CRC entries and original full-raster SHA; do not
+launch a separate cumulative factory. A relevant unexpected
+SETINI effect is an investigated native fidelity issue, not
+permission to alter Original pixels speculatively.
+
+The candidate original Snes9x full guest writer trace in
+[#1481](https://github.com/gamesbyian/UR-Recomp/pull/1481)
+may also recover actual table bytes from original WRAM, but its
+executed opcode/source result and original/native input alignment
+have **not** yet been accepted. This additional paired-register
+requirement preserves the physical hardware gap and the procedural
+HD character art veto.
+
+
+### Original-emulator producer bytes observed; native SETINI transfers still unmeasured
+
+Independent real original Snes9x USA two-player execution
+[run 38510398955](https://github.com/gamesbyian/UR-Recomp/actions/runs/38510398955),
+artifact **11869807231**, ZIP SHA256
+646dc27a6a549e0450a326536359a8f3e1e332863529dd62a3cf474427cd1841,
+spanned ten deterministic 256-frame opcode-bracket windows covering
+original emulator frames **0–2559**. Its 18 WRAM byte changes all
+occurred at **original frame 1781**, and all ten unmodified
+controller-route replays produced byte-identical end-of-route
+WRAM SHA256
+9350bcb02f3cbf490678c5276245ec2c7fe36b9078bfab9e912d86c5cbc93bf6.
+The original executed-writer source JSON SHA256 is
+fb2a5e80dfa0738009bdab22eaa43f7f8948b60b083b335d770d61cb60990c26.
+
+The genuine original emulator independently recorded **five**
+of the six source-predicted companion byte values from executed
+65816 opcode brackets:
+
+| Paired source WRAM byte | Actual executed original PC changing byte | New original WRAM byte | Actual native $2133 write observed? |
+| --- | --- | --- | --- |
+| $7E:2087 | $82:D602 | **01** | **No** |
+| $7E:208A | $82:D608 | **6D** | **No** |
+| $7E:208D | $82:D64B | **01** | **No** |
+| $7E:2090 | $82:D64F | **01** | **No** |
+| $7E:2093 | $82:D655 | **6D** | **No** |
+| $7E:2096 | No changed-byte opcode recorded across frames 0–2559 | **Not independently sampled as a byte value** | **No** |
+
+The same original source report found all **six** independently
+native-accepted $2132 COLDATA bytes, with genuine executed
+original PC brackets at $82:D5D8, D5E0, D5E8, D625, D62D, D635.
+These values are original **table-write provenance**, not yet
+a strict same-input original/native writer comparison.
+The earlier native tracer had bAdr==0x32 filtering and so did not
+observe even one actual $2133 SETINI source transfer. Original
+opcode bytes matching source-predicted companion addresses cannot
+substitute for a native transfer witness or physical SNES timing
+measurement. Do not interpret an unchanged original byte at
+$7E:2096 as an independently observed $2133 hardware zero.
+
+This original producer observation comes from
+[PR #1481](https://github.com/gamesbyian/UR-Recomp/pull/1481).
+The remaining original-native **graphics** gate is to capture
+real channel-5 bAdr=0x33 and post-write PPU setini values during
+the same pinned native guest2208 field and compare against
+the original-emulator byte producer candidate set.

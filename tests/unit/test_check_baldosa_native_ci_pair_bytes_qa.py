@@ -26,14 +26,16 @@ def fake_pair(
     *,
     frame_count=2231, mode="race-2p", course="course:01",
     win="p2", p1_result=2761, p2_result=2757, p2_name="MARTIN",
-    p2_rider=2, first_start=0,
+    p2_rider=2, first_start=0, inputs_override=None,
 ):
-    inputs = [
+    # Five native-writer-possible source runs. Adjacent identical masks
+    # MUST be coalesced by CompletedRunRecorder::observe_input_frame.
+    inputs = inputs_override if inputs_override is not None else [
         f"input {first_start} 300 10 40",
-        "input 300 30 10 40",
-        "input 330 900 10 40",
-        "input 1230 30 10 40",
-        "input 1260 971 10 40",
+        "input 300 30 20 40",
+        "input 330 900 10 80",
+        "input 1230 30 20 40",
+        "input 1260 971 A 80",
     ]
     run = encode([
         "URRUN 1", "game uniracers-usa",
@@ -122,6 +124,42 @@ class IndependentRawNativeCIPairQA(unittest.TestCase):
                 run, match = fake_pair(**kwargs)
                 with self.assertRaises(ValueError):
                     self.review(run=run, match=match)
+
+    def test_self_consistent_run_and_sidecar_still_cannot_bypass_writer_compaction(self):
+        # These examples are intentionally re-encoded with VALID internal
+        # FNV1a64 and producer SHA-256 for BOTH the .urrun and .urmatch.
+        # Before the fix, a touching identical-mask pair would be accepted
+        # despite the native recorder unconditionally coalescing it.
+        base = [
+            "input 0 300 10 40",
+            "input 300 30 20 40",
+            "input 330 900 10 80",
+            "input 1230 30 20 40",
+            "input 1260 971 A 80",
+        ]
+        # Exact spelling and count of each source input row matters.
+        tampered = (
+            [base[0], "input 300 30 10 40", *base[2:]],
+            ["input 000 300 10 40", *base[1:]],
+            [base[0], "input 0300 30 20 40", *base[2:]],
+            [base[0], "input 300 030 20 40", *base[2:]],
+            [*base[:4], "input 1260 971 a 80"],
+            [*base[:4], "input 1260 971 0A 80"],
+            [*base[:4], "input 1260 971 A 080"],
+            [*base[:4], "input 1260 971 A 80", "input 1260 971 A 80"],
+        )
+        for bad_rows in tampered:
+            with self.subTest(rows=bad_rows):
+                run, match = fake_pair(inputs_override=bad_rows)
+                with self.assertRaises(ValueError):
+                    self.review(run=run, match=match)
+
+    def test_canonical_writer_spans_can_be_contiguous_when_masks_change(self):
+        run, match = fake_pair()
+        result = self.review(run=run, match=match)
+        self.assertTrue(result["saved_run_and_match_bytes_independently_decoded"])
+        self.assertEqual(result["source_input_runs"], 5)
+        self.assertEqual(result["release_gate_credit"], 0)
 
     def test_v1_noncanonical_text_and_internal_checksum_rejected(self):
         run, match = fake_pair()

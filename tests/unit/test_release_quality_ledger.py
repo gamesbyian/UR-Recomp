@@ -36,6 +36,35 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
         self.assertEqual(len(data["gates"]), 12)
         self.assertEqual(validator.check_registry(data, ROOT), [])
 
+    def test_hosted_first_racer_earned_record_is_progress_not_release_gate(self):
+        # The new 3-game source path is joined within scripted native Win32
+        # integration, but does NOT upgrade QA-09/12 to physical certification
+        # or count as an accepted original-vs-native USA complete event.
+        source = ROOT / "analysis/evidence" / (
+            "baldosa-win32-38503716264-new-first-racer-earned-1p-review.json"
+        )
+        receipt = json.loads(source.read_text(encoding="utf-8"))
+        self.assertEqual(receipt["workflow_run_id"], 38503716264)
+        self.assertTrue(receipt["runtime"]["source_run_published"])
+        self.assertFalse(receipt["runtime"]["raw_saved_urrun_bytes_uploaded"])
+        self.assertEqual(receipt["independent_release_scope"]["release_gate_credit"], 0)
+        data = baseline()
+        self.assertEqual(data["candidate"]["release_decision"], "not_assessed")
+        self.assertIsNone(data["candidate"]["commit_sha"])
+        self.assertIsNone(data["candidate"]["zip_sha256"])
+        self.assertIs(data["candidate"]["physical_hardware_verified"], False)
+        self.assertEqual(
+            next(g for g in data["gates"] if g["id"] == "QA-01")
+            ["coverage"]["complete_event_passes"], 0,
+        )
+        for gate in (g for g in data["gates"] if g["id"] in ("QA-09", "QA-12")):
+            self.assertEqual(gate["status"], "unverified")
+            self.assertEqual(gate["witnesses"], [])
+            self.assertIn("#1451", gate["next_action"])
+            self.assertTrue(all(path.startswith("docs/") for path in gate["evidence_refs"]))
+        self.assertEqual(validator.check_registry(data, ROOT), [])
+
+
     def test_machine_readable_win32_receipt_is_not_misfiled_as_a_source_contract(self):
         # QA-09/12 may LINK the real retained forensic JSON from docs, but
         # evidence_refs is deliberately reserved for reviewed docs/ source

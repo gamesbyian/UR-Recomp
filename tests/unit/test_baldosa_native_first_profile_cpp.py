@@ -42,6 +42,7 @@ class NativeFirstModernRacerTests(unittest.TestCase):
                 cwd=directory, timeout=30)
             self.assertEqual(run.returncode, 0, run.stderr + run.stdout)
             self.assertIn("PASS: first Modern preset creation", run.stdout)
+            self.assertIn("PASS: second named stock racer uses canonical", run.stdout)
 
     def test_native_root_requires_next_boot_and_source_guest_unchanged(self):
         root = (ROOT / "tools/baldosa_native_modern_root.cpp").read_text()
@@ -54,7 +55,12 @@ class NativeFirstModernRacerTests(unittest.TestCase):
         self.assertIn("activation=next_process", root)
         self.assertIn("case SDLK_x:", root)
         self.assertIn("case kGamepadBtn_X:", root)
-        self.assertIn("view.first_racer_open = g_first_racer_open;", root)
+        # The original first-racer modal remains visible; P2 shares the
+        # existing view only when the distinct second-racer modal is open.
+        self.assertIn(
+            "g_first_racer_open || g_second_racer_open || g_existing_switch_open;",
+            root)
+        self.assertIn("view.first_racer_is_second = g_second_racer_open;", root)
         self.assertIn("if (view.first_racer_open)", presenter)
         self.assertNotIn("RtlRunFrame(", root)
         self.assertNotIn("RtlWriteSram(", root)

@@ -1,6 +1,6 @@
 # QA-08: source-PC provenance for original colour-HDMA table writers
 
-**Status: bounded original-emulator research harness, not a same-input original/native writer acceptance.**
+**Status: executed original Snes9x two-player source write census accepted, with original/native full same-input/physical verification still open.**
 
 ## Established original-native facts
 
@@ -39,3 +39,78 @@ python3 tools/analyze_snesref_qa08_hdmacolour_table_writers.py --log /path/to/or
 Even six agreeing last-byte values do not establish that the original emulator used an identically aligned native input/field or that a specific ROM PC necessarily built the game's table. The existing $A59E per-frame graphics/HDMA-table preparation is one possible writer because it handles neighbouring BG scroll $7E:2046..2063; **this is a candidate, not a proven writer of $7E:2086..2095**. The next authoritative gate is the original game instruction trace on a fixed independently aligned USA two-player route.
 
 **Scope:** Original graphics QA-08 only. No gameplay/oracle, Modern, independent release QA, source-art promotion, widened-world pixels, 256×224/7:6 original geometry or 4× Original fallback changes. No new original-emulator campaign was run by this tooling PR.
+
+
+## Complete executed original WRAM producer census, not static inference
+
+The opt-in original Snes9x source experiment was executed on real USA
+two-player input script in [run 38510398955](https://github.com/gamesbyian/UR-Recomp/actions/runs/38510398955),
+artifact **11869807231**. The exact original script was verified against
+its pinned Baldosa import and stripped **only** the non-guest host turbo
+directive. Its 10 independent deterministic original Snesref processes
+replayed the **same 2P script to frame2473**, each observing one
+non-overlapping 256-frame interval. This covered **all original emulator
+frames 0–2559** and all ten processes completed with byte-identical
+end-of-route WRAM SHA256
+`9350bcb02f3cbf490678c5276245ec2c7fe36b9078bfab9e912d86c5cbc93bf6`.
+The original guest second camera `0DDB=01` and race `0313=01` are
+confirmed by the original replay itself, not synthetic flags.
+
+There were **exactly 18 observed byte changes** in the
+`$7E:2084..2097` channel5 HDMA table neighbourhood, **all at
+original emulator frame1781**. Every changed byte was previously
+`00` under the explicitly deterministic original WRAM fill.
+Each row below is the **real executed original 65816 instruction PC**
+bracket whose execution changed the indicated guest WRAM byte:
+
+| Executed original USA PC | Original WRAM byte | Actual change |
+| --- | --- | --- |
+| $82:D5D8 | $7E:2086 | 00→2F |
+| $82:D5E0 | $7E:2089 | 00→40 |
+| $82:D5E8 | $7E:208C | 00→80 |
+| $82:D5F0 | $7E:2085 | 00→04 |
+| $82:D5F4 | $7E:2088 | 00→04 |
+| $82:D5F8 | $7E:208B | 00→04 |
+| $82:D5FE | $7E:2084 | 00→01 |
+| $82:D602 | $7E:2087 | 00→01 |
+| $82:D608 | $7E:208A | 00→6D |
+| $82:D625 | $7E:208F | 00→20 |
+| $82:D62D | $7E:2092 | 00→53 |
+| $82:D635 | $7E:2095 | 00→80 |
+| $82:D63D | $7E:208E | 00→04 |
+| $82:D641 | $7E:2091 | 00→04 |
+| $82:D645 | $7E:2094 | 00→04 |
+| $82:D64B | $7E:208D | 00→01 |
+| $82:D64F | $7E:2090 | 00→01 |
+| $82:D655 | $7E:2093 | 00→6D |
+
+All **six** actual COLDATA source bytes independently measured in the
+native pinned AOT match the original WRAM writer observations
+*exactly*. Five **additional** adjacent source bytes, independently
+changed by original opcodes, are consistent with the mode1
+companion SETINI address predictions. Original run frame1781 is
+**not assumed to equal** Baldosa native guest2208. The
+PC-bracketed original WRAM changes do not alone establish a
+hardware write instruction mnemonic/disassembly or original/native
+same-input per-frame parity.
+
+**Archive provenance:** ZIP SHA256
+`646dc27a6a549e0450a326536359a8f3e1e332863529dd62a3cf474427cd1841`,
+original executed-guest report `qa08-executed-original-writers.json`
+SHA256
+`fb2a5e80dfa0738009bdab22eaa43f7f8948b60b083b335d770d61cb60990c26`,
+route receipt SHA256
+`d27b2b4b9e94c07d1f5a36c41dd454731e1bfcd7d82c6c948c986d6320b07c7c`.
+The full original core SHA, script SHA and all 18 source
+PC/WRAM bytes are preserved without any ROM or copyrighted raster
+in `analysis/data/qa08-original-snes9x-2p-channel5-eighteen-writer-PCs.json`.
+
+Next meaningful executable source question: establish the original
+producer's *call context* and actual instruction opcode types around
+the compact `$82:D5D8..$82:D655` source block. The accepted
+native 2P source already identified channel5 and COLDATA; a
+separate, narrow real-native $2133 SETINI pair witness in
+[#1491](https://github.com/gamesbyian/UR-Recomp/pull/1491)
+must remain a **distinct** gate. Physical SNES HBlank
+subscanline timing, full original/native same-input run parity,
+and any HD racer artwork approval remain unproven.

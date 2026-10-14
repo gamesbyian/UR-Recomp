@@ -1,0 +1,183 @@
+{
+  "schema": "qa08-original-2p-channel5-two-source-original-Snes9x-PPU-handoff/1",
+  "status": "real-original-Snes9x-source-replay-passed-live-HDMA-and-PPUW-provenance",
+  "original_source_workflow_run": 38521827670,
+  "artifact_id": 11873899132,
+  "downloaded_zip_sha256": "17380f2e8d5c7d2f43eac5bd98cf5661d9fb1c3900cd7cafb1b9479784ada234",
+  "live_ppu_after_write_report_sha256": "cb48890b00c9247a20cf5ec0aeec44bd06fec709120c86a36c5b9ad5b8b39ef9",
+  "source_original_log_sha256": "4136589132f769f35ef8a1e4b132f12638a401aee013d28b38e902acd595e0a1",
+  "original_55_opcode_report_sha256": "724a89124d5b18d53b89803fc3f64716e136b1901d7d0c49b44fac70f8c7a090",
+  "original_lut_report_sha256": "f738f63ea0bfc33945d69b9eeb7ef0e776d64dc7927512de4bb00445ea32c5ab",
+  "original_2P_input_sha256": "94eaa5ffb487d9b227e34965c1d2ee09efe3dac06ade595f7dad05315dfc5221",
+  "original_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "instrumented_Snes9x_core_sha256": "77e5a54bf91acec539eeb6475c7910d5ad546172624c6d70fd9e1dea545f6986",
+  "original_t480_WRAM_sha256": "9350bcb02f3cbf490678c5276245ec2c7fe36b9078bfab9e912d86c5cbc93bf6",
+  "original_result_receipt_sha256": "f4fc64a40ae9e7672819aa386394508012742864fcc51fb55665165f3a57200e",
+  "first_frame_source_earlier_attempt_has_live_channel5": false,
+  "earliest_live_channel5_in_explicit_sample_windows": 1988,
+  "real_original_Snes9x_live_register_writes": 96,
+  "channel5_mode1_direct_31_32_pairs": 48,
+  "source_WRAM_equals_BBUS_writes": 96,
+  "source_bytes_match_executed_original_table": 96,
+  "original_sampled_cpu_frames": [
+    1988,
+    1989,
+    1990,
+    2231,
+    2232,
+    2233,
+    2471,
+    2472
+  ],
+  "six_pairs_each_sampled_cpu_frame": true,
+  "register_pairs_each_frame": [
+    {
+      "original_beam_v": 0,
+      "original_WRAM_CGADSUB": "7E:2085",
+      "original_WRAM_COLDATA": "7E:2086",
+      "CGADSUB": "04",
+      "COLDATA": "2F",
+      "fixed_RGB15_after_COLDATA": "026F"
+    },
+    {
+      "original_beam_v": 1,
+      "original_WRAM_CGADSUB": "7E:2088",
+      "original_WRAM_COLDATA": "7E:2089",
+      "CGADSUB": "04",
+      "COLDATA": "40",
+      "fixed_RGB15_after_COLDATA": "000F"
+    },
+    {
+      "original_beam_v": 2,
+      "original_WRAM_CGADSUB": "7E:208B",
+      "original_WRAM_COLDATA": "7E:208C",
+      "CGADSUB": "04",
+      "COLDATA": "80",
+      "fixed_RGB15_after_COLDATA": "000F"
+    },
+    {
+      "original_beam_v": 111,
+      "original_WRAM_CGADSUB": "7E:208E",
+      "original_WRAM_COLDATA": "7E:208F",
+      "CGADSUB": "04",
+      "COLDATA": "20",
+      "fixed_RGB15_after_COLDATA": "0000"
+    },
+    {
+      "original_beam_v": 112,
+      "original_WRAM_CGADSUB": "7E:2091",
+      "original_WRAM_COLDATA": "7E:2092",
+      "CGADSUB": "04",
+      "COLDATA": "53",
+      "fixed_RGB15_after_COLDATA": "0260"
+    },
+    {
+      "original_beam_v": 113,
+      "original_WRAM_CGADSUB": "7E:2094",
+      "original_WRAM_COLDATA": "7E:2095",
+      "CGADSUB": "04",
+      "COLDATA": "80",
+      "fixed_RGB15_after_COLDATA": "0260"
+    }
+  ],
+  "original_snesref_screenshot_checks": {
+    "go": {
+      "frame": 1989,
+      "original_FB_format": "BGRX8888",
+      "shape": [
+        256,
+        224
+      ],
+      "info_sha256": "8c5ea61fc76058e31dc90facbd71e86f55d62f59d89519dba0fdbd33d55deb42",
+      "ppuw_sha256": "5fc4dd30bf7581d865e41942b9dec3e9c238187985e7c96b4a6bca1c09be49d6",
+      "fb_sha256": "cd21bca9acee7f769a0aa04e798768d663368dbf7133e2271551f3c8d613b4c7",
+      "ppuw_total": 1916,
+      "ppu_source_counts": {
+        "hdma": 931,
+        "dma": 864,
+        "cpu": 121
+      },
+      "actual_2131_2132_hdma_count": 12,
+      "actual_colormath_cpu_2130_count": 1,
+      "paired_horizontal_positions": [
+        [
+          303,
+          305
+        ],
+        [
+          284,
+          286
+        ],
+        [
+          282,
+          284
+        ],
+        [
+          282,
+          284
+        ],
+        [
+          301,
+          303
+        ],
+        [
+          281,
+          283
+        ]
+      ]
+    },
+    "t480": {
+      "frame": 2473,
+      "original_FB_format": "BGRX8888",
+      "shape": [
+        256,
+        224
+      ],
+      "info_sha256": "9e11c8fee2eaff0b8c8b3be6056c1fca307f0da98b8aa5d8c05e34367d83b3a7",
+      "ppuw_sha256": "56f24b5bdd665a744e92b1f7aa184c3a07894907b5f07e91a34441ce637683cc",
+      "fb_sha256": "26524a8ea06ab2e95e6dbd7dc05455675fc80eb3c40d3f6239dc437604de4fad",
+      "ppuw_total": 1005,
+      "ppu_source_counts": {
+        "hdma": 35,
+        "dma": 848,
+        "cpu": 122
+      },
+      "actual_2131_2132_hdma_count": 12,
+      "actual_colormath_cpu_2130_count": 1,
+      "paired_horizontal_positions": [
+        [
+          301,
+          303
+        ],
+        [
+          284,
+          286
+        ],
+        [
+          283,
+          285
+        ],
+        [
+          281,
+          283
+        ],
+        [
+          305,
+          307
+        ],
+        [
+          283,
+          285
+        ]
+      ]
+    }
+  },
+  "important_caveats": [
+    "Go original snesref emulator frame1989 is not established as same phase as Baldosa guest2208",
+    "Original PPUW V tag 0/1/2 and 111/112/113 is not directly native renderer tag 2/3/4 and 113/114/115",
+    "Original H counter is emulator source log position, not physical console certification",
+    "Original renderer framebuffer is 256x224, Baldosa measured image 342x224",
+    "Post-HDMA live fixed RGB15 source doesn't establish final raster RGB parity",
+    "Existing procedural 4x HD character rejected for shipping"
+  ]
+}

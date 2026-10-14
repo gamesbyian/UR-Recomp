@@ -1,0 +1,13 @@
+# Project conversation archive: October 13, 2026
+
+**Archive type:** reconstructed from available project conversation summaries and user instructions, not verbatim transcript. Session continuations and stalled contexts may not be fully represented.
+
+The user assigned four exclusive, autonomous development lanes to the latest `gamesbyian/UR-Recomp` main. Modern Windows/Baldosa integration was to reconcile PRs #1377 and #1374, then achieve one real controller-only path from profile/racer selection through native 1P/2P gameplay, settled results, paired Records and fresh-process persistence. Separate original/native gameplay work was to reconcile #1383, #1376 and #1370, solve the Switcher result/NMI discrepancy, pursue the first independently strict-accepted complete USA event, and inspect a source-observed dual-air seed 50036056 at frame 2580 rather than confuse raw air registers with physics proof.
+
+The graphics agent was given #1375 and #1372 plus original PPU/OAM, 2P top/bottom source contributors, scanline splits, $1599 visibility interpretation, $1501–$150E projection fields, genuine widescreen logical geometry and reference-grounded HD multi-pose likeness. The user emphasized that the existing procedural HD character lacked aesthetic shipping approval. The independent release QA agent was told to reconcile #1373 and #1371 and check exact packaged Windows candidate journeys, crash/disk failures, controller-only selection, P1/P2 results, paired Records, graphics/audio and physical hardware gaps. In all four lanes, the user repeatedly asked to keep going and recover from stalled sessions. These requests are instructions, not evidence that every task passed.
+
+Another planning conversation balanced multiple working agents against long-running Actions factories under a 20-runner account limit. The user asked when to dispatch experiments, how to interpret completed factories, and which assignments best fit Claude Sonnet 5.5 versus Opus 5.5. They wanted long, productive work on multiple fronts, without either researchers or product agents idling.
+
+Across these discussions, the project's definition of progress sharpened: strict original/native acceptance must not be inferred from fingerprints or synthetic observers; native hosted results must not be promoted to a physical consumer Windows signoff; expensive campaigns should answer decision-relevant questions rather than only grow their output directories.
+
+The material is preserved as a planning and emotional record of sustained urgency, ambitious delegation, recurring session interruptions and growing methodological skepticism. Detailed implementation outcomes belong to the independently inspected commit/PR ledger.

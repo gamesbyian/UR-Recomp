@@ -64,10 +64,18 @@ struct ModernRootOverlayView {
     bool unbound_two_player_warning_open = false;
     // Optional native first-time preset, committed for NEXT guest process.
     bool first_racer_shortcut_available = false;
+    bool second_racer_shortcut_available = false;
+    bool second_racer_created = false;
+    bool first_racer_is_second = false;
     bool first_racer_open = false;
     bool first_racer_created = false;
     bool first_racer_failed = false;
     std::string_view first_racer_preset_name{};
+    // Only the pinned native host exposes the existing named-P1 selector.
+    // Other Modern host callers leave these false and retain their layout.
+    bool existing_profile_switch_available = false;
+    bool existing_profile_switch_saved = false;
+    bool first_racer_is_switch = false;
 };
 
 inline bool render_modern_root_overlay(
@@ -181,11 +189,17 @@ inline bool render_modern_root_overlay(
         0xFFFFFFFFu, scale);
     paint.draw_text(pixels, stride, surface_height,
         x + 8 * scale, y + 193 * scale,
-        view.first_racer_created
+        view.existing_profile_switch_saved
+            ? "RESTART TO USE NEW P1"
+            : view.first_racer_created || view.second_racer_created
             ? "RESTART FOR NEW RACER"
             : view.first_racer_shortcut_available
                 ? "X CREATE STOCK RACER"
-                : view.racer_shortcuts_available
+                : view.second_racer_shortcut_available
+                    ? "X ADD SECOND RACER"
+                    : view.existing_profile_switch_available
+                    ? "X SWITCH ACTIVE P1"
+                    : view.racer_shortcuts_available
                     ? "X/F2 RACERS   F1 HELP"
                     : "RACER SETUP NOT YET LINKED",
         palette.cursor_blue, scale);
@@ -306,11 +320,16 @@ inline bool render_modern_root_overlay(
                           bx, by, bw, bh, palette.title_yellow);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 10 * scale,
-                        "FIRST STOCK RACER", palette.title_yellow, scale);
+                        view.first_racer_is_switch
+                            ? "SWITCH ACTIVE P1"
+                            : view.first_racer_is_second
+                            ? "SECOND STOCK RACER" : "FIRST STOCK RACER",
+                        palette.title_yellow, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 40 * scale,
                         fit_modern_overlay_text(
-                            std::string("PRESET: ") +
+                            std::string(view.first_racer_is_switch
+                                ? "NEXT P1: " : "PRESET: ") +
                             std::string(view.first_racer_preset_name),
                             modern_overlay_text_cells(panel_w - 33)).c_str(),
                         0xFFFFFFFFu, scale);
@@ -320,19 +339,25 @@ inline bool render_modern_root_overlay(
                             ? "SAVED FOR NEXT LAUNCH"
                             : view.first_racer_failed
                                 ? "NOT SAVED - CHECK DATA"
-                                : "NEW SEPARATE PROGRESS",
+                                : view.first_racer_is_switch
+                                    ? "EXISTING PROFILE ONLY"
+                                    : "NEW SEPARATE PROGRESS",
                         palette.secondary_grey, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 94 * scale,
                         view.first_racer_created
                             ? "QUIT AND RESTART GAME"
-                            : "UP/DOWN CHOOSE PRESET",
+                            : view.first_racer_is_switch
+                                ? "NO LIVE RACER CHANGE"
+                                : "UP/DOWN CHOOSE PRESET",
                         palette.cursor_blue, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 116 * scale,
                         view.first_racer_created
                             ? "B BACK / QUIT"
-                            : "A CREATE  B CANCEL",
+                            : view.first_racer_is_switch
+                                ? "A SWITCH  B CANCEL"
+                                : "A CREATE  B CANCEL",
                         0xFFFFFFFFu, scale);
     }
     if (view.unbound_two_player_warning_open) {

@@ -1,4 +1,5 @@
 #include "baldosa_native_first_profile.hpp"
+#include "baldosa_native_second_profile.hpp"
 
 #include <cassert>
 #include <chrono>
@@ -128,6 +129,103 @@ int main() {
     assert(exact_contents(interrupted_catalog) == catalog_bytes);
     assert(recover_baldosa_first_preset_for_next_boot(interrupted, 1).status ==
            BaldosaFirstRacerStatus::AlreadyConfigured);
+
+    // P1-owned additional racer creation is NOT an active-profile switch.
+    // The single trusted Mike catalog entry authorizes exactly one new
+    // independently initialized stock rider, and source P1 SRAM may never
+    // be truncated or rekeyed by P2 setup.
+    const auto duo = workspace / "named-p1-and-new-p2";
+    assert(fs::create_directory(duo));
+    assert(create_baldosa_first_preset_for_next_boot(duo, 0).created());
+    const auto duo_global = duo / "host-state-v1.txt";
+    const auto duo_catalog = duo / "profiles-v1.txt";
+    const auto duo_mike_typed = duo / "saves/profile-mike/host-profile.txt";
+    const auto duo_mike_raw = duo / "saves/profile-mike/save.srm";
+    const auto p1_global_before = exact_contents(duo_global);
+    const auto p1_typed_before = exact_contents(duo_mike_typed);
+    const auto p1_raw_before = exact_contents(duo_mike_raw);
+    assert(!p1_global_before.empty() && !p1_typed_before.empty() &&
+           p1_raw_before.size() == kStockSramBytes);
+    assert(create_baldosa_second_preset_for_next_boot(
+               duo, "andrew", 1).status ==
+           BaldosaSecondRacerStatus::ExistingData);
+    assert(create_baldosa_second_preset_for_next_boot(
+               duo, "mike", 0).status ==
+           BaldosaSecondRacerStatus::ExistingData);
+    assert(create_baldosa_second_preset_for_next_boot(
+               duo, "mike", 999u).status ==
+           BaldosaSecondRacerStatus::Invalid);
+    assert(load_host_profile_catalog_file(duo_catalog.string())->size() == 1u);
+    const auto second_member =
+        create_baldosa_second_preset_for_next_boot(duo, "mike", 1);
+    assert(second_member.created() && second_member.profile_id == "andrew");
+    const auto second_roster =
+        load_host_profile_catalog_file(duo_catalog.string());
+    assert(second_roster && second_roster->size() == 2u &&
+           (*second_roster)[0].profile_id == "mike" &&
+           (*second_roster)[1].profile_id == "andrew");
+    const auto duo_andrew_typed =
+        duo / "saves/profile-andrew/host-profile.txt";
+    const auto duo_andrew_raw = duo / "saves/profile-andrew/save.srm";
+    const auto second_state = load_host_profile_state_file(
+        ExecutionMode::Modern, duo_andrew_typed.string(), "andrew");
+    const auto second_identity = make_legacy_racer_identity(1);
+    assert(second_state.loaded() && second_identity &&
+           second_state.state->racer_identity == second_identity);
+    assert(second_state.state->stock_sram &&
+           (*second_state.state->stock_sram)[0x0748] == 1u);
+    assert(catalog_entry_matches_profile_state(
+        (*second_roster)[1], *second_state.state));
+    assert(baldosa_sram_file_matches_exact(
+        duo_andrew_raw, second_state.state->stock_sram->data(),
+        kStockSramBytes));
+    assert(exact_contents(duo_global) == p1_global_before);
+    assert(exact_contents(duo_mike_typed) == p1_typed_before);
+    assert(exact_contents(duo_mike_raw) == p1_raw_before);
+    const auto duo_catalog_two = exact_contents(duo_catalog);
+    assert(create_baldosa_second_preset_for_next_boot(
+               duo, "mike", 2).status ==
+           BaldosaSecondRacerStatus::ExistingData);
+    assert(exact_contents(duo_catalog) == duo_catalog_two);
+    assert(exact_contents(duo_global) == p1_global_before);
+
+    // Corrupt current P1 raw SRAM never authorizes an additional catalog
+    // entry. Do not promote an extra rider from roster-only metadata.
+    const auto corrupt_parent = workspace / "p1-corrupt-p2-rejected";
+    assert(fs::create_directory(corrupt_parent));
+    assert(create_baldosa_first_preset_for_next_boot(corrupt_parent, 0)
+               .created());
+    const auto corrupt_raw =
+        corrupt_parent / "saves/profile-mike/save.srm";
+    {
+        std::fstream f(corrupt_raw,
+                       std::ios::binary | std::ios::in | std::ios::out);
+        f.seekp(0x0748);
+        f.put(static_cast<char>(0x7f));
+        f.flush();
+    }
+    assert(create_baldosa_second_preset_for_next_boot(
+               corrupt_parent, "mike", 1).status ==
+           BaldosaSecondRacerStatus::ExistingData);
+    assert(!fs::exists(corrupt_parent / "saves/profile-andrew"));
+    assert(load_host_profile_catalog_file(
+               (corrupt_parent / "profiles-v1.txt").string())->size() == 1u);
+
+    // An orphan P2 directory from a crashed attempt is never adopted,
+    // repaired, truncated or promoted by retrying profile creation.
+    const auto incomplete_p2 = workspace / "orphan-new-p2";
+    assert(fs::create_directory(incomplete_p2));
+    assert(create_baldosa_first_preset_for_next_boot(incomplete_p2, 0)
+               .created());
+    assert(fs::create_directory(
+        incomplete_p2 / "saves/profile-andrew"));
+    assert(create_baldosa_second_preset_for_next_boot(
+               incomplete_p2, "mike", 1).status ==
+           BaldosaSecondRacerStatus::ExistingData);
+    assert(load_host_profile_catalog_file(
+               (incomplete_p2 / "profiles-v1.txt").string())->size() == 1u);
+    std::puts("PASS: second named stock racer uses canonical isolated "
+              "typed/raw P2 state with P1 selector/save byte-exact unchanged");
 
     // Correct profile name is not enough: a power-loss/corruption during raw
     // write must remain nonrecoverable by a generic one-button adoption.

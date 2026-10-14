@@ -481,3 +481,14 @@ Measured on GitHub (PR #1445, test step only; baseline 148 s with two hash shard
 ### ccache for native candidate builds — 2026-10-14
 
 `native-build-smoke`, the heavy-router `build`, `native-ui-evidence` and `modern-shared-native-acceptance` each compile SDL3 plus the generated Uniracers game from scratch. They now enable `.github/actions/native-build-cache` (ccache routed through `CMAKE_{C,CXX}_COMPILER_LAUNCHER`, persisted with `actions/cache`, base-dir rewriting so the differently named `$RUNNER_TEMP` project dirs share entries) and build with `-j"$(nproc)"` instead of `-j2` on the 4-vCPU runner. ccache hashes the preprocessed source and flags, so a cache can only miss; the same sources are still compiled and every acceptance gate still runs against the freshly linked executable. Local measurement of the canonical candidate build (4 jobs): no ccache 69 s, cold ccache 69 s, warm same-path ccache 28 s (161/161 hits), warm different project path without base-dir rewriting 46 s (145/161). Remaining time is code generation and linking. Windows MSVC builds are unchanged.
+
+### Seeding the compile caches from `main`
+
+PR runs can only restore caches saved on their own ref or the default branch. After changing `native/` sources, `tools/ci_compile_cache.py`, `.github/actions/native-build-cache` or the unit-test fixtures, refresh the `main` copies with manual runs (no new automatic trigger needed):
+
+```text
+Actions -> Project tooling unit tests -> Run workflow (ref: main)
+Actions -> Native build and boot smoke -> Run workflow (ref: main)
+```
+
+Rolling `run_id` keys with prefix restore mean each run saves a new entry and the newest matching entry is restored; GitHub evicts old entries when the repository cache quota is reached. Seeded 2026-10-14 from `1df9378`: unit-test job 120 s, native smoke 215 s (both cold).

@@ -134,6 +134,22 @@ def audit_zip(path: Path) -> dict[str, object]:
         # Other allowed groups are NOT accepted by this scoped raw reader.
         require(set(all_names) <= RUNTIME_ALLOWED_MEMBERS | set(allowed_raw),
                 "unallowlisted Windows source ZIP member outside known groups")
+        # Filename admission alone leaves a known diagnostic/report pathname
+        # able to hold a symlink or a compressed multi-megabyte payload.
+        # Other recognized groups carry no semantic acceptance in this reader,
+        # but unsafe members must not be silently attached to accepted raw QA.
+        ancillary_total = 0
+        for member in archive.infolist():
+            if member.filename not in RUNTIME_ALLOWED_MEMBERS:
+                continue  # CI-owned raw members are fully sized/decoded below
+            cap = MAX_REPORT if member.filename.endswith(".json") else MAX_LOG
+            mode = (member.external_attr >> 16) & 0o170000
+            require(not member.is_dir() and mode != 0o120000
+                    and 0 < member.file_size <= cap,
+                    "linked/directory/empty/oversized known Windows evidence member")
+            ancillary_total += member.file_size
+            require(ancillary_total <= 32 * 1024 * 1024,
+                    "unbounded total decompressed known Windows evidence")
         require(all(name in all_names for name in SOURCE_GROUP),
                 "missing six exact played/controller-selected native game logs")
         raw_manifest = _read(archive, RAW_PREFIX + MANIFEST, MAX_REPORT)

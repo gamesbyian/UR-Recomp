@@ -1,5 +1,8 @@
 # Player-journey and cross-feature adversarial acceptance matrix
 
+**2026-10-14 independently inspected actual source-scored first-created 2P:** [QA-FIRST-REAL-CREATED-MIKE-MARTIN-SCORED-WINDOWS-20261014.md](QA-FIRST-REAL-CREATED-MIKE-MARTIN-SCORED-WINDOWS-20261014.md) records exact green Modern #1510 run 38522739830: truly frontend-created MIKE0+MARTIN2, source-scored original 2P Race winner MARTIN, exactly one reported pair, fresh MIKE `LOSS 00:27.61` and fresh MARTIN `WIN 00:27.57` from actual native Records. Independent SHA inspection of actual Windows evidence and ROMless PE package exists. **This genuinely closes the previously disconnected source-log journey**, but remains hosted SDL, with test-only existing P2 selector between viewer processes and missing archived raw run/match files, full physical/display/audio/fault/strict parity gates. New six-native-process user-visible existing-P1 selector proof remains separately gated by Modern #1522; official source-original USA complete events `0/45`.
+
+
 **Six-process future release acceptance (2026-10-14):** [QA-SIX-GAME-CREATED-2P-REAL-SELECTOR-ACCEPTANCE-20261014.md](QA-SIX-GAME-CREATED-2P-REAL-SELECTOR-ACCEPTANCE-20261014.md) specifies the separate #1522 integration proof: two native UI-created MIKE/MARTIN profiles, source-settled genuine 2P race, fresh MIKE earned Records, a **sixth journey stage** represented by actual controller-semantic MIKE→MARTIN root UI selection in its **own native process**, then fresh MARTIN earned Records. New QA-only `--require-real-selector-ui` source reader explicitly rejects the old test-fixture-selected five-process substitute. Original/native USA 0/45, physical input/audio/graphics and raw pair artifact byte signoff remain open.
 
 

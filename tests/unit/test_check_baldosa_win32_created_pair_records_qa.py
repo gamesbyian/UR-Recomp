@@ -124,6 +124,31 @@ class IndependentCreatedPairRecords(unittest.TestCase):
         self.assertEqual(report["release_gate_credit"], 0)
         self.assertEqual(report["original_USA_course_release_credit"], 0)
 
+    def test_real_native_report_preserves_anonymous_original_sram_without_accepting_half_claim(self):
+        supplied = list(fixture())
+        supplied[0] = copy.deepcopy(supplied[0])
+        supplied[0]["anonymous_first_boot_sram_present"] = True
+        supplied[0]["anonymous_bootstrap_bytes_unchanged_by_all_named_games"] = True
+        positive = self.check(supplied)
+        self.assertEqual(positive["source_rider_pair"], [0, 2])
+        self.assertEqual(positive["release_gate_credit"], 0)
+        for key, value in (
+            ("anonymous_first_boot_sram_present", "yes"),
+            ("anonymous_bootstrap_bytes_unchanged_by_all_named_games", False),
+        ):
+            bad = copy.deepcopy(supplied)
+            bad[0][key] = value
+            with self.subTest(changed=key), self.assertRaises(ValueError):
+                self.check(bad)
+        for key in (
+            "anonymous_first_boot_sram_present",
+            "anonymous_bootstrap_bytes_unchanged_by_all_named_games",
+        ):
+            bad = copy.deepcopy(supplied)
+            del bad[0][key]
+            with self.subTest(removed=key), self.assertRaises(ValueError):
+                self.check(bad)
+
     def test_real_windows_crlf_and_no_source_viewer_result(self):
         group = fixture()
         result = self.check([group[0], *(x.replace("\n", "\r\n") for x in group[1:])])

@@ -186,6 +186,22 @@ def crosswalk(offset_record: dict, count_record: dict) -> dict:
             "static_store_x_width_verified_at_runtime": False,
             "usa_original_executed_pc_verified": False,
         },
+        "archived_nonexecuted_joy1_word_consumer_candidates": [
+            {
+                "routine": "Input_IsAnyButtonHeld",
+                "source_read_pc": "80:B6CA",
+                "source_branch_mask_pc": "80:B6CC",
+                "source_branch_mask": "BIT #$FFF0",
+                "executed_in_bowl_result_proven": False,
+            },
+            {
+                "routine": "Input_IsConfirmHeld",
+                "source_read_pc": "80:B714",
+                "source_branch_mask_pc": "80:B716",
+                "source_branch_mask": "BIT #$9080",
+                "executed_in_bowl_result_proven": False,
+            },
+        ],
         "all_samples_have_equal_named_stage": True,
         "raw_guest_memory_retained": False,
         "strict_complete_event_accepted": False,

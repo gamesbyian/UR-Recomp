@@ -390,6 +390,15 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertIn('"docs/RELEASE-QUALITY-LEDGER.json"',
                       _block(workflow, "pull_request"))
 
+    def test_romless_archive_auditor_invalidates_real_windows_gate(self):
+        # The ZIP inspector runs in the same native Windows packaging job;
+        # changing only its source or tests must not bypass that job.
+        workflow = (WORKFLOWS / "baldosa-windows-native-bridge.yml").read_text()
+        routed = _block(workflow, "pull_request")
+        for path in ("tools/audit_baldosa_romless_candidate.py",
+                     "tests/unit/test_audit_baldosa_romless_candidate.py"):
+            self.assertIn(f'"{path}"', routed)
+
     def test_deferred_switch_shared_core_is_manual_only(self):
         path = WORKFLOWS / "switch-shared-core-portability.yml"
         text = path.read_text()

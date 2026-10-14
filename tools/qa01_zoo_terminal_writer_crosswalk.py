@@ -28,7 +28,14 @@ EXPECTED_MENU = {
     "original": (0x16, 0x16, 0x16, 0xBC),
     "native": (0x16, 0x16, 0xBC, 0xBC),
 }
-LOG = re.compile(r"^script f=(\d+) dump (scene-entered|boundary-(\d{5})) ok$", re.MULTILINE)
+# Original snesref emits a full framebuffer/PPU descriptor rather than the
+# native host's 'ok'. Both formats certify the script tick; complete 128-KiB
+# WRAM is verified separately for every selected boundary.
+LOG = re.compile(
+    r"^script f=(\d+) dump (scene-entered|boundary-(\d{5})) "
+    r"(?:ok|fb=\d+x\d+ RGB565 sram=\d+ ppuw=\d+)$",
+    re.MULTILINE,
+)
 ADDRESS = "7E:0313"
 
 

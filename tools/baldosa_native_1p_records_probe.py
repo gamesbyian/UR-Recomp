@@ -48,11 +48,11 @@ def source_finish_script() -> str:
             "dump after-source-drive\nquit\n")
 
 
-def source_result_published(log: str) -> None:
+def source_result_published(log: str, *, profile: str = PROFILE) -> None:
     required = (
         "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c",
         "UR_BALDOSA_NATIVE_RUN CAPTURED=1 mode=race-1p "
-        "profile=native-ci-rider course=course:01 ",
+        f"profile={profile} course=course:01 ",
         "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-1p ",
     )
     if any(log.count(marker) != 1 for marker in required):
@@ -68,9 +68,9 @@ def source_result_published(log: str) -> None:
         raise ValueError("Original-source finish never committed a real 1P run")
 
 
-def native_records_reopened(log: str) -> None:
+def native_records_reopened(log: str, *, profile: str = PROFILE) -> None:
     required = (
-        "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=native-ci-rider ",
+        f"UR_BALDOSA_NATIVE_PROFILE APPLIED profile={profile} ",
         "UR_BALDOSA_MODERN_ROOT records_opened=1 "
         "profile=selected validated=1 unavailable=0",
     )

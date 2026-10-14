@@ -176,7 +176,7 @@ def verify_named_profile_boot_bytes(
     # The title's stock before_run_frame callback fires AFTER RtlReadSram
     # but before the first actual RtlRunFrame. Compare the entire 8192 bytes
     # using an independent hash of the real previous native guest's SRAM.
-    if profile_id not in ("native-ci-rider", "native-ci-second"):
+    if profile_id not in ("native-ci-rider", "native-ci-second", "mike"):
         raise ValueError("Unknown named native QA profile")
     pattern = re.compile(
         rf"^UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM "

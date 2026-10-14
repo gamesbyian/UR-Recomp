@@ -283,8 +283,24 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
                 evidence, qa.audit(inner, source, digest),
             )
             self.assertTrue(good_history["metrics"]["historical_2p_records_readonly_observed"])
+            self.assertTrue(good_history["metrics"]["historical_2p_records_tabs_checked"])
             self.assertEqual(good_history["metrics"]["historical_2p_pairs_read"], 1)
             self.assertFalse(good_history["metrics"]["finished_native_event_or_new_match_observed"])
+
+            # A read-only empty tab is still a valid negative safety
+            # observation, but it cannot claim a visible historical pair.
+            no_pairs = {**safe_history, "historical_2p_pairs_read": 0}
+            pack(one, two, {**report, "native_named_readonly_records": no_pairs})
+            empty_history = qa.check_runtime_actions_wrapper(
+                evidence, qa.audit(inner, source, digest),
+            )
+            self.assertTrue(empty_history["metrics"]["historical_2p_records_tabs_checked"])
+            self.assertFalse(empty_history["metrics"]["historical_2p_records_readonly_observed"])
+            self.assertEqual(empty_history["metrics"]["historical_2p_pairs_read"], 0)
+            self.assertNotIn(
+                "hosted-historical-2p-records-visible-without-mutation-or-publication",
+                [x["id"] for x in empty_history["assertions"]],
+            )
             for change in (
                 {"2p_archive_unchanged_after_guest": False},
                 {"unbound_2p_never_attributed_to_a_record": False},
@@ -312,6 +328,18 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
             changed = {**report, "course_complete_credit": 1}
             pack(one, two, changed)
             with self.assertRaisesRegex(ValueError, "incomplete hosted smoke"):
+                qa.check_runtime_actions_wrapper(evidence, qa.audit(inner, source, digest))
+
+            # Python bool compares equal to int 0/1; the consumer must not
+            # accept booleans in the integer evidence fields.
+            changed = {**report, "course_complete_credit": False}
+            pack(one, two, changed)
+            with self.assertRaisesRegex(ValueError, "incomplete hosted smoke"):
+                qa.check_runtime_actions_wrapper(evidence, qa.audit(inner, source, digest))
+            entry = {**report["modern_root_race_entry_p1"], "players": True}
+            changed = {**report, "modern_root_race_entry_p1": entry}
+            pack(one, two, changed)
+            with self.assertRaisesRegex(ValueError, "stock-race entry report inconsistent"):
                 qa.check_runtime_actions_wrapper(evidence, qa.audit(inner, source, digest))
 
     def test_latest_baldosa_win32_candidate_archive_has_no_fictitious_event_credit(self):

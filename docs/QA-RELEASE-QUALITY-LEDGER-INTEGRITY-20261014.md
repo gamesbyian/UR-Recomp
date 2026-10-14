@@ -1,0 +1,18 @@
+# QA-12: machine-checkable candidate and release-ledger integrity
+
+The sole authoritative release decision file remains `docs/RELEASE-QUALITY-LEDGER.json`. Its prose and source research history can legitimately contain hundreds of positive unit or hosted Windows observations **without** changing a release gate to passed. To prevent an automated agent from silently promoting those observations into release acceptance, the read-only `tools/check_release_quality_ledger_integrity.py` now checks the mechanical relationships between candidate pins, each gate status and independently listed witnesses. It never launches a guest, decodes a save, tests real hardware or grants a gate.
+
+```bash
+python3 tools/check_release_quality_ledger_integrity.py
+python3 tools/check_release_quality_ledger_integrity.py --ledger docs/RELEASE-QUALITY-LEDGER.json --output /tmp/qa-ledger-structural-receipt.json
+```
+
+It requires all **12 uniquely identified QA gates** and known status semantics, exact 40-hex source **and** 64-hex inner ZIP pins together, a concrete pinned candidate and nonempty independent witness list for any newly claimed gate `passed` or `failed`, substantive waiver rationale for any waived gate, and physical Windows hardware acceptance before an L5 gate is marked passed. A global release-ready decision is invalid while any nonwaived gate remains unverified/in-progress/failed, if the candidate is not pinned, or if physical hardware has not been accepted.
+
+The primary USA census is checked as an invariant: **45 courses total**, `complete + partial + unverified = 45`. PAL retail/prototype remain **90 additional comparative** observations and 135 total tracked ROM/course pairs. QA-01's complete-event count cannot become positive without at least one authority-linked independent witness; its *whole gate* cannot pass until **45/45** original-USA source-complete events are accepted. The current legitimate state is **0 complete, 4 partial, 41 unverified**, plus comparative **0/90**, candidate commit/ZIP both null and no physical certification.
+
+Unit tests explicitly inject false one-course increments, impossible coverage arithmetic, guessed source/ZIP hashes, contradictory waiver, synthetic fixture prose, a copied source commit from another candidate, attempted release approval with pending gates, and a forged 45-course pass without source-complete evidence. Valid synthetic fixtures only check the structural validator; they do not count as original or Windows acceptance.
+
+This guard is intentionally a **necessary, not sufficient** condition for release quality. It does not assert that an arbitrary `witnesses` entry is genuine. The actual independent source/original comparator, Windows physical device/video/audio witnesses, saved run/match raw bytes, failure injection and release adjudicator must still review the exact content before a gate can pass. It does not mutate the ledger or prevent future legitimate acceptance once the missing proof is recorded.
+
+At the checkpoint that introduced this guard, source-integrated six-native-game MIKE/MARTIN creation→original 2P scored result→real UI profile selection→both earned Records had been documented in merged QA #1530 and independently parseable via merged QA #1538, **but still did not confer physical L4/L5 acceptance**. Modern owner issues [#1533](https://github.com/gamesbyian/UR-Recomp/issues/1533) (absolute rooted-relative launcher path preflight) and [#1540](https://github.com/gamesbyian/UR-Recomp/issues/1540) (missing CI-owned raw run+match bytes) remain valid evidence discriminators until exact candidate-bound negative/positive observations exist. Do not use this new static-checker green status to close either.

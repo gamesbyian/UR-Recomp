@@ -61,6 +61,7 @@ class ApuPhaseObserversTest(unittest.TestCase):
     def test_native_patch_preserves_actual_apu_read_and_word_write(self):
         source = ("\nstatic bool g_apu_frame_time_valid;\n"
                   "static uint64_t rtl_apu_guest_cycle(void) {return 2;}\n"
+                  "uint8 ReadRegOpenBus(uint16 reg, uint8 open_bus) {\n"
                   + patch.NATIVE_READ_MARKER
                   + "\n" + patch.NATIVE_WRITE_MARKER + "\n")
         compiled = patch.patch_native(source)

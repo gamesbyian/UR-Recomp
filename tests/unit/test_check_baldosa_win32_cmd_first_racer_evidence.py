@@ -48,6 +48,20 @@ class NativeFirstRacerCMDReview(unittest.TestCase):
                 self.assertFalse(result["strict_original_native_complete_event_accepted"])
                 self.assertEqual(result["release_gate_credit"], 0)
 
+    def test_exact_real_windows_receipt_is_report_only_not_raw_log_proof(self):
+        receipt = (ROOT / "analysis/evidence" /
+                   "baldosa-win32-38504990847-noargs-cmd-first-racer-review.json")
+        data = json.loads(receipt.read_text(encoding="utf-8"))
+        self.assertEqual(data["workflow_run_id"], 38504990847)
+        self.assertEqual(data["candidate"]["inner_romless_zip_sha256"],
+                         "608ac9224280bd0a1da7434fe2457e4c93df29140e6382d32d53bcfc5a15a469")
+        self.assertTrue(data["runtime"]["report_flags"][
+            "no_argument_first_racer_cmd_one_shot_restart_accepted"])
+        self.assertFalse(data["runtime"]["actual_cmd_first_racer_raw_log_uploaded"])
+        self.assertFalse(data["runtime"]["actual_cmd_source_relaunch_independently_recomputed"])
+        self.assertFalse(data["candidate"]["approved_release_candidate"])
+        self.assertEqual(data["release_scope"]["release_gate_credit"], 0)
+
     def test_missing_duplicated_reordered_or_forged_native_stages_fail(self):
         source = trace()
         for broken in (

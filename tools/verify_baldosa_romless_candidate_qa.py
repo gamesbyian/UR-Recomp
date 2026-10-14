@@ -346,7 +346,8 @@ def check_runtime_actions_wrapper(
     )):
         raise ValueError("Win32 extracted CMD launcher was not confirmed")
     if (reported.get("classification") != "windows_native_pause_and_named_profile_smoke_only"
-            or reported.get("course_complete_credit") != 0
+            or type(reported.get("course_complete_credit")) is not int
+            or reported["course_complete_credit"] != 0
             or reported.get("physical_gamepad_hardware_tested") is not False
             or not isinstance(reported.get("native_named_readonly_records"), dict)
             or reported["native_named_readonly_records"].get("actual_native_2p_match_published") is not False):
@@ -381,7 +382,9 @@ def check_runtime_actions_wrapper(
         (2, log2, "modern_root_race_entry_p2"),
     ):
         entry = reported.get(field)
-        if (not isinstance(entry, dict) or entry.get("players") != players
+        if (not isinstance(entry, dict)
+                or type(entry.get("players")) is not int
+                or entry["players"] != players
                 or entry.get("native_root_handoff_observed") is not True
                 or entry.get("original_race_nmi_barrier_passed") is not True
                 or entry.get("original_go_ticker_barrier_passed") is not True
@@ -417,12 +420,17 @@ def check_runtime_actions_wrapper(
     )
     candidate["metrics"]["hosted_1p_stock_entry_observed"] = True
     candidate["metrics"]["hosted_2p_stock_entry_observed"] = True
-    candidate["metrics"]["historical_2p_records_readonly_observed"] = has_history
+    # An empty-but-read-only tab is a valid negative safety observation,
+    # not positive evidence that a historical saved match was visible.
+    visible_history = has_history and history["historical_2p_pairs_read"] > 0
+    candidate["metrics"]["historical_2p_records_readonly_observed"] = visible_history
+    candidate["metrics"]["historical_2p_records_tabs_checked"] = has_history
     if has_history:
         candidate["metrics"]["historical_2p_pairs_read"] = history["historical_2p_pairs_read"]
         candidate["metrics"]["incomplete_2p_pairs_unavailable"] = (
             history["incomplete_2p_pairs_reported_unavailable"]
         )
+    if visible_history:
         candidate["assertions"].append(
             assertion("hosted-historical-2p-records-visible-without-mutation-or-publication", True)
         )

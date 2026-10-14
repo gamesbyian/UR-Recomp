@@ -133,6 +133,14 @@ def decode_field(base: dict, entries: list[dict]) -> dict:
         "visible_line_tag_intervals_after_same_line_final_write":
             compress(visible, 0, "visible_line_tag"),
         "completed_visible_line_tags": list(range(VISIBLE_LINES)),
+        # The pinned beam driver invokes dma_doHdma during scanout, while
+        # ppu_rasterRecord explicitly drops writes made while rendering.
+        # These intervals are CPU-side journal reconstructions, not an
+        # effective fixed RGB register trace sampled after each HDMA line.
+        "state_interval_scope": "recorded raster journal writes only",
+        "render_time_hdma_ppu_writes_recorded_by_this_journal": False,
+        "field_baseline_fixed_RGB_is_effective_per_scanline": False,
+        "render_time_live_fixed_RGB_sampled": False,
         "source_colour_math_operand_per_pixel_proven": False,
         "beam_tag_to_output_image_row_calibrated": False,
         "raster_midline_write_timing_proven": False,
@@ -140,8 +148,10 @@ def decode_field(base: dict, entries: list[dict]) -> dict:
         "remastered_character_approved": False,
         "limitations": (
             "Derived from ordered source writes, with CGWSEL and fixed-RGB baselines "
-            "deliberately unknown until written. The pinned SNESRecomp renderer "
-            "replays whole-line register state; effective hardware intra-line "
-            "timing, subscreen/window eligibility and final pixel source remain unproven."
+            "unknown when not exported. This is CPU-side raster-journal "
+            "state only: render-time HDMA is excluded and may change live "
+            "COLDATA/fixed RGB on a visible line without appearing here. "
+            "Actual per-pixel colour operands, window/subscreen ownership and "
+            "physical SNES intra-line timing require independent witnesses."
         ),
     }

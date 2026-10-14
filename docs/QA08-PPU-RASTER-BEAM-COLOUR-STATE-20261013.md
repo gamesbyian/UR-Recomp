@@ -82,3 +82,44 @@ proven pixel arithmetic, subscreen/window priority, output-Y timing,
 authored Remastered art or full game acceptance. The next real AOT
 and its immutable original raster/CRC receipts must establish the
 new witness; synthetic unit tests do not.
+
+
+## Confirmed limitation: field journal differs from live render-time HDMA
+
+**After exact original 2P source pixel captures, 2026-10-13:**
+The original native [PPU pixel composition experiment](QA08-ORIGINAL-PPU-MAIN-SUB-PIXEL-DISCRIMINATOR-20261013.md)
+at guest2208 recorded the same source-backed CPU journal baseline
+`fixed15=0x0260` yet measured native live `fixed15=0x000F`
+on **upper output row50** and `fixed15=0x0260` on
+**lower output row162**. Its independently accepted single-OBJ
+deletion runs reproduce exactly RGB5=(28,0,0) above and
+(13,19,0) below using the correct per-line fixed colour. The first
+strict checker (run [38498698636](https://github.com/gamesbyian/UR-Recomp/actions/runs/38498698636))
+correctly failed because it demanded the journal's baseline at each
+pixel. The raw source records remain valid original PPU evidence;
+correction/strict integrated pass belongs to the pixel-probe PR.
+
+Pinned `baldosa/snesrecomp@075fbe4c` source explicitly excludes
+rendering-phase writes from `ppu_rasterRecord` when
+`s_raster_rendering` is active, and
+`beam_frame_driver.c` invokes `dma_doHdma` as it
+draws each scanline. Consequently the decoder's
+`visible_line_tag_intervals_after_same_line_final_write`
+are **CPU journal-only reconstructions**, including original
+field-start state and journaled CPU writes. They do not automatically
+give the actual colour operands used during renderer HDMA.
+
+To prevent the earlier interpretation from recurring, the
+`qa08_ppu_beam_colour_state.py` report explicitly adds
+`state_interval_scope=recorded raster journal writes only`,
+`render_time_hdma_ppu_writes_recorded_by_this_journal=false`,
+`field_baseline_fixed_RGB_is_effective_per_scanline=false` and
+`render_time_live_fixed_RGB_sampled=false`. These are source
+contract flags, not guesses about the physical SNES. The native
+per-pixel compositor probe records actual live values separately.
+
+**Strict evidence distinction:** one field baseline and ordered CPU
+register events establish what was queued before scanout; only
+a live native PPU pixel trace can establish the source colour at
+its compositing point. Neither automatically proves original hardware
+HDMA timing, physical priority nor approved HD presentation.

@@ -90,6 +90,18 @@ class BeamOrderColourStateTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "overlong"):
             decode_field({"cgadsub": "0x00"}, [entry(0, 0x2131, 0)] * 4097)
 
+    def test_completed_field_baseline_does_not_claim_live_HDMA_operand(self):
+        report = decode_field({"cgadsub": "0x04", "cgwsel": "0x02",
+                               "fixed15": "0x0260"}, [])
+        state = visible_at(report, 50)
+        self.assertEqual(state["fixed_rgb15"], "0x0260")
+        self.assertEqual(report["state_interval_scope"],
+                         "recorded raster journal writes only")
+        self.assertFalse(report["render_time_hdma_ppu_writes_recorded_by_this_journal"])
+        self.assertFalse(report["field_baseline_fixed_RGB_is_effective_per_scanline"])
+        self.assertFalse(report["render_time_live_fixed_RGB_sampled"])
+        self.assertFalse(report["source_colour_math_operand_per_pixel_proven"])
+
     def test_saved_native_baselines_override_unknowns(self):
         report = decode_field({"cgadsub": "0x13", "cgwsel": "0x02",
                                "fixed15": "0x296D"},

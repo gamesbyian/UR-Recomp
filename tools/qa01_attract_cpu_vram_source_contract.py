@@ -57,6 +57,39 @@ def _attest_line(source: str, line: str) -> None:
         raise ValueError(f"missing, duplicated or changed original opcode: {line}")
 
 
+# Conditional model transcribed from the two pinned emitter variants:
+# legacy emit_function charges each 65816 CPU cycle at its *code* bus
+# speed; Baldosa's opt-in paced_bus charges operand fetch bytes at code
+# speed and each guest data-store byte at the destination's region speed.
+# See baldosa/snesrecomp@075fbe4 recompiler/v2/emit_function.py (the
+# _paced_block_master path) and recompiler/snes_cycles.py::region_speed.
+# This is a single STA/STY absolute instruction scenario, not the complete
+# runtime or a measurement of which MEMSEL/M/X state was active in RF-014.
+def conditional_abs_store_master_clocks(width_bytes: int, memsel: int) -> dict:
+    if width_bytes not in (1, 2):
+        raise ValueError("STA/STY absolute data width must be one or two bytes")
+    if memsel not in (0, 1):
+        raise ValueError("MEMSEL must be 0 or 1, not inferred from a host frame")
+    code_region_speed = 6 if memsel else 8  # bank 81:CDxx
+    ppu_io_speed = 6  # $00:2116/$00:2118 and next byte
+    fetch_bytes = 3  # STA/STY absolute opcode + 16-bit address
+    static_cpu_cycles = fetch_bytes + width_bytes  # 4 (8-bit), 5 (16-bit)
+    legacy = static_cpu_cycles * code_region_speed
+    paced = fetch_bytes * code_region_speed + width_bytes * ppu_io_speed
+    return {
+        "accumulator_or_index_width_bits": width_bytes * 8,
+        "memsel": memsel,
+        "code_region_speed": code_region_speed,
+        "ppu_io_region_speed": ppu_io_speed,
+        "static_cpu_cycles": static_cpu_cycles,
+        "old_uniform_code_speed_master_clocks": legacy,
+        "baldosa_paced_bus_master_clocks": paced,
+        "old_minus_paced_master_clocks": legacy - paced,
+        "actually_executed_first_load_width_or_memsel_proven": False,
+        "entire_frame_clock_discrepancy_explained": False,
+    }
+
+
 def report(bank81: str, bank00_cfg: str, bank81_cfg: str) -> dict:
     rows = original_rows(bank81)
     for line in SOURCE_ANCHORS:
@@ -109,6 +142,10 @@ def report(bank81: str, bank00_cfg: str, bank81_cfg: str) -> dict:
         "separate_decompress_to_vram_source": "81:BB89",
         "separate_decompress_ppu_low_byte_writer": "81:BCF4",
         "separate_decompress_ppu_high_byte_writer": "81:BCEE",
+        "conditional_cpu_store_clock_scenarios": [
+            conditional_abs_store_master_clocks(width, memsel)
+            for memsel in (0, 1) for width in (1, 2)
+        ],
         "baldosa_config_has_paced_bus": True,
         "paced_bus_is_globally_requested_via_bank00": True,
         "source_instruction_width_per_executed_site_proven": False,

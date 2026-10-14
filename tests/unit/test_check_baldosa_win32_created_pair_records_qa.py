@@ -100,7 +100,7 @@ def fixture():
         "release_gate_credit": 0,
     }
     return report, first, second, third, view("mike", "LOSS", "00:27.61"), view(
-        "andrew", "WIN", "00:27.57")
+        "martin", "WIN", "00:27.57")
 
 
 class IndependentCreatedPairRecords(unittest.TestCase):

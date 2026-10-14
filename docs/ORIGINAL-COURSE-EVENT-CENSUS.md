@@ -60,9 +60,9 @@ original route and start, event-specific contact/checkpoint/lap/finish
 MesenCE run from an independently named native run, on a fresh process,
 with exact ROM and candidate provenance.
 
-The primary-USA baseline is **0/45 complete event passes**, **4/45
-partial observations**, **41/45 unverified**. Across all three builds,
-**0/135 complete**, **4/135 partial**, **131/135 unverified**, as encoded in
+The primary-USA baseline is **0/45 complete event passes**, **5/45
+partial observations**, **40/45 unverified**. Across all three builds,
+**0/135 complete**, **5/135 partial**, **130/135 unverified**, as encoded in
 `analysis/data/course-event-runtime-evidence.json`. Specifically:
 
 - **USA Dragster (course 01), partial:** the seven-frame native WRAM
@@ -106,6 +106,22 @@ partial observations**, **41/45 unverified**. Across all three builds,
   [Executed paired witness](../analysis/data/bowl-original-baldosa-scored-stunt-candidate-20261009.json)
   (CI [38021981513](https://github.com/gamesbyian/UR-Recomp/actions/runs/38021981513)).
   **Official credit: 0/45.**
+- **USA Switcher (course 04), partial:** The archived, source-unaltered
+  2014 Snes9x **Race B** controller movie reaches a real Switcher result
+  at movie frame **17030** following course entry at **12327**. Two separately
+  booted, independently calibrated reference/native guests replay the
+  original SRAM and controller scene: **28/28** sampled active semantic
+  states agree, both eventually show the genuine settled result
+  **MIKE 1:08.81**, and both show P1 laps zero and finish/checkpoint gate one.
+  Both hosts print the result at absolute host **5783**, but **guest-relative
+  onset differs** (**+4704 original / +4702 native**) and the
+  course-ID-zero interstitial/result handoff remains phase-displaced.
+  Source-executed NMI/CPU observations and terminal follow-ups cannot yet
+  certify original/native strict completion, menu restoration, persistence or
+  instruction-time synchronization. This adds an **honest partial Race B**
+  source observation to the census, **zero accepted events**.
+  [Executed paired original/native witness](../analysis/data/switcher-original-baldosa-paired-race-b-result-20261010.json);
+  [three-event relative timing authority](QA01-THREE-EVENT-TERMINAL-TIMING-20261010.md).
 - **USA Jumpover (course 20), partial:** six bounded input-only
   original/native stunt landing-reward thresholds match **on a circuit B
   course**, but no complete circuit lap/finish/result or 45-second stunt

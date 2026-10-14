@@ -11,7 +11,7 @@ import hashlib
 import json
 import re
 
-from check_baldosa_win32_first_racer_evidence import SOURCE, ordered_unique
+from check_baldosa_win32_first_racer_evidence import SOURCE
 
 MAX_LOG = 2 * 1024 * 1024
 MAX_REPORT = 64 * 1024
@@ -51,6 +51,26 @@ NO_UNBOUND = (
 )
 
 
+
+def ordered_exact_source_lines(log: str, markers: tuple[str, ...], label: str) -> None:
+    """Admit only complete, individual native log lines in source order.
+
+    A copied marker in a comment, quoted diagnostic, truncated line or a
+    different source event must not stand in for an emitted Win32 receipt.
+    LF and CRLF are both legitimate native Windows log formats.
+    """
+    lines = log.splitlines()
+    positions = []
+    for marker in markers:
+        exact = [i for i, line in enumerate(lines) if line == marker]
+        shadowed = [i for i, line in enumerate(lines)
+                    if marker in line and line != marker]
+        if len(exact) != 1 or shadowed:
+            raise ValueError(f"{label} missing, duplicate or shadowed native line: {marker}")
+        positions.append(exact[0])
+    if positions != sorted(positions):
+        raise ValueError(f"{label} native lines out of source order")
+
 def audit_win32_second_created_racer_go(
     raw_report: bytes, raw_first: bytes, raw_second: bytes, raw_third: bytes,
 ) -> dict[str, object]:
@@ -88,7 +108,7 @@ def audit_win32_second_created_racer_go(
     ):
         raise ValueError("second-racer source report contains unsupported release or identity claim")
 
-    ordered_unique(first, SOURCE, "first anonymous P1 creation guest")
+    ordered_exact_source_lines(first, SOURCE, "first anonymous P1 creation guest")
     if (
         first.count("UR_BALDOSA_MODERN_ROOT opened=1") != 1
         or any(word in first for word in NO_RESULT + (
@@ -99,7 +119,7 @@ def audit_win32_second_created_racer_go(
     ):
         raise ValueError("first P1 creation guest hot-swapped or played stock race")
 
-    ordered_unique(second, SECOND, "named P1 creates isolated P2")
+    ordered_exact_source_lines(second, SECOND, "named P1 creates isolated P2")
     second_boot = list(BOOT.finditer(second))
     if (
         len(second_boot) != 1
@@ -112,7 +132,7 @@ def audit_win32_second_created_racer_go(
         ))
     ):
         raise ValueError("P2 creation guest lacks selected MIKE boot or hot-swapped/raced")
-    ordered_unique(third, THIRD, "two named profiles join native stock 2P")
+    ordered_exact_source_lines(third, THIRD, "two named profiles join native stock 2P")
     third_boot = list(BOOT.finditer(third))
     if (
         len(third_boot) != 1

@@ -77,6 +77,10 @@ def audit(manifest: Path) -> dict:
                f"{ident}: at least two time-tagged frames required")
         selected = []
         visited = set()
+        # Different named references can point to identical exact PNG bytes.
+        # Re-annotating the same pixels with different landmarks invents
+        # impossible apparent motion and cannot form independent pose proof.
+        points_by_source_sha = {}
         last_ms = -1
         for frame in frames:
             ensure(isinstance(frame, dict), f"{ident}: invalid frame record")
@@ -89,6 +93,12 @@ def audit(manifest: Path) -> dict:
             visited.add(rid)
             last_ms = millis
             view = by_id[rid]
+            image_sha = view["image_sha256"]
+            landmark_points = view["landmark_pixel_coordinates"]
+            ensure(image_sha not in points_by_source_sha or
+                   points_by_source_sha[image_sha] == landmark_points,
+                   f"{ident}: identical source PNG has inconsistent landmarks")
+            points_by_source_sha[image_sha] = landmark_points
             selected.append({
                 "reference_id": rid, "time_ms": millis,
                 "image_sha256": view["image_sha256"],
@@ -132,8 +142,19 @@ def audit(manifest: Path) -> dict:
                        min(row["projected_pose_metrics"][key] for row in selected), 6)
             for key in METRICS
         }
+        by_source_sha = {}
+        for row in selected:
+            by_source_sha.setdefault(row["image_sha256"], []).append(
+                row["reference_id"])
         output.append({
             "sequence_id": ident,
+            "unique_exact_source_PNG_count": len(by_source_sha),
+            "identical_source_PNG_reference_aliases": [
+                {"image_sha256": digest, "reference_ids": refs}
+                for digest, refs in by_source_sha.items() if len(refs) > 1
+            ],
+            "distinct_PNGs_required_for_independent_motion":
+                len(by_source_sha) >= 2,
             "camera_mode_declared": mode,
             "camera_notes": camera_notes,
             "source_tags_consistent_for_fixed_projection": consistent_projection,
@@ -153,7 +174,10 @@ def audit(manifest: Path) -> dict:
         "original_character_likeness_approved": False,
         "shipping_art_approved": False,
         "limits": (
-            "All PNGs are hash-validated source views. Projected landmarks "
+            "All PNGs are hash-validated source views. Identical source "
+            "SHA aliases must retain identical landmark coordinates; "
+            "different file hashes do not prove independent rendered poses. "
+            "Projected landmarks "
             "measure 2D motion only; tags and times are declared, not an "
             "independent temporal video oracle. Distinct pose, camera, art "
             "style, occlusion and physical scale can alter every ratio. "

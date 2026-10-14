@@ -19,6 +19,26 @@ The already-verified extracted **ROM-free Windows ZIP** double-click CMD test us
 
 Independent QA's [#1530](https://github.com/gamesbyian/UR-Recomp/pull/1530) correctly distinguished the passing six-native-process source-log evidence from independently verified **raw** `.urrun/.urmatch`, named typed/raw SRAM and canonical catalog bytes. This product-side extension retains only an **explicit allowlist from the same disposable scratch Windows user root** after the native match is played, both fresh Records viewers pass, and the one-pair source SHA manifest remains identical. The copy includes one `.urrun` and its matched `.urmatch`, canonical `host-state-v1.txt` / `profiles-v1.txt`, each selected player's `host-profile.txt` and 8,192-byte `save.srm`, plus the optional unchanged anonymous first-boot SRAM. A checked SHA-256/size manifest is retained in the existing Windows evidence upload. Unknown files are never traversed or exported; a retail ROM, binary package and any non-disposable user root are outside the allowlist. This is for independent artifact/atomicity QA, **not an automatic release-ledger promotion**. The scoped exact-head native Windows [#1536 run](https://github.com/gamesbyian/UR-Recomp/actions/runs/38543163396) passed, and the resulting [Actions artifact](https://github.com/gamesbyian/UR-Recomp/actions/runs/38543163396/artifacts/11883577178) contains all nine manifest-listed raw files, each separately SHA-256 verified after download. Both run and match canonical FNV-1a 64-bit checksums also match their retained body bytes. These are product/byte-transport observations, not independent release-ledger acceptance.
 
+## Product candidate: pre/post fresh Records raw-pair snapshots (2026-10-14)
+
+The already integrated six-process Windows source route checks that its only
+genuine guest-earned paired match is unchanged after each Records viewer.
+Previously only the final post-view bytes were retained, preventing QA from
+independently comparing two actual on-disk timepoints. The Modern candidate
+now exports a separate **CI-owned, no-follow, pair-only** snapshot immediately
+after authentic original guest play and before the first fresh Records process.
+Its two byte files and SHA-256 manifest are retained under
+`ci-owned-pre-records-pair/`, separately from the existing final
+`ci-owned-raw-artifacts/` full profile and pair snapshot. The Windows producer
+fails closed if the two archived file sets are not byte-identical. ROM-free
+unit tests exercise duplicate/missing/symlinked and stale/foreign inputs.
+
+**Acceptance boundary:** this product change is a candidate until its exact
+head passes real native Windows CI. Independent QA must separately decode and
+compare the pre/post archive bytes alongside the process logs before granting
+source-stage immutability credit. This adds no new save format, product router,
+scripted result, physical controller or strict original-USA release approval.
+
 ## Existing named-P1 controller selector (native verified 2026-10-14)
 
 After [#1490](https://github.com/gamesbyian/UR-Recomp/pull/1490) passes the real native root's anonymous-P1 / named-P2 / joined stock 2P sequence, the missing controller selector for *two already-created* named P1 identities is now merged and native-Windows validated in [#1513](https://github.com/gamesbyian/UR-Recomp/pull/1513). P1 X opens the shared stock-aware chooser only when both verified catalog+typed+raw SRAM owners exist; A invokes the **existing** [#1499](https://github.com/gamesbyian/UR-Recomp/pull/1499) locked next-process selector, B cancels. Success latches a no-races barrier until a true native game process restart; no guest-memory, result or persistence codec is replaced. The pinned Windows job proved Mike → Andrew → Mike fresh-source-boot changes on #1513's exact head. The synthetic SDL-input route is not physical-controller hardware acceptance. This small UI closure complements, but does not replace, [#1510](https://github.com/gamesbyian/UR-Recomp/pull/1510)'s separate source-earned 2P paired Records test.

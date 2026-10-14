@@ -37,19 +37,14 @@ class ToolingUnitWorkflowContractTests(unittest.TestCase):
             self.assertIn(f'- "{path}"', workflow)
 
         # The dependency-free Python suite may be sharded for wall-clock speed,
-        # but discovery must still enumerate every test_*.py deterministically
-        # and assign each discovered module to exactly one shard.
-        self.assertIn(
-            "find tests/unit -maxdepth 1 -type f -name 'test_*.py'",
-            workflow,
-        )
-        self.assertIn("| sort", workflow)
-        self.assertIn('module="tests.unit.${test_file%.py}"', workflow)
-        self.assertIn("sha256sum", workflow)
-        self.assertIn("16#$first_byte % 2 == 0", workflow)
-        self.assertIn('python3 -m unittest -v "$@"', workflow)
-        self.assertIn('wait "$p0"; r0=$?', workflow)
-        self.assertIn('wait "$p1"; r1=$?', workflow)
+        # but the partitioner must enumerate every test_*.py deterministically
+        # and assign each discovered module to exactly one shard (see
+        # test_partition_unit_tests.py), and the workflow must fail if any
+        # shard fails.
+        self.assertIn("tools/partition_unit_tests.py", workflow)
+        self.assertIn('python3 -m unittest -v "${mods[@]}"', workflow)
+        self.assertIn('wait "${pids[$i]}"; r=$?', workflow)
+        self.assertIn('test "$rc" -eq 0', workflow)
 
     def test_trigger_scope_stays_narrow(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")

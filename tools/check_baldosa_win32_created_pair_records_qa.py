@@ -29,6 +29,7 @@ FILES = (
     "played_native_2p/log.txt", "fresh_mike_records/log.txt",
     "fresh_martin_records/log.txt",
 )
+UI_FILES = FILES[:-1] + ("mike_ui_selects_martin/log.txt", FILES[-1])
 RECEIPT = re.compile(
     r"(?m)^UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-2p "
     r"race_host=(\d+) result_host=(\d+) riders=(\d+),(\d+) "
@@ -80,7 +81,7 @@ def clock(hundredths: int) -> str:
     return f"{hundredths // 6000:02d}:{(hundredths // 100) % 60:02d}.{hundredths % 100:02d}"
 
 
-def read_source_evidence_zip(path: Path) -> tuple[bytes, ...]:
+def read_source_evidence_zip(path: Path, *, require_ui: bool = False) -> tuple[bytes, ...]:
     require(path.is_file() and not path.is_symlink() and
             0 < path.stat().st_size <= 8 * 1024 * 1024,
             "unsafe or missing evidence archive")
@@ -88,7 +89,7 @@ def read_source_evidence_zip(path: Path) -> tuple[bytes, ...]:
         names = [entry.filename for entry in archive.infolist()]
         require(len(names) == len(set(names)), "duplicate ZIP name")
         buffers = []
-        for part in FILES:
+        for part in (UI_FILES if require_ui else FILES):
             key = PREFIX + part
             require(key in names, "incomplete original five-process source group: " + key)
             info = archive.getinfo(key)
@@ -102,7 +103,7 @@ def read_source_evidence_zip(path: Path) -> tuple[bytes, ...]:
 
 def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
     require(type(raw_report) is bytes and 0 < len(raw_report) <= MAX_REPORT and
-            len(raw_logs) == 5, "missing producer report or process")
+            len(raw_logs) in (5, 6), "missing producer report or process")
     require(all(type(x) is bytes and 0 < len(x) <= MAX_LOG for x in raw_logs),
             "non-source or oversized Win32 process log")
     try:
@@ -110,6 +111,7 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
         logs = [x.decode("utf-8") for x in raw_logs]
     except (ValueError, UnicodeError) as exc:
         raise ValueError("invalid Win32 native five-process evidence encoding") from exc
+    ui = len(raw_logs) == 6
     expected_report_fields = {
         "scope", "actual_frontend_created_profiles", "observed_stock_riders",
         "observed_source_guest_result", "canonical_one_pair_sha256",
@@ -119,22 +121,35 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
         "physical_pad_hardware_accepted", "original_native_strict_event_accepted",
         "release_gate_credit",
     }
+    if ui:
+        expected_report_fields |= {
+            "anonymous_first_boot_sram_present",
+            "anonymous_bootstrap_bytes_unchanged_by_all_named_games",
+        }
     require(type(report) is dict and set(report) == expected_report_fields,
             "unexpected producer report claim or missing canonical field")
     require(type(report) is dict and
             report.get("scope") ==
-            "two-native-controller-created-profiles-played-source-2p-and-both-records" and
+            ("two-native-ui-created-players-played-source-2p-and-both-ui-selected-records"
+             if ui else
+             "two-native-controller-created-profiles-played-source-2p-and-both-records") and
             report.get("actual_frontend_created_profiles") == ["mike", "martin"] and
             report.get("observed_stock_riders") == [0, 2] and
             report.get("fresh_native_records_for_each") is True and
-            report.get("p2_existing_profile_select_via_fixture_not_player_UI") is True and
-            report.get("native_existing_p1_profile_selector_UI_proved") is False and
+            report.get("p2_existing_profile_select_via_fixture_not_player_UI") is (not ui) and
+            report.get("native_existing_p1_profile_selector_UI_proved") is ui and
             report.get("physical_pad_hardware_accepted") is False and
             report.get("original_native_strict_event_accepted") is False and
             type(report.get("release_gate_credit")) is int and
             report["release_gate_credit"] == 0,
             "producer report claimed new riders, profile UI or release gate")
-    first, second, played, mike_view, martin_view = logs
+    if ui:
+        require(type(report["anonymous_first_boot_sram_present"]) is bool and
+                report["anonymous_bootstrap_bytes_unchanged_by_all_named_games"] is True,
+                "anonymous legacy boot source preservation not attested")
+        first, second, played, mike_view, ui_switch, martin_view = logs
+    else:
+        first, second, played, mike_view, martin_view = logs
 
     # All five must use the EXACT SAME independently created OS user root.
     roots = [sole(ROOT, log, "per-user Windows root").group(1) for log in logs]
@@ -219,6 +234,27 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
             all(type(v) is str and HEX.fullmatch(v) for v in pair.values()),
             "missing canonical single pair hash report")
 
+    if ui:
+        stages = (
+            "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=mike root=saves/profile-mike",
+            "UR_BALDOSA_MODERN_ROOT opened=1",
+            "UR_BALDOSA_MODERN_ROOT existing_p1_opened=1 from=mike to=martin activation=next_process",
+            "UR_BALDOSA_NATIVE_P1_SWITCH status=0 from=mike to=martin activation=next_process",
+            "UR_BALDOSA_MODERN_ROOT existing_p1_saved=1 activation=next_process",
+            "UR_BALDOSA_MODERN_ROOT existing_p1_closed=1",
+            "UR_BALDOSA_MODERN_ROOT existing_p1_stale_race_blocked=1",
+        )
+        ordered_exact_source_lines(ui_switch, stages, "real next-boot MARTIN UI selector")
+        boot = sole(BOOT_NAME, ui_switch, "selected MIKE guest before MARTIN switch")
+        require(boot[1] == "mike" and ui_switch.index(stages[1]) <
+                boot.start() < ui_switch.index(stages[2]),
+                "native controller profile switch hot-swapped current running guest")
+        require(ui_switch.count("UR_BALDOSA_MODERN_ROOT synthetic_p1_switch_gamepad=") == 4
+                and "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=martin" not in ui_switch
+                and "UR_BALDOSA_MODERN_ROOT stock_entered players=" not in ui_switch
+                and not any(x in ui_switch for x in NO_CREATION_RESULT)
+                and "UR_BALDOSA_NATIVE_PROFILE PREFLIGHT_REJECTED status=3" in ui_switch,
+                "controller switch lacked real four-pad-edge/stale-safety/next-boot isolation")
     for profile, log, cents, seat in (
         ("mike", mike_view, t1, 1),
         ("martin", martin_view, t2, 2),
@@ -265,7 +301,11 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
                 for log in logs),
             "historical CI's synthetic pad/dummy audio scope not explicit")
     return {
-        "source_scope": "hosted-native-five-game-new-mike-martin-0-2-result-and-both-views",
+        "source_scope": (
+            "hosted-native-six-game-new-mike-martin-0-2-result-and-both-real-ui-views"
+            if ui else
+            "hosted-native-five-game-new-mike-martin-0-2-result-and-both-views"
+        ),
         "first_p1_and_p2_created_in_distinct_native_processes": True,
         "genuine_played_source_result_published": True,
         "source_rider_pair": [0, 2],
@@ -276,13 +316,14 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
         "reported_one_pair_digests": pair,
         "archived_run_and_match_bytes_independently_verified": False,
         "per_user_catalog_and_SRAM_bytes_independently_verified": False,
-        "martin_selection_via_backend_fixture_not_shipping_UI": True,
+        "martin_selection_via_backend_fixture_not_shipping_UI": not ui,
+        "martin_selection_via_real_native_ui_controller_semantics": ui,
         "real_physical_2p_controllers_or_audio_verified": False,
         "original_emulator_vs_native_scored_event_parity_verified": False,
         "original_USA_course_release_credit": 0,
         "release_gate_credit": 0,
         "report_sha256": hashlib.sha256(raw_report).hexdigest(),
-        "five_native_process_log_sha256": [
+        "native_process_log_sha256": [
             hashlib.sha256(x).hexdigest() for x in raw_logs],
         "outcome": "hosted_integrated_scored_pair_consistent_not_release_accepted",
     }
@@ -291,8 +332,13 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--evidence", type=Path, required=True)
+    parser.add_argument("--require-real-selector-ui", action="store_true")
     args = parser.parse_args()
-    result = audit(*read_source_evidence_zip(args.evidence))
+    result = audit(*read_source_evidence_zip(
+        args.evidence, require_ui=args.require_real_selector_ui))
+    require(result["martin_selection_via_real_native_ui_controller_semantics"]
+            is args.require_real_selector_ui,
+            "requested real native UI source evidence was not present")
     result["outer_runtime_archive_sha256"] = hashlib.sha256(
         args.evidence.read_bytes()).hexdigest()
     print(json.dumps(result, indent=2, sort_keys=True))

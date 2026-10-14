@@ -13,6 +13,9 @@ import re
 
 
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
+# Named Modern saved runs use the established canonical timestamp/collision
+# filename scheme; generic arbitrary .urrun text is not a run receipt.
+RUN_BASENAME = re.compile(r"run-[0-9]{16}-[0-9]{4}\.urrun\Z")
 CAPTURE = re.compile(
     r"(?m)^UR_BALDOSA_NATIVE_RUN CAPTURED=1 mode=race-1p "
     r"profile=native-ci-rider course=course:01 input_frames=(\d+) "
@@ -65,8 +68,20 @@ def audit_hosted_native_1p_records(
         raise ValueError("hosted native 1P Records log lacks one canonical captured result")
     c, r = captures[0], results[0]
     race_host, result_host, ticks, input_frames, input_runs = map(int, r.groups())
+    captured_path = c[3].replace("\\", "/")
+    captured_name = captured_path.rsplit("/", 1)[-1]
+    canonical_named_run = (
+        re.match(r"^[A-Za-z]:/", captured_path) is not None
+        and RUN_BASENAME.fullmatch(captured_name) is not None
+        and captured_path.endswith(f"/runs/native-ci-rider/{captured_name}")
+    )
     if (
-        not (0 < race_host < result_host)
+        not canonical_named_run
+        or result_host - race_host != input_frames
+        or played.count("UR_BALDOSA_NATIVE_PROFILE APPLIED profile=native-ci-rider ") != 1
+        or played.count("UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM "
+                        "profile=native-ci-rider bytes=8192 ") != 1
+        or not (0 < race_host < result_host)
         or ticks <= 0 or input_frames <= 0 or input_runs <= 0
         or c.start() >= r.start()
         or int(c[1]) != input_frames
@@ -96,6 +111,7 @@ def audit_hosted_native_1p_records(
         "hosted_new_1p_run_sha256_producer_reported": report["new_run_sha256"],
         "hosted_1p_result_ticks60": ticks,
         "hosted_1p_result_host_frame": result_host,
+        "hosted_1p_captured_named_run_basename": captured_name,
         "hosted_native_1p_report_sha256": hashlib.sha256(raw_report).hexdigest(),
         "hosted_native_1p_played_log_sha256": hashlib.sha256(raw_played).hexdigest(),
         "hosted_native_1p_fresh_log_sha256": hashlib.sha256(raw_fresh).hexdigest(),

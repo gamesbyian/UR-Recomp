@@ -20,6 +20,12 @@ on:
       - "tools/baldosa_modern_user_data_spike.py"
       - "tools/baldosa_modern_profile_activation_spike.py"
       - "tools/baldosa_modern_profile_activation.cpp"
+      - "tools/baldosa_native_first_racer_probe.py"
+      - "tests/unit/test_baldosa_native_first_racer_probe.py"
+      - "tests/native/modern_root_physical_edges_test.cpp"
+      - "native/product/modern_root_physical_edges.hpp"
+      - "native/product/modern_root_overlay_presenter.hpp"
+      - "native/product/clean_stock_sram.cpp"
       - "tools/baldosa_modern_profile_native_fixture.cpp"
       - "tests/native/baldosa_modern_profile_activation_test.cpp"
       - "tests/unit/test_baldosa_modern_profile_activation_spike.py"
@@ -73,6 +79,7 @@ jobs:
           python tests/unit/test_baldosa_windows_native_pause_route.py
           python tests/unit/test_baldosa_native_1p_records_probe.py
           python tests/unit/test_baldosa_native_2p_records_probe.py
+          python tests/unit/test_baldosa_native_first_racer_probe.py
           python tests/unit/test_baldosa_modern_user_data_spike.py
           python tests/unit/test_baldosa_modern_profile_activation_spike.py
 
@@ -174,6 +181,17 @@ jobs:
             --profile-fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe"
           echo "PASS: Win32 real native guest boot with two distinct catalog-backed Modern profiles, exact acknowledged native post-save typed SRAM publication/readback, per-rider isolation, pause/Restart, fresh-process reload, clean-machine DLL and invalid-profile gates. No completed event, physical hardware or unified frontend claim." >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Controller-semantic first named racer, canonical 8 KiB profile and fresh native boot
+        run: |
+          set -euo pipefail
+          python tools/baldosa_native_first_racer_probe.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_first_racer_boot" \
+            --video windows --timeout 140
+          echo "PASS: actual native controller-semantic X/preset creation, canonical clean SRAM/typed catalog/selector, and new game process boots chosen profile. This is not physical hardware or arbitrary-name support." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Real stock 1P result and newly saved Records reopened by fresh native game
         run: |
           set -euo pipefail
@@ -244,6 +262,9 @@ jobs:
           path: |
             ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/launcher-acceptance.json
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/report.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_first_racer_boot/report.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_first_racer_boot/first_controller_racer/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_first_racer_boot/fresh_named_game/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_1p_records/report.json
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_1p_records/played_native_event/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_1p_records/fresh_game_records/log.txt

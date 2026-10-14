@@ -30,6 +30,7 @@ const char* ur_baldosa_modern_profile_catalog_path(void);
 int ur_baldosa_modern_profile_can_join_opponent(
     const ur::product::HostProfileCatalogEntry* entry);
 int ur_baldosa_modern_profile_can_begin_race(void);
+int ur_baldosa_modern_create_initial_preset(unsigned preset);
 }
 
 #include <algorithm>
@@ -63,6 +64,10 @@ bool g_confirm_quit = false;
 bool g_records_open = false;
 bool g_unbound_two_player_warning_open = false;
 bool g_named_profile_stale = false;
+bool g_racer_setup_open = false;
+bool g_initial_creation_needs_restart = false;
+std::size_t g_racer_preset_index = 0;
+std::string g_racer_setup_error;
 ur::product::BaldosaNativeRunSaveFeedback g_run_save_feedback =
     ur::product::BaldosaNativeRunSaveFeedback::None;
 std::string g_records_status;
@@ -211,6 +216,7 @@ void open_records_archive() {
         matches.selected_profile_matches);
 }
 bool named_profile_still_playable() {
+    if (g_initial_creation_needs_restart) return false;
     // Once a selected profile becomes stale, require a process restart.
     // Reopening the root must never silently reactivate a different SRAM.
     if (g_named_profile_stale) return false;
@@ -220,6 +226,44 @@ bool named_profile_still_playable() {
     std::fprintf(stderr,
         "UR_BALDOSA_MODERN_ROOT active_profile_stale=1 restart_required=1\n");
     return false;
+}
+void open_racer_setup() {
+    if (!g_visible || g_stock_target != -1 || g_two_seat_join.open() ||
+        g_confirm_quit || g_records_open || g_unbound_two_player_warning_open ||
+        g_initial_creation_needs_restart ||
+        ur_baldosa_modern_profile_selected_id()) return;
+    // This deliberately handles only a blank first-user profile. Existing
+    // profiles are not switched underneath an already-running guest.
+    const char* catalog_path = std::getenv("SNESRECOMP_USER_DATA_DIR");
+    if (!catalog_path || !*catalog_path) return;
+    const auto roster = ur::product::load_host_profile_catalog_file(
+        (std::string(catalog_path) + "/profiles-v1.txt").c_str());
+    if (!roster || !roster->empty()) return;
+    g_racer_setup_open = true;
+    g_racer_preset_index = 0;
+    g_racer_setup_error.clear();
+    std::fprintf(stderr,
+        "UR_BALDOSA_MODERN_ROOT first_racer_open=1 presets=%zu\n",
+        ur::product::legacy_racer_presets().size());
+}
+void confirm_first_racer() {
+    const auto presets = ur::product::legacy_racer_presets();
+    if (!g_racer_setup_open ||
+        g_racer_preset_index >= presets.size()) return;
+    // Never claim success from merely drawing/selecting a profile.
+    if (!ur_baldosa_modern_create_initial_preset(
+            static_cast<unsigned>(g_racer_preset_index))) {
+        g_racer_setup_error = "CREATE FAILED - RETRY LATER";
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT first_racer_rejected=1\n");
+        return;
+    }
+    g_racer_setup_open = false;
+    g_initial_creation_needs_restart = true;
+    g_racer_setup_error.clear();
+    g_racer_name = "RACER CREATED - RESTART";
+    std::fprintf(stderr,
+        "UR_BALDOSA_MODERN_ROOT first_racer_created=1 restart_required=1\n");
 }
 void request_stock_route(int players) {
     g_stock_target = players - 1;
@@ -265,6 +309,10 @@ void join_confirm(unsigned seat) {
 }
 void choose() {
     if (g_stock_target != -1) return;
+    if (g_racer_setup_open) {
+        confirm_first_racer();
+        return;
+    }
     if (g_unbound_two_player_warning_open) {
         // Separate explicit consent for a playable unrecorded session.
         g_unbound_two_player_warning_open = false;
@@ -359,6 +407,19 @@ void choose() {
     request_stock_route(1);
 }
 void navigate(int delta) {
+    if (g_racer_setup_open) {
+        const auto count =
+            static_cast<int>(ur::product::legacy_racer_presets().size());
+        if (count > 0)
+            g_racer_preset_index = static_cast<std::size_t>(
+                (static_cast<int>(g_racer_preset_index) +
+                 (delta > 0 ? 1 : -1) + count) % count);
+        g_racer_setup_error.clear();
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT first_racer_preset=%zu\n",
+            g_racer_preset_index);
+        return;
+    }
     if (g_confirm_quit || g_stock_target != -1 ||
         g_unbound_two_player_warning_open) return;
     if (g_two_seat_join.open()) {
@@ -375,6 +436,13 @@ void navigate(int delta) {
             ur::product::modern_root_menu_selected(g_menu)));
 }
 void back() {
+    if (g_racer_setup_open) {
+        g_racer_setup_open = false;
+        g_racer_setup_error.clear();
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT first_racer_cancelled=1\n");
+        return;
+    }
     if (g_unbound_two_player_warning_open) {
         g_unbound_two_player_warning_open = false;
         std::fprintf(stderr,
@@ -444,6 +512,10 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     g_records_open = false;
     g_unbound_two_player_warning_open = false;
     g_named_profile_stale = false;
+    g_racer_setup_open = false;
+    g_initial_creation_needs_restart = false;
+    g_racer_preset_index = 0;
+    g_racer_setup_error.clear();
     g_run_save_feedback = ur::product::BaldosaNativeRunSaveFeedback::None;
     g_visible = true;
     g_render_reported = false;
@@ -467,6 +539,7 @@ extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
     case SDLK_DOWN: physical = 1; action = 1; break;
     case SDLK_RETURN: physical = 2; action = 2; break;
     case SDLK_ESCAPE: physical = 3; action = 3; break;
+    case SDLK_F2: physical = 4; action = 4; break;
     default: return 0;
     }
     // Continue tracking release after a stock-game handoff. An Escape held
@@ -478,7 +551,8 @@ extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
         return key == SDLK_ESCAPE && first_press &&
                reopen_on_observed_stock_main() ? 1 : 0;
     if (!first_press) return 1;
-    if (action == 2) choose();
+    if (action == 4) open_racer_setup();
+    else if (action == 2) choose();
     else if (action == 3) back();
     else navigate(action);
     return 1;
@@ -514,6 +588,7 @@ extern "C" int ur_baldosa_modern_root_gamepad(
     case kGamepadBtn_A: physical = 2; action = 2; break;
     case kGamepadBtn_Start: physical = 3; action = 2; break;
     case kGamepadBtn_B: physical = 4; action = 3; break;
+    case kGamepadBtn_X: physical = 5; action = 4; break;
     default: return 0;
     }
     // A and Start keep separate physical latches while sharing Confirm.
@@ -524,7 +599,8 @@ extern "C" int ur_baldosa_modern_root_gamepad(
         return button == kGamepadBtn_B && first_press &&
                reopen_on_observed_stock_main() ? 1 : 0;
     if (!first_press) return 1;
-    if (action == 2) choose();
+    if (action == 4) open_racer_setup();
+    else if (action == 2) choose();
     else if (action == 3) back();
     else navigate(action);
     return 1;
@@ -557,6 +633,15 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         g_records_open, g_records_status, g_records_recent,
         g_records_two_player, true};
     view.records_detail = g_records_detail;
+    view.racer_shortcuts_available =
+        !g_initial_creation_needs_restart &&
+        !ur_baldosa_modern_profile_selected_id();
+    view.first_racer_creation_open = g_racer_setup_open;
+    view.first_racer_restart_required = g_initial_creation_needs_restart;
+    view.first_racer_setup_error = g_racer_setup_error;
+    view.first_racer_preset = g_racer_preset_index < 
+        ur::product::legacy_racer_presets().size()
+        ? ur::product::legacy_racer_presets()[g_racer_preset_index].name : "";
     view.unbound_two_player_warning_open =
         g_unbound_two_player_warning_open;
     view.two_seat_join_open = g_two_seat_join.open();
@@ -747,7 +832,8 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
     if (!g_visible || !opt || (std::strcmp(opt, "1") != 0 &&
                              std::strcmp(opt, "2") != 0 &&
-                             std::strcmp(opt, "3") != 0)) return;
+                             std::strcmp(opt, "3") != 0 &&
+                             std::strcmp(opt, "4") != 0)) return;
     // Mode 3 is a deliberately TEST-ONLY synthetic gamepad semantic
     // injection, not an SDL hardware controller or guest memory write.
     // All stock menu transitions still occur inside the original guest.
@@ -766,11 +852,27 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             player + 1);
         return;
     }
+    if (std::strcmp(opt, "4") == 0 && frame == 60) {
+        // Explicit test-only semantic gamepad X opener; never a physical
+        // gamepad or proof of hardware. The same real root handler owns it.
+        if (!ur_baldosa_modern_root_gamepad(0, kGamepadBtn_X, 1) ||
+            !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_X, 0) ||
+            !g_racer_setup_open) std::abort();
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT synthetic_first_racer_x=1\n");
+        return;
+    }
     int key = 0;
     // In mode 1 open and switch 1P/2P read-only Records pages using
     // real SDL key edges, then close and enter 1P. Mode 2 proves the
     // actual stock 2P handoff.
-    if (std::strcmp(opt, "2") == 0 ||
+    if (std::strcmp(opt, "4") == 0) {
+        // P1 Down selects the second original preset; A creates the durable
+        // profile and B/Enter quits. A new game process must reload it.
+        if (frame == 62) key = SDLK_DOWN;
+        else if (frame == 64 || frame == 68) key = SDLK_RETURN;
+        else if (frame == 66) key = SDLK_ESCAPE;
+    } else if (std::strcmp(opt, "2") == 0 ||
         std::strcmp(opt, "3") == 0) {
         if (frame == 60 || frame == 62) key = SDLK_DOWN;
         else if (frame == 64 ||

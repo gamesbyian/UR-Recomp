@@ -25,6 +25,9 @@ SOURCES = (
     "host_profile_state.cpp",
     "host_profile_catalog.cpp",
     "modern_racer_identity.cpp",
+    # Canonical clean 8192-byte source shared with the established Modern
+    # profile editor; required for first-run native profile registration.
+    "clean_stock_sram.cpp",
 )
 
 

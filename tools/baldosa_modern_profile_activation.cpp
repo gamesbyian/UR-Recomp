@@ -14,6 +14,7 @@
 #include "host_profile_runtime.hpp"
 #include "host_profile_store.hpp"
 #include "host_profile_catalog.hpp"
+#include "clean_stock_sram.hpp"
 #include "baldosa_native_profile_sram_checkpoint.hpp"
 #include "baldosa_native_profile_path_guard.hpp"
 #include "baldosa_native_run_record_admission.hpp"
@@ -27,6 +28,8 @@ extern "C" void ur_baldosa_modern_root_set_racer_name(const char* name);
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
+#include <fstream>
+#include <vector>
 #include <optional>
 #include <memory>
 #include <string>
@@ -192,6 +195,104 @@ extern "C" int ur_baldosa_modern_try_activate_profile(void) {
     return 1;
 }
 
+
+// Controller-confirmed first-run registration. This is a bounded wrapper
+// around the EXISTING Modern product codecs/CAS stores and canonical clean
+// stock SRAM, not a replacement profile subsystem or a guest SRAM patch.
+//
+// A running anonymous native cartridge is deliberately NEVER reidentified.
+// The global selector is the last publication; the player must exit and
+// relaunch for the already-shipping after_config activation to load the new
+// named SRAM before the first guest frame. If any earlier write fails, no
+// active profile is published. Incomplete unregistered directories remain
+// untouched as forensic orphans, never adopted or deleted automatically.
+extern "C" int ur_baldosa_modern_create_initial_preset(unsigned preset) {
+    namespace fs = std::filesystem;
+    using namespace ur::product;
+    if (!activated() || !g_verified_native_profile_id.empty() ||
+        g_launch_profile || g_launch_global) return 0;
+    const auto racer = make_legacy_racer_identity(preset);
+    if (!racer || !valid_racer_identity(*racer)) return 0;
+    const char* env_root = std::getenv("SNESRECOMP_USER_DATA_DIR");
+    if (!env_root || !*env_root) return 0;
+    const fs::path user_root(env_root);
+    if (!user_root.is_absolute()) return 0;
+    const auto is_real_directory = [](const fs::path& path) {
+        std::error_code ec;
+        return fs::symlink_status(path, ec).type() ==
+            fs::file_type::directory && !ec;
+    };
+    if (!is_real_directory(user_root) ||
+        !is_real_directory(user_root / "saves")) return 0;
+    const fs::path global_path = user_root / "host-state-v1.txt";
+    const fs::path catalog_path = user_root / "profiles-v1.txt";
+    // The profile-create route only owns an actually anonymous new user
+    // root. Never replace an existing selection or an existing roster.
+    const auto global = load_host_product_state_file(global_path.string());
+    if (global.status != HostProductLoadStatus::Missing &&
+        (!global.loaded() || global.state->active_profile_id)) return 0;
+    const auto roster = load_host_profile_catalog_file(catalog_path.string());
+    if (!roster || !roster->empty()) return 0;
+    // A concurrent process could already have reserved a profile directory
+    // with no catalog row. Never reuse, truncate or mistake it for clean.
+    const auto id = make_profile_id(racer->name, *roster);
+    if (id.empty() || !is_safe_profile_storage_id(id)) return 0;
+    const auto decision = resolve_host_profile_save_root(
+        ExecutionMode::Modern, id);
+    if (!decision.isolated()) return 0;
+    const fs::path profile_root = user_root / decision.save_root;
+    std::error_code ec;
+    if (!fs::create_directory(profile_root, ec) || ec) return 0;
+    const fs::path typed_path = profile_root / "host-profile.txt";
+    const fs::path raw_path = profile_root / "save.srm";
+    auto state = make_default_host_profile_state(id);
+    // The existing Modern profile activation sets the selected cartridge
+    // rider byte at 0x0748. Seed that *new private snapshot* consistently
+    // now, before the first native guest boot; never edit live guest SRAM.
+    auto source = clean_stock_sram();
+    source[0x0748] = racer->rider_index;
+    if (!state || !stock_sram_format_signature_present(
+            source.data(), source.size())) return 0;
+    state->racer_identity = *racer;
+    if (capture_stock_sram_for_profile(
+            ExecutionMode::Modern, *state, source.data(), source.size()) !=
+            HostProfileTransferStatus::Applied) return 0;
+    if (save_host_profile_state_file_if_current(
+            ExecutionMode::Modern, typed_path.string(), std::nullopt,
+            *state) != HostProfileSaveStatus::Saved) return 0;
+    // Only the newly exclusive profile directory is writable. The original
+    // anonymous guest SRAM and other profiles are NEVER inspected/modified.
+    {
+        std::ofstream raw(raw_path, std::ios::binary | std::ios::out);
+        if (!raw.write(
+                reinterpret_cast<const char*>(source.data()),
+                static_cast<std::streamsize>(source.size())) ||
+            !raw.flush()) return 0;
+    }
+    if (!baldosa_sram_file_matches_exact(
+            raw_path, source.data(), kStockSramBytes)) return 0;
+    const std::vector<HostProfileCatalogEntry> proposed{
+        HostProfileCatalogEntry{id, *racer}};
+    if (save_host_profile_catalog_file_if_current(
+            catalog_path.string(), *roster, proposed) !=
+            HostProfileCatalogSaveStatus::Saved) return 0;
+    // The global active player is the final durable CAS, after the entire
+    // typed+raw profile and the canonical catalog are already readable.
+    HostProductState next = global.loaded()
+        ? *global.state : HostProductState{};
+    next.active_profile_id = id;
+    if (save_host_product_state_file_if_current(
+            global_path.string(),
+            global.loaded() ? std::optional<HostProductState>{*global.state}
+                            : std::nullopt,
+            next) != HostProductSaveStatus::Saved) return 0;
+    std::fprintf(stderr,
+        "UR_BALDOSA_NATIVE_PROFILE CREATED profile=%s rider=%u "
+        "bytes=%zu restart_required=1\n",
+        id.c_str(), preset, source.size());
+    std::fflush(stderr);
+    return 1;
+}
 
 // Read-only admission used solely to display P2 profile choices in the
 // real native root. A catalog name is not enough: the opponent must have

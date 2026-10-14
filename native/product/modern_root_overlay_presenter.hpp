@@ -62,6 +62,10 @@ struct ModernRootOverlayView {
     // Older Modern presenters retain their exact two-line layout by default.
     std::string_view records_detail{};
     bool unbound_two_player_warning_open = false;
+    bool first_racer_creation_open = false;
+    bool first_racer_restart_required = false;
+    std::string_view first_racer_preset{};
+    std::string_view first_racer_setup_error{};
 };
 
 inline bool render_modern_root_overlay(
@@ -283,6 +287,52 @@ inline bool render_modern_root_overlay(
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 113 * scale,
                         "P2 DPAD+A / B CLEAR", palette.secondary_grey, scale);
+    }
+    if ((view.first_racer_creation_open ||
+         view.first_racer_restart_required) && !view.quit_confirm) {
+        // Same existing shared native Modern root painter. This never
+        // changes guest identity or guest SRAM in the running process.
+        const int bx = x + 12 * scale, by = y + 43 * scale;
+        const int bw = (panel_w - 24) * scale, bh = 137 * scale;
+        paint.fill_rect(pixels, stride, surface_height,
+                        bx, by, bw, bh, palette.background);
+        paint.stroke_rect(pixels, stride, surface_height,
+                          bx, by, bw, bh, palette.title_yellow);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 10 * scale,
+                        "CREATE FIRST RACER", palette.title_yellow, scale);
+        if (view.first_racer_restart_required) {
+            paint.draw_text(pixels, stride, surface_height,
+                            bx + 9 * scale, by + 44 * scale,
+                            "RACER SAVED SAFELY", 0xFFFFFFFFu, scale);
+            paint.draw_text(pixels, stride, surface_height,
+                            bx + 9 * scale, by + 66 * scale,
+                            "QUIT, THEN RELAUNCH", palette.cursor_blue, scale);
+            paint.draw_text(pixels, stride, surface_height,
+                            bx + 9 * scale, by + 112 * scale,
+                            "B BACK  THEN QUIT", 0xFFFFFFFFu, scale);
+        } else {
+            paint.draw_text(pixels, stride, surface_height,
+                            bx + 9 * scale, by + 41 * scale,
+                            "UP/DOWN CHOOSE A RACER", 0xFFFFFFFFu, scale);
+            const auto preset = fit_modern_overlay_text(
+                std::string("STOCK: ") +
+                std::string(view.first_racer_preset),
+                modern_overlay_text_cells(panel_w - 34));
+            paint.draw_text(pixels, stride, surface_height,
+                            bx + 9 * scale, by + 64 * scale,
+                            preset.c_str(), palette.cursor_blue, scale);
+            const auto status = fit_modern_overlay_text(
+                view.first_racer_setup_error,
+                modern_overlay_text_cells(panel_w - 34));
+            if (!status.empty())
+                paint.draw_text(pixels, stride, surface_height,
+                                bx + 9 * scale, by + 85 * scale,
+                                status.c_str(), palette.title_yellow, scale);
+            paint.draw_text(pixels, stride, surface_height,
+                            bx + 9 * scale, by + 112 * scale,
+                            "P1 A CREATE  B CANCEL", 0xFFFFFFFFu, scale);
+        }
     }
     if (view.unbound_two_player_warning_open) {
         // An unbound stock session is playable, but not attributable.

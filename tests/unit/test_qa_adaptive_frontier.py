@@ -358,5 +358,53 @@ class ResearchFrontierContracts(unittest.TestCase):
         self.assertNotIn("persist-credentials: true",wf)
 
 
+class TurboExecutionGuard(unittest.TestCase):
+    """Synthetic process doubles only; the real metamorphic evidence is the
+    rendered repeat on every 25th real native case."""
+
+    def test_turbo_script_is_the_rendered_route_plus_one_verb(self):
+        rendered=f.guest.render_script(f.guest.base_source()[1])
+        turbo=f.turbo_script(rendered)
+        self.assertEqual(turbo,"turbo on\n"+rendered)
+        with self.assertRaises(ValueError):
+            f.turbo_script(turbo)
+
+    def test_execution_policy_is_part_of_plan_identity(self):
+        plan=f.plan("a"*40,50000000,100)
+        self.assertEqual(plan["execution_policy"],f.EXECUTION_POLICY)
+        f.validate_plan(plan)
+        forged={**plan,"execution_policy":"rendered"}
+        with self.assertRaises(ValueError):
+            f.validate_plan(forged)
+
+    def test_identical_input_repeat_runs_fully_rendered(self):
+        calls=[]
+        original_execute,original_observe=f.guest.execute,f.guest.observe
+        def fake_execute(exe,rom,control,script,root,timeout):
+            calls.append((Path(script).name,Path(root).name))
+            Path(root).mkdir(parents=True)  # the real producer creates its root
+            if "verify-p" in Path(root).name:
+                return {f.guest.BASE_CHECK:"same",f.guest.FIRST_PROBE:"changed"}
+            return {f.guest.BASE_CHECK:"same",f.guest.FIRST_PROBE:"baseline"}
+        f.guest.execute=fake_execute
+        f.guest.observe=lambda dumps:{f.guest.BASE_CHECK:"same",f.guest.FIRST_PROBE:"baseline"}
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                root=Path(tmp)/"native-0000"
+                root.mkdir()
+                (Path(tmp)/"case-50000000.input").write_text("x")
+                f.verify_sample(exe=Path("exe"),rom=Path("rom"),
+                                source_input=f.guest.base_source()[0],
+                                script=Path(tmp)/"source-route.script",root=root,
+                                seed=50000000,arm="balanced",timeout=120,
+                                rendered_script=Path(tmp)/"source-route-rendered.script")
+        finally:
+            f.guest.execute,f.guest.observe=original_execute,original_observe
+        self.assertEqual(calls[0],("source-route-rendered.script","verify-repeat-50000000"))
+        self.assertTrue(all(s=="source-route.script" for s,_ in calls[1:]))
+        source=(ROOT/"tools/qa_adaptive_frontier.py").read_text()
+        self.assertIn("timeout=timeout,rendered_script=rendered)",source)
+
+
 if __name__=="__main__":
     unittest.main()

@@ -55,7 +55,12 @@ class NativeFirstModernRacerTests(unittest.TestCase):
         self.assertIn("activation=next_process", root)
         self.assertIn("case SDLK_x:", root)
         self.assertIn("case kGamepadBtn_X:", root)
-        # The original first-racer modal remains visible; P2 shares the\n        # existing view only when the distinct second-racer modal is open.\n        self.assertIn(\n            "view.first_racer_open = g_first_racer_open || g_second_racer_open;",\n            root)\n        self.assertIn("view.first_racer_is_second = g_second_racer_open;", root)
+        # The original first-racer modal remains visible; P2 shares the
+        # existing view only when the distinct second-racer modal is open.
+        self.assertIn(
+            "view.first_racer_open = g_first_racer_open || g_second_racer_open;",
+            root)
+        self.assertIn("view.first_racer_is_second = g_second_racer_open;", root)
         self.assertIn("if (view.first_racer_open)", presenter)
         self.assertNotIn("RtlRunFrame(", root)
         self.assertNotIn("RtlWriteSram(", root)

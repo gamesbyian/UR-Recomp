@@ -141,9 +141,15 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
             len(list(BOOT.finditer(second))) == 1,
             "P2 was hot swapped or race-published")
     ordered_exact_source_lines(played, THIRD, "separately created P1/P2 guest race")
-    require("UR_BALDOSA_MODERN_ROOT synthetic_join_edge seat=1" in played and
-            "UR_BALDOSA_MODERN_ROOT synthetic_join_edge seat=2" in played,
-            "virtual pad smoke was not independently disclosed")
+    joined_one = "UR_BALDOSA_MODERN_ROOT synthetic_join_edge seat=1"
+    joined_two = "UR_BALDOSA_MODERN_ROOT synthetic_join_edge seat=2"
+    require(played.count(joined_one) == played.count(joined_two) == 1 and
+            played.index("UR_BALDOSA_MODERN_ROOT join_confirmed seat=1") <
+            played.index(joined_one) <
+            played.index("UR_BALDOSA_MODERN_ROOT join_confirmed seat=2") <
+            played.index(joined_two) <
+            played.index("UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d"),
+            "virtual pad smoke route did not confirm source-owned seats in order")
     require(len(list(BOOT.finditer(played))) == 1,
             "MIKE's named native 2P guest boot was not observed")
     require(not any(x in played for x in (

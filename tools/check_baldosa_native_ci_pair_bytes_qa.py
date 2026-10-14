@@ -35,6 +35,11 @@ MATCH_KEYS = (
 )
 DIGEST = re.compile(r"[0-9a-f]{64}\Z")
 HEX64 = re.compile(r"[0-9a-f]{16}\Z")
+# The native CompletedRunRecorder merges touching spans with the same pair
+# of P1/P2 masks. Its C++ writer emits minimal decimal starts/durations and
+# UPPERCASE hex masks, not arbitrary parsable text with an FNV trailer.
+DECIMAL = re.compile(r"(?:0|[1-9][0-9]*)\Z")
+UPPER_HEX_MASK = re.compile(r"(?:0|[1-9A-F][0-9A-F]*)\Z")
 MAX_RUN_BYTES = 4 * 1024 * 1024
 MAX_MATCH_BYTES = 64 * 1024
 
@@ -125,14 +130,15 @@ def audit_raw_native_ci_two_player_pair(
     if len(rows) != expected_runs:
         raise ValueError("native CI run has wrong source input-run count")
     prior_end = 0
+    previous_mask: tuple[int, int] | None = None
     seen_p1 = seen_p2 = False
     frames = int(run_values["frame_count"])
     for row in rows:
         fields = row.split(" ")
         if (
             len(fields) != 5 or fields[0] != "input"
-            or not all(re.fullmatch(r"[0-9]+", x) for x in fields[1:3])
-            or not all(re.fullmatch(r"[0-9a-fA-F]+", x) for x in fields[3:])
+            or not all(DECIMAL.fullmatch(x) for x in fields[1:3])
+            or not all(UPPER_HEX_MASK.fullmatch(x) for x in fields[3:])
         ):
             raise ValueError("native CI run contains malformed resolved input")
         start, duration = int(fields[1]), int(fields[2])
@@ -140,9 +146,11 @@ def audit_raw_native_ci_two_player_pair(
         if (
             duration < 1 or start < prior_end or start + duration > frames
             or p1 > 0xfff or p2 > 0xfff or not (p1 or p2)
+            or (start == prior_end and previous_mask == (p1, p2))
         ):
             raise ValueError("native CI run contains overlapping/invalid input span")
         prior_end = start + duration
+        previous_mask = (p1, p2)
         seen_p1 |= p1 != 0
         seen_p2 |= p2 != 0
     if not (seen_p1 and seen_p2):

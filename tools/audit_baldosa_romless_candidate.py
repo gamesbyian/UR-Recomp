@@ -80,7 +80,7 @@ def inspect(archive: Path, *, expected_revision: str | None = None,
             require(0 <= info.file_size <= maximum,
                     "member exceeds published size budget")
 
-        manifest_bytes = z.read(PREFIX + MANIFEST, MAX_SMALL_BYTES + 1)
+        with z.open(PREFIX + MANIFEST) as member:\n            manifest_bytes = member.read(MAX_SMALL_BYTES + 1)
         require(len(manifest_bytes) <= MAX_SMALL_BYTES,
                 "manifest decompression exceeds budget")
         try:
@@ -138,7 +138,7 @@ def inspect(archive: Path, *, expected_revision: str | None = None,
                     "member bytes differ from immutable manifest: " + name)
             result[name] = hasher.hexdigest()
 
-        readme_bytes = z.read(PREFIX + README, MAX_SMALL_BYTES + 1)
+        with z.open(PREFIX + README) as member:\n            readme_bytes = member.read(MAX_SMALL_BYTES + 1)
         require(readme_bytes.endswith(
             ("Project source revision: " + revision + "\n").encode("ascii")),
             "README source identity differs from manifest")

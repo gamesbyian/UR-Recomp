@@ -1,0 +1,114 @@
+{
+  "schema": "qa08-channel7-only-real-original-native-3scene-outcome/1",
+  "status": "completed_negative_for_general_channel7_only_source_parity",
+  "source": "independently executed pinned USA 2P original/native original-size PPU sources",
+  "native_gha_run": 38640211633,
+  "native_artifact_id": 11929639588,
+  "native_archive_sha256": "9df4d909c7ee2277af86593f38b409925da8fddd58203b33f898cbd247b73ce9",
+  "native_strict_comparison_report_sha256": "102f25ab7f996b4447e8f8acbeab76532828c4a412cd7a89080991c17a644f74",
+  "native_pr_number": 1586,
+  "source_original_zip_sha256": {
+    "countdown": "56ec0011a3559f5953578c495d080d0150f2a06fb7a76c2e437fab781e2b2ce6",
+    "postGO": "6e5d488230c11d3dfcd144b6a7cbc8c25d7acfcb4f95b776a85071dd3487f5e3"
+  },
+  "real_source_geometry": [
+    256,
+    224
+  ],
+  "guest_route_frames_and_CRCS_equal": 2473,
+  "identical_native_3process_crc_file_sha256": "4280056aef50acde83ca9ce82d0a12f8a5b7190a18e42a5d24401b65c44e205d",
+  "channel5_stock_vs_selective_journal_exact": true,
+  "channel5_journal_SHA256": "f4fa82fec7aca2ac22feb96cb718bfd9e23f320d2b00b615cfd86225f6f1a37d",
+  "channel5_logged_after_BBUS_lines": 7,
+  "channel7_selective_after_BBUS_INIDISP_sha256": "bf7012b095ad413c292f54606ce51ddfde4a690784626ebd0c9aa780ecf5a1a5",
+  "no_source_alpha_changed": true,
+  "native_dispositions": [
+    {
+      "native_guest_frame": 400,
+      "original_callback": null,
+      "P7_sha256": {
+        "stock": "ee97b26ca9deac86809604665097473357d078867bad9a2f3da2384056eb9362",
+        "selective": "ee97b26ca9deac86809604665097473357d078867bad9a2f3da2384056eb9362",
+        "global_prime": "ee97b26ca9deac86809604665097473357d078867bad9a2f3da2384056eb9362"
+      },
+      "stock_to_selective_RGBA_changed": 0,
+      "stock_to_global_RGBA_changed": 0,
+      "selective_to_global_RGBA_changed": 0,
+      "original_frame_available": false
+    },
+    {
+      "native_guest_frame": 1856,
+      "original_callback": 1855,
+      "P7_sha256": {
+        "stock": "6aea6cebaf1292d962ad5ce01a73966bb0ad8948095d1e73b155712cac41039a",
+        "selective": "f717a2841b6fbc8497b601f75db24d7c36c750bba5df4f6f41258a127ddf94fb",
+        "global_prime": "ed35731cde55e927165f173c1db29c27b3b7eeff19862fbca27db3467cb8bc87"
+      },
+      "original_RGB5_wrong_pixels": {
+        "stock": 971,
+        "selective": 460,
+        "global_prime": 0
+      },
+      "stock_to_selective_RGBA_changed": 512,
+      "stock_to_global_RGBA_changed": 971,
+      "selective_to_global_RGBA_changed": 460,
+      "selective_remaining_upper_visible_wrong_pixels": 226,
+      "selective_remaining_lower_visible_wrong_pixels": 234,
+      "selective_remaining_contour_wrong_pixels": 459,
+      "selective_remaining_split_row_wrong_pixels": 1
+    },
+    {
+      "native_guest_frame": 2208,
+      "original_callback": 2207,
+      "P7_sha256": {
+        "stock": "a946c9ebb54775639b8fd87a6861af0408cceed4896e58be05908c4a4491c67f",
+        "selective": "bf8b4218fb72f94338b19da5c1386bd5ce09c0dc0c767093286e80895fa3353c",
+        "global_prime": "bf8b4218fb72f94338b19da5c1386bd5ce09c0dc0c767093286e80895fa3353c"
+      },
+      "original_RGB5_wrong_pixels": {
+        "stock": 512,
+        "selective": 0,
+        "global_prime": 0
+      },
+      "stock_to_selective_RGBA_changed": 512,
+      "stock_to_global_RGBA_changed": 512,
+      "selective_to_global_RGBA_changed": 0
+    }
+  ],
+  "countdown_threeway_seam_pixel": {
+    "xy": [
+      223,
+      113
+    ],
+    "original_snes9x_BGRX": [
+      255,
+      56,
+      57,
+      0
+    ],
+    "stock_native_RGBA": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "selective_native_RGBA": [
+      132,
+      165,
+      165,
+      0
+    ],
+    "global_native_RGBA": [
+      57,
+      57,
+      255,
+      0
+    ],
+    "interpretation": "one source pixel where selected channel7 changed stock, but only global prime agrees with original; requires channel5/effective math investigation, not a proven channel5 writer ownership"
+  },
+  "source_frame_phase_and_hardware_HBlank_proven": false,
+  "channel5_colour_math_causal_path_proven": false,
+  "cross_game_compatibility_proven": false,
+  "additional_moving_race_results_1P_pixel_parity_proven": false,
+  "shipping_renderer_change_authorized": false
+}

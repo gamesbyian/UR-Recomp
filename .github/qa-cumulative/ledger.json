@@ -604,6 +604,25 @@
       "sequence": 3,
       "source_sha": "dd5632f0a612ee22cc46d9b1ce7a6005a5fa555f",
       "windows_trials": 3
+    },
+    {
+      "base_seed": 50012000,
+      "campaign": "windows",
+      "disposition": "completed_positive",
+      "frontier_cases": 100,
+      "github_run_id": 38498844425,
+      "metrics": {
+        "aggregate_sha256": "8f42d04a979bcbd5ea6794135084a59d1443c14da429dffcc6cc881ea5b853dd",
+        "cases": 40,
+        "observations": 40
+      },
+      "minutes": 15,
+      "origin": "coordinator",
+      "record_sha256": "b71aad0a5898e89d04012a1a59ab69445b673359f5f46385dc5f8495efc81d24",
+      "release_gate_credit": 0,
+      "sequence": 1,
+      "source_sha": "8d993150f0736dc40476cee3eb30c08301ae48d7",
+      "windows_trials": 10
     }
   ],
   "schema": "ur-cumulative-campaign-ledger/1"

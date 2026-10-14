@@ -32,7 +32,8 @@ The Modern P2 product candidate now extends that **same existing** controller
 X / preset / A action with narrowly admitted recovery: after normal creation
 reports pre-existing data, only a complete, exact stock-initial P2 with the
 requested original preset, correct deterministic profile ID, exactly the
-canonical typed and raw files, unmodified raw SRAM and a one-entry verified
+canonical typed and raw files plus the existing empty typed-store `.urmutex`
+OS lock artifact, unmodified raw SRAM and a one-entry verified
 P1 catalog can have its **missing catalog row appended**. The global P1
 selector, P1 profile/SRAM, orphan's profile bytes and live guest are never
 modified or adopted automatically. Locks are held in existing selector →

@@ -23,6 +23,7 @@ from assemble_baldosa_windows_candidate import (
 )
 from evidence_contract import assertion, make_envelope
 from check_baldosa_win32_native_1p_records_evidence import audit_hosted_native_1p_records
+from check_baldosa_win32_native_2p_records_evidence import audit_hosted_native_2p_records
 
 SHA40 = re.compile(r"[0-9a-f]{40}\Z")
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
@@ -291,6 +292,9 @@ RUNTIME_TWO = "UR Baldosa Win32 Pause Route/modern_to_live_race_2p/log.txt"
 RUNTIME_NEW_ONE = "UR Baldosa Win32 Pause Route/native_real_1p_records/report.json"
 RUNTIME_NEW_PLAYED = "UR Baldosa Win32 Pause Route/native_real_1p_records/played_native_event/log.txt"
 RUNTIME_NEW_FRESH = "UR Baldosa Win32 Pause Route/native_real_1p_records/fresh_game_records/log.txt"
+RUNTIME_NEW_TWO = "UR Baldosa Win32 Pause Route/native_real_2p_records/report.json"
+RUNTIME_NEW_TWO_PLAYED = "UR Baldosa Win32 Pause Route/native_real_2p_records/played_native_2p/log.txt"
+RUNTIME_NEW_TWO_FRESH = "UR Baldosa Win32 Pause Route/native_real_2p_records/fresh_game_2p_records/log.txt"
 
 
 def check_runtime_actions_wrapper(
@@ -300,9 +304,10 @@ def check_runtime_actions_wrapper(
     """Read the separately produced same-run log/report archive without executing it.
 
     Positive claim: source-identical PE + bounded *entry to live race*.
-    A newer complete optional three-artifact group adds hosted native 1P
-    result->fresh-game Records LOG evidence, not independently retained run
-    bytes. No strict original/native, physical, or 2P release credit.
+    Two optional complete three-artifact groups add hosted *source-bound*
+    native 1P and 2P played results through a fresh game process's Records
+    logs. The saved run and match raw bytes are NOT archived. Neither group
+    can certify original/native parity, consumer hardware, or release QA.
     """
     if wrapper.is_symlink() or not wrapper.is_file() or wrapper.stat().st_size > 16 * 1024 * 1024:
         raise ValueError("Baldosa Win32 runtime evidence ZIP missing, linked or oversized")
@@ -342,6 +347,18 @@ def check_runtime_actions_wrapper(
                  bounded(RUNTIME_NEW_PLAYED, 2 * 1024 * 1024),
                  bounded(RUNTIME_NEW_FRESH, 2 * 1024 * 1024))
                 if all(newer_one_present) else None
+            )
+            newer_two_names = (
+                RUNTIME_NEW_TWO, RUNTIME_NEW_TWO_PLAYED, RUNTIME_NEW_TWO_FRESH,
+            )
+            newer_two_present = [name in names for name in newer_two_names]
+            if any(newer_two_present) and not all(newer_two_present):
+                raise ValueError("Baldosa native 2P paired result-to-Records evidence group incomplete")
+            newer_two = (
+                (bounded(RUNTIME_NEW_TWO, 64 * 1024),
+                 bounded(RUNTIME_NEW_TWO_PLAYED, 2 * 1024 * 1024),
+                 bounded(RUNTIME_NEW_TWO_FRESH, 2 * 1024 * 1024))
+                if all(newer_two_present) else None
             )
     except zipfile.BadZipFile as exc:
         raise ValueError("Baldosa Win32 runtime evidence ZIP is corrupt") from exc
@@ -434,6 +451,17 @@ def check_runtime_actions_wrapper(
     else:
         candidate["metrics"]["hosted_native_1p_result_to_fresh_records_logs_consistent"] = False
         candidate["metrics"]["hosted_saved_urrun_bytes_independently_reopened"] = False
+    # Fail closed on any incomplete guest 2P result / pair / fresh-game
+    # archive; a source finish with published=0 is NOT a paired Records pass.
+    if newer_two is not None:
+        paired_metrics = audit_hosted_native_2p_records(*newer_two)
+        candidate["metrics"].update(paired_metrics)
+        candidate["assertions"].append(
+            assertion("hosted-source-2p-atomic-pair-and-fresh-game-records-logs-consistent", True)
+        )
+    else:
+        candidate["metrics"]["hosted_native_2p_result_to_fresh_records_logs_consistent"] = False
+        candidate["metrics"]["hosted_saved_2p_pair_bytes_independently_reopened"] = False
     candidate["inputs"]["runtime_actions_wrapper_basename"] = wrapper.name
     candidate["inputs"]["runtime_actions_wrapper_sha256"] = file_digest(wrapper)
     for name, raw in (
@@ -466,10 +494,10 @@ def check_runtime_actions_wrapper(
     # source/result/Records logs; it still has no independent original oracle
     # or physical-device standing. No paired native 2P match is reported.
     candidate["metrics"]["finished_native_event_or_new_match_observed"] = (
-        newer_one is not None
+        newer_one is not None or newer_two is not None
     )
     candidate["metrics"]["strict_original_native_complete_event_accepted"] = False
-    candidate["metrics"]["new_native_two_player_match_published"] = False
+    candidate["metrics"]["new_native_two_player_match_published"] = newer_two is not None
     candidate["metrics"]["physical_gamepad_hardware_verified"] = False
     return candidate
 

@@ -26,7 +26,7 @@ class ZooReturnBracket(unittest.TestCase):
         for side, folder in self.dirs.items():
             folder.mkdir()
             entry = 1604 if side == "original" else 1606
-            reset_at = 5057 if side == "original" else 5056
+            reset_at = 5028 if side == "original" else 5027
             lines = ["script f=" + str(entry) + " dump scene-entered " +
                      ("fb=256x224 RGB565 sram=8192 ppuw=4"
                       if side == "original" else "ok")]
@@ -46,8 +46,9 @@ class ZooReturnBracket(unittest.TestCase):
             self.logs[side].write_text("\n".join(lines) + "\n",
                                        encoding="utf-8")
         self.source_pc.write_text(
-            "ZOOPCRETURN f=6660 v=225 pc=83C8DD\n"
-            "ZOOPCRETURN f=6661 v=003 pc=80A09A\n",
+            "ZOOPCRETURN f=6630 v=225 pc=83C8DD\n"
+            "ZOOPCRETURN f=6631 v=003 pc=80A09A\n"
+            "ZOOPPUWRITE f=6631 v=004 pc=80A08B old=0F new=80\n",
             encoding="utf-8")
 
     def run_probe(self):
@@ -57,19 +58,21 @@ class ZooReturnBracket(unittest.TestCase):
 
     def test_dense_25_frame_return_ppu_crosswalk_not_course_completion(self):
         out = self.run_probe()
-        self.assertEqual(len(out["source_original_native_guest_frames"]["original"]), 27)
+        self.assertEqual(len(out["source_original_native_guest_frames"]["original"]), 51)
         self.assertEqual(out["independent_guest_entry_host"],
                          {"original": 1604, "native": 1606})
         self.assertEqual(out["forced_blank_observation"]["original"][
-            "first_forced_blank_dense_sample"], 5057)
+            "first_forced_blank_dense_sample"], 5028)
         self.assertEqual(out["forced_blank_observation"]["native"][
-            "first_forced_blank_dense_sample"], 5056)
+            "first_forced_blank_dense_sample"], 5027)
         self.assertEqual(out["native_minus_original_first_blank_absolute_host"], 1)
         self.assertEqual([x["usa_source_pc_observed_executing"] for x in
                           out["source_original_pc_executed_receipts"]],
                          ["83:C8DD", "80:A09A"])
         self.assertFalse(out["first_source_original_guest_finish_instruction_identified"])
         self.assertTrue(out["this_is_ppu_return_presentation_not_gameplay_finish"])
+        self.assertEqual(out["source_original_first_executing_cpu_pc_setting_forced_blank"]["usa_source_pc_observed_executing"], "80:A08B")
+        self.assertTrue(out["source_original_first_executing_cpu_pc_setting_forced_blank"]["newly_entered_forced_blank"])
         self.assertEqual(out["complete_event_qa_credit"], 0)
 
     def test_missing_candidate_pc_is_not_missing_native_source_execution(self):
@@ -111,6 +114,16 @@ class ZooReturnBracket(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "finished-course counters"):
             self.run_probe()
 
+    def test_false_ppu_register_writer_never_becomes_source_pc(self):
+        self.source_pc.write_text(
+            "ZOOPPUWRITE f=6600 v=4 pc=80A08B old=0F new=80\n")
+        with self.assertRaisesRegex(ValueError, "outside bounded return"):
+            self.run_probe()
+        self.source_pc.write_text(
+            "ZOOPPUWRITE f=6632 v=4 pc=80A08B old=80 new=80\n")
+        with self.assertRaisesRegex(ValueError, "not a change"):
+            self.run_probe()
+
     def test_false_historical_rom_pc_is_not_accepted_as_executed_original(self):
         self.source_pc.write_text("ZOOPCRETURN f=6660 v=3 pc=123456\n")
         with self.assertRaisesRegex(ValueError, "source PC out"):
@@ -120,15 +133,16 @@ class ZooReturnBracket(unittest.TestCase):
             self.run_probe()
 
     def test_original_source_return_trace_uses_independent_pc_gate(self):
-        self.assertEqual(len(route.RETURN_BRACKET_FRAMES), 25)
-        self.assertEqual(route.RETURN_BRACKET_FRAMES[0], 5048)
-        self.assertEqual(route.RETURN_BRACKET_FRAMES[-1], 5072)
+        self.assertEqual(len(route.RETURN_BRACKET_FRAMES), 49)
+        self.assertEqual(route.RETURN_BRACKET_FRAMES[0], 5001)
+        self.assertEqual(route.RETURN_BRACKET_FRAMES[-1], 5049)
         self.assertEqual(len(route.BOUNDARY_FRAMES), len(set(route.BOUNDARY_FRAMES)))
         self.assertEqual(tuple(route.BOUNDARY_FRAMES), tuple(sorted(route.BOUNDARY_FRAMES)))
         c = source.patch(source.MARKER)
         self.assertIn("UR_QA_ZOO_RETURN_FIRST", c)
         self.assertIn("UR_QA_ZOO_RETURN_LAST", c)
         self.assertIn("ZOOPCRETURN f=%u v=%u pc=%06X", c)
+        self.assertIn("ZOOPPUWRITE f=%u v=%u pc=%06X", c)
         self.assertIn("UR_QA_ZOO_TRACE_FIRST", c)
         self.assertEqual(c.count("(*Opcodes[Op].S9xOpcode)();"), 1)
         with self.assertRaisesRegex(ValueError, "already installed"):

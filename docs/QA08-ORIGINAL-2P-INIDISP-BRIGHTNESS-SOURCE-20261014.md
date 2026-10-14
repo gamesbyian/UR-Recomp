@@ -1,6 +1,6 @@
 # QA-08: independently observed original Snes9x $2100 brightness-HDMA source
 
-**Source-probe implementation, pending original run.** The existing
+**Accepted original source replay, run 38546562780 (artifact 11884792090).** The existing
 [finished source-pixel reference](QA08-ORIGINAL-NATIVE-2P-RGB5-SPLIT-BAND-PIXEL-20261014.md)
 matches **56,832/57,344 original/native RGB pixels** after source
 RGB565 green6→native green5 normalization. The 512 different pixels
@@ -51,3 +51,19 @@ authorize a global native line offset or shipping UI/HD
 asset change until the real source PPU row relationship
 is proved. Original 256×224, 7:6 PAR, 4× fallback and
 authentic wide-world materialization remain unchanged.
+
+
+## Accepted observed source result
+
+The real original Snes9x run captured **24 actual channel-7 direct-mode-0
+INIDISP events** across the eight sampled frames. Original GO
+frame 1989 has source `7E:2065` → `0F` at V0,
+`7E:2067` → `00` at V111 and `7E:2069` → `0F` at V113,
+with live brightness **15, 0, 15** and **forced-blank bit clear**
+at each write. Its separately instrumented source PPUW journal agrees.
+The native original-source-frame guest2208 test independently confirms
+channel7, mode0, direct, and those same WRAM source bytes, with write-log
+tags 0/2/113/115. Both exact-head source runs passed their gates.
+The unresolved component is the relationship of logged transfer tags to
+the final displayed row at the one-line-shifted 2P black seam.
+See the [paired source SHA handoff](../analysis/data/qa08-original-native-2p-brightness-split-channel7-handoff-20261014.json).

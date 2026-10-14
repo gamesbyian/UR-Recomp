@@ -46,6 +46,9 @@ on:
       - "analysis/ui-state-map.yml"
       - "analysis/frontend-modernization-policy.json"
       - "analysis/evidence-envelope.schema.json"
+      # The release ledger is executable QA configuration, unlike planning docs.
+      # Its source-contract validator must run before any ledger PR is merged.
+      - "docs/RELEASE-QUALITY-LEDGER.json"
       - "analysis/modern-product-settings.json"
       - "analysis/agent-context-lanes.json"
       - ".github/workflows/**"

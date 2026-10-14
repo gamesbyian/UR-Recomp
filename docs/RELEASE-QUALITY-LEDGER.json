@@ -255,7 +255,7 @@
         "docs/RACER-HD-PIXEL-CONFINEMENT.md",
         "docs/RACER-HD-SOURCE-OBJ-VISIBILITY.md",
         "docs/QA-WINDOWS-SOURCE-PINNED-RELEASE-READINESS-20261014.md",
-        "analysis/evidence/qa08-38640211633-independent-original-native-rgb5-disposition.json"
+        "docs/QA08-CHANNEL7-ONLY-HDMA-PRIME-DISCRIMINATOR-20261014.md"
       ],
       "journeys": [
         "J-13",

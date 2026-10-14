@@ -4,6 +4,10 @@
 
 # Windows x64 Modern frontend: shipped surfaces and remaining integration
 
+## Existing named-P1 controller selector candidate (2026-10-14)
+
+After [#1490](https://github.com/gamesbyian/UR-Recomp/pull/1490) passes the real native root's anonymous-P1 / named-P2 / joined stock 2P sequence, the missing controller selector for *two already-created* named P1 identities is implemented as a separate bounded candidate in [#1513](https://github.com/gamesbyian/UR-Recomp/pull/1513). P1 X opens the shared stock-aware chooser only when both verified catalog+typed+raw SRAM owners exist; A invokes the **existing** [#1499](https://github.com/gamesbyian/UR-Recomp/pull/1499) locked next-process selector, B cancels. Success latches a no-races barrier until a true native game process restart; no guest-memory, result or persistence codec is replaced. The pinned Windows job must independently prove Mike → Andrew → Mike over fresh source boots before this can be marked verified. The synthetic SDL-input route is not physical-controller hardware acceptance. This small UI closure complements, but does not replace, [#1510](https://github.com/gamesbyian/UR-Recomp/pull/1510)'s separate source-earned 2P paired Records test.
+
 ## Material-colour customization status (2026-10-08)
 
 The Racer Studio design now calls for an animated 2D hero and independently editable **tire, rim, frame/body and saddle** colours, with future curated textures. This is **planned only**: the current game does not have a verified four-part mask atlas, complete showroom/race recolour pipeline, or claimed player-facing persistence. Track implementation against [`MODERN-FRONTEND-MASTER-DESIGN.md`](MODERN-FRONTEND-MASTER-DESIGN.md) and [`MODERN-RACER-COSMETICS.md`](MODERN-RACER-COSMETICS.md); do not promote an attractive preview without complete race-pose parity and original-preset fidelity.

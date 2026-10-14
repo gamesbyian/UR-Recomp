@@ -115,6 +115,18 @@ def check(original_zip_path:Path,native_zip_path:Path)->dict:
                 info.get("no_colormath") is not False or
                 info.get("no_clip") is not False):
             raise ValueError("original Snes9x source route, pixel format or image manifest not admitted")
+        ppuw=oz.read("qa08-original-opcode-dumps/go.ppuw.tsv").decode("ascii").splitlines()
+        source_forced_blank=[]
+        for line in ppuw[1:]:
+            fields=line.split("\t")
+            if len(fields)==6 and fields[3]=="2100" and fields[1] in ("111","113"):
+                source_forced_blank.append(
+                    {"original_v":int(fields[1]),"original_INIDISP_byte":fields[4],
+                     "source":fields[5]})
+        if source_forced_blank!=[
+            {"original_v":111,"original_INIDISP_byte":"00","source":"hdma"},
+            {"original_v":113,"original_INIDISP_byte":"0F","source":"hdma"}]:
+            raise ValueError("real original Snes9x forced-blank HDMA timing source differs")
         np7=nz.read(NATIVE_PATH)
         head,sep,native=np7.partition(b"ENDHDR\n")
         if (sha(np7)!=NATIVE_P7_SHA or
@@ -176,6 +188,7 @@ def check(original_zip_path:Path,native_zip_path:Path)->dict:
             "different_RGB_pixels":512,
             "original_native_mismatch_rows_full_256px_each":[111,113],
             "original_forced_blank_rows":[111,112],
+            "actual_original_GO_HDMA_INIDISP_register_pairs":source_forced_blank,
             "native_forced_blank_rows":[112,113],
             "verified_complete_original_frame_candidate_margin_over_second":top["identical_RGB5_expanded_pixels"]-best[1]["identical_RGB5_expanded_pixels"],
             "next_best_original_callback_frame":best[1]["original_callback_frame"],

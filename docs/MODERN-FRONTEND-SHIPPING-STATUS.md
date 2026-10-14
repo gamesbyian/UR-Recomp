@@ -63,6 +63,33 @@ handler with a synthetic storage fault cut. It does **not** reproduce actual
 power loss, physical controller hardware, a completed scored result within
 the recovery subroute, or grant independent release ledger credit.
 
+## Native first source-qualified Practice route (candidate, 2026-10-14)
+
+The existing shared Modern frontend has a 45-course Quick Practice catalog,
+typed course selection, bounded stock-menu routing and original decoded-course
+identity verifier. The Baldosa native root previously marked Practice SOON and
+did not attempt a source-backed route. This product candidate binds **only
+original course 1, Dragster (zero-based catalog course 0)** through the
+shipping shared root renderer and native P1 controller action: Down to Practice,
+A to open the shared picker, A to launch. The first-party
+`quick_practice_launch.hpp` route then drives the **actual unchanged original**
+1P rider, tour, track and NOW PLAYING menus through the existing stock input
+transport. No independent host simulator, guest memory writes, shortcut to a
+race, injected result or new profile save layer.
+
+The native root retains human control until the guest itself enters race
+state and `ur_uniracers_identify_course` confirms original course 1. Only
+then does the existing handoff release input and let ordinary source-result
+admission begin. Invalid source identity, changed profile, wrong course,
+transport failure or bounded timeout reject without awarding results.
+
+This **does not** admit the other 44 native courses, prove full practice
+availability/unlocks, or integrate native Options. A new exact-head native
+Windows acceptance step must reach original Dragster GO from the real P1
+controller-handler Down/A/A gesture with **no external guest-menu script
+buttons** before this route is considered verified. Physical controller
+hardware and original/native full-event release gates remain independent.
+
 ## P2 recovery independent raw-byte transport candidate (2026-10-14)
 
 Independent QA #1571 downloaded and source-decoded the four real native Windows

@@ -184,7 +184,26 @@ def validate_plan(plan: dict) -> None:
 
 def outcome(plan: dict, producer: dict | None, job_result: str) -> tuple[str, dict]:
     campaign = plan["campaign"]
-    if job_result != "success" or producer is None:
+    # Previous original/native receipts conflated a red reusable workflow
+    # (plan/build/cases/aggregate may each be responsible) with a green child
+    # whose expected aggregate was unavailable. Preserve exactly the observed
+    # outer coordinator status, not a guessed inner root cause.
+    if campaign == "original-native":
+        if job_result != "success":
+            return "incomplete_or_failed", {
+                "reason": "original/native reusable workflow did not succeed",
+                "reusable_job_result": job_result,
+                "aggregate_present": producer is not None,
+                "first_failed_child_step_verified": False,
+            }
+        if producer is None:
+            return "incomplete_or_failed", {
+                "reason": "original/native aggregate missing after successful reusable workflow",
+                "reusable_job_result": "success",
+                "aggregate_present": False,
+                "first_failed_child_step_verified": False,
+            }
+    elif job_result != "success" or producer is None:
         return "incomplete_or_failed", {"reason": "original workflow or aggregate unavailable"}
     schema, source_key, cases_key, unit_key = SOURCES[campaign]
     if producer.get("schema") != schema or producer.get(source_key) != plan["source_sha"]:

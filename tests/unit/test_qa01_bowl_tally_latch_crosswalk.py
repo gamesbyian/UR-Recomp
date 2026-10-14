@@ -136,5 +136,36 @@ class BowlHeldLatchCrosswalkTests(unittest.TestCase):
                     cross.crosswalk(a,self.counts)
 
 
+    def test_pinned_archived_joy1_hardware_reader_and_held_word_writer_candidate(self):
+        result = cross.crosswalk(self.offsets, self.counts)
+        candidate = result["archived_nonexecuted_joy1_word_writer_candidate"]
+        self.assertEqual(candidate["routine"], "Input_ReadPads")
+        self.assertEqual(candidate["routine_bank_pc"], "80:D1DB")
+        self.assertEqual(candidate["source_hardware_read_pc"], "80:D1DE")
+        self.assertEqual(candidate["source_wram_store_pc"], "80:D1E1")
+        self.assertFalse(candidate["static_store_x_width_verified_at_runtime"])
+        self.assertFalse(candidate["usa_original_executed_pc_verified"])
+        source = (ROOT / "reference/imported/reverse-engineering/nitrodon/"
+                  "bank 80.txt").read_text(encoding="utf-8")
+        symbols_path = (ROOT / "reference/imported/reverse-engineering/"
+                        "baldosa-uniracers-recomp/decomp/symbols.txt")
+        symbol_text = symbols_path.read_text(encoding="utf-8")
+        self.assertIn("80D1DB Input_ReadPads", symbol_text)
+        path = (
+            "80/D1DB: 20 18 93     JSR $9318",
+            "80/D1DE: AE 18 42     LDX $4218",
+            "80/D1E1: 86 72        STX $72",
+            "80/D1E3: AE 1A 42     LDX $421A",
+            "80/D1E6: 86 74        STX $74",
+        )
+        at = [source.index(line) for line in path]
+        self.assertEqual(at, sorted(at))
+        # Other archived direct JOY reads populate separate $030D/F
+        # words; neither proves they execute at this Bowl host boundary.
+        self.assertIn("80/85E4: AD 18 42     LDA $4218", source)
+        self.assertIn("80/87E9: AD 18 42     LDA $4218", source)
+
+
+
 if __name__ == "__main__":
     unittest.main()

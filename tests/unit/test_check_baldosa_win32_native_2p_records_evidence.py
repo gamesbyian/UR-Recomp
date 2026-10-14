@@ -49,7 +49,7 @@ def observed():
         "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2\n"
         "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d\n"
         "UR_BALDOSA_NATIVE_MATCH CAPTURED=1 profile1=native-ci-rider "
-        "profile2=native-ci-second course=course:01 frames=2500 path=pair.urrun\n"
+        "profile2=native-ci-second course=course:01 frames=2231 path=C:\\CI\\multiplayer-runs\\run-123.urrun\n"
         "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-2p race_host=2146 "
         "result_host=4377 riders=0,2 hundredths=2761,2757 winner=2 "
         "input_frames=2231 input_runs=5 published=1\n"
@@ -65,7 +65,7 @@ def observed():
         "UR_BALDOSA_MODERN_ROOT matches_readonly=1 paired=1 "
         "unavailable=0 selected=1\n"
         "UR_BALDOSA_MODERN_ROOT records_page=2p\n"
-        "UR_BALDOSA_MODERN_ROOT records_last_2p=LAST 01 WIN 00:27.57 "
+        "UR_BALDOSA_MODERN_ROOT records_last_2p=LAST 01 LOSS 00:27.61 "
         "source=historical_paired_archive\n"
         "UR_BALDOSA_MODERN_ROOT records_page=1p\n"
         "UR_BALDOSA_MODERN_ROOT records_closed=1\n"
@@ -86,6 +86,9 @@ class HostedNativeWindowsTwoPlayerRecordsQA(unittest.TestCase):
         self.assertEqual(result["hosted_native_2p_source_riders"], [0, 2])
         self.assertEqual(result["hosted_native_2p_source_times_hundredths"], [2761, 2757])
         self.assertEqual(result["hosted_native_2p_source_winner"], 2)
+        self.assertEqual(result["hosted_native_2p_saved_run_capture_basename"], "run-123.urrun")
+        self.assertEqual(result["hosted_native_2p_player1_records_display_verified"],
+                         "LAST 01 LOSS 00:27.61 source=historical_paired_archive")
         self.assertFalse(result["hosted_saved_2p_pair_bytes_independently_reopened"])
         self.assertFalse(result["hosted_original_emulator_2p_parity_accepted"])
         self.assertFalse(result["hosted_physical_gamepads_verified"])
@@ -102,6 +105,9 @@ class HostedNativeWindowsTwoPlayerRecordsQA(unittest.TestCase):
             played.replace("result_host=4377", "result_host=2000"),
             played.replace("input_frames=2231", "input_frames=9999"),
             played.replace("CAPTURED=1", "NOT_SAVED=1"),
+            played.replace("frames=2231 path=", "frames=2230 path="),
+            played.replace("run-123.urrun", "different-run.urrun"),
+            played.replace("multiplayer-runs", "unrelated-runs"),
             played.replace("course=course:01", "course=course:02"),
             played.replace("join_confirmed seat=2", "join_rejected seat=2"),
             played + played,
@@ -113,6 +119,45 @@ class HostedNativeWindowsTwoPlayerRecordsQA(unittest.TestCase):
             with self.subTest(damaged=damaged[-130:]):
                 with self.assertRaises(ValueError):
                     self.check(report, damaged, fresh)
+
+    def test_actual_win32_crlf_records_text_excludes_line_terminator(self):
+        report, played, fresh = observed()
+        real_windows_played = played.replace("\n", "\r\n")
+        real_windows_fresh = fresh.replace("\n", "\r\n")
+        admitted = self.check(report, real_windows_played, real_windows_fresh)
+        self.assertEqual(
+            admitted["hosted_native_2p_player1_records_display_verified"],
+            "LAST 01 LOSS 00:27.61 source=historical_paired_archive",
+        )
+        wrong_windows_fresh = real_windows_fresh.replace(
+            "LOSS 00:27.61", "WIN 00:27.57",
+        )
+        with self.assertRaises(ValueError):
+            self.check(report, real_windows_played, wrong_windows_fresh)
+
+    def test_fresh_records_display_tracks_p1_win_and_draw_source_semantics(self):
+        report, played, fresh = observed()
+        for case, expected_outcome, expected_time, times, winner in (
+            ("p1_win", "WIN", "00:27.57", "2757,2761", 1),
+            ("draw", "DRAW", "00:27.61", "2761,2761", 0),
+            ("p1_dnf", "LOSS", "DNF", "60000,2757", 2),
+        ):
+            with self.subTest(case=case):
+                updated = copy.deepcopy(report)
+                t1, t2 = (int(v) for v in times.split(","))
+                updated["source_result"].update(
+                    p1_hundredths=t1, p2_hundredths=t2, winner=winner,
+                )
+                source = played.replace(
+                    "hundredths=2761,2757 winner=2",
+                    f"hundredths={times} winner={winner}",
+                )
+                display = fresh.replace(
+                    "LOSS 00:27.61", f"{expected_outcome} {expected_time}",
+                )
+                self.check(updated, source, display)
+                with self.assertRaises(ValueError):
+                    self.check(updated, source, fresh)
 
     def test_refuse_fake_match_report_or_candidate_release_promotion(self):
         report, played, fresh = observed()
@@ -152,6 +197,11 @@ class HostedNativeWindowsTwoPlayerRecordsQA(unittest.TestCase):
             fresh.replace("selected=1", "selected=0"),
             fresh.replace("records_page=2p", "records_page=1p"),
             fresh.replace("records_last_2p=", "records_hidden="),
+            fresh.replace("LOSS 00:27.61", "WIN 00:27.57"),
+            fresh.replace("LOSS 00:27.61", "LOSS 00:27.57"),
+            fresh.replace("LOSS 00:27.61", "DRAW 00:27.61"),
+            fresh.replace("LAST 01", "LAST 02"),
+            fresh.replace("00:27.61", "00:27.60"),
             fresh.replace("source=historical_paired_archive", "source=synthetic"),
             fresh.replace("BOOT_SRAM profile=native-ci-rider", "BOOT_SRAM profile=anonymous"),
             fresh + fresh,

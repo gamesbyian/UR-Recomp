@@ -1,10 +1,58 @@
 # QA-08: first native PPU main/sub per-pixel ownership discriminator
 
+## First exact native PPU pixel capture: successful source witness, checker correction pending
+
+**Native AOT [run 38498698636](https://github.com/gamesbyian/UR-Recomp/actions/runs/38498698636), artifact 11864599802, 2026-10-13.**
+Unit/hygiene passed and native Original 2P guest2208, 2,473 guest CRCs,
+full original pixel SHA and both independent front-slot-removal causality
+tests all passed; the new QA pixel checker failed at its **incorrect
+assumption that fixed15 must equal the saved field baseline 0x0260 at
+every rendering row**. The actual native PPU logged all six requested
+records in the three full native processes:
+
+| Native PPU pixel (x=133) | Main z-buffer | Sub z-buffer | Main RGB15 | Sub RGB15 | *Live* fixed RGB15 | Final RGB24 |
+| --- | --- | --- | --- | --- | --- | --- |
+| Stock y50 | F21B BG3 | A6B3 OBJ palette group6 | 000D | 18C6 | **000F** | **9C3131** |
+| Stock y162 | F21B BG3 | A4C3 OBJ palette group4 | 000D | 18C6 | **0260** | **9C3131** |
+| Remove front98 y50 | F21B BG3 | 0500 empty | 000D | 0000 | **000F** | **E70000** |
+| Remove front98 y162 | F21B BG3 | A4C3 OBJ | 000D | 18C6 | 0260 | 9C3131 |
+| Remove front96 y50 | F21B BG3 | A6B3 OBJ | 000D | 18C6 | 000F | 9C3131 |
+| Remove front96 y162 | F21B BG3 | 0500 empty | 000D | 0000 | **0260** | **6B9C00** |
+
+At both stock pixels main is **BG3 text red5=13** and a real
+OBJ is the **subscreen colour operand RGB5=(6,6,6)**. The PPU
+colour-math gate is on, CGADSUB=04, CGWSEL=02, subscreen is
+rendered, and the main pixel is not clipped. Thus red13 plus
+sprite grey6 yields RGB5=(19,6,6), final RGB24=(156,49,49).
+When the front OBJ is removed, the subscreen tag 0500 has an
+**empty palette index** and native PPU source uses its *live* fixed
+operand: top RGB5=(15,0,0), yielding (28,0,0); bottom
+RGB5=(0,19,0), yielding (13,19,0). The two viewports use distinct
+underlying OBJ palette group codes 6 and4; **do not require group4
+in both**.
+
+The journal captured the PPU's saved field-start fixed RGB15=0260,
+but that baseline does **not** incorporate subsequent render-time
+HDMA writes. The pinned source runs `dma_doHdma` during line
+replay and the CPU-side register journal intentionally excludes
+render-generated HDMA writes; source observations prove the
+effective per-line switch, but **do not yet attribute it to a
+particular HDMA channel or table**.
+
+The checker correction must preserve the saved field-baseline gate
+while validating the **actual per-row live fixed15**,
+independent native main/sub buffers, palette RGB15 and calculated
+final RGB24 at all six samples. It must **not** replace the
+accurate native trace with a synthetic expected state.
+The first red native job is valuable *source evidence* but not
+a successful strict-accepted new per-pixel report until that
+corrected exact-head job passes.
+
 **Status: proposed source experiment pending pinned Baldosa AOT.** Reuse the already required true Original USA 2P route and its two independently repeated guest2208 diagnostic front-slot removals. Do not run an additional factory, alter the guest or change shipped PPU composition.
 
 ## Why these two pixels
 
-The authenticated [native colour constraint investigation](QA08-2P-NATIVE-BG3-COLOUR-CONSTRAINTS-20261013.md) finds upper front slot98 and lower front slot96 both have red5 +13 at 13 original source/text overlap coordinates. Normal Original at **(133,50)** and **(133,162)** has the same underlying isolated racer RGB and red-only +13. The real PPU register journal is uniformly CGADSUB=0x04, CGWSEL=0x02 and fixed RGB5 (0,19,0) at every visible row. Deleting slot98 changes the upper output to RGB5 (28,0,0); deleting slot96 changes the lower to RGB5 (13,19,0).
+The authenticated [native colour constraint investigation](QA08-2P-NATIVE-BG3-COLOUR-CONSTRAINTS-20261013.md) finds upper front slot98 and lower front slot96 both have red5 +13 at 13 original source/text overlap coordinates. Normal Original at **(133,50)** and **(133,162)** has the same underlying isolated racer RGB and red-only +13. The recorded CPU journal has CGADSUB=0x04, CGWSEL=0x02 and **saved field-baseline** fixed RGB5 (0,19,0), but a later real PPU probe observed different **live** fixed RGB5 at the upper rendering row. Deleting slot98 changes the upper output to RGB5 (28,0,0); deleting slot96 changes the lower to RGB5 (13,19,0).
 
 ## Exact instrumentation seam and default safety
 

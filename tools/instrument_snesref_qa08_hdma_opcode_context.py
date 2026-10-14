@@ -56,6 +56,38 @@ SNIPPET = r'''
                             (unsigned)opbytes[0], (unsigned)opbytes[1],
                             (unsigned)opbytes[2], (unsigned)opbytes[3],
                             mapped, (unsigned)(mapped && opbytes[0] == Op));
+                        /* UR_QA08_ORIGINAL_RACER_LUT: sampled only at four
+                         * original executed ROM PCs after selector load and
+                         * TAX respectively. Direct PCBase ROM data, never
+                         * an extra mapped-bus read or a guest write. */
+                        if (qa08_codepc == 0xD5D1u || qa08_codepc == 0xD61Eu) {
+                            fprintf(stderr,
+                                "UR_QA08_ORIGINAL_RACER_LUT frame=%u pc=82%04X "
+                                "kind=selector a=%04X x=%04X\\n",
+                                (unsigned)ICPU.Frame, qa08_codepc,
+                                (unsigned)Registers.A.W, (unsigned)Registers.X.W);
+                        }
+                        if (qa08_codepc == 0xD5D4u || qa08_codepc == 0xD621u) {
+                            const unsigned qa08_lut_idx = (unsigned)Registers.X.W;
+                            const unsigned qa08_lut_base = 0xD52Au + qa08_lut_idx;
+                            if (!mapped || qa08_lut_idx > 255u ||
+                                qa08_lut_base + 3u > 0xD66Fu) {
+                                fprintf(stderr,
+                                    "UR_QA08_ORIGINAL_RACER_LUT_INVALID "
+                                    "frame=%u pc=82%04X x=%04X\\n",
+                                    (unsigned)ICPU.Frame, qa08_codepc, qa08_lut_idx);
+                            } else {
+                                fprintf(stderr,
+                                    "UR_QA08_ORIGINAL_RACER_LUT frame=%u pc=82%04X "
+                                    "kind=lookup a=%04X x=%04X bytes=%02X%02X%02X%02X\\n",
+                                    (unsigned)ICPU.Frame, qa08_codepc,
+                                    (unsigned)Registers.A.W, qa08_lut_idx,
+                                    (unsigned)CPU.PCBase[qa08_lut_base],
+                                    (unsigned)CPU.PCBase[qa08_lut_base + 1u],
+                                    (unsigned)CPU.PCBase[qa08_lut_base + 2u],
+                                    (unsigned)CPU.PCBase[qa08_lut_base + 3u]);
+                            }
+                        }
                         qa08_opcode_count++;
                     }
                 }

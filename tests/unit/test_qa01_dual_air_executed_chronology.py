@@ -171,5 +171,37 @@ class OriginalNativeExecuted2PAir(unittest.TestCase):
                 m.report_zip(p)
 
 
+    def test_archived_two_seat_local_update_has_three_common_upstream_calls(self):
+        # The original opcode logger saw the final *writer*, not necessarily
+        # which of three shared callees produced the divergent state.
+        bank = (ROOT / "reference/imported/reverse-engineering/nitrodon/"
+                "bank 81.txt").read_text(encoding="utf-8")
+        selectors = (
+            ("81/8DD0: A0 00 00     LDY #$0000",
+             "81/8DD3: 8C EF 0F     STY $0FEF",
+             "81/8DD6: 20 2A 9E     JSR $9E2A",
+             "81/8DD9: 20 95 8B     JSR $8B95",
+             "81/8DDC: 20 B8 8F     JSR $8FB8",
+             "81/8E23: AD 29 0F     LDA $0F29",
+             "81/8E26: 8D 45 05     STA $0545"),
+            ("81/8F24: A0 02 00     LDY #$0002",
+             "81/8F27: 8C EF 0F     STY $0FEF",
+             "81/8F2A: 20 2A 9E     JSR $9E2A",
+             "81/8F2D: 20 95 8B     JSR $8B95",
+             "81/8F30: 20 B8 8F     JSR $8FB8",
+             "81/8F77: AD 29 0F     LDA $0F29",
+             "81/8F7A: 8D 47 05     STA $0547"),
+        )
+        for path in selectors:
+            with self.subTest(path=path[0]):
+                indices = [bank.index(x) for x in path]
+                self.assertEqual(indices, sorted(indices))
+        self.assertIn("81/8DAE: AD 45 05     LDA $0545", bank)
+        self.assertIn("81/8DB1: 8D 29 0F     STA $0F29", bank)
+        self.assertIn("81/8F08: AD 47 05     LDA $0547", bank)
+        self.assertIn("81/8F0B: 8D 29 0F     STA $0F29", bank)
+
+
+
 if __name__ == "__main__":
     unittest.main()

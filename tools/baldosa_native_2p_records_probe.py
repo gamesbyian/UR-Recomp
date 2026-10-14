@@ -28,7 +28,8 @@ from baldosa_windows_native_pause_route import (
 P1 = "native-ci-rider"
 P2 = "native-ci-second"
 # Original pinned Baldosa race_2p.txt GO-relative human input, downstream of
-# Modern's actual stock-menu handoff. P1=MIKE / P2=ANDREW.
+# Modern's actual stock-menu handoff. P1 rider 0, P2 rider 2 from the
+# already-existing P2 Down picker movement; confirmed by first Win32 trace.
 SOURCE_TWO_PLAYER_DRIVE = (
     "press right+p2:right 800",
     "press right+a+p2:right+p2:b 30",
@@ -80,7 +81,7 @@ def source_match_published(log: str) -> dict[str, int]:
         raise ValueError("Actual settled original 2P SRAM was not observed")
     (first, last, p1, p2, time1, time2, winner, frames, runs, published) = (
         int(n) for n in match.groups())
-    if (first <= 0 or last <= first or p1 != 0 or p2 != 1 or
+    if (first <= 0 or last <= first or p1 != 0 or p2 != 2 or
             time1 > 60000 or time2 > 60000 or
             winner not in (0, 1, 2) or frames <= 0 or runs <= 0 or
             published != 1 or

@@ -59,7 +59,11 @@ static int add_second_named_profile(const std::filesystem::path& root,
     const auto second_dir = root / second_root.save_root;
     if (fs::exists(second_dir, ec) || ec) return 25;
 
-    auto identity = make_legacy_racer_identity(1);
+    // Preserve the existing --add-second ANDREW/index 1 for boot tests.
+    // The separate played-stock-2P route presses P2 Down in the original
+    // picker, selecting source rider index 2. A bound saved match must
+    // reflect that actual guest identity without modifying guest rules.
+    auto identity = make_legacy_racer_identity(activate_second ? 1u : 2u);
     auto second = make_default_host_profile_state(kSecond);
     if (!identity || !second) return 26;
     std::array<std::uint8_t, kStockSramBytes> bytes{};

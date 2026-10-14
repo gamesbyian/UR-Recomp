@@ -24,7 +24,7 @@ def settled_log() -> str:
         "profile2=native-ci-second course=course:01 frames=40000 "
         "path=pair.urrun\n"
         "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-2p "
-        "race_host=1900 result_host=39700 riders=0,1 "
+        "race_host=1900 result_host=39700 riders=0,2 "
         "hundredths=2900,60000 winner=1 "
         "input_frames=37799 input_runs=6 published=1\n"
     )
@@ -68,7 +68,7 @@ class NativeTwoPlayerRecordsProbe(unittest.TestCase):
         self.assertEqual(observed["p1_hundredths"], 2900)
         self.assertEqual(observed["p2_hundredths"], 60000)
         for invalid in (
-            settled_log().replace("riders=0,1", "riders=1,0"),
+            settled_log().replace("riders=0,2", "riders=1,0"),
             settled_log().replace("published=1", "published=0"),
             settled_log().replace("course=course:01", "course=course:02"),
             settled_log().replace("result_host=39700", "result_host=1500"),

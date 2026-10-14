@@ -68,9 +68,9 @@ class FirstRacerEarnedSourceRecordsQA(unittest.TestCase):
         # Preserve exact source-observed Windows Drive D + spaces layout from
         # the downloaded green run 38503716264, never a fabricated saved file.
         actual_path = (
-            "D:\\\\a\\\\_temp\\\\UR Baldosa Win32 Pause Route\\\\"
-            "native_first_racer_earned_records\\\\Brand New Player With Spaces\\\\"
-            "runs\\\\mike\\\\run-0001791946926220-0000.urrun"
+            r"D:\a\_temp\UR Baldosa Win32 Pause Route"
+            r"\native_first_racer_earned_records\Brand New Player With Spaces"
+            r"\runs\mike\run-0001791946926220-0000.urrun"
         )
         accepted = self.check(
             report, created, played.replace(RUN_PATH, actual_path), fresh,
@@ -107,8 +107,8 @@ class FirstRacerEarnedSourceRecordsQA(unittest.TestCase):
     def test_second_unsupported_run_or_result_line_is_not_invisible(self):
         report, created, played, fresh = sample()
         for extra in (
-            "UR_BALDOSA_NATIVE_RUN CAPTURED=1 mode=race-2p profile=mike\\n",
-            "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-2p published=1\\n",
+            "UR_BALDOSA_NATIVE_RUN CAPTURED=1 mode=race-2p profile=mike\n",
+            "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-2p published=1\n",
         ):
             with self.subTest(extra=extra):
                 with self.assertRaises(ValueError):

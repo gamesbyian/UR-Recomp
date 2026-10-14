@@ -1,0 +1,68 @@
+{
+  "schema": "QA-12-ACTUAL-NATIVE-WINDOWS-CI-OWNED-SAVED-PAIR-AND-PROFILES/1",
+  "reviewed_utc": "2026-10-14",
+  "modern_source_pr": 1536,
+  "modern_exact_product_head_sha": "18c3f69beee365de556cd7e5886a4c80609a54d7",
+  "successful_windows_run_id": 38543163396,
+  "real_win32_evidence_artifact_id": 11883577178,
+  "artifact_zip_sha256": "74220d8956a77449527928fc00acb83eeb451289f531cc58072a00e30151265f",
+  "artifact_zip_bytes": 59266,
+  "source_process_evidence_sha256": {
+    "report.json": "d8da3cda60cef3452c439b6b9fc3113ea7479ee703f932555a8d9fc42e43596f",
+    "first_P1_mike/log.txt": "fdaf8ca8a01dc2b9ea725743b810a08aefbe85fef762edafc064f0323b94bcca",
+    "named_P1_adds_P2/log.txt": "865cb0e97401d9ed0caf5a67e6d63f12eacc23074aa000f4d16cd87e6147a04c",
+    "played_native_2p/log.txt": "17e59087d043316e28f9017562ae5e77d0a8d041a17779db011cd400fc3743a1",
+    "fresh_mike_records/log.txt": "180a07fdccda0484f481514a181ae72a0ccbc819e78bd1992fd6c36ee3dfc05d",
+    "mike_ui_selects_martin/log.txt": "58d27b896fcad4367655be6e938ef9e9ac9336387256243d5a92a11b78f3ac45",
+    "fresh_martin_records/log.txt": "a1142b62f12ff0de0fd7eea4d877b7242a5960774d32678a1c2520f822f5fc20"
+  },
+  "ci_owned_raw_member_sha256": {
+    "manifest.json": "f5176bd7dcb65520d1b2c8e4afa7775a38deaa398406486f04666b28b0dfcfc7",
+    "host-state-v1.txt": "63f0a8180e0f79b5a0320d7f25a46e403f35aa973417bdf793a7150e48dc9658",
+    "profiles-v1.txt": "830ee6809c08c881439db6065633125025cf72129d4f10502e24cb4c0137d671",
+    "saves/profile-mike/save.srm": "adabbeb16a3292ccc0f4c4958b3c7016fa8025dc86182ae8c4ef6edbd81bc73f",
+    "saves/profile-mike/host-profile.txt": "5f13c5029827a762fd2b078d9e6101682ecf848abd1893c1950f8b47123da182",
+    "saves/profile-martin/save.srm": "48a8a5e15104a1bb05780bafa61ca5ff32dcf5da0c3a0427ae67cc4e430573a9",
+    "saves/profile-martin/host-profile.txt": "c08814870480a07bc8274fb83e6c7863dde397c183a91eb1f02c6924387f7d72",
+    "saves/save.srm": "cfa44d1758b4077c397b8f520562fe0f6b0bbd86fe4eb5730850bf20237fab6b",
+    "multiplayer-runs/run-0001791970844282-0000.urrun": "346296f664ccf37fd0310666a60d837269a6d1627b4f28162ad051d6c66c8a41",
+    "multiplayer-runs/run-0001791970844282-0000.urrun.urmatch": "e1440b455b617a1726ccf17aa7a2e7dc96af7faabe302d9006693923125259c4"
+  },
+  "run_schema": "URRUN 1",
+  "run_internal_fnv64": "01b72ad6fb9b9a2a",
+  "sidecar_schema": "UR-MULTIPLAYER-MATCH/1",
+  "sidecar_internal_fnv64": "d214a7509ef52d81",
+  "source_riders": [
+    0,
+    2
+  ],
+  "source_profiles": [
+    "mike",
+    "martin"
+  ],
+  "real_score_hundredths": [
+    2761,
+    2757
+  ],
+  "source_winner": 2,
+  "original_guest_run_input_frames": 2231,
+  "original_guest_run_input_spans": 5,
+  "source_run_course": "course:01",
+  "source_run_mode": "race-2p",
+  "decoded_match_p1_profile_hex": "6d696b65",
+  "decoded_match_p2_profile_hex": "6d617274696e",
+  "typed_SRAM_and_exact_raw_SRAM_mirror_verified": true,
+  "source_archive_raw_pair_and_both_profile_bytes_retained": true,
+  "canonical_test_profile_catalog_present": true,
+  "original_emulator_source_same_input_complete_course_parity_verified": false,
+  "physical_two_controllers_verified": false,
+  "audible_audio_verified": false,
+  "consumer_final_release_candidate_exact_source_and_zip_nominated": false,
+  "original_USA_complete_event_release_accepted": 0,
+  "release_gate_credit": 0,
+  "limitations": [
+    "CI-generated throwaway source only, no private user data",
+    "Producer reports before/after views; archive preserves one final raw pair only, not independently archived pre/post snapshots",
+    "No original emulator full complete-event comparator, physical pad, audio, presentation or OS fault injection"
+  ]
+}

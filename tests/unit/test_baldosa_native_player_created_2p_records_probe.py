@@ -24,9 +24,9 @@ def played() -> str:
         "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2\n"
         "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d\n"
         "UR_BALDOSA_NATIVE_MATCH CAPTURED=1 profile1=mike "
-        "profile2=andrew course=course:01 frames=40000 path=pair.urrun\n"
+        "profile2=martin course=course:01 frames=40000 path=pair.urrun\n"
         "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-2p "
-        "race_host=1900 result_host=39700 riders=0,1 "
+        "race_host=1900 result_host=39700 riders=0,2 "
         "hundredths=2900,60000 winner=1 "
         "input_frames=37799 input_runs=6 published=1\n"
     )
@@ -50,27 +50,24 @@ def records(profile: str) -> str:
 
 
 class NativePlayerCreated2PJourneyUnit(unittest.TestCase):
-    def test_source_original_picker_preserves_andrew_not_martin(self):
-        original = flow.native_modern_race_entry_script(2)
-        script = flow.source_andrew_match_script()
-        self.assertIn("press p2:down 2\nwait 30\n", original)
-        self.assertNotIn("press p2:down 2", script)
+    def test_martin_ui_creator_reuses_exact_original_stock_picker_and_drive(self):
+        script = flow.source_martin_match_script()
+        self.assertEqual(script, flow.source_match_script())
+        self.assertIn("press p2:down 2\nwait 30\n", script)
         self.assertIn("until16 0053 == 8610", script)
         self.assertIn("until 0E1F != 00", script)
-        self.assertTrue(script.endswith("dump played-2p-source\nquit\n"))
-        for step in flow.SOURCE_TWO_PLAYER_DRIVE:
-            self.assertIn(step, script)
+        self.assertTrue(script.endswith("dump after-source-2p-drive\nquit\n"))
         self.assertNotIn("write ", script.lower())
 
     def test_player_pair_requires_source_settled_result_not_fixture(self):
-        args = dict(p1_profile="mike", p2_profile="andrew",
-                    p1_rider=0, p2_rider=1)
+        args = dict(p1_profile="mike", p2_profile="martin",
+                    p1_rider=0, p2_rider=2)
         self.assertEqual(
             source_match_published(played(), **args)["source_result_host"],
             39700)
         for bad in (
-            played().replace("riders=0,1", "riders=0,2"),
-            played().replace("profile2=andrew", "profile2=mike"),
+            played().replace("riders=0,2", "riders=0,1"),
+            played().replace("profile2=martin", "profile2=mike"),
             played().replace("published=1", "published=0"),
             played().replace("course=course:01", "course=course:02"),
             played().replace("join_confirmed seat=2", "join_confirmed seat=1"),
@@ -80,7 +77,7 @@ class NativePlayerCreated2PJourneyUnit(unittest.TestCase):
                 source_match_published(bad, **args)
 
     def test_each_player_must_reopen_exactly_one_readonly_pair(self):
-        for identity in ("mike", "andrew"):
+        for identity in ("mike", "martin"):
             source_paired_records_reopened(
                 records(identity), selected_profile=identity)
             for bad in (

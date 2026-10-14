@@ -211,5 +211,20 @@ class AirWriterProbe(unittest.TestCase):
                 self.assertNotIn("SEP #$30", archive[start:end])
 
 
+    def test_native_helper_capture_includes_p2_high_byte_boundary(self):
+        workflow = (ROOT / ".github/workflows/"
+                    "two-player-reference.yml").read_text(encoding="utf-8")
+        self.assertIn(
+            'SNESRECOMP_WLOG_ADDR="0415:0548:$ROOT/native-writers.log"',
+            workflow)
+        self.assertNotIn(
+            'SNESRECOMP_WLOG_ADDR="0415:0547:$ROOT/native-writers.log"',
+            workflow)
+        self.assertEqual(
+            m.NATIVE_WRITER.findall(
+                "f 2580 7E:0548=01 w1 Source_P2_Writeback\\n"),
+            [("2580", "7E", "0548", "01", "1", "Source_P2_Writeback")])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -221,8 +221,14 @@ def sample(frame: int, path: Path) -> dict:
     return {"guest_sha256": sha(data),
             # The source 2P slot contract explicitly declares both air
             # registers as u8. Never mislabel their adjacent byte as air.
+            # Preserve the historically observed low bytes unaltered.
+            # Nitrodon's annotated bank-81 path writes the *words* at 0545
+            # and 0547 after REP #$30. This static width is a research lead,
+            # not a verified USA executed opcode or physics flag definition.
             "p1_raw_air": data[0x0545],
             "p2_raw_air": data[0x0547],
+            "p1_candidate_state_word": word(0x0545),
+            "p2_candidate_state_word": word(0x0547),
             "p1_y": word(0x0415),
             "p2_y": word(0x0417),
             "p1_y_velocity": signed_word(0x04BB),
@@ -311,7 +317,7 @@ def analyze(root: Path, *, rom: Path, native_exe: Path) -> dict:
     targets = {f"{a:04X}" for a in TARGETS}
     source_lines = [x for x in source_lines if x["address"][3:] in targets]
     native_lines = [x for x in native_lines
-                    if int(x["address"], 16) <= 0x0547
+                    if int(x["address"], 16) <= 0x0548
                     and int(x["address"], 16) >= 0x0415]
     rows = []
     for f in DENSE:
@@ -327,6 +333,9 @@ def analyze(root: Path, *, rom: Path, native_exe: Path) -> dict:
                     "p1_y_velocity", "p2_y_velocity")),
             "p1_y_native_minus_original": after["p1_y"] - before["p1_y"],
             "p2_y_native_minus_original": after["p2_y"] - before["p2_y"],
+            "candidate_state_words_equal_same_host": (
+                before["p1_candidate_state_word"] == after["p1_candidate_state_word"]
+                and before["p2_candidate_state_word"] == after["p2_candidate_state_word"]),
         })
     result = {
         "schema": SCHEMA,
@@ -347,6 +356,11 @@ def analyze(root: Path, *, rom: Path, native_exe: Path) -> dict:
         "earliest_named_difference_in_observed_dense_window": next(
             (x["absolute_host_frame"] for x in rows
              if not x["same_host_named_raw_bytes_equal"]), None),
+        "candidate_state_word_interpretation": (
+            "Full 16-bit WRAM bytes at 0545/0547, independently preserved "
+            "from raw low-byte air labels; archived bank-81 REP #$30/store "
+            "does not yet establish executing USA PC, gameplay semantics "
+            "or guest instruction-time equivalence."),
         "actual_cpu_instruction_and_ppu_phase_aligned": False,
         "raw_air_value_proves_physical_airborne": False,
         "strict_complete_event_accepted": False,

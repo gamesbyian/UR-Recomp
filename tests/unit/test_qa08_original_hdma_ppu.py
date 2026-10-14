@@ -67,8 +67,9 @@ class OriginalPpuHdmatraceTests(unittest.TestCase):
         self.assertIn("CPU.InHDMA",generated)
         self.assertIn("CPU.CurrentDMAorHDMAChannel != 5", generated)
         self.assertIn("UR_QA08_ORIGINAL_HDMA_PPU_WINDOW",generated)
-        self.assertIn('strcmp(arm, "1781-1783")',generated)
+        self.assertIn('strcmp(arm, "source-go-t480")',generated)
         self.assertIn("PPU.FixedColourBlue << 10",generated)
+        self.assertIn("frame >= 1988u && frame <= 1990u",generated)
         self.assertIn("qa08_original_hdma_live_ppu(Byte, 0x2131)",generated)
         self.assertIn("qa08_original_hdma_live_ppu(Byte, 0x2132)",generated)
         with self.assertRaisesRegex(ValueError,"already applied"):

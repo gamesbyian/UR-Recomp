@@ -151,6 +151,42 @@ def snapshot(user: Path, names) -> dict[str, bytes]:
     return out
 
 
+def _fields(raw: bytes) -> dict[str, str]:
+    out: dict[str, str] = {}
+    for line in raw.decode("utf-8", "replace").splitlines():
+        key, sep, value = line.partition("=")
+        out[key if sep else line] = value
+    return out
+
+
+def compact_typed_diff(before: bytes, after: bytes) -> list[str]:
+    """Bounded, SRAM-free typed-profile diff. Long values (the embedded
+    8 KiB SRAM hex) are never copied: report lengths, SHA-256 prefixes and at
+    most 16 changed byte ranges. Short canonical fields are shown as is."""
+    old, new = _fields(before), _fields(after)
+    lines: list[str] = []
+    for key in sorted(set(old) | set(new)):
+        a, b = old.get(key), new.get(key)
+        if a == b:
+            continue
+        if max(len(a or ""), len(b or "")) <= 80:
+            lines.append(f"{key}: {a!r} -> {b!r}")
+            continue
+        sha = lambda v: hashlib.sha256((v or "").encode()).hexdigest()[:16]
+        lines.append(f"{key}: long value len {len(a or '')}->{len(b or '')} "
+                     f"sha256[:16] {sha(a)}->{sha(b)}")
+        try:
+            ra, rb = bytes.fromhex(a or ""), bytes.fromhex(b or "")
+        except ValueError:
+            continue
+        if len(ra) == len(rb):
+            diffs = [i for i in range(len(ra)) if ra[i] != rb[i]]
+            lines.append(f"{key}: {len(diffs)} byte(s) differ")
+            for i in diffs[:16]:
+                lines.append(f"{key}: offset 0x{i:04X} {ra[i]:02X}->{rb[i]:02X}")
+    return lines[:48]
+
+
 def record_boundary(receipts: list, receipt_path: Path, stage: str,
                     user: Path, reference: dict[str, bytes],
                     reference_label: str) -> list[str]:
@@ -167,11 +203,8 @@ def record_boundary(receipts: list, receipt_path: Path, stage: str,
                                   for n, b in reference.items()}}
     for n in changed:
         if n.endswith("host-profile.txt"):
-            diff = list(difflib.unified_diff(
-                reference[n].decode("utf-8", "replace").splitlines(),
-                now[n].decode("utf-8", "replace").splitlines(),
-                "reference", "now", lineterm="", n=0))
-            entry["typed_profile_diff"] = diff[:40]
+            entry["typed_profile_diff"] = compact_typed_diff(
+                reference[n], now[n])
     receipts.append(entry)
     receipt_path.write_text(json.dumps(receipts, indent=2, sort_keys=True)
                             + "\n", encoding="utf-8")

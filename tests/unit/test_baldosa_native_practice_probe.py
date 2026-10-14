@@ -129,6 +129,15 @@ class NativePracticeProbeTests(unittest.TestCase):
         ):
             self.assertIn(token, probe)
 
+    def test_typed_diff_never_embeds_sram_hex(self):
+        from baldosa_native_practice_probe import compact_typed_diff
+        a = b"generation=1\nstock_sram=" + b"00" * 8192 + b"\n"
+        b = b"generation=2\nstock_sram=" + b"00" * 8191 + b"56\n"
+        diff = compact_typed_diff(a, b)
+        self.assertIn("generation: '1' -> '2'", "\n".join(diff))
+        self.assertTrue(any("offset 0x1FFF 00->56" in x for x in diff))
+        self.assertTrue(all(len(x) < 200 for x in diff))
+
     def test_workflow_retains_practice_logs_in_separate_artifact(self):
         wf = (ROOT / ".github/workflows/baldosa-windows-native-bridge.yml").read_text()
         self.assertIn("name: baldosa-win32-native-practice-lifecycle", wf)

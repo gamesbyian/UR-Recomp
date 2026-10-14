@@ -28,8 +28,10 @@ independently comparing two actual on-disk timepoints. The Modern candidate
 now exports a separate **CI-owned, no-follow, pair-only** snapshot immediately
 after authentic original guest play and before the first fresh Records process.
 Its two byte files and SHA-256 manifest are retained under
-`ci-owned-pre-records-pair/`, separately from the existing final
-`ci-owned-raw-artifacts/` full profile and pair snapshot. The Windows producer
+`ci-owned-pre-records-pair/` in a **separate Actions artifact from the same
+native Windows run**, not in the existing QA-12 strictly allowlisted source ZIP.
+The final source ZIP retains its existing `ci-owned-raw-artifacts/` full profile
+and post-view pair snapshot unchanged. The Windows producer
 fails closed if the two archived file sets are not byte-identical. ROM-free
 unit tests exercise duplicate/missing/symlinked and stale/foreign inputs.
 

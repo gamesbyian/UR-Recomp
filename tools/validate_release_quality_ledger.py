@@ -153,6 +153,27 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
                     )
                 ):
                     errors.append("QA-01 passed without 45/45 independently accepted USA events")
+        # Comparison coverage is not an additional USA shipping requirement,
+        # but its declared 90 Europe/prototype cases and 135-case corpus must
+        # remain arithmetically honest even for an otherwise accepted QA-01.
+        if name == "QA-01" and isinstance(gate.get("coverage"), dict):
+            regional = gate["coverage"]
+            comparison_keys = ("regional_comparison_complete",
+                               "regional_comparison_unverified")
+            comparison_valid = True
+            for key in comparison_keys:
+                value = regional.get(key)
+                if type(value) is not int or value < 0:
+                    errors.append(f"QA-01 invalid regional coverage {key}")
+                    comparison_valid = False
+            region_denominator = regional.get("regional_comparison_denominator")
+            if type(region_denominator) is not int or region_denominator != 90:
+                errors.append("QA-01 regional comparison denominator must remain 90")
+            if comparison_valid and sum(regional[k] for k in comparison_keys) != 90:
+                errors.append("QA-01 regional comparison counts must partition all 90 cases")
+            corpus_total = regional.get("total_tracked_course_rom_pairs")
+            if type(corpus_total) is not int or corpus_total != 135:
+                errors.append("QA-01 all-build course corpus total must remain 135")
         if status == "passed" and minimum == "L5" and physical is not True:
             errors.append(f"{name} L5 pass without physical hardware verification")
         if status == "waived":

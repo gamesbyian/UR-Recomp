@@ -230,6 +230,12 @@ inline BaldosaSecondRacerResult recover_baldosa_second_preset_for_next_boot(
         user_root / p1.save_root / "host-profile.txt";
     const fs::path staged_typed =
         user_root / p2.save_root / "host-profile.txt";
+    // The existing typed CAS leaves one OS-handle lockfile alongside its
+    // newly committed typed state. Refuse an untrusted redirected mutex.
+    fs::path staged_mutex = staged_typed;
+    staged_mutex += ".urmutex";
+    if (!baldosa_native_real_file(staged_mutex))
+        return {BaldosaSecondRacerStatus::ExistingData, {}};
     TournamentLaunchPathLock active_lock(active_typed.string(), true);
     if (!active_lock.acquired())
         return {BaldosaSecondRacerStatus::BusyOrIoError, {}};
@@ -259,7 +265,8 @@ inline BaldosaSecondRacerResult recover_baldosa_second_preset_for_next_boot(
         return {BaldosaSecondRacerStatus::ExistingData, {}};
 
     // The staging directory must contain ONLY the exactly reproducible
-    // initial typed profile and its raw 8-KiB stock image. Additional files,
+    // typed profile, 8-KiB stock image and canonical empty OS-handle mutex
+    // created by the existing profile CAS store. Any additional files,
     // progression, a foreign ID, a short save or a symlink disqualify it.
     const fs::path staged_root = user_root / p2.save_root;
     std::error_code ec;
@@ -269,11 +276,13 @@ inline BaldosaSecondRacerResult recover_baldosa_second_preset_for_next_boot(
     for (; it != end; it.increment(ec)) {
         if (ec) return {BaldosaSecondRacerStatus::ExistingData, {}};
         const auto name = it->path().filename();
-        if (name != "host-profile.txt" && name != "save.srm")
+        if (name != "host-profile.txt" && name != "save.srm" &&
+            name != "host-profile.txt.urmutex")
             return {BaldosaSecondRacerStatus::ExistingData, {}};
         ++files;
     }
-    if (ec || files != 2u)
+    if (ec || files != 3u || !baldosa_native_real_file(staged_mutex) ||
+        fs::file_size(staged_mutex, ec) != 0u || ec)
         return {BaldosaSecondRacerStatus::ExistingData, {}};
 
     auto expected = make_default_host_profile_state(id);

@@ -84,6 +84,16 @@ jobs:
           cat > "$RUNNER_TEMP/qa08-exec" <<'SH'
           #!/usr/bin/env bash
           export SDL_VIDEODRIVER=x11
+          args=("$@")
+          config=""
+          for ((i=0; i+1<${#args[@]}; i++)); do
+            if [ "${args[i]}" = "--config" ]; then config="${args[i+1]}"; break; fi
+          done
+          if [ -z "$config" ]; then
+            echo "QA08 authentic 2P source has no isolated --config" >&2
+            exit 3
+          fi
+          python3 "$GITHUB_WORKSPACE/tools/baldosa_hd_enable_renderer.py" --config "$config"
           exec "$BALDOSA_REAL_BIN" "$@"
           SH
           chmod +x "$RUNNER_TEMP/qa08-exec"

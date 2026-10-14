@@ -270,6 +270,40 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
                 qa.check_runtime_actions_wrapper(
                     evidence, qa.audit(inner, source, digest),
                 )
+            # The two currently proposed first-racer Windows artifact
+            # layouts are future producer diagnostics only. Admit each
+            # complete three-file set without counting it as an authenticated
+            # first-user/controller acceptance, reject fragments and two
+            # competing layouts co-present in one ambiguous archive.
+            for group in qa.RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS:
+                with self.subTest(first_racer_group=group[0]):
+                    pack(one, two)
+                    with zipfile.ZipFile(evidence, "a") as z:
+                        for member in group:
+                            z.writestr(member, "test fixture: never release evidence")
+                    new_diagnostics = qa.check_runtime_actions_wrapper(
+                        evidence, qa.audit(inner, source, digest),
+                    )
+                    self.assertEqual(new_diagnostics["outcome"], "inconclusive")
+                    self.assertFalse(new_diagnostics["metrics"][
+                        "finished_native_event_or_new_match_observed",
+                    ])
+                    pack(one, two)
+                    with zipfile.ZipFile(evidence, "a") as z:
+                        z.writestr(group[0], "incomplete test-owned record")
+                    with self.assertRaisesRegex(ValueError, "diagnostic evidence group incomplete"):
+                        qa.check_runtime_actions_wrapper(
+                            evidence, qa.audit(inner, source, digest),
+                        )
+            pack(one, two)
+            with zipfile.ZipFile(evidence, "a") as z:
+                for group in qa.RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS:
+                    for member in group:
+                        z.writestr(member, "ambiguous cross-PR diagnostics")
+            with self.assertRaisesRegex(ValueError, "diagnostic evidence groups ambiguous"):
+                qa.check_runtime_actions_wrapper(
+                    evidence, qa.audit(inner, source, digest),
+                )
             for unexpected in (
                 "exported-private-profile.txt",
                 "ROM-renamed-as-a-log.json",

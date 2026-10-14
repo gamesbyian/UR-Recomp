@@ -161,6 +161,24 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
 
 
 
+def require_native_created_p1_pad_handler(log: str, mode: str) -> None:
+    """Require all and only the native handler receipts for a source UI create."""
+    expected = {
+        "8": ["X", "A"],
+        "9": ["X", "DPAD_DOWN", "A"],
+    }
+    if mode not in expected:
+        raise ValueError("Unrecognized real native creation pad mode")
+    observed = re.findall(
+        r"(?m)^UR_BALDOSA_MODERN_ROOT "
+        rf"synthetic_profile_gamepad mode={mode} button=([A-Z_]+)\r?$",
+        log)
+    if observed != expected[mode] or (
+            log.count("UR_BALDOSA_MODERN_ROOT synthetic_profile_gamepad ")
+            != len(expected[mode])):
+        raise ValueError("Missing, duplicated or foreign P1 native pad edges")
+
+
 def require_native_p2_recovery(log: str) -> None:
     """Admission of real gamepad-handler X/Down/A and catalog-only recovery.
 
@@ -187,13 +205,7 @@ def require_native_p2_recovery(log: str) -> None:
         offsets.append(log.index(value))
     if offsets != sorted(offsets):
         raise ValueError("P2 recovery not ordered after explicit source modal")
-    buttons = re.findall(
-        r"(?m)^UR_BALDOSA_MODERN_ROOT "
-        r"synthetic_profile_gamepad mode=9 button=([A-Z_]+)\r?$", log)
-    if buttons != ["X", "DPAD_DOWN", "A"] or (
-            log.count("UR_BALDOSA_MODERN_ROOT synthetic_profile_gamepad ")
-            != len(buttons)):
-        raise ValueError("P2 recovery did not use exactly P1 native X/Down/A edges")
+    require_native_created_p1_pad_handler(log, "9")
     for forbidden in (
         "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=martin",
         "UR_BALDOSA_MODERN_ROOT stock_entered players=",
@@ -227,10 +239,7 @@ def run_interrupted_catalog_recovery(exe: Path, rom: Path, fixture: Path,
         exe, rom, user, out / "first_native_mike", "8",
         "turbo on\nwait 900\nquit\n", video, timeout)
     verify_creation(first, preset=0)
-    if "UR_BALDOSA_MODERN_ROOT synthetic_profile_gamepad mode=8 button=X" not in first or (
-            "UR_BALDOSA_MODERN_ROOT synthetic_profile_gamepad mode=8 button=A"
-            not in first):
-        raise ValueError("P1 was not created through real native pad handler")
+    require_native_created_p1_pad_handler(first, "8")
     selector = user / "host-state-v1.txt"
     catalog = user / "profiles-v1.txt"
     if any(not p.is_file() or p.is_symlink() for p in (selector, catalog)):
@@ -243,6 +252,7 @@ def run_interrupted_catalog_recovery(exe: Path, rom: Path, fixture: Path,
         exe, rom, user, out / "second_native_martin", "9",
         "turbo on\nwait 900\nquit\n", video, timeout)
     require_p2_creation(created, preset=2)
+    require_native_created_p1_pad_handler(created, "9")
     verify_native_save_codec(fixture, user, timeout, profile="mike")
     verify_native_save_codec(fixture, user, timeout, profile="martin")
     if selector.read_bytes() != selected:

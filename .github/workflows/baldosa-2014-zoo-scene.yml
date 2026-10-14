@@ -353,8 +353,8 @@ jobs:
           export UR_QA_ZOO_TRACE_LAST="$((ORIGINAL_ENTRY + 5165))"
           # Separate lightweight opcode-PC lead window, no byte-by-byte
           # opcode snapshot until the already-proven +5152..5165 gate.
-          export UR_QA_ZOO_RETURN_FIRST="$((ORIGINAL_ENTRY + 5047))"
-          export UR_QA_ZOO_RETURN_LAST="$((ORIGINAL_ENTRY + 5074))"
+          export UR_QA_ZOO_RETURN_FIRST="$((ORIGINAL_ENTRY + 4999))"
+          export UR_QA_ZOO_RETURN_LAST="$((ORIGINAL_ENTRY + 5051))"
           echo "Scoped original guest CPU writer trace: absolute ${UR_QA_ZOO_TRACE_FIRST}..${UR_QA_ZOO_TRACE_LAST}"
           mkdir -p "$ROOT/original-pc"
           SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \

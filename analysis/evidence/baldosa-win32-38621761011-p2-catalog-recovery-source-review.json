@@ -1,0 +1,40 @@
+{
+  "schema": "QA-02-INDEPENDENT-WIN32-CATALOG-ONLY-P2-RECOVERY-SOURCE-REVIEW/1",
+  "reviewed_utc": "2026-10-14",
+  "producer_modern_pr": 1564,
+  "producer_exact_pr_head_sha": "f9d4f27e8567bb8553f45b1b8db2e38e0cce8137",
+  "producer_merge_commit": "c894f8311d9162558e2fd923d10e5d51b8655ad5",
+  "actual_windows_run_id": 38621761011,
+  "job_id": 116051001459,
+  "artifact_id": 11922687264,
+  "artifact_name": "baldosa-win32-native-p2-catalog-recovery-smoke",
+  "artifact_zip_bytes": 5493,
+  "artifact_zip_sha256": "fd24d02c0b3908a4fc7df49d6d59c438fe76a79f7fccd10fac633680f11637c7",
+  "exact_archive_member_sha256": {
+    "report.json": "5434cd7631f68796f2d89802b924770ac2aad6f90e558ed9ba4fc26c88ae2cec",
+    "first_native_mike/log.txt": "a442c25e19e67dd460e6f5e8b04037b711ac106980e6ffbb3571446a223a84b7",
+    "second_native_martin/log.txt": "7b19c6c98e62b07946f20381f3e010e6f5478394ee08b21396775da317c59cf1",
+    "third_native_p2_recovers/log.txt": "1fee4101d8621c52fc926ccac3421a22d1511710749e6d08f3c452dc8e1d01d4",
+    "fourth_native_two_seat_go/log.txt": "e1a3b9fc6dec8db27aa2ec5f24724e58722126187154b2d7d7d4bd5c0416204b"
+  },
+  "same_disposable_root_logged_all_four_processes": true,
+  "source_events": {
+    "game1": "anonymous production gamepad X/A first-racer creation MIKE rider0",
+    "game2": "fresh MIKE profile production X/DPAD_DOWN/A second-racer creation MARTIN preset2",
+    "fault_cut": "CI-owned catalog-only replacement with historical single-P1 roster; not actual OS crash",
+    "game3": "fresh MIKE production X/DPAD_DOWN/A recovery receipt restored=1 catalog_only=1 p1_unchanged=1 status=4, existing P1 checkpoint unchanged",
+    "game4": "fresh MIKE production join both seats; stock menu=3d, source waits frame248 and frame2002, original GO ticker 0E1F and dump at frame2353"
+  },
+  "exact_go_host_frame": 2353,
+  "physical_controller_count_reported": 0,
+  "guest_source_scored_result_observed": false,
+  "actual_before_after_catalog_files_coarchived": false,
+  "actual_p2_raw_sram_typed_or_mutex_files_coarchived": false,
+  "actual_os_crash_reproduced": false,
+  "physical_controller_or_audio_accepted": false,
+  "strict_original_USA_full_course_event_parity_accepted": 0,
+  "independent_merged_main_windows_release_candidate_nominated": false,
+  "release_gate_credit": 0,
+  "qualification": "actual Windows-native process/source log positive for frontend catalog-recovery handler; producer-reported raw/mutex invariance not independently byte-adjudicated",
+  "remaining_discriminator": "Retain test-owned exact before/after canonical catalog and isolated MIKE/MARTIN source SRAM/typed/mutex files at the actual fault transition; independently hash those, verify ownership isolation and unaffected incumbent under fresh process. Follow with exact packaged Windows error/kill/concurrent ownership cases; preserve source trace and physical-device gap."
+}

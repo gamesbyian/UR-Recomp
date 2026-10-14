@@ -13,7 +13,9 @@ import qa01_attract_cpu_vram_source_contract as m
 class AttractCpuVramSourceContract(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        cls.bank80_source = m.BANK80.read_text(encoding="utf-8")
         cls.source = m.BANK81.read_text(encoding="utf-8")
+        cls.bank83_source = m.BANK83.read_text(encoding="utf-8")
         cls.bank00 = m.BALDOSA_BANK00.read_text(encoding="utf-8")
         cls.bank81 = m.BALDOSA_BANK81.read_text(encoding="utf-8")
 
@@ -71,6 +73,41 @@ class AttractCpuVramSourceContract(unittest.TestCase):
             with self.subTest(width=width, memsel=memsel):
                 with self.assertRaisesRegex(ValueError, "width|MEMSEL"):
                     m.conditional_abs_store_master_clocks(width, memsel)
+
+    def test_exact_original_direct_memsel_writer_contract(self):
+        actual = m.memsel_direct_source_writers(
+            self.bank80_source, self.bank83_source)
+        for key, pc in (
+            ("bank80_boot_fastrom_set", "80:91EA"),
+            ("bank80_boot_slowrom_reset", "80:92E8"),
+            ("bank83_game_fastrom_set", "83:CC6F"),
+            ("bank83_other_slowrom_reset", "83:FA39"),
+        ):
+            self.assertEqual(actual[key], pc)
+        for claim in (
+            "all_memsel_writers_dynamically_executed_in_first_load_proven",
+            "first_load_memsel_value_proven",
+            "original_unobserved_indirect_memsel_writers_excluded",
+        ):
+            self.assertIs(actual[claim], False)
+
+    def test_mutated_duplicate_memsel_writers_and_boot_order_rejected(self):
+        with self.assertRaisesRegex(ValueError, "MEMSEL opcode"):
+            m.memsel_direct_source_writers(
+                self.bank80_source.replace(
+                    "80/92E8: 9C 0D 42     STZ $420D",
+                    "80/92E8: 9C 0C 42     STZ $420C"),
+                self.bank83_source)
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            m.memsel_direct_source_writers(
+                self.bank80_source +
+                "\n80/91EA: 8D 0D 42     STA $420D\n",
+                self.bank83_source)
+        with self.assertRaisesRegex(ValueError, "MEMSEL opcode"):
+            m.memsel_direct_source_writers(
+                self.bank80_source, self.bank83_source.replace(
+                    "83/CC6D: A9 01        LDA #$01",
+                    "83/CC6D: A9 00        LDA #$00"))
 
     def test_archived_source_mutations_rejected(self):
         cases = (

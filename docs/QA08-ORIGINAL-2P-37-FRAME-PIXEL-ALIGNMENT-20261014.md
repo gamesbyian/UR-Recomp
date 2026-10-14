@@ -60,3 +60,36 @@ not physical SNES cycle or HBlank acceptance. Continue independent
 2P split sprite owner/source and 26 native BG3/OBJ comparison,
 preserving 256×224, 7:6 PAR, exact 4× fallback, real
 wide-world materializer and HD art aesthetic veto.
+
+## Independent source-size native reference comparison
+
+`tools/qa08_rank_original_native_2p_frames.py` requires exactly
+the SHA-pinned **native guest2208 256×224** original-source image
+`baldosa-fixed-source/ur-baldosa-original-source-002208.pam`
+from native run **38504531564** (artifact **11867072862**),
+P7 SHA-256
+`a946c9ebb54775639b8fd87a6861af0408cceed4896e58be05908c4a4491c67f`.
+This is distinct from the native **342×224 wide-world frame** and
+therefore requires **no invented horizontal +43 crop**. It rejects
+any other native asset bytes and also authenticates the original
+37-frame source manifest, each raw frame's reported SHA and the
+existing true native 2P route/guest CRC receipt.
+
+The original BGRX8888 bytes and Baldosa native RGB_ALPHA P7 bytes
+both encode RGB values; their fourth bytes are different and are
+**ignored** for an unscaled RGB-only comparison. The offline tool
+reports the exact fraction of equal 24-bit RGB pixels and channel
+absolute differences across the whole frame, upper/lower play
+regions and split edge. Rankings are diagnostic candidates,
+not guest input parity, pixel acceptance or a promise of the same
+scene. In particular, it does not add a pixel shift, solve camera
+registration or treat frame-number equality as phase equality.
+
+```sh
+python3 tools/qa08_rank_original_native_2p_frames.py \
+  --original-window /path/to/qa08-original-source-window \
+  --original-manifest /path/to/qa08-original-37frame-window.json \
+  --native-256-p7 /path/to/ur-baldosa-original-source-002208.pam \
+  --native-evidence analysis/data/qa08-original-native-channel5-hdma-coldata-source-handoff.json \
+  --out /tmp/qa08-original-native-rgb-candidates.json
+```

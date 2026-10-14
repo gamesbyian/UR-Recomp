@@ -146,7 +146,7 @@ class AirWriterProbe(unittest.TestCase):
         self.assertEqual(len(m.SOURCE_CAPTURED_BYTES), 18)
         self.assertIn(0x0F29, m.SOURCE_SHARED_WORKING_BYTES)
         for changed, failure in (
-            (candidate.replace("f=2579", "f=2587"), "frame gate"),
+            (candidate.replace("f=2579", "f=2588"), "frame gate"),
             (candidate.replace("v=250", "v=777"), "vertical counter"),
             (candidate.replace("addr=0545", "addr=0550"), "address outside"),
             (candidate.replace("candidate=1", "candidate=0"), "candidate PC"),

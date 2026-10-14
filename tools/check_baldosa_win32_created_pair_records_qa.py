@@ -201,7 +201,7 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
             run.parent.parent == root and
             run.suffix == ".urrun" and run.name.startswith("run-"),
             "match published to untrusted path or name")
-    term = list(re.finditer(r"(?m)^script f=(\\d+) quit\\r?$", played))
+    term = list(re.finditer(r"(?m)^script f=(\d+) quit\r?$", played))
     require(len(term) == 1 and term[0].start() > source.end()
             and int(term[0][1]) >= result_host,
             "source race quit or finished before captured scored event")

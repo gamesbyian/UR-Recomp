@@ -274,7 +274,7 @@ jobs:
             --dump-header "$RUNNER_TEMP/qa08-original-countdown-headers" \
             --output /dev/null \
             "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/11925517895/zip"
-          location="$(awk 'tolower($1) == "location:" {gsub(/\\r/, "", $2); print $2}' "$RUNNER_TEMP/qa08-original-countdown-headers" | tail -1)"
+          location="$(awk 'tolower($1) == "location:" {gsub(/\r/, "", $2); print $2}' "$RUNNER_TEMP/qa08-original-countdown-headers" | tail -1)"
           case "$location" in
             https://*) ;;
             *) echo "::error::original countdown source redirect unavailable"; exit 3 ;;

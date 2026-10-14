@@ -130,6 +130,10 @@ class NativePlayerCreated2PJourneyUnit(unittest.TestCase):
         self.assertNotIn("--seed-readonly-records", probe)
         self.assertNotIn("--seed-readonly-2p", probe)
         self.assertIn("native_existing_p1_profile_selector_UI_proved", probe)
+        self.assertIn('require_switch(ui_switch, P1, P2)', probe)
+        self.assertIn('"mike_ui_selects_martin", "6"', probe)
+        self.assertNotIn('subprocess.run(', probe)
+        self.assertNotIn('"--select-existing-next-boot"', probe)
 
 
 if __name__ == "__main__":

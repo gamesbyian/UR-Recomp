@@ -12,8 +12,8 @@ Relevant retained identities:
 | --- | --- |
 | Exact original-USA ROM SHA-256 | `859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478` |
 | Frontier native executable SHA-256 | `28501fa3268f82d83672122cddbd2628ce5b2458e625f46d93766f50befbe515` |
-| Original neutral 2P input fixture SHA-256 | `28f2842fd262030e434b3aef88eb360f74de94fb558f0ebd36cdb9a5bb490` |
-| Original 2P observation-script SHA-256 | `ebac1a3505281e9793c8197006081c5d88f6ab3383df48f23ba2475159e9e6e` |
+| Original neutral 2P input fixture SHA-256 | `28f2842fd262030e434b3aef88eb360f74de94fbf558f0eb0ba8edce645fb490` |
+| Original 2P observation-script SHA-256 | `ebac1a3505281e9793c8197006081c5d88f6ab3383df48f23ba2475159e9e6e3` |
 
 The actual generator is pinned source in `tools/qa_adaptive_frontier.py::actions_for(50036056, "rotation")`, which consumes the established `tools/qa02_native_2p_seeded_endurance.py` input planner, preserves the already source-validated 2P navigation prefix, and injects both P1/P2 legal controls after first-race entry. A random new controller movie or hand-edited button state would not reproduce the cited observation.
 

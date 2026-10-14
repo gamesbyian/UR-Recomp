@@ -82,6 +82,22 @@ class FirstRacerEarnedSourceRecordsQA(unittest.TestCase):
             "strict_original_native_event_accepted"])
         self.assertFalse(data["package"]["approved_release_candidate"])
         self.assertEqual(data["independent_release_scope"]["release_gate_credit"], 0)
+        # The forensic JSON is a source of evidence, NOT a "docs/"
+        # contract. The strict ledger validator must stay fail-closed and
+        # those source-contract pointers must remain independently reviewed.
+        ledger = json.loads(
+            (ROOT / "docs/RELEASE-QUALITY-LEDGER.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        for gate in ledger["gates"]:
+            if gate["id"] in ("QA-09", "QA-12"):
+                self.assertTrue(all(
+                    ref.startswith("docs/") for ref in gate["evidence_refs"]
+                ))
+                self.assertEqual(gate["status"], "unverified")
+        self.assertIsNone(ledger["candidate"]["commit_sha"])
+        self.assertIsNone(ledger["candidate"]["zip_sha256"])
 
     def test_valid_hosted_three_games_are_not_release_acceptance(self):
         d = self.check(*sample())

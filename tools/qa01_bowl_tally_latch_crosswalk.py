@@ -114,8 +114,12 @@ def crosswalk(offset_record: dict, count_record: dict) -> dict:
         fields = {kind: canonical_offsets(profiles.get(kind), totals[kind], kind)
                   for kind in ("wram", "vram", "cgram")}
         common = c.get("both_original_and_native", {})
-        if any(o.get("original_" + k) != common.get(k) or
-               o.get("native_" + k) != common.get(k)
+        # The old independent count capture says "course"; the newer
+        # address capture says "track" for the exact same 7E:00CE byte.
+        if any(o.get("original_" + k) != common.get(
+                   "course" if k == "track" else k) or
+               o.get("native_" + k) != common.get(
+                   "course" if k == "track" else k)
                for k in ("menu", "track", "race_flag")):
             raise ValueError("original/native source stage fields not comparable")
 
@@ -127,7 +131,7 @@ def crosswalk(offset_record: dict, count_record: dict) -> dict:
             "tally_relative": offset,
             "absolute_host": host,
             "stage_menu": common["menu"],
-            "stage_track": common["track"],
+            "stage_track": common["course"],
             "stage_race_flag": common["race_flag"],
             "different_guest_bytes": totals,
             "wram_regions": groups,

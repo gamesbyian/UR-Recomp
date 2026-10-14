@@ -239,21 +239,21 @@ jobs:
             "$RUNNER_TEMP/qa08-counterfactual/channel7"
           cmp "$RUNNER_TEMP/qa08-counterfactual/baseline/fd/crc.txt" \
               "$RUNNER_TEMP/qa08-counterfactual/channel7/fd/crc.txt"
-          grep -q "^UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=2208 logical=256x224 saved=1 source=native-original-ppu$" \
+          grep -q "^UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=$UR_QA08_HDMA_COLDATA_FRAME logical=256x224 saved=1 source=native-original-ppu$" \
             "$RUNNER_TEMP/qa08-counterfactual/channel7/log.txt"
           for frame in 000400 001856 002208; do
             test -s "$UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-${frame}.pam"
           done
-          grep "^UR_QA08_HDMA_INIDISP frame=2208 " \
+          grep "^UR_QA08_HDMA_INIDISP frame=$UR_QA08_HDMA_COLDATA_FRAME " \
             "$RUNNER_TEMP/qa08-counterfactual/channel7/log.txt" \
             > "$RUNNER_TEMP/qa08-counterfactual/channel7-inidisp.log"
           test "$(wc -l < "$RUNNER_TEMP/qa08-counterfactual/channel7-inidisp.log")" -eq 3
           # A truly selective change must leave real channel5 BBUS
           # provenance on this same guest input byte-for-byte intact.
-          grep "^UR_QA08_HDMA_CGADSUB frame=2208 " \
+          grep "^UR_QA08_HDMA_CGADSUB frame=$UR_QA08_HDMA_COLDATA_FRAME " \
             "$RUNNER_TEMP/qa08-counterfactual/baseline/log.txt" \
             > "$RUNNER_TEMP/qa08-counterfactual/stock-channel5.log"
-          grep "^UR_QA08_HDMA_CGADSUB frame=2208 " \
+          grep "^UR_QA08_HDMA_CGADSUB frame=$UR_QA08_HDMA_COLDATA_FRAME " \
             "$RUNNER_TEMP/qa08-counterfactual/channel7/log.txt" \
             > "$RUNNER_TEMP/qa08-counterfactual/selective-channel5.log"
           test -s "$RUNNER_TEMP/qa08-counterfactual/stock-channel5.log"

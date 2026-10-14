@@ -13,6 +13,10 @@ import json
 import re
 from pathlib import Path
 
+from baldosa_native_ci_paired_evidence_export import (
+    P2_RECOVERY_FOLDER, P2_RECOVERY_STAGES,
+    export_ci_native_p2_recovery_stage,
+)
 from baldosa_native_first_racer_probe import (
     run_game,
     verify_creation,
@@ -247,6 +251,7 @@ def run_interrupted_catalog_recovery(exe: Path, rom: Path, fixture: Path,
     one_entry = catalog.read_bytes()
     selected = selector.read_bytes()
     verify_native_save_codec(fixture, user, timeout, profile="mike")
+    export_ci_native_p2_recovery_stage(user, out, "after-p1-created")
 
     created = run_game(
         exe, rom, user, out / "second_native_martin", "9",
@@ -270,6 +275,7 @@ def run_interrupted_catalog_recovery(exe: Path, rom: Path, fixture: Path,
                  mutex_p2.read_bytes())
     if len(before_p2[1]) != 8192 or before_p2[1][0x0748] != 2 or before_p2[2]:
         raise ValueError("P2 original rider or canonical CAS lock bytes wrong")
+    export_ci_native_p2_recovery_stage(user, out, "after-p2-created")
 
     # Test-only fault cut: restore the exact catalog from *native game 1*.
     # No player is created, patched or seeded by the fixture; all source
@@ -282,6 +288,7 @@ def run_interrupted_catalog_recovery(exe: Path, rom: Path, fixture: Path,
     if (typed_p2.read_bytes(), raw_p2.read_bytes(),
             mutex_p2.read_bytes()) != before_p2:
         raise ValueError("Fault cut changed original native-created P2 bytes")
+    export_ci_native_p2_recovery_stage(user, out, "catalog-row-lost")
 
     recovered = run_game(
         exe, rom, user, out / "third_native_p2_recovers", "9",
@@ -294,6 +301,7 @@ def run_interrupted_catalog_recovery(exe: Path, rom: Path, fixture: Path,
         raise ValueError("Recovery rewrote the actual P2 identity or SRAM")
     verify_native_save_codec(fixture, user, timeout, profile="mike")
     verify_native_save_codec(fixture, user, timeout, profile="martin")
+    export_ci_native_p2_recovery_stage(user, out, "after-p2-recovered")
 
     joined = run_game(
         exe, rom, user, out / "fourth_native_two_seat_go", "3",
@@ -318,8 +326,11 @@ def run_interrupted_catalog_recovery(exe: Path, rom: Path, fixture: Path,
             one_player_archive.is_symlink() or
             list(one_player_archive.rglob("*.urrun"))):
         raise ValueError("Recovery/GO manufactured an unearned run")
+    export_ci_native_p2_recovery_stage(user, out, "after-source-go")
     return {
         "scope": "four-real-windows-games-native-created-martin-recovered-catalog",
+        "raw_source_archive": P2_RECOVERY_FOLDER,
+        "source_stage_manifest_names": list(P2_RECOVERY_STAGES),
         "fault_cut": "ci-only-restore-original-single-row-catalog",
         "source_created_named_profiles": ["mike", "martin"],
         "first_and_second_real_p1_pad_handler": True,

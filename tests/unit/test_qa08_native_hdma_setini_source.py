@@ -85,7 +85,7 @@ class OriginalSetiniTests(unittest.TestCase):
                 newlines=ls.copy()
                 newlines[0]=newlines[0].replace(old,new)
                 lp.write_text("\n".join(newlines)+"\n")
-                with self.assertRaisesRegex(ValueError,"source|record"):
+                with self.assertRaisesRegex(ValueError,"source|record|genuine paired"):
                     probe.check(lp,cp,tp)
 
     def test_native_parent_provenance_cannot_be_forged(self):

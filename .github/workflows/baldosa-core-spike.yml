@@ -24,6 +24,10 @@ on:
       - "tools/qa08_patch_ppu_text26_source.py"
       - "tools/check_qa08_native_text26.py"
       - "tests/unit/test_qa08_native_text26.py"
+      - "tools/qa08_patch_hdma_coldata_source.py"
+      - "tools/qa08_analyze_hdma_coldata_source.py"
+      - "tests/unit/test_qa08_patch_hdma_coldata_source.py"
+      - "tests/unit/test_qa08_analyze_hdma_coldata_source.py"
       - "tools/baldosa_native_ws24_presentation.cpp"
       - "tools/baldosa_ws24_presentation_report.py"
       - "native/title/uniracers_ws_margins.c"
@@ -459,6 +463,10 @@ jobs:
           # Reuses accepted two-point emitter and the same three 2P processes.
           python3 tools/qa08_patch_ppu_text26_source.py \
             --framework baldosa/snesrecomp
+          # Read-only actual HDMA $2132 COLDATA source bank/channel/table
+          # at the already-required 2P post-GO guest2208 only.
+          python3 tools/qa08_patch_hdma_coldata_source.py \
+            --framework baldosa/snesrecomp
           python3 tools/baldosa_sdl_physical_4k_capture_spike.py \
             --framework baldosa/snesrecomp
           python3 tools/baldosa_ws24_host_spike.py \
@@ -498,10 +506,12 @@ jobs:
           export UR_QA08_PPU_COLOUR_JOURNAL_FRAME=2208
           export UR_QA08_PPU_PIXEL_FRAME=2208
           export UR_QA08_PPU_TEXT26_FRAME=2208
+          export UR_QA08_HDMA_COLDATA_FRAME=2208
           mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
           bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
             "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342"
           unset UR_QA08_PPU_COLOUR_JOURNAL_FRAME UR_QA08_PPU_PIXEL_FRAME UR_QA08_PPU_TEXT26_FRAME
+          unset UR_QA08_HDMA_COLDATA_FRAME
           cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
               "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/fd/crc.txt"
           python3 tools/check_baldosa_2p_ppu_colour_journal.py \
@@ -1220,6 +1230,13 @@ jobs:
             --causal "$RUNNER_TEMP/baldosa-evidence/ws342_postgo_front_text_causal_2208.json" \
             --journal "$RUNNER_TEMP/baldosa-evidence/ws342_2p_original_colour_journal_2208.json" \
             --out "$RUNNER_TEMP/baldosa-evidence/ws342_native_text26_2208.json"
+          # Keep independent exact Original/guest source proof as authority;
+          # the direct HDMA write stream can only identify the next source
+          # table/channel candidates, never hardware timing alone.
+          python3 tools/qa08_analyze_hdma_coldata_source.py \
+            --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/log.txt" \
+            --accepted-pixels "$RUNNER_TEMP/baldosa-evidence/ws342_native_main_sub_pixel_2208.json" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_hdma_coldata_source_2208.json"
           unset UR_QA08_PPU_TEXT26_FRAME
           unset UR_QA08_PPU_PIXEL_FRAME
           unset UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC UR_RACER_HD_WIDE_REMOVE_SLOT
@@ -1674,6 +1691,7 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/ws342_postgo_front_text_causal_2208.json
             ${{ runner.temp }}/baldosa-evidence/ws342_native_main_sub_pixel_2208.json
             ${{ runner.temp }}/baldosa-evidence/ws342_native_text26_2208.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_hdma_coldata_source_2208.json
             ${{ runner.temp }}/baldosa-ws342-counterfactual-slot98-frame2208/ur-baldosa-ws342-002208.pam
             ${{ runner.temp }}/baldosa-ws342-counterfactual-slot96-frame2208/ur-baldosa-ws342-002208.pam
             ${{ runner.temp }}/baldosa-evidence/ws342_2p_original_colour_journal_2208.json

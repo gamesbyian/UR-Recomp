@@ -83,3 +83,34 @@ Before implementation, establish:
 4. a permanent 4:3 regression gate.
 
 Then widen backgrounds first, followed by culling/OAM, ordinary spawning, and graphics staging, matching the framework's proven dependency order.
+
+
+## October 14: high-OAM shadow is not effective raster OAM
+
+The historical margin screener
+[check_split_sprite_rip_margin.py](../tools/check_split_sprite_rip_margin.py)
+uses native WRAM high-OAM shadow $1599 ($1581+$18) and the source-backed
+reserved sprite records $1501..$1510. It projects hidden X9 copies
+at signed X=lowX-256 and checks their synthetic 32px right edge
+against the left source-world margin (43px at logical 342×224).
+This calculation does not inspect the actual physical $2104 OAMDATA
+writer schedule, high-OAM byte effective at each line, source OBJ
+pixels or final BG3/window/colour-math output. It must not be
+mistaken for an approved wide-source racer visibility policy.
+
+The checker now fails closed on truncated (not 128 KiB) WRAM,
+non-six-digit frame filenames, forged duplicate-looking WRAM
+snapshots, negative/overlarge margins and coverage requests of
+zero samples. It records explicitly that the successful result is
+a **shadow-geometry bound only** and authorizes neither HD rider
+substitution nor final sprite/OAM acceptance.
+
+Actual source PPU witnesses remain independent: $1599 values A5/5A
+describe reserved slots96–99 and do not by themselves prove a
+particular viewport visible; the genuine upper98/99/lower96/97
+isolated source alpha, 112-line OAM rip and all 26 BG3/OBJ final
+composite witnesses are the higher-grade sources. The original
+full 256×224 centre remains authoritative at 7:6 PAR; margin
+geometry is real additional bank-$7F world, not stretched track
+or guessed sprite continuation. Shipping art still requires
+source-present, not merely a synthetic shadow sprite location.

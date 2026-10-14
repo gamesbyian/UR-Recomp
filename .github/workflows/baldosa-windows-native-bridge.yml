@@ -84,6 +84,7 @@ jobs:
       - name: Guard guest CRC, pause witness and Modern mutable-root stage
         run: |
           python tests/unit/test_assemble_baldosa_windows_candidate.py
+          python tests/unit/test_audit_baldosa_romless_candidate.py
           python tests/unit/test_baldosa_windows_native_pause_route.py
           python tests/unit/test_baldosa_native_1p_records_probe.py
           python tests/unit/test_baldosa_native_2p_records_probe.py
@@ -348,7 +349,7 @@ jobs:
             --zip "$RUNNER_TEMP/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip" \
             --rom "reference/roms/retail/Uniracers_USA.sfc" \
             --out "$RUNNER_TEMP/Baldosa Native Extracted Launcher QA" \
-            --timeout 80
+            --timeout 80 --expected-revision "$GITHUB_SHA"
           echo "PASS: actual ROM-free ZIP extracted on Windows; double-click CMD rejects missing/wrong ROM and package-local/relative saves, accepts valid personal ROM, opens shared Modern root and saves exact native SRAM outside extracted executable directory. No ROM or saved data uploaded." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain ROM-free Windows candidate only (no ROM or SRAM)

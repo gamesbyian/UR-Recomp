@@ -74,8 +74,8 @@ def check(layout: dict, census: dict, native: dict, pixel: dict) -> dict:
             "f9ca59c19dc3e8d51c7ca1dbce25d5dc14e56ba36011128abbadee8cec0e7b4a" or
             native.get("identical_original_guest_CRC_records") != 2473 or
             pixel.get("native_guest_crc_records") != 2473 or
-            any(d.get("full_original_native_same_input_frame_parity_proven") is not False
-                for d in (layout, census))):
+            layout.get("full_original_native_same_input_frame_parity_proven") is not False or
+            census.get("full_original_native_same_input_parity_proven") is not False):
         raise ValueError("original/native ROM, route, frame or candidate provenance differs")
 
     seq = layout.get("original_source_opcode_sequence")

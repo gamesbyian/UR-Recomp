@@ -10,4 +10,4 @@ The user also requested open-PR reconciliation to main without losing branch wor
 
 A separate strategic conversation explored decentralized P2P multiplayer for PC and Mac: no permanent servers, central authority, proprietary accounts, or dependence on ongoing project operation. Discovery should be as automatic as possible, with a shareable link/code fallback for two or more users who want to find each other when automatic methods fail. The user asked for broad multilingual research and a plan, not a claim that networking had already shipped.
 
-These conversations had a characteristic tempo: curiosity about scalable experimentation, impatience with unnecessary waiting, and an insistence that automating research should eventually produce exact, reproducible knowledge rather than impressive but misleading counts.
+These conversations had a characteristic tempo: curiosity about scalable experimentation, a preference to use runner capacity productively, and an insistence that automating research should eventually produce exact, reproducible knowledge rather than impressive but misleading counts.

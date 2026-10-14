@@ -128,6 +128,12 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
     if ui or (type(report) is dict and
               bool(anonymous_source_fields & set(report))):
         expected_report_fields |= anonymous_source_fields
+    retained_raw_fields = {
+        "exact_ci_owned_raw_pair_and_profile_bytes",
+        "p1_p2_created_through_native_gamepad_handler",
+    }
+    if type(report) is dict and retained_raw_fields & set(report):
+        expected_report_fields |= retained_raw_fields
     require(type(report) is dict and set(report) == expected_report_fields,
             "unexpected producer report claim or missing canonical field")
     require(type(report) is dict and
@@ -149,6 +155,22 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
         require(type(report["anonymous_first_boot_sram_present"]) is bool and
                 report["anonymous_bootstrap_bytes_unchanged_by_all_named_games"] is True,
                 "anonymous legacy boot source preservation not attested")
+    if retained_raw_fields <= set(report):
+        statement = report["exact_ci_owned_raw_pair_and_profile_bytes"]
+        require(ui and report["p1_p2_created_through_native_gamepad_handler"] is True
+                and type(statement) is dict
+                and statement.get("schema") == "baldosa-native-disposable-source-pair-v1"
+                and statement.get("scope") == "one-throwaway-Windows-CI-user-only"
+                and statement.get("includes_rom") is False
+                and statement.get("includes_executable") is False
+                and type(statement.get("release_gate_credit")) is int
+                and statement["release_gate_credit"] == 0
+                and statement.get("source_profiles") == ["mike", "martin"]
+                and type(statement.get("members")) is dict,
+                "producer raw-byte claim not source-scoped or contains unsafe authority")
+        # A positive source-side exported-manifest claim still does not mean
+        # actual bytes were archived; the standalone raw-file checker does that.
+
     if ui:
         first, second, played, mike_view, ui_switch, martin_view = logs
     else:

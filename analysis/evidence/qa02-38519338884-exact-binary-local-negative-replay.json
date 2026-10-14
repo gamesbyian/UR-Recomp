@@ -1,0 +1,76 @@
+{
+  "schema": "UR-QA02-INDEPENDENT-EXACT-ELF-REPLAY/1",
+  "review_date": "2026-10-14",
+  "historical_failed_actions_run_id": 38519338884,
+  "historical_source_sha": "b9113d6e5951b22c81e9ca6875d2d014de1a9c2a",
+  "historical_failed_suite": "hardkill-owner",
+  "historical_actions_binary_artifact_id": 11874481043,
+  "historical_actions_binary_artifact_SHA256": "b91bbe2a835ae98f71b012a6203e41cacccfd23c363d9ba9d287c923a1fb16fc",
+  "historical_exact_linux_elf_SHA256": "ee17b8ae5fdae1ffbcceccbbb0b112130572fea58840d06f5eb7f423e7849b39",
+  "actual_binary_metadata": {
+    "ELF64": true,
+    "architecture": "x86_64",
+    "dynamically_linked": true,
+    "source_binary_unmodified": true
+  },
+  "historical_failure": {
+    "historical_failed_batch_index": 4495,
+    "seed": 5001200064495,
+    "historical_completed_positive_trials_before_red_batch": 44950,
+    "original_exception_detail": "original production fault oracle rejected/incomplete trial population",
+    "underlying_source_case_failure_archived": false
+  },
+  "independent_external_linux_replay": {
+    "platform": "Linux x86_64 kernel 6.18.44, glibc 2.41, Python 3.13.5, 5 reported CPUs",
+    "same_binary_sha256": true,
+    "same_failed_ten_case_seed": 5001200064495,
+    "first_ten_jitter_ms": [
+      6,
+      3,
+      6,
+      0,
+      5,
+      4,
+      4,
+      2,
+      6,
+      5
+    ],
+    "first_exact_ten_process_journeys_positive": 10,
+    "extended_independent_process_journeys": 500,
+    "extended_positive": 500,
+    "extended_failed": 0,
+    "jitter_histogram_over_extended_500": [
+      65,
+      52,
+      41,
+      55,
+      59,
+      52,
+      67,
+      49,
+      60
+    ],
+    "elapsed_seconds": 10.466,
+    "each_trial_distinct_fresh_user_root": true,
+    "actions_reexecuted": [
+      "spawn exact ELF owner-hold in independent process",
+      "wait for actual barrier/owner-live file",
+      "sleep deterministic 0-8ms seed jitter and send actual SIGKILL",
+      "assert exactly one committed .urrun before takeover",
+      "new executable process retry-owner-crash returns QA02_CRASH_RELEASED_AND_RETRIED",
+      "assert exactly two real published runs after takeover",
+      "independent verify-c15 process reports QA02_C15_SINGLE_RECEIPT_SINGLE_AWARD"
+    ],
+    "historical_full_python_run_suite_imported_without_change": false,
+    "original_GitHub_runner_environment_recreated": false,
+    "long_prior_44950_case_environment_or_resource_accumulation_recreated": false
+  },
+  "evidence_class": "independent negative reproduction: historical failure not deterministically reproduced by this seed and binary in a different Linux execution environment",
+  "causal_finding": "No reliable cause identified: scheduling, accumulated runner state, rare product data race and original fixture runner failure all remain hypotheses.",
+  "original_emulator_guest_play_executed": false,
+  "physical_power_loss_equivalence_proven": false,
+  "L4_release_gate_credit": 0,
+  "release_candidate_changed": false,
+  "next_experiment": "CI/fault owner replay original seed 5001200064495 on exact historical runner with original run_suite's per-trial failure receipt retained; vary process scheduling and accumulated resource load only after matching exact source/binary integrity."
+}

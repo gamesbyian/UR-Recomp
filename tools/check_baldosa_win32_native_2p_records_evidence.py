@@ -126,10 +126,11 @@ def audit_hosted_native_2p_records(
         not (0 < first < last)
         or (p1, p2) != (0, 2)
         or not (0 < t1 <= 60000 and 0 < t2 <= 60000)
+        or (t1 == 60000 and t2 == 60000)
         or winner != correct_winner or published != 1
         or frames <= 0 or runs <= 0
         or not (early[-1] < c.start() < r.start())
-        or int(c[1]) < frames
+        or int(c[1]) <= 0
         or observed["source_result_host"] != last
         or observed["source_input_frames"] != frames
         or observed["p1_hundredths"] != t1

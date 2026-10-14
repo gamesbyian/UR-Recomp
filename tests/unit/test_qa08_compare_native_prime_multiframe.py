@@ -69,7 +69,7 @@ class PrimeMultiFrameTests(unittest.TestCase):
         a[2208] = raster(seam=(111, 112))
         with mock.patch.object(target, "BASELINE_REAL_SHA256",
                                hashlib.sha256(b[2208]).hexdigest()):
-            for bad in [dict(b, **{9999: raster()}),
+            for bad in [{**b, 9999: raster()},
                         {400: b[400], 2208: b[2208]}]:
                 with self.assertRaisesRegex(ValueError, "all three"):
                     target.check(bad, a, CRC, CRC)

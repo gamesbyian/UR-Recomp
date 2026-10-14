@@ -23,7 +23,14 @@ def producer(case: str, *, matched: bool = False) -> dict:
         "family": c.CASES[case]["family"],
         "native_backend": "pinned-baldosa",
         "admission": "investigative candidate; not a release-ledger pass",
-        "original_source_event": {"source_active_frames_to_result": original},
+        "original_source_event": {
+            "original_entry_frame": 3190,
+            "original_result_frame": 3190 + original,
+            "source_active_frames_to_result": original,
+        },
+        "reference_entry": 984,
+        "native_entry": 986,
+        "native_frame_shift": 2,
         "comparison": {
             "paired_event_candidate": matched,
             "terminal_result_frame_matched": matched,
@@ -37,7 +44,8 @@ def producer(case: str, *, matched: bool = False) -> dict:
         **{key: "a" * 64 for key in (
             "rom_sha256", "original_movie_sha256",
             "native_executable_sha256", "reference_core_sha256",
-            "input_sha256", "source_sram_sha256")},
+            "input_sha256", "source_sram_sha256",
+            "original_movie_window_sha256", "reference_script_sha256")},
     }
 
 
@@ -119,6 +127,70 @@ class QA01CampaignTest(unittest.TestCase):
                          "producer_error")
         self.assertEqual(c.classify("bowl", 124, self.root/"absent.json", plan)[
                          "disposition"], "producer_error")
+
+    def test_archived_movie_and_fresh_guest_timing_provenance_fails_closed(self):
+        plan = self.plan("zoom-zoo")
+        good = self.report_file("zoom-zoo", matched=True)
+        row = c.classify("zoom-zoo", 0, good, plan)
+        self.assertEqual(row["disposition"], "strict_candidate")
+        ev = row["evidence"]
+        self.assertEqual(ev["original_movie_entry_frame"], 3190)
+        self.assertEqual(ev["original_movie_result_frame"], 8353)
+        self.assertEqual(ev["original_event_frames"], 5163)
+        self.assertEqual(ev["native_entry_frame"] - ev["reference_entry_frame"],
+                         ev["native_frame_shift"])
+        self.assertEqual(ev["source_sram_sha256"], "a" * 64)
+        self.assertEqual(ev["original_movie_window_sha256"], "a" * 64)
+        self.assertEqual(ev["reference_script_sha256"], "a" * 64)
+        self.assertEqual(row["release_credit"], 0)
+        # The observed shift is signed. A native guest that enters earlier
+        # than the original may still be a valid, independently calibrated
+        # experiment; never clamp or silently rebase its controller movie.
+        earlier = producer("zoom-zoo", matched=True)
+        earlier["native_entry"] = 982
+        earlier["native_frame_shift"] = -2
+        c.write_json(good, earlier)
+        valid_earlier = c.classify("zoom-zoo", 0, good, plan)
+        self.assertEqual(valid_earlier["disposition"], "strict_candidate")
+        self.assertEqual(valid_earlier["evidence"]["native_frame_shift"], -2)
+        self.assertEqual(valid_earlier["release_credit"], 0)
+        for mutate in (
+            lambda v: v.pop("original_movie_window_sha256"),
+            lambda v: v.__setitem__("reference_script_sha256", "not-a-sha"),
+            lambda v: v.__setitem__("source_sram_sha256", "unverified"),
+            lambda v: v.__setitem__("native_frame_shift", 3),
+            lambda v: v.__setitem__("native_entry", True),
+            lambda v: v["original_source_event"].__setitem__(
+                "original_result_frame", 8354),
+            lambda v: v["original_source_event"].__setitem__(
+                "original_entry_frame", -1),
+            lambda v: v["original_source_event"].__setitem__(
+                "source_active_frames_to_result", 0),
+        ):
+            with self.subTest(mutate=repr(mutate)):
+                candidate = producer("zoom-zoo", matched=True)
+                mutate(candidate)
+                c.write_json(good, candidate)
+                bad = c.classify("zoom-zoo", 0, good, plan)
+                self.assertEqual(bad["disposition"], "producer_error")
+                self.assertEqual(bad["release_credit"], 0)
+
+    def test_cross_shard_source_sram_is_part_of_execution_identity(self):
+        plan = self.plan()
+        out = self.root / "source-sram-mismatch"
+        for case in c.CASES:
+            target = out / f"qa01-campaign-case-{case}" / "case-result.json"
+            c.write_json(target, c.classify(case, 1, self.report_file(case), plan))
+        self.assertTrue(c.aggregate(plan, out)[0]["transport_complete"])
+        target = out / "qa01-campaign-case-switcher" / "case-result.json"
+        row = c.load_json(target)
+        row["evidence"]["source_sram_sha256"] = "f" * 64
+        c.write_json(target, row)
+        summary, _ = c.aggregate(plan, out)
+        self.assertFalse(summary["transport_complete"])
+        self.assertEqual(summary["counts"]["missing_evidence"], 1)
+        self.assertIn("identity mismatch", summary["results"][-1]["reason"])
+        self.assertEqual(summary["release_admissions"], 0)
 
     def test_aggregate_accounting_detects_missing_and_bad_foreign_artifacts(self):
         plan = self.plan("all")

@@ -27,7 +27,10 @@ WRAM_SIZE = 131072
 NAMED = ("p1_raw_air", "p2_raw_air", "p1_y", "p2_y",
          "p1_y_velocity", "p2_y_velocity")
 WORD_OFFSETS = {"p1_candidate_state_word": 0x0545,
-                "p2_candidate_state_word": 0x0547}
+                "p2_candidate_state_word": 0x0547,
+                # Post-run *P2-last* shared scratch, NOT the pre-P1 branch.
+                "postrun_shared_collision_02c0_word": 0x02C0,
+                "postrun_active_seat_selector_0fef_word": 0x0FEF}
 TARGETS = ("0545", "0547", "0415", "0417", "04BB", "04BD")
 HEX = re.compile(r"^[a-f0-9]{64}$")
 
@@ -214,6 +217,15 @@ def summarize(record: dict, word_rows: list[dict]) -> dict:
                 "p2_y": {"original": 863, "native": 862}},
             "seed-50036056 original/native named divergence changed")
 
+    # Both post-host guests agree on the shared *last P2 stage*. This
+    # cannot identify the earlier P1 branch operand/flags, even though the
+    # low $02C0 byte = FF would be negative in an 8-bit signed test.
+    for i in (3, 4):
+        w = word_rows[i]
+        require(all(w[side].get("postrun_shared_collision_02c0_word") == 0x00FF
+                    and w[side].get("postrun_active_seat_selector_0fef_word") == 2
+                    for side in ("original", "native")),
+                "same-host P2-last collision/selector control changed")
     source = record["original_cpu_opcode_changes"]
     native = record["native_cpu_helper_writes"]
     require(len(source) == 126 and len(native) == 813
@@ -291,6 +303,12 @@ def summarize(record: dict, word_rows: list[dict]) -> dict:
             "p1_y_writeback": n("0415"),
             "p1_vertical_writeback": n("04BB"),
             "p2_y_writeback": n("0417"),
+        },
+        "posthost_2579_2580_collision_control": {
+            "original_native_02c0_word": "00FF",
+            "original_native_0fef_seat_selector_word": "0002",
+            "these_are_pre_p1_branch_preconditions": False,
+            "eight_bit_collision_sign_when_read_at_this_value": "negative",
         },
         "input_event_frames_2579_through_2589": 0,
         "cpu_instruction_or_ppu_beam_phase_aligned": False,

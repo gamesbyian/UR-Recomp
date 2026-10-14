@@ -4,11 +4,15 @@ import copy
 import json
 from pathlib import Path
 import sys
+import tempfile
 import unittest
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 import check_baldosa_win32_first_racer_evidence as qa
+import verify_baldosa_romless_candidate_qa as wrapperqa
+from tests.unit.test_verify_baldosa_romless_candidate_qa import IndependentBaldosaZipQaTests
 
 
 def fixture():
@@ -76,6 +80,90 @@ class IndependentWin32FirstRacerQA(unittest.TestCase):
         )
         self.assertTrue(both[
             "hosted_first_racer_anonymous_creation_to_fresh_named_boot_consistent"])
+
+    def test_exact_windows_zip_consumer_binds_first_racer_triad_to_same_exe(self):
+        # This is a ROM-free synthetic cross-component contract; the real
+        # observed source artifact is independently pinned in the repo's
+        # dated Win32 run 38501679761 evidence receipt.
+        with tempfile.TemporaryDirectory() as temp:
+            inner, revision, digest = IndependentBaldosaZipQaTests().make(Path(temp))
+            candidate = wrapperqa.audit(inner, revision, digest)
+            exe_sha = candidate["metrics"]["executable_payload_sha256"]
+            stock = {
+                "classification": "windows_native_pause_and_named_profile_smoke_only",
+                "exe_sha256": exe_sha, "course_complete_credit": 0,
+                "physical_gamepad_hardware_tested": False,
+                "native_named_readonly_records": {
+                    "actual_native_2p_match_published": False,
+                },
+            }
+            for players, field in ((1, "modern_root_race_entry_p1"),
+                                   (2, "modern_root_race_entry_p2")):
+                stock[field] = {
+                    "players": players,
+                    "native_root_handoff_observed": True,
+                    "original_race_nmi_barrier_passed": True,
+                    "original_go_ticker_barrier_passed": True,
+                    "complete_event_outcome_claimed": False,
+                    "actual_guest_frames": 100,
+                }
+            launcher = {
+                "archive_sha256": digest,
+                "real_extracted_launcher_accepted": True,
+                "published_zip_unchanged": True,
+                "rom_not_in_archive": True,
+                "canonical_8192_byte_save_outside_package": True,
+            }
+            report, first, fresh = fixture()
+            archive = Path(temp) / "win32-evidence.zip"
+            group = wrapperqa.RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS[0]
+
+            def emit(*, changed_report=report, changed_fresh=fresh):
+                with zipfile.ZipFile(archive, "w") as z:
+                    z.writestr(wrapperqa.RUNTIME_REPORT, json.dumps(stock))
+                    z.writestr(wrapperqa.RUNTIME_LAUNCHER, json.dumps(launcher))
+                    for players, member in ((1, wrapperqa.RUNTIME_ONE),
+                                            (2, wrapperqa.RUNTIME_TWO)):
+                        z.writestr(
+                            member,
+                            "SDL reports 0 joystick(s)\n"
+                            "SDL init ok: video=windows audio=dummy\n"
+                            f"UR_BALDOSA_MODERN_ROOT stock_entered players={players} menu=3c\n"
+                            "script f=100 quit\n",
+                        )
+                    z.writestr(group[0], json.dumps(changed_report))
+                    z.writestr(group[1], first)
+                    z.writestr(group[2], changed_fresh)
+
+            emit()
+            readback = wrapperqa.check_runtime_actions_wrapper(
+                archive, wrapperqa.audit(inner, revision, digest),
+                expected_wrapper_sha=wrapperqa.file_digest(archive),
+            )
+            self.assertEqual(readback["outcome"], "inconclusive")
+            self.assertTrue(readback["metrics"][
+                "hosted_first_racer_anonymous_creation_to_fresh_named_boot_consistent"])
+            self.assertFalse(readback["metrics"][
+                "hosted_created_profile_bytes_independently_rehashed"])
+            self.assertFalse(readback["metrics"][
+                "hosted_one_shot_packaged_launcher_restart_verified"])
+            self.assertFalse(readback["metrics"][
+                "finished_native_event_or_new_match_observed"])
+            self.assertIn(
+                "hosted-first-racer-creation-to-fresh-named-guest-logs-consistent",
+                [x["name"] for x in readback["assertions"]],
+            )
+
+            emit(changed_report={**report, "physical_pad_acceptance": True})
+            with self.assertRaisesRegex(ValueError, "unsupported release or save claims"):
+                wrapperqa.check_runtime_actions_wrapper(
+                    archive, wrapperqa.audit(inner, revision, digest),
+                )
+            emit(changed_fresh=fresh.replace("profile=mike", "profile=andrew"))
+            with self.assertRaisesRegex(ValueError, "second named guest"):
+                wrapperqa.check_runtime_actions_wrapper(
+                    archive, wrapperqa.audit(inner, revision, digest),
+                )
 
     def test_no_producer_json_can_award_release_or_physical_credit(self):
         report, first, fresh = fixture()

@@ -142,5 +142,43 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
         self.assertNotIn("certutil -addstore", script)
 
 
+    def test_actual_no_args_launcher_autorestart_log_contract(self):
+        from verify_baldosa_windows_extracted_launcher import (
+            verify_first_user_cmd_relaunch_log,
+        )
+        valid = (
+            "UR_BALDOSA_NATIVE_PROFILE DEFAULT no_host_state=1\n"
+            "UR_BALDOSA_MODERN_ROOT opened=1\n"
+            "UR_BALDOSA_NATIVE_FIRST_RACER status=0 preset=0 id=mike "
+            "activation=next_process\n"
+            "UR_BALDOSA_MODERN_ROOT first_racer_created=1 "
+            "activation=next_process\n"
+            "UR-BALDOSA-FIRST-RACER: Restarting with newly created racer.\n"
+            "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=mike "
+            "root=saves/profile-mike\n"
+            "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=mike "
+            "bytes=8192 fnv=12345678\n"
+            "UR_BALDOSA_MODERN_ROOT opened=1\n"
+        )
+        verify_first_user_cmd_relaunch_log(valid)
+        for invalid in (
+            valid.replace("status=0", "status=2"),
+            valid.replace("profile=mike", "profile=other", 1),
+            valid.replace("Restarting with newly created racer.",
+                          "Skipped launcher restart."),
+            valid.replace("first_racer_created=1",
+                          "first_racer_created=0"),
+            valid + valid,
+            valid.replace("BOOT_SRAM profile=mike ", "BOOT_SRAM profile=other "),
+            valid.replace("UR_BALDOSA_MODERN_ROOT opened=1\n", "", 1),
+            valid.replace("UR_BALDOSA_NATIVE_PROFILE APPLIED profile=mike "
+                          "root=saves/profile-mike\n",
+                          ""),
+        ):
+            with self.subTest(invalid=invalid[-130:]):
+                with self.assertRaises(ValueError):
+                    verify_first_user_cmd_relaunch_log(invalid)
+
+
 if __name__ == "__main__":
     unittest.main()

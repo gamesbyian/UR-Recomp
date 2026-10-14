@@ -255,6 +255,10 @@ int main() {
     const auto mike_typed_before = exact_contents(staged_mike_typed);
     const auto andrew_before = exact_contents(staged_andrew);
     const auto andrew_typed_before = exact_contents(staged_andrew_typed);
+    const auto staged_mutex = staged_p2 /
+        "saves/profile-andrew/host-profile.txt.urmutex";
+    assert(fs::is_regular_file(staged_mutex) &&
+           fs::file_size(staged_mutex) == 0u);
 
     // A normal retry correctly refuses an orphan directory. Recovery may
     // publish only on the user's exact matching next-boot preset selection.
@@ -327,6 +331,27 @@ int main() {
                unexpected, "mike", 1).status ==
            BaldosaSecondRacerStatus::ExistingData);
     assert(exact_contents(unexpected / "profiles-v1.txt") == unexpected_before);
+
+    // A missing or redirected OS path lock is not a canonical completed
+    // typed-store publication, even if the 8-KiB stock bytes still match.
+    const auto mutex_lost = stage_interrupted_second("missing-p2-mutex");
+    const fs::path missing_mutex =
+        mutex_lost / "saves/profile-andrew/host-profile.txt.urmutex";
+    assert(fs::remove(missing_mutex));
+    assert(recover_baldosa_second_preset_for_next_boot(
+               mutex_lost, "mike", 1).status ==
+           BaldosaSecondRacerStatus::ExistingData);
+    assert(!fs::exists(missing_mutex));
+#ifndef _WIN32
+    const auto mutex_redirect = stage_interrupted_second("redirected-p2-mutex");
+    const fs::path redirected_mutex =
+        mutex_redirect / "saves/profile-andrew/host-profile.txt.urmutex";
+    assert(fs::remove(redirected_mutex));
+    fs::create_symlink(workspace / "unknown-target", redirected_mutex);
+    assert(recover_baldosa_second_preset_for_next_boot(
+               mutex_redirect, "mike", 1).status ==
+           BaldosaSecondRacerStatus::ExistingData);
+#endif
 
     const auto stale = stage_interrupted_second("stale-p1-selector");
     const auto stale_global = stale / "host-state-v1.txt";

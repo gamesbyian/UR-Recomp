@@ -58,7 +58,7 @@ class NativeFirstModernRacerTests(unittest.TestCase):
         # The original first-racer modal remains visible; P2 shares the
         # existing view only when the distinct second-racer modal is open.
         self.assertIn(
-            "view.first_racer_open = g_first_racer_open || g_second_racer_open;",
+            "g_first_racer_open || g_second_racer_open || g_existing_switch_open;",
             root)
         self.assertIn("view.first_racer_is_second = g_second_racer_open;", root)
         self.assertIn("if (view.first_racer_open)", presenter)

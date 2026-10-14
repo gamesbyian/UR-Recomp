@@ -30,3 +30,21 @@ The independent phase probe captured **18 snapshots per guest (+5156..+5173)**, 
 Stop once the first causally material instruction boundary is identified or a specific missing observer prevents conclusion. Preserve strict `+5163/+5162` rejection, original input, official QA-01 **0/45**, and ownership separation from the active Switcher NMI stack investigation (PRs #1376/#1370). No release-ledger changes.
 
 **Limit:** Fixed host snapshots prove concrete timing of observed menu/race-flag state at host boundaries, not identical CPU instruction phase or player-visible persistence/next-event progression.
+
+## Source-executable 0313 writer discriminator (2026-10-13 continuation)
+
+The existing original/native `.github/workflows/baldosa-2014-zoo-scene.yml` already executes original Snes9x opcode-change instrumentation at the source 2014 movie's active→result boundary. Its prior **native** helper-write range was `7E:008B..00CE`; this excluded **`7E:0313`**, the raw race-state word whose transition was independently shown one guest-relative frame early in native. Thus a negative native writer count there could never distinguish an absence of guest writes from the logger never watching the target.
+
+The QA-01 experiment now extends that already-frame-bounded native logger to `7E:0313`, retaining the old interstitial menu/track gate untouched. A **single source/native crosswalk** consumes the existing replays: separate original CPU `ZOOPCWRITE` opcode/PC scope logs, native `SNESRECOMP_WLOG_ADDR` CPU-helper via scopes, the unchanged 128-KiB original/native `boundary-05160..05163` guest dumps and the two host script's independently reported actual frame receipts. The crosswalk checks the actual source-observed transitions:
+
+| Guest-relative fixed ticks | Original Snes9x `7E:0313` | Native `7E:0313` |
+| --- | --- | --- |
+| +5160 | 01 (racing) | 01 (racing) |
+| +5161 | 01 (racing) | 00 |
+| +5162 | 00 | 3D (result-side state reuse) |
+| +5163 | 3D (result-side state reuse) | 3D |
+
+These rows restate **previously executed fixed-frame evidence**, not a claimed new emulator run. The new machine-readable `zoo-terminal-writer-crosswalk.json` reports observed source/native writer candidate scopes for transitions `01→00` and `00→3D`. A native write logger is not a complete bus trace; a source opcode pre/post delta is not automatically an identified direct store. Their frames are **separate axes**: source `ICPU.Frame`, native pre-`RtlRunFrame` `snes_frame_counter`, and zero-frame host script snapshots. A matching PC/value or a one-frame apparent offset alone does **not** establish NMI/beam-cycle correspondence, a native gameplay defect or full-course acceptance.
+
+For static investigation only, Nitrodon's archived annotated bank disassembly contains literal `$0313` writes at `82:AC0C/AC1B/AC22` (`STY`) and `83:E073/E3FE` (`STA`), and dynamic routing can write via indirect addressing. These are **historical candidate PCs, not a proven set of executed USA original or native transition writers**; confirm against the new source execution trace and USA homolog/ROM before attribution. The experiment never patches ROM, gameplay, controller masks, release-ledger authority or event comparator. Existing strict Zoo terminal +5163/+5162 disparity and USA **0/45** acceptance remain unchanged.
+

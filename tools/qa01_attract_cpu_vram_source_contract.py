@@ -15,6 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BANK80 = ROOT / "reference/imported/reverse-engineering/nitrodon/bank 80.txt"
+BANK82 = ROOT / "reference/imported/reverse-engineering/nitrodon/bank 82.txt"
 BANK81 = ROOT / "reference/imported/reverse-engineering/nitrodon/bank 81.txt"
 BANK83 = ROOT / "reference/imported/reverse-engineering/nitrodon/bank 83.txt"
 BALDOSA_BANK00 = ROOT / "reference/imported/reverse-engineering/baldosa-uniracers-recomp/recomp/bank00.cfg"
@@ -57,6 +58,52 @@ def original_rows(source: str) -> dict[int, tuple[str, str]]:
 def _attest_line(source: str, line: str) -> None:
     if len([x for x in source.splitlines() if x.startswith(line)]) != 1:
         raise ValueError(f"missing, duplicated or changed original opcode: {line}")
+
+
+# Direct original-USA caller path into the first-load *candidate* stores.
+# Archived opcodes 22 are long calls even where the historical listing spells
+# them JSR. Do not infer execution from a source xref.
+ORIGINAL_HUD_CALLER_ANCHORS = {
+    "bank81_wrapper": (
+        "81/CCE6: 20 07 CD     JSR $CD07",
+        "81/CCE9: 6B           RTL",
+    ),
+    "bank82_race_setup": (
+        "82/DBF7: 8D F1 0E     STA $0EF1",
+        "82/DBFA: 8D F3 0E     STA $0EF3",
+        "82/DC13: 22 05 C6 81  JSR $81C605",
+        "82/DC17: 20 1F DC     JSR $DC1F",
+        "82/DC1A: 22 E6 CC 81  JSR $81CCE6",
+        "82/DC1E: 60           RTS",
+    ),
+}
+
+
+def hud_direct_caller_source_contract(bank81: str, bank82: str) -> dict:
+    for label, source in (("bank81_wrapper", bank81),
+                          ("bank82_race_setup", bank82)):
+        listing = source.splitlines()
+        offsets = []
+        for line in ORIGINAL_HUD_CALLER_ANCHORS[label]:
+            matches = [i for i, actual in enumerate(listing)
+                       if actual.startswith(line)]
+            if len(matches) != 1:
+                raise ValueError(f"missing/duplicate/changed original HUD caller: {line}")
+            offsets.append(matches[0])
+        if offsets != sorted(set(offsets)):
+            raise ValueError(f"original HUD caller order changed: {label}")
+    # This pins the static chain, not a total xref census for every indirect
+    # dispatch in all regions/ROM mirrors or a host-frame execution receipt.
+    return {
+        "source_wrapper_pc": "81:CCE6",
+        "source_wrapper_target_pc": "81:CD07",
+        "source_race_setup_caller_pc": "82:DC1A",
+        "race_setup_lap_initialization_pcs": ["82:DBF7", "82:DBFA"],
+        "race_setup_before_hud_call_pcs": ["82:DC13", "82:DC17"],
+        "original_cpu_executed_hud_in_host_248_to_278_proven": False,
+        "hud_path_exclusive_vram_writer_in_first_load_proven": False,
+        "all_indirect_callers_excluded": False,
+    }
 
 
 MEMSEL_ORIGINAL_OPCODE_ANCHORS = {
@@ -219,6 +266,10 @@ def main() -> int:
     result = report(BANK81.read_text(encoding="utf-8"),
                     BALDOSA_BANK00.read_text(encoding="utf-8"),
                     BALDOSA_BANK81.read_text(encoding="utf-8"))
+    result["original_hud_direct_caller_source"] = hud_direct_caller_source_contract(
+        BANK81.read_text(encoding="utf-8"),
+        BANK82.read_text(encoding="utf-8"),
+    )
     result["original_direct_memsel_source_writers"] = memsel_direct_source_writers(
         BANK80.read_text(encoding="utf-8"),
         BANK83.read_text(encoding="utf-8"),

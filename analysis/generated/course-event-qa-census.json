@@ -19,13 +19,13 @@
     "family_cases_per_region": 9
   },
   "status_counts": {
-    "partial": 4,
-    "unverified": 131
+    "partial": 5,
+    "unverified": 130
   },
   "by_rom": {
     "usa-retail": {
-      "partial": 4,
-      "unverified": 41
+      "partial": 5,
+      "unverified": 40
     },
     "europe-retail": {
       "unverified": 45
@@ -48,7 +48,8 @@
       "unverified": 26
     },
     "race-b": {
-      "unverified": 27
+      "partial": 1,
+      "unverified": 26
     },
     "circuit-b": {
       "partial": 1,
@@ -165,9 +166,9 @@
         "finish",
         "result"
       ],
-      "status": "unverified",
-      "evidence_ref": null,
-      "coverage_note": null
+      "status": "partial",
+      "evidence_ref": "analysis/data/switcher-original-baldosa-paired-race-b-result-20261010.json",
+      "coverage_note": "Source-unaltered 2014 original USA Snes9x Switcher Race B movie reaches genuine result 0x99 at movie frame 17030 from source entry 12327. Independently booted original Snes9x/native pinned Baldosa replay the exact anchored SRAM/controller scene, with equal starting signatures, 28/28 sampled active semantics, authentic completed result PPU text MIKE 1:08.81, P1 lap zero and finish/checkpoint gate. Both hosts observe the result at 5783, but original scene-relative +4704 versus native +4702 fails strict event parity; source/native near-terminal course-0 interstitial timing, exact PC/NMI alignment, menu continuation and persistence remain unresolved. No accepted event credit."
     },
     {
       "rom": "usa-retail",
@@ -2772,6 +2773,7 @@
     "Input-only Jumpover CIRCUIT-B rewards are partial; no paired Circuit result or scored 45-second Stunt outcome was certified.",
     "Neither PAL register homology nor identical prototype streams proves PAL runtime parity.",
     "Historical optimizer startX constants are never read by magicnumber.lua; zero does not prove a runtime spawn.",
-    "A complete pass requires original menu entry, player result and event-relative independent reference comparison."
+    "A complete pass requires original menu entry, player result and event-relative independent reference comparison.",
+    "Switcher Race B original/native replay reaches an identical genuine MIKE 1:08.81 result, but guest-relative onset differs by two frames; no accepted event witness."
   ]
 }

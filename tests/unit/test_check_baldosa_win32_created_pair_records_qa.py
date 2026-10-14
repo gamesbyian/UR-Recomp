@@ -33,12 +33,18 @@ def fixture():
     # The GO script's first $0053 title condition is BEFORE menu=3d.
     third = ROOT_LINE + PRELUDE + "script f=0 turbo on\n" + third
     third = third.replace(
+        "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1\n",
+        "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1\n"
+        "UR_BALDOSA_MODERN_ROOT synthetic_join_edge seat=1\n")
+    third = third.replace(
+        "UR_BALDOSA_MODERN_ROOT stock_requested players=2\n",
+        "UR_BALDOSA_MODERN_ROOT stock_requested players=2\n"
+        "UR_BALDOSA_MODERN_ROOT synthetic_join_edge seat=2\n")
+    third = third.replace(
         "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d\n",
         "script f=248 until 00053 ok after 248 frames\n"
         "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d\n")
     third += (
-        "UR_BALDOSA_MODERN_ROOT synthetic_join_edge seat=1\n"
-        "UR_BALDOSA_MODERN_ROOT synthetic_join_edge seat=2\n"
         "script f=2002 until 00053 ok after 6 frames\n"
         "script f=2352 until 00E1F ok after 350 frames\n"
         "script f=2352 dump go ok\n"

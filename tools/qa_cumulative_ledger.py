@@ -193,6 +193,36 @@ def validate_plan(plan: dict) -> None:
         raise ValueError("tampered or incomplete campaign plan")
 
 
+def _diagnostic(plan: dict, producer: dict | None) -> dict:
+    """Bounded, uncredited description of an aggregate from a failed run.
+
+    A red reusable job may still deliver a source-bound aggregate holding valid
+    per-case observations (e.g. two strict divergences and one producer
+    error). Retain what it says for triage; never count it as completed work.
+    """
+    if producer is None:
+        return {}
+    schema, source_key, _, _ = SOURCES[plan["campaign"]]
+    out = {"aggregate_sha256": digest(producer),
+           "aggregate_bound_to_plan": (producer.get("schema") == schema
+                                       and producer.get(source_key) == plan["source_sha"])}
+    if not out["aggregate_bound_to_plan"]:
+        return out
+    if type(producer.get("disposition")) is str:
+        out["producer_disposition"] = producer["disposition"][:60]
+    if type(producer.get("counts")) is dict:
+        out["case_counts"] = {str(k)[:40]: v for k, v in list(producer["counts"].items())[:8]
+                              if type(v) is int}
+    if type(producer.get("results")) is list:
+        out["case_dispositions"] = [
+            {"case": str(r.get("case"))[:40], "disposition": str(r.get("disposition"))[:40],
+             "reason": str(r.get("reason") or "")[:200]}
+            for r in producer["results"][:16] if type(r) is dict]
+    if type(producer.get("issues")) is list:
+        out["issues"] = [str(i)[:200] for i in producer["issues"][:5]]
+    return out
+
+
 def outcome(plan: dict, producer: dict | None, job_result: str) -> tuple[str, dict]:
     campaign = plan["campaign"]
     # Previous original/native receipts conflated a red reusable workflow
@@ -206,6 +236,7 @@ def outcome(plan: dict, producer: dict | None, job_result: str) -> tuple[str, di
                 "reusable_job_result": job_result,
                 "aggregate_present": producer is not None,
                 "first_failed_child_step_verified": False,
+                **({"diagnostic": _diagnostic(plan, producer)} if producer is not None else {}),
             }
         if producer is None:
             return "incomplete_or_failed", {
@@ -221,6 +252,7 @@ def outcome(plan: dict, producer: dict | None, job_result: str) -> tuple[str, di
             "reason": "original workflow or aggregate unavailable",
             "reusable_job_result": str(job_result)[:40],
             "aggregate_present": producer is not None,
+            **({"diagnostic": _diagnostic(plan, producer)} if producer is not None else {}),
         }
     schema, source_key, cases_key, unit_key = SOURCES[campaign]
     if producer.get("schema") != schema or producer.get(source_key) != plan["source_sha"]:

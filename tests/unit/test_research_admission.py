@@ -250,6 +250,56 @@ class UsageAndLedgerIntegration(unittest.TestCase):
         ledger.validate_ledger({"schema": ledger.SCHEMA, "records": [legacy]})
 
 
+class FailedRunEvidenceIsRetainedNotCredited(unittest.TestCase):
+    def test_partial_original_native_aggregate_is_kept_as_uncredited_diagnostic(self):
+        empty = {"schema": ledger.SCHEMA, "records": []}
+        plan = ledger.make_plan(empty, selected="original-native", source_sha=SHA, minutes=15,
+                                windows_trials=3, run_id=10)
+        partial = {"schema": "ur-qa01-event-campaign/1", "source_sha": SHA,
+                   "transport_complete": False, "release_admissions": 0,
+                   "selected_cases": 3, "completed": 2,
+                   "counts": {"strict_candidate": 0, "strict_divergence": 2,
+                              "producer_error": 1, "missing_evidence": 0},
+                   "results": [{"case": "zoom-zoo", "disposition": "strict_divergence"},
+                               {"case": "bowl", "disposition": "strict_divergence"},
+                               {"case": "switcher", "disposition": "producer_error",
+                                "reason": "reference core exited 2"}]}
+        _, row = ledger.append(empty, plan, partial, "failure")
+        self.assertEqual(row["disposition"], "incomplete_or_failed")
+        self.assertNotIn("cases", row["metrics"])
+        diag = row["metrics"]["diagnostic"]
+        self.assertTrue(diag["aggregate_bound_to_plan"])
+        self.assertEqual(diag["case_counts"]["strict_divergence"], 2)
+        self.assertEqual(diag["case_dispositions"][2]["reason"], "reference core exited 2")
+        self.assertEqual(row["release_gate_credit"], 0)
+
+    def test_aggregate_from_another_source_is_not_described(self):
+        empty = {"schema": ledger.SCHEMA, "records": []}
+        plan = ledger.make_plan(empty, selected="graphics", source_sha=SHA, minutes=15,
+                                windows_trials=3, run_id=10)
+        _, row = ledger.append(empty, plan, {"schema": "ur-cumulative-graphics/1",
+                                             "source_sha": "b" * 40, "issues": ["x"]}, "failure")
+        diag = row["metrics"]["diagnostic"]
+        self.assertFalse(diag["aggregate_bound_to_plan"])
+        self.assertNotIn("issues", diag)
+
+    def test_failed_job_and_first_failed_step_survive_run_deletion(self):
+        jobs = [{"name": "original-native / cases (switcher)", "conclusion": "failure",
+                 "status": "completed", "labels": ["ubuntu-22.04"],
+                 "started_at": "2026-10-14T00:00:00Z", "completed_at": "2026-10-14T00:10:00Z",
+                 "steps": [{"name": "Checkout", "conclusion": "success"},
+                           {"name": "Run original/native producer", "conclusion": "failure"}]},
+                {"name": "commit-evidence", "conclusion": "failure", "status": "in_progress",
+                 "labels": [], "steps": []}]
+        usage = a.summarize_usage(jobs, exclude_names=("commit-evidence",))
+        a.validate_usage(usage)
+        self.assertEqual(usage["failed_jobs"], [{
+            "job": "original-native / cases (switcher)", "conclusion": "failure",
+            "first_failed_step": "Run original/native producer"}])
+        with self.assertRaises(ValueError):
+            a.validate_usage({**usage, "failed_jobs": [{"job": 1}]})
+
+
 class CoordinatorWorkflowContract(unittest.TestCase):
     def test_admission_precedes_reservation_and_gates_every_writer(self):
         text = WORKFLOW.read_text()

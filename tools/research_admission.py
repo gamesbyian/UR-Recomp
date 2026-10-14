@@ -313,7 +313,15 @@ def summarize_usage(jobs: list[dict], *, exclude_names: tuple[str, ...] = ()) ->
     """Runner-minutes actually consumed by completed/started jobs of one run."""
     minutes = {"linux": 0.0, "windows": 0.0, "macos": 0.0}
     counted = 0
+    failed = []
     for job in jobs:
+        if (job.get("conclusion") in ("failure", "cancelled", "timed_out")
+                and job.get("name") not in exclude_names and len(failed) < 8):
+            step = next((s.get("name") for s in job.get("steps") or ()
+                         if s.get("conclusion") in ("failure", "cancelled", "timed_out")), None)
+            failed.append({"job": str(job.get("name"))[:120],
+                           "conclusion": job["conclusion"],
+                           "first_failed_step": None if step is None else str(step)[:160]})
         if job.get("name") in exclude_names or job.get("conclusion") == "skipped":
             continue
         start, end = job.get("started_at"), job.get("completed_at")
@@ -327,6 +335,8 @@ def summarize_usage(jobs: list[dict], *, exclude_names: tuple[str, ...] = ()) ->
     return {"schema": USAGE_SCHEMA, "jobs_counted": counted,
             "runner_minutes": {k: round(v, 1) for k, v in minutes.items()},
             "total_runner_minutes": round(sum(minutes.values()), 1),
+            # Captured at record time: survives later deletion of the run.
+            "failed_jobs": failed,
             "measured_by": "job started_at/completed_at; excludes the recording job itself"}
 
 
@@ -339,6 +349,14 @@ def validate_usage(usage: dict) -> None:
             or type(usage.get("total_runner_minutes")) not in (int, float)
             or abs(sum(rm.values()) - usage["total_runner_minutes"]) > 0.5):
         raise ValueError("invalid runner usage receipt")
+    failed = usage.get("failed_jobs", [])
+    if (type(failed) is not list or len(failed) > 8 or any(
+            type(f) is not dict or set(f) != {"job", "conclusion", "first_failed_step"}
+            or type(f["job"]) is not str
+            or f["conclusion"] not in ("failure", "cancelled", "timed_out")
+            or f["first_failed_step"] is not None and type(f["first_failed_step"]) is not str
+            for f in failed)):
+        raise ValueError("invalid failed-job locus")
 
 
 def _write_outputs(path: Path, values: dict) -> None:

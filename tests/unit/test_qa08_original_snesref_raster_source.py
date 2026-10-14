@@ -61,7 +61,7 @@ class OriginalReferenceScreenshotTests(unittest.TestCase):
                 if bad=="wrongframe": s=s.replace("1989\t225","1988\t225")
                 if bad=="badregister": s=s.replace("2131","0004")
                 if bad=="badsource": s=s.replace("hdma","emulator")
-                if bad=="hcounter": s=s.replace("\t225\t0","\t225\t500")
+                if bad=="hcounter": s=s.replace("\t225\t0","\t225\t512")
                 if bad=="beam_reversed":
                     rows=s.splitlines()
                     s="\n".join([rows[0],rows[2],rows[1]])+"\n"

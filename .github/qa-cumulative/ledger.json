@@ -623,6 +623,38 @@
       "sequence": 1,
       "source_sha": "8d993150f0736dc40476cee3eb30c08301ae48d7",
       "windows_trials": 10
+    },
+    {
+      "base_seed": 50000000,
+      "campaign": "fault-recovery",
+      "disposition": "completed_positive",
+      "frontier_cases": 100,
+      "github_run_id": 38503028787,
+      "metrics": {
+        "aggregate_sha256": "a7c30f6a14950078e734dc22b3d9893df3e106eb11e191e9ad5f3e4e60ea2f74",
+        "cases": 20371,
+        "observations": 203710
+      },
+      "minutes": 15,
+      "origin": "coordinator",
+      "producer_digest": "76868eea664b00c8e2633eefbc1a241f958ea4e2926a8d5ecc2631dcbb42f5a2",
+      "record_sha256": "731078528bb4a2e28be1891e2475bfd0f10905868f0238aff4e3ba57f4f3f20a",
+      "release_gate_credit": 0,
+      "runner_usage": {
+        "failed_jobs": [],
+        "jobs_counted": 8,
+        "measured_by": "job started_at/completed_at; excludes the recording job itself",
+        "runner_minutes": {
+          "linux": 76.8,
+          "macos": 0.0,
+          "windows": 0.0
+        },
+        "schema": "ur-research-runner-usage/1",
+        "total_runner_minutes": 76.8
+      },
+      "sequence": 0,
+      "source_sha": "1716d95952fbf9b21e9162201548364a451305e6",
+      "windows_trials": 3
     }
   ],
   "schema": "ur-cumulative-campaign-ledger/1"

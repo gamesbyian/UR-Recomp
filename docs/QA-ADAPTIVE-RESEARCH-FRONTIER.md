@@ -110,3 +110,9 @@ Use the **exact, newly deduplicated fingerprint count** and source-meaningful fe
 Do not promote large novelty counts as accepted gameplay. If broad exploration produces no new meaningful semantic categories or only trivial motion variation, shift to the next **qualified question** instead of repeatedly paying for 10k nearly identical states. Revisit inputs after changes to the actual gameplay or source observability. Three non-discriminating source probes should trigger explicit hypothesis revision per the existing project research policy, not a hidden relaxation of the original parity comparator.
 
 **Ownership and risk:** This new tool does not write to \`docs/RELEASE-QUALITY-LEDGER.json\`, the original game, native renderer, Modern frontend, product storage or an art-approval manifest. No automatic issues or code-writing agents are invoked by unreviewed novelty; generated reproducible packets are suitable input for the owner's next autonomous research/development turn.
+
+## Witness binary retention (2026-10-14)
+
+Frontier witnesses are reproducible only on the byte-identical native executable named in the aggregate. The shared candidate artifact expires after one day; witness handoffs are kept for 14. Every frontier run now re-uploads that exact candidate as **`qa-frontier-witness-native` for 90 days**. The tarball contains the build tree with a ROM *path* (`rom.cfg`), never ROM bytes. Reproduction tools should prefer this artifact name for runs after this change.
+
+Runs before it are not covered. Run 38446393623 (dual-air witness seed 50036056) has only `shared-modern-native-candidate`, which **expires 2026-10-14 18:27 UTC**. QA-01's `two-player-reference.yml` input `qa01_dual_air_50036056` must run before then, or that exact witness can no longer be replayed on its own binary.

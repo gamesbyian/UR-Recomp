@@ -203,3 +203,23 @@ jobs:
           path: ${{ runner.temp }}/qa-frontier-aggregate/
           if-no-files-found: warn
           retention-days: 14
+      # Witnesses name an exact native executable SHA-256, but the shared
+      # candidate artifact expires after one day. Keep a research-owned copy
+      # as long as any reproduction of this run's witnesses may need it.
+      - name: Retrieve the exact native candidate the witnesses ran on
+        id: witness_binary
+        if: ${{ always() && needs.candidate.result == 'success' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: shared-modern-native-candidate
+          path: ${{ runner.temp }}/qa-frontier-witness-native
+      # The tarball holds the build tree; rom.cfg is a path, never ROM bytes.
+      - name: Retain exact witness native binary for reproduction (90 days, no ROM)
+        if: ${{ always() && steps.witness_binary.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-frontier-witness-native
+          path: ${{ runner.temp }}/qa-frontier-witness-native/shared-modern-native.tar.gz
+          if-no-files-found: warn
+          retention-days: 90

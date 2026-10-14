@@ -158,5 +158,15 @@ class CoordinatorSeriesContract(unittest.TestCase):
         self.assertIn('--series "$SERIES_MODE" --series-target "$SERIES_TARGET"', text)
 
 
+class WitnessBinaryRetention(unittest.TestCase):
+    def test_frontier_keeps_its_exact_native_binary_as_long_as_witness_handoffs(self):
+        wf = (ROOT / ".github/workflows/qa-adaptive-frontier.yml").read_text()
+        step = wf.split("Retain exact witness native binary", 1)[1].split("- name:", 1)[0]
+        self.assertIn("name: qa-frontier-witness-native", step)
+        self.assertIn("retention-days: 90", step)
+        # Never longer-lived than needed, never the ROM.
+        self.assertNotIn(".sfc", step)
+
+
 if __name__ == "__main__":
     unittest.main()

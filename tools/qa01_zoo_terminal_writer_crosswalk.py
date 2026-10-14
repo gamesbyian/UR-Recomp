@@ -118,8 +118,39 @@ def analyze(original_trace: str, native_trace: str,
                 "any_exact_value_candidate": bool(candidates),
                 "cpu_instruction_phase_relative_to_host_dump_unproven": True,
             })
+    # Both data sources independently executed an overwrite of the byte at
+    # 7E:0313 as the upper lane of a UI/work-buffer word. The original
+    # opcode PCs are from actual Snes9x pre/post opcode state; the native
+    # source functions and w2 starts are from CPU-helper write callbacks.
+    # This is NOT proof the CPU opcodes or NMI phases were synchronized.
+    source_clear = any(
+        w["guest_pc"] == "83:8B85" and w["old"] == "01" and w["new"] == "00"
+        for w in src_writes)
+    source_text = any(
+        w["guest_pc"] == "80:C585" and w["old"] == "00" and w["new"] == "3D"
+        for w in src_writes)
+    native_clear = any(
+        w["actual_store_start"] == "80:0312" and w["write_width"] == 2
+        and w["guest_value"] == "00"
+        and w["native_scope"] == "Vram_ClearRegions_M1X0"
+        for w in nat_writes)
+    native_text = any(
+        w["actual_store_start"] == "00:0312" and w["write_width"] == 2
+        and w["guest_value"] == "3D"
+        and w["native_scope"] == "Text_DrawLoop_C3F7_M1X0"
+        for w in nat_writes)
+    source_and_native_buffer_overwrite_observed = (
+        source_clear and source_text and native_clear and native_text)
     return {
         "schema": SCHEMA,
+        "source_original_clear_buffer_opcode_83_8b85_observed": source_clear,
+        "source_original_text_buffer_opcode_80_c585_observed": source_text,
+        "native_overlapping_word_clear_observed": native_clear,
+        "native_overlapping_word_text_observed": native_text,
+        "original_native_presentation_buffer_overlap_correspondence":
+            source_and_native_buffer_overwrite_observed,
+        "terminal_0313_is_not_independently_proven_dedicated_race_exit_flag": True,
+        "matched_store_values_do_not_prove_instruction_or_frame_equivalence": True,
         "original_host_scene_entry": src_entry,
         "native_host_scene_entry": nat_entry,
         "entry_host_offset_native_minus_original": nat_entry - src_entry,
@@ -143,8 +174,10 @@ def analyze(original_trace: str, native_trace: str,
         "interpretation": (
             "The real original CPU opcode scopes and native CPU helper store scopes "
             "are separately stamped and compared with exactly sampled raw guest "
-            "state. Candidate matching values alone do not establish executing "
-            "PC equivalence, NMI/beam-phase equivalence, or a gameplay fix."
+            "state. Source 83:8B85 and 80:C585 are presentation/work-buffer "
+            "store candidates and native 16-bit stores at 0312 overwrite the "
+            "observed 0313 high byte. A matched value does not establish "
+            "instruction/beam parity, or fix the one-frame result onset."
         ),
     }
 

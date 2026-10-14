@@ -19,6 +19,7 @@ class BaldosaNativeTwoPlayerPublicationTests(unittest.TestCase):
             ROOT / "tools/baldosa_modern_profile_activation.cpp",
             *[PRODUCT / filename for filename in (
                 "output_resolution_policy.cpp",
+                "clean_stock_sram.cpp", // activation now supports new first-racer boot
                 "host_product_state.cpp",
                 "host_product_store.cpp",
                 "host_profile_runtime.cpp",

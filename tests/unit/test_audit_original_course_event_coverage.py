@@ -124,6 +124,34 @@ class OriginalCourseCensusTests(unittest.TestCase):
         self.assertEqual(evidence["release"]["qualified_complete_usa_courses"], 0)
 
 
+    def test_switcher_completed_result_is_not_yet_an_admitted_event(self):
+        # Genuine original/native evidence is preserved, but the release-QA
+        # owner must reconcile official census counts before any promotion.
+        source = json.loads((ROOT /
+            "analysis/data/switcher-original-baldosa-paired-race-b-result-20261010.json"
+        ).read_text(encoding="utf-8"))
+        self.assertEqual(source["schema"],
+                         "UR-QA01-ORIGINAL-BALDOSA-SWITCHER-RACE-B-RESULT/1")
+        self.assertEqual(source["provenance"]["course_id"], "course:04")
+        original = source["original_source"]
+        self.assertEqual(original["original_movie_course_entry_frame"], 12327)
+        self.assertEqual(original["original_movie_result_frame"], 17030)
+        paired = source["independently_observed_replay"]
+        self.assertEqual(paired["active_sample_count"], 28)
+        self.assertTrue(paired["sampled_active_semantic_fields_equal"])
+        self.assertEqual(paired["player_one_time"], "1:08.81")
+        self.assertEqual(paired["reference_result_guest_relative_frame"], 4704)
+        self.assertEqual(paired["native_result_guest_relative_frame"], 4702)
+        self.assertFalse(paired["terminal_guest_relative_result_frame_matched"])
+        self.assertFalse(paired["full_event_parity_admitted"])
+        self.assertEqual(source["release"]["qa_credit"], 0)
+        report = audit.build_census(self.catalog, self.evidence)
+        recorded = next(x for x in report["entries"]
+                        if x["rom"] == "usa-retail" and x["course_id"] == "course:04")
+        self.assertEqual(recorded["status"], "unverified")
+        self.assertEqual(report["by_rom"]["usa-retail"],
+                         {"partial": 4, "unverified": 41})
+
     def test_dragster_native_only_evidence_does_not_pass_full_course(self):
         report = audit.build_census(self.catalog, self.evidence)
         row = report["entries"][0]

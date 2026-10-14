@@ -158,6 +158,66 @@ owned NMI/stack work or the already executed Bowl 8-frame tally phase.
 clock boundary needs causal tracing. If it cannot distinguish them,
 record that inability; do not commission another unbounded replay batch.
 
+## Original 2014 post-result movie continuation (optional; QA-07)
+
+The standard full-event producer stops at the independently observed stable
+result +6 frames, so it does not yet observe subsequent result-screen
+continuity, any returned menu, next course or persistence. The **existing**
+`qa01-event-campaign.yml` now offers a default-off boolean
+`source_followthrough` for *only the three already source-qualified cases*,
+Zoo Circuit, Bowl timed Stunt, and Switcher Race B. It changes neither case
+selection nor candidate or release acceptance.
+
+The same 2014 SMV's exact controller window is already extracted through
+**original result +40 frames**; no new buttons, durations, ghost route,
+savestate, or victory state are fabricated. The original full-horizon changed
+WRAM trace identifies the independent 2014 result onset and reads `track`,
+`menu` and `in_race` at original movie result **+8, +16, +24 and +32**.
+Missing source frames fail closed. The independently booted Snes9x/native
+replays then collect full real **128 KiB WRAM snapshots** at those same
+offsets measured from **each guest's separately observed fresh result
+onset**. Script log receipts must prove each precise host frame (an exit code
+or arbitrary dump filename is insufficient). Native and original event entries
+continue to be calibrated independently, and input timing is unchanged.
+
+The opt-in report lives under `source_terminal_followthrough` in the
+existing `producer-report.json`. Every sampled row retains the three
+different clock axes: original archived movie absolute frame, fresh original
+host frame, and fresh native host frame. It includes source/original/native
+named state, both fresh guests' laps/checkpoint/finish gate, SHA-256 of genuine
+full-WRAM images, field-level disagreements and exact sample/dump provenance.
+Raw guest bytes remain local to the CI case workspace and are **not**
+uploaded. The primary strict `paired_event_candidate`, event comparator,
+campaign `strict_divergence` classification and `release_admissions: 0`
+are unchanged. This report cannot prove SRAM persistence, final menu
+restoration, valid next-event selection or independent PC/APU correctness.
+An equal result-relative state is **not automatically** equal race-relative
+gameplay, particularly with the already observed Zoo +5163/+5162, Bowl
++3365/+3364 and Switcher +4704/+4702 terminal differences.
+
+The decision is bounded: determine whether the authentic post-result
+controller continuation remains on the result, enters another state, or
+diverges between original/native. If it changes, isolate the earliest
++8…+32 sampled mismatch and perform a narrow verified source input /
+actual consumer trace. If all agree semantically, that supports only
+continuation for those 32 source-result-relative frames; it does not erase
+the earlier strict result phase mismatch or justify increasing 0/45.
+To execute, manually choose `selected=zoom-zoo` and
+`source_followthrough=true` on the existing campaign. Repeat for Bowl or
+Switcher only if the first case changes the next decision, or choose
+`selected=all` when a justified comparative campaign is required.
+The optional observation and tests do **not** produce a newly executed real
+SNES witness merely by merging; real results require a separately checked
+workflow run.
+
+**Three-project reuse:** UR's source-qualified 2014 SMV extractor, Snes9x
+reference, full guest dump recorder and strict event comparator are reused
+unchanged; Baldosa's pinned native research guest remains a separate
+execution oracle, while malmazuke's PAL replay/source knowledge remains a
+qualified lead only. No new workflow, new CI trigger, replacement emulator,
+guest logic, CPU/APU runtime correction or second 45-course denominator
+was introduced.
+
 ## Failure triage and extension
 
 When infrastructure is red, use the aggregate's first missing/invalid case,
@@ -180,3 +240,57 @@ shared-candidate, isolated work-root, compact receipt and aggregation
 pattern, but keep their own existing semantic validators, QA owners,
 physical-evidence requirements and minimal discriminators. Do not create
 a second generalized test oracle or automatically trigger hours-long work.
+
+## Original executed APU read → acknowledgement branch provenance (2026-10-14)
+
+RF-015 is the highest-value shared result-handoff discriminator: on the
+separately executed two-seat seed `50036056`, Baldosa's 33-frame `0x84`
+result prelude is shorter than the original 34-frame reference, and the
+first observed difference is the `7E:2000` sound-command queue before a
+`7E:00C6` vblank-wait pass. **This is not itself a proved APU cause.**
+The existing **manual**, opt-in `qa01_apu_phase` source observer for historical
+Zoo is available to collect a different genuine original 1P event. Its
+output must never be merged numerically with seed `50036056` as though
+the two controller movies or APU histories were the same.
+
+The existing `tools/qa01_apu_phase_report.py` now also reports
+`original_ack_read_branch_pairs_count`,
+`original_ack_read_branch_pairs_sample` (up to 16), and explicit unpaired
+read/branch counts. It associates an executed original **`82:803C`
+`LDA $2142`** with the immediately following *logged* **`82:8043`
+`BNE`** only when the sparse executed-PC stream and original frame
+boundary support the association. Each reported pair contains the returned
+low A byte, effective I/O-mapped data bank, branch **actual next PC**,
+queue indices/toggle and original-frame receipts. An intervening logged
+opcode, missing read, or unexplained frame gap produces **unpaired evidence**
+rather than a fabricated queue decision. Synthetic adversarial tests cover
+these failure modes.
+
+**Do not infer BNE from the stored `Registers.PL` zero bit.** Snes9x can
+maintain effective flags lazily; a captured pre-op `PL` is not automatically
+the executed branch predicate. The next PC is the observed outcome. The new
+pairing does not match any native AOT read to that original branch, correlate
+CPU/APU master clocks, establish `$4212` wait equivalence, rewrite result
+timing, or waive the strict original/native event comparator. It is a
+**read-only analysis improvement**, with `release_gate_credit: 0`.
+
+**Smallest decision-bearing follow-up:** dispatch only a deliberate
+`selected=zoom-zoo`, `qa01_apu_phase=true` campaign with pinned original
+movie, ROM/core/native executable and independent entry receipts. Inspect
+unpaired counts *first* and the source-local read/branch outcomes around
+the +5156…+5163 result boundary. Compare corresponding native `$2142`
+reads and queue snapshots only after establishing a valid clock and input
+identity mapping. If APU acknowledgement is demonstrably earlier, hand the
+exact original CPU PC/beam, native port-clock and `$4212` wait receipts to
+the separate CPU/APU timing owner; this gameplay lane must not implement its
+runtime fix. If no causal difference exists, return to the documented
+upstream Zoo +5156/+5157 restore transition and source finish-decision
+owner. The 2014 Zoo source and the 2P finish seed are **separate experiments**.
+
+Three-project reuse preflight: UR already owns the full-event source probe
+and first-difference machinery; Baldosa's imported route/firstdiff tools and
+malmazuke's pinned replay/finish analysis remain research aids, not alternate
+USA oracles. No new runner, recompiler, comparator, CI trigger or gate owner
+was introduced. The retained three-event source matrix still records Zoo
++5163/+5162, Bowl +3365/+3364, Switcher +4704/+4702 guest-relative
+results, all strict mismatches. **Accepted USA events remain 0/45.**

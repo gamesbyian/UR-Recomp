@@ -52,14 +52,15 @@ assets. This tool adds no original/emulator/gameplay/Modern/QA release
 path or GitHub Actions campaign.
 
 
-## Newly located period-source archive, pending actual image inspection
+## Period-source intake correction (2026-10-14)
 
-The [HD racer period press research ledger](HD-RACER-PERIOD-PR-ART-SOURCES-20261014.md)
-records an independently catalogued original DMA Design press-material
-collection, an original 1995 German magazine advertisement and sources for
-regional print imagery. The archive is catalogued as containing Uniracers/
-Unirally material, but its individual images are **not inspected yet**;
-no external artwork is admitted into the reference contact sheet or
-presented as a third verified pose. Human likeness approval remains
-mandatory. Existing SHA-verified title PPU and multi-pose OBJ source
-images remain authoritative for original projected game pixels.
+The proposed DMA Design press archive was **inspected by the project
+owner** and contains only one Uniracers-related PDF, **already present
+in the repository from its first research days**. This is a completed,
+duplicate lead: no additional authentic model view or new visual
+reference came from it. Do not download the archive again or promote it
+into the title/OAM reference contact sheet. The
+[period-source research ledger](HD-RACER-PERIOD-PR-ART-SOURCES-20261014.md)
+records the explicit retirement and the independent remaining sources.
+Previously SHA-authenticated original PPU/OAM atlas references are unchanged,
+and current procedural 4× art still lacks aesthetic approval.

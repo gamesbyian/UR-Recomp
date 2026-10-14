@@ -23,7 +23,9 @@ FILES = (
     "named_p1_boot_after_practice_kill/log.txt",
     "named_p1_practice_after_kill/log.txt",
 )
-EXTRAS = {"report.json", "boundary-receipts.json"}
+IDLE = ("ordinary_idle_boot_1_normalizes/log.txt",
+        "ordinary_idle_boot_2_control/log.txt")
+EXTRAS = {"report.json", "boundary-receipts.json", *IDLE}
 SHA = re.compile(r"[a-f0-9]{64}\Z")
 BOOT = re.compile(r"(?m)^UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=mike bytes=8192 fnv=([0-9a-f]{8})\r?$")
 ROOT = re.compile(r"(?m)^\[Launcher\] Config/saves anchored to '([^'\r\n]+)'\.\r?$")
@@ -66,8 +68,13 @@ def audit_archive(path: Path, *, expected_sha256: str) -> dict:
                     0 < info.file_size <= 48 * 1024, "unsafe file " + name)
             files[name] = z.read(name)
             require(len(files[name]) == info.file_size, "incomplete file " + name)
+    # Two optional actual native idle-control logs must arrive together.
+    # One missing log cannot prove source chronology or no-Play behavior.
+    idle_present = any(name in files for name in IDLE)
+    require(not idle_present or all(name in files for name in IDLE),
+            "incomplete ordinary idle-control source pair")
     logs = {name: files[name].decode("utf-8", "strict")
-            for name in FILES if name.endswith("log.txt")}
+            for name in (*FILES, *IDLE) if name.endswith("log.txt") and name in files}
     for name, log in logs.items():
         require("[Gamepad] SDL reports 0 joystick(s)" in log and
                 not any(marker in log for marker in FORGED_AWARD),
@@ -91,7 +98,7 @@ def audit_archive(path: Path, *, expected_sha256: str) -> dict:
             not re.search(r"(?m)^script f=\d+ quit\r?$", killed),
             "hard-killed source had normal shutdown")
     named_roots = [sole(ROOT, logs[x], x + " root")
-                   for x in FILES[1:] if x.endswith("log.txt")]
+                   for x in (*FILES[1:], *IDLE) if x.endswith("log.txt") and x in logs]
     require(len(set(named_roots)) == 1, "different named user roots in one journey")
     receipt = json.loads(files[FILES[4]])
     require(type(receipt) is dict and set(receipt) == {
@@ -108,6 +115,25 @@ def audit_archive(path: Path, *, expected_sha256: str) -> dict:
     b = sole(BOOT, reboot, "fresh ordinary source BOOT_SRAM")
     c = sole(BOOT, retried, "retried Practice source BOOT_SRAM")
     require(a == k == b, "postkill fresh boot did not read original MIKE source SRAM")
+    idle_control_fvn = None
+    if idle_present:
+        expected_idle_tokens = (
+            "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=mike root=saves/profile-mike",
+            "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=mike status=",
+        )
+        for name in IDLE:
+            idle_log = logs[name]
+            require(all(token in idle_log for token in expected_idle_tokens) and
+                    "stock_requested" not in idle_log and
+                    "stock_entered" not in idle_log and
+                    RESTORE not in idle_log,
+                    "idle-control source entered stock play or lacked named closure")
+            require(len(BOOT.findall(idle_log)) == 1 and
+                    re.search(r"(?m)^script f=\d+ quit\r?$", idle_log) is not None,
+                    "idle-control process boot and quit not source-verified")
+        idle_control_fvn = sole(BOOT, logs[IDLE[1]], "second idle control SRAM")
+        require(idle_control_fvn == a,
+                "second idle-control source SRAM disagrees with stable Practice baseline")
     require("UR_BALDOSA_NATIVE_PROFILE APPLIED profile=mike root=saves/profile-mike" in reboot,
             "fresh boot did not load named player")
     require("UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=mike status=unchanged" in first,
@@ -125,6 +151,21 @@ def audit_archive(path: Path, *, expected_sha256: str) -> dict:
         boundary = json.loads(files["boundary-receipts.json"])
         require(type(boundary) is list and len(boundary) >= 1,
                 "malformed stage hash receipt")
+        if idle_present:
+            labels = [row.get("stage") for row in boundary if isinstance(row, dict)]
+            require(len(labels) == len(boundary) and
+                    labels[:2] == ["ordinary_idle_boot_1_normalizes",
+                                   "ordinary_idle_boot_2_control"] and
+                    "after_hard_kill" in labels,
+                    "missing ordered named idle and kill boundary receipts")
+            for name in ("ordinary_idle_boot_2_control", "after_hard_kill"):
+                row = boundary[labels.index(name)]
+                require(row.get("changed") == [] and
+                        isinstance(row.get("sha256"), dict) and
+                        isinstance(row.get("reference_sha256"), dict),
+                        "idempotent idle control or killed named bytes not source-stable")
+    elif idle_present:
+        raise ValueError("independent Windows Practice QA: missing idle-control byte receipts")
     if "report.json" in files:
         report = json.loads(files["report.json"])
         require(type(report) is dict and report.get("physical_gamepad_certified") is False
@@ -144,6 +185,9 @@ def audit_archive(path: Path, *, expected_sha256: str) -> dict:
         "intervening_ordinary_career_play": career,
         "intervening_ordinary_career_save_committed": committed,
         "stage_hash_receipts_archived": boundary is not None,
+        "both_idle_control_source_logs_retained": idle_present,
+        "idle_control_source_boot_fingerprint": idle_control_fvn,
+        "idle_control_producer_hashes_show_idempotence": idle_present and boundary is not None,
         "source_classification": classification,
         "independently_archived_actual_prepost_8192_byte_SRAM": False,
         "independently_proven_full_named_byte_immutability": False,

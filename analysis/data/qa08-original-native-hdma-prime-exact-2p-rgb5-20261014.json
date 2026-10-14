@@ -1,0 +1,110 @@
+{
+  "schema": "qa08-actual-original-native-2p-256x224-HDMA-prime-consumption-pixel-causal-result/1",
+  "classification": "exact-real-independent-original-Snes9x-to-disposable-native-RGB5-all-pixels-equal-at-one-2P-frame",
+  "original_independent_source": {
+    "workflow_run": 38543766102,
+    "artifact_id": 11884155561,
+    "artifact_zip_sha256": "6e5d488230c11d3dfcd144b6a7cbc8c25d7acfcb4f95b776a85071dd3487f5e3",
+    "frame": "qa08-original-source-window/frame_002207_256x224.raw",
+    "frame_sha256": "e76c6010b3fb339ecbdae2fec985a00019345723cdff122d9bbc78d71481c8aa",
+    "callback_frame": 2207,
+    "source_video_format": "Snes9x RGB565 expanded BGRX8888"
+  },
+  "native_independent_counterfactual": {
+    "workflow_run": 38625005621,
+    "artifact_id": 11924132279,
+    "artifact_zip_sha256": "4a3d9af21f509e8b5daeb17e4ba27932ba8a3dcd4bb167832ff4d33fd6bf3df7",
+    "native_guest_frame": 2208,
+    "unaltered_source_P7_sha256": "a946c9ebb54775639b8fd87a6861af0408cceed4896e58be05908c4a4491c67f",
+    "experimental_source_P7_sha256": "bf8b4218fb72f94338b19da5c1386bd5ce09c0dc0c767093286e80895fa3353c",
+    "disposable_pinned_snesrecomp_commit": "075fbe4c8e0d97b0013be541795c39cb644a9709",
+    "disposable_change": "prime first HDMA transfer consumes channel pointer, repCount and doTransfer; production upstream never modified",
+    "guest_CRC_records_each": 2473,
+    "guest_CRC_byte_streams_identical": true,
+    "unique_guest_CRC_values": 2292
+  },
+  "comparison": {
+    "source_size": [
+      256,
+      224
+    ],
+    "total_RGB_source_pixels": 57344,
+    "original_vs_unmodified_native_equal_RGB5": 56832,
+    "original_vs_experimental_native_equal_RGB5": 57344,
+    "original_vs_experimental_native_mismatching_RGB5": 0,
+    "changed_native_RGBA_pixels": 512,
+    "changed_native_RGBA_pixels_by_row": [
+      {
+        "y": 111,
+        "count": 256
+      },
+      {
+        "y": 113,
+        "count": 256
+      }
+    ],
+    "all_other_source_RGBA_pixels_unchanged": true,
+    "original_zero_brightness_rows": [
+      111,
+      112
+    ],
+    "unmodified_native_zero_brightness_rows": [
+      112,
+      113
+    ],
+    "experimental_native_zero_brightness_rows": [
+      111,
+      112
+    ],
+    "green_channel_only_normalization": "Snes9x expanded RGB565 G6 -> native expanded RGB5 G5: g6=G8>>2; g5=g6>>1; G8=(g5<<3)|(g5>>2)",
+    "no_seam_masking_or_pixel_repair": true
+  },
+  "actual_live_native_channel7_mode0_INIDISP": {
+    "unmodified": [
+      {
+        "tag": 0,
+        "byte": "0F",
+        "source": "7E:2065"
+      },
+      {
+        "tag": 2,
+        "byte": "0F",
+        "source": "7E:2065"
+      },
+      {
+        "tag": 113,
+        "byte": "00",
+        "source": "7E:2067"
+      },
+      {
+        "tag": 115,
+        "byte": "0F",
+        "source": "7E:2069"
+      }
+    ],
+    "experiment": [
+      {
+        "tag": 0,
+        "byte": "0F",
+        "source": "7E:2065"
+      },
+      {
+        "tag": 112,
+        "byte": "00",
+        "source": "7E:2067"
+      },
+      {
+        "tag": 114,
+        "byte": "0F",
+        "source": "7E:2069"
+      }
+    ]
+  },
+  "reliability_caveat": "The run emitted a complete real artifact but GitHub Actions job reported failure because the first comparator incorrectly demanded unique CRC values for all 2473 guest frames; source values legitimately repeat. That checker assumption was fixed after artifact download, with the archived source pixels and CRC streams independently inspected and unchanged.",
+  "production_HDMa_patch_admitted": false,
+  "multiframe_cross_game_SNES_HDMA_timing_proven": false,
+  "independent_release_ledger_modified": false,
+  "real_342_widescreen_and_4x_with_candidate_proven": false,
+  "authentic_full_gameplay_fidelity_proven": false,
+  "HD_racer_art_approved": false
+}

@@ -9,6 +9,13 @@ on:
         required: false
         type: boolean
         default: false
+      candidate_only:
+        description: >-
+          Research producers only: build/upload the one shared candidate and skip
+          the product acceptance fan-out (no acceptance claim is made or needed)
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: modern-shared-native-acceptance-${{ github.ref }}
@@ -118,6 +125,7 @@ jobs:
 
   ghost-target:
     needs: build
+    if: ${{ inputs.candidate_only != true }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -241,6 +249,7 @@ jobs:
 
   profile-panel:
     needs: build
+    if: ${{ inputs.candidate_only != true }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -407,6 +416,7 @@ jobs:
 
   results-navigation:
     needs: build
+    if: ${{ inputs.candidate_only != true }}
     name: results-navigation-${{ matrix.shard }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -465,6 +475,7 @@ jobs:
 
   ordinary-2p:
     needs: build
+    if: ${{ inputs.candidate_only != true }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -562,6 +573,7 @@ jobs:
 
   completed-run-replay:
     needs: build
+    if: ${{ inputs.candidate_only != true }}
     runs-on: ubuntu-latest
     timeout-minutes: 18
     steps:

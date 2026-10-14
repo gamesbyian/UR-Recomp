@@ -86,6 +86,9 @@ jobs:
     uses: ./.github/workflows/modern-shared-native-acceptance.yml
     with:
       canonical_candidate: false
+      # Research needs only the binary; product acceptance belongs to its
+      # owners' gates and previously cost ~14 runner-minutes per research run.
+      candidate_only: true
 
   experiments:
     needs: [plan, candidate]

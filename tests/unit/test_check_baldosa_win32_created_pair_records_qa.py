@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ROM-free negative campaign for genuine played 0/1 native paired Records."""
+"""ROM-free negative campaign for genuine played 0/2 native paired Records."""
 from __future__ import annotations
 
 import copy
@@ -29,7 +29,8 @@ PRELUDE = (
 def fixture():
     _, first, second, third = example()
     first = ROOT_LINE + PRELUDE + first
-    second = ROOT_LINE + PRELUDE + second
+    second = ROOT_LINE + PRELUDE + second.replace(
+        "preset=1", "preset=2").replace("id=andrew", "id=martin")
     # The GO script's first $0053 title condition is BEFORE menu=3d.
     third = ROOT_LINE + PRELUDE + "script f=0 turbo on\n" + third
     third = third.replace(
@@ -49,11 +50,11 @@ def fixture():
         "script f=2352 until 00E1F ok after 350 frames\n"
         "script f=2352 dump go ok\n"
         "UR_BALDOSA_NATIVE_MATCH CAPTURED=1 profile1=mike "
-        "profile2=andrew course=course:01 frames=2231 "
+        "profile2=martin course=course:01 frames=2231 "
         "path=D:\\a\\_temp\\New Player-Created Named Racers\\multiplayer-runs\\"
         + RUN + "\n"
         "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-2p "
-        "race_host=2146 result_host=4377 riders=0,1 "
+        "race_host=2146 result_host=4377 riders=0,2 "
         "hundredths=2761,2757 winner=2 input_frames=2231 "
         "input_runs=5 published=1\n"
     )
@@ -81,8 +82,8 @@ def fixture():
         )
     report = {
         "scope": "two-native-controller-created-profiles-played-source-2p-and-both-records",
-        "actual_frontend_created_profiles": ["mike", "andrew"],
-        "observed_stock_riders": [0, 1],
+        "actual_frontend_created_profiles": ["mike", "martin"],
+        "observed_stock_riders": [0, 2],
         "observed_source_guest_result": {
             "source_result_host": 4377,
             "source_input_frames": 2231,
@@ -109,10 +110,10 @@ class IndependentCreatedPairRecords(unittest.TestCase):
 
     def test_genuine_source_log_contract_admits_only_hosted_product_consistency(self):
         report = self.check(fixture())
-        self.assertEqual(report["source_rider_pair"], [0, 1])
+        self.assertEqual(report["source_rider_pair"], [0, 2])
         self.assertEqual(report["scored_source_winner"], 2)
         self.assertEqual(report["scored_source_hundredths"], [2761, 2757])
-        self.assertTrue(report["fresh_mike_and_andrew_records_display_source_consistent"])
+        self.assertTrue(report["fresh_mike_and_martin_records_display_source_consistent"])
         self.assertFalse(report["archived_run_and_match_bytes_independently_verified"])
         self.assertFalse(report["per_user_catalog_and_SRAM_bytes_independently_verified"])
         self.assertFalse(report["real_physical_2p_controllers_or_audio_verified"])
@@ -129,7 +130,7 @@ class IndependentCreatedPairRecords(unittest.TestCase):
         for field, value in (
             ("scope", "native-release-accepted"),
             ("actual_frontend_created_profiles", ["native-ci-rider", "native-ci-second"]),
-            ("observed_stock_riders", [0, 2]),
+            ("observed_stock_riders", [0, 1]),
             ("fresh_native_records_for_each", False),
             ("p2_existing_profile_select_via_fixture_not_player_UI", False),
             ("native_existing_p1_profile_selector_UI_proved", True),
@@ -150,8 +151,8 @@ class IndependentCreatedPairRecords(unittest.TestCase):
         source = fixture()
         race = source[3]
         changes = (
-            ("riders=0,1", "riders=0,2"),
-            ("profile2=andrew", "profile2=native-ci-second"),
+            ("riders=0,2", "riders=0,1"),
+            ("profile2=martin", "profile2=native-ci-second"),
             ("profile1=mike", "profile1=native-ci-rider"),
             ("frames=2231", "frames=2230"),
             ("input_frames=2231", "input_frames=2230"),
@@ -186,7 +187,7 @@ class IndependentCreatedPairRecords(unittest.TestCase):
             (5, (
                 ("WIN 00:27.57", "LOSS 00:27.57"),
                 ("WIN 00:27.57", "WIN 00:27.61"),
-                ("profile=andrew", "profile=mike"),
+                ("profile=martin", "profile=mike"),
                 ("records_page=2p\n", ""),
                 ("paired=1 unavailable=0", "paired=0 unavailable=1"),
             )),

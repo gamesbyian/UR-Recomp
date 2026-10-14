@@ -3,7 +3,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from tools.qa08_patch_native_original_37frame_source import patch
+from tools.qa08_patch_native_original_37frame_source import patch, patch_host
 from tools.qa08_compare_original_native_37frame_prime import (
     W, H, NATIVE_SIZE, compare, native_frames, ORIGINAL_START,
 )
@@ -43,6 +43,22 @@ class MultiFrameOriginalSourceTests(unittest.TestCase):
             patch(altered)
         with self.assertRaisesRegex(ValueError, "changed"):
             patch(source.replace('    const char* live = ', '    const char* other = '))
+
+    def test_completed_simulation_host_hook_is_pinned_and_preserves_draw(self):
+        host = (
+            "static const SnesDesktopHostGame kGameHost = {\n"
+            "    .begin_sim_frame    = &ur_baldosa_hd_begin_sim_frame,\n"
+            "    .draw_frame         = &ur_baldosa_hd_draw_frame,\n"
+            "};\n"
+        )
+        changed = patch_host(host)
+        self.assertIn(".end_sim_frame      = &ur_qa08_original_source_37_end_sim_frame,", changed)
+        self.assertIn(".draw_frame         = &ur_baldosa_hd_draw_frame,", changed)
+        self.assertEqual(changed.count("UR_QA08_AUTHENTIC_37FRAME_SOURCE_CAPTURE"), 1)
+        with self.assertRaisesRegex(ValueError, "already present"):
+            patch_host(changed)
+        with self.assertRaisesRegex(ValueError, "ABI changed"):
+            patch_host(host.replace("begin_sim_frame", "before_run_frame"))
 
     def test_thirty_seven_true_source_pairs_and_repeated_guest_CRCs(self):
         original, baseline = synthetic()

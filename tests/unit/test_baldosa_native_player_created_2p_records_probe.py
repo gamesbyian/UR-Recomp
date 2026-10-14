@@ -6,6 +6,7 @@ source execution proof. Windows job must run the real executable to pass.
 """
 from pathlib import Path
 import sys
+import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -58,6 +59,29 @@ class NativePlayerCreated2PJourneyUnit(unittest.TestCase):
         self.assertIn("until 0E1F != 00", script)
         self.assertTrue(script.endswith("dump after-source-2p-drive\nquit\n"))
         self.assertNotIn("write ", script.lower())
+
+    def test_legacy_anonymous_bootstrap_is_never_named_save_authority(self):
+        with tempfile.TemporaryDirectory() as directory:
+            user = Path(directory)
+            anon = user / "saves" / "save.srm"
+            self.assertIsNone(flow.anonymous_bootstrap_sram(user))
+            flow.require_legacy_untouched(user, None)
+            anon.parent.mkdir()
+            original = bytes(range(256)) * 32
+            anon.write_bytes(original)
+            flow.require_legacy_untouched(user, original)
+            with self.assertRaisesRegex(ValueError, "after bootstrap"):
+                flow.require_legacy_untouched(user, None)
+            anon.write_bytes(bytes(8192))
+            with self.assertRaisesRegex(ValueError, "after bootstrap"):
+                flow.require_legacy_untouched(user, original)
+            anon.write_bytes(b"short")
+            with self.assertRaisesRegex(ValueError, "8192"):
+                flow.require_legacy_untouched(user, original)
+            anon.unlink()
+            anon.symlink_to(user / "private-save.srm")
+            with self.assertRaisesRegex(ValueError, "symlink"):
+                flow.require_legacy_untouched(user, original)
 
     def test_second_preset_changed_through_real_root_modal_not_fixture(self):
         from baldosa_native_second_racer_probe import require_p2_creation

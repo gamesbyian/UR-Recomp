@@ -9,6 +9,9 @@ on:
       - "tests/unit/test_qa08_compare_native_prime_multiframe.py"
       - "tests/unit/test_qa08_compare_native_hdma_prime_trial.py"
       - "tools/qa08_patch_hdma_prime_counterfactual.py"
+      - "tools/qa08_patch_channel7_only_prime_counterfactual.py"
+      - "tools/qa08_compare_channel7_native_prime.py"
+      - "tests/unit/test_qa08_compare_channel7_native_prime.py"
   workflow_dispatch:
 
 permissions:
@@ -22,7 +25,7 @@ concurrency:
 jobs:
   authentic-native-2p:
     runs-on: ubuntu-22.04
-    timeout-minutes: 25
+    timeout-minutes: 35
     env:
       SDL_AUDIODRIVER: dummy
       PIXELS: "0"
@@ -46,6 +49,10 @@ jobs:
           path: baldosa
           submodules: recursive
           persist-credentials: false
+      - name: ROM-free falsification of source comparison and selective DMA patch
+        run: |
+          python3 -m unittest tests.unit.test_qa08_compare_channel7_native_prime
+          python3 -m unittest tests.unit.test_qa08_channel7_only_prime_counterfactual
       - name: Confirm exact prior native core, guest, ROM and route
         shell: bash
         run: |
@@ -186,6 +193,107 @@ jobs:
           cat "$RUNNER_TEMP/qa08-counterfactual/real-native-raster.json" >> "$GITHUB_STEP_SUMMARY"
           cat "$RUNNER_TEMP/qa08-counterfactual/original-snes9x-exact-RGB5.json" >> "$GITHUB_STEP_SUMMARY"
           echo "Observation only, even if the hypothesis fails; not an original-emulator equality or shipping verdict." >> "$GITHUB_STEP_SUMMARY"
+      - name: Restore original pinned first-line behavior and apply ONLY channel-7 prime in disposable framework
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Invert only the global counterfactual, retaining all previously
+          # installed original-game adapter and read-only HDMA observers.
+          # Assert exact reversibility before applying another experiment.
+          python3 - <<'PY'
+          from pathlib import Path
+          from tools.qa08_patch_hdma_prime_counterfactual import (
+              FUNCTION, NEXT, OLD_SAVE, OLD_RESTORE, NEW_ADVANCE, patch_source,
+          )
+          path = Path("baldosa/snesrecomp/runner/src/snes/dma.c")
+          global_source = path.read_text()
+          head, tail = global_source.split(FUNCTION, 1)
+          body, rest = tail.split(NEXT, 1)
+          prime_transfer = "    int len = transferLength[ch->mode & 7];"
+          if body.count(prime_transfer) != 1 or body.count(NEW_ADVANCE) != 1:
+              raise SystemExit("global prime source drift: cannot restore selectively")
+          body = body.replace(prime_transfer, OLD_SAVE, 1).replace(NEW_ADVANCE, OLD_RESTORE, 1)
+          recovered = head + FUNCTION + body + NEXT + rest
+          if patch_source(recovered) != global_source:
+              raise SystemExit("not an exact inverse of prior global prime")
+          path.write_text(recovered)
+          PY
+          python3 tools/qa08_patch_channel7_only_prime_counterfactual.py --framework baldosa/snesrecomp
+          python3 tools/qa08_patch_channel7_only_prime_counterfactual.py \
+            --framework baldosa/snesrecomp --apply-experiment
+          grep -q UR_QA08_CH7_ONLY_PRIME_EXPERIMENT baldosa/snesrecomp/runner/src/snes/dma.c
+          if grep -q UR_QA08_HDMA_PRIME_COUNTERFACTUAL baldosa/snesrecomp/runner/src/snes/dma.c; then
+            echo "::error::global counterfactual remains in selective candidate"; exit 3
+          fi
+          cmake --build baldosa/build --target UniracersSNESRecomp -j 3
+      - name: Execute third real native guest with selective channel-7 HDMA and preserve actual source
+        shell: bash
+        run: |
+          set -euo pipefail
+          export SNESRECOMP_ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          export BALDOSA_REAL_BIN="$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp"
+          export DISPLAY=:99 BIN="$RUNNER_TEMP/qa08-exec"
+          export UR_BALDOSA_HD_CAPTURE_DIR="$RUNNER_TEMP/qa08-native-channel7"
+          mkdir -p "$UR_BALDOSA_HD_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/qa08-counterfactual/channel7"
+          cmp "$RUNNER_TEMP/qa08-counterfactual/baseline/fd/crc.txt" \
+              "$RUNNER_TEMP/qa08-counterfactual/channel7/fd/crc.txt"
+          grep -q "^UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=2208 logical=256x224 saved=1 source=native-original-ppu$" \
+            "$RUNNER_TEMP/qa08-counterfactual/channel7/log.txt"
+          for frame in 000400 001856 002208; do
+            test -s "$UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-${frame}.pam"
+          done
+          grep "^UR_QA08_HDMA_INIDISP frame=2208 " \
+            "$RUNNER_TEMP/qa08-counterfactual/channel7/log.txt" \
+            > "$RUNNER_TEMP/qa08-counterfactual/channel7-inidisp.log"
+          test "$(wc -l < "$RUNNER_TEMP/qa08-counterfactual/channel7-inidisp.log")" -eq 3
+          # A truly selective change must leave real channel5 BBUS
+          # provenance on this same guest input byte-for-byte intact.
+          grep "^UR_QA08_HDMA_CGADSUB frame=2208 " \
+            "$RUNNER_TEMP/qa08-counterfactual/baseline/log.txt" \
+            > "$RUNNER_TEMP/qa08-counterfactual/stock-channel5.log"
+          grep "^UR_QA08_HDMA_CGADSUB frame=2208 " \
+            "$RUNNER_TEMP/qa08-counterfactual/channel7/log.txt" \
+            > "$RUNNER_TEMP/qa08-counterfactual/selective-channel5.log"
+          test -s "$RUNNER_TEMP/qa08-counterfactual/stock-channel5.log"
+          cmp "$RUNNER_TEMP/qa08-counterfactual/stock-channel5.log" \
+              "$RUNNER_TEMP/qa08-counterfactual/selective-channel5.log"
+      - name: Classify selective prime against BOTH archived independent original rasters
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # The accepted post-GO archive was already downloaded and SHA
+          # verified in the preceding two-process source comparison.
+          test -s "$RUNNER_TEMP/qa08-original-source-exact.zip"
+          curl --fail --silent --show-error --retry 3 \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "Accept: application/vnd.github+json" \
+            --dump-header "$RUNNER_TEMP/qa08-original-countdown-headers" \
+            --output /dev/null \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/11925517895/zip"
+          location="$(awk 'tolower($1) == "location:" {gsub(/\\r/, "", $2); print $2}' "$RUNNER_TEMP/qa08-original-countdown-headers" | tail -1)"
+          case "$location" in
+            https://*) ;;
+            *) echo "::error::original countdown source redirect unavailable"; exit 3 ;;
+          esac
+          curl --fail --silent --show-error --retry 3 --location \
+            --output "$RUNNER_TEMP/qa08-original-countdown-exact.zip" "$location"
+          echo "56ec0011a3559f5953578c495d080d0150f2a06fb7a76c2e437fab781e2b2ce6  $RUNNER_TEMP/qa08-original-countdown-exact.zip" | sha256sum -c -
+          python3 tools/qa08_compare_channel7_native_prime.py \
+            --stock-dir "$RUNNER_TEMP/qa08-native-baseline" \
+            --global-dir "$RUNNER_TEMP/qa08-native-experiment" \
+            --channel7-dir "$RUNNER_TEMP/qa08-native-channel7" \
+            --stock-crc "$RUNNER_TEMP/qa08-counterfactual/baseline/fd/crc.txt" \
+            --global-crc "$RUNNER_TEMP/qa08-counterfactual/experiment/fd/crc.txt" \
+            --channel7-crc "$RUNNER_TEMP/qa08-counterfactual/channel7/fd/crc.txt" \
+            --original-postgo-zip "$RUNNER_TEMP/qa08-original-source-exact.zip" \
+            --original-countdown-zip "$RUNNER_TEMP/qa08-original-countdown-exact.zip" \
+            --out "$RUNNER_TEMP/qa08-counterfactual/real-channel7-original-vs-native.json"
+          cat "$RUNNER_TEMP/qa08-counterfactual/real-channel7-original-vs-native.json" >> "$GITHUB_STEP_SUMMARY"
+          echo "Selective channel-7 trial is diagnostic ONLY: no HDMA production promotion." >> "$GITHUB_STEP_SUMMARY"
       - name: Preserve exact native source rasters, route CRC and actual DMA register bytes
         if: always()
         uses: actions/upload-artifact@v4
@@ -194,6 +302,13 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
           path: |
+            ${{ runner.temp }}/qa08-counterfactual/real-channel7-original-vs-native.json
+            ${{ runner.temp }}/qa08-counterfactual/channel7-inidisp.log
+            ${{ runner.temp }}/qa08-counterfactual/stock-channel5.log
+            ${{ runner.temp }}/qa08-counterfactual/selective-channel5.log
+            ${{ runner.temp }}/qa08-counterfactual/channel7/fd/crc.txt
+            ${{ runner.temp }}/qa08-counterfactual/channel7/log.txt
+            ${{ runner.temp }}/qa08-native-channel7/ur-baldosa-original-source-*.pam
             ${{ runner.temp }}/qa08-counterfactual/real-native-raster.json
             ${{ runner.temp }}/qa08-counterfactual/real-native-prime-3scene-raster.json
             ${{ runner.temp }}/qa08-counterfactual/original-snes9x-exact-RGB5.json

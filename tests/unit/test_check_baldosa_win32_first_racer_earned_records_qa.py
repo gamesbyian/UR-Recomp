@@ -4,11 +4,15 @@ import copy
 import json
 from pathlib import Path
 import sys
+import tempfile
 import unittest
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 import check_baldosa_win32_first_racer_earned_records_qa as qa
+import verify_baldosa_romless_candidate_qa as wrapperqa
+from tests.unit.test_verify_baldosa_romless_candidate_qa import IndependentBaldosaZipQaTests
 from tests.unit.test_check_baldosa_win32_first_racer_evidence import fixture
 
 RUN_PATH = r"C:\CI\User With Spaces\runs\mike\run-0001791946349567-0000.urrun"
@@ -71,6 +75,94 @@ class FirstRacerEarnedSourceRecordsQA(unittest.TestCase):
         self.assertFalse(d["hosted_physical_controller_verified"])
         self.assertFalse(d["strict_original_native_complete_event_accepted"])
         self.assertEqual(d["release_gate_credit"], 0)
+
+    def test_incomplete_red_windows_and_correct_full_report_are_distinct(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            inner, revision, digest = IndependentBaldosaZipQaTests().make(root)
+            candidate = wrapperqa.audit(inner, revision, digest)
+            stock = {
+                "classification": "windows_native_pause_and_named_profile_smoke_only",
+                "exe_sha256": candidate["metrics"]["executable_payload_sha256"],
+                "course_complete_credit": 0,
+                "physical_gamepad_hardware_tested": False,
+                "native_named_readonly_records": {
+                    "actual_native_2p_match_published": False,
+                },
+            }
+            for players, field in ((1, "modern_root_race_entry_p1"),
+                                   (2, "modern_root_race_entry_p2")):
+                stock[field] = {
+                    "players": players,
+                    "native_root_handoff_observed": True,
+                    "original_race_nmi_barrier_passed": True,
+                    "original_go_ticker_barrier_passed": True,
+                    "complete_event_outcome_claimed": False,
+                    "actual_guest_frames": 100,
+                }
+            launcher = {
+                "archive_sha256": digest,
+                "real_extracted_launcher_accepted": True,
+                "published_zip_unchanged": True,
+                "rom_not_in_archive": True,
+                "canonical_8192_byte_save_outside_package": True,
+            }
+            report, first, played, fresh = sample()
+            group = wrapperqa.RUNTIME_FIRST_RACER_EARNED_GROUP
+            archive = root / "new-three-game-evidence.zip"
+            def emit(*, present=(0, 1, 2, 3), altered_played=played):
+                contents = (json.dumps(report), first, altered_played, fresh)
+                with zipfile.ZipFile(archive, "w") as z:
+                    z.writestr(wrapperqa.RUNTIME_REPORT, json.dumps(stock))
+                    z.writestr(wrapperqa.RUNTIME_LAUNCHER, json.dumps(launcher))
+                    for players, name in ((1, wrapperqa.RUNTIME_ONE),
+                                          (2, wrapperqa.RUNTIME_TWO)):
+                        z.writestr(name, "SDL reports 0 joystick(s)\n"
+                                   "SDL init ok: audio=dummy\n"
+                                   f"UR_BALDOSA_MODERN_ROOT stock_entered players={players} menu=3c\n"
+                                   "script f=100 quit\n")
+                    for i in present:
+                        z.writestr(group[i], contents[i])
+
+            emit(present=())
+            unobserved = wrapperqa.check_runtime_actions_wrapper(
+                archive, wrapperqa.audit(inner, revision, digest),
+            )
+            self.assertFalse(unobserved["metrics"][
+                "hosted_first_racer_earned_1p_three_game_logs_consistent"])
+            self.assertFalse(unobserved["metrics"][
+                "finished_native_event_or_new_match_observed"])
+            # Actual failed Win32 run uploaded three process logs without
+            # report.json. This must NEVER count as successful integration.
+            for present in ((1, 2, 3), (0,), (0, 1, 3), (0, 1, 2)):
+                emit(present=present)
+                with self.subTest(present=present):
+                    with self.assertRaisesRegex(ValueError, "earned 1P evidence group incomplete"):
+                        wrapperqa.check_runtime_actions_wrapper(
+                            archive, wrapperqa.audit(inner, revision, digest),
+                        )
+            emit()
+            accepted = wrapperqa.check_runtime_actions_wrapper(
+                archive, wrapperqa.audit(inner, revision, digest),
+            )
+            self.assertEqual(accepted["outcome"], "inconclusive")
+            self.assertTrue(accepted["metrics"][
+                "hosted_first_racer_earned_1p_three_game_logs_consistent"])
+            self.assertTrue(accepted["metrics"][
+                "finished_native_event_or_new_match_observed"])
+            self.assertFalse(accepted["metrics"][
+                "strict_original_native_complete_event_accepted"])
+            self.assertFalse(accepted["metrics"][
+                "hosted_saved_urrun_bytes_independently_decoded"])
+            self.assertIn(
+                "hosted-first-racer-actual-earned-1p-three-native-game-records-logs-consistent",
+                [a["name"] for a in accepted["assertions"]],
+            )
+            emit(altered_played=played.replace("published=1", "published=0"))
+            with self.assertRaises(ValueError):
+                wrapperqa.check_runtime_actions_wrapper(
+                    archive, wrapperqa.audit(inner, revision, digest),
+                )
 
     def test_real_windows_crlf_with_one_valid_1p_tab_revisit(self):
         report, created, played, records = sample()

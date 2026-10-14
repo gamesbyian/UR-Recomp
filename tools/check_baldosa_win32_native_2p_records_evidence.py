@@ -35,6 +35,18 @@ JOIN = (
     "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
     "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d",
 )
+# First-run native guest does NOT hot-swap profile SRAM. Require an
+# actual 8-KiB P1 named boot before the two-seat join, a settled-result
+# checkpoint after publication, and a separate named boot before Records.
+# These are logged fingerprints, not a rehash of unarchived save bytes.
+BOOT = re.compile(
+    r"(?m)^UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM "
+    r"profile=native-ci-rider bytes=8192 fnv=([0-9a-fA-F]{8})\r?$"
+)
+CHECKPOINT = re.compile(
+    r"(?m)^UR_BALDOSA_NATIVE_PROFILE CHECKPOINT "
+    r"profile=native-ci-rider status=committed\r?$"
+)
 RECORDS = (
     "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=native-ci-rider ",
     "UR_BALDOSA_MODERN_ROOT records_page=1p",
@@ -117,6 +129,12 @@ def audit_hosted_native_2p_records(
     if any(played.count(key) != 1 for key in JOIN):
         raise ValueError("native 2P played log lacks unique joined source entry")
     early = unique_ordered(played, JOIN)
+    played_boots = list(BOOT.finditer(played))
+    played_checkpoints = list(CHECKPOINT.finditer(played))
+    if (len(played_boots) != 1 or
+            not early[0] < played_boots[0].start() < early[1] or
+            len(played_checkpoints) != 1):
+        raise ValueError("played 2P original guest lacks unique early named SRAM boot or checkpoint")
     captures, results = list(CAPTURE.finditer(played)), list(RESULT.finditer(played))
     if len(captures) != 1 or len(results) != 1:
         raise ValueError("native 2P played log lacks one authoritative pair/result")
@@ -163,7 +181,7 @@ def audit_hosted_native_2p_records(
         or (t1 == 60000 and t2 == 60000)
         or winner != correct_winner or published != 1
         or frames <= 0 or runs <= 0
-        or not (early[-1] < c.start() < r.start())
+        or not (early[-1] < c.start() < r.start() < played_checkpoints[0].start())
         or int(c[1]) <= 0
         or observed["source_result_host"] != last
         or observed["source_input_frames"] != frames
@@ -183,7 +201,14 @@ def audit_hosted_native_2p_records(
     ):
         raise ValueError("native 2P publisher emitted duplicate or ambiguous credit")
 
-    unique_ordered(fresh, RECORDS)
+    fresh_sequence = unique_ordered(fresh, RECORDS)
+    fresh_boots = list(BOOT.finditer(fresh))
+    fresh_checkpoints = list(CHECKPOINT.finditer(fresh))
+    if (len(fresh_boots) != 1 or
+            not fresh_sequence[0] < fresh_boots[0].start() < fresh_sequence[1] or
+            len(fresh_checkpoints) != 1 or
+            not fresh_sequence[-1] < fresh_checkpoints[0].start()):
+        raise ValueError("fresh 2P Records guest lacks source-ordered named SRAM boot and checkpoint")
     last_lines = re.findall(
         r"(?m)^UR_BALDOSA_MODERN_ROOT records_last_2p=([^\r\n]+)\r?$", fresh
     )
@@ -222,6 +247,10 @@ def audit_hosted_native_2p_records(
         "hosted_native_2p_source_times_hundredths": [t1, t2],
         "hosted_native_2p_source_winner": winner,
         "hosted_native_2p_result_host_frame": last,
+        "hosted_native_2p_played_p1_boot_sram_fnv_observed": played_boots[0].group(1).lower(),
+        "hosted_native_2p_fresh_p1_boot_sram_fnv_observed": fresh_boots[0].group(1).lower(),
+        "hosted_native_2p_named_p1_checkpoints_source_observed": True,
+        "hosted_native_2p_p2_sram_bytes_independently_rehashed": False,
         "hosted_native_2p_saved_run_capture_basename": captured_name,
         "hosted_native_2p_player1_records_display_verified": expected_display,
         "hosted_new_2p_pair_sha256_producer_reported": dict(pair),

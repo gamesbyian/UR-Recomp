@@ -1,4 +1,17 @@
-# QA-08: seven real channel5 mode1 $2133 SETINI companion bytes
+# QA-08: rejected SETINI companion hypothesis (historical negative)
+
+**SUPERSEDED AND FALSIFIED.** The hypothesis that the paired channel5 HDMA
+destination is $2133 SETINI was conclusively rejected by the original-native
+source probe: genuine mode-1 transfers use **$2131 CGADSUB then $2132
+COLDATA**, not $2132 then $2133. All seven actual $2131 source bytes were
+subsequently captured with strict native acceptance in pinned AOT run
+[38514112274](https://github.com/gamesbyian/UR-Recomp/actions/runs/38514112274).
+See [the accepted CGADSUB source witness](QA08-NATIVE-HDMA-CGADSUB-COMPANION-20261013.md).
+The invalid standalone SETINI parser and synthetic tests are deliberately
+not shipped; this document retains the negative experiment and its
+original incorrect premise as research history only.
+
+## Archived original rejected premise (not current source truth)
 
 **Pending exact native AOT observation and strict acceptance.** The previously
 merged graphics source proof #1461/#1474 captured only the COLDATA first half

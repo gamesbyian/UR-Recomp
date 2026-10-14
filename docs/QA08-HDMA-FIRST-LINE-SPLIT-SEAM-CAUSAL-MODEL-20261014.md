@@ -135,3 +135,16 @@ read before executing a disposable counterfactual. Only after validated
 multi-channel live PPU/OBJ source and finished pixels, plus Gundam Wing
 (or a general hardware-equivalent first-line contract) regressions,
 could a title-specific correction be considered.
+
+## Second independent same-route original-source raster proof
+
+Original Snes9x countdown callback1855 and native guest1856 now also
+match **57,344/57,344 RGB5 pixels** only after the disposable
+consumed-prime correction. The stock native differs by 971 actual
+pixels, precisely all 512 shifted split rows plus 459 contour
+window-like pixels. This is qualified in
+[the countdown source acceptance](QA08-ORIGINAL-COUNTDOWN-VS-NATIVE-PRIME-20261014.md).
+The source model is now verified on two truly distinct original/native
+2P source scenes, and global production correctness is still gated
+by independent 1P, effective OAM/window, world-space and cross-game
+SNES first-line evidence.

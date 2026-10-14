@@ -95,6 +95,55 @@ class HostedNativeWindowsTwoPlayerRecordsQA(unittest.TestCase):
         self.assertEqual(result["hosted_native_2p_played_log_sha256"],
                          hashlib.sha256(played.encode()).hexdigest())
 
+    def test_source_host_frame_span_must_equal_exact_captured_input_count(self):
+        report, played, fresh = observed()
+        # Live Win32 run 38497178182: race_host=2146,
+        # result_host=4377, captured input_frames=2231.
+        self.assertEqual(4377 - 2146, 2231)
+        accepted = self.check(report, played, fresh)
+        self.assertTrue(
+            accepted["hosted_native_2p_result_to_fresh_records_logs_consistent"]
+        )
+        for manipulated_first in (2145, 2147, 1):
+            with self.subTest(first=manipulated_first):
+                with self.assertRaises(ValueError):
+                    self.check(
+                        report,
+                        played.replace("race_host=2146",
+                                       f"race_host={manipulated_first}"),
+                        fresh,
+                    )
+        # A forged producer SOURCE-RESULT JSON and forged native result line
+        # can agree on a new host frame and still disagree with the input
+        # timeline. The old checker accepted this collusion.
+        tampered = copy.deepcopy(report)
+        tampered["source_result"]["source_result_host"] = 4378
+        with self.assertRaises(ValueError):
+            self.check(
+                tampered,
+                played.replace("result_host=4377", "result_host=4378"),
+                fresh,
+            )
+
+    def test_true_source_capture_must_end_at_single_multiplayer_run_directory(self):
+        report, played, fresh = observed()
+        canonical = "C:\\\\CI\\\\multiplayer-runs\\\\run-0001791946896142-0000.urrun"
+        self.assertIn(canonical, played)
+        for altered in (
+            r"C:\\CI\\multiplayer-runs\\nested\\run-0001791946896142-0000.urrun",
+            r"C:\\CI\\multiplayer-runs\\\\run-0001791946896142-0000.urrun",
+            r"C:\\CI:stream\\multiplayer-runs\\run-0001791946896142-0000.urrun",
+            r"C:\\CI\\..\\elsewhere\\multiplayer-runs\\run-0001791946896142-0000.urrun",
+            r"C:\\CI\\multiplayer-runs\\.\\run-0001791946896142-0000.urrun",
+            r"C:\\CI\\multiplayer-runs\\nested\\..\\run-0001791946896142-0000.urrun",
+            r"relative\\multiplayer-runs\\run-0001791946896142-0000.urrun",
+        ):
+            with self.subTest(altered=altered):
+                candidate = played.replace(canonical, altered)
+                self.assertNotEqual(candidate, played)
+                with self.assertRaises(ValueError):
+                    self.check(report, candidate, fresh)
+
     def test_matching_forged_report_and_noncanonical_capture_still_fail(self):
         # The original checker accepted any basename ending '.urrun' if
         # report and capture matched one another. That's not the canonical

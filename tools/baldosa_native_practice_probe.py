@@ -14,7 +14,7 @@ import argparse
 import json
 from pathlib import Path
 
-from baldosa_native_first_racer_probe import run_game, verify_creation, verify_native_save_codec
+from baldosa_native_first_racer_probe import run_game, verify_creation
 from baldosa_windows_native_pause_route import USA_SHA256, sha256
 
 

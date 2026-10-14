@@ -180,3 +180,57 @@ shared-candidate, isolated work-root, compact receipt and aggregation
 pattern, but keep their own existing semantic validators, QA owners,
 physical-evidence requirements and minimal discriminators. Do not create
 a second generalized test oracle or automatically trigger hours-long work.
+
+## Original executed APU read → acknowledgement branch provenance (2026-10-14)
+
+RF-015 is the highest-value shared result-handoff discriminator: on the
+separately executed two-seat seed `50036056`, Baldosa's 33-frame `0x84`
+result prelude is shorter than the original 34-frame reference, and the
+first observed difference is the `7E:2000` sound-command queue before a
+`7E:00C6` vblank-wait pass. **This is not itself a proved APU cause.**
+The existing **manual**, opt-in `qa01_apu_phase` source observer for historical
+Zoo is available to collect a different genuine original 1P event. Its
+output must never be merged numerically with seed `50036056` as though
+the two controller movies or APU histories were the same.
+
+The existing `tools/qa01_apu_phase_report.py` now also reports
+`original_ack_read_branch_pairs_count`,
+`original_ack_read_branch_pairs_sample` (up to 16), and explicit unpaired
+read/branch counts. It associates an executed original **`82:803C`
+`LDA $2142`** with the immediately following *logged* **`82:8043`
+`BNE`** only when the sparse executed-PC stream and original frame
+boundary support the association. Each reported pair contains the returned
+low A byte, effective I/O-mapped data bank, branch **actual next PC**,
+queue indices/toggle and original-frame receipts. An intervening logged
+opcode, missing read, or unexplained frame gap produces **unpaired evidence**
+rather than a fabricated queue decision. Synthetic adversarial tests cover
+these failure modes.
+
+**Do not infer BNE from the stored `Registers.PL` zero bit.** Snes9x can
+maintain effective flags lazily; a captured pre-op `PL` is not automatically
+the executed branch predicate. The next PC is the observed outcome. The new
+pairing does not match any native AOT read to that original branch, correlate
+CPU/APU master clocks, establish `$4212` wait equivalence, rewrite result
+timing, or waive the strict original/native event comparator. It is a
+**read-only analysis improvement**, with `release_gate_credit: 0`.
+
+**Smallest decision-bearing follow-up:** dispatch only a deliberate
+`selected=zoom-zoo`, `qa01_apu_phase=true` campaign with pinned original
+movie, ROM/core/native executable and independent entry receipts. Inspect
+unpaired counts *first* and the source-local read/branch outcomes around
+the +5156…+5163 result boundary. Compare corresponding native `$2142`
+reads and queue snapshots only after establishing a valid clock and input
+identity mapping. If APU acknowledgement is demonstrably earlier, hand the
+exact original CPU PC/beam, native port-clock and `$4212` wait receipts to
+the separate CPU/APU timing owner; this gameplay lane must not implement its
+runtime fix. If no causal difference exists, return to the documented
+upstream Zoo +5156/+5157 restore transition and source finish-decision
+owner. The 2014 Zoo source and the 2P finish seed are **separate experiments**.
+
+Three-project reuse preflight: UR already owns the full-event source probe
+and first-difference machinery; Baldosa's imported route/firstdiff tools and
+malmazuke's pinned replay/finish analysis remain research aids, not alternate
+USA oracles. No new runner, recompiler, comparator, CI trigger or gate owner
+was introduced. The retained three-event source matrix still records Zoo
++5163/+5162, Bowl +3365/+3364, Switcher +4704/+4702 guest-relative
+results, all strict mismatches. **Accepted USA events remain 0/45.**

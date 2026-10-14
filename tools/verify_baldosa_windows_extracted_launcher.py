@@ -20,6 +20,7 @@ import zipfile
 from assemble_baldosa_windows_candidate import (
     EXE, LAUNCHER, MANIFEST, PREFIX, README, ROM, USA_SHA256,
 )
+from audit_baldosa_romless_candidate import inspect as audit_candidate_archive
 
 def digest(path: Path) -> str:
     h = hashlib.sha256()
@@ -105,7 +106,8 @@ def verify_first_user_cmd_relaunch_log(log: str) -> None:
 
 
 
-def run(archive: Path, personal_rom: Path, output: Path, timeout: int) -> dict:
+def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
+        *, expected_revision: str | None = None) -> dict:
     if os.name != "nt":
         raise ValueError("actual Windows CMD executable is required")
     if output.exists():
@@ -113,7 +115,10 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int) -> dict:
     require(digest(personal_rom) == USA_SHA256,
             "must test with the exact pinned original USA retail ROM")
     require(archive.is_file(), "candidate archive absent")
-    approved_archive_sha256 = digest(archive)
+    # Fail closed on the complete immutable ZIP before creating even the
+    # disposable extraction root, let alone executing the native PE.
+    audit = audit_candidate_archive(archive, expected_revision=expected_revision)
+    approved_archive_sha256 = str(audit["zip_sha256"])
     output.mkdir(parents=True)
     installed = output / "Extracted Baldosa Candidate With Spaces"
     installed.mkdir()
@@ -125,6 +130,11 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int) -> dict:
         for name in members:
             require(not name.endswith("/"), "unexpected ZIP directory payload")
             (installed / name.removeprefix(PREFIX)).write_bytes(bundle.read(name))
+    for filename, key in ((EXE, "exe_sha256"),
+                          (LAUNCHER, "launcher_sha256"),
+                          (README, "readme_sha256")):
+        require(digest(installed / filename) == audit[key],
+                "extracted immutable member differs from validated source ZIP")
     # Test the original launcher with a drive-letter path and physical spaces.
     launcher = installed / LAUNCHER
     require(launcher.is_file(), "extracted launcher not found")
@@ -311,6 +321,9 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int) -> dict:
         "canonical_8192_byte_save_outside_package": True,
         "published_zip_unchanged": True,
         "archive_sha256": approved_archive_sha256,
+        "candidate_source_revision": audit["source_revision"],
+        "candidate_executable_sha256": audit["exe_sha256"],
+        "candidate_manifest_verified_before_extraction": True,
     }
     (output / "launcher-acceptance.json").write_text(
         json.dumps(report, sort_keys=True, indent=2) + "\n", encoding="utf-8")
@@ -322,11 +335,13 @@ def main() -> int:
     ap.add_argument("--rom", required=True, type=Path)
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--timeout", type=int, default=80)
+    ap.add_argument("--expected-revision", help="exact checked-out source commit")
     args = ap.parse_args()
     if args.timeout <= 0:
         raise ValueError("positive timeout required")
     print(json.dumps(run(args.zip.resolve(), args.rom.resolve(),
-                         args.out.resolve(), args.timeout), sort_keys=True))
+                         args.out.resolve(), args.timeout,
+                         expected_revision=args.expected_revision), sort_keys=True))
     return 0
 
 if __name__ == "__main__":

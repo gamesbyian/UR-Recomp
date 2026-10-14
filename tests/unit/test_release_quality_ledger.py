@@ -60,9 +60,8 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
         for gate in (g for g in data["gates"] if g["id"] in ("QA-09", "QA-12")):
             self.assertEqual(gate["status"], "unverified")
             self.assertEqual(gate["witnesses"], [])
-            # next_action is a *current* release blocker, not an append-only
-            # chronology. Retain the earlier hosted 1P proof in its reviewed
-            # evidence inventory even when newer raw-source work supersedes it.
+            # Historical proof is preserved in reviewed evidence; next_action
+            # intentionally evolves as later stronger native work arrives.
             self.assertTrue(gate["next_action"].strip())
             if gate["id"] == "QA-12":
                 self.assertIn(

@@ -116,3 +116,25 @@ The follow-up original/native Zoo workflow therefore takes **49 fixed, source-in
 
 **What it can decide:** actual first sampled original and native forced-blank transitions on each independent scene/absolute host clock, whether those transitions have a repeatable one-frame shift, and whether any **real source USA opcode execution** supports the historical return-PC leads. **What it cannot decide:** which instruction internally authored the finish decision, exact native AOT opcode PC, or NMI/beam equivalence from a PPU brightness boundary alone. Missing candidate PCs are preserved as nonconfirmations, not fabricated findings, and all outputs explicitly report **0/45 release acceptance**. No native guest runtime rules, controller phase, result comparator, Modern frontend, release authority or graphic-presentation code is changed.
 
+
+## Original/native result fade synchronizes on absolute host, not guest-relative (2026-10-14)
+
+The **green** source-qualified Zoo return experiment [run 38511451553](https://github.com/gamesbyian/UR-Recomp/actions/runs/38511451553) retained [full genuine original/native memory and PPU snapshots in artifact 11870616073](https://github.com/gamesbyian/UR-Recomp/actions/runs/38511451553/artifacts/11870616073), exact ZIP SHA-256 `fa4257054694749d2519445008076a7924df0d951ead8a57b4be7c846cf51591`. The original source Snes9x executed `ZOOPCRETURN f=6636 v=248 pc=80A09A` once in the bounded source return-PC scope; this is a genuine executed original-USA lead for **early menu initialization**, not proof of the gameplay finish decision or a direct sustained `$2100` PPU writer.
+
+Both engines' first permanently captured forced-blank frame is **scene-relative +5034**, but because original Zoo entry is host **1604** and native is host **1606**, their first blank hosts are original **6638** / native **6640**. At +5156 both still show force-blank `INIDISP=80`, and the first independent restored menu/work-buffer values appear native +5157, original +5158. The *fade-in* begins at native +5164 and original +5166. This new independent crosswalk checks all seven brightness updates against both guests' **actual emulator-emitted host script receipts and PPU register exports**:
+
+| PPU `$2100` INIDISP brightness | Original relative | Native relative | Exact absolute host, both |
+| --- | ---: | ---: | ---: |
+| `02` | +5166 | +5164 | **6770** |
+| `04` | +5167 | +5165 | **6771** |
+| `06` | +5168 | +5166 | **6772** |
+| `08` | +5169 | +5167 | **6773** |
+| `0A` | +5170 | +5168 | **6774** |
+| `0C` | +5171 | +5169 | **6775** |
+| `0E` | +5172 | +5170 | **6776** |
+
+Thus **seven genuine, independently sampled original/native brightness values are identical on the same seven absolute host frames**, even though native leads on each **scene-relative** fade step by two. The result text cursor first presents `009F=BC` at native +5162 / original +5163 (absolute host native 6768 / original 6767): matching PPU fade hosts do **not** erase that earlier strict result/menu difference. Between initially aligned forced-blank *relative* frame +5034 and restoring the menu work buffer at +5157/+5158, the relative scheduling difference develops. This is a more precise causal interval than attributing it to the later text printer or any one observed WRAM byte. The archived 2014 original route, source and native actual host clocks, 128-KiB full-WRAM snapshots, correct settled lap/checkpoint/finish state, and raw PPU register receipts remain independently qualified.
+
+The standalone `tools/qa01_zoo_fade_host_crosswalk.py` rechecks the ZIP identity, actual original/native script host clocks, both hardware-register snapshots and original source CPU PC witness; `tests/unit/test_qa01_zoo_fade_host_crosswalk.py` rejects fabricated source labels, missing frames, shifted fade timing, bogus forced-blank and altered archives. The [immutable result index](../analysis/data/zoo-original-native-return-ppu-fade-host-20261014.json) retains SHA-256 of each of 14 actual PPU register records at the seven fade steps. The original original PPU byte is the last-written `Memory.FillRAM[$2100]` export, while native is the live exported `inidisp`; do not infer matching NMI/beam cycles or identical original/native CPU execution. **No ROM or controller change, no normalized result comparator and no course credit. Official strict USA 0/45 stays unchanged.**
+
+**Next actual cause-discriminator:** trace the *return* waiter between the first blank frame (+5034 in both) and first restored direct-page state (original +5158/native +5157), retaining source guest CPU/PPU event boundaries. The static historical menu reset `80:A09A` is now a *real executed original* call scope, but the actual native/source frame-count delta inside the extended audio/menu loading window remains unresolved. A similarly host-attested original/native instruction milestone upstream of `Sram_RestoreDirectPage`, not global controller retiming, can distinguish the one-frame scheduler issue.

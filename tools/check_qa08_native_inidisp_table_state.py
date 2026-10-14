@@ -12,7 +12,12 @@ import json
 from pathlib import Path
 import re
 
-from tools.check_qa08_native_split_inidisp_source import PATTERN as INIDISP_PATTERN
+try:
+    from tools.check_qa08_native_split_inidisp_source import PATTERN as INIDISP_PATTERN
+except ModuleNotFoundError:
+    # Native CI invokes this tool directly as python3 tools/<script>.py;
+    # that invocation puts tools/ rather than the repo root on sys.path.
+    from check_qa08_native_split_inidisp_source import PATTERN as INIDISP_PATTERN
 
 SCHEMA = "qa08-original-native-2p-live-inidisp-hdma-source-paired-handoff/1"
 PATTERN = re.compile(

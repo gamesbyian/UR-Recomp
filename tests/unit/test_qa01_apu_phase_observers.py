@@ -116,6 +116,54 @@ class ApuPhaseObserversTest(unittest.TestCase):
             self.assertIs(r[key], False)
         self.assertEqual(r["release_gate_credit"], 0)
 
+    def test_original_read_to_branch_pairs_are_executed_local_evidence_only(self):
+        # The synthetic source stream proves parser behavior, not a real
+        # original/native APU clock alignment or a completed course.
+        a = original("82803C", "AD", nxt="82803F", a1="12A7")
+        b = original("828043", "D0", nxt="828077")
+        guest = native()
+        paired = report.analyze(a + "\n" + b, guest)
+        self.assertEqual(paired["original_ack_read_branch_pairs_count"], 1)
+        self.assertEqual(paired["original_unpaired_apu_reads"], 0)
+        self.assertEqual(paired["original_unpaired_ack_branches"], 0)
+        self.assertTrue(paired["original_ack_read_branch_pairs_complete"])
+        observed = paired["original_ack_read_branch_pairs_sample"][0]
+        self.assertEqual(observed["read_low_byte"], 0xA7)
+        self.assertEqual(observed["observed_bne_destination"], "828077")
+        self.assertTrue(observed["observed_bne_taken"])
+        self.assertEqual(observed["original_read_frame"], 5195)
+        self.assertTrue(paired["original_ack_pairs_same_original_cpu_stream_only"])
+        self.assertFalse(paired["native_apu_port_read_clock_equals_source_opcode_instant_proven"])
+        self.assertFalse(paired["apu_handshake_caused_RF015_proven"])
+        self.assertEqual(paired["release_gate_credit"], 0)
+
+        # A different executing opcode in between may represent an
+        # interrupt or other re-entry. Never pair across it.
+        other = original("80FAE2", "C6", nxt="80FAE4")
+        interrupted = report.analyze(a + "\n" + other + "\n" + b, guest)
+        self.assertEqual(interrupted["original_ack_read_branch_pairs_count"], 0)
+        self.assertEqual(interrupted["original_unpaired_apu_reads"], 1)
+        self.assertEqual(interrupted["original_unpaired_ack_branches"], 1)
+        self.assertFalse(interrupted["original_ack_read_branch_pairs_complete"])
+
+        # Equally, a distant source frame cannot be presented as one
+        # directly observed CPU read/branch decision.
+        delayed = report.analyze(a + "\n" +
+                                 original("828043", "D0", nxt="828045", f=5198),
+                                 guest)
+        self.assertEqual(delayed["original_ack_read_branch_pairs_count"], 0)
+        self.assertEqual(delayed["original_unpaired_ack_branches"], 1)
+        self.assertEqual(delayed["release_gate_credit"], 0)
+
+        # PL.Z is not an admissible branch oracle in this Snes9x port,
+        # whose effective flags may be lazily maintained. The executed
+        # next PC is the only direction recorded.
+        not_taken = report.analyze(a + "\n" +
+                                   original("828043", "D0", nxt="828045"),
+                                   guest)
+        self.assertFalse(not_taken["original_ack_read_branch_pairs_sample"][0][
+            "observed_bne_taken"])
+
     def test_campaign_trace_is_manual_only_and_fails_unrelated_selection(self):
         workflow = (ROOT / ".github/workflows/qa01-event-campaign.yml").read_text(
             encoding="utf-8")

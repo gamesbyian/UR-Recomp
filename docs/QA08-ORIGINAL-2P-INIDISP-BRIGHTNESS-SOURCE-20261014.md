@@ -97,3 +97,44 @@ a global non-consuming-prime change. The pinned Baldosa header explicitly
 notes the prime was introduced to address Gundam Wing first-line errors.
 An authentic rendered multi-channel 2P source-pixel regression is still
 the acceptance standard; Remastered art approval is unaffected.
+
+## Executed original 65816 channel-7 writer PC census and ROM bytes
+
+The original ten-window source run 38615121956 (artifact 11919775789)
+has now been independently downloaded and decoded, with ZIP SHA256
+`f3fe49c7c14f28474c2a8f9dcfa713ff2e8bb811b6189e13f7c575c00b00007a`.
+The original executing code changed the six-byte WRAM table 1,403 times
+across eight distinct instruction PCs. Source bytes and artifact hashes
+are pinned in
+`analysis/data/qa08-original-channel7-65816-writer-artifact-handoff-20261014.json`.
+The exact original GO and t480 table is `6F 0F 02 00 60 0F`.
+
+| Independently executing original PC | Changed WRAM byte(s) | Observed WRAM changes |
+| --- | --- | ---: |
+| 82:D67D | 7E:2064 header | 1 |
+| 82:D683 | 7E:2065 first INIDISP | 1 |
+| 82:D689 | 7E:2066 header | 1 |
+| 82:D695 | 7E:2068 header | 1 |
+| 82:D699 | 7E:2069 final INIDISP | 1 |
+| 80:8625 | 7E:2065 | 691 |
+| 80:884C | 7E:2065 | 691 |
+| 80:8850 | 7E:2069 | 16 |
+
+The second value at 7E:2067 is zero from the retained source GO WRAM;
+**no changed-byte executed PC for this zero was observed**, so a
+source instruction writing zero there has not been proven.
+
+The further bounded source instrument reads actual CPU-fetched bytes
+from mapped original Snes9x PCBase at each of these eight precisely
+qualified PCs before invoking the original instruction. It records the
+live 65816 M/X-dependent opcode length and 4-byte ROM preview once per
+PC per original replay, then the checker cross-references the independently
+observed WRAM destinations. This extension reuses the same existing ten
+route windows and cannot alter code, ROM, memory or guest state. It cannot
+conclude final rendered raster from an instruction fetch or WRAM write.
+
+Even matching long STA opcode destinations are only original code source
+qualification. The native descriptor repetition evidence, original PPU
+after-write brightness and **actual RGB5 pixels** remain independent
+components of the causal chain. Cross-title HDMA startup remains a
+separate compatibility gate for any production correction.

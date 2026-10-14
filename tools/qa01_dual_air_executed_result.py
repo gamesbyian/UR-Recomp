@@ -55,7 +55,7 @@ def classify(blob: bytes, *, verify_zip_hash: bool = True) -> dict:
         raise ValueError("source/native provenance or admission changed")
     rows = report.get("read_only_paired_samples")
     if not isinstance(rows, list) or len(rows) != 18:
-        raise ValueError("not all original/native paired memory samples present")
+        raise ValueError("not all 18 original/native paired memory samples present")
     for side, log in (("original", original_log), ("native", native_log)):
         receipt = report["independent_emulator_frame_receipts"][side]
         if receipt.get("transcript_sha256") != hashlib.sha256(log.encode()).hexdigest():

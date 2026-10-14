@@ -157,7 +157,8 @@ def observe(dumps: Path) -> dict[str, str]:
 
 
 def execute(exe: Path, rom: Path, control: Path, script: Path,
-            root: Path, timeout: int) -> dict[str, str]:
+            root: Path, timeout: int, *, runtime_log: Path | None = None
+            ) -> dict[str, str]:
     if root.exists():
         raise ValueError("refuse an existing/previously mutated process root")
     (root / "dumps").mkdir(parents=True)
@@ -183,6 +184,13 @@ def execute(exe: Path, rom: Path, control: Path, script: Path,
                               text=True, errors="replace", timeout=timeout)
     except subprocess.TimeoutExpired as exc:
         raise RuntimeError(f"real guest process timeout ({timeout}s)") from exc
+    # Optional source/oracle diagnostic. The original shared endurance
+    # producer's return value and behaviour remain unchanged when omitted.
+    # Persist the raw script f=N completion receipts even on guest failure.
+    if runtime_log is not None:
+        if runtime_log.exists() or runtime_log.is_symlink():
+            raise ValueError("refuse to overwrite prior native runtime transcript")
+        runtime_log.write_text(done.stdout + "\\n" + done.stderr, encoding="utf-8")
     if done.returncode != 0:
         raise RuntimeError(f"guest exited {done.returncode}; "
                            f"stdout/stderr tail={(done.stdout + done.stderr)[-900:]}")

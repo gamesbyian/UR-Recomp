@@ -1,0 +1,414 @@
+{
+  "schema": "qa08-original-2p-channel5-HDMA-executed-opcode-source-layout/1",
+  "status": "18-executed-WRAM-writers-and-55-original-ROM-opcodes-observed",
+  "original_Snes9x_opcode_run": 38516727525,
+  "original_source_artifact_id": 11871652978,
+  "original_opcode_archive_zip_SHA256": "45b4d1f2275a78698c18697adcee3490cfe0f27537e089c638d33c29ac9d8611",
+  "original_opcode_report_SHA256": "724a89124d5b18d53b89803fc3f64716e136b1901d7d0c49b44fac70f8c7a090",
+  "original_opcode_route_receipt_SHA256": "7a0818ec3d85e94a46b2d8ab72aa2b8f8f6385df1763ede027394e00c318357e",
+  "original_USA_ROM_SHA256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_instrumented_core_SHA256": "e24383520a4471e4cf77727142e01c3fbae29c9fab9809a828dec5ba0f8b8dbb",
+  "original_2P_input_script_SHA256": "94eaa5ffb487d9b227e34965c1d2ee09efe3dac06ade595f7dad05315dfc5221",
+  "original_guest_frame": 1781,
+  "original_guest_2P_second_camera_0DDB": 1,
+  "original_guest_race_0313": 1,
+  "original_full_t480_WRAM_SHA256": "9350bcb02f3cbf490678c5276245ec2c7fe36b9078bfab9e912d86c5cbc93bf6",
+  "original_independently_executed_writer_PCs": 18,
+  "original_executed_instructions_captured": 55,
+  "CPU_65816_program_bank": "82",
+  "ROM_LUT_base": "82:D52A",
+  "first_viewport_selector_address": "77:0748",
+  "second_viewport_path_condition": "BIT #$08 of value loaded from 77:0750; BEQ at 82:D612 was not taken in this original execution",
+  "second_viewport_selected_source_address_on_observed_path": "77:0749",
+  "selected_lookup_address_formula": "82:D52A + 4*selector, then subsequent bytes at offsets +0, +1, +2, +3",
+  "writer_opcode": "8F",
+  "writer_opcode_mnemonic": "STA absolute long",
+  "original_table_triplets": [
+    {
+      "entry": 0,
+      "viewport": "upper",
+      "start": "7E:2084",
+      "line_count_byte": "01",
+      "cgadsub": "04",
+      "coldata": "2F"
+    },
+    {
+      "entry": 1,
+      "viewport": "upper",
+      "start": "7E:2087",
+      "line_count_byte": "01",
+      "cgadsub": "04",
+      "coldata": "40"
+    },
+    {
+      "entry": 2,
+      "viewport": "upper",
+      "start": "7E:208A",
+      "line_count_byte": "6D",
+      "cgadsub": "04",
+      "coldata": "80"
+    },
+    {
+      "entry": 3,
+      "viewport": "lower",
+      "start": "7E:208D",
+      "line_count_byte": "01",
+      "cgadsub": "04",
+      "coldata": "20"
+    },
+    {
+      "entry": 4,
+      "viewport": "lower",
+      "start": "7E:2090",
+      "line_count_byte": "01",
+      "cgadsub": "04",
+      "coldata": "53"
+    },
+    {
+      "entry": 5,
+      "viewport": "lower",
+      "start": "7E:2093",
+      "line_count_byte": "6D",
+      "cgadsub": "04",
+      "coldata": "80"
+    }
+  ],
+  "original_executed_65816_writer_PC_and_WRAM_target": [
+    {
+      "original_PC": "82:D5D8",
+      "WRAM": "7E:2086",
+      "observed_byte": "2F",
+      "ROM_instruction_hex": "8F86207E"
+    },
+    {
+      "original_PC": "82:D5E0",
+      "WRAM": "7E:2089",
+      "observed_byte": "40",
+      "ROM_instruction_hex": "8F89207E"
+    },
+    {
+      "original_PC": "82:D5E8",
+      "WRAM": "7E:208C",
+      "observed_byte": "80",
+      "ROM_instruction_hex": "8F8C207E"
+    },
+    {
+      "original_PC": "82:D5F0",
+      "WRAM": "7E:2085",
+      "observed_byte": "04",
+      "ROM_instruction_hex": "8F85207E"
+    },
+    {
+      "original_PC": "82:D5F4",
+      "WRAM": "7E:2088",
+      "observed_byte": "04",
+      "ROM_instruction_hex": "8F88207E"
+    },
+    {
+      "original_PC": "82:D5F8",
+      "WRAM": "7E:208B",
+      "observed_byte": "04",
+      "ROM_instruction_hex": "8F8B207E"
+    },
+    {
+      "original_PC": "82:D5FE",
+      "WRAM": "7E:2084",
+      "observed_byte": "01",
+      "ROM_instruction_hex": "8F84207E"
+    },
+    {
+      "original_PC": "82:D602",
+      "WRAM": "7E:2087",
+      "observed_byte": "01",
+      "ROM_instruction_hex": "8F87207E"
+    },
+    {
+      "original_PC": "82:D608",
+      "WRAM": "7E:208A",
+      "observed_byte": "6D",
+      "ROM_instruction_hex": "8F8A207E"
+    },
+    {
+      "original_PC": "82:D625",
+      "WRAM": "7E:208F",
+      "observed_byte": "20",
+      "ROM_instruction_hex": "8F8F207E"
+    },
+    {
+      "original_PC": "82:D62D",
+      "WRAM": "7E:2092",
+      "observed_byte": "53",
+      "ROM_instruction_hex": "8F92207E"
+    },
+    {
+      "original_PC": "82:D635",
+      "WRAM": "7E:2095",
+      "observed_byte": "80",
+      "ROM_instruction_hex": "8F95207E"
+    },
+    {
+      "original_PC": "82:D63D",
+      "WRAM": "7E:208E",
+      "observed_byte": "04",
+      "ROM_instruction_hex": "8F8E207E"
+    },
+    {
+      "original_PC": "82:D641",
+      "WRAM": "7E:2091",
+      "observed_byte": "04",
+      "ROM_instruction_hex": "8F91207E"
+    },
+    {
+      "original_PC": "82:D645",
+      "WRAM": "7E:2094",
+      "observed_byte": "04",
+      "ROM_instruction_hex": "8F94207E"
+    },
+    {
+      "original_PC": "82:D64B",
+      "WRAM": "7E:208D",
+      "observed_byte": "01",
+      "ROM_instruction_hex": "8F8D207E"
+    },
+    {
+      "original_PC": "82:D64F",
+      "WRAM": "7E:2090",
+      "observed_byte": "01",
+      "ROM_instruction_hex": "8F90207E"
+    },
+    {
+      "original_PC": "82:D655",
+      "WRAM": "7E:2093",
+      "observed_byte": "6D",
+      "ROM_instruction_hex": "8F93207E"
+    }
+  ],
+  "original_source_opcode_sequence": [
+    {
+      "original_PC": "82:D5C0",
+      "actual_ROM_instruction_hex": "8D6043"
+    },
+    {
+      "original_PC": "82:D5C3",
+      "actual_ROM_instruction_hex": "A900"
+    },
+    {
+      "original_PC": "82:D5C5",
+      "actual_ROM_instruction_hex": "8D7043"
+    },
+    {
+      "original_PC": "82:D5C8",
+      "actual_ROM_instruction_hex": "A900"
+    },
+    {
+      "original_PC": "82:D5CA",
+      "actual_ROM_instruction_hex": "8D7143"
+    },
+    {
+      "original_PC": "82:D5CD",
+      "actual_ROM_instruction_hex": "AF480777"
+    },
+    {
+      "original_PC": "82:D5D1",
+      "actual_ROM_instruction_hex": "0A"
+    },
+    {
+      "original_PC": "82:D5D2",
+      "actual_ROM_instruction_hex": "0A"
+    },
+    {
+      "original_PC": "82:D5D3",
+      "actual_ROM_instruction_hex": "AA"
+    },
+    {
+      "original_PC": "82:D5D4",
+      "actual_ROM_instruction_hex": "BF2AD582"
+    },
+    {
+      "original_PC": "82:D5D8",
+      "actual_ROM_instruction_hex": "8F86207E"
+    },
+    {
+      "original_PC": "82:D5DC",
+      "actual_ROM_instruction_hex": "BF2BD582"
+    },
+    {
+      "original_PC": "82:D5E0",
+      "actual_ROM_instruction_hex": "8F89207E"
+    },
+    {
+      "original_PC": "82:D5E4",
+      "actual_ROM_instruction_hex": "BF2CD582"
+    },
+    {
+      "original_PC": "82:D5E8",
+      "actual_ROM_instruction_hex": "8F8C207E"
+    },
+    {
+      "original_PC": "82:D5EC",
+      "actual_ROM_instruction_hex": "BF2DD582"
+    },
+    {
+      "original_PC": "82:D5F0",
+      "actual_ROM_instruction_hex": "8F85207E"
+    },
+    {
+      "original_PC": "82:D5F4",
+      "actual_ROM_instruction_hex": "8F88207E"
+    },
+    {
+      "original_PC": "82:D5F8",
+      "actual_ROM_instruction_hex": "8F8B207E"
+    },
+    {
+      "original_PC": "82:D5FC",
+      "actual_ROM_instruction_hex": "A901"
+    },
+    {
+      "original_PC": "82:D5FE",
+      "actual_ROM_instruction_hex": "8F84207E"
+    },
+    {
+      "original_PC": "82:D602",
+      "actual_ROM_instruction_hex": "8F87207E"
+    },
+    {
+      "original_PC": "82:D606",
+      "actual_ROM_instruction_hex": "A96D"
+    },
+    {
+      "original_PC": "82:D608",
+      "actual_ROM_instruction_hex": "8F8A207E"
+    },
+    {
+      "original_PC": "82:D60C",
+      "actual_ROM_instruction_hex": "AF500777"
+    },
+    {
+      "original_PC": "82:D610",
+      "actual_ROM_instruction_hex": "8908"
+    },
+    {
+      "original_PC": "82:D612",
+      "actual_ROM_instruction_hex": "F006"
+    },
+    {
+      "original_PC": "82:D614",
+      "actual_ROM_instruction_hex": "AF490777"
+    },
+    {
+      "original_PC": "82:D618",
+      "actual_ROM_instruction_hex": "8004"
+    },
+    {
+      "original_PC": "82:D61E",
+      "actual_ROM_instruction_hex": "0A"
+    },
+    {
+      "original_PC": "82:D61F",
+      "actual_ROM_instruction_hex": "0A"
+    },
+    {
+      "original_PC": "82:D620",
+      "actual_ROM_instruction_hex": "AA"
+    },
+    {
+      "original_PC": "82:D621",
+      "actual_ROM_instruction_hex": "BF2AD582"
+    },
+    {
+      "original_PC": "82:D625",
+      "actual_ROM_instruction_hex": "8F8F207E"
+    },
+    {
+      "original_PC": "82:D629",
+      "actual_ROM_instruction_hex": "BF2BD582"
+    },
+    {
+      "original_PC": "82:D62D",
+      "actual_ROM_instruction_hex": "8F92207E"
+    },
+    {
+      "original_PC": "82:D631",
+      "actual_ROM_instruction_hex": "BF2CD582"
+    },
+    {
+      "original_PC": "82:D635",
+      "actual_ROM_instruction_hex": "8F95207E"
+    },
+    {
+      "original_PC": "82:D639",
+      "actual_ROM_instruction_hex": "BF2DD582"
+    },
+    {
+      "original_PC": "82:D63D",
+      "actual_ROM_instruction_hex": "8F8E207E"
+    },
+    {
+      "original_PC": "82:D641",
+      "actual_ROM_instruction_hex": "8F91207E"
+    },
+    {
+      "original_PC": "82:D645",
+      "actual_ROM_instruction_hex": "8F94207E"
+    },
+    {
+      "original_PC": "82:D649",
+      "actual_ROM_instruction_hex": "A901"
+    },
+    {
+      "original_PC": "82:D64B",
+      "actual_ROM_instruction_hex": "8F8D207E"
+    },
+    {
+      "original_PC": "82:D64F",
+      "actual_ROM_instruction_hex": "8F90207E"
+    },
+    {
+      "original_PC": "82:D653",
+      "actual_ROM_instruction_hex": "A96D"
+    },
+    {
+      "original_PC": "82:D655",
+      "actual_ROM_instruction_hex": "8F93207E"
+    },
+    {
+      "original_PC": "82:D659",
+      "actual_ROM_instruction_hex": "A901"
+    },
+    {
+      "original_PC": "82:D65B",
+      "actual_ROM_instruction_hex": "8F77207E"
+    },
+    {
+      "original_PC": "82:D65F",
+      "actual_ROM_instruction_hex": "A902"
+    },
+    {
+      "original_PC": "82:D661",
+      "actual_ROM_instruction_hex": "8F78207E"
+    },
+    {
+      "original_PC": "82:D665",
+      "actual_ROM_instruction_hex": "A970"
+    },
+    {
+      "original_PC": "82:D667",
+      "actual_ROM_instruction_hex": "8F79207E"
+    },
+    {
+      "original_PC": "82:D66B",
+      "actual_ROM_instruction_hex": "A900"
+    },
+    {
+      "original_PC": "82:D66D",
+      "actual_ROM_instruction_hex": "8F7A207E"
+    }
+  ],
+  "native_channel5_mode1_CGADSUB_COLDATA_pairs_strictly_accepted": true,
+  "source_HDMA_line_count_interpretation_from_emulator_not_physical_console": true,
+  "ROM_palette_table_selected_values_in_other_racer_cases_proven": false,
+  "full_original_native_same_input_frame_parity_proven": false,
+  "physical_SNES_midline_timing_proven": false,
+  "HD_racer_character_approved": false
+}

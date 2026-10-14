@@ -1,0 +1,95 @@
+# QA-08: original 2P rendered-frame window, first direct visual alignment discriminator
+
+**Instrumented original experiment, not native pixel parity yet.**
+
+The repository's pinned `snesref` original-USA run already reproduces the
+authentic controller script, original frame1989 GO, original t480 frame2473,
+original 55 fetched opcode bytes, 18 executed palette writer PCs, 2
+actual selector indices and 96 genuine live PPU $2131/$2132 writes.
+The original emulator is separately from Baldosa SNESRecomp's
+native guest2208 PPU. The previous 256×224 `go` and `t480`
+original screenshots cannot identify a pixel match to a 342×224
+native source capture in a *different race phase*.
+
+## New observation: 37 frame window without changing guest inputs
+
+The **existing one-run** original Snes9x workflow now enables the
+already implemented `SNESREF_FRAME_DUMP_*` read-only video callback
+for **zero-based callback indices 2188..2224**, inclusive, at every
+frame. Crucially, `SNESREF_FRAME_DUMP_NATIVE=1` records the actual
+core-reported dimensions. The source front-end labels an emitted
+`frame_002188_256x224.raw` with its *pre-increment*
+`g_frame` while the script's `retro_run` count is one-based,
+so that file records original script-run frame **2189**.
+No guessed `0/1` compensation may be applied downstream.
+
+The existing real original script is *identical* byte-for-byte;
+the video callback changes only retained output, not controllers,
+WRAM or any PPU/HDMA register. Expected total is 37 × 256 × 224 ×
+4 bytes, with no ROM or SRAM archived. Every full raw BGRX
+frame is SHA-256 verified in a compact manifest and six
+literal original coordinate samples are retained for later
+spatial discrimination.
+
+Run `tools/qa08_auth_original_2p_frame_window.py` requires exactly 37
+genuine 256×224 raw frames (no extras, missing, or silent hi-res
+crop), valid four-byte BGRX pixels, at least five distinct
+full-frame hashes, source USA ROM/script/final-WRAM fingerprints,
+unchanged 55 original opcodes and 18 real writers, actual original
+96 HDMA colour writes and independent GO source image metadata.
+Adversarial unit tests reject source reordering/cropping,
+stale/all-identical video, alpha contamination, fake original frame
+and forged original ROM/input/live register certificates.
+
+The originating accepted native 2P frame2208 available from
+the existing QA-08 native artefact is a different
+**original-source-sized 256×224 framebuffer** as well as a
+widened 342×224 source PPU image, so it can be compared directly
+against each original 256×224 candidate **without any arbitrary
++43 crop** in the first pass. Then separately compare actual
+guest HUD clock and stable course features, the upper/lower
+racer pose and traceable WRAM camera and racer state before
+declaring matched phase/input or an output pixel discrepancy.
+
+This makes original source output independently testable, but
+`frame_002208` having the same numeric suffix as native
+guest2208 is *insufficient* proof of identical game state.
+The original Snes9x retains a historical Uniracers-specific OAM
+workaround; all conclusions describe original emulator observations,
+not physical SNES cycle or HBlank acceptance. Continue independent
+2P split sprite owner/source and 26 native BG3/OBJ comparison,
+preserving 256×224, 7:6 PAR, exact 4× fallback, real
+wide-world materializer and HD art aesthetic veto.
+
+## Independent source-size native reference comparison
+
+`tools/qa08_rank_original_native_2p_frames.py` requires exactly
+the SHA-pinned **native guest2208 256×224** original-source image
+`baldosa-fixed-source/ur-baldosa-original-source-002208.pam`
+from native run **38504531564** (artifact **11867072862**),
+P7 SHA-256
+`a946c9ebb54775639b8fd87a6861af0408cceed4896e58be05908c4a4491c67f`.
+This is distinct from the native **342×224 wide-world frame** and
+therefore requires **no invented horizontal +43 crop**. It rejects
+any other native asset bytes and also authenticates the original
+37-frame source manifest, each raw frame's reported SHA and the
+existing true native 2P route/guest CRC receipt.
+
+The original BGRX8888 bytes and Baldosa native RGB_ALPHA P7 bytes
+both encode RGB values; their fourth bytes are different and are
+**ignored** for an unscaled RGB-only comparison. The offline tool
+reports the exact fraction of equal 24-bit RGB pixels and channel
+absolute differences across the whole frame, upper/lower play
+regions and split edge. Rankings are diagnostic candidates,
+not guest input parity, pixel acceptance or a promise of the same
+scene. In particular, it does not add a pixel shift, solve camera
+registration or treat frame-number equality as phase equality.
+
+```sh
+python3 tools/qa08_rank_original_native_2p_frames.py \
+  --original-window /path/to/qa08-original-source-window \
+  --original-manifest /path/to/qa08-original-37frame-window.json \
+  --native-256-p7 /path/to/ur-baldosa-original-source-002208.pam \
+  --native-evidence analysis/data/qa08-original-native-channel5-hdma-coldata-source-handoff.json \
+  --out /tmp/qa08-original-native-rgb-candidates.json
+```

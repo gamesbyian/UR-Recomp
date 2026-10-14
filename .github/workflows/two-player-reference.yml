@@ -451,6 +451,9 @@ jobs:
           # Instrument ONLY the disposable original Snes9x core after ordinary
           # original reference tests have finished, retaining the ROM/input.
           python3 tools/instrument_snesref_2p_air_writes.py "$CORE_SRC/cpuexec.cpp"
+          # Add bounded original 65816 BPL next-PC evidence on the SAME
+          # single opcode dispatch. No new ROM/input/native executable.
+          python3 tools/instrument_snesref_2p_collision_gate.py "$CORE_SRC/cpuexec.cpp"
           make -C "$CORE_SRC/libretro" -j2
           SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
             SNESREF_INPUT_FILE="$ROOT/case.input" \
@@ -474,6 +477,11 @@ jobs:
           python3 tools/qa01_dual_air_writer_probe.py classify \
             --root "$ROOT" --rom "$ROM" --native-exe "$EXE" \
             --out "$ROOT/qa01-writer-crosswalk.json"
+          # Source CPU opcode->next-PC decision on the specific 81:925A/9266
+          # collision gate. Original only: native pre-branch value is unknown.
+          python3 tools/qa01_dual_air_collision_branch_report.py \
+            --original-log "$ROOT/original.log" \
+            --out "$ROOT/qa01-collision-branch-original.json"
           python3 - "$ROOT/qa01-writer-crosswalk.json" "$GITHUB_STEP_SUMMARY" <<'PY'
           import json,sys
           r=json.load(open(sys.argv[1],encoding="utf-8"))
@@ -499,6 +507,7 @@ jobs:
             ${{ runner.temp }}/qa01-dual-air-writer-50036056/manifest.json
             ${{ runner.temp }}/qa01-dual-air-writer-50036056/dense-manifest.json
             ${{ runner.temp }}/qa01-dual-air-writer-50036056/qa01-writer-crosswalk.json
+            ${{ runner.temp }}/qa01-dual-air-writer-50036056/qa01-collision-branch-original.json
             ${{ runner.temp }}/qa01-dual-air-writer-50036056/*.log
             ${{ runner.temp }}/qa01-dual-air-writer-50036056/case.input
             ${{ runner.temp }}/qa01-dual-air-writer-50036056/case.script

@@ -1,0 +1,70 @@
+{
+  "schema": "qa08-original-Snes9x-native-2P-256x224-split-band-pixel-source-handoff/1",
+  "evidence_class": "independently-run source-bounded original and native PPU framebuffer byte comparison",
+  "original_source_run": 38543766102,
+  "original_artifact_id": 11884155561,
+  "original_zip_sha256": "6e5d488230c11d3dfcd144b6a7cbc8c25d7acfcb4f95b776a85071dd3487f5e3",
+  "original_37frame_source_manifest_sha256": "29856fa4f13bfc679b60240de80bd48b8c035801b56e0fbb3e17472a06836787",
+  "original_frame_2207_BGRX256_sha256": "e76c6010b3fb339ecbdae2fec985a00019345723cdff122d9bbc78d71481c8aa",
+  "native_source_run": 38504531564,
+  "native_artifact_id": 11867072862,
+  "native_zip_sha256": "2716fc6a21b7ac75a05b9ce26d270b7bf0c1e575e75e74e550665b2a899e5302",
+  "native_original_source_frame2208_P7_SHA256": "a946c9ebb54775639b8fd87a6861af0408cceed4896e58be05908c4a4491c67f",
+  "original_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_source_route_sha256": "94eaa5ffb487d9b227e34965c1d2ee09efe3dac06ade595f7dad05315dfc5221",
+  "original_t480_WRAM_sha256": "9350bcb02f3cbf490678c5276245ec2c7fe36b9078bfab9e912d86c5cbc93bf6",
+  "original_reference_video_pixel_format": "RGB565 (G6 expanded to RGB8 in snesref)",
+  "native_reference_video_pixel_format": "Native PPU RGB5 expanded to RGB8 in unscaled 256x224 P7",
+  "objective_video_conversion": "original RGB565 expanded green 6bit to 8bit, decode g6=G8>>2, quantize g5=g6>>1, native G8=(g5<<3)|(g5>>2); keep red5 and blue5 unchanged",
+  "phase_candidate_original_zero_based_callback": 2207,
+  "phase_candidate_original_one_based_retro_run": 2208,
+  "native_guest_frame": 2208,
+  "frame_candidate_image_dimension": [
+    256,
+    224
+  ],
+  "comparison_pixels": 57344,
+  "identical_pixels_after_channel_bit_depth_normalization": 56832,
+  "identical_fraction": 0.9910714285714286,
+  "wrong_RGB_pixels": 512,
+  "wrong_pixels_only_rows": [
+    {
+      "row": 111,
+      "count": 256
+    },
+    {
+      "row": 113,
+      "count": 256
+    }
+  ],
+  "first_runner_up_candidate_original_frame": 2208,
+  "runner_up_identical_pixels": 34613,
+  "evidence_original_black_rows": [
+    111,
+    112
+  ],
+  "evidence_native_black_rows": [
+    112,
+    113
+  ],
+  "original_PPUW_GO_1989_actual_INIDISP_HDMA_events": [
+    {
+      "original_beam_v": 111,
+      "reg": "$2100",
+      "value": "$00"
+    },
+    {
+      "original_beam_v": 113,
+      "reg": "$2100",
+      "value": "$0F"
+    }
+  ],
+  "complete_other_rows_RGB5_identity_observed": true,
+  "bound_source_pixels_256wide_without_AR_crop": true,
+  "original_native_genuine_full_simulation_state_parity_proven": false,
+  "SNES_hardware_PPU_scanline_proven": false,
+  "native_INIDISP_writer_beam_causality_independently_captured": false,
+  "native_full_world_342wide_original_PPU_parity_proven": false,
+  "HD_racer_character_approved": false,
+  "next_acceptance_target": "Observe exact native $2100 HDMA transfer and framebuffer row for two-raster-line forced blank band, then compare original/native source $2100 readback and restore; do not patch native renderer until timing source verified"
+}

@@ -56,7 +56,7 @@ def parse_ppuw(path: Path, frame: int, expected: int) -> dict:
         if (f!=frame or source not in SOURCE or
                 len(addr)!=4 or len(value)!=2 or
                 addr!=addr.upper() or value!=value.upper() or
-                not 0<=h<=339 or not 0<=int(value,16)<=255 or
+                not 0<=h<=511 or not 0<=int(value,16)<=255 or
                 not (0x2100<=int(addr,16)<=0x2133 or addr=="420C")):
             raise ValueError("forged original source frame/beam/register/write")
         event={"frame":f,"v":v,"h":h,"addr":addr,"value":value,

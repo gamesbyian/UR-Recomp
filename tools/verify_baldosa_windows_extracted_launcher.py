@@ -11,6 +11,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -86,6 +87,22 @@ def verify_first_user_cmd_relaunch_log(log: str) -> None:
             "Native first-user game opened selected profile before creation")
     require(log.count("UR_BALDOSA_MODERN_ROOT opened=1") == 2,
             "CMD must launch exactly two original native game processes")
+    # The no-arguments launcher now proves actual native P1 gamepad-handler
+    # edges for create and both quits, not merely SDL keyboard equivalents.
+    # The first guest is anonymous; the second is source-booted named Mike.
+    observed = re.findall(
+        r"(?m)^UR_BALDOSA_MODERN_ROOT noargs_launcher_gamepad "
+        r"profile=(anonymous|mike) button=(X|A|B)\r?$", log)
+    expected = [
+        ("anonymous", "X"), ("anonymous", "A"),
+        ("anonymous", "B"), ("anonymous", "B"),
+        ("anonymous", "A"), ("mike", "B"), ("mike", "A"),
+    ]
+    require(observed == expected and
+            log.count("UR_BALDOSA_MODERN_ROOT noargs_launcher_gamepad ") == 7,
+            "No-args CMD did not execute unique ordered native P1 gamepad "
+            "create, quit and cold-restart quit actions")
+
 
 
 def run(archive: Path, personal_rom: Path, output: Path, timeout: int) -> dict:
@@ -207,14 +224,14 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int) -> dict:
 
     # The exact extracted .cmd launcher must ALSO complete a first-run
     # identity transition without ANY synthetic --script CLI argument. Only
-    # the native Modern root's explicitly test-gated SDL key events drive
+    # test-gated P1 native gamepad semantic edges (never physical hardware) drive
     # this first process to Create -> Quit. The launcher itself must detect
     # the newly durable selector and relaunch the SAME PE exactly once.
     first_user = output / "First Modern Racer Through CMD With Spaces"
     first_env = {
         **env,
         "UR_RECOMP_USER_DATA_ROOT": str(first_user),
-        "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "4",
+        "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "10",
         "UR_BALDOSA_LAUNCHER_RESTART_SMOKE": "1",
         "UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS": "1",
     }

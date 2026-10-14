@@ -140,8 +140,8 @@ bool restore_practice_session() {
     RtlSetSaveRoot(g_practice_previous_save_root.empty()
                        ? nullptr : g_practice_previous_save_root.c_str());
     const char* restored = RtlSaveRoot();
-    if (!restored ||
-        std::string_view(restored) != g_practice_previous_save_root)
+    if ((restored ? std::string_view(restored) : std::string_view{}) !=
+        g_practice_previous_save_root)
         return false;
     g_practice_session_active = false;
     g_practice_sram_snapshot.clear();
@@ -176,11 +176,14 @@ bool begin_practice_session() {
     if (fs::is_symlink(session_path / "save.srm", ec) || ec)
         return false;
     const char* original = RtlSaveRoot();
-    if (!original) return false;
-    g_practice_previous_save_root = original;
+    g_practice_previous_save_root = original ? original : "";
     g_practice_sram_snapshot.assign(
         g_sram, g_sram + ur::product::kStockSramBytes);
-    const std::string requested_root = session_path.string();
+    // Baldosa pins its mutable cwd to the validated explicit user root.
+    // Keep the original fixed relative save-root spelling within the
+    // framework\'s bounded save-root buffer, even when the user root has
+    // a long Windows pathname.
+    const std::string requested_root = "practice-session";
     RtlSetSaveRoot(requested_root.c_str());
     if (!RtlSaveRoot() ||
         std::string_view(RtlSaveRoot()) != requested_root) {

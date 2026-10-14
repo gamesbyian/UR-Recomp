@@ -159,8 +159,12 @@ bool begin_practice_session() {
     };
     if (g_practice_session_active || !g_sram ||
         g_sram_size != static_cast<int>(ur::product::kStockSramBytes) ||
-        g_ram[0x0313] == 1u || g_ram[0x009f] != 0xd7u)
+        g_ram[0x0313] == 1u || !g_visible || g_stock_target != -1)
         return deny("source_guest_not_ready");
+    // The root is visible before the original title MAIN is guaranteed to
+    // settle. The existing QuickPracticeLaunch::AwaitMain stage waits for
+    // 0xD7 and its source-qualified 60-frame stable window; requiring MAIN
+    // here prematurely rejects a valid real P1 Down/A/A root gesture.
     const char* configured_root = std::getenv("SNESRECOMP_USER_DATA_DIR");
     if (!configured_root || !*configured_root) return deny("user_root_absent");
     const fs::path user_root(configured_root);

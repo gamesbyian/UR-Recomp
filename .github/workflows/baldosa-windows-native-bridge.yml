@@ -253,6 +253,22 @@ jobs:
             --video windows --timeout 180
           echo "PASS: actual native P1 Mike created isolated Andrew P2 with canonical typed/raw/catalog, retained active P1 selector, and a third real native game confirmed both seats and entered original 2P GO. No completed match, physical pads or original/native parity credit." >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Real pad-created P2 survives explicit interrupted-catalog recovery
+        run: |
+          set -euo pipefail
+          # Same pinned Windows source guest and production P1 pad handler:
+          # two genuine first-time frontend creations, a CI-only lost-row
+          # fault cut, an explicit third-game catalog-only recovery, and
+          # fourth-game original 2P source GO. No invented result or player.
+          python tools/baldosa_native_second_racer_probe.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_second_racer_interrupted_p2" \
+            --recover-interrupted-catalog \
+            --video windows --timeout 220
+          echo "PASS: real UI-created Mike/Martin, test-only missing P2 catalog row, real P1 controller recovery and next-process original 2P GO. No OS power-loss, physical pad or settled result credit." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Native P1 gamepad-created P1 and P2 earn original 2P and both fresh Records
         run: |
           set -euo pipefail
@@ -394,6 +410,21 @@ jobs:
           retention-days: 7
           path: ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/ci-owned-pre-records-pair/
 
+      # Keep fault-cut logs OUTSIDE QA-12 strict real-match source ZIP.
+      # This separate artifact contains no ROM, executable or user data.
+      - name: Retain bounded native P2 catalog recovery logs separately
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-native-p2-catalog-recovery-smoke
+          if-no-files-found: error
+          retention-days: 7
+          path: |
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_second_racer_interrupted_p2/report.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_second_racer_interrupted_p2/first_native_mike/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_second_racer_interrupted_p2/second_native_martin/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_second_racer_interrupted_p2/third_native_p2_recovers/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_second_racer_interrupted_p2/fourth_native_two_seat_go/log.txt
       - name: Export verified shared Windows inputs for bounded manual reliability campaigns
         if: ${{ inputs.export_campaign_inputs == true }}
         shell: bash

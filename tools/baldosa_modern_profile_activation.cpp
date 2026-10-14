@@ -201,14 +201,27 @@ extern "C" int ur_baldosa_modern_create_first_preset(unsigned index) {
         g_launch_global || g_launch_profile) return 0;
     const char* path = std::getenv("SNESRECOMP_USER_DATA_DIR");
     if (!path || !*path) return 0;
-    const auto created =
+    auto result =
         ur::product::create_baldosa_first_preset_for_next_boot(path, index);
+    if (result.status == ur::product::BaldosaFirstRacerStatus::ExistingData) {
+        // A process can die after committing a complete catalog/typed/raw
+        // first-racer triplet but BEFORE publishing its active selector.
+        // The user's explicit X/preset/A action may finish that transaction
+        // only after canonical locks and exact state+SRAM revalidation.
+        // Never adopt arbitrary orphan directories or repair corrupt data.
+        result = ur::product::recover_baldosa_first_preset_for_next_boot(
+            path, index);
+    }
     std::fprintf(stderr,
         "UR_BALDOSA_NATIVE_FIRST_RACER status=%u preset=%u id=%s "
         "activation=next_process\n",
-        static_cast<unsigned>(created.status), index,
-        created.profile_id.c_str());
-    return created.created() ? 1 : 0;
+        static_cast<unsigned>(result.status), index,
+        result.profile_id.c_str());
+    if (result.status == ur::product::BaldosaFirstRacerStatus::Recovered)
+        std::fprintf(stderr,
+            "UR_BALDOSA_NATIVE_FIRST_RACER_RECOVERY restored=1 "
+            "catalog_and_sram_unchanged=1 activation=next_process\n");
+    return result.created() ? 1 : 0;
 }
 
 // Read-only admission used solely to display P2 profile choices in the

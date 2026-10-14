@@ -76,6 +76,8 @@ def source_opcode_chronology(log: str) -> list[dict]:
     if not matched or stamped != len(matched):
         raise ValueError("missing or malformed original source CPU opcode receipt")
     result = []
+    # The gate is evaluated *before* executing the opcode. Its post-opcode
+    # stamp can advance to 2587 when the last gated opcode crosses a frame.
     previous_frame = 2574
     for f, v, p, a, old, new, c in matched:
         frame, scanline = int(f), int(v)
@@ -85,7 +87,7 @@ def source_opcode_chronology(log: str) -> list[dict]:
             (pc == "818E26" and address == 0x0545) or
             (pc == "818F7A" and address == 0x0547)
         )
-        if not 2574 <= frame <= 2586 or frame < previous_frame:
+        if not 2574 <= frame <= 2587 or frame < previous_frame:
             raise ValueError("original opcode outside source CPU frame gate/order")
         if not 0 <= scanline <= 511:
             raise ValueError("original opcode vertical counter malformed")

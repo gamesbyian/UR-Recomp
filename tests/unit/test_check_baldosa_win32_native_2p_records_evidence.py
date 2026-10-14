@@ -127,16 +127,16 @@ class HostedNativeWindowsTwoPlayerRecordsQA(unittest.TestCase):
 
     def test_true_source_capture_must_end_at_single_multiplayer_run_directory(self):
         report, played, fresh = observed()
-        canonical = "C:\\\\CI\\\\multiplayer-runs\\\\run-0001791946896142-0000.urrun"
+        canonical = r"C:\CI\multiplayer-runs\run-0001791946896142-0000.urrun"
         self.assertIn(canonical, played)
         for altered in (
-            r"C:\\CI\\multiplayer-runs\\nested\\run-0001791946896142-0000.urrun",
-            r"C:\\CI\\multiplayer-runs\\\\run-0001791946896142-0000.urrun",
-            r"C:\\CI:stream\\multiplayer-runs\\run-0001791946896142-0000.urrun",
-            r"C:\\CI\\..\\elsewhere\\multiplayer-runs\\run-0001791946896142-0000.urrun",
-            r"C:\\CI\\multiplayer-runs\\.\\run-0001791946896142-0000.urrun",
-            r"C:\\CI\\multiplayer-runs\\nested\\..\\run-0001791946896142-0000.urrun",
-            r"relative\\multiplayer-runs\\run-0001791946896142-0000.urrun",
+            r"C:\CI\multiplayer-runs\nested\run-0001791946896142-0000.urrun",
+            r"C:\CI\multiplayer-runs\\run-0001791946896142-0000.urrun",
+            r"C:\CI:stream\multiplayer-runs\run-0001791946896142-0000.urrun",
+            r"C:\CI\..\elsewhere\multiplayer-runs\run-0001791946896142-0000.urrun",
+            r"C:\CI\multiplayer-runs\.\run-0001791946896142-0000.urrun",
+            r"C:\CI\multiplayer-runs\nested\..\run-0001791946896142-0000.urrun",
+            r"relative\multiplayer-runs\run-0001791946896142-0000.urrun",
         ):
             with self.subTest(altered=altered):
                 candidate = played.replace(canonical, altered)

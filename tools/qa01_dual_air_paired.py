@@ -134,9 +134,27 @@ def frame_receipts(log_path: Path, tags: list[str], *, side: str) -> dict:
         else:
             raise ValueError("unexpected frame label in pinned replay manifest")
         expected.append((frame, tag))
-    matches = [(int(frame), label) for frame, label in re.findall(
-        r"script f=(\d+) dump ([A-Za-z0-9-]+) ok\b", log)]
-    selected = [row for row in matches if row[1] in tags]
+    # These are TWO actual emulator transcript grammars. Original Snes9x
+    # writes an independently observed FB/SRAM/PPU descriptor, never "ok";
+    # native Baldosa writes "ok". Require exactly the appropriate grammar,
+    # not a permissive optional suffix or a synthetic wrapper receipt.
+    marker = re.compile(
+        r"^script f=(\d+) dump ([A-Za-z0-9-]+) (.+)$", re.MULTILINE)
+    snesref = re.compile(
+        r"fb=256x224 RGB565 sram=8192 ppuw=\d+(?: \(truncated\))?")
+    selected = []
+    for frame, label, receipt in marker.findall(log):
+        if label not in tags:
+            continue
+        if side == "original":
+            qualified = snesref.fullmatch(receipt) is not None
+        else:
+            qualified = receipt == "ok"
+        if not qualified:
+            raise ValueError(
+                f"{side} real guest dump frame receipt grammar invalid "
+                f"at {label}: {receipt}")
+        selected.append((int(frame), label))
     if selected != expected:
         raise ValueError(
             f"{side} real guest dump frame receipts missing, duplicated, reordered or mistimed; "

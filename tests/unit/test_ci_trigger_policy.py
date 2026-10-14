@@ -325,6 +325,19 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertIn("xvfb", consumers)
         self.assertIn("xdotool", consumers)
 
+    def test_research_producers_reuse_shared_build_without_product_fanout(self):
+        shared = (WORKFLOWS / "modern-shared-native-acceptance.yml").read_text()
+        self.assertIn("      candidate_only:", shared)
+        consumers = shared.split("  ghost-target:", 1)[1]
+        # Every acceptance consumer is skipped for research; the build is not.
+        self.assertEqual(consumers.count("if: ${{ inputs.candidate_only != true }}"), 5)
+        self.assertNotIn("candidate_only", shared.split("  ghost-target:", 1)[0].split("jobs:", 1)[1])
+        for name in ("qa-adaptive-frontier.yml", "qa-cumulative-native-metrics.yml",
+                     "qa02-native-2p-seeded-endurance.yml"):
+            self.assertIn("candidate_only: true", (WORKFLOWS / name).read_text(), name)
+        # Product routers keep the full acceptance fan-out.
+        self.assertNotIn("candidate_only", (WORKFLOWS / "modern-native-heavy-router.yml").read_text())
+
     def test_superseded_shared_candidate_gates_are_manual_only(self):
         for name in (
             "ghost-target-native-acceptance.yml",

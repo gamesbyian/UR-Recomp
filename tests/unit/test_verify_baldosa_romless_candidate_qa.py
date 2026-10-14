@@ -243,6 +243,99 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
             self.assertFalse(accepted["metrics"]["finished_native_event_or_new_match_observed"])
             self.assertEqual(accepted["inputs"]["runtime_actions_wrapper_sha256"],
                              qa.file_digest(evidence))
+
+            # The real uploaded Win32 wrappers include these optional
+            # diagnostic logs. Keep that source-compatible, but do not
+            # accept an unreviewed renamed ROM/profile/archive alongside
+            # the genuine positive game result or safe smoke logs.
+            with zipfile.ZipFile(evidence, "a") as z:
+                z.writestr(
+                    "UR Baldosa Win32 Pause Route/with_pause/log.txt",
+                    "bounded stock diagnostic, not release evidence",
+                )
+            bounded_diagnostic = qa.check_runtime_actions_wrapper(
+                evidence, qa.audit(inner, source, digest),
+            )
+            self.assertEqual(bounded_diagnostic["outcome"], "inconclusive")
+            # An allowlisted diagnostic member is not itself inspected for
+            # product credit, but it still must be bounded against a highly
+            # compressible multi-megabyte private export / ZIP bomb.
+            pack(one, two)
+            with zipfile.ZipFile(evidence, "a", compression=zipfile.ZIP_DEFLATED) as z:
+                z.writestr(
+                    "UR Baldosa Win32 Pause Route/with_pause/log.txt",
+                    "x" * (2 * 1024 * 1024 + 1),
+                )
+            with self.assertRaisesRegex(ValueError, "oversized/empty ZIP member"):
+                qa.check_runtime_actions_wrapper(
+                    evidence, qa.audit(inner, source, digest),
+                )
+            # The two currently proposed first-racer Windows artifact
+            # layouts are future producer diagnostics only. Admit each
+            # complete three-file set without counting it as an authenticated
+            # first-user/controller acceptance, reject fragments and two
+            # competing layouts co-present in one ambiguous archive.
+            for group in qa.RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS:
+                with self.subTest(first_racer_group=group[0]):
+                    pack(one, two)
+                    with zipfile.ZipFile(evidence, "a") as z:
+                        for member in group:
+                            z.writestr(member, "test fixture: never release evidence")
+                    if group == qa.RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS[0]:
+                        # This triad is now an authenticated source-LOG
+                        # contract. Three invented "positive" text blobs
+                        # may no longer pass merely because names are known.
+                        with self.assertRaisesRegex(ValueError, "first-racer evidence is not UTF-8 JSON"):
+                            qa.check_runtime_actions_wrapper(
+                                evidence, qa.audit(inner, source, digest),
+                            )
+                    else:
+                        # Retired alternate producer layout remains safely
+                        # bounded but deliberately receives no source credit.
+                        new_diagnostics = qa.check_runtime_actions_wrapper(
+                            evidence, qa.audit(inner, source, digest),
+                        )
+                        self.assertEqual(new_diagnostics["outcome"], "inconclusive")
+                        self.assertFalse(new_diagnostics["metrics"][
+                            "hosted_first_racer_anonymous_creation_to_fresh_named_boot_consistent"
+                        ])
+                        self.assertFalse(new_diagnostics["metrics"][
+                            "finished_native_event_or_new_match_observed"
+                        ])
+                    pack(one, two)
+                    with zipfile.ZipFile(evidence, "a") as z:
+                        z.writestr(group[0], "incomplete test-owned record")
+                    with self.assertRaisesRegex(ValueError, "diagnostic evidence group incomplete"):
+                        qa.check_runtime_actions_wrapper(
+                            evidence, qa.audit(inner, source, digest),
+                        )
+            pack(one, two)
+            with zipfile.ZipFile(evidence, "a") as z:
+                for group in qa.RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS:
+                    for member in group:
+                        z.writestr(member, "ambiguous cross-PR diagnostics")
+            with self.assertRaisesRegex(ValueError, "diagnostic evidence groups ambiguous"):
+                qa.check_runtime_actions_wrapper(
+                    evidence, qa.audit(inner, source, digest),
+                )
+            for unexpected in (
+                "exported-private-profile.txt",
+                "ROM-renamed-as-a-log.json",
+                "UR Baldosa Win32 Pause Route/secret/save.srm.txt",
+                "UR Baldosa Win32 Pause Route/native_real_2p_records/artifacts/other.urrun.txt",
+                "../private-archive.txt",
+                "C:/absolute/private-data.txt",
+                "stray-folder/",
+            ):
+                with self.subTest(unexpected=unexpected):
+                    pack(one, two)
+                    with zipfile.ZipFile(evidence, "a") as z:
+                        z.writestr(unexpected, "UNREVIEWED_BYTES")
+                    with self.assertRaisesRegex(ValueError, "unreviewed ZIP member"):
+                        qa.check_runtime_actions_wrapper(
+                            evidence, qa.audit(inner, source, digest),
+                        )
+            pack(one, two)
             bound = qa.check_runtime_actions_wrapper(
                 evidence, qa.audit(inner, source, digest),
                 expected_wrapper_sha=qa.file_digest(evidence),

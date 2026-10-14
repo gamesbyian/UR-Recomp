@@ -110,3 +110,38 @@ Use the **exact, newly deduplicated fingerprint count** and source-meaningful fe
 Do not promote large novelty counts as accepted gameplay. If broad exploration produces no new meaningful semantic categories or only trivial motion variation, shift to the next **qualified question** instead of repeatedly paying for 10k nearly identical states. Revisit inputs after changes to the actual gameplay or source observability. Three non-discriminating source probes should trigger explicit hypothesis revision per the existing project research policy, not a hidden relaxation of the original parity comparator.
 
 **Ownership and risk:** This new tool does not write to \`docs/RELEASE-QUALITY-LEDGER.json\`, the original game, native renderer, Modern frontend, product storage or an art-approval manifest. No automatic issues or code-writing agents are invoked by unreviewed novelty; generated reproducible packets are suitable input for the owner's next autonomous research/development turn.
+
+## Witness binary retention (2026-10-14)
+
+Frontier witnesses are reproducible only on the byte-identical native executable named in the aggregate. The shared candidate artifact expires after one day; witness handoffs are kept for 14. Every frontier run now re-uploads that exact candidate as **`qa-frontier-witness-native` for 90 days**. The tarball contains the build tree with a ROM *path* (`rom.cfg`), never ROM bytes. Reproduction tools should prefer this artifact name for runs after this change.
+
+Runs before it are not covered. Run 38446393623 (dual-air witness seed 50036056) has only `shared-modern-native-candidate`, which **expires 2026-10-14 18:27 UTC**. QA-01's `two-player-reference.yml` input `qa01_dual_air_50036056` must run before then, or that exact witness can no longer be replayed on its own binary.
+
+## The adaptive arm learner has no signal (2026-10-14)
+
+The UCB allocator rewards an arm by `new_bins_local`: new normalized fingerprints. Across all 10,300 recorded cases every arm earned **2.000–2.019 new fingerprints per case** (spread 0.019). The fingerprint census is non-saturating: every diverging checkpoint is new for every case. Allocation therefore reflects smoothing constants and running sums, not discovery.
+* The 10k run gave `rotation` and `alternating` **0** cases.
+* Later runs gave `balanced` 5 of 100.
+
+`tools/research_yield.py` reports this as `arm_reward.flat` and lists starved arms.
+
+**Gated redesign, not yet implemented.** Reward a case by the rarity of the source *feature classes* it shows, using the already-computed per-case 15-checkpoint feature set. For example, sum `1/(1+prior incidence)` over present features. That would steer allocation toward rare classes such as `both-air-raw`, which appeared only on `rotation`. It changes the plan (a 100-case pilot is required) and must not alter the three-frame fingerprint epoch. Build it only if QA-01's original/native replay of witness 50036056 shows the dual-air class is a real, decision-relevant behaviour. Until then the forced exploration floor guarantees each arm only about 5% of cases (the first five per shard plus every tenth case), and no larger frontier run is recommended.
+
+## Turbo execution for WRAM-only observers (2026-10-14)
+
+**Evidence.** The frontier's observers read only 128-KiB WRAM dumps. The pinned SNESRecomp runtime's `turbo on` script verb sets `disableRender` on 15 of 16 frames. A local A/B ran the same 12 distinct frontier cases with full rendering and with turbo. It used a locally built shared candidate from current `main`, covered all five arms and included the dual-air witness 50036056.
+* WRAM was **byte-identical at all 16 dumps in every case**, and the derived feature sets were equal.
+* Mean wall time per case fell from **41.7 s to 32.2 s (−22.7%)**.
+
+Profiling attributes the remaining time to guest execution: about 10.8 s for the identical navigation prefix and about 19.7 s for the race. Writing dumps costs about 2 s.
+
+**Policy (`execution_policy: wram-only-turbo-with-rendered-repeat-guard-v1`, part of plan identity).**
+* Cases run in turbo.
+* The identical-input repeat on every 25th case runs **fully rendered**. Its existing byte-equality check therefore keeps proving turbo-invariance in production.
+* Framebuffer dumps from turbo cases are not evidence; the frontier never used them.
+* Re-run `tools/qa_frontier_turbo_ab.py` after any SNESRecomp pin change.
+* Graphics and framebuffer lanes must not adopt turbo.
+
+**Not adopted:** skipping the shared prefix by snapshot. The runtime offers `loadstate` but no script `savestate`, and restore fidelity would need its own validation. It is worth about another third of turbo case time if it becomes cheap to qualify.
+
+The local 4-core build ran the dual-air witness at frame 2580 again, so it reproduces on a second independent build of the same source. That is native-side reproducibility only; it says nothing about original parity.

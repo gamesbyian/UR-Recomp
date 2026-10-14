@@ -1,0 +1,52 @@
+{
+  "schema": "UR-QA-WIN32-FIRST-RACER-CMD-LAUNCHER-REVIEW/1",
+  "workflow_run_id": 38504990847,
+  "workflow_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38504990847",
+  "product_pr": 1463,
+  "product_pr_head_sha": "bc4c46ca80ed83a08ca7e8dbb87118eecc75d175",
+  "checkout_merge_commit_sha": "ae60a3b5188f17306350dd7d5b1d7a06148d4993",
+  "checkout_parents": [
+    "1f6bb91eb988c99032166074f3184e69ac936797",
+    "bc4c46ca80ed83a08ca7e8dbb87118eecc75d175"
+  ],
+  "actual_native_windows_job_conclusion": "success",
+  "candidate": {
+    "actions_artifact_id": 11867738348,
+    "outer_actions_zip_sha256": "193df8107ec60898fe5c0c246548207e439b09e684fc618f764d608ad2edd40d",
+    "inner_romless_zip_sha256": "608ac9224280bd0a1da7434fe2457e4c93df29140e6382d32d53bcfc5a15a469",
+    "executable_sha256": "8926363566c64315893696bf1201060aa09696295a7e40e1c09e5700b729e5d2",
+    "manifest_project_revision": "ae60a3b5188f17306350dd7d5b1d7a06148d4993",
+    "rom_bundled": false,
+    "profile_data_bundled": false,
+    "approved_release_candidate": false
+  },
+  "runtime": {
+    "actions_artifact_id": 11867663476,
+    "outer_actions_zip_sha256": "247688408e7c3edba4b21c61da904aba357402835ed59fb0783bcd00e1f48398",
+    "member_count": 18,
+    "launcher_report_sha256": "31d19395a100c768d95e818d77330fac7b0cbfca06625d5fe0fc429ce3804a7f",
+    "launcher_report_inner_zip_sha256_matches_candidate": true,
+    "report_flags": {
+      "no_argument_first_racer_cmd_one_shot_restart_accepted": true,
+      "fresh_named_game_after_actual_cmd_restart": true
+    },
+    "actual_cmd_first_racer_raw_log_uploaded": false,
+    "actual_cmd_source_relaunch_independently_recomputed": false,
+    "existing_separate_first_racer_creation_report_sha256": "ebdf841075eb7e6aeaf3fd445c2c8ae5d4d33958b735dda2cd6805c3c6522ec9"
+  },
+  "release_scope": {
+    "report_is_producer_attestation_not_independent_source_trace": true,
+    "same_zip_and_executable_hash_verified": true,
+    "raw_sram_or_saved_run_bytes_uploaded": false,
+    "physical_controller_audio_display_verified": false,
+    "original_native_complete_usa_events_accepted": 0,
+    "candidate_nominated_on_main": false,
+    "release_gate_credit": 0,
+    "outcome": "inconclusive_for_release"
+  },
+  "notes": [
+    "Actual Windows product job was green. The real run-baldosa-modern.cmd was invoked by its owning Windows extracted launcher test with zero script CLI arguments, and the product generated a raw first-racer-autorelaunch.log locally but did not upload that log in its Actions runtime evidence artifact.",
+    "The independent QA archive verifier will continue to classify the new launcher booleans as producer-reported only unless a bounded same-run exact owned raw CMD source log is coarchived.",
+    "This JSON forensic receipt remains under analysis/evidence and must not be placed into the release ledger's docs/-only source-contract evidence_refs."
+  ]
+}

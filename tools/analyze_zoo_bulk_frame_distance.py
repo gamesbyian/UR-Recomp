@@ -20,6 +20,41 @@ ARCHIVE_NAMES = {
     "native": "native-boundary/dump",
 }
 FIRST, LAST, SHIFT = 5155, 5175, 2
+# Exact downloaded Actions ZIP fingerprints from source-original/native guests.
+# A report on an arbitrary supplied ZIP must NEVER inherit either execution ID.
+KNOWN_ARTIFACTS = {
+    "f6a0ef06a856f16bfde3206cdcc86b752e831a9594a489484934d6c5388ef993": {
+        "run": 38018081196, "artifact": 11656564258,
+    },
+    "d5ec65c672736fa45f01214134db8598baa840f106729bd2c04ffb8949f1d039": {
+        "run": 38500427634, "artifact": 11866136501,
+    },
+}
+
+
+def provenance(artifact_zip_sha256: str, *, require_known: bool = False) -> dict:
+    """Bind a byte-identical Actions ZIP to its real original/native producer.
+
+    Unknown ZIPs remain legitimate NON-ADMITTING research inputs, but their
+    source workflow/artifact identity is unknown. Never forge an old run ID.
+    """
+    if not isinstance(artifact_zip_sha256, str) or not re.fullmatch(
+            r"[0-9a-f]{64}", artifact_zip_sha256):
+        raise ValueError("invalid complete artifact ZIP SHA-256")
+    pinned = KNOWN_ARTIFACTS.get(artifact_zip_sha256)
+    if require_known and pinned is None:
+        raise ValueError("unknown original/native source artifact SHA-256")
+    return {
+        "artifact_zip_sha256": artifact_zip_sha256,
+        "source_ci_run": pinned["run"] if pinned else None,
+        "source_artifact_id": pinned["artifact"] if pinned else None,
+        "original_native_source_execution_identity_verified": pinned is not None,
+        "evidence_type": (
+            "hash-pinned previously executed original/native witness"
+            if pinned else "unverified observational ZIP; source identity unknown"
+        ),
+        "release_complete_event_qa_credit": 0,
+    }
 
 
 def read_guest(z: ZipFile, original: bool, frame: int) -> dict[str, bytes] | None:
@@ -110,13 +145,15 @@ def main() -> int:
     p.add_argument("--first", type=int, default=FIRST)
     p.add_argument("--last", type=int, default=LAST)
     p.add_argument("--max-shift", type=int, default=SHIFT)
+    p.add_argument("--require-known-source", action="store_true",
+                   help="reject an input ZIP whose exact Actions source identity is not pinned")
     args = p.parse_args()
     blob = args.artifact.read_bytes()
     with ZipFile(args.artifact) as z:
         report = compare(z, args.first, args.last, args.max_shift)
-    report["artifact_zip_sha256"] = hashlib.sha256(blob).hexdigest()
-    report["source_ci_run"] = 38018081196
-    report["source_artifact_id"] = 11656564258
+    report.update(provenance(
+        hashlib.sha256(blob).hexdigest(),
+        require_known=args.require_known_source))
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({

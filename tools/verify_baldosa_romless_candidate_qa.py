@@ -24,6 +24,9 @@ from assemble_baldosa_windows_candidate import (
 from evidence_contract import assertion, make_envelope
 from check_baldosa_win32_native_1p_records_evidence import audit_hosted_native_1p_records
 from check_baldosa_win32_native_2p_records_evidence import audit_hosted_native_2p_records
+from check_baldosa_win32_first_racer_evidence import audit_hosted_win32_first_racer
+from check_baldosa_win32_first_racer_earned_records_qa import audit_hosted_first_racer_earned_1p
+from check_baldosa_win32_cmd_first_racer_evidence import audit_win32_cmd_first_racer_source
 
 SHA40 = re.compile(r"[0-9a-f]{40}\Z")
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
@@ -296,6 +299,61 @@ RUNTIME_NEW_TWO = "UR Baldosa Win32 Pause Route/native_real_2p_records/report.js
 RUNTIME_NEW_TWO_PLAYED = "UR Baldosa Win32 Pause Route/native_real_2p_records/played_native_2p/log.txt"
 RUNTIME_NEW_TWO_FRESH = "UR Baldosa Win32 Pause Route/native_real_2p_records/fresh_game_2p_records/log.txt"
 
+# Exact Windows Actions upload list, observed in successful hosted
+# 1P/2P and first-racer Windows artifacts. An unreviewed extra ZIP member
+# can carry private player data under an arbitrary .txt/.json suffix.
+# The five stock diagnostic logs are allowed but never promoted as source
+# result or fresh-Records evidence. Two product PRs proposed different exact
+# first-racer upload layouts; only the first actually shipped green evidence.
+# Only the proven first group is now source-checked against the genuine
+# #1439 Win32 report and two real guest logs. The retired #1440 alternative
+# remains a permitted but UNADMITTED complete diagnostic set. No human
+# controller, saved-file byte or release-gate credit is inferred.
+RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS = (
+    (
+        "UR Baldosa Win32 Pause Route/native_first_racer/report.json",
+        "UR Baldosa Win32 Pause Route/native_first_racer/first_anonymous_process/log.txt",
+        "UR Baldosa Win32 Pause Route/native_first_racer/fresh_named_process/log.txt",
+    ),
+    (
+        "UR Baldosa Win32 Pause Route/native_first_racer_boot/report.json",
+        "UR Baldosa Win32 Pause Route/native_first_racer_boot/first_controller_racer/log.txt",
+        "UR Baldosa Win32 Pause Route/native_first_racer_boot/fresh_named_game/log.txt",
+    ),
+)
+# New 3-game Windows product proof, distinct from the already accepted
+# two-game first-racer boot and the fixture-created 1P/2P sources.
+# A failed producer may upload three logs but no report; that MUST stay red.
+# Optional raw launcher transcript. The original green no-arguments Windows
+# producer archived its two success booleans but NOT this already-created log.
+# Even when present, it is hosted script-driven evidence, not physical input.
+RUNTIME_NOARGS_FIRST_RACER_LOG = (
+    "Baldosa Native Extracted Launcher QA/first-racer-autorelaunch.log"
+)
+RUNTIME_FIRST_RACER_EARNED_GROUP = (
+    "UR Baldosa Win32 Pause Route/native_first_racer_earned_records/report.json",
+    "UR Baldosa Win32 Pause Route/native_first_racer_earned_records/new_user_creates_first_racer/log.txt",
+    "UR Baldosa Win32 Pause Route/native_first_racer_earned_records/fresh_named_player_completes_race/log.txt",
+    "UR Baldosa Win32 Pause Route/native_first_racer_earned_records/new_game_reopens_earned_records/log.txt",
+)
+RUNTIME_DIAGNOSTIC_LOGS = frozenset(
+    "UR Baldosa Win32 Pause Route/" + suffix + "/log.txt"
+    for suffix in (
+        "baseline", "with_pause", "with_named_profile",
+        "corrupt_named_profile", "different_named_profile",
+    )
+)
+RUNTIME_ALLOWED_MEMBERS = frozenset((
+    RUNTIME_LAUNCHER, RUNTIME_REPORT, RUNTIME_ONE, RUNTIME_TWO,
+    RUNTIME_NEW_ONE, RUNTIME_NEW_PLAYED, RUNTIME_NEW_FRESH,
+    RUNTIME_NEW_TWO, RUNTIME_NEW_TWO_PLAYED, RUNTIME_NEW_TWO_FRESH,
+)) | RUNTIME_DIAGNOSTIC_LOGS | frozenset(
+    name for group in RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS
+    for name in group
+) | frozenset(RUNTIME_FIRST_RACER_EARNED_GROUP) | frozenset((
+    RUNTIME_NOARGS_FIRST_RACER_LOG,
+))
+
 
 def check_runtime_actions_wrapper(
     wrapper: Path, candidate: dict,
@@ -304,10 +362,11 @@ def check_runtime_actions_wrapper(
     """Read the separately produced same-run log/report archive without executing it.
 
     Positive claim: source-identical PE + bounded *entry to live race*.
-    Two optional complete three-artifact groups add hosted *source-bound*
-    native 1P and 2P played results through a fresh game process's Records
-    logs. The saved run and match raw bytes are NOT archived. Neither group
-    can certify original/native parity, consumer hardware, or release QA.
+    Two optional three-artifact groups add hosted source-bound native 1P
+    and 2P result-to-Records evidence. A third exact, independently reviewed
+    #1439 group adds anonymous-first-racer -> fresh-named-game source LOG
+    consistency. Its SRAM/typed bytes, the 1P run and 2P pair remain absent.
+    None can certify original parity, consumer hardware or release QA.
     """
     if wrapper.is_symlink() or not wrapper.is_file() or wrapper.stat().st_size > 16 * 1024 * 1024:
         raise ValueError("Baldosa Win32 runtime evidence ZIP missing, linked or oversized")
@@ -319,11 +378,38 @@ def check_runtime_actions_wrapper(
     try:
         with zipfile.ZipFile(wrapper) as archive:
             names = archive.namelist()
-            if len(names) > 40 or len(names) != len(set(names)):
-                raise ValueError("Baldosa runtime evidence has excessive or duplicate members")
-            if any(name.lower().endswith((".sfc", ".smc", ".srm", ".urrun", ".urmatch"))
-                   for name in names):
-                raise ValueError("Baldosa runtime evidence unexpectedly contains protected player/game data")
+            if len(names) != len(set(names)):
+                raise ValueError("Baldosa runtime evidence has duplicate members")
+            # The exact evidence producer's optional 1P/2P groups are
+            # independently checked all-or-none below. A nonallowlisted
+            # attachment is never silently accepted merely because it is
+            # called .txt, .json, .log or lacks a known ROM/save extension.
+            # This also rejects directories, path aliases, traversal and
+            # unreviewed private data before any member is read.
+            if not set(names) <= RUNTIME_ALLOWED_MEMBERS:
+                raise ValueError("Baldosa runtime evidence has unreviewed ZIP member")
+            # All members, including the five diagnostic logs that this QA
+            # consumer intentionally never reads, must be bounded. Otherwise
+            # an allowlisted filename can conceal a huge compressed private
+            # export/ZIP bomb which survives the outer 16 MiB size cap.
+            if any(
+                item.is_dir() or not 0 < item.file_size <= 2 * 1024 * 1024
+                for item in archive.infolist()
+            ):
+                raise ValueError("Baldosa runtime evidence has oversized/empty ZIP member")
+            first_racer_sets = [
+                sum(path in names for path in group)
+                for group in RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS
+            ]
+            if any(count not in (0, 3) for count in first_racer_sets):
+                raise ValueError("Baldosa first-racer diagnostic evidence group incomplete")
+            if sum(count == 3 for count in first_racer_sets) > 1:
+                raise ValueError("Baldosa first-racer diagnostic evidence groups ambiguous")
+            earned_count = sum(
+                member in names for member in RUNTIME_FIRST_RACER_EARNED_GROUP
+            )
+            if earned_count not in (0, 4):
+                raise ValueError("Baldosa first-racer earned 1P evidence group incomplete")
 
             def bounded(name: str, limit: int) -> bytes:
                 try:
@@ -360,6 +446,24 @@ def check_runtime_actions_wrapper(
                  bounded(RUNTIME_NEW_TWO_FRESH, 2 * 1024 * 1024))
                 if all(newer_two_present) else None
             )
+            # The first, now-real first-racer producer layout is a complete
+            # source-owned triad. The retired second layout is intentionally
+            # still a bounded noncredited diagnostic, never a substitute.
+            new_first_racer = (
+                (bounded(RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS[0][0], 64 * 1024),
+                 bounded(RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS[0][1], 2 * 1024 * 1024),
+                 bounded(RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS[0][2], 2 * 1024 * 1024))
+                if first_racer_sets[0] == 3 else None
+            )
+            new_first_racer_earned = (
+                tuple(bounded(member, 64 * 1024 if i == 0 else 2 * 1024 * 1024)
+                      for i, member in enumerate(RUNTIME_FIRST_RACER_EARNED_GROUP))
+                if earned_count == 4 else None
+            )
+            noargs_launcher_log = (
+                bounded(RUNTIME_NOARGS_FIRST_RACER_LOG, 2 * 1024 * 1024)
+                if RUNTIME_NOARGS_FIRST_RACER_LOG in names else None
+            )
     except zipfile.BadZipFile as exc:
         raise ValueError("Baldosa Win32 runtime evidence ZIP is corrupt") from exc
     try:
@@ -378,6 +482,35 @@ def check_runtime_actions_wrapper(
         "canonical_8192_byte_save_outside_package",
     )):
         raise ValueError("Win32 extracted CMD launcher was not confirmed")
+    # Future real native CMD no-args evidence must preserve BOTH explicit
+    # product assertions if either is mentioned. An unarchived log is not
+    # an independently observed source sequence, even when both are true.
+    cmd_report_fields = (
+        "no_argument_first_racer_cmd_one_shot_restart_accepted",
+        "fresh_named_game_after_actual_cmd_restart",
+    )
+    cmd_reported = any(field in launcher for field in cmd_report_fields)
+    if cmd_reported and any(launcher.get(field) is not True
+                            for field in cmd_report_fields):
+        raise ValueError("incomplete/contradictory no-args CMD producer report")
+    if noargs_launcher_log is not None:
+        if not cmd_reported:
+            raise ValueError("CMD raw launcher trace is unbound to a positive producer report")
+        cmd_metrics = audit_win32_cmd_first_racer_source(noargs_launcher_log)
+        candidate["metrics"].update(cmd_metrics)
+        candidate["assertions"].append(
+            assertion("hosted-cmd-noargs-first-racer-two-native-roots-source-log-consistent", True)
+        )
+    else:
+        candidate["metrics"]["hosted_cmd_two_native_roots_one_first_racer_restart_log_consistent"] = False
+        candidate["metrics"]["hosted_cmd_log_independently_recomputed"] = False
+        candidate["metrics"]["hosted_physical_gamepad_verified"] = False
+    candidate["metrics"]["hosted_cmd_noargs_first_racer_restart_producer_reported"] = (
+        cmd_reported
+    )
+    candidate["metrics"]["hosted_cmd_noargs_first_racer_restart_producer_reported_only"] = (
+        cmd_reported and noargs_launcher_log is None
+    )
     if (reported.get("classification") != "windows_native_pause_and_named_profile_smoke_only"
             or type(reported.get("course_complete_credit")) is not int
             or reported["course_complete_credit"] != 0
@@ -462,6 +595,25 @@ def check_runtime_actions_wrapper(
     else:
         candidate["metrics"]["hosted_native_2p_result_to_fresh_records_logs_consistent"] = False
         candidate["metrics"]["hosted_saved_2p_pair_bytes_independently_reopened"] = False
+    if new_first_racer is not None:
+        first_racer_metrics = audit_hosted_win32_first_racer(*new_first_racer)
+        candidate["metrics"].update(first_racer_metrics)
+        candidate["assertions"].append(
+            assertion("hosted-first-racer-creation-to-fresh-named-guest-logs-consistent", True)
+        )
+    else:
+        candidate["metrics"]["hosted_first_racer_anonymous_creation_to_fresh_named_boot_consistent"] = False
+        candidate["metrics"]["hosted_created_profile_bytes_independently_rehashed"] = False
+        candidate["metrics"]["hosted_one_shot_packaged_launcher_restart_verified"] = False
+    if new_first_racer_earned is not None:
+        earned_metrics = audit_hosted_first_racer_earned_1p(*new_first_racer_earned)
+        candidate["metrics"].update(earned_metrics)
+        candidate["assertions"].append(
+            assertion("hosted-first-racer-actual-earned-1p-three-native-game-records-logs-consistent", True)
+        )
+    else:
+        candidate["metrics"]["hosted_first_racer_earned_1p_three_game_logs_consistent"] = False
+        candidate["metrics"]["hosted_saved_urrun_bytes_independently_decoded"] = False
     candidate["inputs"]["runtime_actions_wrapper_basename"] = wrapper.name
     candidate["inputs"]["runtime_actions_wrapper_sha256"] = file_digest(wrapper)
     for name, raw in (
@@ -495,6 +647,7 @@ def check_runtime_actions_wrapper(
     # or physical-device standing. No paired native 2P match is reported.
     candidate["metrics"]["finished_native_event_or_new_match_observed"] = (
         newer_one is not None or newer_two is not None
+        or new_first_racer_earned is not None
     )
     candidate["metrics"]["strict_original_native_complete_event_accepted"] = False
     candidate["metrics"]["new_native_two_player_match_published"] = newer_two is not None

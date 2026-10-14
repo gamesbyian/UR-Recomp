@@ -1,0 +1,120 @@
+{
+  "schema": "UR-QA01-ZOO-EXACT-ENTRY-AND-RESTORE-PHASE-STATE/1",
+  "executed_workflow": 38500427634,
+  "source_actions_artifact_id": 11866136501,
+  "artifact_zip_sha256": "d5ec65c672736fa45f01214134db8598baa840f106729bd2c04ffb8949f1d039",
+  "source_artifact_sha256_verified": true,
+  "original_entry_absolute_host": 1604,
+  "native_entry_absolute_host": 1606,
+  "entry_source_original_native_wram_differences": [
+    {
+      "offset": 493,
+      "original": 135,
+      "native": 65
+    },
+    {
+      "offset": 494,
+      "original": 127,
+      "native": 2
+    },
+    {
+      "offset": 8192,
+      "original": 3,
+      "native": 4
+    },
+    {
+      "offset": 8196,
+      "original": 128,
+      "native": 64
+    }
+  ],
+  "entry_vram_and_cgram_identical": true,
+  "entry_guest_sha256": {
+    "original": {
+      "wram": "5ff5243cdc41d4261331b0b9505f5328103c22780d8cd2af5298b89b6d1577cd",
+      "vram": "8fa904efd8d6f3725fc892739feeecec25639727f1f8cec018fb4542e285c400",
+      "cgram": "94fe4b34aedf09a17adfe8cc64d6c4b7293e2d01f0e6e673913cedf1bbffabd6"
+    },
+    "native": {
+      "wram": "110fafd6f37126e6a7f139b1620a4b4d755c10fb6e6f6717b76e20c0b1c3caea",
+      "vram": "8fa904efd8d6f3725fc892739feeecec25639727f1f8cec018fb4542e285c400",
+      "cgram": "94fe4b34aedf09a17adfe8cc64d6c4b7293e2d01f0e6e673913cedf1bbffabd6"
+    }
+  },
+  "entry_candidate_7e2000_and_7e2004_owner_verified": false,
+  "exact_matched_pair": {
+    "original_guest_relative": 5157,
+    "native_guest_relative": 5156,
+    "original_host": 6761,
+    "native_host": 6762,
+    "memory_classes": {
+      "wram": 131072,
+      "vram": 65536,
+      "cgram": 512
+    },
+    "total_identical_bytes": 197120,
+    "sha256_each_memory_class": {
+      "wram": "c54dd21c4ad7a9093b84a6e177739bb50c03b58780c888be983687897f4a2ce2",
+      "vram": "38b8471dcbc08d43cc35c5d50bdfd6e50572952ea85edfe626a391c83b57a422",
+      "cgram": "416e18c00febf541094e3eccc62485a37da37ba7d77445ee2275e58847937d64"
+    },
+    "source_native_guest_memory_byte_exact": true
+  },
+  "adjacent_aligned_residual_summary": [
+    {
+      "original_scene_relative_frame": 5158,
+      "native_scene_relative_frame": 5157,
+      "wram_different": 4,
+      "vram_different": 0,
+      "cgram_different": 8
+    },
+    {
+      "original_scene_relative_frame": 5159,
+      "native_scene_relative_frame": 5158,
+      "wram_different": 4,
+      "vram_different": 0,
+      "cgram_different": 8
+    },
+    {
+      "original_scene_relative_frame": 5160,
+      "native_scene_relative_frame": 5159,
+      "wram_different": 5,
+      "vram_different": 0,
+      "cgram_different": 8
+    },
+    {
+      "original_scene_relative_frame": 5161,
+      "native_scene_relative_frame": 5160,
+      "wram_different": 5,
+      "vram_different": 0,
+      "cgram_different": 8
+    },
+    {
+      "original_scene_relative_frame": 5162,
+      "native_scene_relative_frame": 5161,
+      "wram_different": 13,
+      "vram_different": 0,
+      "cgram_different": 0
+    },
+    {
+      "original_scene_relative_frame": 5163,
+      "native_scene_relative_frame": 5162,
+      "wram_different": 13,
+      "vram_different": 0,
+      "cgram_different": 0
+    }
+  ],
+  "residual_wram_range": [
+    475,
+    500
+  ],
+  "residual_cgram_range": [
+    216,
+    223
+  ],
+  "source_original_native_cpu_nmi_scanline_synchronized": false,
+  "scene_entry_predicate_source_cpu_authority_proven": false,
+  "original_native_event_terminal_phase_equivalent": false,
+  "release_complete_event_credit": 0,
+  "next_discriminator": "Qualify original/native first 7E:0313==01 scene-entry writer and four entry residues (particularly 7E:2000/2004), then finish/return scheduler with source guest PC and clock witnesses. Do not rephase controllers or waive the strict course comparator."
+}

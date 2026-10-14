@@ -77,13 +77,32 @@ def launcher() -> bytes:
         'set "UR_BALDOSA_MODERN_PROFILE_SELECT=1"',
         'cd /d "%UR_RECOMP_USER_DATA_ROOT%"',
         'if errorlevel 1 (echo UR-BALDOSA-STARTUP-SAVE-ROOT: Cannot enter user folder. 1>&2 & exit /b 3)',
+        # First-time controller-based profile creation completes only while
+        # an anonymous game runs. Never rebind that live cartridge; relaunch
+        # exactly ONCE after a clean exit if a new canonical selector appeared.
+        # Scripted CLI invocations retain deterministic one-run semantics.
+        'set "UR_BALDOSA_FIRST_RACER_RELAUNCH=0"',
+        'if not exist "%UR_RECOMP_USER_DATA_ROOT%\\host-state-v1.txt" set "UR_BALDOSA_FIRST_RACER_RELAUNCH=1"',
+        'if not "%~1"=="" set "UR_BALDOSA_FIRST_RACER_RELAUNCH=0"',
+        ':UR-BALDOSA-NATIVE-START',
         f'"%UR_BALDOSA_PACKAGE_DIR%{EXE}" --no-launcher "%UR_BALDOSA_ROM%" %*',
         # The pinned native after_config exits 7 before any guest frame when
         # Modern selector/profile/SRAM authority is incomplete or mismatched.
         # Keep that exact status and all save data; never start a default
         # anonymous game or tell players to delete the affected profile.
         'if "%ERRORLEVEL%"=="7" (echo UR-BALDOSA-STARTUP-PROFILE-REJECTED: Named racer data was not authorized. Preserve both the raw save and Modern profile files; see the diagnostic above. 1>&2 & exit /b 7)',
-        'exit /b %ERRORLEVEL%',
+        # Preserve the independent release-auditor's existing exact
+        # nonzero exit propagation marker; IF does not alter errorlevel.
+        'if not "%ERRORLEVEL%"=="0" exit /b %ERRORLEVEL%',
+        'if "%UR_BALDOSA_FIRST_RACER_RELAUNCH%"=="1" if exist "%UR_RECOMP_USER_DATA_ROOT%\\host-state-v1.txt" goto UR-BALDOSA-REBOOT-FIRST-RACER',
+        'exit /b 0',
+        ':UR-BALDOSA-REBOOT-FIRST-RACER',
+        # The already-existing named-profile after_config must validate its
+        # canonical typed/catalog/raw SRAM and will fail closed on exit 7.
+        # No second profile selector, anonymous fallback or unbounded loop.
+        'set "UR_BALDOSA_FIRST_RACER_RELAUNCH=0"',
+        'echo UR-BALDOSA-FIRST-RACER: Restarting with newly created racer.',
+        'goto UR-BALDOSA-NATIVE-START',
     ]
     return ("\r\n".join(commands) + "\r\n").encode("utf-8")
 

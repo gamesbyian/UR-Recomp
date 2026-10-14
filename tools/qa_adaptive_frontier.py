@@ -55,6 +55,19 @@ MAX_SEED = 99999999
 MAX_CASES_PER_SHARD = 250
 REPRO_ATTEMPTS = 12
 STRATEGY_POLICY = "fresh-five-arm-warmup-plus-decile-v1"
+# The observers read only 128-KiB WRAM dumps. Runtime "turbo" skips PPU
+# rendering on 15 of 16 frames: 12/12 local A/B cases (all arms, incl. the
+# dual-air witness) were byte-identical at all 16 dumps and 22.7% faster
+# (tools/qa_frontier_turbo_ab.py). Every 25th case's identical-input repeat runs fully rendered, so
+# the existing byte-equality check continuously proves turbo-invariance of
+# all observed WRAM. Framebuffer dumps from turbo cases are not evidence.
+EXECUTION_POLICY = "wram-only-turbo-with-rendered-repeat-guard-v1"
+
+
+def turbo_script(rendered: str) -> str:
+    if not rendered.endswith("quit\n") or "turbo" in rendered:
+        raise ValueError("expected one canonical rendered observation script")
+    return "turbo on\n" + rendered
 
 
 def digest(value: object) -> str:
@@ -115,6 +128,7 @@ def plan(source_sha: str, base_seed: int, count: int,
         "strategy_prior": normalized_prior(strategy_prior),
         "strategy_policy": STRATEGY_POLICY,
         "trace_probe_policy": TRACE_PROBE_POLICY,
+        "execution_policy": EXECUTION_POLICY,
         "disposition": "planned_not_executed", "release_gate_credit": 0,
         "original_native_parity": False, "complete_event_verified": False,
         "graphics_source_truth": False,
@@ -365,16 +379,19 @@ def execute_once(*, exe: Path, rom: Path, source_input: str, script: Path,
 
 
 def verify_sample(*,exe: Path, rom: Path, source_input: str, script: Path,
-                  root: Path, seed: int, arm: str, timeout: int) -> None:
+                  root: Path, seed: int, arm: str, timeout: int,
+                  rendered_script: Path | None = None) -> None:
     """Strict replay/seat-ablation witness, on every 25th tested case.
 
     These are real additional native processes; the source fixture's active
     race and pre-intervention state are still checked by guest.execute().
+    When ``rendered_script`` is given, the identical-input repeat runs with
+    full rendering, so equality also proves the turbo case's WRAM unchanged.
     """
     actions,_=actions_for(seed,arm)
     baseline=guest.observe(root/"dumps")
     treatment=root.parent/f"case-{seed}.input"
-    repeat=guest.execute(exe,rom,treatment,script,
+    repeat=guest.execute(exe,rom,treatment,rendered_script or script,
                          root.parent/f"verify-repeat-{seed}",timeout)
     if baseline!=repeat:
         raise ValueError("same actual 2P input produced changed full-WRAM checkpoints")
@@ -442,8 +459,10 @@ def run_shard(*, plan_data: dict, shard: int, exe: Path, rom: Path,
     identity = guest.identity(exe,rom,plan_data["source_sha"])
     source_input, source_script = guest.base_source()
     work.mkdir(parents=True)
+    rendered = work/"source-route-rendered.script"
+    rendered.write_text(guest.render_script(source_script),encoding="utf8")
     script = work/"source-route.script"
-    script.write_text(guest.render_script(source_script),encoding="utf8")
+    script.write_text(turbo_script(guest.render_script(source_script)),encoding="utf8")
     seen = set()
     attempts = dict.fromkeys(ARMS,0)
     gains = dict.fromkeys(ARMS,0)
@@ -465,7 +484,7 @@ def run_shard(*, plan_data: dict, shard: int, exe: Path, rom: Path,
             if index % 25 == 0:
                 verify_sample(exe=exe,rom=rom,source_input=source_input,
                               script=script,root=root,seed=seed,arm=arm,
-                              timeout=timeout)
+                              timeout=timeout,rendered_script=rendered)
             result["verified_ablation"] = index % 25 == 0
             result["real_native_processes"] = 4 if index % 25 == 0 else 1
             unique = set(result["tokens"])-seen

@@ -129,6 +129,15 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
         self.assertIn("exit /b 7", script)
         self.assertLess(script.index('if "%ERRORLEVEL%"=="7"'),
                         script.index("exit /b %ERRORLEVEL%"))
+        self.assertEqual(script.count("exit /b %ERRORLEVEL%"), 1)
+        self.assertIn('set "UR_BALDOSA_FIRST_RACER_RELAUNCH=0"', script)
+        self.assertIn(':UR-BALDOSA-NATIVE-START', script)
+        self.assertIn('goto UR-BALDOSA-REBOOT-FIRST-RACER', script)
+        self.assertIn('goto UR-BALDOSA-NATIVE-START', script)
+        self.assertIn('if not "%~1"=="" set "UR_BALDOSA_FIRST_RACER_RELAUNCH=0"', script)
+        self.assertEqual(script.count('goto UR-BALDOSA-NATIVE-START'), 1)
+        self.assertLess(script.index(':UR-BALDOSA-NATIVE-START'),
+                        script.index(':UR-BALDOSA-REBOOT-FIRST-RACER'))
         self.assertNotIn("powershell.exe -ExecutionPolicy Bypass", script)
         self.assertNotIn("certutil -addstore", script)
 

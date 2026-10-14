@@ -41,6 +41,17 @@ int main() {
     assert(!nav.p1_gamepad(4, false));
     assert(nav.p1_gamepad(4, true));
 
+    // New first-racer X uses its own release latch. It must neither
+    // auto-repeat a create nor consume normal A/B player navigation.
+    assert(nav.keyboard(4, true));
+    assert(!nav.keyboard(4, true));
+    assert(!nav.keyboard(4, false));
+    assert(nav.keyboard(4, true));
+    assert(nav.p1_gamepad(5, true));
+    assert(!nav.p1_gamepad(5, true));
+    assert(!nav.p1_gamepad(5, false));
+    assert(nav.p1_gamepad(5, true));
+
     // Invalid physical slots cannot create a ghost press or cross seats.
     assert(!nav.keyboard(99, true));
     assert(!nav.p1_gamepad(99, true));

@@ -29,12 +29,12 @@ PC_OP = {
     "80FAE2": "C6",  # cursor animation tick
 }
 ORIG_KEYS = ("f0", "f1", "v0", "v1", "h0", "h1", "pc", "next",
-             "op", "p0", "p1", "a0", "a1", "rd0", "rd1",
+             "op", "p0", "p1", "db0", "db1", "a0", "a1", "rd0", "rd1",
              "wr0", "wr1", "ack0", "ack1", "c60", "c61")
 NATIVE_KEYS = ("f", "dir", "reg", "width", "value", "cpu_master",
                "apu_cycle", "spc_portclock", "frame_clock", "extended",
                "memsel", "rd", "wr", "ack", "c6")
-ORIG_HEX = {"pc", "next", "op", "p0", "p1", "a0", "a1", "rd0", "rd1",
+ORIG_HEX = {"pc", "next", "op", "p0", "p1", "db0", "db1", "a0", "a1", "rd0", "rd1",
             "wr0", "wr1", "ack0", "ack1", "c60", "c61"}
 NATIVE_HEX = {"reg", "value", "rd", "wr", "ack", "c6"}
 
@@ -94,6 +94,13 @@ def analyze(original_log: str, native_log: str) -> dict:
         pc = f"{e['pc']:06X}"
         if pc not in PC_OP or e["op"] != int(PC_OP[pc], 16):
             raise ValueError("original opcode PC/opcode not qualified")
+        if pc in ("82803C", "82806D"):
+            # Absolute $2142 is an actual SNES I/O register only when
+            # the CPU DBR selects a low-bank 00-3F / 80-BF hardware mirror.
+            # DBR 7E/7F would address WRAM instead, falsifying the claim.
+            if (not 0 <= e["db0"] <= 255 or not 0 <= e["db1"] <= 255
+                    or e["db0"] & 0x40 or e["db0"] != e["db1"]):
+                raise ValueError("original $2142 opcode did not retain a mapped CPU I/O data bank")
         if pc in ("82803C", "828043", "82804E"):
             if not e["p0"] & 0x20:
                 raise ValueError("original source 8-bit APU input width unverified")
@@ -131,6 +138,9 @@ def analyze(original_log: str, native_log: str) -> dict:
         "native_first_frame": guest[0]["f"],
         "native_last_frame": guest[-1]["f"],
         "original_apu_read_count": len(original_read),
+        "original_apu_data_banks_observed": sorted(set(
+            e["db0"] for e in ref if e["pc"] in (0x82803C, 0x82806D))),
+        "original_apu_opcode_effective_bank_hw_mapped": True,
         "original_apu_read_low_bytes_sample": [
             e["a1"] & 255 for e in original_read[:16]],
         "original_ack_branch_count": len(ack_branch),

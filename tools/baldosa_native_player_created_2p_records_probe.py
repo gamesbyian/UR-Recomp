@@ -18,35 +18,26 @@ from baldosa_native_first_racer_probe import (
 )
 from baldosa_native_second_racer_probe import require_p2_creation
 from baldosa_native_2p_records_probe import (
-    SOURCE_TWO_PLAYER_DRIVE, AFTER_DRIVE_WAIT, run_guest,
+    source_match_script, run_guest,
     source_match_published, source_paired_records_reopened,
 )
 from baldosa_windows_native_pause_route import (
-    USA_SHA256, native_modern_race_entry_script, sha256,
+    USA_SHA256, sha256,
     verify_native_modern_root_log,
 )
 
 P1 = "mike"
-P2 = "andrew"
+P2 = "martin"
 
 
-def source_andrew_match_script() -> str:
-    """Original 2P source route with the second stock rider LEFT at Andrew.
+def source_martin_match_script() -> str:
+    """The EXACT existing original stock 2P route, picker and scored drive.
 
-    The old fixture-specific route presses P2 Down to rider 2. This newly
-    created P2 has authentic rider index 1; changing the source picker there
-    would make the host's authoritative pair binder correctly reject it.
+    P2 must have been selected via the real Modern stock-racer modal to
+    canonical Martin index 2, which the unchanged original picker chooses.
+    No guessed script modifications or guest memory writes are permitted.
     """
-    base = native_modern_race_entry_script(2)
-    down = "press p2:down 2\nwait 30\n"
-    end = "dump go\nquit\n"
-    if base.count(down) != 1 or not base.endswith(end):
-        raise ValueError("Original 2P stock route changed: re-evaluate picker")
-    base = base.replace(down, "", 1)
-    return (base[:-len(end)] + "dump go\n" +
-            "\n".join(SOURCE_TWO_PLAYER_DRIVE) +
-            f"\nwait {AFTER_DRIVE_WAIT}\ndump played-2p-source\nquit\n")
-
+    return source_match_script()
 
 def exact_pair_digest(archive: Path) -> dict[str, str]:
     if archive.is_symlink() or not archive.is_dir():
@@ -70,7 +61,7 @@ def profile_sram(user: Path, name: str) -> bytes:
     if file.is_symlink() or not file.is_file():
         raise ValueError("Missing separately created profile SRAM: " + name)
     data = file.read_bytes()
-    if len(data) != 8192 or data[0x0748] != (0 if name == P1 else 1):
+    if len(data) != 8192 or data[0x0748] != (0 if name == P1 else 2):
         raise ValueError("Incorrect guest racer byte / length: " + name)
     return data
 
@@ -96,10 +87,11 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
     before_selector = selector.read_bytes()
     original_p1 = profile_sram(user, P1)
 
-    # Game 2: named P1 explicitly creates Andrew P2 via the SAME native root.
+    # Game 2: named P1 explicitly creates Martin P2 via the SAME native root.
     second = run_game(exe, rom, user, out / "named_P1_adds_P2", "5",
-                      "turbo on\nwait 900\nquit\n", video, timeout)
-    require_p2_creation(second)
+                      "turbo on\nwait 900\nquit\n", video, timeout,
+                      preset=2)
+    require_p2_creation(second, preset=2)
     if selector.read_bytes() != before_selector:
         raise ValueError("P2 publication illegally switched active P1")
     original_p2 = profile_sram(user, P2)
@@ -111,12 +103,12 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
     # menus and a settled 2P Race, not a synthetic GO/result or seeded data.
     played = run_guest(
         exe, rom, out / "played_native_2p", user,
-        script=source_andrew_match_script(), smoke="3",
+        script=source_martin_match_script(), smoke="3",
         timeout=timeout, video=video)
     verify_boot_sram(played, original_p1, profile=P1)
     verify_native_modern_root_log(played, 2)
     source_result = source_match_published(
-        played, p1_profile=P1, p2_profile=P2, p1_rider=0, p2_rider=1)
+        played, p1_profile=P1, p2_profile=P2, p1_rider=0, p2_rider=2)
     if catalog.read_bytes() != before_catalog or selector.read_bytes() != before_selector:
         raise ValueError("Played game changed verified profile authority")
     if profile_sram(user, P2) != original_p2:
@@ -150,7 +142,7 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
         [str(fixture), str(user), P1, P2, "--select-existing-next-boot"],
         text=True, capture_output=True, timeout=timeout)
     if (switched.returncode or
-            "existing_next_boot=andrew previous=mike no_guest_swap=1"
+            "existing_next_boot=martin previous=mike no_guest_swap=1"
             not in switched.stdout or selector.read_bytes() == old_selector):
         raise ValueError("Safe next-boot selector rejected: " +
                          switched.stdout[-700:] + switched.stderr[-700:])
@@ -159,14 +151,14 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
             exact_pair_digest(user / "multiplayer-runs") != paired):
         raise ValueError("Existing P1 switch modified other participant data")
 
-    # Game 5: native guest *boots* Andrew's own bytes and its Records
+    # Game 5: native guest *boots* Martin's own bytes and its Records
     # includes the same one original-played match as Mike's did.
-    andrew_view = run_guest(
-        exe, rom, out / "fresh_andrew_records", user,
+    martin_view = run_guest(
+        exe, rom, out / "fresh_martin_records", user,
         script="turbo on\nwait 1800\nquit\n", smoke="1",
         timeout=timeout, video=video)
-    verify_boot_sram(andrew_view, old_p2, profile=P2)
-    source_paired_records_reopened(andrew_view, selected_profile=P2)
+    verify_boot_sram(martin_view, old_p2, profile=P2)
+    source_paired_records_reopened(martin_view, selected_profile=P2)
     if (exact_pair_digest(user / "multiplayer-runs") != paired or
             catalog.read_bytes() != old_catalog or
             profile_sram(user, P1) != old_p1):
@@ -179,7 +171,7 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
     return {
         "scope": "two-native-controller-created-profiles-played-source-2p-and-both-records",
         "actual_frontend_created_profiles": [P1, P2],
-        "observed_stock_riders": [0, 1],
+        "observed_stock_riders": [0, 2],
         "observed_source_guest_result": source_result,
         "canonical_one_pair_sha256": paired,
         "fresh_native_records_for_each": True,
@@ -203,7 +195,7 @@ def main() -> int:
     report = run(*paths, timeout=args.timeout, video=args.video)
     (paths[-1] / "report.json").write_text(
         json.dumps(report, sort_keys=True, indent=2) + "\n", encoding="utf-8")
-    print("PASS: native-created Mike/Andrew -> played original 2P source match "
+    print("PASS: native-created Mike/Martin -> played original 2P source match "
           "-> exactly one paired record -> both fresh native Records views. "
           "No independent original parity or physical pad claim.")
     return 0

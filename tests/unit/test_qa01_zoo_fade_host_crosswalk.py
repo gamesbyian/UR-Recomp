@@ -165,6 +165,17 @@ class ExecutedZooFade(unittest.TestCase):
         self.assertEqual(at, sorted(at))
         self.assertIn("80/A0C5: 8D 00 42     STA $4200", bank)
         self.assertIn("80A15B Sys_InitVars", symbols)
+        # Multiple archival callers make the observed 80:A09A an entry
+        # to a reusable menu initializer, not an identified return caller.
+        for line in (
+            "80/885E: 20 8B A0     JSR $A08B",
+            "80/94D4: 20 8B A0     JSR $A08B",
+            "80/9A37: 20 8B A0     JSR $A08B",
+            "80/A087: 20 8B A0     JSR $A08B",
+        ):
+            self.assertIn(line, bank)
+        self.assertIn("808881 MainLoop", symbols)
+        self.assertIn("8099A4 Race_Start", symbols)
 
 
 

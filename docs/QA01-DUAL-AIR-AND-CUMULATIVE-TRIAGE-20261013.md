@@ -59,3 +59,10 @@ Merge #1370 (generated C newline repair), #1376 (f5782 following-frame saved-A 4
 Its required decision is *which actual source guest instruction/restore boundary differs and whether a result/progression-critical consumer observes it*. A native `01DD=4004` word/byte read callback alone is **not** a proved 16-bit PLA, and matching settled MIKE result at host 5783 does not erase the strict original +4704/native +4702 guest-relative mismatch. If the run's first step fails, fix the minimal instrumentation/transport defect and retain reproducible negative evidence before source-runtime edits.
 
 No repeat original/native evidence has been produced by this documentation or by merging these PRs. No long cumulative campaign is recommended until a specific first-failure reason is available.
+
+### Preserve the actual guest states even on a classifier crash
+
+The *first* paired original/native opt-in run [38502953689](https://github.com/gamesbyian/UR-Recomp/actions/runs/38502953689) genuinely executed all eighteen original/native checkpoint dumps but then failed before raw-air comparison on the original Snes9x receipt grammar. Its `always()` QA-01 artifact contained transcripts, input and manifest, **not the generated 128-KiB WRAM files**. That prevented a retrospective adjudication without a full repeat run. The parser itself was corrected and merged in #1464.
+
+The existing opt-in artifact now **also** retains all original `original/*.wram.bin` and native `native-run/dumps/*.wram.bin` snapshots in the **same** 14-day artifact, including failures. The existing independently emitted real guest transcript `original.log`/`native.log`, manifest, input and exact binary SHA gate remain mandatory for accepting a comparison; a correctly named saved image alone does **not** attest its real capture frame or guest identity. This is preservation and forensic reproducibility only, not an additional emitter, extra guest simulation, invented register semantics or permission to attribute airborne physics from a nonzero raw byte. The workflow remains manual opt-in and strict 0/45 original/native release-event credit remains unchanged.
+

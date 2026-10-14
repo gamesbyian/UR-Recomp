@@ -83,9 +83,9 @@ class FirstRacerPlayedRecordAcceptance(unittest.TestCase):
         raw = bytes(range(256)) * 32
         log = (
             "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=mike "
-            "root=saves/profile-mike\\n"
+            "root=saves/profile-mike\n"
             "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=mike "
-            f"bytes=8192 fnv={fnv32(raw)}\\n"
+            f"bytes=8192 fnv={fnv32(raw)}\n"
         )
         self.assertEqual(
             verify_named_profile_boot_bytes(log, raw, profile_id="mike")["bytes"],

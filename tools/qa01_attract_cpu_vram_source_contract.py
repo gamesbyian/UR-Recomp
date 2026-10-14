@@ -14,7 +14,9 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+BANK80 = ROOT / "reference/imported/reverse-engineering/nitrodon/bank 80.txt"
 BANK81 = ROOT / "reference/imported/reverse-engineering/nitrodon/bank 81.txt"
+BANK83 = ROOT / "reference/imported/reverse-engineering/nitrodon/bank 83.txt"
 BALDOSA_BANK00 = ROOT / "reference/imported/reverse-engineering/baldosa-uniracers-recomp/recomp/bank00.cfg"
 BALDOSA_BANK81 = ROOT / "reference/imported/reverse-engineering/baldosa-uniracers-recomp/recomp/bank81.cfg"
 SCHEMA = "UR-QA01-ORIGINAL-CPU-VRAM-FIRST-LOAD-SOURCE/1"
@@ -55,6 +57,56 @@ def original_rows(source: str) -> dict[int, tuple[str, str]]:
 def _attest_line(source: str, line: str) -> None:
     if len([x for x in source.splitlines() if x.startswith(line)]) != 1:
         raise ValueError(f"missing, duplicated or changed original opcode: {line}")
+
+
+MEMSEL_ORIGINAL_OPCODE_ANCHORS = {
+    "bank80_boot_fastrom_set": (
+        "80/91E8: A9 01        LDA #$01",
+        "80/91EA: 8D 0D 42     STA $420D",
+    ),
+    "bank80_boot_slowrom_reset": (
+        "80/92E8: 9C 0D 42     STZ $420D",
+        "80/9311: 4C 5B 88     JMP $885B",
+    ),
+    "bank83_game_fastrom_set": (
+        "83/CC6D: A9 01        LDA #$01",
+        "83/CC6F: 8D 0D 42     STA $420D",
+    ),
+    "bank83_other_slowrom_reset": (
+        "83/FA39: 9C 0D 42     STZ $420D",
+    ),
+}
+
+
+def memsel_direct_source_writers(bank80: str, bank83: str) -> dict:
+    # Direct absolute source writes only; no dynamic control-flow guarantee.
+    origins = {
+        "bank80_boot_fastrom_set": bank80,
+        "bank80_boot_slowrom_reset": bank80,
+        "bank83_game_fastrom_set": bank83,
+        "bank83_other_slowrom_reset": bank83,
+    }
+    result = {}
+    for name, lines in MEMSEL_ORIGINAL_OPCODE_ANCHORS.items():
+        source = origins[name].splitlines()
+        offsets = []
+        for line in lines:
+            hits = [i for i, actual in enumerate(source) if actual.startswith(line)]
+            if len(hits) != 1:
+                raise ValueError(f"missing/duplicate/changed original MEMSEL opcode: {line}")
+            offsets.append(hits[0])
+        if offsets != sorted(set(offsets)):
+            raise ValueError(f"original MEMSEL source ordering changed: {name}")
+        result[name] = lines[-1].split(":", 1)[0].replace("/", ":")
+    for bank, source in (("80", bank80), ("83", bank83)):
+        writers = [x.split(":", 1)[0].replace("/", ":") for x in source.splitlines()
+                   if x.startswith(bank + "/") and "$420D" in x]
+        if len(writers) != 2:
+            raise ValueError(f"unexpected original bank-{bank} direct MEMSEL writer count")
+    result["all_memsel_writers_dynamically_executed_in_first_load_proven"] = False
+    result["first_load_memsel_value_proven"] = False
+    result["original_unobserved_indirect_memsel_writers_excluded"] = False
+    return result
 
 
 # Conditional model transcribed from the two pinned emitter variants:
@@ -166,6 +218,10 @@ def main() -> int:
     result = report(BANK81.read_text(encoding="utf-8"),
                     BALDOSA_BANK00.read_text(encoding="utf-8"),
                     BALDOSA_BANK81.read_text(encoding="utf-8"))
+    result["original_direct_memsel_source_writers"] = memsel_direct_source_writers(
+        BANK80.read_text(encoding="utf-8"),
+        BANK83.read_text(encoding="utf-8"),
+    )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n",
                         encoding="utf-8")

@@ -1,0 +1,114 @@
+name: QA-08 original HDMA writer opcode bytes
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa08-original-hdma-writer-opcodes.yml"
+      - "tools/instrument_snesref_qa08_hdma_opcode_context.py"
+      - "tools/check_qa08_original_hdma_opcode_context.py"
+      - "tests/unit/test_qa08_original_hdma_opcode_context.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa08-writer-opcodes-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  original-65816-opcodes:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Checkout pinned exact original 2P input route
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+      - name: Verify exact source and original witness pins
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          cmp baldosa/tests/routes/race_2p_split.txt reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p_split.txt
+          grep -v '^turbo ' baldosa/tests/routes/race_2p_split.txt > "$RUNNER_TEMP/qa08-original-2p.script"
+          python3 -m unittest tests.unit.test_qa08_original_hdma_opcode_context
+      - name: Build one disposable original emulator with only read-only source code fetch
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends build-essential cmake pkg-config libsdl2-dev
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          python3 tools/instrument_snesref_qa08_hdma_opcode_context.py "$SRC/cpuexec.cpp"
+          make -C "$SRC/libretro" -j2
+          test -s "$SRC/libretro/snes9x_libretro.so"
+          cmake -S baldosa/snesrecomp/tools/snesref -B "$RUNNER_TEMP/qa08-snesref" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/qa08-snesref" -j2
+          test -x "$RUNNER_TEMP/qa08-snesref/snesref"
+      - name: Execute one true USA 2P original route and require all 18 previously observed PCs
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-original-opcode-dumps"
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          UR_QA08_ORIGINAL_HDMA_OPCODE_FRAME=1781 \
+          SNESREF_SCRIPT="$RUNNER_TEMP/qa08-original-2p.script" \
+          SNESREF_DUMP_DIR="$RUNNER_TEMP/qa08-original-opcode-dumps" \
+            timeout 100 "$RUNNER_TEMP/qa08-snesref/snesref" \
+              "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+              "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              > "$RUNNER_TEMP/qa08-original-opcode.log" 2>&1
+          test -s "$RUNNER_TEMP/qa08-original-opcode-dumps/go.wram.bin"
+          test -s "$RUNNER_TEMP/qa08-original-opcode-dumps/t480.wram.bin"
+          grep -q '^script f=2473 quit' "$RUNNER_TEMP/qa08-original-opcode.log"
+          ! grep -q 'UR_QA08_ORIGINAL_HDMA_OPCODE_OVERFLOW' "$RUNNER_TEMP/qa08-original-opcode.log"
+          python3 tools/check_qa08_original_hdma_opcode_context.py \
+            --log "$RUNNER_TEMP/qa08-original-opcode.log" \
+            --original-writer-census analysis/data/qa08-original-snes9x-2p-channel5-eighteen-writer-PCs.json \
+            --out "$RUNNER_TEMP/qa08-original-writer-opcode-context.json"
+          python3 - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          root=Path(os.environ["RUNNER_TEMP"])
+          w=(root/"qa08-original-opcode-dumps/t480.wram.bin").read_bytes()
+          assert len(w)>=0x2100 and w[0x0DDB]==1 and w[0x0313]==1, "real original 2P route missing"
+          data=json.loads((root/"qa08-original-writer-opcode-context.json").read_text())
+          receipt={"schema":"qa08-original-2p-executed-65816-HDMA-writer-opcodes/1",
+            "source_65816_writer_PCs":18,
+            "actual_executed_original_instruction_count":data["actual_executed_original_opcode_records"],
+            "USA_ROM_SHA256":hashlib.sha256(Path("reference/roms/retail/Uniracers_USA.sfc").read_bytes()).hexdigest(),
+            "original_core_SHA256":hashlib.sha256(Path(".tools/src/snes9x-libretro/libretro/snes9x_libretro.so").read_bytes()).hexdigest(),
+            "original_script_SHA256":hashlib.sha256((root/"qa08-original-2p.script").read_bytes()).hexdigest(),
+            "original_t480_WRAM_SHA256":hashlib.sha256(w).hexdigest(),
+            "second_camera_0DDB":w[0x0DDB],"in_race_0313":w[0x0313],
+            "native_same_input_frame_parity_proven":False,"physical_SNES_hardware_verified":False}
+          (root/"qa08-original-opcode-receipt.json").write_text(json.dumps(receipt,indent=2,sort_keys=True)+"\n")
+          print(json.dumps(receipt,sort_keys=True))
+          PY
+          echo "PASS: true original ROM opcode bytes at all 18 independently observed executed 65816 HDMA source writer PCs, no native or physical SNES claim" >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain executable original-source evidence without ROM or SRAM
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-original-writer-opcode-context
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa08-original-2p.script
+            ${{ runner.temp }}/qa08-original-opcode.log
+            ${{ runner.temp }}/qa08-original-writer-opcode-context.json
+            ${{ runner.temp }}/qa08-original-opcode-receipt.json

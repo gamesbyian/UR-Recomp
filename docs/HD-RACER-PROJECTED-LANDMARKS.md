@@ -75,8 +75,7 @@ interview, region-specific box/manual gallery and original title captures.
 The DMA Design archival press-material listing at
 https://hiddenpalace.org/Assets/DMA_Design_Miscellaneous_Press_Material
 **lists Uniracers/Unirally among represented games** and is already in
-`reference/catalog.yml`; the actual unicycle renders, quality, image origin,
-reuse rights and relation to the original CG files **remain uninspected**.
+`reference/catalog.yml`; the actual archive was subsequently inspected on October 14 and contains **only one Uniracers-related PDF**, already imported to UR-Recomp. See [the closed archival lead](HD-RACER-PERIOD-PR-ART-SOURCES-20261014.md). This archive does not contain a newly discovered independent character/model reference.
 Do not mark the archive as verified Martin Good model evidence merely because
 Uniracers is in the listing.
 
@@ -503,12 +502,11 @@ illustration. Newly located period sources and their current limits:
 
 | Candidate source | What the public catalogue establishes | Decision before a landmark annotation |
 | --- | --- | --- |
-| [VGHF's DMA Design press-material provenance](https://gamehistory.org/dma-design-art/) and its [Internet Archive upload](https://archive.org/details/dma_press_material) | Frank Cifaldi's Dec 28, 2021 article explicitly links the original media kit/scanned-paper collection; [Hidden Palace](https://hiddenpalace.org/Assets/DMA_Design_Miscellaneous_Press_Material) catalogues Uniracers among its games. | **High-priority original-period intake**, but archive content/individual Uniracers files were not independently inspected in this pass; the Hidden Palace inline file download currently reports unavailable. Do not assert the presence of a source CG mesh, distinct viewpoint, or any Uniracers image in the actual downloadable item until filenames and pixels have been checked. |
+| [VGHF's DMA Design press-material provenance](https://gamehistory.org/dma-design-art/) and its [Internet Archive upload](https://archive.org/details/dma_press_material) | Frank Cifaldi's Dec 28, 2021 article explicitly links the original media kit/scanned-paper collection; [Hidden Palace](https://hiddenpalace.org/Assets/DMA_Design_Miscellaneous_Press_Material) catalogues Uniracers among its games. | **Historical lead closed October 14:** archive checked; the only Uniracers-related PDF was already imported. Do not repeat this archive intake for hypothetical new original model views; see the specific closure document. |
 | [MobyGames period German magazine advertisement](https://www.mobygames.com/game/8085/uniracers/promo/group-99320/image-778809/) | A *Video Games* (Germany) issue **07/1995** advertisement is catalogued at **1231×1757**, contributed in 2021. [N.i.n.Retro](https://www.ninretro.net/game-1-779.html) independently lists historic print advertising and review scans. | Potential independent period printing. Compare its **actual image composition** and crop against regional box art before counting it as another render/model view. A catalogue entry is not verified new geometry; retail/magazine rights still apply. |
 | [LaunchBox regional box scans](https://gamesdb.launchbox-app.com/games/images/2104-uniracers) | North American front at **2100×1534**, UK front at **2103×1476**, Australia front **1402×980** (sizes are listed, not verified native scan detail). | Useful for enlarged silhouette/material inspection, but region/crop/print variation does **not** prove independent camera angles or independently authored model art. Assign each authenticated asset its own provenance hash and mark duplicate artwork families. |
 
-**Next bounded likeness witness:** inspect the image bytes, rights and
-actual unicycle content of the press archive/advert first. Select a
+**Next bounded likeness witness:** inspect the bytes, rights and actual unicycle content of an independently sourced advertisement or genuinely new period reference. The press archive has already been exhausted. Select a
 clearly labelled non-duplicate 1994–95 reference image *only if it
 exists*, and at least two already-authenticated neighboring Original
 source poses from the exact 2P slot98/99 guest1856/1872/1888 captures.
@@ -543,3 +541,33 @@ Artifact [pinned native graphics AOT 38492408817](https://github.com/gamesbyian/
 The source is already present in the authentic existing native AOT artifact. No title art, copyrighted image crop, game ROM or new character model was added to Git. Frame400 can be read directly as P7 RGBA without another emulator, generated sprite or internet asset. Preserve **7:6** pixel-aspect interpretation when measuring the canonical reference; nearest 4× preserves source pixels but does not correct that physical pixel aspect.
 
 **Practical next art decision:** include this title-frame view as an **original-title** provenance item in the requested character reference contact sheet, captioned `source title fade at guest400; 256×224 Original`, showing its two partially overlapping unicycles and large saddle/rim styling. Do **not** infer a unique wheel:saddle ratio from their overlapping perspective projections, and do not grade colours from this dim frame. Seek a brighter independent original title field (using the **existing** original native route with a narrower requested frame, only if actually needed), and then compare both source-backed title silhouettes against gameplay OAM families and genuinely independent retail/press assets. The current procedural HD racer remains rejected for likeness, regardless of hash-perfect 4× Original fallback or this newly available reference.
+
+
+## October 14: distinct art poses require distinct source image evidence
+
+The existing [projected pose sequence audit](../tools/art/audit_unicycle_pose_sequence.py)
+now rejects *different landmark coordinates against identical SHA256
+PNG bytes* as simulated motion. The source image did not change; two
+conflicting manual annotations cannot establish a new animated pose.
+Repeated source-hash frames remain admissible as declared hold frames
+if all projected landmarks agree exactly. A hold counts as another time
+sample, but contributes no independent source image.
+
+The new report exposes unique_exact_source_PNG_count,
+identical_source_PNG_reference_aliases and
+distinct_PNGs_required_for_independent_motion.
+Two distinct PNG hashes do not independently prove separate viewpoints
+or shapes: compression, metadata, crop, region, palette and printing
+can change without new pose information. Preserve declared camera,
+authenticity, crop and SNES 7:6 PAR requirements separately.
+
+In the accepted source multi-pose atlas, six upper/lower pairs are
+exact original source RGBA aliases after bbox translation across frames
+1872, 1888 and 2208. They must not inflate the sample of actually
+distinct character poses. The real post-GO upper98 versus upper99
+source silhouette difference (301/329 Jaccard) is a distinct pair;
+upper98 versus lower97 is the translated *same* source at that frame.
+A genuine visual A/B review still needs independently verified large
+title/packaging views, original animated pose changes at source size,
+fork/wheel/saddle geometry and gameplay-size comparisons.
+The previously rejected procedural Remastered rider stays unapproved.

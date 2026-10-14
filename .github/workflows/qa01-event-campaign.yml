@@ -70,10 +70,10 @@ jobs:
           if [[ "$ZOO_TERMINAL" == "true" && "$SELECTED" != "zoom-zoo" ]]; then
             echo "Zoo fixed-host phase is scoped to selected=zoom-zoo only" >&2
             exit 1
+          fi
           if [[ "$QA01_APU_PHASE" == "true" && "$SELECTED" != "zoom-zoo" ]]; then
             echo "RF-015 APU trace only supports selected=zoom-zoo" >&2
             exit 1
-          fi
           fi
           python3 -m unittest discover -s tests/unit -p test_qa01_event_campaign.py
           python3 tools/qa01_event_campaign.py plan \

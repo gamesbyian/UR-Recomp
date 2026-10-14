@@ -299,7 +299,7 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
             self.assertEqual(empty_history["metrics"]["historical_2p_pairs_read"], 0)
             self.assertNotIn(
                 "hosted-historical-2p-records-visible-without-mutation-or-publication",
-                [x["id"] for x in empty_history["assertions"]],
+                [x["name"] for x in empty_history["assertions"]],
             )
             for change in (
                 {"2p_archive_unchanged_after_guest": False},

@@ -30,9 +30,14 @@ def sample():
         "release_gate_credit": 0,
     }
     played = (
+        "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=native-ci-rider "
+        "root=saves/profile-native-ci-rider\n"
+        "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=native-ci-rider "
+        "bytes=8192 fnv=1234abcd\n"
         "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c\n"
         "UR_BALDOSA_NATIVE_RUN CAPTURED=1 mode=race-1p profile=native-ci-rider "
-        "course=course:01 input_frames=1200 inputs=3 path=one.urrun\n"
+        "course=course:01 input_frames=1200 inputs=3 "
+        "path=C:\\CI\\runs\\native-ci-rider\\run-0000000000000001-0000.urrun\n"
         "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-1p "
         "race_host=900 result_host=2100 finish_ticks60=1700 "
         "input_frames=1200 input_runs=3 published=1\n"
@@ -60,6 +65,8 @@ class HostedNativeWindowsRecordsQA(unittest.TestCase):
         self.assertFalse(record["hosted_original_emulator_parity_accepted"])
         self.assertFalse(record["hosted_physical_hardware_accepted"])
         self.assertEqual(record["hosted_1p_result_ticks60"], 1700)
+        self.assertEqual(record["hosted_1p_captured_named_run_basename"],
+                         "run-0000000000000001-0000.urrun")
         self.assertEqual(record["hosted_new_1p_run_sha256_producer_reported"], "a" * 64)
         self.assertEqual(record["hosted_native_1p_played_log_sha256"],
                          hashlib.sha256(played.encode()).hexdigest())
@@ -179,6 +186,12 @@ class HostedNativeWindowsRecordsQA(unittest.TestCase):
             played.replace("input_frames=1200 inputs=3",
                            "input_frames=1300 inputs=3"),
             played.replace("result_host=2100", "result_host=800"),
+            played.replace("result_host=2100", "result_host=2101"),
+            played.replace("runs\\\\native-ci-rider", "runs\\\\wrong-profile"),
+            played.replace("run-0000000000000001-0000.urrun", "stale.urrun"),
+            played.replace("path=C:\\\\CI", "path=relative"),
+            played.replace("PROFILE APPLIED", "PROFILE DECLINED"),
+            played.replace("PROFILE BOOT_SRAM", "PROFILE WRONG_SRAM"),
             played.replace("finish_ticks60=1700", "finish_ticks60=0"),
             played.replace("course=course:01", "course=course:02"),
             played.replace("CAPTURED=1", "CAPTURED=0"),
@@ -190,6 +203,15 @@ class HostedNativeWindowsRecordsQA(unittest.TestCase):
             with self.subTest(damaged=damaged[-150:]):
                 with self.assertRaises(ValueError):
                     self.check(report, damaged, fresh)
+
+    def test_real_windows_crlf_logs_have_canonical_named_capture(self):
+        report, played, fresh = sample()
+        win_played = played.replace("\n", "\r\n")
+        win_fresh = fresh.replace("\n", "\r\n")
+        admitted = self.check(report, win_played, win_fresh)
+        self.assertTrue(admitted["hosted_native_1p_result_to_fresh_records_logs_consistent"])
+        self.assertEqual(admitted["hosted_1p_captured_named_run_basename"],
+                         "run-0000000000000001-0000.urrun")
 
     def test_fresh_native_game_cannot_be_dummy_record_or_writer(self):
         report, played, fresh = sample()

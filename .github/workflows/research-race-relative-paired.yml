@@ -166,7 +166,7 @@ jobs:
                   print(f'| {core} | {p["seed"]} | {p["arm"]} | {e["native"]}/{e["original"]} '
                         f'| {p["declared_lag_confirmed"]} | {p["disposition"]} | {dur} |')
           lag = json.loads((root / "lag-stock.json").read_text())
-          print("\n| Stock 2P route, host 2-1126 | Game frames (7E:00C6 passes) |")
+          print("\n| Stock 2P route, host 2-1126 | Vblank-wait passes (7E:00C6) |")
           print("| --- | ---: |")
           for name, n in sorted(lag["game_frames"].items()):
               print(f"| {name} | {n} |")

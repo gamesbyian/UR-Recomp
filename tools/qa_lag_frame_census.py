@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Game-frame versus host-frame census from the source frame counter 7E:00C6.
+"""Vblank-wait-pass versus host-frame census from the source counter 7E:00C6.
 
 ``80:FAC9`` waits for the next vblank on ``$4212`` and ``80:FADF`` then
 decrements direct-page ``$C6`` modulo 32 (reloading ``$1F`` when it goes
 negative). Each decrement is therefore one completed pass through the game's
-vblank wait: one *game* frame. Where the game passes this wait every frame
+vblank wait. (Baldosa's RAM map names ``$C6`` ``wCursorAnimTimer``: it counts
+this wait continuation, not simulation frames; the ``game_frames`` key keeps
+its historical name and means vblank-wait passes.) Where the game passes this wait every frame
 (menus, screen loads) a host frame without a decrement is a lag frame; during
 races and demos the wait is not used, so those frames are not lag.
 Counting decrements between dense dumps on each engine for the same controller

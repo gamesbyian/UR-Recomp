@@ -281,13 +281,27 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
                     with zipfile.ZipFile(evidence, "a") as z:
                         for member in group:
                             z.writestr(member, "test fixture: never release evidence")
-                    new_diagnostics = qa.check_runtime_actions_wrapper(
-                        evidence, qa.audit(inner, source, digest),
-                    )
-                    self.assertEqual(new_diagnostics["outcome"], "inconclusive")
-                    self.assertFalse(new_diagnostics["metrics"][
-                        "finished_native_event_or_new_match_observed"
-                    ])
+                    if group == qa.RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS[0]:
+                        # This triad is now an authenticated source-LOG
+                        # contract. Three invented "positive" text blobs
+                        # may no longer pass merely because names are known.
+                        with self.assertRaisesRegex(ValueError, "first-racer evidence is not UTF-8 JSON"):
+                            qa.check_runtime_actions_wrapper(
+                                evidence, qa.audit(inner, source, digest),
+                            )
+                    else:
+                        # Retired alternate producer layout remains safely
+                        # bounded but deliberately receives no source credit.
+                        new_diagnostics = qa.check_runtime_actions_wrapper(
+                            evidence, qa.audit(inner, source, digest),
+                        )
+                        self.assertEqual(new_diagnostics["outcome"], "inconclusive")
+                        self.assertFalse(new_diagnostics["metrics"][
+                            "hosted_first_racer_anonymous_creation_to_fresh_named_boot_consistent"
+                        ])
+                        self.assertFalse(new_diagnostics["metrics"][
+                            "finished_native_event_or_new_match_observed"
+                        ])
                     pack(one, two)
                     with zipfile.ZipFile(evidence, "a") as z:
                         z.writestr(group[0], "incomplete test-owned record")

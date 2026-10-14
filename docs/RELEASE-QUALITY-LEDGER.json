@@ -259,13 +259,14 @@
       "status": "unverified",
       "candidate_commit": null,
       "evidence_refs": [
-        "docs/MODERN-UI-VISUAL-FIDELITY.md"
+        "docs/MODERN-UI-VISUAL-FIDELITY.md",
+        "analysis/evidence/baldosa-win32-38501679761-first-racer-1p-2p-review.json"
       ],
       "journeys": [
         "J-01",
         "J-19"
       ],
-      "next_action": "The visible five-destination Modern root, real native stock 1P/2P source-settled results, named-profile saved runs and second-game read-only Records now work on the hosted, scripted Baldosa Win32 bridge (#1416/#1425, qualified independent QA reviews). Still obtain a nominated exact merged-main portable Windows ZIP, then independently perform a BLIND controller-only cold start through actual run-baldosa-modern.cmd, profile/racer and both physical P1/P2 seats, authentic result, fresh-process Records, restart/back/repeat/quit, 4:3 and true 16:9 legibility, HDMI/TV/audio and accessibility devices. No L5 observation has occurred. Do not reuse scripted/dummy-audio Windows CI as external human-controller acceptance.",
+      "next_action": "Merged Modern #1439 now has real hosted Baldosa Windows proof that a genuinely anonymous user root can explicitly create stock MIKE preset 0 in the shared Modern root without hot-swapping the running guest; a second native game process loads the new named 8-KiB SRAM and reaches stock 1P. The same exact hosted native PE separately proves genuine source-settled 1P and paired 2P results published to Records and reopened by a fresh native game (#1416/#1425). Exact PR-merge candidate/ZIP, source and three distinct scripted journeys are pinned in the independently reviewed run 38501679761 QA receipt. These are **three separate scripted/dummy-audio CI routes**, not one blind human-controller-only journey or an L5 pass. Next independently execute the SAME nominated merged-main ROMless portable Windows ZIP through the shipped CMD launcher on clean physical devices: first named racer, safe one-shot process restart, both physical pad seats, authentic played result, fresh-process Records, pause/restart/back/repeat/quit; collect normal audible gameplay and 4:3/true 16:9/TV-distance accessibility evidence. Leave status unverified until human/device evidence.",
       "waiver_reason": null,
       "required_layer": "L5",
       "witnesses": [],
@@ -320,12 +321,13 @@
         "docs/QA-INTEGRATED-WINDOWS-WITNESS-INVENTORY-20261013.md",
         "docs/QA01-RELEASE-LEDGER-SOURCE-ALIGNMENT-20261013.md",
         "docs/QA-WIN32-NATIVE-1P-2P-SOURCE-BOUND-DISPOSITION-20261013.md",
-        "docs/QA-WIN32-FIRST-NATIVE-2P-PAIRED-RECORDS-20261013.md"
+        "docs/QA-WIN32-FIRST-NATIVE-2P-PAIRED-RECORDS-20261013.md",
+        "analysis/evidence/baldosa-win32-38501679761-first-racer-1p-2p-review.json"
       ],
       "journeys": [
         "J-20"
       ],
-      "next_action": "Release provenance still unverified. The hosted PR-merge Windows bridge now demonstrates real source-settled native 1P and 2P result-to-Records with second game-process readback (#1416/#1425); independent read-only QA has recomputed exact archived PR-head candidate/runtime SHA-256s and checked source result, joined rider identity, displayed P1 outcome and canonical publisher path/frame receipts (#1427/#1431/#1435/#1438). This is component/integration log evidence only: producer-generated raw .urrun/.urmatch bytes were not retained for independent codec/byte review; user-operated packaged-launcher P1/P2 journeys, rollback/recovery fault cuts, audible output, physical gamepads, external display, and strict original-versus-native full-event parity remain missing. Next: product owner nominates ONE merged-main source SHA and actual inner consumer ZIP SHA-256; independently verify their extracted package/manifest/exe identities, newly saved run/match raw bytes if furnished, and human-operated fresh-process Records on that SAME build. Do not substitute GitHub Actions outer wrapper digest for inner ZIP, reclassify research fingerprints as accepted USA events or promote gates without source/physical evidence. USA strict 0/45; candidate stays null.",
+      "next_action": "Release evidence remains unverified, though independent QA has now recovered both exact green Windows Actions artifacts for merged Modern first-racer #1439 PR-run 38501679761 and verified its synthetic merge source 76629df1e1eff0050131711a1129ccfff7711f1d, outer ZIPs, ROMless inner ZIP 4e3dcfa0a62a6d81693d99b98d67e1ef3549eb1c0070be8dbd864fb59ae7e2b5, manifest/EXE identity, original anonymous first-racer UI stages, 8-KiB fresh named profile boot, and separate genuine native 1P/2P source-settled result-to-fresh-Records logs. QA read-only first-racer source classifier #1449 is merged; the shared same-candidate triad integration is separately in review. The profile typed/catalog/8-KiB SRAM files and newly produced .urrun/.urmatch bytes are NOT retained, so their SHA-256/FNV evidence is producer-reported rather than independently codec-verified; initial profile creation, source results and fresh Records are three different CI scripts, not a single continuous human-controller player journey. Still missing original-native strict USA event parity, packaged CMD one-shot relaunch on consumer hardware, real two-pad/audio/display acceptance, and recovery/failure cuts bound to one final nominated merged-main source/inner ZIP. The current PR-run ZIP is **not** that approved release nominee; do not use the GitHub Actions outer wrapper digest as its inner ZIP or promote from hosted/dummy-audio outputs. Candidate stays null, all release gates unverified, USA original/native strict 0/45.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],

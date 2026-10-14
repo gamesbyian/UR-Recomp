@@ -34,11 +34,15 @@ concurrency:
 
 jobs:
   native-candidate:
-    # The original workflow builds once and validates its own shared candidate.
+    # The shared workflow builds the one candidate; its product acceptance
+    # fan-out is skipped for research (candidate_only) and stays with owners.
     # No second toolchain, emulator, frontend or CMake implementation here.
     uses: ./.github/workflows/modern-shared-native-acceptance.yml
     with:
       canonical_candidate: false
+      # Research needs only the binary; product acceptance belongs to its
+      # owners' gates and previously cost ~14 runner-minutes per research run.
+      candidate_only: true
 
   stress:
     needs: native-candidate

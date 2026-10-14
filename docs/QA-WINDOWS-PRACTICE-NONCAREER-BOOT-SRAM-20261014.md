@@ -1,0 +1,27 @@
+# QA-02: exact Windows post-Practice normal-boot one-byte SRAM discriminator
+
+**Independent result (2026-10-14):** Real Win32 Modern #1584 retest [run 38641281896](https://github.com/gamesbyian/UR-Recomp/actions/runs/38641281896) at exact PR head `e7b815ee0d2e33c528f2b5c3be3cc32ec3101223` is **red** in `Native shared Quick Practice enters original source-qualified Dragster`. It improved source attribution over the first red run, but did not establish full re-admitted Practice after the intervening normal boot. This is **not a proved Practice save defect** and not successful release recovery.
+
+Original seven-member Actions artifact **11930561907** SHA-256 **`15f342a389b54c913f1e292826b661ffd103b857c15b749cc3df7bb268dc92f6`** contains actual original guest logs, delivered Windows kill receipt and the new source `boundary-receipts.json`; the postkill-retry log is absent because the probe failed earlier. Preserve the later failed trial separately from [the first 1800-frame contaminated boot](QA-WINDOWS-PRACTICE-HARDKILL-SOURCE-NEGATIVE-20261014.md), which is independently classified by the existing read-only QA checker.
+
+## Specific phase evidence, redecoded rather than trusting the producer's verdict
+
+1. Named MIKE creation is genuine and the source Practice session reaches original Dragster (course 1). Its original `BOOT_SRAM` FNV is `d4dc382b`, the normal Practice SRAM sandbox is restored, and the typed-profile checkpoint remains unchanged.
+2. The next named Practice source process reaches real Dragster GO. The actual kill receipt says `killed_while_alive=true`, `script_token_seen=true`, `process_returncode=1` and no normal restoration. Original Win32 source log contains no ordinary quit. The **actual postkill receipt** names **zero changed files** across selector, catalog, typed MIKE and raw 8-KiB MIKE versus the pre-Practice baseline. These file comparisons are producer-executed on Windows, independently examined as stage-hash claims rather than externally retained raw saves.
+3. The new noncareer boot explicitly disables root input, reaches only 600 frames, never logs `stock_requested` or `stock_entered`, and reloads original MIKE SRAM FNV **`d4dc382b`**. Nevertheless the ordinary native shutdown logs `CHECKPOINT profile=mike status=committed`.
+4. The after-ordinary-boot receipt names **only** `saves/profile-mike/host-profile.txt` and `saves/profile-mike/save.srm` as changed. Active selector SHA `e9ce8b54b85e6c1a44ab1c4f174658fb95b241ce41a6ab7b5230bbb88c19e6c5` and MIKE-only catalog SHA `5bd5875d01de17c498c90c389b3c7dd466f52762463b04b29f294585d4d5228b` remain identical. Typed generation changes **1 → 2**.
+5. The typed profile diff retains the entire source `stock_sram=` hex image before and after, so independent QA decoded each complete 8,192-byte image in local review and **independently recomputed** its SHA-256 against the receipt's claimed raw-save file hashes:
+    - Before: `a93379f694a84b2015ec2c03a7435e7b60e27441683b14c9bf92f32104990264`
+    - After: `273bc1b3be1dc3923c216c01461724617f6a5ace8d47a5a7069502f1a23f743a`
+    - Exactly **one SRAM byte differs**, offset **`0x1FFF`**, from **`0x00` to `0x56`**. The other **8,191 bytes are identical**. No second player, guest racing or earned run appears in this source stage.
+6. The producer fails closed at `ValueError: Ordinary boot after kill changed saves/profile-mike/save.srm`. The subsequent Practice process is **never launched in this retest**; don't combine its absent outcome with the earlier version's separate, contaminated retry.
+
+## Independent classification and next discriminator
+
+This proves a reproducible **normal startup/shutdown 0x1FFF SRAM write** on a correctly reloaded named player, on the exact Windows source head, under a no-Play Modern root script. It **does not** establish whether that byte is legitimate original guest SRAM housekeeping, a framework save normalization, or an unwanted native persistence mutation. Determine writer/meaning only if it changes progression or is required by a specific release invariant. Use a source-matched ordinary 600-frame boot *without* prior Practice kill as the cheap control. A one-byte difference is not grounds to overwrite original player data or loosen save CAS guards.
+
+Modern implementation owner must assess that normal boot and then explicitly capture an **after-ordinary-boot baseline** for the later Practice isolation test. The later Practice must boot that **exact new baseline** and preserve it exactly, with no minted `.urrun`, while retaining the separate original prekill/afterkill exact-byte invariant. Do not make a 'green' assertion by ignoring raw changes. If ordinary no-Play launch is required to leave SRAM immutable, evaluate this one-byte write as an independent product bug with a source oracle; keep that verdict pending.
+
+**Artifact privacy:** The CI `typed_profile_diff` currently embeds two full 16,384-character `stock_sram` hex strings, equivalent to two raw SRAM files despite their inclusion in a JSON diff. Replace with exact file SHA and bounded changed-offset receipt, or explicitly use the existing narrowly approved disposable raw-stage evidence contract. Never archive personal-player data recursively.
+
+No current release candidate ZIP has been nominated. QA-02 remains `in_progress`; other QA gate statuses unchanged. No live physical Windows two-pad/audio/display/power-failure acceptance; strict original USA complete event acceptance remains **0/45**.

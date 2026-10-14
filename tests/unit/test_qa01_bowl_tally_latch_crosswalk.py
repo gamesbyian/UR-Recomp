@@ -164,6 +164,21 @@ class BowlHeldLatchCrosswalkTests(unittest.TestCase):
         # words; neither proves they execute at this Bowl host boundary.
         self.assertIn("80/85E4: AD 18 42     LDA $4218", source)
         self.assertIn("80/87E9: AD 18 42     LDA $4218", source)
+        consumers = result["archived_nonexecuted_joy1_word_consumer_candidates"]
+        self.assertEqual([c["source_read_pc"] for c in consumers],
+                         ["80:B6CA", "80:B714"])
+        self.assertTrue(all(c["executed_in_bowl_result_proven"] is False
+                            for c in consumers))
+        self.assertIn("80/B6BE: 08           PHP", source)
+        self.assertIn("80/B6BF: C2 20        REP #$20", source)
+        self.assertIn("80/B6CA: A5 72        LDA $72", source)
+        self.assertIn("80/B6CC: 89 F0 FF     BIT #$FFF0", source)
+        self.assertIn("80/B708: 08           PHP", source)
+        self.assertIn("80/B709: C2 20        REP #$20", source)
+        self.assertIn("80/B714: A5 72        LDA $72", source)
+        self.assertIn("80/B716: 89 80 90     BIT #$9080", source)
+        self.assertIn("80B6BE Input_IsAnyButtonHeld", symbol_text)
+        self.assertIn("80B708 Input_IsConfirmHeld", symbol_text)
 
 
 

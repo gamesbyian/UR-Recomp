@@ -112,6 +112,9 @@ class NativePracticeProbeTests(unittest.TestCase):
             "run_game_hard_killed(",
             "proc.kill()",
             "killed_live = True",
+            "record_boundary(",
+            "after_ordinary_reboot",
+            "after_practice_after_kill",
             "kill-receipt.json",
             "killed_while_alive",
             "no longer live at the kill",
@@ -128,7 +131,8 @@ class NativePracticeProbeTests(unittest.TestCase):
         for token in ("named_p1_practice_hard_killed/log.txt",
                       "named_p1_practice_hard_killed/kill-receipt.json",
                       "named_p1_boot_after_practice_kill/log.txt",
-                      "named_p1_practice_after_kill/log.txt"):
+                      "named_p1_practice_after_kill/log.txt",
+                      "boundary-receipts.json"):
             self.assertIn("native_source_practice_dragster/" + token, wf)
         pause = wf.index("name: baldosa-win32-native-pause-evidence")
         pause_end = wf.index("Retain bounded pre-Records raw pair")

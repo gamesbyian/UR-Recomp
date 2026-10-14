@@ -11,6 +11,8 @@ Not physical gamepad acceptance, full 45-course eligibility or release credit.
 from __future__ import annotations
 
 import argparse
+import difflib
+import hashlib
 import json
 import os
 import subprocess
@@ -139,6 +141,43 @@ def run_game_hard_killed(exe: Path, rom: Path, user: Path, work: Path,
     return log
 
 
+def snapshot(user: Path, names) -> dict[str, bytes]:
+    out: dict[str, bytes] = {}
+    for name in names:
+        path = user / name
+        if path.is_symlink() or not path.is_file():
+            raise ValueError("Named authority file missing/redirected: " + name)
+        out[name] = path.read_bytes()
+    return out
+
+
+def record_boundary(receipts: list, receipt_path: Path, stage: str,
+                    user: Path, reference: dict[str, bytes],
+                    reference_label: str) -> list[str]:
+    """Record SHA-256 and (for the small text typed profile) a bounded line
+    diff of every authority file against a reference at one boundary. Written
+    immediately so a failing route retains the localizing receipt."""
+    now = snapshot(user, reference)
+    changed = [n for n in reference if now[n] != reference[n]]
+    entry = {"stage": stage, "compared_to": reference_label,
+             "changed": changed,
+             "sha256": {n: hashlib.sha256(b).hexdigest()
+                        for n, b in now.items()},
+             "reference_sha256": {n: hashlib.sha256(b).hexdigest()
+                                  for n, b in reference.items()}}
+    for n in changed:
+        if n.endswith("host-profile.txt"):
+            diff = list(difflib.unified_diff(
+                reference[n].decode("utf-8", "replace").splitlines(),
+                now[n].decode("utf-8", "replace").splitlines(),
+                "reference", "now", lineterm="", n=0))
+            entry["typed_profile_diff"] = diff[:40]
+    receipts.append(entry)
+    receipt_path.write_text(json.dumps(receipts, indent=2, sort_keys=True)
+                            + "\n", encoding="utf-8")
+    return changed
+
+
 def run(exe: Path, rom: Path, out: Path,
         *, timeout: int, video: str) -> dict[str, object]:
     for path in (exe, rom):
@@ -244,10 +283,13 @@ def run(exe: Path, rom: Path, out: Path,
             raise ValueError("Killed Practice never owned the sandbox: " + required)
     if "practice_sram_restored=1" in killed:
         raise ValueError("Hard-kill test unexpectedly shut down normally")
-    for name, before in named_files.items():
-        p = named_user / name
-        if p.is_symlink() or not p.is_file() or p.read_bytes() != before:
-            raise ValueError("Hard-killed Practice altered named data: " + name)
+    receipts: list = []
+    receipt_path = out / "boundary-receipts.json"
+    changed = record_boundary(receipts, receipt_path, "after_hard_kill",
+                              named_user, named_files, "pre_practice_original")
+    if changed:
+        raise ValueError("Hard-killed Practice altered named data: " +
+                         ", ".join(changed))
     if archive.exists() and list(archive.rglob("*.urrun")):
         raise ValueError("Hard-killed Practice minted an earned run")
     rebooted = run_game(
@@ -256,17 +298,19 @@ def run(exe: Path, rom: Path, out: Path,
     verify_boot_sram(rebooted, named_files["saves/profile-mike/save.srm"],
                      profile="mike")
     # An ordinary Mike boot enters stock play and ends in the normal native
-    # shutdown/typed checkpoint, which may legitimately rewrite typed
-    # metadata. The stricter pre-boot comparison above already proved the
-    # killed Practice changed nothing. Raw SRAM, selector and catalog must
-    # still match the original; the post-kill Practice below is then judged
-    # against the bytes this ordinary boot left behind.
-    for name in ("host-state-v1.txt", "profiles-v1.txt",
-                 "saves/profile-mike/save.srm"):
-        if (named_user / name).read_bytes() != named_files[name]:
-            raise ValueError("Ordinary boot after kill changed " + name)
-    named_files = {
-        name: (named_user / name).read_bytes() for name in named_files}
+    # shutdown/typed checkpoint. Record exactly what it changed (typed
+    # profile diff included) instead of assuming. Raw SRAM, selector and
+    # catalog must always still equal the originals; any typed-profile
+    # change here is a receipt-visible ordinary-boot effect, and the
+    # post-kill Practice below is judged against these bytes strictly.
+    changed = record_boundary(receipts, receipt_path, "after_ordinary_reboot",
+                              named_user, named_files, "pre_practice_original")
+    stable = {"host-state-v1.txt", "profiles-v1.txt",
+              "saves/profile-mike/save.srm"}
+    if stable & set(changed):
+        raise ValueError("Ordinary boot after kill changed " +
+                         ", ".join(sorted(stable & set(changed))))
+    post_reboot = snapshot(named_user, named_files)
     retried = run_game(
         exe, rom, named_user, out / "named_p1_practice_after_kill", "11",
         "turbo on\n"
@@ -284,14 +328,20 @@ def run(exe: Path, rom: Path, out: Path,
     ):
         if required not in retried:
             raise ValueError("Practice after hard kill failed: " + required)
-    for name, before in named_files.items():
-        p = named_user / name
-        if p.is_symlink() or not p.is_file() or p.read_bytes() != before:
-            raise ValueError("Practice after kill altered named data: " + name)
+    record_boundary(receipts, receipt_path,
+                    "after_practice_vs_original", named_user, named_files,
+                    "pre_practice_original")
+    changed = record_boundary(receipts, receipt_path,
+                              "after_practice_after_kill", named_user,
+                              post_reboot, "post_ordinary_reboot")
+    if changed:
+        raise ValueError("Practice after kill altered named data: " +
+                         ", ".join(changed))
     return {
         "hard_killed_practice_kill_receipt": json.loads(
             (out / "named_p1_practice_hard_killed" /
              "kill-receipt.json").read_text(encoding="utf-8")),
+        "boundary_receipts": receipts,
         "hard_killed_practice_named_bytes_unchanged": True,
         "boot_after_practice_kill_exact_sram": True,
         "practice_after_kill_admitted_and_restored": True,

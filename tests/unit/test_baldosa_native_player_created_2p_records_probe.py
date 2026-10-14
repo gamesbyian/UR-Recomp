@@ -59,6 +59,34 @@ class NativePlayerCreated2PJourneyUnit(unittest.TestCase):
         self.assertTrue(script.endswith("dump after-source-2p-drive\nquit\n"))
         self.assertNotIn("write ", script.lower())
 
+    def test_second_preset_changed_through_real_root_modal_not_fixture(self):
+        from baldosa_native_second_racer_probe import require_p2_creation
+        receipt = (
+            "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=mike "
+            "root=saves/profile-mike\n"
+            "UR_BALDOSA_MODERN_ROOT opened=1\n"
+            "UR_BALDOSA_MODERN_ROOT second_racer_opened=1 preset=1 "
+            "activation=next_process\n"
+            "UR_BALDOSA_MODERN_ROOT second_racer_preset=2\n"
+            "UR_BALDOSA_NATIVE_SECOND_RACER status=0 preset=2 "
+            "id=martin activation=next_process\n"
+            "UR_BALDOSA_MODERN_ROOT second_racer_created=1 "
+            "activation=next_process\n"
+        )
+        require_p2_creation(receipt, preset=2)
+        for bad in (
+            receipt.replace("second_racer_preset=2", "second_racer_preset=3"),
+            receipt.replace("id=martin", "id=andrew"),
+            receipt.replace("status=0", "status=3"),
+            receipt.replace("profile=mike", "profile=martin"),
+            receipt + receipt,
+        ):
+            with self.subTest(log=bad[-90:]), self.assertRaises(ValueError):
+                require_p2_creation(bad, preset=2)
+        root = (ROOT / "tools/baldosa_native_modern_root.cpp").read_text()
+        self.assertIn("UR_BALDOSA_SECOND_RACER_TEST_PRESET", root)
+        self.assertIn("source_martin && frame == 61 ? SDLK_DOWN", root)
+
     def test_player_pair_requires_source_settled_result_not_fixture(self):
         args = dict(p1_profile="mike", p2_profile="martin",
                     p1_rider=0, p2_rider=2)

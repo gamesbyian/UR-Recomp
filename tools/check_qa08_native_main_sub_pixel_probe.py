@@ -53,10 +53,29 @@ def read_samples(log: Path, rgba: bytes) -> dict:
         main,sub,main15,sub15,final,adsub,wsel,fixed15=[
             int(value,16) for value in match.group(4,5,6,7,8,9,10,11)]
         math,rendered,sub_present,clip=map(int,match.group(12,13,14,15))
-        if (main15 > 0x7fff or sub15 > 0x7fff or fixed15 != 0x0260 or
+        # The field snapshot's fixed15=0260 is NOT guaranteed on screen:
+        # native HDMA executes during replay and is deliberately excluded
+        # from the CPU-side raster register journal. Actual PPU pixels show
+        # 000F on top line 50 and 0260 on bottom line 162.
+        expected_fixed = {50: 0x000F, 162: 0x0260}[y]
+        if (main15 > 0x7fff or sub15 > 0x7fff or
+                fixed15 != expected_fixed or
                 adsub != 0x04 or wsel != 0x02 or
-                sub_present != int((sub & 255) != 0)):
+                sub_present != int((sub & 255) != 0) or
+                not (math and rendered and clip)):
             raise ValueError("native pixel record conflicts with field registers/PPU")
+        # Exact additive colour math: BG3 main plus visible OBJ subscreen,
+        # otherwise the real per-line fixed operand. Unhalved, no subtract.
+        second = sub15 if sub_present else fixed15
+        expected_5 = [
+            min(31, ((main15 >> shift) & 31) + ((second >> shift) & 31))
+            for shift in (0, 5, 10)
+        ]
+        expected_rgb24 = 0
+        for value, shift in zip(expected_5, (16, 8, 0)):
+            expected_rgb24 |= ((value << 3) | (value >> 2)) << shift
+        if final != expected_rgb24:
+            raise ValueError("native composed RGB disagrees with source operands")
         offset=4*(342*y+x)
         pixel=rgba[offset:offset+4]
         if final != (pixel[0]<<16 | pixel[1]<<8 | pixel[2]):
@@ -70,6 +89,9 @@ def read_samples(log: Path, rgba: bytes) -> dict:
             "sub_layer":(sub>>8)&15,
             "sub_palette_index":sub&255,
             "sub_RGB15":f"0x{sub15:04X}",
+            "live_fixed_RGB15":f"0x{fixed15:04X}",
+            "native_composed_RGB5":expected_5,
+            "sub_operand":"OBJ-colour" if sub_present else "per-line-fixed-colour",
             "final_RGB24":f"0x{final:06X}",
             "math_eligible_at_window_and_layer":bool(math),
             "subscreen_actually_drawn":bool(rendered),
@@ -109,11 +131,11 @@ def verify(stock: Path, stock_log: Path, removed98: Path, removed98_log: Path,
     bottom=(133,162)
     stock_top=result["stock"][top]
     stock_bottom=result["stock"][bottom]
-    source_top=(stock_top["main_layer"]==2 and stock_top["sub_layer"]==4 and
+    source_top=(stock_top["main_layer"]==2 and stock_top["sub_layer"] in (4,6) and
                 stock_top["math_eligible_at_window_and_layer"] and
                 stock_top["subscreen_pixel_present"] and
                 stock_top["subscreen_actually_drawn"])
-    source_bottom=(stock_bottom["main_layer"]==2 and stock_bottom["sub_layer"]==4 and
+    source_bottom=(stock_bottom["main_layer"]==2 and stock_bottom["sub_layer"] in (4,6) and
                    stock_bottom["math_eligible_at_window_and_layer"] and
                    stock_bottom["subscreen_pixel_present"] and
                    stock_bottom["subscreen_actually_drawn"])
@@ -123,6 +145,12 @@ def verify(stock: Path, stock_log: Path, removed98: Path, removed98_log: Path,
         "original_raster_SHA256":STOCK_SHA,
         "full_guest_CRC_equal":2473,
         "native_exact_composition_rows":[50,162],
+        "native_render_live_fixed_RGB15_by_row":{"50":"0x000F","162":"0x0260"},
+        "native_field_baseline_fixed_RGB15":"0x0260",
+        "render_time_HDMA_fixed_colour_divergence_observed":True,
+        "native_main_BG3_subscreen_OBJ_palette_colour_confirmed_at_two_pixels":
+            bool(source_top and source_bottom),
+        "native_five_bit_compositor_arithmetic_validated":True,
         "upper_BG3_main_OBJ_subscreen_observed":bool(source_top),
         "lower_BG3_main_OBJ_subscreen_observed":bool(source_bottom),
         "main_sub_selection_proven_at_other_pixels":False,

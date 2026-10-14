@@ -25,6 +25,7 @@ SOURCES = (
     "host_profile_state.cpp",
     "host_profile_catalog.cpp",
     "modern_racer_identity.cpp",
+    "clean_stock_sram.cpp",
 )
 
 

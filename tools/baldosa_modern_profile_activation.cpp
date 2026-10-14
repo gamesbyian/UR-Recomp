@@ -16,6 +16,7 @@
 #include "host_profile_catalog.hpp"
 #include "baldosa_native_profile_sram_checkpoint.hpp"
 #include "baldosa_native_profile_path_guard.hpp"
+#include "baldosa_native_first_profile.hpp"
 #include "baldosa_native_run_record_admission.hpp"
 #include "completed_run_store.hpp"
 #include "local_multiplayer_match_binding.hpp"
@@ -192,6 +193,23 @@ extern "C" int ur_baldosa_modern_try_activate_profile(void) {
     return 1;
 }
 
+
+// First-run Modern preset, committed ONLY for the next native process.
+// Never hot-swap the already-running anonymous guest's SRAM or profile root.
+extern "C" int ur_baldosa_modern_create_first_preset(unsigned index) {
+    if (!activated() || !g_verified_native_profile_id.empty() ||
+        g_launch_global || g_launch_profile) return 0;
+    const char* path = std::getenv("SNESRECOMP_USER_DATA_DIR");
+    if (!path || !*path) return 0;
+    const auto created =
+        ur::product::create_baldosa_first_preset_for_next_boot(path, index);
+    std::fprintf(stderr,
+        "UR_BALDOSA_NATIVE_FIRST_RACER status=%u preset=%u id=%s "
+        "activation=next_process\n",
+        static_cast<unsigned>(created.status), index,
+        created.profile_id.c_str());
+    return created.created() ? 1 : 0;
+}
 
 // Read-only admission used solely to display P2 profile choices in the
 // real native root. A catalog name is not enough: the opponent must have

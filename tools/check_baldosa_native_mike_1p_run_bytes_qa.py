@@ -83,6 +83,7 @@ def inspect_earned_mike_1p_run_bytes(
     seen_p1 = False
     inputs = 0
     splits = 0
+    finish_ids: list[str] = []
     input_seen = False
     frames = logs["hosted_played_1p_input_frames"]
     ticks = logs["hosted_played_1p_finish_ticks60"]
@@ -95,6 +96,7 @@ def inspect_earned_mike_1p_run_bytes(
             if split_time < split_clock or split_time > ticks:
                 raise ValueError("CI first-racer run has impossible split time")
             split_clock = split_time
+            finish_ids.append(fields[1])
             splits += 1
         elif len(fields) == 5 and fields[0] == "input":
             input_seen = True
@@ -120,8 +122,14 @@ def inspect_earned_mike_1p_run_bytes(
             inputs += 1
         else:
             raise ValueError("CI first-racer run has unexpected v1 row")
+    # Source assemble_baldosa_native_run_record.cpp inserts exactly ONE
+    # finish split for TimedOnePlayerRace. A splitless or extra/mismatched
+    # split run could have a valid FNV and producer SHA yet never have been
+    # emitted by the actual native 1P assembler.
     if not seen_p1 or inputs != expected_input_runs:
         raise ValueError("CI first-racer run lacks the exact native source P1 input-run count")
+    if splits != 1 or split_clock != ticks or finish_ids != ["finish"]:
+        raise ValueError("CI first-racer run lacks the exact native source finish split")
 
     return {
         "scope": "synthetic-ci-first-created-mike-native-1p-urrun-byte-and-codec-consistency",

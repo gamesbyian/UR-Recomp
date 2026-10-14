@@ -19,6 +19,8 @@ from check_baldosa_win32_created_pair_records_qa import (
     audit as audit_created_pair,
     UI_FILES, PREFIX,
 )
+from verify_baldosa_romless_candidate_qa import RUNTIME_ALLOWED_MEMBERS
+
 from check_baldosa_native_ci_pair_bytes_qa import (
     canonical_lines, RUN_KEYS, MATCH_KEYS, DECIMAL, UPPER_HEX_MASK,
     USA_ROM_SHA256, BALDOSA_COMPAT, MAX_RUN_BYTES, MAX_MATCH_BYTES,
@@ -124,11 +126,14 @@ def audit_zip(path: Path) -> dict[str, object]:
     with zipfile.ZipFile(path) as archive:
         all_names = archive.namelist()
         run_name, allowed_raw = raw_name_contract(all_names)
-        # The raw-subtree allowlist alone cannot rule out unrelated source-root
-        # files (including private saves or executables) in the same ZIP.
-        # Evidence provenance and privacy require an exact WHOLE archive set.
-        require(set(all_names) == set(SOURCE_GROUP) | set(allowed_raw),
-                "unallowlisted Windows source ZIP member outside guest/raw group")
+        # The actual Windows Actions archive intentionally bundles several
+        # independently reviewed log groups (52 members on #1536), not only
+        # this seven-source-file/raw-pair subgroup. The former exact equality
+        # accidentally rejected the genuine archive. Reuse the established
+        # *named* outer source inventory; unknown/private extras still fail.
+        # Other allowed groups are NOT accepted by this scoped raw reader.
+        require(set(all_names) <= RUNTIME_ALLOWED_MEMBERS | set(allowed_raw),
+                "unallowlisted Windows source ZIP member outside known groups")
         require(all(name in all_names for name in SOURCE_GROUP),
                 "missing six exact played/controller-selected native game logs")
         raw_manifest = _read(archive, RAW_PREFIX + MANIFEST, MAX_REPORT)

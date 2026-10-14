@@ -60,7 +60,16 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
         for gate in (g for g in data["gates"] if g["id"] in ("QA-09", "QA-12")):
             self.assertEqual(gate["status"], "unverified")
             self.assertEqual(gate["witnesses"], [])
-            self.assertIn("#1451", gate["next_action"])
+            # Historical proof is preserved in reviewed evidence; next_action
+            # intentionally evolves as later stronger native work arrives.
+            self.assertTrue(gate["next_action"].strip())
+            if gate["id"] == "QA-12":
+                self.assertIn(
+                    "docs/QA-INTEGRATED-WINDOWS-WITNESS-INVENTORY-20261013.md",
+                    gate["evidence_refs"],
+                )
+            else:
+                self.assertIn("#1451", gate["next_action"])
             self.assertTrue(all(path.startswith("docs/") for path in gate["evidence_refs"]))
         self.assertEqual(validator.check_registry(data, ROOT), [])
 

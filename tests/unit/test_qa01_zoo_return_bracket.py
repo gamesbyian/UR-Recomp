@@ -84,25 +84,25 @@ class ZooReturnBracket(unittest.TestCase):
     def test_genuine_receipts_must_come_from_right_engines_at_right_ticks(self):
         original = self.logs["original"].read_text()
         self.logs["original"].write_text(original.replace(
-            "script f=6661 dump boundary-05057",
-            "script f=6662 dump boundary-05057"))
+            "script f=6632 dump boundary-05028",
+            "script f=6633 dump boundary-05028"))
         with self.assertRaisesRegex(ValueError, "mistimed"):
             self.run_probe()
         self.logs["original"].write_text(original)
         self.logs["native"].write_text(
             self.logs["native"].read_text().replace(
-                "boundary-05056 ok", "boundary-05056 partial"))
+                "boundary-05027 ok", "boundary-05027 partial"))
         with self.assertRaisesRegex(ValueError, "unqualified real host"):
             self.run_probe()
 
     def test_raw_ppu_and_guest_course_counter_tamper_fail_closed(self):
-        p = self.dirs["native"] / "boundary-05056.regs.json"
+        p = self.dirs["native"] / "boundary-05027.regs.json"
         orig = p.read_text()
         p.write_text('{"inidisp": "80"}\n')
         with self.assertRaisesRegex(ValueError, "INIDISP"):
             self.run_probe()
         p.write_text(orig)
-        w = self.dirs["original"] / "boundary-05056.wram.bin"
+        w = self.dirs["original"] / "boundary-05027.wram.bin"
         orig_bytes = w.read_bytes()
         w.write_bytes(orig_bytes[:64])
         with self.assertRaisesRegex(ValueError, "128-KiB"):

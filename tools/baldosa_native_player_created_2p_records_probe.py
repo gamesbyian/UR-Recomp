@@ -66,6 +66,33 @@ def profile_sram(user: Path, name: str) -> bytes:
     return data
 
 
+def anonymous_bootstrap_sram(user: Path) -> bytes | None:
+    """Observe the legacy anonymous save from process 1, never authorize it.
+
+    The unprofiled guest may checkpoint an 8KiB default SRAM on its first
+    exit, even after the user created a NEW profile for NEXT process. This
+    is historical fallback data, never a source of named racer authority.
+    Every subsequent named game must leave these exact bytes unchanged.
+    """
+    file = user / "saves" / "save.srm"
+    if file.is_symlink():
+        raise ValueError("Anonymous stock SRAM redirected by a symlink")
+    if not file.exists():
+        return None
+    if not file.is_file():
+        raise ValueError("Anonymous stock save replaced with non-file")
+    raw = file.read_bytes()
+    if len(raw) != 8192:
+        raise ValueError("Anonymous bootstrap SRAM is not 8192 bytes")
+    return raw
+
+
+def require_legacy_untouched(user: Path, initial: bytes | None) -> None:
+    if anonymous_bootstrap_sram(user) != initial:
+        raise ValueError(
+            "Named game wrote or created shared anonymous SRAM after bootstrap")
+
+
 def run(exe: Path, rom: Path, fixture: Path, out: Path,
         *, timeout: int, video: str) -> dict[str, object]:
     for file in (exe, rom, fixture):
@@ -81,6 +108,10 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
     first = run_game(exe, rom, user, out / "first_P1_mike", "4",
                      "turbo on\nwait 900\nquit\n", video, timeout)
     verify_creation(first, preset=0)
+    # A source guest with NO selected profile may create the historical
+    # anonymous save at its own first shutdown; capture it once, then ban
+    # any further writes while verified named racers own the save root.
+    legacy_bootstrap = anonymous_bootstrap_sram(user)
     verify_native_save_codec(fixture, user, timeout, profile=P1)
     catalog = user / "profiles-v1.txt"
     selector = user / "host-state-v1.txt"
@@ -93,6 +124,7 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
                       "turbo on\nwait 900\nquit\n", video, timeout,
                       preset=2)
     require_p2_creation(second, preset=2)
+    require_legacy_untouched(user, legacy_bootstrap)
     if selector.read_bytes() != before_selector:
         raise ValueError("P2 publication illegally switched active P1")
     original_p2 = profile_sram(user, P2)
@@ -111,6 +143,7 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
         script=source_martin_match_script(), smoke="3",
         timeout=timeout, video=video)
     verify_boot_sram(played, original_p1, profile=P1)
+    require_legacy_untouched(user, legacy_bootstrap)
     verify_native_modern_root_log(played, 2)
     source_result = source_match_published(
         played, p1_profile=P1, p2_profile=P2, p1_rider=0, p2_rider=2)
@@ -131,6 +164,7 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
         timeout=timeout, video=video)
     verify_boot_sram(mike_view, next_mike_bytes, profile=P1)
     source_paired_records_reopened(mike_view, selected_profile=P1)
+    require_legacy_untouched(user, legacy_bootstrap)
     if exact_pair_digest(user / "multiplayer-runs") != paired:
         raise ValueError("P1 viewing Records mutated the committed match")
     verify_native_save_codec(fixture, user, timeout, profile=P1)
@@ -164,14 +198,14 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
         timeout=timeout, video=video)
     verify_boot_sram(martin_view, old_p2, profile=P2)
     source_paired_records_reopened(martin_view, selected_profile=P2)
+    require_legacy_untouched(user, legacy_bootstrap)
     if (exact_pair_digest(user / "multiplayer-runs") != paired or
             catalog.read_bytes() != old_catalog or
             profile_sram(user, P1) != old_p1):
         raise ValueError("P2 viewing Records mutated the match or Mike")
     verify_native_save_codec(fixture, user, timeout, profile=P1)
     verify_native_save_codec(fixture, user, timeout, profile=P2)
-    if (user / "saves" / "save.srm").exists():
-        raise ValueError("Guest created forbidden shared anonymous SRAM")
+    require_legacy_untouched(user, legacy_bootstrap)
 
     return {
         "scope": "two-native-controller-created-profiles-played-source-2p-and-both-records",
@@ -179,6 +213,8 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
         "observed_stock_riders": [0, 2],
         "observed_source_guest_result": source_result,
         "canonical_one_pair_sha256": paired,
+        "anonymous_first_boot_sram_present": legacy_bootstrap is not None,
+        "anonymous_bootstrap_bytes_unchanged_by_all_named_games": True,
         "fresh_native_records_for_each": True,
         "p2_existing_profile_select_via_fixture_not_player_UI": True,
         "native_existing_p1_profile_selector_UI_proved": False,

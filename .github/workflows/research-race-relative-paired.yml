@@ -131,6 +131,13 @@ jobs:
           sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
           sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends \
             xvfb build-essential cmake pkg-config libsdl2-dev
+          if [ "${{ inputs.include_baldosa }}" = true ]; then
+            # Runtime libraries the Baldosa guest links dynamically (built on the baldosa job).
+            sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends \
+              libgl1 libx11-6 libxext6 libxrandr2 libxcursor1 libxi6 libxss1 \
+              libwayland-client0 libxkbcommon0 libegl1 libgles2 libdrm2 libgbm1 \
+              libasound2t64 libpulse0 libudev1 libdbus-1-3
+          fi
       - name: Build original reference cores and snesref
         shell: bash
         run: |

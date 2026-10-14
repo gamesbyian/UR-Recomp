@@ -149,7 +149,8 @@ def baldosa_run(exe: Path, rom: Path, frames: list[int], work: Path,
                           errors="replace", timeout=1800)
     (work / "baldosa.log").write_text(done.stdout + done.stderr, encoding="utf-8")
     if done.returncode != 0:
-        raise RuntimeError(f"Baldosa exited {done.returncode}")
+        tail = "\n".join((done.stdout + done.stderr).splitlines()[-8:])
+        raise RuntimeError(f"Baldosa exited {done.returncode}: {tail}")
     if "UR_RESEARCH_2P_INPUT_FILE" in env and "UR research 2P input:" not in done.stdout + done.stderr:
         raise RuntimeError("Baldosa build lacks the research two-seat input shim")
     return {f: work / "dumps" / f"b-{f}.wram.bin" for f in frames}

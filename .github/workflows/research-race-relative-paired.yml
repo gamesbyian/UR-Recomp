@@ -4,7 +4,8 @@ name: "Research: race-relative paired original/native replay"
 # frontier cases on the shared Modern native candidate AND on original-USA
 # reference cores (Snes9x, Beetle-bsnes) at a per-case MEASURED race-entry
 # lag, comparing every decoded source field and all semantic WRAM exactly.
-# Optional declared finish stimulus exercises the 2P result handoff (RF-012).
+# Optional declared finish stimulus exercises the 2P result handoff (RF-012);
+# a lag-frame and a blank-screen census of the stock route cover RF-014.
 # One candidate build, one paired job; no product acceptance fan-out.
 # Grants no gameplay, original-parity or release credit.
 on:
@@ -78,6 +79,7 @@ jobs:
           git -C snesrecomp apply "$GITHUB_WORKSPACE/tools/patches/snesrecomp-dual-controller-input.patch"
           python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
           python3 tools/bootstrap_toolchain.py --tool beetle-bsnes-libretro --jobs 2
+          python3 tools/bootstrap_toolchain.py --tool bsnes-libretro --jobs 2
           cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
           cmake --build "$RUNNER_TEMP/snesref-build" -j2
       - uses: actions/download-artifact@v4
@@ -126,6 +128,24 @@ jobs:
             python3 tools/qa_frontier_original_crosscheck.py summarize "${args[@]}" \
               --out "$OUT/summary-$core.json"
           done
+      - name: Lag-frame and blank-screen census on the stock 2P route
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          OUT="$RUNNER_TEMP/paired"
+          REF="$RUNNER_TEMP/snesref-build/snesref"
+          python3 tools/qa_lag_frame_census.py --snesref "$REF" \
+            --core .tools/src/snes9x-libretro/libretro/snes9x_libretro.so \
+            --core .tools/src/beetle-bsnes-libretro/mednafen_snes_libretro.so \
+            --native-exe "$EXE" --work "$RUNNER_TEMP/work/lag" --out "$OUT/lag-stock.json"
+          # Framebuffer-only, so the high-accuracy bsnes core (no system RAM) is the reference.
+          python3 tools/qa_blank_screen_census.py --snesref "$REF" \
+            --core .tools/src/bsnes-libretro/bsnes_libretro.so \
+            --core .tools/src/snes9x-libretro/libretro/snes9x_libretro.so \
+            --core .tools/src/beetle-bsnes-libretro/mednafen_snes_libretro.so \
+            --native-exe "$EXE" --frames 2-1250 \
+            --work "$RUNNER_TEMP/work/blank" --out "$OUT/blank-stock.json"
       - name: Publish compact SHA-bound result
         shell: bash
         run: |
@@ -145,6 +165,16 @@ jobs:
                   e = p["measured_entry_host"]
                   print(f'| {core} | {p["seed"]} | {p["arm"]} | {e["native"]}/{e["original"]} '
                         f'| {p["declared_lag_confirmed"]} | {p["disposition"]} | {dur} |')
+          lag = json.loads((root / "lag-stock.json").read_text())
+          print("\n| Stock 2P route, host 2-1126 | Game frames (7E:00C6 passes) |")
+          print("| --- | ---: |")
+          for name, n in sorted(lag["game_frames"].items()):
+              print(f"| {name} | {n} |")
+          blank = json.loads((root / "blank-stock.json").read_text())
+          print("\n| Engine | Black-screen runs, host 2-1250 |")
+          print("| --- | --- |")
+          for name, runs in sorted(blank["dark_runs"].items()):
+              print(f"| {name} | {runs} |")
           print("\n**Research observation only; no original-parity or release credit.**")
           PY
           python3 tools/publish_experiment_result.py \
@@ -152,6 +182,8 @@ jobs:
             --question "Do native and original agree at the measured race-relative frame, and how long is each engine's 2P result phase?" \
             --result "$RUNNER_TEMP/paired/summary-snes9x.json" \
             --input "$RUNNER_TEMP/paired/summary-beetle.json" \
+            --input "$RUNNER_TEMP/paired/lag-stock.json" \
+            --input "$RUNNER_TEMP/paired/blank-stock.json" \
             --source-summary "$RUNNER_TEMP/paired/summary.md" \
             --out "$RUNNER_TEMP/paired/receipt.json" \
             --github-summary "$GITHUB_STEP_SUMMARY"
@@ -164,6 +196,8 @@ jobs:
           if-no-files-found: warn
           path: |
             ${{ runner.temp }}/paired/summary-*.json
+            ${{ runner.temp }}/paired/lag-stock.json
+            ${{ runner.temp }}/paired/blank-stock.json
             ${{ runner.temp }}/paired/summary.md
             ${{ runner.temp }}/paired/receipt.json
             ${{ runner.temp }}/paired/snes9x/*.json

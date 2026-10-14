@@ -283,6 +283,7 @@ def run(exe: Path, rom: Path, out: Path,
             raise ValueError("Killed Practice never owned the sandbox: " + required)
     if "practice_sram_restored=1" in killed:
         raise ValueError("Hard-kill test unexpectedly shut down normally")
+    original_srm = named_files["saves/profile-mike/save.srm"]
     receipts: list = []
     receipt_path = out / "boundary-receipts.json"
     changed = record_boundary(receipts, receipt_path, "after_hard_kill",
@@ -293,10 +294,17 @@ def run(exe: Path, rom: Path, out: Path,
     if archive.exists() and list(archive.rglob("*.urrun")):
         raise ValueError("Hard-killed Practice minted an earned run")
     rebooted = run_game(
-        exe, rom, named_user, out / "named_p1_boot_after_practice_kill", "1",
-        "turbo on\nwait 1800\nquit\n", video, timeout)
+        exe, rom, named_user, out / "named_p1_boot_after_practice_kill", "0",
+        "turbo on\nwait 600\nquit\n", video, timeout)
     verify_boot_sram(rebooted, named_files["saves/profile-mike/save.srm"],
                      profile="mike")
+    # Smoke "0" injects no root input: this boot must NOT enter a career
+    # game (which would legitimately commit changed SRAM and invalidate the
+    # baseline). Fail closed if the guest played anything.
+    for forbidden in ("stock_requested", "stock_entered",
+                      "UR_BALDOSA_NATIVE_RUN CAPTURED=1"):
+        if forbidden in rebooted:
+            raise ValueError("Post-kill witness boot entered play: " + forbidden)
     # An ordinary Mike boot enters stock play and ends in the normal native
     # shutdown/typed checkpoint. Record exactly what it changed (typed
     # profile diff included) instead of assuming. Raw SRAM, selector and
@@ -321,6 +329,8 @@ def run(exe: Path, rom: Path, out: Path,
         "dump practice_after_kill_go\n"
         "quit\n",
         video, timeout)
+    # The re-admitted Practice must itself boot the exact original career SRAM.
+    verify_boot_sram(retried, original_srm, profile="mike")
     for required in (
         "UR_BALDOSA_MODERN_ROOT practice_sram_sandbox=1 bytes=8192 ",
         "UR_BALDOSA_MODERN_ROOT practice_entered=1 course=0 ",

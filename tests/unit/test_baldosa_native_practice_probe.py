@@ -113,6 +113,8 @@ class NativePracticeProbeTests(unittest.TestCase):
             "proc.kill()",
             "killed_live = True",
             "record_boundary(",
+            "Post-kill witness boot entered play: ",
+            "verify_boot_sram(retried, original_srm",
             "after_ordinary_reboot",
             "after_practice_after_kill",
             "kill-receipt.json",

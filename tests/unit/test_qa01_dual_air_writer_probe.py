@@ -163,5 +163,53 @@ class AirWriterProbe(unittest.TestCase):
             m.source_opcode_chronology("original source logger absent\n")
 
 
+    def test_full_candidate_words_preserve_low_byte_air_and_high_byte_variation(self):
+        # Source bank-81 path has 16-bit stores; this test gives no airborne
+        # semantics to either byte or release-admission credit.
+        self.root.mkdir(parents=True, exist_ok=True)
+        path = self.root / "raw-2p.wram.bin"
+        raw = bytearray(131072)
+        raw[0x0545:0x0547] = bytes((1, 2))
+        raw[0x0547:0x0549] = bytes((2, 4))
+        path.write_bytes(raw)
+        before = m.sample(2580, path)
+        self.assertEqual((before["p1_raw_air"], before["p2_raw_air"]),
+                         (1, 2))
+        self.assertEqual((before["p1_candidate_state_word"],
+                          before["p2_candidate_state_word"]), (0x0201, 0x0402))
+        raw[0x0546] = 3
+        path.write_bytes(raw)
+        after = m.sample(2580, path)
+        self.assertEqual((after["p1_raw_air"], after["p2_raw_air"]),
+                         (before["p1_raw_air"], before["p2_raw_air"]))
+        self.assertNotEqual(after["p1_candidate_state_word"],
+                            before["p1_candidate_state_word"])
+        self.assertEqual(after["p2_candidate_state_word"],
+                         before["p2_candidate_state_word"])
+
+    def test_archived_bank81_word_writebacks_have_rep_width_and_no_intervening_sep(self):
+        # Only a STATIC historical-source claim. Actual USA executed PC and
+        # runtime M flag are for the still-pending instrumented source replay.
+        archive = (ROOT / "reference/imported/reverse-engineering/"
+                   "nitrodon/bank 81.txt").read_text(encoding="utf-8")
+        for prep, load, store in (
+            ("81/8DDF: C2 30        REP #$30",
+             "81/8E23: AD 29 0F     LDA $0F29",
+             "81/8E26: 8D 45 05     STA $0545"),
+            ("81/8F33: C2 30        REP #$30",
+             "81/8F77: AD 29 0F     LDA $0F29",
+             "81/8F7A: 8D 47 05     STA $0547"),
+        ):
+            with self.subTest(store=store):
+                start, middle, end = (
+                    archive.index(prep), archive.index(load), archive.index(store))
+                self.assertLess(start, middle)
+                self.assertLess(middle, end)
+                # Instruction-width changes within this contiguous path
+                # would invalidate an unconditional 16-bit store inference.
+                self.assertNotIn("SEP #$20", archive[start:end])
+                self.assertNotIn("SEP #$30", archive[start:end])
+
+
 if __name__ == "__main__":
     unittest.main()

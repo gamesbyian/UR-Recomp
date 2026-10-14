@@ -61,6 +61,13 @@ class DualAirPaired(unittest.TestCase):
         executable = self.root / "exe"
         for p in (rom, core, executable):
             p.write_bytes(p.name.encode())
+        for side in ("original", "native"):
+            lines = []
+            for tag in row["checkpoints"]:
+                frame = 1620 if tag == m.BASE else int(tag.rsplit("-", 1)[-1])
+                lines.append(f"script f={frame} dump {tag} ok")
+            (self.root / (side + ".log")).write_text(
+                "guest started\n" + "\n".join(lines) + "\n",encoding="utf-8")
         # Synthetic ROM stand-in is intentionally not canonical: patch only
         # the isolated manifest and ROM identity expected by these tests.
         manifest_path = self.case / "manifest.json"
@@ -73,7 +80,8 @@ class DualAirPaired(unittest.TestCase):
         row, original, native, rom, core, executable = self._evidence()
         with mock.patch.object(m, "ROM_SHA", m.sha(rom)):
             report = m.summarize(
-                self.case / "manifest.json", original, native, rom, core, executable
+                self.case / "manifest.json", original, native, rom, core, executable,
+                self.root / "original.log", self.root / "native.log"
             )
         self.assertEqual(report["raw_both_air_at_2580"],
                          {"original": True, "native": True})
@@ -91,12 +99,22 @@ class DualAirPaired(unittest.TestCase):
              for v in report["three_frame_host_phase_window"]],
             [(2579,False,False),(2580,True,True),(2581,False,False)])
         self.assertTrue(report["neighbor_frames_are_diagnostic_not_clock_normalization"])
+        self.assertTrue(report["both_engine_actual_dump_frame_receipts_verified"])
+        self.assertEqual(
+            report["independent_emulator_frame_receipts"]["original"][
+                "observed_frame_label_pairs"][9],
+            (2580, "endurance-2580"))
+        self.assertEqual(
+            report["independent_emulator_frame_receipts"]["native"][
+                "observed_frame_label_pairs"][8],
+            (2579, "qa01-neighbor-2579"))
 
     def test_corrupted_input_or_wram_does_not_yield_observation(self):
         row, original, native, rom, core, executable = self._evidence()
         kwargs = dict(
             manifest_path=self.case / "manifest.json", original_dir=original,
             native_dir=native, rom=rom, core=core, native_exe=executable,
+            original_log=self.root / "original.log", native_log=self.root / "native.log",
         )
         with mock.patch.object(m, "ROM_SHA", m.sha(rom)):
             (self.case / "case.input").write_text("altered")
@@ -110,11 +128,46 @@ class DualAirPaired(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "128-KiB"):
                 m.summarize(**kwargs)
 
+    def test_missing_duplicate_or_wrong_clock_never_passes_as_source_air_parity(self):
+        _, original, native, rom, core, executable = self._evidence()
+        kwargs = dict(
+            manifest_path=self.case / "manifest.json",original_dir=original,
+            native_dir=native,rom=rom,core=core,native_exe=executable,
+            original_log=self.root / "original.log",
+            native_log=self.root / "native.log")
+        original_text = (self.root / "original.log").read_text()
+        native_text = (self.root / "native.log").read_text()
+        with mock.patch.object(m, "ROM_SHA", m.sha(rom)):
+            # File labels and complete WRAM snapshots still exist; the guest
+            # itself must confirm the ACTUAL frame it wrote each one.
+            for transcript in (
+                native_text.replace("script f=2580 dump endurance-2580 ok",
+                                    "script f=2581 dump endurance-2580 ok"),
+                native_text.replace("script f=2580 dump endurance-2580 ok", ""),
+                native_text + "script f=2580 dump endurance-2580 ok\n",
+                native_text.replace("script f=2579 dump qa01-neighbor-2579 ok",
+                                    "script f=2580 dump qa01-neighbor-2579 ok"),
+            ):
+                (self.root / "native.log").write_text(transcript)
+                with self.subTest(transcript=transcript[-100:]),self.assertRaisesRegex(
+                        ValueError,"real guest dump frame receipts"):
+                    m.summarize(**kwargs)
+            (self.root / "native.log").write_text(native_text)
+            (self.root / "original.log").write_text(
+                original_text.replace("script f=2580 dump endurance-2580 ok",
+                                      "script f=2579 dump endurance-2580 ok"))
+            with self.assertRaisesRegex(ValueError,"original real guest dump frame"):
+                m.summarize(**kwargs)
+            (self.root / "original.log").unlink()
+            with self.assertRaisesRegex(ValueError,"missing or symlinked"):
+                m.summarize(**kwargs)
+
     def test_original_active_2p_is_a_precondition_not_assumed(self):
         _, original, native, rom, core, executable = self._evidence()
         kwargs = dict(
             manifest_path=self.case / "manifest.json", original_dir=original,
             native_dir=native, rom=rom, core=core, native_exe=executable,
+            original_log=self.root / "original.log", native_log=self.root / "native.log",
         )
         with mock.patch.object(m, "ROM_SHA", m.sha(rom)):
             self._make_dump(original / (m.BASE + ".wram.bin"), split=False)
@@ -129,7 +182,8 @@ class DualAirPaired(unittest.TestCase):
         self._make_dump(native / "endurance-2580.wram.bin", air=(1, 0))
         with mock.patch.object(m, "ROM_SHA", m.sha(rom)):
             result = m.summarize(
-                self.case / "manifest.json", original, native, rom, core, executable)
+                self.case / "manifest.json", original, native, rom, core, executable,
+                self.root / "original.log", self.root / "native.log")
         self.assertEqual(result["raw_both_air_at_2580"],
                          {"original": True, "native": False})
         self.assertFalse(result["paired_guest_relative_entry_offset_calibrated"])

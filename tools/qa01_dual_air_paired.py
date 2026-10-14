@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 
 import qa02_native_2p_seeded_endurance as guest
@@ -109,6 +110,42 @@ def prepare(out: Path) -> dict:
     return manifest
 
 
+def frame_receipts(log_path: Path, tags: list[str], *, side: str) -> dict:
+    """Attest that this engine itself reported each dump at its expected host tick.
+
+    A correctly named WRAM file is not proof of the frame in which it was
+    captured. Keep the original/native axes separate; do not infer guest
+    entry-phase equality from absolute host ticks.
+    """
+    regular(log_path)
+    if side not in ("original", "native"):
+        raise ValueError("unknown original/native runtime transcript")
+    log = log_path.read_text(encoding="utf-8", errors="replace")
+    if len(log) > 2_000_000:
+        raise ValueError("unbounded emulator frame receipt transcript")
+    expected = []
+    for tag in tags:
+        if tag == BASE:
+            frame = 1620
+        elif tag.startswith("endurance-"):
+            frame = int(tag.removeprefix("endurance-"))
+        elif tag in ("qa01-neighbor-2579", "qa01-neighbor-2581"):
+            frame = int(tag.removeprefix("qa01-neighbor-"))
+        else:
+            raise ValueError("unexpected frame label in pinned replay manifest")
+        expected.append((frame, tag))
+    matches = [(int(frame), label) for frame, label in re.findall(
+        r"script f=(\d+) dump ([A-Za-z0-9-]+) ok\b", log)]
+    selected = [row for row in matches if row[1] in tags]
+    if selected != expected:
+        raise ValueError(
+            f"{side} real guest dump frame receipts missing, duplicated, reordered or mistimed; "
+            f"expected {expected}, observed {selected[:len(expected) + 3]}")
+    return {"emulator": side, "observed_frame_label_pairs": selected,
+            "transcript_sha256": sha(log_path),
+            "frame_labels_from_actual_guest_transcript": True}
+
+
 def checked_states(folder: Path, tags: list[str]) -> tuple[dict, dict]:
     samples, hashes = {}, {}
     for tag in tags:
@@ -122,7 +159,8 @@ def checked_states(folder: Path, tags: list[str]) -> tuple[dict, dict]:
 
 
 def summarize(manifest_path: Path, original_dir: Path, native_dir: Path,
-              rom: Path, core: Path, native_exe: Path) -> dict:
+              rom: Path, core: Path, native_exe: Path,
+              original_log: Path, native_log: Path) -> dict:
     regular(manifest_path)
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     if not isinstance(manifest, dict) or manifest.get("schema") != SCHEMA:
@@ -161,6 +199,10 @@ def summarize(manifest_path: Path, original_dir: Path, native_dir: Path,
         regular(p)
     if sha(rom) != ROM_SHA:
         raise ValueError("original-USA ROM identity changed")
+    receipts = {
+        "original": frame_receipts(original_log, manifest["checkpoints"], side="original"),
+        "native": frame_receipts(native_log, manifest["checkpoints"], side="native"),
+    }
     original, orig_hash = checked_states(original_dir, manifest["checkpoints"])
     native, native_hash = checked_states(native_dir, manifest["checkpoints"])
     if (original[BASE]["camera_and_viewport"]["mode"]["split_screen_active_raw"] == 0
@@ -221,6 +263,8 @@ def summarize(manifest_path: Path, original_dir: Path, native_dir: Path,
         "same_executable_as_frontier_witness": native_sha == NATIVE_FRONTIER_SHA,
         "original_rom_sha256": ROM_SHA,
         "same_neutral_input_and_host_frame_schedule": True,
+        "both_engine_actual_dump_frame_receipts_verified": True,
+        "independent_emulator_frame_receipts": receipts,
         "paired_guest_relative_entry_offset_calibrated": False,
         "raw_both_air_at_2580": {"original": orig_air, "native": native_air},
         "three_frame_host_phase_window": window,
@@ -245,14 +289,15 @@ def main() -> int:
     p.add_argument("--out-dir", required=True, type=Path)
     c = sub.add_parser("classify")
     for x in ("manifest", "original-dir", "native-dir", "rom", "core",
-              "native-exe", "out"):
+              "native-exe", "original-log", "native-log", "out"):
         c.add_argument("--" + x, required=True, type=Path)
     args = ap.parse_args()
     if args.mode == "prepare":
         result = prepare(args.out_dir)
     else:
         result = summarize(args.manifest, args.original_dir,
-                           args.native_dir, args.rom, args.core, args.native_exe)
+                           args.native_dir, args.rom, args.core, args.native_exe,
+                           args.original_log, args.native_log)
         args.out.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n",
                             encoding="utf-8")
     print(json.dumps({k: result[k] for k in ("schema", "release_gate_credit")},

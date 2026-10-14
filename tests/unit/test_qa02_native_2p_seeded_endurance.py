@@ -107,6 +107,25 @@ class SeededNativeInputContractTests(unittest.TestCase):
                     c.trial(Path("exe"),Path("rom"),source,c.render_script(script),
                             root/"seat",19,30)
 
+    def test_optional_native_guest_transcript_preserves_exact_runtime_dump_receipts(self):
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td)
+            transcript=root/"native-transcript.log"
+            fake=type("Completed",(),{"returncode":0,
+                  "stdout":"script f=2580 dump endurance-2580 ok\n",
+                  "stderr":"source diagnostics\n"})()
+            with mock.patch.object(c.subprocess,"run",return_value=fake),mock.patch.object(
+                    c,"observe",return_value={"endurance-2580":"f"*64}):
+                observed=c.execute(
+                    root/"exe",root/"rom",root/"input",root/"script",root/"run",30,
+                    runtime_log=transcript)
+            self.assertEqual(observed["endurance-2580"],"f"*64)
+            self.assertIn("script f=2580 dump endurance-2580 ok",transcript.read_text())
+            self.assertIn("source diagnostics",transcript.read_text())
+            # The four-process endurance caller passes no runtime_log, so
+            # its return shape and ordinary private transcript policy hold.
+            self.assertTrue((root/"run"/"user-data").is_dir())
+
     def _populated(self, root: Path) -> Path:
         collection=root/"receipts"
         collection.mkdir()

@@ -267,6 +267,19 @@ jobs:
             --video windows --timeout 180
           echo "PASS: empty Modern root -> explicit first named racer -> fresh game genuine source-observed 1P Race -> one earned .urrun -> third native game reopens exact Records. Synthetic SDL/guest inputs; original/native strict parity, packaged no-args relaunch and physical pads remain independent QA gaps." >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Native controller selects existing P1 both directions across cold game processes
+        run: |
+          set -euo pipefail
+          # Both profiles were created by native root. Test ONLY the
+          # production locked next-boot selector and actual source SRAM boot.
+          python tools/baldosa_native_existing_p1_ui_probe.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_existing_p1_switch" \
+            --video windows --timeout 180
+          echo "PASS: native Modern X/A switches the full verified existing profile selector Mike to Andrew and back only for next launch; fresh source guest boots each stock 8KiB rider. No manufactured guest result, physical gamepad QA or original/native complete-event parity." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Assemble verified ROM-free Baldosa Modern Windows candidate
         run: |
           set -euo pipefail
@@ -325,6 +338,12 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_first_racer_andrew/first_anonymous_process/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_first_racer_andrew/fresh_named_process/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_first_racer_earned_records/report.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_existing_p1_switch/report.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_existing_p1_switch/first_creates_mike/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_existing_p1_switch/named_mike_adds_andrew/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_existing_p1_switch/mike_switches_to_andrew_next_boot/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_existing_p1_switch/andrew_switches_to_mike_next_boot/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_existing_p1_switch/fresh_mike_reboot/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_first_racer_earned_records/new_user_creates_first_racer/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_first_racer_earned_records/fresh_named_player_completes_race/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_first_racer_earned_records/new_game_reopens_earned_records/log.txt

@@ -65,7 +65,10 @@ inline BaldosaFirstRacerResult create_baldosa_first_preset_for_next_boot(
     const fs::path global = user_root / "host-state-v1.txt";
     const fs::path catalog = user_root / "profiles-v1.txt";
     const auto existing = load_host_product_state_file(global.string());
-    if (existing.status != HostProductLoadStatus::Missing)
+    // load_host_product_state_file reports a dangling symlink as missing
+    // on some hosts. Creation must never follow or repair such a selector.
+    if (existing.status != HostProductLoadStatus::Missing ||
+        !baldosa_first_profile_entry_absent(global))
         return {BaldosaFirstRacerStatus::AlreadyConfigured, {}};
     if (!baldosa_first_profile_entry_absent(catalog))
         return {BaldosaFirstRacerStatus::ExistingData, {}};

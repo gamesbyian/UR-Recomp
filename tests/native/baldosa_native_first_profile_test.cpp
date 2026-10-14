@@ -71,6 +71,16 @@ int main() {
     { std::ofstream out(foreign / "host-state-v1.txt"); out << "corrupt\n"; }
     assert(create_baldosa_first_preset_for_next_boot(foreign, 0).status ==
            BaldosaFirstRacerStatus::AlreadyConfigured);
+#ifndef _WIN32
+    const auto dangling = workspace / "dangling-selector";
+    assert(fs::create_directory(dangling));
+    fs::create_symlink("nonexistent-global-target",
+                       dangling / "host-state-v1.txt");
+    assert(create_baldosa_first_preset_for_next_boot(dangling, 0).status ==
+           BaldosaFirstRacerStatus::AlreadyConfigured);
+    assert(!fs::exists(dangling / "profiles-v1.txt"));
+#endif
+
     const auto redirect = workspace / "redirect";
     assert(fs::create_directory(redirect));
     fs::create_directory(redirect / "saves");

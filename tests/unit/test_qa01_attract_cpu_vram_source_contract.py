@@ -20,6 +20,82 @@ class AttractCpuVramSourceContract(unittest.TestCase):
         cls.bank00 = m.BALDOSA_BANK00.read_text(encoding="utf-8")
         cls.bank81 = m.BALDOSA_BANK81.read_text(encoding="utf-8")
 
+    def test_original_logo_attract_upload_cpu_pc_provenance(self):
+        row = m.attract_upload_direct_source_contract(
+            self.bank80_source, self.source, self.bank82_source)
+        self.assertEqual(row["source_attract_entry_pc"], "80:93FB")
+        self.assertEqual(row["source_attract_upload_call_pcs"],
+                         ["80:941B", "80:9424"])
+        self.assertEqual(row["source_logo_upload_call_pcs"],
+                         ["80:B0A6", "80:B0AF"])
+        self.assertEqual(row["source_cpu_upload_entry_pc"], "82:B1D8")
+        self.assertEqual(row["source_compressed_branch_pc"], "82:B1ED")
+        self.assertEqual(row["source_compressed_call_pc"], "82:B216")
+        self.assertEqual(row["source_decompress_entry_pc"], "81:BB89")
+        self.assertEqual(row["source_decompress_byte_store_pcs"],
+                         ["81:BCEE", "81:BCF4"])
+        self.assertEqual(row["source_upload_m8_mode"], "82:B1DB SEP #$20")
+        for field in (
+            "full_source_upload_word_count_executed_proven",
+            "actual_original_host_248_278_writer_pcs_observed",
+            "selected_original_compression_branch_dynamically_observed",
+            "original_memory_speed_at_upload_proven",
+            "full_first_load_timing_causality_proven",
+        ):
+            self.assertIs(row[field], False, field)
+
+    def test_original_upload_call_and_loop_mutations_fail_closed(self):
+        cases = (
+            ("attract caller", "80/941B: 22 D8 B1 82  JSR $82B1D8",
+             "80/941B: 22 D9 B1 82  JSR $82B1D9", "bank80"),
+            ("logo caller", "80/B0AF: 22 D8 B1 82  JSR $82B1D8",
+             "80/B0AF: 22 D9 B1 82  JSR $82B1D9", "bank80"),
+            ("compressed branch", "82/B1ED: F0 19        BEQ $B208",
+             "82/B1ED: D0 19        BNE $B208", "bank82"),
+            ("low byte", "82/B1F5: 8F 18 21 00  STA $002118",
+             "82/B1F5: 8F 19 21 00  STA $002119", "bank82"),
+            ("high byte", "82/B1FC: 8F 19 21 00  STA $002119",
+             "82/B1FC: 8F 18 21 00  STA $002118", "bank82"),
+            ("counter", "82/B201: CA           DEX",
+             "82/B201: E8           INX", "bank82"),
+            ("compressed upload", "82/B216: 22 89 BB 81  JSR $81BB89",
+             "82/B216: 22 89 BA 81  JSR $81BA89", "bank82"),
+            ("decompress store", "81/BCEE: 8F 19 21 00  STA $002119",
+             "81/BCEE: 8F 18 21 00  STA $002118", "bank81"),
+        )
+        sources = {"bank80": self.bank80_source,
+                   "bank81": self.source, "bank82": self.bank82_source}
+        for name, old, bad, owner in cases:
+            with self.subTest(name=name):
+                self.assertIn(old, sources[owner])
+                altered = dict(sources)
+                altered[owner] = altered[owner].replace(old, bad)
+                with self.assertRaisesRegex(ValueError, "original upload"):
+                    m.attract_upload_direct_source_contract(
+                        altered["bank80"], altered["bank81"], altered["bank82"])
+        duplicated = self.bank82_source + (
+            "\n82/B1FC: 8F 19 21 00  STA $002119\n")
+        with self.assertRaisesRegex(ValueError, "original upload"):
+            m.attract_upload_direct_source_contract(
+                self.bank80_source, self.source, duplicated)
+
+    def test_long_store_clock_scenarios_never_claim_executed_first_load(self):
+        for memsel, width, old, paced, excess in (
+            (0, 1, 40, 38, 2), (0, 2, 48, 44, 4),
+            (1, 1, 30, 30, 0), (1, 2, 36, 36, 0),
+        ):
+            with self.subTest(memsel=memsel, width=width):
+                r = m.conditional_long_store_master_clocks(width, memsel)
+                self.assertEqual(r["old_uniform_master_clocks"], old)
+                self.assertEqual(r["baldosa_paced_master_clocks"], paced)
+                self.assertEqual(r["old_minus_paced_master_clocks"], excess)
+                self.assertIs(r["actual_source_pc_executed_in_host_window"], False)
+                self.assertIs(r["first_load_timing_causality_proven"], False)
+        for width, memsel in ((0, 0), (3, 1), (1, -1), (1, 2)):
+            with self.subTest(invalid=(width, memsel)):
+                with self.assertRaises(ValueError):
+                    m.conditional_long_store_master_clocks(width, memsel)
+
     def test_archived_race_setup_wrapper_caller_chain(self):
         obj = m.hud_direct_caller_source_contract(
             self.source, self.bank82_source)

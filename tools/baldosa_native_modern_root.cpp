@@ -847,8 +847,17 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             std::strcmp(launcher_probe, "1") == 0;
         int key = 0;
         if (!launcher_smoke) {
+            // Separate opt-in, TEST ONLY: navigate to stock preset 1 and
+            // confirm through the very same real root menu edges. Nothing
+            // changes in the no-args launcher or default Mike acceptance.
+            const char* preset_probe =
+                std::getenv("UR_BALDOSA_FIRST_RACER_TEST_PRESET");
+            const bool second_stock_preset = preset_probe &&
+                std::strcmp(preset_probe, "1") == 0;
             key = frame == 60 ? SDLK_x :
-                  frame == 62 ? SDLK_RETURN : 0;
+                  second_stock_preset && frame == 61 ? SDLK_DOWN :
+                  frame == (second_stock_preset ? 63u : 62u)
+                      ? SDLK_RETURN : 0;
         } else if (ur_baldosa_modern_profile_selected_id()) {
             // Second game: no first-racer creation or stock-route input.
             key = frame == 90 ? SDLK_ESCAPE :

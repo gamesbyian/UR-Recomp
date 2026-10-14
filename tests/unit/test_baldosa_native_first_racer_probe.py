@@ -31,6 +31,50 @@ class FirstNativeRacerLogTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     probe.verify_creation(bad)
 
+    def test_nondefault_racer_requires_actual_menu_navigation_and_full_sram(self):
+        sample = (
+            "UR_BALDOSA_NATIVE_PROFILE DEFAULT no_host_state=1\n"
+            "UR_BALDOSA_MODERN_ROOT opened=1\n"
+            "UR_BALDOSA_MODERN_ROOT first_racer_opened=1 activation=next_process\n"
+            "UR_BALDOSA_MODERN_ROOT first_racer_preset=1\n"
+            "UR_BALDOSA_NATIVE_FIRST_RACER status=0 preset=1 id=andrew "
+            "activation=next_process\n"
+            "UR_BALDOSA_MODERN_ROOT first_racer_created=1 activation=next_process\n"
+        )
+        probe.verify_creation(sample, preset=1)
+        for bad in (
+            sample.replace("first_racer_preset=1", "first_racer_preset=0"),
+            sample.replace("preset=1 id=andrew", "preset=0 id=mike"),
+            sample.replace("id=andrew", "id=mike"),
+            sample + sample,
+            sample + "UR_BALDOSA_NATIVE_RUN CAPTURED=1\n",
+        ):
+            with self.subTest(bad=bad[-100:]):
+                with self.assertRaises(ValueError):
+                    probe.verify_creation(bad, preset=1)
+        with self.assertRaises(ValueError):
+            probe.verify_creation(sample, preset=2)
+
+        raw = bytes(range(256)) * 32
+        boot = (
+            "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=andrew "
+            "root=saves/profile-andrew\n"
+            "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=andrew "
+            f"bytes=8192 fnv={probe.fnv32(raw)}\n"
+        )
+        probe.verify_boot_sram(boot, raw, profile="andrew")
+        with self.assertRaises(ValueError):
+            probe.verify_boot_sram(boot, raw, profile="mike")
+        with self.assertRaises(ValueError):
+            probe.verify_boot_sram(boot.replace(probe.fnv32(raw), "deadbeef"),
+                                   raw, profile="andrew")
+        with self.assertRaises(ValueError):
+            probe.verify_boot_sram(boot + boot, raw, profile="andrew")
+        source = (ROOT / "tools/baldosa_native_modern_root.cpp").read_text(
+            encoding="utf-8")
+        self.assertIn("UR_BALDOSA_FIRST_RACER_TEST_PRESET", source)
+        self.assertIn("second_stock_preset && frame == 61", source)
+
     def test_exact_first_racer_sram_boot_line_and_hash(self):
         # Real native trace line delimiters are actual newlines.
         stock = bytes(range(256)) * 32

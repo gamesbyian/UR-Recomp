@@ -237,6 +237,32 @@ def run(exe: Path, rom: Path, out: Path,
     }
     if len(named_files["saves/profile-mike/save.srm"]) != 8192:
         raise ValueError("Original named source SRAM is not 8 KiB")
+    # Measured on exact Windows CI (run 38641281896): the very first ordinary
+    # shutdown of a freshly created profile rewrites its raw SRAM even when
+    # the guest only idled. Establish the career baseline AFTER that
+    # normalization, and prove the baseline is stable with a control idle
+    # boot that must change nothing. Practice is then judged against it.
+    auth_files = tuple(named_files)
+    receipts: list = []
+    receipt_path = out / "boundary-receipts.json"
+    for label in ("ordinary_idle_boot_1_normalizes",
+                  "ordinary_idle_boot_2_control"):
+        idle = run_game(
+            exe, rom, named_user, out / label, "0",
+            "turbo on\nwait 600\nquit\n", video, timeout)
+        for forbidden in ("stock_requested", "stock_entered",
+                          "UR_BALDOSA_NATIVE_RUN CAPTURED=1"):
+            if forbidden in idle:
+                raise ValueError("Idle baseline boot entered play: " + forbidden)
+        changed = record_boundary(receipts, receipt_path, label, named_user,
+                                  named_files, "previous_stage")
+        if {"host-state-v1.txt", "profiles-v1.txt"} & set(changed):
+            raise ValueError("Idle boot changed selector/catalog: " +
+                             ", ".join(changed))
+        if label.endswith("control") and changed:
+            raise ValueError("Ordinary idle boot is not idempotent after "
+                             "normalization: " + ", ".join(changed))
+        named_files = snapshot(named_user, auth_files)
     # Compare exact actual guest-created profile bytes, with no fixture
     # seeding or data repair; the P1 files must survive a fresh practice game.
     named_log = run_game(
@@ -284,8 +310,6 @@ def run(exe: Path, rom: Path, out: Path,
     if "practice_sram_restored=1" in killed:
         raise ValueError("Hard-kill test unexpectedly shut down normally")
     original_srm = named_files["saves/profile-mike/save.srm"]
-    receipts: list = []
-    receipt_path = out / "boundary-receipts.json"
     changed = record_boundary(receipts, receipt_path, "after_hard_kill",
                               named_user, named_files, "pre_practice_original")
     if changed:

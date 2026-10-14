@@ -113,6 +113,8 @@ class NativePracticeProbeTests(unittest.TestCase):
             "proc.kill()",
             "killed_live = True",
             "record_boundary(",
+            "ordinary_idle_boot_2_control",
+            "Idle baseline boot entered play: ",
             "Post-kill witness boot entered play: ",
             "verify_boot_sram(retried, original_srm",
             "after_ordinary_reboot",

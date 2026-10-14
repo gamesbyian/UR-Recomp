@@ -53,3 +53,32 @@ renderer** policy, not a general assertion about physical SNES timing.
 It does not approve HD character likeness, destructive PPU OBJ removal
 or a Windows graphics release. Original 256x224, 7:6 PAR, 4x fallback
 and authentic 342-wide course materialization remain unchanged.
+
+## Follow-on: original saved CGWSEL and fixed-RGB field baselines
+
+The pinned `Ppu` struct in `baldosa/snesrecomp@075fbe4c` stores both
+`fixedColor` and `cgwsel` in the existing 0x40-byte field register
+snapshot `inidisp..cgwsel`. Its `f->regs` already captures the exact
+V=225 values. Only the original `raster_dump_field` debug JSON omitted
+them. The new `qa08_patch_ppu_field_colour_baselines.py` changes that
+**read-only diagnostic printer alone**: `RJ_OFF(cgwsel)` and
+`memcpy(... RJ_OFF(fixedColor) ...)` retrieve the already saved values.
+The patch fails closed on source/layout drift or duplicate application.
+
+The **existing** 2P native graphics route applies this after its
+already-required split-world PPU source patch, before recompilation. Its
+unchanged whole-Original raster and 2,473 native guest CRC gates still
+apply. The journal checker now additionally **requires** both completed
+and recording field baselines on that native route. It will reject a
+supposed new native pass if the two values were not captured.
+
+The offline beam-order decoder remains backward-compatible with old
+journals: missing field baselines stay unknown, and only explicitly
+written channels become known. The extended genuine source journal,
+when available, supplies all three field-start registers and true
+scanline-ordered state. That enables a narrower *register-path*
+adjudication of the upper/lower 13-red5 signature, **not** independently
+proven pixel arithmetic, subscreen/window priority, output-Y timing,
+authored Remastered art or full game acceptance. The next real AOT
+and its immutable original raster/CRC receipts must establish the
+new witness; synthetic unit tests do not.

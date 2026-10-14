@@ -286,7 +286,7 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
                     )
                     self.assertEqual(new_diagnostics["outcome"], "inconclusive")
                     self.assertFalse(new_diagnostics["metrics"][
-                        "finished_native_event_or_new_match_observed",
+                        "finished_native_event_or_new_match_observed"
                     ])
                     pack(one, two)
                     with zipfile.ZipFile(evidence, "a") as z:

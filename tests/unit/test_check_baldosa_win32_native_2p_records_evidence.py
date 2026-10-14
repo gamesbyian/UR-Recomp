@@ -95,6 +95,24 @@ class HostedNativeWindowsTwoPlayerRecordsQA(unittest.TestCase):
         self.assertEqual(result["hosted_native_2p_played_log_sha256"],
                          hashlib.sha256(played.encode()).hexdigest())
 
+    def test_matching_forged_report_and_noncanonical_capture_still_fail(self):
+        # The original checker accepted any basename ending '.urrun' if
+        # report and capture matched one another. That's not the canonical
+        # timestamp/collision writer and must not pass independent QA even
+        # with well-formed but invented SHA-256 strings on both entries.
+        report, played, fresh = observed()
+        original = "run-0001791946896142-0000.urrun"
+        for fake in ("unreviewed.urrun", "run-123.urrun",
+                     "run-0001791946896142-0000.urrun.backup.urrun",
+                     "run-0001791946896142-000.urrun"):
+            with self.subTest(fake=fake):
+                renamed = copy.deepcopy(report)
+                renamed["canonical_match_artifact_sha256"] = {
+                    fake: "a" * 64, fake + ".urmatch": "b" * 64,
+                }
+                with self.assertRaises(ValueError):
+                    self.check(renamed, played.replace(original, fake), fresh)
+
     def test_refuse_unsupported_publication_and_false_winner(self):
         report, played, fresh = observed()
         for damaged in (

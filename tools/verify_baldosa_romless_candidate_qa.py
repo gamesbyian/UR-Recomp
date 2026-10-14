@@ -505,8 +505,11 @@ def check_runtime_actions_wrapper(
         candidate["metrics"]["hosted_cmd_two_native_roots_one_first_racer_restart_log_consistent"] = False
         candidate["metrics"]["hosted_cmd_log_independently_recomputed"] = False
         candidate["metrics"]["hosted_physical_gamepad_verified"] = False
-    candidate["metrics"]["hosted_cmd_noargs_first_racer_restart_producer_reported_only"] = (
+    candidate["metrics"]["hosted_cmd_noargs_first_racer_restart_producer_reported"] = (
         cmd_reported
+    )
+    candidate["metrics"]["hosted_cmd_noargs_first_racer_restart_producer_reported_only"] = (
+        cmd_reported and noargs_launcher_log is None
     )
     if (reported.get("classification") != "windows_native_pause_and_named_profile_smoke_only"
             or type(reported.get("course_complete_credit")) is not int

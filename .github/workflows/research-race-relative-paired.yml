@@ -134,7 +134,7 @@ jobs:
           if [ "${{ inputs.include_baldosa }}" = true ]; then
             # Same package set as the baldosa build job, so every shared library the guest links is present.
             sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends \
-              ninja-build libgl-dev libx11-dev libxext-dev libxrandr-dev \
+              ninja-build libgl-dev libopengl0 libglx0 libx11-dev libxext-dev libxrandr-dev \
               libxcursor-dev libxi-dev libxss-dev libwayland-dev \
               libxkbcommon-dev libegl-dev libgles-dev libdrm-dev \
               libgbm-dev libasound2-dev libpulse-dev libudev-dev libdbus-1-dev
@@ -159,6 +159,15 @@ jobs:
         with:
           name: research-baldosa-2p-shim-guest
           path: ${{ runner.temp }}/baldosa-guest
+      - name: Fail fast if the Baldosa guest cannot resolve its shared libraries
+        if: ${{ inputs.include_baldosa == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x "$RUNNER_TEMP/baldosa-guest/UniracersSNESRecomp"
+          if ldd "$RUNNER_TEMP/baldosa-guest/UniracersSNESRecomp" | grep "not found"; then
+            echo "Baldosa guest has unresolved shared libraries" >&2; exit 3
+          fi
       - name: Fetch the signed frontier ledger (read-only)
         shell: bash
         run: |
@@ -212,7 +221,6 @@ jobs:
           BEXE="$RUNNER_TEMP/baldosa-guest/UniracersSNESRecomp"
           chmod +x "$BEXE"
           (cd "$RUNNER_TEMP/baldosa-guest" && sha256sum -c SHA256SUMS)
-          if ldd "$BEXE" | grep "not found"; then echo "Baldosa guest has unresolved shared libraries" >&2; exit 3; fi
           FRAMES="1128-1140,1620-4800/60,4801-6400"
           [ "$HOLD" = 0 ] && FRAMES="1128-1140,1620-3420/30"
           OUT="$RUNNER_TEMP/paired"

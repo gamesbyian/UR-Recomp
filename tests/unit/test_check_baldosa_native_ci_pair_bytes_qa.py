@@ -14,7 +14,7 @@ from verify_windows_tournament_acceptance_receipt import fnv_hex
 from tests.unit.test_check_baldosa_win32_native_2p_records_evidence import observed
 
 
-RUN = "run-123.urrun"
+RUN = "run-0001791946896142-0000.urrun"
 
 
 def encode(lines):

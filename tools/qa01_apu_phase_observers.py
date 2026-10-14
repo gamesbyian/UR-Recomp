@@ -54,6 +54,7 @@ SOURCE_BEFORE = r"""
             const int ur_rf015_h0 = ur_rf015_target ? (int)CPU.Cycles : 0;
             const uint16 ur_rf015_a0 = ur_rf015_target ? Registers.A.W : 0;
             const uint8 ur_rf015_p0 = ur_rf015_target ? Registers.PL : 0;
+            const uint8 ur_rf015_db0 = ur_rf015_target ? Registers.DB : 0;
             const uint8 ur_rf015_rd0 = ur_rf015_target ? Memory.RAM[0x2000] : 0;
             const uint8 ur_rf015_wr0 = ur_rf015_target ? Memory.RAM[0x2002] : 0;
             const uint8 ur_rf015_ack0 = ur_rf015_target ? Memory.RAM[0x2004] : 0;
@@ -64,7 +65,7 @@ SOURCE_AFTER = r"""
             if (ur_rf015_target) {
                 if (ur_rf015_emitted < 6000u)
                     fprintf(stderr,
-                        "QA01APUORIG f0=%u f1=%u v0=%u v1=%u h0=%d h1=%d pc=%06X next=%06X op=%02X p0=%02X p1=%02X a0=%04X a1=%04X rd0=%02X rd1=%02X wr0=%02X wr1=%02X ack0=%02X ack1=%02X c60=%02X c61=%02X\n",
+                        "QA01APUORIG f0=%u f1=%u v0=%u v1=%u h0=%d h1=%d pc=%06X next=%06X op=%02X p0=%02X p1=%02X db0=%02X db1=%02X a0=%04X a1=%04X rd0=%02X rd1=%02X wr0=%02X wr1=%02X ack0=%02X ack1=%02X c60=%02X c61=%02X\n",
                         ur_rf015_f0, (unsigned)ICPU.Frame,
                         ur_rf015_v0, (unsigned)CPU.V_Counter,
                         ur_rf015_h0, (int)CPU.Cycles,
@@ -72,6 +73,7 @@ SOURCE_AFTER = r"""
                         (unsigned)(((uint32)Registers.PB << 16) | Registers.PCw),
                         (unsigned)Op,
                         (unsigned)ur_rf015_p0, (unsigned)Registers.PL,
+                        (unsigned)ur_rf015_db0, (unsigned)Registers.DB,
                         (unsigned)ur_rf015_a0, (unsigned)Registers.A.W,
                         (unsigned)ur_rf015_rd0, (unsigned)Memory.RAM[0x2000],
                         (unsigned)ur_rf015_wr0, (unsigned)Memory.RAM[0x2002],

@@ -15,6 +15,7 @@ on:
       - "tools/baldosa_native_first_racer_real_run_probe.py"
       - "tests/unit/test_baldosa_native_first_racer_real_run_probe.py"
       - "native/product/baldosa_native_first_profile.hpp"
+      - "native/product/baldosa_native_second_profile.hpp"
       - "native/product/modern_root_overlay_presenter.hpp"
       - "native/product/modern_root_physical_edges.hpp"
       - "tests/native/baldosa_native_first_profile_test.cpp"

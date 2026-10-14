@@ -42,6 +42,7 @@ class NativeFirstModernRacerTests(unittest.TestCase):
                 cwd=directory, timeout=30)
             self.assertEqual(run.returncode, 0, run.stderr + run.stdout)
             self.assertIn("PASS: first Modern preset creation", run.stdout)
+            self.assertIn("PASS: second named stock racer uses canonical", run.stdout)
 
     def test_native_root_requires_next_boot_and_source_guest_unchanged(self):
         root = (ROOT / "tools/baldosa_native_modern_root.cpp").read_text()

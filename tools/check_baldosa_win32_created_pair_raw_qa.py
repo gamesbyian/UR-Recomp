@@ -124,6 +124,11 @@ def audit_zip(path: Path) -> dict[str, object]:
     with zipfile.ZipFile(path) as archive:
         all_names = archive.namelist()
         run_name, allowed_raw = raw_name_contract(all_names)
+        # The raw-subtree allowlist alone cannot rule out unrelated source-root
+        # files (including private saves or executables) in the same ZIP.
+        # Evidence provenance and privacy require an exact WHOLE archive set.
+        require(set(all_names) == set(SOURCE_GROUP) | set(allowed_raw),
+                "unallowlisted Windows source ZIP member outside guest/raw group")
         require(all(name in all_names for name in SOURCE_GROUP),
                 "missing six exact played/controller-selected native game logs")
         raw_manifest = _read(archive, RAW_PREFIX + MANIFEST, MAX_REPORT)

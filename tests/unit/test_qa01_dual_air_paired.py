@@ -28,7 +28,13 @@ class DualAirPaired(unittest.TestCase):
         self.assertEqual(row["raw_air_addresses"], {"p1": "7E:0545", "p2": "7E:0547"})
         self.assertEqual(row["release_gate_credit"], 0)
         self.assertFalse(row["exact_original_native_acceptance"])
-        self.assertEqual(len(row["checkpoints"]), 16)
+        self.assertEqual(len(row["checkpoints"]), 18)
+        self.assertEqual(row["checkpoints"][8:11],
+                         ["qa01-neighbor-2579", "endurance-2580",
+                          "qa01-neighbor-2581"])
+        generated = (self.case / "case.script").read_text()
+        self.assertIn("wait 119\ndump qa01-neighbor-2579\nwait 1\ndump endurance-2580",generated)
+        self.assertIn("wait 1\ndump qa01-neighbor-2581\nwait 119\ndump endurance-2700",generated)
         self.assertEqual(row["input_sha256"], m.sha(self.case / "case.input"))
         self.assertEqual(row["script_sha256"], m.sha(self.case / "case.script"))
         with self.assertRaisesRegex(ValueError, "overwrite"):
@@ -73,13 +79,18 @@ class DualAirPaired(unittest.TestCase):
                          {"original": True, "native": True})
         self.assertEqual(report["active_race_at_2580"],
                          {"original": True, "native": True})
-        self.assertEqual(report["read_only_paired_samples"][8]["original_menu_raw"], 0)
-        self.assertEqual(report["original_wram_snapshots"], 16)
-        self.assertEqual(report["native_wram_snapshots"], 16)
+        self.assertEqual(report["read_only_paired_samples"][9]["original_menu_raw"], 0)
+        self.assertEqual(report["original_wram_snapshots"], 18)
+        self.assertEqual(report["native_wram_snapshots"], 18)
         self.assertFalse(report["paired_guest_relative_entry_offset_calibrated"])
         self.assertEqual(report["release_gate_credit"], 0)
         self.assertFalse(report["strict_complete_event_accepted"])
         self.assertFalse(report["same_executable_as_frontier_witness"])
+        self.assertEqual(
+            [(v["host_frame"],v["original_both_air_raw"],v["native_both_air_raw"])
+             for v in report["three_frame_host_phase_window"]],
+            [(2579,False,False),(2580,True,True),(2581,False,False)])
+        self.assertTrue(report["neighbor_frames_are_diagnostic_not_clock_normalization"])
 
     def test_corrupted_input_or_wram_does_not_yield_observation(self):
         row, original, native, rom, core, executable = self._evidence()
@@ -126,7 +137,7 @@ class DualAirPaired(unittest.TestCase):
         self.assertFalse(result["strict_complete_event_accepted"])
         self.assertEqual(result["active_race_at_2580"],
                          {"original": True, "native": True})
-        self.assertEqual(result["read_only_paired_samples"][8]["native_course_raw"], 0)
+        self.assertEqual(result["read_only_paired_samples"][9]["native_course_raw"], 0)
 
 
 if __name__ == "__main__":

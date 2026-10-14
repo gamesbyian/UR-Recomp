@@ -27,6 +27,35 @@ STOCK_INPUT_SHA = "28f2842fd262030e434b3aef88eb360f74de94fbf558f0eb0ba8edce645fb
 STOCK_SCRIPT_SHA = "ebac1a3505281e9793c8197006081c5d88f6ab3383df48f23ba2475159e9e6e3"
 ROM_SHA = guest.ROM_SHA
 BASE = guest.BASE_CHECK
+NEIGHBORS = (FRAME - 1, FRAME, FRAME + 1)
+
+
+def paired_script(source: str) -> str:
+    """Add just two no-input, read-only dumps around the observed frontier hit.
+
+    Host-frame deltas are explicit; no engine is advanced, delayed or rebased
+    relative to its own original 2P input stream.
+    """
+    rendered = guest.render_script(source)
+    anchor = "wait 120\ndump endurance-2580\nwait 120\ndump endurance-2700\n"
+    replace = ("wait 119\ndump qa01-neighbor-2579\n"
+               "wait 1\ndump endurance-2580\n"
+               "wait 1\ndump qa01-neighbor-2581\n"
+               "wait 119\ndump endurance-2700\n")
+    if rendered.count(anchor) != 1:
+        raise ValueError("unrecognized canonical frontier event checkpoint spacing")
+    return rendered.replace(anchor, replace, 1)
+
+
+def checkpoints() -> list[str]:
+    names = [BASE]
+    for frame in guest.FRAMES:
+        if frame == FRAME:
+            names.extend(("qa01-neighbor-2579", f"endurance-{FRAME}",
+                          "qa01-neighbor-2581"))
+        else:
+            names.append(f"endurance-{frame}")
+    return names
 
 
 def sha(path: Path) -> str:
@@ -52,7 +81,7 @@ def prepare(out: Path) -> dict:
     if actions[0] != (1650, 60, 0x080, 0x040):
         raise ValueError("frontier changed the two-seat first intervention")
     control = guest.render_input(prefix, actions, None)
-    script = guest.render_script(source_script)
+    script = paired_script(source_script)
     if f"dump endurance-{FRAME}" not in script:
         raise ValueError("source sampling script omitted decisive frame")
     out.mkdir(parents=True)
@@ -71,7 +100,7 @@ def prepare(out: Path) -> dict:
         "input_sha256": digest(control), "script_sha256": digest(script),
         "stock_input_sha256": STOCK_INPUT_SHA,
         "stock_script_sha256": STOCK_SCRIPT_SHA,
-        "checkpoints": [BASE, *(f"endurance-{f}" for f in guest.FRAMES)],
+        "checkpoints": checkpoints(),
         "post_entry_control_intervals": info["intervals"],
         "release_gate_credit": 0, "exact_original_native_acceptance": False,
     }
@@ -110,7 +139,7 @@ def summarize(manifest_path: Path, original_dir: Path, native_dir: Path,
     if (manifest.get("input_sha256") != digest(
             guest.render_input(source_input, actions, None))
             or manifest.get("script_sha256") != digest(
-                guest.render_script(source_script))):
+                paired_script(source_script))):
         raise ValueError("source-independent regenerated paired input does not match manifest")
     if (manifest.get("stock_input_sha256") != STOCK_INPUT_SHA
             or manifest.get("stock_script_sha256") != STOCK_SCRIPT_SHA
@@ -126,8 +155,7 @@ def summarize(manifest_path: Path, original_dir: Path, native_dir: Path,
             manifest.get("exact_original_native_acceptance")) != (
             SEED, ARM, SOURCE_SHA, RUN, 0, False):
         raise ValueError("paired frontier witness identity changed")
-    if (manifest.get("checkpoints") !=
-            [BASE, *(f"endurance-{f}" for f in guest.FRAMES)]):
+    if manifest.get("checkpoints") != checkpoints():
         raise ValueError("incomplete or reordered original/native frame schedule")
     for p in (rom, core, native_exe):
         regular(p)
@@ -172,6 +200,19 @@ def summarize(manifest_path: Path, original_dir: Path, native_dir: Path,
     orig_air = all(witness["original_air_raw"])
     native_air = all(witness["native_air_raw"])
     native_sha = sha(native_exe)
+    window = []
+    for frame in NEIGHBORS:
+        tag = (f"endurance-{FRAME}" if frame == FRAME
+               else f"qa01-neighbor-{frame}")
+        row = next(x for x in out_rows if x["host_frame_label"] == tag)
+        window.append({
+            "host_frame": frame,
+            "original_both_air_raw": all(row["original_air_raw"]),
+            "native_both_air_raw": all(row["native_air_raw"]),
+            "same_host_full_wram_equal": row["full_wram_equal_same_host"],
+            "original_in_active_race": row["original_active_race_raw"] == 1,
+            "native_in_active_race": row["native_active_race_raw"] == 1,
+        })
     return {
         "schema": SCHEMA, "disposition": "source_observation_only_not_event_acceptance",
         "manifest": manifest,
@@ -182,6 +223,8 @@ def summarize(manifest_path: Path, original_dir: Path, native_dir: Path,
         "same_neutral_input_and_host_frame_schedule": True,
         "paired_guest_relative_entry_offset_calibrated": False,
         "raw_both_air_at_2580": {"original": orig_air, "native": native_air},
+        "three_frame_host_phase_window": window,
+        "neighbor_frames_are_diagnostic_not_clock_normalization": True,
         "active_race_at_2580": {
             "original": witness["original_active_race_raw"] == 1,
             "native": witness["native_active_race_raw"] == 1,

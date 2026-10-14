@@ -19,13 +19,13 @@
     "family_cases_per_region": 9
   },
   "status_counts": {
-    "partial": 5,
-    "unverified": 130
+    "partial": 4,
+    "unverified": 131
   },
   "by_rom": {
     "usa-retail": {
-      "partial": 5,
-      "unverified": 40
+      "partial": 4,
+      "unverified": 41
     },
     "europe-retail": {
       "unverified": 45
@@ -48,8 +48,7 @@
       "unverified": 26
     },
     "race-b": {
-      "partial": 1,
-      "unverified": 26
+      "unverified": 27
     },
     "circuit-b": {
       "partial": 1,
@@ -128,8 +127,8 @@
         "result"
       ],
       "status": "partial",
-      "evidence_ref": "analysis/data/zoo-original-baldosa-completed-circuit-candidate.json",
-      "coverage_note": "Independent pinned original Snes9x and Baldosa guests replayed the unchanged original 2014 movie scene: both complete Zoom Zoo with matching P1/P2 laps, sampled checkpoints/contact/time, actual settled PPU times and best laps (MIKE 1:16.46 / 0:25.10; BRONSEN 1:20.07 / 0:26.45). Further paired fixed-frame traces and source-visible original/native Sram_RestoreDirectPage writers show the native guest's menu/result prelude is observed one scene-relative host frame earlier (+5157 native vs +5158 original; result 0xBC +5162 vs +5163), while native +5156 equals original +5157 across 192.5 KiB WRAM/VRAM/CGRAM. Original/native instruction-time NMI/host phase causality and complete-course independently reviewed gate not established. Still PARTIAL, not an accepted release course."
+      "evidence_ref": "analysis/data/zoo-original-2014-live-progression.json",
+      "coverage_note": "Independent original 2014 Snes9x trace proves Zoom Zoo entry at frame 3190, checkpoint/lap transitions at 3408/3794/4031/4722/4911 (P1 4->3->2), and archived original Circuit result menu BC at 8353 with MIKE total 1:16.46/best lap 0:25.10. Original-only source; no independently synchronized fresh native circuit and terminal comparison."
     },
     {
       "rom": "usa-retail",
@@ -147,8 +146,8 @@
         "result"
       ],
       "status": "partial",
-      "evidence_ref": "analysis/data/bowl-original-baldosa-scored-stunt-candidate-20261009.json",
-      "coverage_note": "Independent original Snes9x and native Baldosa replay of the exact original 2014 Bowl 45s scored-Stunt controller scene from the original embedded SRAM: source original starts movie frame 8620 and reaches tally menu 2F at 11915, result 18 at 11985. Fresh original/native entries have matching signatures; all 28 sampled active original/native semantic states agree; actual PPU tally and stable result text exactly match MIKE 764 (qualifier 68). The result arrives at original scene-relative +3365 versus native +3364 despite both host scripts observing result absolute frame 4349. No instruction/NMI-phase causality or full frame parity adjudicated; release complete-event acceptance remains PARTIAL 0/45."
+      "evidence_ref": "analysis/generated/result-screens-probe.json",
+      "coverage_note": "Source-pinned archived 2014 original Snes9x Bowl 45-second Stunt reaches tally menu 2F at frame 11915 and settled 18 at 11985 with MIKE score 764; independently proven original-only full source event, without fresh reference/native event-relative parity or accepted USA release-complete witness."
     },
     {
       "rom": "usa-retail",
@@ -166,9 +165,9 @@
         "finish",
         "result"
       ],
-      "status": "partial",
-      "evidence_ref": "analysis/data/switcher-original-baldosa-paired-race-b-result-20261010.json",
-      "coverage_note": "Source-unaltered 2014 original USA Snes9x Switcher Race B movie reaches genuine result 0x99 at movie frame 17030 from source entry 12327. Independently booted original Snes9x/native pinned Baldosa replay the exact anchored SRAM/controller scene, with equal starting signatures, 28/28 sampled active semantics, authentic completed result PPU text MIKE 1:08.81, P1 lap zero and finish/checkpoint gate. Both hosts observe the result at 5783, but original scene-relative +4704 versus native +4702 fails strict event parity; source/native near-terminal course-0 interstitial timing, exact PC/NMI alignment, menu continuation and persistence remain unresolved. No accepted event credit."
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
     },
     {
       "rom": "usa-retail",
@@ -2773,7 +2772,6 @@
     "Input-only Jumpover CIRCUIT-B rewards are partial; no paired Circuit result or scored 45-second Stunt outcome was certified.",
     "Neither PAL register homology nor identical prototype streams proves PAL runtime parity.",
     "Historical optimizer startX constants are never read by magicnumber.lua; zero does not prove a runtime spawn.",
-    "A complete pass requires original menu entry, player result and event-relative independent reference comparison.",
-    "Switcher Race B original/native replay reaches an identical genuine MIKE 1:08.81 result, but guest-relative onset differs by two frames; no accepted event witness."
+    "A complete pass requires original menu entry, player result and event-relative independent reference comparison."
   ]
 }

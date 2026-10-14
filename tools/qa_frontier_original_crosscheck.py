@@ -338,13 +338,26 @@ def terminal_events(dumps: dict[int, Path], frames: list[int], offset: int) -> d
     return events
 
 
+def baldosa_native_run(exe: Path, rom: Path, control: str, frames: list[int],
+                       work: Path) -> dict[int, Path]:
+    """Pinned Baldosa guest through the research two-seat input shim."""
+    import qa_blank_screen_census as blank
+    dumps = blank.baldosa_run(exe, rom, sorted(set(frames)), work, control)
+    for f, p in dumps.items():
+        if not p.is_file() or p.stat().st_size != 131072:
+            raise RuntimeError(f"Baldosa did not dump frame {f}")
+    return dumps
+
+
 def paired_case(original: Original, exe: Path, seed: int, arm: str, lag: int,
-                frames: list[int], work: Path, finish_hold: int = 0) -> dict:
+                frames: list[int], work: Path, finish_hold: int = 0,
+                launcher: str = "modern", keep: bool = True) -> dict:
     """Exact field comparison: native frame F against original frame F - lag."""
     control = case_input(seed, arm)
     if finish_hold:
         control += finish_suffix(finish_hold)
-    native = native_run(exe, original.rom, control, frames, work / "native")
+    run = baldosa_native_run if launcher == "baldosa" else native_run
+    native = run(exe, original.rom, control, frames, work / "native")
     orig = original.run(shift_post_entry(control, lag), [f - lag for f in frames],
                         work / "original")
     def entry(dumps: dict[int, Path], offset: int) -> int | None:
@@ -375,6 +388,9 @@ def paired_case(original: Original, exe: Path, seed: int, arm: str, lag: int,
         terminal["race_relative_equal"] = (
             {k: v for k, v in terminal["native"].items()} ==
             {k: v for k, v in terminal["original"].items()})
+    if not keep:  # raw dumps are large (Baldosa adds ~2 MB/frame of APU log)
+        shutil.rmtree(work / "native", ignore_errors=True)
+        shutil.rmtree(work / "original", ignore_errors=True)
     return {"seed": seed, "arm": arm, "declared_lag": lag,
             "finish_hold": finish_hold, "terminal_events_native_indexed": terminal,
             "measured_entry_host": entries, "measured_lag": measured,
@@ -601,6 +617,10 @@ def main() -> int:
     pr.add_argument("--seed", type=int, required=True)
     pr.add_argument("--arm", required=True, choices=frontier.ARMS)
     pr.add_argument("--lag", type=int, required=True)
+    pr.add_argument("--keep-dumps", action="store_true",
+                    help="retain both engines' raw per-frame dumps")
+    pr.add_argument("--native-launcher", choices=("modern", "baldosa"), default="modern",
+                    help="baldosa: pinned uniracers-recomp build carrying the research 2P input shim")
     pr.add_argument("--finish-hold", type=int, default=0,
                     help="append the declared both-Right finish stimulus for N frames")
     pr.add_argument("--frames", default="1128-1140,1620,1740-3420/120",
@@ -618,8 +638,10 @@ def main() -> int:
             raise SystemExit("refuse to overwrite a prior paired report")
         frames = parse_frames(args.frames)
         result = paired_case(original, args.native_exe, args.seed, args.arm, args.lag,
-                             frames, args.work, args.finish_hold)
+                             frames, args.work, args.finish_hold, args.native_launcher,
+                             keep=args.keep_dumps)
         result.update({"schema": PAIRED_SCHEMA, "original": original.identity,
+                       "native_launcher": args.native_launcher,
                        "native_executable_sha256": sha256(args.native_exe),
                        "release_gate_credit": 0, "original_native_parity_claimed": False})
         args.out.write_text(json.dumps(result, indent=1, sort_keys=True) + "\n", encoding="utf-8")

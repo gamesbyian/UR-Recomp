@@ -115,12 +115,14 @@ class FramebufferOriginal(xc.Original):
         return {f: work / f"o-{f}.wram.bin" for f in frames}
 
 
-def baldosa_run(exe: Path, rom: Path, frames: list[int], work: Path) -> dict[int, Path]:
-    """Pinned Baldosa guest (gamesbyian/uniracers-recomp) with no controller input.
+def baldosa_run(exe: Path, rom: Path, frames: list[int], work: Path,
+                control: str | None = None) -> dict[int, Path]:
+    """Pinned Baldosa guest (gamesbyian/uniracers-recomp).
 
     Same launch contract as QA-01's ``run_pinned_baldosa``: ``--no-launcher``,
-    an audio-off config, ``SNESRECOMP_DUMP_DIR``; no input shim, so only the
-    no-input attract route is supported.
+    an audio-off config, ``SNESRECOMP_DUMP_DIR``. Controller input, when given,
+    goes through the research two-seat shim
+    (``tools/research_baldosa_2p_input_patch.py``), which the build must carry.
     """
     import os
     import subprocess
@@ -136,6 +138,10 @@ def baldosa_run(exe: Path, rom: Path, frames: list[int], work: Path) -> dict[int
     env = dict(os.environ, SDL_AUDIODRIVER="dummy", SNESRECOMP_DUMP_DIR=str(work / "dumps"),
                SNESRECOMP_ROM=str(rom))
     env.pop("UR_QA_SCENE_INPUT_FILE", None)
+    env.pop("UR_RESEARCH_2P_INPUT_FILE", None)
+    if control and any(l.split("#", 1)[0].strip() for l in control.splitlines()):
+        (work / "case.input").write_text(control, encoding="utf-8")
+        env["UR_RESEARCH_2P_INPUT_FILE"] = str(work / "case.input")
     done = subprocess.run(["xvfb-run", "-a", str(exe.resolve()), "--no-launcher",
                            "--config", str(work / "config.ini"),
                            "--script", str(work / "case.script"), str(rom)],
@@ -144,6 +150,8 @@ def baldosa_run(exe: Path, rom: Path, frames: list[int], work: Path) -> dict[int
     (work / "baldosa.log").write_text(done.stdout + done.stderr, encoding="utf-8")
     if done.returncode != 0:
         raise RuntimeError(f"Baldosa exited {done.returncode}")
+    if "UR_RESEARCH_2P_INPUT_FILE" in env and "UR research 2P input:" not in done.stdout + done.stderr:
+        raise RuntimeError("Baldosa build lacks the research two-seat input shim")
     return {f: work / "dumps" / f"b-{f}.wram.bin" for f in frames}
 
 
@@ -159,7 +167,8 @@ def main() -> int:
     ap.add_argument("--work", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--baldosa-exe", type=Path,
-                    help="also run the pinned Baldosa guest (no-input routes only)")
+                    help="also run the pinned Baldosa guest; with input it must carry "
+                         "tools/research_baldosa_2p_input_patch.py")
     ap.add_argument("--allow-gaps", action="store_true",
                     help="accept several dense windows; runs at a window edge are truncated")
     ap.add_argument("--keep-dumps", action="store_true")
@@ -170,8 +179,6 @@ def main() -> int:
     if frames != list(range(frames[0], frames[-1] + 1)) and not args.allow_gaps:
         raise SystemExit("blank-run lengths need every frame: use a dense a-b range")
     control = args.input.read_text(encoding="utf-8")
-    if args.baldosa_exe and any(l.split("#", 1)[0].strip() for l in control.splitlines()):
-        raise SystemExit("the Baldosa launcher supports only the no-input route")
     engines, identity = {}, {}
     for core in args.core:
         ref = FramebufferOriginal(args.snesref, core, args.rom)
@@ -192,7 +199,8 @@ def main() -> int:
             shutil.rmtree(work)
     if args.baldosa_exe:
         work = args.work / "baldosa"
-        values = framebuffers(baldosa_run(args.baldosa_exe, args.rom.resolve(), frames, work))
+        values = framebuffers(baldosa_run(args.baldosa_exe, args.rom.resolve(), frames, work,
+                                          control))
         engines["baldosa"] = [values[f] for f in frames]
         identity["baldosa"] = {"executable_sha256": xc.sha256(args.baldosa_exe)}
         if not args.keep_dumps:

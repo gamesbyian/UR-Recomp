@@ -100,10 +100,10 @@ class HostedNativeWindowsRecordsQA(unittest.TestCase):
             archived = root / "hosted-win32.zip"
             report, played, fresh = sample()
             old_log = lambda seat: (
-                f"SDL reports 0 joystick(s)\\n"
-                f"audio=dummy\\n"
-                f"UR_BALDOSA_MODERN_ROOT stock_entered players={seat} menu=3c\\n"
-                "script f=100 quit\\n"
+                f"SDL reports 0 joystick(s)\n"
+                f"audio=dummy\n"
+                f"UR_BALDOSA_MODERN_ROOT stock_entered players={seat} menu=3c\n"
+                "script f=100 quit\n"
             )
             def emit(*, include_new=True, include_fresh=True, result=report):
                 with zipfile.ZipFile(archived, "w") as outfile:

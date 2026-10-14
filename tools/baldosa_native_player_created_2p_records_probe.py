@@ -85,7 +85,8 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
     catalog = user / "profiles-v1.txt"
     selector = user / "host-state-v1.txt"
     before_selector = selector.read_bytes()
-    original_p1 = profile_sram(user, P1)
+    # This first-game image may receive a legitimate native checkpoint
+    # when game 2 boots P1 to create P2. Compare the LAST committed image.
 
     # Game 2: named P1 explicitly creates Martin P2 via the SAME native root.
     second = run_game(exe, rom, user, out / "named_P1_adds_P2", "5",
@@ -97,6 +98,10 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
     original_p2 = profile_sram(user, P2)
     verify_native_save_codec(fixture, user, timeout, profile=P1)
     verify_native_save_codec(fixture, user, timeout, profile=P2)
+    # Native game 2 writes Mike's own post-boot checkpoint at exit.
+    # Exact guest BOOT_SRAM must match THIS pre-game-3 canonical image,
+    # not game 1's obsolete snapshot. Verify full typed/raw identity first.
+    original_p1 = profile_sram(user, P1)
     before_catalog = catalog.read_bytes()
 
     # Game 3: genuine separately confirmed root seats, real stock source

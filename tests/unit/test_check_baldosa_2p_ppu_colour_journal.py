@@ -82,6 +82,12 @@ class Original2PColourRegisterJournalTests(unittest.TestCase):
         self.assertFalse(timeline["effective_per_pixel_colour_math_proven"])
         self.assertFalse(record["native_scanline_tag_to_final_PPU_row_alignment_proven"])
         self.assertFalse(record["remastered_HD_art_approved"])
+        beam = completed["beam_order_colour_knowledge"]
+        self.assertTrue(completed["legacy_numeric_tag_order_is_not_beam_field_order"])
+        self.assertEqual(beam["visible_line_tag_intervals_after_same_line_final_write"][0]["first_visible_line_tag"], 0)
+        self.assertEqual(beam["visible_line_tag_intervals_after_same_line_final_write"][-1]["last_visible_line_tag"], 223)
+        self.assertIsNone(beam["visible_line_tag_intervals_after_same_line_final_write"][0]["cgwsel"])
+        self.assertFalse(beam["source_colour_math_operand_per_pixel_proven"])
 
     def test_valid_source_has_zero_colour_writes_without_invented_addition(self):
         self.trace["completed"]["entries"] = []

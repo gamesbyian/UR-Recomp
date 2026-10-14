@@ -33,6 +33,11 @@ COLOR_REGS = {0x2130: "CGWSEL", 0x2131: "CGADSUB", 0x2132: "COLDATA"}
 
 MAX_NATIVE_SCANLINE = 261
 
+try:
+    from tools.qa08_ppu_beam_colour_state import decode_field as decode_beam_colour
+except ModuleNotFoundError:
+    from qa08_ppu_beam_colour_state import decode_field as decode_beam_colour
+
 
 def reject_duplicate_json_keys(pairs: list[tuple[str, object]]) -> dict:
     """A forged duplicate field must not silently override genuine evidence."""
@@ -144,6 +149,8 @@ def parse_record(line: str) -> dict:
             "raster_journal_dropped": 0,
             "cgadsub_scanline_tag_chronology":
                 cgadsub_line_intervals(base["cgadsub"], entries),
+            "beam_order_colour_knowledge": decode_beam_colour(base, entries),
+            "legacy_numeric_tag_order_is_not_beam_field_order": True,
         }
     return {
         "schema_version": 1,

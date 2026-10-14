@@ -98,7 +98,8 @@ def analyze(original_log: str, native_log: str) -> dict:
             # Absolute $2142 is an actual SNES I/O register only when
             # the CPU DBR selects a low-bank 00-3F / 80-BF hardware mirror.
             # DBR 7E/7F would address WRAM instead, falsifying the claim.
-            if e["db0"] & 0x40 or e["db0"] != e["db1"]:
+            if (not 0 <= e["db0"] <= 255 or not 0 <= e["db1"] <= 255
+                    or e["db0"] & 0x40 or e["db0"] != e["db1"]):
                 raise ValueError("original $2142 opcode did not retain a mapped CPU I/O data bank")
         if pc in ("82803C", "828043", "82804E"):
             if not e["p0"] & 0x20:

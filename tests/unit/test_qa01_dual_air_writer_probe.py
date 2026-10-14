@@ -42,6 +42,15 @@ class AirWriterProbe(unittest.TestCase):
         self.assertEqual(
             paired.digest((self.root / "case.input").read_text()),
             manifest["source_original_input_sha256"])
+        # The observed P1 anomaly is during neutral *held* masks:
+        # P2 140 ends at 2578; the next event begins only at 2590.
+        controller = (self.root / "case.input").read_text()
+        self.assertIn("2548:31:000:140\n", controller)
+        self.assertIn("2590:18:000:180\n", controller)
+        self.assertFalse(any(
+            2579 <= int(line.split(":", 1)[0]) <= 2589
+            for line in controller.splitlines()
+            if line and not line.startswith("#")))
         with self.assertRaisesRegex(ValueError, "overwrite"):
             m.prepare(self.root)
 

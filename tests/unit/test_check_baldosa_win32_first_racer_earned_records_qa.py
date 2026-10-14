@@ -63,6 +63,26 @@ class FirstRacerEarnedSourceRecordsQA(unittest.TestCase):
             played.encode(), records.encode(),
         )
 
+    def test_real_green_windows_receipt_has_exact_source_and_no_release_promotion(self):
+        # This is a retained independent review of downloaded actual Actions
+        # ZIPs. Never treat unit-fixture bytes as the actual saved .urrun.
+        receipt = (ROOT / "analysis/evidence" /
+                   "baldosa-win32-38503716264-new-first-racer-earned-1p-review.json")
+        data = json.loads(receipt.read_text(encoding="utf-8"))
+        self.assertEqual(data["workflow_run_id"], 38503716264)
+        self.assertEqual(data["product_pr_head_sha"],
+                         "baa1c3d56b0d982b731e40f6e45a1237a1659412")
+        self.assertEqual(data["package"]["romless_inner_zip_sha256"],
+                         "412a9a382e50206a201e94027c8ef21566ca458696dafa805e59747a98c8123c")
+        self.assertEqual(data["runtime"]["source_finish_ticks60"], 1679)
+        self.assertEqual(data["runtime"]["captured_input_frames"], 2253)
+        self.assertTrue(data["runtime"]["source_run_published"])
+        self.assertFalse(data["runtime"]["raw_saved_urrun_bytes_uploaded"])
+        self.assertFalse(data["independent_release_scope"][
+            "strict_original_native_event_accepted"])
+        self.assertFalse(data["package"]["approved_release_candidate"])
+        self.assertEqual(data["independent_release_scope"]["release_gate_credit"], 0)
+
     def test_valid_hosted_three_games_are_not_release_acceptance(self):
         d = self.check(*sample())
         self.assertTrue(d["hosted_first_racer_earned_1p_three_game_logs_consistent"])

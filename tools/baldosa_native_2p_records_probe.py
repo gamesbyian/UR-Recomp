@@ -37,9 +37,13 @@ SOURCE_TWO_PLAYER_DRIVE = (
     "press right+up+p2:right+p2:down 60",
     "press right+p2:right 1500",
 )
-# Keep one bounded observer window past the known stock 2P ordinary Race
-# no-time horizon; don't wait for a guessed guest menu that may have passed.
-AFTER_DRIVE_WAIT = 38500
+# First real pinned Win32 producer independently observed the original
+# 2P result at host frame 4377, while the stock GO-relative inputs themselves
+# continue to ~5542. Never burn 38,500 additional empty simulation frames
+# after a result already settled *during* the driven route. Stop after a
+# short, bounded guest grace window and require the actual 2P result log,
+# exact paired writer and fresh game readback for success.
+AFTER_DRIVE_WAIT = 120
 
 
 def source_match_script() -> str:

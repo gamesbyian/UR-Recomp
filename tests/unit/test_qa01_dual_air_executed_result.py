@@ -36,8 +36,12 @@ class PairedExecutedDualAir(unittest.TestCase):
                     side + "_progress": {"player1": {"laps_remaining": 1}},
                     side + "_velocity": [[0, (19 if frame == 2580 and
                                              side == "native" else 0)], [0, 0]],
-                    side + "_xy": [[858 if frame >= 2580 and side == "native"
-                                    else 857, 0], [0, 0]],
+                    side + "_xy": [
+                        [5054, 858 if frame >= 2580 and side == "native" else 857],
+                        [4505 if frame == 2580 else (4490 if frame == 2581 else 4521),
+                         (862 if side == "native" else 863) if frame == 2580
+                         else (864 if frame == 2581 else 860)],
+                    ],
                 })
             sample.append(row)
         import hashlib
@@ -82,6 +86,15 @@ class PairedExecutedDualAir(unittest.TestCase):
         self.assertEqual(
             [x["native_raw_air"] for x in result["neighbor_three_frame_samples"]],
             [[0, 1], [1, 2], [0, 0]])
+        self.assertEqual(
+            [x["p1_y_native_minus_original"] for x in
+             result["neighbor_three_frame_samples"]], [0, 1, 1])
+        self.assertEqual(
+            [x["p2_y_native_minus_original"] for x in
+             result["neighbor_three_frame_samples"]], [0, -1, 0])
+        self.assertEqual(
+            [x["native_vertical_velocity"] for x in
+             result["neighbor_three_frame_samples"]], [0, 19, 0])
 
     def test_synthetic_report_cannot_impersonate_real_executed_zip(self):
         with self.assertRaisesRegex(ValueError, "not the exact"):

@@ -67,7 +67,7 @@ def rgb5_match(original:bytes,native:bytes,*,with_rows:bool=False)->dict:
             normalized=(green5<<3)|(green5>>2)
             if normalized==ng:
                 green_conversion[g]=normalized
-            if (r,g if False else normalized,b)==(nr,ng,nb):
+            if (r,normalized,b)==(nr,ng,nb):
                 identical+=1
             else:
                 bad[y]+=1
@@ -148,13 +148,13 @@ def check(original_zip_path:Path,native_zip_path:Path)->dict:
                 sha(oz.read("qa08-original-source-window/frame_002207_256x224.raw"))!=ORIGINAL_2207_SHA or
                 best[1]["identical_RGB5_expanded_pixels"]>=top["identical_RGB5_expanded_pixels"]-10000):
             raise ValueError("genuine original/native 2P split-band pixel alignment differs")
-        original=np.frombuffer if False else oz.read("qa08-original-source-window/frame_002207_256x224.raw")
-        black=lambda pic,y, original_flag:all(
+        original=oz.read("qa08-original-source-window/frame_002207_256x224.raw")
+        black=lambda pic,y:all(
             (pic[(y*W+x)*4] ==0 and pic[(y*W+x)*4+1] ==0 and
              pic[(y*W+x)*4+2] ==0)
             for x in range(W))
-        if not (black(original,111,True) and black(original,112,True)
-                and black(native,112,False) and black(native,113,False)):
+        if not (black(original,111) and black(original,112)
+                and black(native,112) and black(native,113)):
             raise ValueError("original/native two-row forced-black split evidence changed")
         return {
             "schema":"qa08-original-Snes9x-vs-native-2P-exact-seam-pixel-discriminator/1",

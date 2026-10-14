@@ -61,11 +61,26 @@ class OriginalCgadsubTests(unittest.TestCase):
             lp.write_text("\n".join(log_lines())+"\n")
             result=probe.check(lp,cp,tp)
             self.assertEqual(result["observed_native_CGADSUB_companion_records"],7)
-            self.assertEqual(result["original_executed_2P_WRAM_source_values_observed"],0)
-            self.assertEqual(result["original_executed_2P_WRAM_source_comparison_matches"],0)
-            self.assertEqual(result["samples"][-1]["original_Snes9x_observed_WRAM_value"],None)
+            self.assertEqual(result["original_executed_2P_WRAM_source_values_observed"],6)
+            self.assertEqual(result["native_distinct_CGADSUB_source_addresses"],6)
+            self.assertEqual(result["original_executed_2P_unique_WRAM_source_values_matching_native"],6)
+            # The first source byte is primed + repeated, seven live transfers
+            # but only six independently original-executed source writers.
+            self.assertEqual(result["original_executed_2P_WRAM_source_comparison_matches"],7)
+            self.assertEqual(result["samples"][-1]["original_Snes9x_observed_WRAM_value"],"0x04")
             self.assertFalse(result["full_original_native_same_input_parity_proven"])
             self.assertFalse(result["physical_SNES_hardware_timing_proven"])
+
+    def test_native_original_byte_disagreement_is_reported_without_fabricating_parity(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);cp,tp=reports(root);lp=root/"log.txt"
+            lines=log_lines()
+            lines[-1]=lines[-1].replace("value=04", "value=05").replace("cgadsub=04","cgadsub=05")
+            lp.write_text("\n".join(lines)+"\n")
+            result=probe.check(lp,cp,tp)
+            self.assertEqual(result["original_executed_2P_unique_WRAM_source_values_matching_native"],5)
+            self.assertEqual(result["original_executed_2P_WRAM_source_comparison_matches"],6)
+            self.assertFalse(result["full_original_native_same_input_parity_proven"])
 
     def test_malformed_and_missing_native_cgadsub_records_rejected(self):
         with tempfile.TemporaryDirectory() as d:

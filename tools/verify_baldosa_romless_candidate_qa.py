@@ -28,6 +28,10 @@ from check_baldosa_win32_first_racer_evidence import audit_hosted_win32_first_ra
 from check_baldosa_win32_first_racer_earned_records_qa import audit_hosted_first_racer_earned_1p
 from check_baldosa_win32_cmd_first_racer_evidence import audit_win32_cmd_first_racer_source
 from check_baldosa_win32_second_racer_go_qa import audit_win32_second_created_racer_go
+from check_baldosa_win32_product_groups_qa import (
+    ALLOWED_MEMBERS as PRODUCT_SOURCE_MEMBERS,
+    audit_extra_hosted_groups,
+)
 
 SHA40 = re.compile(r"[0-9a-f]{40}\Z")
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
@@ -223,6 +227,8 @@ def audit(archive_path: Path, source_sha: str, zip_sha256: str) -> dict:
         ],
         metrics={"executable_payload_sha256": exe_digest,
                  "launcher_reparse_ancestor_guard_present": reparse_protected,
+                 "launcher_rejects_rooted_but_relative_user_root_verified": False,
+                 "launcher_absolute_save_override_windows_negative_executed": False,
                  "template_bytes_compared_against_matching_source_commit": False,
                  "physical_windows_verified": False,
                  "integrated_native_1p_2p_journey_verified": False,
@@ -364,7 +370,7 @@ RUNTIME_ALLOWED_MEMBERS = frozenset((
     RUNTIME_SECOND_CREATED_RACER_GROUP
 ) | frozenset((
     RUNTIME_NOARGS_FIRST_RACER_LOG,
-))
+)) | PRODUCT_SOURCE_MEMBERS
 
 
 def check_runtime_actions_wrapper(
@@ -488,6 +494,7 @@ def check_runtime_actions_wrapper(
                 bounded(RUNTIME_NOARGS_FIRST_RACER_LOG, 2 * 1024 * 1024)
                 if RUNTIME_NOARGS_FIRST_RACER_LOG in names else None
             )
+            product_source_metrics = audit_extra_hosted_groups(archive)
     except zipfile.BadZipFile as exc:
         raise ValueError("Baldosa Win32 runtime evidence ZIP is corrupt") from exc
     try:
@@ -662,6 +669,35 @@ def check_runtime_actions_wrapper(
     )
     candidate["metrics"]["hosted_1p_stock_entry_observed"] = True
     candidate["metrics"]["hosted_2p_stock_entry_observed"] = True
+    candidate["metrics"].update(product_source_metrics)
+    if product_source_metrics[
+        "hosted_real_six_native_process_ui_created_pair_and_both_records_log_consistent"
+    ]:
+        candidate["assertions"].append(assertion(
+            "hosted-six-native-process-created-pair-scored-ui-selected-records-source-logs-consistent",
+            True,
+        ))
+    elif product_source_metrics[
+        "hosted_real_five_native_process_backend_selected_pair_log_consistent"
+    ]:
+        candidate["assertions"].append(assertion(
+            "hosted-five-native-process-created-pair-scored-backend-selected-records-source-logs-consistent",
+            True,
+        ))
+    if product_source_metrics[
+        "hosted_real_existing_p1_switch_both_directions_log_consistent"
+    ]:
+        candidate["assertions"].append(assertion(
+            "hosted-native-existing-profile-selector-both-directions-source-logs-consistent",
+            True,
+        ))
+    if product_source_metrics[
+        "hosted_first_anonymous_nondefault_andrew_source_boot_log_consistent"
+    ]:
+        candidate["assertions"].append(assertion(
+            "hosted-first-nondefault-andrew-source-created-and-fresh-boot-logs-consistent",
+            True,
+        ))
     # An empty-but-read-only tab is a valid negative safety observation,
     # not positive evidence that a historical saved match was visible.
     visible_history = has_history and history["historical_2p_pairs_read"] > 0

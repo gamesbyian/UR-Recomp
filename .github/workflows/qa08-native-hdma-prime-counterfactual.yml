@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: qa08-prime-one-shot-\${{ github.event.pull_request.number || github.ref }}
+  group: qa08-prime-one-shot-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -140,12 +140,12 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
           path: |
-            \${{ runner.temp }}/qa08-counterfactual/real-native-raster.json
-            \${{ runner.temp }}/qa08-counterfactual/baseline-inidisp.log
-            \${{ runner.temp }}/qa08-counterfactual/experiment-inidisp.log
-            \${{ runner.temp }}/qa08-counterfactual/baseline/fd/crc.txt
-            \${{ runner.temp }}/qa08-counterfactual/experiment/fd/crc.txt
-            \${{ runner.temp }}/qa08-counterfactual/baseline/log.txt
-            \${{ runner.temp }}/qa08-counterfactual/experiment/log.txt
-            \${{ runner.temp }}/qa08-native-baseline/ur-baldosa-original-source-002208.pam
-            \${{ runner.temp }}/qa08-native-experiment/ur-baldosa-original-source-002208.pam
+            ${{ runner.temp }}/qa08-counterfactual/real-native-raster.json
+            ${{ runner.temp }}/qa08-counterfactual/baseline-inidisp.log
+            ${{ runner.temp }}/qa08-counterfactual/experiment-inidisp.log
+            ${{ runner.temp }}/qa08-counterfactual/baseline/fd/crc.txt
+            ${{ runner.temp }}/qa08-counterfactual/experiment/fd/crc.txt
+            ${{ runner.temp }}/qa08-counterfactual/baseline/log.txt
+            ${{ runner.temp }}/qa08-counterfactual/experiment/log.txt
+            ${{ runner.temp }}/qa08-native-baseline/ur-baldosa-original-source-002208.pam
+            ${{ runner.temp }}/qa08-native-experiment/ur-baldosa-original-source-002208.pam

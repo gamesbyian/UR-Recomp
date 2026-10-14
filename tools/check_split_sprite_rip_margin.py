@@ -134,7 +134,7 @@ def check(route: str, frames: Path, margin: int, min_split_frames: int) -> dict[
                       metrics["split_frames"] >= min_split_frames and metrics["hidden_copies"] > 0,
                       {"split_frames": metrics["split_frames"],
                        "hidden_copies": metrics["hidden_copies"]}),
-            assertion(f"{route}-WRAM-shadow-projected-hidden-copies-stay-out-of-margin",
+            assertion(f"{route}-hidden-copies-stay-out-of-margin",
                       not metrics["leaks"],
                       {"leaks": metrics["leaks"], "clearance_px": metrics["clearance_px"]}),
         ],

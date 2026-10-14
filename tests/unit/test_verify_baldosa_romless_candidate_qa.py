@@ -257,6 +257,19 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
                 evidence, qa.audit(inner, source, digest),
             )
             self.assertEqual(bounded_diagnostic["outcome"], "inconclusive")
+            # An allowlisted diagnostic member is not itself inspected for
+            # product credit, but it still must be bounded against a highly
+            # compressible multi-megabyte private export / ZIP bomb.
+            pack(one, two)
+            with zipfile.ZipFile(evidence, "a", compression=zipfile.ZIP_DEFLATED) as z:
+                z.writestr(
+                    "UR Baldosa Win32 Pause Route/with_pause/log.txt",
+                    "x" * (2 * 1024 * 1024 + 1),
+                )
+            with self.assertRaisesRegex(ValueError, "oversized/empty ZIP member"):
+                qa.check_runtime_actions_wrapper(
+                    evidence, qa.audit(inner, source, digest),
+                )
             for unexpected in (
                 "exported-private-profile.txt",
                 "ROM-renamed-as-a-log.json",

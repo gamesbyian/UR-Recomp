@@ -28,7 +28,7 @@ terminated process between those steps leaves a full, unregistered
 creation must refuse overwriting it. This otherwise strands the second-racer
 setup flow. The first-racer path already has exact-selector recovery.
 
-The Modern P2 product candidate now extends that **same existing** controller
+**Merged #1560** extends that **same existing** controller
 X / preset / A action with narrowly admitted recovery: after normal creation
 reports pre-existing data, only a complete, exact stock-initial P2 with the
 requested original preset, correct deterministic profile ID, exactly the
@@ -43,11 +43,23 @@ redirection, changed selector or roster and duplicate/repeated recovery
 reject without repair or destructive cleanup. Success still requires a fresh
 native process before either user's authenticated match identity is usable.
 
-**Evidence classification:** unit C++ fault-cut testing reproduces the
-staged-file/pre-catalog shape using the actual Modern typed profile and
-stock-SRAM writer; native Win32 acceptance must run on the final source head.
-This is not an actual OS power-loss test, a generic filesystem-repair feature
-or permission to change independent release-ledger status.
+**Evidence classification:** #1560 passed exact-head C++ fault-cut,
+unit/hygiene, native boot, Baldosa integration and full native Windows
+non-regression. The recover function's actual native UI route was not exercised
+by those positive journeys. A separate focused Windows extension now reuses
+the existing Win32 executable, four fresh native processes and production P1
+semantic gamepad handler: genuine first-user MIKE creation, genuine MARTIN P2
+creation, a **test-only** restoration of the previously retained one-entry
+catalog to reproduce the post-P2-files/pre-catalog failure shape, explicit
+X/Down/A catalog recovery, and a fresh original stock 2P GO. It independently
+compares the pre-fault and post-recovery original P2 typed/raw/OS-mutex bytes,
+canonical full roster and active P1 selector, and retains only bounded logs
+in a **separate** Windows artifact to preserve QA-12's source ZIP allowlist.
+
+This test exercises real source guest processes and the real controller-input
+handler with a synthetic storage fault cut. It does **not** reproduce actual
+power loss, physical controller hardware, a completed scored result within
+the recovery subroute, or grant independent release ledger credit.
 
 ## Product candidate: pre/post fresh Records raw-pair snapshots (2026-10-14)
 

@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 
 from baldosa_native_first_racer_probe import (
@@ -159,22 +160,203 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
     }
 
 
+
+def require_native_created_p1_pad_handler(log: str, mode: str) -> None:
+    """Require all and only the native handler receipts for a source UI create."""
+    expected = {
+        "8": ["X", "A"],
+        "9": ["X", "DPAD_DOWN", "A"],
+    }
+    if mode not in expected:
+        raise ValueError("Unrecognized real native creation pad mode")
+    observed = re.findall(
+        r"(?m)^UR_BALDOSA_MODERN_ROOT "
+        rf"synthetic_profile_gamepad mode={mode} button=([A-Z_]+)\r?$",
+        log)
+    if observed != expected[mode] or (
+            log.count("UR_BALDOSA_MODERN_ROOT synthetic_profile_gamepad ")
+            != len(expected[mode])):
+        raise ValueError("Missing, duplicated or foreign P1 native pad edges")
+
+
+def require_native_p2_recovery(log: str) -> None:
+    """Admission of real gamepad-handler X/Down/A and catalog-only recovery.
+
+    This is a source log consumer, never the authority for real saved bytes.
+    The caller separately rehashes P1/P2/catalog and checks original guest GO.
+    """
+    stages = (
+        "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=mike "
+        "root=saves/profile-mike",
+        "UR_BALDOSA_MODERN_ROOT opened=1",
+        "UR_BALDOSA_MODERN_ROOT second_racer_opened=1 preset=1 "
+        "activation=next_process",
+        "UR_BALDOSA_MODERN_ROOT second_racer_preset=2",
+        "UR_BALDOSA_NATIVE_SECOND_RACER_RECOVERY restored=1 "
+        "catalog_only=1 p1_unchanged=1 activation=next_process",
+        "UR_BALDOSA_NATIVE_SECOND_RACER status=4 preset=2 "
+        "id=martin activation=next_process",
+        "UR_BALDOSA_MODERN_ROOT second_racer_created=1 activation=next_process",
+    )
+    offsets = []
+    for value in stages:
+        if log.count(value) != 1:
+            raise ValueError("Missing/duplicate real P2 recovery stage: " + value)
+        offsets.append(log.index(value))
+    if offsets != sorted(offsets):
+        raise ValueError("P2 recovery not ordered after explicit source modal")
+    require_native_created_p1_pad_handler(log, "9")
+    for forbidden in (
+        "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=martin",
+        "UR_BALDOSA_MODERN_ROOT stock_entered players=",
+        "UR_BALDOSA_NATIVE_MATCH CAPTURED=1",
+        "UR_BALDOSA_NATIVE_RUN CAPTURED=1",
+        "UR_BALDOSA_NATIVE_SECOND_RACER status=0",
+    ):
+        if forbidden in log:
+            raise ValueError("P2 recovery hot-swapped guest or minted new record")
+
+
+def run_interrupted_catalog_recovery(exe: Path, rom: Path, fixture: Path,
+                                     out: Path, *, timeout: int,
+                                     video: str) -> dict[str, object]:
+    """Actual native UI-created P2, test-only lost final catalog, UI recovery.
+
+    Only the CI-owned single-row catalog is deliberately restored, between
+    fully exited native processes. P1 and P2 are genuinely created using
+    the shipping gamepad handler; no fixture creates players/results.
+    """
+    for path in (exe, rom, fixture):
+        if path.is_symlink() or not path.is_file():
+            raise ValueError("Source native recovery inputs unavailable")
+    if sha256(rom) != USA_SHA256:
+        raise ValueError("Source native recovery requires exact USA retail ROM")
+    out.mkdir(parents=True, exist_ok=False)
+    user = out / "Interrupted Native P2 Catalog Test Only"
+    user.mkdir()
+
+    first = run_game(
+        exe, rom, user, out / "first_native_mike", "8",
+        "turbo on\nwait 900\nquit\n", video, timeout)
+    verify_creation(first, preset=0)
+    require_native_created_p1_pad_handler(first, "8")
+    selector = user / "host-state-v1.txt"
+    catalog = user / "profiles-v1.txt"
+    if any(not p.is_file() or p.is_symlink() for p in (selector, catalog)):
+        raise ValueError("P1 canonical selector/catalog absent or redirected")
+    one_entry = catalog.read_bytes()
+    selected = selector.read_bytes()
+    verify_native_save_codec(fixture, user, timeout, profile="mike")
+
+    created = run_game(
+        exe, rom, user, out / "second_native_martin", "9",
+        "turbo on\nwait 900\nquit\n", video, timeout)
+    require_p2_creation(created, preset=2)
+    require_native_created_p1_pad_handler(created, "9")
+    verify_native_save_codec(fixture, user, timeout, profile="mike")
+    verify_native_save_codec(fixture, user, timeout, profile="martin")
+    if selector.read_bytes() != selected:
+        raise ValueError("Native-created P2 changed active P1")
+    two_entries = catalog.read_bytes()
+    if two_entries == one_entry:
+        raise ValueError("Native P2 did not publish catalog before fault cut")
+    typed_p2 = user / "saves/profile-martin/host-profile.txt"
+    raw_p2 = user / "saves/profile-martin/save.srm"
+    mutex_p2 = user / "saves/profile-martin/host-profile.txt.urmutex"
+    if any(not p.is_file() or p.is_symlink() for p in
+           (typed_p2, raw_p2, mutex_p2)):
+        raise ValueError("Actual native P2 staging files missing")
+    before_p2 = (typed_p2.read_bytes(), raw_p2.read_bytes(),
+                 mutex_p2.read_bytes())
+    if len(before_p2[1]) != 8192 or before_p2[1][0x0748] != 2 or before_p2[2]:
+        raise ValueError("P2 original rider or canonical CAS lock bytes wrong")
+
+    # Test-only fault cut: restore the exact catalog from *native game 1*.
+    # No player is created, patched or seeded by the fixture; all source
+    # executable processes have exited before this reversible catalog cut.
+    if user.parent != out or user.name != "Interrupted Native P2 Catalog Test Only":
+        raise ValueError("Refuse fault injection outside disposable CI root")
+    catalog.write_bytes(one_entry)
+    if catalog.read_bytes() != one_entry or selector.read_bytes() != selected:
+        raise ValueError("Fault-cut catalog restoration changed selector")
+    if (typed_p2.read_bytes(), raw_p2.read_bytes(),
+            mutex_p2.read_bytes()) != before_p2:
+        raise ValueError("Fault cut changed original native-created P2 bytes")
+
+    recovered = run_game(
+        exe, rom, user, out / "third_native_p2_recovers", "9",
+        "turbo on\nwait 900\nquit\n", video, timeout)
+    require_native_p2_recovery(recovered)
+    if catalog.read_bytes() != two_entries or selector.read_bytes() != selected:
+        raise ValueError("Native recovery did not publish only original P2 catalog")
+    if (typed_p2.read_bytes(), raw_p2.read_bytes(),
+            mutex_p2.read_bytes()) != before_p2:
+        raise ValueError("Recovery rewrote the actual P2 identity or SRAM")
+    verify_native_save_codec(fixture, user, timeout, profile="mike")
+    verify_native_save_codec(fixture, user, timeout, profile="martin")
+
+    joined = run_game(
+        exe, rom, user, out / "fourth_native_two_seat_go", "3",
+        native_modern_race_entry_script(2), video, timeout)
+    require_actual_two_seat_go(joined)
+    verify_native_modern_root_log(joined, 2)
+    verify_native_save_codec(fixture, user, timeout, profile="mike")
+    verify_native_save_codec(fixture, user, timeout, profile="martin")
+    if catalog.read_bytes() != two_entries or selector.read_bytes() != selected:
+        raise ValueError("Original stock two-seat guest mutated recovered authority")
+    if (typed_p2.read_bytes(), raw_p2.read_bytes(),
+            mutex_p2.read_bytes()) != before_p2:
+        raise ValueError("Recovered P2 leaked into original native session")
+    match_archive = user / "multiplayer-runs"
+    if match_archive.exists():
+        if match_archive.is_symlink() or not match_archive.is_dir() or any(
+                file.name.endswith((".urrun", ".urmatch"))
+                for file in match_archive.iterdir()):
+            raise ValueError("Recovery/GO published a false paired record")
+    one_player_archive = user / "runs"
+    if one_player_archive.exists() and (
+            one_player_archive.is_symlink() or
+            list(one_player_archive.rglob("*.urrun"))):
+        raise ValueError("Recovery/GO manufactured an unearned run")
+    return {
+        "scope": "four-real-windows-games-native-created-martin-recovered-catalog",
+        "fault_cut": "ci-only-restore-original-single-row-catalog",
+        "source_created_named_profiles": ["mike", "martin"],
+        "first_and_second_real_p1_pad_handler": True,
+        "third_real_p1_pad_handler_catalog_only_recovery": True,
+        "fourth_real_guest_two_seat_stock_go": True,
+        "unmodified_p2_typed_raw_mutex": True,
+        "original_p1_selector_unchanged": True,
+        "physical_os_crash_proven": False,
+        "genuine_completed_match_proven_by_this_route": False,
+        "physical_controller_hardware_proven": False,
+        "release_gate_credit": 0,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("exe", "rom", "fixture", "out"):
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--video", default="windows")
     parser.add_argument("--timeout", type=int, default=180)
+    parser.add_argument("--recover-interrupted-catalog", action="store_true")
     args = parser.parse_args()
     paths = [getattr(args, name).resolve()
              for name in ("exe", "rom", "fixture", "out")]
-    report = run(*paths, timeout=args.timeout, video=args.video)
+    report = (run_interrupted_catalog_recovery if args.recover_interrupted_catalog
+              else run)(*paths, timeout=args.timeout, video=args.video)
     (paths[-1] / "report.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n",
         encoding="utf-8")
-    print("PASS: real native P1 creation, named P1 adds private P2, "
-          "a third native game confirms both genuine seats and source 2P GO. "
-          "No result/parity/physical pad release credit.")
+    if args.recover_interrupted_catalog:
+        print("PASS: actual native UI-created P2, lost-catalog fault-cut, "
+              "controller-recovered original P2 catalog and real next-boot "
+              "stock 2P GO. No physical OS crash or release credit.")
+    else:
+        print("PASS: real native P1 creation, named P1 adds private P2, "
+              "a third native game confirms both genuine seats and source 2P GO. "
+              "No result/parity/physical pad release credit.")
     return 0
 
 

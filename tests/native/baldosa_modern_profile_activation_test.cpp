@@ -19,6 +19,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <sys/wait.h>
 #include <unistd.h>
 
 extern "C" int ur_baldosa_modern_try_activate_profile(void);
@@ -57,9 +58,39 @@ extern "C" void RtlEnsureSaveDir(void) {
     std::filesystem::create_directories(root);
 }
 
-int main() {
+int main(int argc, char** argv) {
     namespace fs = std::filesystem;
     using namespace ur::product;
+
+    // This reader is a new executable process, not the writer's live state.
+    // Decode the two independently persisted Records types through the
+    // existing real store/catalog codecs; never synthesize a guest result.
+    if (argc == 3 && std::string(argv[1]) == "--verify-fresh-records") {
+        const fs::path root = argv[2];
+        const auto runs = load_valid_run_records(
+            (root / "runs/rider-1").string());
+        const auto matches = load_valid_multiplayer_matches(
+            (root / "multiplayer-runs").string());
+        if (runs.size() != 1 || matches.size() != 1) return 31;
+        if (runs[0].record.provenance.mode != "race-1p" ||
+            runs[0].record.provenance.course_id != "course:01" ||
+            runs[0].record.elapsed_ticks60 != 740 ||
+            runs[0].record.inputs.size() != 2) return 32;
+        const auto& pair = matches[0];
+        if (pair.run.provenance.mode != "race-2p" ||
+            pair.run.provenance.course_id != "course:01" ||
+            pair.run.inputs.size() != 1 ||
+            pair.run.inputs[0].p1_mask != 0x10u ||
+            pair.run.inputs[0].p2_mask != 0x20u ||
+            pair.match.context.match.player1.profile_id != "rider-1" ||
+            pair.match.context.match.player2.profile_id != "rider-2" ||
+            pair.match.context.match.result.player1_hundredths != 2866 ||
+            pair.match.context.match.result.player2_hundredths != 2977)
+            return 33;
+        std::puts("PASS: fresh-process native Modern 1P and paired 2P Records readback");
+        return 0;
+    }
+    assert(argc == 1);
 
     const auto dir = fs::temp_directory_path() /
         ("ur-baldosa-real-modern-profile-" + std::to_string(getpid()));
@@ -331,6 +362,21 @@ int main() {
     assert(!ur_baldosa_modern_publish_settled_two_player_match(
         &observed_2p, &p1, &p2));
     assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() == 1);
+
+    // A new process image must reopen the canonical 1P run and both linked
+    // 2P match artifacts; same-process loads above are insufficient proof.
+    const auto child = fork();
+    assert(child >= 0);
+    if (child == 0) {
+        const auto executable = fs::absolute(argv[0]).string();
+        execl(executable.c_str(), executable.c_str(),
+              "--verify-fresh-records", dir.c_str(),
+              static_cast<char*>(nullptr));
+        _exit(127);
+    }
+    int fresh_status = 0;
+    assert(waitpid(child, &fresh_status, 0) == child);
+    assert(WIFEXITED(fresh_status) && WEXITSTATUS(fresh_status) == 0);
 
     // The canonical shared match writer must reject both live and broken
     // symlink substitutions before creating any stage/public run outside

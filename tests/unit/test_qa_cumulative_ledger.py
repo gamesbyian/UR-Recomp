@@ -94,6 +94,40 @@ class CumulativeLedgerContracts(unittest.TestCase):
         self.assertEqual(row["metrics"]["observations"],3)
         self.assertEqual(state["records"][0]["origin"],"coordinator")
 
+    def test_original_native_failed_workflow_and_missing_aggregate_are_distinct(self):
+        p=make(selected="original-native")
+        # A failed reusable workflow with a retained aggregate is NOT the same
+        # condition as a successful child with no expected aggregate. Neither
+        # justifies inventing a first failing job step or accepting an event.
+        for job_result,aggregate_present,reason in (
+            ("failure",False,"reusable workflow did not succeed"),
+            ("failure",True,"reusable workflow did not succeed"),
+            ("cancelled",False,"reusable workflow did not succeed"),
+            ("skipped",False,"reusable workflow did not succeed"),
+            ("success",False,"aggregate missing after successful"),
+        ):
+            producer=({"schema":"ur-qa01-event-campaign/1","source_sha":SHA}
+                      if aggregate_present else None)
+            with self.subTest(job_result=job_result,present=aggregate_present):
+                next_ledger,row=c.append(LEDGER,p,producer,job_result)
+                self.assertEqual(row["disposition"],"incomplete_or_failed")
+                self.assertEqual(row["release_gate_credit"],0)
+                self.assertIn(reason,row["metrics"]["reason"])
+                self.assertEqual(row["metrics"]["reusable_job_result"],job_result)
+                self.assertIs(row["metrics"]["aggregate_present"],aggregate_present)
+                self.assertIs(row["metrics"]["first_failed_child_step_verified"],False)
+                self.assertEqual(len(next_ledger["records"]),1)
+                self.assertNotIn("cases",row["metrics"])
+        # A genuine complete negative is still valid science and zero release.
+        complete={"schema":"ur-qa01-event-campaign/1","source_sha":SHA,
+                  "transport_complete":True,"release_admissions":0,
+                  "counts":{"strict_divergence":3,"strict_candidate":0,
+                            "missing_evidence":0,"producer_error":0},
+                  "selected_cases":3,"completed":3}
+        _,negative=c.append(LEDGER,p,complete,"success")
+        self.assertEqual(negative["disposition"],"strict_divergence")
+        self.assertEqual(negative["release_gate_credit"],0)
+
     def test_source_rejection_and_incomplete_population(self):
         p=make()
         for report,reason in (

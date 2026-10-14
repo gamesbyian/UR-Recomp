@@ -284,8 +284,8 @@
     "docs/QA01-2014-COMPLETE-EVENT-TRANSPLANT.md (0x84->0x16 by 83:988A / Sram_RestoreDirectPage)"
    ],
    "observation": "49 seeds, measured lag 2 in all: decoded source fields identical through laps-zero (same frame in 49/49) and until the reference's 0x16 restoration; result-menu onset on the same frame in 43, one frame earlier on native in 6; scheduler parity at onset does not predict the outcome. Raw semantic WRAM ($0200+) first differs 1-2 native frames BEFORE result-menu (0x84) onset in 49 of 49 seeds (all five arms). For 50036056 at native 5196-5198 the original builds the sound-command queue at 7E:2000 (wSndQueueRead/Write/ApuToggle, serviced by 82:8035 inside the 80:FAC9 wait) in one frame (first word 01->02->04); native shows a different intermediate one frame later (01->03->04). 7E:0BDE/0BFE start at 0xCC->0xC8 on the original but 0xC4->0xC0 on native, an offset of 8 held through the whole phase. The 0x84 phase then lasts 34 frames on Snes9x (and on Beetle-bsnes for 50036056) and 35 on native in 48 of 49 (36 for 50024003). Per-core boundaries differ: Snes9x onset same frame in 43 and native one earlier in 6, with the restore later on native; Beetle-bsnes (50036056) onset native 5198 vs 5199, both restore 5233. 7E:009F is the DrawText cursor wTextPos (#1543), so 0x84->0x16 is a raw terminal signature. Adjudicated on the high-accuracy bsnes core (with tools/patches/bsnes-libretro-system-ram.patch): 34 frames in 9 of 9 seeds, matching Snes9x. See RF-015 for the product core, which errs the other way.",
-   "uncertainty": "Local candidate evidence (current-main native 4c1c8b56...) until independently re-executed with raw-dump receipts. 83:987D Sram_RestoreDirectPage is a downstream 207-word SRAM->DP copy, not a proven diverging decision. Gameplay significance pending the upstream caller and actual 7E:009F writer on each core. 7E:2000-2004 is the SPC700 sound-command queue (Baldosa RAM map; 82:8035 reads $2142); 7E:0BDE/0BFE is unnamed; whether the 8-unit offset is guest-visible (sprite Y or banner position) or only scheduling is unproven.",
-   "resolving_experiment": "QA-01: trace the 82:8035 sound-queue service ($2142, 7E:2000/2002/2004) and the 80:FAC9 $4212 edges at native 5195-5198 vs original 5193-5196 on 50036056, per core; see RF-014 for the common lag-frame lead.",
+   "uncertainty": "Local candidate evidence (current-main native 4c1c8b56...) until independently re-executed with raw-dump receipts. 83:987D Sram_RestoreDirectPage is a downstream 207-word SRAM->DP copy, not a proven diverging decision. Gameplay significance pending the upstream caller and actual 7E:009F writer on each core. 7E:2000-2004 is the SPC700 sound-command queue (Baldosa RAM map; 82:8035 reads $2142); 7E:0BDE/0BFE is unnamed; whether the 8-unit offset is guest-visible (sprite Y or banner position) or only scheduling is unproven. 2026-10-14: the 7E:2000 queue step at 5196 also differs between Snes9x and bsnes, so it is not by itself evidence of a native defect.",
+   "resolving_experiment": "Measure the legacy pin's arrival line at the post-load 80:FAC9 wait and matched 82:B1DD upload checkpoint drift against Snes9x (the RF-015 method). The 5196 sound-queue step is phase-sensitive between correct cores (Snes9x vs bsnes) and cannot localize a defect by itself. cd5875c carries the same refresh-rate code as Baldosa yet errs long, so its larger beam/$4212 deficit (RF-014) dominates.",
    "consequence": "A cheap deterministic 2P reproducer of the same result-handoff seam behind the open 1P Switcher +4704/+4702 strict divergence; it does not change any comparator or acceptance."
   },
   {
@@ -335,9 +335,9 @@
   },
   {
    "id": "RF-015",
-   "title": "Baldosa (product core) 2P result phase lasts 33 frames where the original lasts 34: one frame short, the same sign as QA-01's 1P Switcher seam",
+   "title": "Baldosa (product core) 2P result phase lasted 33 frames where the original lasts 34: DRAM refresh charged per 1364 execution clocks instead of per 1364-clock beam line (corrected)",
    "class": "original_native_discrepancy",
-   "status": "handed_off",
+   "status": "resolved",
    "evidence": "original_and_native",
    "owner_lane": "qa01-gameplay",
    "reproducer": {
@@ -350,12 +350,38 @@
    "source_artifacts": [
     "analysis/data/frontier-original-native-race-relative-20261014.json baldosa_paired_snes9x_terminal, bsnes_accurate_result_phase",
     "Baldosa gamesbyian/uniracers-recomp 10b864b (snesrecomp fork 075fbe4) + research two-seat input shim, executable 279d053f...",
-    "docs/QA01-SWITCHER-2014-ORIGINAL-SOURCE-PROBE.md: 1P original 0x84 +4665..+4698 (34 frames) vs Baldosa +4664..+4696 (33)"
+    "docs/QA01-SWITCHER-2014-ORIGINAL-SOURCE-PROBE.md: 1P original 0x84 +4665..+4698 (34 frames) vs Baldosa +4664..+4696 (33)",
+    "docs/QA01-RF015-DRAM-REFRESH-BEAM-RATE-20261014.md",
+    "analysis/data/rf015-dram-refresh-beam-rate-20261014.json"
    ],
    "observation": "9 of 9 seeds (all arms): Baldosa enters the 2P race on the original frame (1134, lag 0) and stays identical in all semantic WRAM through the race and result onset; the 0x84 phase lasts 33 frames vs 34 on Snes9x and on the high-accuracy bsnes core; onset same frame in 7 seeds and one frame early in 2; restore 1-2 frames early. The 2P race-finish black screen is 129 frames on Baldosa vs 131 on bsnes and 130 on Snes9x. Frame-by-frame against bsnes-accurate on 50036056 (host 5180-5241, both expose WRAM): semantic WRAM identical through 5195; at 5196 the 7E:2000 sound-command queue (wSndQueueRead) differs; at 5197 Baldosa's 7E:00C6 vblank-wait counter decrements one frame early (0x1e vs 0x1f; 7E:0BDE/0BFE follow); Baldosa's 7E:009F=0x84 onset is 5198 vs 5199 (Snes9x 5198); 5199-5229 identical; Baldosa restores 0x16 at 5231 vs 5233, then runs 2 vblank-wait passes ahead and leaves the race screen at 5235 vs >=5237.",
-   "uncertainty": "Local candidate evidence until independently re-executed. Mechanism unknown; gameplay significance pending the upstream caller and 7E:009F writer receipts QA-01 already requested (raw signature, wTextPos).",
-   "resolving_experiment": "QA-01: at host 5195-5197 on Baldosa vs bsnes-accurate (50036056) record guest PC at 82:803C/8043/804E/806D, $2142 reads/writes and 7E:2000/2002/2004, then the paired 80:FAC9 $4212 edges: the first divergence is the CPU-APU sound-queue handshake one frame before Baldosa's early vblank-wait pass; check whether the 1P Switcher +4664 early onset shares it. Native-side receipt (QA-01 source note on #1537): 82:803C reads $2142 8-bit (SEP #$30 at 82:803A) and 82:806D writes $2142/$2143 16-bit (REP #$20); record the read values, g_apu_frame_time_valid (selects apu_runToGuestCycle vs the snes_catchupApu fallback), rtl_apu_guest_cycle(), apu->portClock and whether 82:806D fired with its port order (WriteRegWord delivers high port first) using a non-consuming read-only observer. No retiming patch before dual-core PC and native clock receipts.",
-   "consequence": "A shared, cheap 2P reproducer for QA-01's live 1P strict divergence on the actual product core, with a cycle-accurate reference; the legacy pin's opposite error (RF-012) means fixes must be validated per core."
+   "uncertainty": "Cause established locally with exact binaries (unpatched build bit-identical to research 279d053f...). The earlier 'first divergence at 5196 in the CPU-APU handshake' reading is falsified: Snes9x and bsnes differ from each other in the same 5196/5197/5198 pattern, and Baldosa equals Snes9x in all semantic WRAM 5192-5230. In-line refresh position remains execution-relative (rate exact, instant within 40 clocks). Hosted re-execution and product-build staging are separate steps.",
+   "resolving_experiment": "Done: executed-PC trace (Snes9x) and read-only beam observer (Baldosa) of the 82:B1D8 upload and the post-load 80:FAC9 two-edge wait; see resolution.",
+   "consequence": "A shared, cheap 2P reproducer for QA-01's live 1P strict divergence on the actual product core, with a cycle-accurate reference; the legacy pin's opposite error (RF-012) means fixes must be validated per core.",
+   "resolution": "The raw 0x84 phase is an NMI-disabled CPU VRAM upload (82:B1D8, 470 clocks per two-byte iteration on both engines) followed by the two-edge wait 80:FAC9. Snes9x arrives at V=230, misses the edge and waits a whole extra field; Baldosa arrives at V=224 and does not. Matched 82:B1DD checkpoints show a uniform 0.087% CPU-time surplus on Baldosa, exactly the 1.14 clocks/line predicted by snes_refresh_charge() moving its watermark past the 40-clock stall (one refresh per 1404 beam clocks). tools/baldosa_dram_refresh_beam_rate_patch.py keeps the watermark before the stall; regression tests/unit/test_baldosa_dram_refresh_beam_rate_patch.py compiles and executes both functions. With it, 2P seeds give 34 = 34 with exact semantic-WRAM agreement through host 6400 against Snes9x or bsnes (onset frame where the two references disagree matches one of them), and the unchanged QA-01 Zoom Zoo producer gives terminal +5163 = +5163, classified strict_candidate (not an accepted event)."
+  },
+  {
+   "id": "RF-016",
+   "title": "Baldosa runs the SPC700 at 17088 cycles per 357368-clock field (~1.02696 MHz) where Snes9x and bsnes use ~1.02528 MHz: the no-input attract SPC upload ends ~54 lines early",
+   "class": "original_native_discrepancy",
+   "status": "handed_off",
+   "evidence": "original_and_native",
+   "owner_lane": "qa01-gameplay",
+   "reproducer": {
+    "command": "python3 tools/qa_blank_screen_census.py --input <comment-only input> --snesref <snesref> --core <bsnes patched> --core <snes9x> --baldosa-exe <Baldosa 10b864b + research 2P shim [+ refresh patch]> --frames 240-290,395-455,935-1105,1415-1555,3625-3770 --allow-gaps --work W --out R",
+    "race_relative_lag": 0,
+    "route": "no-input attract cycle",
+    "runs": []
+   },
+   "source_artifacts": [
+    "docs/QA01-RF015-DRAM-REFRESH-BEAM-RATE-20261014.md",
+    "analysis/data/rf015-dram-refresh-beam-rate-20261014.json",
+    "snesrecomp runner/src/apu_frame_clock.h RTL_APU_CYCLES_PER_FRAME 17088 at baldosa/snesrecomp@075fbe4"
+   ],
+   "observation": "Low WRAM ($0200-$1DFF) is identical on Snes9x, bsnes and both Baldosa builds every frame 2-1096. The 941-1098 black load is Snd_UploadBlockList (82:82A9): 64 block headers via JSR $8328 and CPU decompression (82:812A) feeding a byte stream (82:82EF STA $2143/STA $2142, 82:8301 CMP $2142/BNE). All 46,414 port-2 writes align one-to-one by value; Baldosa gains ~19k master clocks during the IPL/handshake phase (1009-1025) and ~50k steadily across the ~71-field stream (655 vs 653-654 bytes per field), ending ~73k clocks (~54 lines) ahead. The black screen therefore ends at 1097 vs 1098 and the next starts at 1422 vs 1423; unaffected by the RF-015 refresh correction, which fixed the 3632-3762 load.",
+   "uncertainty": "Disposable A/B executed 2026-10-14 (refresh-corrected build + RTL_APU_CYCLES_PER_FRAME 17060, exe 81315543...): the 941 load then ends on bsnes's frame (1098) and the next starts on it (1423), but 1423-1548 vs 1547 and 3633-3763 vs 3632-3762 move one frame late. The SPC rate therefore participates, but the references' nominal 32040 Hz x 32 over-corrects other loads and the ~19k-clock IPL-phase lead is unattributed. Real consoles' APU resonators vary; Baldosa's audio pipeline is built around 534 samples per field, so the rate is a design constant, not a one-line fix.",
+   "resolving_experiment": "Attribute the IPL-phase lead (1009-1025: SPC reset to $BBAA ready, small port-0/1 blocks) with an SPC-side PC/cycle trace on Baldosa and bsnes, then re-test the per-field stream rate; adopt no SPC-rate change until every attract load and the 2P/Zoo witnesses agree.",
+   "consequence": "Load lengths that wait on the SPC (song uploads at screen transitions) can end a fraction of a field early on the product core; affects strict frame-exact transition comparisons, not decoded gameplay state."
   }
  ]
 }

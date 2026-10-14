@@ -1,0 +1,857 @@
+{
+ "schema": "ur-qa01-rf015-dram-refresh/1",
+ "date": "2026-10-14",
+ "release_gate_credit": 0,
+ "complete_event_credit": 0,
+ "claim": "Local, exact-binary original/native evidence for the RF-015 cause and correction; strict_candidate is not an accepted event.",
+ "inputs": {
+  "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "snes9x_core_sha256": "3504cb55668e354a7a741e20f42b919609b8534fb0b975daf86d3fb4264747ef",
+  "bsnes_core_sha256": "11f962e5cb28f26442860a6ca589f43e907ff057dff3cd68183bcde5ac0d58d3",
+  "bsnes_patch": "tools/patches/bsnes-libretro-system-ram.patch (WRAM accessor only)",
+  "snesref_2p_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea",
+  "snesref_qa01_sha256": "5274524e34f775cf8bd9a0990f4b47f2d90aae0796c2c08366bb17f25b6eb00c",
+  "baldosa_game": "gamesbyian/uniracers-recomp@10b864b9d14a7b7416dd909eb7b054c88faef101",
+  "baldosa_framework": "baldosa/snesrecomp@075fbe4c8e0d97b0013be541795c39cb644a9709",
+  "framework_unchanged_upstream_at": "baldosa/snesrecomp@ec8a3e7",
+  "baldosa_2p_shim_base_sha256": "279d053f4cd84bb17cf75fa017362970d28f080dfb10504e247e71699b1652ec",
+  "baldosa_2p_shim_fixed_sha256": "70a5055e3443a9b3224e9ac5455f58906dec0272c208900e5c64cd35620b0eb9",
+  "baldosa_1p_qa_shim_base_sha256": "c3471741a96395ea0cf2e9517db806a40f37043c762e3f7d04a0e72b7ced9a48",
+  "baldosa_1p_qa_shim_fixed_sha256": "cd5ba13ffdb6a7013fc5a14b9cdd032a26da91ce0abb75a8a8b9747f3335701b",
+  "base_equals_research_binary": true,
+  "only_source_delta": "runner/src/common_cpu_infra.c snes_refresh_charge: g_refresh_charged_upto = m (tools/baldosa_dram_refresh_beam_rate_patch.py)"
+ },
+ "rf015_mechanism": {
+  "seed": 50036056,
+  "arm": "rotation",
+  "finish_hold": 4000,
+  "snes9x_vs_bsnes_same_phase_pattern": {
+   "queue_step_7E2000": [
+    5196,
+    5197
+   ],
+   "c6_decrement": [
+    5197,
+    5198
+   ],
+   "onset_0x84": [
+    5198,
+    5199
+   ],
+   "result_phase_frames": [
+    34,
+    34
+   ]
+  },
+  "baldosa_equals_snes9x_semantic_wram": [
+   5192,
+   5230
+  ],
+  "upload": "82:B1D8 CPU VRAM upload, NMI disabled hosts 5225-5231 (Snes9x trace)",
+  "iteration_master_clocks": {
+   "snes9x": 470,
+   "baldosa_generated": 470,
+   "refresh_per_line_snes9x": 40
+  },
+  "wait_80FAC9_arrival": {
+   "snes9x": "host 5231 V=230 H=1324",
+   "baldosa": "V=224 H=212 ($4212 bit7 clear)"
+  },
+  "checkpoint_drift_master_clocks_from_80D205": [
+   {
+    "checkpoint": "82:B1DD #1",
+    "snes9x_elapsed": 29408,
+    "baldosa_minus_snes9x": -200
+   },
+   {
+    "checkpoint": "82:B1DD #2",
+    "snes9x_elapsed": 2014012,
+    "baldosa_minus_snes9x": -1908
+   },
+   {
+    "checkpoint": "82:B1DD #3",
+    "snes9x_elapsed": 2759048,
+    "baldosa_minus_snes9x": -2528
+   },
+   {
+    "checkpoint": "82:B1DD #4",
+    "snes9x_elapsed": 3364644,
+    "baldosa_minus_snes9x": -3028
+   },
+   {
+    "checkpoint": "82:B1DD #5",
+    "snes9x_elapsed": 5535380,
+    "baldosa_minus_snes9x": -4896
+   },
+   {
+    "checkpoint": "82:B1DD #6",
+    "snes9x_elapsed": 7473460,
+    "baldosa_minus_snes9x": -6520
+   }
+  ],
+  "predicted_surplus_per_line": 1.14,
+  "predicted_fraction": 0.00086,
+  "measured_fraction": 0.00087
+ },
+ "paired_race_relative_fixed": [
+  {
+   "reference": "bsnes",
+   "seed": 50012000,
+   "arm": "balanced",
+   "finish_hold": 6000,
+   "entry_native_original": [
+    1134,
+    1134
+   ],
+   "frames_compared": 1660,
+   "last_frame_compared": 6400,
+   "disposition": "exact_field_agreement",
+   "first_divergent_native_frame": null,
+   "max_semantic_wram_bytes_differing": 0,
+   "result_phase_native": {
+    "onset": 5256,
+    "restore": 5290,
+    "frames": 34
+   },
+   "result_phase_original": {
+    "onset": 5256,
+    "restore": 5290,
+    "frames": 34
+   }
+  },
+  {
+   "reference": "bsnes",
+   "seed": 50012144,
+   "arm": "p1-focus",
+   "finish_hold": 6000,
+   "entry_native_original": [
+    1134,
+    1134
+   ],
+   "frames_compared": 1660,
+   "last_frame_compared": 6400,
+   "disposition": "exact_field_agreement",
+   "first_divergent_native_frame": null,
+   "max_semantic_wram_bytes_differing": 0,
+   "result_phase_native": {
+    "onset": 5256,
+    "restore": 5290,
+    "frames": 34
+   },
+   "result_phase_original": {
+    "onset": 5256,
+    "restore": 5290,
+    "frames": 34
+   }
+  },
+  {
+   "reference": "bsnes",
+   "seed": 50012215,
+   "arm": "p2-focus",
+   "finish_hold": 6000,
+   "entry_native_original": [
+    1134,
+    1134
+   ],
+   "frames_compared": 1660,
+   "last_frame_compared": 6400,
+   "disposition": "exact_field_agreement",
+   "first_divergent_native_frame": null,
+   "max_semantic_wram_bytes_differing": 0,
+   "result_phase_native": {
+    "onset": 5261,
+    "restore": 5295,
+    "frames": 34
+   },
+   "result_phase_original": {
+    "onset": 5261,
+    "restore": 5295,
+    "frames": 34
+   }
+  },
+  {
+   "reference": "bsnes",
+   "seed": 50024003,
+   "arm": "alternating",
+   "finish_hold": 6000,
+   "entry_native_original": [
+    1134,
+    1134
+   ],
+   "frames_compared": 4260,
+   "last_frame_compared": 9000,
+   "disposition": "exact_field_agreement",
+   "first_divergent_native_frame": null,
+   "max_semantic_wram_bytes_differing": 0,
+   "result_phase_native": {
+    "onset": 4740,
+    "restore": null,
+    "frames": null
+   },
+   "result_phase_original": {
+    "onset": 4740,
+    "restore": null,
+    "frames": null
+   }
+  },
+  {
+   "reference": "bsnes",
+   "seed": 50024004,
+   "arm": "rotation",
+   "finish_hold": 6000,
+   "entry_native_original": [
+    1134,
+    1134
+   ],
+   "frames_compared": 1660,
+   "last_frame_compared": 6400,
+   "disposition": "exact_field_agreement",
+   "first_divergent_native_frame": null,
+   "max_semantic_wram_bytes_differing": 0,
+   "result_phase_native": {
+    "onset": 5085,
+    "restore": 5119,
+    "frames": 34
+   },
+   "result_phase_original": {
+    "onset": 5085,
+    "restore": 5119,
+    "frames": 34
+   }
+  },
+  {
+   "reference": "bsnes",
+   "seed": 50036002,
+   "arm": "p2-focus",
+   "finish_hold": 6000,
+   "entry_native_original": [
+    1134,
+    1134
+   ],
+   "frames_compared": 1660,
+   "last_frame_compared": 6400,
+   "disposition": "exact_field_agreement",
+   "first_divergent_native_frame": null,
+   "max_semantic_wram_bytes_differing": 0,
+   "result_phase_native": {
+    "onset": 5192,
+    "restore": 5226,
+    "frames": 34
+   },
+   "result_phase_original": {
+    "onset": 5192,
+    "restore": 5226,
+    "frames": 34
+   }
+  },
+  {
+   "reference": "bsnes",
+   "seed": 50036005,
+   "arm": "alternating",
+   "finish_hold": 6000,
+   "entry_native_original": [
+    1134,
+    1134
+   ],
+   "frames_compared": 1660,
+   "last_frame_compared": 6400,
+   "disposition": "exact_field_agreement",
+   "first_divergent_native_frame": null,
+   "max_semantic_wram_bytes_differing": 0,
+   "result_phase_native": {
+    "onset": 5167,
+    "restore": 5201,
+    "frames": 34
+   },
+   "result_phase_original": {
+    "onset": 5167,
+    "restore": 5201,
+    "frames": 34
+   }
+  },
+  {
+   "reference": "bsnes",
+   "seed": 50036056,
+   "arm": "rotation",
+   "finish_hold": 4000,
+   "entry_native_original": [
+    1134,
+    1134
+   ],
+   "frames_compared": 1660,
+   "last_frame_compared": 6400,
+   "disposition": "field_divergence",
+   "first_divergent_native_frame": 5236,
+   "max_semantic_wram_bytes_differing": 1163,
+   "result_phase_native": {
+    "onset": 5198,
+    "restore": 5232,
+    "frames": 34
+   },
+   "result_phase_original": {
+    "onset": 5199,
+    "restore": 5233,
+    "frames": 34
+   }
+  },
+  {
+   "reference": "bsnes",
+   "seed": 50048000,
+   "arm": "balanced",
+   "finish_hold": 6000,
+   "entry_native_original": [
+    1134,
+    1134
+   ],
+   "frames_compared": 1660,
+   "last_frame_compared": 6400,
+   "disposition": "field_divergence",
+   "first_divergent_native_frame": 5052,
+   "max_semantic_wram_bytes_differing": 1155,
+   "result_phase_native": {
+    "onset": 5014,
+    "restore": 5048,
+    "frames": 34
+   },
+   "result_phase_original": {
+    "onset": 5015,
+    "restore": 5049,
+    "frames": 34
+   }
+  },
+  {
+   "reference": "snes9x",
+   "seed": 50012000,
+   "arm": "balanced",
+   "finish_hold": 6000,
+   "entry_native_original": [
+    1134,
+    1134
+   ],
+   "frames_compared": 1660,
+   "last_frame_compared": 6400,
+   "disposition": "exact_field_agreement",
+   "first_divergent_native_frame": null,
+   "max_semantic_wram_bytes_differing": 0,
+   "result_phase_native": {
+    "onset": 5256,
+    "restore": 5290,
+    "frames": 34
+   },
+   "result_phase_original": {
+    "onset": 5256,
+    "restore": 5290,
+    "frames": 34
+   }
+  },
+  {
+   "reference": "snes9x",
+   "seed": 50012144,
+   "arm": "p1-focus",
+   "finish_hold": 6000,
+   "entry_native_original": [
+    1134,
+    1134
+   ],
+   "frames_compared": 1660,
+   "last_frame_compared": 6400,
+   "disposition": "exact_field_agreement",
+   "first_divergent_native_frame": null,
+   "max_semantic_wram_bytes_differing": 0,
+   "result_phase_native": {
+    "onset": 5256,
+    "restore": 5290,
+    "frames": 34
+   },
+   "result_phase_original": {
+    "onset": 5256,
+    "restore": 5290,
+    "frames": 34
+   }
+  },
+  {
+   "reference": "snes9x",
+   "seed": 50012215,
+   "arm": "p2-focus",
+   "finish_hold": 6000,
+   "entry_native_original": [
+    1134,
+    1134
+   ],
+   "frames_compared": 1660,
+   "last_frame_compared": 6400,
+   "disposition": "exact_field_agreement",
+   "first_divergent_native_frame": null,
+   "max_semantic_wram_bytes_differing": 0,
+   "result_phase_native": {
+    "onset": 5261,
+    "restore": 5295,
+    "frames": 34
+   },
+   "result_phase_original": {
+    "onset": 5261,
+    "restore": 5295,
+    "frames": 34
+   }
+  },
+  {
+   "reference": "snes9x",
+   "seed": 50024003,
+   "arm": "alternating",
+   "finish_hold": 6000,
+   "entry_native_original": [
+    1134,
+    1134
+   ],
+   "frames_compared": 4260,
+   "last_frame_compared": 9000,
+   "disposition": "exact_field_agreement",
+   "first_divergent_native_frame": null,
+   "max_semantic_wram_bytes_differing": 0,
+   "result_phase_native": {
+    "onset": 4740,
+    "restore": null,
+    "frames": null
+   },
+   "result_phase_original": {
+    "onset": 4740,
+    "restore": null,
+    "frames": null
+   }
+  },
+  {
+   "reference": "snes9x",
+   "seed": 50024004,
+   "arm": "rotation",
+   "finish_hold": 6000,
+   "entry_native_original": [
+    1134,
+    1134
+   ],
+   "frames_compared": 1660,
+   "last_frame_compared": 6400,
+   "disposition": "field_divergence",
+   "first_divergent_native_frame": 5123,
+   "max_semantic_wram_bytes_differing": 1165,
+   "result_phase_native": {
+    "onset": 5085,
+    "restore": 5119,
+    "frames": 34
+   },
+   "result_phase_original": {
+    "onset": 5086,
+    "restore": 5120,
+    "frames": 34
+   }
+  },
+  {
+   "reference": "snes9x",
+   "seed": 50036002,
+   "arm": "p2-focus",
+   "finish_hold": 6000,
+   "entry_native_original": [
+    1134,
+    1134
+   ],
+   "frames_compared": 1660,
+   "last_frame_compared": 6400,
+   "disposition": "exact_field_agreement",
+   "first_divergent_native_frame": null,
+   "max_semantic_wram_bytes_differing": 0,
+   "result_phase_native": {
+    "onset": 5192,
+    "restore": 5226,
+    "frames": 34
+   },
+   "result_phase_original": {
+    "onset": 5192,
+    "restore": 5226,
+    "frames": 34
+   }
+  },
+  {
+   "reference": "snes9x",
+   "seed": 50036005,
+   "arm": "alternating",
+   "finish_hold": 6000,
+   "entry_native_original": [
+    1134,
+    1134
+   ],
+   "frames_compared": 1660,
+   "last_frame_compared": 6400,
+   "disposition": "exact_field_agreement",
+   "first_divergent_native_frame": null,
+   "max_semantic_wram_bytes_differing": 0,
+   "result_phase_native": {
+    "onset": 5167,
+    "restore": 5201,
+    "frames": 34
+   },
+   "result_phase_original": {
+    "onset": 5167,
+    "restore": 5201,
+    "frames": 34
+   }
+  },
+  {
+   "reference": "snes9x",
+   "seed": 50036056,
+   "arm": "rotation",
+   "finish_hold": 4000,
+   "entry_native_original": [
+    1134,
+    1134
+   ],
+   "frames_compared": 1660,
+   "last_frame_compared": 6400,
+   "disposition": "exact_field_agreement",
+   "first_divergent_native_frame": null,
+   "max_semantic_wram_bytes_differing": 0,
+   "result_phase_native": {
+    "onset": 5198,
+    "restore": 5232,
+    "frames": 34
+   },
+   "result_phase_original": {
+    "onset": 5198,
+    "restore": 5232,
+    "frames": 34
+   }
+  },
+  {
+   "reference": "snes9x",
+   "seed": 50048000,
+   "arm": "balanced",
+   "finish_hold": 6000,
+   "entry_native_original": [
+    1134,
+    1134
+   ],
+   "frames_compared": 1660,
+   "last_frame_compared": 6400,
+   "disposition": "field_divergence",
+   "first_divergent_native_frame": 5052,
+   "max_semantic_wram_bytes_differing": 1155,
+   "result_phase_native": {
+    "onset": 5014,
+    "restore": 5048,
+    "frames": 34
+   },
+   "result_phase_original": {
+    "onset": 5015,
+    "restore": 5049,
+    "frames": 34
+   }
+  }
+ ],
+ "paired_race_relative_unpatched": "research #1537: 33 vs 34 in 9/9 seeds on Snes9x and bsnes with executable 279d053f; 50036056 reproduced locally (restore 5231 vs 5232)",
+ "attract_blank_screen_census": {
+  "frames": "240-290,395-455,935-1105,1415-1555,3625-3770",
+  "base": {
+   "executable_sha256": "279d053f4cd84bb17cf75fa017362970d28f080dfb10504e247e71699b1652ec",
+   "dark_runs": {
+    "baldosa": [
+     [
+      248,
+      276
+     ],
+     [
+      401,
+      443
+     ],
+     [
+      941,
+      1097
+     ],
+     [
+      1422,
+      1547
+     ],
+     [
+      3632,
+      3761
+     ]
+    ],
+    "bsnes_libretro": [
+     [
+      248,
+      276
+     ],
+     [
+      401,
+      443
+     ],
+     [
+      941,
+      1098
+     ],
+     [
+      1423,
+      1547
+     ],
+     [
+      3632,
+      3762
+     ]
+    ],
+    "snes9x_libretro": [
+     [
+      248,
+      276
+     ],
+     [
+      401,
+      443
+     ],
+     [
+      941,
+      1098
+     ],
+     [
+      1423,
+      1546
+     ],
+     [
+      3632,
+      3762
+     ]
+    ]
+   }
+  },
+  "fixed": {
+   "executable_sha256": "70a5055e3443a9b3224e9ac5455f58906dec0272c208900e5c64cd35620b0eb9",
+   "dark_runs": {
+    "baldosa": [
+     [
+      248,
+      276
+     ],
+     [
+      401,
+      443
+     ],
+     [
+      941,
+      1097
+     ],
+     [
+      1422,
+      1547
+     ],
+     [
+      3632,
+      3762
+     ]
+    ],
+    "bsnes_libretro": [
+     [
+      248,
+      276
+     ],
+     [
+      401,
+      443
+     ],
+     [
+      941,
+      1098
+     ],
+     [
+      1423,
+      1547
+     ],
+     [
+      3632,
+      3762
+     ]
+    ],
+    "snes9x_libretro": [
+     [
+      248,
+      276
+     ],
+     [
+      401,
+      443
+     ],
+     [
+      941,
+      1098
+     ],
+     [
+      1423,
+      1546
+     ],
+     [
+      3632,
+      3762
+     ]
+    ]
+   }
+  }
+ },
+ "qa01_strict_producer": {
+  "zoom_zoo": {
+   "base": {
+    "disposition": "strict_divergence",
+    "producer_exit_code": 1,
+    "release_credit": 0,
+    "native_sha256": "c3471741a96395ea0cf2e9517db806a40f37043c762e3f7d04a0e72b7ced9a48",
+    "terminal_guest_relative_frames": {
+     "native_relative": 5162,
+     "reference_relative": 5163
+    },
+    "first_sample_disagreement": null,
+    "core_sha256": "3504cb55668e354a7a741e20f42b919609b8534fb0b975daf86d3fb4264747ef",
+    "movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "input_sha256": "1163b26e1f1c37cb600f64dfcd884990a22f4cbd7b5a87928d93cb482fab11a8"
+   },
+   "fixed": {
+    "disposition": "strict_candidate",
+    "producer_exit_code": 0,
+    "release_credit": 0,
+    "native_sha256": "cd5ba13ffdb6a7013fc5a14b9cdd032a26da91ce0abb75a8a8b9747f3335701b",
+    "terminal_guest_relative_frames": {
+     "native_relative": 5163,
+     "reference_relative": 5163
+    },
+    "first_sample_disagreement": null,
+    "core_sha256": "3504cb55668e354a7a741e20f42b919609b8534fb0b975daf86d3fb4264747ef",
+    "movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "input_sha256": "1163b26e1f1c37cb600f64dfcd884990a22f4cbd7b5a87928d93cb482fab11a8"
+   }
+  },
+  "switcher": {
+   "base": {
+    "disposition": "strict_divergence",
+    "producer_exit_code": 1,
+    "release_credit": 0,
+    "native_sha256": "c3471741a96395ea0cf2e9517db806a40f37043c762e3f7d04a0e72b7ced9a48",
+    "terminal_guest_relative_frames": {
+     "native_relative": 4702,
+     "reference_relative": 4704
+    },
+    "first_sample_disagreement": {
+     "fields": [
+      "menu",
+      "observed_course_track"
+     ],
+     "native": {
+      "menu": 132,
+      "observed_course_track": 0
+     },
+     "reference": {
+      "menu": 0,
+      "observed_course_track": 3
+     },
+     "relative_frame": 4664
+    },
+    "core_sha256": "3504cb55668e354a7a741e20f42b919609b8534fb0b975daf86d3fb4264747ef",
+    "movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "input_sha256": "425c1d721fd668267189cb1c1295acdf9185bed8b73388a792fb346c9b119b8d"
+   },
+   "fixed": {
+    "disposition": "strict_divergence",
+    "producer_exit_code": 1,
+    "release_credit": 0,
+    "native_sha256": "cd5ba13ffdb6a7013fc5a14b9cdd032a26da91ce0abb75a8a8b9747f3335701b",
+    "terminal_guest_relative_frames": {
+     "native_relative": 4703,
+     "reference_relative": 4704
+    },
+    "first_sample_disagreement": {
+     "fields": [
+      "menu",
+      "observed_course_track"
+     ],
+     "native": {
+      "menu": 132,
+      "observed_course_track": 0
+     },
+     "reference": {
+      "menu": 0,
+      "observed_course_track": 3
+     },
+     "relative_frame": 4664
+    },
+    "core_sha256": "3504cb55668e354a7a741e20f42b919609b8534fb0b975daf86d3fb4264747ef",
+    "movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "input_sha256": "425c1d721fd668267189cb1c1295acdf9185bed8b73388a792fb346c9b119b8d"
+   }
+  }
+ },
+ "rf016_spc_upload": {
+  "route": "no-input attract",
+  "load": "941-1098 Snd_UploadBlockList 82:82A9",
+  "low_wram_identical_frames": [
+   2,
+   1096
+  ],
+  "port2_writes_aligned": 46414,
+  "lead_master_clocks": {
+   "after_ipl_phase_1025": -18782,
+   "end_of_upload": -73248
+  },
+  "stream_bytes_per_field": {
+   "snes9x": "653-654",
+   "baldosa": 655
+  },
+  "spc_clock_hz": {
+   "baldosa": 1026963,
+   "snes9x_bsnes": 1025280
+  },
+  "fixed_by_rf015_correction": false,
+  "disposable_ab_spc_17060": {
+   "dark_runs": {
+    "baldosa": [
+     [
+      248,
+      276
+     ],
+     [
+      401,
+      443
+     ],
+     [
+      941,
+      1098
+     ],
+     [
+      1423,
+      1548
+     ],
+     [
+      3633,
+      3763
+     ]
+    ],
+    "bsnes_libretro": [
+     [
+      248,
+      276
+     ],
+     [
+      401,
+      443
+     ],
+     [
+      941,
+      1098
+     ],
+     [
+      1423,
+      1547
+     ],
+     [
+      3632,
+      3762
+     ]
+    ]
+   },
+   "executable_sha256": "8131554346ebb3d2c820b64608fea17ff4f3998d04e82daa3e48f7010dcc14d4",
+   "adopted": false,
+   "reading": "941 load and 1423 start now match bsnes; 1548 and 3633-3763 become one frame late"
+  }
+ }
+}

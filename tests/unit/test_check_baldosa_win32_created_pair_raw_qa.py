@@ -178,6 +178,18 @@ class RawCreatedPairSource(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.evaluate(extra)
 
+    def test_known_other_windows_groups_may_coexist_but_earn_no_raw_credit(self):
+        from verify_baldosa_romless_candidate_qa import RUNTIME_ALLOWED_MEMBERS
+        members = example_members()
+        other = sorted(RUNTIME_ALLOWED_MEMBERS - set(qa.SOURCE_GROUP))
+        self.assertGreaterEqual(len(other), 30)
+        # Real #1536 uploads other genuine bounded log groups alongside the
+        # created pair. Their source authenticity belongs to other readers.
+        members.update({name: b"source-diagnostic" for name in other})
+        result = self.evaluate(members)
+        self.assertTrue(result["typed_profiles_exactly_match_both_raw_SRAM"])
+        self.assertEqual(result["release_gate_credit"], 0)
+
     def test_unrelated_outer_zip_members_fail_closed(self):
         # A valid guest/raw subgroup must not launder unreviewed source-root
         # material in the same ZIP. These are ROM-free synthetic adversaries.

@@ -153,24 +153,28 @@ bool restore_practice_session() {
 }
 bool begin_practice_session() {
     namespace fs = std::filesystem;
+    const auto deny = [](const char* reason) {
+        std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT practice_sandbox_rejected=%s\n", reason);
+        return false;
+    };
     if (g_practice_session_active || !g_sram ||
         g_sram_size != static_cast<int>(ur::product::kStockSramBytes) ||
         g_ram[0x0313] == 1u || g_ram[0x009f] != 0xd7u)
-        return false;
+        return deny("source_guest_not_ready");
     const char* configured_root = std::getenv("SNESRECOMP_USER_DATA_DIR");
-    if (!configured_root || !*configured_root) return false;
+    if (!configured_root || !*configured_root) return deny("user_root_absent");
     const fs::path user_root(configured_root);
-    if (!user_root.is_absolute()) return false;
+    if (!user_root.is_absolute()) return deny("user_root_not_absolute");
     std::error_code ec;
     if (!fs::is_directory(user_root, ec) || ec ||
-        fs::is_symlink(user_root, ec) || ec) return false;
+        fs::is_symlink(user_root, ec) || ec) return deny("user_root_untrusted");
     const fs::path session_path = user_root / "practice-session";
     const auto status = fs::symlink_status(session_path, ec);
     if (status.type() == fs::file_type::not_found) {
         ec.clear();
-        if (!fs::create_directory(session_path, ec) || ec) return false;
+        if (!fs::create_directory(session_path, ec) || ec) return deny("scratch_create_failed");
     } else if (ec || !fs::is_directory(status) || fs::is_symlink(status)) {
-        return false;
+        return deny("scratch_root_untrusted");
     }
     ec.clear();
     const auto scratch_save = fs::symlink_status(
@@ -180,9 +184,9 @@ bool begin_practice_session() {
     // that absence is safe, unlike an actual redirected or special file.
     if (scratch_save.type() == fs::file_type::not_found) {
         if (ec && ec != std::errc::no_such_file_or_directory)
-            return false;
+            return deny("scratch_missing_unexpected_error");
     } else if (ec || !fs::is_regular_file(scratch_save)) {
-        return false;
+        return deny("scratch_save_untrusted");
     }
     const char* original = RtlSaveRoot();
     g_practice_previous_save_root = original ? original : "";
@@ -199,7 +203,7 @@ bool begin_practice_session() {
         RtlSetSaveRoot(g_practice_previous_save_root.c_str());
         g_practice_sram_snapshot.clear();
         g_practice_previous_save_root.clear();
-        return false;
+        return deny("scratch_save_root_not_accepted");
     }
     RtlEnsureSaveDir();
     g_practice_session_active = true;

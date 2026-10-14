@@ -108,6 +108,28 @@ class FrontierYield(unittest.TestCase):
                          (0.42, None))
 
 
+class ArmReward(unittest.TestCase):
+    def test_flat_fingerprint_reward_is_detected(self):
+        rows = [frontier(1, 100), frontier(2, 100)]
+        for row in rows:
+            row["metrics"]["strategy_summary"] = {
+                "balanced": {"attempted": 50, "new_bins_local": 100},
+                "rotation": {"attempted": 50, "new_bins_local": 105}}
+        reward = y.build_report({"records": rows})["frontier"]["arm_reward"]
+        self.assertTrue(reward["flat"])
+        self.assertIn("Arm reward is flat", y.markdown(y.build_report({"records": rows})))
+
+    def test_informative_reward_and_starvation(self):
+        row = frontier(1, 100)
+        row["metrics"]["strategy_summary"] = {
+            "balanced": {"attempted": 60, "new_bins_local": 60},
+            "rotation": {"attempted": 40, "new_bins_local": 120},
+            "alternating": {"attempted": 0, "new_bins_local": 0}}
+        reward = y.build_report({"records": [row]})["frontier"]["arm_reward"]
+        self.assertFalse(reward["flat"])
+        self.assertEqual(reward["starved_arms"], ["alternating"])
+
+
 class DurabilityYield(unittest.TestCase):
     def test_failures_are_listed_and_never_counted_as_observations(self):
         report = y.build_report({"records": [

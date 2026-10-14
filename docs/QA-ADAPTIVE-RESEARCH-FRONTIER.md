@@ -116,3 +116,13 @@ Do not promote large novelty counts as accepted gameplay. If broad exploration p
 Frontier witnesses are reproducible only on the byte-identical native executable named in the aggregate. The shared candidate artifact expires after one day; witness handoffs are kept for 14. Every frontier run now re-uploads that exact candidate as **`qa-frontier-witness-native` for 90 days**. The tarball contains the build tree with a ROM *path* (`rom.cfg`), never ROM bytes. Reproduction tools should prefer this artifact name for runs after this change.
 
 Runs before it are not covered. Run 38446393623 (dual-air witness seed 50036056) has only `shared-modern-native-candidate`, which **expires 2026-10-14 18:27 UTC**. QA-01's `two-player-reference.yml` input `qa01_dual_air_50036056` must run before then, or that exact witness can no longer be replayed on its own binary.
+
+## The adaptive arm learner has no signal (2026-10-14)
+
+The UCB allocator rewards an arm by `new_bins_local`: new normalized fingerprints. Across all 10,300 recorded cases every arm earned **2.000–2.019 new fingerprints per case** (spread 0.019). The fingerprint census is non-saturating: every diverging checkpoint is new for every case. Allocation therefore reflects smoothing constants and running sums, not discovery.
+* The 10k run gave `rotation` and `alternating` **0** cases.
+* Later runs gave `balanced` 5 of 100.
+
+`tools/research_yield.py` reports this as `arm_reward.flat` and lists starved arms.
+
+**Gated redesign, not yet implemented.** Reward a case by the rarity of the source *feature classes* it shows, using the already-computed per-case 15-checkpoint feature set. For example, sum `1/(1+prior incidence)` over present features. That would steer allocation toward rare classes such as `both-air-raw`, which appeared only on `rotation`. It changes the plan (a 100-case pilot is required) and must not alter the three-frame fingerprint epoch. Build it only if QA-01's original/native replay of witness 50036056 shows the dual-air class is a real, decision-relevant behaviour. Until then the forced exploration floor guarantees each arm only about 5% of cases (the first five per shard plus every tenth case), and no larger frontier run is recommended.

@@ -35,6 +35,9 @@ POSITIVE = ("completed_positive", "strict_divergence")
 # varying checkpoints is measuring case count, not exploration progress.
 NON_SATURATING_FRACTION = 0.98
 RARE = 3
+# Per-arm reward spread (new fingerprints per case) below which the adaptive
+# arm learner has no signal to learn from.
+FLAT_ARM_REWARD_SPREAD = 0.25
 
 
 def rule_of_three(n: int) -> float | None:
@@ -141,7 +144,25 @@ def frontier_yield(records: list[dict]) -> dict:
         "uninformative_features": sorted(f for f, r in feature_rows.items()
                                          if r["ubiquitous"] or r["cases_with_feature"] == 0),
         "rare_features": sorted(f for f, r in feature_rows.items() if r["rare"]),
+        "arm_reward": arm_reward(rows),
     }
+
+
+def arm_reward(rows: list[dict]) -> dict:
+    """Is the adaptive learner's reward (new fingerprints per case) informative?"""
+    totals: dict[str, list[int]] = {}
+    for row in rows:
+        for arm, value in (row.get("metrics", {}).get("strategy_summary") or {}).items():
+            entry = totals.setdefault(arm, [0, 0])
+            entry[0] += int(value.get("attempted", 0))
+            entry[1] += int(value.get("new_bins_local", 0))
+    per_case = {arm: round(g / a, 3) for arm, (a, g) in totals.items() if a}
+    spread = (round(max(per_case.values()) - min(per_case.values()), 3)
+              if len(per_case) > 1 else None)
+    return {"attempted": {arm: a for arm, (a, _) in totals.items()},
+            "new_fingerprints_per_case": per_case, "spread": spread,
+            "flat": spread is not None and spread < FLAT_ARM_REWARD_SPREAD,
+            "starved_arms": sorted(arm for arm, (a, _) in totals.items() if a == 0)}
 
 
 def durability_yield(records: list[dict]) -> dict:
@@ -272,6 +293,11 @@ def markdown(report: dict) -> str:
         out += ["", "**Fingerprint census is non-saturating:** every varying checkpoint produced "
                 "a new fingerprint for essentially every case. Its growth restates the case "
                 "count and is not evidence of exploration progress or a stopping signal."]
+    ar = f.get("arm_reward") or {}
+    if ar.get("flat"):
+        out += ["", f"**Arm reward is flat** (spread {ar['spread']} new fingerprints/case across "
+                f"{ar['new_fingerprints_per_case']}): the adaptive allocator has no discovery "
+                "signal; its allocation reflects smoothing and running sums, not learning."]
     out += ["", "| Feature class | With / observed | 95% bound if absent | First occurrence |",
             "| --- | ---: | ---: | --- |"]
     for name, r in f["features"].items():

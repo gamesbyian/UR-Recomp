@@ -43,14 +43,6 @@ struct ModernRootOverlayView {
     std::uint8_t available_destinations = 0x1fu;
     bool racer_shortcuts_available = true;
     bool read_only_records_open = false;
-    // Native source-qualified Practice shares the existing root artwork.
-    // The old host leaves these false; this cannot advertise unavailable
-    // stock tours or change another frontend's established controls.
-    bool practice_picker_open = false;
-    bool practice_launch_pending = false;
-    std::string_view practice_course_name{};
-    std::string_view practice_tour_name{};
-    std::string_view practice_kind_label{};
     std::string_view records_status{};
     std::string_view records_recent{};
     // Native source-only Records may switch to existing paired 2P history.
@@ -84,6 +76,14 @@ struct ModernRootOverlayView {
     bool existing_profile_switch_available = false;
     bool existing_profile_switch_saved = false;
     bool first_racer_is_switch = false;
+    // Native source-qualified Practice shares the existing root artwork.
+    // The old host leaves these false; this cannot advertise unavailable
+    // stock tours or change another frontend's established controls.
+    bool practice_picker_open = false;
+    bool practice_launch_pending = false;
+    std::string_view practice_course_name{};
+    std::string_view practice_tour_name{};
+    std::string_view practice_kind_label{};
 };
 
 inline bool render_modern_root_overlay(

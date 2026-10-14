@@ -36,6 +36,15 @@ Admission is a point-in-time check, not a reservation. It cannot hold capacity f
 
 **Measured cost.** Each new ledger record carries a signed `runner_usage` receipt measured from the run's own job timings, so yield can be expressed per runner-hour. Research producers also stopped running seven unrelated product-acceptance jobs: the shared candidate's new `candidate_only` input skips them. That saves 13–16 runner-minutes and a 7-runner burst per research run (measured on runs 38446393623, 38438864232 and 38434647895). It also prevents an unrelated red product gate from blocking research.
 
+## Measured load profile (24 h to 2026-10-14 02:45 UTC, this repository only)
+
+295 runs, about 748 runner-minutes. 287 were pull-request runs.
+* **Bursty:** zero jobs were running **68.5%** of the time, yet the peak reached **20 simultaneous jobs**, the whole account ceiling. A point-in-time admission check therefore catches most free troughs. Fixed reservations would waste them.
+* **Research share:** the cumulative coordinator used 161 runner-minutes (22%) in 4 runs.
+* **Largest avoidable cost is cancelled superseded work, not research.** The Modern native heavy router lost 59 of 87 minutes to cancellation (8 of 12 runs). Tooling unit tests lost 57 minutes across 52 cancelled runs. Rule 24 in `AGENTS.md` (publish one coherent edit instead of a rapid push chain) is the lever. Owners of those workflows decide any trigger changes.
+
+Re-measure with the jobs API before changing these reserves; other repositories on the account remain unobserved.
+
 ## Scientific dispatch policy
 
 An experimental factory is worth a runner slot if it has a falsifiable question, a current trusted observer, a source-bound producer, a measurable next-development decision and new source cases. Use **100 cases to validate modified instrumentation**, larger batches only after a substantive source-truth signal. Keep exact normalized fingerprint novelty distinct from real original/native gameplay correctness.

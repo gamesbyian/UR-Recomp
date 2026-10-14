@@ -56,15 +56,18 @@ def source_match_script() -> str:
             f"\nwait {AFTER_DRIVE_WAIT}\ndump after-source-2p-drive\nquit\n")
 
 
-def source_match_published(log: str) -> dict[str, int]:
+def source_match_published(
+    log: str, *, p1_profile: str = P1, p2_profile: str = P2,
+    p1_rider: int = 0, p2_rider: int = 2,
+) -> dict[str, int]:
     stages = (
-        "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=native-ci-rider ",
+        f"UR_BALDOSA_NATIVE_PROFILE APPLIED profile={p1_profile} ",
         "UR_BALDOSA_MODERN_ROOT join_opened=1 players=2",
         "UR_BALDOSA_MODERN_ROOT join_confirmed seat=1",
         "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
         "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d",
         "UR_BALDOSA_NATIVE_MATCH CAPTURED=1 "
-        "profile1=native-ci-rider profile2=native-ci-second course=course:01 ",
+        f"profile1={p1_profile} profile2={p2_profile} course=course:01 ",
         "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-2p ",
     )
     positions = []
@@ -85,7 +88,7 @@ def source_match_published(log: str) -> dict[str, int]:
         raise ValueError("Actual settled original 2P SRAM was not observed")
     (first, last, p1, p2, time1, time2, winner, frames, runs, published) = (
         int(n) for n in match.groups())
-    if (first <= 0 or last <= first or p1 != 0 or p2 != 2 or
+    if (first <= 0 or last <= first or p1 != p1_rider or p2 != p2_rider or
             time1 > 60000 or time2 > 60000 or
             winner not in (0, 1, 2) or frames <= 0 or runs <= 0 or
             published != 1 or
@@ -96,9 +99,11 @@ def source_match_published(log: str) -> dict[str, int]:
             "p1_hundredths": time1, "p2_hundredths": time2, "winner": winner}
 
 
-def source_paired_records_reopened(log: str) -> None:
+def source_paired_records_reopened(
+    log: str, *, selected_profile: str = P1,
+) -> None:
     ordered = (
-        "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=native-ci-rider ",
+        f"UR_BALDOSA_NATIVE_PROFILE APPLIED profile={selected_profile} ",
         "UR_BALDOSA_MODERN_ROOT records_page=1p",
         "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=selected",
         "UR_BALDOSA_MODERN_ROOT matches_readonly=1 paired=1 "

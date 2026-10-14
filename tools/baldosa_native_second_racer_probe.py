@@ -25,26 +25,34 @@ from baldosa_windows_native_pause_route import (
 )
 
 
-def require_p2_creation(log: str) -> None:
+def require_p2_creation(log: str, *, preset: int = 1) -> None:
+    # Production profile factory's *canonical* original stock identities.
+    # Default Andrew mode is the merged #1490 route. Martin mode explicitly
+    # presses P1 Down within that same actual P2-creation native modal.
+    if preset not in (1, 2):
+        raise ValueError("Unsupported source-backed P2 creation test preset")
+    profile = "andrew" if preset == 1 else "martin"
     stages = (
         "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=mike root=saves/profile-mike",
         "UR_BALDOSA_MODERN_ROOT opened=1",
         "UR_BALDOSA_MODERN_ROOT second_racer_opened=1 preset=1 "
         "activation=next_process",
-        "UR_BALDOSA_NATIVE_SECOND_RACER status=0 preset=1 id=andrew "
-        "activation=next_process",
+        *([f"UR_BALDOSA_MODERN_ROOT second_racer_preset={preset}"]
+          if preset != 1 else []),
+        f"UR_BALDOSA_NATIVE_SECOND_RACER status=0 preset={preset} "
+        f"id={profile} activation=next_process",
         "UR_BALDOSA_MODERN_ROOT second_racer_created=1 "
         "activation=next_process",
     )
-    offsets = []
+    positions = []
     for stage in stages:
         if log.count(stage) != 1:
             raise ValueError("No unique canonical P2 creation stage: " + stage)
-        offsets.append(log.index(stage))
-    if offsets != sorted(offsets):
+        positions.append(log.index(stage))
+    if positions != sorted(positions):
         raise ValueError("Second racer published out of guest/canonical order")
     forbidden = (
-        "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=andrew",
+        f"UR_BALDOSA_NATIVE_PROFILE APPLIED profile={profile}",
         "UR_BALDOSA_MODERN_ROOT stock_entered players=",
         "UR_BALDOSA_NATIVE_MATCH CAPTURED=1",
         "UR_BALDOSA_NATIVE_RUN CAPTURED=1",

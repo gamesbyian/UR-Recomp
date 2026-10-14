@@ -1085,8 +1085,17 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                 "existing_p1_stale_race_blocked=1\n");
             return;
         }
+        // Test-only existing P2 creation selects Martin via X/Down/A,
+        // matching the already-proven original 2P source picker exactly.
+        // Mode 6's existing P1 selector path remains unchanged.
+        const char* preset_probe =
+            std::getenv("UR_BALDOSA_SECOND_RACER_TEST_PRESET");
+        const bool source_martin = !selector_smoke && preset_probe &&
+            std::strcmp(preset_probe, "2") == 0;
         const int key = frame == 60 ? SDLK_x :
-                        frame == 62 ? SDLK_RETURN :
+                        source_martin && frame == 61 ? SDLK_DOWN :
+                        frame == (source_martin ? 63u : 62u)
+                            ? SDLK_RETURN :
                         selector_smoke && frame == 76 ? SDLK_ESCAPE :
                         selector_smoke && frame == 80 ? SDLK_RETURN : 0;
         if (!key) return;

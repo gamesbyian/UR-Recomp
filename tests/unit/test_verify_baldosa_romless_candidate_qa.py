@@ -243,6 +243,38 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
             self.assertFalse(accepted["metrics"]["finished_native_event_or_new_match_observed"])
             self.assertEqual(accepted["inputs"]["runtime_actions_wrapper_sha256"],
                              qa.file_digest(evidence))
+
+            # The real uploaded Win32 wrappers include these optional
+            # diagnostic logs. Keep that source-compatible, but do not
+            # accept an unreviewed renamed ROM/profile/archive alongside
+            # the genuine positive game result or safe smoke logs.
+            with zipfile.ZipFile(evidence, "a") as z:
+                z.writestr(
+                    "UR Baldosa Win32 Pause Route/with_pause/log.txt",
+                    "bounded stock diagnostic, not release evidence",
+                )
+            bounded_diagnostic = qa.check_runtime_actions_wrapper(
+                evidence, qa.audit(inner, source, digest),
+            )
+            self.assertEqual(bounded_diagnostic["outcome"], "inconclusive")
+            for unexpected in (
+                "exported-private-profile.txt",
+                "ROM-renamed-as-a-log.json",
+                "UR Baldosa Win32 Pause Route/secret/save.srm.txt",
+                "UR Baldosa Win32 Pause Route/native_real_2p_records/artifacts/other.urrun.txt",
+                "../private-archive.txt",
+                "C:/absolute/private-data.txt",
+                "stray-folder/",
+            ):
+                with self.subTest(unexpected=unexpected):
+                    pack(one, two)
+                    with zipfile.ZipFile(evidence, "a") as z:
+                        z.writestr(unexpected, "UNREVIEWED_BYTES")
+                    with self.assertRaisesRegex(ValueError, "unreviewed ZIP member"):
+                        qa.check_runtime_actions_wrapper(
+                            evidence, qa.audit(inner, source, digest),
+                        )
+            pack(one, two)
             bound = qa.check_runtime_actions_wrapper(
                 evidence, qa.audit(inner, source, digest),
                 expected_wrapper_sha=qa.file_digest(evidence),

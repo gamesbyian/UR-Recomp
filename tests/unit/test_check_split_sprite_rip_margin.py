@@ -38,6 +38,47 @@ class SplitSpriteRipMarginTests(unittest.TestCase):
         self.assertEqual(scan_frame(wram(sprites={99: (181, 120)}), 43)[0]["leaks"], 0)
         self.assertEqual(scan_frame(wram(sprites={99: (182, 120)}), 43)[0]["leaks"], 1)
 
+
+    def test_shadow_geometry_never_qualifies_final_PPU_obj_or_HD(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "frame_000010_wram.bin").write_bytes(
+                wram(sprites={97: (48, 48)}))
+            result = check("bounded source", root, 43, 1)
+            self.assertEqual(result["outcome"], "accepted")
+            metrics = result["metrics"]
+            self.assertEqual(
+                metrics["source_basis"],
+                "WRAM high-OAM shadow and synthetic physical-rip geometry")
+            self.assertFalse(metrics["actual_live_PPU_OAM_HDMA_state_observed"])
+            self.assertFalse(metrics["final_PPU_visible_sprite_pixels_checked"])
+            self.assertFalse(metrics["authorizes_widescreen_HD_sprite_admission"])
+
+    def test_corrupt_or_partial_WRAM_rejected_before_potential_leak(self):
+        for data in (b"", wram()[:-1], wram() + b"\x00"):
+            with self.subTest(size=len(data)):
+                with self.assertRaisesRegex(ValueError, "complete 128 KiB"):
+                    scan_frame(data, 43)
+
+    def test_invalid_or_adversarial_margin_rejected(self):
+        for invalid in (-1, 129, 1000):
+            with self.subTest(margin=invalid):
+                with self.assertRaisesRegex(ValueError, "bounded"):
+                    scan_frame(wram(), invalid)
+                with self.assertRaisesRegex(ValueError, "bounded"):
+                    check("bounded source", Path("/missing"), invalid, 1)
+        with self.assertRaisesRegex(ValueError, "at least one"):
+            check("bounded source", Path("/missing"), 43, 0)
+
+    def test_frame_name_forgery_rejected_instead_of_counting_fake_coverage(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            (root / "frame_000010_wram.bin").write_bytes(wram(sprites={97: (48, 48)}))
+            (root / "frame_000010_alias_wram.bin").write_bytes(
+                wram(sprites={97: (48, 48)}))
+            with self.assertRaisesRegex(ValueError, "exact six-digit"):
+                check("bounded source", root, 43, 2)
+
     def test_envelope(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)

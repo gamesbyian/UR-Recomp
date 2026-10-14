@@ -93,3 +93,29 @@ In the bounded host 426–446 and terminal 5193–5198 experiments, add original
 **Next narrow causal discriminator:** Reuse the original/native first-load host 248–278 trace. Count actual executed original `81:CD70..D09C` and `81:BB89..BD47` VRAM-store instructions, record M width and store address/value, VBlank/NMI and CPU master-clock deltas, and compare against old native `cd5875c` and newer Baldosa `075fbe4` with **exact executable+config+ROM+input hashes**. Independently classify CPU time spent in (1) ROM opcode/operand fetch, (2) I/O register writes, (3) other memory/stack, and (4) host scheduler/wait. Only if the **same executed source operations** cost too many master clocks in the old compiled guest should `paced_bus` cycle charging be the isolated candidate A/B; if the discrepancy is in `$4212` beam-status sampling, use the separate HVBJOY control. Do not apply the two upstream patches together as an untestable bundle.
 
 **Shipping boundary:** The newer Baldosa fork's no-input attract match is promising, but the current Modern route still needs an exact nominated executable built from that fork and independently verified through a complete original/native course, finish/result/progression and post-race restore. The legacy executable remains a rollback and its RF-014 mismatch cannot be redefined away. QA-01 strict USA denominator remains **0/45**.
+
+## Conditional instruction master-clock discriminator (QA-01 source preflight)
+
+The newer Baldosa `recompiler/snes_cycles.py::region_speed` maps bank-81 high-ROM instruction fetch to **8 master clocks per byte when MEMSEL=0** and **6 when MEMSEL=1**. The destination CPU PPU register range `$2100–3FFF` costs **6 clocks per bus access** independently of MEMSEL. The old emitter's relevant static path charges all CPU cycles at the code-region speed, while Baldosa `paced_bus` charges opcode fetches at code-region speed and guest data transfers at their own memory-region speed. For a single source `STA/STY absolute` with three fetched instruction bytes, these are the conditional costs:
+
+| Source register write | MEMSEL=0 legacy / paced | MEMSEL=1 legacy / paced |
+| --- | ---: | ---: |
+| One data byte (M/X=8-bit, 4 CPU cycles) | 32 / 30 master clocks | 24 / 24 |
+| Two data bytes (M/X=16-bit, 5 CPU cycles) | 40 / 36 master clocks | 30 / 30 |
+
+These cases are reproduced by the read-only `conditional_abs_store_master_clocks` model and unit-tested for all four legitimate inputs plus invalid widths/MEMSEL. Thus, **if the executed bank-81 store uses slow ROM (MEMSEL=0)**, the legacy model overcharges this individual I/O store by 2 or 4 master clocks. **If MEMSEL=1**, this particular PPU port-store cost cannot account for any difference between the implementations. This does **not** include surrounding guest fetch/data/stack instructions, NMI time, PPU register side effects, calls, loops, or scheduler behavior; it is not evidence that 2–4 clocks accumulated into a host-frame skip. Another regional-memory change could have the opposite sign.
+
+The critical next receipt is therefore actual `$420D` MEMSEL at the **first executed** `81:CD70..D09C` store, actual M/X widths and source-PC hit counts, plus CPU master-clock deltas and vblank boundaries for *the same* original/native work. With MEMSEL=1, discard the proposed PPU-store clock-overcharge mechanism for these instructions immediately and investigate the first differing neighboring operation. Never patch or shift frames on the strength of this conditional model; compare separately against the exact newer Baldosa execution that already matches the no-input attract reference.
+
+### Original MEMSEL writers that distinguish the two models
+
+The same source contract now independently pins **four explicit bank-80/bank-83 `$420D` writer instructions** in the USA archive:
+
+| Source instruction | Nearby original bytes | Static possible effect |
+| --- | --- | --- |
+| `80:91EA STA $420D` | `80:91E8 LDA #$01` | Reset/boot initialization selects FastROM (set 1) |
+| `80:92E8 STZ $420D` | Later linear init, followed by `80:9311 JMP $885B` | Boot setup subsequently clears MEMSEL (0) |
+| `83:CC6F STA $420D` | `83:CC6D LDA #$01` | Another game-path set to FastROM |
+| `83:FA39 STZ $420D` | Original bank-83 setup/reset sequence | Another path clears MEMSEL |
+
+These are *static direct operands*, not a complete runtime writer history or proof of the exact order at host 248. The potential FastROM set at `83:CC6F` means the simple "boot cleared `$420D`" deduction cannot establish the mode during the relevant first-load CPU writer. An actual original register write/PC receipt for `$420D` and a sampled native `g_memsel` at the first `81:CD70` execution are the cheapest discriminators. The test deliberately refuses to set `first_load_memsel_value_proven` or infer unobserved indirect writers.

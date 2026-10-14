@@ -14,7 +14,9 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+BANK80 = ROOT / "reference/imported/reverse-engineering/nitrodon/bank 80.txt"
 BANK81 = ROOT / "reference/imported/reverse-engineering/nitrodon/bank 81.txt"
+BANK83 = ROOT / "reference/imported/reverse-engineering/nitrodon/bank 83.txt"
 BALDOSA_BANK00 = ROOT / "reference/imported/reverse-engineering/baldosa-uniracers-recomp/recomp/bank00.cfg"
 BALDOSA_BANK81 = ROOT / "reference/imported/reverse-engineering/baldosa-uniracers-recomp/recomp/bank81.cfg"
 SCHEMA = "UR-QA01-ORIGINAL-CPU-VRAM-FIRST-LOAD-SOURCE/1"
@@ -55,6 +57,90 @@ def original_rows(source: str) -> dict[int, tuple[str, str]]:
 def _attest_line(source: str, line: str) -> None:
     if len([x for x in source.splitlines() if x.startswith(line)]) != 1:
         raise ValueError(f"missing, duplicated or changed original opcode: {line}")
+
+
+MEMSEL_ORIGINAL_OPCODE_ANCHORS = {
+    "bank80_boot_fastrom_set": (
+        "80/91E8: A9 01        LDA #$01",
+        "80/91EA: 8D 0D 42     STA $420D",
+    ),
+    "bank80_boot_slowrom_reset": (
+        "80/92E8: 9C 0D 42     STZ $420D",
+        "80/9311: 4C 5B 88     JMP $885B",
+    ),
+    "bank83_game_fastrom_set": (
+        "83/CC6D: A9 01        LDA #$01",
+        "83/CC6F: 8D 0D 42     STA $420D",
+    ),
+    "bank83_other_slowrom_reset": (
+        "83/FA39: 9C 0D 42     STZ $420D",
+    ),
+}
+
+
+def memsel_direct_source_writers(bank80: str, bank83: str) -> dict:
+    # Direct absolute source writes only; no dynamic control-flow guarantee.
+    origins = {
+        "bank80_boot_fastrom_set": bank80,
+        "bank80_boot_slowrom_reset": bank80,
+        "bank83_game_fastrom_set": bank83,
+        "bank83_other_slowrom_reset": bank83,
+    }
+    result = {}
+    for name, lines in MEMSEL_ORIGINAL_OPCODE_ANCHORS.items():
+        source = origins[name].splitlines()
+        offsets = []
+        for line in lines:
+            hits = [i for i, actual in enumerate(source) if actual.startswith(line)]
+            if len(hits) != 1:
+                raise ValueError(f"missing/duplicate/changed original MEMSEL opcode: {line}")
+            offsets.append(hits[0])
+        if offsets != sorted(set(offsets)):
+            raise ValueError(f"original MEMSEL source ordering changed: {name}")
+        writer_line = next(line for line in lines if "$420D" in line)
+        result[name] = writer_line.split(":", 1)[0].replace("/", ":")
+    for bank, source in (("80", bank80), ("83", bank83)):
+        writers = [x.split(":", 1)[0].replace("/", ":") for x in source.splitlines()
+                   if x.startswith(bank + "/") and "$420D" in x]
+        if len(writers) != 2:
+            raise ValueError(f"unexpected original bank-{bank} direct MEMSEL writer count")
+    result["all_memsel_writers_dynamically_executed_in_first_load_proven"] = False
+    result["first_load_memsel_value_proven"] = False
+    result["original_unobserved_indirect_memsel_writers_excluded"] = False
+    return result
+
+
+# Conditional model transcribed from the two pinned emitter variants:
+# legacy emit_function charges each 65816 CPU cycle at its *code* bus
+# speed; Baldosa's opt-in paced_bus charges operand fetch bytes at code
+# speed and each guest data-store byte at the destination's region speed.
+# See baldosa/snesrecomp@075fbe4 recompiler/v2/emit_function.py (the
+# _paced_block_master path) and recompiler/snes_cycles.py::region_speed.
+# This is a single STA/STY absolute instruction scenario, not the complete
+# runtime or a measurement of which MEMSEL/M/X state was active in RF-014.
+def conditional_abs_store_master_clocks(width_bytes: int, memsel: int) -> dict:
+    if width_bytes not in (1, 2):
+        raise ValueError("STA/STY absolute data width must be one or two bytes")
+    if memsel not in (0, 1):
+        raise ValueError("MEMSEL must be 0 or 1, not inferred from a host frame")
+    code_region_speed = 6 if memsel else 8  # bank 81:CDxx
+    ppu_io_speed = 6  # $00:2116/$00:2118 and next byte
+    fetch_bytes = 3  # STA/STY absolute opcode + 16-bit address
+    static_cpu_cycles = fetch_bytes + width_bytes  # 4 (8-bit), 5 (16-bit)
+    legacy = static_cpu_cycles * code_region_speed
+    paced = fetch_bytes * code_region_speed + width_bytes * ppu_io_speed
+    return {
+        "accumulator_or_index_width_bits": width_bytes * 8,
+        "memsel": memsel,
+        "code_region_speed": code_region_speed,
+        "ppu_io_region_speed": ppu_io_speed,
+        "static_cpu_cycles": static_cpu_cycles,
+        "old_uniform_code_speed_master_clocks": legacy,
+        "baldosa_paced_bus_master_clocks": paced,
+        "old_minus_paced_master_clocks": legacy - paced,
+        "actually_executed_first_load_width_or_memsel_proven": False,
+        "entire_frame_clock_discrepancy_explained": False,
+    }
 
 
 def report(bank81: str, bank00_cfg: str, bank81_cfg: str) -> dict:
@@ -109,6 +195,10 @@ def report(bank81: str, bank00_cfg: str, bank81_cfg: str) -> dict:
         "separate_decompress_to_vram_source": "81:BB89",
         "separate_decompress_ppu_low_byte_writer": "81:BCF4",
         "separate_decompress_ppu_high_byte_writer": "81:BCEE",
+        "conditional_cpu_store_clock_scenarios": [
+            conditional_abs_store_master_clocks(width, memsel)
+            for memsel in (0, 1) for width in (1, 2)
+        ],
         "baldosa_config_has_paced_bus": True,
         "paced_bus_is_globally_requested_via_bank00": True,
         "source_instruction_width_per_executed_site_proven": False,
@@ -129,6 +219,10 @@ def main() -> int:
     result = report(BANK81.read_text(encoding="utf-8"),
                     BALDOSA_BANK00.read_text(encoding="utf-8"),
                     BALDOSA_BANK81.read_text(encoding="utf-8"))
+    result["original_direct_memsel_source_writers"] = memsel_direct_source_writers(
+        BANK80.read_text(encoding="utf-8"),
+        BANK83.read_text(encoding="utf-8"),
+    )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n",
                         encoding="utf-8")

@@ -153,7 +153,7 @@ jobs:
             --dump-header "$RUNNER_TEMP/qa08-original-http-headers" \
             --output /dev/null \
             "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/11884155561/zip"
-          location="$(awk 'tolower($1) == "location:" {gsub(/\\r/, "", $2); print $2}' "$RUNNER_TEMP/qa08-original-http-headers" | tail -1)"
+          location="$(awk 'tolower($1) == "location:" {gsub(/\r/, "", $2); print $2}' "$RUNNER_TEMP/qa08-original-http-headers" | tail -1)"
           case "$location" in
             https://*) ;;
             *) echo "::error::accepted original Snes9x source artifact redirect unavailable"; exit 3 ;;

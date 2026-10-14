@@ -1,0 +1,63 @@
+{
+  "schema": "qa08-original-2p-executed-racer-LUT-original-source-handoff/1",
+  "status": "independently-original-Snes9x-observed-and-strictly-accepted",
+  "original_source_run": 38519411405,
+  "original_source_artifact_id": 11872794254,
+  "original_evidence_ZIP_SHA256": "3623e89729038109b04aa06ca03c57102ae65e7c9580e8e83a8886687e84daf3",
+  "original_LUT_report_SHA256": "f738f63ea0bfc33945d69b9eeb7ef0e776d64dc7927512de4bb00445ea32c5ab",
+  "original_opcode_report_SHA256": "724a89124d5b18d53b89803fc3f64716e136b1901d7d0c49b44fac70f8c7a090",
+  "original_log_SHA256": "b8b4e906c4fb3223984044e0043c08bf2ab8dc6ce495dd3c768752a22226347c",
+  "original_receipt_SHA256": "f5b4cdbf08b3df8c3b96dee6592400586020530feb2c79c496053c83d0cb4411",
+  "original_USA_ROM_SHA256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_instrumented_core_SHA256": "c8cd03f792e6afb3dbdf15d49325258a963e5e548724d68138c5798faeb5cb17",
+  "original_input_script_SHA256": "94eaa5ffb487d9b227e34965c1d2ee09efe3dac06ade595f7dad05315dfc5221",
+  "original_t480_WRAM_SHA256": "9350bcb02f3cbf490678c5276245ec2c7fe36b9078bfab9e912d86c5cbc93bf6",
+  "original_CPU_frame": 1781,
+  "original_guest_second_camera_0DDB": 1,
+  "original_guest_in_race_0313": 1,
+  "original_source_opcode_count": 55,
+  "original_source_STA_long_writer_PC_count": 18,
+  "selector_register_observations": [
+    {
+      "executed_PC": "82:D5D1",
+      "stage": "after first selector load, before shifts",
+      "viewport": "upper",
+      "original_selector_address": "77:0748",
+      "actual_A": "0xFF00",
+      "actual_X": "0x0095",
+      "selected_low_byte": 0
+    },
+    {
+      "executed_PC": "82:D5D4",
+      "stage": "after two shifts and TAX, before four-byte lookup",
+      "viewport": "upper",
+      "ROM_indexed_start": "82:D52A",
+      "actual_A": "0xFF00",
+      "actual_X": "0x0000",
+      "ROM_four_bytes": "2F408004"
+    },
+    {
+      "executed_PC": "82:D61E",
+      "stage": "after second selector load, before shifts",
+      "viewport": "lower",
+      "original_selector_address": "77:0749",
+      "actual_A": "0xFF02",
+      "actual_X": "0x0000",
+      "selected_low_byte": 2
+    },
+    {
+      "executed_PC": "82:D621",
+      "stage": "after two shifts and TAX, before four-byte lookup",
+      "viewport": "lower",
+      "ROM_indexed_start": "82:D532",
+      "actual_A": "0xFF08",
+      "actual_X": "0x0008",
+      "ROM_four_bytes": "20538004"
+    }
+  ],
+  "independent_original_native_same_input_frame_parity_proven": false,
+  "exact_original_Snes9x_final_RGB_to_native_same_frame_parity_proven": false,
+  "original_CPU_journal_represents_live_HDMA": false,
+  "original_emulator_not_physical_SNES_hardware": true,
+  "previously_VETOED_HD_racer_art_approved": false
+}

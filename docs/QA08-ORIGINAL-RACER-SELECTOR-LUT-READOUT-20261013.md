@@ -70,3 +70,40 @@ The full source-to-HDMA-to-native-pixel chain remains governed by
 [the executed 65816 source table authority](QA08-ORIGINAL-2P-CHANNEL5-EXECUTED-65816-LOOKUP-TABLE-20261013.md),
 [real native register/pixel evidence](QA08-HDMA-COLDATA-WRITE-SOURCE-PROVENANCE-20261013.md)
 and the separately current release ledger.
+
+
+## Original real replay accepted: selector 0 above, selector 2 below
+
+**Verified after the experiment.** Exact-head original-emulator workflow
+[38519411405](https://github.com/gamesbyian/UR-Recomp/actions/runs/38519411405)
+passed both the existing original 55-instruction/18-writer source oracle
+and the new four actually executed CPU lookup observations. Artifact
+**11872794254** contains the original source log, unmodified 2P input
+script, strict checker result and hash-based run receipt. The downloaded
+artifact ZIP SHA-256 is
+`3623e89729038109b04aa06ca03c57102ae65e7c9580e8e83a8886687e84daf3`;
+original LUT result SHA-256 is
+`f738f63ea0bfc33945d69b9eeb7ef0e776d64dc7927512de4bb00445ea32c5ab`.
+The immutable compact source handoff with all four actual accumulator/X
+register records and separately named source hashes is
+[`analysis/data/qa08-original-executed-racer-selectors-1781.json`](../analysis/data/qa08-original-executed-racer-selectors-1781.json).
+
+| Actual executed source step | A register | X register | Proved table selection |
+| --- | --- | --- | --- |
+| `82:D5D1`, upper selector loaded | `FF00` | `0095` (prior index; **not** this palette lookup) | `$77:0748` low byte **0** |
+| `82:D5D4`, upper indexed ROM read | `FF00` | `0000` | `$82:D52A` = `2F 40 80 04` |
+| `82:D61E`, lower selector loaded | `FF02` | `0000` (prior index) | `$77:0749` low byte **2** |
+| `82:D621`, lower indexed ROM read | `FF08` | `0008` | `$82:D532` = `20 53 80 04` |
+
+The **upper accumulator high byte `FF` is retained**, even when its
+low byte is the indexed selector. The observed `TAX` index confirms
+byte-level selection without wrongly treating the whole original A word
+`FF02` as an invalid palette number. These actual ROM four-byte entries
+then produce the two six-descriptor colour-HDMA halves already independently
+verified from 18 executed long stores. This closes **numeric selector
+and selected original ROM source** only for this observed original
+2P route at frame1781. The other LUT entries, alternate 2P branch,
+original-versus-native matched exact guest frame and all final Original
+PPU RGB pixels remain unresolved. Do not promote native PPU row50/162
+as an original Snes9x independently matched final framebuffer; no actual
+physical SNES scanout is claimed.

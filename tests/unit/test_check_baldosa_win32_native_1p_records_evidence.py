@@ -5,11 +5,16 @@ import hashlib
 import json
 from pathlib import Path
 import sys
+import tempfile
 import unittest
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 import check_baldosa_win32_native_1p_records_evidence as qa
+import verify_baldosa_romless_candidate_qa as wrapperqa
+import assemble_baldosa_windows_candidate as package
+from tests.unit.test_verify_baldosa_romless_candidate_qa import IndependentBaldosaZipQaTests
 
 
 def sample():
@@ -58,6 +63,90 @@ class HostedNativeWindowsRecordsQA(unittest.TestCase):
         self.assertEqual(record["hosted_new_1p_run_sha256_producer_reported"], "a" * 64)
         self.assertEqual(record["hosted_native_1p_played_log_sha256"],
                          hashlib.sha256(played.encode()).hexdigest())
+
+    def test_existing_candidate_qa_consumes_only_complete_new_win32_evidence_group(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            inner, revision, digest = IndependentBaldosaZipQaTests().make(root)
+            bound = wrapperqa.audit(inner, revision, digest)
+            with zipfile.ZipFile(inner) as zip_in:
+                manifest = json.loads(zip_in.read(package.PREFIX + package.MANIFEST))
+            exe_sha = next(x["sha256"] for x in manifest["immutable_files"]
+                           if x["path"] == package.EXE)
+            smoke = {
+                "classification": "windows_native_pause_and_named_profile_smoke_only",
+                "exe_sha256": exe_sha, "course_complete_credit": 0,
+                "physical_gamepad_hardware_tested": False,
+                "native_named_readonly_records": {
+                    "actual_native_2p_match_published": False,
+                },
+            }
+            for seat, field in ((1, "modern_root_race_entry_p1"),
+                                (2, "modern_root_race_entry_p2")):
+                smoke[field] = {
+                    "players": seat, "native_root_handoff_observed": True,
+                    "original_race_nmi_barrier_passed": True,
+                    "original_go_ticker_barrier_passed": True,
+                    "complete_event_outcome_claimed": False,
+                    "actual_guest_frames": 100,
+                }
+            launcher = {
+                "archive_sha256": digest,
+                "real_extracted_launcher_accepted": True,
+                "published_zip_unchanged": True,
+                "rom_not_in_archive": True,
+                "canonical_8192_byte_save_outside_package": True,
+            }
+            archived = root / "hosted-win32.zip"
+            report, played, fresh = sample()
+            old_log = lambda seat: (
+                f"SDL reports 0 joystick(s)\\n"
+                f"audio=dummy\\n"
+                f"UR_BALDOSA_MODERN_ROOT stock_entered players={seat} menu=3c\\n"
+                "script f=100 quit\\n"
+            )
+            def emit(*, include_new=True, include_fresh=True, result=report):
+                with zipfile.ZipFile(archived, "w") as outfile:
+                    outfile.writestr(wrapperqa.RUNTIME_REPORT, json.dumps(smoke))
+                    outfile.writestr(wrapperqa.RUNTIME_LAUNCHER, json.dumps(launcher))
+                    outfile.writestr(wrapperqa.RUNTIME_ONE, old_log(1))
+                    outfile.writestr(wrapperqa.RUNTIME_TWO, old_log(2))
+                    if include_new:
+                        outfile.writestr(wrapperqa.RUNTIME_NEW_ONE, json.dumps(result))
+                        outfile.writestr(wrapperqa.RUNTIME_NEW_PLAYED, played)
+                        if include_fresh:
+                            outfile.writestr(wrapperqa.RUNTIME_NEW_FRESH, fresh)
+            emit()
+            admitted = wrapperqa.check_runtime_actions_wrapper(
+                archived, wrapperqa.audit(inner, revision, digest),
+            )
+            self.assertEqual(admitted["outcome"], "inconclusive")
+            self.assertTrue(admitted["metrics"][
+                "hosted_native_1p_result_to_fresh_records_logs_consistent"])
+            self.assertFalse(admitted["metrics"]["hosted_saved_urrun_bytes_independently_reopened"])
+            self.assertFalse(admitted["metrics"]["finished_native_event_or_new_match_observed"])
+            self.assertIn(
+                "hosted-native-1p-result-and-fresh-game-records-logs-consistent",
+                [x["name"] for x in admitted["assertions"]],
+            )
+
+            emit(include_new=False)
+            legacy = wrapperqa.check_runtime_actions_wrapper(
+                archived, wrapperqa.audit(inner, revision, digest),
+            )
+            self.assertFalse(legacy["metrics"][
+                "hosted_native_1p_result_to_fresh_records_logs_consistent"])
+            emit(include_fresh=False)
+            with self.assertRaisesRegex(ValueError, "evidence group incomplete"):
+                wrapperqa.check_runtime_actions_wrapper(
+                    archived, wrapperqa.audit(inner, revision, digest),
+                )
+            forged = {**report, "release_gate_credit": 1}
+            emit(result=forged)
+            with self.assertRaisesRegex(ValueError, "contradictory admission claims"):
+                wrapperqa.check_runtime_actions_wrapper(
+                    archived, wrapperqa.audit(inner, revision, digest),
+                )
 
     def test_metadata_cannot_forge_real_source_or_release_credit(self):
         report, played, fresh = sample()

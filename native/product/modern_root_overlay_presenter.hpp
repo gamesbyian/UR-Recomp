@@ -62,6 +62,12 @@ struct ModernRootOverlayView {
     // Older Modern presenters retain their exact two-line layout by default.
     std::string_view records_detail{};
     bool unbound_two_player_warning_open = false;
+    // Optional native first-time preset, committed for NEXT guest process.
+    bool first_racer_shortcut_available = false;
+    bool first_racer_open = false;
+    bool first_racer_created = false;
+    bool first_racer_failed = false;
+    std::string_view first_racer_preset_name{};
 };
 
 inline bool render_modern_root_overlay(
@@ -175,9 +181,14 @@ inline bool render_modern_root_overlay(
         0xFFFFFFFFu, scale);
     paint.draw_text(pixels, stride, surface_height,
         x + 8 * scale, y + 193 * scale,
-        view.racer_shortcuts_available
-            ? "X/F2 RACERS   F1 HELP"
-            : "RACER SETUP NOT YET LINKED", palette.cursor_blue, scale);
+        view.first_racer_created
+            ? "RESTART FOR NEW RACER"
+            : view.first_racer_shortcut_available
+                ? "X CREATE STOCK RACER"
+                : view.racer_shortcuts_available
+                    ? "X/F2 RACERS   F1 HELP"
+                    : "RACER SETUP NOT YET LINKED",
+        palette.cursor_blue, scale);
     if (view.quit_confirm) {
         const int qx = x + 12 * scale, qy = y + 65 * scale;
         const int qw = (panel_w - 24) * scale;
@@ -283,6 +294,46 @@ inline bool render_modern_root_overlay(
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 113 * scale,
                         "P2 DPAD+A / B CLEAR", palette.secondary_grey, scale);
+    }
+    if (view.first_racer_open) {
+        // Shared Modern painter; Baldosa supplies the existing stock preset,
+        // never a speculative rider name or in-process SRAM hot-swap.
+        const int bx = x + 12 * scale, by = y + 43 * scale;
+        const int bw = (panel_w - 24) * scale, bh = 137 * scale;
+        paint.fill_rect(pixels, stride, surface_height,
+                        bx, by, bw, bh, palette.background);
+        paint.stroke_rect(pixels, stride, surface_height,
+                          bx, by, bw, bh, palette.title_yellow);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 10 * scale,
+                        "FIRST STOCK RACER", palette.title_yellow, scale);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 40 * scale,
+                        fit_modern_overlay_text(
+                            std::string("PRESET: ") +
+                            std::string(view.first_racer_preset_name),
+                            modern_overlay_text_cells(panel_w - 33)).c_str(),
+                        0xFFFFFFFFu, scale);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 67 * scale,
+                        view.first_racer_created
+                            ? "SAVED FOR NEXT LAUNCH"
+                            : view.first_racer_failed
+                                ? "NOT SAVED - CHECK DATA"
+                                : "NEW SEPARATE PROGRESS",
+                        palette.secondary_grey, scale);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 94 * scale,
+                        view.first_racer_created
+                            ? "QUIT AND RESTART GAME"
+                            : "UP/DOWN CHOOSE PRESET",
+                        palette.cursor_blue, scale);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 116 * scale,
+                        view.first_racer_created
+                            ? "B BACK / QUIT"
+                            : "A CREATE  B CANCEL",
+                        0xFFFFFFFFu, scale);
     }
     if (view.unbound_two_player_warning_open) {
         // An unbound stock session is playable, but not attributable.

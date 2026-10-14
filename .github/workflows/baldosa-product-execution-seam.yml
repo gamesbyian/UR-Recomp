@@ -57,6 +57,7 @@ jobs:
             -I native/product -I native/title \
             tests/native/baldosa_modern_profile_activation_test.cpp \
             tools/baldosa_modern_profile_activation.cpp \
+            native/product/clean_stock_sram.cpp \
             native/product/output_resolution_policy.cpp \
             native/product/host_product_state.cpp \
             native/product/host_product_store.cpp \

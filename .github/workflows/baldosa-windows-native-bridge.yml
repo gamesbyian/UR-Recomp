@@ -11,6 +11,13 @@ on:
       - "tools/baldosa_windows_native_pause_route.py"
       - "tools/baldosa_native_1p_records_probe.py"
       - "tools/baldosa_native_2p_records_probe.py"
+      - "tools/baldosa_native_first_racer_probe.py"
+      - "native/product/baldosa_native_first_profile.hpp"
+      - "native/product/modern_root_overlay_presenter.hpp"
+      - "native/product/modern_root_physical_edges.hpp"
+      - "tests/native/baldosa_native_first_profile_test.cpp"
+      - "tests/unit/test_baldosa_native_first_profile_cpp.py"
+      - "tests/unit/test_baldosa_native_first_racer_probe.py"
       - "tools/baldosa_modern_profile_native_fixture.cpp"
       - "tests/unit/test_baldosa_native_2p_records_probe.py"
       - "tests/unit/test_baldosa_native_1p_records_probe.py"
@@ -73,6 +80,8 @@ jobs:
           python tests/unit/test_baldosa_windows_native_pause_route.py
           python tests/unit/test_baldosa_native_1p_records_probe.py
           python tests/unit/test_baldosa_native_2p_records_probe.py
+          python tests/unit/test_baldosa_native_first_profile_cpp.py
+          python tests/unit/test_baldosa_native_first_racer_probe.py
           python tests/unit/test_baldosa_modern_user_data_spike.py
           python tests/unit/test_baldosa_modern_profile_activation_spike.py
 
@@ -201,6 +210,17 @@ jobs:
             --video windows --timeout 360
           echo "PASS: real stock 2P result from separately confirmed Modern P1/P2 identities, one canonical paired .urrun/.urmatch, and a fresh native game opening exact same Records. Not original parity, hardware gamepads or release acceptance." >> "$GITHUB_STEP_SUMMARY"
 
+      - name: First controller-semantic native racer creation persists for exact fresh-game boot
+        run: |
+          set -euo pipefail
+          python tools/baldosa_native_first_racer_probe.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_first_racer" \
+            --video windows --timeout 110
+          echo "PASS: real native first-run Modern preset creation through shared root controls, canonical clean SRAM and typed catalog; new game process independently booted it, never live SRAM hot-swap. No physical pad or original/native release credit." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Assemble verified ROM-free Baldosa Modern Windows candidate
         run: |
           set -euo pipefail
@@ -250,6 +270,9 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_2p_records/report.json
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_2p_records/played_native_2p/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_2p_records/fresh_game_2p_records/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_first_racer/report.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_first_racer/first_anonymous_process/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_first_racer/fresh_named_process/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/modern_to_live_race_1p/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/modern_to_live_race_2p/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/baseline/log.txt

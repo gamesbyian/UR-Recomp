@@ -60,3 +60,54 @@ candidate is built and executed.
 mutation, independent QA ledger or HD rider approval is authorized.**
 World geometry stays genuine 342 logical pixels when Widescreen is
 selected; fixed Original remains 256x224 at 7:6 PAR with genuine 4x.
+
+
+## Prepared three-process real-source discriminator (not yet an executed result)
+
+The next bounded iteration extends the **existing** manual/PR-invalidated
+`qa08-native-hdma-prime-counterfactual.yml`, rather than commissioning
+a second emulator runner or accepting a synthetically shifted image.
+It runs the same original-USA 2P input and pinned Baldosa guest three
+times, each through the actual source PPU and distinct complete 2,473
+guest-CRC transcript:
+
+1. Unmodified native HDMA priming (with the already accepted unchanged
+   guest2208 stock source hash).
+2. Global consumed-prime reference, independently original-pixel exact at
+   post-GO guest2208 and countdown guest1856.
+3. **Channel-7-only** consumed-prime counterfactual after exact inversion
+   of the global patch, preserving all prior read-only instrumentation.
+
+The third execution must retain real source-sized 256×224 P7 bytes
+at guest400/1856/2208, actual channel7 `$2100` after-BBUS write
+receipts, **unchanged channel5 `$2131` source journal**, and CRC streams
+identical to both controls. The inversion validates by reapplying the
+global patch in memory and demanding byte-for-byte reconstruction of
+the formerly patched source; it never resets unrelated host adapters.
+
+`tools/qa08_compare_channel7_native_prime.py` requires full exact
+original Snes9x archives for callback1855 (countdown) and callback2207
+(post-GO), with original ZIP SHA256s and the accepted 2P native
+controls. Its output records all three candidate P7 identities,
+the complete pixel-difference row census, alpha differences, and
+the channel-7-only RGB5 comparison to both *genuine* original images.
+The 2P frontend lacks an independently paired original scene and is
+only a bounded **native-versus-native** regression control.
+
+A channel-7-only trial that fails original pixel equality is valuable
+negative evidence. A trial that agrees with both original frames
+remains **experimental source-frame agreement only**: neither scenario
+proves later moving race poses, 1P, results, effective scanline-112
+OAM/window/OBJ layer causality, physical SNES correctness, widened
+342-world output, physical 4× Original, or Gundam Wing regression
+safety. Both selective and global source mutations stay entirely in a
+disposable pinned framework checkout. No production runtime change.
+
+**Reuse disposition:** preflight `rider-oam-hdma` and
+`dma-entry-provenance` remain conditional existing-tool reuse;
+`candidate-evidence-envelope` and `agent-work-packets` favor
+binding the already captured ROM/route/native source identities.
+Current Baldosa DMA/PPU probes and existing UR source comparators
+are sufficient for this measurement. Malmazuke PPU/OAM interpretation
+remains advisory until genuine USA executed source/finished pixels
+distinguish a specific unresolved layer.

@@ -253,7 +253,7 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
                 boot.start() < ui_switch.index(stages[2]),
                 "native controller profile switch hot-swapped current running guest")
         edges = list(re.finditer(
-            r"(?m)^UR_BALDOSA_MODERN_ROOT synthetic_p1_switch_gamepad=(\\d+)\\r?$",
+            r"(?m)^UR_BALDOSA_MODERN_ROOT synthetic_p1_switch_gamepad=(\d+)\r?$",
             ui_switch,
         ))
         require([edge[1] for edge in edges] == ["2", "0", "1", "0"]

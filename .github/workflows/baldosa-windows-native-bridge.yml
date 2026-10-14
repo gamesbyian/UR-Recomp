@@ -350,7 +350,6 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_second_racer/report.json
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/report.json
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/ci-owned-raw-artifacts/**
-            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/ci-owned-pre-records-pair/**
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/first_P1_mike/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/named_P1_adds_P2/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/played_native_2p/log.txt
@@ -381,6 +380,19 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/with_named_profile/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/corrupt_named_profile/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/different_named_profile/log.txt
+
+      # Do NOT place pre-view bytes inside the independently fixed-members
+      # baldosa-win32-native-pause-evidence ZIP. QA-12 #1549 rejects additional
+      # outer members there. This separate evidence artifact is the same
+      # successful source run and contains only two CI-owned pair bytes.
+      - name: Retain bounded pre-Records raw pair in separate source artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-pre-records-pair-evidence
+          if-no-files-found: error
+          retention-days: 7
+          path: ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/ci-owned-pre-records-pair/
 
       - name: Export verified shared Windows inputs for bounded manual reliability campaigns
         if: ${{ inputs.export_campaign_inputs == true }}

@@ -229,6 +229,36 @@ def actions_for(seed: int, arm: str) -> tuple[list[tuple[int, int, int, int]], d
     return amended, info
 
 
+def normalized_token(path: Path, name: str) -> str:
+    """The census's 96-bit normalized fingerprint of one 128-KiB WRAM sample.
+
+    ``name`` is the checkpoint label hashed into the identity. Shared by the
+    native census and the original-emulator cross-check so both sides use one
+    definition.
+    """
+    d = state(path)
+    slot1, slot2 = d["slot1"], d["slot2"]
+    cam = d["camera_and_viewport"]["mode"]
+    progress = d["race_progress"]
+    normalized = {
+        "checkpoint": name,
+        "p1_xy": (slot1["x_pos"]//64, slot1["y_pos"]//32),
+        "p2_xy": (slot2["x_pos"]//64, slot2["y_pos"]//32),
+        "p1_velocity": (slot1["x_speed"]//64,slot1["y_speed"]//64),
+        "p2_velocity": (slot2["x_speed"]//64,slot2["y_speed"]//64),
+        "p1_air": slot1["air_effective"], "p2_air": slot2["air"],
+        "p1_rotation": slot1["rotation_candidate"]//16,
+        "p2_rotation": slot2["rotation_candidate"]//16,
+        "split": cam["split_screen_active_raw"],
+        "offscreen": (cam["player1_offscreen_raw"],cam["player2_offscreen_raw"]),
+        "progress_p1": tuple(progress["player1"][k] for k in
+                              ("next_checkpoint","finish_gate","laps_remaining")),
+        "progress_p2": tuple(progress["player2"][k] for k in
+                              ("next_checkpoint","finish_gate","laps_remaining")),
+    }
+    return digest(normalized)[:24]
+
+
 def semantic_bins(dumps: Path) -> tuple[str, ...]:
     """Only a bounded set of source-referenced slot/camera/race-progress fields.
 
@@ -240,27 +270,7 @@ def semantic_bins(dumps: Path) -> tuple[str, ...]:
         p = dumps / (name + ".wram.bin")
         if not p.is_file() or p.is_symlink() or p.stat().st_size != 131072:
             raise ValueError(f"missing 128-KiB source-qualified semantic sample {name}")
-        d = state(p)
-        slot1, slot2 = d["slot1"], d["slot2"]
-        cam = d["camera_and_viewport"]["mode"]
-        progress = d["race_progress"]
-        normalized = {
-            "checkpoint": name,
-            "p1_xy": (slot1["x_pos"]//64, slot1["y_pos"]//32),
-            "p2_xy": (slot2["x_pos"]//64, slot2["y_pos"]//32),
-            "p1_velocity": (slot1["x_speed"]//64,slot1["y_speed"]//64),
-            "p2_velocity": (slot2["x_speed"]//64,slot2["y_speed"]//64),
-            "p1_air": slot1["air_effective"], "p2_air": slot2["air"],
-            "p1_rotation": slot1["rotation_candidate"]//16,
-            "p2_rotation": slot2["rotation_candidate"]//16,
-            "split": cam["split_screen_active_raw"],
-            "offscreen": (cam["player1_offscreen_raw"],cam["player2_offscreen_raw"]),
-            "progress_p1": tuple(progress["player1"][k] for k in
-                                  ("next_checkpoint","finish_gate","laps_remaining")),
-            "progress_p2": tuple(progress["player2"][k] for k in
-                                  ("next_checkpoint","finish_gate","laps_remaining")),
-        }
-        tokens.append(digest(normalized)[:24])
+        tokens.append(normalized_token(p, name))
     return tuple(tokens)
 
 

@@ -66,3 +66,19 @@ The *first* paired original/native opt-in run [38502953689](https://github.com/g
 
 The existing opt-in artifact now **also** retains all original `original/*.wram.bin` and native `native-run/dumps/*.wram.bin` snapshots in the **same** 14-day artifact, including failures. The existing independently emitted real guest transcript `original.log`/`native.log`, manifest, input and exact binary SHA gate remain mandatory for accepting a comparison; a correctly named saved image alone does **not** attest its real capture frame or guest identity. This is preservation and forensic reproducibility only, not an additional emitter, extra guest simulation, invented register semantics or permission to attribute airborne physics from a nonzero raw byte. The workflow remains manual opt-in and strict 0/45 original/native release-event credit remains unchanged.
 
+
+## Successfully executed paired 2P discriminator (2026-10-14)
+
+**The original/native comparison is now executed and classified**, superseding the earlier no-verdict transport failure. [Actual successful workflow 38509912672](https://github.com/gamesbyian/UR-Recomp/actions/runs/38509912672), artifact **11869806880**, retains manifest, source/native actual runtime transcripts and `paired-report.json` with **18 verified 128-KiB WRAM snapshots per guest**, true frame-label receipts and the frozen **seed 50036056 / rotation / frame 2580**. The native executable SHA-256 matches the original frontier `28501fa3268f82d83672122cddbd2628ce5b2458e625f46d93766f50befbe515`, and the stock-USA ROM/input fixture fingerprints match their manifest. **No controller input timing was rebased.**
+
+| Exact shared host label | Original source `7E:0545/0547` | Native `7E:0545/0547` | Original P1 Y / P2 Y | Native P1 Y / P2 Y |
+| --- | --- | --- | --- | --- |
+| 2579 | `00/01` | `00/01` | `857/860` | `857/860` |
+| 2580 | **`00/02`** | **`01/02`** | `857/863` | `858/862` |
+| 2581 | `00/00` | `00/00` | `857/864` | `858/864` |
+
+At host 2580, the genuine **native alone** satisfies the provisional simultaneous nonzero P1/P2 raw-air predicate. Original and native are both in a real active 2P race and have equal **horizontal** P1/P2 coordinates (5054, 4505) at that sample, yet their vertical coordinates and the P1 provisional raw-air byte differ. Source P1 Y 857 remains steady across 2579–2581; native P1 Y 857→858→858. Source P2 Y 860→863→864; native P2 Y 860→862→864. Full original/native 128-KiB WRAM is **not byte-identical** at any of those checkpoints. The comparison covers only the named samples, not every intervening source instruction.
+
+This is a **real original/native provisional state divergence**, not a complete-event failure verdict or proof either racer was physically airborne. It might reflect the vertical-update/landing or observational frame phase, a P1 local state transition, or incorrect attribution of those RAM bytes to effective physics. The **next smallest genuine cause-discriminator** is independently source-visible P1 `7E:0545` writer/consumer and vertical-position (P1 Y) trace with P1 input edges across **2578–2582**, plus native source helper writes at the same real host ticks. Retain original/runtime CPU clock axes and check effective jump/landing semantics before changing any physics. Avoid expanding the 120-frame census, retriggering a large factory, adjusting controller inputs, or treating `7E:0DDB=1` as a broken 2P visual split.
+
+**Admission:** `raw_both_air_at_2580={"original":false,"native":true}`, `paired_guest_relative_entry_offset_calibrated=false`, `strict_complete_event_accepted=false`, `release_gate_credit=0`. This is research evidence, **not 1 of 45 USA strict accepted events**.

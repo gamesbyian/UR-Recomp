@@ -13,6 +13,8 @@ on:
       - "tools/instrument_snesref_zoo_menu_writes.py"
       - "tools/baldosa_zoo_opcode_writer_report.py"
       - "tools/baldosa_zoo_native_write_chronology.py"
+      - "tools/qa01_zoo_terminal_writer_crosswalk.py"
+      - "tests/unit/test_qa01_zoo_terminal_writer_crosswalk.py"
       - "tools/baldosa_qa_native_writer_window_patch.py"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snes9x-libretro.json"
@@ -297,7 +299,9 @@ jobs:
           # one-run pinned Baldosa boundary replay (no new recompilation).
           # The framework logger has no CPU-PC promise for native AOT scopes.
           NATIVE_ENTRY="$(python3 -c 'import sys; sys.path.insert(0, "tools"); from baldosa_2014_zoo_calibrated_input import guest_scene_entry; print(guest_scene_entry(open(sys.argv[1]).read()))' "$ROOT/native-calibration/log.txt")"
-          export SNESRECOMP_WLOG_ADDR="008B:00CE:$ROOT/native-menu-writes.log"
+          # Preserve the first exact finish/result race-state writer too.
+          # 7E:0313 lies beyond the previous 008B:00CE filter.
+          export SNESRECOMP_WLOG_ADDR="008B:0313:$ROOT/native-menu-writes.log"
           export SNESRECOMP_WLOG_ADDR_CAP=100000
           export UR_QA_ZOO_NATIVE_WRITE_FIRST="$((NATIVE_ENTRY + 5152))"
           export UR_QA_ZOO_NATIVE_WRITE_LAST="$((NATIVE_ENTRY + 5165))"
@@ -367,6 +371,26 @@ jobs:
             --scene-entry-frame "$ORIGINAL_ENTRY" \
             --out "$ROOT/original-menu-opcode-writers.json"
           cat "$ROOT/original-menu-opcode-writers.json" >> "$GITHUB_STEP_SUMMARY"
+          python3 tools/qa01_zoo_terminal_writer_crosswalk.py \
+            --original-trace "$ROOT/original-pc.log" \
+            --native-trace "$ROOT/native-menu-writes.log" \
+            --original-host-log "$ROOT/original-boundary.log" \
+            --native-host-log "$ROOT/native-boundary/log.txt" \
+            --original-dir "$ROOT/original-boundary" \
+            --native-dir "$ROOT/native-boundary/dump" \
+            --out "$ROOT/zoo-terminal-writer-crosswalk.json"
+          python3 - "$ROOT/zoo-terminal-writer-crosswalk.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          r=json.load(open(sys.argv[1],encoding="utf-8"))
+          with open(sys.argv[2],"a",encoding="utf-8") as f:
+              f.write("\\n### QA-01 source/native result-boundary writer scopes\\n")
+              f.write("Original CPU 0313 candidate scopes: "
+                      +str(len(r["original_cpu_0313_opcode_scope_rows"]))+"\\n")
+              f.write("Native CPU-helper 0313 candidate scopes: "
+                      +str(len(r["native_cpu_helper_0313_write_rows"]))+"\\n")
+              f.write("Original +5162/+5163, native +5161/+5162 guest "
+                      "transition remains strict-disparate. No course credit.\\n")
+          PY
           echo "Captured original opcode scopes are causal leads, NOT an independently proven native CPU fault or a completed-course admission." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain independent guest evidence but not copyrighted movie/SRAM
@@ -384,6 +408,7 @@ jobs:
             ${{ runner.temp }}/zoo-scene/fixed-boundary-report.json
             ${{ runner.temp }}/zoo-scene/adjacent-memory-phase-report.json
             ${{ runner.temp }}/zoo-scene/original-menu-opcode-writers.json
+            ${{ runner.temp }}/zoo-scene/zoo-terminal-writer-crosswalk.json
             ${{ runner.temp }}/zoo-scene/native-menu-writer-report.json
             ${{ runner.temp }}/zoo-scene/native-menu-writes.log
             ${{ runner.temp }}/zoo-scene/original-pc.log

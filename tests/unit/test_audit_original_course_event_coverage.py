@@ -29,9 +29,9 @@ class OriginalCourseCensusTests(unittest.TestCase):
             "stunt_cases": 27,
             "family_cases_per_region": 9,
         })
-        self.assertEqual(report["status_counts"], {"partial": 5, "unverified": 130})
+        self.assertEqual(report["status_counts"], {"partial": 4, "unverified": 131})
         self.assertEqual(report["primary_release_rom"], "usa-retail")
-        self.assertEqual(report["by_rom"]["usa-retail"], {"partial": 5, "unverified": 40})
+        self.assertEqual(report["by_rom"]["usa-retail"], {"partial": 4, "unverified": 41})
         for variant in audit.COMPARISON_ROMS[1:]:
             self.assertEqual(report["by_rom"][variant], {"unverified": 45})
         self.assertEqual(len(report["entries"]), len(set(
@@ -45,7 +45,7 @@ class OriginalCourseCensusTests(unittest.TestCase):
         self.assertEqual(
             [r["course_id"] for r in report["entries"]
              if r["status"] == "partial"],
-            ["course:01", "course:02", "course:03", "course:04", "course:20"],
+            ["course:01", "course:02", "course:03", "course:20"],
         )
 
     def test_historical_optimizer_start_x_is_never_promoted_to_runtime_spawn(self):
@@ -87,7 +87,7 @@ class OriginalCourseCensusTests(unittest.TestCase):
         row = next(x for x in report["entries"]
                    if x["rom"] == "usa-retail" and x["course_id"] == "course:02")
         self.assertEqual(row["status"], "partial")
-        self.assertEqual(report["by_rom"]["usa-retail"], {"partial": 5, "unverified": 40})
+        self.assertEqual(report["by_rom"]["usa-retail"], {"partial": 4, "unverified": 41})
         self.assertIn("paired original/native Zoom Zoo", report["limits"][2])
 
     def test_bowl_scored_original_native_candidate_remains_partial(self):
@@ -101,9 +101,9 @@ class OriginalCourseCensusTests(unittest.TestCase):
         self.assertIn("+3365 versus native +3364", witness["coverage_note"])
         report = audit.build_census(self.catalog, self.evidence)
         self.assertEqual(report["by_rom"]["usa-retail"],
-                         {"partial": 5, "unverified": 40})
+                         {"partial": 4, "unverified": 41})
         self.assertEqual(report["status_counts"],
-                         {"partial": 5, "unverified": 130})
+                         {"partial": 4, "unverified": 131})
         self.assertIn("paired original/native Bowl", report["limits"][3])
         # Source witness is part of main once PR #1119 lands. Only the
         # actual scored result, tested guest agreement and *negative*
@@ -124,38 +124,33 @@ class OriginalCourseCensusTests(unittest.TestCase):
         self.assertEqual(evidence["release"]["qualified_complete_usa_courses"], 0)
 
 
-    def test_switcher_original_native_finished_race_b_is_only_partial(self):
-        observation = next(x for x in self.evidence["observations"]
-                           if x["rom"] == "usa-retail"
-                           and x["course_id"] == "course:04")
-        self.assertEqual(observation["status"], "partial")
-        self.assertEqual(observation["evidence_ref"],
-                         "analysis/data/switcher-original-baldosa-paired-race-b-result-20261010.json")
-        witness = json.loads((ROOT / observation["evidence_ref"]).read_text(
-            encoding="utf-8"))
-        self.assertEqual(witness["schema"],
+    def test_switcher_completed_result_is_not_yet_an_admitted_event(self):
+        # Genuine original/native evidence is preserved, but the release-QA
+        # owner must reconcile official census counts before any promotion.
+        source = json.loads((ROOT /
+            "analysis/data/switcher-original-baldosa-paired-race-b-result-20261010.json"
+        ).read_text(encoding="utf-8"))
+        self.assertEqual(source["schema"],
                          "UR-QA01-ORIGINAL-BALDOSA-SWITCHER-RACE-B-RESULT/1")
-        self.assertEqual(witness["provenance"]["course_id"], "course:04")
-        self.assertEqual(witness["original_source"]["original_movie_course_entry_frame"],
-                         12327)
-        self.assertEqual(witness["original_source"]["original_movie_result_frame"],
-                         17030)
-        source = witness["independently_observed_replay"]
-        self.assertEqual(source["active_sample_count"], 28)
-        self.assertTrue(source["sampled_active_semantic_fields_equal"])
-        self.assertEqual(source["player_one_time"], "1:08.81")
-        self.assertEqual(source["reference_result_guest_relative_frame"], 4704)
-        self.assertEqual(source["native_result_guest_relative_frame"], 4702)
-        self.assertEqual(source["reference_result_onset_absolute_host_frame"], 5783)
-        self.assertEqual(source["native_result_onset_absolute_host_frame"], 5783)
-        self.assertFalse(source["full_event_parity_admitted"])
-        self.assertEqual(witness["release"]["qa_credit"], 0)
-        census = audit.build_census(self.catalog, self.evidence)
-        row = next(x for x in census["entries"]
-                   if x["rom"] == "usa-retail" and x["course_id"] == "course:04")
-        self.assertEqual(row["status"], "partial")
-        self.assertEqual(census["by_event_family"]["race-b"],
-                         {"partial": 1, "unverified": 26})
+        self.assertEqual(source["provenance"]["course_id"], "course:04")
+        original = source["original_source"]
+        self.assertEqual(original["original_movie_course_entry_frame"], 12327)
+        self.assertEqual(original["original_movie_result_frame"], 17030)
+        paired = source["independently_observed_replay"]
+        self.assertEqual(paired["active_sample_count"], 28)
+        self.assertTrue(paired["sampled_active_semantic_fields_equal"])
+        self.assertEqual(paired["player_one_time"], "1:08.81")
+        self.assertEqual(paired["reference_result_guest_relative_frame"], 4704)
+        self.assertEqual(paired["native_result_guest_relative_frame"], 4702)
+        self.assertFalse(paired["terminal_guest_relative_result_frame_matched"])
+        self.assertFalse(paired["full_event_parity_admitted"])
+        self.assertEqual(source["release"]["qa_credit"], 0)
+        report = audit.build_census(self.catalog, self.evidence)
+        recorded = next(x for x in report["entries"]
+                        if x["rom"] == "usa-retail" and x["course_id"] == "course:04")
+        self.assertEqual(recorded["status"], "unverified")
+        self.assertEqual(report["by_rom"]["usa-retail"],
+                         {"partial": 4, "unverified": 41})
 
     def test_dragster_native_only_evidence_does_not_pass_full_course(self):
         report = audit.build_census(self.catalog, self.evidence)

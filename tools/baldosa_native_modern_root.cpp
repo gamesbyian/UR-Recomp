@@ -31,6 +31,7 @@ int ur_baldosa_modern_profile_can_join_opponent(
     const ur::product::HostProfileCatalogEntry* entry);
 int ur_baldosa_modern_profile_can_begin_race(void);
 int ur_baldosa_modern_create_first_preset(unsigned index);
+int ur_baldosa_modern_create_second_preset(unsigned index);
 }
 
 #include <algorithm>
@@ -68,6 +69,12 @@ bool g_first_racer_open = false;
 bool g_first_racer_created = false;
 bool g_first_racer_failed = false;
 std::size_t g_first_racer_preset = 0;
+bool g_second_racer_open = false;
+bool g_second_racer_created = false;
+bool g_second_racer_failed = false;
+bool g_can_add_second_racer = false;
+bool g_ever_entered_stock = false;
+std::size_t g_second_racer_preset = 1;
 ur::product::BaldosaNativeRunSaveFeedback g_run_save_feedback =
     ur::product::BaldosaNativeRunSaveFeedback::None;
 std::string g_records_status;
@@ -268,8 +275,69 @@ void join_confirm(unsigned seat) {
         request_stock_route(2);
     }
 }
+void open_stock_racer_setup() {
+    // No typed/catalog mutation from stock gameplay, stale authority, a
+    // second seat's input, or while another root child owns focus.
+    if (!g_visible || g_stock_target != -1 || g_records_open ||
+        g_confirm_quit || g_two_seat_join.open() ||
+        g_unbound_two_player_warning_open || g_first_racer_open ||
+        g_second_racer_open || g_first_racer_created ||
+        g_second_racer_created || g_named_profile_stale) return;
+    const char* selected = ur_baldosa_modern_profile_selected_id();
+    if (!selected || !*selected) {
+        g_first_racer_open = true;
+        g_first_racer_failed = false;
+        g_first_racer_preset = 0;
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT first_racer_opened=1 "
+            "activation=next_process\n");
+        return;
+    }
+    if (!g_can_add_second_racer || g_ever_entered_stock ||
+        !named_profile_still_playable()) return;
+    const char* catalog_path = ur_baldosa_modern_profile_catalog_path();
+    const auto roster = catalog_path
+        ? ur::product::load_host_profile_catalog_file(catalog_path)
+        : std::optional<std::vector<
+            ur::product::HostProfileCatalogEntry>>{};
+    if (!roster || roster->size() != 1u ||
+        roster->front().profile_id != selected ||
+        !ur::product::valid_racer_identity(roster->front().identity))
+        return;
+    g_second_racer_open = true;
+    g_second_racer_failed = false;
+    g_second_racer_preset =
+        (static_cast<std::size_t>(roster->front().identity.rider_index) + 1u) %
+        ur::product::legacy_racer_presets().size();
+    std::fprintf(stderr,
+        "UR_BALDOSA_MODERN_ROOT second_racer_opened=1 preset=%zu "
+        "activation=next_process\n", g_second_racer_preset);
+}
 void choose() {
     if (g_stock_target != -1) return;
+    if (g_second_racer_open) {
+        if (g_second_racer_created || g_ever_entered_stock ||
+            !named_profile_still_playable()) return;
+        const auto& stock = ur::product::legacy_racer_presets();
+        if (g_second_racer_preset >= stock.size()) return;
+        if (ur_baldosa_modern_create_second_preset(
+                static_cast<unsigned>(g_second_racer_preset))) {
+            g_second_racer_created = true;
+            g_second_racer_failed = false;
+            g_can_add_second_racer = false;
+            g_named_profile_stale = true;
+            g_racer_name = "SECOND RACER SAVED - RESTART";
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_ROOT second_racer_created=1 "
+                "activation=next_process\n");
+        } else {
+            g_second_racer_failed = true;
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_ROOT second_racer_created=0 "
+                "reason=canonical_create_rejected\n");
+        }
+        return;
+    }
     if (g_first_racer_open) {
         if (g_first_racer_created) return;
         const auto& presets = ur::product::legacy_racer_presets();
@@ -390,6 +458,19 @@ void choose() {
 void navigate(int delta) {
     if (g_confirm_quit || g_stock_target != -1 ||
         g_unbound_two_player_warning_open) return;
+    if (g_second_racer_open) {
+        if (g_second_racer_created) return;
+        const auto count =
+            static_cast<int>(ur::product::legacy_racer_presets().size());
+        const int pos = static_cast<int>(g_second_racer_preset);
+        g_second_racer_preset = static_cast<std::size_t>(
+            (pos + (delta > 0 ? 1 : -1) + count) % count);
+        g_second_racer_failed = false;
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT second_racer_preset=%zu\n",
+            g_second_racer_preset);
+        return;
+    }
     if (g_first_racer_open) {
         if (g_first_racer_created) return;
         const auto count =
@@ -417,6 +498,12 @@ void navigate(int delta) {
             ur::product::modern_root_menu_selected(g_menu)));
 }
 void back() {
+    if (g_second_racer_open) {
+        g_second_racer_open = false;
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT second_racer_closed=1\n");
+        return;
+    }
     if (g_first_racer_open) {
         g_first_racer_open = false;
         std::fprintf(stderr,
@@ -496,6 +583,22 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     g_first_racer_created = false;
     g_first_racer_failed = false;
     g_first_racer_preset = 0;
+    g_second_racer_open = false;
+    g_second_racer_created = false;
+    g_second_racer_failed = false;
+    g_second_racer_preset = 1;
+    g_ever_entered_stock = false;
+    g_can_add_second_racer = false;
+    if (const char* selected = ur_baldosa_modern_profile_selected_id()) {
+        const char* catalog = ur_baldosa_modern_profile_catalog_path();
+        const auto entries = catalog
+            ? ur::product::load_host_profile_catalog_file(catalog)
+            : std::optional<std::vector<
+                ur::product::HostProfileCatalogEntry>>{};
+        g_can_add_second_racer = entries && entries->size() == 1u &&
+            entries->front().profile_id == selected &&
+            ur::product::valid_racer_identity(entries->front().identity);
+    }
     g_run_save_feedback = ur::product::BaldosaNativeRunSaveFeedback::None;
     g_visible = true;
     g_render_reported = false;
@@ -533,18 +636,8 @@ extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
     if (!first_press) return 1;
     if (action == 2) choose();
     else if (action == 3) back();
-    else if (action == 4 && !g_first_racer_created &&
-             !ur_baldosa_modern_profile_selected_id() &&
-             !g_first_racer_open && g_stock_target == -1 &&
-             !g_records_open && !g_confirm_quit &&
-             !g_unbound_two_player_warning_open) {
-        g_first_racer_open = true;
-        g_first_racer_failed = false;
-        g_first_racer_preset = 0;
-        std::fprintf(stderr,
-            "UR_BALDOSA_MODERN_ROOT first_racer_opened=1 "
-            "activation=next_process\n");
-    } else if (action != 4) navigate(action);
+    else if (action == 4) open_stock_racer_setup();
+    else navigate(action);
     return 1;
 }
 
@@ -591,18 +684,8 @@ extern "C" int ur_baldosa_modern_root_gamepad(
     if (!first_press) return 1;
     if (action == 2) choose();
     else if (action == 3) back();
-    else if (action == 4 && !g_first_racer_created &&
-             !ur_baldosa_modern_profile_selected_id() &&
-             !g_first_racer_open && g_stock_target == -1 &&
-             !g_records_open && !g_confirm_quit &&
-             !g_unbound_two_player_warning_open) {
-        g_first_racer_open = true;
-        g_first_racer_failed = false;
-        g_first_racer_preset = 0;
-        std::fprintf(stderr,
-            "UR_BALDOSA_MODERN_ROOT first_racer_opened=1 "
-            "activation=next_process\n");
-    } else if (action != 4) navigate(action);
+    else if (action == 4) open_stock_racer_setup();
+    else navigate(action);
     return 1;
 }
 
@@ -638,12 +721,22 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     view.first_racer_shortcut_available =
         !ur_baldosa_modern_profile_selected_id() &&
         !g_first_racer_created;
-    view.first_racer_open = g_first_racer_open;
-    view.first_racer_created = g_first_racer_created;
-    view.first_racer_failed = g_first_racer_failed;
+    view.second_racer_shortcut_available =
+        g_can_add_second_racer && !g_ever_entered_stock &&
+        !g_second_racer_created && !g_named_profile_stale;
+    view.second_racer_created = g_second_racer_created;
+    view.first_racer_open = g_first_racer_open || g_second_racer_open;
+    view.first_racer_is_second = g_second_racer_open;
+    view.first_racer_created =
+        g_first_racer_created || g_second_racer_created;
+    view.first_racer_failed =
+        g_first_racer_failed || g_second_racer_failed;
+    view.racer_shortcuts_available = false;
     const auto& presets = ur::product::legacy_racer_presets();
-    if (g_first_racer_preset < presets.size())
-        view.first_racer_preset_name = presets[g_first_racer_preset].name;
+    const auto chosen = g_second_racer_open
+        ? g_second_racer_preset : g_first_racer_preset;
+    if (chosen < presets.size())
+        view.first_racer_preset_name = presets[chosen].name;
     view.two_seat_join_open = g_two_seat_join.open();
     if (view.two_seat_join_open) {
         const auto* p1 = g_two_seat_join.candidate(0);
@@ -713,6 +806,7 @@ extern "C" void ur_baldosa_modern_root_stock_observe_guest(void) {
             g_stock_target = -1;
             g_visible = false;
             g_stock_handed_off = true;
+            g_ever_entered_stock = true;
             g_handed_off_players = static_cast<unsigned>(players);
             g_handed_off_saw_race = false;
             ur_baldosa_product_set_host_focus(0);
@@ -833,7 +927,8 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     if (!g_visible || !opt || (std::strcmp(opt, "1") != 0 &&
                              std::strcmp(opt, "2") != 0 &&
                              std::strcmp(opt, "3") != 0 &&
-                             std::strcmp(opt, "4") != 0)) return;
+                             std::strcmp(opt, "4") != 0 &&
+                             std::strcmp(opt, "5") != 0)) return;
     // Controlled host-root edge on an anonymous install. No created racer
     // is activated in this guest; a new process must load canonical SRAM.
     if (std::strcmp(opt, "4") == 0) {
@@ -869,6 +964,25 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                   (frame == 90 || frame == 92) ? SDLK_ESCAPE :
                   frame == 94 ? SDLK_RETURN : 0;
         }
+        if (!key) return;
+        SDL_Event event{};
+        event.type = SDL_KEYDOWN;
+#if SNESRECOMP_SDL3
+        event.key.key = key;
+#else
+        event.key.keysym.sym = key;
+#endif
+        if (SDL_PushEvent(&event) != 1) std::abort();
+        event.type = SDL_KEYUP;
+        if (SDL_PushEvent(&event) != 1) std::abort();
+        return;
+    }
+    // Distinct stock P2 profile from an already named P1 native guest.
+    // Test-only SDL button edges; never an automatic profile/catalog
+    // update, forged native result, or change to live original SRAM.
+    if (std::strcmp(opt, "5") == 0) {
+        const int key = frame == 60 ? SDLK_x :
+                        frame == 62 ? SDLK_RETURN : 0;
         if (!key) return;
         SDL_Event event{};
         event.type = SDL_KEYDOWN;

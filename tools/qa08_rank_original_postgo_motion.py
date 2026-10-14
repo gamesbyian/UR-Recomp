@@ -90,7 +90,7 @@ def assess(source: dict[int, bytes]) -> dict:
         "proposed_additional_native_frames": [2192, 2224],
         "native_host_has_emitted_these_additional_frames": False,
         "source_original_native_guest_phase_for_additional_frames_proven": False,
-        "original_native_RBG5_pixel_parity_for_additional_frames_proven": False,
+        "original_native_RGB5_pixel_parity_for_additional_frames_proven": False,
         "source_2P_rider_OAM_winner_or_4x_HD_proven": False,
         "release_or_renderer_promotion_authorized": False,
     }

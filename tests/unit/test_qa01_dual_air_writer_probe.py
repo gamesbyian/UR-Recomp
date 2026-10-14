@@ -125,5 +125,43 @@ class AirWriterProbe(unittest.TestCase):
             core.patch("not original dispatch")
 
 
+    def test_original_opcode_scope_retains_scratch_and_high_bytes_fail_closed(self):
+        # These are source-CPU receipts, not host-frame snapshots or proof
+        # that either original/native air flag means physical airborne motion.
+        candidate = (
+            "QA01AIRPC f=2579 v=250 pc=818E26 addr=0545 old=00 new=00 candidate=1\n")
+        scratch = (
+            "QA01AIRPC f=2580 v=001 pc=819E2A addr=0F29 old=02 new=03 candidate=0\n")
+        lower = (
+            "QA01AIRPC f=2580 v=002 pc=818E26 addr=0545 old=00 new=01 candidate=1\n")
+        upper = (
+            "QA01AIRPC f=2580 v=003 pc=819E2B addr=0546 old=00 new=02 candidate=0\n")
+        rows = m.source_opcode_chronology(candidate + scratch + lower + upper)
+        self.assertEqual([x["address"] for x in rows],
+                         ["7E:0545", "7E:0F29", "7E:0545", "7E:0546"])
+        self.assertEqual([x["changed"] for x in rows],
+                         [False, True, True, True])
+        self.assertEqual([x["frame"] for x in rows],
+                         [2579, 2580, 2580, 2580])
+        self.assertEqual(len(m.SOURCE_CAPTURED_BYTES), 18)
+        self.assertIn(0x0F29, m.SOURCE_SHARED_WORKING_BYTES)
+        for changed, failure in (
+            (candidate.replace("f=2579", "f=2588"), "frame gate"),
+            (candidate.replace("v=250", "v=777"), "vertical counter"),
+            (candidate.replace("addr=0545", "addr=0550"), "address outside"),
+            (candidate.replace("candidate=1", "candidate=0"), "candidate PC"),
+            (candidate.replace("pc=818E26", "pc=818E27"), "candidate PC"),
+            (scratch.replace("new=03", "new=02"), "nonmutating"),
+            (scratch.replace("old=02", "old=XX"), "malformed"),
+        ):
+            with self.subTest(changed=changed):
+                with self.assertRaisesRegex(ValueError, failure):
+                    m.source_opcode_chronology(changed)
+        with self.assertRaisesRegex(ValueError, "gate/order"):
+            m.source_opcode_chronology(scratch + candidate)
+        with self.assertRaisesRegex(ValueError, "missing or malformed"):
+            m.source_opcode_chronology("original source logger absent\n")
+
+
 if __name__ == "__main__":
     unittest.main()

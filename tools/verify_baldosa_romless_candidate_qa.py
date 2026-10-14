@@ -347,6 +347,15 @@ def check_runtime_actions_wrapper(
             # unreviewed private data before any member is read.
             if not set(names) <= RUNTIME_ALLOWED_MEMBERS:
                 raise ValueError("Baldosa runtime evidence has unreviewed ZIP member")
+            # All members, including the five diagnostic logs that this QA
+            # consumer intentionally never reads, must be bounded. Otherwise
+            # an allowlisted filename can conceal a huge compressed private
+            # export/ZIP bomb which survives the outer 16 MiB size cap.
+            if any(
+                item.is_dir() or not 0 < item.file_size <= 2 * 1024 * 1024
+                for item in archive.infolist()
+            ):
+                raise ValueError("Baldosa runtime evidence has oversized/empty ZIP member")
 
             def bounded(name: str, limit: int) -> bytes:
                 try:

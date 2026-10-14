@@ -13,6 +13,7 @@ from baldosa_native_second_racer_probe import (
     require_p2_creation,
     require_actual_two_seat_go,
     require_native_p2_recovery,
+    require_native_created_p1_pad_handler,
 )
 
 
@@ -42,6 +43,26 @@ class SecondNativeRacerProofTests(unittest.TestCase):
             with self.subTest(bad=bad[-100:]):
                 with self.assertRaises(ValueError):
                     require_p2_creation(bad)
+
+    def test_new_racers_require_exact_native_gamepad_handler_edges(self):
+        for mode, controls in (
+            ("8", ("X", "A")),
+            ("9", ("X", "DPAD_DOWN", "A")),
+        ):
+            good = "".join(
+                f"UR_BALDOSA_MODERN_ROOT synthetic_profile_gamepad "
+                f"mode={mode} button={button}\n" for button in controls)
+            require_native_created_p1_pad_handler(good, mode)
+            for bad in (
+                good + good,
+                good.replace("button=A", "button=X"),
+                good.replace("mode=" + mode, "mode=7"),
+                good.replace("button=X\n", "", 1),
+                good + "UR_BALDOSA_MODERN_ROOT synthetic_profile_gamepad "
+                "mode=7 button=A\n",
+            ):
+                with self.subTest(mode=mode), self.assertRaises(ValueError):
+                    require_native_created_p1_pad_handler(bad, mode)
 
     def test_interrupted_p2_catalog_requires_real_controller_source_recovery(self):
         # Source-log fixture only; no actual original guest or OS crash.

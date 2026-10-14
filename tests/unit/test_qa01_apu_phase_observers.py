@@ -111,6 +111,24 @@ class ApuPhaseObserversTest(unittest.TestCase):
             self.assertIs(r[key], False)
         self.assertEqual(r["release_gate_credit"], 0)
 
+    def test_campaign_trace_is_manual_only_and_fails_unrelated_selection(self):
+        workflow = (ROOT / ".github/workflows/qa01-event-campaign.yml").read_text(
+            encoding="utf-8")
+        self.assertEqual(workflow.count("      qa01_apu_phase:"), 2)
+        self.assertIn("QA01_APU_PHASE: ${{ inputs.qa01_apu_phase }}", workflow)
+        self.assertIn('if [[ "$QA01_APU_PHASE" == "true" && "$SELECTED" != "zoom-zoo" ]]', workflow)
+        self.assertIn('if [[ "${{ inputs.qa01_apu_phase }}" == "true" ]]', workflow)
+        self.assertIn("qa01_apu_phase_observers.py original", workflow)
+        self.assertIn("qa01_apu_phase_observers.py native", workflow)
+        self.assertIn("qa01_apu_phase_report.py", workflow)
+        self.assertIn("qa01-apu-edge-report.json", workflow)
+        self.assertIn('UR_QA01_APU_ORIGINAL_FIRST: "6748"', workflow)
+        self.assertIn('UR_QA01_APU_NATIVE_LAST: "6778"', workflow)
+        self.assertIn("  workflow_dispatch:", workflow)
+        self.assertIn("  workflow_call:", workflow)
+        self.assertNotIn("  schedule:", workflow)
+        self.assertNotIn("  pull_request:", workflow)
+
     def test_branch_taken_is_recorded_not_invented_from_ack_bytes(self):
         ref, native_log = self.logs()
         ref = ref.replace("next=828045", "next=828077")

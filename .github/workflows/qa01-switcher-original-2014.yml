@@ -287,11 +287,11 @@ jobs:
                                +str(row["reason"]))
           if row["release_credit"] != 0:
               raise ValueError("investigative classification attempted release admission")
-          Path(out).write_text(json.dumps(row,indent=2,sort_keys=True)+"\\n",
+          Path(out).write_text(json.dumps(row,indent=2,sort_keys=True)+"\n",
                                encoding="utf-8")
           with open(summary,"a",encoding="utf-8") as f:
-              f.write("\\nQA-01 source classifier: **"+row["disposition"]
-                      +"**; zero accepted USA events and no release credit.\\n")
+              f.write("\nQA-01 source classifier: **"+row["disposition"]
+                      +"**; zero accepted USA events and no release credit.\n")
           PY
           test -s "$OUT/switcher/replay/reference.log"
           python3 tools/qa01_switcher_source_followon.py \

@@ -2,6 +2,10 @@
 
 **Status:** read-only original-source instrumentation, analyzer and synthetic controls added. **Not yet executed with a new original/native replay.** USA complete-event denominator stays **0/45**; the independent release ledger is unchanged.
 
+### Fresh paired NMI result transport must not assume failure (2026-10-13)
+
+The optional manual `qa01-switcher-original-2014.yml` originally required the strict paired producer's process exit to be **exactly 1**, because the archived Switcher result is currently a divergence. That made an improved source/native run returning **0** appear to be a *workflow failure before NMI reports could be classified*. The opt-in route now delegates both permitted exits to the **existing** `qa01_event_campaign.classify("switcher", ...)` contract, which checks complete producer provenance, guest-relative result onset, signed negative/positive comparator fields and diagnostic-exit identity. It rejects missing/contradictory evidence or execution errors rather than silently converting them to scientific divergence. The workflow retains `paired-classification.json` with its research disposition, and gathers the same original PHA / native PLA / source-follow-on witnesses regardless of a genuine diagnostic `strict_divergence` or `strict_candidate`. A candidate is **not** an independently accepted event and adds **zero release credit**. No original/native inputs, emulator runtime code, source comparator thresholds or release ledger were changed. This is a future-run transport/diagnostic fix, **not** evidence that the NMI discrepancy was resolved.
+
 ## Established paired observations
 
 Original Snes9x and pinned native Switcher Race B both display MIKE **1:08.81** at absolute host frame **5783**. Independently observed entry is original **1079**, native **1081**, giving strict guest-relative result onsets **+4704/+4702 (FAIL)**. On host 5782, VRAM, CGRAM and 21 named state fields agree, but WRAM differs at exactly eight stack-page offsets: 7E:01DD, 01E6, 01E7, 01EF..01F3.

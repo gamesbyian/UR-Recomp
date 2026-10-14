@@ -808,6 +808,7 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     view.existing_profile_switch_available =
         g_existing_switch_available && !g_ever_entered_stock &&
         !g_named_profile_stale;
+    view.existing_profile_switch_saved = g_existing_switch_saved;
     view.first_racer_open =
         g_first_racer_open || g_second_racer_open || g_existing_switch_open;
     view.first_racer_is_second = g_second_racer_open;

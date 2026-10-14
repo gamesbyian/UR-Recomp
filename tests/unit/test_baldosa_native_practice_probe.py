@@ -67,6 +67,46 @@ class NativePracticeProbeTests(unittest.TestCase):
         self.assertIn("if (view.practice_picker_open || view.practice_launch_pending)", overlay)
         self.assertNotIn("RtlWriteSram(", source)
 
+        # Regression gate: first-party Practice is a scratch SRAM session,
+        # never a normal named career or a real earned run. This source check
+        # alone does not replace the two genuine Windows process byte audit.
+        activation = (ROOT / "tools/baldosa_modern_profile_activation.cpp").read_text()
+        for token in (
+            "begin_practice_session()",
+            "restore_practice_session()",
+            'RtlSetSaveRoot(requested_root.c_str());',
+            'const std::string requested_root = "practice-session";',
+            "g_practice_sram_snapshot.assign(",
+            "std::memcpy(g_sram, g_practice_sram_snapshot.data(),",
+            "practice_sram_restored=1",
+            "ur_baldosa_modern_root_practice_active(void)",
+            "ur_baldosa_modern_root_restore_practice_on_shutdown(void)",
+            "!g_practice_session_active",
+        ):
+            self.assertIn(token, source)
+        self.assertIn("ur_baldosa_modern_root_practice_active() ||", activation)
+        before_save = activation.index(
+            'extern "C" int ur_baldosa_modern_profile_before_native_save(void)')
+        restore = activation.index(
+            "ur_baldosa_modern_root_restore_practice_on_shutdown()", before_save)
+        save_guard = activation.index(
+            'if (!activated() || g_verified_native_profile_id.empty()) return 1;',
+            before_save)
+        self.assertLess(before_save, restore)
+        self.assertLess(restore, save_guard)
+        probe = (ROOT / "tools/baldosa_native_practice_probe.py").read_text()
+        for token in (
+            '"Named P1 Practice SRAM Integrity"',
+            '"practice-session"',
+            '"saves/profile-mike/save.srm"',
+            '"saves/profile-mike/host-profile.txt"',
+            '"host-state-v1.txt"',
+            '"profiles-v1.txt"',
+            "p.read_bytes() != before",
+            "Named Practice minted an earned completed run",
+        ):
+            self.assertIn(token, probe)
+
 
 if __name__ == "__main__":
     unittest.main()

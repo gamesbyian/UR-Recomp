@@ -4,6 +4,35 @@
 
 # Windows x64 Modern frontend: shipped surfaces and remaining integration
 
+
+## Full first-user 2P source match and Records integration (candidate)
+
+The **native-created Mike + Martin** sequence is distinct from the earlier
+fixture-created native result. In #1510's actual Windows source log, both
+controller-created identities were joined, stock original 2P GO occurred and
+the original source result reported riders \`0,2\`, Mike \`27.61\` and Martin
+\`27.57\`, winner Martin, with one named paired publisher receipt:
+\`profile1=mike profile2=martin\`. Those are concrete original-guest source
+observations, **not yet proof of the later fresh-process Records readback**.
+The prior #1510 Windows job was red because the test expected a P1 SRAM
+snapshot from *before* the intervening genuine game-2 native checkpoint.
+The now-corrected witness reads the exact P1 typed/raw SRAM immediately
+before its next boot. Only the full later native Windows pass may close #1510.
+
+**#1522, stacked on #1510**, removes the final test-only selector CLI from
+the combined acceptance route. Its six real native games must: create Mike
+through X/A, create Martin through X/Down/A, confirm both seats and complete
+the real original 2P race, open Mike's immutable read-only match in a fresh
+game, explicitly use the now-merged controller X/A existing-P1 selector
+to request Martin for the next process, and open the *same* immutable match
+under Martin's own newly booted SRAM. Exact one-pair SHA identity, the
+original two stock rider indices, canonical catalog and profile isolation,
+and unchanged non-selected opponent SRAM are mandatory. No full six-game
+acceptance is claimed until exact-head native Windows evidence is green;
+physical gamepad hardware, original/native strict event parity and
+independent release-quality ledger remain outside Modern authority.
+
+
 ## Existing named-P1 controller selector (native verified 2026-10-14)
 
 After [#1490](https://github.com/gamesbyian/UR-Recomp/pull/1490) passes the real native root's anonymous-P1 / named-P2 / joined stock 2P sequence, the missing controller selector for *two already-created* named P1 identities is now merged and native-Windows validated in [#1513](https://github.com/gamesbyian/UR-Recomp/pull/1513). P1 X opens the shared stock-aware chooser only when both verified catalog+typed+raw SRAM owners exist; A invokes the **existing** [#1499](https://github.com/gamesbyian/UR-Recomp/pull/1499) locked next-process selector, B cancels. Success latches a no-races barrier until a true native game process restart; no guest-memory, result or persistence codec is replaced. The pinned Windows job proved Mike → Andrew → Mike fresh-source-boot changes on #1513's exact head. The synthetic SDL-input route is not physical-controller hardware acceptance. This small UI closure complements, but does not replace, [#1510](https://github.com/gamesbyian/UR-Recomp/pull/1510)'s separate source-earned 2P paired Records test.

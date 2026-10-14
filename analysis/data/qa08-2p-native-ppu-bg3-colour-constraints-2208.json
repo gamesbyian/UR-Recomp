@@ -1,0 +1,129 @@
+{
+  "BG3_colour_math_enabled_in_pinned_native_renderer": true,
+  "BG3_main_and_OBJ_subscreen_per_pixel_observed": false,
+  "OBJ_colour_math_disabled_in_pinned_native_renderer": true,
+  "candidate_BG3_main_plus_OBJ_subscreen_consistent": true,
+  "field_CGADSUB": "0x04",
+  "field_CGWSEL": "0x02",
+  "field_fixed_RGB5": [
+    0,
+    19,
+    0
+  ],
+  "guest_frame": 2208,
+  "native_guest_CRC_records": 2473,
+  "original_RGBA_sha256": "f9ca59c19dc3e8d51c7ca1dbce25d5dc14e56ba36011128abbadee8cec0e7b4a",
+  "paired_text_witness_displacement": [
+    0,
+    112
+  ],
+  "remastered_racer_approved": false,
+  "schema": "qa08-2p-postgo-registered-bg3-colour-constraints/1",
+  "slot_evidence": {
+    "96": {
+      "exact_native_original_pixel_witnesses": 13,
+      "red5_delta_only": 13,
+      "removed_rgb5_histogram": [
+        {
+          "RGB5": [
+            13,
+            19,
+            0
+          ],
+          "pixels": 13
+        }
+      ],
+      "removed_sha256": "c5859ad9ef3f21bc40f69fc369d5b9eeb9176987580145fa66cbf117f50ab07e",
+      "source_rgb5_histogram": [
+        {
+          "RGB5": [
+            2,
+            2,
+            1
+          ],
+          "pixels": 1
+        },
+        {
+          "RGB5": [
+            6,
+            6,
+            6
+          ],
+          "pixels": 2
+        },
+        {
+          "RGB5": [
+            9,
+            9,
+            9
+          ],
+          "pixels": 8
+        },
+        {
+          "RGB5": [
+            14,
+            14,
+            14
+          ],
+          "pixels": 2
+        }
+      ],
+      "source_sha256": "658d79c05524ca40af81f92ce6bb0d49adbe6bbcbc07d599e7e8bcdbdd1eb580"
+    },
+    "98": {
+      "exact_native_original_pixel_witnesses": 13,
+      "red5_delta_only": 13,
+      "removed_rgb5_histogram": [
+        {
+          "RGB5": [
+            28,
+            0,
+            0
+          ],
+          "pixels": 13
+        }
+      ],
+      "removed_sha256": "00512001581ee1c3c26390ea344629153dc8ddabac0c491d4f7eab56ae547517",
+      "source_rgb5_histogram": [
+        {
+          "RGB5": [
+            2,
+            2,
+            1
+          ],
+          "pixels": 1
+        },
+        {
+          "RGB5": [
+            6,
+            6,
+            6
+          ],
+          "pixels": 2
+        },
+        {
+          "RGB5": [
+            9,
+            9,
+            9
+          ],
+          "pixels": 8
+        },
+        {
+          "RGB5": [
+            14,
+            14,
+            14
+          ],
+          "pixels": 2
+        }
+      ],
+      "source_sha256": "de587f5986b30663f0178a0140e746b84e601716941bb09dacab5426e8d56fe2"
+    }
+  },
+  "source_AOT_run": 38492408817,
+  "source_artifact_id": 11863045863,
+  "source_physical_SNES_PPU_winner_observed": false,
+  "source_red5_witnesses_each_viewport": 13,
+  "status": "exact-native-ppu-source-removal-colour-constraints-observed"
+}

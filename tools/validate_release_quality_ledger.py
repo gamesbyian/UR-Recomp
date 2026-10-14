@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import importlib.util
 import json
 import pathlib
 import re
@@ -35,6 +36,41 @@ def valid_evidence_timestamp(value: object) -> bool:
     except ValueError:
         return False
     return instant.tzinfo is not None and instant.utcoffset() is not None
+
+
+def source_event_register_summary(repo_root: pathlib.Path) -> dict:
+    """Derive release counts from the independent, existing course-event census.
+
+    This checks consistency of two local evidence records. It never certifies
+    the provenance or truth of an original/native emulator observation.
+    """
+    producer_path = repo_root / "tools" / "audit_original_course_event_coverage.py"
+    spec = importlib.util.spec_from_file_location("qa01_release_source_census", producer_path)
+    if spec is None or spec.loader is None:
+        raise ValueError("QA-01 source census producer is unavailable")
+    producer = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(producer)
+    catalog = json.loads((repo_root / "analysis/data/course-corpus.json").read_text(encoding="utf-8"))
+    source = json.loads((repo_root / "analysis/data/course-event-runtime-evidence.json").read_text(encoding="utf-8"))
+    report = producer.build_census(catalog, source)
+    entries = report["entries"]
+    primary = [r for r in entries if r["rom"] == "usa-retail"]
+    comparison = [r for r in entries if r["rom"] != "usa-retail"]
+    if len(primary) != 45 or len(comparison) != 90:
+        raise ValueError("QA-01 source census has unexpected regional population")
+    return {
+        "complete_event_passes": sum(r["status"] == "passed" for r in primary),
+        "partial": sum(r["status"] == "partial" for r in primary),
+        # Failed/blocked cases also remain unaccepted by the release gate.
+        "unverified": sum(r["status"] not in ("passed", "partial") for r in primary),
+        "regional_comparison_complete": sum(r["status"] == "passed" for r in comparison),
+        "regional_comparison_unverified": sum(r["status"] != "passed" for r in comparison),
+        "primary_pass_candidates": {
+            observation.get("candidate_sha")
+            for observation in source["observations"]
+            if observation["rom"] == "usa-retail" and observation["status"] == "passed"
+        },
+    }
 
 
 def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
@@ -67,6 +103,11 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
     gates = registry.get("gates")
     if not isinstance(gates, list):
         return errors + ["gates must be an array"]
+    try:
+        original_event_counts = source_event_register_summary(repo_root)
+    except (OSError, ValueError, TypeError, KeyError, AttributeError) as exc:
+        original_event_counts = None
+        errors.append(f"QA-01 source event register unavailable or invalid: {exc}")
     seen: set[str] = set()
     journeys_path = repo_root / "docs" / "QA-PLAYER-JOURNEYS.md"
     try:
@@ -123,6 +164,76 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
                 errors.append(f"{name} {status} without exact pinned candidate")
             if not witnesses:
                 errors.append(f"{name} {status} without independent recorded witnesses")
+        # QA-01 is a complete USA-release census, not a representative-case
+        # gate. A single valid L4 report cannot accept an incomplete 45-event
+        # denominator or silently shrink that denominator to certify a pass.
+        # This is bookkeeping only: the independently compared course events
+        # must still be verified against the owning event census.
+        if name == "QA-01":
+            census = gate.get("coverage")
+            if not isinstance(census, dict):
+                errors.append("QA-01 missing course-event coverage census")
+            else:
+                keys = ("complete_event_passes", "partial", "unverified")
+                valid_counts = True
+                for key in keys:
+                    value = census.get(key)
+                    if type(value) is not int or value < 0:
+                        errors.append(f"QA-01 invalid USA coverage {key}")
+                        valid_counts = False
+                denominator = census.get("denominator")
+                if type(denominator) is not int or denominator != 45:
+                    errors.append("QA-01 USA coverage denominator must remain 45")
+                if valid_counts and sum(census[key] for key in keys) != 45:
+                    errors.append("QA-01 USA coverage counts must partition all 45 events")
+                if status == "passed" and any(
+                    census.get(key) != expected
+                    for key, expected in (
+                        ("complete_event_passes", 45), ("partial", 0),
+                        ("unverified", 0)
+                    )
+                ):
+                    errors.append("QA-01 passed without 45/45 independently accepted USA events")
+        # Comparison coverage is not an additional USA shipping requirement,
+        # but its declared 90 Europe/prototype cases and 135-case corpus must
+        # remain arithmetically honest even for an otherwise accepted QA-01.
+        if name == "QA-01" and isinstance(gate.get("coverage"), dict):
+            regional = gate["coverage"]
+            comparison_keys = ("regional_comparison_complete",
+                               "regional_comparison_unverified")
+            comparison_valid = True
+            for key in comparison_keys:
+                value = regional.get(key)
+                if type(value) is not int or value < 0:
+                    errors.append(f"QA-01 invalid regional coverage {key}")
+                    comparison_valid = False
+            region_denominator = regional.get("regional_comparison_denominator")
+            if type(region_denominator) is not int or region_denominator != 90:
+                errors.append("QA-01 regional comparison denominator must remain 90")
+            if comparison_valid and sum(regional[k] for k in comparison_keys) != 90:
+                errors.append("QA-01 regional comparison counts must partition all 90 cases")
+            corpus_total = regional.get("total_tracked_course_rom_pairs")
+            if type(corpus_total) is not int or corpus_total != 135:
+                errors.append("QA-01 all-build course corpus total must remain 135")
+        if name == "QA-01" and original_event_counts is not None:
+            coverage = gate.get("coverage")
+            if isinstance(coverage, dict):
+                for field in (
+                    "complete_event_passes", "partial", "unverified",
+                    "regional_comparison_complete", "regional_comparison_unverified",
+                ):
+                    if coverage.get(field) != original_event_counts[field]:
+                        errors.append(
+                            f"QA-01 {field} disagrees with original event source register "
+                            f"(source={original_event_counts[field]!r})"
+                        )
+            if status == "passed" and (
+                original_event_counts["primary_pass_candidates"] != {commit}
+            ):
+                errors.append(
+                    "QA-01 passed without every original/native source event "
+                    "bound to the exact release candidate commit"
+                )
         if status == "passed" and minimum == "L5" and physical is not True:
             errors.append(f"{name} L5 pass without physical hardware verification")
         if status == "waived":

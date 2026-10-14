@@ -19,6 +19,16 @@ PREF_ROOT="$WORK/prefs"
 PREF_DIR="$PREF_ROOT/gamesbyian/UR-Recomp"
 MATCHES="$WORK/multiplayer-runs"
 LOG="$WORK/real-joined-capture.log"
+# This is a NEW publication witness. Reusing a prior run/match pair can
+# satisfy the file-count and codec checks after the current guest logs
+# CAPTURED but does not persist a new pair. The parent WORK is allowed to
+# exist (the tournament wrapper creates it), but every owned output must be
+# fresh before any profile, game or checker is started.
+if [[ -L "$WORK" || -e "$PREF_ROOT" || -L "$PREF_ROOT" ||
+      -e "$MATCHES" || -L "$MATCHES" || -e "$LOG" || -L "$LOG" ]]; then
+  echo "UR_TWO_PLAYER_REAL_JOIN_CAPTURE requires unused output paths" >&2
+  exit 2
+fi
 mkdir -p "$PREF_DIR" "$MATCHES"
 
 cat >"$PREF_DIR/profiles-v1.txt" <<'CATALOG_EOF'
@@ -70,4 +80,7 @@ RUN="$(find "$MATCHES" -maxdepth 1 -type f -name '*.urrun' -print -quit)"
 grep -q "UR_MULTIPLAYER_MATCH_PAIR_CHECK PASS course=course:01 p1=join.alpha p2=join.bravo" \
   "$WORK/real-joined-pair-check.log"
 
-echo "UR_TWO_PLAYER_REAL_JOIN_CAPTURE=two_framework_pads distinct_confirmed_profiles stock_race authoritative_saved_pair fresh_process"
+# Exactly one guest process is launched above. The pair checker validates
+# the newly saved archive, but no second native game process opens Records.
+# Do not advertise fresh-process consumer evidence here.
+echo "UR_TWO_PLAYER_REAL_JOIN_CAPTURE=two_framework_pads distinct_confirmed_profiles stock_race authoritative_saved_pair single_guest_process"

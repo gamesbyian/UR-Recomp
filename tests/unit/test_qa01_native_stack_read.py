@@ -148,6 +148,46 @@ class NativeStackReadTests(unittest.TestCase):
                 self.assertEqual(report.summarize(ARM + changed)[
                     "native_post_writer_same_frame_4004_two_byte_pair_candidate_count"], 0)
 
+    def test_following_frame_saved_a_word_and_byte_reads_are_separate_candidates(self):
+        # The authentic native writer is in f5781, while an AOT return or
+        # interpreter PLA can consume the saved word in f5782.
+        following = (
+            "QANATIVEREAD f=5782 bank=00 addr=01DD width=2 value=4004 "
+            "A=0000 S=01DD M=0 scope=AotReturn\n"
+            "QANATIVEREAD f=5782 bank=00 addr=01DD width=1 value=0004 "
+            "A=0000 S=01DC M=1 scope=InterpPull\n"
+            "QANATIVEREAD f=5782 bank=00 addr=01DE width=1 value=0040 "
+            "A=0000 S=01DC M=1 scope=InterpPull\n"
+        )
+        result = report.summarize(ARM + following)
+        self.assertEqual(result[
+            "same_native_frame_post_writer_callback_read_4004_candidate_count"], 0)
+        self.assertEqual(result[
+            "following_frame_post_writer_callback_read_4004_candidate_count"], 1)
+        self.assertEqual(result[
+            "following_frame_post_writer_stack_position_consistent_word_4004_count"], 1)
+        self.assertEqual(result[
+            "native_post_writer_same_frame_4004_two_byte_target_row_pairs"], [])
+        self.assertEqual(result[
+            "native_post_writer_following_frame_4004_two_byte_target_row_pairs"], [[1, 2]])
+        self.assertEqual(result[
+            "native_post_writer_following_frame_4004_two_byte_pair_candidate_count"], 1)
+        self.assertEqual(result["release_complete_event_credit"], 0)
+        for altered in (
+            following.replace("value=0040", "value=0042"),
+            following.replace("f=5782 bank=00 addr=01DE",
+                              "f=5781 bank=00 addr=01DE"),
+        ):
+            # Invalid chronology is rejected; incorrect byte values cannot
+            # create a plausible second-frame saved-4004 pull.
+            with self.subTest(altered=altered[-105:]):
+                if "f=5781 bank=00 addr=01DE" in altered:
+                    with self.assertRaises(ValueError):
+                        report.summarize(ARM + altered)
+                else:
+                    self.assertEqual(report.summarize(ARM + altered)[
+                        "native_post_writer_following_frame_4004_two_byte_pair_candidate_count"], 0)
+
     def test_zero_rows_is_only_bounded_negative(self):
         data = report.summarize(ARM)
         self.assertTrue(data["zero_count_is_bounded_native_negative_not_no_reader_ever"])

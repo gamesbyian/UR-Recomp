@@ -439,6 +439,10 @@ jobs:
           set -euo pipefail
           python3 tools/baldosa_ws24_framework_split_patch.py \
             --root "$GITHUB_WORKSPACE" --framework baldosa/snesrecomp
+          # Read-only QA-08 extension: expose existing field-start PPU
+          # CGWSEL/fixed RGB15 snapshot bytes to the same native journal.
+          python3 tools/qa08_patch_ppu_field_colour_baselines.py \
+            --framework baldosa/snesrecomp
           python3 tools/baldosa_sdl_physical_4k_capture_spike.py \
             --framework baldosa/snesrecomp
           python3 tools/baldosa_ws24_host_spike.py \
@@ -487,7 +491,8 @@ jobs:
             --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/log.txt" \
             --reference-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
             --candidate-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/fd/crc.txt" \
-            --out "$RUNNER_TEMP/baldosa-evidence/ws342_2p_original_colour_journal_2208.json"
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_2p_original_colour_journal_2208.json" \
+            --require-field-colour-baselines
           echo "OBSERVED: original native PPU raster colour-register journal at verified post-GO guest; no owner/HD admission" >> "$GITHUB_STEP_SUMMARY"
           python3 tools/baldosa_ws24_presentation_report.py \
             --view ws342 \

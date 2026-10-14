@@ -42,14 +42,37 @@ int main() {
     assert(!join.ready() && !join.confirmed(1));
     assert(join.candidate(1)->profile_id == "gamma");
     assert(join.confirm(1) && join.ready());
-    assert(join.move(1, 1)); // gamma -> alpha collides with P1
-    assert(!join.confirm(1) && !join.ready());
+    // The opponent picker wraps past the active P1 racer, rather than
+    // advertising a profile that must fail when both players confirm.
+    assert(join.move(1, 1)); // gamma -> beta, skipping alpha
+    assert(!join.confirmed(1) && !join.ready());
+    assert(join.candidate(1)->profile_id == "beta");
+    assert(join.confirm(1) && join.ready());
+    assert(join.move(1, -1)); // beta -> gamma, skipping alpha
+    assert(!join.confirmed(1) && !join.ready());
+    assert(join.candidate(1)->profile_id == "gamma");
+    assert(join.confirm(1) && join.ready());
     assert(join.clear(0));
     assert(!join.ready());
-    assert(join.confirm(1));
-    assert(join.move(1, 1)); // alpha -> beta
-    assert(join.confirm(1));
     assert(join.confirm(0) && join.ready());
+    assert(join.confirmed_profiles_match_catalog(valid()));
+    auto changed_roster = valid();
+    changed_roster[2].identity.name = "REPLACED";
+    assert(!join.confirmed_profiles_match_catalog(changed_roster));
+    changed_roster = valid();
+    changed_roster.erase(changed_roster.begin() + 2);
+    assert(!join.confirmed_profiles_match_catalog(changed_roster));
+    changed_roster = valid();
+    changed_roster[2].profile_id = "GAMMA";
+    assert(!join.confirmed_profiles_match_catalog(changed_roster));
+    changed_roster = valid();
+    changed_roster.push_back(changed_roster[2]);
+    assert(!join.confirmed_profiles_match_catalog(changed_roster));
+    changed_roster = valid();
+    changed_roster[1].identity.name = "IRRELEVANT";
+    assert(join.confirmed_profiles_match_catalog(changed_roster));
+    join.clear(1);
+    assert(!join.confirmed_profiles_match_catalog(valid()));
 
     join.cancel();
     assert(!join.open() && !join.ready());
@@ -57,6 +80,37 @@ int main() {
     assert(!join.confirm(1));
     assert(join.begin(valid(), "ALPHA")); // Windows storage identity
     assert(!join.ready());
+    assert(join.move(1, -1)); // beta -> gamma (skip ALPHA)
+    assert(join.candidate(1)->profile_id == "gamma");
+    join.cancel();
+
+    // With exactly one eligible opponent the physical D-pad is inert,
+    // including when P2 already confirmed. Never silently unconfirm a
+    // perfectly valid selected participant on a no-op wrap.
+    auto two_profiles = valid();
+    two_profiles.resize(2);
+    assert(join.begin(two_profiles, "alpha"));
+    assert(join.candidate(1)->profile_id == "beta");
+    assert(!join.move(1, 1));
+    assert(!join.move(1, -1));
+    assert(join.confirm(1) && join.confirmed(1));
+    assert(!join.move(1, 1));
+    assert(join.confirmed(1));
+    assert(join.confirm(0) && join.ready());
+    join.cancel();
+
+    // Active P1 need not be the first entry in the canonical catalog:
+    // both directional wraps exclude its selected SRAM identity.
+    assert(join.begin(valid(), "beta"));
+    assert(join.candidate(0)->profile_id == "beta");
+    assert(join.candidate(1)->profile_id == "gamma");
+    assert(join.move(1, 1)); // gamma -> alpha, skipping beta
+    assert(join.candidate(1)->profile_id == "alpha");
+    assert(join.move(1, 1)); // alpha -> gamma, skipping beta
+    assert(join.candidate(1)->profile_id == "gamma");
+    assert(join.move(1, -1)); // gamma -> alpha, skipping beta
+    assert(join.candidate(1)->profile_id == "alpha");
+    assert(join.confirm(0) && join.confirm(1) && join.ready());
     join.cancel();
 
     auto duplicate = valid();

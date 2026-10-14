@@ -35,6 +35,16 @@ class NativeInterpreterPlaTests(unittest.TestCase):
         self.assertEqual(source.count("interp816_read(cpu, cpu->sp)"), 1)
         self.assertIn("ur_qa01_pla_read_value[i] = ur_qa_pla_byte;", source)
         self.assertIn("ur_qa01_pla_active = 0;", source)
+        # A literal backslash-n between C statements is a syntax error.
+        # Verify the emitted source, not merely the patcher's Python text.
+        self.assertIn(
+            "ur_qa01_pla_active = 0;\n      ur_qa01_note_interp_pla(cpu,",
+            source,
+        )
+        self.assertNotIn(
+            r"ur_qa01_pla_active = 0;\n      ur_qa01_note_interp_pla(cpu,",
+            source,
+        )
         self.assertIn("QANATIVEINTPLAREADY", source)
         self.assertIn("void ur_qa01_interp_pla_arm(void)", source)
         self.assertIn("(void)ur_qa01_interp_pla_output();", source)

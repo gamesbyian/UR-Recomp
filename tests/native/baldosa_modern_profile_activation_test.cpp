@@ -19,6 +19,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <sys/wait.h>
 #include <unistd.h>
 
 extern "C" int ur_baldosa_modern_try_activate_profile(void);
@@ -31,6 +32,7 @@ extern "C" int ur_baldosa_modern_publish_settled_two_player_match(
     const ur::product::HostProfileCatalogEntry*);
 extern "C" int ur_baldosa_modern_profile_can_join_opponent(
     const ur::product::HostProfileCatalogEntry*);
+extern "C" int ur_baldosa_modern_profile_can_begin_race(void);
 extern "C" int ur_baldosa_modern_profile_finish_native_save(int);
 
 /* Real pinned framework provides these. Keep the unit executable's tiny RTL
@@ -57,9 +59,39 @@ extern "C" void RtlEnsureSaveDir(void) {
     std::filesystem::create_directories(root);
 }
 
-int main() {
+int main(int argc, char** argv) {
     namespace fs = std::filesystem;
     using namespace ur::product;
+
+    // This reader is a new executable process, not the writer's live state.
+    // Decode the two independently persisted Records types through the
+    // existing real store/catalog codecs; never synthesize a guest result.
+    if (argc == 3 && std::string(argv[1]) == "--verify-fresh-records") {
+        const fs::path root = argv[2];
+        const auto runs = load_valid_run_records(
+            (root / "runs/rider-1").string());
+        const auto matches = load_valid_multiplayer_matches(
+            (root / "multiplayer-runs").string());
+        if (runs.size() != 1 || matches.size() != 1) return 31;
+        if (runs[0].record.provenance.mode != "race-1p" ||
+            runs[0].record.provenance.course_id != "course:01" ||
+            runs[0].record.elapsed_ticks60 != 740 ||
+            runs[0].record.inputs.size() != 2) return 32;
+        const auto& pair = matches[0];
+        if (pair.run.provenance.mode != "race-2p" ||
+            pair.run.provenance.course_id != "course:01" ||
+            pair.run.inputs.size() != 1 ||
+            pair.run.inputs[0].p1_mask != 0x10u ||
+            pair.run.inputs[0].p2_mask != 0x20u ||
+            pair.match.context.match.player1.profile_id != "rider-1" ||
+            pair.match.context.match.player2.profile_id != "rider-2" ||
+            pair.match.context.match.result.player1_hundredths != 2866 ||
+            pair.match.context.match.result.player2_hundredths != 2977)
+            return 33;
+        std::puts("PASS: fresh-process native Modern 1P and paired 2P Records readback");
+        return 0;
+    }
+    assert(argc == 1);
 
     const auto dir = fs::temp_directory_path() /
         ("ur-baldosa-real-modern-profile-" + std::to_string(getpid()));
@@ -147,6 +179,19 @@ int main() {
                   initialized.size());
         assert(raw.good());
     }
+    // Matching typed/raw bytes reached through a redirected parent must
+    // never authorize native boot, even when all file contents are valid.
+    const fs::path selected_dir = "saves/profile-rider-1";
+    const fs::path redirected_dir = dir / "moved-selected-profile";
+    fs::rename(selected_dir, redirected_dir);
+    fs::create_directory_symlink(redirected_dir, selected_dir);
+    assert(ur_baldosa_modern_try_activate_profile() == 0);
+    assert(root == "saves");
+    fs::remove(selected_dir);
+    fs::create_directory_symlink(dir / "missing-selected-profile", selected_dir);
+    assert(ur_baldosa_modern_try_activate_profile() == 0);
+    fs::remove(selected_dir);
+    fs::rename(redirected_dir, selected_dir);
     assert(ur_baldosa_modern_try_activate_profile() == 1);
     assert(root == "saves/profile-rider-1");
     assert(selected_racer == identity->name);
@@ -158,6 +203,7 @@ int main() {
     // existing precondition explicitly.
     g_sram = initialized.data();
     g_sram_size = static_cast<int>(initialized.size());
+    assert(ur_baldosa_modern_profile_can_begin_race());
     // Synthetic fixture tests the profile authorization/publisher only;
     // this does NOT stand in for a live guest-finished Windows event.
     BaldosaSettledResult witnessed{};
@@ -169,6 +215,17 @@ int main() {
     witnessed.captured_input_frames = 4;
     witnessed.mapped_inputs = {{0, 2, 0x10u, 0}, {3, 1, 0x20u, 0}};
     const fs::path run_root = dir / "runs/rider-1";
+    // Redirect the same selected path AFTER native boot. Refuse both 1P
+    // immutable Records publication and post-guest SRAM save preflight.
+    fs::rename(selected_dir, redirected_dir);
+    fs::create_directory_symlink(redirected_dir, selected_dir);
+    assert(!ur_baldosa_modern_publish_settled_one_player_run(&witnessed));
+    assert(!ur_baldosa_modern_profile_before_native_save());
+    assert(!ur_baldosa_modern_profile_can_begin_race());
+    assert(!fs::exists(run_root));
+    fs::remove(selected_dir);
+    fs::rename(redirected_dir, selected_dir);
+    assert(ur_baldosa_modern_profile_can_begin_race());
     assert(!ur_baldosa_modern_publish_settled_one_player_run(nullptr));
     assert(ur_baldosa_modern_publish_settled_one_player_run(&witnessed) == 1);
     auto recorded = load_valid_run_records(run_root.string());
@@ -309,6 +366,21 @@ int main() {
     assert(!ur_baldosa_modern_publish_settled_two_player_match(
         &observed_2p, &p1, &p2));
     assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() == 1);
+
+    // A new process image must reopen the canonical 1P run and both linked
+    // 2P match artifacts; same-process loads above are insufficient proof.
+    const auto child = fork();
+    assert(child >= 0);
+    if (child == 0) {
+        const auto executable = fs::absolute(argv[0]).string();
+        execl(executable.c_str(), executable.c_str(),
+              "--verify-fresh-records", dir.c_str(),
+              static_cast<char*>(nullptr));
+        _exit(127);
+    }
+    int fresh_status = 0;
+    assert(waitpid(child, &fresh_status, 0) == child);
+    assert(WIFEXITED(fresh_status) && WEXITSTATUS(fresh_status) == 0);
 
     // The canonical shared match writer must reject both live and broken
     // symlink substitutions before creating any stage/public run outside
@@ -488,6 +560,7 @@ int main() {
     different_selector.active_profile_id.reset();
     assert(save_host_product_state_file(global_path, different_selector) ==
            HostProductSaveStatus::Saved);
+    assert(!ur_baldosa_modern_profile_can_begin_race());
     bad_result = witnessed;
     bad_result.first_race_host_frame = 300;
     bad_result.observed_result_host_frame = 304;
@@ -499,12 +572,14 @@ int main() {
     assert_raw_unchanged();
     assert(save_host_product_state_file(global_path, state) ==
            HostProductSaveStatus::Saved);
+    assert(ur_baldosa_modern_profile_can_begin_race());
 
     auto newer_profile = *profile;
     newer_profile.recent_track = 7;
     assert(save_host_profile_state_file(
         ExecutionMode::Modern, "saves/profile-rider-1/host-profile.txt",
         newer_profile) == HostProfileSaveStatus::Saved);
+    assert(!ur_baldosa_modern_profile_can_begin_race());
     assert(ur_baldosa_modern_profile_before_native_save() == 0);
     assert(fs::file_size("saves/profile-rider-1/save.srm") ==
            original_raw_size);
@@ -512,6 +587,7 @@ int main() {
     assert(save_host_profile_state_file(
         ExecutionMode::Modern, "saves/profile-rider-1/host-profile.txt",
         *profile) == HostProfileSaveStatus::Saved);
+    assert(ur_baldosa_modern_profile_can_begin_race());
 
     // A second process (or filesystem manipulation) changed the raw save
     // without publishing a matching typed profile. Reject before overwriting.

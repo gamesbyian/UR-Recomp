@@ -12,6 +12,12 @@ on:
         required: true
         default: "100"
         options: ["100", "1000", "10000"]
+      max_parallel:
+        description: "Maximum concurrent experiment shards (1, 2 or 4); reserve other runners for agent CI"
+        type: choice
+        required: true
+        default: "2"
+        options: ["1", "2", "4"]
       base_seed:
         description: "Fresh source-bound deterministic seed namespace"
         required: true
@@ -24,6 +30,10 @@ on:
       base_seed:
         required: true
         type: string
+      max_parallel:
+        required: false
+        type: string
+        default: "2"
       strategy_prior_json:
         required: false
         type: string
@@ -83,7 +93,7 @@ jobs:
     timeout-minutes: 180
     strategy:
       fail-fast: false
-      max-parallel: 4
+      max-parallel: ${{ fromJSON(inputs.max_parallel || '2') }}
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4

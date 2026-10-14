@@ -1,6 +1,6 @@
 {
   "schema": "UR-RELEASE-QUALITY-LEDGER/1",
-  "updated": "2026-10-09",
+  "updated": "2026-10-13",
   "candidate": {
     "commit_sha": null,
     "zip_sha256": null,
@@ -316,12 +316,14 @@
       "status": "unverified",
       "candidate_commit": null,
       "evidence_refs": [
-        "docs/CI-HARDENING-AUDIT.md"
+        "docs/CI-HARDENING-AUDIT.md",
+        "docs/QA-INTEGRATED-WINDOWS-WITNESS-INVENTORY-20261013.md",
+        "docs/QA01-RELEASE-LEDGER-SOURCE-ALIGNMENT-20261013.md"
       ],
       "journeys": [
         "J-20"
       ],
-      "next_action": "Current artifact provenance and independent reference per quality gate",
+      "next_action": "Independent release provenance remains unverified: after a product owner nominates one integrated merged-main Windows source commit and its actual inner portable ZIP SHA-256, review source-bound original/native events, authentic newly won 1P/paired 2P guest results, separate-process Windows Records, pause/restart, crash/disk recovery, real audio/graphics, and physical multi-device evidence against that exact candidate. The merged QA safeguards reject stale 2P capture roots (#1373), unsupported 45-event and regional census claims (#1371/#1406), misleading one-process Records success (#1403), and event-ledger totals that disagree with the independently maintained source observation register (#1412). These are QA apparatus correctness only; they confer no gameplay or release gate pass. Preserve 0/45 and null candidate until genuinely independently accepted witnesses exist; do not reuse outer GitHub Actions artifact digest as inner ZIP checksum.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],

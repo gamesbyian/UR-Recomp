@@ -29,6 +29,7 @@ const char* ur_baldosa_modern_profile_selected_id(void);
 const char* ur_baldosa_modern_profile_catalog_path(void);
 int ur_baldosa_modern_profile_can_join_opponent(
     const ur::product::HostProfileCatalogEntry* entry);
+int ur_baldosa_modern_profile_can_begin_race(void);
 }
 
 #include <algorithm>
@@ -61,6 +62,7 @@ bool g_visible = false;
 bool g_confirm_quit = false;
 bool g_records_open = false;
 bool g_unbound_two_player_warning_open = false;
+bool g_named_profile_stale = false;
 ur::product::BaldosaNativeRunSaveFeedback g_run_save_feedback =
     ur::product::BaldosaNativeRunSaveFeedback::None;
 std::string g_records_status;
@@ -208,6 +210,17 @@ void open_records_archive() {
         matches.validated_pairs, matches.unavailable_pairs,
         matches.selected_profile_matches);
 }
+bool named_profile_still_playable() {
+    // Once a selected profile becomes stale, require a process restart.
+    // Reopening the root must never silently reactivate a different SRAM.
+    if (g_named_profile_stale) return false;
+    if (ur_baldosa_modern_profile_can_begin_race()) return true;
+    g_named_profile_stale = true;
+    g_racer_name = "PROFILE CHANGED - RESTART APP";
+    std::fprintf(stderr,
+        "UR_BALDOSA_MODERN_ROOT active_profile_stale=1 restart_required=1\n");
+    return false;
+}
 void request_stock_route(int players) {
     g_stock_target = players - 1;
     g_stock_settle = 0;
@@ -216,6 +229,22 @@ void request_stock_route(int players) {
     g_stock_waiting_transition = false;
     std::fprintf(stderr,
         "UR_BALDOSA_MODERN_ROOT stock_requested players=%d\n", players);
+}
+bool confirmed_join_still_admissible() {
+    if (!g_two_seat_join.ready()) return false;
+    const auto* first = g_two_seat_join.participant(0);
+    const auto* second = g_two_seat_join.participant(1);
+    const char* selected = ur_baldosa_modern_profile_selected_id();
+    const char* catalog_path = ur_baldosa_modern_profile_catalog_path();
+    if (!first || !second || !selected || !*selected ||
+        !catalog_path || !*catalog_path || first->profile_id != selected)
+        return false;
+    const auto current =
+        ur::product::load_host_profile_catalog_file(catalog_path);
+    return current &&
+        named_profile_still_playable() &&
+        g_two_seat_join.confirmed_profiles_match_catalog(*current) &&
+        ur_baldosa_modern_profile_can_join_opponent(second);
 }
 void join_confirm(unsigned seat) {
     if (!g_two_seat_join.open()) return;
@@ -226,14 +255,20 @@ void join_confirm(unsigned seat) {
     }
     std::fprintf(stderr,
         "UR_BALDOSA_MODERN_ROOT join_confirmed seat=%u\n", seat + 1u);
-    if (g_two_seat_join.ready())
+    if (g_two_seat_join.ready()) {
+        if (!confirmed_join_still_admissible()) {
+            stock_route_abort("join_authority_changed");
+            return;
+        }
         request_stock_route(2);
+    }
 }
 void choose() {
     if (g_stock_target != -1) return;
     if (g_unbound_two_player_warning_open) {
         // Separate explicit consent for a playable unrecorded session.
         g_unbound_two_player_warning_open = false;
+        if (!named_profile_still_playable()) return;
         std::fprintf(stderr,
             "UR_BALDOSA_MODERN_ROOT unbound_2p_consented=1\n");
         request_stock_route(2);
@@ -268,6 +303,7 @@ void choose() {
             "UR_BALDOSA_MODERN_ROOT route=%zu unavailable=1\n", index);
         return;
     }
+    if (!named_profile_still_playable()) return;
     if (selected == ModernRootDestination::Multiplayer) {
         // No anonymous match binding: historical stock 2P remains playable
         // without manufacturing profile identities. A verified named P1
@@ -407,6 +443,7 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     g_confirm_quit = false;
     g_records_open = false;
     g_unbound_two_player_warning_open = false;
+    g_named_profile_stale = false;
     g_run_save_feedback = ur::product::BaldosaNativeRunSaveFeedback::None;
     g_visible = true;
     g_render_reported = false;
@@ -565,11 +602,24 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
 // fake menu flags, scripted debug inputs, or a competing emulator loop.
 extern "C" void ur_baldosa_modern_root_stock_observe_guest(void) {
     if (g_stock_target == -1) return;
+    // The stock-menu route itself takes several frames. Do not release host
+    // input using participants revoked after their second confirmation.
+    if (g_stock_target == 1 && g_two_seat_join.open() &&
+        !confirmed_join_still_admissible()) {
+        stock_route_abort("join_authority_changed");
+        return;
+    }
     if (g_stock_budget-- == 0) {
         stock_route_abort("timeout");
         return;
     }
     const std::uint8_t menu = g_ram[0x009f];
+    // Reject stale P1 before another stock input is sent from MAIN.
+    // Never attempt to rewind a guest that has already left MAIN.
+    if (menu == 0xd7u && !named_profile_still_playable()) {
+        stock_route_abort("active_profile_stale");
+        return;
+    }
     const std::uint8_t expected =
         g_stock_target == 0 ? 0x3cu : 0x3du;
     if (g_stock_waiting_transition) {

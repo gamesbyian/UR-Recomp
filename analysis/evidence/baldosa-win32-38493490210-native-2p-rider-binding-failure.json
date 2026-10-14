@@ -1,0 +1,60 @@
+{
+  "schema": "UR-QA-WIN32-FAILED-NATIVE-2P-DIAGNOSIS/1",
+  "assessment": "real_native_2p_source_result_observed_but_pair_publication_not_accepted",
+  "workflow_run_id": 38493490210,
+  "workflow_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38493490210",
+  "pr_number": 1425,
+  "pr_head_sha": "ccfbc8b8f947bf00c24c1efc839070b3e61ad511",
+  "failed_step": "Real named P1/P2 ordinary race through paired Records and fresh native process",
+  "runtime_artifact_id": 11862804037,
+  "runtime_artifact_wrapper_sha256": "a7b8a4a2a08b62805afe8bddb97538d662ee31345661c7f2c58e64fe758de040",
+  "played_2p_log_sha256": "e3ca18a7dd99498f59cdf0c006c4dfd4298fb05a8585a4d29632497fb96fa985",
+  "source_observation": {
+    "stock_two_player_guest_entered": true,
+    "modern_join_seat_one_confirmed": true,
+    "modern_join_seat_two_confirmed": true,
+    "stock_go_script_frame": 2352,
+    "source_race_host_frame": 2146,
+    "source_settled_result_host_frame": 4377,
+    "source_player1_rider_index": 0,
+    "source_player2_rider_index": 2,
+    "source_player1_hundredths": 2761,
+    "source_player2_hundredths": 2757,
+    "source_result_winner_rider_index": 2,
+    "captured_input_frames": 2231,
+    "captured_input_runs": 5,
+    "source_settled_race_result_observed": true,
+    "canonical_atomic_match_pair_published": false,
+    "native_match_captured_marker_present": false,
+    "fresh_game_paired_records_log_present": false,
+    "original_guest_simulated_frames_before_script_quit": 44047,
+    "native_process_exit": "successful script quit",
+    "windows_bridge_workflow_result": "failure",
+    "failed_python_requirement": "missing UR_BALDOSA_NATIVE_MATCH CAPTURED=1 ... profile2=native-ci-second ... course:01"
+  },
+  "source_guard": {
+    "binder_file": "native/product/local_multiplayer_match_binding.cpp",
+    "binder_invariant": "P1/P2 Modern catalog profile rider_index must each equal the real stock original source result's player1_rider/player2_rider",
+    "pr_fixture_file": "tools/baldosa_modern_profile_native_fixture.cpp",
+    "pr_fixture_second_profile_identity": "make_legacy_racer_identity(1)",
+    "observed_source_second_rider_index": 2,
+    "classification": "suspected_exact_rider_identity_binding_mismatch",
+    "cause_proven": false,
+    "safe_next_action": "Product owner should inspect source stock 2P rider selection and Modern profile catalog identity; correct the profile/source association, not the source result or strict rider binder.",
+    "no_conflicting_journey_credit": true
+  },
+  "release_claims": {
+    "real_2p_guest_finished": true,
+    "real_paired_2p_match_record_published": false,
+    "new_2p_fresh_process_records_verified": false,
+    "original_emulator_parity_verified": false,
+    "physical_windows_verified": false,
+    "release_quality_gate_promoted": false
+  },
+  "notes": [
+    "The downloaded failed Actions artifact includes a complete played 2P game process log, but lacks both a positive pairing report and a fresh native process log. Its earlier base 1P report is a separate valid hosted journey, not a 2P publication.",
+    "Actual source result appears about 39,670 guest frames before the probe ends. Re-running the exact same script for 44k+ frames without testing the rider identity would waste Windows runner time.",
+    "A lower-layer observed original guest settled result does not bypass the already correct no-wrong-rider publication constraint.",
+    "Failure mode reported to the live product PR #1425; this independent QA observation does not change gameplay, source oracle, Modern store or release ledger."
+  ]
+}

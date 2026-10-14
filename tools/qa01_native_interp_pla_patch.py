@@ -132,7 +132,7 @@ static void ur_qa01_note_interp_pla(Interp816 *cpu, uint16_t sp0,
       if(cpu->mf) {""", 1)
     before = before.replace(
         "      ur_qa01_note_interp_pla(cpu,",
-        "      ur_qa01_pla_active = 0;\\n      ur_qa01_note_interp_pla(cpu,", 1)
+        "      ur_qa01_pla_active = 0;\n      ur_qa01_note_interp_pla(cpu,", 1)
     if before.count("interp816_pullWord(cpu)") != 1:
         raise AssertionError("original 16-bit PLA implementation must remain unchanged")
     observed_byte = """static uint8_t interp816_pullByte(Interp816* cpu) {

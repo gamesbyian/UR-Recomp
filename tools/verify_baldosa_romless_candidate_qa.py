@@ -22,6 +22,8 @@ from assemble_baldosa_windows_candidate import (
     ZIP_EPOCH, MAX_EXE_BYTES,
 )
 from evidence_contract import assertion, make_envelope
+from check_baldosa_win32_native_1p_records_evidence import audit_hosted_native_1p_records
+from check_baldosa_win32_native_2p_records_evidence import audit_hosted_native_2p_records
 
 SHA40 = re.compile(r"[0-9a-f]{40}\Z")
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
@@ -287,6 +289,12 @@ RUNTIME_LAUNCHER = "Baldosa Native Extracted Launcher QA/launcher-acceptance.jso
 RUNTIME_REPORT = "UR Baldosa Win32 Pause Route/report.json"
 RUNTIME_ONE = "UR Baldosa Win32 Pause Route/modern_to_live_race_1p/log.txt"
 RUNTIME_TWO = "UR Baldosa Win32 Pause Route/modern_to_live_race_2p/log.txt"
+RUNTIME_NEW_ONE = "UR Baldosa Win32 Pause Route/native_real_1p_records/report.json"
+RUNTIME_NEW_PLAYED = "UR Baldosa Win32 Pause Route/native_real_1p_records/played_native_event/log.txt"
+RUNTIME_NEW_FRESH = "UR Baldosa Win32 Pause Route/native_real_1p_records/fresh_game_records/log.txt"
+RUNTIME_NEW_TWO = "UR Baldosa Win32 Pause Route/native_real_2p_records/report.json"
+RUNTIME_NEW_TWO_PLAYED = "UR Baldosa Win32 Pause Route/native_real_2p_records/played_native_2p/log.txt"
+RUNTIME_NEW_TWO_FRESH = "UR Baldosa Win32 Pause Route/native_real_2p_records/fresh_game_2p_records/log.txt"
 
 
 def check_runtime_actions_wrapper(
@@ -296,7 +304,10 @@ def check_runtime_actions_wrapper(
     """Read the separately produced same-run log/report archive without executing it.
 
     Positive claim: source-identical PE + bounded *entry to live race*.
-    Explicit non-claim: complete result, physical gamepad/audio, native Records.
+    Two optional complete three-artifact groups add hosted *source-bound*
+    native 1P and 2P played results through a fresh game process's Records
+    logs. The saved run and match raw bytes are NOT archived. Neither group
+    can certify original/native parity, consumer hardware, or release QA.
     """
     if wrapper.is_symlink() or not wrapper.is_file() or wrapper.stat().st_size > 16 * 1024 * 1024:
         raise ValueError("Baldosa Win32 runtime evidence ZIP missing, linked or oversized")
@@ -327,6 +338,28 @@ def check_runtime_actions_wrapper(
             raw_launcher = bounded(RUNTIME_LAUNCHER, 64 * 1024)
             log1 = bounded(RUNTIME_ONE, 2 * 1024 * 1024)
             log2 = bounded(RUNTIME_TWO, 2 * 1024 * 1024)
+            newer_one_names = (RUNTIME_NEW_ONE, RUNTIME_NEW_PLAYED, RUNTIME_NEW_FRESH)
+            newer_one_present = [name in names for name in newer_one_names]
+            if any(newer_one_present) and not all(newer_one_present):
+                raise ValueError("Baldosa native 1P result-to-Records evidence group incomplete")
+            newer_one = (
+                (bounded(RUNTIME_NEW_ONE, 64 * 1024),
+                 bounded(RUNTIME_NEW_PLAYED, 2 * 1024 * 1024),
+                 bounded(RUNTIME_NEW_FRESH, 2 * 1024 * 1024))
+                if all(newer_one_present) else None
+            )
+            newer_two_names = (
+                RUNTIME_NEW_TWO, RUNTIME_NEW_TWO_PLAYED, RUNTIME_NEW_TWO_FRESH,
+            )
+            newer_two_present = [name in names for name in newer_two_names]
+            if any(newer_two_present) and not all(newer_two_present):
+                raise ValueError("Baldosa native 2P paired result-to-Records evidence group incomplete")
+            newer_two = (
+                (bounded(RUNTIME_NEW_TWO, 64 * 1024),
+                 bounded(RUNTIME_NEW_TWO_PLAYED, 2 * 1024 * 1024),
+                 bounded(RUNTIME_NEW_TWO_FRESH, 2 * 1024 * 1024))
+                if all(newer_two_present) else None
+            )
     except zipfile.BadZipFile as exc:
         raise ValueError("Baldosa Win32 runtime evidence ZIP is corrupt") from exc
     try:
@@ -346,7 +379,8 @@ def check_runtime_actions_wrapper(
     )):
         raise ValueError("Win32 extracted CMD launcher was not confirmed")
     if (reported.get("classification") != "windows_native_pause_and_named_profile_smoke_only"
-            or reported.get("course_complete_credit") != 0
+            or type(reported.get("course_complete_credit")) is not int
+            or reported["course_complete_credit"] != 0
             or reported.get("physical_gamepad_hardware_tested") is not False
             or not isinstance(reported.get("native_named_readonly_records"), dict)
             or reported["native_named_readonly_records"].get("actual_native_2p_match_published") is not False):
@@ -381,7 +415,9 @@ def check_runtime_actions_wrapper(
         (2, log2, "modern_root_race_entry_p2"),
     ):
         entry = reported.get(field)
-        if (not isinstance(entry, dict) or entry.get("players") != players
+        if (not isinstance(entry, dict)
+                or type(entry.get("players")) is not int
+                or entry["players"] != players
                 or entry.get("native_root_handoff_observed") is not True
                 or entry.get("original_race_nmi_barrier_passed") is not True
                 or entry.get("original_go_ticker_barrier_passed") is not True
@@ -403,6 +439,29 @@ def check_runtime_actions_wrapper(
                 or "UR_MULTIPLAYER_MATCH " in contents
                 or "UR_RUN_RECORD " in contents):
             raise ValueError("Baldosa stock-race entry log missing or contradicts smoke scope")
+    # Read the producer's *three* coarchived source-result/fresh-game files
+    # as one optional set; never mint 1P Records credit from only a happy JSON
+    # boolean or a newly saved record's unaudited SHA string.
+    if newer_one is not None:
+        record_metrics = audit_hosted_native_1p_records(*newer_one)
+        candidate["metrics"].update(record_metrics)
+        candidate["assertions"].append(
+            assertion("hosted-native-1p-result-and-fresh-game-records-logs-consistent", True)
+        )
+    else:
+        candidate["metrics"]["hosted_native_1p_result_to_fresh_records_logs_consistent"] = False
+        candidate["metrics"]["hosted_saved_urrun_bytes_independently_reopened"] = False
+    # Fail closed on any incomplete guest 2P result / pair / fresh-game
+    # archive; a source finish with published=0 is NOT a paired Records pass.
+    if newer_two is not None:
+        paired_metrics = audit_hosted_native_2p_records(*newer_two)
+        candidate["metrics"].update(paired_metrics)
+        candidate["assertions"].append(
+            assertion("hosted-source-2p-atomic-pair-and-fresh-game-records-logs-consistent", True)
+        )
+    else:
+        candidate["metrics"]["hosted_native_2p_result_to_fresh_records_logs_consistent"] = False
+        candidate["metrics"]["hosted_saved_2p_pair_bytes_independently_reopened"] = False
     candidate["inputs"]["runtime_actions_wrapper_basename"] = wrapper.name
     candidate["inputs"]["runtime_actions_wrapper_sha256"] = file_digest(wrapper)
     for name, raw in (
@@ -417,16 +476,28 @@ def check_runtime_actions_wrapper(
     )
     candidate["metrics"]["hosted_1p_stock_entry_observed"] = True
     candidate["metrics"]["hosted_2p_stock_entry_observed"] = True
-    candidate["metrics"]["historical_2p_records_readonly_observed"] = has_history
+    # An empty-but-read-only tab is a valid negative safety observation,
+    # not positive evidence that a historical saved match was visible.
+    visible_history = has_history and history["historical_2p_pairs_read"] > 0
+    candidate["metrics"]["historical_2p_records_readonly_observed"] = visible_history
+    candidate["metrics"]["historical_2p_records_tabs_checked"] = has_history
     if has_history:
         candidate["metrics"]["historical_2p_pairs_read"] = history["historical_2p_pairs_read"]
         candidate["metrics"]["incomplete_2p_pairs_unavailable"] = (
             history["incomplete_2p_pairs_reported_unavailable"]
         )
+    if visible_history:
         candidate["assertions"].append(
             assertion("hosted-historical-2p-records-visible-without-mutation-or-publication", True)
         )
-    candidate["metrics"]["finished_native_event_or_new_match_observed"] = False
+    # A guest-settled native 1P result is now observable from the three
+    # source/result/Records logs; it still has no independent original oracle
+    # or physical-device standing. No paired native 2P match is reported.
+    candidate["metrics"]["finished_native_event_or_new_match_observed"] = (
+        newer_one is not None or newer_two is not None
+    )
+    candidate["metrics"]["strict_original_native_complete_event_accepted"] = False
+    candidate["metrics"]["new_native_two_player_match_published"] = newer_two is not None
     candidate["metrics"]["physical_gamepad_hardware_verified"] = False
     return candidate
 

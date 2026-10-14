@@ -52,6 +52,8 @@ class BaldosaNativeTwoPlayerPublicationTests(unittest.TestCase):
                              executed.stderr + executed.stdout)
             self.assertIn("PASS: native Modern pre-SRAM profile root",
                           executed.stdout)
+            self.assertIn("PASS: fresh-process native Modern 1P and paired 2P Records readback",
+                          executed.stdout)
 
     def test_guest_observer_publishes_only_after_explicit_join(self):
         bridge = (ROOT / "tools/baldosa_native_pause_lifecycle.cpp").read_text(
@@ -65,10 +67,21 @@ class BaldosaNativeTwoPlayerPublicationTests(unittest.TestCase):
         self.assertIn("bind_local_multiplayer_match_context(", writer)
         self.assertIn("baldosa_sram_checkpoint_preflight_under_lock(", writer)
         self.assertIn("append_multiplayer_match_pair(", writer)
-        self.assertIn('!real_file(first_root / "save.srm")', writer)
-        self.assertIn('!real_file(second_root / "save.srm")', writer)
-        self.assertIn('!is_real_file(root / "host-profile.txt")', writer)
-        self.assertIn('!is_real_file(root / "save.srm")', writer)
+        # The shared native preflight now checks both typed and raw P1/P2
+        # data paths before OS locks, and again under the same locks.
+        self.assertIn("baldosa_native_selected_profile_paths_are_real(", writer)
+        self.assertIn("g_native_user_root, selected_root.save_root", writer)
+        self.assertIn("g_native_user_root, first.save_root", writer)
+        self.assertIn("g_native_user_root, second.save_root", writer)
+        guard = (PRODUCT / "baldosa_native_profile_path_guard.hpp").read_text(
+            encoding="utf-8")
+        self.assertIn('baldosa_native_real_directory(user_root / "saves")',
+                      guard)
+        self.assertIn('baldosa_native_real_directory(profile)', guard)
+        self.assertIn('baldosa_native_real_file(profile / "host-profile.txt")',
+                      guard)
+        self.assertIn('baldosa_native_real_file(profile / "save.srm")',
+                      guard)
         self.assertIn("g_last_published_two_player_event = event;", writer)
         self.assertNotIn("RtlWriteSram();", writer)
 

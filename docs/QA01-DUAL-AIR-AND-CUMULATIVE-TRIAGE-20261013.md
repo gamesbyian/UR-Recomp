@@ -1,0 +1,53 @@
+# QA-01: exact frontier dual-air input and latest cumulative original/native triage (2026-10-13)
+
+**Status:** one legal original/native source-input comparison has been *prepared*, not yet executed; source-field labels remain hypotheses. This evidence is distinct from complete-event qualification and does not alter the strict comparator, the canonical original source, the ROM, the release ledger or **0/45 accepted USA events**.
+
+## The executed frontier discovery
+
+The append-only cumulative research ledger (branch `research/qa-cumulative-ledger`) confirms [frontier run 38446393623](https://github.com/gamesbyian/UR-Recomp/actions/runs/38446393623), source commit `dd5632f0a612ee22cc46d9b1ce7a6005a5fa555f`, 100 legal real-native input experiments. A **single** `both-air-raw` case was observed: **seed 50036056**, **rotation arm**, **shard 2**, first sampled at **absolute host frame 2580**. This is an evaluation of nonzero source-register candidates `7E:0545` (P1) and `7E:0547` (P2), from the native 15-frame (120-frame-spaced) WRAM observer. No original Snes9x execution for this input was part of the frontier producer.
+
+Relevant retained identities:
+
+| Item | Identity |
+| --- | --- |
+| Exact original-USA ROM SHA-256 | `859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478` |
+| Frontier native executable SHA-256 | `28501fa3268f82d83672122cddbd2628ce5b2458e625f46d93766f50befbe515` |
+| Original neutral 2P input fixture SHA-256 | `28f2842fd262030e434b3aef88eb360f74de94fbf558f0eb0ba8edce645fb490` |
+| Original 2P observation-script SHA-256 | `ebac1a3505281e9793c8197006081c5d88f6ab3383df48f23ba2475159e9e6e3` |
+
+The actual generator is pinned source in `tools/qa_adaptive_frontier.py::actions_for(50036056, "rotation")`, which consumes the established `tools/qa02_native_2p_seeded_endurance.py` input planner, preserves the already source-validated 2P navigation prefix, and injects both P1/P2 legal controls after first-race entry. A random new controller movie or hand-edited button state would not reproduce the cited observation.
+
+## Cheapest valid original/native discriminator
+
+New **opt-in** manual workflow input `qa01_dual_air_50036056` on the existing `.github/workflows/two-player-reference.yml` reuses its original Snes9x and ordinary 2P build for the existing regression, but downloads the **exact immutable Modern frontier native binary** from workflow run 38446393623 for the separate seed-specific comparison. Its executable SHA-256 is checked before launch; a rebuilt unrelated native target is not substituted. The normal workflow is unchanged when the boolean is false.
+
+1. `python3 tools/qa01_dual_air_paired.py prepare --out-dir PATH` regenerates the original-source exact seed/arm neutral `case.input` and the existing 15-checkpoint `case.script`, validates the source fixture hashes and refuses overwritten results.
+2. Original Snes9x and native execute the same frozen input, ROM and absolute-host dump schedule in separate guests. Each independently dumps a complete 128-KiB WRAM image at the source pre-intervention `1620`, each original `1740..3420` sample, and **two additional adjacent host frames 2579 and 2581** around the first frontier dual-air sighting. Those two `dump` commands do not add or retime input or change the host-frame index of frame 2580. The original frontier producer's `qa02_native_2p_seeded_endurance.execute` supplies a fresh isolated user-data root, authentic execution mode, unpaced config and identical controller-stream/dump transports.
+3. The analyzer independently regenerates the exact inputs from the pinned planner, checks run identity, 2P source entry and both actual 128-KiB dump sets, and reports **both** raw air bytes, position, velocity, race progress, hash equality and native executable identity at each frame, including the three-frame **2579/2580/2581** raw-air window. The run fails closed unless the executable is byte-identical to the cited frontier witness.
+4. The analyzer now **also requires independently emitted `script f=N dump LABEL ok` receipts from both real emulators** for all 18 pinned frame labels. The original transcript is retained separately; the exact Modern frontier native execution writes its internally captured host transcript into `native.log` without changing the ordinary endurance producer. A missing, repeated, reordered or off-by-one receipt rejects the run even when a plausible 128-KiB WRAM file exists under the expected name. The report preserves each actual label/frame pair and the separate transcript SHA-256. These host-tick attestations do not equate emulator CPU/NMI instruction phase or constitute event parity.
+5. Inspect whether the original *also* shows both provisional raw air bytes nonzero at host 2580, whether original/native guest source states diverge in adjacent sampled frames, and whether frame-alignment needs a fresh independently measured course-entry anchor. Current comparison is **same absolute host label only**, with two nearest-neighbor samples available for diagnosing a possible ±1 host sampling disparity, never a normalized guest-relative gameplay proof.
+
+Verified dump script ticks address one concrete provenance risk, **but the original and native CPU/guest-relative entry phases remain uncalibrated**. This observation **cannot alone establish that either racer physically becomes airborne**; `air_effective` and `air` are provisional decoded RAM semantics, and a simultaneous nonzero-byte predicate is neither original physics correctness nor visual OAM proof. The original 120-frame survey could have missed entry, jump and landing transitions; the new 2579/2580/2581 burst narrows the observation window around this one lead without claiming continuous coverage. In particular, `7E:0DDB=1` means second-camera enabled in active 2P and is *not* a failed visual split.
+
+**Acceptance boundary:** this diagnostic always emits `release_gate_credit: 0` and `strict_complete_event_accepted: false`. Next decision, if original/native registers differ, is a *small* original and native writer/input-edge trace around the first observed difference, not adjusting comparator thresholds. If both have raw air, trace source authorship/vertical integration and camera conditions before claiming real airborne motion. A full event still requires independently calibrated entry, all required source semantics and accepted terminal/progression behaviour.
+
+## Diagnose the latest incomplete cumulative original-native producer before another campaign
+
+The separate ledger's **most recent original-native coordinator entry**, run [38446280858](https://github.com/gamesbyian/UR-Recomp/actions/runs/38446280858) at source `dd5632...`, is **`incomplete_or_failed`** with the reason `original workflow or aggregate unavailable`, not `strict_divergence`. GitHub's REST API currently returns **404** for the run, its jobs and artifacts; a recent run listing also omits it. Consequently **the actual first failed step cannot be recovered from presently accessible run data**. Do not turn that absence into a claimed emulator fault, guest regression or exact known cause.
+
+The relevant existing orchestrator source is precise:
+
+- `.github/workflows/qa-cumulative-research.yml` routes `original-native` to reusable `.github/workflows/qa01-event-campaign.yml` with `selected: all` and `zoo_terminal_phase: false`.
+- The child job must build the original and pinned native once, attempt the three historical source-qualified Zoo/Bowl/Switcher events, retain per-case `case-result.json` and bounded producer logs, and publish `qa01-campaign-aggregate/campaign-result.json`.
+- In `tools/qa01_event_campaign.py`, a genuine strict-negative case is **scientifically complete** and exits the case-classifier with code 0; only a `producer_error` makes that case job red. Three negatives with authentic case receipts should yield `transport_complete: true` and `counts.strict_divergence: 3`, not an absent aggregate.
+- In `tools/qa_cumulative_ledger.py::outcome`, the text `original workflow or aggregate unavailable` is the **combined fallback** for either a nonsuccess reusable job result **or** absent aggregate. It alone does not tell whether a source producer, build, artifact transfer, reusable workflow or coordinator failed.
+
+**Triage condition:** before any rerun, recover the 404 run's logs/artifacts by a valid exact URL or document their unavailability; then inspect *first failure* in source workflow `plan → build → cases → aggregate`. If artifact unavailable persists, a **single selected source case** via existing manual `qa01-event-campaign.yml` is the cheapest infrastructure discriminator; do not order another cumulative 10k/long experiment to try to fix an unseen producer. The failure's seed reservation remains consumed in the immutable cumulative ledger.
+
+## More direct Switcher fidelity priority
+
+Merge #1370 (generated C newline repair), #1376 (f5782 following-frame saved-A 4004 read candidates), #1383 (Zoo fixed-host boundary evidence) before running new evidence: all three were merged on 2026-10-13. The next **specific and already implemented** original/native Switcher experiment is the manually dispatched `.github/workflows/qa01-switcher-original-2014.yml` with `source_horizon=22000`, `fresh_paired_nmi_probe=true`, `stack_writer_probe=false`. It instruments genuine original NMI saved-A/pull/RTI and native interpreter PLA and WRAM reads, produces source-authenticated separate crosswalks, and does not alter gameplay.
+
+Its required decision is *which actual source guest instruction/restore boundary differs and whether a result/progression-critical consumer observes it*. A native `01DD=4004` word/byte read callback alone is **not** a proved 16-bit PLA, and matching settled MIKE result at host 5783 does not erase the strict original +4704/native +4702 guest-relative mismatch. If the run's first step fails, fix the minimal instrumentation/transport defect and retain reproducible negative evidence before source-runtime edits.
+
+No repeat original/native evidence has been produced by this documentation or by merging these PRs. No long cumulative campaign is recommended until a specific first-failure reason is available.

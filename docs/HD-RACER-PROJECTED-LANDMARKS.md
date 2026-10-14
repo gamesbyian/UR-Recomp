@@ -442,3 +442,104 @@ not promote owner-rejected procedural sprites
 or invent per-wheel/per-seat geometry from
 raster support counts. The source-faithful
 Original fallback remains mandatory.
+
+## Offline temporal landmark audit for a proposed coherent rig
+
+`tools/art/audit_unicycle_pose_sequence.py` now consumes the **same
+private, hash-checked original or candidate PNG landmark manifest** as
+`measure_unicycle_reference.py`, with an optional extra top-level
+`sequences` array. For each sequence give its unique `id`,
+`camera_mode` (`declared-fixed` or `unverified-or-moving`), a
+substantive `camera_notes` description and at least two
+`frames: [{"reference_id": "...", "time_ms": 0}, ...]`
+with unique image-view references and strictly increasing integer
+timestamps. Milliseconds are provided by the annotator/capture record;
+**the tool never invents an original game frame rate**.
+
+Example command:
+
+```sh
+python3 tools/art/audit_unicycle_pose_sequence.py \
+  /private/uniracer-review/landmarks-with-sequences.json \
+  --out /private/uniracer-review/projected-motion.json
+python3 -m unittest tests.unit.test_audit_unicycle_pose_sequence
+```
+
+The audit rehashes each actual local PNG and validates reference
+provenance, source angle, pixel aspect, crops, landmarks and all the
+original single-pose ratios. Within a sequence, source category, creator,
+version and PAR must match. A claimed fixed projection also requires
+matching angle, source-image size and crop history, but **those metadata
+matches cannot independently prove a physically stationary camera**.
+Moving/uncertain camera sequences are admitted with their lack of
+registration made explicit.
+
+The report records each frame's six projected saddle/wheel geometry
+metrics, adjacent signed changes over the supplied time interval and
+the observed total metric spans. Saddle-centre offsets are normalized
+to the measured wheel's *vertical projected diameter* and use 7:6 PAR
+on horizontal coordinates when declared. This is a useful transparent
+ruler for wheel/saddle shape drift and animated posture, **not a magic
+threshold**: authentic tricks, 3D rotation, occlusion and changes in
+camera perspective can all create large legitimate 2D differences.
+Images, original sprite content, candidate rig assets and human aesthetic
+scores stay out of committed reports.
+
+A candidate can now be reviewed alongside the accepted original 2P
+source-shape changes and fixed-bottom-raster observations elsewhere
+in this document, provided each sample is individually authenticated.
+Neither a numeric match nor a small adjacent delta proves original
+1994 rig geometry, full animation coherence or visual likeness. Old
+procedural shipping-art veto remains in force pending a multiview,
+two-pose human review. No runtime selector, guest gameplay, Original
+fallback, PPU priority, render asset or release authority changes.
+
+
+## October 13 period-reference discovery and acquisition priorities
+
+The manual measurement pipeline above needs *specific independently
+auditable images*, not a higher-resolution recreation of the same
+illustration. Newly located period sources and their current limits:
+
+| Candidate source | What the public catalogue establishes | Decision before a landmark annotation |
+| --- | --- | --- |
+| [VGHF's DMA Design press-material provenance](https://gamehistory.org/dma-design-art/) and its [Internet Archive upload](https://archive.org/details/dma_press_material) | Frank Cifaldi's Dec 28, 2021 article explicitly links the original media kit/scanned-paper collection; [Hidden Palace](https://hiddenpalace.org/Assets/DMA_Design_Miscellaneous_Press_Material) catalogues Uniracers among its games. | **High-priority original-period intake**, but archive content/individual Uniracers files were not independently inspected in this pass; the Hidden Palace inline file download currently reports unavailable. Do not assert the presence of a source CG mesh, distinct viewpoint, or any Uniracers image in the actual downloadable item until filenames and pixels have been checked. |
+| [MobyGames period German magazine advertisement](https://www.mobygames.com/game/8085/uniracers/promo/group-99320/image-778809/) | A *Video Games* (Germany) issue **07/1995** advertisement is catalogued at **1231×1757**, contributed in 2021. [N.i.n.Retro](https://www.ninretro.net/game-1-779.html) independently lists historic print advertising and review scans. | Potential independent period printing. Compare its **actual image composition** and crop against regional box art before counting it as another render/model view. A catalogue entry is not verified new geometry; retail/magazine rights still apply. |
+| [LaunchBox regional box scans](https://gamesdb.launchbox-app.com/games/images/2104-uniracers) | North American front at **2100×1534**, UK front at **2103×1476**, Australia front **1402×980** (sizes are listed, not verified native scan detail). | Useful for enlarged silhouette/material inspection, but region/crop/print variation does **not** prove independent camera angles or independently authored model art. Assign each authenticated asset its own provenance hash and mark duplicate artwork families. |
+
+**Next bounded likeness witness:** inspect the image bytes, rights and
+actual unicycle content of the press archive/advert first. Select a
+clearly labelled non-duplicate 1994–95 reference image *only if it
+exists*, and at least two already-authenticated neighboring Original
+source poses from the exact 2P slot98/99 guest1856/1872/1888 captures.
+Apply `tools/art/measure_unicycle_reference.py` with exact hashes,
+declared perspective and 7:6 PAR to each pose independently, then run
+`tools/art/audit_unicycle_pose_sequence.py` (merged #1375) on
+registered landmarks. Compare against the original technical 4×
+baseline only in an explicit artist-blockout column.
+
+For review, the source reference column, Original source-raster pose
+column and blockout column must carry **distinct origin labels**. A
+packaging foreshortening effect must not be "corrected" by inventing a
+3D wheel ratio. The authoritative deliverable is a multi-pose
+comparison with measurable deviations and unmeasurable parts
+explicitly recorded, followed by owner visual sign-off. This
+discovery pass supplies links and acquisition priorities, **no
+inspected original press-art pixels, numeric rig proportions, newly
+approved art, or new PPU acceptance**.
+
+
+## Exact ROM-title Original reference recovered from genuine native evidence (2026-10-13)
+
+Artifact [pinned native graphics AOT 38492408817](https://github.com/gamesbyian/UR-Recomp/actions/runs/38492408817), original `baldosa-native-spike-evidence` artifact **11863045863** (downloaded ZIP SHA256 `6fb7e9ad5ce53e02f0dda0896f520e2a667f5798c58f8d65b5541ed2d53a5431`) contains **an actual Uniracers title-screen source render with two overlapping 3D-era unicycles** in the game’s own title art. This is an independent source-image angle relevant to character silhouette and material identity. It is not another gameplay sprite or a 3D model.
+
+| Same USA route guest frame400 | Source PPU / 4× Original-only proof |
+| --- | --- |
+| Unmodified Original source | `baldosa-fixed-source/ur-baldosa-original-source-000400.pam`, **256×224 RGBA** payload SHA256 `5b09079636c80f42daf6c4765db4e930374b55c13d820857d733944e1f4872d2` |
+| Old original-mode 4× output | `baldosa-hd-captures-4x/ur-baldosa-fallback-000400.pam`, **1024×896 RGBA** payload SHA256 `d6e0d3ec63ab6f91c26500a67a84e050ba516720c7a64f9d62a24fe987cf993c` |
+| Independently rechecked full raster | **0 differing bytes** between the 1024×896 original fallback and exact RGBA `np.repeat` 4× both axes of the 256×224 source; 57,344 original source pixels all have corresponding exact 4×4 blocks |
+| Capture limitation | Max source RGB channel **51/255**, 250 distinct RGB tuples: a dark **title fade**, not valid full-bright colour or material samples |
+
+The source is already present in the authentic existing native AOT artifact. No title art, copyrighted image crop, game ROM or new character model was added to Git. Frame400 can be read directly as P7 RGBA without another emulator, generated sprite or internet asset. Preserve **7:6** pixel-aspect interpretation when measuring the canonical reference; nearest 4× preserves source pixels but does not correct that physical pixel aspect.
+
+**Practical next art decision:** include this title-frame view as an **original-title** provenance item in the requested character reference contact sheet, captioned `source title fade at guest400; 256×224 Original`, showing its two partially overlapping unicycles and large saddle/rim styling. Do **not** infer a unique wheel:saddle ratio from their overlapping perspective projections, and do not grade colours from this dim frame. Seek a brighter independent original title field (using the **existing** original native route with a narrower requested frame, only if actually needed), and then compare both source-backed title silhouettes against gameplay OAM families and genuinely independent retail/press assets. The current procedural HD racer remains rejected for likeness, regardless of hash-perfect 4× Original fallback or this newly available reference.

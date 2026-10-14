@@ -24,13 +24,6 @@
     },
     {
       "rom": "usa-retail",
-      "course_id": "course:04",
-      "status": "partial",
-      "evidence_ref": "analysis/data/switcher-original-baldosa-paired-race-b-result-20261010.json",
-      "coverage_note": "Source-unaltered 2014 original USA Snes9x Switcher Race B movie reaches genuine result 0x99 at movie frame 17030 from source entry 12327. Independently booted original Snes9x/native pinned Baldosa replay the exact anchored SRAM/controller scene, with equal starting signatures, 28/28 sampled active semantics, authentic completed result PPU text MIKE 1:08.81, P1 lap zero and finish/checkpoint gate. Both hosts observe the result at 5783, but original scene-relative +4704 versus native +4702 fails strict event parity; source/native near-terminal course-0 interstitial timing, exact PC/NMI alignment, menu continuation and persistence remain unresolved. No accepted event credit."
-    },
-    {
-      "rom": "usa-retail",
       "course_id": "course:20",
       "status": "partial",
       "evidence_ref": "analysis/generated/stunt-boundary-probe.json",

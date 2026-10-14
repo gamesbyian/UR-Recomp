@@ -16,7 +16,7 @@ Previously QA possessed only producer-reported run/match hashes. Those two actua
 
 ## New bounded independent reader
 
-`tools/check_baldosa_win32_created_pair_raw_qa.py` strictly binds these raw files to **the same ZIP's exact six-process source-report and logs**. It refuses ambiguous/duplicate run basenames, wrong path prefixes, partial profiles, unsupported/extra files anywhere in the full source ZIP (including outside the raw subtree), symlinked raw archive members, wrong sizes or manifest hashes, inconsistent original SRAM/typed mirrors and player catalog, canonical run/match bad FNV checksums, unsafe/reordered run input spans, misbound source clock/winner/course/participant or any producer release credit. It accepts only exact disposable user-root source format and remains independent of Modern's writer. Usage on the unmodified downloaded real Actions ZIP:
+`tools/check_baldosa_win32_created_pair_raw_qa.py` strictly binds these raw files to **the same ZIP's exact six-process source-report and logs**. It refuses ambiguous/duplicate run basenames, wrong path prefixes, partial profiles, unsupported/extra files outside the strict known Windows source-group inventory and raw subtree (without awarding other groups any credit), symlinked raw archive members, wrong sizes or manifest hashes, inconsistent original SRAM/typed mirrors and player catalog, canonical run/match bad FNV checksums, unsafe/reordered run input spans, misbound source clock/winner/course/participant or any producer release credit. It accepts only exact disposable user-root source format and remains independent of Modern's writer. Usage on the unmodified downloaded real Actions ZIP:
 
 ```sh
 python3 tools/check_baldosa_win32_created_pair_raw_qa.py \

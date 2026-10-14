@@ -3,6 +3,7 @@ import importlib.util
 import json
 import pathlib
 import unittest
+from unittest import mock
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 SPEC = importlib.util.spec_from_file_location(
@@ -17,6 +18,16 @@ def baseline():
     return json.loads(
         (ROOT / "docs/RELEASE-QUALITY-LEDGER.json").read_text(encoding="utf-8")
     )
+
+
+def synthetic_45_source():
+    """Artificial fixture, never an actual independent event acceptance."""
+    return {
+        "complete_event_passes": 45, "partial": 0, "unverified": 0,
+        "regional_comparison_complete": 0,
+        "regional_comparison_unverified": 90,
+        "primary_pass_candidates": {"a" * 40},
+    }
 
 
 class ReleaseQualityLedgerTests(unittest.TestCase):
@@ -47,7 +58,13 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
                             for x in validator.check_registry(data, ROOT)))
         gate["witnesses"][0]["layer"] = "L4"
         gate["coverage"].update(complete_event_passes=45, partial=0, unverified=0)
-        self.assertEqual(validator.check_registry(data, ROOT), [])
+        # The real source register still has 0/45; metadata alone cannot
+        # convert this fabricated QA-01 witness into a pass.
+        self.assertTrue(any("disagrees with original event source register" in x
+                            for x in validator.check_registry(data, ROOT)))
+        with mock.patch.object(validator, "source_event_register_summary",
+                               return_value=synthetic_45_source()):
+            self.assertEqual(validator.check_registry(data, ROOT), [])
 
     def test_qa01_l4_witness_cannot_override_zero_of_45_release_census(self):
         data = baseline()
@@ -70,7 +87,11 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
         gate["coverage"].update(
             complete_event_passes=45, partial=0, unverified=0
         )
-        self.assertEqual(validator.check_registry(data, ROOT), [])
+        self.assertTrue(any("disagrees with original event source register" in e
+                            for e in validator.check_registry(data, ROOT)))
+        with mock.patch.object(validator, "source_event_register_summary",
+                               return_value=synthetic_45_source()):
+            self.assertEqual(validator.check_registry(data, ROOT), [])
 
     def test_qa01_release_census_rejects_shrunk_or_malformed_counts(self):
         data = baseline()
@@ -121,6 +142,59 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
             regional_comparison_unverified=89,
         )
         self.assertEqual(validator.check_registry(data, ROOT), [])
+
+    def test_source_register_counts_reconcile_with_checked_in_release_ledger(self):
+        counts = validator.source_event_register_summary(ROOT)
+        census = baseline()["gates"][0]["coverage"]
+        for field in (
+            "complete_event_passes", "partial", "unverified",
+            "regional_comparison_complete", "regional_comparison_unverified",
+        ):
+            self.assertEqual(census[field], counts[field])
+        self.assertEqual(counts["primary_pass_candidates"], set())
+
+    def test_qa01_cannot_inflate_counts_even_with_valid_45_case_partition(self):
+        data = baseline()
+        census = data["gates"][0]["coverage"]
+        census.update(complete_event_passes=1, partial=4, unverified=40)
+        self.assertTrue(
+            any("complete_event_passes disagrees with original event source register" in e
+                for e in validator.check_registry(data, ROOT))
+        )
+        # Same total, but regional comparison status is also source-bound.
+        census.update(complete_event_passes=0, partial=4, unverified=41)
+        census.update(regional_comparison_complete=1, regional_comparison_unverified=89)
+        self.assertTrue(
+            any("regional_comparison_complete disagrees with original event source register" in e
+                for e in validator.check_registry(data, ROOT))
+        )
+
+    def test_qa01_source_register_must_exist_for_release_validation(self):
+        with mock.patch.object(validator, "source_event_register_summary",
+                               side_effect=OSError("missing source")):
+            errors = validator.check_registry(baseline(), ROOT)
+        self.assertTrue(any("QA-01 source event register unavailable or invalid" in e
+                            for e in errors))
+
+    def test_qa01_pass_requires_source_event_candidate_identity(self):
+        data = baseline()
+        data["candidate"].update(commit_sha="a" * 40, zip_sha256="b" * 64)
+        gate = data["gates"][0]
+        gate["status"] = "passed"
+        gate["candidate_commit"] = "a" * 40
+        gate["witnesses"] = [{
+            "source_commit": "a" * 40, "artifact_sha256": "b" * 64,
+            "source": "synthetic unit-only source fixture",
+            "tested_at": "2026-10-13T22:00:00Z", "layer": "L4",
+        }]
+        gate["coverage"].update(complete_event_passes=45, partial=0, unverified=0)
+        source = synthetic_45_source()
+        source["primary_pass_candidates"] = {"c" * 40}
+        with mock.patch.object(validator, "source_event_register_summary",
+                               return_value=source):
+            errors = validator.check_registry(data, ROOT)
+        self.assertTrue(any("bound to the exact release candidate commit" in e
+                            for e in errors))
 
     def test_current_source_contracts_and_journey_denominators_are_real(self):
         data = baseline()
@@ -268,8 +342,17 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
                             for x in validator.check_registry(data, ROOT)))
         gate["witnesses"][0]["tested_at"] = "2026-10-10T20:00:00+00:00"
         gate["coverage"].update(complete_event_passes=45, partial=0, unverified=0)
-        self.assertEqual(validator.check_registry(data, ROOT), [])
+        # The real source register still has 0/45; metadata alone cannot
+        # convert this fabricated QA-01 witness into a pass.
+        self.assertTrue(any("disagrees with original event source register" in x
+                            for x in validator.check_registry(data, ROOT)))
+        with mock.patch.object(validator, "source_event_register_summary",
+                               return_value=synthetic_45_source()):
+            self.assertEqual(validator.check_registry(data, ROOT), [])
 
+        # Waiver metadata tests use the actual still-unaccepted course
+        # census, rather than carrying an artificial 45/45 fixture onward.
+        gate["coverage"].update(complete_event_passes=0, partial=4, unverified=41)
         gate["status"] = "waived"
         gate["witnesses"] = []
         gate["waiver_reason"] = " "

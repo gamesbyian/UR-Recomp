@@ -49,12 +49,17 @@ int main() {
         (empty / save_root.save_root / "host-profile.txt").string(), "mike");
     assert(state.loaded() && state.state->stock_sram &&
            state.state->racer_identity == identity);
+    // The shared stock image is a BASELINE, not necessarily a profile
+    // already projected to the first named racer. Compare to an independent
+    // expected copy with ONLY the source-backed rider byte rewritten.
     const auto& canonical = clean_stock_sram();
-    assert(*state.state->stock_sram == canonical);
+    auto expected_mike = canonical;
+    expected_mike[0x0748] = identity->rider_index;
+    assert(*state.state->stock_sram == expected_mike);
     const fs::path raw = empty / save_root.save_root / "save.srm";
     assert(fs::file_size(raw) == kStockSramBytes);
     assert(baldosa_sram_file_matches_exact(
-        raw, canonical.data(), canonical.size()));
+        raw, expected_mike.data(), expected_mike.size()));
     const auto before = fs::last_write_time(raw);
     assert(create_baldosa_first_preset_for_next_boot(empty, 1).status ==
            BaldosaFirstRacerStatus::AlreadyConfigured);
@@ -77,9 +82,9 @@ int main() {
     const auto raw2 = second / "saves/profile-andrew/save.srm";
     assert(baldosa_sram_file_matches_exact(
         raw2, typed2.state->stock_sram->data(), kStockSramBytes));
-    assert(clean_stock_sram()[0x0748] == canonical[0x0748]);
+    // Creating ANDREW didn't change the already committed Mike snapshot.
     assert(baldosa_sram_file_matches_exact(
-        raw, canonical.data(), canonical.size()));
+        raw, expected_mike.data(), expected_mike.size()));
 
     // A foreign/broken catalog, a dangling redirected save path, and
     // corrupted global state may not be silently overwritten.

@@ -15,7 +15,8 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-MARKER = "\t\t\tRegisters.PCw++;\n\t\t\t(*Opcodes[Op].S9xOpcode)();"
+MARKER = "\t\t\tRegisters.PCw++;\n\t\t\t(*Opcodes[Op].S9xOpcode)();
+{RETURN_POST}"
 STAMP = "UR-QA01 original Zoo menu opcode writer probe"
 # Exact 69-byte WRAM original(+5156)/Baldosa(+5156) difference surface,
 # plus authoritatively observed menu/track/race mode controls.
@@ -54,8 +55,11 @@ RETURN_SCOPE = r"""
 				const char *v = getenv("UR_QA_ZOO_RETURN_LAST");
 				return v ? (unsigned)strtoul(v, nullptr, 10) : 0u;
 			}();
-			if (ur_return_first <= (unsigned)ICPU.Frame &&
-				(unsigned)ICPU.Frame <= ur_return_last)
+			bool ur_return_gate = ur_return_first <= (unsigned)ICPU.Frame &&
+				(unsigned)ICPU.Frame <= ur_return_last;
+			const uint8 ur_return_inidisp_before =
+				ur_return_gate ? Memory.FillRAM[0x2100] : 0;
+			if (ur_return_gate)
 				for (unsigned ur_i = 0;
 					 ur_i < sizeof(ur_return_pcs) / sizeof(ur_return_pcs[0]);
 					 ++ur_i)
@@ -65,6 +69,19 @@ RETURN_SCOPE = r"""
 							(unsigned)ur_qa_zoo_pc);
 """
 
+RETURN_POST = r"""
+			/* Capture the actually executing original CPU opcode that
+			 * changes the PPU forced-blank register. A static PC list
+			 * cannot by itself establish the USA source owner. */
+			if (ur_return_gate && ur_return_inidisp_before !=
+				Memory.FillRAM[0x2100])
+				fprintf(stderr,
+					"ZOOPPUWRITE f=%u v=%u pc=%06X old=%02X new=%02X\n",
+					(unsigned)ICPU.Frame, (unsigned)CPU.V_Counter,
+					(unsigned)ur_qa_zoo_pc,
+					(unsigned)ur_return_inidisp_before,
+					(unsigned)Memory.FillRAM[0x2100]);
+"""
 
 
 def patch(source: str) -> str:

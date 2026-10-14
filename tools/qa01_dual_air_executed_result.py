@@ -96,6 +96,10 @@ def classify(blob: bytes, *, verify_zip_hash: bool = True) -> dict:
             "p1_y_native": row["native_xy"][0][1],
             "p2_y_original": row["original_xy"][1][1],
             "p2_y_native": row["native_xy"][1][1],
+            "p1_y_native_minus_original": (row["native_xy"][0][1]
+                                          - row["original_xy"][0][1]),
+            "p2_y_native_minus_original": (row["native_xy"][1][1]
+                                          - row["original_xy"][1][1]),
         })
     return {
         "schema": "UR-QA01-DUAL-AIR-EXECUTED-PAIRED-OBSERVATION/1",
@@ -114,7 +118,10 @@ def classify(blob: bytes, *, verify_zip_hash: bool = True) -> dict:
         "interpretation": "P1 original 0 vs native 1 at 7E:0545 on exactly host 2580, "
                           "while P2 matches 2 at 7E:0547. P1 vertical velocity "
                           "is original 0 vs native 19 at that host frame; P1 Y "
-                          "original 857 vs native 858. This is a small genuine "
+                          "original 857 vs native 858, persisting at 2581 even "
+                          "after the provisional P1 air byte resets. At 2580 "
+                          "P2 Y original 863 vs native 862, returning to the "
+                          "same Y 864 at 2581. This is a small genuine "
                           "raw-state divergence, not a proved airborne collision/"
                           "physics cause, CPU phase equivalence or any accepted course."
     }

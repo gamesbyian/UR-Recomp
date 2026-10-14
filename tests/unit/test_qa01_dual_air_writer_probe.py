@@ -30,7 +30,7 @@ class AirWriterProbe(unittest.TestCase):
                           if 2576 <= f <= 2584],
                          [(f, m.tag(f)) for f in range(2576, 2585)])
         self.assertEqual(
-            manifest["checkpoints"][0], [1620, paired.BASE])
+            manifest["checkpoints"][0], (1620, paired.BASE))
         text = (self.root / "dense.script").read_text()
         self.assertIn("wait 116\ndump qa01-air-2576\n", text)
         self.assertIn("wait 1\ndump endurance-2580\n", text)

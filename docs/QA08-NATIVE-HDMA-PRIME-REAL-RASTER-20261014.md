@@ -141,3 +141,18 @@ comparison requires its own correctly timed per-guest PPU observer.
 Cross-game Gundam Wing HDMA startup, full channel5 colour math, window
 and line112 effective OAM, true 342-wide source geometry and 4x fallback
 remain separate blocking proof before production HDMA code changes.
+
+## Independent original Snes9x countdown callback1855: second exact RGB5 witness
+
+The separately executed [original countdown study](QA08-ORIGINAL-COUNTDOWN-VS-NATIVE-PRIME-20261014.md)
+now closes the original-emulator side of the 971 changed native
+pixels observed at 2P guest1856. Real independently replayed
+Snes9x callback1855 is uniquely best among 17 original candidates.
+Unmodified native: 56,373/57,344 RGB5 source pixels; globally
+consumed-prime native: **57,344/57,344**. All 459 additional
+nonseam pixels as well as the known 512 seam pixels are exact
+original-emulator corrections, not accidental new colour artefacts.
+This is a second exact native-original source frame, distinct from
+the 2208 racing witness. It is not release authority for other
+frames, genuine SNES hardware, global Gundam Wing compatibility,
+all-channel effective window/OBJ timing, or 1P/342px Widescreen.

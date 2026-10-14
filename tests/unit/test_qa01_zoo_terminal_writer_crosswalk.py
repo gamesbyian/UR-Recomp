@@ -1,7 +1,6 @@
 """Synthetic Zoo terminal opcode/helper scopes; zero original/native course credit."""
 from __future__ import annotations
 
-import copy
 import sys
 import tempfile
 import unittest
@@ -52,6 +51,17 @@ class ZooTerminalWriterCrosswalk(unittest.TestCase):
             self.source_host if source_host is None else source_host,
             self.native_host if native_host is None else native_host,
             self.original, self.native)
+
+    def test_existing_zoo_producer_watches_0313_and_preserves_original_cpu_pc(self):
+        flow = (ROOT / ".github/workflows/baldosa-2014-zoo-scene.yml").read_text()
+        self.assertIn('SNESRECOMP_WLOG_ADDR="008B:0313:', flow)
+        self.assertIn("instrument_snesref_zoo_menu_writes.py", flow)
+        self.assertIn("qa01_zoo_terminal_writer_crosswalk.py", flow)
+        self.assertIn("original-pc.log", flow)
+        self.assertIn("native-menu-writes.log", flow)
+        self.assertIn("zoo-terminal-writer-crosswalk.json", flow)
+        source = (ROOT / "tools/instrument_snesref_zoo_menu_writes.py").read_text()
+        self.assertIn("CONTROLS = (0x009F, 0x00CE, 0x0313)", source)
 
     def test_real_frame_labels_keep_original_native_clocks_separate(self):
         result = self.run_crosswalk()

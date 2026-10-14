@@ -913,6 +913,38 @@
       "sequence": 4,
       "source_sha": "5db647c3527e920827e9d7d3485fe119df954901",
       "windows_trials": 3
+    },
+    {
+      "base_seed": 50024000,
+      "campaign": "windows",
+      "disposition": "completed_positive",
+      "frontier_cases": 100,
+      "github_run_id": 38519205292,
+      "metrics": {
+        "aggregate_sha256": "e133c775217165c29eec625a86034685c2f87373277fcfe4b75a332c3fb317fa",
+        "cases": 40,
+        "observations": 40
+      },
+      "minutes": 15,
+      "origin": "coordinator",
+      "producer_digest": "60c67170bb7288f40095dd697ebae5d3cc33d5a16df181ad60fa90e7e37e8420",
+      "record_sha256": "a2b6148cbd2ae512bb514575c9fad2c2a950f1ad2e3e0a177c92791ac16ec6f3",
+      "release_gate_credit": 0,
+      "runner_usage": {
+        "failed_jobs": [],
+        "jobs_counted": 7,
+        "measured_by": "job started_at/completed_at; excludes the recording job itself",
+        "runner_minutes": {
+          "linux": 0.5,
+          "macos": 0.0,
+          "windows": 66.4
+        },
+        "schema": "ur-research-runner-usage/1",
+        "total_runner_minutes": 66.8
+      },
+      "sequence": 2,
+      "source_sha": "b9113d6e5951b22c81e9ca6875d2d014de1a9c2a",
+      "windows_trials": 10
     }
   ],
   "schema": "ur-cumulative-campaign-ledger/1"

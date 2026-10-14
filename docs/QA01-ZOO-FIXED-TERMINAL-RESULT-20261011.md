@@ -80,3 +80,21 @@ This is **new positive evidence of source/native result-text cursor *value-order
 
 **Next causal discriminator:** capture the original *caller/scheduling* boundary for the `83:988A` cursor reset and `80:C49E/C5B2` text pass, plus their native equivalents, on the same independently measured guest entry. Specifically distinguish the first result-presentation work scheduled one absolute host tick later from an earlier course-completion decision. The **new** native text-writer journal did not re-capture the initial `84→16` reset; the **earlier executed native source-owner witness did**. The causal open question is the source/restored scene timing versus independently measured active course entry, not existence of the restoration. Do not globally rebase controller input or turn matching text into a proof of correct gameplay result timing.
 
+
+## Completed source/native post-restore cadence crosswalk (2026-10-14)
+
+An **independent artifact replay**, not another emulator build, reuses the genuinely green original Snes9x/native [run 38500427634](https://github.com/gamesbyian/UR-Recomp/actions/runs/38500427634) and hash-pinned artifact **11866136501**. New `tools/qa01_zoo_restore_anchored_phase.py` consumes the unmodified ZIP (SHA-256 `d5ec65c672736fa45f01214134db8598baa840f106729bd2c04ffb8949f1d039`), checks actual script-frame receipts, complete 128-KiB guest memory for each sampled frame, course/laps/checkpoint/gate, and **specific actually executed original opcode changes AND native CPU-helper stores**. It does not waive a frame, replay different controls or modify the game.
+
+| Verified guest milestone | Original scene-relative (absolute host) | Native scene-relative (absolute host) | Host frames since respective restored state |
+| --- | --- | --- | --- |
+| Independently observed active scene entry | 0 (1604) | 0 (1606) | Not a restoration anchor |
+| `83:988A` / `Sram_RestoreDirectPage`: `009F=16`, course 1 | +5158 (**6762**) | +5157 (**6763**) | 0 / 0 |
+| `83:8B85` / `Vram_ClearRegions`: upper byte `0313=00` | +5162 (**6766**) | +5161 (**6767**) | **4 / 4** |
+| `80:C585/C5B2` / `Text_DrawLoop`: `0313=3D`, cursor `009F=BC` | +5163 (**6767**) | +5162 (**6768**) | **5 / 5** |
+
+**Result:** all three *independently observed* original/native presentation milestones retain an absolute host offset of **native +1**, while the **initial scene-entry receipts** retain native +2. Thus the apparent one-frame guest-relative Zoo result lead was **already present at the first recovered direct-page restore**; **nothing adds another frame between restore and result text** in the sampled schedule. Original/native cursor writes are additionally proven to have the same 167 actual changed values in order by merged #1450.
+
+This narrows the next causal question to **the source race's finish/return decision and the integrity of the `0313==01` scene-entry anchor before `Sram_RestoreDirectPage`**. The restore-anchored schedule is a bounded presentation finding, not proof that the source/native gameplay completion decision occurs at the same CPU instruction, beam position or update. Original `ICPU.Frame` and native pre-`RtlRunFrame` counters also cannot be interchanged by subtracting their printed numbers. The recorded `0313` terminal values are word-buffer overlap, and `009F==BC` at this stage is a text cursor, **not dedicated finish flag certification**.
+
+[Immutable machine witness](../analysis/data/zoo-original-native-restore-anchored-cadence-20261014.json) retains separate full-WRAM SHA-256 for each of the six milestone snapshots. The comparison explicitly refuses changed ROM/session fingerprints, malformed actual host receipts, missing/duplicated opcode/writer evidence, altered lap/checkpoint/finish-gate fields and unqualified terminal-state bytes; synthetic unit fixtures confer no gameplay credit. **Strict original/native guest-relative result remains mismatched, full USA event count remains 0/45.** Investigate the entry/return scheduler; do not retime the entire controller stream or relax the course admission comparator.
+

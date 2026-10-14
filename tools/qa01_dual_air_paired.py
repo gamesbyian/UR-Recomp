@@ -37,11 +37,11 @@ def paired_script(source: str) -> str:
     relative to its own original 2P input stream.
     """
     rendered = guest.render_script(source)
-    anchor = "wait 120\\ndump endurance-2580\\nwait 120\\ndump endurance-2700\\n"
-    replace = ("wait 119\\ndump qa01-neighbor-2579\\n"
-               "wait 1\\ndump endurance-2580\\n"
-               "wait 1\\ndump qa01-neighbor-2581\\n"
-               "wait 119\\ndump endurance-2700\\n")
+    anchor = "wait 120\ndump endurance-2580\nwait 120\ndump endurance-2700\n"
+    replace = ("wait 119\ndump qa01-neighbor-2579\n"
+               "wait 1\ndump endurance-2580\n"
+               "wait 1\ndump qa01-neighbor-2581\n"
+               "wait 119\ndump endurance-2700\n")
     if rendered.count(anchor) != 1:
         raise ValueError("unrecognized canonical frontier event checkpoint spacing")
     return rendered.replace(anchor, replace, 1)

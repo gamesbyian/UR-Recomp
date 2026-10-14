@@ -124,7 +124,9 @@ class HostedNativeWindowsRecordsQA(unittest.TestCase):
             self.assertTrue(admitted["metrics"][
                 "hosted_native_1p_result_to_fresh_records_logs_consistent"])
             self.assertFalse(admitted["metrics"]["hosted_saved_urrun_bytes_independently_reopened"])
-            self.assertFalse(admitted["metrics"]["finished_native_event_or_new_match_observed"])
+            self.assertTrue(admitted["metrics"]["finished_native_event_or_new_match_observed"])
+            self.assertFalse(admitted["metrics"]["strict_original_native_complete_event_accepted"])
+            self.assertFalse(admitted["metrics"]["new_native_two_player_match_published"])
             self.assertIn(
                 "hosted-native-1p-result-and-fresh-game-records-logs-consistent",
                 [x["name"] for x in admitted["assertions"]],
@@ -136,6 +138,7 @@ class HostedNativeWindowsRecordsQA(unittest.TestCase):
             )
             self.assertFalse(legacy["metrics"][
                 "hosted_native_1p_result_to_fresh_records_logs_consistent"])
+            self.assertFalse(legacy["metrics"]["finished_native_event_or_new_match_observed"])
             emit(include_fresh=False)
             with self.assertRaisesRegex(ValueError, "evidence group incomplete"):
                 wrapperqa.check_runtime_actions_wrapper(

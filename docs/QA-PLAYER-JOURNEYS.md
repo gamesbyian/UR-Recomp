@@ -1,5 +1,8 @@
 # Player-journey and cross-feature adversarial acceptance matrix
 
+**2026-10-14 independently inspected real native existing-P1 selector:** [QA-WIN32-EXISTING-P1-CONTROLLER-SELECTION-20261014.md](QA-WIN32-EXISTING-P1-CONTROLLER-SELECTION-20261014.md) audits the downloaded green #1513 artifact 11873807418, five native MIKE/ANDREW processes, both controller-semantic next-boot changes and strict stale-guest race blocks. Retains per-file SHA receipts and ROM-free adversarial check in `tools/check_baldosa_win32_existing_profile_selector_qa.py`. It has **zero** newly earned 2P pair or physical input/audio credit; live #1522 Modern result/Records UI integration still needs its own exact-head source evidence and raw pair byte review. No candidate nomination, original-USA strict **0/45** intact.
+
+
 > **Bounded QA campaign (2026-10-08):** [QA-BOUNDED-RELEASE-CAMPAIGN.md](QA-BOUNDED-RELEASE-CAMPAIGN.md) coordinates QA-01..12 through five shared evidence campaigns and an initial **300 productive agent-hour** checkpoint budget (reviews at 100/200/300). Reuse original/native, packaged and cross-feature witnesses rather than duplicating journeys or archaeology. This is an execution budget, **not** a waiver, passed gate or unconditional completion estimate. The release ledger and existing evidence requirements remain authoritative.
 
 

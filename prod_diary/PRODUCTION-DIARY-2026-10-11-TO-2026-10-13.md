@@ -16,7 +16,7 @@ The conversations also broadened the eventual product beyond the imminent beta. 
 
 ## October 13: Four separate agents, one increasingly real game
 
-The user maintained four strictly separate development authorities: Modern Windows/Baldosa product integration; original/native gameplay and strict event-oracle research; faithful PPU/OAM and widescreen/HD graphics; and independent adversarial release QA. The instructions named their conflicting PRs and explicitly forbade crossing into one another's files or claiming release evidence from synthetic probes. “Go on, as far as you can” recurred, along with session-stall recovery requests. There was excitement in the sheer pace, but also a recognizable fatigue with sessions that needed repeatedly to be restarted. The project was no longer lacking tasks. It needed clean ownership, useful stopping criteria and a trustworthy integration ledger.
+The user maintained four strictly separate development authorities: Modern Windows/Baldosa product integration; original/native gameplay and strict event-oracle research; faithful PPU/OAM and widescreen/HD graphics; and independent adversarial release QA. The instructions named their conflicting PRs and explicitly forbade crossing into one another's files or claiming release evidence from synthetic probes. “Go on, as far as you can” recurred, along with session-stall recovery requests. Session-stall reports were operational requests to recover and resume work, not evidence of fatigue, criticism or impatience. The project was no longer lacking tasks. It needed clean ownership, useful stopping criteria and a trustworthy integration ledger.
 
 ### Windows gains real first-player and paired-result journeys
 

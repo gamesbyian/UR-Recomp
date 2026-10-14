@@ -6,7 +6,7 @@
  "findings": [
   {
    "id": "RF-001",
-   "title": "Frontier dual-air witness 50036056 is reproduced by the original game under race-relative alignment: a one-frame simultaneous hop",
+   "title": "Frontier dual-air witness 50036056 is reproduced by the original under a race-relative stimulus-equivalence test: a one-frame simultaneous hop",
    "class": "source_backed_behaviour",
    "status": "resolved",
    "evidence": "original_and_native",
@@ -31,11 +31,11 @@
    "uncertainty": "Quantized census fields only; $0545/$0547 semantics remain provisional; the frontier binary's entry lag is inferred (RF-003), not directly measured.",
    "resolving_experiment": "None needed for parity. Optional: original writer trace of $0545/$0547 at original 2577-2579 to name the hop mechanism.",
    "consequence": "Not a discrepancy. Removes the only frontier dual-air lead from the QA-01 queue; the 120-frame sampler caught a one-frame coincidence, not sustained flight.",
-   "resolution": "Original/native agree at the race-relative-equivalent frame (2026-10-14 local cross-check)."
+   "resolution": "Under race-relative stimulus equivalence (post-entry original input shifted -2) the original matches the native row (local candidate evidence, native 4c1c8b56... not the frontier 28501fa3...). The identical-input-byte executed observation of runs 38509912672/38520105599, which differs at host 2580, stands as executed. No event acceptance (USA 0/45)."
   },
   {
    "id": "RF-002",
-   "title": "Same-absolute-host paired comparison with unshifted input is confounded by race-entry phase",
+   "title": "Two protocols: identical absolute-host input (executed, differs at host 2580) versus race-relative stimulus equivalence (matches); same-host comparison alone cannot separate entry phase from behaviour",
    "class": "method_hazard",
    "status": "handed_off",
    "evidence": "original_and_native",
@@ -53,7 +53,7 @@
    ],
    "observation": "Run 38509912672 recorded raw_both_air_at_2580 = {original: false, native: true} and QA-01 classified it as a provisional state divergence. A local unshifted original replay reproduces the hosted original column byte for byte (2579 00/01, 2580 00/02, 2581 00/00). The race-relative original (lag 2) reproduces the native column exactly.",
    "uncertainty": "None for the dual-air reading; the hazard applies to any same-absolute-host paired replay on a route whose engines enter at different host frames.",
-   "resolving_experiment": "QA-01: supersede the same-host divergence reading (cross-reference added to docs/QA01-DUAL-AIR-AND-CUMULATIVE-TRIAGE-20261013.md); run any further writer trace race-relatively.",
+   "resolving_experiment": "QA-01: keep run 38509912672 (and 38520105599) as executed identical-input observations and record the race-relative result beside them; run any further writer trace race-relatively as well.",
    "consequence": "Prevents a false original/native dual-air discrepancy from entering the QA-01 queue."
   },
   {
@@ -260,7 +260,7 @@
   },
   {
    "id": "RF-012",
-   "title": "2P result phase (menu 0x84) lasts one frame longer on native than on Snes9x and Beetle-bsnes (48 of 49 seeds +1, 1 seed +2)",
+   "title": "2P raw 7E:009F (wTextPos) 0x84 phase lasts one frame longer on native than on Snes9x and Beetle-bsnes (48 of 49 seeds +1, 1 seed +2)",
    "class": "original_native_discrepancy",
    "status": "handed_off",
    "evidence": "original_and_native",
@@ -281,9 +281,9 @@
     "docs/QA01-SWITCHER-2014-ORIGINAL-SOURCE-PROBE.md (1P: original 0x84 +4665..+4698 = 34 frames)",
     "docs/QA01-2014-COMPLETE-EVENT-TRANSPLANT.md (0x84->0x16 by 83:988A / Sram_RestoreDirectPage)"
    ],
-   "observation": "49 seeds, measured lag 2 in all: decoded source fields identical through laps-zero (same frame in 49/49) and until the reference's 0x16 restoration; result-menu onset on the same frame in 43, one frame earlier on native in 6; scheduler parity at onset does not predict the outcome. Raw semantic WRAM ($0200+) first differs 1-2 native frames BEFORE result-menu (0x84) onset in 49 of 49 seeds (all five arms). For 50036056 at native 5196-5198 the original builds the 10-byte list at 7E:2000 in one frame (first word 01->02->04); native shows a different intermediate one frame later (01->03->04). 7E:0BDE/0BFE start at 0xCC->0xC8 on the original but 0xC4->0xC0 on native, an offset of 8 held through the whole phase. The 0x84 phase then lasts 34 frames on Snes9x (and on Beetle-bsnes for 50036056) and 35 on native in 48 of 49 (36 for 50024003).",
-   "uncertainty": "Semantics of 7E:2000 (update list?) and 7E:0BDE/0BFE (unnamed in the repo) are unknown; whether the 8-unit offset is guest-visible (sprite Y or banner position) or only scheduling is unproven.",
-   "resolving_experiment": "QA-01: see RF-014 (the 7E:00C6 lag-frame census) first; then trace writers of 7E:2000-2009 at native 5195-5198 against original 5193-5196 on the 50036056 reproducer.",
+   "observation": "49 seeds, measured lag 2 in all: decoded source fields identical through laps-zero (same frame in 49/49) and until the reference's 0x16 restoration; result-menu onset on the same frame in 43, one frame earlier on native in 6; scheduler parity at onset does not predict the outcome. Raw semantic WRAM ($0200+) first differs 1-2 native frames BEFORE result-menu (0x84) onset in 49 of 49 seeds (all five arms). For 50036056 at native 5196-5198 the original builds the 10-byte list at 7E:2000 in one frame (first word 01->02->04); native shows a different intermediate one frame later (01->03->04). 7E:0BDE/0BFE start at 0xCC->0xC8 on the original but 0xC4->0xC0 on native, an offset of 8 held through the whole phase. The 0x84 phase then lasts 34 frames on Snes9x (and on Beetle-bsnes for 50036056) and 35 on native in 48 of 49 (36 for 50024003). Per-core boundaries differ: Snes9x onset same frame in 43 and native one earlier in 6, with the restore later on native; Beetle-bsnes (50036056) onset native 5198 vs 5199, both restore 5233. 7E:009F is the DrawText cursor wTextPos (#1543), so 0x84->0x16 is a raw terminal signature.",
+   "uncertainty": "Local candidate evidence (current-main native 4c1c8b56...) until independently re-executed with raw-dump receipts. 83:987D Sram_RestoreDirectPage is a downstream 207-word SRAM->DP copy, not a proven diverging decision. Gameplay significance pending the upstream caller and actual 7E:009F writer on each core. Semantics of 7E:2000 (update list?) and 7E:0BDE/0BFE (unnamed in the repo) are unknown; whether the 8-unit offset is guest-visible (sprite Y or banner position) or only scheduling is unproven.",
+   "resolving_experiment": "QA-01: instrument the upstream result-onset/restore caller and the actual 7E:009F writer on both reference cores and native (per-core axes kept separate); see RF-014 for the common lag-frame lead.",
    "consequence": "A cheap deterministic 2P reproducer of the same result-handoff seam behind the open 1P Switcher +4704/+4702 strict divergence; it does not change any comparator or acceptance."
   },
   {
@@ -303,7 +303,7 @@
     "Modern native (4c1c8b56..., fda6ace) entry 1136, 1137, 1139, 1139, 1141, 1141, 1142, 1143"
    ],
    "observation": "Lag native minus Snes9x = 2,2,3,2,3,2,2,2 for k = 0..7. The original absorbs a k-frame delay one for one; native quantizes it, as if a vblank/fade-gated wait sometimes costs one extra frame.",
-   "uncertainty": "Mechanism unproven; staircase notes point at the 80:FAC9 / $4212 vblank-sensitive fade for entry. Whether the same mechanism lengthens the 0x84 result phase (RF-012) is a hypothesis.",
+   "uncertainty": "Local candidate evidence until independently re-executed with raw receipts. Mechanism unproven; staircase notes point at the 80:FAC9 / $4212 vblank-sensitive fade for entry. Whether the same mechanism lengthens the 0x84 result phase (RF-012) is a hypothesis.",
    "resolving_experiment": "QA-01: compare native and original iteration counts of the entry fade wait loop for k=1 (lag 2) and k=2 (lag 3); if the extra frame is the wait loop, test the same loop in the 0x84 phase.",
    "consequence": "Race-relative comparisons must measure lag per case on any route other than the fixed stock prefix; gives RF-012 a cheap, input-only mechanism discriminator."
   },
@@ -325,7 +325,7 @@
     "generic setup_project native (fda6ace framework pin), same census: 772 game frames"
    ],
    "observation": "Over host frames 2-1126: native 773 FAC9 passes, Snes9x 801, Beetle-bsnes 802 (two independent reference cores agree within one frame). Both engines run one pass per host frame in steady menus. Native loses passes only in transition/slide windows (menus 0x84, 0xD7, 0x3D, 0x6D, 0x91; e.g. host 442-446: native 0, original 4). The resulting 7E:00C6 offset of 4 (mod 32) is frozen during the race and explains RF-012's 7E:0BDE/0BFE offset of 8 exactly (0BDE = table[C6>>1]). A generic SNESRecomp native built by setup_project without the Modern product patches completes 772 game frames, so the deficit is in the shared framework/generated-code timing, not the Modern host. One-frame localisation of the 0x84->0xD7 transition: all engines hold 7E:00C6 at 0x02 from host 426 (a load); Snes9x resumes decrementing at 437 and Beetle at 436, native at 442; menu 0xD7 appears at 440 on both reference cores and at 446 on native. The no-input attract cycle (host 2-4002, one counter-rewrite window excluded) shows the same deficit: native 1311 passes, Snes9x 1326, Beetle-bsnes 1327.",
-   "uncertainty": "Neither reference core is cycle-exact hardware, but they agree with each other and disagree with native by 28-29 frames. The source of native's deficit (host frame pacing, DMA/HDMA cost modelling or the $4212 model) is unknown; AGENTS forbids tuning $4212 merely to match one emulator. First suspect, unverified: the framework's synthetic $4212 beam model (snesrecomp pinned in tools/toolchain.json at cd5875cbdaf1 runner/src/snes/snes.c readReg 0x4212: fixed 64-clock advance per poll in static-recomp mode; docs/VIRTUAL_HW_CONTRACT.md), which sets how many host frames a polled load costs; upstream notes a sibling case (SMRPG boot fades at the wrong frame count).",
+   "uncertainty": "Local candidate evidence until independently re-executed with raw receipts. Neither reference core is cycle-exact hardware, but they agree with each other and disagree with native by 28-29 frames. The source of native's deficit (host frame pacing, DMA/HDMA cost modelling or the $4212 model) is unknown; AGENTS forbids tuning $4212 merely to match one emulator. First suspect, unverified: the framework's synthetic $4212 beam model (snesrecomp pinned in tools/toolchain.json at cd5875cbdaf1 runner/src/snes/snes.c readReg 0x4212: fixed 64-clock advance per poll in static-recomp mode; docs/VIRTUAL_HW_CONTRACT.md), which sets how many host frames a polled load costs; upstream notes a sibling case (SMRPG boot fades at the wrong frame count).",
    "resolving_experiment": "QA-01 / native-fidelity: log native host-frame boundaries, $4212/NMI polls and DMA during host 426-446 of the stock 2P route (native finishes the 0x84->0xD7 load ~5 host frames late) and compare with the original's vblank count for the same guest work.",
    "consequence": "A single cheap observer (7E:00C6) measures game-frame vs host-frame divergence anywhere in the game; likely common cause of RF-012 and RF-013, and of the 1P result-handoff phase seam."
   }

@@ -34,7 +34,7 @@ import qa_frontier_original_crosscheck as xc  # noqa: E402
 
 SCHEMA = "ur-lag-frame-census/1"
 COUNTER = 0x00C6
-MENU = 0x009F
+TEXT_POS = 0x009F  # wTextPos (DrawText cursor): a raw screen signature, not a menu id
 PERIOD = 32
 
 
@@ -52,18 +52,18 @@ def census(frames: list[int], engines: dict[str, list[bytes]]) -> dict:
     totals = {name: 0 for name in names}
     for i, (a, b) in enumerate(zip(frames, frames[1:])):
         row = {name: counted[name][i] for name in names}
-        menus = {name: engines[name][i + 1][MENU] for name in names}
+        text_pos = {name: engines[name][i + 1][TEXT_POS] for name in names}
         # More passes than host frames cannot be vblank waits: something else
         # (e.g. the direct-page restore) rewrote $C6. Exclude the window for
         # EVERY engine so the remaining totals stay comparable.
         if any(n > b - a for n in row.values()):
-            excluded.append({"host_frames": [a, b], "menu": menus, "raw_steps": row})
+            excluded.append({"host_frames": [a, b], "wram_009f": text_pos, "raw_steps": row})
             continue
         host += b - a
         for name in names:
             totals[name] += row[name]
         if len(set(row.values())) > 1:
-            windows.append({"host_frames": [a, b], "menu": menus, "game_frames": row})
+            windows.append({"host_frames": [a, b], "wram_009f": text_pos, "game_frames": row})
     if not host:
         raise ValueError("no window where every engine's counter is a vblank-wait count")
     return {"schema": SCHEMA, "host_frames": host,

@@ -52,10 +52,11 @@
   "schema": "ur-frontier-original-crosscheck-summary/1"
  },
  "date": "2026-10-14",
+ "evidence_status": "local candidate evidence: independent re-execution with raw-dump receipts (e.g. research-race-relative-paired.yml) is required before a separate consumer relies on it",
  "findings": {
   "lag_frames": "7E:00C6 vblank-wait passes: stock 2P route host 2-1126 native 773, Snes9x 801, Beetle-bsnes 802; no-input attract cycle host 2-4002 (one rewrite window excluded) native 1311, Snes9x 1326, Beetle-bsnes 1327; generic SNESRecomp native (stock route) 772",
   "mid_race": "26 of 26 non-terminal comparisons: zero differing decoded fields and zero differing WRAM bytes at $0200+",
-  "result_phase": "49 terminal seeds across all five arms: decoded fields identical until the reference's 0x16 restoration; first $0200+ byte difference 1-2 native frames before result-menu onset; 0x84 phase {'(35, 34)': 48, '(36, 34)': 1} (native, reference)"
+  "result_phase": "49 terminal seeds across all five arms: decoded fields identical until the reference's 0x16 restoration; first $0200+ byte difference 1-2 native frames before result-menu onset; raw 7E:009F (wTextPos) 0x84 phase {'(35, 34)': 48, '(36, 34)': 1} (native, reference); per-core onset/restore boundaries differ and are kept separate"
  },
  "lag_frame_census_attract_cycle_no_input": {
   "differing_windows": [
@@ -69,7 +70,7 @@
      114,
      118
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 0,
      "native": 0,
      "snes9x_libretro": 0
@@ -85,7 +86,7 @@
      118,
      122
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 0,
      "native": 0,
      "snes9x_libretro": 0
@@ -101,7 +102,7 @@
      122,
      126
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 0,
      "native": 0,
      "snes9x_libretro": 0
@@ -117,7 +118,7 @@
      246,
      250
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -133,7 +134,7 @@
      274,
      278
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -149,7 +150,7 @@
      302,
      306
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -165,7 +166,7 @@
      402,
      406
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -181,7 +182,7 @@
      434,
      438
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -197,7 +198,7 @@
      438,
      442
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 215,
      "native": 132,
      "snes9x_libretro": 215
@@ -213,7 +214,7 @@
      442,
      446
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 215,
      "native": 215,
      "snes9x_libretro": 215
@@ -229,7 +230,7 @@
      466,
      470
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 215,
      "native": 215,
      "snes9x_libretro": 215
@@ -245,7 +246,7 @@
      534,
      538
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 215,
      "native": 215,
      "snes9x_libretro": 215
@@ -261,7 +262,7 @@
      666,
      670
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 215,
      "native": 215,
      "snes9x_libretro": 215
@@ -277,7 +278,7 @@
      782,
      786
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 215,
      "native": 215,
      "snes9x_libretro": 215
@@ -293,7 +294,7 @@
      890,
      894
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 215,
      "native": 215,
      "snes9x_libretro": 215
@@ -309,7 +310,7 @@
      942,
      946
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 215,
      "snes9x_libretro": 132
@@ -325,7 +326,7 @@
      946,
      950
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 215,
      "snes9x_libretro": 132
@@ -341,7 +342,7 @@
      950,
      954
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -357,7 +358,7 @@
      974,
      978
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -373,7 +374,7 @@
      986,
      990
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -389,7 +390,7 @@
      1094,
      1098
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -405,7 +406,7 @@
      1098,
      1102
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -421,7 +422,7 @@
      1102,
      1106
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -437,7 +438,7 @@
      1106,
      1110
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -453,7 +454,7 @@
      1110,
      1114
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -469,7 +470,7 @@
      1114,
      1118
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -485,7 +486,7 @@
      1382,
      1386
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -501,7 +502,7 @@
      1414,
      1418
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -517,7 +518,7 @@
      1422,
      1426
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 0,
      "native": 132,
      "snes9x_libretro": 0
@@ -533,7 +534,7 @@
      1426,
      1430
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 0,
      "native": 132,
      "snes9x_libretro": 0
@@ -549,7 +550,7 @@
      1430,
      1434
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 0,
      "native": 132,
      "snes9x_libretro": 0
@@ -565,7 +566,7 @@
      1434,
      1438
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 0,
      "native": 132,
      "snes9x_libretro": 0
@@ -581,7 +582,7 @@
      1438,
      1442
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 0,
      "native": 0,
      "snes9x_libretro": 0
@@ -597,7 +598,7 @@
      3718,
      3722
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 0,
      "snes9x_libretro": 132
@@ -613,7 +614,7 @@
      3734,
      3738
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 0,
      "snes9x_libretro": 132
@@ -629,7 +630,7 @@
      3738,
      3742
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -645,7 +646,7 @@
      3754,
      3758
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -661,7 +662,7 @@
      3758,
      3762
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 215,
      "native": 132,
      "snes9x_libretro": 215
@@ -677,7 +678,7 @@
      3762,
      3766
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 215,
      "native": 132,
      "snes9x_libretro": 215
@@ -693,7 +694,7 @@
      3766,
      3770
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 215,
      "native": 132,
      "snes9x_libretro": 215
@@ -709,7 +710,7 @@
      3774,
      3778
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 215,
      "native": 215,
      "snes9x_libretro": 215
@@ -725,7 +726,7 @@
      3886,
      3890
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 215,
      "native": 215,
      "snes9x_libretro": 215
@@ -741,7 +742,7 @@
      3986,
      3990
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 215,
      "native": 215,
      "snes9x_libretro": 215
@@ -754,15 +755,15 @@
      3770,
      3774
     ],
-    "menu": {
-     "mednafen_snes_libretro": 215,
-     "native": 132,
-     "snes9x_libretro": 215
-    },
     "raw_steps": {
      "mednafen_snes_libretro": 4,
      "native": 30,
      "snes9x_libretro": 4
+    },
+    "wram_009f": {
+     "mednafen_snes_libretro": 215,
+     "native": 132,
+     "snes9x_libretro": 215
     }
    }
   ],
@@ -811,7 +812,7 @@
      114,
      118
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 0,
      "native": 0,
      "snes9x_libretro": 0
@@ -827,7 +828,7 @@
      118,
      122
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 0,
      "native": 0,
      "snes9x_libretro": 0
@@ -843,7 +844,7 @@
      122,
      126
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 0,
      "native": 0,
      "snes9x_libretro": 0
@@ -859,7 +860,7 @@
      246,
      250
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -875,7 +876,7 @@
      274,
      278
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -891,7 +892,7 @@
      302,
      306
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -907,7 +908,7 @@
      402,
      406
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -923,7 +924,7 @@
      434,
      438
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 132,
      "native": 132,
      "snes9x_libretro": 132
@@ -939,7 +940,7 @@
      438,
      442
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 215,
      "native": 132,
      "snes9x_libretro": 215
@@ -955,7 +956,7 @@
      442,
      446
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 215,
      "native": 215,
      "snes9x_libretro": 215
@@ -971,7 +972,7 @@
      466,
      470
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 215,
      "native": 215,
      "snes9x_libretro": 215
@@ -987,7 +988,7 @@
      534,
      538
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 61,
      "native": 61,
      "snes9x_libretro": 61
@@ -1003,7 +1004,7 @@
      538,
      542
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 61,
      "native": 61,
      "snes9x_libretro": 61
@@ -1019,7 +1020,7 @@
      578,
      582
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 61,
      "native": 61,
      "snes9x_libretro": 61
@@ -1035,7 +1036,7 @@
      582,
      586
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 61,
      "native": 61,
      "snes9x_libretro": 61
@@ -1051,7 +1052,7 @@
      586,
      590
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 61,
      "native": 61,
      "snes9x_libretro": 61
@@ -1067,7 +1068,7 @@
      610,
      614
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 61,
      "native": 61,
      "snes9x_libretro": 61
@@ -1083,7 +1084,7 @@
      614,
      618
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 61,
      "native": 61,
      "snes9x_libretro": 61
@@ -1099,7 +1100,7 @@
      618,
      622
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 61,
      "native": 61,
      "snes9x_libretro": 61
@@ -1115,7 +1116,7 @@
      654,
      658
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 61,
      "native": 61,
      "snes9x_libretro": 61
@@ -1131,7 +1132,7 @@
      658,
      662
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 61,
      "native": 61,
      "snes9x_libretro": 61
@@ -1147,7 +1148,7 @@
      694,
      698
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 109,
      "native": 109,
      "snes9x_libretro": 109
@@ -1163,7 +1164,7 @@
      710,
      714
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 109,
      "native": 109,
      "snes9x_libretro": 109
@@ -1179,7 +1180,7 @@
      738,
      742
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 109,
      "native": 109,
      "snes9x_libretro": 109
@@ -1195,7 +1196,7 @@
      782,
      786
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 145,
      "native": 145,
      "snes9x_libretro": 145
@@ -1211,7 +1212,7 @@
      834,
      838
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 145,
      "native": 145,
      "snes9x_libretro": 145
@@ -1227,7 +1228,7 @@
      886,
      890
     ],
-    "menu": {
+    "wram_009f": {
      "mednafen_snes_libretro": 22,
      "native": 22,
      "snes9x_libretro": 22
@@ -1275,6 +1276,7 @@
  },
  "original_native_parity_claimed": false,
  "producer": "tools/qa_frontier_original_crosscheck.py paired/summarize and tools/qa_lag_frame_census.py (local execution, not GitHub-hosted)",
+ "protocol": "race-relative stimulus-equivalence test (post-entry reference input shifted by the measured lag); distinct from identical-input-byte paired runs such as 38509912672, whose executed same-host differences stand",
  "release_gate_credit": 0,
  "route": "tests/input/two-player-first-race.input + qa_adaptive_frontier.actions_for(seed, arm); optional declared finish stimulus 3430:N:080:080",
  "schema": "ur-frontier-original-native-race-relative-evidence/1",

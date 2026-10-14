@@ -15,7 +15,7 @@ def pages(counter_values, menus=None):
     for i, c in enumerate(counter_values):
         page = bytearray(131072)
         page[m.COUNTER] = c
-        page[m.MENU] = (menus or [0] * len(counter_values))[i]
+        page[m.TEXT_POS] = (menus or [0] * len(counter_values))[i]
         out.append(bytes(page))
     return out
 
@@ -35,7 +35,7 @@ class Census(unittest.TestCase):
         self.assertEqual(result["game_frames"], {"native": 9, "snes9x": 12})
         self.assertEqual(result["frames_without_vblank_wait_pass"], {"native": 3, "snes9x": 0})
         self.assertEqual(result["differing_windows"], [
-            {"host_frames": [4, 8], "menu": {"native": 0x84, "snes9x": 0xD7},
+            {"host_frames": [4, 8], "wram_009f": {"native": 0x84, "snes9x": 0xD7},
              "game_frames": {"native": 1, "snes9x": 4}}])
         self.assertEqual(result["release_gate_credit"], 0)
 

@@ -1,0 +1,145 @@
+{
+  "schema": "UR-QA01-ZOO-ORIGINAL-NATIVE-0313-REAL-OVERLAPPING-WRITERS/1",
+  "date": "2026-10-14",
+  "evidence_class": "executed pinned source Snes9x and pinned native Baldosa, retained failed-job artifact; terminal crosswalk transport failed on snesref receipt grammar after both guest replays passed",
+  "source": {
+    "workflow_run_id": 38499115188,
+    "artifact_id": 11865327185,
+    "artifact_zip_sha256": "90a1e52592d1d7097daaa60ac5cc7131a4182a1f9e58647c828d8120a8aa7a8e",
+    "original_opcode_log_sha256": "e8a1dbe711058b46e723e568cfce10e3c81ed63e80945aacdcf9e5b72407d3b3",
+    "native_cpu_helper_log_sha256": "e7bcdfe6bb0f3b59667c05b6d59363fb46df9591c82485aa06c23ce2c2b0d7b6",
+    "original_host_log_sha256": "8f9c032518212e4088136f96f0a33f3f10302e8ff9212945976d3e2a5cae677c",
+    "native_host_log_sha256": "98c7d1b08046216d042d5494bd46742912ecdfdf9cf23f2e172d99c30feb3b2f",
+    "source_original_guest_entry_host": 1604,
+    "native_guest_entry_host": 1606,
+    "archived_original_movie_unchanged": true,
+    "rom_or_guest_logic_mutated": false
+  },
+  "original_observed_opcode_prepost_change_at_byte_7e0313": [
+    {
+      "original_cpu_frame": 6765,
+      "ppu_vcounter": 9,
+      "guest_pc": "83:8B85",
+      "old_byte": "01",
+      "new_byte": "00",
+      "static_opcode": "STA $0000,X",
+      "static_prefix": "LDA #$004C; LDX #$0200; LDY #$03FF; loop clearing word-pair buffer"
+    },
+    {
+      "original_cpu_frame": 6766,
+      "ppu_vcounter": 79,
+      "guest_pc": "80:C585",
+      "old_byte": "00",
+      "new_byte": "3D",
+      "static_opcode": "STA $0040,X",
+      "static_prefix": "16-bit text/character buffer store; indirect indexed address"
+    }
+  ],
+  "native_observed_cpu_helper_word_writes_covering_byte_7e0313": [
+    {
+      "native_pre_run_host_frame": 6766,
+      "reported_write": "f6766   80:0312=004C w2 Vram_ClearRegions_M1X0",
+      "word_store_start": "80:0312",
+      "word": "004C",
+      "byte_0313": "00",
+      "scope": "Vram_ClearRegions_M1X0"
+    },
+    {
+      "native_pre_run_host_frame": 6767,
+      "reported_write": "f6767   00:0312=3D0A w2 Text_DrawLoop_C3F7_M1X0",
+      "word_store_start": "00:0312",
+      "word": "3D0A",
+      "byte_0313": "3D",
+      "scope": "Text_DrawLoop_C3F7_M1X0"
+    }
+  ],
+  "verified_original_source_guest_samples": [
+    {
+      "scene_relative_frame": 5160,
+      "dump_host_frame": 6764,
+      "byte_7e0313": 1,
+      "menu_7e009f": 22,
+      "course_7e00ce": 1,
+      "full_wram_sha256": "6b67a19426bc8a8e1af56d1b4957ea7abeea881e02ba98bb656c72ddb32f0243",
+      "full_wram_bytes": 131072
+    },
+    {
+      "scene_relative_frame": 5161,
+      "dump_host_frame": 6765,
+      "byte_7e0313": 1,
+      "menu_7e009f": 22,
+      "course_7e00ce": 1,
+      "full_wram_sha256": "3b3ba4c5017c7426ffa6273bb52ad3b3881d2419f4da58dcd42ac217acb6aedd",
+      "full_wram_bytes": 131072
+    },
+    {
+      "scene_relative_frame": 5162,
+      "dump_host_frame": 6766,
+      "byte_7e0313": 0,
+      "menu_7e009f": 22,
+      "course_7e00ce": 1,
+      "full_wram_sha256": "1c6abcc0e489e418529cfb8d364756d8a4c3af33b1ebef57f0caaa2a590ea369",
+      "full_wram_bytes": 131072
+    },
+    {
+      "scene_relative_frame": 5163,
+      "dump_host_frame": 6767,
+      "byte_7e0313": 61,
+      "menu_7e009f": 188,
+      "course_7e00ce": 1,
+      "full_wram_sha256": "e91772eae7d2a2c9c691ab1f58a03d0a4bedef329c3bd08491ebf060fe500c39",
+      "full_wram_bytes": 131072
+    }
+  ],
+  "verified_native_guest_samples": [
+    {
+      "scene_relative_frame": 5160,
+      "dump_host_frame": 6766,
+      "byte_7e0313": 1,
+      "menu_7e009f": 22,
+      "course_7e00ce": 1,
+      "full_wram_sha256": "603356bc2ad88b66294a57c568a35049196145658e165db88f59520fdcf3fe73",
+      "full_wram_bytes": 131072
+    },
+    {
+      "scene_relative_frame": 5161,
+      "dump_host_frame": 6767,
+      "byte_7e0313": 0,
+      "menu_7e009f": 22,
+      "course_7e00ce": 1,
+      "full_wram_sha256": "e442da6eb4a721b9b51bf577a5bd6ef31c00e74e5bc93629a86d802a375d18f6",
+      "full_wram_bytes": 131072
+    },
+    {
+      "scene_relative_frame": 5162,
+      "dump_host_frame": 6768,
+      "byte_7e0313": 61,
+      "menu_7e009f": 188,
+      "course_7e00ce": 1,
+      "full_wram_sha256": "bef996cd6f10a3a1ca8a3f62442e135546c523ad90cab048ef1b876f5edc16b4",
+      "full_wram_bytes": 131072
+    },
+    {
+      "scene_relative_frame": 5163,
+      "dump_host_frame": 6769,
+      "byte_7e0313": 61,
+      "menu_7e009f": 188,
+      "course_7e00ce": 1,
+      "full_wram_sha256": "c1607ddc87c8a2c77307d483e3a1653e76c449a53762e71d19c97d704304f942",
+      "full_wram_bytes": 131072
+    }
+  ],
+  "conclusions": {
+    "observed_0313_clear_and_result_state_reuse_correspond_to_presentation_buffer_word_stores": true,
+    "these_stores_not_proof_of_dedicated_race_exit_logic": true,
+    "original_native_exact_instruction_identity_or_nmi_beam_phase_proven": false,
+    "original_native_guest_relative_terminal_phase_equal": false,
+    "approved_complete_usa_event_count": 0
+  },
+  "guardrails": [
+    "Original Snes9x receipt syntax uses fb=256x224 RGB565 sram=8192 ppuw=N; native host uses ok. The failed crosswalk initially expected ok from both.",
+    "The executed original pre/post byte change does not expose full 16-bit source write value. Static ROM-side instruction provides only candidate indexed store mechanism.",
+    "Different original ICPU.Frame and native pre-run host ticks cannot be equated merely by matching one-byte changes.",
+    "This artifact recovery was carried out after the workflow; it is not a newly successful crosswalk job."
+  ]
+}

@@ -21,7 +21,8 @@ WRITER = re.compile(
     r"([0-9A-Fa-f]{2,4})\s+w([12])\s+(.+)$"
 )
 DUMP = re.compile(r"script f=(\d+) dump boundary-(\d{5}) ok")
-TARGETS = (0x009F, 0x00CE)
+TARGETS = (0x009F, 0x00CE, 0x0313)
+STAGE_TARGETS = (0x009F, 0x00CE)  # keep the already-qualified interstitial stage oracle
 MAX_OBSERVATIONS = 100000
 FIRST = 5152
 LAST = 5164
@@ -100,8 +101,8 @@ def analyze(native_log: str, native_host_log: str, native: Path, original: Path,
     for f in range(5155, 5159):
         a = (original / f"boundary-{f:05d}.wram.bin").read_bytes()
         b = (native / f"boundary-{f:05d}.wram.bin").read_bytes()
-        original_state[f] = [guest_byte(a, off) for off in TARGETS]
-        native_state[f] = [guest_byte(b, off) for off in TARGETS]
+        original_state[f] = [guest_byte(a, off) for off in STAGE_TARGETS]
+        native_state[f] = [guest_byte(b, off) for off in STAGE_TARGETS]
     expectation = {
         5155: ([0x84, 0], [0x84, 0]),
         5156: ([0x84, 0], [0x84, 0]),
@@ -123,7 +124,7 @@ def analyze(native_log: str, native_host_log: str, native: Path, original: Path,
         "schema": "UR-QA01-ZOO-NATIVE-MENU-WRITE-CHRONOLOGY/1",
         "source": "pinned native Baldosa SNESRECOMP_WLOG_ADDR CPU writer helper; original pinned Snes9x independent fixed dumps",
         "native_scene_entry_host_frame": native_scene_entry_frame,
-        "source_logger_range_hex": "008B:00CE",
+        "source_logger_range_hex": "008B:0313",
         "logger_wrap_or_untracked_writes_possible": True,
         "frame_semantics": "Native logger f is pre-RtlRunFrame snes_frame_counter; script f dump is a zero-frame pre-run command that samples the preceding completed execution. CPU/NMI/VBlank internal scheduling is NOT measured.",
         "original_named_states_5155_to_5158": {str(k):v for k,v in original_state.items()},
@@ -132,6 +133,8 @@ def analyze(native_log: str, native_host_log: str, native: Path, original: Path,
         "native_log_sha256": hashlib.sha256(native_log.encode()).hexdigest(),
         "counts": counts,
         "native_menu_and_track_value_writes_near_boundary": transition_candidates,
+        "native_0313_write_candidates": [w for w in writes
+                                          if w["guest_address"] == "7E:0313"],
         "native_boundary_cpu_store_trace_status": (
             "partial_candidate_writers" if transition_candidates else "no_target_cpu_helper_write_observed"
         ),

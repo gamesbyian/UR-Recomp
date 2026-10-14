@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Independent read-only source-log admission for native-created 0/1 2P pair.
+"""Independent read-only source-log admission for native-created 0/2 2P pair.
 
 Require five DIFFERENT Windows guest process logs: native frontend creation
-of MIKE and ANDREW, real source-settled original 2P Race and independent
-fresh-game MIKE/ANDREW read-only Records. The existing-P2 selector is a
+of MIKE and MARTIN, real source-settled original 2P Race and independent
+fresh-game MIKE/MARTIN read-only Records. The existing-P2 selector is a
 test-only backend caller; raw .urrun/.urmatch bytes are not in this contract.
 Synthetic unit fixtures must NEVER count as release acceptance.
 """
@@ -27,7 +27,7 @@ PREFIX = "UR Baldosa Win32 Pause Route/native_player_created_2p_records/"
 FILES = (
     "report.json", "first_P1_mike/log.txt", "named_P1_adds_P2/log.txt",
     "played_native_2p/log.txt", "fresh_mike_records/log.txt",
-    "fresh_andrew_records/log.txt",
+    "fresh_martin_records/log.txt",
 )
 RECEIPT = re.compile(
     r"(?m)^UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-2p "
@@ -37,7 +37,7 @@ RECEIPT = re.compile(
 )
 MATCH = re.compile(
     r"(?m)^UR_BALDOSA_NATIVE_MATCH CAPTURED=1 profile1=mike "
-    r"profile2=andrew course=course:01 frames=(\d+) path=([^\r\n]+\.urrun)\r?$"
+    r"profile2=martin course=course:01 frames=(\d+) path=([^\r\n]+\.urrun)\r?$"
 )
 VIEW = re.compile(
     r"(?m)^UR_BALDOSA_MODERN_ROOT records_last_2p=LAST 01 "
@@ -49,7 +49,7 @@ ROOT = re.compile(
 HEX = re.compile(r"[a-f0-9]{64}\Z")
 BOOT_NAME = re.compile(
     r"(?m)^UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM "
-    r"profile=(mike|andrew) bytes=8192 fnv=([0-9a-fA-F]{8})\r?$"
+    r"profile=(mike|martin) bytes=8192 fnv=([0-9a-fA-F]{8})\r?$"
 )
 WAIT = re.compile(r"(?m)^script f=(\d+) until 00053 ok after (\d+) frames\r?$")
 TICKER = re.compile(r"(?m)^script f=(\d+) until 00E1F ok after (\d+) frames\r?$")
@@ -113,8 +113,8 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
     require(type(report) is dict and
             report.get("scope") ==
             "two-native-controller-created-profiles-played-source-2p-and-both-records" and
-            report.get("actual_frontend_created_profiles") == ["mike", "andrew"] and
-            report.get("observed_stock_riders") == [0, 1] and
+            report.get("actual_frontend_created_profiles") == ["mike", "martin"] and
+            report.get("observed_stock_riders") == [0, 2] and
             report.get("fresh_native_records_for_each") is True and
             report.get("p2_existing_profile_select_via_fixture_not_player_UI") is True and
             report.get("native_existing_p1_profile_selector_UI_proved") is False and
@@ -123,7 +123,7 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
             type(report.get("release_gate_credit")) is int and
             report["release_gate_credit"] == 0,
             "producer report claimed new riders, profile UI or release gate")
-    first, second, played, mike_view, andrew_view = logs
+    first, second, played, mike_view, martin_view = logs
 
     # All five must use the EXACT SAME independently created OS user root.
     roots = [sole(ROOT, log, "per-user Windows root").group(1) for log in logs]
@@ -136,7 +136,7 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
     require("UR_BALDOSA_NATIVE_PROFILE DEFAULT no_host_state=1" in first and
             not any(x in first for x in NO_CREATION_RESULT),
             "P1 first game was provisioned or raced")
-    ordered_exact_source_lines(second, SECOND, "P1 creates separate P2")
+    ordered_exact_source_lines(second, tuple(stage.replace("preset=1", "preset=2").replace("id=andrew", "id=martin") for stage in SECOND), "P1 creates separate MARTIN P2")
     require(not any(x in second for x in NO_CREATION_RESULT) and
             len(list(BOOT.finditer(second))) == 1,
             "P2 was hot swapped or race-published")
@@ -175,7 +175,7 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
     race_host, result_host, p1, p2, t1, t2, winner, frames, runs, published = scored
     require(race_host > 0 and result_host > int(go[0][1]) and
             result_host > race_host and
-            (p1, p2) == (0, 1) and
+            (p1, p2) == (0, 2) and
             t1 <= 60000 and t2 <= 60000 and
             winner in (0, 1, 2) and
             frames > 0 and runs > 0 and published == 1,
@@ -205,7 +205,7 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
 
     for profile, log, cents, seat in (
         ("mike", mike_view, t1, 1),
-        ("andrew", andrew_view, t2, 2),
+        ("martin", martin_view, t2, 2),
     ):
         ordered_exact_source_lines(
             log, (f"UR_BALDOSA_NATIVE_PROFILE APPLIED profile={profile} "
@@ -249,18 +249,18 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
                 for log in logs),
             "historical CI's synthetic pad/dummy audio scope not explicit")
     return {
-        "source_scope": "hosted-native-five-game-new-mike-andrew-0-1-result-and-both-views",
+        "source_scope": "hosted-native-five-game-new-mike-martin-0-2-result-and-both-views",
         "first_p1_and_p2_created_in_distinct_native_processes": True,
         "genuine_played_source_result_published": True,
-        "source_rider_pair": [0, 1],
+        "source_rider_pair": [0, 2],
         "scored_source_winner": winner,
         "scored_source_hundredths": [t1, t2],
         "source_result_host": result_host,
-        "fresh_mike_and_andrew_records_display_source_consistent": True,
+        "fresh_mike_and_martin_records_display_source_consistent": True,
         "reported_one_pair_digests": pair,
         "archived_run_and_match_bytes_independently_verified": False,
         "per_user_catalog_and_SRAM_bytes_independently_verified": False,
-        "andrew_selection_via_backend_fixture_not_shipping_UI": True,
+        "martin_selection_via_backend_fixture_not_shipping_UI": True,
         "real_physical_2p_controllers_or_audio_verified": False,
         "original_emulator_vs_native_scored_event_parity_verified": False,
         "original_USA_course_release_credit": 0,

@@ -173,8 +173,17 @@ bool begin_practice_session() {
         return false;
     }
     ec.clear();
-    if (fs::is_symlink(session_path / "save.srm", ec) || ec)
+    const auto scratch_save = fs::symlink_status(
+        session_path / "save.srm", ec);
+    // A never-used scratch directory normally has NO save.srm. Standard
+    // std::filesystem reports ENOENT even through is_symlink(path, ec):
+    // that absence is safe, unlike an actual redirected or special file.
+    if (scratch_save.type() == fs::file_type::not_found) {
+        if (ec && ec != std::errc::no_such_file_or_directory)
+            return false;
+    } else if (ec || !fs::is_regular_file(scratch_save)) {
         return false;
+    }
     const char* original = RtlSaveRoot();
     g_practice_previous_save_root = original ? original : "";
     g_practice_sram_snapshot.assign(

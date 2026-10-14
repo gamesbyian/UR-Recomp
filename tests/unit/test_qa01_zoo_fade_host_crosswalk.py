@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import copy
+import json
 import sys
 import tempfile
 import unittest
@@ -124,6 +125,58 @@ class ExecutedZooFade(unittest.TestCase):
             p.write_bytes(b"fake independent original/native witness")
             with self.assertRaisesRegex(ValueError, "exactly the pinned"):
                 m.analyze(p)
+
+
+    def test_executed_source_return_pc_is_inside_menu_init_not_finish_logic(self):
+        # The original runtime executed 80:A09A; the archived source owns
+        # its instructions. Historical code semantics != a new CPU trace.
+        ledger = json.loads((ROOT / "analysis/data/"
+                             "zoo-original-native-return-ppu-fade-host-20261014.json")
+                            .read_text(encoding="utf-8"))
+        self.assertEqual(ledger["observed_real_workflow"], 38511451553)
+        pc = ledger["actual_original_source_return_pc"]
+        self.assertTrue(pc["executed_real_original"])
+        self.assertEqual(pc["cpu_pc"], "80:A09A")
+        self.assertEqual(pc["icpu_frame"], 6636)
+        self.assertEqual(pc["v_counter"], 248)
+        self.assertFalse(pc["direct_gameplay_finish_instruction_proven"])
+        self.assertEqual(ledger["first_persistent_ppu_blank"]
+                         ["original_absolute_host"], 6638)
+        self.assertFalse(ledger["interpretation"]
+                         ["source_gameplay_finish_instruction_identified"])
+        self.assertEqual(ledger["interpretation"]["approved_usa_events"], 0)
+        symbols = (ROOT / "reference/imported/reverse-engineering/"
+                   "baldosa-uniracers-recomp/decomp/symbols.txt").read_text(
+                       encoding="utf-8")
+        self.assertIn("80A08B Menu_InitVideo", symbols)
+        self.assertIn("80A087 Menu_InitVideoLong", symbols)
+        bank = (ROOT / "reference/imported/reverse-engineering/nitrodon/"
+                "bank 80.txt").read_text(encoding="utf-8")
+        prelude = (
+            "80/A08B: A9 80        LDA #$80",
+            "80/A08D: 8D 00 21     STA $2100",
+            "80/A090: AF 42 07 77  LDA $770742",
+            "80/A094: 29 FD        AND #$FD",
+            "80/A096: 8F 42 07 77  STA $770742",
+            "80/A09A: A9 03        LDA #$03",
+            "80/A09C: 8D 85 01     STA $0185",
+        )
+        at = [bank.index(op) for op in prelude]
+        self.assertEqual(at, sorted(at))
+        self.assertIn("80/A0C5: 8D 00 42     STA $4200", bank)
+        self.assertIn("80A15B Sys_InitVars", symbols)
+        # Multiple archival callers make the observed 80:A09A an entry
+        # to a reusable menu initializer, not an identified return caller.
+        for line in (
+            "80/885E: 20 8B A0     JSR $A08B",
+            "80/94D4: 20 8B A0     JSR $A08B",
+            "80/9A37: 20 8B A0     JSR $A08B",
+            "80/A087: 20 8B A0     JSR $A08B",
+        ):
+            self.assertIn(line, bank)
+        self.assertIn("808881 MainLoop", symbols)
+        self.assertIn("8099A4 Race_Start", symbols)
+
 
 
 if __name__ == "__main__":

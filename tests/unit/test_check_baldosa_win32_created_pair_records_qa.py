@@ -167,7 +167,7 @@ class IndependentCreatedPairRecords(unittest.TestCase):
         )
         for old, new in changes:
             with self.subTest(old=old, new=new):
-                edited = copy.deepcopy(source)
+                edited = list(copy.deepcopy(source))
                 self.assertIn(old, race)
                 edited[3] = race.replace(old, new)
                 with self.assertRaises(ValueError):
@@ -193,7 +193,7 @@ class IndependentCreatedPairRecords(unittest.TestCase):
         ):
             for before, after in mutations:
                 with self.subTest(view=profile_ix, before=before):
-                    bad = copy.deepcopy(group)
+                    bad = list(copy.deepcopy(group))
                     bad[profile_ix] = bad[profile_ix].replace(before, after)
                     with self.assertRaises(ValueError):
                         self.check(bad)

@@ -128,7 +128,8 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
         self.assertIn("Preserve both the raw save and Modern profile files", script)
         self.assertIn("exit /b 7", script)
         self.assertLess(script.index('if "%ERRORLEVEL%"=="7"'),
-                        script.index('set "UR_BALDOSA_NATIVE_EXIT=%ERRORLEVEL%"'))
+                        script.index("exit /b %ERRORLEVEL%"))
+        self.assertEqual(script.count("exit /b %ERRORLEVEL%"), 1)
         self.assertIn('set "UR_BALDOSA_FIRST_RACER_RELAUNCH=0"', script)
         self.assertIn(':UR-BALDOSA-NATIVE-START', script)
         self.assertIn('goto UR-BALDOSA-REBOOT-FIRST-RACER', script)

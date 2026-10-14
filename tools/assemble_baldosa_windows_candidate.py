@@ -91,8 +91,9 @@ def launcher() -> bytes:
         # Keep that exact status and all save data; never start a default
         # anonymous game or tell players to delete the affected profile.
         'if "%ERRORLEVEL%"=="7" (echo UR-BALDOSA-STARTUP-PROFILE-REJECTED: Named racer data was not authorized. Preserve both the raw save and Modern profile files; see the diagnostic above. 1>&2 & exit /b 7)',
-        'set "UR_BALDOSA_NATIVE_EXIT=%ERRORLEVEL%"',
-        'if not "%UR_BALDOSA_NATIVE_EXIT%"=="0" exit /b %UR_BALDOSA_NATIVE_EXIT%',
+        # Preserve the independent release-auditor's existing exact
+        # nonzero exit propagation marker; IF does not alter errorlevel.
+        'if not "%ERRORLEVEL%"=="0" exit /b %ERRORLEVEL%',
         'if "%UR_BALDOSA_FIRST_RACER_RELAUNCH%"=="1" if exist "%UR_RECOMP_USER_DATA_ROOT%\\host-state-v1.txt" goto UR-BALDOSA-REBOOT-FIRST-RACER',
         'exit /b 0',
         ':UR-BALDOSA-REBOOT-FIRST-RACER',

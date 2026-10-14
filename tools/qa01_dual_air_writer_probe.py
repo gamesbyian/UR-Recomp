@@ -317,7 +317,7 @@ def analyze(root: Path, *, rom: Path, native_exe: Path) -> dict:
     targets = {f"{a:04X}" for a in TARGETS}
     source_lines = [x for x in source_lines if x["address"][3:] in targets]
     native_lines = [x for x in native_lines
-                    if int(x["address"], 16) <= 0x0547
+                    if int(x["address"], 16) <= 0x0548
                     and int(x["address"], 16) >= 0x0415]
     rows = []
     for f in DENSE:

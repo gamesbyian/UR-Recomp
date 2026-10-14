@@ -99,7 +99,13 @@ jobs:
           (root/"qa08-original-opcode-receipt.json").write_text(json.dumps(receipt,indent=2,sort_keys=True)+"\n")
           print(json.dumps(receipt,sort_keys=True))
           PY
-          echo "PASS: true original ROM opcode bytes at all 18 independently observed executed 65816 HDMA source writer PCs, no native or physical SNES claim" >> "$GITHUB_STEP_SUMMARY"
+          python3 tools/check_qa08_original_racer_lut.py \
+            --log "$RUNNER_TEMP/qa08-original-opcode.log" \
+            --opcodes "$RUNNER_TEMP/qa08-original-writer-opcode-context.json" \
+            --layout analysis/data/qa08-original-2p-channel5-executed-opcode-table-layout.json \
+            --receipt "$RUNNER_TEMP/qa08-original-opcode-receipt.json" \
+            --out "$RUNNER_TEMP/qa08-original-racer-LUT.json"
+          echo "PASS: true original ROM opcode bytes at all 18 executed source writers, two actual original racer selector/index/LUT records; no same-frame native or physical SNES claim" >> "$GITHUB_STEP_SUMMARY"
       - name: Retain executable original-source evidence without ROM or SRAM
         if: always()
         uses: actions/upload-artifact@v4
@@ -112,3 +118,4 @@ jobs:
             ${{ runner.temp }}/qa08-original-opcode.log
             ${{ runner.temp }}/qa08-original-writer-opcode-context.json
             ${{ runner.temp }}/qa08-original-opcode-receipt.json
+            ${{ runner.temp }}/qa08-original-racer-LUT.json

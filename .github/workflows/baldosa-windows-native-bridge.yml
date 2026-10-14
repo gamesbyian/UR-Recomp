@@ -470,6 +470,8 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_source_practice_dragster/named_p1_practice_hard_killed/kill-receipt.json
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_source_practice_dragster/named_p1_boot_after_practice_kill/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_source_practice_dragster/named_p1_practice_after_kill/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_source_practice_dragster/ordinary_idle_boot_1_normalizes/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_source_practice_dragster/ordinary_idle_boot_2_control/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_source_practice_dragster/boundary-receipts.json
       - name: Export verified shared Windows inputs for bounded manual reliability campaigns
         if: ${{ inputs.export_campaign_inputs == true }}

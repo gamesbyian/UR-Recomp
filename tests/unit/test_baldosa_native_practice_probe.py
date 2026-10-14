@@ -145,6 +145,8 @@ class NativePracticeProbeTests(unittest.TestCase):
                       "named_p1_practice_hard_killed/kill-receipt.json",
                       "named_p1_boot_after_practice_kill/log.txt",
                       "named_p1_practice_after_kill/log.txt",
+                      "ordinary_idle_boot_1_normalizes/log.txt",
+                      "ordinary_idle_boot_2_control/log.txt",
                       "boundary-receipts.json"):
             self.assertIn("native_source_practice_dragster/" + token, wf)
         pause = wf.index("name: baldosa-win32-native-pause-evidence")

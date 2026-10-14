@@ -14,10 +14,55 @@ from pathlib import Path
 MARK = "UR_QA08_ORIGINAL_HDMA_PPU"
 FUNCTION = "void S9xSetPPU (uint8 Byte, uint16 Address)\n{"
 HDR = '#include "dma.h"'
+CASE00 = "\n\t\t\t\tbreak;\n\n\t\t\tcase 0x2101: // OBSEL"
 CASE31 = "\n\t\t\t\tbreak;\n\n\t\t\tcase 0x2132: // COLDATA"
 CASE32 = "\n\t\t\t\tbreak;\n\n\t\t\tcase 0x2133: // SETINI"
 
-PROBE = r'''/* UR_QA08_ORIGINAL_HDMA_PPU: source-level execution witness only.
+PROBE = r'''/* UR_QA08_ORIGINAL_INIDISP: actual original $2100 HDMA after write.
+ * Read-only independent source lookup and effective PPU brightness versus
+ * the separate hardware forced-blank (bit7) state. Same source replay,
+ * never changes original guest/register/emulator control flow. */
+static void qa08_original_inidisp_hdma(uint8 value)
+{
+    static int initialized=0, on=0;
+    static unsigned events=0;
+    if (!initialized) {
+        const char *s=getenv("UR_QA08_ORIGINAL_HDMA_PPU_WINDOW");
+        on=(s && strcmp(s,"source-go-t480")==0);
+        initialized=1;
+    }
+    const unsigned frame=(unsigned)ICPU.Frame;
+    const int sampled=(frame>=1781u && frame<=1783u) ||
+                      (frame>=1988u && frame<=1990u) ||
+                      (frame>=2231u && frame<=2233u) ||
+                      (frame>=2471u && frame<=2473u);
+    if (!on || !sampled || !CPU.InHDMA || !CPU.InDMAorHDMA ||
+        CPU.CurrentDMAorHDMAChannel < 0 ||
+        CPU.CurrentDMAorHDMAChannel > 7)
+        return;
+    const unsigned channel=(unsigned)CPU.CurrentDMAorHDMAChannel;
+    const SDMA *ch=&DMA[channel];
+    const unsigned src=ch->Address;
+    const unsigned bank=ch->ABank;
+    const unsigned wram=(bank == 0x7e)?(unsigned)Memory.RAM[src]:0xffu;
+    if (events>=256u) {
+        if (events==256u)
+            fprintf(stderr,"UR_QA08_ORIGINAL_INIDISP_OVERFLOW frame=%u max=256\n",
+                    frame);
+        ++events; return;
+    }
+    ++events;
+    fprintf(stderr,
+        "UR_QA08_ORIGINAL_INIDISP frame=%u v=%u cycles=%d "
+        "channel=%u mode=%u indirect=%u base=%02X source=%02X:%04X "
+        "wram=%02X bbus=00 value=%02X brightness=%u forced=%u\n",
+        frame,(unsigned)CPU.V_Counter,CPU.Cycles,channel,
+        (unsigned)ch->TransferMode,(unsigned)ch->HDMAIndirectAddressing,
+        (unsigned)ch->BAddress,bank,src,wram,(unsigned)value,
+        (unsigned)PPU.Brightness,(unsigned)PPU.ForcedBlanking);
+}
+
+/* UR_QA08_ORIGINAL_HDMA_PPU: source-level execution witness only.
  * Emit only when intentionally armed for twelve bounded original
  * table-creation, GO and genuine racing-frame checkpoints, while S9xSetPPU is called from actual channel-5 HDMA.
  * No guest memory reads outside the known original $7E table, no writes. */
@@ -78,13 +123,14 @@ def patch_source(src: str) -> str:
     if MARK in src:
         raise ValueError("original PPU HDMA source probe already applied")
     if (src.count(FUNCTION) != 1 or src.count(HDR) != 1 or
-            src.count(CASE31) != 1 or src.count(CASE32) != 1 or
+            src.count(CASE00) != 1 or src.count(CASE31) != 1 or src.count(CASE32) != 1 or
             'if (CPU.InDMAorHDMA)' not in src or
             'if (Byte & 0x80)' not in src or
             'PPU.FixedColourRed   = Byte & 0x1f;' not in src):
         raise ValueError("pinned original Snes9x PPU DMA/colour source changed")
     src = src.replace(HDR, HDR + '\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>', 1)
     src = src.replace(FUNCTION, PROBE + FUNCTION, 1)
+    src = src.replace(CASE00, "\n\t\t\t\tqa08_original_inidisp_hdma(Byte);"+CASE00, 1)
     src = src.replace(CASE31, "\n\t\t\t\tqa08_original_hdma_live_ppu(Byte, 0x2131);"+CASE31, 1)
     src = src.replace(CASE32, "\n\t\t\t\tqa08_original_hdma_live_ppu(Byte, 0x2132);"+CASE32, 1)
     return src

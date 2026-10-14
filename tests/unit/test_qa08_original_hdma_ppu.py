@@ -62,7 +62,7 @@ class OriginalPpuHdmatraceTests(unittest.TestCase):
             ' if (CPU.InDMAorHDMA) { }\n'
             ' if (Byte & 0x80) {}\n'
             ' PPU.FixedColourRed   = Byte & 0x1f;\n'
-            +patch.CASE31+"\n"+patch.CASE32+"\n}\n")
+            +patch.CASE00+"\n"+patch.CASE31+"\n"+patch.CASE32+"\n}\n")
         generated=patch.patch_source(stock)
         self.assertIn("CPU.InHDMA",generated)
         self.assertIn("CPU.CurrentDMAorHDMAChannel != 5", generated)

@@ -44,7 +44,7 @@ Independent detailed evidence is retained in [the negative 2P receipt](../analys
 
 ## Next QA decision and runner discipline
 
-1. Preserve and merge green independent [#1427](https://github.com/gamesbyian/UR-Recomp/pull/1427) 1P source/ZIP/log classification. **Do not** count a 1P source-settled game result as a strictly original/native passed course, and do not invent absent run bytes.
+1. Reuse the already-merged independent [#1427](https://github.com/gamesbyian/UR-Recomp/pull/1427) 1P source/ZIP/log classifier for future source-bound artifacts. **Do not** count a 1P source-settled game result as a strictly original/native passed course, and do not invent absent run bytes.
 2. Let the product owner resolve the 2P **rider identity → atomic pair publisher** disagreement and furnish a genuine newly created `.urrun/.urmatch` pair and separate native read-only consumer. Once available, independently verify its source rider IDs, outcomes, hash-bound records, participant identities and exact Windows candidate.
 3. Reuse one existing Win32 bridge candidate. Avoid sweeping 10,000 physics probes, 30/60 trial Windows repeat soaks or a duplicate producer while the concrete publication mismatch is unresolved. Existing account-wide runner ceiling is 20 shared among four development lanes.
 4. Only a later **nominated, merged-`main` consumer ZIP**, independent reference comparison and physical controller/audio/display acceptance can promote the corresponding release ledger gates.

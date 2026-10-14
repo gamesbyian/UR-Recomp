@@ -1,0 +1,122 @@
+{
+  "schema": "UR-QA01-ZOO-PRERETURN-GENUINE-BULK-PARITY/1",
+  "source": {
+    "executed_original_native_run": 38500427634,
+    "artifact_id": 11866136501,
+    "artifact_zip_sha256": "d5ec65c672736fa45f01214134db8598baa840f106729bd2c04ffb8949f1d039",
+    "rom": "pinned original USA retail",
+    "original": "pinned source Snes9x 1.63 with authenticated input",
+    "native": "pinned Baldosa guest with identical source 2014 input",
+    "original_host_scene_entry": 1604,
+    "native_host_scene_entry": 1606
+  },
+  "memory_bytes_per_guest": {
+    "wram": 131072,
+    "vram": 65536,
+    "cgram": 512,
+    "full_sample": 197120
+  },
+  "samples": [
+    {
+      "guest_label": "scene-entered",
+      "original_host": 1604,
+      "native_host": 1606,
+      "bytes_different": {
+        "wram": 4,
+        "vram": 0,
+        "cgram": 0
+      },
+      "original_wram_sha256": "5ff5243cdc41d4261331b0b9505f5328103c22780d8cd2af5298b89b6d1577cd",
+      "native_wram_sha256": "110fafd6f37126e6a7f139b1620a4b4d755c10fb6e6f6717b76e20c0b1c3caea"
+    },
+    {
+      "guest_label": "boundary-04700",
+      "original_host": 6304,
+      "native_host": 6306,
+      "bytes_different": {
+        "wram": 4,
+        "vram": 0,
+        "cgram": 0
+      }
+    },
+    {
+      "guest_label": "boundary-04800",
+      "original_host": 6404,
+      "native_host": 6406,
+      "bytes_different": {
+        "wram": 0,
+        "vram": 0,
+        "cgram": 0
+      },
+      "shared_wram_sha256": "ab19930895f86ce3614ca9088e4c155129e7196d94dc97b51c1b03a7582189ed",
+      "shared_vram_sha256": "df9e369dc4470a57a1fdef59599f33b8142d94b28e7d1b537243bc678ec0c885",
+      "shared_cgram_sha256": "29b741343efc14d0940eeb634ff466a7870fef20b6f1f2d63bac307b0e02d69b"
+    },
+    {
+      "guest_label": "boundary-05000",
+      "original_host": 6604,
+      "native_host": 6606,
+      "bytes_different": {
+        "wram": 4,
+        "vram": 0,
+        "cgram": 0
+      }
+    },
+    {
+      "guest_label": "boundary-05100",
+      "original_host": 6704,
+      "native_host": 6706,
+      "bytes_different": {
+        "wram": 0,
+        "vram": 0,
+        "cgram": 0
+      },
+      "shared_wram_sha256": "a61ad3094b72e1739d6d4cc84c32a99501e4ce5e3b09b12f9be443a5bf0aaef3",
+      "shared_vram_sha256": "fa417e43a9a06b16d1e58b65887b5a2cf9591d0fd8c669cf4f9214fb748671b2",
+      "shared_cgram_sha256": "582e59a6809219529fbc5c6493077c236c3eca5c37c804d4f0028e999ac89035"
+    },
+    {
+      "guest_label": "boundary-05155",
+      "original_host": 6759,
+      "native_host": 6761,
+      "bytes_different": {
+        "wram": 0,
+        "vram": 29,
+        "cgram": 0
+      },
+      "shared_wram_sha256": "7272e4f1a1c6c6b28b5be0aa41053bbf8e81f578dcb9d26d87b433d24ec07c5c",
+      "original_vram_sha256": "e248f10de43dda55509da21b4ee2dda1c0d8f54ef9bbeb91066f8d8258e07a18",
+      "native_vram_sha256": "feffe7a1de65440fa9e0fa6ff25d49e6e84a866d7961081bc15786e27c0b61e3"
+    },
+    {
+      "guest_label": "boundary-05156",
+      "original_host": 6760,
+      "native_host": 6762,
+      "bytes_different": {
+        "wram": 69,
+        "vram": 0,
+        "cgram": 0
+      },
+      "shared_vram_sha256": "38b8471dcbc08d43cc35c5d50bdfd6e50572952ea85edfe626a391c83b57a422",
+      "original_wram_sha256": "06ea98ac074e97077386e581bb25607b9c49eee68ff6239637100386074c33f6",
+      "native_wram_sha256": "c54dd21c4ad7a9093b84a6e177739bb50c03b58780c888be983687897f4a2ce2"
+    }
+  ],
+  "deductions": {
+    "all_197120_byte_exact_in_same_guest_relative_sample_at": [
+      4800,
+      5100
+    ],
+    "source_native_earliest_sampled_transient_vram_phase_before_5156": true,
+    "memory_observation_vs_true_original_instruction_parity": "distinct measurements; 0 source CPU/NMI phase admission",
+    "cpu_beam_phase_aligned": false,
+    "complete_event_admitted": false,
+    "release_complete_usa_event_credit": 0
+  },
+  "limitations": [
+    "Only these seven actual guest-relative snapshots were compared, not continuous full-memory trace.",
+    "Equal full memory at one sampled frame proves nothing about CPU registers, active ICPU phase or intervening instructions.",
+    "Original/native absolute host frame labels differ by two at each equal guest-relative sample. The equality does not license controller input rebasing.",
+    "Transient 29-byte VRAM mismatch at +5155 and 69-byte WRAM mismatch at +5156 are observation/timing causal leads, not standalone physics faults."
+  ]
+}

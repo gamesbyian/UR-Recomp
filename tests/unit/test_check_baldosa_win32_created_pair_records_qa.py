@@ -60,6 +60,7 @@ def fixture():
         "race_host=2146 result_host=4377 riders=0,2 "
         "hundredths=2761,2757 winner=2 input_frames=2231 "
         "input_runs=5 published=1\n"
+        "script f=5667 quit\n"
     )
     # The authoritative native application opens the Records 1P page first,
     # then 2P, then back to 1P with an exact player-relative WIN/LOSS clock.

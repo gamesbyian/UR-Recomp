@@ -32,6 +32,7 @@ int ur_baldosa_modern_profile_can_join_opponent(
 int ur_baldosa_modern_profile_can_begin_race(void);
 int ur_baldosa_modern_create_first_preset(unsigned index);
 int ur_baldosa_modern_create_second_preset(unsigned index);
+int ur_baldosa_modern_select_existing_p1_next_boot(const char* profile_id);
 }
 
 #include <algorithm>
@@ -73,6 +74,12 @@ bool g_second_racer_open = false;
 bool g_second_racer_created = false;
 bool g_second_racer_failed = false;
 bool g_can_add_second_racer = false;
+bool g_existing_switch_available = false;
+bool g_existing_switch_open = false;
+bool g_existing_switch_saved = false;
+bool g_existing_switch_failed = false;
+std::string g_existing_switch_target;
+std::size_t g_existing_switch_preset = 1;
 bool g_ever_entered_stock = false;
 std::size_t g_second_racer_preset = 1;
 ur::product::BaldosaNativeRunSaveFeedback g_run_save_feedback =
@@ -281,8 +288,9 @@ void open_stock_racer_setup() {
     if (!g_visible || g_stock_target != -1 || g_records_open ||
         g_confirm_quit || g_two_seat_join.open() ||
         g_unbound_two_player_warning_open || g_first_racer_open ||
-        g_second_racer_open || g_first_racer_created ||
-        g_second_racer_created || g_named_profile_stale) return;
+        g_second_racer_open || g_existing_switch_open ||
+        g_first_racer_created || g_second_racer_created ||
+        g_existing_switch_saved || g_named_profile_stale) return;
     const char* selected = ur_baldosa_modern_profile_selected_id();
     if (!selected || !*selected) {
         g_first_racer_open = true;
@@ -291,6 +299,33 @@ void open_stock_racer_setup() {
         std::fprintf(stderr,
             "UR_BALDOSA_MODERN_ROOT first_racer_opened=1 "
             "activation=next_process\n");
+        return;
+    }
+    // With two complete catalogued profiles, X enters a distinct explicit
+    // existing-P1 selector. Only the other already-created stock identity
+    // can be selected, never a directory/name guess or live guest hot-swap.
+    if (g_existing_switch_available && !g_ever_entered_stock &&
+        named_profile_still_playable()) {
+        const char* catalog_path = ur_baldosa_modern_profile_catalog_path();
+        const auto roster = catalog_path
+            ? ur::product::load_host_profile_catalog_file(catalog_path)
+            : std::optional<std::vector<
+                ur::product::HostProfileCatalogEntry>>{};
+        if (!roster || roster->size() != 2u) return;
+        for (const auto& candidate : *roster) {
+            if (candidate.profile_id == selected) continue;
+            if (!ur_baldosa_modern_profile_can_join_opponent(&candidate))
+                return;
+            g_existing_switch_target = candidate.profile_id;
+            g_existing_switch_preset = candidate.identity.rider_index;
+            g_existing_switch_open = true;
+            g_existing_switch_failed = false;
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_ROOT existing_p1_opened=1 "
+                "from=%s to=%s activation=next_process\n",
+                selected, g_existing_switch_target.c_str());
+            return;
+        }
         return;
     }
     if (!g_can_add_second_racer || g_ever_entered_stock ||
@@ -315,6 +350,27 @@ void open_stock_racer_setup() {
 }
 void choose() {
     if (g_stock_target != -1) return;
+    if (g_existing_switch_open) {
+        if (g_existing_switch_saved || g_ever_entered_stock ||
+            !named_profile_still_playable()) return;
+        if (ur_baldosa_modern_select_existing_p1_next_boot(
+                g_existing_switch_target.c_str())) {
+            g_existing_switch_saved = true;
+            g_existing_switch_failed = false;
+            g_existing_switch_available = false;
+            g_named_profile_stale = true;
+            g_racer_name = "P1 CHANGED - RESTART";
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_ROOT existing_p1_saved=1 "
+                "activation=next_process\n");
+        } else {
+            g_existing_switch_failed = true;
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_ROOT existing_p1_saved=0 "
+                "reason=verified_selector_rejected\n");
+        }
+        return;
+    }
     if (g_second_racer_open) {
         if (g_second_racer_created || g_ever_entered_stock ||
             !named_profile_still_playable()) return;
@@ -458,6 +514,7 @@ void choose() {
 void navigate(int delta) {
     if (g_confirm_quit || g_stock_target != -1 ||
         g_unbound_two_player_warning_open) return;
+    if (g_existing_switch_open) return;
     if (g_second_racer_open) {
         if (g_second_racer_created) return;
         const auto count =
@@ -498,6 +555,12 @@ void navigate(int delta) {
             ur::product::modern_root_menu_selected(g_menu)));
 }
 void back() {
+    if (g_existing_switch_open) {
+        g_existing_switch_open = false;
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT existing_p1_closed=1\n");
+        return;
+    }
     if (g_second_racer_open) {
         g_second_racer_open = false;
         std::fprintf(stderr,
@@ -587,6 +650,12 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     g_second_racer_created = false;
     g_second_racer_failed = false;
     g_second_racer_preset = 1;
+    g_existing_switch_open = false;
+    g_existing_switch_saved = false;
+    g_existing_switch_failed = false;
+    g_existing_switch_target.clear();
+    g_existing_switch_preset = 1;
+    g_existing_switch_available = false;
     g_ever_entered_stock = false;
     g_can_add_second_racer = false;
     if (const char* selected = ur_baldosa_modern_profile_selected_id()) {
@@ -598,6 +667,17 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
         g_can_add_second_racer = entries && entries->size() == 1u &&
             entries->front().profile_id == selected &&
             ur::product::valid_racer_identity(entries->front().identity);
+        if (entries && entries->size() == 2u) {
+            const bool active_found = std::any_of(
+                entries->begin(), entries->end(),
+                [selected](const auto& e) { return e.profile_id == selected; });
+            const auto other = std::find_if(
+                entries->begin(), entries->end(),
+                [selected](const auto& e) { return e.profile_id != selected; });
+            g_existing_switch_available = active_found &&
+                other != entries->end() &&
+                ur_baldosa_modern_profile_can_join_opponent(&*other);
+        }
     }
     g_run_save_feedback = ur::product::BaldosaNativeRunSaveFeedback::None;
     g_visible = true;
@@ -725,16 +805,24 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         g_can_add_second_racer && !g_ever_entered_stock &&
         !g_second_racer_created && !g_named_profile_stale;
     view.second_racer_created = g_second_racer_created;
-    view.first_racer_open = g_first_racer_open || g_second_racer_open;
+    view.existing_profile_switch_available =
+        g_existing_switch_available && !g_ever_entered_stock &&
+        !g_named_profile_stale;
+    view.first_racer_open =
+        g_first_racer_open || g_second_racer_open || g_existing_switch_open;
     view.first_racer_is_second = g_second_racer_open;
+    view.first_racer_is_switch = g_existing_switch_open;
     view.first_racer_created =
-        g_first_racer_created || g_second_racer_created;
+        g_first_racer_created || g_second_racer_created ||
+        g_existing_switch_saved;
     view.first_racer_failed =
-        g_first_racer_failed || g_second_racer_failed;
+        g_first_racer_failed || g_second_racer_failed ||
+        g_existing_switch_failed;
     view.racer_shortcuts_available = false;
     const auto& presets = ur::product::legacy_racer_presets();
-    const auto chosen = g_second_racer_open
-        ? g_second_racer_preset : g_first_racer_preset;
+    const auto chosen = g_existing_switch_open
+        ? g_existing_switch_preset
+        : g_second_racer_open ? g_second_racer_preset : g_first_racer_preset;
     if (chosen < presets.size())
         view.first_racer_preset_name = presets[chosen].name;
     view.two_seat_join_open = g_two_seat_join.open();
@@ -928,7 +1016,8 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                              std::strcmp(opt, "2") != 0 &&
                              std::strcmp(opt, "3") != 0 &&
                              std::strcmp(opt, "4") != 0 &&
-                             std::strcmp(opt, "5") != 0)) return;
+                             std::strcmp(opt, "5") != 0 &&
+                             std::strcmp(opt, "6") != 0)) return;
     // Controlled host-root edge on an anonymous install. No created racer
     // is activated in this guest; a new process must load canonical SRAM.
     if (std::strcmp(opt, "4") == 0) {
@@ -980,7 +1069,8 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     // Distinct stock P2 profile from an already named P1 native guest.
     // Test-only SDL button edges; never an automatic profile/catalog
     // update, forged native result, or change to live original SRAM.
-    if (std::strcmp(opt, "5") == 0) {
+    if (std::strcmp(opt, "5") == 0 ||
+        std::strcmp(opt, "6") == 0) {
         const int key = frame == 60 ? SDLK_x :
                         frame == 62 ? SDLK_RETURN : 0;
         if (!key) return;

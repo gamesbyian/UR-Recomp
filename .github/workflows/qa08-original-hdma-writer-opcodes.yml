@@ -7,6 +7,8 @@ on:
       - "tools/instrument_snesref_qa08_hdma_opcode_context.py"
       - "tools/check_qa08_original_hdma_opcode_context.py"
       - "tests/unit/test_qa08_original_hdma_opcode_context.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snes9x-libretro.json"
   workflow_dispatch:
 
 permissions:

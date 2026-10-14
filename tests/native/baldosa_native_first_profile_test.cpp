@@ -224,6 +224,149 @@ int main() {
            BaldosaSecondRacerStatus::ExistingData);
     assert(load_host_profile_catalog_file(
                (incomplete_p2 / "profiles-v1.txt").string())->size() == 1u);
+    // Reproduce the exact completed-P2-files / missing-final-catalog window
+    // from an interrupted creation. This fixture deliberately rewinds ONLY
+    // the test catalog after an otherwise legitimate full P2 publication.
+    // No synthetic guest-result or profile creation production path exists.
+    const auto stage_interrupted_second = [&](const char* name) {
+        const fs::path dir = workspace / name;
+        assert(fs::create_directory(dir));
+        assert(create_baldosa_first_preset_for_next_boot(dir, 0).created());
+        const fs::path entries = dir / "profiles-v1.txt";
+        const auto initial = load_host_profile_catalog_file(entries.string());
+        assert(initial && initial->size() == 1u);
+        assert(create_baldosa_second_preset_for_next_boot(dir, "mike", 1).created());
+        assert(save_host_profile_catalog_file(entries.string(), *initial));
+        assert(load_host_profile_catalog_file(entries.string())->size() == 1u);
+        return dir;
+    };
+    const auto staged_p2 = stage_interrupted_second("staged-second-before-catalog");
+    const auto staged_selector = staged_p2 / "host-state-v1.txt";
+    const auto staged_catalog = staged_p2 / "profiles-v1.txt";
+    const auto staged_mike = staged_p2 / "saves/profile-mike/save.srm";
+    const auto staged_mike_typed =
+        staged_p2 / "saves/profile-mike/host-profile.txt";
+    const auto staged_andrew = staged_p2 / "saves/profile-andrew/save.srm";
+    const auto staged_andrew_typed =
+        staged_p2 / "saves/profile-andrew/host-profile.txt";
+    const auto selector_before = exact_contents(staged_selector);
+    const auto catalog_before = exact_contents(staged_catalog);
+    const auto mike_before = exact_contents(staged_mike);
+    const auto mike_typed_before = exact_contents(staged_mike_typed);
+    const auto andrew_before = exact_contents(staged_andrew);
+    const auto andrew_typed_before = exact_contents(staged_andrew_typed);
+    const auto staged_mutex = staged_p2 /
+        "saves/profile-andrew/host-profile.txt.urmutex";
+    assert(fs::is_regular_file(staged_mutex) &&
+           fs::file_size(staged_mutex) == 0u);
+
+    // A normal retry correctly refuses an orphan directory. Recovery may
+    // publish only on the user's exact matching next-boot preset selection.
+    assert(create_baldosa_second_preset_for_next_boot(
+               staged_p2, "mike", 1).status ==
+           BaldosaSecondRacerStatus::ExistingData);
+    assert(recover_baldosa_second_preset_for_next_boot(
+               staged_p2, "mike", 2).status ==
+           BaldosaSecondRacerStatus::ExistingData);
+    assert(recover_baldosa_second_preset_for_next_boot(
+               staged_p2, "andrew", 1).status ==
+           BaldosaSecondRacerStatus::ExistingData);
+    assert(exact_contents(staged_catalog) == catalog_before);
+    const auto resumed_p2 = recover_baldosa_second_preset_for_next_boot(
+        staged_p2, "mike", 1);
+    assert(resumed_p2.created() &&
+           resumed_p2.status == BaldosaSecondRacerStatus::Recovered &&
+           resumed_p2.profile_id == "andrew");
+    const auto restored_roster =
+        load_host_profile_catalog_file(staged_catalog.string());
+    assert(restored_roster && restored_roster->size() == 2u &&
+           restored_roster->at(0).profile_id == "mike" &&
+           restored_roster->at(1).profile_id == "andrew");
+    assert(exact_contents(staged_selector) == selector_before);
+    assert(exact_contents(staged_mike) == mike_before);
+    assert(exact_contents(staged_mike_typed) == mike_typed_before);
+    assert(exact_contents(staged_andrew) == andrew_before);
+    assert(exact_contents(staged_andrew_typed) == andrew_typed_before);
+    assert(recover_baldosa_second_preset_for_next_boot(
+               staged_p2, "mike", 1).status ==
+           BaldosaSecondRacerStatus::ExistingData);
+
+    // A partial, tampered or foreign P2 can never acquire a catalog row.
+    const auto partial = stage_interrupted_second("partial-second-sram");
+    const fs::path partial_sram = partial / "saves/profile-andrew/save.srm";
+    {
+        std::ofstream short_save(partial_sram,
+                                 std::ios::binary | std::ios::trunc);
+        short_save << "short";
+    }
+    const auto partial_catalog_before =
+        exact_contents(partial / "profiles-v1.txt");
+    assert(recover_baldosa_second_preset_for_next_boot(
+               partial, "mike", 1).status ==
+           BaldosaSecondRacerStatus::ExistingData);
+    assert(exact_contents(partial / "profiles-v1.txt") == partial_catalog_before);
+
+    const auto tampered = stage_interrupted_second("modified-second-typed");
+    const auto tampered_typed =
+        tampered / "saves/profile-andrew/host-profile.txt";
+    {
+        std::ofstream bad(tampered_typed, std::ios::binary | std::ios::trunc);
+        bad << "foreign typed profile\n";
+    }
+    const auto tampered_catalog_before =
+        exact_contents(tampered / "profiles-v1.txt");
+    assert(recover_baldosa_second_preset_for_next_boot(
+               tampered, "mike", 1).status ==
+           BaldosaSecondRacerStatus::ExistingData);
+    assert(exact_contents(tampered / "profiles-v1.txt") ==
+           tampered_catalog_before);
+
+    const auto unexpected = stage_interrupted_second("foreign-extra-p2-file");
+    const auto extra_file =
+        unexpected / "saves/profile-andrew/foreign-note.txt";
+    { std::ofstream note(extra_file); note << "unreviewed user data"; }
+    const auto unexpected_before =
+        exact_contents(unexpected / "profiles-v1.txt");
+    assert(recover_baldosa_second_preset_for_next_boot(
+               unexpected, "mike", 1).status ==
+           BaldosaSecondRacerStatus::ExistingData);
+    assert(exact_contents(unexpected / "profiles-v1.txt") == unexpected_before);
+
+    // A missing or redirected OS path lock is not a canonical completed
+    // typed-store publication, even if the 8-KiB stock bytes still match.
+    const auto mutex_lost = stage_interrupted_second("missing-p2-mutex");
+    const fs::path missing_mutex =
+        mutex_lost / "saves/profile-andrew/host-profile.txt.urmutex";
+    assert(fs::remove(missing_mutex));
+    assert(recover_baldosa_second_preset_for_next_boot(
+               mutex_lost, "mike", 1).status ==
+           BaldosaSecondRacerStatus::ExistingData);
+    assert(!fs::exists(missing_mutex));
+#ifndef _WIN32
+    const auto mutex_redirect = stage_interrupted_second("redirected-p2-mutex");
+    const fs::path redirected_mutex =
+        mutex_redirect / "saves/profile-andrew/host-profile.txt.urmutex";
+    assert(fs::remove(redirected_mutex));
+    fs::create_symlink(workspace / "unknown-target", redirected_mutex);
+    assert(recover_baldosa_second_preset_for_next_boot(
+               mutex_redirect, "mike", 1).status ==
+           BaldosaSecondRacerStatus::ExistingData);
+#endif
+
+    const auto stale = stage_interrupted_second("stale-p1-selector");
+    const auto stale_global = stale / "host-state-v1.txt";
+    auto changed = *load_host_product_state_file(stale_global.string()).state;
+    changed.active_profile_id = "andrew";
+    assert(save_host_product_state_file(stale_global.string(), changed) ==
+           HostProductSaveStatus::Saved);
+    const auto stale_before = exact_contents(stale / "profiles-v1.txt");
+    assert(recover_baldosa_second_preset_for_next_boot(
+               stale, "mike", 1).status ==
+           BaldosaSecondRacerStatus::ExistingData);
+    assert(exact_contents(stale / "profiles-v1.txt") == stale_before);
+    std::puts("PASS: interrupted P2 publication resumes only exact initial "
+              "typed/raw stock files with authenticated P1 unchanged");
+
     std::puts("PASS: second named stock racer uses canonical isolated "
               "typed/raw P2 state with P1 selector/save byte-exact unchanged");
 

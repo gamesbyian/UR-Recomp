@@ -234,8 +234,19 @@ extern "C" int ur_baldosa_modern_create_second_preset(unsigned index) {
         !g_launch_global || !g_launch_profile) return 0;
     const char* path = std::getenv("SNESRECOMP_USER_DATA_DIR");
     if (!path || !*path) return 0;
-    const auto result = ur::product::create_baldosa_second_preset_for_next_boot(
+    auto result = ur::product::create_baldosa_second_preset_for_next_boot(
         path, g_verified_native_profile_id, index);
+    if (result.status == ur::product::BaldosaSecondRacerStatus::ExistingData) {
+        // Resume ONLY a complete initial typed/raw P2 whose catalog append
+        // was interrupted. Explicit user X/preset/A is required; no directory
+        // scan, raw SRAM repair, hot swap or synthetic identity is permitted.
+        result = ur::product::recover_baldosa_second_preset_for_next_boot(
+            path, g_verified_native_profile_id, index);
+    }
+    if (result.status == ur::product::BaldosaSecondRacerStatus::Recovered)
+        std::fprintf(stderr,
+            "UR_BALDOSA_NATIVE_SECOND_RACER_RECOVERY restored=1 "
+            "catalog_only=1 p1_unchanged=1 activation=next_process\n");
     std::fprintf(stderr,
         "UR_BALDOSA_NATIVE_SECOND_RACER status=%u preset=%u id=%s "
         "activation=next_process\n",

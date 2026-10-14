@@ -46,6 +46,69 @@ ORIGINAL_DESCRIPTOR = re.compile(
 TARGETS = (0x0545, 0x0547, 0x0415, 0x0417, 0x04BB, 0x04BD)
 SCHEMA = "UR-QA01-DUAL-AIR-SOURCE-NATIVE-OPCODE-WRITER/1"
 
+# These are the exact bytes the disposable *original* Snes9x pre/post-opcode
+# observer reads. Its additional shared working registers and high bytes must
+# not silently disappear from the report when chasing a public raw-air byte.
+SOURCE_CAPTURED_BYTES = frozenset((
+    0x0545, 0x0546, 0x0547, 0x0548,
+    0x0415, 0x0416, 0x0417, 0x0418,
+    0x04BB, 0x04BC, 0x04BD, 0x04BE,
+    0x0F29, 0x0F2A, 0x0FA1, 0x0FA2,
+    0x00A7, 0x00A8,
+))
+SOURCE_SHARED_WORKING_BYTES = frozenset((
+    0x0F29, 0x0F2A, 0x0FA1, 0x0FA2, 0x00A7, 0x00A8,
+))
+
+
+def source_opcode_chronology(log: str) -> list[dict]:
+    """Attest read-only source opcode receipts without asserting host/CPU sync.
+
+    The source observer logs changed bytes and exactly two candidate no-op
+    stores. Ignore neither shared scratch nor high bytes. A chronological
+    opcode scope can show a synchronous mutation, but does not by itself
+    identify the upstream physical or scheduler cause.
+    """
+    if len(log) > 20_000_000:
+        raise ValueError("unbounded original source CPU opcode log")
+    matched = ORIGINAL_OPCODE.findall(log)
+    stamped = sum(line.startswith("QA01AIRPC") for line in log.splitlines())
+    if not matched or stamped != len(matched):
+        raise ValueError("missing or malformed original source CPU opcode receipt")
+    result = []
+    previous_frame = 2574
+    for f, v, p, a, old, new, c in matched:
+        frame, scanline = int(f), int(v)
+        address, pc = int(a, 16), p.upper()
+        candidate = bool(int(c))
+        actual_candidate = (
+            (pc == "818E26" and address == 0x0545) or
+            (pc == "818F7A" and address == 0x0547)
+        )
+        if not 2574 <= frame <= 2586 or frame < previous_frame:
+            raise ValueError("original opcode outside source CPU frame gate/order")
+        if not 0 <= scanline <= 511:
+            raise ValueError("original opcode vertical counter malformed")
+        if address not in SOURCE_CAPTURED_BYTES:
+            raise ValueError("original opcode address outside instrumented source set")
+        if candidate != actual_candidate:
+            raise ValueError("forged or missing original candidate PC marker")
+        if old.upper() == new.upper() and not candidate:
+            raise ValueError("nonmutating original scope without genuine candidate PC")
+        previous_frame = frame
+        result.append({
+            "frame": frame,
+            "vcounter": scanline,
+            "pc": pc[:2] + ":" + pc[2:],
+            "address": "7E:" + f"{address:04X}",
+            "old": old.upper(),
+            "new": new.upper(),
+            "changed": old.upper() != new.upper(),
+            "static_candidate_pc": candidate,
+        })
+    return result
+
+
 
 def sha(b: bytes) -> str:
     return hashlib.sha256(b).hexdigest()
@@ -218,11 +281,17 @@ def analyze(root: Path, *, rom: Path, native_exe: Path) -> dict:
                 v["p2_next_checkpoint"]) != (1, 1, 1, 1, 1)
                for f, v in rows.items() if f in DENSE):
             raise ValueError(side + " lost authentic dual-racer race/lap/checkpoint state")
-    source_lines = [dict(frame=int(f), vcounter=int(v),
-                         pc=p.upper()[:2] + ":" + p.upper()[2:],
-                         address="7E:" + a.upper(), old=old, new=new,
-                         static_candidate_pc=int(c) == 1)
-                    for f, v, p, a, old, new, c in ORIGINAL_OPCODE.findall(log_o)]
+    source_scopes = source_opcode_chronology(log_o)
+    # Retain all executed source working bytes and upper bytes separately:
+    # only the six public kinematic registers are named comparison fields.
+    source_lines = [x for x in source_scopes
+                    if int(x["address"][3:], 16) in TARGETS]
+    source_scratch = [x for x in source_scopes
+                      if int(x["address"][3:], 16) in SOURCE_SHARED_WORKING_BYTES]
+    source_high_bytes = [x for x in source_scopes
+                         if int(x["address"][3:], 16) in
+                         (SOURCE_CAPTURED_BYTES - set(TARGETS) -
+                          SOURCE_SHARED_WORKING_BYTES)]
     native_log = (root / "native-writers.log").read_text(encoding="utf-8",
                                                         errors="replace")
     if len(native_log) > 20_000_000:
@@ -265,6 +334,10 @@ def analyze(root: Path, *, rom: Path, native_exe: Path) -> dict:
         "original_unchanged_source_core_proven_by_3_hashes": True,
         "native_same_frontier_binary_proven_by_3_hashes": True,
         "original_cpu_opcode_changes": source_lines,
+        "original_cpu_shared_working_scopes": source_scratch,
+        "original_cpu_neighbor_high_byte_scopes": source_high_bytes,
+        "original_cpu_source_receipts_qualified": len(source_scopes),
+        "original_cpu_frame_is_not_native_host_frame": True,
         "native_cpu_helper_writes": native_lines,
         "source_pal_candidate_pcs_executed_while_observed":
             sorted({w["pc"] for w in source_lines if w["static_candidate_pc"]}),

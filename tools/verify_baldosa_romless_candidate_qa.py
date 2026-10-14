@@ -454,7 +454,14 @@ def check_runtime_actions_wrapper(
         candidate["assertions"].append(
             assertion("hosted-historical-2p-records-visible-without-mutation-or-publication", True)
         )
-    candidate["metrics"]["finished_native_event_or_new_match_observed"] = False
+    # A guest-settled native 1P result is now observable from the three
+    # source/result/Records logs; it still has no independent original oracle
+    # or physical-device standing. No paired native 2P match is reported.
+    candidate["metrics"]["finished_native_event_or_new_match_observed"] = (
+        newer_one is not None
+    )
+    candidate["metrics"]["strict_original_native_complete_event_accepted"] = False
+    candidate["metrics"]["new_native_two_player_match_published"] = False
     candidate["metrics"]["physical_gamepad_hardware_verified"] = False
     return candidate
 

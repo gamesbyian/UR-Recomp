@@ -26,7 +26,7 @@ def encode(rows):
 
 def fake_run(*, mode="race-1p", ticks=1679, frames=2253,
              course="course:01", rom=USA_ROM_SHA256,
-             compat=BALDOSA_COMPAT, terminal="-", rows=None):
+             compat=BALDOSA_COMPAT, terminal="-", rows=None, splits=None):
     if rows is None:
         rows = [
             "input 0 100 10 0",
@@ -35,6 +35,8 @@ def fake_run(*, mode="race-1p", ticks=1679, frames=2253,
             "input 900 200 20 0",
             "input 1200 1053 10 0",
         ]
+    if splits is None:
+        splits = [f"split finish {ticks}"]
     return encode([
         "URRUN 1", "game uniracers-usa",
         "rom_sha256 " + rom,
@@ -43,7 +45,7 @@ def fake_run(*, mode="race-1p", ticks=1679, frames=2253,
         "mode " + mode,
         f"elapsed_ticks60 {ticks}", f"frame_count {frames}",
         "terminal_digest " + terminal,
-        *rows, "END",
+        *splits, *rows, "END",
     ])
 
 
@@ -72,26 +74,29 @@ class MikeOnePlayerRawRunQA(unittest.TestCase):
         self.assertEqual(out["native_source_result_ticks60_matched"], 1679)
         self.assertEqual(out["native_source_resolved_input_runs_matched"], 5)
         self.assertEqual(out["saved_run_basename"], RUN_NAME)
-        self.assertEqual(out["run_split_count_parsed_not_original_verified"], 0)
+        self.assertEqual(out["run_split_count_parsed_not_original_verified"], 1)
         self.assertEqual(out["release_gate_credit"], 0)
         self.assertFalse(out["original_emulator_event_parity_accepted"])
         self.assertFalse(out["physical_controller_audio_display_verified"])
         self.assertFalse(out["approved_merged_main_release_candidate"])
         self.assertEqual(out["outcome"], "inconclusive_for_release")
 
-    def test_legal_monotone_split_annotations_are_not_original_oracle_proof(self):
-        content = fake_run(rows=[
-            "split 1p:gateA 300",
-            "split 1p:gateB 800",
-            "input 0 100 10 0",
-            "input 150 400 20 0",
-            "input 550 300 40 0",
-            "input 900 200 20 0",
-            "input 1200 1053 10 0",
-        ])
-        result = self.review(raw_run=content)
-        self.assertEqual(result["run_split_count_parsed_not_original_verified"], 2)
-        self.assertEqual(result["release_gate_credit"], 0)
+    def test_exact_native_finish_split_is_not_an_arbitrary_annotation(self):
+        # Actual assemble_baldosa_native_run_record() always inserts ONE
+        # source finish split at elapsed_ticks60 for a timed 1P Race.
+        accepted = self.review()
+        self.assertEqual(accepted["run_split_count_parsed_not_original_verified"], 1)
+        for splits in (
+            [],
+            ["split finish 1678"],
+            ["split gate:finish 1679"],
+            ["split finish 1679", "split extra 1679"],
+            ["split finish 1679", "split finish 1679"],
+            ["split finish 1700"],
+        ):
+            with self.subTest(splits=splits):
+                with self.assertRaises(ValueError):
+                    self.review(raw_run=fake_run(splits=splits))
 
     def test_stale_or_missing_bytes_never_pass_with_old_producer_hash(self):
         original = fake_run()

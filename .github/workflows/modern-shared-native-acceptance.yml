@@ -64,6 +64,10 @@ jobs:
             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
 
+      - name: Enable native compiler cache
+        if: ${{ inputs.canonical_candidate != true }}
+        uses: ./.github/actions/native-build-cache
+
       - name: Verify canonical ROM
         if: ${{ inputs.canonical_candidate != true }}
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
@@ -103,7 +107,7 @@ jobs:
             -DSNESRECOMP_SDL_BACKEND=SDL3 \
             -DSNESRECOMP_SDL3_FETCH=ON \
             -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
-          cmake --build "$ROOT/build" -j2
+          cmake --build "$ROOT/build" -j"$(nproc)"
           test -x "$ROOT/build/UniracersSNESRecomp"
           tar -czf "$RUNNER_TEMP/shared-modern-native.tar.gz" -C "$RUNNER_TEMP" shared-modern-native
 

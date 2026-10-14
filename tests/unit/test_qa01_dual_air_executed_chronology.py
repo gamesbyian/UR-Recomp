@@ -78,6 +78,19 @@ def fixture():
                 "p2_candidate_state_word": row[side]["p2_raw_air"],
             } for side in ("original", "native")
         })
+    scratch = [
+        dict(frame=frame, pc=pc, address="7E:0F29", old=old, new=new,
+             vcounter=v, changed=True)
+        for frame, pc, old, new, v in (
+            (2579, "81:8DB1", "01", "00", 56),
+            (2579, "81:8F0B", "00", "01", 82),
+            (2579, "81:9268", "01", "02", 103),
+            (2580, "81:966D", "02", "00", 103),
+        )
+    ]
+    scratch.extend([dict(frame=2577, pc="82:A9A3",
+                         address="7E:0FA1", old="00", new="13",
+                         vcounter=0, changed=True)] * (205-len(scratch)))
     return {
         "schema": "UR-QA01-DUAL-AIR-SOURCE-NATIVE-OPCODE-WRITER/1",
         "source_run": 38509912672, "complete_event_release_credit": 0,
@@ -85,7 +98,7 @@ def fixture():
         "actual_cpu_instruction_and_ppu_phase_aligned": False,
         "dense_original_native_same_host": frames,
         "original_cpu_opcode_changes": source,
-        "original_cpu_shared_working_scopes": [{}] * 205,
+        "original_cpu_shared_working_scopes": scratch,
         "original_cpu_neighbor_high_byte_scopes": [],
         "native_cpu_helper_writes": native,
         "original_cpu_source_receipts_qualified": 331,
@@ -119,6 +132,15 @@ class OriginalNativeExecuted2PAir(unittest.TestCase):
             result["original_cpu_frame_2579"]["p2_state"]["new"], "02")
         self.assertEqual(
             result["native_helper_pre_run_host_2579"]["p2_state"]["value"], "0002")
+        original_scratch = result["original_cpu_collision_scratch_2579"]
+        self.assertEqual(
+            original_scratch["p1_stage_from_prior_p2"]["new"], "00")
+        self.assertEqual(
+            original_scratch["p2_actual_collision_state_increment"]["pc"],
+            "81:9268")
+        self.assertEqual(
+            original_scratch["p2_actual_collision_state_increment"]["new"], "02")
+        self.assertFalse(result["native_cpu_internal_collision_scratch_observed"])
         self.assertFalse(result["cpu_instruction_or_ppu_beam_phase_aligned"])
         self.assertFalse(result["native_helper_scope_is_opcode_pc"])
         self.assertFalse(result["first_causal_upstream_condition_proven"])
@@ -141,7 +163,7 @@ class OriginalNativeExecuted2PAir(unittest.TestCase):
 
     def test_snapshot_contamination_never_becomes_a_zero_credit_pass(self):
         for action in ("phase","award","frame","state","word",
-                       "delta","count","scope"):
+                       "delta","count","scope","collision"):
             with self.subTest(action=action):
                 a,w = fixture()
                 if action == "phase":
@@ -158,6 +180,8 @@ class OriginalNativeExecuted2PAir(unittest.TestCase):
                     a["dense_original_native_same_host"][4]["p1_y_native_minus_original"] = 0
                 elif action == "count":
                     a["original_cpu_source_receipts_qualified"] = 330
+                elif action == "collision":
+                    a["original_cpu_shared_working_scopes"][2]["new"] = "03"
                 else:
                     a["original_cpu_opcode_changes"][0]["pc"] = "81:8E27"
                 with self.assertRaises(ValueError):

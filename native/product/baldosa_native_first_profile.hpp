@@ -94,7 +94,13 @@ inline BaldosaFirstRacerResult create_baldosa_first_preset_for_next_boot(
     auto state = make_default_host_profile_state(id);
     if (!state) return {BaldosaFirstRacerStatus::Invalid, {}};
     state->racer_identity = *preset;
-    const auto& source = clean_stock_sram();
+    // The established Modern host projects a selected stock rider to
+    // clean profile SRAM offset 0x0748. A non-default first-time preset
+    // MUST boot with its own rider selection, not Mike's stock default.
+    // Modify only a private copy for this new identity: the canonical
+    // embedded clean source is immutable and other profiles are untouched.
+    auto source = clean_stock_sram();
+    source[0x0748] = preset->rider_index;
     if (!stock_sram_format_signature_present(source.data(), source.size()) ||
         capture_stock_sram_for_profile(
             ExecutionMode::Modern, *state,

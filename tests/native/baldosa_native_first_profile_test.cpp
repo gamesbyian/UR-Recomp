@@ -60,6 +60,27 @@ int main() {
            BaldosaFirstRacerStatus::AlreadyConfigured);
     assert(fs::last_write_time(raw) == before);
 
+    // A different first-time preset must seed the actual cartridge rider
+    // byte in BOTH typed and raw 8 KiB states without changing the shared
+    // stock image or the first player's new profile.
+    const auto second = workspace / "second-preset";
+    assert(fs::create_directory(second));
+    const auto andrew = create_baldosa_first_preset_for_next_boot(second, 1);
+    assert(andrew.created() && andrew.profile_id == "andrew");
+    const auto typed2 = load_host_profile_state_file(
+        ExecutionMode::Modern, (second / "saves/profile-andrew/host-profile.txt").string(),
+        "andrew");
+    assert(typed2.loaded() && typed2.state->racer_identity &&
+           typed2.state->racer_identity->rider_index == 1);
+    assert(typed2.state->stock_sram &&
+           (*typed2.state->stock_sram)[0x0748] == 1u);
+    const auto raw2 = second / "saves/profile-andrew/save.srm";
+    assert(baldosa_sram_file_matches_exact(
+        raw2, typed2.state->stock_sram->data(), kStockSramBytes));
+    assert(clean_stock_sram()[0x0748] == canonical[0x0748]);
+    assert(baldosa_sram_file_matches_exact(
+        raw, canonical.data(), canonical.size()));
+
     // A foreign/broken catalog, a dangling redirected save path, and
     // corrupted global state may not be silently overwritten.
     const auto foreign = workspace / "foreign";

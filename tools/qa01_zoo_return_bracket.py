@@ -14,13 +14,16 @@ import json
 from pathlib import Path
 import re
 
-FRAME_WINDOW = tuple(range(5048, 5073))
+FRAME_WINDOW = tuple(range(5001, 5050))
 SOURCE_PC_LEADS = ("83:C8DD", "83:C8E0", "80:A09A", "83:987D", "80:951C")
 ORIGINAL_RECEIPT = re.compile(
     r"fb=256x224 RGB565 sram=8192 ppuw=\d+(?: \(truncated\))?")
 DUMP = re.compile(r"^script f=(\d+) dump ([\w-]+) (.+)$", re.MULTILINE)
 PC_RECEIPT = re.compile(
     r"^ZOOPCRETURN f=(\d+) v=(\d+) pc=([0-9A-F]{6})$", re.MULTILINE)
+PPU_RECEIPT = re.compile(
+    r"^ZOOPPUWRITE f=(\d+) v=(\d+) pc=([0-9A-F]{6}) "
+    r"old=([0-9A-F]{2}) new=([0-9A-F]{2})$", re.MULTILINE)
 SCHEMA = "UR-QA01-ZOO-SOURCE-PC-RETURN-PPU-BRACKET/1"
 
 
@@ -63,7 +66,7 @@ def original_pc_receipts(text: str, scene_host: int) -> list[dict]:
         if name not in SOURCE_PC_LEADS:
             raise ValueError("source PC out of bounded static candidate set")
         frame = int(frame)
-        if not scene_host + 5046 <= frame <= scene_host + 5075:
+        if not scene_host + 4998 <= frame <= scene_host + 5052:
             raise ValueError("source PC marker outside qualified return scope")
         found.append({
             "original_icpu_frame": frame,
@@ -73,6 +76,28 @@ def original_pc_receipts(text: str, scene_host: int) -> list[dict]:
     if len(found) > 100:
         raise ValueError("unbounded source PC occurrences")
     return found
+
+
+def original_inidisp_cpu_writes(text: str, scene_host: int) -> list[dict]:
+    """Executed Snes9x pre/post-opcode PPU $2100 changes, not static leads."""
+    out = []
+    for f, v, pc, old, new in PPU_RECEIPT.findall(text):
+        frame = int(f)
+        if not scene_host + 4998 <= frame <= scene_host + 5052:
+            raise ValueError("original CPU PPU writer outside bounded return trace")
+        before, after = int(old, 16), int(new, 16)
+        if before == after:
+            raise ValueError("original opcode PPU register delta is not a change")
+        out.append({
+            "original_icpu_frame": frame, "source_v_counter": int(v),
+            "usa_source_pc_observed_executing": pc[:2] + ":" + pc[2:],
+            "old_2100": old, "new_2100": new,
+            "newly_entered_forced_blank": not bool(before & 0x80)
+                                              and bool(after & 0x80),
+        })
+    if len(out) > 1000:
+        raise ValueError("unbounded original PPU source writes")
+    return out
 
 
 def states(folder: Path, ticks: dict[int, int], side: str) -> dict[int, dict]:
@@ -122,6 +147,9 @@ def analyze(original_dir: Path, native_dir: Path,
         rows[side] = states(folder, ticks[side], side)
     source_pc_raw = full(original_pc_log).decode("utf-8")
     pcs = original_pc_receipts(source_pc_raw, entry["original"])
+    ppu_writes = original_inidisp_cpu_writes(source_pc_raw, entry["original"])
+    source_forced_blank = next((x for x in ppu_writes
+                                if x["newly_entered_forced_blank"]), None)
     crossings = {}
     for side in ("original", "native"):
         t = rows[side]
@@ -147,6 +175,9 @@ def analyze(original_dir: Path, native_dir: Path,
         "guest_original_movie_unmodified": True,
         "source_original_pc_candidate_list": SOURCE_PC_LEADS,
         "source_original_pc_executed_receipts": pcs,
+        "source_executed_inidisp_cpu_write_scopes": ppu_writes,
+        "source_original_first_executing_cpu_pc_setting_forced_blank": source_forced_blank,
+        "source_cpu_opcode_scope_does_not_prove_native_execution_phase": True,
         "historical_pal_pc_candidates_missing_are_not_source_negative_proof": True,
         "source_pc_receipt_log_sha256": hashlib.sha256(
             source_pc_raw.encode()).hexdigest(),

@@ -28,8 +28,8 @@ on:
       - "tools/qa08_analyze_hdma_coldata_source.py"
       - "tests/unit/test_qa08_patch_hdma_coldata_source.py"
       - "tests/unit/test_qa08_analyze_hdma_coldata_source.py"
-      - "tools/check_qa08_native_hdma_setini_source.py"
-      - "tests/unit/test_qa08_native_hdma_setini_source.py"
+      - "tools/check_qa08_native_hdma_cgadsub_source.py"
+      - "tests/unit/test_qa08_native_hdma_cgadsub_source.py"
       - "tools/baldosa_native_ws24_presentation.cpp"
       - "tools/baldosa_ws24_presentation_report.py"
       - "native/title/uniracers_ws_margins.c"
@@ -1241,11 +1241,11 @@ jobs:
             --out "$RUNNER_TEMP/baldosa-evidence/ws342_hdma_coldata_source_2208.json"
           # Same exact unchanged stock USA 2P guest process, now observe
           # the second register in channel5 mode1's actual transfer pair.
-          python3 tools/check_qa08_native_hdma_setini_source.py \
+          python3 tools/check_qa08_native_hdma_cgadsub_source.py \
             --native-log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/log.txt" \
             --coldata-report "$RUNNER_TEMP/baldosa-evidence/ws342_hdma_coldata_source_2208.json" \
             --text26-report "$RUNNER_TEMP/baldosa-evidence/ws342_native_text26_2208.json" \
-            --out "$RUNNER_TEMP/baldosa-evidence/ws342_native_mode1_setini_2208.json"
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_native_mode1_cgadsub_2208.json"
           unset UR_QA08_PPU_TEXT26_FRAME
           unset UR_QA08_PPU_PIXEL_FRAME
           unset UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC UR_RACER_HD_WIDE_REMOVE_SLOT
@@ -1701,7 +1701,7 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/ws342_native_main_sub_pixel_2208.json
             ${{ runner.temp }}/baldosa-evidence/ws342_native_text26_2208.json
             ${{ runner.temp }}/baldosa-evidence/ws342_hdma_coldata_source_2208.json
-            ${{ runner.temp }}/baldosa-evidence/ws342_native_mode1_setini_2208.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_native_mode1_cgadsub_2208.json
             ${{ runner.temp }}/baldosa-ws342-counterfactual-slot98-frame2208/ur-baldosa-ws342-002208.pam
             ${{ runner.temp }}/baldosa-ws342-counterfactual-slot96-frame2208/ur-baldosa-ws342-002208.pam
             ${{ runner.temp }}/baldosa-evidence/ws342_2p_original_colour_journal_2208.json

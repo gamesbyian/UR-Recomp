@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Opt-in pinned native HDMA $2132 COLDATA plus mode1 $2133 SETINI byte provenance.
+"""Opt-in pinned native HDMA $2132 COLDATA plus mode1 $2131 CGADSUB byte provenance.
 
 Disposable Baldosa SNESRecomp DMA instrumentation only. Reads the real SNES
 A-bus byte, channel, HDMA table pointer and post-write live fixed RGB15.
@@ -24,7 +24,7 @@ PATCH=r'''    debug_server_on_reg_write((uint16_t)(0x2100u + bAdr), val);
     {
       static long qa08_colour_frame = -2;
       static unsigned qa08_colour_writes = 0;
-      static unsigned qa08_setini_writes = 0;
+      static unsigned qa08_cgadsub_writes = 0;
       if (qa08_colour_frame == -2) {
         const char *setting = getenv("UR_QA08_HDMA_COLDATA_FRAME");
         char *end = NULL;
@@ -61,32 +61,32 @@ PATCH=r'''    debug_server_on_reg_write((uint16_t)(0x2100u + bAdr), val);
         qa08_colour_writes++;
       }
       /* Companion of the mode-1 channel-5 $2132 write: the other
-       * transfer goes to $2133 SETINI. Read after real BBUS dispatch.
+       * transfer goes to $2131 CGADSUB. Read after real BBUS dispatch.
        * Native observation ONLY; never modify the register or guest. */
       if (qa08_colour_frame >= 0 &&
           snes_frame_counter == qa08_colour_frame &&
           g_ppu_wlog_src == kPpuWlogHdma &&
-          channel == 5 && bAdr == 0x33) {
-        if (qa08_setini_writes == 2048u) {
+          channel == 5 && bAdr == 0x31) {
+        if (qa08_cgadsub_writes == 2048u) {
           fprintf(stderr,
-                  "UR_QA08_HDMA_SETINI_OVERFLOW frame=%d limit=2048\n",
+                  "UR_QA08_HDMA_CGADSUB_OVERFLOW frame=%d limit=2048\n",
                   snes_frame_counter);
-        } else if (qa08_setini_writes < 2048u) {
+        } else if (qa08_cgadsub_writes < 2048u) {
           uint32_t tagged_frame = 0;
           int16_t tagged_line = -1;
           ppu_wlog_position(&tagged_frame, &tagged_line);
           const DmaChannel *ch = &dma->channel[channel];
           fprintf(stderr,
-                  "UR_QA08_HDMA_SETINI frame=%d tagframe=%u line=%d "
+                  "UR_QA08_HDMA_CGADSUB frame=%d tagframe=%u line=%d "
                   "channel=%d bbus=%02X value=%02X src=%02X:%04X "
-                  "mode=%u indirect=%u table=%04X bank=%02X setini=%02X\n",
+                  "mode=%u indirect=%u table=%04X bank=%02X cgadsub=%02X\n",
                   snes_frame_counter, tagged_frame, tagged_line,
                   channel, bAdr, val, aBank, aAdr,
                   (unsigned)(ch->mode & 7), (unsigned)ch->indirect,
                   (unsigned)ch->tableAdr, (unsigned)ch->aBank,
-                  (unsigned)dma->snes->ppu->setini);
+                  (unsigned)dma->snes->ppu->cgadsub);
         }
-        qa08_setini_writes++;
+        qa08_cgadsub_writes++;
       }
     }
   }

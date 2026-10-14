@@ -350,6 +350,7 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_second_racer/report.json
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/report.json
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/ci-owned-raw-artifacts/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/ci-owned-pre-records-pair/**
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/first_P1_mike/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/named_P1_adds_P2/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/played_native_2p/log.txt

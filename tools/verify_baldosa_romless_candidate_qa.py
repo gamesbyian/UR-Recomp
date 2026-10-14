@@ -301,6 +301,23 @@ RUNTIME_NEW_TWO_FRESH = "UR Baldosa Win32 Pause Route/native_real_2p_records/fre
 # player data under an arbitrary .txt/.json suffix, so an extension-only
 # blacklist is insufficient. The five stock diagnostic logs are allowed but
 # never promoted as source/result or fresh-Records evidence.
+# Two overlapping in-flight product PRs have proposed different exact
+# first-racer test log names within this very same Windows Actions upload.
+# They are strictly NON-ADMITTED, uninspected diagnostics here. Whichever
+# product PR lands must provide a complete three-file set; partial or two
+# competing sets fail closed, and no QA-09 first-racer credit is inferred.
+RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS = (
+    (
+        "UR Baldosa Win32 Pause Route/native_first_racer/report.json",
+        "UR Baldosa Win32 Pause Route/native_first_racer/first_anonymous_process/log.txt",
+        "UR Baldosa Win32 Pause Route/native_first_racer/fresh_named_process/log.txt",
+    ),
+    (
+        "UR Baldosa Win32 Pause Route/native_first_racer_boot/report.json",
+        "UR Baldosa Win32 Pause Route/native_first_racer_boot/first_controller_racer/log.txt",
+        "UR Baldosa Win32 Pause Route/native_first_racer_boot/fresh_named_game/log.txt",
+    ),
+)
 RUNTIME_DIAGNOSTIC_LOGS = frozenset(
     "UR Baldosa Win32 Pause Route/" + suffix + "/log.txt"
     for suffix in (
@@ -312,7 +329,10 @@ RUNTIME_ALLOWED_MEMBERS = frozenset((
     RUNTIME_LAUNCHER, RUNTIME_REPORT, RUNTIME_ONE, RUNTIME_TWO,
     RUNTIME_NEW_ONE, RUNTIME_NEW_PLAYED, RUNTIME_NEW_FRESH,
     RUNTIME_NEW_TWO, RUNTIME_NEW_TWO_PLAYED, RUNTIME_NEW_TWO_FRESH,
-)) | RUNTIME_DIAGNOSTIC_LOGS
+)) | RUNTIME_DIAGNOSTIC_LOGS | frozenset(
+    name for group in RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS
+    for name in group
+)
 
 
 def check_runtime_actions_wrapper(
@@ -356,6 +376,14 @@ def check_runtime_actions_wrapper(
                 for item in archive.infolist()
             ):
                 raise ValueError("Baldosa runtime evidence has oversized/empty ZIP member")
+            first_racer_sets = [
+                sum(path in names for path in group)
+                for group in RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS
+            ]
+            if any(count not in (0, 3) for count in first_racer_sets):
+                raise ValueError("Baldosa first-racer diagnostic evidence group incomplete")
+            if sum(count == 3 for count in first_racer_sets) > 1:
+                raise ValueError("Baldosa first-racer diagnostic evidence groups ambiguous")
 
             def bounded(name: str, limit: int) -> bytes:
                 try:

@@ -191,7 +191,7 @@ class IndependentSecondRacerGO(unittest.TestCase):
             (2, "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2"),
         ):
             logs = [first, second, third]
-            logs[index] += "not-an-event: " + marker + "\\n"
+            logs[index] += "not-an-event: " + marker + "\n"
             with self.subTest(guest=index):
                 with self.assertRaises(ValueError):
                     self.check(report, *logs)

@@ -296,6 +296,44 @@ RUNTIME_NEW_TWO = "UR Baldosa Win32 Pause Route/native_real_2p_records/report.js
 RUNTIME_NEW_TWO_PLAYED = "UR Baldosa Win32 Pause Route/native_real_2p_records/played_native_2p/log.txt"
 RUNTIME_NEW_TWO_FRESH = "UR Baldosa Win32 Pause Route/native_real_2p_records/fresh_game_2p_records/log.txt"
 
+# Exact Windows Actions upload list, observed in the original successful
+# hosted 1P and 2P wrappers. An unreviewed extra ZIP member can carry private
+# player data under an arbitrary .txt/.json suffix, so an extension-only
+# blacklist is insufficient. The five stock diagnostic logs are allowed but
+# never promoted as source/result or fresh-Records evidence.
+# Two overlapping in-flight product PRs have proposed different exact
+# first-racer test log names within this very same Windows Actions upload.
+# They are strictly NON-ADMITTED, uninspected diagnostics here. Whichever
+# product PR lands must provide a complete three-file set; partial or two
+# competing sets fail closed, and no QA-09 first-racer credit is inferred.
+RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS = (
+    (
+        "UR Baldosa Win32 Pause Route/native_first_racer/report.json",
+        "UR Baldosa Win32 Pause Route/native_first_racer/first_anonymous_process/log.txt",
+        "UR Baldosa Win32 Pause Route/native_first_racer/fresh_named_process/log.txt",
+    ),
+    (
+        "UR Baldosa Win32 Pause Route/native_first_racer_boot/report.json",
+        "UR Baldosa Win32 Pause Route/native_first_racer_boot/first_controller_racer/log.txt",
+        "UR Baldosa Win32 Pause Route/native_first_racer_boot/fresh_named_game/log.txt",
+    ),
+)
+RUNTIME_DIAGNOSTIC_LOGS = frozenset(
+    "UR Baldosa Win32 Pause Route/" + suffix + "/log.txt"
+    for suffix in (
+        "baseline", "with_pause", "with_named_profile",
+        "corrupt_named_profile", "different_named_profile",
+    )
+)
+RUNTIME_ALLOWED_MEMBERS = frozenset((
+    RUNTIME_LAUNCHER, RUNTIME_REPORT, RUNTIME_ONE, RUNTIME_TWO,
+    RUNTIME_NEW_ONE, RUNTIME_NEW_PLAYED, RUNTIME_NEW_FRESH,
+    RUNTIME_NEW_TWO, RUNTIME_NEW_TWO_PLAYED, RUNTIME_NEW_TWO_FRESH,
+)) | RUNTIME_DIAGNOSTIC_LOGS | frozenset(
+    name for group in RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS
+    for name in group
+)
+
 
 def check_runtime_actions_wrapper(
     wrapper: Path, candidate: dict,
@@ -319,11 +357,33 @@ def check_runtime_actions_wrapper(
     try:
         with zipfile.ZipFile(wrapper) as archive:
             names = archive.namelist()
-            if len(names) > 40 or len(names) != len(set(names)):
-                raise ValueError("Baldosa runtime evidence has excessive or duplicate members")
-            if any(name.lower().endswith((".sfc", ".smc", ".srm", ".urrun", ".urmatch"))
-                   for name in names):
-                raise ValueError("Baldosa runtime evidence unexpectedly contains protected player/game data")
+            if len(names) != len(set(names)):
+                raise ValueError("Baldosa runtime evidence has duplicate members")
+            # The exact evidence producer's optional 1P/2P groups are
+            # independently checked all-or-none below. A nonallowlisted
+            # attachment is never silently accepted merely because it is
+            # called .txt, .json, .log or lacks a known ROM/save extension.
+            # This also rejects directories, path aliases, traversal and
+            # unreviewed private data before any member is read.
+            if not set(names) <= RUNTIME_ALLOWED_MEMBERS:
+                raise ValueError("Baldosa runtime evidence has unreviewed ZIP member")
+            # All members, including the five diagnostic logs that this QA
+            # consumer intentionally never reads, must be bounded. Otherwise
+            # an allowlisted filename can conceal a huge compressed private
+            # export/ZIP bomb which survives the outer 16 MiB size cap.
+            if any(
+                item.is_dir() or not 0 < item.file_size <= 2 * 1024 * 1024
+                for item in archive.infolist()
+            ):
+                raise ValueError("Baldosa runtime evidence has oversized/empty ZIP member")
+            first_racer_sets = [
+                sum(path in names for path in group)
+                for group in RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS
+            ]
+            if any(count not in (0, 3) for count in first_racer_sets):
+                raise ValueError("Baldosa first-racer diagnostic evidence group incomplete")
+            if sum(count == 3 for count in first_racer_sets) > 1:
+                raise ValueError("Baldosa first-racer diagnostic evidence groups ambiguous")
 
             def bounded(name: str, limit: int) -> bytes:
                 try:

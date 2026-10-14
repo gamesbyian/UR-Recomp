@@ -92,7 +92,10 @@ def main():
     for k in ("root","receipt","live","original-go","out"):
         p.add_argument("--"+k,required=True,type=Path)
     a=p.parse_args()
-    from tools.qa08_original_snesref_raster_source import read_frame
+    try:
+        from tools.qa08_original_snesref_raster_source import read_frame
+    except ModuleNotFoundError:
+        from qa08_original_snesref_raster_source import read_frame
     result=validate(a.root,read_json(a.receipt),read_json(a.live),
                     read_frame(a.original_go,"go"))
     a.out.parent.mkdir(parents=True,exist_ok=True)

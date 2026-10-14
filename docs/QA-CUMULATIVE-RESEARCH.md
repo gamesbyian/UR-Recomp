@@ -65,7 +65,7 @@ The earlier `frontier_coverage` HyperLogLog numbers remain estimates for legacy 
 * a rare feature has a reproducible witness (hand it to the owning lane; QA-01 owns original/native adjudication);
 * only fingerprints would grow.
 
-Default today: **no frontier run is recommended**. The next useful work is reproducing witness 50036056 against the original emulator (owned by QA-01, not by more volume) and a source-qualified visibility observer (QA-08). Then a 100-case pilot of that observer.
+Default today: **no frontier run is recommended**. Witness 50036056 has been reproduced against the original emulator (it is a one-frame hop the original also shows), and the census itself is now cross-checked against the original case by case without native runs. See the [findings queue](RESEARCH-FINDINGS-QUEUE.md) for the results and the consequence-ranked next experiments.
 
 ## Resumable frontier series (2026-10-14)
 

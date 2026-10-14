@@ -93,7 +93,9 @@ class Original:
                 raise ValueError(f"missing original-emulator input {p}")
         if sha256(rom) != guest.ROM_SHA:
             raise ValueError("not the canonical original USA ROM")
-        self.snesref, self.core, self.rom = snesref, core, rom
+        # The emulator runs inside each case's work directory (it writes
+        # audio/trace side files to its cwd), so never keep relative paths.
+        self.snesref, self.core, self.rom = (p.resolve() for p in (snesref, core, rom))
         self.identity = {"original_rom_sha256": guest.ROM_SHA,
                          "snes9x_core_sha256": sha256(core),
                          "snesref_sha256": sha256(snesref)}
@@ -115,7 +117,7 @@ class Original:
                    SNESREF_SCRIPT=str(work / "case.script"),
                    SNESREF_DUMP_DIR=str(work))
         done = subprocess.run([str(self.snesref), str(self.core), str(self.rom)],
-                              env=env, capture_output=True, text=True,
+                              env=env, cwd=work, capture_output=True, text=True,
                               errors="replace", timeout=300)
         (work / "original.log").write_text(done.stdout + done.stderr, encoding="utf-8")
         if done.returncode != 0:
@@ -273,8 +275,8 @@ def native_run(exe: Path, rom: Path, control: str, frames: list[int], work: Path
         prev = f
     lines.append("quit")
     (work / "case.script").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    guest.execute(exe, rom, work / "case.input", work / "case.script", work / "run", 600,
-                  runtime_log=work / "native.log")
+    guest.execute(exe.resolve(), rom, work / "case.input", work / "case.script",
+                  work / "run", 600, runtime_log=work / "native.log", observe_result=False)
     dumps = {f: work / "run" / "dumps" / f"n-{f}.wram.bin" for f in sorted(set(frames))}
     for f, p in dumps.items():
         if not p.is_file() or p.stat().st_size != 131072:
@@ -282,10 +284,46 @@ def native_run(exe: Path, rom: Path, control: str, frames: list[int], work: Path
     return dumps
 
 
+FINISH_START = 3430  # after the planner's last interval (< 3400 + 35)
+FINISH_MASK = 0x080  # both seats hold Right: completes the ordinary 2P race
+
+
+def finish_suffix(hold: int) -> str:
+    """Declared, seed-independent stimulus that drives both racers to the finish."""
+    if not 0 < hold <= 30000:
+        raise ValueError("finish hold must be a bounded positive frame count")
+    return f"# declared finish stimulus\n{FINISH_START}:{hold}:{FINISH_MASK:03x}:{FINISH_MASK:03x}\n"
+
+
+def terminal_events(dumps: dict[int, Path], frames: list[int], offset: int) -> dict:
+    """First native-indexed frame of each terminal transition seen by one engine."""
+    events = {"both_laps_zero": None, "race_exit": None, "menu_first_nonzero": None}
+    menus = []
+    for f in frames:
+        if f < FINISH_START:
+            continue
+        page = dumps[f - offset].read_bytes()
+        d = state(dumps[f - offset])
+        laps = (d["race_progress"]["player1"]["laps_remaining"],
+                d["race_progress"]["player2"]["laps_remaining"])
+        if events["both_laps_zero"] is None and laps == (0, 0):
+            events["both_laps_zero"] = f
+        if events["race_exit"] is None and page[0x0313] == 0:
+            events["race_exit"] = f
+        if events["menu_first_nonzero"] is None and page[0x009F] != 0:
+            events["menu_first_nonzero"] = f
+        if not menus or menus[-1][1] != page[0x009F]:
+            menus.append((f, page[0x009F]))
+    events["menu_sequence"] = menus
+    return events
+
+
 def paired_case(original: Original, exe: Path, seed: int, arm: str, lag: int,
-                frames: list[int], work: Path) -> dict:
+                frames: list[int], work: Path, finish_hold: int = 0) -> dict:
     """Exact field comparison: native frame F against original frame F - lag."""
     control = case_input(seed, arm)
+    if finish_hold:
+        control += finish_suffix(finish_hold)
     native = native_run(exe, original.rom, control, frames, work / "native")
     orig = original.run(shift_post_entry(control, lag), [f - lag for f in frames],
                         work / "original")
@@ -310,7 +348,15 @@ def paired_case(original: Original, exe: Path, seed: int, arm: str, lag: int,
                          sum(a != b for a, b in zip(npage[0x200:], opage[0x200:]))})
         if diff and first is None:
             first = f
+    terminal = None
+    if finish_hold:
+        terminal = {"native": terminal_events(native, frames, 0),
+                    "original": terminal_events(orig, frames, lag)}
+        terminal["race_relative_equal"] = (
+            {k: v for k, v in terminal["native"].items()} ==
+            {k: v for k, v in terminal["original"].items()})
     return {"seed": seed, "arm": arm, "declared_lag": lag,
+            "finish_hold": finish_hold, "terminal_events_native_indexed": terminal,
             "measured_entry_host": entries, "measured_lag": measured,
             "declared_lag_confirmed": measured == lag,
             "disposition": "exact_field_agreement" if first is None else "field_divergence",
@@ -327,17 +373,42 @@ def crosscheck(ledger: dict, run_id: int, lag: int, original: Original,
         cases = [c for c in cases if c[0] in seeds]
     if limit is not None:
         cases = cases[:limit]
-    results = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
+    # Append-only journal: a killed run resumes without recomputing finished
+    # cases. The header pins run, lag, original identity and tool digest, so a
+    # resumed population is one cohort; errored cases are retried, not reused.
+    header = {"schema": SCHEMA, "native_run_id": run_id, "lag": lag,
+              "original": original.identity, "tool_sha256": sha256(Path(__file__))}
+    journal = work / "results.jsonl"
+    done: dict[int, dict] = {}
+    if journal.exists():
+        lines = journal.read_text(encoding="utf-8").splitlines()
+        if not lines or json.loads(lines[0]) != header:
+            raise ValueError("journal belongs to a different cross-check cohort")
+        for line in lines[1:]:
+            row = json.loads(line)
+            if row.get("disposition") != "original_error":
+                done[row["seed"]] = row
+    else:
+        work.mkdir(parents=True, exist_ok=True)
+        journal.write_text(json.dumps(header, sort_keys=True) + "\n", encoding="utf-8")
+    todo = [(s, a) for s, a in cases if s not in done]
+    for s, a in todo:  # an interrupted case left a partial, unjournaled root
+        shutil.rmtree(work / f"{s}-{a}", ignore_errors=True)
+    results = [done[s] for s, _ in cases if s in done]
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool, \
+            journal.open("a", encoding="utf-8") as log:
         futures = {pool.submit(check_case, original, census, run_id, s, a, lag, work, keep): (s, a)
-                   for s, a in cases}
+                   for s, a in todo}
         for fut in concurrent.futures.as_completed(futures):
             s, a = futures[fut]
             try:
-                results.append(fut.result())
+                row = fut.result()
             except Exception as exc:  # retain, never count as agreement
-                results.append({"seed": s, "arm": a, "disposition": "original_error",
-                                "error": str(exc)[:400]})
+                row = {"seed": s, "arm": a, "disposition": "original_error",
+                       "error": str(exc)[:400]}
+            results.append(row)
+            log.write(json.dumps(row, sort_keys=True) + "\n")
+            log.flush()
     results.sort(key=lambda r: r["seed"])
     counts = collections.Counter(r["disposition"] for r in results)
     features = collections.Counter(f for r in results for f in r.get("original_feature_labels", []))
@@ -354,6 +425,7 @@ def crosscheck(ledger: dict, run_id: int, lag: int, original: Original,
         "original": original.identity,
         "crosscheck_tool_sha256": sha256(Path(__file__)),
         "cases_checked": len(results),
+        "cases_resumed_from_journal": len(results) - len(todo),
         "cases_in_native_run": len(run_cases(census, run_id)),
         "counts": dict(sorted(counts.items())),
         "original_full_trace_feature_counts": dict(sorted(features.items())),
@@ -366,6 +438,54 @@ def crosscheck(ledger: dict, run_id: int, lag: int, original: Original,
         "original_native_parity_claimed": False,
         "release_gate_credit": 0,
     }
+
+
+SUMMARY_SCHEMA = "ur-frontier-original-crosscheck-summary/1"
+
+
+def summarize(reports: list[dict], paired: list[dict]) -> dict:
+    """Compact, reviewable evidence: per-run counts and every non-agreeing case."""
+    runs = []
+    for r in reports:
+        if r.get("schema") != SCHEMA:
+            raise ValueError("not a census cross-check report")
+        runs.append({k: r[k] for k in (
+            "native_run_id", "native_source_sha", "native_executable_sha256",
+            "declared_native_minus_original_entry_lag", "cases_checked",
+            "cases_in_native_run", "counts", "divergent_cases",
+            "original_full_trace_feature_counts", "native_full_trace_feature_counts",
+            "original_offscreen_sentinel_case_counts", "census_record_sha256",
+            "crosscheck_tool_sha256") if k in r})
+        runs[-1]["original_errors"] = [
+            {"seed": c["seed"], "arm": c["arm"], "error": c["error"]}
+            for c in r["cases"] if c["disposition"] == "original_error"][:20]
+    pairs = []
+    for r in paired:
+        if r.get("schema") != PAIRED_SCHEMA:
+            raise ValueError("not a paired race-relative report")
+        pairs.append({
+            "seed": r["seed"], "arm": r["arm"], "declared_lag": r["declared_lag"],
+            "measured_entry_host": r["measured_entry_host"],
+            "declared_lag_confirmed": r["declared_lag_confirmed"],
+            "disposition": r["disposition"],
+            "first_divergent_native_frame": r["first_divergent_native_frame"],
+            "frames_compared": len(r["rows"]),
+            "max_semantic_wram_bytes_differing":
+                max(row["semantic_wram_bytes_differing"] for row in r["rows"]),
+            "native_executable_sha256": r["native_executable_sha256"]})
+    originals = {json.dumps(r["original"], sort_keys=True) for r in reports + paired}
+    if len(originals) != 1:
+        raise ValueError("reports mix different original emulator identities")
+    total = collections.Counter()
+    for r in runs:
+        total.update(r["counts"])
+    return {"schema": SUMMARY_SCHEMA, "original": json.loads(originals.pop()),
+            "census_runs": runs, "census_totals": dict(sorted(total.items())),
+            "paired_exact": pairs,
+            "paired_totals": dict(sorted(collections.Counter(
+                p["disposition"] for p in pairs).items())),
+            "claim": "quantized census agreement and sampled exact semantic-WRAM agreement only",
+            "original_native_parity_claimed": False, "release_gate_credit": 0}
 
 
 def parse_frames(spec: str) -> list[int]:
@@ -406,21 +526,33 @@ def main() -> int:
     r.add_argument("--seeds", default="")
     r.add_argument("--keep-dumps", action="store_true",
                    help="retain each case's original WRAM dumps (128 KiB x 15)")
+    sm = sub.add_parser("summarize")
+    sm.add_argument("--report", type=Path, action="append", default=[])
+    sm.add_argument("--paired", type=Path, action="append", default=[])
+    sm.add_argument("--out", type=Path, required=True)
     pr = sub.choices["paired"]
     pr.add_argument("--native-exe", type=Path, required=True)
     pr.add_argument("--seed", type=int, required=True)
     pr.add_argument("--arm", required=True, choices=frontier.ARMS)
     pr.add_argument("--lag", type=int, required=True)
+    pr.add_argument("--finish-hold", type=int, default=0,
+                    help="append the declared both-Right finish stimulus for N frames")
     pr.add_argument("--frames", default="1128-1140,1620,1740-3420/120",
                     help="native frames: a-b (every frame), a-b/step, or single values")
     args = ap.parse_args()
+    if args.mode == "summarize":
+        load = lambda p: json.loads(p.read_text(encoding="utf-8"))
+        result = summarize([load(p) for p in args.report], [load(p) for p in args.paired])
+        args.out.write_text(json.dumps(result, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+        print(json.dumps({k: result[k] for k in ("census_totals", "paired_totals")}))
+        return 0
     if args.mode == "paired":
         original = Original(args.snesref, args.core, args.rom)
         if args.out.exists():
             raise SystemExit("refuse to overwrite a prior paired report")
         frames = parse_frames(args.frames)
         result = paired_case(original, args.native_exe, args.seed, args.arm, args.lag,
-                             frames, args.work)
+                             frames, args.work, args.finish_hold)
         result.update({"schema": PAIRED_SCHEMA, "original": original.identity,
                        "native_executable_sha256": sha256(args.native_exe),
                        "release_gate_credit": 0, "original_native_parity_claimed": False})

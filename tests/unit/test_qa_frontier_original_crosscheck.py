@@ -116,10 +116,80 @@ class Crosscheck(unittest.TestCase):
         self.assertEqual(report["release_gate_credit"], 0)
         self.assertFalse(report["original_native_parity_claimed"])
 
+    def test_resume_reuses_journaled_cases_and_retries_errors(self):
+        census = self._census(2, 50036056, 99)
+        ledger = {"records": [{"campaign": "frontier", "github_run_id": 99,
+                               "disposition": "completed_positive",
+                               "metrics": {"native_executable_sha256": "e"}}]}
+
+        class Broken(FakeOriginal):
+            def run(self, *a):
+                raise RuntimeError("killed")
+        with mock.patch.object(m, "load_census", return_value=(census, "c")):
+            first = m.crosscheck(ledger, 99, 2, Broken(), self.root / "w", 1, None, None)
+            self.assertEqual(first["counts"], {"original_error": 1})
+            fake = FakeOriginal()
+            second = m.crosscheck(ledger, 99, 2, fake, self.root / "w", 1, None, None)
+            self.assertEqual(second["counts"], {"coarse_agreement": 1})
+            self.assertEqual(len(fake.inputs), 1)
+            third_fake = FakeOriginal()
+            third = m.crosscheck(ledger, 99, 2, third_fake, self.root / "w", 1, None, None)
+            self.assertEqual(third["cases_resumed_from_journal"], 1)
+            self.assertEqual(third_fake.inputs, [])
+            with self.assertRaisesRegex(ValueError, "different cross-check cohort"):
+                m.crosscheck(ledger, 99, 0, FakeOriginal(), self.root / "w", 1, None, None)
+
     def test_requires_single_completed_frontier_record(self):
         with self.assertRaisesRegex(ValueError, "single completed"):
             m.run_record({"records": [{"campaign": "frontier", "github_run_id": 5,
                                        "disposition": "incomplete_or_failed"}]}, 5)
+
+    def test_emulator_paths_are_absolute_because_cases_run_in_their_own_cwd(self):
+        import os
+        for name in ("snesref", "core"):
+            (self.root / name).write_bytes(b"x")
+        old = os.getcwd()
+        os.chdir(self.root)
+        try:
+            orig = m.Original(Path("snesref"), Path("core"),
+                              ROOT / "reference/roms/retail/Uniracers_USA.sfc")
+        finally:
+            os.chdir(old)
+        self.assertTrue(all(p.is_absolute() for p in (orig.snesref, orig.core, orig.rom)))
+
+    def test_paired_measures_entry_and_compares_exact_fields(self):
+        def pages(entry, bump=None):
+            def run(control, frames, work):
+                work.mkdir(parents=True)
+                out = {}
+                for f in frames:
+                    page = bytearray(131072)
+                    page[0x0313] = int(f >= entry)
+                    page[0x0FE7] = max(0, f - entry + 1) & 0xFF
+                    if bump is not None and f - entry >= bump:
+                        page[0x0411] = 1
+                    out[f] = work / f"{f}.bin"
+                    out[f].write_bytes(bytes(page))
+                return out
+            return run
+        orig = FakeOriginal()
+        orig.run = pages(1134)
+        orig.rom = Path("rom")
+        frames = m.parse_frames("1128-1140,1700-1702")
+        with mock.patch.object(m, "native_run",
+                               side_effect=lambda e, r, c, fr, w: pages(1136)(c, fr, w)):
+            same = m.paired_case(orig, Path("exe"), 50036056, "rotation", 2, frames,
+                                 self.root / "p")
+        self.assertEqual(same["measured_entry_host"], {"native": 1136, "original": 1134})
+        self.assertTrue(same["declared_lag_confirmed"])
+        self.assertEqual(same["disposition"], "exact_field_agreement")
+        self.assertTrue(all(r["native_frame"] >= 1137 for r in same["rows"]))
+        with mock.patch.object(m, "native_run",
+                               side_effect=lambda e, r, c, fr, w: pages(1136, bump=565)(c, fr, w)):
+            diff = m.paired_case(orig, Path("exe"), 50036056, "rotation", 2, frames,
+                                 self.root / "q")
+        self.assertEqual(diff["first_divergent_native_frame"], 1701)
+        self.assertIn("slot1.x_pos", diff["rows"][-2]["differing_fields"])
 
     def test_refuses_reused_evidence_root(self):
         work = self.root / "used"

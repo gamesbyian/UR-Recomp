@@ -15,7 +15,7 @@ def image(*, dark_rows=(), changed_other=None):
     return HEADER + bytes(result)
 
 
-CRC = b"".join(f"{n:04d}: {n:08x}\n".encode() for n in range(2473))
+CRC = b"".join(f"0x{n:08X}\n".encode() for n in range(2473))
 
 
 class NativeHdmaPrimeRenderedPixelsTests(unittest.TestCase):
@@ -47,6 +47,15 @@ class NativeHdmaPrimeRenderedPixelsTests(unittest.TestCase):
                    enforce_accepted_baseline=False)
         self.assertEqual(r["classification"], "source_native_hypothesis_not_supported")
         self.assertEqual(r["changed_output_rows"], [])
+
+    def test_real_native_stationary_frames_may_legitimately_repeat_CRC_values(self):
+        data = b"0xA091EF13\n" * 181 + CRC[11 * 0:]
+        data = data.splitlines(keepends=True)[:2473]
+        data = b"".join(data)
+        self.assertEqual(len(data.splitlines()), 2473)
+        r = assess(image(dark_rows=(112,113)), image(dark_rows=(111,112)),
+                   data, data, enforce_accepted_baseline=False)
+        self.assertEqual(r["changed_256wide_RGBA_pixels"], 512)
 
     def test_reject_malformed_p7_alpha_and_edited_baseline(self):
         baseline = image(dark_rows=(112, 113))

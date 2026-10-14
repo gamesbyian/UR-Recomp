@@ -50,9 +50,10 @@ MAX_RUNS_INSPECTED = 40
 # rough per-unit cost from measured runs. Frontier peak is its parallel knob.
 PEAK_RUNNERS = {"native-2p": 2, "windows": 2, "fault-recovery": 3,
                 "graphics": 1, "performance": 1, "original-native": 2}
-# Measured: 100-case frontier ~40 experiment runner-minutes (runs 38438864232,
-# 38446393623); 15-minute graphics ~16; candidate builds ~3-6.
-FRONTIER_RUNNER_MINUTES_PER_CASE = 0.4
+# Measured: 100-case frontier experiments took 36-40 runner-minutes before turbo
+# (runs 38438864232, 38446393623) and 31.5 with turbo (38506108109, 36.1 for
+# the whole run); 15-minute graphics ~16; candidate builds ~3-6.
+FRONTIER_RUNNER_MINUTES_PER_CASE = 0.32
 
 # Files whose change can plausibly alter a producer's behaviour. Used only to
 # avoid automatically re-running a lane whose last receipt failed while nothing

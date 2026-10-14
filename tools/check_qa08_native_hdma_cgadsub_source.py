@@ -3,7 +3,7 @@
 
 This verifies genuine PPU writes after the native BBUS transfer. The guest,
 raster, input, original 26-pixel compositor and 2473 CRC witnesses remain
-independent. Five original Snes9x WRAM source values are reference context,
+independent. Six original Snes9x WRAM source values are reference context,
 not assumed same-input native acceptance.
 """
 from __future__ import annotations
@@ -19,9 +19,13 @@ RX = re.compile(
     r"src=([0-9A-F]{2}):([0-9A-F]{4}) mode=(\d+) indirect=([01]) "
     r"table=([0-9A-F]{4}) bank=([0-9A-F]{2}) cgadsub=([0-9A-F]{2})$"
 )
+# Independently observed executed original USA Snes9x WRAM writer PCs
+# at frame1781, recorded in analysis/data/qa08-original-snes9x-2p-
+# channel5-eighteen-writer-PCs.json. Actual $2131 first-byte source
+# addresses, not the abandoned +1 $2133 hypothesis.
 OBSERVED_ORIGINAL_WRAM = {
-    0x2087: 0x01, 0x208A: 0x6D, 0x208D: 0x01,
-    0x2090: 0x01, 0x2093: 0x6D,
+    0x2085: 0x04, 0x2088: 0x04, 0x208B: 0x04,
+    0x208E: 0x04, 0x2091: 0x04, 0x2094: 0x04,
 }
 
 def check(log: Path, native_coldata: Path, native_text26: Path) -> dict:
@@ -91,6 +95,11 @@ def check(log: Path, native_coldata: Path, native_text26: Path) -> dict:
     first=[r for r in rows if r["native_source_journal_tag"]==0]
     if len(first)!=1 or [r["native_source_journal_tag"] for r in rows]!=[0,2,3,4,113,114,115]:
         raise ValueError("native $2131 source chronology unexpectedly changed")
+    source_locations = {int(r["native_WRAM_source"].split(":")[1],16) for r in rows}
+    actual_source_values = {int(r["native_WRAM_source"].split(":")[1],16):
+                            int(r["native_CGADSUB_written_byte"],16) for r in rows}
+    unique_source_matches = sum(actual_source_values.get(a) == v
+                                for a,v in OBSERVED_ORIGINAL_WRAM.items())
     return {
         "schema":"qa08-original-native-channel5-mode1-CGADSUB-companion/1",
         "status":"original-native-source-observed-seven-channel5-CGADSUB-writes",
@@ -100,7 +109,10 @@ def check(log: Path, native_coldata: Path, native_text26: Path) -> dict:
         "paired_native_COLDATA_records":7,
         "native_WRAM_companion_byte_values_are_actually_measured":True,
         "native_register_after_write_matches_BBUS_value":True,
-        "original_executed_2P_WRAM_source_values_observed":5,
+        "original_executed_2P_unique_WRAM_source_addresses_observed":len(OBSERVED_ORIGINAL_WRAM),
+        "native_distinct_CGADSUB_source_addresses":len(source_locations),
+        "original_executed_2P_unique_WRAM_source_values_matching_native":unique_source_matches,
+        "original_executed_2P_WRAM_source_values_observed":len(OBSERVED_ORIGINAL_WRAM),
         "original_executed_2P_WRAM_source_comparison_matches":
             sum(x["byte_matches_original_Snes9x_if_observed"] is True for x in rows),
         "full_original_native_same_input_parity_proven":False,

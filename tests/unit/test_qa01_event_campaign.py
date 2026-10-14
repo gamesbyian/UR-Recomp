@@ -143,6 +143,17 @@ class QA01CampaignTest(unittest.TestCase):
         self.assertEqual(ev["original_movie_window_sha256"], "a" * 64)
         self.assertEqual(ev["reference_script_sha256"], "a" * 64)
         self.assertEqual(row["release_credit"], 0)
+        # The observed shift is signed. A native guest that enters earlier
+        # than the original may still be a valid, independently calibrated
+        # experiment; never clamp or silently rebase its controller movie.
+        earlier = producer("zoom-zoo", matched=True)
+        earlier["native_entry"] = 982
+        earlier["native_frame_shift"] = -2
+        c.write_json(good, earlier)
+        valid_earlier = c.classify("zoom-zoo", 0, good, plan)
+        self.assertEqual(valid_earlier["disposition"], "strict_candidate")
+        self.assertEqual(valid_earlier["evidence"]["native_frame_shift"], -2)
+        self.assertEqual(valid_earlier["release_credit"], 0)
         for mutate in (
             lambda v: v.pop("original_movie_window_sha256"),
             lambda v: v.__setitem__("reference_script_sha256", "not-a-sha"),

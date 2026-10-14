@@ -67,7 +67,7 @@ class DualAirPaired(unittest.TestCase):
                 frame = 1620 if tag == m.BASE else int(tag.rsplit("-", 1)[-1])
                 lines.append(f"script f={frame} dump {tag} ok")
             (self.root / (side + ".log")).write_text(
-                "guest started\\n" + "\\n".join(lines) + "\\n",encoding="utf-8")
+                "guest started\n" + "\n".join(lines) + "\n",encoding="utf-8")
         # Synthetic ROM stand-in is intentionally not canonical: patch only
         # the isolated manifest and ROM identity expected by these tests.
         manifest_path = self.case / "manifest.json"
@@ -144,7 +144,7 @@ class DualAirPaired(unittest.TestCase):
                 native_text.replace("script f=2580 dump endurance-2580 ok",
                                     "script f=2581 dump endurance-2580 ok"),
                 native_text.replace("script f=2580 dump endurance-2580 ok", ""),
-                native_text + "script f=2580 dump endurance-2580 ok\\n",
+                native_text + "script f=2580 dump endurance-2580 ok\n",
                 native_text.replace("script f=2579 dump qa01-neighbor-2579 ok",
                                     "script f=2580 dump qa01-neighbor-2579 ok"),
             ):
@@ -182,7 +182,8 @@ class DualAirPaired(unittest.TestCase):
         self._make_dump(native / "endurance-2580.wram.bin", air=(1, 0))
         with mock.patch.object(m, "ROM_SHA", m.sha(rom)):
             result = m.summarize(
-                self.case / "manifest.json", original, native, rom, core, executable)
+                self.case / "manifest.json", original, native, rom, core, executable,
+                self.root / "original.log", self.root / "native.log")
         self.assertEqual(result["raw_both_air_at_2580"],
                          {"original": True, "native": False})
         self.assertFalse(result["paired_guest_relative_entry_offset_calibrated"])

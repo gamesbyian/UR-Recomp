@@ -45,8 +45,10 @@ native process before either user's authenticated match identity is usable.
 
 **Evidence classification:** #1560 passed exact-head C++ fault-cut,
 unit/hygiene, native boot, Baldosa integration and full native Windows
-non-regression. The recover function's actual native UI route was not exercised
-by those positive journeys. A separate focused Windows extension now reuses
+non-regression. **Merged #1564** additionally passed the actual Win32
+controller-recovery route on source head `f9d4f27e` in
+[Windows run 38621761011](https://github.com/gamesbyian/UR-Recomp/actions/runs/38621761011).
+Its focused native-evidence [artifact 11922687264](https://github.com/gamesbyian/UR-Recomp/actions/runs/38621761011/artifacts/11922687264) retains only bounded source logs and report. The added source route reuses
 the existing Win32 executable, four fresh native processes and production P1
 semantic gamepad handler: genuine first-user MIKE creation, genuine MARTIN P2
 creation, a **test-only** restoration of the previously retained one-entry
@@ -61,13 +63,18 @@ handler with a synthetic storage fault cut. It does **not** reproduce actual
 power loss, physical controller hardware, a completed scored result within
 the recovery subroute, or grant independent release ledger credit.
 
-## Product candidate: pre/post fresh Records raw-pair snapshots (2026-10-14)
+## Merged and independently decoded: pre/post fresh Records raw-pair snapshots (2026-10-14)
 
-The already integrated six-process Windows source route checks that its only
+Merged Modern #1550's six-process Windows source route checks that its only
 genuine guest-earned paired match is unchanged after each Records viewer.
+Independent QA #1554 has since downloaded and byte-compared both actual
+before/after ZIPs, as well as their source process logs, saved P1/P2 typed/raw
+SRAM, `.urrun/.urmatch` checksums, and exact portable candidate artifacts.
+That independent QA still awards **no physical OS crash, two-controller
+hardware, strict original-USA 45/45 event, or final Windows release gate**.
 Previously only the final post-view bytes were retained, preventing QA from
-independently comparing two actual on-disk timepoints. The Modern candidate
-now exports a separate **CI-owned, no-follow, pair-only** snapshot immediately
+independently comparing two actual on-disk timepoints. The merged Modern producer
+exports a separate **CI-owned, no-follow, pair-only** snapshot immediately
 after authentic original guest play and before the first fresh Records process.
 Its two byte files and SHA-256 manifest are retained under
 `ci-owned-pre-records-pair/` in a **separate Actions artifact from the same
@@ -77,10 +84,12 @@ and post-view pair snapshot unchanged. The Windows producer
 fails closed if the two archived file sets are not byte-identical. ROM-free
 unit tests exercise duplicate/missing/symlinked and stale/foreign inputs.
 
-**Acceptance boundary:** this product change is a candidate until its exact
-head passes real native Windows CI. Independent QA must separately decode and
-compare the pre/post archive bytes alongside the process logs before granting
-source-stage immutability credit. This adds no new save format, product router,
+**Acceptance boundary:** Modern #1550's exact-head native Windows route
+passed and independent QA #1554 downloaded and rehashed the real pre/post
+archives, confirmed matching original paired run/match bytes and pinned the
+source and Windows package hashes. This supplies native source-stage
+immutability evidence, **not** observed real OS power-loss timing or a
+candidate-wide L4 release verdict. It adds no save format, product router,
 scripted result, physical controller or strict original-USA release approval.
 
 ## Existing named-P1 controller selector (native verified 2026-10-14)

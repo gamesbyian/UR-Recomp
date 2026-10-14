@@ -269,6 +269,119 @@ class CompleteEventProducerTests(unittest.TestCase):
         with self.assertRaisesRegex(target.CompleteEventError, "only"):
             target.stock_crawler_script(1)
 
+    def test_original_movie_followthrough_script_is_opt_in_and_bounded(self):
+        for case, (slot, _track, menu, kind) in target.CASES.items():
+            frames = target.sample_frames(case, 5163)
+            base = target.replay_script(slot, menu, frames, kind == "stunt")
+            self.assertNotIn("original-follow-", base)
+            followed = target.replay_script(
+                slot, menu, frames, kind == "stunt",
+                source_followthrough=True)
+            self.assertEqual(
+                [line for line in followed.splitlines()
+                 if line.startswith("dump original-follow-")],
+                [f"dump original-follow-{n:02d}"
+                 for n in target.SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS])
+            self.assertIn("dump result-stable\nwait 2\ndump original-follow-08", followed)
+            self.assertTrue(followed.endswith("dump original-follow-32\nquit\n"))
+            self.assertEqual(
+                [line for line in followed.splitlines()
+                 if line.startswith("press ")],
+                [line for line in base.splitlines()
+                 if line.startswith("press ")])
+            self.assertEqual(followed.count("until 009F"), base.count("until 009F"))
+            self.assertNotIn("poke ", followed)
+
+    def test_source_followthrough_requires_real_movie_frames(self):
+        result_frame = 8353
+        source = {
+            result_frame + offset: {
+                "menu": 0xBC, "track": 1, "in_race": 0x3D}
+            for offset in target.SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS
+        }
+        expected = target.source_followthrough_states(source, result_frame)
+        self.assertEqual(set(expected), {"8", "16", "24", "32"})
+        self.assertEqual(expected["8"]["original_movie_host_frame"], 8361)
+        self.assertEqual(expected["32"]["menu"], 0xBC)
+        with self.assertRaisesRegex(target.CompleteEventError, "missing original-movie"):
+            target.source_followthrough_states(
+                {k: v for k, v in source.items() if k != result_frame + 24},
+                result_frame)
+        source[result_frame + 16] = {"track": 1, "menu": "BC", "in_race": 61}
+        with self.assertRaisesRegex(target.CompleteEventError, "missing original-movie"):
+            target.source_followthrough_states(source, result_frame)
+
+    def test_followthrough_preserves_three_clock_axes_and_zero_credit(self):
+        offsets = target.SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS
+        source = target.source_followthrough_states({
+            8353 + n: {"menu": 0xBC, "track": 1, "in_race": 0x3D}
+            for n in offsets}, 8353)
+        def dump(menu=0xBC, track=1):
+            raw = bytearray(0x20000)
+            raw[0x009F] = menu
+            raw[0x00CE] = track
+            raw[0x0313] = 0x3D
+            raw[0x1199] = 1
+            raw[0x119D] = 1
+            return bytes(raw)
+        def log(onset):
+            lines = [f"script f={onset} dump result-onset"]
+            lines += [f"script f={onset + n} dump original-follow-{n:02d}"
+                      for n in offsets]
+            return "\n".join(lines) + "\n"
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            ref, nat = root / "original", root / "native"
+            ref.mkdir()
+            nat.mkdir()
+            for n in offsets:
+                for path in (ref, nat):
+                    (path / f"original-follow-{n:02d}.wram.bin").write_bytes(dump())
+            # Entries are 50 vs 52, onset is at the same absolute host 100,
+            # but source-relative result phases are +50 vs +48.
+            report = target.observe_source_terminal_followthrough(
+                ref, nat, log(100), log(100), source, 50, 52, 50, 48)
+            self.assertEqual(report["release_complete_usa_event_credit"], 0)
+            self.assertTrue(report["strict_event_comparator_unchanged"])
+            self.assertFalse(report["original_and_native_result_phase_equal_proven"])
+            self.assertFalse(report["menu_restoration_or_final_progression_proven"])
+            self.assertFalse(report["post_result_sram_persistence_proven"])
+            self.assertTrue(report["all_four_named_pairs_equal"])
+            self.assertTrue(report["all_four_full_wram_pairs_equal"])
+            self.assertEqual(report["samples"][0][
+                "independently_observed_replay_host_frames"],
+                {"original": 108, "native": 108})
+            self.assertEqual(report["samples"][0]["source_original_movie"][
+                "original_movie_host_frame"], 8361)
+
+            # Matching actual result text alone cannot override a genuinely
+            # different post-result course/menu guest byte.
+            (nat / "original-follow-16.wram.bin").write_bytes(dump(menu=0x16))
+            bad = target.observe_source_terminal_followthrough(
+                ref, nat, log(100), log(100), source, 50, 52, 50, 48)
+            self.assertFalse(bad["all_four_named_pairs_equal"])
+            self.assertFalse(bad["all_four_full_wram_pairs_equal"])
+            self.assertEqual(bad["release_complete_usa_event_credit"], 0)
+            (nat / "original-follow-16.wram.bin").write_bytes(bytes(80))
+            with self.assertRaisesRegex(target.CompleteEventError, "128 KiB"):
+                target.observe_source_terminal_followthrough(
+                    ref, nat, log(100), log(100), source, 50, 52, 50, 48)
+            (nat / "original-follow-16.wram.bin").write_bytes(dump())
+            with self.assertRaisesRegex(target.CompleteEventError, "frame mismatch"):
+                target.observe_source_terminal_followthrough(
+                    ref, nat, log(100), log(101).replace(
+                        "script f=117 dump original-follow-16",
+                        "script f=118 dump original-follow-16"),
+                    source, 50, 52, 50, 49)
+            with self.assertRaisesRegex(target.CompleteEventError, "clock contradiction"):
+                target.observe_source_terminal_followthrough(
+                    ref, nat, log(100), log(100), source, 50, 52, 50, 50)
+            with self.assertRaisesRegex(target.CompleteEventError, "exactly one"):
+                target.observe_source_terminal_followthrough(
+                    ref, nat, log(100), log(100).replace(
+                        "script f=132 dump original-follow-32\n", ""),
+                    source, 50, 52, 50, 48)
+
     def test_zoo_fixed_host_phase_is_read_only_and_two_clock_axes(self):
         script = target.zoo_terminal_script(5163)
         self.assertEqual(script.count("dump zoo-phase-"), 18)

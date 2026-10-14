@@ -16,6 +16,10 @@ on:
         required: false
         type: boolean
         default: false
+      source_followthrough:
+        required: false
+        type: boolean
+        default: false
       baldosa_refresh_beam_rate:
         required: false
         type: boolean
@@ -40,6 +44,11 @@ on:
 
       qa01_apu_phase:
         description: "Opt-in read-only original/Baldosa APU port-2 and CPU-source opcode trace around Zoo result"
+        type: boolean
+        required: false
+        default: false
+      source_followthrough:
+        description: "Opt-in true 2014 original/native +8/+16/+24/+32 result follow-through (3 real event cases, no admission)"
         type: boolean
         required: false
         default: false
@@ -222,6 +231,7 @@ jobs:
           QA01_CASE: ${{ matrix.case }}
           QA01_ZOO_TERMINAL: ${{ inputs.zoo_terminal_phase }}
           QA01_APU_PHASE: ${{ inputs.qa01_apu_phase }}
+          QA01_SOURCE_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
           # Distinct original and native clock axes; historical Zoo result
           # windows, NOT time-shifted input or assumed frame equivalence.
           UR_QA01_APU_ORIGINAL_FIRST: "6748"
@@ -233,6 +243,9 @@ jobs:
           extra_args=()
           if [[ "$QA01_ZOO_TERMINAL" == "true" ]]; then
             extra_args+=(--zoo-terminal-phase)
+          fi
+          if [[ "$QA01_SOURCE_FOLLOWTHROUGH" == "true" ]]; then
+            extra_args+=(--source-followthrough)
           fi
           ROOT="$RUNNER_TEMP/qa01-case"
           BIN="$RUNNER_TEMP/qa01-binaries"

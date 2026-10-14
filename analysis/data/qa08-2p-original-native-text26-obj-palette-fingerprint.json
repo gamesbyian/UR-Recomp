@@ -1,0 +1,98 @@
+{
+  "schema": "qa08-original-native-2p-bg3-obj-26-pixel-palette-fingerprint/1",
+  "source_native_run": 38502862996,
+  "artifact_id": 11867670354,
+  "artifact_zip_sha256": "5d669af7f333598612540e5bf1d7e6d7fd59d6b459f9e249054cbc85438bf4ed",
+  "source_text26_json_sha256": "1eec27bc0b2fe801ec0f554e1057003c0bfa77afe32e8e176d39a57e445ebfe1",
+  "guest_frame": 2208,
+  "native_guest_crc_records": 2473,
+  "source_original_RGBA_SHA256": "f9ca59c19dc3e8d51c7ca1dbce25d5dc14e56ba36011128abbadee8cec0e7b4a",
+  "bg3_main_zbuf": "0xF21B",
+  "bg3_main_RGB15": "0x000D",
+  "upper_source_OBJ_zbuf_class": "0xA6",
+  "lower_source_OBJ_zbuf_class": "0xA4",
+  "upper_live_fixed_RGB15": "0x000F",
+  "lower_live_fixed_RGB15": "0x0260",
+  "source_pairs_each_viewport": 13,
+  "cross_viewport_unchanged_src_final_RGB5_pairs": 13,
+  "shade_histogram_each_viewport": [
+    {
+      "source_RGB15": "0x0442",
+      "source_RGB5": [
+        2,
+        2,
+        1
+      ],
+      "normal_final_RGB5": [
+        15,
+        2,
+        1
+      ],
+      "upper_OBJ_zbuf": "0xA6B8",
+      "lower_OBJ_zbuf": "0xA4C8",
+      "pixels": 1
+    },
+    {
+      "source_RGB15": "0x18C6",
+      "source_RGB5": [
+        6,
+        6,
+        6
+      ],
+      "normal_final_RGB5": [
+        19,
+        6,
+        6
+      ],
+      "upper_OBJ_zbuf": "0xA6B3",
+      "lower_OBJ_zbuf": "0xA4C3",
+      "pixels": 2
+    },
+    {
+      "source_RGB15": "0x2529",
+      "source_RGB5": [
+        9,
+        9,
+        9
+      ],
+      "normal_final_RGB5": [
+        22,
+        9,
+        9
+      ],
+      "upper_OBJ_zbuf": "0xA6B5",
+      "lower_OBJ_zbuf": "0xA4C5",
+      "pixels": 8
+    },
+    {
+      "source_RGB15": "0x39CE",
+      "source_RGB5": [
+        14,
+        14,
+        14
+      ],
+      "normal_final_RGB5": [
+        27,
+        14,
+        14
+      ],
+      "upper_OBJ_zbuf": "0xA6BA",
+      "lower_OBJ_zbuf": "0xA4CA",
+      "pixels": 2
+    }
+  ],
+  "upper_after_front98_removed_RGB5": [
+    28,
+    0,
+    0
+  ],
+  "lower_after_front96_removed_RGB5": [
+    13,
+    19,
+    0
+  ],
+  "stock_BG3_main_OBJ_subscreen_26_accepted": true,
+  "per_pixel_physical_SNES_hardware_confirmed": false,
+  "all_other_racer_pixel_ownership_confirmed": false,
+  "HD_character_likeness_approved": false
+}

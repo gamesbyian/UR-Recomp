@@ -78,6 +78,16 @@ The read-only 2P checker now requires the established `run-<16 decimal digits>-<
 
 This tightens only the **hosted log/report provenance contract**. No raw `.urrun/.urmatch` bytes were archived for the real run, and neither original/native parity nor physical Windows L5 gate credit follows.
 
+## Source host-frame delta and pair writer path, independent QA follow-up
+
+Reinspection of the **downloaded original successful Win32 paired source run** [38497178182](https://github.com/gamesbyian/UR-Recomp/actions/runs/38497178182) gives source-host frame 2146, settled frame 4377, and captured controller input frames 2231. The expected equation is exact: **4377 minus 2146 equals 2231**. The native 2P guest observer uses that host-frame delta to qualify an event; a source log with a mismatch cannot honestly validate the result's captured input timeline.
+
+Earlier independent 2P source QA compared the source-result end frame to the producer's JSON and checked the capture frame count, but **did not require the beginning-to-end host-frame span to equal the input count**. A forged log could advance or regress race_host and still pass; if the producer JSON and log both used a different result end frame, that mutually consistent but source-incoherent evidence could also pass. An adversarial test now changes both report and log together and demands rejection.
+
+The same old verifier accepted a path if an absolute drive-rooted string **contained** the fragment /multiplayer-runs/, even if the actual file lived in multiplayer-runs/nested/, a drive path used a colon-bearing interior component, or a separator was doubled. The real source capture is D:\a\_temp\UR Baldosa Win32 Pause Route\native_real_2p_records\Two Distinct Modern Player Profiles\multiplayer-runs\run-0001791942643626-0000.urrun. Independent acceptance now requires each Windows path component be nonempty, nontraversing and free of colon/control characters, and the final components **exactly** multiplayer-runs/<canonical-run-filename>; it retains legitimate spaces and drive identity.
+
+These are **independent QA source-log admission corrections**, not a discovered Windows game defect, not a re-execution of the native original guest, and not an independent decode of unarchived pair bytes. Existing green physical/audio/original release gaps remain. No QA-01/05/09/12 gate or release candidate was promoted.
+
 ## What is still actually missing
 
 An **independently reviewable canonical new pair** means retaining those two **ROM-free synthetic CI-player saved artifacts**, bound to the exact existing digest and candidate, and independently parsing their real run/match codecs. This is a reasonable narrow next product/QA handshake, but cannot be achieved by retroactively inferring bytes from this artifact. Then complete one **packaged, human-controller-first native 1P/2P → Records** Windows journey and actual hardware gamepad/audio/display acceptance. A strictly accepted complete USA original-versus-native event and other **45/45** original-release coverage remain separately owned QA-01 work.

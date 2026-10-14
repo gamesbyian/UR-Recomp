@@ -13,6 +13,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BANK80 = ROOT / "reference/imported/reverse-engineering/nitrodon/bank 80.txt"
+BANK82 = ROOT / "reference/imported/reverse-engineering/nitrodon/bank 82.txt"
 RAM = ROOT / "reference/imported/reverse-engineering/baldosa-uniracers-recomp/decomp/ram.txt"
 SCHEMA = "UR-QA01-ORIGINAL-VBLANK-WAIT-SOURCE-CONTRACT/1"
 
@@ -47,6 +48,36 @@ CONTINUATION_OPCODES = (
     "80/FAF9: 8D FE 0B     STA $0BFE",
 )
 
+# The wait invokes 82:8035 before each beam-status read. This routine
+# consumes / acknowledges an SPC700 command queue, with branch-dependent CPU
+# work and I/O. Verbatim source operands are also useful RF-012 provenance.
+SOUND_POLL_OPCODES = (
+    "82/8035: 08           PHP",
+    "82/803C: AD 42 21     LDA $2142",
+    "82/803F: CF 04 20 7E  CMP $7E2004",
+    "82/8043: D0 32        BNE $8077",
+    "82/8046: AF 00 20 7E  LDA $7E2000",
+    "82/804A: CF 02 20 7E  CMP $7E2002",
+    "82/804E: F0 27        BEQ $8077",
+    "82/8051: BF 06 20 7E  LDA $7E2006,X",
+    "82/8059: 8F 04 20 7E  STA $7E2004",
+    "82/805D: 1F 16 20 7E  ORA $7E2016,X",
+    "82/8066: 8F 00 20 7E  STA $7E2000",
+    "82/806D: 8D 42 21     STA $2142",
+    "82/8075: 18           CLC",
+    "82/8077: C2 30        REP #$30",
+    "82/807C: 38           SEC",
+    "82/807D: 6B           RTL",
+)
+
+QUEUE_SYMBOLS = {
+    "7E2000": ("wSndQueueRead", "1"),
+    "7E2002": ("wSndQueueWrite", "1"),
+    "7E2004": ("wSndApuToggle", "1"),
+    "7E2006": ("wSndQueueLo", "16"),
+    "7E2016": ("wSndQueueHi", "16"),
+}
+
 def attest_opcode_sequence(archive: str, expected: tuple[str, ...]) -> None:
     lines = archive.splitlines()
     positions = []
@@ -59,9 +90,10 @@ def attest_opcode_sequence(archive: str, expected: tuple[str, ...]) -> None:
     if positions != sorted(set(positions)):
         raise ValueError("original instruction order changed")
 
-def report(bank80: str, ram: str) -> dict:
+def report(bank80: str, bank82: str, ram: str) -> dict:
     attest_opcode_sequence(bank80, WAIT_OPCODES)
     attest_opcode_sequence(bank80, CONTINUATION_OPCODES)
+    attest_opcode_sequence(bank82, SOUND_POLL_OPCODES)
     if bank80.splitlines().index(next(
         line for line in bank80.splitlines() if line.startswith(WAIT_OPCODES[-1])
     )) >= bank80.splitlines().index(next(
@@ -73,6 +105,10 @@ def report(bank80: str, ram: str) -> dict:
         "7E00C6", "wCursorAnimTimer", "1"
     ]:
         raise ValueError("archived $C6 cursor counter symbol or width changed")
+    for offset, (symbol, width) in QUEUE_SYMBOLS.items():
+        found = [line for line in ram.splitlines() if line.startswith(offset + " ")]
+        if len(found) != 1 or found[0].split()[:3] != [offset, symbol, width]:
+            raise ValueError(f"archived sound-queue RAM name or width changed: {offset}")
     return {
         "schema": SCHEMA,
         "rom": "USA-retail archived opcode listing, not a runtime PC receipt",
@@ -83,6 +119,17 @@ def report(bank80: str, ram: str) -> dict:
         "wait_for_vblank_set_branch_pc": "80:FAD9",
         "after_second_edge_call_pc": "80:FADB",
         "called_continuation_pc": "80:FADF",
+        "per_edge_poll_sound_service_pc": "82:8035",
+        "sound_acknowledgement_read_pc": "82:803C",
+        "sound_acknowledgement_register": "$2142",
+        "sound_queue_handshake_pc": "82:803F",
+        "sound_queue_read_index_pc": "82:8046",
+        "sound_queue_write_index_compare_pc": "82:804A",
+        "sound_queue_read_index_writer_pc": "82:8066",
+        "sound_command_transmission_pc": "82:806D",
+        "sound_queue_addresses": {key: value[0] for key, value in QUEUE_SYMBOLS.items()},
+        "source_sound_poll_has_conditional_paths": True,
+        "sound_helper_causes_rf014_proven": False,
         "counter_decrement_pc": "80:FAE2",
         "counter_wrap_value": 31,
         "counter_symbol": "wCursorAnimTimer",
@@ -104,6 +151,7 @@ def main() -> int:
     parser.add_argument("--out", required=True, type=Path)
     args = parser.parse_args()
     result = report(BANK80.read_text(encoding="utf-8"),
+                    BANK82.read_text(encoding="utf-8"),
                     RAM.read_text(encoding="utf-8"))
     if args.out.exists():
         parser.error("refuse to replace previous evidence")

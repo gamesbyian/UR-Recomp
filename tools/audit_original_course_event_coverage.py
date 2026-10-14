@@ -200,7 +200,6 @@ def build_census(catalog: dict, source: dict) -> dict:
             "Neither PAL register homology nor identical prototype streams proves PAL runtime parity.",
             "Historical optimizer startX constants are never read by magicnumber.lua; zero does not prove a runtime spawn.",
             "A complete pass requires original menu entry, player result and event-relative independent reference comparison.",
-            "Switcher Race B original/native replay reaches an identical genuine MIKE 1:08.81 result, but guest-relative onset differs by two frames; no accepted event witness.",
         ],
     }
 

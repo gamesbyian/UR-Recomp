@@ -32,7 +32,7 @@ class OriginalColourTableProducerTests(unittest.TestCase):
         self.assertEqual(source.count("UR_QA08_COLDATA_TABLE_WRITER frame="),1)
         self.assertIn("UR_QA08_ORIGINAL_WRITER_FRAME_FIRST",source)
         self.assertIn("UR_QA08_ORIGINAL_WRITER_FRAME_LAST",source)
-        self.assertIn("b-a <= 256ul",source)
+        self.assertIn("b-a <= 255ul",source)
         self.assertIn('#include <stdlib.h>',source)
         self.assertIn('0x2084 + j',source)
         self.assertEqual(source.count("(*Opcodes[Op].S9xOpcode)();"),1)

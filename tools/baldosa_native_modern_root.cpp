@@ -981,8 +981,18 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     // Test-only SDL button edges; never an automatic profile/catalog
     // update, forged native result, or change to live original SRAM.
     if (std::strcmp(opt, "5") == 0) {
+        // Same real native P2-creation modal. This explicit TEST ONLY
+        // variant presses Down once to select stock Martin (rider 2).
+        // That is the exact original 2P source picker/drive witness;
+        // the default Andrew (rider 1) mode remains unchanged.
+        const char* preset_probe =
+            std::getenv("UR_BALDOSA_SECOND_RACER_TEST_PRESET");
+        const bool source_martin = preset_probe &&
+            std::strcmp(preset_probe, "2") == 0;
         const int key = frame == 60 ? SDLK_x :
-                        frame == 62 ? SDLK_RETURN : 0;
+                        source_martin && frame == 61 ? SDLK_DOWN :
+                        frame == (source_martin ? 63u : 62u)
+                            ? SDLK_RETURN : 0;
         if (!key) return;
         SDL_Event event{};
         event.type = SDL_KEYDOWN;

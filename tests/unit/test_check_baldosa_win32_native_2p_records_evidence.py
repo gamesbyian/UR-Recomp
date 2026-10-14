@@ -120,6 +120,21 @@ class HostedNativeWindowsTwoPlayerRecordsQA(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     self.check(report, damaged, fresh)
 
+    def test_actual_win32_crlf_records_text_excludes_line_terminator(self):
+        report, played, fresh = observed()
+        real_windows_played = played.replace("\n", "\r\n")
+        real_windows_fresh = fresh.replace("\n", "\r\n")
+        admitted = self.check(report, real_windows_played, real_windows_fresh)
+        self.assertEqual(
+            admitted["hosted_native_2p_player1_records_display_verified"],
+            "LAST 01 LOSS 00:27.61 source=historical_paired_archive",
+        )
+        wrong_windows_fresh = real_windows_fresh.replace(
+            "LOSS 00:27.61", "WIN 00:27.57",
+        )
+        with self.assertRaises(ValueError):
+            self.check(report, real_windows_played, wrong_windows_fresh)
+
     def test_fresh_records_display_tracks_p1_win_and_draw_source_semantics(self):
         report, played, fresh = observed()
         for case, expected_outcome, expected_time, times, winner in (

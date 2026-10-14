@@ -59,6 +59,7 @@ See the [Baldosa/malmazuke/UR apparatus synthesis](THREE-PROJECT-APPARATUS-SYNTH
 | Authored 4× racer assets, pose/OBJ guards and artwork approvals | [HD-ART-DIRECTION.md](HD-ART-DIRECTION.md), [RACER-HD-LIVE-MOTION-CENSUS.md](RACER-HD-LIVE-MOTION-CENSUS.md), `analysis/data/racer-hd-art-approval*.json` and actual `native/presentation/` sources |
 | Native host/toolchain, Windows lifecycle | [TOOLCHAIN.md](TOOLCHAIN.md), [SNESRECOMP-ISLAND-SCOPE.md](SNESRECOMP-ISLAND-SCOPE.md), [RECOMP-C-PRACTICES.md](RECOMP-C-PRACTICES.md), [WINDOWS-X64-PACKAGING.md](WINDOWS-X64-PACKAGING.md) |
 | CI performance and PR workflow policy | [CI-WORKFLOW-BEST-PRACTICES.md](CI-WORKFLOW-BEST-PRACTICES.md), [OPERATIONS-ACCELERATION.md](OPERATIONS-ACCELERATION.md); dated [2026-10-10 run/experiment audit](CI-RESEARCH-APPARATUS-AUDIT-20261010.md) |
+| Research campaigns, findings triage and next experiments | [QA-CUMULATIVE-RESEARCH.md](QA-CUMULATIVE-RESEARCH.md) (campaign mechanics), [RESEARCH-FINDINGS-QUEUE.md](RESEARCH-FINDINGS-QUEUE.md) (consequence-ranked findings, `analysis/data/research-findings-register.json`) |
 | External research and code intake (only on demand) | [RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md](RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md), [EXTERNAL-EVIDENCE-INTAKE.md](EXTERNAL-EVIDENCE-INTAKE.md), [THIRD-PARTY-CODE-AUDIT.md](THIRD-PARTY-CODE-AUDIT.md) |
 | Other platform targets (deferred) | [PLATFORM-TARGETS.md](PLATFORM-TARGETS.md), [SWITCH-HOMEBREW-PORT.md](SWITCH-HOMEBREW-PORT.md) |
 

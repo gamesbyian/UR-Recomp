@@ -1,0 +1,6927 @@
+{
+ "alignment": "native frame F compared with reference frame F - lag; lag measured per case from first inRace=1 (2 in every case)",
+ "baldosa_candidate": {
+  "executable_sha256": "c3471741a96395ea0cf2e9517db806a40f37043c762e3f7d04a0e72b7ced9a48",
+  "recipe": ".github/workflows/qa01-event-campaign.yml build step (QA-only dense scene input patch), run locally",
+  "repository": "gamesbyian/uniracers-recomp",
+  "revision": "10b864b9d14a7b7416dd909eb7b054c88faef101",
+  "snesrecomp_revision": "075fbe4c8e0d97b0013be541795c39cb644a9709"
+ },
+ "baldosa_paired_snes9x_terminal": {
+  "census_runs": [],
+  "census_totals": {},
+  "claim": "quantized census agreement and sampled exact semantic-WRAM agreement only",
+  "original": {
+   "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+   "snes9x_core_sha256": "040a61a06138543eba335e385b776f67a6cf9f69a924adbc4412a049e2c40189",
+   "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+  },
+  "original_native_parity_claimed": false,
+  "paired_exact": [
+   {
+    "arm": "balanced",
+    "declared_lag": 0,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5293,
+    "frames_compared": 1374,
+    "max_semantic_wram_bytes_differing": 1156,
+    "measured_entry_host": {
+     "native": 1134,
+     "original": 1134
+    },
+    "native_executable_sha256": "279d053f4cd84bb17cf75fa017362970d28f080dfb10504e247e71699b1652ec",
+    "seed": 50012000,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4926,
+      "p1_laps_zero": 4926,
+      "p2_laps_zero": 4833,
+      "race_exit": 5293,
+      "restored_menu_first": 5289,
+      "result_menu_first": 5256,
+      "result_phase_frames": 33
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4926,
+      "p1_laps_zero": 4926,
+      "p2_laps_zero": 4833,
+      "race_exit": 5294,
+      "restored_menu_first": 5290,
+      "result_menu_first": 5256,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": -1
+    }
+   },
+   {
+    "arm": "p1-focus",
+    "declared_lag": 0,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5293,
+    "frames_compared": 1374,
+    "max_semantic_wram_bytes_differing": 1158,
+    "measured_entry_host": {
+     "native": 1134,
+     "original": 1134
+    },
+    "native_executable_sha256": "279d053f4cd84bb17cf75fa017362970d28f080dfb10504e247e71699b1652ec",
+    "seed": 50012144,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4926,
+      "p1_laps_zero": 4704,
+      "p2_laps_zero": 4926,
+      "race_exit": 5293,
+      "restored_menu_first": 5289,
+      "result_menu_first": 5256,
+      "result_phase_frames": 33
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4926,
+      "p1_laps_zero": 4704,
+      "p2_laps_zero": 4926,
+      "race_exit": 5294,
+      "restored_menu_first": 5290,
+      "result_menu_first": 5256,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": -1
+    }
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 0,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5298,
+    "frames_compared": 1374,
+    "max_semantic_wram_bytes_differing": 1155,
+    "measured_entry_host": {
+     "native": 1134,
+     "original": 1134
+    },
+    "native_executable_sha256": "279d053f4cd84bb17cf75fa017362970d28f080dfb10504e247e71699b1652ec",
+    "seed": 50012215,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4931,
+      "p1_laps_zero": 4931,
+      "p2_laps_zero": 4926,
+      "race_exit": 5298,
+      "restored_menu_first": 5294,
+      "result_menu_first": 5261,
+      "result_phase_frames": 33
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4931,
+      "p1_laps_zero": 4931,
+      "p2_laps_zero": 4926,
+      "race_exit": 5299,
+      "restored_menu_first": 5295,
+      "result_menu_first": 5261,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": -1
+    }
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 0,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 4764,
+    "frames_compared": 4555,
+    "max_semantic_wram_bytes_differing": 1160,
+    "measured_entry_host": {
+     "native": 1134,
+     "original": 1134
+    },
+    "native_executable_sha256": "279d053f4cd84bb17cf75fa017362970d28f080dfb10504e247e71699b1652ec",
+    "seed": 50024003,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4440,
+      "p1_laps_zero": 4020,
+      "p2_laps_zero": 4440,
+      "race_exit": 4764,
+      "restored_menu_first": 4760,
+      "result_menu_first": 4727,
+      "result_phase_frames": 33
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4440,
+      "p1_laps_zero": 4020,
+      "p2_laps_zero": 4440,
+      "race_exit": 4765,
+      "restored_menu_first": 4761,
+      "result_menu_first": 4727,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": -1
+    }
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 0,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5122,
+    "frames_compared": 1374,
+    "max_semantic_wram_bytes_differing": 1391,
+    "measured_entry_host": {
+     "native": 1134,
+     "original": 1134
+    },
+    "native_executable_sha256": "279d053f4cd84bb17cf75fa017362970d28f080dfb10504e247e71699b1652ec",
+    "seed": 50024004,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4755,
+      "p1_laps_zero": 4752,
+      "p2_laps_zero": 4755,
+      "race_exit": 5122,
+      "restored_menu_first": 5118,
+      "result_menu_first": 5085,
+      "result_phase_frames": 33
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4755,
+      "p1_laps_zero": 4752,
+      "p2_laps_zero": 4755,
+      "race_exit": 5124,
+      "restored_menu_first": 5120,
+      "result_menu_first": 5086,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": -1
+    }
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 0,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5229,
+    "frames_compared": 1374,
+    "max_semantic_wram_bytes_differing": 1156,
+    "measured_entry_host": {
+     "native": 1134,
+     "original": 1134
+    },
+    "native_executable_sha256": "279d053f4cd84bb17cf75fa017362970d28f080dfb10504e247e71699b1652ec",
+    "seed": 50036002,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4862,
+      "p1_laps_zero": 4862,
+      "p2_laps_zero": 4735,
+      "race_exit": 5229,
+      "restored_menu_first": 5225,
+      "result_menu_first": 5192,
+      "result_phase_frames": 33
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4862,
+      "p1_laps_zero": 4862,
+      "p2_laps_zero": 4735,
+      "race_exit": 5230,
+      "restored_menu_first": 5226,
+      "result_menu_first": 5192,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": -1
+    }
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 0,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5204,
+    "frames_compared": 1374,
+    "max_semantic_wram_bytes_differing": 1156,
+    "measured_entry_host": {
+     "native": 1134,
+     "original": 1134
+    },
+    "native_executable_sha256": "279d053f4cd84bb17cf75fa017362970d28f080dfb10504e247e71699b1652ec",
+    "seed": 50036005,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4837,
+      "p1_laps_zero": 4260,
+      "p2_laps_zero": 4837,
+      "race_exit": 5204,
+      "restored_menu_first": 5200,
+      "result_menu_first": 5167,
+      "result_phase_frames": 33
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4837,
+      "p1_laps_zero": 4260,
+      "p2_laps_zero": 4837,
+      "race_exit": 5205,
+      "restored_menu_first": 5201,
+      "result_menu_first": 5167,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": -1
+    }
+   },
+   {
+    "arm": "balanced",
+    "declared_lag": 0,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5051,
+    "frames_compared": 1374,
+    "max_semantic_wram_bytes_differing": 1381,
+    "measured_entry_host": {
+     "native": 1134,
+     "original": 1134
+    },
+    "native_executable_sha256": "279d053f4cd84bb17cf75fa017362970d28f080dfb10504e247e71699b1652ec",
+    "seed": 50048000,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4684,
+      "p1_laps_zero": 4684,
+      "p2_laps_zero": 4628,
+      "race_exit": 5051,
+      "restored_menu_first": 5047,
+      "result_menu_first": 5014,
+      "result_phase_frames": 33
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4684,
+      "p1_laps_zero": 4684,
+      "p2_laps_zero": 4628,
+      "race_exit": 5053,
+      "restored_menu_first": 5049,
+      "result_menu_first": 5015,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": -1
+    }
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 0,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 4000,
+    "first_divergent_native_frame": 5235,
+    "frames_compared": 1660,
+    "max_semantic_wram_bytes_differing": 1163,
+    "measured_entry_host": {
+     "native": 1134,
+     "original": 1134
+    },
+    "native_executable_sha256": "279d053f4cd84bb17cf75fa017362970d28f080dfb10504e247e71699b1652ec",
+    "seed": 50036056,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4868,
+      "p1_laps_zero": 4865,
+      "p2_laps_zero": 4868,
+      "race_exit": 5235,
+      "restored_menu_first": 5231,
+      "result_menu_first": 5198,
+      "result_phase_frames": 33
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4868,
+      "p1_laps_zero": 4865,
+      "p2_laps_zero": 4868,
+      "race_exit": 5236,
+      "restored_menu_first": 5232,
+      "result_menu_first": 5198,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": -1
+    }
+   }
+  ],
+  "paired_totals": {
+   "field_divergence": 9
+  },
+  "release_gate_credit": 0,
+  "schema": "ur-frontier-original-crosscheck-summary/1"
+ },
+ "beetle_bsnes_reference": {
+  "census_runs": [],
+  "census_totals": {},
+  "claim": "quantized census agreement and sampled exact semantic-WRAM agreement only",
+  "original": {
+   "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+   "snes9x_core_sha256": "e1278b2a87bf2df10b9ba795131a949936d4d1d87f6ac15ac2e1cb672b9f2cb5",
+   "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+  },
+  "original_native_parity_claimed": false,
+  "paired_exact": [
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 4000,
+    "first_divergent_native_frame": 1137,
+    "frames_compared": 1658,
+    "max_semantic_wram_bytes_differing": 1163,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036056,
+    "terminal": {
+     "native": {
+      "both_laps_zero": 4868,
+      "race_exit": 5237,
+      "restored_menu_first": 5233,
+      "result_menu_first": 5198,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "both_laps_zero": 4869,
+      "race_exit": 5238,
+      "restored_menu_first": 5233,
+      "result_menu_first": 5199,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   }
+  ],
+  "paired_totals": {
+   "field_divergence": 1
+  },
+  "release_gate_credit": 0,
+  "schema": "ur-frontier-original-crosscheck-summary/1"
+ },
+ "blank_screen_census": {
+  "attract_cycle_2_4002": {
+   "dark_frames": {
+    "bsnes_libretro": 608,
+    "mednafen_snes_libretro": 607,
+    "native": 618,
+    "snes9x_libretro": 607
+   },
+   "dark_runs": {
+    "bsnes_libretro": [
+     [
+      2,
+      123
+     ],
+     [
+      248,
+      276
+     ],
+     [
+      401,
+      443
+     ],
+     [
+      941,
+      1098
+     ],
+     [
+      1423,
+      1547
+     ],
+     [
+      3632,
+      3762
+     ]
+    ],
+    "mednafen_snes_libretro": [
+     [
+      2,
+      123
+     ],
+     [
+      248,
+      276
+     ],
+     [
+      401,
+      443
+     ],
+     [
+      941,
+      1098
+     ],
+     [
+      1423,
+      1546
+     ],
+     [
+      3632,
+      3762
+     ]
+    ],
+    "native": [
+     [
+      2,
+      123
+     ],
+     [
+      248,
+      278
+     ],
+     [
+      404,
+      449
+     ],
+     [
+      952,
+      1112
+     ],
+     [
+      1440,
+      1564
+     ],
+     [
+      3649,
+      3781
+     ]
+    ],
+    "snes9x_libretro": [
+     [
+      2,
+      123
+     ],
+     [
+      248,
+      276
+     ],
+     [
+      401,
+      443
+     ],
+     [
+      941,
+      1098
+     ],
+     [
+      1423,
+      1546
+     ],
+     [
+      3632,
+      3762
+     ]
+    ]
+   },
+   "dark_threshold": 3,
+   "first_frame": 2,
+   "identity": {
+    "bsnes_libretro": {
+     "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+     "snes9x_core_sha256": "6bee15f4b557aad123f5dba8be0a5112e439bffdf6c556dacc3f264ca989b2de",
+     "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+    },
+    "mednafen_snes_libretro": {
+     "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+     "snes9x_core_sha256": "e1278b2a87bf2df10b9ba795131a949936d4d1d87f6ac15ac2e1cb672b9f2cb5",
+     "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+    },
+    "native": {
+     "executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f"
+    },
+    "snes9x_libretro": {
+     "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+     "snes9x_core_sha256": "040a61a06138543eba335e385b776f67a6cf9f69a924adbc4412a049e2c40189",
+     "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+    }
+   },
+   "input_sha256": "d7438ffab4234d168c7a496ef33ded7771fcca0cb0b4e2e08b18c99b9cfd21a7",
+   "last_frame": 4002,
+   "original_native_parity_claimed": false,
+   "paired_against_reference": {
+    "mednafen_snes_libretro": [
+     {
+      "length_delta": 0,
+      "other": [
+       2,
+       123
+      ],
+      "reference": [
+       2,
+       123
+      ]
+     },
+     {
+      "length_delta": 0,
+      "other": [
+       248,
+       276
+      ],
+      "reference": [
+       248,
+       276
+      ]
+     },
+     {
+      "length_delta": 0,
+      "other": [
+       401,
+       443
+      ],
+      "reference": [
+       401,
+       443
+      ]
+     },
+     {
+      "length_delta": 0,
+      "other": [
+       941,
+       1098
+      ],
+      "reference": [
+       941,
+       1098
+      ]
+     },
+     {
+      "length_delta": -1,
+      "other": [
+       1423,
+       1546
+      ],
+      "reference": [
+       1423,
+       1547
+      ]
+     },
+     {
+      "length_delta": 0,
+      "other": [
+       3632,
+       3762
+      ],
+      "reference": [
+       3632,
+       3762
+      ]
+     }
+    ],
+    "native": [
+     {
+      "length_delta": 0,
+      "other": [
+       2,
+       123
+      ],
+      "reference": [
+       2,
+       123
+      ]
+     },
+     {
+      "length_delta": 2,
+      "other": [
+       248,
+       278
+      ],
+      "reference": [
+       248,
+       276
+      ]
+     },
+     {
+      "length_delta": 3,
+      "other": [
+       404,
+       449
+      ],
+      "reference": [
+       401,
+       443
+      ]
+     },
+     {
+      "length_delta": 3,
+      "other": [
+       952,
+       1112
+      ],
+      "reference": [
+       941,
+       1098
+      ]
+     },
+     {
+      "length_delta": 0,
+      "other": [
+       1440,
+       1564
+      ],
+      "reference": [
+       1423,
+       1547
+      ]
+     },
+     {
+      "length_delta": 2,
+      "other": [
+       3649,
+       3781
+      ],
+      "reference": [
+       3632,
+       3762
+      ]
+     }
+    ],
+    "snes9x_libretro": [
+     {
+      "length_delta": 0,
+      "other": [
+       2,
+       123
+      ],
+      "reference": [
+       2,
+       123
+      ]
+     },
+     {
+      "length_delta": 0,
+      "other": [
+       248,
+       276
+      ],
+      "reference": [
+       248,
+       276
+      ]
+     },
+     {
+      "length_delta": 0,
+      "other": [
+       401,
+       443
+      ],
+      "reference": [
+       401,
+       443
+      ]
+     },
+     {
+      "length_delta": 0,
+      "other": [
+       941,
+       1098
+      ],
+      "reference": [
+       941,
+       1098
+      ]
+     },
+     {
+      "length_delta": -1,
+      "other": [
+       1423,
+       1546
+      ],
+      "reference": [
+       1423,
+       1547
+      ]
+     },
+     {
+      "length_delta": 0,
+      "other": [
+       3632,
+       3762
+      ],
+      "reference": [
+       3632,
+       3762
+      ]
+     }
+    ]
+   },
+   "reference": "bsnes_libretro",
+   "release_gate_credit": 0,
+   "schema": "ur-blank-screen-census/1"
+  },
+  "attract_cycle_windows_with_baldosa": {
+   "dark_frames": {
+    "baldosa": 485,
+    "bsnes_libretro": 486,
+    "native": 496,
+    "snes9x_libretro": 485
+   },
+   "dark_runs": {
+    "baldosa": [
+     [
+      248,
+      276
+     ],
+     [
+      401,
+      443
+     ],
+     [
+      941,
+      1097
+     ],
+     [
+      1422,
+      1547
+     ],
+     [
+      3632,
+      3761
+     ]
+    ],
+    "bsnes_libretro": [
+     [
+      248,
+      276
+     ],
+     [
+      401,
+      443
+     ],
+     [
+      941,
+      1098
+     ],
+     [
+      1423,
+      1547
+     ],
+     [
+      3632,
+      3762
+     ]
+    ],
+    "native": [
+     [
+      248,
+      278
+     ],
+     [
+      404,
+      449
+     ],
+     [
+      952,
+      1112
+     ],
+     [
+      1440,
+      1564
+     ],
+     [
+      3649,
+      3781
+     ]
+    ],
+    "snes9x_libretro": [
+     [
+      248,
+      276
+     ],
+     [
+      401,
+      443
+     ],
+     [
+      941,
+      1098
+     ],
+     [
+      1423,
+      1546
+     ],
+     [
+      3632,
+      3762
+     ]
+    ]
+   },
+   "dark_threshold": 3,
+   "first_frame": 236,
+   "identity": {
+    "baldosa": {
+     "executable_sha256": "c3471741a96395ea0cf2e9517db806a40f37043c762e3f7d04a0e72b7ced9a48"
+    },
+    "bsnes_libretro": {
+     "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+     "snes9x_core_sha256": "6bee15f4b557aad123f5dba8be0a5112e439bffdf6c556dacc3f264ca989b2de",
+     "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+    },
+    "native": {
+     "executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f"
+    },
+    "snes9x_libretro": {
+     "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+     "snes9x_core_sha256": "040a61a06138543eba335e385b776f67a6cf9f69a924adbc4412a049e2c40189",
+     "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+    }
+   },
+   "input_sha256": "d7438ffab4234d168c7a496ef33ded7771fcca0cb0b4e2e08b18c99b9cfd21a7",
+   "last_frame": 3800,
+   "original_native_parity_claimed": false,
+   "paired_against_reference": {
+    "baldosa": [
+     {
+      "length_delta": 0,
+      "other": [
+       248,
+       276
+      ],
+      "reference": [
+       248,
+       276
+      ]
+     },
+     {
+      "length_delta": 0,
+      "other": [
+       401,
+       443
+      ],
+      "reference": [
+       401,
+       443
+      ]
+     },
+     {
+      "length_delta": -1,
+      "other": [
+       941,
+       1097
+      ],
+      "reference": [
+       941,
+       1098
+      ]
+     },
+     {
+      "length_delta": 1,
+      "other": [
+       1422,
+       1547
+      ],
+      "reference": [
+       1423,
+       1547
+      ]
+     },
+     {
+      "length_delta": -1,
+      "other": [
+       3632,
+       3761
+      ],
+      "reference": [
+       3632,
+       3762
+      ]
+     }
+    ],
+    "native": [
+     {
+      "length_delta": 2,
+      "other": [
+       248,
+       278
+      ],
+      "reference": [
+       248,
+       276
+      ]
+     },
+     {
+      "length_delta": 3,
+      "other": [
+       404,
+       449
+      ],
+      "reference": [
+       401,
+       443
+      ]
+     },
+     {
+      "length_delta": 3,
+      "other": [
+       952,
+       1112
+      ],
+      "reference": [
+       941,
+       1098
+      ]
+     },
+     {
+      "length_delta": 0,
+      "other": [
+       1440,
+       1564
+      ],
+      "reference": [
+       1423,
+       1547
+      ]
+     },
+     {
+      "length_delta": 2,
+      "other": [
+       3649,
+       3781
+      ],
+      "reference": [
+       3632,
+       3762
+      ]
+     }
+    ],
+    "snes9x_libretro": [
+     {
+      "length_delta": 0,
+      "other": [
+       248,
+       276
+      ],
+      "reference": [
+       248,
+       276
+      ]
+     },
+     {
+      "length_delta": 0,
+      "other": [
+       401,
+       443
+      ],
+      "reference": [
+       401,
+       443
+      ]
+     },
+     {
+      "length_delta": 0,
+      "other": [
+       941,
+       1098
+      ],
+      "reference": [
+       941,
+       1098
+      ]
+     },
+     {
+      "length_delta": -1,
+      "other": [
+       1423,
+       1546
+      ],
+      "reference": [
+       1423,
+       1547
+      ]
+     },
+     {
+      "length_delta": 0,
+      "other": [
+       3632,
+       3762
+      ],
+      "reference": [
+       3632,
+       3762
+      ]
+     }
+    ]
+   },
+   "reference": "bsnes_libretro",
+   "release_gate_credit": 0,
+   "schema": "ur-blank-screen-census/1",
+   "window_gaps_truncate_runs": true
+  },
+  "generic_native_stock_2_1250": {
+   "dark_frames": {
+    "bsnes_libretro": 357,
+    "native": 362
+   },
+   "dark_runs": {
+    "bsnes_libretro": [
+     [
+      2,
+      123
+     ],
+     [
+      248,
+      276
+     ],
+     [
+      401,
+      443
+     ],
+     [
+      988,
+      1150
+     ]
+    ],
+    "native": [
+     [
+      2,
+      123
+     ],
+     [
+      248,
+      278
+     ],
+     [
+      404,
+      449
+     ],
+     [
+      988,
+      1150
+     ]
+    ]
+   },
+   "dark_threshold": 3,
+   "first_frame": 2,
+   "identity": {
+    "bsnes_libretro": {
+     "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+     "snes9x_core_sha256": "6bee15f4b557aad123f5dba8be0a5112e439bffdf6c556dacc3f264ca989b2de",
+     "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+    },
+    "native": {
+     "executable_sha256": "f26b5146bdab4221ca337a6ea77712bb6081de12c67b902ad2e46157572dd0bb"
+    }
+   },
+   "input_sha256": "28f2842fd262030e434b3aef88eb360f74de94fbf558f0eb0ba8edce645fb490",
+   "last_frame": 1250,
+   "original_native_parity_claimed": false,
+   "paired_against_reference": {
+    "native": [
+     {
+      "length_delta": 0,
+      "other": [
+       2,
+       123
+      ],
+      "reference": [
+       2,
+       123
+      ]
+     },
+     {
+      "length_delta": 2,
+      "other": [
+       248,
+       278
+      ],
+      "reference": [
+       248,
+       276
+      ]
+     },
+     {
+      "length_delta": 3,
+      "other": [
+       404,
+       449
+      ],
+      "reference": [
+       401,
+       443
+      ]
+     },
+     {
+      "length_delta": 0,
+      "other": [
+       988,
+       1150
+      ],
+      "reference": [
+       988,
+       1150
+      ]
+     }
+    ]
+   },
+   "reference": "bsnes_libretro",
+   "release_gate_credit": 0,
+   "schema": "ur-blank-screen-census/1"
+  },
+  "race_finish_seed_50036056_4700_5600": {
+   "dark_frames": {
+    "bsnes_libretro": 131,
+    "mednafen_snes_libretro": 130,
+    "native": 132,
+    "snes9x_libretro": 130
+   },
+   "dark_runs": {
+    "bsnes_libretro": [
+     [
+      5109,
+      5239
+     ]
+    ],
+    "mednafen_snes_libretro": [
+     [
+      5110,
+      5239
+     ]
+    ],
+    "native": [
+     [
+      5109,
+      5240
+     ]
+    ],
+    "snes9x_libretro": [
+     [
+      5109,
+      5238
+     ]
+    ]
+   },
+   "dark_threshold": 3,
+   "first_frame": 4700,
+   "identity": {
+    "bsnes_libretro": {
+     "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+     "snes9x_core_sha256": "6bee15f4b557aad123f5dba8be0a5112e439bffdf6c556dacc3f264ca989b2de",
+     "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+    },
+    "mednafen_snes_libretro": {
+     "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+     "snes9x_core_sha256": "e1278b2a87bf2df10b9ba795131a949936d4d1d87f6ac15ac2e1cb672b9f2cb5",
+     "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+    },
+    "native": {
+     "executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f"
+    },
+    "snes9x_libretro": {
+     "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+     "snes9x_core_sha256": "040a61a06138543eba335e385b776f67a6cf9f69a924adbc4412a049e2c40189",
+     "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+    }
+   },
+   "input_sha256": "dccc0cb9c96b2a8ab476c13ebebda5050f5aa193ee6a9eb15664c9b2f77defe6",
+   "last_frame": 5600,
+   "original_native_parity_claimed": false,
+   "paired_against_reference": {
+    "mednafen_snes_libretro": [
+     {
+      "length_delta": -1,
+      "other": [
+       5110,
+       5239
+      ],
+      "reference": [
+       5109,
+       5239
+      ]
+     }
+    ],
+    "native": [
+     {
+      "length_delta": 1,
+      "other": [
+       5109,
+       5240
+      ],
+      "reference": [
+       5109,
+       5239
+      ]
+     }
+    ],
+    "snes9x_libretro": [
+     {
+      "length_delta": -1,
+      "other": [
+       5109,
+       5238
+      ],
+      "reference": [
+       5109,
+       5239
+      ]
+     }
+    ]
+   },
+   "reference": "bsnes_libretro",
+   "release_gate_credit": 0,
+   "schema": "ur-blank-screen-census/1"
+  },
+  "stock_2p_route_2_1250": {
+   "dark_frames": {
+    "bsnes_libretro": 357,
+    "mednafen_snes_libretro": 356,
+    "native": 363,
+    "snes9x_libretro": 356
+   },
+   "dark_runs": {
+    "bsnes_libretro": [
+     [
+      2,
+      123
+     ],
+     [
+      248,
+      276
+     ],
+     [
+      401,
+      443
+     ],
+     [
+      988,
+      1150
+     ]
+    ],
+    "mednafen_snes_libretro": [
+     [
+      2,
+      123
+     ],
+     [
+      248,
+      276
+     ],
+     [
+      401,
+      443
+     ],
+     [
+      989,
+      1150
+     ]
+    ],
+    "native": [
+     [
+      2,
+      123
+     ],
+     [
+      248,
+      278
+     ],
+     [
+      404,
+      449
+     ],
+     [
+      988,
+      1151
+     ]
+    ],
+    "snes9x_libretro": [
+     [
+      2,
+      123
+     ],
+     [
+      248,
+      276
+     ],
+     [
+      401,
+      443
+     ],
+     [
+      988,
+      1149
+     ]
+    ]
+   },
+   "dark_threshold": 3,
+   "first_frame": 2,
+   "identity": {
+    "bsnes_libretro": {
+     "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+     "snes9x_core_sha256": "6bee15f4b557aad123f5dba8be0a5112e439bffdf6c556dacc3f264ca989b2de",
+     "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+    },
+    "mednafen_snes_libretro": {
+     "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+     "snes9x_core_sha256": "e1278b2a87bf2df10b9ba795131a949936d4d1d87f6ac15ac2e1cb672b9f2cb5",
+     "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+    },
+    "native": {
+     "executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f"
+    },
+    "snes9x_libretro": {
+     "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+     "snes9x_core_sha256": "040a61a06138543eba335e385b776f67a6cf9f69a924adbc4412a049e2c40189",
+     "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+    }
+   },
+   "input_sha256": "28f2842fd262030e434b3aef88eb360f74de94fbf558f0eb0ba8edce645fb490",
+   "last_frame": 1250,
+   "original_native_parity_claimed": false,
+   "paired_against_reference": {
+    "mednafen_snes_libretro": [
+     {
+      "length_delta": 0,
+      "other": [
+       2,
+       123
+      ],
+      "reference": [
+       2,
+       123
+      ]
+     },
+     {
+      "length_delta": 0,
+      "other": [
+       248,
+       276
+      ],
+      "reference": [
+       248,
+       276
+      ]
+     },
+     {
+      "length_delta": 0,
+      "other": [
+       401,
+       443
+      ],
+      "reference": [
+       401,
+       443
+      ]
+     },
+     {
+      "length_delta": -1,
+      "other": [
+       989,
+       1150
+      ],
+      "reference": [
+       988,
+       1150
+      ]
+     }
+    ],
+    "native": [
+     {
+      "length_delta": 0,
+      "other": [
+       2,
+       123
+      ],
+      "reference": [
+       2,
+       123
+      ]
+     },
+     {
+      "length_delta": 2,
+      "other": [
+       248,
+       278
+      ],
+      "reference": [
+       248,
+       276
+      ]
+     },
+     {
+      "length_delta": 3,
+      "other": [
+       404,
+       449
+      ],
+      "reference": [
+       401,
+       443
+      ]
+     },
+     {
+      "length_delta": 1,
+      "other": [
+       988,
+       1151
+      ],
+      "reference": [
+       988,
+       1150
+      ]
+     }
+    ],
+    "snes9x_libretro": [
+     {
+      "length_delta": 0,
+      "other": [
+       2,
+       123
+      ],
+      "reference": [
+       2,
+       123
+      ]
+     },
+     {
+      "length_delta": 0,
+      "other": [
+       248,
+       276
+      ],
+      "reference": [
+       248,
+       276
+      ]
+     },
+     {
+      "length_delta": 0,
+      "other": [
+       401,
+       443
+      ],
+      "reference": [
+       401,
+       443
+      ]
+     },
+     {
+      "length_delta": -1,
+      "other": [
+       988,
+       1149
+      ],
+      "reference": [
+       988,
+       1150
+      ]
+     }
+    ]
+   },
+   "reference": "bsnes_libretro",
+   "release_gate_credit": 0,
+   "schema": "ur-blank-screen-census/1"
+  },
+  "tool": "tools/qa_blank_screen_census.py"
+ },
+ "bsnes_accurate_result_phase": {
+  "core": "bsnes-libretro 05439f96 + tools/patches/bsnes-libretro-system-ram.patch",
+  "entry_host": 1134,
+  "note": "34 frames in 9 of 9 seeds; laps-zero frame equal to Snes9x in every seed; onset differs from Snes9x by one frame in two seeds (50036056, 50024004) with the same phase length",
+  "result_phase_frames": 34,
+  "seeds": [
+   50036056,
+   50024003,
+   50012000,
+   50012144,
+   50012215,
+   50024004,
+   50048000,
+   50036002,
+   50036005
+  ]
+ },
+ "census_crosscheck": {
+  "census_runs": [
+   {
+    "attribution_ambiguous_cases": [],
+    "cases_checked": 100,
+    "cases_in_native_run": 100,
+    "census_record_sha256": "b7f4af657df35353aceed44d5ba99a196a2f0703062e2edd75dd308a90ca6a76",
+    "counts": {
+     "coarse_agreement": 100
+    },
+    "crosscheck_tool_sha256": "f95f19a68da5eb7fa6f197f55e8f3ed7ff094c3f4f8ce3bb42f3fde2db550802",
+    "declared_native_minus_original_entry_lag": 2,
+    "divergent_cases": [],
+    "native_executable_sha256": "28501fa3268f82d83672122cddbd2628ce5b2458e625f46d93766f50befbe515",
+    "native_full_trace_feature_counts": null,
+    "native_run_id": 38304551380,
+    "native_source_sha": "7f3fbff42673ff43b23f3fc74034acd6f5873a30",
+    "original_errors": [],
+    "original_full_trace_feature_counts": {
+     "both-moving-raw": 100,
+     "both-rotation-registers-change": 100,
+     "checkpoint-pointer-changes": 100,
+     "opposing-x-motion-raw": 100,
+     "split-register-nonzero": 100
+    },
+    "original_offscreen_sentinel_case_counts": {
+     "both-opponents-offscreen-sentinel": 100,
+     "screen1_player2-offscreen-sentinel": 100,
+     "screen2_player1-offscreen-sentinel": 100
+    }
+   },
+   {
+    "attribution_ambiguous_cases": [
+     {
+      "arm": "balanced",
+      "seed": 50012078,
+      "tokens": [
+       "53babb022c6ea1d403f2d0b1"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50012602,
+      "tokens": [
+       "9496a7ee73077cdf1303ee24"
+      ]
+     },
+     {
+      "arm": "p1-focus",
+      "seed": 50015424,
+      "tokens": [
+       "9b9740fb1b9bcdce5e6da3d3"
+      ]
+     },
+     {
+      "arm": "p1-focus",
+      "seed": 50015436,
+      "tokens": [
+       "c50bc712c8079fa73ba73ed4"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50016024,
+      "tokens": [
+       "f3c8ef0bdb0828bebf6632be"
+      ]
+     },
+     {
+      "arm": "p1-focus",
+      "seed": 50016145,
+      "tokens": [
+       "e9411ac235a7d039659dcb43"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50016770,
+      "tokens": [
+       "121fd01127a3728332c9aff1"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50017505,
+      "tokens": [
+       "df55e2540383963063f5a5d7"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50017606,
+      "tokens": [
+       "3bc727277a1ca9bdedb74c2d"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50017815,
+      "tokens": [
+       "db3f0a99d48b1927cdbec8c0"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50017837,
+      "tokens": [
+       "28c1debf9e3792777a370a23"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50018030,
+      "tokens": [
+       "fa2d6e64b4eb96f7890e4e5e"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50018093,
+      "tokens": [
+       "9de11161042d29d1cdeaf24f"
+      ]
+     },
+     {
+      "arm": "p1-focus",
+      "seed": 50018210,
+      "tokens": [
+       "df8070e4a587177e0829dda1"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50019345,
+      "tokens": [
+       "bb31957f24d80eaf6adec2c3"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50019776,
+      "tokens": [
+       "1801d3a41fc69bda36816e84"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50020025,
+      "tokens": [
+       "2b92d323a082f13e7d3560b5"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50021095,
+      "tokens": [
+       "6a384a2cb03f675cedcc0fd3"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50021596,
+      "tokens": [
+       "b1839b4908376059b83d9a8c"
+      ]
+     },
+     {
+      "arm": "p1-focus",
+      "seed": 50021671,
+      "tokens": [
+       "ea8a68dce4ac622463e2145c"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50021892,
+      "tokens": [
+       "89a3a3fa21345eebbffaaa49"
+      ]
+     },
+     {
+      "arm": "p1-focus",
+      "seed": 50021964,
+      "tokens": [
+       "aaca240cbe413ade3624e913"
+      ]
+     }
+    ],
+    "cases_checked": 10000,
+    "cases_in_native_run": 10000,
+    "census_record_sha256": "b7f4af657df35353aceed44d5ba99a196a2f0703062e2edd75dd308a90ca6a76",
+    "counts": {
+     "census_attribution_ambiguous": 22,
+     "coarse_agreement": 9978
+    },
+    "crosscheck_tool_sha256": "f95f19a68da5eb7fa6f197f55e8f3ed7ff094c3f4f8ce3bb42f3fde2db550802",
+    "declared_native_minus_original_entry_lag": 2,
+    "divergent_cases": [],
+    "native_executable_sha256": "28501fa3268f82d83672122cddbd2628ce5b2458e625f46d93766f50befbe515",
+    "native_full_trace_feature_counts": null,
+    "native_run_id": 38306802282,
+    "native_source_sha": "7f3fbff42673ff43b23f3fc74034acd6f5873a30",
+    "original_errors": [],
+    "original_full_trace_feature_counts": {
+     "both-air-raw": 31,
+     "both-moving-raw": 10000,
+     "both-rotation-registers-change": 10000,
+     "checkpoint-pointer-changes": 10000,
+     "opposing-x-motion-raw": 9994,
+     "split-register-nonzero": 10000
+    },
+    "original_offscreen_sentinel_case_counts": {
+     "both-opponents-offscreen-sentinel": 10000,
+     "screen1_player2-offscreen-sentinel": 10000,
+     "screen2_player1-offscreen-sentinel": 10000
+    }
+   },
+   {
+    "attribution_ambiguous_cases": [],
+    "cases_checked": 100,
+    "cases_in_native_run": 100,
+    "census_record_sha256": "b7f4af657df35353aceed44d5ba99a196a2f0703062e2edd75dd308a90ca6a76",
+    "counts": {
+     "coarse_agreement": 100
+    },
+    "crosscheck_tool_sha256": "f95f19a68da5eb7fa6f197f55e8f3ed7ff094c3f4f8ce3bb42f3fde2db550802",
+    "declared_native_minus_original_entry_lag": 2,
+    "divergent_cases": [],
+    "native_executable_sha256": "28501fa3268f82d83672122cddbd2628ce5b2458e625f46d93766f50befbe515",
+    "native_full_trace_feature_counts": null,
+    "native_run_id": 38438864232,
+    "native_source_sha": "d379efcd09fdd73aa817eca24e92263f5a217996",
+    "original_errors": [],
+    "original_full_trace_feature_counts": {
+     "both-moving-raw": 100,
+     "both-rotation-registers-change": 100,
+     "checkpoint-pointer-changes": 100,
+     "opposing-x-motion-raw": 99,
+     "split-register-nonzero": 100
+    },
+    "original_offscreen_sentinel_case_counts": {
+     "both-opponents-offscreen-sentinel": 100,
+     "screen1_player2-offscreen-sentinel": 100,
+     "screen2_player1-offscreen-sentinel": 100
+    }
+   },
+   {
+    "attribution_ambiguous_cases": [],
+    "cases_checked": 100,
+    "cases_in_native_run": 100,
+    "census_record_sha256": "b7f4af657df35353aceed44d5ba99a196a2f0703062e2edd75dd308a90ca6a76",
+    "counts": {
+     "coarse_agreement": 100
+    },
+    "crosscheck_tool_sha256": "f95f19a68da5eb7fa6f197f55e8f3ed7ff094c3f4f8ce3bb42f3fde2db550802",
+    "declared_native_minus_original_entry_lag": 2,
+    "divergent_cases": [],
+    "native_executable_sha256": "28501fa3268f82d83672122cddbd2628ce5b2458e625f46d93766f50befbe515",
+    "native_full_trace_feature_counts": {
+     "both-air-raw": 1,
+     "both-moving-raw": 100,
+     "both-rotation-registers-change": 100,
+     "checkpoint-pointer-changes": 100,
+     "offscreen-register-nonzero": 0,
+     "opposing-x-motion-raw": 100,
+     "split-register-changes": 0,
+     "split-register-nonzero": 100
+    },
+    "native_run_id": 38446393623,
+    "native_source_sha": "dd5632f0a612ee22cc46d9b1ce7a6005a5fa555f",
+    "original_errors": [],
+    "original_full_trace_feature_counts": {
+     "both-air-raw": 1,
+     "both-moving-raw": 100,
+     "both-rotation-registers-change": 100,
+     "checkpoint-pointer-changes": 100,
+     "opposing-x-motion-raw": 100,
+     "split-register-nonzero": 100
+    },
+    "original_offscreen_sentinel_case_counts": {
+     "both-opponents-offscreen-sentinel": 100,
+     "screen1_player2-offscreen-sentinel": 100,
+     "screen2_player1-offscreen-sentinel": 100
+    }
+   },
+   {
+    "attribution_ambiguous_cases": [],
+    "cases_checked": 100,
+    "cases_in_native_run": 100,
+    "census_record_sha256": "b7f4af657df35353aceed44d5ba99a196a2f0703062e2edd75dd308a90ca6a76",
+    "counts": {
+     "coarse_agreement": 100
+    },
+    "crosscheck_tool_sha256": "f95f19a68da5eb7fa6f197f55e8f3ed7ff094c3f4f8ce3bb42f3fde2db550802",
+    "declared_native_minus_original_entry_lag": 2,
+    "divergent_cases": [],
+    "native_executable_sha256": "f2ba284911ec29a62f669e80e3bb310087fa78402aa186802c6accc4a4da1c4a",
+    "native_full_trace_feature_counts": {
+     "both-air-raw": 0,
+     "both-moving-raw": 100,
+     "both-rotation-registers-change": 100,
+     "checkpoint-pointer-changes": 100,
+     "offscreen-register-nonzero": 0,
+     "opposing-x-motion-raw": 99,
+     "split-register-changes": 0,
+     "split-register-nonzero": 100
+    },
+    "native_run_id": 38506108109,
+    "native_source_sha": "5db647c3527e920827e9d7d3485fe119df954901",
+    "original_errors": [],
+    "original_full_trace_feature_counts": {
+     "both-moving-raw": 100,
+     "both-rotation-registers-change": 100,
+     "checkpoint-pointer-changes": 100,
+     "opposing-x-motion-raw": 99,
+     "split-register-nonzero": 100
+    },
+    "original_offscreen_sentinel_case_counts": {
+     "both-opponents-offscreen-sentinel": 100,
+     "screen1_player2-offscreen-sentinel": 100,
+     "screen2_player1-offscreen-sentinel": 100
+    }
+   }
+  ],
+  "census_totals": {
+   "census_attribution_ambiguous": 22,
+   "coarse_agreement": 10378
+  },
+  "claim": "quantized census agreement and sampled exact semantic-WRAM agreement only",
+  "original": {
+   "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+   "snes9x_core_sha256": "040a61a06138543eba335e385b776f67a6cf9f69a924adbc4412a049e2c40189",
+   "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+  },
+  "original_native_parity_claimed": false,
+  "paired_exact": [],
+  "paired_totals": {},
+  "release_gate_credit": 0,
+  "schema": "ur-frontier-original-crosscheck-summary/1"
+ },
+ "date": "2026-10-14",
+ "evidence_status": "local candidate evidence: independent re-execution with raw-dump receipts (e.g. research-race-relative-paired.yml) is required before a separate consumer relies on it",
+ "findings": {
+  "baldosa": "The pinned Baldosa guest (product integration target, snesrecomp fork 075fbe4) matches the references within one frame on all five attract-cycle loads (black runs 248-276, 401-443, 941-1097, 1422-1547, 3632-3761 vs bsnes 248-276, 401-443, 941-1098, 1423-1547, 3632-3762) and completes 1327 vblank-wait passes (Beetle 1327, Snes9x 1326; legacy-pin native 1311). The RF-014 load deficit is specific to the legacy snesrecomp pin cd5875c.",
+  "blank_screens": "Every frontend load keeps the screen black longer on native than on the high-accuracy bsnes core (Snes9x and Beetle agree within one frame): stock 2P route +2, +3, +1 frames; attract cycle +2, +3, +3, +2 with native's later loads starting 17 frames late by host 3632; 2P race-finish transition +1. A generic SNESRecomp build gives +2, +3, 0 on the stock route. The first load (host 248-276 on the reference) is a VRAM upload whose writer is not identified by executed PC (81:CD70-81:D09C came from a static search and is the race-HUD initializer per QA-01; 82:B1D8 / 81:BB89 are stronger static candidates) during which WRAM at $0200+ is byte-identical between native and Snes9x.",
+  "census": "10,400 of 10,400 signed native frontier cases replayed on Snes9x at L=2: 10,378 coarse agreement, 22 census-attribution-ambiguous (token owned by an earlier case), 0 coarse divergence",
+  "lag_frames": "7E:00C6 vblank-wait passes: stock 2P route host 2-1126 native 773, Snes9x 801, Beetle-bsnes 802; no-input attract cycle host 2-4002 (one rewrite window excluded) native 1311, Snes9x 1326, Beetle-bsnes 1327; generic SNESRecomp native (stock route) 772",
+  "mid_race": "26 of 26 non-terminal comparisons: zero differing decoded fields and zero differing WRAM bytes at $0200+",
+  "result_phase": "49 terminal seeds across all five arms: decoded fields identical until the reference's 0x16 restoration; first $0200+ byte difference 1-2 native frames before result-menu onset; raw 7E:009F (wTextPos) 0x84 phase {'(35, 34)': 48, '(36, 34)': 1} (native, reference); per-core onset/restore boundaries differ and are kept separate",
+  "result_phase_adjudication": "Result phase (raw 7E:009F 0x84 to 0x16): bsnes-accurate 34 and Snes9x 34 in 9 of 9 seeds; legacy-pin native 35 (+1) in 48 of 49 and 36 once; Baldosa 33 (-1) in 9 of 9 with race entry on the original frame (lag 0) and all semantic WRAM identical until 1-2 frames before the original restore."
+ },
+ "lag_frame_census_attract_cycle_no_input": {
+  "differing_windows": [
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 2,
+     "native": 2,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     114,
+     118
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 0,
+     "native": 0,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 0,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     118,
+     122
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 0,
+     "native": 0,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 3
+    },
+    "host_frames": [
+     122,
+     126
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 0,
+     "native": 0,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 1,
+     "native": 2,
+     "snes9x_libretro": 2
+    },
+    "host_frames": [
+     246,
+     250
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 3,
+     "native": 0,
+     "snes9x_libretro": 2
+    },
+    "host_frames": [
+     274,
+     278
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     302,
+     306
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     402,
+     406
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 1,
+     "native": 0,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     434,
+     438
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 3,
+     "native": 1,
+     "snes9x_libretro": 2
+    },
+    "host_frames": [
+     438,
+     442
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 215,
+     "native": 132,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 0,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     442,
+     446
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     466,
+     470
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     534,
+     538
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     666,
+     670
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     782,
+     786
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     890,
+     894
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     942,
+     946
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 215,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     946,
+     950
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 215,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     950,
+     954
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 1,
+     "native": 0,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     974,
+     978
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 1,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     986,
+     990
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 1,
+     "native": 0,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     1094,
+     1098
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 0,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     1098,
+     1102
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 0,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     1102,
+     1106
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 0,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     1106,
+     1110
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 2,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     1110,
+     1114
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     1114,
+     1118
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     1382,
+     1386
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     1414,
+     1418
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     1422,
+     1426
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 0,
+     "native": 132,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     1426,
+     1430
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 0,
+     "native": 132,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     1430,
+     1434
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 0,
+     "native": 132,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     1434,
+     1438
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 0,
+     "native": 132,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 2,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     1438,
+     1442
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 0,
+     "native": 0,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 2,
+     "native": 0,
+     "snes9x_libretro": 2
+    },
+    "host_frames": [
+     3718,
+     3722
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 0,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 1,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     3734,
+     3738
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 0,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 1,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     3738,
+     3742
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 1,
+     "native": 0,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     3754,
+     3758
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 0,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     3758,
+     3762
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 215,
+     "native": 132,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 0,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     3762,
+     3766
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 215,
+     "native": 132,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 0,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     3766,
+     3770
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 215,
+     "native": 132,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     3774,
+     3778
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     3886,
+     3890
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     3986,
+     3990
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   }
+  ],
+  "excluded_counter_rewrites": [
+   {
+    "host_frames": [
+     3770,
+     3774
+    ],
+    "raw_steps": {
+     "mednafen_snes_libretro": 4,
+     "native": 30,
+     "snes9x_libretro": 4
+    },
+    "wram_009f": {
+     "mednafen_snes_libretro": 215,
+     "native": 132,
+     "snes9x_libretro": 215
+    }
+   }
+  ],
+  "first_sample": 2,
+  "frames_without_vblank_wait_pass": {
+   "mednafen_snes_libretro": 2669,
+   "native": 2685,
+   "snes9x_libretro": 2670
+  },
+  "game_frames": {
+   "mednafen_snes_libretro": 1327,
+   "native": 1311,
+   "snes9x_libretro": 1326
+  },
+  "host_frames": 3996,
+  "identity": {
+   "mednafen_snes_libretro": {
+    "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "snes9x_core_sha256": "e1278b2a87bf2df10b9ba795131a949936d4d1d87f6ac15ac2e1cb672b9f2cb5",
+    "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+   },
+   "native": {
+    "executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f"
+   },
+   "snes9x_libretro": {
+    "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "snes9x_core_sha256": "040a61a06138543eba335e385b776f67a6cf9f69a924adbc4412a049e2c40189",
+    "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+   }
+  },
+  "input_sha256": "d7438ffab4234d168c7a496ef33ded7771fcca0cb0b4e2e08b18c99b9cfd21a7",
+  "last_sample": 4002,
+  "original_native_parity_claimed": false,
+  "release_gate_credit": 0,
+  "schema": "ur-lag-frame-census/1"
+ },
+ "lag_frame_census_attract_cycle_with_baldosa": {
+  "differing_windows": [
+   {
+    "game_frames": {
+     "baldosa": 1,
+     "mednafen_snes_libretro": 2,
+     "native": 2,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     114,
+     118
+    ],
+    "wram_009f": {
+     "baldosa": 0,
+     "mednafen_snes_libretro": 0,
+     "native": 0,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 1,
+     "mednafen_snes_libretro": 0,
+     "native": 0,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     118,
+     122
+    ],
+    "wram_009f": {
+     "baldosa": 0,
+     "mednafen_snes_libretro": 0,
+     "native": 0,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 3,
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 3
+    },
+    "host_frames": [
+     122,
+     126
+    ],
+    "wram_009f": {
+     "baldosa": 0,
+     "mednafen_snes_libretro": 0,
+     "native": 0,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 2,
+     "mednafen_snes_libretro": 1,
+     "native": 2,
+     "snes9x_libretro": 2
+    },
+    "host_frames": [
+     246,
+     250
+    ],
+    "wram_009f": {
+     "baldosa": 132,
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 2,
+     "mednafen_snes_libretro": 3,
+     "native": 0,
+     "snes9x_libretro": 2
+    },
+    "host_frames": [
+     274,
+     278
+    ],
+    "wram_009f": {
+     "baldosa": 132,
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 4,
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     302,
+     306
+    ],
+    "wram_009f": {
+     "baldosa": 132,
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 1,
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     402,
+     406
+    ],
+    "wram_009f": {
+     "baldosa": 132,
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 1,
+     "mednafen_snes_libretro": 1,
+     "native": 0,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     434,
+     438
+    ],
+    "wram_009f": {
+     "baldosa": 132,
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 2,
+     "mednafen_snes_libretro": 3,
+     "native": 1,
+     "snes9x_libretro": 2
+    },
+    "host_frames": [
+     438,
+     442
+    ],
+    "wram_009f": {
+     "baldosa": 215,
+     "mednafen_snes_libretro": 215,
+     "native": 132,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 4,
+     "mednafen_snes_libretro": 4,
+     "native": 0,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     442,
+     446
+    ],
+    "wram_009f": {
+     "baldosa": 215,
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 4,
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     466,
+     470
+    ],
+    "wram_009f": {
+     "baldosa": 215,
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 4,
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     534,
+     538
+    ],
+    "wram_009f": {
+     "baldosa": 215,
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 4,
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     666,
+     670
+    ],
+    "wram_009f": {
+     "baldosa": 215,
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 4,
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     782,
+     786
+    ],
+    "wram_009f": {
+     "baldosa": 215,
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 4,
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     890,
+     894
+    ],
+    "wram_009f": {
+     "baldosa": 215,
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 1,
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     942,
+     946
+    ],
+    "wram_009f": {
+     "baldosa": 132,
+     "mednafen_snes_libretro": 132,
+     "native": 215,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 0,
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     946,
+     950
+    ],
+    "wram_009f": {
+     "baldosa": 132,
+     "mednafen_snes_libretro": 132,
+     "native": 215,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 0,
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     950,
+     954
+    ],
+    "wram_009f": {
+     "baldosa": 132,
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 1,
+     "mednafen_snes_libretro": 1,
+     "native": 0,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     974,
+     978
+    ],
+    "wram_009f": {
+     "baldosa": 132,
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 0,
+     "mednafen_snes_libretro": 0,
+     "native": 1,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     986,
+     990
+    ],
+    "wram_009f": {
+     "baldosa": 132,
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 1,
+     "mednafen_snes_libretro": 1,
+     "native": 0,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     1094,
+     1098
+    ],
+    "wram_009f": {
+     "baldosa": 132,
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 4,
+     "mednafen_snes_libretro": 4,
+     "native": 0,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     1098,
+     1102
+    ],
+    "wram_009f": {
+     "baldosa": 132,
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 4,
+     "mednafen_snes_libretro": 4,
+     "native": 0,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     1102,
+     1106
+    ],
+    "wram_009f": {
+     "baldosa": 132,
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 4,
+     "mednafen_snes_libretro": 4,
+     "native": 0,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     1106,
+     1110
+    ],
+    "wram_009f": {
+     "baldosa": 132,
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 4,
+     "mednafen_snes_libretro": 4,
+     "native": 2,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     1110,
+     1114
+    ],
+    "wram_009f": {
+     "baldosa": 132,
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 4,
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     1114,
+     1118
+    ],
+    "wram_009f": {
+     "baldosa": 132,
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 4,
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     1382,
+     1386
+    ],
+    "wram_009f": {
+     "baldosa": 132,
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 4,
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     1414,
+     1418
+    ],
+    "wram_009f": {
+     "baldosa": 132,
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 0,
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     1422,
+     1426
+    ],
+    "wram_009f": {
+     "baldosa": 0,
+     "mednafen_snes_libretro": 0,
+     "native": 132,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 0,
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     1426,
+     1430
+    ],
+    "wram_009f": {
+     "baldosa": 0,
+     "mednafen_snes_libretro": 0,
+     "native": 132,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 0,
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     1430,
+     1434
+    ],
+    "wram_009f": {
+     "baldosa": 0,
+     "mednafen_snes_libretro": 0,
+     "native": 132,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 0,
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     1434,
+     1438
+    ],
+    "wram_009f": {
+     "baldosa": 0,
+     "mednafen_snes_libretro": 0,
+     "native": 132,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 0,
+     "mednafen_snes_libretro": 0,
+     "native": 2,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     1438,
+     1442
+    ],
+    "wram_009f": {
+     "baldosa": 0,
+     "mednafen_snes_libretro": 0,
+     "native": 0,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 2,
+     "mednafen_snes_libretro": 2,
+     "native": 0,
+     "snes9x_libretro": 2
+    },
+    "host_frames": [
+     3718,
+     3722
+    ],
+    "wram_009f": {
+     "baldosa": 132,
+     "mednafen_snes_libretro": 132,
+     "native": 0,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 0,
+     "mednafen_snes_libretro": 0,
+     "native": 1,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     3734,
+     3738
+    ],
+    "wram_009f": {
+     "baldosa": 132,
+     "mednafen_snes_libretro": 132,
+     "native": 0,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 0,
+     "mednafen_snes_libretro": 0,
+     "native": 1,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     3738,
+     3742
+    ],
+    "wram_009f": {
+     "baldosa": 132,
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 1,
+     "mednafen_snes_libretro": 1,
+     "native": 0,
+     "snes9x_libretro": 0
+    },
+    "host_frames": [
+     3754,
+     3758
+    ],
+    "wram_009f": {
+     "baldosa": 215,
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 4,
+     "mednafen_snes_libretro": 4,
+     "native": 0,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     3758,
+     3762
+    ],
+    "wram_009f": {
+     "baldosa": 215,
+     "mednafen_snes_libretro": 215,
+     "native": 132,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 4,
+     "mednafen_snes_libretro": 4,
+     "native": 0,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     3762,
+     3766
+    ],
+    "wram_009f": {
+     "baldosa": 215,
+     "mednafen_snes_libretro": 215,
+     "native": 132,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 4,
+     "mednafen_snes_libretro": 4,
+     "native": 0,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     3766,
+     3770
+    ],
+    "wram_009f": {
+     "baldosa": 215,
+     "mednafen_snes_libretro": 215,
+     "native": 132,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 4,
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     3774,
+     3778
+    ],
+    "wram_009f": {
+     "baldosa": 215,
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 4,
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     3886,
+     3890
+    ],
+    "wram_009f": {
+     "baldosa": 215,
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "baldosa": 4,
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     3986,
+     3990
+    ],
+    "wram_009f": {
+     "baldosa": 215,
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   }
+  ],
+  "excluded_counter_rewrites": [
+   {
+    "host_frames": [
+     3770,
+     3774
+    ],
+    "raw_steps": {
+     "baldosa": 4,
+     "mednafen_snes_libretro": 4,
+     "native": 30,
+     "snes9x_libretro": 4
+    },
+    "wram_009f": {
+     "baldosa": 215,
+     "mednafen_snes_libretro": 215,
+     "native": 132,
+     "snes9x_libretro": 215
+    }
+   }
+  ],
+  "first_sample": 2,
+  "frames_without_vblank_wait_pass": {
+   "baldosa": 2669,
+   "mednafen_snes_libretro": 2669,
+   "native": 2685,
+   "snes9x_libretro": 2670
+  },
+  "game_frames": {
+   "baldosa": 1327,
+   "mednafen_snes_libretro": 1327,
+   "native": 1311,
+   "snes9x_libretro": 1326
+  },
+  "host_frames": 3996,
+  "identity": {
+   "baldosa": {
+    "executable_sha256": "c3471741a96395ea0cf2e9517db806a40f37043c762e3f7d04a0e72b7ced9a48"
+   },
+   "mednafen_snes_libretro": {
+    "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "snes9x_core_sha256": "e1278b2a87bf2df10b9ba795131a949936d4d1d87f6ac15ac2e1cb672b9f2cb5",
+    "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+   },
+   "native": {
+    "executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f"
+   },
+   "snes9x_libretro": {
+    "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "snes9x_core_sha256": "040a61a06138543eba335e385b776f67a6cf9f69a924adbc4412a049e2c40189",
+    "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+   }
+  },
+  "input_sha256": "d7438ffab4234d168c7a496ef33ded7771fcca0cb0b4e2e08b18c99b9cfd21a7",
+  "last_sample": 4002,
+  "original_native_parity_claimed": false,
+  "release_gate_credit": 0,
+  "schema": "ur-lag-frame-census/1"
+ },
+ "lag_frame_census_stock_route": {
+  "differing_windows": [
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 2,
+     "native": 2,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     114,
+     118
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 0,
+     "native": 0,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 0,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     118,
+     122
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 0,
+     "native": 0,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 3
+    },
+    "host_frames": [
+     122,
+     126
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 0,
+     "native": 0,
+     "snes9x_libretro": 0
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 1,
+     "native": 2,
+     "snes9x_libretro": 2
+    },
+    "host_frames": [
+     246,
+     250
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 3,
+     "native": 0,
+     "snes9x_libretro": 2
+    },
+    "host_frames": [
+     274,
+     278
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     302,
+     306
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 0,
+     "native": 4,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     402,
+     406
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 1,
+     "native": 0,
+     "snes9x_libretro": 1
+    },
+    "host_frames": [
+     434,
+     438
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 132,
+     "native": 132,
+     "snes9x_libretro": 132
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 3,
+     "native": 1,
+     "snes9x_libretro": 2
+    },
+    "host_frames": [
+     438,
+     442
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 215,
+     "native": 132,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 0,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     442,
+     446
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     466,
+     470
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 215,
+     "native": 215,
+     "snes9x_libretro": 215
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 3,
+     "native": 2,
+     "snes9x_libretro": 3
+    },
+    "host_frames": [
+     534,
+     538
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 61,
+     "native": 61,
+     "snes9x_libretro": 61
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     538,
+     542
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 61,
+     "native": 61,
+     "snes9x_libretro": 61
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     578,
+     582
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 61,
+     "native": 61,
+     "snes9x_libretro": 61
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 2,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     582,
+     586
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 61,
+     "native": 61,
+     "snes9x_libretro": 61
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     586,
+     590
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 61,
+     "native": 61,
+     "snes9x_libretro": 61
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     610,
+     614
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 61,
+     "native": 61,
+     "snes9x_libretro": 61
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 2,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     614,
+     618
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 61,
+     "native": 61,
+     "snes9x_libretro": 61
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     618,
+     622
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 61,
+     "native": 61,
+     "snes9x_libretro": 61
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 2,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     654,
+     658
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 61,
+     "native": 61,
+     "snes9x_libretro": 61
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 2,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     658,
+     662
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 61,
+     "native": 61,
+     "snes9x_libretro": 61
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     694,
+     698
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 109,
+     "native": 109,
+     "snes9x_libretro": 109
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     710,
+     714
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 109,
+     "native": 109,
+     "snes9x_libretro": 109
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     738,
+     742
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 109,
+     "native": 109,
+     "snes9x_libretro": 109
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 2,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     782,
+     786
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 145,
+     "native": 145,
+     "snes9x_libretro": 145
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     834,
+     838
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 145,
+     "native": 145,
+     "snes9x_libretro": 145
+    }
+   },
+   {
+    "game_frames": {
+     "mednafen_snes_libretro": 4,
+     "native": 3,
+     "snes9x_libretro": 4
+    },
+    "host_frames": [
+     886,
+     890
+    ],
+    "wram_009f": {
+     "mednafen_snes_libretro": 22,
+     "native": 22,
+     "snes9x_libretro": 22
+    }
+   }
+  ],
+  "excluded_counter_rewrites": [],
+  "first_sample": 2,
+  "frames_without_vblank_wait_pass": {
+   "mednafen_snes_libretro": 322,
+   "native": 351,
+   "snes9x_libretro": 323
+  },
+  "game_frames": {
+   "mednafen_snes_libretro": 802,
+   "native": 773,
+   "snes9x_libretro": 801
+  },
+  "host_frames": 1124,
+  "identity": {
+   "mednafen_snes_libretro": {
+    "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "snes9x_core_sha256": "e1278b2a87bf2df10b9ba795131a949936d4d1d87f6ac15ac2e1cb672b9f2cb5",
+    "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+   },
+   "native": {
+    "executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f"
+   },
+   "snes9x_libretro": {
+    "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "snes9x_core_sha256": "040a61a06138543eba335e385b776f67a6cf9f69a924adbc4412a049e2c40189",
+    "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+   }
+  },
+  "input_sha256": "28f2842fd262030e434b3aef88eb360f74de94fbf558f0eb0ba8edce645fb490",
+  "last_sample": 1126,
+  "original_native_parity_claimed": false,
+  "release_gate_credit": 0,
+  "schema": "ur-lag-frame-census/1"
+ },
+ "native_candidate": {
+  "executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+  "recipe": ".github/workflows/modern-shared-native-acceptance.yml 'Build shared Modern native candidate' steps, run locally",
+  "source_sha": "fda6aceba91ad10adc1e7ed7b02729f9045e5170"
+ },
+ "original_native_parity_claimed": false,
+ "producer": "tools/qa_frontier_original_crosscheck.py paired/summarize and tools/qa_lag_frame_census.py (local execution, not GitHub-hosted)",
+ "protocol": "race-relative stimulus-equivalence test (post-entry reference input shifted by the measured lag); distinct from identical-input-byte paired runs such as 38509912672, whose executed same-host differences stand",
+ "release_gate_credit": 0,
+ "route": "tests/input/two-player-first-race.input + qa_adaptive_frontier.actions_for(seed, arm); optional declared finish stimulus 3430:N:080:080",
+ "schema": "ur-frontier-original-native-race-relative-evidence/1",
+ "snes9x_reference": {
+  "census_runs": [],
+  "census_totals": {},
+  "claim": "quantized census agreement and sampled exact semantic-WRAM agreement only",
+  "original": {
+   "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+   "snes9x_core_sha256": "040a61a06138543eba335e385b776f67a6cf9f69a924adbc4412a049e2c40189",
+   "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+  },
+  "original_native_parity_claimed": false,
+  "paired_exact": [
+   {
+    "arm": "balanced",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50012000,
+    "terminal": null
+   },
+   {
+    "arm": "p1-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50012144,
+    "terminal": null
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50012215,
+    "terminal": null
+   },
+   {
+    "arm": "balanced",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50014002,
+    "terminal": null
+   },
+   {
+    "arm": "p1-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50014146,
+    "terminal": null
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50014217,
+    "terminal": null
+   },
+   {
+    "arm": "balanced",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50016004,
+    "terminal": null
+   },
+   {
+    "arm": "p1-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50016148,
+    "terminal": null
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50016219,
+    "terminal": null
+   },
+   {
+    "arm": "balanced",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50018006,
+    "terminal": null
+   },
+   {
+    "arm": "p1-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50018150,
+    "terminal": null
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50018221,
+    "terminal": null
+   },
+   {
+    "arm": "balanced",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50020008,
+    "terminal": null
+   },
+   {
+    "arm": "p1-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50020152,
+    "terminal": null
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50020223,
+    "terminal": null
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50024003,
+    "terminal": null
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50024004,
+    "terminal": null
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50024036,
+    "terminal": null
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50024051,
+    "terminal": null
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50024067,
+    "terminal": null
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50024088,
+    "terminal": null
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036015,
+    "terminal": null
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036027,
+    "terminal": null
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036052,
+    "terminal": null
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036071,
+    "terminal": null
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 40,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036056,
+    "terminal": null
+   },
+   {
+    "arm": "balanced",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5294,
+    "frames_compared": 4553,
+    "max_semantic_wram_bytes_differing": 1154,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50012000,
+    "terminal": {
+     "native": {
+      "at_result_onset": null,
+      "both_laps_zero": 4926,
+      "p1_laps_zero": null,
+      "p2_laps_zero": null,
+      "race_exit": 5295,
+      "restored_menu_first": 5291,
+      "result_menu_first": 5256,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": null,
+      "both_laps_zero": 4926,
+      "p1_laps_zero": null,
+      "p2_laps_zero": null,
+      "race_exit": 5294,
+      "restored_menu_first": 5290,
+      "result_menu_first": 5256,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "p1-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5294,
+    "frames_compared": 4553,
+    "max_semantic_wram_bytes_differing": 1154,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50012144,
+    "terminal": {
+     "native": {
+      "at_result_onset": null,
+      "both_laps_zero": 4926,
+      "p1_laps_zero": null,
+      "p2_laps_zero": null,
+      "race_exit": 5295,
+      "restored_menu_first": 5291,
+      "result_menu_first": 5256,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": null,
+      "both_laps_zero": 4926,
+      "p1_laps_zero": null,
+      "p2_laps_zero": null,
+      "race_exit": 5294,
+      "restored_menu_first": 5290,
+      "result_menu_first": 5256,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5299,
+    "frames_compared": 4553,
+    "max_semantic_wram_bytes_differing": 1152,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50012215,
+    "terminal": {
+     "native": {
+      "at_result_onset": null,
+      "both_laps_zero": 4931,
+      "p1_laps_zero": null,
+      "p2_laps_zero": null,
+      "race_exit": 5300,
+      "restored_menu_first": 5296,
+      "result_menu_first": 5261,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": null,
+      "both_laps_zero": 4931,
+      "p1_laps_zero": null,
+      "p2_laps_zero": null,
+      "race_exit": 5299,
+      "restored_menu_first": 5295,
+      "result_menu_first": 5261,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 4765,
+    "frames_compared": 4553,
+    "max_semantic_wram_bytes_differing": 1385,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50024003,
+    "terminal": {
+     "native": {
+      "at_result_onset": null,
+      "both_laps_zero": 4440,
+      "p1_laps_zero": null,
+      "p2_laps_zero": null,
+      "race_exit": 4767,
+      "restored_menu_first": 4763,
+      "result_menu_first": 4727,
+      "result_phase_frames": 36
+     },
+     "original": {
+      "at_result_onset": null,
+      "both_laps_zero": 4440,
+      "p1_laps_zero": null,
+      "p2_laps_zero": null,
+      "race_exit": 4765,
+      "restored_menu_first": 4761,
+      "result_menu_first": 4727,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 2
+    }
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5123,
+    "frames_compared": 4553,
+    "max_semantic_wram_bytes_differing": 1162,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50024004,
+    "terminal": {
+     "native": {
+      "at_result_onset": null,
+      "both_laps_zero": 4755,
+      "p1_laps_zero": null,
+      "p2_laps_zero": null,
+      "race_exit": 5124,
+      "restored_menu_first": 5120,
+      "result_menu_first": 5085,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": null,
+      "both_laps_zero": 4755,
+      "p1_laps_zero": null,
+      "p2_laps_zero": null,
+      "race_exit": 5123,
+      "restored_menu_first": 5119,
+      "result_menu_first": 5085,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5230,
+    "frames_compared": 4553,
+    "max_semantic_wram_bytes_differing": 1154,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036002,
+    "terminal": {
+     "native": {
+      "at_result_onset": null,
+      "both_laps_zero": 4862,
+      "p1_laps_zero": null,
+      "p2_laps_zero": null,
+      "race_exit": 5231,
+      "restored_menu_first": 5227,
+      "result_menu_first": 5192,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": null,
+      "both_laps_zero": 4862,
+      "p1_laps_zero": null,
+      "p2_laps_zero": null,
+      "race_exit": 5230,
+      "restored_menu_first": 5226,
+      "result_menu_first": 5192,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": null,
+    "frames_compared": 4553,
+    "max_semantic_wram_bytes_differing": 96,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036005,
+    "terminal": {
+     "native": {
+      "at_result_onset": null,
+      "both_laps_zero": 4837,
+      "p1_laps_zero": null,
+      "p2_laps_zero": null,
+      "race_exit": 5206,
+      "restored_menu_first": 5202,
+      "result_menu_first": 5167,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": null,
+      "both_laps_zero": 4837,
+      "p1_laps_zero": null,
+      "p2_laps_zero": null,
+      "race_exit": 5206,
+      "restored_menu_first": 5202,
+      "result_menu_first": 5168,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "balanced",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5052,
+    "frames_compared": 4553,
+    "max_semantic_wram_bytes_differing": 1155,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50048000,
+    "terminal": {
+     "native": {
+      "at_result_onset": null,
+      "both_laps_zero": 4684,
+      "p1_laps_zero": null,
+      "p2_laps_zero": null,
+      "race_exit": 5053,
+      "restored_menu_first": 5049,
+      "result_menu_first": 5014,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": null,
+      "both_laps_zero": 4684,
+      "p1_laps_zero": null,
+      "p2_laps_zero": null,
+      "race_exit": 5052,
+      "restored_menu_first": 5048,
+      "result_menu_first": 5014,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 4000,
+    "first_divergent_native_frame": 5236,
+    "frames_compared": 1658,
+    "max_semantic_wram_bytes_differing": 1163,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036056,
+    "terminal": {
+     "native": {
+      "at_result_onset": null,
+      "both_laps_zero": 4868,
+      "p1_laps_zero": null,
+      "p2_laps_zero": null,
+      "race_exit": 5237,
+      "restored_menu_first": 5233,
+      "result_menu_first": 5198,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": null,
+      "both_laps_zero": 4868,
+      "p1_laps_zero": null,
+      "p2_laps_zero": null,
+      "race_exit": 5236,
+      "restored_menu_first": 5232,
+      "result_menu_first": 5198,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 4781,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1157,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50000029,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4413,
+      "p1_laps_zero": 4111,
+      "p2_laps_zero": 4413,
+      "race_exit": 4782,
+      "restored_menu_first": 4778,
+      "result_menu_first": 4743,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4413,
+      "p1_laps_zero": 4111,
+      "p2_laps_zero": 4413,
+      "race_exit": 4781,
+      "restored_menu_first": 4777,
+      "result_menu_first": 4743,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "p1-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5088,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1151,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50012923,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4720,
+      "p1_laps_zero": 4720,
+      "p2_laps_zero": 4607,
+      "race_exit": 5089,
+      "restored_menu_first": 5085,
+      "result_menu_first": 5050,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4720,
+      "p1_laps_zero": 4720,
+      "p2_laps_zero": 4607,
+      "race_exit": 5088,
+      "restored_menu_first": 5084,
+      "result_menu_first": 5050,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "balanced",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5306,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1162,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50014012,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4938,
+      "p1_laps_zero": 4938,
+      "p2_laps_zero": 4938,
+      "race_exit": 5307,
+      "restored_menu_first": 5303,
+      "result_menu_first": 5268,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4938,
+      "p1_laps_zero": 4938,
+      "p2_laps_zero": 4938,
+      "race_exit": 5306,
+      "restored_menu_first": 5302,
+      "result_menu_first": 5268,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5227,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1151,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50014988,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4859,
+      "p1_laps_zero": 4859,
+      "p2_laps_zero": 4682,
+      "race_exit": 5228,
+      "restored_menu_first": 5224,
+      "result_menu_first": 5189,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4859,
+      "p1_laps_zero": 4859,
+      "p2_laps_zero": 4682,
+      "race_exit": 5227,
+      "restored_menu_first": 5223,
+      "result_menu_first": 5189,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "p1-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5049,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1153,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50015436,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4681,
+      "p1_laps_zero": 4681,
+      "p2_laps_zero": 4642,
+      "race_exit": 5050,
+      "restored_menu_first": 5046,
+      "result_menu_first": 5011,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4681,
+      "p1_laps_zero": 4681,
+      "p2_laps_zero": 4642,
+      "race_exit": 5049,
+      "restored_menu_first": 5045,
+      "result_menu_first": 5011,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "p1-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5403,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1161,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50015933,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 5035,
+      "p1_laps_zero": 5031,
+      "p2_laps_zero": 5035,
+      "race_exit": 5404,
+      "restored_menu_first": 5400,
+      "result_menu_first": 5365,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 5035,
+      "p1_laps_zero": 5031,
+      "p2_laps_zero": 5035,
+      "race_exit": 5403,
+      "restored_menu_first": 5399,
+      "result_menu_first": 5365,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": null,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 97,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50015976,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4746,
+      "p1_laps_zero": 4618,
+      "p2_laps_zero": 4746,
+      "race_exit": 5115,
+      "restored_menu_first": 5111,
+      "result_menu_first": 5076,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4746,
+      "p1_laps_zero": 4618,
+      "p2_laps_zero": 4746,
+      "race_exit": 5115,
+      "restored_menu_first": 5111,
+      "result_menu_first": 5077,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "balanced",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5135,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1154,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50016262,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4767,
+      "p1_laps_zero": 4767,
+      "p2_laps_zero": 4650,
+      "race_exit": 5136,
+      "restored_menu_first": 5132,
+      "result_menu_first": 5097,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4767,
+      "p1_laps_zero": 4767,
+      "p2_laps_zero": 4650,
+      "race_exit": 5135,
+      "restored_menu_first": 5131,
+      "result_menu_first": 5097,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "p1-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5067,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1158,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50016649,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4699,
+      "p1_laps_zero": 4177,
+      "p2_laps_zero": 4699,
+      "race_exit": 5068,
+      "restored_menu_first": 5064,
+      "result_menu_first": 5029,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4699,
+      "p1_laps_zero": 4177,
+      "p2_laps_zero": 4699,
+      "race_exit": 5067,
+      "restored_menu_first": 5063,
+      "result_menu_first": 5029,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5302,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1156,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50016726,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4934,
+      "p1_laps_zero": 4934,
+      "p2_laps_zero": 4930,
+      "race_exit": 5303,
+      "restored_menu_first": 5299,
+      "result_menu_first": 5264,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4934,
+      "p1_laps_zero": 4934,
+      "p2_laps_zero": 4930,
+      "race_exit": 5302,
+      "restored_menu_first": 5298,
+      "result_menu_first": 5264,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "balanced",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": null,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 96,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50016835,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4790,
+      "p1_laps_zero": 4605,
+      "p2_laps_zero": 4790,
+      "race_exit": 5159,
+      "restored_menu_first": 5155,
+      "result_menu_first": 5120,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4790,
+      "p1_laps_zero": 4605,
+      "p2_laps_zero": 4790,
+      "race_exit": 5159,
+      "restored_menu_first": 5155,
+      "result_menu_first": 5121,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5120,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1157,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50017982,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4752,
+      "p1_laps_zero": 4752,
+      "p2_laps_zero": 4577,
+      "race_exit": 5121,
+      "restored_menu_first": 5117,
+      "result_menu_first": 5082,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4752,
+      "p1_laps_zero": 4752,
+      "p2_laps_zero": 4577,
+      "race_exit": 5120,
+      "restored_menu_first": 5116,
+      "result_menu_first": 5082,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "balanced",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5049,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1162,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50018003,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4681,
+      "p1_laps_zero": 4681,
+      "p2_laps_zero": 4675,
+      "race_exit": 5050,
+      "restored_menu_first": 5046,
+      "result_menu_first": 5011,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4681,
+      "p1_laps_zero": 4681,
+      "p2_laps_zero": 4675,
+      "race_exit": 5049,
+      "restored_menu_first": 5045,
+      "result_menu_first": 5011,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "balanced",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5200,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1159,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50018033,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4832,
+      "p1_laps_zero": 4832,
+      "p2_laps_zero": 4832,
+      "race_exit": 5201,
+      "restored_menu_first": 5197,
+      "result_menu_first": 5162,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4832,
+      "p1_laps_zero": 4832,
+      "p2_laps_zero": 4832,
+      "race_exit": 5200,
+      "restored_menu_first": 5196,
+      "result_menu_first": 5162,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "balanced",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5167,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1156,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50018089,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4799,
+      "p1_laps_zero": 4765,
+      "p2_laps_zero": 4799,
+      "race_exit": 5168,
+      "restored_menu_first": 5164,
+      "result_menu_first": 5129,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4799,
+      "p1_laps_zero": 4765,
+      "p2_laps_zero": 4799,
+      "race_exit": 5167,
+      "restored_menu_first": 5163,
+      "result_menu_first": 5129,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5100,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1157,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50018236,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4732,
+      "p1_laps_zero": 4526,
+      "p2_laps_zero": 4732,
+      "race_exit": 5101,
+      "restored_menu_first": 5097,
+      "result_menu_first": 5062,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4732,
+      "p1_laps_zero": 4526,
+      "p2_laps_zero": 4732,
+      "race_exit": 5100,
+      "restored_menu_first": 5096,
+      "result_menu_first": 5062,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "p1-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 4803,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1156,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50018448,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4435,
+      "p1_laps_zero": 4435,
+      "p2_laps_zero": 4433,
+      "race_exit": 4804,
+      "restored_menu_first": 4800,
+      "result_menu_first": 4765,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4435,
+      "p1_laps_zero": 4435,
+      "p2_laps_zero": 4433,
+      "race_exit": 4803,
+      "restored_menu_first": 4799,
+      "result_menu_first": 4765,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "p1-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5152,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1158,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50019214,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4784,
+      "p1_laps_zero": 4784,
+      "p2_laps_zero": 4780,
+      "race_exit": 5153,
+      "restored_menu_first": 5149,
+      "result_menu_first": 5114,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4784,
+      "p1_laps_zero": 4784,
+      "p2_laps_zero": 4780,
+      "race_exit": 5152,
+      "restored_menu_first": 5148,
+      "result_menu_first": 5114,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "balanced",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5325,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1157,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50019301,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4957,
+      "p1_laps_zero": 4957,
+      "p2_laps_zero": 4883,
+      "race_exit": 5326,
+      "restored_menu_first": 5322,
+      "result_menu_first": 5287,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4957,
+      "p1_laps_zero": 4957,
+      "p2_laps_zero": 4883,
+      "race_exit": 5325,
+      "restored_menu_first": 5321,
+      "result_menu_first": 5287,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "balanced",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5192,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1157,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50019564,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4824,
+      "p1_laps_zero": 4824,
+      "p2_laps_zero": 4560,
+      "race_exit": 5193,
+      "restored_menu_first": 5189,
+      "result_menu_first": 5154,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4824,
+      "p1_laps_zero": 4824,
+      "p2_laps_zero": 4560,
+      "race_exit": 5192,
+      "restored_menu_first": 5188,
+      "result_menu_first": 5154,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5240,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1160,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50020471,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4872,
+      "p1_laps_zero": 4750,
+      "p2_laps_zero": 4872,
+      "race_exit": 5241,
+      "restored_menu_first": 5237,
+      "result_menu_first": 5202,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4872,
+      "p1_laps_zero": 4750,
+      "p2_laps_zero": 4872,
+      "race_exit": 5240,
+      "restored_menu_first": 5236,
+      "result_menu_first": 5202,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5061,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1159,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50020717,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4693,
+      "p1_laps_zero": 4001,
+      "p2_laps_zero": 4693,
+      "race_exit": 5062,
+      "restored_menu_first": 5058,
+      "result_menu_first": 5023,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4693,
+      "p1_laps_zero": 4001,
+      "p2_laps_zero": 4693,
+      "race_exit": 5061,
+      "restored_menu_first": 5057,
+      "result_menu_first": 5023,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "p1-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 4901,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1151,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50021145,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4533,
+      "p1_laps_zero": 4533,
+      "p2_laps_zero": 4447,
+      "race_exit": 4902,
+      "restored_menu_first": 4898,
+      "result_menu_first": 4863,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4533,
+      "p1_laps_zero": 4533,
+      "p2_laps_zero": 4447,
+      "race_exit": 4901,
+      "restored_menu_first": 4897,
+      "result_menu_first": 4863,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5077,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1159,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50021235,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4709,
+      "p1_laps_zero": 4456,
+      "p2_laps_zero": 4709,
+      "race_exit": 5078,
+      "restored_menu_first": 5074,
+      "result_menu_first": 5039,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4709,
+      "p1_laps_zero": 4456,
+      "p2_laps_zero": 4709,
+      "race_exit": 5077,
+      "restored_menu_first": 5073,
+      "result_menu_first": 5039,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "p1-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5130,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1158,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50021649,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4762,
+      "p1_laps_zero": 4625,
+      "p2_laps_zero": 4762,
+      "race_exit": 5131,
+      "restored_menu_first": 5127,
+      "result_menu_first": 5092,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4762,
+      "p1_laps_zero": 4625,
+      "p2_laps_zero": 4762,
+      "race_exit": 5130,
+      "restored_menu_first": 5126,
+      "result_menu_first": 5092,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5128,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1153,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50024017,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4760,
+      "p1_laps_zero": 4760,
+      "p2_laps_zero": 4351,
+      "race_exit": 5129,
+      "restored_menu_first": 5125,
+      "result_menu_first": 5090,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4760,
+      "p1_laps_zero": 4760,
+      "p2_laps_zero": 4351,
+      "race_exit": 5128,
+      "restored_menu_first": 5124,
+      "result_menu_first": 5090,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5171,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1164,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50024024,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4803,
+      "p1_laps_zero": 4802,
+      "p2_laps_zero": 4803,
+      "race_exit": 5172,
+      "restored_menu_first": 5168,
+      "result_menu_first": 5133,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4803,
+      "p1_laps_zero": 4802,
+      "p2_laps_zero": 4803,
+      "race_exit": 5171,
+      "restored_menu_first": 5167,
+      "result_menu_first": 5133,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5265,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1165,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50024031,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4897,
+      "p1_laps_zero": 4895,
+      "p2_laps_zero": 4897,
+      "race_exit": 5266,
+      "restored_menu_first": 5262,
+      "result_menu_first": 5227,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4897,
+      "p1_laps_zero": 4895,
+      "p2_laps_zero": 4897,
+      "race_exit": 5265,
+      "restored_menu_first": 5261,
+      "result_menu_first": 5227,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5269,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1157,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50024063,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4901,
+      "p1_laps_zero": 3840,
+      "p2_laps_zero": 4901,
+      "race_exit": 5270,
+      "restored_menu_first": 5266,
+      "result_menu_first": 5231,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4901,
+      "p1_laps_zero": 3840,
+      "p2_laps_zero": 4901,
+      "race_exit": 5269,
+      "restored_menu_first": 5265,
+      "result_menu_first": 5231,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5323,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1157,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50024083,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4955,
+      "p1_laps_zero": 4347,
+      "p2_laps_zero": 4955,
+      "race_exit": 5324,
+      "restored_menu_first": 5320,
+      "result_menu_first": 5285,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4955,
+      "p1_laps_zero": 4347,
+      "p2_laps_zero": 4955,
+      "race_exit": 5323,
+      "restored_menu_first": 5319,
+      "result_menu_first": 5285,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5264,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1156,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50024089,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4896,
+      "p1_laps_zero": 3960,
+      "p2_laps_zero": 4896,
+      "race_exit": 5265,
+      "restored_menu_first": 5261,
+      "result_menu_first": 5226,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4896,
+      "p1_laps_zero": 3960,
+      "p2_laps_zero": 4896,
+      "race_exit": 5264,
+      "restored_menu_first": 5260,
+      "result_menu_first": 5226,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 4957,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1152,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036015,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4589,
+      "p1_laps_zero": 4589,
+      "p2_laps_zero": 4439,
+      "race_exit": 4958,
+      "restored_menu_first": 4954,
+      "result_menu_first": 4919,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4589,
+      "p1_laps_zero": 4589,
+      "p2_laps_zero": 4439,
+      "race_exit": 4957,
+      "restored_menu_first": 4953,
+      "result_menu_first": 4919,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5192,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1157,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036033,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4824,
+      "p1_laps_zero": 4686,
+      "p2_laps_zero": 4824,
+      "race_exit": 5193,
+      "restored_menu_first": 5189,
+      "result_menu_first": 5154,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4824,
+      "p1_laps_zero": 4686,
+      "p2_laps_zero": 4824,
+      "race_exit": 5192,
+      "restored_menu_first": 5188,
+      "result_menu_first": 5154,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": null,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 96,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036069,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4282,
+      "p1_laps_zero": 4281,
+      "p2_laps_zero": 4282,
+      "race_exit": 4651,
+      "restored_menu_first": 4647,
+      "result_menu_first": 4612,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4282,
+      "p1_laps_zero": 4281,
+      "p2_laps_zero": 4282,
+      "race_exit": 4651,
+      "restored_menu_first": 4647,
+      "result_menu_first": 4613,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 4956,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1153,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036075,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4588,
+      "p1_laps_zero": 4424,
+      "p2_laps_zero": 4588,
+      "race_exit": 4957,
+      "restored_menu_first": 4953,
+      "result_menu_first": 4918,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4588,
+      "p1_laps_zero": 4424,
+      "p2_laps_zero": 4588,
+      "race_exit": 4956,
+      "restored_menu_first": 4952,
+      "result_menu_first": 4918,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5317,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1153,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036086,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4949,
+      "p1_laps_zero": 4949,
+      "p2_laps_zero": 4504,
+      "race_exit": 5318,
+      "restored_menu_first": 5314,
+      "result_menu_first": 5279,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4949,
+      "p1_laps_zero": 4949,
+      "p2_laps_zero": 4504,
+      "race_exit": 5317,
+      "restored_menu_first": 5313,
+      "result_menu_first": 5279,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": null,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 97,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50048055,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4823,
+      "p1_laps_zero": 4823,
+      "p2_laps_zero": 4594,
+      "race_exit": 5192,
+      "restored_menu_first": 5188,
+      "result_menu_first": 5153,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4823,
+      "p1_laps_zero": 4823,
+      "p2_laps_zero": 4594,
+      "race_exit": 5192,
+      "restored_menu_first": 5188,
+      "result_menu_first": 5154,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5336,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1158,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50048056,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4968,
+      "p1_laps_zero": 4847,
+      "p2_laps_zero": 4968,
+      "race_exit": 5337,
+      "restored_menu_first": 5333,
+      "result_menu_first": 5298,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 0,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4968,
+      "p1_laps_zero": 4847,
+      "p2_laps_zero": 4968,
+      "race_exit": 5336,
+      "restored_menu_first": 5332,
+      "result_menu_first": 5298,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 4860,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 1158,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50048069,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4492,
+      "p1_laps_zero": 4423,
+      "p2_laps_zero": 4492,
+      "race_exit": 4861,
+      "restored_menu_first": 4857,
+      "result_menu_first": 4822,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 0,
+       "phase2": 0,
+       "phase3": 1,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4492,
+      "p1_laps_zero": 4423,
+      "p2_laps_zero": 4492,
+      "race_exit": 4860,
+      "restored_menu_first": 4856,
+      "result_menu_first": 4822,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": null,
+    "frames_compared": 3044,
+    "max_semantic_wram_bytes_differing": 97,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50048085,
+    "terminal": {
+     "native": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4889,
+      "p1_laps_zero": 4456,
+      "p2_laps_zero": 4889,
+      "race_exit": 5258,
+      "restored_menu_first": 5254,
+      "result_menu_first": 5219,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "at_result_onset": {
+       "in_race": 1,
+       "phase0": 1,
+       "phase2": 1,
+       "phase3": 2,
+       "race_tick": 30
+      },
+      "both_laps_zero": 4889,
+      "p1_laps_zero": 4456,
+      "p2_laps_zero": 4889,
+      "race_exit": 5258,
+      "restored_menu_first": 5254,
+      "result_menu_first": 5220,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   }
+  ],
+  "paired_totals": {
+   "exact_field_agreement": 32,
+   "field_divergence": 43
+  },
+  "release_gate_credit": 0,
+  "schema": "ur-frontier-original-crosscheck-summary/1"
+ }
+}

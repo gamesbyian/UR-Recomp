@@ -157,8 +157,8 @@ def observe(dumps: Path) -> dict[str, str]:
 
 
 def execute(exe: Path, rom: Path, control: Path, script: Path,
-            root: Path, timeout: int, *, runtime_log: Path | None = None
-            ) -> dict[str, str]:
+            root: Path, timeout: int, *, runtime_log: Path | None = None,
+            observe_result: bool = True) -> dict[str, str]:
     if root.exists():
         raise ValueError("refuse an existing/previously mutated process root")
     (root / "dumps").mkdir(parents=True)
@@ -194,7 +194,8 @@ def execute(exe: Path, rom: Path, control: Path, script: Path,
     if done.returncode != 0:
         raise RuntimeError(f"guest exited {done.returncode}; "
                            f"stdout/stderr tail={(done.stdout + done.stderr)[-900:]}")
-    return observe(root / "dumps")
+    # Callers with their own dump schedule verify their own checkpoints.
+    return observe(root / "dumps") if observe_result else {}
 
 
 def trial(exe: Path, rom: Path, source_input: str, generated_script: str,

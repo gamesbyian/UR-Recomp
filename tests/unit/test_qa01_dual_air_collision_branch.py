@@ -71,7 +71,7 @@ class BoundedOriginalCollisionGate(unittest.TestCase):
             "Opcode Opcodes[256]; unsigned Op = 0;\n"
             "void execute_one_65816_opcode() {\n"
             + base.MARKER + "\n}\n"
-        ).replace("\\\n", "\n")
+        )
         source = injector.patch(base.patch(stub))
         with tempfile.TemporaryDirectory(prefix="qa01-original-pc-") as td:
             path = Path(td) / "source-observer.cpp"

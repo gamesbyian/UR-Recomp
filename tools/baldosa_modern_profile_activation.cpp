@@ -228,6 +228,45 @@ extern "C" int ur_baldosa_modern_profile_can_join_opponent(
         kStockSramBytes) ? 1 : 0;
 }
 
+// A named Modern player is not safe to start another race if an external
+// instance changed the selected catalog, typed profile or raw SRAM after
+// this native process booted. Reuse the original canonical CAS preflight and
+// nonblocking OS leases; never write/save anything during this check.
+// Anonymous and Authentic stock play retain their existing execution path.
+extern "C" int ur_baldosa_modern_profile_can_begin_race(void) {
+    using namespace ur::product;
+    if (!activated() || g_verified_native_profile_id.empty()) return 1;
+    if (!g_launch_global || !g_launch_profile ||
+        !g_launch_profile->stock_sram || g_native_user_root.empty() ||
+        !g_sram || g_sram_size != static_cast<int>(kStockSramBytes))
+        return 0;
+    const auto location = resolve_host_profile_save_root(
+        ExecutionMode::Modern, g_verified_native_profile_id);
+    if (!location.isolated() ||
+        !baldosa_native_selected_profile_paths_are_real(
+            g_native_user_root, location.save_root)) return 0;
+    const auto typed_path = g_native_user_root / location.save_root /
+                            "host-profile.txt";
+    TournamentLaunchPathLock selector(
+        (g_native_user_root / "host-state-v1.txt").string(), true);
+    if (!selector.acquired()) return 0;
+    TournamentLaunchPathLock roster(
+        (g_native_user_root / "profiles-v1.txt").string(), true);
+    if (!roster.acquired()) return 0;
+    TournamentLaunchPathLock profile(typed_path.string(), true);
+    if (!profile.acquired() ||
+        !baldosa_native_selected_profile_paths_are_real(
+            g_native_user_root, location.save_root)) return 0;
+    const BaldosaSramCheckpoint source{
+        g_native_user_root, *g_launch_global, *g_launch_profile,
+        g_sram, static_cast<std::size_t>(g_sram_size)};
+    if (baldosa_sram_checkpoint_preflight_under_lock(source))
+        return 0;
+    return baldosa_sram_file_matches_exact(
+        g_native_user_root / location.save_root / "save.srm",
+        g_launch_profile->stock_sram->data(), kStockSramBytes) ? 1 : 0;
+}
+
 // Read-only native Modern root adapter: expose only the verified profile's
 // canonical archive directory. Never infer identity from a display name or
 // enumerate a different root. Records inspection has NO write authority.

@@ -32,6 +32,7 @@ extern "C" int ur_baldosa_modern_publish_settled_two_player_match(
     const ur::product::HostProfileCatalogEntry*);
 extern "C" int ur_baldosa_modern_profile_can_join_opponent(
     const ur::product::HostProfileCatalogEntry*);
+extern "C" int ur_baldosa_modern_profile_can_begin_race(void);
 extern "C" int ur_baldosa_modern_profile_finish_native_save(int);
 
 /* Real pinned framework provides these. Keep the unit executable's tiny RTL
@@ -202,6 +203,7 @@ int main(int argc, char** argv) {
     // existing precondition explicitly.
     g_sram = initialized.data();
     g_sram_size = static_cast<int>(initialized.size());
+    assert(ur_baldosa_modern_profile_can_begin_race());
     // Synthetic fixture tests the profile authorization/publisher only;
     // this does NOT stand in for a live guest-finished Windows event.
     BaldosaSettledResult witnessed{};
@@ -219,9 +221,11 @@ int main(int argc, char** argv) {
     fs::create_directory_symlink(redirected_dir, selected_dir);
     assert(!ur_baldosa_modern_publish_settled_one_player_run(&witnessed));
     assert(!ur_baldosa_modern_profile_before_native_save());
+    assert(!ur_baldosa_modern_profile_can_begin_race());
     assert(!fs::exists(run_root));
     fs::remove(selected_dir);
     fs::rename(redirected_dir, selected_dir);
+    assert(ur_baldosa_modern_profile_can_begin_race());
     assert(!ur_baldosa_modern_publish_settled_one_player_run(nullptr));
     assert(ur_baldosa_modern_publish_settled_one_player_run(&witnessed) == 1);
     auto recorded = load_valid_run_records(run_root.string());
@@ -556,6 +560,7 @@ int main(int argc, char** argv) {
     different_selector.active_profile_id.reset();
     assert(save_host_product_state_file(global_path, different_selector) ==
            HostProductSaveStatus::Saved);
+    assert(!ur_baldosa_modern_profile_can_begin_race());
     bad_result = witnessed;
     bad_result.first_race_host_frame = 300;
     bad_result.observed_result_host_frame = 304;
@@ -567,12 +572,14 @@ int main(int argc, char** argv) {
     assert_raw_unchanged();
     assert(save_host_product_state_file(global_path, state) ==
            HostProductSaveStatus::Saved);
+    assert(ur_baldosa_modern_profile_can_begin_race());
 
     auto newer_profile = *profile;
     newer_profile.recent_track = 7;
     assert(save_host_profile_state_file(
         ExecutionMode::Modern, "saves/profile-rider-1/host-profile.txt",
         newer_profile) == HostProfileSaveStatus::Saved);
+    assert(!ur_baldosa_modern_profile_can_begin_race());
     assert(ur_baldosa_modern_profile_before_native_save() == 0);
     assert(fs::file_size("saves/profile-rider-1/save.srm") ==
            original_raw_size);
@@ -580,6 +587,7 @@ int main(int argc, char** argv) {
     assert(save_host_profile_state_file(
         ExecutionMode::Modern, "saves/profile-rider-1/host-profile.txt",
         *profile) == HostProfileSaveStatus::Saved);
+    assert(ur_baldosa_modern_profile_can_begin_race());
 
     // A second process (or filesystem manipulation) changed the raw save
     // without publishing a matching typed profile. Reject before overwriting.

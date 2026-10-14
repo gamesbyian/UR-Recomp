@@ -10,9 +10,9 @@
 The **native-created Mike + Martin** sequence is distinct from the earlier
 fixture-created native result. In #1510's actual Windows source log, both
 controller-created identities were joined, stock original 2P GO occurred and
-the original source result reported riders \`0,2\`, Mike \`27.61\` and Martin
-\`27.57\`, winner Martin, with one named paired publisher receipt:
-\`profile1=mike profile2=martin\`. Those are concrete original-guest source
+the original source result reported riders `0,2`, Mike `27.61` and Martin
+`27.57`, winner Martin, with one named paired publisher receipt:
+`profile1=mike profile2=martin`. Those are concrete original-guest source
 observations, **not yet proof of the later fresh-process Records readback**.
 The prior #1510 Windows job was red because the test expected a P1 SRAM
 snapshot from *before* the intervening genuine game-2 native checkpoint.

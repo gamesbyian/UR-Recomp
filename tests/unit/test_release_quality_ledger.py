@@ -36,6 +36,25 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
         self.assertEqual(len(data["gates"]), 12)
         self.assertEqual(validator.check_registry(data, ROOT), [])
 
+    def test_machine_readable_win32_receipt_is_not_misfiled_as_a_source_contract(self):
+        # QA-09/12 may LINK the real retained forensic JSON from docs, but
+        # evidence_refs is deliberately reserved for reviewed docs/ source
+        # contracts. One analysis/evidence path here caused nine unrelated
+        # negative ledger tests to fail before their mutation was evaluated.
+        receipt = (ROOT / "analysis" / "evidence" /
+                   "baldosa-win32-38501679761-first-racer-1p-2p-review.json")
+        self.assertTrue(receipt.is_file())
+        record = json.loads(receipt.read_text(encoding="utf-8"))
+        self.assertEqual(record["workflow_run_id"], 38501679761)
+        self.assertEqual(record["independent_release_scope"]["release_gate_credit"], 0)
+        data = baseline()
+        for gate in data["gates"]:
+            if gate["id"] in ("QA-09", "QA-12"):
+                self.assertTrue(gate["evidence_refs"])
+                self.assertTrue(all(path.startswith("docs/")
+                                    for path in gate["evidence_refs"]))
+        self.assertEqual(validator.check_registry(data, ROOT), [])
+
     def test_pass_requires_exact_candidate_and_real_witness(self):
         data = baseline()
         gate = data["gates"][0]

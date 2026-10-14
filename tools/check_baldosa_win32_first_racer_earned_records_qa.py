@@ -117,9 +117,24 @@ def audit_hosted_first_racer_earned_1p(
     first, last, ticks, frames, runs = map(int, result.groups())
     path = capture[3].replace("\\", "/")
     basename = path.rsplit("/", 1)[-1]
+    # A matching claimed hash and an arbitrary path fragment such as
+    # relative/../../runs/mike/name.urrun do not prove the native named
+    # writer's canonical Windows capture. Bind this to an absolute drive
+    # path with no traversing, empty or redirected interior components.
+    path_segments = path[3:].split("/") if re.match(r"^[A-Za-z]:/", path) else []
+    canonical_capture_path = (
+        len(path_segments) >= 3
+        and all(segment not in ("", ".", "..") and ":" not in segment
+                and not any(ord(ch) < 32 for ch in segment)
+                for segment in path_segments)
+        and path_segments[-3:-1] == ["runs", "mike"]
+        and path_segments[-1] == basename
+        and NAME.fullmatch(basename) is not None
+    )
     if (
-        not NAME.fullmatch(basename)
-        or "/runs/mike/" not in path.lower()
+        not canonical_capture_path
+        or played.count("UR_BALDOSA_NATIVE_RUN CAPTURED=1") != 1
+        or played.count("UR_BALDOSA_NATIVE_RESULT observed=1") != 1
         or not (first > 0 and first < last and ticks > 0)
         or last - first != frames
         or frames <= 0 or runs <= 0

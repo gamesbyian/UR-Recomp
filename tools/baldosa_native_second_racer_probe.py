@@ -307,9 +307,17 @@ def run_interrupted_catalog_recovery(exe: Path, rom: Path, fixture: Path,
     if (typed_p2.read_bytes(), raw_p2.read_bytes(),
             mutex_p2.read_bytes()) != before_p2:
         raise ValueError("Recovered P2 leaked into original native session")
-    if (user / "multiplayer-runs").exists() or (
-            user / "runs").exists() and list((user / "runs").rglob("*.urrun")):
-        raise ValueError("Recovery/GO was misreported as completed match")
+    match_archive = user / "multiplayer-runs"
+    if match_archive.exists():
+        if match_archive.is_symlink() or not match_archive.is_dir() or any(
+                file.name.endswith((".urrun", ".urmatch"))
+                for file in match_archive.iterdir()):
+            raise ValueError("Recovery/GO published a false paired record")
+    one_player_archive = user / "runs"
+    if one_player_archive.exists() and (
+            one_player_archive.is_symlink() or
+            list(one_player_archive.rglob("*.urrun"))):
+        raise ValueError("Recovery/GO manufactured an unearned run")
     return {
         "scope": "four-real-windows-games-native-created-martin-recovered-catalog",
         "fault_cut": "ci-only-restore-original-single-row-catalog",

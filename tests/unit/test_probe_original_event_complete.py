@@ -283,7 +283,7 @@ class CompleteEventProducerTests(unittest.TestCase):
                 [f"dump original-follow-{n:02d}"
                  for n in target.SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS])
             self.assertIn("dump result-stable\nwait 2\ndump original-follow-08", followed)
-            self.assertTrue(followed.endswith("dump original-follow-32\nquit\n"))
+            self.assertTrue(followed.endswith("dump original-follow-72\nquit\n"))
             self.assertEqual(
                 [line for line in followed.splitlines()
                  if line.startswith("press ")],
@@ -300,9 +300,11 @@ class CompleteEventProducerTests(unittest.TestCase):
             for offset in target.SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS
         }
         expected = target.source_followthrough_states(source, result_frame)
-        self.assertEqual(set(expected), {"8", "16", "24", "32"})
+        self.assertEqual(set(expected), {"8", "16", "24", "32", "64", "72"})
         self.assertEqual(expected["8"]["original_movie_host_frame"], 8361)
         self.assertEqual(expected["32"]["menu"], 0xBC)
+        self.assertEqual(expected["64"]["original_movie_host_frame"], 8417)
+        self.assertEqual(expected["72"]["original_movie_host_frame"], 8425)
         with self.assertRaisesRegex(target.CompleteEventError, "missing original-movie"):
             target.source_followthrough_states(
                 {k: v for k, v in source.items() if k != result_frame + 24},
@@ -310,6 +312,27 @@ class CompleteEventProducerTests(unittest.TestCase):
         source[result_frame + 16] = {"track": 1, "menu": "BC", "in_race": 61}
         with self.assertRaisesRegex(target.CompleteEventError, "missing original-movie"):
             target.source_followthrough_states(source, result_frame)
+
+    def test_switcher_source_returns_after_original_result_not_at_32(self):
+        # A real Snes9x source witness records Switcher 0x99 from movie
+        # 17030 through 17087. The +32 pair is still on that screen,
+        # so the optional +64/+72 captures are causally necessary.
+        source_result = 17030
+        states = {
+            source_result + offset: {
+                "menu": 0x99 if offset <= 32 else 0xF6,
+                "track": 3, "in_race": 0}
+            for offset in target.SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS
+        }
+        observed = target.source_followthrough_states(states, source_result)
+        self.assertEqual(observed["32"]["menu"], 0x99)
+        self.assertEqual(observed["64"]["menu"], 0xF6)
+        self.assertEqual(observed["72"]["menu"], 0xF6)
+        self.assertEqual(observed["64"]["original_movie_host_frame"], 17094)
+        self.assertEqual(observed["72"]["original_movie_host_frame"], 17102)
+        # These are synthetic regression states: only executing the pinned
+        # reference movie can assert the actual next-menu value.
+        self.assertNotIn("actual_native_match", observed["72"])
 
     def test_followthrough_preserves_three_clock_axes_and_zero_credit(self):
         offsets = target.SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS
@@ -346,8 +369,11 @@ class CompleteEventProducerTests(unittest.TestCase):
             self.assertFalse(report["original_and_native_result_phase_equal_proven"])
             self.assertFalse(report["menu_restoration_or_final_progression_proven"])
             self.assertFalse(report["post_result_sram_persistence_proven"])
-            self.assertTrue(report["all_four_named_pairs_equal"])
-            self.assertTrue(report["all_four_full_wram_pairs_equal"])
+            self.assertEqual(report["schema"],
+                             "UR-QA01-SOURCE-ORIGINAL-NATIVE-RESULT-FOLLOWTHROUGH/2")
+            self.assertEqual(report["sample_count"], 6)
+            self.assertTrue(report["all_followthrough_named_pairs_equal"])
+            self.assertTrue(report["all_followthrough_full_wram_pairs_equal"])
             self.assertEqual(report["samples"][0][
                 "independently_observed_replay_host_frames"],
                 {"original": 108, "native": 108})
@@ -359,8 +385,8 @@ class CompleteEventProducerTests(unittest.TestCase):
             (nat / "original-follow-16.wram.bin").write_bytes(dump(menu=0x16))
             bad = target.observe_source_terminal_followthrough(
                 ref, nat, log(100), log(100), source, 50, 52, 50, 48)
-            self.assertFalse(bad["all_four_named_pairs_equal"])
-            self.assertFalse(bad["all_four_full_wram_pairs_equal"])
+            self.assertFalse(bad["all_followthrough_named_pairs_equal"])
+            self.assertFalse(bad["all_followthrough_full_wram_pairs_equal"])
             self.assertEqual(bad["release_complete_usa_event_credit"], 0)
             (nat / "original-follow-16.wram.bin").write_bytes(bytes(80))
             with self.assertRaisesRegex(target.CompleteEventError, "128 KiB"):

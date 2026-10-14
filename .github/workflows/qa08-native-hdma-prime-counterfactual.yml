@@ -5,6 +5,8 @@ on:
     paths:
       - ".github/workflows/qa08-native-hdma-prime-counterfactual.yml"
       - "tools/qa08_compare_native_hdma_prime_trial.py"
+      - "tools/qa08_compare_native_prime_multiframe.py"
+      - "tests/unit/test_qa08_compare_native_prime_multiframe.py"
       - "tests/unit/test_qa08_compare_native_hdma_prime_trial.py"
       - "tools/qa08_patch_hdma_prime_counterfactual.py"
   workflow_dispatch:
@@ -29,6 +31,9 @@ jobs:
       UR_BALDOSA_HD: "1"
       UR_BALDOSA_HD_DENSITY: "1"
       UR_QA08_HDMA_COLDATA_FRAME: "2208"
+      # Three real host-presented original-source frames; no fabricated adjacent PPU frames.
+      UR_BALDOSA_FIXED_ORIGINAL_SOURCE_FRAME: "400"
+      UR_BALDOSA_FIXED_ORIGINAL_SOURCE_EXTRA_FRAME: "1856"
       UR_BALDOSA_FIXED_ORIGINAL_SOURCE_LATE_FRAME: "2208"
     steps:
       - uses: actions/checkout@v4
@@ -105,6 +110,9 @@ jobs:
             "$RUNNER_TEMP/qa08-counterfactual/baseline"
           grep -q "^UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=$UR_BALDOSA_FIXED_ORIGINAL_SOURCE_LATE_FRAME logical=256x224 saved=1 source=native-original-ppu$" \
             "$RUNNER_TEMP/qa08-counterfactual/baseline/log.txt"
+          for frame in 000400 001856 002208; do
+            test -s "$UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-${frame}.pam"
+          done
           echo "a946c9ebb54775639b8fd87a6861af0408cceed4896e58be05908c4a4491c67f  $UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-002208.pam" | sha256sum -c -
           grep "^UR_QA08_HDMA_INIDISP frame=$UR_QA08_HDMA_COLDATA_FRAME " \
             "$RUNNER_TEMP/qa08-counterfactual/baseline/log.txt" > "$RUNNER_TEMP/qa08-counterfactual/baseline-inidisp.log"
@@ -134,7 +142,9 @@ jobs:
               "$RUNNER_TEMP/qa08-counterfactual/experiment/fd/crc.txt"
           grep -q "^UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=$UR_BALDOSA_FIXED_ORIGINAL_SOURCE_LATE_FRAME logical=256x224 saved=1 source=native-original-ppu$" \
             "$RUNNER_TEMP/qa08-counterfactual/experiment/log.txt"
-          test -s "$UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-002208.pam"
+          for frame in 000400 001856 002208; do
+            test -s "$UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-${frame}.pam"
+          done
           grep "^UR_QA08_HDMA_INIDISP frame=$UR_QA08_HDMA_COLDATA_FRAME " \
             "$RUNNER_TEMP/qa08-counterfactual/experiment/log.txt" > "$RUNNER_TEMP/qa08-counterfactual/experiment-inidisp.log"
           test -s "$RUNNER_TEMP/qa08-counterfactual/experiment-inidisp.log"
@@ -144,6 +154,12 @@ jobs:
             --baseline-crc "$RUNNER_TEMP/qa08-counterfactual/baseline/fd/crc.txt" \
             --trial-crc "$RUNNER_TEMP/qa08-counterfactual/experiment/fd/crc.txt" \
             --out "$RUNNER_TEMP/qa08-counterfactual/real-native-raster.json"
+          python3 tools/qa08_compare_native_prime_multiframe.py \
+            --before-dir "$RUNNER_TEMP/qa08-native-baseline" \
+            --after-dir "$RUNNER_TEMP/qa08-native-experiment" \
+            --baseline-crc "$RUNNER_TEMP/qa08-counterfactual/baseline/fd/crc.txt" \
+            --trial-crc "$RUNNER_TEMP/qa08-counterfactual/experiment/fd/crc.txt" \
+            --out "$RUNNER_TEMP/qa08-counterfactual/real-native-prime-3scene-raster.json"
           # Retrieve only the independently accepted ORIGINAL Snes9x source
           # archive from the exact prior evidence ID. Do not forward GH_TOKEN
           # to the signed cross-domain blob redirect.
@@ -179,6 +195,7 @@ jobs:
           if-no-files-found: warn
           path: |
             ${{ runner.temp }}/qa08-counterfactual/real-native-raster.json
+            ${{ runner.temp }}/qa08-counterfactual/real-native-prime-3scene-raster.json
             ${{ runner.temp }}/qa08-counterfactual/original-snes9x-exact-RGB5.json
             ${{ runner.temp }}/qa08-counterfactual/baseline-inidisp.log
             ${{ runner.temp }}/qa08-counterfactual/experiment-inidisp.log
@@ -186,5 +203,5 @@ jobs:
             ${{ runner.temp }}/qa08-counterfactual/experiment/fd/crc.txt
             ${{ runner.temp }}/qa08-counterfactual/baseline/log.txt
             ${{ runner.temp }}/qa08-counterfactual/experiment/log.txt
-            ${{ runner.temp }}/qa08-native-baseline/ur-baldosa-original-source-002208.pam
-            ${{ runner.temp }}/qa08-native-experiment/ur-baldosa-original-source-002208.pam
+            ${{ runner.temp }}/qa08-native-baseline/ur-baldosa-original-source-*.pam
+            ${{ runner.temp }}/qa08-native-experiment/ur-baldosa-original-source-*.pam

@@ -111,3 +111,33 @@ channel5 effective CGADSUB/COLDATA, window/mosaic, genuine 342px
 world and 4x Original presentation, and a cross-game first-line
 regression. The source-original one-frame 100% RGB5 result proves
 this specific timing discrepancy, not whole-title hardware fidelity.
+
+## Follow-on: exact native-source three-scene experiment
+
+The accepted original/native source-frame comparison achieved genuine
+57,344/57,344 pixel RGB5 equality. To test the global first-line HDMA
+counterfactual for unwanted other-scene effects, the same two independent
+2,473-frame native guest processes now also capture actual original-size
+256x224 PPU source at guest400 (2P frontend) and guest1856 (countdown),
+in addition to the proven 2208 (post-GO) source frame. These use the
+three already-existing read-only Original capture selectors, preserving
+the exact accepted baseline 2208 SHA and unchanged full guest CRC.
+
+The new qa08_compare_native_prime_multiframe.py scans every unaltered
+RGBA pixel in both captures for all three guest frames, reports row
+locations, bounded changed-pixel examples and alpha changes, and checks
+that the authentic 2208 two-row seam fix remains exact. Unexpected
+differences in the early scenes are retained as potential regressions,
+not hidden by tolerant thresholds, gamma correction or line masking.
+A result showing no other changes is only three-frame native evidence;
+it cannot establish equivalence for every game frame or other games.
+
+Important: the reference original Snes9x archive contains 37 consecutive
+PPU callbacks around 2207, but Baldosa's normal host presents frames
+sparsely. Selected host source images are not a contiguous 37-frame
+native PPU source capture. Any future multi-frame original/native
+comparison requires its own correctly timed per-guest PPU observer.
+
+Cross-game Gundam Wing HDMA startup, full channel5 colour math, window
+and line112 effective OAM, true 342-wide source geometry and 4x fallback
+remain separate blocking proof before production HDMA code changes.

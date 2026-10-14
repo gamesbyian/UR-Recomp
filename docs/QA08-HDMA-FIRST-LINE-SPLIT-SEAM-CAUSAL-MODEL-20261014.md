@@ -1,7 +1,7 @@
 # QA-08: first-line HDMA consumption and the 2P seam
 
-**2026-10-14 status: source-code causal model; corrected native binary NOT run or accepted.**
-This experiment neither fixes production PPU nor changes any independent release gate.
+**2026-10-14 current status: the hypothesis was proven on one exact original/native 256x224 frame, experimental only.**
+A disposable consumed-prime native binary achieved 57,344/57,344 source RGB5 pixels against independently captured Snes9x callback2207 at guest2208, with all 2,473 guest CRC frames unchanged. See [the actual executed raster proof](QA08-NATIVE-HDMA-PRIME-REAL-RASTER-20261014.md), merged #1567. No production PPU or independent release gate was changed. The historical source model below describes how that test was derived.
 
 ## Decision-bearing evidence
 
@@ -50,10 +50,14 @@ The source model shows a precise falsifiable relationship:
 | Brightness 15 restore | 113 | 115 | 114 |
 | Black output rows | 111–112 | 112–113 | 111–112 |
 
-The model's first two *nonrepeating* durations 111 and 2 are
-**inferred from original transition distances**; actual original
-channel7 header bytes at 7E:2064/2066/2068 have NOT been separately
-read in these retained reports. Its final duration is illustrative.
+At initial model authoring, its first two nonrepeating durations
+111 and 2 were inferred from original transition distances. Later actual
+original Snes9x table-writer proof (#1559) separately observed original GO
+WRAM bytes **6F 0F 02 00 60 0F** at $7E:2064..2069. Native after-BBUS
+channel7 descriptor counts 111 and 2 were independently captured (#1555).
+Eight executed original 65816 source writer PCs and their fetched ROM bytes
+were qualified (#1572). The model's illustrative third count is superseded
+by the independently observed original final count $60.
 The predicted corrected transfer tags are NOT native measurements,
 nor does the source model establish physical SNES HBlank behaviour.
 

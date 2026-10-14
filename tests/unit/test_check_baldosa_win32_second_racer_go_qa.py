@@ -159,6 +159,43 @@ class IndependentSecondRacerGO(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     self.check(report, first, second, altered)
 
+    def test_source_receipts_must_be_complete_unquoted_individual_lines(self):
+        report, first, second, third = example()
+        # A grep hit or source-generated report echo is not a native event.
+        mutations = (
+            (first.replace(
+                "UR_BALDOSA_MODERN_ROOT first_racer_created=1 activation=next_process",
+                "DEBUG: UR_BALDOSA_MODERN_ROOT first_racer_created=1 activation=next_process"),
+             second, third),
+            (first, second.replace(
+                "UR_BALDOSA_NATIVE_SECOND_RACER status=0 preset=1 id=andrew activation=next_process",
+                "UR_BALDOSA_NATIVE_SECOND_RACER status=0 preset=1 id=andrew activation=next_process other=1"),
+             third),
+            (first, second, third.replace(
+                "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2",
+                "echo 'UR_BALDOSA_MODERN_ROOT join_confirmed seat=2'")),
+            (first, second, third.replace(
+                "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d",
+                "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d extra=untrusted")),
+        )
+        for logs in mutations:
+            with self.subTest(source=repr(logs)[-160:]):
+                with self.assertRaises(ValueError):
+                    self.check(report, *logs)
+
+    def test_shadow_lines_are_rejected_even_when_real_source_marker_exists(self):
+        report, first, second, third = example()
+        for index, marker in (
+            (0, "UR_BALDOSA_NATIVE_FIRST_RACER status=0 preset=0 id=mike activation=next_process"),
+            (1, "UR_BALDOSA_MODERN_ROOT second_racer_created=1 activation=next_process"),
+            (2, "UR_BALDOSA_MODERN_ROOT join_confirmed seat=2"),
+        ):
+            logs = [first, second, third]
+            logs[index] += "not-an-event: " + marker + "\\n"
+            with self.subTest(guest=index):
+                with self.assertRaises(ValueError):
+                    self.check(report, *logs)
+
     def test_runtime_artifact_four_all_or_none_never_adds_finished_event(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

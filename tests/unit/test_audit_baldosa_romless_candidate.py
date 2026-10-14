@@ -89,9 +89,10 @@ class CandidateArchiveAuditTest(unittest.TestCase):
 
             # Self-consistent new manifest is not an authenticity proof.
             # The independently pinned outer digest must still reject it.
-            manifest["immutable_files"][-1]["sha256"] = hashlib.sha256(
-                changed).hexdigest()
-            manifest["immutable_files"][-1]["bytes"] = len(changed)
+            readme_row = next(row for row in manifest["immutable_files"]
+                              if row["path"] == candidate.README)
+            readme_row["sha256"] = hashlib.sha256(changed).hexdigest()
+            readme_row["bytes"] = len(changed)
             rewritten = (json.dumps(manifest, sort_keys=True, indent=2) +
                          "\n").encode("utf-8")
             self_rehashed = root / "self-rehashed.zip"

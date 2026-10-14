@@ -52,6 +52,24 @@ The QA consumer now checks that the fresh game shows the **selected P1's** origi
 
 This establishes better **causal consistency of coarchived game logs and producer receipts**, still **not** independent verification of absent `.urrun`/`.urmatch` bytes. No new original-emulator or physical-hardware acceptance is inferred.
 
+## Prepared raw CI pair byte admission (future producer handshake)
+
+A separate **read-only** QA tool, `tools/check_baldosa_native_ci_pair_bytes_qa.py`, is prepared to consume the exact future **synthetic CI-profile** `.urrun` and `.urrun.urmatch` files together with the **same** source-result JSON, played-game transcript and fresh-game Records transcript. This tool does not create game saves, amend the product publisher, use a ROM, run a Windows game or claim strict original/native parity.
+
+When the product owner opts to retain **only those test-created pair bytes** from a future real Windows bridge, without any personal ROM, raw SRAM, real player profile or user root, the independent QA command can inspect them outside the game:
+
+```bash
+python3 tools/check_baldosa_native_ci_pair_bytes_qa.py \
+  --report report.json --played-log played_native_2p.log \
+  --fresh-log fresh_game_2p_records.log \
+  --run run-XXXXXXXXXXXXXXXX-XXXX.urrun \
+  --match run-XXXXXXXXXXXXXXXX-XXXX.urrun.urmatch
+```
+
+The reader first requires the existing actual guest-result and second-process Records log acceptance, then independently recomputes **both raw-file SHA-256 digests**, the established run/match FNV-1a64 trailers, fixed `uniracers-usa` USA ROM/source-compat/course/mode provenance, exact native 2P input-span and source result timing, and the `p1=MIKE/rider0` + `p2=MARTIN/rider2` identities and result in the sidecar. Its tests use **synthetic bytes only**, exercising correct checksummed-but-wrong records and deliberately corrupt/truncated artifacts. A matching producer-supplied report alone is *never* enough.
+
+**Do not retroactively mark this check passed for run 38497178182.** That run's Windows Actions artifacts contain the report and logs, but **not** the two saved files, so the independent digest/codec checks have not been possible. A future positive reading remains a **bounded hosted file-consistency finding**, not original-emulator parity, physical-controller certification or release eligibility.
+
 ## What is still actually missing
 
 An **independently reviewable canonical new pair** means retaining those two **ROM-free synthetic CI-player saved artifacts**, bound to the exact existing digest and candidate, and independently parsing their real run/match codecs. This is a reasonable narrow next product/QA handshake, but cannot be achieved by retroactively inferring bytes from this artifact. Then complete one **packaged, human-controller-first native 1P/2P → Records** Windows journey and actual hardware gamepad/audio/display acceptance. A strictly accepted complete USA original-versus-native event and other **45/45** original-release coverage remain separately owned QA-01 work.

@@ -93,7 +93,8 @@ def check(original: dict,native: dict,pixel: dict) -> dict:
             "original_and_native_after_write_fixed_RGB15":fixed})
     # The two known native PPU output rows are strictly within stable
     # descriptor bands, not on either renderer's boundary/HDMA tag.
-    if (not (2<50<111 and 113<162<224) or
+    if (not (orig[2]["original_beam_v"]<50<orig[3]["original_beam_v"] and
+             orig[5]["original_beam_v"]<162<224) or
             pairs[2]["original_and_native_after_write_fixed_RGB15"]!="0x000F" or
             pairs[5]["original_and_native_after_write_fixed_RGB15"]!="0x0260" or
             native.get("upper_output_row50_live_fixed_RGB15")!="0x000F" or
@@ -119,7 +120,7 @@ def check(original: dict,native: dict,pixel: dict) -> dict:
         "native_lower_row162_fixed_RGB15":"0x0260",
         "same_input_frame_counters_and_camera_verified":False,
         "original_Snes9x_row50_and_row162_final_pixel_RGB_authenticated":False,
-        "original_native_final_pixels_equal":False,
+        "original_native_final_pixels_equal_proven":False,
         "physical_SNES_HBlank_timing_verified":False,
         "HD_remastered_art_approved":False,
         "source_pairs":pairs

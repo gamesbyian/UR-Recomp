@@ -178,6 +178,22 @@ class RawCreatedPairSource(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.evaluate(extra)
 
+    def test_unrelated_outer_zip_members_fail_closed(self):
+        # A valid guest/raw subgroup must not launder unreviewed source-root
+        # material in the same ZIP. These are ROM-free synthetic adversaries.
+        for name in (
+            "private-user-data/save.srm",
+            "untracked-windows.exe",
+            "../outside/host-profile.txt",
+            qa.PREFIX + "unexpected.log",
+            qa.RAW_PREFIX[:-1] + "-sibling/saves/mike/save.srm",
+        ):
+            with self.subTest(unreviewed_name=name):
+                members = example_members()
+                members[name] = b"unreviewed-member"
+                with self.assertRaisesRegex(ValueError, "unallowlisted Windows source ZIP"):
+                    self.evaluate(members)
+
     def test_resigned_wrong_source_rider_pair_or_result_rejected(self):
         src = example_members()
         cases = (

@@ -101,6 +101,37 @@ class ZooTerminalWriterCrosswalk(unittest.TestCase):
         self.assertEqual(result["release_complete_event_credit"], 0)
         self.assertFalse(result["strict_guest_relative_result_boundary_equal"])
 
+    def test_executed_buffer_clear_and_text_word_overlaps_are_not_race_exit_proof(self):
+        # Exact record shapes observed in ORIGINAL Snes9x and native CI run
+        # 38499115188 (archive SHA pinned separately), not synthesized PC
+        # mappings or a CPU/scanline clock normalization.
+        source = (
+            "ZOOPCWRITE f=6765 v=9 pc=838B85 addr=0313 old=01 new=00\n"
+            "ZOOPCWRITE f=6766 v=79 pc=80C585 addr=0313 old=00 new=3D\n")
+        native = (
+            "f6766   80:0312=004C w2 Vram_ClearRegions_M1X0\n"
+            "f6767   00:0312=3D0A w2 Text_DrawLoop_C3F7_M1X0\n")
+        report = self.run_crosswalk(original=source, native=native)
+        self.assertTrue(report[
+            "original_native_presentation_buffer_overlap_correspondence"])
+        self.assertTrue(report["source_original_clear_buffer_opcode_83_8b85_observed"])
+        self.assertTrue(report["source_original_text_buffer_opcode_80_c585_observed"])
+        self.assertTrue(report["native_overlapping_word_clear_observed"])
+        self.assertTrue(report["native_overlapping_word_text_observed"])
+        self.assertTrue(report[
+            "terminal_0313_is_not_independently_proven_dedicated_race_exit_flag"])
+        self.assertEqual([w["actual_store_start"] for w in
+                          report["native_cpu_helper_0313_write_rows"]],
+                         ["80:0312", "00:0312"])
+        self.assertEqual(report["release_complete_event_credit"], 0)
+        self.assertFalse(report["strict_guest_relative_result_boundary_equal"])
+        altered = native.replace("Text_DrawLoop_C3F7_M1X0",
+                                 "Unknown_Unqualified_Scope")
+        negative = self.run_crosswalk(original=source, native=altered)
+        self.assertFalse(negative[
+            "original_native_presentation_buffer_overlap_correspondence"])
+        self.assertEqual(negative["release_complete_event_credit"], 0)
+
     def test_missing_native_writer_is_a_negative_not_rewritten_history(self):
         result = self.run_crosswalk(native="f6766 00:009F=16 w1 unrelated\n")
         self.assertEqual(result["native_cpu_helper_0313_write_rows"], [])

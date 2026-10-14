@@ -2,6 +2,16 @@ name: ordinary 2P reference regression
 
 on:
   workflow_dispatch:
+    inputs:
+      qa01_dual_air_50036056:
+        description: "Optional source-matched original/native raw dual-air witness, never a course pass"
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+  actions: read
 
 concurrency:
   group: ordinary-2p-reference-${{ github.ref }}
@@ -10,7 +20,7 @@ concurrency:
 jobs:
   two-player-reference:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
         with:
@@ -337,6 +347,89 @@ jobs:
             "$RUNNER_TEMP/snes9x-dumps/two-player-p1-pre-1470.oam.bin" \
             "$RUNNER_TEMP/snes9x-dumps/two-player-p2-post-1570.oam.bin" \
             "$RUNNER_TEMP/snes9x-dumps/two-player-both-post-1620.oam.bin"
+
+      # Optional source research. Do not substitute this workflow's ordinary
+      # 2P reference-native build for the exact Modern frontier ELF.
+      - name: Restore exact frontier-source native candidate (opt-in)
+        if: ${{ inputs.qa01_dual_air_50036056 }}
+        uses: actions/download-artifact@v4
+        with:
+          name: shared-modern-native-candidate
+          run-id: 38446393623
+          github-token: ${{ github.token }}
+          repository: gamesbyian/UR-Recomp
+          path: ${{ runner.temp }}/qa01-dual-air-exact-native
+
+      - name: QA-01 paired source dual-air seed 50036056
+        if: ${{ inputs.qa01_dual_air_50036056 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/qa01-dual-air-50036056"
+          python3 tools/qa01_dual_air_paired.py prepare --out-dir "$ROOT"
+          mkdir "$ROOT/original"
+          tar -xzf "$RUNNER_TEMP/qa01-dual-air-exact-native/shared-modern-native.tar.gz" -C "$RUNNER_TEMP"
+          EXE="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          python3 - "$EXE" <<'PY'
+          import hashlib,pathlib,sys
+          exe=pathlib.Path(sys.argv[1])
+          assert exe.is_file() and not exe.is_symlink(), "missing immutable frontier ELF"
+          assert hashlib.sha256(exe.read_bytes()).hexdigest() == (
+              "28501fa3268f82d83672122cddbd2628ce5b2458e625f46d93766f50befbe515"
+          ), "native candidate changed: do not compare an unrelated executable"
+          PY
+          ldd "$EXE" > "$ROOT/native-ldd.log"
+          ! grep -E 'not found|version .+ not found' "$ROOT/native-ldd.log"
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+            SNESREF_INPUT_FILE="$ROOT/case.input" \
+            SNESREF_SCRIPT="$ROOT/case.script" \
+            SNESREF_DUMP_DIR="$ROOT/original" \
+            timeout 180s "$RUNNER_TEMP/snesref-build/snesref" "$CORE" "$ROM" \
+              >"$ROOT/original.log" 2>&1
+          # Reuse the EXACT frontier guest's isolated user-data root, config,
+          # unpaced execution, neutral input and dump transport.
+          python3 - "$EXE" "$ROM" "$ROOT" >"$ROOT/native.log" 2>&1 <<'PY'
+          import pathlib,sys
+          sys.path.insert(0,"tools")
+          import qa02_native_2p_seeded_endurance as guest
+          exe,rom,root=map(pathlib.Path,sys.argv[1:])
+          guest.execute(exe,rom,root/"case.input",root/"case.script",
+                        root/"native-run",120)
+          PY
+          python3 tools/qa01_dual_air_paired.py classify \
+            --manifest "$ROOT/manifest.json" \
+            --original-dir "$ROOT/original" --native-dir "$ROOT/native-run/dumps" \
+            --rom "$ROM" --core "$CORE" --native-exe "$EXE" \
+            --out "$ROOT/paired-report.json"
+          python3 - "$ROOT/paired-report.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          r=json.load(open(sys.argv[1]))
+          assert r["same_executable_as_frontier_witness"], "wrong frontier executable"
+          with open(sys.argv[2],"a") as f:
+              f.write("### QA-01 same-input original/native raw-air observation\\n\\n")
+              f.write("At host 2580 original/native raw both-air: "
+                      + str(r["raw_both_air_at_2580"]) + "\\n\\n")
+              f.write("Guest racing at the source frame: "
+                      + str(r["active_race_at_2580"]) + "\\n\\n")
+              f.write("Exact frontier executable: true\\n\\n")
+              f.write("**No strict complete-event acceptance or gameplay physics proof.**\\n")
+          PY
+
+      - name: Retain opt-in QA-01 paired raw-air evidence
+        if: ${{ always() && inputs.qa01_dual_air_50036056 }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-dual-air-paired-50036056
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa01-dual-air-50036056/manifest.json
+            ${{ runner.temp }}/qa01-dual-air-50036056/paired-report.json
+            ${{ runner.temp }}/qa01-dual-air-50036056/*.log
+            ${{ runner.temp }}/qa01-dual-air-50036056/case.input
+            ${{ runner.temp }}/qa01-dual-air-50036056/case.script
 
       - uses: actions/upload-artifact@v4
         if: always()

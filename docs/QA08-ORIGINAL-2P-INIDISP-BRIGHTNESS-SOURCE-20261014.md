@@ -67,3 +67,33 @@ tags 0/2/113/115. Both exact-head source runs passed their gates.
 The unresolved component is the relationship of logged transfer tags to
 the final displayed row at the one-line-shifted 2P black seam.
 See the [paired source SHA handoff](../analysis/data/qa08-original-native-2p-brightness-split-channel7-handoff-20261014.json).
+
+## October 14: executed guest brightness-table producers and original headers
+
+The accepted original $2100 after-write source proves channel7 register
+values, PPU brightness and original direct-mode0 HDMA source identity. It
+does not identify the executed 65816 instructions which populated the
+underlying $7E:2064..2069 table or establish beam timing in Baldosa.
+
+A bounded original-source extension to the existing channel5 original
+table-writer action reuses its ten disjoint original Snes9x route windows
+0..2559. The read-only probe copies only the six source WRAM bytes before
+and after each actually executed original guest opcode and prints only
+changed bytes with their executed PC, source V and frame. No ROM, WRAM,
+controller, PPU, guest timing or rendering instruction is altered. The
+existing original GO/t480 full WRAM dumps are already collected.
+
+The strict original analyzer joins changed-PC source witnesses to original
+live PPU source 7E:2065=0F, 2067=00 and 2069=0F, verified in the actual
+GO WRAM. It captures adjacent actual descriptor header bytes 2064,
+2066 and 2068, without assuming durations 111/2 or a repeat-bit policy.
+Absent original source writer events are recorded as a genuine negative
+window result, never manufactured as an executed PC.
+
+Compare this actual original table with the independent live native
+after-BBUS counter and header probe. Neither side alone proves final
+scanline pixel effects, physical SNES behaviour or the correctness of
+a global non-consuming-prime change. The pinned Baldosa header explicitly
+notes the prime was introduced to address Gundam Wing first-line errors.
+An authentic rendered multi-channel 2P source-pixel regression is still
+the acceptance standard; Remastered art approval is unaffected.

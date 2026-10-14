@@ -7,6 +7,8 @@ on:
       - "tools/instrument_snesref_qa08_hdmacolour_table_writers.py"
       - "tools/analyze_snesref_qa08_hdmacolour_table_writers.py"
       - "tests/unit/test_qa08_original_hdma_table_writer_tools.py"
+      - "tools/analyze_snesref_qa08_inidisp_table_writers.py"
+      - "tests/unit/test_qa08_original_inidisp_table_writers.py"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snes9x-libretro.json"
   workflow_dispatch:
@@ -76,6 +78,7 @@ jobs:
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/qa08-original-windows"
           : > "$RUNNER_TEMP/qa08-original.log"
+          : > "$RUNNER_TEMP/qa08-original-channel7.log"
           # Exhaust original Snes9x frame 0..2559. The initial source route
           # finished at original frame 2473 with real P2 state, but the
           # 1781..2036 active-only window had no bytes changed.
@@ -105,10 +108,13 @@ jobs:
             test -s "$stem/t480.wram.bin"
             grep -q '^script f=2473 quit' "$stem/original.log"
             ! grep -q 'UR_QA08_COLDATA_TABLE_WRITER_OVERFLOW' "$stem/original.log"
+            ! grep -q 'UR_QA08_INIDISP_TABLE_WRITER_OVERFLOW' "$stem/original.log"
             count=$(grep -c '^UR_QA08_COLDATA_TABLE_WRITER frame=' "$stem/original.log" || true)
             # Append in numeric frame order, never lexical glob order.
             grep '^UR_QA08_COLDATA_TABLE_WRITER frame=' "$stem/original.log" \
               >> "$RUNNER_TEMP/qa08-original.log" || true
+            grep '^UR_QA08_INIDISP_TABLE_WRITER frame=' "$stem/original.log" \
+              >> "$RUNNER_TEMP/qa08-original-channel7.log" || true
             printf 'original frame window %s-%s: observed byte changes=%s\n' "$first" "$last" "$count"
           done
           # Every original replay must independently reach the identical final
@@ -130,6 +136,15 @@ jobs:
             --log "$RUNNER_TEMP/qa08-original.log" \
             --native-source analysis/data/qa08-original-native-channel5-hdma-coldata-source-handoff.json \
             --out "$RUNNER_TEMP/qa08-executed-original-writers.json"
+          # Same exact original Snes9x ten route windows; retain actual
+          # original 65816 channel7 table producers plus real GO headers.
+          # No extra emulator process and no inferred DMA raster effects.
+          python3 tools/analyze_snesref_qa08_inidisp_table_writers.py \
+            --log "$RUNNER_TEMP/qa08-original-channel7.log" \
+            --original-go-wram "$RUNNER_TEMP/qa08-original-windows/frames-1536-1791/go.wram.bin" \
+            --original-t480-wram "$RUNNER_TEMP/qa08-original-windows/frames-1536-1791/t480.wram.bin" \
+            --original-source-handoff analysis/data/qa08-original-native-2p-brightness-split-channel7-handoff-20261014.json \
+            --out "$RUNNER_TEMP/qa08-original-channel7-executed-table.json"
           python3 - <<'PY'
           import hashlib, json, os
           from pathlib import Path
@@ -180,6 +195,8 @@ jobs:
           path: |
             ${{ runner.temp }}/qa08-original-2p.script
             ${{ runner.temp }}/qa08-original.log
+            ${{ runner.temp }}/qa08-original-channel7.log
+            ${{ runner.temp }}/qa08-original-channel7-executed-table.json
             ${{ runner.temp }}/qa08-original-windows/frames-*/original.log
             ${{ runner.temp }}/qa08-original-windows/frames-*/original.exit
             ${{ runner.temp }}/qa08-executed-original-writers.json

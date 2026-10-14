@@ -112,6 +112,35 @@ partial observations**, **41/45 unverified**. Across all three builds,
   event is established on Jumpover. **No timed-Stunt identity has
   an accepted fresh original/native complete-event pair**, including Bowl.
 
+**Pending source-qualified Switcher Race B census reconciliation (2026-10-14):**
+The archived original USA Snes9x movie genuinely enters Switcher at movie
+frame **12327** and reaches `0x99` result at **17030**. Fresh original/native
+guests replay the preserved SRAM and controller scene with **28/28** matching
+active semantic checkpoints and the identical real **MIKE 1:08.81** result
+presented on both hosts at absolute frame **5783**. However, the independently
+observed race entries differ (original host 1079/native 1081), so the result
+is **+4704 original versus +4702 native** in guest-relative frames. The
+34-frame course-ID-zero terminal prelude, instruction-time CPU/NMI parity,
+menu continuation, and persistence remain unresolved. This is a useful
+*completed-result investigative candidate*, and demonstrably **not** a strict
+accepted event. [Source-executed paired witness](../analysis/data/switcher-original-baldosa-paired-race-b-result-20261010.json);
+[source-qualified three-event timing matrix](../analysis/data/qa01-three-event-original-baldosa-timing-matrix-20261010.json).
+
+At this point the independently owned `docs/RELEASE-QUALITY-LEDGER.json`
+still binds QA-01 to **0 accepted, 4 partial, 41 unverified**, so Switcher
+continues to be officially **unverified** in
+`analysis/data/course-event-runtime-evidence.json`. A proposed direct
+promotion to `partial` was rejected by ten independent release-ledger
+unit assertions in PR #1589's initial test run
+[38640225829](https://github.com/gamesbyian/UR-Recomp/actions/runs/38640225829);
+the research witness and the source/census discrepancy are preserved here
+instead. **Handoff to independent release QA owner:** assess whether Switcher
+qualifies as `partial` under the existing source evidence policy and, if so,
+reconcile the ledger, source register, derived 135-case census and tests as
+one coherent reviewed change. No release count, comparator, candidate gate,
+original guest, CPU/APU implementation or controller input has been changed
+in this gameplay lane.
+
 Every Europe-retail and PAL-prototype case remains unverified at comparative L4.
 No paired-ROM payload CRC, native unit test, static course-cell match,
 or success on Dragster can be counted as a substitute.

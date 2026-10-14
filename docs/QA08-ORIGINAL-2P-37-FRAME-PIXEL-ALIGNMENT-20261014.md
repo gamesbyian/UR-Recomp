@@ -93,3 +93,56 @@ python3 tools/qa08_rank_original_native_2p_frames.py \
   --native-evidence analysis/data/qa08-original-native-channel5-hdma-coldata-source-handoff.json \
   --out /tmp/qa08-original-native-rgb-candidates.json
 ```
+
+
+## Full-original pixel motion census: next independent 2P scene selection (2026-10-14)
+
+The already accepted original Snes9x run [38543766102](https://github.com/gamesbyian/UR-Recomp/actions/runs/38543766102)
+artifact 11884155561 was **re-read**, not rerun. The entire source ZIP
+SHA256 6e5d488230c11d3dfcd144b6a7cbc8c25d7acfcb4f95b776a85071dd3487f5e3
+and its 37-frame manifest SHA256 29856fa4f13bfc679b60240de80bd48b8c035801b56e0fbb3e17472a06836787
+match the previously accepted original. Every individual 256×224 BGRX
+source frame SHA also matches the manifest, and RGB565 channel expansion
+is individually checked. No framebuffer alteration, crop, invented PPU
+callback or guest input occurred.
+
+The original-only source sample candidates use original callbacks
+**2191, 2207, 2223**. The **proposed** native guest sampling frame
+numbers would be 2192, 2208, 2224 respectively, based on the previously
+accepted *2207→2208* pair. The proposed earlier/later mappings are
+**not independently proven**. They are candidate follow-ups only if
+the unchanged native host actually presents those frames and their
+route/controller/guest phase checks pass.
+
+| Authentic Snes9x callback pair | Top visible original RGB changed (rows0–110) | Split rows111–112 changed | Bottom rows113–223 changed | Total changed of 57,344 |
+| --- | ---: | ---: | ---: | ---: |
+| 2191↔2207 | 18,257 | 0 | 17,248 | **35,505** |
+| 2191↔2223 | 13,021 | 0 | 16,069 | **29,090** |
+| 2207↔2223 | 15,440 | 0 | 20,715 | **36,155** |
+
+This establishes that the two proposed additional samples are
+**genuinely visually different moving 2P original scenes** with
+large changes in both viewports, not duplicated render frames or
+only a split-seam change. It does *not* attribute these differences
+to rider animation rather than scrolling scenery, specific OAM
+pixels, camera shift, course progression or HUD state.
+
+Reproducer:
+\`python3 tools/qa08_rank_original_postgo_motion.py --original-zip /path/to/accepted-original-artifact.zip --out /tmp/qa08-original-moving-diversity.json\`.
+The strict source report is
+[\`analysis/data/qa08-original-postgo-moving-frame-diversity-20261014.json\`](../analysis/data/qa08-original-postgo-moving-frame-diversity-20261014.json);
+synthetic test inputs cannot earn native pixel acceptance.
+
+**Next useful source-grade experiment:** extend the existing three
+read-only native PPU capture selectors within the same original USA 2P
+route (without adding duplicate game/CI factories) to capture
+additional guest2192 and2224 256×224 frames *when presented*.
+Reapply the pinned real-original RGB5 comparator against original
+callbacks2191 and2223, retaining guest CRCs, effective channel-5/7
+and OAM split source. On any missing native frame, reject the trial
+rather than fabricating an image or accepting nearest captured time.
+Reconcile global-prime versus channel-7-only findings from the
+independent current discriminator before selecting a production
+renderer correction. Nothing here grants an HD art or Widescreen
+sprite replacement admission; original 256×224, PAR7:6 and genuine
+4× Original remain invariant.

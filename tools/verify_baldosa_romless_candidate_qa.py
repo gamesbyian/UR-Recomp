@@ -27,6 +27,7 @@ from check_baldosa_win32_native_2p_records_evidence import audit_hosted_native_2
 from check_baldosa_win32_first_racer_evidence import audit_hosted_win32_first_racer
 from check_baldosa_win32_first_racer_earned_records_qa import audit_hosted_first_racer_earned_1p
 from check_baldosa_win32_cmd_first_racer_evidence import audit_win32_cmd_first_racer_source
+from check_baldosa_win32_second_racer_go_qa import audit_win32_second_created_racer_go
 
 SHA40 = re.compile(r"[0-9a-f]{40}\Z")
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
@@ -336,6 +337,15 @@ RUNTIME_FIRST_RACER_EARNED_GROUP = (
     "UR Baldosa Win32 Pause Route/native_first_racer_earned_records/fresh_named_player_completes_race/log.txt",
     "UR Baldosa Win32 Pause Route/native_first_racer_earned_records/new_game_reopens_earned_records/log.txt",
 )
+# Product #1490's exact proposed *four-file* three-native-process bundle.
+# A GO report is not an earned 2P result or independently observed source
+# GO ticker, so never count these files as a finished match/release pass.
+RUNTIME_SECOND_CREATED_RACER_GROUP = (
+    "UR Baldosa Win32 Pause Route/native_real_second_racer/report.json",
+    "UR Baldosa Win32 Pause Route/native_real_second_racer/first_P1_mike/log.txt",
+    "UR Baldosa Win32 Pause Route/native_real_second_racer/named_P1_adds_P2/log.txt",
+    "UR Baldosa Win32 Pause Route/native_real_second_racer/fresh_two_seat_source_go/log.txt",
+)
 RUNTIME_DIAGNOSTIC_LOGS = frozenset(
     "UR Baldosa Win32 Pause Route/" + suffix + "/log.txt"
     for suffix in (
@@ -350,7 +360,9 @@ RUNTIME_ALLOWED_MEMBERS = frozenset((
 )) | RUNTIME_DIAGNOSTIC_LOGS | frozenset(
     name for group in RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS
     for name in group
-) | frozenset(RUNTIME_FIRST_RACER_EARNED_GROUP) | frozenset((
+) | frozenset(RUNTIME_FIRST_RACER_EARNED_GROUP) | frozenset(
+    RUNTIME_SECOND_CREATED_RACER_GROUP
+) | frozenset((
     RUNTIME_NOARGS_FIRST_RACER_LOG,
 ))
 
@@ -410,6 +422,11 @@ def check_runtime_actions_wrapper(
             )
             if earned_count not in (0, 4):
                 raise ValueError("Baldosa first-racer earned 1P evidence group incomplete")
+            second_racer_count = sum(
+                name in names for name in RUNTIME_SECOND_CREATED_RACER_GROUP
+            )
+            if second_racer_count not in (0, 4):
+                raise ValueError("Baldosa second-racer source evidence group incomplete")
 
             def bounded(name: str, limit: int) -> bytes:
                 try:
@@ -459,6 +476,13 @@ def check_runtime_actions_wrapper(
                 tuple(bounded(member, 64 * 1024 if i == 0 else 2 * 1024 * 1024)
                       for i, member in enumerate(RUNTIME_FIRST_RACER_EARNED_GROUP))
                 if earned_count == 4 else None
+            )
+            new_second_racer_go = (
+                tuple(
+                    bounded(name, 64 * 1024 if i == 0 else 2 * 1024 * 1024)
+                    for i, name in enumerate(RUNTIME_SECOND_CREATED_RACER_GROUP)
+                )
+                if second_racer_count == 4 else None
             )
             noargs_launcher_log = (
                 bounded(RUNTIME_NOARGS_FIRST_RACER_LOG, 2 * 1024 * 1024)
@@ -614,6 +638,16 @@ def check_runtime_actions_wrapper(
     else:
         candidate["metrics"]["hosted_first_racer_earned_1p_three_game_logs_consistent"] = False
         candidate["metrics"]["hosted_saved_urrun_bytes_independently_decoded"] = False
+    if new_second_racer_go is not None:
+        p2_creation = audit_win32_second_created_racer_go(*new_second_racer_go)
+        candidate["metrics"].update(p2_creation)
+        candidate["assertions"].append(
+            assertion("hosted-second-player-created-and-two-seat-stock-entry-source-logs-consistent", True)
+        )
+    else:
+        candidate["metrics"]["hosted_new_mike_and_andrew_to_two_seat_stock_entry_logs_consistent"] = False
+        candidate["metrics"]["hosted_p2_catalog_and_sram_bytes_independently_rehashed"] = False
+        candidate["metrics"]["hosted_original_guest_stock_two_player_go_barrier_independently_observed"] = False
     candidate["inputs"]["runtime_actions_wrapper_basename"] = wrapper.name
     candidate["inputs"]["runtime_actions_wrapper_sha256"] = file_digest(wrapper)
     for name, raw in (

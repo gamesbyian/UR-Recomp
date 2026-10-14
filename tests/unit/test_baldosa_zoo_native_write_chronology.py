@@ -60,6 +60,26 @@ class NativeMenuChronologyTest(unittest.TestCase):
                           ])
         self.assertEqual(counts["native_log_target_guest_writes"], 3)
 
+    def test_race_flag_0313_native_cpu_write_is_included_without_polluting_menu_gates(self):
+        writes = (
+            "f6766 00:0313=0000 w2 native_finish via=cpu_write16\n"
+            "f6767 7E:0313=003D w2 native_result via=cpu_write16\n"
+            "f6767 00:0312=3D01 w2 covers_0313 via=cpu_write16\n")
+        rows, counts = native.parse_writes(writes, entry_frame=1606)
+        self.assertEqual([(w["guest_address"], w["guest_value"]) for w in rows],
+                         [("7E:0313", "00"), ("7E:0313", "3D"),
+                          ("7E:0313", "3D")])
+        self.assertEqual(counts["native_log_target_guest_writes"], 3)
+        self.assertIn(0x0313, native.TARGETS)
+        self.assertEqual(native.STAGE_TARGETS, (0x009F, 0x00CE))
+        with tempfile.TemporaryDirectory() as td:
+            original, baldosa, host = self.fixtures(Path(td))
+            result = native.analyze(writes, host, baldosa, original,
+                                    native_scene_entry_frame=1606)
+            self.assertEqual(result["source_logger_range_hex"], "008B:0313")
+            self.assertEqual(len(result["native_0313_write_candidates"]), 3)
+            self.assertEqual(result["complete_event_qa_credit"], 0)
+
     def test_missing_native_writer_is_negative_not_false_course_pass(self):
         with tempfile.TemporaryDirectory() as d:
             orig, bald, host = self.fixtures(Path(d))
@@ -87,7 +107,7 @@ class NativeMenuChronologyTest(unittest.TestCase):
 
 class NativeWriterWindowPatchTest(unittest.TestCase):
     def test_only_logger_observation_changes(self):
-        source = "static int elsewhere;\\n" + window_patch.MARKER + "\\n" + '    fprintf(stderr, "recorded");\\n}\\n'
+        source = "static int elsewhere;\n" + window_patch.MARKER + "\n" + '    fprintf(stderr, "recorded");\n}\n'
         # The gate is added before capacity accounting and the original
         # logger body stays intact. This does not intercept guest stores.
         output = window_patch.patch(source)

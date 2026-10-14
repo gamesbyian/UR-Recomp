@@ -26,6 +26,9 @@ class BaldosaNativeTwoPlayerPublicationTests(unittest.TestCase):
                 "host_profile_store.cpp",
                 "host_profile_catalog.cpp",
                 "modern_racer_identity.cpp",
+                # Same canonical source the native profile adapter now
+                # consumes for first-user clean SRAM registration.
+                "clean_stock_sram.cpp",
                 "completed_run_record.cpp",
                 "completed_run_store.cpp",
                 "baldosa_native_run_record_admission.cpp",

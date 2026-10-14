@@ -1,0 +1,79 @@
+{
+  "schema": "UR-QA01-ZOO-RESTORE-ANCHORED-EXECUTED-PRESENTATION/1",
+  "executed_workflow": 38500427634,
+  "original_native_artifact": 11866136501,
+  "artifact_zip_sha256": "d5ec65c672736fa45f01214134db8598baa840f106729bd2c04ffb8949f1d039",
+  "artifact_identity_pinned": true,
+  "source_native_cpu_helper_log_sha256": {
+    "original": "c51fadac1005bdcf7cf3b1925ba50d5829fc14230a2ee76b21f349082826cd62",
+    "native": "e7bcdfe6bb0f3b59667c05b6d59363fb46df9591c82485aa06c23ce2c2b0d7b6"
+  },
+  "independently_reported_scene_entry_host_frames": {
+    "original": 1604,
+    "native": 1606
+  },
+  "native_minus_original_entry_host_frames": 2,
+  "original_native_stage_receipts": {
+    "original": {
+      "restore": {
+        "scene_relative_frame": 5158,
+        "actual_script_host_frame": 6762,
+        "guest_wram_sha256": "e2c2aa776a04642e88302224f714b3cfdda8cce4745ed2166085233acbd81061"
+      },
+      "clear": {
+        "scene_relative_frame": 5162,
+        "actual_script_host_frame": 6766,
+        "guest_wram_sha256": "1c6abcc0e489e418529cfb8d364756d8a4c3af33b1ebef57f0caaa2a590ea369"
+      },
+      "result_text": {
+        "scene_relative_frame": 5163,
+        "actual_script_host_frame": 6767,
+        "guest_wram_sha256": "e91772eae7d2a2c9c691ab1f58a03d0a4bedef329c3bd08491ebf060fe500c39"
+      }
+    },
+    "native": {
+      "restore": {
+        "scene_relative_frame": 5157,
+        "actual_script_host_frame": 6763,
+        "guest_wram_sha256": "f2c35f5adf6d26c37995487bef25968fd174ba522ee74a20639f42ce6e4f7810"
+      },
+      "clear": {
+        "scene_relative_frame": 5161,
+        "actual_script_host_frame": 6767,
+        "guest_wram_sha256": "e442da6eb4a721b9b51bf577a5bd6ef31c00e74e5bc93629a86d802a375d18f6"
+      },
+      "result_text": {
+        "scene_relative_frame": 5162,
+        "actual_script_host_frame": 6768,
+        "guest_wram_sha256": "bef996cd6f10a3a1ca8a3f62442e135546c523ad90cab048ef1b876f5edc16b4"
+      }
+    }
+  },
+  "native_minus_original_absolute_stage_host_frames": {
+    "restore": 1,
+    "clear": 1,
+    "result_text": 1
+  },
+  "elapsed_host_frames_since_observed_restore": {
+    "restore": {
+      "original": 0,
+      "native": 0
+    },
+    "clear": {
+      "original": 4,
+      "native": 4
+    },
+    "result_text": {
+      "original": 5,
+      "native": 5
+    }
+  },
+  "restoration_to_result_presentation_cadence_equal": true,
+  "first_observed_guest_relative_stage_difference_precedes_restoration": true,
+  "distinct_original_icpu_and_native_prerun_frame_tags_not_equated": true,
+  "source_and_native_genuine_result_both_observed": true,
+  "source_native_continuous_instruction_parity_proven": false,
+  "source_native_course_finish_decision_instant_proven": false,
+  "complete_event_release_credit": 0,
+  "next_causal_question": "Why native scene entry is +2 host frames but native restore, clear and result drawing are +1 absolute host frame. Investigate the genuine course finish/return decision upstream of DP restoration and the source/native entry predicate; never globally retime pads."
+}

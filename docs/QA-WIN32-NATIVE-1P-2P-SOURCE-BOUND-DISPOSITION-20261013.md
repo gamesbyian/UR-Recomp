@@ -42,6 +42,14 @@ The source `native/product/local_multiplayer_match_binding.cpp` correctly demand
 
 Independent detailed evidence is retained in [the negative 2P receipt](../analysis/evidence/baldosa-win32-38493490210-native-2p-rider-binding-failure.json). The PR owner was sent the exact observations and a bounded fix/discriminator, avoiding another expensive exploratory run without new evidence.
 
+## Prepared independent 2P Windows log-consumer acceptance (QA-only)
+
+An independent *read-only* consumer now accepts a future **complete three-file hosted Win32 2P group** only as a single coarchived evidence unit: `native_real_2p_records/report.json`, `played_native_2p/log.txt` and `fresh_game_2p_records/log.txt`, carried by the **same** Windows bridge runtime Actions wrapper already tied to the immutable candidate ZIP and executable. Older 1P-only archives remain valid and inconclusive. A single leftover `played_native_2p/log.txt` from a failed product experiment must **not** be admitted as a positive match.
+
+The consumer checks unique source stock joins, exact rider indices, one real source result with a chronologically prior canonical match write, nonzero/consistent frame counts, source winning time/outcome agreement, `published=1`, pair of canonical `.urrun`/`.urmatch` filenames with independently well-formed *producer-reported* SHA-256 values, real subsequent named-profile SRAM boot, read-only 2P Records page and no second match award. It rejects forged `release_gate_credit` and any unexpected original parity or physical hardware claims. These are pure contract checks under `tools/check_baldosa_win32_native_2p_records_evidence.py`, wired into the existing independent `tools/verify_baldosa_romless_candidate_qa.py`; there is **no new Windows runner or gameplay harness**.
+
+**Still unsupported:** raw CI-generated pair bytes are not uploaded in the current product workflow. Even a green hosted 2P log triple cannot be independently rehashed/decoded as a complete canonical on-disk pair; the product producer's own before/after file hashes do not substitute for preserved bytes. No original emulator strict parity, actual physical pads/audio/display or consumer release nomination follows. The all-false older artifacts and the documented `riders=0,2 ... published=0` failed candidate remain correct negatives.
+
 ## Next QA decision and runner discipline
 
 1. Reuse the already-merged independent [#1427](https://github.com/gamesbyian/UR-Recomp/pull/1427) 1P source/ZIP/log classifier for future source-bound artifacts. **Do not** count a 1P source-settled game result as a strictly original/native passed course, and do not invent absent run bytes.

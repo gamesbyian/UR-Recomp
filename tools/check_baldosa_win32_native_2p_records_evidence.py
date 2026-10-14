@@ -162,7 +162,7 @@ def audit_hosted_native_2p_records(
 
     unique_ordered(fresh, RECORDS)
     last_lines = re.findall(
-        r"(?m)^UR_BALDOSA_MODERN_ROOT records_last_2p=(.+)\r?$", fresh
+        r"(?m)^UR_BALDOSA_MODERN_ROOT records_last_2p=([^\r\n]+)\r?$", fresh
     )
     # Records are displayed from the SELECTED P1 profile's perspective.
     # Cross-check the exact player-visible result text against the original

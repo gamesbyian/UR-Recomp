@@ -77,7 +77,7 @@ class NativeNextBootProfileSwitchTests(unittest.TestCase):
             encoding="utf-8")
         self.assertNotIn(
             "select_baldosa_existing_profile_for_next_boot(", native_root)
-        self.assertIn("next process", header.lower())
+        self.assertIn("next native process", header.lower())
 
 
 if __name__ == "__main__":

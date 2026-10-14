@@ -43,6 +43,15 @@ When only yield gates remain, `auto` defers green and lists the reasons. On 2026
 
 **Measured cost.** Each new ledger record carries a signed `runner_usage` receipt measured from the run's own job timings, so yield can be expressed per runner-hour. Research producers also stopped running seven unrelated product-acceptance jobs: the shared candidate's new `candidate_only` input skips them. That saves 13–16 runner-minutes and a 7-runner burst per research run (measured on runs 38446393623, 38438864232 and 38434647895). It also prevents an unrelated red product gate from blocking research.
 
+## Measured savings (2026-10-14)
+
+The first 100-case frontier run with both `candidate_only` and turbo (run 38506108109) used **36.1 runner-minutes in total**. The two previous 100-case runs used 56.5 and 60.4, so it was **36–40% cheaper**.
+* Product-acceptance jobs fell from 14.9–15.6 minutes to 0.
+* Experiment shards fell from 36.2–40.3 minutes to 31.5.
+* The peak burst at start fell from 8 runners to 1 (the build).
+
+Its four rendered-repeat guards all passed in CI. The admission cost model now uses the measured 0.32 runner-minutes per frontier case.
+
 ## Measured load profile (24 h to 2026-10-14 02:45 UTC, this repository only)
 
 295 runs, about 748 runner-minutes. 287 were pull-request runs.

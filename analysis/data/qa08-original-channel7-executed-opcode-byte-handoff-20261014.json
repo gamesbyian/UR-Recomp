@@ -1,0 +1,74 @@
+{
+  "schema": "qa08-original-2p-real-executed-channel7-instruction-byte-handoff/1",
+  "original_executed_cpu_source_run": 38624765047,
+  "original_executed_cpu_source_artifact_id": 11923402069,
+  "original_executed_cpu_source_archive_sha256": "b5b903bfaf64889281eecb6246ed14cbafc4fe843193c85d681a3b0a54a3c3ef",
+  "original_executed_cpu_source_report_sha256": "fdbdaed61353f2103b89a363e17b9bfd586c12d90062c37ddbc488db29ee749f",
+  "original_executed_cpu_opcode_log_sha256": "4d95231823ef32127f4f29ddd16e0e6790f6b5de250991f0765e59b79ce97895",
+  "source_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_executed_writer_opcodes": [
+    {
+      "pc": "808625",
+      "opcode_bytes": "8F65207E",
+      "instruction": "STA long",
+      "WRAM_destination": "7E:2065",
+      "original_route_window_opcode_observations": 4
+    },
+    {
+      "pc": "80884C",
+      "opcode_bytes": "8F65207E",
+      "instruction": "STA long",
+      "WRAM_destination": "7E:2065",
+      "original_route_window_opcode_observations": 4
+    },
+    {
+      "pc": "808850",
+      "opcode_bytes": "8F69207E",
+      "instruction": "STA long",
+      "WRAM_destination": "7E:2069",
+      "original_route_window_opcode_observations": 4
+    },
+    {
+      "pc": "82D67D",
+      "opcode_bytes": "8F64207E",
+      "instruction": "STA long",
+      "WRAM_destination": "7E:2064",
+      "original_route_window_opcode_observations": 1
+    },
+    {
+      "pc": "82D683",
+      "opcode_bytes": "8F65207E",
+      "instruction": "STA long",
+      "WRAM_destination": "7E:2065",
+      "original_route_window_opcode_observations": 1
+    },
+    {
+      "pc": "82D689",
+      "opcode_bytes": "8F66207E",
+      "instruction": "STA long",
+      "WRAM_destination": "7E:2066",
+      "original_route_window_opcode_observations": 1
+    },
+    {
+      "pc": "82D695",
+      "opcode_bytes": "8F68207E",
+      "instruction": "STA long",
+      "WRAM_destination": "7E:2068",
+      "original_route_window_opcode_observations": 1
+    },
+    {
+      "pc": "82D699",
+      "opcode_bytes": "8F69207E",
+      "instruction": "STA long",
+      "WRAM_destination": "7E:2069",
+      "original_route_window_opcode_observations": 1
+    }
+  ],
+  "independently_joined_to_original_1403_executed_WRAM_byte_changes": true,
+  "fetched_original_ROM_instruction_bytes_at_all_8_original_WRAM_writer_PCs": true,
+  "original_HDMA7_table_GO_bytes": "6F 0F 02 00 60 0F",
+  "original_source_WRAM_value_at_7E2067_zero_has_no_executed_changed_byte": true,
+  "original_PPU_brightness_after_write_and_finished_RGB_are_separate_evidence": true,
+  "native_256x224_raster_correction_proven": false,
+  "physical_SNES_hardware_or_original_HD_character_approved": false
+}

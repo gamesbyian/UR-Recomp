@@ -18,8 +18,8 @@ CASE31 = "\n\t\t\t\tbreak;\n\n\t\t\tcase 0x2132: // COLDATA"
 CASE32 = "\n\t\t\t\tbreak;\n\n\t\t\tcase 0x2133: // SETINI"
 
 PROBE = r'''/* UR_QA08_ORIGINAL_HDMA_PPU: source-level execution witness only.
- * Emit only when intentionally armed for the original table-creation
- * neighbourhood, while S9xSetPPU is called from actual channel-5 HDMA.
+ * Emit only when intentionally armed for twelve bounded original
+ * table-creation, GO and genuine racing-frame checkpoints, while S9xSetPPU is called from actual channel-5 HDMA.
  * No guest memory reads outside the known original $7E table, no writes. */
 static void qa08_original_hdma_live_ppu(uint8 value, uint16 dest)
 {
@@ -27,10 +27,15 @@ static void qa08_original_hdma_live_ppu(uint8 value, uint16 dest)
     static unsigned qa08_count = 0;
     if (!qa08_init) {
         const char *arm = getenv("UR_QA08_ORIGINAL_HDMA_PPU_WINDOW");
-        qa08_on = (arm && strcmp(arm, "1781-1783") == 0);
+        qa08_on = (arm && strcmp(arm, "source-go-t480") == 0);
         qa08_init = 1;
     }
-    if (!qa08_on || ICPU.Frame < 1781 || ICPU.Frame > 1783 ||
+    const unsigned frame = (unsigned)ICPU.Frame;
+    const int sampled = (frame >= 1781u && frame <= 1783u) ||
+                        (frame >= 1988u && frame <= 1990u) ||
+                        (frame >= 2231u && frame <= 2233u) ||
+                        (frame >= 2471u && frame <= 2473u);
+    if (!qa08_on || !sampled ||
         !CPU.InHDMA || !CPU.InDMAorHDMA ||
         CPU.CurrentDMAorHDMAChannel != 5 ||
         (dest != 0x2131 && dest != 0x2132))
@@ -43,10 +48,10 @@ static void qa08_original_hdma_live_ppu(uint8 value, uint16 dest)
     const unsigned rgb = (unsigned)PPU.FixedColourRed |
                          ((unsigned)PPU.FixedColourGreen << 5) |
                          ((unsigned)PPU.FixedColourBlue << 10);
-    if (qa08_count >= 128u) {
-        if (qa08_count == 128u)
+    if (qa08_count >= 512u) {
+        if (qa08_count == 512u)
             fprintf(stderr,
-                "UR_QA08_ORIGINAL_HDMA_PPU_OVERFLOW frame=%u max=128\n",
+                "UR_QA08_ORIGINAL_HDMA_PPU_OVERFLOW frame=%u max=512\n",
                 (unsigned)ICPU.Frame);
         ++qa08_count;
         return;

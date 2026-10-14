@@ -425,6 +425,17 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_second_racer_interrupted_p2/second_native_martin/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_second_racer_interrupted_p2/third_native_p2_recovers/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_second_racer_interrupted_p2/fourth_native_two_seat_go/log.txt
+      # Distinct from the existing strict QA-12 earned-match source ZIP AND
+      # the independent QA-02 four-log smoke ZIP. This retains only the
+      # fixed CI-created P1/P2 typed/raw/selector/catalog staged bytes.
+      - name: Retain bounded native P2 recovery raw stages separately
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-native-p2-catalog-raw-stages
+          if-no-files-found: error
+          retention-days: 7
+          path: ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_second_racer_interrupted_p2/ci-owned-p2-recovery-raw/
       - name: Export verified shared Windows inputs for bounded manual reliability campaigns
         if: ${{ inputs.export_campaign_inputs == true }}
         shell: bash

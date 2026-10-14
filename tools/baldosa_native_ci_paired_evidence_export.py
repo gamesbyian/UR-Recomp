@@ -28,6 +28,7 @@ ALLOWED_STATE_PATHS = (
 OPTIONAL_BOOTSTRAP = "saves/save.srm"
 EVIDENCE_FOLDER = "ci-owned-raw-artifacts"
 PRE_RECORDS_FOLDER = "ci-owned-pre-records-pair"
+P2_RECOVERY_FOLDER = "ci-owned-p2-recovery-raw"
 
 
 def _read_owned_file(root: Path, relative: str) -> bytes:
@@ -169,5 +170,94 @@ def export_ci_pre_records_pair(user: Path, out: Path) -> dict[str, object]:
         "release_gate_credit": 0,
     }
     (evidence / "manifest.json").write_text(
+        json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return report
+
+
+# The production four-process recovery probe may retain independently
+# inspectable CI-only raw bytes at explicit transaction cut points. These are
+# copied from its genuine frontend-created players, never fixture-created
+# profiles or a real player's filesystem. Keep this separate from QA-12's
+# already strictly allowlisted earned-match source ZIP.
+P2_RECOVERY_STAGES = (
+    "after-p1-created",
+    "after-p2-created",
+    "catalog-row-lost",
+    "after-p2-recovered",
+    "after-source-go",
+)
+P2_RECOVERY_MUTEX = "saves/profile-martin/host-profile.txt.urmutex"
+
+
+def export_ci_native_p2_recovery_stage(
+    user: Path, out: Path, stage: str,
+) -> dict[str, object]:
+    """Retain exact native-created P1/P2 bytes, not a fabricated storage owner.
+
+    Only fixed stage names and fixed canonical files are permitted. The
+    out-root must be the disposable four-native-Windows-game test folder.
+    Before P2 exists, only the first P1's records are admitted. Each later
+    stage also exports Martin's exact empty typed CAS mutex so independent QA
+    can distinguish saved bytes from a source-log equality assertion.
+    """
+    if stage not in P2_RECOVERY_STAGES:
+        raise ValueError("Unrecognized native P2 recovery source stage")
+    if (out.is_symlink() or user.is_symlink() or
+            not out.is_dir() or not user.is_dir() or
+            user.parent != out or
+            user.name != "Interrupted Native P2 Catalog Test Only"):
+        raise ValueError("Refuse export outside disposable P2 recovery CI root")
+
+    paths = (ALLOWED_STATE_PATHS[:4] if stage == "after-p1-created"
+             else ALLOWED_STATE_PATHS)
+    source = {name: _read_owned_file(user, name) for name in paths}
+    for name in paths:
+        if name.endswith("/save.srm") and len(source[name]) != 8192:
+            raise ValueError("Recovery stage SRAM must be exactly 8192 bytes")
+    if stage != "after-p1-created":
+        # The typed CAS store uses this zero-byte file as its OS-handle mutex.
+        # Refuse symlinked or nonempty lock data; there is no third player
+        # and no extra arbitrary user file admitted into this export.
+        mutex = user / P2_RECOVERY_MUTEX
+        if (mutex.is_symlink() or not mutex.is_file() or
+                mutex.stat().st_size != 0):
+            raise ValueError("Missing/redirected/nonempty P2 source mutex")
+        source[P2_RECOVERY_MUTEX] = b""
+    if sum(map(len, source.values())) > MAX_TOTAL_BYTES:
+        raise ValueError("Native P2 source stage exceeded evidence limit")
+
+    evidence = out / P2_RECOVERY_FOLDER
+    if evidence.is_symlink():
+        raise ValueError("Redirected native P2 evidence root")
+    if evidence.exists():
+        if not evidence.is_dir():
+            raise ValueError("Existing native P2 evidence root is not directory")
+    else:
+        evidence.mkdir()
+    stage_dir = evidence / stage
+    if stage_dir.exists() or stage_dir.is_symlink():
+        raise ValueError("Refuse overwrite of native P2 evidence stage")
+    stage_dir.mkdir()
+    manifest: dict[str, dict[str, object]] = {}
+    for name, data in sorted(source.items()):
+        dest = stage_dir.joinpath(*PurePosixPath(name).parts)
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes(data)
+        sha = hashlib.sha256(data).hexdigest()
+        if hashlib.sha256(dest.read_bytes()).hexdigest() != sha:
+            raise ValueError("Native P2 source file changed during evidence copy")
+        manifest[name] = {"sha256": sha, "bytes": len(data)}
+    report: dict[str, object] = {
+        "schema": "baldosa-native-p2-catalog-recovery-stage-v1",
+        "stage": stage,
+        "scope": "one-throwaway-Windows-CI-user-only",
+        "source_profiles": (["mike"] if stage == "after-p1-created"
+                            else ["mike", "martin"]),
+        "members": manifest,
+        "includes_rom": False,
+        "includes_executable": False,
+        "release_gate_credit": 0,
+    }
+    (stage_dir / "manifest.json").write_text(
         json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return report

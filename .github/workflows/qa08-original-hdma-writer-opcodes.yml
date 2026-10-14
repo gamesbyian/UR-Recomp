@@ -10,6 +10,8 @@ on:
       - "tools/instrument_snesref_qa08_original_hdma_ppu.py"
       - "tools/check_qa08_original_hdma_ppu.py"
       - "tests/unit/test_qa08_original_hdma_ppu.py"
+      - "tools/check_qa08_original_inidisp_brightness.py"
+      - "tests/unit/test_qa08_original_inidisp_brightness.py"
       - "tools/qa08_auth_original_2p_frame_window.py"
       - "tests/unit/test_qa08_auth_original_2p_frame_window.py"
       - "tools/bootstrap_toolchain.py"
@@ -49,7 +51,7 @@ jobs:
           test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
           cmp baldosa/tests/routes/race_2p_split.txt reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p_split.txt
           grep -v '^turbo ' baldosa/tests/routes/race_2p_split.txt > "$RUNNER_TEMP/qa08-original-2p.script"
-          python3 -m unittest tests.unit.test_qa08_original_hdma_opcode_context tests.unit.test_qa08_original_hdma_ppu tests.unit.test_qa08_auth_original_2p_frame_window
+          python3 -m unittest tests.unit.test_qa08_original_hdma_opcode_context tests.unit.test_qa08_original_hdma_ppu tests.unit.test_qa08_auth_original_2p_frame_window tests.unit.test_qa08_original_inidisp_brightness
       - name: Build one disposable original emulator with only read-only source code fetch
         shell: bash
         run: |
@@ -113,6 +115,11 @@ jobs:
             --original-receipt "$RUNNER_TEMP/qa08-original-opcode-receipt.json" \
             --executed-table analysis/data/qa08-original-2p-channel5-executed-opcode-table-layout.json \
             --out "$RUNNER_TEMP/qa08-original-live-hdma-ppu.json"
+          python3 tools/check_qa08_original_inidisp_brightness.py \
+            --log "$RUNNER_TEMP/qa08-original-opcode.log" \
+            --receipt "$RUNNER_TEMP/qa08-original-opcode-receipt.json" \
+            --ppuw-go "$RUNNER_TEMP/qa08-original-opcode-dumps/go.ppuw.tsv" \
+            --out "$RUNNER_TEMP/qa08-original-brightness-hdma.json"
           python3 tools/check_qa08_original_racer_lut.py \
             --log "$RUNNER_TEMP/qa08-original-opcode.log" \
             --opcodes "$RUNNER_TEMP/qa08-original-writer-opcode-context.json" \
@@ -140,6 +147,7 @@ jobs:
             ${{ runner.temp }}/qa08-original-opcode-receipt.json
             ${{ runner.temp }}/qa08-original-racer-LUT.json
             ${{ runner.temp }}/qa08-original-live-hdma-ppu.json
+            ${{ runner.temp }}/qa08-original-brightness-hdma.json
             ${{ runner.temp }}/qa08-original-37frame-window.json
             ${{ runner.temp }}/qa08-original-source-window/*.raw
             ${{ runner.temp }}/qa08-original-opcode-dumps/go.info.json

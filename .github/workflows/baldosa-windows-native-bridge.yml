@@ -9,6 +9,8 @@ on:
     paths:
       - ".github/workflows/baldosa-windows-native-bridge.yml"
       - "tools/baldosa_windows_native_pause_route.py"
+      - "tools/baldosa_native_1p_records_probe.py"
+      - "tests/unit/test_baldosa_native_1p_records_probe.py"
       - "tests/unit/test_baldosa_windows_native_pause_route.py"
       - "tools/baldosa_native_pause_lifecycle.cpp"
       - "tools/baldosa_product_pause_spike.py"
@@ -66,6 +68,7 @@ jobs:
         run: |
           python tests/unit/test_assemble_baldosa_windows_candidate.py
           python tests/unit/test_baldosa_windows_native_pause_route.py
+          python tests/unit/test_baldosa_native_1p_records_probe.py
           python tests/unit/test_baldosa_modern_user_data_spike.py
           python tests/unit/test_baldosa_modern_profile_activation_spike.py
 
@@ -167,6 +170,18 @@ jobs:
             --profile-fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe"
           echo "PASS: Win32 real native guest boot with two distinct catalog-backed Modern profiles, exact acknowledged native post-save typed SRAM publication/readback, per-rider isolation, pause/Restart, fresh-process reload, clean-machine DLL and invalid-profile gates. No completed event, physical hardware or unified frontend claim." >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Real stock 1P result and newly saved Records reopened by fresh native game
+        run: |
+          set -euo pipefail
+          python tools/baldosa_native_1p_records_probe.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/baseline/Modern Player Data With Spaces/saves/save.srm" \
+            --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_real_1p_records" \
+            --video windows --timeout 150
+          echo "PASS: same source-bound Win32 guest entered stock 1P from Modern root, committed an actual result to a named .urrun, and a genuinely fresh game process opened that exact Records artifact. Original/native parity and physical controller remain unverified." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Assemble verified ROM-free Baldosa Modern Windows candidate
         run: |
           set -euo pipefail
@@ -210,6 +225,9 @@ jobs:
           path: |
             ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/launcher-acceptance.json
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/report.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_1p_records/report.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_1p_records/played_native_event/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_1p_records/fresh_game_records/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/modern_to_live_race_1p/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/modern_to_live_race_2p/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/baseline/log.txt

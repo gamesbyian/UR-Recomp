@@ -260,7 +260,7 @@ jobs:
           # P2 Down picker and source 2P race drive exactly unchanged.
           # Same original guest observer
           # publishes exactly one bound match; next-process profile selector
-          # is test-fixture only and cannot create a racer or a result.
+          # is the exact merged native controller X/A selector for next boot.
           python tools/baldosa_native_player_created_2p_records_probe.py \
             --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
             --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
@@ -352,6 +352,7 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/first_P1_mike/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/named_P1_adds_P2/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/played_native_2p/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/mike_ui_selects_martin/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/fresh_mike_records/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/fresh_martin_records/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_second_racer/first_P1_mike/log.txt

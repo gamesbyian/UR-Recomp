@@ -179,7 +179,7 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
             t1 <= 60000 and t2 <= 60000 and
             winner in (0, 1, 2) and
             frames > 0 and runs > 0 and published == 1,
-            "source result did not settle with new 0/1 player identities")
+            "source result did not settle with new 0/2 player identities")
     match = sole(MATCH, played, "single source-owned paired .urrun")
     require(int(match[1]) == frames and match.end() < source.start() and
             match.start() > played.index(THIRD[-1]),

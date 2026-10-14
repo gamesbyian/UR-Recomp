@@ -13,7 +13,10 @@ import re
 
 
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
-BASENAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]*\.urrun\Z")
+# The same canonical writer used by native 1P emits bounded timestamp
+# and collision suffixes for 2P's checksummed .urrun/.urmatch pair.
+# A generic "anything.urrun" is not an independently attributable new pair.
+BASENAME = re.compile(r"run-[0-9]{16}-[0-9]{4}\.urrun\Z")
 CAPTURE = re.compile(
     r"(?m)^UR_BALDOSA_NATIVE_MATCH CAPTURED=1 "
     r"profile1=native-ci-rider profile2=native-ci-second "
@@ -130,7 +133,9 @@ def audit_hosted_native_2p_records(
     source_capture_bound = (
         int(c[1]) == frames
         and captured_name == run_names[0]
+        and re.match(r"^[A-Za-z]:/", captured_path) is not None
         and "/multiplayer-runs/" in captured_path.lower()
+        and "/../" not in captured_path and "/./" not in captured_path
     )
     if (
         not source_capture_bound

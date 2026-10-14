@@ -35,7 +35,9 @@ PROGRESS_FRAMES = (218, 604, 841, 1532, 1721)
 # at +5000, and forced blank 0x80 at +5100. The historical PAL result-return
 # routine predicts a transfer near +5057, but that is NOT a USA event clock.
 # Sample the candidate producer neighborhood directly in both real guests.
-RETURN_BRACKET_FRAMES = tuple(range(5048, 5073))
+# Executed follow-up 38510127487 showed BOTH guests already forced blank
+# at +5048. Retarget BEFORE that first observed blank: +5000 was lit.
+RETURN_BRACKET_FRAMES = tuple(range(5001, 5050))
 BOUNDARY_FRAMES = ((4700, 4800, 5000) + RETURN_BRACKET_FRAMES +
                    (5100, 5110, 5120, 5130, 5140,
                     5145, 5150, 5152, 5153, 5154, 5155, 5156, 5157) +

@@ -179,6 +179,48 @@ class FailureAwareRotation(unittest.TestCase):
                 self.assertTrue((ROOT / rel).is_file(), rel)
 
 
+class YieldAwareRotation(unittest.TestCase):
+    DIGESTS = {lane: f"{i:064x}" for i, lane in enumerate(a.CAMPAIGNS)}
+
+    def positive(self, lane, observations, digest=None, run_id=1):
+        r = row(lane, digest=digest, run_id=run_id)
+        r["metrics"] = {"cases": observations, "observations": observations}
+        return r
+
+    def test_saturated_durability_lane_rests_until_its_producer_changes(self):
+        history = [self.positive("fault-recovery", 200000, self.DIGESTS["fault-recovery"])]
+        gates = a.yield_exclusions(history, self.DIGESTS)
+        self.assertIn("fault-recovery", gates)
+        changed = dict(self.DIGESTS, **{"fault-recovery": "f" * 64})
+        self.assertNotIn("fault-recovery", a.yield_exclusions(history, changed))
+        # Below target is not saturated, whatever the digest.
+        thin = [self.positive("windows", 200, self.DIGESTS["windows"])]
+        self.assertNotIn("windows", a.yield_exclusions(thin, self.DIGESTS))
+
+    def test_frontier_runs_only_to_validate_a_changed_producer(self):
+        old = self.positive("frontier", 100, "e" * 64)
+        self.assertNotIn("frontier", a.yield_exclusions([old], self.DIGESTS))
+        current = self.positive("frontier", 100, self.DIGESTS["frontier"], run_id=2)
+        self.assertIn("frontier", a.yield_exclusions([old, current], self.DIGESTS))
+
+    def test_original_native_and_performance_are_never_yield_gated(self):
+        history = [self.positive(lane, 10 ** 9, self.DIGESTS[lane], i)
+                   for i, lane in enumerate(("original-native", "performance"))]
+        gates = a.yield_exclusions(history, self.DIGESTS)
+        self.assertNotIn("original-native", gates)
+        self.assertNotIn("performance", gates)
+
+    def test_nothing_informative_defers_instead_of_failing(self):
+        history = [self.positive(lane, 10 ** 9, self.DIGESTS[lane], i)
+                   for i, lane in enumerate(a.CAMPAIGNS)
+                   if lane in a.DURABILITY_TARGETS or lane == "frontier"]
+        history += [row(lane, "incomplete_or_failed", self.DIGESTS[lane], 50 + i)
+                    for i, lane in enumerate(("original-native", "performance"))]
+        lane, excluded = a.auto_lane(history, self.DIGESTS)
+        self.assertIsNone(lane)
+        self.assertEqual(set(excluded), set(a.CAMPAIGNS))
+
+
 class UsageAndLedgerIntegration(unittest.TestCase):
     JOBS = [job("completed", started="2026-10-14T00:00:00Z", completed="2026-10-14T00:30:00Z",
                 conclusion="success", name="experiments"),

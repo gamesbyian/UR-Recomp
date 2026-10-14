@@ -26,13 +26,13 @@ the byte's component-enable bits.
 `tools/instrument_snesref_qa08_original_hdma_ppu.py` patches only
 a disposable copy of that original Snes9x `ppu.cpp`.
 The injected read-only observer activates only for the exact env
-`UR_QA08_ORIGINAL_HDMA_PPU_WINDOW=1781-1783`, requires real
+`UR_QA08_ORIGINAL_HDMA_PPU_WINDOW=source-go-t480`, requires real
 `CPU.InHDMA` and channel5, and fires *after* the underlying
 `$2131` or `$2132` PPU write, never in place of it. It captures
 actual original CPU frame/V/cycles, source table pointer and
 bank, HDMA mode/indirect/config, original WRAM byte, actual BBUS value,
 CGADSUB, CGWSEL, and the **live after-transfer RGB15 fixed colour**.
-128 actual writes is the explicit bound, with an overflow failure
+512 actual writes is the explicit bound, with an overflow failure
 marker. The regular emulator and guest input logic remain unchanged.
 
 The probe deliberately **does not require observed source bytes to
@@ -79,3 +79,32 @@ procedural racer artwork. Continue the source-attested same-state/
 same-pixel comparison before promoting Windows release graphics.
 Keep canonical 256x224 at 7:6 PAR, genuine widened world and 4x
 Original fallback unchanged.
+
+## First authentic negative and bounded follow-up
+
+The first exact-head original Snes9x run
+[38521340789](https://github.com/gamesbyian/UR-Recomp/actions/runs/38521340789)
+**failed the new live-PPU presence gate** while still passing the
+independently required 55 executed opcode, two original selector,
+18 source writer, original script and final WRAM checks. The emitted
+archive had **zero** `UR_QA08_ORIGINAL_HDMA_PPU` records within
+original frames **1781–1783**. This cannot be upgraded to evidence
+that the original game never uses HDMA: the probed original range
+includes palette-table construction, before the actual GO script
+checkpoint at original frame1989. No core/source error occurred during
+instrumentation or compilation.
+
+The next narrowly discriminating real replay retains the same pinned
+original process and observes only **four explicit three-frame
+windows**: 1781–1783, 1988–1990 (around source GO=1989),
+2231–2233 (around scripted t240=2232), and 2471–2473
+(around t480=2473). Each has a separately reportable actual
+original frame and beam tag; the 512-record overflow guard now
+covers these 12 frames without emitting all ~2500 original game
+frames. In the same existing artifact, preserve original `go` and
+`t480` source `*.ppuw.tsv`, `*.info.json`, and exact
+256x224 `*.fb.bgrx` outputs already captured by `snesref`.
+These are **original Snes9x PPU and RGB source** outputs, not
+independently aligned against Baldosa's native frame2208
+or its 342-pixel-wide presentation. A real mismatch is evidence
+to investigate, not a reason to force expected channel5 native values.

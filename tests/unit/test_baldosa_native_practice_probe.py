@@ -112,6 +112,8 @@ class NativePracticeProbeTests(unittest.TestCase):
             "run_game_hard_killed(",
             "proc.kill()",
             "killed_live = True",
+            "kill-receipt.json",
+            "killed_while_alive",
             "no longer live at the kill",
             "reported a clean exit",
             "Hard-killed Practice altered named data: ",
@@ -119,6 +121,18 @@ class NativePracticeProbeTests(unittest.TestCase):
             "Practice after hard kill failed: ",
         ):
             self.assertIn(token, probe)
+
+    def test_workflow_retains_practice_logs_in_separate_artifact(self):
+        wf = (ROOT / ".github/workflows/baldosa-windows-native-bridge.yml").read_text()
+        self.assertIn("name: baldosa-win32-native-practice-lifecycle", wf)
+        for token in ("named_p1_practice_hard_killed/log.txt",
+                      "named_p1_practice_hard_killed/kill-receipt.json",
+                      "named_p1_boot_after_practice_kill/log.txt",
+                      "named_p1_practice_after_kill/log.txt"):
+            self.assertIn("native_source_practice_dragster/" + token, wf)
+        pause = wf.index("name: baldosa-win32-native-pause-evidence")
+        pause_end = wf.index("Retain bounded pre-Records raw pair")
+        self.assertNotIn("native_source_practice_dragster", wf[pause:pause_end])
 
 
 if __name__ == "__main__":

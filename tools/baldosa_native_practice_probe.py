@@ -116,6 +116,14 @@ def run_game_hard_killed(exe: Path, rom: Path, user: Path, work: Path,
                 proc.kill()
             proc.wait(timeout=30)
     log = log_path.read_bytes().decode("utf-8", "replace")
+    # Exit receipt is written before any verdict so a failing route keeps it.
+    (work / "kill-receipt.json").write_text(json.dumps({
+        "script_token_seen": reached,
+        "killed_while_alive": killed_live,
+        "kill_method": "subprocess.Popen.kill (TerminateProcess on Windows)",
+        "process_returncode": proc.returncode,
+        "script_quit_or_normal_shutdown": "practice_sram_restored=1" in log,
+    }, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     if not reached:
         raise RuntimeError("Practice never reached live source GO before kill: "
                            + log[-1800:])
@@ -269,6 +277,9 @@ def run(exe: Path, rom: Path, out: Path,
         if p.is_symlink() or not p.is_file() or p.read_bytes() != before:
             raise ValueError("Practice after kill altered named data: " + name)
     return {
+        "hard_killed_practice_kill_receipt": json.loads(
+            (out / "named_p1_practice_hard_killed" /
+             "kill-receipt.json").read_text(encoding="utf-8")),
         "hard_killed_practice_named_bytes_unchanged": True,
         "boot_after_practice_kill_exact_sram": True,
         "practice_after_kill_admitted_and_restored": True,

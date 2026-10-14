@@ -249,7 +249,9 @@ def frontier_recommendation(report: dict, *, observer_changed: bool = False,
 def build_report(ledger: dict) -> dict:
     records = ledger.get("records", [])
     frontier = frontier_yield(records)
+    from qa_cumulative_ledger import series_status
     return {"schema": SCHEMA, "release_gate_credit": 0,
+            "series": series_status(records),
             "ledger_records": len(records),
             "frontier": frontier, "durability": durability_yield(records),
             "frontier_default_recommendation": frontier_recommendation(frontier)}
@@ -284,6 +286,13 @@ def markdown(report: dict) -> str:
         bound = r["zero_incidence_95pct_upper_bound"]
         out.append(f"| {name} | {r['cases_with_feature']} / {r['cases_observed']} | "
                    f"{'' if bound is None else f'< {bound:.4%}'} | {where} |")
+    if report.get("series"):
+        out += ["", "| Resumable series | Completed / target | Failed batches | Single binary | Checksum |",
+                "| --- | ---: | --- | --- | --- |"]
+        for s in report["series"]:
+            out.append(f"| {s['id']} | {s['completed_cases']} / {s['target_cases']}"
+                       f"{' (complete)' if s['complete'] else ''} | {s['failed_batches'] or '-'} | "
+                       f"{s['single_binary_cohort']} | {s['series_sha256'][:16]} |")
     rec = report["frontier_default_recommendation"]
     out += ["", f"Default frontier recommendation: **{rec['next']}** — {rec['reason']}.", "",
             "## Repetition and comparator lanes", "",

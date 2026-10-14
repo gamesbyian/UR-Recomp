@@ -67,6 +67,18 @@ The earlier `frontier_coverage` HyperLogLog numbers remain estimates for legacy 
 
 Default today: **no frontier run is recommended**. The next useful work is reproducing witness 50036056 against the original emulator (owned by QA-01, not by more volume) and a source-qualified visibility observer (QA-08). Then a 100-case pilot of that observer.
 
+## Resumable frontier series (2026-10-14)
+
+A 1,000- or 10,000-case frontier question no longer needs one monolithic dispatch. The 10k run 38306802282 held the single-writer lock for about 16 hours. Dispatch `frontier_series: new-1000` (or `new-10000`) with a 100- or 1,000-case batch, then `continue` in later dispatches until the series is complete.
+
+* **Each batch is an ordinary signed ledger record** with its own fresh seed window, exact source SHA, native binary, ROM and fixture digests, and exact first-occurrence witnesses. The lock is released between batches, so other lanes and agents get runners.
+* **The series pins its arm prior and producer digest** at opening. The batches therefore form one fixed-design experiment rather than a drifting adaptive mixture. A continuation after the frontier observer or plan code changed is refused: close the series and open a new one.
+* **Only `completed_positive` batches count.** A failed batch consumes its seeds, is listed under `failed_batches`, and the next batch continues with a new window. A batch larger than the remaining cases, or appended to a complete series, is rejected. Validation also rejects reordered or forged series rows.
+* **Series checksum** (`series_sha256`) is the digest of the ordered completed-batch record signatures. A binary change between batches is reported as a split cohort (`single_binary_cohort: false`), never silently pooled.
+* Prefer 100-case batches during heavy development. Admission defers 1,000-case batches until a quiet window.
+
+Series are frontier-only. Repetition lanes already accumulate independently per run, and original/native has a fixed three-case population.
+
 ## What to compare
 
 For analysis, group cumulative evidence by **campaign, exact code revision and binary digest**, and then distinguish input trajectories from repeated processes. Coverage grows across revisions, but a new build requires new acceptance for that exact build. Summing Windows producer repetitions is legitimate durability evidence; calling them all "new gameplay states" is false. Reports always keep raw GitHub run ID, original aggregate SHA-256, observed trial/sample counts and zero release credit.

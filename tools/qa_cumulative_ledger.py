@@ -50,6 +50,11 @@ MAX_SEQUENCE = 4083
 ALLOWED_WINDOWS_TRIALS = (1, 3, 10, 30, 60)
 ALLOWED_MINUTES = (15, 60, 120)
 ALLOWED_FRONTIER_CASES = (100, 1000, 10000)
+# Resumable frontier series: one fixed-design experiment split into
+# independently verified batches, each an ordinary record with its own fresh
+# seed window. Only completed_positive batches count toward the target.
+SERIES_TARGETS = (1000, 10000)
+SERIES_MODES = ("none", "new", "continue")
 
 
 def digest(value: object) -> str:
@@ -101,6 +106,8 @@ def validate_ledger(ledger: dict) -> None:
                 admission.validate_usage(row["runner_usage"])
 
 
+    validate_series(ledger["records"])
+
     # Validate the separately tamper-evident cumulative state sketch, if present.
     # Older historical ledger branches legitimately have no such record.
     if "frontier_coverage" in ledger:
@@ -108,6 +115,98 @@ def validate_ledger(ledger: dict) -> None:
     # Legacy HLL-only runs are never credited to the exact census.
     if "frontier_exact_coverage" in ledger:
         exact.validate_record(ledger["frontier_exact_coverage"])
+
+
+def validate_series(records: list[dict]) -> None:
+    """Series rows must be internally consistent and strictly sequential."""
+    series: dict[str, list[dict]] = {}
+    for row in records:
+        if "series" not in row:
+            continue
+        s = row["series"]
+        if (row.get("campaign") != "frontier" or row.get("origin") != "coordinator"
+                or type(s) is not dict
+                or set(s) != {"id", "target_cases", "index", "frontier_prior", "producer_digest"}
+                or s["target_cases"] not in SERIES_TARGETS
+                or type(s["index"]) is not int or s["index"] < 0
+                or not isinstance(s["id"], str)
+                or not SHA256.fullmatch(str(s["producer_digest"]))):
+            raise ValueError("malformed frontier series batch")
+        series.setdefault(s["id"], []).append(row)
+    for sid, rows in series.items():
+        first = rows[0]["series"]
+        if sid != f"frontier-series-{rows[0]['github_run_id']}":
+            raise ValueError("series id must name its opening run")
+        completed = 0
+        for index, row in enumerate(rows):
+            s = row["series"]
+            if (s["index"] != index or s["target_cases"] != first["target_cases"]
+                    or s["frontier_prior"] != first["frontier_prior"]
+                    or s["producer_digest"] != first["producer_digest"]):
+                raise ValueError("series batch order, target, prior or producer changed")
+            if completed >= first["target_cases"]:
+                raise ValueError("batch appended to an already complete series")
+            if row["disposition"] == "completed_positive":
+                completed += int(row.get("metrics", {}).get("cases", 0))
+        if completed > first["target_cases"]:
+            raise ValueError("series overshoots its target")
+
+
+def series_status(records: list[dict]) -> list[dict]:
+    """Per-series progress; incomplete batches are listed, never counted."""
+    out: dict[str, dict] = {}
+    for row in records:
+        s = row.get("series")
+        if not s:
+            continue
+        entry = out.setdefault(s["id"], {
+            "id": s["id"], "target_cases": s["target_cases"], "completed_cases": 0,
+            "completed_batches": [], "failed_batches": [], "native_executables": [],
+            "producer_digest": s["producer_digest"]})
+        m = row.get("metrics", {})
+        if row["disposition"] == "completed_positive":
+            entry["completed_cases"] += int(m.get("cases", 0))
+            entry["completed_batches"].append(row["record_sha256"])
+            exe = m.get("native_executable_sha256")
+            if exe and exe not in entry["native_executables"]:
+                entry["native_executables"].append(exe)
+        else:
+            entry["failed_batches"].append(row["github_run_id"])
+    for entry in out.values():
+        entry["complete"] = entry["completed_cases"] >= entry["target_cases"]
+        entry["remaining_cases"] = max(0, entry["target_cases"] - entry["completed_cases"])
+        # Aggregate checksum over the ordered completed batch signatures.
+        entry["series_sha256"] = digest(entry["completed_batches"])
+        entry["single_binary_cohort"] = len(entry["native_executables"]) <= 1
+    return list(out.values())
+
+
+def _series_for_plan(ledger: dict, *, mode: str, target: int, cases: int, run_id: int,
+                     prior: dict, producer_digest: str | None) -> dict | None:
+    if mode == "none":
+        return None
+    if mode not in SERIES_MODES:
+        raise ValueError("unknown series mode")
+    if producer_digest is None:
+        raise ValueError("a series pins its producer digest")
+    if mode == "new":
+        if target not in SERIES_TARGETS or cases >= target:
+            raise ValueError("a new series needs a 1,000/10,000 target larger than its batch")
+        return {"id": f"frontier-series-{run_id}", "target_cases": target, "index": 0,
+                "frontier_prior": prior, "producer_digest": producer_digest}
+    open_series = [s for s in series_status(ledger["records"]) if not s["complete"]]
+    if not open_series:
+        raise ValueError("no open frontier series to continue")
+    current = open_series[-1]
+    rows = [r for r in ledger["records"] if r.get("series", {}).get("id") == current["id"]]
+    first = rows[0]["series"]
+    if producer_digest != first["producer_digest"]:
+        raise ValueError("frontier producer changed since the series opened; "
+                         "close it and open a new series rather than mixing observers")
+    if cases > current["remaining_cases"]:
+        raise ValueError("batch larger than the series' remaining cases")
+    return {"id": current["id"], "target_cases": first["target_cases"], "index": len(rows),
+            "frontier_prior": first["frontier_prior"], "producer_digest": producer_digest}
 
 
 def next_seed(ledger: dict, campaign: str) -> tuple[int, int]:
@@ -150,7 +249,8 @@ def frontier_strategy_prior(ledger: dict) -> dict:
 
 def make_plan(ledger: dict, *, selected: str, source_sha: str,
               minutes: int, windows_trials: int, run_id: int,
-              frontier_cases: int = 100, producer_digest: str | None = None) -> dict:
+              frontier_cases: int = 100, producer_digest: str | None = None,
+              series: str = "none", series_target: int = 0) -> dict:
     validate_ledger(ledger)
     if (not SHA.fullmatch(source_sha) or minutes not in ALLOWED_MINUTES
             or windows_trials not in ALLOWED_WINDOWS_TRIALS
@@ -160,14 +260,24 @@ def make_plan(ledger: dict, *, selected: str, source_sha: str,
     if any(row["github_run_id"] == run_id for row in ledger["records"]):
         raise ValueError("this coordinator run was already recorded")
     campaign = choose(ledger, selected)
+    if series != "none" and campaign != "frontier":
+        raise ValueError("resumable series are defined for the frontier only")
     seq, seed = next_seed(ledger, campaign)
+    prior = frontier_strategy_prior(ledger)
+    series_body = _series_for_plan(ledger, mode=series, target=series_target,
+                                   cases=frontier_cases, run_id=run_id, prior=prior,
+                                   producer_digest=producer_digest)
+    if series_body is not None:
+        # The arm allocation is pinned for the whole series: batches form one
+        # fixed-design experiment rather than a drifting adaptive mixture.
+        prior = series_body["frontier_prior"]
     body = {
         "schema": PLAN_SCHEMA,
         "campaign": campaign, "sequence": seq, "base_seed": seed,
         "source_sha": source_sha, "github_run_id": run_id,
         "minutes": minutes, "windows_trials": windows_trials,
         "frontier_cases": frontier_cases,
-        "frontier_prior": frontier_strategy_prior(ledger),
+        "frontier_prior": prior,
         "ledger_before_sha256": digest(ledger),
         "release_gate_credit": 0,
     }
@@ -177,6 +287,8 @@ def make_plan(ledger: dict, *, selected: str, source_sha: str,
         if not SHA256.fullmatch(producer_digest):
             raise ValueError("invalid producer digest")
         body["producer_digest"] = producer_digest
+    if series_body is not None:
+        body["series"] = series_body
     body["plan_sha256"] = digest(body)
     return body
 
@@ -436,6 +548,14 @@ def outcome(plan: dict, producer: dict | None, job_result: str) -> tuple[str, di
     return status, metrics
 
 
+def _series_args(plan: dict) -> dict:
+    s = plan.get("series")
+    if not s:
+        return {}
+    return {"series": "new" if s["index"] == 0 else "continue",
+            "series_target": s["target_cases"]}
+
+
 def append(ledger: dict, plan: dict, producer: dict | None,
            job_result: str, usage: dict | None = None) -> tuple[dict, dict]:
     validate_ledger(ledger)
@@ -447,7 +567,8 @@ def append(ledger: dict, plan: dict, producer: dict | None,
                          windows_trials=plan["windows_trials"],
                          frontier_cases=plan.get("frontier_cases",100),
                          run_id=plan["github_run_id"],
-                         producer_digest=plan.get("producer_digest"))
+                         producer_digest=plan.get("producer_digest"),
+                         **_series_args(plan))
     if expected != plan:
         raise ValueError("stale or forged campaign reservation")
     frontier_state = None
@@ -485,6 +606,8 @@ def append(ledger: dict, plan: dict, producer: dict | None,
     }
     if "producer_digest" in plan:
         record["producer_digest"] = plan["producer_digest"]
+    if "series" in plan:
+        record["series"] = plan["series"]
     if usage is not None:
         # Operational cost, measured from the run's own jobs: lets yield be
         # expressed per runner-hour. Malformed usage is dropped, never fatal.
@@ -514,6 +637,8 @@ def main() -> int:
     plan.add_argument("--frontier-cases", type=int, default=100)
     plan.add_argument("--run-id", type=int, required=True)
     plan.add_argument("--producer-digest")
+    plan.add_argument("--series", choices=SERIES_MODES, default="none")
+    plan.add_argument("--series-target", type=int, default=0)
     plan.add_argument("--out", type=Path, required=True)
     plan.add_argument("--gha-output", type=Path, required=True)
     finish = sub.add_parser("append")
@@ -530,7 +655,8 @@ def main() -> int:
                          source_sha=args.source_sha, minutes=args.minutes,
                          windows_trials=args.windows_trials, run_id=args.run_id,
                          frontier_cases=args.frontier_cases,
-                         producer_digest=args.producer_digest or None)
+                         producer_digest=args.producer_digest or None,
+                         series=args.series, series_target=args.series_target)
         save(args.out, data)
         with args.gha_output.open("a", encoding="utf8") as out:
             for key in ("campaign", "base_seed", "minutes", "windows_trials", "frontier_cases", "frontier_prior", "plan_sha256"):

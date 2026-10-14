@@ -22,7 +22,10 @@
       "observed_native_COLDATA_byte": "0x2F",
       "source_implied_SETINI_source": "7E:2087",
       "SETINI_actual_byte": null,
-      "SETINI_actual_screen_effect": null
+      "SETINI_actual_screen_effect": null,
+      "original_executed_WRAM_writePC": "82D602",
+      "original_executed_WRAM_written_byte": "0x01",
+      "native_actual_SETINI_write_value_observed": false
     },
     {
       "table_pair_index": 1,
@@ -30,7 +33,10 @@
       "observed_native_COLDATA_byte": "0x40",
       "source_implied_SETINI_source": "7E:208A",
       "SETINI_actual_byte": null,
-      "SETINI_actual_screen_effect": null
+      "SETINI_actual_screen_effect": null,
+      "original_executed_WRAM_writePC": "82D608",
+      "original_executed_WRAM_written_byte": "0x6D",
+      "native_actual_SETINI_write_value_observed": false
     },
     {
       "table_pair_index": 2,
@@ -38,7 +44,10 @@
       "observed_native_COLDATA_byte": "0x80",
       "source_implied_SETINI_source": "7E:208D",
       "SETINI_actual_byte": null,
-      "SETINI_actual_screen_effect": null
+      "SETINI_actual_screen_effect": null,
+      "original_executed_WRAM_writePC": "82D64B",
+      "original_executed_WRAM_written_byte": "0x01",
+      "native_actual_SETINI_write_value_observed": false
     },
     {
       "table_pair_index": 3,
@@ -46,7 +55,10 @@
       "observed_native_COLDATA_byte": "0x20",
       "source_implied_SETINI_source": "7E:2090",
       "SETINI_actual_byte": null,
-      "SETINI_actual_screen_effect": null
+      "SETINI_actual_screen_effect": null,
+      "original_executed_WRAM_writePC": "82D64F",
+      "original_executed_WRAM_written_byte": "0x01",
+      "native_actual_SETINI_write_value_observed": false
     },
     {
       "table_pair_index": 4,
@@ -54,7 +66,10 @@
       "observed_native_COLDATA_byte": "0x53",
       "source_implied_SETINI_source": "7E:2093",
       "SETINI_actual_byte": null,
-      "SETINI_actual_screen_effect": null
+      "SETINI_actual_screen_effect": null,
+      "original_executed_WRAM_writePC": "82D655",
+      "original_executed_WRAM_written_byte": "0x6D",
+      "native_actual_SETINI_write_value_observed": false
     },
     {
       "table_pair_index": 5,
@@ -62,8 +77,16 @@
       "observed_native_COLDATA_byte": "0x80",
       "source_implied_SETINI_source": "7E:2096",
       "SETINI_actual_byte": null,
-      "SETINI_actual_screen_effect": null
+      "SETINI_actual_screen_effect": null,
+      "original_executed_WRAM_writePC": null,
+      "original_executed_WRAM_written_byte": null,
+      "native_actual_SETINI_write_value_observed": false
     }
   ],
-  "next_action": "Observe bAdr=0x33 live pinned-native source writes and PPU setini without mutating the accepted 2P guest route; maintain full original PPU and 2473 CRC gating."
+  "next_action": "Observe bAdr=0x33 live pinned-native source writes and PPU setini without mutating the accepted 2P guest route; maintain full original PPU and 2473 CRC gating.",
+  "original_Snes9x_executed_2P_run": 38510398955,
+  "original_source_writer_report_sha256": "fb2a5e80dfa0738009bdab22eaa43f7f8948b60b083b335d770d61cb60990c26",
+  "original_source_0_through_2559_frames_censused": true,
+  "original_source_all_18_byte_changes_at_frame": 1781,
+  "original_native_same_input_frame_alignment_proven": false
 }

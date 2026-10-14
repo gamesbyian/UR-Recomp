@@ -1019,7 +1019,9 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                              std::strcmp(opt, "4") != 0 &&
                              std::strcmp(opt, "5") != 0 &&
                              std::strcmp(opt, "6") != 0 &&
-                             std::strcmp(opt, "7") != 0)) return;
+                             std::strcmp(opt, "7") != 0 &&
+                             std::strcmp(opt, "8") != 0 &&
+                             std::strcmp(opt, "9") != 0)) return;
     // Controlled host-root edge on an anonymous install. No created racer
     // is activated in this guest; a new process must load canonical SRAM.
     if (std::strcmp(opt, "4") == 0) {
@@ -1137,6 +1139,30 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         std::fprintf(stderr,
             "UR_BALDOSA_MODERN_ROOT synthetic_p1_switch_gamepad=%d\n",
             button);
+        return;
+    }
+    // Test-only first and second profile creation via the already-shipping
+    // P1 native gamepad handler: X, (P2 Down), A. Preserve the old keyboard
+    // fixture modes 4/5 and the P1 gamepad selector mode 7 unchanged.
+    // These inputs are semantic controller edges, never synthetic guest
+    // writes, a fake achievement or a physical-controller certification.
+    if (std::strcmp(opt, "8") == 0 || std::strcmp(opt, "9") == 0) {
+        const bool first_racer = std::strcmp(opt, "8") == 0;
+        const int button = frame == 60 ? kGamepadBtn_X :
+                           !first_racer && frame == 61
+                               ? kGamepadBtn_DpadDown :
+                           frame == (first_racer ? 62u : 63u)
+                               ? kGamepadBtn_A : -1;
+        if (button < 0) return;
+        const char* const action =
+            button == kGamepadBtn_X ? "X" :
+            button == kGamepadBtn_DpadDown ? "DPAD_DOWN" : "A";
+        if (!ur_baldosa_modern_root_gamepad(0, button, 1) ||
+            !ur_baldosa_modern_root_gamepad(0, button, 0))
+            std::abort();
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT "
+            "synthetic_profile_gamepad mode=%s button=%s\n", opt, action);
         return;
     }
     // Mode 3 is a deliberately TEST-ONLY synthetic gamepad semantic

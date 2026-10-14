@@ -83,6 +83,52 @@ class NativePlayerCreated2PJourneyUnit(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "symlink"):
                 flow.require_legacy_untouched(user, original)
 
+    def test_real_native_gamepad_dispatch_creates_both_stock_identities(self):
+        valid_p1 = (
+            "UR_BALDOSA_MODERN_ROOT synthetic_profile_gamepad "
+            "mode=8 button=X\n"
+            "UR_BALDOSA_MODERN_ROOT synthetic_profile_gamepad "
+            "mode=8 button=A\n"
+        )
+        valid_p2 = (
+            "UR_BALDOSA_MODERN_ROOT synthetic_profile_gamepad "
+            "mode=9 button=X\n"
+            "UR_BALDOSA_MODERN_ROOT synthetic_profile_gamepad "
+            "mode=9 button=DPAD_DOWN\n"
+            "UR_BALDOSA_MODERN_ROOT synthetic_profile_gamepad "
+            "mode=9 button=A\n"
+        )
+        flow.require_native_profile_gamepad(valid_p1, mode="8")
+        flow.require_native_profile_gamepad(valid_p2, mode="9")
+        for bad, mode in (
+            (valid_p1.replace("button=A", "button=X"), "8"),
+            (valid_p1 + valid_p1, "8"),
+            (valid_p1.replace("mode=8", "mode=9"), "8"),
+            (valid_p1[::-1], "8"),
+            (valid_p2.replace("mode=9 button=DPAD_DOWN\n", ""), "9"),
+            (valid_p2.replace("button=DPAD_DOWN", "button=DPAD_UP"), "9"),
+            (valid_p2.replace("button=A", "button=START"), "9"),
+            (valid_p2 + valid_p2, "9"),
+            (valid_p2.replace("button=X", "button=A"), "9"),
+            (valid_p1, "9"),
+        ):
+            with self.subTest(mode=mode, log=bad[-90:]), self.assertRaises(
+                    ValueError):
+                flow.require_native_profile_gamepad(bad, mode=mode)
+        with self.assertRaises(ValueError):
+            flow.require_native_profile_gamepad(valid_p1, mode="4")
+        producer = (ROOT / "tools/baldosa_native_player_created_2p_records_probe.py"
+                    ).read_text(encoding="utf-8")
+        root = (ROOT / "tools/baldosa_native_modern_root.cpp").read_text(
+            encoding="utf-8")
+        self.assertIn('"first_P1_mike", "8"', producer)
+        self.assertIn('"named_P1_adds_P2", "9"', producer)
+        self.assertIn('std::strcmp(opt, "8") == 0', root)
+        self.assertIn('std::strcmp(opt, "9") == 0', root)
+        self.assertIn("kGamepadBtn_DpadDown", root)
+        self.assertIn("ur_baldosa_modern_root_gamepad(0, button, 1)", root)
+        self.assertNotIn("RtlWriteSram(", root)
+
     def test_second_preset_changed_through_real_root_modal_not_fixture(self):
         from baldosa_native_second_racer_probe import require_p2_creation
         receipt = (

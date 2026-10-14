@@ -381,7 +381,8 @@ BOWL_TALLY_MEMORY_SIZES = {"wram": 0x20000, "vram": 0x10000, "cgram": 512}
 
 
 def replay_script(slot: int, result_menu: int, frames: list[int],
-                  stunt: bool, tally_phase: bool = False) -> str:
+                  stunt: bool, tally_phase: bool = False,
+                  source_followthrough: bool = False) -> str:
     if tally_phase and (not stunt or slot != 3 or result_menu != 0x18):
         raise CompleteEventError("only proven source-original scored Bowl tally supports phase samples")
     lines = stock_crawler_script(slot).rstrip().splitlines()
@@ -400,7 +401,15 @@ def replay_script(slot: int, result_menu: int, frames: list[int],
                           f"dump tally-plus-{offset:02d}"]
                 previous = offset
     lines += [f"until 009F == {result_menu:02X} 9000",
-              "dump result-onset", "wait 6", "dump result-stable", "quit"]
+              "dump result-onset", "wait 6", "dump result-stable"]
+    if source_followthrough:
+        previous = 6
+        for offset in SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS:
+            if offset <= previous or offset > 32:
+                raise CompleteEventError("invalid original-movie terminal follow-through offset")
+            lines += [f"wait {offset - previous}", f"dump original-follow-{offset:02d}"]
+            previous = offset
+    lines.append("quit")
     return "\n".join(lines) + "\n"
 
 
@@ -596,6 +605,9 @@ def observe_bowl_tally_phase(reference_dir: Path, native_dir: Path,
 # prelude that restores track 1 at +5158. Deliberately cross the boundary.
 ZOO_TERMINAL_DURATION = 5163
 ZOO_TERMINAL_FRAMES = tuple(range(5156, 5174))
+# Original 2014 movie is already extracted through result onset +40 host ticks.
+# This optional observation adds no invented result-screen button presses.
+SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS = (8, 16, 24, 32)
 ZOO_TERMINAL_FIELDS = ("menu", "track", "in_race", "p1_laps", "p2_laps",
                        "p1_checkpoint", "p1_finish_gate", "p1_contact",
                        "p2_contact", "clock_raw")
@@ -761,6 +773,122 @@ def load_state(path: Path, decoded: bytes, track: int, active: bool) -> dict:
             "boost": u(0x11CF), "stunt_queue_cursor": u(0x0CE3),
             "clock_raw": [w[a] for a in (0x0E0F, 0x0E13, 0x0E17,
                                            0x0E1B, 0x0E1F)]}
+
+
+def source_followthrough_states(states: dict[int, dict], result_frame: int) -> dict:
+    """Observe the real archived original movie *after* its genuine result.
+
+    Source and fresh replay start from different in-tour histories. Preserve
+    their separately observed axes; a source-state match is evidence only.
+    An omitted source frame is missingness, never an inferred stable menu.
+    """
+    if type(result_frame) is not int or result_frame < 0:
+        raise CompleteEventError("invalid source-original result frame")
+    samples = {}
+    for offset in SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS:
+        frame = result_frame + offset
+        row = states.get(frame)
+        if not isinstance(row, dict) or any(
+                type(row.get(name)) is not int
+                for name in ("track", "menu", "in_race")):
+            raise CompleteEventError(
+                f"missing original-movie terminal state at frame {frame}")
+        samples[str(offset)] = {
+            "original_movie_host_frame": frame,
+            "track": row["track"],
+            "menu": row["menu"],
+            "in_race": row["in_race"],
+        }
+    return samples
+
+
+def observe_source_terminal_followthrough(
+        original_dir: Path, native_dir: Path,
+        original_log: str, native_log: str,
+        source_samples: dict, original_entry: int, native_entry: int,
+        original_result_relative: int, native_result_relative: int) -> dict:
+    """Compare distinct archived-source, fresh-reference and native axes.
+
+    Read genuine full WRAM after each guest's independently observed result.
+    Do not conflate same-result-relative with same-race-relative frames, and
+    do not alter the primary strict paired-event candidate verdict.
+    """
+    if set(source_samples) != {str(n) for n in SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS}:
+        raise CompleteEventError("incomplete source-original follow-through")
+    reference_result_host = observed_dump_frame(original_log, "result-onset")
+    native_result_host = observed_dump_frame(native_log, "result-onset")
+    if (reference_result_host != original_entry + original_result_relative
+            or native_result_host != native_entry + native_result_relative):
+        raise CompleteEventError("follow-through original/native result clock contradiction")
+    rows = []
+    for offset in SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS:
+        key = str(offset)
+        tag = f"original-follow-{offset:02d}"
+        frames = {
+            "original": observed_dump_frame(original_log, tag),
+            "native": observed_dump_frame(native_log, tag),
+        }
+        if (frames["original"] != reference_result_host + offset
+                or frames["native"] != native_result_host + offset):
+            raise CompleteEventError(f"follow-through result-relative frame mismatch at +{offset}")
+        guests = {}
+        for label, directory in (("original", original_dir), ("native", native_dir)):
+            path = directory / f"{tag}.wram.bin"
+            if not path.is_file():
+                raise CompleteEventError(f"missing original/native follow-through {label} WRAM")
+            raw = path.read_bytes()
+            if len(raw) != 0x20000:
+                raise CompleteEventError("follow-through WRAM must be full 128 KiB")
+            word = lambda adr: int.from_bytes(raw[adr:adr+2], "little")
+            guests[label] = {
+                "menu": raw[0x009F], "track": raw[0x00CE],
+                "in_race": raw[0x0313],
+                "p1_laps": word(0x0EF1), "p2_laps": word(0x0EF3),
+                "p1_checkpoint": word(0x1199),
+                "p1_finish_gate": word(0x119D),
+                "wram_sha256": hashlib.sha256(raw).hexdigest(),
+                "full_wram_bytes": len(raw),
+            }
+        source = source_samples[key]
+        expected = {
+            name: source[name] for name in ("menu", "track", "in_race")}
+        by_engine = {
+            label: {
+                "source_named_state_equal": all(
+                    row[name] == expected[name] for name in expected),
+                "named_fields_different_from_source": [
+                    name for name in expected if row[name] != expected[name]],
+            } for label, row in guests.items()
+        }
+        rows.append({
+            "offset_from_each_observed_result_onset": offset,
+            "source_original_movie": source,
+            "independently_observed_replay_host_frames": frames,
+            "fresh_guests": guests,
+            "source_named_state_comparison": by_engine,
+            "paired_named_state_equal": all(
+                guests["original"][name] == guests["native"][name]
+                for name in ("menu", "track", "in_race", "p1_laps",
+                             "p2_laps", "p1_checkpoint", "p1_finish_gate")),
+            "full_wram_bytes_equal": (
+                guests["original"]["wram_sha256"] ==
+                guests["native"]["wram_sha256"]),
+        })
+    return {
+        "schema": "UR-QA01-SOURCE-ORIGINAL-NATIVE-RESULT-FOLLOWTHROUGH/1",
+        "input_origin": "unchanged archived 2014 movie, relative window extends 40 frames beyond original result",
+        "source_guest_relative_result_onset_equivalence_proven": False,
+        "sample_alignment": "offsets from each guest's own observed result, not identical race-relative frames",
+        "original_and_native_result_phase_equal_proven": (
+            original_result_relative == native_result_relative),
+        "all_four_named_pairs_equal": all(r["paired_named_state_equal"] for r in rows),
+        "all_four_full_wram_pairs_equal": all(r["full_wram_bytes_equal"] for r in rows),
+        "post_result_sram_persistence_proven": False,
+        "menu_restoration_or_final_progression_proven": False,
+        "strict_event_comparator_unchanged": True,
+        "release_complete_usa_event_credit": 0,
+        "samples": rows,
+    }
 
 
 def load_switcher_transition_state(path: Path, decoded: bytes) -> dict:
@@ -1003,6 +1131,9 @@ def scan_source(args, work: Path, sram: Path, source_input: Path,
     print("ORIGINAL_SOURCE_EVENT_DIAGNOSTIC="
           + json.dumps(diagnostic, sort_keys=True), flush=True)
     event = source_event(states, track, menu)
+    if args.source_followthrough:
+        event["source_terminal_followthrough"] = source_followthrough_states(
+            states, event["original_result_frame"])
     if args.case == "zoom-zoo" and event["original_entry_frame"] != 3190:
         raise CompleteEventError("2014 Zoom Zoo entry disagrees with pinned original 3190")
     # The first chronological source trace carries only changed low-WRAM
@@ -1145,6 +1276,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="retain 8 exact-host-frame WRAM/VRAM/CGRAM captures after real 0x2F Bowl tally")
     ap.add_argument("--zoo-terminal-phase", action="store_true",
                     help="opt-in Zoo +5156..+5173 fixed-frame/host phase comparison; no admission")
+    ap.add_argument("--source-followthrough", action="store_true",
+                    help="opt-in archived original/native +8/+16/+24/+32 postresult guest WRAM; no admission")
     ap.add_argument("--observe-one-frame-stunt-lead", action="store_true",
                     help="report a verified narrow Stunt phase gap as diagnostic CI success; never admit a course")
     ap.add_argument("--snesref", type=Path, required=True)
@@ -1188,6 +1321,10 @@ def main(argv: list[str] | None = None) -> int:
     source_length = original_event["source_active_frames_to_result"] + 40
     source_window = movie.window(original_bytes, pinned_meta,
                                  original_event["original_entry_frame"], source_length)
+    if args.source_followthrough and source_length < (
+            original_event["source_active_frames_to_result"]
+            + max(SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS)):
+        raise CompleteEventError("archived source controller window does not cover follow-through")
     frames = sample_frames(args.case, original_event["source_active_frames_to_result"])
     # Both calibrations boot afresh with exactly the same original SRAM.
     args.sram = sram
@@ -1215,8 +1352,10 @@ def main(argv: list[str] | None = None) -> int:
         raise CompleteEventError("Bowl tally phase tracing only applies to verified Bowl source")
     if args.zoo_terminal_phase and args.case != "zoom-zoo":
         raise CompleteEventError("Zoo terminal phase tracing only applies to verified Zoo source")
-    script.write_text(replay_script(stream, menu, frames, kind == "stunt",
-                                   tally_phase=args.bowl_tally_phase))
+    script.write_text(replay_script(
+        stream, menu, frames, kind == "stunt",
+        tally_phase=args.bowl_tally_phase,
+        source_followthrough=args.source_followthrough))
     reference_script = script
     if args.switcher_same_host_penultimate:
         if args.case != "switcher" or args.native_backend != "pinned-baldosa":
@@ -1278,6 +1417,11 @@ def main(argv: list[str] | None = None) -> int:
         replay / "ref", replay / "native", rl, nl,
         original_event["source_active_frames_to_result"], rf, nf, decoded)
         if args.switcher_same_host_penultimate else None)
+    source_followthrough = (observe_source_terminal_followthrough(
+        replay / "ref", replay / "native", rl, nl,
+        original_event["source_terminal_followthrough"], rf, nf,
+        terminal_frames["reference_relative"], terminal_frames["native_relative"])
+        if args.source_followthrough else None)
     switcher_same_host_memory = (observe_switcher_same_host_memory_offsets(
         replay / "ref", replay / "native", switcher_same_host)
         if args.switcher_same_host_full_memory_offsets else None)
@@ -1296,6 +1440,7 @@ def main(argv: list[str] | None = None) -> int:
         "zoo_terminal_host_phase": zoo_phase,
         "switcher_same_host_penultimate": switcher_same_host,
         "switcher_same_host_full_memory_offsets": switcher_same_host_memory,
+        "source_terminal_followthrough": source_followthrough,
         "reference_script_sha256": sha(reference_script),
         "reference": reference, "native": native,
         "scope": "original archived scene inputs, fresh reference/native stock menu; event results text from guest PPU dumps; instruction-time contact causality unproven"

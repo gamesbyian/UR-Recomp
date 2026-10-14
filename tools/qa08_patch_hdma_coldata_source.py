@@ -25,6 +25,7 @@ PATCH=r'''    debug_server_on_reg_write((uint16_t)(0x2100u + bAdr), val);
       static long qa08_colour_frame = -2;
       static unsigned qa08_colour_writes = 0;
       static unsigned qa08_cgadsub_writes = 0;
+      static unsigned qa08_inidisp_writes = 0;
       if (qa08_colour_frame == -2) {
         const char *setting = getenv("UR_QA08_HDMA_COLDATA_FRAME");
         char *end = NULL;
@@ -87,6 +88,33 @@ PATCH=r'''    debug_server_on_reg_write((uint16_t)(0x2100u + bAdr), val);
                   (unsigned)dma->snes->ppu->cgadsub);
         }
         qa08_cgadsub_writes++;
+      }
+      /* UR_QA08_HDMA_INIDISP: genuine $2100 PPU register write
+       * after BBUS dispatch. Unlike the channel-5 colour pair,
+       * its source HDMA channel is left open to empirical discovery. */
+      if (qa08_colour_frame >= 0 &&
+          snes_frame_counter == qa08_colour_frame &&
+          g_ppu_wlog_src == kPpuWlogHdma && bAdr == 0x00) {
+        if (qa08_inidisp_writes == 2048u) {
+          fprintf(stderr,
+                  "UR_QA08_HDMA_INIDISP_OVERFLOW frame=%d limit=2048\n",
+                  snes_frame_counter);
+        } else if (qa08_inidisp_writes < 2048u) {
+          uint32_t tagged_frame = 0;
+          int16_t tagged_line = -1;
+          ppu_wlog_position(&tagged_frame, &tagged_line);
+          const DmaChannel *ch = &dma->channel[channel];
+          fprintf(stderr,
+                  "UR_QA08_HDMA_INIDISP frame=%d tagframe=%u line=%d "
+                  "channel=%d bbus=%02X value=%02X src=%02X:%04X "
+                  "mode=%u indirect=%u table=%04X bank=%02X live_inidisp=%02X\n",
+                  snes_frame_counter, tagged_frame, tagged_line,
+                  channel, bAdr, val, aBank, aAdr,
+                  (unsigned)(ch->mode & 7), (unsigned)ch->indirect,
+                  (unsigned)ch->tableAdr, (unsigned)ch->aBank,
+                  (unsigned)dma->snes->ppu->inidisp);
+        }
+        qa08_inidisp_writes++;
       }
     }
   }

@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+"""ROM-free parser and source-boundary checks for native Dragster Practice.
+
+These sample strings are NOT actual guest results or physical pad evidence.
+Only the Win32 job executes the pinned native 65816 source course.
+"""
+from pathlib import Path
+import sys
+import unittest
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "tools"))
+from baldosa_native_practice_probe import require_native_practice_source
+
+
+class NativePracticeProbeTests(unittest.TestCase):
+    def test_requires_source_course_and_real_p1_root_edges(self):
+        good = (
+            "UR_BALDOSA_NATIVE_PROFILE DEFAULT no_host_state=1\n"
+            "UR_BALDOSA_MODERN_ROOT opened=1\n"
+            "UR_BALDOSA_MODERN_ROOT practice_gamepad=DOWN\n"
+            "UR_BALDOSA_MODERN_ROOT practice_opened=1 available=1 "
+            "course=0 source_menu_required=1\n"
+            "UR_BALDOSA_MODERN_ROOT practice_gamepad=A\n"
+            "UR_BALDOSA_MODERN_ROOT practice_requested=1 course=0 "
+            "name=DRAGSTER source_route=stock\n"
+            "UR_BALDOSA_MODERN_ROOT practice_gamepad=A\n"
+            "UR_BALDOSA_MODERN_ROOT practice_entered=1 course=0 "
+            "original_course=1 race=1 source_identity=verified\n"
+        )
+        require_native_practice_source(good)
+        bad = (
+            good.replace("original_course=1", "original_course=2"),
+            good.replace("course=0 name=DRAGSTER", "course=1 name=ZOOM ZOO"),
+            good.replace("practice_gamepad=DOWN", "practice_gamepad=UP"),
+            good.replace("practice_gamepad=A", "practice_gamepad=B", 1),
+            good.replace("practice_entered=1", "practice_entered=0"),
+            good.replace("race=1", "race=0"),
+            good.replace("source_identity=verified", "source_identity=guessed"),
+            good.replace("practice_opened=1", "practice_opened=0"),
+            good.replace("available=1", "available=45"),
+            good.replace("source_route=stock", "source_route=host"),
+            good + good,
+            good + "UR_BALDOSA_MODERN_ROOT practice_rejected=timeout\n",
+            good + "UR_BALDOSA_NATIVE_RUN CAPTURED=1\n",
+        )
+        for text in bad:
+            with self.subTest(value=text[-100:]), self.assertRaises(ValueError):
+                require_native_practice_source(text)
+
+    def test_reuses_product_route_without_original_guest_writes(self):
+        source = (ROOT / "tools/baldosa_native_modern_root.cpp").read_text()
+        shared = (ROOT / "native/product/quick_practice_launch.hpp").read_text()
+        overlay = (ROOT / "native/product/modern_root_overlay_presenter.hpp").read_text()
+        for token in (
+            "advance_quick_practice_launch(",
+            "ur_uniracers_identify_course(",
+            "ur_baldosa_product_queue_stock_menu_input(mask)",
+            "quick_practice_launch_owns_player_input",
+            "source_identity=verified",
+            "kNativePracticeAvailable{1u}",
+        ):
+            self.assertIn(token, source)
+        self.assertIn("AwaitNowPlaying", shared)
+        self.assertIn("AwaitRace", shared)
+        self.assertIn("view.practice_picker_open", source)
+        self.assertIn("if (view.practice_picker_open || view.practice_launch_pending)", overlay)
+        self.assertNotIn("RtlWriteSram(", source)
+
+
+if __name__ == "__main__":
+    unittest.main()

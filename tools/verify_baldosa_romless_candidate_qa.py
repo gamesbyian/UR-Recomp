@@ -296,6 +296,24 @@ RUNTIME_NEW_TWO = "UR Baldosa Win32 Pause Route/native_real_2p_records/report.js
 RUNTIME_NEW_TWO_PLAYED = "UR Baldosa Win32 Pause Route/native_real_2p_records/played_native_2p/log.txt"
 RUNTIME_NEW_TWO_FRESH = "UR Baldosa Win32 Pause Route/native_real_2p_records/fresh_game_2p_records/log.txt"
 
+# Exact Windows Actions upload list, observed in the original successful
+# hosted 1P and 2P wrappers. An unreviewed extra ZIP member can carry private
+# player data under an arbitrary .txt/.json suffix, so an extension-only
+# blacklist is insufficient. The five stock diagnostic logs are allowed but
+# never promoted as source/result or fresh-Records evidence.
+RUNTIME_DIAGNOSTIC_LOGS = frozenset(
+    "UR Baldosa Win32 Pause Route/" + suffix + "/log.txt"
+    for suffix in (
+        "baseline", "with_pause", "with_named_profile",
+        "corrupt_named_profile", "different_named_profile",
+    )
+)
+RUNTIME_ALLOWED_MEMBERS = frozenset((
+    RUNTIME_LAUNCHER, RUNTIME_REPORT, RUNTIME_ONE, RUNTIME_TWO,
+    RUNTIME_NEW_ONE, RUNTIME_NEW_PLAYED, RUNTIME_NEW_FRESH,
+    RUNTIME_NEW_TWO, RUNTIME_NEW_TWO_PLAYED, RUNTIME_NEW_TWO_FRESH,
+)) | RUNTIME_DIAGNOSTIC_LOGS
+
 
 def check_runtime_actions_wrapper(
     wrapper: Path, candidate: dict,
@@ -319,11 +337,16 @@ def check_runtime_actions_wrapper(
     try:
         with zipfile.ZipFile(wrapper) as archive:
             names = archive.namelist()
-            if len(names) > 40 or len(names) != len(set(names)):
-                raise ValueError("Baldosa runtime evidence has excessive or duplicate members")
-            if any(name.lower().endswith((".sfc", ".smc", ".srm", ".urrun", ".urmatch"))
-                   for name in names):
-                raise ValueError("Baldosa runtime evidence unexpectedly contains protected player/game data")
+            if len(names) != len(set(names)):
+                raise ValueError("Baldosa runtime evidence has duplicate members")
+            # The exact evidence producer's optional 1P/2P groups are
+            # independently checked all-or-none below. A nonallowlisted
+            # attachment is never silently accepted merely because it is
+            # called .txt, .json, .log or lacks a known ROM/save extension.
+            # This also rejects directories, path aliases, traversal and
+            # unreviewed private data before any member is read.
+            if not set(names) <= RUNTIME_ALLOWED_MEMBERS:
+                raise ValueError("Baldosa runtime evidence has unreviewed ZIP member")
 
             def bounded(name: str, limit: int) -> bytes:
                 try:

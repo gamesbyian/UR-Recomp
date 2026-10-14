@@ -312,7 +312,8 @@ def finish_suffix(hold: int) -> str:
 
 def terminal_events(dumps: dict[int, Path], frames: list[int], offset: int) -> dict:
     """First native-indexed frame of each terminal transition seen by one engine."""
-    events = {"both_laps_zero": None, "race_exit": None, "menu_first_nonzero": None}
+    events = {"both_laps_zero": None, "race_exit": None, "menu_first_nonzero": None,
+              "p1_laps_zero": None, "p2_laps_zero": None, "at_menu_first_nonzero": None}
     menus = []
     for f in frames:
         if f < FINISH_START:
@@ -321,12 +322,16 @@ def terminal_events(dumps: dict[int, Path], frames: list[int], offset: int) -> d
         d = state(dumps[f - offset])
         laps = (d["race_progress"]["player1"]["laps_remaining"],
                 d["race_progress"]["player2"]["laps_remaining"])
+        for i, key in enumerate(("p1_laps_zero", "p2_laps_zero")):
+            if events[key] is None and laps[i] == 0:
+                events[key] = f
         if events["both_laps_zero"] is None and laps == (0, 0):
             events["both_laps_zero"] = f
         if events["race_exit"] is None and page[0x0313] == 0:
             events["race_exit"] = f
         if events["menu_first_nonzero"] is None and page[0x009F] != 0:
             events["menu_first_nonzero"] = f
+            events["at_menu_first_nonzero"] = {k: page[a] for k, a in SCHEDULER.items()}
         if not menus or menus[-1][1] != page[0x009F]:
             menus.append((f, page[0x009F]))
     events["menu_sequence"] = menus
@@ -471,6 +476,8 @@ def terminal_summary(events: dict | None) -> dict | None:
             firsts.setdefault(menu, frame)
         start, end = firsts.get(RESULT_MENU), firsts.get(RESTORED_MENU)
         out[side] = {"both_laps_zero": e["both_laps_zero"], "race_exit": e["race_exit"],
+                     "p1_laps_zero": e.get("p1_laps_zero"), "p2_laps_zero": e.get("p2_laps_zero"),
+                     "at_result_onset": e.get("at_menu_first_nonzero"),
                      "result_menu_first": start, "restored_menu_first": end,
                      "result_phase_frames": end - start if None not in (start, end) else None}
     out["result_phase_delta_native_minus_original"] = (

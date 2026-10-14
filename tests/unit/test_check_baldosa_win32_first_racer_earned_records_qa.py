@@ -63,6 +63,57 @@ class FirstRacerEarnedSourceRecordsQA(unittest.TestCase):
             played.encode(), records.encode(),
         )
 
+    def test_real_win32_absolute_source_capture_path_matches_witness_shape(self):
+        report, created, played, fresh = sample()
+        # Preserve exact source-observed Windows Drive D + spaces layout from
+        # the downloaded green run 38503716264, never a fabricated saved file.
+        actual_path = (
+            "D:\\\\a\\\\_temp\\\\UR Baldosa Win32 Pause Route\\\\"
+            "native_first_racer_earned_records\\\\Brand New Player With Spaces\\\\"
+            "runs\\\\mike\\\\run-0001791946926220-0000.urrun"
+        )
+        accepted = self.check(
+            report, created, played.replace(RUN_PATH, actual_path), fresh,
+        )
+        self.assertEqual(
+            accepted["hosted_played_1p_capture_basename"],
+            "run-0001791946926220-0000.urrun",
+        )
+
+    def test_matching_claimed_run_hash_does_not_admit_relative_or_traversing_path(self):
+        report, created, played, fresh = sample()
+        # These all match the exact source result and report digest. The
+        # previous /runs/mike/ fragment search admitted most of them.
+        # Capture must instead be an absolute, unredirected Windows path.
+        name = "run-0001791946349567-0000.urrun"
+        for altered in (
+            f"relative/runs/mike/{name}",
+            f"../../runs/mike/{name}",
+            f"C:/data/../runs/mike/{name}",
+            f"C:/data/./runs/mike/{name}",
+            f"C:/data//runs/mike/{name}",
+            f"C:/data/runs/mike/{name}/other.urrun",
+            f"C:/data/runs/mike/{name}/",
+            f"C:/data:ads/runs/mike/{name}",
+            f"C:/data/runs/mike/subdir/{name}",
+            f"C:/data/runs/mike/{name}\\\\..",
+        ):
+            with self.subTest(path=altered):
+                with self.assertRaises(ValueError):
+                    self.check(
+                        report, created, played.replace(RUN_PATH, altered), fresh,
+                    )
+
+    def test_second_unsupported_run_or_result_line_is_not_invisible(self):
+        report, created, played, fresh = sample()
+        for extra in (
+            "UR_BALDOSA_NATIVE_RUN CAPTURED=1 mode=race-2p profile=mike\\n",
+            "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-2p published=1\\n",
+        ):
+            with self.subTest(extra=extra):
+                with self.assertRaises(ValueError):
+                    self.check(report, created, played + extra, fresh)
+
     def test_real_green_windows_receipt_has_exact_source_and_no_release_promotion(self):
         # This is a retained independent review of downloaded actual Actions
         # ZIPs. Never treat unit-fixture bytes as the actual saved .urrun.

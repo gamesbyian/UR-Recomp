@@ -1072,8 +1072,23 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     // update, forged native result, or change to live original SRAM.
     if (std::strcmp(opt, "5") == 0 ||
         std::strcmp(opt, "6") == 0) {
+        // Mode 6 additionally cancels the successful modal, then attempts
+        // a stock Play command against the same STILL-OLD guest. The sticky
+        // stale barrier must keep P1 on its original SRAM until restart.
+        const bool selector_smoke = std::strcmp(opt, "6") == 0;
+        if (selector_smoke && frame == 90) {
+            if (!g_named_profile_stale || !g_existing_switch_saved ||
+                !g_visible || g_stock_target != -1)
+                std::abort();
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_ROOT "
+                "existing_p1_stale_race_blocked=1\n");
+            return;
+        }
         const int key = frame == 60 ? SDLK_x :
-                        frame == 62 ? SDLK_RETURN : 0;
+                        frame == 62 ? SDLK_RETURN :
+                        selector_smoke && frame == 76 ? SDLK_ESCAPE :
+                        selector_smoke && frame == 80 ? SDLK_RETURN : 0;
         if (!key) return;
         SDL_Event event{};
         event.type = SDL_KEYDOWN;

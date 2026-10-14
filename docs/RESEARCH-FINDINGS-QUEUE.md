@@ -35,7 +35,8 @@ The ordinary 2P route enters the race on different absolute host frames in diffe
 | 38446393623 (`28501fa3…`), held out, incl. dual-air witness | 100 | 100 | 0 | identical, both-air 1 / 1 |
 | 38438864232, held out (3-frame observer) | 100 | 100 | 0 | original incidence recorded |
 | 38304551380, held out (3-frame observer) | 100 | 100 | 0 | original incidence recorded |
-| 38306802282 (`28501fa3…`), 10,000 cases | — | — | — | **running**; resumable journal, results to follow |
+| 38306802282 (`28501fa3…`), 10,000 cases | 10,000 | 9,978 | 0 | 22 census-attribution-ambiguous; original 15-frame both-air 31/10,000 (native used the 3-frame observer) |
+| **Total** | **10,400** | **10,378** | **0** | 22 ambiguous: the token belongs to an earlier case, consistent with the cross-shard repeats in the 10k postmortem |
 
 A coarse agreement is equality of the quantized census fields (position/64 and /32, velocity/64, rotation/16, raw air, split, offscreen, race progress), **not** strict equality, event acceptance or release credit. It is still a large-population, independently reproducible original/native comparison of random legal 2P trajectories, which the project did not have before. A divergent case would become an `original_native_discrepancy` candidate with an exact seed, arm and first divergent checkpoint.
 
@@ -77,7 +78,6 @@ Generate with `python3 tools/research_findings.py --queue`. As of 2026-10-14:
 | RF-014 | original_native_discrepancy | qa01-gameplay | Log native host-frame boundaries, `$4212`/NMI polls and DMA over host 426–446 (the `0x84→0xD7` load native finishes about 5 frames late) |
 | RF-012 | original_native_discrepancy | qa01-gameplay | Trace writers of `7E:2000–2009` and `7E:0BDE/0BFE` at native 5195–5198 against original 5193–5196 on the 50036056 reproducer |
 | RF-013 | reproducible_anomaly | qa01-gameplay | Compare native vs original iteration counts of the entry fade wait for route delay k=1 (lag 2) against k=2 (lag 3) |
-| RF-004 | untested_circumstance | research | Finish the 10,000-case census cross-check; bisect any divergent seed densely |
 | RF-005 | graphics_observation_gap | qa08-graphics | Replace the dead `$121B/$121D` predicate with the bank-82 sentinel observer, only if QA-08 names a question |
 | RF-008 | reproducible_anomaly | qa01-gameplay | One single-case `qa01-event-campaign.yml` dispatch before any long original-native campaign |
 | RF-002 | method_hazard | qa01-gameplay | Keep run 38509912672 as an executed identical-input observation; read it beside the race-relative stimulus-equivalence result |

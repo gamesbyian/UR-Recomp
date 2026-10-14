@@ -51,9 +51,350 @@
   "release_gate_credit": 0,
   "schema": "ur-frontier-original-crosscheck-summary/1"
  },
+ "census_crosscheck": {
+  "census_runs": [
+   {
+    "attribution_ambiguous_cases": [],
+    "cases_checked": 100,
+    "cases_in_native_run": 100,
+    "census_record_sha256": "b7f4af657df35353aceed44d5ba99a196a2f0703062e2edd75dd308a90ca6a76",
+    "counts": {
+     "coarse_agreement": 100
+    },
+    "crosscheck_tool_sha256": "f95f19a68da5eb7fa6f197f55e8f3ed7ff094c3f4f8ce3bb42f3fde2db550802",
+    "declared_native_minus_original_entry_lag": 2,
+    "divergent_cases": [],
+    "native_executable_sha256": "28501fa3268f82d83672122cddbd2628ce5b2458e625f46d93766f50befbe515",
+    "native_full_trace_feature_counts": null,
+    "native_run_id": 38304551380,
+    "native_source_sha": "7f3fbff42673ff43b23f3fc74034acd6f5873a30",
+    "original_errors": [],
+    "original_full_trace_feature_counts": {
+     "both-moving-raw": 100,
+     "both-rotation-registers-change": 100,
+     "checkpoint-pointer-changes": 100,
+     "opposing-x-motion-raw": 100,
+     "split-register-nonzero": 100
+    },
+    "original_offscreen_sentinel_case_counts": {
+     "both-opponents-offscreen-sentinel": 100,
+     "screen1_player2-offscreen-sentinel": 100,
+     "screen2_player1-offscreen-sentinel": 100
+    }
+   },
+   {
+    "attribution_ambiguous_cases": [
+     {
+      "arm": "balanced",
+      "seed": 50012078,
+      "tokens": [
+       "53babb022c6ea1d403f2d0b1"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50012602,
+      "tokens": [
+       "9496a7ee73077cdf1303ee24"
+      ]
+     },
+     {
+      "arm": "p1-focus",
+      "seed": 50015424,
+      "tokens": [
+       "9b9740fb1b9bcdce5e6da3d3"
+      ]
+     },
+     {
+      "arm": "p1-focus",
+      "seed": 50015436,
+      "tokens": [
+       "c50bc712c8079fa73ba73ed4"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50016024,
+      "tokens": [
+       "f3c8ef0bdb0828bebf6632be"
+      ]
+     },
+     {
+      "arm": "p1-focus",
+      "seed": 50016145,
+      "tokens": [
+       "e9411ac235a7d039659dcb43"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50016770,
+      "tokens": [
+       "121fd01127a3728332c9aff1"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50017505,
+      "tokens": [
+       "df55e2540383963063f5a5d7"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50017606,
+      "tokens": [
+       "3bc727277a1ca9bdedb74c2d"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50017815,
+      "tokens": [
+       "db3f0a99d48b1927cdbec8c0"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50017837,
+      "tokens": [
+       "28c1debf9e3792777a370a23"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50018030,
+      "tokens": [
+       "fa2d6e64b4eb96f7890e4e5e"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50018093,
+      "tokens": [
+       "9de11161042d29d1cdeaf24f"
+      ]
+     },
+     {
+      "arm": "p1-focus",
+      "seed": 50018210,
+      "tokens": [
+       "df8070e4a587177e0829dda1"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50019345,
+      "tokens": [
+       "bb31957f24d80eaf6adec2c3"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50019776,
+      "tokens": [
+       "1801d3a41fc69bda36816e84"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50020025,
+      "tokens": [
+       "2b92d323a082f13e7d3560b5"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50021095,
+      "tokens": [
+       "6a384a2cb03f675cedcc0fd3"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50021596,
+      "tokens": [
+       "b1839b4908376059b83d9a8c"
+      ]
+     },
+     {
+      "arm": "p1-focus",
+      "seed": 50021671,
+      "tokens": [
+       "ea8a68dce4ac622463e2145c"
+      ]
+     },
+     {
+      "arm": "balanced",
+      "seed": 50021892,
+      "tokens": [
+       "89a3a3fa21345eebbffaaa49"
+      ]
+     },
+     {
+      "arm": "p1-focus",
+      "seed": 50021964,
+      "tokens": [
+       "aaca240cbe413ade3624e913"
+      ]
+     }
+    ],
+    "cases_checked": 10000,
+    "cases_in_native_run": 10000,
+    "census_record_sha256": "b7f4af657df35353aceed44d5ba99a196a2f0703062e2edd75dd308a90ca6a76",
+    "counts": {
+     "census_attribution_ambiguous": 22,
+     "coarse_agreement": 9978
+    },
+    "crosscheck_tool_sha256": "f95f19a68da5eb7fa6f197f55e8f3ed7ff094c3f4f8ce3bb42f3fde2db550802",
+    "declared_native_minus_original_entry_lag": 2,
+    "divergent_cases": [],
+    "native_executable_sha256": "28501fa3268f82d83672122cddbd2628ce5b2458e625f46d93766f50befbe515",
+    "native_full_trace_feature_counts": null,
+    "native_run_id": 38306802282,
+    "native_source_sha": "7f3fbff42673ff43b23f3fc74034acd6f5873a30",
+    "original_errors": [],
+    "original_full_trace_feature_counts": {
+     "both-air-raw": 31,
+     "both-moving-raw": 10000,
+     "both-rotation-registers-change": 10000,
+     "checkpoint-pointer-changes": 10000,
+     "opposing-x-motion-raw": 9994,
+     "split-register-nonzero": 10000
+    },
+    "original_offscreen_sentinel_case_counts": {
+     "both-opponents-offscreen-sentinel": 10000,
+     "screen1_player2-offscreen-sentinel": 10000,
+     "screen2_player1-offscreen-sentinel": 10000
+    }
+   },
+   {
+    "attribution_ambiguous_cases": [],
+    "cases_checked": 100,
+    "cases_in_native_run": 100,
+    "census_record_sha256": "b7f4af657df35353aceed44d5ba99a196a2f0703062e2edd75dd308a90ca6a76",
+    "counts": {
+     "coarse_agreement": 100
+    },
+    "crosscheck_tool_sha256": "f95f19a68da5eb7fa6f197f55e8f3ed7ff094c3f4f8ce3bb42f3fde2db550802",
+    "declared_native_minus_original_entry_lag": 2,
+    "divergent_cases": [],
+    "native_executable_sha256": "28501fa3268f82d83672122cddbd2628ce5b2458e625f46d93766f50befbe515",
+    "native_full_trace_feature_counts": null,
+    "native_run_id": 38438864232,
+    "native_source_sha": "d379efcd09fdd73aa817eca24e92263f5a217996",
+    "original_errors": [],
+    "original_full_trace_feature_counts": {
+     "both-moving-raw": 100,
+     "both-rotation-registers-change": 100,
+     "checkpoint-pointer-changes": 100,
+     "opposing-x-motion-raw": 99,
+     "split-register-nonzero": 100
+    },
+    "original_offscreen_sentinel_case_counts": {
+     "both-opponents-offscreen-sentinel": 100,
+     "screen1_player2-offscreen-sentinel": 100,
+     "screen2_player1-offscreen-sentinel": 100
+    }
+   },
+   {
+    "attribution_ambiguous_cases": [],
+    "cases_checked": 100,
+    "cases_in_native_run": 100,
+    "census_record_sha256": "b7f4af657df35353aceed44d5ba99a196a2f0703062e2edd75dd308a90ca6a76",
+    "counts": {
+     "coarse_agreement": 100
+    },
+    "crosscheck_tool_sha256": "f95f19a68da5eb7fa6f197f55e8f3ed7ff094c3f4f8ce3bb42f3fde2db550802",
+    "declared_native_minus_original_entry_lag": 2,
+    "divergent_cases": [],
+    "native_executable_sha256": "28501fa3268f82d83672122cddbd2628ce5b2458e625f46d93766f50befbe515",
+    "native_full_trace_feature_counts": {
+     "both-air-raw": 1,
+     "both-moving-raw": 100,
+     "both-rotation-registers-change": 100,
+     "checkpoint-pointer-changes": 100,
+     "offscreen-register-nonzero": 0,
+     "opposing-x-motion-raw": 100,
+     "split-register-changes": 0,
+     "split-register-nonzero": 100
+    },
+    "native_run_id": 38446393623,
+    "native_source_sha": "dd5632f0a612ee22cc46d9b1ce7a6005a5fa555f",
+    "original_errors": [],
+    "original_full_trace_feature_counts": {
+     "both-air-raw": 1,
+     "both-moving-raw": 100,
+     "both-rotation-registers-change": 100,
+     "checkpoint-pointer-changes": 100,
+     "opposing-x-motion-raw": 100,
+     "split-register-nonzero": 100
+    },
+    "original_offscreen_sentinel_case_counts": {
+     "both-opponents-offscreen-sentinel": 100,
+     "screen1_player2-offscreen-sentinel": 100,
+     "screen2_player1-offscreen-sentinel": 100
+    }
+   },
+   {
+    "attribution_ambiguous_cases": [],
+    "cases_checked": 100,
+    "cases_in_native_run": 100,
+    "census_record_sha256": "b7f4af657df35353aceed44d5ba99a196a2f0703062e2edd75dd308a90ca6a76",
+    "counts": {
+     "coarse_agreement": 100
+    },
+    "crosscheck_tool_sha256": "f95f19a68da5eb7fa6f197f55e8f3ed7ff094c3f4f8ce3bb42f3fde2db550802",
+    "declared_native_minus_original_entry_lag": 2,
+    "divergent_cases": [],
+    "native_executable_sha256": "f2ba284911ec29a62f669e80e3bb310087fa78402aa186802c6accc4a4da1c4a",
+    "native_full_trace_feature_counts": {
+     "both-air-raw": 0,
+     "both-moving-raw": 100,
+     "both-rotation-registers-change": 100,
+     "checkpoint-pointer-changes": 100,
+     "offscreen-register-nonzero": 0,
+     "opposing-x-motion-raw": 99,
+     "split-register-changes": 0,
+     "split-register-nonzero": 100
+    },
+    "native_run_id": 38506108109,
+    "native_source_sha": "5db647c3527e920827e9d7d3485fe119df954901",
+    "original_errors": [],
+    "original_full_trace_feature_counts": {
+     "both-moving-raw": 100,
+     "both-rotation-registers-change": 100,
+     "checkpoint-pointer-changes": 100,
+     "opposing-x-motion-raw": 99,
+     "split-register-nonzero": 100
+    },
+    "original_offscreen_sentinel_case_counts": {
+     "both-opponents-offscreen-sentinel": 100,
+     "screen1_player2-offscreen-sentinel": 100,
+     "screen2_player1-offscreen-sentinel": 100
+    }
+   }
+  ],
+  "census_totals": {
+   "census_attribution_ambiguous": 22,
+   "coarse_agreement": 10378
+  },
+  "claim": "quantized census agreement and sampled exact semantic-WRAM agreement only",
+  "original": {
+   "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+   "snes9x_core_sha256": "040a61a06138543eba335e385b776f67a6cf9f69a924adbc4412a049e2c40189",
+   "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+  },
+  "original_native_parity_claimed": false,
+  "paired_exact": [],
+  "paired_totals": {},
+  "release_gate_credit": 0,
+  "schema": "ur-frontier-original-crosscheck-summary/1"
+ },
  "date": "2026-10-14",
  "evidence_status": "local candidate evidence: independent re-execution with raw-dump receipts (e.g. research-race-relative-paired.yml) is required before a separate consumer relies on it",
  "findings": {
+  "census": "10,400 of 10,400 signed native frontier cases replayed on Snes9x at L=2: 10,378 coarse agreement, 22 census-attribution-ambiguous (token owned by an earlier case), 0 coarse divergence",
   "lag_frames": "7E:00C6 vblank-wait passes: stock 2P route host 2-1126 native 773, Snes9x 801, Beetle-bsnes 802; no-input attract cycle host 2-4002 (one rewrite window excluded) native 1311, Snes9x 1326, Beetle-bsnes 1327; generic SNESRecomp native (stock route) 772",
   "mid_race": "26 of 26 non-terminal comparisons: zero differing decoded fields and zero differing WRAM bytes at $0200+",
   "result_phase": "49 terminal seeds across all five arms: decoded fields identical until the reference's 0x16 restoration; first $0200+ byte difference 1-2 native frames before result-menu onset; raw 7E:009F (wTextPos) 0x84 phase {'(35, 34)': 48, '(36, 34)': 1} (native, reference); per-core onset/restore boundaries differ and are kept separate"

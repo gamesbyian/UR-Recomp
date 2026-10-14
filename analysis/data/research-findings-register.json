@@ -86,7 +86,7 @@
    "id": "RF-004",
    "title": "Original-emulator cross-check of the frontier census population",
    "class": "untested_circumstance",
-   "status": "open",
+   "status": "resolved",
    "evidence": "original_and_native",
    "owner_lane": "research",
    "reproducer": {
@@ -102,12 +102,14 @@
    },
    "source_artifacts": [
     "signed census record_sha256 b7f4af657df35353aceed44d5ba99a196a2f0703062e2edd75dd308a90ca6a76",
-    "analysis/data/frontier-original-native-race-relative-20261014.json"
+    "analysis/data/frontier-original-native-race-relative-20261014.json",
+    "analysis/data/frontier-original-native-race-relative-20261014.json census_crosscheck"
    ],
-   "observation": "Interim: 400 of 400 cases in the four 100-case runs coarse-agree at L=2, with identical feature incidence. Exact paired sample: 26 of 26 cases, zero differing decoded fields and zero semantic WRAM bytes over the sampled race. 10,000-case run pending.",
+   "observation": "All 10,400 cases of the five signed frontier runs replayed on the original (Snes9x, L=2): 10,378 coarse agreement, 22 census-attribution-ambiguous (the original's token is owned by an earlier case, consistent with the ~21 cross-shard repeats documented in the 10k postmortem), 0 coarse divergence. Where the native run used the 15-frame observer, feature incidence is identical. Original 15-frame both-air incidence over the 10k population is 31/10,000.",
    "uncertainty": "Quantized fields (x//64, y//32, v//64, rotation//16) can hide sub-bin differences; agreement is not strict equality.",
-   "resolving_experiment": "Complete the population; any coarse_divergence seed becomes its own original/native discrepancy candidate with a dense bisect.",
-   "consequence": "Converts 10,400 native-only cases into original/native comparisons without a single new native process."
+   "resolving_experiment": "None for this route; exact paired comparison (26/26) confirms the quantized result.",
+   "consequence": "Converts 10,400 native-only cases into original/native comparisons without a single new native process.",
+   "resolution": "No original/native divergence on the frontier route at quantized census precision; candidate evidence (local) until independently re-executed."
   },
   {
    "id": "RF-005",

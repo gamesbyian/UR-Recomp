@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+"""No-result native UI and next-boot profile switch contract regressions."""
+from pathlib import Path
+import sys
+import unittest
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "tools"))
+from baldosa_native_existing_p1_ui_probe import require_switch
+
+
+def valid_switch(current: str = "mike", next_id: str = "andrew") -> str:
+    return (
+        f"UR_BALDOSA_NATIVE_PROFILE APPLIED profile={current} "
+        f"root=saves/profile-{current}\n"
+        "UR_BALDOSA_MODERN_ROOT opened=1\n"
+        "UR_BALDOSA_MODERN_ROOT existing_p1_opened=1 "
+        f"from={current} to={next_id} activation=next_process\n"
+        f"UR_BALDOSA_NATIVE_P1_SWITCH status=0 from={current} "
+        f"to={next_id} activation=next_process\n"
+        "UR_BALDOSA_MODERN_ROOT existing_p1_saved=1 "
+        "activation=next_process\n"
+    )
+
+
+class ExistingP1ControllerSwitchTest(unittest.TestCase):
+    def test_source_order_and_duplicate_switch_refusal(self):
+        require_switch(valid_switch(), "mike", "andrew")
+        require_switch(valid_switch("andrew", "mike"), "andrew", "mike")
+        for invalid in (
+            valid_switch().replace("status=0", "status=4"),
+            valid_switch().replace("from=mike to=andrew", "from=mike to=mike"),
+            valid_switch().replace("existing_p1_opened=1",
+                                   "existing_p1_opened=0"),
+            valid_switch().replace("existing_p1_saved=1",
+                                   "existing_p1_saved=0"),
+            valid_switch().replace("profile=mike", "profile=andrew"),
+            valid_switch() + valid_switch(),
+            valid_switch() + "UR_BALDOSA_NATIVE_RUN CAPTURED=1\n",
+            valid_switch() + "UR_BALDOSA_NATIVE_MATCH CAPTURED=1\n",
+            valid_switch() + "UR_BALDOSA_MODERN_ROOT stock_entered players=1\n",
+            valid_switch() + "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=andrew\n",
+        ):
+            with self.subTest(reason=invalid[-80:]), self.assertRaises(ValueError):
+                require_switch(invalid, "mike", "andrew")
+
+    def test_ui_path_uses_existing_product_authority_and_sticky_reboot(self):
+        root = (ROOT / "tools/baldosa_native_modern_root.cpp").read_text()
+        adapter = (ROOT / "tools/baldosa_modern_profile_activation.cpp").read_text()
+        presenter = (ROOT / "native/product/modern_root_overlay_presenter.hpp"
+                     ).read_text()
+        for token in (
+            "ur_baldosa_modern_select_existing_p1_next_boot(",
+            "g_named_profile_stale = true;",
+            "g_existing_switch_saved = true;",
+            "existing_p1_opened=1",
+            "existing_p1_saved=1",
+            'std::strcmp(opt, "6") == 0',
+            "view.existing_profile_switch_saved = g_existing_switch_saved;",
+        ):
+            self.assertIn(token, root)
+        self.assertIn("select_baldosa_existing_profile_for_next_boot", adapter)
+        self.assertIn("SWITCH ACTIVE P1", presenter)
+        self.assertIn("A SWITCH  B CANCEL", presenter)
+        self.assertIn("NO LIVE RACER CHANGE", presenter)
+        self.assertNotIn("RtlWriteSram(", root)
+        self.assertNotIn("RtlRunFrame(", root)
+
+
+if __name__ == "__main__":
+    unittest.main()

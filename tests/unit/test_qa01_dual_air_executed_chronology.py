@@ -224,6 +224,18 @@ class OriginalNativeExecuted2PAir(unittest.TestCase):
         self.assertIn("81/8DB1: 8D 29 0F     STA $0F29", bank)
         self.assertIn("81/8F08: AD 47 05     LDA $0547", bank)
         self.assertIn("81/8F0B: 8D 29 0F     STA $0F29", bank)
+        gate = (
+            "81/9255: AD C0 02     LDA $02C0",
+            "81/9258: C2 20        REP #$20",
+            "81/925A: 10 12        BPL $926E",
+            "81/925F: AD 29 0F     LDA $0F29",
+            "81/9262: 1A           INC",
+            "81/9263: C9 0A 00     CMP #$000A",
+            "81/9266: 10 03        BPL $926B",
+            "81/9268: 8D 29 0F     STA $0F29",
+        )
+        points = [bank.index(line) for line in gate]
+        self.assertEqual(points, sorted(points))
 
 
 

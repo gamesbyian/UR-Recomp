@@ -126,3 +126,9 @@ Durable assertions:
 - `.github/workflows/vs-split-screen-reference.yml` runs both assertions on the frozen race route.
 
 What remains open is implementation architecture, not the target: SNESRecomp should preferably reproduce the general internal OAM cursor behavior that naturally routes the write to `0x218`; a title-specific compatibility rule is a fallback only if a faithful general model is impractical.
+
+## 13 October 2026 search reconciliation: no new OAM discovery campaign
+
+The source-acquisition and effective-byte question in this note are already closed by the existing original-USA VS journal, high-OAM decoder and fixture. See [the GitHub code-search closeout](github-uniracers-code-search-closeout-20261013.md) for a deduplicated emulator-family inventory, the newer [RustySNES PPU spec at 98f8d398](https://github.com/doublegate/RustySNES/blob/98f8d398020b8798b16076fae315960031c6b3b7/docs/ppu.md), and its important phase limitation: its described per-dot OAM *evaluation* redirect is gated to dots 0–255 and has not implemented the fetch index needed for jgenesis's documented HBlank H≈282–284 Uniracers write. Do not substitute that partial algorithm or the older hard-coded `0x218` workaround for a proven hardware-faithful compositor.
+
+**Remaining question, only if current graphics evidence needs it:** live per-scanline evaluated/fetched slot, ordered high-OAM effect and *final original/native P1/P2 visible pixels and BG/OBJ occlusion* on the exact candidate. Consult already running source/beam PRs first. This note did not rerun the original reference or accept a new graphics/build gate.

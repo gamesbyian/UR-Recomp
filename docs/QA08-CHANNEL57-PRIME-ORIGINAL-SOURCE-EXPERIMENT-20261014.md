@@ -74,3 +74,67 @@ source-observed DMA channel selectors; Malmazuke PPU/OAM external
 knowledge remains advisory only. No gameplay, Modern/storage,
 Claude CPU/APU, research scheduler, independent release ledger,
 production HD, Widescreen or Original presentation changed.
+
+
+## Genuine four-process executed result: combined 5+7 is still insufficient
+
+The pending status above is now superseded by real source execution.
+[PR #1595](https://github.com/gamesbyian/UR-Recomp/pull/1595)
+was accepted and merged with successful one-shot native
+[run 38642367882](https://github.com/gamesbyian/UR-Recomp/actions/runs/38642367882),
+artifact **11930109109**; independently downloaded artifact SHA256
+**a6aae4f82644c93b43f98f336d72c21d24846fea5f8377e18cbc54e37c1b3040**.
+Its strict complete original/native source comparator JSON SHA256 is
+2bb604274276a00e580635bbd31211749a6ef32e9f48f2e2396b25bbec956426.
+Four genuine 2473-entry native guest CRC transcripts are *identical*
+(SHA256 4280056aef50acde83ca9ce82d0a12f8a5b7190a18e42a5d24401b65c44e205d).
+All comparison source alpha bytes remain unchanged.
+
+| Real original/native scene | Stock original RGB5 wrong | Ch7-only wrong | Combined ch5+7 wrong | Global prime wrong |
+| --- | ---: | ---: | ---: | ---: |
+| Frontend native guest400 | No original paired | Native unchanged | Native unchanged | Native unchanged |
+| Countdown original1855/native1856 | 971 | **460** | **460** | **0** |
+| Post-GO original2207/native2208 | 512 | **0** | **0** | **0** |
+
+More strongly than the scalar counts, the entire actual 256x224 native
+combined-ch5+7 P7 source framebuffer is **byte-for-byte identical**
+to the ch7-only framebuffer in **all three native scenes**.
+At countdown1856 both images retain the same exact **460**
+original source wrong RGB5 pixels, including the three-way
+split coordinate (223,113). Source alpha also remains identical.
+Thus adding consumed prime for channel5 does not close *any* of
+the remaining countdown output differences under this precise
+intervention.
+
+The source-qualified **global-prime vs combined-ch5+7**
+after-BBUS channel5 CGADSUB journal at guest2208 is identical
+(journal SHA256
+deedf392710bbe2ab7148ff824382b3e8f9bc08b13c4dba4309e1b4842f70ef4).
+That establishes the trial applied channel5's observed source
+control as intended at post-GO2208, but does not expose its
+source PPU write effects at countdown1856. Channel7 live
+INIDISP values remain the genuine consumed-prime 0F/00/0F.
+
+**Disposition:** combined channel5+7 is falsified as a sufficient
+general first-line fix across the two tested 2P scenes.
+The missing 460 source pixels depend on additional channel(s),
+their first-line interactions, or downstream per-line BG/window/
+colour-math state which differs when those channels are also
+primed. Neither source layer ownership nor a specific other
+channel has yet been identified. Avoid conjecturally changing
+channel5 again.
+
+**Next executable experiment** should *read*, without modifying
+the actual renderer, the first-line/descriptor A-bus data and
+genuine active HDMA channel registry for **countdown frame1856**,
+then observe effective per-output-row window/colour math and
+source RGB at the 460 mismatches. Only after qualifying
+the actual active channels should one choose a single-channel
+or minimal subset consumption discriminator, and recheck
+same original 57,344 pixels, 26 BG3/OBJ intersections,
+split-112 OAM, authentic moving 2P source, original 1P and
+cross-title compatibility.
+
+Long-lived compact receipt:
+[qa08-combined-channel57-real-original-native-negative-20261014.json](../analysis/data/qa08-combined-channel57-real-original-native-negative-20261014.json).
+No production change and no released Original, Widescreen or HD art approval.

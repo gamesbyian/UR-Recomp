@@ -29,7 +29,7 @@ class AttractCpuVramSourceContract(unittest.TestCase):
         self.assertEqual(r["direct_cpu_ppu_address_sites"][0], "81:CD7A")
         self.assertEqual(r["separate_decompress_to_vram_source"], "81:BB89")
         self.assertEqual(r["separate_decompress_ppu_low_byte_writer"], "81:BCF4")
-        self.assertEqual(r["separate_decompress_ppu_high_byte_writer"], "81:BCEC")
+        self.assertEqual(r["separate_decompress_ppu_high_byte_writer"], "81:BCEE")
         self.assertIs(r["baldosa_config_has_paced_bus"], True)
         self.assertIs(r["paced_bus_is_globally_requested_via_bank00"], True)
         self.assertEqual(r["strict_usa_complete_event_acceptances"], 0)
@@ -50,7 +50,7 @@ class AttractCpuVramSourceContract(unittest.TestCase):
              "81/CD7A: 8C 18 21     STY $2118"),
             ("branch", "81/CD51: 4C 7F CE     JMP $CE7F",
              "81/CD51: 4C 7E CE     JMP $CE7E"),
-            ("decompress_high", "81/BCEC: 8F 19 21 00  STA $002119",
+            ("decompress_high", "81/BCEE: 8F 19 21 00  STA $002119",
              "81/BCEC: 8F 18 21 00  STA $002118"),
             ("decompress_low", "81/BCF4: 8F 18 21 00  STA $002118",
              "81/BCF4: 8F 19 21 00  STA $002119"),

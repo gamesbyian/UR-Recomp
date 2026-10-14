@@ -47,9 +47,21 @@ A coarse agreement is equality of the quantized census fields (position/64 and /
 
 * **Entry (RF-003, resolved):** native 1136, Snes9x 1134 and pinned Beetle-bsnes 1134 in every case. The lag of 2 is measured per case, not assumed. When a wrong lag was declared for Beetle, the tool flagged it rather than reporting a divergence.
 * **Mid-race:** 26 of 26 cases (5 per arm from three held-out runs, plus the witness) show **zero** differing fields and **zero** differing semantic WRAM bytes at 30-frame spacing from 1620 to 3420. The witness was also checked at every frame from 2570 to 2590. In total 39,747 race-relative frames were compared across all paired runs.
-* **Race terminal (RF-012, handed to QA-01):** a declared both-Right finish stimulus completes the ordinary 2P race in about 1,500 extra frames. In 9 of 9 seeds, state stays identical through both laps reaching 0 and through the onset of result menu `0x84`. The `0x84` phase then lasts **34 frames on Snes9x and on Beetle-bsnes, but 35 on native** (36 for seed 50024003). Decoded fields first differ only after the reference's `0x16` restoration, but raw semantic WRAM first differs **1–2 native frames before result-menu onset in every seed**: the original builds a 10-byte list at `7E:2000` one frame earlier and through a different intermediate value, and `7E:0BDE/0BFE` carry an 8-unit offset through the whole phase. The seam is therefore the result-screen setup, not the exit. This is the same `Sram_RestoreDirectPage` (`83:988A`) handoff behind QA-01's open 1P Switcher strict divergence, where the original's phase is also 34 frames. It is now a 70-second deterministic 2P reproducer with two independent reference cores.
+* **Race terminal (RF-012, handed to QA-01):** a declared both-Right finish stimulus completes the ordinary 2P race in about 1,500 extra frames. In **49 of 49 seeds** (all five arms; measured lag 2 in every one), state stays identical through both laps reaching 0 and through the onset of result menu `0x84`. The `0x84` phase then lasts **34 frames on Snes9x and on Beetle-bsnes, but 35 on native** in 48 seeds (36 for 50024003). Scheduler parity at onset does not predict it. Decoded fields first differ only after the reference's `0x16` restoration, but raw semantic WRAM first differs **1–2 native frames before result-menu onset in every seed** (36 at two frames, 13 at one): the original builds a 10-byte list at `7E:2000` one frame earlier and through a different intermediate value, and `7E:0BDE/0BFE` carry an 8-unit offset through the whole phase. The seam is therefore the result-screen setup, not the exit. This is the same `Sram_RestoreDirectPage` (`83:988A`) handoff behind QA-01's open 1P Switcher strict divergence, where the original's phase is also 34 frames. It is now a 70-second deterministic 2P reproducer with two independent reference cores.
 
 * **Entry lag is phase-dependent (RF-013, handed to QA-01):** delaying the whole menu route by k = 0…7 frames moves Snes9x entry by exactly k (1134…1141), but native entry by 0, 1, 3, 3, 5, 5, 6, 7. The lag is therefore 2 or 3. The census cross-check stays valid because the frontier never alters the stock prefix (k = 0, lag 2). Any other route must measure its lag per case, which `paired` does. Native seems to quantize a vblank- or fade-gated wait, the same kind of one-frame transition cost seen in RF-012.
+
+## Lag-frame census: a common cause (RF-014, handed to QA-01)
+
+`80:FAC9` waits for the next vblank on `$4212`. `80:FADF` then decrements direct-page `7E:00C6` modulo 32 and writes `table[$C6>>1]` (table at `80:FBAF`) to `7E:0BDE/0BFE`. Each decrement of `$C6` is therefore one completed game frame, and a host frame without one is a lag frame. [`tools/qa_lag_frame_census.py`](../tools/qa_lag_frame_census.py) counts decrements between dense dumps on every engine for the same controller stream, with no instrumentation.
+
+| Stock 2P route, host frames 2–1126 | Game frames | Lag frames |
+| --- | ---: | ---: |
+| Snes9x | 801 | 323 |
+| Beetle-bsnes | 802 | 322 |
+| Modern native (`4c1c8b56…`) | **773** | **351** |
+
+The two independent reference cores agree within one frame. Native completes 28–29 fewer game frames. Every one of the 27 differing windows is a screen transition or menu slide (menus `0x84`, `0xD7`, `0x3D`, `0x6D`, `0x91`); in steady menus all three run one game frame per host frame. The resulting `$C6` offset (4 mod 32) is frozen during the race and explains RF-012's `$0BDE/$0BFE` offset of 8 exactly. Native losing game frames at heavy transitions is the most economical common explanation for RF-012 (longer result phase), RF-013 (later, phase-dependent entry) and the 1P result-handoff seams QA-01 is chasing. It is a hypothesis to adjudicate, not a ruling. AGENTS forbids tuning `$4212` merely to match one emulator; the question is why native spends extra host frames on the same guest work.
 
 What this means for the frontier: on this route, native frontier states correspond exactly to original states for the whole race. Native fingerprint novelty here is therefore authentic original-game state novelty. But more random mid-race input will not find discrepancies. The measured discrepancy surface is the **transitions**: entry phase and the result handoff.
 
@@ -59,6 +71,7 @@ Generate with `python3 tools/research_findings.py --queue`. As of 2026-10-14:
 
 | ID | Class | Owner | What would resolve it |
 | --- | --- | --- | --- |
+| RF-014 | original_native_discrepancy | qa01-gameplay | Localise one transition (host 438–446: native 0 game frames, Snes9x 4) with a native `FAC9`/host-frame log against the original's vblank timing |
 | RF-012 | original_native_discrepancy | qa01-gameplay | Trace writers of `7E:2000–2009` and `7E:0BDE/0BFE` at native 5195–5198 against original 5193–5196 on the 50036056 reproducer |
 | RF-013 | reproducible_anomaly | qa01-gameplay | Compare native vs original iteration counts of the entry fade wait for route delay k=1 (lag 2) against k=2 (lag 3) |
 | RF-004 | untested_circumstance | research | Finish the 10,000-case census cross-check; bisect any divergent seed densely |
@@ -70,7 +83,7 @@ Closed and retired items (dual-air witness, `$0DDB`, sparse sampling, Windows an
 
 ## Next experiments, in priority order
 
-1. **Terminal-phase population (research, local or one CI job).** Run the finish stimulus on 100 seeds with both reference cores. Record the result-phase duration distribution and its dependence on finish state (who wins, the frame margin, laps-zero parity). That turns RF-012 from "9 of 9" into a measured rate and tells QA-01 whether the extra frame tracks scheduler parity. Stop at 100: the question is the mechanism, not a tighter rate.
+1. ~~Terminal-phase population~~ — done at 49 seeds: +1 frame in 48, +2 in 1, independent of arm and scheduler parity. The open question moved to the lag-frame mechanism (RF-014).
 2. ~~Entry-phase invariance check~~ — done: the lag is not invariant (RF-013).
 3. **Rare-state branching.** Branch new inputs from agreed original trajectories that reached rare states (the dual-air hop, opponent-offscreen sentinels). Record each selection decision and replay the same recorded input on both engines, so the selector never defines correctness.
 4. **Second route.** Only after a second source-qualified 2P route exists. The frontier currently varies input on one course and one mode.

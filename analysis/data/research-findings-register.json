@@ -260,7 +260,7 @@
   },
   {
    "id": "RF-012",
-   "title": "2P result phase (menu 0x84) lasts one frame longer on native than on Snes9x and Beetle-bsnes",
+   "title": "2P result phase (menu 0x84) lasts one frame longer on native than on Snes9x and Beetle-bsnes (48 of 49 seeds +1, 1 seed +2)",
    "class": "original_native_discrepancy",
    "status": "handed_off",
    "evidence": "original_and_native",
@@ -281,9 +281,9 @@
     "docs/QA01-SWITCHER-2014-ORIGINAL-SOURCE-PROBE.md (1P: original 0x84 +4665..+4698 = 34 frames)",
     "docs/QA01-2014-COMPLETE-EVENT-TRANSPLANT.md (0x84->0x16 by 83:988A / Sram_RestoreDirectPage)"
    ],
-   "observation": "Decoded source fields are identical through laps-zero and result-menu onset in every seed. Raw semantic WRAM ($0200+) first differs 1-2 native frames BEFORE result-menu (0x84) onset in 17 of 17 seeds. For 50036056 at native 5196-5198 the original builds the 10-byte list at 7E:2000 in one frame (first word 01->02->04); native shows a different intermediate one frame later (01->03->04). 7E:0BDE/0BFE start at 0xCC->0xC8 on the original but 0xC4->0xC0 on native, an offset of 8 held through the whole phase. The 0x84 phase then lasts 34 frames on Snes9x (and on Beetle-bsnes for 50036056) and 35 on native (36 for 50024003).",
+   "observation": "49 seeds, measured lag 2 in all: decoded source fields identical through laps-zero (same frame in 49/49) and until the reference's 0x16 restoration; result-menu onset on the same frame in 43, one frame earlier on native in 6; scheduler parity at onset does not predict the outcome. Raw semantic WRAM ($0200+) first differs 1-2 native frames BEFORE result-menu (0x84) onset in 49 of 49 seeds (all five arms). For 50036056 at native 5196-5198 the original builds the 10-byte list at 7E:2000 in one frame (first word 01->02->04); native shows a different intermediate one frame later (01->03->04). 7E:0BDE/0BFE start at 0xCC->0xC8 on the original but 0xC4->0xC0 on native, an offset of 8 held through the whole phase. The 0x84 phase then lasts 34 frames on Snes9x (and on Beetle-bsnes for 50036056) and 35 on native in 48 of 49 (36 for 50024003).",
    "uncertainty": "Semantics of 7E:2000 (update list?) and 7E:0BDE/0BFE (unnamed in the repo) are unknown; whether the 8-unit offset is guest-visible (sprite Y or banner position) or only scheduling is unproven.",
-   "resolving_experiment": "QA-01 (with QA-08 if 0BDE/0BFE are OAM-shadow Y): trace writers of 7E:2000-2009 and 7E:0BDE/0BFE at native 5195-5198 against original 5193-5196 on the 50036056 reproducer; the first differing writer names the mechanism.",
+   "resolving_experiment": "QA-01: see RF-014 (the 7E:00C6 lag-frame census) first; then trace writers of 7E:2000-2009 at native 5195-5198 against original 5193-5196 on the 50036056 reproducer.",
    "consequence": "A cheap deterministic 2P reproducer of the same result-handoff seam behind the open 1P Switcher +4704/+4702 strict divergence; it does not change any comparator or acceptance."
   },
   {
@@ -306,6 +306,27 @@
    "uncertainty": "Mechanism unproven; staircase notes point at the 80:FAC9 / $4212 vblank-sensitive fade for entry. Whether the same mechanism lengthens the 0x84 result phase (RF-012) is a hypothesis.",
    "resolving_experiment": "QA-01: compare native and original iteration counts of the entry fade wait loop for k=1 (lag 2) and k=2 (lag 3); if the extra frame is the wait loop, test the same loop in the 0x84 phase.",
    "consequence": "Race-relative comparisons must measure lag per case on any route other than the fixed stock prefix; gives RF-012 a cheap, input-only mechanism discriminator."
+  },
+  {
+   "id": "RF-014",
+   "title": "Native completes fewer game frames than the original at frontend transitions (28 more lag frames before the 2P race)",
+   "class": "original_native_discrepancy",
+   "status": "handed_off",
+   "evidence": "original_and_native",
+   "owner_lane": "qa01-gameplay",
+   "reproducer": {
+    "command": "stock tests/input/two-player-first-race.input on Snes9x and the Modern native, dump every 4 host frames 2..1126, count decrements of 7E:00C6 (one per 80:FAC9 vblank-wait pass via 80:FADF)",
+    "runs": [],
+    "race_relative_lag": 0
+   },
+   "source_artifacts": [
+    "reference/imported/reverse-engineering/nitrodon/bank 80.txt 80:FAC9-80:FAF9 (LDA $4212 BMI/BPL wait; DEC $C6 mod 32; STA $0BDE/$0BFE from table 80:FBAF)",
+    "Modern native 4c1c8b56... (source fda6ace), pinned snes9x-libretro"
+   ],
+   "observation": "Over host frames 2-1126: native 773 FAC9 passes, Snes9x 801, Beetle-bsnes 802 (two independent reference cores agree within one frame). Both engines run one pass per host frame in steady menus. Native loses passes only in transition/slide windows (menus 0x84, 0xD7, 0x3D, 0x6D, 0x91; e.g. host 442-446: native 0, original 4). The resulting 7E:00C6 offset of 4 (mod 32) is frozen during the race and explains RF-012's 7E:0BDE/0BFE offset of 8 exactly (0BDE = table[C6>>1]).",
+   "uncertainty": "Neither reference core is cycle-exact hardware, but they agree with each other and disagree with native by 28-29 frames. The source of native's deficit (host frame pacing, DMA/HDMA cost modelling or the $4212 model) is unknown; AGENTS forbids tuning $4212 merely to match one emulator.",
+   "resolving_experiment": "QA-01: localise one transition (host 438-446: native 0 passes, Snes9x 4) with a native FAC9 call/host-frame log against the original's vblank timing; optionally confirm on a cycle-accurate core.",
+   "consequence": "A single cheap observer (7E:00C6) measures game-frame vs host-frame divergence anywhere in the game; likely common cause of RF-012 and RF-013, and of the 1P result-handoff phase seam."
   }
  ]
 }

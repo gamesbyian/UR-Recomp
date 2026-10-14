@@ -123,8 +123,8 @@ class BowlHeldLatchCrosswalkTests(unittest.TestCase):
         cases = (
             lambda x: x.update(truncated=True),
             lambda x: x["addresses"].pop(),
-            lambda x: x["addresses"].__setitem__(0, "0x0007f"),
-            lambda x: x["addresses"].__setitem__(0, "0x00073"),
+            lambda x: x["addresses"].__setitem__(0, "0x0FFFF"),
+            lambda x: x["addresses"].__setitem__(1, "0x00073"),
             lambda x: x["addresses"].__setitem__(0, "0xZZZZZ"),
         )
         for patch in cases:

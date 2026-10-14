@@ -1,0 +1,118 @@
+name: QA-08 original Snes9x countdown versus native HDMA prime
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa08-original-countdown-native-prime.yml"
+      - "tools/qa08_compare_original_countdown_prime.py"
+      - "tests/unit/test_qa08_compare_original_countdown_prime.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: qa08-original-countdown-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  genuine-original-countdown:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+      - name: Verify unchanged original USA retail and exact guest input source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          cmp baldosa/tests/routes/race_2p_split.txt reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p_split.txt
+          grep -v '^turbo ' baldosa/tests/routes/race_2p_split.txt > "$RUNNER_TEMP/qa08-original-2p.script"
+          echo "94eaa5ffb487d9b227e34965c1d2ee09efe3dac06ade595f7dad05315dfc5221  $RUNNER_TEMP/qa08-original-2p.script" | sha256sum -c -
+      - name: Build pinned original Snes9x and reference capture tool
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends build-essential cmake pkg-config libsdl2-dev
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          make -C "$SRC/libretro" -j2
+          test -s "$SRC/libretro/snes9x_libretro.so"
+          cmake -S baldosa/snesrecomp/tools/snesref -B "$RUNNER_TEMP/qa08-snesref" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/qa08-snesref" -j2
+          test -x "$RUNNER_TEMP/qa08-snesref/snesref"
+      - name: Execute real 2P original replay and capture 17 genuine consecutive 256x224 callbacks
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-original-dumps" "$RUNNER_TEMP/qa08-original-countdown-17"
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$RUNNER_TEMP/qa08-original-2p.script" \
+          SNESREF_DUMP_DIR="$RUNNER_TEMP/qa08-original-dumps" \
+          SNESREF_FRAME_DUMP_DIR="$RUNNER_TEMP/qa08-original-countdown-17" \
+          SNESREF_FRAME_DUMP_NATIVE=1 SNESREF_FRAME_DUMP_FROM=1848 \
+          SNESREF_FRAME_DUMP_TO=1864 SNESREF_FRAME_DUMP_STEP=1 \
+            timeout 110 "$RUNNER_TEMP/qa08-snesref/snesref" \
+              "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+              "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              > "$RUNNER_TEMP/qa08-original-countdown.log" 2>&1
+          grep -q '^script f=2473 quit' "$RUNNER_TEMP/qa08-original-countdown.log"
+          echo "9350bcb02f3cbf490678c5276245ec2c7fe36b9078bfab9e912d86c5cbc93bf6  $RUNNER_TEMP/qa08-original-dumps/t480.wram.bin" | sha256sum -c -
+          test "$(find "$RUNNER_TEMP/qa08-original-countdown-17" -name 'frame_*_256x224.raw' -type f | wc -l)" -eq 17
+          for f in $(seq 1848 1864); do
+            printf -v serial '%06d' "$f"
+            test "$(stat -c '%s' "$RUNNER_TEMP/qa08-original-countdown-17/frame_"$serial"_256x224.raw")" -eq 229376
+          done
+      - name: Fetch independently executed accepted unchanged and consumed-prime native source pixels
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 3 \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "Accept: application/vnd.github+json" \
+            --dump-header "$RUNNER_TEMP/qa08-native-headers" --output /dev/null \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/11925446617/zip"
+          location="$(awk 'tolower($1) == "location:" {gsub(/\r/, "", $2); print $2}' "$RUNNER_TEMP/qa08-native-headers" | tail -1)"
+          case "$location" in https://*) ;; *) echo "::error::source native archive unavailable"; exit 3 ;; esac
+          curl --fail --silent --show-error --retry 3 \
+            --output "$RUNNER_TEMP/qa08-prime-native.zip" "$location"
+          echo "298c73f095c2ecdebc99c0e7392dbc4112fecd61eb8feb5106fb2921e1cdd0ec  $RUNNER_TEMP/qa08-prime-native.zip" | sha256sum -c -
+      - name: Rank every real original/native countdown source pixel without seam masking
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/qa08_compare_original_countdown_prime.py \
+            --original-dir "$RUNNER_TEMP/qa08-original-countdown-17" \
+            --native-zip "$RUNNER_TEMP/qa08-prime-native.zip" \
+            --original-script "$RUNNER_TEMP/qa08-original-2p.script" \
+            --original-t480-wram "$RUNNER_TEMP/qa08-original-dumps/t480.wram.bin" \
+            --original-log "$RUNNER_TEMP/qa08-original-countdown.log" \
+            --out "$RUNNER_TEMP/qa08-original-countdown-vs-native.json"
+          echo "OBSERVED: original Snes9x and two real native source rasters compared; ranking is not original/native phase proof" >> "$GITHUB_STEP_SUMMARY"
+          cat "$RUNNER_TEMP/qa08-original-countdown-vs-native.json" >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain original source frames and bounded comparator output only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-original-countdown-prime-source
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa08-original-countdown-vs-native.json
+            ${{ runner.temp }}/qa08-original-countdown.log
+            ${{ runner.temp }}/qa08-original-2p.script
+            ${{ runner.temp }}/qa08-original-countdown-17/frame_*_256x224.raw

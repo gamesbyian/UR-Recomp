@@ -128,7 +128,7 @@ def analyze(artifact: Path, expected_sha: str | None = SOURCE_ZIP_SHA256) -> dic
             for side in SIDES},
         "memory_classes_bytes": SIZES,
         "paired_guest_relative_rows": rows,
-        "all_196608_wram_vram_cgram_bytes_identical_at":
+        "all_197120_wram_vram_cgram_bytes_identical_at":
             exact,
         "source_wram_match_and_transient_vram_at_5155": (
             old["wram"]["different_byte_count"] == 0
@@ -155,7 +155,7 @@ def main() -> int:
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(d, sort_keys=True, indent=2) + "\n")
     print(json.dumps({
-        "all_three_exact_at": d["all_196608_wram_vram_cgram_bytes_identical_at"],
+        "all_three_exact_at": d["all_197120_wram_vram_cgram_bytes_identical_at"],
         "source_wram_match_and_transient_vram_at_5155":
             d["source_wram_match_and_transient_vram_at_5155"],
         "release_complete_usa_event_credit": 0,

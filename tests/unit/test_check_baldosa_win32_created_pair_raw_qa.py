@@ -190,6 +190,33 @@ class RawCreatedPairSource(unittest.TestCase):
         self.assertTrue(result["typed_profiles_exactly_match_both_raw_SRAM"])
         self.assertEqual(result["release_gate_credit"], 0)
 
+    def test_known_outer_member_must_be_regular_and_bounded(self):
+        from verify_baldosa_romless_candidate_qa import RUNTIME_ALLOWED_MEMBERS
+        extra_name = sorted(RUNTIME_ALLOWED_MEMBERS - set(qa.SOURCE_GROUP))[0]
+        members = example_members()
+        members[extra_name] = b"source-diagnostic"
+        self.evaluate(members)  # recognized companion group, no extra credit
+        for malformed in (b"", b"Z" * (2 * 1024 * 1024 + 1)):
+            changed = dict(members)
+            changed[extra_name] = malformed
+            with self.subTest(bytes=len(malformed)), self.assertRaisesRegex(
+                    ValueError, "linked/directory/empty/oversized"):
+                self.evaluate(changed)
+        # Symlink with a permitted name is still an unsafe payload.
+        with tempfile.TemporaryDirectory() as td:
+            archive_path = Path(td) / "known-but-unsafe.zip"
+            with zipfile.ZipFile(archive_path, "w", zipfile.ZIP_DEFLATED) as z:
+                for name, contents in members.items():
+                    if name == extra_name:
+                        item = zipfile.ZipInfo(name)
+                        item.create_system = 3
+                        item.external_attr = (0o120777 << 16)
+                        z.writestr(item, contents)
+                    else:
+                        z.writestr(name, contents)
+            with self.assertRaisesRegex(ValueError, "linked/directory/empty/oversized"):
+                qa.audit_zip(archive_path)
+
     def test_unrelated_outer_zip_members_fail_closed(self):
         # A valid guest/raw subgroup must not launder unreviewed source-root
         # material in the same ZIP. These are ROM-free synthetic adversaries.

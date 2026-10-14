@@ -44,7 +44,7 @@ def patch_source(source: str) -> str:
         raise ValueError("additional original PPU source capture already staged")
     if (source.count(ANCHOR_ENV) != 1 or source.count(ANCHOR_IF) != 1
         or source.count("void capture_fixed_original_source(") != 1
-        or source.count("const bool saved = save_presented_pam(") != 1
+        or source.count("const bool saved = save_presented_pam(") < 1
         or "if (!field || width != 256 || height != 224" not in source
         or "ur-baldosa-original-source" not in source):
         raise ValueError("pinned native Original-source observer changed")

@@ -79,7 +79,7 @@ def check(log: Path, receipt: dict, layout: dict) -> dict:
     if any(MARK+"_OVERFLOW" in line for line in lines):
         raise ValueError("original live PPU source observation overflow")
     obs = [line for line in lines if MARK in line]
-    if not 2 <= len(obs) <= 128:
+    if not 2 <= len(obs) <= 512:
         raise ValueError("original live channel5 register writes absent or overflowing")
     events = []
     for ordinal, text in enumerate(obs):
@@ -90,7 +90,8 @@ def check(log: Path, receipt: dict, layout: dict) -> dict:
          wram, value, cgadsub, cgwsel, fixed) = m.groups()
         frame, v, cycles, channel, mode = [int(x) for x in (frame,v,cycles,channel,mode)]
         addr_int, byte, wram_byte, fixed_int = [int(x,16) for x in (addr,value,wram,fixed)]
-        if (not 1781 <= frame <= 1783 or not 0 <= v <= 261
+        if (frame not in {1781,1782,1783,1988,1989,1990,2231,2232,2233,2471,2472,2473}
+                or not 0 <= v <= 261
                 or not -100000 <= cycles <= 100000 or channel != 5
                 or mode != 1 or indirect != "0" or base != "31"
                 or bank != "7E" or bbus not in ("31","32")
@@ -154,7 +155,7 @@ def check(log: Path, receipt: dict, layout: dict) -> dict:
         "original_rom_sha256":ROM,"original_source_script_sha256":SCRIPT,
         "original_final_t480_WRAM_sha256":WRAM,
         "original_source_table_writers_executed_at_frame":1781,
-        "original_emulator_observed_frame_window":[1781,1783],
+        "original_emulator_observed_frame_windows":[[1781,1783],[1988,1990],[2231,2233],[2471,2473]],
         "actual_original_PPU_2131_2132_writes":len(events),
         "actual_original_channel5_register_pairs":len(pairs),
         "source_expected_byte_matches":sum(x["observed_byte_matches_prior_executed_original_table"] for x in events),

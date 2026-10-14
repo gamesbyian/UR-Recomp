@@ -40,6 +40,30 @@ The earlier `frontier_coverage` HyperLogLog numbers remain estimates for legacy 
 
 **Policy-validation run:** the [100-case 2026-10-13 experiment](https://github.com/gamesbyian/UR-Recomp/actions/runs/38438864232) validated all five strategies on the real source-bound guest, with exact cumulative normalized fingerprint union **20,379**. Its feature zeros motivate the [all-15-existing-checkpoint raw-observer follow-up](QA-FRONTIER-15-FRAME-OBSERVER-20261013.md). Future producer and coordinator receipts separately retain `full_trace_feature_counts`, `full_trace_only_feature_counts`, first source-frame witnesses and raw field-value populations. The original three-frame fingerprint corpus remains the strict comparable census; do not merge additional frame fingerprints into it silently.
 
+## Scientific yield, escalation and stopping (2026-10-14)
+
+[`tools/research_yield.py`](../tools/research_yield.py) derives a read-only yield view from the signed ledger. Every coordinator receipt summary now includes it. Applied to the real ledger on 2026-10-14 (12 records, 10,300 frontier cases):
+
+* **Exact fingerprint novelty is non-saturating.** Every run produced 1.998–2.01 new fingerprints per case. Checkpoint 1740 is identical in all cases, and checkpoints 2580/3420 are unique in every case. The census restates the case count and can **never** signal progress or justify more volume. Keep it as a lossless identity index only.
+* **Strategy and observer beat volume.** `both-air-raw` was **0/10,000** under the arm-starved 3-checkpoint run 38306802282. It was 1/100 in run 38446393623 after the arm fix: seed 50036056, `rotation`, frame 2580. Opposing-X incidence was 64–72% at three checkpoints but 100% at fifteen. Incidence is observer- and policy-relative, so pooled counts are not rates.
+* **Four of eight feature classes carry no information** on this fixture. Two are ubiquitous (`both-moving-raw`, `split-register-nonzero` in 10,300/10,300 cases). Two are never observed (`offscreen-register-nonzero`, `split-register-changes`: per-case 95% bound < 0.0291%). The 15-frame report already explains why more inputs cannot change them.
+* **Repetition lanes buy durability bounds, not states.** With zero failures, rates are bounded below: fault recovery < 0.0018% per journey (169,510), graphics < 0.0154% per frame check, native 2P < 0.40% per process, Windows < 1.9% per journey (160). Each halving of the bound costs a doubling of trials.
+
+**Escalation rules** (`frontier_recommendation`):
+
+| Size | Admissible only when | Never for |
+| --- | --- | --- |
+| 100 | an observer, arm policy or plan changed and must be validated on real native cases | repeating an unchanged plan |
+| 1,000 | a *named* feature plus a *named* consumer question that current evidence cannot decide: an absence bound above the consumer threshold, or a consumer that needs a rare feature's rate in the **latest same-observer cohort** | fingerprint growth; a rare feature whose existing witness has not yet been reproduced against the original oracle |
+| 10,000 | 1,000 cases in that cohort left the feature rare (≤3) or the bound still above threshold, **and** admission finds a quiet period. Run as ten 1,000-case batches | features that source analysis says the fixture cannot produce |
+
+**Stop** when the next size cannot change a decision:
+* the absence bound is already at or below the consumer threshold;
+* a rare feature has a reproducible witness (hand it to the owning lane; QA-01 owns original/native adjudication);
+* only fingerprints would grow.
+
+Default today: **no frontier run is recommended**. The next useful work is reproducing witness 50036056 against the original emulator (owned by QA-01, not by more volume) and a source-qualified visibility observer (QA-08). Then a 100-case pilot of that observer.
+
 ## What to compare
 
 For analysis, group cumulative evidence by **campaign, exact code revision and binary digest**, and then distinguish input trajectories from repeated processes. Coverage grows across revisions, but a new build requires new acceptance for that exact build. Summing Windows producer repetitions is legitimate durability evidence; calling them all "new gameplay states" is false. Reports always keep raw GitHub run ID, original aggregate SHA-256, observed trial/sample counts and zero release credit.

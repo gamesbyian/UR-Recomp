@@ -348,12 +348,23 @@ jobs:
           # Serialized coordinator protects the read-then-append transaction.
           # This is a normal non-force, fail-closed push. No silent overwrite.
           git push origin HEAD:refs/heads/research/qa-cumulative-ledger
+      - name: Publish derived cumulative yield view (read-only, no credit)
+        # Only after the ledger push succeeded, so it describes committed state.
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/research_yield.py \
+            --ledger research-evidence/.github/qa-cumulative/ledger.json \
+            --out-json "$RUNNER_TEMP/cumulative-final/yield.json" >> "$GITHUB_STEP_SUMMARY"
       - name: Retain proposed recorded outcome independently of push availability
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: qa-cumulative-final-receipt
-          path: ${{ runner.temp }}/cumulative-final/record.json
+          path: |
+            ${{ runner.temp }}/cumulative-final/record.json
+            ${{ runner.temp }}/cumulative-final/yield.json
           retention-days: 30
           if-no-files-found: warn
       - name: Scientific failures must remain red after their receipt is safely committed

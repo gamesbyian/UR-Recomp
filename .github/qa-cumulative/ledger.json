@@ -945,6 +945,57 @@
       "sequence": 2,
       "source_sha": "b9113d6e5951b22c81e9ca6875d2d014de1a9c2a",
       "windows_trials": 10
+    },
+    {
+      "base_seed": 50012000,
+      "campaign": "fault-recovery",
+      "disposition": "incomplete_or_failed",
+      "frontier_cases": 100,
+      "github_run_id": 38519338884,
+      "metrics": {
+        "aggregate_present": true,
+        "diagnostic": {
+          "aggregate_bound_to_plan": true,
+          "aggregate_sha256": "56623636ae79d7b4b0b622b3b1cdb533f71150be6de9675e12586b02292056f8",
+          "issues": [
+            "hardkill-owner: invalid original fault evidence (source, candidate, budget or release-credit identity mismatch)"
+          ],
+          "producer_disposition": "incomplete_or_failed"
+        },
+        "reason": "original workflow or aggregate unavailable",
+        "reusable_job_result": "failure"
+      },
+      "minutes": 60,
+      "origin": "coordinator",
+      "producer_digest": "76868eea664b00c8e2633eefbc1a241f958ea4e2926a8d5ecc2631dcbb42f5a2",
+      "record_sha256": "0e1741551652b0a6a8d9c585d07fd78c8230b04f46f50ec933995b5e5ceb8e20",
+      "release_gate_credit": 0,
+      "runner_usage": {
+        "failed_jobs": [
+          {
+            "conclusion": "failure",
+            "first_failed_step": "Real-process fault death, restoring, orphan/receipt and storage-outage endurance",
+            "job": "fault-recovery / stress (hardkill-owner)"
+          },
+          {
+            "conclusion": "failure",
+            "first_failed_step": "Fail closed on missing/partial producer or false release assertions",
+            "job": "fault-recovery / aggregate"
+          }
+        ],
+        "jobs_counted": 8,
+        "measured_by": "job started_at/completed_at; excludes the recording job itself",
+        "runner_minutes": {
+          "linux": 279.3,
+          "macos": 0.0,
+          "windows": 0.0
+        },
+        "schema": "ur-research-runner-usage/1",
+        "total_runner_minutes": 279.3
+      },
+      "sequence": 1,
+      "source_sha": "b9113d6e5951b22c81e9ca6875d2d014de1a9c2a",
+      "windows_trials": 3
     }
   ],
   "schema": "ur-cumulative-campaign-ledger/1"

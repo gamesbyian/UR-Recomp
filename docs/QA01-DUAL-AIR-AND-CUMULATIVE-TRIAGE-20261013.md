@@ -99,3 +99,13 @@ Interpret this narrowly. `7E:0545/0547` are **provisional** air-state labels; th
 
 `tools/qa01_dual_air_executed_result.py --artifact ORIGINAL-ZIP --out REPORT` independently rechecks archive/report hashes, engine-specific real guest receipt formats, all 18 frames, pinned native identity and the three sampled raw-air/vertical-motion observations. No new emulator run or CI runner is required to reproduce the classification. **Next experiment, if worthwhile:** bound the first divergence with a small original/native **P1 0545 and vertical integration writer/CPU input-edge trace**, or a few additional host WRAM samples around 2580, only after separately qualifying the exact 2P guest entry phase. Avoid treating the ephemeral single-frame nonzero byte as gameplay-event acceptance.
 
+
+## Original source 2P air/vertical producer search, next instruction experiment
+
+A static pass through the retained Nitrodon annotated SNES bank 81 disassembly locates a high-priority **P1/P2 local-state round trip**, rather than a generic shared "air flag":
+
+- P1 `81:8DAE` loads 16-bit `$0545`, stores it in shared `$0F29`; after P1 movement/pose/collision calls `81:8DD6 JSR $9E2A`, `81:8DD9 JSR $8B95`, `81:8DDC JSR $8FB8`, `81:8E23` loads `$0F29` and **`81:8E26 STA $0545`** writes it back.
+- P2 takes the analogous path `81:8F08 LDA $0547`, `81:8F0B STA $0F29`, `81:8F2A JSR $9E2A`, `81:8F2D JSR $8B95`, `81:8F30 JSR $8FB8`, `81:8F77 LDA $0F29`, **`81:8F7A STA $0547`**.
+- The same functions save Y coordinate/vertical velocity to the per-player fields: P1 `81:8E3C STY $0415`, `81:8E48 STY $04BB`; P2 `81:8F8E STY $0417`, `81:8F9C STY $04BD`. The CPU's scratch `$0FA1` and `$A7` are **shared sequentially across player updates**.
+
+This is **an archived disassembly hypothesis, not yet confirmed executing USA original/native PCs**. It suggests a sharper discriminator than a blind same-host byte compare: instrument the actual original opcode scopes (with PPU scanline and absolute host receipts) around the source-equivalent `81:8E26`/`81:8F7A`, and compare the **pre- and post-update** original/native `$0F29`, `$0FA1`, `$A7`, `$0545/$0547`, `$0415/$0417` and `$04BB/$04BD` near host **2578..2582**. Confirm the USA ROM instruction identities dynamically before assigning those addresses; capture both players to distinguish differing P1 vs P2 update order from true differing shared movement rule. An immediate native P1 +19 vertical velocity at 2580 and surviving +1 Y offset at 2581 are real witnessed consequences, while the native P2 -1 Y difference at 2580 **resolves** by 2581. None of these alone establishes jump/collision causality, guest entry parity or original event credit. Do not patch gameplay based on historical bank labels.

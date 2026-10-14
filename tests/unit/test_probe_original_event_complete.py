@@ -282,8 +282,8 @@ class CompleteEventProducerTests(unittest.TestCase):
                  if line.startswith("dump original-follow-")],
                 [f"dump original-follow-{n:02d}"
                  for n in target.SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS])
-            self.assertIn("dump result-stable\\nwait 2\\ndump original-follow-08", followed)
-            self.assertTrue(followed.endswith("dump original-follow-32\\nquit\\n"))
+            self.assertIn("dump result-stable\nwait 2\ndump original-follow-08", followed)
+            self.assertTrue(followed.endswith("dump original-follow-32\nquit\n"))
             self.assertEqual(
                 [line for line in followed.splitlines()
                  if line.startswith("press ")],
@@ -328,7 +328,7 @@ class CompleteEventProducerTests(unittest.TestCase):
             lines = [f"script f={onset} dump result-onset"]
             lines += [f"script f={onset + n} dump original-follow-{n:02d}"
                       for n in offsets]
-            return "\\n".join(lines) + "\\n"
+            return "\n".join(lines) + "\n"
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             ref, nat = root / "original", root / "native"
@@ -379,7 +379,7 @@ class CompleteEventProducerTests(unittest.TestCase):
             with self.assertRaisesRegex(target.CompleteEventError, "exactly one"):
                 target.observe_source_terminal_followthrough(
                     ref, nat, log(100), log(100).replace(
-                        "script f=132 dump original-follow-32\\n", ""),
+                        "script f=132 dump original-follow-32\n", ""),
                     source, 50, 52, 50, 48)
 
     def test_zoo_fixed_host_phase_is_read_only_and_two_clock_axes(self):

@@ -527,3 +527,19 @@ explicitly recorded, followed by owner visual sign-off. This
 discovery pass supplies links and acquisition priorities, **no
 inspected original press-art pixels, numeric rig proportions, newly
 approved art, or new PPU acceptance**.
+
+
+## Exact ROM-title Original reference recovered from genuine native evidence (2026-10-13)
+
+Artifact [pinned native graphics AOT 38492408817](https://github.com/gamesbyian/UR-Recomp/actions/runs/38492408817), original `baldosa-native-spike-evidence` artifact **11863045863** (downloaded ZIP SHA256 `6fb7e9ad5ce53e02f0dda0896f520e2a667f5798c58f8d65b5541ed2d53a5431`) contains **an actual Uniracers title-screen source render with two overlapping 3D-era unicycles** in the game’s own title art. This is an independent source-image angle relevant to character silhouette and material identity. It is not another gameplay sprite or a 3D model.
+
+| Same USA route guest frame400 | Source PPU / 4× Original-only proof |
+| --- | --- |
+| Unmodified Original source | `baldosa-fixed-source/ur-baldosa-original-source-000400.pam`, **256×224 RGBA** payload SHA256 `5b09079636c80f42daf6c4765db4e930374b55c13d820857d733944e1f4872d2` |
+| Old original-mode 4× output | `baldosa-hd-captures-4x/ur-baldosa-fallback-000400.pam`, **1024×896 RGBA** payload SHA256 `d6e0d3ec63ab6f91c26500a67a84e050ba516720c7a64f9d62a24fe987cf993c` |
+| Independently rechecked full raster | **0 differing bytes** between the 1024×896 original fallback and exact RGBA `np.repeat` 4× both axes of the 256×224 source; 57,344 original source pixels all have corresponding exact 4×4 blocks |
+| Capture limitation | Max source RGB channel **51/255**, 250 distinct RGB tuples: a dark **title fade**, not valid full-bright colour or material samples |
+
+The source is already present in the authentic existing native AOT artifact. No title art, copyrighted image crop, game ROM or new character model was added to Git. Frame400 can be read directly as P7 RGBA without another emulator, generated sprite or internet asset. Preserve **7:6** pixel-aspect interpretation when measuring the canonical reference; nearest 4× preserves source pixels but does not correct that physical pixel aspect.
+
+**Practical next art decision:** include this title-frame view as an **original-title** provenance item in the requested character reference contact sheet, captioned `source title fade at guest400; 256×224 Original`, showing its two partially overlapping unicycles and large saddle/rim styling. Do **not** infer a unique wheel:saddle ratio from their overlapping perspective projections, and do not grade colours from this dim frame. Seek a brighter independent original title field (using the **existing** original native route with a narrower requested frame, only if actually needed), and then compare both source-backed title silhouettes against gameplay OAM families and genuinely independent retail/press assets. The current procedural HD racer remains rejected for likeness, regardless of hash-perfect 4× Original fallback or this newly available reference.

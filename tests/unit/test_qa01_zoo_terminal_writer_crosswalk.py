@@ -63,6 +63,23 @@ class ZooTerminalWriterCrosswalk(unittest.TestCase):
         source = (ROOT / "tools/instrument_snesref_zoo_menu_writes.py").read_text()
         self.assertIn("CONTROLS = (0x009F, 0x00CE, 0x0313)", source)
 
+    def test_real_original_snesref_dump_receipt_not_native_ok(self):
+        # Original snesref from executed CI 38499115188 writes an informational
+        # full-dump descriptor, not the native framework's 'ok' marker.
+        original = self.source_host.replace(
+            "scene-entered ok",
+            "scene-entered fb=256x224 RGB565 sram=8192 ppuw=4")
+        for frame, count in ((5160, 677), (5161, 645), (5162, 3190), (5163, 33)):
+            original = original.replace(
+                f"boundary-{frame:05d} ok",
+                f"boundary-{frame:05d} fb=256x224 RGB565 sram=8192 ppuw={count}")
+        report = self.run_crosswalk(source_host=original)
+        self.assertEqual(report["original_verified_dump_host_ticks"][5162], 6766)
+        self.assertEqual(report["release_complete_event_credit"], 0)
+        invalid = original.replace("RGB565", "RGB???")
+        with self.assertRaisesRegex(ValueError, "missing or duplicated"):
+            self.run_crosswalk(source_host=invalid)
+
     def test_real_frame_labels_keep_original_native_clocks_separate(self):
         result = self.run_crosswalk()
         self.assertEqual(result["original_host_scene_entry"], 1604)

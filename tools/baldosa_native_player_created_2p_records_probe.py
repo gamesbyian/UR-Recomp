@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 
 from baldosa_native_first_racer_probe import (
@@ -66,6 +67,29 @@ def profile_sram(user: Path, name: str) -> bytes:
     return data
 
 
+def require_native_profile_gamepad(log: str, *, mode: str) -> None:
+    """Require genuine P1 root button-handler edges for BOTH create stages.
+
+    Strict test-observer logs are never result authority; creation, catalog,
+    typed/raw 8KiB SRAM and authentic guest source observations are checked
+    independently elsewhere in the same integration journey.
+    """
+    expected = {
+        "8": [("8", "X"), ("8", "A")],
+        "9": [("9", "X"), ("9", "DPAD_DOWN"), ("9", "A")],
+    }
+    if mode not in expected:
+        raise ValueError("Unsupported real-handler creation test mode")
+    observed = re.findall(
+        r"(?m)^UR_BALDOSA_MODERN_ROOT "
+        r"synthetic_profile_gamepad mode=(\d+) button=([A-Z_]+)\r?$",
+        log)
+    if observed != expected[mode] or (
+            log.count("UR_BALDOSA_MODERN_ROOT synthetic_profile_gamepad ")
+            != len(expected[mode])):
+        raise ValueError("Missing, reordered, foreign or duplicate native P1 gamepad create edges")
+
+
 def anonymous_bootstrap_sram(user: Path) -> bytes | None:
     """Observe the legacy anonymous save from process 1, never authorize it.
 
@@ -105,9 +129,10 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
     user.mkdir()
 
     # Game 1: an anonymous user explicitly creates Mike P1 via X/A.
-    first = run_game(exe, rom, user, out / "first_P1_mike", "4",
+    first = run_game(exe, rom, user, out / "first_P1_mike", "8",
                      "turbo on\nwait 900\nquit\n", video, timeout)
     verify_creation(first, preset=0)
+    require_native_profile_gamepad(first, mode="8")
     # Anonymous first-boot source guest may have written its fallback SRAM.
     # Preserve that exact image, but never let named games change or use it.
     legacy_bootstrap = anonymous_bootstrap_sram(user)
@@ -119,10 +144,11 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
     # when game 2 boots P1 to create P2. Compare the LAST committed image.
 
     # Game 2: named P1 explicitly creates Martin P2 via the SAME native root.
-    second = run_game(exe, rom, user, out / "named_P1_adds_P2", "5",
+    second = run_game(exe, rom, user, out / "named_P1_adds_P2", "9",
                       "turbo on\nwait 900\nquit\n", video, timeout,
                       preset=2)
     require_p2_creation(second, preset=2)
+    require_native_profile_gamepad(second, mode="9")
     require_legacy_untouched(user, legacy_bootstrap)
     if selector.read_bytes() != before_selector:
         raise ValueError("P2 publication illegally switched active P1")
@@ -219,6 +245,7 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
     return {
         "scope": "two-native-ui-created-players-played-source-2p-and-both-ui-selected-records",
         "actual_frontend_created_profiles": [P1, P2],
+        "p1_p2_created_through_native_gamepad_handler": True,
         "observed_stock_riders": [0, 2],
         "observed_source_guest_result": source_result,
         "canonical_one_pair_sha256": paired,

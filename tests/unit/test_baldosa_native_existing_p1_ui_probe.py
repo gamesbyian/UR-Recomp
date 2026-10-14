@@ -20,6 +20,7 @@ def valid_switch(current: str = "mike", next_id: str = "andrew") -> str:
         f"to={next_id} activation=next_process\n"
         "UR_BALDOSA_MODERN_ROOT existing_p1_saved=1 "
         "activation=next_process\n"
+        "UR_BALDOSA_MODERN_ROOT existing_p1_stale_race_blocked=1\n"
     )
 
 

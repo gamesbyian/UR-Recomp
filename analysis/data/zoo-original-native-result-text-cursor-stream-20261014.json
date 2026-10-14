@@ -1,0 +1,80 @@
+{
+  "schema": "UR-QA01-ZOO-RESULT-TEXT-CURSOR-EXECUTED-STREAM/1",
+  "source": {
+    "run_id": 38500427634,
+    "run_conclusion": "success",
+    "artifact_id": 11866136501,
+    "artifact_zip_sha256": "d5ec65c672736fa45f01214134db8598baa840f106729bd2c04ffb8949f1d039",
+    "original_opcode_log_sha256": "c51fadac1005bdcf7cf3b1925ba50d5829fc14230a2ee76b21f349082826cd62",
+    "native_cpu_helper_log_sha256": "e7bcdfe6bb0f3b59667c05b6d59363fb46df9591c82485aa06c23ce2c2b0d7b6",
+    "original_host_log_sha256": "679ffefc1e2bebac6f3dbc616679abbb84b668b365f0a252140195bfc29f2c89",
+    "native_host_log_sha256": "7b88b4dbefb83176f14070aac20e337e1f8611cc44d37941d95d911e69d7cfe4",
+    "rom": "verified stock USA original",
+    "input": "unchanged archived 2014 route"
+  },
+  "original": {
+    "scene_entry_host": 1604,
+    "source_initial_reset": {
+      "icpu_frame": 6760,
+      "v_counter": 240,
+      "pc": "83:988A",
+      "old": "84",
+      "new": "16"
+    },
+    "source_opcode_changes_009f_total": 168,
+    "source_paint_changes_after_reset": 167,
+    "first_paint_frame": 6765,
+    "last_paint_frame": 6766,
+    "pc_histogram": {
+      "83:988A": 1,
+      "80:C49E": 23,
+      "80:C5B2": 134,
+      "80:C432": 5,
+      "80:C434": 5
+    },
+    "final_009f": "BC"
+  },
+  "native": {
+    "scene_entry_host": 1606,
+    "pre_run_frame_of_009f_writes": 6767,
+    "helper_write_attempts_009f_total": 169,
+    "mutating_attempts": 167,
+    "idempotent_write_attempts": [
+      {
+        "attempt_index": 122,
+        "value": "6A",
+        "scope": "Text_CmdSetPos_M0X0"
+      },
+      {
+        "attempt_index": 150,
+        "value": "AA",
+        "scope": "Text_CmdSetPos_M0X0"
+      }
+    ],
+    "scope_histogram": {
+      "Text_CmdSetPos_M0X0": 25,
+      "Text_DrawLoop_C3F7_M1X0": 134,
+      "Text_DrawLoop_C40D_M1X0": 10
+    },
+    "first_logged_cursor_value": "22",
+    "final_009f": "BC",
+    "native_cursor_reset_witness_available": false
+  },
+  "comparison": {
+    "all_167_observed_changed_byte_values_equal_in_order": true,
+    "original_mutation_sha256": "03513446fb0071a2b1377588dc0aad1c77830410c246246a4811a1b0c7d0fe14",
+    "native_mutation_sha256": "03513446fb0071a2b1377588dc0aad1c77830410c246246a4811a1b0c7d0fe14",
+    "stream_alignment_rule": "Compare source opcode-level changed bytes only with native mutating CPU helper attempts; exclude only native no-op attempts equal to previous observed cursor value; do not shift time or controller inputs.",
+    "source_guest_relative_result_menu_host": 5163,
+    "native_guest_relative_result_menu_host": 5162,
+    "cpu_nmi_beam_phase_equivalence_proven": false,
+    "complete_event_accepted": false,
+    "release_gate_credit": 0
+  },
+  "limitations": [
+    "Source and native observer capture contracts differ: original emits only actual byte changes and native records every qualifying helper store attempt.",
+    "The original early 84→16 transition occurred at 83:988A; the native helper logger has no corresponding write receipt, and no such native write is fabricated.",
+    "Equal ordered byte streams establish text rendering content, not equivalent call timing or gameplay finish state.",
+    "7E:009F is a text cursor at the result stage and cannot alone prove course completion."
+  ]
+}

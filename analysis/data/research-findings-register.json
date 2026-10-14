@@ -262,7 +262,7 @@
   },
   {
    "id": "RF-012",
-   "title": "2P raw 7E:009F (wTextPos) 0x84 phase lasts one frame longer on native than on Snes9x and Beetle-bsnes (48 of 49 seeds +1, 1 seed +2)",
+   "title": "Legacy-pin native 2P result phase (raw 7E:009F 0x84) lasts 35 frames where the original lasts 34 (bsnes-accurate, Snes9x, Beetle)",
    "class": "original_native_discrepancy",
    "status": "handed_off",
    "evidence": "original_and_native",
@@ -283,14 +283,14 @@
     "docs/QA01-SWITCHER-2014-ORIGINAL-SOURCE-PROBE.md (1P: original 0x84 +4665..+4698 = 34 frames)",
     "docs/QA01-2014-COMPLETE-EVENT-TRANSPLANT.md (0x84->0x16 by 83:988A / Sram_RestoreDirectPage)"
    ],
-   "observation": "49 seeds, measured lag 2 in all: decoded source fields identical through laps-zero (same frame in 49/49) and until the reference's 0x16 restoration; result-menu onset on the same frame in 43, one frame earlier on native in 6; scheduler parity at onset does not predict the outcome. Raw semantic WRAM ($0200+) first differs 1-2 native frames BEFORE result-menu (0x84) onset in 49 of 49 seeds (all five arms). For 50036056 at native 5196-5198 the original builds the 10-byte list at 7E:2000 in one frame (first word 01->02->04); native shows a different intermediate one frame later (01->03->04). 7E:0BDE/0BFE start at 0xCC->0xC8 on the original but 0xC4->0xC0 on native, an offset of 8 held through the whole phase. The 0x84 phase then lasts 34 frames on Snes9x (and on Beetle-bsnes for 50036056) and 35 on native in 48 of 49 (36 for 50024003). Per-core boundaries differ: Snes9x onset same frame in 43 and native one earlier in 6, with the restore later on native; Beetle-bsnes (50036056) onset native 5198 vs 5199, both restore 5233. 7E:009F is the DrawText cursor wTextPos (#1543), so 0x84->0x16 is a raw terminal signature.",
+   "observation": "49 seeds, measured lag 2 in all: decoded source fields identical through laps-zero (same frame in 49/49) and until the reference's 0x16 restoration; result-menu onset on the same frame in 43, one frame earlier on native in 6; scheduler parity at onset does not predict the outcome. Raw semantic WRAM ($0200+) first differs 1-2 native frames BEFORE result-menu (0x84) onset in 49 of 49 seeds (all five arms). For 50036056 at native 5196-5198 the original builds the 10-byte list at 7E:2000 in one frame (first word 01->02->04); native shows a different intermediate one frame later (01->03->04). 7E:0BDE/0BFE start at 0xCC->0xC8 on the original but 0xC4->0xC0 on native, an offset of 8 held through the whole phase. The 0x84 phase then lasts 34 frames on Snes9x (and on Beetle-bsnes for 50036056) and 35 on native in 48 of 49 (36 for 50024003). Per-core boundaries differ: Snes9x onset same frame in 43 and native one earlier in 6, with the restore later on native; Beetle-bsnes (50036056) onset native 5198 vs 5199, both restore 5233. 7E:009F is the DrawText cursor wTextPos (#1543), so 0x84->0x16 is a raw terminal signature. Adjudicated on the high-accuracy bsnes core (with tools/patches/bsnes-libretro-system-ram.patch): 34 frames in 9 of 9 seeds, matching Snes9x. See RF-015 for the product core, which errs the other way.",
    "uncertainty": "Local candidate evidence (current-main native 4c1c8b56...) until independently re-executed with raw-dump receipts. 83:987D Sram_RestoreDirectPage is a downstream 207-word SRAM->DP copy, not a proven diverging decision. Gameplay significance pending the upstream caller and actual 7E:009F writer on each core. Semantics of 7E:2000 (update list?) and 7E:0BDE/0BFE (unnamed in the repo) are unknown; whether the 8-unit offset is guest-visible (sprite Y or banner position) or only scheduling is unproven.",
    "resolving_experiment": "QA-01: instrument the upstream result-onset/restore caller and the actual 7E:009F writer on both reference cores and native (per-core axes kept separate); see RF-014 for the common lag-frame lead.",
    "consequence": "A cheap deterministic 2P reproducer of the same result-handoff seam behind the open 1P Switcher +4704/+4702 strict divergence; it does not change any comparator or acceptance."
   },
   {
    "id": "RF-013",
-   "title": "Native race-entry lag is phase-dependent (2 or 3 frames) when the 2P menu route is delayed",
+   "title": "Legacy-pin native race-entry lag is phase-dependent (2 or 3 frames); Baldosa enters on the same frame as the original for every route delay",
    "class": "reproducible_anomaly",
    "status": "handed_off",
    "evidence": "original_and_native",
@@ -304,10 +304,10 @@
     "Snes9x entry 1134..1141 (exactly +k)",
     "Modern native (4c1c8b56..., fda6ace) entry 1136, 1137, 1139, 1139, 1141, 1141, 1142, 1143"
    ],
-   "observation": "Lag native minus Snes9x = 2,2,3,2,3,2,2,2 for k = 0..7. The original absorbs a k-frame delay one for one; native quantizes it, as if a vblank/fade-gated wait sometimes costs one extra frame.",
+   "observation": "Lag native minus Snes9x = 2,2,3,2,3,2,2,2 for k = 0..7. The original absorbs a k-frame delay one for one; native quantizes it, as if a vblank/fade-gated wait sometimes costs one extra frame. Baldosa (uniracers-recomp 10b864b with the research two-seat input shim) enters at exactly the Snes9x frame for k = 0..7 (lag 0 throughout).",
    "uncertainty": "Local candidate evidence until independently re-executed with raw receipts. Mechanism unproven; staircase notes point at the 80:FAC9 / $4212 vblank-sensitive fade for entry. Whether the same mechanism lengthens the 0x84 result phase (RF-012) is a hypothesis.",
    "resolving_experiment": "QA-01: compare native and original iteration counts of the entry fade wait loop for k=1 (lag 2) and k=2 (lag 3); if the extra frame is the wait loop, test the same loop in the 0x84 phase.",
-   "consequence": "Race-relative comparisons must measure lag per case on any route other than the fixed stock prefix; gives RF-012 a cheap, input-only mechanism discriminator."
+   "consequence": "Race-relative comparisons on the legacy pin must measure the lag per case; on Baldosa the stock 2P route needs no shift. The quantised entry is a legacy-pin (snesrecomp cd5875c) artefact, consistent with RF-014."
   },
   {
    "id": "RF-014",
@@ -332,6 +332,30 @@
    "uncertainty": "Local candidate evidence until independently re-executed with raw receipts. Neither reference core is cycle-exact hardware, but they agree with each other and disagree with native by 28-29 frames. The source of native's deficit (host frame pacing, DMA/HDMA cost modelling or the $4212 model) is unknown; AGENTS forbids tuning $4212 merely to match one emulator. First suspect, unverified: the framework's synthetic $4212 beam model (snesrecomp pinned in tools/toolchain.json at cd5875cbdaf1 runner/src/snes/snes.c readReg 0x4212: fixed 64-clock advance per poll in static-recomp mode; docs/VIRTUAL_HW_CONTRACT.md), which sets how many host frames a polled load costs; upstream notes a sibling case (SMRPG boot fades at the wrong frame count).",
    "resolving_experiment": "QA-01 / native-fidelity: diff the cycle accounting of snesrecomp cd5875c against Baldosa's fork 075fbe4 for the bank-81 VRAM writer (81:CD70-81:D09C); the commit that fixed it in the fork is the fix to port if the legacy backend must stay timing-accurate.",
    "consequence": "The Baldosa migration already removes it from the shipping path. It still affects the legacy Modern backend kept as rollback, and any research run on the frontier executable: frontier frontend timing is not original timing, although the race itself is original-exact (RF-004). Likely common cause of RF-012 and RF-013 on the legacy pin; QA-01's Baldosa entry lags (+2/+1/+2) need a separate explanation."
+  },
+  {
+   "id": "RF-015",
+   "title": "Baldosa (product core) 2P result phase lasts 33 frames where the original lasts 34: one frame short, the same sign as QA-01's 1P Switcher seam",
+   "class": "original_native_discrepancy",
+   "status": "handed_off",
+   "evidence": "original_and_native",
+   "owner_lane": "qa01-gameplay",
+   "reproducer": {
+    "command": "python3 tools/qa_frontier_original_crosscheck.py paired --native-launcher baldosa --native-exe <uniracers-recomp 10b864b built with tools/research_baldosa_2p_input_patch.py> --seed 50036056 --arm rotation --lag 0 --finish-hold 4000 --frames 1128-1140,1620-4800/60,4801-6400 --snesref ... --core <snes9x|bsnes patched> --ledger <ledger.json> --work W --out R",
+    "race_relative_lag": 0,
+    "seed": 50036056,
+    "arm": "rotation",
+    "runs": []
+   },
+   "source_artifacts": [
+    "analysis/data/frontier-original-native-race-relative-20261014.json baldosa_paired_snes9x_terminal, bsnes_accurate_result_phase",
+    "Baldosa gamesbyian/uniracers-recomp 10b864b (snesrecomp fork 075fbe4) + research two-seat input shim, executable 279d053f...",
+    "docs/QA01-SWITCHER-2014-ORIGINAL-SOURCE-PROBE.md: 1P original 0x84 +4665..+4698 (34 frames) vs Baldosa +4664..+4696 (33)"
+   ],
+   "observation": "9 of 9 seeds (all arms): Baldosa enters the 2P race on the original frame (1134, lag 0) and stays identical in all semantic WRAM through the race and result onset; the 0x84 phase lasts 33 frames vs 34 on Snes9x and on the high-accuracy bsnes core; onset same frame in 7 seeds and one frame early in 2; restore 1-2 frames early. The 2P race-finish black screen is 129 frames on Baldosa vs 131 on bsnes and 130 on Snes9x. Frame-by-frame against bsnes-accurate on 50036056 (host 5180-5241, both expose WRAM): semantic WRAM identical through 5195; at 5196 the 7E:2000 list differs; at 5197 Baldosa's 7E:00C6 vblank-wait counter decrements one frame early (0x1e vs 0x1f; 7E:0BDE/0BFE follow); Baldosa's 7E:009F=0x84 onset is 5198 vs 5199 (Snes9x 5198); 5199-5229 identical; Baldosa restores 0x16 at 5231 vs 5233, then runs 2 vblank-wait passes ahead and leaves the race screen at 5235 vs >=5237.",
+   "uncertainty": "Local candidate evidence until independently re-executed. Mechanism unknown; gameplay significance pending the upstream caller and 7E:009F writer receipts QA-01 already requested (raw signature, wTextPos).",
+   "resolving_experiment": "QA-01: trace the 7E:2000 list writer and the 80:FAC9 $4212 wait at host 5196-5197 on Baldosa vs bsnes-accurate (50036056): Baldosa completes one vblank-wait pass a frame early at result setup, and gains a second before the 0x16 restore (5229-5231); check whether the 1P Switcher +4664 early onset is the same early pass.",
+   "consequence": "A shared, cheap 2P reproducer for QA-01's live 1P strict divergence on the actual product core, with a cycle-accurate reference; the legacy pin's opposite error (RF-012) means fixes must be validated per core."
   }
  ]
 }

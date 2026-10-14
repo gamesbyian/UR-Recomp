@@ -69,7 +69,7 @@ The two independent reference cores agree within one frame. Both native builds c
 
 ## Player-visible confirmation: longer black loading screens (RF-014)
 
-[`tools/qa_blank_screen_census.py`](../tools/qa_blank_screen_census.py) dumps every frame on each engine, measures framebuffer brightness, and pairs each engine's black-screen runs. It needs no WRAM access, so it also runs on the pinned high-accuracy `bsnes-libretro` core, which exposes no system RAM. In every run below bsnes agrees exactly with Snes9x, and Beetle-bsnes agrees within one frame.
+[`tools/qa_blank_screen_census.py`](../tools/qa_blank_screen_census.py) dumps every frame on each engine, measures framebuffer brightness, and pairs each engine's black-screen runs. It needs no WRAM access, so it runs on any core, including the pinned high-accuracy `bsnes-libretro` core (which exposed no system RAM until [`tools/patches/bsnes-libretro-system-ram.patch`](../tools/patches/bsnes-libretro-system-ram.patch)). In every run below bsnes agrees exactly with Snes9x, and Beetle-bsnes agrees within one frame.
 
 | Route | Reference black runs (bsnes) | Native | Native longer by |
 | --- | --- | --- | --- |
@@ -84,6 +84,25 @@ The two independent reference cores agree within one frame. Both native builds c
 
 What this means for the frontier: on this route, native frontier states correspond exactly to original states for the whole race. Native fingerprint novelty here is therefore authentic original-game state novelty. But more random mid-race input will not find discrepancies. The measured discrepancy surface is the **transitions**: entry phase and the result handoff.
 
+## Product core: Baldosa's result phase is one frame short (RF-015, handed to QA-01)
+
+The high-accuracy bsnes core now exposes WRAM through a small accessor patch ([`tools/patches/bsnes-libretro-system-ram.patch`](../tools/patches/bsnes-libretro-system-ram.patch), applied by `bootstrap_toolchain.py`), so it can adjudicate per-frame differences. It gives the 2P `0x84` result phase **34 frames in 9 of 9 seeds**, the same as Snes9x. That settles RF-012's direction: the legacy pin (35) is long.
+
+Baldosa, run through the research two-seat input shim with lag 0, errs the other way. All semantic WRAM stays identical through the race and result onset, but the `0x84` phase lasts **33 frames in 9 of 9 seeds**. Onset is on the same frame in 7 seeds and one frame early in 2; the restore is 1–2 frames early. The race-finish black screen lasts 129 frames on Baldosa, against 131 on bsnes and 130 on Snes9x. This has the same sign as QA-01's 1P Switcher seam (original +4665..+4698, Baldosa +4664..+4696).
+
+Frame by frame against bsnes on seed 50036056 (host 5180–5241, both engines dumping WRAM):
+
+| Host frame | What differs |
+| --- | --- |
+| 5180–5195 | nothing |
+| 5196 | the `7E:2000` list |
+| 5197 | Baldosa decrements the `7E:00C6` vblank-wait counter one frame early (`0x1e` vs `0x1f`); `7E:0BDE/0BFE` follow |
+| 5198 | Baldosa `7E:009F = 0x84` (bsnes 5199, Snes9x 5198) |
+| 5199–5229 | nothing |
+| 5231 | Baldosa restores `0x16` (bsnes 5233); Baldosa then runs two vblank-wait passes ahead and leaves the race screen at 5235 vs ≥ 5237 |
+
+So Baldosa completes one vblank-wait pass early during result setup (5196–5197) and gains a second one before the restore. The next measurement for QA-01 is the `7E:2000` writer and the `80:FAC9` `$4212` wait at 5196–5197 on both engines. A second check is whether the 1P +4664 early onset is the same early pass. The legacy pin's opposite error means any timing fix must be validated per core.
+
 ## Live queue
 
 Generate with `python3 tools/research_findings.py --queue`. As of 2026-10-14:
@@ -92,6 +111,7 @@ Generate with `python3 tools/research_findings.py --queue`. As of 2026-10-14:
 | --- | --- | --- | --- |
 | RF-014 | original_native_discrepancy | qa01-gameplay | Diff cycle accounting of SNESRecomp `cd5875c` against Baldosa's fork `075fbe4` for the bank-81 VRAM writer (`81:CD70–81:D09C`); Baldosa already matches the references, so the fork's fix is the one to port if the legacy backend must stay timing-accurate |
 | RF-012 | original_native_discrepancy | qa01-gameplay | Trace writers of `7E:2000–2009` and `7E:0BDE/0BFE` at native 5195–5198 against original 5193–5196 on the 50036056 reproducer |
+| RF-015 | original_native_discrepancy | qa01-gameplay | Trace the `7E:2000` writer and the `80:FAC9` `$4212` wait at host 5196–5197 on Baldosa vs bsnes-accurate (50036056); compare with the 1P Switcher +4664 early onset |
 | RF-013 | reproducible_anomaly | qa01-gameplay | Compare native vs original iteration counts of the entry fade wait for route delay k=1 (lag 2) against k=2 (lag 3) |
 | RF-005 | graphics_observation_gap | qa08-graphics | Replace the dead `$121B/$121D` predicate with the bank-82 sentinel observer, only if QA-08 names a question |
 | RF-008 | reproducible_anomaly | qa01-gameplay | One single-case `qa01-event-campaign.yml` dispatch before any long original-native campaign |

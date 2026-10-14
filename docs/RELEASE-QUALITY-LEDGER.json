@@ -179,7 +179,7 @@
         "J-12",
         "J-20"
       ],
-      "next_action": "Merged green #1056 proves existing-host visible five-destination Modern root and default Return->guest Start release barrier, including a Windows candidate. Merged #1086 separately proves Baldosa real 2P guest pause/resume in live race with 24 SDL event pumps and unchanged 2,473 WRAM CRC frames. Now join those *actual* existing implementation seams in one native Baldosa+Modern Windows controller-only player journey, including P1/P2 hold release, profile, pause/restart and audible 5/5 default Return restarts. No independent L4/L5 hardware candidate is admitted yet.",
+      "next_action": "The integrated Baldosa Windows native bridge now demonstrates a real source-settled 1P result with newly saved named Records reopened by a second guest process (#1416) and a distinct-P1/P2 stock 2P source result with atomic paired run/match publication and fresh-game read-only 2P Records (#1425). These are hosted, scripted-keyboard/semantic-pad product integration runs with dummy audio, not an independent controller-only L4 acceptance. Next independently exercise the SAME actual packaged native Windows candidate's ordinary human controller navigation, both seats' hold/release, focus pause/resume, native restart and 5/5 audible default Return restarts, including no duplicated settlement or save on pause/restart. Do not infer physical hardware or original-emulator parity from the green hosted bridge.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -265,7 +265,7 @@
         "J-01",
         "J-19"
       ],
-      "next_action": "Merged #1056 visible Modern root and typed controller navigation exist for the current Windows product; route/profile/back/quit controls must be joined to Baldosa native input/pause and retested on exact packaged Windows. Obtain independent blind controller-only cold-start -> profile/racer -> authentic result -> Records/repeat/quit, 4:3/true 16:9 legibility and source-family visual evidence, with TV and accessibility checks. No generic route rewrite or acceptance from old-host component smoke.",
+      "next_action": "The visible five-destination Modern root, real native stock 1P/2P source-settled results, named-profile saved runs and second-game read-only Records now work on the hosted, scripted Baldosa Win32 bridge (#1416/#1425, qualified independent QA reviews). Still obtain a nominated exact merged-main portable Windows ZIP, then independently perform a BLIND controller-only cold start through actual run-baldosa-modern.cmd, profile/racer and both physical P1/P2 seats, authentic result, fresh-process Records, restart/back/repeat/quit, 4:3 and true 16:9 legibility, HDMI/TV/audio and accessibility devices. No L5 observation has occurred. Do not reuse scripted/dummy-audio Windows CI as external human-controller acceptance.",
       "waiver_reason": null,
       "required_layer": "L5",
       "witnesses": [],
@@ -318,12 +318,14 @@
       "evidence_refs": [
         "docs/CI-HARDENING-AUDIT.md",
         "docs/QA-INTEGRATED-WINDOWS-WITNESS-INVENTORY-20261013.md",
-        "docs/QA01-RELEASE-LEDGER-SOURCE-ALIGNMENT-20261013.md"
+        "docs/QA01-RELEASE-LEDGER-SOURCE-ALIGNMENT-20261013.md",
+        "docs/QA-WIN32-NATIVE-1P-2P-SOURCE-BOUND-DISPOSITION-20261013.md",
+        "docs/QA-WIN32-FIRST-NATIVE-2P-PAIRED-RECORDS-20261013.md"
       ],
       "journeys": [
         "J-20"
       ],
-      "next_action": "Independent release provenance remains unverified: after a product owner nominates one integrated merged-main Windows source commit and its actual inner portable ZIP SHA-256, review source-bound original/native events, authentic newly won 1P/paired 2P guest results, separate-process Windows Records, pause/restart, crash/disk recovery, real audio/graphics, and physical multi-device evidence against that exact candidate. The merged QA safeguards reject stale 2P capture roots (#1373), unsupported 45-event and regional census claims (#1371/#1406), misleading one-process Records success (#1403), and event-ledger totals that disagree with the independently maintained source observation register (#1412). These are QA apparatus correctness only; they confer no gameplay or release gate pass. Preserve 0/45 and null candidate until genuinely independently accepted witnesses exist; do not reuse outer GitHub Actions artifact digest as inner ZIP checksum.",
+      "next_action": "Release provenance still unverified. The hosted PR-merge Windows bridge now demonstrates real source-settled native 1P and 2P result-to-Records with second game-process readback (#1416/#1425); independent read-only QA has recomputed exact archived PR-head candidate/runtime SHA-256s and checked source result, joined rider identity, displayed P1 outcome and canonical publisher path/frame receipts (#1427/#1431/#1435/#1438). This is component/integration log evidence only: producer-generated raw .urrun/.urmatch bytes were not retained for independent codec/byte review; user-operated packaged-launcher P1/P2 journeys, rollback/recovery fault cuts, audible output, physical gamepads, external display, and strict original-versus-native full-event parity remain missing. Next: product owner nominates ONE merged-main source SHA and actual inner consumer ZIP SHA-256; independently verify their extracted package/manifest/exe identities, newly saved run/match raw bytes if furnished, and human-operated fresh-process Records on that SAME build. Do not substitute GitHub Actions outer wrapper digest for inner ZIP, reclassify research fingerprints as accepted USA events or promote gates without source/physical evidence. USA strict 0/45; candidate stays null.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],

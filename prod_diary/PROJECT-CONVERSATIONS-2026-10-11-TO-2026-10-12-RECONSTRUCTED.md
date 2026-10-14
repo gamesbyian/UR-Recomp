@@ -1,0 +1,13 @@
+# Project conversation archive: October 11–12, 2026
+
+**Archive type:** reconstructed from available project conversation context, not verbatim transcripts. Missing messages and agent responses are not invented. This archive records user priorities and instructions separately from PR outcomes.
+
+The user pushed to convert long-running research into cumulative, resumable experiment factories. Their questions became more demanding: why run small piecemeal probes if ten thousand cases could be launched in a coordinated campaign? Why label findings as estimates instead of exact discoveries or gameplay correctness? They requested all envisioned campaigns, cumulative state, and research infrastructure that could drive many remaining discovery lanes without constant supervision. After workflow stalls and successful runs, they asked what to run next, which campaigns meaningfully produce new information on repetition, and how to stop spending GitHub Actions capacity without sufficient expected benefit.
+
+A recurring concern was resource contention: account-wide maximum concurrency of 20 runners, versus three or four agents doing independent work and extended campaign factories capable of occupying most runners. The user wanted a hybrid dispatch rule: retain useful agent throughput, but launch expensive long runs when they can generate evidence no agent can readily produce. They repeatedly asked for concrete decisions and new prompts rather than vague suggestions.
+
+The user also requested open-PR reconciliation to main without losing branch work, including repeated red CI repair, and autonomous Modern Windows product development. One exclusive agent lane was instructed to finish a controller-first journey, from frontend and racer/profile selection to native 1P/2P gameplay, results, Records, persistence and packaged startup. Other lanes retained original gameplay/physics, source-faithful graphics and independent QA authority.
+
+A separate strategic conversation explored decentralized P2P multiplayer for PC and Mac: no permanent servers, central authority, proprietary accounts, or dependence on ongoing project operation. Discovery should be as automatic as possible, with a shareable link/code fallback for two or more users who want to find each other when automatic methods fail. The user asked for broad multilingual research and a plan, not a claim that networking had already shipped.
+
+These conversations had a characteristic tempo: curiosity about scalable experimentation, impatience with unnecessary waiting, and an insistence that automating research should eventually produce exact, reproducible knowledge rather than impressive but misleading counts.

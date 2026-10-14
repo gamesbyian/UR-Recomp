@@ -102,10 +102,10 @@ jobs:
           mkdir -p "$UR_BALDOSA_HD_CAPTURE_DIR" "$RUNNER_TEMP/qa08-counterfactual"
           bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
             "$RUNNER_TEMP/qa08-counterfactual/baseline"
-          grep -q '^UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=2208 logical=256x224 saved=1 source=native-original-ppu$' \
+          grep -q "^UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=$UR_BALDOSA_FIXED_ORIGINAL_SOURCE_LATE_FRAME logical=256x224 saved=1 source=native-original-ppu$" \
             "$RUNNER_TEMP/qa08-counterfactual/baseline/log.txt"
           echo "a946c9ebb54775639b8fd87a6861af0408cceed4896e58be05908c4a4491c67f  $UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-002208.pam" | sha256sum -c -
-          grep '^UR_QA08_HDMA_INIDISP frame=2208 ' \
+          grep "^UR_QA08_HDMA_INIDISP frame=$UR_QA08_HDMA_COLDATA_FRAME " \
             "$RUNNER_TEMP/qa08-counterfactual/baseline/log.txt" > "$RUNNER_TEMP/qa08-counterfactual/baseline-inidisp.log"
           test "$(wc -l < "$RUNNER_TEMP/qa08-counterfactual/baseline-inidisp.log")" -eq 4
       - name: Mutate disposable framework only and rebuild same AOT guest
@@ -129,10 +129,10 @@ jobs:
             "$RUNNER_TEMP/qa08-counterfactual/experiment"
           cmp "$RUNNER_TEMP/qa08-counterfactual/baseline/fd/crc.txt" \
               "$RUNNER_TEMP/qa08-counterfactual/experiment/fd/crc.txt"
-          grep -q '^UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=2208 logical=256x224 saved=1 source=native-original-ppu$' \
+          grep -q "^UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=$UR_BALDOSA_FIXED_ORIGINAL_SOURCE_LATE_FRAME logical=256x224 saved=1 source=native-original-ppu$" \
             "$RUNNER_TEMP/qa08-counterfactual/experiment/log.txt"
           test -s "$UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-002208.pam"
-          grep '^UR_QA08_HDMA_INIDISP frame=2208 ' \
+          grep "^UR_QA08_HDMA_INIDISP frame=$UR_QA08_HDMA_COLDATA_FRAME " \
             "$RUNNER_TEMP/qa08-counterfactual/experiment/log.txt" > "$RUNNER_TEMP/qa08-counterfactual/experiment-inidisp.log"
           test -s "$RUNNER_TEMP/qa08-counterfactual/experiment-inidisp.log"
           python3 tools/qa08_compare_native_hdma_prime_trial.py \

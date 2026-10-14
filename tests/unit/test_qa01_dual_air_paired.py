@@ -33,8 +33,8 @@ class DualAirPaired(unittest.TestCase):
                          ["qa01-neighbor-2579", "endurance-2580",
                           "qa01-neighbor-2581"])
         generated = (self.case / "case.script").read_text()
-        self.assertIn("wait 119\\ndump qa01-neighbor-2579\\nwait 1\\ndump endurance-2580",generated)
-        self.assertIn("wait 1\\ndump qa01-neighbor-2581\\nwait 119\\ndump endurance-2700",generated)
+        self.assertIn("wait 119\ndump qa01-neighbor-2579\nwait 1\ndump endurance-2580",generated)
+        self.assertIn("wait 1\ndump qa01-neighbor-2581\nwait 119\ndump endurance-2700",generated)
         self.assertEqual(row["input_sha256"], m.sha(self.case / "case.input"))
         self.assertEqual(row["script_sha256"], m.sha(self.case / "case.script"))
         with self.assertRaisesRegex(ValueError, "overwrite"):

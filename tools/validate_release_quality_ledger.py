@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import importlib.util
 import json
 import pathlib
 import re
@@ -35,6 +36,41 @@ def valid_evidence_timestamp(value: object) -> bool:
     except ValueError:
         return False
     return instant.tzinfo is not None and instant.utcoffset() is not None
+
+
+def source_event_register_summary(repo_root: pathlib.Path) -> dict:
+    """Derive release counts from the independent, existing course-event census.
+
+    This checks consistency of two local evidence records. It never certifies
+    the provenance or truth of an original/native emulator observation.
+    """
+    producer_path = repo_root / "tools" / "audit_original_course_event_coverage.py"
+    spec = importlib.util.spec_from_file_location("qa01_release_source_census", producer_path)
+    if spec is None or spec.loader is None:
+        raise ValueError("QA-01 source census producer is unavailable")
+    producer = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(producer)
+    catalog = json.loads((repo_root / "analysis/data/course-corpus.json").read_text(encoding="utf-8"))
+    source = json.loads((repo_root / "analysis/data/course-event-runtime-evidence.json").read_text(encoding="utf-8"))
+    report = producer.build_census(catalog, source)
+    entries = report["entries"]
+    primary = [r for r in entries if r["rom"] == "usa-retail"]
+    comparison = [r for r in entries if r["rom"] != "usa-retail"]
+    if len(primary) != 45 or len(comparison) != 90:
+        raise ValueError("QA-01 source census has unexpected regional population")
+    return {
+        "complete_event_passes": sum(r["status"] == "passed" for r in primary),
+        "partial": sum(r["status"] == "partial" for r in primary),
+        # Failed/blocked cases also remain unaccepted by the release gate.
+        "unverified": sum(r["status"] not in ("passed", "partial") for r in primary),
+        "regional_comparison_complete": sum(r["status"] == "passed" for r in comparison),
+        "regional_comparison_unverified": sum(r["status"] != "passed" for r in comparison),
+        "primary_pass_candidates": {
+            observation.get("candidate_sha")
+            for observation in source["observations"]
+            if observation["rom"] == "usa-retail" and observation["status"] == "passed"
+        },
+    }
 
 
 def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
@@ -67,6 +103,11 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
     gates = registry.get("gates")
     if not isinstance(gates, list):
         return errors + ["gates must be an array"]
+    try:
+        original_event_counts = source_event_register_summary(repo_root)
+    except (OSError, ValueError, TypeError, KeyError, AttributeError) as exc:
+        original_event_counts = None
+        errors.append(f"QA-01 source event register unavailable or invalid: {exc}")
     seen: set[str] = set()
     journeys_path = repo_root / "docs" / "QA-PLAYER-JOURNEYS.md"
     try:
@@ -174,6 +215,25 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
             corpus_total = regional.get("total_tracked_course_rom_pairs")
             if type(corpus_total) is not int or corpus_total != 135:
                 errors.append("QA-01 all-build course corpus total must remain 135")
+        if name == "QA-01" and original_event_counts is not None:
+            coverage = gate.get("coverage")
+            if isinstance(coverage, dict):
+                for field in (
+                    "complete_event_passes", "partial", "unverified",
+                    "regional_comparison_complete", "regional_comparison_unverified",
+                ):
+                    if coverage.get(field) != original_event_counts[field]:
+                        errors.append(
+                            f"QA-01 {field} disagrees with original event source register "
+                            f"(source={original_event_counts[field]!r})"
+                        )
+            if status == "passed" and (
+                original_event_counts["primary_pass_candidates"] != {commit}
+            ):
+                errors.append(
+                    "QA-01 passed without every original/native source event "
+                    "bound to the exact release candidate commit"
+                )
         if status == "passed" and minimum == "L5" and physical is not True:
             errors.append(f"{name} L5 pass without physical hardware verification")
         if status == "waived":

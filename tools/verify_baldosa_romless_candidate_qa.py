@@ -297,13 +297,12 @@ RUNTIME_NEW_TWO = "UR Baldosa Win32 Pause Route/native_real_2p_records/report.js
 RUNTIME_NEW_TWO_PLAYED = "UR Baldosa Win32 Pause Route/native_real_2p_records/played_native_2p/log.txt"
 RUNTIME_NEW_TWO_FRESH = "UR Baldosa Win32 Pause Route/native_real_2p_records/fresh_game_2p_records/log.txt"
 
-# Exact Windows Actions upload list, observed in the original successful
-# hosted 1P and 2P wrappers. An unreviewed extra ZIP member can carry private
-# player data under an arbitrary .txt/.json suffix, so an extension-only
-# blacklist is insufficient. The five stock diagnostic logs are allowed but
-# never promoted as source/result or fresh-Records evidence.
-# Two overlapping in-flight product PRs have proposed different exact
-# first-racer test log names within this very same Windows Actions upload.
+# Exact Windows Actions upload list, observed in successful hosted
+# 1P/2P and first-racer Windows artifacts. An unreviewed extra ZIP member
+# can carry private player data under an arbitrary .txt/.json suffix.
+# The five stock diagnostic logs are allowed but never promoted as source
+# result or fresh-Records evidence. Two product PRs proposed different exact
+# first-racer upload layouts; only the first actually shipped green evidence.
 # Only the proven first group is now source-checked against the genuine
 # #1439 Win32 report and two real guest logs. The retired #1440 alternative
 # remains a permitted but UNADMITTED complete diagnostic set. No human

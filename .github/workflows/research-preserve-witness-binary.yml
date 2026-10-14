@@ -1,0 +1,79 @@
+name: "Research: preserve an exact witness native binary"
+
+# Classification: manual research evidence-retention utility (never PR/push/
+# schedule). Research witnesses name an exact native executable SHA-256, but
+# shared candidate artifacts expire after one day. This copies one artifact
+# from a past run into a 90-day research artifact with a hash manifest so a
+# reproduction is not lost to retention. It builds and executes nothing, and
+# grants no gameplay, release or original-parity credit.
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: "Actions run whose candidate the witness ran on (e.g. 38446393623)"
+        required: true
+      artifact_name:
+        description: "Artifact holding the exact native candidate tarball"
+        type: choice
+        required: true
+        default: shared-modern-native-candidate
+        options: [shared-modern-native-candidate]
+      expected_executable_sha256:
+        description: "Exact native executable SHA-256 named by the witness"
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: research-preserve-witness-binary-${{ inputs.source_run_id }}
+  cancel-in-progress: false
+
+jobs:
+  preserve:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate request
+        shell: bash
+        env:
+          RUN_ID: ${{ inputs.source_run_id }}
+          EXE_SHA: ${{ inputs.expected_executable_sha256 }}
+        run: |
+          set -euo pipefail
+          [[ "$RUN_ID" =~ ^[0-9]{6,15}$ ]] || { echo "invalid run id" >&2; exit 2; }
+          [[ "$EXE_SHA" =~ ^[0-9a-f]{64}$ ]] || { echo "invalid executable SHA-256" >&2; exit 2; }
+      - name: Retrieve the exact candidate from the witness run
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/witness
+      - name: Verify executable identity and write a hash manifest (no ROM bytes)
+        shell: bash
+        env:
+          RUN_ID: ${{ inputs.source_run_id }}
+          ARTIFACT: ${{ inputs.artifact_name }}
+          EXE_SHA: ${{ inputs.expected_executable_sha256 }}
+        run: |
+          set -euo pipefail
+          python3 tools/preserve_witness_binary.py \
+            --tarball "$RUNNER_TEMP/witness/shared-modern-native.tar.gz" \
+            --expected-executable-sha256 "$EXE_SHA" \
+            --source-run-id "$RUN_ID" --artifact "$ARTIFACT" \
+            --out "$RUNNER_TEMP/witness/manifest.json" \
+            --summary "$GITHUB_STEP_SUMMARY"
+      - name: Retain for 90 days
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-witness-native-${{ inputs.source_run_id }}
+          path: |
+            ${{ runner.temp }}/witness/shared-modern-native.tar.gz
+            ${{ runner.temp }}/witness/manifest.json
+          if-no-files-found: error
+          retention-days: 90

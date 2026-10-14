@@ -34,7 +34,7 @@ CODE = r'''			/* UR_QA08_COLDATA_TABLE_WRITER: guarded original-emulator
 						unsigned long b = strtoul(last, &e2, 10);
 						if (e1 != first && e2 != last &&
 						    *e1 == '\0' && *e2 == '\0' &&
-						    a <= b && b <= 500000ul && b-a <= 256ul)
+						    a <= b && b <= 500000ul && b-a <= 255ul)
 						{
 							qa08_writer_first = a;
 							qa08_writer_last = b;

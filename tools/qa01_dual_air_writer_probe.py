@@ -150,14 +150,23 @@ def sample(frame: int, path: Path) -> dict:
         raise ValueError("not an actual complete 128-KiB WRAM sample")
     def word(a: int) -> int:
         return int.from_bytes(data[a:a + 2], "little")
+    def signed_word(a: int) -> int:
+        raw = word(a)
+        return raw - 0x10000 if raw & 0x8000 else raw
     return {"guest_sha256": sha(data),
-            "p1_raw_air": word(0x0545),
-            "p2_raw_air": word(0x0547),
+            # The source 2P slot contract explicitly declares both air
+            # registers as u8. Never mislabel their adjacent byte as air.
+            "p1_raw_air": data[0x0545],
+            "p2_raw_air": data[0x0547],
             "p1_y": word(0x0415),
             "p2_y": word(0x0417),
-            "p1_y_velocity": word(0x04BB),
-            "p2_y_velocity": word(0x04BD),
-            "active_race_byte": data[0x0313]}
+            "p1_y_velocity": signed_word(0x04BB),
+            "p2_y_velocity": signed_word(0x04BD),
+            "active_race_byte": data[0x0313],
+            "p1_laps_remaining": word(0x0EF1),
+            "p2_laps_remaining": word(0x0EF3),
+            "p1_next_checkpoint": word(0x1199),
+            "p2_next_checkpoint": word(0x119B)}
 
 
 def analyze(root: Path, *, rom: Path, native_exe: Path) -> dict:
@@ -175,6 +184,15 @@ def analyze(root: Path, *, rom: Path, native_exe: Path) -> dict:
             or plan.get("release_gate_credit") != 0
             or plan.get("strict_complete_event_accepted") is not False
             or plan.get("native_frontier_executable_sha256") != paired.NATIVE_FRONTIER_SHA
+            or source.get("schema") != paired.SCHEMA
+            or source.get("seed") != paired.SEED
+            or source.get("arm") != paired.ARM
+            or source.get("source_sha") != paired.SOURCE_SHA
+            or source.get("frontier_run") != paired.RUN
+            or source.get("release_gate_credit") != 0
+            or source.get("exact_original_native_acceptance") is not False
+            or source.get("script_sha256") != sha((root / "case.script").read_bytes())
+            or source.get("checkpoints") != paired.checkpoints()
             or source.get("frontier_native_executable_sha256") != paired.NATIVE_FRONTIER_SHA
             or source.get("original_rom_sha256") != paired.ROM_SHA
             or plan.get("source_original_rom_sha256") != paired.ROM_SHA
@@ -195,9 +213,11 @@ def analyze(root: Path, *, rom: Path, native_exe: Path) -> dict:
         for f, digest in PINNED_SNAPSHOT_SHA[side].items():
             if rows[f]["guest_sha256"] != digest:
                 raise ValueError(f"{side} genuine guest frame {f} changed under read-only observer")
-        if any(v["active_race_byte"] != 1 for f, v in rows.items()
-               if f in DENSE):
-            raise ValueError(side + " left authentic active 2P racing during source boundary")
+        if any((v["active_race_byte"], v["p1_laps_remaining"],
+                v["p2_laps_remaining"], v["p1_next_checkpoint"],
+                v["p2_next_checkpoint"]) != (1, 1, 1, 1, 1)
+               for f, v in rows.items() if f in DENSE):
+            raise ValueError(side + " lost authentic dual-racer race/lap/checkpoint state")
     source_lines = [dict(frame=int(f), vcounter=int(v),
                          pc=p.upper()[:2] + ":" + p.upper()[2:],
                          address="7E:" + a.upper(), old=old, new=new,

@@ -1,0 +1,190 @@
+name: QA-08 one-shot native HDMA prime raster experiment
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa08-native-hdma-prime-counterfactual.yml"
+      - "tools/qa08_compare_native_hdma_prime_trial.py"
+      - "tests/unit/test_qa08_compare_native_hdma_prime_trial.py"
+      - "tools/qa08_patch_hdma_prime_counterfactual.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: qa08-prime-one-shot-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  authentic-native-2p:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    env:
+      SDL_AUDIODRIVER: dummy
+      PIXELS: "0"
+      KEEP_WRAM: "0"
+      TMO: "95"
+      UR_BALDOSA_HD: "1"
+      UR_BALDOSA_HD_DENSITY: "1"
+      UR_QA08_HDMA_COLDATA_FRAME: "2208"
+      UR_BALDOSA_FIXED_ORIGINAL_SOURCE_LATE_FRAME: "2208"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+      - name: Confirm exact prior native core, guest, ROM and route
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          echo "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478  reference/roms/retail/Uniracers_USA.sfc" | sha256sum -c -
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          cmp baldosa/tests/routes/race_2p_split.txt reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p_split.txt
+      - name: Build exact native AOT with existing read-only PPU source presenter
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends \
+            ninja-build pkg-config libsdl2-dev libgl-dev libx11-dev libxext-dev \
+            libxrandr-dev libxcursor-dev libxi-dev libxss-dev libwayland-dev \
+            libxkbcommon-dev libegl-dev libgles-dev libdrm-dev libgbm-dev \
+            libasound2-dev libpulse-dev libudev-dev libdbus-1-dev xvfb x11-utils
+          python3 tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python3 tools/baldosa_single_presentation_scale_patch.py --root "$GITHUB_WORKSPACE" --framework baldosa/snesrecomp
+          python3 tools/baldosa_hd_host_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python3 tools/qa08_patch_hdma_coldata_source.py --framework baldosa/snesrecomp
+          cmake -S baldosa -B baldosa/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
+          cmake --build baldosa/build --target UniracersSNESRecomp -j 3
+          if test ! -f baldosa/build/config.ini; then
+            printf '%s\n' '[Sound]' 'EnableAudio = 0' > baldosa/build/config.ini
+          fi
+          test -x baldosa/build/UniracersSNESRecomp
+      - name: Record independent unchanged 2P baseline source P7 and all guest CRCs
+        shell: bash
+        run: |
+          set -euo pipefail
+          export SNESRECOMP_ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          export BALDOSA_REAL_BIN="$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp"
+          Xvfb :99 -screen 0 1280x720x24 -ac > "$RUNNER_TEMP/qa08-xvfb.log" 2>&1 &
+          export DISPLAY=:99
+          for _attempt in 1 2 3 4 5; do xdpyinfo -display :99 >/dev/null 2>&1 && break; sleep 1; done
+          xdpyinfo -display :99 >/dev/null
+          cat > "$RUNNER_TEMP/qa08-exec" <<'SH'
+          #!/usr/bin/env bash
+          export SDL_VIDEODRIVER=x11
+          args=("$@")
+          config=""
+          for ((i=0; i+1<${#args[@]}; i++)); do
+            if [ "${args[i]}" = "--config" ]; then config="${args[i+1]}"; break; fi
+          done
+          if [ -z "$config" ]; then
+            echo "QA08 authentic 2P source has no isolated --config" >&2
+            exit 3
+          fi
+          python3 "$GITHUB_WORKSPACE/tools/baldosa_hd_enable_renderer.py" --config "$config"
+          exec "$BALDOSA_REAL_BIN" "$@"
+          SH
+          chmod +x "$RUNNER_TEMP/qa08-exec"
+          export BIN="$RUNNER_TEMP/qa08-exec"
+          export UR_BALDOSA_HD_CAPTURE_DIR="$RUNNER_TEMP/qa08-native-baseline"
+          mkdir -p "$UR_BALDOSA_HD_CAPTURE_DIR" "$RUNNER_TEMP/qa08-counterfactual"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/qa08-counterfactual/baseline"
+          grep -q "^UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=$UR_BALDOSA_FIXED_ORIGINAL_SOURCE_LATE_FRAME logical=256x224 saved=1 source=native-original-ppu$" \
+            "$RUNNER_TEMP/qa08-counterfactual/baseline/log.txt"
+          echo "a946c9ebb54775639b8fd87a6861af0408cceed4896e58be05908c4a4491c67f  $UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-002208.pam" | sha256sum -c -
+          grep "^UR_QA08_HDMA_INIDISP frame=$UR_QA08_HDMA_COLDATA_FRAME " \
+            "$RUNNER_TEMP/qa08-counterfactual/baseline/log.txt" > "$RUNNER_TEMP/qa08-counterfactual/baseline-inidisp.log"
+          test "$(wc -l < "$RUNNER_TEMP/qa08-counterfactual/baseline-inidisp.log")" -eq 4
+      - name: Mutate disposable framework only and rebuild same AOT guest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/qa08_patch_hdma_prime_counterfactual.py \
+            --framework baldosa/snesrecomp --apply-experiment
+          grep -q 'UR_QA08_HDMA_PRIME_COUNTERFACTUAL' baldosa/snesrecomp/runner/src/snes/dma.c
+          cmake --build baldosa/build --target UniracersSNESRecomp -j 3
+      - name: Independently rerun exact 2P event and report every source pixel delta
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          export SNESRECOMP_ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          export BALDOSA_REAL_BIN="$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp"
+          export DISPLAY=:99 BIN="$RUNNER_TEMP/qa08-exec"
+          export UR_BALDOSA_HD_CAPTURE_DIR="$RUNNER_TEMP/qa08-native-experiment"
+          mkdir -p "$UR_BALDOSA_HD_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/qa08-counterfactual/experiment"
+          cmp "$RUNNER_TEMP/qa08-counterfactual/baseline/fd/crc.txt" \
+              "$RUNNER_TEMP/qa08-counterfactual/experiment/fd/crc.txt"
+          grep -q "^UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=$UR_BALDOSA_FIXED_ORIGINAL_SOURCE_LATE_FRAME logical=256x224 saved=1 source=native-original-ppu$" \
+            "$RUNNER_TEMP/qa08-counterfactual/experiment/log.txt"
+          test -s "$UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-002208.pam"
+          grep "^UR_QA08_HDMA_INIDISP frame=$UR_QA08_HDMA_COLDATA_FRAME " \
+            "$RUNNER_TEMP/qa08-counterfactual/experiment/log.txt" > "$RUNNER_TEMP/qa08-counterfactual/experiment-inidisp.log"
+          test -s "$RUNNER_TEMP/qa08-counterfactual/experiment-inidisp.log"
+          python3 tools/qa08_compare_native_hdma_prime_trial.py \
+            --baseline "$RUNNER_TEMP/qa08-native-baseline/ur-baldosa-original-source-002208.pam" \
+            --trial "$RUNNER_TEMP/qa08-native-experiment/ur-baldosa-original-source-002208.pam" \
+            --baseline-crc "$RUNNER_TEMP/qa08-counterfactual/baseline/fd/crc.txt" \
+            --trial-crc "$RUNNER_TEMP/qa08-counterfactual/experiment/fd/crc.txt" \
+            --out "$RUNNER_TEMP/qa08-counterfactual/real-native-raster.json"
+          # Retrieve only the independently accepted ORIGINAL Snes9x source
+          # archive from the exact prior evidence ID. Do not forward GH_TOKEN
+          # to the signed cross-domain blob redirect.
+          curl --fail --silent --show-error --retry 3 \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "Accept: application/vnd.github+json" \
+            --dump-header "$RUNNER_TEMP/qa08-original-http-headers" \
+            --output /dev/null \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/11884155561/zip"
+          location="$(awk 'tolower($1) == "location:" {gsub(/\r/, "", $2); print $2}' "$RUNNER_TEMP/qa08-original-http-headers" | tail -1)"
+          case "$location" in
+            https://*) ;;
+            *) echo "::error::accepted original Snes9x source artifact redirect unavailable"; exit 3 ;;
+          esac
+          curl --fail --silent --show-error --retry 3 --location \
+            --output "$RUNNER_TEMP/qa08-original-source-exact.zip" "$location"
+          echo "6e5d488230c11d3dfcd144b6a7cbc8c25d7acfcb4f95b776a85071dd3487f5e3  $RUNNER_TEMP/qa08-original-source-exact.zip" | sha256sum -c -
+          python3 tools/qa08_check_hdma_prime_candidate.py \
+            --original-zip "$RUNNER_TEMP/qa08-original-source-exact.zip" \
+            --candidate-p7 "$RUNNER_TEMP/qa08-native-experiment/ur-baldosa-original-source-002208.pam" \
+            --original-crc "$RUNNER_TEMP/qa08-counterfactual/baseline/fd/crc.txt" \
+            --candidate-crc "$RUNNER_TEMP/qa08-counterfactual/experiment/fd/crc.txt" \
+            --out "$RUNNER_TEMP/qa08-counterfactual/original-snes9x-exact-RGB5.json"
+          cat "$RUNNER_TEMP/qa08-counterfactual/real-native-raster.json" >> "$GITHUB_STEP_SUMMARY"
+          cat "$RUNNER_TEMP/qa08-counterfactual/original-snes9x-exact-RGB5.json" >> "$GITHUB_STEP_SUMMARY"
+          echo "Observation only, even if the hypothesis fails; not an original-emulator equality or shipping verdict." >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve exact native source rasters, route CRC and actual DMA register bytes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-native-prime-counterfactual
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa08-counterfactual/real-native-raster.json
+            ${{ runner.temp }}/qa08-counterfactual/original-snes9x-exact-RGB5.json
+            ${{ runner.temp }}/qa08-counterfactual/baseline-inidisp.log
+            ${{ runner.temp }}/qa08-counterfactual/experiment-inidisp.log
+            ${{ runner.temp }}/qa08-counterfactual/baseline/fd/crc.txt
+            ${{ runner.temp }}/qa08-counterfactual/experiment/fd/crc.txt
+            ${{ runner.temp }}/qa08-counterfactual/baseline/log.txt
+            ${{ runner.temp }}/qa08-counterfactual/experiment/log.txt
+            ${{ runner.temp }}/qa08-native-baseline/ur-baldosa-original-source-002208.pam
+            ${{ runner.temp }}/qa08-native-experiment/ur-baldosa-original-source-002208.pam

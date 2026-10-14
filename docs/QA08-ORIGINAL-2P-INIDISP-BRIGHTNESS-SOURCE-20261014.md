@@ -97,3 +97,80 @@ a global non-consuming-prime change. The pinned Baldosa header explicitly
 notes the prime was introduced to address Gundam Wing first-line errors.
 An authentic rendered multi-channel 2P source-pixel regression is still
 the acceptance standard; Remastered art approval is unaffected.
+
+## Executed original 65816 channel-7 writer PC census and ROM bytes
+
+The original ten-window source run 38615121956 (artifact 11919775789)
+has now been independently downloaded and decoded, with ZIP SHA256
+`f3fe49c7c14f28474c2a8f9dcfa713ff2e8bb811b6189e13f7c575c00b00007a`.
+The original executing code changed the six-byte WRAM table 1,403 times
+across eight distinct instruction PCs. Source bytes and artifact hashes
+are pinned in
+`analysis/data/qa08-original-channel7-65816-writer-artifact-handoff-20261014.json`.
+The exact original GO and t480 table is `6F 0F 02 00 60 0F`.
+
+| Independently executing original PC | Changed WRAM byte(s) | Observed WRAM changes |
+| --- | --- | ---: |
+| 82:D67D | 7E:2064 header | 1 |
+| 82:D683 | 7E:2065 first INIDISP | 1 |
+| 82:D689 | 7E:2066 header | 1 |
+| 82:D695 | 7E:2068 header | 1 |
+| 82:D699 | 7E:2069 final INIDISP | 1 |
+| 80:8625 | 7E:2065 | 691 |
+| 80:884C | 7E:2065 | 691 |
+| 80:8850 | 7E:2069 | 16 |
+
+The second value at 7E:2067 is zero from the retained source GO WRAM;
+**no changed-byte executed PC for this zero was observed**, so a
+source instruction writing zero there has not been proven.
+
+The further bounded source instrument reads actual CPU-fetched bytes
+from mapped original Snes9x PCBase at each of these eight precisely
+qualified PCs before invoking the original instruction. It records the
+live 65816 M/X-dependent opcode length and 4-byte ROM preview once per
+PC per original replay, then the checker cross-references the independently
+observed WRAM destinations. This extension reuses the same existing ten
+route windows and cannot alter code, ROM, memory or guest state. It cannot
+conclude final rendered raster from an instruction fetch or WRAM write.
+
+Even matching long STA opcode destinations are only original code source
+qualification. The native descriptor repetition evidence, original PPU
+after-write brightness and **actual RGB5 pixels** remain independent
+components of the causal chain. Cross-title HDMA startup remains a
+separate compatibility gate for any production correction.
+
+### Independently executed opcode bytes, accepted original replay
+
+Original source run
+[38624765047](https://github.com/gamesbyian/UR-Recomp/actions/runs/38624765047)
+completed the exact ten-window Snes9x 2P opcode experiment.
+Downloaded artifact `11923402069` has ZIP SHA256
+`b5b903bfaf64889281eecb6246ed14cbafc4fe843193c85d681a3b0a54a3c3ef`;
+the full 8-PC original executed opcode report has SHA256
+`fdbdaed61353f2103b89a363e17b9bfd586c12d90062c37ddbc488db29ee749f`.
+All eight original CPU-fetched ROM instructions are **STA absolute long**
+with original 65816 4-byte source instruction bytes:
+
+| Original executed 65816 PC | Real fetched original USA opcode bytes | WRAM destination |
+| --- | --- | --- |
+| `$82:D67D` | `8F 64 20 7E` | `$7E:2064` |
+| `$82:D683` | `8F 65 20 7E` | `$7E:2065` |
+| `$82:D689` | `8F 66 20 7E` | `$7E:2066` |
+| `$82:D695` | `8F 68 20 7E` | `$7E:2068` |
+| `$82:D699` | `8F 69 20 7E` | `$7E:2069` |
+| `$80:8625` | `8F 65 20 7E` | `$7E:2065` |
+| `$80:884C` | `8F 65 20 7E` | `$7E:2065` |
+| `$80:8850` | `8F 69 20 7E` | `$7E:2069` |
+
+These bytes were observed through original Snes9x `PCBase` before
+dispatch, with mapped/fetched checks and CPU-mode-dependent instruction
+length, and joined against the separate 1,403 true WRAM source changes.
+The 17 bounded source opcode observations across original replay windows
+covered all eight exact writer PCs and their actual destinations. A
+compact exact-run receipt is in
+`analysis/data/qa08-original-channel7-executed-opcode-byte-handoff-20261014.json`.
+
+The missing `$7E:2067=00` changed-byte producer remains explicitly
+**unobserved**, despite the real source GO table containing zero.
+No PPU brightness seam or original/native video equality is inferred
+from the STA source instructions alone.

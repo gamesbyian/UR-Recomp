@@ -128,13 +128,23 @@ def classify(case: str, producer_rc: int, producer_path: Path,
         if report.get("admission") != "investigative candidate; not a release-ledger pass":
             raise ValueError("producer admission contract changed")
         keys = ("rom_sha256", "original_movie_sha256", "native_executable_sha256",
-                "reference_core_sha256", "input_sha256", "source_sram_sha256")
+                "reference_core_sha256", "input_sha256", "source_sram_sha256",
+                "original_movie_window_sha256", "reference_script_sha256")
         if any(not isinstance(report.get(key), str) or
                not HEX256.fullmatch(report[key]) for key in keys):
             raise ValueError("incomplete producer provenance")
-        if type(event.get("source_active_frames_to_result")) is not int or \
-                event["source_active_frames_to_result"] <= 0:
-            raise ValueError("no genuine original source event duration")
+        if any(type(event.get(k)) is not int or event[k] < 0
+               for k in ("original_entry_frame", "original_result_frame",
+                         "source_active_frames_to_result")) or (
+                event["original_result_frame"] - event["original_entry_frame"]
+                != event["source_active_frames_to_result"]) or (
+                event["source_active_frames_to_result"] <= 0):
+            raise ValueError("original archived event entry/result interval is incomplete or contradictory")
+        if (any(type(report.get(k)) is not int or report[k] < 0
+                for k in ("reference_entry", "native_entry", "native_frame_shift"))
+                or report["native_entry"] - report["reference_entry"]
+                != report["native_frame_shift"]):
+            raise ValueError("fresh reference/native entry and input shift disagree")
         frames = comparison.get("terminal_result_guest_frame")
         if not isinstance(frames, dict) or any(type(frames.get(k)) is not int
                or frames[k] < 0 for k in ("reference_relative", "native_relative")):
@@ -161,6 +171,14 @@ def classify(case: str, producer_rc: int, producer_path: Path,
             "core_sha256": report["reference_core_sha256"],
             "native_sha256": report["native_executable_sha256"],
             "input_sha256": report["input_sha256"],
+            "source_sram_sha256": report["source_sram_sha256"],
+            "original_movie_window_sha256": report["original_movie_window_sha256"],
+            "reference_script_sha256": report["reference_script_sha256"],
+            "original_movie_entry_frame": event["original_entry_frame"],
+            "original_movie_result_frame": event["original_result_frame"],
+            "reference_entry_frame": report["reference_entry"],
+            "native_entry_frame": report["native_entry"],
+            "native_frame_shift": report["native_frame_shift"],
             "original_event_frames": event["source_active_frames_to_result"],
             "terminal_guest_relative_frames": frames,
             "terminal_frame_matched": match,
@@ -203,9 +221,23 @@ def aggregate(plan: dict, results_dir: Path) -> tuple[dict, str]:
                     not isinstance(ev.get(k), str) or
                     not HEX256.fullmatch(ev[k]) for k in (
                         "producer_sha256", "rom_sha256", "movie_sha256",
-                        "core_sha256", "native_sha256", "input_sha256")
+                        "core_sha256", "native_sha256", "input_sha256",
+                        "source_sram_sha256", "original_movie_window_sha256",
+                        "reference_script_sha256")
                 ):
                     raise ValueError("incomplete case hash provenance")
+                if (any(type(ev.get(k)) is not int or ev[k] < 0
+                        for k in ("original_movie_entry_frame",
+                                  "original_movie_result_frame",
+                                  "original_event_frames",
+                                  "reference_entry_frame", "native_entry_frame",
+                                  "native_frame_shift"))
+                        or ev["original_movie_result_frame"] - ev["original_movie_entry_frame"]
+                        != ev["original_event_frames"]
+                        or ev["original_event_frames"] <= 0
+                        or ev["native_entry_frame"] - ev["reference_entry_frame"]
+                        != ev["native_frame_shift"]):
+                    raise ValueError("case original/native start and shift identity inconsistent")
                 frames = ev.get("terminal_guest_relative_frames")
                 if not isinstance(frames, dict) or any(
                     type(frames.get(k)) is not int or frames[k] < 0 for k in
@@ -229,9 +261,11 @@ def aggregate(plan: dict, results_dir: Path) -> tuple[dict, str]:
                 "reason": str(exc), "release_credit": 0,
             }
         results.append(row)
-    # The entire research population must have used the exact same original
-    # movie, ROM, reference core and pinned native binary. Input hashes vary.
-    identity_keys = ("rom_sha256", "movie_sha256", "core_sha256", "native_sha256")
+    # The embedded SRAM also comes from the same archived source movie:
+    # cross-shard source boot differences invalidate a pooled experiment.
+    # Event-relative input windows/scripts and native entry offsets vary.
+    identity_keys = ("rom_sha256", "movie_sha256", "core_sha256",
+                     "native_sha256", "source_sram_sha256")
     baseline = None
     for row in results:
         if row["disposition"] not in ("strict_candidate", "strict_divergence"):

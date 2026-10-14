@@ -122,8 +122,19 @@ def audit_hosted_native_2p_records(
         int(value) for value in r.groups()
     )
     correct_winner = 0 if t1 == t2 else (1 if t1 < t2 else 2)
+    # The producer advertises an exact two-file pair. The native capture
+    # must have written THAT same canonical .urrun, not an unrelated
+    # successful run whose stored digest happens to appear in a JSON report.
+    captured_path = c[2].replace("\\", "/")
+    captured_name = captured_path.rsplit("/", 1)[-1]
+    source_capture_bound = (
+        int(c[1]) == frames
+        and captured_name == run_names[0]
+        and "/multiplayer-runs/" in captured_path.lower()
+    )
     if (
-        not (0 < first < last)
+        not source_capture_bound
+        or not (0 < first < last)
         or (p1, p2) != (0, 2)
         or not (0 < t1 <= 60000 and 0 < t2 <= 60000)
         or (t1 == 60000 and t2 == 60000)
@@ -153,9 +164,23 @@ def audit_hosted_native_2p_records(
     last_lines = re.findall(
         r"(?m)^UR_BALDOSA_MODERN_ROOT records_last_2p=(.+)\r?$", fresh
     )
+    # Records are displayed from the SELECTED P1 profile's perspective.
+    # Cross-check the exact player-visible result text against the original
+    # native settled result, including WIN/LOSS/DRAW and DNF formatting.
+    # A log containing "source=historical_paired_archive" is not enough:
+    # an incorrect outcome or an opponent's time must fail independent QA.
+    p1_outcome = "DRAW" if winner == 0 else ("WIN" if winner == 1 else "LOSS")
+    p1_clock = (
+        "DNF" if t1 >= 60000
+        else f"{t1 // 6000:02d}:{(t1 // 100) % 60:02d}.{t1 % 100:02d}"
+    )
+    expected_display = (
+        f"LAST 01 {p1_outcome} {p1_clock} "
+        "source=historical_paired_archive"
+    )
     if (
         len(last_lines) != 1
-        or "source=historical_paired_archive" not in last_lines[0]
+        or last_lines[0] != expected_display
         or len(re.findall(
             r"(?m)^UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM "
             r"profile=native-ci-rider bytes=8192\b", fresh
@@ -174,6 +199,8 @@ def audit_hosted_native_2p_records(
         "hosted_native_2p_source_times_hundredths": [t1, t2],
         "hosted_native_2p_source_winner": winner,
         "hosted_native_2p_result_host_frame": last,
+        "hosted_native_2p_saved_run_capture_basename": captured_name,
+        "hosted_native_2p_player1_records_display_verified": expected_display,
         "hosted_new_2p_pair_sha256_producer_reported": dict(pair),
         "hosted_native_2p_report_sha256": hashlib.sha256(raw_report).hexdigest(),
         "hosted_native_2p_played_log_sha256": hashlib.sha256(raw_played).hexdigest(),

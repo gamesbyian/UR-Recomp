@@ -73,8 +73,8 @@ SRAM, `.urrun/.urmatch` checksums, and exact portable candidate artifacts.
 That independent QA still awards **no physical OS crash, two-controller
 hardware, strict original-USA 45/45 event, or final Windows release gate**.
 Previously only the final post-view bytes were retained, preventing QA from
-independently comparing two actual on-disk timepoints. The Modern candidate
-now exports a separate **CI-owned, no-follow, pair-only** snapshot immediately
+independently comparing two actual on-disk timepoints. The merged Modern producer
+exports a separate **CI-owned, no-follow, pair-only** snapshot immediately
 after authentic original guest play and before the first fresh Records process.
 Its two byte files and SHA-256 manifest are retained under
 `ci-owned-pre-records-pair/` in a **separate Actions artifact from the same
@@ -84,10 +84,12 @@ and post-view pair snapshot unchanged. The Windows producer
 fails closed if the two archived file sets are not byte-identical. ROM-free
 unit tests exercise duplicate/missing/symlinked and stale/foreign inputs.
 
-**Acceptance boundary:** this product change is a candidate until its exact
-head passes real native Windows CI. Independent QA must separately decode and
-compare the pre/post archive bytes alongside the process logs before granting
-source-stage immutability credit. This adds no new save format, product router,
+**Acceptance boundary:** Modern #1550's exact-head native Windows route
+passed and independent QA #1554 downloaded and rehashed the real pre/post
+archives, confirmed matching original paired run/match bytes and pinned the
+source and Windows package hashes. This supplies native source-stage
+immutability evidence, **not** observed real OS power-loss timing or a
+candidate-wide L4 release verdict. It adds no save format, product router,
 scripted result, physical controller or strict original-USA release approval.
 
 ## Existing named-P1 controller selector (native verified 2026-10-14)

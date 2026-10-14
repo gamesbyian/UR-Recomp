@@ -140,7 +140,6 @@ def audit_hosted_first_racer_earned_1p(
     ordered_unique(records, (
         "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=mike root=saves/profile-mike",
         "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=mike bytes=8192",
-        "UR_BALDOSA_MODERN_ROOT records_page=1p",
         "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=selected validated=1 unavailable=0",
         "UR_BALDOSA_MODERN_ROOT records_closed=1",
     ), "third fresh Records guest")

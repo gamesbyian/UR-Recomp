@@ -1,0 +1,65 @@
+{
+  "schema": "ur-independent-original-native-2p-channel57-experiment-adjudication/1",
+  "date": "2026-10-14",
+  "run": 38642367882,
+  "source_native_artifact_id": 11930109109,
+  "source_native_archive_sha256": "a6aae4f82644c93b43f98f336d72c21d24846fea5f8377e18cbc54e37c1b3040",
+  "original_sources": [
+    {
+      "scene": "countdown",
+      "artifact_id": 11925517895,
+      "callback": 1855,
+      "archive_sha256": "56ec0011a3559f5953578c495d080d0150f2a06fb7a76c2e437fab781e2b2ce6",
+      "source_frame_sha256": "8e2a34d415e588d10f83a5a0c9732d0ec02bed0507b1dad56826aecd81dbd681"
+    },
+    {
+      "scene": "postGO",
+      "artifact_id": 11884155561,
+      "callback": 2207,
+      "archive_sha256": "6e5d488230c11d3dfcd144b6a7cbc8c25d7acfcb4f95b776a85071dd3487f5e3",
+      "source_frame_sha256": "e76c6010b3fb339ecbdae2fec985a00019345723cdff122d9bbc78d71481c8aa"
+    }
+  ],
+  "source_geometry": [
+    256,
+    224
+  ],
+  "per_frame_pixels": 57344,
+  "unmasked_normalization": "Independent source BGRX Snes9x RGB565 expanded bytes to native RGBA RGB5; compare original R>>3, G>>3, B>>3 against native R>>3, G>>3, B>>3",
+  "actual_independently_recomputed": [
+    {
+      "scene": "countdown",
+      "original_callback": 1855,
+      "native_guest": 1856,
+      "wrong_pixels": {
+        "unchanged": 971,
+        "channel7_only": 460,
+        "channel5_plus7": 460,
+        "global_consumed_prime": 0
+      },
+      "native_channel57_PAM_sha256": "f717a2841b6fbc8497b601f75db24d7c36c750bba5df4f6f41258a127ddf94fb"
+    },
+    {
+      "scene": "postGO",
+      "original_callback": 2207,
+      "native_guest": 2208,
+      "wrong_pixels": {
+        "unchanged": 512,
+        "channel7_only": 0,
+        "channel5_plus7": 0,
+        "global_consumed_prime": 0
+      },
+      "native_channel57_PAM_sha256": "bf8b4218fb72f94338b19da5c1386bd5ce09c0dc0c767093286e80895fa3353c"
+    }
+  ],
+  "native_complete_frame_crc_lines_each": 2473,
+  "native_four_process_frame_crc_transcripts_identical": true,
+  "experimental_result": "combined channel5+7 consumed prime yields the same source pixels as channel7-only at these three native scenes; fails true countdown parity by 460 pixels",
+  "original_frame_phase_global_proven": false,
+  "moving_2P_allframes_proven": false,
+  "shipping_renderer_change_authorized": false,
+  "source_OAM_window_causal_path_proven": false,
+  "physical_hardware_tested": false,
+  "release_gate_credit": 0,
+  "provenance_note": "Three unchanged original Actions ZIPs downloaded and hashed; compared actual native PAM raw pixels against actual Snes9x callbacks using independently run NumPy source RGB5 comparison, without accepting the producer JSON counts alone."
+}

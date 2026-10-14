@@ -1,0 +1,74 @@
+{
+  "schema": "UR-QA02-INDEPENDENT-REAL-P2-CATALOG-STAGE-ARCHIVE-REVIEW/1",
+  "reviewed_utc": "2026-10-14",
+  "workflow_run_id": 38625129151,
+  "product_pr": 1573,
+  "product_head_sha": "96787078e8ab66fdb867f0e0089ef09a95eb51c6",
+  "artifacts": {
+    "raw": {
+      "id": 11924352730,
+      "bytes": 18029,
+      "sha256": "d43546a7a95abaeb779182dbd6aaaec06e9878ae844ed0a11d523eafa688950c",
+      "members": 37
+    },
+    "source": {
+      "id": 11923603156,
+      "bytes": 5548,
+      "sha256": "16f1d2c78e078beb268ce71a67562864fac40cd1192d86816b1f268e94c28c12",
+      "members": 5
+    },
+    "package": {
+      "id": 11923603148,
+      "bytes": 5944556,
+      "sha256": "f9e0cf076fcf118534c1b34306ecb43088f1a4bd31caeed1646bf3a0d6a28a08",
+      "members": 2
+    }
+  },
+  "actual_windows_candidate": {
+    "inner_romless_zip_sha256": "38ce585e5b57b92756f3014c3e81cf49a9e1325d35c44b6cb5622b3a3bc60f28",
+    "exe_sha256": "399b6bb0c7c407fdb7cbfe19b7872ee3249a68fed6686576af4f60ed2902494c",
+    "amd64_pe32_plus_header_independently_verified": true,
+    "final_merged_main_release_candidate_nominated": false
+  },
+  "source_real_native_game_processes": 4,
+  "raw_stage_count": 5,
+  "raw_member_count": 37,
+  "all_raw_manifest_member_SHA256_and_sizes_independently_recomputed": true,
+  "source_four_process_logs_independently_scanned": true,
+  "same_GitHub_run_for_source_stage_package_verified_by_artifact_metadata": true,
+  "decoded_original_rider_ids": [
+    0,
+    2
+  ],
+  "both_named_raw_SRAM_bytes": 8192,
+  "typed_profiles_equal_exact_raw_SRAM_for_each_stage": true,
+  "original_p1_selector_byte_equal_across_all_stages": true,
+  "catalog_only_cut_preserves_original_mike_typed_raw_bytewise": true,
+  "martin_typed_raw_and_empty_mutex_identical_across_later_four_stages": true,
+  "original_canonical_catalog_SHA256_by_stage": {
+    "after-p1-created": "5bd5875d01de17c498c90c389b3c7dd466f52762463b04b29f294585d4d5228b",
+    "after-p2-created": "830ee6809c08c881439db6065633125025cf72129d4f10502e24cb4c0137d671",
+    "catalog-row-lost": "5bd5875d01de17c498c90c389b3c7dd466f52762463b04b29f294585d4d5228b",
+    "after-p2-recovered": "830ee6809c08c881439db6065633125025cf72129d4f10502e24cb4c0137d671",
+    "after-source-go": "830ee6809c08c881439db6065633125025cf72129d4f10502e24cb4c0137d671"
+  },
+  "martin_raw_SRAM_sha256": "f3058e5fcd57042c8b0f04d9e3daf1fb81749c30da70b9596553afb89fb89102",
+  "martin_typed_profile_sha256": "0ff1202337488ec94fbc1d8a92ebe4c96f073f8f8d4d4f86a159b83011c4f251",
+  "martin_empty_mutex_SHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "mike_raw_SRAM_sha256_by_stage": {
+    "after-p1-created": "a93379f694a84b2015ec2c03a7435e7b60e27441683b14c9bf92f32104990264",
+    "after-p2-created": "273bc1b3be1dc3923c216c01461724617f6a5ace8d47a5a7069502f1a23f743a",
+    "catalog-row-lost": "273bc1b3be1dc3923c216c01461724617f6a5ace8d47a5a7069502f1a23f743a",
+    "after-p2-recovered": "273bc1b3be1dc3923c216c01461724617f6a5ace8d47a5a7069502f1a23f743a",
+    "after-source-go": "62c0490b977825f7515accc88f1894cbc69c56789a292a46e13fe1458cd7653d"
+  },
+  "source_guest_two_seat_go_frame": 2353,
+  "source_capture_wall_clock_independently_timestamped": false,
+  "actual_OS_hardkill_or_power_loss_exercised": false,
+  "physical_two_gamepads_or_real_audio_verified": false,
+  "genuine_scored_guest_match_in_recovery_route": false,
+  "original_USA_strict_complete_event_acceptances": 0,
+  "QA02_L4_credit": 0,
+  "release_gate_credit": 0,
+  "scope": "real native Windows source-created profile restoration and same-run bytewise catalog/source proof only"
+}

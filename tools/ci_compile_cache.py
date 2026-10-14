@@ -29,20 +29,17 @@ UNSAFE_EXACT = {"-c", "-v", "--version", "-###", "-print-search-dirs"}
 
 
 def real_compiler(name: str) -> str:
-    # argv[0] is the symlink in the shim dir; __file__ would resolve to tools/.
-    shim_dir = Path(os.path.abspath(sys.argv[0])).parent.resolve()
-    paths = []
+    """First `name` on PATH that is not (a symlink to) this shim, so nested or
+    stacked shims can never recurse into each other."""
+    me = Path(__file__).resolve()
     for d in os.environ.get("PATH", "").split(os.pathsep):
+        cand = Path(d) / name if d else None
         try:
-            if d and Path(d).resolve() == shim_dir:
-                continue
+            if cand and cand.is_file() and os.access(cand, os.X_OK) and cand.resolve() != me:
+                return str(cand)
         except OSError:
-            pass
-        paths.append(d)
-    found = shutil.which(name, path=os.pathsep.join(paths))
-    if not found:
-        sys.exit(f"ci_compile_cache: real {name} not found")
-    return found
+            continue
+    sys.exit(f"ci_compile_cache: real {name} not found")
 
 
 def passthrough(real: str, args: list[str]) -> None:

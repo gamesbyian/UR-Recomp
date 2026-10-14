@@ -35,7 +35,7 @@ class ShimBehaviourTests(unittest.TestCase):
             link.symlink_to(ROOT / "tools/ci_compile_cache.py")
         env = dict(os.environ, PATH=f"{shim}{os.pathsep}{os.environ['PATH']}",
                    UR_COMPILE_CACHE_DIR=str(cache))
-        return subprocess.run(["g++", *args], capture_output=True, text=True, env=env, cwd=cwd)
+        return subprocess.run(["g++", *args], capture_output=True, text=True, env=env, cwd=cwd, timeout=60)
 
     def test_hit_miss_edit_and_error_semantics(self):
         with tempfile.TemporaryDirectory() as d:

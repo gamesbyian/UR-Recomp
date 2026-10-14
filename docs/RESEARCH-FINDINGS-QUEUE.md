@@ -78,6 +78,8 @@ The two independent reference cores agree within one frame. Both native builds c
 | 2P race finish (seed 50036056), host 4700–5600 | 5109–5239 | 5109–5240 | +1 |
 | Stock route, generic SNESRecomp native | 248–276, 401–443, 988–1150 | 248–278, 404–449, 988–1150 | +2, +3, 0 |
 
+**Scope: legacy pin only, not Baldosa.** The pinned Baldosa guest (`gamesbyian/uniracers-recomp` `10b864b`, SNESRecomp fork `075fbe4`), which is being integrated into the Windows product, matches the references within one frame on all five attract-cycle loads: black runs 248–276, 401–443, 941–1097, 1422–1547 and 3632–3761, with no drift. It also completes **1,327** vblank-wait passes, the same as Beetle (Snes9x 1,326; legacy-pin native 1,311). The deficit belongs to this repository's SNESRecomp pin `cd5875c`, which is used by the current Modern build, the generic build and the frontier executable. The Baldosa migration therefore already removes it from the shipping path; it still matters for the legacy rollback backend and for frontier research timing. QA-01's Baldosa entry lags (+2/+1/+2) need a separate explanation.
+
 **Mechanism of the first load.** From host 248 the reference writes VRAM by CPU at 738 words per frame: unrolled `STA $2118` at `81:CD70–81:D09C` (Nitrodon bank 81). WRAM at `$0200+` stays byte-identical between native and Snes9x throughout. Native's VRAM progress falls one, then two frames behind and converges at 278. Native therefore takes about 7% more host frames (31 vs 29) for the same CPU-bound decompress-to-VRAM work. The second load starts later on native because the transition waits for a `$C6` phase that native reaches 4 frames later. The discriminating next measurement is native CPU cycles per iteration of that bank-81 writer against the hardware frame budget. This is a framework timing question (the generic build shows it too), adjudicated by QA-01.
 
 What this means for the frontier: on this route, native frontier states correspond exactly to original states for the whole race. Native fingerprint novelty here is therefore authentic original-game state novelty. But more random mid-race input will not find discrepancies. The measured discrepancy surface is the **transitions**: entry phase and the result handoff.
@@ -88,7 +90,7 @@ Generate with `python3 tools/research_findings.py --queue`. As of 2026-10-14:
 
 | ID | Class | Owner | What would resolve it |
 | --- | --- | --- | --- |
-| RF-014 | original_native_discrepancy | qa01-gameplay | Compare native CPU cycles per iteration of the bank-81 VRAM writer (`81:CD70–81:D09C`) in the host 248–278 load against the hardware frame budget (31 vs 29 frames, about 7%) |
+| RF-014 | original_native_discrepancy | qa01-gameplay | Diff cycle accounting of SNESRecomp `cd5875c` against Baldosa's fork `075fbe4` for the bank-81 VRAM writer (`81:CD70–81:D09C`); Baldosa already matches the references, so the fork's fix is the one to port if the legacy backend must stay timing-accurate |
 | RF-012 | original_native_discrepancy | qa01-gameplay | Trace writers of `7E:2000–2009` and `7E:0BDE/0BFE` at native 5195–5198 against original 5193–5196 on the 50036056 reproducer |
 | RF-013 | reproducible_anomaly | qa01-gameplay | Compare native vs original iteration counts of the entry fade wait for route delay k=1 (lag 2) against k=2 (lag 3) |
 | RF-005 | graphics_observation_gap | qa08-graphics | Replace the dead `$121B/$121D` predicate with the bank-82 sentinel observer, only if QA-08 names a question |

@@ -83,6 +83,8 @@ def main() -> int:
     ap.add_argument("--core", type=Path, action="append", required=True,
                     help="reference libretro core; repeat for several")
     ap.add_argument("--native-exe", type=Path)
+    ap.add_argument("--baldosa-exe", type=Path,
+                    help="also run the pinned Baldosa guest (no-input routes only)")
     ap.add_argument("--rom", type=Path, default=ROOT / "reference/roms/retail/Uniracers_USA.sfc")
     ap.add_argument("--frames", default="2-1126/4")
     ap.add_argument("--work", type=Path, required=True)
@@ -104,6 +106,14 @@ def main() -> int:
                               args.work / "native")
         engines["native"] = [dumps[f].read_bytes() for f in frames]
         identity["native"] = {"executable_sha256": xc.sha256(args.native_exe)}
+    if args.baldosa_exe:
+        import qa_blank_screen_census as blank
+        if any(line.split("#", 1)[0].strip() for line in control.splitlines()):
+            raise SystemExit("the Baldosa launcher supports only the no-input route")
+        dumps = blank.baldosa_run(args.baldosa_exe, args.rom.resolve(), frames,
+                                  args.work / "baldosa")
+        engines["baldosa"] = [dumps[f].read_bytes() for f in frames]
+        identity["baldosa"] = {"executable_sha256": xc.sha256(args.baldosa_exe)}
     result = census(frames, engines)
     result["identity"] = identity
     result["input_sha256"] = xc.sha256(args.input)

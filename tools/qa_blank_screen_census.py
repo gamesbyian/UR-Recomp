@@ -115,6 +115,38 @@ class FramebufferOriginal(xc.Original):
         return {f: work / f"o-{f}.wram.bin" for f in frames}
 
 
+def baldosa_run(exe: Path, rom: Path, frames: list[int], work: Path) -> dict[int, Path]:
+    """Pinned Baldosa guest (gamesbyian/uniracers-recomp) with no controller input.
+
+    Same launch contract as QA-01's ``run_pinned_baldosa``: ``--no-launcher``,
+    an audio-off config, ``SNESRECOMP_DUMP_DIR``; no input shim, so only the
+    no-input attract route is supported.
+    """
+    import os
+    import subprocess
+    if work.exists():
+        raise ValueError(f"refuse to reuse prior evidence root {work}")
+    (work / "dumps").mkdir(parents=True)
+    (work / "config.ini").write_text("[Sound]\nEnableAudio = 0\n", encoding="utf-8")
+    lines, prev = [], 0
+    for f in frames:
+        lines += [f"wait {f - prev}", f"dump b-{f}"]
+        prev = f
+    (work / "case.script").write_text("\n".join(lines + ["quit"]) + "\n", encoding="utf-8")
+    env = dict(os.environ, SDL_AUDIODRIVER="dummy", SNESRECOMP_DUMP_DIR=str(work / "dumps"),
+               SNESRECOMP_ROM=str(rom))
+    env.pop("UR_QA_SCENE_INPUT_FILE", None)
+    done = subprocess.run(["xvfb-run", "-a", str(exe.resolve()), "--no-launcher",
+                           "--config", str(work / "config.ini"),
+                           "--script", str(work / "case.script"), str(rom)],
+                          cwd=work, env=env, capture_output=True, text=True,
+                          errors="replace", timeout=1800)
+    (work / "baldosa.log").write_text(done.stdout + done.stderr, encoding="utf-8")
+    if done.returncode != 0:
+        raise RuntimeError(f"Baldosa exited {done.returncode}")
+    return {f: work / "dumps" / f"b-{f}.wram.bin" for f in frames}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -126,14 +158,20 @@ def main() -> int:
     ap.add_argument("--frames", default="2-1126")
     ap.add_argument("--work", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--baldosa-exe", type=Path,
+                    help="also run the pinned Baldosa guest (no-input routes only)")
+    ap.add_argument("--allow-gaps", action="store_true",
+                    help="accept several dense windows; runs at a window edge are truncated")
     ap.add_argument("--keep-dumps", action="store_true")
     args = ap.parse_args()
     if args.out.exists():
         raise SystemExit("refuse to overwrite a prior census")
     frames = xc.parse_frames(args.frames)
-    if frames != list(range(frames[0], frames[-1] + 1)):
+    if frames != list(range(frames[0], frames[-1] + 1)) and not args.allow_gaps:
         raise SystemExit("blank-run lengths need every frame: use a dense a-b range")
     control = args.input.read_text(encoding="utf-8")
+    if args.baldosa_exe and any(l.split("#", 1)[0].strip() for l in control.splitlines()):
+        raise SystemExit("the Baldosa launcher supports only the no-input route")
     engines, identity = {}, {}
     for core in args.core:
         ref = FramebufferOriginal(args.snesref, core, args.rom)
@@ -152,7 +190,15 @@ def main() -> int:
         identity["native"] = {"executable_sha256": xc.sha256(args.native_exe)}
         if not args.keep_dumps:
             shutil.rmtree(work)
+    if args.baldosa_exe:
+        work = args.work / "baldosa"
+        values = framebuffers(baldosa_run(args.baldosa_exe, args.rom.resolve(), frames, work))
+        engines["baldosa"] = [values[f] for f in frames]
+        identity["baldosa"] = {"executable_sha256": xc.sha256(args.baldosa_exe)}
+        if not args.keep_dumps:
+            shutil.rmtree(work)
     result = census(frames, engines, args.core[0].stem)
+    result["window_gaps_truncate_runs"] = frames != list(range(frames[0], frames[-1] + 1))
     result["identity"] = identity
     result["input_sha256"] = xc.sha256(args.input)
     args.out.write_text(json.dumps(result, indent=1, sort_keys=True) + "\n", encoding="utf-8")

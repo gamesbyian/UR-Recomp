@@ -67,6 +67,19 @@ The no-input attract cycle (host 2–4002, one counter-rewrite window excluded) 
 
 The two independent reference cores agree within one frame. Both native builds complete 28–30 fewer game frames, so the deficit is in the shared SNESRecomp runtime or generated code, not the Modern product host. Every one of the 27 differing windows is a screen transition or menu slide (raw `7E:009F` values `0x84`, `0xD7`, `0x3D`, `0x6D`, `0x91`); in steady menus all three run one game frame per host frame. At one-frame resolution the sharpest window is the load during which `7E:009F` changes `0x84→0xD7`: all engines hold `$C6` from host 426, the reference cores resume at 436–437 and reach `0xD7` at 440, native resumes at 442 and reaches `0xD7` at 446. Native needs about 5 extra host frames for the same load. The resulting `$C6` offset (4 mod 32) is frozen during the race and explains RF-012's `$0BDE/$0BFE` offset of 8 exactly. Native losing game frames at heavy transitions is the most economical common explanation for RF-012 (longer result phase), RF-013 (later, phase-dependent entry) and the 1P result-handoff seams QA-01 is chasing. It is a hypothesis to adjudicate, not a ruling. AGENTS forbids tuning `$4212` merely to match one emulator; the question is why native spends extra host frames on the same guest work.
 
+## Player-visible confirmation: longer black loading screens (RF-014)
+
+[`tools/qa_blank_screen_census.py`](../tools/qa_blank_screen_census.py) dumps every frame on each engine, measures framebuffer brightness, and pairs each engine's black-screen runs. It needs no WRAM access, so it also runs on the pinned high-accuracy `bsnes-libretro` core, which exposes no system RAM. In every run below bsnes agrees exactly with Snes9x, and Beetle-bsnes agrees within one frame.
+
+| Route | Reference black runs (bsnes) | Native | Native longer by |
+| --- | --- | --- | --- |
+| Stock 2P frontend, host 2–1250 | 248–276, 401–443, 988–1150 | 248–278, 404–449, 988–1151 | +2, +3, +1 |
+| No-input attract cycle, host 2–4002 | 248–276, 401–443, 941–1098, 1423–1547, 3632–3762 | 248–278, 404–449, 952–1112, 1440–1564, 3649–3781 | +2, +3, +3, … +2; later loads start **17 frames late** by host 3632 |
+| 2P race finish (seed 50036056), host 4700–5600 | 5109–5239 | 5109–5240 | +1 |
+| Stock route, generic SNESRecomp native | 248–276, 401–443, 988–1150 | 248–278, 404–449, 988–1150 | +2, +3, 0 |
+
+**Mechanism of the first load.** From host 248 the reference writes VRAM by CPU at 738 words per frame: unrolled `STA $2118` at `81:CD70–81:D09C` (Nitrodon bank 81). WRAM at `$0200+` stays byte-identical between native and Snes9x throughout. Native's VRAM progress falls one, then two frames behind and converges at 278. Native therefore takes about 7% more host frames (31 vs 29) for the same CPU-bound decompress-to-VRAM work. The second load starts later on native because the transition waits for a `$C6` phase that native reaches 4 frames later. The discriminating next measurement is native CPU cycles per iteration of that bank-81 writer against the hardware frame budget. This is a framework timing question (the generic build shows it too), adjudicated by QA-01.
+
 What this means for the frontier: on this route, native frontier states correspond exactly to original states for the whole race. Native fingerprint novelty here is therefore authentic original-game state novelty. But more random mid-race input will not find discrepancies. The measured discrepancy surface is the **transitions**: entry phase and the result handoff.
 
 ## Live queue
@@ -75,7 +88,7 @@ Generate with `python3 tools/research_findings.py --queue`. As of 2026-10-14:
 
 | ID | Class | Owner | What would resolve it |
 | --- | --- | --- | --- |
-| RF-014 | original_native_discrepancy | qa01-gameplay | Log native host-frame boundaries, `$4212`/NMI polls and DMA over host 426–446 (the `0x84→0xD7` load native finishes about 5 frames late) |
+| RF-014 | original_native_discrepancy | qa01-gameplay | Compare native CPU cycles per iteration of the bank-81 VRAM writer (`81:CD70–81:D09C`) in the host 248–278 load against the hardware frame budget (31 vs 29 frames, about 7%) |
 | RF-012 | original_native_discrepancy | qa01-gameplay | Trace writers of `7E:2000–2009` and `7E:0BDE/0BFE` at native 5195–5198 against original 5193–5196 on the 50036056 reproducer |
 | RF-013 | reproducible_anomaly | qa01-gameplay | Compare native vs original iteration counts of the entry fade wait for route delay k=1 (lag 2) against k=2 (lag 3) |
 | RF-005 | graphics_observation_gap | qa08-graphics | Replace the dead `$121B/$121D` predicate with the bank-82 sentinel observer, only if QA-08 names a question |

@@ -11,6 +11,7 @@
 #include "completed_run_record.hpp"
 #include "multiplayer_match_record.hpp"
 #include "local_multiplayer_match_binding.hpp"
+#include "baldosa_native_existing_profile_next_boot.hpp"
 
 #include <algorithm>
 #include <array>
@@ -293,6 +294,18 @@ int main(int argc, char** argv) {
         return add_second_named_profile(argv[1], argv[2]);
     if (argc == 4 && std::strcmp(argv[3], "--add-second-keep-first") == 0)
         return add_second_named_profile(argv[1], argv[2], false);
+    // TEST ONLY: explicit next-process selector, never create either identity.
+    // Reuse exact production locked profile/catalog/typed/raw SRAM authority.
+    if (argc == 5 &&
+        std::strcmp(argv[4], "--select-existing-next-boot") == 0) {
+        const auto result = select_baldosa_existing_profile_for_next_boot(
+            fs::path(argv[1]), argv[2], argv[3]);
+        if (!result.selected()) return 85;
+        std::printf("UR_BALDOSA_NATIVE_PROFILE_FIXTURE "
+                    "existing_next_boot=%s previous=%s no_guest_swap=1\n",
+                    result.next_profile_id.c_str(), argv[2]);
+        return 0;
+    }
     if (argc != 3) return 2;
 
     const fs::path root(argv[1]);

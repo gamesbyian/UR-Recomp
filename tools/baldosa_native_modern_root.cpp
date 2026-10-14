@@ -14,6 +14,10 @@
 #include "baldosa_native_two_seat_join.hpp"
 #include "quick_practice_route.hpp"
 #include "quick_practice_input_mask.hpp"
+#include "quick_practice_launch.hpp"
+#include "quick_practice_available_selection.hpp"
+#include "quick_practice_selection_view.hpp"
+#include "uniracers_course_identity.h"
 
 extern "C" {
 #include "desktop/config.h"
@@ -54,8 +58,14 @@ using ur::product::ModernRootOverlayView;
 using ur::product::HostOverlayRect;
 constexpr std::uint8_t kNativeRootAvailable =
     (1u << static_cast<unsigned>(ModernRootDestination::Play)) |
+    (1u << static_cast<unsigned>(ModernRootDestination::Practice)) |
     (1u << static_cast<unsigned>(ModernRootDestination::Multiplayer)) |
     (1u << static_cast<unsigned>(ModernRootDestination::Records));
+// The pinned native guest has proven Dragster; tour unlock policy for the
+// remaining 44 source courses needs separate evidence before exposing them.
+constexpr ur::product::QuickPracticeAvailability kNativePracticeAvailable{1u};
+ur::product::QuickPracticeSelection g_practice_picker{};
+ur::product::QuickPracticeLaunchState g_practice_launch{};
 ModernRootMenu g_menu{};
 ur::product::ModernRootPhysicalEdges g_navigation_edges{};
 ur::product::ModernRootPhysicalEdges g_p2_join_edges{};
@@ -107,6 +117,13 @@ bool g_handed_off_saw_race = false;
 bool g_reentry_smoke_queued = false;
 bool g_reentry_needs_paint = false;
 
+void practice_route_abort(const char* reason) {
+    ur_baldosa_product_cancel_stock_menu_input();
+    g_practice_launch = {};
+    std::fprintf(stderr,
+        "UR_BALDOSA_MODERN_ROOT practice_rejected=%s source_course_admitted=0\n",
+        reason);
+}
 void stock_route_abort(const char* reason) {
     ur_baldosa_product_cancel_stock_menu_input();
     g_two_seat_join.cancel();
@@ -134,6 +151,8 @@ bool reopen_on_observed_stock_main() {
     g_visible = true;
     g_confirm_quit = false;
     g_records_open = false;
+    g_practice_picker = {};
+    g_practice_launch = {};
     g_unbound_two_player_warning_open = false;
     g_run_save_feedback = ur::product::BaldosaNativeRunSaveFeedback::None;
     g_two_seat_join.cancel();
@@ -285,7 +304,9 @@ void join_confirm(unsigned seat) {
 void open_stock_racer_setup() {
     // No typed/catalog mutation from stock gameplay, stale authority, a
     // second seat's input, or while another root child owns focus.
-    if (!g_visible || g_stock_target != -1 || g_records_open ||
+    if (!g_visible || g_stock_target != -1 ||
+        ur::product::quick_practice_launch_owns_player_input(g_practice_launch) ||
+        g_practice_picker.visible || g_records_open ||
         g_confirm_quit || g_two_seat_join.open() ||
         g_unbound_two_player_warning_open || g_first_racer_open ||
         g_second_racer_open || g_existing_switch_open ||
@@ -349,7 +370,24 @@ void open_stock_racer_setup() {
         "activation=next_process\n", g_second_racer_preset);
 }
 void choose() {
-    if (g_stock_target != -1) return;
+    if (g_stock_target != -1 ||
+        ur::product::quick_practice_launch_owns_player_input(g_practice_launch))
+        return;
+    if (g_practice_picker.visible) {
+        if (!named_profile_still_playable()) return;
+        const auto selected = ur::product::quick_practice_available_selection_apply(
+            g_practice_picker,
+            ur::product::QuickPracticeSelectionCommand::Confirm,
+            kNativePracticeAvailable);
+        if (selected.result != ur::product::QuickPracticeSelectionResult::Confirmed ||
+            !selected.target.valid || selected.target.track_id != 0u) return;
+        g_practice_picker = selected.state;
+        g_practice_launch = ur::product::begin_quick_practice_launch(selected.target);
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT practice_requested=1 course=0 name=DRAGSTER "
+            "source_route=stock\n");
+        return;
+    }
     if (g_existing_switch_open) {
         if (g_existing_switch_saved || g_ever_entered_stock ||
             !named_profile_still_playable()) return;
@@ -445,6 +483,16 @@ void choose() {
     }
     const auto selected = ur::product::modern_root_menu_selected(g_menu);
     const auto index = ur::product::modern_root_destination_index(selected);
+    if (selected == ModernRootDestination::Practice) {
+        if (!named_profile_still_playable()) return;
+        g_practice_picker = ur::product::open_available_quick_practice_selection(
+            0u, kNativePracticeAvailable);
+        if (g_practice_picker.visible)
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_ROOT practice_opened=1 available=1 "
+                "course=0 source_menu_required=1\n");
+        return;
+    }
     if (selected == ModernRootDestination::Records) {
         open_records_archive();
         return;
@@ -513,7 +561,18 @@ void choose() {
 }
 void navigate(int delta) {
     if (g_confirm_quit || g_stock_target != -1 ||
+        ur::product::quick_practice_launch_owns_player_input(g_practice_launch) ||
         g_unbound_two_player_warning_open) return;
+    if (g_practice_picker.visible) {
+        const auto result = ur::product::quick_practice_available_selection_apply(
+            g_practice_picker,
+            delta > 0
+                ? ur::product::QuickPracticeSelectionCommand::NextCourse
+                : ur::product::QuickPracticeSelectionCommand::PreviousCourse,
+            kNativePracticeAvailable);
+        g_practice_picker = result.state;
+        return;
+    }
     if (g_existing_switch_open) return;
     if (g_second_racer_open) {
         if (g_second_racer_created) return;
@@ -555,6 +614,15 @@ void navigate(int delta) {
             ur::product::modern_root_menu_selected(g_menu)));
 }
 void back() {
+    if (ur::product::quick_practice_launch_owns_player_input(g_practice_launch)) {
+        practice_route_abort("cancelled");
+        return;
+    }
+    if (g_practice_picker.visible) {
+        g_practice_picker = {};
+        std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT practice_closed=1\n");
+        return;
+    }
     if (g_existing_switch_open) {
         g_existing_switch_open = false;
         std::fprintf(stderr,
@@ -638,6 +706,8 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     g_navigation_edges.reset();
     g_p2_join_edges.reset();
     g_two_seat_join.cancel();
+    g_practice_picker = {};
+    g_practice_launch = {};
     g_confirm_quit = false;
     g_records_open = false;
     g_unbound_two_player_warning_open = false;
@@ -796,6 +866,16 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         g_records_open, g_records_status, g_records_recent,
         g_records_two_player, true};
     view.records_detail = g_records_detail;
+    view.practice_picker_open = g_practice_picker.visible;
+    view.practice_launch_pending =
+        ur::product::quick_practice_launch_owns_player_input(g_practice_launch);
+    if (view.practice_picker_open) {
+        const auto preview = ur::product::quick_practice_selection_view(
+            g_practice_picker);
+        view.practice_course_name = preview.course_name;
+        view.practice_tour_name = preview.tour_name;
+        view.practice_kind_label = preview.kind_label;
+    }
     view.unbound_two_player_warning_open =
         g_unbound_two_player_warning_open;
     view.first_racer_shortcut_available =
@@ -867,7 +947,68 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
 // Advance exclusively from the native guest's actual post-frame WRAM.
 // Buttons travel on the existing host-only input filter, not RAM writes,
 // fake menu flags, scripted debug inputs, or a competing emulator loop.
+// Reuse the shipping QuickPracticeLaunch state machine and stock input
+// transport. The original guest must enter the requested original course,
+// not merely show a 1P picker, before the host releases controller focus.
+void observe_practice_guest() {
+    using namespace ur::product;
+    if (!quick_practice_launch_owns_player_input(g_practice_launch)) return;
+    if (!named_profile_still_playable()) {
+        practice_route_abort("active_profile_stale");
+        return;
+    }
+    const bool in_race = g_ram[0x0313] == 1u;
+    const auto identity = in_race
+        ? ur_uniracers_identify_course(g_ram + 0x10000u, 0x10000u)
+        : UrUniracersCourseIdentity{};
+    const QuickPracticeLaunchObservation observation{
+        g_ram[0x009f], g_ram[0x009b], in_race,
+        identity.valid ? identity.course_index - 1 : -1};
+    const auto step = advance_quick_practice_launch(
+        g_practice_launch, observation);
+    if (step.route_violation || step.course_mismatch || step.timed_out) {
+        practice_route_abort(step.course_mismatch ? "wrong_source_course" :
+                             step.timed_out ? "timeout" : "source_route_violation");
+        // A wrong source race is playable but cannot gain this root's
+        // profile/result authority. Do not leave its human controls frozen.
+        if (in_race) {
+            g_visible = false;
+            g_stock_handed_off = false;
+            g_handed_off_players = 0;
+            ur_baldosa_product_set_host_focus(0);
+        }
+        return;
+    }
+    if (step.input != QuickPracticeLaunchInput::None) {
+        const auto mask = quick_practice_runner_mask(step.input);
+        if (!quick_practice_runner_mask_is_discrete_menu_input(mask) ||
+            !ur_baldosa_product_queue_stock_menu_input(mask)) {
+            g_practice_launch = quick_practice_launch_retry_state(
+                g_practice_launch);
+            if (g_practice_launch.observations_remaining == 0u)
+                practice_route_abort("source_input_unavailable");
+            return;
+        }
+    }
+    g_practice_launch = step.state;
+    if (!step.race_ready) return;
+    if (!in_race || !identity.valid || identity.course_index != 1) {
+        practice_route_abort("course_identity_unverified");
+        return;
+    }
+    g_practice_launch = {};
+    g_visible = false;
+    g_stock_handed_off = true;
+    g_ever_entered_stock = true;
+    g_handed_off_players = 1u;
+    g_handed_off_saw_race = true;
+    ur_baldosa_product_set_host_focus(0);
+    std::fprintf(stderr,
+        "UR_BALDOSA_MODERN_ROOT practice_entered=1 course=0 "
+        "original_course=1 race=1 source_identity=verified\n");
+}
 extern "C" void ur_baldosa_modern_root_stock_observe_guest(void) {
+    observe_practice_guest();
     if (g_stock_target == -1) return;
     // The stock-menu route itself takes several frames. Do not release host
     // input using participants revoked after their second confirmation.
@@ -1022,7 +1163,8 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
                              std::strcmp(opt, "7") != 0 &&
                              std::strcmp(opt, "8") != 0 &&
                              std::strcmp(opt, "9") != 0 &&
-                             std::strcmp(opt, "10") != 0)) return;
+                             std::strcmp(opt, "10") != 0 &&
+                             std::strcmp(opt, "11") != 0)) return;
     // Controlled host-root edge on an anonymous install. No created racer
     // is activated in this guest; a new process must load canonical SRAM.
     if (std::strcmp(opt, "4") == 0) {
@@ -1195,6 +1337,20 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             "UR_BALDOSA_MODERN_ROOT noargs_launcher_gamepad "
             "profile=%s button=%s\n",
             named ? "mike" : "anonymous", action);
+        return;
+    }
+    // CI-only mode 11 traverses the real P1 handler: Down, A to open
+    // Practice, A to confirm Dragster. The original tour/racer/track/GO
+    // navigation thereafter belongs solely to the shared route state.
+    if (std::strcmp(opt, "11") == 0) {
+        const int button = frame == 60 ? kGamepadBtn_DpadDown :
+                           frame == 62 || frame == 64 ? kGamepadBtn_A : -1;
+        if (button < 0) return;
+        if (!ur_baldosa_modern_root_gamepad(0, button, 1) ||
+            !ur_baldosa_modern_root_gamepad(0, button, 0))
+            std::abort();
+        std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT practice_gamepad=%s\n",
+                     button == kGamepadBtn_DpadDown ? "DOWN" : "A");
         return;
     }
     // Mode 3 is a deliberately TEST-ONLY synthetic gamepad semantic

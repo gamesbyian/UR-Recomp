@@ -76,6 +76,14 @@ struct ModernRootOverlayView {
     bool existing_profile_switch_available = false;
     bool existing_profile_switch_saved = false;
     bool first_racer_is_switch = false;
+    // Native source-qualified Practice shares the existing root artwork.
+    // The old host leaves these false; this cannot advertise unavailable
+    // stock tours or change another frontend's established controls.
+    bool practice_picker_open = false;
+    bool practice_launch_pending = false;
+    std::string_view practice_course_name{};
+    std::string_view practice_tour_name{};
+    std::string_view practice_kind_label{};
 };
 
 inline bool render_modern_root_overlay(
@@ -203,6 +211,38 @@ inline bool render_modern_root_overlay(
                     ? "X/F2 RACERS   F1 HELP"
                     : "RACER SETUP NOT YET LINKED",
         palette.cursor_blue, scale);
+    if (view.practice_picker_open || view.practice_launch_pending) {
+        const int bx = x + 12 * scale, by = y + 43 * scale;
+        const int bw = (panel_w - 24) * scale, bh = 137 * scale;
+        paint.fill_rect(pixels, stride, surface_height,
+                        bx, by, bw, bh, palette.background);
+        paint.stroke_rect(pixels, stride, surface_height,
+                          bx, by, bw, bh, palette.title_yellow);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 10 * scale,
+                        "QUICK PRACTICE", palette.title_yellow, scale);
+        const auto cells = modern_overlay_text_cells(panel_w - 30);
+        const std::string name = fit_modern_overlay_text(
+            view.practice_launch_pending ? "ENTERING ORIGINAL COURSE"
+                                         : std::string(view.practice_course_name),
+            cells);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 37 * scale,
+                        name.c_str(), 0xFFFFFFFFu, scale);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 62 * scale,
+                        view.practice_launch_pending
+                            ? "WAIT FOR SOURCE GO" : "CRAWLER - RACE",
+                        palette.secondary_grey, scale);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 89 * scale,
+                        "1 VERIFIED COURSE", palette.cursor_blue, scale);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 115 * scale,
+                        view.practice_launch_pending
+                            ? "B CANCEL" : "A START  B BACK",
+                        0xFFFFFFFFu, scale);
+    }
     if (view.quit_confirm) {
         const int qx = x + 12 * scale, qy = y + 65 * scale;
         const int qw = (panel_w - 24) * scale;

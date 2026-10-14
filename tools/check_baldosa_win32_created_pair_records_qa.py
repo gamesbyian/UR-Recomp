@@ -136,7 +136,7 @@ def audit(raw_report: bytes, *raw_logs: bytes) -> dict[str, object]:
     require("UR_BALDOSA_NATIVE_PROFILE DEFAULT no_host_state=1" in first and
             not any(x in first for x in NO_CREATION_RESULT),
             "P1 first game was provisioned or raced")
-    ordered_exact_source_lines(second, tuple(stage.replace("preset=1", "preset=2").replace("id=andrew", "id=martin") for stage in SECOND), "P1 creates separate MARTIN P2")
+    ordered_exact_source_lines(second, SECOND[:3] + ("UR_BALDOSA_MODERN_ROOT second_racer_preset=2", SECOND[3].replace("preset=1", "preset=2").replace("id=andrew", "id=martin"), SECOND[4]), "P1 creates separate MARTIN P2")
     require(not any(x in second for x in NO_CREATION_RESULT) and
             len(list(BOOT.finditer(second))) == 1,
             "P2 was hot swapped or race-published")

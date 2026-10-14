@@ -43,6 +43,39 @@ class BulkGuestDistanceTest(unittest.TestCase):
         self.assertEqual(report["admission"]["release_usa_complete_courses_credited"], 0)
         self.assertEqual(report["admission"]["causal_claim"], "none")
 
+    def test_exact_source_artifact_hashes_never_relabel_other_runs(self):
+        old = fit.provenance(
+            "f6a0ef06a856f16bfde3206cdcc86b752e831a9594a489484934d6c5388ef993",
+            require_known=True)
+        recent = fit.provenance(
+            "d5ec65c672736fa45f01214134db8598baa840f106729bd2c04ffb8949f1d039",
+            require_known=True)
+        self.assertEqual((old["source_ci_run"], old["source_artifact_id"]),
+                         (38018081196, 11656564258))
+        self.assertEqual((recent["source_ci_run"], recent["source_artifact_id"]),
+                         (38500427634, 11866136501))
+        self.assertTrue(old["original_native_source_execution_identity_verified"])
+        self.assertTrue(recent["original_native_source_execution_identity_verified"])
+        self.assertEqual(recent["release_complete_event_qa_credit"], 0)
+
+    def test_unknown_zip_cannot_inherit_original_native_execution_identity(self):
+        import hashlib
+        unverified_zip = self.make_artifact().getvalue()
+        digest = hashlib.sha256(unverified_zip).hexdigest()
+        self.assertNotIn(digest, fit.KNOWN_ARTIFACTS)
+        obj = fit.provenance(digest)
+        self.assertFalse(obj["original_native_source_execution_identity_verified"])
+        self.assertIsNone(obj["source_ci_run"])
+        self.assertIsNone(obj["source_artifact_id"])
+        self.assertEqual(obj["artifact_zip_sha256"], digest)
+        self.assertEqual(obj["release_complete_event_qa_credit"], 0)
+        with self.assertRaisesRegex(ValueError, "unknown original/native source"):
+            fit.provenance(digest, require_known=True)
+        for invalid in ("unknown", digest.upper(), digest[:-1], digest + "0"):
+            with self.subTest(invalid=invalid[:15]),self.assertRaisesRegex(
+                    ValueError, "invalid complete artifact"):
+                fit.provenance(invalid)
+
     def test_missing_or_corrupt_guest_dump_rejected(self):
         with ZipFile(self.make_artifact(corrupt=True)) as archive:
             with self.assertRaisesRegex(ValueError, "expected"):

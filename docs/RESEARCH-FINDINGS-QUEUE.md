@@ -33,11 +33,23 @@ The ordinary 2P route enters the race on different absolute host frames in diffe
 | --- | ---: | ---: | ---: | --- |
 | 38506108109 (`f2ba2849…`), incl. 10 exploration | 100 | 100 | 0 | identical in every class |
 | 38446393623 (`28501fa3…`), held out, incl. dual-air witness | 100 | 100 | 0 | identical, both-air 1 / 1 |
-| RESULTS_PENDING | | | | |
+| 38438864232, held out (3-frame observer) | 100 | 100 | 0 | original incidence recorded |
+| 38304551380, held out (3-frame observer) | 100 | 100 | 0 | original incidence recorded |
+| 38306802282 (`28501fa3…`), 10,000 cases | — | — | — | **running**; resumable journal, results to follow |
 
-A coarse agreement is equality of the quantized census fields (position/64 and /32, velocity/64, rotation/16, raw air, split, offscreen, race progress), **not** strict equality, event acceptance or release credit. It is nonetheless a large-population, independently-reproducible original/native comparison of random legal 2P trajectories, which the project did not have before. A divergent case would become an `original_native_discrepancy` candidate with an exact seed, arm and first divergent checkpoint.
+A coarse agreement is equality of the quantized census fields (position/64 and /32, velocity/64, rotation/16, raw air, split, offscreen, race progress), **not** strict equality, event acceptance or release credit. It is still a large-population, independently reproducible original/native comparison of random legal 2P trajectories, which the project did not have before. A divergent case would become an `original_native_discrepancy` candidate with an exact seed, arm and first divergent checkpoint.
 
-**The dual-air witness is resolved (RF-001).** At native-equivalent 2580 the original has P1 air 1 and P2 air 2; one frame earlier P2 alone is 1; one frame later both are 0. It is a one-frame simultaneous hop that the 120-frame sampler happened to catch, reproduced by the original game. It is not a discrepancy and needs no QA-01 event work.
+**The dual-air witness is resolved (RF-001).** At native-equivalent 2580 the original has P1 air 1 and P2 air 2; one frame earlier only P2 is airborne (air 1); one frame later both are 0. It is a one-frame simultaneous hop that the 120-frame sampler happened to catch, and the original game reproduces it. It is not a discrepancy and needs no QA-01 event work.
+
+## Exact paired original/native comparison (2026-10-14)
+
+`paired` mode runs a real native executable beside the reference emulator. It **measures** each side's race entry (first `inRace=1`) and compares every decoded source field plus every WRAM byte at `$0200+` at native frame F against reference frame F−lag. The native side was a current-`main` Modern candidate (`fda6ace`, executable `4c1c8b56…`), built locally with the `modern-shared-native-acceptance.yml` recipe. Evidence: [`analysis/data/frontier-original-native-race-relative-20261014.json`](../analysis/data/frontier-original-native-race-relative-20261014.json).
+
+* **Entry (RF-003, resolved):** native 1136, Snes9x 1134 and pinned Beetle-bsnes 1134 in every case. The lag of 2 is measured per case, not assumed. When a wrong lag was declared for Beetle, the tool flagged it rather than reporting a divergence.
+* **Mid-race:** 26 of 26 cases (5 per arm from three held-out runs, plus the witness) show **zero** differing fields and **zero** differing semantic WRAM bytes at 30-frame spacing from 1620 to 3420. The witness was also checked at every frame from 2570 to 2590. In total 39,747 race-relative frames were compared across all paired runs.
+* **Race terminal (RF-012, handed to QA-01):** a declared both-Right finish stimulus completes the ordinary 2P race in about 1,500 extra frames. In 9 of 9 seeds, state stays identical through both laps reaching 0 and through the onset of result menu `0x84`. The `0x84` phase then lasts **34 frames on Snes9x and on Beetle-bsnes, but 35 on native** (36 for seed 50024003). Every later difference follows the reference's `0x16` restoration. This is the same `Sram_RestoreDirectPage` (`83:988A`) handoff behind QA-01's open 1P Switcher strict divergence, where the original's phase is also 34 frames. It is now a 70-second deterministic 2P reproducer with two independent reference cores.
+
+What this means for the frontier: on this route, native frontier states correspond exactly to original states for the whole race. Native fingerprint novelty here is therefore authentic original-game state novelty. But more random mid-race input will not find discrepancies. The measured discrepancy surface is the **transitions**: entry phase and the result handoff.
 
 ## Live queue
 
@@ -45,8 +57,8 @@ Generate with `python3 tools/research_findings.py --queue`. As of 2026-10-14:
 
 | ID | Class | Owner | What would resolve it |
 | --- | --- | --- | --- |
-| RF-003 | source_backed_behaviour | research | Dense 1128–1140 entry probe of a Modern native: expect first `inRace=1` at 1136 |
-| RF-004 | untested_circumstance | research | Finish the census cross-check; bisect any divergent seed densely |
+| RF-012 | original_native_discrepancy | qa01-gameplay | Trace native `7E:009F`/restore writers at native 5230–5234 on the 2P reproducer against the original `83:988A` opcode trace |
+| RF-004 | untested_circumstance | research | Finish the 10,000-case census cross-check; bisect any divergent seed densely |
 | RF-005 | graphics_observation_gap | qa08-graphics | Replace the dead `$121B/$121D` predicate with the bank-82 sentinel observer, only if QA-08 names a question |
 | RF-008 | reproducible_anomaly | qa01-gameplay | One single-case `qa01-event-campaign.yml` dispatch before any long original-native campaign |
 | RF-002 | method_hazard | qa01-gameplay | Treat run 38509912672's same-host dual-air verdict as phase-confounded |
@@ -55,8 +67,9 @@ Closed and retired items (dual-air witness, `$0DDB`, sparse sampling, Windows an
 
 ## Next experiments, in priority order
 
-1. **Divergence hunting with original-side mutation, not native volume.** The original side costs about 3 s per case and needs no runner. Use it to search *for* disagreement: denser equivalent-frame observation (every 8 frames) and full-precision rather than quantized fields, against a locally or CI-built Modern native at the same race-relative alignment. Stop when a divergence is found (hand it to QA-01 with a bisect) or when a pre-declared population (1,000 cases) agrees.
-2. **Rare-state targeting.** Seed the planner with input prefixes from the agreed original trajectories that reached rare states (the dual-air hop, opponent-offscreen sentinels) and branch from there; selection decisions are recorded, and both engines replay the same recorded inputs, so the selector never defines correctness.
-3. **Regional/second-route coverage** only after a second source-qualified 2P route exists; the frontier currently varies input on one course and one mode.
+1. **Terminal-phase population (research, local or one CI job).** Run the finish stimulus on 100 seeds with both reference cores. Record the result-phase duration distribution and its dependence on finish state (who wins, the frame margin, laps-zero parity). That turns RF-012 from "9 of 9" into a measured rate and tells QA-01 whether the extra frame tracks scheduler parity. Stop at 100: the question is the mechanism, not a tighter rate.
+2. **Entry-phase invariance check (research).** Vary the pre-entry menu route timing by a few frames and confirm the measured lag stays 2. If it does not, every race-relative comparison must measure its lag per case, as `paired` already does.
+3. **Rare-state branching.** Branch new inputs from agreed original trajectories that reached rare states (the dual-air hop, opponent-offscreen sentinels). Record each selection decision and replay the same recorded input on both engines, so the selector never defines correctness.
+4. **Second route.** Only after a second source-qualified 2P route exists. The frontier currently varies input on one course and one mode.
 
-No new GitHub Actions campaign is recommended by this result. The original side runs locally; a CI version would be one job per 1,000 cases with no native build, if a reviewer wants hosted provenance.
+No new GitHub Actions campaign is required by these results. The reference side runs in about 3 s per case and the paired side in about 30–70 s per case, locally. If hosted provenance is wanted, one manual job per 100 terminal cases, sharing a single native build, is the proportionate size.

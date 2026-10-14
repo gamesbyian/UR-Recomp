@@ -1,0 +1,827 @@
+{
+ "alignment": "native frame F compared with reference frame F - 2; post-entry input shifted -2 for the reference; lag measured per case from first inRace=1",
+ "beetle_bsnes_reference": {
+  "census_runs": [],
+  "census_totals": {},
+  "claim": "quantized census agreement and sampled exact semantic-WRAM agreement only",
+  "original": {
+   "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+   "snes9x_core_sha256": "e1278b2a87bf2df10b9ba795131a949936d4d1d87f6ac15ac2e1cb672b9f2cb5",
+   "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+  },
+  "original_native_parity_claimed": false,
+  "paired_exact": [
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 4000,
+    "first_divergent_native_frame": 1137,
+    "frames_compared": 1658,
+    "max_semantic_wram_bytes_differing": 1163,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036056,
+    "terminal": {
+     "native": {
+      "both_laps_zero": 4868,
+      "race_exit": 5237,
+      "restored_menu_first": 5233,
+      "result_menu_first": 5198,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "both_laps_zero": 4869,
+      "race_exit": 5238,
+      "restored_menu_first": 5233,
+      "result_menu_first": 5199,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   }
+  ],
+  "paired_totals": {
+   "field_divergence": 1
+  },
+  "release_gate_credit": 0,
+  "schema": "ur-frontier-original-crosscheck-summary/1"
+ },
+ "date": "2026-10-14",
+ "findings": {
+  "mid_race": "26 of 26 non-terminal comparisons and every frame before the reference result-phase restoration in the 9 terminal comparisons: zero differing decoded fields and zero differing WRAM bytes at $0200+",
+  "result_phase": "native menu 0x84 result phase lasts 35 frames (36 for seed 50024003) where Snes9x and Beetle-bsnes last 34; all field differences start only after the reference's 0x16 restoration"
+ },
+ "native_candidate": {
+  "executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+  "recipe": ".github/workflows/modern-shared-native-acceptance.yml 'Build shared Modern native candidate' steps, run locally",
+  "source_sha": "fda6aceba91ad10adc1e7ed7b02729f9045e5170"
+ },
+ "original_native_parity_claimed": false,
+ "producer": "tools/qa_frontier_original_crosscheck.py paired / summarize (local execution, not GitHub-hosted)",
+ "release_gate_credit": 0,
+ "route": "tests/input/two-player-first-race.input + qa_adaptive_frontier.actions_for(seed, arm); optional declared finish stimulus 3430:N:080:080",
+ "schema": "ur-frontier-original-native-race-relative-evidence/1",
+ "snes9x_reference": {
+  "census_runs": [],
+  "census_totals": {},
+  "claim": "quantized census agreement and sampled exact semantic-WRAM agreement only",
+  "original": {
+   "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+   "snes9x_core_sha256": "040a61a06138543eba335e385b776f67a6cf9f69a924adbc4412a049e2c40189",
+   "snesref_sha256": "afbdad5df0cb9ffb67b9074cd4bc27f737ff024bdf635693ea7d689d0843f4ea"
+  },
+  "original_native_parity_claimed": false,
+  "paired_exact": [
+   {
+    "arm": "balanced",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50012000,
+    "terminal": null
+   },
+   {
+    "arm": "p1-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50012144,
+    "terminal": null
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50012215,
+    "terminal": null
+   },
+   {
+    "arm": "balanced",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50014002,
+    "terminal": null
+   },
+   {
+    "arm": "p1-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50014146,
+    "terminal": null
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50014217,
+    "terminal": null
+   },
+   {
+    "arm": "balanced",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50016004,
+    "terminal": null
+   },
+   {
+    "arm": "p1-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50016148,
+    "terminal": null
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50016219,
+    "terminal": null
+   },
+   {
+    "arm": "balanced",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50018006,
+    "terminal": null
+   },
+   {
+    "arm": "p1-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50018150,
+    "terminal": null
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50018221,
+    "terminal": null
+   },
+   {
+    "arm": "balanced",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50020008,
+    "terminal": null
+   },
+   {
+    "arm": "p1-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50020152,
+    "terminal": null
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50020223,
+    "terminal": null
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50024003,
+    "terminal": null
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50024004,
+    "terminal": null
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50024036,
+    "terminal": null
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50024051,
+    "terminal": null
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50024067,
+    "terminal": null
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50024088,
+    "terminal": null
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036015,
+    "terminal": null
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036027,
+    "terminal": null
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036052,
+    "terminal": null
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 65,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036071,
+    "terminal": null
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 0,
+    "first_divergent_native_frame": null,
+    "frames_compared": 40,
+    "max_semantic_wram_bytes_differing": 0,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036056,
+    "terminal": null
+   },
+   {
+    "arm": "balanced",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5294,
+    "frames_compared": 4553,
+    "max_semantic_wram_bytes_differing": 1154,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50012000,
+    "terminal": {
+     "native": {
+      "both_laps_zero": 4926,
+      "race_exit": 5295,
+      "restored_menu_first": 5291,
+      "result_menu_first": 5256,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "both_laps_zero": 4926,
+      "race_exit": 5294,
+      "restored_menu_first": 5290,
+      "result_menu_first": 5256,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "p1-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5294,
+    "frames_compared": 4553,
+    "max_semantic_wram_bytes_differing": 1154,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50012144,
+    "terminal": {
+     "native": {
+      "both_laps_zero": 4926,
+      "race_exit": 5295,
+      "restored_menu_first": 5291,
+      "result_menu_first": 5256,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "both_laps_zero": 4926,
+      "race_exit": 5294,
+      "restored_menu_first": 5290,
+      "result_menu_first": 5256,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5299,
+    "frames_compared": 4553,
+    "max_semantic_wram_bytes_differing": 1152,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50012215,
+    "terminal": {
+     "native": {
+      "both_laps_zero": 4931,
+      "race_exit": 5300,
+      "restored_menu_first": 5296,
+      "result_menu_first": 5261,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "both_laps_zero": 4931,
+      "race_exit": 5299,
+      "restored_menu_first": 5295,
+      "result_menu_first": 5261,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 4765,
+    "frames_compared": 4553,
+    "max_semantic_wram_bytes_differing": 1385,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50024003,
+    "terminal": {
+     "native": {
+      "both_laps_zero": 4440,
+      "race_exit": 4767,
+      "restored_menu_first": 4763,
+      "result_menu_first": 4727,
+      "result_phase_frames": 36
+     },
+     "original": {
+      "both_laps_zero": 4440,
+      "race_exit": 4765,
+      "restored_menu_first": 4761,
+      "result_menu_first": 4727,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 2
+    }
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5123,
+    "frames_compared": 4553,
+    "max_semantic_wram_bytes_differing": 1162,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50024004,
+    "terminal": {
+     "native": {
+      "both_laps_zero": 4755,
+      "race_exit": 5124,
+      "restored_menu_first": 5120,
+      "result_menu_first": 5085,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "both_laps_zero": 4755,
+      "race_exit": 5123,
+      "restored_menu_first": 5119,
+      "result_menu_first": 5085,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "p2-focus",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5230,
+    "frames_compared": 4553,
+    "max_semantic_wram_bytes_differing": 1154,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036002,
+    "terminal": {
+     "native": {
+      "both_laps_zero": 4862,
+      "race_exit": 5231,
+      "restored_menu_first": 5227,
+      "result_menu_first": 5192,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "both_laps_zero": 4862,
+      "race_exit": 5230,
+      "restored_menu_first": 5226,
+      "result_menu_first": 5192,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "alternating",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "exact_field_agreement",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": null,
+    "frames_compared": 4553,
+    "max_semantic_wram_bytes_differing": 96,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036005,
+    "terminal": {
+     "native": {
+      "both_laps_zero": 4837,
+      "race_exit": 5206,
+      "restored_menu_first": 5202,
+      "result_menu_first": 5167,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "both_laps_zero": 4837,
+      "race_exit": 5206,
+      "restored_menu_first": 5202,
+      "result_menu_first": 5168,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "balanced",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 6000,
+    "first_divergent_native_frame": 5052,
+    "frames_compared": 4553,
+    "max_semantic_wram_bytes_differing": 1155,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50048000,
+    "terminal": {
+     "native": {
+      "both_laps_zero": 4684,
+      "race_exit": 5053,
+      "restored_menu_first": 5049,
+      "result_menu_first": 5014,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "both_laps_zero": 4684,
+      "race_exit": 5052,
+      "restored_menu_first": 5048,
+      "result_menu_first": 5014,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   },
+   {
+    "arm": "rotation",
+    "declared_lag": 2,
+    "declared_lag_confirmed": true,
+    "disposition": "field_divergence",
+    "finish_hold": 4000,
+    "first_divergent_native_frame": 5236,
+    "frames_compared": 1658,
+    "max_semantic_wram_bytes_differing": 1163,
+    "measured_entry_host": {
+     "native": 1136,
+     "original": 1134
+    },
+    "native_executable_sha256": "4c1c8b565193658927e5939fa9df71e354509541cb59db2d552ed2117fedde8f",
+    "seed": 50036056,
+    "terminal": {
+     "native": {
+      "both_laps_zero": 4868,
+      "race_exit": 5237,
+      "restored_menu_first": 5233,
+      "result_menu_first": 5198,
+      "result_phase_frames": 35
+     },
+     "original": {
+      "both_laps_zero": 4868,
+      "race_exit": 5236,
+      "restored_menu_first": 5232,
+      "result_menu_first": 5198,
+      "result_phase_frames": 34
+     },
+     "result_phase_delta_native_minus_original": 1
+    }
+   }
+  ],
+  "paired_totals": {
+   "exact_field_agreement": 27,
+   "field_divergence": 8
+  },
+  "release_gate_credit": 0,
+  "schema": "ur-frontier-original-crosscheck-summary/1"
+ }
+}

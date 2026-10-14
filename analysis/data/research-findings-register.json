@@ -13,9 +13,14 @@
    "owner_lane": "qa01-gameplay",
    "reproducer": {
     "command": "python3 tools/qa_frontier_original_crosscheck.py run --run-id 38446393623 --lag 2 --seeds 50036056 --keep-dumps ...",
-    "runs": [38446393623],
-    "seed": 50036056, "arm": "rotation", "native_frame": 2580,
-    "race_relative_lag": 2, "original_frame": 2578
+    "runs": [
+     38446393623
+    ],
+    "seed": 50036056,
+    "arm": "rotation",
+    "native_frame": 2580,
+    "race_relative_lag": 2,
+    "original_frame": 2578
    },
    "source_artifacts": [
     "signed census research/qa-cumulative-ledger frontier_exact_coverage tokens 79968377c3bf214b60c95a12 (2580) and fb53e5eaddfbcae645a046f6 (3420)",
@@ -37,7 +42,9 @@
    "owner_lane": "qa01-gameplay",
    "reproducer": {
     "command": "python3 tools/qa_frontier_original_crosscheck.py run --run-id 38446393623 --lag 0 --seeds 50036056 --keep-dumps ...",
-    "runs": [38509912672],
+    "runs": [
+     38509912672
+    ],
     "race_relative_lag": 0
    },
    "source_artifacts": [
@@ -51,24 +58,29 @@
   },
   {
    "id": "RF-003",
-   "title": "Frontier Modern native enters the ordinary 2P race 2 host frames after Snes9x (generic native: 1)",
+   "title": "Modern native enters the ordinary 2P race 2 host frames after Snes9x and Beetle-bsnes (1136 vs 1134)",
    "class": "source_backed_behaviour",
-   "status": "open",
+   "status": "resolved",
    "evidence": "original_and_native",
    "owner_lane": "research",
    "reproducer": {
     "command": "python3 tools/qa_frontier_original_crosscheck.py calibrate ... ; run --lag 0|1|2",
-    "runs": [38506108109, 38446393623],
+    "runs": [
+     38506108109,
+     38446393623
+    ],
     "race_relative_lag": 2
    },
    "source_artifacts": [
     "calibration: the seed-independent 1740 token matches at L=0 and L=2 only",
-    "exploration set: first 10 cases of run 38506108109 agree at 2580 and 3420 for L=2 (10/10), L=0 (9/10), L=1 (0/10)"
+    "exploration set: first 10 cases of run 38506108109 agree at 2580 and 3420 for L=2 (10/10), L=0 (9/10), L=1 (0/10)",
+    "analysis/data/frontier-original-native-race-relative-20261014.json"
    ],
-   "observation": "Consistent with Baldosa's documented +1/+2 event-entry lags (QA01-THREE-EVENT-TERMINAL-TIMING-20261010.md).",
-   "uncertainty": "Inferred from fingerprint agreement, not from a dense native entry probe on executable 28501fa3...; lag 2 and 4 share scheduler parity.",
-   "resolving_experiment": "One dense 1128-1140 dump run of the preserved frontier executable (no new build); expect first inRace=1/race_tick=1 at 1136.",
-   "consequence": "Any original/native replay of frontier input must shift post-entry input by -2 and compare native F with original F-2."
+   "observation": "Measured directly on a current-main Modern candidate (4c1c8b56..., source fda6ace) in 36 paired cases: first inRace=1/race_tick=1 at native 1136, Snes9x 1134; the pinned Beetle-bsnes build also enters at 1134 (the older staircase figure 1133 does not hold for it). Consistent with the census cross-check's independent L=2 selection.",
+   "uncertainty": "Measured on the current-main candidate, not on the 28501fa3 frontier binary itself; that binary's L=2 is implied by population fingerprint agreement.",
+   "resolving_experiment": "None.",
+   "consequence": "Any original/native replay of frontier input must shift post-entry input by -2 and compare native F with original F-2.",
+   "resolution": "Entry lag 2 measured per case by tools/qa_frontier_original_crosscheck.py paired (measured_entry_host)."
   },
   {
    "id": "RF-004",
@@ -79,11 +91,20 @@
    "owner_lane": "research",
    "reproducer": {
     "command": "python3 tools/qa_frontier_original_crosscheck.py run --run-id <run> --lag 2 --workers 4 ...",
-    "runs": [38506108109, 38446393623, 38438864232, 38304551380, 38306802282],
+    "runs": [
+     38506108109,
+     38446393623,
+     38438864232,
+     38304551380,
+     38306802282
+    ],
     "race_relative_lag": 2
    },
-   "source_artifacts": ["signed census record_sha256 b7f4af657df35353aceed44d5ba99a196a2f0703062e2edd75dd308a90ca6a76"],
-   "observation": "Pending population result; see docs/RESEARCH-FINDINGS-QUEUE.md.",
+   "source_artifacts": [
+    "signed census record_sha256 b7f4af657df35353aceed44d5ba99a196a2f0703062e2edd75dd308a90ca6a76",
+    "analysis/data/frontier-original-native-race-relative-20261014.json"
+   ],
+   "observation": "Interim: 400 of 400 cases in the four 100-case runs coarse-agree at L=2, with identical feature incidence. Exact paired sample: 26 of 26 cases, zero differing decoded fields and zero semantic WRAM bytes over the sampled race. 10,000-case run pending.",
    "uncertainty": "Quantized fields (x//64, y//32, v//64, rotation//16) can hide sub-bin differences; agreement is not strict equality.",
    "resolving_experiment": "Complete the population; any coarse_divergence seed becomes its own original/native discrepancy candidate with a dense bisect.",
    "consequence": "Converts 10,400 native-only cases into original/native comparisons without a single new native process."
@@ -97,7 +118,9 @@
    "owner_lane": "qa08-graphics",
    "reproducer": {
     "command": "python3 tools/qa_frontier_original_crosscheck.py run ... (original_offscreen_sentinel_case_counts)",
-    "runs": [38446393623]
+    "runs": [
+     38446393623
+    ]
    },
    "source_artifacts": [
     "ordinary 2P regression asserts screen1 P2 (0x70,0x70) and screen2 P1 (0x30,0x30) at $1501-$150E on both runtimes",
@@ -114,8 +137,16 @@
    "status": "retired",
    "evidence": "source_static",
    "owner_lane": "none",
-   "reproducer": {"command": "frontier full-trace raw field population split = {1}", "runs": [38446393623]},
-   "source_artifacts": ["docs/QA-FRONTIER-15-FRAME-RESULTS-20261013.md", "docs/knowledge/rendering-camera-and-oam.md"],
+   "reproducer": {
+    "command": "frontier full-trace raw field population split = {1}",
+    "runs": [
+     38446393623
+    ]
+   },
+   "source_artifacts": [
+    "docs/QA-FRONTIER-15-FRAME-RESULTS-20261013.md",
+    "docs/knowledge/rendering-camera-and-oam.md"
+   ],
    "uncertainty": "None decision-relevant.",
    "resolving_experiment": "None.",
    "consequence": "Second camera enabled; not a raster-split test.",
@@ -128,8 +159,15 @@
    "status": "resolved",
    "evidence": "native_only",
    "owner_lane": "research",
-   "reproducer": {"command": "frontier full-trace witnesses 50036005 (alternating, 1980), 50036002 (p2-focus, 2820)", "runs": [38446393623]},
-   "source_artifacts": ["docs/QA-FRONTIER-15-FRAME-RESULTS-20261013.md"],
+   "reproducer": {
+    "command": "frontier full-trace witnesses 50036005 (alternating, 1980), 50036002 (p2-focus, 2820)",
+    "runs": [
+     38446393623
+    ]
+   },
+   "source_artifacts": [
+    "docs/QA-FRONTIER-15-FRAME-RESULTS-20261013.md"
+   ],
    "uncertainty": "120-frame spacing still misses one-frame events (RF-001).",
    "resolving_experiment": "None; incidence is observer-relative and reported per observer.",
    "consequence": "Observer density, not case volume, governs feature discovery.",
@@ -142,8 +180,16 @@
    "status": "handed_off",
    "evidence": "native_only",
    "owner_lane": "qa01-gameplay",
-   "reproducer": {"command": "manual qa01-event-campaign.yml with one selected case", "runs": [38446280858]},
-   "source_artifacts": ["ledger record campaign original-native, reason 'original workflow or aggregate unavailable'", "docs/QA01-DUAL-AIR-AND-CUMULATIVE-TRIAGE-20261013.md"],
+   "reproducer": {
+    "command": "manual qa01-event-campaign.yml with one selected case",
+    "runs": [
+     38446280858
+    ]
+   },
+   "source_artifacts": [
+    "ledger record campaign original-native, reason 'original workflow or aggregate unavailable'",
+    "docs/QA01-DUAL-AIR-AND-CUMULATIVE-TRIAGE-20261013.md"
+   ],
    "uncertainty": "Run returns 404; producer vs transport failure unknown. Receipts now retain failed_jobs.",
    "resolving_experiment": "One single-case qa01-event-campaign dispatch; never another long campaign before a first-failure reason exists.",
    "consequence": "Blocks cumulative original-native re-scheduling until diagnosed."
@@ -155,8 +201,13 @@
    "status": "retired",
    "evidence": "native_only",
    "owner_lane": "windows-modern",
-   "reproducer": {"command": "qa-cumulative-research.yml lane windows", "runs": []},
-   "source_artifacts": ["signed ledger windows records"],
+   "reproducer": {
+    "command": "qa-cumulative-research.yml lane windows",
+    "runs": []
+   },
+   "source_artifacts": [
+    "signed ledger windows records"
+   ],
    "uncertainty": "Per-journey failure rate bounded < 1.5% (3/200) at 95%; same journeys repeated, not new trajectories.",
    "resolving_experiment": "None until a Windows defect or new candidate changes the question.",
    "consequence": "No defect to hand off.",
@@ -169,8 +220,13 @@
    "status": "retired",
    "evidence": "native_only",
    "owner_lane": "release-qa",
-   "reproducer": {"command": "qa-cumulative-research.yml lane fault-recovery", "runs": []},
-   "source_artifacts": ["signed ledger fault-recovery records"],
+   "reproducer": {
+    "command": "qa-cumulative-research.yml lane fault-recovery",
+    "runs": []
+   },
+   "source_artifacts": [
+    "signed ledger fault-recovery records"
+   ],
    "uncertainty": "Per-operation failure rate < 3/373,220 at 95%; isolated roots, not device power cuts.",
    "resolving_experiment": "None; further volume only tightens an already sub-0.001% bound.",
    "consequence": "No defect to hand off.",
@@ -183,12 +239,51 @@
    "status": "retired",
    "evidence": "native_only",
    "owner_lane": "none",
-   "reproducer": {"command": "tools/research_yield.py over the signed ledger", "runs": [38304551380, 38306802282, 38438864232, 38446393623, 38506108109]},
-   "source_artifacts": ["frontier_exact_coverage"],
+   "reproducer": {
+    "command": "tools/research_yield.py over the signed ledger",
+    "runs": [
+     38304551380,
+     38306802282,
+     38438864232,
+     38446393623,
+     38506108109
+    ]
+   },
+   "source_artifacts": [
+    "frontier_exact_coverage"
+   ],
    "uncertainty": "Novelty restates case count (2 new per case); no consequence demonstrated by novelty alone.",
    "resolving_experiment": "None. The census's value is as a per-case index for RF-004.",
    "consequence": "Never a reason to run more cases.",
    "resolution": "Kept as a lossless identity index."
+  },
+  {
+   "id": "RF-012",
+   "title": "2P result phase (menu 0x84) lasts one frame longer on native than on Snes9x and Beetle-bsnes",
+   "class": "original_native_discrepancy",
+   "status": "handed_off",
+   "evidence": "original_and_native",
+   "owner_lane": "qa01-gameplay",
+   "reproducer": {
+    "command": "python3 tools/qa_frontier_original_crosscheck.py paired --native-exe <Modern candidate> --seed 50036056 --arm rotation --lag 2 --finish-hold 4000 --frames 1128-1140,1620-4800/60,4801-6400 --snesref ... --core <snes9x|beetle> --ledger <ledger.json> --work W --out R",
+    "race_relative_lag": 2,
+    "seed": 50036056,
+    "arm": "rotation",
+    "native_frames": [
+     5198,
+     5233
+    ],
+    "runs": []
+   },
+   "source_artifacts": [
+    "analysis/data/frontier-original-native-race-relative-20261014.json",
+    "docs/QA01-SWITCHER-2014-ORIGINAL-SOURCE-PROBE.md (1P: original 0x84 +4665..+4698 = 34 frames)",
+    "docs/QA01-2014-COMPLETE-EVENT-TRANSPLANT.md (0x84->0x16 by 83:988A / Sram_RestoreDirectPage)"
+   ],
+   "observation": "9 of 9 seeds across all five arms: race state identical through both laps reaching 0 and through 0x84 onset; result phase 34 frames on Snes9x (and 34 on Beetle-bsnes for 50036056), 35 on native (36 for 50024003). All later field differences follow from it.",
+   "uncertainty": "Whether the extra frame is a native host-loop/vblank-boundary effect or a guest-visible behaviour difference; the 1P Switcher case shows the native phase shorter, not longer, so the mechanism may be boundary-sensitive rather than a constant offset.",
+   "resolving_experiment": "QA-01: on this 70-second 2P reproducer, trace native writers of 7E:009F and the restore routine around native 5230-5234 against the original 83:988A opcode trace; decide whether the extra frame is guest-visible.",
+   "consequence": "A cheap deterministic 2P reproducer of the same result-handoff seam behind the open 1P Switcher +4704/+4702 strict divergence; it does not change any comparator or acceptance."
   }
  ]
 }

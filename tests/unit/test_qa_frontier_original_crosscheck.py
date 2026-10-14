@@ -191,6 +191,24 @@ class Crosscheck(unittest.TestCase):
         self.assertEqual(diff["first_divergent_native_frame"], 1701)
         self.assertIn("slot1.x_pos", diff["rows"][-2]["differing_fields"])
 
+    def test_terminal_summary_reports_result_phase_duration(self):
+        events = {
+            "native": {"both_laps_zero": 4868, "race_exit": 5237,
+                       "menu_sequence": [[3480, 0], [5198, 0x84], [5233, 0x16], [5238, 0xF9]]},
+            "original": {"both_laps_zero": 4868, "race_exit": 5236,
+                         "menu_sequence": [[3480, 0], [5198, 0x84], [5232, 0x16], [5237, 0xF9]]},
+        }
+        t = m.terminal_summary(events)
+        self.assertEqual((t["native"]["result_phase_frames"],
+                          t["original"]["result_phase_frames"]), (35, 34))
+        self.assertEqual(t["result_phase_delta_native_minus_original"], 1)
+        events["native"]["menu_sequence"] = [[3480, 0]]
+        self.assertIsNone(m.terminal_summary(events)["result_phase_delta_native_minus_original"])
+        self.assertIsNone(m.terminal_summary(None))
+        self.assertIn("3430:4000:080:080", m.finish_suffix(4000))
+        with self.assertRaises(ValueError):
+            m.finish_suffix(0)
+
     def test_refuses_reused_evidence_root(self):
         work = self.root / "used"
         work.mkdir()

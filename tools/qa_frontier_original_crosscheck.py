@@ -441,6 +441,27 @@ def crosscheck(ledger: dict, run_id: int, lag: int, original: Original,
 
 
 SUMMARY_SCHEMA = "ur-frontier-original-crosscheck-summary/1"
+RESULT_MENU, RESTORED_MENU = 0x84, 0x16
+
+
+def terminal_summary(events: dict | None) -> dict | None:
+    """Native-indexed terminal transitions and the result-phase duration per engine."""
+    if not events:
+        return None
+    out = {}
+    for side in ("native", "original"):
+        e = events[side]
+        firsts = {}
+        for frame, menu in e["menu_sequence"]:
+            firsts.setdefault(menu, frame)
+        start, end = firsts.get(RESULT_MENU), firsts.get(RESTORED_MENU)
+        out[side] = {"both_laps_zero": e["both_laps_zero"], "race_exit": e["race_exit"],
+                     "result_menu_first": start, "restored_menu_first": end,
+                     "result_phase_frames": end - start if None not in (start, end) else None}
+    out["result_phase_delta_native_minus_original"] = (
+        None if None in (out["native"]["result_phase_frames"], out["original"]["result_phase_frames"])
+        else out["native"]["result_phase_frames"] - out["original"]["result_phase_frames"])
+    return out
 
 
 def summarize(reports: list[dict], paired: list[dict]) -> dict:
@@ -472,7 +493,9 @@ def summarize(reports: list[dict], paired: list[dict]) -> dict:
             "frames_compared": len(r["rows"]),
             "max_semantic_wram_bytes_differing":
                 max(row["semantic_wram_bytes_differing"] for row in r["rows"]),
-            "native_executable_sha256": r["native_executable_sha256"]})
+            "native_executable_sha256": r["native_executable_sha256"],
+            "finish_hold": r.get("finish_hold", 0),
+            "terminal": terminal_summary(r.get("terminal_events_native_indexed"))})
     originals = {json.dumps(r["original"], sort_keys=True) for r in reports + paired}
     if len(originals) != 1:
         raise ValueError("reports mix different original emulator identities")

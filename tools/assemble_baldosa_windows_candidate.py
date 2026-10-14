@@ -215,6 +215,10 @@ def create_candidate(executable: Path, archive: Path, revision: str) -> str:
             info = zipfile.ZipInfo(PREFIX + name, date_time=ZIP_EPOCH)
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o100644 << 16
+            # Python defaults to creator OS=0 on Windows, 3 on Unix.
+            # Pin the existing Windows value so identical immutable inputs
+            # reproduce the same ZIP SHA across native Windows and Linux.
+            info.create_system = 0
             z.writestr(info, data, compress_type=zipfile.ZIP_DEFLATED,
                        compresslevel=9)
     # Reopen the exact published bytes; the candidate cannot make a claim

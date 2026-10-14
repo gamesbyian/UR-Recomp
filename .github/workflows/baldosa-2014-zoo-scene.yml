@@ -383,13 +383,13 @@ jobs:
           import json,sys
           r=json.load(open(sys.argv[1],encoding="utf-8"))
           with open(sys.argv[2],"a",encoding="utf-8") as f:
-              f.write("\\n### QA-01 source/native result-boundary writer scopes\\n")
+              f.write("\n### QA-01 source/native result-boundary writer scopes\n")
               f.write("Original CPU 0313 candidate scopes: "
-                      +str(len(r["original_cpu_0313_opcode_scope_rows"]))+"\\n")
+                      +str(len(r["original_cpu_0313_opcode_scope_rows"]))+"\n")
               f.write("Native CPU-helper 0313 candidate scopes: "
-                      +str(len(r["native_cpu_helper_0313_write_rows"]))+"\\n")
+                      +str(len(r["native_cpu_helper_0313_write_rows"]))+"\n")
               f.write("Original +5162/+5163, native +5161/+5162 guest "
-                      "transition remains strict-disparate. No course credit.\\n")
+                      "transition remains strict-disparate. No course credit.\n")
           PY
           echo "Captured original opcode scopes are causal leads, NOT an independently proven native CPU fault or a completed-course admission." >> "$GITHUB_STEP_SUMMARY"
 

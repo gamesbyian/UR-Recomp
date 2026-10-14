@@ -121,3 +121,71 @@ at $77:0748/0749 and recover the real ROM lookup table entries
 for independently rendered racer identities. A bounded original
 read-only selector-register probe should precede any inferred
 new pose, skin or colour.
+
+
+## Machine-checked cross-evidence chain (2026-10-13)
+
+\`tools/check_qa08_channel5_source_to_pixel.py\` now consumes four **already
+accepted, independent, retained** source artifacts: this run's 55 fetched
+opcodes and 18 STA-long writers; the ten-process original Snes9x WRAM
+write-census; the pinned native channel-5 seven-write COLDATA handoff;
+and the genuine 26-pixel BG3/OBJ original PPU palette fingerprint.
+It performs a narrow **cross-validation**, not a new guest execution or
+an original-vs-native same-frame pixel comparison.
+
+The crosscheck rejects bad ROM identity, original frame 1781, native frame
+2208, changed route/WRAM fingerprints, a missing/aliased original writer
+PC, invalid \`8F\` long store operands or destination, a broken observed
+upper/lower palette lookup branch, any of the 18 original descriptor bytes,
+incorrect channel-5 direct mode-1/native source address, one of seven
+actual COLDATA values/tags, inconsistent post-transfer live fixed RGB15,
+and the separately source-measured 26-pixel BG3/OBJ colour fingerprint.
+Duplicate evidence JSON object keys are forbidden.
+
+The source-to-register-to-pixel bridge is independently measurable at
+two native original-source coordinates:
+
+| Native row | Latest actual COLDATA write before that row | Live PPU fixed RGB15 | Independent BG3/OBJ pixel source observation |
+| --- | --- | --- | --- |
+| 50, upper | \`$7E:208C = $80\` at DMA tag 4 | \`$000F\`, red15 | 13 upper overlap pixels, fixed red15, after upper OBJ98 deletion red5=28 |
+| 162, lower | \`$7E:2095 = $80\` at DMA tag 115 | \`$0260\`, green19 | 13 lower overlap pixels, fixed green19, after lower OBJ96 deletion RGB5=(13,19,0) |
+
+The per-line ordering is specifically the *pinned native renderer's*:
+normal native tag L is written after output row L−2 and before row L−1.
+The tag-0 first-line prime is separate; six original source descriptors
+cause seven actual native COLDATA writes. \`$2132\` is a **component-enable**
+write, not an all-channel RGB assignment: the checker applies independent
+red/green/blue masks to the previously observed *live* register value and
+requires each subsequent live PPU readback to agree. Source-side
+\`$2131 CGADSUB=04\` companion writes were separately executed and
+accepted by #1491. No caller should substitute the CPU-side raster journal
+for those live HDMA effects. The formerly suggested \`$2133 SETINI\`
+mode-1 companion has been disproved; mode 1 starts at BBUS \`$31\`,
+so it writes \`$2131 CGADSUB\` then \`$2132 COLDATA\`.
+
+Re-run on the source-backed compact evidence without downloading a ROM:
+
+\`\`\`sh
+python3 -m unittest tests.unit.test_qa08_channel5_source_to_pixel -v
+python3 tools/check_qa08_channel5_source_to_pixel.py \
+  --layout analysis/data/qa08-original-2p-channel5-executed-opcode-table-layout.json \
+  --census analysis/data/qa08-original-snes9x-2p-channel5-eighteen-writer-PCs.json \
+  --native analysis/data/qa08-original-native-channel5-hdma-coldata-source-handoff.json \
+  --pixels analysis/data/qa08-2p-original-native-text26-obj-palette-fingerprint.json \
+  --out /tmp/qa08-channel5-crosswalk.json
+\`\`\`
+
+This additional validator crosschecks the **summaries and their source
+artifact hashes**; it does not rehash the underlying archived ROM, opcode
+ZIP, finished raw P7 image or 78 raw compositor observation lines. For
+acceptance requiring those bytes, rerun the existing original/native
+source tests on an exact pinned build and inspect their artifacts. The
+26 original pixel source readings are source-accepted but **most racer
+pixels, physical timing and full original/native per-frame RGB equality
+remain unproven**.
+
+Next high-value original capture remains the selector bytes
+\`$77:0748/$77:0749\` at frame1781, the four LUT source bytes read for
+each, and a **same-input, same-raster-coordinate original/native live
+register/PPU comparison** at the already accepted 26 discriminating
+points. A register-only comparison cannot promote final colour.

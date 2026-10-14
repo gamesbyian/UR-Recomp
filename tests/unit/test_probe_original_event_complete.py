@@ -369,7 +369,10 @@ class CompleteEventProducerTests(unittest.TestCase):
             (nat / "original-follow-16.wram.bin").write_bytes(dump())
             with self.assertRaisesRegex(target.CompleteEventError, "frame mismatch"):
                 target.observe_source_terminal_followthrough(
-                    ref, nat, log(100), log(101), source, 50, 52, 50, 49)
+                    ref, nat, log(100), log(101).replace(
+                        "script f=117 dump original-follow-16",
+                        "script f=118 dump original-follow-16"),
+                    source, 50, 52, 50, 49)
             with self.assertRaisesRegex(target.CompleteEventError, "clock contradiction"):
                 target.observe_source_terminal_followthrough(
                     ref, nat, log(100), log(100), source, 50, 52, 50, 50)

@@ -199,6 +199,24 @@ class Original2PColourRegisterJournalTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "invalid original PPU"):
             self.read()
 
+    def test_native_baselines_required_only_with_explicit_opt_in(self):
+        digest = hashlib.sha256(self.raw_original).hexdigest()
+        with patch.object(qa, "EXPECTED_STOCK_SHA256", digest):
+            with self.assertRaisesRegex(ValueError, "baselines missing"):
+                qa.verify(self.stock, self.log, self.reference, self.candidate,
+                          require_colour_field_baselines=True)
+            self.trace["completed"]["base"].update(
+                cgwsel="0x02", fixed15="0x296D")
+            self.trace["recording"]["base"].update(
+                cgwsel="0x04", fixed15="0x001F")
+            self.flush()
+            result = qa.verify(self.stock, self.log, self.reference, self.candidate,
+                               require_colour_field_baselines=True)
+        for name in ("completed", "recording"):
+            report = result["field_register_journals"][name]["beam_order_colour_knowledge"]
+            self.assertTrue(report["baseline_cgwsel_known"])
+            self.assertTrue(report["baseline_fixed_colour_known"])
+
     def test_exact_stock_and_full_crc_run_can_pass_synthetic_structure(self):
         digest = hashlib.sha256(self.raw_original).hexdigest()
         with patch.object(qa, "EXPECTED_STOCK_SHA256", digest):

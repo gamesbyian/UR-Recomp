@@ -90,6 +90,24 @@ class BeamOrderColourStateTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "overlong"):
             decode_field({"cgadsub": "0x00"}, [entry(0, 0x2131, 0)] * 4097)
 
+    def test_saved_native_baselines_override_unknowns(self):
+        report = decode_field({"cgadsub": "0x13", "cgwsel": "0x02",
+                               "fixed15": "0x296D"},
+                              [entry(225, 0x2132, 0x4A)])
+        first = visible_at(report, 0)
+        self.assertTrue(report["baseline_cgwsel_known"])
+        self.assertTrue(report["baseline_fixed_colour_known"])
+        self.assertEqual(first["cgwsel"], "0x02")
+        self.assertEqual(first["fixed_R5_G5_B5"], [13, 10, 10])
+        self.assertEqual(first["fixed_rgb15"], "0x294D")
+
+    def test_invalid_claimed_native_baselines_rejected(self):
+        for key, value in (("cgwsel", "0xG1"), ("cgwsel", 1),
+                           ("fixed15", "0x8000"), ("fixed15", "0xG002"),
+                           ("fixed15", 0)):
+            with self.assertRaisesRegex(ValueError, "baseline"):
+                decode_field({"cgadsub": "0x00", key: value}, [])
+
     def test_host_final_registers_are_not_invented_as_field_baselines(self):
         record = decode_field({"cgadsub": "0x10"}, [entry(225, 0x2131, 0x01)])
         self.assertIsNone(visible_at(record, 1)["cgwsel"])

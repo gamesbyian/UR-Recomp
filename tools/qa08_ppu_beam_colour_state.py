@@ -38,8 +38,22 @@ def decode_field(base: dict, entries: list[dict]) -> dict:
     if not isinstance(entries, list) or len(entries) > 4096:
         raise ValueError("invalid or overlong original PPU field journal")
     cgadsub = int(base["cgadsub"], 16)
-    cgwsel = None  # not included in ppu_rasterDebugDump field.base
-    fixed = [None, None, None]  # likewise no RGB15 field baseline
+    # If the extended native dump supplies genuine saved V=225 values,
+    # use them. Missing values in older logs must remain unknown.
+    wsel_text = base.get("cgwsel")
+    fixed_text = base.get("fixed15")
+    if wsel_text is not None and (not isinstance(wsel_text, str) or
+                                  not HEX8.fullmatch(wsel_text)):
+        raise ValueError("invalid CGWSEL field baseline")
+    if fixed_text is not None and (not isinstance(fixed_text, str) or
+                                   not HEX16.fullmatch(fixed_text) or
+                                   int(fixed_text, 16) > 0x7FFF):
+        raise ValueError("invalid RGB15 field baseline")
+    cgwsel = int(wsel_text, 16) if wsel_text is not None else None
+    fixed_value = int(fixed_text, 16) if fixed_text is not None else None
+    fixed = ([fixed_value & 31, (fixed_value >> 5) & 31,
+              (fixed_value >> 10) & 31] if fixed_value is not None else
+             [None, None, None])
     events = []
     state_at_key = [None] * FIELD_LINES
     previous = -1
@@ -111,8 +125,8 @@ def decode_field(base: dict, entries: list[dict]) -> dict:
         "schema": "qa08-ppu-beam-colour-knowledge/1",
         "beam_key_origin": "V=225 at key0; V=0 at key37",
         "baseline_cgadsub": f"0x{int(base['cgadsub'], 16):02X}",
-        "baseline_cgwsel_known": False,
-        "baseline_fixed_colour_known": False,
+        "baseline_cgwsel_known": wsel_text is not None,
+        "baseline_fixed_colour_known": fixed_value is not None,
         "colour_writes_in_original_beam_order": events,
         "beam_key_intervals_after_same_line_final_write":
             compress(state_at_key, 0, "beam_key"),

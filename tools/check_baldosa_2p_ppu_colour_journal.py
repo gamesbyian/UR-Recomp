@@ -183,7 +183,8 @@ def parse_record(line: str) -> dict:
     }
 
 
-def verify(stock: Path, log: Path, reference_crc: Path, candidate_crc: Path) -> dict:
+def verify(stock: Path, log: Path, reference_crc: Path, candidate_crc: Path,
+           require_colour_field_baselines: bool = False) -> dict:
     if stock.name != f"ur-baldosa-ws342-{FRAME:06d}.pam":
         raise ValueError("expected exact authentic post-GO Original capture")
     original = read_pam(stock)
@@ -199,6 +200,12 @@ def verify(stock: Path, log: Path, reference_crc: Path, candidate_crc: Path) -> 
     if len(lines) != 1 or "UR_QA08_PPU_COLOUR_JOURNAL_FAIL" in lines[0]:
         raise ValueError("not exactly one successful native colour raster journal record")
     record = parse_record(lines[0])
+    if require_colour_field_baselines:
+        for name, field in record["field_register_journals"].items():
+            known = field["beam_order_colour_knowledge"]
+            if not (known["baseline_cgwsel_known"] and
+                    known["baseline_fixed_colour_known"]):
+                raise ValueError(f"{name}: native PPU colour field baselines missing")
     record["full_native_guest_CRC_entries_equal"] = ROUTE_CRC_LINES
     record["full_original_342x224_RGBA_SHA256"] = digest
     return record
@@ -208,8 +215,10 @@ def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     for key in ("stock", "log", "reference-crc", "candidate-crc", "out"):
         p.add_argument("--" + key, required=True, type=Path)
+    p.add_argument("--require-field-colour-baselines", action="store_true")
     a = p.parse_args()
-    result = verify(a.stock, a.log, a.reference_crc, a.candidate_crc)
+    result = verify(a.stock, a.log, a.reference_crc, a.candidate_crc,
+                    require_colour_field_baselines=a.require_field_colour_baselines)
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n",
                      encoding="utf-8")

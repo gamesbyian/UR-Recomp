@@ -267,7 +267,7 @@ jobs:
             --rom "reference/roms/retail/Uniracers_USA.sfc" \
             --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_player_created_2p_records" \
             --video windows --timeout 220
-          echo "PASS: P1 native semantic gamepad handler created distinct Mike and Martin profiles; original source scored 2P, one exact paired .urrun/.urmatch, fresh both-player Records and real existing-P1 gamepad UI switch verified. Physical hardware pads, original/native complete-event parity and independent release gates remain unaccepted." >> "$GITHUB_STEP_SUMMARY"
+          echo "PASS: P1 semantic gamepad created Mike/Martin, exact original 2P source earned one paired match, and both fresh native Records passed. The *CI-only* raw .urrun/.urmatch, canonical typed/raw 8KiB profile bytes and SHA manifest are retained for independent QA; no ROM, real user files or release qualification is included. Physical pads and complete original/native parity remain unaccepted." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Native first-racer creation through genuine earned 1P Records in three separate games
         run: |
@@ -349,6 +349,7 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_first_racer_andrew/report.json
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_second_racer/report.json
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/report.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/ci-owned-raw-artifacts/**
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/first_P1_mike/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/named_P1_adds_P2/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_player_created_2p_records/played_native_2p/log.txt

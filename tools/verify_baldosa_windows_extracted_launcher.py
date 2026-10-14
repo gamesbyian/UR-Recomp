@@ -45,6 +45,13 @@ def require(condition: bool, message: str) -> None:
     if not condition:
         raise ValueError(message)
 
+def require_archive_unchanged(archive: Path, starting_sha256: str) -> None:
+    # The release candidate bytes must be the SAME after every CMD launch,
+    # not merely rehashed once at the end and reported as unchanged.
+    require(digest(archive) == starting_sha256,
+            "candidate ZIP changed during Windows launcher acceptance")
+
+
 def run(archive: Path, personal_rom: Path, output: Path, timeout: int) -> dict:
     if os.name != "nt":
         raise ValueError("actual Windows CMD executable is required")
@@ -53,6 +60,7 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int) -> dict:
     require(digest(personal_rom) == USA_SHA256,
             "must test with the exact pinned original USA retail ROM")
     require(archive.is_file(), "candidate archive absent")
+    approved_archive_sha256 = digest(archive)
     output.mkdir(parents=True)
     installed = output / "Extracted Baldosa Candidate With Spaces"
     installed.mkdir()
@@ -186,8 +194,10 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int) -> dict:
             not list(user_root.rglob("*.urrun")),
             "Rejected packaged launch mutated previously saved data")
 
-    # The ROM is never retained in evidence, and source ZIP was not modified.
+    # The ROM is never retained in evidence. Prove the *source archive*
+    # is byte-for-byte unchanged from before extraction and all game launches.
     installed_rom.unlink()
+    require_archive_unchanged(archive, approved_archive_sha256)
     report = {
         "verified_rom_used_temporarily": True,
         "rom_not_in_archive": True,
@@ -201,7 +211,7 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int) -> dict:
         "native_root_drawn": True,
         "canonical_8192_byte_save_outside_package": True,
         "published_zip_unchanged": True,
-        "archive_sha256": digest(archive),
+        "archive_sha256": approved_archive_sha256,
     }
     (output / "launcher-acceptance.json").write_text(
         json.dumps(report, sort_keys=True, indent=2) + "\n", encoding="utf-8")

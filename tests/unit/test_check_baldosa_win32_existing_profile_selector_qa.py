@@ -139,6 +139,29 @@ class Win32ExistingProfileSelectorIndependent(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     self.check(bad)
 
+    def test_shadowed_switch_receipts_and_cross_root_false_positive_fail(self):
+        base = fixture()
+        for process, before, after in (
+            (2, "Switch Two Real Stock Racers",
+             "Different User Root"),
+            (3, "existing_p1_stale_race_blocked=1",
+             "existing_p1_stale_race_blocked=0"),
+            (4, "profile=mike bytes=8192",
+             "profile=andrew bytes=8192"),
+        ):
+            bad = list(base)
+            bad[process + 1] = bad[process + 1].replace(before, after)
+            with self.subTest(process=process, changed=before):
+                with self.assertRaises(ValueError):
+                    self.check(bad)
+        shadow = list(base)
+        shadow[3] += (
+            "not-a-native-source-event: UR_BALDOSA_NATIVE_P1_SWITCH "
+            "status=0 from=mike to=andrew activation=next_process\n"
+        )
+        with self.assertRaises(ValueError):
+            self.check(shadow)
+
     def test_zip_consumer_requires_every_native_process(self):
         data = fixture()
         with tempfile.TemporaryDirectory() as tmp:

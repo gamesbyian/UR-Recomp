@@ -42,6 +42,36 @@ class AttractCpuVramSourceContract(unittest.TestCase):
         ):
             self.assertIs(r[claim], False, claim)
 
+    def test_old_vs_paced_cpu_ppu_write_conditional_master_clocks(self):
+        # Effective bank 81 FastROM MEMSEL is not inferred by the source
+        # contract. Under slow-ROM mode old uniform instruction charging
+        # overprices fast $2118/$2116 PPU register accesses.
+        for memsel, width, old, paced, delta in (
+            (0, 1, 32, 30, 2),
+            (0, 2, 40, 36, 4),
+            (1, 1, 24, 24, 0),
+            (1, 2, 30, 30, 0),
+        ):
+            with self.subTest(memsel=memsel, width=width):
+                row = m.conditional_abs_store_master_clocks(width, memsel)
+                self.assertEqual(row["old_uniform_code_speed_master_clocks"], old)
+                self.assertEqual(row["baldosa_paced_bus_master_clocks"], paced)
+                self.assertEqual(row["old_minus_paced_master_clocks"], delta)
+                self.assertIs(row["actually_executed_first_load_width_or_memsel_proven"], False)
+                self.assertIs(row["entire_frame_clock_discrepancy_explained"], False)
+        r = m.report(self.source, self.bank00, self.bank81)
+        self.assertEqual(len(r["conditional_cpu_store_clock_scenarios"]), 4)
+        self.assertEqual(sorted({
+            s["old_minus_paced_master_clocks"]
+            for s in r["conditional_cpu_store_clock_scenarios"]
+        }), [0, 2, 4])
+
+    def test_clock_model_rejects_unknown_width_and_memsel(self):
+        for width, memsel in ((0, 0), (3, 0), (-1, 1), (2, 2), (1, -1)):
+            with self.subTest(width=width, memsel=memsel):
+                with self.assertRaisesRegex(ValueError, "width|MEMSEL"):
+                    m.conditional_abs_store_master_clocks(width, memsel)
+
     def test_archived_source_mutations_rejected(self):
         cases = (
             ("vram_data", "81/CD70: 8D 18 21     STA $2118",

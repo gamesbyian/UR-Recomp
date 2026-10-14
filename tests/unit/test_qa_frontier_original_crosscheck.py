@@ -94,7 +94,14 @@ class Crosscheck(unittest.TestCase):
         other = m.check_case(FakeOriginal(), census, 99, 50036057, "rotation", 2,
                              self.root / "c")
         self.assertEqual(other["checkpoints"][1]["relation"], "other_case")
-        self.assertEqual(other["disposition"], "coarse_divergence")
+        # The census keeps only the earliest witness: never agreement, never divergence.
+        self.assertEqual(other["disposition"], "census_attribution_ambiguous")
+        self.assertIsNone(other["first_divergent_native_frame"])
+        stale = dict(other, disposition="coarse_divergence")
+        judged = m.rejudge({"cases": [stale, bad]})
+        self.assertEqual(judged["counts"], {"census_attribution_ambiguous": 1,
+                                            "coarse_divergence": 1})
+        self.assertEqual(len(judged["attribution_ambiguous_cases"]), 1)
         # The wrong declared lag samples other original frames.
         wrong = m.check_case(FakeOriginal(), census, 99, 50036056, "rotation", 0,
                              self.root / "d")

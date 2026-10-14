@@ -126,9 +126,10 @@
     "ordinary 2P regression asserts screen1 P2 (0x70,0x70) and screen2 P1 (0x30,0x30) at $1501-$150E on both runtimes",
     "frontier 10,400 cases: offscreen-register-nonzero 0"
    ],
-   "uncertainty": "Sentinel incidence in random frontier trajectories is measured on the original side only so far.",
-   "resolving_experiment": "QA-08: if a culling/visibility question needs a population, request a frontier observer change replacing $121B/$121D with the sentinel predicate (100-case validation run).",
-   "consequence": "Stops further volume aimed at a dead register; gives QA-08 a named, source-qualified observer."
+   "uncertainty": "Native sentinel incidence is not in the census; given exact semantic-WRAM agreement on this route (RF-004) it is expected to be identical.",
+   "resolving_experiment": "QA-08: if a culling question needs it, ask for per-frame sentinel transitions (a 100-case observer validation), not case incidence; otherwise no work.",
+   "consequence": "Stops further volume aimed at a dead register; gives QA-08 a named, source-qualified observer.",
+   "observation": "Original-side measurement over 400 cases: both bank-82 opponent-offscreen sentinels appear at some sampled frame in 400 of 400 cases (racers separate within the race). Case incidence is therefore uninformative; a per-frame or per-transition (on-screen to off-screen) count is the discriminating form."
   },
   {
    "id": "RF-006",

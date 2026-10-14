@@ -203,6 +203,22 @@ def sentinel_labels(rows: list[dict]) -> list[str]:
     return sorted(found)
 
 
+def adjudicate(checkpoints: list[dict]) -> tuple[str, int | None]:
+    """Case disposition from its checkpoint relations to the census.
+
+    The census keeps only the EARLIEST witness of each token. A token owned by
+    another case is therefore not evidence of divergence: this case may also
+    have produced it (the 10k postmortem documents such repeats). Only a token
+    the native census never saw is a divergence.
+    """
+    absent = [c["native_frame"] for c in checkpoints if c["relation"] == "absent"]
+    if absent:
+        return "coarse_divergence", absent[0]
+    if any(c["relation"] == "other_case" for c in checkpoints):
+        return "census_attribution_ambiguous", None
+    return "coarse_agreement", None
+
+
 def check_case(original: Original, census: dict, run_id: int, seed: int,
                arm: str, lag: int, work: Path, keep: bool = False) -> dict:
     frames = sorted({f - lag for f in TRACE_FRAMES + CENSUS_FRAMES})
@@ -223,14 +239,13 @@ def check_case(original: Original, census: dict, run_id: int, seed: int,
             relation = "other_case"
         checkpoints.append({"native_frame": f, "original_frame": f - lag,
                             "token": token, "relation": relation})
-    agree = [c["relation"] in ("this_case", "shared_seed_independent") for c in checkpoints]
-    first = next((c["native_frame"] for c, ok in zip(checkpoints, agree) if not ok), None)
+    disposition, first = adjudicate(checkpoints)
     rows = [state(dumps[f - lag]) for f in TRACE_FRAMES]
     air = state(dumps[2580 - lag])
     if not keep:
         shutil.rmtree(work / f"{seed}-{arm}")
     return {"seed": seed, "arm": arm,
-            "disposition": "coarse_agreement" if first is None else "coarse_divergence",
+            "disposition": disposition,
             "first_divergent_native_frame": first,
             "checkpoints": checkpoints,
             "original_feature_labels": sorted(frontier._feature_labels(rows)),
@@ -464,19 +479,40 @@ def terminal_summary(events: dict | None) -> dict | None:
     return out
 
 
+def rejudge(report: dict) -> dict:
+    """Recompute dispositions and counts from stored checkpoint relations."""
+    cases = []
+    for c in report["cases"]:
+        if "checkpoints" in c:
+            disposition, first = adjudicate(c["checkpoints"])
+            c = dict(c, disposition=disposition, first_divergent_native_frame=first)
+        cases.append(c)
+    out = dict(report, cases=cases)
+    out["counts"] = dict(sorted(collections.Counter(c["disposition"] for c in cases).items()))
+    out["divergent_cases"] = [
+        {k: c[k] for k in ("seed", "arm", "first_divergent_native_frame")}
+        for c in cases if c["disposition"] == "coarse_divergence"]
+    out["attribution_ambiguous_cases"] = [
+        {"seed": c["seed"], "arm": c["arm"],
+         "tokens": [x["token"] for x in c["checkpoints"] if x["relation"] == "other_case"]}
+        for c in cases if c["disposition"] == "census_attribution_ambiguous"]
+    return out
+
+
 def summarize(reports: list[dict], paired: list[dict]) -> dict:
     """Compact, reviewable evidence: per-run counts and every non-agreeing case."""
     runs = []
     for r in reports:
         if r.get("schema") != SCHEMA:
             raise ValueError("not a census cross-check report")
+        r = rejudge(r)
         runs.append({k: r[k] for k in (
             "native_run_id", "native_source_sha", "native_executable_sha256",
             "declared_native_minus_original_entry_lag", "cases_checked",
             "cases_in_native_run", "counts", "divergent_cases",
             "original_full_trace_feature_counts", "native_full_trace_feature_counts",
             "original_offscreen_sentinel_case_counts", "census_record_sha256",
-            "crosscheck_tool_sha256") if k in r})
+            "crosscheck_tool_sha256", "attribution_ambiguous_cases") if k in r})
         runs[-1]["original_errors"] = [
             {"seed": c["seed"], "arm": c["arm"], "error": c["error"]}
             for c in r["cases"] if c["disposition"] == "original_error"][:20]

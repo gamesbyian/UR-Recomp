@@ -70,3 +70,12 @@ On success retain
 SNES HDMA, original-vs-native paired replay full parity, and artist
 approval for any replacement HD racer. Original 256x224 and 7:6 PAR,
 342-wide real world and exact 4x Original fallback remain unchanged.
+
+## Exact-head native negative, 2026-10-13
+
+[Run 38511429620](https://github.com/gamesbyian/UR-Recomp/actions/runs/38511429620), pinned native job 115680598480, is **red** for this newly proposed discriminator. The existing strict original PPU field, 2-pixel main BG3/sub OBJ, all **78** 26-intersection compositor source records, 2,473 guest CRCs and seven genuine COLDATA source bytes **all passed** first. The subsequent new SETINI checker failed at `not precisely seven genuine original-native SETINI write records`.
+
+The actual archived stock native 2P route log, retained in artifact **11870196499**, contains **zero** `UR_QA08_HDMA_SETINI` records. This is a **negative for the new observer's stated source witness**, not proof that physical SNES channel5 never wrote SETINI. Do not infer the supposed companion bytes from original Snes9x WRAM values or the channel5 mode field, and do not pass or merge the new native acceptance until the failure is source-adjudicated. In particular, inspect the disposable DMA source's actual second transfer destination and the write-source tagging at `dma_transferByte`, including the distinction between observed source channel5 mode1 and an actual BBUS33 register write. The report's expected seven records are a **test hypothesis**, not accepted native history.
+
+The separate failing unit assertion was an **error-message regex mismatch** in adversarial fixture testing: the strict checker correctly threw `genuine paired SETINI address/channel/PPU state differs`; the test only allowed `source|record`. This test wording has been corrected without relaxing a single register, source-address, original-pixel or native CRC gate. No release acceptance or physical hardware finding is supported by the failing experiment.
+

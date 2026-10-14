@@ -25,6 +25,7 @@ from evidence_contract import assertion, make_envelope
 from check_baldosa_win32_native_1p_records_evidence import audit_hosted_native_1p_records
 from check_baldosa_win32_native_2p_records_evidence import audit_hosted_native_2p_records
 from check_baldosa_win32_first_racer_evidence import audit_hosted_win32_first_racer
+from check_baldosa_win32_first_racer_earned_records_qa import audit_hosted_first_racer_earned_1p
 
 SHA40 = re.compile(r"[0-9a-f]{40}\Z")
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
@@ -319,6 +320,15 @@ RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS = (
         "UR Baldosa Win32 Pause Route/native_first_racer_boot/fresh_named_game/log.txt",
     ),
 )
+# New 3-game Windows product proof, distinct from the already accepted
+# two-game first-racer boot and the fixture-created 1P/2P sources.
+# A failed producer may upload three logs but no report; that MUST stay red.
+RUNTIME_FIRST_RACER_EARNED_GROUP = (
+    "UR Baldosa Win32 Pause Route/native_first_racer_earned_records/report.json",
+    "UR Baldosa Win32 Pause Route/native_first_racer_earned_records/new_user_creates_first_racer/log.txt",
+    "UR Baldosa Win32 Pause Route/native_first_racer_earned_records/fresh_named_player_completes_race/log.txt",
+    "UR Baldosa Win32 Pause Route/native_first_racer_earned_records/new_game_reopens_earned_records/log.txt",
+)
 RUNTIME_DIAGNOSTIC_LOGS = frozenset(
     "UR Baldosa Win32 Pause Route/" + suffix + "/log.txt"
     for suffix in (
@@ -333,7 +343,7 @@ RUNTIME_ALLOWED_MEMBERS = frozenset((
 )) | RUNTIME_DIAGNOSTIC_LOGS | frozenset(
     name for group in RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS
     for name in group
-)
+) | frozenset(RUNTIME_FIRST_RACER_EARNED_GROUP)
 
 
 def check_runtime_actions_wrapper(
@@ -386,6 +396,11 @@ def check_runtime_actions_wrapper(
                 raise ValueError("Baldosa first-racer diagnostic evidence group incomplete")
             if sum(count == 3 for count in first_racer_sets) > 1:
                 raise ValueError("Baldosa first-racer diagnostic evidence groups ambiguous")
+            earned_count = sum(
+                member in names for member in RUNTIME_FIRST_RACER_EARNED_GROUP
+            )
+            if earned_count not in (0, 4):
+                raise ValueError("Baldosa first-racer earned 1P evidence group incomplete")
 
             def bounded(name: str, limit: int) -> bytes:
                 try:
@@ -430,6 +445,11 @@ def check_runtime_actions_wrapper(
                  bounded(RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS[0][1], 2 * 1024 * 1024),
                  bounded(RUNTIME_FIRST_RACER_DIAGNOSTIC_GROUPS[0][2], 2 * 1024 * 1024))
                 if first_racer_sets[0] == 3 else None
+            )
+            new_first_racer_earned = (
+                tuple(bounded(member, 64 * 1024 if i == 0 else 2 * 1024 * 1024)
+                      for i, member in enumerate(RUNTIME_FIRST_RACER_EARNED_GROUP))
+                if earned_count == 4 else None
             )
     except zipfile.BadZipFile as exc:
         raise ValueError("Baldosa Win32 runtime evidence ZIP is corrupt") from exc
@@ -543,6 +563,15 @@ def check_runtime_actions_wrapper(
         candidate["metrics"]["hosted_first_racer_anonymous_creation_to_fresh_named_boot_consistent"] = False
         candidate["metrics"]["hosted_created_profile_bytes_independently_rehashed"] = False
         candidate["metrics"]["hosted_one_shot_packaged_launcher_restart_verified"] = False
+    if new_first_racer_earned is not None:
+        earned_metrics = audit_hosted_first_racer_earned_1p(*new_first_racer_earned)
+        candidate["metrics"].update(earned_metrics)
+        candidate["assertions"].append(
+            assertion("hosted-first-racer-actual-earned-1p-three-native-game-records-logs-consistent", True)
+        )
+    else:
+        candidate["metrics"]["hosted_first_racer_earned_1p_three_game_logs_consistent"] = False
+        candidate["metrics"]["hosted_saved_urrun_bytes_independently_decoded"] = False
     candidate["inputs"]["runtime_actions_wrapper_basename"] = wrapper.name
     candidate["inputs"]["runtime_actions_wrapper_sha256"] = file_digest(wrapper)
     for name, raw in (
@@ -576,6 +605,7 @@ def check_runtime_actions_wrapper(
     # or physical-device standing. No paired native 2P match is reported.
     candidate["metrics"]["finished_native_event_or_new_match_observed"] = (
         newer_one is not None or newer_two is not None
+        or new_first_racer_earned is not None
     )
     candidate["metrics"]["strict_original_native_complete_event_accepted"] = False
     candidate["metrics"]["new_native_two_player_match_published"] = newer_two is not None

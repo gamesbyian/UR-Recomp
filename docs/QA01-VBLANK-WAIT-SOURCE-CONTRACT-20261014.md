@@ -63,3 +63,21 @@ Existing UR authority already records both candidates: `docs/BALDOSA-FRAMEWORK-D
 **USA Zoom Zoo Circuit** is the best-documented complete-scored candidate, not an accepted event. Both original and native reach lap zero and the exact displayed MIKE/BRONSEN results; native reaches the intermediate restore and result transition roughly one guest-relative frame early, with transient post-result WRAM/PPU differences. Source `$009F` is the **two-byte `wTextPos` field**, so its raw values cannot independently define race phases (#1543). The executed original transition is localized around guest-relative +5155..+5163. Once the transition-frame cause is assessed, replay the **unchanged** Zoo input through genuine result, menu restoration and persistence, and have the independent QA owner certify or reject one exact candidate. Switcher Race B's real MIKE 1:08.81 result likewise still fails strict guest-relative terminal timing despite same-host text.
 
 This source contract changes no native gameplay, Modern/graphics code, research scheduling, comparison thresholds, ROM, SRAM or release-quality ledger.
+
+## Additional original-source chain: sound queue service inside both VBlank loops
+
+The calls at `80:FAC9` and `80:FAD2` both enter original bank-82 `82:8035`, a conditional SPC700 sound-command queue service. It runs before **each** `$4212` read. The source byte and symbol contract is now pinned by the same fail-closed test.
+
+| Original source PC | Role |
+| --- | --- |
+| `82:803C LDA $2142` / `82:803F CMP $7E2004` | Read APU acknowledgement and compare command toggle |
+| `82:8043 BNE $8077` | Skip transmit path when handshake mismatches |
+| `82:8046 LDA $7E2000` / `82:804A CMP $7E2002` | Compare sound queue read and write indices |
+| `82:804E BEQ $8077` | Skip transmit path for empty queue |
+| `82:8051 LDA $7E2006,X` / `82:805D ORA $7E2016,X` | Read queued sound-command low/high data |
+| `82:8059 STA $7E2004` / `82:8066 STA $7E2000` | Update toggle and queue read index |
+| `82:806D STA $2142` | Transmit command through APU I/O |
+
+Baldosa's imported USA RAM map calls the fields `wSndQueueRead`, `wSndQueueWrite`, `wSndApuToggle`, `wSndQueueLo`, and `wSndQueueHi`. **A shared VBlank wait can therefore take different 65816 instruction paths depending on sound-queue state and APU acknowledgement.** RF-012 reports an early original/native WRAM difference at `7E:2000`; this overlaps the source queue read index. It is a meaningful competing/common-cause hypothesis for both terminal and screen-transition offsets, not an execution-time or causality verdict. The helper does not itself implement an indefinite APU acknowledgement wait, so a claim of an APU *stall* would also be premature.
+
+In the bounded host 426–446 and terminal 5193–5198 experiments, add original and translated-PC receipts for `82:803C/8043/804E/8059/8066/806D`, actual `$2142` reads/writes, queue bytes, consumed CPU master clocks and the next `$4212` poll edge. Distinguish (1) different sound branch/cycle costs, (2) different beam advancement at the same CPU instant, (3) NMI/scheduler phase differences, and (4) silent writes/restores before attributing a missing simulation frame. The original `82:8035` path can be a decisive experiment without changing sound or game behaviour.

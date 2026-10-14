@@ -61,6 +61,11 @@ class NativePracticeProbeTests(unittest.TestCase):
             "kNativePracticeAvailable{1u}",
         ):
             self.assertIn(token, source)
+        # The native root is available before original MAIN settles; the
+        # shared router, not the scratch-SRAM preflight, owns waiting for it.
+        self.assertIn("QuickPracticeLaunchStage::AwaitMain", shared)
+        self.assertIn("g_ram[0x0313] == 1u || !g_visible || g_stock_target != -1", source)
+        self.assertNotIn("g_ram[0x0313] == 1u || g_ram[0x009f] != 0xd7u", source)
         self.assertIn("AwaitNowPlaying", shared)
         self.assertIn("AwaitRace", shared)
         self.assertIn("view.practice_picker_open", source)

@@ -1,0 +1,133 @@
+name: Manual ROM-free Windows technical playtest
+
+# Dispatch explicitly on main. Reuses the original source-pinned Windows
+# process/guest acceptance rather than creating an additional scheduled build.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Temporary verified artifact or uncertified ROM-free GitHub prerelease"
+        required: true
+        type: choice
+        default: verify_only
+        options: [verify_only, publish_provisional_preview]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: manual-romless-windows-playtest-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  tested_candidate:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    uses: ./.github/workflows/baldosa-windows-native-bridge.yml
+    with:
+      export_campaign_inputs: true
+
+  verify_provenance:
+    needs: tested_candidate
+    if: ${{ needs.tested_candidate.result == 'success' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out exact tested source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Download tested executable and immutable candidate export
+        uses: actions/download-artifact@v4
+        with:
+          name: qa-baldosa-native-export
+          path: ${{ runner.temp }}/romfree-tested-export
+
+      - name: Download verified ROM-free candidate ZIP and checksum
+        uses: actions/download-artifact@v4
+        with:
+          name: baldosa-modern-windows-x64-romless-candidate
+          path: ${{ runner.temp }}/romfree-candidate
+
+      - name: Download exact source-to-ZIP binding receipt
+        uses: actions/download-artifact@v4
+        with:
+          name: baldosa-win32-candidate-binding
+          path: ${{ runner.temp }}/romfree-binding
+
+      - name: Verify candidate bytes and prepare owner playtest assets
+        run: |
+          set -euo pipefail
+          python3 tools/verify_baldosa_playtest_release.py \
+            --exported "$RUNNER_TEMP/romfree-tested-export" \
+            --candidate "$RUNNER_TEMP/romfree-candidate" \
+            --binding-root "$RUNNER_TEMP/romfree-binding" \
+            --expected-sha "$GITHUB_SHA" \
+            --out "$RUNNER_TEMP/romfree-playtest-assets"
+          cd "$RUNNER_TEMP/romfree-playtest-assets"
+          sha256sum -c UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256
+          test "$(find . -maxdepth 1 -type f | wc -l)" -eq 4
+          echo "Verified ROM-free preview for player inspection only; no release gate credit." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Preserve temporary verified playable candidate for owner review
+        uses: actions/upload-artifact@v4
+        with:
+          name: verified-romfree-windows-playtest
+          path: ${{ runner.temp }}/romfree-playtest-assets/
+          if-no-files-found: error
+          retention-days: 14
+
+  publish_provisional_preview:
+    needs: [tested_candidate, verify_provenance]
+    if: ${{ needs.verify_provenance.result == 'success' && github.ref == 'refs/heads/main' && inputs.mode == 'publish_provisional_preview' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Download the same verified provisional assets
+        uses: actions/download-artifact@v4
+        with:
+          name: verified-romfree-windows-playtest
+          path: ${{ runner.temp }}/romfree-playtest-publish
+
+      - name: Publish opt-in SHA-named uncertified prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/romfree-playtest-publish"
+          test "$(find . -maxdepth 1 -type f | wc -l)" -eq 4
+          sha256sum -c UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256
+          python3 - "$GITHUB_SHA" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          data = json.loads(Path("PLAYTEST-PROVENANCE.json").read_text(encoding="utf-8"))
+          source = sys.argv[1]
+          assert data["source_commit"] == source
+          assert data["github_release_tag"] == "playtest-" + source[:12]
+          assert data["candidate_only"] is True
+          assert data["release_gate_credit"] == 0
+          assert data["not_a_certified_beta"] is True
+          PY
+          tag="playtest-$(printf '%s' "$GITHUB_SHA" | cut -c1-12)"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Refusing to overwrite existing preview tag: $tag" >&2
+            exit 1
+          fi
+          gh release create "$tag" \
+            "UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip" \
+            "UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256" \
+            "PLAYTEST-PROVENANCE.json" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "ROM-free Windows technical playtest $tag" \
+            --notes-file "RELEASE-NOTES.md" \
+            --prerelease --latest=false
+          echo "Published provisional source-pinned prerelease $tag, zero independent release QA credit." >> "$GITHUB_STEP_SUMMARY"

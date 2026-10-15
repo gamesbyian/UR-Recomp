@@ -22,6 +22,10 @@ on:
       - "tests/unit/test_qa08_compare_original_moving_source_window.py"
       - "tools/qa08_patch_hdma_all_channels_source.py"
       - "tests/unit/test_qa08_patch_hdma_all_channels_source.py"
+      - "tools/qa08_patch_channel67_prime_counterfactual.py"
+      - "tools/qa08_compare_channel67_native_prime.py"
+      - "tests/unit/test_qa08_patch_channel67_prime_counterfactual.py"
+      - "tests/unit/test_qa08_compare_channel67_native_prime.py"
   workflow_dispatch:
 
 permissions:
@@ -71,6 +75,8 @@ jobs:
           python3 -m unittest tests.unit.test_qa08_patch_extra_original_source_capture
           python3 -m unittest tests.unit.test_qa08_compare_original_moving_source_window
           python3 -m unittest tests.unit.test_qa08_patch_hdma_all_channels_source
+          python3 -m unittest tests.unit.test_qa08_patch_channel67_prime_counterfactual
+          python3 -m unittest tests.unit.test_qa08_compare_channel67_native_prime
       - name: Confirm exact prior native core, guest, ROM and route
         shell: bash
         run: |
@@ -453,6 +459,76 @@ jobs:
           # observer. Complete four-process guest CRC/source PPU proof already
           # passes independently in prior bounded workflow steps.
           echo "No PPU/DMA state modification or channel-causality assertion." >> "$GITHUB_STEP_SUMMARY"
+      - name: Restore pinned first-line source and arm only window channel6 plus brightness channel7
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from tools.qa08_patch_channel57_prime_counterfactual import SELECTIVE, patch_source
+          from tools.qa08_patch_channel7_only_prime_counterfactual import RESTORE
+          path = Path("baldosa/snesrecomp/runner/src/snes/dma.c")
+          candidate = path.read_text()
+          if candidate.count(SELECTIVE) != 1:
+              raise SystemExit("combined channel5+7 DMA source not exact; reject")
+          recovered = candidate.replace(SELECTIVE, RESTORE, 1)
+          if patch_source(recovered) != candidate:
+              raise SystemExit("combined channel5+7 cannot be restored exactly")
+          path.write_text(recovered)
+          PY
+          python3 tools/qa08_patch_channel67_prime_counterfactual.py \
+            --framework baldosa/snesrecomp
+          python3 tools/qa08_patch_channel67_prime_counterfactual.py \
+            --framework baldosa/snesrecomp --apply-experiment
+          grep -q UR_QA08_CH67_ONLY_PRIME_EXPERIMENT baldosa/snesrecomp/runner/src/snes/dma.c
+          if grep -qE 'UR_QA08_CH57_ONLY_PRIME_EXPERIMENT|UR_QA08_CH7_ONLY_PRIME_EXPERIMENT|UR_QA08_HDMA_PRIME_COUNTERFACTUAL' \
+              baldosa/snesrecomp/runner/src/snes/dma.c; then
+            echo "::error::competing HDMA prime variant persisted"; exit 3
+          fi
+          cmake --build baldosa/build --target UniracersSNESRecomp -j 3
+      - name: Execute fifth real USA two-player guest under exact-source channel6+7 prime
+        shell: bash
+        run: |
+          set -euo pipefail
+          export SNESRECOMP_ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          export BALDOSA_REAL_BIN="$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp"
+          export DISPLAY=:99 BIN="$RUNNER_TEMP/qa08-exec"
+          export UR_BALDOSA_HD_CAPTURE_DIR="$RUNNER_TEMP/qa08-native-channel67"
+          mkdir -p "$UR_BALDOSA_HD_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/qa08-counterfactual/channel67"
+          cmp "$RUNNER_TEMP/qa08-counterfactual/baseline/fd/crc.txt" \
+              "$RUNNER_TEMP/qa08-counterfactual/channel67/fd/crc.txt"
+          for frame in 000400 001856 002192 002208 002224; do
+            test -s "$UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-$frame.pam"
+          done
+          log="$RUNNER_TEMP/qa08-counterfactual/channel67/log.txt"
+          if grep -q '^UR_QA08_HDMA_ALL_OVERFLOW ' "$log"; then
+            echo "::error::ch67 real source register capture overflow"; exit 3
+          fi
+          grep "^UR_QA08_HDMA_ALL frame=$UR_QA08_HDMA_ALL_CHANNELS_FRAME " "$log" \
+              > "$RUNNER_TEMP/qa08-counterfactual/hdma-all-channel67.log"
+          test -s "$RUNNER_TEMP/qa08-counterfactual/hdma-all-channel67.log"
+      - name: Classify fifth real channel6+7 PPU against four real original Snes9x scenes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/qa08_compare_channel67_native_prime.py \
+            --original-countdown-zip "$RUNNER_TEMP/qa08-original-countdown-exact.zip" \
+            --original-postgo-37zip "$RUNNER_TEMP/qa08-original-37window-exact.zip" \
+            --stock-dir "$RUNNER_TEMP/qa08-native-baseline" \
+            --global-dir "$RUNNER_TEMP/qa08-native-experiment" \
+            --channel7-dir "$RUNNER_TEMP/qa08-native-channel7" \
+            --channel57-dir "$RUNNER_TEMP/qa08-native-channel57" \
+            --channel67-dir "$RUNNER_TEMP/qa08-native-channel67" \
+            --stock-crc "$RUNNER_TEMP/qa08-counterfactual/baseline/fd/crc.txt" \
+            --global-crc "$RUNNER_TEMP/qa08-counterfactual/experiment/fd/crc.txt" \
+            --channel7-crc "$RUNNER_TEMP/qa08-counterfactual/channel7/fd/crc.txt" \
+            --channel57-crc "$RUNNER_TEMP/qa08-counterfactual/channel57/fd/crc.txt" \
+            --channel67-crc "$RUNNER_TEMP/qa08-counterfactual/channel67/fd/crc.txt" \
+            --out "$RUNNER_TEMP/qa08-counterfactual/real-original-4scene-channel67.json"
+          cat "$RUNNER_TEMP/qa08-counterfactual/real-original-4scene-channel67.json" >> "$GITHUB_STEP_SUMMARY"
+          echo "A four-scene experimental pixel result does NOT certify CPU/OAM, hardware, cross-title or production correctness." >> "$GITHUB_STEP_SUMMARY"
       - name: Preserve exact native source rasters, route CRC and actual DMA register bytes
         if: always()
         uses: actions/upload-artifact@v4
@@ -461,6 +537,11 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
           path: |
+            ${{ runner.temp }}/qa08-counterfactual/real-original-4scene-channel67.json
+            ${{ runner.temp }}/qa08-counterfactual/channel67/fd/crc.txt
+            ${{ runner.temp }}/qa08-counterfactual/channel67/log.txt
+            ${{ runner.temp }}/qa08-counterfactual/hdma-all-channel67.log
+            ${{ runner.temp }}/qa08-native-channel67/ur-baldosa-original-source-*.pam
             ${{ runner.temp }}/qa08-counterfactual/hdma-all-baseline.log
             ${{ runner.temp }}/qa08-counterfactual/hdma-all-experiment.log
             ${{ runner.temp }}/qa08-counterfactual/hdma-all-channel7.log

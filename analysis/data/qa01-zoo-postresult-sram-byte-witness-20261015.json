@@ -108,5 +108,21 @@
       "original": "0x0C",
       "native": "0x0D"
     }
+  },
+  "source_preload_review": {
+    "identified": "2026-10-15",
+    "prior_runs_start_from_intended_2014_original_sram_proven": false,
+    "prior_runs_original_native_byte_differences_observed": true,
+    "cause": "run_pinned_baldosa passed --config and ran with cwd=work but seeded native_executable_parent/saves; pinned RtlReadSram uses cwd/saves/save.srm",
+    "corrected_replay_run_id": 38784747445,
+    "corrected_replay_case_sha256": "41a7f7c770253c4d88f44471c1d18ba820914b5ca3fabd132d63ecfc76eb8604",
+    "corrected_replay_source_sha": "ae4bff51f109a88a903c00d020f001563d20d8ef",
+    "corrected_replay_source_anchored": true,
+    "corrected_replay_replicates_original_native_onset": true,
+    "corrected_replay_replicates_all_six_sample_byte_delta_patterns": true,
+    "corrected_replay_cold_ranked_record_guest_read_pass": true,
+    "original_report_provenance_overwritten": false,
+    "event_acceptance_credit": 0,
+    "authority": "docs/QA01-PINNED-BALDOSA-SRAM-PRELOAD-IDENTITY-20261015.md"
   }
 }

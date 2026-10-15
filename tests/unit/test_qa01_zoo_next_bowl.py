@@ -177,5 +177,30 @@ class ZooNextBowlTests(unittest.TestCase):
             self.observed()
 
 
+    def test_real_rf015_original_source_negative_receipt_remains_nonadmitting(self):
+        import json
+        receipt_path = (ROOT / "analysis/data" /
+                        "qa01-zoo-next-bowl-rf015-exact-negative-20261015.json")
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        self.assertEqual(receipt["usa_complete_course_credit"], 0)
+        self.assertEqual(receipt["execution"]["case_disposition"], "strict_candidate")
+        self.assertEqual(receipt["execution"]["case_release_credit"], 0)
+        handoff = receipt["handoff"]
+        self.assertEqual((handoff["original_movie_first_bowl_relative"],
+                          handoff["fresh_original_first_bowl_relative"],
+                          handoff["fresh_native_first_bowl_relative"]), (267, 267, 265))
+        self.assertFalse(handoff["all_named_triplets_equal"])
+        self.assertFalse(handoff["all_full_sram_pairs_equal"])
+        self.assertEqual(handoff["differing_battery_byte_count_each_sample"], 3)
+        self.assertEqual(
+            [(x["address"], x["original"], x["native"])
+             for x in handoff["differing_battery_addresses"]],
+            [("0x0F31", "0x1A", "0x1B"),
+             ("0x0F33", "0x02", "0x04"),
+             ("0x10A7", "0x0C", "0x0D")])
+        self.assertFalse(receipt["scientific_limits"]["rf017_cpu_correction_included"])
+        self.assertEqual(receipt["scientific_limits"]["release_course_credit"], 0)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -111,6 +111,10 @@ on:
       - "native/product/baldosa_native_run_publish_retry.hpp"
       - "native/product/baldosa_physical_pause_input.hpp"
       - "native/title/uniracers_practice_tour_unlock.hpp"
+      # Shared source-loaded atomic file, lock and run-record policies.
+      - "native/product/local_tournament_atomic_replace.hpp"
+      - "native/product/local_tournament_launch_path_lock.hpp"
+      - "native/product/run_record_capture_policy.hpp"
       - "native/product/multiplayer_match_catalog.*"
       - "native/product/multiplayer_match_record.*"
       - "native/product/multiplayer_match_summary.*"

@@ -1,0 +1,35 @@
+# QA-08: actual Windows 2P complete-route original raster adjudication (2026-10-15)
+
+**Independent disposition: 190/263 sampled source pixels exactly match. 73 scenes are still divergent. Graphics release gate remains HOLD.**
+
+The previously approved Windows 2P countdown and three post-GO moving source-pixel frames were **not extrapolated** to the full event. This experiment independently executed the same real USA retail `race_2p.txt` script with the original Snes9x core and with the actual brightness+HDMA-corrected Windows x64 Uniracers executable. Both original and native scripts terminated at **guest frame 5484**. The original core preserved the exact stock original actions except removing `turbo on`; Windows used its Git-for-Windows CRLF encoding of that same source script. Input and state snapshots across runtimes are not independently accepted merely from this video alignment.
+
+## Immutable actual-source witnesses
+
+- Original pinned Snes9x: [run 38781958316](https://github.com/gamesbyian/UR-Recomp/actions/runs/38781958316), artifact `11996107746`, original ZIP SHA-256 `72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e`. **263 unmasked 256×224 BGRX callbacks**, original callback range `1279..5471 step16`; **242 distinct images**.
+- The actual Windows game: [run 38783232271](https://github.com/gamesbyian/UR-Recomp/actions/runs/38783232271), artifact `11997485920`, ZIP SHA-256 `b2a84f182b70b6bc5bc70338a602a7d979fd0d133c80217b70a682d69bea7c71`. Real corrected `UniracersSNESRecomp.exe` SHA-256 `9107fe4e5e6515f161f4f3e666349def7f4b2f242a1837db32ac09c70d1c1ac9`. **263 same-sized unmodified PPU P7 source frames**, native guest `1280..5472 step16`, complete **5484 native guest CRCs** (transcript SHA-256 `c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876`).
+- The **independently implemented** full-source comparator `tools/qa08_compare_windows_original_twoplayer_sparse.py` ran again on archived sources in [Actions 38790782686](https://github.com/gamesbyian/UR-Recomp/actions/runs/38790782686), **success**, artifact `11999783198`, ZIP SHA-256 `d1bc6772bee78ba00883d42f78d41630cefe0141e0dfc3951370e3077c8a3ebd`. Exact route, source frame numbering, every source SHA, all 263 genuine source images, and full 57,344 unmasked RGB5 pixels per frame are checked. Only Snes9x original RGB565's sixth green bit is reduced to native RGB5. Zero pixel shifting, 216-high cropping, spatial alignment, temporal search, masked HUD, replacement screenshot or inferred presentation is accepted.
+
+The full strict comparison covers **15,081,472 original/native source pixels**:
+
+| Scene window | Original/native RGB5 exact | Divergent frames | Wrong RGB5 pixels |
+|---|---:|---:|---:|
+| Menu and countdown | 23/46 | 23 | 4,487 |
+| Moving split-screen, finish transition and late results | 149/195 | 46 | 707,828 |
+| Results/menu return | 18/22 | 4 | 74,032 |
+| **Entire 2P source sample** | **190/263** | **73** | **786,347** |
+
+**The first pixel difference** occurs in a small selection-arrow sprite at native 1280 (**245 incorrect pixels**). During countdown and earlier moving 2P gameplay, genuine full-source frames are exact. The first **large** difference occurs at guest **3648**, after source-exact scene 3584, with **27,136** wrong pixels. The original 2P finish screen is darkened and the Windows scene remains fully lit. In the subsequent finish sequence the actual original/global brightness differs while geometrical composition remains recognizable. At native **4016**, Snes9x is black and Windows displays an approximately 1–4 level dim results screen (**54,709 wrong pixels**).
+
+The results checkerboard has a separate remarkably regular error: native frames **4064, 4176, 4288, …, 5408** (112-frame cadence) produce a checkerboard grayscale disagreement on approximately 24,000 pixels, usually interspersed with almost-exact source frames. At 4064 the original/native four grayscale RGB8 mappings are **132→123**, **165→140**, **123→165**, **140→132**. The text and scores remain aligned. A brute-force whole-field translation does not improve that frame over zero shift, while frames 4032 and 4080 are source-exact except for **296** small sprite pixels. This suggests a palette/CGRAM animation phase or compositor state defect, **not proved** as an isolated PPU algorithm error: compare original/Windows register and guest-phase evidence before changing rendering or game timing. Preserve source frames and the exact 112-frame periodicity as independent discriminators.
+
+The remaining small menu arrow/rider/result icon colour disagreements often differ by one 5-bit channel unit and warrant separate OBJ/palette-colour-math inspection. Do not generalize a cursor fix across all colors. Current Windows 1P source benchmark remains **162/261** exact and **99.66%** fewer wrong pixels after active legacy brightness correction, with **no regressions** in those sampled scenes.
+
+## Next bounded graphics engineering
+
+1. Instrument **read-only** original/native `INIDISP` brightness (`$2100`), CGRAM writes/palette, colour-math `$2130/$2131`, and HDMA line/beam phase for exactly the first divergent finish window 3620–3888, blackout around 4016 and one pair of results checkerboard intervals 4032/4064/4080. Record actual guest and callback index. Prefer an existing pinned Snes9x PPU write-log witness rather than creating speculative guest patches.
+2. If brightness registers and color-math line writes are identical, repair the earliest proven *graphics raster* mismatch with failing full-source pixel tests. If registers or timing differ, hand off exact source/phase evidence to gameplay Agent 1 or CPU/APU agent; **do not change their files** or paper over timing errors with sprite filtering.
+3. Preserve the existing completed, tested original Snes9x and corrected Windows artifacts. Research-only comparator CI automatically reuses them; the expensive emulator producers are manual-only after acceptance. Avoid another automatic high-volume campaign.
+4. Repeat distinct 1P/2P real Windows Original capture and player journey checks on any source correction; do not alter 256×224 logic, the authentic 7:6 pixel-aspect or 4×/widescreen extra-world contracts. A 216-high picture is not acceptable. Remastered character likeness and pose remain **unapproved** pending user aesthetic review.
+
+**What this does not prove:** continuous event phase/instruction equivalence, physical SNES accuracy, effective per-scanline OBJ window ownership, correct host wide-world composition or HD character identity, or any release-quality ledger success. Keep the Windows graphics candidate #1641 **draft** until these gates are independently accepted. Machine-readable abbreviated source and hashes: `analysis/data/qa08-verified-windows-two-player-raster-fullroute-20261015.json`.

@@ -184,6 +184,24 @@ class ExecutedZooWramReceiptTests(unittest.TestCase):
             "zoo_next_bowl_handoff": True})
         self.assertEqual(repeat["case_disposition"], "strict_candidate")
         self.assertEqual(repeat["release_credit"], 0)
+        cold = report["cold_guest_record_reload"]
+        self.assertEqual(cold["run_id"], 38822170573)
+        self.assertEqual(cold["workflow_conclusion"], "success")
+        self.assertEqual(cold["case_artifact_sha256"],
+                         "3168afc0e2a84f4c61376a997b99aaddd6980a3acfe52e44e36aa90e6399d9c1")
+        self.assertEqual(cold["producer_report_sha256"],
+                         "e3594950f09041cecc0d7098901ac7fa44b9ad4b17e4b1fbd8d4152b851ef804")
+        self.assertEqual(cold["boot_sample_frames"], [300, 420])
+        self.assertTrue(cold["two_new_guest_processes_observed"])
+        self.assertEqual(cold["source_record_value_centiseconds"], 2510)
+        self.assertEqual(cold["source_record_holder"], 0)
+        self.assertEqual(cold["stored_and_calculated_record_checksum"], 64622)
+        self.assertTrue(cold["every_boot_original_and_native_record_table_and_holder_digest_equal"])
+        self.assertFalse(cold["source_seed_sha256_equal_to_post_boot_sram_sha256"])
+        self.assertFalse(cold["actual_windows_host_disk_autosave_and_hard_kill_proven"])
+        self.assertFalse(cold["instruction_time_gameplay_parity_proven"])
+        self.assertEqual(cold["usa_release_event_credit"], 0)
+
 
 
 

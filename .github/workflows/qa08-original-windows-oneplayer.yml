@@ -7,6 +7,11 @@ name: QA-08 one-shot authentic Windows versus original moving 1P source
 # expensive original/core rebuilds for pure offline comparator adjustments.
 on:
   workflow_dispatch:
+    inputs:
+      recapture_source:
+        description: "Explicitly rerun both original emulator and exact Windows sources"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -18,6 +23,9 @@ concurrency:
 
 jobs:
   exact-windows-oneplayer-source:
+    # Historical immutable Windows and original artifacts have already been
+    # captured in run 38701112952. PR updates consume them; no re-execution.
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.recapture_source == true }}
     runs-on: windows-2022
     timeout-minutes: 20
     defaults:
@@ -86,6 +94,7 @@ jobs:
             ${{ runner.temp }}/qa08-win-oneplayer/baseline/log.txt
 
   original-snes9x-oneplayer-source:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.recapture_source == true }}
     runs-on: ubuntu-22.04
     timeout-minutes: 30
     steps:
@@ -163,15 +172,44 @@ jobs:
 
   cross-runtime-oneplayer-raster:
     needs: [exact-windows-oneplayer-source, original-snes9x-oneplayer-source]
+    # No automatic original/native CPU farms just to retest a comparator.
+    # A requested new source cohort is accepted only if both producers pass.
+    if: ${{ always() && ((github.event_name != 'workflow_dispatch' || inputs.recapture_source != true) || (needs.exact-windows-oneplayer-source.result == 'success' && needs.original-snes9x-oneplayer-source.result == 'success')) }}
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      # Initial authentic sources came from completed run 38701112952.
+      # Preserve that execution's original PPU and Windows source identity
+      # independently of later comparator changes. New source capture is
+      # explicitly manual and replaces BOTH sources as a pair.
+      - name: Reuse immutable Windows 1P source from executed capture
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.recapture_source != true }}
+        uses: actions/download-artifact@v4
+        with:
+          repository: gamesbyian/UR-Recomp
+          run-id: 38701112952
+          github-token: ${{ github.token }}
+          name: qa08-exact-windows-original-1p-source
+          path: ${{ runner.temp }}/windows
+      - name: Reuse immutable original Snes9x 1P source from executed capture
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.recapture_source != true }}
+        uses: actions/download-artifact@v4
+        with:
+          repository: gamesbyian/UR-Recomp
+          run-id: 38701112952
+          github-token: ${{ github.token }}
+          name: qa08-original-Snes9x-moving-1p-callbacks
+          path: ${{ runner.temp }}/original
+      - name: Load separately requested Windows source from this execution
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.recapture_source == true }}
+        uses: actions/download-artifact@v4
         with:
           name: qa08-exact-windows-original-1p-source
           path: ${{ runner.temp }}/windows
-      - uses: actions/download-artifact@v4
+      - name: Load separately requested original source from this execution
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.recapture_source == true }}
+        uses: actions/download-artifact@v4
         with:
           name: qa08-original-Snes9x-moving-1p-callbacks
           path: ${{ runner.temp }}/original

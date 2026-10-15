@@ -109,8 +109,49 @@ class NativePracticeProbeTests(unittest.TestCase):
             '"profiles-v1.txt"',
             "p.read_bytes() != before",
             "Named Practice minted an earned completed run",
+            "run_game_hard_killed(",
+            "proc.kill()",
+            "killed_live = True",
+            "record_boundary(",
+            "ordinary_idle_boot_2_control",
+            "Idle baseline boot entered play: ",
+            "Post-kill witness boot entered play: ",
+            "verify_boot_sram(retried, original_srm",
+            "after_ordinary_reboot",
+            "after_practice_after_kill",
+            "kill-receipt.json",
+            "killed_while_alive",
+            "no longer live at the kill",
+            "reported a clean exit",
+            "Hard-killed Practice altered named data: ",
+            "verify_boot_sram(rebooted,",
+            "Practice after hard kill failed: ",
         ):
             self.assertIn(token, probe)
+
+    def test_typed_diff_never_embeds_sram_hex(self):
+        from baldosa_native_practice_probe import compact_typed_diff
+        a = b"generation=1\nstock_sram=" + b"00" * 8192 + b"\n"
+        b = b"generation=2\nstock_sram=" + b"00" * 8191 + b"56\n"
+        diff = compact_typed_diff(a, b)
+        self.assertIn("generation: '1' -> '2'", "\n".join(diff))
+        self.assertTrue(any("offset 0x1FFF 00->56" in x for x in diff))
+        self.assertTrue(all(len(x) < 200 for x in diff))
+
+    def test_workflow_retains_practice_logs_in_separate_artifact(self):
+        wf = (ROOT / ".github/workflows/baldosa-windows-native-bridge.yml").read_text()
+        self.assertIn("name: baldosa-win32-native-practice-lifecycle", wf)
+        for token in ("named_p1_practice_hard_killed/log.txt",
+                      "named_p1_practice_hard_killed/kill-receipt.json",
+                      "named_p1_boot_after_practice_kill/log.txt",
+                      "named_p1_practice_after_kill/log.txt",
+                      "ordinary_idle_boot_1_normalizes/log.txt",
+                      "ordinary_idle_boot_2_control/log.txt",
+                      "boundary-receipts.json"):
+            self.assertIn("native_source_practice_dragster/" + token, wf)
+        pause = wf.index("name: baldosa-win32-native-pause-evidence")
+        pause_end = wf.index("Retain bounded pre-Records raw pair")
+        self.assertNotIn("native_source_practice_dragster", wf[pause:pause_end])
 
 
 if __name__ == "__main__":

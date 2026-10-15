@@ -100,7 +100,18 @@ partial observations**, **41/45 unverified**. Across all three builds,
   result 0xBC occur one independently measured scene-relative frame before
   original; original CPU scope 83:988A and native generated function
   Sram_RestoreDirectPage_FastRom both write the same restored menu/track
-  fields. This is a paired **candidate**, not independent complete-event
+  fields. These transition/frame statements describe the older uncorrected
+  guest, not the source-qualified integrated **RF-017** replay: on RF-017,
+  original movie, fresh Snes9x and native all enter the following genuine Bowl
+  race **267 frames after the Zoo result**, with all eleven complete 8-KiB
+  original/native SRAM pairs identical. Two independent replays, including
+  [the unmasked 128-KiB WRAM byte census](../analysis/data/qa01-zoo-unmasked-wram-20261015.json),
+  reproduce the same genuine handoff; 39 of 48 sampled WRAM pairs still
+  differ, confined to 25 low stack bytes plus two transient sound-queue
+  bytes at Bowl entry. No accepted full instruction/logic trace, source
+  read-liveness, shipping Windows executable or on-disk hard-kill persistence
+  follows from the observed convergence. This remains a paired
+  **candidate**, not independent complete-event
   acceptance. The precise remaining causal uncertainty and artifact identifiers
   live in [the source-owner crosswalk](../analysis/data/zoo-original-native-sram-restore-source-owner-20261009.json).
   **Still partial, 0/45 complete.**

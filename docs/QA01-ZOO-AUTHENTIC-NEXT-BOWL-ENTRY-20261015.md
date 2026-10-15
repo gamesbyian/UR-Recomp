@@ -109,3 +109,21 @@ write a separately reviewed *bounded* logic-frame semantics proposal,
 retaining the unmasked first-difference record and falsifying cases.
 The unchanged requirement for real Windows executable provenance and
 OS-level durable cold-process recovery still blocks USA event admission.
+
+## Executed independent full-WRAM byte audit (2026-10-15)
+
+Source-pinned [Actions run 38820550442](https://github.com/gamesbyian/UR-Recomp/actions/runs/38820550442) produced a real **zero-exclusion, full 128-KiB original/native byte comparison**. Original/native producer exit **0**, independent strict event disposition `strict_candidate`, case ZIP artifact **12012881634**, ZIP SHA-256 **`f18765ede448224faea5701d228a9d78e68e591b7f6a8a03196a61d2ea6fa92b`**, effective checkout `32f3370fb3c207cc88cade54c8632ca17476411e`, original movie replay script SHA-256 `414cb0b1...`, RF-017 native ELF SHA-256 `869df40f...`. All provenance and each per-sample count/first address are permanently recorded in [the executed machine receipt](../analysis/data/qa01-zoo-unmasked-wram-20261015.json). The original artifact ZIP was independently downloaded and digest-verified; the resulting raw differences are fully enumerated (at most 15 differences in any snapshot versus 24 preserved first-difference slots).
+
+| Real original/native window | Full 128-KiB pairs | Byte-exact pairs | First observed raw difference | Maximum differing bytes |
+| --- | ---: | ---: | --- | ---: |
+| 31 adjacent Zoo terminal frames +5156..+5186 | 31 | **1** | +5157: `7E:01F2` original `25` / native `27` | 15 |
+| 6 genuine result-relative +8..+72 checkpoints | 6 | **0** | +8: `7E:01DF` | 15 |
+| 11 next Bowl +259..+280 checkpoints | 11 | **8** | +266: `7E:01ED` | 4 |
+
+Across all **48** complete-WRAM pairs only **27 unique WRAM addresses** differ: the low-bank contiguous range **`7E:01DE..01F6`** (25 bytes in stack territory), plus **`7E:2000`** and **`7E:2004`**. The last two appear *only at the authentic next Bowl active-entry frame*, Zoo-result-relative **+267**: `7E:2000` original `04` versus native `03`, and `7E:2004` original `40` versus native `80`. At the adjacent sampled frame **+268**, all **131,072 WRAM bytes** are identical. Source original and both fresh guests enter Bowl at +267; **all eleven complete 8-KiB SRAM pairs** are byte-exact, including the earned Zoo best lap 2510 and checksum 64622.
+
+**Do not mask these bytes.** The `7E:01DE..01F6` region overlaps known stack traffic, but executed-PC equality and subsequent live reads at each sample are not yet established. RF-012 separately implicated a `7E:2000` transient list in earlier 2P result investigations, but that is a research lead, not source proof that the two entry-frame bytes are cosmetic or dead here. A bounded semantic/logic-frame contract requires independently established original writer, reader/liveness and state guard, plus falsifying mismatches; the strict comparator and acceptance semantics remain unchanged. No instruction-time or full-event credit follows from sparse raw convergence.
+
+**Separate red job cause:** The authentic producer and strict classifier completed successfully. The overall case job failed later in optional cold-guest record reload because `qa01_cold_result_record.py` accepted only the older short replay script SHA-256 `04ad1c...`, while this unchanged-original-input next-Bowl schedule has SHA-256 `414cb0...`. This PR now adds an **explicit exact-source-identity guard for the extended replay** (pinned archived movie-window and verified +267 source/guest handoff), with adversarial negative tests. A separate real cold-guest execution is still needed before that scoped test can be called proven; even successful guest-process record loading would not certify host OS disk durability or hard-kill recovery.
+
+**Acceptance:** still **0/45 USA**. Linux RF-017 Baldosa guest evidence is not an independently matched, fault-tested Windows product executable.

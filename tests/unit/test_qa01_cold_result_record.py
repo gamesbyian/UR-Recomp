@@ -118,6 +118,52 @@ class ColdGuestRecordTests(unittest.TestCase):
             v.evaluate_cold(seeds, self.boot)
 
 
+    def test_real_extended_movie_script_is_exactly_source_bound(self):
+        # The +280 Zoo -> Bowl dump schedule changes only the replay-script
+        # hash, not the archived 2014 ROM, movie or its controller masks.
+        self.report["input_sha256"] = v.NEXT_BOWL_INPUT_SHA
+        self.report["reference_script_sha256"] = v.NEXT_BOWL_INPUT_SHA
+        self.report["original_movie_window_sha256"] = v.NEXT_BOWL_MOVIE_WINDOW_SHA
+        self.report["zoo_next_bowl_handoff"] = {
+            "source_next_bowl_active_entry_offset": 267,
+            "fresh_reference_next_bowl_entry_offset": 267,
+            "fresh_native_next_bowl_entry_offset": 267,
+            "next_bowl_entry_triple_equal": True,
+            "all_original_native_full_sram_pairs_equal": True,
+            "release_complete_event_credit": 0,
+        }
+        seeds = v.validate_source(self.report, self.replay)
+        self.assertEqual(set(seeds), {"original", "native"})
+        self.assertFalse(v.evaluate_cold(seeds, self.boot)[
+            "native_host_disk_publish_or_hard_kill_proven"])
+
+        import copy
+        good = copy.deepcopy(self.report)
+        for alteration in (
+                {"original_movie_window_sha256": "0" * 64},
+                {"reference_script_sha256": v.INPUT_SHA},
+                {"zoo_next_bowl_handoff": None},
+                {"zoo_next_bowl_handoff": {
+                    **good["zoo_next_bowl_handoff"],
+                    "fresh_native_next_bowl_entry_offset": 265}},
+                {"zoo_next_bowl_handoff": {
+                    **good["zoo_next_bowl_handoff"],
+                    "all_original_native_full_sram_pairs_equal": False}},
+                {"zoo_next_bowl_handoff": {
+                    **good["zoo_next_bowl_handoff"],
+                    "release_complete_event_credit": 1}},
+        ):
+            bad = copy.deepcopy(good)
+            bad.update(alteration)
+            with self.assertRaisesRegex(v.ColdProofError,
+                                        "source movie/window/handoff"):
+                v.validate_source(bad, self.replay)
+        bad = copy.deepcopy(good)
+        bad["input_sha256"] = "1" * 64
+        with self.assertRaisesRegex(v.ColdProofError, "unknown original"):
+            v.validate_source(bad, self.replay)
+
+
     def test_native_wrapper_places_real_sram_seed_in_guest_cwd_not_elf_directory(self):
         # Actual pinned host with --config does NOT chdir to executable dir.
         # Mock the process only to inspect exactly what its RtlReadSram sees.

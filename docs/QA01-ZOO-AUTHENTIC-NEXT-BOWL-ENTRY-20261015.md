@@ -75,3 +75,71 @@ Even more decisively, **every byte of all eleven paired original/native 8,192-by
 **Scientific decision:** the *observed original/native Zoo result-return → actual following active Bowl entry* now matches on a source-correct, integrated RF-017 research guest in both event-relative state and complete sampled battery SRAM. The long CPU runtime fix is already owned and integrated; this PR only preserves original movie handoff evidence. **Do not label this entire 5,163-frame race and the next 280 frames instruction-exact, full-WRAM-exact, or an accepted complete USA event**. The 128KiB WRAM digests still differ in the result-return window, actual shipping Windows binary provenance and host-file durability/hard-kill recovery are not checked by this Linux research ELF, and physical/complete-source-gameplay acceptance remains separate. **Still 0/45.**
 
 The full immutable decision is recorded in [analysis/data/qa01-zoo-next-bowl-rf017-integrated-positive-20261015.json](../analysis/data/qa01-zoo-next-bowl-rf017-integrated-positive-20261015.json), including all exact artifact, source and binary hashes. The disposable compute PR #1664 must remain unmerged and its temporary workflow removed; integration may merge this evidence and the manual-only observer without importing a second CPU implementation.
+
+## Read-only complete-WRAM byte attribution for the next RF-017 replay
+
+The already-executed RF-017 original/native handoff has **11/11 byte-exact
+8-KiB battery pairs** but does **not** have byte-exact whole 128-KiB
+WRAM receipts. Whole-WRAM hashes in the continuous Zoo result-return window
+already disagree, starting at reported guest-relative +5163. A digest cannot
+show whether disagreement is transient stack content, still-live state,
+different CPU phase or a behavioral defect.
+
+The existing `probe_original_event_complete.py` observer now includes
+`audit_qa01_wram_pair`: it checks **every byte** of both real 128-KiB
+images with **zero exclusions**, retaining the byte count, first 24
+original/native address/value differences, complete counts for every
+affected 256-byte page, both SHA-256s and first/last differing addresses.
+The three existing consumers are: 31 consecutive +5156..+5186 Zoo
+race-relative result frames, six original-source result-relative
+followthrough samples (+8..+72), and 11 authentic next Bowl samples
+(+259..+280). All guest host clocks remain independently checked; sampled
+frame equality is not continuous event or instruction-time parity.
+No original movie, input, CPU/APU implementation, field-mask contract,
+strict comparator classification or release ledger is altered.
+
+**Decision:** Reexecute one source-pinned RF-017 Zoo replay using the
+*existing* reusable QA-01 campaign with Zoo terminal, source followthrough
+and next Bowl flags, then inspect the first raw difference and the persistence
+of its exact address/page across the windows. The small per-frame counts and
+first addresses also go to Actions logs; full reports and the original raw
+images remain the artifact authority. Do **not** declare stack writes dead
+from their address alone. If a specific set of bytes is proven irrelevant,
+write a separately reviewed *bounded* logic-frame semantics proposal,
+retaining the unmasked first-difference record and falsifying cases.
+The unchanged requirement for real Windows executable provenance and
+OS-level durable cold-process recovery still blocks USA event admission.
+
+## Executed independent full-WRAM byte audit (2026-10-15)
+
+Source-pinned [Actions run 38820550442](https://github.com/gamesbyian/UR-Recomp/actions/runs/38820550442) produced a real **zero-exclusion, full 128-KiB original/native byte comparison**. Original/native producer exit **0**, independent strict event disposition `strict_candidate`, case ZIP artifact **12012881634**, ZIP SHA-256 **`f18765ede448224faea5701d228a9d78e68e591b7f6a8a03196a61d2ea6fa92b`**, effective checkout `32f3370fb3c207cc88cade54c8632ca17476411e`, original movie replay script SHA-256 `414cb0b1...`, RF-017 native ELF SHA-256 `869df40f...`. All provenance and each per-sample count/first address are permanently recorded in [the executed machine receipt](../analysis/data/qa01-zoo-unmasked-wram-20261015.json). The original artifact ZIP was independently downloaded and digest-verified; the resulting raw differences are fully enumerated (at most 15 differences in any snapshot versus 24 preserved first-difference slots).
+
+| Real original/native window | Full 128-KiB pairs | Byte-exact pairs | First observed raw difference | Maximum differing bytes |
+| --- | ---: | ---: | --- | ---: |
+| 31 adjacent Zoo terminal frames +5156..+5186 | 31 | **1** | +5157: `7E:01F2` original `25` / native `27` | 15 |
+| 6 genuine result-relative +8..+72 checkpoints | 6 | **0** | +8: `7E:01DF` | 15 |
+| 11 next Bowl +259..+280 checkpoints | 11 | **8** | +266: `7E:01ED` | 4 |
+
+Across all **48** complete-WRAM pairs only **27 unique WRAM addresses** differ: the low-bank contiguous range **`7E:01DE..01F6`** (25 bytes in stack territory), plus **`7E:2000`** and **`7E:2004`**. The last two appear *only at the authentic next Bowl active-entry frame*, Zoo-result-relative **+267**: `7E:2000` original `04` versus native `03`, and `7E:2004` original `40` versus native `80`. At the adjacent sampled frame **+268**, all **131,072 WRAM bytes** are identical. Source original and both fresh guests enter Bowl at +267; **all eleven complete 8-KiB SRAM pairs** are byte-exact, including the earned Zoo best lap 2510 and checksum 64622.
+
+**Do not mask these bytes.** The `7E:01DE..01F6` region overlaps known stack traffic, but executed-PC equality and subsequent live reads at each sample are not yet established. RF-012 separately implicated a `7E:2000` transient list in earlier 2P result investigations, but that is a research lead, not source proof that the two entry-frame bytes are cosmetic or dead here. A bounded semantic/logic-frame contract requires independently established original writer, reader/liveness and state guard, plus falsifying mismatches; the strict comparator and acceptance semantics remain unchanged. No instruction-time or full-event credit follows from sparse raw convergence.
+
+**Separate red job cause:** The authentic producer and strict classifier completed successfully. The overall case job failed later in optional cold-guest record reload because `qa01_cold_result_record.py` accepted only the older short replay script SHA-256 `04ad1c...`, while this unchanged-original-input next-Bowl schedule has SHA-256 `414cb0...`. This PR now adds an **explicit exact-source-identity guard for the extended replay** (pinned archived movie-window and verified +267 source/guest handoff), with adversarial negative tests. A separate real cold-guest execution is still needed before that scoped test can be called proven; even successful guest-process record loading would not certify host OS disk durability or hard-kill recovery.
+
+**Acceptance:** still **0/45 USA**. Linux RF-017 Baldosa guest evidence is not an independently matched, fault-tested Windows product executable.
+
+### Interpretation of the two non-stack bytes is now bounded
+
+The repository's already-reviewed [RF-015/2P first-difference research](RESEARCH-FINDINGS-QUEUE.md#product-core-baldosas-result-phase-is-one-frame-short-rf-015-resolved-2026-10-14) associates **`7E:2000`** with the sound-command queue read index (`wSndQueueRead`), **`7E:2002`** with the queue write index, and **`7E:2004`** with an APU toggle. The same original/bsnes/Snes9x comparison found one-frame differences in this sound-queue region under otherwise matching gameplay, but warned that those do **not** by themselves prove a CPU–APU handshake defect. Reusing this *existing* identification is better than inventing a new mysterious gameplay variable.
+
+In the executed RF-017 Zoo-to-Bowl repeat, only `2000` and `2004` differ outside stack territory, exactly at result-relative **+267**; **both agree at +268**. This makes an audio-queue/NMI timing boundary the leading *testable hypothesis*, **not** a proven liveness classification. A minimal next source experiment would read the original and native opcode-/writer-scope and APU-port transactions immediately surrounding each guest's **own** Bowl entry (**reference absolute host 6447, native 6449**), then test whether the mismatched bytes were read before being overwritten. Do not align the two hosts as the same instant, treat imported symbol names as executed source proof, or mask either byte. If the instrumented writes/reads are identical despite an observed host-frame difference, stop digging and retain the strict unmasked evidence as a sampled scheduler-phase observation. If a live read or sound command differs, hand that exact source scope to the CPU/APU owner rather than changing sound playback here.
+
+A second independent actual original/native replay ([run 38820862424](https://github.com/gamesbyian/UR-Recomp/actions/runs/38820862424), retained case artifact **12013343141**, ZIP SHA-256 `1443916e1fff57973ec472e05d5d4b0819bd1b868533184a08f0aa18556b6885`) reproduced the three entire observer objects **exactly**: 31-frame Zoo terminal WRAM counts/values/hashes, six source result-followthrough WRAM and SRAM samples, and eleven real Zoo-to-Bowl handoff samples. The reference core was a distinct SHA-256, while native ELF, controller input and original USA ROM hashes stayed fixed. This is **execution reproducibility**, not full-frame, audio or release acceptance. Both independently downloaded ZIP digests matched the GitHub artifact digests. The [machine receipt](../analysis/data/qa01-zoo-unmasked-wram-20261015.json) pins both producer-report SHA-256 values and explicitly retains zero event credit.
+
+## Executed RF-017 cold-guest ranked-record reload, no Windows durability (2026-10-15)
+
+The first auth-extending `qa01_cold_result_record.py` execution now passes: [Actions run 38822170573](https://github.com/gamesbyian/UR-Recomp/actions/runs/38822170573), **all plan/build/case/aggregate jobs green**, exact experiment head `9f199ed38fdcd222fd08fd0b3b3ccbed30311014`. The real case artifact **12014320977** was downloaded and SHA-256 independently verified at **`3168afc0e2a84f4c61376a997b99aaddd6980a3acfe52e44e36aa90e6399d9c1`**. The source-qualified original/native producer again returned `strict_candidate` and exactly the same canonical original movie/window and corrected-native ELF identities; no controls or game runtime changed. The independent cold-guest artifact report binds its own producer-report SHA-256 `e3594950f09041cecc0d7098901ac7fa44b9ad4b17e4b1fbd8d4152b851ef804`.
+
+The actual **fresh original Snes9x and fresh native Baldosa guest subprocesses** booted from **guest-produced** original/native Zoo result battery images with the same source seed SHA-256 `6f74bdf5...`. At **cold boot frames 300 and 420**, both guests independently reported MIKE's earned rank-zero Zoom Zoo lap **2510 centiseconds**, holder **0**, computed and stored table checksum **64622**; all 150 original/native record values and all 150 holder indices were separately SHA-equal at both boot samples. The freshly observed whole 8 KiB SRAM image SHA-256 was `b7bfa6aa...` on both guests and at both boot frames; **this differs from the original seed SRAM SHA-256**, so the claim is *preservation/reloading of earned ranked record layout*, not that every full SRAM byte remained unchanged across process initialization.
+
+**Scope boundary:** this validates **two fresh Linux research guest processes consuming previously captured game-authored SRAM**. It does not exercise or certify actual Windows product autosave publishing, atomic/durable host disk writes, user-data root, hard-kill recovery or Windows playback from the source-pinned shipping executable. It does not prove 5,163 continuous instruction/logic-frame identity or any sound-queue live-read meaning. Machine-verifiable hash identities and the four boot observations are in the [same owning executed evidence receipt](../analysis/data/qa01-zoo-unmasked-wram-20261015.json), as `cold_guest_record_reload`. **Official complete-USA-course credit remains 0/45.** The previously red job was a test-harness input-hash whitelist defect, not a gameplay failure; the corrected exact-source admission and adversarial guard tests are retained.

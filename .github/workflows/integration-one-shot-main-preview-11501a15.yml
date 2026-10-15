@@ -1,0 +1,43 @@
+name: One-shot exact-main ROM-free owner preview dispatch (NONMERGE)
+
+# Temporary integration compute workspace. PR opened event ONLY. Intentionally
+# not merged: this file is not a recurring build, delivery or release policy.
+# No checkout of PR code, ROM reads, artifacts, or release publishing.
+on:
+  pull_request:
+    types: [opened]
+    paths:
+      - ".github/workflows/integration-one-shot-main-preview-11501a15.yml"
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: integration-exact-main-owner-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  dispatch-existing-verify-only:
+    if: ${{ github.event.pull_request.draft == true && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'integration/once-verify-only-main-11501a15-20261015' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 3
+    steps:
+      - name: Guard exact main and dispatch ONLY pre-existing verify_only
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PINNED_MAIN_SHA: 11501a15dea38fa912335cfc63103ce3a7208001
+        shell: bash
+        run: |
+          set -euo pipefail
+          observed="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')"
+          test "$observed" = "$PINNED_MAIN_SHA" || {
+            echo "Main moved. No stale/ambiguous candidate dispatched; expected $PINNED_MAIN_SHA got $observed" >&2
+            exit 1
+          }
+          # Only the existing manual, SHA-bound Windows acceptance/download
+          # pipeline; NEVER the opt-in publish_provisional_preview mode.
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/actions/workflows/manual-romfree-windows-playtest.yml/dispatches" \
+            -f ref=main -f 'inputs[mode]=verify_only'
+          echo "Dispatched existing manual verify_only against main $PINNED_MAIN_SHA; no GitHub release will be created." >> "$GITHUB_STEP_SUMMARY"
+          echo "This temporary PR/workflow MUST close unmerged." >> "$GITHUB_STEP_SUMMARY"

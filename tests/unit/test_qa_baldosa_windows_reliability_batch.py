@@ -159,7 +159,7 @@ class WindowsBatchTests(unittest.TestCase):
         self.assertIn('options: ["1", "2", "4"]', wf)
         self.assertIn('default: "2"', wf)
         self.assertEqual(wf.count("max_parallel:"), 2)
-        self.assertIn("matrix:\\n        shard: [guest-0, guest-1, launcher-0, launcher-1]", wf)
+        self.assertIn("matrix:\n        shard: [guest-0, guest-1, launcher-0, launcher-1]", wf)
         self.assertIn("timeout-minutes: 240",wf)
         self.assertIn("export_campaign_inputs: true",wf)
         self.assertIn("uses: ./.github/workflows/baldosa-windows-native-bridge.yml",wf)

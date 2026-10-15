@@ -1,0 +1,205 @@
+name: QA-08 one-shot authentic Windows versus original moving 1P source
+# Decision: does the already-built, source-pinned corrected Windows Original
+# PPU match any real original Snes9x moving 1P callback? Never grant event
+# fidelity, HD art, hardware or release credit from a visual ranking.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa08-original-windows-oneplayer.yml"
+      - "tools/qa08_windows_oneplayer_source_capture.py"
+      - "tools/qa08_original_oneplayer_source_manifest.py"
+      - "tools/qa08_compare_original_windows_oneplayer.py"
+      - "tests/unit/test_qa08_original_windows_oneplayer.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: qa08-one-shot-1p-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  exact-windows-oneplayer-source:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Download only exact already-compiled candidate from QA-08 Windows execution
+        uses: actions/download-artifact@v4
+        with:
+          repository: gamesbyian/UR-Recomp
+          run-id: 38697704517
+          name: baldosa-modern-windows-x64-romless-candidate
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/qa08-immutable-windows
+
+      - name: Verify original ROM and isolate exact PE without ever rebuilding
+        run: |
+          set -euo pipefail
+          echo "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478  reference/roms/retail/Uniracers_USA.sfc" | sha256sum -c -
+          python - <<'PY'
+          import hashlib, io, json, os, pathlib, zipfile
+          temp=pathlib.Path(os.environ["RUNNER_TEMP"])
+          wrapper=temp/"qa08-immutable-windows/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip"
+          data=wrapper.read_bytes()
+          assert hashlib.sha256(data).hexdigest()=="3a3f57e6c262759e93376e48d377412494a9c9333820ba676276210405c959ef"
+          with zipfile.ZipFile(io.BytesIO(data)) as inner:
+              files=set(inner.namelist())
+              prefix="UR-Recomp-Baldosa-Windows-x64/"
+              expected={prefix+f for f in ("BALDOSA-CANDIDATE-MANIFEST.json","README-BALDOSA-CANDIDATE.txt","UniracersSNESRecomp.exe","run-baldosa-modern.cmd")}
+              assert files==expected, "protected ROM or state entered candidate"
+              manifest=json.loads(inner.read(prefix+"BALDOSA-CANDIDATE-MANIFEST.json"))
+              assert manifest["project_revision"]=="213851943ab8c29451b81f7c2a5a797bfe84dd4c"
+              assert manifest["rom_bundled"] is False and manifest["profile_data_bundled"] is False
+              exe=inner.read(prefix+"UniracersSNESRecomp.exe")
+          assert hashlib.sha256(exe).hexdigest()=="7431889698913feadab76261caf3b00b82d1d9a1466a8260d9b7512d8328324e"
+          out=temp/"qa08-oneplayer-exact-bin"
+          out.mkdir()
+          (out/"UniracersSNESRecomp.exe").write_bytes(exe)
+          print("QA08_EXACT_WINDOWS_PPU_EXE verified=1 rebuilds=0")
+          PY
+
+      - name: Execute actual 1P source gameplay in that exact Windows executable
+        run: |
+          set -euo pipefail
+          python tools/qa08_windows_oneplayer_source_capture.py \
+            --exe "$RUNNER_TEMP/qa08-oneplayer-exact-bin/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --script "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_1p.txt" \
+            --out "$RUNNER_TEMP/qa08-win-oneplayer" --timeout 290
+          echo "Observed actual original-sized PPU output from the identical previously packaged Windows PE; original-emulator parity not yet adjudicated." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Preserve native 1P source without ROM, private profile or SRAM
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-exact-windows-original-1p-source
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa08-win-oneplayer/qa08-windows-1p-source.json
+            ${{ runner.temp }}/qa08-win-oneplayer/source/*.pam
+            ${{ runner.temp }}/qa08-win-oneplayer/baseline/log.txt
+
+  original-snes9x-oneplayer-source:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Verify immutable USA guest, framework and exact original 1P action script
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          echo "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478  reference/roms/retail/Uniracers_USA.sfc" | sha256sum -c -
+          cmp baldosa/tests/routes/race_1p.txt reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_1p.txt
+          mkdir -p "$RUNNER_TEMP/qa08-original-oneplayer/frames"
+          grep -v '^turbo ' baldosa/tests/routes/race_1p.txt > "$RUNNER_TEMP/qa08-original-oneplayer/qa08-original-1p.script"
+
+      - name: Build pinned original Snes9x reference and snesref only once
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends build-essential cmake pkg-config libsdl2-dev
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          make -C "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro" -j 2
+          test -s "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          cmake -S baldosa/snesrecomp/tools/snesref -B "$RUNNER_TEMP/qa08-snesref" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/qa08-snesref" -j 2
+          test -x "$RUNNER_TEMP/qa08-snesref/snesref"
+
+      - name: Replay genuine original 1P and retain 65 consecutive full original PPU callbacks
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-original-dumps"
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$RUNNER_TEMP/qa08-original-oneplayer/qa08-original-1p.script" \
+          SNESREF_DUMP_DIR="$RUNNER_TEMP/qa08-original-dumps" \
+          SNESREF_FRAME_DUMP_DIR="$RUNNER_TEMP/qa08-original-oneplayer/frames" \
+          SNESREF_FRAME_DUMP_NATIVE=1 SNESREF_FRAME_DUMP_FROM=2176 \
+          SNESREF_FRAME_DUMP_TO=2240 SNESREF_FRAME_DUMP_STEP=1 \
+          timeout 220 "$RUNNER_TEMP/qa08-snesref/snesref" \
+            "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            > "$RUNNER_TEMP/qa08-original-oneplayer/original.log" 2>&1
+          python3 tools/qa08_original_oneplayer_source_manifest.py \
+            --frames "$RUNNER_TEMP/qa08-original-oneplayer/frames" \
+            --script "$RUNNER_TEMP/qa08-original-oneplayer/qa08-original-1p.script" \
+            --log "$RUNNER_TEMP/qa08-original-oneplayer/original.log" \
+            --rom reference/roms/retail/Uniracers_USA.sfc \
+            --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            --out "$RUNNER_TEMP/qa08-original-oneplayer/qa08-original-1p-source.json"
+          echo "Genuine original Snes9x BGRX 65-callback source retained; native phase equality is not inferred from callback number." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Preserve original-source PNG-free raw evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-original-Snes9x-moving-1p-callbacks
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa08-original-oneplayer/qa08-original-1p-source.json
+            ${{ runner.temp }}/qa08-original-oneplayer/qa08-original-1p.script
+            ${{ runner.temp }}/qa08-original-oneplayer/original.log
+            ${{ runner.temp }}/qa08-original-oneplayer/frames/*.raw
+
+  cross-runtime-oneplayer-raster:
+    needs: [exact-windows-oneplayer-source, original-snes9x-oneplayer-source]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: qa08-exact-windows-original-1p-source
+          path: ${{ runner.temp }}/windows
+      - uses: actions/download-artifact@v4
+        with:
+          name: qa08-original-Snes9x-moving-1p-callbacks
+          path: ${{ runner.temp }}/original
+      - name: Strict independent whole 256x224 RGB5 original/native source ranking
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest tests.unit.test_qa08_original_windows_oneplayer
+          python3 tools/qa08_compare_original_windows_oneplayer.py \
+            --original-dir "$RUNNER_TEMP/original" \
+            --windows-dir "$RUNNER_TEMP/windows" \
+            --route "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_1p.txt" \
+            --out "$RUNNER_TEMP/qa08-original-Windows-1p-rgb5.json"
+          python3 - "$RUNNER_TEMP/qa08-original-Windows-1p-rgb5.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          r=json.load(open(sys.argv[1]))
+          with open(sys.argv[2],"a",encoding="utf-8") as f:
+              f.write(f"QA08 source result: {r['status']}; original callback {r['original_callback_best_by_RGB5_pixels']}, wrong RGB5 pixels {r['best_pixel_comparison']['wrong_RGB5_pixels']}/57344, next-best margin {r['best_original_callback_ranking_margin']}. This is not complete event, camera/input/CPU phase, physical SNES, 4x or release acceptance.\n")
+          PY
+      - name: Retain independent complete source ranking, including divergence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-real-original-versus-windows-1p-source-ranking
+          retention-days: 7
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/qa08-original-Windows-1p-rgb5.json

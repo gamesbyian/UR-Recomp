@@ -117,5 +117,57 @@ class DenseZooPhaseByteAuditTests(unittest.TestCase):
             self.assertEqual(out["release_complete_event_credit"], 0)
 
 
+class ExecutedZooWramReceiptTests(unittest.TestCase):
+    def test_source_pinned_unmasked_receipt_cannot_promote_event(self):
+        import json
+        report = json.loads((ROOT / "analysis/data" /
+                             "qa01-zoo-unmasked-wram-20261015.json").read_text())
+        self.assertEqual(report["source"]["run_id"], 38820550442)
+        self.assertEqual(report["source"]["producer_report_sha256"],
+                         "0fdcb4a3120dcaec970964b64d737e4433f140982304cb55e885ad2bb4e877af")
+        self.assertEqual(report["source"]["original_input_replay_script_sha256"],
+                         "414cb0b1013509f60faf35102353dd10ce36fc684284dd46af11092ad22c5de9")
+        self.assertEqual(report["source"]["original_native_producer_exit"], 0)
+        self.assertEqual(report["source"]["case_disposition"], "strict_candidate")
+        mem = report["wram"]
+        self.assertEqual(mem["full_bytes_per_guest"], 131072)
+        self.assertEqual(mem["excluded_byte_count"], 0)
+        self.assertTrue(mem["all_sample_difference_addresses_enumerated"])
+        self.assertEqual(mem["total_pairs"], 48)
+        self.assertEqual(mem["total_byte_exact_pairs"], 9)
+        windows = mem["windows"]
+        for name, n, exact in (("dense_guest_relative", 31, 1),
+                               ("result_followthrough", 6, 0),
+                               ("next_bowl", 11, 8)):
+            rows = windows[name]["sampled_frame_counts_and_first_addresses"]
+            self.assertEqual(len(rows), n)
+            self.assertEqual(windows[name]["samples_count"], n)
+            self.assertEqual(sum(row[1] == 0 for row in rows), exact)
+            self.assertEqual(windows[name]["byte_exact_pairs"], exact)
+            self.assertEqual(sum(row[1] for row in rows),
+                             windows[name]["differing_byte_occurrences"])
+            self.assertEqual(len({row[0] for row in rows}), n)
+            self.assertTrue(all((count == 0) == (first is None)
+                                for _, count, first in rows))
+        self.assertEqual(len(mem["all_distinct_differing_snes_addresses"]), 27)
+        self.assertEqual(mem["all_distinct_differing_snes_addresses"][-2:],
+                         ["7E:2000", "7E:2004"])
+        entry = report["bowl_transition"]
+        self.assertEqual(entry["source_original_fresh_native_result_relative_entry"], 267)
+        self.assertEqual(
+            [(d["snes_address"], d["original_byte"], d["native_byte"])
+             for d in entry["plus_267_exact_differences"]],
+            [("7E:01ED", 65, 135), ("7E:01EE", 2, 127),
+             ("7E:2000", 4, 3), ("7E:2004", 64, 128)])
+        self.assertTrue(entry["plus_268_wram_byte_exact"])
+        self.assertTrue(entry["all_11_complete_original_native_8k_sram_pairs_byte_exact"])
+        limits = report["negative_gates"]
+        self.assertEqual(limits["original_event_acceptance"], 0)
+        self.assertEqual(limits["usa_event_denominator"], 45)
+        self.assertFalse(limits["complete_cpu_logic_tick_equivalence_proven"])
+        self.assertFalse(limits["source_read_liveness_for_7E_2000_and_7E_2004_proven"])
+        self.assertFalse(limits["host_disk_save_publish_and_hard_kill_proven"])
+
+
 if __name__ == "__main__":
     unittest.main()

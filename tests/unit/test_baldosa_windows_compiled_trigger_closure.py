@@ -51,9 +51,12 @@ FIRST_PARTY_INCLUDE_ROOTS = (
 )
 
 
-def direct_first_party_bridge_headers() -> set[str]:
+def direct_first_party_bridge_headers(source_files: set[str] | None = None) -> set[str]:
     observed: set[str] = set()
-    for source in sorted(DIRECT_BRIDGE_SOURCES):
+    # Source files are derived from the exact existing CMake appendices, not
+    # copied from a hand-maintained translation-unit list. Preserve selected
+    # fixture/source-only bridges as additional direct inputs.
+    for source in sorted(DIRECT_BRIDGE_SOURCES | (source_files or set())):
         src = ROOT / source
         if not src.is_file():
             raise AssertionError("Compiled bridge source is missing: " + source)
@@ -140,7 +143,7 @@ def staged_project_sources() -> set[str]:
     if options_present and options_present != OPTIONAL_NATIVE_OPTIONS_INPUTS:
         raise AssertionError("Native Options host patch/header are an incomplete pair")
     return (sources | paired_headers | STAGING_SCRIPTS | BRIDGE_HEADERS
-            | options_present | direct_first_party_bridge_headers())
+            | options_present | direct_first_party_bridge_headers(sources))
 
 
 def missing_triggers(inputs: set[str], filters: list[str]) -> list[str]:
@@ -190,6 +193,14 @@ class BaldosaWindowsCompiledTriggerClosureTest(unittest.TestCase):
             "native/product/baldosa_native_match_publish_retry.hpp",
         }
         self.assertTrue(key_inputs.issubset(observed))
+        compiled = staged_project_sources()
+        shared_storage_headers = {
+            "native/product/local_tournament_atomic_replace.hpp",
+            "native/product/local_tournament_launch_path_lock.hpp",
+            "native/product/run_record_capture_policy.hpp",
+        }
+        self.assertTrue(shared_storage_headers.issubset(compiled))
+        self.assertEqual(missing_triggers(compiled, pr_paths()), [])
         self.assertEqual(missing_triggers(observed, pr_paths()), [])
         # A regression that drops a critical path must fail even though the
         # .cpp it feeds is unchanged and remains otherwise in the PR filter.

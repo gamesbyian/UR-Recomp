@@ -65,6 +65,46 @@ def inspect_native_ppu_registers(log:str)->dict:
     }
 
 
+HDMA7_PRE=re.compile(
+    r"^UR_QA08_WIN_HDMA7 frame=(\\d+) phase=pre enable=(\\d+) "
+    r"terminated=(\\d+) transfer=(\\d+) aBank=([0-9a-f]{2}) "
+    r"aAdr=([0-9a-f]{4}) tableAdr=([0-9a-f]{4}) rep=([0-9a-f]{2}) "
+    r"bAdr=([0-9a-f]{2}) bytes=([0-9a-f]{16}) inidisp=([0-9a-f]{2})$",re.M)
+HDMA7_POST=re.compile(
+    r"^UR_QA08_WIN_HDMA7 frame=(\\d+) phase=post enable=(\\d+) "
+    r"terminated=(\\d+) transfer=(\\d+) tableAdr=([0-9a-f]{4}) "
+    r"rep=([0-9a-f]{2}) inidisp=([0-9a-f]{2})$",re.M)
+
+
+def inspect_native_channel7_firstline(log:str)->dict:
+    before=[]
+    for t in HDMA7_PRE.findall(log):
+        frame,en,term,transfer,bank,addr,table,rep,bus,mem,display=t
+        before.append({"frame":int(frame),"enabled":int(en),"terminated":int(term),
+            "transfer":int(transfer),"source_bank":bank,"descriptor_start":addr,
+            "table_pointer":table,"repetition":rep,"BBus":bus,
+            "live_WRAM_2064_to_206B":mem,"INIDISP_before":display})
+    after=[]
+    for t in HDMA7_POST.findall(log):
+        frame,en,term,transfer,table,rep,display=t
+        after.append({"frame":int(frame),"enabled":int(en),"terminated":int(term),
+            "transfer":int(transfer),"table_pointer":table,
+            "repetition":rep,"INIDISP_after":display})
+    if not before or not any(x["frame"]==3683 for x in before):
+        raise ValueError("no authentic channel-seven finish witness")
+    if len(before)!=len(set(x["frame"] for x in before)):
+        raise ValueError("duplicate channel-seven firstline records")
+    if len(after)!=len(set(x["frame"] for x in after)):
+        raise ValueError("duplicate channel-seven transfer records")
+    if any(x["BBus"]!="00" for x in before):
+        raise ValueError("channel-seven is not original INIDISP")
+    if any(not 3620<=x["frame"]<=3690 for x in before+after):
+        raise ValueError("firstline source probe outside bounded window")
+    return {"schema":"qa08-source-exact-native-HDMA7-firstline/1",
+            "live_channel7_before":before,"live_channel7_after":after,
+            "read_only":True,"release_gate_accepted":False}
+
+
 def inspect(source:Path,log:str,crcs:list[str])->dict:
     if not (LAST < len(crcs) <= 9504) or any(
         not re.fullmatch(r"0x[0-9a-fA-F]{8}",v) for v in crcs):
@@ -122,6 +162,7 @@ def main()->None:
         "UR_QA08_WINDOWS_ORIGINAL_SOURCE_DIR":str(folder.resolve()),
         "UR_QA08_WINDOWS_ORIGINAL_SOURCE_CASE":"twoplayer-fullroute",
         "UR_QA08_WINDOWS_PPU_STATE_TRACE":"1",
+        "UR_QA08_WINDOWS_HDMA_FIRSTLINE_TRACE":"1",
     }
     previous={k:os.environ.get(k) for k in env}
     os.environ.update(env)
@@ -134,6 +175,7 @@ def main()->None:
             else:os.environ[k]=v
     report=inspect(folder,log,crcs)
     report["read_only_native_PPU_registers"]=inspect_native_ppu_registers(log)
+    report["read_only_native_HDMA7_firstline"]=inspect_native_channel7_firstline(log)
     report["actual_windows_PE_sha256"]=sha(a.exe.read_bytes())
     report["actual_two_pad_route_sha256"]=sha(a.script.read_bytes())
     (a.out/"qa08-windows-2p-fullroute.json").write_text(

@@ -366,5 +366,28 @@
     "original_event_acceptance": 0,
     "usa_event_denominator": 45
   },
-  "separate_harness_failure": "Source-qualified successful producer and strict_candidate classification, followed by QA-only cold-guest validator rejecting extended source script hash 414cb0.. because guard recognized only shorter replay hash 04ad1c..; new bounded validator fix and replay separately required."
+  "separate_harness_failure": "Source-qualified successful producer and strict_candidate classification, followed by QA-only cold-guest validator rejecting extended source script hash 414cb0.. because guard recognized only shorter replay hash 04ad1c..; new bounded validator fix and replay separately required.",
+  "independent_repeat": {
+    "run_id": 38820862424,
+    "run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38820862424",
+    "case_artifact_id": 12013343141,
+    "case_artifact_sha256": "1443916e1fff57973ec472e05d5d4b0819bd1b868533184a08f0aa18556b6885",
+    "producer_report_sha256": "8c915608e7299a6e9effd8dfb4a9551990b97920dc117f82360edb5c8a65d42f",
+    "native_guest_elf_sha256": "869df40fb63ed1e50e0ffc164d9bdd8986fcc003010fc79d4d110109a654ed5d",
+    "reference_core_sha256": "e662225264872b64799a462b0e3b3986e7a76d539b1c156ef07753cba73bb3d4",
+    "same_input_sha256_as_original_run": true,
+    "same_rom_sha256_as_original_run": true,
+    "same_native_guest_elf_sha256_as_original_run": true,
+    "distinct_reference_core_file_sha256": true,
+    "observations_exactly_equal": {
+      "zoo_terminal_host_phase": true,
+      "source_terminal_followthrough": true,
+      "zoo_next_bowl_handoff": true
+    },
+    "zipped_artifacts_independently_downloaded_and_sha256_checked": true,
+    "adjudication": "Independent repeated original/native produced same observed gameplay, full-byte WRAM census and complete SRAM comparisons, but separate live-read/instruction and Windows cold-publish acceptance remain unproven.",
+    "case_disposition": "strict_candidate",
+    "job_failure_after_producer": "Optional cold-guest validator rejected the extended replay input hash on this original head; not a gameplay regression.",
+    "release_credit": 0
+  }
 }

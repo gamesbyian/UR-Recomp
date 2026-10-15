@@ -70,9 +70,11 @@ INSERT = r'''    snes_writeBBus(dma->snes, bAdr, val);
 def patch_source(source: str) -> str:
     if MARK in source:
         raise ValueError("all-channel source observer already staged")
+    # The pinned framework also contains an independent SDD1 fast path
+    # which legitimately dispatches snes_writeBBus. Anchor only the unique
+    # NORMAL transfer followed by our previously accepted read-only logger.
     if (source.count(ANCHOR) != 1
         or source.count("UR_QA08_HDMA_COLDATA") < 1
-        or source.count("snes_writeBBus(dma->snes, bAdr, val);") != 1
         or "void dma_doHdma(Dma* dma)" not in source):
         raise ValueError("pinned source-ordered HDMA read-only observer not found")
     return source.replace(ANCHOR, INSERT, 1)

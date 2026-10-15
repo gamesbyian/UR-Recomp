@@ -37,6 +37,22 @@ class AllChannelNativeHdmaSourceTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     patch_source(changed)
 
+    def test_real_pinned_sdd1_fastpath_is_not_the_normal_transfer_anchor(self):
+        # The real framework performs a separate SDD1 snes_writeBBus
+        # before returning; this does not change the unique normal anchor.
+        fixture = existing(source_fixture())
+        sdd1 = (
+            "static void sdd1_transfer(Dma *dma, uint8_t bAdr, uint8_t val) {\\n"
+            "    snes_writeBBus(dma->snes, bAdr, val);\\n"
+            "}\\n"
+        )
+        fixture = fixture.replace("void dma_doHdma(Dma* dma) {}",
+                                  sdd1 + "void dma_doHdma(Dma* dma) {}", 1)
+        self.assertEqual(fixture.count("snes_writeBBus(dma->snes, bAdr, val);"), 2)
+        patched = patch_source(fixture)
+        self.assertEqual(patched.count("snes_writeBBus(dma->snes, bAdr, val);"), 2)
+        self.assertIn("UR_QA08_HDMA_ALL frame=", patched)
+
     def test_read_only_block_does_not_write_live_DMA_or_PPU_state(self):
         for line in INSERT.splitlines():
             self.assertNotIn("snes_writeBBus(", line.strip().replace(

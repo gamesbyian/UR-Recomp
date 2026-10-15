@@ -5,6 +5,83 @@
 # Windows x64 Modern frontend: shipped surfaces and remaining integration
 
 
+## Native Options and Practice breadth (candidate, 2026-10-15)
+
+**Options is now a real native destination.** The Baldosa root's fifth row
+opens a controller-first panel (D-pad/arrows move, LEFT/RIGHT change, A cycles,
+B back) containing only controls the pinned host genuinely applies:
+**Display** (windowed / borderless / exclusive fullscreen), **VSync**
+(on / off / adaptive), **Volume** (0-100 in steps of 10), a read-only
+**Controls** help page and **Defaults**. Pause-on-focus-loss, rumble, ghost,
+widescreen, render scale and output resolution are *absent*, not greyed: the
+pinned host does not honour them. Settings never depend on a racer, so a stale
+or missing profile cannot lock the player out of volume or display recovery.
+
+Persistence reuses the existing `HostSettings` model and typed
+`HostProductState` codec/CAS store in its **own file** `options-v1.txt`, so a
+settings write cannot disturb the create-only active-racer selector and a
+damaged settings file can never stop the game or a first-racer creation.
+A change is applied live first, then persisted; if persistence fails or another
+process rewrote the file, the live change is rolled back (or the newer file
+adopted) and the panel says so. A refused window transition (SDL/OS) is reported and the previous settings stay;
+a volume write that cannot be read back from `config.ini` (read-only or full
+disk) is rolled back and shown as NOT APPLIED rather than SAVED; DEFAULTS is
+all-or-nothing. (Independent QA review of the first draft found these paths.)
+A damaged file is reported, kept aside as
+`options-v1.txt.damaged` (then `.damaged.1` ... `.15`, never overwriting an earlier copy; all slots taken fails closed) on the first explicit change, and replaced. Volume
+stays the framework's own `[Sound] Volume` (config.ini), rewritten immediately
+so a hard kill keeps what the player heard. The host seam is the guarded,
+idempotent `tools/baldosa_modern_options_spike.py` (four bounds-checked
+functions over the framework's existing fullscreen / swap-interval / mixer
+code; no guest, input or save code). Display/VSync are restored before the
+window exists on the next process; with no file the framework's config.ini
+remains authoritative.
+
+**Options is also reachable from the in-race pause menu** (previously a disabled
+`SOON` row): the frozen-guest pause panel opens the same shared Options modal
+(`render_modern_options_modal`), with its own press latches so a held Enter/A
+cannot change the first row, Left/Right added, B/Esc/Start closing Options before
+anything resumes, and Restart blocked while it is open. The pause owner only
+routes its own edges and draws on the frozen raster; the guest is checked
+unchanged on every pause tick. Verified locally on a real Practice race with SDL
+keys and with the production P1 gamepad entry point (new smoke
+`UR_BALDOSA_PAUSE_OPTIONS_SMOKE=1|2`), alongside the unchanged nav, quit and
+delayed-Restart pause smokes. Windows coverage is two extra games in the
+Practice-courses probe; exact-head Win32 evidence for them is recorded in PR #1648.
+
+**Practice is no longer Dragster-only.** The picker offers exactly the tours the
+original game's own TOUR_SELECT offers the selected rider (stock unlock tier,
+read-only; secret Hunter stays closed): 20 courses on a never-played save,
+30/40 as the stock tier rises. LEFT/RIGHT switch tour, UP/DOWN switch course.
+Entry still drives the **unchanged original** rider/tour/track/NOW PLAYING
+menus and is authorised only by the decoded original course identity. Two
+real-guest findings drove the fix: multi-step cursor walks stranded the route
+because the stock list menus ignore a second press on the very next frame
+(each queued input now has a 20-frame gap), and the hard-coded Dragster
+identity check generalised to the requested course. A refused or timed-out
+route now says so on the root ("COURSE NOT REACHABLE - RETRY") and a stale
+racer says "RESTART TO USE NEW RACER" instead of silently doing nothing.
+
+**Evidence.** *Linux build of the same native sources (Xvfb):* all 20 tier-0 and
+all 40 tier-2 ordinary courses entered with verified source identity; the
+Options probe and the existing Practice lifecycle probe (incl. hard kill) pass.
+*Real Win32 (non-parallel `workflow_dispatch` [38701860728](https://github.com/gamesbyian/UR-Recomp/actions/runs/38701860728)
+at `43d813b`):* every existing journey plus the new
+`baldosa_native_options_probe.py` (change, restore, DEFAULTS, damaged file;
+read-only `config.ini` game enforced on Windows) and
+`baldosa_native_practice_courses_probe.py` (10 courses across a never-played and
+a formatted tier-2 save, player save byte-identical, nothing published) passed.
+Bounded reports and named source logs are retained in the separate
+`baldosa-win32-native-modern-options-practice-evidence` artifact (the strict QA-12
+archive is untouched); independent QA must re-hash and audit them. The final
+exact-head non-parallel dispatch [38703695304](https://github.com/gamesbyian/UR-Recomp/actions/runs/38703695304)
+at `ac82271` (includes `e4f0e00` non-overwriting quarantine and the merge of
+main with #1645's source-closure test) also passed green. All of it is semantic pad
+edges: **no physical controller, audible level, display-appearance, power-loss or
+release-gate credit.** Replay/rematch inside Practice remains the stock game's own
+result flow; Restart/Quit inside Practice and exit to the root use the existing
+pause and reentry authorities and were not separately exercised here.
+
 ## Full first-user 2P source match and Records integration (verified 2026-10-14)
 
 The source-proven **six-native-game** Windows journey is now merged in [#1510](https://github.com/gamesbyian/UR-Recomp/pull/1510) and [#1522](https://github.com/gamesbyian/UR-Recomp/pull/1522), with [#1513](https://github.com/gamesbyian/UR-Recomp/pull/1513)'s existing native P1 selector. An initially anonymous native guest creates Mike P1; a fresh native Mike guest creates independently isolated Martin P2 (original stock rider index 2); both seats confirm; the **unchanged original 2P picker and source drive** produce settled riders `0,2`, Mike `27.61` versus Martin `27.57`, with Martin winning. Exactly one source-bound `.urrun/.urmatch` is published under the correct profile IDs. Subsequent native games reopen Mike's LOSS and Martin's WIN from the *same* immutable paired archive, while the intervening real P1 gamepad X/A/B/A UI selection changes only the next-process profile. Full canonical typed+raw 8,192-byte SRAM, both names, one-pair SHA fingerprints, and initial anonymous save immutability are validated. The preserved native Win32 logs and exact-head CI are [#1510's passing job](https://github.com/gamesbyian/UR-Recomp/actions/runs/38522739830) and [#1522's passing job](https://github.com/gamesbyian/UR-Recomp/actions/runs/38522931497).

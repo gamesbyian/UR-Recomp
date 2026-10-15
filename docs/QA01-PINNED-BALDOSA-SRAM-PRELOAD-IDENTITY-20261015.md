@@ -1,0 +1,42 @@
+# QA-01 P0: original/native SRAM preload identity (2026-10-15)
+
+**Owner:** original/native gameplay verification. **Status:** first real cold-load test negative; corrected QA-only native transport under real replay; pending executed corroboration. **No complete USA event credit.**
+
+## First authoritative contradiction
+
+[Run 38782417762](https://github.com/gamesbyian/UR-Recomp/actions/runs/38782417762), genuine original 2014 Crawler Zoom Zoo with RF-015 in the original/native shared build, produced source-qualified result onset +5163/+5163 and successfully classified the race, but the *new independent cold guest* from native's actual +72 post-result battery image failed at boot frame 300. Original Snes9x preserved the earned 2510-centisecond ranked record and all 150 score entries/holders; native boot produced different record bytes. The failure was enforced by `qa01_cold_result_record.py` (not a vague red GHA): `ColdProofError: native lost or rewrote original ranked-record bytes on cold start +300`. The job had successfully generated BOTH original/native boot images at frames 300 and 420. Case artifact 11996444518, GitHub ZIP digest `ea3750af896e4468db6a5a20f4a12b3f7fdf34b7e46ea9a4e1bb3bae3da48aab`. This is a negative test, not a passed cold-start record witness.
+
+## Source-exact transport cause
+
+The imported PINNED `baldosa/snesrecomp@075fbe4c8e0d97b0013be541795c39cb644a9709` desktop host `runner/src/desktop/host_main.c`, roughly lines 3011–3028, anchors cwd to the executable directory **only when no explicit `--config` is passed**. The pinned `runner/src/common_rtl.c` `RtlSramFilePath` at approximately line 2492 generates `saves/save.srm` relative to cwd, and `RtlReadSram` around 2523–2534 opens that path without consulting a separate executable-directory seed.
+
+But the existing QA-only `tools/probe_original_event_complete.py::run_pinned_baldosa` always passes `--config $NATIVE_BIN_PARENT/config.ini` **and executes `subprocess.run(..., cwd=work)`**, while staging `$NATIVE_BIN_PARENT/saves/save.srm`. That image was not the file the native guest read. A previous apparent original/native agreement therefore did **not** independently establish that both engines began with the same archived 2014 battery image. The same wrapper is used by QA-01 Bowl, Switcher, Dragster and RF-017 Zoom Zoo campaign cases; all historical *source-anchored* 1P native comparisons require provenance review. The original Snes9x comparison remains an authentic original source run, and previously observed values are still useful diagnostics, but promotion to fully source-equivalent guest state is blocked until repaired replay.
+
+## Narrow correction
+
+The QA-only wrapper now uses `save_root = work / "saves"`, backs up any prior `work/saves`, stages the byte-for-byte input image there, passes the SAME `--config` and `cwd=work`, and restores the prior save directory after the process. The existing `test_probe_original_event_complete.py` and a new regression in `test_qa01_cold_result_record.py` assert at subprocess launch that the **actual guest cwd-relative SRAM** equals the source, while the executable-neighbor save remains untouched. No CPU/APU, shipping Windows save code, original controller input or acceptance rule changes.
+
+**Crucial distinction:** this is a QA harness transport correction, *not* a game runtime or gameplay fix, and is not evidence of a native product persistence bug. The first experiment demonstrated the source image was not loaded from the expected place; only the corrected real run can determine subsequent replay parity. The independent executable digest, ROM, original movie, race-relative entry and terminal comparison remain distinct source dimensions.
+
+## Next actual decision
+
+Re-run the existing Zoom Zoo campaign against the fixed wrapper, retaining all source and binary SHA evidence and the exact original/native result and fresh cold-guest data. If original/native race-entry frame or result changes, classify the first true state difference from this new shared SRAM root; **do not quote earlier +5163/+5163 as a source-identical accepted witness**. For RF-017, do not generalize local in-order I/O fixes into validated 2014 SRAM equivalence until re-executed with the corrected seed. The CPU/APU/NMI implementation owner retains ownership of the RF-017 emitter fix.
+
+Even if both cold reloads pass, that only proves **fresh guest reads of prepared images**, not durable Windows filesystem persistence, kill recovery, progression acceptance or complete strict frame equality. The ledger remains **0/45 USA complete events**.
+## Corrected real replay outcome
+
+One source-pinned post-fix replay has now completed: [run 38784747445](https://github.com/gamesbyian/UR-Recomp/actions/runs/38784747445) at exact source ae4bff51… (case artifact 11997177714, SHA-256 41a7f7c7…). Its native ELF is unchanged versus the RF-015 comparator: SHA-256 527015f2…. The 2014 USA ROM, original movie window and independently calibrated scene input are likewise the same. Original/native event entries are 1017/1019, terminal +5163/+5163, same MIKE 2510 best lap and all three ranked entries. At result +8/+16/+24/+32 the entire 8192-byte fresh SRAM agrees; at +64/+72 exactly 77:10A7 differs (0x0C original versus 0x0D native). The one-field +16 menu difference remains. This demonstrates that the previous measured **behavioural differences recur with the correct SRAM root**, despite the old run's source-identity mistake.
+
+Most importantly, with the source image placed in the guest's true cwd-relative path, **both new original/native processes now successfully reload their own source-earned +72 record image**: complete 150 score words, holder table and checksum still agree at boot frames 300 and 420. The old cold failure was a real harness-location defect, now corrected, **not evidence that the native gameplay erased the earned record**.
+
+Do not retroactively rewrite old artifact provenance: earlier PR receipts have the actual wrong seed path and should still be labelled as such. This successful *independent rerun* supersedes their conclusion for the particular Zoom Zoo onset, result-text, sparse SRAM and cold-ranked-record observations. Other earlier source-anchored cases remain to be reverified individually; RF-017's patched-emitter hosted test likewise requires the newly corrected preload on that exact native build.
+
+The pre-existing strict event comparator and the authoritative release ledger remain unmodified: **0/45 accepted**.
+
+## Independently rerun Bowl Stunt on the corrected SRAM root
+
+The ordinary, separate original/native scored Stunt workflow was automatically invalidated by the **existing producer source file** change, not by a new fanout. [Run 38786734206](https://github.com/gamesbyian/UR-Recomp/actions/runs/38786734206) finished **green** on the corrected native SRAM transport. I downloaded its actual artifact 11997599302 and recomputed ZIP SHA-256 **95c3071e7e86f1366dad4f16f6f5f9ced06be164b184de8da9c3853d00f4440e**, matching GitHub's archived digest. The authentic 2014 original event is Bowl, \`course:03\`, movie race-entry 8620 and settled result 11985, relative +3365.
+
+The corrected fresh guests enter at independent host frames **984 reference / 985 native**. The actual visible positive-scored Stunt result appears at **absolute host frame 4349 on both**, with the same rendered score text. However the **per-guest race-relative result timing differs**: original +3365 vs native +3364. The anchored original/native 0x2F tally occurs at the same host frame 4279. The tally phase observer reports no persistent differing WRAM offsets over its bounded sample, but exact guest memory is not wholly equal, nor is CPU or source logic-tick parity proven.
+
+**Interpretation:** This is not evidence that native presents the result a wall-clock frame earlier. The result lands on the same host frame; the timing discrepancy lies in the *independently measured entry-relative interval*. It is a strict complete-event eligibility failure and a discriminating entry-phase question. Earlier purported Bowl +3365/+3365 matches came from the wrong-root source SRAM transport and must be kept historical, not substituted for this corrected witness. No controller rebasing, frame-axis normalization or acceptance waiver is warranted. The machine record is [analysis/data/qa01-bowl-corrected-sram-root-stunt-phase-20261015.json](../analysis/data/qa01-bowl-corrected-sram-root-stunt-phase-20261015.json). **Still 0/45**.

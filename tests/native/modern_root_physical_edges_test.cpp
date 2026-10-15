@@ -52,6 +52,23 @@ int main() {
     assert(!nav.p1_gamepad(5, false));
     assert(nav.p1_gamepad(5, true));
 
+    // LEFT/RIGHT (native OPTIONS value changes) latch independently of every
+    // other key: holding one never auto-repeats and never blocks navigation.
+    assert(nav.keyboard(5, true));
+    assert(!nav.keyboard(5, true));
+    assert(nav.keyboard(6, true));
+    assert(!nav.keyboard(6, true));
+    assert(!nav.keyboard(5, false));
+    assert(nav.keyboard(5, true));
+    assert(nav.p1_gamepad(6, true));
+    assert(!nav.p1_gamepad(6, true));
+    assert(nav.p1_gamepad(7, true));
+    assert(!nav.p1_gamepad(7, true));
+    assert(!nav.p1_gamepad(6, false));
+    assert(nav.p1_gamepad(6, true));
+    assert(!nav.keyboard(7, true));   // one past the last keyboard slot
+    assert(!nav.p1_gamepad(8, true)); // one past the last pad slot
+
     // Invalid physical slots cannot create a ghost press or cross seats.
     assert(!nav.keyboard(99, true));
     assert(!nav.p1_gamepad(99, true));

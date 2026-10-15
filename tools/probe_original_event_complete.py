@@ -1292,7 +1292,13 @@ def run_pinned_baldosa(work: Path, args, script: Path,
     config = args.native.parent / "config.ini"
     if not config.is_file():
         config.write_text("[Sound]\nEnableAudio = 0\n", encoding="utf-8")
-    save_root = args.native.parent / "saves"
+    # The explicit --config argument skips the desktop host's default
+    # snesrecomp_anchor_to_exe_dir() path. RtlReadSram() then reads
+    # RtlSaveRoot()/save.srm, default 'saves/save.srm', relative to cwd=work.
+    # Seeding args.native.parent/saves while executing from work meant the
+    # guest NEVER read the archived movie SRAM. This path is a source-identity
+    # precondition, not an optional cold-reload convenience.
+    save_root = work / "saves"
     backup = save_root.with_name("saves.qa01-bowl-recovery")
     if backup.exists():
         raise CompleteEventError(f"prior native SRAM backup not cleared: {backup}")

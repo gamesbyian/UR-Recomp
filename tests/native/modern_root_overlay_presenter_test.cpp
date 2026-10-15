@@ -213,6 +213,86 @@ int main() {
                                       old_view,view));
     assert(!contains("UNRECORDED TWO PLAYER"));
 
+    // A refused route or stale racer is stated in the root's hint line, and
+    // multi-course Practice names its tour, kind and open-course count.
+    painted.clear();
+    view.root_notice = "COURSE NOT REACHABLE - RETRY";
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("COURSE NOT REACHABLE - RETRY"));
+    assert(!contains("X/F2 RACERS   F1 HELP"));
+    view.root_notice = {};
+    painted.clear();
+    view.practice_picker_open = true;
+    view.practice_course_name = "Looper";
+    view.practice_tour_name = "Shuffler";
+    view.practice_kind_label = "RACE";
+    view.practice_courses_open = 20;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("Looper"));
+    assert(contains("Shuffler - RACE"));
+    assert(contains("20 OPEN - MORE FROM MEDALS"));
+    assert(contains("A START L/R TOUR B BACK"));
+    painted.clear();
+    view.practice_courses_open = 40;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("40 COURSES OPEN") && !contains("40 OPEN - MORE FROM MEDALS"));
+    painted.clear();
+    view.practice_courses_open = 0;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("1 VERIFIED COURSE") && contains("A START  B BACK"));
+    view.practice_picker_open = false;
+
+    // Native OPTIONS is opt-in: the old host's exact layout is unchanged and
+    // the modal shows only what the host supplied, with the selected
+    // adjustable value bracketed and any status/notice on one line.
+    painted.clear();
+    assert(!view.options_open);
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(!contains("L/R CHANGE  B BACK"));
+    painted.clear();
+    view.options_open = true;
+    view.options_row_count = 3;
+    view.options_selected = 1;
+    view.options_rows[0] = {"DISPLAY", "WINDOWED", true};
+    view.options_rows[1] = {"VSYNC", "ON", true};
+    view.options_rows[2] = {"CONTROLS", "SHOW", false};
+    view.options_status = "SAVED";
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains(" DISPLAY  WINDOWED"));
+    assert(contains(">VSYNC    < ON >"));
+    assert(contains(" CONTROLS SHOW"));
+    assert(contains("SAVED"));
+    assert(contains("L/R CHANGE  B BACK"));
+    painted.clear();
+    view.options_status = {};
+    view.options_notice = "SAVED OPTIONS DAMAGED";
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("SAVED OPTIONS DAMAGED"));
+    painted.clear();
+    view.options_controls_help = true;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("MENU CONTROLS"));
+    assert(contains("LEFT/RIGHT  CHANGE"));
+    assert(contains("B/ESC    BACK"));
+    assert(!contains(">VSYNC    < ON >"));
+    // A host cannot over-declare rows past the fixed bound.
+    painted.clear();
+    view.options_controls_help = false;
+    view.options_row_count = 99;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    view.options_open = false;
+    view.options_row_count = 0;
+    view.options_notice = {};
+
     painted.clear();
     assert(!render_modern_root_overlay({},pixels,256,224,1,240,
                                        old_view,view));

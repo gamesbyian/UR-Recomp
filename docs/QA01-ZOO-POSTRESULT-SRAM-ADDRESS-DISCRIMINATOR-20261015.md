@@ -1,5 +1,8 @@
 # QA-01: Zoom Zoo post-result SRAM byte discriminator
 
+> **P0 source-input qualification (October 15, 2026):** A subsequently executed cold-guest verification found that the pinned native QA wrapper was staging the original 2014 movie battery image at `$native_executable_parent/saves/save.srm`, while its explicit `--config` and `cwd=work` caused Baldosa to read `$work/saves/save.srm`. This original/native case remains a valid paired run with the precise reported output-byte differences and archive hashes; **identical initial guest SRAM is not established** in the native. The inferred timing-derived source equivalence and any claim of a fully authentic original/native SRAM comparison are therefore **provisional**. See [the native preload transport analysis](QA01-PINNED-BALDOSA-SRAM-PRELOAD-IDENTITY-20261015.md), QA-01 PR #1654 and its corrected source-pinned replay. No acceptance credit was ever granted.
+
+
 **Owner:** independent gameplay verification, QA-01/07. **Status:** read-only address classifier; zero USA complete-event credit.
 
 ## Original experiment and specific missing evidence

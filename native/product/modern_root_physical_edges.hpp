@@ -11,8 +11,8 @@ namespace ur::product {
 // SDL KEYDOWN events cannot activate an already-held Modern action.
 class ModernRootPhysicalEdges {
 public:
-    static constexpr std::size_t kKeyboardActions = 5;  // up/down/enter/escape/create X
-    static constexpr std::size_t kP1Buttons = 6;        // up/down/A/Start/B/X
+    static constexpr std::size_t kKeyboardActions = 7;  // up/down/enter/escape/create X/left/right
+    static constexpr std::size_t kP1Buttons = 8;        // up/down/A/Start/B/X/left/right
 
     bool keyboard(std::size_t index, bool pressed) noexcept {
         return transition(keys_, index, pressed);

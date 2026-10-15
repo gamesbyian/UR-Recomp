@@ -37,6 +37,20 @@ on:
       - "tools/baldosa_product_pause_spike.py"
       - "tools/baldosa_modern_user_data_spike.py"
       - "tools/baldosa_modern_profile_activation_spike.py"
+      - "tools/baldosa_modern_options_spike.py"
+      - "tools/baldosa_native_options_probe.py"
+      - "tools/baldosa_native_practice_courses_probe.py"
+      - "tests/unit/test_baldosa_native_practice_courses_probe.py"
+      - "tests/unit/test_modern_pause_overlay_presenter.py"
+      - "tests/unit/test_verify_baldosa_extracted_launcher_logs.py"
+      - "tests/native/modern_pause_overlay_presenter_test.cpp"
+      - "native/product/modern_pause_overlay_presenter.hpp"
+      - "tests/unit/test_baldosa_native_options_probe.py"
+      - "tests/unit/test_baldosa_modern_options_spike.py"
+      - "native/product/baldosa_native_options.hpp"
+      - "tests/native/baldosa_native_options_test.cpp"
+      - "tests/unit/test_baldosa_native_options_cpp.py"
+      - "tools/baldosa_native_modern_root.cpp"
       - "tools/baldosa_modern_profile_activation.cpp"
       - "tools/baldosa_modern_profile_native_fixture.cpp"
       - "tests/native/baldosa_modern_profile_activation_test.cpp"
@@ -164,6 +178,12 @@ jobs:
           python tests/unit/test_baldosa_native_first_racer_real_run_probe.py
           python tests/unit/test_baldosa_modern_user_data_spike.py
           python tests/unit/test_baldosa_modern_profile_activation_spike.py
+          python tests/unit/test_baldosa_modern_options_spike.py
+          python tests/unit/test_baldosa_native_options_cpp.py
+          python tests/unit/test_baldosa_native_options_probe.py
+          python tests/unit/test_baldosa_native_practice_courses_probe.py
+          python tests/unit/test_modern_pause_overlay_presenter.py
+          python tests/unit/test_verify_baldosa_extracted_launcher_logs.py
 
       - name: Verify immutable native source pins
         run: |
@@ -185,6 +205,8 @@ jobs:
           python tools/baldosa_modern_user_data_spike.py --game baldosa
           python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_modern_options_spike.py --game baldosa
+          python tools/baldosa_modern_options_spike.py --game baldosa
           # No second native core, ROM or alternate product frontend.
           test -s baldosa/src/main.c
           test -s baldosa/snesrecomp/runner/src/desktop/host_main.c
@@ -440,6 +462,63 @@ jobs:
             --video windows --timeout 180
           echo "PASS: native Modern X/A switches the full verified existing profile selector Mike to Andrew and back only for next launch; fresh source guest boots each stock 8KiB rider. No manufactured guest result, physical gamepad QA or original/native complete-event parity." >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Native Options change, restore, defaults and damaged settings across four games
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
+        run: |
+          set -euo pipefail
+          # Real P1 semantic gamepad edges through the production root handler:
+          # Display/VSync/Volume change live and persist (options-v1.txt via the
+          # existing HostSettings codec, framework [Sound] Volume), a fresh
+          # process restores them, DEFAULTS reverts them, and a damaged file
+          # is reported, kept as .damaged and does not stop the game.
+          python tools/baldosa_native_options_probe.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_options" \
+            --video windows --timeout 180
+          echo "PASS: native Options journey (display, vsync, volume, controls help, defaults, damaged-file recovery) in four real Win32 games. Semantic pad edges; physical pads, audible level and display appearance are independent QA gaps." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Native Practice enters ten original courses across both unlock states
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
+        run: |
+          set -euo pipefail
+          # Real P1 semantic gamepad edges open Practice and walk the picker
+          # over the courses the original TOUR_SELECT offers (20 on a never
+          # played save, 40 on a stock tier-2 save). The unchanged original
+          # menus are driven by the shared route; only decoded original course
+          # identity authorises each handoff; saves stay byte-identical.
+          python tools/baldosa_native_practice_courses_probe.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_practice_courses" \
+            --video windows --timeout 240
+          echo "PASS: ten original Practice courses (race, circuit and stunt; four tours per unlock state) entered with source course identity, plus a Practice game with native pause and delayed Restart rewinding to the race anchor with unchanged SRAM and two Practice games opening the shared Options panel from the frozen pause menu (SDL keys, then semantic P1 pad edges), on real Win32 native games; Hunter closed, saves unchanged, nothing published. Semantic pad edges; not all 45 and no physical-pad or release credit." >> "$GITHUB_STEP_SUMMARY"
+
+      # Separate, bounded evidence for independent QA. The fixed strict
+      # baldosa-win32-native-pause-evidence ZIP is deliberately NOT touched.
+      # Only producer reports and the named native source logs of these two
+      # probes: no ROM, user directory, save, config root or blanket glob.
+      - name: Retain bounded Options and Practice-breadth native evidence
+        if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.parallel_journeys == false }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-native-modern-options-practice-evidence
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_options/report.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_options/game1_change/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_options/game2_restore_defaults/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_options/game3_defaults_boot/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_options/game4_damaged/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_options/game5_readonly_config/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/report.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/tier0_never_played-*/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/tier2_formatted_save-*/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/restart-in-practice/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/pause-options-sdl_keys/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/pause-options-p1_pad_semantic/log.txt
+
       - name: Assemble verified ROM-free Baldosa Modern Windows candidate
         run: |
           set -euo pipefail
@@ -495,6 +574,27 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           path: ${{ runner.temp }}/baldosa-candidate-binding/candidate-binding.json
+
+      # Independent QA needs the raw no-argument CMD transcripts to audit two
+      # real child processes, one relaunch, pad edges, profile refusal and
+      # packaged Options chronology. Separate fixed paths; the strict QA-12
+      # ZIP above and the extracted game root, ROM and profile trees are
+      # never included. Each log is size-bounded by the verifier.
+      - name: Retain bounded extracted-CMD source transcripts separately
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-extracted-cmd-source-evidence
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/launcher-acceptance.json
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/valid-launch.log
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/first-racer-autorelaunch.log
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/packaged-options-first.log
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/packaged-options-second.log
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/packaged-options-damaged.log
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/profile-rejected-launch.log
 
       - name: Retain bounded Windows guest evidence (never ROM or saves)
         if: always()

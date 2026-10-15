@@ -40,6 +40,10 @@ on:
         required: false
         type: boolean
         default: false
+      qa01_cold_guest_reload:
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       selected:
@@ -93,6 +97,11 @@ on:
         type: boolean
         required: false
         default: false
+      qa01_cold_guest_reload:
+        description: "Opt-in fresh original/native guest reload of source-earned Zoom Zoo ranked record (requires zoom-zoo + source_followthrough)"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -119,6 +128,8 @@ jobs:
           SELECTED: ${{ inputs.selected }}
           ZOO_TERMINAL: ${{ inputs.zoo_terminal_phase }}
           QA01_APU_PHASE: ${{ inputs.qa01_apu_phase }}
+          QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}
+          QA01_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
         run: |
           set -euo pipefail
           if [[ "$ZOO_TERMINAL" == "true" && "$SELECTED" != "zoom-zoo" ]]; then
@@ -127,6 +138,11 @@ jobs:
           fi
           if [[ "$QA01_APU_PHASE" == "true" && "$SELECTED" != "zoom-zoo" ]]; then
             echo "RF-015 APU trace only supports selected=zoom-zoo" >&2
+            exit 1
+          fi
+          if [[ "$QA01_COLD_GUEST" == "true" &&
+                ( "$SELECTED" != "zoom-zoo" || "$QA01_FOLLOWTHROUGH" != "true" ) ]]; then
+            echo "Cold Zoom Zoo ranked-record reload needs zoom-zoo + source_followthrough" >&2
             exit 1
           fi
           python3 -m unittest discover -s tests/unit -p test_qa01_event_campaign.py
@@ -170,6 +186,7 @@ jobs:
           test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
           test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
           python3 -m unittest discover -s tests/unit -p test_probe_original_event_complete.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_cold_result_record.py
           python3 -m unittest discover -s tests/unit -p test_qa01_postresult_sram_diff.py
       - name: Build original Snes9x/snesref and research native exactly once
         shell: bash
@@ -292,6 +309,7 @@ jobs:
           QA01_ZOO_TERMINAL: ${{ inputs.zoo_terminal_phase }}
           QA01_APU_PHASE: ${{ inputs.qa01_apu_phase }}
           QA01_SOURCE_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
+          QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}
           # Distinct original and native clock axes; historical Zoo result
           # windows, NOT time-shifted input or assumed frame equivalence.
           UR_QA01_APU_ORIGINAL_FIRST: "6748"
@@ -365,6 +383,23 @@ jobs:
                       + "; exact changed addresses in case artifact; no event credit.\n")
           PY
           fi
+          # Only on actual source-qualified successful Zoo replay. Fresh
+          # subprocesses seed their own captured genuine battery images;
+          # this is guest-level recovery, NEVER a game-host durable-file pass.
+          if [[ "$QA01_COLD_GUEST" == "true" && "$QA01_CASE" == "zoom-zoo" &&
+                "$QA01_SOURCE_FOLLOWTHROUGH" == "true" &&
+                "$producer_rc" -eq 0 && "$case_rc" -eq 0 ]]; then
+            python3 tools/qa01_cold_result_record.py \
+              --producer-report "$ROOT/producer-report.json" \
+              --replay "$ROOT/work/zoom-zoo/replay" \
+              --snesref "$BIN/snesref" \
+              --core "$BIN/snes9x_libretro.so" \
+              --native "$BIN/native" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --work "$ROOT/qa01-cold-guest-boot" \
+              --out "$ROOT/qa01-cold-guest-report.json"
+            echo 'Fresh original/native guest record reload checked; host disk durability NOT proven; zero event credit' >> "$GITHUB_STEP_SUMMARY"
+          fi
           if [[ "$QA01_APU_PHASE" == "true" ]]; then
             python3 tools/qa01_apu_phase_report.py \
               --original-log "$ROOT/work/zoom-zoo/replay/reference.log" \
@@ -383,6 +418,9 @@ jobs:
           path: |
             ${{ runner.temp }}/qa01-case/case-result.json
             ${{ runner.temp }}/qa01-case/qa01-postresult-sram-differences.json
+            ${{ runner.temp }}/qa01-case/qa01-cold-guest-report.json
+            ${{ runner.temp }}/qa01-case/qa01-cold-guest-boot/original.log
+            ${{ runner.temp }}/qa01-case/qa01-cold-guest-boot/native.log
             ${{ runner.temp }}/qa01-case/qa01-apu-edge-report.json
             ${{ runner.temp }}/qa01-case/producer-report.json
             ${{ runner.temp }}/qa01-case/producer.log

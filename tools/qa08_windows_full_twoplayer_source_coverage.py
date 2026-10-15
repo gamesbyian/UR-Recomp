@@ -24,6 +24,8 @@ STATE_LOG=re.compile(
     r"^UR_QA08_WIN_PPU_STATE frame=(\d+) line=(\d+) inidisp=([0-9a-f]{2}) "
     r"brightness=(\d+) forced_blank=(\d+) cgadsub=([0-9a-f]{2}) "
     r"cgwsel=([0-9a-f]{2}) fixedcolor=([0-9a-f]{4}) "
+    r"cg6c=([0-9a-f]{4}) cg6d=([0-9a-f]{4}) "
+    r"cg6e=([0-9a-f]{4}) cg6f=([0-9a-f]{4}) "
     r"cgram_fnv=([0-9a-f]{8})$",re.M
 )
 
@@ -31,7 +33,7 @@ STATE_LOG=re.compile(
 def inspect_native_ppu_registers(log:str)->dict:
     items=[]
     for vals in STATE_LOG.findall(log):
-        frame,line,display,brightness,blank,math,window,fixed,palette=vals
+        frame,line,display,brightness,blank,math,window,fixed,slot6c,slot6d,slot6e,slot6f,palette=vals
         data={
             "actual_native_snes_frame":int(frame),
             "ppu_line":int(line),
@@ -41,6 +43,9 @@ def inspect_native_ppu_registers(log:str)->dict:
             "cgadsub":math,
             "cgwsel":window,
             "fixed_color":fixed,
+            "real_native_CGRAM_slots_6c_to_6f":{
+                "6c":slot6c,"6d":slot6d,"6e":slot6e,"6f":slot6f,
+            },
             "cgram_full_512_byte_FNV1a":palette,
         }
         if (data["ppu_line"] not in (1,112,114)

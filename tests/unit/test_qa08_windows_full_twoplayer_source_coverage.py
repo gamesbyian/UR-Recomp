@@ -32,13 +32,16 @@ class TwoPlayerSourceTest(unittest.TestCase):
         line=lambda f,y,b: (
             f"UR_QA08_WIN_PPU_STATE frame={f} line={y} "
             f"inidisp={b:02x} brightness={b} forced_blank=0 "
-            "cgadsub=04 cgwsel=02 fixedcolor=0180 cgram_fnv=2345abcd\n")
+            "cgadsub=04 cgwsel=02 fixedcolor=0180 cg6c=56b5 cg6d=4a52 cg6e=4631 cg6f=4210 cgram_fnv=2345abcd\n")
         log=line(3683,1,7)+line(3683,112,0)+line(3683,114,7)+line(4064,1,14)
         result=two.inspect_native_ppu_registers(log)
         self.assertEqual(result["actual_state_line_count"],4)
         self.assertEqual([x["brightness"] for x in
                           result["per_line_native_PPU_state"]],[7,0,7,14])
         self.assertFalse(result["release_gate_accepted"])
+        self.assertEqual(result["per_line_native_PPU_state"][-1]
+                         ["real_native_CGRAM_slots_6c_to_6f"],
+                         {"6c":"56b5","6d":"4a52","6e":"4631","6f":"4210"})
         with self.assertRaises(ValueError):
             two.inspect_native_ppu_registers("")
         with self.assertRaises(ValueError):

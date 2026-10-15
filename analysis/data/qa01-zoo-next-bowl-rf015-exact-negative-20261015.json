@@ -82,7 +82,15 @@
     "earned_record_holder": 0,
     "record_checksum_stored_and_computed": 64622,
     "record_holder_table_equal": true,
-    "record_word_table_equal": true
+    "record_word_table_equal": true,
+    "fresh_original_zoo_result_absolute_host": 6180,
+    "fresh_native_zoo_result_absolute_host": 6182,
+    "fresh_original_bowl_entry_absolute_host": 6447,
+    "fresh_native_bowl_entry_absolute_host": 6447,
+    "fresh_next_bowl_absolute_host_equal": true,
+    "original_native_result_relative_bowl_intervals_equal": false,
+    "fresh_native_bowl_entry_earlier_absolute_host": false,
+    "early_next_bowl_interpretation": "Native Bowl active +265 vs original +267 relative to independently observed Zoo results. Native Zoo result host 6182 vs original 6180; both fresh next Bowl entrances occur at absolute host 6447. This is a relative event interval mismatch, not absolute-host first entrance lead."
   },
   "scientific_limits": {
     "rf017_cpu_correction_included": false,

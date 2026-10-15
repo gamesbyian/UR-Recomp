@@ -73,6 +73,49 @@ def direct_first_party_bridge_headers(source_files: set[str] | None = None) -> s
     return observed
 
 
+
+# These are observed, compiled first-party header roots from the existing
+# CMake staged bridge. Follow quoted first-party includes to guard nested
+# source contracts without a blanket native/** Windows PR trigger. External
+# pinned Baldosa framework headers remain outside this mutable-UR graph.
+TRANSITIVE_WINDOWS_HEADER_ROOTS = {
+    "native/product/run_record_capture_policy.hpp",
+    "native/product/modern_root_overlay_presenter.hpp",
+    "native/product/quick_practice_available_selection.hpp",
+    "native/product/quick_practice_selection_view.hpp",
+    "native/product/host_product_state.hpp",
+    "native/product/host_profile_state.hpp",
+}
+
+
+def transitive_first_party_bridge_headers() -> set[str]:
+    pending = list(TRANSITIVE_WINDOWS_HEADER_ROOTS)
+    seen: set[str] = set()
+    while pending:
+        path = pending.pop()
+        if path in seen:
+            continue
+        seen.add(path)
+        if len(seen) > 256:
+            raise AssertionError("Unbounded first-party header closure")
+        source = ROOT / path
+        if not source.is_file():
+            raise AssertionError("Missing compiled first-party header: " + path)
+        for include in re.findall(
+            r'^\s*#include\s+"([^"]+)"', source.read_text(encoding="utf-8"),
+            flags=re.MULTILINE,
+        ):
+            if include.startswith("/") or ".." in Path(include).parts:
+                raise AssertionError("Unexpected first-party relative include: " + include)
+            for root in (source.parent, *(ROOT / d for d in FIRST_PARTY_INCLUDE_ROOTS)):
+                candidate = root / include
+                if candidate.is_file():
+                    rel = candidate.relative_to(ROOT).as_posix()
+                    if rel not in seen:
+                        pending.append(rel)
+    return seen - TRANSITIVE_WINDOWS_HEADER_ROOTS
+
+
 OPTIONAL_NATIVE_OPTIONS_INPUTS = {
     "tools/baldosa_modern_options_spike.py",
     "native/product/baldosa_native_options.hpp",
@@ -143,7 +186,8 @@ def staged_project_sources() -> set[str]:
     if options_present and options_present != OPTIONAL_NATIVE_OPTIONS_INPUTS:
         raise AssertionError("Native Options host patch/header are an incomplete pair")
     return (sources | paired_headers | STAGING_SCRIPTS | BRIDGE_HEADERS
-            | options_present | direct_first_party_bridge_headers(sources))
+            | options_present | direct_first_party_bridge_headers(sources)
+            | transitive_first_party_bridge_headers())
 
 
 def missing_triggers(inputs: set[str], filters: list[str]) -> list[str]:
@@ -209,6 +253,33 @@ class BaldosaWindowsCompiledTriggerClosureTest(unittest.TestCase):
         self.assertIn(
             "native/product/baldosa_native_profile_sram_checkpoint.hpp",
             missing_triggers(observed, stripped),
+        )
+
+    def test_nested_compiled_presentation_practice_and_profile_headers_trigger_windows(self):
+        inputs = staged_project_sources()
+        self.assertTrue(TRANSITIVE_WINDOWS_HEADER_ROOTS.issubset(inputs))
+        nested = transitive_first_party_bridge_headers()
+        required = {
+            "native/product/widescreen_output_composition.hpp",
+            "native/product/modern_stock_menu_palette.hpp",
+            "native/product/modern_overlay_composition.hpp",
+            "native/product/modern_overlay_text_fit.hpp",
+            "native/product/modern_text_layout.hpp",
+            "native/product/modern_text_catalog.hpp",
+            "native/product/quick_practice_selection.hpp",
+            "native/product/quick_practice_picker.hpp",
+            "native/product/quick_practice_catalog.hpp",
+            "native/product/quick_practice_availability.hpp",
+            "native/product/regional_presentation.hpp",
+            "native/product/completed_run_ghost_target.hpp",
+        }
+        self.assertTrue(required.issubset(nested))
+        self.assertEqual(missing_triggers(nested, pr_paths()), [])
+        omitted = [p for p in pr_paths()
+                   if p != "native/product/widescreen_output_composition.hpp"]
+        self.assertIn(
+            "native/product/widescreen_output_composition.hpp",
+            missing_triggers(nested, omitted),
         )
 
     def test_missing_executable_input_is_detected_not_silently_dropped(self):

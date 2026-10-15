@@ -807,11 +807,53 @@ def source_followthrough_states(states: dict[int, dict], result_frame: int) -> d
     return samples
 
 
+def decode_qa01_crawler_battery_sram(path: Path, course_track: int) -> dict:
+    """A *live* 8KiB battery image, not OS durability or an award receipt.
+
+    Track Records are the original USA table at 0x0422, rank stride 50,
+    Crawler tour row 0, and original racer holder bytes at 0x0550.
+    Keep all three ranks and the computed/stored checksum even mid-update.
+    This routine cannot repair, synthesize or write save bytes.
+    """
+    if type(course_track) is not int or course_track not in range(5):
+        raise CompleteEventError("unsupported Crawler SRAM record course index")
+    if not path.is_file() or path.stat().st_size != 8192:
+        raise CompleteEventError("original/native post-result SRAM must be 8KiB")
+    raw = path.read_bytes()
+    if len(raw) != 8192:
+        raise CompleteEventError("truncated original/native post-result SRAM")
+    word = lambda at: int.from_bytes(raw[at:at + 2], "little")
+    records = []
+    for rank in range(3):
+        index = rank * 50 + course_track
+        records.append({
+            "rank": rank,
+            "value_word": word(0x0422 + 2 * index),
+            "holder_index": raw[0x0550 + index],
+        })
+    checksum_calculated = sum(
+        word(0x0422 + 2 * index) for index in range(150)) & 0xFFFF
+    checksum_stored = word(0x054E)
+    return {
+        "full_sram_bytes": len(raw),
+        "sram_sha256": hashlib.sha256(raw).hexdigest(),
+        "crawler_course_track_index": course_track,
+        "crawler_record_three_ranks": records,
+        "record_table_checksum_stored": checksum_stored,
+        "record_table_checksum_calculated": checksum_calculated,
+        "record_table_checksum_matches_at_sample": (
+            checksum_stored == checksum_calculated),
+        "in_memory_snapshot_only": True,
+        "cold_process_reload_proven": False,
+    }
+
+
 def observe_source_terminal_followthrough(
         original_dir: Path, native_dir: Path,
         original_log: str, native_log: str,
         source_samples: dict, original_entry: int, native_entry: int,
-        original_result_relative: int, native_result_relative: int) -> dict:
+        original_result_relative: int, native_result_relative: int,
+        crawler_course_track: int) -> dict:
     """Compare distinct archived-source, fresh-reference and native axes.
 
     Read genuine full WRAM after each guest's independently observed result.
@@ -837,6 +879,7 @@ def observe_source_terminal_followthrough(
                 or frames["native"] != native_result_host + offset):
             raise CompleteEventError(f"follow-through result-relative frame mismatch at +{offset}")
         guests = {}
+        sram = {}
         for label, directory in (("original", original_dir), ("native", native_dir)):
             path = directory / f"{tag}.wram.bin"
             if not path.is_file():
@@ -845,6 +888,8 @@ def observe_source_terminal_followthrough(
             if len(raw) != 0x20000:
                 raise CompleteEventError("follow-through WRAM must be full 128 KiB")
             word = lambda adr: int.from_bytes(raw[adr:adr+2], "little")
+            sram[label] = decode_qa01_crawler_battery_sram(
+                directory / f"{tag}.sram.bin", crawler_course_track)
             guests[label] = {
                 "menu": raw[0x009F], "track": raw[0x00CE],
                 "in_race": raw[0x0313],
@@ -870,6 +915,12 @@ def observe_source_terminal_followthrough(
             "source_original_movie": source,
             "independently_observed_replay_host_frames": frames,
             "fresh_guests": guests,
+            "fresh_guest_battery_sram": sram,
+            "sram_full_bytes_equal": (
+                sram["original"]["sram_sha256"] == sram["native"]["sram_sha256"]),
+            "sram_course_three_rank_records_equal": (
+                sram["original"]["crawler_record_three_ranks"] ==
+                sram["native"]["crawler_record_three_ranks"]),
             "source_named_state_comparison": by_engine,
             "paired_named_state_equal": all(
                 guests["original"][name] == guests["native"][name]
@@ -891,6 +942,12 @@ def observe_source_terminal_followthrough(
             r["paired_named_state_equal"] for r in rows),
         "all_followthrough_full_wram_pairs_equal": all(
             r["full_wram_bytes_equal"] for r in rows),
+        "all_followthrough_full_sram_pairs_equal": all(
+            r["sram_full_bytes_equal"] for r in rows),
+        "all_followthrough_crawler_record_pairs_equal": all(
+            r["sram_course_three_rank_records_equal"] for r in rows),
+        "battery_sram_snapshot_bytes_per_guest": 8192,
+        "battery_sram_cold_process_persistence_proven": False,
         "post_result_sram_persistence_proven": False,
         "menu_restoration_or_final_progression_proven": False,
         "strict_event_comparator_unchanged": True,
@@ -1436,7 +1493,8 @@ def main(argv: list[str] | None = None) -> int:
     source_followthrough = (observe_source_terminal_followthrough(
         replay / "ref", replay / "native", rl, nl,
         original_event["source_terminal_followthrough"], rf, nf,
-        terminal_frames["reference_relative"], terminal_frames["native_relative"])
+        terminal_frames["reference_relative"], terminal_frames["native_relative"],
+        track)
         if args.source_followthrough else None)
     switcher_same_host_memory = (observe_switcher_same_host_memory_offsets(
         replay / "ref", replay / "native", switcher_same_host)

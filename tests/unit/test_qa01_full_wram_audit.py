@@ -167,6 +167,24 @@ class ExecutedZooWramReceiptTests(unittest.TestCase):
         self.assertFalse(limits["complete_cpu_logic_tick_equivalence_proven"])
         self.assertFalse(limits["source_read_liveness_for_7E_2000_and_7E_2004_proven"])
         self.assertFalse(limits["host_disk_save_publish_and_hard_kill_proven"])
+        repeat = report["independent_repeat"]
+        self.assertEqual(repeat["run_id"], 38820862424)
+        self.assertEqual(repeat["case_artifact_id"], 12013343141)
+        self.assertEqual(repeat["producer_report_sha256"],
+                         "8c915608e7299a6e9effd8dfb4a9551990b97920dc117f82360edb5c8a65d42f")
+        self.assertEqual(repeat["case_artifact_sha256"],
+                         "1443916e1fff57973ec472e05d5d4b0819bd1b868533184a08f0aa18556b6885")
+        self.assertEqual(repeat["native_guest_elf_sha256"],
+                         report["source"]["native_guest_elf_sha256"])
+        self.assertNotEqual(repeat["reference_core_sha256"],
+                            report["source"]["reference_core_sha256"])
+        self.assertEqual(repeat["observations_exactly_equal"], {
+            "zoo_terminal_host_phase": True,
+            "source_terminal_followthrough": True,
+            "zoo_next_bowl_handoff": True})
+        self.assertEqual(repeat["case_disposition"], "strict_candidate")
+        self.assertEqual(repeat["release_credit"], 0)
+
 
 
 if __name__ == "__main__":

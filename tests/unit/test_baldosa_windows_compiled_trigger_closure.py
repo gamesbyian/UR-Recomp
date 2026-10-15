@@ -35,6 +35,13 @@ BRIDGE_HEADERS = {
     "native/product/modern_root_menu.hpp",
     "native/product/modern_root_overlay_presenter.hpp",
     "native/product/modern_root_physical_edges.hpp",
+    "native/product/baldosa_native_run_save_feedback.hpp",
+    "native/product/baldosa_native_two_seat_join.hpp",
+    "native/product/quick_practice_route.hpp",
+    "native/product/quick_practice_input_mask.hpp",
+    "native/product/quick_practice_launch.hpp",
+    "native/product/quick_practice_available_selection.hpp",
+    "native/product/quick_practice_selection_view.hpp",
 }
 
 

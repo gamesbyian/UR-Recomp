@@ -9,6 +9,8 @@ on:
       - ".github/workflows/qa08-original-twoplayer-ppu-register-trace.yml"
       - "tools/qa08_original_twoplayer_ppu_register_trace.py"
       - "tests/unit/test_qa08_original_twoplayer_ppu_register_trace.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snes9x-libretro.json"
   workflow_dispatch:
 
 permissions:

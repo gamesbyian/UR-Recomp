@@ -1,0 +1,24 @@
+name: QA-01 temporary Zoo battery-address source experiment
+
+# Temporary one-shot PR workspace, REMOVE before merging.
+# Exact same existing producer, shared binaries and science gates.
+on:
+  pull_request:
+    paths:
+      - .github/workflows/qa01-zoo-sram-one-shot-20261015.yml
+      - .github/workflows/qa01-event-campaign.yml
+      - tools/qa01_postresult_sram_diff.py
+      - tests/unit/test_qa01_postresult_sram_diff.py
+
+permissions:
+  contents: read
+
+jobs:
+  exact-zoo:
+    uses: ./.github/workflows/qa01-event-campaign.yml
+    with:
+      selected: zoom-zoo
+      source_followthrough: true
+      baldosa_refresh_beam_rate: true
+      zoo_terminal_phase: false
+      qa01_apu_phase: false

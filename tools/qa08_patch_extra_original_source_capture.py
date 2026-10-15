@@ -42,11 +42,15 @@ EXTRA_IF = (
 def patch_source(source: str) -> str:
     if MARK in source:
         raise ValueError("additional original PPU source capture already staged")
-    if (source.count(ANCHOR_ENV) != 1 or source.count(ANCHOR_IF) != 1
-        or source.count("void capture_fixed_original_source(") != 1
-        or source.count("const bool saved = save_presented_pam(") < 1
-        or "if (!field || width != 256 || height != 224" not in source
-        or "ur-baldosa-original-source" not in source):
+    start = source.find("void capture_fixed_original_source(")
+    end = source.find("\n// Compare the actual composited raster", start)
+    observer = source[start:end] if start >= 0 and end > start else ""
+    if (source.count("void capture_fixed_original_source(") != 1
+        or observer.count(ANCHOR_ENV) != 1
+        or observer.count(ANCHOR_IF) != 1
+        or observer.count("const bool saved = save_presented_pam(") != 1
+        or "if (!field || width != 256 || height != 224" not in observer
+        or "ur-baldosa-original-source" not in observer):
         raise ValueError("pinned native Original-source observer changed")
     patched = source.replace(ANCHOR_ENV, ANCHOR_ENV + EXTRA_ENV, 1)
     patched = patched.replace(ANCHOR_IF, EXTRA_IF, 1)

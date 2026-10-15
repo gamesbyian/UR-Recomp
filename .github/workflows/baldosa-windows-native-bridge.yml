@@ -39,6 +39,8 @@ on:
       - "tests/unit/test_baldosa_modern_profile_activation_spike.py"
       - "tools/check_windows_portable_binary.py"
       - "tools/assemble_baldosa_windows_candidate.py"
+      - "tools/bind_baldosa_candidate_receipt.py"
+      - "tests/unit/test_bind_baldosa_candidate_receipt.py"
       - "tools/audit_baldosa_romless_candidate.py"
       - "tools/verify_baldosa_windows_extracted_launcher.py"
       - "tests/unit/test_assemble_baldosa_windows_candidate.py"
@@ -86,6 +88,7 @@ jobs:
       - name: Guard guest CRC, pause witness and Modern mutable-root stage
         run: |
           python tests/unit/test_assemble_baldosa_windows_candidate.py
+          python tests/unit/test_bind_baldosa_candidate_receipt.py
           python tests/unit/test_audit_baldosa_romless_candidate.py
           python tests/unit/test_baldosa_windows_native_pause_route.py
           python tests/unit/test_baldosa_native_1p_records_probe.py
@@ -344,6 +347,21 @@ jobs:
           test -s UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256
           echo "PASS: deterministic ROM-free Baldosa Windows candidate created from the same executable that passed native PE, clean-machine import and 1P/2P player-journey QA. Contains no ROM, SRAM or user state. Candidate only, not a completed remaster." >> "$GITHUB_STEP_SUMMARY"
 
+      # One nominated package: tie the exact executable every journey above
+      # ran to the packaged executable, the manifest and the ZIP hash. Hash
+      # arithmetic only; a separate tiny artifact keeps the candidate and the
+      # strict QA-12 evidence archives byte-for-byte as before.
+      - name: Bind journeys to the nominated ZIP and executable hashes
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/baldosa-candidate-binding"
+          python tools/bind_baldosa_candidate_receipt.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --zip "$RUNNER_TEMP/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip" \
+            --zip-sha256-file "$RUNNER_TEMP/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256" \
+            --revision "$GITHUB_SHA" \
+            --out "$RUNNER_TEMP/baldosa-candidate-binding/candidate-binding.json" | tee -a "$GITHUB_STEP_SUMMARY"
+
       - name: Prove extracted CMD launcher, ROM gates and isolated user SRAM
         run: |
           set -euo pipefail
@@ -363,6 +381,14 @@ jobs:
           path: |
             ${{ runner.temp }}/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip
             ${{ runner.temp }}/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256
+
+      - name: Retain candidate hash binding receipt separately
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-candidate-binding
+          if-no-files-found: error
+          retention-days: 7
+          path: ${{ runner.temp }}/baldosa-candidate-binding/candidate-binding.json
 
       - name: Retain bounded Windows guest evidence (never ROM or saves)
         if: always()

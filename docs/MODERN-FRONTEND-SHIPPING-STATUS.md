@@ -50,16 +50,24 @@ identity check generalised to the requested course. A refused or timed-out
 route now says so on the root ("COURSE NOT REACHABLE - RETRY") and a stale
 racer says "RESTART TO USE NEW RACER" instead of silently doing nothing.
 
-**Evidence (local Linux build of the same native sources, Xvfb, not Windows):**
-all 20 tier-0 courses entered with verified source identity (sweep below); the
-tier-2 sweep and exact-head Windows runs are recorded in the PR. The Windows
-workflow gains `baldosa_native_options_probe.py` (four real games: change,
-restore, defaults, damaged file) and `baldosa_native_practice_courses_probe.py`
-(10 courses across both unlock states; player save byte-identical, nothing
-published). All of it is semantic pad edges: **no physical controller, audible
-level, display-appearance, power-loss or release-gate credit.** Replay/rematch
-inside Practice remains the stock game's own result flow; Restart/Quit inside
-Practice and exit to the root use the existing pause and reentry authorities.
+**Evidence.** *Linux build of the same native sources (Xvfb):* all 20 tier-0 and
+all 40 tier-2 ordinary courses entered with verified source identity; the
+Options probe and the existing Practice lifecycle probe (incl. hard kill) pass.
+*Real Win32 (non-parallel `workflow_dispatch` [38701860728](https://github.com/gamesbyian/UR-Recomp/actions/runs/38701860728)
+at `43d813b`):* every existing journey plus the new
+`baldosa_native_options_probe.py` (change, restore, DEFAULTS, damaged file;
+read-only `config.ini` game enforced on Windows) and
+`baldosa_native_practice_courses_probe.py` (10 courses across a never-played and
+a formatted tier-2 save, player save byte-identical, nothing published) passed.
+Bounded reports and named source logs are retained in the separate
+`baldosa-win32-native-modern-options-practice-evidence` artifact (the strict QA-12
+archive is untouched); independent QA must re-hash and audit them. Later commits
+(`e4f0e00` non-overwriting quarantine, merge of main) are covered by unit tests
+and a final exact-head dispatch recorded in PR #1648. All of it is semantic pad
+edges: **no physical controller, audible level, display-appearance, power-loss or
+release-gate credit.** Replay/rematch inside Practice remains the stock game's own
+result flow; Restart/Quit inside Practice and exit to the root use the existing
+pause and reentry authorities and were not separately exercised here.
 
 ## Full first-user 2P source match and Records integration (verified 2026-10-14)
 

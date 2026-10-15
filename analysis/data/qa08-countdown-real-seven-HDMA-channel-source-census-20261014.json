@@ -1,0 +1,147 @@
+{
+  "schema": "qa08-actual-original-native-countdown-all-HDMA-source-1856/1",
+  "evidence_grade": "real source BBUS writes, not independent physical SNES hardware",
+  "source_pr": 1622,
+  "run_id": 38666654931,
+  "artifact_id": 11942930136,
+  "source_zip_sha256": "fa70b6675009a924ebfff2b41403acda9113d022cf1a4061fbaad1538bec9c65",
+  "native_guest_frame": 1856,
+  "real_total_guest_crc_entries_each": 2473,
+  "actual_channel_write_counts": {
+    "stock": {
+      "1": 3,
+      "2": 3,
+      "3": 12,
+      "4": 12,
+      "5": 14,
+      "6": 900,
+      "7": 4
+    },
+    "global": {
+      "1": 2,
+      "2": 2,
+      "3": 8,
+      "4": 8,
+      "5": 12,
+      "6": 896,
+      "7": 3
+    },
+    "selective_ch7": {
+      "1": 3,
+      "2": 3,
+      "3": 12,
+      "4": 12,
+      "5": 14,
+      "6": 900,
+      "7": 3
+    },
+    "selective_ch57": {
+      "1": 3,
+      "2": 3,
+      "3": 12,
+      "4": 12,
+      "5": 12,
+      "6": 900,
+      "7": 3
+    }
+  },
+  "source_logs_sha256": {
+    "stock": "4eb5597d2aea989797e0be8f5cdc8c5fe00795fa9647947138acca242996ee9b",
+    "global": "ada21adbccfade9111dd6293f0e43f312d0c32be5ad8712328c1a0b33bdecb05",
+    "selective_ch7": "c1448beebae25cd96008b6d5657459f2bf6e4d9c674bd9a95e44f600b28fc69a",
+    "selective_ch57": "49f747c88d7d009df483afa15168c3900baf244c1bcc47870cad95b03e367c69"
+  },
+  "observed_channel6": {
+    "mode": 4,
+    "direct": true,
+    "ROM_bank": "15",
+    "PPU_BBUS_destinations": [
+      "26",
+      "27",
+      "28",
+      "29"
+    ],
+    "actual_PPU_registers": [
+      "2126",
+      "2127",
+      "2128",
+      "2129"
+    ],
+    "stock_count_per_register": 225,
+    "global_count_per_register": 224,
+    "actual_first_line_source_A_bus": [
+      "15:9513",
+      "15:9514",
+      "15:9515",
+      "15:9516"
+    ],
+    "stock_last_write_tag": 225,
+    "global_last_write_tag": 224,
+    "stock_last_source_written": "15:9893",
+    "global_last_source_written": "15:9893",
+    "hypothesis": "first-line descriptor replay shifts per-scanline window clipping one source row; selective channel6+7 consumed-prime can adjudicate"
+  },
+  "other_active_channels": [
+    {
+      "channel": 1,
+      "mode": 0,
+      "destination": "2104",
+      "role": "OAM data"
+    },
+    {
+      "channel": 2,
+      "mode": 0,
+      "destination": "2107",
+      "role": "BG1 screen base"
+    },
+    {
+      "channel": 3,
+      "mode": 3,
+      "destinations": [
+        "210F",
+        "2110"
+      ],
+      "role": "BG2 scroll"
+    },
+    {
+      "channel": 4,
+      "mode": 3,
+      "destinations": [
+        "210D",
+        "210E"
+      ],
+      "role": "BG1 scroll"
+    },
+    {
+      "channel": 5,
+      "mode": 1,
+      "destinations": [
+        "2131",
+        "2132"
+      ],
+      "role": "color math"
+    },
+    {
+      "channel": 7,
+      "mode": 0,
+      "destination": "2100",
+      "role": "brightness"
+    }
+  ],
+  "original_256x224_countdown_blue_arrow_residual_460": {
+    "global_prime_exact_vs_Snes9x": true,
+    "ch7_ch57_wrong_source_pixels": 460,
+    "all_residuals_are_blue_arrow_coverage_mask_XOR": true,
+    "source_RGB888": [
+      57,
+      57,
+      255
+    ],
+    "global_only_blue_pixels": 229,
+    "selective_only_blue_pixels": 231
+  },
+  "channel6_only_causality_proven": false,
+  "ch6_plus_ch7_pixel_exact_on_four_scenes_proven": false,
+  "source_65816_table_producer_PC_proven": false,
+  "production_renderer_change_authorized": false
+}

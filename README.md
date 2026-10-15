@@ -13,6 +13,7 @@ Private technical reconstruction and modern-port project for **Uniracers / Unira
 - **Product architecture:** [project plan](docs/PROJECT-PLAN.md); feature-status and provenance are distinguished from implementation and release proof.
 - **Baldosa reuse:** [UR-Recomp/Baldosa code and asset audit](docs/BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md), [measured native bridge](docs/BALDOSA-NATIVE-EXECUTION-EXPERIMENT-20261009.md), [migration runbook](docs/BALDOSA-FIRST-CORE-MIGRATION-20261009.md).
 - **Independent QA:** [bounded shared campaign](docs/QA-BOUNDED-RELEASE-CAMPAIGN.md), [player journeys](docs/QA-PLAYER-JOURNEYS.md), [authoritative release ledger](docs/RELEASE-QUALITY-LEDGER.json). A smoke route or guest WRAM checksum is not a settled original/native event.
+- **Owner playtest (not a certified release):** [manual source-bound ROM-free Windows candidate and physical-hardware checklist](docs/WINDOWS-PLAYTEST-INSTRUCTIONS.md). A technical-preview ZIP does not include the original game ROM and requires a user's verified own dump; no release gate is inferred.
 - **Document ownership:** [docs/README.md](docs/README.md). Dated prior phase narratives are retained under `docs/archive/` and are **not active work instructions**.
 
 ## What is actually established

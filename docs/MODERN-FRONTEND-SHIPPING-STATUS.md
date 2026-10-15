@@ -123,21 +123,37 @@ This does **not** prove a hard-killed process can recover an in-memory
 Practice session or perform a strict original-emulator full-event parity
 check. Release quality, hardware and all other stock tours remain pending.
 
-## Native Practice hard-kill lifecycle (candidate, 2026-10-14)
+## Native Practice hard-kill lifecycle (merged #1584, 2026-10-15)
 
-The existing Windows Practice probe additionally terminates a named-Mike
-native process (`Process.kill`, i.e. TerminateProcess) once the source
-Dragster GO ticker is live, so neither the Practice SRAM restore nor the native
-SRAM writer runs. It then requires: selector, catalog, typed profile and 8-KiB
-raw SRAM byte-identical to their pre-Practice bytes; no `.urrun`; a fresh
-ordinary Mike boot whose guest `BOOT_SRAM` FNV equals those raw bytes; and a
-further Practice launch that is still admitted despite the stale
-`practice-session` directory and restores/exits normally with the same bytes.
-The ordinary reboot may legitimately rewrite the typed profile via its normal
-native checkpoint, so the final Practice is compared against the post-reboot
-bytes while raw SRAM, selector and catalog must still equal the originals.
-Pending exact-head native Windows CI; this adds no product code and is not an
-OS power-loss, physical-pad or release-ledger claim.
+The Windows Practice probe terminates a named-Mike native process
+(`Process.kill`, i.e. TerminateProcess) once the source Dragster GO ticker is
+live, so neither the Practice SRAM restore nor the native SRAM writer runs. A
+kill receipt records that the child was alive at the kill and exited non-clean.
+The route then requires: selector, catalog, typed profile and 8-KiB raw SRAM
+byte-identical to their pre-kill bytes; no `.urrun`; a non-playing boot whose
+guest `BOOT_SRAM` FNV equals the pre-kill raw SRAM; and a further Practice launch
+that is still admitted despite the stale `practice-session` directory and
+restores/exits normally with the same bytes.
+
+**Measured baseline correction.** Exact Windows CI showed that the first ordinary
+shutdown of a freshly created profile rewrites its raw SRAM even when the guest
+only idled (one byte, offset `0x1FFF`, with the typed generation advancing). The
+probe therefore establishes the career baseline after two idle boots: one that
+normalizes and one control that must change nothing. Practice is judged against
+that baseline, not against the creation bytes. The mechanism behind the
+`0x1FFF` write (guest or framework) is not established.
+
+**Evidence.** Passed on exact heads `a6c64e0` (Windows run 38645114899) and on
+the integrated head `625146c` of #1609 (run 38666817813). Independent QA
+decoded the first run's six artifacts and accepted it at the bounded Windows
+source tier. Bounded logs, the kill receipt and per-boundary SHA/diff receipts
+go in the separate `baldosa-win32-native-practice-lifecycle` artifact. The raw
+before/after 8-KiB images are not archived.
+
+**Not claimed.** No OS power-loss, physical gamepad, audible audio or display
+evidence, no strict original/native complete-event parity, and no release-ledger
+credit. Pause, restart and retry *inside* Practice, and exit to the frontend,
+are not exercised by this route.
 
 ## Native first source-qualified Practice route (candidate, 2026-10-14)
 

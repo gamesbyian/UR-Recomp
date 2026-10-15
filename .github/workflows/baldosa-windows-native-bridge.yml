@@ -17,7 +17,9 @@ on:
       - "tools/baldosa_native_second_racer_probe.py"
       - "tools/baldosa_native_practice_probe.py"
       - "tools/baldosa_dram_refresh_beam_rate_patch.py"
+      - "tools/baldosa_uniracers_hdma_firstline_patch.py"
       - "tests/unit/test_baldosa_dram_refresh_beam_rate_patch.py"
+      - "tests/unit/test_baldosa_uniracers_hdma_firstline_patch.py"
       - "tests/unit/test_baldosa_native_practice_probe.py"
       - "tests/unit/test_baldosa_native_second_racer_probe.py"
       - "tools/baldosa_native_first_racer_real_run_probe.py"
@@ -112,6 +114,7 @@ jobs:
           python tests/unit/test_baldosa_native_first_racer_probe.py
           python tests/unit/test_baldosa_native_second_racer_probe.py
           python tests/unit/test_baldosa_native_first_racer_real_run_probe.py
+          python tests/unit/test_baldosa_uniracers_hdma_firstline_patch.py
           python tests/unit/test_baldosa_modern_user_data_spike.py
           python tests/unit/test_baldosa_modern_profile_activation_spike.py
 
@@ -128,6 +131,13 @@ jobs:
           set -euo pipefail
           # RF-015: one DRAM refresh per 1364-clock beam line (source-qualified correction).
           python tools/baldosa_dram_refresh_beam_rate_patch.py --game baldosa
+          # QA-08 visual parity CANDIDATE: same all-channel first-line HDMA
+          # advance as the original-emulator-pixel-exact 2P experiments.
+          # This PR is not merge-ready until independent 1P/transition/result
+          # and Windows gameplay visual checks close; do not upstream to
+          # cross-title SNESRecomp (Gundam Wing has a distinct HDMA case).
+          python tools/baldosa_uniracers_hdma_firstline_patch.py --game baldosa
+          python tools/baldosa_uniracers_hdma_firstline_patch.py --game baldosa --apply-candidate
           python tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_execution_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_pause_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"

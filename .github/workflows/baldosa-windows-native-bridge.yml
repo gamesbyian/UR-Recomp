@@ -42,6 +42,7 @@ on:
       - "tools/baldosa_native_practice_courses_probe.py"
       - "tests/unit/test_baldosa_native_practice_courses_probe.py"
       - "tests/unit/test_modern_pause_overlay_presenter.py"
+      - "tests/unit/test_verify_baldosa_extracted_launcher_logs.py"
       - "tests/native/modern_pause_overlay_presenter_test.cpp"
       - "native/product/modern_pause_overlay_presenter.hpp"
       - "tests/unit/test_baldosa_native_options_probe.py"
@@ -182,6 +183,7 @@ jobs:
           python tests/unit/test_baldosa_native_options_probe.py
           python tests/unit/test_baldosa_native_practice_courses_probe.py
           python tests/unit/test_modern_pause_overlay_presenter.py
+          python tests/unit/test_verify_baldosa_extracted_launcher_logs.py
 
       - name: Verify immutable native source pins
         run: |
@@ -572,6 +574,27 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           path: ${{ runner.temp }}/baldosa-candidate-binding/candidate-binding.json
+
+      # Independent QA needs the raw no-argument CMD transcripts to audit two
+      # real child processes, one relaunch, pad edges, profile refusal and
+      # packaged Options chronology. Separate fixed paths; the strict QA-12
+      # ZIP above and the extracted game root, ROM and profile trees are
+      # never included. Each log is size-bounded by the verifier.
+      - name: Retain bounded extracted-CMD source transcripts separately
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-extracted-cmd-source-evidence
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/launcher-acceptance.json
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/valid-launch.log
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/first-racer-autorelaunch.log
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/packaged-options-first.log
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/packaged-options-second.log
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/packaged-options-damaged.log
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/profile-rejected-launch.log
 
       - name: Retain bounded Windows guest evidence (never ROM or saves)
         if: always()

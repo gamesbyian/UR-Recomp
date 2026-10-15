@@ -29,6 +29,22 @@ def digest(path: Path) -> str:
             h.update(data)
     return h.hexdigest()
 
+LOG_RETAIN_LIMIT = 1 << 20  # bytes of each retained raw process transcript
+
+
+def bounded_log(text: str) -> str:
+    """Retain at most ~1 MiB of a raw transcript: the head and the tail with an
+    explicit marker, so chronology survives and the artifact stays bounded."""
+    raw = text.encode("utf-8", "replace")
+    if len(raw) <= LOG_RETAIN_LIMIT:
+        return text
+    half = LOG_RETAIN_LIMIT // 2
+    head = raw[:half].decode("utf-8", "replace")
+    tail = raw[-half:].decode("utf-8", "replace")
+    return (head + f"\n[... {len(raw) - 2 * half} bytes elided by the "
+            "verifier's bounded retention ...]\n" + tail)
+
+
 def invoke_launcher(launcher: Path, env: dict[str, str], extra: list[str],
                     timeout: int) -> subprocess.CompletedProcess[str]:
     # One path: use the same CMD entrypoint a user double-clicks. Supplying
@@ -217,7 +233,8 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
     # cartridge SRAM written under the same canonical user root.
     good = invoke_launcher(launcher, env, args, timeout)
     log = good.stdout + "\n" + good.stderr
-    (output / "valid-launch.log").write_text(log, encoding="utf-8")
+    (output / "valid-launch.log").write_text(
+        bounded_log(log), encoding="utf-8")
     require(good.returncode == 0,
             f"extracted CMD launcher returned {good.returncode}: {log[-2500:]}")
     for marker in ("UR_BALDOSA_MODERN_ROOT opened=1",
@@ -253,7 +270,7 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
     first_launch = invoke_launcher(launcher, first_env, [], timeout)
     first_log = first_launch.stdout + "\n" + first_launch.stderr
     (output / "first-racer-autorelaunch.log").write_text(
-        first_log, encoding="utf-8")
+        bounded_log(first_log), encoding="utf-8")
     require(first_launch.returncode == 0,
             "Actual no-argument extracted launcher failed first-racer "
             f"handoff: rc={first_launch.returncode} tail={first_log[-2000:]}")
@@ -292,7 +309,7 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
     opt_first = invoke_launcher(launcher, options_env, [], timeout)
     opt_first_log = opt_first.stdout + "\n" + opt_first.stderr
     (output / "packaged-options-first.log").write_text(
-        opt_first_log, encoding="utf-8")
+        bounded_log(opt_first_log), encoding="utf-8")
     require(opt_first.returncode == 0,
             f"packaged Options launch failed: rc={opt_first.returncode} "
             f"tail={opt_first_log[-1800:]}")
@@ -319,7 +336,7 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
         **options_env, "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "14"}, [], timeout)
     opt_second_log = opt_second.stdout + "\n" + opt_second.stderr
     (output / "packaged-options-second.log").write_text(
-        opt_second_log, encoding="utf-8")
+        bounded_log(opt_second_log), encoding="utf-8")
     require(opt_second.returncode == 0 and
             "options_boot row=DISPLAY display=BORDERLESS vsync=ADAPTIVE "
             "volume=90 status=NONE help=0 load=loaded" in opt_second_log,
@@ -330,7 +347,7 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
         **options_env, "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "14"}, [], timeout)
     opt_third_log = opt_third.stdout + "\n" + opt_third.stderr
     (output / "packaged-options-damaged.log").write_text(
-        opt_third_log, encoding="utf-8")
+        bounded_log(opt_third_log), encoding="utf-8")
     require(opt_third.returncode == 0 and
             "options_boot" in opt_third_log and "load=damaged" in opt_third_log,
             "a damaged options file stopped or was hidden from the packaged game")
@@ -349,7 +366,7 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
     rejected = invoke_launcher(launcher, env, args, timeout)
     rejected_log = rejected.stdout + "\n" + rejected.stderr
     (output / "profile-rejected-launch.log").write_text(
-        rejected_log, encoding="utf-8")
+        bounded_log(rejected_log), encoding="utf-8")
     require(
         rejected.returncode == 7 and
         rejected.stderr.count("UR-BALDOSA-STARTUP-PROFILE-REJECTED") == 1 and

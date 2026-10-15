@@ -118,6 +118,72 @@ jobs:
           fi
           exit "$rc"
 
+      # ONE-SHOT scientific case expansion on this research PR only.
+      # Both executables and the pinned 2014 ROM/movie/SRAM are reused from
+      # the Bowl fixture above. Expected strict differences remain evidence,
+      # not a reason to falsify an accepted event or patch game logic.
+      - name: One-shot real original/native Dragster Race A source movie replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa01-dragster"
+          set +e
+          timeout --signal=TERM --kill-after=30s 16m \
+            python3 tools/probe_original_event_complete.py \
+              --case dragster \
+              --native-backend pinned-baldosa \
+              --source-horizon 22000 \
+              --snesref "$RUNNER_TEMP/bowl-snesref/snesref" \
+              --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+              --native "$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --work-dir "$RUNNER_TEMP/qa01-dragster" \
+              --json-out "$RUNNER_TEMP/qa01-dragster/dragster-report.json" \
+              > "$RUNNER_TEMP/qa01-dragster/attempt.log" 2>&1
+          rc=$?
+          set -e
+          echo "Dragster scientific producer rc=$rc (1 may mean an actual strict difference)"
+          tail -n 100 "$RUNNER_TEMP/qa01-dragster/attempt.log"
+          if [[ "$rc" != 0 && "$rc" != 1 ]]; then
+            echo "Dragster runner error/timeout, not a scientific strict divergence" >&2
+            exit "$rc"
+          fi
+          # A failed original/native reach that never produces a report is
+          # missingness, NOT an accepted result, even if the original movie
+          # has a genuine screen.
+          test -s "$RUNNER_TEMP/qa01-dragster/dragster-report.json" || {
+            echo "Missing real Dragster paired report; keep failure and logs" >&2
+            exit 2
+          }
+          python3 - "$RUNNER_TEMP/qa01-dragster/dragster-report.json" "$rc" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          rc = int(sys.argv[2])
+          e = d["original_source_event"]
+          x = d["comparison"]
+          f = x["terminal_result_guest_frame"]
+          assert d["course_id"] == "course:01" and d["name"] == "dragster"
+          assert d["native_backend"] == "pinned-baldosa"
+          assert (e["original_entry_frame"],e["original_result_frame"]) == (794,2874)
+          assert e["source_active_frames_to_result"] == 2080
+          assert d["admission"] == "investigative candidate; not a release-ledger pass"
+          assert rc == (0 if x["paired_event_candidate"] else 1)
+          print("QA01_DRAGSTER_ORIGINAL_NATIVE="+json.dumps({
+            "case":"dragster","original_source_entry":794,
+            "original_source_result":2874,
+            "reference_entry":d["reference_entry"],
+            "native_entry":d["native_entry"],
+            "reference_result_relative":f["reference_relative"],
+            "native_result_relative":f["native_relative"],
+            "first_sample_disagreement":x.get("first_sample_disagreement"),
+            "original_source_entry_equivalent":x["original_source_entry_equivalent"],
+            "fresh_guest_entry_equivalent":x["fresh_guest_entry_equivalent"],
+            "rendered_result_and_score_text_matched":x.get("rendered_result_and_score_text_matched"),
+            "strict_candidate":x["paired_event_candidate"],
+            "admitted_usa_events":0
+          },sort_keys=True))
+          PY
+
       - name: Retain bounded Bowl diagnostic logs and non-ROM metadata only
         if: always()
         uses: actions/upload-artifact@v4
@@ -136,3 +202,8 @@ jobs:
             ${{ runner.temp }}/qa01-bowl/bowl/replay/reference.log
             ${{ runner.temp }}/qa01-bowl/bowl/replay/native.log
             ${{ runner.temp }}/qa01-bowl/bowl/original-movie-meta.json
+            ${{ runner.temp }}/qa01-dragster/attempt.log
+            ${{ runner.temp }}/qa01-dragster/dragster-report.json
+            ${{ runner.temp }}/qa01-dragster/dragster/source/source-event-diagnostic.json
+            ${{ runner.temp }}/qa01-dragster/dragster/replay/reference.log
+            ${{ runner.temp }}/qa01-dragster/dragster/replay/native.log

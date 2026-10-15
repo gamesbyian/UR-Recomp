@@ -1,0 +1,23 @@
+name: QA-01 one-shot Zoom Zoo corrected return edge PR 1640
+
+# TEMPORARY branch-only executor. Remove BEFORE merge.
+# One exact original/native Zoo event, not a reusable PR research trigger.
+on:
+  pull_request:
+    paths:
+      - "tools/probe_original_event_complete.py"
+      - "tests/unit/test_probe_original_event_complete.py"
+
+permissions:
+  contents: read
+
+jobs:
+  exact-zoo:
+    if: ${{ github.event.pull_request.head.ref == 'agent/qa01-zoo-contiguous-result-edge-20261015' }}
+    uses: ./.github/workflows/qa01-event-campaign.yml
+    with:
+      selected: zoom-zoo
+      zoo_terminal_phase: true
+      source_followthrough: true
+      baldosa_refresh_beam_rate: true
+      qa01_apu_phase: false

@@ -80,8 +80,7 @@
         "docs/QA-WINDOWS-SOURCE-PINNED-RELEASE-READINESS-20261014.md",
         "docs/QA-WINDOWS-PRACTICE-HARDKILL-SOURCE-NEGATIVE-20261014.md",
         "docs/QA-WINDOWS-PRACTICE-NONCAREER-BOOT-SRAM-20261014.md",
-        "docs/QA-WINDOWS-PR-CANDIDATE-38645114899-INDEPENDENT-ACCEPTANCE.md",
-        "analysis/evidence/qa-win32-38645114899-independent-six-artifact-cohort.json"
+        "docs/QA-WINDOWS-PR-CANDIDATE-38645114899-INDEPENDENT-ACCEPTANCE.md"
       ],
       "journeys": [
         "J-02",
@@ -187,8 +186,7 @@
         "docs/QA-WINDOWS-RELEASE-CANDIDATE-RECONCILIATION-20261014.md",
         "docs/QA-WINDOWS-SOURCE-PINNED-RELEASE-READINESS-20261014.md",
         "docs/QA-WINDOWS-PRACTICE-HARDKILL-SOURCE-NEGATIVE-20261014.md",
-        "docs/QA-WINDOWS-PR-CANDIDATE-38645114899-INDEPENDENT-ACCEPTANCE.md",
-        "analysis/evidence/qa-win32-38645114899-independent-six-artifact-cohort.json"
+        "docs/QA-WINDOWS-PR-CANDIDATE-38645114899-INDEPENDENT-ACCEPTANCE.md"
       ],
       "journeys": [
         "J-06",
@@ -281,8 +279,7 @@
         "docs/MODERN-UI-VISUAL-FIDELITY.md",
         "docs/QA-WINDOWS-SOURCE-PINNED-RELEASE-READINESS-20261014.md",
         "docs/QA-WINDOWS-PRACTICE-HARDKILL-SOURCE-NEGATIVE-20261014.md",
-        "docs/QA-WINDOWS-PR-CANDIDATE-38645114899-INDEPENDENT-ACCEPTANCE.md",
-        "analysis/evidence/qa-win32-38645114899-independent-six-artifact-cohort.json"
+        "docs/QA-WINDOWS-PR-CANDIDATE-38645114899-INDEPENDENT-ACCEPTANCE.md"
       ],
       "journeys": [
         "J-01",
@@ -349,8 +346,7 @@
         "docs/QA-WINDOWS-TWO-ARTIFACT-PREPOST-RECORDS-20261014.md",
         "docs/QA-WINDOWS-SOURCE-PINNED-RELEASE-READINESS-20261014.md",
         "docs/QA-WINDOWS-PRACTICE-HARDKILL-SOURCE-NEGATIVE-20261014.md",
-        "docs/QA-WINDOWS-PR-CANDIDATE-38645114899-INDEPENDENT-ACCEPTANCE.md",
-        "analysis/evidence/qa-win32-38645114899-independent-six-artifact-cohort.json"
+        "docs/QA-WINDOWS-PR-CANDIDATE-38645114899-INDEPENDENT-ACCEPTANCE.md"
       ],
       "journeys": [
         "J-20"

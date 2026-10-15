@@ -43,7 +43,9 @@ class AllChannelNativeHdmaSourceTests(unittest.TestCase):
                 "snes_writeBBus(dma->snes, bAdr, val);",
                 ""))  # existing real transfer is preserved exactly once
         self.assertNotIn("dma_hdmaLoadDescriptor", INSERT)
-        self.assertNotIn("*qa08_ch =", INSERT)
+        # A const pointer declaration is not a write to channel state.
+        self.assertNotRegex(INSERT, r"(?m)^\\s*\\*qa08_ch\\s*=")
+        self.assertNotRegex(INSERT, r"\\bqa08_ch->(?:tableAdr|repCount|doTransfer|aBank|size)\\s*=")
         self.assertNotIn("dma_transferByte(", INSERT)
 
 

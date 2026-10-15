@@ -1,5 +1,7 @@
 # UR-Recomp: active work queue
 
+**Conditional PAL reuse (October 15):** [Source-pinned menu R-0097 and draft league R-0098](CROSS-PROJECT-BEHAVIOR-CORROBORATION.md#october-15-2026-pal-intake-menu-controls-and-multi-tour-leagues-conditional) are *advisory* to existing QA-01/07, Modern controller/2P and persistence owners only when a live USA discrepancy warrants the smallest source-pinned replay. No new workstream, Actions campaign, 45-event shortcut or release-gate credit; R-0095 is already ingested.
+
 **Integration baseline (2026-10-15 05:06 UTC): `main` `ac3f494994991497703359d8c6ad8af8605112b8`.** Open PRs then were QA-01 #1639, QA-01 #1640 (draft), and QA-08 #1641 (independent graphics hold). Recheck live heads and Actions before acting; this timestamp is not a future-state guarantee. The queue owns assignments while [RELEASE-QUALITY-LEDGER.json](RELEASE-QUALITY-LEDGER.json) alone owns release candidates and QA decisions.
 
 **Today's actual product integration:** RF-015's DRAM-refresh beam-rate correction, diagnosed and guarded by #1608, was applied to the **real shipping Baldosa Windows bridge** by #1635. Its exact-head Windows native gameplay/Records/Practice, extracted CMD, package binding and tooling checks passed. The native Modern root includes source-backed **Play**, joined **Multiplayer**, earned **Records**, and one limited **Practice/Dragster** route; **Options** and remaining Practice breadth are unfinished. This is not a 5/5 complete Modern product or a physical hardware pass.

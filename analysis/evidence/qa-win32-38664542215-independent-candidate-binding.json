@@ -1,0 +1,77 @@
+{
+  "schema": "ur-independent-win32-packaged-exe-binding-cohort/1",
+  "review_date": "2026-10-14",
+  "github": {
+    "pull_request": 1609,
+    "head_sha": "5ba40b031e5e1ad43975ee434076b1bb6cef2bcc",
+    "actions_run": 38664542215,
+    "actions_job": 116193315399,
+    "actions_conclusion": "success",
+    "actual_checkout_sha": "a05431aefe2e8317e1476a8a19351fd57f17024c",
+    "checkout_parents": [
+      "e52a9d3cc66769204d38479c0b9760104bb84653",
+      "5ba40b031e5e1ad43975ee434076b1bb6cef2bcc"
+    ]
+  },
+  "real_actions_artifact": {
+    "candidate_binding": {
+      "id": 11941125235,
+      "outer_zip_sha256": "d4834ce03ecd527152f5366a3d1430a0398b3b5e1d489d2a50bc31ab1c12c964"
+    },
+    "romless_package": {
+      "id": 11941160194,
+      "outer_zip_sha256": "95d1038215d0bca518c9ee2ac992283969b6768a827585308f0a2f736cf51df7"
+    },
+    "post_records_source": {
+      "id": 11940053889,
+      "outer_zip_sha256": "5ccc0e845c44ca061bad085bb9debbe6dd4a2f30720df12eeee3ad9a0c1e7002"
+    },
+    "pre_records_source": {
+      "id": 11940896143,
+      "outer_zip_sha256": "5837d277c47604dd314abccdbd2057efb1b9c80a303922b787ae86f4b32d16f9"
+    },
+    "p2_stage_saved_bytes": {
+      "id": 11940128657,
+      "outer_zip_sha256": "42f6d20691563a01f6339615eb961d26790d665109cb814d8d0514a0a54ee876"
+    }
+  },
+  "binary": {
+    "inner_zip_sha256": "7ec14670c19ee05fc61371e0704a97b63a8bce168b075e6be114e77996a5bd49",
+    "inner_zip_bytes": 5958913,
+    "actual_packaged_PE_sha256": "d765df78ab24aa08ae631ed9b268be30b225739ef09d1948075a62289414504b",
+    "actual_packaged_PE_bytes": 19778560,
+    "executable_architecture": "AMD64 PE32+",
+    "canonical_manifest_member_hashes_independently_verified": true,
+    "internal_zip_sidecar_independently_reverified": true,
+    "readme_revision_and_manifest_revision_equal_checkout": true,
+    "rom_bundled": false,
+    "player_profiles_bundled": false
+  },
+  "CI_binding": {
+    "candidate_binding_json_rehashed": true,
+    "reported_journey_and_packaged_executable_sha256": "d765df78ab24aa08ae631ed9b268be30b225739ef09d1948075a62289414504b",
+    "reported_source_revision": "a05431aefe2e8317e1476a8a19351fd57f17024c",
+    "reported_zip_sha256": "7ec14670c19ee05fc61371e0704a97b63a8bce168b075e6be114e77996a5bd49",
+    "source_reviewed_hash_step_and_actual_Win32_job_green": true,
+    "independent_source_executable_bytes_outside_package_retained": false,
+    "acceptance": "hosted-run source-code/producer-hash binding consistent with independently rehashed actual package bytes"
+  },
+  "source_journey": {
+    "new_native_P1_and_P2_join_original_2p": true,
+    "source_result": "MARTIN P2 WIN 27.57, MIKE P1 LOSS 27.61",
+    "pre_and_post_Records_canonical_pair_byte_equal": true,
+    "actual_independently_rehashed_source_logs": true,
+    "hard_killed_Practice_absent_from_this_source_checkout": true
+  },
+  "remaining_gates": {
+    "latest_integrated_merged_main_rebuild": false,
+    "physical_dual_gamepad": false,
+    "audible_audio": false,
+    "real_display_GPU": false,
+    "Windows_multiplayer_concurrent_writer_hardkill": false,
+    "official_USA_strict_complete_events_accepted": 0,
+    "official_release_gate_credit": 0,
+    "final_candidate_nominated": false
+  },
+  "method": "Read-only independent downloaded original GitHub Actions artifacts and SHA256 rehashed every outer ZIP plus internal original package ZIP/PE/CMD/README/manifest and sidecar. Parsed the one-member candidate-binding JSON and matched all its source/executable/ZIP claims to the real package bytes. Rechecked original six-process 2P source logs and actual pre/post saved match bytes. The executable at the journey-runner path was hashed by the reviewed successful native CI step, not independently re-downloaded as a separate binary."
+}

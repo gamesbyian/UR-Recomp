@@ -240,7 +240,7 @@ def run_all(*, workers: int, work: Path, source: str | None = None,
     with summary_path.open("a", encoding="utf-8") as summary:
         summary.write("\n### Parallel Windows journey pilot\n\n")
         summary.write(f"Source: {env['GITHUB_SHA']}  \n")
-        summary.write(f"Workers: {workers} (baseline serialized)  \n")
+        summary.write(f"Workers: {workers} (overlap_baseline={overlap_baseline})  \n")
         summary.write(f"Native EXE SHA256: {exe_hash}  \n")
         summary.write(f"Fixture SHA256: {fixture_hash}\n\n")
         summary.write("| Existing test | Result | Seconds |\n|---|---|---:|\n")

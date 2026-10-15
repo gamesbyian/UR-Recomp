@@ -1,0 +1,94 @@
+{
+  "schema": "UR-QA01-2014-ZOO-CORRECTED-SRAM-PRELOAD-COLD-GUEST-WITNESS/1",
+  "date": "2026-10-15",
+  "authority": "docs/QA01-ZOO-COLD-GUEST-RECORD-RELOAD-20261015.md",
+  "accepted_complete_usa_events": 0,
+  "usa_course_denominator": 45,
+  "release_credit": 0,
+  "build_source": {
+    "workflow_checkout_sha": "ae4bff51f109a88a903c00d020f001563d20d8ef",
+    "repo": "gamesbyian/UR-Recomp",
+    "case_disposition": "strict_candidate",
+    "producer_exit_code": 0,
+    "run_id": 38784747445,
+    "run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38784747445",
+    "all_four_jobs_success": true,
+    "case_artifact_id": 11997177714,
+    "case_artifact_sha256": "41a7f7c770253c4d88f44471c1d18ba820914b5ca3fabd132d63ecfc76eb8604",
+    "binary_artifact_id": 11996919526,
+    "binary_artifact_sha256": "272baf9fc1f1bee1b5f2da927157d5d192fe59275d36fc922076ee51357bced9"
+  },
+  "source": {
+    "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "input_sha256": "04ad1c2d70b38d3f33513468be2c94acc4b0c452a323631aebb390a3542f75e8",
+    "movie_window_sha256": "a95636aa12de9a9c174d3cf15069e22be24e10879188272fcd4ec12eddc2c11e",
+    "source_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+    "original_movie_entry_frame": 3190,
+    "original_movie_result_frame": 8353,
+    "reference_entry_host_frame": 1017,
+    "native_entry_host_frame": 1019,
+    "reference_core_sha256": "8461968a55f3f9de2fa0c235a604178fc736ff6cc0d5d65c80a9725502da4b2d",
+    "native_elf_sha256": "527015f2389626102be2b697ea5881ed9604948c73e9a74c1e778d60a00c411a"
+  },
+  "original_native_event_result": {
+    "original_relative": 5163,
+    "native_relative": 5163,
+    "result_text_match": true,
+    "crawler_best_lap_centiseconds": 2510,
+    "postresult_named_state_first_different_sample": 16,
+    "all_full_sram_8192byte_samples_equal_through_result_plus32": true,
+    "first_sampled_full_sram_mismatch": 64,
+    "full_sram_mismatch_offsets": [
+      64,
+      72
+    ],
+    "differing_battery_bytes_per_mismatch": 1,
+    "first_difference": {
+      "address": "0x10A7",
+      "original": "0x0C",
+      "native": "0x0D"
+    },
+    "all_ranked_record_words_holders_and_checksum_equal": true,
+    "precise_first_divergent_instruction_proven": false
+  },
+  "cold_guest_reload": {
+    "sram_source": "actual producer +72 guest memory images, not host durable-file output",
+    "process_identity": "two separately launched original Snes9x and native Baldosa emulator instances, each seeded with its own original/native captured postresult image",
+    "boot_frames": [
+      300,
+      420
+    ],
+    "all_150_record_words_match_seed_and_each_other": true,
+    "all_150_holder_bytes_match_seed_and_each_other": true,
+    "stored_and_computed_checksum_equal": true,
+    "crawler_zoo_first_rank_centiseconds": 2510,
+    "crawler_zoo_holder_index": 0,
+    "original_source_seed_sha256": "6f74bdf5468514ae29f99001421c76c70491e1adb09be45a7229f5832ce836c1",
+    "native_source_seed_sha256": "0c6b89739af7f3be52ca29490e06385d1d168d2a9f32cb6f9b5c7a1b4a19da38",
+    "original_boot_sram_sha256": "b7bfa6aa195a876841df3e4a26ead0b13d9e20d1c8c81c33f4625b3503012691",
+    "native_boot_sram_sha256": "7807738e3204243e740b53a49dcbe6e1563312dc38f9f3f40c14e40709405b6a",
+    "record_words_sha256": "88f6cd93e2a7a356ada7630c4de96a3131796f467872400258f818bb9c3db163",
+    "record_holders_sha256": "f83b1cb36c67fbf6fa28100f328e34b801780defd3d92707482633bc9bc52797",
+    "stored_and_calculated_checksum": 64622,
+    "independent_cold_boot_reloaded_source_earned_ranked_record_proven": true,
+    "full_boot_sram_original_native_digest_equal": false
+  },
+  "initial_failed_run": {
+    "run_id": 38782417762,
+    "case_artifact_id": 11996444518,
+    "artifact_sha256": "ea3750af896e4468db6a5a20f4a12b3f7fdf34b7e46ea9a4e1bb3bae3da48aab",
+    "failure": "native cold boot frame300 ranked score differs from source-earned seed",
+    "root_cause": "--config skipped default chdir to ELF dir; native guest read cwd/saves/save.srm, QA harness seeded native_elf_parent/saves/save.srm",
+    "resolution": "QA-only run_pinned_baldosa stages source SRAM in subprocess cwd/saves/save.srm and restores isolated root after each process"
+  },
+  "nonadmissions": {
+    "full_consecutive_source_frame_state_parity": false,
+    "logic_tick_equivalence_authorized": false,
+    "native_host_file_publish_or_fsync_tested": false,
+    "actual_windows_process_kill_recovery_tested": false,
+    "complete_source_event_and_progression_certified": false,
+    "shipping_windows_binary_source_matched": false,
+    "rf017_corrected_emitter_tested_on_repaired_source": false
+  }
+}

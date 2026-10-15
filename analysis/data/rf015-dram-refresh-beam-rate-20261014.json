@@ -827,6 +827,37 @@
     "native_fixed": 5784
    },
    "reading": "Guest-relative is the oracle axis. The race matches guest-relatively through +4663; the 0x84 onset is one frame early at +4664 (open); the result phase was one frame short and is corrected (+4702 -> +4703 vs +4704). The +2 native entry lag is separate and unchanged, so the baseline's equal absolute result frame (5783) was two errors cancelling; corrected native presents it at 5784."
+  },
+  "dragster": {
+   "base": {
+    "producer_exit_code": 1,
+    "entries_host": [
+     945,
+     945
+    ],
+    "terminal_guest_relative_frames": {
+     "reference_relative": 2081,
+     "native_relative": 2079
+    },
+    "first_sample_disagreement": null,
+    "paired_event_candidate": false,
+    "native_sha256": "c3471741a96395ea0cf2e9517db806a40f37043c762e3f7d04a0e72b7ced9a48"
+   },
+   "fixed": {
+    "producer_exit_code": 1,
+    "entries_host": [
+     945,
+     945
+    ],
+    "terminal_guest_relative_frames": {
+     "reference_relative": 2081,
+     "native_relative": 2080
+    },
+    "first_sample_disagreement": null,
+    "paired_event_candidate": false,
+    "native_sha256": "cd5ba13ffdb6a7013fc5a14b9cdd032a26da91ce0abb75a8a8b9747f3335701b"
+   },
+   "reading": "Race A from the reset-anchored 2014 movie (#1623 control: hosted run 38665417679, +2079 vs +2081). Corrected terminal +2080 vs +2081: one of two frames closed, as on Switcher; still strict_divergence."
   }
  },
  "rf016_spc_upload": {

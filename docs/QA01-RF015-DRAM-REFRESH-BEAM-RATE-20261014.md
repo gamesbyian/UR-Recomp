@@ -65,6 +65,7 @@ Duration now matches on every completed pair: 7 of 9 seeds are byte-exact agains
 | --- | --- | --- |
 | Zoom Zoo (course:02, circuit-a) | `strict_divergence`, terminal +5162 vs +5163 | **`strict_candidate`**, +5163 = +5163, no sampled disagreement |
 | Switcher Race B | `strict_divergence`, terminal +4702 vs +4704 | `strict_divergence`, terminal **+4703** vs +4704; first disagreement still the `0x84` onset at +4664 |
+| Dragster Race A (reset-anchored 2014 movie; #1623 control) | `strict_divergence`, terminal +2079 vs +2081, entry 945 = 945 | `strict_divergence`, terminal **+2080** vs +2081, no sampled disagreement |
 
 Switcher's guest-relative axis is the oracle's. Its race matches guest-relatively through +4663; the `0x84` onset is one frame early at +4664 (open, same sign as 2P seed 50048000); and the result phase was one frame short and is now corrected (+4702 → +4703). The native race **entry** is two frames late (1081 vs 1079) in both builds, a separate mechanism this correction does not touch. The baseline's equal *absolute* result frame (5783 on both hosts, noted in the [census](ORIGINAL-COURSE-EVENT-CENSUS.md)) was therefore two errors cancelling; corrected, native presents the result at 5784.
 

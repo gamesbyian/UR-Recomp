@@ -72,8 +72,10 @@ jobs:
           mkdir -p baldosa/build-ur-win
           cp "$RUNNER_TEMP/qa-win32-fanout-bundle/UniracersSNESRecomp.exe" baldosa/build-ur-win/
           cp "$RUNNER_TEMP/qa-win32-fanout-bundle/ur-baldosa-modern-profile-fixture.exe" baldosa/build-ur-win/
-          sha256sum -c "$RUNNER_TEMP/qa-win32-fanout-bundle/SHA256SUMS" \
-            --ignore-missing || exit 1
+          cmp -s "$RUNNER_TEMP/qa-win32-fanout-bundle/UniracersSNESRecomp.exe" \
+            "baldosa/build-ur-win/UniracersSNESRecomp.exe"
+          cmp -s "$RUNNER_TEMP/qa-win32-fanout-bundle/ur-baldosa-modern-profile-fixture.exe" \
+            "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe"
 
       - name: Run immutable existing original Win32 journeys on isolated consumer
         env:

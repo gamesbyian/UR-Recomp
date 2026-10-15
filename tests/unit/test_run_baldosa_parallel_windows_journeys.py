@@ -16,11 +16,11 @@ import run_baldosa_parallel_windows_journeys as p
 
 
 class WindowsParallelJourneysTest(unittest.TestCase):
-    def test_existing_exact_eleven_original_workflow_scripts_are_reused(self):
+    def test_existing_exact_thirteen_original_workflow_scripts_are_reused(self):
         yaml = p.WORKFLOW.read_text(encoding="utf-8")
         scripts = p.extract_commands(yaml)
-        self.assertEqual(len(scripts), 11)
-        self.assertEqual(len(p.STEPS), 11)
+        self.assertEqual(len(scripts), 13)
+        self.assertEqual(len(p.STEPS), 13)
         for script in scripts:
             self.assertTrue(script.startswith("set -euo pipefail\n"))
             self.assertIn('--exe "baldosa/build-ur-win/UniracersSNESRecomp.exe"', script)
@@ -123,7 +123,7 @@ class WindowsParallelJourneysTest(unittest.TestCase):
                 outcome = p.run_all(workers=3, work=root / "work", env=env,
                                     overlap_baseline=True)
             self.assertTrue(overlap_seen.is_set())
-            self.assertEqual(outcome["executed_cases"], 11)
+            self.assertEqual(outcome["executed_cases"], 13)
             self.assertEqual(outcome["missing_cases"], [])
             self.assertTrue(outcome["overlap_baseline"])
             self.assertFalse(outcome["identity_changed"])
@@ -150,7 +150,7 @@ class WindowsParallelJourneysTest(unittest.TestCase):
                  mock.patch.object(p, "run_one", side_effect=pretend):
                 outcome = p.run_all(workers=3, work=root / "work", env=env,
                                     overlap_baseline=True)
-            self.assertEqual(outcome["executed_cases"], 9)
+            self.assertEqual(outcome["executed_cases"], 11)
             self.assertEqual(outcome["missing_cases"], list(p.STEPS[1:3]))
             self.assertEqual(outcome["cases"][0]["exit_code"], 1)
             self.assertEqual(outcome["cases"][0]["error"],
@@ -204,9 +204,9 @@ class WindowsParallelJourneysTest(unittest.TestCase):
                  mock.patch.object(p, "FIXTURE", fixture), \
                  mock.patch.object(p, "run_one", side_effect=pretend):
                 outcome = p.run_all(workers=2, work=root / "work", env=env)
-            self.assertEqual(outcome["expected_cases"], 11)
-            self.assertEqual(outcome["executed_cases"], 11)
-            self.assertEqual(sorted(calls), list(range(11)))
+            self.assertEqual(outcome["expected_cases"], 13)
+            self.assertEqual(outcome["executed_cases"], 13)
+            self.assertEqual(sorted(calls), list(range(13)))
             self.assertEqual(outcome["release_gate_credit"], 0)
             self.assertFalse(outcome["identity_changed"])
             self.assertFalse(outcome["missing_cases"])

@@ -32,6 +32,8 @@ STEPS = (
     "Native P1 gamepad-created P1 and P2 earn original 2P and both fresh Records",
     "Native first-racer creation through genuine earned 1P Records in three separate games",
     "Native controller selects existing P1 both directions across cold game processes",
+    "Native Options change, restore, defaults and damaged settings across four games",
+    "Native Practice enters ten original courses across both unlock states",
 )
 STEP_RE = re.compile(r"^      - name: (.+)$")
 OUT_RE = re.compile(r'--out "\$RUNNER_TEMP/(.*?)"')

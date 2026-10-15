@@ -389,5 +389,38 @@
     "case_disposition": "strict_candidate",
     "job_failure_after_producer": "Optional cold-guest validator rejected the extended replay input hash on this original head; not a gameplay regression.",
     "release_credit": 0
+  },
+  "cold_guest_record_reload": {
+    "run_id": 38822170573,
+    "run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38822170573",
+    "exact_workflow_head_sha": "9f199ed38fdcd222fd08fd0b3b3ccbed30311014",
+    "case_artifact_id": 12014320977,
+    "case_artifact_sha256": "3168afc0e2a84f4c61376a997b99aaddd6980a3acfe52e44e36aa90e6399d9c1",
+    "producer_report_sha256": "e3594950f09041cecc0d7098901ac7fa44b9ad4b17e4b1fbd8d4152b851ef804",
+    "execution_disposition": "strict_candidate",
+    "workflow_conclusion": "success",
+    "original_movie_window_sha256": "7b03f40e3401d844c16c7c4e1cc7375e5419f33882793c8187dcebc88dbc8c93",
+    "replay_script_sha256": "414cb0b1013509f60faf35102353dd10ce36fc684284dd46af11092ad22c5de9",
+    "canonical_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "native_elf_sha256": "869df40fb63ed1e50e0ffc164d9bdd8986fcc003010fc79d4d110109a654ed5d",
+    "reference_core_sha256": "3029835cde9bb0e02f496e963d46ec1ee5421afde85fe17903873a83159ed909",
+    "original_and_native_source_seed_sram_sha256": "6f74bdf5468514ae29f99001421c76c70491e1adb09be45a7229f5832ce836c1",
+    "original_and_native_post_boot_sram_sha256_at_300_and_420": "b7bfa6aa195a876841df3e4a26ead0b13d9e20d1c8c81c33f4625b3503012691",
+    "full_record_values_sha256_at_both_boot_frames": "88f6cd93e2a7a356ada7630c4de96a3131796f467872400258f818bb9c3db163",
+    "full_record_holders_sha256_at_both_boot_frames": "f83b1cb36c67fbf6fa28100f328e34b801780defd3d92707482633bc9bc52797",
+    "boot_sample_frames": [
+      300,
+      420
+    ],
+    "two_new_guest_processes_observed": true,
+    "source_record_value_centiseconds": 2510,
+    "source_record_holder": 0,
+    "stored_and_calculated_record_checksum": 64622,
+    "every_boot_original_and_native_record_table_and_holder_digest_equal": true,
+    "source_seed_image_is_original_guest_produced_sram_not_windows_host_disk": true,
+    "source_seed_sha256_equal_to_post_boot_sram_sha256": false,
+    "actual_windows_host_disk_autosave_and_hard_kill_proven": false,
+    "instruction_time_gameplay_parity_proven": false,
+    "usa_release_event_credit": 0
   }
 }

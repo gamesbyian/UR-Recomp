@@ -9,6 +9,8 @@ on:
     paths:
       - ".github/workflows/baldosa-windows-native-bridge.yml"
       - "tools/baldosa_windows_native_pause_route.py"
+      - "tools/run_baldosa_parallel_windows_journeys.py"
+      - "tests/unit/test_run_baldosa_parallel_windows_journeys.py"
       - "tools/baldosa_native_1p_records_probe.py"
       - "tools/baldosa_native_2p_records_probe.py"
       - "tools/baldosa_native_first_racer_probe.py"
@@ -39,6 +41,8 @@ on:
       - "tests/unit/test_baldosa_modern_profile_activation_spike.py"
       - "tools/check_windows_portable_binary.py"
       - "tools/assemble_baldosa_windows_candidate.py"
+      - "tools/bind_baldosa_candidate_receipt.py"
+      - "tests/unit/test_bind_baldosa_candidate_receipt.py"
       - "tools/audit_baldosa_romless_candidate.py"
       - "tools/verify_baldosa_windows_extracted_launcher.py"
       - "tests/unit/test_assemble_baldosa_windows_candidate.py"
@@ -48,8 +52,19 @@ on:
       - "native/product/session_runtime_adapter.*"
       - "native/product/baldosa_modern_session_binding.hpp"
   workflow_dispatch:
+    inputs:
+      parallel_journeys:
+        description: "Run existing Win32 journeys with two concurrent workers (serial fallback: false)"
+        type: boolean
+        required: false
+        default: false
   workflow_call:
     inputs:
+      parallel_journeys:
+        description: "Opt in to source-identical two-worker Windows acceptance pilot"
+        required: false
+        type: boolean
+        default: false
       export_campaign_inputs:
         description: "Export the one source-bound Windows executable and ROMless ZIP for manual cohort reuse"
         required: false
@@ -86,6 +101,7 @@ jobs:
       - name: Guard guest CRC, pause witness and Modern mutable-root stage
         run: |
           python tests/unit/test_assemble_baldosa_windows_candidate.py
+          python tests/unit/test_bind_baldosa_candidate_receipt.py
           python tests/unit/test_audit_baldosa_romless_candidate.py
           python tests/unit/test_baldosa_windows_native_pause_route.py
           python tests/unit/test_baldosa_native_1p_records_probe.py
@@ -181,7 +197,36 @@ jobs:
             --dependencies "$RUNNER_TEMP/baldosa-native-pe-dependencies.log"
           echo "PASS: native AOT game imports only stock Windows inbox DLLs; no unsupplied compiler/SDL runtime needed" >> "$GITHUB_STEP_SUMMARY"
 
+      # Same eleven original scripts and output paths are executed by the
+      # bounded runner below, not reimplemented. The baseline owns its root
+      # and seed; PR-head pilot begins independent routes after root creation
+      # while 1P/2P Records still await the exact baseline 8KiB SRAM.
+      # Existing manual/call opt-in remains proven two-worker post-baseline.
+      # Full original serial fallback remains available.
+      - name: Pilot parallel authentic Windows journeys against one pinned candidate
+        if: ${{ github.event_name == 'pull_request' || inputs.parallel_journeys == true }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            python tools/run_baldosa_parallel_windows_journeys.py \
+              --workers 3 --overlap-baseline \
+              --out "$RUNNER_TEMP/baldosa-parallel-journeys"
+          else
+            python tools/run_baldosa_parallel_windows_journeys.py \
+              --workers 2 --out "$RUNNER_TEMP/baldosa-parallel-journeys"
+          fi
+
+      - name: Retain bounded parallel pilot timings without changing QA-12 artifacts
+        if: ${{ always() && (github.event_name == 'pull_request' || inputs.parallel_journeys == true) }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-parallel-journey-timing
+          path: ${{ runner.temp }}/baldosa-parallel-journeys/pilot-result.json
+          if-no-files-found: warn
+          retention-days: 7
+
       - name: Execute actual Win32 two-player guest and native pause/resume
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
         env:
           UR_BALDOSA_PRODUCT_INPUT_DIAGNOSTICS: "1"
         run: |
@@ -196,6 +241,7 @@ jobs:
           echo "PASS: Win32 real native guest boot with two distinct catalog-backed Modern profiles, exact acknowledged native post-save typed SRAM publication/readback, per-rider isolation, pause/Restart, fresh-process reload, clean-machine DLL and invalid-profile gates. No completed event, physical hardware or unified frontend claim." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Real stock 1P result and newly saved Records reopened by fresh native game
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_native_1p_records_probe.py \
@@ -208,6 +254,7 @@ jobs:
           echo "PASS: same source-bound Win32 guest entered stock 1P from Modern root, committed an actual result to a named .urrun, and a genuinely fresh game process opened that exact Records artifact. Original/native parity and physical controller remain unverified." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Real named P1/P2 ordinary race through paired Records and fresh native process
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
         run: |
           set -euo pipefail
           # Reuse the already built EXACT same native PE and Modern codec
@@ -223,6 +270,7 @@ jobs:
           echo "PASS: real stock 2P result from separately confirmed Modern P1/P2 identities, one canonical paired .urrun/.urmatch, and a fresh native game opening exact same Records. Not original parity, hardware gamepads or release acceptance." >> "$GITHUB_STEP_SUMMARY"
 
       - name: First controller-semantic native racer creation persists for exact fresh-game boot
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_native_first_racer_probe.py \
@@ -234,6 +282,7 @@ jobs:
           echo "PASS: real native first-run Modern preset creation through shared root controls, canonical clean SRAM and typed catalog; new game process independently booted it, never live SRAM hot-swap. No physical pad or original/native release credit." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Native first-run nondefault Andrew stock rider and clean new-game SRAM
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
         run: |
           set -euo pipefail
           # Same exact native Windows PE and production profile/catalog/raw
@@ -248,6 +297,7 @@ jobs:
           echo "PASS: actual native first-run P1 Down/A selected ANDREW, first private full 8192-byte source SRAM rider byte=1, exact existing typed/catalog/raw codec and a second real Windows game BOOT_SRAM fingerprint. This is scripted input, NOT physical hardware or original/emulator gameplay parity." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Native named P1 explicitly creates independent P2 then both enter stock 2P
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_native_second_racer_probe.py \
@@ -259,6 +309,7 @@ jobs:
           echo "PASS: actual native P1 Mike created isolated Andrew P2 with canonical typed/raw/catalog, retained active P1 selector, and a third real native game confirmed both seats and entered original 2P GO. No completed match, physical pads or original/native parity credit." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Real pad-created P2 survives explicit interrupted-catalog recovery
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
         run: |
           set -euo pipefail
           # Same pinned Windows source guest and production P1 pad handler:
@@ -275,6 +326,7 @@ jobs:
           echo "PASS: real UI-created Mike/Martin, test-only missing P2 catalog row, real P1 controller recovery and next-process original 2P GO. No OS power-loss, physical pad or settled result credit." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Native shared Quick Practice enters original source-qualified Dragster
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
         run: |
           set -euo pipefail
           # P1 real controller handler: Down -> A -> A. No script inputs to
@@ -289,6 +341,7 @@ jobs:
           echo "PASS: actual P1 native Quick Practice enters source-verified Dragster 1P GO without external original-menu input scripts. One course only; no physical pad or 45-course gate credit." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Native P1 gamepad-created P1 and P2 earn original 2P and both fresh Records
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
         run: |
           set -euo pipefail
           # Actual Win32 native P1 gamepad handler receives X/A to create
@@ -305,6 +358,7 @@ jobs:
           echo "PASS: P1 semantic gamepad created Mike/Martin, exact original 2P source earned one paired match, and both fresh native Records passed. The *CI-only* raw .urrun/.urmatch, canonical typed/raw 8KiB profile bytes and SHA manifest are retained for independent QA; no ROM, real user files or release qualification is included. Physical pads and complete original/native parity remain unaccepted." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Native first-racer creation through genuine earned 1P Records in three separate games
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
         run: |
           set -euo pipefail
           # Reuse the same exact pinned Windows AOT PE, stock controls,
@@ -319,6 +373,7 @@ jobs:
           echo "PASS: empty Modern root -> explicit first named racer -> fresh game genuine source-observed 1P Race -> one earned .urrun -> third native game reopens exact Records. Synthetic SDL/guest inputs; original/native strict parity, packaged no-args relaunch and physical pads remain independent QA gaps." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Native controller selects existing P1 both directions across cold game processes
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
         run: |
           set -euo pipefail
           # Both profiles were created by native root. Test ONLY the
@@ -344,6 +399,21 @@ jobs:
           test -s UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256
           echo "PASS: deterministic ROM-free Baldosa Windows candidate created from the same executable that passed native PE, clean-machine import and 1P/2P player-journey QA. Contains no ROM, SRAM or user state. Candidate only, not a completed remaster." >> "$GITHUB_STEP_SUMMARY"
 
+      # One nominated package: tie the exact executable every journey above
+      # ran to the packaged executable, the manifest and the ZIP hash. Hash
+      # arithmetic only; a separate tiny artifact keeps the candidate and the
+      # strict QA-12 evidence archives byte-for-byte as before.
+      - name: Bind journeys to the nominated ZIP and executable hashes
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/baldosa-candidate-binding"
+          python tools/bind_baldosa_candidate_receipt.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --zip "$RUNNER_TEMP/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip" \
+            --zip-sha256-file "$RUNNER_TEMP/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256" \
+            --revision "$GITHUB_SHA" \
+            --out "$RUNNER_TEMP/baldosa-candidate-binding/candidate-binding.json" | tee -a "$GITHUB_STEP_SUMMARY"
+
       - name: Prove extracted CMD launcher, ROM gates and isolated user SRAM
         run: |
           set -euo pipefail
@@ -363,6 +433,14 @@ jobs:
           path: |
             ${{ runner.temp }}/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip
             ${{ runner.temp }}/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256
+
+      - name: Retain candidate hash binding receipt separately
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-candidate-binding
+          if-no-files-found: error
+          retention-days: 7
+          path: ${{ runner.temp }}/baldosa-candidate-binding/candidate-binding.json
 
       - name: Retain bounded Windows guest evidence (never ROM or saves)
         if: always()

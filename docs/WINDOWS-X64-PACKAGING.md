@@ -115,3 +115,16 @@ An installer is still deferred. The storage/migration prerequisite is now satisf
 ## Failure policy
 
 Packaging failures are release failures. Missing executable, ROM, `rom.cfg`, missing or empty staged mods, manifest mismatch, stale output contamination, or inability to boot the assembled package must fail CI rather than silently falling back to the build tree. Diagnostic/evidence upload remains best-effort on failure, but the consumer ZIP + `.sha256` + standalone verifier artifact is success-gated so an absent package cannot create a second misleading failure after an earlier build or acceptance failure.
+
+## Candidate hash binding receipt (Windows CI)
+
+After the ROM-free ZIP is assembled, `tools/bind_baldosa_candidate_receipt.py`
+verifies that the exact `UniracersSNESRecomp.exe` every native Windows journey
+ran is byte-identical to the executable inside the nominated ZIP and to the hash
+listed in the ZIP manifest, that the ZIP matches its published `.sha256`, and
+that the manifest revision is the tested source revision. A mismatch fails the
+job. The compact `candidate-binding.json` goes in its own artifact
+(`baldosa-win32-candidate-binding`), leaving the ROM-free candidate and the strict
+QA-12 evidence archives unchanged. This is hash identity only: it grants no
+physical-pad, release-gate or independent-QA credit.
+

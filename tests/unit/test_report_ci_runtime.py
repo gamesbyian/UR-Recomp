@@ -107,7 +107,34 @@ class CiRuntimeReportTest(unittest.TestCase):
         self.assertEqual(row["runner_seconds"], 300)
         self.assertEqual(row["observed_job_span_seconds"], 240)
         self.assertEqual(row["mean_active_jobs"], 1.25)
-        self.assertIn("| Modern | 1 | 5.0 | 4.0 | 1.25 | 2 |", markdown(report))
+        self.assertIn("| Modern | 1 | 5.0 | 0.0 | 0.0 | 4.0 | 1.25 | 2 |", markdown(report))
+
+    def test_sample_coverage_and_cancelled_runner_cost_are_explicit(self):
+        now = datetime(2026, 10, 4, tzinfo=timezone.utc)
+        payload = {"total_count": 500, "workflow_runs": [
+            {"id": 61, "name": "Trial", "event": "pull_request",
+             "status": "completed", "conclusion": "cancelled",
+             "created_at": "2026-10-03T00:00:00Z",
+             "run_started_at": "2026-10-03T00:00:00Z",
+             "updated_at": "2026-10-03T00:10:00Z"},
+        ]}
+        jobs = {"runs": [{"run_id": 61, "jobs": [{
+            "started_at": "2026-10-03T00:02:00Z",
+            "completed_at": "2026-10-03T00:03:00Z",
+        }]}]}
+        report = summarize(payload, 72, now, jobs)
+        row = report["workflows"][0]
+        self.assertFalse(report["window_census_complete"])
+        self.assertEqual(report["source_total_available"], 500)
+        self.assertEqual(report["source_runs_fetched"], 1)
+        self.assertEqual(row["cancelled_wall_seconds"], 600)
+        self.assertEqual(row["cancelled_runner_seconds"], 60)
+        self.assertEqual(row["failed_runner_seconds"], 0)
+        self.assertEqual(row["events"], {"pull_request": 1})
+        self.assertIn("NO (sample only", markdown(report))
+        self.assertTrue(summarize(payload, 24, now, jobs)["window_census_complete"])
+        payload["total_count"] = 1
+        self.assertTrue(summarize(payload, 72, now, jobs)["window_census_complete"])
 
     def test_parallel_metrics_fail_closed_on_missing_job_timestamps(self):
         payload = {"workflow_runs": [{

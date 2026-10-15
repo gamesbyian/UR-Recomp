@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       runs:
-        description: "Number of recent workflow runs to inspect (max 100)"
+        description: "Recent workflow runs to inspect (max 300; sampling, not full-week census)"
         required: false
         default: "100"
 
@@ -15,28 +15,55 @@ permissions:
 jobs:
   report:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Export recent workflow runs
+      - name: Export recent workflow runs (bounded pages)
         env:
           GH_TOKEN: ${{ github.token }}
           COUNT: ${{ inputs.runs }}
         run: |
           set -euo pipefail
-          count="$COUNT"
-          if [ "$count" -lt 1 ] || [ "$count" -gt 100 ]; then
-            echo "runs must be between 1 and 100" >&2
-            exit 2
-          fi
-          gh api "repos/$GITHUB_REPOSITORY/actions/runs?per_page=$count" > "$RUNNER_TEMP/runs.json"
+          python3 - "$RUNNER_TEMP/runs.json" <<'PY'
+          import json
+          import os
+          import subprocess
+          import sys
 
-      - name: Export job and step timings
+          count = int(os.environ["COUNT"])
+          if not 1 <= count <= 300:
+              raise SystemExit("runs must be between 1 and 300")
+          repo = os.environ["GITHUB_REPOSITORY"]
+          combined = []
+          total_count = None
+          for page in range(1, (count + 99) // 100 + 1):
+              # Keep page size fixed: varying per_page changes the API offset
+              # and can duplicate runs across pages.
+              response = subprocess.run(
+                  ["gh", "api", f"repos/{repo}/actions/runs?per_page=100&page={page}"],
+                  check=True, capture_output=True, text=True, timeout=40,
+              )
+              data = json.loads(response.stdout)
+              if total_count is None:
+                  total_count = data.get("total_count")
+              batch = data.get("workflow_runs", [])
+              combined.extend(batch)
+              if len(batch) < 100:
+                  break
+          result = {"total_count": total_count, "workflow_runs": combined[:count]}
+          with open(sys.argv[1], "w", encoding="utf-8") as output:
+              json.dump(result, output)
+          print(f"exported {len(result['workflow_runs'])} of {total_count} recent runs; "
+                "the requested seven-day window may be incomplete")
+          PY
+
+      - name: Export job and step timings (bounded concurrent reads)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           python3 - "$RUNNER_TEMP/runs.json" "$RUNNER_TEMP/jobs.json" <<'PY'
+          import concurrent.futures
           import json
           import os
           import subprocess
@@ -45,26 +72,35 @@ jobs:
           runs_path, output_path = sys.argv[1:]
           runs = json.load(open(runs_path, encoding="utf-8"))
           repo = os.environ["GITHUB_REPOSITORY"]
-          result = {"runs": []}
-          for run in runs.get("workflow_runs", []):
-              run_id = run.get("id")
-              if run_id is None:
-                  continue
-              completed = subprocess.run(
-                  [
-                      "gh", "api",
-                      f"repos/{repo}/actions/runs/{run_id}/jobs?per_page=100",
-                  ],
-                  check=True,
-                  capture_output=True,
-                  text=True,
-              )
-              jobs = json.loads(completed.stdout).get("jobs", [])
-              result["runs"].append({"run_id": run_id, "jobs": jobs})
 
-          with open(output_path, "w", encoding="utf-8") as handle:
-              json.dump(result, handle)
-          print(f"exported job timing for {len(result['runs'])} runs")
+          def fetch_jobs(run):
+              run_id = run["id"]
+              jobs = []
+              page = 1
+              while True:
+                  response = subprocess.run(
+                      ["gh", "api",
+                       f"repos/{repo}/actions/runs/{run_id}/jobs?per_page=100&page={page}"],
+                      check=True, capture_output=True, text=True, timeout=40,
+                  )
+                  data = json.loads(response.stdout)
+                  batch = data.get("jobs", [])
+                  jobs.extend(batch)
+                  if len(jobs) >= data.get("total_count", len(jobs)):
+                      break
+                  if not batch:
+                      raise RuntimeError(f"missing job page for run {run_id}")
+                  page += 1
+              return {"run_id": run_id, "jobs": jobs}
+
+          population = [run for run in runs.get("workflow_runs", []) if "id" in run]
+          # Six bounded API readers speed up diagnosis without creating
+          # hundreds of per-run Actions jobs or a new scheduled workflow.
+          with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
+              receipts = list(pool.map(fetch_jobs, population))
+          with open(output_path, "w", encoding="utf-8") as output:
+              json.dump({"runs": receipts}, output)
+          print(f"exported job timings for {len(receipts)} runs")
           PY
 
       - name: Build measured runtime report

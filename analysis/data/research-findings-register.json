@@ -1,409 +1,415 @@
 {
- "schema": "ur-research-findings-register/1",
- "updated": "2026-10-14",
- "release_gate_credit": 0,
- "authority": "docs/RESEARCH-FINDINGS-QUEUE.md; validated by tools/research_findings.py",
- "findings": [
-  {
-   "id": "RF-001",
-   "title": "Frontier dual-air witness 50036056 is reproduced by the original under a race-relative stimulus-equivalence test: a one-frame simultaneous hop",
-   "class": "source_backed_behaviour",
-   "status": "resolved",
-   "evidence": "original_and_native",
-   "owner_lane": "qa01-gameplay",
-   "reproducer": {
-    "command": "python3 tools/qa_frontier_original_crosscheck.py run --run-id 38446393623 --lag 2 --seeds 50036056 --keep-dumps ...",
-    "runs": [
-     38446393623
-    ],
-    "seed": 50036056,
-    "arm": "rotation",
-    "native_frame": 2580,
-    "race_relative_lag": 2,
-    "original_frame": 2578
-   },
-   "source_artifacts": [
-    "signed census research/qa-cumulative-ledger frontier_exact_coverage tokens 79968377c3bf214b60c95a12 (2580) and fb53e5eaddfbcae645a046f6 (3420)",
-    "native executable 28501fa3268f82d83672122cddbd2628ce5b2458e625f46d93766f50befbe515 (90-day copy: run 38504984312)",
-    "original USA ROM 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478, pinned snes9x-libretro"
-   ],
-   "observation": "Original frames 2577-2579 (native-equivalent 2579-2581): P2 air 1 -> 2 -> 0, P1 air 0 -> 1 -> 0, y_speed 19/38 for one frame. The original's normalized fingerprint equals the native census token at both 2580 and 3420.",
-   "uncertainty": "Quantized census fields only; $0545/$0547 semantics remain provisional; the frontier binary's entry lag is inferred (RF-003), not directly measured.",
-   "resolving_experiment": "None needed for parity. Optional: original writer trace of $0545/$0547 at original 2577-2579 to name the hop mechanism.",
-   "consequence": "Not a discrepancy. Removes the only frontier dual-air lead from the QA-01 queue; the 120-frame sampler caught a one-frame coincidence, not sustained flight.",
-   "resolution": "Under race-relative stimulus equivalence (post-entry original input shifted -2) the original matches the native row (local candidate evidence, native 4c1c8b56... not the frontier 28501fa3...). The identical-input-byte executed observation of runs 38509912672/38520105599, which differs at host 2580, stands as executed. No event acceptance (USA 0/45)."
-  },
-  {
-   "id": "RF-002",
-   "title": "Two protocols: identical absolute-host input (executed, differs at host 2580) versus race-relative stimulus equivalence (matches); same-host comparison alone cannot separate entry phase from behaviour",
-   "class": "method_hazard",
-   "status": "handed_off",
-   "evidence": "original_and_native",
-   "owner_lane": "qa01-gameplay",
-   "reproducer": {
-    "command": "python3 tools/qa_frontier_original_crosscheck.py run --run-id 38446393623 --lag 0 --seeds 50036056 --keep-dumps ...",
-    "runs": [
-     38509912672
-    ],
-    "race_relative_lag": 0
-   },
-   "source_artifacts": [
-    ".github/workflows/two-player-reference.yml step 'QA-01 paired source dual-air seed 50036056' (run 38509912672, artifact qa01-dual-air-paired-50036056)",
-    "docs/TWO-PLAYER-FIXTURE-PLAN.md race-entry staircase (Beetle 1133 / Snes9x 1134 / native 1135)"
-   ],
-   "observation": "Run 38509912672 recorded raw_both_air_at_2580 = {original: false, native: true} and QA-01 classified it as a provisional state divergence. A local unshifted original replay reproduces the hosted original column byte for byte (2579 00/01, 2580 00/02, 2581 00/00). The race-relative original (lag 2) reproduces the native column exactly.",
-   "uncertainty": "None for the dual-air reading; the hazard applies to any same-absolute-host paired replay on a route whose engines enter at different host frames.",
-   "resolving_experiment": "QA-01: keep run 38509912672 (and 38520105599) as executed identical-input observations and record the race-relative result beside them; run any further writer trace race-relatively as well.",
-   "consequence": "Prevents a false original/native dual-air discrepancy from entering the QA-01 queue."
-  },
-  {
-   "id": "RF-003",
-   "title": "Modern native enters the ordinary 2P race 2 host frames after Snes9x and Beetle-bsnes (1136 vs 1134)",
-   "class": "source_backed_behaviour",
-   "status": "resolved",
-   "evidence": "original_and_native",
-   "owner_lane": "research",
-   "reproducer": {
-    "command": "python3 tools/qa_frontier_original_crosscheck.py calibrate ... ; run --lag 0|1|2",
-    "runs": [
-     38506108109,
-     38446393623
-    ],
-    "race_relative_lag": 2
-   },
-   "source_artifacts": [
-    "calibration: the seed-independent 1740 token matches at L=0 and L=2 only",
-    "exploration set: first 10 cases of run 38506108109 agree at 2580 and 3420 for L=2 (10/10), L=0 (9/10), L=1 (0/10)",
-    "analysis/data/frontier-original-native-race-relative-20261014.json"
-   ],
-   "observation": "Measured directly on a current-main Modern candidate (4c1c8b56..., source fda6ace) in 36 paired cases: first inRace=1/race_tick=1 at native 1136, Snes9x 1134; the pinned Beetle-bsnes build also enters at 1134 (the older staircase figure 1133 does not hold for it). Consistent with the census cross-check's independent L=2 selection.",
-   "uncertainty": "Measured on the current-main candidate, not on the 28501fa3 frontier binary itself; that binary's L=2 is implied by population fingerprint agreement.",
-   "resolving_experiment": "None.",
-   "consequence": "Any original/native replay of frontier input must shift post-entry input by -2 and compare native F with original F-2.",
-   "resolution": "Entry lag 2 measured per case by tools/qa_frontier_original_crosscheck.py paired (measured_entry_host)."
-  },
-  {
-   "id": "RF-004",
-   "title": "Original-emulator cross-check of the frontier census population",
-   "class": "untested_circumstance",
-   "status": "resolved",
-   "evidence": "original_and_native",
-   "owner_lane": "research",
-   "reproducer": {
-    "command": "python3 tools/qa_frontier_original_crosscheck.py run --run-id <run> --lag 2 --workers 4 ...",
-    "runs": [
-     38506108109,
-     38446393623,
-     38438864232,
-     38304551380,
-     38306802282
-    ],
-    "race_relative_lag": 2
-   },
-   "source_artifacts": [
-    "signed census record_sha256 b7f4af657df35353aceed44d5ba99a196a2f0703062e2edd75dd308a90ca6a76",
-    "analysis/data/frontier-original-native-race-relative-20261014.json",
-    "analysis/data/frontier-original-native-race-relative-20261014.json census_crosscheck"
-   ],
-   "observation": "All 10,400 cases of the five signed frontier runs replayed on the original (Snes9x, L=2): 10,378 coarse agreement, 22 census-attribution-ambiguous (the original's token is owned by an earlier case, consistent with the ~21 cross-shard repeats documented in the 10k postmortem), 0 coarse divergence. Where the native run used the 15-frame observer, feature incidence is identical. Original 15-frame both-air incidence over the 10k population is 31/10,000.",
-   "uncertainty": "Quantized fields (x//64, y//32, v//64, rotation//16) can hide sub-bin differences; agreement is not strict equality.",
-   "resolving_experiment": "None for this route; exact paired comparison (26/26) confirms the quantized result.",
-   "consequence": "Converts 10,400 native-only cases into original/native comparisons without a single new native process.",
-   "resolution": "No original/native divergence on the frontier route at quantized census precision; candidate evidence (local) until independently re-executed."
-  },
-  {
-   "id": "RF-005",
-   "title": "$121B/$121D 'offscreen' predicate is never nonzero; bank-82 split-screen sentinels are the source-qualified culling signal",
-   "class": "graphics_observation_gap",
-   "status": "handed_off",
-   "evidence": "original_and_native",
-   "owner_lane": "qa08-graphics",
-   "reproducer": {
-    "command": "python3 tools/qa_frontier_original_crosscheck.py run ... (original_offscreen_sentinel_case_counts)",
-    "runs": [
-     38446393623
-    ]
-   },
-   "source_artifacts": [
-    "ordinary 2P regression asserts screen1 P2 (0x70,0x70) and screen2 P1 (0x30,0x30) at $1501-$150E on both runtimes",
-    "frontier 10,400 cases: offscreen-register-nonzero 0"
-   ],
-   "uncertainty": "Native sentinel incidence is not in the census; given exact semantic-WRAM agreement on this route (RF-004) it is expected to be identical.",
-   "resolving_experiment": "QA-08: if a culling question needs it, ask for per-frame sentinel transitions (a 100-case observer validation), not case incidence; otherwise no work.",
-   "consequence": "Stops further volume aimed at a dead register; gives QA-08 a named, source-qualified observer.",
-   "observation": "Original-side measurement over 400 cases: both bank-82 opponent-offscreen sentinels appear at some sampled frame in 400 of 400 cases (racers separate within the race). Case incidence is therefore uninformative; a per-frame or per-transition (on-screen to off-screen) count is the discriminating form."
-  },
-  {
-   "id": "RF-006",
-   "title": "$0DDB split-camera flag is constant 1 in active 2P",
-   "class": "source_backed_behaviour",
-   "status": "retired",
-   "evidence": "source_static",
-   "owner_lane": "none",
-   "reproducer": {
-    "command": "frontier full-trace raw field population split = {1}",
-    "runs": [
-     38446393623
-    ]
-   },
-   "source_artifacts": [
-    "docs/QA-FRONTIER-15-FRAME-RESULTS-20261013.md",
-    "docs/knowledge/rendering-camera-and-oam.md"
-   ],
-   "uncertainty": "None decision-relevant.",
-   "resolving_experiment": "None.",
-   "consequence": "Second camera enabled; not a raster-split test.",
-   "resolution": "Source-explained; excluded from future volume."
-  },
-  {
-   "id": "RF-007",
-   "title": "Sparse 3-frame sampling concealed rotation and opposing-X transitions",
-   "class": "method_hazard",
-   "status": "resolved",
-   "evidence": "native_only",
-   "owner_lane": "research",
-   "reproducer": {
-    "command": "frontier full-trace witnesses 50036005 (alternating, 1980), 50036002 (p2-focus, 2820)",
-    "runs": [
-     38446393623
-    ]
-   },
-   "source_artifacts": [
-    "docs/QA-FRONTIER-15-FRAME-RESULTS-20261013.md"
-   ],
-   "uncertainty": "120-frame spacing still misses one-frame events (RF-001).",
-   "resolving_experiment": "None; incidence is observer-relative and reported per observer.",
-   "consequence": "Observer density, not case volume, governs feature discovery.",
-   "resolution": "15-frame observer merged; pooled counts are not rates."
-  },
-  {
-   "id": "RF-008",
-   "title": "Latest original-native coordinator attempt 38446280858 failed without a recoverable first step",
-   "class": "reproducible_anomaly",
-   "status": "handed_off",
-   "evidence": "native_only",
-   "owner_lane": "qa01-gameplay",
-   "reproducer": {
-    "command": "manual qa01-event-campaign.yml with one selected case",
-    "runs": [
-     38446280858
-    ]
-   },
-   "source_artifacts": [
-    "ledger record campaign original-native, reason 'original workflow or aggregate unavailable'",
-    "docs/QA01-DUAL-AIR-AND-CUMULATIVE-TRIAGE-20261013.md"
-   ],
-   "uncertainty": "Run returns 404; producer vs transport failure unknown. Receipts now retain failed_jobs.",
-   "resolving_experiment": "One single-case qa01-event-campaign dispatch; never another long campaign before a first-failure reason exists.",
-   "consequence": "Blocks cumulative original-native re-scheduling until diagnosed."
-  },
-  {
-   "id": "RF-009",
-   "title": "Windows Baldosa reliability: zero failures in 160 adopted + 40 coordinator journeys",
-   "class": "windows_durability",
-   "status": "retired",
-   "evidence": "native_only",
-   "owner_lane": "windows-modern",
-   "reproducer": {
-    "command": "qa-cumulative-research.yml lane windows",
-    "runs": []
-   },
-   "source_artifacts": [
-    "signed ledger windows records"
-   ],
-   "uncertainty": "Per-journey failure rate bounded < 1.5% (3/200) at 95%; same journeys repeated, not new trajectories.",
-   "resolving_experiment": "None until a Windows defect or new candidate changes the question.",
-   "consequence": "No defect to hand off.",
-   "resolution": "Durability bound only; repeating it buys bound tightening, not states."
-  },
-  {
-   "id": "RF-010",
-   "title": "Fault recovery: zero failures in 20,371 cases / 203,710 operations (plus 169,510 adopted journeys)",
-   "class": "windows_durability",
-   "status": "retired",
-   "evidence": "native_only",
-   "owner_lane": "release-qa",
-   "reproducer": {
-    "command": "qa-cumulative-research.yml lane fault-recovery",
-    "runs": []
-   },
-   "source_artifacts": [
-    "signed ledger fault-recovery records"
-   ],
-   "uncertainty": "Per-operation failure rate < 3/373,220 at 95%; isolated roots, not device power cuts.",
-   "resolving_experiment": "None; further volume only tightens an already sub-0.001% bound.",
-   "consequence": "No defect to hand off.",
-   "resolution": "Bound recorded; lane rested by yield rules."
-  },
-  {
-   "id": "RF-011",
-   "title": "20,779 exact normalized native fingerprints",
-   "class": "fingerprint_novelty",
-   "status": "retired",
-   "evidence": "native_only",
-   "owner_lane": "none",
-   "reproducer": {
-    "command": "tools/research_yield.py over the signed ledger",
-    "runs": [
-     38304551380,
-     38306802282,
-     38438864232,
-     38446393623,
-     38506108109
-    ]
-   },
-   "source_artifacts": [
-    "frontier_exact_coverage"
-   ],
-   "uncertainty": "Novelty restates case count (2 new per case); no consequence demonstrated by novelty alone.",
-   "resolving_experiment": "None. The census's value is as a per-case index for RF-004.",
-   "consequence": "Never a reason to run more cases.",
-   "resolution": "Kept as a lossless identity index."
-  },
-  {
-   "id": "RF-012",
-   "title": "Legacy-pin native 2P result phase (raw 7E:009F 0x84) lasts 35 frames where the original lasts 34 (bsnes-accurate, Snes9x, Beetle)",
-   "class": "original_native_discrepancy",
-   "status": "handed_off",
-   "evidence": "original_and_native",
-   "owner_lane": "qa01-gameplay",
-   "reproducer": {
-    "command": "python3 tools/qa_frontier_original_crosscheck.py paired --native-exe <Modern candidate> --seed 50036056 --arm rotation --lag 2 --finish-hold 4000 --frames 1128-1140,1620-4800/60,4801-6400 --snesref ... --core <snes9x|beetle> --ledger <ledger.json> --work W --out R",
-    "race_relative_lag": 2,
-    "seed": 50036056,
-    "arm": "rotation",
-    "native_frames": [
-     5198,
-     5233
-    ],
-    "runs": []
-   },
-   "source_artifacts": [
-    "analysis/data/frontier-original-native-race-relative-20261014.json",
-    "docs/QA01-SWITCHER-2014-ORIGINAL-SOURCE-PROBE.md (1P: original 0x84 +4665..+4698 = 34 frames)",
-    "docs/QA01-2014-COMPLETE-EVENT-TRANSPLANT.md (0x84->0x16 by 83:988A / Sram_RestoreDirectPage)"
-   ],
-   "observation": "49 seeds, measured lag 2 in all: decoded source fields identical through laps-zero (same frame in 49/49) and until the reference's 0x16 restoration; result-menu onset on the same frame in 43, one frame earlier on native in 6; scheduler parity at onset does not predict the outcome. Raw semantic WRAM ($0200+) first differs 1-2 native frames BEFORE result-menu (0x84) onset in 49 of 49 seeds (all five arms). For 50036056 at native 5196-5198 the original builds the sound-command queue at 7E:2000 (wSndQueueRead/Write/ApuToggle, serviced by 82:8035 inside the 80:FAC9 wait) in one frame (first word 01->02->04); native shows a different intermediate one frame later (01->03->04). 7E:0BDE/0BFE start at 0xCC->0xC8 on the original but 0xC4->0xC0 on native, an offset of 8 held through the whole phase. The 0x84 phase then lasts 34 frames on Snes9x (and on Beetle-bsnes for 50036056) and 35 on native in 48 of 49 (36 for 50024003). Per-core boundaries differ: Snes9x onset same frame in 43 and native one earlier in 6, with the restore later on native; Beetle-bsnes (50036056) onset native 5198 vs 5199, both restore 5233. 7E:009F is the DrawText cursor wTextPos (#1543), so 0x84->0x16 is a raw terminal signature. Adjudicated on the high-accuracy bsnes core (with tools/patches/bsnes-libretro-system-ram.patch): 34 frames in 9 of 9 seeds, matching Snes9x. See RF-015 for the product core, which errs the other way.",
-   "uncertainty": "Local candidate evidence (current-main native 4c1c8b56...) until independently re-executed with raw-dump receipts. 83:987D Sram_RestoreDirectPage is a downstream 207-word SRAM->DP copy, not a proven diverging decision. Gameplay significance pending the upstream caller and actual 7E:009F writer on each core. 7E:2000-2004 is the SPC700 sound-command queue (Baldosa RAM map; 82:8035 reads $2142); 7E:0BDE/0BFE is unnamed; whether the 8-unit offset is guest-visible (sprite Y or banner position) or only scheduling is unproven. 2026-10-14: the 7E:2000 queue step at 5196 also differs between Snes9x and bsnes, so it is not by itself evidence of a native defect.",
-   "resolving_experiment": "Measure the legacy pin's arrival line at the post-load 80:FAC9 wait and matched 82:B1DD upload checkpoint drift against Snes9x (the RF-015 method). The 5196 sound-queue step is phase-sensitive between correct cores (Snes9x vs bsnes) and cannot localize a defect by itself. cd5875c carries the same refresh-rate code as Baldosa yet errs long, so its larger beam/$4212 deficit (RF-014) dominates.",
-   "consequence": "A cheap deterministic 2P reproducer of the same result-handoff seam behind the open 1P Switcher +4704/+4702 strict divergence; it does not change any comparator or acceptance."
-  },
-  {
-   "id": "RF-013",
-   "title": "Legacy-pin native race-entry lag is phase-dependent (2 or 3 frames); Baldosa enters on the same frame as the original for every route delay",
-   "class": "reproducible_anomaly",
-   "status": "handed_off",
-   "evidence": "original_and_native",
-   "owner_lane": "qa01-gameplay",
-   "reproducer": {
-    "command": "shift every event of tests/input/two-player-first-race.input by +k (k=0..7), dump 1120+k..1149+k on Snes9x and the Modern native, take first inRace=1",
-    "runs": [],
-    "race_relative_lag": 2
-   },
-   "source_artifacts": [
-    "Snes9x entry 1134..1141 (exactly +k)",
-    "Modern native (4c1c8b56..., fda6ace) entry 1136, 1137, 1139, 1139, 1141, 1141, 1142, 1143"
-   ],
-   "observation": "Lag native minus Snes9x = 2,2,3,2,3,2,2,2 for k = 0..7. The original absorbs a k-frame delay one for one; native quantizes it, as if a vblank/fade-gated wait sometimes costs one extra frame. Baldosa (uniracers-recomp 10b864b with the research two-seat input shim) enters at exactly the Snes9x frame for k = 0..7 (lag 0 throughout).",
-   "uncertainty": "Local candidate evidence until independently re-executed with raw receipts. Mechanism unproven; staircase notes point at the 80:FAC9 / $4212 vblank-sensitive fade for entry. Whether the same mechanism lengthens the 0x84 result phase (RF-012) is a hypothesis.",
-   "resolving_experiment": "QA-01: compare native and original iteration counts of the entry fade wait loop for k=1 (lag 2) and k=2 (lag 3); if the extra frame is the wait loop, test the same loop in the 0x84 phase.",
-   "consequence": "Race-relative comparisons on the legacy pin must measure the lag per case; on Baldosa the stock 2P route needs no shift. The quantised entry is a legacy-pin (snesrecomp cd5875c) artefact, consistent with RF-014."
-  },
-  {
-   "id": "RF-014",
-   "title": "Legacy-pin native (snesrecomp cd5875c) completes fewer 80:FAC9 vblank-wait passes at screen loads, so its black loading screens last 1-3 frames longer than bsnes; Baldosa does not",
-   "class": "original_native_discrepancy",
-   "status": "handed_off",
-   "evidence": "original_and_native",
-   "owner_lane": "qa01-gameplay",
-   "reproducer": {
-    "command": "stock tests/input/two-player-first-race.input on Snes9x and the Modern native, dump every 4 host frames 2..1126, count decrements of 7E:00C6 (one per 80:FAC9 vblank-wait pass via 80:FADF)",
-    "runs": [],
-    "race_relative_lag": 0
-   },
-   "source_artifacts": [
-    "reference/imported/reverse-engineering/nitrodon/bank 80.txt 80:FAC9-80:FAF9 (LDA $4212 BMI/BPL wait; DEC $C6 mod 32; STA $0BDE/$0BFE from table 80:FBAF)",
-    "Modern native 4c1c8b56... (source fda6ace), pinned snes9x-libretro",
-    "generic setup_project native (fda6ace framework pin), same census: 772 game frames",
-    "bsnes-libretro high-accuracy core (tools/toolchain.json pin 05439f96) agrees with Snes9x on every blank-screen run",
-    "Baldosa 10b864b/075fbe4 blank-screen and 7E:00C6 censuses (analysis/data/frontier-original-native-race-relative-20261014.json)"
-   ],
-   "observation": "Over host frames 2-1126: native 773 FAC9 passes, Snes9x 801, Beetle-bsnes 802 (two independent reference cores agree within one frame). Both engines run one pass per host frame in steady menus. Native loses passes only in transition/slide windows (menus 0x84, 0xD7, 0x3D, 0x6D, 0x91; e.g. host 442-446: native 0, original 4). The resulting 7E:00C6 offset of 4 (mod 32) is frozen during the race and explains RF-012's 7E:0BDE/0BFE offset of 8 exactly (0BDE = table[C6>>1]). A generic SNESRecomp native built by setup_project without the Modern product patches completes 772 game frames, so the deficit is in the shared framework/generated-code timing, not the Modern host. One-frame localisation of the 0x84->0xD7 transition: all engines hold 7E:00C6 at 0x02 from host 426 (a load); Snes9x resumes decrementing at 437 and Beetle at 436, native at 442; menu 0xD7 appears at 440 on both reference cores and at 446 on native. The no-input attract cycle (host 2-4002, one counter-rewrite window excluded) shows the same deficit: native 1311 passes, Snes9x 1326, Beetle-bsnes 1327. Player-visible confirmation (tools/qa_blank_screen_census.py, every frame, framebuffers only): on the stock 2P route the reference (bsnes-libretro high-accuracy = Snes9x; Beetle within one frame) shows black-screen runs 248-276, 401-443, 988-1150; native shows 248-278, 404-449, 988-1151 (+2, +3, +1). Attract cycle: +2, +3, +3, +2 with later loads starting 17 frames late by host 3632. 2P race-finish transition (seed 50036056): +1. Generic SNESRecomp build: +2, +3, 0. In the first load (reference 248-276) WRAM at $0200+ stays byte-identical between native and Snes9x while VRAM fills: the reference's VRAM fills by about 738 words per frame (measured VRAM progress; writer not identified by executed PC: 81:CD70-81:D09C came from a static search and is the race-HUD initializer per QA-01, while 82:B1D8 (Attract_Main/logo, STA $2118/$2119 at 82:B1F5/B1FC) and 81:BB89 Decomp_ToVram are stronger static candidates, #1566), native's VRAM progress falls 1 then 2 frames behind and converges at 278, so native completes the same VRAM upload work in about 7% more host frames. The second load (reference 401) starts later on native because the transition waits for the 7E:00C6 phase, which native reaches 4 frames later. Scope: the pinned Baldosa guest (gamesbyian/uniracers-recomp 10b864b, snesrecomp fork 075fbe4, executable c3471741...) matches the references within one frame on all five attract-cycle loads and completes 1327 vblank-wait passes (Beetle 1327, Snes9x 1326, legacy native 1311). The deficit belongs to this repo's snesrecomp pin cd5875c (current Modern build, generic build, frontier executable), not to the Baldosa fork being integrated.",
-   "uncertainty": "Local candidate evidence until independently re-executed with raw receipts. Neither reference core is cycle-exact hardware, but they agree with each other and disagree with native by 28-29 frames. The source of native's deficit (host frame pacing, DMA/HDMA cost modelling or the $4212 model) is unknown; AGENTS forbids tuning $4212 merely to match one emulator. First suspect, unverified: the framework's synthetic $4212 beam model (snesrecomp pinned in tools/toolchain.json at cd5875cbdaf1 runner/src/snes/snes.c readReg 0x4212: fixed 64-clock advance per poll in static-recomp mode; docs/VIRTUAL_HW_CONTRACT.md), which sets how many host frames a polled load costs; upstream notes a sibling case (SMRPG boot fades at the wrong frame count). 7E:00C6 is wCursorAnimTimer in Baldosa's RAM map: it counts passes of this wait continuation, not simulation frames. The first-load writer, $420D/MEMSEL, M/X and CPU-vs-DMA path are unmeasured.",
-   "resolving_experiment": "QA-01 / native-fidelity: executed-PC histogram with $420D, M, $2118/$2119 write sequence, CPU cycles and vblank for host 248-278 on the reference, then compare snesrecomp cd5875c against Baldosa's fork 075fbe4 (96b7e9f $4212 read-time sync, b7b4318 paced_bus) for that writer; QA-01's MEMSEL model (#1562) predicts an old-pin per-store overcharge only if $420D=0.",
-   "consequence": "It leaves the shipping Windows path only for a nominated build proven to use the 075fbe4 fork; the default modern-shared-native-acceptance build recompiles against cd5875c. It still affects the legacy Modern backend kept as rollback, and any research run on the frontier executable: frontier frontend timing is not original timing, although the race itself is original-exact (RF-004). Likely common cause of RF-012 and RF-013 on the legacy pin; QA-01's Baldosa entry lags (+2/+1/+2) need a separate explanation."
-  },
-  {
-   "id": "RF-015",
-   "title": "Baldosa (product core) 2P result phase lasted 33 frames where the original lasts 34: DRAM refresh charged per 1364 execution clocks instead of per 1364-clock beam line (corrected)",
-   "class": "original_native_discrepancy",
-   "status": "resolved",
-   "evidence": "original_and_native",
-   "owner_lane": "qa01-gameplay",
-   "reproducer": {
-    "command": "python3 tools/qa_frontier_original_crosscheck.py paired --native-launcher baldosa --native-exe <uniracers-recomp 10b864b built with tools/research_baldosa_2p_input_patch.py> --seed 50036056 --arm rotation --lag 0 --finish-hold 4000 --frames 1128-1140,1620-4800/60,4801-6400 --snesref ... --core <snes9x|bsnes patched> --ledger <ledger.json> --work W --out R",
-    "race_relative_lag": 0,
-    "seed": 50036056,
-    "arm": "rotation",
-    "runs": []
-   },
-   "source_artifacts": [
-    "analysis/data/frontier-original-native-race-relative-20261014.json baldosa_paired_snes9x_terminal, bsnes_accurate_result_phase",
-    "Baldosa gamesbyian/uniracers-recomp 10b864b (snesrecomp fork 075fbe4) + research two-seat input shim, executable 279d053f...",
-    "docs/QA01-SWITCHER-2014-ORIGINAL-SOURCE-PROBE.md: 1P original 0x84 +4665..+4698 (34 frames) vs Baldosa +4664..+4696 (33)",
-    "docs/QA01-RF015-DRAM-REFRESH-BEAM-RATE-20261014.md",
-    "analysis/data/rf015-dram-refresh-beam-rate-20261014.json"
-   ],
-   "observation": "9 of 9 seeds (all arms): Baldosa enters the 2P race on the original frame (1134, lag 0) and stays identical in all semantic WRAM through the race and result onset; the 0x84 phase lasts 33 frames vs 34 on Snes9x and on the high-accuracy bsnes core; onset same frame in 7 seeds and one frame early in 2; restore 1-2 frames early. The 2P race-finish black screen is 129 frames on Baldosa vs 131 on bsnes and 130 on Snes9x. Frame-by-frame against bsnes-accurate on 50036056 (host 5180-5241, both expose WRAM): semantic WRAM identical through 5195; at 5196 the 7E:2000 sound-command queue (wSndQueueRead) differs; at 5197 Baldosa's 7E:00C6 vblank-wait counter decrements one frame early (0x1e vs 0x1f; 7E:0BDE/0BFE follow); Baldosa's 7E:009F=0x84 onset is 5198 vs 5199 (Snes9x 5198); 5199-5229 identical; Baldosa restores 0x16 at 5231 vs 5233, then runs 2 vblank-wait passes ahead and leaves the race screen at 5235 vs >=5237.",
-   "uncertainty": "Cause established locally with exact binaries (unpatched build bit-identical to research 279d053f...). The earlier 'first divergence at 5196 in the CPU-APU handshake' reading is falsified: Snes9x and bsnes differ from each other in the same 5196/5197/5198 pattern, and Baldosa equals Snes9x in all semantic WRAM 5192-5230. In-line refresh position remains execution-relative (rate exact, instant within 40 clocks). Hosted re-execution and product-build staging are separate steps.",
-   "resolving_experiment": "Done: executed-PC trace (Snes9x) and read-only beam observer (Baldosa) of the 82:B1D8 upload and the post-load 80:FAC9 two-edge wait; see resolution.",
-   "consequence": "A shared, cheap 2P reproducer for QA-01's live 1P strict divergence on the actual product core, with a cycle-accurate reference; the legacy pin's opposite error (RF-012) means fixes must be validated per core.",
-   "resolution": "The raw 0x84 phase is an NMI-disabled CPU VRAM upload (82:B1D8, 470 clocks per two-byte iteration on both engines) followed by the two-edge wait 80:FAC9. Snes9x arrives at V=230, misses the edge and waits a whole extra field; Baldosa arrives at V=224 and does not. Matched 82:B1DD checkpoints show a uniform 0.087% CPU-time surplus on Baldosa, exactly the 1.14 clocks/line predicted by snes_refresh_charge() moving its watermark past the 40-clock stall (one refresh per 1404 beam clocks). tools/baldosa_dram_refresh_beam_rate_patch.py keeps the watermark before the stall; regression tests/unit/test_baldosa_dram_refresh_beam_rate_patch.py compiles and executes both functions. With it, 2P seeds give 34 = 34 with exact semantic-WRAM agreement through host 6400 against Snes9x or bsnes (onset frame where the two references disagree matches one of them), and the unchanged QA-01 Zoom Zoo producer gives terminal +5163 = +5163, classified strict_candidate (not an accepted event)."
-  },
-  {
-   "id": "RF-016",
-   "title": "Baldosa runs the SPC700 at 17088 cycles per field (~1.02696 MHz) where Snes9x and bsnes use ~1.02528 MHz: SPC uploads end early, explaining the attract 941-1098 load and the remaining one-field-early 2P result onset (seed 50048000)",
-   "class": "original_native_discrepancy",
-   "status": "handed_off",
-   "evidence": "original_and_native",
-   "owner_lane": "qa01-gameplay",
-   "reproducer": {
-    "command": "python3 tools/qa_blank_screen_census.py --input <comment-only input> --snesref <snesref> --core <bsnes patched> --core <snes9x> --baldosa-exe <Baldosa 10b864b + research 2P shim [+ refresh patch]> --frames 240-290,395-455,935-1105,1415-1555,3625-3770 --allow-gaps --work W --out R",
-    "race_relative_lag": 0,
-    "route": "no-input attract cycle",
-    "runs": []
-   },
-   "source_artifacts": [
-    "docs/QA01-RF015-DRAM-REFRESH-BEAM-RATE-20261014.md",
-    "analysis/data/rf015-dram-refresh-beam-rate-20261014.json",
-    "snesrecomp runner/src/apu_frame_clock.h RTL_APU_CYCLES_PER_FRAME 17088 at baldosa/snesrecomp@075fbe4"
-   ],
-   "observation": "Low WRAM ($0200-$1DFF) is identical on Snes9x, bsnes and both Baldosa builds every frame 2-1096. The 941-1098 black load is Snd_UploadBlockList (82:82A9): 64 block headers via JSR $8328 and CPU decompression (82:812A) feeding a byte stream (82:82EF STA $2143/STA $2142, 82:8301 CMP $2142/BNE). All 46,414 port-2 writes align one-to-one by value; Baldosa gains ~19k master clocks during the IPL/handshake phase (1009-1025) and ~50k steadily across the ~71-field stream (655 vs 653-654 bytes per field), ending ~73k clocks (~54 lines) ahead. The black screen therefore ends at 1097 vs 1098 and the next starts at 1422 vs 1423; unaffected by the RF-015 refresh correction, which fixed the 3632-3762 load. The remaining 2P onset residual is the same mechanism: on seed 50048000 the original CPU is in the result-screen song upload (Snd_UploadBlockList) until 5013 V=230 and reaches 80:FAC9 at V=232, seven lines after VBlank; the refresh-corrected core onsets at 5014. With the disposable 17060-cycle build the paired run gives onset 5015 = 5015, 34 = 34 and one transient 7-byte frame (5012).",
-   "uncertainty": "Disposable A/B executed 2026-10-14 (refresh-corrected build + RTL_APU_CYCLES_PER_FRAME 17060, exe 81315543...): the 941 load then ends on bsnes's frame (1098) and the next starts on it (1423), but 1423-1548 vs 1547 and 3633-3763 vs 3632-3762 move one frame late. The SPC rate therefore participates, but the references' nominal 32040 Hz x 32 over-corrects other loads and the ~19k-clock IPL-phase lead is unattributed. Real consoles' APU resonators vary; Baldosa's audio pipeline is built around 534 samples per field, so the rate is a design constant, not a one-line fix.",
-   "resolving_experiment": "Attribute the IPL-phase lead (1009-1025: SPC reset to $BBAA ready, small port-0/1 blocks) with an SPC-side PC/cycle trace on Baldosa and bsnes, then re-test the per-field stream rate; adopt no SPC-rate change until every attract load and the 2P/Zoo witnesses agree.",
-   "consequence": "Result-screen song uploads decide the 0x84 onset field when the original reaches the wait just after VBlank (2P seed 50048000; likely QA-01 Switcher +4664), and attract loads end a fraction of a field early. Affects strict frame-exact event comparison."
-  },
-  {
-   "id": "RF-017",
-   "title": "Zoom Zoo post-result: the refresh-corrected core passes the 80:FAC9 wait one field early at result +2 (original arrives 122 clocks before VBlank and is caught by NMI); both Baldosa builds show it",
-   "class": "original_native_discrepancy",
-   "status": "handed_off",
-   "evidence": "original_and_native",
-   "owner_lane": "qa01-gameplay",
-   "reproducer": {
-    "command": "python3 tools/probe_original_event_complete.py --case zoom-zoo --native-backend pinned-baldosa --source-horizon 22000 --source-followthrough --snesref <Baldosa snesref> --core <snes9x> --native <Baldosa 10b864b + QA scene-input shim + refresh patch> ...; then replay replay/ref.input and replay/pinned-baldosa.input from anchored.srm with complete.script's tail replaced by one dump per frame for 30 frames after 'dump result-onset'",
-    "race_relative_lag": 0,
-    "case": "zoom-zoo",
-    "runs": []
-   },
-   "source_artifacts": [
-    "docs/QA01-RF015-DRAM-REFRESH-BEAM-RATE-20261014.md",
-    "analysis/data/rf015-dram-refresh-beam-rate-20261014.json"
-   ],
-   "observation": "With the onset corrected (+5163 = +5163), the merged producer's follow-through shows native at menu 246 by result +16 while the original and the archived source movie are still at 188. Dense per-frame replay: identical through +1; from +2 the native $C6 cursor wait runs one field ahead and the 0x16->F6 transition is race-relative 5179 on both Baldosa builds vs 5180 on the original (the unpatched build's coarse samples only matched because its onset was already one frame early). Snes9x reaches 80:FAC9 at host 6181 V=224 H=1242; NMI is taken at V=225 inside 82:8035 (handler 1,020 clocks) and the first $4212 read sees VBlank set. Baldosa's first read is at V=224 H=1336 (bit 7 clear). HDMAEN=$00 in these fields; the 2,048-byte channel-7 DMA is charged within ~46 clocks of Snes9x.",
-   "uncertainty": "About 544 master clocks (~0.15%) of the field's CPU work separate the outcomes. Mid-block observer checkpoints are biased by block-entry cycle charging and are not used for attribution. Candidates: native NMI handler cost, per-instruction costs in this field's code, or 82:8035's $2142 path. Not caused by the RF-015 correction.",
-   "resolving_experiment": "Function-level timing for host 6181 (original) / observer frame 6182 (native) from the V=225 NMI to 80:FACD: Snes9x executed-PC costs per routine vs a SNESRECOMP_TRACE Baldosa build's per-function master clocks; attribute the ~544 clocks before any change.",
-   "consequence": "Next earliest difference in the Zoom Zoo complete event after RF-015: the result screen advances one field early, which blocks strict return-to-menu and progression parity."
-  }
- ]
+  "schema": "ur-research-findings-register/1",
+  "updated": "2026-10-14",
+  "release_gate_credit": 0,
+  "authority": "docs/RESEARCH-FINDINGS-QUEUE.md; validated by tools/research_findings.py",
+  "findings": [
+    {
+      "id": "RF-001",
+      "title": "Frontier dual-air witness 50036056 is reproduced by the original under a race-relative stimulus-equivalence test: a one-frame simultaneous hop",
+      "class": "source_backed_behaviour",
+      "status": "resolved",
+      "evidence": "original_and_native",
+      "owner_lane": "qa01-gameplay",
+      "reproducer": {
+        "command": "python3 tools/qa_frontier_original_crosscheck.py run --run-id 38446393623 --lag 2 --seeds 50036056 --keep-dumps ...",
+        "runs": [
+          38446393623
+        ],
+        "seed": 50036056,
+        "arm": "rotation",
+        "native_frame": 2580,
+        "race_relative_lag": 2,
+        "original_frame": 2578
+      },
+      "source_artifacts": [
+        "signed census research/qa-cumulative-ledger frontier_exact_coverage tokens 79968377c3bf214b60c95a12 (2580) and fb53e5eaddfbcae645a046f6 (3420)",
+        "native executable 28501fa3268f82d83672122cddbd2628ce5b2458e625f46d93766f50befbe515 (90-day copy: run 38504984312)",
+        "original USA ROM 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478, pinned snes9x-libretro"
+      ],
+      "observation": "Original frames 2577-2579 (native-equivalent 2579-2581): P2 air 1 -> 2 -> 0, P1 air 0 -> 1 -> 0, y_speed 19/38 for one frame. The original's normalized fingerprint equals the native census token at both 2580 and 3420.",
+      "uncertainty": "Quantized census fields only; $0545/$0547 semantics remain provisional; the frontier binary's entry lag is inferred (RF-003), not directly measured.",
+      "resolving_experiment": "None needed for parity. Optional: original writer trace of $0545/$0547 at original 2577-2579 to name the hop mechanism.",
+      "consequence": "Not a discrepancy. Removes the only frontier dual-air lead from the QA-01 queue; the 120-frame sampler caught a one-frame coincidence, not sustained flight.",
+      "resolution": "Under race-relative stimulus equivalence (post-entry original input shifted -2) the original matches the native row (local candidate evidence, native 4c1c8b56... not the frontier 28501fa3...). The identical-input-byte executed observation of runs 38509912672/38520105599, which differs at host 2580, stands as executed. No event acceptance (USA 0/45)."
+    },
+    {
+      "id": "RF-002",
+      "title": "Two protocols: identical absolute-host input (executed, differs at host 2580) versus race-relative stimulus equivalence (matches); same-host comparison alone cannot separate entry phase from behaviour",
+      "class": "method_hazard",
+      "status": "handed_off",
+      "evidence": "original_and_native",
+      "owner_lane": "qa01-gameplay",
+      "reproducer": {
+        "command": "python3 tools/qa_frontier_original_crosscheck.py run --run-id 38446393623 --lag 0 --seeds 50036056 --keep-dumps ...",
+        "runs": [
+          38509912672
+        ],
+        "race_relative_lag": 0
+      },
+      "source_artifacts": [
+        ".github/workflows/two-player-reference.yml step 'QA-01 paired source dual-air seed 50036056' (run 38509912672, artifact qa01-dual-air-paired-50036056)",
+        "docs/TWO-PLAYER-FIXTURE-PLAN.md race-entry staircase (Beetle 1133 / Snes9x 1134 / native 1135)"
+      ],
+      "observation": "Run 38509912672 recorded raw_both_air_at_2580 = {original: false, native: true} and QA-01 classified it as a provisional state divergence. A local unshifted original replay reproduces the hosted original column byte for byte (2579 00/01, 2580 00/02, 2581 00/00). The race-relative original (lag 2) reproduces the native column exactly.",
+      "uncertainty": "None for the dual-air reading; the hazard applies to any same-absolute-host paired replay on a route whose engines enter at different host frames.",
+      "resolving_experiment": "QA-01: keep run 38509912672 (and 38520105599) as executed identical-input observations and record the race-relative result beside them; run any further writer trace race-relatively as well.",
+      "consequence": "Prevents a false original/native dual-air discrepancy from entering the QA-01 queue."
+    },
+    {
+      "id": "RF-003",
+      "title": "Modern native enters the ordinary 2P race 2 host frames after Snes9x and Beetle-bsnes (1136 vs 1134)",
+      "class": "source_backed_behaviour",
+      "status": "resolved",
+      "evidence": "original_and_native",
+      "owner_lane": "research",
+      "reproducer": {
+        "command": "python3 tools/qa_frontier_original_crosscheck.py calibrate ... ; run --lag 0|1|2",
+        "runs": [
+          38506108109,
+          38446393623
+        ],
+        "race_relative_lag": 2
+      },
+      "source_artifacts": [
+        "calibration: the seed-independent 1740 token matches at L=0 and L=2 only",
+        "exploration set: first 10 cases of run 38506108109 agree at 2580 and 3420 for L=2 (10/10), L=0 (9/10), L=1 (0/10)",
+        "analysis/data/frontier-original-native-race-relative-20261014.json"
+      ],
+      "observation": "Measured directly on a current-main Modern candidate (4c1c8b56..., source fda6ace) in 36 paired cases: first inRace=1/race_tick=1 at native 1136, Snes9x 1134; the pinned Beetle-bsnes build also enters at 1134 (the older staircase figure 1133 does not hold for it). Consistent with the census cross-check's independent L=2 selection.",
+      "uncertainty": "Measured on the current-main candidate, not on the 28501fa3 frontier binary itself; that binary's L=2 is implied by population fingerprint agreement.",
+      "resolving_experiment": "None.",
+      "consequence": "Any original/native replay of frontier input must shift post-entry input by -2 and compare native F with original F-2.",
+      "resolution": "Entry lag 2 measured per case by tools/qa_frontier_original_crosscheck.py paired (measured_entry_host)."
+    },
+    {
+      "id": "RF-004",
+      "title": "Original-emulator cross-check of the frontier census population",
+      "class": "untested_circumstance",
+      "status": "resolved",
+      "evidence": "original_and_native",
+      "owner_lane": "research",
+      "reproducer": {
+        "command": "python3 tools/qa_frontier_original_crosscheck.py run --run-id <run> --lag 2 --workers 4 ...",
+        "runs": [
+          38506108109,
+          38446393623,
+          38438864232,
+          38304551380,
+          38306802282
+        ],
+        "race_relative_lag": 2
+      },
+      "source_artifacts": [
+        "signed census record_sha256 b7f4af657df35353aceed44d5ba99a196a2f0703062e2edd75dd308a90ca6a76",
+        "analysis/data/frontier-original-native-race-relative-20261014.json",
+        "analysis/data/frontier-original-native-race-relative-20261014.json census_crosscheck"
+      ],
+      "observation": "All 10,400 cases of the five signed frontier runs replayed on the original (Snes9x, L=2): 10,378 coarse agreement, 22 census-attribution-ambiguous (the original's token is owned by an earlier case, consistent with the ~21 cross-shard repeats documented in the 10k postmortem), 0 coarse divergence. Where the native run used the 15-frame observer, feature incidence is identical. Original 15-frame both-air incidence over the 10k population is 31/10,000.",
+      "uncertainty": "Quantized fields (x//64, y//32, v//64, rotation//16) can hide sub-bin differences; agreement is not strict equality.",
+      "resolving_experiment": "None for this route; exact paired comparison (26/26) confirms the quantized result.",
+      "consequence": "Converts 10,400 native-only cases into original/native comparisons without a single new native process.",
+      "resolution": "No original/native divergence on the frontier route at quantized census precision; candidate evidence (local) until independently re-executed."
+    },
+    {
+      "id": "RF-005",
+      "title": "$121B/$121D 'offscreen' predicate is never nonzero; bank-82 split-screen sentinels are the source-qualified culling signal",
+      "class": "graphics_observation_gap",
+      "status": "handed_off",
+      "evidence": "original_and_native",
+      "owner_lane": "qa08-graphics",
+      "reproducer": {
+        "command": "python3 tools/qa_frontier_original_crosscheck.py run ... (original_offscreen_sentinel_case_counts)",
+        "runs": [
+          38446393623
+        ]
+      },
+      "source_artifacts": [
+        "ordinary 2P regression asserts screen1 P2 (0x70,0x70) and screen2 P1 (0x30,0x30) at $1501-$150E on both runtimes",
+        "frontier 10,400 cases: offscreen-register-nonzero 0"
+      ],
+      "uncertainty": "Native sentinel incidence is not in the census; given exact semantic-WRAM agreement on this route (RF-004) it is expected to be identical.",
+      "resolving_experiment": "QA-08: if a culling question needs it, ask for per-frame sentinel transitions (a 100-case observer validation), not case incidence; otherwise no work.",
+      "consequence": "Stops further volume aimed at a dead register; gives QA-08 a named, source-qualified observer.",
+      "observation": "Original-side measurement over 400 cases: both bank-82 opponent-offscreen sentinels appear at some sampled frame in 400 of 400 cases (racers separate within the race). Case incidence is therefore uninformative; a per-frame or per-transition (on-screen to off-screen) count is the discriminating form."
+    },
+    {
+      "id": "RF-006",
+      "title": "$0DDB split-camera flag is constant 1 in active 2P",
+      "class": "source_backed_behaviour",
+      "status": "retired",
+      "evidence": "source_static",
+      "owner_lane": "none",
+      "reproducer": {
+        "command": "frontier full-trace raw field population split = {1}",
+        "runs": [
+          38446393623
+        ]
+      },
+      "source_artifacts": [
+        "docs/QA-FRONTIER-15-FRAME-RESULTS-20261013.md",
+        "docs/knowledge/rendering-camera-and-oam.md"
+      ],
+      "uncertainty": "None decision-relevant.",
+      "resolving_experiment": "None.",
+      "consequence": "Second camera enabled; not a raster-split test.",
+      "resolution": "Source-explained; excluded from future volume."
+    },
+    {
+      "id": "RF-007",
+      "title": "Sparse 3-frame sampling concealed rotation and opposing-X transitions",
+      "class": "method_hazard",
+      "status": "resolved",
+      "evidence": "native_only",
+      "owner_lane": "research",
+      "reproducer": {
+        "command": "frontier full-trace witnesses 50036005 (alternating, 1980), 50036002 (p2-focus, 2820)",
+        "runs": [
+          38446393623
+        ]
+      },
+      "source_artifacts": [
+        "docs/QA-FRONTIER-15-FRAME-RESULTS-20261013.md"
+      ],
+      "uncertainty": "120-frame spacing still misses one-frame events (RF-001).",
+      "resolving_experiment": "None; incidence is observer-relative and reported per observer.",
+      "consequence": "Observer density, not case volume, governs feature discovery.",
+      "resolution": "15-frame observer merged; pooled counts are not rates."
+    },
+    {
+      "id": "RF-008",
+      "title": "Latest original-native coordinator attempt 38446280858 failed without a recoverable first step",
+      "class": "reproducible_anomaly",
+      "status": "handed_off",
+      "evidence": "native_only",
+      "owner_lane": "qa01-gameplay",
+      "reproducer": {
+        "command": "manual qa01-event-campaign.yml with one selected case",
+        "runs": [
+          38446280858
+        ]
+      },
+      "source_artifacts": [
+        "ledger record campaign original-native, reason 'original workflow or aggregate unavailable'",
+        "docs/QA01-DUAL-AIR-AND-CUMULATIVE-TRIAGE-20261013.md"
+      ],
+      "uncertainty": "Run returns 404; producer vs transport failure unknown. Receipts now retain failed_jobs.",
+      "resolving_experiment": "One single-case qa01-event-campaign dispatch; never another long campaign before a first-failure reason exists.",
+      "consequence": "Blocks cumulative original-native re-scheduling until diagnosed."
+    },
+    {
+      "id": "RF-009",
+      "title": "Windows Baldosa reliability: zero failures in 160 adopted + 40 coordinator journeys",
+      "class": "windows_durability",
+      "status": "retired",
+      "evidence": "native_only",
+      "owner_lane": "windows-modern",
+      "reproducer": {
+        "command": "qa-cumulative-research.yml lane windows",
+        "runs": []
+      },
+      "source_artifacts": [
+        "signed ledger windows records"
+      ],
+      "uncertainty": "Per-journey failure rate bounded < 1.5% (3/200) at 95%; same journeys repeated, not new trajectories.",
+      "resolving_experiment": "None until a Windows defect or new candidate changes the question.",
+      "consequence": "No defect to hand off.",
+      "resolution": "Durability bound only; repeating it buys bound tightening, not states."
+    },
+    {
+      "id": "RF-010",
+      "title": "Fault recovery: zero failures in 20,371 cases / 203,710 operations (plus 169,510 adopted journeys)",
+      "class": "windows_durability",
+      "status": "retired",
+      "evidence": "native_only",
+      "owner_lane": "release-qa",
+      "reproducer": {
+        "command": "qa-cumulative-research.yml lane fault-recovery",
+        "runs": []
+      },
+      "source_artifacts": [
+        "signed ledger fault-recovery records"
+      ],
+      "uncertainty": "Per-operation failure rate < 3/373,220 at 95%; isolated roots, not device power cuts.",
+      "resolving_experiment": "None; further volume only tightens an already sub-0.001% bound.",
+      "consequence": "No defect to hand off.",
+      "resolution": "Bound recorded; lane rested by yield rules."
+    },
+    {
+      "id": "RF-011",
+      "title": "20,779 exact normalized native fingerprints",
+      "class": "fingerprint_novelty",
+      "status": "retired",
+      "evidence": "native_only",
+      "owner_lane": "none",
+      "reproducer": {
+        "command": "tools/research_yield.py over the signed ledger",
+        "runs": [
+          38304551380,
+          38306802282,
+          38438864232,
+          38446393623,
+          38506108109
+        ]
+      },
+      "source_artifacts": [
+        "frontier_exact_coverage"
+      ],
+      "uncertainty": "Novelty restates case count (2 new per case); no consequence demonstrated by novelty alone.",
+      "resolving_experiment": "None. The census's value is as a per-case index for RF-004.",
+      "consequence": "Never a reason to run more cases.",
+      "resolution": "Kept as a lossless identity index."
+    },
+    {
+      "id": "RF-012",
+      "title": "Legacy-pin native 2P result phase (raw 7E:009F 0x84) lasts 35 frames where the original lasts 34 (bsnes-accurate, Snes9x, Beetle)",
+      "class": "original_native_discrepancy",
+      "status": "handed_off",
+      "evidence": "original_and_native",
+      "owner_lane": "qa01-gameplay",
+      "reproducer": {
+        "command": "python3 tools/qa_frontier_original_crosscheck.py paired --native-exe <Modern candidate> --seed 50036056 --arm rotation --lag 2 --finish-hold 4000 --frames 1128-1140,1620-4800/60,4801-6400 --snesref ... --core <snes9x|beetle> --ledger <ledger.json> --work W --out R",
+        "race_relative_lag": 2,
+        "seed": 50036056,
+        "arm": "rotation",
+        "native_frames": [
+          5198,
+          5233
+        ],
+        "runs": [
+          38637954243
+        ]
+      },
+      "source_artifacts": [
+        "analysis/data/frontier-original-native-race-relative-20261014.json",
+        "docs/QA01-SWITCHER-2014-ORIGINAL-SOURCE-PROBE.md (1P: original 0x84 +4665..+4698 = 34 frames)",
+        "docs/QA01-2014-COMPLETE-EVENT-TRANSPLANT.md (0x84->0x16 by 83:988A / Sram_RestoreDirectPage)",
+        "Hosted run 38637954243 (research-race-relative-paired, main 08e454e, artifact research-race-relative-paired, receipt SHA-bound)"
+      ],
+      "observation": "49 seeds, measured lag 2 in all: decoded source fields identical through laps-zero (same frame in 49/49) and until the reference's 0x16 restoration; result-menu onset on the same frame in 43, one frame earlier on native in 6; scheduler parity at onset does not predict the outcome. Raw semantic WRAM ($0200+) first differs 1-2 native frames BEFORE result-menu (0x84) onset in 49 of 49 seeds (all five arms). For 50036056 at native 5196-5198 the original builds the sound-command queue at 7E:2000 (wSndQueueRead/Write/ApuToggle, serviced by 82:8035 inside the 80:FAC9 wait) in one frame (first word 01->02->04); native shows a different intermediate one frame later (01->03->04). 7E:0BDE/0BFE start at 0xCC->0xC8 on the original but 0xC4->0xC0 on native, an offset of 8 held through the whole phase. The 0x84 phase then lasts 34 frames on Snes9x (and on Beetle-bsnes for 50036056) and 35 on native in 48 of 49 (36 for 50024003). Per-core boundaries differ: Snes9x onset same frame in 43 and native one earlier in 6, with the restore later on native; Beetle-bsnes (50036056) onset native 5198 vs 5199, both restore 5233. 7E:009F is the DrawText cursor wTextPos (#1543), so 0x84->0x16 is a raw terminal signature. Adjudicated on the high-accuracy bsnes core (with tools/patches/bsnes-libretro-system-ram.patch): 34 frames in 9 of 9 seeds, matching Snes9x. See RF-015 for the product core, which errs the other way. Independent hosted re-execution (run 38637954243, three seeds, Snes9x and Beetle): entry 1136/1134, lag confirmed; 0x84 phase 35/34 (50012000, 50036056) and 36/34 (50024003) on both cores.",
+      "uncertainty": "Local candidate evidence (current-main native 4c1c8b56...) until independently re-executed with raw-dump receipts. 83:987D Sram_RestoreDirectPage is a downstream 207-word SRAM->DP copy, not a proven diverging decision. Gameplay significance pending the upstream caller and actual 7E:009F writer on each core. 7E:2000-2004 is the SPC700 sound-command queue (Baldosa RAM map; 82:8035 reads $2142); 7E:0BDE/0BFE is unnamed; whether the 8-unit offset is guest-visible (sprite Y or banner position) or only scheduling is unproven. 2026-10-14: the 7E:2000 queue step at 5196 also differs between Snes9x and bsnes, so it is not by itself evidence of a native defect.",
+      "resolving_experiment": "Measure the legacy pin's arrival line at the post-load 80:FAC9 wait and matched 82:B1DD upload checkpoint drift against Snes9x (the RF-015 method). The 5196 sound-queue step is phase-sensitive between correct cores (Snes9x vs bsnes) and cannot localize a defect by itself. cd5875c carries the same refresh-rate code as Baldosa yet errs long, so its larger beam/$4212 deficit (RF-014) dominates.",
+      "consequence": "A cheap deterministic 2P reproducer of the same result-handoff seam behind the open 1P Switcher +4704/+4702 strict divergence; it does not change any comparator or acceptance."
+    },
+    {
+      "id": "RF-013",
+      "title": "Legacy-pin native race-entry lag is phase-dependent (2 or 3 frames); Baldosa enters on the same frame as the original for every route delay",
+      "class": "reproducible_anomaly",
+      "status": "handed_off",
+      "evidence": "original_and_native",
+      "owner_lane": "qa01-gameplay",
+      "reproducer": {
+        "command": "shift every event of tests/input/two-player-first-race.input by +k (k=0..7), dump 1120+k..1149+k on Snes9x and the Modern native, take first inRace=1",
+        "runs": [],
+        "race_relative_lag": 2
+      },
+      "source_artifacts": [
+        "Snes9x entry 1134..1141 (exactly +k)",
+        "Modern native (4c1c8b56..., fda6ace) entry 1136, 1137, 1139, 1139, 1141, 1141, 1142, 1143"
+      ],
+      "observation": "Lag native minus Snes9x = 2,2,3,2,3,2,2,2 for k = 0..7. The original absorbs a k-frame delay one for one; native quantizes it, as if a vblank/fade-gated wait sometimes costs one extra frame. Baldosa (uniracers-recomp 10b864b with the research two-seat input shim) enters at exactly the Snes9x frame for k = 0..7 (lag 0 throughout).",
+      "uncertainty": "Local candidate evidence until independently re-executed with raw receipts. Mechanism unproven; staircase notes point at the 80:FAC9 / $4212 vblank-sensitive fade for entry. Whether the same mechanism lengthens the 0x84 result phase (RF-012) is a hypothesis.",
+      "resolving_experiment": "QA-01: compare native and original iteration counts of the entry fade wait loop for k=1 (lag 2) and k=2 (lag 3); if the extra frame is the wait loop, test the same loop in the 0x84 phase.",
+      "consequence": "Race-relative comparisons on the legacy pin must measure the lag per case; on Baldosa the stock 2P route needs no shift. The quantised entry is a legacy-pin (snesrecomp cd5875c) artefact, consistent with RF-014."
+    },
+    {
+      "id": "RF-014",
+      "title": "Legacy-pin native (snesrecomp cd5875c) completes fewer 80:FAC9 vblank-wait passes at screen loads, so its black loading screens last 1-3 frames longer than bsnes; Baldosa does not",
+      "class": "original_native_discrepancy",
+      "status": "handed_off",
+      "evidence": "original_and_native",
+      "owner_lane": "qa01-gameplay",
+      "reproducer": {
+        "command": "stock tests/input/two-player-first-race.input on Snes9x and the Modern native, dump every 4 host frames 2..1126, count decrements of 7E:00C6 (one per 80:FAC9 vblank-wait pass via 80:FADF)",
+        "runs": [
+          38637954243
+        ],
+        "race_relative_lag": 0
+      },
+      "source_artifacts": [
+        "reference/imported/reverse-engineering/nitrodon/bank 80.txt 80:FAC9-80:FAF9 (LDA $4212 BMI/BPL wait; DEC $C6 mod 32; STA $0BDE/$0BFE from table 80:FBAF)",
+        "Modern native 4c1c8b56... (source fda6ace), pinned snes9x-libretro",
+        "generic setup_project native (fda6ace framework pin), same census: 772 game frames",
+        "bsnes-libretro high-accuracy core (tools/toolchain.json pin 05439f96) agrees with Snes9x on every blank-screen run",
+        "Baldosa 10b864b/075fbe4 blank-screen and 7E:00C6 censuses (analysis/data/frontier-original-native-race-relative-20261014.json)",
+        "Hosted run 38637954243 (research-race-relative-paired, main 08e454e, artifact research-race-relative-paired, receipt SHA-bound)"
+      ],
+      "observation": "Over host frames 2-1126: native 773 FAC9 passes, Snes9x 801, Beetle-bsnes 802 (two independent reference cores agree within one frame). Both engines run one pass per host frame in steady menus. Native loses passes only in transition/slide windows (menus 0x84, 0xD7, 0x3D, 0x6D, 0x91; e.g. host 442-446: native 0, original 4). The resulting 7E:00C6 offset of 4 (mod 32) is frozen during the race and explains RF-012's 7E:0BDE/0BFE offset of 8 exactly (0BDE = table[C6>>1]). A generic SNESRecomp native built by setup_project without the Modern product patches completes 772 game frames, so the deficit is in the shared framework/generated-code timing, not the Modern host. One-frame localisation of the 0x84->0xD7 transition: all engines hold 7E:00C6 at 0x02 from host 426 (a load); Snes9x resumes decrementing at 437 and Beetle at 436, native at 442; menu 0xD7 appears at 440 on both reference cores and at 446 on native. The no-input attract cycle (host 2-4002, one counter-rewrite window excluded) shows the same deficit: native 1311 passes, Snes9x 1326, Beetle-bsnes 1327. Player-visible confirmation (tools/qa_blank_screen_census.py, every frame, framebuffers only): on the stock 2P route the reference (bsnes-libretro high-accuracy = Snes9x; Beetle within one frame) shows black-screen runs 248-276, 401-443, 988-1150; native shows 248-278, 404-449, 988-1151 (+2, +3, +1). Attract cycle: +2, +3, +3, +2 with later loads starting 17 frames late by host 3632. 2P race-finish transition (seed 50036056): +1. Generic SNESRecomp build: +2, +3, 0. In the first load (reference 248-276) WRAM at $0200+ stays byte-identical between native and Snes9x while VRAM fills: the reference's VRAM fills by about 738 words per frame (measured VRAM progress; writer not identified by executed PC: 81:CD70-81:D09C came from a static search and is the race-HUD initializer per QA-01, while 82:B1D8 (Attract_Main/logo, STA $2118/$2119 at 82:B1F5/B1FC) and 81:BB89 Decomp_ToVram are stronger static candidates, #1566), native's VRAM progress falls 1 then 2 frames behind and converges at 278, so native completes the same VRAM upload work in about 7% more host frames. The second load (reference 401) starts later on native because the transition waits for the 7E:00C6 phase, which native reaches 4 frames later. Scope: the pinned Baldosa guest (gamesbyian/uniracers-recomp 10b864b, snesrecomp fork 075fbe4, executable c3471741...) matches the references within one frame on all five attract-cycle loads and completes 1327 vblank-wait passes (Beetle 1327, Snes9x 1326, legacy native 1311). The deficit belongs to this repo's snesrecomp pin cd5875c (current Modern build, generic build, frontier executable), not to the Baldosa fork being integrated. Independent hosted re-execution (run 38637954243): 773 native vs 801 Snes9x / 802 Beetle vblank-wait passes; black runs native 248-278, 404-449, 988-1151 vs bsnes 248-276, 401-443, 988-1150.",
+      "uncertainty": "Local candidate evidence until independently re-executed with raw receipts. Neither reference core is cycle-exact hardware, but they agree with each other and disagree with native by 28-29 frames. The source of native's deficit (host frame pacing, DMA/HDMA cost modelling or the $4212 model) is unknown; AGENTS forbids tuning $4212 merely to match one emulator. First suspect, unverified: the framework's synthetic $4212 beam model (snesrecomp pinned in tools/toolchain.json at cd5875cbdaf1 runner/src/snes/snes.c readReg 0x4212: fixed 64-clock advance per poll in static-recomp mode; docs/VIRTUAL_HW_CONTRACT.md), which sets how many host frames a polled load costs; upstream notes a sibling case (SMRPG boot fades at the wrong frame count). 7E:00C6 is wCursorAnimTimer in Baldosa's RAM map: it counts passes of this wait continuation, not simulation frames. The first-load writer, $420D/MEMSEL, M/X and CPU-vs-DMA path are unmeasured.",
+      "resolving_experiment": "QA-01 / native-fidelity: executed-PC histogram with $420D, M, $2118/$2119 write sequence, CPU cycles and vblank for host 248-278 on the reference, then compare snesrecomp cd5875c against Baldosa's fork 075fbe4 (96b7e9f $4212 read-time sync, b7b4318 paced_bus) for that writer; QA-01's MEMSEL model (#1562) predicts an old-pin per-store overcharge only if $420D=0.",
+      "consequence": "It leaves the shipping Windows path only for a nominated build proven to use the 075fbe4 fork; the default modern-shared-native-acceptance build recompiles against cd5875c. It still affects the legacy Modern backend kept as rollback, and any research run on the frontier executable: frontier frontend timing is not original timing, although the race itself is original-exact (RF-004). Likely common cause of RF-012 and RF-013 on the legacy pin; QA-01's Baldosa entry lags (+2/+1/+2) need a separate explanation."
+    },
+    {
+      "id": "RF-015",
+      "title": "Baldosa (product core) 2P result phase lasted 33 frames where the original lasts 34: DRAM refresh charged per 1364 execution clocks instead of per 1364-clock beam line (corrected)",
+      "class": "original_native_discrepancy",
+      "status": "resolved",
+      "evidence": "original_and_native",
+      "owner_lane": "qa01-gameplay",
+      "reproducer": {
+        "command": "python3 tools/qa_frontier_original_crosscheck.py paired --native-launcher baldosa --native-exe <uniracers-recomp 10b864b built with tools/research_baldosa_2p_input_patch.py> --seed 50036056 --arm rotation --lag 0 --finish-hold 4000 --frames 1128-1140,1620-4800/60,4801-6400 --snesref ... --core <snes9x|bsnes patched> --ledger <ledger.json> --work W --out R",
+        "race_relative_lag": 0,
+        "seed": 50036056,
+        "arm": "rotation",
+        "runs": []
+      },
+      "source_artifacts": [
+        "analysis/data/frontier-original-native-race-relative-20261014.json baldosa_paired_snes9x_terminal, bsnes_accurate_result_phase",
+        "Baldosa gamesbyian/uniracers-recomp 10b864b (snesrecomp fork 075fbe4) + research two-seat input shim, executable 279d053f...",
+        "docs/QA01-SWITCHER-2014-ORIGINAL-SOURCE-PROBE.md: 1P original 0x84 +4665..+4698 (34 frames) vs Baldosa +4664..+4696 (33)",
+        "docs/QA01-RF015-DRAM-REFRESH-BEAM-RATE-20261014.md",
+        "analysis/data/rf015-dram-refresh-beam-rate-20261014.json"
+      ],
+      "observation": "9 of 9 seeds (all arms): Baldosa enters the 2P race on the original frame (1134, lag 0) and stays identical in all semantic WRAM through the race and result onset; the 0x84 phase lasts 33 frames vs 34 on Snes9x and on the high-accuracy bsnes core; onset same frame in 7 seeds and one frame early in 2; restore 1-2 frames early. The 2P race-finish black screen is 129 frames on Baldosa vs 131 on bsnes and 130 on Snes9x. Frame-by-frame against bsnes-accurate on 50036056 (host 5180-5241, both expose WRAM): semantic WRAM identical through 5195; at 5196 the 7E:2000 sound-command queue (wSndQueueRead) differs; at 5197 Baldosa's 7E:00C6 vblank-wait counter decrements one frame early (0x1e vs 0x1f; 7E:0BDE/0BFE follow); Baldosa's 7E:009F=0x84 onset is 5198 vs 5199 (Snes9x 5198); 5199-5229 identical; Baldosa restores 0x16 at 5231 vs 5233, then runs 2 vblank-wait passes ahead and leaves the race screen at 5235 vs >=5237.",
+      "uncertainty": "Cause established locally with exact binaries (unpatched build bit-identical to research 279d053f...). The earlier 'first divergence at 5196 in the CPU-APU handshake' reading is falsified: Snes9x and bsnes differ from each other in the same 5196/5197/5198 pattern, and Baldosa equals Snes9x in all semantic WRAM 5192-5230. In-line refresh position remains execution-relative (rate exact, instant within 40 clocks). Hosted re-execution and product-build staging are separate steps.",
+      "resolving_experiment": "Done: executed-PC trace (Snes9x) and read-only beam observer (Baldosa) of the 82:B1D8 upload and the post-load 80:FAC9 two-edge wait; see resolution.",
+      "consequence": "A shared, cheap 2P reproducer for QA-01's live 1P strict divergence on the actual product core, with a cycle-accurate reference; the legacy pin's opposite error (RF-012) means fixes must be validated per core.",
+      "resolution": "The raw 0x84 phase is an NMI-disabled CPU VRAM upload (82:B1D8, 470 clocks per two-byte iteration on both engines) followed by the two-edge wait 80:FAC9. Snes9x arrives at V=230, misses the edge and waits a whole extra field; Baldosa arrives at V=224 and does not. Matched 82:B1DD checkpoints show a uniform 0.087% CPU-time surplus on Baldosa, exactly the 1.14 clocks/line predicted by snes_refresh_charge() moving its watermark past the 40-clock stall (one refresh per 1404 beam clocks). tools/baldosa_dram_refresh_beam_rate_patch.py keeps the watermark before the stall; regression tests/unit/test_baldosa_dram_refresh_beam_rate_patch.py compiles and executes both functions. With it, 2P seeds give 34 = 34 with exact semantic-WRAM agreement through host 6400 against Snes9x or bsnes (onset frame where the two references disagree matches one of them), and the unchanged QA-01 Zoom Zoo producer gives terminal +5163 = +5163, classified strict_candidate (not an accepted event)."
+    },
+    {
+      "id": "RF-016",
+      "title": "Baldosa runs the SPC700 at 17088 cycles per field (~1.02696 MHz) where Snes9x and bsnes use ~1.02528 MHz: SPC uploads end early, explaining the attract 941-1098 load and the remaining one-field-early 2P result onset (seed 50048000)",
+      "class": "original_native_discrepancy",
+      "status": "handed_off",
+      "evidence": "original_and_native",
+      "owner_lane": "qa01-gameplay",
+      "reproducer": {
+        "command": "python3 tools/qa_blank_screen_census.py --input <comment-only input> --snesref <snesref> --core <bsnes patched> --core <snes9x> --baldosa-exe <Baldosa 10b864b + research 2P shim [+ refresh patch]> --frames 240-290,395-455,935-1105,1415-1555,3625-3770 --allow-gaps --work W --out R",
+        "race_relative_lag": 0,
+        "route": "no-input attract cycle",
+        "runs": []
+      },
+      "source_artifacts": [
+        "docs/QA01-RF015-DRAM-REFRESH-BEAM-RATE-20261014.md",
+        "analysis/data/rf015-dram-refresh-beam-rate-20261014.json",
+        "snesrecomp runner/src/apu_frame_clock.h RTL_APU_CYCLES_PER_FRAME 17088 at baldosa/snesrecomp@075fbe4"
+      ],
+      "observation": "Low WRAM ($0200-$1DFF) is identical on Snes9x, bsnes and both Baldosa builds every frame 2-1096. The 941-1098 black load is Snd_UploadBlockList (82:82A9): 64 block headers via JSR $8328 and CPU decompression (82:812A) feeding a byte stream (82:82EF STA $2143/STA $2142, 82:8301 CMP $2142/BNE). All 46,414 port-2 writes align one-to-one by value; Baldosa gains ~19k master clocks during the IPL/handshake phase (1009-1025) and ~50k steadily across the ~71-field stream (655 vs 653-654 bytes per field), ending ~73k clocks (~54 lines) ahead. The black screen therefore ends at 1097 vs 1098 and the next starts at 1422 vs 1423; unaffected by the RF-015 refresh correction, which fixed the 3632-3762 load. The remaining 2P onset residual is the same mechanism: on seed 50048000 the original CPU is in the result-screen song upload (Snd_UploadBlockList) until 5013 V=230 and reaches 80:FAC9 at V=232, seven lines after VBlank; the refresh-corrected core onsets at 5014. With the disposable 17060-cycle build the paired run gives onset 5015 = 5015, 34 = 34 and one transient 7-byte frame (5012).",
+      "uncertainty": "Disposable A/B executed 2026-10-14 (refresh-corrected build + RTL_APU_CYCLES_PER_FRAME 17060, exe 81315543...): the 941 load then ends on bsnes's frame (1098) and the next starts on it (1423), but 1423-1548 vs 1547 and 3633-3763 vs 3632-3762 move one frame late. The SPC rate therefore participates, but the references' nominal 32040 Hz x 32 over-corrects other loads and the ~19k-clock IPL-phase lead is unattributed. Real consoles' APU resonators vary; Baldosa's audio pipeline is built around 534 samples per field, so the rate is a design constant, not a one-line fix.",
+      "resolving_experiment": "Attribute the IPL-phase lead (1009-1025: SPC reset to $BBAA ready, small port-0/1 blocks) with an SPC-side PC/cycle trace on Baldosa and bsnes, then re-test the per-field stream rate; adopt no SPC-rate change until every attract load and the 2P/Zoo witnesses agree.",
+      "consequence": "Result-screen song uploads decide the 0x84 onset field when the original reaches the wait just after VBlank (2P seed 50048000; likely QA-01 Switcher +4664), and attract loads end a fraction of a field early. Affects strict frame-exact event comparison."
+    },
+    {
+      "id": "RF-017",
+      "title": "Zoom Zoo post-result: the refresh-corrected core passes the 80:FAC9 wait one field early at result +2 (original arrives 122 clocks before VBlank and is caught by NMI); both Baldosa builds show it",
+      "class": "original_native_discrepancy",
+      "status": "handed_off",
+      "evidence": "original_and_native",
+      "owner_lane": "qa01-gameplay",
+      "reproducer": {
+        "command": "python3 tools/probe_original_event_complete.py --case zoom-zoo --native-backend pinned-baldosa --source-horizon 22000 --source-followthrough --snesref <Baldosa snesref> --core <snes9x> --native <Baldosa 10b864b + QA scene-input shim + refresh patch> ...; then replay replay/ref.input and replay/pinned-baldosa.input from anchored.srm with complete.script's tail replaced by one dump per frame for 30 frames after 'dump result-onset'",
+        "race_relative_lag": 0,
+        "case": "zoom-zoo",
+        "runs": []
+      },
+      "source_artifacts": [
+        "docs/QA01-RF015-DRAM-REFRESH-BEAM-RATE-20261014.md",
+        "analysis/data/rf015-dram-refresh-beam-rate-20261014.json"
+      ],
+      "observation": "With the onset corrected (+5163 = +5163), the merged producer's follow-through shows native at menu 246 by result +16 while the original and the archived source movie are still at 188. Dense per-frame replay: identical through +1; from +2 the native $C6 cursor wait runs one field ahead and the 0x16->F6 transition is race-relative 5179 on both Baldosa builds vs 5180 on the original (the unpatched build's coarse samples only matched because its onset was already one frame early). Snes9x reaches 80:FAC9 at host 6181 V=224 H=1242; NMI is taken at V=225 inside 82:8035 (handler 1,020 clocks) and the first $4212 read sees VBlank set. Baldosa's first read is at V=224 H=1336 (bit 7 clear). HDMAEN=$00 in these fields; the 2,048-byte channel-7 DMA is charged within ~46 clocks of Snes9x.",
+      "uncertainty": "About 544 master clocks (~0.15%) of the field's CPU work separate the outcomes. Mid-block observer checkpoints are biased by block-entry cycle charging and are not used for attribution. Candidates: native NMI handler cost, per-instruction costs in this field's code, or 82:8035's $2142 path. Not caused by the RF-015 correction.",
+      "resolving_experiment": "Function-level timing for host 6181 (original) / observer frame 6182 (native) from the V=225 NMI to 80:FACD: Snes9x executed-PC costs per routine vs a SNESRECOMP_TRACE Baldosa build's per-function master clocks; attribute the ~544 clocks before any change.",
+      "consequence": "Next earliest difference in the Zoom Zoo complete event after RF-015: the result screen advances one field early, which blocks strict return-to-menu and progression parity."
+    }
+  ]
 }

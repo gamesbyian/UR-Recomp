@@ -73,3 +73,37 @@ must never replace them. Original 256x224, 7:6 PAR, 4x genuine
 fallback, real 342-wide source world and owner-vetoed Remastered
 character remain unchanged. No gameplay, Modern, CPU/APU,
 independent release ledger or CI scheduler is edited.
+
+## Source-visible arrow colour and exact binary-mask discriminator
+
+A separate complete source-array inspection establishes a **stronger
+constraint than the shape**: every one of the 460 original/native
+countdown residual positions is precisely a difference in coverage
+of one bright-blue colour, native RGB8 **(57,57,255)**. None is a
+background-to-different-background or blue-to-other-blue shade
+change. The two genuine 256x224 native source masks obey:
+
+- global consumed-prime: **9,286** such blue source pixels;
+- channel7-only and combined5+7: **9,288** blue source pixels;
+- intersection: **9,057** positions blue in both;
+- global-only blue coverage: **229** positions;
+- selective-only blue coverage: **231** positions.
+
+The **460-pixel full RGB5 mismatch mask is exactly the XOR** of
+these two source-blue coverage masks, over all 57,344 pixels,
+without image padding/cropping or an excluded seam. Direct source
+visual inspection identifies the graphic as the large right-pointing
+blue **countdown arrow**, with the differences along its outer
+triangular edge and long horizontal stem. This is evidence of
+**raster coverage/displacement**, not a pixel palette equation defect.
+It does not yet prove whether original guest BG scroll, BG mode,
+window clipping or an OBJ effect is the effective source owner.
+
+The next narrowly appropriate real observation therefore records
+**all eight channels' genuine HDMA PPU BBUS transfers at guest1856**,
+while retaining stock/global/ch7-only/ch5+7 source/guest controls.
+The existing read-only all-channel observer and the single existing
+native experiment runner are reused. Its output will identify
+candidate source registers/transfer timing; no channel is declared
+causal before its table bytes, actual executed 65816 producer and
+final pixel consequence are connected.

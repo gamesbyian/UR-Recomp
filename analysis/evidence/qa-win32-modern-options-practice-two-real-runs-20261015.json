@@ -1,0 +1,154 @@
+{
+  "schema": "ur-independent-modern-win32-options-practice-review/1",
+  "date": "2026-10-15",
+  "status": "verified_hosted_source_only_zero_release_gate",
+  "scope": "Two separately green real Windows native user-journey workflows, 15 game-process source logs each, 5 Options process journeys and 10 source-qualified Practice course entries. No merged-main candidate nomination.",
+  "runs": [
+    {
+      "workflow_run_id": 38701860728,
+      "source_sha": "43d813b4988357ff4839cf600442d341d1efb4cc",
+      "event": "workflow_dispatch",
+      "conclusion": "success",
+      "options_practice_artifact": {
+        "id": 11956823094,
+        "sha256": "75c4f0315df29f603129c65029f531fd65355abdd5c0983561eb914cf28ccac8"
+      },
+      "candidate_wrapper": {
+        "id": 11957476804,
+        "sha256": "d2966a0ca30d45eb570a44abe59efa7ba7fbbe2ccdc3c9ee18f4687ae55146bb"
+      },
+      "candidate_inner_zip_sha256": "a2e733498d67318d8d847343d3328ec1ff55e4e03a8c5e37f75e6a6f2141f962",
+      "binding_wrapper": {
+        "id": 11956947730,
+        "sha256": "ccba558dbd488d5a70c6b6cc78c61019ced067f8f42f51f28bcdb7ae43146e35"
+      },
+      "packaged_executable_sha256": "fd3ebba5f1e75820a98d4e78114378dc6ba20785ab9c58ad4c550904c5ef3c4d"
+    },
+    {
+      "workflow_run_id": 38703695304,
+      "source_sha": "ac822712ec4eacec7085185562f20aa6987b6e7f",
+      "event": "workflow_dispatch",
+      "conclusion": "success",
+      "options_practice_artifact": {
+        "id": 11958820226,
+        "sha256": "a95b32fdb6d020f8d1e99d210b9631138d3bcf4d1b6786bdda84216246fbf346"
+      },
+      "candidate_wrapper": {
+        "id": 11957947995,
+        "sha256": "0e4d44bd4f1a3edb4651c21c9a5a8cc52276be68a2655abc56f62d5147060494"
+      },
+      "candidate_inner_zip_sha256": "80b00c5965b1324fdab9bfd20d52e881ac5ece2305df66c3bacc366a6614f5aa",
+      "binding_wrapper": {
+        "id": 11957808156,
+        "sha256": "64cecee00dde267a88f0ce6f11f7b1bbd18a2fd23cfd8975dbf5b4bf94ea869a"
+      },
+      "packaged_executable_sha256": "a90026ac3d438c6a4bfae3cd6360b433867e50589282efbf1bfe8a585daedd0f"
+    }
+  ],
+  "boundaries": {
+    "actual_win32_native_games_per_run": 15,
+    "options_games_per_run": 5,
+    "practice_source_entered_courses_per_run": 10,
+    "source_events_compared_per_run": 1358,
+    "per_log_event_hashes_identical_across_two_distinct_source_and_binary_revisions": true,
+    "physical_controller_count_logged": 0,
+    "video_backend": "windows",
+    "audio_backend": "dummy",
+    "options_file_raw_pre_post_bytes_archived": false,
+    "practice_player_sram_raw_pre_post_bytes_archived": false,
+    "options_config_ini_volume_file_hashes_archived": false,
+    "original_native_complete_event_parity_accepted": 0,
+    "accepted_release_gates": 0,
+    "nominated_exact_main_zip": false,
+    "published_prerelease": false
+  },
+  "positive_observations": [
+    "Five genuine Win32 Options processes: initial change, fresh restored settings/defaults, fresh defaults boot, damaged-file quarantine, read-only config volume refusal",
+    "Bounded Options report indicates separate options-v1.txt digests (changed, reset, stable cold reboot, quarantined/rebuilt), never creates racer selector",
+    "Ten actual Win32 source-qualified original Practice entries across 20/40 course availability. Original course identity matched requested track. No earned run or career result published.",
+    "In both runs source-bound PE32+ executable SHA256 equals the separate immutable ROM-free candidate manifest and Windows candidate-binding.json receipt"
+  ],
+  "negative_qualification": [
+    "The two runs are different PR source revisions and cannot be nominated as merged-main release candidate",
+    "Raw settings and save-stage bytes were not retained inside the 17-member Options/Practice evidence artifact; SHA and boolean claims are producer stage assertions, not independently rehashed actual files",
+    "No physical gamepads, audible sound, fullscreen visual state, 4K output, OS crash/power cut/storage consistency test or strict original-vs-native complete event is established"
+  ],
+  "event_hash_method": "For each archived native .log.txt, select in original line order every line containing UR_BALDOSA_ or beginning with script f=. SHA256 of UTF-8 join by newline with final newline; exact 15 paths compare, without volatile basename normalization.",
+  "events": [
+    {
+      "name": "native_options/game1_change/log.txt",
+      "events": 36,
+      "sha256": "d047db040a97b0076b73695fdcc0c834a2f79161fed8ebcf7673ddf0016f7fff"
+    },
+    {
+      "name": "native_options/game2_restore_defaults/log.txt",
+      "events": 30,
+      "sha256": "4e0fbe009d2f04a4e1461da6bc93881c7c9e71aee3a18d386602598a6df2f589"
+    },
+    {
+      "name": "native_options/game3_defaults_boot/log.txt",
+      "events": 9,
+      "sha256": "af85276f77b56de2483f58532d12a06ac06fa93da63915ff8d97700605baad39"
+    },
+    {
+      "name": "native_options/game4_damaged/log.txt",
+      "events": 36,
+      "sha256": "6fcc4bf444112c218f95ec4946e094f0537be6c90c30e3792401c7cac4b089de"
+    },
+    {
+      "name": "native_options/game5_readonly_config/log.txt",
+      "events": 36,
+      "sha256": "8f4a2e5b910abc3d3151ec4e0593a45689ab84a3823d4f599b19f6edf812455e"
+    },
+    {
+      "name": "native_practice_courses/tier0_never_played-bowl_stunt/log.txt",
+      "events": 55,
+      "sha256": "9ecd9b0a56eb12d63db66030c3befce996cd63051faa7005c0b92f4cea47a030"
+    },
+    {
+      "name": "native_practice_courses/tier0_never_played-dragster/log.txt",
+      "events": 39,
+      "sha256": "b55b61fe3f929b4b2802a719451e895bc923ca89cbec307affd07cd675582741"
+    },
+    {
+      "name": "native_practice_courses/tier0_never_played-east_race/log.txt",
+      "events": 137,
+      "sha256": "0e9fa8ad0cf7d80055490de8c88f912dcd400718d7563905e8fcdd12704c47fb"
+    },
+    {
+      "name": "native_practice_courses/tier0_never_played-jumps_stunt/log.txt",
+      "events": 74,
+      "sha256": "4272f85a0f7981daaadadfa03305fa2db40d62394235e0e69ee7f030ab566a7e"
+    },
+    {
+      "name": "native_practice_courses/tier0_never_played-short_cut_circuit/log.txt",
+      "events": 120,
+      "sha256": "608fae45425a94651ad4d8d25fd1e4099713fa4dfee4d72fb1c2577fd14d74b1"
+    },
+    {
+      "name": "native_practice_courses/tier2_formatted_save-123_jump_last_ordinary/log.txt",
+      "events": 188,
+      "sha256": "98a0d78ad6d50424438ddcf7b518ef4e910401d69f8465ea7f98b2fddcdea938"
+    },
+    {
+      "name": "native_practice_courses/tier2_formatted_save-down_up_runner/log.txt",
+      "events": 151,
+      "sha256": "e3219fbfd9ac98b328739fbf7d63d007dac05453881c0746d1893ee991dcee68"
+    },
+    {
+      "name": "native_practice_courses/tier2_formatted_save-last_one_bounder/log.txt",
+      "events": 144,
+      "sha256": "44b5a2419e19e9fc61854dd241c1077e9660ebbc6c447ad22a4c4db8f43d57ef"
+    },
+    {
+      "name": "native_practice_courses/tier2_formatted_save-vertical_sprinter/log.txt",
+      "events": 194,
+      "sha256": "ad307c5f07e3d62824b38f22b5f7282b2f8651085342dd34b12ed6ac03cc4129"
+    },
+    {
+      "name": "native_practice_courses/tier2_formatted_save-wobble_jumper/log.txt",
+      "events": 109,
+      "sha256": "648b1dd740d0bea31f62f39db6d9a31e7b483b41e0f7c33aac1d0cf82fea58e6"
+    }
+  ]
+}

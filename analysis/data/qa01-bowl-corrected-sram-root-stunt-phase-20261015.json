@@ -1,0 +1,49 @@
+{
+  "schema": "UR-QA01-BOWL-CORRECTED-SRAM-ROOT-STUNT-PHASE-WITNESS/1",
+  "date": "2026-10-15",
+  "authority": "docs/QA01-PINNED-BALDOSA-SRAM-PRELOAD-IDENTITY-20261015.md",
+  "repo": "gamesbyian/UR-Recomp",
+  "course": "course:03",
+  "family": "stunt",
+  "execution": {
+    "workflow_run_id": 38786734206,
+    "url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38786734206",
+    "job_id": 116601089656,
+    "result": "success",
+    "case_artifact_id": 11997599302,
+    "case_artifact_sha256": "95c3071e7e86f1366dad4f16f6f5f9ced06be164b184de8da9c3853d00f4440e",
+    "original_native_producer_exit_code": 0,
+    "source_preload_transport": "explicit --config and cwd=work; native SRAM staged into cwd/saves/save.srm"
+  },
+  "source": {
+    "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "original_entry_frame": 8620,
+    "original_result_frame": 11985,
+    "archived_original_relative_result": 3365
+  },
+  "measured": {
+    "fresh_reference_entry_host": 984,
+    "fresh_native_entry_host": 985,
+    "reference_result_relative": 3365,
+    "native_result_relative": 3364,
+    "guest_host_result_both_at": 4349,
+    "reference_and_native_tally_host": 4279,
+    "positive_stunt_score_visible": true,
+    "result_text_equal": true,
+    "paired_event_candidate": false,
+    "bounded_stunt_one_frame_phase_observed": true,
+    "all_sampled_wram_vram_cgram_equal": false,
+    "persistent_differing_wram_offsets": [],
+    "first_sample_disagreement": null
+  },
+  "interpretation": "The strict complete-event relative-frame result gate fails by one frame even though host-absolute result onset aligns; preserve separate guest clocks and tally host anchor. Corrected SRAM seed path is used, so earlier apparent relative +3365/+3365 from wrong-root comparisons must not be promoted as a source-identical pass.",
+  "limits": {
+    "cause_of_one_frame_relative_entry_shift_proven": false,
+    "same_cpu_clock_or_logic_tick_proven": false,
+    "full_45_course_program_complete": false,
+    "cold_guest_reload_for_bowl_proven": false,
+    "shipping_windows_built_from_this_candidate": false,
+    "usa_release_event_credit": 0
+  }
+}

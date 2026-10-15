@@ -28,6 +28,7 @@ except ImportError:
 
 MARK="UR_QA08_2014_SNES9X_5BIT_BRIGHTNESS_CANDIDATE"
 FILE=Path("snesrecomp/runner/src/snes/ppu.c")
+LEGACY_FILE=Path("snesrecomp/runner/src/snes/ppu_legacy.c")
 OLD="""        ((i << 3) | (i >> 2)) * ppu_brightness / 15;"""
 NEW="""        /* UR_QA08_2014_SNES9X_5BIT_BRIGHTNESS_CANDIDATE: same 512-entry
          * 2014 original Snes9x brightness LUT. Quantize SNES 5-bit colour
@@ -61,6 +62,52 @@ def patch_source(source:str)->str:
     return source[:start]+NEW+"\n"+source[end:]
 
 
+# The pinned desktop host's actual Original PPU calls
+# ppu_draw_whole_line_legacy when NewRenderer is disabled. This three-pixel
+# output block, not ppu.c's brightnessMult table, produced the empirical
+# unchanged 261-frame Windows results after the first candidate.
+LEGACY_MARK="UR_QA08_2014_SNES9X_LEGACY_PIXEL_BRIGHTNESS"
+LEGACY_OLD="""  pixelBuffer[0] = ((b << 3) | (b >> 2)) * PPU_brightness(ppu) / 15;
+  pixelBuffer[1] = ((g << 3) | (g >> 2)) * PPU_brightness(ppu) / 15;
+  pixelBuffer[2] = ((r << 3) | (r >> 2)) * PPU_brightness(ppu) / 15;"""
+LEGACY_NEW="""  /* UR_QA08_2014_SNES9X_LEGACY_PIXEL_BRIGHTNESS: source-exact 5-bit
+   * master-brightness stage used by pinned original Snes9x.
+   * Only Uniracers's disposable Windows Original PPU legacy renderer.
+   * Colour math/priority are unchanged above; output ARGB is unchanged
+   * in geometry, alpha and every other channel conversion.
+   */
+  const int snes_brightness = PPU_brightness(ppu);
+  const int pb = (b * snes_brightness + 7) / 15;
+  const int pg = (g * snes_brightness + 7) / 15;
+  const int pr = (r * snes_brightness + 7) / 15;
+  pixelBuffer[0] = (pb << 3) | (pb >> 2);
+  pixelBuffer[1] = (pg << 3) | (pg >> 2);
+  pixelBuffer[2] = (pr << 3) | (pr >> 2);"""
+LEGACY_PREFIX="""  int row = y - 1;
+  uint8 *pixelBuffer = (uint8 *)&ppu->renderBuffer[row * ppu->renderPitch + (x + ppu->extraLeftRight) * 4];
+"""
+LEGACY_SUFFIX="""  pixelBuffer[3] = 0;
+}"""
+
+
+def patch_legacy_source(source:str)->str:
+    """Reject anything but the source-pinned active legacy framebuffer path."""
+    if (source.count(LEGACY_PREFIX)!=1 or
+        source.count(LEGACY_SUFFIX)!=1 or
+        source.count("static void ppu_render_pixel(Ppu *ppu, int x, int y) {")!=1):
+        raise ValueError("original source PPU legacy renderer structure changed")
+    start=source.index(LEGACY_PREFIX)+len(LEGACY_PREFIX)
+    end=source.index(LEGACY_SUFFIX,start)
+    body=source[start:end]
+    if LEGACY_MARK in source:
+        if source.count(LEGACY_MARK)!=1 or body!=LEGACY_NEW+"\n":
+            raise ValueError("incomplete or modified active legacy raster fix")
+        return source
+    if body!=LEGACY_OLD+"\n" or source.count(LEGACY_OLD)!=1:
+        raise ValueError("competing legacy source pixel brightness transform")
+    return source[:start]+LEGACY_NEW+"\n"+source[end:]
+
+
 def apply_game(game:Path,*,write:bool=False)->Path:
     game=game.resolve()
     if pinned_revision(game)!=GAME_REV:
@@ -71,11 +118,18 @@ def apply_game(game:Path,*,write:bool=False)->Path:
     if not (game/"src/gen/dispatch_v2.c").is_file():
         raise ValueError("expected generated Uniracers guest absent")
     file=game/FILE
+    legacy=game/LEGACY_FILE
     original=file.read_text(encoding="utf-8")
+    active_original=legacy.read_text(encoding="utf-8")
+    # Validate BOTH renderer sources before writing EITHER.
     changed=patch_source(original)
-    if write and changed!=original:
-        file.write_text(changed,encoding="utf-8")
-    return file
+    active_changed=patch_legacy_source(active_original)
+    if write:
+        if changed!=original:
+            file.write_text(changed,encoding="utf-8")
+        if active_changed!=active_original:
+            legacy.write_text(active_changed,encoding="utf-8")
+    return legacy
 
 
 def mul_snes9x_2014(brightness:int,channel5:int)->int:

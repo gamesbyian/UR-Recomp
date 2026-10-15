@@ -65,6 +65,11 @@ on:
         required: false
         type: boolean
         default: false
+      candidate_only:
+        description: "Build and export one pinned Windows producer; downstream independent jobs own acceptance"
+        required: false
+        type: boolean
+        default: false
       export_campaign_inputs:
         description: "Export the one source-bound Windows executable and ROMless ZIP for manual cohort reuse"
         required: false
@@ -75,7 +80,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: baldosa-windows-probe-${{ github.event.pull_request.number || github.ref }}
+  group: baldosa-windows-probe-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -88,6 +93,13 @@ jobs:
     steps:
       - name: Check out owning UR product bridge
         uses: actions/checkout@v4
+
+      - name: Reject an unexported producer-only request
+        if: ${{ inputs.candidate_only == true }}
+        run: |
+          set -euo pipefail
+          test "${{ inputs.export_campaign_inputs }}" = "true"
+          echo "Candidate-only source builds carry no acceptance credit; only downstream Windows consumers may assert player journeys." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Check out exact pinned native AOT and framework
         uses: actions/checkout@v4
@@ -204,7 +216,7 @@ jobs:
       # Existing manual/call opt-in remains proven two-worker post-baseline.
       # Full original serial fallback remains available.
       - name: Pilot parallel authentic Windows journeys against one pinned candidate
-        if: ${{ github.event_name == 'pull_request' || inputs.parallel_journeys == true }}
+        if: ${{ (github.event_name == 'pull_request' || inputs.parallel_journeys == true) && inputs.candidate_only != true }}
         run: |
           set -euo pipefail
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
@@ -217,7 +229,7 @@ jobs:
           fi
 
       - name: Retain bounded parallel pilot timings without changing QA-12 artifacts
-        if: ${{ always() && (github.event_name == 'pull_request' || inputs.parallel_journeys == true) }}
+        if: ${{ always() && (github.event_name == 'pull_request' || inputs.parallel_journeys == true) && inputs.candidate_only != true }}
         uses: actions/upload-artifact@v4
         with:
           name: baldosa-win32-parallel-journey-timing
@@ -226,7 +238,7 @@ jobs:
           retention-days: 7
 
       - name: Execute actual Win32 two-player guest and native pause/resume
-        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true && inputs.candidate_only != true }}
         env:
           UR_BALDOSA_PRODUCT_INPUT_DIAGNOSTICS: "1"
         run: |
@@ -241,7 +253,7 @@ jobs:
           echo "PASS: Win32 real native guest boot with two distinct catalog-backed Modern profiles, exact acknowledged native post-save typed SRAM publication/readback, per-rider isolation, pause/Restart, fresh-process reload, clean-machine DLL and invalid-profile gates. No completed event, physical hardware or unified frontend claim." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Real stock 1P result and newly saved Records reopened by fresh native game
-        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true && inputs.candidate_only != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_native_1p_records_probe.py \
@@ -254,7 +266,7 @@ jobs:
           echo "PASS: same source-bound Win32 guest entered stock 1P from Modern root, committed an actual result to a named .urrun, and a genuinely fresh game process opened that exact Records artifact. Original/native parity and physical controller remain unverified." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Real named P1/P2 ordinary race through paired Records and fresh native process
-        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true && inputs.candidate_only != true }}
         run: |
           set -euo pipefail
           # Reuse the already built EXACT same native PE and Modern codec
@@ -270,7 +282,7 @@ jobs:
           echo "PASS: real stock 2P result from separately confirmed Modern P1/P2 identities, one canonical paired .urrun/.urmatch, and a fresh native game opening exact same Records. Not original parity, hardware gamepads or release acceptance." >> "$GITHUB_STEP_SUMMARY"
 
       - name: First controller-semantic native racer creation persists for exact fresh-game boot
-        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true && inputs.candidate_only != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_native_first_racer_probe.py \
@@ -282,7 +294,7 @@ jobs:
           echo "PASS: real native first-run Modern preset creation through shared root controls, canonical clean SRAM and typed catalog; new game process independently booted it, never live SRAM hot-swap. No physical pad or original/native release credit." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Native first-run nondefault Andrew stock rider and clean new-game SRAM
-        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true && inputs.candidate_only != true }}
         run: |
           set -euo pipefail
           # Same exact native Windows PE and production profile/catalog/raw
@@ -297,7 +309,7 @@ jobs:
           echo "PASS: actual native first-run P1 Down/A selected ANDREW, first private full 8192-byte source SRAM rider byte=1, exact existing typed/catalog/raw codec and a second real Windows game BOOT_SRAM fingerprint. This is scripted input, NOT physical hardware or original/emulator gameplay parity." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Native named P1 explicitly creates independent P2 then both enter stock 2P
-        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true && inputs.candidate_only != true }}
         run: |
           set -euo pipefail
           python tools/baldosa_native_second_racer_probe.py \
@@ -309,7 +321,7 @@ jobs:
           echo "PASS: actual native P1 Mike created isolated Andrew P2 with canonical typed/raw/catalog, retained active P1 selector, and a third real native game confirmed both seats and entered original 2P GO. No completed match, physical pads or original/native parity credit." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Real pad-created P2 survives explicit interrupted-catalog recovery
-        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true && inputs.candidate_only != true }}
         run: |
           set -euo pipefail
           # Same pinned Windows source guest and production P1 pad handler:
@@ -326,7 +338,7 @@ jobs:
           echo "PASS: real UI-created Mike/Martin, test-only missing P2 catalog row, real P1 controller recovery and next-process original 2P GO. No OS power-loss, physical pad or settled result credit." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Native shared Quick Practice enters original source-qualified Dragster
-        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true && inputs.candidate_only != true }}
         run: |
           set -euo pipefail
           # P1 real controller handler: Down -> A -> A. No script inputs to
@@ -341,7 +353,7 @@ jobs:
           echo "PASS: actual P1 native Quick Practice enters source-verified Dragster 1P GO without external original-menu input scripts. One course only; no physical pad or 45-course gate credit." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Native P1 gamepad-created P1 and P2 earn original 2P and both fresh Records
-        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true && inputs.candidate_only != true }}
         run: |
           set -euo pipefail
           # Actual Win32 native P1 gamepad handler receives X/A to create
@@ -358,7 +370,7 @@ jobs:
           echo "PASS: P1 semantic gamepad created Mike/Martin, exact original 2P source earned one paired match, and both fresh native Records passed. The *CI-only* raw .urrun/.urmatch, canonical typed/raw 8KiB profile bytes and SHA manifest are retained for independent QA; no ROM, real user files or release qualification is included. Physical pads and complete original/native parity remain unaccepted." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Native first-racer creation through genuine earned 1P Records in three separate games
-        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true && inputs.candidate_only != true }}
         run: |
           set -euo pipefail
           # Reuse the same exact pinned Windows AOT PE, stock controls,
@@ -373,7 +385,7 @@ jobs:
           echo "PASS: empty Modern root -> explicit first named racer -> fresh game genuine source-observed 1P Race -> one earned .urrun -> third native game reopens exact Records. Synthetic SDL/guest inputs; original/native strict parity, packaged no-args relaunch and physical pads remain independent QA gaps." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Native controller selects existing P1 both directions across cold game processes
-        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true && inputs.candidate_only != true }}
         run: |
           set -euo pipefail
           # Both profiles were created by native root. Test ONLY the
@@ -397,13 +409,18 @@ jobs:
           cd "$RUNNER_TEMP/baldosa-native-romless"
           sha256sum UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip > UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256
           test -s UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256
-          echo "PASS: deterministic ROM-free Baldosa Windows candidate created from the same executable that passed native PE, clean-machine import and 1P/2P player-journey QA. Contains no ROM, SRAM or user state. Candidate only, not a completed remaster." >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ inputs.candidate_only }}" = "true" ]; then
+            echo "PRODUCED (NOT ACCEPTED): pinned ROM-free Windows executable/ZIP built and PE-checked, exported for separate source-bound real Windows QA. No player journeys have run in this producer and no release credit is implied." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "PASS: deterministic ROM-free Baldosa Windows candidate created from the same executable that passed native PE, clean-machine import and 1P/2P player-journey QA. Contains no ROM, SRAM or user state. Candidate only, not a completed remaster." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       # One nominated package: tie the exact executable every journey above
       # ran to the packaged executable, the manifest and the ZIP hash. Hash
       # arithmetic only; a separate tiny artifact keeps the candidate and the
       # strict QA-12 evidence archives byte-for-byte as before.
       - name: Bind journeys to the nominated ZIP and executable hashes
+        if: ${{ inputs.candidate_only != true }}
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/baldosa-candidate-binding"
@@ -415,6 +432,7 @@ jobs:
             --out "$RUNNER_TEMP/baldosa-candidate-binding/candidate-binding.json" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Prove extracted CMD launcher, ROM gates and isolated user SRAM
+        if: ${{ inputs.candidate_only != true }}
         run: |
           set -euo pipefail
           python tools/verify_baldosa_windows_extracted_launcher.py \
@@ -425,6 +443,7 @@ jobs:
           echo "PASS: actual ROM-free ZIP extracted on Windows; double-click CMD rejects missing/wrong ROM and package-local/relative saves, accepts valid personal ROM, opens shared Modern root and saves exact native SRAM outside extracted executable directory. No ROM or saved data uploaded." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain ROM-free Windows candidate only (no ROM or SRAM)
+        if: ${{ inputs.candidate_only != true }}
         uses: actions/upload-artifact@v4
         with:
           name: baldosa-modern-windows-x64-romless-candidate
@@ -435,6 +454,7 @@ jobs:
             ${{ runner.temp }}/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256
 
       - name: Retain candidate hash binding receipt separately
+        if: ${{ inputs.candidate_only != true }}
         uses: actions/upload-artifact@v4
         with:
           name: baldosa-win32-candidate-binding
@@ -443,7 +463,7 @@ jobs:
           path: ${{ runner.temp }}/baldosa-candidate-binding/candidate-binding.json
 
       - name: Retain bounded Windows guest evidence (never ROM or saves)
-        if: always()
+        if: ${{ always() && inputs.candidate_only != true }}
         uses: actions/upload-artifact@v4
         with:
           name: baldosa-win32-native-pause-evidence
@@ -499,7 +519,7 @@ jobs:
       # outer members there. This separate evidence artifact is the same
       # successful source run and contains only two CI-owned pair bytes.
       - name: Retain bounded pre-Records raw pair in separate source artifact
-        if: success()
+        if: ${{ success() && inputs.candidate_only != true }}
         uses: actions/upload-artifact@v4
         with:
           name: baldosa-win32-pre-records-pair-evidence
@@ -510,7 +530,7 @@ jobs:
       # Keep fault-cut logs OUTSIDE QA-12 strict real-match source ZIP.
       # This separate artifact contains no ROM, executable or user data.
       - name: Retain bounded native P2 catalog recovery logs separately
-        if: success()
+        if: ${{ success() && inputs.candidate_only != true }}
         uses: actions/upload-artifact@v4
         with:
           name: baldosa-win32-native-p2-catalog-recovery-smoke
@@ -526,7 +546,7 @@ jobs:
       # the independent QA-02 four-log smoke ZIP. This retains only the
       # fixed CI-created P1/P2 typed/raw/selector/catalog staged bytes.
       - name: Retain bounded native P2 recovery raw stages separately
-        if: success()
+        if: ${{ success() && inputs.candidate_only != true }}
         uses: actions/upload-artifact@v4
         with:
           name: baldosa-win32-native-p2-catalog-raw-stages
@@ -536,7 +556,7 @@ jobs:
       # Separate from the strict QA-12 pause-evidence ZIP allowlist. Bounded
       # source logs and the kill receipt only: no ROM, executable or saves.
       - name: Retain bounded native Practice lifecycle logs separately
-        if: always()
+        if: ${{ always() && inputs.candidate_only != true }}
         uses: actions/upload-artifact@v4
         with:
           name: baldosa-win32-native-practice-lifecycle

@@ -1,5 +1,12 @@
 # External Evidence Intake
 
+## October 15, 2026: malmazuke PAL evidence follow-up
+
+Consult [the pinned cross-project handoff](CROSS-PROJECT-BEHAVIOR-CORROBORATION.md#october-15-2026-pal-intake-menu-controls-and-multi-tour-leagues-conditional) before scheduling repeat PAL archaeology. Newly accepted **PAL** MENU-INPUT #79/R-0097, and **unmerged draft** LEAGUE-TOURS #81/R-0098 (head `876aa89f0157b252e559aca2e42f1e9efe78b2dc`), can shorten existing USA investigations into pad ownership, result/awards transitions, two-human stunts and SRAM timing. No general code transplant: PAL original reference captures and disassembly are evidence leads, not USA original witnesses. The existing cross-project source index/pinned corpus, research ledger, and specialist authority decide which question is unresolved.
+
+**Intake finish condition:** check upstream PR review/merge and pins; compare each potentially relevant claim with existing USA source/fixtures; nominate **at most one cheapest first-difference original-USA experiment per demonstrated live blocker**, with exact ROM/core/candidate provenance, frame origin and pad stream; hand it to its existing owner. If the owner has no relevant failure, record deferred/reopen-only status and stop. Avoid extra GHA triggers or importing giant PAL evidence files. Upstream's October 14 evidence cleanup (#80) illustrates retaining replay recipes and hashes, but UR's own retention and CI policy remains authoritative.
+
+
 This document defines how public third-party research moves from an interesting lead into project-owned, reproducible evidence.
 
 The source registry is `reference/catalog.yml`. The actionable queue is `reference/evidence-worklist.json`. The worklist owns current uncertainty, acquisition state, next discriminator, expected deliverables, and whether human download assistance is actually required. It is intentionally separate from the chronological `docs/RESEARCH-LEDGER.md`.

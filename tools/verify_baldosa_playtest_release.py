@@ -79,9 +79,16 @@ def prepare(*, exported: Path, candidate: Path, binding_root: Path,
     require(sha256(candidate_files[ZIP]) == sums[ZIP] and
             candidate_files[ZIP].read_bytes() == source_files[ZIP].read_bytes(),
             "candidate artifact differs from reusable Windows export")
-    sidecar = candidate_files[SIDECAR].read_text(encoding="ascii")
-    require(sidecar == sums[ZIP] + "  " + ZIP + "\n",
-            "candidate SHA256 sidecar is noncanonical")
+    # GitHub's Windows runner emits GNU sha256sum's binary-mode '*name'
+    # marker; Linux text-mode ' name' is equally canonical. Compare RAW
+    # bytes to exactly those two fixed-basename, single-line encodings.
+    # The ZIP was already rehashed above; neither a changed basename,
+    # digest nor additional whitespace/newline is admitted.
+    sidecar = candidate_files[SIDECAR].read_bytes()
+    require(sidecar in (
+        (sums[ZIP] + "  " + ZIP + "\n").encode("ascii"),
+        (sums[ZIP] + " *" + ZIP + "\n").encode("ascii"),
+    ), "candidate SHA256 sidecar is noncanonical")
 
     original_receipt = json.loads(receipt_file.read_text(encoding="utf-8"))
     authoritative = binding.bind(source_files[EXE], source_files[ZIP],

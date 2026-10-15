@@ -2,14 +2,10 @@ name: QA-08 one-shot original Snes9x full 2P race/results raster
 # Separate original-only source, one real USA race_2p.txt process.
 # Source-proven finish/return reference for future exact Windows PPU join;
 # no automatic volume sweeps, no audio/gameplay or release authority.
+# The one source producer completed successfully in original run 38781958316,
+# artifact 11996107746. Use the immutable source bytes. Manual-only from now
+# on; do not rebuild original Snes9x for edits to an offline comparator.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/qa08-original-twoplayer-fullroute.yml"
-      - "tools/qa08_original_twoplayer_fullroute_manifest.py"
-      - "tests/unit/test_qa08_original_twoplayer_fullroute_manifest.py"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snes9x-libretro.json"
   workflow_dispatch:
 
 permissions:

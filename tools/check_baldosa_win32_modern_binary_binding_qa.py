@@ -108,9 +108,13 @@ def audit_package(candidate_wrapper: Path, binding_wrapper: Path,
 
         raw_receipt = binding["candidate-binding.json"]
         receipt = json.loads(raw_receipt.decode("utf-8"))
+        # Native Win32 text-mode JSON has CRLF; synthetic/Linux JSON has LF.
+        # Accept only exact canonical encodings, never arbitrary newline/
+        # whitespace normalization or a source/EXE/ZIP identity substitution.
+        canonical_lf = (json.dumps(receipt, sort_keys=True, indent=2) +
+                        "\n").encode("utf-8")
         require(type(receipt) is dict and
-                raw_receipt == (json.dumps(receipt, sort_keys=True, indent=2) +
-                                "\n").encode("utf-8") and
+                raw_receipt in (canonical_lf, canonical_lf.replace(b"\n", b"\r\n")) and
                 receipt == authoritative,
                 "tested Windows executable binding differs from actual package")
 

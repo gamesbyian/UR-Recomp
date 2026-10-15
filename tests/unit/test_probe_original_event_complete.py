@@ -496,9 +496,12 @@ class CompleteEventProducerTests(unittest.TestCase):
 
     def test_zoo_fixed_host_phase_is_read_only_and_two_clock_axes(self):
         script = target.zoo_terminal_script(5163)
-        self.assertEqual(script.count("dump zoo-phase-"), 18)
+        self.assertEqual(script.count("dump zoo-phase-"), 31)
         self.assertIn("dump zoo-phase-05156", script)
         self.assertIn("dump zoo-phase-05173", script)
+        self.assertIn("dump zoo-phase-05179", script)
+        self.assertIn("dump zoo-phase-05180", script)
+        self.assertIn("dump zoo-phase-05186", script)
         self.assertNotIn("poke ", script)
         self.assertNotIn("until 009F == BC", script)
         self.assertTrue(script.endswith("quit\n"))
@@ -531,10 +534,14 @@ class CompleteEventProducerTests(unittest.TestCase):
                 phase, *logs, 1017, 1019, 5163, 5162)
             self.assertEqual(report["fixed_vs_until_result_frame_delta"],
                              {"reference": 0, "native": 0})
-            self.assertEqual(report["samples_per_guest"], 18)
+            self.assertEqual(report["samples_per_guest"], 31)
             self.assertEqual(report["release_complete_event_credit"], 0)
             self.assertFalse(report["original_controller_masks_modified"])
-            self.assertEqual(len(report["relative_frame_comparisons"]), 18)
+            self.assertEqual(len(report["relative_frame_comparisons"]), 31)
+            self.assertFalse(report["contiguous_post_result_observation"][
+                "result_onset_relative_frames_equal"])
+            self.assertEqual(report["contiguous_post_result_observation"][
+                "release_complete_event_credit"], 0)
             # A same-relative +5162 pair differs, but at the actual same
             # host 6180 the source has already reached result and the
             # native is still pre-result. These comparisons must not be
@@ -560,6 +567,50 @@ class CompleteEventProducerTests(unittest.TestCase):
             with self.assertRaisesRegex(target.CompleteEventError, "host relation"):
                 target.summarize_zoo_terminal_phase(
                     phase, bad_log, logs[1], 1017, 1019, 5163, 5162)
+
+    def test_zoo_post_result_return_first_observed_field_not_cpu_instruction(self):
+        # Synthetic edge discrimination, NOT a genuine result or source receipt.
+        # Both fresh guests reach result at +5163; corrected native leaves
+        # the raw result cursor at +5179, original at +5180.
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            ref, nat = root / "ref", root / "native"
+            ref.mkdir()
+            nat.mkdir()
+            logs = []
+            for directory, entry, leave in ((ref, 200, 5180),
+                                            (nat, 202, 5179)):
+                lines = [f"script f={entry} dump race-entered ok"]
+                for frame in target.ZOO_TERMINAL_FRAMES:
+                    tag = f"zoo-phase-{frame:05d}"
+                    raw = bytearray(0x20000)
+                    raw[0x00CE] = 1
+                    raw[0x0313] = 1 if frame < 5163 else 0x3D
+                    raw[0x009F] = (0x16 if frame < 5163 else
+                                   0xBC if frame < leave else 0xF6)
+                    (directory / f"{tag}.wram.bin").write_bytes(raw)
+                    lines.append(f"script f={entry + frame} dump {tag} ok")
+                logs.append("\n".join(lines) + "\n")
+            report = target.summarize_zoo_terminal_phase(
+                root, *logs, 200, 202, 5163, 5163)
+            edge = report["contiguous_post_result_observation"]
+            self.assertEqual(edge["frame_range_inclusive"], [5163, 5186])
+            self.assertEqual(edge["frames_per_guest"], 24)
+            self.assertTrue(edge["result_onset_relative_frames_equal"])
+            self.assertEqual(edge["first_named_state_difference_frame"], 5179)
+            self.assertEqual(edge["first_raw_text_cursor_difference_frame"], 5179)
+            self.assertEqual(edge["first_full_wram_digest_difference_frame"], 5179)
+            self.assertIsNone(edge["first_gameplay_field_difference_frame"])
+            self.assertFalse(edge["first_divergent_cpu_instruction_or_writer_proven"])
+            self.assertFalse(edge["cold_process_sram_persistence_proven"])
+            self.assertEqual(edge["release_complete_event_credit"], 0)
+            self.assertEqual(report["release_complete_event_credit"], 0)
+            self.assertEqual(report["fixed_vs_until_result_frame_delta"],
+                             {"reference": 0, "native": 0})
+            matched = next(x for x in report["relative_frame_comparisons"]
+                           if x["relative_frame"] == 5180)
+            self.assertEqual(matched["different_named_fields"], [])
+            self.assertTrue(matched["wram_sha256_equal"])
 
     def test_switcher_terminal_phase_samples_are_source_anchored_and_bounded(self):
         source_duration = 4703  # actually observed 2014 original Switcher

@@ -605,9 +605,12 @@ def observe_bowl_tally_phase(reference_dir: Path, native_dir: Path,
 
 
 # The original 2014 Zoo source result is at +5163, after a short track-zero
-# prelude that restores track 1 at +5158. Deliberately cross the boundary.
+# prelude that restores track 1 at +5158. Capture every postframe
+# through +5186 so the corrected RF-015 result return (+5179/+5180)
+# can be bracketed without a sparse +8/+16 observation gap.
+# This is an opt-in diagnostic; the strict result comparator is unchanged.
 ZOO_TERMINAL_DURATION = 5163
-ZOO_TERMINAL_FRAMES = tuple(range(5156, 5174))
+ZOO_TERMINAL_FRAMES = tuple(range(5156, 5187))
 # Archived 2014 source proves Switcher 0x99 through original result+57,
 # then transitions toward track-select. Extend the optional, authentic source
 # window through result+80 so its return phase can actually be witnessed.
@@ -709,6 +712,42 @@ def summarize_zoo_terminal_phase(phase: Path, reference_log: str,
         "native_relative_frame": nat_host[host]["relative_frame"],
         **compare(ref_host[host], nat_host[host])
     } for host in hosts]
+
+    # This contiguous, race-entry-relative slice begins only once *both*
+    # guests have reached their independently measured result. Report the
+    # first OBSERVED postframe mismatch, never a first differing CPU opcode.
+    # $009F is the raw wTextPos cursor, not by itself a gameplay result bit.
+    post_rows = [row for row in relative
+                 if row["relative_frame"] >= max(ref_onset, nat_onset)]
+    if not post_rows or any(
+            b["relative_frame"] != a["relative_frame"] + 1
+            for a, b in zip(post_rows, post_rows[1:])):
+        raise CompleteEventError("Zoo post-result frame window is not contiguous")
+
+    def first_postframe(predicate) -> int | None:
+        return next((row["relative_frame"] for row in post_rows
+                     if predicate(row)), None)
+
+    gameplay = {"track", "in_race", "p1_laps", "p2_laps",
+                "p1_checkpoint", "p1_finish_gate"}
+    post_edge = {
+        "clock": "independently calibrated guest race-entry-relative postframes",
+        "frame_range_inclusive": [post_rows[0]["relative_frame"],
+                                  post_rows[-1]["relative_frame"]],
+        "frames_per_guest": len(post_rows),
+        "result_onset_relative_frames_equal": ref_onset == nat_onset,
+        "first_named_state_difference_frame": first_postframe(
+            lambda row: bool(row["different_named_fields"])),
+        "first_gameplay_field_difference_frame": first_postframe(
+            lambda row: bool(gameplay.intersection(row["different_named_fields"]))),
+        "first_raw_text_cursor_difference_frame": first_postframe(
+            lambda row: "menu" in row["different_named_fields"]),
+        "first_full_wram_digest_difference_frame": first_postframe(
+            lambda row: not row["wram_sha256_equal"]),
+        "first_divergent_cpu_instruction_or_writer_proven": False,
+        "cold_process_sram_persistence_proven": False,
+        "release_complete_event_credit": 0,
+    }
     return {
         "schema": "UR-QA01-ZOO-TERMINAL-HOST-PHASE/1",
         "original_source_duration": ZOO_TERMINAL_DURATION,
@@ -722,6 +761,7 @@ def summarize_zoo_terminal_phase(phase: Path, reference_log: str,
             "native": first["native"]["relative_frame"] - nat_onset},
         "relative_frame_comparisons": relative,
         "same_host_frame_comparisons": same_host,
+        "contiguous_post_result_observation": post_edge,
         "samples_per_guest": len(ZOO_TERMINAL_FRAMES),
         "full_guest_wram_bytes_per_sample": 0x20000,
         "raw_guest_memory_retained_in_report": False,

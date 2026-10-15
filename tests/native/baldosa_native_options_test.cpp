@@ -207,6 +207,36 @@ int main() {
         assert(model.selected == BaldosaOptionsRow::Reset);
     }
 
+    // DEFAULTS is all-or-nothing in both failure directions.
+    {
+        FakeHost fake;
+        fake.fullscreen = 1;
+        fake.vsync = 0;
+        fake.volume = 30;
+        BaldosaNativeOptions model;
+        baldosa_options_boot(model, root.string() + "/reset-atomic.txt",
+                             make_host(fake));
+        baldosa_options_open(model);
+        for (int i = 0; i < 4; ++i) baldosa_options_move(model, 1);
+        fake.refuse_volume = true;  // volume cannot be applied/saved
+        baldosa_options_activate(model);
+        assert(model.status == BaldosaOptionsStatus::ApplyFailed);
+        assert(fake.fullscreen == 1 && fake.vsync == 0 && fake.volume == 30);
+        assert(model.display == HostDisplayMode::BorderlessFullscreen);
+        assert(!fs::exists(root / "reset-atomic.txt"));
+        fake.refuse_volume = false;
+        fake.refuse_display = true;  // OS refuses the window transition
+        baldosa_options_activate(model);
+        assert(model.status == BaldosaOptionsStatus::ApplyFailed);
+        assert(fake.volume == 30 && model.volume == 30);  // volume restored
+        assert(fake.fullscreen == 1 && fake.vsync == 0);
+        assert(!fs::exists(root / "reset-atomic.txt"));
+        fake.refuse_display = false;
+        baldosa_options_activate(model);
+        assert(model.status == BaldosaOptionsStatus::DefaultsRestored);
+        assert(fake.fullscreen == 0 && fake.vsync == 1 && fake.volume == 100);
+    }
+
     // A host that refuses the change leaves everything untouched; a store
     // that cannot persist rolls the live change back and says so.
     {

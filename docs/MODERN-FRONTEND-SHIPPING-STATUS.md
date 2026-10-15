@@ -23,7 +23,11 @@ settings write cannot disturb the create-only active-racer selector and a
 damaged settings file can never stop the game or a first-racer creation.
 A change is applied live first, then persisted; if persistence fails or another
 process rewrote the file, the live change is rolled back (or the newer file
-adopted) and the panel says so. A damaged file is reported, kept aside as
+adopted) and the panel says so. A refused window transition (SDL/OS) is reported and the previous settings stay;
+a volume write that cannot be read back from `config.ini` (read-only or full
+disk) is rolled back and shown as NOT APPLIED rather than SAVED; DEFAULTS is
+all-or-nothing. (Independent QA review of the first draft found these paths.)
+A damaged file is reported, kept aside as
 `options-v1.txt.damaged` on the first explicit change, and replaced. Volume
 stays the framework's own `[Sound] Volume` (config.ini), rewritten immediately
 so a hard kill keeps what the player heard. The host seam is the guarded,

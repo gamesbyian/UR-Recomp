@@ -135,9 +135,36 @@ def run(exe: Path, rom: Path, out: Path, *, timeout: int, video: str) -> dict:
         raise ValueError("Damaged Options bytes were not preserved")
     if settings_of(options).get("display_mode") != "borderless":
         raise ValueError("Fresh Options file not written after quarantine")
+    # Game 5: a config.ini the OS will not let the game rewrite. The volume
+    # change must be refused and rolled back, never shown as SAVED. Skipped
+    # (and recorded) where the account can write read-only files anyway.
+    probe_ini = out / "readonly_probe.ini"
+    probe_ini.write_text("x", encoding="ascii")
+    import stat
+    probe_ini.chmod(stat.S_IREAD)
+    try:
+        with open(probe_ini, "ab"):
+            enforced = False
+    except OSError:
+        enforced = True
+    probe_ini.chmod(stat.S_IREAD | stat.S_IWRITE)
+    if enforced:
+        work5 = out / "game5_readonly_config"
+        work5.mkdir()
+        user5 = out / "Read Only Config User"
+        user5.mkdir()
+        g5 = run_game_with_config(exe, rom, user5, work5, "12", video,
+                                  timeout, volume=100, read_only=True)
+        require(g5, "options_adjusted", row="VOLUME", volume="100",
+                status="NOT APPLIED")
+        if "options_adjusted row=VOLUME" in g5 and re.search(
+                r"row=VOLUME .*volume=90 status=SAVED", g5):
+            raise ValueError("Unwritable config was reported as SAVED")
     return {
         "scope": "native-windows-options-semantic-pad-journey",
-        "games": 4,
+        "readonly_config_case": "enforced_and_refused" if enforced
+        else "skipped_account_can_write_readonly_files",
+        "games": 4 + (1 if enforced else 0),
         "persisted_after_change": {"display": "borderless",
                                    "vsync": "adaptive", "volume": 90},
         "defaults_restored": True,
@@ -149,7 +176,7 @@ def run(exe: Path, rom: Path, out: Path, *, timeout: int, video: str) -> dict:
 
 
 def run_game_with_config(exe, rom, user, work, smoke, video, timeout, *,
-                         volume):
+                         volume, read_only=False):
     """run_game() rewrites config.ini; carry the prior volume forward the way
     the real launcher's persistent config.ini would."""
     import os
@@ -159,17 +186,25 @@ def run_game_with_config(exe, rom, user, work, smoke, video, timeout, *,
     ini = work / "config.ini"
     ini.write_text(f"[Sound]\nEnableAudio = 0\nVolume = {volume}\n",
                    encoding="ascii")
+    if read_only:
+        import stat
+        ini.chmod(stat.S_IREAD)
     env = {**os.environ, "SNESRECOMP_USER_DATA_DIR": str(user),
            "UR_EXECUTION_MODE": "modern", "UR_BALDOSA_MODERN_ROOT": "1",
            "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": smoke,
            "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
            "UR_BALDOSA_MODERN_INPUT": "1", "UR_BALDOSA_PAUSE_SMOKE": "0",
            "SDL_VIDEODRIVER": video, "SDL_AUDIODRIVER": "dummy"}
-    proc = subprocess.run(
-        [str(exe), "--no-launcher", "--config", str(ini),
-         "--script", str(route), str(rom)],
-        cwd=work, env=env, capture_output=True, text=True,
-        errors="replace", timeout=timeout)
+    try:
+        proc = subprocess.run(
+            [str(exe), "--no-launcher", "--config", str(ini),
+             "--script", str(route), str(rom)],
+            cwd=work, env=env, capture_output=True, text=True,
+            errors="replace", timeout=timeout)
+    finally:
+        if read_only:
+            import stat
+            ini.chmod(stat.S_IREAD | stat.S_IWRITE)
     log = proc.stdout + "\n" + proc.stderr
     (work / "log.txt").write_text(log, encoding="utf-8")
     if proc.returncode != 0:

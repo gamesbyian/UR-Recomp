@@ -420,17 +420,28 @@ inline void baldosa_options_activate(BaldosaNativeOptions& model) {
         model.status = BaldosaOptionsStatus::None;
         break;
     case BaldosaOptionsRow::Reset: {
+        // All-or-nothing: the (reversible) volume change goes first; if the
+        // display/vsync change then fails, the previous volume is restored,
+        // so DEFAULTS never reports or leaves a half-restored state.
         const HostSettings defaults{};
+        const int previous_volume = model.volume;
+        if (previous_volume != kBaldosaOptionsDefaultVolume) {
+            change_volume(model, kBaldosaOptionsDefaultVolume);
+            if (model.status != BaldosaOptionsStatus::Saved) break;
+        }
         change_display_vsync(
             model, defaults.display_mode, defaults.vsync_mode,
             BaldosaOptionsStatus::DefaultsRestored);
-        const auto display_status = model.status;
-        if (display_status != BaldosaOptionsStatus::DefaultsRestored &&
-            display_status != BaldosaOptionsStatus::DamagedQuarantined)
-            break;  // report the first failure; volume untouched
-        change_volume(model, kBaldosaOptionsDefaultVolume);
-        if (model.status == BaldosaOptionsStatus::Saved)
-            model.status = display_status;
+        if (model.status != BaldosaOptionsStatus::DefaultsRestored &&
+            model.status != BaldosaOptionsStatus::DamagedQuarantined) {
+            const auto failure = model.status;
+            if (previous_volume != kBaldosaOptionsDefaultVolume) {
+                const int back = model.host.set_volume(
+                    model.host.ctx, previous_volume);
+                if (back >= 0 && back <= 100) model.volume = back;
+            }
+            model.status = failure;
+        }
         break;
     }
     }

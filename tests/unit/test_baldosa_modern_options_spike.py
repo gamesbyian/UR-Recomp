@@ -39,6 +39,14 @@ class BaldosaModernOptionsSpikeTests(unittest.TestCase):
         # The seam sits AFTER the statics it uses and before the next code.
         self.assertLess(staged.index("static void ApplyLiveSettings"),
                         staged.index("snesrecomp_desktop_product_apply_display"))
+        # A refused window transition is reported, never counted as applied,
+        # and restores the previous settings without touching the window.
+        self.assertIn("fullscreen_applied", staged)
+        self.assertIn("if (!fullscreen_applied)", staged)
+        self.assertIn("g_config.fullscreen = before_fullscreen;", staged)
+        # A config write that did not land is read back and rolled back.
+        self.assertIn("ProductConfigRecordsVolume(percent)", staged)
+        self.assertIn("g_config.volume = previous;", staged)
         # Volume is made durable at once, so a hard kill keeps what was heard.
         self.assertIn("WriteConfigFile(g_active_config_file)", staged)
         # No guest, simulation, input or save code is reachable from here.

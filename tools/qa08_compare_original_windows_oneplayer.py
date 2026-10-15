@@ -43,6 +43,23 @@ def no_turbo(script:bytes)->bytes:
                     if not x.startswith(b"turbo "))
 
 
+def verify_windows_checkout_script(original_LF:bytes, actual_sha:str)->str:
+    """Git for Windows checks out text scripts with CRLF by default.
+
+    Snes9x on Ubuntu consumed the byte-identical LF route with only "turbo"
+    removed. Win32 used its Git-for-Windows CRLF checkout of that same route.
+    Accept ONLY those two exact encodings, never arbitrary whitespace,
+    new commands, dropped buttons, or rewritten input timing.
+    """
+    if b"\r" in original_LF or not original_LF.endswith(b"\n"):
+        raise ValueError("canonical source route is not literal LF text")
+    if sha(original_LF)==actual_sha:
+        return "LF"
+    if sha(original_LF.replace(b"\n",b"\r\n"))==actual_sha:
+        return "CRLF"
+    raise ValueError("actual native input script cannot be exact LF/CRLF checkout")
+
+
 def read_native(path:Path)->bytes:
     raw=path.read_bytes()
     if len(raw)!=len(HEADER)+PX*4 or not raw.startswith(HEADER):
@@ -86,8 +103,9 @@ def analyze(original_dir:Path,win_dir:Path,route:Path)->dict:
         or original.get("actual_original_callback_range")!=[FIRST,LAST]
         or original.get("release_approved") is not False):
         raise ValueError("missing authentic original Snes9x 1P callback producer")
-    if (sha(raw_route)!=windows.get("native_input_script_sha256")
-        or sha(no_turbo(raw_route))!=original.get(
+    checkout_EOL=verify_windows_checkout_script(
+        raw_route,windows.get("native_input_script_sha256",""))
+    if (sha(no_turbo(raw_route))!=original.get(
             "unchanged_original_route_no_turbo_SHA256")
         or no_turbo(raw_route)!=original_script.read_bytes()):
         raise ValueError("two observed original/native routes differ in source input")
@@ -163,6 +181,8 @@ def analyze(original_dir:Path,win_dir:Path,route:Path)->dict:
         "actual_windows_guest_frame":2208,
         "original_USA_ROM_sha256":ROM_SHA,
         "unmodified_shared_route_sha256":sha(raw_route),
+        "source_route_windows_checkout_EOL":checkout_EOL,
+        "actual_windows_checkout_script_sha256":windows["native_input_script_sha256"],
         "original_raster_source_size":[W,H],
         "genuine_original_callbacks":len(WINDOW),
         "native_guest_CRC_records":windows["actual_guest_frames_simulated"],

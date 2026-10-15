@@ -630,7 +630,7 @@ SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS = (8, 16, 24, 32, 64, 72)
 # Original 2014 movie: Zoo Circuit result at source frame 8353, next
 # Crawler/Bowl active race at 8620. Observe the actual handoff boundary
 # across three independent clocks, never infer it from TRACK_SELECT.
-ZOO_NEXT_BOWL_OFFSETS = (259, 263, 265, 266, 267, 268, 269, 272, 276, 280)
+ZOO_NEXT_BOWL_OFFSETS = (259, 263, 264, 265, 266, 267, 268, 269, 272, 276, 280)
 ZOO_SOURCE_RESULT_MOVIE_FRAME = 8353
 ZOO_SOURCE_NEXT_BOWL_MOVIE_FRAME = 8620
 ZOO_TERMINAL_FIELDS = ("menu", "track", "in_race", "p1_laps", "p2_laps",
@@ -911,7 +911,7 @@ def observe_zoo_next_bowl_handoff(
         reference_result_relative: int, native_result_relative: int) -> dict:
     """Triplet-compare the *actual* movie's next Bowl entry, no input rebase.
 
-    Sparse handoff samples include consecutive +265..+269, so a transition
+    Sparse handoff samples include consecutive +263..+269, so a transition
     between adjacent guest frames can be attributed without assuming the
     first active frame from a lone screenshot. This is still not the whole
     45-event progression or a release acceptance oracle.
@@ -963,26 +963,44 @@ def observe_zoo_next_bowl_handoff(
         row["triplet_named_states_equal"] = all(
             {k: row["fresh_guests"][side][k] for k in source_named} == source_named
             for side in ("original", "native"))
-        row["original_native_full_sram_equal"] = (
-            row["fresh_guests"]["original"]["sram_sha256"] ==
-            row["fresh_guests"]["native"]["sram_sha256"])
+        pair_sram = [
+            (directory / f"zoo-next-bowl-{offset:03d}.sram.bin").read_bytes()
+            for directory in (original_dir, native_dir)]
+        diff = [i for i, (o, n) in enumerate(zip(*pair_sram)) if o != n]
+        row["original_native_full_sram_equal"] = not diff
+        row["battery_sram_differing_byte_count"] = len(diff)
+        row["battery_first_differences"] = [
+            {"offset": i, "original_byte": pair_sram[0][i],
+             "native_byte": pair_sram[1][i]} for i in diff[:8]]
         samples.append(row)
 
-    def next_entry_from_samples(side: str) -> int | None:
+    def next_entry_from_samples(side: str) -> dict:
         last = None
+        first_active = None
         for row in samples:
             now = row["offset_from_observed_zoo_result"]
             fields = (row["original_movie"] if side == "movie"
                       else row["fresh_guests"][side])
             active = fields["track"] == 2 and fields["in_race"] == 1
-            if active and last is not None and last[0] == now - 1 and not last[1]:
-                return now
+            if active and first_active is None:
+                first_active = now
+                exact = now if last is not None and last[0] == now - 1 and not last[1] else None
+                return {"last_observed_inactive_offset":
+                        last[0] if last is not None and not last[1] else None,
+                        "first_observed_active_offset": first_active,
+                        "exact_observed_entry_offset": exact}
             last = (now, active)
-        return None
+        return {"last_observed_inactive_offset":
+                last[0] if last is not None and not last[1] else None,
+                "first_observed_active_offset": None,
+                "exact_observed_entry_offset": None}
 
-    original_start = next_entry_from_samples("movie")
-    ref_start = next_entry_from_samples("original")
-    native_start = next_entry_from_samples("native")
+    original_bracket = next_entry_from_samples("movie")
+    ref_bracket = next_entry_from_samples("original")
+    native_bracket = next_entry_from_samples("native")
+    original_start = original_bracket["exact_observed_entry_offset"]
+    ref_start = ref_bracket["exact_observed_entry_offset"]
+    native_start = native_bracket["exact_observed_entry_offset"]
     if original_start != 267:
         raise CompleteEventError("sparse original source does not prove exact 8620 entry")
     return {
@@ -996,6 +1014,9 @@ def observe_zoo_next_bowl_handoff(
         "source_next_bowl_active_entry_offset": original_start,
         "fresh_reference_next_bowl_entry_offset": ref_start,
         "fresh_native_next_bowl_entry_offset": native_start,
+        "original_source_entry_bracket": original_bracket,
+        "fresh_reference_entry_bracket": ref_bracket,
+        "fresh_native_entry_bracket": native_bracket,
         "all_triplet_named_states_equal": all(x["triplet_named_states_equal"] for x in samples),
         "all_original_native_full_sram_pairs_equal": all(
             x["original_native_full_sram_equal"] for x in samples),

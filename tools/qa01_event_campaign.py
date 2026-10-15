@@ -97,6 +97,104 @@ FOLLOWTHROUGH_NAMED = ("menu", "track", "in_race",
 FOLLOWTHROUGH_SOURCE = ("menu", "track", "in_race")
 
 
+def classify_bounded_fresh_battery_sram(record: dict, samples: list,
+                                        course_id: str) -> dict:
+    """Audit genuine fresh-original/native battery images; no cold reload.
+
+    A historical /2 producer might not include SRAM. Missingness must
+    remain explicit and a partial six-frame population must fail closed.
+    The source 2014 SMV's post-result SRAM is NOT sampled by this consumer.
+    """
+    flags = ["fresh_guest_battery_sram" in row for row in samples]
+    if not any(flags):
+        if any(key in record for key in (
+                "all_followthrough_full_sram_pairs_equal",
+                "all_followthrough_crawler_record_pairs_equal",
+                "battery_sram_snapshot_bytes_per_guest",
+                "battery_sram_cold_process_persistence_proven")):
+            raise ValueError("unsupported SRAM summary without SRAM snapshots")
+        return {"status": "not_observed", "samples": 0,
+                "first_full_sram_difference_offset": None,
+                "first_course_record_difference_offset": None,
+                "cold_process_persistence_proven": False}
+    if not all(flags):
+        raise ValueError("incomplete six-offset battery SRAM observation")
+    if (type(record.get("battery_sram_snapshot_bytes_per_guest")) is not int
+            or record["battery_sram_snapshot_bytes_per_guest"] != 8192
+            or record.get("battery_sram_cold_process_persistence_proven") is not False):
+        raise ValueError("invalid post-result battery SRAM receipt scope")
+    try:
+        course = int(course_id.split(":")[1]) - 1
+    except (ValueError, IndexError, TypeError, AttributeError):
+        raise ValueError("invalid post-result Crawler course identity")
+    if not 0 <= course < 5:
+        raise ValueError("post-result battery SRAM restricted to Crawler")
+    full = []
+    recordpairs = []
+    for row, offset in zip(samples, FOLLOWTHROUGH_OFFSETS):
+        sides = row.get("fresh_guest_battery_sram")
+        if not isinstance(sides, dict):
+            raise ValueError("missing two original/native battery SRAM reads")
+        for name in ("original", "native"):
+            member = sides.get(name)
+            if not isinstance(member, dict):
+                raise ValueError("missing SRAM guest side")
+            if (type(member.get("full_sram_bytes")) is not int
+                    or member["full_sram_bytes"] != 8192
+                    or not isinstance(member.get("sram_sha256"), str)
+                    or not HEX256.fullmatch(member["sram_sha256"])
+                    or type(member.get("crawler_course_track_index")) is not int
+                    or member["crawler_course_track_index"] != course
+                    or member.get("in_memory_snapshot_only") is not True
+                    or member.get("cold_process_reload_proven") is not False):
+                raise ValueError("invalid native/original 8KiB live SRAM data")
+            ranks = member.get("crawler_record_three_ranks")
+            if (not isinstance(ranks, list) or len(ranks) != 3 or
+                    any(not isinstance(value, dict)
+                        or type(value.get("rank")) is not int
+                        or value["rank"] != index
+                        or type(value.get("value_word")) is not int
+                        or not 0 <= value["value_word"] <= 65535
+                        or type(value.get("holder_index")) is not int
+                        or not 0 <= value["holder_index"] <= 255
+                        for index, value in enumerate(ranks))):
+                raise ValueError("incorrect original Crawler SRAM rank table")
+            stored = member.get("record_table_checksum_stored")
+            calc = member.get("record_table_checksum_calculated")
+            if (type(stored) is not int or type(calc) is not int
+                    or not 0 <= stored <= 65535
+                    or not 0 <= calc <= 65535
+                    or member.get("record_table_checksum_matches_at_sample")
+                    is not (stored == calc)):
+                raise ValueError("invalid live record checksum observation")
+        pair = (sides["original"]["sram_sha256"]
+                == sides["native"]["sram_sha256"])
+        coursepair = (sides["original"]["crawler_record_three_ranks"]
+                      == sides["native"]["crawler_record_three_ranks"])
+        if (row.get("sram_full_bytes_equal") is not pair
+                or row.get("sram_course_three_rank_records_equal") is not coursepair):
+            raise ValueError("contradictory SRAM byte/course-record comparison")
+        full.append(pair)
+        recordpairs.append(coursepair)
+    if (record.get("all_followthrough_full_sram_pairs_equal") is not all(full)
+            or record.get("all_followthrough_crawler_record_pairs_equal")
+            is not all(recordpairs)):
+        raise ValueError("contradictory six-sample battery summary")
+    return {
+        "status": "six_sample_original_native_in_memory_sram_observed",
+        "samples": len(samples),
+        "all_fresh_sram_byte_pairs_equal": all(full),
+        "all_fresh_crawler_ranked_record_pairs_equal": all(recordpairs),
+        "first_full_sram_difference_offset": next(
+            (offset for offset, same in zip(FOLLOWTHROUGH_OFFSETS, full)
+             if not same), None),
+        "first_course_record_difference_offset": next(
+            (offset for offset, same in zip(FOLLOWTHROUGH_OFFSETS, recordpairs)
+             if not same), None),
+        "cold_process_persistence_proven": False,
+    }
+
+
 def classify_postresult_followthrough(report: dict, event: dict,
                                       frames: dict) -> dict:
     """Adjudicate *sampled* movie / fresh original / native continuation.
@@ -197,6 +295,8 @@ def classify_postresult_followthrough(report: dict, event: dict,
             or record.get("all_followthrough_full_wram_pairs_equal")
             is not all(bytepairs_equal)):
         raise ValueError("contradictory post-result summary flags")
+    battery = classify_bounded_fresh_battery_sram(
+        record, samples, report["course_id"])
     return {
         "status": ("sampled_named_divergence" if differences
                    else "six_sample_triplet_named_agreement"),
@@ -207,6 +307,7 @@ def classify_postresult_followthrough(report: dict, event: dict,
         "guest_relative_result_onset_matched": (
             frames["reference_relative"] == frames["native_relative"]),
         "unsampled_frames_or_persistence_proven": False,
+        "fresh_original_native_battery_sram": battery,
         "release_credit": 0,
     }
 

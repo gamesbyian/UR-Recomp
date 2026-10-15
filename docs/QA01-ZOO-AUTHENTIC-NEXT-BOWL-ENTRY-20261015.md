@@ -1,6 +1,6 @@
 # QA-01: authentic 2014 Zoo-to-Bowl *next active race* handoff
 
-**Owner:** original/native gameplay verification, QA-01/07. **Status:** executed twice on RF-015; exact original/native next-race timing and three SRAM byte differences observed. Independent merged RF-017 repeat is separate. **Zero USA complete-event credit.**
+**Owner:** original/native gameplay verification, QA-01/07. **Status:** RF-015 exact negative and independent merged RF-017 exact positive both executed and source-pinned; release credit remains zero. **Zero USA complete-event credit.**
 
 ## Decision-changing gap
 
@@ -61,3 +61,17 @@ The permanent machine-readable original/native receipt is [analysis/data/qa01-zo
 - Fresh native: `1019 + 5163 + 265 = 6447`.
 
 The original archived movie's absolute frame **8620** is a separate third clock axis and cannot be compared to fresh host 6447 as the same process. Hence the *strict source movie and fresh Snes9x Zoo-result-to-Bowl interval* is **267**, while the native interval is **265**, but the next Bowl first appears on exactly the same fresh host frame. The new observer and synthetic tests retain both the true absolute host entrance and separate per-Zoo-result interval, rather than calling one a universally early presentation. The three genuinely unequal SRAM bytes at aligned result-relative observations are a separate source-state question. This nuance does not waive the strict relative-event contract, nor give a complete-event credit.
+
+## RF-017 integrated CPU correction: authentic next Bowl handoff passes on all observed axes
+
+A separate disposable research branch from **actual merged RF-017 main `11501a15dea38fa912335cfc63103ce3a7208001`** reapplied exactly this gameplay-owned next-course observer to the existing source-pinned manual QA campaign, without modifying the integrated CPU patch or the original 2014 movie/button stream. [Actions run 38812512249](https://github.com/gamesbyian/UR-Recomp/actions/runs/38812512249) completed genuine original/native case replay with patched emitter verified as 89 generated files/15,484 in-order charge statements, unchanged total per basic block.
+
+I downloaded actual case artifact **12008879784** and recomputed ZIP SHA-256 **`3fff228252d52a56843b7001aa3f65783757f0cf235ed1bafcb7c5dae91c345a`**, equal to its published GitHub digest. Actual workflow source checkout is `2e5fa490f423eb7866024dcf3d0d3429d080b49a`; source movie `06dce29e…`, source SRAM `a6af0ddf…`, corrected-native ELF `869df40f…`, reference Snes9x core `9949807d…`, and original 2014 input window `7b03f40e…`. Native original-SRAM loading uses the independently corrected `cwd/saves/save.srm` path, not the pre-#1654 wrong-root transport.
+
+**All eleven actual source and fresh original/native named menu/course/racing-state triplets from +259 through +280 match.** Actual **Bowl active race begins at result-relative +267 on the original movie, fresh Snes9x and corrected Baldosa**, preceded by inactive Bowl at +266 on all three. This closes the RF-015-only native relative +265 timing discrepancy. Independently recorded absolute host Bowl entries are **6447** reference and **6449** native; they are not artificially shifted onto the same host frame. The source movie next Bowl active original frame remains **8620**, a distinct third absolute movie clock.
+
+Even more decisively, **every byte of all eleven paired original/native 8,192-byte SRAM images matches**, from +259 through +280. The three former stable RF-015-only battery differences at `0x0F31`, `0x0F33`, `0x10A7` are **all absent**, while genuine earned MIKE Zoo record **2510**, holder zero, and stored/calculated checksum **64622** survive the actual next race start. The separately verified 31-frame RF-017 result-return window (+5156..+5186) likewise had matching named state, with 6 full SRAM pairs equal through +72.
+
+**Scientific decision:** the *observed original/native Zoo result-return → actual following active Bowl entry* now matches on a source-correct, integrated RF-017 research guest in both event-relative state and complete sampled battery SRAM. The long CPU runtime fix is already owned and integrated; this PR only preserves original movie handoff evidence. **Do not label this entire 5,163-frame race and the next 280 frames instruction-exact, full-WRAM-exact, or an accepted complete USA event**. The 128KiB WRAM digests still differ in the result-return window, actual shipping Windows binary provenance and host-file durability/hard-kill recovery are not checked by this Linux research ELF, and physical/complete-source-gameplay acceptance remains separate. **Still 0/45.**
+
+The full immutable decision is recorded in [analysis/data/qa01-zoo-next-bowl-rf017-integrated-positive-20261015.json](../analysis/data/qa01-zoo-next-bowl-rf017-integrated-positive-20261015.json), including all exact artifact, source and binary hashes. The disposable compute PR #1664 must remain unmerged and its temporary workflow removed; integration may merge this evidence and the manual-only observer without importing a second CPU implementation.

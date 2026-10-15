@@ -118,5 +118,46 @@ class ColdGuestRecordTests(unittest.TestCase):
             v.evaluate_cold(seeds, self.boot)
 
 
+    def test_native_wrapper_places_real_sram_seed_in_guest_cwd_not_elf_directory(self):
+        # Actual pinned host with --config does NOT chdir to executable dir.
+        # Mock the process only to inspect exactly what its RtlReadSram sees.
+        from types import SimpleNamespace
+        from unittest import mock
+        import probe_original_event_complete as producer
+        guest = self.root / "guest"
+        guest.mkdir()
+        (guest / "saves").mkdir()
+        (guest / "saves" / "save.srm").write_bytes(b"untouched old guest")
+        elf_dir = self.root / "bin"
+        elf_dir.mkdir()
+        (elf_dir / "saves").mkdir()
+        (elf_dir / "saves" / "save.srm").write_bytes(b"wrong old executable-neighbor save")
+        src = self.root / "genuine.srm"
+        src.write_bytes(self.seed)
+        script = guest / "cold.script"
+        script.write_text("wait 1\ndump boot\nquit\n")
+        args = SimpleNamespace(native=elf_dir / "native", rom=self.root / "usa.sfc",
+                               sram=src)
+        called = []
+
+        def fake_run(argv, **kwargs):
+            self.assertEqual(kwargs["cwd"], guest)
+            self.assertIn("--config", argv)
+            self.assertEqual((guest / "saves" / "save.srm").read_bytes(), self.seed)
+            self.assertEqual((elf_dir / "saves" / "save.srm").read_bytes(),
+                             b"wrong old executable-neighbor save")
+            called.append(True)
+            return SimpleNamespace(returncode=0, stdout="script f=1 dump boot ok\n",
+                                   stderr="")
+
+        with mock.patch.object(producer.subprocess, "run", side_effect=fake_run):
+            log = producer.run_pinned_baldosa(guest, args, script, [], 0)
+        self.assertIn("script f=1 dump boot", log)
+        self.assertEqual(called, [True])
+        self.assertEqual((guest / "saves" / "save.srm").read_bytes(),
+                         b"untouched old guest")
+        self.assertFalse((guest / "saves.qa01-bowl-recovery").exists())
+
+
 if __name__ == "__main__":
     unittest.main()

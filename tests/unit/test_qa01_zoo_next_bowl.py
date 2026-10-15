@@ -212,6 +212,12 @@ class ZooNextBowlTests(unittest.TestCase):
                           handoff["fresh_original_first_bowl_relative"],
                           handoff["fresh_native_first_bowl_relative"]), (267, 267, 265))
         self.assertFalse(handoff["all_named_triplets_equal"])
+        self.assertTrue(handoff["fresh_next_bowl_absolute_host_equal"])
+        self.assertEqual((handoff["fresh_original_bowl_entry_absolute_host"],
+                          handoff["fresh_native_bowl_entry_absolute_host"]), (6447, 6447))
+        self.assertEqual((handoff["fresh_original_zoo_result_absolute_host"],
+                          handoff["fresh_native_zoo_result_absolute_host"]), (6180, 6182))
+        self.assertFalse(handoff["original_native_result_relative_bowl_intervals_equal"])
         self.assertFalse(handoff["all_full_sram_pairs_equal"])
         self.assertEqual(handoff["differing_battery_byte_count_each_sample"], 3)
         self.assertEqual(

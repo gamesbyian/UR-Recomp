@@ -38,6 +38,12 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
             self.assertEqual(first.read_bytes(), second.read_bytes())
             with zipfile.ZipFile(first) as archive:
                 names = archive.namelist()
+                # A Windows-produced ROM-free ZIP is now reproducible with
+                # exactly the same central-directory creator bytes on Linux.
+                self.assertEqual(
+                    [item.create_system for item in archive.infolist()],
+                    [0] * len(names),
+                )
                 self.assertEqual(
                     names,
                     sorted(candidate.PREFIX + name for name in (

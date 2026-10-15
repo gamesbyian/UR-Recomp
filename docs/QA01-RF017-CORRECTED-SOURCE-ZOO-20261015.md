@@ -1,0 +1,29 @@
+# QA-01/07: independent corrected-source RF-017 Zoom Zoo verification
+
+**Decision:** The actual 2014 original/native post-result **named gameplay state** and full **8 KiB battery SRAM** discrepancies are resolved on the research RF-017 candidate after using the correct original SRAM preload path. This is **not** an accepted complete USA event, nor an approved Windows source candidate. The authoritative USA count remains **0/45**.
+
+## One independently executed test, not an inferred patch effect
+
+The source-identity problem identified by cold boot #1654 was that the QA-only `run_pinned_baldosa` passed an explicit `--config` and invoked the process with `cwd=work`, while staging original movie SRAM in the *native executable parent*. Pinned Baldosa instead reads `cwd/saves/save.srm`. The corresponding QA fix **has merged to main** in #1654. The first attempted RF-017 original/native hosted run had the wrong initial save root; its strong local timing mechanism remains useful but its source-equality claim was provisional.
+
+An **independent, disposable** [research PR #1659](https://github.com/gamesbyian/UR-Recomp/pull/1659) was based directly on CPU Agent 5's exact source head `93f4e369bae8d1ff16207b9c405183d4df2dd4db` and changed **only the QA original-SRAM staging location, its mock test, and a temporary one-shot workflow**. It did **not** change the CPU emitter implementation, the original input masks, strict acceptance code, or Windows game runtime. The existing reusable manual [QA-01 campaign](https://github.com/gamesbyian/UR-Recomp/actions/runs/38789870865) used the original movie and explicitly opted into RF-015, RF-017, source followthrough and the fixed/contiguous Zoo terminal observer. The build actually staged the patched emitter, regenerated with `--cfg-roots`, and verified all 89 generated files, 15,484 in-order clock statements and unchanged total static clocks per basic block.
+
+[Actual run 38789870865](https://github.com/gamesbyian/UR-Recomp/actions/runs/38789870865) completed the original/native case successfully. The case ZIP, artifact **11999243755**, was downloaded and independently SHA-256 checked as `aa75cb81821e3ec5910dea0a629486cea3deb24923a851610c2d8474df63083e`, matching the GitHub artifact digest. The native corrected research ELF is `869df40f…`; canonical USA ROM `859ec99f…`; 2014 original controller movie `06dce29e…`; exact scene window `04ad1c2d…`; archived source SRAM `a6af0ddf…`. Independent guest race entries remain **1017 reference / 1019 native**, source original entry 3190, source original result 8353.
+
+## What now demonstrably matches
+
+- **Circuit result onset:** +5163 original = +5163 native, with the genuine positive MIKE 25.10-second best lap, matching text, ranked holder and 64622 checksum.
+- **Entire 31-frame bounded transition:** every per-entry-relative frame **+5156 through +5186** has identical observed original/native **menu, course and racing-state fields**. Consecutive result frame +5178 is result `0xBC` on both, +5179 is still `0xBC` with both race flags cleared, and +5180 returns to `0xF6` on both. The previously reproduced +5179 early-return byte is absent in this corrected candidate.
+- **Six full battery snapshots:** all **8,192 bytes** match pairwise at result +8/+16/+24/+32/+64/+72, including `77:10A7` that was 0x0C/0x0D under RF-015 alone. The +72 whole-SRAM SHA-256 is `6f74bdf5…` for **both** guests. Crawler records and all score checksums agree.
+
+These are independently observed values on the guest's **relative frame axis**. The actual host result frames are 6180 reference and 6182 native because race entries were independently calibrated two frames apart. No one modified the source movie or rebased masks to suppress differences.
+
+**Important negative:** full 128 KiB guest WRAM hashes still differ in the 24-frame result-return window (beginning at observed +5163); the source PC, stack/read liveness and exact instruction tick parity are **not established**. Do not label the window pixel/WRAM/instruction exact on the strength of selected gameplay fields. Six equal battery images are in-memory snapshots from two running guests, **not** disk durability, physical Windows behavior or an RF-017-specific second-process reload.
+
+## Exact next acceptance discriminator
+
+The authentic original movie proceeds to Crawler **Bowl** active course entry at frame **8620**, **267** source frames after Zoo's 8353 result. The existing Zoo producer clips the source movie after result+80 and ends its final battery capture at +72. This is a demonstrated visibility gap: even the 31 equal frames cannot yet establish a complete post-result journey, correct next-race entry, preserved progression across that handoff, and executable source equality in the **real Windows x64 product**.
+
+The next gameplay-owned experiment should extend the **existing** source-window/replay with unmodified archived controller masks only through the original next active Bowl entry, recording exact source-original/fresh-Snes9x/fresh-native frame clocks, course ID, racing flag and SRAM records. It should not silently normalize the native two-frame host entry difference, or infer next-course entry merely from the sampled menu `0x16` at +72. Independent release QA then needs actual Windows binary and cold host-file/process recovery evidence. The original/native source-instruction mechanism remains Agent 5's CPU authority.
+
+The temporary #1659 one-shot workflow was deleted and that PR **closed without merge**. Its reusable evidence is this independent gameplay note and [machine witness](../analysis/data/qa01-rf017-corrected-source-zoo-independent-20261015.json). A future source patch can cite the exact artifacts without recreating CPU implementation or making a new automatic Actions trigger. **0/45 accepted USA complete events, 0 release credits.**

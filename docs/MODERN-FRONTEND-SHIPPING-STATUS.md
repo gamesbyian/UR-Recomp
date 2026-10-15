@@ -61,9 +61,10 @@ read-only `config.ini` game enforced on Windows) and
 a formatted tier-2 save, player save byte-identical, nothing published) passed.
 Bounded reports and named source logs are retained in the separate
 `baldosa-win32-native-modern-options-practice-evidence` artifact (the strict QA-12
-archive is untouched); independent QA must re-hash and audit them. Later commits
-(`e4f0e00` non-overwriting quarantine, merge of main) are covered by unit tests
-and a final exact-head dispatch recorded in PR #1648. All of it is semantic pad
+archive is untouched); independent QA must re-hash and audit them. The final
+exact-head non-parallel dispatch [38703695304](https://github.com/gamesbyian/UR-Recomp/actions/runs/38703695304)
+at `ac82271` (includes `e4f0e00` non-overwriting quarantine and the merge of
+main with #1645's source-closure test) also passed green. All of it is semantic pad
 edges: **no physical controller, audible level, display-appearance, power-loss or
 release-gate credit.** Replay/rematch inside Practice remains the stock game's own
 result flow; Restart/Quit inside Practice and exit to the root use the existing

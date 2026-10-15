@@ -202,6 +202,7 @@ jobs:
           test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
           python3 -m unittest discover -s tests/unit -p test_probe_original_event_complete.py
           python3 -m unittest discover -s tests/unit -p test_qa01_zoo_next_bowl.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_full_wram_audit.py
           python3 -m unittest discover -s tests/unit -p test_qa01_cold_result_record.py
           python3 -m unittest discover -s tests/unit -p test_qa01_postresult_sram_diff.py
       - name: Build original Snes9x/snesref and research native exactly once
@@ -397,6 +398,42 @@ jobs:
                       + ". Triple source-state agreement="
                       + str(v["all_triplet_named_states_equal"])
                       + ". No release credit.\n")
+          PY
+          fi
+          # Preserve bounded first-difference receipts in visible job logs as
+          # well as raw producer artifact. A digest inequality grants no
+          # semantic exemption, logic-frame parity or 45-course credit.
+          if [[ "$QA01_NEXT_BOWL" == "true" && "$producer_rc" -eq 0 ]]; then
+            python3 - "$ROOT/producer-report.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          v=json.load(open(sys.argv[1]))
+          def digest(rows, key, frame_key):
+              return [{"offset": x[frame_key],
+                       "differing_bytes": x[key]["differing_byte_count"],
+                       "first_address": x[key]["first_differing_address"],
+                       "first_24": x[key]["first_24_differences"]} for x in rows]
+          result = {}
+          phase=v.get("zoo_terminal_host_phase")
+          if phase:
+              result["dense_guest_relative"] = digest(
+                  phase["relative_frame_comparisons"],
+                  "full_wram_byte_difference", "relative_frame")
+          follow=v.get("source_terminal_followthrough")
+          if follow:
+              result["result_followthrough"] = digest(
+                  follow["samples"], "full_wram_byte_difference",
+                  "offset_from_each_observed_result_onset")
+          next_bowl=v["zoo_next_bowl_handoff"]
+          result["next_bowl"] = digest(
+              next_bowl["samples"], "original_native_full_wram_byte_difference",
+              "offset_from_observed_zoo_result")
+          print("QA01_UNMASKED_WRAM_BYTE_CENSUS=" + json.dumps(
+              result, sort_keys=True, separators=(",",":")))
+          with open(sys.argv[2],"a",encoding="utf-8") as f:
+              f.write("\\nUnmasked 128-KiB WRAM differences: original/native "
+                      "byte counts, first 24 addresses and exact 256-byte page "
+                      "histograms in the source-pinned producer artifact. "
+                      "No masking or event credit.\\n")
           PY
           fi
           # Read-only bounded SRAM byte attribution for the single corrected

@@ -98,6 +98,11 @@ class ZooNextBowlTests(unittest.TestCase):
         self.assertEqual(obs["source_next_bowl_active_entry_offset"], 267)
         self.assertEqual(obs["fresh_reference_next_bowl_entry_offset"], 267)
         self.assertEqual(obs["fresh_native_next_bowl_entry_offset"], 267)
+        # Identical result-relative entries are NOT the same absolute
+        # host frame when the two race entries differ by two host frames.
+        self.assertEqual(obs["reference_next_bowl_absolute_host_frame"], 6447)
+        self.assertEqual(obs["native_next_bowl_absolute_host_frame"], 6449)
+        self.assertFalse(obs["next_bowl_same_absolute_host_frame"])
         self.assertTrue(obs["next_bowl_entry_triple_equal"])
         self.assertFalse(obs["shipping_windows_candidate_proven"])
         self.assertFalse(obs["cold_process_disk_persistence_proven"])
@@ -114,6 +119,23 @@ class ZooNextBowlTests(unittest.TestCase):
         self.assertFalse(obs["all_triplet_named_states_equal"])
         self.assertFalse(obs["next_bowl_entry_triple_equal"])
         self.assertEqual(obs["fresh_native_next_bowl_entry_offset"], 268)
+        self.assertEqual(obs["release_complete_event_credit"], 0)
+
+    def test_native_plus265_is_same_absolute_host_6447_not_wallclock_early(self):
+        # Genuine RF-015 result: native relative +265 versus original +267,
+        # but source/native host entries are offset by exactly two frames.
+        for offset in (265, 266):
+            path = self.nat / f"zoo-next-bowl-{offset:03d}.wram.bin"
+            data = bytearray(path.read_bytes())
+            data[0x0313] = 1
+            path.write_bytes(data)
+        obs = self.observed()
+        self.assertEqual(obs["fresh_reference_next_bowl_entry_offset"], 267)
+        self.assertEqual(obs["fresh_native_next_bowl_entry_offset"], 265)
+        self.assertEqual(obs["reference_next_bowl_absolute_host_frame"], 6447)
+        self.assertEqual(obs["native_next_bowl_absolute_host_frame"], 6447)
+        self.assertTrue(obs["next_bowl_same_absolute_host_frame"])
+        self.assertFalse(obs["next_bowl_entry_triple_equal"])
         self.assertEqual(obs["release_complete_event_credit"], 0)
 
     def test_early_native_bowl_entry_is_exact_at_264_not_unknown(self):

@@ -77,6 +77,19 @@ A trace over hosts 4700–5016 moves the cause earlier.
 
 So the driver honours the reset at its next timer tick, and native's request lands one tick earlier relative to the SPC timer phase. This is a phase knife-edge, not a rate or code-cost error. The next step is an SPC-side timer-0 trace at host 4929–4931 on Baldosa and bsnes, then a bisection of earlier handshakes to find where the phase offset first appears.
 
+### RF-020 is a reference-precision knife-edge
+
+A whole-session census of all nine SPC resets used PC-filtered traces over hosts 0–5016. Latency is measured from function `82:8082` entry to wait exit `82:809C`.
+
+- **Six of nine match** within 60 clocks.
+- **Host 35 (boot):** differs by +40,524.
+- **Host ~1038:** differs by −1,432.
+- **Host ~4930:** differs by −67,138, which is one driver tick plus about 106 clocks. So the 4930 request sits roughly 100 clocks from a tick boundary.
+
+Race fields before it match within 18–210 clocks per NMI-to-wait span. At host 4800 the totals are 258,648 vs 258,712; HDMA-charge placement only moves cost between neighbouring blocks.
+
+That ~0.03% residual is the same order as the Snes9x/bsnes disagreement on seeds 50036056 and 50024004. No discrete defect is identified. Deciding this seed would need sub-100-clock HDMA/DMA sync modelling (the 12–24-clock DMA sync overhead, for example) and the native SPC's boot phase, so it is low priority.
+
 ## Shipping boundary
 
 - None of RF-016/018/019 is staged into the Windows bridge.

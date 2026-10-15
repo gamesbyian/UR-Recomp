@@ -258,6 +258,61 @@
    "native": 5052,
    "original": 5053
   },
+  "reset_census": {
+   "columns": "snes9x host frame, snes9x latency, native latency (82:8082 entry to 82:809C exit, master clocks)",
+   "conclusion": "~100-clock knife-edge at host ~4930; same order as inter-reference disagreement",
+   "race_field_4800_busy": {
+    "native": 258648,
+    "snes9x": 258712
+   },
+   "resets": [
+    [
+     35,
+     10004,
+     50528
+    ],
+    [
+     44,
+     50868,
+     50824
+    ],
+    [
+     46,
+     50802,
+     50802
+    ],
+    [
+     1038,
+     58772,
+     57340
+    ],
+    [
+     1047,
+     50768,
+     50808
+    ],
+    [
+     1051,
+     50812,
+     50812
+    ],
+    [
+     4930,
+     136786,
+     69648
+    ],
+    [
+     4940,
+     50766,
+     50766
+    ],
+    [
+     4941,
+     50802,
+     50744
+    ]
+   ]
+  },
   "result_menu_onset": {
    "native": 5014,
    "original": 5015

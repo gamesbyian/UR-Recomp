@@ -1,0 +1,70 @@
+{
+  "schema": "qa08-compiled-uniracers-native-V0-HDMA-source-correction-accepted-20261015/1",
+  "status": "narrow_original_size_PPU_raster_fix_accepted_not_release_gate",
+  "windows_source_head": "b55c3d64d318ff27381a36fce3ac329f9637a320",
+  "windows_full_title_CI_run_id": 38810338859,
+  "independent_archived_A_B_CI_run_id": 38812998990,
+  "independent_archived_A_B_artifact_id": 12008629305,
+  "original_1p_run_id": 38703931370,
+  "original_2p_run_id": 38781958316,
+  "1p_precorrection_run_id": 38792715112,
+  "1p_postcorrection_run_id": 38810338859,
+  "2p_precorrection_run_id": 38783232271,
+  "2p_postcorrection_run_id": 38810338859,
+  "1p_prev_wrapper_sha256": "86f12c76ab848b1cb88fc504c08aaf5e26d456075ac4d19e866d53bb882ba321",
+  "1p_new_wrapper_sha256": "db0dc0aacde50503aee0cdbe8047dc22ef1550233afd83c4c69fa27099f1d005",
+  "2p_prev_wrapper_sha256": "b2a84f182b70b6bc5bc70338a602a7d979fd0d133c80217b70a682d69bea7c71",
+  "2p_new_wrapper_sha256": "bf98efe632b315d4c218c5c1ebd662e21eba48f4ffd0dc426587e07bf87ea3e1",
+  "exact_new_windows_exe_sha256": "362746e641a03476e5230598fc91ddf2a91e218f5cf3d6fb4166c7033f8020cb",
+  "original_source_pixel_geometry": [
+    256,
+    224
+  ],
+  "original_1p_actual_callbacks": 261,
+  "original_2p_actual_callbacks": 263,
+  "true_source_pixels_compared_all_runs": 60096512,
+  "1p_source_frames_byte_identical_before_after": 261,
+  "1p_strict_exact_source_frames_before_after": [
+    162,
+    162
+  ],
+  "1p_wrong_rgb5_pixels_before_after": [
+    19153,
+    19153
+  ],
+  "1p_guest_CRC_5447_frames_sha256": "45d7675858ebf3e3a051a58d2af104b6d2d9a66e7700da8248ad571713662c41",
+  "2p_strict_exact_source_frames_before_after": [
+    190,
+    203
+  ],
+  "2p_wrong_rgb5_pixels_before_after": [
+    786347,
+    385373
+  ],
+  "2p_guest_CRC_5484_frames_sha256": "c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876",
+  "2p_real_finish_source_frames_improved": 15,
+  "2p_all_improved_guest_frame_range": [
+    3648,
+    3872,
+    16
+  ],
+  "2p_zero_regressed_source_frames": 263,
+  "2p_true_wrong_rgb5_pixels_eliminated": 400974,
+  "2p_new_exact_finish_frames": 13,
+  "2p_residual_one_pixel_frames": [
+    3792,
+    3872
+  ],
+  "original_and_corrected_windows_frame3683_brightness_upper_split_lower": [
+    7,
+    0,
+    7
+  ],
+  "original_and_corrected_windows_frame3683_full_CGRAM_FNV1a": "e79794a9",
+  "source_readonly_channel7_frame3683_real_WRAM_7E2064_to_7E206B": "6f07020060070000",
+  "correction": "Apply source PPU register journal line0 and pending $420C before HDMA init/prime, not afterwards in first visible line; keep all later lines and original guest clock unmodified",
+  "artist_remastered_4x_likeness_owner_accepted": false,
+  "wide_world_7_6_PAR_and_hardware_release_accepted": false,
+  "complete_original_1p_2p_guest_event_accepted": false,
+  "graphics_release_ledger_gates_admitted": 0
+}

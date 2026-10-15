@@ -1,0 +1,108 @@
+{
+  "schema": "qa08-original-vs-windows-2p-fade-counterfactual-20261015/1",
+  "status": "offline_verified_brightness_diagnosis_not_implemented_renderer_correction",
+  "original_source_run_id": 38781958316,
+  "windows_source_run_id": 38783232271,
+  "full_source_geometry": [
+    256,
+    224
+  ],
+  "region_transformed": "upper raster rows 0..110 only, all x 0..255",
+  "method": "For actual Windows 5bit-per-channel RGB at brightness15, compute original 2014 Snes9x expanded five-bit brightness7: source5=channel8 >>3; reduced5=(source5*7+7)//15; expanded8=(reduced5<<3)|(reduced5>>2). Keep all lower rows unmodified. Compare every source pixel directly with independently executed original Snes9x callback f-1.",
+  "source_zero_spatial_shifting_or_masking": true,
+  "transformed_image_is_only_a_diagnostic_counterfactual": true,
+  "source_256_by_224_unchanged": true,
+  "actual_windows_guest_frames": [
+    {
+      "guest": 3648,
+      "actual_wrong_before": 27136,
+      "counterfactual_wrong_after": 0
+    },
+    {
+      "guest": 3664,
+      "actual_wrong_before": 26587,
+      "counterfactual_wrong_after": 0
+    },
+    {
+      "guest": 3680,
+      "actual_wrong_before": 26653,
+      "counterfactual_wrong_after": 0
+    },
+    {
+      "guest": 3696,
+      "actual_wrong_before": 26680,
+      "counterfactual_wrong_after": 0
+    },
+    {
+      "guest": 3712,
+      "actual_wrong_before": 26600,
+      "counterfactual_wrong_after": 0
+    },
+    {
+      "guest": 3728,
+      "actual_wrong_before": 26724,
+      "counterfactual_wrong_after": 0
+    },
+    {
+      "guest": 3744,
+      "actual_wrong_before": 26600,
+      "counterfactual_wrong_after": 0
+    },
+    {
+      "guest": 3760,
+      "actual_wrong_before": 26861,
+      "counterfactual_wrong_after": 0
+    },
+    {
+      "guest": 3776,
+      "actual_wrong_before": 26639,
+      "counterfactual_wrong_after": 0
+    },
+    {
+      "guest": 3792,
+      "actual_wrong_before": 26986,
+      "counterfactual_wrong_after": 1
+    },
+    {
+      "guest": 3808,
+      "actual_wrong_before": 26691,
+      "counterfactual_wrong_after": 0
+    },
+    {
+      "guest": 3824,
+      "actual_wrong_before": 26735,
+      "counterfactual_wrong_after": 0
+    },
+    {
+      "guest": 3840,
+      "actual_wrong_before": 26759,
+      "counterfactual_wrong_after": 0
+    },
+    {
+      "guest": 3856,
+      "actual_wrong_before": 26600,
+      "counterfactual_wrong_after": 0
+    },
+    {
+      "guest": 3872,
+      "actual_wrong_before": 26725,
+      "counterfactual_wrong_after": 1
+    }
+  ],
+  "actual_wrong_pixels_before": 400976,
+  "counterfactual_wrong_pixels_after": 2,
+  "source_exact_original_brightness_proven_at_frame_3683": 7,
+  "native_3683_upper_line1_brightness": 15,
+  "native_3683_split_line112_brightness": 0,
+  "native_3683_lower_line114_brightness": 7,
+  "original_3683_full_CGRAM_FNV1a": "e79794a9",
+  "native_3683_full_CGRAM_FNV1a": "e79794a9",
+  "native_pixel_output_no_changes_made": true,
+  "remaining_one_pixel_variants": [
+    3792,
+    3872
+  ],
+  "native_PPU_firstline_implementation_correction_pending": true,
+  "guest_timing_state_parity_independently_proven": false,
+  "graphics_release_ledger_accepted": false
+}

@@ -64,7 +64,7 @@ class WindowsParallelJourneysTest(unittest.TestCase):
             yaml.count("github.event_name != 'pull_request' && inputs.parallel_journeys != true"),
             len(p.STEPS)
         )
-        self.assertIn("Parallel independent", yaml)
+        self.assertIn("remaining isolated journeys fan out", yaml)
         self.assertIn("Pilot parallel authentic Windows journeys", yaml)
         self.assertIn("default: false", yaml)
         self.assertIn("baldosa-win32-parallel-journey-timing", yaml)
@@ -79,6 +79,18 @@ class WindowsParallelJourneysTest(unittest.TestCase):
             "qa-baldosa-native-export",
         ):
             self.assertIn("name: " + artifact, yaml)
+
+    def test_windows_uses_pinned_git_bash_not_wsl_shim(self):
+        with tempfile.TemporaryDirectory() as directory:
+            git_bash = Path(directory) / "Git" / "bin" / "bash.exe"
+            git_bash.parent.mkdir(parents=True)
+            git_bash.write_bytes(b"runner Git Bash fixture")
+            self.assertEqual(p.find_git_bash(windows=True, program_files=directory),
+                             str(git_bash))
+            self.assertEqual(p.find_git_bash(windows=False), "bash")
+            git_bash.unlink()
+            with self.assertRaisesRegex(RuntimeError, "installed Git Bash"):
+                p.find_git_bash(windows=True, program_files=directory)
 
     def test_parallel_runner_keeps_source_identity_and_fail_closed_receipts(self):
         with tempfile.TemporaryDirectory() as folder:

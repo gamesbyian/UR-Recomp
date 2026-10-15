@@ -44,6 +44,10 @@ on:
         required: false
         type: boolean
         default: false
+      zoo_next_bowl:
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       selected:
@@ -102,6 +106,11 @@ on:
         type: boolean
         required: false
         default: false
+      zoo_next_bowl:
+        description: "Opt-in original Zoo-to-next Bowl race from authentic movie, requires zoom-zoo and source_followthrough"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -130,6 +139,7 @@ jobs:
           QA01_APU_PHASE: ${{ inputs.qa01_apu_phase }}
           QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}
           QA01_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
+          QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
         run: |
           set -euo pipefail
           if [[ "$ZOO_TERMINAL" == "true" && "$SELECTED" != "zoom-zoo" ]]; then
@@ -143,6 +153,11 @@ jobs:
           if [[ "$QA01_COLD_GUEST" == "true" &&
                 ( "$SELECTED" != "zoom-zoo" || "$QA01_FOLLOWTHROUGH" != "true" ) ]]; then
             echo "Cold Zoom Zoo ranked-record reload needs zoom-zoo + source_followthrough" >&2
+            exit 1
+          fi
+          if [[ "$QA01_NEXT_BOWL" == "true" &&
+                ( "$SELECTED" != "zoom-zoo" || "$QA01_FOLLOWTHROUGH" != "true" ) ]]; then
+            echo "Next original Bowl entry requires zoom-zoo + source_followthrough" >&2
             exit 1
           fi
           python3 -m unittest discover -s tests/unit -p test_qa01_event_campaign.py
@@ -186,6 +201,7 @@ jobs:
           test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
           test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
           python3 -m unittest discover -s tests/unit -p test_probe_original_event_complete.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_zoo_next_bowl.py
           python3 -m unittest discover -s tests/unit -p test_qa01_cold_result_record.py
           python3 -m unittest discover -s tests/unit -p test_qa01_postresult_sram_diff.py
       - name: Build original Snes9x/snesref and research native exactly once
@@ -309,6 +325,7 @@ jobs:
           QA01_ZOO_TERMINAL: ${{ inputs.zoo_terminal_phase }}
           QA01_APU_PHASE: ${{ inputs.qa01_apu_phase }}
           QA01_SOURCE_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
+          QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
           QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}
           # Distinct original and native clock axes; historical Zoo result
           # windows, NOT time-shifted input or assumed frame equivalence.
@@ -324,6 +341,9 @@ jobs:
           fi
           if [[ "$QA01_SOURCE_FOLLOWTHROUGH" == "true" ]]; then
             extra_args+=(--source-followthrough)
+          fi
+          if [[ "$QA01_NEXT_BOWL" == "true" ]]; then
+            extra_args+=(--zoo-next-bowl)
           fi
           ROOT="$RUNNER_TEMP/qa01-case"
           BIN="$RUNNER_TEMP/qa01-binaries"
@@ -365,6 +385,20 @@ jobs:
               f.write(v.get("reason","") + "\n\n")
               f.write("**Release course credit: 0.**\n")
           PY
+          if [[ "$QA01_NEXT_BOWL" == "true" && "$producer_rc" -eq 0 ]]; then
+            python3 - "$ROOT/producer-report.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          v=json.load(open(sys.argv[1]))["zoo_next_bowl_handoff"]
+          with open(sys.argv[2],"a",encoding="utf-8") as f:
+              f.write("\nAuthentic next Bowl entry: original="
+                      + str(v["source_next_bowl_active_entry_offset"])
+                      + ", fresh-original=" + str(v["fresh_reference_next_bowl_entry_offset"])
+                      + ", fresh-native=" + str(v["fresh_native_next_bowl_entry_offset"])
+                      + ". Triple source-state agreement="
+                      + str(v["all_triplet_named_states_equal"])
+                      + ". No release credit.\n")
+          PY
+          fi
           # Read-only bounded SRAM byte attribution for the single corrected
           # source-qualified Zoo result. Never changes the strict classifier.
           if [[ "$QA01_SOURCE_FOLLOWTHROUGH" == "true" && "$QA01_CASE" == "zoom-zoo" &&

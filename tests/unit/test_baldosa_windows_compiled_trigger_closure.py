@@ -28,6 +28,17 @@ STAGING_SCRIPTS = {
 }
 # These non-sibling bridge headers control game input and native title routing.
 # Normal .cpp sibling .hpp/.h files are discovered automatically below.
+# When the Modern owner lands genuine native Options, both the disposable
+# Baldosa host patch and its app-level settings interface directly affect
+# the compiled PE. Neither file exists on main until that PR is accepted;
+# requiring them unconditionally would make baseline CI fail prematurely.
+# Treat the pair atomically as soon as the product feature appears.
+OPTIONAL_NATIVE_OPTIONS_INPUTS = {
+    "tools/baldosa_modern_options_spike.py",
+    "native/product/baldosa_native_options.hpp",
+}
+
+
 BRIDGE_HEADERS = {
     "native/product/baldosa_execution_backend.hpp",
     "native/product/baldosa_modern_session_binding.hpp",
@@ -86,7 +97,13 @@ def staged_project_sources() -> set[str]:
     for path in STAGING_SCRIPTS | BRIDGE_HEADERS:
         if not (ROOT / path).is_file():
             raise AssertionError("Pinned project staging/header input missing: " + path)
-    return sources | paired_headers | STAGING_SCRIPTS | BRIDGE_HEADERS
+    options_present = {
+        path for path in OPTIONAL_NATIVE_OPTIONS_INPUTS if (ROOT / path).is_file()
+    }
+    if options_present and options_present != OPTIONAL_NATIVE_OPTIONS_INPUTS:
+        raise AssertionError("Native Options host patch/header are an incomplete pair")
+    return (sources | paired_headers | STAGING_SCRIPTS | BRIDGE_HEADERS
+            | options_present)
 
 
 def missing_triggers(inputs: set[str], filters: list[str]) -> list[str]:
@@ -110,6 +127,19 @@ class BaldosaWindowsCompiledTriggerClosureTest(unittest.TestCase):
                           "docs/WORK-QUEUE.md", "docs/**"):
             self.assertNotIn(forbidden, filters)
         self.assertIn(".github/workflows/baldosa-windows-native-bridge.yml", filters)
+
+    def test_native_options_feature_addition_invalidates_windows_candidate(self):
+        # Absent on baseline main; the moment Modern ships the Options host
+        # seam, both implementation-bearing inputs must trigger real Win32 CI.
+        options_present = {
+            path for path in OPTIONAL_NATIVE_OPTIONS_INPUTS
+            if (ROOT / path).is_file()
+        }
+        self.assertIn(options_present, (set(), OPTIONAL_NATIVE_OPTIONS_INPUTS))
+        self.assertEqual(
+            missing_triggers(options_present, pr_paths()), [])
+        self.assertEqual(
+            options_present.issubset(staged_project_sources()), True)
 
     def test_missing_executable_input_is_detected_not_silently_dropped(self):
         inputs = staged_project_sources()

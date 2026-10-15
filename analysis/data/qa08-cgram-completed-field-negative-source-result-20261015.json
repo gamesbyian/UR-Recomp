@@ -1,0 +1,60 @@
+{
+  "schema": "qa08-negative-completed-field-CGRAM-Windows-original-experiment-20261015/1",
+  "disposition": "reject_no_pixel_improvement_and_no_guest_change_do_not_merge",
+  "experimental_stacked_pr": 1666,
+  "experiment_source_sha": "55fc8ce7e5c7a94965a8a47f5f7f588f5ea445f7",
+  "actual_real_windows_run": 38813922158,
+  "actual_windows_executable_sha256": "a7079a7b13396ab1a948575eb5b942089ad2458bba922ad8681413f742b48f2b",
+  "actual_1p_windows_artifact_id": 12010655876,
+  "actual_2p_windows_artifact_id": 12010461779,
+  "actual_1p_wrapper_sha256": "654d487c3bb21367903a679f9dfacb2c78c780893b6329e86978475b2d57a162",
+  "actual_2p_wrapper_sha256": "0ddaa6dc5763c9d5355b2c136e93b9b123850583a9dc2a3149817c46541a493b",
+  "already_accepted_v0_win32_source_run": 38810338859,
+  "already_accepted_v0_1p_artifact_id": 12009006895,
+  "already_accepted_v0_2p_artifact_id": 12008877250,
+  "reference_2014_Snes9x_1p_run": 38703931370,
+  "reference_2014_Snes9x_2p_run": 38781958316,
+  "actual_guest_1p_frames": 5447,
+  "actual_guest_1p_CRC_sha256": "45d7675858ebf3e3a051a58d2af104b6d2d9a66e7700da8248ad571713662c41",
+  "actual_guest_2p_frames": 5484,
+  "actual_guest_2p_CRC_sha256": "c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876",
+  "native_original_source_geometry": [
+    256,
+    224
+  ],
+  "authentic_original_native_frames_1p": 261,
+  "authentic_original_native_frames_2p": 263,
+  "exact_1p_source_RGBA_P7_hashes_matching_v0": 261,
+  "exact_2p_source_RGBA_P7_hashes_matching_v0": 263,
+  "baseline_and_experiment_1p_exact_frames": [
+    162,
+    162
+  ],
+  "baseline_and_experiment_2p_exact_frames": [
+    203,
+    203
+  ],
+  "baseline_and_experiment_1p_wrong_RGB5_pixels": [
+    19153,
+    19153
+  ],
+  "baseline_and_experiment_2p_wrong_RGB5_pixels": [
+    385373,
+    385373
+  ],
+  "corrected_2p_finish_frames_preserved": 15,
+  "regressed_source_frames": 0,
+  "improved_source_frames": 0,
+  "actual_native_results_frame_5184_CGRAM_FNV1a": "898ece20",
+  "independent_original_snes9x_results_frame_5184_CGRAM_FNV1a": "e8cdbe60",
+  "actual_native_result_brightness_and_CGADSUB_5184": [
+    "0e",
+    "7f"
+  ],
+  "experiment_mechanism": "Record PPU 256-word CGRAM at completed V225 field boundary, restore that palette for raster playback, restore all live guest CGRAM bytes and CGRAM address/write-twice port afterwards",
+  "CI_reproduced_patch_apply_output": "UR_QA08_CGRAM_COMPLETED_FIELD_EXPERIMENT ... applied=1",
+  "inference": "Adding this completed-field CGRAM snapshot is source-pixel inert on sampled 1P/2P gameplay; it does not explain the 112-frame checkerboard phase discrepancy. Original vs native exact write-time history around the result palette update remains unproved.",
+  "next_limited_discriminator": "Compare Snes9x original $2121/$2122 writes in the previous result field and native raster/CPU register journal for two adjacent affected frames (e.g. guest 5183/5184). Do not implement temporal registration search or patch guest CPU timing from images.",
+  "graphics_or_release_ledger_gates_admitted": 0,
+  "HD_owner_visual_approval_obtained": false
+}

@@ -1,0 +1,124 @@
+{
+  "schema": "UR-QA01-RF017-CORRECTED-SOURCE-ZOO-INDEPENDENT-EXECUTED/1",
+  "date": "2026-10-15",
+  "scientific_scope": "real executed original Snes9x vs RF-017-patched pinned Baldosa with corrected native input-SRAM cwd preload, unchanged authentic USA source movie and buttons",
+  "release_complete_usa_event_credit": 0,
+  "accepted_event_denominator": 45,
+  "execution": {
+    "repo": "gamesbyian/UR-Recomp",
+    "run_id": 38789870865,
+    "run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38789870865",
+    "exact_source_checkout_sha": "5827cc37561cdb1b10b86982cb8dde8c7dd8a47b",
+    "cpu_implementation_source_head_reused_unchanged": "93f4e369bae8d1ff16207b9c405183d4df2dd4db",
+    "qa_preload_source": "merged PR #1654",
+    "case_artifact_id": 11999243755,
+    "case_artifact_zip_sha256": "aa75cb81821e3ec5910dea0a629486cea3deb24923a851610c2d8474df63083e",
+    "binary_artifact_id": 12000156563,
+    "binary_artifact_zip_sha256": "48284db11afe0424f2715d8a10bf55fdea180e46dab08fcd1a4d70f3a73fc22e",
+    "build_verified_generated_files": 89,
+    "verified_clock_order_statements": 15484,
+    "per_basic_block_static_clock_total_changed": false,
+    "case_disposition": "strict_candidate",
+    "case_producer_exit_code": 0,
+    "case_release_credit": 0,
+    "temporary_one_shot_workflow_deleted": true,
+    "temporary_research_pr_closed_without_merge": 1659
+  },
+  "source_identity": {
+    "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "source_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+    "input_sha256": "04ad1c2d70b38d3f33513468be2c94acc4b0c452a323631aebb390a3542f75e8",
+    "original_movie_window_sha256": "a95636aa12de9a9c174d3cf15069e22be24e10879188272fcd4ec12eddc2c11e",
+    "reference_core_sha256": "57134ac94905ce852178930080306524e5c63fc3f0b5ba49fe30a59e639a9d27",
+    "native_elf_sha256": "869df40fb63ed1e50e0ffc164d9bdd8986fcc003010fc79d4d110109a654ed5d",
+    "original_movie_race_entry": 3190,
+    "original_movie_result_onset": 8353,
+    "fresh_reference_entry_host_frame": 1017,
+    "fresh_native_entry_host_frame": 1019,
+    "actual_reference_result_host_frame": 6180,
+    "actual_native_result_host_frame": 6182,
+    "guest_relative_result_onsets": {
+      "reference": 5163,
+      "native": 5163
+    },
+    "original_controller_masks_modified": false,
+    "native_original_save_seed_location": "guest subprocess cwd/saves/save.srm",
+    "native_guest_receives_correct_archived_sram": true
+  },
+  "observed_zoo": {
+    "course_id": "course:02",
+    "circuit_result_best_lap_centiseconds": 2510,
+    "rank0_holder_index": 0,
+    "track_record_checksum_stored_and_computed": 64622,
+    "all_31_relative_phase_named_states_equal": true,
+    "first_and_last_consecutive_checked_frames": [
+      5156,
+      5186
+    ],
+    "all_24_result_onset_through_return_named_states_equal": true,
+    "consecutive_post_result_frames": [
+      5163,
+      5186
+    ],
+    "first_named_state_difference_frame": null,
+    "first_gameplay_field_difference_frame": null,
+    "first_raw_text_cursor_difference_frame": null,
+    "first_full_128k_wram_digest_difference_frame": 5163,
+    "full_128k_wram_hashes_equal": false,
+    "guest_logic_ticks_equal_proven": false,
+    "at_relative_5178": {
+      "reference_menu": 188,
+      "native_menu": 188,
+      "reference_in_race": 61,
+      "native_in_race": 61
+    },
+    "at_relative_5179": {
+      "reference_menu": 188,
+      "native_menu": 188,
+      "reference_in_race": 0,
+      "native_in_race": 0
+    },
+    "at_relative_5180": {
+      "reference_menu": 246,
+      "native_menu": 246,
+      "reference_in_race": 0,
+      "native_in_race": 0
+    }
+  },
+  "six_real_sram_pairs": {
+    "result_relative_offsets": [
+      8,
+      16,
+      24,
+      32,
+      64,
+      72
+    ],
+    "bytes_per_guest_per_sample": 8192,
+    "number_of_exact_original_native_pairs": 6,
+    "differing_bytes_per_pair": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "former_native_0x10a7_difference_resolved": true,
+    "original_and_native_full_sram_sha256_at_result_plus72": "6f74bdf5468514ae29f99001421c76c70491e1adb09be45a7229f5832ce836c1",
+    "ranked_crawler_records_equal": true
+  },
+  "negative_gates": {
+    "actual_windows_product_binary_compared": false,
+    "complete_original_active_event_plus_next_course_entry_proven": false,
+    "original_movie_next_bowl_active_entry_2014_movie_host": 8620,
+    "next_entry_is_267_source_movie_frames_after_zoo_result": true,
+    "independent_cold_process_sram_reload_of_this_specific_rf017_binary_proven": false,
+    "shipping_disk_publish_and_hard_kill_recovery_proven": false,
+    "full_guest_wram_or_cpu_instruction_parity_proven": false,
+    "strict_complete_event_release_credit": 0
+  },
+  "decision": "RF-017 fixed corrected-input Zoom Zoo original/native post-result named-state and full battery-SRAM divergence, but strict complete event remains unaccepted. Next single source-qualified acceptance discriminator is unchanged archived movie 2014 next Bowl active entry and Windows candidate exact source/disk.",
+  "source_caveat": "Historic RF-017 run 38779527701 used incorrect native initial SRAM path; do not reassign this corrected-source status to that older artifact. This is separate immutable replay evidence."
+}

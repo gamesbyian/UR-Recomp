@@ -232,8 +232,13 @@ int main() {
                                       old_view,view));
     assert(contains("Looper"));
     assert(contains("Shuffler - RACE"));
-    assert(contains("20 COURSES OPEN"));
+    assert(contains("20 OPEN - MORE FROM MEDALS"));
     assert(contains("A START L/R TOUR B BACK"));
+    painted.clear();
+    view.practice_courses_open = 40;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("40 COURSES OPEN") && !contains("40 OPEN - MORE FROM MEDALS"));
     painted.clear();
     view.practice_courses_open = 0;
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,

@@ -66,6 +66,28 @@ class PracticeCoursesProbeTests(unittest.TestCase):
                 good_log(10, "LOOPER", 20).replace(
                     "practice_sram_restored=1", "x"), 10, "LOOPER", 20)
 
+    def test_restart_in_practice_verifier_is_strict(self):
+        good = (
+            "UR_BALDOSA_MODERN_ROOT practice_entered=1 course=0 "
+            "original_course=1 race=1 source_identity=verified\n"
+            "UR_BALDOSA_NATIVE_PAUSE ARMED guest=2500 live_race=1 "
+            "modern_session=1 physical_sdl=1\n"
+            "UR_BALDOSA_NATIVE_RESTART DELAYED anchor_guest=973 "
+            "request_guest=2500 paused=1 sram_equal=1 wram_rewound=1\n"
+            "UR_BALDOSA_NATIVE_PAUSE RESUMED previous_guest=2500 new_guest=2501 "
+            "frozen_pumps=24\n"
+            "UR_BALDOSA_MODERN_ROOT practice_sram_restored=1 bytes=8192 "
+            "original_root=1\n")
+        probe.verify_restart(good)
+        for bad in (good.replace("sram_equal=1", "sram_equal=0"),
+                    good.replace("wram_rewound=1", "wram_rewound=0"),
+                    good.replace("anchor_guest=973", "anchor_guest=2600"),
+                    good.replace("RESUMED", "STUCK"),
+                    good.replace("practice_sram_restored=1", "x"),
+                    good + good):
+            with self.assertRaises(ValueError):
+                probe.verify_restart(bad)
+
     def test_claims_no_hardware_or_release_credit(self):
         text = Path(probe.__file__).read_text()
         self.assertIn('"physical_gamepad_certified": False', text)

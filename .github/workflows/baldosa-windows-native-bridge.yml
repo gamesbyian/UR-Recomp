@@ -486,7 +486,7 @@ jobs:
             --rom "reference/roms/retail/Uniracers_USA.sfc" \
             --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_practice_courses" \
             --video windows --timeout 240
-          echo "PASS: ten original Practice courses (race, circuit and stunt; four tours per unlock state) entered with source course identity on real Win32 native games; Hunter closed, saves unchanged, nothing published. Semantic pad edges; not all 45 and no physical-pad or release credit." >> "$GITHUB_STEP_SUMMARY"
+          echo "PASS: ten original Practice courses (race, circuit and stunt; four tours per unlock state) entered with source course identity, plus one Practice game with native pause and delayed Restart rewinding to the race anchor with unchanged SRAM, on real Win32 native games; Hunter closed, saves unchanged, nothing published. Semantic pad edges; not all 45 and no physical-pad or release credit." >> "$GITHUB_STEP_SUMMARY"
 
       # Separate, bounded evidence for independent QA. The fixed strict
       # baldosa-win32-native-pause-evidence ZIP is deliberately NOT touched.
@@ -509,6 +509,7 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/report.json
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/tier0_never_played-*/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/tier2_formatted_save-*/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/restart-in-practice/log.txt
 
       - name: Assemble verified ROM-free Baldosa Modern Windows candidate
         run: |

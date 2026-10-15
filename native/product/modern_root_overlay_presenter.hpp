@@ -272,9 +272,13 @@ inline bool render_modern_root_overlay(
                         palette.secondary_grey, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 89 * scale,
-                        view.practice_courses_open > 1
+                        view.practice_courses_open >= 40
                             ? (std::to_string(view.practice_courses_open) +
                                " COURSES OPEN").c_str()
+                            : view.practice_courses_open > 1
+                            // Stock unlocks more tours as medals are earned.
+                            ? (std::to_string(view.practice_courses_open) +
+                               " OPEN - MORE FROM MEDALS").c_str()
                             : "1 VERIFIED COURSE", palette.cursor_blue, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 115 * scale,

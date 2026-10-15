@@ -72,7 +72,7 @@ def tier2_seed() -> bytes:
 
 
 def run_native(exe: Path, rom: Path, user: Path, work: Path, steps: int,
-               video: str, timeout: int) -> str:
+               video: str, timeout: int, extra_env: dict | None = None) -> str:
     work.mkdir(parents=True, exist_ok=False)
     route = work / "stock-route.txt"
     route.write_text(STAY, encoding="ascii")
@@ -84,7 +84,8 @@ def run_native(exe: Path, rom: Path, user: Path, work: Path, steps: int,
            "UR_BALDOSA_PRACTICE_TEST_STEPS": str(steps),
            "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
            "UR_BALDOSA_MODERN_INPUT": "1", "UR_BALDOSA_PAUSE_SMOKE": "0",
-           "SDL_VIDEODRIVER": video, "SDL_AUDIODRIVER": "dummy"}
+           "SDL_VIDEODRIVER": video, "SDL_AUDIODRIVER": "dummy",
+           **(extra_env or {})}
     proc = subprocess.run(
         [str(exe), "--no-launcher", "--config", str(ini),
          "--script", str(route), str(rom)],
@@ -122,6 +123,41 @@ def verify_case(log: str, track: int, name: str, expected_open: int) -> None:
             raise ValueError("Practice bypassed a source gate: " + forbidden)
 
 
+# Real native pause + delayed Restart on top of a Practice race: the shared
+# Modern pause authority rewinds the guest to the race-start anchor with the
+# (isolated) SRAM unchanged, resumes, and Practice still restores the player's
+# stock SRAM at shutdown. Reuses the existing physical-pause smoke switches.
+RESTART_ENV = {
+    "UR_BALDOSA_PAUSE_SMOKE": "1",
+    "UR_BALDOSA_PHYSICAL_PAUSE_SMOKE": "1",
+    "UR_BALDOSA_DELAYED_RESTART_SMOKE": "1",
+    "UR_BALDOSA_PAUSE_SMOKE_AT_FRAME": "2500",
+    "UR_BALDOSA_PAUSE_REQUIRE_RACE": "1",
+}
+
+
+def verify_restart(log: str) -> None:
+    for token in (
+            "UR_BALDOSA_MODERN_ROOT practice_entered=1 course=0 ",
+            "UR_BALDOSA_NATIVE_PAUSE ARMED guest=2500 live_race=1 "
+            "modern_session=1 physical_sdl=1",
+            "UR_BALDOSA_NATIVE_PAUSE RESUMED previous_guest=2500 ",
+            "UR_BALDOSA_MODERN_ROOT practice_sram_restored=1 bytes=8192"):
+        if log.count(token) != 1:
+            raise ValueError("Practice restart stage missing/duplicated: "
+                             + token)
+    match = re.search(
+        r"UR_BALDOSA_NATIVE_RESTART DELAYED anchor_guest=(\d+) "
+        r"request_guest=2500 paused=1 sram_equal=1 wram_rewound=1", log)
+    if not match or int(match.group(1)) >= 2500:
+        raise ValueError("Practice Restart did not rewind to the race anchor "
+                         "with unchanged SRAM")
+    if log.index("practice_entered=1") > log.index("NATIVE_RESTART DELAYED") or (
+            log.index("NATIVE_RESTART DELAYED") >
+            log.index("practice_sram_restored=1")):
+        raise ValueError("Practice restart stages were out of order")
+
+
 def run(exe: Path, rom: Path, out: Path, *, timeout: int, video: str) -> dict:
     for path in (exe, rom, CLEAN_SRAM):
         if path.is_symlink() or not path.is_file():
@@ -148,7 +184,15 @@ def run(exe: Path, rom: Path, out: Path, *, timeout: int, video: str) -> dict:
                 raise ValueError("Practice published an earned run")
             cases.append({"group": group, "case": label, "track": track,
                           "course": name, "picker_steps": steps})
+    user = out / "restart-in-practice-user"
+    (user / "saves").mkdir(parents=True)
+    restart_log = run_native(exe, rom, user, out / "restart-in-practice", 0,
+                             video, timeout, RESTART_ENV)
+    verify_restart(restart_log)
+    if list(user.rglob("*.urrun")):
+        raise ValueError("Practice restart published an earned run")
     return {
+        "restart_in_practice": "pause_delayed_restart_rewound_sram_equal",
         "source_binding": {
             "github_sha": os.environ.get("GITHUB_SHA"),
             "exe_sha256": hashlib.sha256(exe.read_bytes()).hexdigest(),

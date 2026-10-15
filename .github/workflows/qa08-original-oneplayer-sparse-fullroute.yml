@@ -2,12 +2,11 @@ name: QA-08 one-shot original Snes9x 1P whole-event sparse raster reference
 # Independently executed original 2014 Snes9x source for moving, transitions,
 # finish/result/return. One original 5447-frame process samples 261 actual
 # full 256x224 callbacks, no continuous image synthesis or 216-high crop.
+# The single authentic original 261-frame producer already passed
+# run 38703931370 / artifact 11956993823. Do not rebuild Snes9x on
+# subsequent comparator/documentation PR commits. Manual new original
+# source only when explicitly requested and reproven.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/qa08-original-oneplayer-sparse-fullroute.yml"
-      - "tools/qa08_original_oneplayer_sparse_fullroute_manifest.py"
-      - "tests/unit/test_qa08_original_oneplayer_sparse_fullroute_manifest.py"
   workflow_dispatch:
 
 permissions:

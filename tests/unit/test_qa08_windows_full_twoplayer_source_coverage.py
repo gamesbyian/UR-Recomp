@@ -28,6 +28,24 @@ class TwoPlayerSourceTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,"never reached"):
                 two.inspect(folder,log,["0x00000000"]*100)
 
+    def test_native_inidisp_colourmath_cgram_state_is_read_only_and_source_bound(self):
+        line=lambda f,y,b: (
+            f"UR_QA08_WIN_PPU_STATE frame={f} line={y} "
+            f"inidisp={b:02x} brightness={b} forced_blank=0 "
+            "cgadsub=04 cgwsel=02 fixedcolor=0180 cgram_fnv=2345abcd\n")
+        log=line(3683,1,7)+line(3683,112,0)+line(3683,114,7)+line(4064,1,14)
+        result=two.inspect_native_ppu_registers(log)
+        self.assertEqual(result["actual_state_line_count"],4)
+        self.assertEqual([x["brightness"] for x in
+                          result["per_line_native_PPU_state"]],[7,0,7,14])
+        self.assertFalse(result["release_gate_accepted"])
+        with self.assertRaises(ValueError):
+            two.inspect_native_ppu_registers("")
+        with self.assertRaises(ValueError):
+            two.inspect_native_ppu_registers(log+line(3683,1,7))
+        with self.assertRaises(ValueError):
+            two.inspect_native_ppu_registers(line(3683,1,7))
+
     def test_read_only_two_pad_observer_retains_prior_frozen_controls(self):
         cpp=(ROOT/"tools/baldosa_qa08_windows_original_capture.cpp").read_text()
         self.assertIn('std::strcmp(mode, "twoplayer-fullroute") == 0',cpp)

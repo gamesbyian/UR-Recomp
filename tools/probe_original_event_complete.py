@@ -881,7 +881,7 @@ def observe_source_terminal_followthrough(
         })
     return {
         "schema": "UR-QA01-SOURCE-ORIGINAL-NATIVE-RESULT-FOLLOWTHROUGH/2",
-        "input_origin": "unchanged archived 2014 movie, relative window extends 40 frames beyond original result",
+        "input_origin": "unchanged archived 2014 movie, opt-in relative window extends 80 frames beyond original result",
         "source_guest_relative_result_onset_equivalence_proven": False,
         "sample_alignment": "offsets from each guest's own observed result, not identical race-relative frames",
         "original_and_native_result_phase_equal_proven": (

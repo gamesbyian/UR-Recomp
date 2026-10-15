@@ -633,6 +633,42 @@ SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS = (8, 16, 24, 32, 64, 72)
 ZOO_NEXT_BOWL_OFFSETS = (259, 263, 264, 265, 266, 267, 268, 269, 272, 276, 280)
 ZOO_SOURCE_RESULT_MOVIE_FRAME = 8353
 ZOO_SOURCE_NEXT_BOWL_MOVIE_FRAME = 8620
+
+def audit_qa01_wram_pair(original: bytes, native: bytes) -> dict:
+    """Unmasked 128-KiB byte difference; diagnostic only, never release credit."""
+    if len(original) != 0x20000 or len(native) != 0x20000:
+        raise CompleteEventError("QA-01 WRAM audit requires two full 128-KiB images")
+    address = lambda i: f"{0x7E + (i >> 16):02X}:{i & 0xFFFF:04X}"
+    count, first, pages = 0, [], {}
+    first_at = last_at = None
+    for offset, (o, n) in enumerate(zip(original, native)):
+        if o == n:
+            continue
+        if first_at is None:
+            first_at = offset
+        last_at = offset
+        count += 1
+        page = offset >> 8
+        pages[page] = pages.get(page, 0) + 1
+        if len(first) < 24:
+            first.append({"snes_address": address(offset), "wram_offset": offset,
+                          "original_byte": o, "native_byte": n})
+    return {
+        "full_wram_bytes_per_guest": 0x20000,
+        "every_byte_compared": True, "excluded_byte_count": 0,
+        "differing_byte_count": count, "byte_exact": count == 0,
+        "first_differing_address": address(first_at) if first_at is not None else None,
+        "last_differing_address": address(last_at) if last_at is not None else None,
+        "first_24_differences": first,
+        "changed_256_byte_pages": [
+            {"page_start": address(p << 8), "differing_bytes": pages[p]}
+            for p in sorted(pages)],
+        "original_wram_sha256": hashlib.sha256(original).hexdigest(),
+        "native_wram_sha256": hashlib.sha256(native).hexdigest(),
+        "cpu_or_logic_tick_parity_proven": False, "release_complete_event_credit": 0,
+    }
+
+
 ZOO_TERMINAL_FIELDS = ("menu", "track", "in_race", "p1_laps", "p2_laps",
                        "p1_checkpoint", "p1_finish_gate", "p1_contact",
                        "p2_contact", "clock_raw")
@@ -718,6 +754,12 @@ def summarize_zoo_terminal_phase(phase: Path, reference_log: str,
         "native_host_frame": rows["native"][frame]["host_frame"],
         **compare(rows["reference"][frame], rows["native"][frame])
     } for frame in ZOO_TERMINAL_FRAMES]
+    # Real unmasked WRAM at equal guest race-relative frame, not same host.
+    for row in relative:
+        tag = f'zoo-phase-{row["relative_frame"]:05d}'
+        row["full_wram_byte_difference"] = audit_qa01_wram_pair(
+            (phase / "ref" / f"{tag}.wram.bin").read_bytes(),
+            (phase / "native" / f"{tag}.wram.bin").read_bytes())
     ref_host = {v["host_frame"]: v for v in rows["reference"].values()}
     nat_host = {v["host_frame"]: v for v in rows["native"].values()}
     hosts = sorted(set(ref_host) & set(nat_host))
@@ -761,6 +803,10 @@ def summarize_zoo_terminal_phase(phase: Path, reference_log: str,
             lambda row: "menu" in row["different_named_fields"]),
         "first_full_wram_digest_difference_frame": first_postframe(
             lambda row: not row["wram_sha256_equal"]),
+        "first_unmasked_wram_byte_difference_frame": first_postframe(
+            lambda row: row["full_wram_byte_difference"]["differing_byte_count"] > 0),
+        "all_postresult_full_wram_byte_pairs_equal": all(
+            row["full_wram_byte_difference"]["byte_exact"] for row in post_rows),
         "first_divergent_cpu_instruction_or_writer_proven": False,
         "cold_process_sram_persistence_proven": False,
         "release_complete_event_credit": 0,
@@ -930,6 +976,7 @@ def observe_zoo_next_bowl_handoff(
             raise CompleteEventError("contradictory original movie handoff frame")
         row = {"offset_from_observed_zoo_result": offset,
                "original_movie": original, "fresh_guests": {}}
+        paired_wram = {}
         for key, directory, log, entry, onset in (
                 ("original", original_dir, original_log, reference_entry, reference_result_relative),
                 ("native", native_dir, native_log, native_entry, native_result_relative)):
@@ -945,6 +992,7 @@ def observe_zoo_next_bowl_handoff(
             raw = raw_path.read_bytes()
             if len(raw) != 0x20000:
                 raise CompleteEventError(f"truncated real guest next-entry WRAM {raw_path}")
+            paired_wram[key] = raw
             rec = decode_qa01_crawler_battery_sram(
                 directory / f"{tag}.sram.bin", 1)
             values = {"menu": raw[0x009F], "track": raw[0x00CE],
@@ -959,6 +1007,8 @@ def observe_zoo_next_bowl_handoff(
                 "record_checksum_matches": rec["record_table_checksum_matches_at_sample"],
                 "sram_sha256": rec["sram_sha256"],
             }
+        row["original_native_full_wram_byte_difference"] = (
+            audit_qa01_wram_pair(paired_wram["original"], paired_wram["native"]))
         source_named = {k: original[k] for k in ("menu", "track", "in_race")}
         row["triplet_named_states_equal"] = all(
             {k: row["fresh_guests"][side][k] for k in source_named} == source_named
@@ -1029,6 +1079,9 @@ def observe_zoo_next_bowl_handoff(
         "all_triplet_named_states_equal": all(x["triplet_named_states_equal"] for x in samples),
         "all_original_native_full_sram_pairs_equal": all(
             x["original_native_full_sram_equal"] for x in samples),
+        "all_original_native_full_wram_pairs_equal": all(
+            x["original_native_full_wram_byte_difference"]["byte_exact"]
+            for x in samples),
         "next_bowl_entry_triple_equal": (ref_start == native_start == original_start),
         "zoo_rank0_2510_and_checksum_preserved_every_sample": all(
             x["fresh_guests"][side]["source_earned_zoo_best_lap"] ==
@@ -1116,6 +1169,7 @@ def observe_source_terminal_followthrough(
             raise CompleteEventError(f"follow-through result-relative frame mismatch at +{offset}")
         guests = {}
         sram = {}
+        paired_wram = {}
         for label, directory in (("original", original_dir), ("native", native_dir)):
             path = directory / f"{tag}.wram.bin"
             if not path.is_file():
@@ -1123,6 +1177,7 @@ def observe_source_terminal_followthrough(
             raw = path.read_bytes()
             if len(raw) != 0x20000:
                 raise CompleteEventError("follow-through WRAM must be full 128 KiB")
+            paired_wram[label] = raw
             word = lambda adr: int.from_bytes(raw[adr:adr+2], "little")
             sram[label] = decode_qa01_crawler_battery_sram(
                 directory / f"{tag}.sram.bin", crawler_course_track)
@@ -1165,6 +1220,8 @@ def observe_source_terminal_followthrough(
             "full_wram_bytes_equal": (
                 guests["original"]["wram_sha256"] ==
                 guests["native"]["wram_sha256"]),
+            "full_wram_byte_difference": audit_qa01_wram_pair(
+                paired_wram["original"], paired_wram["native"]),
         })
     return {
         "schema": "UR-QA01-SOURCE-ORIGINAL-NATIVE-RESULT-FOLLOWTHROUGH/2",

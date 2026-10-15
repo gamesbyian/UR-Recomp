@@ -1,0 +1,27 @@
+name: One-shot QA-01 authenticated Zoo cold-record replay
+# Disposable exact-branch evidence workflow. Remove after observing the result.
+# Existing callable QA01 campaign compiles once for this singular Zoo case.
+on:
+  pull_request:
+    types: [synchronize]
+    paths:
+      - .github/workflows/qa01-zoo-cold-one-shot.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa01-zoo-cold-provenance-${{ github.event.pull_request.head.sha }}
+  cancel-in-progress: false
+
+jobs:
+  source-authenticated-zoo-cold-guest:
+    if: github.head_ref == 'qa01-zoo-wram-firstdiff-20261015'
+    uses: ./.github/workflows/qa01-event-campaign.yml
+    with:
+      selected: zoom-zoo
+      source_followthrough: true
+      zoo_next_bowl: true
+      qa01_cold_guest_reload: true
+      baldosa_refresh_beam_rate: true
+      baldosa_io_clock_order: true

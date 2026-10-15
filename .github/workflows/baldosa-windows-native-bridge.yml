@@ -16,6 +16,8 @@ on:
       - "tools/baldosa_native_first_racer_probe.py"
       - "tools/baldosa_native_second_racer_probe.py"
       - "tools/baldosa_native_practice_probe.py"
+      - "tools/baldosa_dram_refresh_beam_rate_patch.py"
+      - "tests/unit/test_baldosa_dram_refresh_beam_rate_patch.py"
       - "tests/unit/test_baldosa_native_practice_probe.py"
       - "tests/unit/test_baldosa_native_second_racer_probe.py"
       - "tools/baldosa_native_first_racer_real_run_probe.py"
@@ -124,6 +126,8 @@ jobs:
       - name: Stage only the verified UR native boundary
         run: |
           set -euo pipefail
+          # RF-015: one DRAM refresh per 1364-clock beam line (source-qualified correction).
+          python tools/baldosa_dram_refresh_beam_rate_patch.py --game baldosa
           python tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_execution_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_pause_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"

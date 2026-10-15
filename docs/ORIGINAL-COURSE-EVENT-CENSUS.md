@@ -110,7 +110,11 @@ partial observations**, **41/45 unverified**. Across all three builds,
   differ, confined to 25 low stack bytes plus two transient sound-queue
   bytes at Bowl entry. No accepted full instruction/logic trace, source
   read-liveness, shipping Windows executable or on-disk hard-kill persistence
-  follows from the observed convergence. This remains a paired
+  follows from the observed convergence. An additional real [fresh original/native
+  guest record reload](QA01-ZOO-AUTHENTIC-NEXT-BOWL-ENTRY-20261015.md#executed-rf-017-cold-guest-ranked-record-reload-no-windows-durability-2026-10-15)
+  preserves all 150 ranked-record values, holders and the Zoo 2510-centisecond
+  best-lap/checksum on two fresh Linux research processes, but does not
+  certify actual Windows host-file durability. This remains a paired
   **candidate**, not independent complete-event
   acceptance. The precise remaining causal uncertainty and artifact identifiers
   live in [the source-owner crosswalk](../analysis/data/zoo-original-native-sram-restore-source-owner-20261009.json).

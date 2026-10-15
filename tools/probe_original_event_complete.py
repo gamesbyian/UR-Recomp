@@ -1003,8 +1003,17 @@ def observe_zoo_next_bowl_handoff(
     native_start = native_bracket["exact_observed_entry_offset"]
     if original_start != 267:
         raise CompleteEventError("sparse original source does not prove exact 8620 entry")
+    ref_absolute = (reference_entry + reference_result_relative + ref_start
+                    if ref_start is not None else None)
+    native_absolute = (native_entry + native_result_relative + native_start
+                       if native_start is not None else None)
     return {
         "schema": "UR-QA01-ZOO-TO-AUTHENTIC-BOWL-NEXT-RACE/1",
+        "reference_next_bowl_absolute_host_frame": ref_absolute,
+        "native_next_bowl_absolute_host_frame": native_absolute,
+        "next_bowl_same_absolute_host_frame": (
+            ref_absolute is not None and native_absolute is not None
+            and ref_absolute == native_absolute),
         "original_source_movie_result_host_frame": 8353,
         "original_source_movie_next_bowl_active_host_frame": 8620,
         "clock_axes": "2014 reset movie, fresh Snes9x guest, fresh Baldosa guest all independent",

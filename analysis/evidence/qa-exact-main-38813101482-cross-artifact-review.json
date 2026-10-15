@@ -1,0 +1,109 @@
+{
+  "schema": "qa-exact-main-38813101482-independent-cross-artifact/1",
+  "workflow_run": 38813101482,
+  "windows_job": 116690973293,
+  "candidate": {
+    "source_commit": "11501a15dea38fa912335cfc63103ce3a7208001",
+    "portable_zip_sha256": "5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7",
+    "exe_sha256": "0701f72481531ad4f2803caadc62bbb072f292abef69f039edda004b01c18ea9"
+  },
+  "outer_artifacts": [
+    [
+      12009612842,
+      "5a4de66f09a9ceea5cb7b431f808a17821f770bf09c48117a8cb3bd9a0c83722"
+    ],
+    [
+      12010371123,
+      "3a466ba30e512057c61d14e8be0dea12c6b5cc47eff854aabb72a1554e894545"
+    ],
+    [
+      12010675093,
+      "d396c11061f34b751c6138670cb160c01d011022b93800ac14b57eb2854c2a69"
+    ],
+    [
+      12010555537,
+      "0dc7618f81136a8288459e6ad8908d368c0a20bffffc098c6917b1a7ba6145b1"
+    ],
+    [
+      12010495750,
+      "5845040dbbc8ba93d9202f043dd3457f5937fdd62d4200771f0aa031f7f35891"
+    ],
+    [
+      12010421091,
+      "485f37190ba1e12fd6ba4745f05c3a50d3056d05cf36151cf69f7699125fc0b9"
+    ],
+    [
+      12009069728,
+      "a3e7592b3472d115fba0440265dbd924edfa1e9cd59b7329cff9585fdff29ea4"
+    ],
+    [
+      12010750002,
+      "6fba74ddbb1ce00533b31c62d78e722fb283fdc8db454d3accb9534fe6b7ae34"
+    ],
+    [
+      12010640197,
+      "c2392d1c01b3c009aded903936c953af6b656cf780922afbb72ee5c39bef8754"
+    ],
+    [
+      12010490843,
+      "421daddd16bf0b8cfb4127bf0c05a88b9a3080e21cbe07868595e588d683f82b"
+    ]
+  ],
+  "assertions": {
+    "portable_sha_matches_both_source_artifacts": true,
+    "same_candidate_exe_pe32_amd64_and_manifest_files_rehashed": true,
+    "raw_stage_manifest_count": 5,
+    "catalog_fault_changes_exactly": [
+      "profiles-v1.txt"
+    ],
+    "catalog_recovery_byte_exact_to_pre_cut": true,
+    "source_go_changes_exactly": [
+      "saves/profile-mike/host-profile.txt",
+      "saves/profile-mike/save.srm"
+    ],
+    "canonical_2p_pair_count": 1,
+    "run_sha256": "d54ade82fdeb213db2c48bd7e4338c5bcae0f2af981fd70c27a467366acbc487",
+    "match_sha256": "d16eb5d8ce868c8df6ef59169cd5b83ff5b1ed93235c4ad58624de30f8050749",
+    "pre_records_run_match_byte_identical_to_full_raw_archive": true,
+    "typed_and_raw_8192_byte_mirror_matched": [
+      "mike",
+      "martin"
+    ],
+    "source_guest_2p": {
+      "result_host_frame": 4379,
+      "source_input_frames": 2232,
+      "p1_hundredths": 2761,
+      "p2_hundredths": 2757,
+      "winner": 2
+    },
+    "fresh_process_records": {
+      "mike": "LOSS 00:27.61",
+      "martin": "WIN 00:27.57"
+    },
+    "practice_kill": {
+      "actual_process_killed_while_alive": true,
+      "returncode": 1,
+      "ordinary_quit": false,
+      "independent_raw_prepost_snapshots_available": false
+    },
+    "producer_native_post_raw_pre_typed_negative": {
+      "exit_code": 86,
+      "fresh_load_rejected_producer_reported": true,
+      "independent_raw_prepost_snapshots_available": false
+    },
+    "hosted_options_processes": 5,
+    "distinct_source_practice_entries": 10,
+    "physical_devices_checked": false,
+    "ntfs_power_cut_checked": false,
+    "strict_original_native_usa_events_accepted": 0,
+    "full_qa_gate_witnesses": 0
+  },
+  "limitations": [
+    "Archived Windows output independently decoded on Linux; no newly executed Win32 process.",
+    "Process kill in Practice is different from post-raw/pre-typed crash seam.",
+    "Original native crash seam raw files were not archived and cannot be independently compared.",
+    "Test-controlled catalog-row removal is not an OS crash.",
+    "Source-result records do not equal strict original/native complete-event acceptance.",
+    "SDL reported zero physical joysticks and dummy/disabled audio."
+  ]
+}

@@ -103,5 +103,20 @@
     "production renderer correction",
     "physical SNES HBlank",
     "other moving original/native scene parity"
-  ]
+  ],
+  "exclusive_bright_blue_countdown_arrow_coverage": {
+    "actual_blue_RGB8": [
+      57,
+      57,
+      255
+    ],
+    "all_460_original_RGB5_residual_positions_equal_XOR_of_global_and_selective_blue_masks": true,
+    "blue_only_in_global_consumed_prime_pixels": 229,
+    "blue_only_in_channel7_or_combined57_pixels": 231,
+    "blue_pixels_global_full_256x224": 9286,
+    "blue_pixels_channel57_full_256x224": 9288,
+    "blue_pixels_shared_between_both": 9057,
+    "non_arrow_colour_changed_pixels": 0,
+    "arrow_source_BG_OBJ_or_window_register_owner_proven": false
+  }
 }

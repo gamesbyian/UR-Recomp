@@ -87,6 +87,130 @@ def producer_failure_reason(producer_log: Path | None) -> str:
     return ""
 
 
+# This is a scientific candidate boundary, NOT another event comparator.
+# The underlying original/native producer is still the sole writer of these
+# executable full-WRAM/frame receipts, and the release ledger stays separate.
+FOLLOWTHROUGH_SCHEMA = "UR-QA01-SOURCE-ORIGINAL-NATIVE-RESULT-FOLLOWTHROUGH/2"
+FOLLOWTHROUGH_OFFSETS = (8, 16, 24, 32, 64, 72)
+FOLLOWTHROUGH_NAMED = ("menu", "track", "in_race",
+                       "p1_laps", "p2_laps", "p1_checkpoint", "p1_finish_gate")
+FOLLOWTHROUGH_SOURCE = ("menu", "track", "in_race")
+
+
+def classify_postresult_followthrough(report: dict, event: dict,
+                                      frames: dict) -> dict:
+    """Adjudicate *sampled* movie / fresh original / native continuation.
+
+    This cannot establish SRAM persistence, complete-event admission, or
+    equivalence of unsampled intermediary frames. It also cannot turn a
+    result-relative comparison into a race-relative timing correction.
+    """
+    record = report.get("source_terminal_followthrough")
+    archived = event.get("source_terminal_followthrough")
+    if record is None and archived is None:
+        return {"status": "not_observed", "samples": 0,
+                "first_named_divergence_offset": None,
+                "release_credit": 0}
+    if not isinstance(record, dict) or not isinstance(archived, dict):
+        raise ValueError("post-result source and fresh guest receipts must both exist")
+    if (record.get("schema") != FOLLOWTHROUGH_SCHEMA
+            or record.get("sample_count") != len(FOLLOWTHROUGH_OFFSETS)
+            or record.get("strict_event_comparator_unchanged") is not True
+            or type(record.get("release_complete_usa_event_credit")) is not int
+            or record["release_complete_usa_event_credit"] != 0
+            or record.get("source_guest_relative_result_onset_equivalence_proven") is not False
+            or record.get("post_result_sram_persistence_proven") is not False
+            or record.get("menu_restoration_or_final_progression_proven") is not False
+            or record.get("original_and_native_result_phase_equal_proven") is not (
+                frames["reference_relative"] == frames["native_relative"])):
+        raise ValueError("invalid or over-promotional post-result receipt")
+    samples = record.get("samples")
+    if not isinstance(samples, list) or len(samples) != len(FOLLOWTHROUGH_OFFSETS):
+        raise ValueError("missing or duplicated post-result sample window")
+    original_result = event["original_result_frame"]
+    original_host = report["reference_entry"] + frames["reference_relative"]
+    native_host = report["native_entry"] + frames["native_relative"]
+    first = None
+    differences = []
+    pairs_equal = []
+    bytepairs_equal = []
+    for row, offset in zip(samples, FOLLOWTHROUGH_OFFSETS):
+        source = archived.get(str(offset))
+        if not isinstance(row, dict) or not isinstance(source, dict):
+            raise ValueError("missing original source post-result frame")
+        if (type(row.get("offset_from_each_observed_result_onset")) is not int
+                or row["offset_from_each_observed_result_onset"] != offset
+                or row.get("source_original_movie") != source
+                or type(source.get("original_movie_host_frame")) is not int
+                or source["original_movie_host_frame"] != original_result + offset
+                or any(type(source.get(k)) is not int for k in FOLLOWTHROUGH_SOURCE)
+                or row.get("independently_observed_replay_host_frames")
+                != {"original": original_host + offset,
+                    "native": native_host + offset}):
+            raise ValueError("post-result host, source or offset identity mismatch")
+        guests = row.get("fresh_guests")
+        comparison = row.get("source_named_state_comparison")
+        if not isinstance(guests, dict) or not isinstance(comparison, dict):
+            raise ValueError("missing two fresh guest post-result states")
+        seen = {}
+        for side in ("original", "native"):
+            current = guests.get(side)
+            if not isinstance(current, dict) or any(
+                    type(current.get(k)) is not int for k in FOLLOWTHROUGH_NAMED):
+                raise ValueError("invalid post-result guest semantic bytes")
+            if (type(current.get("full_wram_bytes")) is not int
+                    or current["full_wram_bytes"] != 0x20000
+                    or not isinstance(current.get("wram_sha256"), str)
+                    or not HEX256.fullmatch(current["wram_sha256"])):
+                raise ValueError("invalid post-result 128KiB WRAM receipt")
+            mismatches = [k for k in FOLLOWTHROUGH_SOURCE
+                          if current[k] != source[k]]
+            claim = comparison.get(side)
+            if (not isinstance(claim, dict)
+                    or type(claim.get("source_named_state_equal")) is not bool
+                    or claim["source_named_state_equal"] != (not mismatches)
+                    or claim.get("named_fields_different_from_source") != mismatches):
+                raise ValueError("contradictory original movie/guest comparison")
+            seen[side] = mismatches
+        named = [k for k in FOLLOWTHROUGH_NAMED
+                 if guests["original"][k] != guests["native"][k]]
+        matched = not named
+        raw_equal = (guests["original"]["wram_sha256"]
+                     == guests["native"]["wram_sha256"])
+        if (type(row.get("paired_named_state_equal")) is not bool
+                or row["paired_named_state_equal"] != matched
+                or type(row.get("full_wram_bytes_equal")) is not bool
+                or row["full_wram_bytes_equal"] != raw_equal):
+            raise ValueError("contradictory post-result paired guest status")
+        pairs_equal.append(matched)
+        bytepairs_equal.append(raw_equal)
+        if seen["original"] or seen["native"] or named:
+            if first is None:
+                first = offset
+            differences.append({
+                "offset": offset,
+                "fresh_original_vs_source": seen["original"],
+                "native_vs_source": seen["native"],
+                "native_vs_fresh_original": named,
+            })
+    if (record.get("all_followthrough_named_pairs_equal") is not all(pairs_equal)
+            or record.get("all_followthrough_full_wram_pairs_equal")
+            is not all(bytepairs_equal)):
+        raise ValueError("contradictory post-result summary flags")
+    return {
+        "status": ("sampled_named_divergence" if differences
+                   else "six_sample_triplet_named_agreement"),
+        "samples": len(samples),
+        "first_named_divergence_offset": first,
+        "named_divergences": differences,
+        "all_fresh_wram_sha256_pairs_equal": all(bytepairs_equal),
+        "guest_relative_result_onset_matched": (
+            frames["reference_relative"] == frames["native_relative"]),
+        "unsampled_frames_or_persistence_proven": False,
+        "release_credit": 0,
+    }
+
+
 def classify(case: str, producer_rc: int, producer_path: Path,
              plan: dict, producer_log: Path | None = None) -> dict:
     validate_plan(plan)
@@ -161,11 +285,18 @@ def classify(case: str, producer_rc: int, producer_path: Path,
         if not strict and producer_rc == 0 and not comparison.get(
                 "diagnostic_exit_success_without_full_event_parity", False):
             raise ValueError("non-strict result returned success without diagnostic contract")
+        continuation = classify_postresult_followthrough(report, event, frames)
         row["disposition"] = "strict_candidate" if strict else "strict_divergence"
         row["reason"] = ("strict paired-event candidate; NOT an independently "
                          "adjudicated course pass" if strict else
                          "strict original/native paired-event comparator is negative")
+        if continuation["status"] == "sampled_named_divergence":
+            row["reason"] += (
+                "; independently recorded post-result named-state difference "
+                f"at result-relative +{continuation['first_named_divergence_offset']}; "
+                "not a complete-event lifecycle pass")
         row["evidence"] = {
+            "post_result_bounded": continuation,
             "producer_sha256": hashlib.sha256(producer_path.read_bytes()).hexdigest(),
             "rom_sha256": report["rom_sha256"],
             "movie_sha256": report["original_movie_sha256"],
@@ -239,6 +370,23 @@ def aggregate(plan: dict, results_dir: Path) -> tuple[dict, str]:
                         or ev["native_entry_frame"] - ev["reference_entry_frame"]
                         != ev["native_frame_shift"]):
                     raise ValueError("case original/native start and shift identity inconsistent")
+                follow = ev.get("post_result_bounded")
+                if (not isinstance(follow, dict)
+                        or follow.get("status") not in (
+                            "not_observed", "sampled_named_divergence",
+                            "six_sample_triplet_named_agreement")
+                        or type(follow.get("release_credit")) is not int
+                        or follow["release_credit"] != 0
+                        or type(follow.get("samples")) is not int
+                        or follow["samples"] not in (0, len(FOLLOWTHROUGH_OFFSETS))
+                        or (follow["status"] == "not_observed")
+                        != (follow["samples"] == 0)
+                        or (follow["status"] == "sampled_named_divergence")
+                        != (follow.get("first_named_divergence_offset") is not None)
+                        or (follow.get("first_named_divergence_offset") is not None
+                            and follow["first_named_divergence_offset"]
+                            not in FOLLOWTHROUGH_OFFSETS)):
+                    raise ValueError("missing or malformed bounded post-result disposition")
                 frames = ev.get("terminal_guest_relative_frames")
                 if not isinstance(frames, dict) or any(
                     type(frames.get(k)) is not int or frames[k] < 0 for k in

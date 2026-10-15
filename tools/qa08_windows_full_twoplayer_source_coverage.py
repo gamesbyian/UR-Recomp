@@ -66,13 +66,13 @@ def inspect_native_ppu_registers(log:str)->dict:
 
 
 HDMA7_PRE=re.compile(
-    r"^UR_QA08_WIN_HDMA7 frame=(\\d+) phase=pre enable=(\\d+) "
-    r"terminated=(\\d+) transfer=(\\d+) aBank=([0-9a-f]{2}) "
+    r"^UR_QA08_WIN_HDMA7 frame=(\d+) phase=pre enable=(\d+) "
+    r"terminated=(\d+) transfer=(\d+) aBank=([0-9a-f]{2}) "
     r"aAdr=([0-9a-f]{4}) tableAdr=([0-9a-f]{4}) rep=([0-9a-f]{2}) "
     r"bAdr=([0-9a-f]{2}) bytes=([0-9a-f]{16}) inidisp=([0-9a-f]{2})$",re.M)
 HDMA7_POST=re.compile(
-    r"^UR_QA08_WIN_HDMA7 frame=(\\d+) phase=post enable=(\\d+) "
-    r"terminated=(\\d+) transfer=(\\d+) tableAdr=([0-9a-f]{4}) "
+    r"^UR_QA08_WIN_HDMA7 frame=(\d+) phase=post enable=(\d+) "
+    r"terminated=(\d+) transfer=(\d+) tableAdr=([0-9a-f]{4}) "
     r"rep=([0-9a-f]{2}) inidisp=([0-9a-f]{2})$",re.M)
 
 

@@ -71,5 +71,51 @@ class FullWramByteAuditTests(unittest.TestCase):
                 probe.audit_qa01_wram_pair(bad, complete)
 
 
+
+class DenseZooPhaseByteAuditTests(unittest.TestCase):
+    def test_contiguous_result_window_retains_first_raw_mismatch(self):
+        from tempfile import TemporaryDirectory
+        from unittest import mock
+
+        with TemporaryDirectory() as t:
+            root = Path(t)
+            (root / "ref").mkdir()
+            (root / "native").mkdir()
+            logs = []
+            for side, entry in (("ref", 1017), ("native", 1019)):
+                lines = []
+                for frame in probe.ZOO_TERMINAL_FRAMES:
+                    tag = f"zoo-phase-{frame:05d}"
+                    data = bytearray(0x20000)
+                    data[0x00CE] = 1
+                    data[0x009F] = 0xBC if frame >= 5163 else 0x16
+                    data[0x0313] = 0x3D if frame >= 5163 else 1
+                    if side == "native" and frame == 5164:
+                        data[0x01DD] = 0x42
+                    (root / side / f"{tag}.wram.bin").write_bytes(data)
+                    lines.append(f"script f={entry + frame} dump {tag} ok")
+                logs.append("\n".join(lines) + "\n")
+            with mock.patch.object(probe.engine, "race_entry_frame",
+                                   side_effect=[1017, 1019]):
+                out = probe.summarize_zoo_terminal_phase(
+                    root, logs[0], logs[1], 1017, 1019, 5163, 5163)
+            edge = out["contiguous_post_result_observation"]
+            self.assertIsNone(edge["first_named_state_difference_frame"])
+            self.assertIsNone(edge["first_gameplay_field_difference_frame"])
+            self.assertEqual(edge["first_unmasked_wram_byte_difference_frame"], 5164)
+            self.assertFalse(edge["all_postresult_full_wram_byte_pairs_equal"])
+            self.assertEqual(edge["first_full_wram_digest_difference_frame"], 5164)
+            mismatched = next(x for x in out["relative_frame_comparisons"]
+                              if x["relative_frame"] == 5164)
+            self.assertEqual(mismatched["full_wram_byte_difference"][
+                "first_differing_address"], "7E:01DD")
+            self.assertEqual(mismatched["full_wram_byte_difference"][
+                "differing_byte_count"], 1)
+            self.assertTrue(next(x for x in out["relative_frame_comparisons"]
+                                 if x["relative_frame"] == 5163)[
+                                     "full_wram_byte_difference"]["byte_exact"])
+            self.assertEqual(out["release_complete_event_credit"], 0)
+
+
 if __name__ == "__main__":
     unittest.main()

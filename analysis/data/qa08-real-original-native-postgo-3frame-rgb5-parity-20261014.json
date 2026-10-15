@@ -1,0 +1,98 @@
+{
+  "schema": "qa08-real-original-native-2p-postgo-three-frames-rgb5-parity/1",
+  "status": "source_video_RGB5_pixel_exact_in_three_real_postGO_scenes_under_experimental_first_line_HDMA_consumption",
+  "source_PR": 1614,
+  "workflow_run": 38665202913,
+  "artifact_id": 11940454106,
+  "native_archive_sha256": "51593205e289a532666bc0163e66eb5f1da85c8c6046232e37b671f1f7482bf1",
+  "producer_37callback_comparator_report_sha256": "64f78d45b8ceb979e620f016e07145a4a4dec03605b39ad87568e86ca73440b8",
+  "original_37callback_source_archive_sha256": "6e5d488230c11d3dfcd144b6a7cbc8c25d7acfcb4f95b776a85071dd3487f5e3",
+  "original_source_callback_window_inclusive": [
+    2188,
+    2224
+  ],
+  "independently_recomputed_every_original_RGB5_pixel": true,
+  "actual_source_geometry": [
+    256,
+    224
+  ],
+  "real_native_process_variants": [
+    "stock",
+    "global",
+    "channel7",
+    "channel57"
+  ],
+  "native_guest_CRC_entries_all_four": 2473,
+  "native_guest_CRC_all_four_identical": true,
+  "native_CRC_SHA256": "4280056aef50acde83ca9ce82d0a12f8a5b7190a18e42a5d24401b65c44e205d",
+  "verified_frame_pairs": [
+    {
+      "native_guest": 2192,
+      "original_callback": 2191,
+      "global_accepted_best_callback": 2191,
+      "global_second_best_score_gap_pixels": 19515,
+      "postgo_motion_source_distinct_from_callback2207": true,
+      "wrong_normalized_original_RGB5_pixels": {
+        "stock": 512,
+        "global": 0,
+        "channel7": 0,
+        "channel57": 0
+      },
+      "native_source_P7_sha256": {
+        "stock": "7e0cfab20c5342c242d7eeb0c77bff2d132ee1426a62d3a3759f43bd3f95027e",
+        "global": "fac9f37e04b752676346bd75345e6e988b88e5cf6703722618d8a968ec90b36c",
+        "channel7": "fac9f37e04b752676346bd75345e6e988b88e5cf6703722618d8a968ec90b36c",
+        "channel57": "fac9f37e04b752676346bd75345e6e988b88e5cf6703722618d8a968ec90b36c"
+      }
+    },
+    {
+      "native_guest": 2208,
+      "original_callback": 2207,
+      "verified_prior_source_frame": true,
+      "wrong_normalized_original_RGB5_pixels": {
+        "stock": 512,
+        "global": 0,
+        "channel7": 0,
+        "channel57": 0
+      },
+      "source_P7_sha256": {
+        "stock": "a946c9ebb54775639b8fd87a6861af0408cceed4896e58be05908c4a4491c67f",
+        "global": "bf8b4218fb72f94338b19da5c1386bd5ce09c0dc0c767093286e80895fa3353c",
+        "channel7": "bf8b4218fb72f94338b19da5c1386bd5ce09c0dc0c767093286e80895fa3353c",
+        "channel57": "bf8b4218fb72f94338b19da5c1386bd5ce09c0dc0c767093286e80895fa3353c"
+      }
+    },
+    {
+      "native_guest": 2224,
+      "original_callback": 2223,
+      "global_accepted_best_callback": 2223,
+      "global_second_best_score_gap_pixels": 21011,
+      "postgo_motion_source_distinct_from_callback2207": true,
+      "wrong_normalized_original_RGB5_pixels": {
+        "stock": 512,
+        "global": 0,
+        "channel7": 0,
+        "channel57": 0
+      },
+      "native_source_P7_sha256": {
+        "stock": "8271ed54cc2f1c1841cbd0f1e0c6b77e278dce721a2e1efe1a6ba432897535b4",
+        "global": "d64e7b2fee2ff9f21b5fad7f4e8618ea27ad8846c6b6047ca9c511583bde6bd8",
+        "channel7": "d64e7b2fee2ff9f21b5fad7f4e8618ea27ad8846c6b6047ca9c511583bde6bd8",
+        "channel57": "d64e7b2fee2ff9f21b5fad7f4e8618ea27ad8846c6b6047ca9c511583bde6bd8"
+      }
+    }
+  ],
+  "contrast_countdown_native1856_original1855_wrong": {
+    "stock": 971,
+    "global": 0,
+    "channel7": 460,
+    "channel57": 460
+  },
+  "unmasked_every_RGB5_pixel": true,
+  "original_native_guest_CPU_state_camera_input_phase_certified": false,
+  "full_moving_event_1P_transitions_results_achieved": false,
+  "effective_active_display_OAM_and_full_window_source_owner_proven": false,
+  "cross_game_SNES_HDMA_hardware_compatibility_proven": false,
+  "production_renderer_correction_authorized": false,
+  "current_remastered_art_owner_approved": false
+}

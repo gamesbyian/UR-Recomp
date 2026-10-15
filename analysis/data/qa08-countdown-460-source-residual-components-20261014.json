@@ -1,0 +1,107 @@
+{
+  "schema": "qa08-authentic-original-native-2p-countdown-hdma-460-pixel-components/1",
+  "status": "source-pixel-residual-geometry-only-no-causal_channel_attribution",
+  "actual_original_run": 38630121814,
+  "actual_original_artifact": 11925517895,
+  "original_archive_sha256": "56ec0011a3559f5953578c495d080d0150f2a06fb7a76c2e437fab781e2b2ce6",
+  "native_four_process_run": 38642367882,
+  "native_artifact": 11930109109,
+  "native_archive_sha256": "a6aae4f82644c93b43f98f336d72c21d24846fea5f8377e18cbc54e37c1b3040",
+  "original_callback": 1855,
+  "native_guest_frame": 1856,
+  "original_size": [
+    256,
+    224
+  ],
+  "candidate_native_P7_sha256": {
+    "global": "ed35731cde55e927165f173c1db29c27db3467cb8bc87",
+    "selective_ch7": "f717a2841b6fbc8497b601f75db24d7c36c750bba5df4f6f41258a127ddf94fb",
+    "combined_ch5_ch7": "f717a2841b6fbc8497b601f75db24d7c36c750bba5df4f6f41258a127ddf94fb"
+  },
+  "RGB5_compare": {
+    "global_wrong_pixels": 0,
+    "selective_wrong_pixels": 460,
+    "combined_wrong_pixels": 460,
+    "all_channels_pixel_exact": true
+  },
+  "residual_difference_components_8_neighbor": [
+    {
+      "component": 1,
+      "region": "upper",
+      "pixels": 226,
+      "bounding_box_xyxy": [
+        29,
+        55,
+        220,
+        110
+      ]
+    },
+    {
+      "component": 2,
+      "region": "lower",
+      "pixels": 234,
+      "bounding_box_xyxy": [
+        29,
+        113,
+        225,
+        176
+      ]
+    }
+  ],
+  "half_width_raster_segments": [
+    {
+      "output_row": 98,
+      "pixels": 128,
+      "x_runs": [
+        [
+          30,
+          156,
+          127
+        ],
+        [
+          208,
+          208,
+          1
+        ]
+      ]
+    },
+    {
+      "output_row": 133,
+      "pixels": 128,
+      "x_runs": [
+        [
+          30,
+          156,
+          127
+        ],
+        [
+          208,
+          208,
+          1
+        ]
+      ]
+    }
+  ],
+  "full_black_original_split_rows_y": [
+    111,
+    112
+  ],
+  "residual_changed_pixels_on_y111_or_y112": 0,
+  "residual_unique_threeway_pixel": {
+    "x": 223,
+    "y": 113,
+    "original_snes9x_BGRX_hex": "ff383900",
+    "native_ch57_RGBA_hex": "84a5a500",
+    "native_global_RGBA_hex": "3939ff00"
+  },
+  "no_source_P7_alpha_differences": true,
+  "observed_effect": "two triangular/diamond-like contour components surrounding a wide horizontal edge in each 2P viewport; interpretation only",
+  "not_proven": [
+    "effective window register owner",
+    "HDMA channel identity",
+    "BG/OBJ final source owner",
+    "production renderer correction",
+    "physical SNES HBlank",
+    "other moving original/native scene parity"
+  ]
+}

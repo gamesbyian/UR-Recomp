@@ -123,6 +123,22 @@ This does **not** prove a hard-killed process can recover an in-memory
 Practice session or perform a strict original-emulator full-event parity
 check. Release quality, hardware and all other stock tours remain pending.
 
+## Native Practice hard-kill lifecycle (candidate, 2026-10-14)
+
+The existing Windows Practice probe additionally terminates a named-Mike
+native process (`Process.kill`, i.e. TerminateProcess) once the source
+Dragster GO ticker is live, so neither the Practice SRAM restore nor the native
+SRAM writer runs. It then requires: selector, catalog, typed profile and 8-KiB
+raw SRAM byte-identical to their pre-Practice bytes; no `.urrun`; a fresh
+ordinary Mike boot whose guest `BOOT_SRAM` FNV equals those raw bytes; and a
+further Practice launch that is still admitted despite the stale
+`practice-session` directory and restores/exits normally with the same bytes.
+The ordinary reboot may legitimately rewrite the typed profile via its normal
+native checkpoint, so the final Practice is compared against the post-reboot
+bytes while raw SRAM, selector and catalog must still equal the originals.
+Pending exact-head native Windows CI; this adds no product code and is not an
+OS power-loss, physical-pad or release-ledger claim.
+
 ## Native first source-qualified Practice route (candidate, 2026-10-14)
 
 The existing shared Modern frontend has a 45-course Quick Practice catalog,

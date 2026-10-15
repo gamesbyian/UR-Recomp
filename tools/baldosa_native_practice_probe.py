@@ -11,10 +11,16 @@ Not physical gamepad acceptance, full 45-course eligibility or release credit.
 from __future__ import annotations
 
 import argparse
+import difflib
+import hashlib
 import json
+import os
+import subprocess
+import time
 from pathlib import Path
 
-from baldosa_native_first_racer_probe import run_game, verify_creation
+from baldosa_native_first_racer_probe import (
+    run_game, verify_boot_sram, verify_creation)
 from baldosa_windows_native_pause_route import USA_SHA256, sha256
 
 
@@ -54,6 +60,155 @@ def require_native_practice_source(log: str) -> None:
         "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=",
     )):
         raise ValueError("Practice route bypassed a source gate or forged Records")
+
+
+PRACTICE_STAY_SCRIPT = (
+    "turbo on\n"
+    "until16 0053 == F60C\n"
+    "wait 900\n"
+    "until16 0053 == 8610\n"
+    "until 0E1F != 00\n"
+    "wait 200000\n"
+    "quit\n")
+
+
+def run_game_hard_killed(exe: Path, rom: Path, user: Path, work: Path,
+                         *, video: str, timeout: int) -> str:
+    """Start the real Practice route and TerminateProcess it once the source
+    Dragster GO ticker is live, so no normal shutdown (and thus no restore of
+    the stock SRAM snapshot or native SRAM writer) can run."""
+    work.mkdir(parents=True, exist_ok=False)
+    (work / "stock-route.txt").write_text(PRACTICE_STAY_SCRIPT, encoding="ascii")
+    ini = work / "config.ini"
+    ini.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+    env = {**os.environ,
+           "SNESRECOMP_USER_DATA_DIR": str(user),
+           "UR_EXECUTION_MODE": "modern",
+           "UR_BALDOSA_MODERN_ROOT": "1",
+           "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "11",
+           "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
+           "UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS": "1",
+           "UR_BALDOSA_MODERN_INPUT": "1",
+           "UR_BALDOSA_PAUSE_SMOKE": "0",
+           "SDL_VIDEODRIVER": video,
+           "SDL_AUDIODRIVER": "dummy"}
+    log_path = work / "log.txt"
+    deadline = time.monotonic() + timeout
+    reached = False
+    killed_live = False
+    with open(log_path, "wb") as sink:
+        proc = subprocess.Popen(
+            [str(exe), "--no-launcher", "--config", str(ini),
+             "--script", str(work / "stock-route.txt"), str(rom)],
+            cwd=work, env=env, stdout=sink, stderr=subprocess.STDOUT)
+        try:
+            while time.monotonic() < deadline and proc.poll() is None:
+                time.sleep(0.5)
+                text = log_path.read_bytes().decode("utf-8", "replace")
+                if "until 00E1F ok" in text:
+                    reached = True
+                    break
+        finally:
+            # Fail closed: only a child demonstrably alive at this instant is
+            # killed; one that already exited or crashed proves nothing.
+            if reached and proc.poll() is None:
+                proc.kill()
+                killed_live = True
+            elif proc.poll() is None:
+                proc.kill()
+            proc.wait(timeout=30)
+    log = log_path.read_bytes().decode("utf-8", "replace")
+    # Exit receipt is written before any verdict so a failing route keeps it.
+    (work / "kill-receipt.json").write_text(json.dumps({
+        "script_token_seen": reached,
+        "killed_while_alive": killed_live,
+        "kill_method": "subprocess.Popen.kill (TerminateProcess on Windows)",
+        "process_returncode": proc.returncode,
+        "script_quit_or_normal_shutdown": "practice_sram_restored=1" in log,
+    }, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    if not reached:
+        raise RuntimeError("Practice never reached live source GO before kill: "
+                           + log[-1800:])
+    if not killed_live:
+        raise RuntimeError("Practice process was no longer live at the kill "
+                           "point (exited/crashed after GO): " + log[-1800:])
+    # TerminateProcess/SIGKILL always yield a non-zero, non-clean status; a
+    # script `quit` or normal shutdown would have returned 0.
+    if proc.returncode in (0, None):
+        raise RuntimeError("Killed Practice process reported a clean exit")
+    if "script f=" in log and " quit" in log.split("until 00E1F ok", 1)[-1]:
+        raise RuntimeError("Practice reached script quit/normal shutdown")
+    return log
+
+
+def snapshot(user: Path, names) -> dict[str, bytes]:
+    out: dict[str, bytes] = {}
+    for name in names:
+        path = user / name
+        if path.is_symlink() or not path.is_file():
+            raise ValueError("Named authority file missing/redirected: " + name)
+        out[name] = path.read_bytes()
+    return out
+
+
+def _fields(raw: bytes) -> dict[str, str]:
+    out: dict[str, str] = {}
+    for line in raw.decode("utf-8", "replace").splitlines():
+        key, sep, value = line.partition("=")
+        out[key if sep else line] = value
+    return out
+
+
+def compact_typed_diff(before: bytes, after: bytes) -> list[str]:
+    """Bounded, SRAM-free typed-profile diff. Long values (the embedded
+    8 KiB SRAM hex) are never copied: report lengths, SHA-256 prefixes and at
+    most 16 changed byte ranges. Short canonical fields are shown as is."""
+    old, new = _fields(before), _fields(after)
+    lines: list[str] = []
+    for key in sorted(set(old) | set(new)):
+        a, b = old.get(key), new.get(key)
+        if a == b:
+            continue
+        if max(len(a or ""), len(b or "")) <= 80:
+            lines.append(f"{key}: {a!r} -> {b!r}")
+            continue
+        sha = lambda v: hashlib.sha256((v or "").encode()).hexdigest()[:16]
+        lines.append(f"{key}: long value len {len(a or '')}->{len(b or '')} "
+                     f"sha256[:16] {sha(a)}->{sha(b)}")
+        try:
+            ra, rb = bytes.fromhex(a or ""), bytes.fromhex(b or "")
+        except ValueError:
+            continue
+        if len(ra) == len(rb):
+            diffs = [i for i in range(len(ra)) if ra[i] != rb[i]]
+            lines.append(f"{key}: {len(diffs)} byte(s) differ")
+            for i in diffs[:16]:
+                lines.append(f"{key}: offset 0x{i:04X} {ra[i]:02X}->{rb[i]:02X}")
+    return lines[:48]
+
+
+def record_boundary(receipts: list, receipt_path: Path, stage: str,
+                    user: Path, reference: dict[str, bytes],
+                    reference_label: str) -> list[str]:
+    """Record SHA-256 and (for the small text typed profile) a bounded line
+    diff of every authority file against a reference at one boundary. Written
+    immediately so a failing route retains the localizing receipt."""
+    now = snapshot(user, reference)
+    changed = [n for n in reference if now[n] != reference[n]]
+    entry = {"stage": stage, "compared_to": reference_label,
+             "changed": changed,
+             "sha256": {n: hashlib.sha256(b).hexdigest()
+                        for n, b in now.items()},
+             "reference_sha256": {n: hashlib.sha256(b).hexdigest()
+                                  for n, b in reference.items()}}
+    for n in changed:
+        if n.endswith("host-profile.txt"):
+            entry["typed_profile_diff"] = compact_typed_diff(
+                reference[n], now[n])
+    receipts.append(entry)
+    receipt_path.write_text(json.dumps(receipts, indent=2, sort_keys=True)
+                            + "\n", encoding="utf-8")
+    return changed
 
 
 def run(exe: Path, rom: Path, out: Path,
@@ -115,6 +270,32 @@ def run(exe: Path, rom: Path, out: Path,
     }
     if len(named_files["saves/profile-mike/save.srm"]) != 8192:
         raise ValueError("Original named source SRAM is not 8 KiB")
+    # Measured on exact Windows CI (run 38641281896): the very first ordinary
+    # shutdown of a freshly created profile rewrites its raw SRAM even when
+    # the guest only idled. Establish the career baseline AFTER that
+    # normalization, and prove the baseline is stable with a control idle
+    # boot that must change nothing. Practice is then judged against it.
+    auth_files = tuple(named_files)
+    receipts: list = []
+    receipt_path = out / "boundary-receipts.json"
+    for label in ("ordinary_idle_boot_1_normalizes",
+                  "ordinary_idle_boot_2_control"):
+        idle = run_game(
+            exe, rom, named_user, out / label, "0",
+            "turbo on\nwait 600\nquit\n", video, timeout)
+        for forbidden in ("stock_requested", "stock_entered",
+                          "UR_BALDOSA_NATIVE_RUN CAPTURED=1"):
+            if forbidden in idle:
+                raise ValueError("Idle baseline boot entered play: " + forbidden)
+        changed = record_boundary(receipts, receipt_path, label, named_user,
+                                  named_files, "previous_stage")
+        if {"host-state-v1.txt", "profiles-v1.txt"} & set(changed):
+            raise ValueError("Idle boot changed selector/catalog: " +
+                             ", ".join(changed))
+        if label.endswith("control") and changed:
+            raise ValueError("Ordinary idle boot is not idempotent after "
+                             "normalization: " + ", ".join(changed))
+        named_files = snapshot(named_user, auth_files)
     # Compare exact actual guest-created profile bytes, with no fixture
     # seeding or data repair; the P1 files must survive a fresh practice game.
     named_log = run_game(
@@ -146,7 +327,91 @@ def run(exe: Path, rom: Path, out: Path,
     scratch = named_user / "practice-session"
     if scratch.is_symlink() or not scratch.is_dir():
         raise ValueError("Native Practice did not bind disposable save root")
+    # Crash lifecycle: hard-kill the process while the Practice SRAM sandbox
+    # is live (no restore, no native save). Authoritative named bytes must be
+    # untouched, the next ordinary boot must load the exact same stock SRAM,
+    # and a stale practice-session directory must not block a new Practice.
+    killed = run_game_hard_killed(
+        exe, rom, named_user, out / "named_p1_practice_hard_killed",
+        video=video, timeout=timeout)
+    for required in (
+        "UR_BALDOSA_MODERN_ROOT practice_sram_sandbox=1 bytes=8192 ",
+        "UR_BALDOSA_MODERN_ROOT practice_entered=1 course=0 ",
+    ):
+        if required not in killed:
+            raise ValueError("Killed Practice never owned the sandbox: " + required)
+    if "practice_sram_restored=1" in killed:
+        raise ValueError("Hard-kill test unexpectedly shut down normally")
+    original_srm = named_files["saves/profile-mike/save.srm"]
+    changed = record_boundary(receipts, receipt_path, "after_hard_kill",
+                              named_user, named_files, "pre_practice_original")
+    if changed:
+        raise ValueError("Hard-killed Practice altered named data: " +
+                         ", ".join(changed))
+    if archive.exists() and list(archive.rglob("*.urrun")):
+        raise ValueError("Hard-killed Practice minted an earned run")
+    rebooted = run_game(
+        exe, rom, named_user, out / "named_p1_boot_after_practice_kill", "0",
+        "turbo on\nwait 600\nquit\n", video, timeout)
+    verify_boot_sram(rebooted, named_files["saves/profile-mike/save.srm"],
+                     profile="mike")
+    # Smoke "0" injects no root input: this boot must NOT enter a career
+    # game (which would legitimately commit changed SRAM and invalidate the
+    # baseline). Fail closed if the guest played anything.
+    for forbidden in ("stock_requested", "stock_entered",
+                      "UR_BALDOSA_NATIVE_RUN CAPTURED=1"):
+        if forbidden in rebooted:
+            raise ValueError("Post-kill witness boot entered play: " + forbidden)
+    # An ordinary Mike boot enters stock play and ends in the normal native
+    # shutdown/typed checkpoint. Record exactly what it changed (typed
+    # profile diff included) instead of assuming. Raw SRAM, selector and
+    # catalog must always still equal the originals; any typed-profile
+    # change here is a receipt-visible ordinary-boot effect, and the
+    # post-kill Practice below is judged against these bytes strictly.
+    changed = record_boundary(receipts, receipt_path, "after_ordinary_reboot",
+                              named_user, named_files, "pre_practice_original")
+    stable = {"host-state-v1.txt", "profiles-v1.txt",
+              "saves/profile-mike/save.srm"}
+    if stable & set(changed):
+        raise ValueError("Ordinary boot after kill changed " +
+                         ", ".join(sorted(stable & set(changed))))
+    post_reboot = snapshot(named_user, named_files)
+    retried = run_game(
+        exe, rom, named_user, out / "named_p1_practice_after_kill", "11",
+        "turbo on\n"
+        "until16 0053 == F60C\n"
+        "wait 900\n"
+        "until16 0053 == 8610\n"
+        "until 0E1F != 00\n"
+        "dump practice_after_kill_go\n"
+        "quit\n",
+        video, timeout)
+    # The re-admitted Practice must itself boot the exact original career SRAM.
+    verify_boot_sram(retried, original_srm, profile="mike")
+    for required in (
+        "UR_BALDOSA_MODERN_ROOT practice_sram_sandbox=1 bytes=8192 ",
+        "UR_BALDOSA_MODERN_ROOT practice_entered=1 course=0 ",
+        "UR_BALDOSA_MODERN_ROOT practice_sram_restored=1 bytes=8192 ",
+    ):
+        if required not in retried:
+            raise ValueError("Practice after hard kill failed: " + required)
+    record_boundary(receipts, receipt_path,
+                    "after_practice_vs_original", named_user, named_files,
+                    "pre_practice_original")
+    changed = record_boundary(receipts, receipt_path,
+                              "after_practice_after_kill", named_user,
+                              post_reboot, "post_ordinary_reboot")
+    if changed:
+        raise ValueError("Practice after kill altered named data: " +
+                         ", ".join(changed))
     return {
+        "hard_killed_practice_kill_receipt": json.loads(
+            (out / "named_p1_practice_hard_killed" /
+             "kill-receipt.json").read_text(encoding="utf-8")),
+        "boundary_receipts": receipts,
+        "hard_killed_practice_named_bytes_unchanged": True,
+        "boot_after_practice_kill_exact_sram": True,
+        "practice_after_kill_admitted_and_restored": True,
         "scope": "one-real-native-windows-p1-practice-first-course",
         "source_course": "Dragster",
         "source_course_index": 1,

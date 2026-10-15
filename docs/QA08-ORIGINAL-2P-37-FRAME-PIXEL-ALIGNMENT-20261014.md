@@ -146,3 +146,34 @@ independent current discriminator before selecting a production
 renderer correction. Nothing here grants an HD art or Widescreen
 sprite replacement admission; original 256×224, PAR7:6 and genuine
 4× Original remain invariant.
+
+
+## Disposable native moving-source selector, ready for the next genuine AOT
+
+The optional source-only staging tool
+[qa08_patch_extra_original_source_capture.py](../tools/qa08_patch_extra_original_source_capture.py)
+attaches **two additional exact read-only Original PPU source selectors**
+to the already present Baldosa host callback. It validates unique
+pinned source anchors before editing a *disposable checkout*.
+The two new opt-ins are
+UR_QA08_ADDITIONAL_SOURCE_FRAME_A=2192 and
+UR_QA08_ADDITIONAL_SOURCE_FRAME_B=2224. Any other value does
+not trigger the new capture path. The unchanged already-shipping
+host source is not modified by the repository change itself.
+
+This method reuses the real source draw callback, exact 256x224
+source-field guard, guest frame identity, existing P7 binary
+writer and existing QA08 accepted-CRC route. It does not
+synthesize absent frames or use 342-wide presentation cropping,
+does not change a pixel in the source renderer, and leaves
+Original, 7:6 PAR, 4x fallback and widened geometry untouched.
+Negative/source-drift tests reject altered anchors and duplicates.
+
+**No native output from 2192 or 2224 is claimed here.**
+The patch must be used within a future independently executed pinned
+2P AOT job and must verify that *actual frames* were presented and
+retained as genuine original-source-sized P7, with exact guest CRCs,
+before using original Snes9x callbacks2191/2223 in source pixel
+comparisons. Source-frame phase remains unproven for these new
+candidate pairings. Avoid rerunning this expensive AOT until
+the separately executing channel5+7 HDMA discriminator is classified.

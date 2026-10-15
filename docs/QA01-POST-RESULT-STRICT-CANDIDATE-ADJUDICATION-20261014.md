@@ -147,3 +147,88 @@ comparator or alter its runtime/source fix.
 snapshots from UR, source-pinned Baldosa product guest, and malmazuke
 replay/finish lead have been checked. This adds neither another emulator
 runner nor a new workflow, CI factory, release ledger or 45-case oracle.
+
+## Independent reconstruction of the producer's positive prerequisites
+
+The campaign's distributed case classifier and aggregator additionally
+cross-check every *named* positive prerequisite for the existing producer
+`paired_event_candidate` flag: real terminal menu, matching settled PPU
+text, positive P1 score/time, circuit lap progression and zero remaining
+laps, out-of-race terminal states, matched independently observed fresh
+entry, no sampled-state disagreement and equal guest-relative result onset.
+A missing, non-boolean, or internally contradictory prerequisite is
+`producer_error`, not a scientific strict divergence and never an
+accepted event. The cross-shard case receipt exposes the gate vector and
+the aggregate fail-closes on an internally inconsistent or missing vector.
+
+This independent **receipt-consistency** check is intentionally narrower
+than a second executable comparator. It does not reconstruct per-frame
+CPU/NMI activity, validate the producer's raw full-WRAM bytes afresh,
+sample unobserved frames, turn 43 sparse state matches into continuous
+logic-tick equality, prove a cold-process SRAM reload, or waive the
+separate result+2 lifecycle discrepancy. The producer's original strict
+predicate and `RELEASE-QUALITY-LEDGER.json` remain untouched, including
+USA 0/45. Synthetic negative tests cannot themselves establish gameplay
+parity.
+
+## Strict comparator ruling: three inequivalent clocks and proof standards
+
+**Decision on 2026-10-15: preserve the existing strict event comparator
+unchanged. No logic-frame waiver is authorized.** The following three
+relations have different prerequisites and cannot substitute for one another:
+
+1. **Source-frame observation.** Original SMV absolute frame, fresh Snes9x
+   `script f` and native guest `script f` each record a postframe state
+   according to their own entry origin and observation scheduling.
+   `ICPU.Frame`, PPU beam position and an SNESRecomp pre-run host frame
+   are further distinct labels. Equality at one absolute host index is not
+   equality at one race-relative update index, and either can hide a CPU/NMI
+   ordering difference. Frame receipts must preserve all axes, not silently
+   rebase input.
+2. **Logic-tick equivalence.** A proposed canonical guest logic tick would
+   need independently observed original-USA instruction/interrupt boundaries,
+   guest read/consume order and both controller-latch masks, with a
+   corresponding native operation sequence at the same semantic boundary.
+   A `+1` frame offset inferred from menus or a synthetic shifted script is
+   not such an oracle. No source-proven cross-engine tick mapping presently
+   satisfies this standard. An alternative can remain a *diagnostic*
+   hypothesis, but cannot replace or loosen the current strict acceptance.
+3. **Actual gameplay-state equality.** Independently reproduce the full
+   authentic input route and event mechanics, winner/score/clock/finish,
+   result return, tour progression, next permissible event, record rank
+   and full SRAM identity including a cold second-process read. Matching
+   visible times or six result-relative SRAM snapshots verifies only those
+   observed outputs/bytes, never the unsampled CPU and result lifecycle.
+
+**Why Zoom Zoo remains first priority.** RF-015's corrected pinned Baldosa
+candidate yielded equal original/native **result onset +5163/+5163** in the
+earlier source-qualified local experiment, but independently observed
+result-screen exit is **native +5179 / original +5180**. The existing
+`+8/+16/+24/+32/+64/+72` follow-through identifies +16 as the earliest
+*sampled* named difference, not the earliest different execution frame or
+instruction. Existing fixed-frame snapshots stop at +5173. The separate
+owned contiguous observer in PR #1640 extends this one opt-in source pair to
++5186; its synthetic edge demonstration supplies **no real guest receipt**.
+The source-visible first relevant writer and its CPU/NMI/beam scheduling
+remain RF-017/Agent 5 territory, not an input rebase or gameplay patch here.
+
+**Other genuine sources are weaker admission candidates today:** Bowl scored
+Stunt's MIKE 764 and six equal 8KiB post-result SRAM snapshots have no
+cold-process reload and an unresolved historical +3365/+3364 result phase.
+Switcher Race B reproduces MIKE 1:08.81 but after RF-015 still has
++4704/+4703 guest-relative result frames. Original Dragster Race A is now
+a real unadmitted fresh original/native run
+([38665417679](https://github.com/gamesbyian/UR-Recomp/actions/runs/38665417679)):
+actual archived entry/result 794/2874, fresh entries 945/945, terminal
+**reference +2081/native +2079** on the historical uncorrected research
+guest, matching settled result text with no sampled active-state mismatch.
+That result cannot be extrapolated to RF-015 or certified from host-frame
+equality. No fourth route outranks corrected Zoom Zoo's proven onset
+candidate without a new unchanged-source, exact-binary witness.
+
+Once the event's source instruction/phase dispute is resolved, the next
+specific qualification is original/native menu return, records/progression
+and **independent cold-start SRAM recovery**, then one reviewed source-pinned
+Windows candidate correlation. Do not launch a generic 45-course census
+to conceal the first failed complete event. Explicit status: **0 of 45 USA
+events fully admitted**, no release ledger update.

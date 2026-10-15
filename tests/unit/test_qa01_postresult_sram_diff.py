@@ -159,6 +159,15 @@ class ZooSramByteAttributionTests(unittest.TestCase):
                          ["0x0D", "0x0D"])
         self.assertEqual(v["source_name_lead"]["authority"].startswith(
             "imported lead only"), True)
+        repeat = v["independent_repeat"]
+        self.assertEqual(repeat["case_artifact_zip_sha256"],
+                         "2b8b51c1cff48ac9fe3d087aedd2b29f9fd63c5037859ba8072717f278284f76")
+        self.assertEqual(repeat["release_credit"], 0)
+        self.assertTrue(repeat["byte_comparison_6_samples_exactly_equal_to_first_run"])
+        self.assertNotEqual(repeat["reference_core_sha256"],
+                            v["source"]["reference_core_sha256"])
+        self.assertEqual(repeat["paired_sram_difference_at_64_and_72"],
+                         {"address": "0x10A7", "original": "0x0C", "native": "0x0D"})
 
 
 if __name__ == "__main__":

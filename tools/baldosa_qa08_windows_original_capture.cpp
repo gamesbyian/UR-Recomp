@@ -14,14 +14,34 @@
 
 namespace {
 constexpr unsigned kFrame[] = {1856, 2192, 2208, 2224};
+constexpr unsigned kOnePlayerFirst = 1280;
+constexpr unsigned kOnePlayerLast = 5440;
+constexpr unsigned kOnePlayerStep = 16;
+constexpr unsigned kOnePlayerSlots =
+    (kOnePlayerLast - kOnePlayerFirst) / kOnePlayerStep + 1;
 constexpr int kWidth = 256;
 constexpr int kHeight = 224;
-unsigned g_seen = 0;
+bool g_seen_default[4] = {};
+bool g_seen_oneplayer[kOnePlayerSlots] = {};
 
-bool wanted(unsigned frame) noexcept {
-    for (unsigned select : kFrame)
-        if (frame == select) return true;
-    return false;
+// One explicitly bounded diagnostic case. The default post-PPU observer
+// remains exactly its previously accepted 2P four-frame experiment.
+// No arbitrary frame lists, guest mutation or global presentation controls.
+bool oneplayer_coverage_mode() noexcept {
+    const char* mode = std::getenv("UR_QA08_WINDOWS_ORIGINAL_SOURCE_CASE");
+    return mode && std::strcmp(mode, "oneplayer-coverage") == 0;
+}
+
+int wanted_index(unsigned frame, bool oneplayer) noexcept {
+    if (oneplayer) {
+        if (frame < kOnePlayerFirst || frame > kOnePlayerLast ||
+            (frame - kOnePlayerFirst) % kOnePlayerStep != 0)
+            return -1;
+        return static_cast<int>((frame - kOnePlayerFirst) / kOnePlayerStep);
+    }
+    for (unsigned i = 0; i < sizeof(kFrame) / sizeof(kFrame[0]); ++i)
+        if (frame == kFrame[i]) return static_cast<int>(i);
+    return -1;
 }
 
 bool save_source(const char* dir, const std::uint8_t* field,
@@ -58,19 +78,25 @@ extern "C" void ur_qa08_windows_capture_original_source(
     const std::uint8_t* field, unsigned guest_frame) {
     // Independent source producer: no synthetic frame for a missing callback.
     // Reject repeat presentation rather than overwriting a source witness.
-    if (!wanted(guest_frame)) return;
     const char* dir = std::getenv("UR_QA08_WINDOWS_ORIGINAL_SOURCE_DIR");
     if (!dir || !dir[0]) return;
-    if (guest_frame == 0 || !field || (g_seen & (1u << (guest_frame == 1856 ? 0 :
-        guest_frame == 2192 ? 1 : guest_frame == 2208 ? 2 : 3)))) {
+    const char* mode = std::getenv("UR_QA08_WINDOWS_ORIGINAL_SOURCE_CASE");
+    if (mode && mode[0] && !oneplayer_coverage_mode()) {
+        // Bad diagnostic selectors fail closed. Not even a diagnostic file
+        // is produced, and ordinary game output remains unmodified.
+        return;
+    }
+    const bool oneplayer = oneplayer_coverage_mode();
+    const int index = wanted_index(guest_frame, oneplayer);
+    if (index < 0) return;
+    bool& seen = oneplayer ? g_seen_oneplayer[index] : g_seen_default[index];
+    if (guest_frame == 0 || !field || seen) {
         std::fprintf(stderr, "UR_QA08_WINDOWS_SOURCE_REJECT frame=%u reason=repeat-or-null\n",
                      guest_frame);
         return;
     }
-    const unsigned bit = guest_frame == 1856 ? 0 : guest_frame == 2192 ? 1 :
-                         guest_frame == 2208 ? 2 : 3;
     const bool saved = save_source(dir, field, guest_frame);
-    if (saved) g_seen |= (1u << bit);
+    if (saved) seen = true;
     std::fprintf(stderr,
         "UR_QA08_WINDOWS_ORIGINAL_SOURCE frame=%u logical=256x224 "
         "saved=%u source=post-original-ppu-before-present\n",

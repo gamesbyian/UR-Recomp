@@ -97,6 +97,44 @@ class ManualPlaytestSourceBinding(unittest.TestCase):
             )
             self.assertEqual(data, proof)
 
+    def test_real_windows_binary_sha256sum_sidecar_is_canonical(self):
+        # Real source Windows bridge artifact 11948142744 used GNU '*name'.
+        # Both strict encodings must bind to the identical ZIP and output.
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            def windows_binary(a, c, b, r):
+                digest = release.sha256(c / release.ZIP)
+                (c / release.SIDECAR).write_bytes(
+                    (digest + " *" + release.ZIP + "\n").encode("ascii"))
+            proof = self.prepare(root, mutate=windows_binary)
+            self.assertEqual(proof["release_gate_credit"], 0)
+            self.assertTrue(proof["not_a_certified_beta"])
+            self.assertEqual(
+                (root / "playtest-output" / release.SIDECAR).read_bytes(),
+                (root / "candidate" / release.SIDECAR).read_bytes())
+
+    def test_only_two_exact_single_line_sidecar_encodings_are_accepted(self):
+        digest = hashlib.sha256(
+            b"fake-zip-used-only-in-synthetic-python-test").hexdigest()
+        bad_lines = (
+            "0" * 64 + " *" + release.ZIP + "\n",
+            digest + " *wrong-name.zip\n",
+            digest + " **" + release.ZIP + "\n",
+            digest + "\t*" + release.ZIP + "\n",
+            digest + " *" + release.ZIP + "\n\n",
+            digest + " *" + release.ZIP + "\r\n",
+            digest + "  " + release.ZIP + ".extra\n",
+        )
+        for line in bad_lines:
+            with self.subTest(sidecar=repr(line)), \
+                 tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                def corrupted(a, c, b, r):
+                    (c / release.SIDECAR).write_bytes(line.encode("ascii"))
+                with self.assertRaisesRegex(ValueError, "noncanonical"):
+                    self.prepare(root, mutate=corrupted)
+                self.assertFalse((root / "playtest-output").exists())
+
     def test_wrong_revision_zip_sidecar_binding_and_extra_files_fail_closed(self):
         def wrong_source(a, c, b, r):
             (a / "source-commit.txt").write_text("b" * 40 + "\n")

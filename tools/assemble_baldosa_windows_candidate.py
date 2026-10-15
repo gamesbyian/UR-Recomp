@@ -48,7 +48,16 @@ def launcher() -> bytes:
         '"$ErrorActionPreference = \'Stop\'; '
         '$p = [IO.Path]::GetFullPath($env:UR_BALDOSA_PACKAGE_DIR).TrimEnd(\'\\\'); '
         '$d = $env:UR_RECOMP_USER_DATA_ROOT; '
-        'if (-not [IO.Path]::IsPathRooted($d)) { exit 3 }; '
+        # IsPathRooted also admits drive-relative (C:name) and current-drive-
+        # root-relative (\\name) strings, which resolve against the process
+        # state. Admit only a drive-qualified absolute path (X:\ or X:/) or a
+        # UNC/device path (two leading separators, then a non-separator).
+        # Character codes avoid any quoting trouble: 58 ':', 92 '\\', 47 '/'.
+        '$ok = ($d.Length -ge 3 -and [char]::IsLetter($d[0]) -and '
+        '$d[1] -eq [char]58 -and ($d[2] -eq [char]92 -or $d[2] -eq [char]47)) '
+        '-or ($d.Length -ge 3 -and $d[0] -eq [char]92 -and $d[1] -eq [char]92 '
+        '-and $d[2] -ne [char]92 -and $d[2] -ne [char]47); '
+        'if (-not $ok) { exit 3 }; '
         '$d = [IO.Path]::GetFullPath($d).TrimEnd(\'\\\'); '
         'if ($d -ieq $p -or $d.StartsWith($p + \'\\\', [StringComparison]::OrdinalIgnoreCase)) { exit 3 }; '
         # A syntactically external user-data root can still be a Windows

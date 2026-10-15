@@ -161,6 +161,22 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
         self.assertNotIn("certutil -addstore", script)
 
 
+    def test_launcher_user_data_root_requires_fully_qualified_path(self):
+        script = candidate.launcher().decode("utf-8")
+        self.assertNotIn("IsPathRooted", script)
+        self.assertIn("[char]::IsLetter($d[0])", script)
+
+        def ok(d):  # Python model of the launcher predicate
+            sep = "\\/"
+            drive = len(d) >= 3 and d[0].isalpha() and d[1] == ":" and d[2] in sep
+            unc = len(d) >= 3 and d[0] == "\\" and d[1] == "\\" and d[2] not in sep
+            return drive or unc
+
+        for good in ("C:\\x", "C:/x", "\\\\server\\share", "\\\\?\\C:\\x"):
+            self.assertTrue(ok(good), good)
+        for bad in ("C:x", "\\x", "x", "\\\\\\x", "", "C:"):
+            self.assertFalse(ok(bad), bad)
+
     def test_actual_no_args_launcher_autorestart_log_contract(self):
         from verify_baldosa_windows_extracted_launcher import (
             verify_first_user_cmd_relaunch_log,

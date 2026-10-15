@@ -194,12 +194,29 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
     # A valid ROM cannot authorize package-local or relative profile storage.
     installed_rom.write_bytes(personal_rom.read_bytes())
     require(digest(installed_rom) == USA_SHA256, "CI test ROM changed during copy")
-    for root in (str(installed / "Injected Save Root"), "relative-save-root"):
+    # Rooted-but-not-fully-qualified Windows spellings (drive-relative and
+    # current-drive-root-relative) are admitted by IsPathRooted and resolve
+    # against process state; the launcher must refuse them with exit 3 before
+    # any save, catalog or folder is created.
+    drive_relative = "C:qa-drive-relative-root"
+    root_relative = "\\qa-current-drive-root-relative"
+    for root in (str(installed / "Injected Save Root"), "relative-save-root",
+                 drive_relative, root_relative):
         bad_env = {**env, "UR_RECOMP_USER_DATA_ROOT": root}
         bad = invoke_launcher(launcher, bad_env, args, timeout)
         require(bad.returncode != 0 and
                 "UR-BALDOSA-STARTUP-SAVE-ROOT" in bad.stderr,
                 "unsafe data root was accepted by actual CMD launcher")
+        if root in (drive_relative, root_relative):
+            require(bad.returncode == 3,
+                    f"rooted-relative data root {root!r} did not exit 3: "
+                    f"rc={bad.returncode}")
+    for leaked in (installed / "qa-drive-relative-root",
+                   Path(installed.anchor) / "qa-drive-relative-root",
+                   Path(installed.anchor) / "qa-current-drive-root-relative",
+                   Path.cwd() / "qa-drive-relative-root"):
+        require(not leaked.exists(),
+                f"rooted-relative data root created state at {leaked}")
     require(not (installed / "Injected Save Root").exists(),
             "package-local user state was created")
     require(not user_root.exists(), "invalid root created valid profile state")

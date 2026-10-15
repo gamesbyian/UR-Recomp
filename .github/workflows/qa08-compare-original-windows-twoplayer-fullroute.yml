@@ -44,6 +44,43 @@ jobs:
           name: qa08-win32-original-2p-fullroute-raster
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/windows
+      - name: Reuse exact finished read-only PPU register-probe build
+        uses: actions/download-artifact@v4
+        with:
+          repository: gamesbyian/UR-Recomp
+          run-id: 38792715112
+          name: qa08-win32-original-2p-fullroute-raster
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/windows-register-probed
+      - name: Independently establish native register probe had no framebuffer or guest effect
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - "$RUNNER_TEMP/windows" "$RUNNER_TEMP/windows-register-probed" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,pathlib,sys
+          original=pathlib.Path(sys.argv[1])
+          probed=pathlib.Path(sys.argv[2])
+          old=json.loads((original/"qa08-windows-2p-fullroute.json").read_text())
+          new=json.loads((probed/"qa08-windows-2p-fullroute.json").read_text())
+          assert old["source_frame_P7_SHA256_by_guest"]==new["source_frame_P7_SHA256_by_guest"]
+          assert old["actual_native_guest_CRC_sha256"]==new["actual_native_guest_CRC_sha256"]
+          assert old["actual_native_simulations"]==new["actual_native_simulations"]==5484
+          assert old["actual_windows_PE_sha256"]!=new["actual_windows_PE_sha256"]
+          rows=new["read_only_native_PPU_registers"]["per_line_native_PPU_state"]
+          found={(r["actual_native_snes_frame"],r["ppu_line"]):r for r in rows}
+          assert len(rows)>=590
+          def value(frame,line,k):
+              assert (frame,line) in found
+              return found[frame,line][k]
+          assert [value(3683,y,"brightness") for y in (1,112,114)]==[15,0,7]
+          assert value(3683,1,"cgram_full_512_byte_FNV1a")=="e79794a9"
+          assert value(5184,1,"brightness")==14
+          assert value(5184,1,"cgadsub")=="7f"
+          assert value(5184,1,"cgram_full_512_byte_FNV1a")=="898ece20"
+          print("QA08_READONLY_PROBE_AUTHENTIC 263/263_PPU_hashes=identical guest_CRC=identical")
+          with open(sys.argv[3],"a",encoding="utf-8") as out:
+              out.write("Source-certified read-only Windows INIDISP/CGRAM probe: 263/263 source frame hashes and all 5484 guest CRCs match uninstrumented earlier candidate. Frame3683 upper/divider/lower brightness 15/0/7 vs original Snes9x 7/0/7. Results frame5184 native full CGRAM 898ece20 vs original e8cdbe60; this is a separate palette/phase blocker.\n")
+          PY
       - name: Reject any altered source archive even when runner manifest is forged
         shell: bash
         run: |

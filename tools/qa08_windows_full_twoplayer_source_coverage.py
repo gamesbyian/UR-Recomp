@@ -20,6 +20,51 @@ FIRST,LAST,STEP=1280,5472,16
 SCHEMA="qa08-real-windows-2p-split-fullroute-source-20261015/1"
 
 
+STATE_LOG=re.compile(
+    r"^UR_QA08_WIN_PPU_STATE frame=(\d+) line=(\d+) inidisp=([0-9a-f]{2}) "
+    r"brightness=(\d+) forced_blank=(\d+) cgadsub=([0-9a-f]{2}) "
+    r"cgwsel=([0-9a-f]{2}) fixedcolor=([0-9a-f]{4}) "
+    r"cgram_fnv=([0-9a-f]{8})$",re.M
+)
+
+
+def inspect_native_ppu_registers(log:str)->dict:
+    items=[]
+    for vals in STATE_LOG.findall(log):
+        frame,line,display,brightness,blank,math,window,fixed,palette=vals
+        data={
+            "actual_native_snes_frame":int(frame),
+            "ppu_line":int(line),
+            "inidisp":display,
+            "brightness":int(brightness),
+            "forced_blank":int(blank),
+            "cgadsub":math,
+            "cgwsel":window,
+            "fixed_color":fixed,
+            "cgram_full_512_byte_FNV1a":palette,
+        }
+        if (data["ppu_line"] not in (1,112,114)
+            or not 0<=data["brightness"]<=15
+            or data["forced_blank"] not in (0,1)):
+            raise ValueError("real native INIDISP/PPU state line malformed")
+        items.append(data)
+    if not items:
+        raise ValueError("actual Windows game never emitted opt-in PPU register state")
+    if len({(r["actual_native_snes_frame"],r["ppu_line"]) for r in items})!=len(items):
+        raise ValueError("duplicate native PPU register scene/line")
+    if not any(3620<=r["actual_native_snes_frame"]<=3683 for r in items):
+        raise ValueError("native finish brightness state was not observed")
+    if not any(4000<=r["actual_native_snes_frame"]<=4080 for r in items):
+        raise ValueError("native result CGRAM state was not observed")
+    return {
+        "schema":"qa08-opt-in-original-ppu-inidisp-cgram-readonly/1",
+        "actual_state_line_count":len(items),
+        "per_line_native_PPU_state":items,
+        "source_only_no_original_register_equivalence_inferred":True,
+        "release_gate_accepted":False,
+    }
+
+
 def inspect(source:Path,log:str,crcs:list[str])->dict:
     if not (LAST < len(crcs) <= 9504) or any(
         not re.fullmatch(r"0x[0-9a-fA-F]{8}",v) for v in crcs):
@@ -76,6 +121,7 @@ def main()->None:
     env={
         "UR_QA08_WINDOWS_ORIGINAL_SOURCE_DIR":str(folder.resolve()),
         "UR_QA08_WINDOWS_ORIGINAL_SOURCE_CASE":"twoplayer-fullroute",
+        "UR_QA08_WINDOWS_PPU_STATE_TRACE":"1",
     }
     previous={k:os.environ.get(k) for k in env}
     os.environ.update(env)
@@ -87,6 +133,7 @@ def main()->None:
             if v is None:os.environ.pop(k,None)
             else:os.environ[k]=v
     report=inspect(folder,log,crcs)
+    report["read_only_native_PPU_registers"]=inspect_native_ppu_registers(log)
     report["actual_windows_PE_sha256"]=sha(a.exe.read_bytes())
     report["actual_two_pad_route_sha256"]=sha(a.script.read_bytes())
     (a.out/"qa08-windows-2p-fullroute.json").write_text(

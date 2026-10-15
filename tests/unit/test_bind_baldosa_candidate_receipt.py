@@ -54,6 +54,9 @@ class CandidateBindingTests(unittest.TestCase):
             sha.write_text(f"{digest}  other.zip\n", encoding="ascii")
             with self.assertRaisesRegex(ValueError, "archive name"):
                 bind.bind(exe, archive, sha, REV)
+            sha.write_text(f"{digest}  {archive.name}  extra\n", encoding="ascii")
+            with self.assertRaisesRegex(ValueError, "archive name"):
+                bind.bind(exe, archive, sha, REV)
             sha.write_text(f"{digest}  {archive.name}\n", encoding="ascii")
             link = root / "link.exe"
             link.symlink_to(exe)

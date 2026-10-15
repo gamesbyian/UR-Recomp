@@ -33,7 +33,7 @@ def bind(exe: Path, archive: Path, sha_file: Path, revision: str) -> dict:
     exe_sha = sha256_file(exe)
     zip_sha = sha256_file(archive)
     line = sha_file.read_text(encoding="ascii").split()
-    if len(line) < 2 or not re.fullmatch(r"[0-9a-f]{64}", line[0]) or \
+    if len(line) != 2 or not re.fullmatch(r"[0-9a-f]{64}", line[0]) or \
             line[1].lstrip("*") != archive.name:
         raise ValueError("ZIP .sha256 file is not '<sha256>  <archive name>'")
     if line[0] != zip_sha:

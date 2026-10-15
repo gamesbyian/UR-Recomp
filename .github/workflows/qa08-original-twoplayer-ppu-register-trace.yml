@@ -1,11 +1,19 @@
-name: QA-08 original 2P read-only finish/results PPU register journal
+name: QA-08 original 2P adjacent results-frame CGRAM port chronology
 
-# Three actual original Snes9x register dumps, only at genuine stock script
-# boundaries. The same 263 PPU source images must match the earlier
-# independent original replay bytewise. No guest writes or CPU/APU changes.
-# One authenticated original source PPU register capture passed 38791934542.
-# Follow-up comparator/edit commits reuse its original raw journal; manual-only.
+# One-time source-qualified result-port discriminator, not an emulator farm.
+# The new dump separates a stock same-mask 1500-frame press into 1499+1;
+# all 263 unmasked original video callbacks must remain byte-identical.
+# Retire this narrow PR trigger immediately after classifying the result.
 on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa08-original-twoplayer-ppu-register-trace.yml"
+      - "tools/qa08_original_results_port_chronology.py"
+      - "tests/unit/test_qa08_original_results_port_chronology.py"
+      - "tools/qa08_original_twoplayer_ppu_register_trace.py"
+      - "tests/unit/test_qa08_original_twoplayer_ppu_register_trace.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snes9x-libretro.json"
   workflow_dispatch:
 
 permissions:
@@ -46,9 +54,9 @@ jobs:
           test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
           test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
           cmp baldosa/tests/routes/race_2p.txt reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p.txt
-          python3 -m unittest tests.unit.test_qa08_original_twoplayer_ppu_register_trace
+          python3 -m unittest tests.unit.test_qa08_original_twoplayer_ppu_register_trace tests.unit.test_qa08_original_results_port_chronology
           mkdir -p "$RUNNER_TEMP/qa08-original-ppu-2p/frames" "$RUNNER_TEMP/qa08-original-ppu-2p/registers"
-          python3 tools/qa08_original_twoplayer_ppu_register_trace.py \
+          python3 tools/qa08_original_results_port_chronology.py \
             --script reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p.txt \
             --out-script "$RUNNER_TEMP/qa08-original-ppu-2p/qa08-ppu-observer.script"
 
@@ -65,7 +73,7 @@ jobs:
           cmake --build "$RUNNER_TEMP/qa08-original-ppu-snesref" -j 2
           test -x "$RUNNER_TEMP/qa08-original-ppu-snesref/snesref"
 
-      - name: Run identical original two-pad inputs with three zero-frame register dumps
+      - name: Run identical original two-pad inputs with four zero-frame register dumps
         shell: bash
         run: |
           set -euo pipefail
@@ -80,20 +88,20 @@ jobs:
             "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
             > "$RUNNER_TEMP/qa08-original-ppu-2p/original.log" 2>&1
 
-      - name: Prove every one of 263 PPU frames unchanged by the three read-only dumps
+      - name: Prove every one of 263 PPU frames unchanged by the four read-only dumps
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/qa08_original_twoplayer_ppu_register_trace.py \
+          python3 tools/qa08_original_results_port_chronology.py \
             --script reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p.txt \
             --verify-root "$RUNNER_TEMP/qa08-original-ppu-2p" \
             --prior-original "$RUNNER_TEMP/qa08-previous-original-2p" \
             --rom reference/roms/retail/Uniracers_USA.sfc \
             --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
-            --result "$RUNNER_TEMP/qa08-original-ppu-2p/qa08-source-qualified-ppu-registers.json"
-          echo "Three authentic source PPU register/colour/HDMA write witnesses; 263/263 original source frames unchanged. Native register equivalence and graphics release remain unaccepted." >> "$GITHUB_STEP_SUMMARY"
+            --result "$RUNNER_TEMP/qa08-original-ppu-2p/qa08-results-port-preceding-frame.json"
+          echo "Original source 5183/5184 palette/PPU port chronology; require 263/263 original source frames unchanged. Native and release parity remain unaccepted." >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Retain only original read-only registers, CGRAM, journals and manifest
+      - name: Retain original adjacent-frame CGRAM and raw PPU port journals
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -101,7 +109,7 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
           path: |
-            ${{ runner.temp }}/qa08-original-ppu-2p/qa08-source-qualified-ppu-registers.json
+            ${{ runner.temp }}/qa08-original-ppu-2p/qa08-results-port-preceding-frame.json
             ${{ runner.temp }}/qa08-original-ppu-2p/original.log
             ${{ runner.temp }}/qa08-original-ppu-2p/qa08-ppu-observer.script
             ${{ runner.temp }}/qa08-original-ppu-2p/registers/*.regs.json

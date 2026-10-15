@@ -2,14 +2,10 @@ name: QA-08 one-shot authentic Windows versus original moving 1P source
 # Decision: does the already-built, source-pinned corrected Windows Original
 # PPU match any real original Snes9x moving 1P callback? Never grant event
 # fidelity, HD art, hardware or release credit from a visual ranking.
+# Both exact one-shot emulator producers completed at Actions 38701112952.
+# Archived input and candidate artifacts are immutable. Do not trigger new
+# expensive original/core rebuilds for pure offline comparator adjustments.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/qa08-original-windows-oneplayer.yml"
-      - "tools/qa08_windows_oneplayer_source_capture.py"
-      - "tools/qa08_original_oneplayer_source_manifest.py"
-      - "tools/qa08_compare_original_windows_oneplayer.py"
-      - "tests/unit/test_qa08_original_windows_oneplayer.py"
   workflow_dispatch:
 
 permissions:

@@ -63,8 +63,17 @@ Remaining approximation: an instruction's own internal cycles are charged before
 
 **No-input attract black-screen census** (`qa_blank_screen_census.py`, bsnes reference, five loads): base and candidate are identical. 248–276, 401–443 and 3632–3762 match bsnes exactly; the 941–1097 (bsnes 1098) and 1422 (1423) RF-016 residuals are unchanged.
 
+## Hosted re-execution
+
+Two single-case `qa01-event-campaign.yml` dispatches (`selected=zoom-zoo`, `source_followthrough`, `baldosa_refresh_beam_rate` and `baldosa_io_clock_order` all true) ran on clean `ubuntu-22.04` runners from this branch:
+
+- [Run 38779527701](https://github.com/gamesbyian/UR-Recomp/actions/runs/38779527701) (head `3190cd7`): the runner staged both corrections, built the framework's Rust analyzer, regenerated `src/gen` and passed `--verify-gen` with the same counts as locally ("verified 89 generated files: 15484 in-order charge statements, every block total unchanged"). Zoom Zoo result onset +5163 = +5163.
+- [Run 38781115852](https://github.com/gamesbyian/UR-Recomp/actions/runs/38781115852) (head `6f4498c`, which includes QA-01's #1650 SRAM consumer): onset +5163 = +5163, and the consumer reports **`Zoo live SRAM first sampled original/native disagreement: +None`**. All six fresh 8 KiB battery images (+8 to +72) now match. QA-01's only previous difference, SRAM `0x10A7` at +64/+72 (original 0x0C, native 0x0D; [QA-01 SRAM discriminator](QA01-ZOO-POSTRESULT-SRAM-ADDRESS-DISCRIMINATOR-20261015.md)), was the one-field return-phase offset this correction removes.
+
+Both case artifacts carry the full producer and SRAM reports. This session could not download them (artifact storage is outside its network allowance), so they still need an independent read.
+
 ## Shipping boundary and what remains
 
-- **Not yet staged into the Windows bridge.** It needs a `--cfg-roots` regen on the build host (Python + the framework's Rust analyzer). Hosted re-execution through the new opt-in `baldosa_io_clock_order` input of `qa01-event-campaign.yml` (its runner must build the framework's Rust analyzer for the regen), plus QA-01 adjudication, should come before the product carries it.
+- **Not yet staged into the Windows bridge.** It needs a `--cfg-roots` regen on the build host (Python + the framework's Rust analyzer). QA-01 adjudication of the hosted runs above should come before the product carries it.
 - **RF-016 (SPC700 rate) remains** the cause of Switcher +4664, 2P seed 50048000 and the attract 941 load. Baldosa clocks the SPC700 at 17,088 cycles per field (`apu_frame_clock.h`, 534 samples × 32, i.e. exactly 60 fields per second). The references use 32,040 Hz × 32 = 17,059.9 per 357,368-clock field. The candidate leaves it untouched.
 - **Dragster** keeps its +2080 vs +2081 terminal and +64 follow-through differences, and Switcher its two-frame-late race entry. Separate mechanisms.

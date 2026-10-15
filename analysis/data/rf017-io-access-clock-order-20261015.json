@@ -155,6 +155,30 @@
   "in_order_charge_statements": 15484,
   "other_changes": 0
  },
+ "hosted_reexecution": {
+  "38779527701": {
+   "case_artifact_id": 11996050649,
+   "case_artifact_zip_sha256": "ff4057a233bf8ae51afaabf8f5e81b93a56b81b86555fb828ed9cde19d8e2d28",
+   "head": "3190cd723ba716b627519f69084043786a19151a",
+   "verify_gen": "verified 89 generated files: 15484 in-order charge statements, every block total unchanged",
+   "zoo_onset": [
+    5163,
+    5163
+   ]
+  },
+  "38781115852": {
+   "case_artifact_id": 11995548810,
+   "case_artifact_zip_sha256": "b6cf8168f3978218cb1c13bf3c320ef35823a2b8b6ee6b5a7236619d2ec9513c",
+   "head": "6f4498c2d1d951353cbc15a964302c9b6cc60cb7",
+   "note": "QA-01 #1650 consumer: all six fresh 8 KiB SRAM samples equal; previous 0x10A7 0x0C/0x0D difference absent",
+   "postresult_sram_first_sampled_disagreement": null,
+   "zoo_onset": [
+    5163,
+    5163
+   ]
+  },
+  "artifact_contents_read_by_this_session": false
+ },
  "mechanism": {
   "block": "80:FAD6 LDA $4212 / BPL $FAD2",
   "compute_span_FADB_to_FAC9_master_clocks": {
@@ -174,7 +198,7 @@
    "original_passes_FADB_field_clock": 2812
   }
  },
- "not_shipped": "Windows bridge does not stage it; hosted re-execution (qa01-event-campaign baldosa_io_clock_order) and QA-01 adjudication pending",
+ "not_shipped": "Windows bridge does not stage it; QA-01 adjudication of hosted runs 38779527701/38781115852 pending",
  "one_site_ab": {
   "change": "80:FACD/80:FAD6 branch fetch charge moved after the $4212 read (8 generated blocks)",
   "dense_low_wram_vs_snes9x_frames_plus0_to_89": "identical at every frame",

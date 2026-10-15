@@ -89,6 +89,20 @@ class OnePlayerSourceTests(unittest.TestCase):
                          b"until16 0053 == 8610\npress right 600\n")
         self.assertNotEqual(compare.sha(source),compare.sha(compare.no_turbo(source)))
 
+    def test_exact_windows_checkout_crlf_is_the_only_allowed_input_difference(self):
+        route=b"# authentic original route\nturbo on\npress right 600\nquit\n"
+        self.assertEqual(compare.verify_windows_checkout_script(
+            route,compare.sha(route)),"LF")
+        crlf=route.replace(b"\n",b"\r\n")
+        self.assertEqual(compare.verify_windows_checkout_script(
+            route,compare.sha(crlf)),"CRLF")
+        for bad in (route+b"wait 1\n",route.replace(b"right",b"left"),
+                    route.replace(b"600",b"599")):
+            with self.assertRaises(ValueError):
+                compare.verify_windows_checkout_script(route,compare.sha(bad))
+        with self.assertRaises(ValueError):
+            compare.verify_windows_checkout_script(crlf,compare.sha(crlf))
+
     def test_exact_replayed_windows_source_identity_is_preexisting(self):
         self.assertEqual(windows.EXE_SHA,
           "7431889698913feadab76261caf3b00b82d1d9a1466a8260d9b7512d8328324e")

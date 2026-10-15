@@ -98,16 +98,25 @@ def analyze(original_dir:Path,win_dir:Path,route:Path)->dict:
         or windows.get("source_geometry")!=[W,H]
         or windows.get("release_gate_approved") is not False):
         raise ValueError("Windows source was not the exact independently pinned binary")
-    source=win_dir/"source"/"ur-baldosa-original-source-002208.pam"
-    native=read_native(source)
-    if (sha(source.read_bytes())!=windows.get(
-        "unmodified_source_P7_sha256_by_guest_frame",{}).get("2208")):
-        # JSON numeric keys become string keys; only actual frame2208 counts.
-        raise ValueError("actual Windows source PPU raw bytes do not match capture")
+    source_frames=(2192,2208,2224)
+    if (windows.get("actual_guest_frames_simulated")!=5447
+        or not set(source_frames).issubset(set(windows.get(
+            "actual_observed_source_guest_frames",[])))):
+        raise ValueError("full real native 1P run and three moving PPU callbacks required")
+    sources={}
+    identities=windows.get("unmodified_source_P7_sha256_by_guest_frame",{})
+    for guest in source_frames:
+        source=win_dir/"source"/f"ur-baldosa-original-source-{guest:06d}.pam"
+        native=read_native(source)
+        if sha(source.read_bytes())!=identities.get(str(guest)):
+            raise ValueError(f"actual Windows PPU source {guest} differs from witness hash")
+        sources[guest]={"source_sha256":sha(source.read_bytes()),"pixels":native}
+    if len({source["source_sha256"] for source in sources.values()})!=3:
+        raise ValueError("moving native 1P source frames are repeated/held")
     originals=original.get("actual_source_frames")
     if not isinstance(originals,list) or len(originals)!=len(WINDOW):
         raise ValueError("original source 65-frame manifest incomplete")
-    rankings=[]
+    rankings={guest:[] for guest in source_frames}
     observed_original_hashes=set()
     for frame,row in zip(WINDOW,originals):
         if (row.get("original_callback_frame_zero_based")!=frame
@@ -118,35 +127,56 @@ def analyze(original_dir:Path,win_dir:Path,route:Path)->dict:
         if sha(raw)!=row.get("unmodified_BGRX8888_sha256"):
             raise ValueError("original callback SHA does not match genuine producer")
         observed_original_hashes.add(sha(raw))
-        result=compare(raw,native)
-        rankings.append({"original_callback":frame,
-                         "original_run_frame":frame+1,
-                         "same_RGB5_pixels":result["same_RGB5_pixels"],
-                         "wrong_RGB5_pixels":result["wrong_RGB5_pixels"],
-                         "wrong_pixels_by_row":result["wrong_pixels_by_row"],
-                         "first_eight_wrong":result["first_eight_wrong"]})
+        for guest in source_frames:
+            result=compare(raw,sources[guest]["pixels"])
+            rankings[guest].append({"original_callback":frame,
+                             "original_run_frame":frame+1,
+                             "same_RGB5_pixels":result["same_RGB5_pixels"],
+                             "wrong_RGB5_pixels":result["wrong_RGB5_pixels"],
+                             "wrong_pixels_by_row":result["wrong_pixels_by_row"],
+                             "first_eight_wrong":result["first_eight_wrong"]})
     if len(observed_original_hashes)<8:
         raise ValueError("original 1P sample window appears held/duplicated")
-    best=sorted(rankings,key=lambda r:(-r["same_RGB5_pixels"],r["original_callback"]))
+    best={guest:sorted(rankings[guest],key=lambda r:(
+        -r["same_RGB5_pixels"],r["original_callback"])) for guest in source_frames}
+    moving=[
+        {"native_guest_frame":guest,
+         "native_source_sha256":sources[guest]["source_sha256"],
+         "best_original_callback":best[guest][0]["original_callback"],
+         "best_wrong_RGB5_pixels":best[guest][0]["wrong_RGB5_pixels"],
+         "next_best_wrong_RGB5_pixels":best[guest][1]["wrong_RGB5_pixels"],
+         "best_score_margin":best[guest][1]["wrong_RGB5_pixels"]-
+                              best[guest][0]["wrong_RGB5_pixels"],
+         "prespecified_original_callback":guest-1,
+         "prespecified_wrong_RGB5_pixels":rankings[guest][guest-1-FIRST]["wrong_RGB5_pixels"],
+         "best_pixel_comparison":best[guest][0]}
+        for guest in source_frames]
+    if len({m["best_original_callback"] for m in moving})!=len(moving):
+        raise ValueError("moving 1P scene registration reused an original frame")
+    every_moving_exact=all(row["best_wrong_RGB5_pixels"]==0 for row in moving)
+    pinned=best[2208]
     return {
         "schema":SCHEMA,
-        "status":("actual_source_pixel_exact_sample" if best[0]["wrong_RGB5_pixels"]==0
+        "status":("three_distinct_moving_1p_source_frames_RGB5_exact" if every_moving_exact
                   else "valid_authentic_moving_1p_source_strict_divergence"),
         "real_windows_binary_sha256":EXE_SHA,
         "actual_windows_guest_frame":2208,
         "original_USA_ROM_sha256":ROM_SHA,
         "unmodified_shared_route_sha256":sha(raw_route),
         "original_raster_source_size":[W,H],
-        "genuine_original_callbacks":len(rankings),
+        "genuine_original_callbacks":len(WINDOW),
         "native_guest_CRC_records":windows["actual_guest_frames_simulated"],
         "native_guest_CRC_sha256":windows["guest_CRC_lowercase_sha256"],
-        "actual_windows_1p_frame2208_P7_sha256":sha(source.read_bytes()),
-        "original_callback_best_by_RGB5_pixels":best[0]["original_callback"],
+        "actual_windows_1p_frame2208_P7_sha256":sources[2208]["source_sha256"],
+        "original_callback_best_by_RGB5_pixels":pinned[0]["original_callback"],
         "best_original_callback_ranking_margin":(
-            best[0]["same_RGB5_pixels"]-best[1]["same_RGB5_pixels"]),
-        "original_callback_2207_prespecified_comparison":rankings[2207-FIRST],
-        "best_pixel_comparison":best[0],
-        "all_original_callback_scores":rankings,
+            pinned[1]["same_RGB5_pixels"]-pinned[0]["same_RGB5_pixels"]),
+        "original_callback_2207_prespecified_comparison":rankings[2208][2207-FIRST],
+        "best_pixel_comparison":pinned[0],
+        "all_original_callback_scores":rankings[2208],
+        "three_independently_observed_moving_oneplayer_scenes":moving,
+        "all_three_moving_source_RGB5_pixels_exact":every_moving_exact,
+        "all_original_callback_scores_per_native_moving_scene":rankings,
         "same_CPU_camera_input_phase_proven":False,
         "continuous_1P_event_result_and_persistence_accepted":False,
         "no_216_high_crop_or_masking":True,
@@ -168,9 +198,12 @@ def main()->None:
     a.out.write_text(json.dumps(result,indent=2,sort_keys=True)+"\n",
                      encoding="utf-8")
     print("QA08_REAL_ORIGINAL_WIN_1P_SRC status="+result["status"],
-          "native_guest=2208","best_original_callback="+
-          str(result["original_callback_best_by_RGB5_pixels"]),
-          "wrong="+str(result["best_pixel_comparison"]["wrong_RGB5_pixels"]),
+          "native_guests=2192,2208,2224",
+          "best_original_callbacks="+",".join(
+              str(m["best_original_callback"]) for m in
+              result["three_independently_observed_moving_oneplayer_scenes"]),
+          "wrong="+",".join(str(m["best_wrong_RGB5_pixels"]) for m in
+              result["three_independently_observed_moving_oneplayer_scenes"]),
           "release_gate=unaccepted")
 
 

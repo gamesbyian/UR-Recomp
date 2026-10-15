@@ -116,6 +116,38 @@ class ZooNextBowlTests(unittest.TestCase):
         self.assertEqual(obs["fresh_native_next_bowl_entry_offset"], 268)
         self.assertEqual(obs["release_complete_event_credit"], 0)
 
+    def test_early_native_bowl_entry_is_exact_at_264_not_unknown(self):
+        # Actual previous run first saw native active +265 but omitted +264.
+        # This now samples every relative frame from +263 through +269.
+        for offset in (264, 265, 266):
+            path = self.nat / f"zoo-next-bowl-{offset:03d}.wram.bin"
+            data = bytearray(path.read_bytes())
+            data[0x0313] = 1
+            path.write_bytes(data)
+        obs = self.observed()
+        self.assertEqual(obs["fresh_native_next_bowl_entry_offset"], 264)
+        self.assertEqual(obs["fresh_native_entry_bracket"],
+                         {"last_observed_inactive_offset": 263,
+                          "first_observed_active_offset": 264,
+                          "exact_observed_entry_offset": 264})
+        self.assertFalse(obs["next_bowl_entry_triple_equal"])
+        self.assertEqual(obs["release_complete_event_credit"], 0)
+
+    def test_nonrecord_sram_difference_is_retained_with_exact_bytes(self):
+        bad = self.nat / "zoo-next-bowl-264.sram.bin"
+        raw = bytearray(bad.read_bytes())
+        raw[0x10A7] = 13
+        bad.write_bytes(raw)
+        obs = self.observed()
+        row = next(r for r in obs["samples"] if
+                   r["offset_from_observed_zoo_result"] == 264)
+        self.assertFalse(row["original_native_full_sram_equal"])
+        self.assertEqual(row["battery_sram_differing_byte_count"], 1)
+        self.assertEqual(row["battery_first_differences"],
+                         [{"offset": 0x10A7, "original_byte": 0,
+                           "native_byte": 13}])
+        self.assertEqual(obs["release_complete_event_credit"], 0)
+
     def test_missing_source_or_false_movie_entry_rejected(self):
         source = dict(self.source)
         del source[8620]

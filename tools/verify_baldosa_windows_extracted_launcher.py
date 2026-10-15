@@ -281,6 +281,63 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
             "First-run native CMD wrote mutable SRAM into ROM-free package")
     require_archive_unchanged(archive, approved_archive_sha256)
 
+    # Packaged Options through the exact CMD launcher, no --script argument:
+    # real P1 semantic pad edges change Display/VSync/Volume and quit. State
+    # must land under the user root (never in the immutable package), a
+    # second launch must restore it, and a damaged options file must be
+    # reported without stopping the game or being forced onto the host.
+    options_user = output / "Packaged Options Through CMD With Spaces"
+    options_env = {**env, "UR_RECOMP_USER_DATA_ROOT": str(options_user),
+                   "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "12"}
+    opt_first = invoke_launcher(launcher, options_env, [], timeout)
+    opt_first_log = opt_first.stdout + "\n" + opt_first.stderr
+    (output / "packaged-options-first.log").write_text(
+        opt_first_log, encoding="utf-8")
+    require(opt_first.returncode == 0,
+            f"packaged Options launch failed: rc={opt_first.returncode} "
+            f"tail={opt_first_log[-1800:]}")
+    for token in (
+            "options_boot row=DISPLAY display=WINDOWED vsync=ON volume=100 "
+            "status=NONE help=0 load=missing",
+            "options_adjusted row=DISPLAY display=BORDERLESS",
+            "options_adjusted row=VSYNC display=BORDERLESS vsync=ADAPTIVE",
+            "options_adjusted row=VOLUME display=BORDERLESS vsync=ADAPTIVE "
+            "volume=90 status=SAVED"):
+        require(token in opt_first_log,
+                f"packaged Options journey missing stage: {token}")
+    options_file = options_user / "options-v1.txt"
+    require(options_file.is_file() and not options_file.is_symlink() and
+            "display_mode=borderless" in options_file.read_text(
+                encoding="utf-8") and
+            not (options_user / "host-state-v1.txt").exists(),
+            "packaged Options did not persist only options-v1.txt")
+    require(not (installed / "options-v1.txt").exists() and
+            not (installed / "config.ini").exists() and
+            not (installed / "saves").exists(),
+            "packaged Options leaked mutable state into the immutable package")
+    opt_second = invoke_launcher(launcher, {
+        **options_env, "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "14"}, [], timeout)
+    opt_second_log = opt_second.stdout + "\n" + opt_second.stderr
+    (output / "packaged-options-second.log").write_text(
+        opt_second_log, encoding="utf-8")
+    require(opt_second.returncode == 0 and
+            "options_boot row=DISPLAY display=BORDERLESS vsync=ADAPTIVE "
+            "volume=90 status=NONE help=0 load=loaded" in opt_second_log,
+            "packaged relaunch did not restore saved Options before play")
+    damaged_bytes = b"UR-HOST-STATE/6\nnot a valid options file\n"
+    options_file.write_bytes(damaged_bytes)
+    opt_third = invoke_launcher(launcher, {
+        **options_env, "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "14"}, [], timeout)
+    opt_third_log = opt_third.stdout + "\n" + opt_third.stderr
+    (output / "packaged-options-damaged.log").write_text(
+        opt_third_log, encoding="utf-8")
+    require(opt_third.returncode == 0 and
+            "options_boot" in opt_third_log and "load=damaged" in opt_third_log,
+            "a damaged options file stopped or was hidden from the packaged game")
+    require(options_file.read_bytes() == damaged_bytes,
+            "merely booting rewrote or discarded the damaged options file")
+    require_archive_unchanged(archive, approved_archive_sha256)
+
     # Actual CMD forwarding: a malformed Modern selector is refused by the
     # native after_config BEFORE gameplay. The batch file must preserve the
     # original exit 7, explain the refusal, and never create/overwrite SRAM.
@@ -320,6 +377,8 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
         "real_extracted_launcher_accepted": True,
         "no_argument_first_racer_cmd_one_shot_restart_accepted": True,
         "fresh_named_game_after_actual_cmd_restart": True,
+        "packaged_options_persist_outside_package": True,
+        "packaged_damaged_options_reported_not_forced": True,
         "exact_native_profile_refusal_code_and_guidance": True,
         "rejected_profile_save_unchanged": True,
         "native_root_drawn": True,

@@ -1490,12 +1490,12 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if (SDL_PushEvent(&event) != 1) std::abort();
     }
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
-    // Smoke modes are the decimal strings "1".."13" and nothing else.
+    // Smoke modes are the decimal strings "1".."14" and nothing else.
     {
         char* parse_end = nullptr;
         const long mode = opt && *opt ? std::strtol(opt, &parse_end, 10) : 0;
         if (!g_visible || !opt || !parse_end || *parse_end != '\0' ||
-            mode < 1 || mode > 13) return;
+            mode < 1 || mode > 14) return;
         // Test-only: stop scripted input after this frame so a human or a
         // screenshot harness can inspect the held screen.
         const char* last = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME");
@@ -1702,6 +1702,21 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             std::abort();
         std::fprintf(stderr,
             "UR_BALDOSA_MODERN_ROOT options_gamepad frame=%u button=%d\n",
+            frame, button);
+        return;
+    }
+    // CI-only mode 14: boot, then ask to quit and confirm (B, A) through the
+    // production P1 handler. Used by packaged-launcher runs that must not
+    // change any setting but still need a clean, script-free exit.
+    if (std::strcmp(opt, "14") == 0) {
+        const int button = frame == 60 ? kGamepadBtn_B :
+                           frame == 62 ? kGamepadBtn_A : -1;
+        if (button < 0) return;
+        if (!ur_baldosa_modern_root_gamepad(0, button, 1) ||
+            !ur_baldosa_modern_root_gamepad(0, button, 0))
+            std::abort();
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT quit_gamepad frame=%u button=%d\n",
             frame, button);
         return;
     }

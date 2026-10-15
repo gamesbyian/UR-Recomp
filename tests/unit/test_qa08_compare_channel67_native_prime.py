@@ -38,7 +38,7 @@ class Channel67SourceComparisonTests(unittest.TestCase):
     def test_missing_real_pixels_or_changed_guest_refuses_acceptance(self):
         o, n, c = fixtures()
         del n["channel67"][2224]
-        with self.assertRaisesRegex(ValueError, "five native"):
+        with self.assertRaisesRegex(ValueError, "four real frames"):
             assess(o, n, c, enforce_accepted_global=False)
         o, n, c = fixtures()
         c["channel67"] += b"0xABCD0000\n"

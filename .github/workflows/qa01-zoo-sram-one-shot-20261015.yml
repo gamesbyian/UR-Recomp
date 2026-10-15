@@ -10,6 +10,10 @@ on:
       - tools/qa01_postresult_sram_diff.py
       - tests/unit/test_qa01_postresult_sram_diff.py
 
+concurrency:
+  group: qa01-zoo-sram-one-shot-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 

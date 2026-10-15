@@ -143,5 +143,40 @@ class ChargeOrderTest(unittest.TestCase):
         self.assertIsNone(self.charges(pairs, lines, SPEED, None))
 
 
+PINNED_GEN = """RecompReturn Wait_M1X0(CpuState *cpu) {
+  L_FAD6_M1X0:
+    cpu_trace_block(cpu, 0x80FAD6);
+    cpu->cycles += 6;
+    cpu->master_cycles += 5 * ((g_memsel && (cpu->PB & 0x80)) ? 6 : 8) + 0;
+    uint8 _v2 = cpu_read8_paced(cpu, cpu->DB, (uint16)(0x4212));
+    if (cpu->_flag_N == 0) { cpu->cycles += 1; cpu->master_cycles += 6; goto L_FAD2_M1X0; }
+"""
+CORRECTED_GEN = PINNED_GEN.replace(
+    "    cpu->master_cycles += 5 * ((g_memsel && (cpu->PB & 0x80)) ? 6 : 8) + 0;\n"
+    "    uint8 _v2 = cpu_read8_paced(cpu, cpu->DB, (uint16)(0x4212));\n",
+    "    cpu->master_cycles += 3 * ((g_memsel && (cpu->PB & 0x80)) ? 6 : 8) + 0;  "
+    "/* in-order: register access sees prior bus cycles */\n"
+    "    uint8 _v2 = cpu_read8_paced(cpu, cpu->DB, (uint16)(0x4212));\n"
+    "    cpu->master_cycles += 2 * ((g_memsel && (cpu->PB & 0x80)) ? 6 : 8) + 0;  "
+    "/* in-order: register access sees prior bus cycles */\n")
+
+
+class VerifyGeneratedTest(unittest.TestCase):
+    def test_accepts_a_reordered_block_with_the_same_total(self):
+        self.assertNotEqual(PINNED_GEN, CORRECTED_GEN)
+        self.assertEqual(fix.verify_generated(PINNED_GEN, CORRECTED_GEN), 2)
+        self.assertEqual(fix.verify_generated(PINNED_GEN, PINNED_GEN), 0)
+
+    def test_rejects_a_changed_block_total(self):
+        bad = CORRECTED_GEN.replace("+= 2 * ", "+= 1 * ", 1)
+        with self.assertRaisesRegex(ValueError, "total changed"):
+            fix.verify_generated(PINNED_GEN, bad)
+
+    def test_rejects_any_other_generated_change(self):
+        bad = CORRECTED_GEN.replace("(uint16)(0x4212)", "(uint16)(0x4210)")
+        with self.assertRaisesRegex(ValueError, "beyond static clock charges"):
+            fix.verify_generated(PINNED_GEN, bad)
+
+
 if __name__ == "__main__":
     unittest.main()

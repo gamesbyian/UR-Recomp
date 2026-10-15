@@ -1,36 +1,42 @@
 diff --git a/bsnes/sfc/cpu/cpu.cpp b/bsnes/sfc/cpu/cpu.cpp
-index b6fec16..15ee8b4 100644
+index b6fec16..7b31588 100644
 --- a/bsnes/sfc/cpu/cpu.cpp
 +++ b/bsnes/sfc/cpu/cpu.cpp
-@@ -120,4 +120,7 @@ auto CPU::power(bool reset) -> void {
+@@ -120,4 +120,9 @@ auto CPU::power(bool reset) -> void {
    status.interruptPending = 1;
  }
  
 +// UR-Recomp research patch: accessor for libretro memory exposure.
 +auto urResearchWorkRam() -> uint8_t* { return cpu.wram; }
++auto urResearchCartRam() -> uint8_t* { return cartridge.ram.data(); }
++auto urResearchCartRamSize() -> unsigned { return cartridge.ram.size(); }
 +
  }
 diff --git a/bsnes/target-libretro/libretro.cpp b/bsnes/target-libretro/libretro.cpp
-index 66ba7ce..bdb2174 100644
+index 66ba7ce..ab508b0 100644
 --- a/bsnes/target-libretro/libretro.cpp
 +++ b/bsnes/target-libretro/libretro.cpp
-@@ -1036,12 +1036,19 @@ unsigned retro_get_region()
+@@ -1036,12 +1036,23 @@ unsigned retro_get_region()
  
  // Currently, there is no safe/sensible way to use the memory interface without severe hackery.
  // Rely on higan to load and save SRAM until there is really compelling reason not to.
 +// UR-Recomp research patch: expose the CPU's 128 KiB work RAM so headless
 +// harnesses can read guest state from the high-accuracy core (and apply an
 +// optional zero fill before boot). No timing or emulation change.
-+namespace SuperFamicom { uint8_t* urResearchWorkRam(); }
++// Also expose the base cartridge's battery RAM as RETRO_MEMORY_SAVE_RAM so a
++// harness can inject an exact SRAM image before the first frame.
++namespace SuperFamicom { uint8_t* urResearchWorkRam(); uint8_t* urResearchCartRam(); unsigned urResearchCartRamSize(); }
 +
  void *retro_get_memory_data(unsigned id)
  {
 +	if (id == RETRO_MEMORY_SYSTEM_RAM) return SuperFamicom::urResearchWorkRam();
++	if (id == RETRO_MEMORY_SAVE_RAM) return SuperFamicom::urResearchCartRamSize() ? SuperFamicom::urResearchCartRam() : nullptr;
  	return nullptr;
  }
  
  size_t retro_get_memory_size(unsigned id)
  {
 +	if (id == RETRO_MEMORY_SYSTEM_RAM) return 128 * 1024;
++	if (id == RETRO_MEMORY_SAVE_RAM) return SuperFamicom::urResearchCartRamSize();
  	return 0;
  }

@@ -34,6 +34,7 @@ refuses any other recompiler revision.
 from __future__ import annotations
 
 import argparse
+import re
 from pathlib import Path
 
 MARK = "UR_BALDOSA_IO_ACCESS_CLOCK_ORDER"
@@ -171,12 +172,86 @@ def patch(source: str) -> str:
     return source
 
 
+_CHARGE_LINE = re.compile(r"^\s*cpu->master_cycles \+= (.+?);(?:\s*/\*.*\*/)?\s*$")
+_BLOCK_LINE = re.compile(r"cpu_trace_block\(cpu, (0x[0-9A-F]+)\);")
+_TERM = re.compile(r"^(\d+) \* (.+) \+ (\d+)$")
+
+
+def _block_totals(text: str) -> list[tuple[str, dict[str, int]]]:
+    """Static master-clock statements per generated block, as {speed: coeff}.
+
+    Only whole-line `cpu->master_cycles += ...;` statements count; dynamic
+    charges sit inside `if` bodies on the same line and are left alone."""
+    blocks: list[tuple[str, dict[str, int]]] = []
+    for line in text.split("\n"):
+        m = _BLOCK_LINE.search(line)
+        if m:
+            blocks.append((m.group(1), {}))
+            continue
+        if line.startswith("RecompReturn "):
+            blocks.append(("<function>", {}))
+            continue
+        c = _CHARGE_LINE.match(line)
+        if not c or not blocks:
+            continue
+        expr, acc = c.group(1), blocks[-1][1]
+        t = _TERM.match(expr)
+        if t:
+            acc[t.group(2)] = acc.get(t.group(2), 0) + int(t.group(1))
+            acc["1"] = acc.get("1", 0) + int(t.group(3))
+        elif expr.isdigit():
+            acc["1"] = acc.get("1", 0) + int(expr)
+        else:
+            raise ValueError(f"unrecognized static charge: {expr}")
+    return blocks
+
+
+def verify_generated(pinned: str, corrected: str) -> int:
+    """Return the number of reordered blocks; raise unless the corrected file
+    differs from the pinned one only in static charge lines with equal block
+    totals."""
+    strip = lambda text: [ln for ln in text.split("\n") if not _CHARGE_LINE.match(ln)]
+    if strip(pinned) != strip(corrected):
+        raise ValueError("generated code differs beyond static clock charges")
+    a, b = _block_totals(pinned), _block_totals(corrected)
+    if [k for k, _ in a] != [k for k, _ in b]:
+        raise ValueError("generated block structure changed")
+    changed = 0
+    for (pc, ta), (_, tb) in zip(a, b):
+        if {k: v for k, v in ta.items() if v} != {k: v for k, v in tb.items() if v}:
+            raise ValueError(f"block {pc} static clock total changed")
+    for line in corrected.split("\n"):
+        if "in-order: register access" in line and _CHARGE_LINE.match(line):
+            changed += 1
+    return changed
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--game", required=True, type=Path,
                     help="disposable gamesbyian/uniracers-recomp checkout")
+    ap.add_argument("--verify-gen", action="store_true",
+                    help="after regen: check every src/gen bank file against the "
+                         "committed one (git HEAD) for reordered charges only")
     args = ap.parse_args()
+    if args.verify_gen:
+        import subprocess
+        game = args.game.resolve()
+        files = sorted((game / "src/gen").glob("bank*_v2.c"))
+        if not files:
+            raise SystemExit("no generated bank files to verify")
+        total = 0
+        for f in files:
+            rel = f.relative_to(game).as_posix()
+            pinned = subprocess.run(["git", "-C", str(game), "show", f"HEAD:{rel}"],
+                                    check=True, capture_output=True, text=True).stdout
+            total += verify_generated(pinned, f.read_text(encoding="utf-8"))
+        if total == 0:
+            raise SystemExit("no in-order charges found: was src/gen regenerated?")
+        print(f"verified {len(files)} generated files: {total} in-order charge "
+              "statements, every block total unchanged")
+        return 0
     path = args.game.resolve() / RELATIVE
     before = path.read_text(encoding="utf-8")
     after = patch(before)

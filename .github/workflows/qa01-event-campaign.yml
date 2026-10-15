@@ -24,6 +24,10 @@ on:
         required: false
         type: boolean
         default: false
+      baldosa_io_clock_order:
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       selected:
@@ -54,6 +58,11 @@ on:
         default: false
       baldosa_refresh_beam_rate:
         description: "Opt-in RF-015 correction: stage one DRAM refresh per 1364-clock beam line into the pinned Baldosa build"
+        type: boolean
+        required: false
+        default: false
+      baldosa_io_clock_order:
+        description: "Opt-in RF-017 correction: charge static block clocks in instruction order around register accesses (regenerates src/gen)"
         type: boolean
         required: false
         default: false
@@ -164,6 +173,15 @@ jobs:
           # Explicitly opted-in RF-015 framework correction; default builds stay pinned.
           if [[ "${{ inputs.baldosa_refresh_beam_rate }}" == "true" ]]; then
             python3 tools/baldosa_dram_refresh_beam_rate_patch.py --game baldosa
+          fi
+          # Explicitly opted-in RF-017 emitter correction; regenerates src/gen
+          # with --cfg-roots (reproduces the committed output without it) and
+          # fails unless only static clock charges moved.
+          if [[ "${{ inputs.baldosa_io_clock_order }}" == "true" ]]; then
+            python3 tools/baldosa_io_access_clock_order_patch.py --game baldosa
+            (cd baldosa && bash tools/regen.sh --cfg-roots \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc")
+            python3 tools/baldosa_io_access_clock_order_patch.py --game baldosa --verify-gen
           fi
           cmake -S baldosa -B baldosa/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \

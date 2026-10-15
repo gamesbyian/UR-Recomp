@@ -41,7 +41,7 @@ class OriginalFieldCgramTest(unittest.TestCase):
             full.replace("s_raster_live_guest_cgramSecondWrite",
                          "different_name",1),
             full+full,
-            self.source.replace("ppu->cgram","ppu->vram",1)
+            self.source.replace("ppu->oamBuffer = s_raster_port.oamBuffer;", "ppu->oamBuffer = 0;")
         ):
             with self.subTest(source=source[:65]),self.assertRaises(ValueError):
                 cgram.patch_source(source)

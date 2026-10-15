@@ -1,0 +1,134 @@
+name: Experimental Windows build-once two-runner acceptance
+
+# Bounded pilot of actual Win32 guest journeys, not a replacement for the
+# authoritative PR Windows bridge or any independent QA release gate.
+# The reusable producer builds one pinned PE+ROMless ZIP without doing the
+# eleven acceptance journeys. Two consumer VMs execute those originals
+# concurrently; the full accepted PR route remains intact.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/baldosa-windows-fanout-pilot.yml"
+      - "tools/run_baldosa_sharded_windows_journeys.py"
+      - "tests/unit/test_run_baldosa_sharded_windows_journeys.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-build-once-two-runner-pilot-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  candidate:
+    uses: ./.github/workflows/baldosa-windows-native-bridge.yml
+    with:
+      candidate_only: true
+      export_campaign_inputs: true
+
+  scenarios:
+    needs: candidate
+    runs-on: windows-2022
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        shard: [baseline-records, independent]
+    steps:
+      - name: Check out exact UR product bridge source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Check out pinned Baldosa original script owner
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          persist-credentials: false
+
+      - name: Download exact native binary, fixture and ROM-free package
+        uses: actions/download-artifact@v4
+        with:
+          name: qa-baldosa-native-export
+          path: ${{ runner.temp }}/qa-win32-fanout-bundle
+
+      - name: Verify identical source and stage native binaries on this VM
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/qa-win32-fanout-bundle"
+          sha256sum -c SHA256SUMS
+          test "$(cat source-commit.txt)" = "$GITHUB_SHA"
+          test -s UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip
+          test -s UniracersSNESRecomp.exe
+          test -s ur-baldosa-modern-profile-fixture.exe
+          cd "$GITHUB_WORKSPACE"
+          mkdir -p baldosa/build-ur-win
+          cp "$RUNNER_TEMP/qa-win32-fanout-bundle/UniracersSNESRecomp.exe" baldosa/build-ur-win/
+          cp "$RUNNER_TEMP/qa-win32-fanout-bundle/ur-baldosa-modern-profile-fixture.exe" baldosa/build-ur-win/
+          sha256sum -c "$RUNNER_TEMP/qa-win32-fanout-bundle/SHA256SUMS" \
+            --ignore-missing || exit 1
+
+      - name: Run immutable existing original Win32 journeys on isolated consumer
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: |
+          set -euo pipefail
+          python tools/run_baldosa_sharded_windows_journeys.py run \
+            --shard "$SHARD" \
+            --bundle "$RUNNER_TEMP/qa-win32-fanout-bundle" \
+            --source-sha "$GITHUB_SHA" \
+            --work "$RUNNER_TEMP/source-windows-fanout-private" \
+            --out "$RUNNER_TEMP/source-windows-fanout-result/result.json"
+
+      - name: Retain only source-qualified result, never ROM or private SRAM
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fanout-win32-${{ matrix.shard }}
+          path: ${{ runner.temp }}/source-windows-fanout-result/result.json
+          if-no-files-found: warn
+          retention-days: 7
+
+  aggregate:
+    needs: [candidate, scenarios]
+    if: ${{ always() && needs.candidate.result == 'success' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Download both source-bound Windows receipts, retaining missingness
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: fanout-win32-*
+          path: ${{ runner.temp }}/source-windows-fanout-results
+          merge-multiple: false
+
+      - name: Fail closed on missing/duplicated real cases, hashes or false release credit
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/source-windows-fanout-results"
+          python3 tools/run_baldosa_sharded_windows_journeys.py aggregate \
+            --results "$RUNNER_TEMP/source-windows-fanout-results" \
+            --source-sha "$GITHUB_SHA" \
+            --out "$RUNNER_TEMP/source-windows-fanout-aggregate/result.json" \
+            --summary "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload bounded aggregate receipt only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: win32-distributed-pilot-aggregate
+          path: ${{ runner.temp }}/source-windows-fanout-aggregate/result.json
+          if-no-files-found: warn
+          retention-days: 7

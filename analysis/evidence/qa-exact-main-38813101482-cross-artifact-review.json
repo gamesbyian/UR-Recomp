@@ -99,7 +99,24 @@
     "full_qa_gate_witnesses": 0,
     "run_canonical_fnv64_recomputed": "a8327800e49e4c44",
     "match_canonical_fnv64_recomputed": "5838b68b19e040cb",
-    "one_byte_changed_payload_rejected_by_fnv64_for_both": true
+    "one_byte_changed_payload_rejected_by_fnv64_for_both": true,
+    "canonical_fnv64_adversarial_review": {
+      "input": "actual archived same-candidate CI-created .urrun and .urmatch raw bytes, run 38813101482 artifact 12010421091",
+      "algorithm": "FNV-1a 64-bit over all bytes before final checksum line, offset basis cbf29ce484222325, prime 100000001b3",
+      "run": {
+        "canonical": "a8327800e49e4c44",
+        "one_byte_mutation_offset": 263,
+        "mutant_checksum": "4affd12513b209ab",
+        "unchanged_trailer_rejected": true
+      },
+      "match": {
+        "canonical": "5838b68b19e040cb",
+        "one_byte_mutation_offset": 94,
+        "mutant_checksum": "fd8b3586a01c50ed",
+        "unchanged_trailer_rejected": true
+      },
+      "scope": "offline original-byte checksum and deliberately mutated payload re-evaluation, not OS crash/fault/write, original emulator, or independent Windows game execution"
+    }
   },
   "limitations": [
     "Archived Windows output independently decoded on Linux; no newly executed Win32 process.",

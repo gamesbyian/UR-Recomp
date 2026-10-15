@@ -6,6 +6,15 @@ name: QA-08 one-shot authentic Windows versus original moving 1P source
 # Archived input and candidate artifacts are immutable. Do not trigger new
 # expensive original/core rebuilds for pure offline comparator adjustments.
 on:
+  # Only fast archived-artifact comparison on PRs. Both emulator producers
+  # are disabled except for an explicit manual recapture_source=true.
+  pull_request:
+    paths:
+      - ".github/workflows/qa08-original-windows-oneplayer.yml"
+      - "tools/qa08_compare_original_windows_oneplayer.py"
+      - "tools/qa08_original_oneplayer_source_manifest.py"
+      - "tools/qa08_windows_oneplayer_source_capture.py"
+      - "tests/unit/test_qa08_original_windows_oneplayer.py"
   workflow_dispatch:
     inputs:
       recapture_source:

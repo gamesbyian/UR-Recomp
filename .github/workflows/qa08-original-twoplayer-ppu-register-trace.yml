@@ -3,14 +3,9 @@ name: QA-08 original 2P read-only finish/results PPU register journal
 # Three actual original Snes9x register dumps, only at genuine stock script
 # boundaries. The same 263 PPU source images must match the earlier
 # independent original replay bytewise. No guest writes or CPU/APU changes.
+# One authenticated original source PPU register capture passed 38791934542.
+# Follow-up comparator/edit commits reuse its original raw journal; manual-only.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/qa08-original-twoplayer-ppu-register-trace.yml"
-      - "tools/qa08_original_twoplayer_ppu_register_trace.py"
-      - "tests/unit/test_qa08_original_twoplayer_ppu_register_trace.py"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snes9x-libretro.json"
   workflow_dispatch:
 
 permissions:

@@ -1,0 +1,74 @@
+{
+  "schema": "qa08-source-bound-original-snes9x-windows-three-moving-1p/1",
+  "outcome": "three_real_distinct_1P_moving_windows_original_PPU_256x224_full_RGB5_pixel_exact",
+  "source_recomp_pr": 1641,
+  "research_pr": 1649,
+  "original_windows_comparison": {
+    "original_source_run": 38701112952,
+    "original_snes9x_artifact_id": 11956168307,
+    "original_snes9x_whole_artifact_sha256": "9b6f32bd00b89e5fda72bb82ea9d535ebd90baf62a4600a2fb0fd598b4ee648d",
+    "windows_1p_artifact_id": 11956707539,
+    "windows_1p_whole_artifact_sha256": "2cc4643cdb8dc3d3b77d44f31646893eea8d070c593453ba40c5931e05fd0c57",
+    "immutable_actual_windows_executable_sha256": "7431889698913feadab76261caf3b00b82d1d9a1466a8260d9b7512d8328324e",
+    "original_emulator_core_sha256": "720e5ccb9b84722cd94e9636c52575db642c3e6a7e4cd65af33cea85cdead089",
+    "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_guest_route_LF_sha256": "d33bbe48bd6488d08688abb1ae58e2928941bb6319fd38f42553cf1d837ac699",
+    "original_emulator_route_without_turbo_LF_sha256": "74527132f85e136985edfe5de9b84172a4d1a3ecd8814af7c6e481fd0603d56b",
+    "native_windows_exact_same_route_CRLF_sha256": "65567dd5629bc71d544d58a4ac31b51de6c0b382d070aaf06ec1a2be952a5cd1",
+    "real_guest_crc_count": 5447,
+    "real_guest_crc_transcript_sha256": "45d7675858ebf3e3a051a58d2af104b6d2d9a66e7700da8248ad571713662c41",
+    "original_callback_window_inclusive": [
+      2176,
+      2240
+    ],
+    "original_distinct_frames": 65,
+    "original_endpoint_changed_rgb_pixels": 26657
+  },
+  "independent_archived_recheck": {
+    "run": 38702318119,
+    "artifact_id": 11956318779,
+    "whole_artifact_sha256": "cc1d4a37b75ed891504ab97d20c827b73ad7ca441cba4ee9fb5e7a2f13d6fc76",
+    "workflow_success": true,
+    "producer_jobs_skipped_due_to_verified_reuse": true,
+    "test_suite_count": 7,
+    "source_pixel_comparison": "all 57344 RGB5 pixels vs all 65 original callbacks for each actual Windows moving frame, unmasked",
+    "scene_records": [
+      {
+        "windows_guest": 2192,
+        "original_callback": 2191,
+        "wrong_rgb5_pixels": 0,
+        "runner_up_wrong_rgb5_pixels": 23039,
+        "windows_raw_P7_sha256": "39b5d5ab144a88ac97191abcca84e20bd3a76937a1f4c0367af865dd1651e3f5"
+      },
+      {
+        "windows_guest": 2208,
+        "original_callback": 2207,
+        "wrong_rgb5_pixels": 0,
+        "runner_up_wrong_rgb5_pixels": 20855,
+        "windows_raw_P7_sha256": "8ad1aee7ba2016078096a2460d3c1910f0bbff130e9140b70c8c4f1d3242f3e7"
+      },
+      {
+        "windows_guest": 2224,
+        "original_callback": 2223,
+        "wrong_rgb5_pixels": 0,
+        "runner_up_wrong_rgb5_pixels": 16449,
+        "windows_raw_P7_sha256": "9f27238bd54a5a2c06c7514ad19542a569f9a0f34acd5ed4715c7019118c9f6b"
+      }
+    ]
+  },
+  "authentic_logical_geometry": [
+    256,
+    224
+  ],
+  "green_RGB565_to_RGB5_only": true,
+  "no_spatial_cropping_shift_masking_fabricated_frames": true,
+  "not_yet_proven": [
+    "complete 1P event frame-by-frame original/native guest phase",
+    "final results and transitions source raster",
+    "2P complete event sprite priority",
+    "real Windows 7:6 aspect/display/4x/342 widescreen",
+    "Remastered unicycle owner likeness approval",
+    "physical Windows controllers and real hardware"
+  ],
+  "qa_release_ledger_accepted_gates": 0
+}

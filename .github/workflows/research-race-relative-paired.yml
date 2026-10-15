@@ -6,7 +6,11 @@ name: "Research: race-relative paired original/native replay"
 # lag, comparing every decoded source field and all semantic WRAM exactly.
 # Optional declared finish stimulus exercises the 2P result handoff (RF-012);
 # a lag-frame and a blank-screen census of the stock route cover RF-014.
-# One candidate build, one paired job; no product acceptance fan-out.
+# With include_baldosa (default true) the pinned product guest
+# (gamesbyian/uniracers-recomp 10b864b, snesrecomp fork 075fbe4) is built once
+# with the research two-seat input shim and replayed on Snes9x and the
+# WRAM-exposing high-accuracy bsnes core (RF-015), plus both censuses.
+# One candidate build, one Baldosa build, one paired job; no acceptance fan-out.
 # Grants no gameplay, original-parity or release credit.
 on:
   workflow_dispatch:
@@ -20,9 +24,13 @@ on:
         required: true
         default: "4000"
       lag:
-        description: "Declared native-minus-reference entry lag; each case also measures it"
+        description: "Declared Modern-native-minus-reference entry lag; each case also measures it"
         required: true
         default: "2"
+      include_baldosa:
+        description: "Also build and replay the pinned Baldosa product guest (lag 0, Snes9x and bsnes)"
+        required: true
+        default: "true"
 
 permissions:
   contents: read
@@ -38,10 +46,60 @@ jobs:
       canonical_candidate: false
       candidate_only: true
 
+  baldosa:
+    if: ${{ inputs.include_baldosa == 'true' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - name: Check out the pinned Baldosa product guest
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+      - name: Build the disposable Baldosa guest with the research two-seat input shim
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends \
+            ninja-build pkg-config build-essential cmake libsdl2-dev \
+            libgl-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxss-dev libwayland-dev \
+            libxkbcommon-dev libegl-dev libgles-dev libdrm-dev \
+            libgbm-dev libasound2-dev libpulse-dev libudev-dev \
+            libdbus-1-dev
+          # Research-only host transport in a throwaway checkout; no guest, PPU or save change.
+          python3 tools/research_baldosa_2p_input_patch.py \
+            --host baldosa/snesrecomp/runner/src/desktop/host_main.c
+          cmake -S baldosa -B baldosa/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
+          cmake --build baldosa/build --target UniracersSNESRecomp -j3
+          mkdir -p "$RUNNER_TEMP/baldosa-out"
+          install -m 755 baldosa/build/UniracersSNESRecomp "$RUNNER_TEMP/baldosa-out/UniracersSNESRecomp"
+          (cd "$RUNNER_TEMP/baldosa-out" && sha256sum UniracersSNESRecomp > SHA256SUMS)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: research-baldosa-2p-shim-guest
+          retention-days: 7
+          if-no-files-found: error
+          path: ${{ runner.temp }}/baldosa-out/
+
   paired:
-    needs: candidate
+    needs: [candidate, baldosa]
+    if: ${{ !cancelled() && needs.candidate.result == 'success' && (needs.baldosa.result == 'success' || needs.baldosa.result == 'skipped') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v4
         with:
@@ -53,8 +111,10 @@ jobs:
           CASES: ${{ inputs.cases }}
           HOLD: ${{ inputs.finish_hold }}
           LAG: ${{ inputs.lag }}
+          BALDOSA: ${{ inputs.include_baldosa }}
         run: |
           set -euo pipefail
+          [[ "$BALDOSA" =~ ^(true|false)$ ]] || { echo "invalid include_baldosa" >&2; exit 2; }
           [[ "$HOLD" =~ ^[0-9]{1,5}$ ]] || { echo "invalid finish_hold" >&2; exit 2; }
           [[ "$LAG" =~ ^[0-8]$ ]] || { echo "invalid lag" >&2; exit 2; }
           n=0
@@ -71,6 +131,14 @@ jobs:
           sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
           sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends \
             xvfb build-essential cmake pkg-config libsdl2-dev
+          if [ "${{ inputs.include_baldosa }}" = true ]; then
+            # Same package set as the baldosa build job, so every shared library the guest links is present.
+            sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends \
+              ninja-build libgl-dev libopengl0 libglx0 libx11-dev libxext-dev libxrandr-dev \
+              libxcursor-dev libxi-dev libxss-dev libwayland-dev \
+              libxkbcommon-dev libegl-dev libgles-dev libdrm-dev \
+              libgbm-dev libasound2-dev libpulse-dev libudev-dev libdbus-1-dev
+          fi
       - name: Build original reference cores and snesref
         shell: bash
         run: |
@@ -86,6 +154,20 @@ jobs:
         with:
           name: shared-modern-native-candidate
           path: ${{ runner.temp }}/candidate
+      - uses: actions/download-artifact@v4
+        if: ${{ inputs.include_baldosa == 'true' }}
+        with:
+          name: research-baldosa-2p-shim-guest
+          path: ${{ runner.temp }}/baldosa-guest
+      - name: Fail fast if the Baldosa guest cannot resolve its shared libraries
+        if: ${{ inputs.include_baldosa == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x "$RUNNER_TEMP/baldosa-guest/UniracersSNESRecomp"
+          if ldd "$RUNNER_TEMP/baldosa-guest/UniracersSNESRecomp" | grep "not found"; then
+            echo "Baldosa guest has unresolved shared libraries" >&2; exit 3
+          fi
       - name: Fetch the signed frontier ledger (read-only)
         shell: bash
         run: |
@@ -128,23 +210,66 @@ jobs:
             python3 tools/qa_frontier_original_crosscheck.py summarize "${args[@]}" \
               --out "$OUT/summary-$core.json"
           done
-      - name: Lag-frame and blank-screen census on the stock 2P route
+      - name: Paired race-relative replay of the Baldosa product guest (lag 0)
+        if: ${{ inputs.include_baldosa == 'true' }}
         shell: bash
+        env:
+          CASES: ${{ inputs.cases }}
+          HOLD: ${{ inputs.finish_hold }}
         run: |
           set -euo pipefail
+          BEXE="$RUNNER_TEMP/baldosa-guest/UniracersSNESRecomp"
+          chmod +x "$BEXE"
+          (cd "$RUNNER_TEMP/baldosa-guest" && sha256sum -c SHA256SUMS)
+          FRAMES="1128-1140,1620-4800/60,4801-6400"
+          [ "$HOLD" = 0 ] && FRAMES="1128-1140,1620-3420/30"
+          OUT="$RUNNER_TEMP/paired"
+          mkdir -p "$OUT/baldosa-snes9x" "$OUT/baldosa-bsnes"
+          for c in $CASES; do
+            seed="${c%%:*}"; arm="${c##*:}"
+            for core in snes9x bsnes; do
+              case "$core" in
+                snes9x) SO=.tools/src/snes9x-libretro/libretro/snes9x_libretro.so ;;
+                bsnes) SO=.tools/src/bsnes-libretro/bsnes_libretro.so ;;
+              esac
+              # Raw dumps are deleted by default; Baldosa adds ~2 MB/frame of APU log.
+              python3 tools/qa_frontier_original_crosscheck.py paired \
+                --ledger "$RUNNER_TEMP/ledger.json" \
+                --snesref "$RUNNER_TEMP/snesref-build/snesref" --core "$SO" \
+                --native-launcher baldosa --native-exe "$BEXE" \
+                --seed "$seed" --arm "$arm" --lag 0 \
+                --finish-hold "$HOLD" --frames "$FRAMES" \
+                --work "$RUNNER_TEMP/work/baldosa-$core-$seed" \
+                --out "$OUT/baldosa-$core/$seed.json"
+            done
+          done
+          for core in snes9x bsnes; do
+            args=()
+            for f in "$OUT/baldosa-$core"/*.json; do args+=(--paired "$f"); done
+            python3 tools/qa_frontier_original_crosscheck.py summarize "${args[@]}" \
+              --out "$OUT/summary-baldosa-$core.json"
+          done
+      - name: Lag-frame and blank-screen census on the stock 2P route
+        shell: bash
+        env:
+          BALDOSA: ${{ inputs.include_baldosa }}
+        run: |
+          set -euo pipefail
+          BARGS=()
+          if [ "$BALDOSA" = true ]; then BARGS=(--baldosa-exe "$RUNNER_TEMP/baldosa-guest/UniracersSNESRecomp"); fi
           EXE="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
           OUT="$RUNNER_TEMP/paired"
           REF="$RUNNER_TEMP/snesref-build/snesref"
           python3 tools/qa_lag_frame_census.py --snesref "$REF" \
             --core .tools/src/snes9x-libretro/libretro/snes9x_libretro.so \
             --core .tools/src/beetle-bsnes-libretro/mednafen_snes_libretro.so \
-            --native-exe "$EXE" --work "$RUNNER_TEMP/work/lag" --out "$OUT/lag-stock.json"
+            --native-exe "$EXE" "${BARGS[@]}" --work "$RUNNER_TEMP/work/lag" --out "$OUT/lag-stock.json"
           # Framebuffer-only, so the high-accuracy bsnes core (no system RAM) is the reference.
           python3 tools/qa_blank_screen_census.py --snesref "$REF" \
             --core .tools/src/bsnes-libretro/bsnes_libretro.so \
             --core .tools/src/snes9x-libretro/libretro/snes9x_libretro.so \
             --core .tools/src/beetle-bsnes-libretro/mednafen_snes_libretro.so \
-            --native-exe "$EXE" --frames 2-1250 \
+            --native-exe "$EXE" "${BARGS[@]}" --frames 2-1250 \
             --work "$RUNNER_TEMP/work/blank" --out "$OUT/blank-stock.json"
       - name: Publish compact SHA-bound result
         shell: bash
@@ -165,6 +290,18 @@ jobs:
                   e = p["measured_entry_host"]
                   print(f'| {core} | {p["seed"]} | {p["arm"]} | {e["native"]}/{e["original"]} '
                         f'| {p["declared_lag_confirmed"]} | {p["disposition"]} | {dur} |')
+          for core in ("snes9x", "bsnes"):
+              f = root / f"summary-baldosa-{core}.json"
+              if not f.exists():
+                  continue
+              s = json.loads(f.read_text())
+              for p in s["paired_exact"]:
+                  t = p.get("terminal") or {}
+                  dur = (f'{t["native"]["result_phase_frames"]}/{t["original"]["result_phase_frames"]}'
+                         if t else "-")
+                  e = p["measured_entry_host"]
+                  print(f'| baldosa vs {core} | {p["seed"]} | {p["arm"]} | {e["native"]}/{e["original"]} '
+                        f'| {p["declared_lag_confirmed"]} | {p["disposition"]} | {dur} |')
           lag = json.loads((root / "lag-stock.json").read_text())
           print("\n| Stock 2P route, host 2-1126 | Vblank-wait passes (7E:00C6) |")
           print("| --- | ---: |")
@@ -177,6 +314,10 @@ jobs:
               print(f"| {name} | {runs} |")
           print("\n**Research observation only; no original-parity or release credit.**")
           PY
+          BINPUTS=()
+          for f in "$RUNNER_TEMP"/paired/summary-baldosa-*.json; do
+            [ -e "$f" ] && BINPUTS+=(--input "$f")
+          done
           python3 tools/publish_experiment_result.py \
             --name research-race-relative-paired \
             --question "Do native and original agree at the measured race-relative frame, and how long is each engine's 2P result phase?" \
@@ -184,6 +325,7 @@ jobs:
             --input "$RUNNER_TEMP/paired/summary-beetle.json" \
             --input "$RUNNER_TEMP/paired/lag-stock.json" \
             --input "$RUNNER_TEMP/paired/blank-stock.json" \
+            "${BINPUTS[@]}" \
             --source-summary "$RUNNER_TEMP/paired/summary.md" \
             --out "$RUNNER_TEMP/paired/receipt.json" \
             --github-summary "$GITHUB_STEP_SUMMARY"
@@ -202,3 +344,4 @@ jobs:
             ${{ runner.temp }}/paired/receipt.json
             ${{ runner.temp }}/paired/snes9x/*.json
             ${{ runner.temp }}/paired/beetle/*.json
+            ${{ runner.temp }}/paired/baldosa-*/*.json

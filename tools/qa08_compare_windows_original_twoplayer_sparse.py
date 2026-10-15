@@ -57,7 +57,7 @@ def inspect(original_dir:Path,win_dir:Path,route:Path)->dict:
         native.get("source_frames_expected_and_observed")!=[FIRST,LAST,STEP] or
         native.get("actual_source_count")!=NUM or
         not (LAST<native.get("actual_native_simulations",0)<9505) or
-        native.get("independently_original_2p_pixels_accepted") is not False or
+        native.get("original_snes9x_PPU_frame_RGB5_parity_unadjudicated") is not True or
         native.get("release_quality_ledger_admitted") is not False):
         raise ValueError("authentic native two-pad source, exit or negative status invalid")
     manifest=orig.get("each_authentic_callback")
@@ -112,7 +112,7 @@ def inspect(original_dir:Path,win_dir:Path,route:Path)->dict:
         "original_ROM_sha256":ROM_SHA,
         "actual_original_source_callback_count":NUM,
         "actual_native_source_callback_count":NUM,
-        "original_Windows_source_route_EOF":checkout,
+        "original_Windows_source_route_EOL":checkout,
         "full_logical_pixel_geometry":[W,H],
         "authentic_native_guest_simulations":native["actual_native_simulations"],
         "native_guest_CRC_sha256":native["actual_native_guest_CRC_sha256"],

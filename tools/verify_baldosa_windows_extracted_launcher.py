@@ -29,6 +29,22 @@ def digest(path: Path) -> str:
             h.update(data)
     return h.hexdigest()
 
+LOG_RETAIN_LIMIT = 1 << 20  # bytes of each retained raw process transcript
+
+
+def bounded_log(text: str) -> str:
+    """Retain at most ~1 MiB of a raw transcript: the head and the tail with an
+    explicit marker, so chronology survives and the artifact stays bounded."""
+    raw = text.encode("utf-8", "replace")
+    if len(raw) <= LOG_RETAIN_LIMIT:
+        return text
+    half = LOG_RETAIN_LIMIT // 2
+    head = raw[:half].decode("utf-8", "replace")
+    tail = raw[-half:].decode("utf-8", "replace")
+    return (head + f"\n[... {len(raw) - 2 * half} bytes elided by the "
+            "verifier's bounded retention ...]\n" + tail)
+
+
 def invoke_launcher(launcher: Path, env: dict[str, str], extra: list[str],
                     timeout: int) -> subprocess.CompletedProcess[str]:
     # One path: use the same CMD entrypoint a user double-clicks. Supplying
@@ -151,6 +167,9 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
         "UR_RECOMP_USER_DATA_ROOT": str(user_root),
         "SDL_AUDIODRIVER": "dummy",
         "SDL_VIDEODRIVER": "windows",
+        # Scripted refusals must return at once; the interactive hold that
+        # keeps a double-clicked window readable is opted out here.
+        "UR_BALDOSA_NO_HOLD": "1",
     })
     args = ["--config", str(config), "--script", str(script)]
 
@@ -175,12 +194,29 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
     # A valid ROM cannot authorize package-local or relative profile storage.
     installed_rom.write_bytes(personal_rom.read_bytes())
     require(digest(installed_rom) == USA_SHA256, "CI test ROM changed during copy")
-    for root in (str(installed / "Injected Save Root"), "relative-save-root"):
+    # Rooted-but-not-fully-qualified Windows spellings (drive-relative and
+    # current-drive-root-relative) are admitted by IsPathRooted and resolve
+    # against process state; the launcher must refuse them with exit 3 before
+    # any save, catalog or folder is created.
+    drive_relative = "C:qa-drive-relative-root"
+    root_relative = "\\qa-current-drive-root-relative"
+    for root in (str(installed / "Injected Save Root"), "relative-save-root",
+                 drive_relative, root_relative):
         bad_env = {**env, "UR_RECOMP_USER_DATA_ROOT": root}
         bad = invoke_launcher(launcher, bad_env, args, timeout)
         require(bad.returncode != 0 and
                 "UR-BALDOSA-STARTUP-SAVE-ROOT" in bad.stderr,
                 "unsafe data root was accepted by actual CMD launcher")
+        if root in (drive_relative, root_relative):
+            require(bad.returncode == 3,
+                    f"rooted-relative data root {root!r} did not exit 3: "
+                    f"rc={bad.returncode}")
+    for leaked in (installed / "qa-drive-relative-root",
+                   Path(installed.anchor) / "qa-drive-relative-root",
+                   Path(installed.anchor) / "qa-current-drive-root-relative",
+                   Path.cwd() / "qa-drive-relative-root"):
+        require(not leaked.exists(),
+                f"rooted-relative data root created state at {leaked}")
     require(not (installed / "Injected Save Root").exists(),
             "package-local user state was created")
     require(not user_root.exists(), "invalid root created valid profile state")
@@ -214,7 +250,8 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
     # cartridge SRAM written under the same canonical user root.
     good = invoke_launcher(launcher, env, args, timeout)
     log = good.stdout + "\n" + good.stderr
-    (output / "valid-launch.log").write_text(log, encoding="utf-8")
+    (output / "valid-launch.log").write_text(
+        bounded_log(log), encoding="utf-8")
     require(good.returncode == 0,
             f"extracted CMD launcher returned {good.returncode}: {log[-2500:]}")
     for marker in ("UR_BALDOSA_MODERN_ROOT opened=1",
@@ -250,7 +287,7 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
     first_launch = invoke_launcher(launcher, first_env, [], timeout)
     first_log = first_launch.stdout + "\n" + first_launch.stderr
     (output / "first-racer-autorelaunch.log").write_text(
-        first_log, encoding="utf-8")
+        bounded_log(first_log), encoding="utf-8")
     require(first_launch.returncode == 0,
             "Actual no-argument extracted launcher failed first-racer "
             f"handoff: rc={first_launch.returncode} tail={first_log[-2000:]}")
@@ -278,6 +315,63 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
             "First-run native CMD wrote mutable SRAM into ROM-free package")
     require_archive_unchanged(archive, approved_archive_sha256)
 
+    # Packaged Options through the exact CMD launcher, no --script argument:
+    # real P1 semantic pad edges change Display/VSync/Volume and quit. State
+    # must land under the user root (never in the immutable package), a
+    # second launch must restore it, and a damaged options file must be
+    # reported without stopping the game or being forced onto the host.
+    options_user = output / "Packaged Options Through CMD With Spaces"
+    options_env = {**env, "UR_RECOMP_USER_DATA_ROOT": str(options_user),
+                   "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "12"}
+    opt_first = invoke_launcher(launcher, options_env, [], timeout)
+    opt_first_log = opt_first.stdout + "\n" + opt_first.stderr
+    (output / "packaged-options-first.log").write_text(
+        bounded_log(opt_first_log), encoding="utf-8")
+    require(opt_first.returncode == 0,
+            f"packaged Options launch failed: rc={opt_first.returncode} "
+            f"tail={opt_first_log[-1800:]}")
+    for token in (
+            "options_boot row=DISPLAY display=WINDOWED vsync=ON volume=100 "
+            "status=NONE help=0 load=missing",
+            "options_adjusted row=DISPLAY display=BORDERLESS",
+            "options_adjusted row=VSYNC display=BORDERLESS vsync=ADAPTIVE",
+            "options_adjusted row=VOLUME display=BORDERLESS vsync=ADAPTIVE "
+            "volume=90 status=SAVED"):
+        require(token in opt_first_log,
+                f"packaged Options journey missing stage: {token}")
+    options_file = options_user / "options-v1.txt"
+    require(options_file.is_file() and not options_file.is_symlink() and
+            "display_mode=borderless" in options_file.read_text(
+                encoding="utf-8") and
+            not (options_user / "host-state-v1.txt").exists(),
+            "packaged Options did not persist only options-v1.txt")
+    require(not (installed / "options-v1.txt").exists() and
+            not (installed / "config.ini").exists() and
+            not (installed / "saves").exists(),
+            "packaged Options leaked mutable state into the immutable package")
+    opt_second = invoke_launcher(launcher, {
+        **options_env, "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "14"}, [], timeout)
+    opt_second_log = opt_second.stdout + "\n" + opt_second.stderr
+    (output / "packaged-options-second.log").write_text(
+        bounded_log(opt_second_log), encoding="utf-8")
+    require(opt_second.returncode == 0 and
+            "options_boot row=DISPLAY display=BORDERLESS vsync=ADAPTIVE "
+            "volume=90 status=NONE help=0 load=loaded" in opt_second_log,
+            "packaged relaunch did not restore saved Options before play")
+    damaged_bytes = b"UR-HOST-STATE/6\nnot a valid options file\n"
+    options_file.write_bytes(damaged_bytes)
+    opt_third = invoke_launcher(launcher, {
+        **options_env, "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "14"}, [], timeout)
+    opt_third_log = opt_third.stdout + "\n" + opt_third.stderr
+    (output / "packaged-options-damaged.log").write_text(
+        bounded_log(opt_third_log), encoding="utf-8")
+    require(opt_third.returncode == 0 and
+            "options_boot" in opt_third_log and "load=damaged" in opt_third_log,
+            "a damaged options file stopped or was hidden from the packaged game")
+    require(options_file.read_bytes() == damaged_bytes,
+            "merely booting rewrote or discarded the damaged options file")
+    require_archive_unchanged(archive, approved_archive_sha256)
+
     # Actual CMD forwarding: a malformed Modern selector is refused by the
     # native after_config BEFORE gameplay. The batch file must preserve the
     # original exit 7, explain the refusal, and never create/overwrite SRAM.
@@ -289,7 +383,7 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
     rejected = invoke_launcher(launcher, env, args, timeout)
     rejected_log = rejected.stdout + "\n" + rejected.stderr
     (output / "profile-rejected-launch.log").write_text(
-        rejected_log, encoding="utf-8")
+        bounded_log(rejected_log), encoding="utf-8")
     require(
         rejected.returncode == 7 and
         rejected.stderr.count("UR-BALDOSA-STARTUP-PROFILE-REJECTED") == 1 and
@@ -317,6 +411,8 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
         "real_extracted_launcher_accepted": True,
         "no_argument_first_racer_cmd_one_shot_restart_accepted": True,
         "fresh_named_game_after_actual_cmd_restart": True,
+        "packaged_options_persist_outside_package": True,
+        "packaged_damaged_options_reported_not_forced": True,
         "exact_native_profile_refusal_code_and_guidance": True,
         "rejected_profile_save_unchanged": True,
         "native_root_drawn": True,

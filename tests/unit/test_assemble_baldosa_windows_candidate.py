@@ -78,9 +78,12 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
                     candidate.PREFIX + candidate.README).decode("utf-8")
                 self.assertIn("NOT a completed remaster", readme)
                 self.assertIn("historical runs read-only", readme)
-                self.assertIn("source-qualified Dragster only", readme)
+                self.assertIn("Quick Practice enters the original courses", readme)
+                self.assertIn("secret Hunter stays closed", readme)
                 self.assertIn("Practice cannot publish career Records or runs", readme)
-                self.assertIn("native Options remain pending", readme)
+                self.assertIn("Options changes Display, VSync and Volume", readme)
+                self.assertIn("options-v1.txt", readme)
+                self.assertNotIn("native Options remain pending", readme)
                 self.assertNotIn("Practice and Options are not yet integrated", readme)
                 self.assertIn("scripted-input native Windows 1P Race", readme)
                 self.assertIn("reopened it in a fresh game", readme)
@@ -157,6 +160,22 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
         self.assertNotIn("powershell.exe -ExecutionPolicy Bypass", script)
         self.assertNotIn("certutil -addstore", script)
 
+
+    def test_launcher_user_data_root_requires_fully_qualified_path(self):
+        script = candidate.launcher().decode("utf-8")
+        self.assertEqual(script.count("[IO.Path]::IsPathRooted($d)"), 1)
+        self.assertIn("[char]::IsLetter($d[0])", script)
+
+        def ok(d):  # Python model of the launcher predicate
+            sep = "\\/"
+            drive = len(d) >= 3 and d[0].isalpha() and d[1] == ":" and d[2] in sep
+            unc = len(d) >= 3 and d[0] == "\\" and d[1] == "\\" and d[2] not in sep
+            return drive or unc
+
+        for good in ("C:\\x", "C:/x", "\\\\server\\share", "\\\\?\\C:\\x"):
+            self.assertTrue(ok(good), good)
+        for bad in ("C:x", "\\x", "x", "\\\\\\x", "", "C:"):
+            self.assertFalse(ok(bad), bad)
 
     def test_actual_no_args_launcher_autorestart_log_contract(self):
         from verify_baldosa_windows_extracted_launcher import (

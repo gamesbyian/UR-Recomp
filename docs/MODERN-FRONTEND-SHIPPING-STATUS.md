@@ -28,7 +28,7 @@ a volume write that cannot be read back from `config.ini` (read-only or full
 disk) is rolled back and shown as NOT APPLIED rather than SAVED; DEFAULTS is
 all-or-nothing. (Independent QA review of the first draft found these paths.)
 A damaged file is reported, kept aside as
-`options-v1.txt.damaged` on the first explicit change, and replaced. Volume
+`options-v1.txt.damaged` (then `.damaged.1` ... `.15`, never overwriting an earlier copy; all slots taken fails closed) on the first explicit change, and replaced. Volume
 stays the framework's own `[Sound] Volume` (config.ini), rewritten immediately
 so a hard kill keeps what the player heard. The host seam is the guarded,
 idempotent `tools/baldosa_modern_options_spike.py` (four bounds-checked

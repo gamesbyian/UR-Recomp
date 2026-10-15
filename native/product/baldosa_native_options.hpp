@@ -204,18 +204,25 @@ inline void pull_live(BaldosaNativeOptions& model) {
     }
 }
 
-// Rename a rejected file aside (keeping the player's bytes) so a fresh,
-// create-only write can succeed. The previous .damaged file, if any, is
-// replaced: only the most recent damaged copy is retained.
+// Rename a rejected file aside, keeping the player's bytes. Never overwrites
+// or deletes an earlier quarantined copy: the first free name among
+// <file>.damaged, .damaged.1 ... .damaged.15 is used, and when all are taken
+// the change fails closed (SaveFailed) until the player frees one.
 inline bool quarantine_damaged(const std::string& path) {
-    std::error_code ec;
-    const std::filesystem::path source(path);
-    std::filesystem::path aside = source;
-    aside += ".damaged";
-    std::filesystem::remove(aside, ec);
-    ec.clear();
-    std::filesystem::rename(source, aside, ec);
-    return !ec;
+    namespace fs = std::filesystem;
+    const fs::path source(path);
+    for (int index = 0; index < 16; ++index) {
+        fs::path aside = source;
+        aside += index == 0 ? std::string(".damaged")
+                            : ".damaged." + std::to_string(index);
+        std::error_code ec;
+        const auto status = fs::symlink_status(aside, ec);
+        if (status.type() != fs::file_type::not_found) continue;
+        ec.clear();
+        fs::rename(source, aside, ec);
+        return !ec;  // a failed rename leaves every earlier copy intact
+    }
+    return false;
 }
 
 // Persist display/vsync through the existing typed store. `expected` is the

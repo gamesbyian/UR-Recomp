@@ -317,6 +317,48 @@ int main() {
         assert(std::string(baldosa_options_standing_notice(model)).empty());
     }
 
+    // Quarantine never discards an earlier quarantined copy: a second damage
+    // event keeps both, and with every slot taken the change fails closed.
+    {
+        const std::string dpath = (root / "quarantine-options.txt").string();
+        {
+            std::ofstream out(dpath + ".damaged", std::ios::binary);
+            out << "FIRST SENTINEL\n";
+            std::ofstream bad(dpath, std::ios::binary);
+            bad << "SECOND DAMAGED\n";
+        }
+        FakeHost fake;
+        BaldosaNativeOptions model;
+        baldosa_options_boot(model, dpath, make_host(fake));
+        assert(model.load == BaldosaOptionsLoad::Damaged);
+        baldosa_options_open(model);
+        baldosa_options_adjust(model, 1);
+        assert(model.status == BaldosaOptionsStatus::DamagedQuarantined);
+        assert(slurp(dpath + ".damaged") == "FIRST SENTINEL\n");
+        assert(slurp(dpath + ".damaged.1") == "SECOND DAMAGED\n");
+        // Exhaust every slot, damage again: refused, nothing deleted.
+        for (int i = 2; i < 16; ++i) {
+            std::ofstream out(dpath + ".damaged." + std::to_string(i),
+                              std::ios::binary);
+            out << "KEEP " << i << "\n";
+        }
+        {
+            std::ofstream bad(dpath, std::ios::binary | std::ios::trunc);
+            bad << "THIRD DAMAGED\n";
+        }
+        FakeHost fake2;
+        BaldosaNativeOptions again;
+        baldosa_options_boot(again, dpath, make_host(fake2));
+        baldosa_options_open(again);
+        baldosa_options_adjust(again, 1);
+        assert(again.status == BaldosaOptionsStatus::SaveFailed);
+        assert(fake2.fullscreen == 0);  // rolled back
+        assert(slurp(dpath) == "THIRD DAMAGED\n");
+        assert(slurp(dpath + ".damaged") == "FIRST SENTINEL\n");
+        assert(slurp(dpath + ".damaged.1") == "SECOND DAMAGED\n");
+        assert(slurp(dpath + ".damaged.15") == "KEEP 15\n");
+    }
+
     // Row text is truthful and bounded for the shared 8-pixel painter.
     {
         FakeHost fake;

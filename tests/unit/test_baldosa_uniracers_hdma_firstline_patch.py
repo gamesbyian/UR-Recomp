@@ -62,8 +62,8 @@ class CandidateSourceTest(unittest.TestCase):
         cases = [
             "",
             PINNED.replace("hdma_pin_oam_address(dma, ch);", ""),
-            PINN.replace("dma_transferByte(dma, ch->size++", "dma_transferByte(dma, ch->size"),
-            PINN + PINN,
+            PINNED.replace("dma_transferByte(dma, ch->size++", "dma_transferByte(dma, ch->size"),
+            PINNED + PINNED,
             changed.replace("ch->repCount--;", "ch->repCount -= 2;"),
             changed.replace("ch->doTransfer = (ch->repCount & 0x80) != 0;",
                             "ch->doTransfer = false;"),

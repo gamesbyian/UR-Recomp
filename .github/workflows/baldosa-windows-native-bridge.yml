@@ -198,16 +198,23 @@ jobs:
           echo "PASS: native AOT game imports only stock Windows inbox DLLs; no unsupplied compiler/SDL runtime needed" >> "$GITHUB_STEP_SUMMARY"
 
       # Same eleven original scripts and output paths are executed by the
-      # bounded runner below, not reimplemented. Native baseline is serial;
-      # the remaining isolated journeys fan out on this one Windows runner.
-      # PR heads deliberately exercise the pilot; established manual/reusable
-      # call sites remain serial unless they explicitly opt in.
+      # bounded runner below, not reimplemented. The baseline owns its root
+      # and seed; PR-head pilot begins independent routes after root creation
+      # while 1P/2P Records still await the exact baseline 8KiB SRAM.
+      # Existing manual/call opt-in remains proven two-worker post-baseline.
+      # Full original serial fallback remains available.
       - name: Pilot parallel authentic Windows journeys against one pinned candidate
         if: ${{ github.event_name == 'pull_request' || inputs.parallel_journeys == true }}
         run: |
           set -euo pipefail
-          python tools/run_baldosa_parallel_windows_journeys.py \
-            --workers 2 --out "$RUNNER_TEMP/baldosa-parallel-journeys"
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            python tools/run_baldosa_parallel_windows_journeys.py \
+              --workers 3 --overlap-baseline \
+              --out "$RUNNER_TEMP/baldosa-parallel-journeys"
+          else
+            python tools/run_baldosa_parallel_windows_journeys.py \
+              --workers 2 --out "$RUNNER_TEMP/baldosa-parallel-journeys"
+          fi
 
       - name: Retain bounded parallel pilot timings without changing QA-12 artifacts
         if: ${{ always() && (github.event_name == 'pull_request' || inputs.parallel_journeys == true) }}

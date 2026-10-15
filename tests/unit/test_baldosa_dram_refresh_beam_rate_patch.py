@@ -96,6 +96,16 @@ class PatchTest(unittest.TestCase):
             fix.patch(out)
 
 
+class ShippingBridgeStagingTest(unittest.TestCase):
+    def test_windows_bridge_stages_correction_before_build(self):
+        wf = (ROOT / ".github/workflows/baldosa-windows-native-bridge.yml").read_text()
+        stage = "python tools/baldosa_dram_refresh_beam_rate_patch.py --game baldosa"
+        self.assertEqual(wf.count(stage), 1)
+        self.assertLess(wf.index('test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = '
+                                 "075fbe4c8e0d97b0013be541795c39cb644a9709"), wf.index(stage))
+        self.assertLess(wf.index(stage), wf.index("cmake -S baldosa -B baldosa/build-ur-win"))
+
+
 class NativeRefreshRateTest(unittest.TestCase):
     """Compile and execute the real pinned/corrected C function."""
 

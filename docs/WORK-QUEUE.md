@@ -16,23 +16,9 @@
 
 **Before substantial work:** use the three-project reuse preflight in `AGENTS.md`; this does not create a new priority queue.
 
-## Earlier verified handoff
+## Historical checkpoint access
 
-The October 10 baseline, original/native event discrepancies and prior merge decisions are [preserved in the historical handoff](archive/WORK-QUEUE-OCT10-HANDOFF-20261011.md). Recheck current main, PRs and independent release evidence before assigning work. Use the three-project reuse preflight before acquiring another tool or harness.
-
-## Baldosa native Modern checkpoint (historical 2026-10-09)
-
-**Superseded for live Modern readiness:** See the Modern P0 delivery row and [frontend shipping status](MODERN-FRONTEND-SHIPPING-STATUS.md) for verified October 14 native coverage. The following bullets are preserved as their original October 9 handoff; they no longer describe current functionality.
-
-**At that older checkpoint, components merged, not yet a unified Modern app:**
-
-- **#1090/#1095/#1099/#1100/#1101:** acknowledged native pause, input release, snapshot and CRC parity.
-- **#1105:** real SDL Restart rewinds the guest's frame 1952 to race anchor 1783, preserves SRAM and proves changed post-resume WRAM on an append-only host timeline. Guest-indexed frame filenames can be overwritten by a rewind.
-- **#1108:** Baldosa uses the existing portable Modern user-data root for config, bindings and SRAM; invalid explicit roots reject.
-- **#1113:** opt-in typed Modern state/profile/catalog selection before native `RtlReadSram`; invalid named profiles reject without creating a profile.
-- **#1115:** merged green, real Win32/Linux guest loads catalog-backed 8-KiB named SRAM and rejects corrupt profiles; not durable typed snapshot sync (#1125).
-
-**Next:** Connect the existing five-way visible Modern frontend and controller seats to Baldosa, preserving exactly one host-owned input, Restart, storage/records/ghost/tournament authority. Keep the older patched executable as rollback. Current profile boot proofs do **not** establish that frontend, a full persisted result or original-emulator event parity (**official 0/45**). Share the same native build and QA routes with graphics/gameplay agents.
+Prior Baldosa component checkpoints, October 9–11 status and already closed PRs are preserved in [the October 10 handoff](archive/WORK-QUEUE-OCT10-HANDOFF-20261011.md), [the older work queue](archive/WORK-QUEUE-THROUGH-20261009.md), and [integration reconciliation](INTEGRATION-RECONCILIATION-20261010.md). **Do not treat their open tasks as new assignments.**
 
 ## First read (fresh coding agent, five-minute route)
 
@@ -55,13 +41,13 @@ Preserved old queue, phase progress and individual investigation notes: [archive
 
 **Integration rule:** Each feature owner supplies executable output and component proof; QA reuses that exact candidate and adds independent event, lifecycle, persistence and player-visible assertions. Prefer one guest build serving many witness checks, not N duplicate recompilation builds. No new generic harness or extra automatic Actions trigger without a new durable invariant.
 
-## Sequencing and merge boundaries
+## Integration and promotion rules
 
-1. **Refresh live state before editing.** **All six outstanding implementation PRs (#1045, #1056, #1058, #1079, #1082, #1086) have merged.** Recheck GitHub and next candidate after this checkpoint; do not reopen their already-proven bounded components. The last QA-08 code passed real native acceptance before a ledger-only correction and the revised ledger passed unit validation. Resolve branch ownership from GitHub, not this dated snapshot. Do not overwrite stale-branch content into `main`.
-2. **Integrate Baldosa's already proven primitives**, using established disposable stages and narrow host C ABI: frame/PPU state → Modern runtime; human input and pause ownership → actual menus; guest result/clock/controller stream → existing stores. Preserve the old shipping core as rollback, not an equal greenfield investigation.
-3. **Reuse the same short real route for acceptance where possible:** (a) live 2P input/pause/HD/world + CRC; (b) original/native completed single events; (c) fresh-process Windows player journey with persisted results and resumed input/audio. Do not equate any of these with the others.
-4. **Produce the first player-facing vertical slice** before broad parallel course/asset/secondary-platform expansion: launch → profile/racer → authentic race → legitimate result → Records/replay/ghost → retry or quit, in real 16:9 with coherent stable density and optional Original.
-5. **Promote only accepted evidence.** The release ledger stays unchanged until specific candidate-bound independent proof meets its gate. Log honest negative outcomes and rerun invalidated assertions after merges.
+1. **Refresh `main`, active PR ownership and checks** before editing shared files; this snapshot ages immediately when a new agent pushes. Cross-lane conflicts belong to the integration owner, not unilateral source replacements.
+2. **Reuse native Baldosa and the existing product.** One source-faithful game guest, one Modern host/session/data authority, one original reference and one shared tested Windows candidate. No second renderer, menu, save store, event oracle or automatic research campaign merely to increase apparent output.
+3. **Player journey before breadth:** clean launch → profile/racer → authentic 1P/2P game → terminal result → durable Records → real quit and cold restart → physical two-pad/audio/graphics inspection. Source-based probes prove only their scoped claims.
+4. **Preserve strict release authority:** `RELEASE-QUALITY-LEDGER.json` alone records independent candidate-bound gate witnesses. Complete-course acceptance is not granted by a checksum, matching result text, a one-frame envelope theory or successful CI without the full defined proof. A revised logic-tick oracle requires separate owner approval.
+5. **Spend computational capacity for answers:** independent hosted GHA shards may run in parallel if candidate identity and output ownership are sound; stop non-decision-bearing frontier/research sweeps. Prefer one meaningful PR per implementation or accepted decision, without penalizing PRs serving as necessary Actions computational workspaces.
 
 ## Dispatch ownership: six independent, complementary workstreams
 

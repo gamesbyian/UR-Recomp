@@ -3,18 +3,10 @@ name: QA-08 original 2P results 112-frame CGRAM port chronology
 # One source-only decision: where were $2121/$2122 writes during the 112
 # original result-animation frames preceding authentic 5184? Read the 1M-entry
 # core journal, preserve unchanged original 2P input and all 263 raw images.
-# Remove this temporary PR trigger as soon as the result is classified.
+# Completed source run 38822737039; retain manual reproduction only.
+# Classified research. Do not spend a PR runner rebuilding a fixed original
+# source artifact for changes to docs, comparators, or other agents' work.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/qa08-original-twoplayer-ppu-register-trace.yml"
-      - "tools/qa08_original_results_port_chronology.py"
-      - "tools/qa08_snesref_results_previous_patch.py"
-      - "tests/unit/test_qa08_original_results_port_chronology.py"
-      - "tools/qa08_original_twoplayer_ppu_register_trace.py"
-      - "tests/unit/test_qa08_original_twoplayer_ppu_register_trace.py"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snes9x-libretro.json"
   workflow_dispatch:
 
 permissions:

@@ -55,5 +55,13 @@
   "future_source_raster_experiment": "Compare actual original field-final CGRAM with native field-final CGRAM at guest 4064 and 5184, and whether a read-only CGRAM scanout latch at V225 preserves intervening native guest state. Do not patch game instructions, raster geometry or fixed gray values.",
   "native_compiled_corrective_CGRAM_change_accepted": false,
   "original_4x_artistic_signoff": false,
-  "release_quality_ledger_gates": 0
+  "release_quality_ledger_gates": 0,
+  "followup_20261015_four_state_source_evidence": "analysis/data/qa08-original-results-four-state-cgram-20261015.json",
+  "original_source_write_interval_frames": 7,
+  "original_four_phase_period_frames": 28,
+  "sparse_comparison_interval_frames": 16,
+  "112_frame_spaced_mismatch_could_be_sampling_alias": true,
+  "phase_checksum_native_matches_source_one_step_ahead_modulo_four": true,
+  "native_port_writer_causality_proven": false,
+  "updated_next_discriminator": "Capture original/native raw four CGRAM words 0x6c..0x6f and native 2121/2122 writer phase, not another completed-field snapshot"
 }

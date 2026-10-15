@@ -1,0 +1,95 @@
+{
+  "schema": "qa08-source-certified-original-2p-gray-CGRAM-four-state-phase-20261015/1",
+  "interpretation": "original_28_frame_palette_animation_and_native_checksum_matches_another_source_phase_not_a_native_timing_proof",
+  "real_original_snes9x_run": 38822737039,
+  "real_original_snes9x_artifact_id": 12013432991,
+  "artifact_zip_sha256": "d725ee45db1b66d098e79499263dd089dba80a26de517c30db674f91e20f80a8",
+  "source_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "source_core_sha256": "39b70cd547420db5a920bd31d52bff19e9114af9d7ae69d156a110f9ce66221e",
+  "source_script_SHA256": "bddfb15fedbaba3fcb0e95e628f11e1506fd210d93f4be67c6e9855c705dd3db",
+  "strict_authentic_source_frame_count": 263,
+  "strict_source_geometry": [
+    256,
+    224
+  ],
+  "strict_original_frame_SHA_matching_baseline_count": 263,
+  "source_5183_CGRAM_FNV1a": "e8cdbe60",
+  "source_5184_CGRAM_FNV1a": "e8cdbe60",
+  "source_journal_SHA256": "7e1f36a58fe52205011c9f34d4704c6311d929ac75caf11ea7e6958a6cc386c4",
+  "source_CGRAM_512bytes_SHA256": "431224685084e4a1ec62da7d7aaab96a7c36beb78aa8d257b0569be416737c12",
+  "source_journal_start": 5072,
+  "source_journal_end": 5184,
+  "ring_earliest_available_source_frame": 3682,
+  "complete_ring_scan": true,
+  "original_palette_data_port_total_records": 192,
+  "original_palette_write_frames": [
+    5073,
+    5080,
+    5087,
+    5094,
+    5101,
+    5108,
+    5115,
+    5122,
+    5129,
+    5136,
+    5143,
+    5150,
+    5157,
+    5164,
+    5171,
+    5178
+  ],
+  "each_palette_update_PPU_port_records": 12,
+  "each_palette_update_CGRAM_indices": [
+    "6c",
+    "6d",
+    "6e",
+    "6f"
+  ],
+  "source_write_beam_vcounter": [
+    225,
+    226
+  ],
+  "source_palette_cycle_frames": 28,
+  "source_15bit_grays": [
+    "4210",
+    "4631",
+    "4a52",
+    "56b5"
+  ],
+  "source_display_RGB8_grays_at_brightness_14": [
+    123,
+    132,
+    140,
+    165
+  ],
+  "full_512_CGRAM_source_derived_fingerprint_by_last_update": {
+    "5157": "898ece20",
+    "5164": "6d363000",
+    "5171": "2a904be8",
+    "5178": "e8cdbe60"
+  },
+  "source_5184_last_actual_update": 5178,
+  "original_5184_fingerprint": "e8cdbe60",
+  "existing_Windows_native_5184_fingerprint": "898ece20",
+  "native_hash_equals_source_rotation_from_5157": true,
+  "native_relative_phase_congruence": "one 7-frame update ahead modulo 4 or three behind",
+  "sample_interval_full_event_source_frames": 16,
+  "possible_sparse_phase_alias_period_frames": 112,
+  "original_intrinsic_112_frame_phase_proven": false,
+  "sampled_native_to_original_grays": {
+    "123": 132,
+    "132": 140,
+    "140": 165,
+    "165": 123
+  },
+  "sampled_grays_consistent_with_four_slot_rotation": true,
+  "full_native_512_CGRAM_byte_equality_to_rotated_source_state_proven": false,
+  "native_CPU_PPU_port_write_phase_proven": false,
+  "original_native_guest_frame_phase_certified": false,
+  "native_source_raster_correction_admitted": false,
+  "graphics_QA_08_10_gates_admitted": 0,
+  "HD_racer_art_owner_likeness_approved": false,
+  "next_decision": "observe real native slots 6c..6f/full CGRAM and PPU port writes on exact Windows source candidate, register guest/beam phase, distinguish native guest writer phase vs host PPU snapshot"
+}

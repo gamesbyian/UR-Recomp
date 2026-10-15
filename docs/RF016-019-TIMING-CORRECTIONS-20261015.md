@@ -65,6 +65,18 @@ The queue is serviced by `82:8035` inside the `80:FAC9/80:FAD2` waits, one comma
 - RF-019 staged;
 - Zoo onset +5163 = +5163, `Zoo live SRAM first sampled original/native disagreement: +None`.
 
+### RF-020 traced to its root step
+
+A trace over hosts 4700–5016 moves the cause earlier.
+
+- **Race fields:** they match within about 90 clocks per NMI-to-wait span.
+- **First SPC reset:** after the last NMI (host 4924) the NMI-disabled loader asks the SPC to reset (`82:8089 STA $2140=$FF`) and waits for the IPL signature `$BBAA` at `82:8097`. That first wait lasts **126,742** master clocks on Snes9x but **59,644** on native.
+- **Everything else in the loader matches:** the two later resets match exactly (674/674 and 661/660 polls), and the IPL byte upload has identical per-byte poll histograms (41,499 vs 41,466 polls over 7,278 bytes).
+- **The gap is one timer tick:** 67,098 clocks is one sound-driver timer tick to within poll granularity (25 timer-0 periods = 3,200 SPC cycles = 67,032 master clocks).
+- **The chain that follows:** native leaves the loader about 49 lines early, its stream upload runs ~33 bytes ahead, it sends the first queued command ~53 lines early (host 5012), and the onset follows a frame early.
+
+So the driver honours the reset at its next timer tick, and native's request lands one tick earlier relative to the SPC timer phase. This is a phase knife-edge, not a rate or code-cost error. The next step is an SPC-side timer-0 trace at host 4929–4931 on Baldosa and bsnes, then a bisection of earlier handshakes to find where the phase offset first appears.
+
 ## Shipping boundary
 
 - None of RF-016/018/019 is staged into the Windows bridge.

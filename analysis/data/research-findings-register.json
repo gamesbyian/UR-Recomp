@@ -476,7 +476,7 @@
     },
     {
       "id": "RF-020",
-      "title": "2P seed 50048000: native's result sequence starts one frame early because its sound driver accepts the second queued command a frame sooner at host 5012 (7E:2000 2 vs 1), with both references agreeing",
+      "title": "2P seed 50048000: native's result sequence starts one frame early because the first SPC reset handshake at host ~4930 completes one sound-driver timer tick (3,200 SPC cycles) sooner than on both references",
       "class": "original_native_discrepancy",
       "status": "handed_off",
       "evidence": "original_and_native",
@@ -491,9 +491,9 @@
         "docs/RF016-019-TIMING-CORRECTIONS-20261015.md",
         "analysis/data/rf016-019-timing-corrections-20261015.json"
       ],
-      "observation": "Full WRAM equal through 5011. 5012: 7E:2000/2002/2004.. sound queue advanced further on native (read index 2 vs 1), 7E:0083 20 vs 14. 5013: $C6 30 vs 31, $0BDE/$0BFE 204 vs 0. 0x84 onset 5014 vs 5015, race exit 5052 vs 5053. Unchanged by RF-016, RF-018 and RF-019.",
-      "uncertainty": "Mechanism inside the CPU/SPC port handshake not yet attributed; RF-015 showed this step is phase-sensitive even between correct cores (seed 50036056).",
-      "resolving_experiment": "SPC-side port-handshake trace (qa01_apu_phase_observers.py style) over host 5008-5012 on Baldosa and bsnes: compare when the SPC acknowledges each command against the 82:8035 polls.",
+      "observation": "Full WRAM equal through 5011. 5012: 7E:2000/2002/2004.. sound queue advanced further on native (read index 2 vs 1), 7E:0083 20 vs 14. 5013: $C6 30 vs 31, $0BDE/$0BFE 204 vs 0. 0x84 onset 5014 vs 5015, race exit 5052 vs 5053. Unchanged by RF-016, RF-018 and RF-019. Traced back (Snes9x per-instruction PC vs Baldosa block observer, host 4700-5016): race fields match within ~90 clocks per NMI-to-wait span; after the last NMI (host 4924) the NMI-disabled loader requests an SPC reset (82:8089 STA $2140=$FF) and waits for the IPL signature at 82:8097 (CMP $2140 = $BBAA). The first such wait lasts 126,742 master clocks (2,122 polls) on Snes9x but 59,644 (999 polls) on native; the two later resets in the same loader match exactly (674/674, 661/660 polls), and the following IPL byte upload has identical per-byte poll histograms (41,499 vs 41,466 polls, 7,278 bytes). The 67,098-clock difference is one driver timer tick within poll granularity (25 timer-0 periods = 3,200 SPC cycles = 67,032 master clocks). Native therefore leaves the loader ~49 lines early, starts the 82:82EF stream upload ~33 bytes ahead, sends the first queued sound command ~53 lines early (5012), and the result onset follows a frame early.",
+      "uncertainty": "The reset request is honoured at the sound driver's next timer tick, so the outcome depends on the SPC timer phase relative to the CPU at host ~4930, a knife-edge (RF-015 found the same step phase-sensitive between correct cores). The native/reference phase offset itself is unmeasured: it accumulates from every CPU-SPC handshake and timer start since boot.",
+      "resolving_experiment": "SPC-side trace on Baldosa and bsnes of the timer-0 counter and the driver's port-0 check around host 4929-4931: measure how far the $FF write lands from the tick on each, then bisect earlier handshakes (driver start, attract loads) for the first phase offset.",
       "consequence": "Last 2P seed in the RF-015 population where both references agree and native differs."
     }
   ]

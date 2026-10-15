@@ -262,6 +262,36 @@
    "native": 5014,
    "original": 5015
   },
+  "root_step": {
+   "code": "82:8089 STA $2140=$FF; 82:8097 CMP $2140 until $BBAA",
+   "difference_master_clocks": 67098,
+   "first_reset_polls": {
+    "native": 999,
+    "snes9x": 2122
+   },
+   "first_reset_wait_master_clocks": {
+    "native": 59644,
+    "snes9x": 126742
+   },
+   "host": 4930,
+   "interpretation": "SPC timer-phase knife-edge: reset honoured one driver tick (3,200 SPC cycles) sooner on native",
+   "ipl_upload_polls": {
+    "bytes": 7278,
+    "native": 41466,
+    "snes9x": 41499
+   },
+   "later_resets_polls": {
+    "native": [
+     674,
+     660
+    ],
+    "snes9x": [
+     674,
+     661
+    ]
+   },
+   "one_driver_tick_master_clocks": 67032
+  },
   "unchanged_by": [
    "RF-016",
    "RF-018",

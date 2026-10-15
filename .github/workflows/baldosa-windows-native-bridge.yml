@@ -438,6 +438,28 @@ jobs:
             --video windows --timeout 240
           echo "PASS: ten original Practice courses (race, circuit and stunt; four tours per unlock state) entered with source course identity on real Win32 native games; Hunter closed, saves unchanged, nothing published. Semantic pad edges; not all 45 and no physical-pad or release credit." >> "$GITHUB_STEP_SUMMARY"
 
+      # Separate, bounded evidence for independent QA. The fixed strict
+      # baldosa-win32-native-pause-evidence ZIP is deliberately NOT touched.
+      # Only producer reports and the named native source logs of these two
+      # probes: no ROM, user directory, save, config root or blanket glob.
+      - name: Retain bounded Options and Practice-breadth native evidence
+        if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.parallel_journeys == false }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-native-modern-options-practice-evidence
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_options/report.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_options/game1_change/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_options/game2_restore_defaults/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_options/game3_defaults_boot/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_options/game4_damaged/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_options/game5_readonly_config/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/report.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/tier0_never_played-*/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/tier2_formatted_save-*/log.txt
+
       - name: Assemble verified ROM-free Baldosa Modern Windows candidate
         run: |
           set -euo pipefail

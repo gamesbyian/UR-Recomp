@@ -17,7 +17,9 @@ Semantic pad edges, not physical-controller acceptance; no release credit.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import os
 import re
 from pathlib import Path
 
@@ -67,6 +69,14 @@ def settings_of(path: Path) -> dict[str, str]:
     return out
 
 
+def digest(path: Path):
+    """Bounded receipt for one small settings file: size and SHA-256 only."""
+    if not path.is_file() or path.is_symlink():
+        return None
+    data = path.read_bytes()
+    return {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
+
 def run(exe: Path, rom: Path, out: Path, *, timeout: int, video: str) -> dict:
     for path in (exe, rom):
         if path.is_symlink() or not path.is_file():
@@ -77,6 +87,21 @@ def run(exe: Path, rom: Path, out: Path, *, timeout: int, video: str) -> dict:
     user = out / "Fresh Options User"
     user.mkdir()
     options = user / "options-v1.txt"
+    receipts: list[dict] = []
+
+    def receipt(stage: str, work: Path | None = None) -> None:
+        entry = {"stage": stage,
+                 "options_v1": digest(options),
+                 "options_v1_damaged": digest(Path(str(options) + ".damaged")),
+                 "host_state_v1_present": (user / "host-state-v1.txt").exists()}
+        if work is not None:
+            ini = work / "config.ini"
+            match = re.search(r"(?m)^Volume\s*=\s*(\d+)", ini.read_text(
+                encoding="utf-8")) if ini.is_file() else None
+            entry["config_ini_volume"] = int(match.group(1)) if match else None
+        receipts.append(entry)
+
+    receipt("before_game1")
 
     # Game 1: change all three through the real P1 pad handler.
     work1 = out / "game1_change"
@@ -103,6 +128,7 @@ def run(exe: Path, rom: Path, out: Path, *, timeout: int, video: str) -> dict:
         raise ValueError(f"Unexpected persisted Options state: {saved}")
     if config_volume(work1) != 90:
         raise ValueError("Volume was not made durable in config.ini")
+    receipt("after_game1_change", work1)
 
     # Game 2: restored before play; DEFAULTS restores all three.
     work2 = out / "game2_restore_defaults"
@@ -118,12 +144,14 @@ def run(exe: Path, rom: Path, out: Path, *, timeout: int, video: str) -> dict:
         raise ValueError("DEFAULTS did not persist")
     if config_volume(work2) != 100:
         raise ValueError("DEFAULTS did not restore Volume")
+    receipt("after_game2_restore_defaults", work2)
 
     # Game 3: defaults boot. Game 4: damaged file is reported and kept.
     g3 = run_game(exe, rom, user, out / "game3_defaults_boot", "0", IDLE,
                   video, timeout)
     require(g3, "options_boot", display="WINDOWED", vsync="ON",
             volume="100", load="loaded")
+    receipt("after_game3_defaults_boot")
     damaged_bytes = b"UR-HOST-STATE/6\nthis is not valid\n"
     options.write_bytes(damaged_bytes)
     g4 = run_game(exe, rom, user, out / "game4_damaged", "12", IDLE,
@@ -135,6 +163,7 @@ def run(exe: Path, rom: Path, out: Path, *, timeout: int, video: str) -> dict:
         raise ValueError("Damaged Options bytes were not preserved")
     if settings_of(options).get("display_mode") != "borderless":
         raise ValueError("Fresh Options file not written after quarantine")
+    receipt("after_game4_damaged_quarantine")
     # Game 5: a config.ini the OS will not let the game rewrite. The volume
     # change must be refused and rolled back, never shown as SAVED. Skipped
     # (and recorded) where the account can write read-only files anyway.
@@ -165,6 +194,12 @@ def run(exe: Path, rom: Path, out: Path, *, timeout: int, video: str) -> dict:
         "readonly_config_case": "enforced_and_refused" if enforced
         else "skipped_account_can_write_readonly_files",
         "games": 4 + (1 if enforced else 0),
+        "source_binding": {
+            "github_sha": os.environ.get("GITHUB_SHA"),
+            "exe_sha256": hashlib.sha256(exe.read_bytes()).hexdigest(),
+            "rom_sha256": USA_SHA256,
+        },
+        "file_receipts": receipts,
         "persisted_after_change": {"display": "borderless",
                                    "vsync": "adaptive", "volume": 90},
         "defaults_restored": True,

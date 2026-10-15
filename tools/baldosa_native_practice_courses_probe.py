@@ -149,6 +149,11 @@ def run(exe: Path, rom: Path, out: Path, *, timeout: int, video: str) -> dict:
             cases.append({"group": group, "case": label, "track": track,
                           "course": name, "picker_steps": steps})
     return {
+        "source_binding": {
+            "github_sha": os.environ.get("GITHUB_SHA"),
+            "exe_sha256": hashlib.sha256(exe.read_bytes()).hexdigest(),
+            "rom_sha256": USA_SHA256,
+        },
         "scope": "native-windows-practice-breadth-semantic-pad",
         "cases": cases,
         "courses_admitted": len(cases),

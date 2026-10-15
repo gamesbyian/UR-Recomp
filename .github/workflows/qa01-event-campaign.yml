@@ -20,6 +20,10 @@ on:
         required: false
         type: boolean
         default: false
+      baldosa_refresh_beam_rate:
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       selected:
@@ -45,6 +49,11 @@ on:
         default: false
       source_followthrough:
         description: "Opt-in true 2014 original/native +8/+16/+24/+32 result follow-through (3 real event cases, no admission)"
+        type: boolean
+        required: false
+        default: false
+      baldosa_refresh_beam_rate:
+        description: "Opt-in RF-015 correction: stage one DRAM refresh per 1364-clock beam line into the pinned Baldosa build"
         type: boolean
         required: false
         default: false
@@ -152,6 +161,10 @@ jobs:
           # Existing QA-only host transport; never change guest gameplay.
           python3 tools/baldosa_qa_dense_scene_input_patch.py \
             --host baldosa/snesrecomp/runner/src/desktop/host_main.c
+          # Explicitly opted-in RF-015 framework correction; default builds stay pinned.
+          if [[ "${{ inputs.baldosa_refresh_beam_rate }}" == "true" ]]; then
+            python3 tools/baldosa_dram_refresh_beam_rate_patch.py --game baldosa
+          fi
           cmake -S baldosa -B baldosa/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
             -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF

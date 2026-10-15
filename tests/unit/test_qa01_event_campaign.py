@@ -623,5 +623,20 @@ class QA01CampaignTest(unittest.TestCase):
         self.assertNotIn("contents: write", workflow)
 
 
+    def test_rf015_refresh_correction_is_opt_in_before_the_one_build(self):
+        workflow = (ROOT/".github/workflows/qa01-event-campaign.yml").read_text()
+        header = workflow.split("\njobs:", 1)[0]
+        self.assertEqual(header.count("      baldosa_refresh_beam_rate:"), 2)
+        for block in header.split("      baldosa_refresh_beam_rate:")[1:]:
+            own = block.split("\n")[1:5]
+            self.assertIn("        default: false", own)
+            self.assertIn("        type: boolean", own)
+        stage = 'python3 tools/baldosa_dram_refresh_beam_rate_patch.py --game baldosa'
+        self.assertEqual(workflow.count(stage), 1)
+        guard = 'if [[ "${{ inputs.baldosa_refresh_beam_rate }}" == "true" ]]; then'
+        self.assertLess(workflow.index(guard), workflow.index(stage))
+        self.assertLess(workflow.index(stage), workflow.index("cmake -S baldosa -B baldosa/build"))
+        self.assertEqual(workflow.count("cmake --build baldosa/build"), 1)
+
 if __name__ == "__main__":
     unittest.main()

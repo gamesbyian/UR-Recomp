@@ -117,8 +117,8 @@ class WindowsParallelJourneysTest(unittest.TestCase):
                 return dict(name=p.STEPS[index], index=index, exit_code=0,
                             elapsed_seconds=1, error=None,
                             log=f"step-{index:02d}.log", summary=f"step-{index:02d}.md")
-            with mock.patch.object(p, "EXE", exe), \\
-                 mock.patch.object(p, "FIXTURE", fixture), \\
+            with mock.patch.object(p, "EXE", exe), \
+                 mock.patch.object(p, "FIXTURE", fixture), \
                  mock.patch.object(p, "run_one", side_effect=pretend):
                 outcome = p.run_all(workers=3, work=root / "work", env=env,
                                     overlap_baseline=True)
@@ -145,8 +145,8 @@ class WindowsParallelJourneysTest(unittest.TestCase):
                 return dict(name=p.STEPS[index], index=index, exit_code=0,
                             elapsed_seconds=1, error=None,
                             log=f"step-{index:02d}.log", summary=f"step-{index:02d}.md")
-            with mock.patch.object(p, "EXE", exe), \\
-                 mock.patch.object(p, "FIXTURE", fixture), \\
+            with mock.patch.object(p, "EXE", exe), \
+                 mock.patch.object(p, "FIXTURE", fixture), \
                  mock.patch.object(p, "run_one", side_effect=pretend):
                 outcome = p.run_all(workers=3, work=root / "work", env=env,
                                     overlap_baseline=True)

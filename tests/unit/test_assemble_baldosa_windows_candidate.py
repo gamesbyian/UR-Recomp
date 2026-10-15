@@ -163,7 +163,7 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
 
     def test_launcher_user_data_root_requires_fully_qualified_path(self):
         script = candidate.launcher().decode("utf-8")
-        self.assertNotIn("IsPathRooted", script)
+        self.assertEqual(script.count("[IO.Path]::IsPathRooted($d)"), 1)
         self.assertIn("[char]::IsLetter($d[0])", script)
 
         def ok(d):  # Python model of the launcher predicate

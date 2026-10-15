@@ -53,6 +53,10 @@ def launcher() -> bytes:
         # state. Admit only a drive-qualified absolute path (X:\ or X:/) or a
         # UNC/device path (two leading separators, then a non-separator).
         # Character codes avoid any quoting trouble: 58 ':', 92 '\\', 47 '/'.
+        # IsPathRooted stays as the first, independently pinned gate (the QA
+        # verifier's canonical-launcher template names it); the exact check
+        # below then narrows it to fully-qualified paths.
+        'if (-not [IO.Path]::IsPathRooted($d)) { exit 3 }; '
         '$ok = ($d.Length -ge 3 -and [char]::IsLetter($d[0]) -and '
         '$d[1] -eq [char]58 -and ($d[2] -eq [char]92 -or $d[2] -eq [char]47)) '
         '-or ($d.Length -ge 3 -and $d[0] -eq [char]92 -and $d[1] -eq [char]92 '

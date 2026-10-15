@@ -1,0 +1,122 @@
+"""Synthetic QA-01 cold-guest source and record contract, never event credit."""
+from __future__ import annotations
+
+import json
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "tools"))
+import qa01_cold_result_record as v
+
+
+class ColdGuestRecordTests(unittest.TestCase):
+    def setUp(self):
+        self.ctx = tempfile.TemporaryDirectory()
+        self.addCleanup(self.ctx.cleanup)
+        self.root = Path(self.ctx.name)
+        self.replay = self.root / "replay"
+        for s in ("ref", "native"):
+            (self.replay / s).mkdir(parents=True)
+        self.seed = bytearray(v.SIZE)
+        self.seed[0x0424:0x0426] = (2510).to_bytes(2, "little")
+        self.seed[0x054E:0x0550] = (2510).to_bytes(2, "little")
+        self.seed[0x0551] = 0
+        self.boot = self.root / "boot"
+        for side, name in (("original", "ref"), ("native", "native")):
+            d = self.boot / side / name
+            d.mkdir(parents=True)
+            for frame in v.BOOT_FRAMES:
+                (d / f"cold-{frame:03d}.sram.bin").write_bytes(self.seed)
+        self.report = self.source_report()
+
+    def source_report(self):
+        receipt = {
+            "full_sram_bytes": 8192, "crawler_course_track_index": 1,
+            "in_memory_snapshot_only": True,
+            "cold_process_reload_proven": False, "sram_sha256": v.digest(self.seed),
+            "record_table_checksum_stored": 2510,
+            "crawler_record_three_ranks": [
+                {"rank": 0, "value_word": 2510, "holder_index": 0},
+                {"rank": 1, "value_word": 0, "holder_index": 0},
+                {"rank": 2, "value_word": 0, "holder_index": 0}],
+        }
+        for directory in (self.replay / "ref", self.replay / "native"):
+            (directory / "original-follow-72.sram.bin").write_bytes(self.seed)
+        return {
+            "schema_version": 1, "name": "zoom-zoo",
+            "course_id": "course:02", "native_backend": "pinned-baldosa",
+            "rom_sha256": v.ROM_SHA, "original_movie_sha256": v.MOVIE_SHA,
+            "input_sha256": v.INPUT_SHA,
+            "original_source_event": {"original_entry_frame": 3190,
+                                      "original_result_frame": 8353},
+            "comparison": {
+                "terminal_result_guest_frame": {
+                    "reference_relative": 5163, "native_relative": 5163},
+                "terminal_result_frame_matched": True,
+                "rendered_result_and_score_text_matched": True,
+                "circuit_multiple_lap_decrements_sampled": True},
+            "source_terminal_followthrough": {
+                "schema": "UR-QA01-SOURCE-ORIGINAL-NATIVE-RESULT-FOLLOWTHROUGH/2",
+                "sample_count": 6, "release_complete_usa_event_credit": 0,
+                "battery_sram_cold_process_persistence_proven": False,
+                "samples": [
+                    {"offset_from_each_observed_result_onset": n,
+                     "fresh_guest_battery_sram": {
+                         "original": dict(receipt), "native": dict(receipt)}}
+                    for n in (8, 16, 24, 32, 64, 72)]}
+        }
+
+    def test_reload_preserves_exact_original_native_record_layout(self):
+        seeds = v.validate_source(self.report, self.replay)
+        result = v.evaluate_cold(seeds, self.boot)
+        self.assertEqual(result["source_qualified_best_lap_centiseconds"], 2510)
+        self.assertTrue(result["fresh_guest_loaded_ranked_records_and_checksum"])
+        self.assertTrue(result["cold_process_record_load_only"])
+        self.assertFalse(result["native_host_disk_publish_or_hard_kill_proven"])
+        self.assertFalse(result["strict_full_frame_parity_proven"])
+        self.assertEqual(result["release_complete_usa_event_credit"], 0)
+        self.assertEqual([x["boot_host_frame"] for x in result["boot_observations"]],
+                         [300, 420])
+
+    def test_missing_wrong_hash_or_wrong_course_fails_closed(self):
+        self.report["source_terminal_followthrough"]["samples"][-1][
+            "fresh_guest_battery_sram"]["native"]["sram_sha256"] = "0" * 64
+        with self.assertRaisesRegex(v.ColdProofError, "SHA256"):
+            v.validate_source(self.report, self.replay)
+        self.report = self.source_report()
+        self.report["course_id"] = "course:03"
+        with self.assertRaisesRegex(v.ColdProofError, "source-pinned"):
+            v.validate_source(self.report, self.replay)
+        self.report = self.source_report()
+        (self.replay / "ref" / "original-follow-72.sram.bin").unlink()
+        with self.assertRaisesRegex(v.ColdProofError, "missing SRAM"):
+            v.validate_source(self.report, self.replay)
+
+    def test_not_guessed_frame_or_absent_record(self):
+        self.report["comparison"]["terminal_result_guest_frame"]["native_relative"] = 5162
+        with self.assertRaisesRegex(v.ColdProofError, "corrected"):
+            v.validate_source(self.report, self.replay)
+        self.report = self.source_report()
+        self.seed[0x0424:0x0426] = (60000).to_bytes(2, "little")
+        (self.replay / "native" / "original-follow-72.sram.bin").write_bytes(self.seed)
+        with self.assertRaisesRegex(v.ColdProofError, "wrong size or SHA256"):
+            v.validate_source(self.report, self.replay)
+
+    def test_cold_boot_does_not_accept_just_one_side_or_invalid_checksum(self):
+        seeds = v.validate_source(self.report, self.replay)
+        bad = self.boot / "native" / "native" / "cold-420.sram.bin"
+        data = bytearray(bad.read_bytes())
+        data[0x054E] ^= 1
+        bad.write_bytes(data)
+        with self.assertRaisesRegex(v.ColdProofError, "lost or rewrote"):
+            v.evaluate_cold(seeds, self.boot)
+        bad.unlink()
+        with self.assertRaisesRegex(v.ColdProofError, "missing fresh-process"):
+            v.evaluate_cold(seeds, self.boot)
+
+
+if __name__ == "__main__":
+    unittest.main()

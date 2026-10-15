@@ -1,0 +1,96 @@
+{
+  "schema": "ur-independent-two-real-win32-pr-run-repeatability-qa/1",
+  "review_date": "2026-10-15",
+  "run_provenance": [
+    {
+      "workflow_run_id": 38681231734,
+      "head_sha": "498c58ae69727218e3c20e326a4d4c8f04c0c51c",
+      "checkout_source_revision": "938c7929191ee2aff956ffb80f02884f8a721653",
+      "packaged_exe_sha256": "006cc5942f41f0821c15010764040450e42d6e75bf6e21d6f6769b4c3cf5f344",
+      "portable_zip_sha256": "5697ba668eb6a06a897b8c2465058ac9fbff30860416ed7586d2bbce27a68437",
+      "source_artifacts": [
+        {
+          "id": 11948182608,
+          "kind": "five-p2-catalog-stage-raw",
+          "sha256": "0ee6324966e8b0b12293296d5f6e87b472389f28d2e20f8d35d338d0cdaa709d"
+        },
+        {
+          "id": 11948307605,
+          "kind": "practice-hardkill",
+          "sha256": "5fc8ae61305b180eff9f54fbb3cf33d1e7443011e60bb3e36c893f92bd35da47"
+        },
+        {
+          "id": 11947947874,
+          "kind": "2p-pair-before-records",
+          "sha256": "24d2c5f31a74923eb17d3552fdd99587c8b9c536e4a055f1a16a93d572341394"
+        },
+        {
+          "id": 11948142744,
+          "kind": "romfree-package",
+          "sha256": "683ce3f3a269aa023bd71308272a2caf6a8b01c48eb742da5cfa658a69f9043d"
+        },
+        {
+          "id": 11948112597,
+          "kind": "candidate-source-binding",
+          "sha256": "890bcccbfba1e26ca05a8ffb7881401c93508d6bad9bc82033791036ea47a212"
+        }
+      ]
+    },
+    {
+      "workflow_run_id": 38698222778,
+      "head_sha": "0caf58174735c86e40a6ec94d272d2727a69a844",
+      "checkout_source_revision": "39ea155c27caa5c999831828e872738b6673b51e",
+      "packaged_exe_sha256": "dcc6840a57f4d60d21fad1823f3092ec4df276f967573bb37534cd570ecdd9f3",
+      "portable_zip_sha256": "6bc0021be51629687523be8b5d1efef6735f7b8157096dc8b11eca2d8295fff2",
+      "source_artifacts": [
+        {
+          "id": 11955700246,
+          "kind": "five-p2-catalog-stage-raw",
+          "sha256": "69d9638bcd53bf6119afa39770e6ad214cba8fac4fc39feadcf86f166b493676"
+        },
+        {
+          "id": 11955029828,
+          "kind": "practice-hardkill",
+          "sha256": "e046b2add0019474603cac0ebe557c4f6ad1d700a5e91971668c9ca52ad6078e"
+        },
+        {
+          "id": 11955029812,
+          "kind": "2p-pair-before-records",
+          "sha256": "bde69dfee723361916b4d6a307047c67900b8dae57a6a7aeb4a7f1c21007c4b0"
+        },
+        {
+          "id": 11955304948,
+          "kind": "romfree-package",
+          "sha256": "aae340ea0c2985b36ccdc84a6908b46cd38edde07eddb5a3d2b80c8174c213a9"
+        },
+        {
+          "id": 11955432401,
+          "kind": "candidate-source-binding",
+          "sha256": "83446ce5e3358cc3c58b4b93d7aceb61a0fe50654f25fa12a6709189f0da58f5"
+        }
+      ]
+    }
+  ],
+  "independent_byte_comparison": {
+    "five_stage_raw_archive_member_count": 37,
+    "five_stage_raw_members_byte_identical": true,
+    "five_stage_manifest_hashes_match_archived_raw_bytes": true,
+    "run_and_match_basenames_differ_by_timestamp": true,
+    "same_urrun_bytes_sha256": "d54ade82fdeb213db2c48bd7e4338c5bcae0f2af981fd70c27a467366acbc487",
+    "same_urmatch_bytes_sha256": "d16eb5d8ce868c8df6ef59169cd5b83ff5b1ed93235c4ad58624de30f8050749",
+    "practice_hardkill_kill_receipt_byte_identical": true,
+    "practice_boundary_receipts_byte_identical": true,
+    "practice_summary_report_byte_identical": true,
+    "practice_native_process_logs_byte_identical": false,
+    "package_executable_bytes_identical": false
+  },
+  "scope_limitations": {
+    "claim": "cross-run content repeatability of hosted native Windows test fixtures, not a gameplay acceptance or final candidate nomination",
+    "single_exact_merged_main_source": false,
+    "independent_physical_windows_hardware": false,
+    "independent_power_loss_or_disk_fault": false,
+    "practice_raw_8k_before_after_bytes_retained_in_practice_artifact": false,
+    "original_native_complete_events_accepted": 0,
+    "release_gate_credit": 0
+  }
+}

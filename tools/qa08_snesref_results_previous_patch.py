@@ -30,7 +30,7 @@ AFTER="""        p_retro_run();
 
 def patch_source(source:str)->str:
     if MARK in source:
-        if source.count(MARK)!=1 or source.count(AFTER)!=1:
+        if source.count(MARK)!=AFTER.count(MARK) or source.count(AFTER)!=1:
             raise ValueError("source witness marker/body drift")
         return source
     if source.count(BEFORE)!=1 or "static void do_dump(const char* tag)" not in source:

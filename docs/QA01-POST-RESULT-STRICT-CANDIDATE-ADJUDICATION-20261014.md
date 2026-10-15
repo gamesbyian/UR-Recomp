@@ -63,6 +63,52 @@ samples cannot earn event credit or substitute for real SRAM persistence,
 menu navigation, complete guest execution or exact Windows candidate
 identity. The mechanism cannot launder a native frame-lag rebase.
 
+## Battery SRAM is now independently sampled, but not yet reload-tested
+
+The same opt-in producer already had genuine full SRAM files available at
+each of the six post-result `dump` statements; they were simply ignored.
+Source-qualified Snes9x `snesref` writes `<tag>.sram.bin` (independently
+used by `tools/probe_track_records_sram.py`). The pinned Baldosa
+`snesrecomp/runner/src/state_dump.c`, lines 180–182, writes exactly
+the live cartridge `cart->ram` and `cart->ramSize` on the same script
+command. Neither subsystem needs a patch or a new runner.
+
+The owning gameplay producer now **requires and reads the authentic full
+8,192-byte battery image from each fresh original/native guest** at
+`result+8,+16,+24,+32,+64,+72`. It independently hashes the full images
+and decodes all **three** Crawler track rank entries from the established
+original SRAM Track Records table, without writing or normalizing bytes:
+
+- first table word `0x0422 + 2×(50×rank + track)`;
+- corresponding rider-holder byte `0x0550 + 50×rank + track`;
+- 150-word table checksum, stored `0x054E` and independently calculated.
+
+`track` is source-qualified course index 0–4, never a transient scratch
+course-ID overwritten during the result. A checksum disagreement *during*
+a write/update interval is an observation, not permission to repair the
+game's battery image. Full image equality is reported independently from
+three-rank course-record equality, avoiding incorrect attribution of an
+unrelated save byte as a gameplay-result defect.
+
+The case classifier checks real SRAM size, SHA-256 shape, course/rank
+identity, numeric ranges, checksum claims and all source/native pairing
+booleans; malformed or partially missing six-sample SRAM evidence is
+`producer_error`. Historical reports without this new opt-in SRAM material
+retain explicit `not_observed`, with **no retroactive evidence promotion**.
+The bounded outcome is attached under
+`post_result_bounded.fresh_original_native_battery_sram` and provides
+the first observed record/full-SRAM disagreement offset, if any.
+
+**Scope limit:** these are *fresh Snes9x/native live battery-backed SRAM
+images*, not a third SRAM snapshot from the 2014 original tour at the
+same moment. The original archived movie still supplies input/state
+identity, but earlier tour events can change its historical SRAM.
+Most importantly, a live dump does **not** prove that a desktop process
+flushed its save correctly or that a clean second process reloaded the
+same bytes. `cold_process_persistence_proven` remains **false** even
+when all six 8-KiB image pairs match and the Crawler record table is
+well-formed. No official QA-01/QA-07 event gains credit from this alone.
+
 ## Immediate consequence for Opus RF-015 research
 
 [PR #1608](https://github.com/gamesbyian/UR-Recomp/pull/1608)

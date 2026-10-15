@@ -108,6 +108,48 @@ def postresult_fixture(*, first_native_divergence: int | None = 16) -> dict:
     return report
 
 
+def battery_followthrough_fixture(*, changed_course_rank: bool = True) -> dict:
+    """Only a synthetic integrity test for the read-only SRAM reporter."""
+    report = postresult_fixture(first_native_divergence=None)
+    record = report["source_terminal_followthrough"]
+    for row in record["samples"]:
+        offset = row["offset_from_each_observed_result_onset"]
+        rank = [
+            {"rank": n, "value_word": 2510 if n == 0 else 60000,
+             "holder_index": 0 if n == 0 else 16}
+            for n in range(3)
+        ]
+        base = {
+            "full_sram_bytes": 8192, "sram_sha256": "a" * 64,
+            "crawler_course_track_index": 1,
+            "crawler_record_three_ranks": rank,
+            "record_table_checksum_stored": 0,
+            "record_table_checksum_calculated": 0,
+            "record_table_checksum_matches_at_sample": True,
+            "in_memory_snapshot_only": True,
+            "cold_process_reload_proven": False,
+        }
+        original = json.loads(json.dumps(base))
+        native = json.loads(json.dumps(base))
+        if changed_course_rank and offset == 16:
+            native["sram_sha256"] = "b" * 64
+            native["crawler_record_three_ranks"][0]["value_word"] = 2420
+            native["record_table_checksum_calculated"] = 1
+            native["record_table_checksum_matches_at_sample"] = False
+        row["fresh_guest_battery_sram"] = {
+            "original": original, "native": native}
+        row["sram_full_bytes_equal"] = (
+            original["sram_sha256"] == native["sram_sha256"])
+        row["sram_course_three_rank_records_equal"] = (
+            original["crawler_record_three_ranks"] ==
+            native["crawler_record_three_ranks"])
+    record["all_followthrough_full_sram_pairs_equal"] = not changed_course_rank
+    record["all_followthrough_crawler_record_pairs_equal"] = not changed_course_rank
+    record["battery_sram_snapshot_bytes_per_guest"] = 8192
+    record["battery_sram_cold_process_persistence_proven"] = False
+    return report
+
+
 class QA01CampaignTest(unittest.TestCase):
     SHA = "b" * 40
 
@@ -209,6 +251,74 @@ class QA01CampaignTest(unittest.TestCase):
                          {"status": "not_observed", "samples": 0,
                           "first_named_divergence_offset": None,
                           "release_credit": 0})
+
+    def test_source_qualified_original_native_course_records_are_in_memory_only(self):
+        path = self.root / "sram-paired.json"
+        plan = self.plan("zoom-zoo")
+        c.write_json(path, battery_followthrough_fixture())
+        row = c.classify("zoom-zoo", 0, path, plan)
+        self.assertEqual(row["disposition"], "strict_candidate")
+        self.assertEqual(row["release_credit"], 0)
+        p = row["evidence"]["post_result_bounded"]
+        self.assertEqual(p["status"], "six_sample_triplet_named_agreement")
+        battery = p["fresh_original_native_battery_sram"]
+        self.assertEqual(battery["status"],
+                         "six_sample_original_native_in_memory_sram_observed")
+        self.assertFalse(battery["all_fresh_sram_byte_pairs_equal"])
+        self.assertFalse(battery["all_fresh_crawler_ranked_record_pairs_equal"])
+        self.assertEqual(battery["first_full_sram_difference_offset"], 16)
+        self.assertEqual(battery["first_course_record_difference_offset"], 16)
+        self.assertFalse(battery["cold_process_persistence_proven"])
+        c.write_json(path, battery_followthrough_fixture(changed_course_rank=False))
+        matching = c.classify("zoom-zoo", 0, path, plan)
+        got = matching["evidence"]["post_result_bounded"][
+            "fresh_original_native_battery_sram"]
+        self.assertTrue(got["all_fresh_sram_byte_pairs_equal"])
+        self.assertTrue(got["all_fresh_crawler_ranked_record_pairs_equal"])
+        self.assertIsNone(got["first_course_record_difference_offset"])
+        self.assertEqual(matching["release_credit"], 0)
+
+    def test_forged_battery_records_do_not_become_a_scientific_negative(self):
+        plan = self.plan("zoom-zoo")
+        path = self.root / "sram-invalid.json"
+        def change_checksum_claim(x):
+            x["source_terminal_followthrough"]["samples"][1][
+                "fresh_guest_battery_sram"]["native"][
+                    "record_table_checksum_matches_at_sample"] = True
+        def change_track_identity(x):
+            x["source_terminal_followthrough"]["samples"][1][
+                "fresh_guest_battery_sram"]["native"][
+                    "crawler_course_track_index"] = 4
+        def claim_disk_persistence(x):
+            x["source_terminal_followthrough"][
+                "battery_sram_cold_process_persistence_proven"] = True
+        def change_hash(x):
+            x["source_terminal_followthrough"]["samples"][1][
+                "fresh_guest_battery_sram"]["native"]["sram_sha256"] = "bad"
+        def change_record(x):
+            x["source_terminal_followthrough"]["samples"][1][
+                "fresh_guest_battery_sram"]["native"][
+                    "crawler_record_three_ranks"][0]["rank"] = 5
+        def remove_one_snapshot(x):
+            x["source_terminal_followthrough"]["samples"][0].pop(
+                "fresh_guest_battery_sram")
+        def falsify_equal_flag(x):
+            x["source_terminal_followthrough"]["samples"][1][
+                "sram_full_bytes_equal"] = True
+        def falsify_global_equal(x):
+            x["source_terminal_followthrough"][
+                "all_followthrough_crawler_record_pairs_equal"] = True
+        for mutate in (change_checksum_claim, change_track_identity,
+                       claim_disk_persistence, change_hash, change_record,
+                       remove_one_snapshot, falsify_equal_flag,
+                       falsify_global_equal):
+            with self.subTest(tweak=mutate.__name__):
+                v = battery_followthrough_fixture()
+                mutate(v)
+                c.write_json(path, v)
+                verdict = c.classify("zoom-zoo", 0, path, plan)
+                self.assertEqual(verdict["disposition"], "producer_error")
+                self.assertEqual(verdict["release_credit"], 0)
 
     def test_postresult_report_must_reconcile_actual_triplet_host_receipts(self):
         plan = self.plan("zoom-zoo")

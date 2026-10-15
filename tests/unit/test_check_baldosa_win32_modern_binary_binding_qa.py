@@ -78,6 +78,37 @@ class IndependentWin32BinaryBindingTests(unittest.TestCase):
                 self.assertFalse(proof["physical_hardware_witness"])
                 self.assertEqual(proof["release_gate_credit"], 0)
 
+    def test_real_win32_crlf_and_posix_lf_canonical_receipts_only(self):
+        # The original real native Windows Actions binding receipts from
+        # #1648 runs 38701860728, 38703695304 and 38786867862 all use CRLF.
+        # Re-sign the outer wrapper for every variant, so rejection cannot
+        # be attributed merely to the external wrapper SHA256.
+        with tempfile.TemporaryDirectory() as d:
+            paths, expected = scenario(Path(d))
+            with zipfile.ZipFile(paths["binding"]) as z:
+                lf = z.read("candidate-binding.json")
+            crlf = lf.replace(b"\n", b"\r\n")
+            cases = (
+                ("posix-lf", lf, True),
+                ("windows-crlf", crlf, True),
+                ("mixed-line-endings", crlf.replace(b"\r\n", b"\n", 1), False),
+                ("extra-trailing-line", lf + b"\n", False),
+                ("changed-indentation", lf.replace(b'  "claims"', b' "claims"'), False),
+            )
+            for label, raw, accepted in cases:
+                with self.subTest(case=label):
+                    wrapped = zip_bytes({"candidate-binding.json": raw})
+                    paths["binding"].write_bytes(wrapped)
+                    expected["binding_wrapper"]["sha256"] = sha(wrapped)
+                    if accepted:
+                        proof = qa.audit_package(paths["candidate"],
+                                                 paths["binding"], expected)
+                        self.assertTrue(proof["real_process_to_executable_cryptographic_identity"])
+                    else:
+                        with self.assertRaisesRegex(ValueError, "binding differs"):
+                            qa.audit_package(paths["candidate"],
+                                             paths["binding"], expected)
+
     def test_wrong_source_zip_exe_and_wrapper_pins_refused(self):
         with tempfile.TemporaryDirectory() as d:
             paths, original = scenario(Path(d))

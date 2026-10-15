@@ -15,6 +15,8 @@ on:
       - "tools/qa08_original_oneplayer_source_manifest.py"
       - "tools/qa08_windows_oneplayer_source_capture.py"
       - "tests/unit/test_qa08_original_windows_oneplayer.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snes9x-libretro.json"
   workflow_dispatch:
     inputs:
       recapture_source:

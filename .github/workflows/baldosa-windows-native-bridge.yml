@@ -101,6 +101,16 @@ on:
       - "native/product/quick_practice_launch.hpp"
       - "native/product/quick_practice_available_selection.hpp"
       - "native/product/quick_practice_selection_view.hpp"
+      # Direct first-party headers compiled by the native root, SRAM activation,
+      # and pause/receipt bridge. A header-only fix must invalidate the exact
+      # Windows executable, not inherit unrelated prior green journey checks.
+      - "native/product/baldosa_native_existing_profile_next_boot.hpp"
+      - "native/product/baldosa_native_match_publish_retry.hpp"
+      - "native/product/baldosa_native_profile_path_guard.hpp"
+      - "native/product/baldosa_native_profile_sram_checkpoint.hpp"
+      - "native/product/baldosa_native_run_publish_retry.hpp"
+      - "native/product/baldosa_physical_pause_input.hpp"
+      - "native/title/uniracers_practice_tour_unlock.hpp"
       - "native/product/multiplayer_match_catalog.*"
       - "native/product/multiplayer_match_record.*"
       - "native/product/multiplayer_match_summary.*"

@@ -2,12 +2,8 @@ name: QA-08 compiled V0 Windows first-line HDMA 1P/2P independent A/B
 # Actual original Snes9x and actual Windows source immutable. Never rebuild
 # emulator, mutate ROM/guest, or launch another screenshot campaign.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/qa08-verify-v0-windows-original-ab.yml"
-      - "tools/qa08_verify_v0_compiled_original_windows_ab.py"
-      - "tools/qa08_compare_windows_original_oneplayer_sparse.py"
-      - "tools/qa08_compare_windows_original_twoplayer_sparse.py"
+  # Archived original/native capture is classified; explicit rechecks only.
+  # Avoid a PR research fanout for immutable historical source artifacts.
   workflow_dispatch:
 
 permissions:

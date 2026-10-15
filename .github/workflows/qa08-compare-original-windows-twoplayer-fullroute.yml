@@ -6,12 +6,8 @@ name: QA-08 strict original-vs-Windows 2P complete-route sparse raster
 # new emulator farm. Authenticated divergence remains a successful science
 # result; never interpret "green" as a graphics release gate.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/qa08-compare-original-windows-twoplayer-fullroute.yml"
-      - "tools/qa08_compare_windows_original_twoplayer_sparse.py"
-      - "tests/unit/test_qa08_compare_windows_original_twoplayer_sparse.py"
-      - "tools/qa08_compare_original_windows_oneplayer.py"
+  # Archived original/native capture is classified; explicit rechecks only.
+  # Avoid a PR research fanout for immutable historical source artifacts.
   workflow_dispatch:
 
 permissions:

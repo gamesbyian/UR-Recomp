@@ -84,6 +84,7 @@ jobs:
             --native-backend pinned-baldosa \
             --observe-one-frame-stunt-lead \
             --bowl-tally-phase \
+            --source-followthrough \
             --snesref "$RUNNER_TEMP/bowl-snesref/snesref" \
             --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
             --native "$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp" \
@@ -111,6 +112,32 @@ jobs:
             "diagnostic_success_not_admission":d.get("comparison",{}).get("diagnostic_exit_success_without_full_event_parity",False),
             "terminal_frames_guest_relative":d.get("comparison",{}).get("terminal_result_guest_frame"),
             "tally_anchored_guest_phase":d.get("tally_anchored_guest_phase"),
+            "source_original_native_postresult": (
+              {"samples":d["source_terminal_followthrough"]["sample_count"],
+               "source_first":d["original_source_event"]["source_terminal_followthrough"]["8"],
+               "original_vs_native_named_equal":
+                  d["source_terminal_followthrough"]["all_followthrough_named_pairs_equal"],
+               "original_vs_native_sram_equal":
+                  d["source_terminal_followthrough"]["all_followthrough_full_sram_pairs_equal"],
+               "original_vs_native_crawler_records_equal":
+                  d["source_terminal_followthrough"]["all_followthrough_crawler_record_pairs_equal"],
+               "cold_process_persistence_proven":
+                  d["source_terminal_followthrough"]["battery_sram_cold_process_persistence_proven"],
+               "samples_with_sram": [
+                  {"offset":s["offset_from_each_observed_result_onset"],
+                   "source_movie":s["source_original_movie"],
+                   "fresh_host_frames":s["independently_observed_replay_host_frames"],
+                   "fresh_menu_original_native":[
+                      s["fresh_guests"]["original"]["menu"],
+                      s["fresh_guests"]["native"]["menu"]],
+                   "sram_equal":s["sram_full_bytes_equal"],
+                   "ranked_record_equal":s["sram_course_three_rank_records_equal"],
+                   "three_rank_values_original":[x["value_word"] for x in
+                      s["fresh_guest_battery_sram"]["original"]["crawler_record_three_ranks"]],
+                   "three_rank_values_native":[x["value_word"] for x in
+                      s["fresh_guest_battery_sram"]["native"]["crawler_record_three_ranks"]]}
+                  for s in d["source_terminal_followthrough"]["samples"]]}
+              if d.get("source_terminal_followthrough") else None),
             "p1_scored_stunt":d.get("comparison",{}).get("stunt_positive_score_visible"),
             "official_admitted_usa_events":0
           },indent=2))

@@ -116,6 +116,22 @@
         "unchanged_trailer_rejected": true
       },
       "scope": "offline original-byte checksum and deliberately mutated payload re-evaluation, not OS crash/fault/write, original emulator, or independent Windows game execution"
+    },
+    "staged_source_go_exact_raw_delta": {
+      "input_artifact_id": 12009069728,
+      "compared_stages": [
+        "after-p2-recovered",
+        "after-source-go"
+      ],
+      "mike_raw_8192_bytes_changed": 193,
+      "mike_changed_offset_min": 1858,
+      "mike_changed_offset_max": 4273,
+      "mike_before_sha256_prefix": "273bc1b3be1dc392",
+      "mike_after_sha256_prefix": "62c0490b977825f7",
+      "martin_raw_8192_bytes_changed": 0,
+      "martin_sha256_prefix": "f3058e5fcd57042c",
+      "both_named_raw_sram_equal_typed_stock_sram_at_both_stages": true,
+      "claim_limit": "exact independently archived two stage byte delta; no concurrent process, physical hardware or original-emulator result equivalence"
     }
   },
   "limitations": [

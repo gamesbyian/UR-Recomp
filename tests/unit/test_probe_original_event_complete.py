@@ -1,6 +1,7 @@
 """QA-01 full-result producer: synthetic contract tests, NEVER real witnesses."""
 from __future__ import annotations
 
+import json
 import sys
 import tempfile
 import types
@@ -92,6 +93,40 @@ class CompleteEventProducerTests(unittest.TestCase):
             target.source_event(source_states(3190, 8353, 1, 0xBC), 3, 0x99)
         with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
             target.source_event(source_states(3190, 8353, 1, 0xBC), 1, 0x99)
+
+    def test_dragster_original_2014_race_a_is_an_archived_source_only_event(self):
+        self.assertEqual(target.CASES["dragster"], (1, 0, 0x99, "race-a"))
+        # Source-original Snes9x has independently observed first race entry
+        # at movie 794 and authentic MIKE 0:25.08 Race A result at 2874.
+        # No synthetic source test can certify a new fresh native pair.
+        original = source_states(794, 2874, 0, 0x99)
+        event = target.source_event(original, 0, 0x99)
+        self.assertEqual(event["original_entry_frame"], 794)
+        self.assertEqual(event["original_result_frame"], 2874)
+        self.assertEqual(event["source_active_frames_to_result"], 2080)
+        self.assertIsNone(event["original_only_transient_handoff"])
+        source_probe = json.loads((ROOT / "analysis/generated/result-screens-probe.json")
+                                  .read_text(encoding="utf-8"))
+        race = next(row for row in source_probe["result_runs"]
+                    if row["start"] == 2874)
+        self.assertEqual(race["menu"], "0x99")
+        self.assertEqual(race["dump_frame"], 2883)
+        self.assertIn("DRAGSTER", race["texts"])
+        self.assertIn("MIKE", race["texts"])
+        self.assertIn("0:25.08", race["texts"])
+        # The same source's later Switcher Race B uses 0x99 too; a menu
+        # byte is never sufficient to infer a course or source entry.
+        with self.assertRaisesRegex(target.CompleteEventError,
+                                    "never demonstrated"):
+            target.source_event(original, 3, 0x99)
+        # Inject sustained actual foreign-course play before the result.
+        # This cannot silently qualify as one complete Dragster event.
+        foreign = source_states(794, 2874, 0, 0x99)
+        for frame in range(2000, 2020):
+            foreign[frame]["track"] = 1
+            foreign[frame]["in_race"] = 1
+        with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
+            target.source_event(foreign, 0, 0x99)
 
     def test_transient_menu_scratch_and_inrace_result_like_values_do_not_end_event(self):
         states = source_states(3190, 8353, 1, 0xBC)
@@ -267,7 +302,12 @@ class CompleteEventProducerTests(unittest.TestCase):
         self.assertNotIn("dump result-tally", target.replay_script(
             2, 0xBC, target.sample_frames("zoom-zoo", 5163), False))
         with self.assertRaisesRegex(target.CompleteEventError, "only"):
-            target.stock_crawler_script(1)
+            target.stock_crawler_script(5)
+        # First-course original route is stock row zero, no down inputs;
+        # it does not inherit one of the 2/3/4 track selection offsets.
+        first = target.stock_crawler_script(1)
+        self.assertIn("until 009B == 00 600", first)
+        self.assertNotIn("press down 2", first)
 
     def test_original_movie_followthrough_script_is_opt_in_and_bounded(self):
         for case, (slot, _track, menu, kind) in target.CASES.items():

@@ -32,10 +32,13 @@ import probe_tier_opponents as textdecode
 from probe_runtime_course_payload import is_fully_loaded_course
 from rnc_method1 import unpack_method1
 
-# Stock Crawler track-select rows, independently known result-menu values.
-# Switcher is the required first non-Dragster Race; source scan must actually
-# observe its result before replay. No claimed historical Switcher result yet.
+# Crawler stock route selectors and genuine source-2014 result menus.
+# Dragster Race A movie entry/result (794/2874) are original-emulator
+# observations, but this newly enabled *fresh-guest* input transplant has
+# no independent original/native paired result receipt or release credit.
+# The automated bounded campaign stays limited to its 3 prequalified cases.
 CASES = {
+    "dragster": (1, 0, 0x99, "race-a"),
     "zoom-zoo": (2, 1, 0xBC, "circuit-a"),
     "bowl": (3, 2, 0x18, "stunt"),
     "switcher": (4, 3, 0x99, "race-b"),
@@ -74,8 +77,8 @@ def observed_dump_frame(log: str, label: str) -> int:
 
 
 def stock_crawler_script(slot: int) -> str:
-    if slot not in (2, 3, 4):
-        raise CompleteEventError("only independently established Crawler track routes")
+    if slot not in (1, 2, 3, 4):
+        raise CompleteEventError("only source-established Crawler track routes")
     lines = entry.MENU_PREFIX.strip().splitlines()
     lines += ["press a 2", "until 009F == F6 1200", "wait 60"]
     for _ in range(slot - 1):
@@ -1139,6 +1142,13 @@ def scan_source(args, work: Path, sram: Path, source_input: Path,
     if args.source_followthrough:
         event["source_terminal_followthrough"] = source_followthrough_states(
             states, event["original_result_frame"])
+    if args.case == "dragster" and (
+            event["original_entry_frame"] != 794
+            or event["original_result_frame"] != 2874
+            or event["source_active_frames_to_result"] != 2080):
+        raise CompleteEventError(
+            "2014 source Dragster entry/result does not match independently "
+            "executed original movie frames 794/2874")
     if args.case == "zoom-zoo" and event["original_entry_frame"] != 3190:
         raise CompleteEventError("2014 Zoom Zoo entry disagrees with pinned original 3190")
     # The first chronological source trace carries only changed low-WRAM

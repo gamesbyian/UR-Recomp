@@ -4,7 +4,9 @@ from __future__ import annotations
 import json
 import sys
 import tempfile
+import time
 import unittest
+from threading import Event
 from pathlib import Path
 from unittest import mock
 
@@ -64,10 +66,13 @@ class WindowsParallelJourneysTest(unittest.TestCase):
             yaml.count("github.event_name != 'pull_request' && inputs.parallel_journeys != true"),
             len(p.STEPS)
         )
-        self.assertIn("remaining isolated journeys fan out", yaml)
+        self.assertIn("baseline owns its root", yaml)
         self.assertIn("Pilot parallel authentic Windows journeys", yaml)
         self.assertIn("default: false", yaml)
         self.assertIn("baldosa-win32-parallel-journey-timing", yaml)
+        self.assertIn("--workers 3 --overlap-baseline", yaml)
+        self.assertIn('--workers 2 --out "$RUNNER_TEMP/baldosa-parallel-journeys"', yaml)
+        self.assertIn('if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then', yaml)
         for artifact in (
             "baldosa-modern-windows-x64-romless-candidate",
             "baldosa-win32-candidate-binding",
@@ -79,6 +84,89 @@ class WindowsParallelJourneysTest(unittest.TestCase):
             "qa-baldosa-native-export",
         ):
             self.assertIn("name: " + artifact, yaml)
+
+    def test_overlap_starts_only_independent_cases_before_real_sram_seed(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            exe, fixture = root / "game.exe", root / "fixture.exe"
+            exe.write_bytes(b"game")
+            fixture.write_bytes(b"fixture")
+            shared = root / "UR Baldosa Win32 Pause Route"
+            seed = shared / "baseline" / "Modern Player Data With Spaces" / "saves" / "save.srm"
+            baseline_finished = Event()
+            overlap_seen = Event()
+            summary = root / "summary.md"
+            env = dict(GITHUB_SHA="a"*40, RUNNER_TEMP=str(root),
+                       GITHUB_STEP_SUMMARY=str(summary))
+            def pretend(index, script, work, env):
+                if index == 0:
+                    shared.mkdir(parents=True, exist_ok=False)
+                    self.assertTrue(overlap_seen.wait(3), "independent run never overlapped baseline")
+                    seed.parent.mkdir(parents=True)
+                    seed.write_bytes(b"s"*8192)
+                    baseline_finished.set()
+                elif index in (1, 2):
+                    self.assertTrue(baseline_finished.is_set(),
+                                    "a Records test consumed unfinished SRAM")
+                    self.assertEqual(seed.stat().st_size, 8192)
+                else:
+                    if not baseline_finished.is_set():
+                        overlap_seen.set()
+                (work / f"step-{index:02d}.log").write_text("simulated unit-only receipt\\n")
+                (work / f"step-{index:02d}.md").write_text("unit-only\\n")
+                return dict(name=p.STEPS[index], index=index, exit_code=0,
+                            elapsed_seconds=1, error=None,
+                            log=f"step-{index:02d}.log", summary=f"step-{index:02d}.md")
+            with mock.patch.object(p, "EXE", exe), \
+                 mock.patch.object(p, "FIXTURE", fixture), \
+                 mock.patch.object(p, "run_one", side_effect=pretend):
+                outcome = p.run_all(workers=3, work=root / "work", env=env,
+                                    overlap_baseline=True)
+            self.assertTrue(overlap_seen.is_set())
+            self.assertEqual(outcome["executed_cases"], 11)
+            self.assertEqual(outcome["missing_cases"], [])
+            self.assertTrue(outcome["overlap_baseline"])
+            self.assertFalse(outcome["identity_changed"])
+            self.assertEqual(outcome["release_gate_credit"], 0)
+
+    def test_overlap_missing_source_seed_blocks_both_dependent_records(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            exe, fixture = root / "game.exe", root / "fixture.exe"
+            exe.write_bytes(b"game")
+            fixture.write_bytes(b"fixture")
+            shared = root / "UR Baldosa Win32 Pause Route"
+            env = dict(GITHUB_SHA="a"*40, RUNNER_TEMP=str(root),
+                       GITHUB_STEP_SUMMARY=str(root / "summary.md"))
+            def pretend(index, script, work, env):
+                if index == 0:
+                    shared.mkdir(parents=True, exist_ok=False)
+                (work / f"step-{index:02d}.log").write_text("synthetic unit receipt\\n")
+                return dict(name=p.STEPS[index], index=index, exit_code=0,
+                            elapsed_seconds=1, error=None,
+                            log=f"step-{index:02d}.log", summary=f"step-{index:02d}.md")
+            with mock.patch.object(p, "EXE", exe), \
+                 mock.patch.object(p, "FIXTURE", fixture), \
+                 mock.patch.object(p, "run_one", side_effect=pretend):
+                outcome = p.run_all(workers=3, work=root / "work", env=env,
+                                    overlap_baseline=True)
+            self.assertEqual(outcome["executed_cases"], 9)
+            self.assertEqual(outcome["missing_cases"], list(p.STEPS[1:3]))
+            self.assertEqual(outcome["cases"][0]["exit_code"], 1)
+            self.assertEqual(outcome["cases"][0]["error"],
+                             "missing_exact_real_8192_byte_baseline_sram")
+            self.assertEqual(outcome["release_gate_credit"], 0)
+            with self.assertRaisesRegex(ValueError, "requires three"):
+                p.run_all(workers=2, work=root / "unused", env=env,
+                          overlap_baseline=True)
+
+    def test_overlap_refuses_a_new_undeclared_baseline_dependency(self):
+        commands = p.extract_commands(p.WORKFLOW.read_text(encoding="utf-8"))
+        commands[3] += "\\n# consumed baseline/save.srm unexpectedly\\n"
+        with tempfile.TemporaryDirectory() as folder:
+            with self.assertRaisesRegex(ValueError, "baseline seed dependency"):
+                p.run_overlapping_baseline(commands, Path(folder) / "work",
+                                           {"RUNNER_TEMP": folder})
 
     def test_windows_uses_pinned_git_bash_not_wsl_shim(self):
         with tempfile.TemporaryDirectory() as directory:

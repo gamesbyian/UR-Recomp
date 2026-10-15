@@ -155,10 +155,60 @@ def run_one(index: int, script: str, work: Path, env: dict[str, str]) -> dict:
             "log": output.name, "summary": summary.name}
 
 
+def run_overlapping_baseline(commands: list[str], work: Path,
+                             env: dict[str, str]) -> list[dict]:
+    """Overlap independent routes with baseline without racing its shared parent.
+
+    Only two Records cases consume baseline SRAM (indices 1 and 2).
+    The owning original pause producer creates the root with exist_ok=False;
+    no descendant may start until this directory exists. No original test
+    command, seed, byte, private output path or acceptance rule is changed.
+    """
+    outputs = [OUT_RE.findall(script)[0] for script in commands]
+    parent_rel = outputs[0]
+    if not all(output.startswith(parent_rel + "/") for output in outputs[1:]):
+        raise ValueError("overlap requires a shared baseline output parent")
+    if any("baseline/" in commands[index] for index in range(3, len(commands))):
+        raise ValueError("independent Windows route gained a baseline seed dependency")
+    parent = Path(env["RUNNER_TEMP"]) / parent_rel
+    if parent.exists() or parent.is_symlink():
+        raise ValueError("baseline output root already exists before live producer")
+    expected_seed = (parent / "baseline" / "Modern Player Data With Spaces" /
+                     "saves" / "save.srm")
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+        baseline = executor.submit(run_one, 0, commands[0], work, env)
+        started = time.monotonic()
+        # Never let a child implicitly mkdir the shared parent before the
+        # baseline's exclusive mkdir. The owner normally creates it at entry.
+        while not parent.is_dir() and not baseline.done():
+            if time.monotonic() - started > 30:
+                raise RuntimeError("baseline did not create its exclusive output root")
+            time.sleep(0.05)
+        futures: dict[int, concurrent.futures.Future] = {}
+        if parent.is_dir() and not parent.is_symlink():
+            for index in range(3, len(commands)):
+                futures[index] = executor.submit(run_one, index, commands[index], work, env)
+        first = baseline.result()
+        if first["exit_code"] == 0:
+            # The original source producer, not this harness, must create
+            # exactly the expected real USA baseline save before either
+            # source-backed Records case may consume its bytes.
+            if (not expected_seed.is_file() or expected_seed.is_symlink()
+                    or expected_seed.stat().st_size != 8192):
+                first = {**first, "exit_code": 1,
+                         "error": "missing_exact_real_8192_byte_baseline_sram"}
+            else:
+                for index in (1, 2):
+                    futures[index] = executor.submit(run_one, index, commands[index], work, env)
+        return [first] + [futures[i].result() for i in sorted(futures)]
+
+
 def run_all(*, workers: int, work: Path, source: str | None = None,
-            env: dict[str, str] | None = None) -> dict:
+            env: dict[str, str] | None = None, overlap_baseline: bool = False) -> dict:
     if workers not in (2, 3):
         raise ValueError("only 2/3 bounded Windows pilot workers")
+    if overlap_baseline and workers != 3:
+        raise ValueError("baseline overlap requires three bounded workers")
     source = source if source is not None else WORKFLOW.read_text(encoding="utf-8")
     commands = extract_commands(source)
     env = dict(env if env is not None else os.environ)
@@ -175,19 +225,22 @@ def run_all(*, workers: int, work: Path, source: str | None = None,
     start = time.monotonic()
     # Baseline writes the canonical SRAM seed consumed by BOTH real 1P and 2P
     # probe scripts. Do not parallelize or synthesize this dependency.
-    results = [run_one(0, commands[0], work, env)]
-    if results[0]["exit_code"] == 0:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-            results.extend(executor.map(
-                lambda pair: run_one(pair[0], pair[1], work, env),
-                enumerate(commands[1:], start=1),
-            ))
+    if overlap_baseline:
+        results = run_overlapping_baseline(commands, work, env)
+    else:
+        results = [run_one(0, commands[0], work, env)]
+        if results[0]["exit_code"] == 0:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+                results.extend(executor.map(
+                    lambda pair: run_one(pair[0], pair[1], work, env),
+                    enumerate(commands[1:], start=1),
+                ))
     results.sort(key=lambda result: result["index"])
     summary_path = Path(env["GITHUB_STEP_SUMMARY"])
     with summary_path.open("a", encoding="utf-8") as summary:
         summary.write("\n### Parallel Windows journey pilot\n\n")
         summary.write(f"Source: {env['GITHUB_SHA']}  \n")
-        summary.write(f"Workers: {workers} (baseline serialized)  \n")
+        summary.write(f"Workers: {workers} (overlap_baseline={overlap_baseline})  \n")
         summary.write(f"Native EXE SHA256: {exe_hash}  \n")
         summary.write(f"Fixture SHA256: {fixture_hash}\n\n")
         summary.write("| Existing test | Result | Seconds |\n|---|---|---:|\n")
@@ -205,7 +258,8 @@ def run_all(*, workers: int, work: Path, source: str | None = None,
         # Full failure diagnostics; successful verbose guest frame traces are
         # bounded to avoid opaque multi-megabyte CI logs.
         print(data if row["exit_code"] else data[-3000:], flush=True)
-    missing = [STEPS[i] for i in range(len(results), len(STEPS))]
+    observed = {row["index"] for row in results}
+    missing = [name for index, name in enumerate(STEPS) if index not in observed]
     identity_changed = sha256_file(EXE) != exe_hash or sha256_file(FIXTURE) != fixture_hash
     if identity_changed:
         print("ERROR: native Windows candidate changed during parallel execution",
@@ -214,7 +268,8 @@ def run_all(*, workers: int, work: Path, source: str | None = None,
         "schema": "ur-baldosa-parallel-windows-journeys/1",
         "source_sha": env["GITHUB_SHA"], "exe_sha256": exe_hash,
         "fixture_sha256": fixture_hash,
-        "workers": workers, "expected_cases": len(STEPS),
+        "workers": workers, "overlap_baseline": overlap_baseline,
+        "expected_cases": len(STEPS),
         "executed_cases": len(results),
         "missing_cases": missing, "identity_changed": identity_changed,
         "elapsed_seconds": round(time.monotonic() - start, 3),
@@ -229,9 +284,11 @@ def run_all(*, workers: int, work: Path, source: str | None = None,
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--workers", type=int, choices=(2, 3), default=2)
+    parser.add_argument("--overlap-baseline", action="store_true")
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
-    report = run_all(workers=args.workers, work=args.out)
+    report = run_all(workers=args.workers, work=args.out,
+                     overlap_baseline=args.overlap_baseline)
     if (report["executed_cases"] != report["expected_cases"] or
             report["missing_cases"] or report["identity_changed"] or
             any(row["exit_code"] for row in report["cases"])):

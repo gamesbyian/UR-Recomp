@@ -484,7 +484,14 @@ bool append_multiplayer_match_pair(
             staging_dir = candidate;
             break;
         }
-        if (ec) return fail(detail, "cannot create multiplayer-pair staging directory");
+        // Another writer owns (or was just cleaning up) this name. When that
+        // writer removes its directory between our mkdir() seeing EEXIST and
+        // libstdc++'s follow-up directory check, create_directory reports
+        // file_exists although nothing is wrong with the filesystem. Move to
+        // the next private name; every other error stays fail-closed.
+        if (ec && ec != std::errc::file_exists) {
+            return fail(detail, "cannot create multiplayer-pair staging directory");
+        }
     }
     if (staging_dir.empty()) {
         return fail(detail, "multiplayer-pair staging space exhausted");

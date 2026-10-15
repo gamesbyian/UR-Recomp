@@ -63,6 +63,31 @@ handler with a synthetic storage fault cut. It does **not** reproduce actual
 power loss, physical controller hardware, a completed scored result within
 the recovery subroute, or grant independent release ledger credit.
 
+## Concurrent paired-publish staging race (fixed 2026-10-15)
+
+CI run 38664542228 (unit, unrelated PR #1609) exposed a real simultaneous-writer
+defect: `append_multiplayer_match_pair` probes shared `.urpair-stage-N` names, and
+`std::filesystem::create_directory` can report `file_exists` (EEXIST) when a
+competing writer removes its own staging directory between the `mkdir()` failure
+and libstdc++'s follow-up directory check. The writer then failed although
+nothing was wrong, so a legitimate paired result could be refused under
+concurrent access. Reproduced locally with an in-process 8-writer hammer
+(~two of three runs failed), the error confirmed as code 17. The writer now treats
+exactly `file_exists` as "competing creator, try the next private name"; every
+other filesystem error still fails closed, and the atomic sidecar-first claim,
+no-replace publication and immutable-record rules are unchanged. A new C++
+`hammer` mode runs in the existing paired-record unit test (it caught the old
+code in 4 of 5 runs, the fix 0 of 5). Windows `MoveFileW` claims are not changed.
+
+**Evidence and gap.** Original failing evidence: unit run 38664542228, shard 0,
+`test_multiplayer_match_record_cpp.test_cpp_contract`, failure-log artifact 11940347270
+(`cannot create multiplayer-pair staging directory`, decoded by integration). The
+fix is covered only by an in-process Linux/libstdc++ hammer. **Windows is a
+coverage gap:** no existing Windows stage runs concurrent paired publishers, so
+NTFS scheduling, `create_directory` behaviour on Windows, process-crash and
+SAVE PENDING durability under real contention are unverified. This does not
+promote any recovery gate or replace the original hard-kill negative.
+
 ## Critical native Practice progression-isolation correction (2026-10-14)
 
 Merged #1578 proves original Dragster course entry from P1 Down/A/A on

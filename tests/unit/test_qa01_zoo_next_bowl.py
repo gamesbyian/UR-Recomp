@@ -170,6 +170,32 @@ class ZooNextBowlTests(unittest.TestCase):
                            "native_byte": 13}])
         self.assertEqual(obs["release_complete_event_credit"], 0)
 
+    def test_matching_named_gameplay_and_sram_never_hide_wram_difference(self):
+        # A synthetically changed NMI stack byte leaves selected gameplay
+        # fields and all original/native 8-KiB SRAM unchanged. It MUST still
+        # be counted rather than silently exempted as presumed dead stack.
+        raw_path = self.nat / "zoo-next-bowl-267.wram.bin"
+        raw = bytearray(raw_path.read_bytes())
+        raw[0x01DD] = 0x04
+        raw[0x101DD] = 0x40
+        raw_path.write_bytes(raw)
+        obs = self.observed()
+        row = next(x for x in obs["samples"] if
+                   x["offset_from_observed_zoo_result"] == 267)
+        audit = row["original_native_full_wram_byte_difference"]
+        self.assertTrue(row["triplet_named_states_equal"])
+        self.assertTrue(obs["all_original_native_full_sram_pairs_equal"])
+        self.assertTrue(obs["next_bowl_entry_triple_equal"])
+        self.assertFalse(obs["all_original_native_full_wram_pairs_equal"])
+        self.assertFalse(audit["byte_exact"])
+        self.assertEqual(audit["differing_byte_count"], 2)
+        self.assertEqual(audit["excluded_byte_count"], 0)
+        self.assertEqual([x["snes_address"] for x in audit["first_24_differences"]],
+                         ["7E:01DD", "7F:01DD"])
+        self.assertFalse(audit["cpu_or_logic_tick_parity_proven"])
+        self.assertEqual(obs["release_complete_event_credit"], 0)
+
+
     def test_missing_source_or_false_movie_entry_rejected(self):
         source = dict(self.source)
         del source[8620]

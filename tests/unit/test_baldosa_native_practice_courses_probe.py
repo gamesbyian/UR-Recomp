@@ -88,6 +88,39 @@ class PracticeCoursesProbeTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 probe.verify_restart(bad)
 
+    def test_paused_options_verifier_is_strict(self):
+        def good(mode):
+            return (
+                "UR_BALDOSA_MODERN_ROOT practice_entered=1 course=0 "
+                "original_course=1 race=1 source_identity=verified\n"
+                "UR_BALDOSA_NATIVE_PAUSE ARMED guest=2500 live_race=1 "
+                "modern_session=1 physical_sdl=1\n"
+                "UR_BALDOSA_MODERN_ROOT pause_options_opened row=DISPLAY "
+                "display=WINDOWED vsync=ON volume=100 status=NONE help=0 "
+                "load=missing\n"
+                "UR_BALDOSA_MODERN_ROOT pause_options_input row=VOLUME "
+                "display=WINDOWED vsync=ON volume=90 status=SAVED help=0 "
+                "load=missing\n"
+                "UR_BALDOSA_MODERN_ROOT pause_options_back row=VOLUME "
+                "display=WINDOWED vsync=ON volume=90 status=NONE help=0 "
+                "load=missing\n"
+                f"UR_BALDOSA_NATIVE_PAUSE_MENU OPTIONS={mode} volume=90 "
+                "closed_by_back=1 still_paused=1 guest_steps=0\n"
+                "UR_BALDOSA_NATIVE_PAUSE RESUMED previous_guest=2500 "
+                "new_guest=2501 frozen_pumps=24\n"
+                "UR_BALDOSA_MODERN_ROOT practice_sram_restored=1 bytes=8192 "
+                "original_root=1\n")
+        for mode in (1, 2):
+            probe.verify_pause_options(good(mode), mode)
+        with self.assertRaises(ValueError):
+            probe.verify_pause_options(good(1), 2)
+        for bad in (good(1).replace("volume=90 status=SAVED", "volume=100 status=SAVED"),
+                    good(1).replace("still_paused=1", "still_paused=0"),
+                    good(1).replace("RESUMED", "NOPE"),
+                    good(1) + "UR_BALDOSA_NATIVE_PAUSE FAIL=x\n"):
+            with self.assertRaises(ValueError):
+                probe.verify_pause_options(bad, 1)
+
     def test_claims_no_hardware_or_release_credit(self):
         text = Path(probe.__file__).read_text()
         self.assertIn('"physical_gamepad_certified": False', text)

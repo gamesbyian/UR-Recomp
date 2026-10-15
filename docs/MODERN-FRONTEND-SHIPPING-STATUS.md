@@ -37,6 +37,18 @@ code; no guest, input or save code). Display/VSync are restored before the
 window exists on the next process; with no file the framework's config.ini
 remains authoritative.
 
+**Options is also reachable from the in-race pause menu** (previously a disabled
+`SOON` row): the frozen-guest pause panel opens the same shared Options modal
+(`render_modern_options_modal`), with its own press latches so a held Enter/A
+cannot change the first row, Left/Right added, B/Esc/Start closing Options before
+anything resumes, and Restart blocked while it is open. The pause owner only
+routes its own edges and draws on the frozen raster; the guest is checked
+unchanged on every pause tick. Verified locally on a real Practice race with SDL
+keys and with the production P1 gamepad entry point (new smoke
+`UR_BALDOSA_PAUSE_OPTIONS_SMOKE=1|2`), alongside the unchanged nav, quit and
+delayed-Restart pause smokes. Windows coverage is two extra games in the
+Practice-courses probe; exact-head Win32 evidence for them is recorded in PR #1648.
+
 **Practice is no longer Dragster-only.** The picker offers exactly the tours the
 original game's own TOUR_SELECT offers the selected rider (stock unlock tier,
 read-only; secret Hunter stays closed): 20 courses on a never-played save,

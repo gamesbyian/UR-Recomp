@@ -60,12 +60,16 @@ more tours as you earn medals, never the secret Hunter tour. The picker says
   hands you the race only after the decoded course matches your choice.
 - Practice runs on a disposable copy of the save: it never changes your career or
   Records. Normal exit, a crash or a killed process all leave your real save as it was.
-- Pause (Start) offers Restart, which rewinds to the race start. Quit works as
-  everywhere else.
+- Pause (Start) offers Resume, Restart (rewinds to the race start), **Options** and
+  Quit. Controls, Run Data, Records and Exit to frontend are shown as `SOON`.
 - If the original menus do not reach the course, the route stops and says so
   (`COURSE NOT REACHABLE - RETRY`); nothing is faked.
 
 ## 6. Options
+
+Open it from the root, or mid-race from the pause menu (the game stays frozen; B or
+Esc closes Options first and only then does a second press resume). Pause Options
+is the same panel and the same saved settings.
 
 Rows that really change the game, and nothing else:
 

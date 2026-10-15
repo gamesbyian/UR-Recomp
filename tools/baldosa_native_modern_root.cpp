@@ -13,6 +13,7 @@
 #include "uniracers_two_player_result.hpp"
 #include "baldosa_native_two_seat_join.hpp"
 #include "baldosa_native_options.hpp"
+#include "modern_pause_overlay_presenter.hpp"
 #include "quick_practice_route.hpp"
 #include "quick_practice_input_mask.hpp"
 #include "quick_practice_launch.hpp"
@@ -152,6 +153,25 @@ void log_options(const char* event) {
                   g_options.status),
         g_options.controls_help ? 1 : 0,
         options_load_name(g_options.load));
+}
+// The in-race pause menu can open the same Options model (guest frozen).
+bool g_pause_options_open = false;
+void fill_options_view(
+    ModernRootOverlayView& view,
+    std::array<ur::product::BaldosaOptionsRowText,
+               ur::product::kBaldosaOptionsRowCount>& option_text) {
+    option_text = ur::product::baldosa_options_row_texts(g_options);
+    view.options_open = true;
+    view.options_controls_help = g_options.controls_help;
+    view.options_selected = static_cast<std::size_t>(g_options.selected);
+    view.options_row_count = option_text.size();
+    for (std::size_t i = 0; i < option_text.size(); ++i)
+        view.options_rows[i] = {option_text[i].label, option_text[i].value,
+                                option_text[i].adjustable};
+    view.options_status =
+        ur::product::baldosa_options_status_text(g_options.status);
+    view.options_notice =
+        ur::product::baldosa_options_standing_notice(g_options);
 }
 ur::product::ModernRootPhysicalEdges g_navigation_edges{};
 ur::product::ModernRootPhysicalEdges g_p2_join_edges{};
@@ -1213,21 +1233,7 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     }
     std::array<ur::product::BaldosaOptionsRowText,
                ur::product::kBaldosaOptionsRowCount> option_text{};
-    if (g_options.open) {
-        option_text = ur::product::baldosa_options_row_texts(g_options);
-        view.options_open = true;
-        view.options_controls_help = g_options.controls_help;
-        view.options_selected = static_cast<std::size_t>(g_options.selected);
-        view.options_row_count = option_text.size();
-        for (std::size_t i = 0; i < option_text.size(); ++i)
-            view.options_rows[i] = {option_text[i].label,
-                                    option_text[i].value,
-                                    option_text[i].adjustable};
-        view.options_status =
-            ur::product::baldosa_options_status_text(g_options.status);
-        view.options_notice =
-            ur::product::baldosa_options_standing_notice(g_options);
-    }
+    if (g_options.open) fill_options_view(view, option_text);
     const bool drawn = ur::product::render_modern_root_overlay(
         painter, reinterpret_cast<std::uint32_t*>(dst),
         static_cast<int>(pitch / 4), height, 1, 240,
@@ -1831,6 +1837,60 @@ extern "C" unsigned ur_baldosa_modern_root_guest_players(void) {
     return configured() && !g_practice_session_active &&
         !g_visible && g_stock_handed_off
         ? g_handed_off_players : 0u;
+}
+
+
+// In-race pause -> OPTIONS. The pause owner routes only its own edges here
+// while the guest is frozen; nothing here steps or writes the guest.
+extern "C" int ur_baldosa_modern_root_pause_options_open(void) {
+    if (!configured()) return 0;
+    ur::product::baldosa_options_open(g_options);
+    g_pause_options_open = true;
+    log_options("pause_options_opened");
+    return 1;
+}
+extern "C" int ur_baldosa_modern_root_pause_options_active(void) {
+    return configured() && g_pause_options_open ? 1 : 0;
+}
+extern "C" void ur_baldosa_modern_root_pause_options_close(void) {
+    if (!g_pause_options_open) return;
+    g_options.open = false;
+    g_options.controls_help = false;
+    g_options.status = ur::product::BaldosaOptionsStatus::None;
+    g_pause_options_open = false;
+}
+// action: 0 up, 1 down, 2 activate, 3 cancel, 4 left, 5 right.
+extern "C" int ur_baldosa_modern_root_pause_options_input(int action) {
+    if (!ur_baldosa_modern_root_pause_options_active()) return 0;
+    switch (action) {
+    case 0: ur::product::baldosa_options_move(g_options, -1); break;
+    case 1: ur::product::baldosa_options_move(g_options, 1); break;
+    case 2: ur::product::baldosa_options_activate(g_options); break;
+    case 3:
+        ur::product::baldosa_options_close(g_options);
+        if (!g_options.open) g_pause_options_open = false;
+        break;
+    case 4: ur::product::baldosa_options_adjust(g_options, -1); break;
+    case 5: ur::product::baldosa_options_adjust(g_options, 1); break;
+    default: return 1;
+    }
+    log_options(action == 3 ? "pause_options_back" : "pause_options_input");
+    return 1;
+}
+extern "C" int ur_baldosa_modern_root_pause_options_draw(
+    std::uint8_t* pixels, std::size_t pitch, int width, int height) {
+    if (!ur_baldosa_modern_root_pause_options_active() || !pixels ||
+        pitch < static_cast<std::size_t>(width) * 4 || pitch % 4 != 0)
+        return 0;
+    const ModernRootOverlayPainter painter{
+        &snes_ovl_fill_rect, &snes_ovl_stroke_rect, &snes_ovl_draw_text};
+    ModernRootOverlayView view{};
+    std::array<ur::product::BaldosaOptionsRowText,
+               ur::product::kBaldosaOptionsRowCount> option_text{};
+    fill_options_view(view, option_text);
+    return ur::product::render_native_modern_pause_options(
+        painter, reinterpret_cast<std::uint32_t*>(pixels),
+        static_cast<int>(pitch / 4), width, height, view) ? 1 : 0;
 }
 
 extern "C" unsigned ur_baldosa_modern_root_paint_count(void) {

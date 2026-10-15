@@ -41,6 +41,9 @@ on:
       - "tools/baldosa_native_options_probe.py"
       - "tools/baldosa_native_practice_courses_probe.py"
       - "tests/unit/test_baldosa_native_practice_courses_probe.py"
+      - "tests/unit/test_modern_pause_overlay_presenter.py"
+      - "tests/native/modern_pause_overlay_presenter_test.cpp"
+      - "native/product/modern_pause_overlay_presenter.hpp"
       - "tests/unit/test_baldosa_native_options_probe.py"
       - "tests/unit/test_baldosa_modern_options_spike.py"
       - "native/product/baldosa_native_options.hpp"
@@ -178,6 +181,7 @@ jobs:
           python tests/unit/test_baldosa_native_options_cpp.py
           python tests/unit/test_baldosa_native_options_probe.py
           python tests/unit/test_baldosa_native_practice_courses_probe.py
+          python tests/unit/test_modern_pause_overlay_presenter.py
 
       - name: Verify immutable native source pins
         run: |
@@ -486,7 +490,7 @@ jobs:
             --rom "reference/roms/retail/Uniracers_USA.sfc" \
             --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_practice_courses" \
             --video windows --timeout 240
-          echo "PASS: ten original Practice courses (race, circuit and stunt; four tours per unlock state) entered with source course identity, plus one Practice game with native pause and delayed Restart rewinding to the race anchor with unchanged SRAM, on real Win32 native games; Hunter closed, saves unchanged, nothing published. Semantic pad edges; not all 45 and no physical-pad or release credit." >> "$GITHUB_STEP_SUMMARY"
+          echo "PASS: ten original Practice courses (race, circuit and stunt; four tours per unlock state) entered with source course identity, plus a Practice game with native pause and delayed Restart rewinding to the race anchor with unchanged SRAM and two Practice games opening the shared Options panel from the frozen pause menu (SDL keys, then semantic P1 pad edges), on real Win32 native games; Hunter closed, saves unchanged, nothing published. Semantic pad edges; not all 45 and no physical-pad or release credit." >> "$GITHUB_STEP_SUMMARY"
 
       # Separate, bounded evidence for independent QA. The fixed strict
       # baldosa-win32-native-pause-evidence ZIP is deliberately NOT touched.
@@ -510,6 +514,8 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/tier0_never_played-*/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/tier2_formatted_save-*/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/restart-in-practice/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/pause-options-sdl_keys/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/pause-options-p1_pad_semantic/log.txt
 
       - name: Assemble verified ROM-free Baldosa Modern Windows candidate
         run: |

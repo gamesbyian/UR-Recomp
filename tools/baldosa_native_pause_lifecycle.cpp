@@ -37,6 +37,15 @@ extern "C" {
 extern std::uint8_t g_ram[0x20000];
 void ur_baldosa_product_guest_restarted(void);
 int ur_baldosa_product_set_paused(int paused);
+// Native Options reachable from the paused menu (owned by the Modern root).
+int ur_baldosa_modern_root_pause_options_open(void);
+int ur_baldosa_modern_root_pause_options_active(void);
+void ur_baldosa_modern_root_pause_options_close(void);
+int ur_baldosa_modern_root_pause_options_input(int action);
+int ur_baldosa_modern_root_pause_options_draw(
+    std::uint8_t* pixels, std::size_t pitch, int width, int height);
+int snesrecomp_desktop_product_get_volume(void);
+int ur_baldosa_product_system_gamepad(int player, int button, int pressed);
 int snesrecomp_desktop_product_is_paused(void);
 unsigned snesrecomp_desktop_product_pause_presentations(void);
 int ur_baldosa_modern_root_key(int key, int pressed);
@@ -70,6 +79,12 @@ bool g_native_live_race;
 UrModernPauseMenu g_native_pause_menu{};
 bool g_pause_navigation_keys[3]{};
 bool g_pause_navigation_pad[4]{};
+// Independent physical latches for the paused Options panel: up, down,
+// confirm, back (Esc / pad B), left, right; the pad adds Start (back).
+bool g_pause_options_keys[6]{};
+bool g_pause_options_pad[7]{};
+int g_pause_options_smoke;  // 0 off, 1 SDL keyboard edges, 2 semantic P1 pad
+bool g_pause_options_smoke_verified;
 bool g_pause_panel_logged;
 unsigned g_pause_panel_paints;
 bool g_pause_panel_nav_smoke;
@@ -134,7 +149,8 @@ void reconcile_after_native_restart() {
 // One physical, edge-triggered menu navigation gesture. The guest owns
 // every key outside an acknowledged native pause, including its key-up.
 bool pause_navigation_edge(int pressed, bool& holding,
-                           UrModernPauseAction action) {
+                           UrModernPauseAction action,
+                           bool* options_hold = nullptr) {
     if (!pressed) {
         if (!holding) return false;
         holding = false;
@@ -145,6 +161,18 @@ bool pause_navigation_edge(int pressed, bool& holding,
         return false;
     if (holding) return true;
     holding = true;
+    if (action == UR_MODERN_PAUSE_ACTIVATE &&
+        ur_modern_pause_menu_selected(
+            &g_native_pause_menu,
+            ur_modern_session_restart_available(g_modern_session)) ==
+            UR_MODERN_PAUSE_OPTIONS) {
+        // The shared native Options panel, guest frozen. The confirming
+        // press stays owned until its release so a held or repeating
+        // Enter/A can never change the first row it lands on.
+        if (ur_baldosa_modern_root_pause_options_open() && options_hold)
+            *options_hold = true;
+        return true;
+    }
     if (action == UR_MODERN_PAUSE_ACTIVATE &&
         ur_modern_pause_menu_selected(
             &g_native_pause_menu,
@@ -177,7 +205,28 @@ bool pause_navigation_edge(int pressed, bool& holding,
     return true;
 }
 
+// One physical edge routed to the paused Options panel. Presses are taken
+// only while the panel is open on an acknowledged pause; a release is
+// reported only for a press this panel owned. Action codes follow
+// ur_baldosa_modern_root_pause_options_input.
+bool pause_options_edge(int pressed, bool& holding, int action) {
+    if (!pressed) {
+        if (!holding) return false;
+        holding = false;
+        return true;
+    }
+    if (!ur_baldosa_modern_root_pause_options_active()) return false;
+    if (!g_modern_session || !ur_modern_session_is_paused(g_modern_session)) {
+        ur_baldosa_modern_root_pause_options_close();
+        return false;
+    }
+    if (holding) return true;
+    holding = true;
+    return ur_baldosa_modern_root_pause_options_input(action) != 0;
+}
+
 void reset_native_pause_menu_on_open() {
+    ur_baldosa_modern_root_pause_options_close();
     if (g_modern_session && ur_modern_session_is_paused(g_modern_session)) {
         ur_modern_pause_menu_reset(&g_native_pause_menu);
         g_pause_panel_logged = false;
@@ -231,6 +280,20 @@ void queue_key_edge(int key) {
 }
 
 void queue_escape_edge() { queue_key_edge(SDLK_ESCAPE); }
+// Smoke mode 1 queues real SDL key edges; mode 2 drives the production P1
+// gamepad entry point (semantic edges, not a physical controller).
+void options_smoke_edge(int key, int pad_button) {
+    if (g_pause_options_smoke == 2) {
+        if (!ur_baldosa_product_system_gamepad(0, pad_button, 1) ||
+            !ur_baldosa_product_system_gamepad(0, pad_button, 0)) {
+            std::fprintf(stderr,
+                "UR_BALDOSA_NATIVE_PAUSE FAIL=options_pad_edge_not_consumed\n");
+            std::abort();
+        }
+    } else {
+        queue_key_edge(key);
+    }
+}
 void queue_restart_edge() { queue_key_edge(SDLK_r); }
 
 bool smoke_enabled() {
@@ -257,6 +320,17 @@ bool smoke_enabled() {
             g_physical_smoke = physical && std::strcmp(physical, "1") == 0;
             const char* nav = std::getenv("UR_BALDOSA_PAUSE_PANEL_NAV_SMOKE");
             g_pause_panel_nav_smoke = nav && std::strcmp(nav, "1") == 0;
+            const char* options_env =
+                std::getenv("UR_BALDOSA_PAUSE_OPTIONS_SMOKE");
+            g_pause_options_smoke =
+                options_env && std::strcmp(options_env, "1") == 0 ? 1 :
+                options_env && std::strcmp(options_env, "2") == 0 ? 2 : 0;
+            if (g_pause_options_smoke &&
+                (!g_physical_smoke || g_pause_panel_nav_smoke)) {
+                std::fprintf(stderr,
+                    "UR_BALDOSA_NATIVE_PAUSE FAIL=options_smoke_requires_exclusive_physical_route\n");
+                std::abort();
+            }
             const char* quit = std::getenv("UR_BALDOSA_PAUSE_QUIT_SMOKE");
             g_pause_quit_smoke = quit && std::strcmp(quit, "1") == 0;
             const char* gate = std::getenv(
@@ -300,17 +374,36 @@ extern "C" int ur_baldosa_product_system_key(int key, int pressed) {
     if (!physical_modern_enabled() ||
         (smoke_enabled() && !g_physical_smoke)) return 0;
     int nav = -1;
+    int opt = -1;  // paused-Options action: up down confirm back left right
     switch (key) {
-    case SDLK_UP: nav = 0; break;
-    case SDLK_DOWN: nav = 1; break;
-    case SDLK_RETURN: nav = 2; break;
+    case SDLK_UP: nav = 0; opt = 0; break;
+    case SDLK_DOWN: nav = 1; opt = 1; break;
+    case SDLK_RETURN: nav = 2; opt = 2; break;
+    case SDLK_ESCAPE: opt = 3; break;
+    case SDLK_LEFT: opt = 4; break;
+    case SDLK_RIGHT: opt = 5; break;
     default: break;
+    }
+    // Paused Options owns its presses first; releases always reach both
+    // owners so neither latch can stick.
+    bool options_release = false;
+    if (opt >= 0) {
+        const bool owned =
+            pause_options_edge(pressed, g_pause_options_keys[opt], opt);
+        if (owned && pressed) return 1;
+        options_release = owned && !pressed;
     }
     if (nav >= 0 && pause_navigation_edge(
             pressed, g_pause_navigation_keys[nav],
             nav == 0 ? UR_MODERN_PAUSE_PREVIOUS :
             nav == 1 ? UR_MODERN_PAUSE_NEXT :
-                       UR_MODERN_PAUSE_ACTIVATE)) return 1;
+                       UR_MODERN_PAUSE_ACTIVATE,
+            nav == 2 ? &g_pause_options_keys[2] : nullptr))
+        return 1;
+    if (options_release && key != SDLK_ESCAPE) return 1;
+    if (ur_baldosa_modern_root_pause_options_active() &&
+        (key == SDLK_r || key == SDLK_LEFT || key == SDLK_RIGHT))
+        return 1;  // no Restart while the Options panel is open
     if (key == SDLK_r) {
         // R is a Modern Restart command only inside an acknowledged host
         // pause. Normal stock racing and menu navigation retain the key.
@@ -330,7 +423,7 @@ extern "C" int ur_baldosa_product_system_key(int key, int pressed) {
     if (pressed && g_native_live_race && !g_modern_session)
         create_modern_session();
     const bool used = g_keyboard_pause.on_button(
-        pressed, g_native_live_race, g_modern_session);
+        pressed, g_native_live_race, g_modern_session) || options_release;
     if (used && pressed &&
         g_keyboard_pause.last_result() == UR_MODERN_SESSION_APPLIED)
         reset_native_pause_menu_on_open();
@@ -348,24 +441,41 @@ extern "C" int ur_baldosa_product_system_gamepad(
     if (!physical_modern_enabled() ||
         (smoke_enabled() && !g_physical_smoke) || player != 0) return 0;
     int nav = -1;
+    int opt = -1;       // paused-Options action codes
+    int opt_slot = -1;  // its physical latch
     switch (button) {
-    case kGamepadBtn_DpadUp: nav = 0; break;
-    case kGamepadBtn_DpadDown: nav = 1; break;
-    case kGamepadBtn_A: nav = 2; break;
-    case kGamepadBtn_B: nav = 3; break;
+    case kGamepadBtn_DpadUp: nav = 0; opt = 0; opt_slot = 0; break;
+    case kGamepadBtn_DpadDown: nav = 1; opt = 1; opt_slot = 1; break;
+    case kGamepadBtn_A: nav = 2; opt = 2; opt_slot = 2; break;
+    case kGamepadBtn_B: nav = 3; opt = 3; opt_slot = 3; break;
+    case kGamepadBtn_Start: opt = 3; opt_slot = 4; break;
+    case kGamepadBtn_DpadLeft: opt = 4; opt_slot = 5; break;
+    case kGamepadBtn_DpadRight: opt = 5; opt_slot = 6; break;
     default: break;
+    }
+    bool options_release = false;
+    if (opt >= 0) {
+        const bool owned = pause_options_edge(
+            pressed, g_pause_options_pad[opt_slot], opt);
+        if (owned && pressed) return 1;
+        options_release = owned && !pressed;
     }
     if (nav >= 0 && pause_navigation_edge(
             pressed, g_pause_navigation_pad[nav],
             nav == 0 ? UR_MODERN_PAUSE_PREVIOUS :
             nav == 1 ? UR_MODERN_PAUSE_NEXT :
             nav == 2 ? UR_MODERN_PAUSE_ACTIVATE :
-                       UR_MODERN_PAUSE_CANCEL)) return 1;
+                       UR_MODERN_PAUSE_CANCEL,
+            nav == 2 ? &g_pause_options_pad[2] : nullptr)) return 1;
+    if (options_release && button != kGamepadBtn_Start) return 1;
+    if (ur_baldosa_modern_root_pause_options_active() &&
+        (button == kGamepadBtn_DpadLeft || button == kGamepadBtn_DpadRight))
+        return 1;
     if (button != kGamepadBtn_Start) return 0;
     if (pressed && g_native_live_race && !g_modern_session)
         create_modern_session();
     const bool used = g_p1_gamepad_pause.on_button(
-        pressed, g_native_live_race, g_modern_session);
+        pressed, g_native_live_race, g_modern_session) || options_release;
     if (used && pressed &&
         g_p1_gamepad_pause.last_result() == UR_MODERN_SESSION_APPLIED)
         reset_native_pause_menu_on_open();
@@ -387,6 +497,9 @@ extern "C" int ur_baldosa_product_pause_draw(
         pitch < static_cast<std::size_t>(width) * 4 ||
         pitch % 4 != 0)
         return 0;
+    if (ur_baldosa_modern_root_pause_options_active())
+        return ur_baldosa_modern_root_pause_options_draw(
+            pixels, pitch, width, height);
     const ur::product::ModernRootOverlayPainter paint{
         &snes_ovl_fill_rect, &snes_ovl_stroke_rect, &snes_ovl_draw_text};
     if (!ur::product::render_native_modern_pause_overlay(
@@ -798,6 +911,49 @@ extern "C" void ur_baldosa_product_host_tick(void) {
                 "UR_BALDOSA_NATIVE_PAUSE_MENU NAV=1 down_up=1 "
                 "selected=0 guest_steps=0\n");
             std::fflush(stderr);
+        }
+    }
+    if (g_physical_smoke && g_pause_options_smoke) {
+        // Real SDL key edges through the paused menu into the shared native
+        // Options panel: Down, Down (Resume -> Restart -> Options), Enter,
+        // Down, Down (Display -> VSync -> Volume), Left (volume 100 -> 90),
+        // Escape closes the panel (not the pause). The original guest stays
+        // frozen throughout (checked every tick above); the standard release
+        // at tick 24 then resumes through the ordinary Escape path.
+        switch (g_frozen_ticks) {
+        case 2: case 4: options_smoke_edge(SDLK_DOWN, kGamepadBtn_DpadDown); break;
+        case 6:
+            require(g_native_pause_menu.selected == UR_MODERN_PAUSE_OPTIONS,
+                    "pause_options_row_not_selected");
+            options_smoke_edge(SDLK_RETURN, kGamepadBtn_A);
+            break;
+        case 8:
+            require(ur_baldosa_modern_root_pause_options_active() != 0,
+                    "pause_options_did_not_open");
+            options_smoke_edge(SDLK_DOWN, kGamepadBtn_DpadDown);
+            break;
+        case 10: options_smoke_edge(SDLK_DOWN, kGamepadBtn_DpadDown); break;
+        case 12: options_smoke_edge(SDLK_LEFT, kGamepadBtn_DpadLeft); break;
+        case 14:
+            require(snesrecomp_desktop_product_get_volume() == 90,
+                    "pause_options_volume_not_applied");
+            options_smoke_edge(SDLK_ESCAPE, kGamepadBtn_B);
+            break;
+        case 16:
+            require(ur_baldosa_modern_root_pause_options_active() == 0 &&
+                        ur_modern_session_is_paused(g_modern_session) &&
+                        snesrecomp_desktop_product_is_paused() != 0,
+                    "pause_options_escape_resumed_or_stayed_open");
+            if (!g_pause_options_smoke_verified) {
+                g_pause_options_smoke_verified = true;
+                std::fprintf(stderr,
+                    "UR_BALDOSA_NATIVE_PAUSE_MENU OPTIONS=%d volume=90 "
+                    "closed_by_back=1 still_paused=1 guest_steps=0\n",
+                    g_pause_options_smoke);
+                std::fflush(stderr);
+            }
+            break;
+        default: break;
         }
     }
     if (g_delayed_restart_enabled && g_frozen_ticks == 8)

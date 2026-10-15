@@ -158,6 +158,45 @@ def verify_restart(log: str) -> None:
         raise ValueError("Practice restart stages were out of order")
 
 
+# Paused Options inside a real Practice race: the frozen guest's pause menu
+# opens the shared native Options panel (Down, Down, confirm; Down, Down, Left
+# lowers Volume to 90; back closes the panel, NOT the pause; the ordinary
+# resume follows). Mode 1 uses real SDL key edges, mode 2 the production P1
+# gamepad entry point (semantic edges, not a physical controller).
+def pause_options_env(mode: int) -> dict:
+    return {
+        "UR_BALDOSA_PAUSE_SMOKE": "1",
+        "UR_BALDOSA_PHYSICAL_PAUSE_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_OPTIONS_SMOKE": str(mode),
+        "UR_BALDOSA_PAUSE_SMOKE_AT_FRAME": "2500",
+        "UR_BALDOSA_PAUSE_REQUIRE_RACE": "1",
+    }
+
+
+def verify_pause_options(log: str, mode: int) -> None:
+    for token in (
+            "UR_BALDOSA_MODERN_ROOT practice_entered=1 course=0 ",
+            "UR_BALDOSA_NATIVE_PAUSE ARMED guest=2500 live_race=1 ",
+            "UR_BALDOSA_MODERN_ROOT pause_options_opened row=DISPLAY ",
+            "UR_BALDOSA_MODERN_ROOT pause_options_input row=VOLUME "
+            "display=WINDOWED vsync=ON volume=90 status=SAVED ",
+            "UR_BALDOSA_MODERN_ROOT pause_options_back row=VOLUME ",
+            f"UR_BALDOSA_NATIVE_PAUSE_MENU OPTIONS={mode} volume=90 "
+            "closed_by_back=1 still_paused=1 guest_steps=0",
+            "UR_BALDOSA_NATIVE_PAUSE RESUMED previous_guest=2500 ",
+            "UR_BALDOSA_MODERN_ROOT practice_sram_restored=1 bytes=8192"):
+        if log.count(token) != 1:
+            raise ValueError("Paused Options stage missing/duplicated: "
+                             + token)
+    order = ("pause_options_opened", f"OPTIONS={mode} volume=90",
+             "NATIVE_PAUSE RESUMED", "practice_sram_restored=1")
+    positions = [log.index(part) for part in order]
+    if positions != sorted(positions):
+        raise ValueError("Paused Options stages were out of order")
+    if "FAIL=" in log:
+        raise ValueError("Native pause reported a failed invariant")
+
+
 def run(exe: Path, rom: Path, out: Path, *, timeout: int, video: str) -> dict:
     for path in (exe, rom, CLEAN_SRAM):
         if path.is_symlink() or not path.is_file():
@@ -191,7 +230,20 @@ def run(exe: Path, rom: Path, out: Path, *, timeout: int, video: str) -> dict:
     verify_restart(restart_log)
     if list(user.rglob("*.urrun")):
         raise ValueError("Practice restart published an earned run")
+    for mode, label in ((1, "sdl_keys"), (2, "p1_pad_semantic")):
+        user = out / f"pause-options-{label}-user"
+        (user / "saves").mkdir(parents=True)
+        log = run_native(exe, rom, user, out / f"pause-options-{label}", 0,
+                         video, timeout, pause_options_env(mode))
+        verify_pause_options(log, mode)
+        config = (out / f"pause-options-{label}" / "config.ini").read_text(
+            encoding="utf-8")
+        if not re.search(r"(?m)^Volume\s*=\s*90\s*$", config):
+            raise ValueError("Paused Options volume was not made durable")
+        if list(user.rglob("*.urrun")):
+            raise ValueError("Paused Options published an earned run")
     return {
+        "pause_options_in_practice": ["sdl_keys", "p1_pad_semantic"],
         "restart_in_practice": "pause_delayed_restart_rewound_sram_equal",
         "source_binding": {
             "github_sha": os.environ.get("GITHUB_SHA"),

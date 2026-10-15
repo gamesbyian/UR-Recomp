@@ -46,6 +46,48 @@ def build_script(raw: bytes) -> bytes:
     return control.build_script(raw)
 
 
+def parse_history(raw: bytes) -> dict:
+    """Fail closed on incomplete read-only original PPU-ring port chronology."""
+    lines=raw.decode("ascii").splitlines()
+    if len(lines)<5 or lines[:2] != [
+        "#range=5072..5184", "frame\tvcounter\thcounter\taddr\tvalue\tsource"]:
+        raise ValueError("not the pinned 112-frame original PPU chronology")
+    counts={}
+    rows=[]
+    for line in lines[2:]:
+        if line.startswith("#"):
+            if "=" not in line:
+                raise ValueError("malformed original readback metadata")
+            k,v=line[1:].split("=",1)
+            if k in counts:
+                raise ValueError("duplicate original-ring metadata")
+            counts[k]=v
+            continue
+        parts=line.split("\t")
+        if len(parts)!=6:
+            raise ValueError("not a source PPU port record")
+        f,vc,hc,addr,value,src=parts
+        if (not 5072<=int(f)<=5184 or addr not in ("2121","2122")
+            or not 0<=int(vc)<=340 or not 0<=int(hc)<=340
+            or len(value)!=2 or src not in ("cpu","dma","hdma")):
+            raise ValueError("out of range or malformed PPU data-port write")
+        rows.append({"frame":int(f),"v":int(vc),"h":int(hc),
+                     "addr":addr,"value":value,"source":src})
+    if (set(counts)!={"ring_earliest","port_writes","scan_complete"} or
+        counts["scan_complete"]!="1" or int(counts["ring_earliest"])>5072 or
+        int(counts["port_writes"])!=len(rows)):
+        raise ValueError("original ring has incomplete coverage or bad write count")
+    by_frame={}
+    for entry in rows:
+        f=str(entry["frame"])
+        by_frame[f]=by_frame.get(f,0)+1
+    return {"source_window":[5072,5184],"source_port_write_count":len(rows),
+            "source_port_writes_by_frame":by_frame,
+            "source_latest_16_port_writes":rows[-16:],
+            "original_ring_earliest_frame":int(counts["ring_earliest"]),
+            "raw_112_frame_port_writes_sha256":sha(raw)}
+
+
 def verify(root: Path, prior: Path, script: Path, rom: Path, core: Path) -> dict:
     if sha(rom.read_bytes()) != control.ROM_SHA:
         raise ValueError("source USA ROM differs")
@@ -86,6 +128,10 @@ def verify(root: Path, prior: Path, script: Path, rom: Path, core: Path) -> dict
         receipts.append({"source_tag":tag,"original_script_frame":frame,
                          "original_register_artifacts":files})
     left, right = palettes["qa08_results_previous"], palettes["qa08_results_cgram"]
+    if cgram_fnv(left)!="e8cdbe60" or cgram_fnv(right)!="e8cdbe60":
+        raise ValueError("independently authenticated adjacent original CGRAM changed")
+    history = parse_history(
+        (root/"registers"/"qa08-results-5072-5184-cgram-history.tsv").read_bytes())
     differences = [
         {"word":i,"before":left[2*i:2*i+2].hex(),"after":right[2*i:2*i+2].hex()}
         for i in range(256) if left[2*i:2*i+2] != right[2*i:2*i+2]]
@@ -101,6 +147,7 @@ def verify(root: Path, prior: Path, script: Path, rom: Path, core: Path) -> dict
         "source_palette_changed_words_first_32":differences[:32],
         "source_palette_changed_words_full_sha256":sha(json.dumps(differences,sort_keys=True).encode()),
         "source_receipts":receipts,
+        "source_prior_112_frame_CGRAM_write_history":history,
         "263_original_unmasked_BGRX_frames_identical_to_prior_original":True,
         "script_still_quits_at_5484":True,
         "raw_original_ppuw_TSV_requires_explicit_write_chronology_review":True,
@@ -129,6 +176,7 @@ def main() -> None:
         a.result.write_text(json.dumps(receipt,indent=2,sort_keys=True)+"\n")
         print("QA08_CGRAM_5183_5184: 263 original frames unchanged; "
               f"palette_words_changed={receipt['source_palette_words_changed']}; "
+              f"source_prior_112_frame_port_writes={receipt['source_prior_112_frame_CGRAM_write_history']['source_port_write_count']}; "
               "native/graphics/release=unaccepted")
     else:
         p.error("supply --out-script or all verification inputs")

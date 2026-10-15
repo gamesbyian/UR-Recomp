@@ -29,7 +29,10 @@ class ResultsPortChronologyTest(unittest.TestCase):
                     trial.build_script(changed)
 
     def test_readonly_host_patch_is_exact_idempotent_and_rejects_tamper(self):
-        frame="static void do_dump(const char* tag) {}\n"+stage.BEFORE+"int trailing;\n"
+        frame=("static void dump_ppuw(const char* tag, uint32_t frame, long long* n, bool* t) {}\n"
+               + stage.HISTORY_TRIGGER_BEFORE + "\n"
+               + stage.HISTORY_ANCHOR + "\n"
+               + stage.BEFORE + "\nint trailing;\n")
         once=stage.patch_source(frame)
         self.assertIn(stage.MARK,once)
         self.assertEqual(stage.patch_source(once),once)
@@ -39,6 +42,24 @@ class ResultsPortChronologyTest(unittest.TestCase):
             stage.patch_source(once.replace("5183","5184"))
         with self.assertRaises(ValueError):
             stage.patch_source(frame.replace("g_frame++;","g_frame += 2;"))
+
+
+    def test_history_rejects_incomplete_ring_and_malformed_port_writes(self):
+        header="#range=5072..5184\nframe\tvcounter\thcounter\taddr\tvalue\tsource\n"
+        one="5170\t225\t4\t2121\t03\tcpu\n"
+        tail="#ring_earliest=100\n#port_writes=1\n#scan_complete=1\n"
+        parsed=trial.parse_history((header+one+tail).encode())
+        self.assertEqual(parsed["source_port_write_count"],1)
+        self.assertEqual(parsed["source_port_writes_by_frame"],{"5170":1})
+        for bad in (
+            header+one+tail.replace("scan_complete=1","scan_complete=0"),
+            header+one+tail.replace("ring_earliest=100","ring_earliest=5170"),
+            header+one.replace("2121","2110")+tail,
+            header+one+tail.replace("port_writes=1","port_writes=2"),
+        ):
+            with self.subTest(bad=bad[-60:]):
+                with self.assertRaises(ValueError):
+                    trial.parse_history(bad.encode())
 
     def test_cgram_exact_size_and_fnv(self):
         self.assertEqual(trial.cgram_fnv(bytes(512)),"4d7705c5")

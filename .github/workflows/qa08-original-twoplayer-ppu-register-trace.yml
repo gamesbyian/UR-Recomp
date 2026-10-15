@@ -1,10 +1,9 @@
-name: QA-08 original 2P adjacent results-frame CGRAM port chronology
+name: QA-08 original 2P results 112-frame CGRAM port chronology
 
-# One bounded original 5183/5184 port discriminator. The previous attempt to
-# split a continuous press inserted an extra idle frame and diverged at 5215.
-# The new capture runs read-only *after* retro_run in the original host, with
-# the fully unchanged original controller script and 263 exact raw pixels.
-# Retire the temporary PR trigger after classification.
+# One source-only decision: where were $2121/$2122 writes during the 112
+# original result-animation frames preceding authentic 5184? Read the 1M-entry
+# core journal, preserve unchanged original 2P input and all 263 raw images.
+# Remove this temporary PR trigger as soon as the result is classified.
 on:
   pull_request:
     paths:
@@ -83,7 +82,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          UR_QA08_SNESREF_RESULTS_PREVIOUS=1 SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          UR_QA08_CGRAM_HISTORY=1 UR_QA08_SNESREF_RESULTS_PREVIOUS=1 SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
           SNESREF_SCRIPT="$RUNNER_TEMP/qa08-original-ppu-2p/qa08-ppu-observer.script" \
           SNESREF_DUMP_DIR="$RUNNER_TEMP/qa08-original-ppu-2p/registers" \
           SNESREF_FRAME_DUMP_DIR="$RUNNER_TEMP/qa08-original-ppu-2p/frames" \
@@ -120,6 +119,7 @@ jobs:
             ${{ runner.temp }}/qa08-original-ppu-2p/qa08-ppu-observer.script
             ${{ runner.temp }}/qa08-original-ppu-2p/registers/*.regs.json
             ${{ runner.temp }}/qa08-original-ppu-2p/registers/*.ppuw.tsv
+            ${{ runner.temp }}/qa08-original-ppu-2p/registers/qa08-results-5072-5184-cgram-history.tsv
             ${{ runner.temp }}/qa08-original-ppu-2p/registers/*.cgram.bin
             ${{ runner.temp }}/qa08-original-ppu-2p/registers/*.oam.bin
             ${{ runner.temp }}/qa08-original-ppu-2p/registers/*.info.json

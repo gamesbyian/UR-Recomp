@@ -430,10 +430,10 @@ jobs:
           print("QA01_UNMASKED_WRAM_BYTE_CENSUS=" + json.dumps(
               result, sort_keys=True, separators=(",",":")))
           with open(sys.argv[2],"a",encoding="utf-8") as f:
-              f.write("\\nUnmasked 128-KiB WRAM differences: original/native "
+              f.write("\nUnmasked 128-KiB WRAM differences: original/native "
                       "byte counts, first 24 addresses and exact 256-byte page "
                       "histograms in the source-pinned producer artifact. "
-                      "No masking or event credit.\\n")
+                      "No masking or event credit.\n")
           PY
           fi
           # Read-only bounded SRAM byte attribution for the single corrected

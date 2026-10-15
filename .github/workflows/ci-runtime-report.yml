@@ -37,9 +37,10 @@ jobs:
           combined = []
           total_count = None
           for page in range(1, (count + 99) // 100 + 1):
-              size = min(100, count - len(combined))
+              # Keep page size fixed: varying per_page changes the API offset
+              # and can duplicate runs across pages.
               response = subprocess.run(
-                  ["gh", "api", f"repos/{repo}/actions/runs?per_page={size}&page={page}"],
+                  ["gh", "api", f"repos/{repo}/actions/runs?per_page=100&page={page}"],
                   check=True, capture_output=True, text=True, timeout=40,
               )
               data = json.loads(response.stdout)
@@ -47,7 +48,7 @@ jobs:
                   total_count = data.get("total_count")
               batch = data.get("workflow_runs", [])
               combined.extend(batch)
-              if len(batch) < size:
+              if len(batch) < 100:
                   break
           result = {"total_count": total_count, "workflow_runs": combined[:count]}
           with open(sys.argv[1], "w", encoding="utf-8") as output:

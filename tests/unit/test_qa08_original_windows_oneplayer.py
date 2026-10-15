@@ -94,7 +94,8 @@ class OnePlayerSourceTests(unittest.TestCase):
           "7431889698913feadab76261caf3b00b82d1d9a1466a8260d9b7512d8328324e")
         self.assertEqual(original.FIRST,2176)
         self.assertEqual(original.LAST,2240)
-        self.assertFalse("release" in windows.SCHEMA)
+        self.assertEqual(compare.SCHEMA, "qa08-real-original-snes9x-vs-exact-windows-1p-rgb5-window/1")
+        self.assertEqual(tuple(compare.WINDOW), tuple(range(2176, 2241)))
 
 
 if __name__=="__main__":

@@ -111,6 +111,21 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def find_git_bash(*, windows: bool | None = None,
+                  program_files: str | None = None) -> str:
+    """Match Actions' Windows Bash shell, not the WSL `bash.exe` PATH shim."""
+    if windows is None:
+        windows = os.name == "nt"
+    if windows:
+        prefix = program_files or os.environ.get("PROGRAMFILES") or "C:/Program Files"
+        candidate = Path(prefix) / "Git" / "bin" / "bash.exe"
+        if not candidate.is_file():
+            raise RuntimeError("Windows acceptance requires installed Git Bash: "
+                               + str(candidate))
+        return str(candidate)
+    return "bash"
+
+
 def run_one(index: int, script: str, work: Path, env: dict[str, str]) -> dict:
     name = STEPS[index]
     output = work / f"step-{index:02d}.log"
@@ -123,7 +138,7 @@ def run_one(index: int, script: str, work: Path, env: dict[str, str]) -> dict:
     try:
         with output.open("w", encoding="utf-8", errors="replace") as handle:
             completed = subprocess.run(
-                ["bash", "--noprofile", "--norc", "-e", "-o", "pipefail", "-c", script],
+                [find_git_bash(), "--noprofile", "--norc", "-e", "-o", "pipefail", "-c", script],
                 cwd=ROOT, env=invocation_env, stdout=handle,
                 stderr=subprocess.STDOUT, check=False, timeout=900,
             )

@@ -1,0 +1,100 @@
+{
+  "schema": "qa08-independent-windows-original-full-twoplayer-raster-result/1",
+  "status": "strict_source_rgb5_divergence__not_release_accepted",
+  "original_source_run_id": 38781958316,
+  "original_source_artifact_id": 11996107746,
+  "original_source_wrapper_zip_sha256": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+  "windows_source_run_id": 38783232271,
+  "windows_source_artifact_id": 11997485920,
+  "windows_source_wrapper_zip_sha256": "b2a84f182b70b6bc5bc70338a602a7d979fd0d133c80217b70a682d69bea7c71",
+  "independent_offline_ci_run_id": 38790782686,
+  "independent_offline_result_artifact_id": 11999783198,
+  "independent_offline_result_wrapper_zip_sha256": "d1bc6772bee78ba00883d42f78d41630cefe0141e0dfc3951370e3077c8a3ebd",
+  "original_Snes9x_core_sha256": "aeb7076a59a2e3bc2a55bacb9559d53b146a665a2c86f52fd4447626c6601d43",
+  "windows_corrected_exe_sha256": "9107fe4e5e6515f161f4f3e666349def7f4b2f242a1837db32ac09c70d1c1ac9",
+  "windows_guest_CRC_5484_sha256": "c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876",
+  "USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_two_pad_script_LF_without_turbo_sha256": "a6c8815482b742d90dca61645f876c15918f5d9985a027eef107ac4fdc515264",
+  "native_same_script_CRLF_sha256": "ef74ec51fa585aa76652f4a14d2727f0074434b3925522ab2607e3bd29aa0194",
+  "original_guest_script_quit_frame": 5484,
+  "windows_guest_script_quit_frame": 5484,
+  "source_frame_geometry": [
+    256,
+    224
+  ],
+  "original_actual_callback_sequence": [
+    1279,
+    5471,
+    16
+  ],
+  "windows_actual_guest_frame_sequence": [
+    1280,
+    5472,
+    16
+  ],
+  "frame_count": 263,
+  "compared_full_RGB5_pixels": 15081472,
+  "exact_frames": 190,
+  "divergent_frames": 73,
+  "total_wrong_RGB5_pixels": 786347,
+  "cohorts": {
+    "pre_GO_and_countdown": {
+      "frames": 46,
+      "exact": 23,
+      "wrong": 4487
+    },
+    "moving_and_finish": {
+      "frames": 195,
+      "exact": 149,
+      "wrong": 707828
+    },
+    "finish_result_menu_return": {
+      "frames": 22,
+      "exact": 18,
+      "wrong": 74032
+    }
+  },
+  "source_qualified_patterns": [
+    {
+      "kind": "first_any",
+      "guest_frame": 1280,
+      "wrong": 245,
+      "region": "selection-arrow sprite around rows 65–80, 5-bit colour differences"
+    },
+    {
+      "kind": "first_large",
+      "guest_frame": 3648,
+      "wrong": 27136,
+      "region": "2P finish frame; original visibly darkened, native still full brightness; frame 3584 source-exact"
+    },
+    {
+      "kind": "black_transition",
+      "guest_frame": 4016,
+      "wrong": 54709,
+      "region": "original black, native dimly displays result panel"
+    },
+    {
+      "kind": "results_background",
+      "first_guest_frame": 4064,
+      "period_frames": 112,
+      "last_guest_frame": 5408,
+      "source_error_example": 24346,
+      "region": "four grayscale checkerboard colours are permuted, no geometric displacement",
+      "gray_RGB8_original_to_native_examples": {
+        "123": "165",
+        "132": "123",
+        "140": "132",
+        "165": "140"
+      }
+    }
+  ],
+  "source_presentation_only_true": true,
+  "snes9x_guest_register_state_parity_proven": false,
+  "source_frame_alignment_non_temporally_optimized": true,
+  "original_source_pixel_masking_crop_or_alignment_applied": false,
+  "complete_original_to_native_CPU_APU_input_camera_equivalence_proven": false,
+  "reproduce": "python tools/qa08_compare_windows_original_twoplayer_sparse.py --original-dir ORIGINAL_ARTIFACT --windows-dir WINDOWS_ARTIFACT --route reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p.txt --out report.json",
+  "next_source_witness": "read-only 2P INIDISP brightness and results CGRAM/HDMA register phase on original and native; do not change gameplay/timing to force pixels",
+  "release_graphics_gate_accepted": false,
+  "hd_remastered_racer_identity_owner_approved": false
+}

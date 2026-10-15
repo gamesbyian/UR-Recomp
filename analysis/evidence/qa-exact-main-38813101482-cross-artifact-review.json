@@ -132,6 +132,23 @@
       "martin_sha256_prefix": "f3058e5fcd57042c",
       "both_named_raw_sram_equal_typed_stock_sram_at_both_stages": true,
       "claim_limit": "exact independently archived two stage byte delta; no concurrent process, physical hardware or original-emulator result equivalence"
+    },
+    "actual_first_created_1p_three_process_source": {
+      "artifact_id": 12010421091,
+      "native_distinct_processes": 3,
+      "first_created_named_profile": "mike",
+      "second_named_boot_8192_fingerprint": "d4dc382b",
+      "source_1p_result_host": 4165,
+      "source_finish_ticks60": 1679,
+      "source_input_frames": 2254,
+      "source_input_runs": 5,
+      "reported_run_created": 1,
+      "third_named_boot_8192_fingerprint": "37cc13a8",
+      "before_record_route_validated": 0,
+      "after_cold_record_route_validated": 1,
+      "actual_raw_one_player_run_file_archived": false,
+      "producer_only_reported_one_player_run_sha256": "877d8dafd6b466f3716b19215242b7c3b60d416a678e968e2aee973905150d8c",
+      "claim_limit": "independent source-event chronology only, no independent 1P run-byte hash, no original-emulator strict complete event, no physical controller"
     }
   },
   "limitations": [

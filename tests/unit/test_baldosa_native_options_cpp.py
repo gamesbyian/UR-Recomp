@@ -41,7 +41,24 @@ class NativeOptionsModelTests(unittest.TestCase):
     def test_options_model_strict(self):
         self._build_and_run([])
 
+    def _sanitizers_available(self):
+        compiler = shutil.which("g++") or shutil.which("clang++")
+        if not compiler:
+            return False
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "probe.cpp"
+            source.write_text("int main() { return 0; }\n")
+            built = subprocess.run(
+                [compiler, "-fsanitize=address,undefined", str(source),
+                 "-o", str(Path(directory) / "probe")],
+                capture_output=True, text=True, timeout=120)
+            return built.returncode == 0
+
     def test_options_model_under_sanitizers(self):
+        # Capability probe only: the Windows MinGW toolchain ships no
+        # libasan/libubsan; the strict build above still runs everywhere.
+        if not self._sanitizers_available():
+            self.skipTest("sanitizer runtime unavailable on this toolchain")
         self._build_and_run(["-fsanitize=address,undefined",
                              "-fno-sanitize-recover=all"])
 

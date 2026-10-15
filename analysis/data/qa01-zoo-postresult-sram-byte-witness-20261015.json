@@ -88,5 +88,25 @@
     "player_testable_windows_candidate_proven": false,
     "strict_full_event_accepted": false
   },
-  "next_discriminator": "Use existing source symbol/guest writer or reader evidence to test whether 0x10A7 remains live during this Zoo result-to-track-select handoff; do not modify CPU/APU/NMI owned source, shift original inputs or waive strict timing."
+  "next_discriminator": "Use existing source symbol/guest writer or reader evidence to test whether 0x10A7 remains live during this Zoo result-to-track-select handoff; do not modify CPU/APU/NMI owned source, shift original inputs or waive strict timing.",
+  "independent_repeat": {
+    "run_id": 38702441615,
+    "run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38702441615",
+    "case_artifact_id": 11957203318,
+    "case_artifact_zip_sha256": "2b8b51c1cff48ac9fe3d087aedd2b29f9fd63c5037859ba8072717f278284f76",
+    "all_four_jobs_success": true,
+    "reference_core_sha256": "796b1ac26f2e0fa7d6799802b3c55de44b630fce1c0e0a22059edea01bf626bc",
+    "native_executable_sha256": "527015f2389626102be2b697ea5881ed9604948c73e9a74c1e778d60a00c411a",
+    "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "input_sha256": "04ad1c2d70b38d3f33513468be2c94acc4b0c452a323631aebb390a3542f75e8",
+    "source_equivalence_class": "temporary workflow policy-only concurrency revision; original controller and gameplay source producer unchanged",
+    "scientific_disposition": "strict_candidate",
+    "release_credit": 0,
+    "byte_comparison_6_samples_exactly_equal_to_first_run": true,
+    "paired_sram_difference_at_64_and_72": {
+      "address": "0x10A7",
+      "original": "0x0C",
+      "native": "0x0D"
+    }
+  }
 }

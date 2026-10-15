@@ -66,7 +66,7 @@ class WindowsParallelJourneysTest(unittest.TestCase):
             yaml.count("github.event_name != 'pull_request' && inputs.parallel_journeys != true"),
             len(p.STEPS)
         )
-        self.assertIn("remaining isolated journeys fan out", yaml)
+        self.assertIn("baseline owns its root", yaml)
         self.assertIn("Pilot parallel authentic Windows journeys", yaml)
         self.assertIn("default: false", yaml)
         self.assertIn("baldosa-win32-parallel-journey-timing", yaml)

@@ -1,0 +1,196 @@
+{
+  "schema": "qa-exact-main-38813101482-independent-cross-artifact/1",
+  "workflow_run": 38813101482,
+  "windows_job": 116690973293,
+  "candidate": {
+    "source_commit": "11501a15dea38fa912335cfc63103ce3a7208001",
+    "portable_zip_sha256": "5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7",
+    "exe_sha256": "0701f72481531ad4f2803caadc62bbb072f292abef69f039edda004b01c18ea9"
+  },
+  "outer_artifacts": [
+    [
+      12009612842,
+      "5a4de66f09a9ceea5cb7b431f808a17821f770bf09c48117a8cb3bd9a0c83722"
+    ],
+    [
+      12010371123,
+      "3a466ba30e512057c61d14e8be0dea12c6b5cc47eff854aabb72a1554e894545"
+    ],
+    [
+      12010675093,
+      "d396c11061f34b751c6138670cb160c01d011022b93800ac14b57eb2854c2a69"
+    ],
+    [
+      12010555537,
+      "0dc7618f81136a8288459e6ad8908d368c0a20bffffc098c6917b1a7ba6145b1"
+    ],
+    [
+      12010495750,
+      "5845040dbbc8ba93d9202f043dd3457f5937fdd62d4200771f0aa031f7f35891"
+    ],
+    [
+      12010421091,
+      "485f37190ba1e12fd6ba4745f05c3a50d3056d05cf36151cf69f7699125fc0b9"
+    ],
+    [
+      12009069728,
+      "a3e7592b3472d115fba0440265dbd924edfa1e9cd59b7329cff9585fdff29ea4"
+    ],
+    [
+      12010750002,
+      "6fba74ddbb1ce00533b31c62d78e722fb283fdc8db454d3accb9534fe6b7ae34"
+    ],
+    [
+      12010640197,
+      "c2392d1c01b3c009aded903936c953af6b656cf780922afbb72ee5c39bef8754"
+    ],
+    [
+      12010490843,
+      "421daddd16bf0b8cfb4127bf0c05a88b9a3080e21cbe07868595e588d683f82b"
+    ]
+  ],
+  "assertions": {
+    "portable_sha_matches_both_source_artifacts": true,
+    "same_candidate_exe_pe32_amd64_and_manifest_files_rehashed": true,
+    "raw_stage_manifest_count": 5,
+    "catalog_fault_changes_exactly": [
+      "profiles-v1.txt"
+    ],
+    "catalog_recovery_byte_exact_to_pre_cut": true,
+    "source_go_changes_exactly": [
+      "saves/profile-mike/host-profile.txt",
+      "saves/profile-mike/save.srm"
+    ],
+    "canonical_2p_pair_count": 1,
+    "run_sha256": "d54ade82fdeb213db2c48bd7e4338c5bcae0f2af981fd70c27a467366acbc487",
+    "match_sha256": "d16eb5d8ce868c8df6ef59169cd5b83ff5b1ed93235c4ad58624de30f8050749",
+    "pre_records_run_match_byte_identical_to_full_raw_archive": true,
+    "typed_and_raw_8192_byte_mirror_matched": [
+      "mike",
+      "martin"
+    ],
+    "source_guest_2p": {
+      "result_host_frame": 4379,
+      "source_input_frames": 2232,
+      "p1_hundredths": 2761,
+      "p2_hundredths": 2757,
+      "winner": 2
+    },
+    "fresh_process_records": {
+      "mike": "LOSS 00:27.61",
+      "martin": "WIN 00:27.57"
+    },
+    "practice_kill": {
+      "actual_process_killed_while_alive": true,
+      "returncode": 1,
+      "ordinary_quit": false,
+      "independent_raw_prepost_snapshots_available": false
+    },
+    "producer_native_post_raw_pre_typed_negative": {
+      "exit_code": 86,
+      "fresh_load_rejected_producer_reported": true,
+      "independent_raw_prepost_snapshots_available": false
+    },
+    "hosted_options_processes": 5,
+    "distinct_source_practice_entries": 10,
+    "physical_devices_checked": false,
+    "ntfs_power_cut_checked": false,
+    "strict_original_native_usa_events_accepted": 0,
+    "full_qa_gate_witnesses": 0,
+    "run_canonical_fnv64_recomputed": "a8327800e49e4c44",
+    "match_canonical_fnv64_recomputed": "5838b68b19e040cb",
+    "one_byte_changed_payload_rejected_by_fnv64_for_both": true,
+    "canonical_fnv64_adversarial_review": {
+      "input": "actual archived same-candidate CI-created .urrun and .urmatch raw bytes, run 38813101482 artifact 12010421091",
+      "algorithm": "FNV-1a 64-bit over all bytes before final checksum line, offset basis cbf29ce484222325, prime 100000001b3",
+      "run": {
+        "canonical": "a8327800e49e4c44",
+        "one_byte_mutation_offset": 263,
+        "mutant_checksum": "4affd12513b209ab",
+        "unchanged_trailer_rejected": true
+      },
+      "match": {
+        "canonical": "5838b68b19e040cb",
+        "one_byte_mutation_offset": 94,
+        "mutant_checksum": "fd8b3586a01c50ed",
+        "unchanged_trailer_rejected": true
+      },
+      "scope": "offline original-byte checksum and deliberately mutated payload re-evaluation, not OS crash/fault/write, original emulator, or independent Windows game execution"
+    },
+    "staged_source_go_exact_raw_delta": {
+      "input_artifact_id": 12009069728,
+      "compared_stages": [
+        "after-p2-recovered",
+        "after-source-go"
+      ],
+      "mike_raw_8192_bytes_changed": 193,
+      "mike_changed_offset_min": 1858,
+      "mike_changed_offset_max": 4273,
+      "mike_before_sha256_prefix": "273bc1b3be1dc392",
+      "mike_after_sha256_prefix": "62c0490b977825f7",
+      "martin_raw_8192_bytes_changed": 0,
+      "martin_sha256_prefix": "f3058e5fcd57042c",
+      "both_named_raw_sram_equal_typed_stock_sram_at_both_stages": true,
+      "claim_limit": "exact independently archived two stage byte delta; no concurrent process, physical hardware or original-emulator result equivalence"
+    },
+    "actual_first_created_1p_three_process_source": {
+      "artifact_id": 12010421091,
+      "native_distinct_processes": 3,
+      "first_created_named_profile": "mike",
+      "second_named_boot_8192_fingerprint": "d4dc382b",
+      "source_1p_result_host": 4165,
+      "source_finish_ticks60": 1679,
+      "source_input_frames": 2254,
+      "source_input_runs": 5,
+      "reported_run_created": 1,
+      "third_named_boot_8192_fingerprint": "37cc13a8",
+      "before_record_route_validated": 0,
+      "after_cold_record_route_validated": 1,
+      "actual_raw_one_player_run_file_archived": false,
+      "producer_only_reported_one_player_run_sha256": "877d8dafd6b466f3716b19215242b7c3b60d416a678e968e2aee973905150d8c",
+      "claim_limit": "independent source-event chronology only, no independent 1P run-byte hash, no original-emulator strict complete event, no physical controller"
+    },
+    "practice_pause_options_native_source": {
+      "artifact_id": 12010555537,
+      "actual_process_log_paths": [
+        "native_practice_courses/pause-options-sdl_keys/log.txt",
+        "native_practice_courses/pause-options-p1_pad_semantic/log.txt"
+      ],
+      "distinct_native_processes": 2,
+      "source_practice_course": "DRAGSTER original_course 1",
+      "guest_frame_at_pause": 2500,
+      "panel_render_pixels": "512x448",
+      "reported_guest_steps_during_options": 0,
+      "volume_before": 100,
+      "volume_after": 90,
+      "source_options_close_still_paused": true,
+      "frozen_pumps": 24,
+      "resumed_guest_frame": 2501,
+      "original_profile_sram_restored_after_exit": true,
+      "physical_gamepads_seen": 0,
+      "audio": "dummy",
+      "claim_limit": "actual native Windows logged pause/options input and freeze/resume, no independent rendered pixel or physical-device source"
+    },
+    "practice_delayed_restart_native_source": {
+      "artifact_id": 12010555537,
+      "process_log_path": "native_practice_courses/restart-in-practice/log.txt",
+      "anchor_guest": 973,
+      "restart_request_guest": 2500,
+      "paused": true,
+      "producer_reported_sram_equal": true,
+      "producer_reported_wram_rewound": true,
+      "resumed_guest_frame": 2501,
+      "guest_steps_during_frozen_panel": 0,
+      "actual_raw_sram_pair_retained": false,
+      "claim_limit": "Windows process source event trace, not independent raw SRAM byte replay"
+    }
+  },
+  "limitations": [
+    "Archived Windows output independently decoded on Linux; no newly executed Win32 process.",
+    "Process kill in Practice is different from post-raw/pre-typed crash seam.",
+    "Original native crash seam raw files were not archived and cannot be independently compared.",
+    "Test-controlled catalog-row removal is not an OS crash.",
+    "Source-result records do not equal strict original/native complete-event acceptance.",
+    "SDL reported zero physical joysticks and dummy/disabled audio."
+  ]
+}

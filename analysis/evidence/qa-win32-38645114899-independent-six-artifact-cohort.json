@@ -1,0 +1,117 @@
+{
+  "schema": "ur-independent-win32-six-artifact-cohort/1",
+  "observed_date": "2026-10-14",
+  "source": {
+    "pull_request": 1584,
+    "pull_request_head_sha": "a6c64e0033d015166de8eea9f96a00204169705d",
+    "build_checkout_sha": "d1c65f4024e4d68135afc86fe5c7d7517095c17d",
+    "build_merge_parents": [
+      "2ee09f295cc9c1dd08dffc7a009087c1bbf1ab03",
+      "a6c64e0033d015166de8eea9f96a00204169705d"
+    ],
+    "actions_run": 38645114899,
+    "actions_job": 116129927662,
+    "actions_conclusion": "success"
+  },
+  "actual_artifacts": {
+    "pre_records": {
+      "id": 11932456900,
+      "sha256": "c0916f483f4bf740587ea1ef4cdffe6e486da29d2635fd03b1bd44e4fdb1ef4f",
+      "members": 3
+    },
+    "post_records_and_six_process_logs": {
+      "id": 11932496884,
+      "sha256": "795fadb5d8d47b793198bce901742edca20ea2a1fc613d2a305704ec79930c9f",
+      "members": 52
+    },
+    "p2_catalog_five_raw_stages": {
+      "id": 11932526833,
+      "sha256": "60d741c3fa8a8bae52751418824a23f3f470ee92cf4634d223c4868ddc8ac0c5",
+      "members": 37
+    },
+    "practice_source_and_kill": {
+      "id": 11932641694,
+      "sha256": "5e5f9d54342a70397a7de150c952d7ae64f20e6be341dc5aaff36b0b5a2522fe",
+      "members": 11
+    },
+    "romless_package_wrapper": {
+      "id": 11932681787,
+      "sha256": "c7f3eafb638cb6eed9012b6c08fb55990eff6cf41c9ed6fe49b00087dc26fcb3",
+      "members": 2
+    },
+    "p2_catalog_smoke": {
+      "id": 11932841633,
+      "sha256": "ce7829d607b71bac6d318ce13027561955877b59f2b8d1ce59f8844900e96bb8",
+      "members": 5
+    }
+  },
+  "package": {
+    "inner_romless_zip_sha256": "2e1ffe70f6565269ffe0b5422fb4d2d9a868d165100d57480b899ebe631b5d4c",
+    "exe_sha256": "7240dac4b7fdcc044e182502c953e651cbb2e4cd914f9cb1be8887e43ad44a2d",
+    "exe_bytes": 19778560,
+    "pe_machine": "AMD64 PE32+",
+    "manifest_three_immutable_files_rehashed": true,
+    "readme_manifest_revision_exact": true,
+    "inner_sidecar_matches_zip": true,
+    "rom_bundled": false,
+    "profile_data_bundled": false,
+    "external_evidence_binary_is_same_as_gameplay_process_executable": false
+  },
+  "native_source_journey": {
+    "P1": {
+      "profile": "mike",
+      "original_rider": 0,
+      "records": "LOSS 00:27.61",
+      "hundredths": 2761
+    },
+    "P2": {
+      "profile": "martin",
+      "original_rider": 2,
+      "records": "WIN 00:27.57",
+      "hundredths": 2757
+    },
+    "source_result_hundredths": [
+      2761,
+      2757
+    ],
+    "source_winner": 2,
+    "guest_input_frames": 2231,
+    "original_course": "course:01",
+    "both_created_native_frontend": true,
+    "both_seats_joined": true,
+    "single_original_guest_scored_2P_result": true,
+    "paired_run_sha256": "346296f664ccf37fd0310666a60d837269a6d1627b4f28162ad051d6c66c8a41",
+    "paired_match_sha256": "e1440b455b617a1726ccf17aa7a2e7dc96af7faabe302d9006693923125259c4",
+    "before_after_Records_pair_exact": true,
+    "both_8192_byte_original_SRAM_and_typed_mirrors_rehashed": true,
+    "original_gamepad_input_method": "CI-injected SDL semantic edges; zero attached SDL physical joysticks"
+  },
+  "P2_catalog_fault": {
+    "five_source_stage_manifests_all_file_sha256_and_sizes_verified": true,
+    "P1_full_SRAM_same_before_and_after_test_catalog_row_recovery": true,
+    "physical_OS_hardkill_tested_in_this_subroute": false
+  },
+  "Practice": {
+    "original_Dragster_source_GO": true,
+    "real_Windows_live_Process_kill_receipt": true,
+    "nonclean_process_returncode": 1,
+    "original_source_boot_FNV_after_normalization": "2adcbf8d",
+    "postkill_fresh_boot_uses_identical_FNV": true,
+    "readmitted_guest_Dragster_GO_and_normal_restore": true,
+    "two_idle_control_processes_logs_retained_and_stable": true,
+    "post_normalization_six_stage_producer_hash_receipts_stable": true,
+    "original_raw_full_8kb_practice_prepost_images_archived": false,
+    "independent_actual_disk_power_cut": false
+  },
+  "limitations": {
+    "strict_45_USA_full_event_acceptance": 0,
+    "physical_two_joysticks_verified": false,
+    "real_audio_verified": false,
+    "physical_display_or_gpu_verified": false,
+    "final_merged_main_executable_and_ZIP_built": false,
+    "same_binary_journey_vs_zip_cryptographically_bound": false,
+    "release_gate_status_changed": false,
+    "release_candidate_nominated": false
+  },
+  "method": "Independently downloaded the six original Actions ZIP artifacts and rehashed their exact bytes. Inspected actual source logs and raw saved run/match/typed/raw-SRAM bytes, all manifest lengths and SHA-256s, five P2 stage manifests, six Practice boundary receipts/source logs, and ROM-free PE32+ package members. This is independent read-only artifact verification; no native executable was launched by the QA reader on Windows. No raw ROM, executable or saved-profile bytes are checked into repo."
+}

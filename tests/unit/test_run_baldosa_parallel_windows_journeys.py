@@ -68,6 +68,12 @@ class WindowsParallelJourneysTest(unittest.TestCase):
         self.assertIn("Pilot parallel authentic Windows journeys", yaml)
         self.assertIn("default: false", yaml)
         self.assertIn("baldosa-win32-parallel-journey-timing", yaml)
+        self.assertIn('options: ["2", "3"]', yaml)
+        self.assertIn("github.event_name == 'pull_request' && '3'", yaml)
+        self.assertIn("inputs.parallel_workers || '2'", yaml)
+        self.assertEqual(yaml.count("      parallel_workers:"), 2)
+        self.assertEqual(yaml.count('default: "2"'), 2)
+        self.assertEqual(len(p.extract_commands(yaml)), len(p.STEPS))
         for artifact in (
             "baldosa-modern-windows-x64-romless-candidate",
             "baldosa-win32-candidate-binding",
@@ -115,7 +121,8 @@ class WindowsParallelJourneysTest(unittest.TestCase):
             with mock.patch.object(p, "EXE", exe), \
                  mock.patch.object(p, "FIXTURE", fixture), \
                  mock.patch.object(p, "run_one", side_effect=pretend):
-                outcome = p.run_all(workers=2, work=root / "work", env=env)
+                outcome = p.run_all(workers=3, work=root / "work", env=env)
+            self.assertEqual(outcome["workers"], 3)
             self.assertEqual(outcome["expected_cases"], 11)
             self.assertEqual(outcome["executed_cases"], 11)
             self.assertEqual(sorted(calls), list(range(11)))

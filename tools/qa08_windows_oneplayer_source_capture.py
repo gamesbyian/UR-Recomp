@@ -17,6 +17,7 @@ import re
 
 from baldosa_windows_native_pause_route import run_route
 
+SCHEMA = "qa08-windows-real-1p-original-source-observer/1"
 EXE_SHA = "7431889698913feadab76261caf3b00b82d1d9a1466a8260d9b7512d8328324e"
 ROM_SHA = "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
 FRAMES = (1856,2192,2208,2224)
@@ -55,7 +56,7 @@ def verify_capture(folder: Path, log: str, crcs: list[str]) -> dict:
     if set(present) != set(seen):
         raise ValueError("emitted frame files do not correspond to actual raster callbacks")
     return {
-        "schema": "qa08-windows-real-1p-original-source-observer/1",
+        "schema": SCHEMA,
         "source_geometry": [256,224],
         "actual_guest_frames_simulated": len(crcs),
         "guest_CRC_lowercase_sha256": sha(

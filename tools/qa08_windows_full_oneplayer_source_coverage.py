@@ -91,6 +91,7 @@ def main()->None:
     ap=argparse.ArgumentParser(description=__doc__)
     for s in ("exe","rom","script","out"):
         ap.add_argument("--"+s,type=Path,required=True)
+    ap.add_argument("--video",default="windows",choices=("windows","dummy"))
     ap.add_argument("--timeout",type=int,default=300)
     a=ap.parse_args()
     if sha(a.rom.read_bytes())!=ROM_SHA:
@@ -108,7 +109,7 @@ def main()->None:
     os.environ.update(keys)
     try:
         crcs,log=run_route(a.exe.resolve(),a.rom.resolve(),a.script.resolve(),
-                           a.out,pause=False,video="windows",timeout=a.timeout)
+                           a.out,pause=False,video=a.video,timeout=a.timeout)
     finally:
         for k,v in previous.items():
             if v is None:os.environ.pop(k,None)

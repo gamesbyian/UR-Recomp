@@ -137,5 +137,29 @@ class ZooSramByteAttributionTests(unittest.TestCase):
             m.delta(a[:-1], b)
 
 
+    def test_reviewed_real_source_receipt_remains_nonadmitting(self):
+        # Retained actual GHA original/native receipt, not a synthetic pass.
+        path = ROOT / "analysis/data/qa01-zoo-postresult-sram-byte-witness-20261015.json"
+        import json
+        v = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(v["current_complete_usa_events"], 0)
+        self.assertEqual(v["release_credit"], 0)
+        self.assertFalse(v["limits"]["strict_full_event_accepted"])
+        self.assertFalse(v["limits"]["cold_process_reload_proven"])
+        self.assertEqual(v["execution"]["case_artifact_zip_sha256"],
+                         "bb693ae37c74d474a05f50855aafeb8fc82cbb68df6bca02d35d4a175ec58a09")
+        positive = [x for x in v["paired_live_battery_sram"]
+                    if x["differing_bytes"]]
+        self.assertEqual([x["result_relative_offset"] for x in positive], [64, 72])
+        self.assertEqual([x["first_difference"]["address"] for x in positive],
+                         ["0x10A7", "0x10A7"])
+        self.assertEqual([x["first_difference"]["original"] for x in positive],
+                         ["0x0C", "0x0C"])
+        self.assertEqual([x["first_difference"]["native"] for x in positive],
+                         ["0x0D", "0x0D"])
+        self.assertEqual(v["source_name_lead"]["authority"].startswith(
+            "imported lead only"), True)
+
+
 if __name__ == "__main__":
     unittest.main()

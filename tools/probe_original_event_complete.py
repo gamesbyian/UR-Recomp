@@ -385,7 +385,11 @@ BOWL_TALLY_MEMORY_SIZES = {"wram": 0x20000, "vram": 0x10000, "cgram": 512}
 
 def replay_script(slot: int, result_menu: int, frames: list[int],
                   stunt: bool, tally_phase: bool = False,
-                  source_followthrough: bool = False) -> str:
+                  source_followthrough: bool = False,
+                  zoo_next_bowl: bool = False) -> str:
+    if zoo_next_bowl and (slot != 2 or result_menu != 0xBC or stunt
+                          or not source_followthrough):
+        raise CompleteEventError("Zoo next Bowl requires original Circuit plus source followthrough")
     if tally_phase and (not stunt or slot != 3 or result_menu != 0x18):
         raise CompleteEventError("only proven source-original scored Bowl tally supports phase samples")
     lines = stock_crawler_script(slot).rstrip().splitlines()
@@ -411,6 +415,13 @@ def replay_script(slot: int, result_menu: int, frames: list[int],
             if offset <= previous or offset > 72:
                 raise CompleteEventError("invalid original-movie terminal follow-through offset")
             lines += [f"wait {offset - previous}", f"dump original-follow-{offset:02d}"]
+            previous = offset
+    if zoo_next_bowl:
+        previous = SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS[-1]
+        for offset in ZOO_NEXT_BOWL_OFFSETS:
+            if offset <= previous or offset > 280:
+                raise CompleteEventError("nonmonotonic genuine Zoo-to-Bowl source handoff")
+            lines += [f"wait {offset - previous}", f"dump zoo-next-bowl-{offset:03d}"]
             previous = offset
     lines.append("quit")
     return "\n".join(lines) + "\n"
@@ -616,6 +627,12 @@ ZOO_TERMINAL_FRAMES = tuple(range(5156, 5187))
 # window through result+80 so its return phase can actually be witnessed.
 # Default non-opt-in replay retains its original +40 input window and scope.
 SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS = (8, 16, 24, 32, 64, 72)
+# Original 2014 movie: Zoo Circuit result at source frame 8353, next
+# Crawler/Bowl active race at 8620. Observe the actual handoff boundary
+# across three independent clocks, never infer it from TRACK_SELECT.
+ZOO_NEXT_BOWL_OFFSETS = (259, 263, 265, 266, 267, 268, 269, 272, 276, 280)
+ZOO_SOURCE_RESULT_MOVIE_FRAME = 8353
+ZOO_SOURCE_NEXT_BOWL_MOVIE_FRAME = 8620
 ZOO_TERMINAL_FIELDS = ("menu", "track", "in_race", "p1_laps", "p2_laps",
                        "p1_checkpoint", "p1_finish_gate", "p1_contact",
                        "p2_contact", "clock_raw")

@@ -1292,7 +1292,9 @@ def run_pinned_baldosa(work: Path, args, script: Path,
     config = args.native.parent / "config.ini"
     if not config.is_file():
         config.write_text("[Sound]\nEnableAudio = 0\n", encoding="utf-8")
-    save_root = args.native.parent / "saves"
+    # Exact native source identity: explicit --config prevents executable-dir
+    # chdir; pinned RtlReadSram opens 'saves/save.srm' relative to cwd=work.
+    save_root = work / "saves"
     backup = save_root.with_name("saves.qa01-bowl-recovery")
     if backup.exists():
         raise CompleteEventError(f"prior native SRAM backup not cleared: {backup}")

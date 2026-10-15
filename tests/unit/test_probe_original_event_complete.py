@@ -400,10 +400,11 @@ class CompleteEventProducerTests(unittest.TestCase):
             for n in offsets:
                 for path in (ref, nat):
                     (path / f"original-follow-{n:02d}.wram.bin").write_bytes(dump())
+                    (path / f"original-follow-{n:02d}.sram.bin").write_bytes(bytes(8192))
             # Entries are 50 vs 52, onset is at the same absolute host 100,
             # but source-relative result phases are +50 vs +48.
             report = target.observe_source_terminal_followthrough(
-                ref, nat, log(100), log(100), source, 50, 52, 50, 48)
+                ref, nat, log(100), log(100), source, 50, 52, 50, 48, 1)
             self.assertEqual(report["release_complete_usa_event_credit"], 0)
             self.assertTrue(report["strict_event_comparator_unchanged"])
             self.assertFalse(report["original_and_native_result_phase_equal_proven"])
@@ -414,6 +415,18 @@ class CompleteEventProducerTests(unittest.TestCase):
             self.assertEqual(report["sample_count"], 6)
             self.assertTrue(report["all_followthrough_named_pairs_equal"])
             self.assertTrue(report["all_followthrough_full_wram_pairs_equal"])
+            self.assertTrue(report["all_followthrough_full_sram_pairs_equal"])
+            self.assertTrue(report["all_followthrough_crawler_record_pairs_equal"])
+            self.assertEqual(report["battery_sram_snapshot_bytes_per_guest"], 8192)
+            self.assertFalse(report["battery_sram_cold_process_persistence_proven"])
+            self.assertEqual(report["samples"][0]["fresh_guest_battery_sram"][
+                "original"]["crawler_record_three_ranks"], [
+                {"rank": 0, "value_word": 0, "holder_index": 0},
+                {"rank": 1, "value_word": 0, "holder_index": 0},
+                {"rank": 2, "value_word": 0, "holder_index": 0},
+            ])
+            self.assertTrue(report["samples"][0]["sram_full_bytes_equal"])
+
             self.assertEqual(report["samples"][0][
                 "independently_observed_replay_host_frames"],
                 {"original": 108, "native": 108})
@@ -424,29 +437,62 @@ class CompleteEventProducerTests(unittest.TestCase):
             # different post-result course/menu guest byte.
             (nat / "original-follow-16.wram.bin").write_bytes(dump(menu=0x16))
             bad = target.observe_source_terminal_followthrough(
-                ref, nat, log(100), log(100), source, 50, 52, 50, 48)
+                ref, nat, log(100), log(100), source, 50, 52, 50, 48, 1)
             self.assertFalse(bad["all_followthrough_named_pairs_equal"])
             self.assertFalse(bad["all_followthrough_full_wram_pairs_equal"])
             self.assertEqual(bad["release_complete_usa_event_credit"], 0)
             (nat / "original-follow-16.wram.bin").write_bytes(bytes(80))
             with self.assertRaisesRegex(target.CompleteEventError, "128 KiB"):
                 target.observe_source_terminal_followthrough(
-                    ref, nat, log(100), log(100), source, 50, 52, 50, 48)
+                    ref, nat, log(100), log(100), source, 50, 52, 50, 48, 1)
             (nat / "original-follow-16.wram.bin").write_bytes(dump())
+            # An SRAM-only change is not a WRAM gameplay mismatch. In
+            # particular, a changed source-backed Crawler rank-0 record
+            # must be separately observable from present score/UI.
+            sram_file = nat / "original-follow-16.sram.bin"
+            sram = bytearray(8192)
+            sram[0x0424:0x0426] = (2510).to_bytes(2, "little")
+            sram[0x0551] = 0  # first Crawler Zoo rank, MIKE
+            sram_file.write_bytes(sram)
+            battery = target.observe_source_terminal_followthrough(
+                ref, nat, log(100), log(100), source, 50, 52, 50, 48, 1)
+            self.assertFalse(battery["all_followthrough_full_sram_pairs_equal"])
+            self.assertFalse(battery["all_followthrough_crawler_record_pairs_equal"])
+            self.assertTrue(battery["all_followthrough_full_wram_pairs_equal"])
+            self.assertEqual(battery["samples"][1]["fresh_guest_battery_sram"][
+                "native"]["crawler_record_three_ranks"][0]["value_word"], 2510)
+            self.assertFalse(battery["battery_sram_cold_process_persistence_proven"])
+            sram_file.write_bytes(bytes(8192))
+            # A non-record SRAM byte may differ without changing the real
+            # three-rank course table, and it is recorded, not guessed.
+            sram = bytearray(8192)
+            sram[0x0700] = 17
+            sram_file.write_bytes(sram)
+            nonrecord = target.observe_source_terminal_followthrough(
+                ref, nat, log(100), log(100), source, 50, 52, 50, 48, 1)
+            self.assertFalse(nonrecord["all_followthrough_full_sram_pairs_equal"])
+            self.assertTrue(nonrecord["all_followthrough_crawler_record_pairs_equal"])
+            sram_file.write_bytes(bytes(100))
+            with self.assertRaisesRegex(target.CompleteEventError, "8KiB"):
+                target.observe_source_terminal_followthrough(
+                    ref, nat, log(100), log(100), source, 50, 52, 50, 48, 1)
+            sram_file.write_bytes(bytes(8192))
+            with self.assertRaisesRegex(target.CompleteEventError, "course index"):
+                target.decode_qa01_crawler_battery_sram(sram_file, 5)
             with self.assertRaisesRegex(target.CompleteEventError, "frame mismatch"):
                 target.observe_source_terminal_followthrough(
                     ref, nat, log(100), log(101).replace(
                         "script f=117 dump original-follow-16",
                         "script f=118 dump original-follow-16"),
-                    source, 50, 52, 50, 49)
+                    source, 50, 52, 50, 49, 1)
             with self.assertRaisesRegex(target.CompleteEventError, "clock contradiction"):
                 target.observe_source_terminal_followthrough(
-                    ref, nat, log(100), log(100), source, 50, 52, 50, 50)
+                    ref, nat, log(100), log(100), source, 50, 52, 50, 50, 1)
             with self.assertRaisesRegex(target.CompleteEventError, "exactly one"):
                 target.observe_source_terminal_followthrough(
                     ref, nat, log(100), log(100).replace(
                         "script f=132 dump original-follow-32\n", ""),
-                    source, 50, 52, 50, 48)
+                    source, 50, 52, 50, 48, 1)
 
     def test_zoo_fixed_host_phase_is_read_only_and_two_clock_axes(self):
         script = target.zoo_terminal_script(5163)

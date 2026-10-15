@@ -9,6 +9,29 @@
   "rf016_018_2p": "ec20e9b6976517b1f6321f58bb3420c9844e931b2ed40a84ae9467a30d044c8c",
   "rf016_2p": "ddcc30131170778d014c3919c087e7fa8ec4223d5e7b555822c10c60294a0c30"
  },
+ "hosted_reexecution": {
+  "38792581653": {
+   "head": "65befa54e566cf34d829376956561e2bdc8e37a1",
+   "postresult_sram_first_sampled_disagreement": null,
+   "producer_exit": 0,
+   "staged": [
+    "RF-015",
+    "RF-017",
+    "RF-016",
+    "RF-018",
+    "RF-019"
+   ],
+   "verify_gen": [
+    "verified 89 generated files: 15484 in-order charge statements, every block total unchanged",
+    "verified 89 generated files: 152 [dp],Y pointers read once, none twice"
+   ],
+   "zoo_onset": [
+    5163,
+    5163
+   ]
+  },
+  "artifact_contents_read_by_this_session": false
+ },
  "pins": {
   "base_corrections": [
    "RF-015",

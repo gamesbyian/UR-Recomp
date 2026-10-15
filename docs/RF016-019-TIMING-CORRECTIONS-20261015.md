@@ -56,6 +56,15 @@ Both references agree on this seed, and native's result sequence is one frame ea
 
 The queue is serviced by `82:8035` inside the `80:FAC9/80:FAD2` waits, one command per SPC acknowledgement. Native's sound driver accepts its second queued command a frame sooner. The SPC rate (RF-016), `[dp],Y` reads (RF-018) and HDMA (RF-019) do not change it. The next experiment is an SPC-side port-handshake trace (`qa01_apu_phase_observers.py` style) over host 5008–5012 on Baldosa and bsnes. Earlier work found that this step is phase-sensitive even between correct cores (RF-015 seed 50036056), so a sub-field CPU/SPC phase difference, not a rate error, is the leading hypothesis.
 
+## Hosted re-execution
+
+[Run 38792581653](https://github.com/gamesbyian/UR-Recomp/actions/runs/38792581653) (head `65befa5`, Zoom Zoo, all five opt-in corrections) succeeded on a clean runner:
+
+- the RF-015 and RF-017 corrections staged, and the first regen verified 15,484 in-order charges with every block total unchanged;
+- the RF-016 and RF-018 corrections staged, and the second regen verified 152 `[dp],Y` pointers read once, none twice;
+- RF-019 staged;
+- Zoo onset +5163 = +5163, `Zoo live SRAM first sampled original/native disagreement: +None`.
+
 ## Shipping boundary
 
 - None of RF-016/018/019 is staged into the Windows bridge.

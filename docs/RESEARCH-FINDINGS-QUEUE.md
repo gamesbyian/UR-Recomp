@@ -111,15 +111,25 @@ With RF-015 corrected, the Zoom Zoo follow-through still left the result screen 
 
 The candidate gives Zoo `strict_candidate` with **all six source follow-through pairs equal** (base: +16 menu 188 vs 246). Bowl, Switcher, Dragster, all 18 2P seed × reference pairs and the attract census are identical to base. It is not yet in the Windows bridge; hosted re-execution (`qa01-event-campaign` `baldosa_io_clock_order`) and QA-01 adjudication come first. Full account: [RF-017 report](RF017-IO-ACCESS-CLOCK-ORDER-20261015.md).
 
+## Product core: SPC rate, `[dp],Y` pointer reads and HDMA stall (RF-016/018/019, 2026-10-15)
+
+Three more timing errors in the product core were attributed by trace and corrected in staged candidates on top of RF-015 + RF-017 ([report](RF016-019-TIMING-CORRECTIONS-20261015.md)):
+
+- **RF-016:** the SPC700 ran 0.165% fast. The fix makes attract load 941–1098 exact, but it is not the cause of 2P seed 50048000 or Switcher +4664.
+- **RF-018:** every `[dp],Y` access charged its pointer twice, so the attract decompressor ran 29% slow per access.
+- **RF-019:** HDMA's per-line CPU stall was never charged, so the HDMA-heavy attract demo race ran about 4% fast.
+
+With all three, the no-input attract run matches the references through all five loads and the demo race. The 18 2P pairs and four 1P cases are unchanged; no regressions. The one seed where both references agree and native differs is now RF-020: a sound-driver handshake at host 5012.
+
 ## Live queue
 
-Generate with `python3 tools/research_findings.py --queue`. As of 2026-10-15 (after RF-017):
+Generate with `python3 tools/research_findings.py --queue`. As of 2026-10-15 (after RF-016/018/019):
 
 | ID | Class | Status | Owner | Finding | Resolving experiment |
 | --- | --- | --- | --- | --- | --- |
 | RF-012 | original_native_discrepancy | handed_off | qa01-gameplay | Legacy-pin native 2P result phase (raw 7E:009F 0x84) lasts 35 frames where the original lasts 34 (bsnes-accurate, Snes9x, Beetle) | Measure the legacy pin's arrival line at the post-load 80:FAC9 wait and matched 82:B1DD upload checkpoint drift against Snes9x (the RF-015 method). The 5196 sound-queue step is phase-sensitive between correct cores (Snes9x vs bsnes) and cannot localize a defect by itself. cd5875c carries the same refresh-rate code as Baldosa yet errs long, so its larger beam/$4212 deficit (RF-014) dominates. |
 | RF-014 | original_native_discrepancy | handed_off | qa01-gameplay | Legacy-pin native (snesrecomp cd5875c) completes fewer 80:FAC9 vblank-wait passes at screen loads, so its black loading screens last 1-3 frames longer than bsnes; Baldosa does not | QA-01 / native-fidelity: executed-PC histogram with $420D, M, $2118/$2119 write sequence, CPU cycles and vblank for host 248-278 on the reference, then compare snesrecomp cd5875c against Baldosa's fork 075fbe4 (96b7e9f $4212 read-time sync, b7b4318 paced_bus) for that writer; QA-01's MEMSEL model (#1562) predicts an old-pin per-store overcharge only if $420D=0. |
-| RF-016 | original_native_discrepancy | handed_off | qa01-gameplay | Baldosa runs the SPC700 at 17088 cycles per field (~1.02696 MHz) where Snes9x and bsnes use ~1.02528 MHz: SPC uploads end early, explaining the attract 941-1098 load and the remaining one-field-early 2P result onset (seed 50048000) | Attribute the IPL-phase lead (1009-1025: SPC reset to $BBAA ready, small port-0/1 blocks) with an SPC-side PC/cycle trace on Baldosa and bsnes, then re-test the per-field stream rate; adopt no SPC-rate change until every attract load and the 2P/Zoo witnesses agree. |
+| RF-020 | original_native_discrepancy | handed_off | qa01-gameplay | 2P seed 50048000: native's result sequence starts one frame early because its sound driver accepts the second queued command a frame sooner at host 5012 (7E:2000 2 vs 1), with both references agreeing | SPC-side port-handshake trace (qa01_apu_phase_observers.py style) over host 5008-5012 on Baldosa and bsnes: compare when the SPC acknowledges each command against the 82:8035 polls. |
 | RF-005 | graphics_observation_gap | handed_off | qa08-graphics | $121B/$121D 'offscreen' predicate is never nonzero; bank-82 split-screen sentinels are the source-qualified culling signal | QA-08: if a culling question needs it, ask for per-frame sentinel transitions (a 100-case observer validation), not case incidence; otherwise no work. |
 | RF-008 | reproducible_anomaly | handed_off | qa01-gameplay | Latest original-native coordinator attempt 38446280858 failed without a recoverable first step | One single-case qa01-event-campaign dispatch; never another long campaign before a first-failure reason exists. |
 | RF-013 | reproducible_anomaly | handed_off | qa01-gameplay | Legacy-pin native race-entry lag is phase-dependent (2 or 3 frames); Baldosa enters on the same frame as the original for every route delay | QA-01: compare native and original iteration counts of the entry fade wait loop for k=1 (lag 2) and k=2 (lag 3); if the extra frame is the wait loop, test the same loop in the 0x84 phase. |

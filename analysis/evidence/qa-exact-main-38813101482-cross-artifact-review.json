@@ -96,7 +96,10 @@
     "physical_devices_checked": false,
     "ntfs_power_cut_checked": false,
     "strict_original_native_usa_events_accepted": 0,
-    "full_qa_gate_witnesses": 0
+    "full_qa_gate_witnesses": 0,
+    "run_canonical_fnv64_recomputed": "a8327800e49e4c44",
+    "match_canonical_fnv64_recomputed": "5838b68b19e040cb",
+    "one_byte_changed_payload_rejected_by_fnv64_for_both": true
   },
   "limitations": [
     "Archived Windows output independently decoded on Linux; no newly executed Win32 process.",

@@ -1159,7 +1159,10 @@ class CompleteEventProducerTests(unittest.TestCase):
 
             def fake_run(command, *, env, cwd, capture_output, text, timeout):
                 invocations.append((command, env.copy(), cwd))
-                self.assertTrue((build / "saves" / "save.srm").exists())
+                self.assertEqual(cwd, root)
+                self.assertEqual((root / "saves" / "save.srm").read_bytes(),
+                                 sram.read_bytes())
+                self.assertFalse((build / "saves" / "save.srm").exists())
                 return types.SimpleNamespace(stdout="script f=123 dump race-entered ok\n",
                                              stderr="")
             with mock.patch.object(target.subprocess, "run", side_effect=fake_run):

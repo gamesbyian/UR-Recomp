@@ -147,3 +147,26 @@ comparator or alter its runtime/source fix.
 snapshots from UR, source-pinned Baldosa product guest, and malmazuke
 replay/finish lead have been checked. This adds neither another emulator
 runner nor a new workflow, CI factory, release ledger or 45-case oracle.
+
+## Independent reconstruction of the producer's positive prerequisites
+
+The campaign's distributed case classifier and aggregator additionally
+cross-check every *named* positive prerequisite for the existing producer
+`paired_event_candidate` flag: real terminal menu, matching settled PPU
+text, positive P1 score/time, circuit lap progression and zero remaining
+laps, out-of-race terminal states, matched independently observed fresh
+entry, no sampled-state disagreement and equal guest-relative result onset.
+A missing, non-boolean, or internally contradictory prerequisite is
+`producer_error`, not a scientific strict divergence and never an
+accepted event. The cross-shard case receipt exposes the gate vector and
+the aggregate fail-closes on an internally inconsistent or missing vector.
+
+This independent **receipt-consistency** check is intentionally narrower
+than a second executable comparator. It does not reconstruct per-frame
+CPU/NMI activity, validate the producer's raw full-WRAM bytes afresh,
+sample unobserved frames, turn 43 sparse state matches into continuous
+logic-tick equality, prove a cold-process SRAM reload, or waive the
+separate result+2 lifecycle discrepancy. The producer's original strict
+predicate and `RELEASE-QUALITY-LEDGER.json` remain untouched, including
+USA 0/45. Synthetic negative tests cannot themselves establish gameplay
+parity.

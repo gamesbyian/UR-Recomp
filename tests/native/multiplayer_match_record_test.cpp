@@ -5,8 +5,11 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <atomic>
 #include <set>
 #include <string>
+#include <thread>
+#include <vector>
 
 using namespace ur::product;
 using namespace ur::title;
@@ -66,6 +69,42 @@ int main(int argc, char** argv) {
         (void)append_multiplayer_match_pair(
             argv[2], run, match, nullptr, nullptr, abort_after_sidecar);
         return 9; // callback must abort after canonical sidecar claim
+    }
+    if (argc == 5 && std::string(argv[1]) == "hammer") {
+        // Same-directory publication stress: many writers continuously stage,
+        // claim and clean up. Every call must succeed (or at worst report a
+        // genuinely unrecoverable error), and every pair must be distinct.
+        const unsigned threads = static_cast<unsigned>(std::strtoul(argv[3], nullptr, 10));
+        const unsigned iters = static_cast<unsigned>(std::strtoul(argv[4], nullptr, 10));
+        if (threads == 0 || threads > 32 || iters == 0 || iters > 1000) return 2;
+        std::atomic<unsigned> failures{0};
+        std::vector<std::thread> pool;
+        for (unsigned t = 0; t != threads; ++t) {
+            pool.emplace_back([&, t] {
+                auto run = run_record();
+                for (unsigned i = 0; i != iters; ++i) {
+                    run.elapsed_ticks60 = 1000 + t * 1000 + i;
+                    const auto match = record(run);
+                    std::string path, error;
+                    if (!append_multiplayer_match_pair(
+                            argv[2], run, match, &path, &error)) {
+                        std::cerr << "append failed: " << error << std::endl;
+                        ++failures;
+                    }
+                }
+            });
+        }
+        for (auto& th : pool) th.join();
+        if (failures.load() != 0) return 3;
+        std::size_t runs = 0, sidecars = 0, other = 0;
+        for (const auto& entry : std::filesystem::directory_iterator(argv[2])) {
+            const auto ext = entry.path().extension();
+            if (ext == ".urrun") ++runs;
+            else if (ext == ".urmatch") ++sidecars;
+            else ++other;
+        }
+        if (runs != threads * iters || sidecars != runs || other != 0) return 4;
+        return 0;
     }
     if (argc == 4 && std::string(argv[1]) == "append") {
         auto run = run_record();

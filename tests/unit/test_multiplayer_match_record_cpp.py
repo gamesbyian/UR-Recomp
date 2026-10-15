@@ -13,7 +13,7 @@ class MultiplayerMatchRecordCppTests(unittest.TestCase):
             exe = pathlib.Path(tmp) / "multiplayer-match-record-test"
             subprocess.run(
                 [
-                    "g++", "-std=c++17", "-Wall", "-Wextra", "-Werror", "-pedantic",
+                    "g++", "-std=c++17", "-pthread", "-Wall", "-Wextra", "-Werror", "-pedantic",
                     "-I", str(ROOT / "native" / "product"),
                     "-I", str(ROOT / "native" / "title"),
                     str(ROOT / "native" / "product" / "modern_racer_identity.cpp"),
@@ -52,6 +52,18 @@ class MultiplayerMatchRecordCppTests(unittest.TestCase):
                 [str(exe), "inspect", str(pair_root)],
                 cwd=ROOT, check=True,
             )
+
+            # Same-directory publish/cleanup stress. Competing writers
+            # probing the shared staging names used to hit a transient
+            # EEXIST when another writer cleaned its directory up between
+            # mkdir() and libstdc++'s follow-up check (CI run 38664542228).
+            hammer_root = pathlib.Path(tmp) / "hammer-pairs"
+            hammer_root.mkdir()
+            hammered = subprocess.run(
+                [str(exe), "hammer", str(hammer_root), "8", "150"],
+                cwd=ROOT, capture_output=True,
+            )
+            self.assertEqual(hammered.returncode, 0, hammered.stderr.decode())
 
             # Kill the process at the exact sidecar-first boundary.
             # Restarts must see no public run and must not infer a result

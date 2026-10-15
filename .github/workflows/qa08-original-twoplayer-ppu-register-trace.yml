@@ -1,14 +1,16 @@
 name: QA-08 original 2P adjacent results-frame CGRAM port chronology
 
-# One-time source-qualified result-port discriminator, not an emulator farm.
-# The new dump separates a stock same-mask 1500-frame press into 1499+1;
-# all 263 unmasked original video callbacks must remain byte-identical.
-# Retire this narrow PR trigger immediately after classifying the result.
+# One bounded original 5183/5184 port discriminator. The previous attempt to
+# split a continuous press inserted an extra idle frame and diverged at 5215.
+# The new capture runs read-only *after* retro_run in the original host, with
+# the fully unchanged original controller script and 263 exact raw pixels.
+# Retire the temporary PR trigger after classification.
 on:
   pull_request:
     paths:
       - ".github/workflows/qa08-original-twoplayer-ppu-register-trace.yml"
       - "tools/qa08_original_results_port_chronology.py"
+      - "tools/qa08_snesref_results_previous_patch.py"
       - "tests/unit/test_qa08_original_results_port_chronology.py"
       - "tools/qa08_original_twoplayer_ppu_register_trace.py"
       - "tests/unit/test_qa08_original_twoplayer_ppu_register_trace.py"
@@ -69,15 +71,19 @@ jobs:
           python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
           make -C "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro" -j 2
           test -s "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          # One disposable host-only readback at the completed original 5183.
+          # No script, libretro guest, CPU/PPU, or gameplay alteration.
+          python3 tools/qa08_snesref_results_previous_patch.py --game baldosa
+          python3 tools/qa08_snesref_results_previous_patch.py --game baldosa --apply-readonly-capture
           cmake -S baldosa/snesrecomp/tools/snesref -B "$RUNNER_TEMP/qa08-original-ppu-snesref" -DCMAKE_BUILD_TYPE=Release
           cmake --build "$RUNNER_TEMP/qa08-original-ppu-snesref" -j 2
           test -x "$RUNNER_TEMP/qa08-original-ppu-snesref/snesref"
 
-      - name: Run identical original two-pad inputs with four zero-frame register dumps
+      - name: Run identical original two-pad inputs with three script dumps and one read-only host capture
         shell: bash
         run: |
           set -euo pipefail
-          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          UR_QA08_SNESREF_RESULTS_PREVIOUS=1 SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
           SNESREF_SCRIPT="$RUNNER_TEMP/qa08-original-ppu-2p/qa08-ppu-observer.script" \
           SNESREF_DUMP_DIR="$RUNNER_TEMP/qa08-original-ppu-2p/registers" \
           SNESREF_FRAME_DUMP_DIR="$RUNNER_TEMP/qa08-original-ppu-2p/frames" \
@@ -88,7 +94,7 @@ jobs:
             "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
             > "$RUNNER_TEMP/qa08-original-ppu-2p/original.log" 2>&1
 
-      - name: Prove every one of 263 PPU frames unchanged by the four read-only dumps
+      - name: Prove every one of 263 PPU frames unchanged by the three script dumps plus one read-only host capture
         shell: bash
         run: |
           set -euo pipefail

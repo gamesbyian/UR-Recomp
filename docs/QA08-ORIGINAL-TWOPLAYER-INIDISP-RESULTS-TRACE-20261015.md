@@ -90,3 +90,11 @@ authentic 7:6 display pixel aspect; no 216-line crop, HD racer replacement
 or source-masked acceptance is permitted. The 4× Remastered
 character likeness is still artistically unapproved, and **no release
 ledger gate has been admitted by this experiment**.
+
+## Rejected input-splitting probe and read-only host correction (October 15)
+
+A proposed diagnostic split the existing original `press right+p2:right 1500` into consecutive holds of `1499` and `1` with one new zero-frame `dump` between them. Actual original 2014 Snes9x hosted run [38821308874](https://github.com/gamesbyian/UR-Recomp/actions/runs/38821308874) executed the candidate and **failed the mandatory whole-raster control at original callback 5215**. Its failed original artifact `12013131778` remains the negative witness. No CGRAM phase or original/native equivalence was admitted.
+
+The specific cause is now source-read, not guessed: the pinned `baldosa/snesrecomp/tools/snesref/frontend.cpp` `script_tick()` inserts **one idle frame after each hold-type command**. Two syntactically consecutive holds are therefore not the same real input history as one continuous hold. Keeping nominal button-mask counts equal does not repair that difference. Reject this input-splitting method permanently for fidelity work.
+
+The corrected discriminator keeps the historical source 2P script **byte-identical** to the already authenticated three-dump variant and instead stages an opt-in **host-only** `do_dump("qa08_results_previous")` immediately after `p_retro_run(); g_frame++` at actual completed frame 5183. It reuses the pinned debug core/ring and unchanged original source-image verifier; no guest code, CPU timing, raster state, menus or native Windows renderer is patched. This follows the existing read-only debug export semantics and still requires 263/263 original raw frames byte-exact, original 5184 register proof and source phase logs before accepting a chronology finding. The new automatic research trigger is temporary and must return to manual-only after the exact result is classified; independent actual Windows 1P/2P evidence still decides promotion.

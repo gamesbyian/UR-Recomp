@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Read-only original-USA 2P $2121/$2122 results chronology at frames 5183/5184.
+"""Read-only original-USA 2P $2121/$2122 results chronology at 5183/5184.
 
-Split a stock 1500-frame P1/P2 identical-button hold as 1499 + 1,
-add a zero-frame PPU dump and preserve the three previously verified dumps.
-The 263 original 256x224 BGRX frames MUST be byte-equal to the independent
-unmodified 2014 Snes9x control before any register observation is accepted.
+Keep the EXACT stock route and previously verified three zero-frame dumps.
+Use a separately opted-in read-only original-host callback to capture 5183,
+and prove all 263 full 256x224 BGRX frames equal the immutable original.
+An earlier press-command split was rejected because snesref inserts idle.
 """
 from __future__ import annotations
 
@@ -19,13 +19,8 @@ try:
 except ImportError:
     import qa08_original_twoplayer_ppu_register_trace as control
 
-ANCHOR = b"press right+p2:right 1500\ndump qa08_results_cgram\nuntil16 0053 == F60C\n"
-SPLIT = (b"press right+p2:right 1499\ndump qa08_results_previous\n"
-         b"press right+p2:right 1\ndump qa08_results_cgram\n"
-         b"until16 0053 == F60C\n")
 DUMPS = {**control.DUMP_FRAMES, "qa08_results_previous": 5183}
-SCHEMA = "qa08-original-source-2p-adjacent-results-CGRAM-chronology/1"
-
+SCHEMA = "qa08-original-source-2p-adjacent-results-CGRAM-chronology/2"
 
 def sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
@@ -41,19 +36,14 @@ def cgram_fnv(raw: bytes) -> str:
 
 
 def build_script(raw: bytes) -> bytes:
-    previous = control.build_script(raw)
-    if previous.count(ANCHOR) != 1:
-        raise ValueError("no unique authentic results input anchor")
-    result = previous.replace(ANCHOR, SPLIT, 1)
-    if (result.replace(SPLIT, ANCHOR, 1) != previous
-        or result.count(b"dump qa08_") != 4
-        or result.count(b"dump qa08_results_previous\n") != 1):
-        raise ValueError("reference action stream was modified")
-    # The only execution change is a new command boundary inside an
-    # unchanged 1500-frame input mask; pixel-identity is checked after replay.
-    if b"turbo on" in result or b"forcepoke" in result or b"\npoke " in result:
-        raise ValueError("non-observational action in source script")
-    return result
+    """Return the exact already-verified 3-dump original input script.
+
+    Do NOT split press holds: snesref inserts a trailing idle frame after
+    each completed press command. The rejected split changed original PPU
+    callback 5215. The new 5183 dump is inserted by the opt-in read-only
+    reference-host callback, not by modifying controller commands.
+    """
+    return control.build_script(raw)
 
 
 def verify(root: Path, prior: Path, script: Path, rom: Path, core: Path) -> dict:
@@ -103,8 +93,9 @@ def verify(root: Path, prior: Path, script: Path, rom: Path, core: Path) -> dict
         "schema":SCHEMA, "original_ROM_sha256":control.ROM_SHA,
         "original_core_sha256":sha(core.read_bytes()),
         "unchanged_stock_script_sha256":control.ORIGINAL_ROUTE_LF_SHA,
-        "actual_four_dump_script_sha256":sha(build_script(script.read_bytes())),
+        "unaltered_original_three_dump_script_sha256":sha(build_script(script.read_bytes())),
         "source_5183_cgram_fnv1a":cgram_fnv(left),
+        "additional_dump_acquired_after_retro_run_without_new_script_command":True,
         "source_5184_cgram_fnv1a":cgram_fnv(right),
         "source_palette_words_changed":len(differences),
         "source_palette_changed_words_first_32":differences[:32],
@@ -131,7 +122,7 @@ def main() -> None:
     if a.out_script and not any((a.verify_root,a.prior_original,a.rom,a.core,a.result)):
         a.out_script.parent.mkdir(parents=True,exist_ok=True)
         a.out_script.write_bytes(build_script(a.script.read_bytes()))
-        print("QA08_CGRAM_5183_5184: same masks, 1499+1 frames, four read-only dumps")
+        print("QA08_CGRAM_5183_5184: input unchanged, three script dumps + opt-in host 5183")
     elif not a.out_script and all((a.verify_root,a.prior_original,a.rom,a.core,a.result)):
         receipt = verify(a.verify_root,a.prior_original,a.script,a.rom,a.core)
         a.result.parent.mkdir(parents=True,exist_ok=True)

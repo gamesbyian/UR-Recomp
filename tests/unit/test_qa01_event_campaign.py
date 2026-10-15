@@ -23,7 +23,14 @@ def producer(case: str, *, matched: bool = False) -> dict:
         "family": c.CASES[case]["family"],
         "native_backend": "pinned-baldosa",
         "admission": "investigative candidate; not a release-ledger pass",
-        "original_source_event": {"source_active_frames_to_result": original},
+        "original_source_event": {
+            "original_entry_frame": 3190,
+            "original_result_frame": 3190 + original,
+            "source_active_frames_to_result": original,
+        },
+        "reference_entry": 984,
+        "native_entry": 986,
+        "native_frame_shift": 2,
         "comparison": {
             "paired_event_candidate": matched,
             "terminal_result_frame_matched": matched,
@@ -37,8 +44,110 @@ def producer(case: str, *, matched: bool = False) -> dict:
         **{key: "a" * 64 for key in (
             "rom_sha256", "original_movie_sha256",
             "native_executable_sha256", "reference_core_sha256",
-            "input_sha256", "source_sram_sha256")},
+            "input_sha256", "source_sram_sha256",
+            "original_movie_window_sha256", "reference_script_sha256")},
     }
+
+
+def postresult_fixture(*, first_native_divergence: int | None = 16) -> dict:
+    """Synthetic three-clock test only; NOT a genuine emulator witness."""
+    report = producer("zoom-zoo", matched=True)
+    offsets = c.FOLLOWTHROUGH_OFFSETS
+    source = {}
+    captures = []
+    for offset in offsets:
+        source_row = {
+            "original_movie_host_frame": 8353 + offset,
+            "menu": 0xBC if offset <= 16 else 0xF6,
+            "track": 1, "in_race": 0x3D,
+        }
+        source[str(offset)] = source_row
+        original = {
+            "menu": source_row["menu"], "track": 1, "in_race": 0x3D,
+            "p1_laps": 0, "p2_laps": 0,
+            "p1_checkpoint": 1, "p1_finish_gate": 1,
+            "full_wram_bytes": 0x20000, "wram_sha256": "a" * 64,
+        }
+        native = dict(original)
+        if offset == first_native_divergence:
+            native["menu"] = 0xF6 if original["menu"] != 0xF6 else 0xBC
+            native["wram_sha256"] = "b" * 64
+        diff = [k for k in c.FOLLOWTHROUGH_SOURCE
+                if original[k] != native[k]]
+        captures.append({
+            "offset_from_each_observed_result_onset": offset,
+            "source_original_movie": source_row,
+            "independently_observed_replay_host_frames": {
+                "original": 984 + 5163 + offset,
+                "native": 986 + 5163 + offset,
+            },
+            "fresh_guests": {"original": original, "native": native},
+            "source_named_state_comparison": {
+                "original": {"source_named_state_equal": True,
+                             "named_fields_different_from_source": []},
+                "native": {"source_named_state_equal": not diff,
+                           "named_fields_different_from_source": diff},
+            },
+            "paired_named_state_equal": not diff,
+            "full_wram_bytes_equal": native["wram_sha256"] == original["wram_sha256"],
+        })
+    report["original_source_event"]["source_terminal_followthrough"] = source
+    report["source_terminal_followthrough"] = {
+        "schema": c.FOLLOWTHROUGH_SCHEMA,
+        "sample_count": 6,
+        "samples": captures,
+        "source_guest_relative_result_onset_equivalence_proven": False,
+        "original_and_native_result_phase_equal_proven": True,
+        "all_followthrough_named_pairs_equal": first_native_divergence is None,
+        "all_followthrough_full_wram_pairs_equal": first_native_divergence is None,
+        "post_result_sram_persistence_proven": False,
+        "menu_restoration_or_final_progression_proven": False,
+        "strict_event_comparator_unchanged": True,
+        "release_complete_usa_event_credit": 0,
+    }
+    return report
+
+
+def battery_followthrough_fixture(*, changed_course_rank: bool = True) -> dict:
+    """Only a synthetic integrity test for the read-only SRAM reporter."""
+    report = postresult_fixture(first_native_divergence=None)
+    record = report["source_terminal_followthrough"]
+    for row in record["samples"]:
+        offset = row["offset_from_each_observed_result_onset"]
+        rank = [
+            {"rank": n, "value_word": 2510 if n == 0 else 60000,
+             "holder_index": 0 if n == 0 else 16}
+            for n in range(3)
+        ]
+        base = {
+            "full_sram_bytes": 8192, "sram_sha256": "a" * 64,
+            "crawler_course_track_index": 1,
+            "crawler_record_three_ranks": rank,
+            "record_table_checksum_stored": 0,
+            "record_table_checksum_calculated": 0,
+            "record_table_checksum_matches_at_sample": True,
+            "in_memory_snapshot_only": True,
+            "cold_process_reload_proven": False,
+        }
+        original = json.loads(json.dumps(base))
+        native = json.loads(json.dumps(base))
+        if changed_course_rank and offset == 16:
+            native["sram_sha256"] = "b" * 64
+            native["crawler_record_three_ranks"][0]["value_word"] = 2420
+            native["record_table_checksum_calculated"] = 1
+            native["record_table_checksum_matches_at_sample"] = False
+        row["fresh_guest_battery_sram"] = {
+            "original": original, "native": native}
+        row["sram_full_bytes_equal"] = (
+            original["sram_sha256"] == native["sram_sha256"])
+        row["sram_course_three_rank_records_equal"] = (
+            original["crawler_record_three_ranks"] ==
+            native["crawler_record_three_ranks"])
+    record["all_followthrough_full_sram_pairs_equal"] = not changed_course_rank
+    record["all_followthrough_crawler_record_pairs_equal"] = not changed_course_rank
+    record["battery_sram_snapshot_bytes_per_guest"] = 8192
+    record["battery_sram_cold_process_persistence_proven"] = False
+    return report
 
 
 class QA01CampaignTest(unittest.TestCase):
@@ -98,6 +207,173 @@ class QA01CampaignTest(unittest.TestCase):
         failed = c.classify("bowl", 1, path, plan)
         self.assertEqual(failed["disposition"], "producer_error")
 
+    def test_strict_result_candidate_with_divergent_menu_remains_investigative(self):
+        report = postresult_fixture()
+        plan = self.plan("zoom-zoo")
+        path = self.root / "source-followthrough.json"
+        c.write_json(path, report)
+        result = c.classify("zoom-zoo", 0, path, plan)
+        self.assertEqual(result["disposition"], "strict_candidate")
+        self.assertEqual(result["release_credit"], 0)
+        bounded = result["evidence"]["post_result_bounded"]
+        self.assertEqual(bounded["status"], "sampled_named_divergence")
+        self.assertEqual(bounded["samples"], 6)
+        self.assertEqual(bounded["first_named_divergence_offset"], 16)
+        self.assertEqual(bounded["named_divergences"][0][
+            "native_vs_fresh_original"], ["menu"])
+        self.assertFalse(bounded["all_fresh_wram_sha256_pairs_equal"])
+        self.assertIn("result-relative +16", result["reason"])
+        self.assertFalse(bounded["unsampled_frames_or_persistence_proven"])
+        aggregate_dir = self.root / "qa01-case"
+        c.write_json(aggregate_dir /
+                     "qa01-campaign-case-zoom-zoo/case-result.json", result)
+        summary, _ = c.aggregate(plan, aggregate_dir)
+        self.assertTrue(summary["transport_complete"])
+        self.assertEqual(summary["release_admissions"], 0)
+
+    def test_bounded_six_sample_agreement_never_grants_full_event(self):
+        plan = self.plan("zoom-zoo")
+        path = self.root / "bounded-match.json"
+        c.write_json(path, postresult_fixture(first_native_divergence=None))
+        result = c.classify("zoom-zoo", 0, path, plan)
+        self.assertEqual(result["disposition"], "strict_candidate")
+        self.assertEqual(result["evidence"]["post_result_bounded"]["status"],
+                         "six_sample_triplet_named_agreement")
+        self.assertIsNone(result["evidence"]["post_result_bounded"][
+            "first_named_divergence_offset"])
+        self.assertEqual(result["release_credit"], 0)
+        self.assertFalse(result["evidence"]["post_result_bounded"][
+            "unsampled_frames_or_persistence_proven"])
+        # Producer without the option cannot silently imply lifecycle parity.
+        c.write_json(path, producer("zoom-zoo", matched=True))
+        absent = c.classify("zoom-zoo", 0, path, plan)
+        self.assertEqual(absent["evidence"]["post_result_bounded"],
+                         {"status": "not_observed", "samples": 0,
+                          "first_named_divergence_offset": None,
+                          "release_credit": 0})
+
+    def test_source_qualified_original_native_course_records_are_in_memory_only(self):
+        path = self.root / "sram-paired.json"
+        plan = self.plan("zoom-zoo")
+        c.write_json(path, battery_followthrough_fixture())
+        row = c.classify("zoom-zoo", 0, path, plan)
+        self.assertEqual(row["disposition"], "strict_candidate")
+        self.assertEqual(row["release_credit"], 0)
+        p = row["evidence"]["post_result_bounded"]
+        self.assertEqual(p["status"], "six_sample_triplet_named_agreement")
+        battery = p["fresh_original_native_battery_sram"]
+        self.assertEqual(battery["status"],
+                         "six_sample_original_native_in_memory_sram_observed")
+        self.assertFalse(battery["all_fresh_sram_byte_pairs_equal"])
+        self.assertFalse(battery["all_fresh_crawler_ranked_record_pairs_equal"])
+        self.assertEqual(battery["first_full_sram_difference_offset"], 16)
+        self.assertEqual(battery["first_course_record_difference_offset"], 16)
+        self.assertFalse(battery["cold_process_persistence_proven"])
+        c.write_json(path, battery_followthrough_fixture(changed_course_rank=False))
+        matching = c.classify("zoom-zoo", 0, path, plan)
+        got = matching["evidence"]["post_result_bounded"][
+            "fresh_original_native_battery_sram"]
+        self.assertTrue(got["all_fresh_sram_byte_pairs_equal"])
+        self.assertTrue(got["all_fresh_crawler_ranked_record_pairs_equal"])
+        self.assertIsNone(got["first_course_record_difference_offset"])
+        self.assertEqual(matching["release_credit"], 0)
+
+    def test_forged_battery_records_do_not_become_a_scientific_negative(self):
+        plan = self.plan("zoom-zoo")
+        path = self.root / "sram-invalid.json"
+        def change_checksum_claim(x):
+            x["source_terminal_followthrough"]["samples"][1][
+                "fresh_guest_battery_sram"]["native"][
+                    "record_table_checksum_matches_at_sample"] = True
+        def change_track_identity(x):
+            x["source_terminal_followthrough"]["samples"][1][
+                "fresh_guest_battery_sram"]["native"][
+                    "crawler_course_track_index"] = 4
+        def claim_disk_persistence(x):
+            x["source_terminal_followthrough"][
+                "battery_sram_cold_process_persistence_proven"] = True
+        def change_hash(x):
+            x["source_terminal_followthrough"]["samples"][1][
+                "fresh_guest_battery_sram"]["native"]["sram_sha256"] = "bad"
+        def change_record(x):
+            x["source_terminal_followthrough"]["samples"][1][
+                "fresh_guest_battery_sram"]["native"][
+                    "crawler_record_three_ranks"][0]["rank"] = 5
+        def remove_one_snapshot(x):
+            x["source_terminal_followthrough"]["samples"][0].pop(
+                "fresh_guest_battery_sram")
+        def falsify_equal_flag(x):
+            x["source_terminal_followthrough"]["samples"][1][
+                "sram_full_bytes_equal"] = True
+        def falsify_global_equal(x):
+            x["source_terminal_followthrough"][
+                "all_followthrough_crawler_record_pairs_equal"] = True
+        for mutate in (change_checksum_claim, change_track_identity,
+                       claim_disk_persistence, change_hash, change_record,
+                       remove_one_snapshot, falsify_equal_flag,
+                       falsify_global_equal):
+            with self.subTest(tweak=mutate.__name__):
+                v = battery_followthrough_fixture()
+                mutate(v)
+                c.write_json(path, v)
+                verdict = c.classify("zoom-zoo", 0, path, plan)
+                self.assertEqual(verdict["disposition"], "producer_error")
+                self.assertEqual(verdict["release_credit"], 0)
+
+    def test_postresult_report_must_reconcile_actual_triplet_host_receipts(self):
+        plan = self.plan("zoom-zoo")
+        path = self.root / "tampered-followthrough.json"
+        def mutate_native_time(p):
+            p["source_terminal_followthrough"]["samples"][1][
+                "independently_observed_replay_host_frames"]["native"] += 1
+        def mutate_source_frame(p):
+            p["original_source_event"]["source_terminal_followthrough"]["16"][
+                "original_movie_host_frame"] += 1
+        def mutate_source_copy(p):
+            p["source_terminal_followthrough"]["samples"][1][
+                "source_original_movie"]["menu"] = 0xF6
+        def mutate_menu_pair_flag(p):
+            p["source_terminal_followthrough"]["samples"][1][
+                "paired_named_state_equal"] = True
+        def mutate_native_movie_claim(p):
+            p["source_terminal_followthrough"]["samples"][1][
+                "source_named_state_comparison"]["native"][
+                    "source_named_state_equal"] = True
+        def mutate_raw_sha_pair_flag(p):
+            p["source_terminal_followthrough"]["samples"][1][
+                "full_wram_bytes_equal"] = True
+        def mutate_strict_result(p):
+            p["source_terminal_followthrough"][
+                "original_and_native_result_phase_equal_proven"] = False
+        def mutate_sram_claim(p):
+            p["source_terminal_followthrough"][
+                "post_result_sram_persistence_proven"] = True
+        def mutate_credited(p):
+            p["source_terminal_followthrough"][
+                "release_complete_usa_event_credit"] = 1
+        def mutate_missing_source(p):
+            p["original_source_event"].pop("source_terminal_followthrough")
+        def mutate_summary(p):
+            p["source_terminal_followthrough"][
+                "all_followthrough_named_pairs_equal"] = True
+        def mutate_duplicate_sample(p):
+            p["source_terminal_followthrough"]["samples"][2][
+                "offset_from_each_observed_result_onset"] = 16
+        for tweak in (
+            mutate_native_time, mutate_source_frame, mutate_source_copy,
+            mutate_menu_pair_flag, mutate_native_movie_claim,
+            mutate_raw_sha_pair_flag, mutate_strict_result,
+            mutate_sram_claim, mutate_credited, mutate_missing_source,
+            mutate_summary, mutate_duplicate_sample,
+        ):
+            with self.subTest(tweak=tweak.__name__):
+                report = postresult_fixture()
+                tweak(report)
+                c.write_json(path, report)
+                out = c.classify("zoom-zoo", 0, path, plan)
+                self.assertEqual(out["disposition"], "producer_error")
+                self.assertEqual(out["release_credit"], 0)
+
     def test_invalid_identity_provenance_or_frame_is_not_scientific_negative(self):
         plan = self.plan("bowl")
         path = self.report_file()
@@ -119,6 +395,70 @@ class QA01CampaignTest(unittest.TestCase):
                          "producer_error")
         self.assertEqual(c.classify("bowl", 124, self.root/"absent.json", plan)[
                          "disposition"], "producer_error")
+
+    def test_archived_movie_and_fresh_guest_timing_provenance_fails_closed(self):
+        plan = self.plan("zoom-zoo")
+        good = self.report_file("zoom-zoo", matched=True)
+        row = c.classify("zoom-zoo", 0, good, plan)
+        self.assertEqual(row["disposition"], "strict_candidate")
+        ev = row["evidence"]
+        self.assertEqual(ev["original_movie_entry_frame"], 3190)
+        self.assertEqual(ev["original_movie_result_frame"], 8353)
+        self.assertEqual(ev["original_event_frames"], 5163)
+        self.assertEqual(ev["native_entry_frame"] - ev["reference_entry_frame"],
+                         ev["native_frame_shift"])
+        self.assertEqual(ev["source_sram_sha256"], "a" * 64)
+        self.assertEqual(ev["original_movie_window_sha256"], "a" * 64)
+        self.assertEqual(ev["reference_script_sha256"], "a" * 64)
+        self.assertEqual(row["release_credit"], 0)
+        # The observed shift is signed. A native guest that enters earlier
+        # than the original may still be a valid, independently calibrated
+        # experiment; never clamp or silently rebase its controller movie.
+        earlier = producer("zoom-zoo", matched=True)
+        earlier["native_entry"] = 982
+        earlier["native_frame_shift"] = -2
+        c.write_json(good, earlier)
+        valid_earlier = c.classify("zoom-zoo", 0, good, plan)
+        self.assertEqual(valid_earlier["disposition"], "strict_candidate")
+        self.assertEqual(valid_earlier["evidence"]["native_frame_shift"], -2)
+        self.assertEqual(valid_earlier["release_credit"], 0)
+        for mutate in (
+            lambda v: v.pop("original_movie_window_sha256"),
+            lambda v: v.__setitem__("reference_script_sha256", "not-a-sha"),
+            lambda v: v.__setitem__("source_sram_sha256", "unverified"),
+            lambda v: v.__setitem__("native_frame_shift", 3),
+            lambda v: v.__setitem__("native_entry", True),
+            lambda v: v["original_source_event"].__setitem__(
+                "original_result_frame", 8354),
+            lambda v: v["original_source_event"].__setitem__(
+                "original_entry_frame", -1),
+            lambda v: v["original_source_event"].__setitem__(
+                "source_active_frames_to_result", 0),
+        ):
+            with self.subTest(mutate=repr(mutate)):
+                candidate = producer("zoom-zoo", matched=True)
+                mutate(candidate)
+                c.write_json(good, candidate)
+                bad = c.classify("zoom-zoo", 0, good, plan)
+                self.assertEqual(bad["disposition"], "producer_error")
+                self.assertEqual(bad["release_credit"], 0)
+
+    def test_cross_shard_source_sram_is_part_of_execution_identity(self):
+        plan = self.plan()
+        out = self.root / "source-sram-mismatch"
+        for case in c.CASES:
+            target = out / f"qa01-campaign-case-{case}" / "case-result.json"
+            c.write_json(target, c.classify(case, 1, self.report_file(case), plan))
+        self.assertTrue(c.aggregate(plan, out)[0]["transport_complete"])
+        target = out / "qa01-campaign-case-switcher" / "case-result.json"
+        row = c.load_json(target)
+        row["evidence"]["source_sram_sha256"] = "f" * 64
+        c.write_json(target, row)
+        summary, _ = c.aggregate(plan, out)
+        self.assertFalse(summary["transport_complete"])
+        self.assertEqual(summary["counts"]["missing_evidence"], 1)
+        self.assertIn("identity mismatch", summary["results"][-1]["reason"])
+        self.assertEqual(summary["release_admissions"], 0)
 
     def test_aggregate_accounting_detects_missing_and_bad_foreign_artifacts(self):
         plan = self.plan("all")
@@ -282,6 +622,21 @@ class QA01CampaignTest(unittest.TestCase):
         self.assertIn('exit "$case_rc"', workflow)
         self.assertNotIn("contents: write", workflow)
 
+
+    def test_rf015_refresh_correction_is_opt_in_before_the_one_build(self):
+        workflow = (ROOT/".github/workflows/qa01-event-campaign.yml").read_text()
+        header = workflow.split("\njobs:", 1)[0]
+        self.assertEqual(header.count("      baldosa_refresh_beam_rate:"), 2)
+        for block in header.split("      baldosa_refresh_beam_rate:")[1:]:
+            own = block.split("\n")[1:5]
+            self.assertIn("        default: false", own)
+            self.assertIn("        type: boolean", own)
+        stage = 'python3 tools/baldosa_dram_refresh_beam_rate_patch.py --game baldosa'
+        self.assertEqual(workflow.count(stage), 1)
+        guard = 'if [[ "${{ inputs.baldosa_refresh_beam_rate }}" == "true" ]]; then'
+        self.assertLess(workflow.index(guard), workflow.index(stage))
+        self.assertLess(workflow.index(stage), workflow.index("cmake -S baldosa -B baldosa/build"))
+        self.assertEqual(workflow.count("cmake --build baldosa/build"), 1)
 
 if __name__ == "__main__":
     unittest.main()

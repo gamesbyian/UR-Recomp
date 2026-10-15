@@ -63,6 +63,31 @@ handler with a synthetic storage fault cut. It does **not** reproduce actual
 power loss, physical controller hardware, a completed scored result within
 the recovery subroute, or grant independent release ledger credit.
 
+## Concurrent paired-publish staging race (fixed 2026-10-15)
+
+CI run 38664542228 (unit, unrelated PR #1609) exposed a real simultaneous-writer
+defect: `append_multiplayer_match_pair` probes shared `.urpair-stage-N` names, and
+`std::filesystem::create_directory` can report `file_exists` (EEXIST) when a
+competing writer removes its own staging directory between the `mkdir()` failure
+and libstdc++'s follow-up directory check. The writer then failed although
+nothing was wrong, so a legitimate paired result could be refused under
+concurrent access. Reproduced locally with an in-process 8-writer hammer
+(~two of three runs failed), the error confirmed as code 17. The writer now treats
+exactly `file_exists` as "competing creator, try the next private name"; every
+other filesystem error still fails closed, and the atomic sidecar-first claim,
+no-replace publication and immutable-record rules are unchanged. A new C++
+`hammer` mode runs in the existing paired-record unit test (it caught the old
+code in 4 of 5 runs, the fix 0 of 5). Windows `MoveFileW` claims are not changed.
+
+**Evidence and gap.** Original failing evidence: unit run 38664542228, shard 0,
+`test_multiplayer_match_record_cpp.test_cpp_contract`, failure-log artifact 11940347270
+(`cannot create multiplayer-pair staging directory`, decoded by integration). The
+fix is covered only by an in-process Linux/libstdc++ hammer. **Windows is a
+coverage gap:** no existing Windows stage runs concurrent paired publishers, so
+NTFS scheduling, `create_directory` behaviour on Windows, process-crash and
+SAVE PENDING durability under real contention are unverified. This does not
+promote any recovery gate or replace the original hard-kill negative.
+
 ## Critical native Practice progression-isolation correction (2026-10-14)
 
 Merged #1578 proves original Dragster course entry from P1 Down/A/A on
@@ -97,6 +122,38 @@ never replace these actual Windows process checks.
 This does **not** prove a hard-killed process can recover an in-memory
 Practice session or perform a strict original-emulator full-event parity
 check. Release quality, hardware and all other stock tours remain pending.
+
+## Native Practice hard-kill lifecycle (merged #1584, 2026-10-15)
+
+The Windows Practice probe terminates a named-Mike native process
+(`Process.kill`, i.e. TerminateProcess) once the source Dragster GO ticker is
+live, so neither the Practice SRAM restore nor the native SRAM writer runs. A
+kill receipt records that the child was alive at the kill and exited non-clean.
+The route then requires: selector, catalog, typed profile and 8-KiB raw SRAM
+byte-identical to their pre-kill bytes; no `.urrun`; a non-playing boot whose
+guest `BOOT_SRAM` FNV equals the pre-kill raw SRAM; and a further Practice launch
+that is still admitted despite the stale `practice-session` directory and
+restores/exits normally with the same bytes.
+
+**Measured baseline correction.** Exact Windows CI showed that the first ordinary
+shutdown of a freshly created profile rewrites its raw SRAM even when the guest
+only idled (one byte, offset `0x1FFF`, with the typed generation advancing). The
+probe therefore establishes the career baseline after two idle boots: one that
+normalizes and one control that must change nothing. Practice is judged against
+that baseline, not against the creation bytes. The mechanism behind the
+`0x1FFF` write (guest or framework) is not established.
+
+**Evidence.** Passed on exact heads `a6c64e0` (Windows run 38645114899) and on
+the integrated head `625146c` of #1609 (run 38666817813). Independent QA
+decoded the first run's six artifacts and accepted it at the bounded Windows
+source tier. Bounded logs, the kill receipt and per-boundary SHA/diff receipts
+go in the separate `baldosa-win32-native-practice-lifecycle` artifact. The raw
+before/after 8-KiB images are not archived.
+
+**Not claimed.** No OS power-loss, physical gamepad, audible audio or display
+evidence, no strict original/native complete-event parity, and no release-ledger
+credit. Pause, restart and retry *inside* Practice, and exit to the frontend,
+are not exercised by this route.
 
 ## Native first source-qualified Practice route (candidate, 2026-10-14)
 

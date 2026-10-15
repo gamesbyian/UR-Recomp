@@ -87,6 +87,231 @@ def producer_failure_reason(producer_log: Path | None) -> str:
     return ""
 
 
+# This is a scientific candidate boundary, NOT another event comparator.
+# The underlying original/native producer is still the sole writer of these
+# executable full-WRAM/frame receipts, and the release ledger stays separate.
+FOLLOWTHROUGH_SCHEMA = "UR-QA01-SOURCE-ORIGINAL-NATIVE-RESULT-FOLLOWTHROUGH/2"
+FOLLOWTHROUGH_OFFSETS = (8, 16, 24, 32, 64, 72)
+FOLLOWTHROUGH_NAMED = ("menu", "track", "in_race",
+                       "p1_laps", "p2_laps", "p1_checkpoint", "p1_finish_gate")
+FOLLOWTHROUGH_SOURCE = ("menu", "track", "in_race")
+
+
+def classify_bounded_fresh_battery_sram(record: dict, samples: list,
+                                        course_id: str) -> dict:
+    """Audit genuine fresh-original/native battery images; no cold reload.
+
+    A historical /2 producer might not include SRAM. Missingness must
+    remain explicit and a partial six-frame population must fail closed.
+    The source 2014 SMV's post-result SRAM is NOT sampled by this consumer.
+    """
+    flags = ["fresh_guest_battery_sram" in row for row in samples]
+    if not any(flags):
+        if any(key in record for key in (
+                "all_followthrough_full_sram_pairs_equal",
+                "all_followthrough_crawler_record_pairs_equal",
+                "battery_sram_snapshot_bytes_per_guest",
+                "battery_sram_cold_process_persistence_proven")):
+            raise ValueError("unsupported SRAM summary without SRAM snapshots")
+        return {"status": "not_observed", "samples": 0,
+                "first_full_sram_difference_offset": None,
+                "first_course_record_difference_offset": None,
+                "cold_process_persistence_proven": False}
+    if not all(flags):
+        raise ValueError("incomplete six-offset battery SRAM observation")
+    if (type(record.get("battery_sram_snapshot_bytes_per_guest")) is not int
+            or record["battery_sram_snapshot_bytes_per_guest"] != 8192
+            or record.get("battery_sram_cold_process_persistence_proven") is not False):
+        raise ValueError("invalid post-result battery SRAM receipt scope")
+    try:
+        course = int(course_id.split(":")[1]) - 1
+    except (ValueError, IndexError, TypeError, AttributeError):
+        raise ValueError("invalid post-result Crawler course identity")
+    if not 0 <= course < 5:
+        raise ValueError("post-result battery SRAM restricted to Crawler")
+    full = []
+    recordpairs = []
+    for row, offset in zip(samples, FOLLOWTHROUGH_OFFSETS):
+        sides = row.get("fresh_guest_battery_sram")
+        if not isinstance(sides, dict):
+            raise ValueError("missing two original/native battery SRAM reads")
+        for name in ("original", "native"):
+            member = sides.get(name)
+            if not isinstance(member, dict):
+                raise ValueError("missing SRAM guest side")
+            if (type(member.get("full_sram_bytes")) is not int
+                    or member["full_sram_bytes"] != 8192
+                    or not isinstance(member.get("sram_sha256"), str)
+                    or not HEX256.fullmatch(member["sram_sha256"])
+                    or type(member.get("crawler_course_track_index")) is not int
+                    or member["crawler_course_track_index"] != course
+                    or member.get("in_memory_snapshot_only") is not True
+                    or member.get("cold_process_reload_proven") is not False):
+                raise ValueError("invalid native/original 8KiB live SRAM data")
+            ranks = member.get("crawler_record_three_ranks")
+            if (not isinstance(ranks, list) or len(ranks) != 3 or
+                    any(not isinstance(value, dict)
+                        or type(value.get("rank")) is not int
+                        or value["rank"] != index
+                        or type(value.get("value_word")) is not int
+                        or not 0 <= value["value_word"] <= 65535
+                        or type(value.get("holder_index")) is not int
+                        or not 0 <= value["holder_index"] <= 255
+                        for index, value in enumerate(ranks))):
+                raise ValueError("incorrect original Crawler SRAM rank table")
+            stored = member.get("record_table_checksum_stored")
+            calc = member.get("record_table_checksum_calculated")
+            if (type(stored) is not int or type(calc) is not int
+                    or not 0 <= stored <= 65535
+                    or not 0 <= calc <= 65535
+                    or member.get("record_table_checksum_matches_at_sample")
+                    is not (stored == calc)):
+                raise ValueError("invalid live record checksum observation")
+        pair = (sides["original"]["sram_sha256"]
+                == sides["native"]["sram_sha256"])
+        coursepair = (sides["original"]["crawler_record_three_ranks"]
+                      == sides["native"]["crawler_record_three_ranks"])
+        if (row.get("sram_full_bytes_equal") is not pair
+                or row.get("sram_course_three_rank_records_equal") is not coursepair):
+            raise ValueError("contradictory SRAM byte/course-record comparison")
+        full.append(pair)
+        recordpairs.append(coursepair)
+    if (record.get("all_followthrough_full_sram_pairs_equal") is not all(full)
+            or record.get("all_followthrough_crawler_record_pairs_equal")
+            is not all(recordpairs)):
+        raise ValueError("contradictory six-sample battery summary")
+    return {
+        "status": "six_sample_original_native_in_memory_sram_observed",
+        "samples": len(samples),
+        "all_fresh_sram_byte_pairs_equal": all(full),
+        "all_fresh_crawler_ranked_record_pairs_equal": all(recordpairs),
+        "first_full_sram_difference_offset": next(
+            (offset for offset, same in zip(FOLLOWTHROUGH_OFFSETS, full)
+             if not same), None),
+        "first_course_record_difference_offset": next(
+            (offset for offset, same in zip(FOLLOWTHROUGH_OFFSETS, recordpairs)
+             if not same), None),
+        "cold_process_persistence_proven": False,
+    }
+
+
+def classify_postresult_followthrough(report: dict, event: dict,
+                                      frames: dict) -> dict:
+    """Adjudicate *sampled* movie / fresh original / native continuation.
+
+    This cannot establish SRAM persistence, complete-event admission, or
+    equivalence of unsampled intermediary frames. It also cannot turn a
+    result-relative comparison into a race-relative timing correction.
+    """
+    record = report.get("source_terminal_followthrough")
+    archived = event.get("source_terminal_followthrough")
+    if record is None and archived is None:
+        return {"status": "not_observed", "samples": 0,
+                "first_named_divergence_offset": None,
+                "release_credit": 0}
+    if not isinstance(record, dict) or not isinstance(archived, dict):
+        raise ValueError("post-result source and fresh guest receipts must both exist")
+    if (record.get("schema") != FOLLOWTHROUGH_SCHEMA
+            or record.get("sample_count") != len(FOLLOWTHROUGH_OFFSETS)
+            or record.get("strict_event_comparator_unchanged") is not True
+            or type(record.get("release_complete_usa_event_credit")) is not int
+            or record["release_complete_usa_event_credit"] != 0
+            or record.get("source_guest_relative_result_onset_equivalence_proven") is not False
+            or record.get("post_result_sram_persistence_proven") is not False
+            or record.get("menu_restoration_or_final_progression_proven") is not False
+            or record.get("original_and_native_result_phase_equal_proven") is not (
+                frames["reference_relative"] == frames["native_relative"])):
+        raise ValueError("invalid or over-promotional post-result receipt")
+    samples = record.get("samples")
+    if not isinstance(samples, list) or len(samples) != len(FOLLOWTHROUGH_OFFSETS):
+        raise ValueError("missing or duplicated post-result sample window")
+    original_result = event["original_result_frame"]
+    original_host = report["reference_entry"] + frames["reference_relative"]
+    native_host = report["native_entry"] + frames["native_relative"]
+    first = None
+    differences = []
+    pairs_equal = []
+    bytepairs_equal = []
+    for row, offset in zip(samples, FOLLOWTHROUGH_OFFSETS):
+        source = archived.get(str(offset))
+        if not isinstance(row, dict) or not isinstance(source, dict):
+            raise ValueError("missing original source post-result frame")
+        if (type(row.get("offset_from_each_observed_result_onset")) is not int
+                or row["offset_from_each_observed_result_onset"] != offset
+                or row.get("source_original_movie") != source
+                or type(source.get("original_movie_host_frame")) is not int
+                or source["original_movie_host_frame"] != original_result + offset
+                or any(type(source.get(k)) is not int for k in FOLLOWTHROUGH_SOURCE)
+                or row.get("independently_observed_replay_host_frames")
+                != {"original": original_host + offset,
+                    "native": native_host + offset}):
+            raise ValueError("post-result host, source or offset identity mismatch")
+        guests = row.get("fresh_guests")
+        comparison = row.get("source_named_state_comparison")
+        if not isinstance(guests, dict) or not isinstance(comparison, dict):
+            raise ValueError("missing two fresh guest post-result states")
+        seen = {}
+        for side in ("original", "native"):
+            current = guests.get(side)
+            if not isinstance(current, dict) or any(
+                    type(current.get(k)) is not int for k in FOLLOWTHROUGH_NAMED):
+                raise ValueError("invalid post-result guest semantic bytes")
+            if (type(current.get("full_wram_bytes")) is not int
+                    or current["full_wram_bytes"] != 0x20000
+                    or not isinstance(current.get("wram_sha256"), str)
+                    or not HEX256.fullmatch(current["wram_sha256"])):
+                raise ValueError("invalid post-result 128KiB WRAM receipt")
+            mismatches = [k for k in FOLLOWTHROUGH_SOURCE
+                          if current[k] != source[k]]
+            claim = comparison.get(side)
+            if (not isinstance(claim, dict)
+                    or type(claim.get("source_named_state_equal")) is not bool
+                    or claim["source_named_state_equal"] != (not mismatches)
+                    or claim.get("named_fields_different_from_source") != mismatches):
+                raise ValueError("contradictory original movie/guest comparison")
+            seen[side] = mismatches
+        named = [k for k in FOLLOWTHROUGH_NAMED
+                 if guests["original"][k] != guests["native"][k]]
+        matched = not named
+        raw_equal = (guests["original"]["wram_sha256"]
+                     == guests["native"]["wram_sha256"])
+        if (type(row.get("paired_named_state_equal")) is not bool
+                or row["paired_named_state_equal"] != matched
+                or type(row.get("full_wram_bytes_equal")) is not bool
+                or row["full_wram_bytes_equal"] != raw_equal):
+            raise ValueError("contradictory post-result paired guest status")
+        pairs_equal.append(matched)
+        bytepairs_equal.append(raw_equal)
+        if seen["original"] or seen["native"] or named:
+            if first is None:
+                first = offset
+            differences.append({
+                "offset": offset,
+                "fresh_original_vs_source": seen["original"],
+                "native_vs_source": seen["native"],
+                "native_vs_fresh_original": named,
+            })
+    if (record.get("all_followthrough_named_pairs_equal") is not all(pairs_equal)
+            or record.get("all_followthrough_full_wram_pairs_equal")
+            is not all(bytepairs_equal)):
+        raise ValueError("contradictory post-result summary flags")
+    battery = classify_bounded_fresh_battery_sram(
+        record, samples, report["course_id"])
+    return {
+        "status": ("sampled_named_divergence" if differences
+                   else "six_sample_triplet_named_agreement"),
+        "samples": len(samples),
+        "first_named_divergence_offset": first,
+        "named_divergences": differences,
+        "all_fresh_wram_sha256_pairs_equal": all(bytepairs_equal),
+        "guest_relative_result_onset_matched": (
+            frames["reference_relative"] == frames["native_relative"]),
+        "unsampled_frames_or_persistence_proven": False,
+        "fresh_original_native_battery_sram": battery,
+        "release_credit": 0,
+    }
+
+
 def classify(case: str, producer_rc: int, producer_path: Path,
              plan: dict, producer_log: Path | None = None) -> dict:
     validate_plan(plan)
@@ -128,13 +353,24 @@ def classify(case: str, producer_rc: int, producer_path: Path,
         if report.get("admission") != "investigative candidate; not a release-ledger pass":
             raise ValueError("producer admission contract changed")
         keys = ("rom_sha256", "original_movie_sha256", "native_executable_sha256",
-                "reference_core_sha256", "input_sha256", "source_sram_sha256")
+                "reference_core_sha256", "input_sha256", "source_sram_sha256",
+                "original_movie_window_sha256", "reference_script_sha256")
         if any(not isinstance(report.get(key), str) or
                not HEX256.fullmatch(report[key]) for key in keys):
             raise ValueError("incomplete producer provenance")
-        if type(event.get("source_active_frames_to_result")) is not int or \
-                event["source_active_frames_to_result"] <= 0:
-            raise ValueError("no genuine original source event duration")
+        if any(type(event.get(k)) is not int or event[k] < 0
+               for k in ("original_entry_frame", "original_result_frame",
+                         "source_active_frames_to_result")) or (
+                event["original_result_frame"] - event["original_entry_frame"]
+                != event["source_active_frames_to_result"]) or (
+                event["source_active_frames_to_result"] <= 0):
+            raise ValueError("original archived event entry/result interval is incomplete or contradictory")
+        if (any(type(report.get(k)) is not int or report[k] < 0
+                for k in ("reference_entry", "native_entry"))
+                or type(report.get("native_frame_shift")) is not int
+                or report["native_entry"] - report["reference_entry"]
+                != report["native_frame_shift"]):
+            raise ValueError("fresh reference/native entry and input shift disagree")
         frames = comparison.get("terminal_result_guest_frame")
         if not isinstance(frames, dict) or any(type(frames.get(k)) is not int
                or frames[k] < 0 for k in ("reference_relative", "native_relative")):
@@ -150,17 +386,32 @@ def classify(case: str, producer_rc: int, producer_path: Path,
         if not strict and producer_rc == 0 and not comparison.get(
                 "diagnostic_exit_success_without_full_event_parity", False):
             raise ValueError("non-strict result returned success without diagnostic contract")
+        continuation = classify_postresult_followthrough(report, event, frames)
         row["disposition"] = "strict_candidate" if strict else "strict_divergence"
         row["reason"] = ("strict paired-event candidate; NOT an independently "
                          "adjudicated course pass" if strict else
                          "strict original/native paired-event comparator is negative")
+        if continuation["status"] == "sampled_named_divergence":
+            row["reason"] += (
+                "; independently recorded post-result named-state difference "
+                f"at result-relative +{continuation['first_named_divergence_offset']}; "
+                "not a complete-event lifecycle pass")
         row["evidence"] = {
+            "post_result_bounded": continuation,
             "producer_sha256": hashlib.sha256(producer_path.read_bytes()).hexdigest(),
             "rom_sha256": report["rom_sha256"],
             "movie_sha256": report["original_movie_sha256"],
             "core_sha256": report["reference_core_sha256"],
             "native_sha256": report["native_executable_sha256"],
             "input_sha256": report["input_sha256"],
+            "source_sram_sha256": report["source_sram_sha256"],
+            "original_movie_window_sha256": report["original_movie_window_sha256"],
+            "reference_script_sha256": report["reference_script_sha256"],
+            "original_movie_entry_frame": event["original_entry_frame"],
+            "original_movie_result_frame": event["original_result_frame"],
+            "reference_entry_frame": report["reference_entry"],
+            "native_entry_frame": report["native_entry"],
+            "native_frame_shift": report["native_frame_shift"],
             "original_event_frames": event["source_active_frames_to_result"],
             "terminal_guest_relative_frames": frames,
             "terminal_frame_matched": match,
@@ -203,9 +454,40 @@ def aggregate(plan: dict, results_dir: Path) -> tuple[dict, str]:
                     not isinstance(ev.get(k), str) or
                     not HEX256.fullmatch(ev[k]) for k in (
                         "producer_sha256", "rom_sha256", "movie_sha256",
-                        "core_sha256", "native_sha256", "input_sha256")
+                        "core_sha256", "native_sha256", "input_sha256",
+                        "source_sram_sha256", "original_movie_window_sha256",
+                        "reference_script_sha256")
                 ):
                     raise ValueError("incomplete case hash provenance")
+                if (any(type(ev.get(k)) is not int or ev[k] < 0
+                        for k in ("original_movie_entry_frame",
+                                  "original_movie_result_frame",
+                                  "original_event_frames",
+                                  "reference_entry_frame", "native_entry_frame"))
+                        or type(ev.get("native_frame_shift")) is not int
+                        or ev["original_movie_result_frame"] - ev["original_movie_entry_frame"]
+                        != ev["original_event_frames"]
+                        or ev["original_event_frames"] <= 0
+                        or ev["native_entry_frame"] - ev["reference_entry_frame"]
+                        != ev["native_frame_shift"]):
+                    raise ValueError("case original/native start and shift identity inconsistent")
+                follow = ev.get("post_result_bounded")
+                if (not isinstance(follow, dict)
+                        or follow.get("status") not in (
+                            "not_observed", "sampled_named_divergence",
+                            "six_sample_triplet_named_agreement")
+                        or type(follow.get("release_credit")) is not int
+                        or follow["release_credit"] != 0
+                        or type(follow.get("samples")) is not int
+                        or follow["samples"] not in (0, len(FOLLOWTHROUGH_OFFSETS))
+                        or (follow["status"] == "not_observed")
+                        != (follow["samples"] == 0)
+                        or (follow["status"] == "sampled_named_divergence")
+                        != (follow.get("first_named_divergence_offset") is not None)
+                        or (follow.get("first_named_divergence_offset") is not None
+                            and follow["first_named_divergence_offset"]
+                            not in FOLLOWTHROUGH_OFFSETS)):
+                    raise ValueError("missing or malformed bounded post-result disposition")
                 frames = ev.get("terminal_guest_relative_frames")
                 if not isinstance(frames, dict) or any(
                     type(frames.get(k)) is not int or frames[k] < 0 for k in
@@ -229,9 +511,11 @@ def aggregate(plan: dict, results_dir: Path) -> tuple[dict, str]:
                 "reason": str(exc), "release_credit": 0,
             }
         results.append(row)
-    # The entire research population must have used the exact same original
-    # movie, ROM, reference core and pinned native binary. Input hashes vary.
-    identity_keys = ("rom_sha256", "movie_sha256", "core_sha256", "native_sha256")
+    # The embedded SRAM also comes from the same archived source movie:
+    # cross-shard source boot differences invalidate a pooled experiment.
+    # Event-relative input windows/scripts and native entry offsets vary.
+    identity_keys = ("rom_sha256", "movie_sha256", "core_sha256",
+                     "native_sha256", "source_sram_sha256")
     baseline = None
     for row in results:
         if row["disposition"] not in ("strict_candidate", "strict_divergence"):

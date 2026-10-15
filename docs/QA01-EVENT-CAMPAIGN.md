@@ -168,11 +168,15 @@ continuity, any returned menu, next course or persistence. The **existing**
 Zoo Circuit, Bowl timed Stunt, and Switcher Race B. It changes neither case
 selection nor candidate or release acceptance.
 
-The same 2014 SMV's exact controller window is already extracted through
-**original result +40 frames**; no new buttons, durations, ghost route,
-savestate, or victory state are fabricated. The original full-horizon changed
-WRAM trace identifies the independent 2014 result onset and reads `track`,
-`menu` and `in_race` at original movie result **+8, +16, +24 and +32**.
+The default producer retains its archived SMV source controller window
+through **original result +40 frames**. Only when explicitly opted in, extend
+that *same, unchanged movie* through result **+80**. No new buttons, durations,
+ghost route, savestate or victory state are fabricated. The original
+full-horizon WRAM trace identifies the independently observed 2014 result
+onset and reads `track`, `menu` and `in_race` at movie result
+**+8, +16, +24, +32, +64 and +72**. This covers the independently observed
+original Switcher `0x99` screen through movie frame **17087** (result
+17030 +57), instead of ending the experiment before its return-menu phase.
 Missing source frames fail closed. The independently booted Snes9x/native
 replays then collect full real **128 KiB WRAM snapshots** at those same
 offsets measured from **each guest's separately observed fresh result
@@ -187,7 +191,10 @@ host frame, and fresh native host frame. It includes source/original/native
 named state, both fresh guests' laps/checkpoint/finish gate, SHA-256 of genuine
 full-WRAM images, field-level disagreements and exact sample/dump provenance.
 Raw guest bytes remain local to the CI case workspace and are **not**
-uploaded. The primary strict `paired_event_candidate`, event comparator,
+uploaded. Version 2 of the optional compact report records six sample rows,
+with `all_followthrough_named_pairs_equal` and
+`all_followthrough_full_wram_pairs_equal` reporting distinct semantic and
+bytewise outcomes. The primary strict `paired_event_candidate`, event comparator,
 campaign `strict_divergence` classification and `release_admissions: 0`
 are unchanged. This report cannot prove SRAM persistence, final menu
 restoration, valid next-event selection or independent PC/APU correctness.
@@ -198,9 +205,9 @@ gameplay, particularly with the already observed Zoo +5163/+5162, Bowl
 The decision is bounded: determine whether the authentic post-result
 controller continuation remains on the result, enters another state, or
 diverges between original/native. If it changes, isolate the earliest
-+8…+32 sampled mismatch and perform a narrow verified source input /
++8…+72 sampled mismatch and perform a narrow verified source input /
 actual consumer trace. If all agree semantically, that supports only
-continuation for those 32 source-result-relative frames; it does not erase
+continuation for those 72 source-result-relative frames; it does not erase
 the earlier strict result phase mismatch or justify increasing 0/45.
 To execute, manually choose `selected=zoom-zoo` and
 `source_followthrough=true` on the existing campaign. Repeat for Bowl or

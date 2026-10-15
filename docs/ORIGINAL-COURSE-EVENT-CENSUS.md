@@ -65,10 +65,25 @@ partial observations**, **41/45 unverified**. Across all three builds,
 **0/135 complete**, **4/135 partial**, **131/135 unverified**, as encoded in
 `analysis/data/course-event-runtime-evidence.json`. Specifically:
 
-- **USA Dragster (course 01), partial:** the seven-frame native WRAM
-  progression witness observes the postframe checkpoint/lap/finish gate
-  transition, but does not capture the instruction-time dispatcher value
-  or demonstrate original/native all-event/result parity.
+- **USA Dragster (course 01), partial:** an earlier seven-frame native
+  WRAM witness observed the postframe checkpoint/lap/finish gate transition,
+  without identifying the instruction-time dispatcher. **Now independently
+  executed:** the historical 2014 original Snes9x movie enters Dragster
+  at source frame **794** and shows genuine `0x99` Race A result at
+  **2874**. A fresh original Snes9x and pinned Baldosa native guest were
+  independently booted with its exact embedded original SRAM; both enter
+  the stock first Crawler event at host **945**, and replay the same
+  source-owned controller stream. **22/22** in-race semantic snapshots,
+  original/fresh entry signature, P1 checkpoint/finish/laps and exact
+  settled PPU text agree: **MIKE 0:25.08**. However the genuine result
+  starts at **+2081 original / +2079 native**, a strict **two guest-frame
+  native lead**, at absolute hosts **3026/3024**. This run predates Opus's
+  staged RF-015 DRAM refresh correction, so it cannot establish how the
+  corrected runtime behaves. No result-return, cold-process persisted
+  record or complete event has been independently accepted.
+  [Exact SHA-bound real witness](../analysis/data/qa01-dragster-2014-original-baldosa-first-pair-20261014.json);
+  [one-shot native/Snes9x run 38665417679](https://github.com/gamesbyian/UR-Recomp/actions/runs/38665417679).
+  **Still partial, 0/45 accepted.**
 - **USA Zoom Zoo (course 02), partial:** the original pinned 2014
   Snes9x 5,000-frame WRAM write trace has an actual Crawler circuit
   entry at movie frame **3190**, both racers at **(9200,1489)** versus

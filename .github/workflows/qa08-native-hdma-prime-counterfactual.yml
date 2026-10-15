@@ -16,6 +16,12 @@ on:
       - "tools/qa08_compare_channel57_native_prime.py"
       - "tests/unit/test_qa08_patch_channel57_prime_counterfactual.py"
       - "tests/unit/test_qa08_compare_channel57_native_prime.py"
+      - "tools/qa08_patch_extra_original_source_capture.py"
+      - "tests/unit/test_qa08_patch_extra_original_source_capture.py"
+      - "tools/qa08_compare_original_moving_source_window.py"
+      - "tests/unit/test_qa08_compare_original_moving_source_window.py"
+      - "tools/qa08_patch_hdma_all_channels_source.py"
+      - "tests/unit/test_qa08_patch_hdma_all_channels_source.py"
   workflow_dispatch:
 
 permissions:
@@ -38,10 +44,13 @@ jobs:
       UR_BALDOSA_HD: "1"
       UR_BALDOSA_HD_DENSITY: "1"
       UR_QA08_HDMA_COLDATA_FRAME: "2208"
-      # Three real host-presented original-source frames; no fabricated adjacent PPU frames.
+      UR_QA08_HDMA_ALL_CHANNELS_FRAME: "1856"
+      # Five real host-presented source frames including two motion witnesses; no synthesis.
       UR_BALDOSA_FIXED_ORIGINAL_SOURCE_FRAME: "400"
       UR_BALDOSA_FIXED_ORIGINAL_SOURCE_EXTRA_FRAME: "1856"
       UR_BALDOSA_FIXED_ORIGINAL_SOURCE_LATE_FRAME: "2208"
+      UR_QA08_ADDITIONAL_SOURCE_FRAME_A: "2192"
+      UR_QA08_ADDITIONAL_SOURCE_FRAME_B: "2224"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -59,6 +68,9 @@ jobs:
           python3 -m unittest tests.unit.test_qa08_channel7_only_prime_counterfactual
           python3 -m unittest tests.unit.test_qa08_patch_channel57_prime_counterfactual
           python3 -m unittest tests.unit.test_qa08_compare_channel57_native_prime
+          python3 -m unittest tests.unit.test_qa08_patch_extra_original_source_capture
+          python3 -m unittest tests.unit.test_qa08_compare_original_moving_source_window
+          python3 -m unittest tests.unit.test_qa08_patch_hdma_all_channels_source
       - name: Confirm exact prior native core, guest, ROM and route
         shell: bash
         run: |
@@ -81,7 +93,19 @@ jobs:
           python3 tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python3 tools/baldosa_single_presentation_scale_patch.py --root "$GITHUB_WORKSPACE" --framework baldosa/snesrecomp
           python3 tools/baldosa_hd_host_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          # Modify only this disposable CI checkout's read-only Original PPU
+          # source capture observer; shipping production source stays intact.
+          python3 tools/qa08_patch_extra_original_source_capture.py \
+            --source tools/baldosa_native_racer_presentation.cpp
+          python3 tools/qa08_patch_extra_original_source_capture.py \
+            --source tools/baldosa_native_racer_presentation.cpp --apply-experiment
           python3 tools/qa08_patch_hdma_coldata_source.py --framework baldosa/snesrecomp
+          # After the existing source-qualified channel5/7 observer, enable a
+          # read-only all-channel census for one genuine countdown guest frame.
+          python3 tools/qa08_patch_hdma_all_channels_source.py \
+            --framework baldosa/snesrecomp
+          python3 tools/qa08_patch_hdma_all_channels_source.py \
+            --framework baldosa/snesrecomp --apply-experiment
           cmake -S baldosa -B baldosa/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
             -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
@@ -123,7 +147,7 @@ jobs:
             "$RUNNER_TEMP/qa08-counterfactual/baseline"
           grep -q "^UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=$UR_BALDOSA_FIXED_ORIGINAL_SOURCE_LATE_FRAME logical=256x224 saved=1 source=native-original-ppu$" \
             "$RUNNER_TEMP/qa08-counterfactual/baseline/log.txt"
-          for frame in 000400 001856 002208; do
+          for frame in 000400 001856 002192 002208 002224; do
             test -s "$UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-${frame}.pam"
           done
           echo "a946c9ebb54775639b8fd87a6861af0408cceed4896e58be05908c4a4491c67f  $UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-002208.pam" | sha256sum -c -
@@ -155,7 +179,7 @@ jobs:
               "$RUNNER_TEMP/qa08-counterfactual/experiment/fd/crc.txt"
           grep -q "^UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=$UR_BALDOSA_FIXED_ORIGINAL_SOURCE_LATE_FRAME logical=256x224 saved=1 source=native-original-ppu$" \
             "$RUNNER_TEMP/qa08-counterfactual/experiment/log.txt"
-          for frame in 000400 001856 002208; do
+          for frame in 000400 001856 002192 002208 002224; do
             test -s "$UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-${frame}.pam"
           done
           grep "^UR_QA08_HDMA_INIDISP frame=$UR_QA08_HDMA_COLDATA_FRAME " \
@@ -247,7 +271,7 @@ jobs:
               "$RUNNER_TEMP/qa08-counterfactual/channel7/fd/crc.txt"
           grep -q "^UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=$UR_QA08_HDMA_COLDATA_FRAME logical=256x224 saved=1 source=native-original-ppu$" \
             "$RUNNER_TEMP/qa08-counterfactual/channel7/log.txt"
-          for frame in 000400 001856 002208; do
+          for frame in 000400 001856 002192 002208 002224; do
             test -s "$UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-${frame}.pam"
           done
           grep "^UR_QA08_HDMA_INIDISP frame=$UR_QA08_HDMA_COLDATA_FRAME " \
@@ -341,7 +365,7 @@ jobs:
               "$RUNNER_TEMP/qa08-counterfactual/channel57/fd/crc.txt"
           grep -q "^UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=$UR_QA08_HDMA_COLDATA_FRAME logical=256x224 saved=1 source=native-original-ppu$" \
             "$RUNNER_TEMP/qa08-counterfactual/channel57/log.txt"
-          for frame in 000400 001856 002208; do
+          for frame in 000400 001856 002192 002208 002224; do
             test -s "$UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-$frame.pam"
           done
           grep "^UR_QA08_HDMA_CGADSUB frame=$UR_QA08_HDMA_COLDATA_FRAME " \
@@ -377,6 +401,58 @@ jobs:
             --out "$RUNNER_TEMP/qa08-counterfactual/real-channel57-original-vs-native.json"
           cat "$RUNNER_TEMP/qa08-counterfactual/real-channel57-original-vs-native.json" >> "$GITHUB_STEP_SUMMARY"
           echo "Combined 5+7 prime is diagnostic only, not a release renderer correction." >> "$GITHUB_STEP_SUMMARY"
+      - name: Compare two REAL moving native guest sources with all 37 genuine original Snes9x callbacks
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 3 \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "Accept: application/vnd.github+json" \
+            --dump-header "$RUNNER_TEMP/qa08-original-37window-headers" \
+            --output /dev/null \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/11884155561/zip"
+          location="$(awk 'tolower($1) == "location:" {gsub(/\r/, "", $2); print $2}' "$RUNNER_TEMP/qa08-original-37window-headers" | tail -1)"
+          case "$location" in
+            https://*) ;;
+            *) echo "::error::actual source original 37-callback redirect absent"; exit 3 ;;
+          esac
+          curl --fail --silent --show-error --retry 3 --location \
+            --output "$RUNNER_TEMP/qa08-original-37window-exact.zip" "$location"
+          echo "6e5d488230c11d3dfcd144b6a7cbc8c25d7acfcb4f95b776a85071dd3487f5e3  $RUNNER_TEMP/qa08-original-37window-exact.zip" | sha256sum -c -
+          python3 tools/qa08_compare_original_moving_source_window.py \
+            --original-zip "$RUNNER_TEMP/qa08-original-37window-exact.zip" \
+            --stock-dir "$RUNNER_TEMP/qa08-native-baseline" \
+            --global-dir "$RUNNER_TEMP/qa08-native-experiment" \
+            --channel7-dir "$RUNNER_TEMP/qa08-native-channel7" \
+            --channel57-dir "$RUNNER_TEMP/qa08-native-channel57" \
+            --stock-crc "$RUNNER_TEMP/qa08-counterfactual/baseline/fd/crc.txt" \
+            --global-crc "$RUNNER_TEMP/qa08-counterfactual/experiment/fd/crc.txt" \
+            --channel7-crc "$RUNNER_TEMP/qa08-counterfactual/channel7/fd/crc.txt" \
+            --channel57-crc "$RUNNER_TEMP/qa08-counterfactual/channel57/fd/crc.txt" \
+            --out "$RUNNER_TEMP/qa08-counterfactual/real-original-37window-moving-source.json"
+          cat "$RUNNER_TEMP/qa08-counterfactual/real-original-37window-moving-source.json" >> "$GITHUB_STEP_SUMMARY"
+          echo "Source image ranking is not independent guest camera/input phase alignment or shipping HDMA certification." >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve all actual source-qualified HDMA PPU-register writes in countdown across four real guests
+        shell: bash
+        run: |
+          set -euo pipefail
+          for case in baseline experiment channel7 channel57; do
+            log="$RUNNER_TEMP/qa08-counterfactual/$case/log.txt"
+            test -s "$log"
+            if grep -q "^UR_QA08_HDMA_ALL_OVERFLOW " "$log"; then
+              echo "::error::real source HDMA register log truncated for $case"; exit 3
+            fi
+            grep "^UR_QA08_HDMA_ALL frame=$UR_QA08_HDMA_ALL_CHANNELS_FRAME " "$log" \
+              > "$RUNNER_TEMP/qa08-counterfactual/hdma-all-$case.log"
+            test -s "$RUNNER_TEMP/qa08-counterfactual/hdma-all-$case.log"
+            echo "QA08 genuine HDMA register writes for $case: $(wc -l < "$RUNNER_TEMP/qa08-counterfactual/hdma-all-$case.log")" >> "$GITHUB_STEP_SUMMARY"
+          done
+          # Every source event is from the real after-BBUS register-write
+          # observer. Complete four-process guest CRC/source PPU proof already
+          # passes independently in prior bounded workflow steps.
+          echo "No PPU/DMA state modification or channel-causality assertion." >> "$GITHUB_STEP_SUMMARY"
       - name: Preserve exact native source rasters, route CRC and actual DMA register bytes
         if: always()
         uses: actions/upload-artifact@v4
@@ -385,6 +461,11 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
           path: |
+            ${{ runner.temp }}/qa08-counterfactual/hdma-all-baseline.log
+            ${{ runner.temp }}/qa08-counterfactual/hdma-all-experiment.log
+            ${{ runner.temp }}/qa08-counterfactual/hdma-all-channel7.log
+            ${{ runner.temp }}/qa08-counterfactual/hdma-all-channel57.log
+            ${{ runner.temp }}/qa08-counterfactual/real-original-37window-moving-source.json
             ${{ runner.temp }}/qa08-counterfactual/real-channel57-original-vs-native.json
             ${{ runner.temp }}/qa08-counterfactual/channel57/fd/crc.txt
             ${{ runner.temp }}/qa08-counterfactual/channel57/log.txt

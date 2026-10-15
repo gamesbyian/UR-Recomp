@@ -37,6 +37,7 @@ class SparseSourceRasterTest(unittest.TestCase):
             (orig/"qa08-original-1p-sparse.json").write_text(json.dumps({
                 "schema":"fabricated", "USA_ROM_sha256":sparse.ROM_SHA}))
             (win/"qa08-windows-original-oneplayer-coverage.json").write_text("{}")
+            (orig/"qa08-original-1p.script").write_text("until16 0053 == 8610\n")
             route=root/"script.txt"
             route.write_text("turbo on\n")
             with self.assertRaisesRegex(ValueError,"unqualified original"):

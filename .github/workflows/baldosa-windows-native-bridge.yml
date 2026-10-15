@@ -58,6 +58,12 @@ on:
         type: boolean
         required: false
         default: false
+      parallel_workers:
+        description: "Windows journey pilot workers (2 or 3; default 2 for manual opt-in)"
+        type: choice
+        options: ["2", "3"]
+        default: "2"
+        required: true
   workflow_call:
     inputs:
       parallel_journeys:
@@ -65,6 +71,11 @@ on:
         required: false
         type: boolean
         default: false
+      parallel_workers:
+        description: "Bounded worker count for opt-in Windows journey pilot"
+        type: string
+        required: false
+        default: "2"
       export_campaign_inputs:
         description: "Export the one source-bound Windows executable and ROMless ZIP for manual cohort reuse"
         required: false
@@ -199,7 +210,7 @@ jobs:
 
       # Same eleven original scripts and output paths are executed by the
       # bounded runner below, not reimplemented. Native baseline is serial;
-      # the remaining isolated journeys fan out on this one Windows runner.
+      # the remaining isolated journeys fan out on this one Windows runner.\n      # PR validation experiments with three workers; manual/call inputs default\n      # to the already-proven two workers and preserve the serial fallback.
       # PR heads deliberately exercise the pilot; established manual/reusable
       # call sites remain serial unless they explicitly opt in.
       - name: Pilot parallel authentic Windows journeys against one pinned candidate
@@ -207,7 +218,8 @@ jobs:
         run: |
           set -euo pipefail
           python tools/run_baldosa_parallel_windows_journeys.py \
-            --workers 2 --out "$RUNNER_TEMP/baldosa-parallel-journeys"
+            --workers ${{ (github.event_name == 'pull_request' && '3') || inputs.parallel_workers || '2' }} \
+            --out "$RUNNER_TEMP/baldosa-parallel-journeys"
 
       - name: Retain bounded parallel pilot timings without changing QA-12 artifacts
         if: ${{ always() && (github.event_name == 'pull_request' || inputs.parallel_journeys == true) }}

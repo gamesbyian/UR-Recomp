@@ -32,10 +32,13 @@ import probe_tier_opponents as textdecode
 from probe_runtime_course_payload import is_fully_loaded_course
 from rnc_method1 import unpack_method1
 
-# Stock Crawler track-select rows, independently known result-menu values.
-# Switcher is the required first non-Dragster Race; source scan must actually
-# observe its result before replay. No claimed historical Switcher result yet.
+# Crawler stock route selectors and genuine source-2014 result menus.
+# Dragster Race A movie entry/result (794/2874) are original-emulator
+# observations, but this newly enabled *fresh-guest* input transplant has
+# no independent original/native paired result receipt or release credit.
+# The automated bounded campaign stays limited to its 3 prequalified cases.
 CASES = {
+    "dragster": (1, 0, 0x99, "race-a"),
     "zoom-zoo": (2, 1, 0xBC, "circuit-a"),
     "bowl": (3, 2, 0x18, "stunt"),
     "switcher": (4, 3, 0x99, "race-b"),
@@ -74,8 +77,8 @@ def observed_dump_frame(log: str, label: str) -> int:
 
 
 def stock_crawler_script(slot: int) -> str:
-    if slot not in (2, 3, 4):
-        raise CompleteEventError("only independently established Crawler track routes")
+    if slot not in (1, 2, 3, 4):
+        raise CompleteEventError("only source-established Crawler track routes")
     lines = entry.MENU_PREFIX.strip().splitlines()
     lines += ["press a 2", "until 009F == F6 1200", "wait 60"]
     for _ in range(slot - 1):
@@ -405,7 +408,7 @@ def replay_script(slot: int, result_menu: int, frames: list[int],
     if source_followthrough:
         previous = 6
         for offset in SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS:
-            if offset <= previous or offset > 32:
+            if offset <= previous or offset > 72:
                 raise CompleteEventError("invalid original-movie terminal follow-through offset")
             lines += [f"wait {offset - previous}", f"dump original-follow-{offset:02d}"]
             previous = offset
@@ -605,9 +608,11 @@ def observe_bowl_tally_phase(reference_dir: Path, native_dir: Path,
 # prelude that restores track 1 at +5158. Deliberately cross the boundary.
 ZOO_TERMINAL_DURATION = 5163
 ZOO_TERMINAL_FRAMES = tuple(range(5156, 5174))
-# Original 2014 movie is already extracted through result onset +40 host ticks.
-# This optional observation adds no invented result-screen button presses.
-SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS = (8, 16, 24, 32)
+# Archived 2014 source proves Switcher 0x99 through original result+57,
+# then transitions toward track-select. Extend the optional, authentic source
+# window through result+80 so its return phase can actually be witnessed.
+# Default non-opt-in replay retains its original +40 input window and scope.
+SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS = (8, 16, 24, 32, 64, 72)
 ZOO_TERMINAL_FIELDS = ("menu", "track", "in_race", "p1_laps", "p2_laps",
                        "p1_checkpoint", "p1_finish_gate", "p1_contact",
                        "p2_contact", "clock_raw")
@@ -875,14 +880,17 @@ def observe_source_terminal_followthrough(
                 guests["native"]["wram_sha256"]),
         })
     return {
-        "schema": "UR-QA01-SOURCE-ORIGINAL-NATIVE-RESULT-FOLLOWTHROUGH/1",
+        "schema": "UR-QA01-SOURCE-ORIGINAL-NATIVE-RESULT-FOLLOWTHROUGH/2",
         "input_origin": "unchanged archived 2014 movie, relative window extends 40 frames beyond original result",
         "source_guest_relative_result_onset_equivalence_proven": False,
         "sample_alignment": "offsets from each guest's own observed result, not identical race-relative frames",
         "original_and_native_result_phase_equal_proven": (
             original_result_relative == native_result_relative),
-        "all_four_named_pairs_equal": all(r["paired_named_state_equal"] for r in rows),
-        "all_four_full_wram_pairs_equal": all(r["full_wram_bytes_equal"] for r in rows),
+        "sample_count": len(rows),
+        "all_followthrough_named_pairs_equal": all(
+            r["paired_named_state_equal"] for r in rows),
+        "all_followthrough_full_wram_pairs_equal": all(
+            r["full_wram_bytes_equal"] for r in rows),
         "post_result_sram_persistence_proven": False,
         "menu_restoration_or_final_progression_proven": False,
         "strict_event_comparator_unchanged": True,
@@ -1134,6 +1142,13 @@ def scan_source(args, work: Path, sram: Path, source_input: Path,
     if args.source_followthrough:
         event["source_terminal_followthrough"] = source_followthrough_states(
             states, event["original_result_frame"])
+    if args.case == "dragster" and (
+            event["original_entry_frame"] != 794
+            or event["original_result_frame"] != 2874
+            or event["source_active_frames_to_result"] != 2080):
+        raise CompleteEventError(
+            "2014 source Dragster entry/result does not match independently "
+            "executed original movie frames 794/2874")
     if args.case == "zoom-zoo" and event["original_entry_frame"] != 3190:
         raise CompleteEventError("2014 Zoom Zoo entry disagrees with pinned original 3190")
     # The first chronological source trace carries only changed low-WRAM
@@ -1318,7 +1333,8 @@ def main(argv: list[str] | None = None) -> int:
     original_event = scan_source(args, work, sram, source_input, decoded)
     original_bytes, _ = movie.read_movie(args.movie)
     pinned_meta = json.loads(args.movie_meta.read_text())
-    source_length = original_event["source_active_frames_to_result"] + 40
+    source_length = original_event["source_active_frames_to_result"] + (
+        80 if args.source_followthrough else 40)
     source_window = movie.window(original_bytes, pinned_meta,
                                  original_event["original_entry_frame"], source_length)
     if args.source_followthrough and source_length < (

@@ -37,6 +37,12 @@ on:
       - "tools/baldosa_product_pause_spike.py"
       - "tools/baldosa_modern_user_data_spike.py"
       - "tools/baldosa_modern_profile_activation_spike.py"
+      - "tools/baldosa_modern_options_spike.py"
+      - "tests/unit/test_baldosa_modern_options_spike.py"
+      - "native/product/baldosa_native_options.hpp"
+      - "tests/native/baldosa_native_options_test.cpp"
+      - "tests/unit/test_baldosa_native_options_cpp.py"
+      - "tools/baldosa_native_modern_root.cpp"
       - "tools/baldosa_modern_profile_activation.cpp"
       - "tools/baldosa_modern_profile_native_fixture.cpp"
       - "tests/native/baldosa_modern_profile_activation_test.cpp"
@@ -114,6 +120,8 @@ jobs:
           python tests/unit/test_baldosa_native_first_racer_real_run_probe.py
           python tests/unit/test_baldosa_modern_user_data_spike.py
           python tests/unit/test_baldosa_modern_profile_activation_spike.py
+          python tests/unit/test_baldosa_modern_options_spike.py
+          python tests/unit/test_baldosa_native_options_cpp.py
 
       - name: Verify immutable native source pins
         run: |
@@ -135,6 +143,8 @@ jobs:
           python tools/baldosa_modern_user_data_spike.py --game baldosa
           python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_modern_options_spike.py --game baldosa
+          python tools/baldosa_modern_options_spike.py --game baldosa
           # No second native core, ROM or alternate product frontend.
           test -s baldosa/src/main.c
           test -s baldosa/snesrecomp/runner/src/desktop/host_main.c

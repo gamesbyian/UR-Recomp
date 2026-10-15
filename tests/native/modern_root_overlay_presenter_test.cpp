@@ -213,6 +213,53 @@ int main() {
                                       old_view,view));
     assert(!contains("UNRECORDED TWO PLAYER"));
 
+    // Native OPTIONS is opt-in: the old host's exact layout is unchanged and
+    // the modal shows only what the host supplied, with the selected
+    // adjustable value bracketed and any status/notice on one line.
+    painted.clear();
+    assert(!view.options_open);
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(!contains("L/R CHANGE  B BACK"));
+    painted.clear();
+    view.options_open = true;
+    view.options_row_count = 3;
+    view.options_selected = 1;
+    view.options_rows[0] = {"DISPLAY", "WINDOWED", true};
+    view.options_rows[1] = {"VSYNC", "ON", true};
+    view.options_rows[2] = {"CONTROLS", "SHOW", false};
+    view.options_status = "SAVED";
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains(" DISPLAY  WINDOWED"));
+    assert(contains(">VSYNC    < ON >"));
+    assert(contains(" CONTROLS SHOW"));
+    assert(contains("SAVED"));
+    assert(contains("L/R CHANGE  B BACK"));
+    painted.clear();
+    view.options_status = {};
+    view.options_notice = "SAVED OPTIONS DAMAGED";
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("SAVED OPTIONS DAMAGED"));
+    painted.clear();
+    view.options_controls_help = true;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("MENU CONTROLS"));
+    assert(contains("LEFT/RIGHT  CHANGE"));
+    assert(contains("B/ESC    BACK"));
+    assert(!contains(">VSYNC    < ON >"));
+    // A host cannot over-declare rows past the fixed bound.
+    painted.clear();
+    view.options_controls_help = false;
+    view.options_row_count = 99;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    view.options_open = false;
+    view.options_row_count = 0;
+    view.options_notice = {};
+
     painted.clear();
     assert(!render_modern_root_overlay({},pixels,256,224,1,240,
                                        old_view,view));

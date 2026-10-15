@@ -10,6 +10,8 @@
 #include "modern_overlay_composition.hpp"
 #include "modern_overlay_text_fit.hpp"
 
+#include <array>
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <string_view>
@@ -31,6 +33,15 @@ struct ModernRootOverlayPainter {
         return fill_rect && stroke_rect && draw_text;
     }
 };
+
+// One native OPTIONS row as text only. The presenter never learns what a row
+// does; the host supplies only controls it genuinely applies.
+struct ModernRootOptionRowView {
+    std::string_view label{};
+    std::string_view value{};
+    bool adjustable = false;
+};
+inline constexpr std::size_t kModernRootOptionRows = 5;
 
 struct ModernRootOverlayView {
     ModernRootMenu menu{};
@@ -84,6 +95,15 @@ struct ModernRootOverlayView {
     std::string_view practice_course_name{};
     std::string_view practice_tour_name{};
     std::string_view practice_kind_label{};
+    // Native OPTIONS (the pinned Baldosa host only). Older callers leave
+    // options_open false and keep their exact layout.
+    bool options_open = false;
+    bool options_controls_help = false;
+    std::size_t options_selected = 0;
+    std::size_t options_row_count = 0;
+    std::array<ModernRootOptionRowView, kModernRootOptionRows> options_rows{};
+    std::string_view options_status{};
+    std::string_view options_notice{};
 };
 
 inline bool render_modern_root_overlay(
@@ -242,6 +262,79 @@ inline bool render_modern_root_overlay(
                         view.practice_launch_pending
                             ? "B CANCEL" : "A START  B BACK",
                         0xFFFFFFFFu, scale);
+    }
+    if (view.options_open) {
+        const int bx = x + 12 * scale, by = y + 43 * scale;
+        const int bw = (panel_w - 24) * scale, bh = 137 * scale;
+        paint.fill_rect(pixels, stride, surface_height,
+                        bx, by, bw, bh, palette.background);
+        paint.stroke_rect(pixels, stride, surface_height,
+                          bx, by, bw, bh, palette.title_yellow);
+        const auto cells = modern_overlay_text_cells(panel_w - 30);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 8 * scale,
+                        view.options_controls_help ? "MENU CONTROLS"
+                                                   : "OPTIONS",
+                        palette.title_yellow, scale);
+        if (view.options_controls_help) {
+            constexpr const char* kHelp[] = {
+                "UP/DOWN  MOVE",
+                "A/ENTER  SELECT",
+                "B/ESC    BACK",
+                "LEFT/RIGHT  CHANGE",
+                "X  RACER SETUP",
+            };
+            for (std::size_t i = 0; i < 5; ++i)
+                paint.draw_text(pixels, stride, surface_height,
+                                bx + 9 * scale,
+                                by + (26 + static_cast<int>(i) * 14) * scale,
+                                fit_modern_overlay_text(kHelp[i], cells).c_str(),
+                                0xFFFFFFFFu, scale);
+            paint.draw_text(pixels, stride, surface_height,
+                            bx + 9 * scale, by + 114 * scale,
+                            "A/B BACK", palette.cursor_blue, scale);
+        } else {
+            const std::size_t rows = view.options_row_count <
+                kModernRootOptionRows ? view.options_row_count
+                                      : kModernRootOptionRows;
+            for (std::size_t i = 0; i < rows; ++i) {
+                const bool selected = i == view.options_selected;
+                const int row_y = by + (24 + static_cast<int>(i) * 14) * scale;
+                if (selected)
+                    paint.fill_rect(pixels, stride, surface_height,
+                                    bx + 4 * scale, row_y - 3 * scale,
+                                    bw - 8 * scale, 13 * scale,
+                                    palette.cursor_blue);
+                const auto& row = view.options_rows[i];
+                std::string value(row.value);
+                if (row.adjustable && selected) value = "< " + value + " >";
+                std::string label(row.label);
+                if (label.size() < 9) label.append(9 - label.size(), ' ');
+                paint.draw_text(pixels, stride, surface_height,
+                                bx + 9 * scale, row_y,
+                                fit_modern_overlay_text(
+                                    std::string(selected ? ">" : " ") +
+                                    label + value, cells).c_str(),
+                                selected ? palette.shadow_black : 0xFFFFFFFFu,
+                                scale);
+            }
+            const bool has_status = !view.options_status.empty();
+            const bool has_notice = !view.options_notice.empty();
+            if (has_status || has_notice)
+                paint.draw_text(pixels, stride, surface_height,
+                                bx + 9 * scale, by + 98 * scale,
+                                fit_modern_overlay_text(
+                                    has_status ? view.options_status
+                                               : view.options_notice,
+                                    cells).c_str(),
+                                has_status ? palette.title_yellow
+                                           : palette.secondary_grey, scale);
+            paint.draw_text(pixels, stride, surface_height,
+                            bx + 9 * scale, by + 114 * scale,
+                            fit_modern_overlay_text(
+                                "L/R CHANGE  B BACK", cells).c_str(),
+                            palette.cursor_blue, scale);
+        }
     }
     if (view.quit_confirm) {
         const int qx = x + 12 * scale, qy = y + 65 * scale;

@@ -1,9 +1,6 @@
 # UR-Recomp: active work queue
 
-### Conditional cross-project reuse: October 15 PAL update
-
-A bounded [October 15 malmazuke PAL handoff](CROSS-PROJECT-BEHAVIOR-CORROBORATION.md#october-15-2026-pal-intake-menu-controls-and-multi-tour-leagues-conditional) records newly integrated original PAL menu-controller measurements (R-0097, #79) and the **still-draft** multi-tour league evidence (R-0098, #81). They are *conditional accelerators* for the already-owned QA-01/07 event/progression, Modern controller-only 2P, and persistence/independent QA journeys; they **are not** a new P0 task, new implementation owner, automatic Actions campaign, or USA acceptance witness. An owning agent should first check its live blocker, upstream review status, and existing Baldosa/UR evidence; if genuinely relevant, replay the smallest equivalent USA route on the nominated exact Windows build and record the first divergence. The 45-USA-event denominator, one accepted complete-event target and release-ledger authority remain unchanged. Existing R-0095 PAL controller/Mode-7 evidence is already covered; do not duplicate it.
-
+**Conditional PAL reuse (October 15):** [Source-pinned menu R-0097 and draft league R-0098](CROSS-PROJECT-BEHAVIOR-CORROBORATION.md#october-15-2026-pal-intake-menu-controls-and-multi-tour-leagues-conditional) are *advisory* to existing QA-01/07, Modern controller/2P and persistence owners only when a live USA discrepancy warrants the smallest source-pinned replay. No new workstream, Actions campaign, 45-event shortcut or release-gate credit; R-0095 is already ingested.
 
 **Integration baseline (2026-10-15 05:06 UTC): `main` `ac3f494994991497703359d8c6ad8af8605112b8`.** Open PRs then were QA-01 #1639, QA-01 #1640 (draft), and QA-08 #1641 (independent graphics hold). Recheck live heads and Actions before acting; this timestamp is not a future-state guarantee. The queue owns assignments while [RELEASE-QUALITY-LEDGER.json](RELEASE-QUALITY-LEDGER.json) alone owns release candidates and QA decisions.
 

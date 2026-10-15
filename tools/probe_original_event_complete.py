@@ -1405,6 +1405,9 @@ def scan_source(args, work: Path, sram: Path, source_input: Path,
     if args.source_followthrough:
         event["source_terminal_followthrough"] = source_followthrough_states(
             states, event["original_result_frame"])
+    if args.zoo_next_bowl:
+        event["source_next_bowl"] = source_zoo_next_bowl(
+            states, event["original_result_frame"])
     if args.case == "dragster" and (
             event["original_entry_frame"] != 794
             or event["original_result_frame"] != 2874
@@ -1562,6 +1565,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="opt-in Zoo +5156..+5173 fixed-frame/host phase comparison; no admission")
     ap.add_argument("--source-followthrough", action="store_true",
                     help="opt-in archived original/native +8/+16/+24/+32 postresult guest WRAM; no admission")
+    ap.add_argument("--zoo-next-bowl", action="store_true",
+                    help="opt-in unchanged 2014 Zoo original input through source Bowl active race at movie frame 8620")
     ap.add_argument("--observe-one-frame-stunt-lead", action="store_true",
                     help="report a verified narrow Stunt phase gap as diagnostic CI success; never admit a course")
     ap.add_argument("--snesref", type=Path, required=True)
@@ -1581,6 +1586,10 @@ def main(argv: list[str] | None = None) -> int:
         ap.error("only canonical USA retail ROM is admitted")
     if args.switcher_same_host_full_memory_offsets and not args.switcher_same_host_penultimate:
         ap.error("Switcher full-memory offsets require --switcher-same-host-penultimate")
+    if args.zoo_next_bowl and (args.case != "zoom-zoo"
+                               or not args.source_followthrough
+                               or args.native_backend != "pinned-baldosa"):
+        ap.error("Next Bowl entry requires pinned original/native Zoom Zoo source followthrough")
     if args.source_horizon < 12500 or args.source_horizon > 24000:
         ap.error("source horizon must be 12500..24000")
     streams = list(rnc.find_streams(args.rom.read_bytes()))
@@ -1603,7 +1612,8 @@ def main(argv: list[str] | None = None) -> int:
     original_bytes, _ = movie.read_movie(args.movie)
     pinned_meta = json.loads(args.movie_meta.read_text())
     source_length = original_event["source_active_frames_to_result"] + (
-        80 if args.source_followthrough else 40)
+        max(ZOO_NEXT_BOWL_OFFSETS) + 6 if args.zoo_next_bowl
+        else 80 if args.source_followthrough else 40)
     source_window = movie.window(original_bytes, pinned_meta,
                                  original_event["original_entry_frame"], source_length)
     if args.source_followthrough and source_length < (
@@ -1640,7 +1650,8 @@ def main(argv: list[str] | None = None) -> int:
     script.write_text(replay_script(
         stream, menu, frames, kind == "stunt",
         tally_phase=args.bowl_tally_phase,
-        source_followthrough=args.source_followthrough))
+        source_followthrough=args.source_followthrough,
+        zoo_next_bowl=args.zoo_next_bowl))
     reference_script = script
     if args.switcher_same_host_penultimate:
         if args.case != "switcher" or args.native_backend != "pinned-baldosa":
@@ -1708,6 +1719,11 @@ def main(argv: list[str] | None = None) -> int:
         terminal_frames["reference_relative"], terminal_frames["native_relative"],
         track)
         if args.source_followthrough else None)
+    next_bowl = (observe_zoo_next_bowl_handoff(
+        replay / "ref", replay / "native", rl, nl,
+        original_event["source_next_bowl"], rf, nf,
+        terminal_frames["reference_relative"], terminal_frames["native_relative"])
+        if args.zoo_next_bowl else None)
     switcher_same_host_memory = (observe_switcher_same_host_memory_offsets(
         replay / "ref", replay / "native", switcher_same_host)
         if args.switcher_same_host_full_memory_offsets else None)
@@ -1727,6 +1743,7 @@ def main(argv: list[str] | None = None) -> int:
         "switcher_same_host_penultimate": switcher_same_host,
         "switcher_same_host_full_memory_offsets": switcher_same_host_memory,
         "source_terminal_followthrough": source_followthrough,
+        "zoo_next_bowl_handoff": next_bowl,
         "reference_script_sha256": sha(reference_script),
         "reference": reference, "native": native,
         "scope": "original archived scene inputs, fresh reference/native stock menu; event results text from guest PPU dumps; instruction-time contact causality unproven"

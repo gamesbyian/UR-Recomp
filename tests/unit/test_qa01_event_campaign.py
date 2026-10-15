@@ -49,6 +49,65 @@ def producer(case: str, *, matched: bool = False) -> dict:
     }
 
 
+def postresult_fixture(*, first_native_divergence: int | None = 16) -> dict:
+    """Synthetic three-clock test only; NOT a genuine emulator witness."""
+    report = producer("zoom-zoo", matched=True)
+    offsets = c.FOLLOWTHROUGH_OFFSETS
+    source = {}
+    captures = []
+    for offset in offsets:
+        source_row = {
+            "original_movie_host_frame": 8353 + offset,
+            "menu": 0xBC if offset <= 16 else 0xF6,
+            "track": 1, "in_race": 0x3D,
+        }
+        source[str(offset)] = source_row
+        original = {
+            "menu": source_row["menu"], "track": 1, "in_race": 0x3D,
+            "p1_laps": 0, "p2_laps": 0,
+            "p1_checkpoint": 1, "p1_finish_gate": 1,
+            "full_wram_bytes": 0x20000, "wram_sha256": "a" * 64,
+        }
+        native = dict(original)
+        if offset == first_native_divergence:
+            native["menu"] = 0xF6 if original["menu"] != 0xF6 else 0xBC
+            native["wram_sha256"] = "b" * 64
+        diff = [k for k in c.FOLLOWTHROUGH_SOURCE
+                if original[k] != native[k]]
+        captures.append({
+            "offset_from_each_observed_result_onset": offset,
+            "source_original_movie": source_row,
+            "independently_observed_replay_host_frames": {
+                "original": 984 + 5163 + offset,
+                "native": 986 + 5163 + offset,
+            },
+            "fresh_guests": {"original": original, "native": native},
+            "source_named_state_comparison": {
+                "original": {"source_named_state_equal": True,
+                             "named_fields_different_from_source": []},
+                "native": {"source_named_state_equal": not diff,
+                           "named_fields_different_from_source": diff},
+            },
+            "paired_named_state_equal": not diff,
+            "full_wram_bytes_equal": native["wram_sha256"] == original["wram_sha256"],
+        })
+    report["original_source_event"]["source_terminal_followthrough"] = source
+    report["source_terminal_followthrough"] = {
+        "schema": c.FOLLOWTHROUGH_SCHEMA,
+        "sample_count": 6,
+        "samples": captures,
+        "source_guest_relative_result_onset_equivalence_proven": False,
+        "original_and_native_result_phase_equal_proven": True,
+        "all_followthrough_named_pairs_equal": first_native_divergence is None,
+        "all_followthrough_full_wram_pairs_equal": first_native_divergence is None,
+        "post_result_sram_persistence_proven": False,
+        "menu_restoration_or_final_progression_proven": False,
+        "strict_event_comparator_unchanged": True,
+        "release_complete_usa_event_credit": 0,
+    }
+    return report
+
+
 class QA01CampaignTest(unittest.TestCase):
     SHA = "b" * 40
 
@@ -105,6 +164,105 @@ class QA01CampaignTest(unittest.TestCase):
         self.assertRegex(result["evidence"]["producer_sha256"], r"^[0-9a-f]{64}$")
         failed = c.classify("bowl", 1, path, plan)
         self.assertEqual(failed["disposition"], "producer_error")
+
+    def test_strict_result_candidate_with_divergent_menu_remains_investigative(self):
+        report = postresult_fixture()
+        plan = self.plan("zoom-zoo")
+        path = self.root / "source-followthrough.json"
+        c.write_json(path, report)
+        result = c.classify("zoom-zoo", 0, path, plan)
+        self.assertEqual(result["disposition"], "strict_candidate")
+        self.assertEqual(result["release_credit"], 0)
+        bounded = result["evidence"]["post_result_bounded"]
+        self.assertEqual(bounded["status"], "sampled_named_divergence")
+        self.assertEqual(bounded["samples"], 6)
+        self.assertEqual(bounded["first_named_divergence_offset"], 16)
+        self.assertEqual(bounded["named_divergences"][0][
+            "native_vs_fresh_original"], ["menu"])
+        self.assertFalse(bounded["all_fresh_wram_sha256_pairs_equal"])
+        self.assertIn("result-relative +16", result["reason"])
+        self.assertFalse(bounded["unsampled_frames_or_persistence_proven"])
+        aggregate_dir = self.root / "qa01-case"
+        c.write_json(aggregate_dir /
+                     "qa01-campaign-case-zoom-zoo/case-result.json", result)
+        summary, _ = c.aggregate(plan, aggregate_dir)
+        self.assertTrue(summary["transport_complete"])
+        self.assertEqual(summary["release_admissions"], 0)
+
+    def test_bounded_six_sample_agreement_never_grants_full_event(self):
+        plan = self.plan("zoom-zoo")
+        path = self.root / "bounded-match.json"
+        c.write_json(path, postresult_fixture(first_native_divergence=None))
+        result = c.classify("zoom-zoo", 0, path, plan)
+        self.assertEqual(result["disposition"], "strict_candidate")
+        self.assertEqual(result["evidence"]["post_result_bounded"]["status"],
+                         "six_sample_triplet_named_agreement")
+        self.assertIsNone(result["evidence"]["post_result_bounded"][
+            "first_named_divergence_offset"])
+        self.assertEqual(result["release_credit"], 0)
+        self.assertFalse(result["evidence"]["post_result_bounded"][
+            "unsampled_frames_or_persistence_proven"])
+        # Producer without the option cannot silently imply lifecycle parity.
+        c.write_json(path, producer("zoom-zoo", matched=True))
+        absent = c.classify("zoom-zoo", 0, path, plan)
+        self.assertEqual(absent["evidence"]["post_result_bounded"],
+                         {"status": "not_observed", "samples": 0,
+                          "first_named_divergence_offset": None,
+                          "release_credit": 0})
+
+    def test_postresult_report_must_reconcile_actual_triplet_host_receipts(self):
+        plan = self.plan("zoom-zoo")
+        path = self.root / "tampered-followthrough.json"
+        def mutate_native_time(p):
+            p["source_terminal_followthrough"]["samples"][1][
+                "independently_observed_replay_host_frames"]["native"] += 1
+        def mutate_source_frame(p):
+            p["original_source_event"]["source_terminal_followthrough"]["16"][
+                "original_movie_host_frame"] += 1
+        def mutate_source_copy(p):
+            p["source_terminal_followthrough"]["samples"][1][
+                "source_original_movie"]["menu"] = 0xF6
+        def mutate_menu_pair_flag(p):
+            p["source_terminal_followthrough"]["samples"][1][
+                "paired_named_state_equal"] = True
+        def mutate_native_movie_claim(p):
+            p["source_terminal_followthrough"]["samples"][1][
+                "source_named_state_comparison"]["native"][
+                    "source_named_state_equal"] = True
+        def mutate_raw_sha_pair_flag(p):
+            p["source_terminal_followthrough"]["samples"][1][
+                "full_wram_bytes_equal"] = True
+        def mutate_strict_result(p):
+            p["source_terminal_followthrough"][
+                "original_and_native_result_phase_equal_proven"] = False
+        def mutate_sram_claim(p):
+            p["source_terminal_followthrough"][
+                "post_result_sram_persistence_proven"] = True
+        def mutate_credited(p):
+            p["source_terminal_followthrough"][
+                "release_complete_usa_event_credit"] = 1
+        def mutate_missing_source(p):
+            p["original_source_event"].pop("source_terminal_followthrough")
+        def mutate_summary(p):
+            p["source_terminal_followthrough"][
+                "all_followthrough_named_pairs_equal"] = True
+        def mutate_duplicate_sample(p):
+            p["source_terminal_followthrough"]["samples"][2][
+                "offset_from_each_observed_result_onset"] = 16
+        for tweak in (
+            mutate_native_time, mutate_source_frame, mutate_source_copy,
+            mutate_menu_pair_flag, mutate_native_movie_claim,
+            mutate_raw_sha_pair_flag, mutate_strict_result,
+            mutate_sram_claim, mutate_credited, mutate_missing_source,
+            mutate_summary, mutate_duplicate_sample,
+        ):
+            with self.subTest(tweak=tweak.__name__):
+                report = postresult_fixture()
+                tweak(report)
+                c.write_json(path, report)
+                out = c.classify("zoom-zoo", 0, path, plan)
+                self.assertEqual(out["disposition"], "producer_error")
+                self.assertEqual(out["release_credit"], 0)
 
     def test_invalid_identity_provenance_or_frame_is_not_scientific_negative(self):
         plan = self.plan("bowl")

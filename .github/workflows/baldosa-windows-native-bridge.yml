@@ -455,6 +455,27 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           path: ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_second_racer_interrupted_p2/ci-owned-p2-recovery-raw/
+      # Separate from the strict QA-12 pause-evidence ZIP allowlist. Bounded
+      # source logs and the kill receipt only: no ROM, executable or saves.
+      - name: Retain bounded native Practice lifecycle logs separately
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-native-practice-lifecycle
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_source_practice_dragster/report.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_source_practice_dragster/game1_practice_stock_dragster/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_source_practice_dragster/named_p1_creation/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_source_practice_dragster/named_p1_practice_guest/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_source_practice_dragster/named_p1_practice_hard_killed/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_source_practice_dragster/named_p1_practice_hard_killed/kill-receipt.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_source_practice_dragster/named_p1_boot_after_practice_kill/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_source_practice_dragster/named_p1_practice_after_kill/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_source_practice_dragster/ordinary_idle_boot_1_normalizes/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_source_practice_dragster/ordinary_idle_boot_2_control/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_source_practice_dragster/boundary-receipts.json
       - name: Export verified shared Windows inputs for bounded manual reliability campaigns
         if: ${{ inputs.export_campaign_inputs == true }}
         shell: bash

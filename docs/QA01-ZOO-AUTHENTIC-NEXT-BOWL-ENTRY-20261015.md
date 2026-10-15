@@ -52,3 +52,12 @@ The imported Baldosa mapping calls 77:10A7 `sCutsceneTimer2`, but **none of thes
 The permanent machine-readable original/native receipt is [analysis/data/qa01-zoo-next-bowl-rf015-exact-negative-20261015.json](../analysis/data/qa01-zoo-next-bowl-rf015-exact-negative-20261015.json). The exact-source patched RF-017 repeat uses a distinct disposable research branch based on merged CPU implementation, with no source ROM, controller, 45-course acceptance or shipping Windows changes.
 
 **Do not award complete USA event credit:** still **0/45**. The next result must be read from the separately executed **RF-017** case, not inferred from the success of RF-017 at the earlier result-return transition.
+
+### Independent-clock reconciliation: same host-entry frame, unequal result-relative interval
+
+**Do not interpret the RF-015 native +265 versus reference +267 as a two-frame lead in absolute process time.** The native guest begins Zoo at host 1019 and reaches its result at host **6182**; the original Snes9x starts at host 1017 and reaches its result at host **6180**. Their genuine next Bowl active-entry captures are both at **absolute host frame 6447**:
+
+- Fresh reference: `1017 + 5163 + 267 = 6447`.
+- Fresh native: `1019 + 5163 + 265 = 6447`.
+
+The original archived movie's absolute frame **8620** is a separate third clock axis and cannot be compared to fresh host 6447 as the same process. Hence the *strict source movie and fresh Snes9x Zoo-result-to-Bowl interval* is **267**, while the native interval is **265**, but the next Bowl first appears on exactly the same fresh host frame. The new observer and synthetic tests retain both the true absolute host entrance and separate per-Zoo-result interval, rather than calling one a universally early presentation. The three genuinely unequal SRAM bytes at aligned result-relative observations are a separate source-state question. This nuance does not waive the strict relative-event contract, nor give a complete-event credit.

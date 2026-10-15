@@ -149,6 +149,40 @@
       "actual_raw_one_player_run_file_archived": false,
       "producer_only_reported_one_player_run_sha256": "877d8dafd6b466f3716b19215242b7c3b60d416a678e968e2aee973905150d8c",
       "claim_limit": "independent source-event chronology only, no independent 1P run-byte hash, no original-emulator strict complete event, no physical controller"
+    },
+    "practice_pause_options_native_source": {
+      "artifact_id": 12010555537,
+      "actual_process_log_paths": [
+        "native_practice_courses/pause-options-sdl_keys/log.txt",
+        "native_practice_courses/pause-options-p1_pad_semantic/log.txt"
+      ],
+      "distinct_native_processes": 2,
+      "source_practice_course": "DRAGSTER original_course 1",
+      "guest_frame_at_pause": 2500,
+      "panel_render_pixels": "512x448",
+      "reported_guest_steps_during_options": 0,
+      "volume_before": 100,
+      "volume_after": 90,
+      "source_options_close_still_paused": true,
+      "frozen_pumps": 24,
+      "resumed_guest_frame": 2501,
+      "original_profile_sram_restored_after_exit": true,
+      "physical_gamepads_seen": 0,
+      "audio": "dummy",
+      "claim_limit": "actual native Windows logged pause/options input and freeze/resume, no independent rendered pixel or physical-device source"
+    },
+    "practice_delayed_restart_native_source": {
+      "artifact_id": 12010555537,
+      "process_log_path": "native_practice_courses/restart-in-practice/log.txt",
+      "anchor_guest": 973,
+      "restart_request_guest": 2500,
+      "paused": true,
+      "producer_reported_sram_equal": true,
+      "producer_reported_wram_rewound": true,
+      "resumed_guest_frame": 2501,
+      "guest_steps_during_frozen_panel": 0,
+      "actual_raw_sram_pair_retained": false,
+      "claim_limit": "Windows process source event trace, not independent raw SRAM byte replay"
     }
   },
   "limitations": [

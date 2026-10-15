@@ -145,6 +145,14 @@ Default to a task that can become **one coherent PR with one acceptance story**.
 
 A good agent task usually owns one of: a pure policy/model, one product surface, one bounded runtime adapter, one acceptance harness, one asset family, or one release gate. If the prompt needs several independent “and then” clauses, split it unless those steps share one unavoidable inference boundary.
 
+### Distinguish computational work from integration
+
+GitHub Actions supplies Windows/emulator/long-running CPU resources not necessarily available in an agent's local environment. A **computational PR** is a working branch that opens the required `pull_request` gates; it may legitimately accumulate multiple bounded experiments, failed hypotheses and proof iterations before it becomes a reviewed integration PR. Keep the same branch and PR for the same inference boundary rather than merging every experimental receipt. This does **not** prohibit separate parallel work with disjoint owners, and a material discovered defect still requires immediate protection.
+
+When an established `workflow_dispatch` can run against the branch at the exact source SHA, use it instead of manufacturing a new PR solely to trigger a run; newly introduced workflow definitions require an allowed GitHub trigger before they can dispatch. The existing Modern native heavy router skips draft PRs. Choose draft/ready status with that concrete routing contract in mind, and never weaken source pinning or independent QA to obtain cheaper compute.
+
+For repeated independent hypotheses sharing immutable inputs, prefer one pinned build, a bounded treatment matrix and one source-qualified aggregate; preserve each treatment's evidence and the exact guest/ROM/toolchain identity. Preserve the existing serial transaction for shared evidence writers, not unnecessary serialization of independent CPU work. Avoid new always-on workflows or over-broad runner reservations. The measured rollout and safe pilot order live in [CI acceleration execution](CI-ACCELERATION-EXECUTION-20261014.md). Measure actual saved runner-minutes and time-to-accepted capability rather than rewarding fewer PRs as an end in itself.
+
 ### No CI babysitting
 
 An agent should run the cheapest relevant local/static/narrow acceptance it can, push the PR, record the expected gate, and move to another useful task. Do not spend an agent turn repeatedly polling GitHub Actions. Reconcile CI opportunistically when returning to the branch, or in a dedicated integration/CI lane that can repair failures across several recently landed PRs.

@@ -16,6 +16,14 @@ For cheap CI unit tests, `tools/summarize_unittest_ci.py` now emits `ci-tooling-
 
 **Change coupling rule:** whenever a workflow changes its trigger, routing predicate, build-sharing threshold, or summary contract, update *all* existing policy tests that assert the previous behavior in the same change. Search both focused classifier tests and `tests/unit/test_ci_trigger_policy.py`, then verify the actual first failing assertion on the current head. The 2026-10-10 pairwise-build rollout exposed a stale three-suite assertion; the follow-up audit records the correction. A newly green classifier unit test does not imply the broader CI policy suite is green.
 
+## Computational PRs and branch execution
+
+Not every PR-triggered run is a merge-validation gate: agents often need real Windows runners, original emulators or native code generation before the implementation can be completed. Keep a stable PR head for a coherent experimental/computational task; perform cheap local/static iteration, make deliberate pushes for decisions needing hosted execution, and consolidate its tested result in the eventual integration review. Do not apply a PR-count quota or replace necessary hosted computation with unverified local approximations. Conversely, don't create and merge separate PRs for each observation within one hypothesis or feature boundary.
+
+Existing manual `workflow_dispatch` experiments can run on a requested branch/ref when their workflow definition is available on the default branch. Verify actual checked-out SHA; a new PR-only workflow definition does not become runnable through manual dispatch merely because it exists on a feature branch. Consider the Modern heavy router's draft-PR suppression when choosing a computational workspace. Always preserve exact source/ROM/input/candidate evidence for each run.
+
+Measure changes using the manual `ci-runtime-report.yml` and its explicit sample-window completeness flag: run starts, completion duration, job/step runner-minutes and cancelled runner-minutes have different meanings. Favor build-once/fan-out consumers only when their configurations and immutable bytes genuinely match. Do not parallelize dependent parts of one save/recovery journey or shared append-only ledger mutations. See [current CI acceleration rollout](CI-ACCELERATION-EXECUTION-20261014.md); its pilot caps do not override the live research admission policy or the current release ledger.
+
 ## Workflow classes
 
 Every workflow must fit one primary class.

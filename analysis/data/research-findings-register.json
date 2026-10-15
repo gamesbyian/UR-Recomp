@@ -1,6 +1,6 @@
 {
   "schema": "ur-research-findings-register/1",
-  "updated": "2026-10-14",
+  "updated": "2026-10-15",
   "release_gate_credit": 0,
   "authority": "docs/RESEARCH-FINDINGS-QUEUE.md; validated by tools/research_findings.py",
   "findings": [
@@ -375,7 +375,7 @@
       "id": "RF-016",
       "title": "Baldosa runs the SPC700 at 17088 cycles per field (~1.02696 MHz) where Snes9x and bsnes use ~1.02528 MHz: SPC uploads end early, explaining the attract 941-1098 load and the remaining one-field-early 2P result onset (seed 50048000)",
       "class": "original_native_discrepancy",
-      "status": "handed_off",
+      "status": "resolved",
       "evidence": "original_and_native",
       "owner_lane": "qa01-gameplay",
       "reproducer": {
@@ -387,18 +387,23 @@
       "source_artifacts": [
         "docs/QA01-RF015-DRAM-REFRESH-BEAM-RATE-20261014.md",
         "analysis/data/rf015-dram-refresh-beam-rate-20261014.json",
-        "snesrecomp runner/src/apu_frame_clock.h RTL_APU_CYCLES_PER_FRAME 17088 at baldosa/snesrecomp@075fbe4"
+        "snesrecomp runner/src/apu_frame_clock.h RTL_APU_CYCLES_PER_FRAME 17088 at baldosa/snesrecomp@075fbe4",
+        "docs/RF016-019-TIMING-CORRECTIONS-20261015.md",
+        "analysis/data/rf016-019-timing-corrections-20261015.json",
+        "tools/baldosa_spc_reference_rate_patch.py",
+        "tests/unit/test_baldosa_spc_reference_rate_patch.py"
       ],
       "observation": "Low WRAM ($0200-$1DFF) is identical on Snes9x, bsnes and both Baldosa builds every frame 2-1096. The 941-1098 black load is Snd_UploadBlockList (82:82A9): 64 block headers via JSR $8328 and CPU decompression (82:812A) feeding a byte stream (82:82EF STA $2143/STA $2142, 82:8301 CMP $2142/BNE). All 46,414 port-2 writes align one-to-one by value; Baldosa gains ~19k master clocks during the IPL/handshake phase (1009-1025) and ~50k steadily across the ~71-field stream (655 vs 653-654 bytes per field), ending ~73k clocks (~54 lines) ahead. The black screen therefore ends at 1097 vs 1098 and the next starts at 1422 vs 1423; unaffected by the RF-015 refresh correction, which fixed the 3632-3762 load. The remaining 2P onset residual is the same mechanism: on seed 50048000 the original CPU is in the result-screen song upload (Snd_UploadBlockList) until 5013 V=230 and reaches 80:FAC9 at V=232, seven lines after VBlank; the refresh-corrected core onsets at 5014. With the disposable 17060-cycle build the paired run gives onset 5015 = 5015, 34 = 34 and one transient 7-byte frame (5012).",
-      "uncertainty": "Disposable A/B executed 2026-10-14 (refresh-corrected build + RTL_APU_CYCLES_PER_FRAME 17060, exe 81315543...): the 941 load then ends on bsnes's frame (1098) and the next starts on it (1423), but 1423-1548 vs 1547 and 3633-3763 vs 3632-3762 move one frame late. The SPC rate therefore participates, but the references' nominal 32040 Hz x 32 over-corrects other loads and the ~19k-clock IPL-phase lead is unattributed. Real consoles' APU resonators vary; Baldosa's audio pipeline is built around 534 samples per field, so the rate is a design constant, not a one-line fix.",
-      "resolving_experiment": "Attribute the IPL-phase lead (1009-1025: SPC reset to $BBAA ready, small port-0/1 blocks) with an SPC-side PC/cycle trace on Baldosa and bsnes, then re-test the per-field stream rate; adopt no SPC-rate change until every attract load and the 2P/Zoo witnesses agree.",
-      "consequence": "Result-screen song uploads decide the 0x84 onset field when the original reaches the wait just after VBlank (2P seed 50048000; likely QA-01 Switcher +4664), and attract loads end a fraction of a field early. Affects strict frame-exact event comparison."
+      "uncertainty": "Disposable A/B executed 2026-10-14 (refresh-corrected build + RTL_APU_CYCLES_PER_FRAME 17060, exe 81315543...): the 941 load then ends on bsnes's frame (1098) and the next starts on it (1423), but 1423-1548 vs 1547 and 3633-3763 vs 3632-3762 move one frame late. The SPC rate therefore participates, but the references' nominal 32040 Hz x 32 over-corrects other loads and the ~19k-clock IPL-phase lead is unattributed. Real consoles' APU resonators vary; Baldosa's audio pipeline is built around 534 samples per field, so the rate is a design constant, not a one-line fix. The RF-017 in-order register-access correction (2026-10-15) leaves every RF-016 witness unchanged: attract 941-1097/1422, 2P seed 50048000 at 5052, Switcher +4664. 2026-10-15: rate corrected in a staged candidate; not staged into the Windows bridge.",
+      "resolving_experiment": "Done: reference-rate candidate measured on the attract census, 18 2P pairs and four 1P cases; see resolution.",
+      "consequence": "Result-screen song uploads decide the 0x84 onset field when the original reaches the wait just after VBlank (2P seed 50048000; likely QA-01 Switcher +4664), and attract loads end a fraction of a field early. Affects strict frame-exact event comparison.",
+      "resolution": "The rate error is real and corrected for the attract load only. tools/baldosa_spc_reference_rate_patch.py clocks the SPC700 at the references' 15664/328125 cycles per master clock (Snes9x NTSC ratio = bsnes 32040x768/24) on a master-clock timeline; the attract load 941-1098 then equals both references (was 941-1097). Falsified for the other two attributed witnesses: 2P seed 50048000 (still one field early; first difference is the 5012 sound-queue handshake) and Switcher +4664 are unchanged by the rate. The exposed second-load error is RF-018."
     },
     {
       "id": "RF-017",
-      "title": "Zoom Zoo post-result: the refresh-corrected core passes the 80:FAC9 wait one field early at result +2 (original arrives 122 clocks before VBlank and is caught by NMI); both Baldosa builds show it",
+      "title": "Zoom Zoo post-result: Baldosa passed the 80:FAC9 wait one field early from result +2 because paced_bus code charges a block's later fetches before its register accesses (80:FAD6 reads $4212 16 clocks late); corrected by an in-order emitter charge",
       "class": "original_native_discrepancy",
-      "status": "handed_off",
+      "status": "resolved",
       "evidence": "original_and_native",
       "owner_lane": "qa01-gameplay",
       "reproducer": {
@@ -409,12 +414,87 @@
       },
       "source_artifacts": [
         "docs/QA01-RF015-DRAM-REFRESH-BEAM-RATE-20261014.md",
-        "analysis/data/rf015-dram-refresh-beam-rate-20261014.json"
+        "analysis/data/rf015-dram-refresh-beam-rate-20261014.json",
+        "docs/RF017-IO-ACCESS-CLOCK-ORDER-20261015.md",
+        "analysis/data/rf017-io-access-clock-order-20261015.json",
+        "tools/baldosa_io_access_clock_order_patch.py",
+        "tests/unit/test_baldosa_io_access_clock_order_patch.py"
       ],
       "observation": "With the onset corrected (+5163 = +5163), the merged producer's follow-through shows native at menu 246 by result +16 while the original and the archived source movie are still at 188. Dense per-frame replay: identical through +1; from +2 the native $C6 cursor wait runs one field ahead and the 0x16->F6 transition is race-relative 5179 on both Baldosa builds vs 5180 on the original (the unpatched build's coarse samples only matched because its onset was already one frame early). Snes9x reaches 80:FAC9 at host 6181 V=224 H=1242; NMI is taken at V=225 inside 82:8035 (handler 1,020 clocks) and the first $4212 read sees VBlank set. Baldosa's first read is at V=224 H=1336 (bit 7 clear). HDMAEN=$00 in these fields; the 2,048-byte channel-7 DMA is charged within ~46 clocks of Snes9x.",
-      "uncertainty": "About 544 master clocks (~0.15%) of the field's CPU work separate the outcomes. Mid-block observer checkpoints are biased by block-entry cycle charging and are not used for attribution. Candidates: native NMI handler cost, per-instruction costs in this field's code, or 82:8035's $2142 path. Not caused by the RF-015 correction.",
-      "resolving_experiment": "Function-level timing for host 6181 (original) / observer frame 6182 (native) from the V=225 NMI to 80:FACD: Snes9x executed-PC costs per routine vs a SNESRECOMP_TRACE Baldosa build's per-function master clocks; attribute the ~544 clocks before any change.",
-      "consequence": "Next earliest difference in the Zoom Zoo complete event after RF-015: the result screen advances one field early, which blocks strict return-to-menu and progression parity."
+      "uncertainty": "Cause and correction established locally with exact binaries (base cd5ba13f... bit-identical to the RF-015 corrected build; candidate d337cbec...). Not yet hosted-re-executed (qa01-event-campaign baldosa_io_clock_order) or staged into the Windows bridge, which would need a --cfg-roots regen on its build host. NMI/IRQ remain taken at block boundaries; an instruction's own internal cycles are charged before its data access (exact for loads/stores/branches, <=6 clocks for RMW).",
+      "resolving_experiment": "Done: Snes9x per-instruction PC/beam trace vs Baldosa block-entry clock observer from 80:FADB to 80:FAC9, bsnes SRAM-anchored dense replay, one-site A/B and full emitter A/B; see resolution.",
+      "consequence": "Next earliest difference in the Zoom Zoo complete event after RF-015: the result screen advances one field early, which blocks strict return-to-menu and progression parity.",
+      "resolution": "Snes9x and bsnes are byte-identical in $0200-$1FFF at Zoo result +0..+39; Baldosa alone differs from +2. The compute between the waits matches within 54 of 712,980 clocks and poll-loop iterations are identical. The difference is the loop phase at V=225: block 80:FAD6 (LDA $4212 / BPL) charges 5 fetch bytes before the read where hardware charges 3, so Baldosa reads at V=225 +6 (VBlank set) instead of -10, leaves the wait before its NMI and passes 80:FADB 556 clocks before the original, which takes the NMI inside 82:8035. Moving only the branch fetch charge after the read makes dense low WRAM equal Snes9x at every frame +0..+89. tools/baldosa_io_access_clock_order_patch.py charges static clocks per instruction in blocks with a static register access (1,432 blocks; --verify-gen proves only charge lines move with equal block totals). Candidate: Zoo strict_candidate with all six follow-through pairs equal (base +16 188 vs 246); Bowl, Switcher, Dragster, all 18 2P seed x reference pairs and the attract census identical to base."
+    },
+    {
+      "id": "RF-018",
+      "title": "Baldosa reads and charges every [dp],Y pointer twice under the paced bus: the attract decompressor (81:BB10 CMP [$88],Y) runs 29% slow and the second attract load ends a frame late; corrected by reading the pointer once",
+      "class": "original_native_discrepancy",
+      "status": "resolved",
+      "evidence": "original_and_native",
+      "owner_lane": "qa01-gameplay",
+      "reproducer": {
+        "command": "python3 tools/qa_blank_screen_census.py --input <no-input> --snesref <UR snesref> --core <bsnes patched> --core <snes9x> --baldosa-exe <RF-015+017+016 build> --frames 1415-1555 --keep-dumps --work W --out R; per-instruction Snes9x PC trace vs Baldosa block observer from 82:E174 to 81:B94F",
+        "race_relative_lag": 0,
+        "input": "attract, no controller input"
+      },
+      "source_artifacts": [
+        "docs/RF016-019-TIMING-CORRECTIONS-20261015.md",
+        "analysis/data/rf016-019-timing-corrections-20261015.json",
+        "tools/baldosa_dp_indirect_long_pointer_once_patch.py",
+        "tests/unit/test_baldosa_dp_indirect_long_pointer_once_patch.py"
+      ],
+      "observation": "Snes9x and bsnes are byte-identical in $0200-$1FFF over 1440-1560; native lags (transients 1457/1469/1482, sustained from 1523). 82:E174->81:B94F takes 188,304 native vs 176,554 Snes9x clocks; 81:BB10 CMP [$88],Y costs 103.6 vs 80.1 per execution x448 = 10,552 of the 11,692 deficit. codegen._segref_addr_expr re-reads the 3-byte pointer for bank and offset; each paced read charges master clocks.",
+      "uncertainty": "Corrected locally with exact binaries; not hosted-re-executed or staged into the Windows bridge.",
+      "resolving_experiment": "Done: staged emitter reads the pointer once in hardware order; regen + --verify-gen (152 sites); see resolution.",
+      "consequence": "Every [dp],Y access in the product core costs 6-24 extra master clocks; CPU-bound decompression and pointer walks run slow.",
+      "resolution": "tools/baldosa_dp_indirect_long_pointer_once_patch.py: 152 [dp],Y sites read the pointer once (low word then bank, + Y with bank carry). The second attract load then ends at 1546 (= Snes9x; bsnes 1547 is a brightness knife-edge with identical WRAM) and low WRAM equals bsnes 1530-1700. No 1P/2P witness changed."
+    },
+    {
+      "id": "RF-019",
+      "title": "Baldosa's beam frame driver never charges HDMA's per-line CPU stall: the attract demo race (HDMAEN $BE) runs ~4% fast and reaches its NMI wait one field early at host 2347; corrected by a cost-only HDMA walk",
+      "class": "original_native_discrepancy",
+      "status": "resolved",
+      "evidence": "original_and_native",
+      "owner_lane": "qa01-gameplay",
+      "reproducer": {
+        "command": "python3 tools/qa_blank_screen_census.py --input <no-input> ... --baldosa-exe <RF-015+017+016+018 build> --frames 2320-2352 --keep-dumps ...; per-instruction Snes9x PC trace vs Baldosa block observer 82:D4F2->82:D4E9 over host 2343-2348",
+        "race_relative_lag": 0,
+        "input": "attract, no controller input"
+      },
+      "source_artifacts": [
+        "docs/RF016-019-TIMING-CORRECTIONS-20261015.md",
+        "analysis/data/rf016-019-timing-corrections-20261015.json",
+        "tools/baldosa_hdma_cpu_stall_patch.py",
+        "tests/unit/test_baldosa_hdma_cpu_stall_patch.py"
+      ],
+      "observation": "Busy time between NMI-wait exit and entry: 288,334 native vs 300,406 Snes9x per field. The Snes9x trace stalls 66 clocks at H~1090 on every active line (18 + 6 live channels x 8, HDMAEN $BE) besides the 40-clock refresh; Baldosa performs HDMA only in the post-field render walk. dma_hdmaMasterEstimate (framework 0b2bd83) exists but has no caller and would charge every channel a transfer each line.",
+      "uncertainty": "Corrected locally; the walk is priced once per field at V=0 (mid-field HDMAEN/table rewrites are not repriced). Not hosted-re-executed or staged into the Windows bridge.",
+      "resolving_experiment": "Done: staged cost-only HDMA walk charged per line through the refresh hook; see resolution.",
+      "consequence": "Every HDMA-active screen (split-screen races, attract demo) ran CPU-bound work ~4% fast; edge-sensitive waits there can resolve a field early.",
+      "resolution": "tools/baldosa_hdma_cpu_stall_patch.py: all five attract loads match (248-276, 401-443, 941-1098 both references; 1423-1546 Snes9x; 3632-3762 both) and low WRAM equals bsnes over 2300-2400 and 3625-3770. With RF-016/018/019 the 18 2P pairs are identical to the RF-017 build and the four 1P cases unchanged (Zoo six follow-through and SRAM pairs equal)."
+    },
+    {
+      "id": "RF-020",
+      "title": "2P seed 50048000: native's result sequence starts one frame early because its sound driver accepts the second queued command a frame sooner at host 5012 (7E:2000 2 vs 1), with both references agreeing",
+      "class": "original_native_discrepancy",
+      "status": "handed_off",
+      "evidence": "original_and_native",
+      "owner_lane": "qa01-gameplay",
+      "reproducer": {
+        "command": "python3 tools/qa_frontier_original_crosscheck.py paired --native-launcher baldosa --native-exe <RF-015..019 2P build> --seed 50048000 --arm balanced --lag 0 --finish-hold 4000 --frames 4990-5016 --snesref <UR snesref> --core <snes9x|bsnes patched> --keep-dumps ...",
+        "race_relative_lag": 0,
+        "seed": 50048000,
+        "arm": "balanced"
+      },
+      "source_artifacts": [
+        "docs/RF016-019-TIMING-CORRECTIONS-20261015.md",
+        "analysis/data/rf016-019-timing-corrections-20261015.json"
+      ],
+      "observation": "Full WRAM equal through 5011. 5012: 7E:2000/2002/2004.. sound queue advanced further on native (read index 2 vs 1), 7E:0083 20 vs 14. 5013: $C6 30 vs 31, $0BDE/$0BFE 204 vs 0. 0x84 onset 5014 vs 5015, race exit 5052 vs 5053. Unchanged by RF-016, RF-018 and RF-019.",
+      "uncertainty": "Mechanism inside the CPU/SPC port handshake not yet attributed; RF-015 showed this step is phase-sensitive even between correct cores (seed 50036056).",
+      "resolving_experiment": "SPC-side port-handshake trace (qa01_apu_phase_observers.py style) over host 5008-5012 on Baldosa and bsnes: compare when the SPC acknowledges each command against the 82:8035 polls.",
+      "consequence": "Last 2P seed in the RF-015 population where both references agree and native differs."
     }
   ]
 }

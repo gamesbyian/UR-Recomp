@@ -24,6 +24,22 @@ on:
         required: false
         type: boolean
         default: false
+      baldosa_io_clock_order:
+        required: false
+        type: boolean
+        default: false
+      baldosa_spc_reference_rate:
+        required: false
+        type: boolean
+        default: false
+      baldosa_dp_pointer_once:
+        required: false
+        type: boolean
+        default: false
+      baldosa_hdma_cpu_stall:
+        required: false
+        type: boolean
+        default: false
       qa01_cold_guest_reload:
         required: false
         type: boolean
@@ -58,6 +74,26 @@ on:
         default: false
       baldosa_refresh_beam_rate:
         description: "Opt-in RF-015 correction: stage one DRAM refresh per 1364-clock beam line into the pinned Baldosa build"
+        type: boolean
+        required: false
+        default: false
+      baldosa_io_clock_order:
+        description: "Opt-in RF-017 correction: charge static block clocks in instruction order around register accesses (regenerates src/gen)"
+        type: boolean
+        required: false
+        default: false
+      baldosa_spc_reference_rate:
+        description: "Opt-in RF-016 correction: clock the SPC700 at the reference 15664/328125 cycles per master clock"
+        type: boolean
+        required: false
+        default: false
+      baldosa_dp_pointer_once:
+        description: "Opt-in RF-018 correction: read each [dp],Y pointer once (regenerates src/gen)"
+        type: boolean
+        required: false
+        default: false
+      baldosa_hdma_cpu_stall:
+        description: "Opt-in RF-019 correction: charge HDMA's per-line CPU stall in the beam frame driver"
         type: boolean
         required: false
         default: false
@@ -182,6 +218,29 @@ jobs:
           # Explicitly opted-in RF-015 framework correction; default builds stay pinned.
           if [[ "${{ inputs.baldosa_refresh_beam_rate }}" == "true" ]]; then
             python3 tools/baldosa_dram_refresh_beam_rate_patch.py --game baldosa
+          fi
+          # Explicitly opted-in RF-017 emitter correction; regenerates src/gen
+          # with --cfg-roots (reproduces the committed output without it) and
+          # fails unless only static clock charges moved.
+          if [[ "${{ inputs.baldosa_io_clock_order }}" == "true" ]]; then
+            python3 tools/baldosa_io_access_clock_order_patch.py --game baldosa
+            (cd baldosa && bash tools/regen.sh --cfg-roots \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc")
+            python3 tools/baldosa_io_access_clock_order_patch.py --game baldosa --verify-gen
+          fi
+          if [[ "${{ inputs.baldosa_spc_reference_rate }}" == "true" ]]; then
+            python3 tools/baldosa_spc_reference_rate_patch.py --game baldosa
+          fi
+          # Opted-in RF-018 emitter correction, regenerated after (and verified
+          # separately from) RF-017 so each verifier checks only its own change.
+          if [[ "${{ inputs.baldosa_dp_pointer_once }}" == "true" ]]; then
+            python3 tools/baldosa_dp_indirect_long_pointer_once_patch.py --game baldosa
+            (cd baldosa && bash tools/regen.sh --cfg-roots \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc")
+            python3 tools/baldosa_dp_indirect_long_pointer_once_patch.py --game baldosa --verify-gen
+          fi
+          if [[ "${{ inputs.baldosa_hdma_cpu_stall }}" == "true" ]]; then
+            python3 tools/baldosa_hdma_cpu_stall_patch.py --game baldosa
           fi
           cmake -S baldosa -B baldosa/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \

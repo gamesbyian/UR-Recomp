@@ -405,7 +405,7 @@ def replay_script(slot: int, result_menu: int, frames: list[int],
     if source_followthrough:
         previous = 6
         for offset in SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS:
-            if offset <= previous or offset > 32:
+            if offset <= previous or offset > 72:
                 raise CompleteEventError("invalid original-movie terminal follow-through offset")
             lines += [f"wait {offset - previous}", f"dump original-follow-{offset:02d}"]
             previous = offset
@@ -605,9 +605,11 @@ def observe_bowl_tally_phase(reference_dir: Path, native_dir: Path,
 # prelude that restores track 1 at +5158. Deliberately cross the boundary.
 ZOO_TERMINAL_DURATION = 5163
 ZOO_TERMINAL_FRAMES = tuple(range(5156, 5174))
-# Original 2014 movie is already extracted through result onset +40 host ticks.
-# This optional observation adds no invented result-screen button presses.
-SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS = (8, 16, 24, 32)
+# Archived 2014 source proves Switcher 0x99 through original result+57,
+# then transitions toward track-select. Extend the optional, authentic source
+# window through result+80 so its return phase can actually be witnessed.
+# Default non-opt-in replay retains its original +40 input window and scope.
+SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS = (8, 16, 24, 32, 64, 72)
 ZOO_TERMINAL_FIELDS = ("menu", "track", "in_race", "p1_laps", "p2_laps",
                        "p1_checkpoint", "p1_finish_gate", "p1_contact",
                        "p2_contact", "clock_raw")
@@ -875,14 +877,17 @@ def observe_source_terminal_followthrough(
                 guests["native"]["wram_sha256"]),
         })
     return {
-        "schema": "UR-QA01-SOURCE-ORIGINAL-NATIVE-RESULT-FOLLOWTHROUGH/1",
+        "schema": "UR-QA01-SOURCE-ORIGINAL-NATIVE-RESULT-FOLLOWTHROUGH/2",
         "input_origin": "unchanged archived 2014 movie, relative window extends 40 frames beyond original result",
         "source_guest_relative_result_onset_equivalence_proven": False,
         "sample_alignment": "offsets from each guest's own observed result, not identical race-relative frames",
         "original_and_native_result_phase_equal_proven": (
             original_result_relative == native_result_relative),
-        "all_four_named_pairs_equal": all(r["paired_named_state_equal"] for r in rows),
-        "all_four_full_wram_pairs_equal": all(r["full_wram_bytes_equal"] for r in rows),
+        "sample_count": len(rows),
+        "all_followthrough_named_pairs_equal": all(
+            r["paired_named_state_equal"] for r in rows),
+        "all_followthrough_full_wram_pairs_equal": all(
+            r["full_wram_bytes_equal"] for r in rows),
         "post_result_sram_persistence_proven": False,
         "menu_restoration_or_final_progression_proven": False,
         "strict_event_comparator_unchanged": True,
@@ -1318,7 +1323,8 @@ def main(argv: list[str] | None = None) -> int:
     original_event = scan_source(args, work, sram, source_input, decoded)
     original_bytes, _ = movie.read_movie(args.movie)
     pinned_meta = json.loads(args.movie_meta.read_text())
-    source_length = original_event["source_active_frames_to_result"] + 40
+    source_length = original_event["source_active_frames_to_result"] + (
+        80 if args.source_followthrough else 40)
     source_window = movie.window(original_bytes, pinned_meta,
                                  original_event["original_entry_frame"], source_length)
     if args.source_followthrough and source_length < (

@@ -1,0 +1,97 @@
+name: QA-08 one-shot original Snes9x full 2P race/results raster
+# Separate original-only source, one real USA race_2p.txt process.
+# Source-proven finish/return reference for future exact Windows PPU join;
+# no automatic volume sweeps, no audio/gameplay or release authority.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa08-original-twoplayer-fullroute.yml"
+      - "tools/qa08_original_twoplayer_fullroute_manifest.py"
+      - "tests/unit/test_qa08_original_twoplayer_fullroute_manifest.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+concurrency:
+  group: qa08-source-one-2p-fullroute-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  original-full-two-pad-source:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Verify immutable original USA retail, source route, and 2P contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          echo "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478  reference/roms/retail/Uniracers_USA.sfc" | sha256sum -c -
+          cmp baldosa/tests/routes/race_2p.txt reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p.txt
+          mkdir -p "$RUNNER_TEMP/qa08-real-original-2p/frames"
+          grep -v '^turbo ' baldosa/tests/routes/race_2p.txt > "$RUNNER_TEMP/qa08-real-original-2p/original.script"
+          python3 -m unittest tests.unit.test_qa08_original_twoplayer_fullroute_manifest
+
+      - name: Build original Snes9x core and snesref once, no alternate CPU
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends build-essential cmake pkg-config libsdl2-dev
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          make -C "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro" -j 2
+          test -s "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          cmake -S baldosa/snesrecomp/tools/snesref -B "$RUNNER_TEMP/qa08-source-ref" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/qa08-source-ref" -j 2
+          test -x "$RUNNER_TEMP/qa08-source-ref/snesref"
+
+      - name: Run actual two-controller original race through result and return
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-ref-dumps"
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$RUNNER_TEMP/qa08-real-original-2p/original.script" \
+          SNESREF_DUMP_DIR="$RUNNER_TEMP/qa08-ref-dumps" \
+          SNESREF_FRAME_DUMP_DIR="$RUNNER_TEMP/qa08-real-original-2p/frames" \
+          SNESREF_FRAME_DUMP_NATIVE=1 SNESREF_FRAME_DUMP_FROM=1279 \
+          SNESREF_FRAME_DUMP_TO=9503 SNESREF_FRAME_DUMP_STEP=16 \
+          timeout 240 "$RUNNER_TEMP/qa08-source-ref/snesref" \
+            "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            > "$RUNNER_TEMP/qa08-real-original-2p/original.log" 2>&1
+          python3 tools/qa08_original_twoplayer_fullroute_manifest.py \
+            --frames "$RUNNER_TEMP/qa08-real-original-2p/frames" \
+            --script "$RUNNER_TEMP/qa08-real-original-2p/original.script" \
+            --log "$RUNNER_TEMP/qa08-real-original-2p/original.log" \
+            --rom reference/roms/retail/Uniracers_USA.sfc \
+            --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            --out "$RUNNER_TEMP/qa08-real-original-2p/qa08-original-2p-fullroute.json"
+          echo "Original USA retail Snes9x two-pad race/finish/return source callback corpus, full 256x224 BGRX. No Windows parity, gameplay, hardware or release claim." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Preserve original-only raster frames and reproducibility authority
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-source-original-2p-authentic-race-result-return
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa08-real-original-2p/qa08-original-2p-fullroute.json
+            ${{ runner.temp }}/qa08-real-original-2p/original.script
+            ${{ runner.temp }}/qa08-real-original-2p/original.log
+            ${{ runner.temp }}/qa08-real-original-2p/frames/*.raw

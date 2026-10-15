@@ -6,7 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -123,6 +123,9 @@ def summarize(
         "execution_seconds": 0.0,
         "other_step_seconds": 0.0,
         "cancelled_wall_seconds": 0.0,
+        "cancelled_runner_seconds": 0.0,
+        "failed_runner_seconds": 0.0,
+        "events": {},
     })
     step_stats: dict[tuple[str, str], dict[str, Any]] = defaultdict(lambda: {
         "count": 0,
@@ -131,8 +134,21 @@ def summarize(
         "bucket": "other",
     })
     included = 0
+    source_runs = payload.get("workflow_runs", [])
+    source_created = [parse_time(run.get("created_at")) for run in source_runs]
+    source_created = [created for created in source_created if created is not None]
+    oldest_available = min(source_created) if source_created else None
+    newest_available = max(source_created) if source_created else None
+    # Actions returns runs newest-first. Without an older-than-window row or a
+    # complete repository census, the selected page count is only a sample.
+    total_available = payload.get("total_count")
+    threshold = now - timedelta(hours=since_hours) if since_hours is not None else None
+    window_complete = (
+        (oldest_available is not None and threshold is not None and oldest_available <= threshold)
+        or (isinstance(total_available, int) and total_available <= len(source_runs))
+    )
 
-    for run in payload.get("workflow_runs", []):
+    for run in source_runs:
         created = parse_time(run.get("created_at"))
         if (
             since_hours is not None
@@ -144,6 +160,8 @@ def summarize(
         name = str(run.get("name") or run.get("workflow_id") or "unknown")
         row = groups[name]
         row["runs"] += 1
+        event = str(run.get("event") or "unknown")
+        row["events"][event] = row["events"].get(event, 0) + 1
         included += 1
 
         if run.get("status") == "completed":
@@ -178,6 +196,10 @@ def summarize(
             row["peak_active_jobs"] = max(
                 row["peak_active_jobs"], int(profile["peak_active_jobs"])
             )
+            if run.get("conclusion") == "cancelled":
+                row["cancelled_runner_seconds"] += profile["runner_seconds"]
+            elif run.get("conclusion") == "failure":
+                row["failed_runner_seconds"] += profile["runner_seconds"]
         for job in job_map.get(int(run_id), []):
             row["jobs"] += 1
             row["job_queue_seconds"] += elapsed_seconds(
@@ -234,9 +256,14 @@ def summarize(
 
     workflows.sort(key=lambda row: (-row["total_wall_seconds"], row["workflow"]))
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "included_runs": included,
         "since_hours": since_hours,
+        "source_runs_fetched": len(source_runs),
+        "source_total_available": total_available,
+        "sample_oldest_created_at": oldest_available.isoformat() if oldest_available else None,
+        "sample_newest_created_at": newest_available.isoformat() if newest_available else None,
+        "window_census_complete": bool(window_complete),
         "workflows": workflows,
     }
 
@@ -246,6 +273,9 @@ def markdown(report: dict[str, Any]) -> str:
         "# CI runtime report",
         "",
         f"Included runs: {report['included_runs']}",
+        f"Fetched runs: {report.get('source_runs_fetched', 'unknown')} of {report.get('source_total_available', 'unknown')} available",
+        f"Sample created-at range: {report.get('sample_oldest_created_at') or 'unknown'} to {report.get('sample_newest_created_at') or 'unknown'}",
+        f"Requested lookback fully covered: {'yes' if report.get('window_census_complete') else 'NO (sample only; do not infer 7-day totals)'}",
         "",
         "| Workflow | Runs | Total min | Avg min | Max min | Run queue avg | Job queue avg | Dependencies | Build | Execution | Cancelled min | Failed |",
         "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
@@ -267,13 +297,15 @@ def markdown(report: dict[str, Any]) -> str:
         "These are measured started/completed job spans, not dependency-DAG critical paths. "
         "Missing job intervals are excluded; queue time is reported separately.",
         "",
-        "| Workflow | Timed runs | Runner min | Observed span min | Mean active jobs | Peak active jobs |",
-        "|---|---:|---:|---:|---:|---:|",
+        "| Workflow | Timed runs | Runner min | Cancelled runner min | Failed runner min | Observed span min | Mean active jobs | Peak active jobs |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|",
     ])
     for row in report["workflows"]:
         lines.append(
             f"| {row['workflow']} | {row['runs_with_job_timing']} | "
             f"{row['runner_seconds']/60:.1f} | "
+            f"{row['cancelled_runner_seconds']/60:.1f} | "
+            f"{row['failed_runner_seconds']/60:.1f} | "
             f"{row['observed_job_span_seconds']/60:.1f} | "
             f"{row['mean_active_jobs']:.2f} | {row['peak_active_jobs']} |"
         )

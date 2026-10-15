@@ -37,9 +37,9 @@ def launcher() -> bytes:
         "setlocal DisableDelayedExpansion",
         'set "UR_BALDOSA_PACKAGE_DIR=%~dp0"',
         f'set "UR_BALDOSA_ROM=%~dp0{ROM}"',
-        'if not exist "%UR_BALDOSA_ROM%" (echo UR-BALDOSA-STARTUP-ROM-MISSING: Copy a verified personal Uniracers USA dump beside the executable. 1>&2 & exit /b 2)',
+        'if not exist "%UR_BALDOSA_ROM%" (echo UR-BALDOSA-STARTUP-ROM-MISSING: Copy a verified personal Uniracers USA dump beside the executable. 1>&2 & echo The file Uniracers_USA.sfc was not found next to this launcher. 1>&2 & echo Copy your own USA retail dump there under that exact name and start again. 1>&2 & echo Nothing was changed. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 2)',
         'if not defined UR_RECOMP_USER_DATA_ROOT (',
-        '  if not defined APPDATA (echo UR-BALDOSA-STARTUP-SAVE-ROOT: APPDATA is not available. 1>&2 & exit /b 3)',
+        '  if not defined APPDATA (echo UR-BALDOSA-STARTUP-SAVE-ROOT: APPDATA is not available. 1>&2 & echo Windows did not provide a per-user data folder. Set UR_RECOMP_USER_DATA_ROOT to a folder you own outside the game folder. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 3)',
         '  set "UR_RECOMP_USER_DATA_ROOT=%APPDATA%\\gamesbyian\\UR-Recomp"',
         ')',
         # PowerShell 5.1 is inbox on supported Windows. Use ENV VARS, not
@@ -65,18 +65,18 @@ def launcher() -> bytes:
         '}; '
         'if ((Get-FileHash -LiteralPath $env:UR_BALDOSA_ROM -Algorithm SHA256).Hash '
         f'-ine \'{USA_SHA256}\') {{ exit 2 }}"',
-        'if errorlevel 3 (echo UR-BALDOSA-STARTUP-SAVE-ROOT: Invalid or package-local user-data root. 1>&2 & exit /b 3)',
-        'if errorlevel 2 (echo UR-BALDOSA-STARTUP-ROM-INVALID: USA ROM SHA-256 mismatch. 1>&2 & exit /b 2)',
-        'if errorlevel 1 (echo UR-BALDOSA-STARTUP-PREFLIGHT: Windows PowerShell verification failed. 1>&2 & exit /b 3)',
+        'if errorlevel 3 (echo UR-BALDOSA-STARTUP-SAVE-ROOT: Invalid or package-local user-data root. 1>&2 & echo Your save folder must be a normal folder outside this game folder. Unset UR_RECOMP_USER_DATA_ROOT to use the default under your user profile. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 3)',
+        'if errorlevel 2 (echo UR-BALDOSA-STARTUP-ROM-INVALID: USA ROM SHA-256 mismatch. 1>&2 & echo Uniracers_USA.sfc is not the supported USA release: wrong region, an edited or patched copy, or a damaged download. 1>&2 & echo Use an unmodified USA retail dump. Nothing was changed. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 2)',
+        'if errorlevel 1 (echo UR-BALDOSA-STARTUP-PREFLIGHT: Windows PowerShell verification failed. 1>&2 & echo The built-in Windows PowerShell check could not run, so the ROM and save folder were not verified. Nothing was changed. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 3)',
         'if not exist "%UR_RECOMP_USER_DATA_ROOT%\\" mkdir "%UR_RECOMP_USER_DATA_ROOT%" 2>nul',
-        'if not exist "%UR_RECOMP_USER_DATA_ROOT%\\" (echo UR-BALDOSA-STARTUP-SAVE-ROOT: Could not create a writable user folder. 1>&2 & exit /b 3)',
+        'if not exist "%UR_RECOMP_USER_DATA_ROOT%\\" (echo UR-BALDOSA-STARTUP-SAVE-ROOT: Could not create a writable user folder. 1>&2 & echo Windows would not let the game create its save folder. Pick a writable location with UR_RECOMP_USER_DATA_ROOT. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 3)',
         'set "SNESRECOMP_USER_DATA_DIR=%UR_RECOMP_USER_DATA_ROOT%"',
         'set "UR_EXECUTION_MODE=modern"',
         'set "UR_BALDOSA_MODERN_ROOT=1"',
         'set "UR_BALDOSA_MODERN_INPUT=1"',
         'set "UR_BALDOSA_MODERN_PROFILE_SELECT=1"',
         'cd /d "%UR_RECOMP_USER_DATA_ROOT%"',
-        'if errorlevel 1 (echo UR-BALDOSA-STARTUP-SAVE-ROOT: Cannot enter user folder. 1>&2 & exit /b 3)',
+        'if errorlevel 1 (echo UR-BALDOSA-STARTUP-SAVE-ROOT: Cannot enter user folder. 1>&2 & echo The save folder exists but could not be opened. Check its permissions. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 3)',
         # First-time controller-based profile creation completes only while
         # an anonymous game runs. Never rebind that live cartridge; relaunch
         # exactly ONCE after a clean exit if a new canonical selector appeared.
@@ -90,7 +90,7 @@ def launcher() -> bytes:
         # Modern selector/profile/SRAM authority is incomplete or mismatched.
         # Keep that exact status and all save data; never start a default
         # anonymous game or tell players to delete the affected profile.
-        'if "%ERRORLEVEL%"=="7" (echo UR-BALDOSA-STARTUP-PROFILE-REJECTED: Named racer data was not authorized. Preserve both the raw save and Modern profile files; see the diagnostic above. 1>&2 & exit /b 7)',
+        'if "%ERRORLEVEL%"=="7" (echo UR-BALDOSA-STARTUP-PROFILE-REJECTED: Named racer data was not authorized. Preserve both the raw save and Modern profile files; see the diagnostic above. 1>&2 & echo Your save files were not changed or deleted. Copy the whole save folder somewhere safe before asking for help. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 7)',
         # Preserve the independent release-auditor's existing exact
         # nonzero exit propagation marker; IF does not alter errorlevel.
         'if not "%ERRORLEVEL%"=="0" exit /b %ERRORLEVEL%',
@@ -103,6 +103,16 @@ def launcher() -> bytes:
         'set "UR_BALDOSA_FIRST_RACER_RELAUNCH=0"',
         'echo UR-BALDOSA-FIRST-RACER: Restarting with newly created racer.',
         'goto UR-BALDOSA-NATIVE-START',
+        # A double-clicked launcher closes its window the moment it exits, so
+        # a refusal would vanish unread. Hold the console for up to a minute
+        # (any key continues). `timeout` fails at once without a console, so
+        # scripted/CI callers are never delayed; UR_BALDOSA_NO_HOLD forces it.
+        ':UR-BALDOSA-HOLD',
+        'if defined UR_BALDOSA_NO_HOLD exit /b 0',
+        'echo. 1>&2',
+        'echo Press any key to close this window, or wait. 1>&2',
+        'timeout /t 60 >nul 2>nul',
+        'exit /b 0',
     ]
     return ("\r\n".join(commands) + "\r\n").encode("utf-8")
 
@@ -114,10 +124,14 @@ def readme(revision: str) -> bytes:
         "This is a development candidate, NOT a completed remaster.\n"
         "The existing Modern root can enter original 1P/2P selection and\n"
         "provides native profile SRAM persistence where authorized.\n"
-        "Quick Practice currently enters source-qualified Dragster only,\n"
-        "using a disposable guest SRAM save root. Normal exit preserves\n"
-        "the named racer; Practice cannot publish career Records or runs.\n"
-        "The other 44 Practice courses and native Options remain pending.\n"
+        "Quick Practice enters the original courses your racer has unlocked\n"
+        "(20 on a new save; secret Hunter stays closed), each verified by\n"
+        "the original game's own course identity, using a disposable guest\n"
+        "SRAM save root. Normal exit preserves the named racer.\n"
+        "Practice cannot publish career Records or runs.\n"
+        "Options changes Display, VSync and Volume and shows the menu\n"
+        "controls; settings persist in options-v1.txt. Other settings are\n"
+        "not offered because this build does not apply them.\n"
         "Records shows the verified named racer's historical runs read-only.\n"
         "A scripted-input native Windows 1P Race has completed, persisted\n"
         "its source-confirmed named run, and reopened it in a fresh game.\n"

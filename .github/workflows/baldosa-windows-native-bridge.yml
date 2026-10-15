@@ -38,6 +38,10 @@ on:
       - "tools/baldosa_modern_user_data_spike.py"
       - "tools/baldosa_modern_profile_activation_spike.py"
       - "tools/baldosa_modern_options_spike.py"
+      - "tools/baldosa_native_options_probe.py"
+      - "tools/baldosa_native_practice_courses_probe.py"
+      - "tests/unit/test_baldosa_native_practice_courses_probe.py"
+      - "tests/unit/test_baldosa_native_options_probe.py"
       - "tests/unit/test_baldosa_modern_options_spike.py"
       - "native/product/baldosa_native_options.hpp"
       - "tests/native/baldosa_native_options_test.cpp"
@@ -122,6 +126,8 @@ jobs:
           python tests/unit/test_baldosa_modern_profile_activation_spike.py
           python tests/unit/test_baldosa_modern_options_spike.py
           python tests/unit/test_baldosa_native_options_cpp.py
+          python tests/unit/test_baldosa_native_options_probe.py
+          python tests/unit/test_baldosa_native_practice_courses_probe.py
 
       - name: Verify immutable native source pins
         run: |
@@ -399,6 +405,38 @@ jobs:
             --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_existing_p1_switch" \
             --video windows --timeout 180
           echo "PASS: native Modern X/A switches the full verified existing profile selector Mike to Andrew and back only for next launch; fresh source guest boots each stock 8KiB rider. No manufactured guest result, physical gamepad QA or original/native complete-event parity." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Native Options change, restore, defaults and damaged settings across four games
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
+        run: |
+          set -euo pipefail
+          # Real P1 semantic gamepad edges through the production root handler:
+          # Display/VSync/Volume change live and persist (options-v1.txt via the
+          # existing HostSettings codec, framework [Sound] Volume), a fresh
+          # process restores them, DEFAULTS reverts them, and a damaged file
+          # is reported, kept as .damaged and does not stop the game.
+          python tools/baldosa_native_options_probe.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_options" \
+            --video windows --timeout 180
+          echo "PASS: native Options journey (display, vsync, volume, controls help, defaults, damaged-file recovery) in four real Win32 games. Semantic pad edges; physical pads, audible level and display appearance are independent QA gaps." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Native Practice enters ten original courses across both unlock states
+        if: ${{ github.event_name != 'pull_request' && inputs.parallel_journeys != true }}
+        run: |
+          set -euo pipefail
+          # Real P1 semantic gamepad edges open Practice and walk the picker
+          # over the courses the original TOUR_SELECT offers (20 on a never
+          # played save, 40 on a stock tier-2 save). The unchanged original
+          # menus are driven by the shared route; only decoded original course
+          # identity authorises each handoff; saves stay byte-identical.
+          python tools/baldosa_native_practice_courses_probe.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_practice_courses" \
+            --video windows --timeout 240
+          echo "PASS: ten original Practice courses (race, circuit and stunt; four tours per unlock state) entered with source course identity on real Win32 native games; Hunter closed, saves unchanged, nothing published. Semantic pad edges; not all 45 and no physical-pad or release credit." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Assemble verified ROM-free Baldosa Modern Windows candidate
         run: |

@@ -95,6 +95,12 @@ struct ModernRootOverlayView {
     std::string_view practice_course_name{};
     std::string_view practice_tour_name{};
     std::string_view practice_kind_label{};
+    // One short player-facing sentence (a refused route, a stale racer...)
+    // shown in place of the racer hint until the next player action.
+    std::string_view root_notice{};
+    // Courses the original game's own tour menu currently offers this rider.
+    // 0 keeps the historical single-course wording for older callers.
+    std::uint8_t practice_courses_open = 0;
     // Native OPTIONS (the pinned Baldosa host only). Older callers leave
     // options_open false and keep their exact layout.
     bool options_open = false;
@@ -215,9 +221,10 @@ inline bool render_modern_root_overlay(
             "A/ENTER SELECT   B/ESC QUIT",
             modern_overlay_text_cells(panel_w)).c_str(),
         0xFFFFFFFFu, scale);
-    paint.draw_text(pixels, stride, surface_height,
-        x + 8 * scale, y + 193 * scale,
-        view.existing_profile_switch_saved
+    const std::string racer_hint = std::string(
+        !view.root_notice.empty()
+            ? view.root_notice
+            : view.existing_profile_switch_saved
             ? "RESTART TO USE NEW P1"
             : view.first_racer_created || view.second_racer_created
             ? "RESTART FOR NEW RACER"
@@ -229,8 +236,13 @@ inline bool render_modern_root_overlay(
                     ? "X SWITCH ACTIVE P1"
                     : view.racer_shortcuts_available
                     ? "X/F2 RACERS   F1 HELP"
-                    : "RACER SETUP NOT YET LINKED",
-        palette.cursor_blue, scale);
+                    : "RACER SETUP NOT YET LINKED");
+    paint.draw_text(pixels, stride, surface_height,
+        x + 8 * scale, y + 193 * scale,
+        fit_modern_overlay_text(racer_hint, modern_overlay_text_cells(panel_w))
+            .c_str(),
+        !view.root_notice.empty() ? palette.title_yellow
+                                  : palette.cursor_blue, scale);
     if (view.practice_picker_open || view.practice_launch_pending) {
         const int bx = x + 12 * scale, by = y + 43 * scale;
         const int bw = (panel_w - 24) * scale, bh = 137 * scale;
@@ -252,15 +264,25 @@ inline bool render_modern_root_overlay(
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 62 * scale,
                         view.practice_launch_pending
-                            ? "WAIT FOR SOURCE GO" : "CRAWLER - RACE",
+                            ? "WAIT FOR SOURCE GO"
+                            : fit_modern_overlay_text(
+                                  std::string(view.practice_tour_name) + " - " +
+                                      std::string(view.practice_kind_label),
+                                  cells).c_str(),
                         palette.secondary_grey, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 89 * scale,
-                        "1 VERIFIED COURSE", palette.cursor_blue, scale);
+                        view.practice_courses_open > 1
+                            ? (std::to_string(view.practice_courses_open) +
+                               " COURSES OPEN").c_str()
+                            : "1 VERIFIED COURSE", palette.cursor_blue, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 115 * scale,
                         view.practice_launch_pending
-                            ? "B CANCEL" : "A START  B BACK",
+                            ? "B CANCEL"
+                            : view.practice_courses_open > 1
+                                ? "A START L/R TOUR B BACK"
+                                : "A START  B BACK",
                         0xFFFFFFFFu, scale);
     }
     if (view.options_open) {

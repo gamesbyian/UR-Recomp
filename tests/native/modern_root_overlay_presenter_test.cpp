@@ -213,6 +213,34 @@ int main() {
                                       old_view,view));
     assert(!contains("UNRECORDED TWO PLAYER"));
 
+    // A refused route or stale racer is stated in the root's hint line, and
+    // multi-course Practice names its tour, kind and open-course count.
+    painted.clear();
+    view.root_notice = "COURSE NOT REACHABLE - RETRY";
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("COURSE NOT REACHABLE - RETRY"));
+    assert(!contains("X/F2 RACERS   F1 HELP"));
+    view.root_notice = {};
+    painted.clear();
+    view.practice_picker_open = true;
+    view.practice_course_name = "Looper";
+    view.practice_tour_name = "Shuffler";
+    view.practice_kind_label = "RACE";
+    view.practice_courses_open = 20;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("Looper"));
+    assert(contains("Shuffler - RACE"));
+    assert(contains("20 COURSES OPEN"));
+    assert(contains("A START L/R TOUR B BACK"));
+    painted.clear();
+    view.practice_courses_open = 0;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("1 VERIFIED COURSE") && contains("A START  B BACK"));
+    view.practice_picker_open = false;
+
     // Native OPTIONS is opt-in: the old host's exact layout is unchanged and
     // the modal shows only what the host supplied, with the selected
     // adjustable value bracketed and any status/notice on one line.

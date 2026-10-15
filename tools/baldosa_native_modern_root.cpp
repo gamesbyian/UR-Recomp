@@ -19,6 +19,7 @@
 #include "quick_practice_available_selection.hpp"
 #include "quick_practice_selection_view.hpp"
 #include "uniracers_course_identity.h"
+#include "uniracers_practice_tour_unlock.hpp"
 
 extern "C" {
 #include "desktop/config.h"
@@ -52,6 +53,7 @@ int snesrecomp_desktop_product_set_volume(int percent);
 }
 
 #include <algorithm>
+#include <cctype>
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -76,9 +78,27 @@ constexpr std::uint8_t kNativeRootAvailable =
     (1u << static_cast<unsigned>(ModernRootDestination::Multiplayer)) |
     (1u << static_cast<unsigned>(ModernRootDestination::Records)) |
     (1u << static_cast<unsigned>(ModernRootDestination::Options));
-// The pinned native guest has proven Dragster; tour unlock policy for the
-// remaining 44 source courses needs separate evidence before exposing them.
-constexpr ur::product::QuickPracticeAvailability kNativePracticeAvailable{1u};
+// Practice offers exactly the tours the ORIGINAL game's own TOUR_SELECT
+// offers this rider (stock per-rider unlock tier in the live cartridge SRAM,
+// the same read-only projection the legacy Modern host uses). The secret
+// Hunter tour stays closed. A course the stock menus would not reach can
+// never be listed, so the source route cannot be stranded by an unlock.
+ur::product::QuickPracticeAvailability native_practice_availability() {
+    constexpr std::size_t kRiderOffset = 0x0748;
+    if (!g_sram || g_sram_size != static_cast<int>(ur::product::kStockSramBytes))
+        return ur::product::quick_practice_no_tracks();
+    const std::uint8_t saved = g_sram[kRiderOffset];
+    const auto mask = ur::title::stock_practice_tour_option_mask(
+        g_sram, ur::product::kStockSramBytes, saved < 16 ? saved : 0u);
+    return mask
+        ? ur::product::quick_practice_availability_from_tour_options(*mask)
+        : ur::product::quick_practice_no_tracks();
+}
+int g_practice_target_track = -1;
+// One short, player-facing sentence on the root (cleared by the next action).
+std::string g_root_notice;
+constexpr unsigned kPracticeInputGapFrames = 20;
+unsigned g_practice_input_gap = 0;
 ur::product::QuickPracticeSelection g_practice_picker{};
 ur::product::QuickPracticeLaunchState g_practice_launch{};
 // This is the existing Modern Practice contract: source play in a scratch
@@ -273,6 +293,13 @@ bool begin_practice_session() {
 }
 void practice_route_abort(const char* reason) {
     ur_baldosa_product_cancel_stock_menu_input();
+    g_practice_target_track = -1;
+    if (std::strcmp(reason, "cancelled") != 0)
+        g_root_notice = std::strcmp(reason, "timeout") == 0
+            ? "COURSE NOT REACHABLE - RETRY"
+            : std::strcmp(reason, "active_profile_stale") == 0
+                ? "RACER CHANGED - RESTART GAME"
+                : "PRACTICE STOPPED - TRY AGAIN";
     if (!restore_practice_session()) g_named_profile_stale = true;
     g_practice_launch = {};
     std::fprintf(stderr,
@@ -283,6 +310,11 @@ void stock_route_abort(const char* reason) {
     ur_baldosa_product_cancel_stock_menu_input();
     g_two_seat_join.cancel();
     std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT stock_rejected=%s\n", reason);
+    if (std::strcmp(reason, "cancelled") != 0)
+        g_root_notice = std::strcmp(reason, "active_profile_stale") == 0 ||
+                        std::strcmp(reason, "join_authority_changed") == 0
+            ? "RACER CHANGED - RESTART GAME"
+            : "COULD NOT START - TRY AGAIN";
     g_stock_target = -1;
     g_stock_waiting_transition = false;
     g_stock_waiting_cursor = false;
@@ -409,10 +441,14 @@ void open_records_archive() {
 bool named_profile_still_playable() {
     // Once a selected profile becomes stale, require a process restart.
     // Reopening the root must never silently reactivate a different SRAM.
-    if (g_named_profile_stale) return false;
+    if (g_named_profile_stale) {
+        g_root_notice = "RESTART TO USE NEW RACER";
+        return false;
+    }
     if (ur_baldosa_modern_profile_can_begin_race()) return true;
     g_named_profile_stale = true;
     g_racer_name = "PROFILE CHANGED - RESTART APP";
+    g_root_notice = "RACER CHANGED - RESTART GAME";
     std::fprintf(stderr,
         "UR_BALDOSA_MODERN_ROOT active_profile_stale=1 restart_required=1\n");
     return false;
@@ -541,9 +577,9 @@ void choose() {
         const auto selected = ur::product::quick_practice_available_selection_apply(
             g_practice_picker,
             ur::product::QuickPracticeSelectionCommand::Confirm,
-            kNativePracticeAvailable);
+            native_practice_availability());
         if (selected.result != ur::product::QuickPracticeSelectionResult::Confirmed ||
-            !selected.target.valid || selected.target.track_id != 0u) return;
+            !selected.target.valid) return;
         if (!begin_practice_session()) {
             std::fprintf(stderr,
                 "UR_BALDOSA_MODERN_ROOT practice_rejected=save_sandbox "
@@ -551,10 +587,20 @@ void choose() {
             return;
         }
         g_practice_picker = selected.state;
+        g_practice_target_track = selected.target.track_id;
+        g_practice_input_gap = 0;
         g_practice_launch = ur::product::begin_quick_practice_launch(selected.target);
-        std::fprintf(stderr,
-            "UR_BALDOSA_MODERN_ROOT practice_requested=1 course=0 name=DRAGSTER "
-            "source_route=stock\n");
+        {
+            const auto* course = ur::product::quick_practice_course(
+                selected.target.track_id);
+            std::string name(course ? course->name : "");
+            for (auto& ch : name)
+                ch = static_cast<char>(std::toupper(static_cast<unsigned char>(ch)));
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_ROOT practice_requested=1 course=%d name=%s "
+                "source_route=stock\n",
+                static_cast<int>(selected.target.track_id), name.c_str());
+        }
         return;
     }
     if (g_existing_switch_open) {
@@ -654,12 +700,19 @@ void choose() {
     const auto index = ur::product::modern_root_destination_index(selected);
     if (selected == ModernRootDestination::Practice) {
         if (!named_profile_still_playable()) return;
+        const auto availability = native_practice_availability();
         g_practice_picker = ur::product::open_available_quick_practice_selection(
-            0u, kNativePracticeAvailable);
+            0u, availability);
         if (g_practice_picker.visible)
             std::fprintf(stderr,
-                "UR_BALDOSA_MODERN_ROOT practice_opened=1 available=1 "
-                "course=0 source_menu_required=1\n");
+                "UR_BALDOSA_MODERN_ROOT practice_opened=1 available=%d "
+                "course=%d source_menu_required=1\n",
+                ur::product::quick_practice_available_count(availability),
+                static_cast<int>(g_practice_picker.picker.track_id));
+        else
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_ROOT practice_unavailable=1 "
+                "reason=no_unlocked_tours\n");
         return;
     }
     if (selected == ModernRootDestination::Records) {
@@ -750,8 +803,11 @@ void navigate(int delta) {
             delta > 0
                 ? ur::product::QuickPracticeSelectionCommand::NextCourse
                 : ur::product::QuickPracticeSelectionCommand::PreviousCourse,
-            kNativePracticeAvailable);
+            native_practice_availability());
         g_practice_picker = result.state;
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT practice_course=%d\n",
+            static_cast<int>(g_practice_picker.picker.track_id));
         return;
     }
     if (g_existing_switch_open) return;
@@ -796,6 +852,20 @@ void navigate(int delta) {
 }
 // LEFT / RIGHT. Only the Options modal consumes them today.
 void adjust(int delta) {
+    if (g_practice_picker.visible && g_stock_target == -1 &&
+        !ur::product::quick_practice_launch_owns_player_input(
+            g_practice_launch)) {
+        const auto result = ur::product::quick_practice_available_selection_apply(
+            g_practice_picker,
+            delta > 0 ? ur::product::QuickPracticeSelectionCommand::NextTour
+                      : ur::product::QuickPracticeSelectionCommand::PreviousTour,
+            native_practice_availability());
+        g_practice_picker = result.state;
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT practice_course=%d tour_step=%d\n",
+            static_cast<int>(g_practice_picker.picker.track_id), delta);
+        return;
+    }
     if (!g_options.open || g_confirm_quit || g_stock_target != -1) return;
     ur::product::baldosa_options_adjust(g_options, delta);
     log_options("options_adjusted");
@@ -992,6 +1062,7 @@ extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
         return key == SDLK_ESCAPE && first_press &&
                reopen_on_observed_stock_main() ? 1 : 0;
     if (!first_press) return 1;
+    g_root_notice.clear();
     if (action == 2) choose();
     else if (action == 3) back();
     else if (action == 4) open_stock_racer_setup();
@@ -1044,6 +1115,7 @@ extern "C" int ur_baldosa_modern_root_gamepad(
         return button == kGamepadBtn_B && first_press &&
                reopen_on_observed_stock_main() ? 1 : 0;
     if (!first_press) return 1;
+    g_root_notice.clear();
     if (action == 2) choose();
     else if (action == 3) back();
     else if (action == 4) open_stock_racer_setup();
@@ -1080,6 +1152,7 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         g_records_open, g_records_status, g_records_recent,
         g_records_two_player, true};
     view.records_detail = g_records_detail;
+    view.root_notice = g_root_notice;
     view.practice_picker_open = g_practice_picker.visible;
     view.practice_launch_pending =
         ur::product::quick_practice_launch_owns_player_input(g_practice_launch);
@@ -1087,6 +1160,9 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         const auto preview = ur::product::quick_practice_selection_view(
             g_practice_picker);
         view.practice_course_name = preview.course_name;
+        view.practice_courses_open = static_cast<std::uint8_t>(
+            ur::product::quick_practice_available_count(
+                native_practice_availability()));
         view.practice_tour_name = preview.tour_name;
         view.practice_kind_label = preview.kind_label;
     }
@@ -1192,6 +1268,29 @@ void observe_practice_guest() {
     const auto identity = in_race
         ? ur_uniracers_identify_course(g_ram + 0x10000u, 0x10000u)
         : UrUniracersCourseIdentity{};
+    {
+        // Bounded, change-only diagnostic of the ORIGINAL menus the route
+        // is walking (menu id and cursor), so a stranded course shows
+        // exactly where the stock game refused to go.
+        static unsigned last = 0x10000u;
+        const unsigned now = (static_cast<unsigned>(g_ram[0x009f]) << 8) |
+                             g_ram[0x009b];
+        if (now != last) {
+            last = now;
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_ROOT practice_trace menu=%02x cursor=%u\n",
+                static_cast<unsigned>(g_ram[0x009f]),
+                static_cast<unsigned>(g_ram[0x009b]));
+        }
+    }
+    // The stock list menus do not register a second discrete press issued on
+    // the very next frame after a cursor move (measured on the real guest:
+    // a one-step tour/track move works, a multi-step walk strands). Give each
+    // queued input a short physical-style gap before the next is considered.
+    if (g_practice_input_gap > 0) {
+        --g_practice_input_gap;
+        return;
+    }
     const QuickPracticeLaunchObservation observation{
         g_ram[0x009f], g_ram[0x009b], in_race,
         identity.valid ? identity.course_index - 1 : -1};
@@ -1222,11 +1321,16 @@ void observe_practice_guest() {
         }
     }
     g_practice_launch = step.state;
+    if (step.input != QuickPracticeLaunchInput::None)
+        g_practice_input_gap = kPracticeInputGapFrames;
     if (!step.race_ready) return;
-    if (!in_race || !identity.valid || identity.course_index != 1) {
+    if (!in_race || !identity.valid || g_practice_target_track < 0 ||
+        identity.course_index != g_practice_target_track + 1) {
         practice_route_abort("course_identity_unverified");
         return;
     }
+    const int entered_track = g_practice_target_track;
+    g_practice_target_track = -1;
     g_practice_launch = {};
     g_visible = false;
     g_stock_handed_off = true;
@@ -1235,8 +1339,9 @@ void observe_practice_guest() {
     g_handed_off_saw_race = true;
     ur_baldosa_product_set_host_focus(0);
     std::fprintf(stderr,
-        "UR_BALDOSA_MODERN_ROOT practice_entered=1 course=0 "
-        "original_course=1 race=1 source_identity=verified\n");
+        "UR_BALDOSA_MODERN_ROOT practice_entered=1 course=%d "
+        "original_course=%d race=1 source_identity=verified\n",
+        entered_track, entered_track + 1);
 }
 extern "C" void ur_baldosa_modern_root_stock_observe_guest(void) {
     observe_practice_guest();
@@ -1624,8 +1729,19 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     // Practice, A to confirm Dragster. The original tour/racer/track/GO
     // navigation thereafter belongs solely to the shared route state.
     if (std::strcmp(opt, "11") == 0) {
-        const int button = frame == 60 ? kGamepadBtn_DpadDown :
-                           frame == 62 || frame == 64 ? kGamepadBtn_A : -1;
+        // Optional CI-only course walk: UR_BALDOSA_PRACTICE_TEST_STEPS=n
+        // presses DPAD DOWN n more times inside the picker (each is one
+        // genuine NextCourse over the unlocked courses) before the confirm A.
+        // Unset keeps the original Down, A, A (Dragster) gesture exactly.
+        const char* steps_env = std::getenv("UR_BALDOSA_PRACTICE_TEST_STEPS");
+        const unsigned steps = steps_env && *steps_env
+            ? static_cast<unsigned>(std::strtoul(steps_env, nullptr, 10)) : 0u;
+        const unsigned confirm = 64u + 2u * steps;
+        int button = -1;
+        if (frame == 60) button = kGamepadBtn_DpadDown;
+        else if (frame == 62 || frame == confirm) button = kGamepadBtn_A;
+        else if (frame > 62 && frame < confirm && (frame % 2u) == 0u)
+            button = kGamepadBtn_DpadDown;
         if (button < 0) return;
         if (!ur_baldosa_modern_root_gamepad(0, button, 1) ||
             !ur_baldosa_modern_root_gamepad(0, button, 0))

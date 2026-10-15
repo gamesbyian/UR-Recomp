@@ -151,6 +151,9 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
         "UR_RECOMP_USER_DATA_ROOT": str(user_root),
         "SDL_AUDIODRIVER": "dummy",
         "SDL_VIDEODRIVER": "windows",
+        # Scripted refusals must return at once; the interactive hold that
+        # keeps a double-clicked window readable is opted out here.
+        "UR_BALDOSA_NO_HOLD": "1",
     })
     args = ["--config", str(config), "--script", str(script)]
 

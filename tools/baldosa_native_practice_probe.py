@@ -29,7 +29,7 @@ def require_native_practice_source(log: str) -> None:
         "UR_BALDOSA_NATIVE_PROFILE DEFAULT no_host_state=1",
         "UR_BALDOSA_MODERN_ROOT opened=1",
         "UR_BALDOSA_MODERN_ROOT practice_gamepad=DOWN",
-        "UR_BALDOSA_MODERN_ROOT practice_opened=1 available=1 "
+        "UR_BALDOSA_MODERN_ROOT practice_opened=1 available=20 "
         "course=0 source_menu_required=1",
         "UR_BALDOSA_MODERN_ROOT practice_gamepad=A",
         "UR_BALDOSA_MODERN_ROOT practice_requested=1 course=0 "

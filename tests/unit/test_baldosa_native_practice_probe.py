@@ -19,7 +19,7 @@ class NativePracticeProbeTests(unittest.TestCase):
             "UR_BALDOSA_NATIVE_PROFILE DEFAULT no_host_state=1\n"
             "UR_BALDOSA_MODERN_ROOT opened=1\n"
             "UR_BALDOSA_MODERN_ROOT practice_gamepad=DOWN\n"
-            "UR_BALDOSA_MODERN_ROOT practice_opened=1 available=1 "
+            "UR_BALDOSA_MODERN_ROOT practice_opened=1 available=20 "
             "course=0 source_menu_required=1\n"
             "UR_BALDOSA_MODERN_ROOT practice_gamepad=A\n"
             "UR_BALDOSA_MODERN_ROOT practice_requested=1 course=0 "
@@ -38,7 +38,7 @@ class NativePracticeProbeTests(unittest.TestCase):
             good.replace("race=1", "race=0"),
             good.replace("source_identity=verified", "source_identity=guessed"),
             good.replace("practice_opened=1", "practice_opened=0"),
-            good.replace("available=1", "available=45"),
+            good.replace("available=20", "available=45"),
             good.replace("source_route=stock", "source_route=host"),
             good + good,
             good + "UR_BALDOSA_MODERN_ROOT practice_rejected=timeout\n",
@@ -58,7 +58,8 @@ class NativePracticeProbeTests(unittest.TestCase):
             "ur_baldosa_product_queue_stock_menu_input(mask)",
             "quick_practice_launch_owns_player_input",
             "source_identity=verified",
-            "kNativePracticeAvailable{1u}",
+            "native_practice_availability()",
+            "stock_practice_tour_option_mask(",
         ):
             self.assertIn(token, source)
         # The native root is available before original MAIN settles; the

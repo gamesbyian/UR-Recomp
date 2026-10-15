@@ -15,6 +15,12 @@ PINNED=(
     bright.AFTER + "  }\n"
 )
 
+LEGACY_PINNED=(
+    "static void ppu_render_pixel(Ppu *ppu, int x, int y) {\n" +
+    bright.LEGACY_PREFIX + bright.LEGACY_OLD + "\n" +
+    bright.LEGACY_SUFFIX + "\n"
+)
+
 class SourceBrightnessTest(unittest.TestCase):
     def test_2014_mul_brightness_source_matched_all_512_entries(self):
         # Pinned 2014 Snes9x globals.cpp table is exactly nearest i*b/15.
@@ -57,6 +63,26 @@ class SourceBrightnessTest(unittest.TestCase):
             with self.subTest(desc=bad[:60]),self.assertRaises(ValueError):
                 bright.patch_source(bad)
 
+    def test_actual_legacy_PPU_source_semantics_are_replaced_not_only_unused_lut(self):
+        changed=bright.patch_legacy_source(LEGACY_PINNED)
+        self.assertEqual(bright.patch_legacy_source(changed),changed)
+        self.assertEqual(changed.count(bright.LEGACY_MARK),1)
+        self.assertEqual(changed.replace(bright.LEGACY_NEW,bright.LEGACY_OLD),
+                         LEGACY_PINNED)
+        self.assertNotIn(bright.LEGACY_OLD,changed)
+        self.assertIn("const int pb = (b * snes_brightness + 7) / 15;",changed)
+        self.assertIn("pixelBuffer[3] = 0;",changed)
+
+    def test_legacy_pixel_brightness_refuses_partial_foreign_or_tampered_source(self):
+        changed=bright.patch_legacy_source(LEGACY_PINNED)
+        for bad in ("",LEGACY_PINNED+LEGACY_PINNED,
+                    LEGACY_PINNED.replace("pixelBuffer[1]", "pixelBuffer[7]"),
+                    LEGACY_PINNED.replace("PPU_brightness(ppu) / 15", "PPU_brightness(ppu) / 14"),
+                    changed.replace(" + 7", " + 8"),
+                    changed+bright.LEGACY_MARK):
+            with self.subTest(fixture=bad[:80]),self.assertRaises(ValueError):
+                bright.patch_legacy_source(bad)
+
     def test_core_or_title_pin_failure_never_changes_disposable_game(self):
         with tempfile.TemporaryDirectory() as tmp:
             game=Path(tmp)
@@ -65,6 +91,8 @@ class SourceBrightnessTest(unittest.TestCase):
             p=game/bright.FILE
             p.parent.mkdir(parents=True)
             p.write_text(PINNED)
+            legacy=game/bright.LEGACY_FILE
+            legacy.write_text(LEGACY_PINNED)
             with patch.object(bright,"pinned_revision",side_effect=["bad",bright.CORE_REV]):
                 with self.assertRaisesRegex(ValueError,"title source"):
                     bright.apply_game(game,write=True)
@@ -78,6 +106,24 @@ class SourceBrightnessTest(unittest.TestCase):
                               side_effect=[bright.GAME_REV,bright.CORE_REV]):
                 bright.apply_game(game,write=True)
             self.assertEqual(p.read_text(),bright.patch_source(PINNED))
+            self.assertEqual(legacy.read_text(),bright.patch_legacy_source(LEGACY_PINNED))
+
+    def test_drift_in_actual_legacy_source_refuses_both_writes_atomically(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            game=Path(tmp)
+            (game/"src/gen").mkdir(parents=True)
+            (game/"src/gen/dispatch_v2.c").write_text("title generated")
+            p=game/bright.FILE
+            p.parent.mkdir(parents=True)
+            p.write_text(PINNED)
+            legacy=game/bright.LEGACY_FILE
+            legacy.write_text(LEGACY_PINNED.replace("pixelBuffer[2]",
+                                                 "pixelBuffer[12]"))
+            with patch.object(bright,"pinned_revision",
+                              side_effect=[bright.GAME_REV,bright.CORE_REV]):
+                with self.assertRaisesRegex(ValueError,"competing legacy"):
+                    bright.apply_game(game,write=True)
+            self.assertEqual(p.read_text(),PINNED)
 
     def test_real_windows_bridge_stages_brightness_after_hdma_before_compile(self):
         workflow=(ROOT/".github/workflows/baldosa-windows-native-bridge.yml").read_text()

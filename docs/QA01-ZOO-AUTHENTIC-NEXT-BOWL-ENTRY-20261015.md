@@ -75,3 +75,37 @@ Even more decisively, **every byte of all eleven paired original/native 8,192-by
 **Scientific decision:** the *observed original/native Zoo result-return → actual following active Bowl entry* now matches on a source-correct, integrated RF-017 research guest in both event-relative state and complete sampled battery SRAM. The long CPU runtime fix is already owned and integrated; this PR only preserves original movie handoff evidence. **Do not label this entire 5,163-frame race and the next 280 frames instruction-exact, full-WRAM-exact, or an accepted complete USA event**. The 128KiB WRAM digests still differ in the result-return window, actual shipping Windows binary provenance and host-file durability/hard-kill recovery are not checked by this Linux research ELF, and physical/complete-source-gameplay acceptance remains separate. **Still 0/45.**
 
 The full immutable decision is recorded in [analysis/data/qa01-zoo-next-bowl-rf017-integrated-positive-20261015.json](../analysis/data/qa01-zoo-next-bowl-rf017-integrated-positive-20261015.json), including all exact artifact, source and binary hashes. The disposable compute PR #1664 must remain unmerged and its temporary workflow removed; integration may merge this evidence and the manual-only observer without importing a second CPU implementation.
+
+## Read-only complete-WRAM byte attribution for the next RF-017 replay
+
+The already-executed RF-017 original/native handoff has **11/11 byte-exact
+8-KiB battery pairs** but does **not** have byte-exact whole 128-KiB
+WRAM receipts. Whole-WRAM hashes in the continuous Zoo result-return window
+already disagree, starting at reported guest-relative +5163. A digest cannot
+show whether disagreement is transient stack content, still-live state,
+different CPU phase or a behavioral defect.
+
+The existing `probe_original_event_complete.py` observer now includes
+`audit_qa01_wram_pair`: it checks **every byte** of both real 128-KiB
+images with **zero exclusions**, retaining the byte count, first 24
+original/native address/value differences, complete counts for every
+affected 256-byte page, both SHA-256s and first/last differing addresses.
+The three existing consumers are: 31 consecutive +5156..+5186 Zoo
+race-relative result frames, six original-source result-relative
+followthrough samples (+8..+72), and 11 authentic next Bowl samples
+(+259..+280). All guest host clocks remain independently checked; sampled
+frame equality is not continuous event or instruction-time parity.
+No original movie, input, CPU/APU implementation, field-mask contract,
+strict comparator classification or release ledger is altered.
+
+**Decision:** Reexecute one source-pinned RF-017 Zoo replay using the
+*existing* reusable QA-01 campaign with Zoo terminal, source followthrough
+and next Bowl flags, then inspect the first raw difference and the persistence
+of its exact address/page across the windows. The small per-frame counts and
+first addresses also go to Actions logs; full reports and the original raw
+images remain the artifact authority. Do **not** declare stack writes dead
+from their address alone. If a specific set of bytes is proven irrelevant,
+write a separately reviewed *bounded* logic-frame semantics proposal,
+retaining the unmasked first-difference record and falsifying cases.
+The unchanged requirement for real Windows executable provenance and
+OS-level durable cold-process recovery still blocks USA event admission.

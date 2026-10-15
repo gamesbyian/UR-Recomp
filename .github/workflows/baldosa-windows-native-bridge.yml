@@ -22,6 +22,7 @@ on:
       - "tools/baldosa_qa08_native_ppu_register_trace_patch.py"
       - "tools/baldosa_qa08_native_firstline_hdma_readonly_patch.py"
       - "tools/baldosa_uniracers_v0_raster_before_hdma_patch.py"
+      - "tools/baldosa_qa08_cgram_completed_field_experiment.py"
       - "tools/baldosa_qa08_windows_original_capture.cpp"
       - "tools/baldosa_qa08_windows_source_capture_patch.py"
       - "tools/check_qa08_windows_source_raster.py"
@@ -33,6 +34,7 @@ on:
       - "tests/unit/test_baldosa_qa08_native_ppu_register_trace_patch.py"
       - "tests/unit/test_baldosa_qa08_native_firstline_hdma_readonly_patch.py"
       - "tests/unit/test_baldosa_uniracers_v0_raster_before_hdma_patch.py"
+      - "tests/unit/test_baldosa_qa08_cgram_completed_field_experiment.py"
       - "tests/unit/test_baldosa_qa08_windows_source_capture.py"
       - "tests/unit/test_qa08_windows_full_oneplayer_source_coverage.py"
       - "tests/unit/test_qa08_windows_full_twoplayer_source_coverage.py"
@@ -135,6 +137,7 @@ jobs:
           python tests/unit/test_baldosa_qa08_native_ppu_register_trace_patch.py
           python tests/unit/test_baldosa_qa08_native_firstline_hdma_readonly_patch.py
           python tests/unit/test_baldosa_uniracers_v0_raster_before_hdma_patch.py
+          python tests/unit/test_baldosa_qa08_cgram_completed_field_experiment.py
           python tests/unit/test_baldosa_qa08_windows_source_capture.py
           python tests/unit/test_qa08_windows_full_oneplayer_source_coverage.py
           python tests/unit/test_qa08_windows_full_twoplayer_source_coverage.py
@@ -176,6 +179,12 @@ jobs:
           # Keep 8-bit rounding effects out of source-authentic Original mode.
           python tools/baldosa_uniracers_brightness_pixel_lut_patch.py --game baldosa
           python tools/baldosa_uniracers_brightness_pixel_lut_patch.py --game baldosa --apply-candidate
+          # Independent QA-08-only hypothesis: capture completed-field
+          # CGRAM at V225 before next field uploads, fully restore all live
+          # guest CGRAM bytes and port latches. This is an EXPERIMENT only;
+          # original/native full 1P+2P raster regression decides acceptance.
+          python tools/baldosa_qa08_cgram_completed_field_experiment.py --game baldosa
+          python tools/baldosa_qa08_cgram_completed_field_experiment.py --game baldosa --apply-experiment
           # Only a read-only, exact-frame PPU register witness when QA supplies
           # UR_QA08_WINDOWS_PPU_STATE_TRACE. No player-facing render change.
           python tools/baldosa_qa08_native_ppu_register_trace_patch.py --game baldosa
@@ -306,7 +315,7 @@ jobs:
       # source and the already-known real 5447-frame 1P route. This is NOT
       # a new self-repeating emulator campaign. Stop after accepting source.
       - name: Observe race entry, moving camera, and result/return in real 1P Windows PPU
-        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 1641 }}
+        if: ${{ github.event_name == 'pull_request' && (github.event.pull_request.number == 1641 || github.event.pull_request.base.ref == 'graphics/qa08-uniracers-hdma-firstline-windows-candidate') }}
         shell: bash
         run: |
           set -euo pipefail
@@ -319,7 +328,7 @@ jobs:
           echo "Observed bounded authentic native 1P original raster frames in race/transition/return. Independently executed original comparison is a separate required gate." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain bounded genuine 1P Windows PPU source and phase receipt
-        if: ${{ always() && github.event_name == 'pull_request' && github.event.pull_request.number == 1641 }}
+        if: ${{ always() && github.event_name == 'pull_request' && (github.event.pull_request.number == 1641 || github.event.pull_request.base.ref == 'graphics/qa08-uniracers-hdma-firstline-windows-candidate') }}
         uses: actions/upload-artifact@v4
         with:
           name: qa08-win32-original-oneplayer-transition-source
@@ -333,7 +342,7 @@ jobs:
       # One source-pinned original/Windows 2P result-and-return question.
       # Same AOT Windows executable, no second render or SNES core compilation.
       - name: Capture authentic split-screen 2P race, results and menu return
-        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 1641 }}
+        if: ${{ github.event_name == 'pull_request' && (github.event.pull_request.number == 1641 || github.event.pull_request.base.ref == 'graphics/qa08-uniracers-hdma-firstline-windows-candidate') }}
         shell: bash
         run: |
           set -euo pipefail
@@ -346,7 +355,7 @@ jobs:
           echo "Real Windows two-pad source through terminal result/menu, 263 actual PPU frames. Original pixel, CPU phase, hardware and release authority separate." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain real Windows two-pad 2P split and terminal source images
-        if: ${{ always() && github.event_name == 'pull_request' && github.event.pull_request.number == 1641 }}
+        if: ${{ always() && github.event_name == 'pull_request' && (github.event.pull_request.number == 1641 || github.event.pull_request.base.ref == 'graphics/qa08-uniracers-hdma-firstline-windows-candidate') }}
         uses: actions/upload-artifact@v4
         with:
           name: qa08-win32-original-2p-fullroute-raster

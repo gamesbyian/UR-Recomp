@@ -1,0 +1,137 @@
+name: Retain exact three-profile Win32 source-original QA archives
+
+# Single-purpose preservation; no Windows build, ROM, release or gameplay re-run.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/retain-qa02-three-profile-win32-originals.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: qa02-three-profile-originals-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  original_byte_retention:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download four exact source-original GitHub Actions ZIPs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OUT: ${{ runner.temp }}/qa02-three-profile-originals
+        run: |
+          set -euo pipefail
+          mkdir -p "$OUT"
+          while read -r artifact_id expected_sha; do
+            curl --fail --silent --show-error --location --retry 2 \
+              --connect-timeout 20 --max-time 120 \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact_id/zip" \
+              --output "$OUT/$artifact_id.zip"
+            printf '%s  %s\n' "$expected_sha" "$OUT/$artifact_id.zip" | sha256sum -c -
+          done <<'SOURCE_ORIGINALS'
+          12079485622 f9daca574581efb4e634e689293b282bb692df5e3efdbfb7e586bf1073be3e68
+          12079705129 3402bedb5ac10bdc2845d2049bfa2c2556948809d3980148b8be90c965ac1b8b
+          12079710047 b8a9d17f323c792562ae8e8acd99b67d69cd395e5045a4e0a73da5ee5e9100e1
+          12078629900 810b4490a286eb9c54f95759100c402c019f16e6e65c7938d8a6c99a8baf4072
+          SOURCE_ORIGINALS
+
+      - name: Verify original source, Windows binary and complete three-profile byte contract
+        shell: bash
+        env:
+          OUT: ${{ runner.temp }}/qa02-three-profile-originals
+        run: |
+          set -euo pipefail
+          python3 tools/check_qa02_win32_three_profile_original.py \
+            --original-zip "$OUT/12079485622.zip" \
+            --sha256 f9daca574581efb4e634e689293b282bb692df5e3efdbfb7e586bf1073be3e68 \
+            > "$OUT/THREE-PROFILE-VERDICT.json"
+          python3 - <<'PY'
+          import hashlib, io, json, os, pathlib, stat, zipfile
+          root = pathlib.Path(os.environ["OUT"])
+          originals = {
+            "12079485622": ("f9daca574581efb4e634e689293b282bb692df5e3efdbfb7e586bf1073be3e68", 154),
+            "12079705129": ("3402bedb5ac10bdc2845d2049bfa2c2556948809d3980148b8be90c965ac1b8b", 1),
+            "12079710047": ("b8a9d17f323c792562ae8e8acd99b67d69cd395e5045a4e0a73da5ee5e9100e1", 2),
+            "12078629900": ("810b4490a286eb9c54f95759100c402c019f16e6e65c7938d8a6c99a8baf4072", 1)
+          }
+          source = "38d12a32c3023b72a54db934907dfcdc889ff846"
+          portable = "6faf00d9d6571b5c138f6a316affb16e36288abb235b68201d3063e38634a3f5"
+          exe_sha = "961483ed2961329586ae50e73cb0fdcba0a5105caf1d6f17c8feada648b6871e"
+          digest = lambda b: hashlib.sha256(b).hexdigest()
+          receipt = []
+          for id, (expected, count) in originals.items():
+              b = (root / (id + ".zip")).read_bytes()
+              if digest(b) != expected:
+                  raise SystemExit("Original ZIP changed: " + id)
+              with zipfile.ZipFile(io.BytesIO(b)) as z:
+                  info = z.infolist()
+                  if len(info) != count or len({x.filename for x in info}) != count or z.testzip() is not None:
+                      raise SystemExit("Original ZIP CRC/inventory mismatch: " + id)
+                  for x in info:
+                      p = pathlib.PurePosixPath(x.filename)
+                      kind = stat.S_IFMT(x.external_attr >> 16)
+                      if (x.is_dir() or (x.flag_bits & 1) or kind not in (0, stat.S_IFREG) or
+                          p.is_absolute() or ".." in p.parts or "\\" in x.filename or
+                          x.filename.lower().endswith((".sfc", ".smc", ".swc", ".rom", ".iso"))):
+                          raise SystemExit("Unsafe or ROM-containing source ZIP member: " + id)
+                  if id == "12079705129":
+                      if z.namelist() != ["candidate-binding.json"]:
+                          raise SystemExit("Candidate binding inventory changed")
+                      j = json.loads(z.read("candidate-binding.json"))
+                      if (j.get("source_revision") != source or j.get("zip_sha256") != portable
+                          or j.get("journey_and_packaged_executable_sha256") != exe_sha):
+                          raise SystemExit("Original Windows source/PE ZIP binding mismatch")
+                  if id == "12079710047":
+                      expected_name = "UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip"
+                      if set(z.namelist()) != {expected_name, expected_name + ".sha256"}:
+                          raise SystemExit("Portable package outer members changed")
+                      game_bytes = z.read(expected_name)
+                      if digest(game_bytes) != portable:
+                          raise SystemExit("Portable ROM-free package ZIP digest changed")
+                      with zipfile.ZipFile(io.BytesIO(game_bytes)) as game:
+                          if game.testzip() is not None:
+                              raise SystemExit("Portable ZIP CRC corrupted")
+                          names = game.namelist()
+                          if any(name.lower().endswith((".sfc", ".smc", ".rom")) for name in names):
+                              raise SystemExit("ROM included in portable source package")
+                          pe_name = next(n for n in names if n.endswith("UniracersSNESRecomp.exe"))
+                          if digest(game.read(pe_name)) != exe_sha:
+                              raise SystemExit("Win32 executable not same source SHA")
+                  if id == "12078629900":
+                      j = json.loads(z.read("pilot-result.json"))
+                      if (j.get("source_sha") != source or j.get("exe_sha256") != exe_sha or
+                          j.get("executed_cases") != 13 or j.get("expected_cases") != 13 or
+                          any(c.get("exit_code") != 0 for c in j["cases"])):
+                          raise SystemExit("Actual same-run hosted Windows pilot evidence drifted")
+              receipt.append({"original_artifact_id": int(id), "original_zip_sha256": expected,
+                              "original_zip_bytes": len(b), "crc_clean_members": count})
+          (root / "RETENTION-RECEIPT.json").write_text(json.dumps({
+            "schema": "UR-QA02-SOURCE-ORIGINAL-THREE-PROFILE-RETENTION/1",
+            "actual_tested_pr_merge": source,
+            "original_win32_workflow_run": 38975446206,
+            "original_immutable_candidate_unchanged": "11501a15dea38fa912335cfc63103ce3a7208001",
+            "originals": receipt,
+            "release_gate_credit": 0,
+            "physical_hardware_verified": False
+          }, sort_keys=True, indent=2)+"\n", encoding="utf8")
+          print("Verified", len(receipt), "unaltered original ZIPs and",
+                sum(x["crc_clean_members"] for x in receipt), "original CRC-valid entries")
+          PY
+
+      - name: Preserve four unchanged originals for 90 days
+        uses: actions/upload-artifact@v4
+        with:
+          name: retained-qa02-three-profile-source-originals-38d12a32
+          path: ${{ runner.temp }}/qa02-three-profile-originals/
+          compression-level: 0
+          retention-days: 90
+          if-no-files-found: error

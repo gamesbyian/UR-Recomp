@@ -61,7 +61,7 @@ def retain_rooted_relative_rejection(output: Path, supplied_root: str,
                                      result: subprocess.CompletedProcess[str]) -> dict:
     log_name, key = ROOTED_RELATIVE_NEGATIVE_CASES[supplied_root]
     transcript = ("STDOUT (actual cmd.exe subprocess):\n" + result.stdout +
-                  "\\nSTDERR (actual cmd.exe subprocess):\n" + result.stderr)
+                  "\nSTDERR (actual cmd.exe subprocess):\n" + result.stderr)
     (output / log_name).write_text(bounded_log(transcript), encoding="utf-8")
     return {
         "case": key,

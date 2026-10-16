@@ -89,6 +89,7 @@ TRACE=r"""  /* Original logical x and output y. This reads the already composed 
           snes_frame_counter,x,y,slot,xy,tileattr,high);
       }
     }
+  }
   /* Exactly two independently verified source-divergent finish pixels.
    * This is a separate opt-in probe. Do not alter the existing 11 positions,
    * 70 OAM snapshots, PPU layer order or full-frame source rasters. */
@@ -114,7 +115,6 @@ TRACE=r"""  /* Original logical x and output y. This reads the already composed 
       (unsigned)ppu->inidisp,(unsigned)ppu->cgadsub,(unsigned)ppu->cgwsel,
       (unsigned)ppu->fixedColor,(unsigned)ppu->screenEnabled[0],
       (unsigned)ppu->screenEnabled[1],(unsigned)ppu->obsel);
-  }
   }
 """
 

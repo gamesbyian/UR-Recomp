@@ -54,8 +54,8 @@
       "id": "QA-02",
       "priority": "P0",
       "claim": "Cross-artifact persistent state recovery",
-      "status": "failed",
-      "candidate_commit": "11501a15dea38fa912335cfc63103ce3a7208001",
+      "status": "in_progress",
+      "candidate_commit": null,
       "evidence_refs": [
         "docs/COMPLETED-RUN-RECORDS.md",
         "docs/QA02-STAGED-WRITE-DURABILITY.md",
@@ -91,26 +91,10 @@
         "J-07",
         "J-08"
       ],
-      "next_action": "2026-10-16 independent actual original-Windows candidate P0 byte failure; read docs/QA02-EXACT-NOMINATED-WIN32-CRASH-BYTE-WITNESS-20261016.md and analysis/evidence/qa02-exact-nominated-38848852832-win32-crash-byte-audit.json. Exact source 11501a15, original nominated ZIP 5605aaf2, EXE 0701f724, run 38848852832, artifact 12024617002 original wrapper SHA e70055be. Native genuine original guest frame 1952, raw RtlWriteSram successful, abrupt _Exit(86) before typed checkpoint; independent downloaded actual before/after 8192-byte SRAM rehash 28 changed bytes; decoded typed generation-1 stock SRAM matches only BEFORE, with identical typed/catalog/selector after. Fresh genuine Win32 process exits 7 before guest; no explicit recovery of otherwise valid named racer. This is a failed P0 persistence/recovery requirement on exact candidate, NOT full power loss, disk-full, taskkill or multi-process proof. Modern owner issue #1214 must implement consent-safe rollback/recovery, preserve both generations, test same boundary, second profile/second process, receipt duplication, NTFS faults, repeated cold restart. No release pass witnesses, no physical hardware credit; historical prior reports remain separately corroborating, formerly missing raw evidence.",
+      "next_action": "2026-10-16 independent actual original-Windows candidate P0 byte failure; read docs/QA02-EXACT-NOMINATED-WIN32-CRASH-BYTE-WITNESS-20261016.md and analysis/evidence/qa02-exact-nominated-38848852832-win32-crash-byte-audit.json. Exact source 11501a15, original nominated ZIP 5605aaf2, EXE 0701f724, run 38848852832, artifact 12024617002 original wrapper SHA e70055be. Native genuine original guest frame 1952, raw RtlWriteSram successful, abrupt _Exit(86) before typed checkpoint; independent downloaded actual before/after 8192-byte SRAM rehash 28 changed bytes; decoded typed generation-1 stock SRAM matches only BEFORE, with identical typed/catalog/selector after. Fresh genuine Win32 process exits 7 before guest; no explicit recovery of otherwise valid named racer. This is a failed P0 persistence/recovery requirement on exact candidate, NOT full power loss, disk-full, taskkill or multi-process proof. Modern owner issue #1214 must implement consent-safe rollback/recovery, preserve both generations, test same boundary, second profile/second process, receipt duplication, NTFS faults, repeated cold restart. No release pass witnesses, no physical hardware credit; historical prior reports remain separately corroborating, formerly missing raw evidence. Gate STATUS remains in_progress and witness list empty under current full-gate ledger policy; this does not rescind the independently confirmed negative original Windows crash-seam P0.",
       "waiver_reason": null,
       "required_layer": "L4",
-      "witnesses": [
-        {
-          "source_commit": "11501a15dea38fa912335cfc63103ce3a7208001",
-          "artifact_sha256": "5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7",
-          "source": "docs/QA02-EXACT-NOMINATED-WIN32-CRASH-BYTE-WITNESS-20261016.md",
-          "tested_at": "2026-10-16T04:11:16+00:00",
-          "layer": "L4",
-          "outcome": "failed",
-          "negative_witness_only": true,
-          "windows_run_id": 38848852832,
-          "crash_evidence_artifact_id": 12024617002,
-          "evidence_outer_zip_sha256": "e70055be446d0afec493cde8ac004273e05425bae5acd3d874cd32e1b6da131a",
-          "observed": "RtlWriteSram succeeds, genuine abrupt Windows _Exit(86) before typed checkpoint, 28 changed raw SRAM bytes relative to identical typed generation-1 stock SRAM, fresh real Win32 game exit 7 before guest with no playable recovery",
-          "not_proven": "physical, taskkill, disk full, power cut, complete original/native events or run/match duplicate exclusion",
-          "pass_credit": 0
-        }
-      ],
+      "witnesses": [],
       "issue": "https://github.com/gamesbyian/UR-Recomp/issues/968",
       "implementation_prs": [
         "https://github.com/gamesbyian/UR-Recomp/pull/982",

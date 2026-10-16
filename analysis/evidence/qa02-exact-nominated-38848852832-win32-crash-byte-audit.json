@@ -215,7 +215,8 @@
     "physical two gamepads and audio or 4K",
     "full original/native USA event"
   ],
-  "qa02_gate_status": "failed",
+  "qa02_gate_status": "in_progress",
   "release_pass_witnesses": 0,
-  "usa_accepted_complete_events": 0
+  "usa_accepted_complete_events": 0,
+  "tested_crash_recovery_condition": "failed"
 }

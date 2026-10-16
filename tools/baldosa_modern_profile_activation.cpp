@@ -16,6 +16,7 @@
 #include "host_profile_catalog.hpp"
 #include "baldosa_native_profile_sram_checkpoint.hpp"
 #include "baldosa_native_sram_recovery.hpp"
+#include "baldosa_native_manual_sram_recovery.hpp"
 #include "baldosa_native_profile_path_guard.hpp"
 #include "baldosa_native_first_profile.hpp"
 #include "baldosa_native_second_profile.hpp"
@@ -79,6 +80,75 @@ bool activated() {
 }
 
 }  // namespace
+
+// This single-use management command belongs to the SAME original Baldosa
+// executable and to its normal after_config pre-guest initialization path.
+// It can be reached only through an explicit recovery choice; mere startup
+// and unrecognized action never replace a save. Exit 89 means a validated
+// mutation completed, 88 is a refusal (possibly after a preserved archive),
+// and 0 means ordinary gameplay may proceed. Never enter the guest on either
+// nonzero return. A separate already-running native process is not reused.
+extern "C" int ur_baldosa_modern_run_recovery_command(void) {
+    const char* action = std::getenv("UR_BALDOSA_RECOVERY_ACTION");
+    if (!action || !*action) return 0;
+    if (!activated()) return 88;
+    const char* root = std::getenv("SNESRECOMP_USER_DATA_DIR");
+    if (!root || !*root) return 88;
+    const std::filesystem::path user_root(root);
+    if (!user_root.is_absolute() ||
+        !ur::product::baldosa_native_real_directory(user_root))
+        return 88;
+    const char* override_selector = std::getenv("UR_HOST_STATE_PATH");
+    if (override_selector && *override_selector &&
+        std::strcmp(override_selector, "host-state-v1.txt") != 0)
+        return 88;
+    const auto global = ur::product::load_host_product_state_file(
+        (user_root / "host-state-v1.txt").string());
+    if (!global.loaded() || !global.state->active_profile_id ||
+        !ur::product::is_safe_profile_storage_id(
+            *global.state->active_profile_id))
+        return 88;
+    const auto& active = *global.state->active_profile_id;
+    bool committed = false;
+    const char* outcome = "refused";
+    if (std::strcmp(action, "raw") == 0 ||
+        std::strcmp(action, "typed") == 0) {
+        const bool raw = std::strcmp(action, "raw") == 0;
+        const auto status = ur::product::recover_baldosa_legacy_sram_explicit(
+            user_root, active,
+            raw ? ur::product::BaldosaManualSramChoice::TrustGuestRaw
+                : ur::product::BaldosaManualSramChoice::RestoreCommitted);
+        committed =
+            status == ur::product::BaldosaManualSramRecoveryStatus::RestoredRaw ||
+            status == ur::product::BaldosaManualSramRecoveryStatus::RestoredCommitted ||
+            status == ur::product::BaldosaManualSramRecoveryStatus::AlreadyConsistent;
+        outcome = raw ? "raw" : "typed";
+        std::fprintf(stderr,
+            "UR_BALDOSA_RECOVERY_CHOICE choice=%s status=%u "
+            "active_profile=%s completed=%d\\n",
+            outcome, static_cast<unsigned>(status), active.c_str(),
+            committed ? 1 : 0);
+    } else if (std::strcmp(action, "healthy") == 0) {
+        const char* target = std::getenv("UR_BALDOSA_RECOVERY_PROFILE_ID");
+        if (!target || !*target ||
+            !ur::product::is_safe_profile_storage_id(target))
+            return 88;
+        const auto result =
+            ur::product::select_baldosa_healthy_profile_from_damaged_for_next_boot(
+                user_root, active, target);
+        committed = result.selected();
+        outcome = "healthy";
+        std::fprintf(stderr,
+            "UR_BALDOSA_RECOVERY_CHOICE choice=healthy status=%u "
+            "active_profile=%s next_profile=%s completed=%d\\n",
+            static_cast<unsigned>(result.status), active.c_str(), target,
+            committed ? 1 : 0);
+    } else {
+        return 88;
+    }
+    std::fflush(stderr);
+    return committed ? 89 : 88;
+}
 
 /* Return 1 only when it is safe to enter the normal upstream native host.
  * Callers must fail closed on 0; the guest has not started at this point.

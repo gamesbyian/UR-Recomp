@@ -1,0 +1,93 @@
+{
+  "schema": "ur-qa12-pr1713-windows-exact-original-bytes/1",
+  "date": "2026-10-16",
+  "pr": 1713,
+  "workflow_run": 38958955267,
+  "branch_head": "6cda18742b85c03f3a381c4b52bc61861d18be83",
+  "actual_checked_out_pr_merge": "075cbb9ca1711d1e22a6369f8bd491232b8b8ef2",
+  "merge_parents": [
+    "af85cf1797fc9a4357e2fa67a6d0ad5e59d2b77f",
+    "6cda18742b85c03f3a381c4b52bc61861d18be83"
+  ],
+  "package": {
+    "inner_romless_zip_sha256": "3ad74e5d9ab9a921bc7e2bb50add5a5240d54928884be7f6306aba0cac77b3c3",
+    "inner_zip_bytes": 5984347,
+    "pe_sha256": "bef2d8ae426bdb97f1b4650c13e336cf02ddad4465db605e7be111182087e3e0",
+    "pe_bytes": 19832832,
+    "pe32_plus_amd64_true": true,
+    "rom_bundled": false,
+    "manifest_sha_verified": true
+  },
+  "artifacts": [
+    {
+      "id": 12071973967,
+      "sha256": "c62cdffc7873f2c6980369f0c7bdf3bd2a2d2aa696b3f348a2d28a61e3162548",
+      "role": "original source candidate ZIP and SHA sidecar"
+    },
+    {
+      "id": 12072143994,
+      "sha256": "141d2573f56524242a3eb96b4e71b04e6cd8204b3fda76af836d1a8303fae440",
+      "role": "same-run identity binding"
+    },
+    {
+      "id": 12073000556,
+      "sha256": "c41ca22061f89104d418dee5116a9a08baf6c23d26910048d4d1025d1592cc0d",
+      "role": "52-member authentic Win32 journey evidence"
+    },
+    {
+      "id": 12071789071,
+      "sha256": "8b63e6f2c614d2f9f8069dc1caba8a55c1c91cf8654764203f259a69d914c6cc",
+      "role": "13-way source-bound Windows executed journey outcome"
+    },
+    {
+      "id": 12071779241,
+      "sha256": "3a21ff025a7efb15a9f9940605ca19238f9fb5fe04ed845a227f0aa7be478d90",
+      "role": "earlier raw 2P match archive"
+    }
+  ],
+  "independent_outer_sha256_and_crc_verified": true,
+  "actual_hosted_win32_journeys": {
+    "passed": 13,
+    "expected": 13,
+    "all_exit_zero": true
+  },
+  "raw_player_match": {
+    "course": "course:01",
+    "winner": "martin",
+    "source_run_checksum": "a8327800e49e4c44",
+    "p1": {
+      "profile": "mike",
+      "rider": 0,
+      "hundredths": 2761,
+      "record": "LOSS 00:27.61",
+      "typed_matches_exact_8192_raw": true,
+      "raw_sha256": "adabbeb16a3292ccc0f4c4958b3c7016fa8025dc86182ae8c4ef6edbd81bc73f"
+    },
+    "p2": {
+      "profile": "martin",
+      "rider": 2,
+      "hundredths": 2757,
+      "record": "WIN 00:27.57",
+      "typed_matches_exact_8192_raw": true,
+      "raw_sha256": "48a8a5e15104a1bb05780bafa61ca5ff32dcf5da0c3a0427ae67cc4e430573a9"
+    },
+    "same_run_checksum_as_match_sidecar": true,
+    "source_observed_guest_result_matches_fresh_records": true
+  },
+  "p0_fault": {
+    "real_guest_frame": 1952,
+    "source_reported_exit": 86,
+    "old_unjournaled_cold_rejected": true,
+    "new_journaled_cold_reconciled_reported": true,
+    "complete_three_stage_sram_and_intent_bytes_archived": false,
+    "independent_journaled_byte_acceptance": false
+  },
+  "physical_controllers_detected": 0,
+  "audio_driver": "dummy",
+  "release_gate_credit": 0,
+  "strict_complete_USA_event_credit": 0,
+  "original_nominated_source": "11501a15dea38fa912335cfc63103ce3a7208001",
+  "original_nominated_zip_sha256": "5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7",
+  "new_candidate_nominated": false,
+  "next": "Implementation owner to export a separate source-bound ROM-free before/crash/after plus intent/recovery-receipt archive and exercise actual player-accessible recovery, repeated fresh boots and fault I/O; independent QA verifies only when supplied."
+}

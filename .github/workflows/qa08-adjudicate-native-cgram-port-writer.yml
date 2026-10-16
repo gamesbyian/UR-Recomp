@@ -1,12 +1,9 @@
 name: QA-08 source-authentic native CGRAM port writer comparison
 # One bounded archive-only source adjudication (no new emulator execution).
 # Retire PR trigger after classified green/fail-closed historical result.
+# Source-only experiment completed green: run 38832857831.
+# Manual reproduction only; do not run historical emulator research on PRs.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/qa08-adjudicate-native-cgram-port-writer.yml"
-      - "tools/qa08_adjudicate_native_cgram_port_writer.py"
-      - "tests/unit/test_qa08_adjudicate_native_cgram_port_writer.py"
   workflow_dispatch:
 permissions:
   contents: read

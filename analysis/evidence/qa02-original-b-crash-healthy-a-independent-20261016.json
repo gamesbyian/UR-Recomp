@@ -1,0 +1,112 @@
+{
+  "schema": "ur-qa02-source-original-b-post-raw-crash-healthy-a-independently-verified/1",
+  "date": "2026-10-16",
+  "windows_source": {
+    "workflow_run": 38974116007,
+    "actual_tested_pr_merge": "71e48f808bfdec57aee48c60378971fa04ba0e1a",
+    "merge_parents": [
+      "cfacad0ae49cd2b8330a20517762b7d8af9c7527",
+      "763d0d866cf8898973877a9956aba273617aee37"
+    ],
+    "modern_pr": 1713
+  },
+  "artifacts": {
+    "fault": {
+      "id": 12079020811,
+      "sha256": "4af31d8471d12b6648eae3cc0bf432d1d4ceacf09aa7a2cff5bba080ff21fbe7",
+      "bytes": 93417,
+      "entries_crc_verified": 119
+    },
+    "binding": {
+      "id": 12079085653,
+      "sha256": "e4f0e6bfb74ae201fa87aaf99dadf234e574beac520d5861068a38badb9e364d",
+      "bytes": 692,
+      "entries_crc_verified": 1
+    },
+    "package": {
+      "id": 12078012954,
+      "sha256": "a48ba592a0bac7fe63eb1cb2f5110f1781ba2f7cbcb722798302cc48651e9163",
+      "bytes": 5983592,
+      "entries_crc_verified": 2
+    },
+    "journey": {
+      "id": 12078127548,
+      "sha256": "5e99436bd7805ba1629988d492d1e8eda463f22d8a2fbd6ebe5b3d5f7b483ae8",
+      "bytes": 62004,
+      "entries_crc_verified": 52
+    },
+    "pilot": {
+      "id": 12078012911,
+      "sha256": "3b6b6d3be67ca52b3f08a075e2121852fe33f63a240c45234f43d515261a3e8c",
+      "bytes": 1254,
+      "entries_crc_verified": 1
+    }
+  },
+  "source_package": {
+    "romless_inner_zip_sha256": "bd35229cc13754157bccaf4844a38ec57a1929b3eeb3692c5db4389c0ae8a8cb",
+    "native_pe_sha256": "5f46ad621fa640cc2616f90b9b19f1d8c9d7f39b2473118f344a1f097a07d887",
+    "pe_machine": "AMD64",
+    "rom_present_in_packaged_zip": false,
+    "hosted_13_out_of_13_source_win32_journeys_pass": true,
+    "physical_joystick_and_audio_accepted": false
+  },
+  "source_fault": {
+    "actual_guest_profile_b": "native-ci-second",
+    "actual_guest_frame": 1952,
+    "raw_write_before_forced_exit": 86,
+    "raw_bytes": 8192,
+    "source_B_raw_sha256": "c7db68306d7c44253263b1957cfae71f89888e813f140c0c91f32a802063fef9",
+    "crashed_B_raw_sha256": "2f3009bb2436e3862e045df7f12da4d37845b83ada491cbc80cbef3a098f80d8",
+    "raw_bytes_changed": 28,
+    "crashed_B_raw_unchanged_at_after_and_second_boot": true,
+    "old_B_typed_sha256": "0860cf7ed34c516ba5890a11202afe7fe82eeb142a691e7661f2e028e31c648e",
+    "old_B_typed_unchanged_at_crash_after_second_boot": true,
+    "original_B_cold_win32_game_rejected": true,
+    "healthy_profile_A": "native-ci-rider",
+    "A_raw_sha256": "bd9571f85e1b7ddfcf2b6913d5f3556c27ecadf65d353afbac29876e7d111c10",
+    "A_typed_sha256": "1f98e49d51691816a9cd544c6fe71a5f74c3447933a7db6a8cf4e659921775b0",
+    "A_raw_typed_bit_identical_across_all_four_stages": true,
+    "profile_catalog_sha256": "2d96cfaa42e2479ba63a195700327d546acc785ac06343bb9457633197fa6846",
+    "catalog_unchanged_across_all_four_stages": true,
+    "selector_at_B_crash_sha256": "9db71c0e82a02b0f2514fb4711d3476a2438099be2682cdba622cb34b4a4cc4b",
+    "selector_after_authorized_A_sha256": "eb0d0bd6c37dfa57766faff9e70f57d1730cabca36426d2863553256bbe87956",
+    "selector_changes_only_to_healthy_A": true,
+    "second_cold_selector_exactly_after_selector": true,
+    "two_actual_fresh_Windows_game_cold_boots_of_A": true,
+    "original_canonical_file_byte_objects_hashed": 24,
+    "original_receipt_matches_all_objects": true,
+    "records_invented": false
+  },
+  "historical_old_candidate_comparison": {
+    "old_original_source": "11501a15dea38fa912335cfc63103ce3a7208001",
+    "old_original_two_profile_fault_artifact": 12034140741,
+    "old_original_artifact_sha256": "c61aaa3466a4faf75191b1c4ca84c27b9063fa08a08c272e5e428af8c7efaf6d",
+    "A_raw_and_typed_byte_equal": true,
+    "B_raw_before_and_crash_byte_equal": true,
+    "selector_initial_byte_equal": true,
+    "B_typed_and_catalog_byte_equal": false,
+    "reason": "Older B is racer ANDREW index 1, newer B is MARTIN index 2; typed identity and canonical catalog intentionally differ.",
+    "claim_of_full_six_file_equivalence": false
+  },
+  "remaining_issue": {
+    "real_human_packaged_RTSQ_menu_verified": false,
+    "actual_NTFS_IO_fault_or_power_cut_verified": false,
+    "physical_two_pad_audio_display_verified": false,
+    "source_run_still_PR_merge_not_nominated_main": true,
+    "flat_18_member_export_fails_independent_19_member_contract": true,
+    "P0_issue_1214_remains_open": true,
+    "full_QA_02_gate_credit": 0,
+    "original_native_USA_complete_event_credit": 0
+  },
+  "retention": {
+    "workflow_run": 38975666287,
+    "retained_artifact_id": 12078832803,
+    "expires": "2027-01-14T22:25:32Z",
+    "new_outer_sha256": "4b5b7e3eddba40edee6db63da5a5264546c34e832c1830857e7fa9affb97b084",
+    "new_outer_bytes": 6143140,
+    "original_five_ZIPs_unchanged_and_reverified": true,
+    "nested_original_members_crc_verified": 175,
+    "private_secondary_owner_backup_reverified": true,
+    "private_urls_not_public": true
+  }
+}

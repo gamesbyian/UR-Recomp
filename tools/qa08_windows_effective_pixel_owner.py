@@ -197,7 +197,9 @@ def main()->None:
         ap.error("refusing to overwrite source result root")
     a.out.mkdir(parents=True)
     prev=os.environ.get("UR_QA08_WINDOWS_PIXEL_OWNER_TRACE")
+    prev_oam=os.environ.get("UR_QA08_WINDOWS_OAM_PORT_TRACE")
     os.environ["UR_QA08_WINDOWS_PIXEL_OWNER_TRACE"]="1"
+    os.environ["UR_QA08_WINDOWS_OAM_PORT_TRACE"]="1"
     try:
         crcs,log=run_route(a.exe.resolve(),a.rom.resolve(),a.script.resolve(),
                            a.out,pause=False,video="windows",timeout=a.timeout)
@@ -206,11 +208,16 @@ def main()->None:
             os.environ.pop("UR_QA08_WINDOWS_PIXEL_OWNER_TRACE",None)
         else:
             os.environ["UR_QA08_WINDOWS_PIXEL_OWNER_TRACE"]=prev
+        if prev_oam is None:
+            os.environ.pop("UR_QA08_WINDOWS_OAM_PORT_TRACE",None)
+        else:
+            os.environ["UR_QA08_WINDOWS_OAM_PORT_TRACE"]=prev_oam
     # Retain a bounded graphics-only trace even if an assertion rejects it.
     # Never archive user files, ROM/SRAM, personal profiles or full commands.
     diagnostic=[row for row in log.splitlines()
                 if row.startswith(("UR_QA08_WIN_PIXEL_OWNER ",
-                                   "UR_QA08_WIN_OAM_LINE "))]
+                                   "UR_QA08_WIN_OAM_LINE ",
+                                   "UR_QA08_WIN_OAM_PORT "))]
     (a.out/"qa08-effective-pixel-source-log.txt").write_text(
         "\n".join(diagnostic)+"\n",encoding="utf-8")
     result=inspect(log,crcs)

@@ -10,6 +10,10 @@ on:
       - ".github/workflows/baldosa-windows-native-bridge.yml"
       - "tools/baldosa_windows_native_pause_route.py"
       - "tools/qa02_exact_owner_win32_seam.py"
+      - "tools/qa02_exact_owner_two_games.py"
+      - "tests/unit/test_qa02_exact_owner_two_games.py"
+      - "tools/qa02_exact_owner_two_process_selector.py"
+      - "tests/unit/test_qa02_exact_owner_two_process_selector.py"
       - "tools/qa02_nominated_windows_readonly.py"
       - "tests/unit/test_qa02_nominated_windows_readonly.py"
       - "tools/run_baldosa_parallel_windows_journeys.py"
@@ -176,6 +180,9 @@ on:
       - "tests/unit/test_qa08_windows_full_oneplayer_source_coverage.py"
       - "tests/unit/test_qa08_windows_full_twoplayer_source_coverage.py"
       - "tests/unit/test_qa08_integrated_graphics_workflow.py"
+      - "tools/baldosa_qa08_native_oam_port_chronology_patch.py"
+      - "tools/qa08_windows_native_oam_port_chronology.py"
+      - "tests/unit/test_qa08_native_oam_port_chronology.py"
   workflow_dispatch:
     inputs:
       parallel_journeys:
@@ -248,6 +255,7 @@ jobs:
           python tests/unit/test_qa08_windows_full_oneplayer_source_coverage.py
           python tests/unit/test_qa08_windows_full_twoplayer_source_coverage.py
           python tests/unit/test_qa08_integrated_graphics_workflow.py
+          python tests/unit/test_qa08_native_oam_port_chronology.py
           python tests/unit/test_baldosa_native_1p_records_probe.py
           python tests/unit/test_baldosa_native_2p_records_probe.py
           python tests/unit/test_baldosa_native_first_profile_cpp.py
@@ -310,6 +318,9 @@ jobs:
           # raster replay writes around 4016, title-pinned and read-only.
           python tools/baldosa_qa08_native_inidisp_port_trace_patch.py --game baldosa
           python tools/baldosa_qa08_native_inidisp_port_trace_patch.py --game baldosa --apply-candidate
+          # Guest-origin OAMDATA provenance, only when exact QA source opt-in is enabled.
+          python tools/baldosa_qa08_native_oam_port_chronology_patch.py --game baldosa
+          python tools/baldosa_qa08_native_oam_port_chronology_patch.py --game baldosa --apply-candidate
           # Exact-output-pixel probe: opt-in read-only live legacy PPU layer,
           # subscreen colour math and nominal 7 OAM slots at 11 real pixels.
           # Not a CPU/renderer fix or a guarantee of original source priority.
@@ -491,6 +502,75 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+      # One source-exact owner-candidate independent two-process selector
+      # conflict: A is the unchanged original nominated Win32 game, B is
+      # an independent existing Modern fixture writer (NOT a second game).
+      - name: Retrieve immutable nominated original Windows EXE for two-process selector conflict
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-exact-owner-two-process-conflict-20261016' }}
+        uses: actions/download-artifact@v4
+        with:
+          repository: ${{ github.repository }}
+          run-id: 38828519791
+          artifact-ids: 12016101293
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/qa02-two-process-original-owner
+
+      - name: Prove nominated Windows game refuses stale A save after separate B selector commit
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-exact-owner-two-process-conflict-20261016' }}
+        run: |
+          set -euo pipefail
+          python tools/qa02_exact_owner_two_process_selector.py \
+            --retained "$RUNNER_TEMP/qa02-two-process-original-owner" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --script "baldosa/tests/routes/race_2p_split.txt" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --out "$RUNNER_TEMP/qa02-nominated-two-process"
+          echo "QA-02 bounded original Windows live-guest vs distinct Modern writer selector conflict and 6-file bytes. Not dual game process, post-raw crash recovery, hardware or release gate." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Preserve actual original Windows 3-stage two-process named-profile bytes
+        if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-exact-owner-two-process-conflict-20261016' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa02-nominated-original-win32-two-process-selector-bytes
+          path: ${{ runner.temp }}/qa02-nominated-two-process/case/native_pause_quit_selector_race/byte-snapshots/
+          if-no-files-found: warn
+          retention-days: 14
+
+      # Independent QA-02: two concurrently alive instances of SAME immutable
+      # original nominated Win32 game, source-paused A and authentic saving B.
+      - name: Retrieve original nominated owner ZIP for two overlapping real Windows games
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-exact-owner-two-running-games-20261016' }}
+        uses: actions/download-artifact@v4
+        with:
+          repository: ${{ github.repository }}
+          run-id: 38828519791
+          artifact-ids: 12016101293
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/qa02-two-original-games-retained
+
+      - name: Prove same-profile two genuine original Win32 games protect newer SRAM
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-exact-owner-two-running-games-20261016' }}
+        run: |
+          set -euo pipefail
+          python tools/qa02_exact_owner_two_games.py \
+            --retained "$RUNNER_TEMP/qa02-two-original-games-retained" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --script "baldosa/tests/routes/race_2p_split.txt" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --out "$RUNNER_TEMP/qa02-two-original-games"
+          echo "Two genuine nominated game processes, A stale vs B native-committed guest SRAM, C cold reentry. No release gate, hardware or crash atomicity credit." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Preserve exact Win32 A B C game logs and four-file stage bytes even on failure
+        if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-exact-owner-two-running-games-20261016' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa02-nominated-two-genuine-win32-games-same-profile
+          path: ${{ runner.temp }}/qa02-two-original-games/two_games/evidence/
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Pilot parallel authentic Windows journeys against one pinned candidate
         if: ${{ github.event_name == 'pull_request' || inputs.parallel_journeys == true }}
         run: |
@@ -550,6 +630,10 @@ jobs:
             --script "baldosa/tests/routes/race_2p.txt" \
             --timeout 300 \
             --out "$RUNNER_TEMP/QA08-Win32-Pixel-Owner"
+          python tools/qa08_windows_native_oam_port_chronology.py \
+            --log "$RUNNER_TEMP/QA08-Win32-Pixel-Owner/qa08-effective-pixel-source-log.txt" \
+            --native-receipt "$RUNNER_TEMP/QA08-Win32-Pixel-Owner/qa08-native-effective-pixel-owner.json" \
+            --out "$RUNNER_TEMP/QA08-Win32-Pixel-Owner/qa08-native-OAM-port-input.json"
           echo "Source-pinned 11 native PPU pixels and seven live scanline OAM slots; no original equivalence or release gate." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain bounded medal pixel-owner source lines
@@ -560,6 +644,7 @@ jobs:
           path: |
             ${{ runner.temp }}/QA08-Win32-Pixel-Owner/qa08-native-effective-pixel-owner.json
             ${{ runner.temp }}/QA08-Win32-Pixel-Owner/qa08-effective-pixel-source-log.txt
+            ${{ runner.temp }}/QA08-Win32-Pixel-Owner/qa08-native-OAM-port-input.json
           if-no-files-found: warn
           retention-days: 4
 

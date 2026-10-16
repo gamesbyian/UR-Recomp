@@ -1,0 +1,525 @@
+{
+  "schema": "ur-qa01-zoo-rf018-saved-dp-crosswalk/1",
+  "date_utc": "2026-10-16",
+  "source_map": {
+    "file": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/decomp/ram.txt",
+    "git_blob_sha1": "6a39be138ed55e4cb0470fdb38f03925e47a236a",
+    "sSavedDirectPage": {
+      "sram_base": "0x0E6B",
+      "saved_wram_start": "0x0000",
+      "saved_wram_end": "0x019D",
+      "length_bytes": 414,
+      "source_line": 62
+    },
+    "wCursorAnimTimer": {
+      "wram_offset": "0x00C6",
+      "saved_sram_offset": "0x0F31",
+      "source_line": 152
+    },
+    "wPalCycleTimer": {
+      "wram_offset": "0x00C8",
+      "saved_sram_offset": "0x0F33",
+      "source_line": 153
+    },
+    "sCutsceneTimer2": {
+      "sram_offset": "0x10A7",
+      "source_line": 67
+    }
+  },
+  "original_input_sha256": {
+    "usa_rom": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "archived_2014_movie": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "source_sram_seed": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828"
+  },
+  "artifacts": [
+    {
+      "run_id": 38847972295,
+      "id": 12023968359,
+      "zip_sha256": "433ba8cd562b10733d3a3abcff3d88dfbb178857bfefe35ea85ac35afe9014a5",
+      "corrections": [
+        "RF-015",
+        "RF-017"
+      ],
+      "sram_diffs_per_handoff_sample": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "native_next_bowl_relative": 267
+    },
+    {
+      "run_id": 38848262320,
+      "id": 12024683035,
+      "zip_sha256": "e3663421c29dbe4d5b0a7a9e3ce523e526b45e8bb886bd088d53bddfa07db6a3",
+      "corrections": [
+        "RF-015",
+        "RF-017"
+      ],
+      "sram_diffs_per_handoff_sample": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "native_next_bowl_relative": 267
+    },
+    {
+      "run_id": 38861174758,
+      "id": 12029426494,
+      "zip_sha256": "f8391d7bfaab1505f89c801ed33b5138598829c833879bd79bf828a7ca38734b",
+      "corrections": [
+        "RF-015",
+        "RF-017",
+        "RF-018"
+      ],
+      "sram_diffs_per_handoff_sample": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "native_next_bowl_relative": 265
+    }
+  ],
+  "treatment_observations": {
+    "full_wram_comparison_excludes_bytes": 0,
+    "first_differences_list_limit": 24,
+    "unchanged_original_movie_and_input": true,
+    "guest_result_relative_followthrough": {
+      "offsets": [
+        8,
+        16,
+        24,
+        32,
+        64,
+        72
+      ],
+      "named_menu_first_difference_at": 16,
+      "full_8192_byte_sram_equal": [
+        true,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "sram_first_difference_at": 64,
+      "sram_difference_at_64": {
+        "offset": "0x10A7",
+        "original": "0x0C",
+        "native": "0x0D"
+      }
+    },
+    "eleven_bowl_samples": [
+      {
+        "offset": 259,
+        "original_native_wram_differing_bytes": 2,
+        "full_8192_byte_sram_differing_bytes": 3,
+        "sram_difference_values": [
+          {
+            "offset": "0x0F31",
+            "original": "0x1A",
+            "native": "0x1B"
+          },
+          {
+            "offset": "0x0F33",
+            "original": "0x02",
+            "native": "0x04"
+          },
+          {
+            "offset": "0x10A7",
+            "original": "0x0C",
+            "native": "0x0D"
+          }
+        ],
+        "explicit_unmasked_wram_timer_correspondence": true,
+        "wram_timer_values_when_exposed": [
+          {
+            "offset": "0x00C6",
+            "original": "0x1A",
+            "native": "0x1B"
+          },
+          {
+            "offset": "0x00C8",
+            "original": "0x02",
+            "native": "0x04"
+          }
+        ]
+      },
+      {
+        "offset": 263,
+        "original_native_wram_differing_bytes": 2,
+        "full_8192_byte_sram_differing_bytes": 3,
+        "sram_difference_values": [
+          {
+            "offset": "0x0F31",
+            "original": "0x1A",
+            "native": "0x1B"
+          },
+          {
+            "offset": "0x0F33",
+            "original": "0x02",
+            "native": "0x04"
+          },
+          {
+            "offset": "0x10A7",
+            "original": "0x0C",
+            "native": "0x0D"
+          }
+        ],
+        "explicit_unmasked_wram_timer_correspondence": true,
+        "wram_timer_values_when_exposed": [
+          {
+            "offset": "0x00C6",
+            "original": "0x1A",
+            "native": "0x1B"
+          },
+          {
+            "offset": "0x00C8",
+            "original": "0x02",
+            "native": "0x04"
+          }
+        ]
+      },
+      {
+        "offset": 264,
+        "original_native_wram_differing_bytes": 31,
+        "full_8192_byte_sram_differing_bytes": 3,
+        "sram_difference_values": [
+          {
+            "offset": "0x0F31",
+            "original": "0x1A",
+            "native": "0x1B"
+          },
+          {
+            "offset": "0x0F33",
+            "original": "0x02",
+            "native": "0x04"
+          },
+          {
+            "offset": "0x10A7",
+            "original": "0x0C",
+            "native": "0x0D"
+          }
+        ],
+        "explicit_unmasked_wram_timer_correspondence": true,
+        "wram_timer_values_when_exposed": [
+          {
+            "offset": "0x00C6",
+            "original": "0x1A",
+            "native": "0x1B"
+          },
+          {
+            "offset": "0x00C8",
+            "original": "0x02",
+            "native": "0x04"
+          }
+        ]
+      },
+      {
+        "offset": 265,
+        "original_native_wram_differing_bytes": 694,
+        "full_8192_byte_sram_differing_bytes": 3,
+        "sram_difference_values": [
+          {
+            "offset": "0x0F31",
+            "original": "0x1A",
+            "native": "0x1B"
+          },
+          {
+            "offset": "0x0F33",
+            "original": "0x02",
+            "native": "0x04"
+          },
+          {
+            "offset": "0x10A7",
+            "original": "0x0C",
+            "native": "0x0D"
+          }
+        ],
+        "explicit_unmasked_wram_timer_correspondence": false,
+        "wram_timer_values_when_exposed": null
+      },
+      {
+        "offset": 266,
+        "original_native_wram_differing_bytes": 690,
+        "full_8192_byte_sram_differing_bytes": 3,
+        "sram_difference_values": [
+          {
+            "offset": "0x0F31",
+            "original": "0x1A",
+            "native": "0x1B"
+          },
+          {
+            "offset": "0x0F33",
+            "original": "0x02",
+            "native": "0x04"
+          },
+          {
+            "offset": "0x10A7",
+            "original": "0x0C",
+            "native": "0x0D"
+          }
+        ],
+        "explicit_unmasked_wram_timer_correspondence": false,
+        "wram_timer_values_when_exposed": null
+      },
+      {
+        "offset": 267,
+        "original_native_wram_differing_bytes": 187,
+        "full_8192_byte_sram_differing_bytes": 3,
+        "sram_difference_values": [
+          {
+            "offset": "0x0F31",
+            "original": "0x1A",
+            "native": "0x1B"
+          },
+          {
+            "offset": "0x0F33",
+            "original": "0x02",
+            "native": "0x04"
+          },
+          {
+            "offset": "0x10A7",
+            "original": "0x0C",
+            "native": "0x0D"
+          }
+        ],
+        "explicit_unmasked_wram_timer_correspondence": true,
+        "wram_timer_values_when_exposed": [
+          {
+            "offset": "0x00C6",
+            "original": "0x1A",
+            "native": "0x1B"
+          },
+          {
+            "offset": "0x00C8",
+            "original": "0x02",
+            "native": "0x04"
+          }
+        ]
+      },
+      {
+        "offset": 268,
+        "original_native_wram_differing_bytes": 141,
+        "full_8192_byte_sram_differing_bytes": 3,
+        "sram_difference_values": [
+          {
+            "offset": "0x0F31",
+            "original": "0x1A",
+            "native": "0x1B"
+          },
+          {
+            "offset": "0x0F33",
+            "original": "0x02",
+            "native": "0x04"
+          },
+          {
+            "offset": "0x10A7",
+            "original": "0x0C",
+            "native": "0x0D"
+          }
+        ],
+        "explicit_unmasked_wram_timer_correspondence": true,
+        "wram_timer_values_when_exposed": [
+          {
+            "offset": "0x00C6",
+            "original": "0x1A",
+            "native": "0x1B"
+          },
+          {
+            "offset": "0x00C8",
+            "original": "0x02",
+            "native": "0x04"
+          }
+        ]
+      },
+      {
+        "offset": 269,
+        "original_native_wram_differing_bytes": 171,
+        "full_8192_byte_sram_differing_bytes": 3,
+        "sram_difference_values": [
+          {
+            "offset": "0x0F31",
+            "original": "0x1A",
+            "native": "0x1B"
+          },
+          {
+            "offset": "0x0F33",
+            "original": "0x02",
+            "native": "0x04"
+          },
+          {
+            "offset": "0x10A7",
+            "original": "0x0C",
+            "native": "0x0D"
+          }
+        ],
+        "explicit_unmasked_wram_timer_correspondence": true,
+        "wram_timer_values_when_exposed": [
+          {
+            "offset": "0x00C6",
+            "original": "0x1A",
+            "native": "0x1B"
+          },
+          {
+            "offset": "0x00C8",
+            "original": "0x02",
+            "native": "0x04"
+          }
+        ]
+      },
+      {
+        "offset": 272,
+        "original_native_wram_differing_bytes": 119,
+        "full_8192_byte_sram_differing_bytes": 3,
+        "sram_difference_values": [
+          {
+            "offset": "0x0F31",
+            "original": "0x1A",
+            "native": "0x1B"
+          },
+          {
+            "offset": "0x0F33",
+            "original": "0x02",
+            "native": "0x04"
+          },
+          {
+            "offset": "0x10A7",
+            "original": "0x0C",
+            "native": "0x0D"
+          }
+        ],
+        "explicit_unmasked_wram_timer_correspondence": true,
+        "wram_timer_values_when_exposed": [
+          {
+            "offset": "0x00C6",
+            "original": "0x1A",
+            "native": "0x1B"
+          },
+          {
+            "offset": "0x00C8",
+            "original": "0x02",
+            "native": "0x04"
+          }
+        ]
+      },
+      {
+        "offset": 276,
+        "original_native_wram_differing_bytes": 95,
+        "full_8192_byte_sram_differing_bytes": 3,
+        "sram_difference_values": [
+          {
+            "offset": "0x0F31",
+            "original": "0x1A",
+            "native": "0x1B"
+          },
+          {
+            "offset": "0x0F33",
+            "original": "0x02",
+            "native": "0x04"
+          },
+          {
+            "offset": "0x10A7",
+            "original": "0x0C",
+            "native": "0x0D"
+          }
+        ],
+        "explicit_unmasked_wram_timer_correspondence": true,
+        "wram_timer_values_when_exposed": [
+          {
+            "offset": "0x00C6",
+            "original": "0x1A",
+            "native": "0x1B"
+          },
+          {
+            "offset": "0x00C8",
+            "original": "0x02",
+            "native": "0x04"
+          }
+        ]
+      },
+      {
+        "offset": 280,
+        "original_native_wram_differing_bytes": 71,
+        "full_8192_byte_sram_differing_bytes": 3,
+        "sram_difference_values": [
+          {
+            "offset": "0x0F31",
+            "original": "0x1A",
+            "native": "0x1B"
+          },
+          {
+            "offset": "0x0F33",
+            "original": "0x02",
+            "native": "0x04"
+          },
+          {
+            "offset": "0x10A7",
+            "original": "0x0C",
+            "native": "0x0D"
+          }
+        ],
+        "explicit_unmasked_wram_timer_correspondence": true,
+        "wram_timer_values_when_exposed": [
+          {
+            "offset": "0x00C6",
+            "original": "0x1A",
+            "native": "0x1B"
+          },
+          {
+            "offset": "0x00C8",
+            "original": "0x02",
+            "native": "0x04"
+          }
+        ]
+      }
+    ],
+    "independently_correlated_wram_and_sram_sample_offsets": [
+      259,
+      263,
+      264,
+      267,
+      268,
+      269,
+      272,
+      276,
+      280
+    ],
+    "cannot_establish_per_byte_wram_alias_due_to_truncated_first24_sample_offsets": [
+      265,
+      266
+    ],
+    "first_observed_native_next_bowl_early": 265,
+    "original_and_source_next_bowl_entry": 267
+  },
+  "scope": {
+    "only_read_only_archived_reports": true,
+    "no_live_cpu_writer_pc_or_timer_consumer_trace": true,
+    "unsampled_sram_frames_between_72_and_259": true,
+    "no_actual_windows_disk_or_restart_verification": true,
+    "release_usa_complete_events_accepted": 0
+  }
+}

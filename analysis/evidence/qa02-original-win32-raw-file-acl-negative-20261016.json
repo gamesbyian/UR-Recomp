@@ -1,0 +1,91 @@
+{
+  "schema": "ur-qa02-original-windows-raw-file-acl-negative-audit/1",
+  "date_utc": "2026-10-16",
+  "test_disposition": "bounded_negative_fault_injection_assumptions_rejected_not_product_bug",
+  "original_nomination": {
+    "source_sha": "11501a15dea38fa912335cfc63103ce3a7208001",
+    "romfree_zip_sha256": "5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7",
+    "original_executable_sha256": "0701f72481531ad4f2803caadc62bbb072f292abef69f039edda004b01c18ea9",
+    "retained_artifact_run": 38828519791,
+    "retained_artifact_id": 12016101293
+  },
+  "write_data_only": {
+    "run": 38861260577,
+    "head_sha": "01f71c86846f1e1a735148516b3c18e936203a62",
+    "archive_id": 12029890032,
+    "archive_zip_sha256": "7d4a57d913b75d6f3a72ee194b8a651010f6c3fe9b6b008d2352fb9e65ea2547",
+    "archive_member_count": 11,
+    "all_archive_member_crc_ok": true,
+    "source_exe_sha256": "0701f72481531ad4f2803caadc62bbb072f292abef69f039edda004b01c18ea9",
+    "acl_target": "actual_existing_profile_native_ci_rider_save_srm",
+    "os_sid_acl_denied_rights": [
+      "WD"
+    ],
+    "os_real_existing_file_rplusb_denied": true,
+    "source_real_guest_frame": 1952,
+    "source_real_pause_quit": true,
+    "source_save_status": "committed",
+    "process_exit": 0,
+    "raw_sha_before": "bd9571f85e1b7ddfcf2b6913d5f3556c27ecadf65d353afbac29876e7d111c10",
+    "raw_sha_after": "2f3009bb2436e3862e045df7f12da4d37845b83ada491cbc80cbef3a098f80d8",
+    "raw_bytes_before": 8192,
+    "raw_bytes_after": 8192,
+    "raw_changed_count": 28,
+    "typed_sha_before": "1f98e49d51691816a9cd544c6fe71a5f74c3447933a7db6a8cf4e659921775b0",
+    "typed_sha_after": "5b8960309ff9e34761a467072690e587790710b2686c557f6b4cb794cc9886e8",
+    "typed_bytes_before": 16525,
+    "typed_bytes_after": 16525,
+    "typed_generation_before": 1,
+    "typed_generation_after": 2,
+    "decoded_full_typed_sram_equals_corresponding_raw_before": true,
+    "decoded_full_typed_sram_equals_corresponding_raw_after": true,
+    "catalog_selector_unchanged": true,
+    "created_unearned_sidecars": 0,
+    "observed_product_fault": false,
+    "conclusion": "Windows direct existing-file write denial does not establish original source raw save failure; source committed consistent raw and typed data"
+  },
+  "write_data_plus_delete": {
+    "run": 38862014937,
+    "head_sha": "d0973f2e93cf4f445cfd676c42d80166158605e8",
+    "downloadable_guest_byte_artifact": false,
+    "why_no_game_run": "separate disposable same-directory os.replace succeeded despite explicit Windows WD+DE target-file deny; verifier failed closed before invoking game",
+    "win32_acl_rights": [
+      "WD",
+      "DE"
+    ],
+    "target": "separate_non_save_qa_disposable_replacement_victim",
+    "tested_os_replace_returned_success": true,
+    "source_guest_invoked": false,
+    "original_save_bytes_mutated": false,
+    "product_fault_proven": false,
+    "conclusion": "file-only WD+DE does not establish denied target publication on that Windows runner"
+  },
+  "failing_pr": {
+    "number": 1693,
+    "state": "closed_unmerged",
+    "reason": "do not introduce repeatedly red fault-injection assumption into merged independent QA code"
+  },
+  "focused_test_result": {
+    "run": 38862014948,
+    "conclusion": "success",
+    "initial_mock_harness_error": "broad open mock also denied initial expected read; repaired before final focused run"
+  },
+  "gate_policy": {
+    "qa02": "in_progress",
+    "witnesses_added": 0,
+    "qa12": "unverified",
+    "release_gates_passed": 0,
+    "original_native_complete_usa_events_passed": 0,
+    "physical_hardware": false,
+    "candidate_release_decision": "not_assessed"
+  },
+  "limits": [
+    "no failure on the native RtlWriteSram path established",
+    "no change to exact original nominated game executable",
+    "no Windows power cut/full disk/NTFS tear",
+    "no source-owned mid-write interruption",
+    "no player-facing UI warning proof",
+    "no product bug from successful save under ineffective OS fault injection"
+  ],
+  "future_acceptance": "Either synchronize an actual OS directory/replace denial after successful profile preflight and before raw publication without product ownership changes, or demand Modern-owner transactional recovery proposal and test that owner implementation. Do not brute-force file-only ACL variations."
+}

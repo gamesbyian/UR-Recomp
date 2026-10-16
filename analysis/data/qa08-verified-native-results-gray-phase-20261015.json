@@ -137,5 +137,10 @@
   "native_2121_2122_writer_phase_verified": false,
   "source_correction_approved": false,
   "graphics_release_gates_accepted": 0,
-  "HD_art_likeness_approved": false
+  "HD_art_likeness_approved": false,
+  "independent_immutable_three_archive_comparator_run": 38831315584,
+  "independent_comparator_artifact_id": 12017188145,
+  "independent_comparator_artifact_sha256": "dffbae6a42258a41575abef0c3107f655e8d19ae1e24989b85ebc8c5417dc232",
+  "independent_comparator_full_263_image_SHA_and_RGB5_classification_passed": true,
+  "research_comparator_workflow_is_manual_only": true
 }

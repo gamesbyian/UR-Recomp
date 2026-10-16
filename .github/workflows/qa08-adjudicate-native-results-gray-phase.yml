@@ -1,12 +1,9 @@
 name: QA-08 immutable original/native four-gray RGB5 phase adjudication
 # One cheap one-shot archive-only comparison. No emulator or Win32 build.
 # Once exact-head result is archived, change to workflow_dispatch only.
+# Completed and independently green: run 38831315584, artifact 12017188145.
+# Keep this archived RGB5 original/native source comparator opt-in only.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/qa08-adjudicate-native-results-gray-phase.yml"
-      - "tools/qa08_adjudicate_native_results_gray_phase.py"
-      - "tests/unit/test_qa08_adjudicate_native_results_gray_phase.py"
   workflow_dispatch:
 permissions:
   contents: read

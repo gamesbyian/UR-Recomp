@@ -127,3 +127,21 @@ The **previously independent real Windows source observer** recorded `898ece20` 
 **Next discriminator, no speculated fix:** on the same Windows original-mode candidate, read only native live palette **slots $6C–$6F** and preferably the entire 512 bytes plus the preceding native $2121/$2122 port chronology, with guest frame and beam/callback phase bound to the unmodified source frame. Compare actual words and their writers, not only the FNV checksum or already presented pixels. If native CPU/port updates are ahead, coordinate with gameplay CPU/APU writer authority; if phase-matched registers still render differently, localize the PPU snapshot/materialization ownership. Neither case authorizes a global gray remap, native-clock adjustment, instant source correction, release gate, or Remastered HD character approval.
 
 Reproducer: `tools/qa08_classify_results_cgram_phase.py --source-archive <downloaded archived ZIP> --output <receipt.json>`, fail-closed on exact archive, PPU TSV, source CGRAM and 263-frame source receipt hashes. Machine evidence is `analysis/data/qa08-original-results-four-state-cgram-20261015.json`. The completed original research workflow is now **manual-only**; no temporary PR research fanout remains.
+
+## Verified actual Windows native CGRAM words and RGB5 pixel impact
+
+The exact title-scoped Windows native run [38824230943](https://github.com/gamesbyian/UR-Recomp/actions/runs/38824230943) **passed** native x64 compile and enabled 2P/1P source capture. Original 2P reference archive 11996107746 SHA256 `72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e`; real Windows 2P artifact 12014896975 ZIP SHA256 `f01ab5a4888c227f306a0b9cd89e67710a4b41cad4c22867072280a17811fa82`; Windows executable SHA256 `8c5b05e382d41e3226e6d975e23ec4aee4b7dd7b8b497dfd2efd7c59eae0e33d`. The 5484-frame guest CRC transcript remains `c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876`.
+
+All **four raw 15-bit CGRAM words** ($6C..$6F), and the 512-byte checksum, are authentic Windows PPU readback:
+
+| Source/state | $6C | $6D | $6E | $6F | Full CGRAM FNV |
+| --- | --- | --- | --- | --- | --- |
+| Snes9x original frame 5184 | 56b5 | 4a52 | 4631 | 4210 | e8cdbe60 |
+| Windows guest frame 5183 | 56b5 | 4a52 | 4631 | 4210 | e8cdbe60 |
+| Windows guest frame 5184 | 4a52 | 4631 | 4210 | 56b5 | 898ece20 |
+
+Native Windows palette also changes one cycle step at 5177, while original source $2121/$2122 writes that state during original frame 5178. The original has no palette writes at 5183 or 5184. This verifies a visible palette **phase boundary discrepancy**, not yet the native *writer* phase or CPU cause. Keep exact comparator registration original callback f-1 to native guest f.
+
+Recounting **all 263 complete unmasked 256×224 RGB5** original/native sampled source frames reproduces **203 exact** and **385,373 incorrect pixels**. The recurrent 13 source samples at native frames 4064..5408 step 112 contain exactly **318,775** pixels whose only discrepancy is the authentic four-entry grayscale rotation (native→original 123→132, 132→140, 140→165, 165→123), plus **1,184** other wrong pixels (four 296-pixel sprite residuals). Thus **82.7%** of the remaining full-route sampled 2P incorrect pixels belongs to this isolated palette phase phenomenon. The blackout and small OBJ discrepancies remain separate. Do not globally recolour pixel values: the same grays are correct at other phases.
+
+Reproducer: `tools/qa08_adjudicate_native_results_gray_phase.py`, strict SHA-bound three-archive source analysis. Exact result record: `analysis/data/qa08-verified-native-results-gray-phase-20261015.json`. Research workflow remains manual-only. Graphics #1641 stages a read-only native PPU $2121/$2122 **write-input** observer, so the next decision can separate guest writes from host scanout. No renderer, CPU/APU, Modern, HD art, or release acceptance follows from this registration alone.

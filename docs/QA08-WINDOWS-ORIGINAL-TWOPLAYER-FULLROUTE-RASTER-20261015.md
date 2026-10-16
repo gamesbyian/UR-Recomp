@@ -53,3 +53,31 @@ Independently re-reading four unchanged SHA-pinned 2014 Snes9x and compiled Wind
 **2P (203/263 exact, 385,373 wrong):** The prior independent register/byte chronology accounts for **54,709** original blackout frame4016 pixels and **318,775** four-grey CGRAM-cycle pixels in 13 results frames. **All remaining 11,889** are: **4,487** pixels in 23 opening-menu cursor frames, **two one-pixel finish residues** at guests3792/3872, and **7,400** pixels in result-medal colour areas. The medal group contains **21** non-grey result samples with the *exact same 296-pixel XY mismatch mask* at x202..227/y91..153 (**6,216 pixels**). Independently source-classified grey-phase scenes add four further 296-pixel residual medal areas (**1,184 pixels**); together **25×296 = 7,400**. Original/native images show three small medal-shaped result icons in that region. These masks alone do not establish CGRAM provenance, OBJ priority or final pixel arithmetic.
 
 This partition is exhaustive **only for the 524 sampled frames** and does not grant all-event, physical display, Widescreen/7:6, 4×, release or owner-vetoed character-likeness approval. Source-admission work next requires original/native effective CGRAM, $2130/$2131/$2132 colour maths and per-scanline OBJ/BG/window ownership for **one cursor** and **one medal** region, while CPU/APU and gameplay independently reconcile the earlier native results brightness/palette writes. No speculative global palette fix.
+
+
+## Recomputable whole-raster source comparator (October 16)
+
+`tools/qa08_verify_full_raster_residual_partition.py` **recalculates all 261 sampled 1P and 263 sampled 2P original/native RGB5 source differences directly from authentic frame bytes**, instead of trusting a summary. Four immutable 2014 Snes9x / real compiled Windows Actions archives, all full-ZIP SHA256 pinned:
+
+| Source | Actions artifact | ZIP SHA256 |
+| --- | ---: | --- |
+| Original 1P | 11956993823 | `1b2fb01338380dc7e4d093ccbb0a5778bd04388945ee0bc7eb5b910d4de3ca59` |
+| Windows 1P | 12009006895 | `db0dc0aacde50503aee0cdbe8047dc22ef1550233afd83c4c69fa27099f1d005` |
+| Original 2P | 11996107746 | `72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e` |
+| Windows 2P | 12014896975 | `f01ab5a4888c227f306a0b9cd89e67710a4b41cad4c22867072280a17811fa82` |
+
+It checks entire archive and every frame SHA, independent source manifests and USA ROM, preselected original callback `native_guest−1`, real full 256×224 P7 header and 57,344 RGB5 pixels per frame. No omitted regions, shifted registration, global colour remapping or invented frames. It independently recomputes **162/261 and 203/263 exact**, **19,153 and 385,373 wrong RGB5 pixels**. On genuine byte comparison, 21 non-grey results frames share an identical **296-pixel medal discrepancy footprint**. Four separate grey-phase result frames have that exact same 296-pixel non-grey footprint, after subtracting the recognized grey pixels. Whole-frame mask SHA256: `8b83bed21e2ff70ca279f993f4256e1edd64ad8f1edb657ee87554527e0594be`.
+
+Reproduce with downloaded ZIPs:
+
+```sh
+python tools/qa08_verify_full_raster_residual_partition.py \
+  --original-1p /path/to/qa08-1p-original-2014.zip \
+  --windows-1p /path/to/qa08-1p-postv0-windows.zip \
+  --original-2p /path/to/qa08-2p-original-2014.zip \
+  --windows-2p /path/to/qa08-2p-win-current.zip \
+  --out /tmp/qa08-source-partition.json
+python -m unittest tests.unit.test_qa08_verify_full_raster_residual_partition
+```
+
+The recalculated result is preserved as `analysis/data/qa08-source-verified-full-partition-20261016.json`. Adversarial tests fail on forged archives, truncated pixels, false RGB5 green conversion and invalid mismatch classification. This bounded archive-only verifier **does not approve** complete original/native executed game phase, real effective OBJ/BG/window ownership, 7:6 PAR or Remastered likeness. Source-register and per-pixel priority witnesses, not recolouring, are required before a graphics fix.

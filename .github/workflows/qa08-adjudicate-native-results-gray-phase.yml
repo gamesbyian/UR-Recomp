@@ -1,0 +1,71 @@
+name: QA-08 immutable original/native four-gray RGB5 phase adjudication
+# One cheap one-shot archive-only comparison. No emulator or Win32 build.
+# Once exact-head result is archived, change to workflow_dispatch only.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa08-adjudicate-native-results-gray-phase.yml"
+      - "tools/qa08_adjudicate_native_results_gray_phase.py"
+      - "tests/unit/test_qa08_adjudicate_native_results_gray_phase.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: qa08-archive-native-phase-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  exact-artifact-palette-phase:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Authenticate reference, PPU chronology and real Windows source
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-gray"
+          for entry in \
+            11996107746:original \
+            12014896975:windows \
+            12013432991:reference-ppu; do
+            IFS=: read -r id name <<< "$entry"
+            curl --retry 3 -fLSs \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/$id/zip" \
+              -o "$RUNNER_TEMP/qa08-gray/$name.zip"
+          done
+          echo "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e  $RUNNER_TEMP/qa08-gray/original.zip" | sha256sum -c -
+          echo "f01ab5a4888c227f306a0b9cd89e67710a4b41cad4c22867072280a17811fa82  $RUNNER_TEMP/qa08-gray/windows.zip" | sha256sum -c -
+          echo "d725ee45db1b66d098e79499263dd089dba80a26de517c30db674f91e20f80a8  $RUNNER_TEMP/qa08-gray/reference-ppu.zip" | sha256sum -c -
+      - name: Strict original/native RGB5 classifier, no frame shift or mask
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest tests.unit.test_qa08_adjudicate_native_results_gray_phase
+          python3 tools/qa08_adjudicate_native_results_gray_phase.py \
+            --original-archive "$RUNNER_TEMP/qa08-gray/original.zip" \
+            --windows-archive "$RUNNER_TEMP/qa08-gray/windows.zip" \
+            --original-ppu-archive "$RUNNER_TEMP/qa08-gray/reference-ppu.zip" \
+            --out "$RUNNER_TEMP/qa08-gray/qa08-native-gray-phase-source-verified.json"
+          python3 - "$RUNNER_TEMP/qa08-gray/qa08-native-gray-phase-source-verified.json" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x["source_rgb5_rotation_mismatch_pixels"]==318775
+          assert x["actual_original_callbacks_validated"]==263
+          assert x["actual_native_callbacks_validated"]==263
+          assert x["raster_or_palette_fix_admitted"] is False
+          print("QA08 actual full-frame RGB5 source archive verdict accepted as evidence, not release")
+          PY
+          echo "Original/native RGB5 evidence only; guest writer, release, HD art remain unaccepted." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain source-bound original/native grayscale verdict
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-original-native-real-2p-four-gray-source-pixel-verdict
+          retention-days: 14
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/qa08-gray/qa08-native-gray-phase-source-verified.json

@@ -16,15 +16,9 @@
 
 **Before substantial work:** use the three-project reuse preflight in `AGENTS.md`; this does not create a new priority queue.
 
-## Historical checkpoint access
+## Earlier context and fresh-agent route
 
-Earlier Baldosa component checkpoints and completed PRs remain in [the archived October 10 queue](archive/WORK-QUEUE-OCT10-HANDOFF-20261011.md) and [integrator handoff](INTEGRATION-RECONCILIATION-20261010.md).
-
-## First read (fresh coding agent, five-minute route)
-
-1. [PROJECT-PLAN.md](PROJECT-PLAN.md) for what is being built, and [BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md](BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md) for completed code/assets and exact integration seams.
-2. The one specialist authority for your *owned* lane, plus its current sources and exact CI/head. Do **not** re-read every dated Baldosa experiment or all 45 course histories.
-3. [QA-BOUNDED-RELEASE-CAMPAIGN.md](QA-BOUNDED-RELEASE-CAMPAIGN.md) for common evidence and acceptance boundaries; [QA-PLAYER-JOURNEYS.md](QA-PLAYER-JOURNEYS.md) for named journeys.
+Historical Baldosa delivery details: [October 10 queue](archive/WORK-QUEUE-OCT10-HANDOFF-20261011.md) and [integrator handoff](INTEGRATION-RECONCILIATION-20261010.md). Treat neither as a live assignment. Read [PROJECT-PLAN.md](PROJECT-PLAN.md), the one specialist authority for your lane, and [QA-BOUNDED-RELEASE-CAMPAIGN.md](QA-BOUNDED-RELEASE-CAMPAIGN.md). Check exact main/PR/CI evidence, then run the **three-project reuse preflight** described in `AGENTS.md` before substantial changes.
 
 ## Current delivery board and ownership
 

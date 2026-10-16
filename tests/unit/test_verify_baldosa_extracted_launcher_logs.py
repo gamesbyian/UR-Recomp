@@ -37,7 +37,7 @@ class RetainedLauncherTranscriptTests(unittest.TestCase):
             root = Path(name)
             for path, expected_name in (
                 ("C:qa-drive-relative-root", "drive-relative-root-refusal.log"),
-                ("\\\\qa-current-drive-root-relative", "current-drive-root-refusal.log"),
+                ("\\qa-current-drive-root-relative", "current-drive-root-refusal.log"),
             ):
                 raw_out = "real stdout \\r\\n"
                 raw_err = "UR-BALDOSA-STARTUP-SAVE-ROOT rejected\\n"

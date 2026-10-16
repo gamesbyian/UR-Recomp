@@ -60,8 +60,8 @@ ROOTED_RELATIVE_NEGATIVE_CASES = {
 def retain_rooted_relative_rejection(output: Path, supplied_root: str,
                                      result: subprocess.CompletedProcess[str]) -> dict:
     log_name, key = ROOTED_RELATIVE_NEGATIVE_CASES[supplied_root]
-    transcript = ("STDOUT (actual cmd.exe subprocess):\\n" + result.stdout +
-                  "\\nSTDERR (actual cmd.exe subprocess):\\n" + result.stderr)
+    transcript = ("STDOUT (actual cmd.exe subprocess):\n" + result.stdout +
+                  "\\nSTDERR (actual cmd.exe subprocess):\n" + result.stderr)
     (output / log_name).write_text(bounded_log(transcript), encoding="utf-8")
     return {
         "case": key,
@@ -273,7 +273,7 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
             "release_gate_credit": 0,
             "independent_review_complete": False,
             "cases": rooted_refusals,
-        }, sort_keys=True, indent=2) + "\\n", encoding="utf-8")
+        }, sort_keys=True, indent=2) + "\n", encoding="utf-8")
 
     # On real NTFS a junction *outside* the game folder can point inside.
     # GetFullPath's lexical check alone cannot detect that alias. Exercise

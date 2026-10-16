@@ -1,6 +1,5 @@
-"""Graphics draft must retain integrated Windows production and manual-only source capture."""
+"""Graphics draft preserves shipping Windows CI plus bounded original-source guards."""
 from pathlib import Path
-import re
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -48,7 +47,10 @@ class IntegratedGraphicsWorkflowTest(unittest.TestCase):
         )
         cursor = -1
         for name in order:
-            self.assertEqual(s.count(name), 1 if "--apply-candidate" in name else s.count(name))
+            if "--apply-candidate" in name:
+                self.assertEqual(s.count(name), 1)
+            else:
+                self.assertIn(name, s)
             index = s.find(name, cursor + 1)
             self.assertGreater(index, cursor, f"staging misordered: {name}")
             cursor = index
@@ -60,19 +62,25 @@ class IntegratedGraphicsWorkflowTest(unittest.TestCase):
         self.assertIn("        default: false\n", s)
         manual = "if: ${{ github.event_name == 'workflow_dispatch' && inputs.qa08_source_capture }}"
         manual_upload = "if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.qa08_source_capture }}"
+        # A four-frame contract protects only this graphics PR. Broad
+        # 261/263-frame source research remains explicitly manual.
+        small = step(s, "Capture original 2P PPU from same corrected Windows executable")
+        saved = step(s, "Preserve real Windows PPU raster evidence even on negative result")
+        for entry in (small, saved):
+            self.assertIn("github.event.pull_request.number == 1641", entry)
+            self.assertIn("inputs.qa08_source_capture", entry)
+        self.assertIn("always()", saved)
         for name in (
-            "Capture original 2P PPU from same corrected Windows executable",
             "Observe race entry, moving camera, and result/return in real 1P Windows PPU",
             "Capture authentic split-screen 2P race, results and menu return",
         ):
             self.assertIn(manual, step(s, name))
         for name in (
-            "Preserve real Windows PPU raster evidence even on negative result",
             "Retain bounded genuine 1P Windows PPU source and phase receipt",
             "Retain real Windows two-pad 2P split and terminal source images",
         ):
             self.assertIn(manual_upload, step(s, name))
-        self.assertNotIn("github.event.pull_request.number == 1641", s)
+            self.assertNotIn("github.event.pull_request.number == 1641", step(s, name))
         self.assertIn("python tools/qa08_windows_full_oneplayer_source_coverage.py", s)
         self.assertIn("python tools/qa08_windows_full_twoplayer_source_coverage.py", s)
 

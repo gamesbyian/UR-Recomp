@@ -103,7 +103,34 @@ class SourcePixelTest(unittest.TestCase):
         self.assertEqual(result["actual_frames_observed"], [2208])
         self.assertTrue(result["source_callback_2208_match_to_independent_original"])
         self.assertFalse(result["observed_moving_postGO_frames_all_exact"])
+        self.assertFalse(result["all_four_countdown_and_moving_2P_original_source_exact"])
         self.assertFalse(result["release_graphics_gate_approved"])
+
+    def test_full_source_guard_demands_all_four_real_original_windows_scene_hashes(self):
+        self.assertEqual(check.FRAMES, (1856, 2192, 2208, 2224))
+        self.assertEqual(set(check.EXPECTED), set(check.FRAMES))
+        self.assertEqual(set(check.STOCK), set(check.FRAMES))
+        for f in check.FRAMES:
+            self.save(frame=f)
+        log = "".join(self.log(frame=f) for f in check.FRAMES)
+        # Synthetic same-byte inputs exercise strict coverage; these are not
+        # presented as actual original source pixel approvals.
+        with patch.dict(check.EXPECTED, {f: self.digest for f in check.FRAMES}):
+            good = check.inspect(self.folder, log, self.crcs)
+            self.assertTrue(good["all_four_countdown_and_moving_2P_original_source_exact"])
+            self.assertTrue(good["observed_moving_postGO_frames_all_exact"])
+            self.assertFalse(good["release_graphics_gate_approved"])
+            # A missing countdown may not borrow the existing 2208 witness.
+            (self.folder / "ur-baldosa-original-source-001856.pam").unlink()
+            missing = check.inspect(self.folder, log.replace(self.log(1856), ""), self.crcs)
+            self.assertFalse(missing["all_four_countdown_and_moving_2P_original_source_exact"])
+            self.save(frame=1856)
+            # No tolerance for a single altered pixel anywhere in 57,344.
+            changed = bytearray(self.blob)
+            changed[-4] ^= 1
+            self.save(frame=2224, blob=bytes(changed))
+            changed_result = check.inspect(self.folder, log, self.crcs)
+            self.assertFalse(changed_result["all_four_countdown_and_moving_2P_original_source_exact"])
 
     def test_wrong_or_missing_raster_not_accepted(self):
         for b in [self.blob[:-1], self.blob.replace(b"WIDTH 256", b"WIDTH 216", 1)]:

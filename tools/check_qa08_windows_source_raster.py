@@ -22,6 +22,9 @@ except ImportError:
     from baldosa_windows_native_pause_route import run_route
 
 EXPECTED = {
+    # Four source-qualified P7 identities: original callback 1855 -> guest 1856,
+    # and three distinct genuine moving split-screen original callbacks.
+    1856: "ed35731cde55e927165f173c1db29c27b3b7eeff19862fbca27db3467cb8bc87",
     2192: "fac9f37e04b752676346bd75345e6e988b88e5cf6703722618d8a968ec90b36c",
     2208: "bf8b4218fb72f94338b19da5c1386bd5ce09c0dc0c767093286e80895fa3353c",
     2224: "d64e7b2fee2ff9f21b5fad7f4e8618ea27ad8846c6b6047ca9c511583bde6bd8",
@@ -29,6 +32,7 @@ EXPECTED = {
 FRAMES = (1856, 2192, 2208, 2224)
 # 2P stock source digests for the same game/input/window (no use as tolerances).
 STOCK = {
+    1856: "6aea6cebaf1292d962ad5ce01a73966bb0ad8948095d1e73b155712cac41039a",
     2192: "7e0cfab20c5342c242d7eeb0c77bff2d132ee1426a62d3a3759f43bd3f95027e",
     2208: "a946c9ebb54775639b8fd87a6861af0408cceed4896e58be05908c4a4491c67f",
     2224: "8271ed54cc2f1c1841cbd0f1e0c6b77e278dce721a2e1efe1a6ba432897535b4",
@@ -97,7 +101,11 @@ def inspect(source: Path, log: str, crcs: list[str]) -> dict:
         "source_callback_2208_match_to_independent_original": (
             got.get(2208) == EXPECTED[2208]),
         "observed_moving_postGO_frames_all_exact": (
-            all(got.get(frame) == EXPECTED[frame] for frame in EXPECTED)),
+            all(got.get(frame) == EXPECTED[frame]
+                for frame in (2192, 2208, 2224))),
+        "all_four_countdown_and_moving_2P_original_source_exact": (
+            set(got) == set(FRAMES)
+            and all(got[frame] == EXPECTED[frame] for frame in FRAMES)),
         "unchanged_1P_original_source_and_2P_results_not_admitted": True,
         "no_changed_guest_logic_or_modern_business": True,
         "release_graphics_gate_approved": False,
@@ -136,11 +144,12 @@ def main() -> None:
     receipt["source_script_sha256"] = sha256(args.script.read_bytes())
     (args.out / "qa08-windows-source-result.json").write_text(
         json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    if not receipt["source_callback_2208_match_to_independent_original"]:
+    if not receipt["all_four_countdown_and_moving_2P_original_source_exact"]:
         raise SystemExit(
-            "QA08_WINDOWS_2P_PPU_NOT_ACCEPTED no exact guest2208 independent "
-            "raster witness; inspect source-result.json without guessing alignment")
-    print("QA08_WINDOWS_2P_PPU exact_original_size_2208=1 "
+            "QA08_WINDOWS_2P_PPU_NOT_ACCEPTED missing or divergent genuine "
+            "countdown/three moving 256x224 original-source frames; inspect "
+            "source-result.json without guessing alignment or ignoring pixels")
+    print("QA08_WINDOWS_2P_PPU full_original_256x224_4frames_exact=1 "
           "native_guest_frames=2473 release_approved=0")
 
 

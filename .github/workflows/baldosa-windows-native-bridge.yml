@@ -421,7 +421,7 @@ jobs:
           fi
 
       - name: Capture original 2P PPU from same corrected Windows executable
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.qa08_source_capture }}
+        if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.number == 1641) || (github.event_name == 'workflow_dispatch' && inputs.qa08_source_capture) }}
         shell: bash
         run: |
           set -euo pipefail
@@ -437,7 +437,7 @@ jobs:
           echo "PASS: actual Windows PPU raster matches pinned independent original/native 2P source at native guest2208; does not approve 1P, results, 4x or release." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Preserve real Windows PPU raster evidence even on negative result
-        if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.qa08_source_capture }}
+        if: ${{ always() && ((github.event_name == 'pull_request' && github.event.pull_request.number == 1641) || (github.event_name == 'workflow_dispatch' && inputs.qa08_source_capture)) }}
         uses: actions/upload-artifact@v4
         with:
           name: qa08-win32-original-source-raster-candidate

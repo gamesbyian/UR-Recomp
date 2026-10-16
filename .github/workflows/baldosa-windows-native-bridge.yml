@@ -56,6 +56,8 @@ on:
       - "tests/native/baldosa_modern_profile_activation_test.cpp"
       - "tests/unit/test_baldosa_modern_profile_activation_spike.py"
       - "tools/check_windows_portable_binary.py"
+      - "tools/check_windows_pe_timestamp.py"
+      - "tests/unit/test_check_windows_pe_timestamp.py"
       - "tools/assemble_baldosa_windows_candidate.py"
       - "tools/bind_baldosa_candidate_receipt.py"
       - "tests/unit/test_bind_baldosa_candidate_receipt.py"
@@ -197,6 +199,7 @@ jobs:
           python tests/unit/test_assemble_baldosa_windows_candidate.py
           python tests/unit/test_bind_baldosa_candidate_receipt.py
           python tests/unit/test_audit_baldosa_romless_candidate.py
+          python tests/unit/test_check_windows_pe_timestamp.py
           python tests/unit/test_baldosa_windows_native_pause_route.py
           python tests/unit/test_baldosa_native_1p_records_probe.py
           python tests/unit/test_baldosa_native_2p_records_probe.py
@@ -242,19 +245,40 @@ jobs:
       - name: Use Baldosa's already-proven Windows clang toolchain path
         run: |
           set -euo pipefail
-          bash baldosa/snesrecomp/tools/ci/fetch_toolchain.sh --artifact windows-x64
+          # Source-bound player candidates must never silently follow mutable latest.
+          bash baldosa/snesrecomp/tools/ci/fetch_toolchain.sh --artifact windows-x64 --tag v1.0.14
 
       - name: Build real native AOT Windows x64 title plus UR host bridges
         run: |
           set -euo pipefail
           # Same toolchain as pinned Baldosa upstream Windows workflow.
           source "${TOOLCHAIN_DIR}/env.sh"
+          # Proven original Windows packages differ only in two linked
+          # COFF/debug timestamp fields. LLD 22 honors SOURCE_DATE_EPOCH;
+          # bind both fields to THIS exact GitHub checkout commit, not wall
+          # clock, and do not post-link patch/rewrite tested PE bytes.
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          root = Path(os.environ["TOOLCHAIN_DIR"])
+          v = json.loads((root / "retcomm-toolchain.json").read_text())
+          assert v["version"] == "1.0.14", ("toolchain version drift", v.get("version"))
+          PY
+          clang --version | head -n1 | grep -F "22.1.8"
+          export SOURCE_DATE_EPOCH="$(git show -s --format=%ct "$GITHUB_SHA")"
+          [[ "$SOURCE_DATE_EPOCH" =~ ^[0-9]{10}$ ]] || {
+            echo "::error::source commit timestamp invalid"; exit 1;
+          }
           cmake -S baldosa -B baldosa/build-ur-win -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_ENABLE_TRACE=OFF
           cmake --build baldosa/build-ur-win --target UniracersSNESRecomp -j 3
           cmake --build baldosa/build-ur-win --target ur-baldosa-modern-profile-fixture -j 3
           test -s baldosa/build-ur-win/UniracersSNESRecomp.exe
           test -s baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe
+          python tools/check_windows_pe_timestamp.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --source-epoch "$SOURCE_DATE_EPOCH"
+          echo "PASS: original linked AMD64 PE COFF/debug timestamps are exact source epoch; no post-link mutation, no release QA credit." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Admit only a real Windows x64 PE32+ executable
         run: |

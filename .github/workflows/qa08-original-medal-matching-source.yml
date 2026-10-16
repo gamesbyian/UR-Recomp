@@ -1,4 +1,4 @@
-name: QA-08 original 2P corresponding cursor and medal fields
+name: QA-08 original 2P correctly registered cursor and medal OAM
 # One corrected source field capture, bounded to research PR #1649.
 # Its 263 unchanged source callbacks and all three OAM/CGRAM field dumps
 # survive in artifact 12030581890. Manual reproduction only; no automatic
@@ -105,6 +105,21 @@ jobs:
           path: |
             qa08-original-medal-evidence/original-263-verified.json
             qa08-original-medal-evidence/matched-original-fields.json
-            qa08-original-medal-evidence/registers/qa08_arrow_1280.*
-            qa08-original-medal-evidence/registers/qa08_medal_4032.*
-            qa08-original-medal-evidence/registers/qa08_medal_4176.*
+            qa08-original-medal-evidence/registers/qa08_arrow_1280.info.json
+            qa08-original-medal-evidence/registers/qa08_arrow_1280.regs.json
+            qa08-original-medal-evidence/registers/qa08_arrow_1280.oam.bin
+            qa08-original-medal-evidence/registers/qa08_arrow_1280.cgram.bin
+            qa08-original-medal-evidence/registers/qa08_arrow_1280.ppuw.tsv
+            qa08-original-medal-evidence/registers/qa08_arrow_1280.fb.bgrx
+            qa08-original-medal-evidence/registers/qa08_medal_4032.info.json
+            qa08-original-medal-evidence/registers/qa08_medal_4032.regs.json
+            qa08-original-medal-evidence/registers/qa08_medal_4032.oam.bin
+            qa08-original-medal-evidence/registers/qa08_medal_4032.cgram.bin
+            qa08-original-medal-evidence/registers/qa08_medal_4032.ppuw.tsv
+            qa08-original-medal-evidence/registers/qa08_medal_4032.fb.bgrx
+            qa08-original-medal-evidence/registers/qa08_medal_4176.info.json
+            qa08-original-medal-evidence/registers/qa08_medal_4176.regs.json
+            qa08-original-medal-evidence/registers/qa08_medal_4176.oam.bin
+            qa08-original-medal-evidence/registers/qa08_medal_4176.cgram.bin
+            qa08-original-medal-evidence/registers/qa08_medal_4176.ppuw.tsv
+            qa08-original-medal-evidence/registers/qa08_medal_4176.fb.bgrx

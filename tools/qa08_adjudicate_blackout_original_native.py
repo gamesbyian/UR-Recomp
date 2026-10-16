@@ -67,8 +67,9 @@ def inspect(original:zipfile.ZipFile,blackout:zipfile.ZipFile,win:zipfile.ZipFil
     writes=observed["source_original_2100_write_journal"]["original_2100_actual_CPU_DMA_HDMA_beam_writes"]
     if ([(x["frame"],x["value"]) for x in writes] != list(zip(
         range(4017,4024),("02","04","06","08","0A","0C","0E"))) or
-        any(x["source"]!="cpu" or x["v"]!=230 for x in writes)):
-        raise ValueError("authentic source CPU V230 $2100 brightness ladder changed")
+        any(x["source"]!="cpu" or x["v"]!=(230 if x["frame"]<4023 else 231)
+            for x in writes)):
+        raise ValueError("authentic original $2100 CPU beam V230/V231 ladder changed")
     byline=native["read_only_native_PPU_registers"]["per_line_native_PPU_state"]
     selected={}
     for f in (4015,4016,4017):

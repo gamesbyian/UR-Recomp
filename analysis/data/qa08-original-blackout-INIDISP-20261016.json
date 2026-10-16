@@ -34,7 +34,6 @@
     "0c",
     "0e"
   ],
-  "source_PPU_beam_vcounter_at_brightness_writes": 230,
   "actual_Windows_compiled_run": 38830617873,
   "actual_Windows_2P_source_artifact": 12017392389,
   "actual_Windows_source_INIDISP_by_native_frame": {
@@ -49,5 +48,15 @@
   "native_frame_mapping_guest_phase_cause_proven": false,
   "graphics_brightness_fix_approved": false,
   "QA08_10_release_and_HD_art_likeness_approved": false,
-  "research_source_producer_manual_only": true
+  "research_source_producer_manual_only": true,
+  "source_PPU_beam_vcounter_at_brightness_writes_by_frame": {
+    "4017": 230,
+    "4018": 230,
+    "4019": 230,
+    "4020": 230,
+    "4021": 230,
+    "4022": 230,
+    "4023": 231
+  },
+  "source_last_2100_write_0E_at_frame_4023_is_v231_not_v230": true
 }

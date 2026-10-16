@@ -58,6 +58,22 @@ def neighbourhood(source: bytes, native: bytes, x: int, y: int,
     return pixels
 
 
+def original_target_colour_positions(raw: bytes) -> list[tuple[int, int]]:
+    """Exact 2014 BGRX pixels with 5-bit-normalized RGB=(49,24,0).
+
+    Only green6->green5 is admitted. No 2014 color or sprite reinterpretation,
+    palette remap, image mask, shift, or frame search.
+    """
+    if len(raw)!=W*H*4:
+        raise ValueError("source colour tally requires full unmasked 256x224 frame")
+    matches=[]
+    for p in range(W*H):
+        i=p*4
+        if raw[i]==0 and (raw[i+1] >> 3)==3 and raw[i+2]==49:
+            matches.append((p%W,p//W))
+    return matches
+
+
 def extract_source_frames(original_dir: Path, windows_dir: Path,
                           guest: int) -> tuple[bytes, bytes]:
     original = (original_dir/"frames"/f"frame_{guest-1:06d}_256x224.raw").read_bytes()
@@ -85,6 +101,15 @@ def analyze(original_dir: Path, windows_dir: Path, route: Path) -> dict:
         raise ValueError("missing exact source-registered finish fields")
     if any(rows[guest]["wrong_RGB5_pixels"] != 0 for guest in NEIGHBOURS):
         raise ValueError("the four original/native neighbouring frames are no longer exact")
+    # Source-colour rarity is a full-corpus claim: verify the ENTIRE
+    # original archive of 263 source callbacks, not just two selected scenes.
+    all_original_target_colour_positions=[]
+    for guest in range(1280,5473,16):
+        original,_=extract_source_frames(original_dir,windows_dir,guest)
+        for x,y in original_target_colour_positions(original):
+            all_original_target_colour_positions.append([guest,x,y])
+    if all_original_target_colour_positions!=[[3792,121,165],[3872,121,165]]:
+        raise ValueError("original source rare RGB5 colour is not uniquely the two finish pixels")
     per_pixel = []
     for guest in GUESTS:
         row = rows[guest]
@@ -137,6 +162,9 @@ def analyze(original_dir: Path, windows_dir: Path, route: Path) -> dict:
         "source_pairing":"original callback=f-1/native guest=f; no search",
         "source_geometry":[W,H],
         "source_green_normalization":"2014 Snes9x 6-bit green to 5-bit only",
+        "original_RGB5_49_24_0_all_corpus_occurrences":all_original_target_colour_positions,
+        "original_RGB5_49_24_0_occurrence_count_among_15081472_pixels":2,
+        "source_global_palette_only_model_ruled_out_by_this_rare_colour":False,
         "isolated_source_pixels":per_pixel,
         "four_surrounding_guest_frames_full_exact":[*NEIGHBOURS],
         "source_original_effective_PPU_OBJ_window_math_proven":False,

@@ -1742,6 +1742,13 @@ def run_native_crash_between_raw_and_typed(
     # A new source-backed process either rejects an unjournaled mismatch
     # before frame one or replays ONLY the validated pre-write intent.
     crash_state = {p: p.read_bytes() for p in (raw, typed, selector, roster)}
+    pending = profile / "native-sram-checkpoint.pending"
+    pending_crash_bytes = pending.read_bytes() if pending.is_file() else None
+    if journaled and (pending_crash_bytes is None or
+                      len(pending_crash_bytes) < 8192):
+        raise ValueError("Durable prewrite intent absent from actual Win32 cut")
+    if not journaled and pending_crash_bytes is not None:
+        raise ValueError("Historical unjournaled witness unexpectedly had intent")
     retry = output / "fresh_launch"
     retry.mkdir()
     short = retry / "no_guest.txt"
@@ -1783,6 +1790,28 @@ def run_native_crash_between_raw_and_typed(
             raise ValueError("No single retained old/new recovery receipt")
         if selector.read_bytes() != before[selector] or roster.read_bytes() != before[roster]:
             raise ValueError("Intent replay changed a canonical selector or catalog")
+        if pending.exists() or receipts[0].read_bytes() != pending_crash_bytes:
+            raise ValueError("Recovered receipt does not exactly preserve Win32 intent")
+        # Another actual cold guest must consume identical typed/raw bytes,
+        # publish no second generation, and leave the same receipt intact.
+        repaired_files = {p: p.read_bytes() for p in (raw, typed, selector, roster)}
+        repeated = subprocess.run(
+            [str(exe), "--no-launcher", "--config", str(config),
+             "--script", str(short), str(rom)],
+            cwd=retry, env=clean_env, capture_output=True,
+            text=True, errors="replace", timeout=timeout)
+        repeat_log = repeated.stdout + "\n" + repeated.stderr
+        (output / "second-cold-recovery-boot.log").write_text(
+            repeat_log, encoding="utf-8")
+        if (repeated.returncode != 0 or
+            "UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED" in repeat_log):
+            raise ValueError("Second cold boot repeated prior journal publication")
+        verify_named_profile_boot_bytes(repeat_log, after_raw)
+        if any(p.read_bytes() != expected
+               for p, expected in repaired_files.items()):
+            raise ValueError("Second cold boot changed already recovered raw/typed pair")
+        if pending.exists() or receipts[0].read_bytes() != pending_crash_bytes:
+            raise ValueError("Second cold boot modified recovery receipt")
     else:
         if (fresh.returncode != 7 or
             fresh_log.count(
@@ -1848,6 +1877,27 @@ def run_native_crash_between_raw_and_typed(
             any(file_receipt[label]["changed_byte_count"] for label in
                 ("selector", "roster"))):
             raise ValueError("Journal replay did not isolate typed update")
+        if journaled:
+            # Immutable exact journal+receipt bytes qualify independent
+            # source-vs-disk comparisons. Never archive a ROM or personal root.
+            assert pending_crash_bytes is not None
+            recovered_archives = list(profile.glob("native-sram-recovered-*.txt"))
+            if len(recovered_archives) != 1:
+                raise ValueError("No unique journal receipt after cold replay")
+            archived = recovered_archives[0].read_bytes()
+            if archived != pending_crash_bytes:
+                raise ValueError("Archived journal bytes differ from actual crash")
+            (snapshot_dir / "intent.crash.bin").write_bytes(pending_crash_bytes)
+            (snapshot_dir / "intent.recovered-receipt.bin").write_bytes(archived)
+            file_receipt["intent"] = {
+                "crash_sha256": hashlib.sha256(pending_crash_bytes).hexdigest(),
+                "receipt_sha256": hashlib.sha256(archived).hexdigest(),
+                "bytes": len(pending_crash_bytes),
+                "byte_identical": True,
+                "pending_retired": not pending.exists(),
+            }
+            (snapshot_dir / "second-cold-recovery-boot.log").write_bytes(
+                (output / "second-cold-recovery-boot.log").read_bytes())
         (snapshot_dir / "crash.log").write_text(log, encoding="utf-8")
         (snapshot_dir / ("cold-recovery.log" if journaled else "cold-refusal.log")
          ).write_text(fresh_log, encoding="utf-8")
@@ -1932,6 +1982,8 @@ def run_native_crash_between_raw_and_typed(
         "raw_and_typed_sram_divergence_reproduced": True,
         "fresh_process_rejected_before_guest": not journaled,
         "validated_intent_reconciled_on_fresh_guest": journaled,
+        "second_cold_boot_byte_identical": journaled,
+        "actual_crash_intent_and_receipt_retained": journaled and snapshot_dir is not None,
         "manual_legacy_raw_choice": legacy_choice_receipt,
         "no_implicit_recovery_or_fake_result": not journaled,
         "cross_file_crash_atomicity_proven": False,
@@ -2005,10 +2057,12 @@ def main() -> int:
         video=args.video, timeout=args.timeout)
     post_raw_crash_proof = run_native_crash_between_raw_and_typed(
         exe, rom, script, root, fixture, sram_seed,
-        video=args.video, timeout=args.timeout)
+        video=args.video, timeout=args.timeout,
+        snapshot_dir=root / "native_post_raw_pre_typed_crash/fault-bytes")
     journal_recovery_proof = run_native_crash_between_raw_and_typed(
         exe, rom, script, root, fixture, sram_seed,
-        video=args.video, timeout=args.timeout, journaled=True)
+        video=args.video, timeout=args.timeout, journaled=True,
+        snapshot_dir=root / "native_intent_restart_recovery/fault-bytes")
     healthy_alternate_proof = run_native_healthy_alternate_from_damaged_source(
         exe, rom, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)

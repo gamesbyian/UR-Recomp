@@ -116,8 +116,8 @@ jobs:
                           if digest(exe)!=pe:raise SystemExit("Original Windows PE mismatch")
                   if id=="12078012911":
                       p=json.loads(z.read("pilot-result.json"))
-                      if p.get("source_sha")!=source or p.get("exe_sha256")!=pe or
-                          p.get("executed_cases")!=13 or any(c.get("exit_code")!=0 for c in p["cases"]):
+                      if (p.get("source_sha")!=source or p.get("exe_sha256")!=pe or
+                          p.get("executed_cases")!=13 or any(c.get("exit_code")!=0 for c in p["cases"])):
                           raise SystemExit("Source-backed hosted Windows journeys changed")
               receipt.append({"artifact_id":int(id),"sha256_original_zip":sha,
                               "original_zip_bytes":len(b),"zip_member_count_crc":count})

@@ -63,6 +63,9 @@ def inspect(archive: Path, expected_sha: str, mode: str, *,
                      "cold-refusal.log" if mode == "historic" else "cold-recovery.log"))
     if mode == "historic":
         expected.add("qa02-exact-owner-receipt.json")
+    else:
+        expected.update(("intent.crash.bin", "intent.recovered-receipt.bin",
+                         "second-cold-recovery-boot.log"))
     with zipfile.ZipFile(archive) as z:
         members = z.infolist()
         require(len(members) == len(expected) and
@@ -77,7 +80,8 @@ def inspect(archive: Path, expected_sha: str, mode: str, *,
         require(z.testzip() is None, "ZIP CRC validation failed")
         raw_files = {name: z.read(name) for name in expected}
     receipt = json.loads(raw_files["file-receipt.json"].decode("utf-8"))
-    require(isinstance(receipt, dict) and set(receipt) == set(LABELS),
+    expected_receipt = set(LABELS) if mode == "historic" else set(LABELS) | {"intent"}
+    require(isinstance(receipt, dict) and set(receipt) == expected_receipt,
             "incorrect file-receipt population")
     files = {}
     for label in LABELS:
@@ -140,15 +144,52 @@ def inspect(archive: Path, expected_sha: str, mode: str, *,
                 "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in cold and
                 "UR_BALDOSA_NATIVE_PROFILE REJECTED" not in cold,
                 "source-log cold restart lacks actual recovered guest boot")
+        # The original Win32 intent carries complete old/new *typed* state,
+        # not merely a boolean that the recovery producer can self-report.
+        # Only those exact typed images may authorize replay.
+        intent = raw_files["intent.crash.bin"]
+        archived = raw_files["intent.recovered-receipt.bin"]
+        info = receipt["intent"]
+        require(isinstance(info, dict) and
+                set(info) == {"crash_sha256", "receipt_sha256", "bytes",
+                              "byte_identical", "pending_retired"} and
+                info["crash_sha256"] == digest(intent) and
+                info["receipt_sha256"] == digest(archived) and
+                info["bytes"] == len(intent) and
+                info["byte_identical"] is True and
+                info["pending_retired"] is True and intent == archived,
+                "crash intent and recovered immutable receipt differ")
+        marker = b"UR-BALDOSA-NATIVE-SRAM-INTENT/1\\n"
+        require(intent.startswith(marker) and len(intent) <= 100_000,
+                "invalid durable prewrite-intent version or size")
+        rest = intent[len(marker):]
+        parts = rest.split(b"\\n", 2)
+        require(len(parts) == 3 and
+                all(re.fullmatch(rb"[0-9]{1,8}", p) is not None for p in parts[:2]),
+                "malformed typed-intent frame lengths")
+        old_length, new_length = int(parts[0]), int(parts[1])
+        require(old_length > 0 and new_length > 0 and
+                old_length + new_length == len(parts[2]) and
+                parts[2][:old_length] == typed["before"] and
+                parts[2][old_length:] == typed["after"],
+                "durable intent does not authorize exact before/after typed checkpoint")
+        second = raw_files["second-cold-recovery-boot.log"].decode(
+            "utf-8", errors="replace")
+        require("UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in second and
+                "UR_BALDOSA_NATIVE_PROFILE REJECTED" not in second and
+                "UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED" not in second,
+                "second cold guest replay failed or re-published typed checkpoint")
     return {
         "schema": "qa02-independent-win32-fault-snapshot-check/1",
         "case": mode,
         "verified_outer_zip_sha256": expected_sha,
         "changed_guest_raw_bytes": difference_count(raw["before"], crash_raw),
         "reconciled_typed": mode == "journaled",
+        "exact_intent_and_receipt_verified": mode == "journaled",
+        "second_cold_source_boot_observed": mode == "journaled",
         "release_gate_credit": 0,
         "physical_test": False,
-        "limits": "Does not independently bind Windows source/PE, validate intent bytes, repeat cold boot or prove physical/power-cut behaviour",
+        "limits": "Independently validates byte receipts and source log markers only; does not independently execute Windows, bind source/PE, prove power-cut durability or physical hardware",
     }
 
 

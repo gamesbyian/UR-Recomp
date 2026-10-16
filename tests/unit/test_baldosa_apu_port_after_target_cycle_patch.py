@@ -27,7 +27,9 @@ class SourcePin(unittest.TestCase):
         windows = (ROOT / ".github/workflows/baldosa-windows-native-bridge.yml").read_text()
         self.assertNotIn("baldosa_apu_port_after_target_cycle_patch.py", windows)
         core = (ROOT / ".github/workflows/qa01-event-campaign.yml").read_text()
-        self.assertNotIn("baldosa_apu_port_after_target_cycle_patch.py", core)
+        self.assertIn('if [[ "${{ inputs.baldosa_apu_port_after_target_cycle }}" == "true" ]]; then', core)
+        self.assertIn("python3 tools/baldosa_apu_port_after_target_cycle_patch.py --game baldosa", core)
+        self.assertIn("default: false", core)
 
 
 @unittest.skipUnless(shutil.which("cc") or shutil.which("gcc"), "requires C compiler")

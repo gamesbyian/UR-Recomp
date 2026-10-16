@@ -1,0 +1,770 @@
+{
+  "schema": "ur-qa12-tracked-git-tree-candidate-main-source-drift/1",
+  "date_utc": "2026-10-16",
+  "base_candidate": {
+    "commit": "11501a15dea38fa912335cfc63103ce3a7208001",
+    "zip_sha256": "5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7",
+    "win32_exe_sha256": "0701f72481531ad4f2803caadc62bbb072f292abef69f039edda004b01c18ea9"
+  },
+  "compared_main": "0eb1cd4b7fbda1ffee5428ffc5ec9169ae248260",
+  "method": "Independent complete recursive GitHub Git Tree API for both commit IDs; reject truncated; compare every tracked blob pathname, raw Git blob sha and file mode; this is NOT a binary rebuild or compiled-source dependency graph.",
+  "tree_counts": {
+    "candidate_blobs": 8670,
+    "compared_main_blobs": 8725,
+    "total_changed_paths": 75,
+    "added": 55,
+    "modified": 20,
+    "removed": 0
+  },
+  "category_counts": {
+    "runtime_and_assets": 0,
+    "release_input_pipeline": 0,
+    "windows_other_workflows": 3,
+    "qa_and_research_tools": 14,
+    "unit_and_test_suites": 18,
+    "docs": 21,
+    "evidence": 19,
+    "other": 0
+  },
+  "checked_release_inputs": [
+    {
+      "path": ".github/workflows/manual-romfree-windows-playtest.yml",
+      "candidate_blob": "f20753fee6ccfa9237c482de12c38e8034bc4eae",
+      "main_blob": "f20753fee6ccfa9237c482de12c38e8034bc4eae",
+      "unchanged": true
+    },
+    {
+      "path": "tools/assemble_baldosa_windows_candidate.py",
+      "candidate_blob": "a0eeb1a38115fbaa2eaa9771d737395b99856eed",
+      "main_blob": "a0eeb1a38115fbaa2eaa9771d737395b99856eed",
+      "unchanged": true
+    },
+    {
+      "path": "tools/audit_baldosa_romless_candidate.py",
+      "candidate_blob": "5e863adb90f9f50af90e7fc62f7b6d5ddbb80057",
+      "main_blob": "5e863adb90f9f50af90e7fc62f7b6d5ddbb80057",
+      "unchanged": true
+    },
+    {
+      "path": "tools/baldosa_modern_profile_activation.cpp",
+      "candidate_blob": "33f5483832fefd448bcef30c5f069c2c53fb26f5",
+      "main_blob": "33f5483832fefd448bcef30c5f069c2c53fb26f5",
+      "unchanged": true
+    },
+    {
+      "path": "tools/baldosa_native_modern_root.cpp",
+      "candidate_blob": "c7bb45a66acb818f845d2a31308874ab8ed674cf",
+      "main_blob": "c7bb45a66acb818f845d2a31308874ab8ed674cf",
+      "unchanged": true
+    },
+    {
+      "path": "tools/baldosa_native_pause_lifecycle.cpp",
+      "candidate_blob": "b934dc0cb7ca789a8b45612031c08070d770fd47",
+      "main_blob": "b934dc0cb7ca789a8b45612031c08070d770fd47",
+      "unchanged": true
+    },
+    {
+      "path": "tools/bind_baldosa_candidate_receipt.py",
+      "candidate_blob": "0213bce1dbb0838188a970ebf31db5d90c477744",
+      "main_blob": "0213bce1dbb0838188a970ebf31db5d90c477744",
+      "unchanged": true
+    },
+    {
+      "path": "tools/check_windows_portable_binary.py",
+      "candidate_blob": "bb1d28e8f3284c648ba8db0d65f447aa3438f16c",
+      "main_blob": "bb1d28e8f3284c648ba8db0d65f447aa3438f16c",
+      "unchanged": true
+    }
+  ],
+  "same_tracked_runtime_assets_and_source_inputs": true,
+  "no_changed_checked_manual_package_pipeline": true,
+  "real_win32_rebuild_byte_identical": false,
+  "later_main_release_candidate_qualified": false,
+  "physical_hardware_verified": false,
+  "new_release_gate_credit": 0,
+  "limitations": [
+    "Tracked-path presence/blob/mode comparison at two fixed commits, not replay of full build graph or external toolchain/environment.",
+    "Same tracked native files do not prove identical Windows EXE under future compiler/SDK/CI environment changes.",
+    "Changed Baldosa native Windows QA bridge workflow is a test/CI input change; new CI result does not inherit the original 2026-10-15 hosted run, even though immutable original nominated artifact remains historically valid.",
+    "Some tools and workflow checks did change, including extracted-launcher verification, parallel-journey orchestration and QA native pause instrumentation.",
+    "No physical Windows two-pad, screen/audio, power-loss, standalone installer or player error UI approval; Modern P0 #1214 remains open.",
+    "Any later main update, graphics merge, native runtime change or package workflow edit requires recompute and integration-led candidate requalification."
+  ],
+  "changed_files": [
+    {
+      "path": ".github/workflows/baldosa-windows-native-bridge.yml",
+      "operation": "modified",
+      "old_blob_sha": "5fe35762ea702af4f94ee1d39a1acc825fd539b8",
+      "new_blob_sha": "2c80591251b2b566475043b750586a02dc40eb53",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "category": "windows_other_workflows"
+    },
+    {
+      "path": ".github/workflows/qa01-event-campaign.yml",
+      "operation": "modified",
+      "old_blob_sha": "180e356ec531473c32a3434836fa17aeb254b807",
+      "new_blob_sha": "0e163207f457545f3c1e58feac7ab4732d3a78b9",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "category": "windows_other_workflows"
+    },
+    {
+      "path": ".github/workflows/retain-nominated-owner-playtest.yml",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "70e4fd217e193ad021defbfde8e982ec39167c05",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "windows_other_workflows"
+    },
+    {
+      "path": "analysis/data/qa01-archived-zoo-bowl-raw-wram-3run-review-20261016.json",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "a2d8a49ff18b07f34d20a7a1c0840dfe3af39ccf",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "evidence"
+    },
+    {
+      "path": "analysis/data/qa01-zoo-dp5040-independent-two-run-review-20261016.json",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "941b9485be721aae27fb7244c5b8f4c301174c88",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "evidence"
+    },
+    {
+      "path": "analysis/data/qa01-zoo-fullrace-mesh-executed-20261015.json",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "4a10c7c8db99899be5d66b099beed32fcd347b1b",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "evidence"
+    },
+    {
+      "path": "analysis/data/qa01-zoo-next-bowl-rf015-exact-negative-20261015.json",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "49e4ac2e2e516722211a12c53626951b3ee57480",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "evidence"
+    },
+    {
+      "path": "analysis/data/qa01-zoo-next-bowl-rf017-integrated-positive-20261015.json",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "ce7c80d31071480c2720ac3eded6fc89eea5e78d",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "evidence"
+    },
+    {
+      "path": "analysis/data/qa01-zoo-rf018-only-treatment-review-20261016.json",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "881a73202e7790e08487c5eb57f1860e4edf5981",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "evidence"
+    },
+    {
+      "path": "analysis/data/qa01-zoo-rf018-saved-dp-crosswalk-20261016.json",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "c6165318ebc2bc3602922ecf34428a7e87a0b980",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "evidence"
+    },
+    {
+      "path": "analysis/data/qa01-zoo-unmasked-wram-20261015.json",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "efe60518a7095b4f99eeecd42188d00f47a6ab8c",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "evidence"
+    },
+    {
+      "path": "analysis/evidence/qa-exact-main-38813101482-cross-artifact-review.json",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "037cd83ad904072943fc6f500b26c5bd54c98cee",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "evidence"
+    },
+    {
+      "path": "analysis/evidence/qa-exact-main-retained-windows-original-wrappers-20261015.json",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "06ecfd1644b847aa9273d0e0ee183b61b2a1299c",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "evidence"
+    },
+    {
+      "path": "analysis/evidence/qa-win32-rooted-relative-pr1680-independent-20261015.json",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "3319f3b033fed0a1d4b596ccf5969dff85258954",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "evidence"
+    },
+    {
+      "path": "analysis/evidence/qa-windows-owner-vs-1680-pe-timestamp-only-20261015.json",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "1b0f2680a68458a14b11e31882fdbd649ade197b",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "evidence"
+    },
+    {
+      "path": "analysis/evidence/qa02-exact-nominated-38848852832-win32-crash-byte-audit.json",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "3540b641cfa0c7fccef4165287884eb32556d539",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "evidence"
+    },
+    {
+      "path": "analysis/evidence/qa02-exact-nominated-two-games-20261016.json",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "254d64df7d54b0d6d8b990f188be4da5b0543505",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "evidence"
+    },
+    {
+      "path": "analysis/evidence/qa02-exact-nominated-win32-selector-conflict-20261016.json",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "b6848f332280eac0f3e2125d8aa7133cf9b9ced5",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "evidence"
+    },
+    {
+      "path": "analysis/evidence/qa02-original-two-profile-crash-blast-20261016.json",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "95b1991561b4f339cf7fe27dacf1677fb64d1efc",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "evidence"
+    },
+    {
+      "path": "analysis/evidence/qa02-original-win32-raw-file-acl-negative-20261016.json",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "97c5d4c2ccaf7da146542aa82e31d7baaeee1fac",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "evidence"
+    },
+    {
+      "path": "analysis/evidence/qa02-original-win32-readonly-and-acl-denial-20261016.json",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "00603faa27ee4053fb0ac811f1b408d314269247",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "evidence"
+    },
+    {
+      "path": "analysis/evidence/qa02-two-original-windows-crash-reports-staged-sram-model-20261016.json",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "f9c173d31271f65ad163bd404f26414456d1350f",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "evidence"
+    },
+    {
+      "path": "docs/MODERN-FRONTEND-SHIPPING-STATUS.md",
+      "operation": "modified",
+      "old_blob_sha": "923b6d3fa294aebebaaf3ab2e59a39092a446f5f",
+      "new_blob_sha": "00ae415475e3654827e528812d3d4c337b575382",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "category": "docs"
+    },
+    {
+      "path": "docs/ORIGINAL-COURSE-EVENT-CENSUS.md",
+      "operation": "modified",
+      "old_blob_sha": "7968f9c3469fc584dd5e34b045b631ffab1125d8",
+      "new_blob_sha": "2d4a33a154805188ccae8709bfc51b02a25e5631",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "category": "docs"
+    },
+    {
+      "path": "docs/QA-EXACT-MAIN-RETAINED-WINDOWS-BYTE-AUDIT-20261015.md",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "222c8ede176b79a4ff4eded5c519dd54fcc1ea89",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "docs"
+    },
+    {
+      "path": "docs/QA-EXACT-MAIN-WINDOWS-CROSS-ARTIFACT-DISPOSITION-20261015.md",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "bb63d7d6879007cc6a0f74f6fc183a61fe0c1cc0",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "docs"
+    },
+    {
+      "path": "docs/QA-EXACT-MAIN-WINDOWS-OWNER-CANDIDATE-20261015.md",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "1e7f7bb2c0db76558ce88771fe2c9619fc7c2e27",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "docs"
+    },
+    {
+      "path": "docs/QA-WIN32-ROOTED-RELATIVE-CMD-PR1680-20261015.md",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "069cc4ffd66c977ed87c20e490da1aeb359d8cf9",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "docs"
+    },
+    {
+      "path": "docs/QA-WINDOWS-PE-TIMESTAMP-REPRODUCIBILITY-20261015.md",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "3875d4445905e020eb8893478c3d045d1a5495fa",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "docs"
+    },
+    {
+      "path": "docs/QA01-EVENT-CAMPAIGN.md",
+      "operation": "modified",
+      "old_blob_sha": "3627cc697568fff1ed756096efb57ec1dfe02d18",
+      "new_blob_sha": "ca04e66f10c63113e4da1f3bf591d7400b7ab906",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "category": "docs"
+    },
+    {
+      "path": "docs/QA01-ZOO-AUTHENTIC-NEXT-BOWL-ENTRY-20261015.md",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "c8bd70532b82d7db3645974b7fdfc5a508e93419",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "docs"
+    },
+    {
+      "path": "docs/QA01-ZOO-DP5040-INDEPENDENT-REVIEW-20261016.md",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "3152d8edb5de45fb0ce39b9ba0b4dca2d831028d",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "docs"
+    },
+    {
+      "path": "docs/QA01-ZOO-RF018-ONLY-TREATMENT-20261016.md",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "e77b39fa3743678fdded1620bab574b4556c6c2d",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "docs"
+    },
+    {
+      "path": "docs/QA02-EXACT-NOMINATED-WIN32-CRASH-BYTE-WITNESS-20261016.md",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "9bd54ef5de951bd7bc205a3e199675ed536c5bbe",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "docs"
+    },
+    {
+      "path": "docs/QA02-EXACT-NOMINATED-WIN32-PERMISSION-FAULT-20261016.md",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "bf368b89c222dd9fc019c93f7d82dd1dabbefe39",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "docs"
+    },
+    {
+      "path": "docs/QA02-EXACT-NOMINATED-WIN32-TWO-GAMES-20261016.md",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "9a7cf80f1b6950f8ee2db68542b51ba1d3da58ee",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "docs"
+    },
+    {
+      "path": "docs/QA02-EXACT-NOMINATED-WIN32-TWO-PROCESS-SELECTOR-20261016.md",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "aa4f9e7e89de10d7e98abddec9e6313c151a49d0",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "docs"
+    },
+    {
+      "path": "docs/QA02-ORIGINAL-WIN32-CRASH-REPRODUCTION-AND-STAGED-SRAM-NEGATIVES-20261016.md",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "b99882c06948369b6f5f9c6b33f8a66f0e3d5a61",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "docs"
+    },
+    {
+      "path": "docs/QA02-ORIGINAL-WIN32-FILE-ACL-NEGATIVES-20261016.md",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "1e61d8abe40a69f93a08f133809b64e600e9b316",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "docs"
+    },
+    {
+      "path": "docs/QA02-ORIGINAL-WIN32-TWO-PROFILE-CRASH-BLAST-20261016.md",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "a944f3934c40fd9d24cbb1f8b88ab26745758c18",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "docs"
+    },
+    {
+      "path": "docs/RELEASE-QUALITY-LEDGER.json",
+      "operation": "modified",
+      "old_blob_sha": "1505c9b1acc64dd7a395749949b30f715571f48e",
+      "new_blob_sha": "a7aa525489aa5aabecfb3c155f26cf9cfb915d70",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "category": "docs"
+    },
+    {
+      "path": "docs/WINDOWS-PLAYTEST-INSTRUCTIONS.md",
+      "operation": "modified",
+      "old_blob_sha": "f4494f79d170480c082b9b9274c32cb33f15d3d6",
+      "new_blob_sha": "1b77b34b233c20b373891cfefdb85e011b2b80b2",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "category": "docs"
+    },
+    {
+      "path": "docs/WORK-QUEUE.md",
+      "operation": "modified",
+      "old_blob_sha": "8bd41647a2b7ec859a1d0ac49f1e9718f3bb31a7",
+      "new_blob_sha": "2bf50f5f3498b751a78cd3bed35818b9e5bbb742",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "category": "docs"
+    },
+    {
+      "path": "tests/unit/test_baldosa_windows_compiled_trigger_closure.py",
+      "operation": "modified",
+      "old_blob_sha": "99aa2c37da457399df6766818a541af454f96868",
+      "new_blob_sha": "4804a47dae2cb331a0de8f8290868d73044a5569",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "category": "unit_and_test_suites"
+    },
+    {
+      "path": "tests/unit/test_check_baldosa_win32_first_racer_earned_records_qa.py",
+      "operation": "modified",
+      "old_blob_sha": "ce3248ac9b9291baa7d211607734d5faa052d9f1",
+      "new_blob_sha": "dd16b75e6d6bf3c8de7520f7a057c0b87a8fb4a4",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "category": "unit_and_test_suites"
+    },
+    {
+      "path": "tests/unit/test_check_windows_pe_timestamp.py",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "75fc49d52fa16c32d72c9cfcc24858e6a1b0938c",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "unit_and_test_suites"
+    },
+    {
+      "path": "tests/unit/test_qa01_cold_result_record.py",
+      "operation": "modified",
+      "old_blob_sha": "5672855e73052184c5981cd5846dfef0890f3e79",
+      "new_blob_sha": "26bd856275f8db636c79488c9ee567b6275dd1a4",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "category": "unit_and_test_suites"
+    },
+    {
+      "path": "tests/unit/test_qa01_full_wram_audit.py",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "c6f1f1b943795fe33113d0f4f7fb951365703405",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "unit_and_test_suites"
+    },
+    {
+      "path": "tests/unit/test_qa01_zoo_dp_window.py",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "92370bbc4d7e8a0f95a0bae16d8c81d692a4cda2",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "unit_and_test_suites"
+    },
+    {
+      "path": "tests/unit/test_qa01_zoo_handoff_campaign.py",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "409113f26955ab16d65e87a3f989b9baf1d15d07",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "unit_and_test_suites"
+    },
+    {
+      "path": "tests/unit/test_qa01_zoo_next_bowl.py",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "ae490d6ca6d9ad8e71c73526e6f0aec5558b89e2",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "unit_and_test_suites"
+    },
+    {
+      "path": "tests/unit/test_qa01_zoo_race_mesh.py",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "8e1ac623c1c06320e5c0e7fd3e248e6067201992",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "unit_and_test_suites"
+    },
+    {
+      "path": "tests/unit/test_qa02_exact_owner_two_games.py",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "3c2e5392b2f2394a3f2b02c8d286aebd6c0a3c41",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "unit_and_test_suites"
+    },
+    {
+      "path": "tests/unit/test_qa02_exact_owner_two_process_selector.py",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "5dfbeb08ed39d4ccf3df8ee961ceb6e367546dcd",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "unit_and_test_suites"
+    },
+    {
+      "path": "tests/unit/test_qa02_nominated_windows_readonly.py",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "7f995fa255f1fb69c4dd8f1a3dad264d4fcb3e25",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "unit_and_test_suites"
+    },
+    {
+      "path": "tests/unit/test_qa02_original_two_profile_crash_blast.py",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "8887994c5c0c47c0e48aae6ab7c58b62639a3058",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "unit_and_test_suites"
+    },
+    {
+      "path": "tests/unit/test_release_quality_ledger.py",
+      "operation": "modified",
+      "old_blob_sha": "f03cb18e42ac28bfddf0e0cebea0fc33f4f65518",
+      "new_blob_sha": "7a63cb4bc37cc155b035a714b4b17fe04e60b2e6",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "category": "unit_and_test_suites"
+    },
+    {
+      "path": "tests/unit/test_run_baldosa_parallel_windows_journeys.py",
+      "operation": "modified",
+      "old_blob_sha": "e65073396e85c832699074a8bd7d426ec604ecd3",
+      "new_blob_sha": "d3036e1f08858929e5350a5b88a9ac807057e300",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "category": "unit_and_test_suites"
+    },
+    {
+      "path": "tests/unit/test_verify_baldosa_extracted_launcher_logs.py",
+      "operation": "modified",
+      "old_blob_sha": "033ca579a49da3e742d0af8b2ec77da74b3482b2",
+      "new_blob_sha": "80fbc86c61e721c76e0ebfc29bc8ce1767658ab2",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "category": "unit_and_test_suites"
+    },
+    {
+      "path": "tests/unit/test_verify_retained_owner_playtest.py",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "8f360f84e4fc9cc7a5fd57358cab8591e303f327",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "unit_and_test_suites"
+    },
+    {
+      "path": "tests/unit/test_verify_retained_windows_qa_artifacts.py",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "9870942c18d4f32efbdd0dcdeae2850a1b435bcf",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "unit_and_test_suites"
+    },
+    {
+      "path": "tools/baldosa_windows_native_pause_route.py",
+      "operation": "modified",
+      "old_blob_sha": "32ce07f0ebf9f9f22cc80b6554a52aa6aa43e7e9",
+      "new_blob_sha": "f788373f8f459b77f1a2c02d9c7cfcc25413b021",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "category": "qa_and_research_tools"
+    },
+    {
+      "path": "tools/check_windows_pe_timestamp.py",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "8f09cd212ec366ab08fb00f45aa39aa087a6a555",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "qa_and_research_tools"
+    },
+    {
+      "path": "tools/probe_original_event_complete.py",
+      "operation": "modified",
+      "old_blob_sha": "ccd9e6431b578c26db4fc6a7c439825c6d8d25e4",
+      "new_blob_sha": "d2f5076c9643f514e3c92867ed946174abf23fa9",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "category": "qa_and_research_tools"
+    },
+    {
+      "path": "tools/qa01_cold_result_record.py",
+      "operation": "modified",
+      "old_blob_sha": "ac23a4a66ac714f90a86e9f6ac94d5d6132c27de",
+      "new_blob_sha": "169f5e32b9cb7f86a292adeed272ad0dcbed006a",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "category": "qa_and_research_tools"
+    },
+    {
+      "path": "tools/qa01_event_campaign.py",
+      "operation": "modified",
+      "old_blob_sha": "c6eadf3c4bcb28e09c240d3875ee7b38b8404589",
+      "new_blob_sha": "620c54168541ad68a93759243f5f0c023d381027",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "category": "qa_and_research_tools"
+    },
+    {
+      "path": "tools/qa02_exact_owner_two_games.py",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "319bbd94e355946418ad22ded4df17c7cb044c30",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "qa_and_research_tools"
+    },
+    {
+      "path": "tools/qa02_exact_owner_two_process_selector.py",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "1b3cdfad3fa076e4a7f8a9422f61ed6557e969c6",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "qa_and_research_tools"
+    },
+    {
+      "path": "tools/qa02_exact_owner_win32_seam.py",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "1c0f1ca5e2d8a49e76e8f2a4f52261551cb8df71",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "qa_and_research_tools"
+    },
+    {
+      "path": "tools/qa02_nominated_windows_readonly.py",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "30449a034b55e7993301d0af3684cfc62d14a18a",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "qa_and_research_tools"
+    },
+    {
+      "path": "tools/qa02_original_two_profile_crash_blast.py",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "cfb5d14552dca4ce6c01f39f6649281ccf5e9efe",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "qa_and_research_tools"
+    },
+    {
+      "path": "tools/run_baldosa_parallel_windows_journeys.py",
+      "operation": "modified",
+      "old_blob_sha": "1114b0ee567e17cb0dfbbed227f831a403ed99d8",
+      "new_blob_sha": "8e9b3c3903d5bbc67b522feb1a524d5ab80b8e62",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "category": "qa_and_research_tools"
+    },
+    {
+      "path": "tools/verify_baldosa_windows_extracted_launcher.py",
+      "operation": "modified",
+      "old_blob_sha": "13842d11a16a512bfd2dcadf58b03a0cb976e775",
+      "new_blob_sha": "11e5488187b1d5ce5b622f0a1830edce5353fda1",
+      "old_mode": "100644",
+      "new_mode": "100644",
+      "category": "qa_and_research_tools"
+    },
+    {
+      "path": "tools/verify_retained_owner_playtest.py",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "82fe224dab35654749acb4dceb89c84a670b5a88",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "qa_and_research_tools"
+    },
+    {
+      "path": "tools/verify_retained_windows_qa_artifacts.py",
+      "operation": "added",
+      "old_blob_sha": null,
+      "new_blob_sha": "4810e816c7bbf86756118152a5d7c8e161e6e756",
+      "old_mode": null,
+      "new_mode": "100644",
+      "category": "qa_and_research_tools"
+    }
+  ]
+}

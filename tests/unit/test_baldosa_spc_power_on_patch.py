@@ -14,8 +14,19 @@ class PatchTest(unittest.TestCase):
     def test_anchors_guest_time_at_reset_once(self):
         out = fix.patch(PINNED)
         self.assertIn("apu->portTimeValid = true;", out)
+        self.assertIn("apu->portGuestAnchor = 2446;", out)
         self.assertLess(out.index("apu_clearPortQueue(apu);"), out.index("apu->portTimeValid = true;"))
         self.assertEqual(fix.patch(out), out)
+
+    def test_anchor_is_selectable(self):
+        out = fix.patch(PINNED, 0)
+        self.assertIn("apu->portGuestAnchor = 0;", out)
+        self.assertIn("apu->portLastGuest = 0;", out)
+        self.assertEqual(fix.patch(out, 0), out)
+        with self.assertRaisesRegex(ValueError, "altered"):
+            fix.patch(out)  # staged with a different anchor
+        with self.assertRaisesRegex(ValueError, "range"):
+            fix.patch(PINNED, -1)
 
     def test_rejects_unknown_revision_and_tampering(self):
         with self.assertRaisesRegex(ValueError, "not recognized"):

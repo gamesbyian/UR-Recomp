@@ -16,10 +16,23 @@ power-on the latency is 10,004 = 10,004, and the later SPC-reset handshakes
 that depend on the sound driver's timer phase move much closer to the
 references (RF-020 class).
 
-This stages, into a DISPOSABLE pinned Baldosa checkout, one line in
-``apu_reset``: establish the guest/APU correspondence at reset (guest cycle 0
-= APU cycle 0) so the per-frame boundary sync steps the SPC from the first
-frame. Idempotent; refuses any other framework revision.
+This stages, into a DISPOSABLE pinned Baldosa checkout, the anchor in
+``apu_reset``: establish the guest/APU correspondence at reset, so the
+per-frame boundary sync steps the SPC from the first frame. ``--anchor`` is
+the guest SPC cycle at which APU cycle 0 falls (default 2,446):
+
+- With the RF-016 frame clock alone, whose one-field WAI minimum inflates SPC
+  time during boot, 2,446 (37 lines from the V=225 guest origin to the V=0
+  power-on position, plus reset latency) reproduces the reference's
+  586,459-cycle SPC age at the first handshake exactly.
+- With the RF-023 frame-clock correction (``baldosa_spc_frame_clock_patch.py``)
+  that inflation is gone: anchor 0 reproduces the reference SPC age to 14
+  cycles at the boot handshake and at every later SPC reset, while 2,446
+  leaves the SPC 2,460 cycles younger. On that base 2,446 is the empirical
+  candidate (it keeps the attract and Dragster matches, which anchor 0 loses);
+  see RF-025 in docs/RF023-025-SPC-FRAME-CLOCK-20261016.md.
+
+Idempotent; refuses any other framework revision.
 """
 from __future__ import annotations
 
@@ -35,21 +48,37 @@ PINNED = """  apu->cpuCyclesLeft = 7;
 }
 """
 
-CORRECTED = """  apu->cpuCyclesLeft = 7;
+DEFAULT_ANCHOR = 2446
+
+CORRECTED_TEMPLATE = """  apu->cpuCyclesLeft = 7;
   apu->portClock = 0;
   apu_clearPortQueue(apu);
-  /* """ + MARK + """: the SPC700 runs from power-on. Anchor guest cycle 0
-   * to APU cycle 0 now instead of at the first CPU port write, so the frame
+  /* """ + MARK + """: the SPC700 runs from power-on. Anchor the guest/APU
+   * correspondence now instead of at the first CPU port write, so the frame
    * boundary sync steps the SPC (IPL ROM, then whatever is uploaded) from the
-   * first frame as hardware does. */
+   * first frame as hardware does. Guest time starts at the field boundary
+   * (V=225); APU cycle 0 falls at guest SPC cycle ANCHOR (see
+   * tools/baldosa_spc_power_on_patch.py for the measured choice). */
   apu->portTimeValid = true;
+  apu->portGuestAnchor = ANCHOR;
+  apu->portLastGuest = ANCHOR;
 }
 """
 
 
-def patch(source: str) -> str:
+def corrected(anchor: int = DEFAULT_ANCHOR) -> str:
+    if not 0 <= anchor < 1 << 20:
+        raise ValueError("anchor out of range")
+    return CORRECTED_TEMPLATE.replace("ANCHOR", str(anchor))
+
+
+CORRECTED = corrected()
+
+
+def patch(source: str, anchor: int = DEFAULT_ANCHOR) -> str:
+    want = corrected(anchor)
     if MARK in source:
-        if source.count(CORRECTED) != 1:
+        if source.count(want) != 1:
             raise ValueError("SPC power-on marker present but correction altered")
         return source
     if source.count(PINNED) != 1 or "void apu_reset(Apu* apu) {" not in source:
@@ -57,7 +86,7 @@ def patch(source: str) -> str:
                          "do not splice against an unknown framework revision")
     if source.index("void apu_reset(Apu* apu) {") > source.index(PINNED):
         raise ValueError("anchor is not inside apu_reset")
-    return source.replace(PINNED, CORRECTED, 1)
+    return source.replace(PINNED, want, 1)
 
 
 def main() -> int:
@@ -65,10 +94,12 @@ def main() -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--game", required=True, type=Path,
                     help="disposable gamesbyian/uniracers-recomp checkout")
+    ap.add_argument("--anchor", type=int, default=DEFAULT_ANCHOR,
+                    help="guest SPC cycle of APU cycle 0 (default %(default)s)")
     args = ap.parse_args()
     path = args.game.resolve() / RELATIVE
     before = path.read_text(encoding="utf-8")
-    after = patch(before)
+    after = patch(before, args.anchor)
     if after == before:
         print(f"SPC power-on anchor already staged: {path}")
     else:

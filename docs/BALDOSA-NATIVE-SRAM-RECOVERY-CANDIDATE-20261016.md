@@ -189,3 +189,19 @@ canonical path lock are already integrated in current source; #1532's
 `file_exists` staging-collision retry is also integrated. Their older open
 issue statuses should be reconciled with source-bound tests separately, not
 treated as blockers requiring competing rewrites in this PR.
+
+
+## Real Windows typed-publication/finalization cut (product producer)
+
+The native Windows source producer also uses QA-only
+`UR_BALDOSA_QA_CRASH_AFTER_TYPED_PROFILE_COMMIT=1` to stop the **actual**
+guest process with `_Exit(87)` after original `RtlWriteSram` and
+canonical typed CAS return `Committed`, but before the durable write-ahead
+intent is retired. This must preserve exact new raw + new typed and the intact
+pending old/new intent. Two fresh source guest processes must then archive
+that intent **once**, retire it, load the same 8192 guest bytes and leave the
+typed checkpoint generation and selector/catalog unchanged. The bounded
+`native_typed_before_intent_recovery/fault-bytes/` artifact includes all
+four before/crash/after canonical files, original intent/receipt and SHA
+manifest. This test is a genuine Win32 *process abort* at a source-controlled
+cut. It does not constitute an OS power-loss or partial-disk-write claim.

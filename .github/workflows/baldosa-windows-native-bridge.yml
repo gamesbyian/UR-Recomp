@@ -773,6 +773,10 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/fault-bytes/**
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/qa02-journaled-snapshot.zip
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/qa02-journaled-snapshot.sha256
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_typed_before_intent_recovery/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_typed_before_intent_recovery/crash.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_typed_before_intent_recovery/first-cold-boot.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_typed_before_intent_recovery/second-cold-boot.log
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_post_raw_pre_typed_crash/explicit-recovery-native-command.log
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_post_raw_pre_typed_crash/explicit-recovery-fresh-boot.log
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_recovery_healthy_alternate/damaged-source-refusal.log

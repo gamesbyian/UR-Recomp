@@ -908,6 +908,22 @@ extern "C" int ur_baldosa_modern_profile_finish_native_save(int saved) {
     if (result != ur::product::BaldosaSramCheckpointStatus::Committed &&
         result != ur::product::BaldosaSramCheckpointStatus::Unchanged)
         return 0;  // keep the intent for a cold restart investigation
+    // QA-only genuine process-death cut AFTER the canonical typed CAS has
+    // durably published, but BEFORE the corresponding intent is retired.
+    // A new process must recognize exact new/raw + new/typed and archive
+    // and retire without incrementing its generation a second time.
+    // No synthetic result or alternative SRAM writer is involved.
+    if (result == ur::product::BaldosaSramCheckpointStatus::Committed) {
+        const char* typed_cut =
+            std::getenv("UR_BALDOSA_QA_CRASH_AFTER_TYPED_PROFILE_COMMIT");
+        if (typed_cut && std::strcmp(typed_cut, "1") == 0) {
+            std::fprintf(stderr,
+                "UR_BALDOSA_NATIVE_PROFILE QA_CRASH_AFTER_TYPED_COMMIT "
+                "exit=87 intent_retained=1\\n");
+            std::fflush(stderr);
+            std::_Exit(87);
+        }
+    }
     if (!ur::product::finish_baldosa_sram_intent_under_lock(request))
         return reject("native_sram_intent_cleanup_failed");
     return 1;

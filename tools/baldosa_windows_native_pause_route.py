@@ -1646,6 +1646,146 @@ def run_native_healthy_alternate_from_damaged_source(
     }
 
 
+def run_native_typed_commit_finalization_cut(
+    exe: Path, rom: Path, script: Path, root: Path,
+    fixture: Path, seed: Path, *, video: str, timeout: int,
+) -> dict[str, object]:
+    """Actual Win32 source guest process dies AFTER typed CAS, before intent retire."""
+    out = root / "native_typed_before_intent_recovery"
+    out.mkdir(parents=True, exist_ok=False)
+    user_root = out / "Typed Commit Cut With Spaces"
+    user_root.mkdir()
+    subprocess.run(
+        [str(fixture), str(user_root), str(seed)],
+        check=True, capture_output=True, text=True, timeout=timeout)
+    profile = user_root / "saves/profile-native-ci-rider"
+    raw = profile / "save.srm"
+    typed = profile / "host-profile.txt"
+    selector = user_root / "host-state-v1.txt"
+    catalog = user_root / "profiles-v1.txt"
+    pending = profile / "native-sram-checkpoint.pending"
+    files = (raw, typed, selector, catalog)
+    before = {p: p.read_bytes() for p in files}
+    if len(before[raw]) != 8192 or before[raw] != seed.read_bytes():
+        raise ValueError("Typed-cut fixture did not start from exact original native SRAM")
+    config = out / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+    env = os.environ.copy()
+    env.update({
+        "SNESRECOMP_USER_DATA_DIR": str(user_root),
+        "UR_EXECUTION_MODE": "modern",
+        "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
+        "UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS": "1",
+        "UR_BALDOSA_MODERN_INPUT": "1",
+        "UR_BALDOSA_PAUSE_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_REQUIRE_RACE": "1",
+        "UR_BALDOSA_PAUSE_SMOKE_AT_FRAME": "1952",
+        "UR_BALDOSA_PHYSICAL_PAUSE_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_QUIT_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_PANEL_NAV_SMOKE": "0",
+        "UR_BALDOSA_DELAYED_RESTART_SMOKE": "0",
+        "UR_BALDOSA_RESTART_SAME_FRAME_SMOKE": "0",
+        "UR_BALDOSA_QA_LEGACY_UNJOURNALED_CRASH": "0",
+        "UR_BALDOSA_QA_CRASH_AFTER_TYPED_PROFILE_COMMIT": "1",
+        "SDL_VIDEODRIVER": video,
+        "SDL_AUDIODRIVER": "dummy",
+    })
+    command = [str(exe), "--no-launcher", "--config", str(config),
+               "--script", str(script), str(rom)]
+    crashed = subprocess.run(
+        command, cwd=out, env=env, capture_output=True, text=True,
+        errors="replace", timeout=timeout)
+    log = crashed.stdout + "\n" + crashed.stderr
+    (out / "crash.log").write_text(log, encoding="utf-8")
+    if crashed.returncode != 87 or (
+        log.count("UR_BALDOSA_NATIVE_PROFILE QA_CRASH_AFTER_TYPED_COMMIT "
+                  "exit=87 intent_retained=1") != 1
+    ) or log.count("UR_BALDOSA_NATIVE_PAUSE ARMED guest=1952 live_race=1") != 1:
+        raise ValueError(
+            "Native source did not die AFTER genuine typed CAS: "
+            f"rc={crashed.returncode} log_tail={log[-1500:]}")
+    if not pending.is_file() or pending.is_symlink():
+        raise ValueError("Typed commit cut did not retain original prewrite intent")
+    intent_bytes = pending.read_bytes()
+    crash = {p: p.read_bytes() for p in files}
+    if (crash[raw] == before[raw] or len(crash[raw]) != 8192 or
+        crash[typed] == before[typed] or
+        any(crash[p] != before[p] for p in (selector, catalog))):
+        raise ValueError("Typed cut lacked exact raw+typed new/new state")
+    archive_before = list(profile.glob("native-sram-recovered-*.txt"))
+    if archive_before:
+        raise ValueError("Typed fault finalized or archived intent before process death")
+    clean = env.copy()
+    clean.pop("UR_BALDOSA_QA_CRASH_AFTER_TYPED_PROFILE_COMMIT", None)
+    short = out / "fresh-short.txt"
+    short.write_text("turbo on\nwait 6\nquit\n", encoding="ascii")
+    recovery_command = [
+        str(exe), "--no-launcher", "--config", str(config),
+        "--script", str(short), str(rom)]
+    first = subprocess.run(
+        recovery_command, cwd=out, env=clean, capture_output=True,
+        text=True, errors="replace", timeout=timeout)
+    first_log = first.stdout + "\n" + first.stderr
+    (out / "first-cold-boot.log").write_text(first_log, encoding="utf-8")
+    if (first.returncode != 0 or
+        first_log.count("UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED "
+                        "exact_staged_guest_sram=1 no_records=1") != 1):
+        raise ValueError(
+            "New/new typed cut did not reconcile original intent once: "
+            f"rc={first.returncode}, tail={first_log[-1400:]}")
+    verify_named_profile_boot_bytes(first_log, crash[raw])
+    after = {p: p.read_bytes() for p in files}
+    if any(after[p] != crash[p] for p in files):
+        raise ValueError("New/new cold replay fabricated a second typed generation")
+    archives = list(profile.glob("native-sram-recovered-*.txt"))
+    if len(archives) != 1 or archives[0].read_bytes() != intent_bytes:
+        raise ValueError("New/new recovery did not archive exact prewrite intent")
+    if pending.exists():
+        raise ValueError("Original intent remained after new/new cold replay")
+    second = subprocess.run(
+        recovery_command, cwd=out, env=clean, capture_output=True,
+        text=True, errors="replace", timeout=timeout)
+    second_log = second.stdout + "\n" + second.stderr
+    (out / "second-cold-boot.log").write_text(second_log, encoding="utf-8")
+    if (second.returncode or "UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED"
+        in second_log):
+        raise ValueError("New/new second cold boot repeated typed publication")
+    verify_named_profile_boot_bytes(second_log, crash[raw])
+    if (any(p.read_bytes() != after[p] for p in files) or
+        archives[0].read_bytes() != intent_bytes or pending.exists()):
+        raise ValueError("Repeated source-native boot altered typed-cut state")
+    if list(user_root.rglob("*.urrun")) or list(user_root.rglob("*.urmatch")):
+        raise ValueError("Typed-cut recovery minted source-unearned Records")
+    # Bounded disposable CI-owned receipt for independent byte checking.
+    names = {
+        "raw-sram": raw, "typed-profile": typed,
+        "selector": selector, "roster": catalog,
+    }
+    evidence = out / "fault-bytes"
+    evidence.mkdir()
+    receipts = {}
+    for label, p in names.items():
+        stages = {"before": before[p], "crash": crash[p], "after": after[p]}
+        for stage, data in stages.items():
+            (evidence / f"{label}.{stage}.bin").write_bytes(data)
+        receipts[label] = {stage + "_sha256": hashlib.sha256(data).hexdigest()
+                           for stage, data in stages.items()}
+    (evidence / "intent.crash.bin").write_bytes(intent_bytes)
+    (evidence / "intent.archived.bin").write_bytes(archives[0].read_bytes())
+    (evidence / "hashes.json").write_text(
+        json.dumps(receipts, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+    return {
+        "genuine_original_native_guest": True,
+        "typed_commit_before_exit_87": True,
+        "intent_retained_at_fault": True,
+        "raw_bytes_unchanged_on_recovery": True,
+        "typed_generation_not_duplicated": True,
+        "exact_intent_archived_once": True,
+        "two_cold_boots_idempotent": True,
+        "no_invented_records": True,
+    }
+
+
 def run_native_crash_between_raw_and_typed(
     exe: Path, rom: Path, script: Path, root: Path,
     fixture: Path, seed: Path, *, video: str, timeout: int,
@@ -2110,6 +2250,9 @@ def main() -> int:
         exe, rom, script, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout, journaled=True,
         snapshot_dir=root / "native_intent_restart_recovery/fault-bytes")
+    typed_cut_proof = run_native_typed_commit_finalization_cut(
+        exe, rom, script, root, fixture, sram_seed,
+        video=args.video, timeout=args.timeout)
     healthy_alternate_proof = run_native_healthy_alternate_from_damaged_source(
         exe, rom, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)
@@ -2137,6 +2280,7 @@ def main() -> int:
         "native_modern_paused_quit": pause_quit_proof,
         "native_post_raw_pre_typed_crash": post_raw_crash_proof,
         "native_journaled_post_raw_recovery": journal_recovery_proof,
+        "native_typed_commit_before_intent_retirement": typed_cut_proof,
         "native_healthy_alternate_after_damaged_p1": healthy_alternate_proof,
         "native_paused_quit_selector_conflict": conflict_proof,
         "modern_root_race_entry_p1": race_p1_proof,

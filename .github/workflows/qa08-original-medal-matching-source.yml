@@ -1,0 +1,103 @@
+name: QA-08 original 2P corresponding cursor and medal fields
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/qa08-original-medal-matching-source.yml"
+      - "tools/qa08_snesref_original_medal_fields_patch.py"
+      - "tools/qa08_verify_original_medal_endfields.py"
+      - "tests/unit/test_qa08_snesref_original_medal_fields_patch.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: qa08-original-medal-source-one-shot
+  cancel-in-progress: true
+jobs:
+  matching-original:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.number == 1649)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          persist-credentials: false
+          submodules: recursive
+      - uses: actions/download-artifact@v4
+        with:
+          repository: gamesbyian/UR-Recomp
+          run-id: 38781958316
+          name: qa08-source-original-2p-authentic-race-result-return
+          github-token: ${{ github.token }}
+          path: qa08-original-independent-prior
+      - name: Pin original USA 2P and stage same script
+        run: |
+          set -euo pipefail
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          echo "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478  reference/roms/retail/Uniracers_USA.sfc" | sha256sum -c -
+          cmp baldosa/tests/routes/race_2p.txt reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p.txt
+          python3 -m unittest tests.unit.test_qa08_snesref_original_medal_fields_patch tests.unit.test_qa08_snesref_original_blackout_host_patch
+          mkdir -p qa08-original-medal-evidence/frames qa08-original-medal-evidence/registers
+          grep -v '^turbo ' baldosa/tests/routes/race_2p.txt > qa08-original-medal-evidence/original.script
+          python3 tools/qa08_original_results_port_chronology.py \
+            --script reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p.txt \
+            --out-script qa08-original-medal-evidence/qa08-ppu-observer.script
+      - name: Build pinned 2014 Snes9x original and snesref with read-only field hooks
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends build-essential cmake pkg-config libsdl2-dev
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          make -C .tools/src/snes9x-libretro/libretro -j 2
+          python3 tools/qa08_snesref_results_previous_patch.py --game baldosa --apply-readonly-capture
+          python3 tools/qa08_snesref_original_blackout_host_patch.py --game baldosa --apply-readonly-capture
+          python3 tools/qa08_snesref_original_medal_fields_patch.py --game baldosa --apply-readonly-capture
+          cmake -S baldosa/snesrecomp/tools/snesref -B qa08-original-medal-host -DCMAKE_BUILD_TYPE=Release
+          cmake --build qa08-original-medal-host -j 2
+      - name: Run exact original historical full 2P route once with three extra OAM snapshots
+        run: |
+          set -euo pipefail
+          UR_QA08_ORIGINAL_MEDAL_FIELDS=1 UR_QA08_CGRAM_HISTORY=1 UR_QA08_SNESREF_RESULTS_PREVIOUS=1 \
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/qa08-original-medal-evidence/qa08-ppu-observer.script" \
+          SNESREF_DUMP_DIR="$GITHUB_WORKSPACE/qa08-original-medal-evidence/registers" \
+          SNESREF_FRAME_DUMP_DIR="$GITHUB_WORKSPACE/qa08-original-medal-evidence/frames" \
+          SNESREF_FRAME_DUMP_NATIVE=1 SNESREF_FRAME_DUMP_FROM=1279 SNESREF_FRAME_DUMP_TO=5471 SNESREF_FRAME_DUMP_STEP=16 \
+          timeout 220 qa08-original-medal-host/snesref \
+            "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            > qa08-original-medal-evidence/original.log 2>&1
+      - name: Validate source 263 frames unchanged, exact old controller, and real Snes9x fields
+        run: |
+          set -euo pipefail
+          python3 tools/qa08_original_results_port_chronology.py \
+            --script reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p.txt \
+            --verify-root qa08-original-medal-evidence --prior-original qa08-original-independent-prior \
+            --rom reference/roms/retail/Uniracers_USA.sfc \
+            --core .tools/src/snes9x-libretro/libretro/snes9x_libretro.so \
+            --result qa08-original-medal-evidence/original-263-verified.json
+          python3 tools/qa08_verify_original_medal_endfields.py \
+            --root qa08-original-medal-evidence --prior-original qa08-original-independent-prior \
+            --original-log qa08-original-medal-evidence/original.log \
+            --script qa08-original-medal-evidence/original.script \
+            --out qa08-original-medal-evidence/matched-original-fields.json
+          echo "Original end-of-field OAM at source callbacks 1279/4031/4175, all 263 original full 256x224 rasters unchanged; no effective line ownership or release approval." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain original bounded source OAM and corresponding pixel evidence without ROM/SRAM
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-original-2p-corresponding-medal-source-OAM
+          retention-days: 5
+          if-no-files-found: warn
+          path: |
+            qa08-original-medal-evidence/original-263-verified.json
+            qa08-original-medal-evidence/matched-original-fields.json
+            qa08-original-medal-evidence/registers/qa08_arrow_1279.*
+            qa08-original-medal-evidence/registers/qa08_medal_4031.*
+            qa08-original-medal-evidence/registers/qa08_medal_4175.*

@@ -254,3 +254,24 @@ archive, or if typed, selector, roster and intent diverge. Independent QA
 may now recompute those comparisons directly, but this does **not**
 establish an actual Win32 partial write, denied OS handle or device power
 cut. The old candidate's P0 result remains negative and untouched.
+
+
+## F5: real original Windows crashed B, intact alternate A
+
+The previous healthy-alternate test used a fixture-changed source save.
+The new bounded source producer first registers two distinct, individually
+verified Modern racers, explicitly selects B using the actual original
+Windows executable, then boots the real selected B SRAM. A source-backed
+paused original **B** race at frame 1952 enters the unchanged native
+`RtlWriteSram`, actually overwrites the complete B raw SRAM, and is killed
+at the historical **unjournaled** `_Exit(86)` point before typed CAS.
+A remains byte-exact intact. A new Windows process must refuse damaged B
+without any guest frame. The actual original executable must then require
+the **explicit** `healthy` action naming A, change only the canonical
+selector, and permit **two** fresh source-authentic A boots. All B raw/typed
+bytes from the genuine crash remain unchanged throughout. A, B, selector
+and roster snapshots are retained in six times four canonical stages
+(selected, B crash, after A selection and after second A boot), along with
+actual native process logs and SHA-256 receipts. This does NOT replace a
+physical packaged no-argument R/T/S/Q operator test or provide release
+QA gate credit.

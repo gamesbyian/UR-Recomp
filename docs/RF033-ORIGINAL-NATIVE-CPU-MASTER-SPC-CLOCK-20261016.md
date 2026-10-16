@@ -44,3 +44,34 @@ The immutable [run 38977309694](https://github.com/gamesbyian/UR-Recomp/actions/
 **Interpretation and limits:** This is the first executed original-side observation connecting fractional CPU clock calculation, the return from `S9xAPUExecute`, and the *actual* first CC port write. It strengthens the source-specific hypothesis that **whole-opcode SPC execution vs precisely timestamped queued CPU writes** causes the nine-cycle ready-loop phase difference. It does **not** yet prove a uniquely correct alteration: original and native CPU/SPC clock axes have separate anchors, and source opcode-execution overrun may include previous fractional debt/phase. RF-029 advanced only the SPC port read and RF-031 globally deferred all equal-target writes; both worsened memory parity and remain closed negatives. No speculative one-cycle or whole-opcode global timing intervention is justified without tracing the particular SPC PC/cycle fence at the CPU write, A/B source-visible first CC result and all strict gameplay/WRAM/SRAM gates.
 
 [Machine-qualified receipt](../analysis/data/rf033-original-native-cpu-master-clock-20261016.json) preserves first and full repeated-write series, exact hashed executable/source provenance and all unsupported claims. The temporary one-shot trigger has been retired; shared QA workflow must be restored byte-identically to main before promotion of this **research-observer-only** PR. **USA complete-event acceptance 0/45**, independent QA and release-ledger ownership intact.
+
+
+## RF-033 executed outcome: two nominal SPC ticks, five executed before CC
+
+[Exact one-shot run 38977309694](https://github.com/gamesbyian/UR-Recomp/actions/runs/38977309694) passed all four jobs: original-source validation, native/reference build, genuine Zoo and aggregate. I downloaded 14-file artifact 12080107147 and SHA-verified ZIP **f8ee6fbfbc9540179cea65428e298de3c59d4884f801d04a3ffc1c62663d87c8**, producer **8ac02c48643798b7b34f2fd8c49fc169349fd90c906fb7204dca81ea4a9c9351**, case result **add20742392bbbe378de45da7a918a21174f820c4f137bdd75d358eae0c16295**, original core **047ce96fdf5a07cacdfd1d1b588eca2b99496e2f113f08ac445951653dc8f900**, native ELF **16a75ea84c902deae7ffaa39f797b44fe91d8fdb7b542b99ef4a4f76a14356f5** and RF-033 strict report **fd14d720cc16e7fc9bee8cfce0ec2eac4b47c910513645ae2f9b646ba5db62ff**.
+
+### Exact first CC CPU writer comparison
+
+| Observation | Snes9x original | Baldosa native |
+
+| --- | --- | --- |
+
+| CPU writer context | beam V119 H312, prior SPC reference 266, remainder 128292 | CPU master 2164383306, frame 6056, frame-start 2164170140, intra-frame master offset 213166 |
+
+| CPU→SPC nominal mapping | (15664 × (312−266) + 128292) / 328125 yields **2 requested SPC cycles** | extended frame clock enabled, true native guest APU cycle 103322545 |
+
+| Actual visible CPU port CC | SPC age **103322541** before original execute, **103322546** after and at CPU latch write: **5 executed SPC cycles** | queued at current age 103322463 with target 103322545; applied **on target 103322545** |
+
+| IPL SPC first CC read / echo | **103322554 / 103322580** | **103322546 / 103322571** |
+
+| CPU first CC echo poll | **103322584** | **103322575** |
+
+The 2-versus-5 distinction is directly explained as a *possible instruction-boundary mechanism* by the pinned original source. In Snes9x apu/apu.cpp, S9xAPUExecute subtracts the nominal new clock count from SNES::smp.clock and invokes SNES::smp.enter(). In apu/bapu/smp/smp.cpp, SMP::enter executes while (clock < 0) op_step(). The call can finish an SPC instruction after its requested CPU-clock debt is met. Thus nominal incremental two ticks do not bound executed SPC cycles before S9xAPUWritePort changes the input latch. The exact call **did execute five**. The experiment does **not** separate existing SMP debt from within-instruction overshoot, does not prove independent emulator clocks globally phase aligned and does not justify a blanket +3-cycle native delay.
+
+The native first CC mapped exactly to guest/queue target 103322545 with no rebasing or late consumption. The original/natives' first-CC read loop begins at different instruction/port sampling boundaries; RF-029 globally advancing SPC reads and RF-031 globally deferring queue writes were independently falsified. The corresponding source CPU writers cannot be paired merely by their ordinal logs (nine original CC writes vs seven native), absent source-equivalent instruction consumption.
+
+### Full original/native A/B with RF-032 control
+
+Independently compared every 128KiB whole-WRAM checkpoint SHA256 against [RF-032 run 38974815770](https://github.com/gamesbyian/UR-Recomp/actions/runs/38974815770), artifact ZIP SHA256 **6aab44e8d16dcaa34fd438c439d349dc6050f1ddc4c4c1de1e81afc2f387175d**: **78/78 original and 78/78 native checkpoint hashes identical across runs**. Source/fresh-original/native Zoo result **+5163**, source/original/native next Bowl **+267**, 11/11 complete earned 8192-byte SRAM pairs matching. Original/native full WRAM parity unchanged **51/78** exact, **92 unmasked byte differences**, sound pointer 7E:0063 differing only at +5040/+5045, transfer counter 7E:0069 equal on all 13 contiguous samples; Bowl sampled whole WRAM 9/11 exact, existing stack residual unwaived. **0/45 complete USA events admitted.**
+
+[Machine-readable receipt](../analysis/data/rf033-executed-master-spc-conversion-20261016.json) holds executable, input and observation identities. The next source discriminator must observe original SMP instruction-step debt/boundaries and native reader sampling at the same first CC transport, not repeat any global clock shift. No Windows product, Modern, graphics or QA release-ledger work was changed. The temporary trigger is deleted; the shared QA switch must be reverted before merge.

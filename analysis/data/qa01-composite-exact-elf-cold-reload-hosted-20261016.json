@@ -1,0 +1,67 @@
+{
+  "schema": "UR-QA01-COMPOSITE-EXACT-ELF-HOSTED-COLD-GUEST-SUMMARY/1",
+  "captured_utc": "2026-10-16",
+  "nature": "Bounded machine-observed GitHub Actions log and artifact metadata audit envelope; original producer-report and cold-guest JSON are in the run artifact, not duplicated or reconstructed here",
+  "source_revision": "3308f25f7d68088d6e1df3a9ab09eaba90971a68",
+  "research_native_build_checkout": "d9134a6e5da87145f1ad38e02382cce067fe6ec3",
+  "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+  "source_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+  "source_script_sha256": "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52",
+  "original_movie_window_sha256": "7b03f40e3401d844c16c7c4e1cc7375e5419f33882793c8187dcebc88dbc8c93",
+  "native_elf_sha256": "9a3bd17afd8377a4c83e76c05cd57dfdae2488e498aa4bea1b90a2baa018bb48",
+  "reference_core_sha256": "ec4ce30d80e0b2c22b5d700aec01d601bd85db452ccb8e2b32fa75e9fe63554a",
+  "snesref_sha256": "5fb3cca1f51d13762e7b82e736133cdab702aafbca07b9164d568139a3bcc18a",
+  "action": {
+    "run_id": 38959452580,
+    "job_id": 117170541906,
+    "conclusion": "success",
+    "artifact_id": 12071918268,
+    "artifact_name": "qa01-composite-cold-exact-source-witness",
+    "artifact_zip_sha256": "0da1db998a22caadd869e444e699eff0bdfdd54ec24d944743506c6096833fd5",
+    "artifact_zip_size_bytes": 40213,
+    "expires_at_utc": "2026-10-23T20:09:55Z",
+    "url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38959452580"
+  },
+  "observations": {
+    "source_original_zoo_entry_host_frame": 3190,
+    "source_original_zoo_result_host_frame": 8353,
+    "source_guest_relative_result_frame": 5163,
+    "original_fresh_entry_host_frame": 1017,
+    "native_fresh_entry_host_frame": 1017,
+    "original_guest_relative_result_frame": 5163,
+    "native_guest_relative_result_frame": 5163,
+    "original_guest_next_bowl_result_offset": 267,
+    "native_guest_next_bowl_result_offset": 267,
+    "source_next_bowl_result_offset": 267,
+    "zoo_wram_mesh_samples": 78,
+    "zoo_wram_excluded_bytes": 0,
+    "dense_sound_dp_frames": 13,
+    "original_native_next_bowl_sram_pairs_equal": 11,
+    "cold_process_original_guest_observed": true,
+    "cold_process_native_guest_observed": true,
+    "cold_boot_observed_frames_per_guest": [
+      300,
+      420
+    ],
+    "earned_rank0_best_lap_centiseconds": 2510,
+    "original_native_full_ranked_records_and_checksum_preserved": true,
+    "source_movie_controller_masks_modified": false
+  },
+  "proven": {
+    "pin_and_reuse_exact_original_native_binaries": true,
+    "source_qualified_original_native_strict_event_candidate": true,
+    "post_result_captured_sram_loaded_in_fresh_guest_processes": true,
+    "full_gameplay_frame_parity": false,
+    "actual_shipping_windows_candidate": false,
+    "shipping_disk_publication_or_power_cut_durability": false,
+    "independent_release_qa_acceptance": false
+  },
+  "remaining_first_live_differences": [
+    "7E:0063 Zoo +5040 original/native 73/74",
+    "7E:0063 Zoo +5045 original/native B3/B4",
+    "7E:01ED-01F0 Bowl handoff +266 and +280"
+  ],
+  "accepted_complete_usa_events": 0,
+  "release_ledger_modified": false
+}

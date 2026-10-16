@@ -95,6 +95,54 @@ class OriginalWindowsReadonlyTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "unique Windows runner SID"):
                 qa.current_sid()
 
+    def test_real_win32_raw_file_acl_does_not_deny_profile_directory(self):
+        sid = "S-1-5-21-123-456-789-1001"
+        filename = Path("C:/disposable/profile-native-ci-rider/save.srm")
+        with mock.patch.object(qa.subprocess, "run") as runner:
+            runner.return_value.returncode = 0
+            runner.return_value.stdout = "Successfully processed 1 files; Failed processing 0 files"
+            runner.return_value.stderr = ""
+            qa.deny_raw_write_only(filename, sid, deny=True)
+            argv = runner.call_args.args[0]
+            self.assertEqual(argv, ["icacls", str(filename), "/deny", f"*{sid}:(WD)"])
+            self.assertNotIn("/T", argv)
+            qa.deny_raw_write_only(filename, sid, deny=False)
+            self.assertEqual(runner.call_args.args[0],
+                             ["icacls", str(filename), "/remove:d", f"*{sid}"])
+            runner.return_value.returncode = 5
+            with self.assertRaisesRegex(RuntimeError, "raw-file icacls"):
+                qa.deny_raw_write_only(filename, sid, deny=True)
+        with self.assertRaisesRegex(ValueError, "native Windows SID"):
+            qa.deny_raw_write_only(filename, "UNKNOWN", deny=True)
+
+    def test_raw_write_denial_probes_os_without_changing_full_original_sram(self):
+        with tempfile.TemporaryDirectory() as directory:
+            file = Path(directory) / "save.srm"
+            baseline = bytes(range(256)) * 32
+            file.write_bytes(baseline)
+            with self.assertRaisesRegex(ValueError, "remains writable"):
+                qa.require_raw_write_denied(file, baseline)
+            self.assertEqual(file.read_bytes(), baseline)
+            with mock.patch.object(Path, "open", side_effect=PermissionError("Access denied")):
+                self.assertIsNone(qa.require_raw_write_denied(file, baseline))
+            self.assertEqual(file.read_bytes(), baseline)
+            with self.assertRaisesRegex(ValueError, "baseline changed"):
+                qa.require_raw_write_denied(file, b"not 8192 bytes")
+
+    def test_raw_acl_original_executable_route_is_branch_isolated(self):
+        workflow = (ROOT / ".github/workflows/baldosa-windows-native-bridge.yml"
+                    ).read_text(encoding="utf-8")
+        self.assertIn("qa/qa02-original-win32-raw-file-write-denial-20261016", workflow)
+        self.assertIn("--fault acl-denied-raw-file", workflow)
+        self.assertIn("12016101293", workflow)
+        self.assertIn("tools/qa02_nominated_windows_readonly.py", workflow)
+        source = (ROOT / "tools/qa02_nominated_windows_readonly.py"
+                  ).read_text(encoding="utf-8")
+        self.assertIn("actual_native_write_rejected_after_preflight", source)
+        self.assertIn("native_save_failed", source)
+        self.assertIn("native_save_preflight_failed", source)
+        self.assertIn("release_gate_credit\": 0", source)
+
     def test_win32_argv_uses_actual_executable_original_rom_and_existing_script(self):
         with mock.patch.object(qa.subprocess, "run") as runner:
             runner.return_value.returncode = 7

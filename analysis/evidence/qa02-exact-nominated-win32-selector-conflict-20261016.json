@@ -1,0 +1,98 @@
+{
+  "schema": "qa02-original-nominated-win32-selector-conflict-independent-byte-audit/1",
+  "date_utc": "2026-10-16",
+  "classification": "verified_real_original_win32_game_A_versus_separate_canonical_Modern_writer_B_stale_selector_refusal; bounded_not_full_release_gate",
+  "original_immutable_nomination": {
+    "source_commit": "11501a15dea38fa912335cfc63103ce3a7208001",
+    "romfree_zip_sha256": "5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7",
+    "executed_original_game_exe_sha256": "0701f72481531ad4f2803caadc62bbb072f292abef69f039edda004b01c18ea9",
+    "retained_original_run": 38828519791,
+    "retained_original_artifact": 12016101293,
+    "usa_reference_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "race_2p_split_script_sha256": "4e714899f53c3bbe501bbfcacf91dd549989c9beb7c2cf6265b13eb687142ec6"
+  },
+  "win32_actions": {
+    "workflow_run": 38867691561,
+    "source_head": "4d3058cd4b7a42cba8940860e0fa732e2e2c75f4",
+    "original_fixture_exe_sha256": "4ee20da18d3ae7d374ba9d50de9c8ae429aa7fc65b40c398cf44c08ffeaecd82",
+    "original_29_member_archive_id": 12031753976,
+    "original_archive_sha256": "c5b0e0722e21e3b879624282989e6ab29347170b6caee7799e8461fc63fc0e6f",
+    "archive_size": 18804,
+    "archive_members": 29,
+    "crc_errors": 0,
+    "archive_expires_utc": "2026-10-30T07:36:25Z",
+    "original_test_step_conclusion": "success",
+    "independent_downloaded_complete_archive_verified": true
+  },
+  "four_stage_observations": {
+    "stages": [
+      "before_A",
+      "after_B_before_A",
+      "after_A",
+      "after_cold_B"
+    ],
+    "physical_process_A_kind": "genuine_original_nominated_Windows_game_executable",
+    "concurrent_process_B_kind": "separate_existing_Modern_storage_fixture_not_second_game",
+    "process_A_live_guest_paused_frame": 1952,
+    "physical_sdl_pause_emulated_inputs_only": true,
+    "source_A_log_sha256": "17f7e98118c36150178865f5dd65fe60a9650704d204abc4a5f547c99073625e",
+    "source_A_failure": "UR_BALDOSA_NATIVE_PROFILE PREFLIGHT_REJECTED status=3",
+    "source_A_native_save_rejected": "UR_BALDOSA_NATIVE_PROFILE native_save_preflight_failed",
+    "A_raw_post_write_attempted": false,
+    "before_writer_B": {
+      "selector_bytes": 241,
+      "selector_sha256": "eb0d0bd6c37dfa57766faff9e70f57d1730cabca36426d2863553256bbe87956",
+      "catalog_bytes": 44,
+      "catalog_sha256": "75c0dcef43c3209a4f8793eae5ca035a535348412d3b8b807797fe7f176b1476",
+      "first_profile_raw_sha256": "bd9571f85e1b7ddfcf2b6913d5f3556c27ecadf65d353afbac29876e7d111c10",
+      "first_profile_typed_sha256": "1f98e49d51691816a9cd544c6fe71a5f74c3447933a7db6a8cf4e659921775b0",
+      "second_profile_raw_present": false,
+      "second_profile_typed_present": false
+    },
+    "after_writer_B_and_unchanged_after_A": {
+      "selector_bytes": 242,
+      "selector_sha256": "9db71c0e82a02b0f2514fb4711d3476a2438099be2682cdba622cb34b4a4cc4b",
+      "catalog_bytes": 70,
+      "catalog_sha256": "7793f9de28fa99e737268cf4c15d64271c46dc60b613c2812a37a83e2cc401c5",
+      "first_raw_bytes": 8192,
+      "first_raw_sha256": "bd9571f85e1b7ddfcf2b6913d5f3556c27ecadf65d353afbac29876e7d111c10",
+      "first_typed_bytes": 16525,
+      "first_typed_sha256": "1f98e49d51691816a9cd544c6fe71a5f74c3447933a7db6a8cf4e659921775b0",
+      "second_raw_bytes": 8192,
+      "second_raw_sha256": "c7db68306d7c44253263b1957cfae71f89888e813f140c0c91f32a802063fef9",
+      "second_typed_bytes": 16528,
+      "second_typed_sha256": "3cf17ae30fb6be8bca5301f76331929ea610bddd792153805cc01ffc79e66213",
+      "A_B_raw_differing_bytes": 1,
+      "A_B_raw_difference_offset": 8191,
+      "full_typed_stock_sram_equals_corresponding_8192_raw_both_profiles": true,
+      "typed_generation_A": 1,
+      "typed_generation_B": 1,
+      "all_six_file_sha_and_bytes_identical_post_B_versus_post_stale_A": true,
+      "no_earned_run_match_ghost_created": true
+    },
+    "cold_restart": {
+      "independent_fresh_game_process_selected_B": true,
+      "source_B_cold_log_sha256": "8b17dabd6e2dfba032c174b7a21f4d88a76489259c72de806e7e5d246c1888cf",
+      "actual_source_B_boot_sram_bytes": 8192,
+      "actual_source_B_boot_fnv32": "8d56d025",
+      "cold_game_guest_frames": 6,
+      "exit_code": 0,
+      "source_B_checkpoint_status": "unchanged",
+      "all_six_canonical_files_still_byte_identical": true
+    }
+  },
+  "release_policy": {
+    "qa02_overall": "in_progress",
+    "qa12_overall": "unverified",
+    "accepted_complete_release_gates": 0,
+    "accepted_complete_usa_original_native_events": 0,
+    "original_candidate_release_decision": "not_assessed",
+    "physical_hardware_tested": false,
+    "this_is_not_two_simultaneously_executing_game_instances": true,
+    "this_does_not_repair_post_raw_pre_typed_P0_1214": true,
+    "this_does_not_test_actual_power_cut_or_ntfs_torn_write": true,
+    "this_does_not_approve_player_error_UI_audio_GPU_or_4k": true,
+    "independently_accepted_full_J07": false,
+    "release_gate_credit": 0
+  }
+}

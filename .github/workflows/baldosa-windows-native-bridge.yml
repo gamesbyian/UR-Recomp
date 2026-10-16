@@ -10,6 +10,8 @@ on:
       - ".github/workflows/baldosa-windows-native-bridge.yml"
       - "tools/baldosa_windows_native_pause_route.py"
       - "tools/qa02_exact_owner_win32_seam.py"
+      - "tools/qa02_exact_owner_two_process_selector.py"
+      - "tests/unit/test_qa02_exact_owner_two_process_selector.py"
       - "tools/qa02_nominated_windows_readonly.py"
       - "tests/unit/test_qa02_nominated_windows_readonly.py"
       - "tools/run_baldosa_parallel_windows_journeys.py"
@@ -403,6 +405,41 @@ jobs:
         with:
           name: qa02-nominated-win32-acl-denied-storage-snapshots
           path: ${{ runner.temp }}/qa02-acl-original-exe/denied-profile-acl/evidence/
+          if-no-files-found: warn
+          retention-days: 14
+
+      # One source-exact owner-candidate independent two-process selector
+      # conflict: A is the unchanged original nominated Win32 game, B is
+      # an independent existing Modern fixture writer (NOT a second game).
+      - name: Retrieve immutable nominated original Windows EXE for two-process selector conflict
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-exact-owner-two-process-conflict-20261016' }}
+        uses: actions/download-artifact@v4
+        with:
+          repository: ${{ github.repository }}
+          run-id: 38828519791
+          artifact-ids: 12016101293
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/qa02-two-process-original-owner
+
+      - name: Prove nominated Windows game refuses stale A save after separate B selector commit
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-exact-owner-two-process-conflict-20261016' }}
+        run: |
+          set -euo pipefail
+          python tools/qa02_exact_owner_two_process_selector.py \
+            --retained "$RUNNER_TEMP/qa02-two-process-original-owner" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --script "baldosa/tests/routes/race_2p_split.txt" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --out "$RUNNER_TEMP/qa02-nominated-two-process"
+          echo "QA-02 bounded original Windows live-guest vs distinct Modern writer selector conflict and 6-file bytes. Not dual game process, post-raw crash recovery, hardware or release gate." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Preserve actual original Windows 3-stage two-process named-profile bytes
+        if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-exact-owner-two-process-conflict-20261016' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa02-nominated-original-win32-two-process-selector-bytes
+          path: ${{ runner.temp }}/qa02-nominated-two-process/case/native_pause_quit_selector_race/byte-snapshots/
           if-no-files-found: warn
           retention-days: 14
 

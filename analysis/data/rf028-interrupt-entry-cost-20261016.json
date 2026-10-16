@@ -94,6 +94,31 @@
    1017,
    1017
   ],
+  "executed_trace_5040": {
+   "cpu_cc_polls": {
+    "native": 7,
+    "snes9x": 9
+   },
+   "first_cc_spc_age": {
+    "native": 103322541,
+    "snes9x": 103322546
+   },
+   "interpretation": "SPC ready-poll phase at a driver restart; byte exchanges then lockstep; boundary-sampled $63 alternately one byte ahead. Likely RF-026 approximation (reads on opcode last cycle).",
+   "master_to_first_data_byte": {
+    "native": 1394,
+    "snes9x": 1590
+   },
+   "session_2142_writes": {
+    "native": 92543,
+    "snes9x": 92543
+   },
+   "spc_reads_cc_after_write": {
+    "native": 2,
+    "snes9x": 8
+   },
+   "transfer": "IPL-protocol driver upload in an NMI-disabled loader (NMI off from host 6051); not the 02:82F0 stream loop"
+  },
+  "hosted_confirmation": "QA-01 run 38884542449 (#1709): identical values on hosted ELF 9a3bd17a",
   "native_executable_sha256": "8dde89b422b25c4650556d649b8f9b36dda20880a4a105d19529f10c1a78c4a5",
   "next_bowl_source_fresh_original_native": [
    267,

@@ -81,7 +81,15 @@ This was a local run of `probe_original_event_complete.py --case zoom-zoo --sour
 | `$63` / `$69` at +5040 | off by 38 / 39 | off by 15 / 16 | **off by 1 / equal** |
 | `$63` / `$69` difference, +5040…+5046 | differs at every frame | differs at every frame | `$63` off by one at +5040 and +5045 only; `$69` always equal |
 
-Every residual mesh byte is stale stack (`7E:01ED–01F1`), apart from the two `$63` samples. Those come back to equality the next frame, so the remaining upload difference doesn't accumulate. It fits native's in-frame upload sitting one CPU poll iteration ahead at the sample point, which is consistent with RF-026's residual upload drift (−666 of 3.35M clocks over the boot upload). No executed writer has been traced.
+Every residual mesh byte is stale stack (`7E:01ED–01F1`), apart from the two `$63` samples. Those come back to equality the next frame, so the remaining upload difference doesn't accumulate. QA-01's hosted exact-binary run 38884542449 (#1709 on `main`) reports the same values.
+
+**Executed trace (local observer, stage-equivalent knobs, hosts 6050–6064).** The +5040 transfer is not the `02:82F0` stream loop. It is an IPL-protocol driver upload inside an NMI-disabled loader (NMI off from host 6051): `$2142 = 00`, `$2143 = 04`, `$2141 = 01`, then the CPU repeats `$2140 = $CC` until the SPC echoes it. The two engines differ only at that start handshake:
+
+- the CPU's first `$CC` reaches the SPC at age 103,322,546 on Snes9x and 103,322,541 on native;
+- the SPC's poll loop reads it **8** SPC cycles later on Snes9x and **2** on native;
+- so the CPU makes 9 vs 7 `$CC` polls (1,590 vs 1,394 master clocks to the first data byte).
+
+After that, both engines make the same port writes in the same order (92,543 `$2142` writes each over the session), and the exchanges run in step with small per-exchange variation. `$63` is sampled at the field boundary, so a byte exchange straddling it shows native one byte ahead on alternating frames. The cause is the sound driver's ready-poll phase at a restart. The likely source is RF-026's approximation: native reads `$F4` on an opcode's last cycle, where hardware reads it on an earlier bus cycle. Closing it would need a per-access SMP model; no witness depends on it.
 
 ## Boundary
 

@@ -73,7 +73,7 @@ def acl(profile: Path, sid: str, *, deny: bool) -> None:
     """Set/remove an OS DACL deny on disposable profile directory and children."""
     if not sid.startswith("S-1-5-"):
         raise ValueError("ACL principal must be a native Windows SID")
-    action = ["/deny", f"*{sid}:(W)"] if deny else ["/remove:d", f"*{sid}"]
+    action = ["/deny", f"*{sid}:(WD,AD,WEA,WA,DE,DC)"] if deny else ["/remove:d", f"*{sid}"]
     p = subprocess.run(
         ["icacls", str(profile), *action, "/T"],
         capture_output=True, text=True, timeout=30)

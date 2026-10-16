@@ -1,0 +1,93 @@
+{
+  "schema": "ur-qa02-three-profile-source-original-win32-20261016/1",
+  "run": 38975446206,
+  "date": "2026-10-16",
+  "product_pr": 1713,
+  "actual_tested_github_pr_merge": "38d12a32c3023b72a54db934907dfcdc889ff846",
+  "source_merge_parents": [
+    "05b51ecf83ba01664401b12cf33ce77c0bd77aac",
+    "3b0b247b29eaa1d3aaf39f365758e04dc34d0a69"
+  ],
+  "actions_originals": {
+    "fault": {
+      "id": 12079485622,
+      "original_whole_zip_sha256": "f9daca574581efb4e634e689293b282bb692df5e3efdbfb7e586bf1073be3e68",
+      "bytes": 118428,
+      "crc_clean_member_count": 154,
+      "three_profile_members": 35
+    },
+    "binding": {
+      "id": 12079705129,
+      "original_whole_zip_sha256": "3402bedb5ac10bdc2845d2049bfa2c2556948809d3980148b8be90c965ac1b8b",
+      "bytes": 694,
+      "crc_clean_member_count": 1
+    },
+    "rom_free_package": {
+      "id": 12079710047,
+      "original_whole_zip_sha256": "b8a9d17f323c792562ae8e8acd99b67d69cd395e5045a4e0a73da5ee5e9100e1",
+      "bytes": 5983523,
+      "crc_clean_member_count": 2
+    },
+    "parallel_13": {
+      "id": 12078629900,
+      "original_whole_zip_sha256": "810b4490a286eb9c54f95759100c402c019f16e6e65c7938d8a6c99a8baf4072",
+      "bytes": 1249,
+      "crc_clean_member_count": 1
+    }
+  },
+  "source_binding": {
+    "rom_free_inner_zip_sha256": "6faf00d9d6571b5c138f6a316affb16e36288abb235b68201d3063e38634a3f5",
+    "native_pe_sha256": "961483ed2961329586ae50e73cb0fdcba0a5105caf1d6f17c8feada648b6871e",
+    "pe32_plus_amd64": true,
+    "pe_bytes": 19851776,
+    "manifest_sha_verified": true,
+    "rom_in_packaged_zip": false,
+    "actual_win32_13_of_13_guest_journeys_exit_zero": true
+  },
+  "three_profile_independent": {
+    "synthetic_one_byte_A_raw_damage_at_0x711_xor_0x35": true,
+    "three_distinct_valid_named_raw_sram_images": true,
+    "exported_29_canonical_files_exact_sha_and_size": true,
+    "checked_process_logs": 5,
+    "damaged_A_cold_refused_before_guest": true,
+    "damaged_C_selection_refused": true,
+    "healthy_B_explicit_selection_logged": true,
+    "only_selector_changed_after_recovery": true,
+    "unrelated_C_remaining_raw_and_roster_unchanged": true,
+    "original_C_typed_archived_before_deliberate_removal": true,
+    "C_typed_absence_in_active_root_producer_reported": true,
+    "two_actual_fresh_win32_B_boot_logs": true,
+    "after_second_cold_exported_binary_bytes_unchanged": true,
+    "game_events_fabricated": false,
+    "physical_hardware": false
+  },
+  "flat_consumer": {
+    "nested_flat_zip_original_sha256": "baab34946afb4c40d25910620ee9e235a3ea4a846c4085272a826ec2ebdc720d",
+    "members": 18,
+    "required_independent_members": 19,
+    "standalone_intent_receipt": false,
+    "four_label_file_receipt": false,
+    "independent_flat_qa_contract_pass": false,
+    "owner_notified_in_pr1713": true
+  },
+  "private_preservation": {
+    "owner_private_cloud_copy": true,
+    "uploaded_and_downloaded_all_four_original_actions_ZIPs": true,
+    "all_four_bytes_identical_and_sha256_reverified": true,
+    "crc_clean_entries_across_original_four": 158,
+    "private_locator_not_committed": true
+  },
+  "scope": {
+    "root_cause_p0_1214_open": true,
+    "modern_pr_draft": true,
+    "new_merged_main_release_candidate_nominated": false,
+    "full_release_qa02_witness": false,
+    "full_release_qa_gates_passed": 0,
+    "original_native_complete_USA_events_accepted": 0,
+    "real_win32_power_cut_disk_full_partial_io": false,
+    "real_two_pad_audio_display": false,
+    "real_human_packaged_RTSQ": false,
+    "original_nomination_source": "11501a15dea38fa912335cfc63103ce3a7208001",
+    "original_nomination_zip_sha256": "5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7"
+  }
+}

@@ -1,0 +1,25 @@
+name: TEMP QA01 exact-source Zoo +5040 dense replay
+
+# One bounded original/native discriminator on this QA-only branch.
+# DELETE before merge. Reuses the existing manual campaign and binaries.
+on:
+  pull_request:
+    paths:
+      - "tools/probe_original_event_complete.py"
+      - "tests/unit/test_qa01_zoo_dp_window.py"
+
+permissions:
+  contents: read
+
+jobs:
+  exact-source-zoo-dp-window:
+    uses: ./.github/workflows/qa01-event-campaign.yml
+    with:
+      selected: zoom-zoo
+      zoo_race_mesh: true
+      zoo_dp_window: true
+      zoo_terminal_phase: true
+      source_followthrough: true
+      zoo_next_bowl: true
+      baldosa_refresh_beam_rate: true
+      baldosa_io_clock_order: true

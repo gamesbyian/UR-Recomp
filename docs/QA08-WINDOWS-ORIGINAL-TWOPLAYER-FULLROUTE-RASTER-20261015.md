@@ -90,3 +90,30 @@ Reanalysing the identical four SHA-pinned source ZIPs **per original/native full
 For the results medals, all **21** separately authenticated nongray result frames exhibit an invariant **296-pixel** erroneous footprint. The stronger negative is mathematical: **28 distinct original colours in each medal frame produce multiple divergent Windows colours for the same source RGB5**. In **16 frames, 294/296** bad medal pixels cannot be represented by a single-valued RGB5→RGB5 remap of wrong pixels, and in the other **5 frames 290/296** cannot. In every frame, **267/296** wrong source-colour pixels also occur as exact elsewhere in the same frame. The largest original-colour equivalence class reaches **eight distinct wrong Windows RGB5 outputs**. These facts **disprove a single global output RGB lookup or image-wide palette-remapping repair** of the medal pixels. They do **not** identify OBJ versus BG layer, prove sprite geometry, exclude per-tile palette-index state differences or diagnose final colour math. Pixel position and per-layer priority/palette provenance still require independently observed original/native PPU registers.
 
 These measured negatives are computed from the independently SHA-verified source frames by `tools/qa08_verify_full_raster_residual_partition.py`, stored in `analysis/data/qa08-source-verified-full-partition-20261016.json`, and defended by `tests/unit/test_qa08_verify_full_raster_residual_partition.py`. There is **no pixel recolour or renderer adjustment**. Do not merge the HDMA candidate on this basis; the blackout/CGRAM CPU-phase blockers remain separate.
+
+
+## Original OAM result medal source slot candidates, independently triangulated (October 16)
+
+From actual original Snes9x archived OAM/PPU register captures [source run 38822737039](https://github.com/gamesbyian/UR-Recomp/actions/runs/38822737039), artifact **12013432991**, ZIP SHA256 `d725ee45db1b66d098e79499263dd089dba80a26de517c30db674f91e20f80a8`, retained original 544-byte OAM snapshots at Snes9x fields **5183 and 5184** are SHA256 `a9384c981763b175c9286fc06cd49f5cc183a5fdd6fd5f7920819f3d1300b5df` and `0107b6bde5aa41a234dc99fd24f9fae3de4ff718d757994bfbee996c88b6ff33`. Those two **complete OAM memories differ in 8 bytes**, but the seven specific candidate sprite records and their high-OAM size/X bits are unchanged. Original register snapshot: OBJSEL=$63, size select 3, first sprite 0; all seven are nominal **16×16 small OBJ, priority 1**:
+
+| Original OAM slot | X | Y | Tile | OBJ palette | Spatial role |
+| ---: | ---: | ---: | ---: | ---: | --- |
+| 112 | 200 | 91 | $A2 | 5 | Top medal rectangle |
+| 113 | 200 | 115 | $A4 | 6 | Middle medal rectangle |
+| 114 | 200 | 139 | $A6 | 7 | Bottom medal rectangle |
+| 96, 98 | 219 | 112 | $CC, $E6 | 5 | Adjacent right-side upper/middle OBJ |
+| 97, 99 | 219 | 88 | $CC, $E6 | 5 | Adjacent right-side top OBJ |
+
+Independently compare the actual archived compiled Windows and original Snes9x 2P guest 4032 and **all other 20** previously source-qualified nongray result frames; each has precisely **296** wrong full-PPU RGB5 pixels, original callback = native guest −1, identical real source XY mask. For every one of these 21 frames, **278** of those 296 wrong pixels lie inside the nominal x200..215 medal OAM rectangles, **18** lie inside the x219..234 adjacent slot-96..99 rectangles, and **zero** lie outside the union or in the space separating them. The 18 split into nine wrong pixels in the top band and nine in the middle band; none in the bottom. These are source-determined *spatial candidate rectangles*, not effective rendered pixel provenance.
+
+The new `tools/qa08_verify_original_medal_oam_candidates.py` refuses altered original OAM, original/native producer ZIPs, any changed per-frame SHA or a single mask pixel not represented by exactly one candidate family. Machine evidence: `analysis/data/qa08-original-medal-static-OAM-candidates-20261016.json`; adversarial tests: `tests/unit/test_qa08_verify_original_medal_oam_candidates.py`. Reproducer with three independently archived ZIPs:
+
+```sh
+python tools/qa08_verify_original_medal_oam_candidates.py \
+  --original-oam /path/to/qa08-original-register-writes.zip \
+  --original-2p /path/to/qa08-2p-original-2014.zip \
+  --windows-2p /path/to/qa08-2p-win-current.zip \
+  --out /tmp/qa08-medal-oam-candidates.json
+```
+
+**Critical no-merge boundary:** original Snes9x OAM fields 5183/5184 are *not* the same frame as genuine Windows guest 4032, and even same-frame OAM end-snapshots do not necessarily reflect the **effective** OAM values at lines 91–153. The split-screen title rewrites high-OAM with HDMA, and priority/OBJ shade depends on the active line's buffer and BG/window/colour maths. This is a concrete **seven-slot, three-band** target for a subsequently independently matched original/native scanline capture, **not proof** that those seven objects are final pixel owners or a rationale for OAM slot remapping. Source CPU/beam parity, forced blank and results CGRAM phase remain independently unaccepted, along with 7:6, 4× and HD likeness.

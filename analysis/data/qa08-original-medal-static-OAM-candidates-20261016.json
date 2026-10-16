@@ -1,0 +1,258 @@
+{
+  "schema": "qa08-original-oam-static-candidates-to-real-2p-raster/1",
+  "source_original_OAM_archive_SHA256": "d725ee45db1b66d098e79499263dd089dba80a26de517c30db674f91e20f80a8",
+  "original_OAM_memory_SHA256_by_field": {
+    "5183": "a9384c981763b175c9286fc06cd49f5cc183a5fdd6fd5f7920819f3d1300b5df",
+    "5184": "0107b6bde5aa41a234dc99fd24f9fae3de4ff718d757994bfbee996c88b6ff33"
+  },
+  "original_native_2p_source_archive_sha256": {
+    "original": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+    "Windows": "f01ab5a4888c227f306a0b9cd89e67710a4b41cad4c22867072280a17811fa82"
+  },
+  "original_OAM_fields": [
+    5183,
+    5184
+  ],
+  "pixel_source_original_callbacks_precommitted_f_minus_one": true,
+  "pixel_geometry": [
+    256,
+    224
+  ],
+  "original_OBJ_size_select": 3,
+  "nominal_small_obj_size": [
+    16,
+    16
+  ],
+  "actual_original_snapshot_slot_candidates": [
+    {
+      "slot": 96,
+      "x_signed9": 219,
+      "y_mod256": 112,
+      "tile": 204,
+      "attr": "1b",
+      "OBJ_palette": 5,
+      "OBJ_priority": 1,
+      "large_sprite_bit": 0
+    },
+    {
+      "slot": 97,
+      "x_signed9": 219,
+      "y_mod256": 88,
+      "tile": 204,
+      "attr": "1b",
+      "OBJ_palette": 5,
+      "OBJ_priority": 1,
+      "large_sprite_bit": 0
+    },
+    {
+      "slot": 98,
+      "x_signed9": 219,
+      "y_mod256": 112,
+      "tile": 230,
+      "attr": "1b",
+      "OBJ_palette": 5,
+      "OBJ_priority": 1,
+      "large_sprite_bit": 0
+    },
+    {
+      "slot": 99,
+      "x_signed9": 219,
+      "y_mod256": 88,
+      "tile": 230,
+      "attr": "1b",
+      "OBJ_palette": 5,
+      "OBJ_priority": 1,
+      "large_sprite_bit": 0
+    },
+    {
+      "slot": 112,
+      "x_signed9": 200,
+      "y_mod256": 91,
+      "tile": 162,
+      "attr": "1b",
+      "OBJ_palette": 5,
+      "OBJ_priority": 1,
+      "large_sprite_bit": 0
+    },
+    {
+      "slot": 113,
+      "x_signed9": 200,
+      "y_mod256": 115,
+      "tile": 164,
+      "attr": "1d",
+      "OBJ_palette": 6,
+      "OBJ_priority": 1,
+      "large_sprite_bit": 0
+    },
+    {
+      "slot": 114,
+      "x_signed9": 200,
+      "y_mod256": 139,
+      "tile": 166,
+      "attr": "1f",
+      "OBJ_palette": 7,
+      "OBJ_priority": 1,
+      "large_sprite_bit": 0
+    }
+  ],
+  "distinct_source_result_raster_frames_verified": 21,
+  "each_frame_pixels_by_nominal_OAM_rectangles": {
+    "source_medal_slots_112_114": 278,
+    "adjacent_slots_96_99": 18,
+    "total_bad_pixels": 296
+  },
+  "result_medal_mismatch_mask_SHA256": "8b83bed21e2ff70ca279f993f4256e1edd64ad8f1edb657ee87554527e0594be",
+  "per_frame_source_qualified_counts": [
+    {
+      "native_guest": 4032,
+      "original_callback": 4031,
+      "wrong_RGB5_pixels": 296,
+      "medal_rectangle_pixels": 278,
+      "adjacent_sprite_rectangle_pixels": 18
+    },
+    {
+      "native_guest": 4080,
+      "original_callback": 4079,
+      "wrong_RGB5_pixels": 296,
+      "medal_rectangle_pixels": 278,
+      "adjacent_sprite_rectangle_pixels": 18
+    },
+    {
+      "native_guest": 4128,
+      "original_callback": 4127,
+      "wrong_RGB5_pixels": 296,
+      "medal_rectangle_pixels": 278,
+      "adjacent_sprite_rectangle_pixels": 18
+    },
+    {
+      "native_guest": 4224,
+      "original_callback": 4223,
+      "wrong_RGB5_pixels": 296,
+      "medal_rectangle_pixels": 278,
+      "adjacent_sprite_rectangle_pixels": 18
+    },
+    {
+      "native_guest": 4272,
+      "original_callback": 4271,
+      "wrong_RGB5_pixels": 296,
+      "medal_rectangle_pixels": 278,
+      "adjacent_sprite_rectangle_pixels": 18
+    },
+    {
+      "native_guest": 4320,
+      "original_callback": 4319,
+      "wrong_RGB5_pixels": 296,
+      "medal_rectangle_pixels": 278,
+      "adjacent_sprite_rectangle_pixels": 18
+    },
+    {
+      "native_guest": 4368,
+      "original_callback": 4367,
+      "wrong_RGB5_pixels": 296,
+      "medal_rectangle_pixels": 278,
+      "adjacent_sprite_rectangle_pixels": 18
+    },
+    {
+      "native_guest": 4416,
+      "original_callback": 4415,
+      "wrong_RGB5_pixels": 296,
+      "medal_rectangle_pixels": 278,
+      "adjacent_sprite_rectangle_pixels": 18
+    },
+    {
+      "native_guest": 4464,
+      "original_callback": 4463,
+      "wrong_RGB5_pixels": 296,
+      "medal_rectangle_pixels": 278,
+      "adjacent_sprite_rectangle_pixels": 18
+    },
+    {
+      "native_guest": 4560,
+      "original_callback": 4559,
+      "wrong_RGB5_pixels": 296,
+      "medal_rectangle_pixels": 278,
+      "adjacent_sprite_rectangle_pixels": 18
+    },
+    {
+      "native_guest": 4608,
+      "original_callback": 4607,
+      "wrong_RGB5_pixels": 296,
+      "medal_rectangle_pixels": 278,
+      "adjacent_sprite_rectangle_pixels": 18
+    },
+    {
+      "native_guest": 4656,
+      "original_callback": 4655,
+      "wrong_RGB5_pixels": 296,
+      "medal_rectangle_pixels": 278,
+      "adjacent_sprite_rectangle_pixels": 18
+    },
+    {
+      "native_guest": 4704,
+      "original_callback": 4703,
+      "wrong_RGB5_pixels": 296,
+      "medal_rectangle_pixels": 278,
+      "adjacent_sprite_rectangle_pixels": 18
+    },
+    {
+      "native_guest": 4752,
+      "original_callback": 4751,
+      "wrong_RGB5_pixels": 296,
+      "medal_rectangle_pixels": 278,
+      "adjacent_sprite_rectangle_pixels": 18
+    },
+    {
+      "native_guest": 4800,
+      "original_callback": 4799,
+      "wrong_RGB5_pixels": 296,
+      "medal_rectangle_pixels": 278,
+      "adjacent_sprite_rectangle_pixels": 18
+    },
+    {
+      "native_guest": 4896,
+      "original_callback": 4895,
+      "wrong_RGB5_pixels": 296,
+      "medal_rectangle_pixels": 278,
+      "adjacent_sprite_rectangle_pixels": 18
+    },
+    {
+      "native_guest": 4944,
+      "original_callback": 4943,
+      "wrong_RGB5_pixels": 296,
+      "medal_rectangle_pixels": 278,
+      "adjacent_sprite_rectangle_pixels": 18
+    },
+    {
+      "native_guest": 4992,
+      "original_callback": 4991,
+      "wrong_RGB5_pixels": 296,
+      "medal_rectangle_pixels": 278,
+      "adjacent_sprite_rectangle_pixels": 18
+    },
+    {
+      "native_guest": 5040,
+      "original_callback": 5039,
+      "wrong_RGB5_pixels": 296,
+      "medal_rectangle_pixels": 278,
+      "adjacent_sprite_rectangle_pixels": 18
+    },
+    {
+      "native_guest": 5088,
+      "original_callback": 5087,
+      "wrong_RGB5_pixels": 296,
+      "medal_rectangle_pixels": 278,
+      "adjacent_sprite_rectangle_pixels": 18
+    },
+    {
+      "native_guest": 5136,
+      "original_callback": 5135,
+      "wrong_RGB5_pixels": 296,
+      "medal_rectangle_pixels": 278,
+      "adjacent_sprite_rectangle_pixels": 18
+    }
+  ],
+  "original_5184_and_native_4032_same_CPU_or_PPU_frame_phase_proven": false,
+  "snapshot_rectangle_implies_effective_scanline_OBJ_owner": false,
+  "source_palette_priority_arithmetic_corrected_or_admitted": false,
+  "original_vs_native_sampled_raster_release_accepted": false
+}

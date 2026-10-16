@@ -223,7 +223,7 @@ class ColdGuestRecordTests(unittest.TestCase):
         self.assertEqual(set(v.validate_source(report, self.replay)),
                          {"original", "native"})
         for mutate, failure in (
-                (lambda r: r["zoo_race_mesh"]["samples"].pop(), "mesh frame"),
+                (lambda r: r["zoo_race_mesh"]["samples"].pop(), "source mesh"),
                 (lambda r: r["zoo_race_mesh"]["samples"][60].update(
                     {"original_absolute_host_frame": 0}), "mesh frame"),
                 (lambda r: r["zoo_race_mesh"].update(

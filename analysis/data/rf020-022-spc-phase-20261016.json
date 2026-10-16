@@ -1,0 +1,117 @@
+{
+ "authority": "docs/RF020-022-SPC-PHASE-KNIFE-EDGES-20261016.md",
+ "base": "RF-015..019 candidate (1P 9fb998d2..., 2P 6c9cd0e9...)",
+ "complete_event_credit": 0,
+ "date": "2026-10-16",
+ "dma_sync_probe": {
+  "dma_starts_estimate": 19,
+  "field": "50048000 host 4800",
+  "native_sync12": 258648,
+  "native_sync18": 258762,
+  "snes9x_busy": 258712
+ },
+ "dragster": {
+  "first_native_difference": "+2040 (host 2985) $0BDD/$0BDE/$0BFE",
+  "host_2902_reset": {
+   "native": {
+    "fac9_arrival_V": 189,
+    "ipl_ready": 3576,
+    "latency": 75242,
+    "rd_ff": 671,
+    "t2": [
+     1113
+    ]
+   },
+   "native_power_on": {
+    "fac9_arrival_V": 222,
+    "ipl_ready": 5703,
+    "latency": 119790,
+    "rd_ff": 404,
+    "t2": [
+     3240
+    ]
+   },
+   "snes9x": {
+    "fac9_arrival_V": 228,
+    "ipl_ready": 5870,
+    "latency": 123394,
+    "rd_ff": 234,
+    "t2": [
+     257,
+     3406
+    ]
+   }
+  },
+  "refs_identical": "Snes9x == bsnes low WRAM every frame +1940..+2100"
+ },
+ "power_on_executables": {
+  "1p": "1718b43a4ed8583090ede360bf7bcbc4ecec5ab7247b9b315f2270e91df3f61a",
+  "2p": "94420c019ca6cfd3623a3c0d059a9846dd799cbee4a9d43762af0b6f5beeb8c7"
+ },
+ "release_gate_credit": 0,
+ "rf021": {
+  "columns": "host, snes9x latency, native+power-on latency (master clocks)",
+  "native_spc_cycles_at_first_port_write": 6,
+  "power_on_offset_guest_cycles": 2446,
+  "reset_census_power_on": [
+   [
+    35,
+    10004,
+    10004
+   ],
+   [
+    44,
+    50868,
+    50766
+   ],
+   [
+    46,
+    50802,
+    50842
+   ],
+   [
+    849,
+    125344,
+    89232
+   ],
+   [
+    859,
+    50808,
+    50768
+   ],
+   [
+    862,
+    50812,
+    50754
+   ],
+   [
+    2902,
+    123394,
+    119790
+   ]
+  ],
+  "snes9x_spc_cycles_at_first_port_write": 586459
+ },
+ "rf022_power_on_effects": {
+  "2p_pairs_changed": 0,
+  "attract": [
+   [
+    941,
+    1097
+   ],
+   [
+    1422,
+    1545
+   ],
+   [
+    3631,
+    3761
+   ]
+  ],
+  "bowl": "unchanged",
+  "dragster": "unchanged",
+  "switcher": "unchanged",
+  "zoom_zoo": "followthrough +16 188 vs 246; SRAM +64/+72 differ (regressed)"
+ },
+ "schema": "ur-rf020-022-spc-phase/1"
+}

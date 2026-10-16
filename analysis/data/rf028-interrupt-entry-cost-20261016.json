@@ -1,0 +1,200 @@
+{
+ "authority": "docs/RF028-INTERRUPT-ENTRY-COST-20261016.md",
+ "complete_event_credit": 0,
+ "date": "2026-10-16",
+ "entry_cost_master": {
+  "emulation_mode_slowrom": 54,
+  "native_mode_slowrom": 62,
+  "sequence": "dummy read at PC, 1 internal, push PB/PCH/PCL/P, 2 vector reads"
+ },
+ "executables": {
+  "1p": "8dde89b422b25c4650556d649b8f9b36dda20880a4a105d19529f10c1a78c4a5",
+  "2p": "bf4a66cbbac66b3448de698e5d98517c03718b049c708d46d0f42a79f8a51a6b"
+ },
+ "hosted_run": {
+  "cases": {
+   "bowl": {
+    "first_sample_disagreement": null,
+    "paired_event_candidate": true,
+    "terminal": [
+     3365,
+     3365
+    ]
+   },
+   "switcher": {
+    "first_sample_disagreement": null,
+    "paired_event_candidate": true,
+    "terminal": [
+     4704,
+     4704
+    ]
+   },
+   "zoom-zoo": {
+    "first_sample_disagreement": null,
+    "live_sram_first_disagreement": null,
+    "paired_event_candidate": true,
+    "terminal": [
+     5163,
+     5163
+    ]
+   }
+  },
+  "head_sha": "d9134a6e5da87145f1ad38e02382cce067fe6ec3",
+  "inputs": "selected=all, source_followthrough, RF-015..019 all true, baldosa_spc_interrupt_stage=true",
+  "run_id": 38879846733,
+  "source": "case job logs; per-pair follow-through in run artifacts (not retrieved: artifact host blocked in this session)"
+ },
+ "local_zoo_next_bowl_full_observer": {
+  "authority": "local observation; QA-01 hosted exact-binary run 38884542449 (#1706) is the source receipt",
+  "comparators": {
+   "rf015_017_018": {
+    "dp5040_delta": [
+     15,
+     16
+    ],
+    "mesh_exact": "46/78",
+    "next_bowl_native": 265,
+    "sram": "0/11"
+   },
+   "rf015_017_controls": {
+    "dp5040_delta": [
+     38,
+     39
+    ],
+    "mesh_exact": "45/78",
+    "next_bowl_native": 267,
+    "sram": "11/11",
+    "wram_exact_next_bowl": "8/11"
+   }
+  },
+  "dp_window": {
+   "5040": {
+    "63": [
+     115,
+     116
+    ],
+    "69": [
+     190,
+     190
+    ]
+   },
+   "5045": {
+    "63": [
+     179,
+     180
+    ],
+    "69": [
+     254,
+     254
+    ]
+   },
+   "other_frames_5034_5046": "equal"
+  },
+  "entries": [
+   1017,
+   1017
+  ],
+  "executed_trace_5040": {
+   "cpu_cc_polls": {
+    "native": 7,
+    "snes9x": 9
+   },
+   "first_cc_spc_age": {
+    "native": 103322541,
+    "snes9x": 103322546
+   },
+   "interpretation": "SPC ready-poll phase at a driver restart; byte exchanges then lockstep; boundary-sampled $63 alternately one byte ahead. Likely RF-026 approximation (reads on opcode last cycle).",
+   "master_to_first_data_byte": {
+    "native": 1394,
+    "snes9x": 1590
+   },
+   "session_2142_writes": {
+    "native": 92543,
+    "snes9x": 92543
+   },
+   "spc_reads_cc_after_write": {
+    "native": 2,
+    "snes9x": 8
+   },
+   "transfer": "IPL-protocol driver upload in an NMI-disabled loader (NMI off from host 6051); not the 02:82F0 stream loop"
+  },
+  "hosted_confirmation": "QA-01 run 38884542449 (#1709): identical values on hosted ELF 9a3bd17a",
+  "native_executable_sha256": "8dde89b422b25c4650556d649b8f9b36dda20880a4a105d19529f10c1a78c4a5",
+  "next_bowl_source_fresh_original_native": [
+   267,
+   267,
+   267
+  ],
+  "next_bowl_sram_pairs_equal": "11/11",
+  "next_bowl_wram_exact": "9/11 (others: 7E:01ED-01F0 stack page only; liveness not traced)",
+  "race_mesh_differing_bytes_total": 92,
+  "race_mesh_wram_exact": "51/78",
+  "reference": "Snes9x (local snesref)",
+  "residual_addresses": {
+   "7E:0063": "2 samples, off by one",
+   "7E:01ED-01F1": "stack"
+  },
+  "zoo_result": [
+   5163,
+   5163
+  ]
+ },
+ "nmi_entry_switcher_host_5651": {
+  "native_handler_start_after_v225": 18,
+  "snes9x_handler_start": "V225 H82 (last loop instr V225 H2)"
+ },
+ "observer_tests": {
+  "attract_int62": "5/5",
+  "dragster_dense_int62": 0,
+  "switcher_dense_both": 13,
+  "switcher_dense_exact_dma_sync": 13,
+  "switcher_dense_int60": 0,
+  "switcher_dense_int62": 0
+ },
+ "race_field_beam_offset_native_minus_snes9x": {
+  "constant_from_nmi": true,
+  "dma_sync_per_start": -6,
+  "range": [
+   -210,
+   -150
+  ]
+ },
+ "release_gate_credit": 0,
+ "schema": "ur-rf028-interrupt-entry-cost/1",
+ "stage_order": [
+  "RF-015..019 tools",
+  "tools/baldosa_spc_power_on_patch.py --anchor 0",
+  "tools/baldosa_spc_frame_clock_patch.py",
+  "tools/baldosa_spc_bus_cycle_patch.py",
+  "tools/baldosa_interrupt_entry_cost_patch.py"
+ ],
+ "witnesses": {
+  "2p": "16 exact; 50036056 vs bsnes field_divergence 5236, 50024004 vs Snes9x field_divergence 5123 (references disagree)",
+  "attract": [
+   [
+    248,
+    276
+   ],
+   [
+    401,
+    443
+   ],
+   [
+    941,
+    1098
+   ],
+   [
+    1423,
+    1546
+   ],
+   [
+    3632,
+    3762
+   ]
+  ],
+  "bowl": "+3365 = +3365 paired",
+  "dragster": "+2081 = +2081 paired; dense equal +2040..+2100",
+  "switcher": "+4704 = +4704 paired; dense equal +4600..+4710",
+  "zoom_zoo": "+5163 = +5163 paired; follow-through and SRAM equal"
+ }
+}

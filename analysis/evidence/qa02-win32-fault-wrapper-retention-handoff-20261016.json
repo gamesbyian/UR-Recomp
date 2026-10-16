@@ -1,0 +1,97 @@
+{
+  "schema": "ur-qa02-nominated-original-win32-fault-wrappers-retention-handoff/1",
+  "created_utc": "2026-10-16",
+  "nominated_source": "11501a15dea38fa912335cfc63103ce3a7208001",
+  "original_romfree_zip_sha256": "5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7",
+  "executed_original_win32_pe_sha256": "0701f72481531ad4f2803caadc62bbb072f292abef69f039edda004b01c18ea9",
+  "original_archives": [
+    {
+      "source_run": 38848852832,
+      "original_actions_artifact": 12024617002,
+      "expires_at": "2026-10-30T04:11:16Z",
+      "outer_original_zip_sha256": "e70055be446d0afec493cde8ac004273e05425bae5acd3d874cd32e1b6da131a",
+      "original_members_crc_verified": 12,
+      "role": "Actual source Win32 post-raw/pre-typed _Exit(86), typed divergence and cold refusal"
+    },
+    {
+      "source_run": 38856720047,
+      "original_actions_artifact": 12027761297,
+      "expires_at": "2026-10-30T05:41:10Z",
+      "outer_original_zip_sha256": "81a0dcc965ac72c56a5637afb4007ebb9289328d4aedd38f4afb1d452774fdbd",
+      "original_members_crc_verified": 12,
+      "role": "Directory ACL preflight denial without actual post-raw writer failure"
+    },
+    {
+      "source_run": 38861260577,
+      "original_actions_artifact": 12029890032,
+      "expires_at": "2026-10-30T06:31:39Z",
+      "outer_original_zip_sha256": "7d4a57d913b75d6f3a72ee194b8a651010f6c3fe9b6b008d2352fb9e65ea2547",
+      "original_members_crc_verified": 11,
+      "role": "File-only ACL ineffective, native save committed, no writer failure"
+    },
+    {
+      "source_run": 38867691561,
+      "original_actions_artifact": 12031753976,
+      "expires_at": "2026-10-30T07:36:25Z",
+      "outer_original_zip_sha256": "c5b0e0722e21e3b879624282989e6ab29347170b6caee7799e8461fc63fc0e6f",
+      "original_members_crc_verified": 29,
+      "role": "Game A versus separate Modern writer B, prewrite selector conflict rejected"
+    },
+    {
+      "source_run": 38870134987,
+      "original_actions_artifact": 12033107568,
+      "expires_at": "2026-10-30T07:58:01Z",
+      "outer_original_zip_sha256": "ae3c8319604363638ebd25e6beb6e5559714d161c761925577ba47bfa070b4cb",
+      "original_members_crc_verified": 24,
+      "role": "Two concurrently alive copies of real Windows game, stale A save rejected after B"
+    },
+    {
+      "source_run": 38872238234,
+      "original_actions_artifact": 12034140741,
+      "expires_at": "2026-10-30T08:16:22Z",
+      "outer_original_zip_sha256": "c61aaa3466a4faf75191b1c4ca84c27b9063fa08a08c272e5e428af8c7efaf6d",
+      "original_members_crc_verified": 33,
+      "role": "B raw/typed crash prevents canonical switch to healthy A"
+    }
+  ],
+  "source_git_archive_retention_status": "verified_90_day_actions_artifact_2026-10-16",
+  "additional_90_day_github_archive_created": true,
+  "independent_original_zip_hash_and_crc_checked": true,
+  "local_external_evidence_backup": {
+    "created": true,
+    "backup_archive_sha256": "4c681c87e3f66208882b054554f6768c8df1654035d9f242dcb0725685213308",
+    "backup_archive_bytes": 77814,
+    "outer_zip_entries": 7,
+    "nested_original_member_count": 121,
+    "backup_location": "Conversation artifact; not a GitHub repository file or Actions retention extension"
+  },
+  "all_rom_bytes_absent_from_committed_evidence": true,
+  "release_gate_credit": 0,
+  "source_candidate_changed": false,
+  "p0_1214_recovery_fixed": false,
+  "strict_handoff": "COMPLETED: #1712 merged and original six outer ZIPs independently verified byte-for-byte inside 90-day Actions artifact 12069939434, expiry 2027-01-14T19:41:11Z. Source original negative P0 remains; next task is product-owner #1214 fix, followed by independent new-candidate Win32 crash, selector, storage and records acceptance defined in docs/QA02-NEXT-EXACT-WIN32-RECOVERY-INDEPENDENT-ACCEPTANCE-20261016.md.",
+  "github_retention": {
+    "source_pr": 1712,
+    "source_pr_merged_commit": "a4fab362af67a2bc65ece502f94b8a9f3c65a592",
+    "workflow_run": 38956731834,
+    "artifact_id": 12069939434,
+    "retained_artifact_name": "retained-qa02-original-win32-fault-wrappers-11501a15",
+    "new_outer_envelope_sha256": "f35055a086dff30bb82982b3d4ef12476f06b0553f5f2eb84318f92e08754622",
+    "new_outer_zip_bytes": 77097,
+    "expires_at": "2027-01-14T19:41:11Z",
+    "independent_re_download_original_zip_bytes_equal": true,
+    "original_artifact_count": 6,
+    "original_zip_crc_member_count": 121,
+    "release_gate_credit": 0
+  },
+  "additional_private_backup": {
+    "location_type": "owner_controlled_private_Google_Drive",
+    "shared": false,
+    "archive_bytes": 78904,
+    "archive_sha256": "b47d407aadbcae029e7875b64c621fa297fd900af1d465d4682979d9022ae588",
+    "original_zip_count": 6,
+    "original_zip_member_crc_count": 121,
+    "independently_re_downloaded_and_hashed": true,
+    "locator": "Held privately by repository owner; no private file URL or ID included in public repository"
+  }
+}

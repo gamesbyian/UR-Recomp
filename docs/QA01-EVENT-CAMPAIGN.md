@@ -311,3 +311,53 @@ The owned producer now extends the existing **independent fixed guest race-entry
 **Next execution, scoped to one decision:** manually run the *existing* `qa01-event-campaign.yml` with `selected=zoom-zoo`, `baldosa_refresh_beam_rate=true`, `zoo_terminal_phase=true` and `source_followthrough=true` on the reviewed SHA. Preserve exact native ELF and original core/ROM/movie hashes, original and native entry-frame receipts and the fixed-frame `reference.log`/`native.log`. Verify the first differing **source-qualified observed postframe** against the original source movie and distinguish same-guest-relative from same-host comparisons. Only if it identifies a genuine timing/logic difference should Agent 5 receive a bounded CPU/beam/PC handoff. If the original/native first changed field is only `wTextPos` or free-running scratch, locate its live reader and upstream instruction before calling it a gameplay defect. Stop if the next observation cannot change the strict decision; do not run a 45-course breadth sweep.
 
 **Current execution status:** this instrument change carries no new executed original/native receipt and no corrected full-event admission. Pending an actual matching full source/result/return/progression and cold-process persistence witness, the authoritative ledger remains **0/45 complete USA events**. The existing `strict_candidate` is an onset-level investigative label and cannot be expanded by this diagnostic.
+
+
+## Executed Zoo-to-Bowl raw-memory residual audit (2026-10-16)
+
+The genuine 2014 original movie, fresh original emulator and Baldosa research
+guest were independently re-examined from **three archived original/native case
+ZIPs**, not re-emulated. The SHA-bound
+[three-case review](../analysis/data/qa01-archived-zoo-bowl-raw-wram-3run-review-20261016.json)
+retains actual producer-report digests, all eleven result-relative
++259/+263/+264/+265/+266/+267/+268/+269/+272/+276/+280 sample counts and
+guest-entry provenance. The RF-015+017 controls are Actions runs
+[38847972295](https://github.com/gamesbyian/UR-Recomp/actions/runs/38847972295)
+and [38848262320](https://github.com/gamesbyian/UR-Recomp/actions/runs/38848262320);
+the RF-018-only treatment is
+[38861174758](https://github.com/gamesbyian/UR-Recomp/actions/runs/38861174758).
+
+| Bounded source-original/native handoff fact | RF-018 off, both independently repeated controls | RF-018 on |
+| --- | ---: | ---: |
+| Source/fresh-original/native next-Bowl entry relative to Zoo result | +267 / +267 / +267 | +267 / +267 / **+265** |
+| Named gameplay triplet matching source in eleven samples | 11 | 9 |
+| Matching complete 8 KiB original/native SRAM samples | 11 | 0 |
+| Matching complete 128 KiB original/native WRAM samples | **8** | 0 |
+| Total unmasked WRAM differing-byte *occurrences*, all eleven pairs | **12** | **2,203** |
+
+The control WRAM differences are limited to **four bytes each at +266, +267
+and +280**. They concern stack addresses `7E:01ED–01F0`, and at +267
+also `7E:2000/2004` (sound-command queue). There is no evidence-based waiver:
+matching visible/named states, authentic +267 entry and complete SRAM do **not**
+establish raw 128 KiB WRAM parity, equal CPU PC, or continuous-frame parity.
+
+The independent campaign's bounded `next_bowl_bounded` classification therefore
+retains its established semantics: `bounded_source_handoff_agreement` means
+the observed named/source entry, earned record/checksum and 8 KiB SRAM contract
+passed. It **does not mean all sampled WRAM bytes agree**. The report now
+separately preserves `all_sampled_full_wram_pairs_equal`,
+`raw_wram_differing_sample_offsets` and
+`raw_wram_differing_byte_occurrences`, and its aggregate exposes how many
+case reports have unmasked next-Bowl residuals. A real RF-018 +265 progression
+difference remains `sampled_progression_divergence`; missing or contradictory
+WRAM/source/guest receipt claims are producer errors. Neither scientific
+outcome changes the primary result-only `strict_candidate` label or authorizes
+course release credit. **USA acceptance: 0/45**.
+
+This audit reused the existing original/native emitter, Baldosa research
+bridge and source-movie input identities. It introduced no extra emulator run,
+original controller rephase, Windows build, altered byte mask, automatic CI
+factory or release-ledger write. See source-owner
+[CPU/APU #1689](https://github.com/gamesbyian/UR-Recomp/issues/1689)
+for executed clock/instruction attribution; [#1686](https://github.com/gamesbyian/UR-Recomp/issues/1686)
+remains the separate actual Windows RF-017 shipping-source mismatch.

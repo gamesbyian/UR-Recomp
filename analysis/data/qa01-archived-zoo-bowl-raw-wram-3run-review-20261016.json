@@ -1,0 +1,268 @@
+{
+  "schema": "ur-qa01-three-archived-authentic-bowl-handoff-raw-residual-review/1",
+  "date_utc": "2026-10-16",
+  "source_original": {
+    "usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "archived_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "source_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828"
+  },
+  "method": "independently downloaded and SHA-256 rehashed three actual case ZIP artifacts, read producer-report.json and old case-result.json, independently recomputed eleven successive source/original/native named gameplay, race-relative Bowl-entry brackets, original/native full-WRAM byte counts, 8KiB SRAM diff counts and earned record/checksum fields; original inputs unchanged; no new emulator execution",
+  "sample_offsets_from_each_zoo_result": [
+    259,
+    263,
+    264,
+    265,
+    266,
+    267,
+    268,
+    269,
+    272,
+    276,
+    280
+  ],
+  "case_fields": [
+    "original-native guest entry hosts",
+    "original source/fresh original/native Bowl entry offsets",
+    "original-native whole WRAM byte-difference counts in each of eleven 131072-byte pairs",
+    "original-native whole SRAM byte-difference counts in each of eleven 8192-byte pairs",
+    "three-way named source/original/native gameplay agreement"
+  ],
+  "control_raw_residuals": [
+    {
+      "offset": 266,
+      "differing_bytes": 4,
+      "addresses": [
+        "7E:01ED",
+        "7E:01EE",
+        "7E:01EF",
+        "7E:01F0"
+      ]
+    },
+    {
+      "offset": 267,
+      "differing_bytes": 4,
+      "addresses": [
+        "7E:01ED",
+        "7E:01EE",
+        "7E:2000",
+        "7E:2004"
+      ]
+    },
+    {
+      "offset": 280,
+      "differing_bytes": 4,
+      "addresses": [
+        "7E:01ED",
+        "7E:01EE",
+        "7E:01EF",
+        "7E:01F0"
+      ]
+    }
+  ],
+  "control_stack_and_sound_queue_byte_differences_are_unwaived": true,
+  "cases": [
+    {
+      "variant": "RF-015+017 original/native first",
+      "run_id": 38847972295,
+      "artifact_id": 12023968359,
+      "zip_sha256": "433ba8cd562b10733d3a3abcff3d88dfbb178857bfefe35ea85ac35afe9014a5",
+      "producer_report_sha256": "99abb4db0b805f4fa8ab51208951e1999ec69ad0a392a00c6451e81d707bffd1",
+      "archived_old_case_disposition": "strict_candidate",
+      "archived_old_case_did_not_emit_new_next_bowl_bounded_field": true,
+      "reference_and_native_race_entry_host_frames": [
+        1017,
+        1019
+      ],
+      "source_original_native_next_bowl_relative": [
+        267,
+        267,
+        267
+      ],
+      "observed_named_triplet_equal_samples": 11,
+      "observed_full_wram_byte_equal_samples": 8,
+      "observed_full_sram_byte_equal_samples": 11,
+      "whole_wram_differing_byte_occurrences": 12,
+      "whole_sram_differing_byte_occurrences": 0,
+      "whole_wram_differing_byte_counts_by_offset": [
+        0,
+        0,
+        0,
+        0,
+        4,
+        4,
+        0,
+        0,
+        0,
+        0,
+        4
+      ],
+      "whole_sram_differing_byte_counts_by_offset": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "source_original_native_named_triplet_equal_by_offset": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "independently_recomputed_bounded_handoff_status": "bounded_source_handoff_agreement",
+      "release_admissions": 0
+    },
+    {
+      "variant": "RF-015+017 original/native second",
+      "run_id": 38848262320,
+      "artifact_id": 12024683035,
+      "zip_sha256": "e3663421c29dbe4d5b0a7a9e3ce523e526b45e8bb886bd088d53bddfa07db6a3",
+      "producer_report_sha256": "909e951e3300ae16b8585ea8ffe0474e19167bea8c47601f7c9a424a145737b4",
+      "archived_old_case_disposition": "strict_candidate",
+      "archived_old_case_did_not_emit_new_next_bowl_bounded_field": true,
+      "reference_and_native_race_entry_host_frames": [
+        1017,
+        1019
+      ],
+      "source_original_native_next_bowl_relative": [
+        267,
+        267,
+        267
+      ],
+      "observed_named_triplet_equal_samples": 11,
+      "observed_full_wram_byte_equal_samples": 8,
+      "observed_full_sram_byte_equal_samples": 11,
+      "whole_wram_differing_byte_occurrences": 12,
+      "whole_sram_differing_byte_occurrences": 0,
+      "whole_wram_differing_byte_counts_by_offset": [
+        0,
+        0,
+        0,
+        0,
+        4,
+        4,
+        0,
+        0,
+        0,
+        0,
+        4
+      ],
+      "whole_sram_differing_byte_counts_by_offset": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "source_original_native_named_triplet_equal_by_offset": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "independently_recomputed_bounded_handoff_status": "bounded_source_handoff_agreement",
+      "release_admissions": 0
+    },
+    {
+      "variant": "RF-015+017+018 original/native",
+      "run_id": 38861174758,
+      "artifact_id": 12029426494,
+      "zip_sha256": "f8391d7bfaab1505f89c801ed33b5138598829c833879bd79bf828a7ca38734b",
+      "producer_report_sha256": "a709eea6d623d89f58642937e26d179cc49c8df4070f0f8f3bf19067f4fdf0d7",
+      "archived_old_case_disposition": "strict_candidate",
+      "archived_old_case_did_not_emit_new_next_bowl_bounded_field": true,
+      "reference_and_native_race_entry_host_frames": [
+        1017,
+        1017
+      ],
+      "source_original_native_next_bowl_relative": [
+        267,
+        267,
+        265
+      ],
+      "observed_named_triplet_equal_samples": 9,
+      "observed_full_wram_byte_equal_samples": 0,
+      "observed_full_sram_byte_equal_samples": 0,
+      "whole_wram_differing_byte_occurrences": 2203,
+      "whole_sram_differing_byte_occurrences": 33,
+      "whole_wram_differing_byte_counts_by_offset": [
+        2,
+        2,
+        31,
+        694,
+        690,
+        187,
+        141,
+        171,
+        119,
+        95,
+        71
+      ],
+      "whole_sram_differing_byte_counts_by_offset": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "source_original_native_named_triplet_equal_by_offset": [
+        true,
+        true,
+        true,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "independently_recomputed_bounded_handoff_status": "sampled_progression_divergence",
+      "release_admissions": 0
+    }
+  ],
+  "limitations": {
+    "unit_test_fixture_is_synthetic": true,
+    "executed_original_native_source_reports_authentic": true,
+    "raw_wram_not_waived": true,
+    "full_wram_sample_equality_does_not_mean_whole_event_parity": true,
+    "bounded_semantic_handoff_agreement_does_not_mean_all_wram_bytes_equal": true,
+    "unsampled_guest_frames_unobserved": true,
+    "original_movie_input_not_shifted": true,
+    "actual_windows_product_not_tested": true,
+    "full_course_release_admissions": 0
+  }
+}

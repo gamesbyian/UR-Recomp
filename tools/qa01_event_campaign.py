@@ -367,6 +367,9 @@ def classify_zoo_next_bowl(report: dict, event: dict, frames: dict) -> dict:
                 "source_entry_offset": None, "fresh_original_entry_offset": None,
                 "fresh_native_entry_offset": None,
                 "first_sampled_progression_difference_offset": None,
+                "all_sampled_full_wram_pairs_equal": None,
+                "raw_wram_differing_sample_offsets": [],
+                "raw_wram_differing_byte_occurrences": 0,
                 "release_credit": 0}
     if (report.get("name") != "zoom-zoo" or not isinstance(record, dict)
             or not isinstance(source, dict)):
@@ -399,6 +402,7 @@ def classify_zoo_next_bowl(report: dict, event: dict, frames: dict) -> dict:
         raise ValueError("missing actual eleven guest handoff samples")
     observed = {"movie": [], "original": [], "native": []}
     triplet, full_sram, full_wram, ranks = [], [], [], []
+    raw_wram_differing_offsets, raw_wram_counts = [], []
     first = None
     for row, offset in zip(rows, offsets):
         source_row = source["samples"][str(offset)]
@@ -488,6 +492,9 @@ def classify_zoo_next_bowl(report: dict, event: dict, frames: dict) -> dict:
         triplet.append(name_equal)
         full_sram.append(same_sram)
         full_wram.append(raw["byte_exact"])
+        if not raw["byte_exact"]:
+            raw_wram_differing_offsets.append(offset)
+        raw_wram_counts.append(raw["differing_byte_count"])
         ranks.append(all(
             guests[side]["source_earned_zoo_best_lap"] ==
             {"rank": 0, "value_word": 2510, "holder_index": 0}
@@ -554,6 +561,9 @@ def classify_zoo_next_bowl(report: dict, event: dict, frames: dict) -> dict:
             "first_sampled_progression_difference_offset": first,
             "all_sampled_sram_pairs_equal": all(full_sram),
             "all_sampled_named_triplets_equal": all(triplet),
+            "all_sampled_full_wram_pairs_equal": all(full_wram),
+            "raw_wram_differing_sample_offsets": raw_wram_differing_offsets,
+            "raw_wram_differing_byte_occurrences": sum(raw_wram_counts),
             "unsampled_frames_or_windows_disk_persistence_proven": False,
             "release_credit": 0}
 
@@ -627,6 +637,24 @@ def classify(case: str, producer_rc: int, producer_path: Path,
             raise ValueError("strict comparator fields missing")
         if match != (frames["reference_relative"] == frames["native_relative"]):
             raise ValueError("contradictory terminal-frame assertion")
+        # Compare three *independently observed* race-relative durations.
+        # Matching fresh guests never implies matching archived source movie.
+        source_rel = event["source_active_frames_to_result"]
+        source_original_phase = {
+            "source_original_movie_relative": source_rel,
+            "fresh_original_relative": frames["reference_relative"],
+            "fresh_native_relative": frames["native_relative"],
+            "fresh_original_minus_source_frames":
+                frames["reference_relative"] - source_rel,
+            "fresh_native_minus_source_frames":
+                frames["native_relative"] - source_rel,
+            "three_relative_durations_equal":
+                source_rel == frames["reference_relative"] ==
+                frames["native_relative"],
+            "independent_original_movie_and_fresh_guest_clocks_not_rebased": True,
+            "continuous_original_to_fresh_equivalence_proven": False,
+            "release_credit": 0,
+        }
         strict_gates = strict_producer_gate_audit(comparison, match)
         if strict and (not match or producer_rc != 0):
             raise ValueError("strict outcome and producer exit disagree")
@@ -639,11 +667,25 @@ def classify(case: str, producer_rc: int, producer_path: Path,
         row["reason"] = ("strict paired-event candidate; NOT an independently "
                          "adjudicated course pass" if strict else
                          "strict original/native paired-event comparator is negative")
+        if not source_original_phase["three_relative_durations_equal"]:
+            row["reason"] += (
+                "; distinct archived source-movie vs fresh guest race-relative "
+                f"result durations (movie +{source_rel}, "
+                f"fresh original +{frames['reference_relative']}, "
+                f"native +{frames['native_relative']}); "
+                "source/movie timing equivalence NOT established")
         if continuation["status"] == "sampled_named_divergence":
             row["reason"] += (
                 "; independently recorded post-result named-state difference "
                 f"at result-relative +{continuation['first_named_divergence_offset']}; "
                 "not a complete-event lifecycle pass")
+        if next_bowl["raw_wram_differing_sample_offsets"]:
+            row["reason"] += (
+                "; unmasked 128KiB WRAM residual at result offsets " +
+                ",".join("+" + str(n) for n in
+                         next_bowl["raw_wram_differing_sample_offsets"]) +
+                " (" + str(next_bowl["raw_wram_differing_byte_occurrences"]) +
+                " differing-byte occurrences); not waived")
         if next_bowl["status"] == "sampled_progression_divergence":
             row["reason"] += (
                 "; authenticated next-Bowl entry/state/SRAM/record evidence "
@@ -654,6 +696,7 @@ def classify(case: str, producer_rc: int, producer_path: Path,
         row["evidence"] = {
             "next_bowl_bounded": next_bowl,
             "post_result_bounded": continuation,
+            "source_original_movie_vs_fresh_guest_result_phase": source_original_phase,
             "producer_sha256": hashlib.sha256(producer_path.read_bytes()).hexdigest(),
             "rom_sha256": report["rom_sha256"],
             "movie_sha256": report["original_movie_sha256"],
@@ -728,6 +771,49 @@ def aggregate(plan: dict, results_dir: Path) -> tuple[dict, str]:
                         or ev["native_entry_frame"] - ev["reference_entry_frame"]
                         != ev["native_frame_shift"]):
                     raise ValueError("case original/native start and shift identity inconsistent")
+                source_phase = ev.get("source_original_movie_vs_fresh_guest_result_phase")
+                source_rel = ev["original_event_frames"]
+                fresh_rel = ev.get("terminal_guest_relative_frames", {})
+                if (not isinstance(source_phase, dict)
+                        or not isinstance(fresh_rel, dict)
+                        or set(source_phase) != {
+                            "source_original_movie_relative",
+                            "fresh_original_relative",
+                            "fresh_native_relative",
+                            "fresh_original_minus_source_frames",
+                            "fresh_native_minus_source_frames",
+                            "three_relative_durations_equal",
+                            "independent_original_movie_and_fresh_guest_clocks_not_rebased",
+                            "continuous_original_to_fresh_equivalence_proven",
+                            "release_credit"}
+                        or any(type(source_phase.get(k)) is not int for k in (
+                            "source_original_movie_relative",
+                            "fresh_original_relative",
+                            "fresh_native_relative",
+                            "fresh_original_minus_source_frames",
+                            "fresh_native_minus_source_frames",
+                            "release_credit"))
+                        or source_phase["release_credit"] != 0
+                        or any(type(fresh_rel.get(k)) is not int for k in (
+                            "reference_relative", "native_relative"))
+                        or source_phase["source_original_movie_relative"] != source_rel
+                        or source_phase["fresh_original_relative"] != fresh_rel["reference_relative"]
+                        or source_phase["fresh_native_relative"] != fresh_rel["native_relative"]
+                        or source_phase["fresh_original_minus_source_frames"] !=
+                            fresh_rel["reference_relative"] - source_rel
+                        or source_phase["fresh_native_minus_source_frames"] !=
+                            fresh_rel["native_relative"] - source_rel
+                        or type(source_phase.get("three_relative_durations_equal")) is not bool
+                        or source_phase["three_relative_durations_equal"] is not (
+                            source_rel == fresh_rel["reference_relative"] ==
+                            fresh_rel["native_relative"])
+                        or source_phase.get(
+                            "independent_original_movie_and_fresh_guest_clocks_not_rebased"
+                        ) is not True
+                        or source_phase.get(
+                            "continuous_original_to_fresh_equivalence_proven"
+                        ) is not False):
+                    raise ValueError("missing/contradictory three-clock source result receipts")
                 follow = ev.get("post_result_bounded")
                 if (not isinstance(follow, dict)
                         or follow.get("status") not in (
@@ -775,6 +861,24 @@ def aggregate(plan: dict, results_dir: Path) -> tuple[dict, str]:
                                       or not handoff["all_sampled_sram_pairs_equal"]
                                       or not handoff["all_sampled_named_triplets_equal"]))))):
                     raise ValueError("missing or contradictory next-Bowl handoff verdict")
+                if (type(handoff.get("raw_wram_differing_byte_occurrences")) is not int
+                        or handoff["raw_wram_differing_byte_occurrences"] < 0
+                        or not isinstance(handoff.get("raw_wram_differing_sample_offsets"), list)
+                        or any(type(n) is not int or n not in ZOO_BOWL_OFFSETS
+                               for n in handoff["raw_wram_differing_sample_offsets"])
+                        or handoff["raw_wram_differing_sample_offsets"] != sorted(
+                            set(handoff["raw_wram_differing_sample_offsets"]))
+                        or (handoff["status"] == "not_observed"
+                            and (handoff.get("all_sampled_full_wram_pairs_equal") is not None
+                                 or handoff["raw_wram_differing_sample_offsets"]
+                                 or handoff["raw_wram_differing_byte_occurrences"]))
+                        or (handoff["status"] != "not_observed"
+                            and (type(handoff.get("all_sampled_full_wram_pairs_equal")) is not bool
+                                 or handoff["all_sampled_full_wram_pairs_equal"] is not (
+                                     not handoff["raw_wram_differing_sample_offsets"])
+                                 or (bool(handoff["raw_wram_differing_byte_occurrences"]) is not
+                                     bool(handoff["raw_wram_differing_sample_offsets"]))))):
+                    raise ValueError("missing or contradictory raw WRAM handoff residual")
                 frames = ev.get("terminal_guest_relative_frames")
                 if not isinstance(frames, dict) or any(
                     type(frames.get(k)) is not int or frames[k] < 0 for k in
@@ -839,6 +943,13 @@ def aggregate(plan: dict, results_dir: Path) -> tuple[dict, str]:
     blocked_handoffs = sum(
         row.get("evidence", {}).get("next_bowl_bounded", {}).get("status")
         == "sampled_progression_divergence" for row in results)
+    raw_wram_handoffs = sum(
+        bool(row.get("evidence", {}).get("next_bowl_bounded", {}).get(
+            "raw_wram_differing_sample_offsets")) for row in results)
+    source_movie_deltas = sum(
+        row.get("evidence", {}).get(
+            "source_original_movie_vs_fresh_guest_result_phase", {}
+        ).get("three_relative_durations_equal") is False for row in results)
     report = {
         "schema": SCHEMA, "plan_sha256": plan["plan_sha256"],
         "source_sha": plan["source_sha"], "selected_cases": len(expected),
@@ -846,6 +957,8 @@ def aggregate(plan: dict, results_dir: Path) -> tuple[dict, str]:
         "counts": totals, "unexpected_artifacts": unexpected,
         "transport_complete": valid, "release_admissions": 0,
         "bounded_next_bowl_progression_divergences": blocked_handoffs,
+        "bounded_next_bowl_unmasked_wram_residual_cases": raw_wram_handoffs,
+        "source_movie_to_fresh_result_duration_difference_cases": source_movie_deltas,
         "results": results,
         "release_note": ("All observations are investigative. Independent QA "
                          "adjudication and the release ledger remain unchanged."),
@@ -871,6 +984,10 @@ def aggregate(plan: dict, results_dir: Path) -> tuple[dict, str]:
         "Transport complete: " + str(valid),
         "Observed source-authentic next-Bowl progression blockers: " +
         str(blocked_handoffs),
+        "Next-Bowl cases with unmasked 128KiB WRAM residuals: " +
+        str(raw_wram_handoffs),
+        "Cases with source-movie versus fresh-guest relative result offset: " +
+        str(source_movie_deltas),
         "**USA course release admissions: 0.** A strict candidate is not a reviewed L4 pass.",
         "Physical Windows or player-hardware evidence: not exercised.",
     ]

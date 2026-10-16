@@ -5,6 +5,7 @@ admission authority. Never infer unobserved frames or CPU/AOT instruction time.
 """
 from __future__ import annotations
 
+import json
 import sys
 import tempfile
 import unittest
@@ -32,6 +33,56 @@ class ZooFullRaceMeshTests(unittest.TestCase):
             with self.subTest(case=case,duration=duration), self.assertRaisesRegex(
                     qa.CompleteEventError, "exact archived 2014 Zoo"):
                 qa.sample_frames(case, duration, zoo_race_mesh=True)
+
+    def test_executed_original_native_mesh_receipt_preserves_all_fail_gates(self):
+        report = json.loads((ROOT / "analysis/data" /
+            "qa01-zoo-fullrace-mesh-executed-20261015.json").read_text())
+        self.assertEqual(report["source"]["run_id"], 38830671735)
+        self.assertEqual(report["source"]["exact_workflow_head_sha"],
+                         "2224b2414675c8191999510a9f6e6fcf40bf9a9c")
+        self.assertEqual(report["source"]["case_artifact_zip_sha256"],
+                         "886e533cf029f398af754699c6b7ba3c6a728623b6b7e4243469823bdcdb91f6")
+        self.assertEqual(report["source"]["producer_report_sha256"],
+                         "d377ba95dbf5e77bae141980a6d5962bda1b34e300372db8ac075fdc00018a6e")
+        self.assertEqual(report["source"]["case_disposition"], "strict_candidate")
+        data = report["observed"]
+        self.assertEqual(data["fresh_native_entry_host_frame"] -
+                         data["fresh_original_entry_host_frame"], 2)
+        self.assertEqual(data["guest_result_relative_frame_original"], 5163)
+        self.assertEqual(data["guest_result_relative_frame_native"], 5163)
+        frames = qa.sample_frames("zoom-zoo", 5163, zoo_race_mesh=True)
+        samples = data["full_wram_pairs"]
+        self.assertEqual([s["relative_guest_frame"] for s in samples], frames)
+        self.assertEqual(len(samples), 66)
+        self.assertEqual(data["total_byte_exact_pairs"], 44)
+        self.assertEqual(sum(not s["differing_full_wram_bytes"] for s in samples), 44)
+        self.assertEqual(sum(s["differing_full_wram_bytes"] for s in samples), 86)
+        self.assertEqual(len([s for s in samples if s["relative_guest_frame"] > 2400]), 24)
+        self.assertEqual(data["excluded_wram_byte_count"], 0)
+        self.assertEqual(data["full_wram_bytes_compared_per_guest_per_pair"], 131072)
+        self.assertIsNone(data["original_native_sampled_named_state_first_disagreement"])
+        self.assertEqual(data["distinct_differing_snes_addresses"], [
+            "7E:0063","7E:0069","7E:01ED","7E:01EE",
+            "7E:01EF","7E:01F0","7E:2000","7E:2004"])
+        late = data["new_late_nonstack_difference"]
+        self.assertEqual(late["guest_relative"], 5040)
+        self.assertEqual(late["original_absolute_host_frame"], 6057)
+        self.assertEqual(late["native_absolute_host_frame"], 6059)
+        self.assertEqual(late["bytes"], [
+            {"address":"7E:0063","original":115,"native":77},
+            {"address":"7E:0069","original":190,"native":151}])
+        self.assertTrue(late["subsequent_guest_relative_5100_all_wram_bytes_exact"])
+        self.assertTrue(data["all_eleven_zoo_to_bowl_full_sram_pairs_equal"])
+        self.assertEqual(data["bowl_active_entry_relative_to_zoo_result"], 267)
+        self.assertEqual(data["zoo_earned_record_centiseconds"], 2510)
+        limit = report["cautions"]
+        self.assertTrue(limit["sample_interval_is_not_continuous_every_guest_frame"])
+        self.assertFalse(limit["cpu_pc_nmi_apu_logic_tick_parity_proven"])
+        self.assertFalse(limit["meaning_of_7e0063_and_7e0069_at_5040_proven"])
+        self.assertFalse(limit["windows_shipping_binary_bound"])
+        self.assertFalse(limit["host_filesystem_record_hard_kill_proven"])
+        self.assertEqual(limit["complete_event_usa_credit"], 0)
+        self.assertEqual(limit["usa_event_denominator"], 45)
 
     def test_script_keeps_all_original_input_and_samples_strictly_in_order(self):
         frames = qa.sample_frames("zoom-zoo", 5163, zoo_race_mesh=True)

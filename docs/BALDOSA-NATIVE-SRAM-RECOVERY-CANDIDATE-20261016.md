@@ -315,3 +315,22 @@ SHA-256, to detect future schema drift on each exact source-head test.
 This product-side compatibility preflight is NOT QA gate approval. The
 separate original full Win32 evidence archive always retained the complete
 correct 4+intent receipts.
+
+
+## F1 before-raw process-death source boundary
+
+The original Windows guest now has another narrowly isolated QA-only
+process cut `UR_BALDOSA_QA_CRASH_AFTER_INTENT_BEFORE_RAW=1`: **after**
+durable old/new typed write-ahead intent is prepared but **before**
+the pinned native `RtlWriteSram` callback. The test guest reaches a
+real source-backed frame-1952 shutdown and exits **84** with the
+original raw/typed/selector/catalog bytes intact and the prewrite
+intent outstanding. A new genuine Windows process must discard the
+uncommitted old/old intent without changing typed generation or guest
+SRAM; a second process must boot identically with no second replay.
+The source-bound artifact retains **17 binary objects**: all four
+canonical files at before/crash/first/second-cold plus the actual
+durable intent and their SHA256/length receipts, as well as the three
+actual Windows process logs. This is a controlled process-death
+witness at a known point, not actual lost-power or partial filesystem
+write evidence. No release gate credit.

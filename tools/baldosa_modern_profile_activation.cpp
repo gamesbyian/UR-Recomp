@@ -821,6 +821,20 @@ extern "C" int ur_baldosa_modern_profile_before_native_save(void) {
         if (intent != ur::product::BaldosaSramIntentStatus::Prepared &&
             intent != ur::product::BaldosaSramIntentStatus::NoIntent)
             return reject("native_sram_intent_not_durable");
+        // QA only: original native guest reached its legitimate save point,
+        // and durable old/new intent exists, but RtlWriteSram has NOT been
+        // invoked. The next real Win32 guest must discard this uncommitted
+        // intent without publishing typed generation or raw progress.
+        const char* pre_raw_cut =
+            std::getenv("UR_BALDOSA_QA_CRASH_AFTER_INTENT_BEFORE_RAW");
+        if (intent == ur::product::BaldosaSramIntentStatus::Prepared &&
+            pre_raw_cut && std::strcmp(pre_raw_cut, "1") == 0) {
+            std::fprintf(stderr,
+                "UR_BALDOSA_NATIVE_PROFILE QA_CRASH_PRE_RAW "
+                "exit=84 intent_durable=1 raw_not_written=1\n");
+            std::fflush(stderr);
+            std::_Exit(84);
+        }
     }
     g_native_shutdown_selector_lock = std::move(candidate);
     g_native_shutdown_catalog_lock = std::move(catalog_candidate);

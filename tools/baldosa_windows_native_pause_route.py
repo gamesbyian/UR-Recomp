@@ -1972,6 +1972,134 @@ def run_native_healthy_alternate_from_damaged_source(
     }
 
 
+def run_native_prewrite_intent_abandon(
+    exe: Path, rom: Path, script: Path, root: Path,
+    fixture: Path, seed: Path, *, video: str, timeout: int,
+) -> dict[str, object]:
+    """Actual native Win32 pre-raw process cut after durable write-ahead intent."""
+    out = root / "native_prewrite_intent_abandon"
+    out.mkdir(parents=True, exist_ok=False)
+    user_root = out / "Original Guest Prewrite Cut"
+    user_root.mkdir()
+    subprocess.run([str(fixture), str(user_root), str(seed)],
+                   check=True, cwd=out, capture_output=True,
+                   text=True, timeout=timeout)
+    profile = user_root / "saves/profile-native-ci-rider"
+    raw = profile / "save.srm"
+    typed = profile / "host-profile.txt"
+    selector = user_root / "host-state-v1.txt"
+    roster = user_root / "profiles-v1.txt"
+    pending = profile / "native-sram-checkpoint.pending"
+    sources = {
+        "raw-sram": raw, "typed-profile": typed,
+        "selector": selector, "roster": roster,
+    }
+    before = {name: path.read_bytes() for name, path in sources.items()}
+    if len(before["raw-sram"]) != 8192 or before["raw-sram"] != seed.read_bytes():
+        raise ValueError("F1 prewrite fault lacks genuine expected guest source SRAM")
+    config = out / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+    env = os.environ.copy()
+    env.update({
+        "SNESRECOMP_USER_DATA_DIR": str(user_root),
+        "UR_EXECUTION_MODE": "modern",
+        "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
+        "UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS": "1",
+        "UR_BALDOSA_MODERN_INPUT": "1",
+        "UR_BALDOSA_PAUSE_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_REQUIRE_RACE": "1",
+        "UR_BALDOSA_PAUSE_SMOKE_AT_FRAME": "1952",
+        "UR_BALDOSA_PHYSICAL_PAUSE_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_QUIT_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_PANEL_NAV_SMOKE": "0",
+        "UR_BALDOSA_DELAYED_RESTART_SMOKE": "0",
+        "UR_BALDOSA_RESTART_SAME_FRAME_SMOKE": "0",
+        "UR_BALDOSA_QA_CRASH_AFTER_INTENT_BEFORE_RAW": "1",
+        "SDL_VIDEODRIVER": video,
+        "SDL_AUDIODRIVER": "dummy",
+    })
+    original = subprocess.run(
+        [str(exe), "--no-launcher", "--config", str(config),
+         "--script", str(script), str(rom)],
+        cwd=out, env=env, capture_output=True, text=True,
+        errors="replace", timeout=timeout)
+    log = original.stdout + "\n" + original.stderr
+    (out / "crash.log").write_text(log, encoding="utf-8")
+    if (original.returncode != 84 or
+        log.count("UR_BALDOSA_NATIVE_PROFILE QA_CRASH_PRE_RAW "
+                  "exit=84 intent_durable=1 raw_not_written=1") != 1 or
+        log.count("UR_BALDOSA_NATIVE_PAUSE ARMED guest=1952 live_race=1") != 1 or
+        "UR_BALDOSA_NATIVE_PROFILE QA_CRASH_AFTER_RAW_WRITE" in log or
+        "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=" in log):
+        raise ValueError(
+            f"Real Win32 process failed pre-raw source cut rc={original.returncode}"
+            f" tail={log[-1200:]}")
+    verify_named_profile_boot_bytes(log, before["raw-sram"])
+    at_crash = {name: path.read_bytes() for name, path in sources.items()}
+    if at_crash != before or not pending.is_file() or pending.is_symlink():
+        raise ValueError("F1 prewrite fault mutated canonical files or lost intent")
+    intent = pending.read_bytes()
+    if len(intent) < 8192 or list(user_root.rglob("*.urrun")):
+        raise ValueError("F1 prewrite crash lacked intact intent or fabricated Records")
+    clean = env.copy()
+    clean.pop("UR_BALDOSA_QA_CRASH_AFTER_INTENT_BEFORE_RAW", None)
+    short = out / "fresh-short.txt"
+    short.write_text("turbo on\nwait 6\nquit\n", encoding="ascii")
+    command = [str(exe), "--no-launcher", "--config", str(config),
+               "--script", str(short), str(rom)]
+    stages = []
+    for index in (1, 2):
+        proc = subprocess.run(
+            command, cwd=out, env=clean,
+            capture_output=True, text=True,
+            errors="replace", timeout=timeout)
+        fresh = proc.stdout + "\n" + proc.stderr
+        (out / f"cold-{index}.log").write_text(fresh, encoding="utf-8")
+        if (proc.returncode != 0 or
+            "UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED" in fresh or
+            "UR_BALDOSA_NATIVE_PROFILE REJECTED" in fresh):
+            raise ValueError("F1 original cold Windows guest did not preserve old/old")
+        verify_named_profile_boot_bytes(fresh, before["raw-sram"])
+        snapshots = {name: path.read_bytes() for name, path in sources.items()}
+        if snapshots != before or pending.exists():
+            raise ValueError("F1 cold boot published unearned typed/raw or retained stale intent")
+        stages.append(snapshots)
+    evidence = out / "fault-bytes"
+    evidence.mkdir()
+    hashes = {}
+    for label in sources:
+        for stage, raw_files in (
+            ("before", before),
+            ("crash", at_crash),
+            ("first-cold", stages[0]),
+            ("second-cold", stages[1]),
+        ):
+            name = f"{label}.{stage}.bin"
+            b = raw_files[label]
+            (evidence / name).write_bytes(b)
+            hashes[name] = {"sha256": hashlib.sha256(b).hexdigest(),
+                            "bytes": len(b)}
+    (evidence / "intent.pre-raw.bin").write_bytes(intent)
+    hashes["intent.pre-raw.bin"] = {
+        "sha256": hashlib.sha256(intent).hexdigest(), "bytes": len(intent)}
+    (evidence / "file-receipt.json").write_text(
+        json.dumps(hashes, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8")
+    if (len(hashes) != 17 or
+        any(stages[i] != before for i in (0, 1))):
+        raise ValueError("F1 prewrite evidence export incomplete")
+    return {
+        "genuine_original_win32_guest_frame": 1952,
+        "source_process_cut_after_durable_intent": 84,
+        "original_rtl_write_sram_not_executed": True,
+        "canonical_raw_and_typed_unchanged_at_cut": True,
+        "intent_retired_only_during_first_cold": True,
+        "two_native_cold_boots_same_committed_generation": True,
+        "all_17_evidence_files_SHA256_bound": True,
+        "release_gate_credit": 0,
+    }
+
+
 def run_native_typed_commit_finalization_cut(
     exe: Path, rom: Path, script: Path, root: Path,
     fixture: Path, seed: Path, *, video: str, timeout: int,
@@ -2760,6 +2888,9 @@ def main() -> int:
         exe, rom, script, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout, journaled=True,
         snapshot_dir=root / "native_intent_restart_recovery/fault-bytes")
+    prewrite_cut_proof = run_native_prewrite_intent_abandon(
+        exe, rom, script, root, fixture, sram_seed,
+        video=args.video, timeout=args.timeout)
     typed_cut_proof = run_native_typed_commit_finalization_cut(
         exe, rom, script, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)
@@ -2797,6 +2928,7 @@ def main() -> int:
         "native_post_raw_pre_typed_crash": post_raw_crash_proof,
         "native_journaled_post_raw_recovery": journal_recovery_proof,
         "native_typed_commit_before_intent_retirement": typed_cut_proof,
+        "native_prewrite_intent_abandoned_without_raw_commit": prewrite_cut_proof,
         "native_healthy_alternate_after_damaged_p1": healthy_alternate_proof,
         "native_real_b_crash_healthy_a_recovery": real_b_crash_healthy_a_proof,
         "native_three_registered_unrelated_damaged_c": three_profile_proof,

@@ -2565,9 +2565,12 @@ def run_native_crash_between_raw_and_typed(
             # independently owned QA02 read-only verifier. No QA authority
             # moves here: the consumer must separately re-download, pin
             # tested source/PE and independently verify these exact bytes.
-            # Retain the ordinary four-label file-receipt unchanged while
-            # supplying a strictly bounded FLAT journaled ZIP with a
-            # five-entry intent-aware receipt required by the consumer.
+            # Retain the ordinary FOUR-label file-receipt EXACTLY. The
+            # independent QA02 read-only consumer requires its fifth
+            # (intent) receipt as a SEPARATE JSON member, never a fabricated
+            # "intent" key added to the four-file canonical manifest.
+            # Check this compatibility in the owning Windows workflow
+            # against QA's current actual verifier, without QA-gate credit.
             expected = {
                 *(f"{name}.{stage}.bin"
                   for name in ("raw-sram", "typed-profile", "selector", "roster")
@@ -2575,19 +2578,13 @@ def run_native_crash_between_raw_and_typed(
                 "crash.log", "cold-recovery.log",
                 "second-cold-recovery-boot.log", "intent.crash.bin",
                 "intent.recovered-receipt.bin", "file-receipt.json",
+                "intent-receipt.json",
             }
-            assert len(expected) == 18
-            qa_receipt = dict(file_receipt)
-            qa_receipt["intent"] = intent_receipt
+            assert len(expected) == 19
             qa_zip = output / "qa02-journaled-snapshot.zip"
             with zipfile.ZipFile(qa_zip, "x") as archive:
                 for name in sorted(expected):
-                    data = (
-                        (json.dumps(qa_receipt, sort_keys=True, indent=2) +
-                         "\n").encode("utf-8")
-                        if name == "file-receipt.json" else
-                        (snapshot_dir / name).read_bytes()
-                    )
+                    data = (snapshot_dir / name).read_bytes()
                     info = zipfile.ZipInfo(name, (1980, 1, 1, 0, 0, 0))
                     info.external_attr = 0o100644 << 16
                     info.compress_type = zipfile.ZIP_DEFLATED

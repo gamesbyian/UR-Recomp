@@ -294,3 +294,24 @@ SHA-256 receipts. Damage is QA-injected; this test does **not** claim
 C was damaged by an original guest save, nor a physically operated
 launcher recovery dialog. The distinct F5 B-crash/A rescue test
 provides the genuine source-guest crash boundary separately.
+
+
+## Exact QA-owned journaled reader handoff correction
+
+Independent QA's updated read-only verifier
+`tools/check_qa02_win32_fault_snapshots.py` expects a bounded **19-file**
+flat F2 journaled ZIP: the 12 canonical before/crash/after files, the
+canonical four-label `file-receipt.json`, two source process logs plus
+second cold log, the two exact intent snapshots, and a separate
+`intent-receipt.json` with the five canonical digest/retirement
+assertions. An earlier product draft incorrectly emitted **18 members**
+with intent metadata folded into an additional `file-receipt` key; the
+independent QA owner correctly rejected that optional flat envelope.
+The producer now copies the original already retained `intent-receipt.json`
+as its own member, leaves the four-label file receipt unchanged, and
+requires exactly 19 deterministic ZIP entries. The owning Windows Actions
+run invokes the **QA-owned reader unchanged**, with the actual flat ZIP
+SHA-256, to detect future schema drift on each exact source-head test.
+This product-side compatibility preflight is NOT QA gate approval. The
+separate original full Win32 evidence archive always retained the complete
+correct 4+intent receipts.

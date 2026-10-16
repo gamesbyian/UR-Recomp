@@ -761,6 +761,19 @@ jobs:
       # bounded producer's before/crash/after + intact pre-write intent and
       # committed receipt are retained. No game ROM, personal root, EXE,
       # unbounded user saves or separate release-ledger assertions.
+      # Product-side compatibility guard only. A successful invocation
+      # demonstrates consumer schema agreement on exact source-produced
+      # bytes, not independent QA qualification or release ledger credit.
+      - name: Validate journaled Win32 evidence against independent QA02 reader
+        if: ${{ github.event_name == 'pull_request' || inputs.parallel_journeys == true }}
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/qa02-journaled-snapshot.zip"
+          digest="$(sha256sum "$archive" | cut -d ' ' -f 1)"
+          python tools/check_qa02_win32_fault_snapshots.py \
+            --zip "$archive" --sha256 "$digest" --case journaled
+          echo "PASS: producer F2 journaled archive satisfies separate QA-owned exact 19-member reader (not a gate credit)." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Retain exact CI-owned native SRAM crash and recovery byte evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@v4

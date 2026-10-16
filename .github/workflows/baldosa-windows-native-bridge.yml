@@ -169,6 +169,8 @@ on:
       - "tools/baldosa_qa08_windows_source_capture_patch.py"
       - "tools/check_qa08_windows_source_raster.py"
       - "tools/baldosa_qa08_native_effective_pixel_owner_patch.py"
+      - "tools/baldosa_qa08_native_medal_vram_pixels_patch.py"
+      - "tests/unit/test_qa08_native_medal_vram_readonly.py"
       - "tests/unit/test_qa08_native_effective_pixel_owner_patch.py"
       - "tools/qa08_windows_effective_pixel_owner.py"
       - "tools/qa08_windows_full_oneplayer_source_coverage.py"
@@ -251,6 +253,7 @@ jobs:
           python tests/unit/test_baldosa_qa08_native_cgram_port_chronology_patch.py
           python tests/unit/test_baldosa_qa08_native_inidisp_port_trace_patch.py
           python tests/unit/test_qa08_native_effective_pixel_owner_patch.py
+          python tests/unit/test_qa08_native_medal_vram_readonly.py
           python tests/unit/test_baldosa_qa08_native_firstline_hdma_readonly_patch.py
           python tests/unit/test_baldosa_uniracers_v0_raster_before_hdma_patch.py
           python tests/unit/test_baldosa_qa08_windows_source_capture.py
@@ -328,6 +331,10 @@ jobs:
           # Not a CPU/renderer fix or a guarantee of original source priority.
           python tools/baldosa_qa08_native_effective_pixel_owner_patch.py --game baldosa
           python tools/baldosa_qa08_native_effective_pixel_owner_patch.py --game baldosa --apply-candidate
+          # Additional strictly read-only original-result VRAM/OBJ tile words.
+          # Never alter legacy sprite decoder, guest DMA or saved game.
+          python tools/baldosa_qa08_native_medal_vram_pixels_patch.py --game baldosa
+          python tools/baldosa_qa08_native_medal_vram_pixels_patch.py --game baldosa --apply-candidate
           python tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_execution_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_pause_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
@@ -679,6 +686,7 @@ jobs:
           name: qa08-win32-effective-pixel-owner-source
           path: |
             ${{ runner.temp }}/QA08-Win32-Pixel-Owner/qa08-native-effective-pixel-owner.json
+            ${{ runner.temp }}/QA08-Win32-Pixel-Owner/qa08-native-live-gold-medal-VRAM-words.json
             ${{ runner.temp }}/QA08-Win32-Pixel-Owner/qa08-effective-pixel-source-log.txt
             ${{ runner.temp }}/QA08-Win32-Pixel-Owner/qa08-native-OAM-port-input.json
             ${{ runner.temp }}/QA08-Win32-Pixel-Owner/qa08-windows-2p-fullroute.json

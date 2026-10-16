@@ -1,0 +1,97 @@
+{
+  "schema": "UR-RF034-SOURCE-EXECUTED-FIRST-CC-INSTRUCTION-BOUNDARY/1",
+  "status": "qualified_original_native_instruction_boundary_visibility_discriminator_no_fix",
+  "source": {
+    "run": 38981131474,
+    "head": "299a200d2fc0252d06f858be81b8262145abafea",
+    "case_artifact_id": 12081626259,
+    "case_count": 15,
+    "case_zip_sha256": "6efac6d4d1cf4f5a2b47b4b04c76d2b878a7312bc88641c2ac5e9921cb342052",
+    "producer_report_sha256": "605ee54d8cc8dc66a6bbe43e7e86102eae911821140af10a097f2dab76a4a4aa",
+    "case_result_sha256": "1018fa78b50cd865c37659aca9b0c432c878c4c389e79f21f5d9912b731bc69f",
+    "spc_boundary_report_sha256": "25a6aa3f450d0df10341ef451d79410adb189dc3a031324c7b079f31c587d97e",
+    "original_core_sha256": "dd10bb54dd79cb8f23cf963e37b5161cdb42cafd3a4543950fcd279be6923c09",
+    "native_elf_sha256": "0b7a83998cdad88330c7e19f87e083f58fd558542635417cda422184941d5c41",
+    "usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "seed_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+    "input_sha256": "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52"
+  },
+  "reference": {
+    "first_cc": {
+      "source_cpu_write_clock_h": 312,
+      "source_cpu_beam_v": 119,
+      "smp_tick_age_before": 103322541,
+      "smp_tick_age_after": 103322546,
+      "nominal_cpu_to_spc_tick_request": 2,
+      "actual_spc_ticks_executed": 5,
+      "smp_clock_debt_before": 1,
+      "smp_clock_debt_after": 4,
+      "spc_pc_before": "FFCF",
+      "spc_pc_after": "FFD2",
+      "previous_opcode_before": "D0",
+      "current_opcode_after": "78",
+      "opcode_cycle_before": 0,
+      "opcode_cycle_after": 0,
+      "first_cc_spc_cmp_read_age": 103322554,
+      "first_cc_spc_echo_age": 103322580,
+      "first_cpu_cc_echo_read_age": 103322584,
+      "implication": "The original CPU port store occurs after S9xAPUExecute has completed SPC opcode 78 at the FFCF instruction boundary and advanced PC to FFD2; the currently processed compare sees prior port value."
+    },
+    "original_cpu_cc_writer_samples": 9,
+    "source_smp_execution_contract": "S9xAPUExecute deducts nominal tick budget from smp.clock; SMP::enter calls op_step while clock is negative; executed opcode consumes multiple ticks before the CPU store."
+  },
+  "native": {
+    "first_cc": {
+      "apu_port_clock_at_apply": 103322545,
+      "stored_target_cycle": 103322545,
+      "spc_pc_before_port_apply": "FFCF",
+      "cpu_cycles_left_before_port_apply": 0,
+      "port_queue_head_at_apply": 216658,
+      "port_queue_tail_at_apply": 216659,
+      "first_cc_spc_cmp_read_age": 103322546,
+      "first_cc_spc_echo_age": 103322571,
+      "first_cpu_cc_echo_read_age": 103322575,
+      "implication": "The queued CPU port value is applied when native SPC PC remains at FFCF and cpuCyclesLeft=0; apu_cycle drains port queue before dispatching spc_runOpcode for current SPC instruction, so the next comparator can observe new CC."
+    },
+    "native_cc_port_apply_samples": 7,
+    "native_apu_execution_contract": "apu_cycle first calls apu_drainPortQueue, then if cpuCyclesLeft=0 calls spc_runOpcode; the port reaches SPC ahead of that opcode on this first CC."
+  },
+  "control": {
+    "baseline_run": 38977309694,
+    "baseline_zip_sha256": "f8ee6fbfbc9540179cea65428e298de3c59d4884f801d04a3ffc1c62663d87c8",
+    "independently_compared_original_128k_wram_sha_frames_equal": 78,
+    "independently_compared_native_128k_wram_sha_frames_equal": 78,
+    "original_native_exact_full_wram_samples": 51,
+    "full_wram_samples": 78,
+    "total_original_native_differing_byte_occurrences": 92,
+    "excluded_or_masked_bytes": 0,
+    "source_original_native_zoo_result_relative": [
+      5163,
+      5163,
+      5163
+    ],
+    "source_original_native_bowl_entry_relative": [
+      267,
+      267,
+      267
+    ],
+    "full_8192_byte_earned_sram_pairs_equal": 11,
+    "sound_pointer_7E0063_first_residual_frames": [
+      5040,
+      5045
+    ],
+    "sound_counter_7E0069_residual_frames": [],
+    "stack_7E01ED_to_01F0_residual_unwaived": true
+  },
+  "limitations": {
+    "source_original_native_clock_phase_globally_synchronized": false,
+    "causal_instruction_visibility_difference_for_first_cc_witnessed": true,
+    "shipping_native_source_correct_generalized_port_visibility_rule_proven": false,
+    "any_full_original_gameplay_event_admitted": false,
+    "usa_complete_events_accepted": 0,
+    "dsp_pcm_audio_parity_proven": false,
+    "repeatable_nonregressing_timing_correction_tested": false
+  },
+  "next": "Investigate source-faithful CPU->SPC port visibility tied to actual instruction completion and CPU master/SPC opcode phase, not global +1 queue or cycle-4 read shift. First construct a source-only writer/reader boundary predicate and adversarially replay genuine Zoo and other original events; preserve all 78 unmasked WRAM checkpoints, 13 adjacent $63/$69 sound bytes and 11 earned SRAM snapshots before proposing shipping correction."
+}

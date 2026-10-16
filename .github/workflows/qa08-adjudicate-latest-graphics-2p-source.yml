@@ -6,12 +6,8 @@ name: QA-08 source-pin fresh Windows 2P raster versus original
 # Exact candidate #1641 b8722af: Windows run 38963502076,
 # source/OAM/PPU artifact 12074238115. Immutable ZIP digests below.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - ".github/workflows/qa08-adjudicate-latest-graphics-2p-source.yml"
-      - "tools/qa08_compare_windows_original_twoplayer_sparse.py"
-      - "tests/unit/test_qa08_compare_windows_original_twoplayer_sparse.py"
+  # Source and entire OAM corpora are already SHA-verified and retained;
+  # rerun solely on explicit request, not each independent QA/main commit.
   workflow_dispatch:
 
 permissions:

@@ -1,13 +1,7 @@
 name: QA-08 corrected original/native medal OAM archive adjudication
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - ".github/workflows/qa08-correct-registered-medal-archives.yml"
-      - "tools/qa08_verify_corrected_registered_medal_oam.py"
-      - "tests/unit/test_qa08_verify_corrected_registered_medal_oam.py"
-      - "tools/qa08_original_native_full_oamdma_phase.py"
-      - "tests/unit/test_qa08_original_native_full_oamdma_phase.py"
+  # Source and entire OAM corpora are already SHA-verified and retained;
+  # rerun solely on explicit request, not each independent QA/main commit.
   workflow_dispatch:
 permissions:
   contents: read

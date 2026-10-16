@@ -184,6 +184,20 @@ class NextBowlCampaignVerdictTest(unittest.TestCase):
         self.assertFalse(status["all_sampled_sram_pairs_equal"])
         self.assertTrue(status["all_sampled_named_triplets_equal"])
 
+    def test_bad_earned_record_is_scientific_divergence_not_bad_transport(self):
+        # An actually different result is negative gameplay evidence,
+        # not a malformed producer report or an invented release pass.
+        data = source_fixture()
+        data["zoo_next_bowl_handoff"]["samples"][0]["fresh_guests"][
+            "native"]["source_earned_zoo_best_lap"]["value_word"] = 2520
+        data["zoo_next_bowl_handoff"][
+            "zoo_rank0_2510_and_checksum_preserved_every_sample"] = False
+        case = self.adjudicate(data)
+        self.assertEqual(case["disposition"], "strict_candidate")
+        self.assertEqual(case["evidence"]["next_bowl_bounded"]["status"],
+                         "sampled_progression_divergence")
+        self.assertEqual(case["release_credit"], 0)
+
     def test_missing_observer_cannot_claim_lifecycle_success(self):
         row = self.adjudicate({
             k: v for k, v in source_fixture().items()

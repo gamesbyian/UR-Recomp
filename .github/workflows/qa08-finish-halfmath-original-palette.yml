@@ -1,0 +1,86 @@
+name: QA-08 enumerate finish half-colour math from original palette
+
+# Read-only, archive-only discriminator. The original Snes9x 3683 CGRAM
+# snapshot is not assumed to be scanline-effective at later guests 3792/3872.
+# No Windows build, ROM, emulator, graphics filter, palette patch or clock edit.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/qa08-finish-halfmath-original-palette.yml"
+      - "tools/qa08_finish_brightness_order_from_real_palette.py"
+      - "tests/unit/test_qa08_finish_brightness_order_from_real_palette.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: qa08-finish-halfmath-3683-original-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  math-only:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.number == 1649 }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retain authentic small original PPU register witness
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-cgram"
+          curl --fail --silent --show-error --location --retry 2 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12000438001/zip" \
+            -o "$RUNNER_TEMP/qa08-cgram/original-snes9x-ppu-registers.zip"
+          cd "$RUNNER_TEMP/qa08-cgram"
+          echo "d5e08ad76137c86125f64d52b6d0dc689352375ab536f4c430238f3bc6d6908e  original-snes9x-ppu-registers.zip" | sha256sum -c -
+          mkdir source
+          unzip -q original-snes9x-ppu-registers.zip -d source
+      - name: Run exact old-Snes9x versus native/bsnes stage-order candidate enumeration
+        run: |
+          set -euo pipefail
+          python3 -m unittest tests.unit.test_qa08_finish_brightness_order_from_real_palette
+          python3 tools/qa08_finish_brightness_order_from_real_palette.py \
+            --cgram "$RUNNER_TEMP/qa08-cgram/source/registers/qa08_finish_fade.cgram.bin" \
+            --rare-report "analysis/data/qa08-two-source-isolated-finish-pixels-20261016.json" \
+            --out "$RUNNER_TEMP/qa08-cgram/finish-candidate-palette-order.json"
+          python3 - "$RUNNER_TEMP/qa08-cgram/source/registers/qa08_finish_fade.info.json" "$RUNNER_TEMP/qa08-cgram/finish-candidate-palette-order.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          source=json.load(open(sys.argv[1]))
+          report=json.load(open(sys.argv[2]))
+          assert source["tag"]=="qa08_finish_fade" and source["frame"]==3683
+          assert source["no_colormath"] is False and source["no_clip"] is False
+          assert report["candidate_index_pair_count"]==4
+          assert report["source_original_reference_rgb5_expanded"]==[49,24,0]
+          assert report["source_actual_windows_rgb8"]==[57,24,0]
+          assert report["original_CGRAM_preserved_to_guests_3792_and_3872_proven"] is False
+          with open(sys.argv[3],"a",encoding="utf8") as o:
+              o.write("### Conditional source CGRAM half-colour discriminator\n")
+              o.write("Four candidate BG/OBJ indices from original **3683 snapshot only** reproduce Snes9x brightness-before-half (49,24,0) versus native/bsnes half-before-output (57,24,0) at brightness 7.\n")
+              o.write("Not actual original/Windows effective on-pixel OBJ ownership or exact hardware DAC. Renderer patch forbidden pending native live probe.\n")
+          PY
+      - name: Reject ROM or personal-data members in retained register archive
+        run: |
+          python3 - "$RUNNER_TEMP/qa08-cgram/original-snes9x-ppu-registers.zip" <<'PY'
+          import sys,zipfile
+          with zipfile.ZipFile(sys.argv[1]) as z:
+              names=z.namelist()
+              assert names and len(names)==len(set(names))
+              for name in names:
+                  assert not name.startswith("/") and ".." not in name.split("/")
+                  low=name.lower()
+                  assert not low.endswith((".sfc",".smc",".srm",".sav",".rom",".gb",".nes",".zip"))
+                  assert not any(token in low for token in ("wram.bin","sram.bin","vram.bin","profile.json"))
+          PY
+      - name: Retain original authenticated source PPU archive and small math-only verdict
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-original-ppu-finish-palette-math-90d
+          retention-days: 90
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/qa08-cgram/original-snes9x-ppu-registers.zip
+            ${{ runner.temp }}/qa08-cgram/finish-candidate-palette-order.json

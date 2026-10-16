@@ -114,7 +114,16 @@ partial observations**, **41/45 unverified**. Across all three builds,
   guest record reload](QA01-ZOO-AUTHENTIC-NEXT-BOWL-ENTRY-20261015.md#executed-rf-017-cold-guest-ranked-record-reload-no-windows-durability-2026-10-15)
   preserves all 150 ranked-record values, holders and the Zoo 2510-centisecond
   best-lap/checksum on two fresh Linux research processes, but does not
-  certify actual Windows host-file durability. This remains a paired
+  certify actual Windows host-file durability. One further genuine original/native
+  Zoo [full-race sampled WRAM mesh](../analysis/data/qa01-zoo-fullrace-mesh-executed-20261015.json)
+  (single-source Actions run 38830671735, 0 exclusions) now checks **66**
+  same-race-relative pairs through +5120: **44/66 byte-exact complete
+  128 KiB images**, 24 newly added late-course frames with **zero named-state
+  disagreements**, and only eight unique WRAM difference addresses across
+  the entire sample set. The novel late-race raw discrepancy is **+5040**
+  `7E:0063/0069`, which converges by the next sampled +5100; this has
+  *no established live-read or CPU opcode parity interpretation*, nor does
+  sparse sampling certify intervening unsampled frames. This remains a paired
   **candidate**, not independent complete-event
   acceptance. The precise remaining causal uncertainty and artifact identifiers
   live in [the source-owner crosswalk](../analysis/data/zoo-original-native-sram-restore-source-owner-20261009.json).

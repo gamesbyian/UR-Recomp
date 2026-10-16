@@ -41,6 +41,9 @@ def patch_source(src:str)->str:
         if src.count(MARK)!=1 or src.count(TRACE)!=1:
             raise ValueError("partially staged/untrusted OAM source witness")
         return src
+    # A marker-stripped stale observer must not receive a second trace.
+    if "UR_QA08_WIN_OAM_PORT " in src:
+        raise ValueError("unmarked/tampered preexisting OAM observer")
     if (src.count(ANCHOR)!=1 or
         src.count(old.TRACE)!=1 or old.MARK not in src or
         "case OAMADDL & 0xff:" not in src or

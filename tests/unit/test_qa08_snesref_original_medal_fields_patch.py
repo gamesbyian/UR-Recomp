@@ -63,6 +63,7 @@ class ActualOriginalFieldReceipt(unittest.TestCase):
         self.log=self.root/"original.log"
         lines=[]
         refs=[]
+        self.host_hashes={}
         for frame,tag in verify.CALLBACKS.items():
             raw=bytearray(256*224*4)
             for (x,y),rgb in verify.POINTS[frame].items():
@@ -70,8 +71,20 @@ class ActualOriginalFieldReceipt(unittest.TestCase):
                 raw[i:i+4]=bytes((rgb[2],rgb[1],rgb[0],0))
             path=self.root/"registers"/tag
             (self.root/"frames"/f"frame_{frame:06d}_256x224.raw").write_bytes(raw)
-            path.with_suffix(".fb.bgrx").write_bytes(raw)
-            path.with_suffix(".oam.bin").write_bytes(bytes(544))
+            # Same numbered original callback and host end-field image are
+            # distinct valid source producers, never assumed pixel-identical.
+            host=bytearray(raw)
+            for p in range(verify.HOST_VS_CALLBACK_NONEXACT_PIXELS[frame]):
+                host[p*4]^=1
+            path.with_suffix(".fb.bgrx").write_bytes(host)
+            self.host_hashes[frame]=hashlib.sha256(host).hexdigest()
+            oam=bytearray(544)
+            for slot,tileattr in verify.SOURCE_MEDAL_TILE_ATTR.get(frame,{}).items():
+                attr=int(tileattr[:2],16);tile=int(tileattr[2:],16)
+                y=91 if slot==112 else 115 if slot==113 else 139 if slot==114 else (112 if slot in (96,98) else 88)
+                x=200 if slot in (112,113,114) else 219
+                oam[slot*4:slot*4+4]=bytes((x,y,tile,attr))
+            path.with_suffix(".oam.bin").write_bytes(oam)
             path.with_suffix(".cgram.bin").write_bytes(bytes(512))
             path.with_suffix(".ppuw.tsv").write_bytes(
                 b"#frame\tvcounter\thcounter\taddr\tvalue\tsource\n")
@@ -92,13 +105,24 @@ class ActualOriginalFieldReceipt(unittest.TestCase):
               self.script.read_bytes()).hexdigest(),
             "each_authentic_callback":refs}))
 
+    def accept(self):
+        with patch.dict(verify.HOST_FRAME_SHA256,self.host_hashes):
+            return verify.verify(self.root,self.prev,self.log,self.script)
+
     def test_three_actual_source_frames_and_OAM_slots(self):
-        d=verify.verify(self.root,self.prev,self.log,self.script)
+        d=self.accept()
         self.assertEqual(d["original_unmodified_callback_endfield_count"],3)
         self.assertEqual([f["actual_original_callback"]
                           for f in d["original_unmodified_source_PPU_field_samples"]],
                          [1279,4031,4175])
         self.assertTrue(d["original_snapshot_OAM_is_not_effective_line_OBJ_owner"])
+        self.assertTrue(d["original_host_snapshot_RGB_not_relabelled_as_original_callback"])
+        for row in d["original_unmodified_source_PPU_field_samples"]:
+            f=row["actual_original_callback"]
+            self.assertEqual(row["host_endfield_wrong_pixels_against_same_label_video_callback"],
+                             verify.HOST_VS_CALLBACK_NONEXACT_PIXELS[f])
+            self.assertNotEqual(row["unaltered_video_callback_SHA256"],
+                                row["separate_original_host_endfield_screenshot_SHA256"])
         self.assertFalse(d["original_native_identical_cpu_field_phase_accepted"])
         self.assertFalse(d["physical_windows_7to6_4x_HD_likeness_release_approved"])
 
@@ -106,20 +130,24 @@ class ActualOriginalFieldReceipt(unittest.TestCase):
         p=self.root/"registers/qa08_medal_4031.fb.bgrx"
         original=p.read_bytes()
         p.write_bytes(original[:-1]+bytes((original[-1]^1,)))
-        with self.assertRaisesRegex(ValueError,"original completed-field bitmap"):
-            verify.verify(self.root,self.prev,self.log,self.script)
+        with self.assertRaisesRegex(ValueError,"host screenshot source SHA"):
+            self.accept()
         p.write_bytes(original)
         q=self.root/"registers/qa08_medal_4175.oam.bin"
         q.write_bytes(bytes(543))
         with self.assertRaisesRegex(ValueError,"incomplete original"):
-            verify.verify(self.root,self.prev,self.log,self.script)
+            self.accept()
+
+    def accept_input(self,script):
+        with patch.dict(verify.HOST_FRAME_SHA256,self.host_hashes):
+            return verify.verify(self.root,self.prev,self.log,script)
 
     def test_original_input_and_callback_selection_guard(self):
         with self.assertRaises(ValueError):
-            verify.verify(self.root,self.prev,self.log,self.root/"original.log")
+            self.accept_input(self.root/"original.log")
         self.log.write_text(self.log.read_text()+"\nscript f=4031 dump qa08_medal_4031 fb=256x224 BGRX8888\n")
         with self.assertRaisesRegex(ValueError,"missing/duplicated"):
-            verify.verify(self.root,self.prev,self.log,self.script)
+            self.accept()
 
 if __name__=="__main__":
     unittest.main()

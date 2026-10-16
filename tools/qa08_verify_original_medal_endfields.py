@@ -31,6 +31,22 @@ POINTS={
         (225,120):(206,189,140)},
 }
 SLOTS=(96,97,98,99,112,113,114)
+# Genuine original snesref end-of-field host screenshots at source 1279/4031/4175
+# were produced separately from the authenticated original retro video callbacks.
+# They differ in 216/778/766 pixels. Never relabel either as a video callback.
+HOST_FRAME_SHA256={
+  1279:"a7f5a9f2f14743c0bfb1acbc14f52c274a4f1d9b2c8d756767b3d0ac57504e85",
+  4031:"d1808715289da07846ae9b24fb91520c9c8dd2969325174f5154cf2f2c972659",
+  4175:"653443da0f7302caaee74887adb396b2a2e4a133669c35a70e8c760d718270fa",
+}
+HOST_VS_CALLBACK_NONEXACT_PIXELS={1279:216,4031:778,4175:766}
+# Original OAM bytes at exact corresponding script-field labels.
+SOURCE_MEDAL_TILE_ATTR={
+  4031:{96:"1bcc",97:"1bcc",98:"1be6",99:"1be6",
+        112:"1ba2",113:"1da4",114:"1fa6"},
+  4175:{96:"1bcc",97:"1bcc",98:"1be2",99:"1be2",
+        112:"1ba2",113:"1da4",114:"1fa6"},
+}
 
 def sha(b:bytes)->str:
     return hashlib.sha256(b).hexdigest()
@@ -68,14 +84,20 @@ def verify(root:Path,baseline:Path,original_log:Path,script:Path)->dict:
             info.get("no_colormath") is not False or info.get("no_clip") is not False):
             raise ValueError("real original PPU register/colour state source drift")
         fb=(folder/f"{tag}.fb.bgrx").read_bytes()
-        if len(fb)!=256*224*4 or sha(fb)!=expected_source.get(frame):
-            raise ValueError("original completed-field bitmap differs from independent source")
         raw=(root/"frames"/f"frame_{frame:06d}_256x224.raw").read_bytes()
-        if raw!=fb:
-            raise ValueError("original host-only register dump altered source picture")
+        if len(raw)!=256*224*4 or sha(raw)!=expected_source.get(frame):
+            raise ValueError("actual original video callback differs from independently verified 263-frame reference")
+        if len(fb)!=256*224*4 or sha(fb)!=HOST_FRAME_SHA256[frame]:
+            raise ValueError("actual original post-retro_run host screenshot source SHA differs")
+        nonexact=sum(any(fb[i+j]!=raw[i+j] for j in range(3))
+                     for i in range(0,256*224*4,4))
+        if nonexact!=HOST_VS_CALLBACK_NONEXACT_PIXELS[frame]:
+            raise ValueError("source screenshot versus video callback count differs")
         colors=[]
         for (x,y),expected in POINTS[frame].items():
-            rgb=real_RGB5_BGRX(fb,x,y)
+            # Compare the immutable original *video callback*, not the
+            # separately captured end-of-field snesref host screenshot.
+            rgb=real_RGB5_BGRX(raw,x,y)
             if rgb!=expected:
                 raise ValueError("original source pixel changed at qualified 2P point")
             colors.append({"x":x,"raster_y":y,"original_source_RGB5_expanded":list(rgb)})
@@ -84,11 +106,21 @@ def verify(root:Path,baseline:Path,original_log:Path,script:Path)->dict:
         if len(cgram)!=512 or len(oam)!=544:
             raise ValueError("incomplete original 256 CGRAM slots or 128 OAM records")
         slot_states=[decode(oam,slot) for slot in SLOTS]
+        if frame in SOURCE_MEDAL_TILE_ATTR:
+            for entry in slot_states:
+                slot=entry["slot"]
+                expected=SOURCE_MEDAL_TILE_ATTR[frame][slot]
+                if entry["attr"]+format(entry["tile"],"02x")!=expected or (
+                    entry["large_sprite_bit"]!=0 or entry["OBJ_priority"]!=1):
+                    raise ValueError("actual corresponding original OAM slot tile/priority drift")
         register_event=(folder/f"{tag}.ppuw.tsv").read_bytes()
         if not register_event.startswith(b"#frame\tvcounter\thcounter\taddr\tvalue\tsource\n"):
             raise ValueError("missing actual Snes9x PPU register port writer journal")
         records.append({"actual_original_callback":frame,"tag":tag,
-                        "unaltered_source_fb_SHA256":sha(fb),
+                        "unaltered_video_callback_SHA256":sha(raw),
+                        "separate_original_host_endfield_screenshot_SHA256":sha(fb),
+                        "host_endfield_wrong_pixels_against_same_label_video_callback":nonexact,
+                        "host_screenshot_not_equivalent_to_original_video_callback":True,
                         "unaltered_original_PPU_OAM_544_sha256":sha(oam),
                         "unaltered_original_PPU_CGRAM_512_sha256":sha(cgram),
                         "source_register_JSON_sha256":sha((folder/f"{tag}.regs.json").read_bytes()),
@@ -104,6 +136,8 @@ def verify(root:Path,baseline:Path,original_log:Path,script:Path)->dict:
         "original_unmodified_source_PPU_field_samples":records,
         "no_input_video_guest_or_sprite_mutation":True,
         "original_snapshot_OAM_is_not_effective_line_OBJ_owner":True,
+        "original_host_snapshot_RGB_not_relabelled_as_original_callback":True,
+        "all_original_callback_SHA256_verified_separately":True,
         "original_native_identical_cpu_field_phase_accepted":False,
         "physical_windows_7to6_4x_HD_likeness_release_approved":False,
     }

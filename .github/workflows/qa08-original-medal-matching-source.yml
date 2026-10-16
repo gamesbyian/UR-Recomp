@@ -1,12 +1,10 @@
 name: QA-08 original 2P corresponding cursor and medal fields
+# Historical original Snes9x source was already captured on run 38864201582.
+# Its 263 unchanged source callbacks and all three OAM/CGRAM field dumps
+# survive in artifact 12030581890. Manual reproduction only; no automatic
+# emulator rebuild for docs/test-only amendments. The original end-field
+# framebuffer is a SEPARATE source from original video callback, not equivalent.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - ".github/workflows/qa08-original-medal-matching-source.yml"
-      - "tools/qa08_snesref_original_medal_fields_patch.py"
-      - "tools/qa08_verify_original_medal_endfields.py"
-      - "tests/unit/test_qa08_snesref_original_medal_fields_patch.py"
   workflow_dispatch:
 permissions:
   contents: read
@@ -16,7 +14,6 @@ concurrency:
   cancel-in-progress: true
 jobs:
   matching-original:
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.number == 1649)
     runs-on: ubuntu-22.04
     timeout-minutes: 35
     steps:

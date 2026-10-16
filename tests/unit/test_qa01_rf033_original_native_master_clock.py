@@ -8,7 +8,7 @@ import qa01_rf033_original_native_master_clock as m  # noqa: E402
 
 class SourcePin(unittest.TestCase):
     def test_original_and_native_idempotence(self):
-        original=m.ORIGINAL_OLD
+        original="/* UR_QA01_RF030_IPL_ECHO */\n"+m.ORIGINAL_OLD
         edited=m.patch_original(original)
         self.assertIn("UR_QA01_RF033_MASTER_APU_CLOCK", edited)
         self.assertEqual(m.patch_original(edited),edited)
@@ -26,7 +26,7 @@ class SourcePin(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"RF030"):
             m.patch_original("void S9xAPUWritePort(int port, uint8 byte) {\n}")
         with self.assertRaisesRegex(ValueError,"unrecognized"):
-            m.patch_original(m.ORIGINAL_OLD.replace("SNES::cpu.port_write","OTHER"))
+            m.patch_original(("/* UR_QA01_RF030_IPL_ECHO */\n"+m.ORIGINAL_OLD).replace("SNES::cpu.port_write","OTHER"))
         native="static uint64_t rtl_apu_guest_cycle(void) {\nreturn 0;\n}\n"+m.NATIVE_OLD
         with self.assertRaisesRegex(ValueError,"partial"):
             m.patch_native(m.patch_native(native).replace("while (!apu_schedulePortWrite","while (!anotherFunction"))

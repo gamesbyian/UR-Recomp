@@ -52,10 +52,6 @@ on:
         required: false
         type: boolean
         default: false
-      baldosa_apu_port_after_target_cycle:
-        required: false
-        type: boolean
-        default: false
       qa01_cold_guest_reload:
         required: false
         type: boolean
@@ -132,11 +128,6 @@ on:
         type: boolean
         required: false
         default: false
-      baldosa_apu_port_after_target_cycle:
-        description: "Research-only RF-031 equal-target CPU write after SPC cycle, full original/native Zoo and Bowl with all composite stages"
-        type: boolean
-        required: false
-        default: false
       qa01_cold_guest_reload:
         description: "Opt-in fresh original/native guest reload of source-earned Zoom Zoo ranked record (requires zoom-zoo + source_followthrough)"
         type: boolean
@@ -179,7 +170,6 @@ jobs:
           QA01_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
           QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
           QA01_SPC_INTERRUPT_STAGE: ${{ inputs.baldosa_spc_interrupt_stage }}
-          QA01_RF031: ${{ inputs.baldosa_apu_port_after_target_cycle }}
           QA01_RF015_019: >-
             ${{ inputs.baldosa_refresh_beam_rate && inputs.baldosa_io_clock_order &&
                 inputs.baldosa_spc_reference_rate && inputs.baldosa_dp_pointer_once &&
@@ -216,14 +206,6 @@ jobs:
           # (the frame-clock tool also requires RF-016's clock).
           if [[ "$QA01_SPC_INTERRUPT_STAGE" == "true" && "$QA01_RF015_019" != "true" ]]; then
             echo "baldosa_spc_interrupt_stage needs all five RF-015..019 inputs" >&2
-            exit 1
-          fi
-          if [[ "$QA01_RF031" == "true" &&
-                ( "$SELECTED" != "zoom-zoo" || "$QA01_SPC_INTERRUPT_STAGE" != "true" ||
-                  "$QA01_RF015_019" != "true" || "$QA01_FOLLOWTHROUGH" != "true" ||
-                  "$QA01_NEXT_BOWL" != "true" || "$ZOO_MESH" != "true" ||
-                  "$ZOO_DP_WINDOW" != "true" ) ]]; then
-            echo "RF-031 queue boundary requires full exact original/native Zoo 78-frame/13-sample and true next Bowl" >&2
             exit 1
           fi
           python3 -m unittest discover -s tests/unit -p test_qa01_event_campaign.py
@@ -273,7 +255,6 @@ jobs:
           python3 -m unittest discover -s tests/unit -p test_qa01_zoo_dp_window.py
           python3 -m unittest discover -s tests/unit -p test_qa01_cold_result_record.py
           python3 -m unittest discover -s tests/unit -p test_qa01_postresult_sram_diff.py
-          python3 -m unittest discover -s tests/unit -p test_baldosa_apu_port_after_target_cycle_patch.py
           python3 -m unittest discover -s tests/unit -p 'test_baldosa_spc_*_patch.py'
           python3 -m unittest discover -s tests/unit -p test_baldosa_interrupt_entry_cost_patch.py
       - name: Build original Snes9x/snesref and research native exactly once
@@ -338,10 +319,6 @@ jobs:
             python3 tools/baldosa_spc_frame_clock_patch.py --game baldosa
             python3 tools/baldosa_spc_bus_cycle_patch.py --game baldosa
             python3 tools/baldosa_interrupt_entry_cost_patch.py --game baldosa
-          fi
-          # RF-031 is a disposable SOURCE A/B, not production or a timing waiver.
-          if [[ "${{ inputs.baldosa_apu_port_after_target_cycle }}" == "true" ]]; then
-            python3 tools/baldosa_apu_port_after_target_cycle_patch.py --game baldosa
           fi
           cmake -S baldosa -B baldosa/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \

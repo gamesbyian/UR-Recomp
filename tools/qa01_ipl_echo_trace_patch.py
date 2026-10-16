@@ -51,8 +51,8 @@ READ_NEW = """uint8 SMP::op_read(uint16 addr) {
     if (ur_qa01_rf030_original_window()) {
       if (ur_qa01_rf030_spc_records++ < 2000)
         fprintf(stderr, "QA01IPLORIG side=spc kind=read frame=0 v=%u h=%d age=%llu pc=%04X op=%02X value=%02X ipl=%u\\n",
-                (unsigned)CPU.V_Counter,
-                (int)CPU.Cycles, (unsigned long long)ur_qa01_rf030_spc_age,
+                (unsigned)::CPU.V_Counter,
+                (int)::CPU.Cycles, (unsigned long long)ur_qa01_rf030_spc_age,
                 (unsigned)regs.pc, (unsigned)opcode_number,
                 (unsigned)observed, (unsigned)status.iplrom_enable);
       else if (ur_qa01_rf030_spc_records == 2001)
@@ -75,8 +75,8 @@ WRITE_NEW = """void SMP::op_write(uint16 addr, uint8 data) {
   if (addr == 0xf4 && ur_qa01_rf030_original_window()) {
     if (ur_qa01_rf030_spc_records++ < 2000)
       fprintf(stderr, "QA01IPLORIG side=spc kind=echo frame=0 v=%u h=%d age=%llu pc=%04X op=%02X value=%02X ipl=%u\\n",
-              (unsigned)CPU.V_Counter,
-              (int)CPU.Cycles, (unsigned long long)ur_qa01_rf030_spc_age,
+              (unsigned)::CPU.V_Counter,
+              (int)::CPU.Cycles, (unsigned long long)ur_qa01_rf030_spc_age,
               (unsigned)regs.pc, (unsigned)opcode_number,
               (unsigned)data, (unsigned)status.iplrom_enable);
     else if (ur_qa01_rf030_spc_records == 2001)
@@ -105,7 +105,7 @@ CPU_READ_NEW = """uint8 S9xAPUReadPort(int port)
         static unsigned n = 0;
         if (n++ < 2000)
             fprintf(stderr, "QA01IPLORIG side=cpu kind=poll frame=0 v=%u h=%d age=%llu pc=0000 op=00 value=%02X ipl=0\\n",
-                    (unsigned)CPU.V_Counter, (int)CPU.Cycles,
+                    (unsigned)::CPU.V_Counter, (int)::CPU.Cycles,
                     (unsigned long long)SNES::ur_qa01_rf030_spc_age, (unsigned)observed);
         else if (n == 2001) fprintf(stderr, "QA01IPLORIG_CPU_TRUNCATED\\n");
     }
@@ -126,7 +126,7 @@ CPU_WRITE_NEW = """void S9xAPUWritePort(int port, uint8 byte)
         static unsigned n = 0;
         if (n++ < 2000)
             fprintf(stderr, "QA01IPLORIG side=cpu kind=write frame=0 v=%u h=%d age=%llu pc=0000 op=00 value=%02X ipl=0\\n",
-                    (unsigned)CPU.V_Counter, (int)CPU.Cycles,
+                    (unsigned)::CPU.V_Counter, (int)::CPU.Cycles,
                     (unsigned long long)SNES::ur_qa01_rf030_spc_age, (unsigned)byte);
         else if (n == 2001) fprintf(stderr, "QA01IPLORIG_CPU_TRUNCATED\\n");
     }

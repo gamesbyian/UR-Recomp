@@ -1,0 +1,184 @@
+{
+  "schema": "UR-RF029-IPLCMP-ZOO-SOURCE-ORIGINAL-NATIVE-AB/1",
+  "date_utc": "2026-10-16",
+  "experiment": {
+    "hypothesis": "Shift only IPL CMP $F4,#$CC port sample from RF026 opcode cycle 5 to cycle 4 at SPC PC FFCF; same 5 total SPC cycles",
+    "source": "snes9xgit/snes9x@1bcc369e89f08243e0a462882fb1f3e42e51de3a",
+    "baldosa_game_pin": "10b864b9d14a7b7416dd909eb7b054c88faef101",
+    "baldosa_framework_pin": "075fbe4c8e0d97b0013be541795c39cb644a9709",
+    "rf029_branch_source_sha": "1c59ae63b216d708f25e18361a7ad2b595fada60",
+    "production_promoted": false,
+    "temporary_one_shot_workflow_retired": true
+  },
+  "original_input": {
+    "usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_2014_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "source_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+    "source_controller_window_sha256": "7b03f40e3401d844c16c7c4e1cc7375e5419f33882793c8187dcebc88dbc8c93",
+    "extended_script_sha256": "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52",
+    "input_shift_applied": 0,
+    "masked_wram_bytes": 0
+  },
+  "cases": {
+    "baseline": {
+      "run_id": 38884542449,
+      "artifact_id": 12039022609,
+      "artifact_zip_sha256": "21c28cd711519e150ce10e2753dc2d29b6e3eac1004b03d34683c3e03613c718",
+      "producer_report_sha256": "cb8907da0f1eb925912388ebd5b656452709808b7c94e8f8ebcc368d09d96c3d",
+      "native_elf_sha256": "9a3bd17afd8377a4c83e76c05cd57dfdae2488e498aa4bea1b90a2baa018bb48",
+      "original_snes9x_core_sha256": "ec4ce30d80e0b2c22b5d700aec01d601bd85db452ccb8e2b32fa75e9fe63554a",
+      "sampled_full_wram_exact": 51,
+      "sampled_full_wram_differing_byte_occurrences": 92,
+      "disposition": "strict_candidate"
+    },
+    "treatment": {
+      "run_id": 38961077234,
+      "artifact_id": 12073346907,
+      "artifact_zip_sha256": "4202c6f9f328a26a13e936069756609a429879d5309111284f1b660acb333735",
+      "producer_report_sha256": "c5166cf752d75b71a2c9b2adc4a78ece41ace9f893af25750450080dff36f9cb",
+      "native_elf_sha256": "1f228fc4bbb838379dda4d4d11bad4519e3769782966265fd69681fe608b0ad8",
+      "original_snes9x_core_sha256": "fe8d37b5b3760950fc05ec002a963181ff351a98e19f4447d620577b85d6d396",
+      "sampled_full_wram_exact": 46,
+      "sampled_full_wram_differing_byte_occurrences": 104,
+      "disposition": "strict_candidate"
+    }
+  },
+  "independent_ab_crosswalk": {
+    "every_one_of_78_original_full_wram_sha256_pair_matches": true,
+    "original_reference_core_binaries_identical": false,
+    "only_native_changed_guest_relative_frames": [
+      5040,
+      5041,
+      5042,
+      5043,
+      5044,
+      5045,
+      5046
+    ],
+    "per_changed_frame_unmasked_full_wram_differing_byte_count": [
+      {
+        "f": 5040,
+        "baseline": 1,
+        "treatment": 2
+      },
+      {
+        "f": 5041,
+        "baseline": 0,
+        "treatment": 2
+      },
+      {
+        "f": 5042,
+        "baseline": 0,
+        "treatment": 2
+      },
+      {
+        "f": 5043,
+        "baseline": 0,
+        "treatment": 2
+      },
+      {
+        "f": 5044,
+        "baseline": 0,
+        "treatment": 2
+      },
+      {
+        "f": 5045,
+        "baseline": 1,
+        "treatment": 2
+      },
+      {
+        "f": 5046,
+        "baseline": 0,
+        "treatment": 2
+      }
+    ],
+    "any_controller_or_original_reference_state_changed": false
+  },
+  "sampled_sound_window": {
+    "frames_inclusive": [
+      5034,
+      5046
+    ],
+    "sample_count": 13,
+    "byte_labels": {
+      "0063": "wSndDataPtr low byte",
+      "0069": "wSndXferCounter"
+    },
+    "full_128k_equal_at_5039": true,
+    "baseline_0069_equal_at_all_13": true,
+    "baseline_0063_difference_frames": [
+      5040,
+      5045
+    ],
+    "treatment_0063_difference_frames": [
+      5040,
+      5041,
+      5042,
+      5043,
+      5044,
+      5045,
+      5046
+    ],
+    "treatment_0069_difference_frames": [
+      5040,
+      5041,
+      5042,
+      5043,
+      5044,
+      5045,
+      5046
+    ],
+    "treatment_at_5040": {
+      "original_0063_hex": "73",
+      "native_0063_hex": "75",
+      "original_0069_hex": "BE",
+      "native_0069_hex": "BF"
+    }
+  },
+  "intact_positive_gates": {
+    "original_movie_zoo_entry_frame": 3190,
+    "original_movie_zoo_result_frame": 8353,
+    "original_and_native_entry_hosts": [
+      1017,
+      1017
+    ],
+    "original_and_native_relative_result": [
+      5163,
+      5163
+    ],
+    "source_original_native_next_bowl_from_zoo_result": [
+      267,
+      267,
+      267
+    ],
+    "fresh_reference_and_native_next_bowl_host": [
+      6447,
+      6447
+    ],
+    "all_eleven_full_8192_byte_sram_pairs_equal": true,
+    "all_eleven_named_states_equal": true,
+    "full_128k_wram_pairs_equal_in_eleven_handoff_samples": 9,
+    "remaining_stack_byte_differences": {
+      "next_bowl_offsets": [
+        266,
+        280
+      ],
+      "snes_addresses": [
+        "7E:01ED",
+        "7E:01EE",
+        "7E:01EF",
+        "7E:01F0"
+      ],
+      "four_per_offset": true
+    },
+    "earned_ranked_lap_centiseconds": 2510
+  },
+  "disposition": {
+    "rf029_source_treatment": "rejected_for_gameplay_parity",
+    "cause_attribution": "targeted phase treatment changed only the seven intended native observed frames and worsened sound pointer/counter, but exact running CPU/SPC PC and echo handshake remain to be verified before another fix",
+    "all_guest_logic_ticks_proven": false,
+    "cold_windows_disk_persistence_proven": false,
+    "live_stack_consumers_proven": false,
+    "usa_complete_event_acceptances": 0
+  }
+}

@@ -50,10 +50,10 @@ class PinTests(unittest.TestCase):
             self.assertNotIn("snes_frame_counter =", stage)
             self.assertNotIn("apu->portClock =", stage)
         core = m.patch_original_core(CORE)
-        self.assertIn("ur_qa01_rf030_spc_age >= 103300000ull", core)
+        self.assertIn("ur_qa01_rf030_spc_age >= 103322420ull", core)
         native = m.patch_native_apu(NATIVE_APU)
-        self.assertIn("apu->portClock < 103300000ull", native)
-        self.assertIn("apu->portClock > 103345000ull", native)
+        self.assertIn("apu->portClock < 103322420ull", native)
+        self.assertIn("apu->portClock > 103323100ull", native)
 
     def test_no_observer_in_windows_product_workflow(self):
         source = (ROOT / ".github/workflows/baldosa-windows-native-bridge.yml").read_text()

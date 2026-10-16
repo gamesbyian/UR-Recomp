@@ -13,7 +13,8 @@ sys.path.insert(0, str(ROOT / "tools"))
 import qa01_event_campaign as c
 
 
-def source_fixture(*, early_native: bool = False, changed_sram: bool = False) -> dict:
+def source_fixture(*, early_native: bool = False, changed_sram: bool = False,
+                   wram_only_residual: bool = False) -> dict:
     """Two independent clocks, real source 267 bracket, synthetic 11-frame memory."""
     if early_native:
         changed_sram = True
@@ -67,7 +68,8 @@ def source_fixture(*, early_native: bool = False, changed_sram: bool = False) ->
         native = copy.deepcopy(original)
         native["actual_host_frame"] = 1019 + 5163 + offset
         native["in_race"] = int(offset >= (265 if early_native else 267))
-        if early_native and offset in (265, 266):
+        if (early_native and offset in (265, 266)) or (
+                wram_only_residual and offset in (266, 267, 280)):
             native["wram_sha256"] = "b" * 64
         if changed_sram:
             native["sram_sha256"] = "b" * 64
@@ -80,7 +82,8 @@ def source_fixture(*, early_native: bool = False, changed_sram: bool = False) ->
             "original_native_full_wram_byte_difference": {
                 "full_wram_bytes_per_guest": 131072,
                 "every_byte_compared": True, "excluded_byte_count": 0,
-                "differing_byte_count": 0 if raw_equal else 1,
+                "differing_byte_count": (0 if raw_equal else
+                                         4 if wram_only_residual else 1),
                 "byte_exact": raw_equal,
                 "original_wram_sha256": original["wram_sha256"],
                 "native_wram_sha256": native["wram_sha256"],
@@ -123,7 +126,8 @@ def source_fixture(*, early_native: bool = False, changed_sram: bool = False) ->
         "fresh_native_entry_bracket": bracket(nat_offset),
         "all_triplet_named_states_equal": not early_native,
         "all_original_native_full_sram_pairs_equal": not changed_sram,
-        "all_original_native_full_wram_pairs_equal": not early_native,
+        "all_original_native_full_wram_pairs_equal": (
+            not early_native and not wram_only_residual),
         "next_bowl_entry_triple_equal": not early_native,
         "zoo_rank0_2510_and_checksum_preserved_every_sample": True,
         "full_event_guest_logic_tick_equivalence_proven": False,
@@ -152,11 +156,39 @@ class NextBowlCampaignVerdictTest(unittest.TestCase):
         bounded = case["evidence"]["next_bowl_bounded"]
         self.assertEqual(bounded["status"], "bounded_source_handoff_agreement")
         self.assertEqual(bounded["samples"], 11)
+        self.assertTrue(bounded["all_sampled_full_wram_pairs_equal"])
+        self.assertEqual(bounded["raw_wram_differing_sample_offsets"], [])
+        self.assertEqual(bounded["raw_wram_differing_byte_occurrences"], 0)
         self.assertEqual([bounded[k] for k in ("source_entry_offset",
                                                "fresh_original_entry_offset",
                                                "fresh_native_entry_offset")],
                          [267, 267, 267])
         self.assertEqual(case["release_credit"], 0)
+
+    def test_genuine_raw_wram_residual_never_disappears_behind_named_match(self):
+        # Two authentic RF-018-off baseline runs have exactly these three
+        # raw-different samples (+266/+267/+280), 12 byte occurrences total,
+        # despite equal named states, SRAM and +267 next-Bowl entry.
+        case = self.adjudicate(source_fixture(wram_only_residual=True))
+        self.assertEqual(case["disposition"], "strict_candidate")
+        bounded = case["evidence"]["next_bowl_bounded"]
+        self.assertEqual(bounded["status"], "bounded_source_handoff_agreement")
+        self.assertFalse(bounded["all_sampled_full_wram_pairs_equal"])
+        self.assertTrue(bounded["all_sampled_sram_pairs_equal"])
+        self.assertEqual(bounded["raw_wram_differing_sample_offsets"],
+                         [266, 267, 280])
+        self.assertEqual(bounded["raw_wram_differing_byte_occurrences"], 12)
+        self.assertIn("unmasked 128KiB WRAM residual", case["reason"])
+        self.assertIn("not waived", case["reason"])
+        self.assertEqual(case["release_credit"], 0)
+        folder = self.root / "qa01-campaign-case-zoom-zoo"
+        c.write_json(folder / "case-result.json", case)
+        report, summary = c.aggregate(self.plan, self.root)
+        self.assertTrue(report["transport_complete"])
+        self.assertEqual(report["bounded_next_bowl_unmasked_wram_residual_cases"], 1)
+        self.assertEqual(report["bounded_next_bowl_progression_divergences"], 0)
+        self.assertIn("unmasked 128KiB WRAM residuals: 1", summary)
+        self.assertEqual(report["release_admissions"], 0)
 
     def test_authentic_negative_same_absolute_host_cannot_hide_relative_lead(self):
         case = self.adjudicate(source_fixture(early_native=True))
@@ -166,6 +198,9 @@ class NextBowlCampaignVerdictTest(unittest.TestCase):
         self.assertEqual(status["fresh_native_entry_offset"], 265)
         self.assertEqual(status["source_entry_offset"], 267)
         self.assertEqual(status["first_sampled_progression_difference_offset"], 259)
+        self.assertFalse(status["all_sampled_full_wram_pairs_equal"])
+        self.assertEqual(status["raw_wram_differing_sample_offsets"], [265, 266])
+        self.assertEqual(status["raw_wram_differing_byte_occurrences"], 2)
         self.assertIn("post-result lifecycle BLOCKED", case["reason"])
         self.assertEqual(case["release_credit"], 0)
         folder = self.root / "qa01-campaign-case-zoom-zoo"
@@ -207,6 +242,10 @@ class NextBowlCampaignVerdictTest(unittest.TestCase):
             "source_active_frames_to_result": 5163}})
         self.assertEqual(row["evidence"]["next_bowl_bounded"]["status"],
                          "not_observed")
+        self.assertIsNone(row["evidence"]["next_bowl_bounded"][
+            "all_sampled_full_wram_pairs_equal"])
+        self.assertEqual(row["evidence"]["next_bowl_bounded"][
+            "raw_wram_differing_byte_occurrences"], 0)
         self.assertEqual(row["release_credit"], 0)
 
     def test_mismatched_source_and_guests_are_producer_errors(self):
@@ -243,6 +282,18 @@ class NextBowlCampaignVerdictTest(unittest.TestCase):
                 result = self.adjudicate(record)
                 self.assertEqual(result["disposition"], "producer_error")
                 self.assertEqual(result["release_credit"], 0)
+
+    def test_aggregate_rejects_forged_raw_wram_summary(self):
+        case = self.adjudicate(source_fixture(wram_only_residual=True))
+        folder = self.root / "qa01-campaign-case-zoom-zoo"
+        forged = copy.deepcopy(case)
+        forged["evidence"]["next_bowl_bounded"][
+            "raw_wram_differing_byte_occurrences"] = 0
+        c.write_json(folder / "case-result.json", forged)
+        summary, _ = c.aggregate(self.plan, self.root)
+        self.assertFalse(summary["transport_complete"])
+        self.assertEqual(summary["counts"]["missing_evidence"], 1)
+        self.assertEqual(summary["release_admissions"], 0)
 
     def test_aggregate_rejects_forged_source_handoff_promotion(self):
         case = self.adjudicate(source_fixture(early_native=True))

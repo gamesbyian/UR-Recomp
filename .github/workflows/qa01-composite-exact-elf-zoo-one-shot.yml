@@ -28,9 +28,9 @@ jobs:
         with:
           repository: gamesbyian/UR-Recomp
           run-id: 38879846733
-          github-token: \${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           name: qa01-campaign-reference-and-native-binaries
-          path: \${{ runner.temp }}/qa01-exact-composite
+          path: ${{ runner.temp }}/qa01-exact-composite
       - name: Verify source binaries and runtime dependencies
         shell: bash
         run: |
@@ -128,7 +128,7 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
           path: |
-            \${{ runner.temp }}/qa01-exact-zoo/plan.json
-            \${{ runner.temp }}/qa01-exact-zoo/case-result.json
-            \${{ runner.temp }}/qa01-exact-zoo/producer-report.json
-            \${{ runner.temp }}/qa01-exact-zoo/producer.log
+            ${{ runner.temp }}/qa01-exact-zoo/plan.json
+            ${{ runner.temp }}/qa01-exact-zoo/case-result.json
+            ${{ runner.temp }}/qa01-exact-zoo/producer-report.json
+            ${{ runner.temp }}/qa01-exact-zoo/producer.log

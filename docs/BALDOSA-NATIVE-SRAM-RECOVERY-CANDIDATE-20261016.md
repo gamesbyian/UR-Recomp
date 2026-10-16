@@ -44,7 +44,15 @@ a process abort or power failure between distinct file publications.
    new typed` means the typed step completed, so archive and remove intent
    without publishing another generation. Every other combination refuses
    mutation. Repeated cold boots must be stable.
-4. Archive files contain a read-only exact old/new typed receipt under the
+4. Archive filenames include the exact intent content digest, not just
+generations: a later legitimate new attempt after a discarded or explicitly
+rolled-back intent may reuse the same old/new generation numbers and must not
+overwrite or be blocked by the prior receipt. The raw write interruption
+with a valid pending intent can be explicitly rolled back to the committed
+typed snapshot only after archiving the partial raw bytes *and* that intent;
+automatic replay still refuses unknown or partial raw SRAM.
+
+Archive files contain a read-only exact old/new typed receipt under the
    existing profile directory and are **never a load source**. Neither
    journal nor archive introduces a second save, progression oracle, or
    Records namespace. The active save remains the canonical `save.srm` plus
@@ -76,6 +84,12 @@ two opt-in choices under existing selector/catalog/profile OS locks:
   short, and the full committed typed profile first, then atomically replace
   only canonical raw `save.srm` with its last committed 8192 bytes.
 
+An existing valid pending intent additionally authorizes **only** explicit
+restoration of the exact still-committed typed profile, never promotion of
+partially written guest bytes. Both the entire interrupted raw and the
+exact pending intent are archived before raw replacement; then the pending
+intent can be retired under its original three OS locks.
+
 Both require the expected currently selected catalogued racer, matching
 racer identity, unchanged typed state, no pending current-format journal and
 a separately explicit choice. Never infer choice from an interrupted event,
@@ -100,7 +114,7 @@ controller-accessible player choice remains required before closure.
 | Valid intent; old raw + old typed | Retire abandoned intent | Keep old committed pair |
 | Valid intent; new raw + old typed | Archive before/after, CAS next typed, retire intent | Preserve source-written 8 KiB raw and old/new typed receipt |
 | Valid intent; new raw + new typed | Archive and retire intent | No duplicate generation |
-| Valid intent; missing/short/foreign raw | Refuse | Keep original/foreign bytes |
+| Valid intent; missing/short/foreign raw | Automatic replay refuses; explicit archived rollback to matching committed typed only | Keep full interrupted raw and intent receipts before repair |
 | Malformed intent or missing/corrupt typed | Refuse | No reset/guess |
 | Stale selector/catalog/profile or lock unavailable | Refuse | No write |
 | Healthy alternate explicitly chosen while current is damaged | Validate destination fully, publish selector only | Damaged raw/typed/roster unchanged |

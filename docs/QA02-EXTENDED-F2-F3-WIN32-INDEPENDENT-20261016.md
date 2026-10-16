@@ -1,0 +1,32 @@
+# QA-02: exact 87-member real Win32 F2/F3 byte requalification and flat-export mismatch
+
+**2026-10-16 | Independent QA | Positive bounded original Windows crash subtests, one concrete producer/consumer negative, zero full release gate credit.** Source Windows [workflow 38972118963](https://github.com/gamesbyian/UR-Recomp/actions/runs/38972118963) checked out immutable PR merge **`f72231c121bfceddb09a38fe70b66efa22db0e74`** (parents main `cf523a1f` and Modern branch `31bb6ba6`). Do **not** treat this as current changing PR #1713 tip or the still-nominated negative source `11501a15`. [Machine receipt](../analysis/evidence/qa02-f72231c-extended-win32-independent-20261016.json) contains the seven complete original Actions envelope IDs, hashes and checked distinctions.
+
+## Exact original Windows artifact identity
+
+QA independently downloaded, rehashed and CRC-checked seven source-original GitHub ZIPs, including original **87-file** fault ZIP `12077354442` full SHA256 **`fa8e985753d7fca6e189ffaf9e7881dd48b2f8a2198421f1516ddc2e14a39a04`**, binding `12077199888`, and ROM-free packaged Windows `12077024951`. The actual inner portable ZIP is SHA256 **`bfb918a9d9a33210440ec973b65ba120eb2c5bd177e3b6f20ebc1d514ac6a690`**, actual PE32+ AMD64 executable SHA256 **`6eebe419b178576de772652a521b791d41d88ade3a207e7fba18d9b97e23c632`**, same executable reported by 13/13 completed hosted Win32 original guest journeys. No ROM in package. Logs explicitly show zero physical joysticks and SDL dummy/disabled audio.
+
+These seven original ZIPs are now preserved *unchanged* through [retention run 38974753177](https://github.com/gamesbyian/UR-Recomp/actions/runs/38974753177), artifact **12078457042**, new outer SHA256 **`67d22499d84aa43ebcb334e3b530e2cc99a8f2514e2acf0c7ce4dfdf9671a96b`**, expires **January 14, 2027**. QA downloaded this **new** wrapper, independently verified seven entire original byte streams and their individual SHA256s against earlier source downloads, checked **190/190 nested original ZIP members' CRC**, and distinguished the new retention envelope SHA from each original source artifact's SHA. An independent owner-private copy was also verified after upload and full download. No large original artifact or private locator committed.
+
+## Complete second cold-boot snapshots now actually checked
+
+The actual Windows guest again reached frame **1952**, wrote **28 changed bytes** in an 8,192-byte raw SRAM image and executed both bounded process-crash cuts:
+
+- **F2, Exit(86) after raw and before typed commit:** typed is generation 1 at crash; prewrite intent embeds complete old/new typed files and recovered immutable receipt matches exact intent; first cold process reconciles generation 2. Crucially, **all four second-cold raw/typed/selector/catalog complete exported binaries** have now been independently hashed and compared byte-for-byte against their respective first recovered images. No duplicate typed generation or global selector/catalog mutation.
+- **F3, Exit(87) after typed commit but before intent retirement:** typed is already generation 2 at crash, with complete guest SRAM matching raw and intent still outstanding; first cold reconciliation does not change committed typed/raw. Again, **four independently exported second cold-boot canonical binaries** match the first recovered state exactly. The old and new image bytes are the same as the original nominated negative raw-crash boundary, with the same versioned **33,094-byte** intent SHA256 `5e32c9dfcef38c0dc75db4a7696041f1381f7e93da4f7f68bf796a173d98435e`.
+
+This is a real *process exit at a known save boundary* using the genuine hosted Windows executable; it is not a real hard-power cut or OS disk-full test.
+
+## The 513-byte partial raw experiment is independently inspectable, but synthetic
+
+The producer now exports every one of the **13** corresponding exact binary objects, all independently SHA256/length checked against `hashes.json`. The synthetic 513-byte truncation is precisely the **first 513 bytes of the genuine source-authored 8,192-byte guest raw image**. The archived interrupted raw, old typed, intent and restore state are separately present. New actual Windows processes refuse implicit recovery, perform an explicit typed rollback and cold-boot the old raw/typed SRAM, with subsequent snapshots matching the old committed bytes.
+
+**Classification:** a source-correct *injected fixture corruption with authentic Windows executable recovery*, not actual NTFS interrupted write, denied file publication, disk-full event, hardware reset or proven power-loss durability.
+
+## Flat QA source envelope defect: separately verified negative
+
+Inside the same good **87-member source-original archive**, Modern producer emits an optional **18-member** `native_intent_restart_recovery/qa02-journaled-snapshot.zip`, SHA256 `27e36849adec110201dcc04efd0787e4f23f9e56577d89f8bf3f42187bff8a18`. It folds `intent` into the four-label `file-receipt.json` and omits a standalone `intent-receipt.json`. But the *merged independent* `tools/check_qa02_win32_fault_snapshots.py` **requires exactly 19 members**, a four-label `file-receipt.json` and separate `intent-receipt.json`. The flat ZIP does **not** satisfy the independently owned contract, despite product self-check success. Modern owner [#1713](https://github.com/gamesbyian/UR-Recomp/pull/1713) has the exact fault report and minimal handoff: fix only the optional flat export, do not weaken the independent consumer; the original 87-member ZIP already has the correctly separated receipt.
+
+## Gate boundary
+
+Source-pinned F2 and F3 Windows crash subtests are **positive**. The optional flat source QA export is **negative**. QA-02 full gate remains **in_progress** on the fixed historical negative nominated candidate, until a settled Modern owner fix is merged and an **exact new merged-main PE/ZIP** is independently nominated. Still unverified: real human-operated packaged R/T/S/Q, actual two-profile source-original post-raw crash with healthy alternate rescue, real OS denied/partial/disk-full I/O, full concurrent storage fault restoration, physical two-controller/audio/display, actual power loss, and the complete original/native USA 45-event programme. The sole authority [RELEASE-QUALITY-LEDGER.json](RELEASE-QUALITY-LEDGER.json) remains **0/12 completed release QA gates, 0/45 complete original/native events**. No release-ready or physical-hardware claims are licensed by these archives.

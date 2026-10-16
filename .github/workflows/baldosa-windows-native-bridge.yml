@@ -10,6 +10,8 @@ on:
       - ".github/workflows/baldosa-windows-native-bridge.yml"
       - "tools/baldosa_windows_native_pause_route.py"
       - "tools/qa02_exact_owner_win32_seam.py"
+      - "tools/qa02_nominated_windows_readonly.py"
+      - "tests/unit/test_qa02_nominated_windows_readonly.py"
       - "tools/run_baldosa_parallel_windows_journeys.py"
       - "tests/unit/test_run_baldosa_parallel_windows_journeys.py"
       - "tools/baldosa_native_1p_records_probe.py"
@@ -365,6 +367,42 @@ jobs:
         with:
           name: qa02-original-nominated-win32-crash-byte-seam
           path: ${{ runner.temp }}/qa02-original-candidate-crash/run/native_post_raw_pre_typed_crash/seam/
+          if-no-files-found: warn
+          retention-days: 14
+
+      # Independent QA-02 readonly-attribute negative on the SAME previously nominated
+      # game executable. Only the local fixture comes from this PR checkout;
+      # no second candidate, change to shipping code or fresh release artifact.
+      - name: Retrieve original immutable Windows owner ZIP for read-only storage fault
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-exact-owner-readonly-write-fault-20261016' }}
+        uses: actions/download-artifact@v4
+        with:
+          repository: ${{ github.repository }}
+          run-id: 38828519791
+          artifact-ids: 12016101293
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/qa02-readonly-original-owner
+
+      - name: Test original Windows EXE against verified deny-write profile-directory ACL
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-exact-owner-readonly-write-fault-20261016' }}
+        run: |
+          set -euo pipefail
+          python tools/qa02_nominated_windows_readonly.py \
+            --fault acl-denied-directory \
+            --retained "$RUNNER_TEMP/qa02-readonly-original-owner" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --script "baldosa/tests/routes/race_2p_split.txt" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --out "$RUNNER_TEMP/qa02-acl-original-exe"
+          echo "One real Windows OS ACL-denied profile save and cold-relaunch check. No disk-full, power-cut, user-visible failure or release-gate credit." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain isolated Windows ACL-denied file snapshots even on test failure
+        if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-exact-owner-readonly-write-fault-20261016' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa02-nominated-win32-acl-denied-storage-snapshots
+          path: ${{ runner.temp }}/qa02-acl-original-exe/denied-profile-acl/evidence/
           if-no-files-found: warn
           retention-days: 14
 

@@ -1633,8 +1633,20 @@ def run_native_journaled_b_crash_then_a_isolation(
         not pending.is_file() or pending.is_symlink()):
         raise ValueError("Journaled source B crash not isolated to raw and intent")
     intent = pending.read_bytes()
-    if len(intent) != 33094:
-        raise ValueError("Selected B durable intent is not complete old/new typed")
+    marker = b"UR-BALDOSA-NATIVE-SRAM-INTENT/1\n"
+    if not intent.startswith(marker) or len(intent) > 100_000:
+        raise ValueError("Selected B durable intent lacks canonical version/frame")
+    parts = intent[len(marker):].split(b"\n", 2)
+    if (len(parts) != 3 or not all(p.isdigit() for p in parts[:2]) or
+        any(len(p) > 8 for p in parts[:2])):
+        raise ValueError("Selected B durable intent lacks bounded old/new lengths")
+    old_len, new_len = int(parts[0]), int(parts[1])
+    if (old_len != len(crashed["b-typed"]) or
+        new_len <= 0 or new_len > 65_536 or
+        len(parts[2]) != old_len + new_len or
+        parts[2][:old_len] != crashed["b-typed"]):
+        raise ValueError("B prewrite intent does not contain exact old typed profile")
+    intended_next_typed = parts[2][old_len:]
     rc, recon_log = launch("first-b-cold-recovery")
     if (rc != 0 or recon_log.count(
             "UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED exact_staged_guest_sram=1 no_records=1") != 1):
@@ -1642,7 +1654,8 @@ def run_native_journaled_b_crash_then_a_isolation(
     verify_named_profile_boot_bytes(
         recon_log, crashed["b-raw"], profile_id="native-ci-second")
     recovered = {name: path.read_bytes() for name, path in files.items()}
-    if (recovered["b-raw"] != crashed["b-raw"] or
+    if (recovered["b-typed"] != intended_next_typed or
+        recovered["b-raw"] != crashed["b-raw"] or
         recovered["b-typed"] == crashed["b-typed"] or
         any(recovered[k] != crashed[k] for k in files if
             k not in ("b-raw", "b-typed")) or pending.exists()):

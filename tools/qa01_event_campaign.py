@@ -430,8 +430,9 @@ def classify_zoo_next_bowl(report: dict, event: dict, frames: dict) -> dict:
                     or any(not isinstance(current.get(k), str)
                            or not HEX256.fullmatch(current[k])
                            for k in ("wram_sha256", "sram_sha256"))
-                    or current.get("source_earned_zoo_best_lap") !=
-                    {"rank": 0, "value_word": 2510, "holder_index": 0}
+                    or not isinstance(current.get("source_earned_zoo_best_lap"), dict)
+                    or any(type(current["source_earned_zoo_best_lap"].get(k)) is not int
+                           for k in ("rank", "value_word", "holder_index"))
                     or type(current.get("record_checksum_stored")) is not int
                     or type(current.get("record_checksum_calculated")) is not int
                     or current.get("record_checksum_matches") is not
@@ -487,8 +488,11 @@ def classify_zoo_next_bowl(report: dict, event: dict, frames: dict) -> dict:
         triplet.append(name_equal)
         full_sram.append(same_sram)
         full_wram.append(raw["byte_exact"])
-        ranks.append(all(guests[side]["record_checksum_matches"]
-                         for side in ("original", "native")))
+        ranks.append(all(
+            guests[side]["source_earned_zoo_best_lap"] ==
+            {"rank": 0, "value_word": 2510, "holder_index": 0}
+            and guests[side]["record_checksum_matches"]
+            for side in ("original", "native")))
     def bracket(entries: list) -> dict:
         previous = None
         for offset, active in entries:
@@ -642,7 +646,7 @@ def classify(case: str, producer_rc: int, producer_path: Path,
                 "not a complete-event lifecycle pass")
         if next_bowl["status"] == "sampled_progression_divergence":
             row["reason"] += (
-                "; authenticated next-Bowl handoff differs from source "
+                "; authenticated next-Bowl entry/state/SRAM/record evidence "
                 f"(source +{next_bowl['source_entry_offset']}, "
                 f"fresh original +{next_bowl['fresh_original_entry_offset']}, "
                 f"native +{next_bowl['fresh_native_entry_offset']}); "

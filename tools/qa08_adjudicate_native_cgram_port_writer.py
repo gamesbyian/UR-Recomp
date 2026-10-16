@@ -51,7 +51,8 @@ def decode_group(values:list[tuple[int,int,int,int,int,str]])->dict[int,int]:
         hi=values[index+2]
         if ([addr[2],lo[2],hi[2]]!=[0x2121,0x2122,0x2122]
             or addr[3] not in SLOTS or addr[3] in result
-            or lo[0]!=addr[0] or hi[0]!=addr[0]
+            or (lo[0],lo[1]) <= (addr[0],addr[1])
+            or (hi[0],hi[1]) <= (lo[0],lo[1])
             or any(v[5]!="cpu" for v in (addr,lo,hi))):
             raise ValueError("source CGRAM port/CPU data order changed")
         result[addr[3]]=lo[3]|(hi[3]<<8)

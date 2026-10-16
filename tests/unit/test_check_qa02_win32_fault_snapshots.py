@@ -31,7 +31,7 @@ def make_members(mode: str) -> dict[str, bytes]:
     old = {"raw-sram": before_raw, "typed-profile": typed(before_raw, 1),
            "selector": b"selector", "roster": b"roster"}
     crash = {**old, "raw-sram": changed_raw}
-    after = crash if mode == "historic" else {**crash, "typed-profile": typed(changed_raw, 2)}
+    after = crash if mode in ("historic", "unjournaled") else {**crash, "typed-profile": typed(changed_raw, 2)}
     stages = {"before": old, "after": after}
     if mode != "historic":
         stages["crash"] = crash

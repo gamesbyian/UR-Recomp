@@ -1,0 +1,102 @@
+{
+  "schema": "UR-RF032-NATIVE-FIRST-CC-QUEUE-TARGET-AND-CPU-POLL/1",
+  "date": "2026-10-16",
+  "disposition": "qualified_executed_read_only_source_timing_discriminator",
+  "source_sha": "b28ec791fc976a0c3e1d0924aa9fe5d8231dac8f",
+  "workflow_run": 38974815770,
+  "artifact": {
+    "id": 12078174356,
+    "count": 13,
+    "sha256": "6aab44e8d16dcaa34fd438c439d349dc6050f1ddc4c4c1de1e81afc2f387175d",
+    "producer_report_sha256": "6330ae307e49ad5cd2b68372e3337aab1304b3e279d0393648627d84af822fac",
+    "case_result_sha256": "98eaf524f32a4e7078ee8e0eb98504631948a6ecb74f8e905d1c7a472d197ee2",
+    "rf030_report_sha256": "6f9501d59d79848ed73f8e0d1281d65ce9a567283a7707aedc574602656db80d",
+    "rf032_report_sha256": "4e476d6129bd80386a1f6ebdb5b53f5cee9ad25800459677acc1a2b5d4823041",
+    "original_snes9x_core_sha256": "5f5f9c6c9331e6c72598b516ebba94bffe0d5a921c137f5cd24b1bb67733d983",
+    "native_elf_sha256": "ed0e0218fde7603b7c35f41940661c16ac106bbd9c1c2a8e26f3e1f0be25c44e"
+  },
+  "immutable_source": {
+    "usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_2014_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "initial_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+    "observed_input_sequence_sha256": "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52"
+  },
+  "native_first_cc": {
+    "queue_scheduled_at_native_spc_age": 103322463,
+    "actual_guest_cycle_at_schedule": 103322545,
+    "actual_stored_target_cycle": 103322545,
+    "guest_anchor": 0,
+    "target_anchor": 0,
+    "queue_depth_at_schedule": 4,
+    "actual_applied_at_native_spc_age": 103322545,
+    "apply_minus_target_cycle": 0,
+    "spc_pc_at_apply": "FFCF",
+    "spc_cmp_read_at_age": 103322546,
+    "spc_cmp_pc": "FFD2",
+    "spc_echo_at_age": 103322571,
+    "spc_echo_pc": "FFF7",
+    "first_actual_cpu_poll_reading_echo_cc_at_age": 103322575,
+    "echo_to_cpu_poll_age": 4,
+    "raw_output_port_at_cpu_cc_poll": "CC",
+    "return_value_at_cpu_cc_poll": "CC",
+    "cpu_port_observer_mutated_echo_read": false,
+    "actual_native_cpu_poll_events_in_window": 88,
+    "actual_native_rich_events": 131,
+    "queue_rebase_for_this_event": false
+  },
+  "original_first_cc": {
+    "cpu_write_at_original_spc_age": 103322546,
+    "spc_first_cc_read_at_age": 103322554,
+    "spc_cc_echo_at_age": 103322580,
+    "first_cpu_read_of_cc_echo_at_age": 103322584,
+    "spc_echo_to_cpu_read_local_cycles": 4,
+    "actual_original_cpu_beam_at_write": [
+      119,
+      312
+    ]
+  },
+  "paired_genuine_event": {
+    "source_fresh_original_native_zoo_result_relative": [
+      5163,
+      5163,
+      5163
+    ],
+    "source_original_native_next_bowl_entry_relative": [
+      267,
+      267,
+      267
+    ],
+    "full_8192_byte_sram_pairs_equal": 11,
+    "zoo_whole_128k_wram_checkpoints": 78,
+    "exact_original_native_wram_checkpoints": 51,
+    "unmasked_differing_byte_occurrences": 92,
+    "sound_ptr_address": "7E:0063",
+    "sound_ptr_diff_frames": [
+      5040,
+      5045
+    ],
+    "transfer_counter_address": "7E:0069",
+    "transfer_counter_diff_frames": [],
+    "wram_masked_bytes": 0
+  },
+  "exact_ab_with_merged_rf030": {
+    "control_run": 38970909850,
+    "control_zip_sha256": "d3e9ff0dfe710eefd6fc0289baae5232b43a89b68f3f7bdac9fd4dd84e8471f1",
+    "original_whole_wram_sha256_equal_checkpoints": 78,
+    "native_whole_wram_sha256_equal_checkpoints": 78,
+    "native_changed_frames": [],
+    "original_native_differing_bytes_control": 92,
+    "original_native_differing_bytes_rf032": 92
+  },
+  "limits": {
+    "actual_target_equals_apply_for_first_cc": true,
+    "no_first_cc_target_rebase_observed": true,
+    "queued_write_is_not_excessively_late": true,
+    "both_original_native_cpu_echo_read_four_local_spc_cycles_after_spc_echo": true,
+    "absolute_spc_clock_phase_aligned_proven": false,
+    "original_native_cpu_master_timing_parity_proven": false,
+    "all_sound_dsp_samples_or_45_events_proven": false,
+    "release_event_credit": 0
+  },
+  "next_discriminator": "Observe original CPU master/beam clock vs native g_cpu.master_cycles and rtl_apu_guest_cycle around executed first $CC enqueue and subsequent SPC $F4 compare-read to determine master-to-SPC rounding/phase without globally shifting queue or opcode timing"
+}

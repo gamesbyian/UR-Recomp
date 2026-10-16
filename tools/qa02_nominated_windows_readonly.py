@@ -83,14 +83,15 @@ def acl(profile: Path, sid: str, *, deny: bool) -> None:
 
 
 def deny_raw_write_only(raw: Path, sid: str, *, deny: bool) -> None:
-    """Block only writes to the *existing raw file*, not profile-lock staging.
+    """Deny raw data modification and target deletion, not profile preflight.
 
-    Intentionally leave parent directory / typed publication privileges intact.
-    Unlike Windows +R, deny FILE_WRITE_DATA at the OS DACL on the actual SRAM.
+    The first real Windows attempt proved WD alone does not prevent the
+    original writer replacing the destination. Deny WD + DE on the file,
+    leaving its parent directory writable so source profile locks still work.
     """
     if not sid.startswith("S-1-5-"):
         raise ValueError("Raw-file ACL principal must be native Windows SID")
-    action = ["/deny", f"*{sid}:(WD)"] if deny else ["/remove:d", f"*{sid}"]
+    action = ["/deny", f"*{sid}:(WD,DE)"] if deny else ["/remove:d", f"*{sid}"]
     p = subprocess.run(["icacls", str(raw), *action],
                        capture_output=True, text=True, timeout=30)
     if p.returncode or "Successfully processed" not in p.stdout:
@@ -109,6 +110,36 @@ def require_raw_write_denied(raw: Path, original: bytes) -> None:
             raise ValueError("Win32 denied file-open unexpectedly mutated SRAM")
         return
     raise ValueError("OS raw-file write denial ineffective: existing SRAM remains writable")
+
+
+
+def require_replacement_denied(parent: Path, sid: str) -> None:
+    """Prove OS rejects a true same-directory replacement of an ACL-guarded file.
+
+    Probe only separate disposable files: never delete, replace or truncate
+    original SRAM as part of the permission validation.
+    """
+    victim = parent / "_qa02_replace_victim.test"
+    pending = parent / "_qa02_replace_stage.test"
+    original = b"source preserved; not an actual save"
+    victim.write_bytes(original)
+    pending.write_bytes(b"candidate replacement; not an actual save")
+    protected = False
+    try:
+        deny_raw_write_only(victim, sid, deny=True)
+        protected = True
+        try:
+            os.replace(pending, victim)
+        except PermissionError:
+            if victim.read_bytes() != original or not pending.is_file():
+                raise ValueError("Denied Win32 replacement changed its source/target")
+            return
+        raise ValueError("OS replacement denial ineffective: destination is still replaceable")
+    finally:
+        if protected:
+            deny_raw_write_only(victim, sid, deny=False)
+        victim.unlink(missing_ok=True)
+        pending.unlink(missing_ok=True)
 
 
 def require_os_denial(profile: Path) -> None:
@@ -202,6 +233,7 @@ def main() -> int:
     try:
         if a.fault == "acl-denied-raw-file":
             require_raw_write_denied(raw, before["raw"])
+            require_replacement_denied(raw.parent, sid)
         elif sid:
             require_os_denial(raw.parent)
         elif not (raw.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY):
@@ -244,6 +276,7 @@ def main() -> int:
         "os_file_attribute_readonly_verified": sid is None,
         "win32_acl_denial_verified": sid is not None,
         "win32_existing_raw_file_write_denial_verified": a.fault == "acl-denied-raw-file",
+        "win32_target_replacement_denial_verified": a.fault == "acl-denied-raw-file",
         "permission_fault_type": a.fault,
         "guest_pause_quit_observed": witnessed,
         "source_save_failure_reported_in_process_log": rejection,

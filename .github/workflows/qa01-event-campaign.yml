@@ -12,6 +12,10 @@ on:
         required: false
         type: boolean
         default: false
+      zoo_race_mesh:
+        required: false
+        type: boolean
+        default: false
       qa01_apu_phase:
         required: false
         type: boolean
@@ -60,6 +64,11 @@ on:
           - zoom-zoo
           - bowl
           - switcher
+      zoo_race_mesh:
+        description: "Opt-in 2014 Zoo event original/native unmasked WRAM mesh through +5120 (no admission)"
+        type: boolean
+        required: false
+        default: false
       zoo_terminal_phase:
         description: "Opt-in Zoo fixed +5156..+5173 guest/host phase witness (requires selected=zoom-zoo)"
         type: boolean
@@ -136,12 +145,17 @@ jobs:
         env:
           SELECTED: ${{ inputs.selected }}
           ZOO_TERMINAL: ${{ inputs.zoo_terminal_phase }}
+          ZOO_MESH: ${{ inputs.zoo_race_mesh }}
           QA01_APU_PHASE: ${{ inputs.qa01_apu_phase }}
           QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}
           QA01_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
           QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
         run: |
           set -euo pipefail
+          if [[ "$ZOO_MESH" == "true" && "$SELECTED" != "zoom-zoo" ]]; then
+            echo "Original Zoo full-race mesh requires selected=zoom-zoo" >&2
+            exit 1
+          fi
           if [[ "$ZOO_TERMINAL" == "true" && "$SELECTED" != "zoom-zoo" ]]; then
             echo "Zoo fixed-host phase is scoped to selected=zoom-zoo only" >&2
             exit 1
@@ -203,6 +217,7 @@ jobs:
           python3 -m unittest discover -s tests/unit -p test_probe_original_event_complete.py
           python3 -m unittest discover -s tests/unit -p test_qa01_zoo_next_bowl.py
           python3 -m unittest discover -s tests/unit -p test_qa01_full_wram_audit.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_zoo_race_mesh.py
           python3 -m unittest discover -s tests/unit -p test_qa01_cold_result_record.py
           python3 -m unittest discover -s tests/unit -p test_qa01_postresult_sram_diff.py
       - name: Build original Snes9x/snesref and research native exactly once
@@ -324,6 +339,7 @@ jobs:
         env:
           QA01_CASE: ${{ matrix.case }}
           QA01_ZOO_TERMINAL: ${{ inputs.zoo_terminal_phase }}
+          QA01_ZOO_MESH: ${{ inputs.zoo_race_mesh }}
           QA01_APU_PHASE: ${{ inputs.qa01_apu_phase }}
           QA01_SOURCE_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
           QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
@@ -339,6 +355,9 @@ jobs:
           extra_args=()
           if [[ "$QA01_ZOO_TERMINAL" == "true" ]]; then
             extra_args+=(--zoo-terminal-phase)
+          fi
+          if [[ "$QA01_ZOO_MESH" == "true" ]]; then
+            extra_args+=(--zoo-race-mesh)
           fi
           if [[ "$QA01_SOURCE_FOLLOWTHROUGH" == "true" ]]; then
             extra_args+=(--source-followthrough)
@@ -398,6 +417,27 @@ jobs:
                       + ". Triple source-state agreement="
                       + str(v["all_triplet_named_states_equal"])
                       + ". No release credit.\n")
+          PY
+          fi
+          # A coarse whole-Circuit checkpoint mesh is a new observation,
+          # not evidence that unsampled frames or CPU instructions agree.
+          if [[ "$QA01_ZOO_MESH" == "true" && "$producer_rc" -eq 0 ]]; then
+            python3 - "$ROOT/producer-report.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          mesh=json.load(open(sys.argv[1]))["zoo_race_mesh"]
+          if not isinstance(mesh,dict) or mesh["masked_or_excluded_wram_bytes"] != 0:
+              raise SystemExit("missing unmasked real Zoo full-event mesh")
+          brief={k:mesh[k] for k in (
+              "mesh_checkpoint_count","new_post_2400_checkpoint_count",
+              "last_race_relative_checkpoint","raw_byte_exact_sample_count",
+              "first_nonidentical_raw_wram_pair",
+              "every_gameplay_frame_compared","cpu_instruction_or_logic_tick_parity_proven",
+              "release_complete_usa_event_credit")}
+          print("QA01_ZOO_FULL_RACE_UNMASKED_MESH=" + json.dumps(brief,sort_keys=True))
+          with open(sys.argv[2],"a",encoding="utf-8") as f:
+              f.write("\\nZoo genuine 2014 course sampled through +" +
+                      str(mesh["last_race_relative_checkpoint"]) +
+                      "; original/native full WRAM masked bytes **0**, 0/45 event credit.\\n")
           PY
           fi
           # Preserve bounded first-difference receipts in visible job logs as

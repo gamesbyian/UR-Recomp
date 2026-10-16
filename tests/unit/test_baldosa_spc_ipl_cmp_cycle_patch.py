@@ -58,7 +58,7 @@ int main(void) {
     if (now == 4) apu.port = 0xcc;
     step(&apu);
   }
-  printf("%d %d %d %d %u\\n", read_at, observed, reads, now, apu.pad[3]);
+  printf("%d %d %d %d %u\n", read_at, observed, reads, now, apu.pad[3]);
   return 0;
 }
 """

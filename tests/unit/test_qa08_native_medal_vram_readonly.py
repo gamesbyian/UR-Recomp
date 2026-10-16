@@ -15,14 +15,14 @@ import qa08_windows_effective_pixel_owner as live
 
 def records(override=0,idxword="0200",guest_word="0200"):
     text=[]
-    for guest,name,tile,word in ((4032,"1e6","0f6","6f60"),
-                                  (4176,"1e2","0f2","6f20")):
+    for guest,name,tile,word in ((4032,"1e6","0f6","7f60"),
+                                  (4176,"1e2","0f2","7f20")):
         for y,slot in ((96,99),(120,98)):
             text.append(
                 "UR_QA08_WIN_MEDAL_VRAM "
                 f"frame={guest} x=225 raster_y={y} ppu_line={y+1} "
                 f"slot={slot} xoff=6 yoff=8 usedcol=6 usedrow=8 "
-                f"name={name} obsel=63 obsel_bank=6000 tile={tile} "
+                f"name={name} obsel=63 obsel_bank=7000 tile={tile} "
                 f"wordaddr={word} guest_w0={guest_word} guest_w8=0202 "
                 f"render_w0={idxword} render_w8=0202 guest_idx=14 "
                 f"render_idx=14 actual_obj=06de actual_cgram=de "
@@ -81,7 +81,7 @@ class NativeMedalVRAMProbe(unittest.TestCase):
             good.replace("frame=4176","frame=4177"),
             good.replace("actual_cgram=de","actual_cgram=df"),
             good.replace("render_idx=14","render_idx=15"),
-            good.replace("wordaddr=6f60","wordaddr=6f61"),
+            good.replace("wordaddr=7f60","wordaddr=7f61"),
             good+"UR_QA08_WIN_MEDAL_VRAM_REJECT frame=4176 slot=99\n",
         ):
             with self.subTest(text=text[:90]),self.assertRaises(ValueError):

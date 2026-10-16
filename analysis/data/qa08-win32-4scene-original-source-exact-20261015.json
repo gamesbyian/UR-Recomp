@@ -1,0 +1,93 @@
+{
+  "schema": "qa08-independent-Windows-source-4scene-original-rgb5/1",
+  "disposition": "actual_windows_source_size_ppu_pixels_exact_four_original_emulator_frames_only",
+  "windows_source_commit": "39ce09567a136904e565b6a43d805d48f089f32b",
+  "windows_workflow_run": 38697704517,
+  "windows_workflow_job_result": "success",
+  "windows_source_artifact_id": 11954613310,
+  "windows_source_artifact_zip_sha256": "d15d1ca788661578f84b419d47da72ee88ec03eaeeb6e37f87affc4036efe38b",
+  "windows_exe_sha256": "7431889698913feadab76261caf3b00b82d1d9a1466a8260d9b7512d8328324e",
+  "windows_ROM_free_candidate_zip_sha256": "3a3f57e6c262759e93376e48d377412494a9c9333820ba676276210405c959ef",
+  "source_script_sha256": "4e714899f53c3bbe501bbfcacf91dd549989c9beb7c2cf6265b13eb687142ec6",
+  "guest_CRC_count": 2473,
+  "windows_guest_CRC_normalized_sha256": "992dfdc270802e8a0ec1be5a0be6ddc36872edca11c8a91d58367a6235e537cf",
+  "windows_vs_prior_linux_full_CRC_parity_claim": false,
+  "prior_experiment_native_archive_sha256": "51593205e289a532666bc0163e66eb5f1da85c8c6046232e37b671f1f7482bf1",
+  "original_countdown_source_archive_sha256": "56ec0011a3559f5953578c495d080d0150f2a06fb7a76c2e437fab781e2b2ce6",
+  "original_moving_source_archive_sha256": "6e5d488230c11d3dfcd144b6a7cbc8c25d7acfcb4f95b776a85071dd3487f5e3",
+  "comparison_geometry": [
+    256,
+    224
+  ],
+  "original_B_G_R_X8888_to_native_RGB5_normalization": "only Snes9x green6_to_green5; no ignored pixel or synthetic temporal/spatial alignment",
+  "independent_original_vs_windows_pixel_records": [
+    {
+      "original_callback": 1855,
+      "windows_guest": 1856,
+      "phase": "2P countdown",
+      "original_BGRX_SHA256": "8e2a34d415e588d10f83a5a0c9732d0ec02bed0507b1dad56826aecd81dbd681",
+      "prior_native_P7_SHA256": "6aea6cebaf1292d962ad5ce01a73966bb0ad8948095d1e73b155712cac41039a",
+      "windows_P7_SHA256": "ed35731cde55e927165f173c1db29c27b3b7eeff19862fbca27db3467cb8bc87",
+      "previous_wrong_RGB5_pixels": 971,
+      "corrected_wrong_RGB5_pixels": 0,
+      "source_changed_pixels": 971,
+      "source_changed_regions": "512 split seam + 459 countdown contour"
+    },
+    {
+      "original_callback": 2191,
+      "windows_guest": 2192,
+      "phase": "2P moving A",
+      "original_BGRX_SHA256": "a1785485e4ad9cbeb9b8f822cbc37ec99c4b85daa7ee7ad0ce23517e3635aeae",
+      "prior_native_P7_SHA256": "7e0cfab20c5342c242d7eeb0c77bff2d132ee1426a62d3a3759f43bd3f95027e",
+      "windows_P7_SHA256": "fac9f37e04b752676346bd75345e6e988b88e5cf6703722618d8a968ec90b36c",
+      "previous_wrong_RGB5_pixels": 512,
+      "corrected_wrong_RGB5_pixels": 0,
+      "source_changed_pixels": 512,
+      "changed_rows": {
+        "111": 256,
+        "113": 256
+      }
+    },
+    {
+      "original_callback": 2207,
+      "windows_guest": 2208,
+      "phase": "2P moving B",
+      "original_BGRX_SHA256": "e76c6010b3fb339ecbdae2fec985a00019345723cdff122d9bbc78d71481c8aa",
+      "prior_native_P7_SHA256": "a946c9ebb54775639b8fd87a6861af0408cceed4896e58be05908c4a4491c67f",
+      "windows_P7_SHA256": "bf8b4218fb72f94338b19da5c1386bd5ce09c0dc0c767093286e80895fa3353c",
+      "previous_wrong_RGB5_pixels": 512,
+      "corrected_wrong_RGB5_pixels": 0,
+      "source_changed_pixels": 512,
+      "changed_rows": {
+        "111": 256,
+        "113": 256
+      }
+    },
+    {
+      "original_callback": 2223,
+      "windows_guest": 2224,
+      "phase": "2P moving C",
+      "original_BGRX_SHA256": "ed77c53f2c1d15287c27a68c2d81103da89f2d1823ab3e2aada675d68f7ae39b",
+      "prior_native_P7_SHA256": "8271ed54cc2f1c1841cbd0f1e0c6b77e278dce721a2e1efe1a6ba432897535b4",
+      "windows_P7_SHA256": "d64e7b2fee2ff9f21b5fad7f4e8618ea27ad8846c6b6047ca9c511583bde6bd8",
+      "previous_wrong_RGB5_pixels": 512,
+      "corrected_wrong_RGB5_pixels": 0,
+      "source_changed_pixels": 512,
+      "changed_rows": {
+        "111": 256,
+        "113": 256
+      }
+    }
+  ],
+  "all_four_windows_source_P7_full_raw_bytes_identical_to_previous_linux_global_prime": true,
+  "all_four_windows_RGB5_pixels_identical_to_independent_original_Snes9x_after_only_green6_to5": true,
+  "total_previous_incorrect_pixels_over_four_frames": 2507,
+  "total_corrected_incorrect_pixels_over_four_frames": 0,
+  "original_emulator_input_camera_CPU_OAM_effective_per_row_phase_proven": false,
+  "moving_1P_transitions_terminal_results_proven": false,
+  "continuous_2P_event_proven": false,
+  "wide_342_and_physical_4x_windows_variant_proven": false,
+  "artistic_remastered_racer_approved": false,
+  "physical_SNES_or_retail_release_approved": false,
+  "release_quality_ledger_mutated": false
+}

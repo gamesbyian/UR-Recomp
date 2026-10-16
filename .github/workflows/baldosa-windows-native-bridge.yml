@@ -10,6 +10,8 @@ on:
       - ".github/workflows/baldosa-windows-native-bridge.yml"
       - "tools/baldosa_windows_native_pause_route.py"
       - "tools/qa02_exact_owner_win32_seam.py"
+      - "tools/qa02_exact_owner_two_games.py"
+      - "tests/unit/test_qa02_exact_owner_two_games.py"
       - "tools/qa02_exact_owner_two_process_selector.py"
       - "tests/unit/test_qa02_exact_owner_two_process_selector.py"
       - "tools/qa02_nominated_windows_readonly.py"
@@ -440,6 +442,40 @@ jobs:
         with:
           name: qa02-nominated-original-win32-two-process-selector-bytes
           path: ${{ runner.temp }}/qa02-nominated-two-process/case/native_pause_quit_selector_race/byte-snapshots/
+          if-no-files-found: warn
+          retention-days: 14
+
+      # Independent QA-02: two concurrently alive instances of SAME immutable
+      # original nominated Win32 game, source-paused A and authentic saving B.
+      - name: Retrieve original nominated owner ZIP for two overlapping real Windows games
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-exact-owner-two-running-games-20261016' }}
+        uses: actions/download-artifact@v4
+        with:
+          repository: ${{ github.repository }}
+          run-id: 38828519791
+          artifact-ids: 12016101293
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/qa02-two-original-games-retained
+
+      - name: Prove same-profile two genuine original Win32 games protect newer SRAM
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-exact-owner-two-running-games-20261016' }}
+        run: |
+          set -euo pipefail
+          python tools/qa02_exact_owner_two_games.py \
+            --retained "$RUNNER_TEMP/qa02-two-original-games-retained" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --script "baldosa/tests/routes/race_2p_split.txt" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --out "$RUNNER_TEMP/qa02-two-original-games"
+          echo "Two genuine nominated game processes, A stale vs B native-committed guest SRAM, C cold reentry. No release gate, hardware or crash atomicity credit." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Preserve exact Win32 A B C game logs and four-file stage bytes even on failure
+        if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-exact-owner-two-running-games-20261016' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa02-nominated-two-genuine-win32-games-same-profile
+          path: ${{ runner.temp }}/qa02-two-original-games/two_games/evidence/
           if-no-files-found: warn
           retention-days: 14
 

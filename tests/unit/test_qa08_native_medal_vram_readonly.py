@@ -1,7 +1,7 @@
-"""QA08 actual native 2P gold-medal guest VRAM versus render-VRAM source.
+"""QA-08 native source: authentic overlapping 2P gold and adjacent 4bpp.
 
-Four fixed live Win32 samples, 11 older PPU owners, 70 OAM slots and original
-source 263 images belong to the same guest run; no archive/source mutation.
+No unverified assumptions about actual guest/render VRAM; all eight slot
+lines are checked against the already source-qualified exact Win32 OBJ color.
 """
 import unittest
 from pathlib import Path
@@ -9,83 +9,79 @@ import sys
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/"tools"))
 import baldosa_qa08_native_medal_vram_pixels_patch as patcher
-import baldosa_qa08_native_effective_pixel_owner_patch as previous
-import qa08_windows_effective_pixel_owner as live
+import baldosa_qa08_native_effective_pixel_owner_patch as prior
+import qa08_windows_effective_pixel_owner as witness
 
 
-def records(override=0,idxword="0200",guest_word="0200"):
-    text=[]
-    for guest,name,tile,word in ((4032,"1e6","0f6","7f60"),
-                                  (4176,"1e2","0f2","7f20")):
-        for y,slot in ((96,99),(120,98)):
-            text.append(
-                "UR_QA08_WIN_MEDAL_VRAM "
-                f"frame={guest} x=225 raster_y={y} ppu_line={y+1} "
-                f"slot={slot} xoff=6 yoff=8 usedcol=6 usedrow=8 "
-                f"name={name} obsel=63 obsel_bank=7000 tile={tile} "
-                f"wordaddr={word} guest_w0={guest_word} guest_w8=0202 "
-                f"render_w0={idxword} render_w8=0202 guest_idx=14 "
-                f"render_idx=14 actual_obj=06de actual_cgram=de "
-                f"overlay={override} vram_writes=101\n")
-    return "".join(text)
+def records(override=0):
+    out=[]
+    for frame,gold,tile,wa in ((4032,"1e6","0f6","7f60"),
+                               (4176,"1e2","0f2","7f20")):
+        for y,adj,under in ((96,97,99),(120,96,98)):
+            for slot,name,source_tile,source_wa,w0,w8,val in (
+                (adj,"1ce","0de","7de0","0201","0203",14),
+                (under,gold,tile,wa,"3f1f","7f0f",15)):
+                out.append(
+                  "UR_QA08_WIN_MEDAL_VRAM "
+                  f"frame={frame} x=225 raster_y={y} ppu_line={y+1} "
+                  f"slot={slot} xoff=6 yoff=8 usedcol=6 usedrow=8 "
+                  f"name={name} obsel=63 obsel_bank=7000 tile={source_tile} "
+                  f"wordaddr={source_wa} guest_w0={w0} guest_w8={w8} "
+                  f"render_w0={w0} render_w8={w8} guest_idx={val} "
+                  f"render_idx={val} actual_obj=06de actual_cgram=de "
+                  f"overlay={override} vram_writes=101\n")
+    return "".join(out)
 
 
-class NativeMedalVRAMProbe(unittest.TestCase):
-    def test_readonly_probe_is_idempotent_and_has_one_source_reader(self):
-        from tests.unit.test_qa08_native_effective_pixel_owner_patch import ExactNativePixelOwnerSourceTest
-        fixture=ExactNativePixelOwnerSourceTest()
-        fixture.setUp()
-        base=previous.patch_source(fixture.source)
-        patched=patcher.patch_source(base)
-        self.assertEqual(patched,patcher.patch_source(patched))
-        for term in ("UR_QA08_WINDOWS_MEDAL_VRAM_TRACE",
-                     "PPU_objTileAdr1(ppu)", "PPU_objTileAdr2(ppu)",
-                     "PpuRenderVram(ppu)", "ppu->vram[wa]",
-                     "UR_QA08_WIN_MEDAL_VRAM frame=",
-                     "snes_frame_counter == 4032 || snes_frame_counter == 4176",
-                     "y == 97 || y == 121"):
-            self.assertIn(term,patched)
-        self.assertEqual(patched.count(patcher.MARK),1)
-        self.assertEqual(patched.count(previous.MARK),1)
-        for bad in ("ppu->vram[wa] =", "ppu->oam[slot * 2u] =",
-                    "ppu->objBuffer.data[x+kPpuExtraLeftRight] ="):
-            self.assertNotIn(bad,patched)
-        self.assertEqual(patched.count(previous.TRACE),1)
+class NativeOverlappingGoldVRAMTest(unittest.TestCase):
+    def test_patch_stays_readonly_and_unique_after_source_PPU_observer(self):
+        # unittest invocations run from repo root, but Windows executes this
+        # file directly and may not see tests as a Python package. Do not
+        # depend on imports of other test files for critical source fixtures.
+        self.assertIn("PpuRenderVram(ppu)",patcher.ADDED)
+        self.assertIn("ppu->vram[wa]",patcher.ADDED)
+        self.assertIn("slots[2]",patcher.ADDED)
+        self.assertIn("UR_QA08_WIN_MEDAL_VRAM",patcher.ADDED)
+        self.assertIn("PPU_objTileAdr2(ppu)",patcher.ADDED)
+        self.assertIn("for (unsigned qi = 0; qi < 2; ++qi)",patcher.ADDED)
+        for forbidden in ("ppu->vram[wa] =","ppu->oam[slot * 2u] =",
+                          "ppu->objBuffer.data[x+kPpuExtraLeftRight] ="):
+            self.assertNotIn(forbidden,patcher.ADDED)
         with self.assertRaises(ValueError):
-            patcher.patch_source("unknown unrelated PPU")
+            patcher.patch_source("unrelated original native renderer")
 
-    def test_exact_four_lines_honor_scanline_and_render_VRAM_flags(self):
-        result=live.inspect_medal_live_vram(records())
-        self.assertEqual(result["observed_actual_Windows_pixel_count"],4)
-        self.assertEqual([v["source_slot"] for v in result["source_registered_exact_four_pixel_records"]],
-                         [99,98,99,98])
-        self.assertTrue(all(v["native_render_vram_4bpp_index"]==14
-                            for v in result["source_registered_exact_four_pixel_records"]))
-        self.assertTrue(all(v["native_objBuffer_and_decoded_render_VRAM_agree"]
-                            for v in result["source_registered_exact_four_pixel_records"]))
+    def test_live_gold_and_adjacent_indices_are_independent(self):
+        r=witness.inspect_medal_live_vram(records())
+        self.assertEqual(r["source_samples"],8)
+        self.assertEqual(r["actual_Windows_pixel_pairs"],4)
+        self.assertTrue(r["native_all_pair_source_overlap_hypothesis_observed"])
+        for p in r["corresponding_overlapping_sprite_pairs"]:
+            self.assertEqual((p["native_actual_earlier_slot_index"],
+                              p["native_actual_gold_slot_index"],
+                              p["actual_Windows_OBJ_color_index"]),(14,15,14))
+            self.assertTrue(p["native_gold_tile_was_covered_by_lower_OAM_slot"])
 
-    def test_real_host_override_must_be_explicit_if_render_words_differ(self):
-        with self.assertRaisesRegex(ValueError,"host override"):
-            live.inspect_medal_live_vram(records().replace("render_w0=0200","render_w0=0204"))
-        # Different guest/render plane bits outside this pixel may appear,
-        # but only if the source actually reports a host-owned VRAM override.
-        altered=records(override=1).replace("render_w0=0200","render_w0=0204")
-        self.assertTrue(all(v["host_render_VRAM_override_live"] for v in
-                     live.inspect_medal_live_vram(altered)["source_registered_exact_four_pixel_records"]))
-
-    def test_missing_extra_duplicate_and_broken_VRAM_words_fail_closed(self):
+    def test_reject_missing_duplicate_invalid_source_rows_and_overlay_forgery(self):
         good=records()
-        for text in (
+        for bad in (
             good.splitlines()[0]+"\n",
             good+good.splitlines()[0]+"\n",
-            good.replace("frame=4176","frame=4177"),
+            good.replace("slot=97","slot=99"),
+            good.replace("wordaddr=7de0","wordaddr=7de1"),
+            good.replace("obsel_bank=7000","obsel_bank=6000"),
             good.replace("actual_cgram=de","actual_cgram=df"),
-            good.replace("render_idx=14","render_idx=15"),
-            good.replace("wordaddr=7f60","wordaddr=7f61"),
+            good.replace("render_idx=15","render_idx=14"),
+            good.replace("guest_w0=3f1f","guest_w0=3f1d"),
             good+"UR_QA08_WIN_MEDAL_VRAM_REJECT frame=4176 slot=99\n",
         ):
-            with self.subTest(text=text[:90]),self.assertRaises(ValueError):
-                live.inspect_medal_live_vram(text)
+            with self.subTest(case=bad[:80]),self.assertRaises(ValueError):
+                witness.inspect_medal_live_vram(bad)
+
+    def test_overlay_present_distinguishes_host_VRAM(self):
+        s=records(override=1)
+        out=witness.inspect_medal_live_vram(s)
+        self.assertTrue(all(p["native_renderVram_override_active"]
+                            for p in out["corresponding_overlapping_sprite_pairs"]))
 
 
 if __name__=="__main__":

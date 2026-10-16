@@ -183,7 +183,7 @@ def main() -> int:
     user_root = case / "native_pause_quit_selector_race/Two Process Profile Root With Spaces"
     before_cold = snapshot_bytes(saved, "after_A")
     boot = cold_boot_second_profile(exe, a.rom, case, user_root, saved)
-    after_cold = capture_native_selector_conflict_files(user_root, saved, "after_A")
+    after_cold = capture_native_selector_conflict_files(user_root, saved, "after_cold_B")
     if {key: row["sha256"] if row["present"] else None for key, row in after_cold.items()} != {
         key: sha256(data) if isinstance(data, bytes) else None
         for key, data in before_cold.items()

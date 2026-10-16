@@ -1,0 +1,164 @@
+{
+  "schema": "UR-RF033-SOURCE-EXECUTED-CPU-TO-SPC-CLOCK-CONVERSION/1",
+  "date": "2026-10-16",
+  "status": "resolved_read_only_clock_observation_no_guest_timing_correction",
+  "source_head": "68e80bde7cd332364da31e14342b9a28035a2160",
+  "workflow_run": 38977309694,
+  "artifact": {
+    "id": 12080107147,
+    "files": 14,
+    "zip_sha256": "f8ee6fbfbc9540179cea65428e298de3c59d4884f801d04a3ffc1c62663d87c8",
+    "producer_sha256": "8ac02c48643798b7b34f2fd8c49fc169349fd90c906fb7204dca81ea4a9c9351",
+    "case_sha256": "add20742392bbbe378de45da7a918a21174f820c4f137bdd75d358eae0c16295",
+    "rf033_report_sha256": "fd14d720cc16e7fc9bee8cfce0ec2eac4b47c910513645ae2f9b646ba5db62ff",
+    "rf032_report_sha256": "4e476d6129bd80386a1f6ebdb5b53f5cee9ad25800459677acc1a2b5d4823041",
+    "reference_core_sha256": "047ce96fdf5a07cacdfd1d1b588eca2b99496e2f113f08ac445951653dc8f900",
+    "native_elf_sha256": "16a75ea84c902deae7ffaa39f797b44fe91d8fdb7b542b99ef4a4f76a14356f5"
+  },
+  "original_first_cc": {
+    "cpu_scanline_h": 312,
+    "cpu_v": 119,
+    "reference_time": 266,
+    "remainder": 128292,
+    "numerator": 15664,
+    "denominator": 328125,
+    "predicted_ticks": 2,
+    "spc_age_before": 103322541,
+    "spc_age_after": 103322546,
+    "observed_spc_age_delta": 5,
+    "observed_minus_predicted_ticks": 3,
+    "first_cc_src_snes9x_writer_count_in_window": 9
+  },
+  "native_first_cc": {
+    "apu_port_clock_at_cpu_bus_schedule": 103322463,
+    "mapped_guest_spc_cycle": 103322545,
+    "stored_target_cycle": 103322545,
+    "apu_clock_at_queue_application": 103322545,
+    "cpu_master_cycles": 2164383306,
+    "cpu_frame": 6056,
+    "apu_frame_start_master": 2164170140,
+    "cpu_master_offset_in_frame": 213166,
+    "extended_frame_clock_enabled": true,
+    "apu_frame_time_valid": true,
+    "spc_pc": "FFCF",
+    "first_cc_native_cpu_writer_count_in_window": 7
+  },
+  "source_clocks_after_first_write": {
+    "original_writer_age_intervals": [
+      [
+        103322541,
+        103322546,
+        2
+      ],
+      [
+        103322546,
+        103322550,
+        3
+      ],
+      [
+        103322550,
+        103322555,
+        3
+      ],
+      [
+        103322555,
+        103322561,
+        3
+      ],
+      [
+        103322561,
+        103322563,
+        4
+      ],
+      [
+        103322565,
+        103322568,
+        3
+      ],
+      [
+        103322569,
+        103322573,
+        3
+      ],
+      [
+        103322573,
+        103322578,
+        4
+      ],
+      [
+        103322578,
+        103322582,
+        3
+      ]
+    ],
+    "native_cpu_schedule_spc_ages": [
+      103322463,
+      103322547,
+      103322552,
+      103322556,
+      103322561,
+      103322566,
+      103322570
+    ],
+    "native_guest_target_cycle_series": [
+      103322545,
+      103322550,
+      103322555,
+      103322559,
+      103322564,
+      103322569,
+      103322573
+    ],
+    "native_cpu_master_cycle_series": [
+      2164383306,
+      2164383404,
+      2164383502,
+      2164383600,
+      2164383698,
+      2164383796,
+      2164383894
+    ]
+  },
+  "immutable_source": {
+    "usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_2014_smv_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "seed_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+    "consumed_input_sha256": "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52"
+  },
+  "independently_compared_control": {
+    "run": 38974815770,
+    "case_zip_sha256": "6aab44e8d16dcaa34fd438c439d349dc6050f1ddc4c4c1de1e81afc2f387175d",
+    "reference_whole_wram_sha256_equal": 78,
+    "native_whole_wram_sha256_equal": 78,
+    "changed_native_frame_offsets": [],
+    "result_relative": [
+      5163,
+      5163,
+      5163
+    ],
+    "next_bowl_entry_relative": [
+      267,
+      267,
+      267
+    ],
+    "complete_earned_8192b_sram_pairs_equal": 11,
+    "unmasked_wram_checkpoint_count": 78,
+    "original_native_exact_wram_checkpoints": 51,
+    "unmasked_differing_byte_occurrences": 92,
+    "sound_pointer_differences_frames": [
+      5040,
+      5045
+    ],
+    "sound_counter_differences_frames": []
+  },
+  "inference_limits": {
+    "source_original_cpu_to_spc_spc_opcode_boundary_overshoot_measured": true,
+    "whole_SPC_opcode_execution_and_remainder_model_source_backed": true,
+    "clock_phase_identical_across_emulators_proven": false,
+    "why_original_CMP_first_read_advances_nine_cycles_relative_to_native_proven": false,
+    "correct_causal_timing_patch_tested": false,
+    "all_cpu_instruction_ticks_or_dsp_audio_samples_proven": false,
+    "complete_usa_events_admitted": 0
+  },
+  "next_source_test": "Reconstruct source original S9xAPUExecute/SMP.enter whole-opcode completion and native APU queued-write consumer phase against the precise first $CC CPU bus master clock, without global one-cycle queue adjustment or input rephase; require genuine 78-frame WRAM/13 sound/11 SRAM original/native A/B before promotion"
+}

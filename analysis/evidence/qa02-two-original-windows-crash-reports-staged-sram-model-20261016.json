@@ -1,0 +1,131 @@
+{
+  "schema": "qa02-two-original-win32-raw-typed-negative-and-staged-model/1",
+  "original_historical_run": {
+    "workflow_run": 38097752106,
+    "pr": 1273,
+    "pr_head": "3c40ee5da68c72679291a59c598aebf389b72e3a",
+    "tested_merge_commit": "8c1a3c6110a9b39ae26af89529c2f067eaab2aa5",
+    "tested_merge_parents": [
+      "ed1a402c86a2374b7561e482587fde4f3adab12f",
+      "3c40ee5da68c72679291a59c598aebf389b72e3a"
+    ],
+    "source_win32_artifact_id": 11687087067,
+    "source_zip_sha256": "0f7ebf4f0edf559440aaa168cf413a74ca15d426ac40c8d98b1f81595d45f150",
+    "source_zip_members": 9,
+    "source_report_json_sha256": "e4a5213b8db625f5c007b43ca0888321d0f275106f67748791cb7dcbff0ec6cd",
+    "original_actions_expiry": "2026-10-18T00:19:20Z",
+    "original_romfree_package_artifact_id": 11686922298,
+    "package_outer_sha256": "758bcda714b14a6f777b358e83e906374041037b002e79e40aac19ec9b7ff3b3",
+    "package_inner_zip_sha256": "5ae99c8b89109d512e556deaffa7fa6653c5777a4c1a1918a3437f712c5885a5",
+    "original_exe_sha256": "9014ac28a094a87cfb550652103ff7bfdb2e8f1f5bc032727bb9ed7ec6e14242",
+    "original_exe_bytes": 19567104,
+    "crash_report": {
+      "real_native_guest_paused_at_frame": 1952,
+      "real_raw_sram_write_completed": true,
+      "forced_process_exit_code": 86,
+      "typed_profile_and_roster_unchanged": true,
+      "raw_and_typed_sram_divergence_reproduced": true,
+      "fresh_process_rejected_before_guest": true,
+      "no_implicit_recovery_or_fake_result": true,
+      "cross_file_crash_atomicity_proven": false
+    },
+    "independent_raw_snapshots_at_crash_seam_archived": false,
+    "outer_and_inner_zip_crc_passed": true,
+    "original_ROM_or_save_files_in_archives": false
+  },
+  "nominated_main_run": {
+    "workflow_run": 38813101482,
+    "source_commit": "11501a15dea38fa912335cfc63103ce3a7208001",
+    "source_win32_artifact_id": 12010421091,
+    "source_zip_sha256": "485f37190ba1e12fd6ba4745f05c3a50d3056d05cf36151cf69f7699125fc0b9",
+    "source_report_json_sha256": "fac6f03dc529186f810fc7dd9f98c7620555372bdff59fde7c6b5c76892dd1dd",
+    "original_exe_sha256": "0701f72481531ad4f2803caadc62bbb072f292abef69f039edda004b01c18ea9",
+    "crash_report": {
+      "real_native_guest_paused_at_frame": 1952,
+      "real_raw_sram_write_completed": true,
+      "forced_process_exit_code": 86,
+      "typed_profile_and_roster_unchanged": true,
+      "raw_and_typed_sram_divergence_reproduced": true,
+      "fresh_process_rejected_before_guest": true,
+      "no_implicit_recovery_or_fake_result": true,
+      "cross_file_crash_atomicity_proven": false
+    },
+    "independent_raw_snapshots_at_crash_seam_archived": false
+  },
+  "cross_artifact_equal_crash_report_block": true,
+  "archived_authentic_separate_2p_source_stage": {
+    "note": "Distinct same-candidate staged GO process, *not* actual post-raw/pre-typed crash; its two full named SRAM+typed copies were independently retained and rehashed.",
+    "artifact_id": 12009069728,
+    "old_stage": "after-p2-recovered",
+    "new_stage": "after-source-go",
+    "mike": {
+      "profile_id": "mike",
+      "old_typed_generation": 2,
+      "new_typed_generation": 3,
+      "old_sram_sha256": "273bc1b3be1dc3923c216c01461724617f6a5ace8d47a5a7069502f1a23f743a",
+      "new_sram_sha256": "62c0490b977825f7515accc88f1894cbc69c56789a292a46e13fe1458cd7653d",
+      "old_typed_sha256": "341c3031993d28151e52ff1b496a1402dce51a38bf3ba67f8db3d39113348443",
+      "new_typed_sha256": "d4b1baf2afa008146a540e205717c6d09836a2700162499b0f115d14e2e78bbf",
+      "raw_bytes": 8192,
+      "changed_bytes": 193,
+      "first_changed_offset": 1858,
+      "last_changed_offset": 4273,
+      "changed_by_1024byte_region": [
+        0,
+        54,
+        0,
+        130,
+        9,
+        0,
+        0,
+        0
+      ],
+      "stock_sram_embedded_in_typed_equals_raw_at_each_valid_stage": true
+    },
+    "martin": {
+      "profile_id": "martin",
+      "typed_generation_at_both_stages": 1,
+      "raw_bytes": 8192,
+      "changed_bytes": 0,
+      "identical_raw_sha256": "f3058e5fcd57042c8b0f04d9e3daf1fb81749c30da70b9596553afb89fb89102",
+      "identical_typed_sha256": "0ff1202337488ec94fbc1d8a92ebe4c96f073f8f8d4d4f86a159b83011c4f251"
+    },
+    "counterfactual_not_observed_windows_writes": [
+      {
+        "name": "new_first_2048_old_remainder",
+        "cut_bytes": 2048,
+        "sha256": "069c8fe19b82a0500078e96b2db8361e0caf1af325e645fde286616e73f3d51a",
+        "changed_from_old": 54,
+        "changed_from_new": 139,
+        "matches_either_authoritative_snapshot": false
+      },
+      {
+        "name": "new_first_4096_old_remainder",
+        "cut_bytes": 4096,
+        "sha256": "18389460fc9838a5f8fdc91421773bec31eb9d5c132089a777f4222ac88c07cd",
+        "changed_from_old": 184,
+        "changed_from_new": 9,
+        "matches_either_authoritative_snapshot": false
+      },
+      {
+        "name": "new_first_5120_old_remainder",
+        "cut_bytes": 5120,
+        "sha256": "62c0490b977825f7515accc88f1894cbc69c56789a292a46e13fe1458cd7653d",
+        "changed_from_old": 193,
+        "changed_from_new": 0,
+        "matches_either_authoritative_snapshot": true
+      }
+    ],
+    "stored_private_ROM_or_SRAM_bytes_in_receipt": false
+  },
+  "scope_limits": {
+    "producer_native_crash_report_not_independently_replayed": true,
+    "crash_real_raw_and_typed_files_not_preserved": true,
+    "actual_power_loss_or_NTFS_partial_write_not_tested": true,
+    "offline_splices_are_counterfactual_not_real_process_witness": true,
+    "QA02_gate_witnesses_added": 0,
+    "complete_USA_original_native_events_added": 0,
+    "P0_1214_unresolved": true,
+    "release_decision": "not_assessed"
+  }
+}

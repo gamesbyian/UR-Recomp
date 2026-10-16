@@ -1882,6 +1882,50 @@ def run_native_partial_raw_rollback_from_real_win32_cut(
             raise ValueError("Repeated native cold boot mutated committed rollback bytes")
     if list(copied.rglob("*.urrun")) or list(copied.rglob("*.urmatch")):
         raise ValueError("Explicit partial rollback fabricated event records")
+    # Expose CI-owned *original bytes* to the independent QA owner, not
+    # just source-produced assertions about archived partial data. No ROM,
+    # user-owned game state, executable or unbounded private root is copied.
+    evidence = isolated / "fault-bytes"
+    evidence.mkdir()
+    evidence_sources = {
+        "raw.original-source-win32.bin": before[raw],
+        "raw.synthetic-partial.bin": interrupted,
+        "raw.restored.bin": repaired_raw,
+        "raw.second-cold.bin": raw.read_bytes(),
+        "typed.old.bin": before[typed],
+        "typed.restored.bin": typed.read_bytes(),
+        "selector.before.bin": before[selector],
+        "selector.after.bin": selector.read_bytes(),
+        "roster.before.bin": before[catalog],
+        "roster.after.bin": catalog.read_bytes(),
+        "intent.crash.bin": intent_bytes,
+        "intent.archived.bin": receipts[0].read_bytes(),
+        "manual-raw-typed-archive.bin": archives[0].read_bytes(),
+    }
+    hashes = {}
+    for label, data in sorted(evidence_sources.items()):
+        (evidence / label).write_bytes(data)
+        hashes[label] = {
+            "sha256": hashlib.sha256(data).hexdigest(),
+            "bytes": len(data),
+        }
+    if (len(hashes) != 13 or
+        evidence_sources["raw.synthetic-partial.bin"] not in
+            evidence_sources["manual-raw-typed-archive.bin"] or
+        evidence_sources["intent.crash.bin"] !=
+            evidence_sources["intent.archived.bin"] or
+        evidence_sources["raw.restored.bin"] !=
+            evidence_sources["raw.second-cold.bin"] or
+        evidence_sources["typed.old.bin"] !=
+            evidence_sources["typed.restored.bin"] or
+        evidence_sources["selector.before.bin"] !=
+            evidence_sources["selector.after.bin"] or
+        evidence_sources["roster.before.bin"] !=
+            evidence_sources["roster.after.bin"]):
+        raise ValueError("Exact partial-raw recovery byte envelope inconsistent")
+    (evidence / "hashes.json").write_text(
+        json.dumps(hashes, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8")
     report = {
         "input_real_original_win32_post_raw_cut": True,
         "truncation_is_synthetic_not_real_disk_io": True,
@@ -1891,6 +1935,8 @@ def run_native_partial_raw_rollback_from_real_win32_cut(
         "actual_win32_original_exe_explicit_restore_typed": True,
         "archived_original_partial_raw_and_intent": True,
         "two_subsequent_cold_boots_unmodified": True,
+        "exact_original_and_preserved_bytes_archived": True,
+        "evidence_file_count": len(evidence_sources),
         "release_gate_credit": 0,
     }
     (isolated / "receipt.json").write_text(

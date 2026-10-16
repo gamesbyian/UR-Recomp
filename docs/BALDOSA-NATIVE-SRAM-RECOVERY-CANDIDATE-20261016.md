@@ -238,3 +238,19 @@ Actions fault evidence**, not unreviewed extra members of the QA input.
 The F3 typed-publication-cut snapshots likewise export distinct after-first
 and after-second bytes. Product production and hash checks are not a
 substitute for independent download, rehash, and release acceptance.
+
+
+## Inspectable partial-raw archive bytes (product evidence, not QA credit)
+
+The copied genuine Windows post-raw fault + **simulated** 513-byte partial
+write test now retains 13 bounded CI-owned byte files under
+`simulated_partial_raw_explicit_rollback/fault-bytes`. These include the
+source-authentic raw 8192 image, synthetic truncated raw prefix, restored
+8192 raw and second cold-boot raw, original/restored typed, selector and
+roster before/after, exact genuine journal, immutable journal receipt, and
+complete archived manual raw/typed snapshot, with a SHA256/length receipt
+for each. The producer fails if the partial prefix is absent from the
+archive, or if typed, selector, roster and intent diverge. Independent QA
+may now recompute those comparisons directly, but this does **not**
+establish an actual Win32 partial write, denied OS handle or device power
+cut. The old candidate's P0 result remains negative and untouched.

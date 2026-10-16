@@ -738,11 +738,20 @@ extern "C" int ur_baldosa_modern_profile_before_native_save(void) {
         return reject("save_baseline_mismatch");
     // Sync the authorized old/new typed snapshots before any native raw
     // write. A preexisting intent is *never* replaced by a new attempt.
-    const auto intent =
-        ur::product::prepare_baldosa_sram_intent_under_lock(request);
-    if (intent != ur::product::BaldosaSramIntentStatus::Prepared &&
-        intent != ur::product::BaldosaSramIntentStatus::NoIntent)
-        return reject("native_sram_intent_not_durable");
+    // Preserve the historical _Exit(86) *unjournaled* Windows fault witness.
+    // This is QA-only and must be paired with the existing explicit process
+    // death switch. Production never skips a changed-SRAM intent.
+    const char* legacy = std::getenv("UR_BALDOSA_QA_LEGACY_UNJOURNALED_CRASH");
+    const char* fault = std::getenv("UR_BALDOSA_QA_CRASH_AFTER_NATIVE_SRAM_WRITE");
+    const bool legacy_qa_crash = legacy && std::strcmp(legacy, "1") == 0 &&
+        fault && std::strcmp(fault, "1") == 0;
+    if (!legacy_qa_crash) {
+        const auto intent =
+            ur::product::prepare_baldosa_sram_intent_under_lock(request);
+        if (intent != ur::product::BaldosaSramIntentStatus::Prepared &&
+            intent != ur::product::BaldosaSramIntentStatus::NoIntent)
+            return reject("native_sram_intent_not_durable");
+    }
     g_native_shutdown_selector_lock = std::move(candidate);
     g_native_shutdown_catalog_lock = std::move(catalog_candidate);
     g_native_shutdown_profile_lock = std::move(profile_candidate);

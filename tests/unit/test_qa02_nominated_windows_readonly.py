@@ -65,7 +65,7 @@ class OriginalWindowsReadonlyTests(unittest.TestCase):
             argv = runner.call_args.args[0]
             self.assertEqual(argv[0], "icacls")
             self.assertIn("/deny", argv)
-            self.assertIn(f"*{sid}:(W)", argv)
+            self.assertIn(f"*{sid}:(WD,AD,WEA,WA,DE,DC)", argv)
             self.assertIn("/T", argv)
             qa.acl(Path("C:/root/profile-native-ci-rider"), sid, deny=False)
             self.assertIn("/remove:d", runner.call_args.args[0])

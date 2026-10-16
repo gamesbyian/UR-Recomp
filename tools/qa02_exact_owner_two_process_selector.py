@@ -46,7 +46,7 @@ def decode_host_profile_stock_sram(blob: bytes) -> tuple[int, bytes]:
     if len(raw_hex) != 16384:
         raise ValueError("Typed profile does not contain 8192 SRAM bytes")
     data = bytes.fromhex(raw_hex)
-    generation = int(values["autosave_generation"])
+    generation = int(values["generation"])
     return generation, data
 
 

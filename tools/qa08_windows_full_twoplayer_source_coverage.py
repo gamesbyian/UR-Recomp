@@ -70,6 +70,53 @@ def inspect_native_ppu_registers(log:str)->dict:
     }
 
 
+
+CGRAM_PORT_LOG=re.compile(
+    r"^UR_QA08_WIN_CGRAM_WRITE frame=(\d+) v=(\d+) h=(\d+) "
+    r"adr=(21|22) val=([0-9a-f]{2}) src=(\d+) ptr=([0-9a-f]{2}) second=([01])$",
+    re.M,
+)
+
+def inspect_native_cgram_port_history(log:str)->dict:
+    """Read-only original-mode native PPU data-port writes, not raster pixels."""
+    rows=[]
+    lines=[x for x in log.splitlines() if x.startswith("UR_QA08_WIN_CGRAM_WRITE")]
+    if len(lines)!=len(CGRAM_PORT_LOG.findall(log)):
+        raise ValueError("malformed or incomplete opt-in native $2121/$2122 port witness")
+    for record in CGRAM_PORT_LOG.findall(log):
+        frame,v,h,adr,value,src,ptr,second=record
+        row={
+            "real_native_snes_frame":int(frame),
+            "host_beam_vcounter":int(v),
+            "host_beam_hcounter":int(h),
+            "native_PPU_data_port":adr,
+            "original_unmodified_register_value":value,
+            "host_writer_source_tag":int(src),
+            "pointer_before_write":ptr,
+            "second_byte_before_write":int(second),
+        }
+        if (not 5168<=row["real_native_snes_frame"]<=5190 or
+            not 0<=row["host_beam_vcounter"]<=262 or
+            not 0<=row["host_beam_hcounter"]<=2000 or
+            not 0<=row["host_writer_source_tag"]<=255):
+            raise ValueError("native CGRAM data-port observer frame/beam invalid")
+        rows.append(row)
+    if len(rows)<24 or len(set(x["real_native_snes_frame"] for x in rows))<2:
+        raise ValueError("not enough real native 2P palette update transactions")
+    return {
+        "schema":"qa08-native-uniracers-original-result-CGRAM-PPU-write-observer/1",
+        "actual_bounded_port_writes":len(rows),
+        "write_frames":sorted(set(x["real_native_snes_frame"] for x in rows)),
+        "actual_CPU_DMA_or_PPU_source_enum_not_renamed":True,
+        "same_compiled_windows_guest_source":True,
+        "unmodified_native_PPU_write_timing_and_data":True,
+        "read_only_native_port_writes":rows,
+        "original_guest_writer_phase_independently_proven":False,
+        "raster_fix_approved":False,
+        "release_gate_accepted":False,
+    }
+
+
 HDMA7_PRE=re.compile(
     r"^UR_QA08_WIN_HDMA7 frame=(\d+) phase=pre enable=(\d+) "
     r"terminated=(\d+) transfer=(\d+) aBank=([0-9a-f]{2}) "
@@ -167,6 +214,7 @@ def main()->None:
         "UR_QA08_WINDOWS_ORIGINAL_SOURCE_DIR":str(folder.resolve()),
         "UR_QA08_WINDOWS_ORIGINAL_SOURCE_CASE":"twoplayer-fullroute",
         "UR_QA08_WINDOWS_PPU_STATE_TRACE":"1",
+        "UR_QA08_WINDOWS_CGRAM_PORT_TRACE":"1",
         "UR_QA08_WINDOWS_HDMA_FIRSTLINE_TRACE":"1",
     }
     previous={k:os.environ.get(k) for k in env}
@@ -180,6 +228,7 @@ def main()->None:
             else:os.environ[k]=v
     report=inspect(folder,log,crcs)
     report["read_only_native_PPU_registers"]=inspect_native_ppu_registers(log)
+    report["read_only_native_CGRAM_port_writer_chronology"]=inspect_native_cgram_port_history(log)
     report["read_only_native_HDMA7_firstline"]=inspect_native_channel7_firstline(log)
     report["actual_windows_PE_sha256"]=sha(a.exe.read_bytes())
     report["actual_two_pad_route_sha256"]=sha(a.script.read_bytes())

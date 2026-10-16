@@ -20,6 +20,8 @@ on:
       - "tools/baldosa_uniracers_hdma_firstline_patch.py"
       - "tools/baldosa_uniracers_brightness_pixel_lut_patch.py"
       - "tools/baldosa_qa08_native_ppu_register_trace_patch.py"
+      - "tools/baldosa_qa08_native_cgram_port_chronology_patch.py"
+      - "tests/unit/test_baldosa_qa08_native_cgram_port_chronology_patch.py"
       - "tools/baldosa_qa08_native_firstline_hdma_readonly_patch.py"
       - "tools/baldosa_uniracers_v0_raster_before_hdma_patch.py"
       - "tools/baldosa_qa08_windows_original_capture.cpp"
@@ -133,6 +135,7 @@ jobs:
           python tests/unit/test_baldosa_uniracers_hdma_firstline_patch.py
           python tests/unit/test_baldosa_uniracers_brightness_pixel_lut_patch.py
           python tests/unit/test_baldosa_qa08_native_ppu_register_trace_patch.py
+          python tests/unit/test_baldosa_qa08_native_cgram_port_chronology_patch.py
           python tests/unit/test_baldosa_qa08_native_firstline_hdma_readonly_patch.py
           python tests/unit/test_baldosa_uniracers_v0_raster_before_hdma_patch.py
           python tests/unit/test_baldosa_qa08_windows_source_capture.py
@@ -180,6 +183,10 @@ jobs:
           # UR_QA08_WINDOWS_PPU_STATE_TRACE. No player-facing render change.
           python tools/baldosa_qa08_native_ppu_register_trace_patch.py --game baldosa
           python tools/baldosa_qa08_native_ppu_register_trace_patch.py --game baldosa --apply-candidate
+          # Source-exact read-only guest->PPU CGRAM writer phase, not a colour
+          # or scheduling modification. Narrow frames 5168..5190, 2P only.
+          python tools/baldosa_qa08_native_cgram_port_chronology_patch.py --game baldosa
+          python tools/baldosa_qa08_native_cgram_port_chronology_patch.py --game baldosa --apply-candidate
           python tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_execution_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_pause_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"

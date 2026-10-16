@@ -49,6 +49,24 @@ class TwoPlayerSourceTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             two.inspect_native_ppu_registers(line(3683,1,7))
 
+
+    def test_native_cgram_writer_requires_real_phase_and_valid_boundaries(self):
+        def record(f,addr,ptr,second,val,v=226,h=60,src=0):
+            return (f"UR_QA08_WIN_CGRAM_WRITE frame={f} v={v} h={h} "
+                    f"adr={addr} val={val} src={src} ptr={ptr} second={second}\n")
+        data=record(5176,"21","6f",0,"6f")*12+record(5183,"22","6c",1,"56")*12
+        result=two.inspect_native_cgram_port_history(data)
+        self.assertEqual(result["actual_bounded_port_writes"],24)
+        self.assertEqual(result["write_frames"],[5176,5183])
+        self.assertFalse(result["raster_fix_approved"])
+        with self.assertRaises(ValueError):
+            two.inspect_native_cgram_port_history("")
+        with self.assertRaises(ValueError):
+            two.inspect_native_cgram_port_history(data+"UR_QA08_WIN_CGRAM_WRITE corrupted\n")
+        with self.assertRaises(ValueError):
+            two.inspect_native_cgram_port_history(
+                record(6000,"22","6c",1,"56")*24)
+
     def test_read_only_two_pad_observer_retains_prior_frozen_controls(self):
         cpp=(ROOT/"tools/baldosa_qa08_windows_original_capture.cpp").read_text()
         self.assertIn('std::strcmp(mode, "twoplayer-fullroute") == 0',cpp)

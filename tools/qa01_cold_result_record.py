@@ -25,6 +25,10 @@ INPUT_SHA = "04ad1c2d70b38d3f33513468be2c94acc4b0c452a323631aebb390a3542f75e8"
 # but its longer dump schedule changes its SHA-256. Do not accept arbitrary
 # new hashes as a substitute for original-source provenance.
 NEXT_BOWL_INPUT_SHA = "414cb0b1013509f60faf35102353dd10ce36fc684284dd46af11092ad22c5de9"
+# Independently SHA-verified expanded source controller script of the *same*
+# 2014 USA Zoo movie, used by exact composite ELF run 38884542449. It adds
+# read-only race-mesh/DP dumps; not a different controller policy or ROM.
+COMPOSITE_MESH_NEXT_BOWL_INPUT_SHA = "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52"
 NEXT_BOWL_MOVIE_WINDOW_SHA = "7b03f40e3401d844c16c7c4e1cc7375e5419f33882793c8187dcebc88dbc8c93"
 SIZE = 8192
 BOOT_FRAMES = (300, 420)
@@ -75,7 +79,7 @@ def validate_source(producer: dict, replay: Path) -> dict:
             or producer.get("original_source_event", {}).get("original_result_frame") != 8353):
         raise ColdProofError("not source-pinned original 2014 Zoom Zoo event")
     input_sha = producer.get("input_sha256")
-    if input_sha == NEXT_BOWL_INPUT_SHA:
+    if input_sha in (NEXT_BOWL_INPUT_SHA, COMPOSITE_MESH_NEXT_BOWL_INPUT_SHA):
         handoff = producer.get("zoo_next_bowl_handoff")
         if (producer.get("reference_script_sha256") != NEXT_BOWL_INPUT_SHA
                 or producer.get("original_movie_window_sha256") !=
@@ -88,6 +92,50 @@ def validate_source(producer: dict, replay: Path) -> dict:
                 or handoff.get("all_original_native_full_sram_pairs_equal") is not True
                 or handoff.get("release_complete_event_credit") != 0):
             raise ColdProofError("extended Zoo source movie/window/handoff not pinned")
+        if input_sha == COMPOSITE_MESH_NEXT_BOWL_INPUT_SHA:
+            # A source-correct expanded replay cannot be authenticated by
+            # swapping a digest alone: require its actual unmasked original/
+            # native mesh and the full consecutive SPC direct-page window.
+            mesh = producer.get("zoo_race_mesh")
+            expected = original.sample_frames("zoom-zoo", 5163,
+                                              zoo_race_mesh=True,
+                                              zoo_dp_window=True)
+            if (not isinstance(mesh, dict)
+                    or mesh.get("schema") != "UR-QA01-ZOO-FULL-RACE-UNMASKED-WRAM-MESH/1"
+                    or mesh.get("archived_source_active_frames_to_result") != 5163
+                    or mesh.get("original_2014_source_controller_masks_modified") is not False
+                    or mesh.get("masked_or_excluded_wram_bytes") != 0
+                    or mesh.get("all_128k_wram_bytes_examined_per_pair") != 131072
+                    or mesh.get("mesh_checkpoint_count") != len(expected)
+                    or mesh.get("last_race_relative_checkpoint") != expected[-1]
+                    or mesh.get("every_gameplay_frame_compared") is not False
+                    or mesh.get("release_complete_usa_event_credit") != 0
+                    or not isinstance(mesh.get("samples"), list)
+                    or len(mesh["samples"]) != len(expected)):
+                raise ColdProofError("composite Zoo source mesh missing or over-promotional")
+            for offset, row in zip(expected, mesh["samples"]):
+                pair = row.get("original_native_full_wram_byte_difference", {}) if isinstance(row, dict) else {}
+                if (not isinstance(row, dict)
+                        or row.get("race_relative_frame") != offset
+                        or row.get("original_absolute_host_frame") != producer.get("reference_entry", -1) + offset
+                        or row.get("native_absolute_host_frame") != producer.get("native_entry", -1) + offset
+                        or pair.get("every_byte_compared") is not True
+                        or pair.get("full_wram_bytes_per_guest") != 131072
+                        or pair.get("excluded_byte_count") != 0
+                        or type(pair.get("differing_byte_count")) is not int
+                        or not 0 <= pair["differing_byte_count"] <= 131072):
+                    raise ColdProofError("composite Zoo unmasked mesh frame absent or unanchored")
+            dp = mesh.get("late_direct_page_window")
+            if (not isinstance(dp, dict)
+                    or dp.get("schema") != "UR-QA01-ZOO-5040-DENSE-DP-WRAM/1"
+                    or dp.get("range_inclusive") != [5034, 5046]
+                    or dp.get("all_guest_frames_in_range_captured") is not True
+                    or dp.get("raw_wram_bytes_excluded") != 0
+                    or dp.get("release_complete_event_credit") != 0
+                    or not isinstance(dp.get("samples"), list)
+                    or [row.get("race_relative_frame") for row in dp["samples"]
+                        if isinstance(row, dict)] != list(range(5034, 5047))):
+                raise ColdProofError("composite Zoo original/native 13-frame SPC window missing")
     elif input_sha != INPUT_SHA:
         raise ColdProofError("unknown original Zoo controller replay script SHA256")
     cmp = producer.get("comparison")

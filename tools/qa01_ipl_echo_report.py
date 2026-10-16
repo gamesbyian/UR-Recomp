@@ -20,7 +20,7 @@ MAX_LINES = 4000
 
 
 def scan(raw: str, prefix: str, required: set[str], allowed: dict[str, set[str]]) -> list[dict]:
-    if prefix + "TRUNCATED" in raw or prefix.rstrip() + "_CPU_TRUNCATED" in raw:
+    if prefix.rstrip() + "_TRUNCATED" in raw or prefix.rstrip() + "_CPU_TRUNCATED" in raw:
         raise ValueError("bounded IPL tracing exhausted; cannot infer handshake chronology")
     out = []
     for line in raw.splitlines():

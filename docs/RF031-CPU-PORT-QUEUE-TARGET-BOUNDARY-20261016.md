@@ -1,0 +1,26 @@
+# RF-031 source-clocked CPU-to-SPC port queue boundary (experimental hypothesis)
+
+**Source researcher, October 16, 2026. No shipping code. USA full-course acceptance: 0/45.**
+
+The pinned Snes9x original `apu/apu.cpp` executes `S9xAPUExecute()` to the SNES CPU current clock before `SNES::cpu.port_write(port, byte)` makes a new CPU port value visible. The pinned Baldosa `apu.c::apu_drainPortQueue` drains due queued writes before executing an SPC cycle, including `target_cycle == apu->portClock` (condition `target > portClock` means wait). This is a source-timing asymmetry at exactly the CPU write/SPC input-port sampling knife-edge, independent of whether the reader is executing an SPC opcode's cycle four or five. Current RF-026 SPC bus approximation is unmodified.
+
+A **real executed** source-qualified Zoo composite (RF-015…019 plus RF-021/023/024/026/028), [run 38967358176](https://github.com/gamesbyian/UR-Recomp/actions/runs/38967358176), reproduced an original/native **+5163/+5163** result, next Bowl **+267/+267/+267**, all **11/11 complete 8192-byte SRAM pairs** and a 78 checkpoint whole-WRAM mesh **51/78 exact** with original/native $63 low byte differing only at +5040/+5045. Immutable original/native [11-file ZIP artifact 12074659972](https://github.com/gamesbyian/UR-Recomp/actions/runs/38967358176/artifacts/12074659972) SHA256 `4b4133d7a6bcc36b978f142a2d125b358c5eae0cf30417b5d0720c1c2767b456`, reference Snes9x core `803d4df25de43dce892f34dfe29dd99a83befe5ac06302f0ec9fec518f9b296d`, native ELF `574cd2704f16f2f1dd9794d5657b81eabc9c4a50116ac31dd411ac30faf4d840`, unchanged original ROM/movie/SRAM/input SHA. The executed diagnostic logged:
+
+| Event | Original SPC age | Native SPC age |
+| --- | ---: | ---: |
+| first CPU `$2140=$CC` issued / applied | **103322546** | **103322545** (native *schedule*: 103322463, 82-cycle queue residence) |
+| first SPC `CMP $F4,#$CC` successfully reads CC at PC FFD2 | **103322554** | **103322546** |
+| SPC `C4 F4` echo at PC FFF7 | **103322580** | **103322571** |
+
+Just before the write, the original IPL reads **zero at age 103322545**, while native has read zero at **103322537**; native sees the new port at its next compare, 546. The original takes another complete nine-cycle spin before reading it at 554. The original code uses `S9xAPUExecute` then write; native applies queue before executing its equal-target SPC cycle. The cross-engine age difference of one is not a proof that each clock edge has identical phase or that any fix works. The earlier RF-029 *reader advanced* one cycle and **worsened** the original/native music WRAM match from 51/78 to 46/78 (and introduced transfer-counter differences), so RF-029 is rejected. The source hypothesis is specifically the *writer visibility boundary*; moving the reader does not test it.
+
+## Minimal treatment and falsification
+
+The `tools/baldosa_apu_port_after_target_cycle_patch.py` opt-in disposable Baldosa patch changes exactly one condition in `apu_drainPortQueue`:
+`if (w->target_cycle > apu->portClock)` → `if (w->target_cycle >= apu->portClock)`.
+
+No port write deleted, reordered, or synthesized; no SPC opcode duration modified; no input rephase, ROM/SRAM/WRAM mask, native application/Modern/Windows source or output patch. `tests/unit/test_baldosa_apu_port_after_target_cycle_patch.py` tests pinned-source refusal, idempotence, default and product exclusion, and a compiled boundary predicate demonstrating that an equal-target queue write is deferred one SPC cycle. It is **not** a proof that the timing treatment is physically correct globally. Because it affects *all* CPU->SPC writes, it could destroy the existing positive ranked-result, intact earned SRAM, or post-result Bowl and must be rejected if so.
+
+One source-qualified original/native Zoo A/B, against the same exact pinned original movie/core and full RF-015…028 stage, must measure executed `$CC` schedule/apply/read/echo, true result +5163, source/fresh original/native Bowl +267, 11 complete SRAM pairs and all **78 unmasked whole-WRAM checkpoint pairs** with 13 adjacent sound state samples. Recompute native/reference ELF and case ZIP hashes, record all regressions and first differences, and compare original 78/78 checkpoint SHA against the independently archived control. In particular test whether delaying equal-target port arrival causes native first CC read to occur one loop later at native SPC age **103322555** (reference 554), whether echo follows rather than jumping to a different sound-driver code path, and whether original/native WRAM +5040/+5045 become equal. All tested false outcomes are valuable negatives, not permission to waive original CPU data. Success requires an independent original/native **replay**, not a compiled unit test.
+
+Research only. Independent QA owns complete original event admissibility, full-source shipping Windows and strict release-quality ledger. Do not merge this treatment into production from a +5163 result alone. The comparison must distinguish timing/source equivalence from observed bounded gameplay equivalence.

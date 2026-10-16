@@ -1,0 +1,221 @@
+{
+  "schema": "qa02-independent-original-win32-byte-audit/1",
+  "date": "2026-10-16",
+  "windows_run": 38848852832,
+  "windows_qa_head": "92245dcab852be719482f2555980aabd240d3cfa",
+  "original_nominated_commit": "11501a15dea38fa912335cfc63103ce3a7208001",
+  "original_zip_sha256": "5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7",
+  "actual_original_exe_sha256": "0701f72481531ad4f2803caadc62bbb072f292abef69f039edda004b01c18ea9",
+  "retained_original_artifact_id": 12016101293,
+  "original_retention_run": 38828519791,
+  "crash_zip_artifact_id": 12024617002,
+  "crash_zip_sha256": "e70055be446d0afec493cde8ac004273e05425bae5acd3d874cd32e1b6da131a",
+  "artifact_expires_at": "2026-10-30T04:11:16Z",
+  "fixture_exe_sha256": "bc4727177f2cf2e0041808194d448f56907641ea06da6ae65b9e8dfac948892b",
+  "source_script_sha256": "4e714899f53c3bbe501bbfcacf91dd549989c9beb7c2cf6265b13eb687142ec6",
+  "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "win32_process_exit": 86,
+  "original_native_paused_guest_frame": 1952,
+  "raw_save_written_before_typed_checkpoint": true,
+  "cold_restart_exit": 7,
+  "rejected_before_guest": true,
+  "byte_rehash_independently_performed": true,
+  "zip_crc_valid": true,
+  "zip_member_count": 12,
+  "typed_generation": 1,
+  "decoded_typed_stock_sram_bytes": 8192,
+  "decoded_typed_equals_raw_before": true,
+  "decoded_typed_equals_raw_after": false,
+  "file_snapshots": [
+    {
+      "name": "raw SRAM",
+      "bytes_before": 8192,
+      "bytes_after": 8192,
+      "before_sha256": "bd9571f85e1b7ddfcf2b6913d5f3556c27ecadf65d353afbac29876e7d111c10",
+      "after_sha256": "2f3009bb2436e3862e045df7f12da4d37845b83ada491cbc80cbef3a098f80d8",
+      "changed": 28
+    },
+    {
+      "name": "typed profile",
+      "bytes_before": 16525,
+      "bytes_after": 16525,
+      "before_sha256": "1f98e49d51691816a9cd544c6fe71a5f74c3447933a7db6a8cf4e659921775b0",
+      "after_sha256": "1f98e49d51691816a9cd544c6fe71a5f74c3447933a7db6a8cf4e659921775b0",
+      "changed": 0
+    },
+    {
+      "name": "global selector",
+      "bytes_before": 241,
+      "bytes_after": 241,
+      "before_sha256": "eb0d0bd6c37dfa57766faff9e70f57d1730cabca36426d2863553256bbe87956",
+      "after_sha256": "eb0d0bd6c37dfa57766faff9e70f57d1730cabca36426d2863553256bbe87956",
+      "changed": 0
+    },
+    {
+      "name": "roster catalog",
+      "bytes_before": 44,
+      "bytes_after": 44,
+      "before_sha256": "75c0dcef43c3209a4f8793eae5ca035a535348412d3b8b807797fe7f176b1476",
+      "after_sha256": "75c0dcef43c3209a4f8793eae5ca035a535348412d3b8b807797fe7f176b1476",
+      "changed": 0
+    }
+  ],
+  "raw_changed_offsets_old_new_hex": [
+    [
+      3707,
+      "10",
+      "00"
+    ],
+    [
+      3708,
+      "10",
+      "00"
+    ],
+    [
+      3709,
+      "10",
+      "00"
+    ],
+    [
+      3710,
+      "10",
+      "00"
+    ],
+    [
+      3711,
+      "10",
+      "00"
+    ],
+    [
+      3712,
+      "10",
+      "00"
+    ],
+    [
+      3713,
+      "10",
+      "00"
+    ],
+    [
+      3714,
+      "10",
+      "00"
+    ],
+    [
+      3811,
+      "c0",
+      "00"
+    ],
+    [
+      3812,
+      "02",
+      "00"
+    ],
+    [
+      3889,
+      "16",
+      "13"
+    ],
+    [
+      3903,
+      "10",
+      "00"
+    ],
+    [
+      3904,
+      "10",
+      "00"
+    ],
+    [
+      3905,
+      "10",
+      "00"
+    ],
+    [
+      3906,
+      "10",
+      "00"
+    ],
+    [
+      3907,
+      "10",
+      "00"
+    ],
+    [
+      3908,
+      "10",
+      "00"
+    ],
+    [
+      3909,
+      "10",
+      "00"
+    ],
+    [
+      3910,
+      "10",
+      "00"
+    ],
+    [
+      4032,
+      "01",
+      "00"
+    ],
+    [
+      4036,
+      "02",
+      "00"
+    ],
+    [
+      4040,
+      "03",
+      "00"
+    ],
+    [
+      4044,
+      "04",
+      "00"
+    ],
+    [
+      4048,
+      "05",
+      "00"
+    ],
+    [
+      4052,
+      "06",
+      "00"
+    ],
+    [
+      4056,
+      "07",
+      "00"
+    ],
+    [
+      4273,
+      "01",
+      "02"
+    ],
+    [
+      8191,
+      "00",
+      "56"
+    ]
+  ],
+  "last_good_typed_preserved": true,
+  "new_raw_preserved": true,
+  "explicit_player_recovery_available": false,
+  "outside_scope": [
+    "external taskkill",
+    "actual power cut",
+    "NTFS torn write",
+    "denied/full disk",
+    "simultaneous processes",
+    "paired completed-run and match duplicate exclusion",
+    "physical two gamepads and audio or 4K",
+    "full original/native USA event"
+  ],
+  "qa02_gate_status": "failed",
+  "release_pass_witnesses": 0,
+  "usa_accepted_complete_events": 0
+}

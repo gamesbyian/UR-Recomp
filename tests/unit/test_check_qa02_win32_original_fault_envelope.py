@@ -15,6 +15,7 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tools"))
 from check_qa02_win32_original_fault_envelope import (  # noqa: E402
     EXTRA, NEG, POS, audit,

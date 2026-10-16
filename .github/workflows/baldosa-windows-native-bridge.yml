@@ -343,6 +343,7 @@ jobs:
           run-id: 38828519791
           artifact-ids: 12016101293
           github-token: ${{ github.token }}
+          merge-multiple: true
           path: ${{ runner.temp }}/qa02-retained-nominated-owner
 
       - name: Reproduce original Windows EXE raw/typed crash with actual 8192-byte before-after captures

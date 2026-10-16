@@ -25,8 +25,8 @@ static bool ur_qa01_rf030_enabled() {
 }
 static bool ur_qa01_rf030_original_window() {
   return ur_qa01_rf030_enabled() &&
-         ur_qa01_rf030_spc_age >= 103300000ull &&
-         ur_qa01_rf030_spc_age <= 103345000ull;
+         ur_qa01_rf030_spc_age >= 103322420ull &&
+         ur_qa01_rf030_spc_age <= 103323100ull;
 }
 static unsigned ur_qa01_rf030_spc_records = 0;
 
@@ -100,8 +100,8 @@ CPU_READ_NEW = """uint8 S9xAPUReadPort(int port)
     S9xAPUExecute();
     uint8 observed = (uint8)SNES::smp.port_read(port & 3);
     if ((port & 3) == 0 && getenv("UR_QA01_IPL_ECHO_TRACE") &&
-        SNES::ur_qa01_rf030_spc_age >= 103300000ull &&
-        SNES::ur_qa01_rf030_spc_age <= 103345000ull) {
+        SNES::ur_qa01_rf030_spc_age >= 103322420ull &&
+        SNES::ur_qa01_rf030_spc_age <= 103323100ull) {
         static unsigned n = 0;
         if (n++ < 2000)
             fprintf(stderr, "QA01IPLORIG side=cpu kind=poll frame=0 v=%u h=%d age=%llu pc=0000 op=00 value=%02X ipl=0\\n",
@@ -121,8 +121,8 @@ CPU_WRITE_NEW = """void S9xAPUWritePort(int port, uint8 byte)
     S9xAPUExecute();
     SNES::cpu.port_write(port & 3, byte);
     if ((port & 3) == 0 && getenv("UR_QA01_IPL_ECHO_TRACE") &&
-        SNES::ur_qa01_rf030_spc_age >= 103300000ull &&
-        SNES::ur_qa01_rf030_spc_age <= 103345000ull) {
+        SNES::ur_qa01_rf030_spc_age >= 103322420ull &&
+        SNES::ur_qa01_rf030_spc_age <= 103323100ull) {
         static unsigned n = 0;
         if (n++ < 2000)
             fprintf(stderr, "QA01IPLORIG side=cpu kind=write frame=0 v=%u h=%d age=%llu pc=0000 op=00 value=%02X ipl=0\\n",
@@ -142,8 +142,8 @@ static void ur_qa01_rf030_native(Apu* apu, const char *kind, uint8_t val) {
     enabled = getenv("UR_QA01_IPL_ECHO_TRACE") != NULL;
     initialized = 1;
   }
-  if (!enabled || apu->portClock < 103300000ull ||
-      apu->portClock > 103345000ull) return;
+  if (!enabled || apu->portClock < 103322420ull ||
+      apu->portClock > 103323100ull) return;
   if (count++ < 2000)
     fprintf(stderr, "QA01IPLNATIVE kind=%s age=%llu pc=%04X value=%02X q=%u in=%02X out=%02X\\n",
             kind, (unsigned long long)apu->portClock,

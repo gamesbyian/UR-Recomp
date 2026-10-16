@@ -3,12 +3,8 @@ name: QA-08 original 2P results medal live PPU and sprite source
 # Read-only ORIGINAL 2014 source callback pixels; certified baseline 263/263.
 # Do not conflate libretro callback f with snesref postrun host do_dump(f).
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - ".github/workflows/qa08-original-medal-live-pixel.yml"
-      - "tools/qa08_patch_original_medal_callback.py"
-      - "tests/unit/test_qa08_patch_original_medal_callback.py"
+  # The original 263-image SHA-verified medal witness is completed;
+  # rebuilding the historical core is now an explicit bounded opt-in.
   workflow_dispatch:
 permissions:
   contents: read

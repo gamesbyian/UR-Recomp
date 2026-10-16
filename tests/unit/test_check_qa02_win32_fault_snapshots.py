@@ -60,13 +60,14 @@ def make_members(mode: str) -> dict[str, bytes]:
         files["intent.recovered-receipt.bin"] = intent
         files["second-cold-recovery-boot.log"] = (
             b"UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=example\n")
-        receipt["intent"] = {
+        intent_receipt = {
             "crash_sha256": hashlib.sha256(intent).hexdigest(),
             "receipt_sha256": hashlib.sha256(intent).hexdigest(),
             "bytes": len(intent),
             "byte_identical": True,
             "pending_retired": True,
         }
+        files["intent-receipt.json"] = json.dumps(intent_receipt).encode()
     files["file-receipt.json"] = json.dumps(receipt).encode()
     files["crash.log"] = LOG.encode()
     if mode == "historic":
@@ -135,11 +136,11 @@ class SnapshotByteConsumerTest(unittest.TestCase):
             members = make_members("journaled")
             members["intent.crash.bin"] = b"garbage"
             members["intent.recovered-receipt.bin"] = b"garbage"
-            receipt = json.loads(members["file-receipt.json"])
-            receipt["intent"]["crash_sha256"] = hashlib.sha256(b"garbage").hexdigest()
-            receipt["intent"]["receipt_sha256"] = hashlib.sha256(b"garbage").hexdigest()
-            receipt["intent"]["bytes"] = len(b"garbage")
-            members["file-receipt.json"] = json.dumps(receipt).encode()
+            receipt = json.loads(members["intent-receipt.json"])
+            receipt["crash_sha256"] = hashlib.sha256(b"garbage").hexdigest()
+            receipt["receipt_sha256"] = hashlib.sha256(b"garbage").hexdigest()
+            receipt["bytes"] = len(b"garbage")
+            members["intent-receipt.json"] = json.dumps(receipt).encode()
             path, sha = pack(Path(d), members)
             with self.assertRaisesRegex(ValueError, "invalid durable prewrite-intent"):
                 inspect(path, sha, "journaled")

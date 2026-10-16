@@ -151,8 +151,8 @@ def assess(original_zip:Path,native_zip:Path,original_probe_zip:Path)->dict:
                     ((attr>>12)&3)!=int(orig["priority"])):
                     raise ValueError("original/native sprite tile/priority/palette change unqualified")
                 address=int(next(iter(xy)),16)
-                if (address&255)!=(int(orig["x"])&255) or
-                    (address>>8)!=(int(orig["y"])&255)):
+                if (((address&255)!=(int(orig["x"])&255)) or
+                    ((address>>8)!=(int(orig["y"])&255))):
                     raise ValueError("original/native medal sprite XY changed")
                 joined_oam.append({
                     "original_callback":cb,"native_guest":guest,"slot":slot,

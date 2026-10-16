@@ -24,6 +24,10 @@ on:
         required: false
         type: boolean
         default: false
+      qa01_ipl_echo_trace:
+        required: false
+        type: boolean
+        default: false
       source_followthrough:
         required: false
         type: boolean
@@ -90,6 +94,11 @@ on:
 
       qa01_apu_phase:
         description: "Opt-in read-only original/Baldosa APU port-2 and CPU-source opcode trace around Zoo result"
+        type: boolean
+        required: false
+        default: false
+      qa01_ipl_echo_trace:
+        description: "Research-only RF-030 executed Snes9x and Baldosa SPC IPL $F4 compare/echo and CPU $2140 clock observer, Zoo composite full stage only"
         type: boolean
         required: false
         default: false
@@ -166,6 +175,7 @@ jobs:
           ZOO_MESH: ${{ inputs.zoo_race_mesh }}
           ZOO_DP_WINDOW: ${{ inputs.zoo_dp_window }}
           QA01_APU_PHASE: ${{ inputs.qa01_apu_phase }}
+          QA01_IPL_ECHO: ${{ inputs.qa01_ipl_echo_trace }}
           QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}
           QA01_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
           QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
@@ -190,6 +200,14 @@ jobs:
           fi
           if [[ "$QA01_APU_PHASE" == "true" && "$SELECTED" != "zoom-zoo" ]]; then
             echo "RF-015 APU trace only supports selected=zoom-zoo" >&2
+            exit 1
+          fi
+          if [[ "$QA01_IPL_ECHO" == "true" &&
+                ( "$SELECTED" != "zoom-zoo" || "$ZOO_MESH" != "true" ||
+                  "$ZOO_DP_WINDOW" != "true" || "$QA01_NEXT_BOWL" != "true" ||
+                  "$QA01_FOLLOWTHROUGH" != "true" || "$QA01_SPC_INTERRUPT_STAGE" != "true" ||
+                  "$QA01_RF015_019" != "true" ) ]]; then
+            echo "RF-030 requires exact source Zoo + unmasked mesh/DP/Bowl and complete RF-015..028" >&2
             exit 1
           fi
           if [[ "$QA01_COLD_GUEST" == "true" &&
@@ -255,6 +273,8 @@ jobs:
           python3 -m unittest discover -s tests/unit -p test_qa01_zoo_dp_window.py
           python3 -m unittest discover -s tests/unit -p test_qa01_cold_result_record.py
           python3 -m unittest discover -s tests/unit -p test_qa01_postresult_sram_diff.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_ipl_echo_trace_patch.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_ipl_echo_report.py
           python3 -m unittest discover -s tests/unit -p 'test_baldosa_spc_*_patch.py'
           python3 -m unittest discover -s tests/unit -p test_baldosa_interrupt_entry_cost_patch.py
       - name: Build original Snes9x/snesref and research native exactly once
@@ -277,6 +297,15 @@ jobs:
             make -C "$CORE_SRC/libretro" -j2
             python3 tools/qa01_apu_phase_observers.py native \
               baldosa/snesrecomp/runner/src/common_rtl.c
+          fi
+          # RF-030: observe actual original CPU/SSC handshake without changing
+          # controller inputs, emulator guest semantics or original reference.
+          if [[ "${{ inputs.qa01_ipl_echo_trace }}" == "true" ]]; then
+            CORE_SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+            python3 tools/qa01_ipl_echo_trace_patch.py original \
+              --original-root "$CORE_SRC"
+            make -C "$CORE_SRC/libretro" -j2
+            python3 tools/qa01_ipl_echo_trace_patch.py native --game baldosa
           fi
           cmake -S baldosa/snesrecomp/tools/snesref \
             -B "$RUNNER_TEMP/qa01-snesref" -DCMAKE_BUILD_TYPE=Release
@@ -391,6 +420,7 @@ jobs:
           QA01_SOURCE_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
           QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
           QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}
+          UR_QA01_IPL_ECHO_TRACE: ${{ inputs.qa01_ipl_echo_trace && '1' || '' }}
           # Distinct original and native clock axes; historical Zoo result
           # windows, NOT time-shifted input or assumed frame equivalence.
           UR_QA01_APU_ORIGINAL_FIRST: "6748"
@@ -573,6 +603,13 @@ jobs:
               --out "$ROOT/qa01-cold-guest-report.json"
             echo 'Fresh original/native guest record reload checked; host disk durability NOT proven; zero event credit' >> "$GITHUB_STEP_SUMMARY"
           fi
+          if [[ "$QA01_IPL_ECHO" == "true" ]]; then
+            python3 tools/qa01_ipl_echo_report.py \
+              --original-log "$ROOT/work/zoom-zoo/replay/reference.log" \
+              --native-log "$ROOT/work/zoom-zoo/replay/native.log" \
+              --out "$ROOT/qa01-ipl-echo-report.json"
+            echo 'RF-030 executed original/native IPL CPU-port and SPC echo phases separately qualified; no release course credit' >> "$GITHUB_STEP_SUMMARY"
+          fi
           if [[ "$QA01_APU_PHASE" == "true" ]]; then
             python3 tools/qa01_apu_phase_report.py \
               --original-log "$ROOT/work/zoom-zoo/replay/reference.log" \
@@ -595,6 +632,7 @@ jobs:
             ${{ runner.temp }}/qa01-case/qa01-cold-guest-boot/original.log
             ${{ runner.temp }}/qa01-case/qa01-cold-guest-boot/native.log
             ${{ runner.temp }}/qa01-case/qa01-apu-edge-report.json
+            ${{ runner.temp }}/qa01-case/qa01-ipl-echo-report.json
             ${{ runner.temp }}/qa01-case/producer-report.json
             ${{ runner.temp }}/qa01-case/producer.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/source/source-scan.log

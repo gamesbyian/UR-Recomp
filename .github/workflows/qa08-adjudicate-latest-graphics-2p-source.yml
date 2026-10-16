@@ -46,19 +46,56 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12074238115/zip" \
             -o "$RUNNER_TEMP/qa08-paired/latest-windows.zip"
+          curl --fail --silent --show-error --location --retry 2 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12014896975/zip" \
+            -o "$RUNNER_TEMP/qa08-paired/prior-windows.zip"
           cd "$RUNNER_TEMP/qa08-paired"
           printf '%s\n' \
             "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e  original.zip" \
             "4f766de13c702a108279293df4613538d8b49cbd1ecbc0876533c5f01f09293c  latest-windows.zip" \
+            "f01ab5a4888c227f306a0b9cd89e67710a4b41cad4c22867072280a17811fa82  prior-windows.zip" \
             | sha256sum -c -
-          mkdir original native
+          mkdir original native prior-native
           unzip -q original.zip -d original
           unzip -q latest-windows.zip -d native
+          unzip -q prior-windows.zip -d prior-native
           test -f original/qa08-original-2p-fullroute.json
           test -f native/qa08-windows-2p-fullroute.json
           test -f native/qa08-native-effective-pixel-owner.json
           test -f native/qa08-native-OAM-port-input.json
           echo "Immutable original+Win32 archives SHA256 verified. ROM/SRAM not downloaded." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify all 263 new Windows field images identical to prior valid Win32 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - "$RUNNER_TEMP/qa08-paired/prior-native" "$RUNNER_TEMP/qa08-paired/native" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import hashlib, json, pathlib, sys
+          old,new=map(pathlib.Path,sys.argv[1:3])
+          previous=json.loads((old/"qa08-windows-2p-fullroute.json").read_text())
+          latest=json.loads((new/"qa08-windows-2p-fullroute.json").read_text())
+          assert previous["schema"]==latest["schema"]=="qa08-real-windows-2p-split-fullroute-source-20261015/1"
+          assert previous["actual_native_simulations"]==latest["actual_native_simulations"]==5484
+          assert previous["actual_native_guest_CRC_sha256"]==latest["actual_native_guest_CRC_sha256"]=="c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876"
+          assert previous["actual_source_count"]==latest["actual_source_count"]==263
+          old_manifest=previous["source_frame_P7_SHA256_by_guest"]
+          new_manifest=latest["source_frame_P7_SHA256_by_guest"]
+          frames=list(range(1280,5473,16))
+          assert set(old_manifest)==set(new_manifest)=={str(f) for f in frames}
+          for frame in frames:
+              name=f"ur-baldosa-original-source-{frame:06d}.pam"
+              for root,manifest in ((old,old_manifest),(new,new_manifest)):
+                  raw=(root/"source"/name).read_bytes()
+                  assert len(raw)>256*224*4
+                  assert hashlib.sha256(raw).hexdigest()==manifest[str(frame)],name
+              assert old_manifest[str(frame)]==new_manifest[str(frame)],f"new raster altered at native guest {frame}"
+          assert previous["actual_windows_PE_sha256"]!=latest["actual_windows_PE_sha256"]
+          print("QA08_NEW_WINDOWS_COMPARED_PRIOR 263/263 true P7 hashes identical, distinct compiled PE, 5484 CRC identical")
+          with open(sys.argv[3],"a",encoding="utf-8") as out:
+              out.write("All 263 actual Windows source P7 images are byte-identical to the independently archived previous real native candidate despite distinct compiled PE hashes; full 5484 guest CRC is identical. This is source-raster regression parity, not original/hardware/host presentation release.\n")
+          PY
 
       - name: Bind exact new PE to 263 source images, OAM ports and full guest route
         shell: bash

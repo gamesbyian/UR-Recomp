@@ -1,14 +1,8 @@
-name: QA-08 verify matched medal OAM from immutable source archives
+name: QA-08 historic medal OAM comparison (temporal misregistration; manual only)
 
 # One cheap PR-only archive comparison. Existing original 2014 Snes9x
 # producer and real native Win32 build have already run; NEVER rebuild.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - ".github/workflows/qa08-adjudicate-matched-medal-archives.yml"
-      - "tools/qa08_verify_matched_original_native_medal_oam.py"
-      - "tests/unit/test_qa08_verify_matched_original_native_medal_oam.py"
   workflow_dispatch:
 
 permissions:

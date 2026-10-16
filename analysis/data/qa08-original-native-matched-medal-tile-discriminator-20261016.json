@@ -196,5 +196,9 @@
   "original_544_observed_OAMDATA_bytes_identical_to_original_544_byte_end_OAM_for_all_three_fields": true,
   "original_mid_visible_field_port_OAMDATA_writes_all_three_frames": 0,
   "original_OAMDMA_written_before_visible_pixels_under_original_snesref_2014_field_chronology": true,
-  "original_reconstructed_full_scanline_OBJ_priority_or_final_math_accepted": false
+  "original_reconstructed_full_scanline_OBJ_priority_or_final_math_accepted": false,
+  "invalidated_by_preincrement_vs_postincrement_original_frame_counter": true,
+  "previous_14_slot_comparisons_not_source_time_matched": true,
+  "reason": "do_dump g_frame N maps to video callback N-1; original 4031/4175 are earlier images than claimed; new originals must capture do_dump 4032/4176",
+  "graphics_correction_permitted": false
 }

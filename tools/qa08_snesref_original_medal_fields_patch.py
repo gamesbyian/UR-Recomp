@@ -20,9 +20,9 @@ MARK="UR_QA08_ORIGINAL_MEDAL_MATCHING_FIELDS"
 ADDED=r"""        /* UR_QA08_ORIGINAL_MEDAL_MATCHING_FIELDS: exactly three
          * original completed fields, not fabricated same-line OAM. */
         if (getenv("UR_QA08_ORIGINAL_MEDAL_FIELDS")) {
-            if (g_frame == 1279) do_dump("qa08_arrow_1279");
-            if (g_frame == 4031) do_dump("qa08_medal_4031");
-            if (g_frame == 4175) do_dump("qa08_medal_4175");
+            if (g_frame == 1280) do_dump("qa08_arrow_1280");
+            if (g_frame == 4032) do_dump("qa08_medal_4032");
+            if (g_frame == 4176) do_dump("qa08_medal_4176");
         }
 """
 AFTER=previous.HOOK_AFTER.replace("        trace_tick();",ADDED+"        trace_tick();")

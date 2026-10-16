@@ -135,6 +135,7 @@ def slot_delta(original:dict,native:str,hi:int,slot:int)->dict:
             "source_palette":original["OBJ_palette"],"source_priority":original["OBJ_priority"]}
 
 def verify(original:Path, extra:Path, native:Path)->dict:
+    raise ValueError("RETIRED: original host OAM field was off by one from original video callback; recapture original postrun 4032/4176")
     with open_zip(original,"original_263") as src,open_zip(extra,"original_extra") as e,open_zip(native,"native_11pixel") as w:
         original_manifest=json.loads(src.read("qa08-original-2p-fullroute.json"))
         hist=json.loads(e.read("original-263-verified.json"))

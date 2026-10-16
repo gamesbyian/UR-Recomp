@@ -95,6 +95,6 @@ jobs:
           path: |
             qa08-original-medal-evidence/original-263-verified.json
             qa08-original-medal-evidence/matched-original-fields.json
-            qa08-original-medal-evidence/registers/qa08_arrow_1279.*
-            qa08-original-medal-evidence/registers/qa08_medal_4031.*
-            qa08-original-medal-evidence/registers/qa08_medal_4175.*
+            qa08-original-medal-evidence/registers/qa08_arrow_1280.*
+            qa08-original-medal-evidence/registers/qa08_medal_4032.*
+            qa08-original-medal-evidence/registers/qa08_medal_4176.*

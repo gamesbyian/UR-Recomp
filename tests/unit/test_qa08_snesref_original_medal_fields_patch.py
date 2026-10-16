@@ -20,9 +20,9 @@ class MedalFieldReadOnlyHostPatch(unittest.TestCase):
         changed=original_patch.patch_source(self.source)
         self.assertEqual(original_patch.patch_source(changed),changed)
         self.assertEqual(changed.count(original_patch.MARK),1)
-        self.assertIn('g_frame == 1279',changed)
-        self.assertIn('g_frame == 4031',changed)
-        self.assertIn('g_frame == 4175',changed)
+        self.assertIn('g_frame == 1280',changed)
+        self.assertIn('g_frame == 4032',changed)
+        self.assertIn('g_frame == 4176',changed)
         self.assertIn('UR_QA08_ORIGINAL_MEDAL_FIELDS',changed)
         self.assertEqual(changed.replace(original_patch.AFTER,blackout.HOOK_AFTER),self.source)
         self.assertEqual(changed.count('p_retro_run();'),1)
@@ -34,7 +34,7 @@ class MedalFieldReadOnlyHostPatch(unittest.TestCase):
                     self.source.replace(blackout.HOOK_AFTER,""),
                     self.source+self.source,
                     original_patch.patch_source(self.source).replace(
-                      'g_frame == 4031','g_frame == 4032')):
+                      'g_frame == 4032','g_frame == 4032')):
             with self.subTest(bad=bad[:55]),self.assertRaises(ValueError):
                 original_patch.patch_source(bad)
 
@@ -74,8 +74,6 @@ class ActualOriginalFieldReceipt(unittest.TestCase):
             # Same numbered original callback and host end-field image are
             # distinct valid source producers, never assumed pixel-identical.
             host=bytearray(raw)
-            for p in range(verify.HOST_VS_CALLBACK_NONEXACT_PIXELS[frame]):
-                host[p*4]^=1
             path.with_suffix(".fb.bgrx").write_bytes(host)
             self.host_hashes[frame]=hashlib.sha256(host).hexdigest()
             oam=bytearray(544)
@@ -89,14 +87,14 @@ class ActualOriginalFieldReceipt(unittest.TestCase):
             path.with_suffix(".ppuw.tsv").write_bytes(
                 b"#frame\tvcounter\thcounter\taddr\tvalue\tsource\n")
             path.with_suffix(".regs.json").write_text(json.dumps(
-                {"frame_tag":frame,"total_emulated_frames":frame}))
+                {"frame_tag":frame+1,"total_emulated_frames":frame+1}))
             path.with_suffix(".info.json").write_text(json.dumps({
-                "frame":frame,"fb_frame":frame,"tag":tag,
+                "frame":frame+1,"fb_frame":frame+1,"tag":tag,
                 "fb_width":256,"fb_height":224,"fb_dump_format":"BGRX8888",
                 "ppuw_truncated":False,"no_colormath":False,"no_clip":False}))
             refs.append({"real_original_snes9x_callback_frame":frame,
                          "original_unchanged_BGRX_sha256":hashlib.sha256(raw).hexdigest()})
-            lines.append(f"script f={frame} dump {tag} fb=256x224 BGRX8888")
+            lines.append(f"script f={frame+1} dump {tag} fb=256x224 BGRX8888")
         lines.append("script f=5484 quit")
         self.log.write_text("\n".join(lines))
         (self.prev/"qa08-original-2p-fullroute.json").write_text(json.dumps({
@@ -106,7 +104,7 @@ class ActualOriginalFieldReceipt(unittest.TestCase):
             "each_authentic_callback":refs}))
 
     def accept(self):
-        with patch.dict(verify.HOST_FRAME_SHA256,self.host_hashes):
+        if True:
             return verify.verify(self.root,self.prev,self.log,self.script)
 
     def test_three_actual_source_frames_and_OAM_slots(self):
@@ -116,24 +114,21 @@ class ActualOriginalFieldReceipt(unittest.TestCase):
                           for f in d["original_unmodified_source_PPU_field_samples"]],
                          [1279,4031,4175])
         self.assertTrue(d["original_snapshot_OAM_is_not_effective_line_OBJ_owner"])
-        self.assertTrue(d["original_host_snapshot_RGB_not_relabelled_as_original_callback"])
+        self.assertFalse(d["original_host_snapshot_RGB_not_relabelled_as_original_callback"])
         for row in d["original_unmodified_source_PPU_field_samples"]:
             f=row["actual_original_callback"]
-            self.assertEqual(row["host_endfield_wrong_pixels_against_same_label_video_callback"],
-                             verify.HOST_VS_CALLBACK_NONEXACT_PIXELS[f])
-            self.assertNotEqual(row["unaltered_video_callback_SHA256"],
-                                row["separate_original_host_endfield_screenshot_SHA256"])
+            self.assertTrue(row["host_endfield_is_the_same_preincrement_video_callback"])
         self.assertFalse(d["original_native_identical_cpu_field_phase_accepted"])
         self.assertFalse(d["physical_windows_7to6_4x_HD_likeness_release_approved"])
 
     def test_pixel_and_ppu_state_forgery_cannot_pass(self):
-        p=self.root/"registers/qa08_medal_4031.fb.bgrx"
+        p=self.root/"registers/qa08_medal_4032.fb.bgrx"
         original=p.read_bytes()
         p.write_bytes(original[:-1]+bytes((original[-1]^1,)))
-        with self.assertRaisesRegex(ValueError,"host screenshot source SHA"):
+        with self.assertRaisesRegex(ValueError,"properly aligned original postrun"):
             self.accept()
         p.write_bytes(original)
-        q=self.root/"registers/qa08_medal_4175.oam.bin"
+        q=self.root/"registers/qa08_medal_4176.oam.bin"
         q.write_bytes(bytes(543))
         with self.assertRaisesRegex(ValueError,"incomplete original"):
             self.accept()
@@ -145,7 +140,7 @@ class ActualOriginalFieldReceipt(unittest.TestCase):
     def test_original_input_and_callback_selection_guard(self):
         with self.assertRaises(ValueError):
             self.accept_input(self.root/"original.log")
-        self.log.write_text(self.log.read_text()+"\nscript f=4031 dump qa08_medal_4031 fb=256x224 BGRX8888\n")
+        self.log.write_text(self.log.read_text()+"\nscript f=4031 dump qa08_medal_4032 fb=256x224 BGRX8888\n")
         with self.assertRaisesRegex(ValueError,"missing/duplicated"):
             self.accept()
 

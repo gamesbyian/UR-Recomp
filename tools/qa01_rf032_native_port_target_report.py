@@ -14,9 +14,9 @@ import qa01_ipl_echo_report as rf030
 
 SCHEMA = "UR-RF032-EXECUTED-NATIVE-QUEUE-TARGET-CPU-ECHO/1"
 PREFIX = "QA01RF032 "
-KEYS = ("kind", "age", "guest", "target", "port", "value", "in", "out",
+KEYS = ("kind", "age", "guest", "target", "port", "value", "raw", "in", "out",
         "pc", "qhead", "qtail", "guestanchor", "targetanchor")
-HEX = {"value", "in", "out", "pc"}
+HEX = {"value", "raw", "in", "out", "pc"}
 KINDS = {"schedule", "apply", "cpu-poll"}
 
 
@@ -76,8 +76,6 @@ def summarize(original_log: str, native_log: str) -> dict:
         raise ValueError("missing executed native CPU first $2140 CC echo poll")
     if not any(r["age"] < echo_reads[0]["age"] and r["value"] == 0xaa for r in cpu_polls):
         raise ValueError("missing native CPU earlier $AA ready-poll sequence")
-    if any(r["raw"] != r["value"] for r in []):  # raw absent in generic schedule records
-        raise ValueError("impossible RF032 raw-poll path")
     return {
         "schema": SCHEMA,
         "case_causality": "read-only original/native genuine source Zoo; no clock-phase correction",
@@ -103,7 +101,8 @@ def summarize(original_log: str, native_log: str) -> dict:
             "port_clock": echo_reads[0]["age"],
             "echo_to_cpu_observation_spc_cycles": echo_reads[0]["age"] - echo_age,
             "returned_value": f"{echo_reads[0]['value']:02X}",
-            "raw_output_port": f"{echo_reads[0]['out']:02X}",
+            "raw_output_port": f"{echo_reads[0]['raw']:02X}",
+            "observer_or_emulator_changed_port_read": echo_reads[0]["value"] != echo_reads[0]["raw"],
             "spc_pc": f"{echo_reads[0]['pc']:04X}",
         },
         "native_cpu_poll_count_in_window": len(cpu_polls),

@@ -81,7 +81,7 @@ This was a local run of `probe_original_event_complete.py --case zoom-zoo --sour
 | `$63` / `$69` at +5040 | off by 38 / 39 | off by 15 / 16 | **off by 1 / equal** |
 | `$63` / `$69` difference, +5040…+5046 | differs at every frame | differs at every frame | `$63` off by one at +5040 and +5045 only; `$69` always equal |
 
-Every residual mesh byte is stale stack (`7E:01ED–01F1`), apart from the two `$63` samples. Those come back to equality the next frame, so the remaining upload difference doesn't accumulate. QA-01's hosted exact-binary run 38884542449 (#1709 on `main`) reports the same values.
+Every residual mesh byte lies in the stack page (`7E:01ED–01F1`; liveness not traced), apart from the two `$63` samples. Those come back to equality the next frame, so the remaining upload difference doesn't accumulate. QA-01's hosted exact-binary run 38884542449 (#1709 on `main`) reports the same values.
 
 **Executed trace (local observer, stage-equivalent knobs, hosts 6050–6064).** The +5040 transfer is not the `02:82F0` stream loop. It is an IPL-protocol driver upload inside an NMI-disabled loader (NMI off from host 6051): `$2142 = 00`, `$2143 = 04`, `$2141 = 01`, then the CPU repeats `$2140 = $CC` until the SPC echoes it. The two engines differ only at that start handshake:
 

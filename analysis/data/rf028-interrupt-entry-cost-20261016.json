@@ -126,7 +126,7 @@
    267
   ],
   "next_bowl_sram_pairs_equal": "11/11",
-  "next_bowl_wram_exact": "9/11 (others: 7E:01ED-01F0 stack only)",
+  "next_bowl_wram_exact": "9/11 (others: 7E:01ED-01F0 stack page only; liveness not traced)",
   "race_mesh_differing_bytes_total": 92,
   "race_mesh_wram_exact": "51/78",
   "reference": "Snes9x (local snesref)",

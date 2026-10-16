@@ -1,0 +1,248 @@
+{
+  "schema": "UR-QA01-RF018-ZOO-AB-INDEPENDENT-REVIEW/1",
+  "date_utc": "2026-10-16",
+  "disposition": "RF-018 partly narrows audio-transfer-state difference, but breaks original Zoo-to-next-Bowl result-relative progression; strict research negative; zero release admission",
+  "inputs": {
+    "usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "archived_original_2014_smv_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "original_source_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+    "original_movie_source_window_sha256": "7b03f40e3401d844c16c7c4e1cc7375e5419f33882793c8187dcebc88dbc8c93",
+    "reference_replay_script_sha256": "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52",
+    "source_movie_modified": false
+  },
+  "control": {
+    "corrections": [
+      "RF-015",
+      "RF-017"
+    ],
+    "hosted_runs": [
+      38847972295,
+      38848262320
+    ],
+    "case_artifact_ids": [
+      12023968359,
+      12024683035
+    ],
+    "second_case_zip_sha256": "e3663421c29dbe4d5b0a7a9e3ce523e526b45e8bb886bd088d53bddfa07db6a3",
+    "second_producer_report_sha256": "909e951e3300ae16b8585ea8ffe0474e19167bea8c47601f7c9a424a145737b4",
+    "native_elf_sha256": "869df40fb63ed1e50e0ffc164d9bdd8986fcc003010fc79d4d110109a654ed5d",
+    "reference_core_sha256": "ffd49f1804ce787a944e8557b2514a9f88f67b5316e5c6d34e2f435b26978e12",
+    "reference_native_entry_host": [
+      1017,
+      1019
+    ]
+  },
+  "treatment": {
+    "corrections": [
+      "RF-015",
+      "RF-017",
+      "RF-018"
+    ],
+    "rf016": false,
+    "rf019": false,
+    "github_actions_run": 38861174758,
+    "run_head_sha": "f4db77a834180b17d90ad3851dd81cf238141649",
+    "workflow_checkout_source_sha": "05f8d468409d0f287590fc42fd3682c00ee7ff6e",
+    "case_artifact_id": 12029426494,
+    "case_zip_size_bytes": 62318,
+    "case_zip_sha256": "f8391d7bfaab1505f89c801ed33b5138598829c833879bd79bf828a7ca38734b",
+    "producer_report_raw_sha256": "a709eea6d623d89f58642937e26d179cc49c8df4070f0f8f3bf19067f4fdf0d7",
+    "native_elf_sha256": "868c878afa3f04ccc4fe2697a362ad199ce2035f801609a65e3eac7a03b2cea8",
+    "reference_core_sha256": "8ea52b3fefad6d5f03576a3da9460557ef0727fb71698385afa1041da5a59fef",
+    "reference_native_entry_host": [
+      1017,
+      1017
+    ],
+    "complete_workflow_success": true,
+    "case_disposition": "strict_candidate_on_current_primary_result_only; postresult divergence unwaived"
+  },
+  "whole_wram_comparison": {
+    "paired_128k_checkpoint_count": 78,
+    "original_128k_sha_pairs_identical_between_treatment_and_control": 78,
+    "native_128k_sha_pairs_identical_between_treatment_and_control": 70,
+    "changed_native_frame_offsets": [
+      0,
+      5040,
+      5041,
+      5042,
+      5043,
+      5044,
+      5045,
+      5046
+    ],
+    "all_128k_bytes_compared": true,
+    "excluded_byte_count": 0,
+    "control_byte_exact_pairs": 45,
+    "treatment_byte_exact_pairs": 46,
+    "control_total_differing_byte_occurrences": 109,
+    "treatment_total_differing_byte_occurrences": 105,
+    "guest_relative_5039_byte_exact_in_both": true,
+    "first_sound_dp_disagreement_guest_relative_in_both": 5040,
+    "window_inclusive": [
+      5034,
+      5046
+    ],
+    "frame_observations_decimal_format": [
+      "race_relative_frame",
+      "original_7E0063",
+      "original_7E0069",
+      "control_native_7E0063",
+      "control_native_7E0069",
+      "treatment_native_7E0063",
+      "treatment_native_7E0069"
+    ],
+    "frame_observations": [
+      [
+        5039,
+        176,
+        159,
+        176,
+        159,
+        176,
+        159
+      ],
+      [
+        5040,
+        115,
+        190,
+        77,
+        151,
+        100,
+        174
+      ],
+      [
+        5041,
+        77,
+        151,
+        40,
+        114,
+        62,
+        137
+      ],
+      [
+        5042,
+        39,
+        113,
+        2,
+        76,
+        25,
+        99
+      ],
+      [
+        5043,
+        0,
+        74,
+        221,
+        39,
+        243,
+        61
+      ],
+      [
+        5044,
+        218,
+        36,
+        184,
+        2,
+        206,
+        24
+      ],
+      [
+        5045,
+        179,
+        254,
+        146,
+        220,
+        168,
+        242
+      ],
+      [
+        5046,
+        141,
+        215,
+        109,
+        183,
+        131,
+        205
+      ]
+    ],
+    "additional_treatment_wram_difference_at_5043": {
+      "address": "7E:0064",
+      "original_hex": "CD",
+      "native_hex": "CC"
+    }
+  },
+  "source_result_and_followthrough": {
+    "source_original_active_entry_movie_frame": 3190,
+    "source_original_result_movie_frame": 8353,
+    "original_native_result_guest_relative_control": [
+      5163,
+      5163
+    ],
+    "original_native_result_guest_relative_treatment": [
+      5163,
+      5163
+    ],
+    "next_bowl_relative_source_original_native_control": [
+      267,
+      267,
+      267
+    ],
+    "next_bowl_relative_source_original_native_treatment": [
+      267,
+      267,
+      265
+    ],
+    "control_postresult_first_named_divergence": null,
+    "treatment_postresult_first_named_divergence_result_relative": 16,
+    "treatment_differing_named_field_at_16": "menu",
+    "control_six_postresult_sram_sample_pairs_equal": true,
+    "treatment_six_postresult_sram_pairs_first_differ_at": 64,
+    "treatment_six_postresult_sram_difference": {
+      "offset_hex": "0x10A7",
+      "source_name_imported": "sCutsceneTimer2",
+      "original_hex": "0C",
+      "native_hex": "0D",
+      "classification": "other battery SRAM, not ranked track records"
+    },
+    "control_next_bowl_all_11_full_sram_pairs_equal": true,
+    "treatment_next_bowl_all_11_full_sram_pairs_equal": false,
+    "treatment_next_bowl_each_pair_differing_bytes": 3,
+    "treatment_next_bowl_first_difference_offsets_decimal": [
+      3889,
+      3891,
+      4263
+    ],
+    "treatment_next_bowl_first_difference_values_original_native_decimal": [
+      [
+        26,
+        27
+      ],
+      [
+        2,
+        4
+      ],
+      [
+        12,
+        13
+      ]
+    ],
+    "treatment_crawler_ranked_track_records_holders_checksums_equal": true,
+    "treatment_triple_named_state_equal_at_next_bowl_offsets_265_266": false
+  },
+  "limitations": {
+    "release_usa_completed_events_accepted": 0,
+    "release_usa_events_total": 45,
+    "all_gameplay_frames_compared": false,
+    "executed_cpu_spc_writer_and_liveness_established": false,
+    "RF018_effect_on_general_games_proven": false,
+    "rf018_progression_regression_is_causal_timing_treatment_not_opcode_identified": true,
+    "shipping_windows_candidate_tested": false,
+    "actual_windows_disk_durability_tested": false,
+    "masked_or_waived_raw_differences": false
+  },
+  "related": {
+    "CPU_APU_issue": "https://github.com/gamesbyian/UR-Recomp/issues/1689",
+    "Windows_RF017_issue": "https://github.com/gamesbyian/UR-Recomp/issues/1686",
+    "baseline_independent_review": "analysis/data/qa01-zoo-dp5040-independent-two-run-review-20261016.json"
+  }
+}

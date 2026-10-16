@@ -1,0 +1,28 @@
+# One original/native RF031 queue-boundary falsifier; remove after receipt.
+name: RF031 CPU APU queue first-CC target boundary
+on:
+  push:
+    branches:
+      - cpu-rf031-apu-queue-cycle-boundary-20261016
+permissions:
+  contents: read
+concurrency:
+  group: rf031-one-zoo-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  original-native-zoo:
+    uses: ./.github/workflows/qa01-event-campaign.yml
+    with:
+      selected: zoom-zoo
+      zoo_race_mesh: true
+      zoo_dp_window: true
+      zoo_terminal_phase: true
+      source_followthrough: true
+      zoo_next_bowl: true
+      baldosa_refresh_beam_rate: true
+      baldosa_io_clock_order: true
+      baldosa_spc_reference_rate: true
+      baldosa_dp_pointer_once: true
+      baldosa_hdma_cpu_stall: true
+      baldosa_spc_interrupt_stage: true
+      baldosa_apu_port_after_target_cycle: true

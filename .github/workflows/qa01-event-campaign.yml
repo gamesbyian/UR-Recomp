@@ -304,6 +304,9 @@ jobs:
             CORE_SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
             python3 tools/qa01_ipl_echo_trace_patch.py original \
               --original-root "$CORE_SRC"
+            # core.cpp is an include owned by smp.cpp; force recompilation of
+            # this precise translation unit without altering its source/ABI.
+            touch "$CORE_SRC/apu/bapu/smp/smp.cpp"
             make -C "$CORE_SRC/libretro" -j2
             python3 tools/qa01_ipl_echo_trace_patch.py native --game baldosa
           fi

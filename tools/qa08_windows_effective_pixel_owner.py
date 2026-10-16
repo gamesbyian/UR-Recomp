@@ -1,0 +1,225 @@
+#!/usr/bin/env python3
+"""One bounded actual Win32 source guest race: effective medal pixel provenance.
+
+Reuse existing unchanged 2P route and Windows binary; only set a read-only
+Uniracers PPU trace opt-in. Every chosen pixel is source-divergent in pinned
+original Snes9x vs real compiled Win32 256x224 PPU source images. This is
+native layer and register telemetry, not an original same-field acceptance,
+priority proof, a colour/math fix, or a release check.
+"""
+from __future__ import annotations
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+try:
+    from tools.baldosa_windows_native_pause_route import run_route
+except ImportError:
+    from baldosa_windows_native_pause_route import run_route
+
+ROM_SHA="859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
+ROUTE_SHA="ef74ec51fa585aa76652f4a14d2727f0074434b3925522ab2607e3bd29aa0194"
+GUEST_CRC_SHA="c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876"
+SLOTS=(96,97,98,99,112,113,114)
+ORIGINAL_SOURCE_ZIP="72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e"
+WINDOWS_SOURCE_ZIP="f01ab5a4888c227f306a0b9cd89e67710a4b41cad4c22867072280a17811fa82"
+# These are real untouched Windows Original PPU RGB bytes from the archived
+# post-V0 source frames; none of them is the original-Snes9x expected RGB.
+POINTS={
+    (1280,55,65):(90,66,74),
+    (4032,207,91):(115,115,115),
+    (4032,205,115):(132,49,24),
+    (4032,205,139):(115,57,74),
+    (4032,225,96):(132,123,107),
+    (4032,225,120):(132,123,107),
+    (4176,207,91):(115,115,115),
+    (4176,205,115):(132,49,24),
+    (4176,205,139):(115,57,74),
+    (4176,225,96):(132,123,107),
+    (4176,225,120):(132,123,107),
+}
+ORIGINAL_RGB={
+    (1280,55,65):(90,74,82),
+    **{(frame,x,y):rgb
+       for frame in (4032,4176)
+       for x,y,rgb in (
+         (207,91,(115,57,74)),
+         (205,115,(115,57,74)),
+         (205,139,(132,132,132)),
+         (225,96,(206,189,140)),
+         (225,120,(206,189,140)),
+       )},
+}
+FIELDS=frozenset(("frame","x","raster_y","ppu_line","main","sub",
+    "math","window","premain","presub","postmath","final","obj",
+    "obj_cgram_index","obj_word","inidisp","cgadsub","cgwsel",
+    "fixed","tm","ts","obsel"))
+OAM_FIELDS=frozenset(("frame","x","ppu_line","slot","xy","attrs","high"))
+
+def sha256(data:bytes)->str:
+    return hashlib.sha256(data).hexdigest()
+
+def fields(line:str,prefix:str,allowed:frozenset[str])->dict[str,str]:
+    if not line.startswith(prefix+" "):
+        raise ValueError("unexpected source pixel telemetry prefix")
+    d={}
+    for token in line[len(prefix)+1:].split():
+        if token.count("=")!=1:
+            raise ValueError("malformed source telemetry column")
+        key,value=token.split("=",1)
+        if not key or key in d:
+            raise ValueError("duplicate/empty PPU telemetry field")
+        d[key]=value
+    if set(d)!=allowed:
+        raise ValueError("missing/extra PPU source telemetry fields")
+    return d
+
+def csv_int(v:str,arity:int)->list[int]:
+    vals=v.split(",")
+    if len(vals)!=arity or not all(re.fullmatch(r"-?\d+",x) for x in vals):
+        raise ValueError("malformed original PPU RGB triplet")
+    return [int(x) for x in vals]
+
+def inspect(log:str,guest_crcs:list[str])->dict:
+    if len(guest_crcs)!=5484 or any(not re.fullmatch(r"0x[0-9a-fA-F]{8}",v) for v in guest_crcs):
+        raise ValueError("not a complete source-qualified 2P native guest execution")
+    crcsha=sha256(("\n".join(v.lower() for v in guest_crcs)+"\n").encode("ascii"))
+    if crcsha!=GUEST_CRC_SHA:
+        raise ValueError("full 2P guest CRC history differs from original probe")
+    pixels={}
+    oam={}
+    for line in log.splitlines():
+        if line.startswith("UR_QA08_WIN_PIXEL_OWNER"):
+            d=fields(line,"UR_QA08_WIN_PIXEL_OWNER",FIELDS)
+            try:
+                frame,x,y,ppl=[int(d[k]) for k in ("frame","x","raster_y","ppu_line")]
+                if ppl!=y+1 or not 0<=x<256 or not 0<=y<224:
+                    raise ValueError("PPU source coordinate not physical 256x224")
+                k=(frame,x,y)
+                if k not in POINTS or k in pixels:
+                    raise ValueError("unsolicited/duplicate chosen original PPU pixel")
+                pixel=csv_int(d["final"],3)
+                if tuple(pixel)==ORIGINAL_RGB[k]:
+                    raise ValueError("native pixel mislabeled a known-original mismatch")
+                if tuple(pixel)!=POINTS[k]:
+                    raise ValueError(f"source pixel {k} drifted from source-qualified Windows frame")
+                for f in ("premain","presub","postmath"):
+                    rgb=csv_int(d[f],3)
+                    if any(not -1<=n<=63 for n in rgb):
+                        raise ValueError("malformed native 5-bit prebrightness colour")
+                for f in ("main","sub"):
+                    if not -1<=int(d[f])<=6:
+                        raise ValueError("invalid actual renderer layer enum")
+                for f in ("math","window"):
+                    if not -1<=int(d[f])<=1:
+                        raise ValueError("invalid window/math flag")
+                for f in ("obj","obj_cgram_index","obj_word","inidisp",
+                          "cgadsub","cgwsel","fixed","tm","ts","obsel"):
+                    if not re.fullmatch(r"[0-9a-fA-F]{2,8}",d[f]):
+                        raise ValueError("malformed native PPU register/OBJ word")
+                pixels[k]=d
+            except (ValueError,KeyError) as exc:
+                raise ValueError(f"unqualified native pixel owner: {exc}") from exc
+        elif line.startswith("UR_QA08_WIN_OAM_LINE"):
+            d=fields(line,"UR_QA08_WIN_OAM_LINE",OAM_FIELDS)
+            try:
+                frame,x,ppl,slot=(int(d[k]) for k in ("frame","x","ppu_line","slot"))
+                k=(frame,x,ppl-1)
+                if k not in POINTS or frame==1280 or slot not in SLOTS:
+                    raise ValueError("wrong PPU frame/line/slot candidate")
+                id=(*k,slot)
+                if id in oam or any(not re.fullmatch(r"[0-9a-fA-F]{4}",d[f]) for f in ("xy","attrs")):
+                    raise ValueError("duplicated/invalid native scanline OAM")
+                if not re.fullmatch(r"[0-3]",d["high"]):
+                    raise ValueError("invalid native high OAM bit pair")
+                oam[id]=d
+            except (ValueError,KeyError) as exc:
+                raise ValueError(f"unqualified actual source OAM: {exc}") from exc
+    if set(pixels)!=set(POINTS):
+        raise ValueError("native PPU never visited all 11 source-qualified RGB5 positions")
+    wanted={(*k,slot) for k in POINTS if k[0]!=1280 for slot in SLOTS}
+    if set(oam)!=wanted:
+        raise ValueError("native effective OAM 7-slot read missing or unsolicited")
+    pixel_rows=[]
+    for (frame,x,y),p in sorted(pixels.items()):
+        pixel_rows.append({"native_guest":frame,"x":x,"raster_y":y,
+                           "native_rgb8_original_PPU":[*POINTS[frame,x,y]],
+                           "original_2014_snes9x_RGB5_expanded":[*ORIGINAL_RGB[frame,x,y]],
+                           "resolved_main_layer":int(p["main"]),
+                           "resolved_sub_layer":int(p["sub"]),
+                           "color_math_enabled":int(p["math"]),
+                           "color_window_state":int(p["window"]),
+                           "resolved_main_rgb5":csv_int(p["premain"],3),
+                           "resolved_sub_rgb5":csv_int(p["presub"],3),
+                           "composed_before_brightness_rgb5":csv_int(p["postmath"],3),
+                           "native_effective_obj":p["obj"],
+                           "native_effective_OBJ_CGRAM_slot":p["obj_cgram_index"],
+                           "native_effective_OBJ_colour_word":p["obj_word"],
+                           "inidisp":p["inidisp"],"cgadsub":p["cgadsub"],
+                           "cgwsel":p["cgwsel"],"fixed":p["fixed"],
+                           "main_screen_enabled":p["tm"],"sub_screen_enabled":p["ts"],
+                           "obsel":p["obsel"]})
+    oam_rows=[]
+    for (frame,x,y,slot),row in sorted(oam.items()):
+        oam_rows.append({"native_guest":frame,"x":x,"raster_y":y,"OAM_slot":slot,
+                         "native_scanline_oam_xy":row["xy"],
+                         "native_scanline_oam_tile_attr":row["attrs"],
+                         "native_scanline_high_oam_pair":int(row["high"])})
+    return {
+        "schema":"qa08-native-effective-pixel-OAM-readonly-original-source-points/1",
+        "real_native_2p_guest_frames":len(guest_crcs),
+        "real_native_2p_guest_crc_sha256":crcsha,
+        "logical_PPU_output_dimensions":[256,224],
+        "independent_2014_Snes9x_2p_source_ZIP_SHA256":ORIGINAL_SOURCE_ZIP,
+        "independent_2p_Windows_original_PPU_ZIP_SHA256":WINDOWS_SOURCE_ZIP,
+        "independently_source_qualified_native_pixels":len(pixel_rows),
+        "independently_source_qualified_native_scanline_OAM_snapshots":len(oam_rows),
+        "native_real_PPU_resolved_pixels":pixel_rows,
+        "native_OAM_in_effect_on_selected_lines":oam_rows,
+        "original_snes9x_2014_same_field_pixel_priority_proven":False,
+        "native_pixel_trace_writes_to_guest_or_renderer":False,
+        "original_raster_pixels_repaired":False,
+        "release_graphics_accepted":False,
+    }
+
+def main()->None:
+    ap=argparse.ArgumentParser(description=__doc__)
+    for name in ("exe","rom","script","out"):
+        ap.add_argument("--"+name,required=True,type=Path)
+    ap.add_argument("--timeout",type=int,default=300)
+    a=ap.parse_args()
+    for file,hash_value,label in ((a.rom,ROM_SHA,"USA ROM"),(a.script,ROUTE_SHA,"2P route")):
+        if sha256(file.read_bytes())!=hash_value:
+            ap.error("wrong pinned original "+label)
+    if a.out.exists():
+        ap.error("refusing to overwrite source result root")
+    a.out.mkdir(parents=True)
+    prev=os.environ.get("UR_QA08_WINDOWS_PIXEL_OWNER_TRACE")
+    os.environ["UR_QA08_WINDOWS_PIXEL_OWNER_TRACE"]="1"
+    try:
+        crcs,log=run_route(a.exe.resolve(),a.rom.resolve(),a.script.resolve(),
+                           a.out,pause=False,video="windows",timeout=a.timeout)
+    finally:
+        if prev is None:
+            os.environ.pop("UR_QA08_WINDOWS_PIXEL_OWNER_TRACE",None)
+        else:
+            os.environ["UR_QA08_WINDOWS_PIXEL_OWNER_TRACE"]=prev
+    # Retain a bounded graphics-only trace even if an assertion rejects it.
+    # Never archive user files, ROM/SRAM, personal profiles or full commands.
+    diagnostic=[row for row in log.splitlines()
+                if row.startswith(("UR_QA08_WIN_PIXEL_OWNER ",
+                                   "UR_QA08_WIN_OAM_LINE "))]
+    (a.out/"qa08-effective-pixel-source-log.txt").write_text(
+        "\n".join(diagnostic)+"\n",encoding="utf-8")
+    result=inspect(log,crcs)
+    result["verified_same_actual_Windows_executable"]=sha256(a.exe.read_bytes())
+    result["verified_original_2P_script_SHA256"]=ROUTE_SHA
+    (a.out/"qa08-native-effective-pixel-owner.json").write_text(
+        json.dumps(result,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+    print("QA08_PIXEL_OWNER real_original_win32_frames=5484 source_positions=11 "
+          "native_OAM_slots_by_line=70 no_pixel_edits=1 no_release_gate=1")
+
+if __name__=="__main__":
+    main()

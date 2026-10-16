@@ -687,6 +687,39 @@
       "uncertainty": "Interrupt latency to the end of the current instruction is approximated by block-boundary delivery; general-DMA sync stays at 12 clocks (the bsnes-exact model overshot Switcher).",
       "resolving_experiment": "QA-01 adjudication of the hosted candidates (run 38879846733 artifacts) and of Dragster locally; Windows-bridge staging only after acceptance.",
       "consequence": "Completes a staged candidate that matches every witness on which Snes9x and bsnes agree."
+    },
+    {
+      "id": "RF-029",
+      "title": "Advancing only the IPL CMP $F4,#$CC SPC bus read one cycle worsens authentic original/native Zoo sound-transfer WRAM parity without disturbing result or earned SRAM",
+      "class": "method_hazard",
+      "status": "resolved",
+      "evidence": "original_and_native",
+      "owner_lane": "research",
+      "reproducer": {
+        "command": "git checkout 1c59ae63b216d708f25e18361a7ad2b595fada60; run exact original/native one-shot workflow rf029-zoo-iplcmp-one-shot.yml (RF-015..019 + RF-021/023/024/026/028 + RF-029, zoom-zoo, zoo_race_mesh, zoo_dp_window, zoo_terminal_phase, source_followthrough, zoo_next_bowl). Immutable Actions run 38961077234.",
+        "runs": [
+          38961077234,
+          38884542449
+        ],
+        "race_relative_lag": 0,
+        "original_and_native_entry_hosts": [
+          1017,
+          1017
+        ]
+      },
+      "source_artifacts": [
+        "analysis/data/rf029-zoo-iplcmp-negative-ab-20261016.json",
+        "docs/RF029-IPLCMP-BUS-PHASE-20261016.md",
+        "treatment ZIP artifact 12073346907 sha256 4202c6f9f328a26a13e936069756609a429879d5309111284f1b660acb333735; producer JSON sha256 c5166cf752d75b71a2c9b2adc4a78ece41ace9f893af25750450080dff36f9cb",
+        "baseline ZIP artifact 12039022609 sha256 21c28cd711519e150ce10e2753dc2d29b6e3eac1004b03d34683c3e03613c718; producer JSON sha256 cb8907da0f1eb925912388ebd5b656452709808b7c94e8f8ebcc368d09d96c3d",
+        "source USA ROM sha256 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478; original 2014 movie sha256 06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+        "original 78/78 full WRAM checkpoint hashes match cross-run despite separately built reference cores"
+      ],
+      "observation": "No input rephase or WRAM masks; result original/native +5163/+5163, next Bowl source/original/native +267 each, 11/11 complete SRAM matches. Only treatment native WRAM images +5040..5046 differ from baseline, and original WRAM images agree 78/78 cross-run. Source-qualified 78-sample whole-WRAM agreement regresses from 51 to 46 exact frames, total differing-byte occurrences increase 92 to 104; both $63 pointer and $69 transfer counter diverge all seven +5040..5046 under RF029, rather than baseline $63 divergence only +5040/+5045 and $69 equal 13/13. Remaining stack difference +266/+280 persists unwaived.",
+      "uncertainty": "The exact executed original/native IPL ready-loop read, SPC echo write, CPU $2140 port-write and bus-phase interactions were not simultaneously captured on this treatment. A one-cycle read alone is insufficient; do not infer the corrected complete per-access SPC transport model or declare sound parity from result screens.",
+      "resolving_experiment": "RF-029 cycle-four-only hypothesis resolved negatively. Separate CPU/APU successor: capture executed original/native IPL PC/F4 read and echo write plus CPU $2140 queue clocks, then test a source-backed per-access model with +5163, +267 and SRAM unchanged as negative gates.",
+      "consequence": "Discard RF-029 research intervention from all staged product/QA workflows; retain rehashed negative receipt and original/native input identity; no change to Windows candidate or 0/45 event count.",
+      "resolution": "Falsified by genuine original/native run 38961077234 and independent SHA+frame-level comparison to 38884542449; original 78/78 hashes equal, native only seven changed, sound WRAM parity worse. Temporary one-shot workflow, implementation and shared QA option retired."
     }
   ]
 }

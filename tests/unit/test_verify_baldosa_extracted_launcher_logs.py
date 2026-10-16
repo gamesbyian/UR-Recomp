@@ -44,7 +44,7 @@ class RetainedLauncherTranscriptTests(unittest.TestCase):
                 original = subprocess.CompletedProcess(
                     args=["cmd.exe"], returncode=3, stdout=raw_out, stderr=raw_err)
                 receipt = verifier.retain_rooted_relative_rejection(root, path, original)
-                log = (root / expected_name).read_text(encoding="utf-8")
+                log = (root / expected_name).read_bytes().decode("utf-8")
                 self.assertEqual(
                     log, "STDOUT (actual cmd.exe subprocess):\n" + raw_out +
                     "\nSTDERR (actual cmd.exe subprocess):\n" + raw_err)

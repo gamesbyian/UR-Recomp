@@ -32,7 +32,7 @@ class ExecutedIPLSchema(unittest.TestCase):
 
     def test_refuse_lag_rephase_truncation_and_missing_echo(self):
         for old, changed, error in (
-            ("age=103322554", "age=103322545", "chronology"),
+            ("age=103322554", "age=103322545", "reordered"),
             ("QA01IPLORIG side=spc kind=echo", "QA01IPLORIG side=spc kind=other", "unrecognized"),
             ("value=CC ipl=1", "value=CD ipl=1", "missing actual"),
             ("pc=FFD2 op=78", "pc=FFFF op=78", "compare instruction"),

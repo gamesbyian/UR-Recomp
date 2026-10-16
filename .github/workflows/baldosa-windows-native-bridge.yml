@@ -406,6 +406,43 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
+      # QA-02 second genuine Windows storage-fault discriminator:
+      # same immutable nominated owner EXE, but deny FILE_WRITE_DATA on the
+      # existing raw file only. Real native write must fail AFTER preflight;
+      # no Modern source or release-binary substitutions.
+      - name: Retrieve original exact-main owner Windows executable for raw write denial
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-original-win32-raw-file-write-denial-20261016' }}
+        uses: actions/download-artifact@v4
+        with:
+          repository: ${{ github.repository }}
+          run-id: 38828519791
+          artifact-ids: 12016101293
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/qa02-raw-file-denied-original-owner
+
+      - name: Verify native RtlWriteSram fails under actual Win32 FILE_WRITE_DATA denial
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-original-win32-raw-file-write-denial-20261016' }}
+        run: |
+          set -euo pipefail
+          python tools/qa02_nominated_windows_readonly.py \
+            --fault acl-denied-raw-file \
+            --retained "$RUNNER_TEMP/qa02-raw-file-denied-original-owner" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --script "baldosa/tests/routes/race_2p_split.txt" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --out "$RUNNER_TEMP/qa02-raw-file-denied-original-exe"
+          echo "QA-02 bounded actual Windows raw FILE_WRITE_DATA denial. No power-cut/disk-full, physical UI, complete-event or release gate credit." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain raw-file-denied native Windows before and after bytes even on failure
+        if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-original-win32-raw-file-write-denial-20261016' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa02-original-win32-raw-file-write-denial
+          path: ${{ runner.temp }}/qa02-raw-file-denied-original-exe/denied-raw-file-acl/evidence/
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Pilot parallel authentic Windows journeys against one pinned candidate
         if: ${{ github.event_name == 'pull_request' || inputs.parallel_journeys == true }}
         run: |

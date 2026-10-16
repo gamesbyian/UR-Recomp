@@ -6,6 +6,7 @@
 // either canonical authority. User must choose the source of truth. This
 // archive is evidence only and will NEVER be loaded as a second save store.
 #include "baldosa_native_sram_recovery.hpp"
+#include "clean_stock_sram.hpp"
 
 #include <filesystem>
 #include <fstream>

@@ -71,7 +71,16 @@
     "source_receipt_candidate_binding_agrees": true,
     "raw_files_absence_not_independently_archived": true,
     "receipt_exit_code_not_independently_contained_in_stdout_stderr": true,
-    "both_actual_log_contents_identical": true
+    "both_actual_log_contents_identical": true,
+    "persisted_identical_actual_decoded_subprocess_transcript_utf8": "STDOUT (actual cmd.exe subprocess):\n\nSTDERR (actual cmd.exe subprocess):\nUR-BALDOSA-STARTUP-SAVE-ROOT: Invalid or package-local user-data root.  \nYour save folder must be a normal folder outside this game folder. Unset UR_RECOMP_USER_DATA_ROOT to use the default under your user profile.  \n",
+    "persisted_transcript_sha256": "4e3eddda5641364b46cf2a874504fbcd19136b13128d76a59b8953d91655dc33",
+    "persisted_transcript_occurrences": [
+      "drive-relative-root-refusal.log",
+      "current-drive-root-refusal.log"
+    ],
+    "persisted_transcript_pii_rom_or_save_data_included": false,
+    "persisted_single_transcript_bytes": 290,
+    "raw_transcript_retained_after_actions_expiry": true
   },
   "physical_testing": false,
   "ntfs_fault_testing": false,

@@ -34,7 +34,7 @@ class PinTests(unittest.TestCase):
     def test_unknown_or_tampered_source_fails_closed(self):
         for source, patch, anchor, corrected in (
             (CORE, m.patch_original_core, m.READ_OLD, m.READ_NEW),
-            (ORIG_SMP, m.patch_original_smp, m.ORIGINAL_SMP_ANCHOR, m.ORIGINAL_SMP_NEW),
+            (ORIG_SMP, m.patch_original_smp, m.ORIGINAL_SMP_ANCHOR, "../../../cpuexec.h"),
             (ORIG_APU, m.patch_original_apu, m.CPU_READ_OLD, m.CPU_READ_NEW),
             (NATIVE_APU, m.patch_native_apu, m.NATIVE_ECHO_OLD, m.NATIVE_ECHO_NEW),
         ):

@@ -1,12 +1,9 @@
 name: QA-08 immutable original/native blackout RGB5 source proof
 # Cheap one-shot archive-only acceptance. Never re-run original Snes9x or Win32.
 # After classification, remove PR triggers, keep workflow_dispatch only.
+# Authenticated immutable-archive blackout run 38834869549 passed.
+# Retain for manual reproduction only, no PR-triggered archival fanout.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/qa08-adjudicate-blackout-original-native.yml"
-      - "tools/qa08_adjudicate_blackout_original_native.py"
-      - "tests/unit/test_qa08_adjudicate_blackout_original_native.py"
   workflow_dispatch:
 permissions:
   contents: read

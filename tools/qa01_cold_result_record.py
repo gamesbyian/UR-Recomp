@@ -81,7 +81,7 @@ def validate_source(producer: dict, replay: Path) -> dict:
     input_sha = producer.get("input_sha256")
     if input_sha in (NEXT_BOWL_INPUT_SHA, COMPOSITE_MESH_NEXT_BOWL_INPUT_SHA):
         handoff = producer.get("zoo_next_bowl_handoff")
-        if (producer.get("reference_script_sha256") != NEXT_BOWL_INPUT_SHA
+        if (producer.get("reference_script_sha256") != input_sha
                 or producer.get("original_movie_window_sha256") !=
                 NEXT_BOWL_MOVIE_WINDOW_SHA
                 or not isinstance(handoff, dict)

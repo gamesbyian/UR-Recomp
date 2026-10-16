@@ -843,6 +843,36 @@
       "resolving_experiment": "RF033 executed read-only clock-source observation complete. Future narrowly justified source model study: actual CPU write/SPC opcode boundary by reader/writer PC and guest master clock, strict 78-WRAM/13-sound/11-SRAM original-native A/B before any correction. Do not revive globally advanced SPC read RF029 or globally deferred queue RF031.",
       "consequence": "Retain SHA-verified first CC CPU master clock conversion and exact bounded observer; remove temporary push trigger and shared QA campaign stage. No Windows/gameplay timing patch, input rephase, frame masking or release acceptance.",
       "resolution": "Genuine original/native 2014 Zoo source run 38977309694 succeeded all four workflow jobs with 14-file case, exact first CPU fractional clock receipt and 78/78 original plus 78/78 native frame hash equivalence to RF032. Source observation complete, correction untested; original/native complete USA accepted 0/45."
+    },
+    {
+      "id": "RF-034",
+      "title": "Executed original/native first IPL CC CPU port write straddles SPC opcode 78 instruction boundary: original publishes CC after comparator, native before comparator dispatch",
+      "class": "original_native_discrepancy",
+      "status": "handed_off",
+      "evidence": "original_and_native",
+      "owner_lane": "qa01-gameplay",
+      "reproducer": {
+        "command": "On exact RF034 research source head 299a200d2fc0252d06f858be81b8262145abafea, inspect immutable source Zoo one-shot run 38981131474 artifact 12081626259 (15-file ZIP SHA256 6efac6d4d1cf4f5a2b47b4b04c76d2b878a7312bc88641c2ac5e9921cb342052). Independently verify strict QA01RF034 original/native first CC records and full 78 original and 78 native 128KiB hashes vs RF033 control 38977309694.",
+        "runs": [
+          38981131474,
+          38977309694
+        ],
+        "race_relative_lag": 0,
+        "original_and_native_entry_hosts": [
+          1017,
+          1017
+        ]
+      },
+      "source_artifacts": [
+        "analysis/data/rf034-executed-spc-opcode-cc-visibility-20261016.json",
+        "docs/RF034-SPC-OPCODE-PORT-VISIBILITY-20261016.md",
+        "run 38981131474 original core dd10bb54dd79cb8f23cf963e37b5161cdb42cafd3a4543950fcd279be6923c09, native ELF 0b7a83998cdad88330c7e19f87e083f58fd558542635417cda422184941d5c41, ZIP SHA256 6efac6d4d1cf4f5a2b47b4b04c76d2b878a7312bc88641c2ac5e9921cb342052",
+        "RF033 control 38977309694 original and native independent SHA256 all 78 full WRAM snapshots equal across run"
+      ],
+      "observation": "Actual first original Snes9x CPU $2140 CC starts with SMP clock debt 1, PC FFCF and opcode D0; S9xAPUExecute requests two fractional SPC ticks but executes five, ending debt 4, PC FFD2, opcode 78 compare already executed with prior port value; CPU then stores CC at original SPC age 103322546, next SPC compare observes CC at 103322554. Native exact queued CPU CC is consumed at SPC age/target 103322545 with PC FFCF and cpuCyclesLeft=0 BEFORE spc_runOpcode dispatches comparator, so SPC sees CC at 103322546, a full IPL ready spin sooner. Actual original/native echo and CPU echo-read remain 103322580/584 vs 103322571/575 respectively (four local SPC cycles after echo both). Entire genuine source original/native Zoo result +5163, Bowl +267, 11 earned full SRAM match and original/native 51/78 exact full WRAM samples with 92 unmasked byte differences. Original 78/78 and native 78/78 sampled full WRAM SHA256 hashes agree with RF033 control, no instrumentation regression.",
+      "uncertainty": "The first ready-loop instruction visibility divergence is source-executed and located. These are independently calibrated original/native SPC master ages and a single CPU/APU handshake; a universally source-faithful native port visibility policy across 92,543 writes, opcode handoffs and DSP output has NOT been demonstrated. Prior reader shift RF029 and global queue shift RF031 worsen genuine WRAM parity.",
+      "resolving_experiment": "CPU/APU source implementation owner should construct a narrowly scoped source-constrained instruction-completion CPU-port visibility mapping, measure actual native/opcode bus events, then falsify against authentic source-original/native Zoo result +5163, +267 Bowl, 78 unmasked 128KiB WRAM checkpoints, 13 contiguous $63/$69 sound samples, all 11 earned SRAM snapshots and separately sourced more course families before any shipping correction. No blind one-cycle shift, input rephase or memory mask.",
+      "consequence": "Handoff to gameplay CPU/APU implementation research only; preserve exact SHA positive observer, schedule/bus-phase proof, no Windows/Modern implementation or independent release-acceptance ownership, zero of 45 USA complete events accepted."
     }
   ]
 }

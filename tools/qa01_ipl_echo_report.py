@@ -63,10 +63,11 @@ def summarize(raw_original: str, raw_native: str) -> dict:
                 {"side": {"cpu", "spc"}, "kind": {"read", "echo", "poll", "write"}})
     native = scan(raw_native, NAT, NATIVE_KEYS,
                   {"kind": {"read", "echo", "apply", "schedule"}})
-    if any(x["frame"] < 6050 or x["frame"] > 6064 or
+    if any(x["frame"] != 0 or
+           x["age"] < 103300000 or x["age"] > 103345000 or
            x["v"] > 262 or x["h"] > 1500 or x["ipl"] not in (0, 1)
            for x in orig):
-        raise ValueError("original trace outside fixed Zoo NMI-disabled window")
+        raise ValueError("original trace outside independently calibrated Zoo SPC age window")
     if any(x["age"] < 103300000 or x["age"] > 103345000 or
            x["q"] > 1024 for x in native):
         raise ValueError("native trace outside bounded RF-028 SPC age")

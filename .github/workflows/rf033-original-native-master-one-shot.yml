@@ -1,0 +1,29 @@
+# One exact source-pinned RF033 original/native CPU master clock measurement.
+# TEMPORARY push trigger, delete after it launches. No recurring factory.
+name: RF033 Original Native CPU Master to SPC
+on:
+  push:
+    branches:
+      - cpu-rf033-original-native-cpu-master-clock-20261016
+permissions:
+  contents: read
+concurrency:
+  group: rf033-zoo-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  original-native-clock:
+    uses: ./.github/workflows/qa01-event-campaign.yml
+    with:
+      selected: zoom-zoo
+      zoo_race_mesh: true
+      zoo_dp_window: true
+      zoo_terminal_phase: true
+      source_followthrough: true
+      zoo_next_bowl: true
+      baldosa_refresh_beam_rate: true
+      baldosa_io_clock_order: true
+      baldosa_spc_reference_rate: true
+      baldosa_dp_pointer_once: true
+      baldosa_hdma_cpu_stall: true
+      baldosa_spc_interrupt_stage: true
+      qa01_rf033_master_clock: true

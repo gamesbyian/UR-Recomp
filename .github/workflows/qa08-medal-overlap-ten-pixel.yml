@@ -1,0 +1,69 @@
+name: QA-08 source-priority OAM overlap ten-pixel result
+
+# 3 archived original-native producers only; no race rerun or extra Win32
+# build; do not retain original ROM, VRAM, SRAM or decoded sprite pictures.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/qa08-medal-overlap-ten-pixel.yml"
+      - "tools/qa08_medal_overlap_priority_source.py"
+      - "tests/unit/test_qa08_medal_overlap_priority_source.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: qa08-matched-OAM-overlap-source-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  source-only:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.number == 1649 }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retain no unbounded source, verify three immutable original/native ZIP inputs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-overlap"
+          cd "$RUNNER_TEMP/qa08-overlap"
+          for item in original:12032487428 indexed:12081238543 native:12077523803; do
+            name="${item%:*}" id="${item#*:}"
+            curl --fail --silent --show-error --location --retry 2 \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/${id}/zip" \
+              -o "${name}.zip"
+          done
+          printf '%s\n' \
+            "2fef0440b97a69025bf9ee539551b414ef7f1f11978172aea5565f338b35d4c9  original.zip" \
+            "a280062d25fa721c096485522f6bb4a8d5af359ee797ad2d41db400e77b4efe9  indexed.zip" \
+            "f467aaafc193e0b8e56934e6f505c10d60c3a4a1afa8727ffa376e5cdf7d53de  native.zip" | sha256sum -c -
+      - name: Decode priority-aware 4bpp original VRAM with real native OAM at ten pixels
+        run: |
+          set -euo pipefail
+          python3 -m unittest tests.unit.test_qa08_medal_overlap_priority_source
+          python3 tools/qa08_medal_overlap_priority_source.py \
+            --original "$RUNNER_TEMP/qa08-overlap/original.zip" \
+            --native "$RUNNER_TEMP/qa08-overlap/native.zip" \
+            --indexed "$RUNNER_TEMP/qa08-overlap/indexed.zip" \
+            --out "$RUNNER_TEMP/qa08-overlap/real-OAM-10-pixel-source.json"
+          python3 - "$RUNNER_TEMP/qa08-overlap/real-OAM-10-pixel-source.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          j=json.load(open(sys.argv[1]))
+          assert j["total_samples"]==j["conditional_matches"]==10
+          assert j["four_gold_pixel_source_occlusion_now_conditionally_explained"] is True
+          assert j["native_actual_live_guest_or_renderVram_content_verified"] is False
+          with open(sys.argv[2],"a") as f:
+              f.write("Ten of ten source PPU medal pixel indices match when original authenticated 4bpp VRAM is combined with actual native guest OAM tile names and *lower OAM slot first* priority. At two gold coordinates repeated twice, opaque adjacent tile1CE palette5 index14 hides otherwise correct lower gold tile1E6/1E2 index15. Native live VRAM itself remains independently unverified; no renderer correction, CPU/NMI instruction clock or QA-08/10 release credit.\n")
+          PY
+      - name: Retain only independent compact 10-point proof, no ROM/memory dump
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-conditional-all-ten-medal-overlap-source-90d
+          retention-days: 90
+          if-no-files-found: error
+          path: ${{ runner.temp }}/qa08-overlap/real-OAM-10-pixel-source.json

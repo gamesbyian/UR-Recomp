@@ -132,6 +132,19 @@ class SourcePixelTest(unittest.TestCase):
             changed_result = check.inspect(self.folder, log, self.crcs)
             self.assertFalse(changed_result["all_four_countdown_and_moving_2P_original_source_exact"])
 
+    def test_short_route_and_complete_guest_crc_are_independently_source_pinned(self):
+        check.check_full_route_identity(
+            check.SHORT_2P_SCRIPT_CRLF_SHA256, check.SHORT_2P_GUEST_CRC_SHA256)
+        for wrong_route, wrong_crc in (
+            ("0" * 64, check.SHORT_2P_GUEST_CRC_SHA256),
+            (check.SHORT_2P_SCRIPT_CRLF_SHA256, "0" * 64),
+            (check.SHORT_2P_SCRIPT_CRLF_SHA256, "f" * 64),
+        ):
+            with self.subTest(script_sha=wrong_route[:8],
+                              guest_crc_sha=wrong_crc[:8]):
+                with self.assertRaises(ValueError):
+                    check.check_full_route_identity(wrong_route, wrong_crc)
+
     def test_wrong_or_missing_raster_not_accepted(self):
         for b in [self.blob[:-1], self.blob.replace(b"WIDTH 256", b"WIDTH 216", 1)]:
             self.save(blob=b)

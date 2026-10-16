@@ -30,6 +30,11 @@ EXPECTED = {
     2224: "d64e7b2fee2ff9f21b5fad7f4e8618ea27ad8846c6b6047ca9c511583bde6bd8",
 }
 FRAMES = (1856, 2192, 2208, 2224)
+# Exact 2473-field input population, independent of the *other* 5484-field
+# race_2p.txt source route. The short route inserts different post-GO holds
+# (and thus idle host ticks); cross-route moving pixels are not parity evidence.
+SHORT_2P_SCRIPT_CRLF_SHA256 = "4e714899f53c3bbe501bbfcacf91dd549989c9beb7c2cf6265b13eb687142ec6"
+SHORT_2P_GUEST_CRC_SHA256 = "992dfdc270802e8a0ec1be5a0be6ddc36872edca11c8a91d58367a6235e537cf"
 # 2P stock source digests for the same game/input/window (no use as tolerances).
 STOCK = {
     1856: "6aea6cebaf1292d962ad5ce01a73966bb0ad8948095d1e73b155712cac41039a",
@@ -50,6 +55,14 @@ SIZE = len(HEADER) + 256 * 224 * 4
 
 def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+def check_full_route_identity(route_sha: str, guest_crc_sha: str) -> None:
+    """Fail closed if four pictures match but guest/script provenance drifted."""
+    if route_sha != SHORT_2P_SCRIPT_CRLF_SHA256:
+        raise ValueError("not the exact source-pinned short 2P script/CRLF checkout")
+    if guest_crc_sha != SHORT_2P_GUEST_CRC_SHA256:
+        raise ValueError("real 2473-frame short 2P guest CRC transcript has drifted")
 
 
 def inspect(source: Path, log: str, crcs: list[str]) -> dict:
@@ -123,6 +136,9 @@ def main() -> None:
     args = ap.parse_args()
     if args.out.exists():
         ap.error("refusing existing capture root")
+    route_sha = sha256(args.script.read_bytes())
+    if route_sha != SHORT_2P_SCRIPT_CRLF_SHA256:
+        ap.error("original short 2P script SHA has drifted: not source-qualified")
     args.out.mkdir(parents=True)
     source = args.out / "source"
     source.mkdir()
@@ -141,9 +157,14 @@ def main() -> None:
             os.environ["UR_QA08_WINDOWS_ORIGINAL_SOURCE_DIR"] = previous
     receipt = inspect(source, log, crcs)
     receipt["observed_from_same_windows_executable"] = sha256(args.exe.read_bytes())
-    receipt["source_script_sha256"] = sha256(args.script.read_bytes())
+    receipt["source_script_sha256"] = route_sha
+    receipt["short_2P_route_source_bound"] = route_sha == SHORT_2P_SCRIPT_CRLF_SHA256
+    receipt["short_2P_guest_full_CRC_source_bound"] = (
+        receipt["actual_native_guest_CRC_sha256"] == SHORT_2P_GUEST_CRC_SHA256)
     (args.out / "qa08-windows-source-result.json").write_text(
         json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    # Retain the complete receipt before any genuine negative mismatch fails.
+    check_full_route_identity(route_sha, receipt["actual_native_guest_CRC_sha256"])
     if not receipt["all_four_countdown_and_moving_2P_original_source_exact"]:
         raise SystemExit(
             "QA08_WINDOWS_2P_PPU_NOT_ACCEPTED missing or divergent genuine "

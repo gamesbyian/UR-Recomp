@@ -185,6 +185,90 @@ def inspect(log:str,guest_crcs:list[str])->dict:
     }
 
 
+# Four source-comparison windows gold-medal pixels: original source used
+# index15 with equal native OAM tile name; Win32 actually composites index14.
+# Read actual native raw guest VRAM, host renderVram and OBJ-buffer index.
+VRAM_FIELDS=frozenset(("frame","x","raster_y","ppu_line","slot","xoff","yoff",
+  "usedcol","usedrow","name","obsel","obsel_bank","tile","wordaddr",
+  "guest_w0","guest_w8","render_w0","render_w8","guest_idx","render_idx",
+  "actual_obj","actual_cgram","overlay","vram_writes"))
+VRAM_COORDS={(4032,225,96,99,"1e6"),(4032,225,120,98,"1e6"),
+             (4176,225,96,99,"1e2"),(4176,225,120,98,"1e2")}
+
+def inspect_medal_live_vram(log:str)->dict:
+    """Fail-close exact guest/render bitplanes at four *actual* native lines.
+
+    Deliberately does NOT force renderer and physical guest VRAM equivalence
+    or expected index15/14: those comparisons are the research result.
+    """
+    found={}
+    if "UR_QA08_WIN_MEDAL_VRAM_REJECT " in log:
+        raise ValueError("actual Win32 source PPU rejected live medal VRAM probe")
+    for line in log.splitlines():
+        if not line.startswith("UR_QA08_WIN_MEDAL_VRAM "):
+            continue
+        d=fields(line,"UR_QA08_WIN_MEDAL_VRAM",VRAM_FIELDS)
+        try:
+            frame,x,y,slot=[int(d[k]) for k in ("frame","x","raster_y","slot")]
+            key=(frame,x,y,slot,d["name"].lower())
+            if key not in VRAM_COORDS or key in found or int(d["ppu_line"])!=y+1:
+                raise ValueError("nonregistered/duplicated medal PPU raster frame, slot or tile name")
+            if (int(d["xoff"]),int(d["yoff"]))!=(6,8) or (
+                int(d["usedcol"]),int(d["usedrow"]))!=(6,8):
+                raise ValueError("observed flipped/out-of-bounds sprite texel")
+            if (d["obsel"].lower()!="63" or int(d["obsel_bank"],16)!=0x6000 or
+                int(d["tile"],16)!=(0xf6 if frame==4032 else 0xf2) or
+                int(d["wordaddr"],16)!=(0x6f60 if frame==4032 else 0x6f20)):
+                raise ValueError("actual OBJ tile/bank/word address disagrees with source")
+            if int(d["overlay"]) not in (0,1) or int(d["vram_writes"])<0:
+                raise ValueError("invalid render-VRAM override or guest write counter")
+            for prefix in ("guest","render"):
+                a,b=(int(d[k],16) for k in (prefix+"_w0",prefix+"_w8"))
+                plane=a | b<<16
+                bit=1 # xoff=6 -> SNES bit7-6=1
+                val=(plane>>bit&1)|(plane>>(bit+7)&2)|(
+                    plane>>(bit+14)&4)|(plane>>(bit+21)&8)
+                if int(d[prefix+"_idx"])!=val or not 0<=val<=15:
+                    raise ValueError("native actual 4bpp planes do not yield their claimed indexed pixel")
+            actual=int(d["actual_obj"],16)
+            if (actual&255)!=0xde or int(d["actual_cgram"],16)!=0xde:
+                raise ValueError("real legacy OBJ is not the independently observed palette5 index14")
+            if (int(d["overlay"])==0 and
+                any(d["guest_"+field]!=d["render_"+field] for field in
+                    ("w0","w8","idx"))):
+                raise ValueError("renderVram differs from guest without a host override")
+            found[key]={
+                "actual_native_guest":frame,"original_2014_callback":frame-1,
+                "sampled_xy":[x,y],"source_slot":slot,"native_oam_name9":d["name"].lower(),
+                "original_OBJ_palette5_4bpp_index":15,
+                "native_actual_effective_OBJ_palette5_4bpp_index":14,
+                "native_guest_vram_4bpp_index":int(d["guest_idx"]),
+                "native_render_vram_4bpp_index":int(d["render_idx"]),
+                "native_guest_vram_words":[d["guest_w0"].lower(),d["guest_w8"].lower()],
+                "native_render_vram_words":[d["render_w0"].lower(),d["render_w8"].lower()],
+                "native_source_VRAM_word_address":d["wordaddr"].lower(),
+                "host_render_VRAM_override_live":bool(int(d["overlay"])),
+                "native_total_VRAM_write_count":int(d["vram_writes"]),
+                "native_objBuffer_and_decoded_render_VRAM_agree":int(d["render_idx"])==14,
+            }
+        except (ValueError,KeyError) as exc:
+            raise ValueError("invalid native source VRAM/OBJ observation: "+str(exc)) from exc
+    if set(found)!=VRAM_COORDS:
+        raise ValueError("native VRAM/4bpp source did not visit all four registered medal pixels")
+    return {
+      "schema":"qa08-real-Win32-2p-live-medal-gold-VRAM-OBJ-index-probe/1",
+      "source_exact_two_2P_results_guest_frames":[4032,4176],
+      "source_registered_exact_four_pixel_records":[found[k] for k in sorted(found)],
+      "observed_actual_Windows_pixel_count":4,
+      "original_index15_source_verified_with_separate_2014_archive":True,
+      "native_OBJ_index14_source_qualified_from_existing_11_point_PPU":True,
+      "source_corresponding_PPU_renderVram_probe_readonly":True,
+      "CPU_NMI_writer_phase_and_hardware_DAC_equivalence_accepted":False,
+      "native_PPU_corrective_patch_authorized":False,
+      "QA08_QA10_release_or_HD_art_accepted":False,
+    }
+
+
 FINISH_RGB_NATIVE = (57,24,0)
 FINISH_RGB_ORIGINAL = (49,24,0)
 FINISH_GUESTS = (3792,3872)
@@ -287,6 +371,7 @@ def main()->None:
     }
     if a.collect_2p_fullroute:
         enabled["UR_QA08_WINDOWS_FINISH_PIXEL_OWNER_TRACE"]="1"
+        enabled["UR_QA08_WINDOWS_MEDAL_VRAM_TRACE"]="1"
         source_dir=a.out/"source"
         source_dir.mkdir()
         enabled.update({
@@ -313,6 +398,7 @@ def main()->None:
     diagnostic=[row for row in log.splitlines()
                 if row.startswith(("UR_QA08_WIN_PIXEL_OWNER ",
                                    "UR_QA08_WIN_FINISH_PIXEL_OWNER ",
+                                   "UR_QA08_WIN_MEDAL_VRAM ",
                                    "UR_QA08_WIN_OAM_LINE ",
                                    "UR_QA08_WIN_OAM_PORT "))]
     (a.out/"qa08-effective-pixel-source-log.txt").write_text(
@@ -350,6 +436,10 @@ def main()->None:
             "\n".join(line for line in log.splitlines() if line.startswith(prefixes))+"\n",
             encoding="utf-8")
         result["bounded_two_finish_live_pixel_owners"]=inspect_finish_live_pixel_owners(log)
+        result["bounded_gold_medal_live_VRAM_and_OBJ_indexes"]=inspect_medal_live_vram(log)
+        (a.out/"qa08-native-live-gold-medal-VRAM-words.json").write_text(
+            json.dumps(result["bounded_gold_medal_live_VRAM_and_OBJ_indexes"],
+                       indent=2,sort_keys=True)+"\\n",encoding="utf-8")
         result["qualified_263_frame_source_PPU_in_same_native_process"]=True
         result["same_real_Windows_process_CGRAM_ports_2100_HDMA7_observed"]=True
         print("QA08_SAME_ROUTE_2P_PPU full_guest=5484 source_256x224=263 "

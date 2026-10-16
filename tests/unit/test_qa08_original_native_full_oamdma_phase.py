@@ -46,6 +46,47 @@ class SourceFullOamPhaseTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             qa.native_payloads(one.replace("src=1","src=3"))
 
+    def test_native_port_to_active_PPU_OAM_matches_full_slot_bytes_and_high_bit_pairs(self):
+        slots=qa.SLOTS
+        frames=qa.LIVE_FRAMES
+        points=qa.LIVE_PIXELS
+        payload={}
+        for frame in frames:
+            mem=bytearray(544)
+            for slot in slots:
+                mem[4*slot:4*slot+4]=bytes((200,91+(slot%3)*24,0xA0+slot%7,0x1B))
+            payload[frame]=bytes(mem)
+        rows=[]
+        for frame in frames:
+            raw=payload[frame]
+            for x,y in points:
+                for slot in slots:
+                    i=4*slot
+                    rows.append({
+                        "native_guest":frame,"x":x,"raster_y":y,"OAM_slot":slot,
+                        "native_scanline_oam_xy":f"{raw[i+1]:02x}{raw[i]:02x}",
+                        "native_scanline_oam_tile_attr":f"{raw[i+3]:02x}{raw[i+2]:02x}",
+                        "native_scanline_high_oam_pair":0,
+                    })
+        live={"real_native_2p_guest_frames":5484,
+              "independently_source_qualified_native_scanline_OAM_snapshots":70,
+              "original_snes9x_2014_same_field_pixel_priority_proven":False,
+              "native_OAM_in_effect_on_selected_lines":rows}
+        result=qa.live_OAM_matches_incoming_DMA(payload,live)
+        self.assertEqual(result["actual_native_line_OAM_records_source_DMA_identical"],70)
+        self.assertTrue(result["native_legacy_OAM_register_port_to_render_buffer_coherent_at_tested_lines"])
+        self.assertFalse(result["renderer_sprite_palette_or_tile_shift_fix_authorized"])
+        import copy
+        for edit in ("tile","coordinate","high","missing","duplicate"):
+            bad=copy.deepcopy(live)
+            if edit=="tile":bad["native_OAM_in_effect_on_selected_lines"][0]["native_scanline_oam_tile_attr"]="ffff"
+            if edit=="coordinate":bad["native_OAM_in_effect_on_selected_lines"][0]["native_scanline_oam_xy"]="0000"
+            if edit=="high":bad["native_OAM_in_effect_on_selected_lines"][0]["native_scanline_high_oam_pair"]=1
+            if edit=="missing":bad["native_OAM_in_effect_on_selected_lines"].pop()
+            if edit=="duplicate":bad["native_OAM_in_effect_on_selected_lines"].append(dict(rows[0]))
+            with self.subTest(edit=edit),self.assertRaises(ValueError):
+                qa.live_OAM_matches_incoming_DMA(payload,bad)
+
     def test_report_will_not_claim_beam_or_CPU_fix(self):
         # The historical 2-field source lead does not authorize a
         # universal OAM tile transform or a new main/release candidate.

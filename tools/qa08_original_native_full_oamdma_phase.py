@@ -76,6 +76,53 @@ def native_payloads(log:str)->dict[int,bytes]:
         payload[f]=bytes(x[0] for x in events[f])
     return payload
 
+# Authenticated native port -> active scanline OAM discriminator.
+# Source of both observations is the *same* actual compiled Windows process:
+# one complete 544-byte inbound OAM DMA, plus 7 OAM slots read after the
+# normal renderer resolved real pixels on five separately selected lines.
+# Neither original CPU/beam phase nor final SNES priority is thereby proven.
+LIVE_FRAMES=(4032,4176)
+LIVE_PIXELS=((207,91),(205,115),(205,139),(225,96),(225,120))
+
+def live_OAM_matches_incoming_DMA(payloads:dict[int,bytes],live:dict)->dict:
+    need(live["real_native_2p_guest_frames"],5484,"source full guest route")
+    need(live["independently_source_qualified_native_scanline_OAM_snapshots"],70,
+         "actual per-line source OAM read count")
+    need(live["original_snes9x_2014_same_field_pixel_priority_proven"],False,
+         "original effective pixel priority remains unaccepted")
+    needed={(f,x,y,slot) for f in LIVE_FRAMES for x,y in LIVE_PIXELS for slot in SLOTS}
+    seen=set()
+    for row in live["native_OAM_in_effect_on_selected_lines"]:
+        frame,x,y,slot=(row[k] for k in ("native_guest","x","raster_y","OAM_slot"))
+        key=(frame,x,y,slot)
+        if key not in needed or key in seen:
+            raise ValueError("unsolicited/duplicate source-effective OAM line record")
+        seen.add(key)
+        raw=payloads.get(frame)
+        if raw is None or len(raw)!=544:
+            raise ValueError("source-native whole 544-byte input missing from live field")
+        i=slot*4
+        want_xy=f"{raw[i+1]:02x}{raw[i]:02x}"
+        want_tile_attr=f"{raw[i+3]:02x}{raw[i+2]:02x}"
+        want_high=(raw[512+slot//4]>>((slot%4)*2))&3
+        if (row["native_scanline_oam_xy"],
+            row["native_scanline_oam_tile_attr"],
+            row["native_scanline_high_oam_pair"]) != (
+                want_xy,want_tile_attr,want_high):
+            raise ValueError(f"actual PPU raster OAM differs from same-host DMA input at {key}")
+    need(seen,needed,"complete seven-slot by ten-raster-pixel OAM input coherence")
+    return {
+        "actual_native_raster_guest_frames":list(LIVE_FRAMES),
+        "source_selected_output_pixel_locations":[list(p) for p in LIVE_PIXELS],
+        "actual_monitored_OAM_slots":list(SLOTS),
+        "full_source_DMA_bytes_per_native_guest":544,
+        "actual_native_line_OAM_records_source_DMA_identical":len(seen),
+        "native_legacy_OAM_register_port_to_render_buffer_coherent_at_tested_lines":True,
+        "original_native_guest_CPU_beam_phase_equivalence_accepted":False,
+        "effective_original_PPU_final_pixel_priority_accepted":False,
+        "renderer_sprite_palette_or_tile_shift_fix_authorized":False,
+    }
+
 def original_dma(journal:bytes,f:int)->bytes:
     lines=journal.decode("ascii").splitlines()
     need(lines[0],"#frame\tvcounter\thcounter\taddr\tvalue\tsource",
@@ -118,6 +165,7 @@ def analyze(original:Path,legacy_original:Path,native:Path)->dict:
         need(original_receipt["host_preincrement_plus_one_registration_verified"],True,
              "correct original host/frame registration")
         native_inputs=native_payloads(b.read("qa08-effective-pixel-source-log.txt").decode("ascii"))
+        live_OAM_coherence=live_OAM_matches_incoming_DMA(native_inputs,native_receipt)
         expected={row["actual_native_host_frame"]:row["complete_sequential_zero_address_544byte_DMA"]
                   for row in port_receipt["frame_observations"]}
         need(set(expected),set(FRAMES),"existing native port observer frames")
@@ -157,6 +205,7 @@ def analyze(original:Path,legacy_original:Path,native:Path)->dict:
             "native_port_frames_independently_replayed":len(native_inputs),
             "original_pinned_544byte_VBlank_DMA_to_OAM_checks":len(ORIGINAL),
             "identical_source_OAMDMA_matches":matches,
+            "native_port_to_actual_PPU_OAM_line_coherence":live_OAM_coherence,
             "four_original_full_OAM_states_seen_in_native_port_two_host_fields_early":True,
             "native_guest_CPU_NMI_DMA_source_WRAM_causality_proven":False,
             "same_original_native_instruction_or_beam_phase_proven":False,

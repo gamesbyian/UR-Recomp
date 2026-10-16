@@ -105,5 +105,48 @@
   "legacy_2014_original_OAM_host_capture_artifact": 12030581890,
   "genuine_full_OAM_matched_pairs": 4,
   "old_host_fields_4031_4175_valid_as_OAM_but_not_same_label_original_video_callbacks": true,
-  "four_separate_544_byte_input_payload_matches_minus_two_native_host_frame_labels": true
+  "four_separate_544_byte_input_payload_matches_minus_two_native_host_frame_labels": true,
+  "native_port_to_live_OAM_observer_coherence": {
+    "actual_native_raster_guest_frames": [
+      4032,
+      4176
+    ],
+    "source_selected_output_pixel_locations": [
+      [
+        207,
+        91
+      ],
+      [
+        205,
+        115
+      ],
+      [
+        205,
+        139
+      ],
+      [
+        225,
+        96
+      ],
+      [
+        225,
+        120
+      ]
+    ],
+    "actual_monitored_OAM_slots": [
+      96,
+      97,
+      98,
+      99,
+      112,
+      113,
+      114
+    ],
+    "full_source_DMA_bytes_per_native_guest": 544,
+    "actual_native_line_OAM_records_source_DMA_identical": 70,
+    "native_legacy_OAM_register_port_to_render_buffer_coherent_at_tested_lines": true,
+    "original_native_guest_CPU_beam_phase_equivalence_accepted": false,
+    "effective_original_PPU_final_pixel_priority_accepted": false,
+    "renderer_sprite_palette_or_tile_shift_fix_authorized": false
+  }
 }

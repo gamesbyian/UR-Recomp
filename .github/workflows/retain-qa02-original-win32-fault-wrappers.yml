@@ -1,0 +1,106 @@
+name: Retain exact original QA02 Win32 fault witness ZIPs
+
+# One bounded archival copy of original, already source-pinned GitHub artifacts.
+# No game execution, ROM acquisition, user saves, packaging rebuild or release gate credit.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/retain-qa02-original-win32-fault-wrappers.yml"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: qa02-original-win32-fault-archive-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  retain_original_fault_wrappers:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.draft == false
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: Download six original GitHub ZIP envelopes without extracting
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ORIGINAL_DIR: ${{ runner.temp }}/qa02-original-fault-wrappers
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$ORIGINAL_DIR"
+          while read -r artifact_id expected_sha member_count; do
+            curl --fail --location --silent --show-error --retry 2 \
+              --connect-timeout 20 --max-time 120 \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact_id/zip" \
+              --output "$ORIGINAL_DIR/$artifact_id.zip"
+            printf '%s  %s\n' "$expected_sha" "$ORIGINAL_DIR/$artifact_id.zip" | sha256sum -c -
+          done <<'ARTIFACTS'
+          12024617002 e70055be446d0afec493cde8ac004273e05425bae5acd3d874cd32e1b6da131a 12
+          12027761297 81a0dcc965ac72c56a5637afb4007ebb9289328d4aedd38f4afb1d452774fdbd 12
+          12029890032 7d4a57d913b75d6f3a72ee194b8a651010f6c3fe9b6b008d2352fb9e65ea2547 11
+          12031753976 c5b0e0722e21e3b879624282989e6ab29347170b6caee7799e8461fc63fc0e6f 29
+          12033107568 ae3c8319604363638ebd25e6beb6e5559714d161c761925577ba47bfa070b4cb 24
+          12034140741 c61aaa3466a4faf75191b1c4ca84c27b9063fa08a08c272e5e428af8c7efaf6d 33
+          ARTIFACTS
+      - name: Independently verify exact original bytes and ZIP CRC, reject unsafe content
+        env:
+          ORIGINAL_DIR: ${{ runner.temp }}/qa02-original-fault-wrappers
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, zipfile
+          original = {
+            "12024617002": ("e70055be446d0afec493cde8ac004273e05425bae5acd3d874cd32e1b6da131a", 12, "38848852832"),
+            "12027761297": ("81a0dcc965ac72c56a5637afb4007ebb9289328d4aedd38f4afb1d452774fdbd", 12, "38856720047"),
+            "12029890032": ("7d4a57d913b75d6f3a72ee194b8a651010f6c3fe9b6b008d2352fb9e65ea2547", 11, "38861260577"),
+            "12031753976": ("c5b0e0722e21e3b879624282989e6ab29347170b6caee7799e8461fc63fc0e6f", 29, "38867691561"),
+            "12033107568": ("ae3c8319604363638ebd25e6beb6e5559714d161c761925577ba47bfa070b4cb", 24, "38870134987"),
+            "12034140741": ("c61aaa3466a4faf75191b1c4ca84c27b9063fa08a08c272e5e428af8c7efaf6d", 33, "38872238234"),
+          }
+          root = pathlib.Path(os.environ["ORIGINAL_DIR"])
+          actual = set(p.name for p in root.iterdir())
+          wanted = {key + ".zip" for key in original}
+          if actual != wanted:
+              raise SystemExit(f"wrong original wrapper inventory: {actual ^ wanted}")
+          verified = []
+          for artifact_id, (expected, count, run) in original.items():
+              p = root / (artifact_id + ".zip")
+              data = p.read_bytes()
+              if hashlib.sha256(data).hexdigest() != expected:
+                  raise SystemExit(f"original wrapper SHA256 changed: {artifact_id}")
+              with zipfile.ZipFile(p) as z:
+                  members = z.namelist()
+                  if len(members) != count or z.testzip() is not None:
+                      raise SystemExit(f"ZIP member count/CRC differs: {artifact_id}")
+                  for name in members:
+                      if name.startswith("/") or "\\" in name or ".." in pathlib.PurePosixPath(name).parts:
+                          raise SystemExit(f"unsafe member path: {artifact_id} {name!r}")
+                      if name.lower().endswith((".sfc", ".smc", ".swc", ".rom", ".exe", ".dll")):
+                          raise SystemExit(f"unexpected game/ROM binary: {artifact_id} {name!r}")
+              verified.append({"artifact_id": int(artifact_id), "original_source_run": int(run), "original_artifact_zip_sha256": expected, "original_zip_bytes": len(data), "original_member_count_crc_pass": count})
+          receipt = {
+              "schema": "UR-QA02-ORIGINAL-FAULT-ZIP-ACTIONS-RETENTION/1",
+              "nominated_source": "11501a15dea38fa912335cfc63103ce3a7208001",
+              "original_romfree_candidate_zip_sha256": "5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7",
+              "release_gate_credit": 0,
+              "physical_hardware_verified": False,
+              "p0_1214_fixed": False,
+              "archive_envelope_is_not_an_original_wrapper": True,
+              "original_artifacts": verified
+          }
+          (root / "RETENTION-RECEIPT.json").write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
+          print(f"Verified {len(verified)} unchanged source artifact ZIPs and {sum(x['original_member_count_crc_pass'] for x in verified)} ZIP entries; no new Windows execution")
+          PY
+      - name: Upload originals unchanged for 90-day archival
+        uses: actions/upload-artifact@v4
+        with:
+          name: retained-qa02-original-win32-fault-wrappers-11501a15
+          path: ${{ runner.temp }}/qa02-original-fault-wrappers/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 90

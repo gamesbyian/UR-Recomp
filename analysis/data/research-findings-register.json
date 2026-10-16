@@ -722,6 +722,35 @@
       "resolution": "Falsified by genuine original/native run 38961077234 and independent SHA+frame-level comparison to 38884542449; original 78/78 hashes equal, native only seven changed, sound WRAM parity worse. Temporary one-shot workflow, implementation and shared QA option retired."
     },
     {
+      "id": "RF-030",
+      "title": "Executed source-original/native IPL $CC write, SPC compare/echo and CPU first echo-poll clock ordering now qualified",
+      "class": "source_backed_behaviour",
+      "status": "resolved",
+      "evidence": "original_and_native",
+      "owner_lane": "research",
+      "reproducer": {
+        "command": "Inspect immutable original/native RF030 one-shot run 38970909850, case artifact 12077572385 (zip SHA256 d3e9ff0dfe710eefd6fc0289baae5232b43a89b68f3f7bdac9fd4dd84e8471f1) and source branch dbeacf3467a36da0f6a789f9565e007427264fc9; run tools/qa01_ipl_echo_report.py --original-log <original-replay.log> --native-log <native-replay.log> --out <new-receipt.json> on archived exact replay logs; original guest staged only with read-only RF030 instrumentation.",
+        "runs": [
+          38970909850
+        ],
+        "race_relative_lag": 0,
+        "original_and_native_entry_hosts": [
+          1017,
+          1017
+        ]
+      },
+      "source_artifacts": [
+        "docs/RF030-EXECUTED-IPLCMP-ECHO-20261016.md",
+        "analysis/data/rf030-qualified-executed-ipl-cc-20261016.json",
+        "run 38970909850 case artifact 12077572385 ZIP SHA256 d3e9ff0dfe710eefd6fc0289baae5232b43a89b68f3f7bdac9fd4dd84e8471f1; original core SHA256 5225762bd9ad358a167b5e3bbf8be156c5a51e58a26652f706a8ffbd5c9b4d86; native ELF ac3181edd1d37e2783c4b92530e5bc1ba879577b70b10845d0edcdf7cb66007b"
+      ],
+      "observation": "Actual original CPU $2140 CC writer original SPC age 103322546, first original SPC compare PC FFD2 age 103322554, echo PC FFF7 age 103322580 and first original CPU CC echo poll age 103322584. Native queue schedule 103322463, apply 103322545, IPL compare-read 103322546, echo 103322571; native CPU post-echo observation was then not instrumented. True original/native Zoo result +5163, Bowl +267, 11/11 earned SRAM paired; full unmasked WRAM 51/78 checkpoints exact with $63 +5040/+5045 residual and $69 equal. Both local CPU echo timings were later independently completed under RF032.",
+      "uncertainty": "The emulators' SPC ages are independent phase clocks; near numerical agreement and source-limited bounded observations do not prove globally synchronized CPU instruction ticks, all-frame memory or DSP audio samples.",
+      "resolving_experiment": "Executed RF030 source clock witness completed; RF032 independently captures the missing native CPU output-port read and actual queued target timestamp.",
+      "consequence": "Preserve source-pinned read-only observers and receipt, reject treating the earlier RF029 moved-read hypothesis as a fix; no release credit or Windows source changes.",
+      "resolution": "Qualified real untruncated first CPU→SPC IPL $CC write/read/echo and original CPU read with source immutable full Zoo/Bowl under run 38970909850; read-only source witnesses and receipt merged via PR #1724; 0/45."
+    },
+    {
       "id": "RF-031",
       "title": "Deferring every equal-target CPU→SPC queue write one cycle falsified: authentic Zoo sound upload and Bowl stack WRAM parity regress despite exact race result and earned SRAM",
       "class": "method_hazard",
@@ -752,6 +781,37 @@
       "resolving_experiment": "RF-031 global queued-write timing hypothesis resolved negatively. A distinct source-side lane, only if needed, should trace actual queued target_cycle and equal-target SPC read ordering, native CPU output-port reads and first live $63/$69 CPU writer/consumer PCs before any scoped hardware-model change.",
       "consequence": "Discard RF-031 research opcode/queue patch, restore shared QA original/native campaign and delete the temporary one-shot workflow. Retain source-qualified negative case + machine A/B, 0/45 event admissions, no Windows source or independent release ledger changes.",
       "resolution": "Actual hosted source pin 539eb9287fe4d95e9676d279d93568f4dec26aa9 ran 38971735372 to completed producer success and strict_candidate result-only; independently downloaded/rehash case ZIP, compared all 78 original and native memory hashes with 38970909850, observed source stable and native seven-frame sound/stack parity deterioration. Not a production fix."
+    },
+    {
+      "id": "RF-032",
+      "title": "Executed native first IPL CC queue target equals its SPC application clock and real native CPU reads echo four cycles after SPC",
+      "class": "source_backed_behaviour",
+      "status": "resolved",
+      "evidence": "original_and_native",
+      "owner_lane": "research",
+      "reproducer": {
+        "command": "Inspect exact original/native Zoo one-shot run 38974815770 at source b28ec791fc976a0c3e1d0924aa9fe5d8231dac8f, artifact 12078174356 ZIP SHA256 6aab44e8d16dcaa34fd438c439d349dc6050f1ddc4c4c1de1e81afc2f387175d; run tools/qa01_rf032_native_port_target_report.py --original-log <original-replay.log> --native-log <native-replay.log> --out <new-receipt.json> using the original and native replay logs.",
+        "runs": [
+          38974815770,
+          38970909850
+        ],
+        "race_relative_lag": 0,
+        "original_and_native_entry_hosts": [
+          1017,
+          1017
+        ]
+      },
+      "source_artifacts": [
+        "docs/RF032-NATIVE-QUEUED-PORT-TARGET-ECHO-20261016.md",
+        "analysis/data/rf032-cc-queue-target-cpu-echo-20261016.json",
+        "run 38974815770 case artifact 12078174356 ZIP SHA256 6aab44e8d16dcaa34fd438c439d349dc6050f1ddc4c4c1de1e81afc2f387175d; native ELF SHA256 ed0e0218fde7603b7c35f41940661c16ac106bbd9c1c2a8e26f3e1f0be25c44e; original Snes9x core SHA256 5f5f9c6c9331e6c72598b516ebba94bffe0d5a921c137f5cd24b1bb67733d983",
+        "RF030 control 38970909850 original 78/78 and native 78/78 full WRAM hashes identical cross-run"
+      ],
+      "observation": "Native first CPU CC scheduled at SPC age 103322463 with guest APU cycle/actual stored target both 103322545, guest and target anchors 0, queued four events, applied exactly on target at SPC age 103322545. Native SPC first CC compare-read at 103322546, echo at 103322571; real native 65816 reads returned/raw CC at 103322575, four local SPC cycles after echo (no observer change). Original Snes9x also reads echo exactly four local SPC cycles after its own echo age 103322580. RF032 probes do not alter real gameplay: 78 original and 78 native full WRAM hashes identical to RF030 control, 51/78 original/native WRAM byte-exact checkpoints, 92 unmasked byte differences, original/native Zoo +5163 and next Bowl +267, 11/11 full earned SRAM match. Original/native absolute SPC phase equivalence unproven.",
+      "uncertainty": "Native CPU master clock at write and original 65816 master clock at the same bus operation have not been compared under common source cycle semantics; one local SPC-cycle difference in arriving CC may trigger a nine-cycle IPL polling-loop phase, but it does not identify source-correct phase conversion or globally accurate CPU/APU clocking.",
+      "resolving_experiment": "This bounded target/CPU consumer observation is resolved. The next separately owned investigation, if warranted, records original CPU master/beam and native g_cpu.master_cycles→rtl_apu_guest_cycle at exact CC write and consumer PC, before any new timing patch.",
+      "consequence": "Discard hypothesized late native queue drain or delayed native CPU echo consumption as root cause for first CC. Retain source evidence, no globally applied cycle adjustments, no source change to Windows, no 45-event release credit.",
+      "resolution": "Genuine original/native run 38974815770 passed all four case workflow jobs; independent 13-file ZIP and baseline RF030 12-file ZIP SHA check and 78 original/78 native WRAM checkpoint invariance. First CC queue target, precise consumption and CPU returned value directly observed; research receipt and apparatus preserved."
     }
   ]
 }

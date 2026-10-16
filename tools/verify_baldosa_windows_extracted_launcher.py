@@ -45,6 +45,38 @@ def bounded_log(text: str) -> str:
             "verifier's bounded retention ...]\n" + tail)
 
 
+
+# Retain process evidence for the two subtle rooted-but-not-fully-qualified
+# negative CMD inputs. The actual launcher, ROM and game are unchanged.
+# The CI runner already executed these subprocesses; this only preserves
+# bounded decoded stdout/stderr and their observed exit codes.
+ROOTED_RELATIVE_NEGATIVE_CASES = {
+    "C:qa-drive-relative-root": ("drive-relative-root-refusal.log", "drive_relative"),
+    "\\qa-current-drive-root-relative": (
+        "current-drive-root-refusal.log", "current_drive_root_relative"),
+}
+
+
+def retain_rooted_relative_rejection(output: Path, supplied_root: str,
+                                     result: subprocess.CompletedProcess[str]) -> dict:
+    log_name, key = ROOTED_RELATIVE_NEGATIVE_CASES[supplied_root]
+    transcript = ("STDOUT (actual cmd.exe subprocess):\\n" + result.stdout +
+                  "\\nSTDERR (actual cmd.exe subprocess):\\n" + result.stderr)
+    (output / log_name).write_text(bounded_log(transcript), encoding="utf-8")
+    return {
+        "case": key,
+        "supplied_root": supplied_root,
+        "process_returncode": result.returncode,
+        "expected_exit_code": 3,
+        "root_rejection_marker_seen": "UR-BALDOSA-STARTUP-SAVE-ROOT" in result.stderr,
+        "stdout_utf8_sha256": hashlib.sha256(
+            result.stdout.encode("utf-8", "replace")).hexdigest(),
+        "stderr_utf8_sha256": hashlib.sha256(
+            result.stderr.encode("utf-8", "replace")).hexdigest(),
+        "retained_subprocess_transcript": log_name,
+    }
+
+
 def invoke_launcher(launcher: Path, env: dict[str, str], extra: list[str],
                     timeout: int) -> subprocess.CompletedProcess[str]:
     # One path: use the same CMD entrypoint a user double-clicks. Supplying
@@ -200,10 +232,13 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
     # any save, catalog or folder is created.
     drive_relative = "C:qa-drive-relative-root"
     root_relative = "\\qa-current-drive-root-relative"
+    rooted_refusals = []
     for root in (str(installed / "Injected Save Root"), "relative-save-root",
                  drive_relative, root_relative):
         bad_env = {**env, "UR_RECOMP_USER_DATA_ROOT": root}
         bad = invoke_launcher(launcher, bad_env, args, timeout)
+        if root in (drive_relative, root_relative):
+            rooted_refusals.append(retain_rooted_relative_rejection(output, root, bad))
         require(bad.returncode != 0 and
                 "UR-BALDOSA-STARTUP-SAVE-ROOT" in bad.stderr,
                 "unsafe data root was accepted by actual CMD launcher")
@@ -220,6 +255,25 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
     require(not (installed / "Injected Save Root").exists(),
             "package-local user state was created")
     require(not user_root.exists(), "invalid root created valid profile state")
+
+    # These two source-bound refusals have already passed the existing exit-3
+    # and no-mutable-root assertions. Keep their distinct process evidence
+    # separate from the strict fixed-member native-pause QA-12 artifact.
+    require(len(rooted_refusals) == 2 and
+            all(x["process_returncode"] == 3 and x["root_rejection_marker_seen"]
+                for x in rooted_refusals),
+            "rooted-relative negative subprocess evidence incomplete")
+    (output / "rooted-relative-rejections.json").write_text(
+        json.dumps({
+            "schema": "ur-win32-extracted-cmd-rooted-relative-negative/1",
+            "source_revision": expected_revision,
+            "candidate_zip_sha256": approved_archive_sha256,
+            "embedded_exe_sha256": audit["exe_sha256"],
+            "all_candidate_mutable_roots_absent": True,
+            "release_gate_credit": 0,
+            "independent_review_complete": False,
+            "cases": rooted_refusals,
+        }, sort_keys=True, indent=2) + "\\n", encoding="utf-8")
 
     # On real NTFS a junction *outside* the game folder can point inside.
     # GetFullPath's lexical check alone cannot detect that alias. Exercise

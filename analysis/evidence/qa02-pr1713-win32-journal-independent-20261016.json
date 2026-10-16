@@ -1,0 +1,92 @@
+{
+  "schema": "UR-QA02-REAL-WIN32-JOURNAL-BYTE-AUDIT/1",
+  "date": "2026-10-16",
+  "source_pr": 1713,
+  "run": 38962321707,
+  "actual_tested_pr_merge": "e9a92888e2d1a4eaf254236307053f81cfc822c6",
+  "pr_merge_parents": [
+    "e0af64ff5b11963205215f243ea240c79039f399",
+    "565a15cace37fc9f10c26d0b05fea8fa1897c3a7"
+  ],
+  "original_artifact_sha256": {
+    "12073147810": "78d835097e3929300af2397d932f0a19fc373dabbd6fe9f64f7c69cf210a62ff",
+    "12073851413": "185b4825b19fb7bf7bc9bd2e3f02a650b35d8372217bb3ce9c381d6093e69e23",
+    "12073272765": "b80ae859adb11da2ef755a125e961334a4b2109fee4dab9f6fc579a6d3615815",
+    "12073157982": "a4728440c55b64e58dc473f74d74adc9c0974ecba6ac250cc8a960355f94f8ac",
+    "12073197728": "79747f2b1ab3bec044a3c65f2043ccc9e3a696ab9e8a34be4d843f6381fedb4c"
+  },
+  "fault_artifact_member_count": 39,
+  "all_original_artifact_sha256_crc_and_members_verified": true,
+  "real_win32_hosted_journeys_passed": 13,
+  "real_romfree_zip_sha256": "30781a2be1544fc12fa71761e5c08495c9851d47b08b578737d4c33e3353c162",
+  "actual_executable_sha256": "487544e43805528e98763feac53a6661adad6094673ff801094415dc012f310b",
+  "native_guest_crash_frame": 1952,
+  "crash_exit": 86,
+  "real_old_raw_sha256": "bd9571f85e1b7ddfcf2b6913d5f3556c27ecadf65d353afbac29876e7d111c10",
+  "real_new_raw_sha256": "2f3009bb2436e3862e045df7f12da4d37845b83ada491cbc80cbef3a098f80d8",
+  "raw_sram_bytes": 8192,
+  "original_raw_changed_bytes": 28,
+  "unjournaled": {
+    "typed_before_equals_after": true,
+    "typed_generation": 1,
+    "cold_launch_rejected": true,
+    "explicit_one_shot_raw_recovery_log_present": true
+  },
+  "journaled": {
+    "original_old_typed_generation": 1,
+    "recovered_typed_generation": 2,
+    "recovered_typed_sha256": "5b8960309ff9e34761a467072690e587790710b2686c557f6b4cb794cc9886e8",
+    "typed_file_bytes_changed": 30,
+    "recovered_typed_sram_equals_original_guest_raw": true,
+    "intent_bytes": 33094,
+    "intent_sha256": "5e32c9dfcef38c0dc75db4a7696041f1381f7e93da4f7f68bf796a173d98435e",
+    "source_framed_complete_old_new_typed_bytes_verified": true,
+    "immutable_archive_receipt_byte_identical": true,
+    "separate_intent_receipt_schema_verified": true,
+    "second_cold_boot_logs_no_republication": true,
+    "selector_and_catalog_unchanged": true
+  },
+  "alternate_healthy_profile": {
+    "source_real_win32_guest_selected": true,
+    "initial_damage_qa_injected_not_a_second_actual_post_raw_crash": true
+  },
+  "private_owner_preservation": {
+    "owner_private": true,
+    "shared": false,
+    "complete_nested_original_ZIPs": 5,
+    "bytes": 6075776,
+    "sha256": "bb6b6a3f6bfd9888a4ce243a866b14797d069cedb44031281c36cb715eed65e6",
+    "independent_cloud_readback_verified": true,
+    "private_locator_not_in_repo": true
+  },
+  "scope": {
+    "historical_nominated_source_unchanged": "11501a15dea38fa912335cfc63103ce3a7208001",
+    "new_release_candidate_nominated": false,
+    "real_power_loss_or_full_disk_verified": false,
+    "physical_controllers_audio_display_verified": false,
+    "packaged_human_RTSQ_menu_verified": false,
+    "independent_complete_release_qa_gates_accepted": 0,
+    "USA_original_native_complete_events_accepted": 0,
+    "p0_1214_open": true
+  },
+  "github_90_day_original_byte_retention": {
+    "verified_at": "2026-10-16",
+    "original_positive_source_run": 38962321707,
+    "retention_workflow_run": 38970586783,
+    "merged_workflow_pr": 1725,
+    "retention_artifact_id": 12076551970,
+    "retention_artifact_name": "retained-qa02-positive-journal-originals-e9a92888",
+    "retention_expires_at": "2027-01-14T21:37:10Z",
+    "new_outer_zip_sha256": "e9223eaf8f4cfa8fff0554fca3593504ef6eca7a70636a94b82ef071e877f85c",
+    "new_outer_zip_bytes": 6075901,
+    "new_envelope_crc_passed": true,
+    "original_actions_zip_count": 5,
+    "original_nested_members_crc_checked": 95,
+    "each_original_whole_zip_sha256_matched_manifest": true,
+    "independent_original_bytes_equal_to_prior_download": true,
+    "contains_new_receipt": true,
+    "release_gate_credit": 0,
+    "nominated_candidate_changed": false,
+    "comment": "Derived 90-day wrapper is distinct from all five original GitHub Actions ZIPs and their individually pinned SHA256 digests."
+  }
+}

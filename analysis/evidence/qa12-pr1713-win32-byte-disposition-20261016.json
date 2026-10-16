@@ -89,5 +89,18 @@
   "original_nominated_source": "11501a15dea38fa912335cfc63103ce3a7208001",
   "original_nominated_zip_sha256": "5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7",
   "new_candidate_nominated": false,
-  "next": "Implementation owner to export a separate source-bound ROM-free before/crash/after plus intent/recovery-receipt archive and exercise actual player-accessible recovery, repeated fresh boots and fault I/O; independent QA verifies only when supplied."
+  "next": "Implementation owner to export a separate source-bound ROM-free before/crash/after plus intent/recovery-receipt archive and exercise actual player-accessible recovery, repeated fresh boots and fault I/O; independent QA verifies only when supplied.",
+  "independently_retained_secondary_copy": {
+    "completed": "2026-10-16",
+    "type": "owner_private_Google_Drive_archive",
+    "archive_sha256": "a26e4176be69de0886f61992d564edcd573204cbafaf558791ad5d7b662d22ce",
+    "archive_bytes": 6044977,
+    "original_nested_actions_zip_count": 5,
+    "all_original_artifact_sha256_and_crc_checked_again": true,
+    "independent_drive_readback_sha256_verified": true,
+    "private_locator_excluded_from_public_repo": true,
+    "game_ROM_in_archive": false,
+    "release_gate_credit": 0,
+    "note": "Separate private owner-controlled preservation; not a new GitHub Actions artifact or release candidate. User-facing private link was provided only in conversation."
+  }
 }

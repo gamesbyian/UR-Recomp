@@ -69,4 +69,6 @@ jobs:
           name: qa08-source-medal-original-native-ppu-owners-90d
           retention-days: 90
           if-no-files-found: error
-          path: ${{ runner.temp }}/qa08-join/qa08-medal-original-native-real-owners.json
+          path: |
+            ${{ runner.temp }}/qa08-join/qa08-medal-original-native-real-owners.json
+            ${{ runner.temp }}/qa08-join/original-medal.zip

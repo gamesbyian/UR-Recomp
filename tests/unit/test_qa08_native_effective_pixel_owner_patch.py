@@ -142,6 +142,25 @@ class RuntimeGuardTest(unittest.TestCase):
             with self.subTest(err=data[-80:]),self.assertRaises(ValueError):
                 self.inspect(data)
 
+    def test_single_win32_route_can_emit_full_source_and_ppu_port_chronology(self):
+        host=(ROOT/"tools/qa08_windows_effective_pixel_owner.py").read_text()
+        workflow=(ROOT/".github/workflows/baldosa-windows-native-bridge.yml").read_text()
+        self.assertIn('ap.add_argument("--collect-2p-fullroute"',host)
+        self.assertIn('"UR_QA08_WINDOWS_ORIGINAL_SOURCE_CASE":"twoplayer-fullroute"',host)
+        self.assertIn('"UR_QA08_WINDOWS_CGRAM_PORT_TRACE":"1"',host)
+        self.assertIn('capture=fullroute.inspect(source_dir,log,crcs)',host)
+        self.assertIn('capture["actual_native_guest_CRC_sha256"]!=GUEST_CRC_SHA',host)
+        self.assertIn('same_unmodified_exe_and_native_guest_execution_as_pixel_owner',host)
+        step=workflow.split("- name: Capture source-qualified medal pixel owners from real Win32 2P",1)[1].split("\n      - name: ",1)[0]
+        self.assertIn("github.event.pull_request.number == 1641",step)
+        self.assertIn("--collect-2p-fullroute",step)
+        self.assertEqual(step.count("python tools/qa08_windows_effective_pixel_owner.py"),1)
+        self.assertNotIn("python tools/qa08_windows_full_twoplayer_source_coverage.py",step)
+        upload=workflow.split("- name: Retain bounded medal pixel-owner source lines",1)[1].split("\n      - name: ",1)[0]
+        for needle in ("qa08-windows-2p-fullroute.json","qa08-native-ppu-source-phase-log.txt","source/*.pam"):
+            self.assertIn(needle,upload)
+        self.assertIn("retention-days: 4",upload)
+
     def test_unverified_guest_crc_and_missing_guest_frames_refused(self):
         for crc in (self.guest[:-1],["broken"]*5484):
             with self.assertRaises(ValueError):

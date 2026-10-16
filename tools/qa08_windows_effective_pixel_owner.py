@@ -189,6 +189,8 @@ def main()->None:
     for name in ("exe","rom","script","out"):
         ap.add_argument("--"+name,required=True,type=Path)
     ap.add_argument("--timeout",type=int,default=300)
+    ap.add_argument("--collect-2p-fullroute",action="store_true",
+                    help="observe 263 full 256x224 source frames and bounded PPU ports in the same native route")
     a=ap.parse_args()
     for file,hash_value,label in ((a.rom,ROM_SHA,"USA ROM"),(a.script,ROUTE_SHA,"2P route")):
         if sha256(file.read_bytes())!=hash_value:
@@ -196,22 +198,36 @@ def main()->None:
     if a.out.exists():
         ap.error("refusing to overwrite source result root")
     a.out.mkdir(parents=True)
-    prev=os.environ.get("UR_QA08_WINDOWS_PIXEL_OWNER_TRACE")
-    prev_oam=os.environ.get("UR_QA08_WINDOWS_OAM_PORT_TRACE")
-    os.environ["UR_QA08_WINDOWS_PIXEL_OWNER_TRACE"]="1"
-    os.environ["UR_QA08_WINDOWS_OAM_PORT_TRACE"]="1"
+    # One real Windows process simultaneously owns both the 11 selected
+    # pixel/OAM observations and (only when explicitly selected) the 263
+    # complete Original PPU source fields + bounded port/register chronology.
+    # This avoids a second 5484-frame guest run and cannot rewrite PPU pixels.
+    enabled={
+        "UR_QA08_WINDOWS_PIXEL_OWNER_TRACE":"1",
+        "UR_QA08_WINDOWS_OAM_PORT_TRACE":"1",
+    }
+    if a.collect_2p_fullroute:
+        source_dir=a.out/"source"
+        source_dir.mkdir()
+        enabled.update({
+            "UR_QA08_WINDOWS_ORIGINAL_SOURCE_DIR":str(source_dir.resolve()),
+            "UR_QA08_WINDOWS_ORIGINAL_SOURCE_CASE":"twoplayer-fullroute",
+            "UR_QA08_WINDOWS_PPU_STATE_TRACE":"1",
+            "UR_QA08_WINDOWS_CGRAM_PORT_TRACE":"1",
+            "UR_QA08_WINDOWS_INIDISP_PORT_TRACE":"1",
+            "UR_QA08_WINDOWS_HDMA_FIRSTLINE_TRACE":"1",
+        })
+    previous={key:os.environ.get(key) for key in enabled}
+    os.environ.update(enabled)
     try:
         crcs,log=run_route(a.exe.resolve(),a.rom.resolve(),a.script.resolve(),
                            a.out,pause=False,video="windows",timeout=a.timeout)
     finally:
-        if prev is None:
-            os.environ.pop("UR_QA08_WINDOWS_PIXEL_OWNER_TRACE",None)
-        else:
-            os.environ["UR_QA08_WINDOWS_PIXEL_OWNER_TRACE"]=prev
-        if prev_oam is None:
-            os.environ.pop("UR_QA08_WINDOWS_OAM_PORT_TRACE",None)
-        else:
-            os.environ["UR_QA08_WINDOWS_OAM_PORT_TRACE"]=prev_oam
+        for key,value in previous.items():
+            if value is None:
+                os.environ.pop(key,None)
+            else:
+                os.environ[key]=value
     # Retain a bounded graphics-only trace even if an assertion rejects it.
     # Never archive user files, ROM/SRAM, personal profiles or full commands.
     diagnostic=[row for row in log.splitlines()
@@ -223,6 +239,39 @@ def main()->None:
     result=inspect(log,crcs)
     result["verified_same_actual_Windows_executable"]=sha256(a.exe.read_bytes())
     result["verified_original_2P_script_SHA256"]=ROUTE_SHA
+    if a.collect_2p_fullroute:
+        try:
+            from tools import qa08_windows_full_twoplayer_source_coverage as fullroute
+        except ImportError:
+            import qa08_windows_full_twoplayer_source_coverage as fullroute
+        # Fail closed on all 263 actual 256x224 post-PPU source fields, their
+        # logged real guest labels and complete source CRC. Do not manufacture
+        # absent video callbacks or infer reference/hardware equivalence.
+        capture=fullroute.inspect(source_dir,log,crcs)
+        if (capture["actual_native_guest_CRC_sha256"]!=GUEST_CRC_SHA
+            or capture["actual_native_simulations"]!=5484
+            or capture["actual_source_count"]!=263):
+            raise ValueError("same-process full-route visual/guest witness diverged")
+        capture["read_only_native_PPU_registers"]=fullroute.inspect_native_ppu_registers(log)
+        capture["read_only_native_CGRAM_port_writer_chronology"]=fullroute.inspect_native_cgram_port_history(log)
+        capture["read_only_native_INIDISP_2100_write_chronology"]=fullroute.inspect_native_inidisp_port_history(log)
+        capture["read_only_native_HDMA7_firstline"]=fullroute.inspect_native_channel7_firstline(log)
+        capture["actual_windows_PE_sha256"]=result["verified_same_actual_Windows_executable"]
+        capture["actual_two_pad_route_sha256"]=ROUTE_SHA
+        capture["same_unmodified_exe_and_native_guest_execution_as_pixel_owner"]=True
+        capture["original_snes9x_effective_OBJ_BG_math_priority_accepted"]=False
+        (a.out/"qa08-windows-2p-fullroute.json").write_text(
+            json.dumps(capture,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+        prefixes=("UR_QA08_WIN_PPU_STATE ","UR_QA08_WIN_CGRAM_WRITE ",
+                  "UR_QA08_WIN_INIDISP_WRITE ","UR_QA08_WIN_HDMA7 ",
+                  "UR_QA08_WINDOWS_ORIGINAL_SOURCE ")
+        (a.out/"qa08-native-ppu-source-phase-log.txt").write_text(
+            "\n".join(line for line in log.splitlines() if line.startswith(prefixes))+"\n",
+            encoding="utf-8")
+        result["qualified_263_frame_source_PPU_in_same_native_process"]=True
+        result["same_real_Windows_process_CGRAM_ports_2100_HDMA7_observed"]=True
+        print("QA08_SAME_ROUTE_2P_PPU full_guest=5484 source_256x224=263 "
+              "original_CPU_phase_and_physical_pixels=UNACCEPTED")
     (a.out/"qa08-native-effective-pixel-owner.json").write_text(
         json.dumps(result,indent=2,sort_keys=True)+"\n",encoding="utf-8")
     print("QA08_PIXEL_OWNER real_original_win32_frames=5484 source_positions=11 "

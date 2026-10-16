@@ -664,7 +664,7 @@ jobs:
             --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
             --rom "reference/roms/retail/Uniracers_USA.sfc" \
             --script "baldosa/tests/routes/race_2p.txt" \
-            --timeout 300 \
+            --timeout 300 --collect-2p-fullroute \
             --out "$RUNNER_TEMP/QA08-Win32-Pixel-Owner"
           python tools/qa08_windows_native_oam_port_chronology.py \
             --log "$RUNNER_TEMP/QA08-Win32-Pixel-Owner/qa08-effective-pixel-source-log.txt" \
@@ -681,6 +681,9 @@ jobs:
             ${{ runner.temp }}/QA08-Win32-Pixel-Owner/qa08-native-effective-pixel-owner.json
             ${{ runner.temp }}/QA08-Win32-Pixel-Owner/qa08-effective-pixel-source-log.txt
             ${{ runner.temp }}/QA08-Win32-Pixel-Owner/qa08-native-OAM-port-input.json
+            ${{ runner.temp }}/QA08-Win32-Pixel-Owner/qa08-windows-2p-fullroute.json
+            ${{ runner.temp }}/QA08-Win32-Pixel-Owner/qa08-native-ppu-source-phase-log.txt
+            ${{ runner.temp }}/QA08-Win32-Pixel-Owner/source/*.pam
           if-no-files-found: warn
           retention-days: 4
 

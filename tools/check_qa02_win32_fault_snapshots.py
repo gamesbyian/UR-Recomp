@@ -65,7 +65,7 @@ def inspect(archive: Path, expected_sha: str, mode: str, *,
         expected.add("qa02-exact-owner-receipt.json")
     else:
         expected.update(("intent.crash.bin", "intent.recovered-receipt.bin",
-                         "second-cold-recovery-boot.log"))
+                         "intent-receipt.json", "second-cold-recovery-boot.log"))
     with zipfile.ZipFile(archive) as z:
         members = z.infolist()
         require(len(members) == len(expected) and
@@ -80,7 +80,9 @@ def inspect(archive: Path, expected_sha: str, mode: str, *,
         require(z.testzip() is None, "ZIP CRC validation failed")
         raw_files = {name: z.read(name) for name in expected}
     receipt = json.loads(raw_files["file-receipt.json"].decode("utf-8"))
-    expected_receipt = set(LABELS) if mode == "historic" else set(LABELS) | {"intent"}
+    # Producer stores the intent metadata in its own disjoint receipt,
+    # leaving the 4-file before/crash/after manifest unmodified.
+    expected_receipt = set(LABELS)
     require(isinstance(receipt, dict) and set(receipt) == expected_receipt,
             "incorrect file-receipt population")
     files = {}
@@ -149,7 +151,7 @@ def inspect(archive: Path, expected_sha: str, mode: str, *,
         # Only those exact typed images may authorize replay.
         intent = raw_files["intent.crash.bin"]
         archived = raw_files["intent.recovered-receipt.bin"]
-        info = receipt["intent"]
+        info = json.loads(raw_files["intent-receipt.json"].decode("utf-8"))
         require(isinstance(info, dict) and
                 set(info) == {"crash_sha256", "receipt_sha256", "bytes",
                               "byte_identical", "pending_retired"} and

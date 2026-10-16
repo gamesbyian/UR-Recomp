@@ -68,7 +68,7 @@
     "A_raw_typed_bit_identical_across_all_four_stages": true,
     "profile_catalog_sha256": "2d96cfaa42e2479ba63a195700327d546acc785ac06343bb9457633197fa6846",
     "catalog_unchanged_across_all_four_stages": true,
-    "selector_at_B_crash_sha256": "9db71c0e82a02b0f25149a431402f604bfe8f5d3fd61c4e61cf80d9e3ad8aeef",
+    "selector_at_B_crash_sha256": "9db71c0e82a02b0f2514fb4711d3476a2438099be2682cdba622cb34b4a4cc4b",
     "selector_after_authorized_A_sha256": "eb0d0bd6c37dfa57766faff9e70f57d1730cabca36426d2863553256bbe87956",
     "selector_changes_only_to_healthy_A": true,
     "second_cold_selector_exactly_after_selector": true,

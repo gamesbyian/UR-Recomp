@@ -112,7 +112,7 @@ inline BaldosaManualSramRecoveryStatus recover_baldosa_legacy_sram_explicit(
     TournamentLaunchPathLock typed_lock(typed.string(), true);
     if (!typed_lock.acquired()) return Status::BusyOrIoError;
 
-    if (!baldosa_sram_entry_missing(pending)) return Status::Rejected;
+    const bool has_pending = !baldosa_sram_entry_missing(pending);
     const auto global = load_host_product_state_file(selector.string());
     const auto roster = load_host_profile_catalog_file(catalog.string());
     const auto profile = load_host_profile_state_file(
@@ -125,6 +125,22 @@ inline BaldosaManualSramRecoveryStatus recover_baldosa_legacy_sram_explicit(
         !stock_sram_format_signature_present(
             profile.state->stock_sram->data(), kStockSramBytes))
         return Status::Rejected;
+
+    // A partial original native write is unknowable; an explicit rollback
+    // to the still-committed typed SRAM is safe ONLY when a canonical
+    // validated pending intent names that exact previous profile. Preserve
+    // the intent and interrupted raw independently before any replacement.
+    std::optional<BaldosaSramIntent> interrupted;
+    if (has_pending) {
+        if (choice != BaldosaManualSramChoice::RestoreCommitted)
+            return Status::Rejected;
+        interrupted = read_baldosa_sram_intent(pending, expected_active);
+        if (!interrupted ||
+            !(interrupted->previous == *profile.state) ||
+            !profile_catalog_authorizes_state(
+                *roster, interrupted->next))
+            return Status::Rejected;
+    }
 
     // Absent raw may be recreated only by an explicit RestoreCommitted
     // decision. Short/opaque raw is still archived byte-for-byte. A symlink,
@@ -164,6 +180,9 @@ inline BaldosaManualSramRecoveryStatus recover_baldosa_legacy_sram_explicit(
     if (!archive_baldosa_manual_sram_choice(
             root, *profile.state, !absent, raw_bytes))
         return Status::BusyOrIoError;
+    if (interrupted && !archive_baldosa_recovered_intent(
+                           root, *interrupted))
+        return Status::BusyOrIoError;
 
     if (choice == BaldosaManualSramChoice::RestoreCommitted) {
         const auto& known = *profile.state->stock_sram;
@@ -172,6 +191,14 @@ inline BaldosaManualSramRecoveryStatus recover_baldosa_legacy_sram_explicit(
         if (!write_host_replace_staged(raw.string(), bytes, "restore-sram") ||
             !baldosa_sram_file_matches_exact(raw, known.data(), known.size()))
             return Status::BusyOrIoError;
+        if (interrupted) {
+            // The only unpublished raw image has been archived and the
+            // canonical committed pair is restored. Retire exactly the
+            // authorized intent while the three original locks are held.
+            std::error_code remove_error;
+            if (!fs::remove(pending, remove_error) || remove_error)
+                return Status::BusyOrIoError;
+        }
         return Status::RestoredCommitted;
     }
 

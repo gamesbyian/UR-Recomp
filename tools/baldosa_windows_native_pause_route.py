@@ -1703,6 +1703,156 @@ def run_native_real_crashed_second_healthy_first(
     }
 
 
+def run_native_three_profile_unrelated_damage(
+    exe: Path, rom: Path, root: Path, fixture: Path, seed: Path,
+    *, video: str, timeout: int,
+) -> dict[str, object]:
+    """Three genuinely rostered Modern racers, only source/target locked.
+
+    Unrelated C typed damage and selected A raw damage are deliberate,
+    synthetic fixture inputs. Both actual recovery and cold boot use the
+    same compiled original native Windows executable as the full game.
+    """
+    out = root / "native_three_profile_unrelated_damage"
+    out.mkdir(parents=True, exist_ok=False)
+    user_root = out / "Three Catalogued Racers"
+    user_root.mkdir()
+    for args in (
+        [str(fixture), str(user_root), str(seed)],
+        [str(fixture), str(user_root), str(seed), "--add-second-keep-first"],
+        [str(fixture), str(user_root), str(seed), "--add-third-keep-first"],
+    ):
+        subprocess.run(args, cwd=out, check=True, timeout=timeout,
+                       capture_output=True, text=True)
+    a = user_root / "saves/profile-native-ci-rider"
+    b = user_root / "saves/profile-native-ci-second"
+    c = user_root / "saves/profile-native-ci-third"
+    a_raw, a_typed = a / "save.srm", a / "host-profile.txt"
+    b_raw, b_typed = b / "save.srm", b / "host-profile.txt"
+    c_raw, c_typed = c / "save.srm", c / "host-profile.txt"
+    selector, roster = user_root / "host-state-v1.txt", user_root / "profiles-v1.txt"
+    files = (a_raw, a_typed, b_raw, b_typed, c_raw, selector, roster)
+    before = {p: p.read_bytes() for p in files}
+    old_c_typed = c_typed.read_bytes()
+    if (len(before[a_raw]) != 8192 or len(before[b_raw]) != 8192 or
+        len(before[c_raw]) != 8192 or
+        len({before[a_raw], before[b_raw], before[c_raw]}) != 3 or
+        len(old_c_typed) < 8192):
+        raise ValueError("Three-racer canonical fixture lacks distinct SRAM")
+    c_typed.unlink()  # unrelated damaged C, never chosen or repaired
+    changed = bytearray(before[a_raw])
+    changed[0x0711] ^= 0x35
+    a_raw.write_bytes(changed)
+    damaged = {p: p.read_bytes() for p in files}
+    if damaged[a_raw] == before[a_raw] or c_typed.exists():
+        raise ValueError("Three-racer fixture damage did not hold")
+    config = out / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+    short = out / "short.txt"
+    short.write_text("turbo on\nwait 6\nquit\n", encoding="ascii")
+    env = os.environ.copy()
+    env.update({
+        "SNESRECOMP_USER_DATA_DIR": str(user_root),
+        "UR_EXECUTION_MODE": "modern",
+        "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
+        "UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS": "1",
+        "UR_BALDOSA_MODERN_INPUT": "1",
+        "SDL_VIDEODRIVER": video,
+        "SDL_AUDIODRIVER": "dummy",
+    })
+    def invoke(overrides: dict[str, str] | None = None) -> tuple[int, str]:
+        supplied = {**env, **(overrides or {})}
+        p = subprocess.run(
+            [str(exe), "--no-launcher", "--config", str(config),
+             "--script", str(short), str(rom)],
+            cwd=out, env=supplied, capture_output=True, text=True,
+            errors="replace", timeout=timeout)
+        return p.returncode, p.stdout + "\n" + p.stderr
+    rc, rejected = invoke()
+    (out / "damaged-a-refusal.log").write_text(rejected, encoding="utf-8")
+    if rc != 7 or "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in rejected:
+        raise ValueError("Damaged selected A did not fail closed")
+    rc, blocked = invoke({
+        "UR_BALDOSA_RECOVERY_ACTION": "healthy",
+        "UR_BALDOSA_RECOVERY_PROFILE_ID": "native-ci-third",
+    })
+    (out / "invalid-c-selection.log").write_text(blocked, encoding="utf-8")
+    if rc != 88 or any(p.read_bytes() != damaged[p] for p in files):
+        raise ValueError("Damaged third target became implicitly authorized")
+    rc, switched = invoke({
+        "UR_BALDOSA_RECOVERY_ACTION": "healthy",
+        "UR_BALDOSA_RECOVERY_PROFILE_ID": "native-ci-second",
+    })
+    (out / "explicit-b-selection.log").write_text(switched, encoding="utf-8")
+    if (rc != 89 or "choice=healthy" not in switched or
+        "completed=1" not in switched or
+        "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in switched):
+        raise ValueError("Unrelated damaged C stranded otherwise valid B")
+    selected = {p: p.read_bytes() for p in files}
+    if (selected[selector] == damaged[selector] or
+        any(selected[p] != damaged[p] for p in files if p != selector) or
+        c_typed.exists()):
+        raise ValueError("Three-catalog healthy switch changed another owner")
+    for n in (1, 2):
+        rc, log = invoke()
+        (out / f"healthy-b-cold-{n}.log").write_text(
+            log, encoding="utf-8")
+        if rc != 0 or "UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED" in log:
+            raise ValueError("Healthy B could not cold boot with third broken")
+        verify_named_profile_boot_bytes(
+            log, before[b_raw], profile_id="native-ci-second")
+        if (any(p.read_bytes() != selected[p] for p in files) or
+            c_typed.exists()):
+            raise ValueError("Three-profile cold guest altered unrelated damaged C")
+    if list(user_root.rglob("*.urrun")) or list(user_root.rglob("*.urmatch")):
+        raise ValueError("Three-profile emergency selection invented Records")
+    evidence = out / "fault-bytes"
+    evidence.mkdir()
+    name_for = {
+        a_raw: "a-raw", a_typed: "a-typed",
+        b_raw: "b-raw", b_typed: "b-typed", c_raw: "c-raw",
+        selector: "selector", roster: "roster",
+    }
+    exact = {}
+    for p, label in name_for.items():
+        for stage, snapshot in (("before", before),
+                                ("damaged", damaged), ("after", selected)):
+            name = f"{label}.{stage}.bin"
+            data = snapshot[p]
+            (evidence / name).write_bytes(data)
+            exact[name] = {
+                "sha256": hashlib.sha256(data).hexdigest(),
+                "bytes": len(data),
+            }
+        name = f"{label}.second-cold.bin"
+        data = p.read_bytes()
+        (evidence / name).write_bytes(data)
+        exact[name] = {
+            "sha256": hashlib.sha256(data).hexdigest(),
+            "bytes": len(data),
+        }
+    (evidence / "c-typed.original-then-absent.bin").write_bytes(old_c_typed)
+    exact["c-typed.original-then-absent.bin"] = {
+        "sha256": hashlib.sha256(old_c_typed).hexdigest(),
+        "bytes": len(old_c_typed),
+    }
+    (evidence / "file-receipt.json").write_text(
+        json.dumps(exact, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8")
+    return {
+        "registered_three_canonical_racers": True,
+        "damaged_a_refused_before_guest": True,
+        "unrelated_c_missing_typed_preserved": True,
+        "invalid_c_target_rejected": True,
+        "explicit_b_target_selected": True,
+        "two_real_original_b_cold_boots": True,
+        "only_selector_changed_after_explicit_selection": True,
+        "source_storage_not_scanned_for_orphans": True,
+        "all_canonical_evidence_bytes_retained": len(exact),
+        "release_gate_credit": 0,
+    }
+
+
 def run_native_healthy_alternate_from_damaged_source(
     exe: Path, rom: Path, root: Path, fixture: Path, seed: Path,
     *, video: str, timeout: int,
@@ -2616,6 +2766,9 @@ def main() -> int:
     typed_cut_proof = run_native_typed_commit_finalization_cut(
         exe, rom, script, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)
+    three_profile_proof = run_native_three_profile_unrelated_damage(
+        exe, rom, root, fixture, sram_seed,
+        video=args.video, timeout=args.timeout)
     real_b_crash_healthy_a_proof = run_native_real_crashed_second_healthy_first(
         exe, rom, script, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)
@@ -2649,6 +2802,7 @@ def main() -> int:
         "native_typed_commit_before_intent_retirement": typed_cut_proof,
         "native_healthy_alternate_after_damaged_p1": healthy_alternate_proof,
         "native_real_b_crash_healthy_a_recovery": real_b_crash_healthy_a_proof,
+        "native_three_registered_unrelated_damaged_c": three_profile_proof,
         "native_paused_quit_selector_conflict": conflict_proof,
         "modern_root_race_entry_p1": race_p1_proof,
         "modern_root_race_entry_p2": race_p2_proof,

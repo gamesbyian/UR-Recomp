@@ -275,3 +275,22 @@ and roster snapshots are retained in six times four canonical stages
 actual native process logs and SHA-256 receipts. This does NOT replace a
 physical packaged no-argument R/T/S/Q operator test or provide release
 QA gate credit.
+
+
+## Three registered profiles: independently corrupt C must not strand A→B
+
+A separate hosted real-Windows product test uses only the canonical
+Modern stores to provision distinct A/B/C racer identities and three
+different 8192-byte SRAM images. The test deliberately damages the
+unrelated **C typed file** and the currently selected **A raw SRAM** in
+an isolated test root. The actual native game must first refuse A,
+reject any attempt to select damaged C, then accept an **explicit** B
+switch under the source/destination path locks despite unrelated C's
+absence. Two original Windows cold processes must boot B with no
+source/target mutation, no C reconstruction, no invented source result
+and unchanged canonical roster. It retains seven canonical files at
+four stages plus the archived original C typed file, with exact
+SHA-256 receipts. Damage is QA-injected; this test does **not** claim
+C was damaged by an original guest save, nor a physically operated
+launcher recovery dialog. The distinct F5 B-crash/A rescue test
+provides the genuine source-guest crash boundary separately.

@@ -30,11 +30,15 @@
  */
 static int add_second_named_profile(const std::filesystem::path& root,
                                     const std::filesystem::path& seed,
-                                    bool activate_second = true) {
+                                    bool activate_second = true,
+                                    bool add_third = false) {
     namespace fs = std::filesystem;
     using namespace ur::product;
     constexpr const char* kFirst = "native-ci-rider";
     constexpr const char* kSecond = "native-ci-second";
+    constexpr const char* kThird = "native-ci-third";
+    const char* added_id = add_third ? kThird : kSecond;
+    if (add_third && activate_second) return 20;
     std::error_code ec;
     if (!fs::is_directory(root, ec) || ec ||
         !fs::is_regular_file(seed, ec) || ec ||
@@ -44,12 +48,13 @@ static int add_second_named_profile(const std::filesystem::path& root,
     const auto original = load_host_product_state_file(global_path);
     auto roster = load_host_profile_catalog_file(roster_path);
     if (!original.loaded() || original.state->active_profile_id != kFirst ||
-        !roster || roster->size() != 1 ||
-        (*roster)[0].profile_id != kFirst) return 22;
+        !roster || roster->size() != (add_third ? 2u : 1u) ||
+        (*roster)[0].profile_id != kFirst ||
+        (add_third && (*roster)[1].profile_id != kSecond)) return 22;
     const auto first_root = resolve_host_profile_save_root(
         ExecutionMode::Modern, std::string(kFirst));
     const auto second_root = resolve_host_profile_save_root(
-        ExecutionMode::Modern, std::string(kSecond));
+        ExecutionMode::Modern, std::string(added_id));
     if (!first_root.isolated() || !second_root.isolated() ||
         first_root.save_root == second_root.save_root) return 23;
     const auto first_state = load_host_profile_state_file(
@@ -65,8 +70,9 @@ static int add_second_named_profile(const std::filesystem::path& root,
     // The separate played-stock-2P route presses P2 Down in the original
     // picker, selecting source rider index 2. A bound saved match must
     // reflect that actual guest identity without modifying guest rules.
-    auto identity = make_legacy_racer_identity(activate_second ? 1u : 2u);
-    auto second = make_default_host_profile_state(kSecond);
+    auto identity = make_legacy_racer_identity(
+        add_third ? 3u : (activate_second ? 1u : 2u));
+    auto second = make_default_host_profile_state(added_id);
     if (!identity || !second) return 26;
     std::array<std::uint8_t, kStockSramBytes> bytes{};
     {
@@ -77,7 +83,9 @@ static int add_second_named_profile(const std::filesystem::path& root,
     // A harmless, test-owned discriminator in a separate SRAM namespace.
     // The actual native callback observes these bytes before the first
     // guest frame; this does NOT assert a valid completed course result.
-    bytes[bytes.size() - 1] ^= 0x5Au;
+    bytes[bytes.size() - 1] ^=
+        add_third ? static_cast<std::uint8_t>(0xA3u)
+                  : static_cast<std::uint8_t>(0x5Au);
     second->racer_identity = *identity;
     if (capture_stock_sram_for_profile(ExecutionMode::Modern, *second,
         bytes.data(), bytes.size()) != HostProfileTransferStatus::Applied)
@@ -92,7 +100,7 @@ static int add_second_named_profile(const std::filesystem::path& root,
                        bytes.size())) return 31;
     }
     const auto before_roster = *roster;
-    roster->push_back({kSecond, *identity});
+    roster->push_back({added_id, *identity});
     if (save_host_profile_catalog_file_if_current(
             roster_path, before_roster, *roster) !=
             HostProfileCatalogSaveStatus::Saved) return 32;
@@ -107,7 +115,7 @@ static int add_second_named_profile(const std::filesystem::path& root,
                 HostProductSaveStatus::Saved) return 33;
         std::fprintf(stdout,
             "UR_BALDOSA_NATIVE_PROFILE_FIXTURE switched=%s sram=%zu distinct=1\n",
-            kSecond, bytes.size());
+            added_id, bytes.size());
     } else {
         // A played 2P match requires the P1 stock rider to match the selected
         // Modern P1 identity, not the incidental second registered profile.
@@ -116,7 +124,7 @@ static int add_second_named_profile(const std::filesystem::path& root,
         std::fprintf(stdout,
             "UR_BALDOSA_NATIVE_PROFILE_FIXTURE registered=%s "
             "selected=%s sram=%zu distinct=1\n",
-            kSecond, kFirst, bytes.size());
+            added_id, kFirst, bytes.size());
     }
     return 0;
 }
@@ -315,6 +323,10 @@ int main(int argc, char** argv) {
         return add_second_named_profile(argv[1], argv[2]);
     if (argc == 4 && std::strcmp(argv[3], "--add-second-keep-first") == 0)
         return add_second_named_profile(argv[1], argv[2], false);
+    // QA-only valid third canonical racer: avoid inventing separate store
+    // codecs and preserve selected first racer throughout publication.
+    if (argc == 4 && std::strcmp(argv[3], "--add-third-keep-first") == 0)
+        return add_second_named_profile(argv[1], argv[2], false, true);
     // QA-only entrypoint for a user-confirmed emergency target. Unlike the
     // ordinary UI selector, the old active profile may have a broken typed
     // sidecar/raw SRAM. Both remain untouched. Never auto-pick a destination.

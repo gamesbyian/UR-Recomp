@@ -456,6 +456,15 @@ jobs:
               "every_gameplay_frame_compared","cpu_instruction_or_logic_tick_parity_proven",
               "release_complete_usa_event_credit")}
           print("QA01_ZOO_FULL_RACE_UNMASKED_MESH=" + json.dumps(brief,sort_keys=True))
+          dp=mesh.get("late_direct_page_window")
+          if dp is not None:
+              if (dp.get("range_inclusive") != [5034,5046]
+                      or not dp.get("all_guest_frames_in_range_captured")
+                      or dp.get("raw_wram_bytes_excluded") != 0
+                      or len(dp.get("samples",[])) != 13):
+                  raise SystemExit("incomplete unmasked 13-frame +5040 DP boundary")
+              print("QA01_ZOO_LATE_DP_BOUNDARY=" + json.dumps(dp,sort_keys=True,
+                                                             separators=(",",":")))
           with open(sys.argv[2],"a",encoding="utf-8") as f:
               f.write("\nZoo genuine 2014 course sampled through +" +
                       str(mesh["last_race_relative_checkpoint"]) +

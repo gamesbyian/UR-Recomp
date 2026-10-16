@@ -11,6 +11,12 @@ on:
 permissions:
   contents: read
 
+# Temporary PR experiment still follows the repository automatic-CI budget
+# rules; do not cancel a useful immutable run merely because a ref advances.
+concurrency:
+  group: qa01-zoo-dp-one-shot-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   exact-source-zoo-dp-window:
     uses: ./.github/workflows/qa01-event-campaign.yml

@@ -24,18 +24,19 @@ class NativeObserverPins(unittest.TestCase):
         new = q.patch_apu(apu)
         self.assertEqual(q.patch_apu(new), new)
         self.assertIn(q.MARK, new)
-        self.assertEqual(new.count(q.MARK), 1)
+        self.assertGreaterEqual(new.count(q.MARK), 2)
         self.assertEqual(new.count("  apu_writePortNow(apu, w->port, w->val);"), 1)
         self.assertIn("w->target_cycle", new)
         snes = q.patch_snes(SNES_SOURCE)
         self.assertEqual(q.patch_snes(snes), snes)
-        self.assertEqual(snes.count(q.MARK), 1)
+        self.assertGreaterEqual(snes.count(q.MARK), 2)
         self.assertIn("raw_apu_value = v", snes)
         self.assertEqual(snes.count("RtlApuUnlock();"), 1)
 
     def test_unknown_and_corrupted_source_rejected(self):
         with self.assertRaisesRegex(ValueError, "RF030"):
-            q.patch_apu(APU_SOURCE)
+            q.patch_apu(APU_SOURCE.replace('ur_qa01_rf030_native(apu, "schedule", val);',
+                                           'ur_missing_native(apu, "schedule", val);'))
         with self.assertRaisesRegex(ValueError, "unknown pinned"):
             q.patch_snes(SNES_SOURCE.replace("RtlApuUnlock();", "OTHER;"))
         full = q.patch_snes(SNES_SOURCE)

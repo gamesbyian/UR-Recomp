@@ -1,0 +1,144 @@
+{
+  "schema": "qa08-real-original-Windows-one-and-two-player-sampled-residual-partition/1",
+  "date": "2026-10-16",
+  "source_2014_Snes9x_and_compiled_Windows_ZIP_SHA256": {
+    "oneplayer_original": "1b2fb01338380dc7e4d093ccbb0a5778bd04388945ee0bc7eb5b910d4de3ca59",
+    "oneplayer_windows": "db0dc0aacde50503aee0cdbe8047dc22ef1550233afd83c4c69fa27099f1d005",
+    "twoplayer_original": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+    "twoplayer_windows": "f01ab5a4888c227f306a0b9cd89e67710a4b41cad4c22867072280a17811fa82"
+  },
+  "source_original_callback_for_native_guest": "f-1, never dynamic phase search",
+  "geometry": [
+    256,
+    224
+  ],
+  "pixel_normalization": "only original green6 to green5; no masking, crop, shift or colour remapping",
+  "oneplayer": {
+    "sampled_frames": 261,
+    "exact_frames": 162,
+    "divergent_frames": 99,
+    "wrong_RGB5_pixels": 19153,
+    "max_wrong_bbox_width": 32,
+    "max_wrong_bbox_height": 18,
+    "moving_race_wrong_pixels": 0,
+    "initial_menu": {
+      "frames": 6,
+      "pixels": 1050,
+      "guests": [
+        1280,
+        1296,
+        1312,
+        1328,
+        1344,
+        1360
+      ]
+    },
+    "finish_transition": {
+      "frames": 3,
+      "pixels": 520,
+      "guests": [
+        3968,
+        3984,
+        4000
+      ]
+    },
+    "results_and_return": {
+      "frames": 90,
+      "pixels": 17583,
+      "guests_first": 4016,
+      "guests_last": 5440,
+      "step": 16
+    },
+    "distinct_bbox_left_edge_counts": {
+      "8": 1,
+      "30": 92,
+      "54": 6
+    }
+  },
+  "twoplayer": {
+    "sampled_frames": 263,
+    "exact_frames": 203,
+    "divergent_frames": 60,
+    "wrong_RGB5_pixels": 385373,
+    "original_native_blackout": {
+      "frames": 1,
+      "pixels": 54709,
+      "guest": 4016
+    },
+    "original_native_four_gray_CGRAM_phase": {
+      "frames": 13,
+      "pixels": 318775,
+      "guests": [
+        4064,
+        4176,
+        4288,
+        4400,
+        4512,
+        4624,
+        4736,
+        4848,
+        4960,
+        5072,
+        5184,
+        5296,
+        5408
+      ]
+    },
+    "all_other_errors": {
+      "pixels": 11889,
+      "early_menu_cursor": {
+        "frames": 23,
+        "pixels": 4487,
+        "first_guest": 1280,
+        "last_guest": 1632
+      },
+      "finish_isolated_pixels": {
+        "frames": 2,
+        "pixels": 2,
+        "guests": [
+          3792,
+          3872
+        ]
+      },
+      "results_medal_colours": {
+        "pixels": 7400,
+        "frames": 25,
+        "pixels_per_frame": 296,
+        "nongray_frames_with_identical_mismatch_mask": [
+          4032,
+          4080,
+          4128,
+          4224,
+          4272,
+          4320,
+          4368,
+          4416,
+          4464,
+          4560,
+          4608,
+          4656,
+          4704,
+          4752,
+          4800,
+          4896,
+          4944,
+          4992,
+          5040,
+          5088,
+          5136
+        ],
+        "nongray_mask_bbox_xyxy": [
+          202,
+          91,
+          227,
+          153
+        ],
+        "additional_four_gray_phase_frames_with_296_residual_pixels": 4
+      }
+    }
+  },
+  "scoped_semantics": "All sampled frame wrong RGB5 pixels accounted for, not unsampled frames or complete CPU/PPU ownership",
+  "original_native_CPU_instruction_camera_or_field_phase_proven": false,
+  "effective_PPU_OBJ_BG_window_and_colour_math_proven": false,
+  "physical_PAR_widescreen_4x_HD_likeness_release_admitted": false
+}

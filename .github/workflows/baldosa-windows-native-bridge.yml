@@ -207,6 +207,8 @@ jobs:
       - name: Guard guest CRC, pause witness and Modern mutable-root stage
         run: |
           python tests/unit/test_assemble_baldosa_windows_candidate.py
+          python tests/unit/test_baldosa_io_access_clock_order_patch.py
+          python tests/unit/test_windows_rf017_source_identity.py
           python tests/unit/test_bind_baldosa_candidate_receipt.py
           python tests/unit/test_audit_baldosa_romless_candidate.py
           python tests/unit/test_check_windows_pe_timestamp.py

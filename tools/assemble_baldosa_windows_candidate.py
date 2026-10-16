@@ -227,19 +227,19 @@ def readme(revision: str) -> bytes:
         "Only an exact matching single profile/catalog/8192-byte SRAM\n"
         "allows safe completion of the previously missing selector.\n"
         "Do not remove the save directory or choose another racer to fix it.\n"
-        "CRASHED NAMED RACER RECOVERY (WINDOWS DOUBLE-CLICK LAUNCHER)\n",
-        "If an authorized named racer cannot boot, the launcher offers\n",
-        "an explicit R/T/S/Q recovery choice. Copy the complete user-data\n",
-        "directory first. Q does not modify anything. No choice is automatic.\n",
-        "R keeps a complete guest-authored SRAM and archives prior metadata.\n",
-        "T restores the last committed typed SRAM after archiving raw bytes\n",
-        "and an exact pending intent where present. Both choices preserve\n",
-        "forensic old/new evidence and require valid existing authority.\n",
-        "S lets you enter a separate registered healthy profile ID, changing\n",
-        "only the next-boot selector and preserving the damaged profile.\n",
-        "Malformed/missing typed sidecars are never silently re-created.\n",
-        "Recovery uses a fresh invocation of the original native game exe.\n",
-        "Automated or command-line launcher runs retain fail-closed exit 7.\n\n",
+        "CRASHED NAMED RACER RECOVERY (WINDOWS DOUBLE-CLICK LAUNCHER)\n"
+        "If an authorized named racer cannot boot, the launcher offers\n"
+        "an explicit R/T/S/Q recovery choice. Copy the complete user-data\n"
+        "directory first. Q does not modify anything. No choice is automatic.\n"
+        "R keeps a complete guest-authored SRAM and archives prior metadata.\n"
+        "T restores the last committed typed SRAM after archiving raw bytes\n"
+        "and an exact pending intent where present. Both choices preserve\n"
+        "forensic old/new evidence and require valid existing authority.\n"
+        "S lets you enter a separate registered healthy profile ID, changing\n"
+        "only the next-boot selector and preserving the damaged profile.\n"
+        "Malformed/missing typed sidecars are never silently re-created.\n"
+        "Recovery uses a fresh invocation of the original native game exe.\n"
+        "Automated or command-line launcher runs retain fail-closed exit 7.\n\n"
         "If startup reports PROFILE-REJECTED or SAVE-MISMATCH, preserve\n"
         "both save.srm and host-profile.txt plus the roster and selector.\n"
         "General recovery of a corrupt, mismatched or redirected profile\n"

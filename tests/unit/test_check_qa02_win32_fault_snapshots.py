@@ -52,14 +52,14 @@ def make_members(mode: str) -> dict[str, bytes]:
     if mode == "journaled":
         old_typed = old["typed-profile"]
         new_typed = after["typed-profile"]
-        intent = (b"UR-BALDOSA-NATIVE-SRAM-INTENT/1\\n" +
-                  str(len(old_typed)).encode() + b"\\n" +
-                  str(len(new_typed)).encode() + b"\\n" +
+        intent = (b"UR-BALDOSA-NATIVE-SRAM-INTENT/1\n" +
+                  str(len(old_typed)).encode() + b"\n" +
+                  str(len(new_typed)).encode() + b"\n" +
                   old_typed + new_typed)
         files["intent.crash.bin"] = intent
         files["intent.recovered-receipt.bin"] = intent
         files["second-cold-recovery-boot.log"] = (
-            b"UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=example\\n")
+            b"UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=example\n")
         receipt["intent"] = {
             "crash_sha256": hashlib.sha256(intent).hexdigest(),
             "receipt_sha256": hashlib.sha256(intent).hexdigest(),
@@ -148,8 +148,8 @@ class SnapshotByteConsumerTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             members = make_members("journaled")
             members["second-cold-recovery-boot.log"] = (
-                b"UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED\\n"
-                b"UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM\\n")
+                b"UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED\n"
+                b"UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM\n")
             path, sha = pack(Path(d), members)
             with self.assertRaisesRegex(ValueError, "second cold guest"):
                 inspect(path, sha, "journaled")

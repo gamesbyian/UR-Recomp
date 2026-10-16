@@ -179,14 +179,14 @@ class RuntimeGuardTest(unittest.TestCase):
                 f"frame={guest} x=121 raster_y=165 ppu_line=166",1).replace(
                 "final=90,66,74","final=57,24,0",1)
             lines.append(row)
-        expected=witness.inspect_finish_live_pixel_owners("\\n".join(lines)+"\\n")
+        expected=witness.inspect_finish_live_pixel_owners("\n".join(lines)+"\n")
         self.assertEqual(len(expected["read_only_native_live_PPU_effective_pixels"]),2)
         self.assertFalse(expected["original_live_same_scanline_PPU_priority_proven"])
         self.assertFalse(expected["release_gate_accepted"])
-        for bad in (lines[0],lines[0]+"\\n"+lines[0]+"\\n"+lines[1],
-                    lines[0]+"\\n"+lines[1].replace("final=57,24,0","final=49,24,0"),
-                    lines[0]+"\\n"+lines[1].replace("main=4","main=99"),
-                    lines[0]+"\\n"+lines[1].replace("raster_y=165","raster_y=164")):
+        for bad in (lines[0],lines[0]+"\n"+lines[0]+"\n"+lines[1],
+                    lines[0]+"\n"+lines[1].replace("final=57,24,0","final=49,24,0"),
+                    lines[0]+"\n"+lines[1].replace("main=4","main=99"),
+                    lines[0]+"\n"+lines[1].replace("raster_y=165","raster_y=164")):
             with self.subTest(reason=bad[-60:]),self.assertRaises(ValueError):
                 witness.inspect_finish_live_pixel_owners(bad)
 

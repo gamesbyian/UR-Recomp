@@ -1,0 +1,53 @@
+name: One-shot retention of exact nominated ROM-free Windows owner ZIP
+
+# Safeguard the original already accepted-for-owner-inspection bytes, not a
+# new candidate and not a public release. No per-merge or scheduled rebuild.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/retain-nominated-owner-playtest.yml"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: retain-nominated-owner-11501a15-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  retain_once:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out retention verifier only
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Reuse exact original owner artifact ID and immutable run
+        uses: actions/download-artifact@v4
+        with:
+          repository: ${{ github.repository }}
+          run-id: 38813101482
+          artifact-ids: 12009612842
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/original-owner-playtest
+      - name: Refuse repackage, shifted candidate, unverified code or extra files
+        run: |
+          set -euo pipefail
+          python3 tools/verify_retained_owner_playtest.py \
+            --root "$RUNNER_TEMP/original-owner-playtest" \
+            --receipt "$RUNNER_TEMP/original-owner-playtest/ORIGINAL-ARTIFACT-RETENTION.json"
+          cd "$RUNNER_TEMP/original-owner-playtest"
+          sha256sum -c UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256
+          echo "Retention copy of original tested source 11501a15; no newly built candidate or QA gate credit." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain original verified ROM-free files for later owner hardware testing
+        uses: actions/upload-artifact@v4
+        with:
+          name: retained-nominated-owner-playtest-11501a15
+          path: ${{ runner.temp }}/original-owner-playtest/
+          if-no-files-found: error
+          retention-days: 90

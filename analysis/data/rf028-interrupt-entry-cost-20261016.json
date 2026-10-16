@@ -1,0 +1,72 @@
+{
+ "authority": "docs/RF028-INTERRUPT-ENTRY-COST-20261016.md",
+ "complete_event_credit": 0,
+ "date": "2026-10-16",
+ "entry_cost_master": {
+  "emulation_mode_slowrom": 54,
+  "native_mode_slowrom": 62,
+  "sequence": "dummy read at PC, 1 internal, push PB/PCH/PCL/P, 2 vector reads"
+ },
+ "executables": {
+  "1p": "8dde89b422b25c4650556d649b8f9b36dda20880a4a105d19529f10c1a78c4a5",
+  "2p": "bf4a66cbbac66b3448de698e5d98517c03718b049c708d46d0f42a79f8a51a6b"
+ },
+ "nmi_entry_switcher_host_5651": {
+  "native_handler_start_after_v225": 18,
+  "snes9x_handler_start": "V225 H82 (last loop instr V225 H2)"
+ },
+ "observer_tests": {
+  "attract_int62": "5/5",
+  "dragster_dense_int62": 0,
+  "switcher_dense_both": 13,
+  "switcher_dense_exact_dma_sync": 13,
+  "switcher_dense_int60": 0,
+  "switcher_dense_int62": 0
+ },
+ "race_field_beam_offset_native_minus_snes9x": {
+  "constant_from_nmi": true,
+  "dma_sync_per_start": -6,
+  "range": [
+   -210,
+   -150
+  ]
+ },
+ "release_gate_credit": 0,
+ "schema": "ur-rf028-interrupt-entry-cost/1",
+ "stage_order": [
+  "RF-015..019 tools",
+  "tools/baldosa_spc_power_on_patch.py --anchor 0",
+  "tools/baldosa_spc_frame_clock_patch.py",
+  "tools/baldosa_spc_bus_cycle_patch.py",
+  "tools/baldosa_interrupt_entry_cost_patch.py"
+ ],
+ "witnesses": {
+  "2p": "16 exact; 50036056 vs bsnes field_divergence 5236, 50024004 vs Snes9x field_divergence 5123 (references disagree)",
+  "attract": [
+   [
+    248,
+    276
+   ],
+   [
+    401,
+    443
+   ],
+   [
+    941,
+    1098
+   ],
+   [
+    1423,
+    1546
+   ],
+   [
+    3632,
+    3762
+   ]
+  ],
+  "bowl": "+3365 = +3365 paired",
+  "dragster": "+2081 = +2081 paired; dense equal +2040..+2100",
+  "switcher": "+4704 = +4704 paired; dense equal +4600..+4710",
+  "zoom_zoo": "+5163 = +5163 paired; follow-through and SRAM equal"
+ }
+}

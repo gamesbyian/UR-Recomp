@@ -634,7 +634,8 @@
         "docs/RF026-SPC-BUS-CYCLE-20261016.md",
         "analysis/data/rf026-spc-bus-cycle-20261016.json",
         "tools/baldosa_spc_bus_cycle_patch.py",
-        "tests/unit/test_baldosa_spc_bus_cycle_patch.py"
+        "tests/unit/test_baldosa_spc_bus_cycle_patch.py",
+        "docs/RF028-INTERRUPT-ENTRY-COST-20261016.md"
       ],
       "observation": "apu_cycle runs spc_runOpcode when cpuCyclesLeft reaches 0, i.e. on an opcode's first cycle. Executing it on its last base cycle instead cuts the boot IPL upload drift from -1,824 to -666 master clocks (4,450 exchanges), brings CPU write positions at the seven Dragster-replay SPC resets within -10..-66 SPC cycles of Snes9x (was up to -324) and the host-849 driver tick to 322 vs 351 (was 149). With anchor 0 the candidate gives Dragster +2081 = +2081 (dense equal +2040..+2100), Zoom Zoo follow-through and SRAM equal, Bowl equal, attract 5/5, 2P 16 exact + 2 reference knife-edges; Switcher unchanged.",
       "uncertainty": "All accesses of an opcode are placed on its last cycle; read-modify-write reads are one or more cycles early on hardware. Host-2902 margin ~80 SPC cycles of timer phase.",
@@ -645,7 +646,7 @@
       "id": "RF-027",
       "title": "Switcher Race B's one-frame-early terminal starts at a VBlank edge: native reaches the post-race 80:FAC9 wait 770 clocks early (race-field CPU residual carried into an NMI-disabled loader, widened by the driver upload handshake)",
       "class": "original_native_discrepancy",
-      "status": "handed_off",
+      "status": "resolved",
       "evidence": "original_and_native",
       "owner_lane": "qa01-gameplay",
       "reproducer": {
@@ -655,12 +656,37 @@
       },
       "source_artifacts": [
         "docs/RF026-SPC-BUS-CYCLE-20261016.md",
-        "analysis/data/rf026-spc-bus-cycle-20261016.json"
+        "analysis/data/rf026-spc-bus-cycle-20261016.json",
+        "docs/RF028-INTERRUPT-ENTRY-COST-20261016.md",
+        "analysis/data/rf028-interrupt-entry-cost-20261016.json"
       ],
       "observation": "Snes9x == bsnes at every frame +4600..+4710. Native full WRAM (stack excluded) equal through +4662; at +4663 $C6 13 vs 14 and the cursor counters, equal again at +4665, terminal +4702 one frame early. Native reaches 80:FAC9 at host 5741 V223 H1116 vs V224 H522 (-770 clocks); FAC9->FACD is 1,002 clocks on both, so native's first VBlank check reads before V=225 and skips a field. Offsets: race-field arrivals at 82:D4E9 -62..-306 per field (typically -160); post-race loader exit host 5659 -104, reset 5669 -476/-534, reset 5670 -632/-694, FAC9 -770. SPC resets match (host-5659 driver tick 711 vs 684 SPC cycles).",
       "uncertainty": "The race-field residual's components (general-DMA sync, HDMA mid-field repricing, refresh placement) are not separated; the upload drift is RF-026's remaining approximation.",
       "resolving_experiment": "Per-field CPU cost breakdown of one Switcher race field against bsnes (DMA sync, HDMA, refresh), then a per-access SMP model; re-run the Switcher dense comparison.",
-      "consequence": "Last 1P witness where both references agree and the RF-015..026 candidate differs."
+      "consequence": "Last 1P witness where both references agree and the RF-015..026 candidate differs.",
+      "resolution": "RF-028: the race-field offset is set at NMI entry, which Baldosa charges 0 instead of the 62-clock hardware sequence. Charging it makes Switcher +4704 = +4704 with dense low WRAM equal to Snes9x +4600..+4710."
+    },
+    {
+      "id": "RF-028",
+      "title": "Baldosa's beam driver charges nothing for the 65816 interrupt-entry sequence (62 master clocks on SlowROM native mode), so NMI/IRQ handlers start early against the beam",
+      "class": "original_native_discrepancy",
+      "status": "handed_off",
+      "evidence": "original_and_native",
+      "owner_lane": "qa01-gameplay",
+      "reproducer": {
+        "command": "Stage RF-015..019, baldosa_spc_power_on_patch.py --anchor 0, baldosa_spc_frame_clock_patch.py, baldosa_spc_bus_cycle_patch.py, baldosa_interrupt_entry_cost_patch.py; run the four 1P producer cases with --source-followthrough, the 18 2P pairs and the attract census",
+        "race_relative_lag": 0
+      },
+      "source_artifacts": [
+        "docs/RF028-INTERRUPT-ENTRY-COST-20261016.md",
+        "analysis/data/rf028-interrupt-entry-cost-20261016.json",
+        "tools/baldosa_interrupt_entry_cost_patch.py",
+        "tests/unit/test_baldosa_interrupt_entry_cost_patch.py"
+      ],
+      "observation": "run_interrupt pushes the frame with unpaced cpu_write8 and reads the vector untimed. Switcher host 5651: Snes9x NMI handler 00:8588 at V225 H82, native at V225+18 clocks; race-field beam offset -150..-210 constant from NMI. Charging the bsnes CPU::interrupt sequence: all four 1P cases paired with follow-through and SRAM equal (Switcher +4704 = +4704, Dragster +2081 = +2081), 2P 16 exact + the two Snes9x/bsnes disagreements, attract 5/5.",
+      "uncertainty": "Interrupt latency to the end of the current instruction is approximated by block-boundary delivery; general-DMA sync stays at 12 clocks (the bsnes-exact model overshot Switcher).",
+      "resolving_experiment": "QA-01: hosted re-execution of the full RF-015..028 stage, then adjudication; Windows-bridge staging only after that.",
+      "consequence": "Completes a staged candidate that matches every witness on which Snes9x and bsnes agree."
     }
   ]
 }

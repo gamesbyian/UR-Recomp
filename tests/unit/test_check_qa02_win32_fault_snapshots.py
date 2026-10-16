@@ -33,7 +33,7 @@ def make_members(mode: str) -> dict[str, bytes]:
     crash = {**old, "raw-sram": changed_raw}
     after = crash if mode == "historic" else {**crash, "typed-profile": typed(changed_raw, 2)}
     stages = {"before": old, "after": after}
-    if mode == "journaled":
+    if mode != "historic":
         stages["crash"] = crash
     files = {}
     receipt = {}
@@ -45,7 +45,7 @@ def make_members(mode: str) -> dict[str, bytes]:
             fields[stage + "_bytes"] = len(binary)
             fields[stage + "_sha256"] = hashlib.sha256(binary).hexdigest()
         fields["changed_byte_count"] = sum(a != b for a, b in zip(old[name], after[name]))
-        if mode == "journaled":
+        if mode != "historic":
             fields["crash_changed_byte_count"] = sum(
                 a != b for a, b in zip(old[name], crash[name]))
         receipt[name] = fields
@@ -76,6 +76,8 @@ def make_members(mode: str) -> dict[str, bytes]:
             "schema": "qa02-nominated-owner-real-win32-crash-byte-receipt/1",
             "tested_source": SOURCE, "original_candidate_exe_sha256": EXE,
             "native_process_result": {"forced_process_exit_code": 86}}).encode()
+    elif mode == "unjournaled":
+        files["cold-refusal.log"] = b"selected_profile_sram_not_initialized\n"
     else:
         files["cold-recovery.log"] = (
             b"RECOVERY_RECONCILED exact_staged_guest_sram=1 no_records=1\n"
@@ -94,11 +96,22 @@ def pack(root: Path, files: dict[str, bytes]) -> tuple[Path, str]:
 class SnapshotByteConsumerTest(unittest.TestCase):
     def test_synthetic_original_refusal_and_journaled_reconciliation(self):
         with tempfile.TemporaryDirectory() as d:
-            for mode in ("historic", "journaled"):
+            for mode in ("historic", "unjournaled", "journaled"):
                 path, sha = pack(Path(d), make_members(mode))
                 report = inspect(path, sha, mode, source=SOURCE, exe=EXE)
                 self.assertEqual(report["changed_guest_raw_bytes"], 1)
                 self.assertEqual(report["release_gate_credit"], 0)
+
+    def test_three_stage_unjournaled_rejects_silent_promotion(self):
+        with tempfile.TemporaryDirectory() as d:
+            members = make_members("unjournaled")
+            path, sha = pack(Path(d), members)
+            report = inspect(path, sha, "unjournaled")
+            self.assertFalse(report["reconciled_typed"])
+            members["typed-profile.after.bin"] = typed(b"\\x01" + bytes(8191), 2)
+            path, sha = pack(Path(d), members)
+            with self.assertRaisesRegex(ValueError, "declared SHA/length mismatch"):
+                inspect(path, sha, "unjournaled")
 
     def test_digest_mismatch_and_false_receipt_rejected(self):
         with tempfile.TemporaryDirectory() as d:

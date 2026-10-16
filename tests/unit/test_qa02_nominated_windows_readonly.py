@@ -55,6 +55,46 @@ class OriginalWindowsReadonlyTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "attrib"):
                 qa.attrib(Path("C:/fixture/save.srm"), "-R")
 
+    def test_win32_acl_uses_explicit_principal_and_fails_closed(self):
+        sid = "S-1-5-21-123-456-789-1001"
+        with mock.patch.object(qa.subprocess, "run") as runner:
+            runner.return_value.stdout = "Successfully processed 3 files; Failed processing 0 files"
+            runner.return_value.stderr = ""
+            runner.return_value.returncode = 0
+            qa.acl(Path("C:/root/profile-native-ci-rider"), sid, deny=True)
+            argv = runner.call_args.args[0]
+            self.assertEqual(argv[0], "icacls")
+            self.assertIn("/deny", argv)
+            self.assertIn(f"*{sid}:(W)", argv)
+            self.assertIn("/T", argv)
+            qa.acl(Path("C:/root/profile-native-ci-rider"), sid, deny=False)
+            self.assertIn("/remove:d", runner.call_args.args[0])
+            self.assertIn(f"*{sid}", runner.call_args.args[0])
+            runner.return_value.returncode = 5
+            with self.assertRaisesRegex(RuntimeError, "icacls"):
+                qa.acl(Path("C:/root/profile-native-ci-rider"), sid, deny=True)
+        with self.assertRaisesRegex(ValueError, "native Windows SID"):
+            qa.acl(Path("C:/root"), "administrator", deny=True)
+
+    def test_denial_probe_must_actually_refuse_file_creation(self):
+        with tempfile.TemporaryDirectory() as temp:
+            profile = Path(temp)
+            with self.assertRaisesRegex(ValueError, "did not actually deny"):
+                qa.require_os_denial(profile)
+            self.assertFalse((profile / "_qa02_acl_probe_do_not_commit.txt").exists())
+            with mock.patch.object(Path, "open", side_effect=PermissionError("denied")):
+                self.assertIsNone(qa.require_os_denial(profile))
+            self.assertFalse((profile / "_qa02_acl_probe_do_not_commit.txt").exists())
+
+    def test_sid_is_parsed_from_actual_windows_whoami_principal(self):
+        with mock.patch.object(qa.subprocess, "run") as runner:
+            runner.return_value.stdout = '"WIN\\\\runneradmin","S-1-5-21-123-456-789-1001"\\n'
+            self.assertEqual(qa.current_sid(), "S-1-5-21-123-456-789-1001")
+            self.assertEqual(runner.call_args.args[0], ["whoami", "/user", "/fo", "csv", "/nh"])
+            runner.return_value.stdout = "bad principal"
+            with self.assertRaisesRegex(ValueError, "unique Windows runner SID"):
+                qa.current_sid()
+
     def test_win32_argv_uses_actual_executable_original_rom_and_existing_script(self):
         with mock.patch.object(qa.subprocess, "run") as runner:
             runner.return_value.returncode = 7

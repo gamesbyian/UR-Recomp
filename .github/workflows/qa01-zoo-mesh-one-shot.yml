@@ -1,0 +1,30 @@
+name: One-shot QA-01 original Zoo full-race mesh evidence
+# Disposable source-authentic existing QA campaign activation, not a
+# standing automatic research lane. Deletion safely skips the case.
+on:
+  push:
+    branches:
+      - qa01-zoo-race-mesh-20261015
+    paths:
+      - .github/workflows/qa01-zoo-mesh-one-shot.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa01-zoo-race-mesh-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  source-zoo-race-mesh:
+    if: contains(github.event.head_commit.message, 'launch-real-zoo-mesh')
+    uses: ./.github/workflows/qa01-event-campaign.yml
+    with:
+      selected: zoom-zoo
+      zoo_race_mesh: true
+      zoo_terminal_phase: true
+      source_followthrough: true
+      zoo_next_bowl: true
+      baldosa_refresh_beam_rate: true
+      baldosa_io_clock_order: true
+      qa01_cold_guest_reload: false

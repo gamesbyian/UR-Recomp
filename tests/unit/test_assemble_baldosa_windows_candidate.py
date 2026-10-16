@@ -169,7 +169,7 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
                         script.index(':UR-BALDOSA-NATIVE-START'))
         self.assertLess(script.index(':UR-BALDOSA-RECOVERY-MENU'),
                         script.index('choice.exe /c RTSQ'))
-        self.assertIn('CRASHED NAMED RACER RECOVERY', candidate.readme("test"))
+        self.assertIn('CRASHED NAMED RACER RECOVERY', candidate.readme("test").decode("utf-8"))
         self.assertLess(script.index(':UR-BALDOSA-NATIVE-START'),
                         script.index(':UR-BALDOSA-REBOOT-FIRST-RACER'))
         self.assertNotIn("powershell.exe -ExecutionPolicy Bypass", script)

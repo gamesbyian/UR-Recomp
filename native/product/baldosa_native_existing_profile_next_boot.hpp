@@ -70,8 +70,9 @@ select_baldosa_existing_profile_for_next_boot(
     using Status = BaldosaExistingProfileSelectionStatus;
 
     // Refuse path traversal, anonymous selection, or an implicit profile
-    // directory scan. This operation only switches between two genuinely
-    // registered and fully validated stock-profile owners.
+    // directory scan. The only two filesystem owners inspected/locked are
+    // the explicitly named source and destination. A third unrelated racer
+    // (even with damaged SRAM) may not strand the requested healthy one.
     if (!user_root.is_absolute() ||
         !baldosa_native_real_directory(user_root) ||
         !is_safe_profile_storage_id(expected_active_profile) ||
@@ -101,14 +102,21 @@ select_baldosa_existing_profile_for_next_boot(
     const auto roster = load_host_profile_catalog_file(catalog.string());
     if (!global.loaded() || !global.state->active_profile_id ||
         *global.state->active_profile_id != expected_active_profile ||
-        !roster || roster->size() != 2u ||
-        (*roster)[0].profile_id == (*roster)[1].profile_id)
+        !roster || roster->size() < 2u)
         return {Status::RejectedAuthority, {}};
 
+    // Canonical catalog decoding already rejects invalid or colliding IDs
+    // across ALL entries. Under the catalog lock select only the requested
+    // two entries; unrelated profiles are neither read nor locked.
+    std::vector<const HostProfileCatalogEntry*> selected;
+    selected.reserve(2);
     std::vector<fs::path> typed_paths;
     typed_paths.reserve(2);
     bool found_source = false, found_destination = false;
     for (const auto& entry : *roster) {
+        if (entry.profile_id != expected_active_profile &&
+            entry.profile_id != requested_profile)
+            continue;
         if (!is_safe_profile_storage_id(entry.profile_id) ||
             !valid_racer_identity(entry.identity))
             return {Status::RejectedAuthority, {}};
@@ -124,10 +132,11 @@ select_baldosa_existing_profile_for_next_boot(
             return {Status::RejectedAuthority, {}};
         typed_paths.push_back(
             user_root / location.save_root / "host-profile.txt");
+        selected.push_back(&entry);
         found_source |= entry.profile_id == expected_active_profile;
         found_destination |= entry.profile_id == requested_profile;
     }
-    if (!found_source || !found_destination)
+    if (!found_source || !found_destination || selected.size() != 2u)
         return {Status::RejectedAuthority, {}};
 
     std::sort(typed_paths.begin(), typed_paths.end());
@@ -153,7 +162,8 @@ select_baldosa_existing_profile_for_next_boot(
         !current_roster || *current_roster != *roster)
         return {Status::RejectedAuthority, {}};
 
-    for (const auto& entry : *roster) {
+    for (const auto* chosen : selected) {
+        const auto& entry = *chosen;
         const auto location = resolve_host_profile_save_root(
             ExecutionMode::Modern, entry.profile_id);
         if (!location.isolated() ||

@@ -189,10 +189,25 @@ inline bool finish_baldosa_sram_intent_under_lock(
 inline bool archive_baldosa_recovered_intent(
     const std::filesystem::path& profile_root,
     const BaldosaSramIntent& intent) {
+    // Distinguish repeated attempts after an explicit rollback: both may
+    // target the same generation but legitimately contain different guest
+    // SRAM. Never overwrite an earlier archive or block a second good save.
+    std::uint64_t hash = 14695981039346656037ull;
+    for (unsigned char byte : intent.exact_bytes) {
+        hash ^= byte;
+        hash *= 1099511628211ull;
+    }
+    constexpr char hex[] = "0123456789abcdef";
+    std::string digest(16, '0');
+    for (int i = 15; i >= 0; --i) {
+        digest[static_cast<std::size_t>(i)] = hex[hash & 15u];
+        hash >>= 4u;
+    }
     const auto path = profile_root /
         ("native-sram-recovered-" +
          std::to_string(intent.previous.autosave_generation) + "-to-" +
-         std::to_string(intent.next.autosave_generation) + ".txt");
+         std::to_string(intent.next.autosave_generation) + "-" +
+         digest + ".txt");
     if (!baldosa_sram_entry_missing(path)) {
         std::error_code ec;
         if (!std::filesystem::is_regular_file(path, ec) || ec ||

@@ -1,0 +1,136 @@
+{
+  "schema": "qa08-authentic-original-2014-and-compiled-Windows-effective-finish-two-pixel-owners/1",
+  "date": "2026-10-16",
+  "status": "independently_source_proven_original_and_native_same_BG3_OBJ_winners_at_both_finish_pixels",
+  "scope": "only exact x121,y165 original callbacks 3791/3871 and native guests 3792/3872; not full result screen, hardware, or complete event",
+  "authentic_original": {
+    "pinned_Snes9x_core_revision": "1bcc369e89f08243e0a462882fb1f3e42e51de3a",
+    "real_unmodified_original_2P_corpus_run": 38781958316,
+    "real_original_263_callback_zip_sha256": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+    "observer_exact_source_route_run": 38974726301,
+    "observer_artifact_id": 12077814776,
+    "observer_ZIP_SHA256": "02a3237db4af8d11341ef18c7b4be51838f9fd18b6bad9875daa42c7b5bf9f32",
+    "original_rebuilt_source_pixels_identical_all_263_callback_frame_hashes": true,
+    "actual_source_callback_indices": [
+      3791,
+      3871
+    ],
+    "ICPU_frame_labels": [
+      3791,
+      3871
+    ],
+    "IPPU_total_emulated": [
+      3792,
+      3872
+    ],
+    "source_x_y": [
+      121,
+      165
+    ],
+    "real_original_full_screen_RGB565": "30c0",
+    "real_original_Snes9x_RGB5_expanded": [
+      49,
+      24,
+      0
+    ],
+    "original_main_Z_depth": 49,
+    "original_subscreen_Z_depth": 44,
+    "pinned_renderScreen_Mode1_main_BG3_high_priority_depth_formula": "D32 + BG3 high priority17 =49",
+    "pinned_renderScreen_sub_OBJ_priority2_depth_formula": "D((CGWSEL & 2)<<4)32 + OBJ base4 + 2*4 =44",
+    "actual_main_BG3_high_priority_source_decoded": true,
+    "actual_subscreen_OBJ_priority2_source_decoded": true,
+    "original_subscreen_packed_RGB565": "00c0",
+    "mode": 1,
+    "TM_hex": "17",
+    "TS_hex": "10",
+    "CGWSEL_hex": "02",
+    "CGADSUB_hex": "04",
+    "INIDISP_brightness": 7,
+    "forced_blank": false,
+    "original_CGRAM_1b_hex": "000d",
+    "original_CGRAM_c6_hex": "04e1"
+  },
+  "native_Windows": {
+    "candidate_graphics_head": "e14e0be6d9a8507d9935eba5b28ec6049f05eae7",
+    "real_Windows_run": 38971645604,
+    "PE_sha256": "4373e112e24e79c05dcaa4b2f8a9dcd7e2046337a2d27f4bf482d7bcca6d5a89",
+    "pixel_256x224": [
+      121,
+      165
+    ],
+    "registered_guest_frames": [
+      3792,
+      3872
+    ],
+    "live_main_layer": "BG3",
+    "live_sub_layer": "OBJ",
+    "live_main_RGB5": [
+      13,
+      0,
+      0
+    ],
+    "live_sub_RGB5": [
+      1,
+      7,
+      1
+    ],
+    "live_post_add_RGB5": [
+      14,
+      7,
+      1
+    ],
+    "live_CGADSUB_hex": "04",
+    "live_INIDISP_hex": "07",
+    "live_OBJ_CGRAM_index_hex": "c6",
+    "live_OBJ_CGRAM_word_hex": "04e1",
+    "actual_native_RGB8": [
+      57,
+      24,
+      0
+    ],
+    "unchanged_native_263_complete_source_frame_hashes": true,
+    "unchanged_5484_guest_CRC_sha256": "c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876"
+  },
+  "arithmetic": {
+    "actual_winner_operand_correspondence_original_and_native_source_verified": true,
+    "old_2014_Snes9x_brightness_first_then_FULL_ADD": [
+      49,
+      24,
+      0
+    ],
+    "current_native_add_FIRST_then_brightness": [
+      57,
+      24,
+      0
+    ],
+    "hypothesized_half_ADD_for_this_pixel_disproved": true,
+    "global_sprite_recolour_or_time_shift_not_admissible": true,
+    "strict_unmasked_2P_RGB5_wrong_pixels_total_remains": 385373,
+    "number_locally_causally_classified_backend_order_finish_pixels": 2
+  },
+  "independent_source_comparison": {
+    "archive_only_CI_run": 38975378858,
+    "final_conclusion": "success",
+    "source_decoder": "tools/qa08_adjudicate_original_finish_depth_source.py",
+    "source_unit": "tests/unit/test_qa08_adjudicate_original_finish_depth_source.py",
+    "small_original_native_depth_verdict_artifact_id": 12078162775,
+    "verdict_and_original_probe_90day_ZIP_sha256": "fe781cd8b830936dcba01806166ff22050ea19ba3fd3a4ed788915650169220b",
+    "expires": "2027-01-14T22:22:43Z",
+    "previous_complete_original_native_archives_90day_artifact_id": 12078940121,
+    "previous_complete_archives_zip_sha256": "6f88d5ca673bfaec075f19a766586b883f619580bbf279ebcb5cf019e5454d7d",
+    "all_five_completed_specialized_rerun_producers_manual_only": true
+  },
+  "limits": {
+    "source_original_and_native_local_PPU_layers_and_math_equivalent": true,
+    "physical_real_SNES_DAC_color_output_independently_verified": false,
+    "all_original_raster_P1_P2_source_sprite_phases_accepted": false,
+    "other_2P_385371_wrong_RGB5_pixels_causality_resolved": false,
+    "continuous_original_native_CPU_NMI_guest_timing_parity": false,
+    "complete_USA_events_proven": false,
+    "actual_Windows_PPU_7to6_PAR_4x_342wide_output_approved": false,
+    "HD_racer_human_approval": false,
+    "QA08_QA10_release_quality_ledger_acceptance": false,
+    "native_renderer_recolour_math_patches_approved": false
+  },
+  "next": "Focus other unresolved original/native sprite and scene timing, especially 2-frame OAM/CGRAM/INIDISP writers and genuine Windows host output. Preserve original-authentic logic; this source-backend discrepancy does not warrant a sprite recolour."
+}

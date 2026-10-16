@@ -97,18 +97,24 @@
     "retained_outer_zip_sha256": "6f88d5ca673bfaec075f19a766586b883f619580bbf279ebcb5cf019e5454d7d",
     "retained_expiry_utc": "2027-01-14T22:11:27Z",
     "archival_checks_no_ROM_SRAM_VRAM_WRAM_profile_material": true,
-    "snes9x_original_per_pixel_layer_winner_proven": false,
+    "snes9x_original_per_pixel_layer_winner_proven": true,
     "actual_SNES_DAC_output_proven": false,
     "Windows_7to6_4x_342wide_physical_display_accepted": false,
     "original_complete_2P_race_accepted": false,
     "HD_art_owner_reapproval": false,
-    "QA08_QA10_release_ledger_gate_credit": false
+    "QA08_QA10_release_ledger_gate_credit": false,
+    "original_two_full_images_each_263_source_image_hash_identical": true,
+    "original_effective_BG3_high_priority_sub_OBJ_priority2_source_run": 38974726301,
+    "independent_original_native_pixel_owner_decoder_CI": 38975378858,
+    "original_native_pixel_owner_90day_artifact_id": 12078162775,
+    "original_native_pixel_owner_90day_zip_sha256": "fe781cd8b830936dcba01806166ff22050ea19ba3fd3a4ed788915650169220b"
   },
   "next_original_layer_discriminator": {
     "source_observer": "tools/qa08_patch_original_finish_layer_callback.py",
     "one_shot_workflow": ".github/workflows/qa08-original-finish-layer-callback.yml",
     "allowed": "One unchanged 2P original route with opt-in read-only 2014 BG/sub depth callback tags, preserve all 263 original images SHA256; fail on absent or nonmatching source",
-    "state": "proposed_not_yet_source_accepted_at_report_creation",
+    "state": "completed_source_verified_original_high_priority_BG3_and_sub_OBJ2; physical_SNESC_DAC_still_unaccepted",
     "code_and_pixels_can_be_changed_to_force_match": false
-  }
+  },
+  "successor_more_complete_graphics_authority": "analysis/data/qa08-original-native-finish-two-pixel-priority-20261016.json"
 }

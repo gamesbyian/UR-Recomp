@@ -1,0 +1,426 @@
+{
+  "schema": "UR-QA01-UNMASKED-ZOO-RESULT-TO-BOWL-WRAM-EXECUTED/1",
+  "date": "2026-10-15",
+  "source": {
+    "run_id": 38820550442,
+    "run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38820550442",
+    "workflow_head_sha": "23c75b47c922dd7073a63b877df7e13a38bd4834",
+    "effective_checkout_sha": "32f3370fb3c207cc88cade54c8632ca17476411e",
+    "case_artifact_id": 12012881634,
+    "case_artifact_sha256": "f18765ede448224faea5701d228a9d78e68e591b7f6a8a03196a61d2ea6fa92b",
+    "producer_report_sha256": "0fdcb4a3120dcaec970964b64d737e4433f140982304cb55e885ad2bb4e877af",
+    "canonical_usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "archived_2014_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "archived_original_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+    "source_movie_window_sha256": "7b03f40e3401d844c16c7c4e1cc7375e5419f33882793c8187dcebc88dbc8c93",
+    "original_input_replay_script_sha256": "414cb0b1013509f60faf35102353dd10ce36fc684284dd46af11092ad22c5de9",
+    "reference_core_sha256": "0844cfeb2323e7e5e408464c847472bec133d12a2b40492bf303e71d2706766a",
+    "native_guest_elf_sha256": "869df40fb63ed1e50e0ffc164d9bdd8986fcc003010fc79d4d110109a654ed5d",
+    "original_native_producer_exit": 0,
+    "case_disposition": "strict_candidate"
+  },
+  "wram": {
+    "full_bytes_per_guest": 131072,
+    "excluded_byte_count": 0,
+    "all_sample_difference_addresses_enumerated": true,
+    "all_distinct_differing_snes_addresses": [
+      "7E:01DE",
+      "7E:01DF",
+      "7E:01E0",
+      "7E:01E1",
+      "7E:01E2",
+      "7E:01E3",
+      "7E:01E4",
+      "7E:01E5",
+      "7E:01E6",
+      "7E:01E7",
+      "7E:01E8",
+      "7E:01E9",
+      "7E:01EA",
+      "7E:01EB",
+      "7E:01EC",
+      "7E:01ED",
+      "7E:01EE",
+      "7E:01EF",
+      "7E:01F0",
+      "7E:01F1",
+      "7E:01F2",
+      "7E:01F3",
+      "7E:01F4",
+      "7E:01F5",
+      "7E:01F6",
+      "7E:2000",
+      "7E:2004"
+    ],
+    "total_pairs": 48,
+    "total_byte_exact_pairs": 9,
+    "windows": {
+      "dense_guest_relative": {
+        "samples_count": 31,
+        "byte_exact_pairs": 1,
+        "first_nonidentical_frame": 5157,
+        "differing_byte_occurrences": 248,
+        "sampled_frame_counts_and_first_addresses": [
+          [
+            5156,
+            0,
+            null
+          ],
+          [
+            5157,
+            1,
+            "7E:01F2"
+          ],
+          [
+            5158,
+            7,
+            "7E:01EB"
+          ],
+          [
+            5159,
+            14,
+            "7E:01E3"
+          ],
+          [
+            5160,
+            10,
+            "7E:01E3"
+          ],
+          [
+            5161,
+            10,
+            "7E:01DF"
+          ],
+          [
+            5162,
+            7,
+            "7E:01DF"
+          ],
+          [
+            5163,
+            4,
+            "7E:01DF"
+          ],
+          [
+            5164,
+            5,
+            "7E:01DF"
+          ],
+          [
+            5165,
+            7,
+            "7E:01DF"
+          ],
+          [
+            5166,
+            6,
+            "7E:01DF"
+          ],
+          [
+            5167,
+            8,
+            "7E:01DF"
+          ],
+          [
+            5168,
+            11,
+            "7E:01DF"
+          ],
+          [
+            5169,
+            4,
+            "7E:01DF"
+          ],
+          [
+            5170,
+            2,
+            "7E:01DF"
+          ],
+          [
+            5171,
+            10,
+            "7E:01DF"
+          ],
+          [
+            5172,
+            8,
+            "7E:01DF"
+          ],
+          [
+            5173,
+            10,
+            "7E:01DF"
+          ],
+          [
+            5174,
+            9,
+            "7E:01DF"
+          ],
+          [
+            5175,
+            8,
+            "7E:01DF"
+          ],
+          [
+            5176,
+            13,
+            "7E:01E1"
+          ],
+          [
+            5177,
+            11,
+            "7E:01E1"
+          ],
+          [
+            5178,
+            11,
+            "7E:01E1"
+          ],
+          [
+            5179,
+            3,
+            "7E:01E1"
+          ],
+          [
+            5180,
+            6,
+            "7E:01DF"
+          ],
+          [
+            5181,
+            3,
+            "7E:01DF"
+          ],
+          [
+            5182,
+            11,
+            "7E:01E1"
+          ],
+          [
+            5183,
+            8,
+            "7E:01E1"
+          ],
+          [
+            5184,
+            12,
+            "7E:01E1"
+          ],
+          [
+            5185,
+            15,
+            "7E:01E1"
+          ],
+          [
+            5186,
+            14,
+            "7E:01E1"
+          ]
+        ]
+      },
+      "next_bowl": {
+        "samples_count": 11,
+        "byte_exact_pairs": 8,
+        "first_nonidentical_frame": 266,
+        "differing_byte_occurrences": 12,
+        "sampled_frame_counts_and_first_addresses": [
+          [
+            259,
+            0,
+            null
+          ],
+          [
+            263,
+            0,
+            null
+          ],
+          [
+            264,
+            0,
+            null
+          ],
+          [
+            265,
+            0,
+            null
+          ],
+          [
+            266,
+            4,
+            "7E:01ED"
+          ],
+          [
+            267,
+            4,
+            "7E:01ED"
+          ],
+          [
+            268,
+            0,
+            null
+          ],
+          [
+            269,
+            0,
+            null
+          ],
+          [
+            272,
+            0,
+            null
+          ],
+          [
+            276,
+            0,
+            null
+          ],
+          [
+            280,
+            4,
+            "7E:01ED"
+          ]
+        ]
+      },
+      "result_followthrough": {
+        "samples_count": 6,
+        "byte_exact_pairs": 0,
+        "first_nonidentical_frame": 8,
+        "differing_byte_occurrences": 63,
+        "sampled_frame_counts_and_first_addresses": [
+          [
+            8,
+            10,
+            "7E:01DF"
+          ],
+          [
+            16,
+            3,
+            "7E:01E1"
+          ],
+          [
+            24,
+            15,
+            "7E:01E1"
+          ],
+          [
+            32,
+            8,
+            "7E:01E1"
+          ],
+          [
+            64,
+            13,
+            "7E:01DE"
+          ],
+          [
+            72,
+            14,
+            "7E:01DE"
+          ]
+        ]
+      }
+    }
+  },
+  "bowl_transition": {
+    "source_original_fresh_native_result_relative_entry": 267,
+    "plus_267_exact_differences": [
+      {
+        "native_byte": 135,
+        "original_byte": 65,
+        "snes_address": "7E:01ED",
+        "wram_offset": 493
+      },
+      {
+        "native_byte": 127,
+        "original_byte": 2,
+        "snes_address": "7E:01EE",
+        "wram_offset": 494
+      },
+      {
+        "native_byte": 3,
+        "original_byte": 4,
+        "snes_address": "7E:2000",
+        "wram_offset": 8192
+      },
+      {
+        "native_byte": 128,
+        "original_byte": 64,
+        "snes_address": "7E:2004",
+        "wram_offset": 8196
+      }
+    ],
+    "plus_268_wram_byte_exact": true,
+    "all_11_complete_original_native_8k_sram_pairs_byte_exact": true,
+    "earned_zoo_rank0_centiseconds": 2510,
+    "record_holder_index": 0,
+    "stored_calculated_record_checksum": 64622
+  },
+  "negative_gates": {
+    "source_read_liveness_for_7E_2000_and_7E_2004_proven": false,
+    "all_gameplay_frames_compared": false,
+    "complete_cpu_logic_tick_equivalence_proven": false,
+    "original_native_full_wram_byte_exact": false,
+    "actual_shipping_windows_executable_bound": false,
+    "host_disk_save_publish_and_hard_kill_proven": false,
+    "real_cold_guest_reload_proven_by_this_run": false,
+    "original_event_acceptance": 0,
+    "usa_event_denominator": 45
+  },
+  "separate_harness_failure": "Source-qualified successful producer and strict_candidate classification, followed by QA-only cold-guest validator rejecting extended source script hash 414cb0.. because guard recognized only shorter replay hash 04ad1c..; new bounded validator fix and replay separately required.",
+  "independent_repeat": {
+    "run_id": 38820862424,
+    "run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38820862424",
+    "case_artifact_id": 12013343141,
+    "case_artifact_sha256": "1443916e1fff57973ec472e05d5d4b0819bd1b868533184a08f0aa18556b6885",
+    "producer_report_sha256": "8c915608e7299a6e9effd8dfb4a9551990b97920dc117f82360edb5c8a65d42f",
+    "native_guest_elf_sha256": "869df40fb63ed1e50e0ffc164d9bdd8986fcc003010fc79d4d110109a654ed5d",
+    "reference_core_sha256": "e662225264872b64799a462b0e3b3986e7a76d539b1c156ef07753cba73bb3d4",
+    "same_input_sha256_as_original_run": true,
+    "same_rom_sha256_as_original_run": true,
+    "same_native_guest_elf_sha256_as_original_run": true,
+    "distinct_reference_core_file_sha256": true,
+    "observations_exactly_equal": {
+      "zoo_terminal_host_phase": true,
+      "source_terminal_followthrough": true,
+      "zoo_next_bowl_handoff": true
+    },
+    "zipped_artifacts_independently_downloaded_and_sha256_checked": true,
+    "adjudication": "Independent repeated original/native produced same observed gameplay, full-byte WRAM census and complete SRAM comparisons, but separate live-read/instruction and Windows cold-publish acceptance remain unproven.",
+    "case_disposition": "strict_candidate",
+    "job_failure_after_producer": "Optional cold-guest validator rejected the extended replay input hash on this original head; not a gameplay regression.",
+    "release_credit": 0
+  },
+  "cold_guest_record_reload": {
+    "run_id": 38822170573,
+    "run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38822170573",
+    "exact_workflow_head_sha": "9f199ed38fdcd222fd08fd0b3b3ccbed30311014",
+    "case_artifact_id": 12014320977,
+    "case_artifact_sha256": "3168afc0e2a84f4c61376a997b99aaddd6980a3acfe52e44e36aa90e6399d9c1",
+    "producer_report_sha256": "e3594950f09041cecc0d7098901ac7fa44b9ad4b17e4b1fbd8d4152b851ef804",
+    "execution_disposition": "strict_candidate",
+    "workflow_conclusion": "success",
+    "original_movie_window_sha256": "7b03f40e3401d844c16c7c4e1cc7375e5419f33882793c8187dcebc88dbc8c93",
+    "replay_script_sha256": "414cb0b1013509f60faf35102353dd10ce36fc684284dd46af11092ad22c5de9",
+    "canonical_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "native_elf_sha256": "869df40fb63ed1e50e0ffc164d9bdd8986fcc003010fc79d4d110109a654ed5d",
+    "reference_core_sha256": "3029835cde9bb0e02f496e963d46ec1ee5421afde85fe17903873a83159ed909",
+    "original_and_native_source_seed_sram_sha256": "6f74bdf5468514ae29f99001421c76c70491e1adb09be45a7229f5832ce836c1",
+    "original_and_native_post_boot_sram_sha256_at_300_and_420": "b7bfa6aa195a876841df3e4a26ead0b13d9e20d1c8c81c33f4625b3503012691",
+    "full_record_values_sha256_at_both_boot_frames": "88f6cd93e2a7a356ada7630c4de96a3131796f467872400258f818bb9c3db163",
+    "full_record_holders_sha256_at_both_boot_frames": "f83b1cb36c67fbf6fa28100f328e34b801780defd3d92707482633bc9bc52797",
+    "boot_sample_frames": [
+      300,
+      420
+    ],
+    "two_new_guest_processes_observed": true,
+    "source_record_value_centiseconds": 2510,
+    "source_record_holder": 0,
+    "stored_and_calculated_record_checksum": 64622,
+    "every_boot_original_and_native_record_table_and_holder_digest_equal": true,
+    "source_seed_image_is_original_guest_produced_sram_not_windows_host_disk": true,
+    "source_seed_sha256_equal_to_post_boot_sram_sha256": false,
+    "actual_windows_host_disk_autosave_and_hard_kill_proven": false,
+    "instruction_time_gameplay_parity_proven": false,
+    "usa_release_event_credit": 0
+  }
+}

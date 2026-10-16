@@ -12,6 +12,14 @@ on:
         required: false
         type: boolean
         default: false
+      zoo_race_mesh:
+        required: false
+        type: boolean
+        default: false
+      zoo_dp_window:
+        required: false
+        type: boolean
+        default: false
       qa01_apu_phase:
         required: false
         type: boolean
@@ -48,6 +56,10 @@ on:
         required: false
         type: boolean
         default: false
+      zoo_next_bowl:
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       selected:
@@ -60,6 +72,16 @@ on:
           - zoom-zoo
           - bowl
           - switcher
+      zoo_race_mesh:
+        description: "Opt-in 2014 Zoo event original/native unmasked WRAM mesh through +5120 (no admission)"
+        type: boolean
+        required: false
+        default: false
+      zoo_dp_window:
+        description: "Opt-in 13 consecutive Zoo +5034..+5046 unmasked DP/WRAM pairs, requires race mesh"
+        type: boolean
+        required: false
+        default: false
       zoo_terminal_phase:
         description: "Opt-in Zoo fixed +5156..+5173 guest/host phase witness (requires selected=zoom-zoo)"
         type: boolean
@@ -111,6 +133,11 @@ on:
         type: boolean
         required: false
         default: false
+      zoo_next_bowl:
+        description: "Opt-in original Zoo-to-next Bowl race from authentic movie, requires zoom-zoo and source_followthrough"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -136,9 +163,12 @@ jobs:
         env:
           SELECTED: ${{ inputs.selected }}
           ZOO_TERMINAL: ${{ inputs.zoo_terminal_phase }}
+          ZOO_MESH: ${{ inputs.zoo_race_mesh }}
+          ZOO_DP_WINDOW: ${{ inputs.zoo_dp_window }}
           QA01_APU_PHASE: ${{ inputs.qa01_apu_phase }}
           QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}
           QA01_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
+          QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
           QA01_SPC_INTERRUPT_STAGE: ${{ inputs.baldosa_spc_interrupt_stage }}
           QA01_RF015_019: >-
             ${{ inputs.baldosa_refresh_beam_rate && inputs.baldosa_io_clock_order &&
@@ -146,6 +176,14 @@ jobs:
                 inputs.baldosa_hdma_cpu_stall }}
         run: |
           set -euo pipefail
+          if [[ "$ZOO_DP_WINDOW" == "true" && ( "$ZOO_MESH" != "true" || "$SELECTED" != "zoom-zoo" ) ]]; then
+            echo "Dense +5040 DP boundary requires original Zoo race mesh" >&2
+            exit 1
+          fi
+          if [[ "$ZOO_MESH" == "true" && "$SELECTED" != "zoom-zoo" ]]; then
+            echo "Original Zoo full-race mesh requires selected=zoom-zoo" >&2
+            exit 1
+          fi
           if [[ "$ZOO_TERMINAL" == "true" && "$SELECTED" != "zoom-zoo" ]]; then
             echo "Zoo fixed-host phase is scoped to selected=zoom-zoo only" >&2
             exit 1
@@ -157,6 +195,11 @@ jobs:
           if [[ "$QA01_COLD_GUEST" == "true" &&
                 ( "$SELECTED" != "zoom-zoo" || "$QA01_FOLLOWTHROUGH" != "true" ) ]]; then
             echo "Cold Zoom Zoo ranked-record reload needs zoom-zoo + source_followthrough" >&2
+            exit 1
+          fi
+          if [[ "$QA01_NEXT_BOWL" == "true" &&
+                ( "$SELECTED" != "zoom-zoo" || "$QA01_FOLLOWTHROUGH" != "true" ) ]]; then
+            echo "Next original Bowl entry requires zoom-zoo + source_followthrough" >&2
             exit 1
           fi
           # The RF-021..028 stage was measured only on top of RF-015..019
@@ -206,6 +249,10 @@ jobs:
           test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
           test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
           python3 -m unittest discover -s tests/unit -p test_probe_original_event_complete.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_zoo_next_bowl.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_full_wram_audit.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_zoo_race_mesh.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_zoo_dp_window.py
           python3 -m unittest discover -s tests/unit -p test_qa01_cold_result_record.py
           python3 -m unittest discover -s tests/unit -p test_qa01_postresult_sram_diff.py
           python3 -m unittest discover -s tests/unit -p 'test_baldosa_spc_*_patch.py'
@@ -338,8 +385,11 @@ jobs:
         env:
           QA01_CASE: ${{ matrix.case }}
           QA01_ZOO_TERMINAL: ${{ inputs.zoo_terminal_phase }}
+          QA01_ZOO_MESH: ${{ inputs.zoo_race_mesh }}
+          QA01_ZOO_DP_WINDOW: ${{ inputs.zoo_dp_window }}
           QA01_APU_PHASE: ${{ inputs.qa01_apu_phase }}
           QA01_SOURCE_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
+          QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
           QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}
           # Distinct original and native clock axes; historical Zoo result
           # windows, NOT time-shifted input or assumed frame equivalence.
@@ -353,8 +403,17 @@ jobs:
           if [[ "$QA01_ZOO_TERMINAL" == "true" ]]; then
             extra_args+=(--zoo-terminal-phase)
           fi
+          if [[ "$QA01_ZOO_MESH" == "true" ]]; then
+            extra_args+=(--zoo-race-mesh)
+          fi
+          if [[ "$QA01_ZOO_DP_WINDOW" == "true" ]]; then
+            extra_args+=(--zoo-dp-window)
+          fi
           if [[ "$QA01_SOURCE_FOLLOWTHROUGH" == "true" ]]; then
             extra_args+=(--source-followthrough)
+          fi
+          if [[ "$QA01_NEXT_BOWL" == "true" ]]; then
+            extra_args+=(--zoo-next-bowl)
           fi
           ROOT="$RUNNER_TEMP/qa01-case"
           BIN="$RUNNER_TEMP/qa01-binaries"
@@ -396,6 +455,89 @@ jobs:
               f.write(v.get("reason","") + "\n\n")
               f.write("**Release course credit: 0.**\n")
           PY
+          if [[ "$QA01_NEXT_BOWL" == "true" && "$producer_rc" -eq 0 ]]; then
+            python3 - "$ROOT/producer-report.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          v=json.load(open(sys.argv[1]))["zoo_next_bowl_handoff"]
+          with open(sys.argv[2],"a",encoding="utf-8") as f:
+              f.write("\nAuthentic next Bowl entry: original="
+                      + str(v["source_next_bowl_active_entry_offset"])
+                      + ", fresh-original=" + str(v["fresh_reference_next_bowl_entry_offset"])
+                      + ", fresh-native=" + str(v["fresh_native_next_bowl_entry_offset"])
+                      + ". Triple source-state agreement="
+                      + str(v["all_triplet_named_states_equal"])
+                      + ". No release credit.\n")
+          PY
+          fi
+          # A coarse whole-Circuit checkpoint mesh is a new observation,
+          # not evidence that unsampled frames or CPU instructions agree.
+          # A report containing a scientifically genuine strict divergence is
+          # useful even though the producer exits nonzero. Never suppress the
+          # first mismatch merely because the complete-event classifier fails.
+          if [[ "$QA01_ZOO_MESH" == "true" && -f "$ROOT/producer-report.json" ]]; then
+            python3 - "$ROOT/producer-report.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          mesh=json.load(open(sys.argv[1]))["zoo_race_mesh"]
+          if not isinstance(mesh,dict) or mesh["masked_or_excluded_wram_bytes"] != 0:
+              raise SystemExit("missing unmasked real Zoo full-event mesh")
+          brief={k:mesh[k] for k in (
+              "mesh_checkpoint_count","new_post_2400_checkpoint_count",
+              "last_race_relative_checkpoint","raw_byte_exact_sample_count",
+              "first_nonidentical_raw_wram_pair",
+              "every_gameplay_frame_compared","cpu_instruction_or_logic_tick_parity_proven",
+              "release_complete_usa_event_credit")}
+          print("QA01_ZOO_FULL_RACE_UNMASKED_MESH=" + json.dumps(brief,sort_keys=True))
+          dp=mesh.get("late_direct_page_window")
+          if dp is not None:
+              if (dp.get("range_inclusive") != [5034,5046]
+                      or not dp.get("all_guest_frames_in_range_captured")
+                      or dp.get("raw_wram_bytes_excluded") != 0
+                      or len(dp.get("samples",[])) != 13):
+                  raise SystemExit("incomplete unmasked 13-frame +5040 DP boundary")
+              print("QA01_ZOO_LATE_DP_BOUNDARY=" + json.dumps(dp,sort_keys=True,
+                                                             separators=(",",":")))
+          with open(sys.argv[2],"a",encoding="utf-8") as f:
+              f.write("\nZoo genuine 2014 course sampled through +" +
+                      str(mesh["last_race_relative_checkpoint"]) +
+                      "; original/native full WRAM masked bytes **0**, 0/45 event credit.\\n")
+          PY
+          fi
+          # Preserve bounded first-difference receipts in visible job logs as
+          # well as raw producer artifact. A digest inequality grants no
+          # semantic exemption, logic-frame parity or 45-course credit.
+          if [[ "$QA01_NEXT_BOWL" == "true" && "$producer_rc" -eq 0 ]]; then
+            python3 - "$ROOT/producer-report.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          v=json.load(open(sys.argv[1]))
+          def digest(rows, key, frame_key):
+              return [{"offset": x[frame_key],
+                       "differing_bytes": x[key]["differing_byte_count"],
+                       "first_address": x[key]["first_differing_address"],
+                       "first_24": x[key]["first_24_differences"]} for x in rows]
+          result = {}
+          phase=v.get("zoo_terminal_host_phase")
+          if phase:
+              result["dense_guest_relative"] = digest(
+                  phase["relative_frame_comparisons"],
+                  "full_wram_byte_difference", "relative_frame")
+          follow=v.get("source_terminal_followthrough")
+          if follow:
+              result["result_followthrough"] = digest(
+                  follow["samples"], "full_wram_byte_difference",
+                  "offset_from_each_observed_result_onset")
+          next_bowl=v["zoo_next_bowl_handoff"]
+          result["next_bowl"] = digest(
+              next_bowl["samples"], "original_native_full_wram_byte_difference",
+              "offset_from_observed_zoo_result")
+          print("QA01_UNMASKED_WRAM_BYTE_CENSUS=" + json.dumps(
+              result, sort_keys=True, separators=(",",":")))
+          with open(sys.argv[2],"a",encoding="utf-8") as f:
+              f.write("\nUnmasked 128-KiB WRAM differences: original/native "
+                      "byte counts, first 24 addresses and exact 256-byte page "
+                      "histograms in the source-pinned producer artifact. "
+                      "No masking or event credit.\n")
+          PY
+          fi
           # Read-only bounded SRAM byte attribution for the single corrected
           # source-qualified Zoo result. Never changes the strict classifier.
           if [[ "$QA01_SOURCE_FOLLOWTHROUGH" == "true" && "$QA01_CASE" == "zoom-zoo" &&

@@ -33,6 +33,89 @@ STAGING_SCRIPTS = {
 # the compiled PE. Neither file exists on main until that PR is accepted;
 # requiring them unconditionally would make baseline CI fail prematurely.
 # Treat the pair atomically as soon as the product feature appears.
+
+# These translation units are linked into the actual Windows candidate, or
+# its source-bound profile fixture. Extract their literal first-party header
+# dependencies from source instead of maintaining only a manually copied list.
+# This is intentionally narrow, not a blanket native/** PR trigger.
+DIRECT_BRIDGE_SOURCES = {
+    "tools/baldosa_native_modern_root.cpp",
+    "tools/baldosa_modern_profile_activation.cpp",
+    "tools/baldosa_modern_profile_native_fixture.cpp",
+    "tools/baldosa_native_pause_lifecycle.cpp",
+    "tools/baldosa_native_product_execution.cpp",
+    "tools/baldosa_guest_snapshot_probe.cpp",
+}
+FIRST_PARTY_INCLUDE_ROOTS = (
+    "native/product", "native/presentation", "native/title", "tools",
+)
+
+
+def direct_first_party_bridge_headers(source_files: set[str] | None = None) -> set[str]:
+    observed: set[str] = set()
+    # Source files are derived from the exact existing CMake appendices, not
+    # copied from a hand-maintained translation-unit list. Preserve selected
+    # fixture/source-only bridges as additional direct inputs.
+    for source in sorted(DIRECT_BRIDGE_SOURCES | (source_files or set())):
+        src = ROOT / source
+        if not src.is_file():
+            raise AssertionError("Compiled bridge source is missing: " + source)
+        for include in re.findall(
+            r'^\s*#include\s+"([^"]+)"', src.read_text(encoding="utf-8"),
+            flags=re.MULTILINE,
+        ):
+            # Framework headers ("desktop/config.h", etc.) live under the
+            # immutable Baldosa checkout, not in our first-party source root.
+            for root in FIRST_PARTY_INCLUDE_ROOTS:
+                candidate = ROOT / root / include
+                if candidate.is_file():
+                    observed.add(candidate.relative_to(ROOT).as_posix())
+    return observed
+
+
+
+# These are observed, compiled first-party header roots from the existing
+# CMake staged bridge. Follow quoted first-party includes to guard nested
+# source contracts without a blanket native/** Windows PR trigger. External
+# pinned Baldosa framework headers remain outside this mutable-UR graph.
+TRANSITIVE_WINDOWS_HEADER_ROOTS = {
+    "native/product/run_record_capture_policy.hpp",
+    "native/product/modern_root_overlay_presenter.hpp",
+    "native/product/quick_practice_available_selection.hpp",
+    "native/product/quick_practice_selection_view.hpp",
+    "native/product/host_product_state.hpp",
+    "native/product/host_profile_state.hpp",
+}
+
+
+def transitive_first_party_bridge_headers() -> set[str]:
+    pending = list(TRANSITIVE_WINDOWS_HEADER_ROOTS)
+    seen: set[str] = set()
+    while pending:
+        path = pending.pop()
+        if path in seen:
+            continue
+        seen.add(path)
+        if len(seen) > 256:
+            raise AssertionError("Unbounded first-party header closure")
+        source = ROOT / path
+        if not source.is_file():
+            raise AssertionError("Missing compiled first-party header: " + path)
+        for include in re.findall(
+            r'^\s*#include\s+"([^"]+)"', source.read_text(encoding="utf-8"),
+            flags=re.MULTILINE,
+        ):
+            if include.startswith("/") or ".." in Path(include).parts:
+                raise AssertionError("Unexpected first-party relative include: " + include)
+            for root in (source.parent, *(ROOT / d for d in FIRST_PARTY_INCLUDE_ROOTS)):
+                candidate = root / include
+                if candidate.is_file():
+                    rel = candidate.relative_to(ROOT).as_posix()
+                    if rel not in seen:
+                        pending.append(rel)
+    return seen - TRANSITIVE_WINDOWS_HEADER_ROOTS
+
+
 OPTIONAL_NATIVE_OPTIONS_INPUTS = {
     "tools/baldosa_modern_options_spike.py",
     "native/product/baldosa_native_options.hpp",
@@ -103,7 +186,8 @@ def staged_project_sources() -> set[str]:
     if options_present and options_present != OPTIONAL_NATIVE_OPTIONS_INPUTS:
         raise AssertionError("Native Options host patch/header are an incomplete pair")
     return (sources | paired_headers | STAGING_SCRIPTS | BRIDGE_HEADERS
-            | options_present)
+            | options_present | direct_first_party_bridge_headers(sources)
+            | transitive_first_party_bridge_headers())
 
 
 def missing_triggers(inputs: set[str], filters: list[str]) -> list[str]:
@@ -140,6 +224,63 @@ class BaldosaWindowsCompiledTriggerClosureTest(unittest.TestCase):
             missing_triggers(options_present, pr_paths()), [])
         self.assertEqual(
             options_present.issubset(staged_project_sources()), True)
+
+    def test_direct_bridge_headers_invalidate_real_windows_candidate(self):
+        observed = direct_first_party_bridge_headers()
+        key_inputs = {
+            "native/title/uniracers_practice_tour_unlock.hpp",
+            "native/product/baldosa_native_profile_sram_checkpoint.hpp",
+            "native/product/baldosa_native_profile_path_guard.hpp",
+            "native/product/baldosa_native_existing_profile_next_boot.hpp",
+            "native/product/baldosa_physical_pause_input.hpp",
+            "native/product/baldosa_native_run_publish_retry.hpp",
+            "native/product/baldosa_native_match_publish_retry.hpp",
+        }
+        self.assertTrue(key_inputs.issubset(observed))
+        compiled = staged_project_sources()
+        shared_storage_headers = {
+            "native/product/local_tournament_atomic_replace.hpp",
+            "native/product/local_tournament_launch_path_lock.hpp",
+            "native/product/run_record_capture_policy.hpp",
+        }
+        self.assertTrue(shared_storage_headers.issubset(compiled))
+        self.assertEqual(missing_triggers(compiled, pr_paths()), [])
+        self.assertEqual(missing_triggers(observed, pr_paths()), [])
+        # A regression that drops a critical path must fail even though the
+        # .cpp it feeds is unchanged and remains otherwise in the PR filter.
+        stripped = [p for p in pr_paths()
+                    if p != "native/product/baldosa_native_profile_sram_checkpoint.hpp"]
+        self.assertIn(
+            "native/product/baldosa_native_profile_sram_checkpoint.hpp",
+            missing_triggers(observed, stripped),
+        )
+
+    def test_nested_compiled_presentation_practice_and_profile_headers_trigger_windows(self):
+        inputs = staged_project_sources()
+        self.assertTrue(TRANSITIVE_WINDOWS_HEADER_ROOTS.issubset(inputs))
+        nested = transitive_first_party_bridge_headers()
+        required = {
+            "native/product/widescreen_output_composition.hpp",
+            "native/product/modern_stock_menu_palette.hpp",
+            "native/product/modern_overlay_composition.hpp",
+            "native/product/modern_overlay_text_fit.hpp",
+            "native/product/modern_text_layout.hpp",
+            "native/product/modern_text_catalog.hpp",
+            "native/product/quick_practice_selection.hpp",
+            "native/product/quick_practice_picker.hpp",
+            "native/product/quick_practice_catalog.hpp",
+            "native/product/quick_practice_availability.hpp",
+            "native/product/regional_presentation.hpp",
+            "native/product/completed_run_ghost_target.hpp",
+        }
+        self.assertTrue(required.issubset(nested))
+        self.assertEqual(missing_triggers(nested, pr_paths()), [])
+        omitted = [p for p in pr_paths()
+                   if p != "native/product/widescreen_output_composition.hpp"]
+        self.assertIn(
+            "native/product/widescreen_output_composition.hpp",
+            missing_triggers(nested, omitted),
+        )
 
     def test_missing_executable_input_is_detected_not_silently_dropped(self):
         inputs = staged_project_sources()

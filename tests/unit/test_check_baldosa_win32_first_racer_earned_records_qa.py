@@ -147,8 +147,14 @@ class FirstRacerEarnedSourceRecordsQA(unittest.TestCase):
                     ref.startswith("docs/") for ref in gate["evidence_refs"]
                 ))
                 self.assertEqual(gate["status"], "unverified")
-        self.assertIsNone(ledger["candidate"]["commit_sha"])
-        self.assertIsNone(ledger["candidate"]["zip_sha256"])
+        # This historical PR-head receipt never earns release credit.
+        # A separately tested exact-main owner ZIP may now be nominated for
+        # future physical QA without promoting any historical source fixture.
+        self.assertEqual(ledger["candidate"]["release_decision"], "not_assessed")
+        self.assertIs(ledger["candidate"]["physical_hardware_verified"], False)
+        self.assertEqual(ledger["candidate"]["commit_sha"] is None,
+                         ledger["candidate"]["zip_sha256"] is None)
+        self.assertTrue(all(not gate["witnesses"] for gate in ledger["gates"]))
 
     def test_valid_hosted_three_games_are_not_release_acceptance(self):
         d = self.check(*sample())

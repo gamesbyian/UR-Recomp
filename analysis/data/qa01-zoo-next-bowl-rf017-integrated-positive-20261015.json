@@ -1,0 +1,115 @@
+{
+  "schema": "UR-QA01-INTEGRATED-RF017-ZOO-NEXT-BOWL-AUTHENTIC-EXECUTED/1",
+  "date": "2026-10-15",
+  "authority": "docs/QA01-ZOO-AUTHENTIC-NEXT-BOWL-ENTRY-20261015.md",
+  "scientific_disposition": "corrected_RF017_observed_next_course_handoff_positive_not_release_accepted",
+  "usa_complete_event_credit": 0,
+  "usa_denominator": 45,
+  "source": {
+    "run_id": 38812512249,
+    "url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38812512249",
+    "build_ref_integrated_main": "11501a15dea38fa912335cfc63103ce3a7208001",
+    "research_draft_pr": 1664,
+    "gha_exact_checkout_sha": "2e5fa490f423eb7866024dcf3d0d3429d080b49a",
+    "independent_case_artifact_id": 12008879784,
+    "independent_case_zip_sha256": "3fff228252d52a56843b7001aa3f65783757f0cf235ed1bafcb7c5dae91c345a",
+    "binary_artifact_id": 12010040516,
+    "binary_artifact_zip_sha256": "85f1bb3a5ccf060057ee4120f8af347f3dd5cf27427a1b4364a90400729d2163",
+    "canonical_usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "archived_original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "archived_original_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+    "archived_movie_window_sha256": "7b03f40e3401d844c16c7c4e1cc7375e5419f33882793c8187dcebc88dbc8c93",
+    "exact_replay_script_sha256": "414cb0b1013509f60faf35102353dd10ce36fc684284dd46af11092ad22c5de9",
+    "reference_core_sha256": "9949807d82f12af4692f1c97959a75007c8e1ec075a57baeec05a8f6bf822730",
+    "rf017_native_elf_sha256": "869df40fb63ed1e50e0ffc164d9bdd8986fcc003010fc79d4d110109a654ed5d",
+    "patched_emitter_generated_files_verified": 89,
+    "patched_emitter_in_order_charge_statements_verified": 15484,
+    "per_basic_block_total_clock_charge_changed": false,
+    "producer_exit_code": 0,
+    "case_disposition": "strict_candidate",
+    "case_release_credit": 0
+  },
+  "observations": {
+    "source_movie": {
+      "zoo_entry_host": 3190,
+      "zoo_result_host": 8353,
+      "bowl_next_active_host": 8620,
+      "next_entry_result_interval": 267
+    },
+    "fresh_original": {
+      "zoo_entry_host": 1017,
+      "zoo_result_relative": 5163,
+      "zoo_result_host": 6180,
+      "next_bowl_active_result_relative": 267,
+      "next_bowl_absolute_host": 6447
+    },
+    "fresh_native": {
+      "zoo_entry_host": 1019,
+      "zoo_result_relative": 5163,
+      "zoo_result_host": 6182,
+      "next_bowl_active_result_relative": 267,
+      "next_bowl_absolute_host": 6449
+    },
+    "clock_axes_not_conflated": true,
+    "offset_samples": [
+      259,
+      263,
+      264,
+      265,
+      266,
+      267,
+      268,
+      269,
+      272,
+      276,
+      280
+    ],
+    "source_movie_and_both_guests_triplet_named_state_equal_at_all_11": true,
+    "original_and_native_same_absolute_host_bowl_entry": false,
+    "original_and_native_same_zoo_result_relative_to_bowl_interval": true,
+    "original_movie_and_fresh_original_first_bowl_active_at_result_plus267": true,
+    "fresh_native_bowl_active_at_result_plus267": true,
+    "fresh_native_not_active_at_result_plus266": true,
+    "all_11_full_original_native_8kib_sram_pairs_byte_exact": true,
+    "original_native_differing_sram_bytes_per_sample": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "former_rf015_differences": {
+      "addresses": [
+        "0x0F31",
+        "0x0F33",
+        "0x10A7"
+      ],
+      "resolved_all": true
+    },
+    "earned_zoo_best_lap_centiseconds": 2510,
+    "rank_holder_index": 0,
+    "stored_and_calculated_record_checksum": 64622,
+    "result_return_consecutive_named_frame_window": [
+      5163,
+      5186
+    ],
+    "result_return_first_named_state_difference": null,
+    "full_128k_wram_sha256_pairs_all_equal": false
+  },
+  "negative_gates": {
+    "full_original_native_wram_or_cpu_logic_tick_equivalence_proven": false,
+    "continuous_every_gameplay_frame_strict_parity_proven": false,
+    "actual_shipping_windows_candidate_executable_sha_correlated": false,
+    "actual_windows_on_disk_save_publish_and_hard_kill_proven": false,
+    "rf017_specific_second_process_cold_reload_proven": false,
+    "complete_45_event_acceptance_programme_done": false,
+    "release_quality_ledger_increment_authorized": false
+  },
+  "next": "Leave one bounded original/native Zoo-to-next-race gameplay research milestone positive; integration/independent Windows QA must source-pin actual Windows build and durably persist earned result before any strict USA event credit, and CPU owner controls further emitter changes."
+}

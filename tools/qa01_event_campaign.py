@@ -346,6 +346,228 @@ def classify_postresult_followthrough(report: dict, event: dict,
     }
 
 
+
+# This is a separate bounded post-result gate, not part of the primary
+# strict result-onset comparator. A matching result can have a divergent
+# source-authentic next-race handoff; preserve both facts, without credit.
+ZOO_BOWL_SCHEMA = "UR-QA01-ZOO-TO-AUTHENTIC-BOWL-NEXT-RACE/1"
+ZOO_BOWL_OFFSETS = (259, 263, 264, 265, 266, 267, 268, 269, 272, 276, 280)
+
+
+def classify_zoo_next_bowl(report: dict, event: dict, frames: dict) -> dict:
+    """Independently recheck genuine sampled next-Bowl state and receipt claims.
+
+    Does not observe unsampled frames or prove a Windows save/complete event.
+    A real scientific negative is distinct from a missing or forged receipt.
+    """
+    record = report.get("zoo_next_bowl_handoff")
+    source = event.get("source_next_bowl")
+    if record is None and source is None:
+        return {"status": "not_observed", "samples": 0,
+                "source_entry_offset": None, "fresh_original_entry_offset": None,
+                "fresh_native_entry_offset": None,
+                "first_sampled_progression_difference_offset": None,
+                "all_sampled_full_wram_pairs_equal": None,
+                "raw_wram_differing_sample_offsets": [],
+                "raw_wram_differing_byte_occurrences": 0,
+                "release_credit": 0}
+    if (report.get("name") != "zoom-zoo" or not isinstance(record, dict)
+            or not isinstance(source, dict)):
+        raise ValueError("incomplete/non-Zoo authentic next-Bowl source evidence")
+    offsets = list(ZOO_BOWL_OFFSETS)
+    if (record.get("schema") != ZOO_BOWL_SCHEMA
+            or record.get("sample_count") != len(offsets)
+            or record.get("sample_offsets") != offsets
+            or record.get("original_source_movie_result_host_frame") != 8353
+            or record.get("original_source_movie_next_bowl_active_host_frame") != 8620
+            or record.get("source_controller_masks_modified") is not False
+            or any(record.get(key) is not False for key in (
+                "full_event_guest_logic_tick_equivalence_proven",
+                "shipping_windows_candidate_proven",
+                "cold_process_disk_persistence_proven"))
+            or type(record.get("release_complete_event_credit")) is not int
+            or record["release_complete_event_credit"] != 0
+            or source.get("original_result_host_frame") != event["original_result_frame"]
+            or event["original_result_frame"] != 8353
+            or source.get("original_next_bowl_entry_host_frame") != 8620
+            or source.get("source_result_to_next_active_entry_frames") != 267
+            or source.get("source_original_active_entry_sustained_eight_frames") is not True
+            or source.get("native_next_course_entry_proven") is not False
+            or source.get("release_complete_event_credit") != 0
+            or not isinstance(source.get("samples"), dict)
+            or set(source["samples"]) != {str(o) for o in offsets}):
+        raise ValueError("incomplete original source next-Bowl identity or scope")
+    rows = record.get("samples")
+    if not isinstance(rows, list) or len(rows) != len(offsets):
+        raise ValueError("missing actual eleven guest handoff samples")
+    observed = {"movie": [], "original": [], "native": []}
+    triplet, full_sram, full_wram, ranks = [], [], [], []
+    raw_wram_differing_offsets, raw_wram_counts = [], []
+    first = None
+    for row, offset in zip(rows, offsets):
+        source_row = source["samples"][str(offset)]
+        if (not isinstance(row, dict) or not isinstance(source_row, dict)
+                or row.get("offset_from_observed_zoo_result") != offset
+                or row.get("original_movie") != source_row
+                or source_row.get("original_movie_host_frame") != 8353 + offset
+                or any(type(source_row.get(k)) is not int
+                       for k in ("menu", "track", "in_race"))):
+            raise ValueError("source movie handoff offset/frame tampered")
+        original_movie = {k: source_row[k] for k in ("menu", "track", "in_race")}
+        observed["movie"].append((offset, original_movie["track"] == 2
+                                  and original_movie["in_race"] == 1))
+        guests = row.get("fresh_guests")
+        if not isinstance(guests, dict) or set(guests) != {"original", "native"}:
+            raise ValueError("incomplete original/native handoff guests")
+        for side, entry in (("original", report["reference_entry"]),
+                            ("native", report["native_entry"])):
+            current = guests[side]
+            if not isinstance(current, dict):
+                raise ValueError("missing fresh next-Bowl guest state")
+            current_result = frames["reference_relative" if side == "original"
+                                    else "native_relative"]
+            if (any(type(current.get(k)) is not int
+                    for k in ("menu", "track", "in_race"))
+                    or type(current.get("actual_host_frame")) is not int
+                    or current["actual_host_frame"] != entry + current_result + offset
+                    or current.get("full_wram_bytes") != 131072
+                    or any(not isinstance(current.get(k), str)
+                           or not HEX256.fullmatch(current[k])
+                           for k in ("wram_sha256", "sram_sha256"))
+                    or not isinstance(current.get("source_earned_zoo_best_lap"), dict)
+                    or any(type(current["source_earned_zoo_best_lap"].get(k)) is not int
+                           for k in ("rank", "value_word", "holder_index"))
+                    or type(current.get("record_checksum_stored")) is not int
+                    or type(current.get("record_checksum_calculated")) is not int
+                    or current.get("record_checksum_matches") is not
+                    (current["record_checksum_stored"] ==
+                     current["record_checksum_calculated"])):
+                raise ValueError("bad actual guest handoff frame/WRAM/SRAM/record")
+            observed[side].append((offset, current["track"] == 2
+                                   and current["in_race"] == 1))
+        name_equal = all(
+            {k: guests[side][k] for k in ("menu", "track", "in_race")} ==
+            original_movie for side in ("original", "native"))
+        raw = row.get("original_native_full_wram_byte_difference")
+        if (not isinstance(raw, dict)
+                or raw.get("full_wram_bytes_per_guest") != 131072
+                or raw.get("every_byte_compared") is not True
+                or raw.get("excluded_byte_count") != 0
+                or type(raw.get("differing_byte_count")) is not int
+                or not 0 <= raw["differing_byte_count"] <= 131072
+                or raw.get("original_wram_sha256") != guests["original"]["wram_sha256"]
+                or raw.get("native_wram_sha256") != guests["native"]["wram_sha256"]
+                or raw.get("byte_exact") is not (raw["differing_byte_count"] == 0)
+                or raw["byte_exact"] is not (
+                    guests["original"]["wram_sha256"] ==
+                    guests["native"]["wram_sha256"])
+                or raw.get("cpu_or_logic_tick_parity_proven") is not False
+                or raw.get("release_complete_event_credit") != 0
+                or row.get("triplet_named_states_equal") is not name_equal):
+            raise ValueError("contradictory sampled full-WRAM or named handoff")
+        same_sram = (guests["original"]["sram_sha256"] ==
+                     guests["native"]["sram_sha256"])
+        diff_count = row.get("battery_sram_differing_byte_count")
+        first_bytes = row.get("battery_first_differences")
+        if (type(diff_count) is not int or not 0 <= diff_count <= 8192
+                or not isinstance(first_bytes, list)
+                or len(first_bytes) != min(8, diff_count)
+                or row.get("original_native_full_sram_equal") is not same_sram
+                or same_sram is not (diff_count == 0)):
+            raise ValueError("contradictory full 8192-byte SRAM pair")
+        seen_offsets = set()
+        for byte in first_bytes:
+            if (not isinstance(byte, dict)
+                    or type(byte.get("offset")) is not int
+                    or not 0 <= byte["offset"] < 8192
+                    or byte["offset"] in seen_offsets
+                    or any(type(byte.get(k)) is not int
+                           or not 0 <= byte[k] <= 255 for k in (
+                               "original_byte", "native_byte"))
+                    or byte["original_byte"] == byte["native_byte"]):
+                raise ValueError("invalid actual SRAM byte difference receipt")
+            seen_offsets.add(byte["offset"])
+        if first is None and (not name_equal or not same_sram):
+            first = offset
+        triplet.append(name_equal)
+        full_sram.append(same_sram)
+        full_wram.append(raw["byte_exact"])
+        if not raw["byte_exact"]:
+            raw_wram_differing_offsets.append(offset)
+        raw_wram_counts.append(raw["differing_byte_count"])
+        ranks.append(all(
+            guests[side]["source_earned_zoo_best_lap"] ==
+            {"rank": 0, "value_word": 2510, "holder_index": 0}
+            and guests[side]["record_checksum_matches"]
+            for side in ("original", "native")))
+    def bracket(entries: list) -> dict:
+        previous = None
+        for offset, active in entries:
+            if active:
+                return {
+                    "last_observed_inactive_offset": (
+                        previous[0] if previous and not previous[1] else None),
+                    "first_observed_active_offset": offset,
+                    "exact_observed_entry_offset": (
+                        offset if previous and previous == (offset - 1, False)
+                        else None)}
+            previous = (offset, active)
+        return {"last_observed_inactive_offset": (
+                    previous[0] if previous and not previous[1] else None),
+                "first_observed_active_offset": None,
+                "exact_observed_entry_offset": None}
+    brackets = {side: bracket(entries) for side, entries in observed.items()}
+    if brackets["movie"]["exact_observed_entry_offset"] != 267:
+        raise ValueError("original movie did not bracket genuine next Bowl at +267")
+    source_entry, ref_entry, nat_entry = [
+        brackets[k]["exact_observed_entry_offset"] for k in
+        ("movie", "original", "native")]
+    original_host = (report["reference_entry"] +
+                     frames["reference_relative"] + ref_entry
+                     if ref_entry is not None else None)
+    native_host = (report["native_entry"] +
+                   frames["native_relative"] + nat_entry
+                   if nat_entry is not None else None)
+    claims = {
+        "original_source_entry_bracket": brackets["movie"],
+        "fresh_reference_entry_bracket": brackets["original"],
+        "fresh_native_entry_bracket": brackets["native"],
+        "source_next_bowl_active_entry_offset": source_entry,
+        "fresh_reference_next_bowl_entry_offset": ref_entry,
+        "fresh_native_next_bowl_entry_offset": nat_entry,
+        "reference_next_bowl_absolute_host_frame": original_host,
+        "native_next_bowl_absolute_host_frame": native_host,
+        "next_bowl_same_absolute_host_frame": (
+            original_host is not None and native_host is not None
+            and original_host == native_host),
+        "next_bowl_entry_triple_equal": (
+            source_entry == ref_entry == nat_entry),
+        "all_triplet_named_states_equal": all(triplet),
+        "all_original_native_full_sram_pairs_equal": all(full_sram),
+        "all_original_native_full_wram_pairs_equal": all(full_wram),
+        "zoo_rank0_2510_and_checksum_preserved_every_sample": all(ranks),
+    }
+    if any(record.get(key) != value for key, value in claims.items()):
+        raise ValueError("contradictory original/native Bowl handoff summaries")
+    clean = (claims["next_bowl_entry_triple_equal"]
+             and claims["all_triplet_named_states_equal"]
+             and claims["all_original_native_full_sram_pairs_equal"]
+             and claims["zoo_rank0_2510_and_checksum_preserved_every_sample"])
+    return {"status": ("bounded_source_handoff_agreement" if clean else
+                       "sampled_progression_divergence"),
+            "samples": len(offsets), "source_entry_offset": source_entry,
+            "fresh_original_entry_offset": ref_entry,
+            "fresh_native_entry_offset": nat_entry,
+            "first_sampled_progression_difference_offset": first,
+            "all_sampled_sram_pairs_equal": all(full_sram),
+            "all_sampled_named_triplets_equal": all(triplet),
+            "all_sampled_full_wram_pairs_equal": all(full_wram),
+            "raw_wram_differing_sample_offsets": raw_wram_differing_offsets,
+            "raw_wram_differing_byte_occurrences": sum(raw_wram_counts),
+            "unsampled_frames_or_windows_disk_persistence_proven": False,
+            "release_credit": 0}
+
+
 def classify(case: str, producer_rc: int, producer_path: Path,
              plan: dict, producer_log: Path | None = None) -> dict:
     validate_plan(plan)
@@ -422,6 +644,7 @@ def classify(case: str, producer_rc: int, producer_path: Path,
                 "diagnostic_exit_success_without_full_event_parity", False):
             raise ValueError("non-strict result returned success without diagnostic contract")
         continuation = classify_postresult_followthrough(report, event, frames)
+        next_bowl = classify_zoo_next_bowl(report, event, frames)
         row["disposition"] = "strict_candidate" if strict else "strict_divergence"
         row["reason"] = ("strict paired-event candidate; NOT an independently "
                          "adjudicated course pass" if strict else
@@ -431,7 +654,22 @@ def classify(case: str, producer_rc: int, producer_path: Path,
                 "; independently recorded post-result named-state difference "
                 f"at result-relative +{continuation['first_named_divergence_offset']}; "
                 "not a complete-event lifecycle pass")
+        if next_bowl["raw_wram_differing_sample_offsets"]:
+            row["reason"] += (
+                "; unmasked 128KiB WRAM residual at result offsets " +
+                ",".join("+" + str(n) for n in
+                         next_bowl["raw_wram_differing_sample_offsets"]) +
+                " (" + str(next_bowl["raw_wram_differing_byte_occurrences"]) +
+                " differing-byte occurrences); not waived")
+        if next_bowl["status"] == "sampled_progression_divergence":
+            row["reason"] += (
+                "; authenticated next-Bowl entry/state/SRAM/record evidence "
+                f"(source +{next_bowl['source_entry_offset']}, "
+                f"fresh original +{next_bowl['fresh_original_entry_offset']}, "
+                f"native +{next_bowl['fresh_native_entry_offset']}); "
+                "post-result lifecycle BLOCKED, not a complete event")
         row["evidence"] = {
+            "next_bowl_bounded": next_bowl,
             "post_result_bounded": continuation,
             "producer_sha256": hashlib.sha256(producer_path.read_bytes()).hexdigest(),
             "rom_sha256": report["rom_sha256"],
@@ -524,6 +762,54 @@ def aggregate(plan: dict, results_dir: Path) -> tuple[dict, str]:
                             and follow["first_named_divergence_offset"]
                             not in FOLLOWTHROUGH_OFFSETS)):
                     raise ValueError("missing or malformed bounded post-result disposition")
+                handoff = ev.get("next_bowl_bounded")
+                if (not isinstance(handoff, dict)
+                        or handoff.get("status") not in (
+                            "not_observed", "bounded_source_handoff_agreement",
+                            "sampled_progression_divergence")
+                        or type(handoff.get("release_credit")) is not int
+                        or handoff["release_credit"] != 0
+                        or type(handoff.get("samples")) is not int
+                        or handoff["samples"] not in (0, len(ZOO_BOWL_OFFSETS))
+                        or (handoff["status"] == "not_observed") != (
+                            handoff["samples"] == 0)
+                        or (handoff["status"] == "not_observed" and
+                            any(handoff.get(k) is not None for k in (
+                                "source_entry_offset",
+                                "fresh_original_entry_offset",
+                                "fresh_native_entry_offset",
+                                "first_sampled_progression_difference_offset")))
+                        or (handoff["status"] != "not_observed" and
+                            (row["case"] != "zoom-zoo" or
+                             handoff.get("source_entry_offset") != 267 or
+                             type(handoff.get("all_sampled_sram_pairs_equal")) is not bool or
+                             type(handoff.get("all_sampled_named_triplets_equal")) is not bool
+                             or type(handoff.get("unsampled_frames_or_windows_disk_persistence_proven")) is not bool
+                             or handoff["unsampled_frames_or_windows_disk_persistence_proven"]
+                             or (handoff["status"] == "bounded_source_handoff_agreement"
+                                 and (handoff.get("fresh_original_entry_offset") != 267
+                                      or handoff.get("fresh_native_entry_offset") != 267
+                                      or not handoff["all_sampled_sram_pairs_equal"]
+                                      or not handoff["all_sampled_named_triplets_equal"]))))):
+                    raise ValueError("missing or contradictory next-Bowl handoff verdict")
+                if (type(handoff.get("raw_wram_differing_byte_occurrences")) is not int
+                        or handoff["raw_wram_differing_byte_occurrences"] < 0
+                        or not isinstance(handoff.get("raw_wram_differing_sample_offsets"), list)
+                        or any(type(n) is not int or n not in ZOO_BOWL_OFFSETS
+                               for n in handoff["raw_wram_differing_sample_offsets"])
+                        or handoff["raw_wram_differing_sample_offsets"] != sorted(
+                            set(handoff["raw_wram_differing_sample_offsets"]))
+                        or (handoff["status"] == "not_observed"
+                            and (handoff.get("all_sampled_full_wram_pairs_equal") is not None
+                                 or handoff["raw_wram_differing_sample_offsets"]
+                                 or handoff["raw_wram_differing_byte_occurrences"]))
+                        or (handoff["status"] != "not_observed"
+                            and (type(handoff.get("all_sampled_full_wram_pairs_equal")) is not bool
+                                 or handoff["all_sampled_full_wram_pairs_equal"] is not (
+                                     not handoff["raw_wram_differing_sample_offsets"])
+                                 or (bool(handoff["raw_wram_differing_byte_occurrences"]) is not
+                                     bool(handoff["raw_wram_differing_sample_offsets"]))))):
+                    raise ValueError("missing or contradictory raw WRAM handoff residual")
                 frames = ev.get("terminal_guest_relative_frames")
                 if not isinstance(frames, dict) or any(
                     type(frames.get(k)) is not int or frames[k] < 0 for k in
@@ -585,12 +871,20 @@ def aggregate(plan: dict, results_dir: Path) -> tuple[dict, str]:
     }
     valid = (not unexpected and
              totals["producer_error"] == 0 and totals["missing_evidence"] == 0)
+    blocked_handoffs = sum(
+        row.get("evidence", {}).get("next_bowl_bounded", {}).get("status")
+        == "sampled_progression_divergence" for row in results)
+    raw_wram_handoffs = sum(
+        bool(row.get("evidence", {}).get("next_bowl_bounded", {}).get(
+            "raw_wram_differing_sample_offsets")) for row in results)
     report = {
         "schema": SCHEMA, "plan_sha256": plan["plan_sha256"],
         "source_sha": plan["source_sha"], "selected_cases": len(expected),
         "completed": totals["strict_candidate"] + totals["strict_divergence"],
         "counts": totals, "unexpected_artifacts": unexpected,
         "transport_complete": valid, "release_admissions": 0,
+        "bounded_next_bowl_progression_divergences": blocked_handoffs,
+        "bounded_next_bowl_unmasked_wram_residual_cases": raw_wram_handoffs,
         "results": results,
         "release_note": ("All observations are investigative. Independent QA "
                          "adjudication and the release ledger remain unchanged."),
@@ -614,6 +908,10 @@ def aggregate(plan: dict, results_dir: Path) -> tuple[dict, str]:
         "Missing/error: " + str(totals["missing_evidence"] +
                                totals["producer_error"]),
         "Transport complete: " + str(valid),
+        "Observed source-authentic next-Bowl progression blockers: " +
+        str(blocked_handoffs),
+        "Next-Bowl cases with unmasked 128KiB WRAM residuals: " +
+        str(raw_wram_handoffs),
         "**USA course release admissions: 0.** A strict candidate is not a reviewed L4 pass.",
         "Physical Windows or player-hardware evidence: not exercised.",
     ]

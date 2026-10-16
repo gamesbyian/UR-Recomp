@@ -1,0 +1,91 @@
+{
+  "schema": "qa-pr1680-real-win32-rooted-relative-independent-bytes/1",
+  "windows_run_id": 38831297147,
+  "pr": 1680,
+  "pr_head": "4a0ce91c8c6bb58375007b3a660718f76cc873f9",
+  "tested_synthetic_merge_commit": "173d49e9706fd5b018cd2b8441665fd16769b5cb",
+  "tested_merge_parents": [
+    "6b522e0a509fb7c1e9b66554f04db9330cbe734b",
+    "4a0ce91c8c6bb58375007b3a660718f76cc873f9"
+  ],
+  "downloaded_original_artifacts": [
+    {
+      "id": 12017294058,
+      "outer_sha256": "24bbc0640d94612ec6d26ff23aa3d980c9963da9d224e091f3a357fcfc67dbb7",
+      "size": 9045
+    },
+    {
+      "id": 12017353439,
+      "outer_sha256": "7b7489e6cbae07f358d8f75ac41cde1ddaf78a4d15e9a2bf37859168b7e01c5f",
+      "size": 693
+    },
+    {
+      "id": 12017368467,
+      "outer_sha256": "b90f72f382fec99c3cd264a6e15af3bcc8a51cf9d8483aec5442a12f060e3b7d",
+      "size": 5965496
+    }
+  ],
+  "tested_binary": {
+    "source_commit": "173d49e9706fd5b018cd2b8441665fd16769b5cb",
+    "portable_zip_sha256": "e42913e0b3840660462e75192f30f090b152a0c5dc39964e433bd98ed49ecd2a",
+    "portable_zip_bytes": 5973815,
+    "exe_sha256": "c02d563741d60ef1061562eb31e224e34fae97e5d19b0a0d836ed348661f5fef",
+    "exe_bytes": 19808768,
+    "pe32plus_amd64_verified": true,
+    "manifest_3_immutable_members_rehashed": true,
+    "archive_no_rom_or_save": true,
+    "equals_original_owner_candidate": false
+  },
+  "source_archive": {
+    "member_count": 10,
+    "zip_crc_and_allowlist_passed": true,
+    "cases": [
+      {
+        "receipt_input": "C:qa-drive-relative-root",
+        "transcript": "drive-relative-root-refusal.log",
+        "observed_transcript_sha256": "4e3eddda5641364b46cf2a874504fbcd19136b13128d76a59b8953d91655dc33",
+        "decoded_stdout_bytes": 0,
+        "decoded_stderr_bytes": 217,
+        "independently_rehashed_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "independently_rehashed_stderr_sha256": "10585ab78729dcdc2e8c3509aefca1bda6a78ed6d68936b35ca7ad1498eedfda",
+        "actual_stderr_has_root_refusal_marker": true,
+        "producer_receipt_returncode": 3,
+        "source_log_does_not_embed_input_or_exit_code": true,
+        "one_byte_changed_stderr_fails_digest": true
+      },
+      {
+        "receipt_input": "\\qa-current-drive-root-relative",
+        "transcript": "current-drive-root-refusal.log",
+        "observed_transcript_sha256": "4e3eddda5641364b46cf2a874504fbcd19136b13128d76a59b8953d91655dc33",
+        "decoded_stdout_bytes": 0,
+        "decoded_stderr_bytes": 217,
+        "independently_rehashed_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "independently_rehashed_stderr_sha256": "10585ab78729dcdc2e8c3509aefca1bda6a78ed6d68936b35ca7ad1498eedfda",
+        "actual_stderr_has_root_refusal_marker": true,
+        "producer_receipt_returncode": 3,
+        "source_log_does_not_embed_input_or_exit_code": true,
+        "one_byte_changed_stderr_fails_digest": true
+      }
+    ],
+    "each_transcript_size_bytes": 290,
+    "source_receipt_candidate_binding_agrees": true,
+    "raw_files_absence_not_independently_archived": true,
+    "receipt_exit_code_not_independently_contained_in_stdout_stderr": true,
+    "both_actual_log_contents_identical": true,
+    "persisted_identical_actual_decoded_subprocess_transcript_utf8": "STDOUT (actual cmd.exe subprocess):\n\nSTDERR (actual cmd.exe subprocess):\nUR-BALDOSA-STARTUP-SAVE-ROOT: Invalid or package-local user-data root.  \nYour save folder must be a normal folder outside this game folder. Unset UR_RECOMP_USER_DATA_ROOT to use the default under your user profile.  \n",
+    "persisted_transcript_sha256": "4e3eddda5641364b46cf2a874504fbcd19136b13128d76a59b8953d91655dc33",
+    "persisted_transcript_occurrences": [
+      "drive-relative-root-refusal.log",
+      "current-drive-root-refusal.log"
+    ],
+    "persisted_transcript_pii_rom_or_save_data_included": false,
+    "persisted_single_transcript_bytes": 290,
+    "raw_transcript_retained_after_actions_expiry": true
+  },
+  "physical_testing": false,
+  "ntfs_fault_testing": false,
+  "original_native_complete_events_accepted": 0,
+  "release_gate_witnesses_added": 0,
+  "unchanged_historical_owner_source": "11501a15dea38fa912335cfc63103ce3a7208001",
+  "unchanged_historical_owner_zip": "5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7"
+}

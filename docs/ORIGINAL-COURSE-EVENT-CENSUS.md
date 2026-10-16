@@ -100,9 +100,72 @@ partial observations**, **41/45 unverified**. Across all three builds,
   result 0xBC occur one independently measured scene-relative frame before
   original; original CPU scope 83:988A and native generated function
   Sram_RestoreDirectPage_FastRom both write the same restored menu/track
-  fields. This is a paired **candidate**, not independent complete-event
+  fields. These transition/frame statements describe the older uncorrected
+  guest, not the source-qualified integrated **RF-017** replay: on RF-017,
+  original movie, fresh Snes9x and native all enter the following genuine Bowl
+  race **267 frames after the Zoo result**, with all eleven complete 8-KiB
+  original/native SRAM pairs identical. Two independent replays, including
+  [the unmasked 128-KiB WRAM byte census](../analysis/data/qa01-zoo-unmasked-wram-20261015.json),
+  reproduce the same genuine handoff; 39 of 48 sampled WRAM pairs still
+  differ, confined to 25 low stack bytes plus two transient sound-queue
+  bytes at Bowl entry. No accepted full instruction/logic trace, source
+  read-liveness, shipping Windows executable or on-disk hard-kill persistence
+  follows from the observed convergence. An additional real [fresh original/native
+  guest record reload](QA01-ZOO-AUTHENTIC-NEXT-BOWL-ENTRY-20261015.md#executed-rf-017-cold-guest-ranked-record-reload-no-windows-durability-2026-10-15)
+  preserves all 150 ranked-record values, holders and the Zoo 2510-centisecond
+  best-lap/checksum on two fresh Linux research processes, but does not
+  certify actual Windows host-file durability. One further genuine original/native
+  Zoo [full-race sampled WRAM mesh](../analysis/data/qa01-zoo-fullrace-mesh-executed-20261015.json)
+  (single-source Actions run 38830671735, 0 exclusions) now checks **66**
+  same-race-relative pairs through +5120: **44/66 byte-exact complete
+  128 KiB images**, 24 newly added late-course frames with **zero named-state
+  disagreements**, and only eight unique WRAM difference addresses across
+  the entire sample set. The novel late-race raw discrepancy is **+5040**
+  `7E:0063/0069`, which converges by the next sampled +5100; this has
+  *no established live-read or CPU opcode parity interpretation*, nor does
+  sparse sampling certify intervening unsampled frames. This remains a paired
+  **candidate**, not independent complete-event
   acceptance. The precise remaining causal uncertainty and artifact identifiers
   live in [the source-owner crosswalk](../analysis/data/zoo-original-native-sram-restore-source-owner-20261009.json).
+  **Independent shipping-source identity blocker (2026-10-15, [#1686](https://github.com/gamesbyian/UR-Recomp/issues/1686)):**
+  the source-qualified *research candidate* built original/native Zoo with both RF-015
+  and RF-017, but the source-pinned Windows build currently stages **RF-015
+  only**. Its compiled CPU timing source has not been demonstrated equivalent
+  to the corrected research ELF; the known RF-015-only Linux result-relative
+  Bowl offset was +265 rather than the original +267, but a Windows-specific
+  failure has **not** yet been replayed. Integration/CPU owns patch staging and
+  exact Windows executable binding, with independent QA-01 adjudication afterward.
+  The +5040 direct-page mismatch remains unwaived. Two genuine original/native
+  2014 Zoo replays ([run 38847972295](https://github.com/gamesbyian/UR-Recomp/actions/runs/38847972295),
+  [run 38848262320](https://github.com/gamesbyian/UR-Recomp/actions/runs/38848262320))
+  captured the thirteen adjacent +5034..+5046 full-WRAM samples on independently
+  calibrated race-entry clocks, with identical native ELF and distinct original
+  reference-core binary SHA-256s. The [independent SHA-bound receipt](../analysis/data/qa01-zoo-dp5040-independent-two-run-review-20261016.json)
+  (merged #1690) retains both hosted ZIP/report digests and all 78 full
+  128-KiB pair results: 45 byte-exact, 33 different, 109 unmasked differing
+  byte occurrences. All WRAM bytes agree at +5039; sound-pointer/counter
+  `7E:0063/0069` first differ at +5040 and throughout +5041..+5046, with
+  `7E:0064` also differing at +5043. The **RF-018-only A/B has now been
+  executed** on original/native Zoo ([run 38861174758](https://github.com/gamesbyian/UR-Recomp/actions/runs/38861174758);
+  SHA-verified [negative receipt](../analysis/data/qa01-zoo-rf018-only-treatment-review-20261016.json),
+  merged #1692): it narrows +5040 pointer/counter gaps from 38/39 to
+  15/16 counts and aligns native scene entry at 1017, but **does not
+  eliminate the +5040 raw mismatch**. Worse, the genuine native
+  next-Bowl race activates at **Zoo result+265**, whereas archived
+  original and fresh original activate at **+267**. Sampled native
+  post-result menu differs by +16; SRAM first differs at +64 in one
+  non-ranked cutscene-timer byte, and the eleven following Bowl
+  samples disagree in three bytes each while all Crawler ranked
+  records/holders/checksums agree. This is a strict negative for
+  adopting RF-018 alone, not proof of scored-record corruption.
+  CPU/APU [#1689](https://github.com/gamesbyian/UR-Recomp/issues/1689)
+  now owns executed source writer/reader/SPC phase diagnosis at
+  Zoo +5039..+5046 and actual Bowl/menu transition timing.
+  These observations do not establish continuous-frame logic/instruction
+  parity, authentic Windows executable identity, Windows disk durability, or
+  a Windows-specific +265 next-Bowl entry. Source-qualified Zoo +5163 result,
+  authentic next Bowl +267 and eleven exact full SRAM pairs are still
+  **research candidate evidence only**, not any of 45 accepted events.
   **Still partial, 0/45 complete.**
   Reduced write provenance: `analysis/data/zoo-original-2014-live-progression.json`.
   Original terminal evidence: `analysis/generated/result-screens-probe.json`.

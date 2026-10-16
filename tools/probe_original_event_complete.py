@@ -359,9 +359,15 @@ def source_event(states: dict[int, dict], track: int, result_menu: int) -> dict:
     raise CompleteEventError("source movie never demonstrated this course/result pair")
 
 
-def sample_frames(case: str, source_duration: int) -> list[int]:
+def sample_frames(case: str, source_duration: int, *,
+                  zoo_race_mesh: bool = False,
+                  zoo_dp_window: bool = False) -> list[int]:
     if source_duration <= 600:
         raise CompleteEventError("source event too short for bounded test")
+    if zoo_race_mesh and (case != "zoom-zoo" or source_duration != 5163):
+        raise CompleteEventError("full-race mesh requires exact archived 2014 Zoo source duration")
+    if zoo_dp_window and not zoo_race_mesh:
+        raise CompleteEventError("Zoo +5040 direct-page window requires full source race mesh")
     cap = min(2400, source_duration - 300)
     if case == "switcher":
         # Derive relative host captures only from the independently
@@ -372,8 +378,19 @@ def sample_frames(case: str, source_duration: int) -> list[int]:
         return sorted(set(INITIAL_FRAMES) | set(range(120, cap + 1, 120))
                       | {f for f in extra if f > cap and f > 0})
     extra = ZOO_PROGRESS_FRAMES if case == "zoom-zoo" else ()
+    mesh = (
+        set(range(2520, 5041, 120)) | {5100, 5120}
+        if zoo_race_mesh else set()
+    )
+    # One independently executed sparse +5040 DP outlier. Dense capture is
+    # read-only: every WRAM byte remains compared, no logic-frame rebase.
+    if zoo_dp_window:
+        mesh.update(range(5034, 5047))
+    # The archived source changes track to transient 0 at race-relative
+    # +5124; do not present that prelude as active Zoo gameplay. The
+    # separate +5156..+5186 terminal observer covers the true boundary.
     return sorted(set(INITIAL_FRAMES) | set(range(120, cap + 1, 120))
-                  | {f for f in extra if f <= cap})
+                  | {f for f in extra if f <= cap} | mesh)
 
 
 # The archived Bowl run observes a 70-frame absolute host gap from the
@@ -385,7 +402,11 @@ BOWL_TALLY_MEMORY_SIZES = {"wram": 0x20000, "vram": 0x10000, "cgram": 512}
 
 def replay_script(slot: int, result_menu: int, frames: list[int],
                   stunt: bool, tally_phase: bool = False,
-                  source_followthrough: bool = False) -> str:
+                  source_followthrough: bool = False,
+                  zoo_next_bowl: bool = False) -> str:
+    if zoo_next_bowl and (slot != 2 or result_menu != 0xBC or stunt
+                          or not source_followthrough):
+        raise CompleteEventError("Zoo next Bowl requires original Circuit plus source followthrough")
     if tally_phase and (not stunt or slot != 3 or result_menu != 0x18):
         raise CompleteEventError("only proven source-original scored Bowl tally supports phase samples")
     lines = stock_crawler_script(slot).rstrip().splitlines()
@@ -411,6 +432,13 @@ def replay_script(slot: int, result_menu: int, frames: list[int],
             if offset <= previous or offset > 72:
                 raise CompleteEventError("invalid original-movie terminal follow-through offset")
             lines += [f"wait {offset - previous}", f"dump original-follow-{offset:02d}"]
+            previous = offset
+    if zoo_next_bowl:
+        previous = SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS[-1]
+        for offset in ZOO_NEXT_BOWL_OFFSETS:
+            if offset <= previous or offset > 280:
+                raise CompleteEventError("nonmonotonic genuine Zoo-to-Bowl source handoff")
+            lines += [f"wait {offset - previous}", f"dump zoo-next-bowl-{offset:03d}"]
             previous = offset
     lines.append("quit")
     return "\n".join(lines) + "\n"
@@ -616,9 +644,157 @@ ZOO_TERMINAL_FRAMES = tuple(range(5156, 5187))
 # window through result+80 so its return phase can actually be witnessed.
 # Default non-opt-in replay retains its original +40 input window and scope.
 SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS = (8, 16, 24, 32, 64, 72)
+# Original 2014 movie: Zoo Circuit result at source frame 8353, next
+# Crawler/Bowl active race at 8620. Observe the actual handoff boundary
+# across three independent clocks, never infer it from TRACK_SELECT.
+ZOO_NEXT_BOWL_OFFSETS = (259, 263, 264, 265, 266, 267, 268, 269, 272, 276, 280)
+ZOO_SOURCE_RESULT_MOVIE_FRAME = 8353
+ZOO_SOURCE_NEXT_BOWL_MOVIE_FRAME = 8620
+
+def audit_qa01_wram_pair(original: bytes, native: bytes) -> dict:
+    """Unmasked 128-KiB byte difference; diagnostic only, never release credit."""
+    if len(original) != 0x20000 or len(native) != 0x20000:
+        raise CompleteEventError("QA-01 WRAM audit requires two full 128-KiB images")
+    address = lambda i: f"{0x7E + (i >> 16):02X}:{i & 0xFFFF:04X}"
+    count, first, pages = 0, [], {}
+    first_at = last_at = None
+    for offset, (o, n) in enumerate(zip(original, native)):
+        if o == n:
+            continue
+        if first_at is None:
+            first_at = offset
+        last_at = offset
+        count += 1
+        page = offset >> 8
+        pages[page] = pages.get(page, 0) + 1
+        if len(first) < 24:
+            first.append({"snes_address": address(offset), "wram_offset": offset,
+                          "original_byte": o, "native_byte": n})
+    return {
+        "full_wram_bytes_per_guest": 0x20000,
+        "every_byte_compared": True, "excluded_byte_count": 0,
+        "differing_byte_count": count, "byte_exact": count == 0,
+        "first_differing_address": address(first_at) if first_at is not None else None,
+        "last_differing_address": address(last_at) if last_at is not None else None,
+        "first_24_differences": first,
+        "changed_256_byte_pages": [
+            {"page_start": address(p << 8), "differing_bytes": pages[p]}
+            for p in sorted(pages)],
+        "original_wram_sha256": hashlib.sha256(original).hexdigest(),
+        "native_wram_sha256": hashlib.sha256(native).hexdigest(),
+        "cpu_or_logic_tick_parity_proven": False, "release_complete_event_credit": 0,
+    }
+
+
 ZOO_TERMINAL_FIELDS = ("menu", "track", "in_race", "p1_laps", "p2_laps",
                        "p1_checkpoint", "p1_finish_gate", "p1_contact",
                        "p2_contact", "clock_raw")
+
+
+def observe_zoo_race_mesh(reference_dir: Path, native_dir: Path,
+                          reference_log: str, native_log: str,
+                          frames: list[int], reference_entry: int,
+                          native_entry: int, source_duration: int, *,
+                          zoo_dp_window: bool = False) -> dict:
+    """Read-only original/native same race-relative full-WRAM checkpoint mesh.
+
+    No memory masking, clock shifting, saved-state reconstruction, CPU parity
+    assertion or original/native source-input mutation. The separate dense
+    terminal source probe retains the final 43-frame transition authority.
+    """
+    if source_duration != ZOO_TERMINAL_DURATION:
+        raise CompleteEventError("unexpected source Zoo Circuit duration")
+    expected = sample_frames("zoom-zoo", source_duration, zoo_race_mesh=True,
+                             zoo_dp_window=zoo_dp_window)
+    if frames != expected:
+        raise CompleteEventError("missing or altered source-authentic Zoo race mesh frames")
+    rows = []
+    dp_window = []
+    for offset in frames:
+        tag = "race-entered" if offset == 0 else f"scene-{offset:05d}"
+        original_host = observed_dump_frame(reference_log, tag)
+        native_host = observed_dump_frame(native_log, tag)
+        if (original_host != reference_entry + offset
+                or native_host != native_entry + offset):
+            raise CompleteEventError(f"uncalibrated Zoo original/native mesh sample {tag}")
+        images = []
+        for directory in (reference_dir, native_dir):
+            path = directory / f"{tag}.wram.bin"
+            if not path.is_file():
+                raise CompleteEventError(f"missing Zoo full-WRAM mesh sample {path}")
+            images.append(path.read_bytes())
+        pair = audit_qa01_wram_pair(*images)
+        if zoo_dp_window and 5034 <= offset <= 5046:
+            dp_window.append({
+                "race_relative_frame": offset,
+                "original_absolute_host_frame": original_host,
+                "native_absolute_host_frame": native_host,
+                "bytes": [
+                    {"address": f"7E:{address:04X}",
+                     "original": images[0][address], "native": images[1][address],
+                     "differs": images[0][address] != images[1][address]}
+                    for address in (0x0063, 0x0069)],
+                "full_wram_differing_bytes": pair["differing_byte_count"],
+            })
+        rows.append({
+            "race_relative_frame": offset,
+            "original_absolute_host_frame": original_host,
+            "native_absolute_host_frame": native_host,
+            "original_native_full_wram_byte_difference": pair,
+        })
+    first = next((row for row in rows if
+                  row["original_native_full_wram_byte_difference"][
+                      "differing_byte_count"] != 0), None)
+    # The mesh deliberately supplements, never overrides, the existing
+    # strict sampled-state/result comparator or the 45-course denominator.
+    return {
+        "schema": "UR-QA01-ZOO-FULL-RACE-UNMASKED-WRAM-MESH/1",
+        "source_original_active_entry_movie_frame": 3190,
+        "source_original_circuit_result_movie_frame": 8353,
+        "archived_source_active_frames_to_result": source_duration,
+        "original_2014_source_controller_masks_modified": False,
+        "paired_host_clock_axes_separate": True,
+        "individual_guest_entry_host_frames": {
+            "original": reference_entry, "native": native_entry},
+        "all_128k_wram_bytes_examined_per_pair": 0x20000,
+        "masked_or_excluded_wram_bytes": 0,
+        "mesh_checkpoint_count": len(rows),
+        "new_post_2400_checkpoint_count": sum(f > 2400 for f in frames),
+        "last_race_relative_checkpoint": frames[-1],
+        "raw_byte_exact_sample_count": sum(
+            not row["original_native_full_wram_byte_difference"][
+                "differing_byte_count"] for row in rows),
+        "first_nonidentical_raw_wram_pair": (
+            {"race_relative_frame": first["race_relative_frame"],
+             "original_absolute_host_frame": first["original_absolute_host_frame"],
+             "native_absolute_host_frame": first["native_absolute_host_frame"],
+             "first_differing_address": first[
+                 "original_native_full_wram_byte_difference"][
+                     "first_differing_address"],
+             "differing_byte_count": first[
+                 "original_native_full_wram_byte_difference"]["differing_byte_count"]}
+            if first else None),
+        "late_direct_page_window": ({
+            "schema": "UR-QA01-ZOO-5040-DENSE-DP-WRAM/1",
+            "range_inclusive": [5034, 5046],
+            "samples": dp_window,
+            "first_sampled_direct_page_disagreement": next(
+                (row["race_relative_frame"] for row in dp_window
+                 if any(b["differs"] for b in row["bytes"])), None),
+            "last_sampled_direct_page_disagreement": next(
+                (row["race_relative_frame"] for row in reversed(dp_window)
+                 if any(b["differs"] for b in row["bytes"])), None),
+            "all_guest_frames_in_range_captured": len(dp_window) == 13,
+            "raw_wram_bytes_excluded": 0,
+            "executed_writer_reader_or_logic_tick_proven": False,
+            "release_complete_event_credit": 0,
+        } if zoo_dp_window else None),
+        "every_gameplay_frame_compared": False,
+        "cpu_instruction_or_logic_tick_parity_proven": False,
+        "native_os_disk_persistence_proven": False,
+        "release_complete_usa_event_credit": 0,
+        "samples": rows,
+    }
 
 
 def zoo_terminal_script(source_duration: int) -> str:
@@ -701,6 +877,12 @@ def summarize_zoo_terminal_phase(phase: Path, reference_log: str,
         "native_host_frame": rows["native"][frame]["host_frame"],
         **compare(rows["reference"][frame], rows["native"][frame])
     } for frame in ZOO_TERMINAL_FRAMES]
+    # Real unmasked WRAM at equal guest race-relative frame, not same host.
+    for row in relative:
+        tag = f'zoo-phase-{row["relative_frame"]:05d}'
+        row["full_wram_byte_difference"] = audit_qa01_wram_pair(
+            (phase / "ref" / f"{tag}.wram.bin").read_bytes(),
+            (phase / "native" / f"{tag}.wram.bin").read_bytes())
     ref_host = {v["host_frame"]: v for v in rows["reference"].values()}
     nat_host = {v["host_frame"]: v for v in rows["native"].values()}
     hosts = sorted(set(ref_host) & set(nat_host))
@@ -744,6 +926,10 @@ def summarize_zoo_terminal_phase(phase: Path, reference_log: str,
             lambda row: "menu" in row["different_named_fields"]),
         "first_full_wram_digest_difference_frame": first_postframe(
             lambda row: not row["wram_sha256_equal"]),
+        "first_unmasked_wram_byte_difference_frame": first_postframe(
+            lambda row: row["full_wram_byte_difference"]["differing_byte_count"] > 0),
+        "all_postresult_full_wram_byte_pairs_equal": all(
+            row["full_wram_byte_difference"]["byte_exact"] for row in post_rows),
         "first_divergent_cpu_instruction_or_writer_proven": False,
         "cold_process_sram_persistence_proven": False,
         "release_complete_event_credit": 0,
@@ -847,6 +1033,192 @@ def source_followthrough_states(states: dict[int, dict], result_frame: int) -> d
     return samples
 
 
+
+def source_zoo_next_bowl(states: dict[int, dict], result_frame: int) -> dict:
+    """Ground exactly the next active Bowl event in the 2014 movie."""
+    if result_frame != ZOO_SOURCE_RESULT_MOVIE_FRAME:
+        raise CompleteEventError("Zoo result is not the independently observed source frame 8353")
+    entry = ZOO_SOURCE_NEXT_BOWL_MOVIE_FRAME
+    if entry - result_frame != 267:
+        raise CompleteEventError("source Zoo-to-Bowl movie distance changed")
+    previous = states.get(entry - 1)
+    if not isinstance(previous, dict):
+        raise CompleteEventError("missing original movie source before next event")
+    samples = {}
+    for offset in ZOO_NEXT_BOWL_OFFSETS:
+        host = result_frame + offset
+        state = states.get(host)
+        if not isinstance(state, dict) or any(
+                type(state.get(k)) is not int for k in ("menu", "track", "in_race")):
+            raise CompleteEventError(f"missing original next-Bowl movie state {host}")
+        samples[str(offset)] = {
+            "original_movie_host_frame": host,
+            "menu": state["menu"], "track": state["track"],
+            "in_race": state["in_race"],
+        }
+    if (previous.get("track") == 2 and previous.get("in_race") == 1
+            or any(states.get(f, {}).get("track") != 2
+                   or states.get(f, {}).get("in_race") != 1
+                   for f in range(entry, entry + 8))):
+        raise CompleteEventError("source movie does not actually enter a sustained Bowl race at 8620")
+    if samples["267"]["track"] != 2 or samples["267"]["in_race"] != 1:
+        raise CompleteEventError("source original Bowl active-entry offset not corroborated")
+    return {
+        "original_result_host_frame": result_frame,
+        "original_next_bowl_entry_host_frame": entry,
+        "source_result_to_next_active_entry_frames": entry - result_frame,
+        "samples": samples,
+        "source_original_active_entry_sustained_eight_frames": True,
+        "native_next_course_entry_proven": False,
+        "release_complete_event_credit": 0,
+    }
+
+
+def observe_zoo_next_bowl_handoff(
+        original_dir: Path, native_dir: Path, original_log: str, native_log: str,
+        source: dict, reference_entry: int, native_entry: int,
+        reference_result_relative: int, native_result_relative: int) -> dict:
+    """Triplet-compare the *actual* movie's next Bowl entry, no input rebase.
+
+    Sparse handoff samples include consecutive +263..+269, so a transition
+    between adjacent guest frames can be attributed without assuming the
+    first active frame from a lone screenshot. This is still not the whole
+    45-event progression or a release acceptance oracle.
+    """
+    if (source.get("original_next_bowl_entry_host_frame") !=
+            ZOO_SOURCE_NEXT_BOWL_MOVIE_FRAME
+            or source.get("source_result_to_next_active_entry_frames") != 267
+            or not source.get("source_original_active_entry_sustained_eight_frames")
+            or set(source.get("samples", {})) !=
+            {str(n) for n in ZOO_NEXT_BOWL_OFFSETS}):
+        raise CompleteEventError("missing bounded authentic source Bowl-next entry")
+    samples = []
+    for offset in ZOO_NEXT_BOWL_OFFSETS:
+        original = source["samples"][str(offset)]
+        if original.get("original_movie_host_frame") != 8353 + offset:
+            raise CompleteEventError("contradictory original movie handoff frame")
+        row = {"offset_from_observed_zoo_result": offset,
+               "original_movie": original, "fresh_guests": {}}
+        paired_wram = {}
+        for key, directory, log, entry, onset in (
+                ("original", original_dir, original_log, reference_entry, reference_result_relative),
+                ("native", native_dir, native_log, native_entry, native_result_relative)):
+            tag = f"zoo-next-bowl-{offset:03d}"
+            expected = entry + onset + offset
+            observed = observed_dump_frame(log, tag)
+            if observed != expected:
+                raise CompleteEventError(
+                    f"guest handoff {key} +{offset} frame {observed} != {expected}")
+            raw_path = directory / f"{tag}.wram.bin"
+            if not raw_path.is_file():
+                raise CompleteEventError(f"missing actual guest next-entry memory {raw_path}")
+            raw = raw_path.read_bytes()
+            if len(raw) != 0x20000:
+                raise CompleteEventError(f"truncated real guest next-entry WRAM {raw_path}")
+            paired_wram[key] = raw
+            rec = decode_qa01_crawler_battery_sram(
+                directory / f"{tag}.sram.bin", 1)
+            values = {"menu": raw[0x009F], "track": raw[0x00CE],
+                      "in_race": raw[0x0313]}
+            row["fresh_guests"][key] = {
+                **values, "actual_host_frame": observed,
+                "full_wram_bytes": len(raw),
+                "wram_sha256": hashlib.sha256(raw).hexdigest(),
+                "source_earned_zoo_best_lap": rec["crawler_record_three_ranks"][0],
+                "record_checksum_stored": rec["record_table_checksum_stored"],
+                "record_checksum_calculated": rec["record_table_checksum_calculated"],
+                "record_checksum_matches": rec["record_table_checksum_matches_at_sample"],
+                "sram_sha256": rec["sram_sha256"],
+            }
+        row["original_native_full_wram_byte_difference"] = (
+            audit_qa01_wram_pair(paired_wram["original"], paired_wram["native"]))
+        source_named = {k: original[k] for k in ("menu", "track", "in_race")}
+        row["triplet_named_states_equal"] = all(
+            {k: row["fresh_guests"][side][k] for k in source_named} == source_named
+            for side in ("original", "native"))
+        pair_sram = [
+            (directory / f"zoo-next-bowl-{offset:03d}.sram.bin").read_bytes()
+            for directory in (original_dir, native_dir)]
+        diff = [i for i, (o, n) in enumerate(zip(*pair_sram)) if o != n]
+        row["original_native_full_sram_equal"] = not diff
+        row["battery_sram_differing_byte_count"] = len(diff)
+        row["battery_first_differences"] = [
+            {"offset": i, "original_byte": pair_sram[0][i],
+             "native_byte": pair_sram[1][i]} for i in diff[:8]]
+        samples.append(row)
+
+    def next_entry_from_samples(side: str) -> dict:
+        last = None
+        first_active = None
+        for row in samples:
+            now = row["offset_from_observed_zoo_result"]
+            fields = (row["original_movie"] if side == "movie"
+                      else row["fresh_guests"][side])
+            active = fields["track"] == 2 and fields["in_race"] == 1
+            if active and first_active is None:
+                first_active = now
+                exact = now if last is not None and last[0] == now - 1 and not last[1] else None
+                return {"last_observed_inactive_offset":
+                        last[0] if last is not None and not last[1] else None,
+                        "first_observed_active_offset": first_active,
+                        "exact_observed_entry_offset": exact}
+            last = (now, active)
+        return {"last_observed_inactive_offset":
+                last[0] if last is not None and not last[1] else None,
+                "first_observed_active_offset": None,
+                "exact_observed_entry_offset": None}
+
+    original_bracket = next_entry_from_samples("movie")
+    ref_bracket = next_entry_from_samples("original")
+    native_bracket = next_entry_from_samples("native")
+    original_start = original_bracket["exact_observed_entry_offset"]
+    ref_start = ref_bracket["exact_observed_entry_offset"]
+    native_start = native_bracket["exact_observed_entry_offset"]
+    if original_start != 267:
+        raise CompleteEventError("sparse original source does not prove exact 8620 entry")
+    ref_absolute = (reference_entry + reference_result_relative + ref_start
+                    if ref_start is not None else None)
+    native_absolute = (native_entry + native_result_relative + native_start
+                       if native_start is not None else None)
+    return {
+        "schema": "UR-QA01-ZOO-TO-AUTHENTIC-BOWL-NEXT-RACE/1",
+        "reference_next_bowl_absolute_host_frame": ref_absolute,
+        "native_next_bowl_absolute_host_frame": native_absolute,
+        "next_bowl_same_absolute_host_frame": (
+            ref_absolute is not None and native_absolute is not None
+            and ref_absolute == native_absolute),
+        "original_source_movie_result_host_frame": 8353,
+        "original_source_movie_next_bowl_active_host_frame": 8620,
+        "clock_axes": "2014 reset movie, fresh Snes9x guest, fresh Baldosa guest all independent",
+        "source_controller_masks_modified": False,
+        "sample_count": len(samples),
+        "sample_offsets": list(ZOO_NEXT_BOWL_OFFSETS),
+        "source_next_bowl_active_entry_offset": original_start,
+        "fresh_reference_next_bowl_entry_offset": ref_start,
+        "fresh_native_next_bowl_entry_offset": native_start,
+        "original_source_entry_bracket": original_bracket,
+        "fresh_reference_entry_bracket": ref_bracket,
+        "fresh_native_entry_bracket": native_bracket,
+        "all_triplet_named_states_equal": all(x["triplet_named_states_equal"] for x in samples),
+        "all_original_native_full_sram_pairs_equal": all(
+            x["original_native_full_sram_equal"] for x in samples),
+        "all_original_native_full_wram_pairs_equal": all(
+            x["original_native_full_wram_byte_difference"]["byte_exact"]
+            for x in samples),
+        "next_bowl_entry_triple_equal": (ref_start == native_start == original_start),
+        "zoo_rank0_2510_and_checksum_preserved_every_sample": all(
+            x["fresh_guests"][side]["source_earned_zoo_best_lap"] ==
+            {"rank": 0, "value_word": 2510, "holder_index": 0}
+            and x["fresh_guests"][side]["record_checksum_matches"]
+            for x in samples for side in ("original", "native")),
+        "samples": samples,
+        "full_event_guest_logic_tick_equivalence_proven": False,
+        "shipping_windows_candidate_proven": False,
+        "cold_process_disk_persistence_proven": False,
+        "release_complete_event_credit": 0,
+    }
+
+
 def decode_qa01_crawler_battery_sram(path: Path, course_track: int) -> dict:
     """A *live* 8KiB battery image, not OS durability or an award receipt.
 
@@ -920,6 +1292,7 @@ def observe_source_terminal_followthrough(
             raise CompleteEventError(f"follow-through result-relative frame mismatch at +{offset}")
         guests = {}
         sram = {}
+        paired_wram = {}
         for label, directory in (("original", original_dir), ("native", native_dir)):
             path = directory / f"{tag}.wram.bin"
             if not path.is_file():
@@ -927,6 +1300,7 @@ def observe_source_terminal_followthrough(
             raw = path.read_bytes()
             if len(raw) != 0x20000:
                 raise CompleteEventError("follow-through WRAM must be full 128 KiB")
+            paired_wram[label] = raw
             word = lambda adr: int.from_bytes(raw[adr:adr+2], "little")
             sram[label] = decode_qa01_crawler_battery_sram(
                 directory / f"{tag}.sram.bin", crawler_course_track)
@@ -969,6 +1343,8 @@ def observe_source_terminal_followthrough(
             "full_wram_bytes_equal": (
                 guests["original"]["wram_sha256"] ==
                 guests["native"]["wram_sha256"]),
+            "full_wram_byte_difference": audit_qa01_wram_pair(
+                paired_wram["original"], paired_wram["native"]),
         })
     return {
         "schema": "UR-QA01-SOURCE-ORIGINAL-NATIVE-RESULT-FOLLOWTHROUGH/2",
@@ -1239,6 +1615,9 @@ def scan_source(args, work: Path, sram: Path, source_input: Path,
     if args.source_followthrough:
         event["source_terminal_followthrough"] = source_followthrough_states(
             states, event["original_result_frame"])
+    if args.zoo_next_bowl:
+        event["source_next_bowl"] = source_zoo_next_bowl(
+            states, event["original_result_frame"])
     if args.case == "dragster" and (
             event["original_entry_frame"] != 794
             or event["original_result_frame"] != 2874
@@ -1392,10 +1771,16 @@ def main(argv: list[str] | None = None) -> int:
                     help="read-only original/native same-host 5782 WRAM/VRAM/CGRAM difference offsets; requires penultimate witness")
     ap.add_argument("--bowl-tally-phase", action="store_true",
                     help="retain 8 exact-host-frame WRAM/VRAM/CGRAM captures after real 0x2F Bowl tally")
+    ap.add_argument("--zoo-race-mesh", action="store_true",
+                    help="opt-in unmasked 128KiB original/native full-Circuit checkpoints through Zoo +5120; no event admission")
+    ap.add_argument("--zoo-dp-window", action="store_true",
+                    help="opt-in 13 contiguous +5034..+5046 original/native DP/whole-WRAM frames; requires --zoo-race-mesh; no admission")
     ap.add_argument("--zoo-terminal-phase", action="store_true",
                     help="opt-in Zoo +5156..+5173 fixed-frame/host phase comparison; no admission")
     ap.add_argument("--source-followthrough", action="store_true",
                     help="opt-in archived original/native +8/+16/+24/+32 postresult guest WRAM; no admission")
+    ap.add_argument("--zoo-next-bowl", action="store_true",
+                    help="opt-in unchanged 2014 Zoo original input through source Bowl active race at movie frame 8620")
     ap.add_argument("--observe-one-frame-stunt-lead", action="store_true",
                     help="report a verified narrow Stunt phase gap as diagnostic CI success; never admit a course")
     ap.add_argument("--snesref", type=Path, required=True)
@@ -1415,6 +1800,15 @@ def main(argv: list[str] | None = None) -> int:
         ap.error("only canonical USA retail ROM is admitted")
     if args.switcher_same_host_full_memory_offsets and not args.switcher_same_host_penultimate:
         ap.error("Switcher full-memory offsets require --switcher-same-host-penultimate")
+    if args.zoo_race_mesh and (args.case != "zoom-zoo"
+                               or args.native_backend != "pinned-baldosa"):
+        ap.error("Zoo race mesh requires actual pinned Baldosa/original 2014 Zoom Zoo")
+    if args.zoo_dp_window and not args.zoo_race_mesh:
+        ap.error("Zoo late-DP window requires --zoo-race-mesh")
+    if args.zoo_next_bowl and (args.case != "zoom-zoo"
+                               or not args.source_followthrough
+                               or args.native_backend != "pinned-baldosa"):
+        ap.error("Next Bowl entry requires pinned original/native Zoom Zoo source followthrough")
     if args.source_horizon < 12500 or args.source_horizon > 24000:
         ap.error("source horizon must be 12500..24000")
     streams = list(rnc.find_streams(args.rom.read_bytes()))
@@ -1437,14 +1831,18 @@ def main(argv: list[str] | None = None) -> int:
     original_bytes, _ = movie.read_movie(args.movie)
     pinned_meta = json.loads(args.movie_meta.read_text())
     source_length = original_event["source_active_frames_to_result"] + (
-        80 if args.source_followthrough else 40)
+        max(ZOO_NEXT_BOWL_OFFSETS) + 6 if args.zoo_next_bowl
+        else 80 if args.source_followthrough else 40)
     source_window = movie.window(original_bytes, pinned_meta,
                                  original_event["original_entry_frame"], source_length)
     if args.source_followthrough and source_length < (
             original_event["source_active_frames_to_result"]
             + max(SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS)):
         raise CompleteEventError("archived source controller window does not cover follow-through")
-    frames = sample_frames(args.case, original_event["source_active_frames_to_result"])
+    frames = sample_frames(
+        args.case, original_event["source_active_frames_to_result"],
+        zoo_race_mesh=args.zoo_race_mesh,
+        zoo_dp_window=args.zoo_dp_window) 
     # Both calibrations boot afresh with exactly the same original SRAM.
     args.sram = sram
     calibration = work / "calibration"
@@ -1474,7 +1872,8 @@ def main(argv: list[str] | None = None) -> int:
     script.write_text(replay_script(
         stream, menu, frames, kind == "stunt",
         tally_phase=args.bowl_tally_phase,
-        source_followthrough=args.source_followthrough))
+        source_followthrough=args.source_followthrough,
+        zoo_next_bowl=args.zoo_next_bowl))
     reference_script = script
     if args.switcher_same_host_penultimate:
         if args.case != "switcher" or args.native_backend != "pinned-baldosa":
@@ -1542,6 +1941,16 @@ def main(argv: list[str] | None = None) -> int:
         terminal_frames["reference_relative"], terminal_frames["native_relative"],
         track)
         if args.source_followthrough else None)
+    zoo_race_mesh = (observe_zoo_race_mesh(
+        replay / "ref", replay / "native", rl, nl, frames, rf, nf,
+        original_event["source_active_frames_to_result"],
+        zoo_dp_window=args.zoo_dp_window)
+        if args.zoo_race_mesh else None)
+    next_bowl = (observe_zoo_next_bowl_handoff(
+        replay / "ref", replay / "native", rl, nl,
+        original_event["source_next_bowl"], rf, nf,
+        terminal_frames["reference_relative"], terminal_frames["native_relative"])
+        if args.zoo_next_bowl else None)
     switcher_same_host_memory = (observe_switcher_same_host_memory_offsets(
         replay / "ref", replay / "native", switcher_same_host)
         if args.switcher_same_host_full_memory_offsets else None)
@@ -1558,9 +1967,11 @@ def main(argv: list[str] | None = None) -> int:
         "relative_sample_frames": frames, "comparison": comparison,
         "tally_anchored_guest_phase": phase,
         "zoo_terminal_host_phase": zoo_phase,
+        "zoo_race_mesh": zoo_race_mesh,
         "switcher_same_host_penultimate": switcher_same_host,
         "switcher_same_host_full_memory_offsets": switcher_same_host_memory,
         "source_terminal_followthrough": source_followthrough,
+        "zoo_next_bowl_handoff": next_bowl,
         "reference_script_sha256": sha(reference_script),
         "reference": reference, "native": native,
         "scope": "original archived scene inputs, fresh reference/native stock menu; event results text from guest PPU dumps; instruction-time contact causality unproven"

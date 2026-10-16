@@ -1,0 +1,66 @@
+{
+  "schema": "qa-source-pinned-windows-pe-timestamp-only-diff/1",
+  "execution": {
+    "older_source": "11501a15dea38fa912335cfc63103ce3a7208001",
+    "older_main_run": 38813101482,
+    "older_original_owner_artifact_id": 12009612842,
+    "newer_source": "173d49e9706fd5b018cd2b8441665fd16769b5cb",
+    "newer_pr_head": "4a0ce91c8c6bb58375007b3a660718f76cc873f9",
+    "newer_windows_run": 38831297147,
+    "newer_original_package_artifact_id": 12017368467
+  },
+  "original_executables": {
+    "bytes_each": 19808768,
+    "original_executable_sha256": "0701f72481531ad4f2803caadc62bbb072f292abef69f039edda004b01c18ea9",
+    "newer_executable_sha256": "c02d563741d60ef1061562eb31e224e34fae97e5d19b0a0d836ed348661f5fef",
+    "both_pe32plus_amd64": true,
+    "full_raw_files_independently_extracted_from_original_actions_archives": true
+  },
+  "raw_byte_comparison": {
+    "executable_lengths_identical": true,
+    "raw_different_byte_count": 4,
+    "differing_zero_indexed_file_offsets": [
+      128,
+      129,
+      17534468,
+      17534469
+    ],
+    "different_contiguous_regions": [
+      [
+        128,
+        129
+      ],
+      [
+        17534468,
+        17534469
+      ]
+    ],
+    "first_field": "IMAGE_FILE_HEADER.TimeDateStamp at PE+8",
+    "second_field": "IMAGE_DEBUG_DIRECTORY.TimeDateStamp in .buildid section",
+    "first_field_file_offset": 128,
+    "second_field_file_offset": 17534468,
+    "old_timestamp_le_hex": "9c4bd16a",
+    "new_timestamp_le_hex": "7174d16a",
+    "old_timestamp_utc": "2026-10-15T21:54:36Z",
+    "new_timestamp_utc": "2026-10-16T00:48:49Z",
+    "both_paired_fields_agree_inside_each_executable": true
+  },
+  "offline_normalized_copy_only": {
+    "only_change": "replace the exact two original 4-byte timestamp fields with four zero bytes in temporary forensic copies",
+    "old_new_normalized_full_bytes_identical": true,
+    "normalized_sha256": "14da350379b5da2c0a319dde08e0808f6108ec83f3b4c7b1ae75162c648bce5b",
+    "normalized_exe_length": 19808768,
+    "shipping_executable_rewritten": false,
+    "source_runtime_behavior_tested_by_this_comparison": false
+  },
+  "acceptance": {
+    "historical_original_zip_rebound": false,
+    "synthetic_test_merge_accepted_as_new_owner_main": false,
+    "release_gate_witnesses_added": 0,
+    "original_native_complete_events_added": 0,
+    "physical_audio_controllers_screen_evaluated": false,
+    "NTFS_faults_evaluated": false,
+    "release_decision": "not_assessed"
+  },
+  "handoff": "Integration/release engineering exclusively owns reproducible PE/COFF timestamp setting. Independent QA records a byte-exact diagnostic and prohibits substituting normalized builds for immutable nominated source/ZIP SHA."
+}

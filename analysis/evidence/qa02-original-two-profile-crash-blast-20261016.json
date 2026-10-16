@@ -1,0 +1,105 @@
+{
+  "schema": "qa02-nominated-original-windows-two-profile-crash-blast-independent-review/1",
+  "review_date_utc": "2026-10-16",
+  "classification": "P0_1214_expanded_failure_scope_safe_but_inaccessible_healthy_alternate_profile_via_canonical_switch",
+  "tested_candidate": {
+    "main_source_sha": "11501a15dea38fa912335cfc63103ce3a7208001",
+    "original_owner_zip_sha256": "5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7",
+    "original_win32_game_pe_sha256": "0701f72481531ad4f2803caadc62bbb072f292abef69f039edda004b01c18ea9",
+    "original_immutable_owner_artifact": 12016101293,
+    "original_owner_run": 38828519791,
+    "original_usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_script_sha256": "4e714899f53c3bbe501bbfcacf91dd549989c9beb7c2cf6265b13eb687142ec6"
+  },
+  "windows_producer": {
+    "pr_number": 1700,
+    "head_sha": "50a29fd8faa63bb23308171748dc0edd0ff54f3f",
+    "run_id": 38872238234,
+    "exact_two_profile_test_step_conclusion": "success_negative_reproducer",
+    "whole_workflow_result": "not_credited_as_full_release_gate",
+    "qa_fixture_exe_sha256": "606464f330babe21aeb55668c55b3fa2d808b79a91adefd4b82be251077b7a20",
+    "artifact_id": 12034140741,
+    "artifact_zip_sha256": "c61aaa3466a4faf75191b1c4ca84c27b9063fa08a08c272e5e428af8c7efaf6d",
+    "artifact_zip_bytes": 19798,
+    "artifact_member_count": 33,
+    "crc_error_count": 0
+  },
+  "independent_archived_byte_inspection": {
+    "stages": [
+      "healthy_before_B_crash",
+      "after_B_crash",
+      "after_B_cold_refusal",
+      "after_selector_refusal"
+    ],
+    "initial_verified_profiles": {
+      "A": {
+        "raw_bytes": 8192,
+        "raw_sha256": "bd9571f85e1b7ddfcf2b6913d5f3556c27ecadf65d353afbac29876e7d111c10",
+        "typed_bytes": 16525,
+        "typed_sha256": "1f98e49d51691816a9cd544c6fe71a5f74c3447933a7db6a8cf4e659921775b0",
+        "typed_generation": 1,
+        "typed_embedded_stock_sram_equals_actual_full_raw": true
+      },
+      "B": {
+        "raw_bytes": 8192,
+        "raw_sha256": "c7db68306d7c44253263b1957cfae71f89888e813f140c0c91f32a802063fef9",
+        "typed_bytes": 16528,
+        "typed_sha256": "3cf17ae30fb6be8bca5301f76331929ea610bddd792153805cc01ffc79e66213",
+        "typed_generation": 1,
+        "typed_embedded_stock_sram_equals_actual_full_raw": true
+      },
+      "selector": {
+        "bytes": 242,
+        "sha256": "9db71c0e82a02b0f2514fb4711d3476a2438099be2682cdba622cb34b4a4cc4b"
+      },
+      "catalog": {
+        "bytes": 70,
+        "sha256": "7793f9de28fa99e737268cf4c15d64271c46dc60b613c2812a37a83e2cc401c5"
+      }
+    },
+    "post_crash_B_raw": {
+      "bytes": 8192,
+      "sha256": "2f3009bb2436e3862e045df7f12da4d37845b83ada491cbc80cbef3a098f80d8",
+      "actual_changed_bytes": 28,
+      "typed_file_unchanged": true,
+      "typed_embedded_stock_sram_equals_actual_new_raw": false
+    },
+    "post_crash_A_raw_and_typed_byte_identical_to_healthy_before": true,
+    "all_six_file_images_byte_identical_between_after_crash_after_cold_refusal_and_after_selector_refusal": true,
+    "each_file_manifest_hash_and_byte_length_recomputed_and_matched": true,
+    "no_fake_earned_results_asserted_by_test": true
+  },
+  "source_process_observations": {
+    "B_original_game_live_2p_guest_pause_frame": 1952,
+    "B_actual_original_game_crash_after_successful_native_raw_save_before_typed_commit_exit": 86,
+    "B_crash_marker": "UR_BALDOSA_NATIVE_PROFILE QA_CRASH_AFTER_RAW_WRITE exit=86 typed_checkpoint=0",
+    "fresh_B_cold_original_exe_exit": 7,
+    "fresh_B_cold_source_error": "UR-BALDOSA-SAVE-MISMATCH: Named racer SRAM differs from committed profile data",
+    "A_normal_codec_verification_exit": 0,
+    "B_original_codec_verification_exit": 46,
+    "B_to_A_canonical_existing_next_boot_selector_after_crash_exit": 85,
+    "selector_and_catalog_unchanged_after_blocked_switch": true,
+    "healthy_B_A_B_canonical_switch_control": "source_test_asserted_success_both_directions_before_crash_but_control_stdout_not_archived",
+    "source_code_explanation": "native/product/baldosa_native_existing_profile_next_boot.hpp insists on raw_vs_typed_equality_for_every_roster_profile_before_publishing_a_switch"
+  },
+  "archived_log_sha256": {
+    "game-B-crash.log": "95a93ee0a990afe9c0ba14934785c6410dab741fc3b796d021ac78746b5fffc3",
+    "B-cold-rejection.log": "30696c8aab85f1cb1795daa56dd015fc9d8a15e72461728bc859d911b4026f6c",
+    "B-to-A-canonical-switch.log": "206c1cae6fee1cc06cdccbefcbb20c8c7d764f1ada3e658bfb9b2bb050f26a84",
+    "A-B-codec-verify.log": "317dd56a365389507412d99bd94118f0fe13a71e59cb138c8676fa04d5b62666"
+  },
+  "release_scope": {
+    "qa02": "in_progress",
+    "qa12": "unverified",
+    "release_gate_credit": 0,
+    "accepted_usa_original_native_complete_events": 0,
+    "physical_hardware_verified": false,
+    "new_candidate_nominated": false,
+    "owner_product_modified": false,
+    "post_raw_typed_recovery_fixed": false,
+    "player_facing_UI_recovery_tested": false,
+    "external_taskkill_or_powerloss_tested": false,
+    "all_possible_profile_selector_paths_proven_blocked": false
+  },
+  "owner_next_acceptance": "Test independently verified intact alternate profile A selection after B raw/typed crash without modifying B's original two generations or bypassing locks, and explicit safe B reconciliation old/new with repeated cold starts and no phantom earned receipt."
+}

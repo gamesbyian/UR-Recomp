@@ -1264,9 +1264,54 @@ def verify_paused_quit_fresh_relaunch(
     }
 
 
+def capture_native_selector_conflict_files(
+    user_root: Path, snapshot_dir: Path, stage: str,
+) -> dict[str, dict[str, object]]:
+    """QA-only complete file bytes, not source guesses or fixture receipts.
+
+    The second profile legitimately does not exist in the before-B snapshot.
+    Preserve its ABSENCE as an explicit state instead of fabricating bytes.
+    """
+    names = {
+        "selector": "host-state-v1.txt",
+        "catalog": "profiles-v1.txt",
+        "first_raw": "saves/profile-native-ci-rider/save.srm",
+        "first_typed": "saves/profile-native-ci-rider/host-profile.txt",
+        "second_raw": "saves/profile-native-ci-second/save.srm",
+        "second_typed": "saves/profile-native-ci-second/host-profile.txt",
+    }
+    if stage not in ("before_A", "after_B_before_A", "after_A", "after_cold_B"):
+        raise ValueError("Unrecognized owned profile-conflict stage")
+    snapshot_dir.mkdir(parents=True, exist_ok=True)
+    receipt: dict[str, dict[str, object]] = {}
+    for key, rel in names.items():
+        path = user_root / rel
+        if path.is_symlink():
+            raise ValueError("Refusing redirected profile-conflict file")
+        if not path.exists():
+            if not key.startswith("second_") or stage != "before_A":
+                raise ValueError(f"Missing expected named file at {stage}: {rel}")
+            receipt[key] = {"present": False}
+            continue
+        if not path.is_file():
+            raise ValueError(f"Unexpected profile-conflict file type: {rel}")
+        raw = path.read_bytes()
+        if key.endswith("_raw") and len(raw) != 8192:
+            raise ValueError("Selected named SRAM is not exactly 8192 bytes")
+        (snapshot_dir / f"{stage}.{key}.bin").write_bytes(raw)
+        receipt[key] = {
+            "present": True, "size": len(raw),
+            "sha256": hashlib.sha256(raw).hexdigest(), "repo_relative_path": rel,
+        }
+    (snapshot_dir / f"{stage}.json").write_text(
+        json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return receipt
+
+
 def run_native_pause_quit_selector_conflict(
     exe: Path, rom: Path, script: Path, root: Path,
     fixture: Path, seed: Path, *, video: str, timeout: int,
+    snapshot_dir: Path | None = None,
 ) -> dict[str, object]:
     """Two *real processes* force a selection change during native pause.
 
@@ -1288,6 +1333,8 @@ def run_native_pause_quit_selector_conflict(
     raw_before = save.read_bytes()
     if len(raw_before) != 8192:
         raise ValueError("Two-process fixture has no original 8192-byte SRAM")
+    if snapshot_dir is not None:
+        capture_native_selector_conflict_files(user_root, snapshot_dir, "before_A")
     config = output / "config.ini"
     config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
     gate = output / "external_writer_committed.ready"
@@ -1343,6 +1390,8 @@ def run_native_pause_quit_selector_conflict(
             )
             if "switched=native-ci-second sram=8192 distinct=1" not in changed.stdout:
                 raise ValueError("Real competing Modern profile switch unverified")
+            if snapshot_dir is not None:
+                capture_native_selector_conflict_files(user_root, snapshot_dir, "after_B_before_A")
             gate.write_text("writer-B-committed\n", encoding="ascii")
             process.wait(timeout=timeout)
         except BaseException:
@@ -1351,6 +1400,8 @@ def run_native_pause_quit_selector_conflict(
                 process.wait(timeout=timeout)
             raise
 
+    if snapshot_dir is not None:
+        capture_native_selector_conflict_files(user_root, snapshot_dir, "after_A")
     log = log_path.read_text(encoding="utf-8", errors="replace")
     if process.returncode != 0:
         raise RuntimeError(
@@ -1478,6 +1529,7 @@ def run_native_pause_quit(
 def run_native_crash_between_raw_and_typed(
     exe: Path, rom: Path, script: Path, root: Path,
     fixture: Path, seed: Path, *, video: str, timeout: int,
+    snapshot_dir: Path | None = None,
 ) -> dict[str, object]:
     """Real paused-SDL Quit dies after upstream raw write, before typed CAS.
 
@@ -1603,6 +1655,47 @@ def run_native_crash_between_raw_and_typed(
         raise ValueError("Failed fresh boot silently repaired/overwrote raw evidence")
     if (user_root / "saves/save.srm").exists() or list(user_root.rglob("*.urrun")):
         raise ValueError("Failed fresh boot invented an anonymous save or Records")
+
+    # Optional independent QA capture of ONLY these disposable fixture files.
+    # The original test did not archive the raw/typed 8192-byte crash boundary,
+    # so its producer report could not independently establish precise bytes.
+    # Capture from the before-process in-memory originals and the unchanged
+    # after-crash / after-refused-relaunch files, never a personal data root.
+    if snapshot_dir is not None:
+        snapshot_dir = snapshot_dir.resolve()
+        if not snapshot_dir.is_relative_to(output.resolve()):
+            raise ValueError("Crash-seam evidence may not escape its disposable test root")
+        snapshot_dir.mkdir(parents=True, exist_ok=False)
+        labels = {
+            "raw-sram": raw,
+            "typed-profile": typed,
+            "selector": selector,
+            "roster": roster,
+        }
+        file_receipt = {}
+        for label, path in labels.items():
+            previous, current = before[path], path.read_bytes()
+            (snapshot_dir / f"{label}.before.bin").write_bytes(previous)
+            (snapshot_dir / f"{label}.after.bin").write_bytes(current)
+            file_receipt[label] = {
+                "before_sha256": hashlib.sha256(previous).hexdigest(),
+                "after_sha256": hashlib.sha256(current).hexdigest(),
+                "before_bytes": len(previous),
+                "after_bytes": len(current),
+                "changed_byte_count": sum(a != b for a, b in zip(previous, current))
+                                      + abs(len(previous) - len(current)),
+            }
+        if (file_receipt["raw-sram"]["before_bytes"] != 8192 or
+            file_receipt["raw-sram"]["after_bytes"] != 8192 or
+            file_receipt["raw-sram"]["changed_byte_count"] == 0 or
+            any(file_receipt[label]["changed_byte_count"] for label in
+                ("typed-profile", "selector", "roster"))):
+            raise ValueError("Crash-seam archived bytes violate the actual P0 cut")
+        (snapshot_dir / "crash.log").write_text(log, encoding="utf-8")
+        (snapshot_dir / "cold-refusal.log").write_text(fresh_log, encoding="utf-8")
+        (snapshot_dir / "file-receipt.json").write_text(
+            json.dumps(file_receipt, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8")
 
     return {
         "real_native_guest_paused_at_frame": 1952,

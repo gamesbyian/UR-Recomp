@@ -35,6 +35,27 @@ STEPS = (
     "Native Options change, restore, defaults and damaged settings across four games",
     "Native Practice enters ten original courses across both unlock states",
 )
+# Measured in four successful source-bound Windows runs (38822009812,
+# 38823682428, 38824230943, 38831297147): Practice's real original
+# multi-course journey took 227-370s but was FIFO-queued LAST behind short
+# independent routes. Submit longest independent routes first. Baseline 0
+# still owns the real 8KiB SRAM seed; dependent Records 1/2 still wait
+# until the baseline finishes. Actual commands, 3 local workers, output
+# roots, source identity, and result/fixture assertions remain unchanged.
+# Fail closed if STEPS population changes rather than silently skipping work.
+INDEPENDENT_PRIORITY = (12, 8, 7, 9, 10, 6, 5, 3, 4, 11)
+
+
+def independent_priority_indices(command_count: int) -> tuple[int, ...]:
+    if (command_count != len(STEPS) or
+            len(INDEPENDENT_PRIORITY) != len(set(INDEPENDENT_PRIORITY)) or
+            set(INDEPENDENT_PRIORITY) != set(range(3, command_count)) or
+            STEPS[INDEPENDENT_PRIORITY[0]] !=
+            "Native Practice enters ten original courses across both unlock states"):
+        raise ValueError("measured Windows independent journey priority no longer matches 13 originals")
+    return INDEPENDENT_PRIORITY
+
+
 STEP_RE = re.compile(r"^      - name: (.+)$")
 OUT_RE = re.compile(r'--out "\$RUNNER_TEMP/(.*?)"')
 EXE = ROOT / "baldosa/build-ur-win/UniracersSNESRecomp.exe"
@@ -188,7 +209,7 @@ def run_overlapping_baseline(commands: list[str], work: Path,
             time.sleep(0.05)
         futures: dict[int, concurrent.futures.Future] = {}
         if parent.is_dir() and not parent.is_symlink():
-            for index in range(3, len(commands)):
+            for index in independent_priority_indices(len(commands)):
                 futures[index] = executor.submit(run_one, index, commands[index], work, env)
         first = baseline.result()
         if first["exit_code"] == 0:

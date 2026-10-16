@@ -1,0 +1,113 @@
+{
+  "schema": "qa02-independent-original-nominated-windows-two-real-games-audit/1",
+  "date_utc": "2026-10-16",
+  "disposition": "bounded_positive_same_profile_two_concurrent_original_game_processes_prewrite_stale_save_protection",
+  "exact_original_candidate": {
+    "source_sha": "11501a15dea38fa912335cfc63103ce3a7208001",
+    "zip_sha256": "5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7",
+    "game_exe_sha256": "0701f72481531ad4f2803caadc62bbb072f292abef69f039edda004b01c18ea9",
+    "original_owner_run": 38828519791,
+    "original_owner_artifact": 12016101293,
+    "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "race_route_sha256": "4e714899f53c3bbe501bbfcacf91dd549989c9beb7c2cf6265b13eb687142ec6"
+  },
+  "win32": {
+    "run": 38870134987,
+    "tested_qa_head": "15d9e291c36fc890d3bfb623b34222d9edb6e795",
+    "source_test_step": "Prove same-profile two genuine original Win32 games protect newer SRAM",
+    "source_test_step_conclusion": "success",
+    "source_artifact_upload_step_conclusion": "success",
+    "archive_artifact_id": 12033107568,
+    "archive_zip_sha256": "ae3c8319604363638ebd25e6beb6e5559714d161c761925577ba47bfa070b4cb",
+    "archive_size_bytes": 13797,
+    "archive_members": 24,
+    "archive_crc_errors": 0,
+    "archive_expires_utc": "2026-10-30T07:58:01Z",
+    "whole_job_may_contain_unrelated_later_parallel_pilot": true,
+    "qa_fixture_sha256": "3bbc4020570e06a83c84702670cc4999f7a795d219ba5c8f88f2b61327a9c336"
+  },
+  "guest_processes": [
+    {
+      "id": "A",
+      "description": "original immutable nominated Win32 game",
+      "overlaps_B": true,
+      "first_sram_bytes": 8192,
+      "first_sram_fnv32": "63568e07",
+      "source_guest_pause_frame": 1952,
+      "source_quit_queued": true,
+      "source_preflight_rejected_status": 6,
+      "source_native_save_preflight_failed": true,
+      "source_post_write_checkpoint": false,
+      "process_exit": 0,
+      "log_sha256": "ac0808eb7b32a4ea2ff45b4998f25bde2989e099fdee1cd42593787d7ee308f7"
+    },
+    {
+      "id": "B",
+      "description": "another simultaneously running copy of exact same original immutable game exe, not the fixture writer",
+      "overlaps_A": true,
+      "first_sram_bytes": 8192,
+      "first_sram_fnv32": "63568e07",
+      "source_guest_pause_frame": 1952,
+      "source_quit_queued": true,
+      "source_save_checkpoint": "committed",
+      "process_exit": 0,
+      "log_sha256": "aff2ae193cdf8f34bb2719fe9d63a647d2d860853567dcb10fb84ba363b97050"
+    },
+    {
+      "id": "C",
+      "description": "fresh process of same nominated Win32 game cold-reopens newer B profile",
+      "first_sram_bytes": 8192,
+      "first_sram_fnv32": "b4b37efd",
+      "guest_frames": 6,
+      "source_save_checkpoint": "unchanged",
+      "process_exit": 0,
+      "log_sha256": "970e39e7778ec6a832936777b135c9b06f670e2937f0b1199491cd4f4a620cf9"
+    }
+  ],
+  "four_stage_canonical_file_byte_proof": {
+    "stages": [
+      "before_A",
+      "after_B",
+      "after_A",
+      "after_C"
+    ],
+    "all_manifests_match_full_archived_bytes": true,
+    "before_A": {
+      "raw_size": 8192,
+      "raw_sha256": "bd9571f85e1b7ddfcf2b6913d5f3556c27ecadf65d353afbac29876e7d111c10",
+      "typed_size": 16525,
+      "typed_sha256": "1f98e49d51691816a9cd544c6fe71a5f74c3447933a7db6a8cf4e659921775b0",
+      "typed_generation": 1,
+      "selector_size": 241,
+      "selector_sha256": "eb0d0bd6c37dfa57766faff9e70f57d1730cabca36426d2863553256bbe87956",
+      "catalog_size": 44,
+      "catalog_sha256": "75c0dcef43c3209a4f8793eae5ca035a535348412d3b8b807797fe7f176b1476"
+    },
+    "after_B": {
+      "raw_size": 8192,
+      "raw_sha256": "2f3009bb2436e3862e045df7f12da4d37845b83ada491cbc80cbef3a098f80d8",
+      "typed_size": 16525,
+      "typed_sha256": "5b8960309ff9e34761a467072690e587790710b2686c557f6b4cb794cc9886e8",
+      "typed_generation": 2,
+      "selector_sha256": "eb0d0bd6c37dfa57766faff9e70f57d1730cabca36426d2863553256bbe87956",
+      "catalog_sha256": "75c0dcef43c3209a4f8793eae5ca035a535348412d3b8b807797fe7f176b1476"
+    },
+    "raw_guest_changed_byte_count": 28,
+    "full_8192_byte_typed_stock_sram_exactly_matches_corresponding_raw_all_four_stages": true,
+    "all_four_files_byte_identical_after_B_and_after_stale_A": true,
+    "all_four_files_byte_identical_after_B_and_after_game_C": true,
+    "no_unearned_run_match_ghost": true
+  },
+  "acceptance_limits": {
+    "qa02_status": "in_progress",
+    "qa12_status": "unverified",
+    "release_gate_witnesses_added": 0,
+    "full_original_native_usa_events_added": 0,
+    "physical_controller_test": false,
+    "power_loss_or_torn_write_test": false,
+    "post_raw_pre_typed_crash_recovery_fixed": false,
+    "original_candidate_release_decision": "not_assessed",
+    "native_save_was_rejected_pre_write": true,
+    "not_a_full_J07_or_J08_test": true
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "schema": "qa-exact-main-independent-retention-equality/1",
+  "original_run_id": 38813101482,
+  "source_commit": "11501a15dea38fa912335cfc63103ce3a7208001",
+  "candidate_portable_zip_sha256": "5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7",
+  "candidate_exe_sha256": "0701f72481531ad4f2803caadc62bbb072f292abef69f039edda004b01c18ea9",
+  "original_owner": {
+    "artifact_id": 12009612842,
+    "original_outer_sha256": "5a4de66f09a9ceea5cb7b431f808a17821f770bf09c48117a8cb3bd9a0c83722"
+  },
+  "retained_owner": {
+    "actions_run_id": 38828519791,
+    "artifact_id": 12016101293,
+    "retained_outer_sha256": "5604af1c673df09465b3fbd950898cd08a038705e076aedfba8141e9d83fd8ce",
+    "outer_size_bytes": 5967779,
+    "original_members_byte_identical": [
+      "PLAYTEST-PROVENANCE.json",
+      "RELEASE-NOTES.md",
+      "UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip",
+      "UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256"
+    ],
+    "added_only": "ORIGINAL-ARTIFACT-RETENTION.json",
+    "nested_portable_zip_rehash_matches_original": true,
+    "actual_pe_amd64_exe_sha256_rehash_matches_original": true
+  },
+  "retained_qa": {
+    "actions_run_id": 38829200136,
+    "artifact_id": 12016521644,
+    "retained_outer_sha256": "3914b14e7ef6db340e297b76376ceac662eed28390bae8073e19f08919d54d2a",
+    "outer_size_bytes": 6082592,
+    "only_extra_member": "ORIGINAL-WRAPPER-RETENTION.json",
+    "original_nested_wrappers": [
+      [
+        12009069728,
+        "a3e7592b3472d115fba0440265dbd924edfa1e9cd59b7329cff9585fdff29ea4"
+      ],
+      [
+        12010371123,
+        "3a466ba30e512057c61d14e8be0dea12c6b5cc47eff854aabb72a1554e894545"
+      ],
+      [
+        12010421091,
+        "485f37190ba1e12fd6ba4745f05c3a50d3056d05cf36151cf69f7699125fc0b9"
+      ],
+      [
+        12010490843,
+        "421daddd16bf0b8cfb4127bf0c05a88b9a3080e21cbe07868595e588d683f82b"
+      ],
+      [
+        12010495750,
+        "5845040dbbc8ba93d9202f043dd3457f5937fdd62d4200771f0aa031f7f35891"
+      ],
+      [
+        12010555537,
+        "0dc7618f81136a8288459e6ad8908d368c0a20bffffc098c6917b1a7ba6145b1"
+      ],
+      [
+        12010640197,
+        "c2392d1c01b3c009aded903936c953af6b656cf780922afbb72ee5c39bef8754"
+      ],
+      [
+        12010675093,
+        "d396c11061f34b751c6138670cb160c01d011022b93800ac14b57eb2854c2a69"
+      ],
+      [
+        12010750002,
+        "6fba74ddbb1ce00533b31c62d78e722fb283fdc8db454d3accb9534fe6b7ae34"
+      ]
+    ],
+    "all_nine_rehashed_equal_original_independently_downloaded_outer_bytes": true,
+    "all_nested_zip_crc_checks_passed": true
+  },
+  "retention_metadata": {
+    "owner_expires_at": "2027-01-14T00:16:12Z",
+    "qa_expires_at": "2027-01-14T00:23:21Z",
+    "as_reported_by_github_actions_artifact_metadata": true
+  },
+  "independent_verification": {
+    "downloaded_original_wrappers_and_both_new_archives_separately": true,
+    "compared_raw_original_owner_members": true,
+    "compared_nine_archived_wrapper_bytes_to_prior_independently_downloaded_originals": true,
+    "checked_nonstraversal_unique_members_and_zip_crc": true,
+    "checked_retention_receipts_historical_pins_zero_release_credit": true,
+    "verification_environment": "read-only offline Python ZIP/hash audit on Linux; no Windows process or NTFS test"
+  },
+  "limitations": {
+    "new_outer_zip_sha256s_are_not_expected_to_equal_original_outer_archive": true,
+    "physical_two_gamepads_audio_display_tested": false,
+    "ntfs_hardkill_recovery_tested": false,
+    "original_native_complete_usa_events_accepted": 0,
+    "qa_gate_witnesses_accepted": 0,
+    "release_decision": "not_assessed"
+  }
+}

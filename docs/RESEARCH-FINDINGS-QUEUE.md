@@ -2,6 +2,10 @@
 
 **Classification:** research triage only. It never changes the strict comparator, the [release ledger](RELEASE-QUALITY-LEDGER.json) or any implementation lane's acceptance authority. The machine-readable register is [`analysis/data/research-findings-register.json`](../analysis/data/research-findings-register.json), validated by [`tools/research_findings.py`](../tools/research_findings.py) (`--queue` prints the live table). [Cumulative research](QA-CUMULATIVE-RESEARCH.md) owns campaign mechanics; this page owns *what the outputs mean and who should act*.
 
+## Exact-ELF Zoo cold-guest evidence gap (2026-10-16)
+
+The first fresh restart using the combined RF-015..028 *exact research binary* was blocked at the verifier's source-script preflight: the approved +280 Zoo next-Bowl script SHA `414cb0b1…` differed from the independently authenticated extended mesh+DP source script `1eb3e841…` from run 38884542449. The pinned 2014 movie/controller window and 11/11 live SRAM pairs remain genuine. `qa01_cold_result_record.py` now accepts the **single known** composite script only with fail-closed 78-row full-WRAM source/host clocks, +5034..+5046 SPC window, full Zoo +5163/Bowl +267 continuity, unmodified ROM/movie and earned 2510 record. Synthetic regression tests are not replay or admission. The next evidence-producing task is an actual separately restarted original/native guest pair seeded from the archived genuine +72 images; do not substitute shipping disk persistence or promote 0/45. See [QA01 exact composite cold eligibility](QA01-EXACT-COMPOSITE-COLD-GUEST-ELIGIBILITY-20261016.md), source-owner [#1689](https://github.com/gamesbyian/UR-Recomp/issues/1689) and integration [#1686](https://github.com/gamesbyian/UR-Recomp/issues/1686).
+
 ## Significance classes
 
 Ordered by decision value. A finding is triaged in this order, whatever computation produced it.

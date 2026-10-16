@@ -106,7 +106,7 @@ def assess(original_zip:Path,native_zip:Path,original_probe_zip:Path)->dict:
                     int(old["bgmode"])!=3 or int(old["TM"],16)!=0x13 or
                     int(old["TS"],16)!=0x10 or
                     int(old["sub_depth"]) not in (1,40) or
-                    zmain!=40 if pi!=2 else zmain!=39):
+                    zmain!=(39 if pi==2 else 40)):
                     raise ValueError("original source PPU medal priority/callback drift")
                 old_owner=4 if zmain==40 else 0
                 if old_owner!=ORIG_OWNER[pi] or new["resolved_main_layer"]!=NATIVE_OWNER[pi]:

@@ -1,0 +1,229 @@
+{
+ "authority": "docs/RF023-025-SPC-FRAME-CLOCK-20261016.md",
+ "base": "RF-015..019 candidate on gamesbyian/uniracers-recomp@10b864b, baldosa/snesrecomp@075fbe4",
+ "complete_event_credit": 0,
+ "date": "2026-10-16",
+ "executables": {
+  "anchor_0": {
+   "1p": "f202aebe384092a01521d822d45f1266ac7aaed4b09ffacbaf4d4225749b5d20",
+   "2p": "4a085e91ed7b32ef5ccd3f8be50fb372c0dbdfc6933eb1d0c6dbe19927b9e8e6"
+  },
+  "anchor_2446": {
+   "1p": "cb3e5f355e504856bd95429a0b563f4bf871b205c9e168a998da6de4ec84c007",
+   "2p": "de6605fd7c1fd21e23ca1dde3ec200ed9823dc09476c1d2358d3d41423637078"
+  }
+ },
+ "harness_correction": "Earlier scratch Dragster dense dumps ran the native without the movie SRAM; with SRAM the RF-015..019 base still first differs at +2040 (20 frames).",
+ "release_gate_credit": 0,
+ "reset_spc_age_vs_snes9x": {
+  "clamp_anchor2446_no_short_line": [
+   0,
+   -74,
+   -84,
+   1617,
+   -145,
+   -181,
+   3393
+  ],
+  "note": "Dragster producer replay with the movie SRAM seeded in the native's working directory",
+  "rf023_024_anchor0": [
+   -14,
+   -102,
+   -114,
+   -14,
+   -286,
+   -324,
+   -12
+  ],
+  "rf023_024_anchor2446": [
+   -2460,
+   -2551,
+   -2553,
+   -2458,
+   -2674,
+   -2714,
+   -2457
+  ],
+  "snes9x_age": [
+   586459,
+   747216,
+   772390,
+   14472600,
+   14638861,
+   14698686,
+   49501155
+  ],
+  "snes9x_host": [
+   35,
+   44,
+   46,
+   849,
+   859,
+   862,
+   2902
+  ]
+ },
+ "schema": "ur-rf023-025-spc-frame-clock/1",
+ "short_scanline_fit": {
+  "field_clocks_tested": [
+   357368,
+   357366,
+   357364
+  ],
+  "snes9x_residual_spc_cycles_hosts_35_to_2902": [
+   270.9,
+   -2.8,
+   -276.5
+  ]
+ },
+ "stage_order": [
+  "RF-015..019 tools",
+  "tools/baldosa_spc_power_on_patch.py [--anchor N]",
+  "tools/baldosa_spc_frame_clock_patch.py (requires RF-016)"
+ ],
+ "timer_phase_trace": {
+  "boot_ipl_upload_position_drift_master_per_field": -200,
+  "boot_upload_exchanges": {
+   "exchanges": 4450,
+   "extra_polls": {
+    "native": 3082,
+    "snes9x": 3104
+   },
+   "interval_model": "696 base + 40 per refresh + 52 per extra CPU poll",
+   "master_clocks_snes9x": 3353894,
+   "native_minus_snes9x": -1824,
+   "native_only_short_intervals": [
+    632,
+    644,
+    684
+   ],
+   "refresh_stalls": {
+    "native": 2452,
+    "snes9x": 2457
+   }
+  },
+  "host_2902_stale_t2_tick_after_write": {
+   "anchor_0": 139,
+   "anchor_2446": 88,
+   "snes9x": 257
+  },
+  "last_timer_restart_before_2902": {
+   "anchor_0_native_spc": 16127823,
+   "elapsed_to_2902_write_native_minus_snes9x": 116,
+   "snes9x_spc": 16127951
+  }
+ },
+ "witnesses": {
+  "2p_pairs": {
+   "anchor_0": "identical to anchor 2446",
+   "anchor_2446": "16 exact; 50036056 vs bsnes field_divergence 5236, 50024004 vs Snes9x field_divergence 5123 (reference knife-edges)",
+   "rf015_019_base": "50048000 field_divergence 5052 vs both references"
+  },
+  "attract_vs_bsnes": {
+   "anchor_0": [
+    [
+     248,
+     276
+    ],
+    [
+     401,
+     443
+    ],
+    [
+     941,
+     1097
+    ],
+    [
+     1422,
+     1545
+    ],
+    [
+     3631,
+     3761
+    ]
+   ],
+   "anchor_2409_observer": [
+    [
+     248,
+     276
+    ],
+    [
+     401,
+     443
+    ],
+    [
+     941,
+     1097
+    ],
+    [
+     1422,
+     1545
+    ],
+    [
+     3631,
+     3761
+    ]
+   ],
+   "anchor_2446": [
+    [
+     248,
+     276
+    ],
+    [
+     401,
+     443
+    ],
+    [
+     941,
+     1098
+    ],
+    [
+     1423,
+     1546
+    ],
+    [
+     3632,
+     3762
+    ]
+   ],
+   "bsnes": [
+    [
+     248,
+     276
+    ],
+    [
+     401,
+     443
+    ],
+    [
+     941,
+     1098
+    ],
+    [
+     1423,
+     1547
+    ],
+    [
+     3632,
+     3762
+    ]
+   ]
+  },
+  "bowl": {
+   "all": "+3365 = +3365"
+  },
+  "dragster": {
+   "anchor_0": "+2080 vs +2081",
+   "anchor_2446": "+2081 = +2081, paired candidate, named follow-through equal, dense low WRAM equal +2040..+2100",
+   "base": "+2080 vs +2081"
+  },
+  "switcher": {
+   "all": "+4703 vs +4704, first disagreement +4664"
+  },
+  "zoom_zoo": {
+   "anchor_0": "+5163 = +5163, follow-through named pairs and SRAM differ",
+   "anchor_2446": "same",
+   "base": "+5163 = +5163, follow-through equal"
+  }
+ }
+}

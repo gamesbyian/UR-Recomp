@@ -192,18 +192,23 @@ VRAM_FIELDS=frozenset(("frame","x","raster_y","ppu_line","slot","xoff","yoff",
   "usedcol","usedrow","name","obsel","obsel_bank","tile","wordaddr",
   "guest_w0","guest_w8","render_w0","render_w8","guest_idx","render_idx",
   "actual_obj","actual_cgram","overlay","vram_writes"))
-VRAM_COORDS={(4032,225,96,99,"1e6"),(4032,225,120,98,"1e6"),
-             (4176,225,96,99,"1e2"),(4176,225,120,98,"1e2")}
+VRAM_COORDS={(frame,225,y,slot,name) for frame in (4032,4176)
+             for y,adjacent,gold in ((96,97,99),(120,96,98))
+             for slot,name in ((adjacent,"1ce"),
+                               (gold,"1e6" if frame==4032 else "1e2"))}
+
 
 def inspect_medal_live_vram(log:str)->dict:
-    """Fail-close exact guest/render bitplanes at four *actual* native lines.
+    """Actual 2P Win32 source: overlapping OAM and underlying gold VRAM.
 
-    Deliberately does NOT force renderer and physical guest VRAM equivalence
-    or expected index15/14: those comparisons are the research result.
+    Four screen coordinates and eight independently observed OAM tile records.
+    Critical: lower-numbered slot 96/97 overwrites slot 98/99 at an opaque
+    texel. Never equate gold-slot index to actual final sprite index, and
+    never infer physical/native VRAM equivalence from archived original data.
     """
     found={}
     if "UR_QA08_WIN_MEDAL_VRAM_REJECT " in log:
-        raise ValueError("actual Win32 source PPU rejected live medal VRAM probe")
+        raise ValueError("real native source VRAM observer rejected pixel source")
     for line in log.splitlines():
         if not line.startswith("UR_QA08_WIN_MEDAL_VRAM "):
             continue
@@ -212,60 +217,93 @@ def inspect_medal_live_vram(log:str)->dict:
             frame,x,y,slot=[int(d[k]) for k in ("frame","x","raster_y","slot")]
             key=(frame,x,y,slot,d["name"].lower())
             if key not in VRAM_COORDS or key in found or int(d["ppu_line"])!=y+1:
-                raise ValueError("nonregistered/duplicated medal PPU raster frame, slot or tile name")
+                raise ValueError("incorrect/duplicated native registered OAM slot/pixel/guest")
             if (int(d["xoff"]),int(d["yoff"]))!=(6,8) or (
                 int(d["usedcol"]),int(d["usedrow"]))!=(6,8):
-                raise ValueError("observed flipped/out-of-bounds sprite texel")
+                raise ValueError("source sprite coordinate or flip state diverged")
+            adjacent=slot in (96,97)
             if (d["obsel"].lower()!="63" or int(d["obsel_bank"],16)!=0x7000 or
-                int(d["tile"],16)!=(0xf6 if frame==4032 else 0xf2) or
-                int(d["wordaddr"],16)!=(0x7f60 if frame==4032 else 0x7f20)):
-                raise ValueError("actual OBJ tile/bank/word address disagrees with source")
+                int(d["tile"],16)!=(0xde if adjacent else
+                                  (0xf6 if frame==4032 else 0xf2)) or
+                int(d["wordaddr"],16)!=(0x7de0 if adjacent else
+                                      (0x7f60 if frame==4032 else 0x7f20))):
+                raise ValueError("OBJ 2nd page selected wrong actual source tile or VRAM word")
             if int(d["overlay"]) not in (0,1) or int(d["vram_writes"])<0:
-                raise ValueError("invalid render-VRAM override or guest write counter")
+                raise ValueError("host render-VRAM override / guest writer count malformed")
             for prefix in ("guest","render"):
                 a,b=(int(d[k],16) for k in (prefix+"_w0",prefix+"_w8"))
-                plane=a | b<<16
-                bit=1 # xoff=6 -> SNES bit7-6=1
+                plane=a | b<<16;bit=1 # 7-x_offset_6
                 val=(plane>>bit&1)|(plane>>(bit+7)&2)|(
                     plane>>(bit+14)&4)|(plane>>(bit+21)&8)
                 if int(d[prefix+"_idx"])!=val or not 0<=val<=15:
-                    raise ValueError("native actual 4bpp planes do not yield their claimed indexed pixel")
+                    raise ValueError("live 4bpp bitplanes contradict recorded 4bit index")
             actual=int(d["actual_obj"],16)
             if (actual&255)!=0xde or int(d["actual_cgram"],16)!=0xde:
-                raise ValueError("real legacy OBJ is not the independently observed palette5 index14")
+                raise ValueError("actual Windows composite differs from immutable gold source")
             if (int(d["overlay"])==0 and
                 any(d["guest_"+field]!=d["render_"+field] for field in
                     ("w0","w8","idx"))):
-                raise ValueError("renderVram differs from guest without a host override")
+                raise ValueError("render VRAM differs without actual host override")
             found[key]={
-                "actual_native_guest":frame,"original_2014_callback":frame-1,
-                "sampled_xy":[x,y],"source_slot":slot,"native_oam_name9":d["name"].lower(),
-                "original_OBJ_palette5_4bpp_index":15,
-                "native_actual_effective_OBJ_palette5_4bpp_index":14,
-                "native_guest_vram_4bpp_index":int(d["guest_idx"]),
-                "native_render_vram_4bpp_index":int(d["render_idx"]),
-                "native_guest_vram_words":[d["guest_w0"].lower(),d["guest_w8"].lower()],
-                "native_render_vram_words":[d["render_w0"].lower(),d["render_w8"].lower()],
-                "native_source_VRAM_word_address":d["wordaddr"].lower(),
-                "host_render_VRAM_override_live":bool(int(d["overlay"])),
-                "native_total_VRAM_write_count":int(d["vram_writes"]),
-                "native_objBuffer_and_decoded_render_VRAM_agree":int(d["render_idx"])==14,
+                "actual_native_guest":frame,"original_video_callback":frame-1,
+                "exact_source_xy":[x,y],"source_slot":slot,
+                "lower_OAM_slot_precedence":adjacent,
+                "actual_native_OAM_name9":d["name"].lower(),
+                "original_VRAM_with_same_native_OAM_name_predicted_index":14 if adjacent else 15,
+                "actual_native_4bpp_guest_index":int(d["guest_idx"]),
+                "actual_native_4bpp_renderer_index":int(d["render_idx"]),
+                "actual_native_4bpp_guest_words":[d["guest_w0"].lower(),d["guest_w8"].lower()],
+                "actual_native_4bpp_renderer_words":[d["render_w0"].lower(),d["render_w8"].lower()],
+                "actual_native_source_VRAM_word_address":d["wordaddr"].lower(),
+                "actual_OBJ_buffer_CGRAM_index":int(d["actual_cgram"],16),
+                "host_renderVram_overlay_active":bool(int(d["overlay"])),
+                "native_vram_writer_count":int(d["vram_writes"]),
             }
         except (ValueError,KeyError) as exc:
-            raise ValueError("invalid native source VRAM/OBJ observation: "+str(exc)) from exc
+            raise ValueError("unqualified real native gold/adjacent 4bpp source: "+str(exc)) from exc
     if set(found)!=VRAM_COORDS:
-        raise ValueError("native VRAM/4bpp source did not visit all four registered medal pixels")
+        raise ValueError("missing any of eight exact overlapping and gold on-raster source records")
+    pairs=[]
+    for frame in (4032,4176):
+        for y,adjacent,gold in ((96,97,99),(120,96,98)):
+            upper=next(v for k,v in found.items()
+                       if k[:4]==(frame,225,y,adjacent))
+            lower=next(v for k,v in found.items()
+                       if k[:4]==(frame,225,y,gold))
+            actual=upper["actual_OBJ_buffer_CGRAM_index"] - 0xd0
+            a=upper["actual_native_4bpp_renderer_index"]
+            b=lower["actual_native_4bpp_renderer_index"]
+            pairs.append({
+                "native_guest":frame,"original_callback":frame-1,
+                "original_screen_pixel":[225,y],
+                "overlapping_earlier_OAM_slot":adjacent,
+                "underlying_gold_OAM_slot":gold,
+                "original_source_earlier_OAM_index":0,
+                "original_source_underlying_gold_index":15,
+                "original_VRAM_at_native_earlier_tile_index":14,
+                "original_VRAM_at_native_gold_tile_index":15,
+                "native_actual_earlier_slot_index":a,
+                "native_actual_gold_slot_index":b,
+                "actual_Windows_OBJ_color_index":actual,
+                "native_renderer_reproduces_original_VRAM_overlap_hypothesis":(
+                    a==14 and b==15 and actual==14),
+                "native_gold_tile_was_covered_by_lower_OAM_slot":a>0 and actual==a,
+                "native_renderVram_override_active":upper["host_renderVram_overlay_active"] or
+                    lower["host_renderVram_overlay_active"],
+            })
     return {
-      "schema":"qa08-real-Win32-2p-live-medal-gold-VRAM-OBJ-index-probe/1",
-      "source_exact_two_2P_results_guest_frames":[4032,4176],
-      "source_registered_exact_four_pixel_records":[found[k] for k in sorted(found)],
-      "observed_actual_Windows_pixel_count":4,
-      "original_index15_source_verified_with_separate_2014_archive":True,
-      "native_OBJ_index14_source_qualified_from_existing_11_point_PPU":True,
-      "source_corresponding_PPU_renderVram_probe_readonly":True,
-      "CPU_NMI_writer_phase_and_hardware_DAC_equivalence_accepted":False,
-      "native_PPU_corrective_patch_authorized":False,
-      "QA08_QA10_release_or_HD_art_accepted":False,
+      "schema":"qa08-live-Win32-2P-gold-adjacent-OBJ-4bpp-VRAM-priority-overlap/1",
+      "source_actual_sampled_Win32_guest_frames":[4032,4176],
+      "source_exact_eight_single_sprite_tile_records":[found[k] for k in sorted(found)],
+      "corresponding_overlapping_sprite_pairs":pairs,
+      "source_samples":len(found),
+      "actual_Windows_pixel_pairs":len(pairs),
+      "native_all_pair_source_overlap_hypothesis_observed":all(
+          row["native_renderer_reproduces_original_VRAM_overlap_hypothesis"] for row in pairs),
+      "native_4bit_sample_did_not_write_guest_VRAM_PPU_or_frame":True,
+      "physical_SNES_DAC_and_original_native_cpu_NMI_cycle_parity_proven":False,
+      "global_renderer_or_tile_number_patch_authorized":False,
+      "QA08_QA10_release_HDart_approval":False,
     }
 
 

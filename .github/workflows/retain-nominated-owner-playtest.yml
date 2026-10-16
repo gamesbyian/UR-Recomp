@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   retain_once:
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-22.04
     timeout-minutes: 10
     steps:
@@ -49,5 +49,50 @@ jobs:
         with:
           name: retained-nominated-owner-playtest-11501a15
           path: ${{ runner.temp }}/original-owner-playtest/
+          if-no-files-found: error
+          retention-days: 90
+
+  retain_original_qa_wrappers:
+    # One PR-scoped archival run before the source evidence expires Oct 22.
+    # The nine original GitHub ZIPs retain their original outer SHA-256.
+    # Do not repeat Windows execution or count any new independent QA witness.
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout pinned independent QA receipt and verifier
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify exact original nine-artifact identity before HTTP download
+        run: |
+          set -euo pipefail
+          python3 tools/verify_retained_windows_qa_artifacts.py \
+            --qa-report analysis/evidence/qa-exact-main-38813101482-cross-artifact-review.json \
+            --emit-index "$RUNNER_TEMP/qa-artifact-hashes.txt"
+      - name: Fetch and SHA-verify each original GitHub artifact ZIP, without extraction
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/original-qa-wrappers"
+          while read -r artifact_id sha256; do
+            curl --fail --location --silent --show-error --retry 2 \
+              --connect-timeout 20 --max-time 120 \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact_id/zip" \
+              --output "$RUNNER_TEMP/original-qa-wrappers/$artifact_id.zip"
+            printf '%s  %s\n' "$sha256" "$RUNNER_TEMP/original-qa-wrappers/$artifact_id.zip" | sha256sum -c -
+          done < "$RUNNER_TEMP/qa-artifact-hashes.txt"
+          python3 tools/verify_retained_windows_qa_artifacts.py \
+            --qa-report analysis/evidence/qa-exact-main-38813101482-cross-artifact-review.json \
+            --verify-dir "$RUNNER_TEMP/original-qa-wrappers"
+          echo "Nine original wrapper ZIP SHA256 identities preserved; no new Windows test or QA witness." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain original independent CI evidence ZIP bytes only
+        uses: actions/upload-artifact@v4
+        with:
+          name: retained-original-nominated-win32-qa-wrappers-11501a15
+          path: ${{ runner.temp }}/original-qa-wrappers/
           if-no-files-found: error
           retention-days: 90

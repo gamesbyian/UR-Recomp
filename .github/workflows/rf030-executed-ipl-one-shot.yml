@@ -1,0 +1,28 @@
+# RF-030 final bounded corrected original/native execution; retire after receipt.
+name: RF030 Executed Zoo CPU SPC Echo
+on:
+  push:
+    branches:
+      - cpu-rf030-executed-spc-echo-trace-20261016
+permissions:
+  contents: read
+concurrency:
+  group: rf030-zoo-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  exact-executed-ipl:
+    uses: ./.github/workflows/qa01-event-campaign.yml
+    with:
+      selected: zoom-zoo
+      zoo_race_mesh: true
+      zoo_dp_window: true
+      zoo_terminal_phase: true
+      source_followthrough: true
+      zoo_next_bowl: true
+      baldosa_refresh_beam_rate: true
+      baldosa_io_clock_order: true
+      baldosa_spc_reference_rate: true
+      baldosa_dp_pointer_once: true
+      baldosa_hdma_cpu_stall: true
+      baldosa_spc_interrupt_stage: true
+      qa01_ipl_echo_trace: true

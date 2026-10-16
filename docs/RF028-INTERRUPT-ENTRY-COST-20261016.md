@@ -54,6 +54,18 @@ Executables: 1P `8dde89b4…`, 2P `bf4a66cb…`.
 
 All four 1P producer cases are `paired_event_candidate` with all named follow-through and fresh-SRAM pairs equal. **Every witness on which Snes9x and bsnes agree now matches.** No parameter was tuned: the power-on anchor is the exact-age value, and the interrupt cost comes from the hardware sequence.
 
+## Hosted re-execution (run 38879846733)
+
+`qa01-event-campaign` was dispatched on `d9134a6` with `selected=all`, `source_followthrough` on, all five RF-015…019 inputs on and `baldosa_spc_interrupt_stage` on ([run 38879846733](https://github.com/gamesbyian/UR-Recomp/actions/runs/38879846733)). It built the full stage once from source on `ubuntu-22.04` and ran the three campaign cases against Snes9x.
+
+| Case | Hosted terminal (reference / native) | Paired candidate | First sample disagreement |
+| --- | --- | --- | --- |
+| Zoom Zoo | +5163 / +5163 | yes | none; live SRAM: none |
+| Bowl | +3365 / +3365 | yes | none |
+| Switcher | +4704 / +4704 | yes | none |
+
+All three agree with the local runs. Recorded from the case job logs: the per-pair follow-through detail is in the run's case artifacts (retained to 2026-10-23), which this session could not download. Dragster is not in the campaign population. This is hosted reproduction of candidates; it is not QA-01 acceptance.
+
 ## Boundary
 
 - These are research candidates. QA-01 decides acceptance, after hosted re-execution of the full stage.

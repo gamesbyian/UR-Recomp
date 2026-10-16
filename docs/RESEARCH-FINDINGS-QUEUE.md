@@ -141,7 +141,7 @@ Baldosa charged nothing for the 65816 interrupt-entry sequence (62 master clocks
 - 16 of 18 2P pairs are exact, and the other two are Snes9x/bsnes disagreements;
 - the attract census matches 5/5.
 
-QA-01 hosted re-execution and adjudication come next. Report: [RF-028](RF028-INTERRUPT-ENTRY-COST-20261016.md).
+Hosted run 38879846733 reproduces the three campaign cases as paired candidates; QA-01 adjudication comes next. Report: [RF-028](RF028-INTERRUPT-ENTRY-COST-20261016.md).
 
 ## Live queue
 
@@ -156,7 +156,7 @@ Generate with `python3 tools/research_findings.py --queue`. As of 2026-10-16 (af
 | RF-023 | original_native_discrepancy | handed_off | qa01-gameplay | Baldosa's APU frame clock gives every host iteration at least one field of SPC time (one-field WAI minimum), so the SPC700 runs ahead of the CPU | QA-01: hosted re-execution of the staged candidate; adopt together with RF-024 and RF-021 once RF-025's anchor dependence is settled. |
 | RF-024 | original_native_discrepancy | handed_off | qa01-gameplay | Baldosa's beam uses 1,364-clock lines in every field; NTSC hardware shortens line 240 to 1,360 on alternate fields, so the SPC700 gains 2 master clocks per field on the CPU | Adopt with RF-023; if a witness ever depends on line-240 H timing, model the short line in the beam driver instead. |
 | RF-026 | original_native_discrepancy | handed_off | qa01-gameplay | Baldosa's LakeSnes-derived SPC700 executes each opcode on its first cycle, so port and timer accesses land 1-7 SPC cycles before their hardware bus cycle | QA-01: hosted re-execution of the full RF-015..026 stage; optionally a per-access SMP model checked against bsnes to remove the residual upload drift. |
-| RF-028 | original_native_discrepancy | handed_off | qa01-gameplay | Baldosa's beam driver charges nothing for the 65816 interrupt-entry sequence (62 master clocks on SlowROM native mode), so NMI/IRQ handlers start early against the beam | QA-01: hosted re-execution of the full RF-015..028 stage, then adjudication; Windows-bridge staging only after that. |
+| RF-028 | original_native_discrepancy | handed_off | qa01-gameplay | Baldosa's beam driver charges nothing for the 65816 interrupt-entry sequence (62 master clocks on SlowROM native mode), so NMI/IRQ handlers start early against the beam | QA-01 adjudication of the hosted candidates (run 38879846733 artifacts) and of Dragster locally; Windows-bridge staging only after acceptance. |
 | RF-005 | graphics_observation_gap | handed_off | qa08-graphics | $121B/$121D 'offscreen' predicate is never nonzero; bank-82 split-screen sentinels are the source-qualified culling signal | QA-08: if a culling question needs it, ask for per-frame sentinel transitions (a 100-case observer validation), not case incidence; otherwise no work. |
 | RF-008 | reproducible_anomaly | handed_off | qa01-gameplay | Latest original-native coordinator attempt 38446280858 failed without a recoverable first step | One single-case qa01-event-campaign dispatch; never another long campaign before a first-failure reason exists. |
 | RF-013 | reproducible_anomaly | handed_off | qa01-gameplay | Legacy-pin native race-entry lag is phase-dependent (2 or 3 frames); Baldosa enters on the same frame as the original for every route delay | QA-01: compare native and original iteration counts of the entry fade wait loop for k=1 (lag 2) and k=2 (lag 3); if the extra frame is the wait loop, test the same loop in the 0x84 phase. |

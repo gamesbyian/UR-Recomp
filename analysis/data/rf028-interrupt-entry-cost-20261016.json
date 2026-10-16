@@ -11,6 +11,39 @@
   "1p": "8dde89b422b25c4650556d649b8f9b36dda20880a4a105d19529f10c1a78c4a5",
   "2p": "bf4a66cbbac66b3448de698e5d98517c03718b049c708d46d0f42a79f8a51a6b"
  },
+ "hosted_run": {
+  "cases": {
+   "bowl": {
+    "first_sample_disagreement": null,
+    "paired_event_candidate": true,
+    "terminal": [
+     3365,
+     3365
+    ]
+   },
+   "switcher": {
+    "first_sample_disagreement": null,
+    "paired_event_candidate": true,
+    "terminal": [
+     4704,
+     4704
+    ]
+   },
+   "zoom-zoo": {
+    "first_sample_disagreement": null,
+    "live_sram_first_disagreement": null,
+    "paired_event_candidate": true,
+    "terminal": [
+     5163,
+     5163
+    ]
+   }
+  },
+  "head_sha": "d9134a6e5da87145f1ad38e02382cce067fe6ec3",
+  "inputs": "selected=all, source_followthrough, RF-015..019 all true, baldosa_spc_interrupt_stage=true",
+  "run_id": 38879846733,
+  "source": "case job logs; per-pair follow-through in run artifacts (not retrieved: artifact host blocked in this session)"
+ },
  "nmi_entry_switcher_host_5651": {
   "native_handler_start_after_v225": 18,
   "snes9x_handler_start": "V225 H82 (last loop instr V225 H2)"

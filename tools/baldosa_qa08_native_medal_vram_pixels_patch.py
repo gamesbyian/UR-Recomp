@@ -23,7 +23,10 @@ ADDED=r'''  /* UR_QA08_NATIVE_MEDAL_LIVE_VRAM_INDEX: same effective scanline pix
   if ((snes_frame_counter == 4032 || snes_frame_counter == 4176) &&
       x == 225 && (y == 97 || y == 121) &&
       getenv("UR_QA08_WINDOWS_MEDAL_VRAM_TRACE")) {
-    const unsigned slot = (y == 97) ? 99u : 98u;
+    const unsigned slots[2] = {(y == 97) ? 97u : 96u,
+                               (y == 97) ? 99u : 98u};
+    for (unsigned qi = 0; qi < 2; ++qi) {
+    const unsigned slot = slots[qi];
     const unsigned oam0 = (unsigned)ppu->oam[slot * 2u];
     const unsigned oam1 = (unsigned)ppu->oam[slot * 2u + 1u];
     const unsigned sx = oam0 & 255u, sy = (oam0 >> 8u) & 255u;
@@ -72,6 +75,7 @@ ADDED=r'''  /* UR_QA08_NATIVE_MEDAL_LIVE_VRAM_INDEX: same effective scanline pix
               "xoff=%d yoff=%d size=%u large=%u interlace=%u\n",
               snes_frame_counter,slot,xoff,yoff,
               (unsigned)PPU_objSize(ppu),large,(unsigned)PPU_objInterlace(ppu));
+    }
     }
   }
 '''

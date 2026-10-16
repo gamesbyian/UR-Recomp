@@ -159,11 +159,11 @@ def inspect(archive: Path, expected_sha: str, mode: str, *,
                 info["byte_identical"] is True and
                 info["pending_retired"] is True and intent == archived,
                 "crash intent and recovered immutable receipt differ")
-        marker = b"UR-BALDOSA-NATIVE-SRAM-INTENT/1\\n"
+        marker = b"UR-BALDOSA-NATIVE-SRAM-INTENT/1\n"
         require(intent.startswith(marker) and len(intent) <= 100_000,
                 "invalid durable prewrite-intent version or size")
         rest = intent[len(marker):]
-        parts = rest.split(b"\\n", 2)
+        parts = rest.split(b"\n", 2)
         require(len(parts) == 3 and
                 all(re.fullmatch(rb"[0-9]{1,8}", p) is not None for p in parts[:2]),
                 "malformed typed-intent frame lengths")

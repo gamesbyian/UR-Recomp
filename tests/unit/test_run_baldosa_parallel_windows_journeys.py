@@ -85,6 +85,27 @@ class WindowsParallelJourneysTest(unittest.TestCase):
         ):
             self.assertIn("name: " + artifact, yaml)
 
+    def test_measured_long_running_practice_runs_before_short_independent_routes(self):
+        commands = p.extract_commands(p.WORKFLOW.read_text(encoding="utf-8"))
+        schedule = p.independent_priority_indices(len(commands))
+        # The previous FIFO submitted the longest original route at the end.
+        # Only submission order changes: every real original command and
+        # independent case remains present with exactly its original index.
+        self.assertEqual(len(schedule), 10)
+        self.assertEqual(sorted(schedule), list(range(3, len(p.STEPS))))
+        self.assertEqual(schedule[0], 12)
+        self.assertEqual(
+            p.STEPS[schedule[0]],
+            "Native Practice enters ten original courses across both unlock states",
+        )
+        self.assertEqual(schedule[1:4], (8, 7, 9))
+        self.assertFalse(any("baseline/" in commands[i] for i in schedule))
+        with self.assertRaisesRegex(ValueError, "priority no longer matches"):
+            p.independent_priority_indices(len(commands) - 1)
+        with mock.patch.object(p, "INDEPENDENT_PRIORITY", (12,) * 10):
+            with self.assertRaisesRegex(ValueError, "priority no longer matches"):
+                p.independent_priority_indices(len(commands))
+
     def test_overlap_starts_only_independent_cases_before_real_sram_seed(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
@@ -124,6 +145,7 @@ class WindowsParallelJourneysTest(unittest.TestCase):
                                     overlap_baseline=True)
             self.assertTrue(overlap_seen.is_set())
             self.assertEqual(outcome["executed_cases"], 13)
+            self.assertEqual([case["index"] for case in outcome["cases"]], list(range(13)))
             self.assertEqual(outcome["missing_cases"], [])
             self.assertTrue(outcome["overlap_baseline"])
             self.assertFalse(outcome["identity_changed"])

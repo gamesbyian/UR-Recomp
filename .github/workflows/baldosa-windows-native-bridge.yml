@@ -9,6 +9,7 @@ on:
     paths:
       - ".github/workflows/baldosa-windows-native-bridge.yml"
       - "tools/baldosa_windows_native_pause_route.py"
+      - "tools/qa02_exact_owner_win32_seam.py"
       - "tools/run_baldosa_parallel_windows_journeys.py"
       - "tests/unit/test_run_baldosa_parallel_windows_journeys.py"
       - "tools/baldosa_native_1p_records_probe.py"
@@ -169,6 +170,7 @@ on:
 
 permissions:
   contents: read
+  actions: read # read-only retrieval of the preserved original exact-main candidate
 
 concurrency:
   group: baldosa-windows-probe-${{ github.event.pull_request.number || github.ref }}
@@ -331,6 +333,41 @@ jobs:
       # while 1P/2P Records still await the exact baseline 8KiB SRAM.
       # Existing manual/call opt-in remains proven two-worker post-baseline.
       # Full original serial fallback remains available.
+      # One branch-scoped, one-shot independent QA-02 experiment. The complete
+      # original owner ZIP is reused: do not relabel the fresh PR-head build as
+      # the nominated candidate or create a new game/release artifact.
+      - name: Retrieve immutable exact-main owner package for QA-02 crash seam
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-exact-owner-crash-byte-capture-20261015' }}
+        uses: actions/download-artifact@v4
+        with:
+          repository: ${{ github.repository }}
+          run-id: 38828519791
+          artifact-ids: 12016101293
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/qa02-retained-nominated-owner
+
+      - name: Reproduce original Windows EXE raw/typed crash with actual 8192-byte before-after captures
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-exact-owner-crash-byte-capture-20261015' }}
+        run: |
+          set -euo pipefail
+          python tools/qa02_exact_owner_win32_seam.py \
+            --retained "$RUNNER_TEMP/qa02-retained-nominated-owner" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --script "baldosa/tests/routes/race_2p_split.txt" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --out "$RUNNER_TEMP/qa02-original-candidate-crash"
+          echo "Actual original EXE, Win32 _Exit(86), 8192-byte seam snapshots and cold refusal. No physical/power-loss/QA gate credit." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Preserve disposable byte-exact raw-and-typed Win32 crash seam for independent review
+        if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-exact-owner-crash-byte-capture-20261015' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa02-original-nominated-win32-crash-byte-seam
+          path: ${{ runner.temp }}/qa02-original-candidate-crash/run/native_post_raw_pre_typed_crash/seam/
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Pilot parallel authentic Windows journeys against one pinned candidate
         if: ${{ github.event_name == 'pull_request' || inputs.parallel_journeys == true }}
         run: |

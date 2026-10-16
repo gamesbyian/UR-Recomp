@@ -64,9 +64,12 @@ Archive files contain a read-only exact old/new typed receipt under the
    can switch to a fully validated registered alternate while preserving
    the damaged current racer's bytes. It holds the same selector/catalog
    and sorted pair of typed locks and changes **only** the canonical next-boot
-   selector. No implicit profile choice or live guest hot-swap. A QA-only
-   fixture exposes `--recover-select-healthy`; packaged player UX remains
-   to be completed.
+   selector. No implicit profile choice or live guest hot-swap. The
+   same pinned Windows executable exposes an explicit one-shot recovery
+   command before its first guest frame, and the existing double-click CMD
+   launcher prompts R/T/S/Q only after a native exit 7. Controller-accessible
+   in-game recovery is still unavailable because the normal rejected guest
+   never starts. Physical UI acceptance remains independent QA work.
 
 ## Historical, unjournaled save choices (explicit only)
 
@@ -91,19 +94,28 @@ exact pending intent are archived before raw replacement; then the pending
 intent can be retired under its original three OS locks.
 
 Both require the expected currently selected catalogued racer, matching
-racer identity, unchanged typed state, no pending current-format journal and
-a separately explicit choice. Never infer choice from an interrupted event,
+racer identity and a separately explicit choice. Keep-raw requires NO pending
+current-format intent. Restore-committed admits either no intent or a valid
+intent naming the exact still-committed typed snapshot; other intents fail
+closed. Never infer choice from an interrupted event,
 auto-launch, profile name, or the presence of an old raw image. Archive files
 are read-only receipts, not another recovery store, and remain in the
 original profile directory. Both choices use stable archive identifiers,
 reject symlink redirects and fail closed on lock, staging or CAS errors.
 
-Current implementation exposes manual choices and independently healthy
-alternate selection in the **QA-only canonical native fixture**, respectively
-`--recover-keep-raw`, `--recover-keep-typed`, and
-`--recover-select-healthy`. These commands must not be mistaken for a
-shipping player-facing menu; integrating and independently accepting a
-controller-accessible player choice remains required before closure.
+Recovery is available via the existing executable's
+`ur_baldosa_modern_run_recovery_command()` pre-guest hook with one explicit
+environment action (`raw`, `typed` or `healthy`, plus an exact target ID
+for the last choice). The packaged `run-baldosa-modern.cmd` clears all
+inherited recovery action variables, then after a genuine exit 7 and only
+for an **interactive, no-argument launch** offers R/T/S/Q. R or T or S
+invokes that SAME game binary once, expects exit 89 before guest simulation,
+clears recovery variables, and only then restarts. Q returns exit 7 without
+any file writes. Scripted/CI launch remains non-interactive and fail closed.
+QA fixture `--recover-keep-raw`, `--recover-keep-typed` and
+`--recover-select-healthy` remain available for isolated tests but are not
+distributed. This is a native Windows launcher recovery affordance, not an
+in-game/controller modal or an independent QA acceptance claim.
 
 ## Fault-state matrix and preservation contract
 
@@ -145,7 +157,11 @@ profile authority. Product-owned Windows route
 post-raw fault twice in disposable roots: the legacy unjournaled
 `_Exit(86)` must reject cold boot before explicit archived raw promotion;
 the journaled `_Exit(86)` must cold-replay exact SRAM on a second genuine
-guest process. These are **candidate-producer** evidence, not independent
+guest process. The producer also invokes the same source-built Windows game
+binary's explicit `raw` rescue, verifies invalid actions cause no write,
+and verifies an independently healthy second registered racer can be
+explicitly selected despite corrupt raw bytes in the first one, with a fresh
+native boot of the second SRAM and the first raw/typed pair untouched. These are **candidate-producer** evidence, not independent
 QA or physical power-loss proof. The old
 crash-negative witness is immutable historical evidence; it must not be
 reinterpreted as success after this change.

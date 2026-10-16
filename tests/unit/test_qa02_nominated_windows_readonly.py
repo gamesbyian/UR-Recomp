@@ -104,7 +104,7 @@ class OriginalWindowsReadonlyTests(unittest.TestCase):
             runner.return_value.stderr = ""
             qa.deny_raw_write_only(filename, sid, deny=True)
             argv = runner.call_args.args[0]
-            self.assertEqual(argv, ["icacls", str(filename), "/deny", f"*{sid}:(WD)"])
+            self.assertEqual(argv, ["icacls", str(filename), "/deny", f"*{sid}:(WD,DE)"])
             self.assertNotIn("/T", argv)
             qa.deny_raw_write_only(filename, sid, deny=False)
             self.assertEqual(runner.call_args.args[0],
@@ -123,11 +123,45 @@ class OriginalWindowsReadonlyTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "remains writable"):
                 qa.require_raw_write_denied(file, baseline)
             self.assertEqual(file.read_bytes(), baseline)
-            with mock.patch.object(Path, "open", side_effect=PermissionError("Access denied")):
+            original_open = Path.open
+
+            def selective_open(path, mode="r", *args, **kwargs):
+                if mode == "r+b":
+                    raise PermissionError("Access denied for write only")
+                return original_open(path, mode, *args, **kwargs)
+
+            with mock.patch.object(Path, "open", autospec=True,
+                                   side_effect=selective_open):
                 self.assertIsNone(qa.require_raw_write_denied(file, baseline))
             self.assertEqual(file.read_bytes(), baseline)
             with self.assertRaisesRegex(ValueError, "baseline changed"):
                 qa.require_raw_write_denied(file, b"not 8192 bytes")
+
+    def test_replacement_probe_uses_disposable_decoy_and_fails_closed(self):
+        sid = "S-1-5-21-123-456-789-1001"
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            # Without a real OS ACL, replacing the decoy succeeds. The
+            # verifier must reject this ineffective fault injection.
+            with mock.patch.object(qa, "deny_raw_write_only") as deny:
+                with self.assertRaisesRegex(ValueError, "destination is still replaceable"):
+                    qa.require_replacement_denied(base, sid)
+                self.assertEqual(deny.call_count, 2)
+            self.assertFalse((base / "_qa02_replace_victim.test").exists())
+            self.assertFalse((base / "_qa02_replace_stage.test").exists())
+            prior_replace = qa.os.replace
+
+            def reject_replace(src, dst):
+                self.assertTrue(Path(src).exists())
+                self.assertTrue(Path(dst).exists())
+                raise PermissionError("Windows access denied")
+
+            with (mock.patch.object(qa, "deny_raw_write_only") as deny,
+                  mock.patch.object(qa.os, "replace", side_effect=reject_replace)):
+                self.assertIsNone(qa.require_replacement_denied(base, sid))
+                self.assertEqual(deny.call_count, 2)
+            self.assertFalse((base / "_qa02_replace_victim.test").exists())
+            self.assertFalse((base / "_qa02_replace_stage.test").exists())
 
     def test_raw_acl_original_executable_route_is_branch_isolated(self):
         workflow = (ROOT / ".github/workflows/baldosa-windows-native-bridge.yml"

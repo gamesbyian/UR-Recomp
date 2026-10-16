@@ -919,7 +919,7 @@ extern "C" int ur_baldosa_modern_profile_finish_native_save(int saved) {
         if (typed_cut && std::strcmp(typed_cut, "1") == 0) {
             std::fprintf(stderr,
                 "UR_BALDOSA_NATIVE_PROFILE QA_CRASH_AFTER_TYPED_COMMIT "
-                "exit=87 intent_retained=1\\n");
+                "exit=87 intent_retained=1\n");
             std::fflush(stderr);
             std::_Exit(87);
         }

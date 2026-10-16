@@ -1,0 +1,110 @@
+{
+ "authority": "docs/RF026-SPC-BUS-CYCLE-20261016.md",
+ "complete_event_credit": 0,
+ "date": "2026-10-16",
+ "executables": {
+  "1p": "8c9b4e19ebb31469eeffabb883cfceb5ef6d3ccb4ebf0e953d39c80758d1fdc6",
+  "2p": "85a20b92410fe03cbc5909c0498be81de6efbd3e8b6e9bcc5e104c28407ae45e"
+ },
+ "mechanism": {
+  "boot_upload_native_minus_snes9x_master": {
+   "total": 3353894,
+   "with": -666,
+   "without": -1824
+  },
+  "reset_write_age_offsets_spc": {
+   "with": [
+    -14,
+    -10,
+    -21,
+    -25,
+    -66,
+    -64,
+    -12
+   ],
+   "without": [
+    -14,
+    -102,
+    -114,
+    -14,
+    -286,
+    -324,
+    -12
+   ]
+  },
+  "stale_t2_tick_after_ff_write": {
+   "host_2902": {
+    "snes9x": 257,
+    "with": 120,
+    "without": 139
+   },
+   "host_849": {
+    "snes9x": 351,
+    "with": 322,
+    "without": 149
+   }
+  }
+ },
+ "release_gate_credit": 0,
+ "schema": "ur-rf026-spc-bus-cycle/1",
+ "stage_order": [
+  "RF-015..019 tools",
+  "tools/baldosa_spc_power_on_patch.py --anchor 0",
+  "tools/baldosa_spc_frame_clock_patch.py",
+  "tools/baldosa_spc_bus_cycle_patch.py"
+ ],
+ "witnesses": {
+  "2p_pairs": "16 exact; 50036056 vs bsnes field_divergence 5236 and 50024004 vs Snes9x field_divergence 5123 (reference knife-edges); 50048000 exact vs both",
+  "attract_vs_bsnes": {
+   "bsnes": [
+    [
+     248,
+     276
+    ],
+    [
+     401,
+     443
+    ],
+    [
+     941,
+     1098
+    ],
+    [
+     1423,
+     1547
+    ],
+    [
+     3632,
+     3762
+    ]
+   ],
+   "native": [
+    [
+     248,
+     276
+    ],
+    [
+     401,
+     443
+    ],
+    [
+     941,
+     1098
+    ],
+    [
+     1423,
+     1546
+    ],
+    [
+     3632,
+     3762
+    ]
+   ]
+  },
+  "bowl": "+3365 = +3365, follow-through equal",
+  "dragster": "+2081 = +2081, paired candidate, named follow-through and SRAM equal; dense low WRAM equal to Snes9x +2040..+2100",
+  "observer_anchor_2446_with_rf026": "attract and Dragster dense identical to anchor 0",
+  "switcher": "+4703 vs +4704, first disagreement +4664 (unchanged)",
+  "zoom_zoo": "+5163 = +5163, named follow-through and SRAM equal"
+ }
+}

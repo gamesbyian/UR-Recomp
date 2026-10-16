@@ -493,7 +493,8 @@
         "docs/RF020-022-SPC-PHASE-KNIFE-EDGES-20261016.md",
         "analysis/data/rf020-022-spc-phase-20261016.json",
         "docs/RF023-025-SPC-FRAME-CLOCK-20261016.md",
-        "analysis/data/rf023-025-spc-frame-clock-20261016.json"
+        "analysis/data/rf023-025-spc-frame-clock-20261016.json",
+        "docs/RF026-SPC-BUS-CYCLE-20261016.md"
       ],
       "observation": "Full WRAM equal through 5011. 5012: 7E:2000/2002/2004.. sound queue advanced further on native (read index 2 vs 1), 7E:0083 20 vs 14. 5013: $C6 30 vs 31, $0BDE/$0BFE 204 vs 0. 0x84 onset 5014 vs 5015, race exit 5052 vs 5053. Unchanged by RF-016, RF-018 and RF-019. Traced back (Snes9x per-instruction PC vs Baldosa block observer, host 4700-5016): race fields match within ~90 clocks per NMI-to-wait span; after the last NMI (host 4924) the NMI-disabled loader requests an SPC reset (82:8089 STA $2140=$FF) and waits for the IPL signature at 82:8097 (CMP $2140 = $BBAA). The first such wait lasts 126,742 master clocks (2,122 polls) on Snes9x but 59,644 (999 polls) on native; the two later resets in the same loader match exactly (674/674, 661/660 polls), and the following IPL byte upload has identical per-byte poll histograms (41,499 vs 41,466 polls, 7,278 bytes). The 67,098-clock difference is one driver timer tick within poll granularity (25 timer-0 periods = 3,200 SPC cycles = 67,032 master clocks). Native therefore leaves the loader ~49 lines early, starts the 82:82EF stream upload ~33 bytes ahead, sends the first queued sound command ~53 lines early (5012), and the result onset follows a frame early. Whole-session reset census (PC-filtered traces, frames 0-5016): of nine $FF->$BBAA resets, six match within 60 clocks; boot (host 35) differs by +40,524, host ~1038 by -1,432 and host ~4930 by -67,138 = one driver tick + ~106 clocks, i.e. the 4930 request sits ~100 clocks from a tick boundary. Race fields before it match within 18-210 clocks per NMI-to-wait span (host 4800: 258,648 vs 258,712, with only HDMA-charge placement moving cost between blocks). Dragster shares the mechanism (2026-10-16): Snes9x == bsnes at every frame +1940..+2100; native first differs at +2040. At the host-2902 reset the driver needs a fresh timer-2 tick after reading $FF: the reference consumes a stale tick then waits a full period (ready +5,870 SPC cycles), native does not (+3,576), so native reaches 80:FAC9 at V=189 instead of V=228 and skips a field. Update (RF-023/024, 2026-10-16): with the SPC frame clock corrected (no one-field WAI minimum, NTSC short scanline) seed 50048000 reaches exact field agreement against both references under either power-on anchor; Dragster reaches +2081 = +2081 only with anchor 2,446 (RF-025).",
       "uncertainty": "RF-020 is a ~100-clock knife-edge: native's residual per-field CPU error in race fields (~60-90 clocks, 0.03%) is the same order as Snes9x/bsnes disagreements on seeds 50036056 and 50024004. No discrete defect is identified; deciding it would need sub-100-clock HDMA/DMA sync modelling (e.g. the 12-24 clock DMA sync overhead) and the native SPC boot phase (host 35 reset +40,524).",
@@ -518,11 +519,12 @@
         "tools/baldosa_spc_power_on_patch.py",
         "tests/unit/test_baldosa_spc_power_on_patch.py",
         "docs/RF023-025-SPC-FRAME-CLOCK-20261016.md",
-        "analysis/data/rf023-025-spc-frame-clock-20261016.json"
+        "analysis/data/rf023-025-spc-frame-clock-20261016.json",
+        "docs/RF026-SPC-BUS-CYCLE-20261016.md"
       ],
       "observation": "At the first SPC reset (host 35) Snes9x's SPC has run 586,459 cycles, native's 6 (apu_runToGuestCycle returns until apu_schedulePortWrite sets portTimeValid), so native's IPL is still clearing zero page and the handshake takes 50,528 vs 10,004 master clocks. Anchoring at power-on (offset 2,446 guest cycles) makes it 586,459 / 10,004 on both and later boot resets match within 2 lines.",
       "uncertainty": "Hardware-correct, but adopting it alone flips knife-edge witnesses (RF-022): Zoo follow-through and three attract loads regress while 2P/Bowl/Switcher/Dragster are unchanged. With RF-023/024 staged the anchor that reproduces the reference SPC age is 0 (within 14 cycles at hosts 35, 849 and 2902), not 2,446; anchor 0 loses Zoom Zoo's follow-through, Dragster and three attract loads, anchor 2,446 keeps them (RF-025).",
-      "resolving_experiment": "Re-evaluate together with a bus-exact general-DMA sync model checked against bsnes; adopt only when the knife-edge witnesses hold under it.",
+      "resolving_experiment": "Adopt with --anchor 0 together with RF-023/024 and RF-026 (all staged and measured); QA-01 hosted re-execution before the product carries it.",
       "consequence": "SPC phase relative to the CPU is wrong from boot; every timer-phase-dependent handshake inherits an arbitrary offset."
     },
     {
@@ -539,9 +541,10 @@
         "docs/RF020-022-SPC-PHASE-KNIFE-EDGES-20261016.md",
         "analysis/data/rf020-022-spc-phase-20261016.json",
         "docs/RF023-025-SPC-FRAME-CLOCK-20261016.md",
-        "analysis/data/rf023-025-spc-frame-clock-20261016.json"
+        "analysis/data/rf023-025-spc-frame-clock-20261016.json",
+        "docs/RF026-SPC-BUS-CYCLE-20261016.md"
       ],
-      "observation": "With the SPC anchored at power-on, Zoom Zoo's +16 follow-through returns to 188 vs 246 and fresh SRAM differs at +64/+72; attract loads 941-1097, 1422-1545 and 3631 go one frame off; 18 2P pairs, Bowl, Switcher and Dragster unchanged. The handshakes involved differ by ~100 SPC cycles; race-field CPU residuals are tens of clocks per field (e.g. host 4800: 258,648 native vs 258,712 Snes9x; 258,762 with Snes9x's 18-clock DMA sync). Confirmed on the RF-023/024 base: the same witnesses flip between power-on anchors 0 and 2,446 (a 37-cycle window, 2,409 vs 2,446, decides the attract) while the 2P set does not.",
+      "observation": "With the SPC anchored at power-on, Zoom Zoo's +16 follow-through returns to 188 vs 246 and fresh SRAM differs at +64/+72; attract loads 941-1097, 1422-1545 and 3631 go one frame off; 18 2P pairs, Bowl, Switcher and Dragster unchanged. The handshakes involved differ by ~100 SPC cycles; race-field CPU residuals are tens of clocks per field (e.g. host 4800: 258,648 native vs 258,712 Snes9x; 258,762 with Snes9x's 18-clock DMA sync). Confirmed on the RF-023/024 base: the same witnesses flip between power-on anchors 0 and 2,446 (a 37-cycle window, 2,409 vs 2,446, decides the attract) while the 2P set does not. With RF-026 the same witnesses hold under the exact model (anchor 0), so these were knife-edges on an inexact SPC model rather than at reference precision; the host-2902 Dragster handshake keeps the smallest margin (~80 SPC cycles of timer phase).",
       "uncertainty": "Which side each knife-edge falls on under an exact model is unknown; the lazy SPC start partly compensates the CPU residual today.",
       "resolving_experiment": "QA-01: before accepting an event whose witness passes through an SPC-reset or VBlank-edge wait, re-check it under every staged timing correction (RF-015..021) and record whether it is robust.",
       "consequence": "An event match on this core is not evidence of timing fidelity by itself; small correct timing changes can flip it."
@@ -596,7 +599,7 @@
       "id": "RF-025",
       "title": "On the corrected SPC frame clock the power-on anchor is a knife-edge free parameter: the exact-age anchor loses Zoom Zoo, Dragster and attract agreements that an empirical anchor keeps",
       "class": "method_hazard",
-      "status": "handed_off",
+      "status": "resolved",
       "evidence": "original_and_native",
       "owner_lane": "qa01-gameplay",
       "reproducer": {
@@ -606,12 +609,37 @@
         "docs/RF023-025-SPC-FRAME-CLOCK-20261016.md",
         "analysis/data/rf023-025-spc-frame-clock-20261016.json",
         "tools/baldosa_spc_power_on_patch.py",
-        "tests/unit/test_baldosa_spc_power_on_patch.py"
+        "tests/unit/test_baldosa_spc_power_on_patch.py",
+        "docs/RF026-SPC-BUS-CYCLE-20261016.md",
+        "analysis/data/rf026-spc-bus-cycle-20261016.json"
       ],
       "observation": "Anchor 0 reproduces the reference SPC age within 14 cycles but gives Zoom Zoo follow-through/SRAM differences, Dragster +2080 vs +2081 and attract 941-1097/1422-1545/3631-3761; anchor 2,446 (SPC 2,460 cycles younger) matches all three; anchor 2,409 fails the attract. 2P pairs identical under both. $F1 logging places Dragster's decisive timer-2 phase at the driver's last timer restart near host 945, where native CPU port writes run up to ~370 SPC cycles early; boot IPL upload positions drift ~-200 master clocks per field (~0.06% fast CPU/SPC handshake).",
       "uncertainty": "The handshake residual's source is unidentified; the LakeSnes-derived SPC core performs each opcode's bus accesses at its first cycle, a candidate not yet tested.",
       "resolving_experiment": "Per-exchange CPU/SPC upload handshake timing against bsnes, then a per-access SPC700 bus model; rerun the $F1/reset census with anchor 0. QA-01: until then check any event whose witness passes an SPC-reset handshake under both anchors.",
-      "consequence": "The combined candidate's 1P and attract agreements are not yet evidence of timing fidelity; only the 2P result is anchor-independent."
+      "consequence": "The combined candidate's 1P and attract agreements are not yet evidence of timing fidelity; only the 2P result is anchor-independent.",
+      "resolution": "RF-026 (SPC700 opcodes execute on their last cycle) removes the anchor dependence: with the exact-age anchor 0 the staged candidate matches every witness where Snes9x and bsnes agree except Switcher (Zoom Zoo, Bowl, Dragster, attract 5/5, 2P 16/18 with the two reference knife-edges); anchor 2,446 gives the same attract and Dragster results in an observer build."
+    },
+    {
+      "id": "RF-026",
+      "title": "Baldosa's LakeSnes-derived SPC700 executes each opcode on its first cycle, so port and timer accesses land 1-7 SPC cycles before their hardware bus cycle",
+      "class": "original_native_discrepancy",
+      "status": "handed_off",
+      "evidence": "original_and_native",
+      "owner_lane": "qa01-gameplay",
+      "reproducer": {
+        "command": "Stage RF-015..019, baldosa_spc_power_on_patch.py --anchor 0, baldosa_spc_frame_clock_patch.py, baldosa_spc_bus_cycle_patch.py; run the four 1P producer cases with --source-followthrough, the 18 2P pairs (qa_frontier_original_crosscheck.py paired) and qa_blank_screen_census.py attract",
+        "race_relative_lag": 0
+      },
+      "source_artifacts": [
+        "docs/RF026-SPC-BUS-CYCLE-20261016.md",
+        "analysis/data/rf026-spc-bus-cycle-20261016.json",
+        "tools/baldosa_spc_bus_cycle_patch.py",
+        "tests/unit/test_baldosa_spc_bus_cycle_patch.py"
+      ],
+      "observation": "apu_cycle runs spc_runOpcode when cpuCyclesLeft reaches 0, i.e. on an opcode's first cycle. Executing it on its last base cycle instead cuts the boot IPL upload drift from -1,824 to -666 master clocks (4,450 exchanges), brings CPU write positions at the seven Dragster-replay SPC resets within -10..-66 SPC cycles of Snes9x (was up to -324) and the host-849 driver tick to 322 vs 351 (was 149). With anchor 0 the candidate gives Dragster +2081 = +2081 (dense equal +2040..+2100), Zoom Zoo follow-through and SRAM equal, Bowl equal, attract 5/5, 2P 16 exact + 2 reference knife-edges; Switcher unchanged.",
+      "uncertainty": "All accesses of an opcode are placed on its last cycle; read-modify-write reads are one or more cycles early on hardware. Host-2902 margin ~80 SPC cycles of timer phase.",
+      "resolving_experiment": "QA-01: hosted re-execution of the full RF-015..026 stage; optionally a per-access SMP model checked against bsnes to remove the residual upload drift.",
+      "consequence": "With it, SPC-handshake witnesses match under the physically exact anchor; without it, they hinge on a free parameter."
     }
   ]
 }

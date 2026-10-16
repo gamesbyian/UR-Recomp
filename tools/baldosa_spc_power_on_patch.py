@@ -31,6 +31,8 @@ the guest SPC cycle at which APU cycle 0 falls (default 2,446):
   leaves the SPC 2,460 cycles younger. On that base 2,446 is the empirical
   candidate (it keeps the attract and Dragster matches, which anchor 0 loses);
   see RF-025 in docs/RF023-025-SPC-FRAME-CLOCK-20261016.md.
+- With RF-026 (``baldosa_spc_bus_cycle_patch.py``) also staged, anchor 0 keeps
+  every witness (docs/RF026-SPC-BUS-CYCLE-20261016.md): use ``--anchor 0``.
 
 Idempotent; refuses any other framework revision.
 """

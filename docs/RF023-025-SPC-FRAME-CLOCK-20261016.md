@@ -2,6 +2,8 @@
 
 **Scope:** CPU/APU-lane follow-through after [RF-020/021/022](RF020-022-SPC-PHASE-KNIFE-EDGES-20261016.md) on the pinned Baldosa product core (`gamesbyian/uniracers-recomp@10b864b`, framework `baldosa/snesrecomp@075fbe4`). The base is the full RF-015…019 candidate. Evidence comes from SPC-side port/timer logs (a disposable Snes9x core and a Baldosa observer build), the four 1P producer cases, the 18 2P seed × reference pairs and the attract census. Compact evidence: [`analysis/data/rf023-025-spc-frame-clock-20261016.json`](../analysis/data/rf023-025-spc-frame-clock-20261016.json). **No release-gate or complete-event credit.** QA-01 alone decides event acceptance; official strict USA complete events stay **0/45**.
 
+> **Follow-up ([RF-026](RF026-SPC-BUS-CYCLE-20261016.md)):** executing SPC700 opcodes on their last cycle removes RF-025's anchor dependence; with anchor 0 every witness below where the references agree matches except Switcher.
+
 ## Summary
 
 | Finding | Cause in the pinned runtime | Stage tool |

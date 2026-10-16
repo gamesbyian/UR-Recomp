@@ -49,9 +49,10 @@
     "read_to_echo_cycles": 26,
     "echo_to_cpu_observed_cycles": 4,
     "source_last_compare_read_zero_age": 103322545,
-    "original_cpu_cc_write_count_until_echo": 9,
     "original_cpu_poll_aa_until_cc": 8,
-    "original_cpu_first_observed_echo": "CC"
+    "original_cpu_first_observed_echo": "CC",
+    "original_cpu_cc_write_count_before_echo": 8,
+    "original_cpu_cc_write_count_through_first_cc_poll": 9
   },
   "first_cc_native": {
     "cpu_scheduled_age": 103322463,

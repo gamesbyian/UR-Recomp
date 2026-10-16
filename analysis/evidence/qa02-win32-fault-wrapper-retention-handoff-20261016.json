@@ -54,8 +54,8 @@
       "role": "B raw/typed crash prevents canonical switch to healthy A"
     }
   ],
-  "source_git_archive_retention_status": "not_yet_confirmed",
-  "additional_90_day_github_archive_created": false,
+  "source_git_archive_retention_status": "verified_90_day_actions_artifact_2026-10-16",
+  "additional_90_day_github_archive_created": true,
   "independent_original_zip_hash_and_crc_checked": true,
   "local_external_evidence_backup": {
     "created": true,
@@ -69,5 +69,29 @@
   "release_gate_credit": 0,
   "source_candidate_changed": false,
   "p0_1214_recovery_fixed": false,
-  "strict_handoff": "Release/integration owns one-shot original byte-verified Actions wrapper archival before 2026-10-30; compare SHA256 of each source wrapper before retention, do not relabel newly generated ZIP envelope as one of these original SHA values. Retain only original disposable QA artifacts, not unrelated workflow outputs or private ROM. QA verifies resultant retained archive byte-for-byte and then updates source-bound ledger."
+  "strict_handoff": "COMPLETED: #1712 merged and original six outer ZIPs independently verified byte-for-byte inside 90-day Actions artifact 12069939434, expiry 2027-01-14T19:41:11Z. Source original negative P0 remains; next task is product-owner #1214 fix, followed by independent new-candidate Win32 crash, selector, storage and records acceptance defined in docs/QA02-NEXT-EXACT-WIN32-RECOVERY-INDEPENDENT-ACCEPTANCE-20261016.md.",
+  "github_retention": {
+    "source_pr": 1712,
+    "source_pr_merged_commit": "a4fab362af67a2bc65ece502f94b8a9f3c65a592",
+    "workflow_run": 38956731834,
+    "artifact_id": 12069939434,
+    "retained_artifact_name": "retained-qa02-original-win32-fault-wrappers-11501a15",
+    "new_outer_envelope_sha256": "f35055a086dff30bb82982b3d4ef12476f06b0553f5f2eb84318f92e08754622",
+    "new_outer_zip_bytes": 77097,
+    "expires_at": "2027-01-14T19:41:11Z",
+    "independent_re_download_original_zip_bytes_equal": true,
+    "original_artifact_count": 6,
+    "original_zip_crc_member_count": 121,
+    "release_gate_credit": 0
+  },
+  "additional_private_backup": {
+    "location_type": "owner_controlled_private_Google_Drive",
+    "shared": false,
+    "archive_bytes": 78904,
+    "archive_sha256": "b47d407aadbcae029e7875b64c621fa297fd900af1d465d4682979d9022ae588",
+    "original_zip_count": 6,
+    "original_zip_member_crc_count": 121,
+    "independently_re_downloaded_and_hashed": true,
+    "locator": "Held privately by repository owner; no private file URL or ID included in public repository"
+  }
 }

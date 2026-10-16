@@ -417,6 +417,7 @@ jobs:
           QA01_ZOO_MESH: ${{ inputs.zoo_race_mesh }}
           QA01_ZOO_DP_WINDOW: ${{ inputs.zoo_dp_window }}
           QA01_APU_PHASE: ${{ inputs.qa01_apu_phase }}
+          QA01_IPL_ECHO: ${{ inputs.qa01_ipl_echo_trace }}
           QA01_SOURCE_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
           QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
           QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}

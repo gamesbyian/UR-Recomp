@@ -88,7 +88,7 @@ class OriginalWindowsReadonlyTests(unittest.TestCase):
 
     def test_sid_is_parsed_from_actual_windows_whoami_principal(self):
         with mock.patch.object(qa.subprocess, "run") as runner:
-            runner.return_value.stdout = '"WIN\\\\runneradmin","S-1-5-21-123-456-789-1001"\\n'
+            runner.return_value.stdout = '"WIN\\runneradmin","S-1-5-21-123-456-789-1001"\n'
             self.assertEqual(qa.current_sid(), "S-1-5-21-123-456-789-1001")
             self.assertEqual(runner.call_args.args[0], ["whoami", "/user", "/fo", "csv", "/nh"])
             runner.return_value.stdout = "bad principal"

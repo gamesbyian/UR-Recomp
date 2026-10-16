@@ -184,11 +184,17 @@ def main() -> int:
     before_cold = snapshot_bytes(saved, "after_A")
     boot = cold_boot_second_profile(exe, a.rom, case, user_root, saved)
     after_cold = capture_native_selector_conflict_files(user_root, saved, "after_cold_B")
-    if {key: row["sha256"] if row["present"] else None for key, row in after_cold.items()} != {
-        key: sha256(data) if isinstance(data, bytes) else None
-        for key, data in before_cold.items()
-    }:
-        raise ValueError("Fresh B cold boot modified canonical A/B profile data")
+    # B is now the legitimately selected live guest; it may save changes
+    # at shutdown. Do not conflate that authorized B save with stale A.
+    # The unrelated A bytes, global selector and roster MUST stay exact.
+    for key in ("first_raw", "first_typed", "selector", "catalog"):
+        if after_cold[key]["sha256"] != sha256(before_cold[key]):
+            raise ValueError("Fresh B gameplay altered unrelated first-profile or selection data")
+    b_raw = (user_root / "saves/profile-native-ci-second/save.srm").read_bytes()
+    b_typed = (user_root / "saves/profile-native-ci-second/host-profile.txt").read_bytes()
+    b_generation, b_embedded = decode_host_profile_stock_sram(b_typed)
+    if len(b_raw) != 8192 or b_embedded != b_raw:
+        raise ValueError("Fresh B gameplay failed raw/typed save equality")
     if list(user_root.rglob("*.urrun")) or list(user_root.rglob("*.urmatch")) or list(user_root.rglob("*.urghost")):
         raise ValueError("No completed guest result can be invented by selection change")
     receipt = {
@@ -200,7 +206,9 @@ def main() -> int:
         "original_2p_input_sha256": sha256(a.script.read_bytes()),
         "source_harness": proof, "independent_six_file_audit": audited,
         "fresh_original_executable_second_profile": boot,
-        "cold_reentry_kept_all_canonical_data": True,
+        "cold_reentry_preserved_first_profile_and_global_selection": True,
+        "cold_B_current_raw_typed_full_8192_byte_equality": True,
+        "cold_B_autosave_generation": b_generation,
         "second_process_B_is_native_fixture_not_second_game_executable": True,
         "no_duplicate_or_fake_results": True,
         "real_physical_pad_tested": False, "power_cut_tested": False,

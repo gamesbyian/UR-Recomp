@@ -39,15 +39,15 @@ class RetainedLauncherTranscriptTests(unittest.TestCase):
                 ("C:qa-drive-relative-root", "drive-relative-root-refusal.log"),
                 ("\\qa-current-drive-root-relative", "current-drive-root-refusal.log"),
             ):
-                raw_out = "real stdout \\r\\n"
-                raw_err = "UR-BALDOSA-STARTUP-SAVE-ROOT rejected\\n"
+                raw_out = "real stdout \r\n"
+                raw_err = "UR-BALDOSA-STARTUP-SAVE-ROOT rejected\n"
                 original = subprocess.CompletedProcess(
                     args=["cmd.exe"], returncode=3, stdout=raw_out, stderr=raw_err)
                 receipt = verifier.retain_rooted_relative_rejection(root, path, original)
                 log = (root / expected_name).read_text(encoding="utf-8")
                 self.assertEqual(
-                    log, "STDOUT (actual cmd.exe subprocess):\\n" + raw_out +
-                    "\\nSTDERR (actual cmd.exe subprocess):\\n" + raw_err)
+                    log, "STDOUT (actual cmd.exe subprocess):\n" + raw_out +
+                    "\nSTDERR (actual cmd.exe subprocess):\n" + raw_err)
                 self.assertEqual(receipt["retained_subprocess_transcript"], expected_name)
                 self.assertEqual(receipt["process_returncode"], 3)
                 self.assertEqual(receipt["expected_exit_code"], 3)

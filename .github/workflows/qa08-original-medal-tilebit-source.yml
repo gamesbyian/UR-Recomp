@@ -4,14 +4,8 @@ name: QA-08 source original 2014 4bpp medal sprite indexed tile
 # 263-frame 2P reference is an immutable admission guard. No sprite,
 # tile, ROM or VRAM binary exported; indexed16 FNV + occupancy only.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - ".github/workflows/qa08-original-medal-tilebit-source.yml"
-      - "tools/qa08_patch_original_medal_tilebits.py"
-      - "tests/unit/test_qa08_patch_original_medal_tilebits.py"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snes9x-libretro.json"
+  # Completed 2014 indexed 4bpp original source 263/263 byte-identical.
+  # Rebuild original only explicitly; all admitted records retained.
   workflow_dispatch:
 permissions:
   contents: read

@@ -69,4 +69,6 @@ jobs:
           name: qa08-original-vram-native-oam-medal-index-counterfactual-90d
           retention-days: 90
           if-no-files-found: error
-          path: ${{ runner.temp }}/qa08-conditional/conditional-ppu-index.json
+          path: |
+            ${{ runner.temp }}/qa08-conditional/conditional-ppu-index.json
+            ${{ runner.temp }}/qa08-conditional/indexed-original.zip

@@ -25,3 +25,24 @@ A valid executed receiver trace must show: first original CPU $CC age, original 
 If the bus chronology is captured, derive the earliest phase disagreement **only** by comparing independently calibrated local ages, not by aligning frame labels or subtracting an arbitrary offset. A minimal CPU/APU corrective patch must then pass source-pinned negative regression and unmasked whole-WRAM checks; RF-018…028 remain opt-in research until an independently reviewable shipping decision. The entire run may be a negative if the observation range does not reach the IPL loop; that is evidence for tightening instrumentation, never an invitation to waive eligibility. Independently trace next-Bowl stack `7E:01ED–01F0` writer/reader liveness; untested transient stack differences are not automatically inert.
 
 **0/45 admissions; independent QA continues to own the event census and release ledger.**
+
+
+## Completed source-qualified CPU/SPC handshake (independent 12-file artifact)
+
+After correcting only the opt-in logger selection window to the source-verified SPC ages **103322420–103323100** (rather than modifying any original/native gameplay model), [run 38970909850](https://github.com/gamesbyian/UR-Recomp/actions/runs/38970909850) **fully passed** the original/native Zoo case classification and the strict RF-030 executed-port chronology. Independent download of [artifact 12077572385](https://github.com/gamesbyian/UR-Recomp/actions/runs/38970909850/artifacts/12077572385) contains **12 files**, with archive SHA256 `d3e9ff0dfe710eefd6fc0289baae5232b43a89b68f3f7bdac9fd4dd84e8471f1`. Original producer report SHA256 `29305ac6fe5843ee3528ed08bb32d40def36f2f9059f8975d7eb82fb4771cedc`, full JSON case result `fd325eecc69d96802ba3e92f2e4bd39b63c61a4b4014a49cde262e7f762a9541`, source Snes9x core SHA256 `5225762bd9ad358a167b5e3bbf8be156c5a51e58a26652f706a8ffbd5c9b4d86`, native research ELF SHA256 `ac3181edd1d37e2783c4b92530e5bc1ba879577b70b10845d0edcdf7cb66007b`. The unchanged original ROM, archived 2014 movie, source SRAM and expanded controller input script hashes match the first experiment and the earlier composite campaign. All samples remain **unmasked**.
+
+The bounded logger emits **202 actual original events** (58 SPC reads, 16 SPC echoes, 128 CPU writes/polls), and **117 actual native events** (58 SPC reads, 16 echoes, 22 queued schedules and 21 applications) with **no truncation**. Its separate-clock, source-constrained verifier passed automatically and I reviewed the raw records.
+
+| First `$CC` transport event | Snes9x original SPC age | Baldosa native SPC age |
+| --- | ---: | ---: |
+| CPU queue schedules CC | CPU direct-write; not queued | 103322463 |
+| CPU writes / queued port becomes visible | 103322546 | 103322545 |
+| SPC CMP read at PC FFD2, opcode 78 | 103322554 | 103322546 |
+| SPC echo store at PC FFF7, opcode C4 | 103322580 | 103322571 |
+| CPU first reads echo CC from output port | **103322584**, measured V119 H1166 | Not separately observed by RF-030 |
+
+The original CPU performs **eight `$CC` writes and eight `$AA`-reading CPU polls before the SPC echo**, then issues a ninth `$CC` write and reads the actual `$CC` echo four SPC cycles after its production. Native's first CC queue event waited 82 SPC cycles to become visible, and the SPC's next compare saw it one cycle later. Immediately before this edge, original SPC read `$00` at **103322545**; native last read `$00` at **103322537**. The native compare/echo train therefore begins a nine-cycle spin earlier, a timing difference not explainable by simply advancing the SPC opcode's port read (RF-029 already falsified that correction). Original vs native absolute SPC ages are *separate timelines*: their close numerical values alone do not prove global phase alignment. Native host's actual CPU post-echo poll is not present in this logger; RF-028's earlier 9/7 polling diagnostic is a distinct observation.
+
+Preserved [machine receipt](../analysis/data/rf030-qualified-executed-ipl-cc-20261016.json) records SHA-verified executable identities, source input pin, all actual bounded clock phases and exactly what remains unproven. Guest gameplay baseline remains authentic original/native Zoo result **+5163/+5163**, next Bowl **+267/+267/+267**, **11/11 full SRAM images equal**, **51/78 128-KiB WRAM checkpoints exactly equal**, sound-pointer first differences +5040/+5045 and independent low-stack differences; no CPU instruction-tick, all-frame WRAM, audio-sample or shipping Windows parity inferred. **0/45 complete USA events admitted.**
+
+A source-backed successor, [RF-031](RF031-CPU-PORT-QUEUE-TARGET-BOUNDARY-20261016.md) on draft PR #1728, tests the CPU->SPC queued write **equal-target visibility** boundary with an actual source-original replay instead of retiming inputs or the reader. Retain positive and negative A/B outcomes and do not promote on timing intuition alone.

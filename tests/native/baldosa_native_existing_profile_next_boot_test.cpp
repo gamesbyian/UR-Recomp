@@ -235,11 +235,17 @@ int main() {
                profile.autosave_generation + 1);
         assert(bytes(raw) == changed_raw);
         assert(bytes(typed) != original);
-        const auto history = dir / "saves/profile-mike" /
-            ("native-sram-recovered-" +
-             std::to_string(profile.autosave_generation) + "-to-" +
-             std::to_string(profile.autosave_generation + 1) + ".txt");
-        assert(fs::is_regular_file(history));
+        fs::path history;
+        std::size_t history_count = 0;
+        for (const auto& entry : fs::directory_iterator(
+                 dir / "saves/profile-mike")) {
+            if (entry.path().filename().string().find(
+                    "native-sram-recovered-") == 0) {
+                history = entry.path();
+                ++history_count;
+            }
+        }
+        assert(history_count == 1 && fs::is_regular_file(history));
         const auto receipt = decode_baldosa_sram_intent(bytes(history), "mike");
         assert(receipt && receipt->previous == profile &&
                receipt->next == *reread.state);

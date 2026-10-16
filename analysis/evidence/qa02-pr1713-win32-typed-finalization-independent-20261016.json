@@ -1,0 +1,82 @@
+{
+  "schema": "UR-QA02-REAL-WIN32-TYPED-FINALIZATION-AFTER-COMMIT-CUT/1",
+  "date": "2026-10-16",
+  "product_pr": 1713,
+  "run": 38970800847,
+  "actual_tested_pr_merge": "97df30552f00e0b1446059ce28b64af5bd9fea0b",
+  "merge_parents": [
+    "19cddcbab607cc7ffcaa30f3852bb012d46afb80",
+    "4432ad0cd42627f8c3e964a97223827e0f1a7c50"
+  ],
+  "original_artifact_sha256": {
+    "12077656268": "59531ede703663a9cb36d316ca11b91b2eaeae09f9c75ff7c9051e36a9f5db62",
+    "12077571451": "0cc55ea8c41ae57578774efc0fb500576dfd7f6c29e4424fb3d519046e603872",
+    "12077721179": "d4e2c0cd93c482895acdd7b787140982e12d377ece06dc23dd8d30263feb188a",
+    "12077646349": "c72f244597c875c1bcc12a3f8b429dffbbb2a6cd107a481ea020e42b44252368",
+    "12077546482": "e4a555df5f58698461154b39a3b068257a10f3634495151fe7b22ea9f2218216"
+  },
+  "whole_original_zip_sha256_crc_verified": true,
+  "source_fault_archive_entries": 64,
+  "real_hosted_win32_journeys_passed": 13,
+  "romfree_inner_zip_sha256": "8ae354c3fb9641d0d7708c09f7521e568baaac65d4c4db30cca1fc97028fb379",
+  "native_executable_sha256": "29d871b06018a5db3134a8552d98c1c6c61a53ecd77c6f056f7d4ebd208ba78c",
+  "pe32_amd64_and_immutable_manifest_verified": true,
+  "rom_bundled": false,
+  "typed_finalization_cut": {
+    "genuine_win32_original_guest_frame": 1952,
+    "process_exit": 87,
+    "prewrite_intent_retained": true,
+    "raw_sram_bytes": 8192,
+    "raw_guest_changed_bytes": 28,
+    "original_old_raw_sha256": "bd9571f85e1b7ddfcf2b6913d5f3556c27ecadf65d353afbac29876e7d111c10",
+    "original_new_raw_sha256": "2f3009bb2436e3862e045df7f12da4d37845b83ada491cbc80cbef3a098f80d8",
+    "original_typed_generation_before": 1,
+    "typed_generation_at_crash": 2,
+    "typed_generation_after": 2,
+    "typed_at_crash_sha256": "5b8960309ff9e34761a467072690e587790710b2686c557f6b4cb794cc9886e8",
+    "typed_complete_stock_sram_equals_guest_raw": true,
+    "typed_prior_sha256": "1f98e49d51691816a9cd544c6fe71a5f74c3447933a7db6a8cf4e659921775b0",
+    "selector_catalog_bytes_unchanged": true,
+    "intent_at_crash_sha256": "5e32c9dfcef38c0dc75db4a7696041f1381f7e93da4f7f68bf796a173d98435e",
+    "archived_intent_byte_identical": true,
+    "full_intent_embeds_actual_previous_and_new_typed_files": true,
+    "first_cold_boot_reconciles": true,
+    "second_cold_boot_does_not_reconcile_again": true,
+    "additional_four_file_post_second_boot_snapshot_retained": false
+  },
+  "same_source_flat_journaled_snapshot": {
+    "sha256": "ad5a8e1b70b91b1ac2cd8f685a1479b76cc6954a2b10528e439da040cfe1fbb1",
+    "bytes": 11914,
+    "sidecar_matches": true,
+    "raw_before_after_match_nested_fault_bytes": true
+  },
+  "simulated_partial_raw": {
+    "truncated_prefix_bytes": 513,
+    "synthetic_not_actual_NTFS_IO": true,
+    "case_receipt_sha256": "5c76592e4a0efef3a5cc82ebd15008b7150c79d1800a61211444ae5c64d85dfb",
+    "old_intent_and_truncated_raw_archived_producer_report": true,
+    "actual_original_windows_executable_explicit_typed_choice": true,
+    "cold_refusal_log": true,
+    "two_real_windows_cold_boot_logs": true,
+    "raw_513_bytes_not_retained_for_independent_comparison": true
+  },
+  "private_preservation": {
+    "location": "owner_controlled_private_Google_Drive_folder",
+    "original_zip_count": 5,
+    "independent_readback_all_original_SHA256_equal": true,
+    "all_original_zip_CRC_clean": true,
+    "public_file_locators_excluded": true
+  },
+  "limits": {
+    "original_nominated_owner_source": "11501a15dea38fa912335cfc63103ce3a7208001",
+    "original_nominated_unchanged": true,
+    "modern_pr_still_draft": true,
+    "new_final_merged_main_windows_candidate_nominated": false,
+    "physical_pad_audio_display_verified": false,
+    "actual_disk_full_partial_io_power_cut_verified": false,
+    "user_operated_packaged_recovery_menu_verified": false,
+    "source_complete_USA_events_accepted": 0,
+    "release_quality_gates_accepted": 0,
+    "qa02_full_gate_accepted": false
+  }
+}

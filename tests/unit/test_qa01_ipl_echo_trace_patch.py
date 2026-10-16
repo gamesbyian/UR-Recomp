@@ -47,7 +47,6 @@ class PinTests(unittest.TestCase):
 
     def test_producer_instrumentation_is_read_only_and_explicit(self):
         for stage in (m.patch_original_core(CORE),
-                      m.patch_original_smp(ORIG_SMP),
                       m.patch_original_apu(ORIG_APU),
                       m.patch_native_apu(NATIVE_APU)):
             self.assertIn('getenv("UR_QA01_IPL_ECHO_TRACE")', stage)

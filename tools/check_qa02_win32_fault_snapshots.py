@@ -207,7 +207,7 @@ def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--zip", type=Path, required=True)
     p.add_argument("--sha256", required=True)
-    p.add_argument("--case", choices=("historic", "journaled"), required=True)
+    p.add_argument("--case", choices=("historic", "unjournaled", "journaled"), required=True)
     p.add_argument("--source", default="")
     p.add_argument("--exe-sha256", default="")
     args = p.parse_args()

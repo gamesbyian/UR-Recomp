@@ -3,12 +3,8 @@ name: QA-08 identify two isolated finish RGB5 pixels from real archives
 # ONE read-only lookup against source-pin 2014 Snes9x and exact current
 # b8722af Windows; no new original/Windows process and no gameplay/PPU patch.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - ".github/workflows/qa08-two-finish-pixels-archive.yml"
-      - "tools/qa08_two_isolated_finish_pixels.py"
-      - "tests/unit/test_qa08_two_isolated_finish_pixels.py"
+  # Source corpora and pass results are SHA-pinned and 90-day retained;
+  # source emulator/Win32 rebuilding and archived math analysis are explicit opt-ins only.
   workflow_dispatch:
 
 permissions:

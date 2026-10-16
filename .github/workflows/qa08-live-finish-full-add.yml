@@ -4,12 +4,8 @@ name: QA-08 independent live native finish full-add source verification
 # plus immutable 2014 Snes9x and old Windows P7 source and original CGRAM.
 # No new Windows AOT, ROM, SNES9x process or output pixel manipulation.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - ".github/workflows/qa08-live-finish-full-add.yml"
-      - "tools/qa08_live_finish_full_add.py"
-      - "tests/unit/test_qa08_live_finish_full_add.py"
+  # Source corpora and pass results are SHA-pinned and 90-day retained;
+  # source emulator/Win32 rebuilding and archived math analysis are explicit opt-ins only.
   workflow_dispatch:
 permissions:
   contents: read

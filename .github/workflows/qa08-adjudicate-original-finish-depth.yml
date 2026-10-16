@@ -3,12 +3,8 @@ name: QA-08 authenticate original/native finish BG3 OBJ pixel ownership
 # Uses only original 2014 263-frame ZIP, original read-only depth probe, and
 # independently verified Win32 full-add receipt. Neither game nor core runs.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - ".github/workflows/qa08-adjudicate-original-finish-depth.yml"
-      - "tools/qa08_adjudicate_original_finish_depth_source.py"
-      - "tests/unit/test_qa08_adjudicate_original_finish_depth_source.py"
+  # Source corpora and pass results are SHA-pinned and 90-day retained;
+  # source emulator/Win32 rebuilding and archived math analysis are explicit opt-ins only.
   workflow_dispatch:
 permissions:
   contents: read

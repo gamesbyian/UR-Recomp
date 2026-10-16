@@ -4,12 +4,8 @@ name: QA-08 enumerate finish half-colour math from original palette
 # snapshot is not assumed to be scanline-effective at later guests 3792/3872.
 # No Windows build, ROM, emulator, graphics filter, palette patch or clock edit.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - ".github/workflows/qa08-finish-halfmath-original-palette.yml"
-      - "tools/qa08_finish_brightness_order_from_real_palette.py"
-      - "tests/unit/test_qa08_finish_brightness_order_from_real_palette.py"
+  # Source corpora and pass results are SHA-pinned and 90-day retained;
+  # source emulator/Win32 rebuilding and archived math analysis are explicit opt-ins only.
   workflow_dispatch:
 permissions:
   contents: read

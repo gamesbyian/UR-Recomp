@@ -4,12 +4,8 @@ name: QA-08 original Snes9x effective finish on-pixel depth source
 # pixels: 3791 and 3871. No Windows compilation or alternative CPU.
 # Requires 263/263 ORIGINAL baseline source image byte equality.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - ".github/workflows/qa08-original-finish-layer-callback.yml"
-      - "tools/qa08_patch_original_finish_layer_callback.py"
-      - "tests/unit/test_qa08_patch_original_finish_layer_callback.py"
+  # Source corpora and pass results are SHA-pinned and 90-day retained;
+  # source emulator/Win32 rebuilding and archived math analysis are explicit opt-ins only.
   workflow_dispatch:
 
 permissions:

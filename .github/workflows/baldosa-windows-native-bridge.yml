@@ -797,6 +797,8 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_typed_before_intent_recovery/second-cold-boot.log
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_b_crash_healthy_a_recovery/*.log
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_b_crash_healthy_a_recovery/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_journaled_b_crash_then_a/*.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_journaled_b_crash_then_a/fault-bytes/**
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_three_profile_unrelated_damage/*.log
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_three_profile_unrelated_damage/fault-bytes/**
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/simulated_partial_raw_explicit_rollback/*.log

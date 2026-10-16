@@ -334,3 +334,25 @@ durable intent and their SHA256/length receipts, as well as the three
 actual Windows process logs. This is a controlled process-death
 witness at a known point, not actual lost-power or partial filesystem
 write evidence. No release gate credit.
+
+
+## Two named profiles: original B journaled fault and untouched A
+
+The product-owned Windows F5 route `native_journaled_b_crash_then_a`
+now exercises the complementary **journaled** side of the real original B
+source fault. Two individually valid canonical riders A/B are registered;
+the original native game explicitly selects B, boots B's distinct 8192-byte
+stock SRAM, reaches pause frame 1952, writes B raw via the original
+`RtlWriteSram`, and is killed with QA-only `_Exit(86)` *before typed
+CAS*. Only B raw and B's pending old/new typed intent may differ at crash.
+Two genuine fresh B boots must reconcile its typed publication **exactly
+once**, archive the original intent byte-for-byte, and preserve every
+canonical A byte, global selector and roster. The same original Windows
+executable then explicitly selects intact A and must boot A in two more
+fresh processes, with all B's recovered raw/typed bytes and immutable
+receipt unchanged. CI-owned fault evidence retains **32 exact binary
+objects**: six canonical files over five stages plus the two intent
+copies, with SHA256/length receipts and every actual Windows process log.
+Source guest test, not actual power-cut/OS partial I/O, physical R/T/S/Q,
+or independent release QA credit. The preceding unjournaled B→A witness
+remains a separate, directly historical-comparable positive subtest.

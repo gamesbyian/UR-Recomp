@@ -1,0 +1,142 @@
+name: Retain source-exact real B crash and healthy A Windows evidence
+
+# Bounded original-byte archive only; no game build, ROM, user saves or release gate.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/retain-qa02-real-b-crash-originals.yml"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: qa02-real-b-crash-originals-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  retain_original_source_zips:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - name: Download five original GitHub ZIP envelopes and verify exact SHA256
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STORE: ${{ runner.temp }}/qa02-real-b-crash-originals
+        run: |
+          set -euo pipefail
+          mkdir -p "$STORE"
+          while read -r id sha; do
+            curl --fail --location --silent --show-error --retry 2 \
+              --connect-timeout 20 --max-time 120 \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/artifacts/$id/zip" \
+              --output "$STORE/$id.zip"
+            printf '%s  %s\n' "$sha" "$STORE/$id.zip" | sha256sum -c -
+          done <<'ORIGINALS'
+          12079020811 4af31d8471d12b6648eae3cc0bf432d1d4ceacf09aa7a2cff5bba080ff21fbe7
+          12079085653 e4f0e6bfb74ae201fa87aaf99dadf234e574beac520d5861068a38badb9e364d
+          12078012954 a48ba592a0bac7fe63eb1cb2f5110f1781ba2f7cbcb722798302cc48651e9163
+          12078127548 5e99436bd7805ba1629988d492d1e8eda463f22d8a2fbd6ebe5b3d5f7b483ae8
+          12078012911 3b6b6d3be67ca52b3f08a075e2121852fe33f63a240c45234f43d515261a3e8c
+          ORIGINALS
+
+      - name: Check original CRC, real B crash archive and source/PE/package identity
+        shell: bash
+        env:
+          STORE: ${{ runner.temp }}/qa02-real-b-crash-originals
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, io, json, os, pathlib, stat, zipfile
+          root=pathlib.Path(os.environ["STORE"])
+          digest=lambda b:hashlib.sha256(b).hexdigest()
+          expected={
+           "12079020811":("4af31d8471d12b6648eae3cc0bf432d1d4ceacf09aa7a2cff5bba080ff21fbe7",119),
+           "12079085653":("e4f0e6bfb74ae201fa87aaf99dadf234e574beac520d5861068a38badb9e364d",1),
+           "12078012954":("a48ba592a0bac7fe63eb1cb2f5110f1781ba2f7cbcb722798302cc48651e9163",2),
+           "12078127548":("5e99436bd7805ba1629988d492d1e8eda463f22d8a2fbd6ebe5b3d5f7b483ae8",52),
+           "12078012911":("3b6b6d3be67ca52b3f08a075e2121852fe33f63a240c45234f43d515261a3e8c",1)}
+          source="71e48f808bfdec57aee48c60378971fa04ba0e1a"
+          portable="bd35229cc13754157bccaf4844a38ec57a1929b3eeb3692c5db4389c0ae8a8cb"
+          pe="5f46ad621fa640cc2616f90b9b19f1d8c9d7f39b2473118f344a1f097a07d887"
+          if {p.name for p in root.iterdir()}!={id+".zip" for id in expected}:
+              raise SystemExit("Wrong original source ZIP set")
+          receipt=[]
+          for id,(sha,count) in expected.items():
+              b=(root/(id+".zip")).read_bytes()
+              if digest(b)!=sha:raise SystemExit("Original source ZIP SHA altered: "+id)
+              with zipfile.ZipFile(io.BytesIO(b)) as z:
+                  entries=z.infolist()
+                  if len(entries)!=count or len({x.filename for x in entries})!=count or z.testzip() is not None:
+                      raise SystemExit("Original ZIP count/CRC invalid: "+id)
+                  for m in entries:
+                      p=pathlib.PurePosixPath(m.filename);k=stat.S_IFMT(m.external_attr>>16)
+                      if (m.is_dir() or m.flag_bits&1 or k not in (0,stat.S_IFREG) or
+                          p.is_absolute() or ".." in p.parts or "\\" in m.filename or
+                          m.filename.lower().endswith((".sfc",".smc",".swc",".rom"))):
+                          raise SystemExit("Unsafe/ROM ZIP member: "+id)
+                  if id=="12079020811":
+                      prefix="native_real_b_crash_healthy_a_recovery/fault-bytes/"
+                      names=z.namelist()
+                      binary={n.removeprefix(prefix):z.read(n) for n in names
+                              if n.startswith(prefix) and n.endswith(".bin")}
+                      file_receipt=json.loads(z.read(prefix+"file-receipt.json"))
+                      if len(file_receipt)!=24 or len(binary)!=24:
+                          raise SystemExit("Missing original two-profile canonical 24 snapshots")
+                      for name,x in binary.items():
+                          meta=file_receipt.get(name)
+                          if not meta or meta.get("sha256")!=digest(x) or meta.get("bytes")!=len(x):
+                              raise SystemExit("Original snapshot bytes differ from receipt: "+name)
+                      a1=binary["a-raw.selected.bin"]
+                      if not (len(a1)==8192 and
+                          all(binary[f"a-raw.{stage}.bin"]==a1
+                              for stage in ("crash","after","second-cold")) and
+                          binary["b-raw.crash.bin"]==binary["b-raw.after.bin"]==
+                          binary["b-raw.second-cold.bin"] and
+                          sum(x!=y for x,y in zip(binary["b-raw.selected.bin"],
+                                                    binary["b-raw.crash.bin"]))==28):
+                          raise SystemExit("Guest B crash/healthy A canonical invariants failed")
+                  if id=="12079085653":
+                      o=json.loads(z.read("candidate-binding.json"))
+                      if o.get("source_revision")!=source or o.get("zip_sha256")!=portable or o.get("journey_and_packaged_executable_sha256")!=pe:
+                          raise SystemExit("Original source/PE binding changed")
+                  if id=="12078012954":
+                      inner=z.read("UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip")
+                      if digest(inner)!=portable:raise SystemExit("ROM-free portable ZIP SHA differed")
+                      with zipfile.ZipFile(io.BytesIO(inner)) as game:
+                          if game.testzip() is not None:raise SystemExit("Inner portable CRC")
+                          names=game.namelist()
+                          if any(x.lower().endswith((".sfc",".smc",".swc",".rom")) for x in names):
+                              raise SystemExit("ROM bundled in source portable")
+                          exe=game.read(next(x for x in names if x.endswith("UniracersSNESRecomp.exe")))
+                          if digest(exe)!=pe:raise SystemExit("Original Windows PE mismatch")
+                  if id=="12078012911":
+                      p=json.loads(z.read("pilot-result.json"))
+                      if (p.get("source_sha")!=source or p.get("exe_sha256")!=pe or
+                          p.get("executed_cases")!=13 or any(c.get("exit_code")!=0 for c in p["cases"])):
+                          raise SystemExit("Source-backed hosted Windows journeys changed")
+              receipt.append({"artifact_id":int(id),"sha256_original_zip":sha,
+                              "original_zip_bytes":len(b),"zip_member_count_crc":count})
+          (root/"RETENTION-RECEIPT.json").write_text(json.dumps({
+             "schema":"UR-QA02-REAL-B-WIN32-ORIGINAL-ZIP-RETENTION/1",
+             "source_win32_run":38974116007,"actual_checked_out_source":source,
+             "historical_nominated_source_unchanged":"11501a15dea38fa912335cfc63103ce3a7208001",
+             "release_gate_credit":0,"physical_hardware_verified":False,
+             "source_originals":receipt
+          },indent=2)+"\n",encoding="utf8")
+          print("Verified",len(receipt),"unchanged original source ZIPs and",
+                sum(x["zip_member_count_crc"] for x in receipt),"nested ZIP entries")
+          PY
+
+      - name: Retain five original source ZIPs unchanged for 90 days
+        uses: actions/upload-artifact@v4
+        with:
+          name: retained-qa02-real-b-crash-healthy-a-original-win32-71e48f8
+          path: ${{ runner.temp }}/qa02-real-b-crash-originals/
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

@@ -108,7 +108,7 @@ class SnapshotByteConsumerTest(unittest.TestCase):
             path, sha = pack(Path(d), members)
             report = inspect(path, sha, "unjournaled")
             self.assertFalse(report["reconciled_typed"])
-            members["typed-profile.after.bin"] = typed(b"\\x01" + bytes(8191), 2)
+            members["typed-profile.after.bin"] = typed(b"\x01" + bytes(8191), 2)
             path, sha = pack(Path(d), members)
             with self.assertRaisesRegex(ValueError, "declared SHA/length mismatch"):
                 inspect(path, sha, "unjournaled")

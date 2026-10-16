@@ -407,7 +407,7 @@ jobs:
           retention-days: 14
 
       # QA-02 second genuine Windows storage-fault discriminator:
-      # same immutable nominated owner EXE, but deny FILE_WRITE_DATA on the
+      # same immutable nominated owner EXE, but deny FILE_WRITE_DATA and DELETE rights on the
       # existing raw file only. Real native write must fail AFTER preflight;
       # no Modern source or release-binary substitutions.
       - name: Retrieve original exact-main owner Windows executable for raw write denial
@@ -421,7 +421,7 @@ jobs:
           merge-multiple: true
           path: ${{ runner.temp }}/qa02-raw-file-denied-original-owner
 
-      - name: Verify native RtlWriteSram fails under actual Win32 FILE_WRITE_DATA denial
+      - name: Verify native SRAM destination replacement fails under OS ACL denial
         if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-original-win32-raw-file-write-denial-20261016' }}
         run: |
           set -euo pipefail
@@ -432,7 +432,7 @@ jobs:
             --script "baldosa/tests/routes/race_2p_split.txt" \
             --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
             --out "$RUNNER_TEMP/qa02-raw-file-denied-original-exe"
-          echo "QA-02 bounded actual Windows raw FILE_WRITE_DATA denial. No power-cut/disk-full, physical UI, complete-event or release gate credit." >> "$GITHUB_STEP_SUMMARY"
+          echo "QA-02 bounded actual Windows raw destination WRITE/DELETE denial with separate os.replace probe. No power-cut/disk-full, physical UI, complete-event or release gate credit." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain raw-file-denied native Windows before and after bytes even on failure
         if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-original-win32-raw-file-write-denial-20261016' }}

@@ -9,6 +9,7 @@ on:
     paths:
       - ".github/workflows/baldosa-windows-native-bridge.yml"
       - "tools/baldosa_windows_native_pause_route.py"
+      - "tools/qa02_exact_owner_win32_seam.py"
       - "tools/run_baldosa_parallel_windows_journeys.py"
       - "tests/unit/test_run_baldosa_parallel_windows_journeys.py"
       - "tools/baldosa_native_1p_records_probe.py"

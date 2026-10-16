@@ -2,9 +2,8 @@ name: One-shot QA-01 original Zoo full-race mesh evidence
 # Disposable source-authentic existing QA campaign activation, not a
 # standing automatic research lane. Deletion safely skips the case.
 on:
-  push:
-    branches:
-      - qa01-zoo-race-mesh-20261015
+  pull_request:
+    types: [synchronize]
     paths:
       - .github/workflows/qa01-zoo-mesh-one-shot.yml
 
@@ -17,7 +16,7 @@ concurrency:
 
 jobs:
   source-zoo-race-mesh:
-    if: contains(github.event.head_commit.message, 'launch-real-zoo-mesh')
+    if: github.event.pull_request.title == 'QA-01: extend authentic Zoo original/native WRAM checks through full Circuit'
     uses: ./.github/workflows/qa01-event-campaign.yml
     with:
       selected: zoom-zoo

@@ -16,6 +16,10 @@ on:
         required: false
         type: boolean
         default: false
+      zoo_dp_window:
+        required: false
+        type: boolean
+        default: false
       qa01_apu_phase:
         required: false
         type: boolean
@@ -66,6 +70,11 @@ on:
           - switcher
       zoo_race_mesh:
         description: "Opt-in 2014 Zoo event original/native unmasked WRAM mesh through +5120 (no admission)"
+        type: boolean
+        required: false
+        default: false
+      zoo_dp_window:
+        description: "Opt-in 13 consecutive Zoo +5034..+5046 unmasked DP/WRAM pairs, requires race mesh"
         type: boolean
         required: false
         default: false
@@ -146,12 +155,17 @@ jobs:
           SELECTED: ${{ inputs.selected }}
           ZOO_TERMINAL: ${{ inputs.zoo_terminal_phase }}
           ZOO_MESH: ${{ inputs.zoo_race_mesh }}
+          ZOO_DP_WINDOW: ${{ inputs.zoo_dp_window }}
           QA01_APU_PHASE: ${{ inputs.qa01_apu_phase }}
           QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}
           QA01_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
           QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
         run: |
           set -euo pipefail
+          if [[ "$ZOO_DP_WINDOW" == "true" && ( "$ZOO_MESH" != "true" || "$SELECTED" != "zoom-zoo" ) ]]; then
+            echo "Dense +5040 DP boundary requires original Zoo race mesh" >&2
+            exit 1
+          fi
           if [[ "$ZOO_MESH" == "true" && "$SELECTED" != "zoom-zoo" ]]; then
             echo "Original Zoo full-race mesh requires selected=zoom-zoo" >&2
             exit 1
@@ -218,6 +232,7 @@ jobs:
           python3 -m unittest discover -s tests/unit -p test_qa01_zoo_next_bowl.py
           python3 -m unittest discover -s tests/unit -p test_qa01_full_wram_audit.py
           python3 -m unittest discover -s tests/unit -p test_qa01_zoo_race_mesh.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_zoo_dp_window.py
           python3 -m unittest discover -s tests/unit -p test_qa01_cold_result_record.py
           python3 -m unittest discover -s tests/unit -p test_qa01_postresult_sram_diff.py
       - name: Build original Snes9x/snesref and research native exactly once
@@ -340,6 +355,7 @@ jobs:
           QA01_CASE: ${{ matrix.case }}
           QA01_ZOO_TERMINAL: ${{ inputs.zoo_terminal_phase }}
           QA01_ZOO_MESH: ${{ inputs.zoo_race_mesh }}
+          QA01_ZOO_DP_WINDOW: ${{ inputs.zoo_dp_window }}
           QA01_APU_PHASE: ${{ inputs.qa01_apu_phase }}
           QA01_SOURCE_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
           QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
@@ -358,6 +374,9 @@ jobs:
           fi
           if [[ "$QA01_ZOO_MESH" == "true" ]]; then
             extra_args+=(--zoo-race-mesh)
+          fi
+          if [[ "$QA01_ZOO_DP_WINDOW" == "true" ]]; then
+            extra_args+=(--zoo-dp-window)
           fi
           if [[ "$QA01_SOURCE_FOLLOWTHROUGH" == "true" ]]; then
             extra_args+=(--source-followthrough)
@@ -437,6 +456,15 @@ jobs:
               "every_gameplay_frame_compared","cpu_instruction_or_logic_tick_parity_proven",
               "release_complete_usa_event_credit")}
           print("QA01_ZOO_FULL_RACE_UNMASKED_MESH=" + json.dumps(brief,sort_keys=True))
+          dp=mesh.get("late_direct_page_window")
+          if dp is not None:
+              if (dp.get("range_inclusive") != [5034,5046]
+                      or not dp.get("all_guest_frames_in_range_captured")
+                      or dp.get("raw_wram_bytes_excluded") != 0
+                      or len(dp.get("samples",[])) != 13):
+                  raise SystemExit("incomplete unmasked 13-frame +5040 DP boundary")
+              print("QA01_ZOO_LATE_DP_BOUNDARY=" + json.dumps(dp,sort_keys=True,
+                                                             separators=(",",":")))
           with open(sys.argv[2],"a",encoding="utf-8") as f:
               f.write("\nZoo genuine 2014 course sampled through +" +
                       str(mesh["last_race_relative_checkpoint"]) +

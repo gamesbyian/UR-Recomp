@@ -127,6 +127,31 @@ partial observations**, **41/45 unverified**. Across all three builds,
   **candidate**, not independent complete-event
   acceptance. The precise remaining causal uncertainty and artifact identifiers
   live in [the source-owner crosswalk](../analysis/data/zoo-original-native-sram-restore-source-owner-20261009.json).
+  **Independent shipping-source identity blocker (2026-10-15, [#1686](https://github.com/gamesbyian/UR-Recomp/issues/1686)):**
+  the source-qualified *research candidate* built original/native Zoo with both RF-015
+  and RF-017, but the source-pinned Windows build currently stages **RF-015
+  only**. Its compiled CPU timing source has not been demonstrated equivalent
+  to the corrected research ELF; the known RF-015-only Linux result-relative
+  Bowl offset was +265 rather than the original +267, but a Windows-specific
+  failure has **not** yet been replayed. Integration/CPU owns patch staging and
+  exact Windows executable binding, with independent QA-01 adjudication afterward.
+  The +5040 direct-page mismatch remains unwaived. Two genuine original/native
+  2014 Zoo replays ([run 38847972295](https://github.com/gamesbyian/UR-Recomp/actions/runs/38847972295),
+  [run 38848262320](https://github.com/gamesbyian/UR-Recomp/actions/runs/38848262320))
+  captured the thirteen adjacent +5034..+5046 full-WRAM samples on independently
+  calibrated race-entry clocks, with identical native ELF and distinct original
+  reference-core binary SHA-256s. The [independent SHA-bound receipt](../analysis/data/qa01-zoo-dp5040-independent-two-run-review-20261016.json)
+  (merged #1690) retains both hosted ZIP/report digests and all 78 full
+  128-KiB pair results: 45 byte-exact, 33 different, 109 unmasked differing
+  byte occurrences. All WRAM bytes agree at +5039; sound-pointer/counter
+  `7E:0063/0069` first differ at +5040 and throughout +5041..+5046, with
+  `7E:0064` also differing at +5043. CPU/APU [#1689](https://github.com/gamesbyian/UR-Recomp/issues/1689)
+  owns the RF-018-only A/B and actual writer/reader/SPC-phase diagnosis.
+  These observations do not establish continuous-frame logic/instruction
+  parity, authentic Windows executable identity, Windows disk durability, or
+  a Windows-specific +265 next-Bowl entry. Source-qualified Zoo +5163 result,
+  authentic next Bowl +267 and eleven exact full SRAM pairs are still
+  **research candidate evidence only**, not any of 45 accepted events.
   **Still partial, 0/45 complete.**
   Reduced write provenance: `analysis/data/zoo-original-2014-live-progression.json`.
   Original terminal evidence: `analysis/generated/result-screens-probe.json`.

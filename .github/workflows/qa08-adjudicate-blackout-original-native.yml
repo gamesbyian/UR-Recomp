@@ -1,0 +1,71 @@
+name: QA-08 immutable original/native blackout RGB5 source proof
+# Cheap one-shot archive-only acceptance. Never re-run original Snes9x or Win32.
+# After classification, remove PR triggers, keep workflow_dispatch only.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa08-adjudicate-blackout-original-native.yml"
+      - "tools/qa08_adjudicate_blackout_original_native.py"
+      - "tests/unit/test_qa08_adjudicate_blackout_original_native.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: qa08-native-blackout-source-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  authenticate-three-exact-archives:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download only three immutable sources
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-blackout"
+          for pair in \
+            11996107746:original \
+            12017762924:blackout \
+            12017392389:windows; do
+            IFS=: read -r id name <<< "$pair"
+            curl --retry 3 -fLSs \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/$id/zip" \
+              -o "$RUNNER_TEMP/qa08-blackout/$name.zip"
+          done
+          echo "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e  $RUNNER_TEMP/qa08-blackout/original.zip" | sha256sum -c -
+          echo "8d7b3a65b8b40bb24ac39fb0b5c87c93d44cba3b6e189126f00604b5fa6818d6  $RUNNER_TEMP/qa08-blackout/blackout.zip" | sha256sum -c -
+          echo "4b55a33917a5941e87d507ceb8af01391c01fc4574a2543fab3f0b3cf35402f0  $RUNNER_TEMP/qa08-blackout/windows.zip" | sha256sum -c -
+      - name: Independently compare all 263 full 256x224 RGB5 callbacks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest tests.unit.test_qa08_adjudicate_blackout_original_native
+          python3 tools/qa08_adjudicate_blackout_original_native.py \
+            --original "$RUNNER_TEMP/qa08-blackout/original.zip" \
+            --blackout "$RUNNER_TEMP/qa08-blackout/blackout.zip" \
+            --windows "$RUNNER_TEMP/qa08-blackout/windows.zip" \
+            --result "$RUNNER_TEMP/qa08-blackout/qa08-original-native-source-blackout.json"
+          python3 - "$RUNNER_TEMP/qa08-blackout/qa08-original-native-source-blackout.json" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x["native_4016_incorrect_RGB5_pixels"]==54709
+          assert x["all_263_real_original_and_Windows_fullsize_PPU_images_sha_authenticated"] is True
+          assert x["source_exact_guest_CPU_instruction_phase_proven"] is False
+          assert x["graphics_field_brightness_fix_accepted"] is False
+          print("Original 4015 black vs Win32 guest4016 brightness 02, 54709 wrong real RGB5 pixels")
+          PY
+          echo "Source-qualified video/INIDISP only. No guest clock, raster or release gate." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain source-bound real blackout error receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-source-qualified-blackout-4016-original-native-RGB5
+          retention-days: 14
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/qa08-blackout/qa08-original-native-source-blackout.json

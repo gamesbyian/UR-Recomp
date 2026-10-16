@@ -357,12 +357,13 @@
         "docs/QA-WINDOWS-PR-CANDIDATE-38645114899-INDEPENDENT-ACCEPTANCE.md",
         "docs/QA-WINDOWS-PACKAGED-EXE-BINDING-38664542215.md",
         "docs/QA-EXACT-MAIN-WINDOWS-OWNER-CANDIDATE-20261015.md",
-        "docs/QA-EXACT-MAIN-WINDOWS-CROSS-ARTIFACT-DISPOSITION-20261015.md"
+        "docs/QA-EXACT-MAIN-WINDOWS-CROSS-ARTIFACT-DISPOSITION-20261015.md",
+        "docs/QA-EXACT-MAIN-RETAINED-WINDOWS-BYTE-AUDIT-20261015.md"
       ],
       "journeys": [
         "J-20"
       ],
-      "next_action": "First immutable source-pinned exact-main owner candidate EXISTS (#1667), source 11501a15dea38fa912335cfc63103ce3a7208001 and inner ZIP SHA256 5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7. Independent exact-run 38813101482 download audit rehashed ten original Actions wrappers, both complete pre/post saved .urrun/.urmatch files, five real raw-stage catalog snapshots and both typed/raw SRAM mirrors. This is source-bound L2/L3 scoped archived evidence, not independent native OS crash raw proof, simultaneous writers, NTFS full/denied fault, physical hardware or full J-20 player acceptance. Original USA strict 0/45 and release witnesses 0/12; see docs/QA-EXACT-MAIN-WINDOWS-CROSS-ARTIFACT-DISPOSITION-20261015.md.",
+      "next_action": "First immutable source-pinned exact-main owner candidate EXISTS (#1667), source 11501a15dea38fa912335cfc63103ce3a7208001 and inner ZIP SHA256 5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7. Independent exact-run 38813101482 download audit rehashed ten original Actions wrappers, both complete pre/post saved .urrun/.urmatch files, five real raw-stage catalog snapshots and both typed/raw SRAM mirrors. This is source-bound L2/L3 scoped archived evidence, not independent native OS crash raw proof, simultaneous writers, NTFS full/denied fault, physical hardware or full J-20 player acceptance. Original USA strict 0/45 and release witnesses 0/12; see docs/QA-EXACT-MAIN-WINDOWS-CROSS-ARTIFACT-DISPOSITION-20261015.md. Two January-14-2027 retained Actions archives were independently downloaded and rehashed against ALL TEN original wrappers; owner four members and nine source-QA ZIP wrappers are byte-for-byte preserved (retention access evidence only). Keep raw crash-seam/fault and hardware requirements unchanged; see docs/QA-EXACT-MAIN-RETAINED-WINDOWS-BYTE-AUDIT-20261015.md.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],

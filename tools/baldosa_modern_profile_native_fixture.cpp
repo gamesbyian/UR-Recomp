@@ -12,6 +12,7 @@
 #include "multiplayer_match_record.hpp"
 #include "local_multiplayer_match_binding.hpp"
 #include "baldosa_native_existing_profile_next_boot.hpp"
+#include "baldosa_native_manual_sram_recovery.hpp"
 
 #include <algorithm>
 #include <array>
@@ -288,6 +289,26 @@ int main(int argc, char** argv) {
         return seed_readonly_records_archive(argv[1], argv[2]);
     if (argc == 4 && std::strcmp(argv[3], "--seed-readonly-2p") == 0)
         return seed_readonly_two_player_archive(argv[1], argv[2]);
+    // QA-only explicit recovery tools use precisely the product backend.
+    // No implicit repair on a normal native launch, and no guessed choice.
+    if (argc == 4 &&
+        (std::strcmp(argv[3], "--recover-keep-raw") == 0 ||
+         std::strcmp(argv[3], "--recover-keep-typed") == 0)) {
+        const bool keep_raw =
+            std::strcmp(argv[3], "--recover-keep-raw") == 0;
+        const auto status = recover_baldosa_legacy_sram_explicit(
+            fs::path(argv[1]), argv[2],
+            keep_raw ? BaldosaManualSramChoice::TrustGuestRaw
+                     : BaldosaManualSramChoice::RestoreCommitted);
+        std::printf("UR_BALDOSA_MANUAL_RECOVERY profile=%s choice=%s status=%u "
+                    "user_choice_required=1 archive_before_repair=1\n",
+                    argv[2], keep_raw ? "raw" : "typed",
+                    static_cast<unsigned>(status));
+        return status == BaldosaManualSramRecoveryStatus::RestoredRaw ||
+                       status == BaldosaManualSramRecoveryStatus::RestoredCommitted ||
+                       status == BaldosaManualSramRecoveryStatus::AlreadyConsistent
+            ? 0 : 87;
+    }
     if (argc == 4 && std::strcmp(argv[3], "--verify-native-save") == 0)
         return verify_native_checkpoint(argv[1], argv[2]);
     if (argc == 4 && std::strcmp(argv[3], "--add-second") == 0)

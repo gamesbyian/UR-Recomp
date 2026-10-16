@@ -12,7 +12,7 @@ spec.loader.exec_module(qa)
 
 class SourceFullOamPhaseTest(unittest.TestCase):
     def test_pinned_source_scope_and_negative_release(self):
-        self.assertEqual(set(qa.ORIGINAL),{4032,4176})
+        self.assertEqual(set(qa.ORIGINAL),{4031,4032,4175,4176})
         self.assertEqual(len(qa.FRAMES),12)
         self.assertEqual(qa.SLOTS,(96,97,98,99,112,113,114))
         self.assertEqual(len(qa.PINS["native"]),64)
@@ -37,7 +37,7 @@ class SourceFullOamPhaseTest(unittest.TestCase):
             with zipfile.ZipFile(path,"w") as z:
                 z.writestr("qa08-native-OAM-port-input.json","{}")
             with self.assertRaisesRegex(ValueError,"complete producer ZIP"):
-                qa.analyze(path,path)
+                qa.analyze(path,path,path)
 
     def test_native_OAM_port_requires_all_12_frames(self):
         one="UR_QA08_WIN_OAM_PORT frame=4030 v=230 h=100 port=04 val=a2 src=1 adr=00 high=0 second=0 latch=00 oldlow=00 oldhigh=00"

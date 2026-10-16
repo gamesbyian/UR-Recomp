@@ -16,9 +16,17 @@ import zipfile
 PINS={
     "original":"2fef0440b97a69025bf9ee539551b414ef7f1f11978172aea5565f338b35d4c9",
     "native":"74fd88413c2a1cac2c14098c65b76fba4cdba909f989182618018d9a68a04888",
+    "legacy_original":"7a506cfc5f44bd8cc6aaba8482f42140b51618ba14aedec8f9bc7558417ad4b2",
 }
 FRAMES=tuple(range(4029,4035))+tuple(range(4173,4179))
-ORIGINAL={4032:"qa08_medal_4032",4176:"qa08_medal_4176"}
+# Old host-labelled OAM frames 4031/4175 remain authentic DMA observations;
+# only the older visual callback *comparison* was temporally misregistered.
+ORIGINAL={
+    4031:("legacy_original","qa08_medal_4031"),
+    4032:("original","qa08_medal_4032"),
+    4175:("legacy_original","qa08_medal_4175"),
+    4176:("original","qa08_medal_4176"),
+}
 CRC="c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876"
 SLOTS=(96,97,98,99,112,113,114)
 
@@ -89,12 +97,17 @@ def original_dma(journal:bytes,f:int)->bytes:
     need(len(result),544,f"original full 544-byte OAM DMA {f}")
     return bytes(result)
 
-def analyze(original:Path,native:Path)->dict:
-    for k,path in (("original",original),("native",native)):
+def analyze(original:Path,legacy_original:Path,native:Path)->dict:
+    for k,path in (("original",original),("legacy_original",legacy_original),("native",native)):
         need(sha(path.read_bytes()),PINS[k],k+" complete producer ZIP SHA")
-    with zipfile.ZipFile(original) as a,zipfile.ZipFile(native) as b:
-        if any(len(z.namelist())!=len(set(z.namelist())) for z in (a,b)):
+    with zipfile.ZipFile(original) as a,zipfile.ZipFile(legacy_original) as old,zipfile.ZipFile(native) as b:
+        if any(len(z.namelist())!=len(set(z.namelist())) for z in (a,old,b)):
             raise ValueError("duplicate source ZIP member")
+        legacy_receipt=json.loads(old.read("original-263-verified.json"))
+        need(legacy_receipt["263_original_unmasked_BGRX_frames_identical_to_prior_original"],True,
+             "legacy host-labelled OAM preserved original 263 video callbacks")
+        need(legacy_receipt["native_guest_phase_certified"],False,
+             "legacy visual frame cross-registration remains unaccepted")
         native_receipt=json.loads(b.read("qa08-native-effective-pixel-owner.json"))
         port_receipt=json.loads(b.read("qa08-native-OAM-port-input.json"))
         original_receipt=json.loads(a.read("matched-original-fields.json"))
@@ -117,10 +130,13 @@ def analyze(original:Path,native:Path)->dict:
                 need(f"{raw[slot*4+2]:02x}",expected[f]["native_DMA_source_slot_tile_bytes"][str(slot)],
                      f"native tile byte at source slot {slot}")
         matches=[]
-        for host,tag in ORIGINAL.items():
-            oam=a.read(f"registers/{tag}.oam.bin")
+        for host,(producer,tag) in ORIGINAL.items():
+            source=a if producer=="original" else old
+            info=json.loads(source.read(f"registers/{tag}.info.json"))
+            need(info["frame"],host,f"authentic historical original host field {host}")
+            oam=source.read(f"registers/{tag}.oam.bin")
             need(len(oam),544,f"original full OAM image {host}")
-            need(original_dma(a.read(f"registers/{tag}.ppuw.tsv"),host),oam,
+            need(original_dma(source.read(f"registers/{tag}.ppuw.tsv"),host),oam,
                  f"original whole DMA port payload {host}")
             for f,raw in native_inputs.items():
                 if raw==oam:
@@ -133,15 +149,15 @@ def analyze(original:Path,native:Path)->dict:
                                     "source_sprite_tile_bytes":{
                                         str(s):f"{oam[s*4+2]:02x}" for s in SLOTS}})
         need([(m["original_postrun_field"],m["native_input_OAMDMA_host_frame"])
-              for m in matches],[(4032,4030),(4176,4174)],
+              for m in matches],[(4031,4029),(4032,4030),(4175,4173),(4176,4174)],
              "unshifted independently observed whole-OAM matches")
         return {
-            "schema":"qa08-source-entire-544-byte-OAMDMA-two-host-field-phase/1",
+            "schema":"qa08-source-four-original-entire-544-byte-OAMDMA-two-host-field-phase/2",
             "source_archives_SHA256":PINS,
             "native_port_frames_independently_replayed":len(native_inputs),
             "original_pinned_544byte_VBlank_DMA_to_OAM_checks":len(ORIGINAL),
             "identical_source_OAMDMA_matches":matches,
-            "both_original_full_OAM_states_seen_in_native_port_two_host_fields_early":True,
+            "four_original_full_OAM_states_seen_in_native_port_two_host_fields_early":True,
             "native_guest_CPU_NMI_DMA_source_WRAM_causality_proven":False,
             "same_original_native_instruction_or_beam_phase_proven":False,
             "renderer_tile_shift_or_palette_recolor_authorized":False,
@@ -150,13 +166,13 @@ def analyze(original:Path,native:Path)->dict:
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
-    for n in ("original","native","out"):
+    for n in ("original","legacy-original","native","out"):
         p.add_argument("--"+n,type=Path,required=True)
     a=p.parse_args()
-    result=analyze(a.original,a.native)
+    result=analyze(a.original,a.legacy_original,a.native)
     a.out.parent.mkdir(parents=True,exist_ok=True)
     a.out.write_text(json.dumps(result,indent=2,sort_keys=True)+"\n")
-    print("QA08_OAM_SOURCE_INPUT_MATCH=544/544 original-postrun=4032,4176 native-input=4030,4174 release=0")
+    print("QA08_OAM_SOURCE_INPUT_MATCH=544/544 4_pairs=4031:4029,4032:4030,4175:4173,4176:4174 release=0")
 
 if __name__=="__main__":
     main()

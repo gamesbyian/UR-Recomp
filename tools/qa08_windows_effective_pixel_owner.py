@@ -184,6 +184,85 @@ def inspect(log:str,guest_crcs:list[str])->dict:
         "release_graphics_accepted":False,
     }
 
+
+FINISH_RGB_NATIVE = (57,24,0)
+FINISH_RGB_ORIGINAL = (49,24,0)
+FINISH_GUESTS = (3792,3872)
+
+
+def inspect_finish_live_pixel_owners(log:str)->dict:
+    """Two real live pre-output PPU pixel owners, never reconstructed pixels.
+
+    The independently archived 2014 Snes9x comparison found a single wrong
+    RGB5 pixel (121,165) on each guest, with exactly identical red delta.
+    Original source layer/priority is still *unobserved*; the native trace
+    reads its existing effective compositor values without intervening.
+    """
+    selected={}
+    for line in log.splitlines():
+        if not line.startswith("UR_QA08_WIN_FINISH_PIXEL_OWNER "):
+            continue
+        d=fields(line,"UR_QA08_WIN_FINISH_PIXEL_OWNER",FIELDS)
+        try:
+            guest,x,y,ppu_line=(
+                int(d[k]) for k in ("frame","x","raster_y","ppu_line"))
+            if guest not in FINISH_GUESTS or x!=121 or y!=165 or ppu_line!=166:
+                raise ValueError("not the independently source-qualified finish pixel")
+            if guest in selected:
+                raise ValueError("duplicate authentic native 2P finish source pixel")
+            if csv_int(d["final"],3)!=list(FINISH_RGB_NATIVE):
+                raise ValueError("real native finish pixel changed from its 263-frame source")
+            for key in ("premain","presub","postmath"):
+                if any(not -1<=v<=63 for v in csv_int(d[key],3)):
+                    raise ValueError("non-PPU RGB5 native pixel operands")
+            for key in ("main","sub"):
+                if not -1<=int(d[key])<=6:
+                    raise ValueError("unrecognized live native PPU source layer")
+            for key in ("math","window"):
+                if not -1<=int(d[key])<=1:
+                    raise ValueError("invalid native math/window state")
+            for key in ("obj","obj_cgram_index","obj_word","inidisp",
+                        "cgadsub","cgwsel","fixed","tm","ts","obsel"):
+                if not re.fullmatch(r"[0-9a-fA-F]{2,8}",d[key]):
+                    raise ValueError("unqualified native PPU or OBJ register")
+            selected[guest]={
+                "native_guest":guest,"original_video_callback":guest-1,
+                "x":x,"y":y,"native_actual_RGB8":list(FINISH_RGB_NATIVE),
+                "original_Snes9x_RGB5_expanded":list(FINISH_RGB_ORIGINAL),
+                "native_resolved_main_layer":int(d["main"]),
+                "native_resolved_sub_layer":int(d["sub"]),
+                "native_color_math_enabled":int(d["math"]),
+                "native_color_window_state":int(d["window"]),
+                "native_main_RGB5":csv_int(d["premain"],3),
+                "native_sub_RGB5":csv_int(d["presub"],3),
+                "native_postmath_RGB5":csv_int(d["postmath"],3),
+                "native_effective_obj":d["obj"],
+                "native_effective_obj_CGRAM_index":d["obj_cgram_index"],
+                "native_effective_obj_CGRAM_word":d["obj_word"],
+                "inidisp":d["inidisp"],"cgadsub":d["cgadsub"],
+                "cgwsel":d["cgwsel"],"fixed":d["fixed"],
+                "tm":d["tm"],"ts":d["ts"],"obsel":d["obsel"],
+                "source_original_PPU_layers_proven":False,
+                "physical_SNES_DAC_equivalence_proven":False,
+                "native_pixel_mismatches_repaired":False
+            }
+        except (ValueError, KeyError) as exc:
+            raise ValueError("unqualified real native finish PPU pixel owner: "+str(exc)) from exc
+    if set(selected)!=set(FINISH_GUESTS):
+        raise ValueError("missing two authentic source-isolated finish PPU owners")
+    return {
+        "schema":"qa08-live-native-finishing-pixel-PPU-layer-observer/1",
+        "actual_source_qualified_win32_guest_2p_frames":[*FINISH_GUESTS],
+        "pixel_256x224":[121,165],
+        "strict_original_Snes9x_RGB5_expanded":[*FINISH_RGB_ORIGINAL],
+        "strict_actual_Windows_RGB8":[*FINISH_RGB_NATIVE],
+        "read_only_native_live_PPU_effective_pixels":[selected[n] for n in FINISH_GUESTS],
+        "observer_did_not_modify_guest_or_PPU":True,
+        "original_live_same_scanline_PPU_priority_proven":False,
+        "native_vs_original_hardware_DAC_math_order_proven":False,
+        "release_gate_accepted":False
+    }
+
 def main()->None:
     ap=argparse.ArgumentParser(description=__doc__)
     for name in ("exe","rom","script","out"):
@@ -207,6 +286,7 @@ def main()->None:
         "UR_QA08_WINDOWS_OAM_PORT_TRACE":"1",
     }
     if a.collect_2p_fullroute:
+        enabled["UR_QA08_WINDOWS_FINISH_PIXEL_OWNER_TRACE"]="1"
         source_dir=a.out/"source"
         source_dir.mkdir()
         enabled.update({
@@ -232,6 +312,7 @@ def main()->None:
     # Never archive user files, ROM/SRAM, personal profiles or full commands.
     diagnostic=[row for row in log.splitlines()
                 if row.startswith(("UR_QA08_WIN_PIXEL_OWNER ",
+                                   "UR_QA08_WIN_FINISH_PIXEL_OWNER ",
                                    "UR_QA08_WIN_OAM_LINE ",
                                    "UR_QA08_WIN_OAM_PORT "))]
     (a.out/"qa08-effective-pixel-source-log.txt").write_text(
@@ -268,6 +349,7 @@ def main()->None:
         (a.out/"qa08-native-ppu-source-phase-log.txt").write_text(
             "\n".join(line for line in log.splitlines() if line.startswith(prefixes))+"\n",
             encoding="utf-8")
+        result["bounded_two_finish_live_pixel_owners"]=inspect_finish_live_pixel_owners(log)
         result["qualified_263_frame_source_PPU_in_same_native_process"]=True
         result["same_real_Windows_process_CGRAM_ports_2100_HDMA7_observed"]=True
         print("QA08_SAME_ROUTE_2P_PPU full_guest=5484 source_256x224=263 "

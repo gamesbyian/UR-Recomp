@@ -89,6 +89,32 @@ TRACE=r"""  /* Original logical x and output y. This reads the already composed 
           snes_frame_counter,x,y,slot,xy,tileattr,high);
       }
     }
+  /* Exactly two independently verified source-divergent finish pixels.
+   * This is a separate opt-in probe. Do not alter the existing 11 positions,
+   * 70 OAM snapshots, PPU layer order or full-frame source rasters. */
+  if ((snes_frame_counter == 3792 || snes_frame_counter == 3872) &&
+      x == 121 && y == 166 &&
+      getenv("UR_QA08_WINDOWS_FINISH_PIXEL_OWNER_TRACE")) {
+    const unsigned obj = (unsigned)ppu->objBuffer.data[x + kPpuExtraLeftRight];
+    const unsigned objpal = obj & 255u;
+    const unsigned objcolour = (unsigned)PpuPixelColor(
+        ppu, (uint16_t)obj, (size_t)(x + kPpuExtraLeftRight));
+    fprintf(stderr,
+      "UR_QA08_WIN_FINISH_PIXEL_OWNER frame=%d x=%d raster_y=%d ppu_line=%d "
+      "main=%d sub=%d math=%d window=%d premain=%d,%d,%d "
+      "presub=%d,%d,%d postmath=%d,%d,%d final=%u,%u,%u "
+      "obj=%04x obj_cgram_index=%02x obj_word=%04x "
+      "inidisp=%02x cgadsub=%02x cgwsel=%02x fixed=%04x "
+      "tm=%02x ts=%02x obsel=%02x\n",
+      snes_frame_counter,x,y-1,y,qa08_main_layer,qa08_sub_layer,
+      qa08_math,qa08_window,qa08_main_r,qa08_main_g,qa08_main_b,
+      qa08_sub_r,qa08_sub_g,qa08_sub_b,r,g,b,
+      (unsigned)pixelBuffer[2],(unsigned)pixelBuffer[1],
+      (unsigned)pixelBuffer[0],obj,objpal,objcolour,
+      (unsigned)ppu->inidisp,(unsigned)ppu->cgadsub,(unsigned)ppu->cgwsel,
+      (unsigned)ppu->fixedColor,(unsigned)ppu->screenEnabled[0],
+      (unsigned)ppu->screenEnabled[1],(unsigned)ppu->obsel);
+  }
   }
 """
 

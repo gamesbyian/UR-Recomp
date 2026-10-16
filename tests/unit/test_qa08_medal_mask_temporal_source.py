@@ -29,7 +29,11 @@ class MedalMaskTest(unittest.TestCase):
         pair={(91*256+202),(91*256+203),(120*256+225)}
         self.assertEqual([x["pixels"] for x in m.components_of_mask(pair)],[2,1])
     def test_incorrect_zip_rejected_without_extracting_untrusted_content(self):
-        with self.assertRaises(ValueError):
-            m.analyze(Path("/not/an/original/archive"),Path("/not/a/windows/archive"))
+        from tempfile import TemporaryDirectory
+        with TemporaryDirectory() as folder:
+            fake=Path(folder)/"not-an-authentic-archive.zip"
+            fake.write_bytes(b"not pinned 2014 original or Windows")
+            with self.assertRaisesRegex(ValueError,"genuine native"):
+                m.analyze(fake,fake)
 if __name__=="__main__":
     unittest.main()

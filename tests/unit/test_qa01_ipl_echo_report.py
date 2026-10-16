@@ -7,10 +7,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 import qa01_ipl_echo_report as m  # noqa: E402
 
 O = "\n".join([
-    "QA01IPLORIG side=cpu kind=write frame=6057 v=240 h=40 age=103322546 pc=0000 op=00 value=CC ipl=0",
-    "QA01IPLORIG side=spc kind=read frame=6057 v=240 h=60 age=103322554 pc=FFD2 op=78 value=CC ipl=1",
-    "QA01IPLORIG side=spc kind=echo frame=6057 v=240 h=65 age=103322559 pc=FFD8 op=C4 value=CC ipl=1",
-    "QA01IPLORIG side=cpu kind=poll frame=6057 v=240 h=68 age=103322559 pc=0000 op=00 value=CC ipl=0",
+    "QA01IPLORIG side=cpu kind=write frame=0 v=240 h=40 age=103322546 pc=0000 op=00 value=CC ipl=0",
+    "QA01IPLORIG side=spc kind=read frame=0 v=240 h=60 age=103322554 pc=FFD2 op=78 value=CC ipl=1",
+    "QA01IPLORIG side=spc kind=echo frame=0 v=240 h=65 age=103322559 pc=FFD8 op=C4 value=CC ipl=1",
+    "QA01IPLORIG side=cpu kind=poll frame=0 v=240 h=68 age=103322559 pc=0000 op=00 value=CC ipl=0",
 ])
 N = "\n".join([
     "QA01IPLNATIVE kind=schedule age=103322541 pc=FFCF value=CC q=1 in=00 out=00",

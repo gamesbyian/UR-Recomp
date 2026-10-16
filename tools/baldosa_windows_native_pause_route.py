@@ -1742,14 +1742,34 @@ def run_native_crash_between_raw_and_typed(
     # never shipped as an implicit startup policy or called by the guest.
     legacy_choice_receipt = None
     if not journaled:
+        # The same packaged original native executable now owns player
+        # recovery. Refuse any unknown action, without a guest frame or save
+        # mutation, before trying the explicit keep-raw choice.
+        invalid_env = clean_env.copy()
+        invalid_env["UR_BALDOSA_RECOVERY_ACTION"] = "invalid"
+        invalid = subprocess.run(
+            [str(exe), "--no-launcher", "--config", str(config), str(rom)],
+            cwd=retry, env=invalid_env, capture_output=True, text=True,
+            errors="replace", timeout=timeout)
+        if invalid.returncode != 88 or raw.read_bytes() != after_raw or (
+            typed.read_bytes() != before[typed]):
+            raise ValueError("Unrecognized native recovery action changed save data")
+        explicit_env = clean_env.copy()
+        explicit_env["UR_BALDOSA_RECOVERY_ACTION"] = "raw"
         choice = subprocess.run(
-            [str(fixture), str(user_root), "native-ci-rider",
-             "--recover-keep-raw"],
-            capture_output=True, text=True, timeout=timeout)
-        if choice.returncode or "choice=raw status=0 " not in choice.stdout:
+            [str(exe), "--no-launcher", "--config", str(config), str(rom)],
+            cwd=retry, env=explicit_env, capture_output=True,
+            text=True, errors="replace", timeout=timeout)
+        decision_log = choice.stdout + "\n" + choice.stderr
+        (output / "explicit-recovery-native-command.log").write_text(
+            decision_log, encoding="utf-8")
+        if choice.returncode != 89 or (
+            decision_log.count("UR_BALDOSA_RECOVERY_CHOICE choice=raw ") != 1
+        ) or "completed=1" not in decision_log or (
+            "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in decision_log):
             raise ValueError(
-                "Explicit unjournaled guest-SRAM choice not accepted: "
-                f"rc={choice.returncode} {choice.stdout} {choice.stderr}")
+                "Original game did not complete explicit one-shot recovery "
+                f"before guest: rc={choice.returncode} tail={decision_log[-1800:]}")
         if raw.read_bytes() != after_raw or typed.read_bytes() == before[typed]:
             raise ValueError("Manual recovery lost raw guest SRAM or failed typed CAS")
         archive = list(profile.glob("native-sram-manual-archive-*.bin"))
@@ -1778,6 +1798,8 @@ def run_native_crash_between_raw_and_typed(
             raise ValueError("Manual repair published a fake Records run")
         legacy_choice_receipt = {
             "explicit": True,
+            "same_original_game_binary_recovery": True,
+            "unknown_action_no_mutation": True,
             "restarted_native_guest": True,
             "archived_both_snapshots": True,
             "original_guest_raw_unchanged_through_repair": True,

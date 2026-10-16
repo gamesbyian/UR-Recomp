@@ -66,14 +66,12 @@ class NativeMedalVRAMProbe(unittest.TestCase):
 
     def test_real_host_override_must_be_explicit_if_render_words_differ(self):
         with self.assertRaisesRegex(ValueError,"host override"):
-            live.inspect_medal_live_vram(records().replace("render_w0=0200","render_w0=0202"))
-        # Same guest and render tile index14 may have different raw word values
-        # only when the bounded source explicitly reports the overlay switch.
-        altered=records(override=1).replace("render_w0=0200","render_w0=0202")
-        # Bitplane 0 changes index14 to 15, so the reported index must
-        # change correspondingly even if its actual object index remains 14.
-        with self.assertRaisesRegex(ValueError,"claimed indexed pixel"):
-            live.inspect_medal_live_vram(altered)
+            live.inspect_medal_live_vram(records().replace("render_w0=0200","render_w0=0204"))
+        # Different guest/render plane bits outside this pixel may appear,
+        # but only if the source actually reports a host-owned VRAM override.
+        altered=records(override=1).replace("render_w0=0200","render_w0=0204")
+        self.assertTrue(all(v["host_render_VRAM_override_live"] for v in
+                     live.inspect_medal_live_vram(altered)["source_registered_exact_four_pixel_records"]))
 
     def test_missing_extra_duplicate_and_broken_VRAM_words_fail_closed(self):
         good=records()

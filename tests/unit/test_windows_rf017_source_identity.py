@@ -63,8 +63,8 @@ class WindowsRF017SourceIdentityTests(unittest.TestCase):
         stage = "python tools/baldosa_guest_adapter_spike.py --game baldosa"
         moved = source.replace("          " + stage + '\n', '', 1)
         moved = moved.replace(
-            '          # No second native core, ROM or alternate product frontend.',
-            '          ' + stage + '\n          # No second native core, ROM or alternate product frontend.',
+            '          # RF-017: source-qualified in-order CPU I/O clocks.',
+            '          ' + stage + '\n          # RF-017: source-qualified in-order CPU I/O clocks.',
             1,
         )
         with self.assertRaises(AssertionError):

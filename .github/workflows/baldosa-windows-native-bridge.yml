@@ -119,6 +119,8 @@ on:
       - "native/product/baldosa_native_match_publish_retry.hpp"
       - "native/product/baldosa_native_profile_path_guard.hpp"
       - "native/product/baldosa_native_profile_sram_checkpoint.hpp"
+      - "native/product/baldosa_native_sram_recovery.hpp"
+      - "native/product/baldosa_native_manual_sram_recovery.hpp"
       - "native/product/baldosa_native_run_publish_retry.hpp"
       - "native/product/baldosa_physical_pause_input.hpp"
       - "native/title/uniracers_practice_tour_unlock.hpp"

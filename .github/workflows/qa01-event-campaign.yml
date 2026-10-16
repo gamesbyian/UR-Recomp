@@ -421,7 +421,10 @@ jobs:
           fi
           # A coarse whole-Circuit checkpoint mesh is a new observation,
           # not evidence that unsampled frames or CPU instructions agree.
-          if [[ "$QA01_ZOO_MESH" == "true" && "$producer_rc" -eq 0 ]]; then
+          # A report containing a scientifically genuine strict divergence is
+          # useful even though the producer exits nonzero. Never suppress the
+          # first mismatch merely because the complete-event classifier fails.
+          if [[ "$QA01_ZOO_MESH" == "true" && -f "$ROOT/producer-report.json" ]]; then
             python3 - "$ROOT/producer-report.json" "$GITHUB_STEP_SUMMARY" <<'PY'
           import json,sys
           mesh=json.load(open(sys.argv[1]))["zoo_race_mesh"]

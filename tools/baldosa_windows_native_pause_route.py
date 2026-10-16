@@ -1280,7 +1280,7 @@ def capture_native_selector_conflict_files(
         "second_raw": "saves/profile-native-ci-second/save.srm",
         "second_typed": "saves/profile-native-ci-second/host-profile.txt",
     }
-    if stage not in ("before_A", "after_B_before_A", "after_A"):
+    if stage not in ("before_A", "after_B_before_A", "after_A", "after_cold_B"):
         raise ValueError("Unrecognized owned profile-conflict stage")
     snapshot_dir.mkdir(parents=True, exist_ok=True)
     receipt: dict[str, dict[str, object]] = {}

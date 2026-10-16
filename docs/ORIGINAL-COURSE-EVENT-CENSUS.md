@@ -127,6 +127,20 @@ partial observations**, **41/45 unverified**. Across all three builds,
   **candidate**, not independent complete-event
   acceptance. The precise remaining causal uncertainty and artifact identifiers
   live in [the source-owner crosswalk](../analysis/data/zoo-original-native-sram-restore-source-owner-20261009.json).
+  **Independent shipping-source identity blocker (2026-10-15, [#1686](https://github.com/gamesbyian/UR-Recomp/issues/1686)):**
+  the accepted *research witness* built original/native Zoo with both RF-015
+  and RF-017, but the source-pinned Windows build currently stages **RF-015
+  only**. Its compiled CPU timing source has not been demonstrated equivalent
+  to the corrected research ELF; the known RF-015-only Linux result-relative
+  Bowl offset was +265 rather than the original +267, but a Windows-specific
+  failure has **not** yet been replayed. Integration/CPU owns patch staging and
+  exact Windows executable binding, with independent QA-01 adjudication afterward.
+  The direct-page +5040 residual also remains unwaived: the bounded
+  consecutive +5034..+5046 original/native discriminator in
+  [#1687](https://github.com/gamesbyian/UR-Recomp/pull/1687) is
+  **pending hosted execution**, not acceptance evidence. Do not infer
+  full-course logic/instruction parity, Windows saved-file durability or
+  a real Windows +265 onset from the existing Linux source observations.
   **Still partial, 0/45 complete.**
   Reduced write provenance: `analysis/data/zoo-original-2014-live-progression.json`.
   Original terminal evidence: `analysis/generated/result-screens-probe.json`.

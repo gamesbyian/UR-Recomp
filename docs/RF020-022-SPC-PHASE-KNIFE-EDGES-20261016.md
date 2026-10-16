@@ -2,6 +2,8 @@
 
 **Scope:** CPU/APU-lane follow-through after [RF-016/018/019](RF016-019-TIMING-CORRECTIONS-20261015.md). The base is the full RF-015…019 candidate on the pinned Baldosa core (`gamesbyian/uniracers-recomp@10b864b`, framework `baldosa/snesrecomp@075fbe4`). Evidence comes from disposable SPC-side port/timer logs added to a Snes9x core and to a Baldosa observer build, plus PC-filtered CPU traces. Compact evidence: [`analysis/data/rf020-022-spc-phase-20261016.json`](../analysis/data/rf020-022-spc-phase-20261016.json). **No release-gate or complete-event credit.** QA-01 alone decides event acceptance; official strict USA complete events stay **0/45**.
 
+> **Follow-up ([RF-023/024/025](RF023-025-SPC-FRAME-CLOCK-20261016.md)):** the Dragster dense dumps and SPC-log latencies below were taken with a scratch harness that did not load the movie SRAM into the native. With SRAM loaded, the RF-015…019 base still first differs at +2040, so the conclusions stand; the RF-023 report's reset census supersedes the latency figures. The SPC frame-clock corrections there close seed 50048000.
+
 ## Summary
 
 - **Dragster** (+2080 vs +2081) has the same root as 2P seed 50048000 (RF-020). Both Snes9x and bsnes agree byte-for-byte; native is the outlier. The post-race loader resets the SPC (`82:8089 STA $2140=$FF`, wait for `$BBAA` at `82:8097`). The sound driver honours the reset only after a fresh **timer-2 tick**. On the reference a stale tick is already pending, so it waits a whole timer period (~3,150 SPC cycles); on native it is not. Native then leaves the loader early and reaches the post-upload two-edge wait `80:FAC9` before VBlank (V=189) instead of just after it (V=228), so it skips a field.

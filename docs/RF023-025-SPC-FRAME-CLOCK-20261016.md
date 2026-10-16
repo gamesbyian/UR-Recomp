@@ -60,7 +60,20 @@ After each sound-driver restart, the driver's timing is re-anchored to CPU port 
 
 One candidate source is the native SPC700 core. It is LakeSnes-derived: `apu_cycle` runs each opcode atomically on its first cycle, so port reads, timer reads and `$F1` timer enables land 2–4 cycles before their hardware bus cycle. The references model per-cycle bus access. Each such offset is small, so it would have to act through the chain of port handshakes between a driver restart and its timer enable. That remains a hypothesis; no per-access trace was made.
 
-**Anchor-0 witness set (in progress).** 2P seed 50048000 is exact against both references under anchor 0 as well, so that fix comes from RF-023/024, not from the anchor. The remaining anchor-0 pairs, the 1P cases and the attract census are still running and will be recorded here.
+**The full witness set under both anchors** (RF-015…019 + RF-023/024; anchor-0 executables: 1P `f202aebe…`, 2P `4a085e91…`):
+
+| Witness | anchor 2,446 | anchor 0 (exact SPC age) |
+| --- | --- | --- |
+| 2P, 18 pairs | 16 exact; 50036056 vs bsnes and 50024004 vs Snes9x (reference knife-edges) | identical, including 50048000 exact against both references |
+| Zoom Zoo | +5163 = +5163; all follow-through pairs and SRAM equal | +5163 = +5163; follow-through named pairs and SRAM **differ** (the RF-022 regression) |
+| Bowl | +3365 = +3365 | identical |
+| Switcher | +4703 vs +4704 (+4664) | identical |
+| Dragster | +2081 = +2081; paired candidate | +2080 vs +2081 (**one field early**) |
+| Attract (bsnes) | 941–1098, 1423–1546, 3632–3762 | 941–1097, 1422–1545, 3631–3761 (**three loads one frame early**) |
+
+So the 2P improvement, seed 50048000, comes from RF-023/024 and holds under either anchor. The Zoom Zoo, Dragster and attract agreements depend on the anchor: they are RF-022's knife-edges, and the empirical anchor lands them on the reference side.
+
+**Where the remaining phase comes from.** Disposable `$F1` (timer-control) logging was added to the Snes9x SMP and the native APU, with CPU-clock port-write logging, on the Dragster replay. The timer-2 phase that decides the host-2902 reset is set by the driver's last timer restart (`$F1 = $06`) at SPC cycle ~16.13M, near host 945. With anchor 0 the native driver performs that restart 128 SPC cycles early by SPC age, while the CPU writes before it land up to ~370 cycles early. From that restart to the host-2902 write, native's elapsed SPC time is 116 cycles longer, which is exactly the observed tick shift (257 → 139). Port-write positions also drift by about −200 master clocks per field during the boot IPL upload (hosts 35–44): native's CPU/SPC upload handshake runs ~0.06% fast. That agrees with RF-020's earlier count of 0.08% fewer polls in a later upload. The remaining error is therefore in CPU–SPC handshake timing, a few SPC cycles per exchange, not in the SPC clock rate or age.
 
 ## Harness correction for earlier Dragster dense evidence
 
@@ -70,5 +83,5 @@ The scratch dense-dump harness behind RF-020's Dragster tables seeded the movie 
 
 - **RF-023/024** are hardware-correct and measured (SPC age within 2 cycles of Snes9x over 2,867 fields). They belong in any final timing model, together with RF-021.
 - **RF-025:** QA-01 should treat the combined candidate as strong but knife-edge evidence. It is the first configuration to match every witness where the references agree except Switcher. That holds only with the empirical anchor, and the physically exact anchor loses two witnesses. Before accepting an event on this core, check it under both anchors.
-- **Next research step:** a per-access SPC700 bus model (port reads, timer reads and `$F1` writes at their hardware cycle), checked against bsnes's SMP, then re-run the reset census with anchor 0. If that closes the 100–200-cycle driver-phase residual, the anchor stops being a free parameter.
+- **Next research step:** measure the CPU/SPC upload handshake per exchange against bsnes (CPU port-write clock, SPC read and echo cycle). Then try a per-access SPC700 bus model (port and timer accesses at their hardware bus cycle), and re-run the `$F1` and reset census with anchor 0. If that closes the ~0.06% handshake drift and the driver-phase residual, the anchor stops being a free parameter.
 - **Not staged:** no campaign input yet. The stage order is RF-015…019, then `baldosa_spc_power_on_patch.py [--anchor N]`, then `baldosa_spc_frame_clock_patch.py` (requires RF-016).

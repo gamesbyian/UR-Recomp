@@ -68,5 +68,25 @@
     "independent_complete_release_qa_gates_accepted": 0,
     "USA_original_native_complete_events_accepted": 0,
     "p0_1214_open": true
+  },
+  "github_90_day_original_byte_retention": {
+    "verified_at": "2026-10-16",
+    "original_positive_source_run": 38962321707,
+    "retention_workflow_run": 38970586783,
+    "merged_workflow_pr": 1725,
+    "retention_artifact_id": 12076551970,
+    "retention_artifact_name": "retained-qa02-positive-journal-originals-e9a92888",
+    "retention_expires_at": "2027-01-14T21:37:10Z",
+    "new_outer_zip_sha256": "e9223eaf8f4cfa8fff0554fca3593504ef6eca7a70636a94b82ef071e877f85c",
+    "new_outer_zip_bytes": 6075901,
+    "new_envelope_crc_passed": true,
+    "original_actions_zip_count": 5,
+    "original_nested_members_crc_checked": 95,
+    "each_original_whole_zip_sha256_matched_manifest": true,
+    "independent_original_bytes_equal_to_prior_download": true,
+    "contains_new_receipt": true,
+    "release_gate_credit": 0,
+    "nominated_candidate_changed": false,
+    "comment": "Derived 90-day wrapper is distinct from all five original GitHub Actions ZIPs and their individually pinned SHA256 digests."
   }
 }

@@ -12,6 +12,7 @@ from pathlib import Path
 
 MARK = "UR_QA01_RF030_IPL_ECHO"
 ORIGINAL_CORE = Path("apu/bapu/smp/core.cpp")
+ORIGINAL_SMP = Path("apu/bapu/smp/smp.cpp")
 ORIGINAL_APU = Path("apu/apu.cpp")
 NATIVE_APU = Path("snesrecomp/runner/src/snes/apu.c")
 
@@ -84,6 +85,19 @@ WRITE_NEW = """void SMP::op_write(uint16 addr, uint8 data) {
   apuram[addr] = data;  //all writes go to RAM, even MMIO writes
 }"""
 
+ORIGINAL_SMP_ANCHOR = """#include "../snes/snes.hpp"
+
+#define SMP_CPP"""
+ORIGINAL_SMP_NEW = """#include "../snes/snes.hpp"
+/* UR_QA01_RF030_IPL_ECHO: original ICPU.Frame lives in cpuexec.h. */
+#include "../../../cpuexec.h"
+
+#define SMP_CPP"""
+ORIGINAL_APU_HEADER = """#include "../snes9x.h"\n"""
+ORIGINAL_APU_HEADER_NEW = """#include "../snes9x.h"
+/* UR_QA01_RF030_IPL_ECHO: receive the original CPU frame clock. */
+#include "../cpuexec.h"
+"""
 ORIGINAL_APU_ANCHOR = """CPU cpu;
 } // namespace SNES"""
 ORIGINAL_APU_REPLACEMENT = """CPU cpu;
@@ -194,8 +208,14 @@ def patch_original_core(text: str) -> str:
         (READ_OLD, READ_NEW), (WRITE_OLD, WRITE_NEW)), "Snes9x SMP")
 
 
+def patch_original_smp(text: str) -> str:
+    return _splice(text, ((ORIGINAL_SMP_ANCHOR, ORIGINAL_SMP_NEW),),
+                   "Snes9x SMP translation unit")
+
+
 def patch_original_apu(text: str) -> str:
-    return _splice(text, ((ORIGINAL_APU_ANCHOR, ORIGINAL_APU_REPLACEMENT),
+    return _splice(text, ((ORIGINAL_APU_HEADER, ORIGINAL_APU_HEADER_NEW),
+                          (ORIGINAL_APU_ANCHOR, ORIGINAL_APU_REPLACEMENT),
                           (CPU_READ_OLD, CPU_READ_NEW),
                           (CPU_WRITE_OLD, CPU_WRITE_NEW)), "Snes9x CPU/APU")
 
@@ -219,6 +239,7 @@ def main() -> int:
             p.error("original needs --original-root only")
         root = a.original_root.resolve()
         targets = [(root / ORIGINAL_CORE, patch_original_core),
+                   (root / ORIGINAL_SMP, patch_original_smp),
                    (root / ORIGINAL_APU, patch_original_apu)]
     else:
         if a.game is None or a.original_root is not None:

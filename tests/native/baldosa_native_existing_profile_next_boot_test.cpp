@@ -433,6 +433,54 @@ int main() {
         assert(recover_baldosa_sram_intent_on_cold_boot(dir, "mike") ==
                BaldosaSramIntentStatus::Reconciled);
     }
+
+    {
+        const auto dir = intent_fixture("partial-raw-explicit-rollback");
+        const auto [global, profile] = before_save(dir);
+        const auto changed = make_changed(profile);
+        const auto raw = dir / "saves/profile-mike/save.srm";
+        const auto typed = dir / "saves/profile-mike/host-profile.txt";
+        const auto pending = dir /
+            "saves/profile-mike/native-sram-checkpoint.pending";
+        assert(stage_intent(dir, global, profile, changed) ==
+               BaldosaSramIntentStatus::Prepared);
+        const std::string intent_bytes = bytes(pending);
+        { std::ofstream out(raw, std::ios::binary | std::ios::trunc);
+          out << "INTERRUPTED NATIVE WRITE"; }
+        const std::string partial = bytes(raw);
+        const std::string committed = bytes(typed);
+        assert(recover_baldosa_sram_intent_on_cold_boot(dir, "mike") ==
+               BaldosaSramIntentStatus::Rejected);
+        assert(recover_baldosa_legacy_sram_explicit(
+            dir, "mike", BaldosaManualSramChoice::TrustGuestRaw) ==
+               BaldosaManualSramRecoveryStatus::Rejected);
+        assert(bytes(raw) == partial && bytes(typed) == committed &&
+               bytes(pending) == intent_bytes);
+        assert(recover_baldosa_legacy_sram_explicit(
+            dir, "mike", BaldosaManualSramChoice::RestoreCommitted) ==
+               BaldosaManualSramRecoveryStatus::RestoredCommitted);
+        assert(bytes(typed) == committed);
+        assert(!fs::exists(pending));
+        assert(baldosa_sram_file_matches_exact(
+            raw, profile.stock_sram->data(), kStockSramBytes));
+        bool saw_raw = false, saw_intent = false;
+        for (const auto& entry : fs::directory_iterator(
+                 dir / "saves/profile-mike")) {
+            const auto name = entry.path().filename().string();
+            if (name.find("native-sram-manual-archive-") == 0) {
+                saw_raw = bytes(entry.path()).find(partial) !=
+                          std::string::npos;
+            }
+            if (name.find("native-sram-recovered-") == 0) {
+                saw_intent = bytes(entry.path()) == intent_bytes;
+            }
+        }
+        assert(saw_raw && saw_intent);
+        assert(recover_baldosa_legacy_sram_explicit(
+            dir, "mike", BaldosaManualSramChoice::RestoreCommitted) ==
+               BaldosaManualSramRecoveryStatus::AlreadyConsistent);
+        assert(!fs::exists(dir / "runs"));
+    }
     {
         const auto dir = intent_fixture("legacy-missing-sidecar");
         fs::remove(dir / "saves/profile-mike/host-profile.txt");

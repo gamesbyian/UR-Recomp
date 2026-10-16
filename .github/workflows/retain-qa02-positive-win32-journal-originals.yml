@@ -1,0 +1,129 @@
+name: Retain exact source-pinned positive Win32 journal recovery evidence
+
+# One-time original-byte archival. No ROM, new build, gameplay run or QA gate promotion.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/retain-qa02-positive-win32-journal-originals.yml"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: qa02-positive-journal-retention-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  retain_exact_positive_journal:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - name: Download exact original five ZIP envelopes with fixed SHA256
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STORE: ${{ runner.temp }}/qa02-positive-journal-originals
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$STORE"
+          while read -r artifact_id expected_sha; do
+            curl --fail --location --silent --show-error --retry 2 \
+              --connect-timeout 20 --max-time 120 \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact_id/zip" \
+              --output "$STORE/$artifact_id.zip"
+            printf '%s  %s\n' "$expected_sha" "$STORE/$artifact_id.zip" | sha256sum -c -
+          done <<'ORIGINALS'
+          12073147810 78d835097e3929300af2397d932f0a19fc373dabbd6fe9f64f7c69cf210a62ff
+          12073851413 185b4825b19fb7bf7bc9bd2e3f02a650b35d8372217bb3ce9c381d6093e69e23
+          12073272765 b80ae859adb11da2ef755a125e961334a4b2109fee4dab9f6fc579a6d3615815
+          12073157982 a4728440c55b64e58dc473f74d74adc9c0974ecba6ac250cc8a960355f94f8ac
+          12073197728 79747f2b1ab3bec044a3c65f2043ccc9e3a696ab9e8a34be4d843f6381fedb4c
+          ORIGINALS
+
+      - name: Validate original nested ZIPs, CRC, allowlists and immutable source
+        env:
+          STORE: ${{ runner.temp }}/qa02-positive-journal-originals
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, io, json, os, pathlib, stat, zipfile
+          root = pathlib.Path(os.environ["STORE"])
+          source = "e9a92888e2d1a4eaf254236307053f81cfc822c6"
+          expected = {
+              "12073147810": ("78d835097e3929300af2397d932f0a19fc373dabbd6fe9f64f7c69cf210a62ff", 39),
+              "12073851413": ("185b4825b19fb7bf7bc9bd2e3f02a650b35d8372217bb3ce9c381d6093e69e23", 1),
+              "12073272765": ("b80ae859adb11da2ef755a125e961334a4b2109fee4dab9f6fc579a6d3615815", 2),
+              "12073157982": ("a4728440c55b64e58dc473f74d74adc9c0974ecba6ac250cc8a960355f94f8ac", 52),
+              "12073197728": ("79747f2b1ab3bec044a3c65f2043ccc9e3a696ab9e8a34be4d843f6381fedb4c", 1),
+          }
+          if {p.name for p in root.iterdir()} != {k + ".zip" for k in expected}:
+              raise SystemExit("Unexpected/missing source originals")
+          receipt = []
+          for artifact_id, (hash_value, count) in expected.items():
+              data = (root / (artifact_id + ".zip")).read_bytes()
+              if hashlib.sha256(data).hexdigest() != hash_value:
+                  raise SystemExit("Original ZIP bytes changed: " + artifact_id)
+              with zipfile.ZipFile(io.BytesIO(data)) as archive:
+                  items = archive.infolist()
+                  if len(items) != count or len({i.filename for i in items}) != count or archive.testzip():
+                      raise SystemExit("Original ZIP roster/CRC altered: " + artifact_id)
+                  for item in items:
+                      p = pathlib.PurePosixPath(item.filename)
+                      kind = stat.S_IFMT(item.external_attr >> 16)
+                      if (item.is_dir() or item.flag_bits & 1 or kind not in (0, stat.S_IFREG)
+                          or p.is_absolute() or ".." in p.parts or "\\" in item.filename
+                          or item.filename.lower().endswith((".sfc", ".smc", ".swc", ".rom", ".iso"))):
+                          raise SystemExit("Unsafe or ROM-containing original entry: " + artifact_id)
+                  names = archive.namelist()
+                  if artifact_id == "12073851413":
+                      if names != ["candidate-binding.json"]:
+                          raise SystemExit("Candidate binding member changed")
+                      binding = json.loads(archive.read(names[0]))
+                      if (binding.get("source_revision") != source or
+                          binding.get("zip_sha256") != "30781a2be1544fc12fa71761e5c08495c9851d47b08b578737d4c33e3353c162" or
+                          binding.get("journey_and_packaged_executable_sha256") != "487544e43805528e98763feac53a6661adad6094673ff801094415dc012f310b"):
+                          raise SystemExit("Original source or executable binding changed")
+                  if artifact_id == "12073272765":
+                      portable = "UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip"
+                      if set(names) != {portable, portable + ".sha256"}:
+                          raise SystemExit("Portable ZIP roster altered")
+                      inner = archive.read(portable)
+                      if hashlib.sha256(inner).hexdigest() != "30781a2be1544fc12fa71761e5c08495c9851d47b08b578737d4c33e3353c162":
+                          raise SystemExit("Original ROM-free Windows ZIP identity mismatch")
+                      with zipfile.ZipFile(io.BytesIO(inner)) as game:
+                          if game.testzip():
+                              raise SystemExit("ROM-free package CRC failed")
+                          if any(x.lower().endswith((".sfc", ".smc", ".rom")) for x in game.namelist()):
+                              raise SystemExit("ROM found in package")
+                  if artifact_id == "12073147810":
+                      if not any(x.endswith("intent.crash.bin") for x in names) or not any(
+                          x.endswith("intent.recovered-receipt.bin") for x in names):
+                          raise SystemExit("Recovery original intent/receipt omitted")
+              receipt.append({"artifact_id":int(artifact_id),"sha256_original_zip":hash_value,
+                              "original_zip_bytes":len(data),"zip_entries_crc_checked":count})
+          (root / "RETENTION-RECEIPT.json").write_text(json.dumps({
+              "schema":"UR-QA02-POSITIVE-JOURNAL-ORIGINAL-ACTIONS-RETENTION/1",
+              "actual_checked_out_source":source,
+              "source_original_run":38962321707,
+              "release_gate_credit":0,
+              "nominated_original_owner_source_unchanged":"11501a15dea38fa912335cfc63103ce3a7208001",
+              "hardware_not_verified":True,
+              "source_original_artifacts":receipt
+          }, indent=2) + "\n", encoding="utf8")
+          print("Original evidence saved unchanged:", len(receipt), "artifacts;",
+                sum(x["zip_entries_crc_checked"] for x in receipt), "CRC-checked ZIP entries")
+          PY
+
+      - name: Retain all five originals unchanged for 90 days
+        uses: actions/upload-artifact@v4
+        with:
+          name: retained-qa02-positive-journal-originals-e9a92888
+          path: ${{ runner.temp }}/qa02-positive-journal-originals/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 90

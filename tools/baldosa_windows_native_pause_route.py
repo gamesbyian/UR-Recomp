@@ -14,6 +14,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import time
 import zipfile
@@ -1786,6 +1787,112 @@ def run_native_typed_commit_finalization_cut(
     }
 
 
+def run_native_partial_raw_rollback_from_real_win32_cut(
+    exe: Path, rom: Path, output: Path, original_root: Path,
+    env: dict[str, str], config: Path, intent_bytes: bytes, *,
+    timeout: int,
+) -> dict[str, object]:
+    """Explicit repair on COPY of an actual Win32 post-raw, pending-intent cut.
+
+    Truncation itself is synthetic. This is NOT a tested Windows disk-full or
+    ACL failure. The repair and two cold boots use the real native executable.
+    """
+    isolated = output / "simulated_partial_raw_explicit_rollback"
+    isolated.mkdir()
+    copied = isolated / "Disposable Interrupted Guest"
+    shutil.copytree(original_root, copied, symlinks=True)
+    profile = copied / "saves/profile-native-ci-rider"
+    raw = profile / "save.srm"
+    typed = profile / "host-profile.txt"
+    pending = profile / "native-sram-checkpoint.pending"
+    selector = copied / "host-state-v1.txt"
+    catalog = copied / "profiles-v1.txt"
+    before = {p: p.read_bytes() for p in (raw, typed, selector, catalog)}
+    if (len(before[raw]) != 8192 or
+        not pending.is_file() or pending.read_bytes() != intent_bytes):
+        raise ValueError("Synthetic partial-write input lacked authentic Win32 intent")
+    # Preserve an exact interrupted prefix from the *real* native writer.
+    interrupted = before[raw][:513]
+    raw.write_bytes(interrupted)
+    copied_env = env.copy()
+    copied_env["SNESRECOMP_USER_DATA_DIR"] = str(copied)
+    copied_env.pop("UR_BALDOSA_QA_CRASH_AFTER_NATIVE_SRAM_WRITE", None)
+    copied_env.pop("UR_BALDOSA_QA_CRASH_AFTER_TYPED_PROFILE_COMMIT", None)
+    script = isolated / "fresh-short.txt"
+    script.write_text("turbo on\nwait 6\nquit\n", encoding="ascii")
+    args = [str(exe), "--no-launcher", "--config", str(config),
+            "--script", str(script), str(rom)]
+    refused = subprocess.run(
+        args, cwd=isolated, env=copied_env, capture_output=True,
+        text=True, errors="replace", timeout=timeout)
+    refused_log = refused.stdout + "\n" + refused.stderr
+    (isolated / "cold-refusal.log").write_text(
+        refused_log, encoding="utf-8")
+    if (refused.returncode != 7 or
+        "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in refused_log or
+        raw.read_bytes() != interrupted or
+        typed.read_bytes() != before[typed] or
+        pending.read_bytes() != intent_bytes):
+        raise ValueError("Original guest automatically trusted partial raw SRAM")
+    explicit_env = copied_env.copy()
+    explicit_env["UR_BALDOSA_RECOVERY_ACTION"] = "typed"
+    repaired = subprocess.run(
+        args, cwd=isolated, env=explicit_env, capture_output=True,
+        text=True, errors="replace", timeout=timeout)
+    repair_log = repaired.stdout + "\n" + repaired.stderr
+    (isolated / "explicit-typed-recovery.log").write_text(
+        repair_log, encoding="utf-8")
+    if (repaired.returncode != 89 or
+        repair_log.count("UR_BALDOSA_RECOVERY_CHOICE choice=typed ") != 1 or
+        "completed=1" not in repair_log or
+        "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in repair_log):
+        raise ValueError("Actual native Windows executable refused explicit typed rollback")
+    if (raw.read_bytes() == interrupted or
+        len(raw.read_bytes()) != 8192 or
+        pending.exists() or typed.read_bytes() != before[typed] or
+        selector.read_bytes() != before[selector] or
+        catalog.read_bytes() != before[catalog]):
+        raise ValueError("Explicit typed rollback failed or mutated unrelated authority")
+    archives = list(profile.glob("native-sram-manual-archive-*.bin"))
+    receipts = list(profile.glob("native-sram-recovered-*.txt"))
+    if (len(archives) != 1 or interrupted not in archives[0].read_bytes() or
+        len(receipts) != 1 or receipts[0].read_bytes() != intent_bytes):
+        raise ValueError("Typed rollback omitted exact interrupted raw/intent archives")
+    repaired_raw = raw.read_bytes()
+    for index in (1, 2):
+        clean = subprocess.run(
+            args, cwd=isolated, env=copied_env, capture_output=True,
+            text=True, errors="replace", timeout=timeout)
+        log = clean.stdout + "\n" + clean.stderr
+        (isolated / f"clean-boot-{index}.log").write_text(
+            log, encoding="utf-8")
+        if (clean.returncode or
+            "UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED" in log):
+            raise ValueError("Partial-raw rollback repeated or failed on cold boot")
+        verify_named_profile_boot_bytes(log, repaired_raw)
+        if (raw.read_bytes() != repaired_raw or
+            typed.read_bytes() != before[typed] or
+            receipts[0].read_bytes() != intent_bytes):
+            raise ValueError("Repeated native cold boot mutated committed rollback bytes")
+    if list(copied.rglob("*.urrun")) or list(copied.rglob("*.urmatch")):
+        raise ValueError("Explicit partial rollback fabricated event records")
+    report = {
+        "input_real_original_win32_post_raw_cut": True,
+        "truncation_is_synthetic_not_real_disk_io": True,
+        "interrupted_prefix_bytes": len(interrupted),
+        "synthetic_partial_raw_sha256": hashlib.sha256(interrupted).hexdigest(),
+        "cold_boot_refused": True,
+        "actual_win32_original_exe_explicit_restore_typed": True,
+        "archived_original_partial_raw_and_intent": True,
+        "two_subsequent_cold_boots_unmodified": True,
+        "release_gate_credit": 0,
+    }
+    (isolated / "receipt.json").write_text(
+        json.dumps(report, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8")
+    return report
+
+
 def run_native_crash_between_raw_and_typed(
     exe: Path, rom: Path, script: Path, root: Path,
     fixture: Path, seed: Path, *, video: str, timeout: int,
@@ -1890,6 +1997,11 @@ def run_native_crash_between_raw_and_typed(
         raise ValueError("Durable prewrite intent absent from actual Win32 cut")
     if not journaled and pending_crash_bytes is not None:
         raise ValueError("Historical unjournaled witness unexpectedly had intent")
+    partial_raw_rollback = None
+    if journaled and pending_crash_bytes is not None:
+        partial_raw_rollback = run_native_partial_raw_rollback_from_real_win32_cut(
+            exe, rom, output, user_root, env, config, pending_crash_bytes,
+            timeout=timeout)
     retry = output / "fresh_launch"
     retry.mkdir()
     short = retry / "no_guest.txt"
@@ -2168,6 +2280,7 @@ def run_native_crash_between_raw_and_typed(
         "raw_and_typed_sram_divergence_reproduced": True,
         "fresh_process_rejected_before_guest": not journaled,
         "validated_intent_reconciled_on_fresh_guest": journaled,
+        "synthetic_partial_raw_explicit_rollback": partial_raw_rollback,
         "second_cold_boot_byte_identical": journaled,
         "actual_crash_intent_and_receipt_retained": journaled and snapshot_dir is not None,
         "qa02_flat_journaled_zip_exported": journaled and snapshot_dir is not None,

@@ -205,3 +205,21 @@ typed checkpoint generation and selector/catalog unchanged. The bounded
 four before/crash/after canonical files, original intent/receipt and SHA
 manifest. This test is a genuine Win32 *process abort* at a source-controlled
 cut. It does not constitute an OS power-loss or partial-disk-write claim.
+
+
+## Product-only partial raw recovery boundary (not disk-full evidence)
+
+The Win32 original guest `_Exit(86)` case is copied **after the authentic
+native raw writer and staged intent are observed**, into a separate disposable
+root. The producer then *synthetically* truncates the copied raw SRAM to a
+513-byte real-prefix image; it does **not** claim to force a real Windows
+partial `RtlWriteSram`, ACL violation or disk-full. A real native Windows
+process must refuse this unknown raw state before guest simulation. Its
+one-shot explicit `typed` recovery must archive the entire 513-byte raw
+prefix and exact pending intent before restoring the previously committed
+typed SRAM as the canonical raw file. Two fresh genuine native boots must
+preserve that restored image, typed generation, and archives unchanged. The
+bounded producer retains a no-personal-data receipt and actual Windows
+console logs for independent follow-up. This is product-layer policy testing
+only; independent F4 physical I/O denial and durable OS error tests remain
+unmet.

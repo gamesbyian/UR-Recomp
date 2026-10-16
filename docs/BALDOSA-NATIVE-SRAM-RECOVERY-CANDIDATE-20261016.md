@@ -223,3 +223,18 @@ bounded producer retains a no-personal-data receipt and actual Windows
 console logs for independent follow-up. This is product-layer policy testing
 only; independent F4 physical I/O denial and durable OS error tests remain
 unmet.
+
+
+## Exact second-cold-boot canonical bytes for QA (product export)
+
+Independent QA correctly noted that earlier positive source artifacts exported
+four canonical before/crash/after files, but no independent **post-second-boot**
+raw/typed/selector/catalog snapshots. Both genuine Windows recovery producers
+now explicitly persist those actual second-process disk bytes in the bounded
+source artifact (`*.second-cold.bin`) and SHA256/length receipts. The original
+QA-owned strict 18-member flat `qa02-journaled-snapshot.zip` schema remains
+unchanged; additional second-boot snapshots are **siblings in the original
+Actions fault evidence**, not unreviewed extra members of the QA input.
+The F3 typed-publication-cut snapshots likewise export distinct after-first
+and after-second bytes. Product production and hash checks are not a
+substitute for independent download, rehash, and release acceptance.

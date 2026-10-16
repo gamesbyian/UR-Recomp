@@ -1766,7 +1766,13 @@ def run_native_typed_commit_finalization_cut(
     evidence.mkdir()
     receipts = {}
     for label, p in names.items():
-        stages = {"before": before[p], "crash": crash[p], "after": after[p]}
+        # F3: retain independent actual disk bytes after BOTH fresh native
+        # cold processes. The archive consumer can compare physical files,
+        # not solely trust the source-produced log's recovery count.
+        stages = {
+            "before": before[p], "crash": crash[p], "after": after[p],
+            "second-cold": p.read_bytes(),
+        }
         for stage, data in stages.items():
             (evidence / f"{label}.{stage}.bin").write_bytes(data)
         receipts[label] = {stage + "_sha256": hashlib.sha256(data).hexdigest()
@@ -2154,6 +2160,29 @@ def run_native_crash_between_raw_and_typed(
                 encoding="utf-8")
             (snapshot_dir / "second-cold-recovery-boot.log").write_bytes(
                 (output / "second-cold-recovery-boot.log").read_bytes())
+            # The QA owner correctly distinguished a source log claiming no
+            # repeat publication from separate after-SECOND-boot disk bytes.
+            # Export and independently hash each actual canonical file after
+            # the second native process. Keep the flat 18-member QA verifier
+            # input UNCHANGED; these extra source files live only in the
+            # owning original fault-bytes artifact.
+            second_receipt = {}
+            for label, path in labels.items():
+                second_bytes = path.read_bytes()
+                expected = repaired_files[path]
+                if second_bytes != expected:
+                    raise ValueError(
+                        "Real second cold Win32 byte export differs: " + label)
+                (snapshot_dir / f"{label}.second-cold.bin").write_bytes(
+                    second_bytes)
+                second_receipt[label] = {
+                    "sha256": hashlib.sha256(second_bytes).hexdigest(),
+                    "bytes": len(second_bytes),
+                    "identical_to_first_recovered": True,
+                }
+            (snapshot_dir / "second-cold-file-receipt.json").write_text(
+                json.dumps(second_receipt, sort_keys=True, indent=2) + "\n",
+                encoding="utf-8")
         (snapshot_dir / "crash.log").write_text(log, encoding="utf-8")
         (snapshot_dir / ("cold-recovery.log" if journaled else "cold-refusal.log")
          ).write_text(fresh_log, encoding="utf-8")

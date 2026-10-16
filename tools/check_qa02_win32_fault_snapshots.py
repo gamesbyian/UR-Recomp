@@ -49,7 +49,7 @@ def typed_stock_sram(data: bytes) -> tuple[bytes, int]:
 
 def inspect(archive: Path, expected_sha: str, mode: str, *,
             source: str = "", exe: str = "") -> dict:
-    require(mode in ("historic", "journaled"), "unsupported case")
+    require(mode in ("historic", "unjournaled", "journaled"), "unsupported case")
     require(SHA.fullmatch(expected_sha) is not None,
             "whole original Actions ZIP SHA256 is required")
     require(archive.is_file() and not archive.is_symlink() and
@@ -133,6 +133,14 @@ def inspect(archive: Path, expected_sha: str, mode: str, *,
                 "selected_profile_sram_not_initialized" in cold and
                 "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" not in cold,
                 "historic negative cold refusal altered or silently repaired")
+    elif mode == "unjournaled":
+        require(typed["crash"] == typed["before"] == typed["after"] and
+                raw["after"] == raw["crash"],
+                "unjournaled snapshots mutated canonical typed or raw on refusal")
+        cold = raw_files["cold-refusal.log"].decode("utf-8", errors="replace")
+        require("selected_profile_sram_not_initialized" in cold and
+                "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" not in cold,
+                "unjournaled cold retry silently promoted unknown raw")
     else:
         require(typed["crash"] == typed["before"] and
                 raw["after"] == raw["crash"] and

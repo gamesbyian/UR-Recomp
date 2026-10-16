@@ -45,11 +45,16 @@ def patch_main(source: str) -> str:
         MAIN_HOST,
         "/* " + MARK + ": existing Modern active profile, before guest SRAM. */\n"
         "extern int ur_baldosa_modern_try_activate_profile(void);\n"
+        "extern int ur_baldosa_modern_run_recovery_command(void);\n"
         "extern void ur_baldosa_modern_profile_before_run_frame(void);\n"
         "extern void ur_baldosa_modern_root_after_config(void);\n"
         "extern int ur_baldosa_modern_root_draw_frame(\n"
         "    uint8_t*, size_t, const uint8_t*, int, int, double);\n"
         "static void ur_baldosa_modern_profile_after_config(void) {\n"
+        // One-shot CLI recovery runs in same original Windows game binary,
+        // before any SRAM read or simulation; no second frontend binary.
+        "    int recovery_code = ur_baldosa_modern_run_recovery_command();\n"
+        "    if (recovery_code) exit(recovery_code);\n"
         "    if (!ur_baldosa_modern_try_activate_profile()) {\n"
         "        fprintf(stderr, \"UR-STARTUP-SAVE-ROOT: selected Modern profile rejected\\n\");\n"
         "        exit(7);\n"

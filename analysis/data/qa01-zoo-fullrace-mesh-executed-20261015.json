@@ -1,0 +1,364 @@
+{
+  "schema": "UR-QA01-EXECUTED-ZOO-CIRCUIT-UNMASKED-MESH/1",
+  "date": "2026-10-15",
+  "scope": "Independent original/native primary Circuit guest-relative sparse checkpoints only. Zero event acceptance.",
+  "source": {
+    "run_id": 38830671735,
+    "url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38830671735",
+    "exact_workflow_head_sha": "2224b2414675c8191999510a9f6e6fcf40bf9a9c",
+    "case_artifact_id": 12017545609,
+    "case_artifact_zip_sha256": "886e533cf029f398af754699c6b7ba3c6a728623b6b7e4243469823bdcdb91f6",
+    "producer_report_sha256": "d377ba95dbf5e77bae141980a6d5962bda1b34e300372db8ac075fdc00018a6e",
+    "canonical_usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_2014_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "original_movie_window_sha256": "7b03f40e3401d844c16c7c4e1cc7375e5419f33882793c8187dcebc88dbc8c93",
+    "source_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+    "source_input_script_sha256": "2fec7f4c08ff7b2c1d26b1b71caf4251ce074b843dab715026ad3ba293403a11",
+    "reference_core_sha256": "3018be138feeb51e701c6656312910c900cbf42ea8a6c64731714f33d53ca624",
+    "native_elf_sha256": "869df40fb63ed1e50e0ffc164d9bdd8986fcc003010fc79d4d110109a654ed5d",
+    "producer_exit": 0,
+    "case_disposition": "strict_candidate",
+    "jobs_all_green": true
+  },
+  "observed": {
+    "archived_original_movie_zoo_entry_frame": 3190,
+    "archived_original_movie_zoo_result_frame": 8353,
+    "source_zoo_active_to_result_frames": 5163,
+    "fresh_original_entry_host_frame": 1017,
+    "fresh_native_entry_host_frame": 1019,
+    "calibrated_native_input_shift_host_frames": 2,
+    "guest_result_relative_frame_original": 5163,
+    "guest_result_relative_frame_native": 5163,
+    "full_wram_bytes_compared_per_guest_per_pair": 131072,
+    "excluded_wram_byte_count": 0,
+    "total_sample_pairs": 66,
+    "total_byte_exact_pairs": 44,
+    "total_differing_byte_occurrences": 86,
+    "distinct_differing_snes_addresses": [
+      "7E:0063",
+      "7E:0069",
+      "7E:01ED",
+      "7E:01EE",
+      "7E:01EF",
+      "7E:01F0",
+      "7E:2000",
+      "7E:2004"
+    ],
+    "additional_post_2400_samples": 24,
+    "additional_post_2400_exact_pairs": 18,
+    "last_active_zoo_guest_relative_sample": 5120,
+    "original_native_sampled_named_state_first_disagreement": null,
+    "full_wram_pairs": [
+      {
+        "relative_guest_frame": 0,
+        "differing_full_wram_bytes": 4
+      },
+      {
+        "relative_guest_frame": 1,
+        "differing_full_wram_bytes": 4
+      },
+      {
+        "relative_guest_frame": 2,
+        "differing_full_wram_bytes": 4
+      },
+      {
+        "relative_guest_frame": 4,
+        "differing_full_wram_bytes": 4
+      },
+      {
+        "relative_guest_frame": 8,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 16,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 32,
+        "differing_full_wram_bytes": 4
+      },
+      {
+        "relative_guest_frame": 64,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 120,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 217,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 218,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 219,
+        "differing_full_wram_bytes": 4
+      },
+      {
+        "relative_guest_frame": 240,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 360,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 480,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 600,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 603,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 604,
+        "differing_full_wram_bytes": 4
+      },
+      {
+        "relative_guest_frame": 605,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 720,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 840,
+        "differing_full_wram_bytes": 4
+      },
+      {
+        "relative_guest_frame": 841,
+        "differing_full_wram_bytes": 4
+      },
+      {
+        "relative_guest_frame": 842,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 960,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 1080,
+        "differing_full_wram_bytes": 4
+      },
+      {
+        "relative_guest_frame": 1200,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 1320,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 1440,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 1531,
+        "differing_full_wram_bytes": 4
+      },
+      {
+        "relative_guest_frame": 1532,
+        "differing_full_wram_bytes": 4
+      },
+      {
+        "relative_guest_frame": 1533,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 1560,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 1680,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 1720,
+        "differing_full_wram_bytes": 4
+      },
+      {
+        "relative_guest_frame": 1721,
+        "differing_full_wram_bytes": 4
+      },
+      {
+        "relative_guest_frame": 1722,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 1800,
+        "differing_full_wram_bytes": 4
+      },
+      {
+        "relative_guest_frame": 1920,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 2040,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 2160,
+        "differing_full_wram_bytes": 4
+      },
+      {
+        "relative_guest_frame": 2280,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 2400,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 2520,
+        "differing_full_wram_bytes": 4
+      },
+      {
+        "relative_guest_frame": 2640,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 2760,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 2880,
+        "differing_full_wram_bytes": 4
+      },
+      {
+        "relative_guest_frame": 3000,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 3120,
+        "differing_full_wram_bytes": 4
+      },
+      {
+        "relative_guest_frame": 3240,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 3360,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 3480,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 3600,
+        "differing_full_wram_bytes": 4
+      },
+      {
+        "relative_guest_frame": 3720,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 3840,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 3960,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 4080,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 4200,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 4320,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 4440,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 4560,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 4680,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 4800,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 4920,
+        "differing_full_wram_bytes": 4
+      },
+      {
+        "relative_guest_frame": 5040,
+        "differing_full_wram_bytes": 2
+      },
+      {
+        "relative_guest_frame": 5100,
+        "differing_full_wram_bytes": 0
+      },
+      {
+        "relative_guest_frame": 5120,
+        "differing_full_wram_bytes": 0
+      }
+    ],
+    "first_sampled_raw_difference": {
+      "guest_relative": 0,
+      "first_address": "7E:01ED",
+      "differing_bytes": 4
+    },
+    "new_late_nonstack_difference": {
+      "guest_relative": 5040,
+      "original_absolute_host_frame": 6057,
+      "native_absolute_host_frame": 6059,
+      "bytes": [
+        {
+          "address": "7E:0063",
+          "original": 115,
+          "native": 77
+        },
+        {
+          "address": "7E:0069",
+          "original": 190,
+          "native": 151
+        }
+      ],
+      "subsequent_guest_relative_5100_all_wram_bytes_exact": true,
+      "decoded_named_state_at_5040_original_native_equal": true
+    },
+    "original_native_source_result_text_match": true,
+    "all_six_postresult_named_pairs_equal": true,
+    "all_six_postresult_full_sram_pairs_equal": true,
+    "all_eleven_zoo_to_bowl_named_triplets_equal": true,
+    "all_eleven_zoo_to_bowl_full_sram_pairs_equal": true,
+    "bowl_active_entry_relative_to_zoo_result": 267,
+    "zoo_earned_record_centiseconds": 2510,
+    "zoo_ranked_record_holder": 0,
+    "zoo_record_checksum": 64622
+  },
+  "cautions": {
+    "sample_interval_is_not_continuous_every_guest_frame": true,
+    "source_original_event_frame_5124_terminal_prelude_not_mesh_active_gameplay": true,
+    "byte_differences_not_waived_or_masked": true,
+    "stack_or_direct_page_liveness_proven": false,
+    "meaning_of_7e0063_and_7e0069_at_5040_proven": false,
+    "source_7e0069_historical_accumulator_hypothesis_is_not_a_new_executed_semantic_proof": true,
+    "cpu_pc_nmi_apu_logic_tick_parity_proven": false,
+    "windows_shipping_binary_bound": false,
+    "host_filesystem_record_hard_kill_proven": false,
+    "complete_event_usa_credit": 0,
+    "usa_event_denominator": 45
+  }
+}

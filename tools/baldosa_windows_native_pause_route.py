@@ -1736,6 +1736,53 @@ def run_native_crash_between_raw_and_typed(
             json.dumps(file_receipt, indent=2, sort_keys=True) + "\n",
             encoding="utf-8")
 
+    # Only AFTER the immutable historical failed-boot witness is captured,
+    # exercise the explicit recovery choice and a third real source process.
+    # The fixture performs the same canonical locked recovery backend; it is
+    # never shipped as an implicit startup policy or called by the guest.
+    legacy_choice_receipt = None
+    if not journaled:
+        choice = subprocess.run(
+            [str(fixture), str(user_root), "native-ci-rider",
+             "--recover-keep-raw"],
+            capture_output=True, text=True, timeout=timeout)
+        if choice.returncode or "choice=raw status=0 " not in choice.stdout:
+            raise ValueError(
+                "Explicit unjournaled guest-SRAM choice not accepted: "
+                f"rc={choice.returncode} {choice.stdout} {choice.stderr}")
+        if raw.read_bytes() != after_raw or typed.read_bytes() == before[typed]:
+            raise ValueError("Manual recovery lost raw guest SRAM or failed typed CAS")
+        archive = list(profile.glob("native-sram-manual-archive-*.bin"))
+        if len(archive) != 1 or len(archive[0].read_bytes()) < 8192:
+            raise ValueError("Manual repair did not durably archive both snapshots")
+        recovered = subprocess.run(
+            [str(exe), "--no-launcher", "--config", str(config),
+             "--script", str(short), str(rom)],
+            cwd=retry, env=clean_env, capture_output=True,
+            text=True, errors="replace", timeout=timeout)
+        recovered_log = recovered.stdout + "\n" + recovered.stderr
+        (output / "explicit-recovery-fresh-boot.log").write_text(
+            recovered_log, encoding="utf-8")
+        if recovered.returncode or "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" not in recovered_log:
+            raise ValueError(
+                "Manual choice failed fresh authentic guest restart: "
+                f"rc={recovered.returncode} tail={recovered_log[-1600:]}")
+        verify_named_profile_boot_bytes(recovered_log, after_raw)
+        confirmed = subprocess.run(
+            [str(fixture), str(user_root), "native-ci-rider",
+             "--verify-native-save"],
+            capture_output=True, text=True, timeout=timeout)
+        if confirmed.returncode:
+            raise ValueError("Post-manual-repair guest left typed/raw divergent")
+        if list(user_root.rglob("*.urrun")):
+            raise ValueError("Manual repair published a fake Records run")
+        legacy_choice_receipt = {
+            "explicit": True,
+            "restarted_native_guest": True,
+            "archived_both_snapshots": True,
+            "original_guest_raw_unchanged_through_repair": True,
+        }
+
     return {
         "real_native_guest_paused_at_frame": 1952,
         "real_raw_sram_write_completed": True,
@@ -1744,6 +1791,7 @@ def run_native_crash_between_raw_and_typed(
         "raw_and_typed_sram_divergence_reproduced": True,
         "fresh_process_rejected_before_guest": not journaled,
         "validated_intent_reconciled_on_fresh_guest": journaled,
+        "manual_legacy_raw_choice": legacy_choice_receipt,
         "no_implicit_recovery_or_fake_result": not journaled,
         "cross_file_crash_atomicity_proven": False,
     }

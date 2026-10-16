@@ -1,0 +1,123 @@
+{
+  "schema": "UR-QA02-ONE-EXACT-WINDOWS-SOURCE-COMPOSITE-RECOVERY-MATRIX/1",
+  "date": "2026-10-16",
+  "windows_run": 38979209657,
+  "actual_tested_github_pr_merge": "f46d12d47bfde389124217a340613c995c2a79f8",
+  "actual_main_parent": "b317d1b7289eae0bdfe23839f633ed7c13d7e422",
+  "actual_modern_product_parent": "a81878e6c5de033fff7a1556991304c786a89b5d",
+  "exact_source_original_fault_zip": {
+    "id": 12080208776,
+    "sha256": "dc5bc150000b646762efdbbb036b71d5c45142136569ed4aaaaa6be2783853d7",
+    "original_members_crc_verified": 175
+  },
+  "same_run_binding_zip": {
+    "id": 12080368683,
+    "sha256": "7c10d3722cfd3e28a066a1c94e59e35014cd61f664d3f269cd84a73f9dc3329a"
+  },
+  "same_run_portable_actions_zip": {
+    "id": 12080178961,
+    "sha256": "81eefc975e7b39f33f1a073cf22e91d81e4711d1275a44099cf4001ed5aeb32c",
+    "inner_romfree_zip_sha256": "38a099f313a8911654a39cbcdd4487d68143812f97c9dc03b0a6e4037df5b35a"
+  },
+  "same_run_hosted_pilot": {
+    "id": 12080044260,
+    "sha256": "733158b0e8d05de8cf58425f17a4ed46a7a37c60280d59200c3a28b7a0859366",
+    "real_win32_hosted_journeys_passing": 13,
+    "physical_gamepads_or_audio_verified": false
+  },
+  "same_exact_executable_sha256": "79fb1c1d4f89e77350228fc50eadfc3f74358d74ada2397ac6415c990d615d04",
+  "original_source_independent_cases": {
+    "F0_pre_raw": {
+      "source_actual_process_exit": 84,
+      "source_guest_frame": 1952,
+      "prewrite_intent_sha256": "5e32c9dfcef38c0dc75db4a7696041f1381f7e93da4f7f68bf796a173d98435e",
+      "independent_complete_binary_receipt_entries": 17,
+      "canonical_files": [
+        "raw-sram",
+        "typed-profile",
+        "selector",
+        "roster"
+      ],
+      "states": [
+        "before",
+        "crash",
+        "first-cold",
+        "second-cold"
+      ],
+      "every_canonical_byte_unchanged": true,
+      "independent_windows_cold_boot_log_count": 2
+    },
+    "F2_post_raw_pre_typed": {
+      "source_actual_process_exit": 86,
+      "source_guest_frame": 1952,
+      "raw_sram_size": 8192,
+      "original_raw_changed_bytes": 28,
+      "flat_source_zip_sha256": "cb51814a45612e6ce86085fc3ba6e9d285fb1f8c968c6766ac1b46dc55fa4f32",
+      "flat_original_members": 19,
+      "each_flat_member_byte_identical_to_full_source_fault": true,
+      "typed_generation_1_to_2_in_cold_recovery": true,
+      "complete_old_and_new_typed_images_authorized_by_staged_intent": true,
+      "archived_intent_byte_identical": true
+    },
+    "F3_post_typed_pre_intent_retirement": {
+      "source_actual_process_exit": 87,
+      "source_guest_frame": 1952,
+      "original_complete_canonical_binary_states_verified": 16,
+      "all_original_file_SHA256_receipts_match": true,
+      "typed_generation_2_already_committed_at_crash": true,
+      "raw_guest_change_bytes": 28,
+      "prewrite_intent_sha256_same_as_F0_F2": true,
+      "two_hosted_windows_cold_boot_logs": true,
+      "no_second_cold_byte_change": true
+    },
+    "real_original_guest_B_crash_healthy_A": {
+      "source_B_actual_process_exit": 86,
+      "source_guest_frame": 1952,
+      "original_complete_canonical_binary_snapshots_verified": 24,
+      "original_sha256_and_size_receipts_match": true,
+      "B_raw_changed_byte_count": 28,
+      "B_refusal_before_guest": true,
+      "A_raw_and_typed_byte_unchanged": true,
+      "B_corrupt_raw_and_old_typed_preserved": true,
+      "only_A_selector_authorized": true,
+      "two_independent_windows_game_cold_boots_of_A": true
+    },
+    "three_registered_profiles_fixture_damage": {
+      "three_distinct_canonical_raw_sram_files": true,
+      "fixture_one_byte_A_raw_change": true,
+      "fixture_absent_C_typed_from_live_store_producer_reported": true,
+      "original_C_typed_archive_preserved": true,
+      "independent_original_binary_members_sha_length_checked": 29,
+      "independent_source_process_logs_checked": 5,
+      "invalid_C_refused_and_healthy_B_selected": true,
+      "all_remaining_A_B_C_canonical_bytes_stable": true,
+      "two_independent_windows_game_B_cold_boots": true,
+      "genuine_original_guest_write_crash_for_C": false
+    }
+  },
+  "preservation": {
+    "actions_retention_run": 38981107313,
+    "retained_artifact_id": 12080608360,
+    "retained_outer_zip_sha256": "f6162e7d765e3b3f5c7f5541d0f1fc15f24427703c466fa1459469f77b2ed482",
+    "retained_outer_bytes": 6133845,
+    "expires_at": "2027-01-14T23:22:43Z",
+    "original_four_inner_source_ZIPs_verified_byte_identical": true,
+    "original_inner_source_zip_crc_members": 179,
+    "owner_private_secondary_copy_independently_re_downloaded_verified": true,
+    "private_owner_location_omitted_from_public_receipt": true
+  },
+  "not_qualified": {
+    "Modern_PR_still_draft": true,
+    "nominated_merged_main_new_candidate": false,
+    "original_nominated_negative_source": "11501a15dea38fa912335cfc63103ce3a7208001",
+    "original_nominated_negative_zip": "5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7",
+    "actual_power_cut_or_NTFS_partial_write": false,
+    "two_simultaneous_real_Windows_processes_at_fault": false,
+    "human_operated_no_argument_packaged_RTSQ": false,
+    "real_dual_pad_audio_display": false,
+    "full_QA02_gate_witness": false,
+    "release_gate_credit": 0,
+    "complete_original_native_USA_events": 0,
+    "P0_issue_1214_open": true
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schema": "qa08-source-original-Snes9x-2P-INIDISP-blackout/1",
+  "disposition": "source_original_forced_blank_until_frame_4016_native_visual_brightness_advances_early_cause_unadjudicated",
+  "source_original_run_id": 38833678872,
+  "source_original_artifact_id": 12017762924,
+  "original_artifact_ZIP_sha256": "8d7b3a65b8b40bb24ac39fb0b5c87c93d44cba3b6e189126f00604b5fa6818d6",
+  "source_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_unmodified_2014_Snes9x_full_frames_byte_verified": 263,
+  "source_original_guest_quit_frame": 5484,
+  "original_video_callback_4015_full_black_pixels": 57344,
+  "original_register_INIDISP_by_original_frame": {
+    "4015": "80",
+    "4016": "80",
+    "4017": "02"
+  },
+  "original_CGADSUB": "7f",
+  "original_CGWSEL": "02",
+  "original_CPU_2100_port_write_records": 7,
+  "original_CPU_2100_write_frames": [
+    4017,
+    4018,
+    4019,
+    4020,
+    4021,
+    4022,
+    4023
+  ],
+  "original_CPU_2100_write_values": [
+    "02",
+    "04",
+    "06",
+    "08",
+    "0a",
+    "0c",
+    "0e"
+  ],
+  "source_PPU_beam_vcounter_at_brightness_writes": 230,
+  "actual_Windows_compiled_run": 38830617873,
+  "actual_Windows_2P_source_artifact": 12017392389,
+  "actual_Windows_source_INIDISP_by_native_frame": {
+    "4015": "80",
+    "4016": "02",
+    "4017": "04"
+  },
+  "actual_native_frame_4016_wrong_RGB5_pixels": 54709,
+  "original_callback_to_native_guest": "original callback=Windows guest-1; no temporal shifting allowed",
+  "native_guest_2100_CPU_write_frames_unobserved": true,
+  "native_CPU_instruction_beam_equivalence_proven": false,
+  "native_frame_mapping_guest_phase_cause_proven": false,
+  "graphics_brightness_fix_approved": false,
+  "QA08_10_release_and_HD_art_likeness_approved": false,
+  "research_source_producer_manual_only": true
+}

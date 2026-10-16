@@ -4,17 +4,9 @@ name: QA-08 original 2P source blackout INIDISP at 4015..4017
 # native frame 4016 discrepancy. No source controller, ROM, guest or renderer
 # edits. Assert ALL 263 previously independent original raw frames unchanged.
 # Retire this PR trigger immediately after one source-qualified result.
+# Completed source run 38833678872: original 263/263 pixels authenticated.
+# Keep the historical Snes9x producer manual only.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/qa08-original-2p-blackout-source.yml"
-      - "tools/qa08_snesref_original_blackout_host_patch.py"
-      - "tests/unit/test_qa08_snesref_original_blackout_host_patch.py"
-      - "tools/qa08_verify_original_blackout_source.py"
-      - "tests/unit/test_qa08_verify_original_blackout_source.py"
-      - "tools/qa08_snesref_results_previous_patch.py"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snes9x-libretro.json"
   workflow_dispatch:
 
 permissions:

@@ -15,6 +15,7 @@
 #include "host_profile_store.hpp"
 #include "host_profile_catalog.hpp"
 #include "baldosa_native_profile_sram_checkpoint.hpp"
+#include "baldosa_native_sram_recovery.hpp"
 #include "baldosa_native_profile_path_guard.hpp"
 #include "baldosa_native_first_profile.hpp"
 #include "baldosa_native_second_profile.hpp"
@@ -124,8 +125,30 @@ extern "C" int ur_baldosa_modern_try_activate_profile(void) {
 
     const auto decision = ur::product::resolve_host_profile_save_root(
         ur::product::ExecutionMode::Modern, id);
+
     if (!decision.isolated())
         return reject("active_profile_id_invalid");
+
+    // A durable pre-write intent only authorizes the exact original guest
+    // SRAM transition whose old typed snapshot is still catalogued. Cold
+    // replay occurs before guest boot, under existing product locks.
+    const auto recovery =
+        ur::product::recover_baldosa_sram_intent_on_cold_boot(
+            native_root, *id);
+    if (recovery != ur::product::BaldosaSramIntentStatus::NoIntent &&
+        recovery != ur::product::BaldosaSramIntentStatus::Cleared &&
+        recovery != ur::product::BaldosaSramIntentStatus::Reconciled) {
+        std::fprintf(stderr,
+            "UR_BALDOSA_NATIVE_PROFILE RECOVERY_REJECTED status=%u "
+            "raw_and_typed_preserved=1\n",
+            static_cast<unsigned>(recovery));
+        std::fflush(stderr);
+        return reject("native_sram_recovery_unsafe");
+    }
+    if (recovery == ur::product::BaldosaSramIntentStatus::Reconciled)
+        std::fprintf(stderr,
+            "UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED "
+            "exact_staged_guest_sram=1 no_records=1\n");
 
     // A regular SRAM file can still be reached through a symlinked parent.
     // Admit the complete existing Modern profile path before reading data.
@@ -713,6 +736,13 @@ extern "C" int ur_baldosa_modern_profile_before_native_save(void) {
             sram_path, g_launch_profile->stock_sram->data(),
             ur::product::kStockSramBytes))
         return reject("save_baseline_mismatch");
+    // Sync the authorized old/new typed snapshots before any native raw
+    // write. A preexisting intent is *never* replaced by a new attempt.
+    const auto intent =
+        ur::product::prepare_baldosa_sram_intent_under_lock(request);
+    if (intent != ur::product::BaldosaSramIntentStatus::Prepared &&
+        intent != ur::product::BaldosaSramIntentStatus::NoIntent)
+        return reject("native_sram_intent_not_durable");
     g_native_shutdown_selector_lock = std::move(candidate);
     g_native_shutdown_catalog_lock = std::move(catalog_candidate);
     g_native_shutdown_profile_lock = std::move(profile_candidate);
@@ -796,6 +826,10 @@ extern "C" int ur_baldosa_modern_profile_finish_native_save(int saved) {
         "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=%s status=%s\n",
         g_verified_native_profile_id.c_str(), verdict);
     std::fflush(stderr);
-    return result == ur::product::BaldosaSramCheckpointStatus::Committed ||
-           result == ur::product::BaldosaSramCheckpointStatus::Unchanged;
+    if (result != ur::product::BaldosaSramCheckpointStatus::Committed &&
+        result != ur::product::BaldosaSramCheckpointStatus::Unchanged)
+        return 0;  // keep the intent for a cold restart investigation
+    if (!ur::product::finish_baldosa_sram_intent_under_lock(request))
+        return reject("native_sram_intent_cleanup_failed");
+    return 1;
 }

@@ -87,15 +87,21 @@ def summarize(raw_original: str, raw_native: str) -> dict:
     if not (origcc["age"] <= origread["age"] <= origecho["age"] and
             natapply["age"] <= natread["age"] <= natecho["age"]):
         raise ValueError("ready-echo chronology violates own executed clocks")
-    if not any(x["side"] == "cpu" and x["kind"] == "poll" for x in orig):
-        raise ValueError("missing original CPU $2140 poll")
-    if not any(x["kind"] == "schedule" and x["value"] == 0xcc for x in native):
-        raise ValueError("missing timestamped native CPU $2140 scheduling")
-    if not any(x["side"] == "spc" and x["kind"] == "read" and
-               x["op"] == 0x78 and x["pc"] == 0xffd2 for x in orig):
-        raise ValueError("Snes9x original IPL $F4 compare instruction unproven")
-    if not any(x["kind"] == "read" and x["pc"] == 0xffd2 for x in native):
-        raise ValueError("Baldosa IPL compare PC unproven")
+    cpu_polls = [x for x in orig if x["side"] == "cpu" and x["kind"] == "poll"]
+    if not cpu_polls or not any(x["age"] >= origecho["age"] and
+                                x["value"] == 0xcc for x in cpu_polls):
+        raise ValueError("missing original CPU $2140 echo observation after SPC echo")
+    natschedule = first(native, "schedule", 0xcc)
+    if natschedule is None or natschedule["age"] > natapply["age"]:
+        raise ValueError("missing properly ordered native CPU $2140 schedule")
+    if origread["op"] != 0x78 or origread["pc"] != 0xffd2 or origread["ipl"] != 1:
+        raise ValueError("first Snes9x CC read not executed by IPL 78 CC F4")
+    if origecho["op"] != 0xc4 or origecho["pc"] != 0xfff7 or origecho["ipl"] != 1:
+        raise ValueError("first Snes9x CC echo not actual IPL C4 F4 write")
+    if natread["pc"] != 0xffd2:
+        raise ValueError("first Baldosa CC read not at IPL compare")
+    if natecho["pc"] != 0xfff7:
+        raise ValueError("first Baldosa CC echo not at IPL store")
     return {
         "schema": SCHEMA,
         "source_and_native_clocks_distinct": True,
@@ -114,13 +120,22 @@ def summarize(raw_original: str, raw_native: str) -> dict:
             "original_cpu_beam_v_h_at_write": [origcc["v"], origcc["h"]],
             "first_read_pc": f"{origread['pc']:04X}",
             "first_read_opcode": f"{origread['op']:02X}",
+            "echo_store_pc": f"{origecho['pc']:04X}",
+            "echo_store_opcode": f"{origecho['op']:02X}",
+            "first_cpu_poll_echo_age": next(x["age"] for x in cpu_polls
+                                            if x["age"] >= origecho["age"] and
+                                            x["value"] == 0xcc),
+            "actual_cpu_poll_receipt": True,
         },
         "native_ipl_first_cc": {
+            "cpu_scheduled_age": natschedule["age"],
+            "schedule_to_apply_spc_cycles": natapply["age"] - natschedule["age"],
             "cpu_applied_age": natapply["age"], "spc_read_age": natread["age"],
             "spc_echo_age": natecho["age"],
             "apply_to_read_spc_cycles": natread["age"] - natapply["age"],
             "read_to_echo_spc_cycles": natecho["age"] - natread["age"],
             "first_read_pc": f"{natread['pc']:04X}",
+            "echo_store_pc": f"{natecho['pc']:04X}",
         },
         "original_native_independent_clock_phase_aligned": False,
         "all_unsampled_original_native_logic_ticks_proven": False,

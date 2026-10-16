@@ -23,7 +23,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Retrieve two unmodified source-original GitHub Actions envelopes
+      - name: Retrieve retained original-byte copies of both GitHub Actions envelopes
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -31,12 +31,25 @@ jobs:
           mkdir -p "$RUNNER_TEMP/qa02-source-originals"
           curl --fail --location --silent --show-error --retry 2 \
             -H "Authorization: Bearer $GH_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" \
-            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/artifacts/12024617002/zip" \
-            --output "$RUNNER_TEMP/qa02-source-originals/old-original.zip"
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/artifacts/12069939434/zip" \
+            --output "$RUNNER_TEMP/qa02-source-originals/old-retained.zip"
           curl --fail --location --silent --show-error --retry 2 \
             -H "Authorization: Bearer $GH_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" \
-            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/artifacts/12073147810/zip" \
-            --output "$RUNNER_TEMP/qa02-source-originals/new-original.zip"
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/artifacts/12076551970/zip" \
+            --output "$RUNNER_TEMP/qa02-source-originals/new-retained.zip"
+          # Verify both new 90-day wrappers before extracting unchanged
+          # source-original Actions ZIPs. Never hash a derived case envelope
+          # and mistake it for the original GitHub artifact.
+          printf '%s  %s\n' \
+            f35055a086dff30bb82982b3d4ef12476f06b0553f5f2eb84318f92e08754622 \
+            "$RUNNER_TEMP/qa02-source-originals/old-retained.zip" | sha256sum -c -
+          printf '%s  %s\n' \
+            e9223eaf8f4cfa8fff0554fca3593504ef6eca7a70636a94b82ef071e877f85c \
+            "$RUNNER_TEMP/qa02-source-originals/new-retained.zip" | sha256sum -c -
+          unzip -p "$RUNNER_TEMP/qa02-source-originals/old-retained.zip" 12024617002.zip \
+            > "$RUNNER_TEMP/qa02-source-originals/old-original.zip"
+          unzip -p "$RUNNER_TEMP/qa02-source-originals/new-retained.zip" 12073147810.zip \
+            > "$RUNNER_TEMP/qa02-source-originals/new-original.zip"
           printf '%s  %s\n' \
             e70055be446d0afec493cde8ac004273e05425bae5acd3d874cd32e1b6da131a \
             "$RUNNER_TEMP/qa02-source-originals/old-original.zip" | sha256sum -c -

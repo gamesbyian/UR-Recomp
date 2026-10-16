@@ -126,7 +126,7 @@ def launcher() -> bytes:
         # reruns the SAME original executable with one-shot environment
         # arguments; no fixture or competing save UI ships in the ZIP.
         ':UR-BALDOSA-RECOVERY-MENU',
-        'echo UR-BALDOSA-STARTUP-PROFILE-REJECTED: Selected racer refused. Preserve the entire user-data folder. 1>&2',
+        'echo UR-BALDOSA-STARTUP-PROFILE-REJECTED: Named racer rejected. Preserve both the raw save and Modern profile files. 1>&2',
         'echo Back up your entire save directory before considering recovery. 1>&2',
         'if not "%~1"=="" (call :UR-BALDOSA-HOLD & exit /b 7)',
         'if defined UR_BALDOSA_NO_HOLD exit /b 7',
@@ -242,8 +242,8 @@ def readme(revision: str) -> bytes:
         "Automated or command-line launcher runs retain fail-closed exit 7.\n\n"
         "If startup reports PROFILE-REJECTED or SAVE-MISMATCH, preserve\n"
         "both save.srm and host-profile.txt plus the roster and selector.\n"
-        "General recovery of a corrupt, mismatched or redirected profile\n"
-        "is NOT implemented. Never delete or overwrite a save to bypass it.\n\n"
+        "General recovery of a corrupt or missing typed sidecar remains\n"
+        "unsupported. Never delete or overwrite a save to bypass checks.\n\n"
         "To report a problem, include the exact startup diagnostic and\n"
         "reproduction steps, but never share personal ROMs or profile data.\n\n"
         f"Project source revision: {revision}\n"

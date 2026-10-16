@@ -52,6 +52,10 @@ on:
         required: false
         type: boolean
         default: false
+      baldosa_ipl_cmp_cycle:
+        required: false
+        type: boolean
+        default: false
       qa01_cold_guest_reload:
         required: false
         type: boolean
@@ -128,6 +132,11 @@ on:
         type: boolean
         required: false
         default: false
+      baldosa_ipl_cmp_cycle:
+        description: "Opt-in RF-029 research-only SPC IPL CMP $F4,#$CC cycle-4 bus read, requires full RF-015..028 stage"
+        type: boolean
+        required: false
+        default: false
       qa01_cold_guest_reload:
         description: "Opt-in fresh original/native guest reload of source-earned Zoom Zoo ranked record (requires zoom-zoo + source_followthrough)"
         type: boolean
@@ -170,6 +179,7 @@ jobs:
           QA01_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
           QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
           QA01_SPC_INTERRUPT_STAGE: ${{ inputs.baldosa_spc_interrupt_stage }}
+          QA01_IPL_CMP_CYCLE: ${{ inputs.baldosa_ipl_cmp_cycle }}
           QA01_RF015_019: >-
             ${{ inputs.baldosa_refresh_beam_rate && inputs.baldosa_io_clock_order &&
                 inputs.baldosa_spc_reference_rate && inputs.baldosa_dp_pointer_once &&
@@ -206,6 +216,12 @@ jobs:
           # (the frame-clock tool also requires RF-016's clock).
           if [[ "$QA01_SPC_INTERRUPT_STAGE" == "true" && "$QA01_RF015_019" != "true" ]]; then
             echo "baldosa_spc_interrupt_stage needs all five RF-015..019 inputs" >&2
+            exit 1
+          fi
+          if [[ "$QA01_IPL_CMP_CYCLE" == "true" &&
+                ( "$QA01_SPC_INTERRUPT_STAGE" != "true" || "$SELECTED" != "zoom-zoo" ||
+                  "$ZOO_DP_WINDOW" != "true" || "$QA01_NEXT_BOWL" != "true" ) ]]; then
+            echo "RF-029 requires exact full RF-015..028, original Zoo DP window and next Bowl" >&2
             exit 1
           fi
           python3 -m unittest discover -s tests/unit -p test_qa01_event_campaign.py
@@ -256,6 +272,7 @@ jobs:
           python3 -m unittest discover -s tests/unit -p test_qa01_cold_result_record.py
           python3 -m unittest discover -s tests/unit -p test_qa01_postresult_sram_diff.py
           python3 -m unittest discover -s tests/unit -p 'test_baldosa_spc_*_patch.py'
+          python3 -m unittest discover -s tests/unit -p test_baldosa_spc_ipl_cmp_cycle_patch.py
           python3 -m unittest discover -s tests/unit -p test_baldosa_interrupt_entry_cost_patch.py
       - name: Build original Snes9x/snesref and research native exactly once
         shell: bash
@@ -319,6 +336,11 @@ jobs:
             python3 tools/baldosa_spc_frame_clock_patch.py --game baldosa
             python3 tools/baldosa_spc_bus_cycle_patch.py --game baldosa
             python3 tools/baldosa_interrupt_entry_cost_patch.py --game baldosa
+          fi
+          # RF-029: one narrowed hardware bus-access discriminator, NOT
+          # a default, production, timing-oracle or release-candidate patch.
+          if [[ "${{ inputs.baldosa_ipl_cmp_cycle }}" == "true" ]]; then
+            python3 tools/baldosa_spc_ipl_cmp_cycle_patch.py --game baldosa
           fi
           cmake -S baldosa -B baldosa/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \

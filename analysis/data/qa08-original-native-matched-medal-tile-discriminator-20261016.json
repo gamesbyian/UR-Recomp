@@ -172,5 +172,29 @@
   "native_original_CPU_instruction_field_phase_equivalence_unverified": true,
   "proof_of_right_sprite_or_implemented_renderer_correction": false,
   "independent_graphics_quality_and_release_acceptance": false,
-  "research_only": true
+  "research_only": true,
+  "original_complete_PPU_OAMDMA_byte_chronology": {
+    "1279": {
+      "journal_SHA256": "d35f96e06ccfb136ee6540cb170b9653e8dcd65585cfe1ca7d88bc4649afbb9e",
+      "DMA_writes": 544,
+      "first_V": 229,
+      "last_V": 232
+    },
+    "4031": {
+      "journal_SHA256": "2ad83b28ebd60707e712c29735c5ab0d7dbcfb95b66b147274fc2f36bb83e530",
+      "DMA_writes": 544,
+      "first_V": 226,
+      "last_V": 230
+    },
+    "4175": {
+      "journal_SHA256": "ea2624b4225e860732624ec664899a75c8da838ab2fd6671a1f9003242b67384",
+      "DMA_writes": 544,
+      "first_V": 227,
+      "last_V": 230
+    }
+  },
+  "original_544_observed_OAMDATA_bytes_identical_to_original_544_byte_end_OAM_for_all_three_fields": true,
+  "original_mid_visible_field_port_OAMDATA_writes_all_three_frames": 0,
+  "original_OAMDMA_written_before_visible_pixels_under_original_snesref_2014_field_chronology": true,
+  "original_reconstructed_full_scanline_OBJ_priority_or_final_math_accepted": false
 }

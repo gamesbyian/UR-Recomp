@@ -4,6 +4,7 @@ import importlib.util
 import tempfile
 import unittest
 import zipfile
+from unittest.mock import patch
 
 ROOT=Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location(
@@ -44,6 +45,39 @@ class OriginalNativeMatchedMedalOAMTest(unittest.TestCase):
                     qa.slot_delta(original,bad,0,slot)
             with self.assertRaises(ValueError):
                 qa.slot_delta(original,native,1,slot)
+
+    def test_real_original_OAMDMA_entire_byte_stream_and_VBlank_only(self):
+        raw=bytes(range(256))*2+bytes(32)
+        def journal(changes=None, limit=544):
+            lines=["#frame\tvcounter\thcounter\taddr\tvalue\tsource"]
+            for i in range(limit):
+                values=["4031",str(226+i//300),str(i%300),
+                        "2104",f"{raw[i]:02X}","dma"]
+                if changes and i in changes:
+                    for k,v in changes[i].items():values[k]=v
+                lines.append("\t".join(values))
+            return ("\n".join(lines)+"\n").encode("ascii")
+        valid=journal()
+        with patch.dict(qa.ORIGINAL_OAM_PPU_JOURNAL_SHA256,{4031:qa.sha(valid)}):
+            result=qa.verify_original_dma_oam(4031,valid,raw)
+        self.assertEqual(result["original_OAMDATA_DMA_write_count"],544)
+        self.assertTrue(result["zero_recorded_active_visible_line_OAMDATA_writes"])
+        self.assertTrue(result["entire_original_OAMDMA_byte_stream_matches_original_PPU_OAM"])
+        invalid=[
+          journal(limit=543),
+          journal({500:{1:"112"}}), # active visible beam
+          journal({0:{5:"hdma"}}),  # wrong OAM port writer provenance
+          journal({450:{4:"FF"}}),  # incomplete/corrupt DMA OAM payload
+        ]
+        for bad in invalid:
+            with self.subTest(sha=qa.sha(bad)),patch.dict(
+                qa.ORIGINAL_OAM_PPU_JOURNAL_SHA256,{4031:qa.sha(bad)}):
+                with self.assertRaises(ValueError):
+                    qa.verify_original_dma_oam(4031,bad,raw)
+        with self.assertRaises(ValueError):
+            qa.verify_original_dma_oam(999,valid,raw)
+        with self.assertRaises(ValueError):
+            qa.verify_original_dma_oam(4031,valid,raw)
 
     def test_source_callback_and_host_screenshot_cannot_be_silently_equated(self):
         a=bytes(256*224*4)

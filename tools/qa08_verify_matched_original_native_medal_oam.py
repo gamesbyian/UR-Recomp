@@ -35,6 +35,11 @@ FIELDS={
        "wrong":766},
 }
 SLOTS=(96,97,98,99,112,113,114)
+ORIGINAL_OAM_PPU_JOURNAL_SHA256={
+  1279:"d35f96e06ccfb136ee6540cb170b9653e8dcd65585cfe1ca7d88bc4649afbb9e",
+  4031:"2ad83b28ebd60707e712c29735c5ab0d7dbcfb95b66b147274fc2f36bb83e530",
+  4175:"ea2624b4225e860732624ec664899a75c8da838ab2fd6671a1f9003242b67384",
+}
 ORIGINAL_TILE={
 4031:{96:0xcc,97:0xcc,98:0xe6,99:0xe6,112:0xa2,113:0xa4,114:0xa6},
 4175:{96:0xcc,97:0xcc,98:0xe2,99:0xe2,112:0xa2,113:0xa4,114:0xa6},
@@ -72,6 +77,47 @@ def pixel_difference_count(raw:bytes,host:bytes)->int:
     if len(raw)!=256*224*4 or len(host)!=len(raw):
         raise ValueError("actual unmasked 256x224 original video/screenshot missing")
     return sum(raw[i:i+3]!=host[i:i+3] for i in range(0,len(raw),4))
+
+def verify_original_dma_oam(frame:int, journal:bytes, oam:bytes)->dict:
+    """Accept only the actual complete original VBlank OAMDATA DMA stream."""
+    if frame not in ORIGINAL_OAM_PPU_JOURNAL_SHA256:
+        raise ValueError("unsupported original source field")
+    check(sha(journal),ORIGINAL_OAM_PPU_JOURNAL_SHA256[frame],
+          f"original Snes9x PPU port journal {frame} SHA")
+    lines=journal.decode("ascii").splitlines()
+    if not lines or lines[0]!="#frame\tvcounter\thcounter\taddr\tvalue\tsource":
+        raise ValueError("missing original PPU register provenance header")
+    if any(row.startswith("#truncated") for row in lines):
+        raise ValueError("original Snes9x source ring evicted some port writes")
+    oam_values=[]
+    oam_beam=[]
+    for line in lines[1:]:
+        if line.startswith("#"):
+            continue
+        values=line.split("\t")
+        if len(values)!=6:
+            raise ValueError("original PPU writer journal fields not source-complete")
+        sf,v,h,addr,val,src=values
+        if int(sf)!=frame:
+            raise ValueError("original source writer frame does not match screenshot")
+        if addr=="2104":
+            if src!="dma" or not 225<=int(v)<=261 or not 0<=int(h)<=511:
+                raise ValueError("original active-line or non-DMA OAM port write")
+            oam_values.append(int(val,16))
+            oam_beam.append((int(v),int(h)))
+    check(len(oam_values),544,f"original 544-byte VBlank DMA OAM writes {frame}")
+    if oam_beam!=sorted(oam_beam):
+        raise ValueError("original VBlank OAM transfer chronology out of order")
+    check(bytes(oam_values),oam,
+          f"entire original 512+32-byte OAMDMA payload versus live OAM {frame}")
+    return {
+        "original_PPU_register_journal_SHA256":sha(journal),
+        "original_OAMDATA_DMA_write_count":len(oam_values),
+        "first_OAMDMA_V":oam_beam[0][0],
+        "last_OAMDMA_V":oam_beam[-1][0],
+        "zero_recorded_active_visible_line_OAMDATA_writes":True,
+        "entire_original_OAMDMA_byte_stream_matches_original_PPU_OAM":True,
+    }
 
 def slot_delta(original:dict,native:str,hi:int,slot:int)->dict:
     if hi!=original["highOAM"] or original["large_sprite_bit"]!=0:
@@ -127,7 +173,10 @@ def verify(original:Path, extra:Path, native:Path)->dict:
             check(sha(cgram),expected["cgram"],f"CGRAM {frame}")
             check(pixel_difference_count(raw,host),expected["wrong"],
                   f"separate video/host screenshot pixels {frame}")
+            original_oam_provenance=verify_original_dma_oam(
+                frame,e.read(f"registers/{tag}.ppuw.tsv"),oam)
             original_fields[frame]={
+                "original_544byte_OAM_DMA_source_provenance":original_oam_provenance,
                 "original_video_callback_sha256":callback_sha,
                 "separate_original_host_screenshot_sha256":sha(host),
                 "wrong_pixels_between_separate_original_producers":expected["wrong"],
@@ -172,6 +221,8 @@ def verify(original:Path, extra:Path, native:Path)->dict:
           "original_snesref_host_snapshots_distinct_from_video_callbacks":True,
           "original_host_vs_video_source_checks":original_fields_to_report(original_fields),
           "native_guest_CRC_entries_verified":5484,
+          "original_2014_Snes9x_real_VBlank_OAMDMA_full_544_bytes_identical_to_original_OAM":True,
+          "original_2014_Snes9x_source_fields_with_proven_dma_port_chronology":3,
           "native_real_per_line_OAM_samples_verified":70,
           "original_native_matching_field_slot_comparisons":comparisons,
           "slots_112_114_original_vs_native_tile_delta":-2,

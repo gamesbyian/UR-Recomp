@@ -83,6 +83,25 @@
  ],
  "timer_phase_trace": {
   "boot_ipl_upload_position_drift_master_per_field": -200,
+  "boot_upload_exchanges": {
+   "exchanges": 4450,
+   "extra_polls": {
+    "native": 3082,
+    "snes9x": 3104
+   },
+   "interval_model": "696 base + 40 per refresh + 52 per extra CPU poll",
+   "master_clocks_snes9x": 3353894,
+   "native_minus_snes9x": -1824,
+   "native_only_short_intervals": [
+    632,
+    644,
+    684
+   ],
+   "refresh_stalls": {
+    "native": 2452,
+    "snes9x": 2457
+   }
+  },
   "host_2902_stale_t2_tick_after_write": {
    "anchor_0": 139,
    "anchor_2446": 88,

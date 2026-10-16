@@ -60,12 +60,43 @@ a process abort or power failure between distinct file publications.
    fixture exposes `--recover-select-healthy`; packaged player UX remains
    to be completed.
 
+## Historical, unjournaled save choices (explicit only)
+
+A previously crashed Windows save can have the legitimate guest-written raw
+bytes but no prewrite intent (because the installed executable predates this
+protocol). Startup **continues to refuse** this unexplained mismatch.
+`native/product/baldosa_native_manual_sram_recovery.hpp` provides exactly
+two opt-in choices under existing selector/catalog/profile OS locks:
+
+- **Keep guest-written raw:** Only for a complete 8192-byte raw image with a
+  valid original save signature. Archive the exact old typed state and entire
+  raw image first, then use canonical `capture_stock_sram_for_profile` and
+  typed CAS. The original raw file is never overwritten by this choice.
+- **Restore last committed typed:** Archive exact original raw bytes, even if
+  short, and the full committed typed profile first, then atomically replace
+  only canonical raw `save.srm` with its last committed 8192 bytes.
+
+Both require the expected currently selected catalogued racer, matching
+racer identity, unchanged typed state, no pending current-format journal and
+a separately explicit choice. Never infer choice from an interrupted event,
+auto-launch, profile name, or the presence of an old raw image. Archive files
+are read-only receipts, not another recovery store, and remain in the
+original profile directory. Both choices use stable archive identifiers,
+reject symlink redirects and fail closed on lock, staging or CAS errors.
+
+Current implementation exposes manual choices and independently healthy
+alternate selection in the **QA-only canonical native fixture**, respectively
+`--recover-keep-raw`, `--recover-keep-typed`, and
+`--recover-select-healthy`. These commands must not be mistaken for a
+shipping player-facing menu; integrating and independently accepting a
+controller-accessible player choice remains required before closure.
+
 ## Fault-state matrix and preservation contract
 
 | Exact state under locks at cold boot | Decision | User-data effect |
 |---|---|---|
 | No intent; raw equals typed | Ordinary boot | None |
-| No intent; raw differs from typed | Refuse, explicit recovery needed | Preserve both |
+| No intent; raw differs from typed | Automatic boot refuses; explicit archived raw/typed choice only | Preserve both until player decision |
 | Valid intent; old raw + old typed | Retire abandoned intent | Keep old committed pair |
 | Valid intent; new raw + old typed | Archive before/after, CAS next typed, retire intent | Preserve source-written 8 KiB raw and old/new typed receipt |
 | Valid intent; new raw + new typed | Archive and retire intent | No duplicate generation |
@@ -93,9 +124,15 @@ Source-focused native C++ test:
 `tests/native/baldosa_native_existing_profile_next_boot_test.cpp`
 (compiled by `tests/unit/test_baldosa_native_existing_profile_next_boot_cpp.py`)
 covers old/old, new/old, new/new, repeated cold boot, foreign raw rejection,
-healthy alternate and absent typed. Product-owned Windows route producer
-`tools/baldosa_windows_native_pause_route.py` requires an **exact newly
-packaged Win32** abort/reboot exercise on the updated source. The old
+healthy alternate, missing typed, explicit keep-raw and keep-typed with
+unchanged archived source bytes, short raw, malformed intent, and wrong
+profile authority. Product-owned Windows route
+`tools/baldosa_windows_native_pause_route.py` runs genuine frame-1952
+post-raw fault twice in disposable roots: the legacy unjournaled
+`_Exit(86)` must reject cold boot before explicit archived raw promotion;
+the journaled `_Exit(86)` must cold-replay exact SRAM on a second genuine
+guest process. These are **candidate-producer** evidence, not independent
+QA or physical power-loss proof. The old
 crash-negative witness is immutable historical evidence; it must not be
 reinterpreted as success after this change.
 

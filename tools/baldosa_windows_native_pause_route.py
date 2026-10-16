@@ -1889,13 +1889,16 @@ def run_native_crash_between_raw_and_typed(
                 raise ValueError("Archived journal bytes differ from actual crash")
             (snapshot_dir / "intent.crash.bin").write_bytes(pending_crash_bytes)
             (snapshot_dir / "intent.recovered-receipt.bin").write_bytes(archived)
-            file_receipt["intent"] = {
+            intent_receipt = {
                 "crash_sha256": hashlib.sha256(pending_crash_bytes).hexdigest(),
                 "receipt_sha256": hashlib.sha256(archived).hexdigest(),
                 "bytes": len(pending_crash_bytes),
                 "byte_identical": True,
                 "pending_retired": not pending.exists(),
             }
+            (snapshot_dir / "intent-receipt.json").write_text(
+                json.dumps(intent_receipt, sort_keys=True, indent=2) + "\n",
+                encoding="utf-8")
             (snapshot_dir / "second-cold-recovery-boot.log").write_bytes(
                 (output / "second-cold-recovery-boot.log").read_bytes())
         (snapshot_dir / "crash.log").write_text(log, encoding="utf-8")

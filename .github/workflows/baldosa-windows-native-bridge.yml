@@ -623,6 +623,9 @@ jobs:
             ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/packaged-options-second.log
             ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/packaged-options-damaged.log
             ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/profile-rejected-launch.log
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/drive-relative-root-refusal.log
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/current-drive-root-refusal.log
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/rooted-relative-rejections.json
 
       - name: Retain bounded Windows guest evidence (never ROM or saves)
         if: always()

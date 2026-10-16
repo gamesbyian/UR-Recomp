@@ -16,6 +16,7 @@ from pathlib import Path
 import re
 import subprocess
 import time
+import zipfile
 
 USA_SHA256 = "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
 CRC = re.compile(r'"crc32_wram":\s*"(0x[0-9a-fA-F]+)"')
@@ -1907,6 +1908,48 @@ def run_native_crash_between_raw_and_typed(
         (snapshot_dir / "file-receipt.json").write_text(
             json.dumps(file_receipt, indent=2, sort_keys=True) + "\n",
             encoding="utf-8")
+        if journaled:
+            # Machine-readable *producer* export that matches the separate
+            # independently owned QA02 read-only verifier. No QA authority
+            # moves here: the consumer must separately re-download, pin
+            # tested source/PE and independently verify these exact bytes.
+            # Retain the ordinary four-label file-receipt unchanged while
+            # supplying a strictly bounded FLAT journaled ZIP with a
+            # five-entry intent-aware receipt required by the consumer.
+            expected = {
+                *(f"{name}.{stage}.bin"
+                  for name in ("raw-sram", "typed-profile", "selector", "roster")
+                  for stage in ("before", "crash", "after")),
+                "crash.log", "cold-recovery.log",
+                "second-cold-recovery-boot.log", "intent.crash.bin",
+                "intent.recovered-receipt.bin", "file-receipt.json",
+            }
+            assert len(expected) == 18
+            qa_receipt = dict(file_receipt)
+            qa_receipt["intent"] = intent_receipt
+            qa_zip = output / "qa02-journaled-snapshot.zip"
+            with zipfile.ZipFile(qa_zip, "x") as archive:
+                for name in sorted(expected):
+                    data = (
+                        (json.dumps(qa_receipt, sort_keys=True, indent=2) +
+                         "\n").encode("utf-8")
+                        if name == "file-receipt.json" else
+                        (snapshot_dir / name).read_bytes()
+                    )
+                    info = zipfile.ZipInfo(name, (1980, 1, 1, 0, 0, 0))
+                    info.external_attr = 0o100644 << 16
+                    info.compress_type = zipfile.ZIP_DEFLATED
+                    archive.writestr(info, data)
+            with zipfile.ZipFile(qa_zip) as archive:
+                if (len(archive.namelist()) != len(expected) or
+                    set(archive.namelist()) != expected or
+                    archive.testzip() is not None):
+                    raise ValueError("Exported flat journaled QA envelope invalid")
+            if qa_zip.stat().st_size > 1_000_000:
+                raise ValueError("Journaled QA envelope exceeds verifier budget")
+            (output / "qa02-journaled-snapshot.sha256").write_text(
+                sha256(qa_zip) + "  qa02-journaled-snapshot.zip\n",
+                encoding="ascii")
 
     # Only AFTER the immutable historical failed-boot witness is captured,
     # exercise the explicit recovery choice and a third real source process.
@@ -1987,6 +2030,7 @@ def run_native_crash_between_raw_and_typed(
         "validated_intent_reconciled_on_fresh_guest": journaled,
         "second_cold_boot_byte_identical": journaled,
         "actual_crash_intent_and_receipt_retained": journaled and snapshot_dir is not None,
+        "qa02_flat_journaled_zip_exported": journaled and snapshot_dir is not None,
         "manual_legacy_raw_choice": legacy_choice_receipt,
         "no_implicit_recovery_or_fake_result": not journaled,
         "cross_file_crash_atomicity_proven": False,

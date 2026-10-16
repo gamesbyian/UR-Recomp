@@ -62,7 +62,7 @@ def retain_rooted_relative_rejection(output: Path, supplied_root: str,
     log_name, key = ROOTED_RELATIVE_NEGATIVE_CASES[supplied_root]
     transcript = ("STDOUT (actual cmd.exe subprocess):\n" + result.stdout +
                   "\nSTDERR (actual cmd.exe subprocess):\n" + result.stderr)
-    (output / log_name).write_text(bounded_log(transcript), encoding="utf-8")
+    (output / log_name).write_bytes(bounded_log(transcript).encode("utf-8"))
     return {
         "case": key,
         "supplied_root": supplied_root,

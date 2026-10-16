@@ -24,7 +24,10 @@ MARK="UR_QA08_NATIVE_EFFECTIVE_PIXEL_OWNER"
 INTRO="static void ppu_render_pixel(Ppu *ppu, int x, int y) {\n"
 MAIN="    int mainLayer = ppu_resolve_pixel(ppu, x, y, false, &r, &g, &b);\n"
 WINDOW="    bool colorWindowState = ppu_window_contains(ppu, 5, x);\n"
-MATH="    bool mathEnabled = mainLayer < 6 && (PPU_mathEnabled(ppu) >> mainLayer & 1) && !(\n"
+MATH_END=(
+    "      (PPU_preventMathMode(ppu) == 1 && !colorWindowState)\n"
+    "      );\n"
+)
 SUB="      secondLayer = ppu_resolve_pixel(ppu, x, y, true, &r2, &g2, &b2);\n"
 END="  pixelBuffer[3] = 0;\n"
 
@@ -92,7 +95,7 @@ TRACE=r"""  /* Original logical x and output y. This reads the already composed 
 def patch_source(src:str)->str:
     if MARK in src:
         expected=[(INTRO+DECL,1),(MAIN+CAPTURE_MAIN,1),
-                  (WINDOW+CAPTURE_WINDOW,1),(MATH+CAPTURE_MATH,1),
+                  (WINDOW+CAPTURE_WINDOW,1),(MATH_END+CAPTURE_MATH,1),
                   (SUB+CAPTURE_SUB,1),(END+TRACE,1)]
         if any(src.count(fragment)!=n for fragment,n in expected):
             raise ValueError("partial/tampered pixel provenance instrument")
@@ -101,7 +104,7 @@ def patch_source(src:str)->str:
         src.count(previous.TRACE)!=1
     ):
         raise ValueError("original PPU source state + brightness guards absent")
-    for a in (INTRO,MAIN,WINDOW,MATH,SUB,END):
+    for a in (INTRO,MAIN,WINDOW,MATH_END,SUB,END):
         if src.count(a)!=1:
             raise ValueError("pinned active PPU render/compositor source changed: "+a.strip())
     if "#include <stdio.h>" not in src or "#include <stdlib.h>" not in src:
@@ -110,7 +113,7 @@ def patch_source(src:str)->str:
         (INTRO,INTRO+DECL),
         (MAIN,MAIN+CAPTURE_MAIN),
         (WINDOW,WINDOW+CAPTURE_WINDOW),
-        (MATH,MATH+CAPTURE_MATH),
+        (MATH_END,MATH_END+CAPTURE_MATH),
         (SUB,SUB+CAPTURE_SUB),
         (END,END+TRACE),
     ):

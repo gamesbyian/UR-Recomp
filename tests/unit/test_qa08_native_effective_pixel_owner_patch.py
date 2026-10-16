@@ -22,8 +22,12 @@ class ExactNativePixelOwnerSourceTest(unittest.TestCase):
           '  int r = 0, r2 = 0;\n  int g = 0, g2 = 0;\n'
           '  int b = 0, b2 = 0;\n'
           '  if (!PPU_forcedBlank(ppu)) {\n'+pixel.MAIN+
-          pixel.WINDOW+pixel.MATH+
-          '    0;\n    int secondLayer = 5;\n'
+          pixel.WINDOW+
+          '    bool mathEnabled = mainLayer < 6 && (PPU_mathEnabled(ppu) >> mainLayer & 1) && !(\n'
+          '      PPU_preventMathMode(ppu) == 3 ||\n'
+          '      (PPU_preventMathMode(ppu) == 2 && colorWindowState) ||\n'
+          +pixel.MATH_END+
+          '    int secondLayer = 5;\n'
           '    if (true) {\n'+pixel.SUB+'    }\n'
           '  }\n  int row = y - 1;\n'
           '  uint8 *pixelBuffer = ppu->renderBuffer;\n'
@@ -43,12 +47,12 @@ class ExactNativePixelOwnerSourceTest(unittest.TestCase):
         self.assertIn("UR_QA08_WIN_OAM_LINE",modified)
         self.assertIn("(x == 225 && (y == 97 || y == 121))",modified)
         self.assertIn("(x == 205 && (y == 116 || y == 140))",modified)
-        for render in (pixel.MAIN,pixel.WINDOW,pixel.MATH,pixel.SUB,pixel.END):
+        for render in (pixel.MAIN,pixel.WINDOW,pixel.MATH_END,pixel.SUB,pixel.END):
             self.assertIn(render,modified)
         clean=(modified.replace(pixel.INTRO+pixel.DECL,pixel.INTRO)
             .replace(pixel.MAIN+pixel.CAPTURE_MAIN,pixel.MAIN)
             .replace(pixel.WINDOW+pixel.CAPTURE_WINDOW,pixel.WINDOW)
-            .replace(pixel.MATH+pixel.CAPTURE_MATH,pixel.MATH)
+            .replace(pixel.MATH_END+pixel.CAPTURE_MATH,pixel.MATH_END)
             .replace(pixel.SUB+pixel.CAPTURE_SUB,pixel.SUB)
             .replace(pixel.END+pixel.TRACE,pixel.END))
         self.assertEqual(clean,self.source)

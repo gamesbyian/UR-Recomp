@@ -435,7 +435,7 @@ jobs:
               "release_complete_usa_event_credit")}
           print("QA01_ZOO_FULL_RACE_UNMASKED_MESH=" + json.dumps(brief,sort_keys=True))
           with open(sys.argv[2],"a",encoding="utf-8") as f:
-              f.write("\\nZoo genuine 2014 course sampled through +" +
+              f.write("\nZoo genuine 2014 course sampled through +" +
                       str(mesh["last_race_relative_checkpoint"]) +
                       "; original/native full WRAM masked bytes **0**, 0/45 event credit.\\n")
           PY

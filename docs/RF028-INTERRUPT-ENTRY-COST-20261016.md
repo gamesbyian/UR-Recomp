@@ -66,6 +66,23 @@ All four 1P producer cases are `paired_event_candidate` with all named follow-th
 
 All three agree with the local runs. Recorded from the case job logs: the per-pair follow-through detail is in the run's case artifacts (retained to 2026-10-23), which this session could not download. Dragster is not in the campaign population. This is hosted reproduction of candidates; it is not QA-01 acceptance.
 
+## Zoo to next Bowl and the +5040 sound upload (local, full observer set)
+
+This was a local run of `probe_original_event_complete.py --case zoom-zoo --source-followthrough --zoo-next-bowl --zoo-race-mesh --zoo-dp-window --zoo-terminal-phase` against Snes9x. It used the locally built RF-015…028 1P native `8dde89b4…`, not the hosted ELF. QA-01 is independently running the hosted exact-binary version (run 38884542449, #1706), and that result is authoritative.
+
+| Observation | RF-015+017 controls (QA, #1690/#1701) | RF-015+017+018 (QA, #1692) | RF-015…028 (local) |
+| --- | --- | --- | --- |
+| Native race-entry host (original 1017) | 1019 | 1017 | 1017 |
+| Zoo result | +5163 / +5163 | +5163 / +5163 | +5163 / +5163 |
+| Next Bowl, source movie / fresh original / native | +267 / +267 / +267 | +267 / +267 / **+265** | **+267 / +267 / +267** |
+| Next-Bowl SRAM pairs equal | 11/11 | 0/11 | **11/11** |
+| Next-Bowl whole-WRAM byte-exact | 8/11 (stack + `7E:2000/2004` at +267) | 0/11 | **9/11** (other two: stack `7E:01ED–01F0` only) |
+| Race mesh whole-WRAM byte-exact | 45/78 (109 bytes) | 46/78 (105) | **51/78 (92)** |
+| `$63` / `$69` at +5040 | off by 38 / 39 | off by 15 / 16 | **off by 1 / equal** |
+| `$63` / `$69` difference, +5040…+5046 | differs at every frame | differs at every frame | `$63` off by one at +5040 and +5045 only; `$69` always equal |
+
+Every residual mesh byte is stale stack (`7E:01ED–01F1`), apart from the two `$63` samples. Those come back to equality the next frame, so the remaining upload difference doesn't accumulate. It fits native's in-frame upload sitting one CPU poll iteration ahead at the sample point, which is consistent with RF-026's residual upload drift (−666 of 3.35M clocks over the boot upload). No executed writer has been traced.
+
 ## Boundary
 
 - These are research candidates. QA-01 decides acceptance, after hosted re-execution of the full stage.

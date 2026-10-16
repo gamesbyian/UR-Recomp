@@ -44,6 +44,76 @@
   "run_id": 38879846733,
   "source": "case job logs; per-pair follow-through in run artifacts (not retrieved: artifact host blocked in this session)"
  },
+ "local_zoo_next_bowl_full_observer": {
+  "authority": "local observation; QA-01 hosted exact-binary run 38884542449 (#1706) is the source receipt",
+  "comparators": {
+   "rf015_017_018": {
+    "dp5040_delta": [
+     15,
+     16
+    ],
+    "mesh_exact": "46/78",
+    "next_bowl_native": 265,
+    "sram": "0/11"
+   },
+   "rf015_017_controls": {
+    "dp5040_delta": [
+     38,
+     39
+    ],
+    "mesh_exact": "45/78",
+    "next_bowl_native": 267,
+    "sram": "11/11",
+    "wram_exact_next_bowl": "8/11"
+   }
+  },
+  "dp_window": {
+   "5040": {
+    "63": [
+     115,
+     116
+    ],
+    "69": [
+     190,
+     190
+    ]
+   },
+   "5045": {
+    "63": [
+     179,
+     180
+    ],
+    "69": [
+     254,
+     254
+    ]
+   },
+   "other_frames_5034_5046": "equal"
+  },
+  "entries": [
+   1017,
+   1017
+  ],
+  "native_executable_sha256": "8dde89b422b25c4650556d649b8f9b36dda20880a4a105d19529f10c1a78c4a5",
+  "next_bowl_source_fresh_original_native": [
+   267,
+   267,
+   267
+  ],
+  "next_bowl_sram_pairs_equal": "11/11",
+  "next_bowl_wram_exact": "9/11 (others: 7E:01ED-01F0 stack only)",
+  "race_mesh_differing_bytes_total": 92,
+  "race_mesh_wram_exact": "51/78",
+  "reference": "Snes9x (local snesref)",
+  "residual_addresses": {
+   "7E:0063": "2 samples, off by one",
+   "7E:01ED-01F1": "stack"
+  },
+  "zoo_result": [
+   5163,
+   5163
+  ]
+ },
  "nmi_entry_switcher_host_5651": {
   "native_handler_start_after_v225": 18,
   "snes9x_handler_start": "V225 H82 (last loop instr V225 H2)"

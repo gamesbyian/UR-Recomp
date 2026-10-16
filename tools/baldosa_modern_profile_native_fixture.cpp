@@ -294,6 +294,21 @@ int main(int argc, char** argv) {
         return add_second_named_profile(argv[1], argv[2]);
     if (argc == 4 && std::strcmp(argv[3], "--add-second-keep-first") == 0)
         return add_second_named_profile(argv[1], argv[2], false);
+    // QA-only entrypoint for a user-confirmed emergency target. Unlike the
+    // ordinary UI selector, the old active profile may have a broken typed
+    // sidecar/raw SRAM. Both remain untouched. Never auto-pick a destination.
+    if (argc == 5 &&
+        std::strcmp(argv[4], "--recover-select-healthy") == 0) {
+        const auto result =
+            select_baldosa_healthy_profile_from_damaged_for_next_boot(
+                fs::path(argv[1]), argv[2], argv[3]);
+        if (!result.selected()) return 85;
+        std::printf("UR_BALDOSA_NATIVE_PROFILE_FIXTURE "
+                    "recovered_healthy_next_boot=%s damaged=%s "
+                    "damaged_files_unchanged=1\n",
+                    result.next_profile_id.c_str(), argv[2]);
+        return 0;
+    }
     // TEST ONLY: explicit next-process selector, never create either identity.
     // Reuse exact production locked profile/catalog/typed/raw SRAM authority.
     if (argc == 5 &&

@@ -1,0 +1,72 @@
+name: QA-08 source VRAM/OAM medal tile-index discriminator
+
+# Archives only. The original 2014 corrected VRAM producer has WRAM/SRAM
+# members, so ONLY the bounded JSON counterfactual is retained. NEVER include
+# the downloaded inputs in the output artifact; no emulator/build/ROM export.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/qa08-medal-original-vram-native-oam.yml"
+      - "tools/qa08_medal_original_vram_native_oam_counterfactual.py"
+      - "tests/unit/test_qa08_medal_original_vram_native_oam_counterfactual.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: qa08-medal-vram-real-native-OAM-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  source-only:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.number == 1649 }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Obtain pinned independent original VRAM, original 4bpp and live native samples
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-conditional"
+          cd "$RUNNER_TEMP/qa08-conditional"
+          for item in registered:12032487428 indexed-original:12081238543 native:12077523803; do
+            name="${item%:*}" id="${item#*:}"
+            curl --fail --silent --show-error --location --retry 2 \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/${id}/zip" \
+              -o "${name}.zip"
+          done
+          printf '%s\n' \
+            "2fef0440b97a69025bf9ee539551b414ef7f1f11978172aea5565f338b35d4c9  registered.zip" \
+            "a280062d25fa721c096485522f6bb4a8d5af359ee797ad2d41db400e77b4efe9  indexed-original.zip" \
+            "f467aaafc193e0b8e56934e6f505c10d60c3a4a1afa8727ffa376e5cdf7d53de  native.zip" | sha256sum -c -
+      - name: Independently reconstruct 14 source sprite 4bpp hashes and 10 native OAM names
+        run: |
+          set -euo pipefail
+          python3 -m unittest tests.unit.test_qa08_medal_original_vram_native_oam_counterfactual
+          python3 tools/qa08_medal_original_vram_native_oam_counterfactual.py \
+            --registered "$RUNNER_TEMP/qa08-conditional/registered.zip" \
+            --indexed-original "$RUNNER_TEMP/qa08-conditional/indexed-original.zip" \
+            --native "$RUNNER_TEMP/qa08-conditional/native.zip" \
+            --out "$RUNNER_TEMP/qa08-conditional/conditional-ppu-index.json"
+          python3 - "$RUNNER_TEMP/qa08-conditional/conditional-ppu-index.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          r=json.load(open(sys.argv[1]))
+          assert r["conditional_original_VRAM_matching_pairs"]==6
+          assert r["conditional_original_VRAM_mismatching_pairs"]==4
+          assert r["gold_medal_actual_native_palette_index"]==14
+          assert r["gold_medal_original_palette_index"]==15
+          assert r["native_VRAM_live_content_same_as_original"] is False
+          with open(sys.argv[2],"a") as s:
+              s.write("At ten source-matched medal samples, actual native OAM names applied to independently verified original 4bpp VRAM predict six actual native pixels; four gold medal samples retain equal OAM tile names but native index14 instead of original index15. Live native VRAM source and exact tile-index logic still require independent observation. This output contains no ROM/VRAM/WRAM/SRAM payload.\n")
+          PY
+      - name: Retain only compact derived source evidence, never raw original memory
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-original-vram-native-oam-medal-index-counterfactual-90d
+          retention-days: 90
+          if-no-files-found: error
+          path: ${{ runner.temp }}/qa08-conditional/conditional-ppu-index.json

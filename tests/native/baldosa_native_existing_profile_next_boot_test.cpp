@@ -1,6 +1,7 @@
 #include "baldosa_native_existing_profile_next_boot.hpp"
 #include "baldosa_native_second_profile.hpp"
 #include "baldosa_native_sram_recovery.hpp"
+#include "baldosa_native_manual_sram_recovery.hpp"
 
 #include <cassert>
 #include <cstdio>
@@ -324,6 +325,125 @@ int main() {
                BaldosaSramIntentStatus::Rejected);
         assert(before_save(dir).second == before.second);
         assert(bytes(pending) == "bad intent");
+    }
+
+
+    {
+        // Historical post-raw/pre-typed _Exit(86) WITHOUT any intent: the
+        // guest-authored bytes cannot be promoted without human choice.
+        const auto dir = intent_fixture("legacy-raw-choice");
+        const auto [global, profile] = before_save(dir);
+        const auto raw = dir / "saves/profile-mike/save.srm";
+        const auto typed = dir / "saves/profile-mike/host-profile.txt";
+        const auto guest = make_changed(profile);
+        const std::string original_typed = bytes(typed);
+        write_bytes(raw, guest);
+        const std::string guest_raw = bytes(raw);
+        assert(recover_baldosa_sram_intent_on_cold_boot(dir, "mike") ==
+               BaldosaSramIntentStatus::NoIntent);
+        assert(recover_baldosa_legacy_sram_explicit(
+            dir, "andrew", BaldosaManualSramChoice::TrustGuestRaw) ==
+               BaldosaManualSramRecoveryStatus::Rejected);
+        assert(recover_baldosa_legacy_sram_explicit(
+            dir, "mike", BaldosaManualSramChoice::TrustGuestRaw) ==
+               BaldosaManualSramRecoveryStatus::RestoredRaw);
+        assert(bytes(raw) == guest_raw);
+        const auto after = load_host_profile_state_file(
+            ExecutionMode::Modern, typed.string(), "mike");
+        assert(after.loaded() && after.state->stock_sram == guest);
+        assert(after.state->autosave_generation ==
+               profile.autosave_generation + 1);
+        assert(bytes(typed) != original_typed);
+        assert(recover_baldosa_legacy_sram_explicit(
+            dir, "mike", BaldosaManualSramChoice::TrustGuestRaw) ==
+               BaldosaManualSramRecoveryStatus::AlreadyConsistent);
+        const auto archives = [&] {
+            std::vector<fs::path> found;
+            for (const auto& entry : fs::directory_iterator(
+                     dir / "saves/profile-mike"))
+                if (entry.path().filename().string().find(
+                        "native-sram-manual-archive-") == 0)
+                    found.push_back(entry.path());
+            return found;
+        }();
+        assert(archives.size() == 1);
+        const std::string archive = bytes(archives[0]);
+        assert(archive.find("UR-BALDOSA-MANUAL-SRAM-RECOVERY/1\n") == 0);
+        assert(archive.find(original_typed) != std::string::npos);
+        assert(archive.find(guest_raw) != std::string::npos);
+        assert(!fs::exists(dir / "runs") &&
+               !fs::exists(dir / "multiplayer-runs"));
+    }
+    {
+        const auto dir = intent_fixture("legacy-typed-choice");
+        const auto [global, profile] = before_save(dir);
+        const auto raw = dir / "saves/profile-mike/save.srm";
+        const auto typed = dir / "saves/profile-mike/host-profile.txt";
+        const auto guest = make_changed(profile);
+        const std::string baseline = bytes(typed);
+        write_bytes(raw, guest);
+        const std::string guest_raw = bytes(raw);
+        assert(recover_baldosa_legacy_sram_explicit(
+            dir, "mike", BaldosaManualSramChoice::RestoreCommitted) ==
+               BaldosaManualSramRecoveryStatus::RestoredCommitted);
+        assert(bytes(typed) == baseline);
+        assert(baldosa_sram_file_matches_exact(
+            raw, profile.stock_sram->data(), kStockSramBytes));
+        assert(recover_baldosa_legacy_sram_explicit(
+            dir, "mike", BaldosaManualSramChoice::RestoreCommitted) ==
+               BaldosaManualSramRecoveryStatus::AlreadyConsistent);
+        std::size_t archives = 0;
+        for (const auto& entry : fs::directory_iterator(
+                 dir / "saves/profile-mike")) {
+            if (entry.path().filename().string().find(
+                    "native-sram-manual-archive-") == 0) {
+                ++archives;
+                assert(bytes(entry.path()).find(guest_raw) !=
+                       std::string::npos);
+            }
+        }
+        assert(archives == 1);
+    }
+    {
+        const auto dir = intent_fixture("legacy-short-raw");
+        const auto raw = dir / "saves/profile-mike/save.srm";
+        const auto typed = dir / "saves/profile-mike/host-profile.txt";
+        const auto baseline = bytes(typed);
+        { std::ofstream out(raw, std::ios::binary | std::ios::trunc);
+          out << "SHORT!"; }
+        assert(recover_baldosa_legacy_sram_explicit(
+            dir, "mike", BaldosaManualSramChoice::TrustGuestRaw) ==
+               BaldosaManualSramRecoveryStatus::Rejected);
+        assert(bytes(raw) == "SHORT!" && bytes(typed) == baseline);
+        assert(recover_baldosa_legacy_sram_explicit(
+            dir, "mike", BaldosaManualSramChoice::RestoreCommitted) ==
+               BaldosaManualSramRecoveryStatus::RestoredCommitted);
+        assert(bytes(typed) == baseline);
+    }
+    {
+        const auto dir = intent_fixture("legacy-journal-conflict");
+        const auto [global, profile] = before_save(dir);
+        const auto next = make_changed(profile);
+        assert(stage_intent(dir, global, profile, next) ==
+               BaldosaSramIntentStatus::Prepared);
+        write_bytes(dir / "saves/profile-mike/save.srm", next);
+        assert(recover_baldosa_legacy_sram_explicit(
+            dir, "mike", BaldosaManualSramChoice::TrustGuestRaw) ==
+               BaldosaManualSramRecoveryStatus::Rejected);
+        assert(recover_baldosa_sram_intent_on_cold_boot(dir, "mike") ==
+               BaldosaSramIntentStatus::Reconciled);
+    }
+    {
+        const auto dir = intent_fixture("legacy-missing-sidecar");
+        fs::remove(dir / "saves/profile-mike/host-profile.txt");
+        const std::string before = bytes(
+            dir / "saves/profile-mike/save.srm");
+        assert(recover_baldosa_legacy_sram_explicit(
+            dir, "mike", BaldosaManualSramChoice::TrustGuestRaw) ==
+               BaldosaManualSramRecoveryStatus::Rejected);
+        assert(bytes(dir / "saves/profile-mike/save.srm") == before);
+        assert(select_baldosa_healthy_profile_from_damaged_for_next_boot(
+            dir, "mike", "andrew").selected());
     }
 
     fs::remove_all(root);

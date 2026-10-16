@@ -1,12 +1,9 @@
 name: QA-08 authentic original/native INIDISP CPU and raster replay proof
 # One source-authentic ZIP-only original/Win32 comparison. No emulator runs.
 # Retire the research PR trigger immediately after a classified result.
+# Historical source-only writer experiment completed and classified green:
+# 38835754517, artifact 12018669038. Manual reproductions only.
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/qa08-adjudicate-native-blackout-inidisp.yml"
-      - "tools/qa08_adjudicate_native_blackout_inidisp_writer.py"
-      - "tests/unit/test_qa08_adjudicate_native_blackout_inidisp_writer.py"
   workflow_dispatch:
 permissions:
   contents: read

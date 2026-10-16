@@ -37,9 +37,46 @@
   "no_assumption_all_unexplained_pixels_are_sprites": true,
   "original_2014_2100_ramp_final_write_frame": 4023,
   "original_2014_2100_ramp_final_write_beam_v": 231,
-  "native_2100_CPU_vs_raster_replay_writer_phase_unverified": true,
+  "native_2100_CPU_vs_raster_replay_writer_phase_unverified": false,
   "CPU_APU_original_gameplay_instruction_phase_parity_accepted": false,
   "source_register_overrides_guest_clock_changes_approved": false,
   "QA08_10_physical_release_and_HD_racer_art_gates_approved": false,
-  "priority": "resolve source-qualified register/vblank phase without altering unaffected raster or guest timing"
+  "priority": "resolve source-qualified register/vblank phase without altering unaffected raster or guest timing",
+  "native_2100_original_source_phase_independent_run_id": 38835754517,
+  "native_2100_original_source_phase_artifact_id": 12018669038,
+  "native_2100_original_source_phase_artifact_SHA256": "1969a581a182a1880b506ad9c2751b4785cf138868982ddd70fd98a25a059c01",
+  "real_Windows_2100_CPU_inidisp_writes": 7,
+  "real_Windows_2100_host_raster_replay_writes": 7,
+  "original_2100_CPU_write_frames": [
+    4017,
+    4018,
+    4019,
+    4020,
+    4021,
+    4022,
+    4023
+  ],
+  "native_2100_CPU_write_frames": [
+    4015,
+    4016,
+    4017,
+    4018,
+    4019,
+    4020,
+    4021
+  ],
+  "native_2100_host_field_raster_replay_frames": [
+    4016,
+    4017,
+    4018,
+    4019,
+    4020,
+    4021,
+    4022
+  ],
+  "source_original_CPU_label_minus_native_CPU_label": 2,
+  "native_replay_label_minus_native_CPU_label": 1,
+  "native_2100_CPU_source_enum": 0,
+  "native_2100_raster_replay_source_enum": 3,
+  "native_original_instruction_or_field_registration_cause_unverified": true
 }

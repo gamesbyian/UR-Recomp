@@ -145,8 +145,22 @@ partial observations**, **41/45 unverified**. Across all three builds,
   128-KiB pair results: 45 byte-exact, 33 different, 109 unmasked differing
   byte occurrences. All WRAM bytes agree at +5039; sound-pointer/counter
   `7E:0063/0069` first differ at +5040 and throughout +5041..+5046, with
-  `7E:0064` also differing at +5043. CPU/APU [#1689](https://github.com/gamesbyian/UR-Recomp/issues/1689)
-  owns the RF-018-only A/B and actual writer/reader/SPC-phase diagnosis.
+  `7E:0064` also differing at +5043. The **RF-018-only A/B has now been
+  executed** on original/native Zoo ([run 38861174758](https://github.com/gamesbyian/UR-Recomp/actions/runs/38861174758);
+  SHA-verified [negative receipt](../analysis/data/qa01-zoo-rf018-only-treatment-review-20261016.json),
+  merged #1692): it narrows +5040 pointer/counter gaps from 38/39 to
+  15/16 counts and aligns native scene entry at 1017, but **does not
+  eliminate the +5040 raw mismatch**. Worse, the genuine native
+  next-Bowl race activates at **Zoo result+265**, whereas archived
+  original and fresh original activate at **+267**. Sampled native
+  post-result menu differs by +16; SRAM first differs at +64 in one
+  non-ranked cutscene-timer byte, and the eleven following Bowl
+  samples disagree in three bytes each while all Crawler ranked
+  records/holders/checksums agree. This is a strict negative for
+  adopting RF-018 alone, not proof of scored-record corruption.
+  CPU/APU [#1689](https://github.com/gamesbyian/UR-Recomp/issues/1689)
+  now owns executed source writer/reader/SPC phase diagnosis at
+  Zoo +5039..+5046 and actual Bowl/menu transition timing.
   These observations do not establish continuous-frame logic/instruction
   parity, authentic Windows executable identity, Windows disk durability, or
   a Windows-specific +265 next-Bowl entry. Source-qualified Zoo +5163 result,

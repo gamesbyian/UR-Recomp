@@ -769,7 +769,10 @@ jobs:
         run: |
           set -euo pipefail
           archive="$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/qa02-journaled-snapshot.zip"
-          digest="$(sha256sum "$archive" | cut -d ' ' -f 1)"
+          # GNU sha256sum escapes backslashes in Windows filenames and can
+          # prefix the hash with a literal backslash. Feed the strict QA
+          # reader a verified *plain* 64-digit hex digest instead.
+          digest="$(python -c 'import hashlib, pathlib, sys; print(hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest())' "$archive")"
           python tools/check_qa02_win32_fault_snapshots.py \
             --zip "$archive" --sha256 "$digest" --case journaled
           echo "PASS: producer F2 journaled archive satisfies separate QA-owned exact 19-member reader (not a gate credit)." >> "$GITHUB_STEP_SUMMARY"

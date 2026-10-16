@@ -76,7 +76,13 @@ Bounded reports and named source logs are retained in the separate
 archive is untouched); independent QA must re-hash and audit them. The final
 exact-head non-parallel dispatch [38703695304](https://github.com/gamesbyian/UR-Recomp/actions/runs/38703695304)
 at `ac82271` (includes `e4f0e00` non-overwriting quarantine and the merge of
-main with #1645's source-closure test) also passed green. All of it is semantic pad
+main with #1645's source-closure test) also passed green. The launcher now refuses drive-relative (`C:name`) and
+root-relative (`\name`) user-data roots (#1533) before any save or catalog exists;
+the real extracted `.cmd` acceptance covers both with exit `3`. Exact head
+`580bc52` (adds that, plus the merge of main with the #1657 source-closure test):
+non-parallel dispatch [38786867862](https://github.com/gamesbyian/UR-Recomp/actions/runs/38786867862)
+and pull_request run [38788166064](https://github.com/gamesbyian/UR-Recomp/actions/runs/38788166064)
+both passed green. All of it is semantic pad
 edges: **no physical controller, audible level, display-appearance, power-loss or
 release-gate credit.** Replay/rematch inside Practice remains the stock game's own
 result flow; Restart/Quit inside Practice and exit to the root use the existing

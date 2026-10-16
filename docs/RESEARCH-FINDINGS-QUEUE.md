@@ -2,6 +2,11 @@
 
 **Classification:** research triage only. It never changes the strict comparator, the [release ledger](RELEASE-QUALITY-LEDGER.json) or any implementation lane's acceptance authority. The machine-readable register is [`analysis/data/research-findings-register.json`](../analysis/data/research-findings-register.json), validated by [`tools/research_findings.py`](../tools/research_findings.py) (`--queue` prints the live table). [Cumulative research](QA-CUMULATIVE-RESEARCH.md) owns campaign mechanics; this page owns *what the outputs mean and who should act*.
 
+## CPU/APU original/native blockers to resolve, not new research factories (2026-10-16)
+
+- **Source/product identity (#1686):** Corrected research Zoo uses RF-015+RF-017; the nominated immutable Windows build used RF-015 only. [Draft #1715](https://github.com/gamesbyian/UR-Recomp/pull/1715) proposes regeneration in the existing Windows bridge with fail-closed 89-bank/15,484-charge verification. An actual PR-head build and independent exact-Win32 event replay are mandatory before any source-equivalence or event admission. Neither a green static test nor a new PE build retroactively changes the nominated ZIP.
+- **Remaining causal sound/state discrepancy (#1689; RF-026/028):** The independently re-used, exact composite native research ELF has Zoo +5163 and next Bowl +267 with 11/11 matched full SRAM samples, but its original/native sound pointer at race-relative +5040/+5045 differs by one byte. The local executed CPU/SPC ready-loop trace in [RF-028](RF028-INTERRUPT-ENTRY-COST-20261016.md) brackets first $CC echo polling at SPC +8 versus +2 cycles and 9 versus 7 CPU polls; it has **not** demonstrated the exact hardware bus cycle/reader liveness of the suspect SPC opcode on the hosted ELF. The low-stack 7E:01ED–01F0 differences at Bowl +266/+280 are also unwaived. Reuse the same pinned movie/binaries and capture **executed** opcode/port handshakes and live stack consumers before adjusting RF-026, rather than launching another broad 45-event sweep. Full sampled WRAM mesh remains 51/78 exact and **0/45** USA events admitted.
+
 ## Significance classes
 
 Ordered by decision value. A finding is triaged in this order, whatever computation produced it.

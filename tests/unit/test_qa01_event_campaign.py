@@ -496,6 +496,68 @@ class QA01CampaignTest(unittest.TestCase):
                 self.assertEqual(bad["disposition"], "producer_error")
                 self.assertEqual(bad["release_credit"], 0)
 
+    def test_three_independent_source_movie_original_native_result_clocks(self):
+        plan = self.plan("switcher")
+        path = self.root / "three-clocks.json"
+        report = producer("switcher", matched=True)
+        # Genuine archived Switcher source: 12327 -> 17030 = +4703;
+        # same freshly replayed original/native guest relative result +4704.
+        report["original_source_event"].update(
+            original_entry_frame=12327,
+            original_result_frame=17030,
+            source_active_frames_to_result=4703)
+        report["comparison"]["terminal_result_guest_frame"] = {
+            "reference_relative": 4704, "native_relative": 4704}
+        c.write_json(path, report)
+        case = c.classify("switcher", 0, path, plan)
+        self.assertEqual(case["disposition"], "strict_candidate")
+        self.assertEqual(case["release_credit"], 0)
+        witness = case["evidence"]["source_original_movie_vs_fresh_guest_result_phase"]
+        self.assertEqual([witness[k] for k in (
+            "source_original_movie_relative", "fresh_original_relative",
+            "fresh_native_relative")], [4703, 4704, 4704])
+        self.assertEqual(witness["fresh_original_minus_source_frames"], 1)
+        self.assertEqual(witness["fresh_native_minus_source_frames"], 1)
+        self.assertFalse(witness["three_relative_durations_equal"])
+        self.assertFalse(witness["continuous_original_to_fresh_equivalence_proven"])
+        self.assertIn("source/movie timing equivalence NOT established", case["reason"])
+        folder = self.root / "switcher-results" / "qa01-campaign-case-switcher"
+        c.write_json(folder / "case-result.json", case)
+        summary, md = c.aggregate(plan, self.root / "switcher-results")
+        self.assertTrue(summary["transport_complete"])
+        self.assertEqual(
+            summary["source_movie_to_fresh_result_duration_difference_cases"], 1)
+        self.assertIn("relative result offset: 1", md)
+        self.assertEqual(summary["release_admissions"], 0)
+        for mutation in (
+            lambda r: r.pop("source_original_movie_vs_fresh_guest_result_phase"),
+            lambda r: r["source_original_movie_vs_fresh_guest_result_phase"].__setitem__(
+                "fresh_original_minus_source_frames", 0),
+            lambda r: r["source_original_movie_vs_fresh_guest_result_phase"].__setitem__(
+                "three_relative_durations_equal", True),
+            lambda r: r["source_original_movie_vs_fresh_guest_result_phase"].__setitem__(
+                "continuous_original_to_fresh_equivalence_proven", True),
+            lambda r: r["source_original_movie_vs_fresh_guest_result_phase"].__setitem__(
+                "release_credit", 1),
+        ):
+            with self.subTest(mutation=repr(mutation)):
+                tampered = json.loads(json.dumps(case))
+                mutation(tampered["evidence"])
+                c.write_json(folder / "case-result.json", tampered)
+                rejected, _ = c.aggregate(plan, self.root / "switcher-results")
+                self.assertFalse(rejected["transport_complete"])
+                self.assertEqual(rejected["counts"]["missing_evidence"], 1)
+                self.assertEqual(rejected["release_admissions"], 0)
+
+    def test_matching_source_movie_duration_is_still_not_release_credit(self):
+        plan = self.plan("zoom-zoo")
+        path = self.report_file("zoom-zoo", matched=True)
+        row = c.classify("zoom-zoo", 0, path, plan)
+        witness = row["evidence"]["source_original_movie_vs_fresh_guest_result_phase"]
+        self.assertTrue(witness["three_relative_durations_equal"])
+        self.assertFalse(witness["continuous_original_to_fresh_equivalence_proven"])
+        self.assertEqual(row["release_credit"], 0)
+
     def test_cross_shard_source_sram_is_part_of_execution_identity(self):
         plan = self.plan()
         out = self.root / "source-sram-mismatch"

@@ -60,14 +60,10 @@ def summarize(original_log: str, native_log: str) -> dict:
     n=next((x for x in native if x["value"]==0xcc),None)
     if o is None or n is None:
         raise ValueError("missing real CC at CPU bus")
-    if o["after"]!=evidence["original_cpu_first_cc_echo_age"]-38:
-        # original CPU's first CC at +546 and its actual echo read at +584
-        # are independently required by RF030 but not fixed by synthetic timing.
-        # Do not rely on the 38-cycle gap: use RF030's actual first writer.
-        import qa01_ipl_echo_report as rf030
-        source=rf030.summarize(original_log,native_log)
-        if o["after"]!=source["original_ipl_first_cc"]["cpu_write_age"]:
-            raise ValueError("original CPU source clock differs from actual first CC write")
+    import qa01_ipl_echo_report as rf030
+    source = rf030.summarize(original_log,native_log)
+    if o["after"] != source["original_ipl_first_cc"]["cpu_write_age"]:
+        raise ValueError("original CPU source clock differs from actual first CC write")
     if n["age"]!=evidence["native_first_cc_schedule"]["port_clock"] or n["guest"]!=evidence["native_first_cc_schedule"]["guest_cycle"]:
         raise ValueError("native AOT CPU clock does not bind executed queue schedule")
     if not o["den"] or not o["num"] or o["rem"]>=o["den"]:

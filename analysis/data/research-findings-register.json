@@ -812,6 +812,37 @@
       "resolving_experiment": "This bounded target/CPU consumer observation is resolved. The next separately owned investigation, if warranted, records original CPU master/beam and native g_cpu.master_cycles→rtl_apu_guest_cycle at exact CC write and consumer PC, before any new timing patch.",
       "consequence": "Discard hypothesized late native queue drain or delayed native CPU echo consumption as root cause for first CC. Retain source evidence, no globally applied cycle adjustments, no source change to Windows, no 45-event release credit.",
       "resolution": "Genuine original/native run 38974815770 passed all four case workflow jobs; independent 13-file ZIP and baseline RF030 12-file ZIP SHA check and 78 original/78 native WRAM checkpoint invariance. First CC queue target, precise consumption and CPU returned value directly observed; research receipt and apparatus preserved."
+    },
+    {
+      "id": "RF-033",
+      "title": "Executed Snes9x CPU-to-SPC fractional clock source consumes five actual SPC cycles to serve a two-cycle requested first IPL CC bus write; native guest queues same CC at precise mapped target",
+      "class": "source_backed_behaviour",
+      "status": "resolved",
+      "evidence": "original_and_native",
+      "owner_lane": "research",
+      "reproducer": {
+        "command": "Inspect immutable exact-head Actions 38977309694 original/native Zoo case artifact 12080107147 ZIP sha256 f8ee6fbfbc9540179cea65428e298de3c59d4884f801d04a3ffc1c62663d87c8; run tools/qa01_rf033_cpu_master_clock_report.py --original-log <original-replay.log> --native-log <native-replay.log> --out <new-receipt.json> against archived unmodified source-bound case logs at source 68e80bde7cd332364da31e14342b9a28035a2160. Compare all 78 original/native full WRAM hashes to RF032 control 38974815770.",
+        "runs": [
+          38977309694,
+          38974815770
+        ],
+        "race_relative_lag": 0,
+        "original_and_native_entry_hosts": [
+          1017,
+          1017
+        ]
+      },
+      "source_artifacts": [
+        "analysis/data/rf033-original-native-cpu-master-clock-20261016.json",
+        "docs/RF033-ORIGINAL-NATIVE-CPU-MASTER-SPC-CLOCK-20261016.md",
+        "run 38977309694 artifact 12080107147 ZIP SHA256 f8ee6fbfbc9540179cea65428e298de3c59d4884f801d04a3ffc1c62663d87c8; original Snes9x core 047ce96fdf5a07cacdfd1d1b588eca2b99496e2f113f08ac445951653dc8f900; native ELF 16a75ea84c902deae7ffaa39f797b44fe91d8fdb7b542b99ef4a4f76a14356f5",
+        "RF032 control ZIP sha256 6aab44e8d16dcaa34fd438c439d349dc6050f1ddc4c4c1de1e81afc2f387175d: all 78 original and 78 native full WRAM SHA256 hashes independently equal"
+      ],
+      "observation": "At first actual source-original CPU $2140=$CC writer, Snes9x V119 H312, source spc reference_time 266, remainder 128292, ratio 15664/328125; S9xAPUGetClock predicted two SPC cycles, yet S9xAPUExecute advanced observed SPC age 103322541 -> 103322546 (five cycles) before CPU port latch becomes visible. The nine source CC writer intervals vary, with source-visible requested and actual cycle charges different. Native exact first CC guest mapped cycle 103322545 from g_cpu.master_cycles 2164383306, frame 6056, frame master start 2164170140, extended frame mode, queued schedule at portClock 103322463 and applied on target 103322545. No original/native controller or timing mutations; Zoo result source/fresh-original/native +5163, Bowl +267, 11 full SRAM pairs match, 51/78 unmasked WRAM exact, 92 differing byte occurrences and sound pointer $63 differs only +5040,+5045 while $69 remains equal.",
+      "uncertainty": "Whole-instruction Snes9x SMP.enter execution crosses its requested fractional SPC budget and is observed, but independent original/native CPU master/SPC clock axes are not globally phase locked. This source-time conversion alone does not prove a unique correction to native timing or explain every residual low-stack byte and DSP sample; an original CPU internal opcode execution overshoot may include previous fractional debt.",
+      "resolving_experiment": "RF033 executed read-only clock-source observation complete. Future narrowly justified source model study: actual CPU write/SPC opcode boundary by reader/writer PC and guest master clock, strict 78-WRAM/13-sound/11-SRAM original-native A/B before any correction. Do not revive globally advanced SPC read RF029 or globally deferred queue RF031.",
+      "consequence": "Retain SHA-verified first CC CPU master clock conversion and exact bounded observer; remove temporary push trigger and shared QA campaign stage. No Windows/gameplay timing patch, input rephase, frame masking or release acceptance.",
+      "resolution": "Genuine original/native 2014 Zoo source run 38977309694 succeeded all four workflow jobs with 14-file case, exact first CPU fractional clock receipt and 78/78 original plus 78/78 native frame hash equivalence to RF032. Source observation complete, correction untested; original/native complete USA accepted 0/45."
     }
   ]
 }

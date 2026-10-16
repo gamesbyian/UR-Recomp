@@ -67,6 +67,26 @@ class TwoPlayerSourceTest(unittest.TestCase):
             two.inspect_native_cgram_port_history(
                 record(6000,"22","6c",1,"56")*24)
 
+
+    def test_2100_bounded_native_CPU_and_replay_writes_not_conflated(self):
+        def row(f,v,h,val,old,src):
+            return (f"UR_QA08_WIN_INIDISP_WRITE frame={f} v={v} h={h} "
+                    f"val={val} old={old} src={src}\n")
+        log=(row(4015,230,205,"02","80",0)+
+             row(4016,1,0,"02","80",3))
+        r=two.inspect_native_inidisp_port_history(log)
+        self.assertEqual(r["actual_bounded_native_2100_writes"],2)
+        self.assertEqual(r["actual_native_CPU_source_enum_zero_writes"],1)
+        self.assertEqual(r["real_native_write_frames"],[4015,4016])
+        self.assertEqual(r["native_2100_actual_port_write_history"][1]
+                         ["native_writer_source_enum"],3)
+        self.assertFalse(r["release_gate_accepted"])
+        for bad in ("",log+"UR_QA08_WIN_INIDISP_WRITE bad\n",
+                    row(9999,230,205,"02","80",0)):
+            with self.subTest(bad=bad[-30:]):
+                with self.assertRaises(ValueError):
+                    two.inspect_native_inidisp_port_history(bad)
+
     def test_read_only_two_pad_observer_retains_prior_frozen_controls(self):
         cpp=(ROOT/"tools/baldosa_qa08_windows_original_capture.cpp").read_text()
         self.assertIn('std::strcmp(mode, "twoplayer-fullroute") == 0',cpp)

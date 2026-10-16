@@ -117,6 +117,49 @@ def inspect_native_cgram_port_history(log:str)->dict:
     }
 
 
+
+INIDISP_PORT_LOG=re.compile(
+    r"^UR_QA08_WIN_INIDISP_WRITE frame=(\d+) v=(\d+) h=(\d+) "
+    r"val=([0-9a-f]{2}) old=([0-9a-f]{2}) src=(\d+)$",re.M
+)
+
+def inspect_native_inidisp_port_history(log:str)->dict:
+    """Keep CPU, DMA, HDMA and host raster-replay source enum distinct."""
+    lines=[line for line in log.splitlines()
+           if line.startswith("UR_QA08_WIN_INIDISP_WRITE")]
+    matches=INIDISP_PORT_LOG.findall(log)
+    if len(lines)!=len(matches):
+        raise ValueError("malformed native original-mode $2100 write witness")
+    rows=[]
+    for values in matches:
+        frame,v,h,value,previous,src=values
+        row={
+            "real_native_guest_frame":int(frame),
+            "native_beam_vcounter":int(v),
+            "native_beam_hcounter":int(h),
+            "native_2100_value":value,
+            "native_PPU_INIDISP_before_write":previous,
+            "native_writer_source_enum":int(src),
+        }
+        if (not 4008<=row["real_native_guest_frame"]<=4024 or
+            not 0<=row["native_beam_vcounter"]<=262 or
+            not 0<=row["native_beam_hcounter"]<=2000 or
+            not 0<=row["native_writer_source_enum"]<=255):
+            raise ValueError("native $2100 writer frame/beam/source tag invalid")
+        rows.append(row)
+    if not rows:
+        raise ValueError("no actual source-qualified native brightness port writes")
+    return {
+        "schema":"qa08-source-exact-native-2P-INIDISP-2100-write-beam/1",
+        "actual_bounded_native_2100_writes":len(rows),
+        "real_native_write_frames":sorted(set(x["real_native_guest_frame"] for x in rows)),
+        "actual_native_CPU_source_enum_zero_writes":sum(x["native_writer_source_enum"]==0 for x in rows),
+        "native_2100_actual_port_write_history":rows,
+        "CPU_DMA_HDMA_raster_replay_tags_remain_distinct":True,
+        "not_a_guest_cycle_or_video_registration_correction":True,
+        "release_gate_accepted":False,
+    }
+
 HDMA7_PRE=re.compile(
     r"^UR_QA08_WIN_HDMA7 frame=(\d+) phase=pre enable=(\d+) "
     r"terminated=(\d+) transfer=(\d+) aBank=([0-9a-f]{2}) "
@@ -215,6 +258,7 @@ def main()->None:
         "UR_QA08_WINDOWS_ORIGINAL_SOURCE_CASE":"twoplayer-fullroute",
         "UR_QA08_WINDOWS_PPU_STATE_TRACE":"1",
         "UR_QA08_WINDOWS_CGRAM_PORT_TRACE":"1",
+        "UR_QA08_WINDOWS_INIDISP_PORT_TRACE":"1",
         "UR_QA08_WINDOWS_HDMA_FIRSTLINE_TRACE":"1",
     }
     previous={k:os.environ.get(k) for k in env}
@@ -229,6 +273,7 @@ def main()->None:
     report=inspect(folder,log,crcs)
     report["read_only_native_PPU_registers"]=inspect_native_ppu_registers(log)
     report["read_only_native_CGRAM_port_writer_chronology"]=inspect_native_cgram_port_history(log)
+    report["read_only_native_INIDISP_2100_write_chronology"]=inspect_native_inidisp_port_history(log)
     report["read_only_native_HDMA7_firstline"]=inspect_native_channel7_firstline(log)
     report["actual_windows_PE_sha256"]=sha(a.exe.read_bytes())
     report["actual_two_pad_route_sha256"]=sha(a.script.read_bytes())

@@ -36,10 +36,43 @@ So the host-2902 handshake is still the closest margin: about 80 SPC cycles of t
 ## Approximation and remaining work
 
 - Every access of an opcode is placed on its last cycle. On hardware, read-modify-write and multi-operand forms read one or more cycles earlier. A per-access SMP model, bsnes-style, would remove the rest of the upload drift (−666 clocks) and of the host-2902 phase gap.
-- **Switcher** (+4703 vs +4704, first disagreement +4664) is unchanged by RF-016…026. It is the next witness to trace; earlier work attributes its two-frame-late race entry to a separate mechanism.
+- **Switcher** (+4703 vs +4704, first disagreement +4664) is unchanged by RF-016…026; it is traced as RF-027 below.
 - Stage order for QA-01:
   1. RF-015…019 tools;
   2. `baldosa_spc_power_on_patch.py --anchor 0`;
   3. `baldosa_spc_frame_clock_patch.py` (requires RF-016);
   4. `baldosa_spc_bus_cycle_patch.py`.
 - No campaign input exists yet: the dispatch form already has 10 inputs. None of these corrections is in the Windows bridge.
+
+## RF-027: Switcher's root step is a VBlank edge after the post-race loader
+
+On the RF-026 candidate, dense dumps of the Switcher replay (+4600…+4710) show the following:
+
+- **References agree.** Snes9x and bsnes are byte-identical in low WRAM at every frame.
+- **First difference.** Native's full 128 KiB WRAM, stack excluded, equals them through +4662. At +4663 (host 5742) only `$C6` (13 vs 14) and the `$0BDD/$0BDE/$0BFE/$0C68…` cursor counters differ.
+- **Re-convergence, then the terminal.** Everything re-converges at +4665, and the terminal follows one frame early at +4702.
+
+`$C6` is decremented at `80:FAE2`, right after the two-edge VBlank wait `80:FAC9`. That is the RF-015/RF-017 class of witness.
+
+PC-filtered traces (Snes9x per instruction, Baldosa block observer):
+
+| Point | Snes9x | native | native − Snes9x (master clocks) |
+| --- | --- | --- | --- |
+| Race fields, arrival at the frame wait `82:D4E9` (54 fields) | | | −62 … −306 per field (typically −160) |
+| Post-race SPC-reset loader exit (`82:809C`, host 5659) | V245 H1092 | V245 H988 | −104 |
+| Next reset `82:8082` (host 5669) | V87 H588 | V87 H112 | −476 |
+| Its exit `82:809C` | V124 H944 | V124 H410 | −534 |
+| Last reset `82:8082` (host 5670) | V211 H1350 | V211 H718 | −632 |
+| Its exit | V249 H324 | V248 H994 | −694 |
+| Arrival at `80:FAC9` (host 5741) | V224 H522 | V223 H1116 | **−770** |
+
+FAC9 → FACD takes 1,002 clocks on both engines. Native's first VBlank check therefore reads at V224 H754, before VBlank, passes, and leaves at V=225. The references read at V225 H160, inside VBlank, and wait a whole field.
+
+The 770 clocks build up in two stages:
+
+1. **Race fields.** Each race field ends ~160 clocks early on native, about 0.045% of the CPU-bound field. The NMI re-locks every field, so this does not accumulate during the race, but the last field's offset carries into the NMI-disabled loader.
+2. **Driver upload.** The upload between hosts 5659 and 5669 adds ~370 more. That is the same CPU/SPC handshake drift RF-026 reduced but did not remove.
+
+The SPC resets themselves match: the host-5659 driver tick comes 711 SPC cycles after the CPU's write on native, 684 on Snes9x.
+
+**Next experiment:** a per-field cost breakdown of one race field against bsnes, covering general-DMA sync (RF-020's probe: 12-clock sync is −64, Snes9x's 18 is +50), HDMA mid-field repricing (RF-019's walk prices tables once at V=0) and refresh placement. Then a per-access SMP model for the upload drift.

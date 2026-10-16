@@ -640,6 +640,27 @@
       "uncertainty": "All accesses of an opcode are placed on its last cycle; read-modify-write reads are one or more cycles early on hardware. Host-2902 margin ~80 SPC cycles of timer phase.",
       "resolving_experiment": "QA-01: hosted re-execution of the full RF-015..026 stage; optionally a per-access SMP model checked against bsnes to remove the residual upload drift.",
       "consequence": "With it, SPC-handshake witnesses match under the physically exact anchor; without it, they hinge on a free parameter."
+    },
+    {
+      "id": "RF-027",
+      "title": "Switcher Race B's one-frame-early terminal starts at a VBlank edge: native reaches the post-race 80:FAC9 wait 770 clocks early (race-field CPU residual carried into an NMI-disabled loader, widened by the driver upload handshake)",
+      "class": "original_native_discrepancy",
+      "status": "handed_off",
+      "evidence": "original_and_native",
+      "owner_lane": "qa01-gameplay",
+      "reproducer": {
+        "command": "RF-015..026 candidate (anchor 0); probe_original_event_complete.py --case switcher with --work-dir kept; dense WRAM dumps +4600..+4710 on Snes9x, bsnes and native; PC-filtered traces of 82:D4E9, 82:8082, 82:809C, 80:FAC9 over hosts 5600-5745",
+        "race_relative_lag": 0,
+        "case": "switcher"
+      },
+      "source_artifacts": [
+        "docs/RF026-SPC-BUS-CYCLE-20261016.md",
+        "analysis/data/rf026-spc-bus-cycle-20261016.json"
+      ],
+      "observation": "Snes9x == bsnes at every frame +4600..+4710. Native full WRAM (stack excluded) equal through +4662; at +4663 $C6 13 vs 14 and the cursor counters, equal again at +4665, terminal +4702 one frame early. Native reaches 80:FAC9 at host 5741 V223 H1116 vs V224 H522 (-770 clocks); FAC9->FACD is 1,002 clocks on both, so native's first VBlank check reads before V=225 and skips a field. Offsets: race-field arrivals at 82:D4E9 -62..-306 per field (typically -160); post-race loader exit host 5659 -104, reset 5669 -476/-534, reset 5670 -632/-694, FAC9 -770. SPC resets match (host-5659 driver tick 711 vs 684 SPC cycles).",
+      "uncertainty": "The race-field residual's components (general-DMA sync, HDMA mid-field repricing, refresh placement) are not separated; the upload drift is RF-026's remaining approximation.",
+      "resolving_experiment": "Per-field CPU cost breakdown of one Switcher race field against bsnes (DMA sync, HDMA, refresh), then a per-access SMP model; re-run the Switcher dense comparison.",
+      "consequence": "Last 1P witness where both references agree and the RF-015..026 candidate differs."
     }
   ]
 }

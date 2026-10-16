@@ -46,6 +46,98 @@
   }
  },
  "release_gate_credit": 0,
+ "rf027_switcher": {
+  "fac9_to_facd_master": {
+   "native": 1002,
+   "snes9x": 1002
+  },
+  "first_full_wram_difference": "+4663 (host 5742): $C6 13 vs 14, $0BDD/$0BDE/$0BFE/$0C68/$0C6C/$0C6E; equal again at +4665; terminal one frame early +4702",
+  "host_5659_driver_tick_after_ff": {
+   "native": 711,
+   "snes9x": 684
+  },
+  "loader_positions": [
+   [
+    "82:809C host 5659",
+    [
+     245,
+     1092
+    ],
+    [
+     245,
+     988
+    ],
+    -104
+   ],
+   [
+    "82:8082 host 5669",
+    [
+     87,
+     588
+    ],
+    [
+     87,
+     112
+    ],
+    -476
+   ],
+   [
+    "82:809C host 5669",
+    [
+     124,
+     944
+    ],
+    [
+     124,
+     410
+    ],
+    -534
+   ],
+   [
+    "82:8082 host 5670",
+    [
+     211,
+     1350
+    ],
+    [
+     211,
+     718
+    ],
+    -632
+   ],
+   [
+    "82:809C host 5670",
+    [
+     249,
+     324
+    ],
+    [
+     248,
+     994
+    ],
+    -694
+   ],
+   [
+    "80:FAC9 host 5741",
+    [
+     224,
+     522
+    ],
+    [
+     223,
+     1116
+    ],
+    -770
+   ]
+  ],
+  "race_wait_82D4E9_native_minus_snes9x_master": {
+   "fields": 54,
+   "max": -62,
+   "min": -306,
+   "typical": -160
+  },
+  "references_identical": "Snes9x == bsnes low WRAM every frame +4600..+4710"
+ },
  "schema": "ur-rf026-spc-bus-cycle/1",
  "stage_order": [
   "RF-015..019 tools",

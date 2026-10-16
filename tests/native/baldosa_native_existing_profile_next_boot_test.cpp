@@ -179,6 +179,96 @@ int main() {
         out.write(reinterpret_cast<const char*>(data.data()), data.size());
         assert(out.good());
     };
+    // Canonical multi-racer catalogs are legal, even though the current
+    // native P2-creation UI deliberately stops at two. A historical Modern
+    // roster may have 3+, and broken unrelated racers must not lock out an
+    // authenticated healthy destination. No alternate catalog format.
+    const auto register_third_profile = [&](const fs::path& dir) {
+        const auto third = make_legacy_racer_identity(2);
+        assert(third && valid_racer_identity(*third));
+        const fs::path catalog = dir / "profiles-v1.txt";
+        auto roster = load_host_profile_catalog_file(catalog.string());
+        assert(roster && roster->size() == 2);
+        const std::string id = make_profile_id(third->name, *roster);
+        assert(!id.empty() && is_safe_profile_storage_id(id));
+        const auto location = resolve_host_profile_save_root(
+            ExecutionMode::Modern, id);
+        assert(location.isolated());
+        const fs::path directory = dir / location.save_root;
+        assert(fs::create_directory(directory));
+        auto profile = make_default_host_profile_state(id);
+        assert(profile);
+        profile->racer_identity = *third;
+        auto raw = clean_stock_sram();
+        raw[0x0748] = third->rider_index;
+        assert(capture_stock_sram_for_profile(
+            ExecutionMode::Modern, *profile, raw.data(), raw.size()) ==
+            HostProfileTransferStatus::Applied);
+        assert(save_host_profile_state_file_if_current(
+            ExecutionMode::Modern,
+            (directory / "host-profile.txt").string(),
+            std::nullopt, *profile) == HostProfileSaveStatus::Saved);
+        write_bytes(directory / "save.srm", raw);
+        roster->push_back({id, *third});
+        assert(save_host_profile_catalog_file(catalog.string(), *roster));
+        return id;
+    };
+    {
+        const auto dir = intent_fixture("three-entry-roster-unrelated-broken");
+        const auto id = register_third_profile(dir);
+        const auto third_typed =
+            dir / "saves" / ("profile-" + id) / "host-profile.txt";
+        const auto third_raw =
+            dir / "saves" / ("profile-" + id) / "save.srm";
+        const std::string unrelated_raw = bytes(third_raw);
+        fs::remove(third_typed); // unrelated and genuinely damaged
+        const auto roster_before = bytes(dir / "profiles-v1.txt");
+        const auto andrew_raw = bytes(dir / "saves/profile-andrew/save.srm");
+        const auto andrew_typed =
+            bytes(dir / "saves/profile-andrew/host-profile.txt");
+        assert(select_baldosa_existing_profile_for_next_boot(
+            dir, "mike", "andrew").selected());
+        assert(select_baldosa_existing_profile_for_next_boot(
+            dir, "andrew", "mike").selected());
+        assert(!select_baldosa_existing_profile_for_next_boot(
+            dir, "mike", id).selected()); // chosen destination is broken
+        const fs::path mike_raw = dir / "saves/profile-mike/save.srm";
+        auto damaged = bytes(mike_raw);
+        assert(damaged.size() == kStockSramBytes);
+        damaged[0x0748] ^= 0x31;
+        { std::ofstream out(mike_raw, std::ios::binary | std::ios::trunc);
+          out.write(damaged.data(), damaged.size());
+          assert(out.good()); }
+        const auto mike_typed = bytes(
+            dir / "saves/profile-mike/host-profile.txt");
+        assert(select_baldosa_healthy_profile_from_damaged_for_next_boot(
+            dir, "mike", "andrew").selected());
+        assert(bytes(mike_raw) == damaged);
+        assert(bytes(dir / "saves/profile-mike/host-profile.txt") == mike_typed);
+        assert(bytes(dir / "profiles-v1.txt") == roster_before);
+        assert(bytes(third_raw) == unrelated_raw && !fs::exists(third_typed));
+        assert(bytes(dir / "saves/profile-andrew/save.srm") == andrew_raw);
+        assert(bytes(dir / "saves/profile-andrew/host-profile.txt") ==
+               andrew_typed);
+        assert(load_host_product_state_file(
+            (dir / "host-state-v1.txt").string()).state->active_profile_id ==
+            "andrew");
+    }
+    {
+        const auto dir = intent_fixture("three-entry-roster-healthy-third");
+        const auto third = register_third_profile(dir);
+        const auto original_third_raw =
+            bytes(dir / "saves" / ("profile-" + third) / "save.srm");
+        const auto original_roster = bytes(dir / "profiles-v1.txt");
+        fs::remove(dir / "saves/profile-mike/host-profile.txt");
+        // Previously the hardcoded two-entry condition rejected this.
+        assert(select_baldosa_healthy_profile_from_damaged_for_next_boot(
+            dir, "mike", third).selected());
+        assert(bytes(dir / "profiles-v1.txt") == original_roster);
+        assert(bytes(dir / "saves" / ("profile-" + third) / "save.srm") ==
+               original_third_raw);
+        assert(!fs::exists(dir / "saves/profile-mike/host-profile.txt"));
+    }
     const auto stage_intent = [&](const fs::path& dir,
                                   const HostProductState& global,
                                   const HostProfileState& profile,

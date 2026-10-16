@@ -37,11 +37,35 @@ struct BaldosaExistingProfileSelectionResult {
     }
 };
 
+// Emergency selector admission: a crashed currently selected source may
+// have missing/corrupt typed or raw bytes. Never read them as authoritative,
+// but refuse redirected paths and require canonical real directories. The
+// destination is independently validated using the full ordinary policy.
+inline bool baldosa_native_damaged_source_paths_are_safe(
+    const std::filesystem::path& root,
+    const std::filesystem::path& save_root) {
+    namespace fs = std::filesystem;
+    if (!baldosa_native_real_directory(root / "saves") ||
+        !baldosa_native_real_directory(root / save_root))
+        return false;
+    for (const auto* name : {"host-profile.txt", "save.srm"}) {
+        std::error_code ec;
+        const auto st = fs::symlink_status(root / save_root / name, ec);
+        if (st.type() == fs::file_type::not_found &&
+            (!ec || ec == std::errc::no_such_file_or_directory))
+            continue;
+        if (ec || !fs::is_regular_file(st) || fs::is_symlink(st))
+            return false;
+    }
+    return true;
+}
+
 inline BaldosaExistingProfileSelectionResult
 select_baldosa_existing_profile_for_next_boot(
     const std::filesystem::path& user_root,
     std::string_view expected_active_profile,
-    std::string_view requested_profile) {
+    std::string_view requested_profile,
+    bool allow_damaged_current = false) {
     namespace fs = std::filesystem;
     using Status = BaldosaExistingProfileSelectionStatus;
 
@@ -91,8 +115,12 @@ select_baldosa_existing_profile_for_next_boot(
         const auto location = resolve_host_profile_save_root(
             ExecutionMode::Modern, entry.profile_id);
         if (!location.isolated() ||
-            !baldosa_native_selected_profile_paths_are_real(
-                user_root, location.save_root))
+            !(allow_damaged_current &&
+              entry.profile_id == expected_active_profile
+                  ? baldosa_native_damaged_source_paths_are_safe(
+                        user_root, location.save_root)
+                  : baldosa_native_selected_profile_paths_are_real(
+                        user_root, location.save_root)))
             return {Status::RejectedAuthority, {}};
         typed_paths.push_back(
             user_root / location.save_root / "host-profile.txt");
@@ -129,9 +157,17 @@ select_baldosa_existing_profile_for_next_boot(
         const auto location = resolve_host_profile_save_root(
             ExecutionMode::Modern, entry.profile_id);
         if (!location.isolated() ||
-            !baldosa_native_selected_profile_paths_are_real(
-                user_root, location.save_root))
+            !(allow_damaged_current &&
+              entry.profile_id == expected_active_profile
+                  ? baldosa_native_damaged_source_paths_are_safe(
+                        user_root, location.save_root)
+                  : baldosa_native_selected_profile_paths_are_real(
+                        user_root, location.save_root)))
             return {Status::RejectedAuthority, {}};
+        // No bytes from the crashed source authorize destination activation.
+        if (allow_damaged_current &&
+            entry.profile_id == expected_active_profile)
+            continue;
         const auto profile = load_host_profile_state_file(
             ExecutionMode::Modern,
             (user_root / location.save_root / "host-profile.txt").string(),
@@ -156,6 +192,19 @@ select_baldosa_existing_profile_for_next_boot(
         HostProductSaveStatus::Saved)
         return {Status::BusyOrIoError, {}};
     return {Status::SelectedForNextBoot, std::string(requested_profile)};
+}
+
+// Explicit emergency action, never used by ordinary controller selection.
+// Requires a separately confirmed target ID and leaves both snapshots of
+// the crashed current racer untouched, even if its typed sidecar is missing.
+// Caller must restart the native process before playing the new selection.
+inline BaldosaExistingProfileSelectionResult
+select_baldosa_healthy_profile_from_damaged_for_next_boot(
+    const std::filesystem::path& user_root,
+    std::string_view expected_active_profile,
+    std::string_view requested_profile) {
+    return select_baldosa_existing_profile_for_next_boot(
+        user_root, expected_active_profile, requested_profile, true);
 }
 
 }  // namespace ur::product

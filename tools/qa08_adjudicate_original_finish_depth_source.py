@@ -91,12 +91,6 @@ def check_archives(original_zip:Path,original_probe_zip:Path,
         p=json.loads(probe.read("new-original-2p-manifest.json"))
         a=json.loads(probe.read("original-finish-source-layers.json"))
         n=json.loads(native.read("full-add-verdict.json"))
-        if (o["schema"]!="qa08-original-pinned-snes9x-authentic-2p-fullroute-raster/1"
-            or p["schema"]!=o["schema"] or
-            o["capture_selection"]!=p["capture_selection"]!=[1279,5471,16]):
-            # Comparisons are deliberately repeated below, not chained as an
-            # excuse to discard inconsistent generated manifests.
-            pass
         if (o.get("schema")!="qa08-original-pinned-snes9x-authentic-2p-fullroute-raster/1"
             or p.get("schema")!=o["schema"]
             or o.get("capture_selection")!=[1279,5471,16]

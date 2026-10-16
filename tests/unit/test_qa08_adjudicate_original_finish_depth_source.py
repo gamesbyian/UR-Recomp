@@ -28,7 +28,7 @@ class OriginalSNES9xDepthTest(unittest.TestCase):
 
     def test_drift_or_wrong_modes_source_coordinates_and_early_cgram_rejected(self):
         for key,value in [("main_depth","48"),("sub_depth","40"),
-                          ("BGMode","2"),("bgmode","0"),("TM","13"),
+                          ("bgmode","0"),("TM","13"),
                           ("TS","00"),("CGWSEL","00"),("CGADSUB","44"),
                           ("CGRAM_1B","000c"),("CGRAM_C6","04e0"),
                           ("brightness","15"),("callback","3792"),

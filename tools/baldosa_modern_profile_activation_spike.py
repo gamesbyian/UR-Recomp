@@ -51,8 +51,8 @@ def patch_main(source: str) -> str:
         "extern int ur_baldosa_modern_root_draw_frame(\n"
         "    uint8_t*, size_t, const uint8_t*, int, int, double);\n"
         "static void ur_baldosa_modern_profile_after_config(void) {\n"
-        // One-shot CLI recovery runs in same original Windows game binary,
-        // before any SRAM read or simulation; no second frontend binary.
+        # One-shot recovery runs in the original Windows game binary,
+        # before any guest SRAM read or simulation, with no second frontend.
         "    int recovery_code = ur_baldosa_modern_run_recovery_command();\n"
         "    if (recovery_code) exit(recovery_code);\n"
         "    if (!ur_baldosa_modern_try_activate_profile()) {\n"

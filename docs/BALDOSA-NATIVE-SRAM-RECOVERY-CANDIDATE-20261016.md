@@ -64,8 +64,12 @@ Archive files contain a read-only exact old/new typed receipt under the
    can switch to a fully validated registered alternate while preserving
    the damaged current racer's bytes. It holds the same selector/catalog
    and sorted pair of typed locks and changes **only** the canonical next-boot
-   selector. No implicit profile choice or live guest hot-swap. The
-   same pinned Windows executable exposes an explicit one-shot recovery
+   selector. The canonical catalog may contain **three or more** profiles:
+   only the explicitly selected source and destination typed/raw files are
+   examined and locked (in sorted OS-path order), while the entire catalog
+   is canonical-decoded and held under its original exclusive lock. Broken
+   unrelated profiles never strand a healthy destination. No implicit
+   profile choice or live guest hot-swap. The same pinned Windows executable exposes an explicit one-shot recovery
    command before its first guest frame, and the existing double-click CMD
    launcher prompts R/T/S/Q only after a native exit 7. Controller-accessible
    in-game recovery is still unavailable because the normal rejected guest
@@ -108,7 +112,8 @@ Recovery is available via the existing executable's
 environment action (`raw`, `typed` or `healthy`, plus an exact target ID
 for the last choice). The packaged `run-baldosa-modern.cmd` clears all
 inherited recovery action variables, then after a genuine exit 7 and only
-for an **interactive, no-argument launch** offers R/T/S/Q. R or T or S
+for an **interactive, no-argument launch** offers R/T/S/Q. S shows the canonical catalog (profile ID is the first
+column) so the user need not guess a different registered racer. R or T or S
 invokes that SAME game binary once, expects exit 89 before guest simulation,
 clears recovery variables, and only then restarts. Q returns exit 7 without
 any file writes. Scripted/CI launch remains non-interactive and fail closed.
@@ -170,7 +175,11 @@ reinterpreted as success after this change.
 hash, frame-1952 paused original guest proof, a successful real
 `RtlWriteSram` before `_Exit(86)`, old/new raw+typed+selector+catalog
 SHA-256, new intent receipt, cold-boot source SRAM, no duplicate records,
-second healthy profile and separate damaged-source selector witness.
+second healthy profile (including 3+ profiles and an unrelated damaged
+third) and separate damaged-source selector witness. The newer producer also
+packages a bounded flat `qa02-journaled-snapshot.zip` with the exact
+intent-aware hash receipt expected by the separately QA-owned read-only
+verifier; product CI does not confer independent QA admission.
 Independently exercise real Win32 ACL/partial-I/O cuts, restart repetition,
 and old-version stores before closing #1214 or advancing the release ledger.
 The nominated prior Windows ZIP remains immutable and unmodified.

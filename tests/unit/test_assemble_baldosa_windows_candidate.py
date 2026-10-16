@@ -162,6 +162,8 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
         self.assertIn('UR_BALDOSA_RECOVERY_ACTION=raw', script)
         self.assertIn('UR_BALDOSA_RECOVERY_ACTION=typed', script)
         self.assertIn('UR_BALDOSA_RECOVERY_ACTION=healthy', script)
+        self.assertIn('type "%UR_RECOMP_USER_DATA_ROOT%\\profiles-v1.txt"', script)
+        self.assertIn('Only the named target is validated', script)
         self.assertIn('if not "%~1"=="" (call :UR-BALDOSA-HOLD & exit /b 7)', script)
         self.assertIn('if defined UR_BALDOSA_NO_HOLD exit /b 7', script)
         self.assertIn('if not "%ERRORLEVEL%"=="89"', script)

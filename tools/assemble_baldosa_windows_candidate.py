@@ -149,7 +149,10 @@ def launcher() -> bytes:
         ':UR-BALDOSA-RECOVERY-HEALTHY',
         'set "UR_BALDOSA_RECOVERY_ACTION=healthy"',
         'echo Enter the registered PROFILE ID of the healthy alternate racer.',
-        'echo The damaged profile will not be modified.',
+        'echo First field in each canonical catalog row is the profile ID:',
+        'if exist "%UR_RECOMP_USER_DATA_ROOT%\\profiles-v1.txt" type "%UR_RECOMP_USER_DATA_ROOT%\\profiles-v1.txt"',
+        'echo Only the named target is validated; unrelated broken profiles are untouched.',
+        'echo The damaged currently selected profile will not be modified.',
         'set /p "UR_BALDOSA_RECOVERY_PROFILE_ID=Healthy registered profile ID: "',
         'goto UR-BALDOSA-RECOVERY-EXECUTE',
         ':UR-BALDOSA-RECOVERY-EXECUTE',
@@ -235,8 +238,9 @@ def readme(revision: str) -> bytes:
         "T restores the last committed typed SRAM after archiving raw bytes\n"
         "and an exact pending intent where present. Both choices preserve\n"
         "forensic old/new evidence and require valid existing authority.\n"
-        "S lets you enter a separate registered healthy profile ID, changing\n"
-        "only the next-boot selector and preserving the damaged profile.\n"
+        "S displays the canonical roster and lets you enter a registered\n"
+        "healthy profile ID, changing only the next-boot selector while\n"
+        "preserving damaged and unrelated racers, including 3+ catalogs.\n"
         "Malformed/missing typed sidecars are never silently re-created.\n"
         "Recovery uses a fresh invocation of the original native game exe.\n"
         "Automated or command-line launcher runs retain fail-closed exit 7.\n\n"

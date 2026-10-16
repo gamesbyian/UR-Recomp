@@ -24,10 +24,10 @@ static void ur_qa01_rf032_port(Apu* apu, const char* kind,
       apu->portClock < 103322420ull || apu->portClock > 103323100ull) return;
   if (count++ < 2000) {
     fprintf(stderr,
-      "QA01RF032 kind=%s age=%llu guest=%llu target=%llu port=%u value=%02X in=%02X out=%02X pc=%04X qhead=%u qtail=%u guestanchor=%llu targetanchor=%llu\n",
+      "QA01RF032 kind=%s age=%llu guest=%llu target=%llu port=%u value=%02X raw=%02X in=%02X out=%02X pc=%04X qhead=%u qtail=%u guestanchor=%llu targetanchor=%llu\n",
       kind, (unsigned long long)apu->portClock,
       (unsigned long long)guest, (unsigned long long)target,
-      (unsigned)port, (unsigned)value,
+      (unsigned)port, (unsigned)value, (unsigned)apu->outPorts[0],
       (unsigned)apu->inPorts[0], (unsigned)apu->outPorts[0],
       (unsigned)apu->spc->pc,
       (unsigned)apu->portQHead, (unsigned)apu->portQTail,

@@ -4,12 +4,8 @@ name: QA-08 source VRAM/OAM medal tile-index discriminator
 # members, so ONLY the bounded JSON counterfactual is retained. NEVER include
 # the downloaded inputs in the output artifact; no emulator/build/ROM export.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - ".github/workflows/qa08-medal-original-vram-native-oam.yml"
-      - "tools/qa08_medal_original_vram_native_oam_counterfactual.py"
-      - "tests/unit/test_qa08_medal_original_vram_native_oam_counterfactual.py"
+  # Last exact 3-archive rerun passed and retains source+derived receipts for
+  # 90 days. Further archive evidence runs must be explicitly dispatched.
   workflow_dispatch:
 permissions:
   contents: read

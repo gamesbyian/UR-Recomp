@@ -1529,17 +1529,16 @@ def run_native_pause_quit(
 def run_native_crash_between_raw_and_typed(
     exe: Path, rom: Path, script: Path, root: Path,
     fixture: Path, seed: Path, *, video: str, timeout: int,
-    snapshot_dir: Path | None = None,
+    snapshot_dir: Path | None = None, journaled: bool = False,
 ) -> dict[str, object]:
-    """Real paused-SDL Quit dies after upstream raw write, before typed CAS.
+    """Real paused guest, original SRAM writer, exact post-raw _Exit(86).
 
-    This is an explicitly destructive test of a NEW isolated named-profile
-    fixture, never of an existing personal save. The only fault injection is
-    an opt-in _Exit(86) *after* the pinned RtlWriteSram returns success. It
-    proves the last good typed snapshot survives and any raw mismatch fails
-    the next real native process closed. It does NOT repair the crash window.
+    Historical unjournaled negative remains reproducible in an isolated
+    fixture. The new journaled case must resume the exact staged guest
+    bytes in a SECOND genuine native Win32 process without inventing runs.
     """
-    output = root / "native_post_raw_pre_typed_crash"
+    output = root / ("native_intent_restart_recovery" if journaled
+                     else "native_post_raw_pre_typed_crash")
     output.mkdir(parents=True, exist_ok=False)
     user_root = output / "Crash QA Named Racer With Spaces"
     user_root.mkdir()
@@ -1581,6 +1580,7 @@ def run_native_crash_between_raw_and_typed(
         "UR_BALDOSA_DELAYED_RESTART_SMOKE": "0",
         "UR_BALDOSA_RESTART_SAME_FRAME_SMOKE": "0",
         "UR_BALDOSA_QA_CRASH_AFTER_NATIVE_SRAM_WRITE": "1",
+        "UR_BALDOSA_QA_LEGACY_UNJOURNALED_CRASH": "0" if journaled else "1",
         "SDL_VIDEODRIVER": video,
         "SDL_AUDIODRIVER": "dummy",
     })
@@ -1620,9 +1620,9 @@ def run_native_crash_between_raw_and_typed(
     if (user_root / "saves/save.srm").exists() or list(user_root.rglob("*.urrun")):
         raise ValueError("Fault injected guest created an unrelated save or result")
 
-    # New native process, no script simulation accepted: after_config must
-    # reject before the first RtlRunFrame. Preserve the mismatched raw evidence
-    # for an explicit future recovery decision, never silently auto-repair.
+    # A new source-backed process either rejects an unjournaled mismatch
+    # before frame one or replays ONLY the validated pre-write intent.
+    crash_state = {p: p.read_bytes() for p in (raw, typed, selector, roster)}
     retry = output / "fresh_launch"
     retry.mkdir()
     short = retry / "no_guest.txt"
@@ -1636,25 +1636,52 @@ def run_native_crash_between_raw_and_typed(
         text=True, errors="replace", timeout=timeout,
     )
     fresh_log = fresh.stdout + "\n" + fresh.stderr
-    (output / "fresh-rejection.log").write_text(
-        fresh_log, encoding="utf-8")
-    if (fresh.returncode != 7 or
-        fresh_log.count(
-            "UR_BALDOSA_NATIVE_PROFILE REJECTED reason="
-            "selected_profile_sram_not_initialized") != 1 or
-        "UR-STARTUP-SAVE-ROOT: selected Modern profile rejected" not in fresh_log or
-        "UR-BALDOSA-SAVE-MISMATCH: Named racer SRAM differs from " not in fresh_log or
-        "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in fresh_log):
-        raise ValueError(
-            "Fresh native process did not reject divergent SRAM before "
-            f"guest boot: rc={fresh.returncode} tail={fresh_log[-1600:]}")
-    for path in (typed, selector, roster):
-        if path.read_bytes() != before[path]:
-            raise ValueError("Rejected retry modified committed Modern metadata")
-    if raw.read_bytes() != after_raw:
-        raise ValueError("Failed fresh boot silently repaired/overwrote raw evidence")
+    (output / ("fresh-recovery.log" if journaled else "fresh-rejection.log")
+     ).write_text(fresh_log, encoding="utf-8")
+    if journaled:
+        if (fresh.returncode != 0 or
+            fresh_log.count(
+                "UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED "
+                "exact_staged_guest_sram=1 no_records=1") != 1 or
+            "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" not in fresh_log or
+            "UR_BALDOSA_NATIVE_PROFILE REJECTED" in fresh_log):
+            raise ValueError(
+                "Fresh native guest did not reconcile the exact durable intent: "
+                f"rc={fresh.returncode} tail={fresh_log[-1600:]}")
+        verify_named_profile_boot_bytes(fresh_log, after_raw)
+        confirmed = subprocess.run(
+            [str(fixture), str(user_root), "native-ci-rider",
+             "--verify-native-save"],
+            capture_output=True, text=True, timeout=timeout)
+        if confirmed.returncode:
+            raise ValueError(
+                "Fresh process did not leave canonical typed/raw SRAM equal: "
+                f"rc={confirmed.returncode} {confirmed.stdout} {confirmed.stderr}")
+        if typed.read_bytes() == before[typed]:
+            raise ValueError("Journal replay never committed changed guest bytes")
+        receipts = list(profile.glob("native-sram-recovered-*.txt"))
+        if len(receipts) != 1 or receipts[0].stat().st_size < 8192:
+            raise ValueError("No single retained old/new recovery receipt")
+        if selector.read_bytes() != before[selector] or roster.read_bytes() != before[roster]:
+            raise ValueError("Intent replay changed a canonical selector or catalog")
+    else:
+        if (fresh.returncode != 7 or
+            fresh_log.count(
+                "UR_BALDOSA_NATIVE_PROFILE REJECTED reason="
+                "selected_profile_sram_not_initialized") != 1 or
+            "UR-STARTUP-SAVE-ROOT: selected Modern profile rejected" not in fresh_log or
+            "UR-BALDOSA-SAVE-MISMATCH: Named racer SRAM differs from " not in fresh_log or
+            "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in fresh_log):
+            raise ValueError(
+                "Fresh native process did not reject *unjournaled* divergence: "
+                f"rc={fresh.returncode} tail={fresh_log[-1600:]}")
+        for path in (typed, selector, roster):
+            if path.read_bytes() != before[path]:
+                raise ValueError("Rejected retry modified committed Modern metadata")
+        if raw.read_bytes() != after_raw:
+            raise ValueError("Unjournaled retry silently overwrote changed raw save")
     if (user_root / "saves/save.srm").exists() or list(user_root.rglob("*.urrun")):
-        raise ValueError("Failed fresh boot invented an anonymous save or Records")
+        raise ValueError("Fresh guest invented anonymous save or Records")
 
     # Optional independent QA capture of ONLY these disposable fixture files.
     # The original test did not archive the raw/typed 8192-byte crash boundary,
@@ -1674,25 +1701,37 @@ def run_native_crash_between_raw_and_typed(
         }
         file_receipt = {}
         for label, path in labels.items():
-            previous, current = before[path], path.read_bytes()
+            previous, crashed_bytes, current = (
+                before[path], crash_state[path], path.read_bytes())
             (snapshot_dir / f"{label}.before.bin").write_bytes(previous)
+            (snapshot_dir / f"{label}.crash.bin").write_bytes(crashed_bytes)
             (snapshot_dir / f"{label}.after.bin").write_bytes(current)
             file_receipt[label] = {
                 "before_sha256": hashlib.sha256(previous).hexdigest(),
+                "crash_sha256": hashlib.sha256(crashed_bytes).hexdigest(),
                 "after_sha256": hashlib.sha256(current).hexdigest(),
                 "before_bytes": len(previous),
+                "crash_bytes": len(crashed_bytes),
                 "after_bytes": len(current),
+                "crash_changed_byte_count": sum(a != b for a, b in zip(previous, crashed_bytes))
+                    + abs(len(previous) - len(crashed_bytes)),
                 "changed_byte_count": sum(a != b for a, b in zip(previous, current))
-                                      + abs(len(previous) - len(current)),
+                    + abs(len(previous) - len(current)),
             }
         if (file_receipt["raw-sram"]["before_bytes"] != 8192 or
-            file_receipt["raw-sram"]["after_bytes"] != 8192 or
-            file_receipt["raw-sram"]["changed_byte_count"] == 0 or
-            any(file_receipt[label]["changed_byte_count"] for label in
+            file_receipt["raw-sram"]["crash_bytes"] != 8192 or
+            file_receipt["raw-sram"]["crash_changed_byte_count"] == 0 or
+            any(file_receipt[label]["crash_changed_byte_count"] for label in
                 ("typed-profile", "selector", "roster"))):
-            raise ValueError("Crash-seam archived bytes violate the actual P0 cut")
+            raise ValueError("Actual crash-seam bytes violate the P0 raw/typed cut")
+        if journaled and (
+            file_receipt["typed-profile"]["changed_byte_count"] == 0 or
+            any(file_receipt[label]["changed_byte_count"] for label in
+                ("selector", "roster"))):
+            raise ValueError("Journal replay did not isolate typed update")
         (snapshot_dir / "crash.log").write_text(log, encoding="utf-8")
-        (snapshot_dir / "cold-refusal.log").write_text(fresh_log, encoding="utf-8")
+        (snapshot_dir / ("cold-recovery.log" if journaled else "cold-refusal.log")
+         ).write_text(fresh_log, encoding="utf-8")
         (snapshot_dir / "file-receipt.json").write_text(
             json.dumps(file_receipt, indent=2, sort_keys=True) + "\n",
             encoding="utf-8")
@@ -1703,8 +1742,9 @@ def run_native_crash_between_raw_and_typed(
         "forced_process_exit_code": 86,
         "typed_profile_and_roster_unchanged": True,
         "raw_and_typed_sram_divergence_reproduced": True,
-        "fresh_process_rejected_before_guest": True,
-        "no_implicit_recovery_or_fake_result": True,
+        "fresh_process_rejected_before_guest": not journaled,
+        "validated_intent_reconciled_on_fresh_guest": journaled,
+        "no_implicit_recovery_or_fake_result": not journaled,
         "cross_file_crash_atomicity_proven": False,
     }
 
@@ -1777,6 +1817,9 @@ def main() -> int:
     post_raw_crash_proof = run_native_crash_between_raw_and_typed(
         exe, rom, script, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)
+    journal_recovery_proof = run_native_crash_between_raw_and_typed(
+        exe, rom, script, root, fixture, sram_seed,
+        video=args.video, timeout=args.timeout, journaled=True)
     two_profiles_proof = run_second_named_profile_isolation(
         exe, rom, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)
@@ -1800,6 +1843,7 @@ def main() -> int:
         "modern_root_source_menu_reentry": reentry_proof,
         "native_modern_paused_quit": pause_quit_proof,
         "native_post_raw_pre_typed_crash": post_raw_crash_proof,
+        "native_journaled_post_raw_recovery": journal_recovery_proof,
         "native_paused_quit_selector_conflict": conflict_proof,
         "modern_root_race_entry_p1": race_p1_proof,
         "modern_root_race_entry_p2": race_p2_proof,

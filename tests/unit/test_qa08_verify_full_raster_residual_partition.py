@@ -25,6 +25,19 @@ class SourcePartitionByteTest(unittest.TestCase):
         self.assertEqual(value["nongray_mask"],b"\x01\x00\x00\x00")
         self.assertEqual(value["swatches"][0],([90,74,82],[90,66,74],1))
 
+    def test_same_source_RGB5_two_wrong_destinations_rejects_single_LUT(self):
+        # Identical original RGB5 source at three pixels: two wrong outputs
+        # and a third source-exact. A global colour transform cannot fit.
+        source=bytes((82,74,90,0))*3+bytes((0,0,0,0))
+        native=(bytes((90,66,74,255))+bytes((82,57,66,255))+
+                bytes((90,74,82,255))+bytes((0,0,0,255)))
+        result=qa.compare(source,native,width=2,height=2)
+        self.assertEqual(result["wrong"],2)
+        self.assertEqual(result["wrong_reference_RGB5_with_multiple_destinations"],1)
+        self.assertEqual(result["wrong_pixels_requiring_nonfunctional_RGB5_mapping"],2)
+        self.assertEqual(result["wrong_pixels_reference_RGB5_unchanged_elsewhere"],2)
+        self.assertEqual(result["max_distinct_wrong_destinations_per_source_RGB5"],2)
+
     def test_green6_to5_roundtrip_not_false_pixel_error(self):
         value=qa.compare(bytes((24,132,148,0)),
                          bytes((148,132,24,255)),width=1,height=1)
@@ -58,6 +71,13 @@ class SourcePartitionByteTest(unittest.TestCase):
                          [4176,4512,4848,5184])
         self.assertEqual(d["twoplayer"]["non_gray_medal_mask_SHA256"],
                          "8b83bed21e2ff70ca279f993f4256e1edd64ad8f1edb657ee87554527e0594be")
+        hyp=d["palette_only_hypothesis"]
+        self.assertTrue(hyp["result_medal_21_frames_single_RGB5_LUT_impossible"])
+        self.assertEqual(hyp["inconsistent_wrong_pixels_per_medal_frame_distribution"],
+                         {"290":5,"294":16})
+        self.assertEqual(hyp["each_medal_frame_wrong_pixels_same_colour_unchanged_elsewhere"],267)
+        self.assertFalse(hyp["global_palette_recolouring_admitted"])
+        self.assertFalse(hyp["per_sprite_index_or_priority_or_math_cause_adjudicated"])
         for key in ("source_accepted_as_full_CPU_APU_camera_frame_phase",
                     "effective_final_pixel_OBJ_window_and_colour_math_ownership_proven",
                     "released_or_HDriver_art_likeness_approved"):

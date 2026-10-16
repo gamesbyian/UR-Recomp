@@ -7,7 +7,7 @@ No crop, pixel mask, temporal search, colour substitution or release pass.
 """
 from __future__ import annotations
 import argparse
-from collections import Counter
+from collections import Counter, defaultdict
 import hashlib
 import json
 from pathlib import Path
@@ -56,13 +56,19 @@ def compare(original:bytes,native:bytes,width:int=W,height:int=H)->dict:
     left,top,right,bottom=width,height,-1,-1
     wrong=gray=0
     colors=Counter()
+    wrong_destinations=defaultdict(set)
+    wrong_src_counts=Counter()
+    unchanged_src_colors=set()
     for p in range(n):
         i=p*4
         green5=original[i+1]>>3
         src=(original[i+2],(green5<<3)|(green5>>2),original[i])
         dst=tuple(native[i:i+3])
         if src==dst:
+            unchanged_src_colors.add(src)
             continue
+        wrong_destinations[src].add(dst)
+        wrong_src_counts[src]+=1
         mask[p]=1
         wrong+=1
         if (src[0] in GREYS and dst[0] in GREYS
@@ -74,7 +80,13 @@ def compare(original:bytes,native:bytes,width:int=W,height:int=H)->dict:
         left,top=min(left,x),min(top,y)
         right,bottom=max(right,x),max(bottom,y)
         colors[(src,dst)]+=1
+    nonsingleton={src for src,dests in wrong_destinations.items() if len(dests)>1}
     return {"wrong":wrong,"gray":gray,"nongray":wrong-gray,
+            "wrong_reference_RGB5_with_multiple_destinations":len(nonsingleton),
+            "wrong_pixels_requiring_nonfunctional_RGB5_mapping":sum(wrong_src_counts[src] for src in nonsingleton),
+            "wrong_pixels_reference_RGB5_unchanged_elsewhere":sum(wrong_src_counts[src] for src in wrong_src_counts if src in unchanged_src_colors),
+            "distinct_wrong_reference_RGB5":len(wrong_destinations),
+            "max_distinct_wrong_destinations_per_source_RGB5":max((len(v) for v in wrong_destinations.values()),default=0),
             "bounds":[left,top,right,bottom] if wrong else None,
             "mask":bytes(mask),"nongray_mask":bytes(nongray),
             "swatches":[(list(a),list(b),n) for (a,b),n in colors.most_common(6)]}
@@ -147,6 +159,24 @@ def partition(one:dict,two:dict)->dict:
         check(two[f]["mask"],mask,f"medal shape {f}")
     for f in four:
         check(two[f]["nongray_mask"],mask,f"gray medal shape {f}")
+    # A single-valued frame-wide RGB5->RGB5 LUT cannot map one RGB5 input
+    # to multiple wrong outputs. This does not determine whether genuine
+    # per-sprite palette indices, object priority or colour math differ.
+    for case,frame,expected in ((one,1280,233),(two,1280,196)):
+        check(case[frame]["wrong_reference_RGB5_with_multiple_destinations"],0,
+              f"early cursor single-valued swatches {frame}")
+        check(case[frame]["wrong_pixels_reference_RGB5_unchanged_elsewhere"],
+              expected,f"global RGB5 remap counterexample {frame}")
+    ambiguity=Counter(two[f]["wrong_pixels_requiring_nonfunctional_RGB5_mapping"]
+                      for f in MEDALS)
+    check(dict(ambiguity),{290:5,294:16},"medal single RGB5 LUT falsification")
+    for f in MEDALS:
+        check(two[f]["wrong_reference_RGB5_with_multiple_destinations"],28,
+              f"medal RGB5 input/output ambiguity {f}")
+        check(two[f]["wrong_pixels_reference_RGB5_unchanged_elsewhere"],267,
+              f"medal source-colour unchanged elsewhere {f}")
+        check(two[f]["max_distinct_wrong_destinations_per_source_RGB5"],8,
+              f"medal maximum destinations {f}")
     check(two[MEDALS[0]]["bounds"],[202,91,227,153],"2P medal box")
     assigned2=set(TWO_OPEN+TWO_FINISH+GREY_FRAMES+MEDALS+(4016,))
     check(total(two,(f for f in two if f not in assigned2)),0,"unexplained 2P frames")
@@ -165,6 +195,19 @@ def partition(one:dict,two:dict)->dict:
                    "non_gray_medal_mask_SHA256":sha(mask),
                    "gray_frames_with_same_296_pixel_medal_mask":four,
                    "21_distinct_results_frames_with_same_mask":list(MEDALS)},
+      "palette_only_hypothesis":{
+          "opening_oneplayer_guest1280":{"single_valued_wrong_RGB5_map":True,
+                                      "wrong_pixels_original_colour_unchanged_elsewhere":233},
+          "opening_twoplayer_guest1280":{"single_valued_wrong_RGB5_map":True,
+                                      "wrong_pixels_original_colour_unchanged_elsewhere":196},
+          "result_medal_21_frames_single_RGB5_LUT_impossible":True,
+          "inconsistent_wrong_pixels_per_medal_frame_distribution":{"290":5,"294":16},
+          "each_medal_frame_wrong_pixels":296,
+          "each_medal_frame_distinct_original_RGB5_with_multiple_wrong_outputs":28,
+          "each_medal_frame_wrong_pixels_same_colour_unchanged_elsewhere":267,
+          "max_different_native_RGB5_for_same_original_RGB5":8,
+          "per_sprite_index_or_priority_or_math_cause_adjudicated":False,
+          "global_palette_recolouring_admitted":False},
       "source_archives":{k:{"original":v["original"],"windows":v["windows"]}
                          for k,v in PINS.items()},
       "source_accepted_as_full_CPU_APU_camera_frame_phase":False,

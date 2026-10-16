@@ -69,5 +69,26 @@
   },
   "source_accepted_as_full_CPU_APU_camera_frame_phase": false,
   "effective_final_pixel_OBJ_window_and_colour_math_ownership_proven": false,
-  "released_or_HDriver_art_likeness_approved": false
+  "released_or_HDriver_art_likeness_approved": false,
+  "palette_only_hypothesis": {
+    "opening_oneplayer_guest1280": {
+      "single_valued_wrong_RGB5_map": true,
+      "wrong_pixels_original_colour_unchanged_elsewhere": 233
+    },
+    "opening_twoplayer_guest1280": {
+      "single_valued_wrong_RGB5_map": true,
+      "wrong_pixels_original_colour_unchanged_elsewhere": 196
+    },
+    "result_medal_21_frames_single_RGB5_LUT_impossible": true,
+    "inconsistent_wrong_pixels_per_medal_frame_distribution": {
+      "290": 5,
+      "294": 16
+    },
+    "each_medal_frame_wrong_pixels": 296,
+    "each_medal_frame_distinct_original_RGB5_with_multiple_wrong_outputs": 28,
+    "each_medal_frame_wrong_pixels_same_colour_unchanged_elsewhere": 267,
+    "max_different_native_RGB5_for_same_original_RGB5": 8,
+    "per_sprite_index_or_priority_or_math_cause_adjudicated": false,
+    "global_palette_recolouring_admitted": false
+  }
 }

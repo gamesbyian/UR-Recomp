@@ -1,0 +1,86 @@
+name: QA-08 verify matched medal OAM from immutable source archives
+
+# One cheap PR-only archive comparison. Existing original 2014 Snes9x
+# producer and real native Win32 build have already run; NEVER rebuild.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/qa08-adjudicate-matched-medal-archives.yml"
+      - "tools/qa08_verify_matched_original_native_medal_oam.py"
+      - "tests/unit/test_qa08_verify_matched_original_native_medal_oam.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: qa08-medal-source-archives
+  cancel-in-progress: true
+
+jobs:
+  source-archive-discriminator:
+    if: github.event_name != 'pull_request' || github.event.pull_request.number == 1649
+    runs-on: ubuntu-22.04
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run archive identity and forged evidence negative unit tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest tests.unit.test_qa08_verify_matched_original_native_medal_oam
+      - name: Download exactly three already produced original/native source ZIPs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-medal-archive-only"
+          get_immutable_artifact () {
+            local artifact_id="$1"
+            local name="$2"
+            curl --fail --show-error --silent --location --retry 2 \
+              --header "Authorization: Bearer $GH_TOKEN" \
+              --header "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/$artifact_id/zip" \
+              --output "$RUNNER_TEMP/qa08-medal-archive-only/$name"
+          }
+          get_immutable_artifact 11996107746 original-full-263.zip
+          get_immutable_artifact 12030581890 original-OAM-endfield.zip
+          get_immutable_artifact 12030148116 native-win32-effective-OAM.zip
+          cd "$RUNNER_TEMP/qa08-medal-archive-only"
+          printf '%s\n' \
+            "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e  original-full-263.zip" \
+            "7a506cfc5f44bd8cc6aaba8482f42140b51618ba14aedec8f9bc7558417ad4b2  original-OAM-endfield.zip" \
+            "002c95a44f3539652760609c6f6d7376c82e6014f2481cc60bbb1f8990b3b970  native-win32-effective-OAM.zip" \
+            | sha256sum -c -
+      - name: Cross-adjudicate 14 corresponding-field OAM slots without emulator run
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/qa08_verify_matched_original_native_medal_oam.py \
+            --original "$RUNNER_TEMP/qa08-medal-archive-only/original-full-263.zip" \
+            --original-extra "$RUNNER_TEMP/qa08-medal-archive-only/original-OAM-endfield.zip" \
+            --native "$RUNNER_TEMP/qa08-medal-archive-only/native-win32-effective-OAM.zip" \
+            --out "$RUNNER_TEMP/qa08-medal-archive-only/qa08-matched-real-original-native-medal-OAM.json"
+          python3 - "$RUNNER_TEMP/qa08-medal-archive-only/qa08-matched-real-original-native-medal-OAM.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          assert len(d["original_native_matching_field_slot_comparisons"])==14
+          assert d["native_real_per_line_OAM_samples_verified"]==70
+          assert d["source_video_callbacks_verified_against_independent_original_263"]==3
+          assert d["original_native_instruction_and_beam_phase_accepted"] is False
+          assert d["physical_or_release_quality_accepted"] is False
+          PY
+          echo "Original Snes9x 4031/4175 vs genuine native 4032/4176: medal tiles -2; adjacent slots 96/97 +2; 98/99 0. Original host screenshots are distinct from original verified video callbacks; release HOLD." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain only JSON decisions, never source ROM/video or SRAM
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-matched-original-native-medal-OAM-adjudication
+          retention-days: 5
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa08-medal-archive-only/qa08-matched-real-original-native-medal-OAM.json

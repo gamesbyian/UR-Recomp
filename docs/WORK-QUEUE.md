@@ -16,15 +16,9 @@
 
 **Before substantial work:** use the three-project reuse preflight in `AGENTS.md`; this does not create a new priority queue.
 
-## Historical checkpoint access
+## Earlier context and fresh-agent route
 
-Earlier Baldosa component checkpoints and completed PRs remain in [the archived October 10 queue](archive/WORK-QUEUE-OCT10-HANDOFF-20261011.md) and [integrator handoff](INTEGRATION-RECONCILIATION-20261010.md).
-
-## First read (fresh coding agent, five-minute route)
-
-1. [PROJECT-PLAN.md](PROJECT-PLAN.md) for what is being built, and [BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md](BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md) for completed code/assets and exact integration seams.
-2. The one specialist authority for your *owned* lane, plus its current sources and exact CI/head. Do **not** re-read every dated Baldosa experiment or all 45 course histories.
-3. [QA-BOUNDED-RELEASE-CAMPAIGN.md](QA-BOUNDED-RELEASE-CAMPAIGN.md) for common evidence and acceptance boundaries; [QA-PLAYER-JOURNEYS.md](QA-PLAYER-JOURNEYS.md) for named journeys.
+Historical Baldosa delivery details: [October 10 queue](archive/WORK-QUEUE-OCT10-HANDOFF-20261011.md) and [integrator handoff](INTEGRATION-RECONCILIATION-20261010.md). Treat neither as a live assignment. Read [PROJECT-PLAN.md](PROJECT-PLAN.md), the one specialist authority for your lane, and [QA-BOUNDED-RELEASE-CAMPAIGN.md](QA-BOUNDED-RELEASE-CAMPAIGN.md). Check exact main/PR/CI evidence, then run the **three-project reuse preflight** described in `AGENTS.md` before substantial changes.
 
 ## Current delivery board and ownership
 
@@ -71,9 +65,5 @@ Before starting, each agent reads this **current** top checkpoint, the latest in
 
 ## Routing by authority
 
-Product and renderer ownership: [PROJECT-PLAN.md](PROJECT-PLAN.md), [MODERN-FRONTEND-SHIPPING-STATUS.md](MODERN-FRONTEND-SHIPPING-STATUS.md), [MODERN-PRODUCT-LAYER.md](MODERN-PRODUCT-LAYER.md), [DISPLAY-PRESENTATION-POLICY.md](DISPLAY-PRESENTATION-POLICY.md), [WIDESCREEN.md](WIDESCREEN.md), [HD-ART-DIRECTION.md](HD-ART-DIRECTION.md).
-Baldosa code/evidence: [BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md](BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md), [BALDOSA-NATIVE-EXECUTION-EXPERIMENT-20261009.md](BALDOSA-NATIVE-EXECUTION-EXPERIMENT-20261009.md).
-QA and source oracle: [QA-BOUNDED-RELEASE-CAMPAIGN.md](QA-BOUNDED-RELEASE-CAMPAIGN.md), [ORIGINAL-COURSE-EVENT-CENSUS.md](ORIGINAL-COURSE-EVENT-CENSUS.md), [RELEASE-QUALITY-LEDGER.json](RELEASE-QUALITY-LEDGER.json), [VALIDATION.md](VALIDATION.md).
-Windows integration: [WINDOWS-X64-PACKAGING.md](WINDOWS-X64-PACKAGING.md) and [WINDOWS-CLEAN-MACHINE-ACCEPTANCE.md](WINDOWS-CLEAN-MACHINE-ACCEPTANCE.md).
+Product: [PROJECT-PLAN.md](PROJECT-PLAN.md), [MODERN-FRONTEND-SHIPPING-STATUS.md](MODERN-FRONTEND-SHIPPING-STATUS.md), [WIDESCREEN.md](WIDESCREEN.md). QA: [QA-BOUNDED-RELEASE-CAMPAIGN.md](QA-BOUNDED-RELEASE-CAMPAIGN.md), [ORIGINAL-COURSE-EVENT-CENSUS.md](ORIGINAL-COURSE-EVENT-CENSUS.md), [RELEASE-QUALITY-LEDGER.json](RELEASE-QUALITY-LEDGER.json). Windows: [WINDOWS-X64-PACKAGING.md](WINDOWS-X64-PACKAGING.md), [WINDOWS-CLEAN-MACHINE-ACCEPTANCE.md](WINDOWS-CLEAN-MACHINE-ACCEPTANCE.md). Baldosa: [reuse audit](BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md). Detailed specialist routing is in `AGENTS.md`, never an archived queue.
 
-No historical section of this file or an old `CLAUDE` branch is an active assignment. For more specific work, use `python3 tools/build_agent_context.py <lane>`, then check that the lane still matches this live board.

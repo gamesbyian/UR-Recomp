@@ -3,7 +3,7 @@
 
 All mutable data belongs to a disposable source-created named racer fixture.
 Prior Win32 read-only FILE_ATTRIBUTE_READONLY was insufficient: the genuine
-source writer replaced raw+typed consistently. Test a real denied directory ACL.
+source writer replaced raw+typed consistently. Test targeted real Win32 ACL denial.
 No simulated exception, NTFS torn write, full disk, or power-cut claim.
 """
 from __future__ import annotations
@@ -81,6 +81,36 @@ def acl(profile: Path, sid: str, *, deny: bool) -> None:
         raise RuntimeError(f"Win32 icacls {'deny' if deny else 'restore'} failed: {p.stdout} {p.stderr}")
 
 
+
+def deny_raw_write_only(raw: Path, sid: str, *, deny: bool) -> None:
+    """Block only writes to the *existing raw file*, not profile-lock staging.
+
+    Intentionally leave parent directory / typed publication privileges intact.
+    Unlike Windows +R, deny FILE_WRITE_DATA at the OS DACL on the actual SRAM.
+    """
+    if not sid.startswith("S-1-5-"):
+        raise ValueError("Raw-file ACL principal must be native Windows SID")
+    action = ["/deny", f"*{sid}:(WD)"] if deny else ["/remove:d", f"*{sid}"]
+    p = subprocess.run(["icacls", str(raw), *action],
+                       capture_output=True, text=True, timeout=30)
+    if p.returncode or "Successfully processed" not in p.stdout:
+        raise RuntimeError(f"Win32 raw-file icacls {'deny' if deny else 'restore'} failed: {p.stdout} {p.stderr}")
+
+
+def require_raw_write_denied(raw: Path, original: bytes) -> None:
+    """Require actual Win32 write-access rejection without touching old bytes."""
+    if len(original) != 8192 or raw.read_bytes() != original:
+        raise ValueError("Named SRAM baseline changed before actual OS write probe")
+    try:
+        with raw.open("r+b"):
+            pass
+    except PermissionError:
+        if raw.read_bytes() != original:
+            raise ValueError("Win32 denied file-open unexpectedly mutated SRAM")
+        return
+    raise ValueError("OS raw-file write denial ineffective: existing SRAM remains writable")
+
+
 def require_os_denial(profile: Path) -> None:
     """Prove the current Windows process cannot create a file in this folder."""
     probe = profile / "_qa02_acl_probe_do_not_commit.txt"
@@ -109,7 +139,7 @@ def run_game(exe: Path, rom: Path, script: Path, config: Path,
 
 def main() -> int:
     p = argparse.ArgumentParser()
-    p.add_argument("--fault", choices=("acl-denied-directory", "readonly-attribute"),
+    p.add_argument("--fault", choices=("acl-denied-directory", "acl-denied-raw-file", "readonly-attribute"),
                    default="acl-denied-directory")
     for name in ("retained", "rom", "script", "fixture", "out"):
         p.add_argument("--" + name, type=Path, required=True)
@@ -127,8 +157,9 @@ def main() -> int:
     route.mkdir()
     run_route(exe, a.rom, a.script, route, pause=False, video="windows", timeout=120)
     seed = route / "baseline/Modern Player Data With Spaces/saves/save.srm"
-    case = a.out / ("denied-profile-acl" if a.fault == "acl-denied-directory"
-                    else "denied-raw-attribute")
+    case = a.out / {"acl-denied-directory": "denied-profile-acl",
+                    "acl-denied-raw-file": "denied-raw-file-acl",
+                    "readonly-attribute": "denied-raw-attribute"}[a.fault]
     case.mkdir()
     root = case / "Disposable Named Racer With Spaces"
     root.mkdir()
@@ -161,20 +192,26 @@ def main() -> int:
         "SDL_VIDEODRIVER": "windows",
         "SDL_AUDIODRIVER": "dummy",
     })
-    sid = current_sid() if a.fault == "acl-denied-directory" else None
-    if sid:
+    sid = current_sid() if a.fault != "readonly-attribute" else None
+    if a.fault == "acl-denied-raw-file":
+        deny_raw_write_only(raw, sid, deny=True)
+    elif sid:
         acl(raw.parent, sid, deny=True)
     else:
         attrib(raw, "+R")
     try:
-        if sid:
+        if a.fault == "acl-denied-raw-file":
+            require_raw_write_denied(raw, before["raw"])
+        elif sid:
             require_os_denial(raw.parent)
         elif not (raw.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY):
             raise ValueError("Win32 raw file did not acquire readonly attribute")
         exit_code, log = run_game(exe, a.rom, a.script, config, case, env)
         during = take(root)
     finally:
-        if sid:
+        if a.fault == "acl-denied-raw-file":
+            deny_raw_write_only(raw, sid, deny=False)
+        elif sid:
             acl(raw.parent, sid, deny=False)  # restore even if assertions fail
         else:
             attrib(raw, "-R")
@@ -206,6 +243,7 @@ def main() -> int:
         "fixture_exe_sha256": hashlib.sha256(a.fixture.read_bytes()).hexdigest(),
         "os_file_attribute_readonly_verified": sid is None,
         "win32_acl_denial_verified": sid is not None,
+        "win32_existing_raw_file_write_denial_verified": a.fault == "acl-denied-raw-file",
         "permission_fault_type": a.fault,
         "guest_pause_quit_observed": witnessed,
         "source_save_failure_reported_in_process_log": rejection,
@@ -219,6 +257,14 @@ def main() -> int:
     }
     (evidence / "qa02-readonly-result.json").write_text(
         json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    if a.fault == "acl-denied-raw-file":
+        actual_native_failure = "UR_BALDOSA_NATIVE_PROFILE native_save_failed" in log
+        preflight_failed = "UR_BALDOSA_NATIVE_PROFILE native_save_preflight_failed" in log
+        result["actual_native_write_rejected_after_preflight"] = actual_native_failure and not preflight_failed
+        (evidence / "qa02-readonly-result.json").write_text(
+            json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        if not result["actual_native_write_rejected_after_preflight"]:
+            raise ValueError("Real Windows raw file denial did not reach genuine RtlWriteSram failure")
     if not witnessed or not result["data_preserved_through_failed_save"] or not rejection or unearned_sidecars:
         raise ValueError("Real Windows readonly save did not meet independent fail-closed assertions")
     clean = case / "cold-boot"

@@ -103,6 +103,8 @@ def validate_source(producer: dict, replay: Path) -> dict:
             if (not isinstance(mesh, dict)
                     or mesh.get("schema") != "UR-QA01-ZOO-FULL-RACE-UNMASKED-WRAM-MESH/1"
                     or mesh.get("archived_source_active_frames_to_result") != 5163
+                    or type(producer.get("reference_entry")) is not int
+                    or type(producer.get("native_entry")) is not int
                     or mesh.get("original_2014_source_controller_masks_modified") is not False
                     or mesh.get("masked_or_excluded_wram_bytes") != 0
                     or mesh.get("all_128k_wram_bytes_examined_per_pair") != 131072

@@ -4,12 +4,8 @@ name: QA-08 audit 25 real original native medal masks without rerendering
 # bundle. Neither emulator, Windows guest, graphics implementation nor QA ledger
 # touched. Source RGB5, all 256x224 pixel positions and exact callback f-1.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - ".github/workflows/qa08-medal-mask-archive.yml"
-      - "tools/qa08_medal_mask_temporal_source.py"
-      - "tests/unit/test_qa08_medal_mask_temporal_source.py"
+  # Exact immutable source result already produced, accepted and archived;
+  # rerun by explicit request only. Never rebuild original/native on docs edits.
   workflow_dispatch:
 permissions:
   contents: read

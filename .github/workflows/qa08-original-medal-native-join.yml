@@ -3,12 +3,8 @@ name: QA-08 join true original and native medals OAM and live pixels
 # Three independently SHA-pinned actual source producers. No guest/core run,
 # no synthetic or remapped source, no renderer/time/modern/release ownership.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - ".github/workflows/qa08-original-medal-native-join.yml"
-      - "tools/qa08_original_medal_native_layer_join.py"
-      - "tests/unit/test_qa08_original_medal_native_layer_join.py"
+  # Exact immutable source result already produced, accepted and archived;
+  # rerun by explicit request only. Never rebuild original/native on docs edits.
   workflow_dispatch:
 permissions:
   contents: read

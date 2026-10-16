@@ -82,14 +82,15 @@
         "docs/QA-WINDOWS-PRACTICE-NONCAREER-BOOT-SRAM-20261014.md",
         "docs/QA-WINDOWS-PR-CANDIDATE-38645114899-INDEPENDENT-ACCEPTANCE.md",
         "docs/QA-WINDOWS-PACKAGED-EXE-BINDING-38664542215.md",
-        "docs/QA-EXACT-MAIN-WINDOWS-CROSS-ARTIFACT-DISPOSITION-20261015.md"
+        "docs/QA-EXACT-MAIN-WINDOWS-CROSS-ARTIFACT-DISPOSITION-20261015.md",
+        "docs/QA02-ORIGINAL-WIN32-CRASH-REPRODUCTION-AND-STAGED-SRAM-NEGATIVES-20261016.md"
       ],
       "journeys": [
         "J-02",
         "J-07",
         "J-08"
       ],
-      "next_action": "P0 #1214 persists on nominated exact Windows source 11501a15dea38fa912335cfc63103ce3a7208001 (inner ZIP SHA256 5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7). In actual run 38813101482 native report, a controlled Windows process exit 86 between raw RtlWriteSram and typed checkpoint leaves divergent saves and a later refused profile. This specific crash seam lacks independently retained before/after raw files; classify producer report against already reproduced merged #1273, not fresh independent byte witness. Independent QA compared five original archived catalog-recovery stages byte-for-byte and actual pre/post earned 2P run/match files, all bounded positives. Require Modern/persistence owner repair/recovery: genuine hard kill with archived both-file pre/post bytes, fresh-process restore or actionable safe recovery, valid old-data survival, NTFS denied/full writes, two competing live Windows instances, stale root and duplicate receipts; no speculative gate pass. See docs/QA-EXACT-MAIN-WINDOWS-CROSS-ARTIFACT-DISPOSITION-20261015.md.",
+      "next_action": "P0 #1214 persists on nominated exact Windows source 11501a15dea38fa912335cfc63103ce3a7208001 (inner ZIP SHA256 5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7). In actual run 38813101482 native report, a controlled Windows process exit 86 between raw RtlWriteSram and typed checkpoint leaves divergent saves and a later refused profile. This specific crash seam lacks independently retained before/after raw files; classify producer report against already reproduced merged #1273, not fresh independent byte witness. Independent QA compared five original archived catalog-recovery stages byte-for-byte and actual pre/post earned 2P run/match files, all bounded positives. Require Modern/persistence owner repair/recovery: genuine hard kill with archived both-file pre/post bytes, fresh-process restore or actionable safe recovery, valid old-data survival, NTFS denied/full writes, two competing live Windows instances, stale root and duplicate receipts; no speculative gate pass. See docs/QA-EXACT-MAIN-WINDOWS-CROSS-ARTIFACT-DISPOSITION-20261015.md. Original run 38097752106 #1273 actual Windows crash-producer report and its exact old ROM-free executable were independently retrieved before Oct 18 expiration, and eight crash fields exactly equal later nominated run 38813101482; neither archive retained byte-for-byte raw+typed crash-seam data. Independently audited separate real 2P valid SRAM stages (193 MIKE changed bytes, MARTIN unchanged) and derived offline counterfactual full-8192-byte hybrid negative controls; no actual NTFS torn-write observed or user-recoverable transaction fix. Require fresh original Windows pre/post crash file snapshots and consent-safe recovery; see docs/QA02-ORIGINAL-WIN32-CRASH-REPRODUCTION-AND-STAGED-SRAM-NEGATIVES-20261016.md.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],

@@ -1,0 +1,98 @@
+{
+  "schema": "UR-QA02-SOURCE-ORIGINAL-WIN32-F0-FLAT19-INDEPENDENT/1",
+  "date": "2026-10-16",
+  "tested_windows_run": 38979209657,
+  "actual_gitHub_pr_merge": "f46d12d47bfde389124217a340613c995c2a79f8",
+  "merge_parents": [
+    "b317d1b7289eae0bdfe23839f633ed7c13d7e422",
+    "a81878e6c5de033fff7a1556991304c786a89b5d"
+  ],
+  "source_original_artifacts": {
+    "fault": {
+      "id": 12080208776,
+      "sha256": "dc5bc150000b646762efdbbb036b71d5c45142136569ed4aaaaa6be2783853d7",
+      "entries_crc_verified": 175
+    },
+    "binding": {
+      "id": 12080368683,
+      "sha256": "7c10d3722cfd3e28a066a1c94e59e35014cd61f664d3f269cd84a73f9dc3329a",
+      "entries_crc_verified": 1
+    },
+    "romless_package": {
+      "id": 12080178961,
+      "sha256": "81eefc975e7b39f33f1a073cf22e91d81e4711d1275a44099cf4001ed5aeb32c",
+      "entries_crc_verified": 2
+    },
+    "hosted_parallel": {
+      "id": 12080044260,
+      "sha256": "733158b0e8d05de8cf58425f17a4ed46a7a37c60280d59200c3a28b7a0859366",
+      "entries_crc_verified": 1
+    }
+  },
+  "candidate_identity": {
+    "inner_romless_zip_sha256": "38a099f313a8911654a39cbcdd4487d68143812f97c9dc03b0a6e4037df5b35a",
+    "same_run_native_executable_sha256": "79fb1c1d4f89e77350228fc50eadfc3f74358d74ada2397ac6415c990d615d04",
+    "packaged_PE32_plus_amd64": true,
+    "game_rom_absent_from_candidate_zip": true,
+    "same_source_hosted_13_win32_journeys_pass": true,
+    "external_hardware_joystick_or_audio_verified": false
+  },
+  "original_nested_flat_journal": {
+    "original_inner_sha256": "cb51814a45612e6ce86085fc3ba6e9d285fb1f8c968c6766ac1b46dc55fa4f32",
+    "count_crc_verified": 19,
+    "exact_independent_19_member_allowlist": true,
+    "four_file_receipt_labels": [
+      "raw-sram",
+      "typed-profile",
+      "selector",
+      "roster"
+    ],
+    "standalone_intent_receipt": true,
+    "all_19_members_byte_identical_to_corresponding_full_original_fault_archived_members": true,
+    "complete_before_crash_after_sha_length_changes_match_source_receipt": true,
+    "original_guest_written_raw_bytes": 8192,
+    "original_guest_changed_raw_byte_count": 28,
+    "typed_after_stock_sram_equals_native_raw_after": true,
+    "durable_intent_full_length": 33094,
+    "durable_intent_sha256": "5e32c9dfcef38c0dc75db4a7696041f1381f7e93da4f7f68bf796a173d98435e",
+    "durable_intent_embeds_exact_complete_old_and_new_typed_bytes": true,
+    "archived_intent_byte_identical": true,
+    "test_passes_current_independent_QA_wire_contract": true
+  },
+  "pre_raw_intent_process_crash": {
+    "original_windows_exit_code": 84,
+    "source_qualified_real_guest_pause_frame": 1952,
+    "pre_raw_intent_original_bin_sha256": "5e32c9dfcef38c0dc75db4a7696041f1381f7e93da4f7f68bf796a173d98435e",
+    "complete_original_file_snapshots_compared": 16,
+    "four_labels": [
+      "raw-sram",
+      "typed-profile",
+      "selector",
+      "roster"
+    ],
+    "four_stages": [
+      "before",
+      "crash",
+      "first-cold",
+      "second-cold"
+    ],
+    "source_original_file_receipt_sha256_and_lengths_verified": true,
+    "all_four_files_byte_identical_through_crash_and_both_cold_boots": true,
+    "intent_exactly_same_as_positive_F2_journal_intent": true,
+    "first_and_second_actual_hosted_win32_cold_game_boot_logs_checked": true,
+    "no_unauthorized_new_typed_profile_committed": true,
+    "no_original_game_raw_bytes_written_before_injected_exit": true
+  },
+  "scope": {
+    "specific_source_pr_still_draft": true,
+    "nominated_original_candidate_sha_unchanged": "11501a15dea38fa912335cfc63103ce3a7208001",
+    "nominated_original_candidate_zip_unchanged": "5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7",
+    "source_original_artifacts_expire_in_October": true,
+    "no_physical_power_cut_or_real_OS_torn_write_test": true,
+    "no_interactive_human_RTSQ_menu_verified": true,
+    "no_actual_physical_pad_audio_display_verified": true,
+    "full_release_qa_gate_credit": 0,
+    "accepted_complete_USA_original_native_events": 0,
+    "P0_1214_remains_open": true
+  }
+}

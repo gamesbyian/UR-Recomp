@@ -34,7 +34,7 @@ class MedalFieldReadOnlyHostPatch(unittest.TestCase):
                     self.source.replace(blackout.HOOK_AFTER,""),
                     self.source+self.source,
                     original_patch.patch_source(self.source).replace(
-                      'g_frame == 4032','g_frame == 4032')):
+                      'g_frame == 4032','g_frame == 4033')):
             with self.subTest(bad=bad[:55]),self.assertRaises(ValueError):
                 original_patch.patch_source(bad)
 
@@ -77,11 +77,6 @@ class ActualOriginalFieldReceipt(unittest.TestCase):
             path.with_suffix(".fb.bgrx").write_bytes(host)
             self.host_hashes[frame]=hashlib.sha256(host).hexdigest()
             oam=bytearray(544)
-            for slot,tileattr in verify.SOURCE_MEDAL_TILE_ATTR.get(frame,{}).items():
-                attr=int(tileattr[:2],16);tile=int(tileattr[2:],16)
-                y=91 if slot==112 else 115 if slot==113 else 139 if slot==114 else (112 if slot in (96,98) else 88)
-                x=200 if slot in (112,113,114) else 219
-                oam[slot*4:slot*4+4]=bytes((x,y,tile,attr))
             path.with_suffix(".oam.bin").write_bytes(oam)
             path.with_suffix(".cgram.bin").write_bytes(bytes(512))
             path.with_suffix(".ppuw.tsv").write_bytes(
@@ -104,8 +99,7 @@ class ActualOriginalFieldReceipt(unittest.TestCase):
             "each_authentic_callback":refs}))
 
     def accept(self):
-        if True:
-            return verify.verify(self.root,self.prev,self.log,self.script)
+        return verify.verify(self.root,self.prev,self.log,self.script)
 
     def test_three_actual_source_frames_and_OAM_slots(self):
         d=self.accept()
@@ -134,13 +128,12 @@ class ActualOriginalFieldReceipt(unittest.TestCase):
             self.accept()
 
     def accept_input(self,script):
-        with patch.dict(verify.HOST_FRAME_SHA256,self.host_hashes):
-            return verify.verify(self.root,self.prev,self.log,script)
+        return verify.verify(self.root,self.prev,self.log,script)
 
     def test_original_input_and_callback_selection_guard(self):
         with self.assertRaises(ValueError):
             self.accept_input(self.root/"original.log")
-        self.log.write_text(self.log.read_text()+"\nscript f=4031 dump qa08_medal_4032 fb=256x224 BGRX8888\n")
+        self.log.write_text(self.log.read_text()+"\nscript f=4032 dump qa08_medal_4032 fb=256x224 BGRX8888\n")
         with self.assertRaisesRegex(ValueError,"missing/duplicated"):
             self.accept()
 

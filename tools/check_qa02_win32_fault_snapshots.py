@@ -60,10 +60,10 @@ def inspect(archive: Path, expected_sha: str, mode: str, *,
     stages = ("before", "after") if mode == "historic" else ("before", "crash", "after")
     expected = {f"{label}.{stage}.bin" for label in LABELS for stage in stages}
     expected.update(("file-receipt.json", "crash.log",
-                     "cold-refusal.log" if mode == "historic" else "cold-recovery.log"))
+                     "cold-recovery.log" if mode == "journaled" else "cold-refusal.log"))
     if mode == "historic":
         expected.add("qa02-exact-owner-receipt.json")
-    else:
+    elif mode == "journaled":
         expected.update(("intent.crash.bin", "intent.recovered-receipt.bin",
                          "intent-receipt.json", "second-cold-recovery-boot.log"))
     with zipfile.ZipFile(archive) as z:
@@ -97,7 +97,7 @@ def inspect(archive: Path, expected_sha: str, mode: str, *,
         require(measurements.get("changed_byte_count") ==
                 difference_count(stage_files["before"], stage_files["after"]),
                 f"{label} false change count")
-        if mode == "journaled":
+        if mode != "historic":
             require(measurements.get("crash_changed_byte_count") ==
                     difference_count(stage_files["before"], stage_files["crash"]),
                     f"{label} false crash change count")

@@ -1,0 +1,74 @@
+name: QA-08 authenticate original/native finish BG3 OBJ pixel ownership
+
+# Uses only original 2014 263-frame ZIP, original read-only depth probe, and
+# independently verified Win32 full-add receipt. Neither game nor core runs.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/qa08-adjudicate-original-finish-depth.yml"
+      - "tools/qa08_adjudicate_original_finish_depth_source.py"
+      - "tests/unit/test_qa08_adjudicate_original_finish_depth_source.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: qa08-original-native-finish-ppu-owner-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  depth-correspondence:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.number == 1649 }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve original, original-depth and native PPU sources without emulators
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-depth"
+          cd "$RUNNER_TEMP/qa08-depth"
+          for row in original:11996107746 original-probe:12077814776 native-verdict:12078700050; do
+            name="${row%:*}" id="${row#*:}"
+            curl --fail --silent --show-error --location --retry 2 \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/${id}/zip" \
+              -o "${name}.zip"
+          done
+          printf '%s\n' \
+            "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e  original.zip" \
+            "02a3237db4af8d11341ef18c7b4be51838f9fd18b6bad9875daa42c7b5bf9f32  original-probe.zip" \
+            "4ef58031129c1b48d9bded18c661ef6286f4a0fdf3b2cd24b140b2b9fee4c444  native-verdict.zip" \
+            | sha256sum -c -
+      - name: Decode actual original depth winner and compare to genuine Win32 pixel owners
+        run: |
+          set -euo pipefail
+          python3 -m unittest tests.unit.test_qa08_adjudicate_original_finish_depth_source
+          python3 tools/qa08_adjudicate_original_finish_depth_source.py \
+            --original "$RUNNER_TEMP/qa08-depth/original.zip" \
+            --original-probe "$RUNNER_TEMP/qa08-depth/original-probe.zip" \
+            --native-verdict "$RUNNER_TEMP/qa08-depth/native-verdict.zip" \
+            --out "$RUNNER_TEMP/qa08-depth/original-native-ppu-owners.json"
+          python3 - "$RUNNER_TEMP/qa08-depth/original-native-ppu-owners.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          z=json.load(open(sys.argv[1]))
+          assert z["source_original_and_native_same_effective_local_layer_labels"] is True
+          assert z["original_Snes9x_mode1_main_BG3_high_priority_sub_OBJ_priority2"] is True
+          assert z["original_original_2014_all_263_PPU_images_byte_hash_identical"] is True
+          assert z["actual_physical_SNES_DAC_stage_and_pixel_output_proven"] is False
+          with open(sys.argv[2],"a") as f:
+              f.write("Original Snes9x Mode1 priority source gives main BG3 high (Z49) and subscreen OBJ priority2 (Z44) at exact x121 y165 callback3791 and3871; actual independently compiled Win32 has the same main/sub layer and original CGRAM words, full-add brightness7. Original 263/263 frame hashes preserved. Physical SNES colour DAC and complete events UNACCEPTED.\n")
+          PY
+      - name: Retain immutable original Snes9x depth source and independent verdict 90 days
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-original-win32-effective-finish-owner-90d
+          retention-days: 90
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/qa08-depth/original-probe.zip
+            ${{ runner.temp }}/qa08-depth/native-verdict.zip
+            ${{ runner.temp }}/qa08-depth/original-native-ppu-owners.json

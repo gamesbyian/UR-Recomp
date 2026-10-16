@@ -384,24 +384,25 @@ jobs:
           merge-multiple: true
           path: ${{ runner.temp }}/qa02-readonly-original-owner
 
-      - name: Test original Windows EXE against real Win32 read-only SRAM attribute
+      - name: Test original Windows EXE against verified deny-write profile-directory ACL
         if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-exact-owner-readonly-write-fault-20261016' }}
         run: |
           set -euo pipefail
           python tools/qa02_nominated_windows_readonly.py \
+            --fault acl-denied-directory \
             --retained "$RUNNER_TEMP/qa02-readonly-original-owner" \
             --rom "reference/roms/retail/Uniracers_USA.sfc" \
             --script "baldosa/tests/routes/race_2p_split.txt" \
             --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
-            --out "$RUNNER_TEMP/qa02-readonly-original-exe"
-          echo "One real Windows read-only raw SRAM negative and cold-relaunch check. This does not prove actual disk full, power cut, user-visible failure or a release gate." >> "$GITHUB_STEP_SUMMARY"
+            --out "$RUNNER_TEMP/qa02-acl-original-exe"
+          echo "One real Windows OS ACL-denied profile save and cold-relaunch check. No disk-full, power-cut, user-visible failure or release-gate credit." >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Retain isolated Windows read-only file snapshots even on test failure
+      - name: Retain isolated Windows ACL-denied file snapshots even on test failure
         if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-exact-owner-readonly-write-fault-20261016' }}
         uses: actions/upload-artifact@v4
         with:
-          name: qa02-nominated-win32-readonly-storage-snapshots
-          path: ${{ runner.temp }}/qa02-readonly-original-exe/denied-raw-attribute/evidence/
+          name: qa02-nominated-win32-acl-denied-storage-snapshots
+          path: ${{ runner.temp }}/qa02-acl-original-exe/denied-profile-acl/evidence/
           if-no-files-found: warn
           retention-days: 14
 

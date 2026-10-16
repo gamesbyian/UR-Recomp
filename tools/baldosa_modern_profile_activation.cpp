@@ -125,7 +125,7 @@ extern "C" int ur_baldosa_modern_run_recovery_command(void) {
         outcome = raw ? "raw" : "typed";
         std::fprintf(stderr,
             "UR_BALDOSA_RECOVERY_CHOICE choice=%s status=%u "
-            "active_profile=%s completed=%d\\n",
+            "active_profile=%s completed=%d\n",
             outcome, static_cast<unsigned>(status), active.c_str(),
             committed ? 1 : 0);
     } else if (std::strcmp(action, "healthy") == 0) {
@@ -140,7 +140,7 @@ extern "C" int ur_baldosa_modern_run_recovery_command(void) {
         outcome = "healthy";
         std::fprintf(stderr,
             "UR_BALDOSA_RECOVERY_CHOICE choice=healthy status=%u "
-            "active_profile=%s next_profile=%s completed=%d\\n",
+            "active_profile=%s next_profile=%s completed=%d\n",
             static_cast<unsigned>(result.status), active.c_str(), target,
             committed ? 1 : 0);
     } else {

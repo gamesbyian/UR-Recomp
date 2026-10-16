@@ -1,0 +1,69 @@
+name: QA-08 audit 25 real original native medal masks without rerendering
+
+# One offline immutable archive compare from the already retained 90-day source
+# bundle. Neither emulator, Windows guest, graphics implementation nor QA ledger
+# touched. Source RGB5, all 256x224 pixel positions and exact callback f-1.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/qa08-medal-mask-archive.yml"
+      - "tools/qa08_medal_mask_temporal_source.py"
+      - "tests/unit/test_qa08_medal_mask_temporal_source.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: qa08-medal-mask-archive-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  original-native-source:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.number == 1649 }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch original/native source-only 90d archive and verify all three ZIP hashes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-medal"
+          cd "$RUNNER_TEMP/qa08-medal"
+          curl --fail --silent --show-error --location --retry 2 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12078940121/zip" \
+            -o retained.zip
+          echo "6f88d5ca673bfaec075f19a766586b883f619580bbf279ebcb5cf019e5454d7d  retained.zip" | sha256sum -c -
+          unzip -q retained.zip -d retained
+          (cd retained; printf '%s\n' \
+            "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e  original.zip" \
+            "4f766de13c702a108279293df4613538d8b49cbd1ecbc0876533c5f01f09293c  previous.zip" | sha256sum -c -)
+      - name: Check complete source masks and colour stability
+        run: |
+          set -euo pipefail
+          python3 -m unittest tests.unit.test_qa08_medal_mask_temporal_source
+          python3 tools/qa08_medal_mask_temporal_source.py \
+            --original-zip "$RUNNER_TEMP/qa08-medal/retained/original.zip" \
+            --windows-zip "$RUNNER_TEMP/qa08-medal/retained/previous.zip" \
+            --out "$RUNNER_TEMP/qa08-medal/medal-296-temporal-source.json"
+          python3 - "$RUNNER_TEMP/qa08-medal/medal-296-temporal-source.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          j=json.load(open(sys.argv[1]))
+          assert j["persistent_medal_mask_pixels"]==296
+          assert j["original_vs_native_21_frame_temporal_colour_stability"]=={
+             "both_static":249,"original_changes_win_static":41,
+             "original_static_win_changes":6,"both_change":0}
+          assert j["original_effective_medal_OBJ_BG_window_priority_proven"] is False
+          with open(sys.argv[2],"a",encoding="utf8") as o:
+             o.write("Medal source masks at 21 authentic non-gray frames are identically 296 pixels. 249 source coordinates RGB-static in both, 41 change only in original, 6 only Windows, zero change in both. Four grayscale-phase frames retain all 296 medal-mask positions despite distinct large background differences. No palette/sprite/timing edits admitted.\n")
+          PY
+      - name: Retain independent bounded source verdict, never raw ROM or images
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-medal-mask-temporal-source
+          retention-days: 90
+          if-no-files-found: error
+          path: ${{ runner.temp }}/qa08-medal/medal-296-temporal-source.json

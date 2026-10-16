@@ -12,7 +12,6 @@ from pathlib import Path
 
 MARK = "UR_QA01_RF030_IPL_ECHO"
 ORIGINAL_CORE = Path("apu/bapu/smp/core.cpp")
-ORIGINAL_SMP = Path("apu/bapu/smp/smp.cpp")
 ORIGINAL_APU = Path("apu/apu.cpp")
 NATIVE_APU = Path("snesrecomp/runner/src/snes/apu.c")
 
@@ -26,7 +25,8 @@ static bool ur_qa01_rf030_enabled() {
 }
 static bool ur_qa01_rf030_original_window() {
   return ur_qa01_rf030_enabled() &&
-         ICPU.Frame >= 6050 && ICPU.Frame <= 6064;
+         ur_qa01_rf030_spc_age >= 103300000ull &&
+         ur_qa01_rf030_spc_age <= 103345000ull;
 }
 static unsigned ur_qa01_rf030_spc_records = 0;
 
@@ -50,8 +50,8 @@ READ_NEW = """uint8 SMP::op_read(uint16 addr) {
     uint8 observed = mmio_read(addr);
     if (ur_qa01_rf030_original_window()) {
       if (ur_qa01_rf030_spc_records++ < 2000)
-        fprintf(stderr, "QA01IPLORIG side=spc kind=read frame=%u v=%u h=%d age=%llu pc=%04X op=%02X value=%02X ipl=%u\\n",
-                (unsigned)ICPU.Frame, (unsigned)CPU.V_Counter,
+        fprintf(stderr, "QA01IPLORIG side=spc kind=read frame=0 v=%u h=%d age=%llu pc=%04X op=%02X value=%02X ipl=%u\\n",
+                (unsigned)CPU.V_Counter,
                 (int)CPU.Cycles, (unsigned long long)ur_qa01_rf030_spc_age,
                 (unsigned)regs.pc, (unsigned)opcode_number,
                 (unsigned)observed, (unsigned)status.iplrom_enable);
@@ -74,8 +74,8 @@ WRITE_NEW = """void SMP::op_write(uint16 addr, uint8 data) {
   if((addr & 0xfff0) == 0x00f0) mmio_write(addr, data);
   if (addr == 0xf4 && ur_qa01_rf030_original_window()) {
     if (ur_qa01_rf030_spc_records++ < 2000)
-      fprintf(stderr, "QA01IPLORIG side=spc kind=echo frame=%u v=%u h=%d age=%llu pc=%04X op=%02X value=%02X ipl=%u\\n",
-              (unsigned)ICPU.Frame, (unsigned)CPU.V_Counter,
+      fprintf(stderr, "QA01IPLORIG side=spc kind=echo frame=0 v=%u h=%d age=%llu pc=%04X op=%02X value=%02X ipl=%u\\n",
+              (unsigned)CPU.V_Counter,
               (int)CPU.Cycles, (unsigned long long)ur_qa01_rf030_spc_age,
               (unsigned)regs.pc, (unsigned)opcode_number,
               (unsigned)data, (unsigned)status.iplrom_enable);
@@ -85,19 +85,6 @@ WRITE_NEW = """void SMP::op_write(uint16 addr, uint8 data) {
   apuram[addr] = data;  //all writes go to RAM, even MMIO writes
 }"""
 
-ORIGINAL_SMP_ANCHOR = """#include "../snes/snes.hpp"
-
-#define SMP_CPP"""
-ORIGINAL_SMP_NEW = """#include "../snes/snes.hpp"
-/* UR_QA01_RF030_IPL_ECHO: original ICPU.Frame lives in cpuexec.h. */
-#include "../../../cpuexec.h"
-
-#define SMP_CPP"""
-ORIGINAL_APU_HEADER = """#include "../snes9x.h"\n"""
-ORIGINAL_APU_HEADER_NEW = """#include "../snes9x.h"
-/* UR_QA01_RF030_IPL_ECHO: receive the original CPU frame clock. */
-#include "../cpuexec.h"
-"""
 ORIGINAL_APU_ANCHOR = """CPU cpu;
 } // namespace SNES"""
 ORIGINAL_APU_REPLACEMENT = """CPU cpu;
@@ -113,11 +100,12 @@ CPU_READ_NEW = """uint8 S9xAPUReadPort(int port)
     S9xAPUExecute();
     uint8 observed = (uint8)SNES::smp.port_read(port & 3);
     if ((port & 3) == 0 && getenv("UR_QA01_IPL_ECHO_TRACE") &&
-        ICPU.Frame >= 6050 && ICPU.Frame <= 6064) {
+        SNES::ur_qa01_rf030_spc_age >= 103300000ull &&
+        SNES::ur_qa01_rf030_spc_age <= 103345000ull) {
         static unsigned n = 0;
         if (n++ < 2000)
-            fprintf(stderr, "QA01IPLORIG side=cpu kind=poll frame=%u v=%u h=%d age=%llu pc=0000 op=00 value=%02X ipl=0\\n",
-                    (unsigned)ICPU.Frame, (unsigned)CPU.V_Counter, (int)CPU.Cycles,
+            fprintf(stderr, "QA01IPLORIG side=cpu kind=poll frame=0 v=%u h=%d age=%llu pc=0000 op=00 value=%02X ipl=0\\n",
+                    (unsigned)CPU.V_Counter, (int)CPU.Cycles,
                     (unsigned long long)SNES::ur_qa01_rf030_spc_age, (unsigned)observed);
         else if (n == 2001) fprintf(stderr, "QA01IPLORIG_CPU_TRUNCATED\\n");
     }
@@ -133,11 +121,12 @@ CPU_WRITE_NEW = """void S9xAPUWritePort(int port, uint8 byte)
     S9xAPUExecute();
     SNES::cpu.port_write(port & 3, byte);
     if ((port & 3) == 0 && getenv("UR_QA01_IPL_ECHO_TRACE") &&
-        ICPU.Frame >= 6050 && ICPU.Frame <= 6064) {
+        SNES::ur_qa01_rf030_spc_age >= 103300000ull &&
+        SNES::ur_qa01_rf030_spc_age <= 103345000ull) {
         static unsigned n = 0;
         if (n++ < 2000)
-            fprintf(stderr, "QA01IPLORIG side=cpu kind=write frame=%u v=%u h=%d age=%llu pc=0000 op=00 value=%02X ipl=0\\n",
-                    (unsigned)ICPU.Frame, (unsigned)CPU.V_Counter, (int)CPU.Cycles,
+            fprintf(stderr, "QA01IPLORIG side=cpu kind=write frame=0 v=%u h=%d age=%llu pc=0000 op=00 value=%02X ipl=0\\n",
+                    (unsigned)CPU.V_Counter, (int)CPU.Cycles,
                     (unsigned long long)SNES::ur_qa01_rf030_spc_age, (unsigned)byte);
         else if (n == 2001) fprintf(stderr, "QA01IPLORIG_CPU_TRUNCATED\\n");
     }
@@ -208,14 +197,8 @@ def patch_original_core(text: str) -> str:
         (READ_OLD, READ_NEW), (WRITE_OLD, WRITE_NEW)), "Snes9x SMP")
 
 
-def patch_original_smp(text: str) -> str:
-    return _splice(text, ((ORIGINAL_SMP_ANCHOR, ORIGINAL_SMP_NEW),),
-                   "Snes9x SMP translation unit")
-
-
 def patch_original_apu(text: str) -> str:
-    return _splice(text, ((ORIGINAL_APU_HEADER, ORIGINAL_APU_HEADER_NEW),
-                          (ORIGINAL_APU_ANCHOR, ORIGINAL_APU_REPLACEMENT),
+    return _splice(text, ((ORIGINAL_APU_ANCHOR, ORIGINAL_APU_REPLACEMENT),
                           (CPU_READ_OLD, CPU_READ_NEW),
                           (CPU_WRITE_OLD, CPU_WRITE_NEW)), "Snes9x CPU/APU")
 
@@ -239,7 +222,6 @@ def main() -> int:
             p.error("original needs --original-root only")
         root = a.original_root.resolve()
         targets = [(root / ORIGINAL_CORE, patch_original_core),
-                   (root / ORIGINAL_SMP, patch_original_smp),
                    (root / ORIGINAL_APU, patch_original_apu)]
     else:
         if a.game is None or a.original_root is not None:

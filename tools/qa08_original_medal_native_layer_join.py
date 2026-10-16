@@ -146,9 +146,9 @@ def assess(original_zip:Path,native_zip:Path,original_probe_zip:Path)->dict:
                 attr=int(next(iter(observed)),16)
                 tile=attr&0x1ff
                 oldtile=int(orig["tile"],16)
-                if (tile-oldtile)!=EXPECTED_NAME_DELTA[slot] or
-                    (attr>>9)&7!=int(orig["palette"]) or
-                    (attr>>12)&3!=int(orig["priority"])):
+                if ((tile-oldtile)!=EXPECTED_NAME_DELTA[slot] or
+                    ((attr>>9)&7)!=int(orig["palette"]) or
+                    ((attr>>12)&3)!=int(orig["priority"])):
                     raise ValueError("original/native sprite tile/priority/palette change unqualified")
                 address=int(next(iter(xy)),16)
                 if (address&255)!=(int(orig["x"])&255) or

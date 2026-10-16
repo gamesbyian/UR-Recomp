@@ -15,12 +15,12 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "tests" / "unit"))
 sys.path.insert(0, str(ROOT / "tools"))
 from check_qa02_win32_original_fault_envelope import (  # noqa: E402
     EXTRA, NEG, POS, audit,
 )
-from tests.unit.test_check_qa02_win32_fault_snapshots import make_members  # noqa: E402
+from test_check_qa02_win32_fault_snapshots import make_members  # noqa: E402
 
 
 def original_members() -> dict[str, bytes]:

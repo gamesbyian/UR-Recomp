@@ -42,7 +42,7 @@ So the host-2902 handshake is still the closest margin: about 80 SPC cycles of t
   2. `baldosa_spc_power_on_patch.py --anchor 0`;
   3. `baldosa_spc_frame_clock_patch.py` (requires RF-016);
   4. `baldosa_spc_bus_cycle_patch.py`.
-- No campaign input exists yet: the dispatch form already has 10 inputs. None of these corrections is in the Windows bridge.
+- Hosted staging: `qa01-event-campaign` input `baldosa_spc_interrupt_stage` (which requires the five RF-015…019 inputs) stages RF-021 `--anchor 0`, RF-023/024, RF-026 and RF-028 in this order. None of these corrections is in the Windows bridge.
 
 ## RF-027: Switcher's root step is a VBlank edge after the post-race loader
 

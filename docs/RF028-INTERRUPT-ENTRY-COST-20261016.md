@@ -57,7 +57,7 @@ All four 1P producer cases are `paired_event_candidate` with all named follow-th
 ## Boundary
 
 - These are research candidates. QA-01 decides acceptance, after hosted re-execution of the full stage.
-- None of RF-021…028 is in the Windows bridge, and the dispatch workflow has no inputs for them yet (it already has 10).
+- None of RF-021…028 is in the Windows bridge. Hosted staging: `qa01-event-campaign` input `baldosa_spc_interrupt_stage` (which requires the five RF-015…019 inputs) stages RF-021 `--anchor 0`, RF-023/024, RF-026 and RF-028 in this order; GitHub allows 25 dispatch inputs (since 2025-12-04).
 - Known approximations:
   - RF-026 places all of an SPC opcode's accesses on its last cycle.
   - RF-019 prices HDMA once per field.

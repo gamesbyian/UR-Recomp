@@ -691,5 +691,33 @@ class QA01CampaignTest(unittest.TestCase):
         self.assertLess(workflow.index(stage), workflow.index("cmake -S baldosa -B baldosa/build"))
         self.assertEqual(workflow.count("cmake --build baldosa/build"), 1)
 
+    def test_spc_interrupt_stage_is_opt_in_ordered_and_gated_on_rf015_019(self):
+        workflow = (ROOT/".github/workflows/qa01-event-campaign.yml").read_text()
+        header = workflow.split("\njobs:", 1)[0]
+        self.assertEqual(header.count("      baldosa_spc_interrupt_stage:"), 2)
+        for block in header.split("      baldosa_spc_interrupt_stage:")[1:]:
+            own = block.split("\n")[1:5]
+            self.assertIn("        default: false", own)
+            self.assertIn("        type: boolean", own)
+        dispatch = header.split("  workflow_dispatch:", 1)[1]
+        self.assertLessEqual(dispatch.count("        type: "), 25)  # GitHub dispatch-input limit
+        stages = ["tools/baldosa_hdma_cpu_stall_patch.py --game baldosa",
+                  "tools/baldosa_spc_power_on_patch.py --game baldosa --anchor 0",
+                  "tools/baldosa_spc_frame_clock_patch.py --game baldosa",
+                  "tools/baldosa_spc_bus_cycle_patch.py --game baldosa",
+                  "tools/baldosa_interrupt_entry_cost_patch.py --game baldosa",
+                  "cmake -S baldosa -B baldosa/build"]
+        at = [workflow.index(x) for x in stages]
+        self.assertEqual(at, sorted(at))
+        for x in stages[1:5]:
+            self.assertEqual(workflow.count(x), 1)
+        guard = 'if [[ "${{ inputs.baldosa_spc_interrupt_stage }}" == "true" ]]; then'
+        self.assertLess(workflow.index(guard), at[1])
+        plan = workflow.split("\n  build:", 1)[0]
+        self.assertIn('"$QA01_SPC_INTERRUPT_STAGE" == "true" && "$QA01_RF015_019" != "true"', plan)
+        for name in ("baldosa_refresh_beam_rate", "baldosa_io_clock_order", "baldosa_spc_reference_rate",
+                     "baldosa_dp_pointer_once", "baldosa_hdma_cpu_stall"):
+            self.assertIn(f"inputs.{name}", plan)
+
 if __name__ == "__main__":
     unittest.main()

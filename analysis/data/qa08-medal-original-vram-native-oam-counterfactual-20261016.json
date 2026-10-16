@@ -1,0 +1,113 @@
+{
+  "schema": "qa08-original-VRAM-vs-real-Win32-OAM-name-five-medal-source-index/1",
+  "date": "2026-10-16",
+  "status": "source_pinned_original_4bpp_and_real_Win32_6_of_10_conditional_matches_four_equalOAM_index_mismatches",
+  "original_2014_callbacks": [
+    4031,
+    4175
+  ],
+  "actual_native_guests": [
+    4032,
+    4176
+  ],
+  "actual_original_263_source_images_byte_identical": true,
+  "original_14_OBJs_16x16_tile_FNV_matched_full_original_endfield_VRAM": true,
+  "actual_original_obj_source_base": "C000",
+  "source_small_obj_size": [
+    16,
+    16
+  ],
+  "original_registered_OAM_VRAM_CGRAM_zip_sha256": "2fef0440b97a69025bf9ee539551b414ef7f1f11978172aea5565f338b35d4c9",
+  "original_live_4bpp_observer_zip_sha256": "a280062d25fa721c096485522f6bb4a8d5af359ee797ad2d41db400e77b4efe9",
+  "real_native_PPU_263_image_zip_sha256": "f467aaafc193e0b8e56934e6f505c10d60c3a4a1afa8727ffa376e5cdf7d53de",
+  "native_5484_guest_CRC_sha256": "c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876",
+  "five_real_source_pixels_each_repeated_at_both_frames": [
+    {
+      "xy": [
+        207,
+        91
+      ],
+      "slot": 112,
+      "original_name": "1A2",
+      "original_index": 6,
+      "native_name": "1A0",
+      "original_VRAM_native_OAM_name_index": 0,
+      "native_actual_4bpp_index": null,
+      "conditional_match": true
+    },
+    {
+      "xy": [
+        205,
+        115
+      ],
+      "slot": 113,
+      "original_name": "1A4",
+      "original_index": 6,
+      "native_name": "1A2",
+      "original_VRAM_native_OAM_name_index": 4,
+      "native_actual_4bpp_index": 4,
+      "conditional_match": true
+    },
+    {
+      "xy": [
+        205,
+        139
+      ],
+      "slot": 114,
+      "original_name": "1A6",
+      "original_index": 0,
+      "native_name": "1A4",
+      "original_VRAM_native_OAM_name_index": 6,
+      "native_actual_4bpp_index": 6,
+      "conditional_match": true
+    },
+    {
+      "xy": [
+        225,
+        96
+      ],
+      "slot": 99,
+      "original_name": "1E6",
+      "original_index": 15,
+      "native_name": "1E6",
+      "original_VRAM_native_OAM_name_index": 15,
+      "native_actual_4bpp_index": 14,
+      "conditional_match": false
+    },
+    {
+      "xy": [
+        225,
+        120
+      ],
+      "slot": 98,
+      "original_name": "1E6",
+      "original_index": 15,
+      "native_name": "1E6",
+      "original_VRAM_native_OAM_name_index": 15,
+      "native_actual_4bpp_index": 14,
+      "conditional_match": false
+    }
+  ],
+  "second_frame_native_guest4176_tile_names_for_slots98_and99": "1E2",
+  "source_original_CGRAM_palette5_index15": "4B3B",
+  "source_native_effective_CGRAM_palette5_index14": "3A11",
+  "total_exact_paired_native_original_conditional_pixel_samples": 10,
+  "matched_conditional_original_VRAM_index_to_native_observed": 6,
+  "remaining_equalOAM_native_index_divergence_samples": 4,
+  "independent_source_only_CI_run": 38982778418,
+  "CI_result": "success",
+  "output_90day_artifact_id": 12081543420,
+  "output_artifact_sha256": "c061c35784e0d615fddfd95b1caa33d1c483eeef173fddb3543b20ab4a95ee97",
+  "retained_until_utc": "2027-01-14T23:41:49Z",
+  "source_decoder": "tools/qa08_medal_original_vram_native_oam_counterfactual.py",
+  "actual_native_live_VRAM_bytes_compared_to_source": false,
+  "actual_native_4bpp_tile_address_decoder_source_correctness_proven": false,
+  "original_2014_endfield_VRAM_equals_all_visible_line_VRAM_proven": false,
+  "source_ORIGINAL_sample_indices_match_original_endfield_VRAM_for_all_selected_14_sprites": true,
+  "CPU_NMI_corrective_phase_proven": false,
+  "global_OAM_tile_or_PPU_recolour_approved": false,
+  "Windows_actual_4x_PAR_wide_physical_accepted": false,
+  "independent_QA08_QA10_accepted": false,
+  "HD_racer_visual_approval": false,
+  "no_full_VRAM_SRAM_WRAM_ROM_or_decoded_sprite_bitmap_reexported": true
+}

@@ -1,0 +1,78 @@
+name: QA02 compare historic original crash to positive journal evidence
+
+# Fixed immutable original archives, not a Windows build or release gate.
+on:
+  pull_request:
+    paths:
+      - "tools/check_qa02_win32_historic_new_equivalence.py"
+      - "tests/unit/test_check_qa02_win32_historic_new_equivalence.py"
+      - ".github/workflows/qa02-original-fault-old-new-compare.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: qa02-old-new-fault-identity-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source_original_archive_equivalence:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve retained original-byte copies of both GitHub Actions envelopes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa02-source-originals"
+          curl --fail --location --silent --show-error --retry 2 \
+            -H "Authorization: Bearer $GH_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/artifacts/12069939434/zip" \
+            --output "$RUNNER_TEMP/qa02-source-originals/old-retained.zip"
+          curl --fail --location --silent --show-error --retry 2 \
+            -H "Authorization: Bearer $GH_TOKEN" -H "X-GitHub-Api-Version: 2022-11-28" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/artifacts/12076551970/zip" \
+            --output "$RUNNER_TEMP/qa02-source-originals/new-retained.zip"
+          # Verify both new 90-day wrappers before extracting unchanged
+          # source-original Actions ZIPs. Never hash a derived case envelope
+          # and mistake it for the original GitHub artifact.
+          printf '%s  %s\n' \
+            f35055a086dff30bb82982b3d4ef12476f06b0553f5f2eb84318f92e08754622 \
+            "$RUNNER_TEMP/qa02-source-originals/old-retained.zip" | sha256sum -c -
+          printf '%s  %s\n' \
+            e9223eaf8f4cfa8fff0554fca3593504ef6eca7a70636a94b82ef071e877f85c \
+            "$RUNNER_TEMP/qa02-source-originals/new-retained.zip" | sha256sum -c -
+          unzip -p "$RUNNER_TEMP/qa02-source-originals/old-retained.zip" 12024617002.zip \
+            > "$RUNNER_TEMP/qa02-source-originals/old-original.zip"
+          unzip -p "$RUNNER_TEMP/qa02-source-originals/new-retained.zip" 12073147810.zip \
+            > "$RUNNER_TEMP/qa02-source-originals/new-original.zip"
+          printf '%s  %s\n' \
+            e70055be446d0afec493cde8ac004273e05425bae5acd3d874cd32e1b6da131a \
+            "$RUNNER_TEMP/qa02-source-originals/old-original.zip" | sha256sum -c -
+          printf '%s  %s\n' \
+            78d835097e3929300af2397d932f0a19fc373dabbd6fe9f64f7c69cf210a62ff \
+            "$RUNNER_TEMP/qa02-source-originals/new-original.zip" | sha256sum -c -
+      - name: Independently compare actual old and new original guest SRAM bytes
+        run: |
+          set -euo pipefail
+          python3 tools/check_qa02_win32_historic_new_equivalence.py \
+            --historical-zip "$RUNNER_TEMP/qa02-source-originals/old-original.zip" \
+            --historical-sha256 e70055be446d0afec493cde8ac004273e05425bae5acd3d874cd32e1b6da131a \
+            --historical-source 11501a15dea38fa912335cfc63103ce3a7208001 \
+            --historical-exe-sha256 0701f72481531ad4f2803caadc62bbb072f292abef69f039edda004b01c18ea9 \
+            --new-zip "$RUNNER_TEMP/qa02-source-originals/new-original.zip" \
+            --new-sha256 78d835097e3929300af2397d932f0a19fc373dabbd6fe9f64f7c69cf210a62ff \
+            > "$RUNNER_TEMP/qa02-source-original-byte-equivalence.json"
+          cat "$RUNNER_TEMP/qa02-source-original-byte-equivalence.json"
+          echo "Verified exact old-negative vs new recovery byte equivalence on two original SHA-pinned Windows evidence ZIPs. No new Windows game execution, physical hardware or release gate credit." >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve compact actual-byte comparison receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa02-old-negative-vs-positive-journal-exact-original-byte-receipt
+          path: ${{ runner.temp }}/qa02-source-original-byte-equivalence.json
+          if-no-files-found: error
+          retention-days: 90

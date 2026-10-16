@@ -1,0 +1,96 @@
+{
+  "schema": "UR-RF030-EXECUTED-IPL-TRUNCATED-TRACE-RECEIPT/1",
+  "status": "bounded_original_native_spc_read_echo_positive; complete_cpu_poll_trace_unqualified",
+  "date": "2026-10-16",
+  "source": {
+    "experiment_sha": "5d435fbc2b93fe415cf0a207d4ccebd008d54a20",
+    "workflow_run": 38967358176,
+    "case_artifact_id": 12074659972,
+    "artifact_zip_sha256": "4b4133d7a6bcc36b978f142a2d125b358c5eae0cf30417b5d0720c1c2767b456",
+    "producer_report_sha256": "607def7c195f228cd927123544a6ab04503be9abfc66c6e5fb8c8a7d5b621961",
+    "case_result_sha256": "c9e12e243ecbf190d9053abc2a8b43b1b0a40e3642c212a90865a06f895dbb8b",
+    "original_core_sha256": "803d4df25de43dce892f34dfe29dd99a83befe5ac06302f0ec9fec518f9b296d",
+    "native_elf_sha256": "574cd2704f16f2f1dd9794d5657b81eabc9c4a50116ac31dd411ac30faf4d840",
+    "usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "smv_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "source_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+    "input_window_sha256": "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52"
+  },
+  "actual_original_spc_age": {
+    "cpu_first_cc_write": 103322546,
+    "first_spc_compare_read_cc": 103322554,
+    "first_spc_echo_cc": 103322580,
+    "compare_pc_after_operand_hex": "FFD2",
+    "compare_opcode_hex": "78",
+    "echo_pc_after_operand_hex": "FFF7",
+    "echo_opcode_hex": "C4",
+    "write_beam": [
+      119,
+      312
+    ],
+    "compare_beam": [
+      119,
+      508
+    ],
+    "echo_beam": [
+      119,
+      1136
+    ],
+    "cpu_write_to_spc_read_cycles": 8,
+    "spc_read_to_echo_cycles": 26,
+    "write_to_echo_cycles": 34
+  },
+  "actual_native_spc_age": {
+    "cpu_first_cc_scheduled": 103322463,
+    "cpu_first_cc_applied": 103322545,
+    "first_spc_compare_read_cc": 103322546,
+    "first_spc_echo_cc": 103322571,
+    "compare_pc_after_operand_hex": "FFD2",
+    "echo_pc_after_operand_hex": "FFF7",
+    "schedule_to_apply_cycles": 82,
+    "applied_to_spc_read_cycles": 1,
+    "spc_read_to_echo_cycles": 25,
+    "applied_to_echo_cycles": 26
+  },
+  "comparison": {
+    "cc_apply_reference_minus_native_spc_cycles": 1,
+    "reference_minus_native_first_cc_read_absolute_cycle": 8,
+    "reference_minus_native_first_echo_absolute_cycle": 9,
+    "native_read_after_write_earlier_by_spc_cycles": 7,
+    "exact_cpu_port_poll_parity_unproven": true,
+    "reference_and_native_age_are_independent_domains": true,
+    "possible_spc_entry_alignment_offset_not_ruled_out": true
+  },
+  "zoo": {
+    "original_native_result": [
+      5163,
+      5163
+    ],
+    "source_next_bowl_offset": 267,
+    "full_sram_pairs_equal": 11,
+    "full_wram_exact_frames": 51,
+    "full_wram_sampled_frames": 78,
+    "observed_0063_mismatch_offsets": [
+      5040,
+      5045
+    ],
+    "observed_0069_mismatch_offsets": [],
+    "complete_usa_event_admissions": 0
+  },
+  "incomplete_tracing": {
+    "original_cpu_poll_budget_hit_at_age": 103314077,
+    "original_spc_budget_hit_at_age": 103340084,
+    "native_spc_budget_hit_at_age": 103334159,
+    "original_cpu_poll_at_cc_window_recorded": false,
+    "original_spc_read_and_echo_at_cc_window_recorded": true,
+    "native_spc_schedule_apply_read_echo_at_cc_window_recorded": true,
+    "job_result": "failed_only_at_strict_rf030_trace_report",
+    "next_action": "Narrow all original/native port logging to SPC ages 103322420..103323100 around proven CC write/read/echo, preserve independent source clocks and strict full-trace checks"
+  },
+  "rejected_inference": [
+    "A read alone shifted one SPC cycle (RF-029) would fix source parity",
+    "complete CPU↔SPC handshake proven without original CPU polls",
+    "same numerical SPC age alone proves original/native full CPU-tick synchronization",
+    "producer strict_candidate implies any of the 45 event admissions"
+  ]
+}

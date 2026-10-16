@@ -1,0 +1,104 @@
+{
+  "schema": "UR-RF030-QUALIFIED-EXECUTED-IPL-CPU-POLL-SOURCE-NATIVE/1",
+  "status": "bounded_actual_cpu_write_spc_compare_echo_and_original_cpu_poll_qualified",
+  "run": 38970909850,
+  "source_head": "dbeacf3467a36da0f6a789f9565e007427264fc9",
+  "case_artifact_id": 12077572385,
+  "archive_file_count": 12,
+  "archive_sha256": "d3e9ff0dfe710eefd6fc0289baae5232b43a89b68f3f7bdac9fd4dd84e8471f1",
+  "producer_report_sha256": "29305ac6fe5843ee3528ed08bb32d40def36f2f9059f8975d7eb82fb4771cedc",
+  "case_result_sha256": "fd325eecc69d96802ba3e92f2e4bd39b63c61a4b4014a49cde262e7f762a9541",
+  "native_elf_sha256": "ac3181edd1d37e2783c4b92530e5bc1ba879577b70b10845d0edcdf7cb66007b",
+  "original_reference_core_sha256": "5225762bd9ad358a167b5e3bbf8be156c5a51e58a26652f706a8ffbd5c9b4d86",
+  "usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "smv_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+  "source_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+  "input_sha256": "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52",
+  "observation_window": {
+    "source_spc_age": [
+      103322420,
+      103323100
+    ],
+    "native_spc_age": [
+      103322420,
+      103323100
+    ],
+    "original_cpu_frame_field": "0 is unavailable original APU-side sentinel, NOT original frame zero",
+    "original_cpu_v_h_beam_at_cc_write": [
+      119,
+      312
+    ],
+    "truncated": false,
+    "original_trace_events": 202,
+    "native_trace_events": 117,
+    "reference_spc_read_events": 58,
+    "reference_spc_echo_events": 16,
+    "native_spc_read_events": 58,
+    "native_spc_echo_events": 16
+  },
+  "first_cc_original": {
+    "cpu_write_age": 103322546,
+    "spc_compare_read_age": 103322554,
+    "spc_read_pc": "FFD2",
+    "opcode": "78",
+    "echo_age": 103322580,
+    "echo_pc": "FFF7",
+    "echo_opcode": "C4",
+    "first_cpu_poll_echo_age": 103322584,
+    "cpu_write_to_read_cycles": 8,
+    "read_to_echo_cycles": 26,
+    "echo_to_cpu_observed_cycles": 4,
+    "source_last_compare_read_zero_age": 103322545,
+    "original_cpu_poll_aa_until_cc": 8,
+    "original_cpu_first_observed_echo": "CC",
+    "original_cpu_cc_write_count_before_echo": 8,
+    "original_cpu_cc_write_count_through_first_cc_poll": 9
+  },
+  "first_cc_native": {
+    "cpu_scheduled_age": 103322463,
+    "cpu_applied_age": 103322545,
+    "spc_compare_read_age": 103322546,
+    "spc_read_pc": "FFD2",
+    "echo_age": 103322571,
+    "echo_pc": "FFF7",
+    "scheduled_to_applied_cycles": 82,
+    "applied_to_read_cycles": 1,
+    "read_to_echo_cycles": 25,
+    "native_last_compare_read_zero_age": 103322537
+  },
+  "temporal_boundary": {
+    "native_spc_read_cc_earlier_relative_to_applied_cpu_cc_by_cycles": 7,
+    "native_spc_echo_cc_earlier_relative_to_original_echo_numeric_age_by_cycles": 9,
+    "source_native_spc_age_domains_equal_by_label_only": false,
+    "source_and_native_clock_phase_identical_proven": false,
+    "actual_original_cpu_poll_after_echo": true,
+    "native_cpu_post_echo_poll_executed_probe_in_this_run": false
+  },
+  "gameplay": {
+    "source_zoo_result_relative": 5163,
+    "original_zoo_result_relative": 5163,
+    "native_zoo_result_relative": 5163,
+    "source_original_native_next_bowl_relative": [
+      267,
+      267,
+      267
+    ],
+    "full_8192_byte_sram_pairs_equal": 11,
+    "wram_exact_checkpoints": 51,
+    "wram_checkpoints": 78,
+    "sound_pointer_residual_frames": [
+      5040,
+      5045
+    ],
+    "sound_counter_residual_frames": [],
+    "release_admissions_of_45": 0
+  },
+  "disposition": {
+    "spc_handshake_source": "qualified first CC write/read/echo and original CPU first echo poll, no truncation",
+    "cpu_write_queue_boundary_caused_full_gameplay_wram_difference_proven": false,
+    "native_cpu_poll_capture_outstanding": true,
+    "all_spc_opcode_cycles_and_audio_parity_proven": false,
+    "do_not_promote_rf031_without_real_ab": true,
+    "independent_qa_release_ledger_unchanged": true
+  }
+}

@@ -1,0 +1,143 @@
+name: Retain source-pinned F2 F3 87-file Windows fault originals
+
+# A bounded original-byte archival action only; never compiles game or packages ROM.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/retain-qa02-f722-source-originals.yml"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: qa02-f722-source-original-retention-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  archive_originals:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - name: Download seven exact original Actions ZIPs, SHA256 each
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STORE: ${{ runner.temp }}/qa02-f722-seven-originals
+        run: |
+          set -euo pipefail
+          mkdir -p "$STORE"
+          while read -r id sha count; do
+            curl --fail --location --silent --show-error --retry 2 \
+              --connect-timeout 20 --max-time 120 \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/artifacts/$id/zip" \
+              --output "$STORE/$id.zip"
+            printf '%s  %s\n' "$sha" "$STORE/$id.zip" | sha256sum -c -
+          done <<'ORIGINALS'
+          12077354442 fa8e985753d7fca6e189ffaf9e7881dd48b2f8a2198421f1516ddc2e14a39a04 87
+          12077199888 2f99fb2c8c81aca5cb9ee63da7daeb6de23e98e83726fbe7b726334a796589c7 1
+          12077024951 a2035bd84718e3b6b3f9bd26d3fbcaa12108babd00a25183d2c9dda25f4d6cdd 2
+          12077084720 bbe94931183e3527dac87d0dc3c2f27b0eae9abfb37a4e6037b713269c68135a 52
+          12076944880 f827560bd543eb6912e9347ef6dcfaacc1926ff6c366a310394f316214972901 1
+          12077379661 a191a3a5550061873e0e9d109e4b4cfe3183dedca021589b967486fff0dae26e 10
+          12078370102 a03f4f3b417d424005b7dd2432aec8af96872db2819821e780f210a60782a228 37
+          ORIGINALS
+
+      - name: Verify original member inventory, CRC, source, PE/ZIP identity and ROM absence
+        shell: bash
+        env:
+          STORE: ${{ runner.temp }}/qa02-f722-seven-originals
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, io, json, os, pathlib, stat, zipfile
+          root = pathlib.Path(os.environ["STORE"])
+          originals = {
+              "12077354442": ("fa8e985753d7fca6e189ffaf9e7881dd48b2f8a2198421f1516ddc2e14a39a04", 87),
+              "12077199888": ("2f99fb2c8c81aca5cb9ee63da7daeb6de23e98e83726fbe7b726334a796589c7", 1),
+              "12077024951": ("a2035bd84718e3b6b3f9bd26d3fbcaa12108babd00a25183d2c9dda25f4d6cdd", 2),
+              "12077084720": ("bbe94931183e3527dac87d0dc3c2f27b0eae9abfb37a4e6037b713269c68135a", 52),
+              "12076944880": ("f827560bd543eb6912e9347ef6dcfaacc1926ff6c366a310394f316214972901", 1),
+              "12077379661": ("a191a3a5550061873e0e9d109e4b4cfe3183dedca021589b967486fff0dae26e", 10),
+              "12078370102": ("a03f4f3b417d424005b7dd2432aec8af96872db2819821e780f210a60782a228", 37),
+          }
+          expected_source = "f72231c121bfceddb09a38fe70b66efa22db0e74"
+          expected_package = "bfb918a9d9a33210440ec973b65ba120eb2c5bd177e3b6f20ebc1d514ac6a690"
+          expected_exe = "6eebe419b178576de772652a521b791d41d88ade3a207e7fba18d9b97e23c632"
+          digest = lambda b: hashlib.sha256(b).hexdigest()
+          if set(p.name for p in root.iterdir()) != {id + ".zip" for id in originals}:
+              raise SystemExit("Original artifact file set differs")
+          receipt = []
+          for id,(sha,count) in originals.items():
+              b = (root / (id + ".zip")).read_bytes()
+              if digest(b) != sha:
+                  raise SystemExit("Original ZIP SHA mismatch " + id)
+              with zipfile.ZipFile(io.BytesIO(b)) as z:
+                  infos = z.infolist()
+                  if len(infos) != count or len({i.filename for i in infos}) != count or z.testzip() is not None:
+                      raise SystemExit("Original ZIP roster or CRC mismatch " + id)
+                  for m in infos:
+                      path = pathlib.PurePosixPath(m.filename)
+                      kind = stat.S_IFMT(m.external_attr >> 16)
+                      if (m.is_dir() or m.flag_bits & 1 or kind not in (0, stat.S_IFREG)
+                          or path.is_absolute() or ".." in path.parts or "\\" in m.filename
+                          or m.filename.lower().endswith((".sfc",".smc",".swc",".rom"))):
+                          raise SystemExit("Unsafe or ROM-containing original entry " + id + ": " + m.filename)
+                  if id == "12077354442":
+                      names = z.namelist()
+                      if not (len(names) == 87 and
+                          "native_typed_before_intent_recovery/fault-bytes/raw-sram.second-cold.bin" in names and
+                          "native_intent_restart_recovery/simulated_partial_raw_explicit_rollback/fault-bytes/raw.synthetic-partial.bin" in names):
+                          raise SystemExit("Source F3 and 513-byte original snapshots absent")
+                  if id == "12077199888":
+                      j = json.loads(z.read("candidate-binding.json"))
+                      if (j.get("source_revision") != expected_source or
+                          j.get("zip_sha256") != expected_package or
+                          j.get("journey_and_packaged_executable_sha256") != expected_exe):
+                          raise SystemExit("Binding source/PE/ZIP drift")
+                  if id == "12077024951":
+                      inner = z.read("UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip")
+                      if digest(inner) != expected_package:
+                          raise SystemExit("Inner ROM-free ZIP differs")
+                      with zipfile.ZipFile(io.BytesIO(inner)) as package:
+                          if package.testzip() is not None:
+                              raise SystemExit("Inner ZIP corrupt")
+                          names = package.namelist()
+                          if any(x.lower().endswith((".sfc",".smc",".swc",".rom")) for x in names):
+                              raise SystemExit("Original source ROM in package")
+                          exe = package.read(next(x for x in names if x.endswith("/UniracersSNESRecomp.exe")))
+                          if digest(exe) != expected_exe:
+                              raise SystemExit("EXE differs from same-run binding")
+                  if id == "12076944880":
+                      j = json.loads(z.read("pilot-result.json"))
+                      if (j.get("source_sha") != expected_source or j.get("exe_sha256") != expected_exe
+                          or j.get("executed_cases") != j.get("expected_cases") or j.get("expected_cases") != 13
+                          or any(c["exit_code"] != 0 for c in j["cases"])):
+                          raise SystemExit("Actual source Windows journey identity differs")
+              receipt.append({"artifact_id":int(id),"original_zip_sha256":sha,
+                              "original_zip_bytes":len(b),"member_count_crc_pass":count})
+          (root/"RETENTION-RECEIPT.json").write_text(json.dumps({
+            "schema":"UR-QA02-F722-ORIGINAL-WIN32-EVIDENCE-RETENTION/1",
+            "tested_pr_merge_source":expected_source,
+            "original_win32_run":38972118963,
+            "original_immutable_nominated_candidate_unchanged":"11501a15dea38fa912335cfc63103ce3a7208001",
+            "release_gate_credit":0,
+            "physical_hardware_verified":False,
+            "source_original_envelope_distinct_from_retained_wrapper":True,
+            "source_originals":receipt
+          }, indent=2) + "\n",encoding="utf-8")
+          print("Retained source-original ZIPs:",len(receipt),
+                "CRC-verified inner entries:",sum(x["member_count_crc_pass"] for x in receipt))
+          PY
+
+      - name: Upload seven original ZIPs unchanged for 90 days
+        uses: actions/upload-artifact@v4
+        with:
+          name: retained-qa02-extended-87-source-originals-f72231c
+          path: ${{ runner.temp }}/qa02-f722-seven-originals/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 90

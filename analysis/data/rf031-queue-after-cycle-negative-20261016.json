@@ -1,0 +1,137 @@
+{
+  "schema": "UR-RF031-QUEUED-PORT-EQUAL-TARGET-NEGATIVE-ORIGINAL-NATIVE-AB/1",
+  "date": "2026-10-16",
+  "status": "resolved_negative_do_not_promote",
+  "source_treatment": "Change only apu_drainPortQueue due predicate target_cycle > portClock to target_cycle >= portClock on disposable pinned Baldosa checkout after full RF015..028 stack",
+  "treatment_exact_sha": "539eb9287fe4d95e9676d279d93568f4dec26aa9",
+  "baseline": {
+    "run_id": 38970909850,
+    "case_artifact_id": 12077572385,
+    "zip_sha256": "d3e9ff0dfe710eefd6fc0289baae5232b43a89b68f3f7bdac9fd4dd84e8471f1",
+    "producer_sha256": "29305ac6fe5843ee3528ed08bb32d40def36f2f9059f8975d7eb82fb4771cedc",
+    "case_result_sha256": "fd325eecc69d96802ba3e92f2e4bd39b63c61a4b4014a49cde262e7f762a9541",
+    "original_core_sha256": "5225762bd9ad358a167b5e3bbf8be156c5a51e58a26652f706a8ffbd5c9b4d86",
+    "native_elf_sha256": "ac3181edd1d37e2783c4b92530e5bc1ba879577b70b10845d0edcdf7cb66007b",
+    "zoo_wram_exact": 51,
+    "zoo_wram_differing_byte_occurrences": 92,
+    "full_sram_pairs_equal": 11,
+    "bowl_full_wram_exact": 9
+  },
+  "treatment": {
+    "run_id": 38971735372,
+    "case_artifact_id": 12077322745,
+    "zip_sha256": "1bc035b99ce408aaaffc55a3ffc87bea3a28d71cbdb8e11e19a7d01d91d5eb16",
+    "producer_sha256": "60c16f5bbf66030f76980be24f28d3715ba9f707b55bec9b69275a3411718a1b",
+    "case_result_sha256": "1e4b0fb36c47319613ede5a47fd8c18541dd1bd3452460eb1990bb8743c359b8",
+    "original_core_sha256": "816b30bc6bc9e1b9c1e7ffe4922f8b091ff6d1be668f8accdaf32af3c27d7ebd",
+    "native_elf_sha256": "668a5a3a6c69c7f4cb88afe6b9bc845daddb7564255c80c028e864555a1841b5",
+    "zoo_wram_exact": 46,
+    "zoo_wram_differing_byte_occurrences": 106,
+    "full_sram_pairs_equal": 11,
+    "bowl_full_wram_exact": 8
+  },
+  "unchanged_input": {
+    "usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_2014_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "source_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+    "script_sha256": "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52",
+    "source_original_native_zoo_result_relative": [
+      5163,
+      5163,
+      5163
+    ],
+    "source_original_native_next_bowl_relative": [
+      267,
+      267,
+      267
+    ],
+    "full_8192_byte_sram_pairs_equal": 11,
+    "masked_wram_bytes": 0,
+    "full_wram_bytes_per_checkpoint": 131072,
+    "zoo_checkpoints": 78
+  },
+  "independently_computed_cross_run": {
+    "original_full_128k_wram_hashes_equal": 78,
+    "native_full_128k_wram_changed_frames": [
+      5040,
+      5041,
+      5042,
+      5043,
+      5044,
+      5045,
+      5046
+    ],
+    "zoo_pair_differing_count_shift": [
+      {
+        "frame": 5040,
+        "baseline": 1,
+        "treatment": 2
+      },
+      {
+        "frame": 5041,
+        "baseline": 0,
+        "treatment": 2
+      },
+      {
+        "frame": 5042,
+        "baseline": 0,
+        "treatment": 3
+      },
+      {
+        "frame": 5043,
+        "baseline": 0,
+        "treatment": 3
+      },
+      {
+        "frame": 5044,
+        "baseline": 0,
+        "treatment": 2
+      },
+      {
+        "frame": 5045,
+        "baseline": 1,
+        "treatment": 2
+      },
+      {
+        "frame": 5046,
+        "baseline": 0,
+        "treatment": 2
+      }
+    ],
+    "sound_ptr_7E0063_difference_frames_baseline": [
+      5040,
+      5045
+    ],
+    "sound_ptr_7E0063_difference_frames_treatment": [
+      5040,
+      5041,
+      5042,
+      5043,
+      5044,
+      5045,
+      5046
+    ],
+    "transfer_counter_7E0069_difference_frames_baseline": [],
+    "transfer_counter_7E0069_difference_frames_treatment": [
+      5040,
+      5041,
+      5042,
+      5043,
+      5044,
+      5045,
+      5046
+    ],
+    "bowl_wram_new_diff_offset": 267,
+    "bowl_wram_new_diff_byte_count": 4,
+    "original_native_source_earned_sram_unchanged": true
+  },
+  "inference_limits": {
+    "source_correct_queue_phase_proven": false,
+    "native_cpu_actual_read_polls_proven": false,
+    "all_cpu_spc_instruction_tick_parity_proven": false,
+    "sound_output_or_audio_samples_proven": false,
+    "windows_shipping_source_changed": false,
+    "usa_complete_events_admitted": 0
+  },
+  "disposition": "One-cycle global queue deferral falsified as a parity correction; retire opt-in implementation and workflow, archive unmasked negative, investigate exact consumer-clock mapping before any narrower change"
+}

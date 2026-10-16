@@ -1,6 +1,6 @@
 # UR-Recomp agent guide
 
-Compact router for coding and research agents. **Current priority: merge the verified Baldosa-native execution bridge into the existing Windows Modern product while independently closing remaining QA blockers on the same player journeys.** Start with `docs/WORK-QUEUE.md` (live) and `docs/PROJECT-PLAN.md` (durable intent), then only your owning specialist authority. Use `docs/README.md` to find it. Historical project plan, queue and resource notes now live under `docs/archive/` and are not assignments. Repository state and latest merged evidence supersede conversation recaps.
+Compact router for coding and research agents. **Current priority: independently close original/native complete USA events and the named-profile Windows crash-recovery P0 on the integrated Baldosa/Modern product, while qualifying graphics and player-visible release QA on exact source-bound artifacts.** Start with `docs/WORK-QUEUE.md` (live) and `docs/PROJECT-PLAN.md` (durable intent), then only your owning specialist authority. Use `docs/README.md` to find it. Historical project plan, queue and resource notes now live under `docs/archive/` and are not assignments. Repository state and latest merged evidence supersede conversation recaps.
 
 ## Route by task
 
@@ -45,7 +45,7 @@ If you have no project history, do **not** reconstruct priority from chronology,
 4. prefer work that removes uncertainty for multiple downstream features over locally interesting archaeology.
 5. **Before substantial implementation**, run `python3 tools/select_three_project_reuse.py --lane <lane> --include-conditional` (or `--lane all` if unassigned). Check how UR, Baldosa and Malmazuke already approach the same problem; choose reuse, a bounded pilot or a fresh implementation based on the actual live blocker. `docs/WORK-QUEUE.md` still determines which problem to solve. Do not make a conditional tool pilot into an independent P0 assignment.
 
-**At present Baldosa-core incorporation and adversarial QA are coupled priorities.** The proven 1P/2P input, pause, moving HD, 4x Original fallback, +24 world and Windows build bridges must be consolidated into the existing Modern frontend/records/profiles; real original/native complete events, source-visible P1/P2 graphics, storage and controller-only Windows acceptance independently decide readiness. This is a single integration and QA pipeline, not two competing general framework programmes. Refresh the live work queue and PRs before touching shared code. Defer new platforms, generic source archaeology and post-baseline cosmetics unless a reproduced blocker changes that choice.
+**At present integrated Baldosa/Modern Windows acceptance and adversarial QA are coupled priorities.** The proven 1P/2P input, pause, moving HD, 4x Original fallback, +24 world and Windows build bridges must be consolidated into the existing Modern frontend/records/profiles; real original/native complete events, source-visible P1/P2 graphics, storage and controller-only Windows acceptance independently decide readiness. This is a single integration and QA pipeline, not two competing general framework programmes. Refresh the live work queue and PRs before touching shared code. Defer new platforms, generic source archaeology and post-baseline cosmetics unless a reproduced blocker changes that choice.
 
 
 ## Working rules

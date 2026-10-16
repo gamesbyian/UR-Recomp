@@ -84,6 +84,14 @@ def main() -> int:
     for name in ("retained", "rom", "script", "fixture", "out"):
         p.add_argument("--" + name, required=True, type=Path)
     a = p.parse_args()
+    # The real native game runs in a disposable child working directory.
+    # Resolve ROM, input script and fixture before changing cwd, otherwise
+    # Windows resolves their repository-relative paths inside the save root.
+    a.rom = a.rom.resolve(strict=True)
+    a.script = a.script.resolve(strict=True)
+    a.fixture = a.fixture.resolve(strict=True)
+    a.retained = a.retained.resolve(strict=True)
+    a.out = a.out.resolve()
     if a.out.exists():
         raise ValueError("Refusing prior data root or overwritten crash evidence")
     if digest(a.rom) != USA_SHA256:

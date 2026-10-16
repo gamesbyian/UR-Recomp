@@ -1,0 +1,160 @@
+name: Retain exact Win32 prewrite crash and corrected 19-file QA archives
+
+# Source-original byte preservation only: no Windows build or game simulation.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/retain-qa02-prewrite-flat19-source-originals.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: qa02-original-win32-prewrite-flat19-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify_and_preserve:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download original source ZIPs, require four pinned SHA256s
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OUT: ${{ runner.temp }}/qa02-prewrite-originals
+        run: |
+          set -euo pipefail
+          mkdir -p "$OUT"
+          while read -r id expected; do
+            curl --fail --silent --show-error --location --retry 2 \
+              --connect-timeout 20 --max-time 120 \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/actions/artifacts/$id/zip" \
+              --output "$OUT/$id.zip"
+            printf '%s  %s\n' "$expected" "$OUT/$id.zip" | sha256sum -c -
+          done <<'SOURCE_ARTIFACTS'
+          12080208776 dc5bc150000b646762efdbbb036b71d5c45142136569ed4aaaaa6be2783853d7
+          12080368683 7c10d3722cfd3e28a066a1c94e59e35014cd61f664d3f269cd84a73f9dc3329a
+          12080178961 81eefc975e7b39f33f1a073cf22e91d81e4711d1275a44099cf4001ed5aeb32c
+          12080044260 733158b0e8d05de8cf58425f17a4ed46a7a37c60280d59200c3a28b7a0859366
+          SOURCE_ARTIFACTS
+
+      - name: Independently verify flat19 and pre-raw intent against source-original bytes
+        shell: bash
+        env:
+          OUT: ${{ runner.temp }}/qa02-prewrite-originals
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, io, json, os, pathlib, stat, zipfile
+          root=pathlib.Path(os.environ["OUT"])
+          originals={
+              "12080208776":("dc5bc150000b646762efdbbb036b71d5c45142136569ed4aaaaa6be2783853d7",175),
+              "12080368683":("7c10d3722cfd3e28a066a1c94e59e35014cd61f664d3f269cd84a73f9dc3329a",1),
+              "12080178961":("81eefc975e7b39f33f1a073cf22e91d81e4711d1275a44099cf4001ed5aeb32c",2),
+              "12080044260":("733158b0e8d05de8cf58425f17a4ed46a7a37c60280d59200c3a28b7a0859366",1)}
+          source="f46d12d47bfde389124217a340613c995c2a79f8"
+          portable="38a099f313a8911654a39cbcdd4487d68143812f97c9dc03b0a6e4037df5b35a"
+          pe="79fb1c1d4f89e77350228fc50eadfc3f74358d74ada2397ac6415c990d615d04"
+          digest=lambda b:hashlib.sha256(b).hexdigest()
+          receipt=[]
+          for id,(expect,count) in originals.items():
+              b=(root/(id+".zip")).read_bytes()
+              if digest(b)!=expect:raise SystemExit("Original source ZIP SHA drift: "+id)
+              with zipfile.ZipFile(io.BytesIO(b)) as z:
+                  entries=z.infolist()
+                  if len(entries)!=count or len({e.filename for e in entries})!=count or z.testzip() is not None:
+                      raise SystemExit("Original ZIP inventory or CRC drift: "+id)
+                  for e in entries:
+                      p=pathlib.PurePosixPath(e.filename);k=stat.S_IFMT(e.external_attr>>16)
+                      if (e.is_dir() or e.flag_bits&1 or k not in (0,stat.S_IFREG) or
+                          p.is_absolute() or ".." in p.parts or "\\" in e.filename or
+                          e.filename.lower().endswith((".sfc",".smc",".swc",".rom",".iso"))):
+                          raise SystemExit("Unsafe or ROM source evidence entry: "+id)
+                  if id=="12080208776":
+                      prefix="native_intent_restart_recovery/"
+                      flat=z.read(prefix+"qa02-journaled-snapshot.zip")
+                      with zipfile.ZipFile(io.BytesIO(flat)) as nested:
+                          if len(nested.namelist())!=19 or nested.testzip() is not None:
+                              raise SystemExit("Flat independent 19-member source contract not met")
+                          required={"file-receipt.json","intent-receipt.json","intent.crash.bin",
+                                    "intent.recovered-receipt.bin","crash.log","cold-recovery.log",
+                                    "second-cold-recovery-boot.log"} | {
+                              f"{label}.{stage}.bin"
+                              for label in ("raw-sram","typed-profile","selector","roster")
+                              for stage in ("before","crash","after")}
+                          if set(nested.namelist()) != required:
+                              raise SystemExit("Flat source independent allowlist drift")
+                          for name in required:
+                              if nested.read(name)!=z.read(prefix+"fault-bytes/"+name):
+                                  raise SystemExit("Flat copied source bytes are not identical: "+name)
+                          (root/"exact-original-flat-19.zip").write_bytes(flat)
+                      pre="native_prewrite_intent_abandon/fault-bytes/"
+                      entries=json.loads(z.read(pre+"file-receipt.json"))
+                      if len(entries)!=17:raise SystemExit("Prewrite source file roster not 17")
+                      for name,info in entries.items():
+                          original=z.read(pre+name)
+                          if digest(original)!=info.get("sha256") or len(original)!=info.get("bytes"):
+                              raise SystemExit("Prewrite source original receipt mismatch: "+name)
+                      if z.read(pre+"intent.pre-raw.bin")!=z.read(prefix+"fault-bytes/intent.crash.bin"):
+                          raise SystemExit("Prewrite intent not equal original framed F2 intent")
+                      for label in ("raw-sram","typed-profile","selector","roster"):
+                          stages=[z.read(pre+f"{label}.{s}.bin")
+                                  for s in ("before","crash","first-cold","second-cold")]
+                          if not all(x==stages[0] for x in stages):
+                              raise SystemExit("Prewrite source mutated canonical file: "+label)
+                      if "QA_CRASH_PRE_RAW exit=84 intent_durable=1 raw_not_written=1" not in z.read("native_prewrite_intent_abandon/crash.log").decode("utf8","replace"):
+                          raise SystemExit("Original pre-raw process exit source marker missing")
+                  if id=="12080368683":
+                      j=json.loads(z.read("candidate-binding.json"))
+                      if (j.get("source_revision")!=source or j.get("zip_sha256")!=portable or
+                          j.get("journey_and_packaged_executable_sha256")!=pe):
+                          raise SystemExit("Candidate source/PE/ZIP identity drift")
+                  if id=="12080178961":
+                      q=z.read("UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip")
+                      if digest(q)!=portable:raise SystemExit("Portable inner ROM-free ZIP identity drift")
+                      with zipfile.ZipFile(io.BytesIO(q)) as pack:
+                          if pack.testzip() is not None:raise SystemExit("Portable package CRC corrupted")
+                          if any(n.lower().endswith((".sfc",".smc",".rom")) for n in pack.namelist()):
+                              raise SystemExit("ROM present in portable ZIP")
+                          game=pack.read(next(n for n in pack.namelist() if n.endswith("UniracersSNESRecomp.exe")))
+                          if digest(game)!=pe:raise SystemExit("Actual PE differs from candidate binding")
+                  if id=="12080044260":
+                      j=json.loads(z.read("pilot-result.json"))
+                      if (j.get("source_sha")!=source or j.get("exe_sha256")!=pe or
+                          j.get("executed_cases")!=13 or j.get("expected_cases")!=13 or
+                          any(c.get("exit_code")!=0 for c in j["cases"])):
+                          raise SystemExit("Actual hosted Windows journeys are not same source/pass")
+              receipt.append({"artifact_id":int(id),"original_sha256":expect,
+                              "original_bytes":len(b),"crc_members":count})
+          (root/"RETENTION-RECEIPT.json").write_text(json.dumps({
+             "schema":"UR-QA02-PREWRITE-FLAT19-ORIGINAL-WIN32-RETENTION/1",
+             "actual_win32_source_run":38979209657,"original_tested_PR_merge":source,
+             "original_negative_nominated_candidate_unchanged":"11501a15dea38fa912335cfc63103ce3a7208001",
+             "originals":receipt,"independent_flat19_source_byte_match":True,
+             "original_prewrite_17_source_bytes_unchanged":True,
+             "release_gate_credit":0,"physical_hardware_verified":False
+          },indent=2,sort_keys=True)+"\n",encoding="utf8")
+          print("Kept four original Actions ZIPs, with",sum(x["crc_members"] for x in receipt),
+                "original CRC-clean source members and exact 19-member flat contract")
+          PY
+          # Check all non-derived source bytes against the already integrated
+          # strict independent leaf QA reader, rather than weakening it.
+          sha="$(python3 -c 'import hashlib,pathlib,sys;print(hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest())' "$OUT/exact-original-flat-19.zip")"
+          python3 tools/check_qa02_win32_fault_snapshots.py \
+            --zip "$OUT/exact-original-flat-19.zip" --sha256 "$sha" --case journaled \
+            > "$OUT/STRICT-FLAT19-READER-VERDICT.json"
+
+      - name: Retain original source envelopes unchanged for 90 days
+        uses: actions/upload-artifact@v4
+        with:
+          name: retained-qa02-win32-prewrite-flat19-source-originals-f46d12d
+          path: ${{ runner.temp }}/qa02-prewrite-originals/
+          compression-level: 0
+          retention-days: 90
+          if-no-files-found: error

@@ -216,9 +216,9 @@ def inspect_medal_live_vram(log:str)->dict:
             if (int(d["xoff"]),int(d["yoff"]))!=(6,8) or (
                 int(d["usedcol"]),int(d["usedrow"]))!=(6,8):
                 raise ValueError("observed flipped/out-of-bounds sprite texel")
-            if (d["obsel"].lower()!="63" or int(d["obsel_bank"],16)!=0x6000 or
+            if (d["obsel"].lower()!="63" or int(d["obsel_bank"],16)!=0x7000 or
                 int(d["tile"],16)!=(0xf6 if frame==4032 else 0xf2) or
-                int(d["wordaddr"],16)!=(0x6f60 if frame==4032 else 0x6f20)):
+                int(d["wordaddr"],16)!=(0x7f60 if frame==4032 else 0x7f20)):
                 raise ValueError("actual OBJ tile/bank/word address disagrees with source")
             if int(d["overlay"]) not in (0,1) or int(d["vram_writes"])<0:
                 raise ValueError("invalid render-VRAM override or guest write counter")

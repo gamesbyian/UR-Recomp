@@ -12,12 +12,15 @@
 #include "baldosa_native_run_save_feedback.hpp"
 #include "uniracers_two_player_result.hpp"
 #include "baldosa_native_two_seat_join.hpp"
+#include "baldosa_native_options.hpp"
+#include "modern_pause_overlay_presenter.hpp"
 #include "quick_practice_route.hpp"
 #include "quick_practice_input_mask.hpp"
 #include "quick_practice_launch.hpp"
 #include "quick_practice_available_selection.hpp"
 #include "quick_practice_selection_view.hpp"
 #include "uniracers_course_identity.h"
+#include "uniracers_practice_tour_unlock.hpp"
 
 extern "C" {
 #include "desktop/config.h"
@@ -42,9 +45,17 @@ int ur_baldosa_modern_profile_can_begin_race(void);
 int ur_baldosa_modern_create_first_preset(unsigned index);
 int ur_baldosa_modern_create_second_preset(unsigned index);
 int ur_baldosa_modern_select_existing_p1_next_boot(const char* profile_id);
+// Staged by tools/baldosa_modern_options_spike.py over the framework's own
+// fullscreen / swap-interval / mixer machinery.
+int snesrecomp_desktop_product_get_display(int* fullscreen, int* vsync);
+int snesrecomp_desktop_product_apply_display(int fullscreen, int vsync);
+int snesrecomp_desktop_product_get_volume(void);
+int snesrecomp_desktop_product_set_volume(int percent);
 }
 
 #include <algorithm>
+#include <cctype>
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -66,10 +77,29 @@ constexpr std::uint8_t kNativeRootAvailable =
     (1u << static_cast<unsigned>(ModernRootDestination::Play)) |
     (1u << static_cast<unsigned>(ModernRootDestination::Practice)) |
     (1u << static_cast<unsigned>(ModernRootDestination::Multiplayer)) |
-    (1u << static_cast<unsigned>(ModernRootDestination::Records));
-// The pinned native guest has proven Dragster; tour unlock policy for the
-// remaining 44 source courses needs separate evidence before exposing them.
-constexpr ur::product::QuickPracticeAvailability kNativePracticeAvailable{1u};
+    (1u << static_cast<unsigned>(ModernRootDestination::Records)) |
+    (1u << static_cast<unsigned>(ModernRootDestination::Options));
+// Practice offers exactly the tours the ORIGINAL game's own TOUR_SELECT
+// offers this rider (stock per-rider unlock tier in the live cartridge SRAM,
+// the same read-only projection the legacy Modern host uses). The secret
+// Hunter tour stays closed. A course the stock menus would not reach can
+// never be listed, so the source route cannot be stranded by an unlock.
+ur::product::QuickPracticeAvailability native_practice_availability() {
+    constexpr std::size_t kRiderOffset = 0x0748;
+    if (!g_sram || g_sram_size != static_cast<int>(ur::product::kStockSramBytes))
+        return ur::product::quick_practice_no_tracks();
+    const std::uint8_t saved = g_sram[kRiderOffset];
+    const auto mask = ur::title::stock_practice_tour_option_mask(
+        g_sram, ur::product::kStockSramBytes, saved < 16 ? saved : 0u);
+    return mask
+        ? ur::product::quick_practice_availability_from_tour_options(*mask)
+        : ur::product::quick_practice_no_tracks();
+}
+int g_practice_target_track = -1;
+// One short, player-facing sentence on the root (cleared by the next action).
+std::string g_root_notice;
+constexpr unsigned kPracticeInputGapFrames = 20;
+unsigned g_practice_input_gap = 0;
 ur::product::QuickPracticeSelection g_practice_picker{};
 ur::product::QuickPracticeLaunchState g_practice_launch{};
 // This is the existing Modern Practice contract: source play in a scratch
@@ -78,6 +108,71 @@ bool g_practice_session_active = false;
 std::vector<std::uint8_t> g_practice_sram_snapshot;
 std::string g_practice_previous_save_root;
 ModernRootMenu g_menu{};
+// Native OPTIONS: only controls the pinned host genuinely applies.
+ur::product::BaldosaNativeOptions g_options{};
+bool options_host_get_display(void*, int* fullscreen, int* vsync) {
+    return snesrecomp_desktop_product_get_display(fullscreen, vsync) != 0;
+}
+bool options_host_apply_display(void*, int fullscreen, int vsync) {
+    return snesrecomp_desktop_product_apply_display(fullscreen, vsync) != 0;
+}
+int options_host_get_volume(void*) {
+    return snesrecomp_desktop_product_get_volume();
+}
+int options_host_set_volume(void*, int percent) {
+    return snesrecomp_desktop_product_set_volume(percent);
+}
+ur::product::BaldosaOptionsHost options_host() {
+    ur::product::BaldosaOptionsHost host;
+    host.get_display = &options_host_get_display;
+    host.apply_display = &options_host_apply_display;
+    host.get_volume = &options_host_get_volume;
+    host.set_volume = &options_host_set_volume;
+    return host;
+}
+const char* options_load_name(ur::product::BaldosaOptionsLoad load) {
+    switch (load) {
+    case ur::product::BaldosaOptionsLoad::Missing: return "missing";
+    case ur::product::BaldosaOptionsLoad::Loaded: return "loaded";
+    case ur::product::BaldosaOptionsLoad::Damaged: return "damaged";
+    case ur::product::BaldosaOptionsLoad::IoError: return "io_error";
+    }
+    return "unknown";
+}
+void log_options(const char* event) {
+    std::fprintf(stderr,
+        "UR_BALDOSA_MODERN_ROOT %s row=%s display=%s vsync=%s volume=%d "
+        "status=%s help=%d load=%s\n",
+        event,
+        ur::product::baldosa_options_row_label(g_options.selected),
+        ur::product::baldosa_options_display_label(g_options.display),
+        ur::product::baldosa_options_vsync_label(g_options.vsync),
+        g_options.volume,
+        g_options.status == ur::product::BaldosaOptionsStatus::None
+            ? "NONE" : ur::product::baldosa_options_status_text(
+                  g_options.status),
+        g_options.controls_help ? 1 : 0,
+        options_load_name(g_options.load));
+}
+// The in-race pause menu can open the same Options model (guest frozen).
+bool g_pause_options_open = false;
+void fill_options_view(
+    ModernRootOverlayView& view,
+    std::array<ur::product::BaldosaOptionsRowText,
+               ur::product::kBaldosaOptionsRowCount>& option_text) {
+    option_text = ur::product::baldosa_options_row_texts(g_options);
+    view.options_open = true;
+    view.options_controls_help = g_options.controls_help;
+    view.options_selected = static_cast<std::size_t>(g_options.selected);
+    view.options_row_count = option_text.size();
+    for (std::size_t i = 0; i < option_text.size(); ++i)
+        view.options_rows[i] = {option_text[i].label, option_text[i].value,
+                                option_text[i].adjustable};
+    view.options_status =
+        ur::product::baldosa_options_status_text(g_options.status);
+    view.options_notice =
+        ur::product::baldosa_options_standing_notice(g_options);
+}
 ur::product::ModernRootPhysicalEdges g_navigation_edges{};
 ur::product::ModernRootPhysicalEdges g_p2_join_edges{};
 ur::product::BaldosaNativeTwoSeatJoin g_two_seat_join{};
@@ -218,6 +313,13 @@ bool begin_practice_session() {
 }
 void practice_route_abort(const char* reason) {
     ur_baldosa_product_cancel_stock_menu_input();
+    g_practice_target_track = -1;
+    if (std::strcmp(reason, "cancelled") != 0)
+        g_root_notice = std::strcmp(reason, "timeout") == 0
+            ? "COURSE NOT REACHABLE - RETRY"
+            : std::strcmp(reason, "active_profile_stale") == 0
+                ? "RACER CHANGED - RESTART GAME"
+                : "PRACTICE STOPPED - TRY AGAIN";
     if (!restore_practice_session()) g_named_profile_stale = true;
     g_practice_launch = {};
     std::fprintf(stderr,
@@ -228,6 +330,11 @@ void stock_route_abort(const char* reason) {
     ur_baldosa_product_cancel_stock_menu_input();
     g_two_seat_join.cancel();
     std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT stock_rejected=%s\n", reason);
+    if (std::strcmp(reason, "cancelled") != 0)
+        g_root_notice = std::strcmp(reason, "active_profile_stale") == 0 ||
+                        std::strcmp(reason, "join_authority_changed") == 0
+            ? "RACER CHANGED - RESTART GAME"
+            : "COULD NOT START - TRY AGAIN";
     g_stock_target = -1;
     g_stock_waiting_transition = false;
     g_stock_waiting_cursor = false;
@@ -252,6 +359,8 @@ bool reopen_on_observed_stock_main() {
     g_visible = true;
     g_confirm_quit = false;
     g_records_open = false;
+    g_options.open = false;
+    g_options.controls_help = false;
     g_practice_picker = {};
     g_practice_launch = {};
     g_unbound_two_player_warning_open = false;
@@ -352,10 +461,14 @@ void open_records_archive() {
 bool named_profile_still_playable() {
     // Once a selected profile becomes stale, require a process restart.
     // Reopening the root must never silently reactivate a different SRAM.
-    if (g_named_profile_stale) return false;
+    if (g_named_profile_stale) {
+        g_root_notice = "RESTART TO USE NEW RACER";
+        return false;
+    }
     if (ur_baldosa_modern_profile_can_begin_race()) return true;
     g_named_profile_stale = true;
     g_racer_name = "PROFILE CHANGED - RESTART APP";
+    g_root_notice = "RACER CHANGED - RESTART GAME";
     std::fprintf(stderr,
         "UR_BALDOSA_MODERN_ROOT active_profile_stale=1 restart_required=1\n");
     return false;
@@ -407,7 +520,7 @@ void open_stock_racer_setup() {
     // second seat's input, or while another root child owns focus.
     if (!g_visible || g_stock_target != -1 ||
         ur::product::quick_practice_launch_owns_player_input(g_practice_launch) ||
-        g_practice_picker.visible || g_records_open ||
+        g_practice_picker.visible || g_records_open || g_options.open ||
         g_confirm_quit || g_two_seat_join.open() ||
         g_unbound_two_player_warning_open || g_first_racer_open ||
         g_second_racer_open || g_existing_switch_open ||
@@ -474,14 +587,19 @@ void choose() {
     if (g_stock_target != -1 ||
         ur::product::quick_practice_launch_owns_player_input(g_practice_launch))
         return;
+    if (g_options.open) {
+        ur::product::baldosa_options_activate(g_options);
+        log_options("options_activated");
+        return;
+    }
     if (g_practice_picker.visible) {
         if (!named_profile_still_playable()) return;
         const auto selected = ur::product::quick_practice_available_selection_apply(
             g_practice_picker,
             ur::product::QuickPracticeSelectionCommand::Confirm,
-            kNativePracticeAvailable);
+            native_practice_availability());
         if (selected.result != ur::product::QuickPracticeSelectionResult::Confirmed ||
-            !selected.target.valid || selected.target.track_id != 0u) return;
+            !selected.target.valid) return;
         if (!begin_practice_session()) {
             std::fprintf(stderr,
                 "UR_BALDOSA_MODERN_ROOT practice_rejected=save_sandbox "
@@ -489,10 +607,20 @@ void choose() {
             return;
         }
         g_practice_picker = selected.state;
+        g_practice_target_track = selected.target.track_id;
+        g_practice_input_gap = 0;
         g_practice_launch = ur::product::begin_quick_practice_launch(selected.target);
-        std::fprintf(stderr,
-            "UR_BALDOSA_MODERN_ROOT practice_requested=1 course=0 name=DRAGSTER "
-            "source_route=stock\n");
+        {
+            const auto* course = ur::product::quick_practice_course(
+                selected.target.track_id);
+            std::string name(course ? course->name : "");
+            for (auto& ch : name)
+                ch = static_cast<char>(std::toupper(static_cast<unsigned char>(ch)));
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_ROOT practice_requested=1 course=%d name=%s "
+                "source_route=stock\n",
+                static_cast<int>(selected.target.track_id), name.c_str());
+        }
         return;
     }
     if (g_existing_switch_open) {
@@ -592,16 +720,30 @@ void choose() {
     const auto index = ur::product::modern_root_destination_index(selected);
     if (selected == ModernRootDestination::Practice) {
         if (!named_profile_still_playable()) return;
+        const auto availability = native_practice_availability();
         g_practice_picker = ur::product::open_available_quick_practice_selection(
-            0u, kNativePracticeAvailable);
+            0u, availability);
         if (g_practice_picker.visible)
             std::fprintf(stderr,
-                "UR_BALDOSA_MODERN_ROOT practice_opened=1 available=1 "
-                "course=0 source_menu_required=1\n");
+                "UR_BALDOSA_MODERN_ROOT practice_opened=1 available=%d "
+                "course=%d source_menu_required=1\n",
+                ur::product::quick_practice_available_count(availability),
+                static_cast<int>(g_practice_picker.picker.track_id));
+        else
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_ROOT practice_unavailable=1 "
+                "reason=no_unlocked_tours\n");
         return;
     }
     if (selected == ModernRootDestination::Records) {
         open_records_archive();
+        return;
+    }
+    if (selected == ModernRootDestination::Options) {
+        // Settings never depend on a racer: a stale or absent profile must
+        // not lock the player out of volume or display recovery.
+        ur::product::baldosa_options_open(g_options);
+        log_options("options_opened");
         return;
     }
     if ((kNativeRootAvailable & (1u << index)) == 0) {
@@ -670,14 +812,22 @@ void navigate(int delta) {
     if (g_confirm_quit || g_stock_target != -1 ||
         ur::product::quick_practice_launch_owns_player_input(g_practice_launch) ||
         g_unbound_two_player_warning_open) return;
+    if (g_options.open) {
+        ur::product::baldosa_options_move(g_options, delta);
+        log_options("options_row");
+        return;
+    }
     if (g_practice_picker.visible) {
         const auto result = ur::product::quick_practice_available_selection_apply(
             g_practice_picker,
             delta > 0
                 ? ur::product::QuickPracticeSelectionCommand::NextCourse
                 : ur::product::QuickPracticeSelectionCommand::PreviousCourse,
-            kNativePracticeAvailable);
+            native_practice_availability());
         g_practice_picker = result.state;
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT practice_course=%d\n",
+            static_cast<int>(g_practice_picker.picker.track_id));
         return;
     }
     if (g_existing_switch_open) return;
@@ -720,7 +870,33 @@ void navigate(int delta) {
         ur::product::modern_root_destination_index(
             ur::product::modern_root_menu_selected(g_menu)));
 }
+// LEFT / RIGHT. Only the Options modal consumes them today.
+void adjust(int delta) {
+    if (g_practice_picker.visible && g_stock_target == -1 &&
+        !ur::product::quick_practice_launch_owns_player_input(
+            g_practice_launch)) {
+        const auto result = ur::product::quick_practice_available_selection_apply(
+            g_practice_picker,
+            delta > 0 ? ur::product::QuickPracticeSelectionCommand::NextTour
+                      : ur::product::QuickPracticeSelectionCommand::PreviousTour,
+            native_practice_availability());
+        g_practice_picker = result.state;
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT practice_course=%d tour_step=%d\n",
+            static_cast<int>(g_practice_picker.picker.track_id), delta);
+        return;
+    }
+    if (!g_options.open || g_confirm_quit || g_stock_target != -1) return;
+    ur::product::baldosa_options_adjust(g_options, delta);
+    log_options("options_adjusted");
+}
 void back() {
+    if (g_options.open) {
+        ur::product::baldosa_options_close(g_options);
+        log_options(g_options.open ? "options_help_closed"
+                                   : "options_closed");
+        return;
+    }
     if (ur::product::quick_practice_launch_owns_player_input(g_practice_launch)) {
         practice_route_abort("cancelled");
         return;
@@ -818,6 +994,18 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     g_practice_launch = {};
     g_confirm_quit = false;
     g_records_open = false;
+    {
+        // Restore saved Display/VSync before the window is created; a
+        // missing file leaves the framework's own config.ini authoritative
+        // and a damaged one is reported in OPTIONS without being forced.
+        const char* user_root = std::getenv("SNESRECOMP_USER_DATA_DIR");
+        const std::string options_path = user_root && *user_root
+            ? ur::product::baldosa_options_path(user_root).string()
+            : std::string{};
+        ur::product::baldosa_options_boot(
+            g_options, options_path, options_host());
+        log_options("options_boot");
+    }
     g_unbound_two_player_warning_open = false;
     g_named_profile_stale = false;
     g_first_racer_open = false;
@@ -881,6 +1069,8 @@ extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
     case SDLK_RETURN: physical = 2; action = 2; break;
     case SDLK_ESCAPE: physical = 3; action = 3; break;
     case SDLK_x: physical = 4; action = 4; break;
+    case SDLK_LEFT: physical = 5; action = 5; break;
+    case SDLK_RIGHT: physical = 6; action = 6; break;
     default: return 0;
     }
     // Continue tracking release after a stock-game handoff. An Escape held
@@ -892,9 +1082,12 @@ extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
         return key == SDLK_ESCAPE && first_press &&
                reopen_on_observed_stock_main() ? 1 : 0;
     if (!first_press) return 1;
+    g_root_notice.clear();
     if (action == 2) choose();
     else if (action == 3) back();
     else if (action == 4) open_stock_racer_setup();
+    else if (action == 5) adjust(-1);
+    else if (action == 6) adjust(1);
     else navigate(action);
     return 1;
 }
@@ -930,6 +1123,8 @@ extern "C" int ur_baldosa_modern_root_gamepad(
     case kGamepadBtn_Start: physical = 3; action = 2; break;
     case kGamepadBtn_B: physical = 4; action = 3; break;
     case kGamepadBtn_X: physical = 5; action = 4; break;
+    case kGamepadBtn_DpadLeft: physical = 6; action = 5; break;
+    case kGamepadBtn_DpadRight: physical = 7; action = 6; break;
     default: return 0;
     }
     // A and Start keep separate physical latches while sharing Confirm.
@@ -940,9 +1135,12 @@ extern "C" int ur_baldosa_modern_root_gamepad(
         return button == kGamepadBtn_B && first_press &&
                reopen_on_observed_stock_main() ? 1 : 0;
     if (!first_press) return 1;
+    g_root_notice.clear();
     if (action == 2) choose();
     else if (action == 3) back();
     else if (action == 4) open_stock_racer_setup();
+    else if (action == 5) adjust(-1);
+    else if (action == 6) adjust(1);
     else navigate(action);
     return 1;
 }
@@ -974,6 +1172,7 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         g_records_open, g_records_status, g_records_recent,
         g_records_two_player, true};
     view.records_detail = g_records_detail;
+    view.root_notice = g_root_notice;
     view.practice_picker_open = g_practice_picker.visible;
     view.practice_launch_pending =
         ur::product::quick_practice_launch_owns_player_input(g_practice_launch);
@@ -981,6 +1180,9 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         const auto preview = ur::product::quick_practice_selection_view(
             g_practice_picker);
         view.practice_course_name = preview.course_name;
+        view.practice_courses_open = static_cast<std::uint8_t>(
+            ur::product::quick_practice_available_count(
+                native_practice_availability()));
         view.practice_tour_name = preview.tour_name;
         view.practice_kind_label = preview.kind_label;
     }
@@ -1029,6 +1231,9 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         view.join_p1_confirmed = g_two_seat_join.confirmed(0);
         view.join_p2_confirmed = g_two_seat_join.confirmed(1);
     }
+    std::array<ur::product::BaldosaOptionsRowText,
+               ur::product::kBaldosaOptionsRowCount> option_text{};
+    if (g_options.open) fill_options_view(view, option_text);
     const bool drawn = ur::product::render_modern_root_overlay(
         painter, reinterpret_cast<std::uint32_t*>(dst),
         static_cast<int>(pitch / 4), height, 1, 240,
@@ -1069,6 +1274,29 @@ void observe_practice_guest() {
     const auto identity = in_race
         ? ur_uniracers_identify_course(g_ram + 0x10000u, 0x10000u)
         : UrUniracersCourseIdentity{};
+    {
+        // Bounded, change-only diagnostic of the ORIGINAL menus the route
+        // is walking (menu id and cursor), so a stranded course shows
+        // exactly where the stock game refused to go.
+        static unsigned last = 0x10000u;
+        const unsigned now = (static_cast<unsigned>(g_ram[0x009f]) << 8) |
+                             g_ram[0x009b];
+        if (now != last) {
+            last = now;
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_ROOT practice_trace menu=%02x cursor=%u\n",
+                static_cast<unsigned>(g_ram[0x009f]),
+                static_cast<unsigned>(g_ram[0x009b]));
+        }
+    }
+    // The stock list menus do not register a second discrete press issued on
+    // the very next frame after a cursor move (measured on the real guest:
+    // a one-step tour/track move works, a multi-step walk strands). Give each
+    // queued input a short physical-style gap before the next is considered.
+    if (g_practice_input_gap > 0) {
+        --g_practice_input_gap;
+        return;
+    }
     const QuickPracticeLaunchObservation observation{
         g_ram[0x009f], g_ram[0x009b], in_race,
         identity.valid ? identity.course_index - 1 : -1};
@@ -1099,11 +1327,16 @@ void observe_practice_guest() {
         }
     }
     g_practice_launch = step.state;
+    if (step.input != QuickPracticeLaunchInput::None)
+        g_practice_input_gap = kPracticeInputGapFrames;
     if (!step.race_ready) return;
-    if (!in_race || !identity.valid || identity.course_index != 1) {
+    if (!in_race || !identity.valid || g_practice_target_track < 0 ||
+        identity.course_index != g_practice_target_track + 1) {
         practice_route_abort("course_identity_unverified");
         return;
     }
+    const int entered_track = g_practice_target_track;
+    g_practice_target_track = -1;
     g_practice_launch = {};
     g_visible = false;
     g_stock_handed_off = true;
@@ -1112,8 +1345,9 @@ void observe_practice_guest() {
     g_handed_off_saw_race = true;
     ur_baldosa_product_set_host_focus(0);
     std::fprintf(stderr,
-        "UR_BALDOSA_MODERN_ROOT practice_entered=1 course=0 "
-        "original_course=1 race=1 source_identity=verified\n");
+        "UR_BALDOSA_MODERN_ROOT practice_entered=1 course=%d "
+        "original_course=%d race=1 source_identity=verified\n",
+        entered_track, entered_track + 1);
 }
 extern "C" void ur_baldosa_modern_root_stock_observe_guest(void) {
     observe_practice_guest();
@@ -1262,17 +1496,18 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         if (SDL_PushEvent(&event) != 1) std::abort();
     }
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
-    if (!g_visible || !opt || (std::strcmp(opt, "1") != 0 &&
-                             std::strcmp(opt, "2") != 0 &&
-                             std::strcmp(opt, "3") != 0 &&
-                             std::strcmp(opt, "4") != 0 &&
-                             std::strcmp(opt, "5") != 0 &&
-                             std::strcmp(opt, "6") != 0 &&
-                             std::strcmp(opt, "7") != 0 &&
-                             std::strcmp(opt, "8") != 0 &&
-                             std::strcmp(opt, "9") != 0 &&
-                             std::strcmp(opt, "10") != 0 &&
-                             std::strcmp(opt, "11") != 0)) return;
+    // Smoke modes are the decimal strings "1".."14" and nothing else.
+    {
+        char* parse_end = nullptr;
+        const long mode = opt && *opt ? std::strtol(opt, &parse_end, 10) : 0;
+        if (!g_visible || !opt || !parse_end || *parse_end != '\0' ||
+            mode < 1 || mode > 14) return;
+        // Test-only: stop scripted input after this frame so a human or a
+        // screenshot harness can inspect the held screen.
+        const char* last = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME");
+        if (last && *last && frame > static_cast<unsigned>(std::strtoul(
+                last, nullptr, 10))) return;
+    }
     // Controlled host-root edge on an anonymous install. No created racer
     // is activated in this guest; a new process must load canonical SRAM.
     if (std::strcmp(opt, "4") == 0) {
@@ -1447,12 +1682,87 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
             named ? "mike" : "anonymous", action);
         return;
     }
+    // CI-only mode 12 drives the real native OPTIONS journey through the
+    // production P1 gamepad handler: Down x4 and A open OPTIONS; RIGHT
+    // changes Display to borderless; Down + RIGHT moves VSync to adaptive;
+    // Down + LEFT lowers Volume to 90; Down + A opens the Controls page,
+    // B closes it, B closes OPTIONS, then B / A confirms Quit so the
+    // normal host shutdown persists nothing it has not already saved.
+    // Semantic pad edges only: not physical controller acceptance.
+    if (std::strcmp(opt, "12") == 0) {
+        const int button =
+            frame >= 60 && frame <= 63 ? kGamepadBtn_DpadDown :
+            frame == 64 ? kGamepadBtn_A :
+            frame == 66 ? kGamepadBtn_DpadRight :
+            frame == 68 ? kGamepadBtn_DpadDown :
+            frame == 70 ? kGamepadBtn_DpadRight :
+            frame == 72 ? kGamepadBtn_DpadDown :
+            frame == 74 ? kGamepadBtn_DpadLeft :
+            frame == 76 ? kGamepadBtn_DpadDown :
+            frame == 78 ? kGamepadBtn_A :
+            frame == 80 || frame == 82 || frame == 90 ? kGamepadBtn_B :
+            frame == 92 ? kGamepadBtn_A : -1;
+        if (button < 0) return;
+        if (!ur_baldosa_modern_root_gamepad(0, button, 1) ||
+            !ur_baldosa_modern_root_gamepad(0, button, 0))
+            std::abort();
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT options_gamepad frame=%u button=%d\n",
+            frame, button);
+        return;
+    }
+    // CI-only mode 14: boot, then ask to quit and confirm (B, A) through the
+    // production P1 handler. Used by packaged-launcher runs that must not
+    // change any setting but still need a clean, script-free exit.
+    if (std::strcmp(opt, "14") == 0) {
+        const int button = frame == 60 ? kGamepadBtn_B :
+                           frame == 62 ? kGamepadBtn_A : -1;
+        if (button < 0) return;
+        if (!ur_baldosa_modern_root_gamepad(0, button, 1) ||
+            !ur_baldosa_modern_root_gamepad(0, button, 0))
+            std::abort();
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT quit_gamepad frame=%u button=%d\n",
+            frame, button);
+        return;
+    }
+    // CI-only mode 13: a fresh process proves the persisted choices were
+    // restored, then reaches DEFAULTS (Down x4 after A opens OPTIONS) and
+    // restores them, then quits.
+    if (std::strcmp(opt, "13") == 0) {
+        const int button =
+            frame >= 60 && frame <= 63 ? kGamepadBtn_DpadDown :
+            frame == 64 ? kGamepadBtn_A :
+            frame >= 66 && frame <= 69 ? kGamepadBtn_DpadDown :
+            frame == 71 ? kGamepadBtn_A :
+            frame == 80 || frame == 82 ? kGamepadBtn_B :
+            frame == 84 ? kGamepadBtn_A : -1;
+        if (button < 0) return;
+        if (!ur_baldosa_modern_root_gamepad(0, button, 1) ||
+            !ur_baldosa_modern_root_gamepad(0, button, 0))
+            std::abort();
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT options_gamepad frame=%u button=%d\n",
+            frame, button);
+        return;
+    }
     // CI-only mode 11 traverses the real P1 handler: Down, A to open
     // Practice, A to confirm Dragster. The original tour/racer/track/GO
     // navigation thereafter belongs solely to the shared route state.
     if (std::strcmp(opt, "11") == 0) {
-        const int button = frame == 60 ? kGamepadBtn_DpadDown :
-                           frame == 62 || frame == 64 ? kGamepadBtn_A : -1;
+        // Optional CI-only course walk: UR_BALDOSA_PRACTICE_TEST_STEPS=n
+        // presses DPAD DOWN n more times inside the picker (each is one
+        // genuine NextCourse over the unlocked courses) before the confirm A.
+        // Unset keeps the original Down, A, A (Dragster) gesture exactly.
+        const char* steps_env = std::getenv("UR_BALDOSA_PRACTICE_TEST_STEPS");
+        const unsigned steps = steps_env && *steps_env
+            ? static_cast<unsigned>(std::strtoul(steps_env, nullptr, 10)) : 0u;
+        const unsigned confirm = 64u + 2u * steps;
+        int button = -1;
+        if (frame == 60) button = kGamepadBtn_DpadDown;
+        else if (frame == 62 || frame == confirm) button = kGamepadBtn_A;
+        else if (frame > 62 && frame < confirm && (frame % 2u) == 0u)
+            button = kGamepadBtn_DpadDown;
         if (button < 0) return;
         if (!ur_baldosa_modern_root_gamepad(0, button, 1) ||
             !ur_baldosa_modern_root_gamepad(0, button, 0))
@@ -1527,6 +1837,60 @@ extern "C" unsigned ur_baldosa_modern_root_guest_players(void) {
     return configured() && !g_practice_session_active &&
         !g_visible && g_stock_handed_off
         ? g_handed_off_players : 0u;
+}
+
+
+// In-race pause -> OPTIONS. The pause owner routes only its own edges here
+// while the guest is frozen; nothing here steps or writes the guest.
+extern "C" int ur_baldosa_modern_root_pause_options_open(void) {
+    if (!configured()) return 0;
+    ur::product::baldosa_options_open(g_options);
+    g_pause_options_open = true;
+    log_options("pause_options_opened");
+    return 1;
+}
+extern "C" int ur_baldosa_modern_root_pause_options_active(void) {
+    return configured() && g_pause_options_open ? 1 : 0;
+}
+extern "C" void ur_baldosa_modern_root_pause_options_close(void) {
+    if (!g_pause_options_open) return;
+    g_options.open = false;
+    g_options.controls_help = false;
+    g_options.status = ur::product::BaldosaOptionsStatus::None;
+    g_pause_options_open = false;
+}
+// action: 0 up, 1 down, 2 activate, 3 cancel, 4 left, 5 right.
+extern "C" int ur_baldosa_modern_root_pause_options_input(int action) {
+    if (!ur_baldosa_modern_root_pause_options_active()) return 0;
+    switch (action) {
+    case 0: ur::product::baldosa_options_move(g_options, -1); break;
+    case 1: ur::product::baldosa_options_move(g_options, 1); break;
+    case 2: ur::product::baldosa_options_activate(g_options); break;
+    case 3:
+        ur::product::baldosa_options_close(g_options);
+        if (!g_options.open) g_pause_options_open = false;
+        break;
+    case 4: ur::product::baldosa_options_adjust(g_options, -1); break;
+    case 5: ur::product::baldosa_options_adjust(g_options, 1); break;
+    default: return 1;
+    }
+    log_options(action == 3 ? "pause_options_back" : "pause_options_input");
+    return 1;
+}
+extern "C" int ur_baldosa_modern_root_pause_options_draw(
+    std::uint8_t* pixels, std::size_t pitch, int width, int height) {
+    if (!ur_baldosa_modern_root_pause_options_active() || !pixels ||
+        pitch < static_cast<std::size_t>(width) * 4 || pitch % 4 != 0)
+        return 0;
+    const ModernRootOverlayPainter painter{
+        &snes_ovl_fill_rect, &snes_ovl_stroke_rect, &snes_ovl_draw_text};
+    ModernRootOverlayView view{};
+    std::array<ur::product::BaldosaOptionsRowText,
+               ur::product::kBaldosaOptionsRowCount> option_text{};
+    fill_options_view(view, option_text);
+    return ur::product::render_native_modern_pause_options(
+        painter, reinterpret_cast<std::uint32_t*>(pixels),
+        static_cast<int>(pitch / 4), width, height, view) ? 1 : 0;
 }
 
 extern "C" unsigned ur_baldosa_modern_root_paint_count(void) {

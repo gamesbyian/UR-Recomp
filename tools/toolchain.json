@@ -237,7 +237,7 @@
       "group": "oracle-extra",
       "url": "https://github.com/libretro/bsnes-libretro.git",
       "revision": "05439f96121d2b9d7ad7a5fc1f29d7eebdcc8c43",
-      "purpose": "Independent high-accuracy libretro oracle for cross-checking emulator-sensitive behavior. Patched narrowly to expose its 128 KiB work RAM as RETRO_MEMORY_SYSTEM_RAM so headless harnesses can read guest state; no timing or emulation change.",
+      "purpose": "Independent high-accuracy libretro oracle for cross-checking emulator-sensitive behavior. Patched narrowly to expose its 128 KiB work RAM as RETRO_MEMORY_SYSTEM_RAM and the cartridge battery RAM as RETRO_MEMORY_SAVE_RAM so headless harnesses can read guest state and inject an exact SRAM image; no timing or emulation change.",
       "build": [
         [
           "make",
@@ -258,7 +258,7 @@
       "patches": [
         {
           "path": "tools/patches/bsnes-libretro-system-ram.patch",
-          "sha256": "09c4f1194286f79201c09b4aa0c37edeb2b8f66507fa2de14351132159cff806"
+          "sha256": "97739e2cc3a8cd0cb38b02d51b9bdceead2c1d08dd83fa2289993813a948755b"
         }
       ]
     },

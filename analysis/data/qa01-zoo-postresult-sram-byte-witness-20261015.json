@@ -1,0 +1,128 @@
+{
+  "schema": "UR-QA01-ZOO-POSTRESULT-SRAM-INDEPENDENT-WITNESS/1",
+  "date": "2026-10-15",
+  "scientific_disposition": "strict_candidate_post_result_divergence_not_accepted",
+  "current_complete_usa_events": 0,
+  "usa_denominator": 45,
+  "release_credit": 0,
+  "execution": {
+    "run_id": 38702124777,
+    "run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38702124777",
+    "all_four_jobs_success": true,
+    "source_sha": "d803189874e19d9862126c6f5203685f9083ab33",
+    "plan_artifact_id": 11956950358,
+    "plan_sha256": "64f17cd8de284425965e96395431400ce0e294b34d5503ed9a832500ae04f797",
+    "case_artifact_id": 11957261646,
+    "case_artifact_zip_sha256": "bb693ae37c74d474a05f50855aafeb8fc82cbb68df6bca02d35d4a175ec58a09",
+    "binaries_artifact_id": 11956748369,
+    "binaries_artifact_zip_sha256": "b5b92fcdb23aeb9de0dc0cb4a74b6cd60de38337f9e2f9ac1fc39ffe8c4f3eb2"
+  },
+  "source": {
+    "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "movie_window_sha256": "a95636aa12de9a9c174d3cf15069e22be24e10879188272fcd4ec12eddc2c11e",
+    "original_movie_entry": 3190,
+    "original_movie_result": 8353,
+    "reference_core_sha256": "06461ec57db3ce7163c6f051b51c3f9da2ded2d5326205d68ccc9b920665e9a8",
+    "native_research_elf_sha256": "527015f2389626102be2b697ea5881ed9604948c73e9a74c1e778d60a00c411a",
+    "reference_guest_entry_host": 1017,
+    "native_guest_entry_host": 1019,
+    "result_onset_original_relative": 5163,
+    "result_onset_native_relative": 5163
+  },
+  "paired_live_battery_sram": [
+    {
+      "result_relative_offset": 8,
+      "differing_bytes": 0
+    },
+    {
+      "result_relative_offset": 16,
+      "differing_bytes": 0,
+      "original_changed_since_8": 14,
+      "native_changed_since_8": 14
+    },
+    {
+      "result_relative_offset": 24,
+      "differing_bytes": 0
+    },
+    {
+      "result_relative_offset": 32,
+      "differing_bytes": 0
+    },
+    {
+      "result_relative_offset": 64,
+      "differing_bytes": 1,
+      "first_difference": {
+        "address": "0x10A7",
+        "original": "0x0C",
+        "native": "0x0D"
+      },
+      "original_changed_since_32": 5,
+      "native_changed_since_32": 5
+    },
+    {
+      "result_relative_offset": 72,
+      "differing_bytes": 1,
+      "first_difference": {
+        "address": "0x10A7",
+        "original": "0x0C",
+        "native": "0x0D"
+      }
+    }
+  ],
+  "original_ranked_records": "all three rank entries, holders and 0x054E track record checksum equal throughout pair; rank-zero best lap updates to 2510 by result+16 on both engines",
+  "source_name_lead": {
+    "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/decomp/ram.txt",
+    "line": 67,
+    "imported_address": "7710A7",
+    "name": "sCutsceneTimer2",
+    "width_bytes": 2,
+    "description": "Secondary frame counter in league-win cutscenes (SRAM used as scratch)",
+    "authority": "imported lead only; no independently traced original opcode writer/reader or current-menu liveness"
+  },
+  "limits": {
+    "first_execution_frame_known": false,
+    "cold_process_reload_proven": false,
+    "record_or_tour_progression_failure_proven": false,
+    "original_native_logic_tick_equivalence_proven": false,
+    "player_testable_windows_candidate_proven": false,
+    "strict_full_event_accepted": false
+  },
+  "next_discriminator": "Use existing source symbol/guest writer or reader evidence to test whether 0x10A7 remains live during this Zoo result-to-track-select handoff; do not modify CPU/APU/NMI owned source, shift original inputs or waive strict timing.",
+  "independent_repeat": {
+    "run_id": 38702441615,
+    "run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38702441615",
+    "case_artifact_id": 11957203318,
+    "case_artifact_zip_sha256": "2b8b51c1cff48ac9fe3d087aedd2b29f9fd63c5037859ba8072717f278284f76",
+    "all_four_jobs_success": true,
+    "reference_core_sha256": "796b1ac26f2e0fa7d6799802b3c55de44b630fce1c0e0a22059edea01bf626bc",
+    "native_executable_sha256": "527015f2389626102be2b697ea5881ed9604948c73e9a74c1e778d60a00c411a",
+    "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "input_sha256": "04ad1c2d70b38d3f33513468be2c94acc4b0c452a323631aebb390a3542f75e8",
+    "source_equivalence_class": "temporary workflow policy-only concurrency revision; original controller and gameplay source producer unchanged",
+    "scientific_disposition": "strict_candidate",
+    "release_credit": 0,
+    "byte_comparison_6_samples_exactly_equal_to_first_run": true,
+    "paired_sram_difference_at_64_and_72": {
+      "address": "0x10A7",
+      "original": "0x0C",
+      "native": "0x0D"
+    }
+  },
+  "source_preload_review": {
+    "identified": "2026-10-15",
+    "prior_runs_start_from_intended_2014_original_sram_proven": false,
+    "prior_runs_original_native_byte_differences_observed": true,
+    "cause": "run_pinned_baldosa passed --config and ran with cwd=work but seeded native_executable_parent/saves; pinned RtlReadSram uses cwd/saves/save.srm",
+    "corrected_replay_run_id": 38784747445,
+    "corrected_replay_case_sha256": "41a7f7c770253c4d88f44471c1d18ba820914b5ca3fabd132d63ecfc76eb8604",
+    "corrected_replay_source_sha": "ae4bff51f109a88a903c00d020f001563d20d8ef",
+    "corrected_replay_source_anchored": true,
+    "corrected_replay_replicates_original_native_onset": true,
+    "corrected_replay_replicates_all_six_sample_byte_delta_patterns": true,
+    "corrected_replay_cold_ranked_record_guest_read_pass": true,
+    "original_report_provenance_overwritten": false,
+    "event_acceptance_credit": 0,
+    "authority": "docs/QA01-PINNED-BALDOSA-SRAM-PRELOAD-IDENTITY-20261015.md"
+  }
+}

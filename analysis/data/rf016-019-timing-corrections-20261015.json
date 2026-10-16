@@ -1,0 +1,271 @@
+{
+ "authority": "docs/RF016-019-TIMING-CORRECTIONS-20261015.md",
+ "complete_event_credit": 0,
+ "date": "2026-10-15",
+ "executables": {
+  "rf016_018_019_1p": "9fb998d2f352ddea3710e5a2fb52d1aab91edf8b93adce3cb16cc9c4f87ea062",
+  "rf016_018_019_2p": "6c9cd0e9f5dd048fdafd2c55b5615e157c4c7bc8b280c15e9a0407f4895b3c1e",
+  "rf016_018_1p": "7244e72bab15da01e4d13e43cb5402fe2c32ce148b9fdfd6e5848e92f9ebc5b2",
+  "rf016_018_2p": "ec20e9b6976517b1f6321f58bb3420c9844e931b2ed40a84ae9467a30d044c8c",
+  "rf016_2p": "ddcc30131170778d014c3919c087e7fa8ec4223d5e7b555822c10c60294a0c30"
+ },
+ "hosted_reexecution": {
+  "38792581653": {
+   "head": "65befa54e566cf34d829376956561e2bdc8e37a1",
+   "postresult_sram_first_sampled_disagreement": null,
+   "producer_exit": 0,
+   "staged": [
+    "RF-015",
+    "RF-017",
+    "RF-016",
+    "RF-018",
+    "RF-019"
+   ],
+   "verify_gen": [
+    "verified 89 generated files: 15484 in-order charge statements, every block total unchanged",
+    "verified 89 generated files: 152 [dp],Y pointers read once, none twice"
+   ],
+   "zoo_onset": [
+    5163,
+    5163
+   ]
+  },
+  "artifact_contents_read_by_this_session": false
+ },
+ "pins": {
+  "base_corrections": [
+   "RF-015",
+   "RF-017"
+  ],
+  "framework": "baldosa/snesrecomp@075fbe4c8e0d97b0013be541795c39cb644a9709",
+  "game": "gamesbyian/uniracers-recomp@10b864b9d14a7b7416dd909eb7b054c88faef101",
+  "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
+ },
+ "regression_full_candidate": {
+  "2p_pairs": 18,
+  "identical_to_rf017_build": true,
+  "producer_1p": {
+   "bowl": "unchanged +3365=+3365",
+   "dragster": "unchanged +2080 vs +2081; +64 menu 22 vs 246",
+   "switcher": "unchanged +4703 vs +4704",
+   "zoom-zoo": "strict_candidate +5163=+5163; six follow-through menus and six fresh SRAM images equal"
+  }
+ },
+ "release_gate_credit": 0,
+ "rf016": {
+  "attract_dark_runs_vs_bsnes": {
+   "bsnes": [
+    [
+     248,
+     276
+    ],
+    [
+     401,
+     443
+    ],
+    [
+     941,
+     1098
+    ],
+    [
+     1423,
+     1547
+    ],
+    [
+     3632,
+     3762
+    ]
+   ],
+   "rf016": [
+    [
+     248,
+     276
+    ],
+    [
+     401,
+     443
+    ],
+    [
+     941,
+     1098
+    ],
+    [
+     1423,
+     1548
+    ],
+    [
+     3633,
+     3763
+    ]
+   ],
+   "rf017_base": [
+    [
+     248,
+     276
+    ],
+    [
+     401,
+     443
+    ],
+    [
+     941,
+     1097
+    ],
+    [
+     1422,
+     1547
+    ],
+    [
+     3632,
+     3762
+    ]
+   ],
+   "snes9x": [
+    [
+     248,
+     276
+    ],
+    [
+     401,
+     443
+    ],
+    [
+     941,
+     1098
+    ],
+    [
+     1423,
+     1546
+    ],
+    [
+     3632,
+     3762
+    ]
+   ]
+  },
+  "falsified_attributions": [
+   "2P seed 50048000 one field early at 5052 (unchanged)",
+   "Switcher +4664 / +4703 vs +4704 (unchanged)"
+  ],
+  "pinned_spc_cycles_per_field": 17088,
+  "reference_ratio_spc_per_master": "15664/328125",
+  "reference_spc_cycles_per_field": 17059.99
+ },
+ "rf018": {
+  "after": {
+   "attract_load2": [
+    1423,
+    1546
+   ],
+   "low_wram_equal_bsnes_frames": "1530-1700 (transients at 1452, 1520, 1523-1529)"
+  },
+  "block": "81:BB10 CMP [$88],Y",
+  "clocks_per_execution": {
+   "native": 103.6,
+   "snes9x": 80.1
+  },
+  "executions": 448,
+  "generated_sites": 152,
+  "span_82E174_to_81B94F": {
+   "deficit_explained_by_block": 10552,
+   "deficit_total": 11692,
+   "native": 188304,
+   "snes9x": 176554
+  },
+  "verify_gen": "verified 89 generated files: 152 [dp],Y pointers read once, none twice"
+ },
+ "rf019": {
+  "after": {
+   "attract_dark_runs": [
+    [
+     248,
+     276
+    ],
+    [
+     401,
+     443
+    ],
+    [
+     941,
+     1098
+    ],
+    [
+     1423,
+     1546
+    ],
+    [
+     3632,
+     3762
+    ]
+   ],
+   "low_wram_equal_bsnes_frames": [
+    "2300-2400",
+    "3625-3770"
+   ]
+  },
+  "block_82_8C78_clocks": {
+   "native": 6198,
+   "snes9x": 6688
+  },
+  "busy_clocks_per_frame": {
+   "native": 288334,
+   "snes9x": 300406
+  },
+  "dma_hdmaMasterEstimate": "defined (framework 0b2bd83), never called; would charge every channel a transfer each line",
+  "formula": "18 + 6 channels x 8 (no transfer)",
+  "hdmaen": "0xBE",
+  "pre_fix_first_divergence_host": 2347,
+  "snes9x_hdma_stall_per_line": 66,
+  "wait": "82:D4E9 STZ $57 / BIT $57 / BPL (wait for NMI)"
+ },
+ "schema": "ur-rf016-019-timing-corrections/1",
+ "seed_50048000": {
+  "bytes_5012": {
+   "7E:006F": [
+    7,
+    0
+   ],
+   "7E:0083": [
+    14,
+    20
+   ],
+   "7E:2000": [
+    1,
+    2
+   ],
+   "7E:2002": [
+    1,
+    4
+   ]
+  },
+  "bytes_5013": {
+   "7E:00C6": [
+    31,
+    30
+   ],
+   "7E:0BDE": [
+    0,
+    204
+   ],
+   "7E:0BFE": [
+    0,
+    204
+   ]
+  },
+  "first_wram_difference_host": 5012,
+  "next": "SPC-side port-handshake trace over host 5008-5012 on Baldosa and bsnes",
+  "race_exit": {
+   "native": 5052,
+   "original": 5053
+  },
+  "result_menu_onset": {
+   "native": 5014,
+   "original": 5015
+  },
+  "unchanged_by": [
+   "RF-016",
+   "RF-018",
+   "RF-019"
+  ]
+ }
+}

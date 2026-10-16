@@ -39,6 +39,7 @@ def producer(case: str, *, matched: bool = False) -> dict:
                 "native_relative": native,
             },
             "first_sample_disagreement": None if matched else {"relative_frame": 100},
+            **{gate: True for gate in c.STRICT_PRODUCER_GATES},
             "diagnostic_exit_success_without_full_event_parity": False,
         },
         **{key: "a" * 64 for key in (
@@ -206,6 +207,58 @@ class QA01CampaignTest(unittest.TestCase):
         self.assertRegex(result["evidence"]["producer_sha256"], r"^[0-9a-f]{64}$")
         failed = c.classify("bowl", 1, path, plan)
         self.assertEqual(failed["disposition"], "producer_error")
+
+    def test_strict_candidate_fails_closed_on_contradictory_producer_gates(self):
+        plan = self.plan("zoom-zoo")
+        target = self.root / "strict-gate.json"
+        for key in c.STRICT_PRODUCER_GATES:
+            with self.subTest(gate=key):
+                report = producer("zoom-zoo", matched=True)
+                report["comparison"][key] = False
+                c.write_json(target, report)
+                rejected = c.classify("zoom-zoo", 0, target, plan)
+                self.assertEqual(rejected["disposition"], "producer_error")
+                self.assertIn("contradicts", rejected["reason"])
+                self.assertEqual(rejected["release_credit"], 0)
+        for mutation in (
+            lambda p: p["comparison"].pop("fresh_guest_entry_equivalent"),
+            lambda p: p["comparison"].__setitem__("stunt_positive_score_visible", 1),
+            lambda p: p["comparison"].__setitem__(
+                "first_sample_disagreement", {"relative_frame": 42}),
+        ):
+            report = producer("zoom-zoo", matched=True)
+            mutation(report)
+            c.write_json(target, report)
+            self.assertEqual(c.classify("zoom-zoo", 0, target, plan)[
+                             "disposition"], "producer_error")
+        valid = producer("zoom-zoo", matched=True)
+        c.write_json(target, valid)
+        admitted = c.classify("zoom-zoo", 0, target, plan)
+        self.assertEqual(admitted["disposition"], "strict_candidate")
+        self.assertTrue(admitted["evidence"]["strict_producer_gate_audit"][
+            "recomputed_candidate"])
+        self.assertEqual(admitted["release_credit"], 0)
+
+    def test_distributed_aggregate_rejects_corrupted_strict_gate_receipt(self):
+        plan = self.plan("zoom-zoo")
+        path = self.report_file("zoom-zoo", matched=True)
+        row = c.classify("zoom-zoo", 0, path, plan)
+        folder = self.root / "distributed" / "qa01-campaign-case-zoom-zoo"
+        path = folder / "case-result.json"
+        c.write_json(path, row)
+        self.assertTrue(c.aggregate(plan, self.root / "distributed")[0][
+            "transport_complete"])
+        for mutate in (
+            lambda a: a["gates"].__setitem__("rendered_result_and_score_text_matched", False),
+            lambda a: a["gates"].pop("fresh_guest_entry_equivalent"),
+            lambda a: a.__setitem__("recomputed_candidate", False),
+        ):
+            corrupted = json.loads(json.dumps(row))
+            mutate(corrupted["evidence"]["strict_producer_gate_audit"])
+            c.write_json(path, corrupted)
+            aggregated, _ = c.aggregate(plan, self.root / "distributed")
+            self.assertEqual(aggregated["counts"]["missing_evidence"], 1)
+            self.assertEqual(aggregated["release_admissions"], 0)
 
     def test_strict_result_candidate_with_divergent_menu_remains_investigative(self):
         report = postresult_fixture()

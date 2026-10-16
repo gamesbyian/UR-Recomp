@@ -11,6 +11,10 @@ on:
       - "tools/baldosa_product_pause_spike.py"
       - "tools/baldosa_modern_user_data_spike.py"
       - "tools/baldosa_modern_profile_activation_spike.py"
+      - "tools/baldosa_modern_options_spike.py"
+      - "tests/unit/test_baldosa_modern_options_spike.py"
+      - "native/product/baldosa_native_options.hpp"
+      - "tools/baldosa_native_modern_root.cpp"
       - "tools/baldosa_modern_profile_activation.cpp"
       - "tools/baldosa_modern_profile_native_fixture.cpp"
       - "tests/native/baldosa_modern_profile_activation_test.cpp"
@@ -52,6 +56,7 @@ jobs:
           python3 tests/unit/test_baldosa_product_execution_spike.py
           python3 tests/unit/test_baldosa_product_pause_spike.py
           python3 tests/unit/test_baldosa_modern_profile_activation_spike.py
+          python3 tests/unit/test_baldosa_modern_options_spike.py
           # Reuse the real Modern codec and store, not dummy profile formats.
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic \
             -I native/product -I native/title \
@@ -202,6 +207,8 @@ jobs:
           python tools/baldosa_modern_user_data_spike.py --game baldosa
           python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_modern_options_spike.py --game baldosa
+          python tools/baldosa_modern_options_spike.py --game baldosa
           cmake -S baldosa -B baldosa/build -G Ninja -DCMAKE_BUILD_TYPE=Release \
             -DSNESRECOMP_SDL_BACKEND=SDL2 -DSNESRECOMP_SDL3_FETCH=OFF \
             -DRECOMP_UI_SDL3=OFF

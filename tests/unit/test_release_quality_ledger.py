@@ -50,8 +50,10 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
         self.assertEqual(receipt["independent_release_scope"]["release_gate_credit"], 0)
         data = baseline()
         self.assertEqual(data["candidate"]["release_decision"], "not_assessed")
-        self.assertIsNone(data["candidate"]["commit_sha"])
-        self.assertIsNone(data["candidate"]["zip_sha256"])
+        # Historical source-only proof is still zero-credit even after the
+        # project nominates a *different*, exact-main physical-QA candidate.
+        self.assertEqual(data["candidate"]["commit_sha"] is None,
+                         data["candidate"]["zip_sha256"] is None)
         self.assertIs(data["candidate"]["physical_hardware_verified"], False)
         self.assertEqual(
             next(g for g in data["gates"] if g["id"] == "QA-01")
@@ -300,6 +302,10 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
 
     def test_beta_cannot_be_declared_with_every_gate_waived_and_no_zip(self):
         data = baseline()
+        # Explicitly simulate the absent-package negative, rather than
+        # assuming that the live nominated candidate is forever null.
+        data["candidate"]["commit_sha"] = None
+        data["candidate"]["zip_sha256"] = None
         data["candidate"]["release_decision"] = "beta"
         data["candidate"]["physical_hardware_verified"] = True
         for gate in data["gates"]:

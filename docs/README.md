@@ -52,6 +52,7 @@ See the [Baldosa/malmazuke/UR apparatus synthesis](THREE-PROJECT-APPARATUS-SYNTH
 
 | Area | Read |
 |---|---|
+| Native Windows player-visible journey (what the player sees and is told) | [MODERN-NATIVE-PLAYER-JOURNEY.md](MODERN-NATIVE-PLAYER-JOURNEY.md) |
 | Modern route/visual target vs implementation | [MODERN-FRONTEND-MASTER-DESIGN.md](MODERN-FRONTEND-MASTER-DESIGN.md), [MODERN-FRONTEND-SHIPPING-STATUS.md](MODERN-FRONTEND-SHIPPING-STATUS.md), [MODERN-UI-VISUAL-FIDELITY.md](MODERN-UI-VISUAL-FIDELITY.md) |
 | Host-owned state, saves, controller focus, records and multiplayer | [MODERN-PRODUCT-LAYER.md](MODERN-PRODUCT-LAYER.md), [COMPLETED-RUN-RECORDS.md](COMPLETED-RUN-RECORDS.md), [MULTIPLAYER-TOURNAMENT-RECORDS.md](MULTIPLAYER-TOURNAMENT-RECORDS.md), [QA02-CROSS-ARTIFACT-FAULT-CAMPAIGN.md](QA02-CROSS-ARTIFACT-FAULT-CAMPAIGN.md) |
 | Logic/model sufficiency vs release acceptance | [SEMANTIC-SUFFICIENCY.md](SEMANTIC-SUFFICIENCY.md), [knowledge/README.md](knowledge/README.md), [RESEARCH-LEDGER.md](RESEARCH-LEDGER.md) |

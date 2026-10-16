@@ -87,6 +87,40 @@ def producer_failure_reason(producer_log: Path | None) -> str:
     return ""
 
 
+# The producer's preliminary candidate flag is not an independent witness.
+# Reconstruct the *claimed* positive predicates before a case can even be
+# classified as a strict candidate. This is internal receipt consistency,
+# not source-frame, instruction-time, lifecycle, or release acceptance.
+STRICT_PRODUCER_GATES = (
+    "both_reached_terminal_menu",
+    "rendered_result_and_score_text_matched",
+    "stunt_positive_score_visible",
+    "timed_race_or_circuit_result_visible",
+    "circuit_multiple_lap_decrements_sampled",
+    "result_outside_active_race_in_both_guests",
+    "circuit_zero_remaining_laps_at_onset_and_stable",
+    "fresh_guest_entry_equivalent",
+)
+
+
+def strict_producer_gate_audit(comparison: dict, frame_match: bool) -> dict:
+    gates = {}
+    for name in STRICT_PRODUCER_GATES:
+        value = comparison.get(name)
+        if type(value) is not bool:
+            raise ValueError("missing or non-boolean strict producer gate: " + name)
+        gates[name] = value
+    first = comparison.get("first_sample_disagreement")
+    if first is not None and not isinstance(first, dict):
+        raise ValueError("malformed first sampled difference")
+    gates["no_sampled_state_disagreement"] = first is None
+    gates["same_guest_relative_result_onset"] = frame_match
+    recomputed = all(gates.values())
+    if comparison.get("paired_event_candidate") is not recomputed:
+        raise ValueError("producer strict candidate contradicts its named gameplay gates")
+    return {"gates": gates, "recomputed_candidate": recomputed}
+
+
 # This is a scientific candidate boundary, NOT another event comparator.
 # The underlying original/native producer is still the sole writer of these
 # executable full-WRAM/frame receipts, and the release ledger stays separate.
@@ -381,6 +415,7 @@ def classify(case: str, producer_rc: int, producer_path: Path,
             raise ValueError("strict comparator fields missing")
         if match != (frames["reference_relative"] == frames["native_relative"]):
             raise ValueError("contradictory terminal-frame assertion")
+        strict_gates = strict_producer_gate_audit(comparison, match)
         if strict and (not match or producer_rc != 0):
             raise ValueError("strict outcome and producer exit disagree")
         if not strict and producer_rc == 0 and not comparison.get(
@@ -416,6 +451,7 @@ def classify(case: str, producer_rc: int, producer_path: Path,
             "terminal_guest_relative_frames": frames,
             "terminal_frame_matched": match,
             "strict_candidate": strict,
+            "strict_producer_gate_audit": strict_gates,
             "first_sample_disagreement": comparison.get("first_sample_disagreement"),
         }
     except (OSError, ValueError, KeyError, TypeError) as exc:
@@ -495,6 +531,21 @@ def aggregate(plan: dict, results_dir: Path) -> tuple[dict, str]:
                 ):
                     raise ValueError("case terminal frame evidence invalid")
                 match = frames["reference_relative"] == frames["native_relative"]
+                gate_audit = ev.get("strict_producer_gate_audit")
+                if (not isinstance(gate_audit, dict)
+                        or not isinstance(gate_audit.get("gates"), dict)
+                        or set(gate_audit["gates"]) != set(STRICT_PRODUCER_GATES) | {
+                            "no_sampled_state_disagreement",
+                            "same_guest_relative_result_onset"}
+                        or any(type(value) is not bool
+                               for value in gate_audit["gates"].values())
+                        or gate_audit["gates"]["same_guest_relative_result_onset"] is not match
+                        or type(gate_audit.get("recomputed_candidate")) is not bool
+                        or gate_audit["recomputed_candidate"] is not all(
+                            gate_audit["gates"].values())
+                        or gate_audit["recomputed_candidate"] is not (
+                            row["disposition"] == "strict_candidate")):
+                    raise ValueError("invalid or contradictory strict producer gate audit")
                 if (type(ev.get("terminal_frame_matched")) is not bool or
                     ev["terminal_frame_matched"] != match or
                     type(ev.get("strict_candidate")) is not bool or

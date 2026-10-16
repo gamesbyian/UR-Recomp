@@ -39,12 +39,13 @@ inline bool render_native_modern_pause_overlay(
         const char* label;
         bool wired;
     };
-    // Keep existing Modern ordering. Baldosa's SDL shutdown now owns Quit;
-    // unconnected Records, Options and Exit remain explicitly disabled.
+    // Keep existing Modern ordering. Baldosa's SDL shutdown owns Quit and the
+    // shared native Options panel owns Options; unconnected Controls, Run
+    // Data, Records and Exit remain explicitly disabled.
     constexpr Row rows[] = {
         {UR_MODERN_PAUSE_RESUME, "RESUME", true},
         {UR_MODERN_PAUSE_RESTART, "RESTART RACE", true},
-        {UR_MODERN_PAUSE_OPTIONS, "OPTIONS", false},
+        {UR_MODERN_PAUSE_OPTIONS, "OPTIONS", true},
         {UR_MODERN_PAUSE_CONTROLS, "CONTROLS", false},
         {UR_MODERN_PAUSE_RUN_DATA, "RUN DATA", false},
         {UR_MODERN_PAUSE_RECORDS, "RECORDS", false},
@@ -77,6 +78,36 @@ inline bool render_native_modern_pause_overlay(
                     "UP/DOWN CHOOSE  A/ENTER SELECT", 0xFFFFFFFFu, 1);
     paint.draw_text(pixels, stride, height, x + 16, y + panel_h - 17,
                     "B/ESC RESUME  START RESUME", pal.cursor_blue, 1);
+    return true;
+}
+
+
+// The native Options panel while the guest is frozen: the same shared modal
+// as the root, centred in a root-style frame on the paused raster.
+inline bool render_native_modern_pause_options(
+    const ModernRootOverlayPainter& paint, std::uint32_t* pixels,
+    int stride, int width, int height, const ModernRootOverlayView& view) {
+    if (!paint.valid() || !pixels || width < 256 || stride < width ||
+        height < 224 || !view.options_open)
+        return false;
+    const int scale = width >= 512 && height >= 448 ? 2 : 1;
+    constexpr int kPanelW = 240;
+    constexpr int kPanelH = 204;
+    const int x = (width - kPanelW * scale) / 2;
+    const int y = (height - kPanelH * scale) / 2;
+    const auto& pal = kModernStockMenuPalette;
+    paint.fill_rect(pixels, stride, height, x, y, kPanelW * scale,
+                    kPanelH * scale, pal.background);
+    paint.fill_rect(pixels, stride, height, x, y, kPanelW * scale,
+                    27 * scale, pal.header_band);
+    paint.stroke_rect(pixels, stride, height, x, y, kPanelW * scale,
+                      kPanelH * scale, pal.frame_grey);
+    paint.draw_text(pixels, stride, height, x + 9 * scale, y + 6 * scale,
+                    "UNIRACERS", pal.title_yellow, 2 * scale);
+    paint.draw_text(pixels, stride, height, x + 8 * scale, y + 36 * scale,
+                    "PAUSED - GUEST FROZEN", pal.secondary_grey, scale);
+    render_modern_options_modal(paint, pixels, stride, height, scale,
+                                kPanelW, x, y, view);
     return true;
 }
 

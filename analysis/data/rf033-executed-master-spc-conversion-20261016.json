@@ -1,0 +1,93 @@
+{
+  "schema": "UR-RF033-EXECUTED-CPU-MASTER-SPC-CONVERSION/1",
+  "status": "source-qualified genuine original/native first CC CPU clock observations, no timing change",
+  "run": 38977309694,
+  "experiment_head": "68e80bde7cd332364da31e14342b9a28035a2160",
+  "case_artifact": 12080107147,
+  "case_file_count": 14,
+  "sha256": {
+    "zip": "f8ee6fbfbc9540179cea65428e298de3c59d4884f801d04a3ffc1c62663d87c8",
+    "producer": "8ac02c48643798b7b34f2fd8c49fc169349fd90c906fb7204dca81ea4a9c9351",
+    "case_result": "add20742392bbbe378de45da7a918a21174f820c4f137bdd75d358eae0c16295",
+    "rf030_report": "6f9501d59d79848ed73f8e0d1281d65ce9a567283a7707aedc574602656db80d",
+    "rf032_report": "4e476d6129bd80386a1f6ebdb5b53f5cee9ad25800459677acc1a2b5d4823041",
+    "rf033_report": "fd14d720cc16e7fc9bee8cfce0ec2eac4b47c910513645ae2f9b646ba5db62ff",
+    "original_core": "047ce96fdf5a07cacdfd1d1b588eca2b99496e2f113f08ac445951653dc8f900",
+    "native_elf": "16a75ea84c902deae7ffaa39f797b44fe91d8fdb7b542b99ef4a4f76a14356f5",
+    "usa_rom": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_movie": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "seed_sram": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+    "controller_stream": "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52"
+  },
+  "original_first_cc": {
+    "spc_age_before_s9x_apu_execute": 103322541,
+    "spc_age_at_cpu_latch_write_after_execute": 103322546,
+    "actual_spc_advance": 5,
+    "requested_spc_clock_advance": 2,
+    "ratio_numerator": 15664,
+    "ratio_denominator": 328125,
+    "prior_reference_time": 266,
+    "prior_fraction_remainder": 128292,
+    "cpu_beam_v": 119,
+    "cpu_h_within_scanline": 312,
+    "first_ipl_spc_cmp_reads_cc_age": 103322554,
+    "first_ipl_spc_cc_echo_age": 103322580,
+    "cpu_first_reads_cc_echo_age": 103322584,
+    "bounded_original_cpu_cc_writes": 9
+  },
+  "native_first_cc": {
+    "spc_clock_when_cpu_scheduled_write": 103322463,
+    "cpu_master_cycles": 2164383306,
+    "cpu_frame": 6056,
+    "frame_start_master": 2164170140,
+    "cpu_master_offset_from_frame_start": 213166,
+    "extended_frame_clock": true,
+    "apu_frame_time_valid": true,
+    "guest_apu_cycle": 103322545,
+    "stored_queue_target": 103322545,
+    "queue_applied_spc_age": 103322545,
+    "spc_first_cmp_reads_cc_age": 103322546,
+    "spc_cc_echo_age": 103322571,
+    "actual_cpu_first_reads_echo_cc_age": 103322575,
+    "bounded_native_cpu_cc_writes": 7
+  },
+  "source_guest_parity": {
+    "original_native_zoo_result_relative": [
+      5163,
+      5163
+    ],
+    "original_native_next_bowl_entry_relative": [
+      267,
+      267
+    ],
+    "earned_full_8192b_sram_pairs_equal": 11,
+    "whole_128k_wram_samples": 78,
+    "exact_original_native_wram_samples": 51,
+    "total_unmasked_differing_byte_occurrences": 92,
+    "sound_pointer_7e0063_residual_frames": [
+      5040,
+      5045
+    ],
+    "sound_counter_7e0069_residual_frames": [],
+    "bowl_whole_wram_exact": 9,
+    "bowl_whole_wram_samples": 11,
+    "wram_masked_bytes": 0
+  },
+  "source_pinned_comparison": {
+    "control_run": 38974815770,
+    "control_artifact": 12078174356,
+    "control_zip_sha256": "6aab44e8d16dcaa34fd438c439d349dc6050f1ddc4c4c1de1e81afc2f387175d",
+    "original_wram_sha256_cross_run_equal": 78,
+    "native_wram_sha256_cross_run_equal": 78,
+    "original_native_wram_exact_unchanged": true,
+    "controller_rom_movie_sram_inputs_identical": true
+  },
+  "limits": {
+    "source_65816_cpu_master_and_native_master_phase_equal_proven": false,
+    "source_native_spc_clock_axes_phase_equal_proven": false,
+    "all_spc_opcode_tick_or_dsp_pcm_parity_proven": false,
+    "whole_race_all_frames_equal_proven": false,
+    "strict_usa_event_credits": 0
+  },
+  "next_decision": "Source SPC instruction execution catch-up after nominal S9x fractional tick request versus pinned native queue SPC consumer ordering; no blind global cycle adjustment"
+}

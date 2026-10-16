@@ -637,6 +637,24 @@ def classify(case: str, producer_rc: int, producer_path: Path,
             raise ValueError("strict comparator fields missing")
         if match != (frames["reference_relative"] == frames["native_relative"]):
             raise ValueError("contradictory terminal-frame assertion")
+        # Compare three *independently observed* race-relative durations.
+        # Matching fresh guests never implies matching archived source movie.
+        source_rel = event["source_active_frames_to_result"]
+        source_original_phase = {
+            "source_original_movie_relative": source_rel,
+            "fresh_original_relative": frames["reference_relative"],
+            "fresh_native_relative": frames["native_relative"],
+            "fresh_original_minus_source_frames":
+                frames["reference_relative"] - source_rel,
+            "fresh_native_minus_source_frames":
+                frames["native_relative"] - source_rel,
+            "three_relative_durations_equal":
+                source_rel == frames["reference_relative"] ==
+                frames["native_relative"],
+            "independent_original_movie_and_fresh_guest_clocks_not_rebased": True,
+            "continuous_original_to_fresh_equivalence_proven": False,
+            "release_credit": 0,
+        }
         strict_gates = strict_producer_gate_audit(comparison, match)
         if strict and (not match or producer_rc != 0):
             raise ValueError("strict outcome and producer exit disagree")
@@ -649,6 +667,13 @@ def classify(case: str, producer_rc: int, producer_path: Path,
         row["reason"] = ("strict paired-event candidate; NOT an independently "
                          "adjudicated course pass" if strict else
                          "strict original/native paired-event comparator is negative")
+        if not source_original_phase["three_relative_durations_equal"]:
+            row["reason"] += (
+                "; distinct archived source-movie vs fresh guest race-relative "
+                f"result durations (movie +{source_rel}, "
+                f"fresh original +{frames['reference_relative']}, "
+                f"native +{frames['native_relative']}); "
+                "source/movie timing equivalence NOT established")
         if continuation["status"] == "sampled_named_divergence":
             row["reason"] += (
                 "; independently recorded post-result named-state difference "
@@ -671,6 +696,7 @@ def classify(case: str, producer_rc: int, producer_path: Path,
         row["evidence"] = {
             "next_bowl_bounded": next_bowl,
             "post_result_bounded": continuation,
+            "source_original_movie_vs_fresh_guest_result_phase": source_original_phase,
             "producer_sha256": hashlib.sha256(producer_path.read_bytes()).hexdigest(),
             "rom_sha256": report["rom_sha256"],
             "movie_sha256": report["original_movie_sha256"],
@@ -745,6 +771,49 @@ def aggregate(plan: dict, results_dir: Path) -> tuple[dict, str]:
                         or ev["native_entry_frame"] - ev["reference_entry_frame"]
                         != ev["native_frame_shift"]):
                     raise ValueError("case original/native start and shift identity inconsistent")
+                source_phase = ev.get("source_original_movie_vs_fresh_guest_result_phase")
+                source_rel = ev["original_event_frames"]
+                fresh_rel = ev.get("terminal_guest_relative_frames", {})
+                if (not isinstance(source_phase, dict)
+                        or not isinstance(fresh_rel, dict)
+                        or set(source_phase) != {
+                            "source_original_movie_relative",
+                            "fresh_original_relative",
+                            "fresh_native_relative",
+                            "fresh_original_minus_source_frames",
+                            "fresh_native_minus_source_frames",
+                            "three_relative_durations_equal",
+                            "independent_original_movie_and_fresh_guest_clocks_not_rebased",
+                            "continuous_original_to_fresh_equivalence_proven",
+                            "release_credit"}
+                        or any(type(source_phase.get(k)) is not int for k in (
+                            "source_original_movie_relative",
+                            "fresh_original_relative",
+                            "fresh_native_relative",
+                            "fresh_original_minus_source_frames",
+                            "fresh_native_minus_source_frames",
+                            "release_credit"))
+                        or source_phase["release_credit"] != 0
+                        or any(type(fresh_rel.get(k)) is not int for k in (
+                            "reference_relative", "native_relative"))
+                        or source_phase["source_original_movie_relative"] != source_rel
+                        or source_phase["fresh_original_relative"] != fresh_rel["reference_relative"]
+                        or source_phase["fresh_native_relative"] != fresh_rel["native_relative"]
+                        or source_phase["fresh_original_minus_source_frames"] !=
+                            fresh_rel["reference_relative"] - source_rel
+                        or source_phase["fresh_native_minus_source_frames"] !=
+                            fresh_rel["native_relative"] - source_rel
+                        or type(source_phase.get("three_relative_durations_equal")) is not bool
+                        or source_phase["three_relative_durations_equal"] is not (
+                            source_rel == fresh_rel["reference_relative"] ==
+                            fresh_rel["native_relative"])
+                        or source_phase.get(
+                            "independent_original_movie_and_fresh_guest_clocks_not_rebased"
+                        ) is not True
+                        or source_phase.get(
+                            "continuous_original_to_fresh_equivalence_proven"
+                        ) is not False):
+                    raise ValueError("missing/contradictory three-clock source result receipts")
                 follow = ev.get("post_result_bounded")
                 if (not isinstance(follow, dict)
                         or follow.get("status") not in (
@@ -877,6 +946,10 @@ def aggregate(plan: dict, results_dir: Path) -> tuple[dict, str]:
     raw_wram_handoffs = sum(
         bool(row.get("evidence", {}).get("next_bowl_bounded", {}).get(
             "raw_wram_differing_sample_offsets")) for row in results)
+    source_movie_deltas = sum(
+        row.get("evidence", {}).get(
+            "source_original_movie_vs_fresh_guest_result_phase", {}
+        ).get("three_relative_durations_equal") is False for row in results)
     report = {
         "schema": SCHEMA, "plan_sha256": plan["plan_sha256"],
         "source_sha": plan["source_sha"], "selected_cases": len(expected),
@@ -885,6 +958,7 @@ def aggregate(plan: dict, results_dir: Path) -> tuple[dict, str]:
         "transport_complete": valid, "release_admissions": 0,
         "bounded_next_bowl_progression_divergences": blocked_handoffs,
         "bounded_next_bowl_unmasked_wram_residual_cases": raw_wram_handoffs,
+        "source_movie_to_fresh_result_duration_difference_cases": source_movie_deltas,
         "results": results,
         "release_note": ("All observations are investigative. Independent QA "
                          "adjudication and the release ledger remain unchanged."),
@@ -912,6 +986,8 @@ def aggregate(plan: dict, results_dir: Path) -> tuple[dict, str]:
         str(blocked_handoffs),
         "Next-Bowl cases with unmasked 128KiB WRAM residuals: " +
         str(raw_wram_handoffs),
+        "Cases with source-movie versus fresh-guest relative result offset: " +
+        str(source_movie_deltas),
         "**USA course release admissions: 0.** A strict candidate is not a reviewed L4 pass.",
         "Physical Windows or player-hardware evidence: not exercised.",
     ]

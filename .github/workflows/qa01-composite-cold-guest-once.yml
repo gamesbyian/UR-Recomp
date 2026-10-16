@@ -1,0 +1,115 @@
+# Temporary one-shot QA-01 source-owner experiment; remove after durable receipt.
+# No CPU/APU/guest gameplay source is rebuilt. Only the retained research ELF is replayed.
+name: QA01 Exact Composite Cold Guest
+on:
+  push:
+    branches:
+      - gameplay/qa01-composite-cold-reload-source-gate-20261016
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: qa01-composite-cold-once-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  exact-composite-cold:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - name: Retrieve old independently SHA-verified combined-stage native and original binaries
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 38879846733
+          repository: gamesbyian/UR-Recomp
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          name: qa01-campaign-reference-and-native-binaries
+          path: ${{ runner.temp }}/qa01-exact-binaries
+      - name: Verify actual immutable binary/source identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          BIN="$RUNNER_TEMP/qa01-exact-binaries"
+          ls -lah "$BIN"
+          (cd "$BIN" && sha256sum -c SHA256SUMS)
+          test "$(sha256sum "$BIN/native" | awk '{print $1}')" = 9a3bd17afd8377a4c83e76c05cd57dfdae2488e498aa4bea1b90a2baa018bb48
+          test "$(sha256sum "$BIN/snes9x_libretro.so" | awk '{print $1}')" = ec4ce30d80e0b2c22b5d700aec01d601bd85db452ccb8e2b32fa75e9fe63554a
+          test "$(sha256sum "$BIN/snesref" | awk '{print $1}')" = 5fb3cca1f51d13762e7b82e736133cdab702aafbca07b9164d568139a3bcc18a
+          test "$(sha256sum reference/roms/retail/Uniracers_USA.sfc | awk '{print $1}')" = 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478
+          test "$(sha256sum reference/imported/tas-bots/dessyreqt-4250-submission.smv | awk '{print $1}')" = 06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442
+          python3 -m unittest discover -s tests/unit -p test_qa01_cold_result_record.py
+          chmod +x "$BIN/native" "$BIN/snesref"
+      - name: Install existing exact candidate Linux runner prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends             libsdl2-2.0-0 libgl1 libopengl0 libfreetype6 libdecor-0-0             libx11-6 libxext6 libxrandr2 libxcursor1 libxi6 libxss1             libwayland-client0 libxkbcommon0 libegl1 libgles2 libdrm2             libgbm1 libasound2 libpulse0 libudev1 libdbus-1-3 xvfb
+          ldd "$RUNNER_TEMP/qa01-exact-binaries/native" | tee "$RUNNER_TEMP/native-ldd.log"
+          if grep -q 'not found' "$RUNNER_TEMP/native-ldd.log"; then
+            echo "Required native runtime library missing" >&2
+            exit 1
+          fi
+      - name: Genuine source movie Zoo to Bowl and independent fresh-process cold guest reload
+        shell: bash
+        run: |
+          set -euo pipefail
+          BIN="$RUNNER_TEMP/qa01-exact-binaries"
+          ROOT="$RUNNER_TEMP/qa01-exact-cold"
+          mkdir -p "$ROOT"
+          python3 tools/qa01_event_campaign.py plan             --selected zoom-zoo --source-sha "$(git rev-parse HEAD)" --out "$ROOT/plan.json"
+          set +e
+          timeout --signal=TERM --kill-after=30s 55m python3 tools/probe_original_event_complete.py             --case zoom-zoo --native-backend pinned-baldosa --source-horizon 22000             --source-followthrough --zoo-next-bowl --zoo-race-mesh --zoo-dp-window             --zoo-terminal-phase             --snesref "$BIN/snesref" --core "$BIN/snes9x_libretro.so"             --native "$BIN/native"             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"             --work-dir "$ROOT/work" --json-out "$ROOT/producer-report.json"             > "$ROOT/producer.log" 2>&1
+          rc=$?
+          set -e
+          tail -n 55 "$ROOT/producer.log" || true
+          python3 tools/qa01_event_campaign.py classify             --plan "$ROOT/plan.json" --case zoom-zoo --producer-exit "$rc"             --producer-report "$ROOT/producer-report.json"             --producer-log "$ROOT/producer.log" --out "$ROOT/case-result.json"
+          test "$rc" -eq 0
+          python3 - "$ROOT/producer-report.json" "$ROOT/case-result.json" <<'PY'
+          import json,sys
+          p=json.load(open(sys.argv[1]))
+          q=json.load(open(sys.argv[2]))
+          assert q["disposition"] == "strict_candidate", q
+          assert p["input_sha256"] == "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52"
+          assert p["reference_script_sha256"] == p["input_sha256"]
+          assert p["reference_entry"] == p["native_entry"] == 1017
+          assert p["comparison"]["terminal_result_guest_frame"] == {"reference_relative": 5163, "native_relative": 5163}
+          b=p["zoo_next_bowl_handoff"]
+          assert (b["source_next_bowl_active_entry_offset"], b["fresh_reference_next_bowl_entry_offset"], b["fresh_native_next_bowl_entry_offset"]) == (267,267,267)
+          assert b["all_original_native_full_sram_pairs_equal"] is True
+          assert p["zoo_race_mesh"]["mesh_checkpoint_count"] == 78
+          assert p["zoo_race_mesh"]["masked_or_excluded_wram_bytes"] == 0
+          assert len(p["zoo_race_mesh"]["late_direct_page_window"]["samples"]) == 13
+          print("Exact prior composite ELF Zoo original/native strict candidate and complete input provenance verified; 0/45 admissions")
+          PY
+          python3 tools/qa01_cold_result_record.py             --producer-report "$ROOT/producer-report.json"             --replay "$ROOT/work/zoom-zoo/replay"             --snesref "$BIN/snesref" --core "$BIN/snes9x_libretro.so"             --native "$BIN/native"             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"             --work "$ROOT/qa01-cold-guest-boot"             --out "$ROOT/qa01-cold-guest-report.json"
+          python3 - "$ROOT/qa01-cold-guest-report.json" <<'PY'
+          import json,sys
+          p=json.load(open(sys.argv[1]))
+          assert p["cold_process_record_load_only"] is True
+          assert p["native_host_disk_publish_or_hard_kill_proven"] is False
+          assert p["release_complete_usa_event_credit"] == 0
+          assert [x["boot_host_frame"] for x in p["boot_observations"]] == [300,420]
+          print("Cold guest qualified for recorded ranked records only, not disk publication, not 1/45")
+          PY
+          echo 'Exact SHA research original/native Zoo +267, source-earned separate-process cold record reload: inspect artifact; USA 0/45' >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve original/native bounded proof and first failures without guest-state tampering
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-composite-cold-exact-source-witness
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa01-exact-cold/plan.json
+            ${{ runner.temp }}/qa01-exact-cold/producer-report.json
+            ${{ runner.temp }}/qa01-exact-cold/producer.log
+            ${{ runner.temp }}/qa01-exact-cold/case-result.json
+            ${{ runner.temp }}/qa01-exact-cold/qa01-cold-guest-report.json
+            ${{ runner.temp }}/qa01-exact-cold/qa01-cold-guest-boot/original.log
+            ${{ runner.temp }}/qa01-exact-cold/qa01-cold-guest-boot/native.log
+            ${{ runner.temp }}/qa01-exact-cold/work/zoom-zoo/replay/reference.log
+            ${{ runner.temp }}/qa01-exact-cold/work/zoom-zoo/replay/native.log

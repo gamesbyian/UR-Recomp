@@ -757,6 +757,25 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/pause-options-sdl_keys/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/pause-options-p1_pad_semantic/log.txt
 
+      # Exact disposable CI-owned bytes for independent QA F0-F7. Only the
+      # bounded producer's before/crash/after + intact pre-write intent and
+      # committed receipt are retained. No game ROM, personal root, EXE,
+      # unbounded user saves or separate release-ledger assertions.
+      - name: Retain exact CI-owned native SRAM crash and recovery byte evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-native-sram-recovery-fault-bytes
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_post_raw_pre_typed_crash/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_post_raw_pre_typed_crash/explicit-recovery-native-command.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_post_raw_pre_typed_crash/explicit-recovery-fresh-boot.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_recovery_healthy_alternate/damaged-source-refusal.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_recovery_healthy_alternate/explicit-healthy-selection.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_recovery_healthy_alternate/fresh-healthy-guest.log
       - name: Assemble verified ROM-free Baldosa Modern Windows candidate
         run: |
           set -euo pipefail

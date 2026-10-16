@@ -49,7 +49,7 @@ def typed_stock_sram(data: bytes) -> tuple[bytes, int]:
 
 def inspect(archive: Path, expected_sha: str, mode: str, *,
             source: str = "", exe: str = "") -> dict:
-    require(mode in ("historic", "journaled"), "unsupported case")
+    require(mode in ("historic", "unjournaled", "journaled"), "unsupported case")
     require(SHA.fullmatch(expected_sha) is not None,
             "whole original Actions ZIP SHA256 is required")
     require(archive.is_file() and not archive.is_symlink() and
@@ -60,10 +60,10 @@ def inspect(archive: Path, expected_sha: str, mode: str, *,
     stages = ("before", "after") if mode == "historic" else ("before", "crash", "after")
     expected = {f"{label}.{stage}.bin" for label in LABELS for stage in stages}
     expected.update(("file-receipt.json", "crash.log",
-                     "cold-refusal.log" if mode == "historic" else "cold-recovery.log"))
+                     "cold-recovery.log" if mode == "journaled" else "cold-refusal.log"))
     if mode == "historic":
         expected.add("qa02-exact-owner-receipt.json")
-    else:
+    elif mode == "journaled":
         expected.update(("intent.crash.bin", "intent.recovered-receipt.bin",
                          "intent-receipt.json", "second-cold-recovery-boot.log"))
     with zipfile.ZipFile(archive) as z:
@@ -97,7 +97,7 @@ def inspect(archive: Path, expected_sha: str, mode: str, *,
         require(measurements.get("changed_byte_count") ==
                 difference_count(stage_files["before"], stage_files["after"]),
                 f"{label} false change count")
-        if mode == "journaled":
+        if mode != "historic":
             require(measurements.get("crash_changed_byte_count") ==
                     difference_count(stage_files["before"], stage_files["crash"]),
                     f"{label} false crash change count")
@@ -133,6 +133,14 @@ def inspect(archive: Path, expected_sha: str, mode: str, *,
                 "selected_profile_sram_not_initialized" in cold and
                 "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" not in cold,
                 "historic negative cold refusal altered or silently repaired")
+    elif mode == "unjournaled":
+        require(typed["crash"] == typed["before"] == typed["after"] and
+                raw["after"] == raw["crash"],
+                "unjournaled snapshots mutated canonical typed or raw on refusal")
+        cold = raw_files["cold-refusal.log"].decode("utf-8", errors="replace")
+        require("selected_profile_sram_not_initialized" in cold and
+                "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" not in cold,
+                "unjournaled cold retry silently promoted unknown raw")
     else:
         require(typed["crash"] == typed["before"] and
                 raw["after"] == raw["crash"] and
@@ -199,7 +207,7 @@ def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--zip", type=Path, required=True)
     p.add_argument("--sha256", required=True)
-    p.add_argument("--case", choices=("historic", "journaled"), required=True)
+    p.add_argument("--case", choices=("historic", "unjournaled", "journaled"), required=True)
     p.add_argument("--source", default="")
     p.add_argument("--exe-sha256", default="")
     args = p.parse_args()

@@ -84,5 +84,31 @@
     "pr1649_status": "draft hold; independent source archive and comparator",
     "next_graphics_discriminator": "same-field source-visible original OBJ/BG effective priority and actual Windows scaled 7:6/4x/342 wide output; avoid broad recolor/tile/time shift",
     "next_cpu_owner_handoff": "historical exact original/native CPU-authored OAM, CGRAM and INIDISP frame labels differ by 2 in selected windows; instruction/NMI/beam phase remains unproven"
+  },
+  "archival_90day_retention": {
+    "status": "completed_immutable_archives_reverified_90day_rom_free",
+    "workflow_run": 38966089749,
+    "artifact_id": 12075111053,
+    "artifact_name": "qa08-source-raster-3producer-nested-90d",
+    "new_outer_archive_sha256": "3475ee87b5b20768f9377d8d1c787927955c33ee6d4388dae008f5486a81370e",
+    "new_outer_archive_bytes": 5237356,
+    "expires_utc": "2027-01-14T20:58:36Z",
+    "nested_individually_original_SHA256_verification": true,
+    "nested_archives": [
+      "original.zip",
+      "latest-windows.zip",
+      "prior-windows.zip"
+    ],
+    "separate_per_frame_comparison_receipt": "source-verdict.json",
+    "nested_source_zip_sha256": {
+      "original": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+      "fresh_windows": "4f766de13c702a108279293df4613538d8b49cbd1ecbc0876533c5f01f09293c",
+      "prior_windows": "f01ab5a4888c227f306a0b9cd89e67710a4b41cad4c22867072280a17811fa82"
+    },
+    "source_original_native_both_all_263_per_frame_hashed": true,
+    "no_ROM_SRAM_VRAM_WRAM_personal_user_state_members_in_nested_archives": true,
+    "independent_original_emulator_or_windows_compilation_rerun": false,
+    "ongoing_producer_workflows_manual_only": true,
+    "graphics_release_gate_credit": false
   }
 }

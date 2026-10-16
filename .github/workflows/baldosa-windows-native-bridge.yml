@@ -10,6 +10,8 @@ on:
       - ".github/workflows/baldosa-windows-native-bridge.yml"
       - "tools/baldosa_windows_native_pause_route.py"
       - "tools/qa02_exact_owner_win32_seam.py"
+      - "tools/qa02_original_two_profile_crash_blast.py"
+      - "tests/unit/test_qa02_original_two_profile_crash_blast.py"
       - "tools/qa02_exact_owner_two_games.py"
       - "tests/unit/test_qa02_exact_owner_two_games.py"
       - "tools/qa02_exact_owner_two_process_selector.py"
@@ -476,6 +478,40 @@ jobs:
         with:
           name: qa02-nominated-two-genuine-win32-games-same-profile
           path: ${{ runner.temp }}/qa02-two-original-games/two_games/evidence/
+          if-no-files-found: warn
+          retention-days: 14
+
+      # Exact nominated native Windows crash blast-radius witness. Test only
+      # on named QA PR head and always retain six-file bytes, even on failure.
+      - name: Retrieve immutable nominated original game for second-racer crash isolation
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-original-two-profile-crash-blast-20261016' }}
+        uses: actions/download-artifact@v4
+        with:
+          repository: ${{ github.repository }}
+          run-id: 38828519791
+          artifact-ids: 12016101293
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/qa02-original-two-profile-crash-owner
+
+      - name: Reproduce real original Windows B crash and canonical switch-away refusal
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-original-two-profile-crash-blast-20261016' }}
+        run: |
+          set -euo pipefail
+          python tools/qa02_original_two_profile_crash_blast.py \
+            --retained "$RUNNER_TEMP/qa02-original-two-profile-crash-owner" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --script "baldosa/tests/routes/race_2p_split.txt" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --out "$RUNNER_TEMP/qa02-original-two-profile-crash"
+          echo "Original nominated Windows executable B raw-written/_Exit86; intact A codec-valid but canonical switch blocked. This is a negative P0 blast-radius reproduction, NOT recovery or a release pass." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain six actual Windows racer profile bytes and logs for independent audit
+        if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'qa/qa02-original-two-profile-crash-blast-20261016' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa02-exact-original-win32-two-profile-crash-blast
+          path: ${{ runner.temp }}/qa02-original-two-profile-crash/case/evidence/
           if-no-files-found: warn
           retention-days: 14
 

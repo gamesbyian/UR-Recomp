@@ -1526,6 +1526,125 @@ def run_native_pause_quit(
 
 
 
+def run_native_healthy_alternate_from_damaged_source(
+    exe: Path, rom: Path, root: Path, fixture: Path, seed: Path,
+    *, video: str, timeout: int,
+) -> dict[str, object]:
+    """A genuine fresh Windows binary leaves damaged P1 untouched and boots P2.
+
+    Production source selector only; initial disposable raw-byte damage is a
+    negative fixture, not a fabricated real guest crash. Original actual
+    _Exit(86) is separately established by the adjacent bounded producer.
+    """
+    output = root / "native_recovery_healthy_alternate"
+    output.mkdir(parents=True, exist_ok=False)
+    user_root = output / "Damaged P1 But Healthy P2"
+    user_root.mkdir()
+    subprocess.run(
+        [str(fixture), str(user_root), str(seed)],
+        cwd=output, check=True, capture_output=True,
+        text=True, timeout=timeout)
+    subprocess.run(
+        [str(fixture), str(user_root), str(seed),
+         "--add-second-keep-first"],
+        cwd=output, check=True, capture_output=True,
+        text=True, timeout=timeout)
+    source = user_root / "saves/profile-native-ci-rider"
+    healthy = user_root / "saves/profile-native-ci-second"
+    s_raw, s_typed = source / "save.srm", source / "host-profile.txt"
+    h_raw, h_typed = healthy / "save.srm", healthy / "host-profile.txt"
+    catalog = user_root / "profiles-v1.txt"
+    selector = user_root / "host-state-v1.txt"
+    baseline = {p: p.read_bytes() for p in
+                (s_raw, s_typed, h_raw, h_typed, catalog, selector)}
+    changed = bytearray(baseline[s_raw])
+    if len(changed) != 8192:
+        raise ValueError("Disposal test source is not full native SRAM")
+    changed[0x0711] ^= 0x35
+    s_raw.write_bytes(changed)
+    mismatch = s_raw.read_bytes()
+    if mismatch == baseline[s_raw] or h_raw.read_bytes() != baseline[h_raw]:
+        raise ValueError("No independent damaged source and healthy destination")
+    script = output / "short.txt"
+    script.write_text("turbo on\nwait 6\nquit\n", encoding="ascii")
+    config = output / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+    env = os.environ.copy()
+    env.update({
+        "SNESRECOMP_USER_DATA_DIR": str(user_root),
+        "UR_EXECUTION_MODE": "modern",
+        "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
+        "UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS": "1",
+        "SDL_VIDEODRIVER": video,
+        "SDL_AUDIODRIVER": "dummy",
+    })
+    args = [str(exe), "--no-launcher", "--config", str(config),
+            "--script", str(script), str(rom)]
+    refused = subprocess.run(
+        args, env=env, cwd=output, capture_output=True,
+        text=True, errors="replace", timeout=timeout)
+    refused_log = refused.stdout + "\n" + refused.stderr
+    (output / "damaged-source-refusal.log").write_text(
+        refused_log, encoding="utf-8")
+    if refused.returncode != 7 or (
+        "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in refused_log):
+        raise ValueError("Real Windows guest started with unauthorised raw source")
+    invalid = dict(env)
+    invalid.update({
+        "UR_BALDOSA_RECOVERY_ACTION": "healthy",
+        "UR_BALDOSA_RECOVERY_PROFILE_ID": "unregistered",
+    })
+    bad = subprocess.run(
+        args, env=invalid, cwd=output, capture_output=True,
+        text=True, errors="replace", timeout=timeout)
+    if bad.returncode != 88 or selector.read_bytes() != baseline[selector]:
+        raise ValueError("Unregistered emergency destination changed selector")
+    confirmed = dict(invalid)
+    confirmed["UR_BALDOSA_RECOVERY_PROFILE_ID"] = "native-ci-second"
+    switched = subprocess.run(
+        args, env=confirmed, cwd=output, capture_output=True,
+        text=True, errors="replace", timeout=timeout)
+    switched_log = switched.stdout + "\n" + switched.stderr
+    (output / "explicit-healthy-selection.log").write_text(
+        switched_log, encoding="utf-8")
+    if switched.returncode != 89 or (
+        "UR_BALDOSA_RECOVERY_CHOICE choice=healthy" not in switched_log
+    ) or "completed=1" not in switched_log or (
+        "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in switched_log):
+        raise ValueError("Original Win32 binary did not select healthy destination")
+    if selector.read_bytes() == baseline[selector]:
+        raise ValueError("Explicit selector publication did not occur")
+    for p in (s_typed, h_raw, h_typed, catalog):
+        if p.read_bytes() != baseline[p]:
+            raise ValueError(f"Healthy selection mutated canonical nonselector {p}")
+    if s_raw.read_bytes() != mismatch:
+        raise ValueError("Healthy selection silently repaired damaged source SRAM")
+    fresh = subprocess.run(
+        args, env=env, cwd=output, capture_output=True,
+        text=True, errors="replace", timeout=timeout)
+    log = fresh.stdout + "\n" + fresh.stderr
+    (output / "fresh-healthy-guest.log").write_text(log, encoding="utf-8")
+    if fresh.returncode:
+        raise ValueError(
+            f"Fresh native P2 rejected after explicit selector: {fresh.returncode}")
+    verify_named_profile_boot_bytes(
+        log, baseline[h_raw], profile_id="native-ci-second")
+    if s_raw.read_bytes() != mismatch or s_typed.read_bytes() != baseline[s_typed]:
+        raise ValueError("Fresh healthy guest modified damaged P1")
+    if list(user_root.rglob("*.urrun")):
+        raise ValueError("Healthy selector published invented Records")
+    return {
+        "real_windows_binary": True,
+        "damaged_source_refused_before_guest": True,
+        "unregistered_target_rejected": True,
+        "healthy_target_selected_without_live_guest": True,
+        "healthy_original_sram_booted_on_fresh_process": True,
+        "damaged_raw_and_typed_preserved": True,
+        "catalog_and_healthy_profile_unchanged": True,
+        "records_invented": False,
+    }
+
+
 def run_native_crash_between_raw_and_typed(
     exe: Path, rom: Path, script: Path, root: Path,
     fixture: Path, seed: Path, *, video: str, timeout: int,
@@ -1890,6 +2009,9 @@ def main() -> int:
     journal_recovery_proof = run_native_crash_between_raw_and_typed(
         exe, rom, script, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout, journaled=True)
+    healthy_alternate_proof = run_native_healthy_alternate_from_damaged_source(
+        exe, rom, root, fixture, sram_seed,
+        video=args.video, timeout=args.timeout)
     two_profiles_proof = run_second_named_profile_isolation(
         exe, rom, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)
@@ -1914,6 +2036,7 @@ def main() -> int:
         "native_modern_paused_quit": pause_quit_proof,
         "native_post_raw_pre_typed_crash": post_raw_crash_proof,
         "native_journaled_post_raw_recovery": journal_recovery_proof,
+        "native_healthy_alternate_after_damaged_p1": healthy_alternate_proof,
         "native_paused_quit_selector_conflict": conflict_proof,
         "modern_root_race_entry_p1": race_p1_proof,
         "modern_root_race_entry_p2": race_p2_proof,

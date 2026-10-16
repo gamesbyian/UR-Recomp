@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""One real Win32 read-only SRAM save fault on the original nominated owner PE.
+"""Real Win32 OS storage-permission fault on the original nominated owner PE.
 
 All mutable data belongs to a disposable source-created named racer fixture.
-NTFS read-only file attribute is not a full disk, torn write, or power loss.
+Prior Win32 read-only FILE_ATTRIBUTE_READONLY was insufficient: the genuine
+source writer replaced raw+typed consistently. Test a real denied directory ACL.
+No simulated exception, NTFS torn write, full disk, or power-cut claim.
 """
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import json
 import os
@@ -55,6 +58,44 @@ def attrib(raw: Path, flag: str) -> None:
         raise RuntimeError(f"Win32 attrib {flag} failed: {p.stdout} {p.stderr}")
 
 
+def current_sid() -> str:
+    """Obtain this exact Win32 security principal, never assume account name."""
+    p = subprocess.run(
+        ["whoami", "/user", "/fo", "csv", "/nh"],
+        capture_output=True, text=True, timeout=10, check=True)
+    rows = list(csv.reader(p.stdout.splitlines()))
+    if len(rows) != 1 or len(rows[0]) < 2 or not rows[0][-1].startswith("S-1-5-"):
+        raise ValueError("No unique Windows runner SID for isolated ACL fault")
+    return rows[0][-1]
+
+
+def acl(profile: Path, sid: str, *, deny: bool) -> None:
+    """Set/remove an OS DACL deny on disposable profile directory and children."""
+    if not sid.startswith("S-1-5-"):
+        raise ValueError("ACL principal must be a native Windows SID")
+    action = ["/deny", f"*{sid}:(W)"] if deny else ["/remove:d", f"*{sid}"]
+    p = subprocess.run(
+        ["icacls", str(profile), *action, "/T"],
+        capture_output=True, text=True, timeout=30)
+    if p.returncode or "Successfully processed" not in p.stdout:
+        raise RuntimeError(f"Win32 icacls {'deny' if deny else 'restore'} failed: {p.stdout} {p.stderr}")
+
+
+def require_os_denial(profile: Path) -> None:
+    """Prove the current Windows process cannot create a file in this folder."""
+    probe = profile / "_qa02_acl_probe_do_not_commit.txt"
+    try:
+        with probe.open("xb") as stream:
+            stream.write(b"not a saved game")
+    except PermissionError:
+        if probe.exists():
+            raise ValueError("Permission-denial probe unexpectedly created file")
+        return
+    if probe.exists():
+        probe.unlink()
+    raise ValueError("ACL change did not actually deny a Windows write")
+
+
 def run_game(exe: Path, rom: Path, script: Path, config: Path,
              cwd: Path, env: dict[str, str]) -> tuple[int, str]:
     p = subprocess.run(
@@ -68,6 +109,8 @@ def run_game(exe: Path, rom: Path, script: Path, config: Path,
 
 def main() -> int:
     p = argparse.ArgumentParser()
+    p.add_argument("--fault", choices=("acl-denied-directory", "readonly-attribute"),
+                   default="acl-denied-directory")
     for name in ("retained", "rom", "script", "fixture", "out"):
         p.add_argument("--" + name, type=Path, required=True)
     a = p.parse_args()
@@ -84,7 +127,8 @@ def main() -> int:
     route.mkdir()
     run_route(exe, a.rom, a.script, route, pause=False, video="windows", timeout=120)
     seed = route / "baseline/Modern Player Data With Spaces/saves/save.srm"
-    case = a.out / "denied-raw-attribute"
+    case = a.out / ("denied-profile-acl" if a.fault == "acl-denied-directory"
+                    else "denied-raw-attribute")
     case.mkdir()
     root = case / "Disposable Named Racer With Spaces"
     root.mkdir()
@@ -117,14 +161,23 @@ def main() -> int:
         "SDL_VIDEODRIVER": "windows",
         "SDL_AUDIODRIVER": "dummy",
     })
-    attrib(raw, "+R")
+    sid = current_sid() if a.fault == "acl-denied-directory" else None
+    if sid:
+        acl(raw.parent, sid, deny=True)
+    else:
+        attrib(raw, "+R")
     try:
-        if not (raw.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY):
-            raise ValueError("Windows source raw did not acquire readonly attribute")
+        if sid:
+            require_os_denial(raw.parent)
+        elif not (raw.stat().st_file_attributes & stat.FILE_ATTRIBUTE_READONLY):
+            raise ValueError("Win32 raw file did not acquire readonly attribute")
         exit_code, log = run_game(exe, a.rom, a.script, config, case, env)
         during = take(root)
     finally:
-        attrib(raw, "-R")  # restore permission even if test fails
+        if sid:
+            acl(raw.parent, sid, deny=False)  # restore even if assertions fail
+        else:
+            attrib(raw, "-R")
     evidence = case / "evidence"
     evidence.mkdir()
     (evidence / "read-only-exit.log").write_text(log, encoding="utf-8")
@@ -151,7 +204,9 @@ def main() -> int:
         "schema": "qa02-exact-owner-real-win32-readonly-raw/1",
         "candidate_original_exe_sha256": hashlib.sha256(exe.read_bytes()).hexdigest(),
         "fixture_exe_sha256": hashlib.sha256(a.fixture.read_bytes()).hexdigest(),
-        "os_file_attribute_readonly_verified": True,
+        "os_file_attribute_readonly_verified": sid is None,
+        "win32_acl_denial_verified": sid is not None,
+        "permission_fault_type": a.fault,
         "guest_pause_quit_observed": witnessed,
         "source_save_failure_reported_in_process_log": rejection,
         "native_process_exit": exit_code,
@@ -193,7 +248,8 @@ def main() -> int:
         json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print("QA02_ORIGINAL_NOMINATED_WIN32_READONLY " + json.dumps({
         "original_exe": result["candidate_original_exe_sha256"],
-        "data_preserved": True, "cold_recovered": True, "release_gate_credit": 0,
+        "data_preserved": True, "cold_recovered": True, "fault": a.fault,
+        "release_gate_credit": 0,
     }))
     return 0
 

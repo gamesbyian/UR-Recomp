@@ -87,6 +87,8 @@ on:
       - "native/presentation/racer_replacement_selector.*"
       - "native/product/baldosa_execution_backend.hpp"
       - "native/product/baldosa_guest_result_observer.*"
+      - "native/product/baldosa_native_sram_recovery.hpp"
+      - "native/product/baldosa_native_manual_sram_recovery.hpp"
       - "native/product/baldosa_native_multiplayer_records_summary.*"
       - "native/product/baldosa_native_records_summary.*"
       - "native/product/baldosa_native_run_record_admission.*"
@@ -768,6 +770,63 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/pause-options-sdl_keys/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/pause-options-p1_pad_semantic/log.txt
 
+      # Exact disposable CI-owned bytes for independent QA F0-F7. Only the
+      # bounded producer's before/crash/after + intact pre-write intent and
+      # committed receipt are retained. No game ROM, personal root, EXE,
+      # unbounded user saves or separate release-ledger assertions.
+      # Product-side compatibility guard only. A successful invocation
+      # demonstrates consumer schema agreement on exact source-produced
+      # bytes, not independent QA qualification or release ledger credit.
+      - name: Validate journaled Win32 evidence against independent QA02 reader
+        if: ${{ github.event_name == 'pull_request' || inputs.parallel_journeys == true }}
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/qa02-journaled-snapshot.zip"
+          # GNU sha256sum escapes backslashes in Windows filenames and can
+          # prefix the hash with a literal backslash. Feed the strict QA
+          # reader a verified *plain* 64-digit hex digest instead.
+          digest="$(python -c 'import hashlib, pathlib, sys; print(hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest())' "$archive")"
+          python tools/check_qa02_win32_fault_snapshots.py \
+            --zip "$archive" --sha256 "$digest" --case journaled
+          echo "PASS: producer F2 journaled archive satisfies separate QA-owned exact 19-member reader (not a gate credit)." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain exact CI-owned native SRAM crash and recovery byte evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-native-sram-recovery-fault-bytes
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_post_raw_pre_typed_crash/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/qa02-journaled-snapshot.zip
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/qa02-journaled-snapshot.sha256
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_typed_before_intent_recovery/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_prewrite_intent_abandon/*.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_prewrite_intent_abandon/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_typed_before_intent_recovery/crash.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_typed_before_intent_recovery/first-cold-boot.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_typed_before_intent_recovery/second-cold-boot.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_b_crash_healthy_a_recovery/*.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_b_crash_healthy_a_recovery/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_journaled_b_crash_then_a/*.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_journaled_b_crash_then_a/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_actual_win32_prewrite_dacl_denial/*.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_actual_win32_prewrite_dacl_denial/refusal.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_actual_win32_prewrite_dacl_denial/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_two_original_windows_games/*.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_two_original_windows_games/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_three_profile_unrelated_damage/*.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_three_profile_unrelated_damage/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/simulated_partial_raw_explicit_rollback/*.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/simulated_partial_raw_explicit_rollback/receipt.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/simulated_partial_raw_explicit_rollback/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_post_raw_pre_typed_crash/explicit-recovery-native-command.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_post_raw_pre_typed_crash/explicit-recovery-fresh-boot.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_recovery_healthy_alternate/damaged-source-refusal.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_recovery_healthy_alternate/explicit-healthy-selection.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_recovery_healthy_alternate/fresh-healthy-guest.log
       - name: Assemble verified ROM-free Baldosa Modern Windows candidate
         run: |
           set -euo pipefail

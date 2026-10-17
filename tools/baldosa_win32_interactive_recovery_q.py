@@ -160,13 +160,17 @@ def run(launcher: Path, fixture: Path, seed: Path, root: Path,
     retain_stage("before-Q", pre)
 
     transcript = root / "interactive-console.log"
-    # CONIN$ guarantees choice.exe reads the child's REAL console input.
-    # All output is redirected to a bounded local transcript, while the
-    # source launcher itself remains byte-for-byte unchanged.
+    # The CREATE_NEW_CONSOLE process must receive its genuine console stdin.
+    # CMD file redirection of CONIN$ failed with Win32 access denied under
+    # the hosted runner, before choice.exe could accept Q. Preserve STDIN
+    # unredirected; redirect *only* output in the wrapper. Passing DEVNULL
+    # handles through Popen forces STARTF_USESTDHANDLES, overriding fresh
+    # console standard handles even with CREATE_NEW_CONSOLE. The shipping
+    # source launcher and candidate bytes are completely unchanged.
     wrapper = root / "run-original-console.cmd"
     wrapper.write_text(
         '@echo off\n'
-        f'call "{launcher}" <CONIN$ >"{transcript}" 2>&1\n'
+        f'call "{launcher}" >"{transcript}" 2>&1\n'
         'exit /b %ERRORLEVEL%\n', encoding="utf-8")
     env = os.environ.copy()
     env.pop("UR_BALDOSA_NO_HOLD", None)
@@ -180,8 +184,7 @@ def run(launcher: Path, fixture: Path, seed: Path, root: Path,
     proc = subprocess.Popen(
         ["cmd.exe", "/d", "/c", "call", str(wrapper)],
         cwd=launcher.parent, env=env,
-        creationflags=subprocess.CREATE_NEW_CONSOLE,
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        creationflags=subprocess.CREATE_NEW_CONSOLE)
     try:
         prompt = "Explicit recovery choice [R/T/S/Q]:"
         deadline = time.monotonic() + timeout

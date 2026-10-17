@@ -93,6 +93,17 @@ def inspect(original_ports: list[dict], native_ports: list[dict],
             "rows": native_echo_bus_reads,
             "paced_helper_row_is_not_proven_65816_opcode_count": True,
         },
+        # Compare counts only when executed original opcodes bracket both
+        # actual writer clocks; absent opcode coverage is not zero polls.
+        "source_minus_native_executed_port2142_poll_count": (
+            len(original_echo_cmp) - len(native_echo_bus_reads)
+            if brackets[0] and brackets[1] else None
+        ),
+        "native_observed_port2142_poll_spacing_master": [
+            int(b["master"]) - int(a["master"])
+            for a, b in zip(native_echo_bus_reads, native_echo_bus_reads[1:])
+        ],
+        "poll_count_delta_is_not_spc_receiver_timing_proof": True,
         "opcode_brackets_source_port_before_after": [
             {"count": len(x), "opcodes": x[:5]} for x in brackets],
         "original_opcode_both_port_clocks_covered": bool(brackets[0] and brackets[1]),

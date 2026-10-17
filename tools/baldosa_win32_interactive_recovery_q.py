@@ -66,6 +66,13 @@ def inject_console_q(pid: int) -> None:
     kernel.WriteConsoleInputW.restype = wintypes.BOOL
     kernel.CloseHandle.argtypes = (ctypes.c_void_p,)
     kernel.CloseHandle.restype = wintypes.BOOL
+    # The dedicated injector can inherit the hosted runner's console even
+    # though its stdout/stderr are redirected. AttachConsole then fails with
+    # WinError 5 (ERROR_ACCESS_DENIED) because one process may be attached
+    # to only one console at a time. Detach ONLY this one-shot injector,
+    # never the parent verifier or the game. FreeConsole is harmless if the
+    # injector has no console; failed attachment still remains fail-closed.
+    kernel.FreeConsole()
     if not kernel.AttachConsole(pid):
         raise ctypes.WinError(ctypes.get_last_error())
     handle = None

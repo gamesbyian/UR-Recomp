@@ -4,7 +4,7 @@
 
 Original Actions artifact **12114666724**, SHA256 **d599deef5859a30b2d8d3192c11c97eb48c84b518eac395795adc602ce563a84**, is from green [Windows run 39068318622](https://github.com/gamesbyian/UR-Recomp/actions/runs/39068318622). Its actual tested PR-merge source **503464180dad14bb0275e9fea03f1902c1b5c861** has parents then-main b80ad58e and Modern #1713 head c42f1f4a. The original package/binding artifacts **12114487315 / 12114019652** separately bound the same ROM-free ZIP SHA256 **33eb094ef5a9c2c959f79b03823e434f8f036ff05bf00fa3cb98bd96fd6bc596** and AMD64 PE SHA256 **2dfef82712ab6eae160d5b2962bcf828d604c03ac0630e287771b6a36388673b**. This is not the immutable older nominated owner candidate.
 
-Independent original Actions ZIP inspection: **306 unique members**, all ZIP CRC clean, all fixed scenario-root names valid, **211 rehashed source-original binary SHA/length receipts across eleven groups, zero mismatches**. [The QA-only offline checker](../tools/check_qa02_win32_full_original_fault_archive.py) requires the external original SHA256 and fails closed on mutated or incomplete evidence.
+Independent original Actions ZIP inspection: **306 unique members**, all ZIP CRC clean, all fixed scenario-root names valid, **211 rehashed source-original binary SHA receipts across eleven groups, zero mismatches**; **195** contain independently checked reported byte lengths, while **16** F3 stage hashes are SHA-only (source bytes still opened and compared). [The QA-only offline checker](../tools/check_qa02_win32_full_original_fault_archive.py) requires the external original SHA256 and fails closed on mutated or incomplete evidence.
 
 | Source group | Verified original binary receipts | Bounded observation |
 | --- | ---: | --- |

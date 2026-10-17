@@ -48,8 +48,12 @@ def verify(doc:dict)->dict:
             raise ValueError("source-good moving control silently changed")
         if row["f"] in (3792,3872) and native5!=expected5:
             raise ValueError("current actual BG3/OBJ RGB5 control differs")
-        if row["f"]==3680 and native5==expected5:
-            raise ValueError("finish original-source wrong pixel was forged equal")
+        if row["f"]==3680:
+            # Source-selected adjacent 93/97 are *intentionally exact* native
+            # controls; only 92/96 are the nearby real incorrect pixels.
+            expected_equal = row["x"] in (93,97)
+            if (native5==expected5)!=expected_equal:
+                raise ValueError("finish adjacent native exact/wrong controls changed")
         n+=1
     return {"real_source_guest_CRC":SOURCE_GUEST,"samples":n,
             "exact_snes9x_5bit_preoperand_brightness_predictions":n,

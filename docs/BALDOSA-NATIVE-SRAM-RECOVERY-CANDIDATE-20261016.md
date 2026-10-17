@@ -699,10 +699,31 @@ It performs literal unregistered target ID entry through the original
 console S menu with a selected damaged A, intact B and missing C typed;
 requires explicit rejection, no guest frame and all original canonical
 bytes unchanged. A fresh original CMD process must still reject A, and
-a real Q console choice must exit 7 without mutation. **This negative
-control is PENDING exact-head Windows proof** until the new source CI
-run succeeds and its original bytes are reviewed. It does not overwrite
-any positive archive or count as independent physical QA.
+a real Q console choice must exit 7 without mutation. **Unregistered S is now source-green** on exact Modern head
+`f12140b60267096b37efe2a7c027263a8748fce4` in
+[Windows run 39070172277](https://github.com/gamesbyian/UR-Recomp/actions/runs/39070172277).
+The original `baldosa-win32-interactive-s-invalid-target` artifact
+#12114784426 (outer SHA256
+`396f33e40076db434c139b43bf557c19e67debfdc36ad4874be6447c47712cfe`)
+was downloaded and independently rehashed by the source owner: all
+22 exact source-object SHA256 and length receipts pass, all seven
+canonical A/B/C/selector/catalog bytes remain equal before, after
+and a second fresh cold Q process, and original CMD names the actual
+unregistered `native-ci-no-such-racer` target and refuses it before
+the first guest frame. The second process again displays the recovery
+menu and Q exits 7. This is still product evidence, not an independently
+approved physical QA or release gate.
+
+The same negative test has a **second opt-in scenario**
+`--registered-corrupt-target`, where target B exists in the canonical
+catalog but its 8 KiB raw SRAM differs from committed typed bytes;
+active A and unrelated C remain damaged. Real original CMD S must
+refuse switching to B despite its legitimate catalog row, and all
+seven original source objects must stay byte-identical through
+a fresh cold Q. Its evidence uses a separate artifact
+`baldosa-win32-interactive-s-corrupt-target` and is **PENDING
+exact-head Windows execution**. The original independently reviewed
+positive S/R/T/Q artifacts remain unchanged.
 
 **Release remains held:** #1214 and #1751 remain open, #1713 draft,
 independent ledger unmodified. A CI-created genuine console cannot prove

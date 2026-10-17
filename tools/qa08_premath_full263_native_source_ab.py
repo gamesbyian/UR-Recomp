@@ -25,6 +25,18 @@ def load_archive(path:Path,outer:str,key:str,inner:str)->zipfile.ZipFile:
     with zipfile.ZipFile(io.BytesIO(raw)) as z: data=z.read(key)
     if sha(data)!=inner:raise ValueError("nested full-source ZIP changed")
     return zipfile.ZipFile(io.BytesIO(data))
+def load_current_native_source(path:Path)->zipfile.ZipFile:
+    """Artifact 12090308473 is the already-raw source ZIP, not a wrapper.
+
+    Archive-only research bundle wrapped it as native-source.zip; never
+    conflate two different ZIP-layer digests or silently unwrap arbitrary
+    submitted data. The current real GitHub artifact digest is BASE_INNER.
+    """
+    raw=path.read_bytes()
+    if sha(raw)!=BASE_INNER:
+        raise ValueError("actual source GitHub artifact 12090308473 SHA changed")
+    return zipfile.ZipFile(io.BytesIO(raw))
+
 def pixels(raw:bytes)->bytes:
     if len(raw)!=len(HEADER)+PIXELS*4 or not raw.startswith(HEADER):
         raise ValueError("missing real uncropped 256x224 RGBA source")
@@ -93,7 +105,7 @@ def main():
     if a.out.exists():p.error("refuse overwrite of original source campaign")
     a.out.mkdir(parents=True)
     original=load_archive(a.original_outer,ORIG_OUTER,"original.zip",ORIG_INNER)
-    current=load_archive(a.current_outer,BASE_OUTER,"native-source.zip",BASE_INNER)
+    current=load_current_native_source(a.current_outer)
     folder=a.out/"source";folder.mkdir()
     env={"UR_QA08_WINDOWS_ORIGINAL_SOURCE_DIR":str(folder.resolve()),
          "UR_QA08_WINDOWS_ORIGINAL_SOURCE_CASE":"twoplayer-fullroute"}

@@ -53,7 +53,7 @@ class ConsoleInputRecord(ctypes.Structure):
 def inject_console_key(pid: int, letter: str = "Q") -> None:
     """Separate injector subprocess, so the verifier never loses its console."""
     keys = {"Q": (0x51, 0x10), "R": (0x52, 0x13),
-            "T": (0x54, 0x14)}
+            "T": (0x54, 0x14), "S": (0x53, 0x1f)}
     if letter not in keys:
         raise ValueError("Only explicit recovery Q/R/T console keys supported")
     vk, scan = keys[letter]
@@ -105,6 +105,62 @@ def inject_console_key(pid: int, letter: str = "Q") -> None:
 def inject_console_q(pid: int) -> None:
     """Preserve the original independently checked Q injector entry."""
     inject_console_key(pid, "Q")
+
+
+
+def inject_console_text(pid: int, value: str) -> None:
+    """Type a bounded literal profile ID + Enter into original CMD set /p.
+
+    The child injector detaches only itself from Git Bash's console first.
+    No shell command is invoked, and the text goes solely to the real CMD
+    console input buffer. Never synthesize the target recovery environment.
+    """
+    if not (1 <= len(value) <= 64 and
+            all(c.isascii() and (c.isalnum() or c == "-") for c in value)):
+        raise ValueError("Only bounded literal canonical profile IDs allowed")
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.AttachConsole.argtypes = (wintypes.DWORD,)
+    kernel.AttachConsole.restype = wintypes.BOOL
+    kernel.FreeConsole.restype = wintypes.BOOL
+    kernel.CreateFileW.argtypes = (
+        wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD,
+        ctypes.c_void_p, wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE)
+    kernel.CreateFileW.restype = ctypes.c_void_p
+    kernel.WriteConsoleInputW.argtypes = (
+        ctypes.c_void_p, ctypes.POINTER(ConsoleInputRecord), wintypes.DWORD,
+        ctypes.POINTER(wintypes.DWORD))
+    kernel.WriteConsoleInputW.restype = wintypes.BOOL
+    kernel.CloseHandle.argtypes = (ctypes.c_void_p,)
+    kernel.CloseHandle.restype = wintypes.BOOL
+    kernel.FreeConsole()
+    if not kernel.AttachConsole(pid):
+        raise ctypes.WinError(ctypes.get_last_error())
+    handle = None
+    try:
+        handle = kernel.CreateFileW(
+            "CONIN$", STDIN_READ_WRITE, SHARE_READ_WRITE, None,
+            OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, None)
+        if handle in (None, ctypes.c_void_p(-1).value):
+            raise ctypes.WinError(ctypes.get_last_error())
+        keys = value + "\r"
+        records = (ConsoleInputRecord * (2 * len(keys)))()
+        for i, ch in enumerate(keys):
+            vk = 0x0D if ch == "\r" else 0
+            scan = 0x1C if ch == "\r" else 0
+            for direction in range(2):
+                record = records[2 * i + direction]
+                record.EventType = KEY_EVENT
+                record.Event.KeyEvent = ConsoleKey(
+                    int(direction == 0), 1, vk, scan, ch, 0)
+        written = wintypes.DWORD(0)
+        if not kernel.WriteConsoleInputW(
+                handle, records, len(records), ctypes.byref(written)
+        ) or written.value != len(records):
+            raise ctypes.WinError(ctypes.get_last_error())
+    finally:
+        if handle not in (None, ctypes.c_void_p(-1).value):
+            kernel.CloseHandle(handle)
+        kernel.FreeConsole()
 
 
 def digest(data: bytes) -> str:
@@ -304,6 +360,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--inject-console-q", type=int)
     ap.add_argument("--inject-console-key", nargs=2, metavar=("KEY", "PID"))
+    ap.add_argument("--inject-console-text", nargs=2, metavar=("PID", "TEXT"))
     ap.add_argument("--launcher", type=Path)
     ap.add_argument("--rom", type=Path)
     ap.add_argument("--fixture", type=Path)
@@ -311,7 +368,10 @@ def main() -> None:
     ap.add_argument("--out", type=Path)
     ap.add_argument("--timeout", type=int, default=100)
     a = ap.parse_args()
-    if a.inject_console_key:
+    if a.inject_console_text:
+        pid, value = a.inject_console_text
+        inject_console_text(int(pid), value)
+    elif a.inject_console_key:
         letter, pid = a.inject_console_key
         inject_console_key(int(pid), letter)
     elif a.inject_console_q is not None:

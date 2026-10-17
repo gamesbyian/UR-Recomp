@@ -51,6 +51,17 @@ class GreyPhase(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "cropped"):
             c.result_large_colour_components(original[:-4], native)
 
+    def test_cross_epoch_medal_mask_provenance_fails_closed_on_unpinned_archive(self):
+        with tempfile.TemporaryDirectory() as d:
+            source = Path(d) / "three-source.zip"
+            source.write_bytes(b"not an authenticated archive")
+            with self.assertRaisesRegex(ValueError, "ZIP identity drift"):
+                c.inspect_three_source_epoch_medal_mask(source, {}, {})
+        self.assertEqual(c.MEDAL_ROW_BANDS, ((91, 105), (115, 129), (139, 153)))
+        self.assertEqual(c.SAMPLED_OVERLAP_POINTS,
+                         ((225, 96), (225, 120), (205, 115)))
+        self.assertEqual(len(range(4032, 5185, 48)), 25)
+
     def test_reject_tampered_outer_archive_even_before_pixels(self):
         with tempfile.TemporaryDirectory() as d:
             o, n = Path(d) / "original.zip", Path(d) / "native.zip"

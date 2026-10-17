@@ -14,6 +14,14 @@ from zipfile import ZipFile
 ORIG_BUNDLE = "3475ee87b5b20768f9377d8d1c787927955c33ee6d4388dae008f5486a81370e"
 ORIG_NESTED = "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e"
 WINDOWS_ZIP = "91e0bf8f5d7b86b188526740d825af890a99b02ecc05093f9a2143fa56ce49cd"
+PREVIOUS_NATIVE_ARCHIVES = {
+    "prior-windows.zip": "f01ab5a4888c227f306a0b9cd89e67710a4b41cad4c22867072280a17811fa82",
+    "latest-windows.zip": "4f766de13c702a108279293df4613538d8b49cbd1ecbc0876533c5f01f09293c",
+}
+PREVIOUS_NATIVE_GUEST_SHA = "c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876"
+EXPECTED_MEDAL_MASK_SHA = "9331534bc26928e66949644303bf1f4ae9b1185436f0090923a1f6dd6219da15"
+MEDAL_ROW_BANDS = ((91, 105), (115, 129), (139, 153))
+SAMPLED_OVERLAP_POINTS = ((225, 96), (225, 120), (205, 115))
 ROUTE = "ef74ec51fa585aa76652f4a14d2727f0074434b3925522ab2607e3bd29aa0194"
 GUEST = "b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568"
 P7 = b"P7\nWIDTH 256\nHEIGHT 224\nDEPTH 4\nMAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n"
@@ -188,13 +196,110 @@ def measure(original, native):
     return out
 
 
+def inspect_three_source_epoch_medal_mask(original_bundle: Path, original, current):
+    """Compare spatial *masks*, not CPU/PPU causal states, across three real builds.
+
+    Both old source runs predate current RF-017 generated 65816 clock order.
+    Their identical gold/silver/bronze region mask is a bounded spatial control,
+    NOT proof that original/native OAM producers or guest frames are equivalent.
+    """
+    bundle = original_bundle.read_bytes()
+    if sha(bundle) != ORIG_BUNDLE:
+        raise ValueError("historical original/native source ZIP identity drift")
+    frames = tuple(range(4032, 5185, 48))
+    if len(frames) != 25:
+        raise ValueError("wrong exact source result medal sample cadence")
+    primary_masks = {}
+    band_counts = None
+    for frame in frames:
+        _, mask = result_large_colour_components(original[frame], current[frame])
+        if len(mask) != 287:
+            raise ValueError(f"current medal-region mask differs frame={frame}")
+        bands = tuple(sum(lo <= position // 256 <= hi for position in mask)
+                      for lo, hi in MEDAL_ROW_BANDS)
+        if bands != (95, 101, 91) or sum(bands) != len(mask):
+            raise ValueError(f"medal-region row bands changed frame={frame}")
+        mask_sha = sha(b"".join(position.to_bytes(4, "little") for position in mask))
+        if mask_sha != EXPECTED_MEDAL_MASK_SHA:
+            raise ValueError(f"original/native medal index mask changed frame={frame}")
+        if any((y * 256 + x) not in mask for x, y in SAMPLED_OVERLAP_POINTS):
+            raise ValueError(f"known sample point no longer in medal mask frame={frame}")
+        primary_masks[frame] = mask
+        if band_counts is None:
+            band_counts = bands
+    witnesses = {}
+    with ZipFile(BytesIO(bundle)) as wrapper:
+        for member, expected_sha in PREVIOUS_NATIVE_ARCHIVES.items():
+            payload = wrapper.read(member)
+            if sha(payload) != expected_sha:
+                raise ValueError(f"old native Windows source archive changed: {member}")
+            with ZipFile(BytesIO(payload)) as older:
+                manifest = json.loads(older.read("qa08-windows-2p-fullroute.json"))
+                if (manifest.get("actual_source_count") != 263
+                        or manifest.get("actual_native_simulations") != 5484
+                        or manifest.get("actual_native_guest_CRC_sha256") !=
+                           PREVIOUS_NATIVE_GUEST_SHA):
+                    raise ValueError("old source guest/PPU manifest no longer exact")
+                sha_list = manifest.get("source_frame_P7_SHA256_by_guest", {})
+                for frame in frames:
+                    raw = older.read(
+                        f"source/ur-baldosa-original-source-{frame:06d}.pam")
+                    if (not raw.startswith(P7)
+                            or len(raw) != len(P7) + PIXELS * 4
+                            or sha(raw) != sha_list.get(str(frame))):
+                        raise ValueError("old source P7 or frame SHA changed")
+                    _, old_mask = result_large_colour_components(
+                        original[frame], raw[len(P7):])
+                    if old_mask != primary_masks[frame]:
+                        raise ValueError(
+                            f"earlier-source medal pixel mask changed frame={frame}")
+            witnesses[member] = {
+                "native_source_zip_sha256": expected_sha,
+                "historical_pre_RF017_guest_CRC_sha256": PREVIOUS_NATIVE_GUEST_SHA,
+                "mask_exact_against_current_RF017_all_25_frames": True
+            }
+        # This old-epoch OAM/pixel ownership witness is bounded evidence of
+        # native lower-slot sprite overlap, not a same-source original OAM
+        # priority or current RF-017 guest writer equivalence test.
+        with ZipFile(BytesIO(wrapper.read("latest-windows.zip"))) as prior:
+            owner = json.loads(prior.read("qa08-native-effective-pixel-owner.json"))
+        source = owner["bounded_gold_medal_live_VRAM_and_OBJ_indexes"]
+        overlap = source["corresponding_overlapping_sprite_pairs"]
+        observed = {
+            (x["native_guest"], tuple(x["original_screen_pixel"]))
+            for x in overlap if x.get("native_gold_tile_was_covered_by_lower_OAM_slot")
+        }
+        required = {
+            (frame, point) for frame in (4032, 4176)
+            for point in ((225, 96), (225, 120))
+        }
+        if not required.issubset(observed):
+            raise ValueError("independent historical native medal OBJ overlap lost")
+    return {
+        "observed_medal_region_band_rows": [list(p) for p in MEDAL_ROW_BANDS],
+        "observed_per_band_non_grey_pixels": list(band_counts),
+        "chromatic_mask_indices_SHA256": EXPECTED_MEDAL_MASK_SHA,
+        "actual_native_mask_sample_count": 25,
+        "sampled_source_pixel_overlap_xy": [list(p) for p in SAMPLED_OVERLAP_POINTS],
+        "historical_before_RF017_native_source_witnesses": witnesses,
+        "historical_actual_OBJ_lower_OAM_slot_overlap": True,
+        "older_native_OBJs_prove_current_RF017_or_original_priority": False,
+        "same_native_pixel_colours_across_source_epochs_claimed": False,
+        "medal_discs_source_OAM_CGRAM_causality_proven": False,
+        "physical_4K_or_release_approved": False
+    }
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--original-bundle", type=Path, required=True)
     p.add_argument("--windows-source", type=Path, required=True)
     a = p.parse_args()
     original, native = loaded(a.original_bundle, a.windows_source)
-    print(json.dumps(measure(original, native), indent=2, sort_keys=True))
+    result = measure(original, native)
+    result["historical_medal_chromatic_mask_crosscheck"] = (
+        inspect_three_source_epoch_medal_mask(a.original_bundle, original, native))
+    print(json.dumps(result, indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":

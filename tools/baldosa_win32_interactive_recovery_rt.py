@@ -70,7 +70,8 @@ def forced_stop_tree(proc: subprocess.Popen) -> None:
 
 def launch_until_first_frame(launcher: Path, user: Path, root: Path,
                              name: str, *, key: str | None,
-                             timeout: int) -> tuple[str, bool]:
+                             timeout: int,
+                             profile_id: str | None = None) -> tuple[str, bool]:
     transcript = root / (name + ".log")
     wrapper = root / (name + ".cmd")
     wrapper.write_text(
@@ -93,6 +94,7 @@ def launch_until_first_frame(launcher: Path, user: Path, root: Path,
     prompt = "Explicit recovery choice [R/T/S/Q]:"
     marker = "first frame simulated"
     injected = False
+    entered_profile = False
     finished = False
     try:
         deadline = time.monotonic() + timeout
@@ -114,6 +116,21 @@ def launch_until_first_frame(launcher: Path, user: Path, root: Path,
                     raise ValueError("Real original CMD " + key +
                                      " console key was not admitted")
                 injected = True
+            if (profile_id and injected and not entered_profile and
+                    "Healthy registered profile ID:" in text):
+                injector = subprocess.run(
+                    [sys.executable, str(
+                        Path(__file__).with_name(
+                            "baldosa_win32_interactive_recovery_q.py")),
+                     "--inject-console-text", str(proc.pid), profile_id],
+                    cwd=root, capture_output=True, text=True, timeout=25)
+                (root / (name + ".profile.log")).write_text(
+                    f"exit={injector.returncode}\n" +
+                    injector.stdout + "\n" + injector.stderr,
+                    encoding="utf-8")
+                if injector.returncode != 0:
+                    raise ValueError("CMD S profile-ID input was refused")
+                entered_profile = True
             if marker in text:
                 finished = True
                 break
@@ -128,6 +145,7 @@ def launch_until_first_frame(launcher: Path, user: Path, root: Path,
     text = transcript.read_text(encoding="utf-8", errors="replace")
     if key:
         if (not injected or
+            (profile_id is not None and not entered_profile) or
             text.count(prompt) != 1 or
             prompt + " " + key not in text or
             text.count("UR-BALDOSA-STARTUP-PROFILE-REJECTED:") != 1 or

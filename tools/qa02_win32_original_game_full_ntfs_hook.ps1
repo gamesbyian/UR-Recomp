@@ -56,7 +56,7 @@ function Canonical-Manifest {
       }
     }
   }
-  return ,$items
+  return $items
 }
 $failure = ''
 $exitCode = -1

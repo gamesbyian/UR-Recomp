@@ -58,6 +58,59 @@ def diagnose(original: dict[int,bytes], native: dict[int,bytes])->dict:
       "CPU_APU_PPU_game_or_output_modified":False,"QA08_QA10_release":False
     }
 
+
+FINISH_FIELDS=range(3648,3873,16)
+def rgb8_finish_transfer(original:dict[int,bytes],native:dict[int,bytes])->dict:
+    """Exact source pixels; native RGB8 triplets vs original normalized RGB5.
+
+    A successful observational transfer is NOT a valid engine patch or an
+    approved postprocess. Inspect lost channel info before touching PPU math.
+    """
+    from collections import defaultdict
+    joint=defaultdict(Counter)
+    chan=[defaultdict(Counter) for _ in range(3)]
+    wrong=0
+    samples=0
+    for frame in FINISH_FIELDS:
+        a,b=original[frame],native[frame]
+        if len(a)!=PIXELS*4 or len(b)!=PIXELS*4:
+            raise ValueError("finish source raster cropped or absent")
+        for off in range(0,PIXELS*4,4):
+            reference=(a[off+2]>>3,a[off+1]>>3,a[off]>>3)
+            source=(b[off],b[off+1],b[off+2])
+            joint[source][reference]+=1
+            for c in range(3):chan[c][source[c]][reference[c]]+=1
+            wrong+=any((source[c]>>3)!=reference[c] for c in range(3))
+            samples+=1
+    conflicts={colour:dict(c) for colour,c in joint.items() if len(c)>1}
+    if conflicts:
+        raise ValueError("native full RGB8 triple is not source-deterministic")
+    red_53=chan[0][53]
+    if samples!=15*PIXELS or wrong!=90890 or len(joint)!=71 or (
+       dict(red_53)!={6:2,7:23724} or
+       any(len(c)!=1 for c in chan[1].values()) or
+       any(len(c)!=1 for c in chan[2].values())):
+        raise ValueError("pinned authentic full finish RGB8/source5 source census drift")
+    if len([x for x in chan[0].values() if len(x)>1])!=1:
+        raise ValueError("native red-channel source information ambiguity drift")
+    return {
+      "source_finish_native_guests":list(FINISH_FIELDS),
+      "real_256x224_pixels_per_frame":PIXELS,
+      "all_15_finish_true_source_pixels_examined":samples,
+      "wrong_native_vs_original_RGB5":wrong,
+      "unique_native_full_RGB8_colours":len(joint),
+      "full_native_RGB8_triplet_multiple_original_RGB5_targets":0,
+      "native_red_8bit_53_original_red5_split":
+           {str(k):v for k,v in sorted(red_53.items())},
+      "native_channel_RGB8_single_value_ambiguities":
+           {colour:sum(len(v)>1 for v in mapping.values())
+            for colour,mapping in zip(("red","green","blue"),chan)},
+      "triplet_observational_transfer_authorized_as_PPU_fix":False,
+      "physical_SNESC_DAC_or_2014_brightness_order_equivalent":False,
+      "all_263_existing_source_frame_hashes_authenticated":True,
+      "QA08_QA10_or_release_passed":False
+    }
+
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--original-bundle",type=Path,required=True)
@@ -66,6 +119,7 @@ def main():
     a=p.parse_args()
     original,native=loaded(a.original_bundle,a.windows_source)
     report=diagnose(original,native)
+    report["full_finish_RGB8_observed_transfer"]=rgb8_finish_transfer(original,native)
     a.out.parent.mkdir(parents=True,exist_ok=True)
     a.out.write_text(json.dumps(report,indent=2,sort_keys=True)+"\n")
     print("QA08_FINISH_PALETTE_LUT_IMPOSSIBLE",

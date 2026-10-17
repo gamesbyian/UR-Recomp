@@ -36,13 +36,15 @@ GETMATH="    qa08_math=(int)mathEnabled;\n"
 GETSUB="      qa08_sub=secondLayer;qa08_sr=r2;qa08_sg=g2;qa08_sb=b2;\n"
 TRACE=r"""  /* In real produced pixelBuffer after PPU math and brightness only;
    * one source-qualified 5484-frame route; 2 exact normal-frame controls. */
-  if (getenv("UR_QA08_RF017_FINISH_OPERAND_TRACE") &&
-      ((snes_frame_counter == 3680 && y == 1 &&
+  /* First restrict to eight exact source pixels; avoid getenv() on all
+   * roughly 314 million normal PPU pixels in the full real route. */
+  if (((snes_frame_counter == 3680 && y == 1 &&
          (x == 92 || x == 93 || x == 96 || x == 97)) ||
        ((snes_frame_counter == 3792 || snes_frame_counter == 3872) &&
          x == 121 && y == 166) ||
        (snes_frame_counter == 1856 && y == 1 &&
-         (x == 96 || x == 97)))) {
+         (x == 96 || x == 97))) &&
+      getenv("UR_QA08_RF017_FINISH_OPERAND_TRACE")) {
     fprintf(stderr,
        "UR_QA08_FINISH_OPERAND frame=%d x=%d y=%d "
        "main=%d sub=%d math=%d window=%d "

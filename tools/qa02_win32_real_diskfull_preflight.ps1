@@ -170,7 +170,9 @@ try {
     checker_sha256 = (Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash.ToLowerInvariant()
     native_game_tested = [bool]$ProductHook
     native_game_receipt_is_independent_stage_file = [bool]$ProductHook
-    user_ROM_or_player_data_used = $false
+    game_ROM_used_in_ephemeral_runner = [bool]$ProductHook
+    user_ROM_or_player_data_used = [bool]$ProductHook
+    private_player_save_uploaded = $false
     power_loss_or_partial_IO_tested = $false
     physical_operator = $false
     release_gate_credit = 0

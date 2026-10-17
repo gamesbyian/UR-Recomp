@@ -99,6 +99,9 @@ class BaldosaModernProfileActivationStage(unittest.TestCase):
             # Native save refusal must be visible to a player/launcher;
             # startup code 7 is reserved for before-first-frame recovery.
             self.assertEqual(staged_host.count("exit(8);"), 2)
+            self.assertEqual(staged_host.count("exit(9);"), 1)
+            self.assertIn("UR-BALDOSA-SWITCH-FAILED: Current racer save completed", staged_host)
+            self.assertIn("if (finish == 2)", staged_host)
             self.assertIn("UR-BALDOSA-SAVE-FAILED", staged_host)
             self.assertIn("Native save was refused before writing.", staged_host)
             self.assertIn("Native save could not complete.", staged_host)
@@ -133,6 +136,7 @@ class BaldosaModernProfileActivationStage(unittest.TestCase):
                 "selector_guard.reset();",
                 "NEXT_BOOT_COMMITTED",
                 "NEXT_BOOT_COMMIT_FAILED",
+                "QA_POSTSAVE_NEXT_BOOT_GATE",
             ):
                 self.assertIn(marker, bridge)
             self.assertIn("bool validate_only = false", header)

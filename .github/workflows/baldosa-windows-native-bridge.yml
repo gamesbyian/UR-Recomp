@@ -24,6 +24,8 @@ on:
       - "tools/baldosa_native_1p_records_probe.py"
       - "tools/baldosa_native_2p_records_probe.py"
       - "tools/baldosa_native_first_racer_probe.py"
+      - "tools/baldosa_native_existing_p1_ui_probe.py"
+      - "tests/unit/test_baldosa_native_existing_p1_ui_probe.py"
       - "tools/baldosa_native_second_racer_probe.py"
       - "tools/baldosa_native_practice_probe.py"
       - "tools/baldosa_dram_refresh_beam_rate_patch.py"
@@ -220,6 +222,7 @@ jobs:
           python tests/unit/test_baldosa_native_2p_records_probe.py
           python tests/unit/test_baldosa_native_first_profile_cpp.py
           python tests/unit/test_baldosa_native_first_racer_probe.py
+          python tests/unit/test_baldosa_native_existing_p1_ui_probe.py
           python tests/unit/test_baldosa_native_second_racer_probe.py
           python tests/unit/test_baldosa_native_first_racer_real_run_probe.py
           python tests/unit/test_baldosa_modern_user_data_spike.py
@@ -868,8 +871,11 @@ jobs:
             --zip "$RUNNER_TEMP/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip" \
             --rom "reference/roms/retail/Uniracers_USA.sfc" \
             --out "$RUNNER_TEMP/Baldosa Native Extracted Launcher QA" \
-            --timeout 80 --expected-revision "$GITHUB_SHA"
-          echo "PASS: actual ROM-free ZIP extracted on Windows; double-click CMD rejects missing/wrong ROM and package-local/relative saves, accepts valid personal ROM, opens shared Modern root and saves exact native SRAM outside extracted executable directory. No ROM or saved data uploaded." >> "$GITHUB_STEP_SUMMARY"
+            --timeout 120 --expected-revision "$GITHUB_SHA" \
+            --save-fault-fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --save-fault-seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/baseline/Modern Player Data With Spaces/saves/save.srm" \
+            --save-fault-script "baldosa/tests/routes/race_2p_split.txt"
+           echo "PASS: actual extracted source Windows CMD launcher, fresh first racer, real frame-1952 share-denied typed save reported as exit 8 with warning, and two exact fresh cold recoveries; no ROM or personal files uploaded, no release gate credit." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain ROM-free Windows candidate only (no ROM or SRAM)
         uses: actions/upload-artifact@v4
@@ -912,6 +918,38 @@ jobs:
             ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/drive-relative-root-refusal.log
             ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/current-drive-root-refusal.log
             ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/rooted-relative-rejections.json
+
+      # The existing ten-file extracted CMD transcript contract stays
+      # unchanged. This additional product-only 22-source-binary witness
+      # is separately auditable and never inserted into the QA-12 or QA02
+      # flat release archives.
+      - name: Retain original packaged CMD live save-refusal fault bytes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-packaged-save-refusal-source-bytes
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/Packaged Actual Source Save Failure/native_real_win32_live_postraw_typed_denial/*.log
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/Packaged Actual Source Save Failure/native_real_win32_live_postraw_typed_denial/os-denial-result.json
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/Packaged Actual Source Save Failure/native_real_win32_live_postraw_typed_denial/fault-bytes/**
+
+      # Genuine two-process negative after old rider's *successful*
+      # original SRAM and typed save: external canonical selector wins
+      # the next-boot publication. Retain distinct exit-9 evidence,
+      # never merge into the fixed release-acceptance archives.
+      - name: Retain source-qualified old-save success and switch-refused evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-postsave-selector-refusal
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_existing_p1_switch/postsave_selector_conflict/original-game.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_existing_p1_switch/postsave_selector_conflict/external-selector-actor.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_existing_p1_switch/postsave_selector_conflict/result.json
 
       - name: Retain bounded Windows guest evidence (never ROM or saves)
         if: always()

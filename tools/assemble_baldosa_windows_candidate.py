@@ -108,6 +108,7 @@ def launcher() -> bytes:
         # anonymous game or tell players to delete the affected profile.
         'if "%ERRORLEVEL%"=="7" goto UR-BALDOSA-RECOVERY-MENU',
         'if "%ERRORLEVEL%"=="8" goto UR-BALDOSA-SAVE-FAILURE',
+        'if "%ERRORLEVEL%"=="9" goto UR-BALDOSA-SWITCH-FAILURE',
         # Preserve the independent release-auditor's existing exact
         # nonzero exit propagation marker; IF does not alter errorlevel.
         'if not "%ERRORLEVEL%"=="0" exit /b %ERRORLEVEL%',
@@ -170,6 +171,13 @@ def launcher() -> bytes:
         'goto UR-BALDOSA-NATIVE-START',
         # A guest session refused a save. Never classify exit 8 as a
         # clean shutdown or offer startup-only recovery before cold boot.
+        ':UR-BALDOSA-SWITCH-FAILURE',
+        'echo UR-BALDOSA-SWITCH-FAILED: The current racer was saved, but the requested next racer was not selected. 1>&2',
+        'echo Your saved progress is intact. Another process may have changed the active racer or Windows refused the selector update. 1>&2',
+        'echo Do not replace a healthy racer. Restart and make a fresh selection after checking your saved data. 1>&2',
+        'if not "%~1"=="" exit /b 9',
+        'call :UR-BALDOSA-HOLD',
+        'exit /b 9',
         ':UR-BALDOSA-SAVE-FAILURE',
         'echo UR-BALDOSA-SAVE-FAILED: This game session could not finish saving. 1>&2',
         'echo Some recent progress may not have been committed. Preserve your entire user-data folder. 1>&2',
@@ -260,6 +268,9 @@ def readme(revision: str) -> bytes:
         "in the launcher; keep the entire user-data folder, even when\n"
         "the old raw save and typed profile still look intact. Exit 8\n"
         "never silently starts recovery or reports a successful save.\n"
+        "A separate code 9 means the current racer WAS saved but the\n"
+        "requested next-racer selector change was refused. It is not\n"
+        "a lost-save warning; reselect after a fresh start.\n"
         "After a successful R/T/S repair the launcher retries the original\n"
         "game only once. A further refusal exits 7 without a second prompt;\n"
         "the preserved backup and original data are never auto-deleted.\n"

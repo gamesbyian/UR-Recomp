@@ -990,6 +990,33 @@ extern "C" int ur_baldosa_modern_profile_finish_native_save(int saved) {
         catalog_guard.reset();
         selector_guard.reset();
         const auto target = *g_owned_next_boot_profile_id;
+        // CI-only real Win32 deterministic interleaving: old source SRAM
+        // and typed metadata have fully committed and original locks have
+        // been released; an independent source fixture may now win the
+        // canonical selector transaction before the queued UI request.
+#if defined(_WIN32)
+        const char* before_switch_gate =
+            std::getenv("UR_BALDOSA_QA_POSTSAVE_NEXT_BOOT_GATE");
+        if (before_switch_gate && *before_switch_gate) {
+            const std::filesystem::path gate(before_switch_gate);
+            if (!gate.is_absolute() || std::filesystem::exists(gate))
+                return 2; // old save remains committed; selector not ours
+            std::fprintf(stderr,
+                "UR_BALDOSA_NATIVE_PROFILE QA_POSTSAVE_NEXT_BOOT_GATE "
+                "source_raw_typed_saved=1 selector_not_yet_committed=1\n");
+            std::fflush(stderr);
+            bool released = false;
+            for (int attempt = 0; attempt < 4500; ++attempt) {
+                std::error_code ec;
+                if (std::filesystem::is_regular_file(gate, ec) && !ec) {
+                    released = true;
+                    break;
+                }
+                ::Sleep(10);
+            }
+            if (!released) return 2;
+        }
+#endif
         const auto selected =
             ur::product::select_baldosa_existing_profile_for_next_boot(
                 g_native_user_root, g_verified_native_profile_id, target);
@@ -1000,7 +1027,7 @@ extern "C" int ur_baldosa_modern_profile_finish_native_save(int saved) {
                 g_verified_native_profile_id.c_str(), target.c_str(),
                 static_cast<unsigned>(selected.status));
             std::fflush(stderr);
-            return 0; // refuse clean exit; verified old-racer save is intact
+            return 2; // distinct: old save committed; next P1 switch refused
         }
         std::fprintf(stderr,
             "UR_BALDOSA_NATIVE_PROFILE NEXT_BOOT_COMMITTED "

@@ -551,3 +551,63 @@ postraw and two independently competing source games A/B/C. This remains
 product candidate evidence, not clean-machine physical QA or a completed
 release gate. #1214 and #1751 remain open pending source-exact validation.
 
+## #1751 second-phase selector refusal: code 9, not a lost save
+
+A real original guest may durably finish the old rider's `RtlWriteSram`,
+typed checkpoint and intent retirement before the pending X/A next-boot
+selector can be published. A separate process or Windows OS refusal can
+legitimately win or block that SECOND phase. The saved old racer is
+**not lost**, so treating that condition as exit 8 / a save-not-completed
+message would misinform the player.
+
+The native two-phase save bridge now returns **2** solely after the old
+profile's save is durably complete but the independently verified next-boot
+selector transaction is refused. The original native shutdown wrapper
+translates this into OS **exit 9**, with a unique
+`UR-BALDOSA-SWITCH-FAILED: Current racer save completed` source diagnostic.
+The original ROMless `run-baldosa-modern.cmd` has a distinct exit-9
+warning that explicitly confirms old progress was saved but the requested
+next racer was not selected, and holds the double-click console for
+acknowledgment; scripted invocations return 9 immediately. Exit 8
+continues to mean prewrite or raw→typed save failure and must **never** be
+used to describe a fully committed old save. Startup repair remains 7.
+
+The adversarial original Windows test holds the still-running game after
+its typed publication + journal retirement, releases its locks, and
+invokes a separate **shipping canonical selector transaction** through
+the already-compiled native profile fixture, updating Mike→Andrew first.
+The original source game then resumes, must return **9**, and may not
+overwrite this healthy external selector. Original 8 KiB Mike SRAM must
+decode exactly against its typed checkpoint, Andrew raw and catalog
+remain unchanged, no pending journal remains, and genuine source
+`CHECKPOINT status=committed|unchanged` must precede the post-save
+gate and `NEXT_BOOT_COMMIT_FAILED`. The original game and its external
+actor are two distinct Win32 processes, not a fabricated result writer.
+All evidence is product side and separate from independent release QA.
+
+This extra negative control is a candidate, **not release acceptance**,
+until the exact-commit Windows run and QA independently validate the
+result. P0 #1214/#1751, manual human R/T/S/Q, full-disk/power cut and
+physical gamepad acceptance remain open.
+
+## Packaged CMD exact-PE fault acceptance (additional product witness)
+
+The owning Windows source producer optionally exercises the original
+source-authenticated frame-1952 live postraw typed-publication sharing-denial
+fault **through the extracted ROMless ZIP's own run-baldosa-modern.cmd**.
+It uses the exact tested PE, a temporary verified original USA ROM, an
+original-native source SRAM seed and the production Modern profile fixture
+in disposable user data outside the extracted package. The live source guest
+must refuse typed CAS and **the actual CMD parent must return exit 8** with
+its visible save-failure warning. When Windows sharing restrictions are
+released, two further fresh CMD-launched original guest processes must
+reconcile the exact new guest SRAM once and prove typed-generation
+idempotence. The PE and immutable ROMless ZIP hashes must remain unchanged.
+No ROM, private profile or synthetic earned result is packaged.
+
+The separate packaged transcript/fault-byte evidence is retained **outside**
+the strict 19-member QA02 ZIP under the additional Windows artifact
+baldosa-win32-extracted-cmd-source-evidence. This is CI-scripted CMD
+execution, not human R/T/S/Q or physical gamepad acceptance. No release
+ledger credit is transferred; it is candidate coverage until the new
+exact-head Windows process succeeds and independent QA reviews it.

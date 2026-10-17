@@ -65,6 +65,12 @@ class ExistingP1ControllerSwitchTest(unittest.TestCase):
         ):
             self.assertIn(token, root)
         self.assertIn("select_baldosa_existing_profile_for_next_boot", adapter)
+        original = (ROOT / "tools/baldosa_native_existing_p1_ui_probe.py").read_text()
+        self.assertIn("UR_BALDOSA_QA_POSTSAVE_NEXT_BOOT_GATE", original)
+        self.assertIn("--select-existing-next-boot", original)
+        self.assertIn("proc.returncode != 9", original)
+        self.assertIn("original_raw_typed_checkpoint_before_external_selector", original)
+        self.assertIn("UR-BALDOSA-SWITCH-FAILED", original)
         self.assertIn("SWITCH ACTIVE P1", presenter)
         self.assertIn("A SWITCH  B CANCEL", presenter)
         self.assertIn("NO LIVE RACER CHANGE", presenter)

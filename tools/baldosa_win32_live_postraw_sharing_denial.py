@@ -24,6 +24,7 @@ from baldosa_windows_native_pause_route import verify_named_profile_boot_bytes
 def run_native_win32_live_postraw_typed_denial(
     exe: Path, rom: Path, script: Path, root: Path,
     fixture: Path, seed: Path, *, video: str, timeout: int,
+    packaged_launcher: Path | None = None,
 ) -> dict[str, object]:
     if os.name != "nt":
         raise ValueError("Live original SRAM typed-denial requires real Win32")
@@ -105,8 +106,18 @@ def run_native_win32_live_postraw_typed_denial(
             raise ctypes.WinError(ctypes.get_last_error())
         return handle
 
-    command = [str(exe), "--no-launcher", "--config", str(config),
-               "--script", str(script), str(rom)]
+    if packaged_launcher is not None:
+        if (not packaged_launcher.is_file() or
+            not packaged_launcher.parent.samefile(exe.parent) or
+            not (packaged_launcher.parent / rom.name).is_file()):
+            raise ValueError("Packaged live fault requires same extracted game/ROM")
+        env["UR_RECOMP_USER_DATA_ROOT"] = str(user_root)
+        env["UR_BALDOSA_NO_HOLD"] = "1"
+        command = ["cmd.exe", "/d", "/c", "call", str(packaged_launcher),
+                   "--config", str(config), "--script", str(script)]
+    else:
+        command = [str(exe), "--no-launcher", "--config", str(config),
+                   "--script", str(script), str(rom)]
     armed_marker = ("UR_BALDOSA_NATIVE_PROFILE QA_POSTRAW_TYPED_GATE "
                     "native_raw_written=1 typed_not_attempted=1")
     held_typed_handle: int | None = None
@@ -222,6 +233,10 @@ def run_native_win32_live_postraw_typed_denial(
             "exact_source_byte_members": preliminary,
             "qa_gate_credit": 0,
         }, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+    if (packaged_launcher is not None and
+        "UR-BALDOSA-SAVE-FAILED: This game session could not finish saving."
+        not in source_log):
+        raise ValueError("Actual extracted CMD suppressed source save-failure guidance")
     if (return_code != 8 or
         "UR-BALDOSA-SAVE-FAILED: Native save could not complete." not in source_log or
         replace_probe_winerror not in (5, 32) or
@@ -254,8 +269,12 @@ def run_native_win32_live_postraw_typed_denial(
         clear.pop(flag, None)
     short = out / "short-cold.txt"
     short.write_text("turbo on\nwait 6\nquit\n", encoding="ascii")
-    cold_command = [str(exe), "--no-launcher", "--config", str(config),
-                    "--script", str(short), str(rom)]
+    if packaged_launcher is not None:
+        cold_command = ["cmd.exe", "/d", "/c", "call", str(packaged_launcher),
+                        "--config", str(config), "--script", str(short)]
+    else:
+        cold_command = [str(exe), "--no-launcher", "--config", str(config),
+                        "--script", str(short), str(rom)]
     cold = subprocess.run(
         cold_command, cwd=out, env=clear, capture_output=True,
         text=True, errors="replace", timeout=timeout)
@@ -328,6 +347,13 @@ def run_native_win32_live_postraw_typed_denial(
         "partial_real_disk_write_or_full_volume": False,
         "independent_QA_credit": 0,
         "native_denied_process_return_code": return_code,
+        "native_source_pe_sha256": hashlib.sha256(exe.read_bytes()).hexdigest(),
+        "native_source_profile_fixture_sha256": hashlib.sha256(fixture.read_bytes()).hexdigest(),
+        "authentic_guest_seed_sha256": hashlib.sha256(seed.read_bytes()).hexdigest(),
+        "packaged_launcher_sha256": (hashlib.sha256(packaged_launcher.read_bytes()).hexdigest()
+                                      if packaged_launcher is not None else None),
+        "real_extracted_package_cmd_exercised": packaged_launcher is not None,
+        "packaged_cmd_save_failure_warning_verified": packaged_launcher is not None,
     }
     (out / "os-denial-result.json").write_text(
         json.dumps(outcome, sort_keys=True, indent=2) + "\n",

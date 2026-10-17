@@ -74,8 +74,11 @@ class RetainedLauncherTranscriptTests(unittest.TestCase):
                     ).read_text()
         block = workflow.split("name: baldosa-win32-extracted-cmd-source-evidence",
                                1)[1].split("- name:", 1)[0]
+        # Comments between YAML artifact blocks are NOT retained files.
+        # Keep the source transcript allowlist at exactly ten actual paths;
+        # do not weaken the strict no-glob and separate-artifact assertions.
         lines = [x.strip() for x in block.split("path: |", 1)[1].splitlines()
-                 if x.strip()]
+                 if x.strip() and not x.lstrip().startswith("#")]
         self.assertEqual(len(lines), 10)
         for line in lines:
             self.assertIn("Baldosa Native Extracted Launcher QA/", line)

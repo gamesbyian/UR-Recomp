@@ -36,6 +36,9 @@ class UpstreamWriterSourcePin(unittest.TestCase):
         self.assertEqual(out.count('ur_rf037_upstream("rtl-apu-after-filter", adr, val);'),1)
         self.assertEqual(out.count('ur_rf037_upstream("write-reg", reg, value);'),1)
         self.assertIn("getenv",m.RTL_HELPER)
+        self.assertIn("frame > 6115",m.RTL_HELPER)
+        self.assertIn("f <= 6115",m.CPU_BYTE_EXTRA)
+        self.assertIn("f <= 6115",m.CPU_WORD_EXTRA)
         with self.assertRaisesRegex(ValueError,"unknown native common RTL"):
             m.native_rtl(m.RTL_HEADER)
 

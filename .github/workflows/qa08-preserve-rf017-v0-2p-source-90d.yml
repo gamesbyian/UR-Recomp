@@ -1,0 +1,66 @@
+name: QA08 preserve RF017 V0 2P source witness for 90 days
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa08-preserve-rf017-v0-2p-source-90d.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  preserve-exact-authentic-2p-p7:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Acquire exact independently archived genuine Windows source, verify no ROM or saves
+        shell: bash
+        env:
+          GH_TOKEN: \${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --retry-all-errors --silent --show-error \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/\${GITHUB_REPOSITORY}/actions/artifacts/12090308473/zip" \
+            -o native-source.zip
+          echo "91e0bf8f5d7b86b188526740d825af890a99b02ecc05093f9a2143fa56ce49cd  native-source.zip" | sha256sum -c -
+          python - <<'PY'
+          from zipfile import ZipFile
+          from hashlib import sha256
+          import json
+          z = ZipFile("native-source.zip")
+          names = set(z.namelist())
+          expected = {"qa08-windows-2p-fullroute.json", "baseline/log.txt"}
+          expected.update(f"source/ur-baldosa-original-source-{i:06d}.pam"
+                          for i in range(1280, 5473, 16))
+          assert names == expected, "Unexpected ZIP entries: must be only 263 source P7, one receipt and log"
+          q = json.loads(z.read("qa08-windows-2p-fullroute.json"))
+          assert q["actual_native_simulations"] == 5484
+          assert q["actual_source_count"] == 263
+          assert q["actual_native_guest_CRC_sha256"] == "b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568"
+          assert q["actual_two_pad_route_sha256"] == "ef74ec51fa585aa76652f4a14d2727f0074434b3925522ab2607e3bd29aa0194"
+          assert q["current_RF017_5484_guest_CRC_exact_match_to_firstline_only"]
+          header = b"P7\nWIDTH 256\nHEIGHT 224\nDEPTH 4\nMAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n"
+          manifest = q["source_frame_P7_SHA256_by_guest"]
+          assert len(manifest) == 263
+          for f in range(1280, 5473, 16):
+              raw = z.read(f"source/ur-baldosa-original-source-{f:06d}.pam")
+              assert raw.startswith(header) and len(raw) == len(header) + 256*224*4, f
+              assert sha256(raw).hexdigest() == manifest[str(f)], f
+          assert all(not any(word in f.lower() for word in
+                     (".sfc", ".smc", ".rom", ".srm", "wram", "vram", "save", "profile", "secrets"))
+                     for f in names)
+          print("QA08_RF017_V0_NATIVE_P7_PROVEN exact_images=263 guest=5484 ROM_free=1 original_size=256x224 release=0")
+          PY
+          echo "Exact current Windows source ZIP SHA256 91e0bf8f5d7b86b188526740d825af890a99b02ecc05093f9a2143fa56ce49cd" >> "$GITHUB_STEP_SUMMARY"
+          echo "All 263 source P7 image hashes, full guest/control/input receipt and no ROM/save members verified before 90-day preservation." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain only exact source-produced native ZIP for 90 days
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-rf017-v0-actual-windows-2p-original-ppu-source-90d
+          retention-days: 90
+          if-no-files-found: error
+          path: native-source.zip

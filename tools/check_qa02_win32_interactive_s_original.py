@@ -113,6 +113,7 @@ def check_original_zip(path: Path, external_sha: str, cmd_sha: str) -> dict:
             require(len(before[f"{who}-raw"]) == 8192 and
                     len(after[f"{who}-raw"]) == 8192,
                     "source raw is not canonical full 8KiB " + who)
+        third_typed = data["unrelated-C-original-typed.bin"]
         before_a = typed_sram(before["a-typed"])
         before_b = typed_sram(before["b-typed"])
         require(before_a[:16] == before["a-raw"][:16] and
@@ -128,7 +129,6 @@ def check_original_zip(path: Path, external_sha: str, cmd_sha: str) -> dict:
                     b"profile=" + C.encode() + b"\n") == 1,
                 "original saved typed identities do not match registered A/B/C")
         require(before_b == before["b-raw"], "target B not a healthy matched pair")
-        third_typed = data["unrelated-C-original-typed.bin"]
         require(typed_sram(third_typed) == before["c-raw"],
                 "the unrelated C fixture wasn't independently healthy before deletion")
         require(len({before["a-raw"], before["b-raw"], before["c-raw"]}) == 3,

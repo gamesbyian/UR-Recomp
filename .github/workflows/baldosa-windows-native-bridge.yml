@@ -25,6 +25,8 @@ on:
       - "tools/baldosa_native_first_racer_probe.py"
       - "tools/baldosa_native_second_racer_probe.py"
       - "tools/baldosa_native_practice_probe.py"
+      - "tools/baldosa_uniracers_hdma_firstline_patch.py"
+      - "tests/unit/test_baldosa_uniracers_hdma_firstline_patch.py"
       - "tools/baldosa_dram_refresh_beam_rate_patch.py"
       - "tests/unit/test_baldosa_dram_refresh_beam_rate_patch.py"
       - "tests/unit/test_baldosa_native_practice_probe.py"
@@ -207,6 +209,7 @@ jobs:
       - name: Guard guest CRC, pause witness and Modern mutable-root stage
         run: |
           python tests/unit/test_assemble_baldosa_windows_candidate.py
+          python tests/unit/test_baldosa_uniracers_hdma_firstline_patch.py
           python tests/unit/test_baldosa_io_access_clock_order_patch.py
           python tests/unit/test_windows_rf017_source_identity.py
           python tests/unit/test_bind_baldosa_candidate_receipt.py
@@ -251,6 +254,11 @@ jobs:
             --game baldosa --verify-gen | tee "$RUNNER_TEMP/rf017-generated-source.txt"
           grep -Fx 'verified 89 generated files: 15484 in-order charge statements, every block total unchanged' \
             "$RUNNER_TEMP/rf017-generated-source.txt"
+          # QA-08: exact-title Windows-only HDMA prime consumption; preserve
+          # CPU/APU clocks, other games, all source pins and product adapters.
+          python tools/baldosa_uniracers_hdma_firstline_patch.py --game baldosa
+          python tools/baldosa_uniracers_hdma_firstline_patch.py --game baldosa --apply-candidate
+          echo "QA-08 title-scoped first-line HDMA source staged; transition/result, physical screen and release acceptance remain open." >> "$GITHUB_STEP_SUMMARY"
           echo "RF-015 + RF-017 generated game/CPU clock-order source verified; independent Windows event acceptance remains outstanding." >> "$GITHUB_STEP_SUMMARY"
           python tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_execution_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"

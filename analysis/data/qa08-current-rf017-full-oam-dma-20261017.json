@@ -1,0 +1,299 @@
+{
+  "schema": "qa08-current-rf017-full-544byte-native-OAM-DMA-vs-correct-original/1",
+  "disposition": "two_full_input_matches_on_current_guest; producer_phase_or_callback_registration_open; no_renderer_fix_authorized",
+  "producer": {
+    "actual_native_windows_run_id": 39065520904,
+    "one_shot_diagnostic_pr": 1785,
+    "head_sha": "b9c815daa60f7b8c893798dc89bb769ecf8beec2",
+    "actual_PE_sha256": "b1557af84ec225718d569002c6872d4bad889c38253a7d039e423631f02d5c8a",
+    "artifact_id": 12113426476,
+    "archive_zip_sha256": "cec03541baae5ab454a7f07e5c68a28c70214dd8ee70e43a5899e545f150715a",
+    "nested_source_json_sha256": "1e8adfe6b4adec2dca8129c6906dab3e7a0b4ee5c5c393ded658519285c8fb88",
+    "nested_source_json_bytes": 90483,
+    "original_source_artifact_id": 12032487428,
+    "original_source_zip_sha256": "2fef0440b97a69025bf9ee539551b414ef7f1f11978172aea5565f338b35d4c9"
+  },
+  "identity": {
+    "guest_simulations": 5484,
+    "native_guest_CRC_transcript_sha256": "b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568",
+    "literal_two_pad_script_sha256": "ef74ec51fa585aa76652f4a14d2727f0074434b3925522ab2607e3bd29aa0194",
+    "original_raw_callback_vs_native_guest": "original callback f-1 paired with native guest f",
+    "original_postrun_host_capture": "original postrun host f is raw original callback f-1"
+  },
+  "original_full_544byte_OAM": {
+    "postrun_4032": "9bd5f6e704e15237c5f8e9758098be9c7807970b9a5d14e0b3ff47dd59ca6120",
+    "postrun_4176": "8a7f8bd9bba818d3d2f2adc157f5023d9ef510008046ae8eabec2553d5a1e4f3",
+    "full_dma_source_from_2014_Snes9x": true
+  },
+  "current_native": {
+    "total_actual_OAM_input_port_events": 6576,
+    "host_fields_qualified": [
+      4029,
+      4030,
+      4031,
+      4032,
+      4033,
+      4034,
+      4173,
+      4174,
+      4175,
+      4176,
+      4177,
+      4178
+    ],
+    "complete_zero_low_address_DMA_544byte_streams": 12,
+    "author_tag_for_all_complete_streams": "1=DMA",
+    "two_full_native_DMA_matches_to_original": [
+      {
+        "original_postrun_field": 4032,
+        "native_incoming_host": 4030,
+        "native_payload_sha256": "9bd5f6e704e15237c5f8e9758098be9c7807970b9a5d14e0b3ff47dd59ca6120",
+        "exact_full_544byte_match": true
+      },
+      {
+        "original_postrun_field": 4176,
+        "native_incoming_host": 4174,
+        "native_payload_sha256": "8a7f8bd9bba818d3d2f2adc157f5023d9ef510008046ae8eabec2553d5a1e4f3",
+        "exact_full_544byte_match": true
+      }
+    ],
+    "native_fields": [
+      {
+        "host": 4029,
+        "whole_OAM_DMA_payload_sha256": "50cb34e03ed33faed97730792ba12a8aeab5fdff3d3cec15e4bb411d5640501e",
+        "medal_112_113_114_tiles": [
+          "a2",
+          "a4",
+          "a6"
+        ],
+        "adjacent_96_97_tiles": [
+          "cc",
+          "cc"
+        ],
+        "overlay_98_99_tiles": [
+          "e6",
+          "e6"
+        ]
+      },
+      {
+        "host": 4030,
+        "whole_OAM_DMA_payload_sha256": "9bd5f6e704e15237c5f8e9758098be9c7807970b9a5d14e0b3ff47dd59ca6120",
+        "medal_112_113_114_tiles": [
+          "a2",
+          "a4",
+          "a6"
+        ],
+        "adjacent_96_97_tiles": [
+          "cc",
+          "cc"
+        ],
+        "overlay_98_99_tiles": [
+          "e6",
+          "e6"
+        ]
+      },
+      {
+        "host": 4031,
+        "whole_OAM_DMA_payload_sha256": "f802de2d3aeace84f137bbdb61bd9ac4bf165e9e9dac60568b560ebaf88654bf",
+        "medal_112_113_114_tiles": [
+          "a0",
+          "a2",
+          "a4"
+        ],
+        "adjacent_96_97_tiles": [
+          "ce",
+          "ce"
+        ],
+        "overlay_98_99_tiles": [
+          "e6",
+          "e6"
+        ]
+      },
+      {
+        "host": 4032,
+        "whole_OAM_DMA_payload_sha256": "eea31c9caf43dc4589a8077a96901051d0412deb42e3bb40a46980eaf36d46b6",
+        "medal_112_113_114_tiles": [
+          "a0",
+          "a2",
+          "a4"
+        ],
+        "adjacent_96_97_tiles": [
+          "ce",
+          "ce"
+        ],
+        "overlay_98_99_tiles": [
+          "e6",
+          "e6"
+        ]
+      },
+      {
+        "host": 4033,
+        "whole_OAM_DMA_payload_sha256": "b223fc75d2e320fbd676c1f97317026b6f2890a4a2a251dba4565598824ebfd7",
+        "medal_112_113_114_tiles": [
+          "a0",
+          "a2",
+          "a4"
+        ],
+        "adjacent_96_97_tiles": [
+          "ce",
+          "ce"
+        ],
+        "overlay_98_99_tiles": [
+          "e6",
+          "e6"
+        ]
+      },
+      {
+        "host": 4034,
+        "whole_OAM_DMA_payload_sha256": "ec6e814d7fa489aa9222ad0cc4a3adbf5b3ba9b5efbabd3ac36e7abb17e56038",
+        "medal_112_113_114_tiles": [
+          "ae",
+          "a0",
+          "a2"
+        ],
+        "adjacent_96_97_tiles": [
+          "c0",
+          "c0"
+        ],
+        "overlay_98_99_tiles": [
+          "e8",
+          "e8"
+        ]
+      },
+      {
+        "host": 4173,
+        "whole_OAM_DMA_payload_sha256": "3e5a91d8612d562aaac1a2787c7a58bd55d26ca40006ce57e7d40cda2ef950e0",
+        "medal_112_113_114_tiles": [
+          "a2",
+          "a4",
+          "a6"
+        ],
+        "adjacent_96_97_tiles": [
+          "cc",
+          "cc"
+        ],
+        "overlay_98_99_tiles": [
+          "e2",
+          "e2"
+        ]
+      },
+      {
+        "host": 4174,
+        "whole_OAM_DMA_payload_sha256": "8a7f8bd9bba818d3d2f2adc157f5023d9ef510008046ae8eabec2553d5a1e4f3",
+        "medal_112_113_114_tiles": [
+          "a2",
+          "a4",
+          "a6"
+        ],
+        "adjacent_96_97_tiles": [
+          "cc",
+          "cc"
+        ],
+        "overlay_98_99_tiles": [
+          "e2",
+          "e2"
+        ]
+      },
+      {
+        "host": 4175,
+        "whole_OAM_DMA_payload_sha256": "db179b92d48622e117eb58b15ea56b420cbb8abe5a3b5a72e08597b071b65f3f",
+        "medal_112_113_114_tiles": [
+          "a0",
+          "a2",
+          "a4"
+        ],
+        "adjacent_96_97_tiles": [
+          "ce",
+          "ce"
+        ],
+        "overlay_98_99_tiles": [
+          "e2",
+          "e2"
+        ]
+      },
+      {
+        "host": 4176,
+        "whole_OAM_DMA_payload_sha256": "26ec086d86f6cd555010d6b6f7444f1569e7ac9728a0afff779dfbc3171d0b9e",
+        "medal_112_113_114_tiles": [
+          "a0",
+          "a2",
+          "a4"
+        ],
+        "adjacent_96_97_tiles": [
+          "ce",
+          "ce"
+        ],
+        "overlay_98_99_tiles": [
+          "e2",
+          "e2"
+        ]
+      },
+      {
+        "host": 4177,
+        "whole_OAM_DMA_payload_sha256": "d4609c03d0e45e7473cc46086978853d28576381cec65e40b167fdd2c2476cbe",
+        "medal_112_113_114_tiles": [
+          "a0",
+          "a2",
+          "a4"
+        ],
+        "adjacent_96_97_tiles": [
+          "ce",
+          "ce"
+        ],
+        "overlay_98_99_tiles": [
+          "e2",
+          "e2"
+        ]
+      },
+      {
+        "host": 4178,
+        "whole_OAM_DMA_payload_sha256": "1726f99e59128236813255e3cccd89eaf8eac602838488c92236a1f32e9b9e6d",
+        "medal_112_113_114_tiles": [
+          "ae",
+          "a0",
+          "a2"
+        ],
+        "adjacent_96_97_tiles": [
+          "c0",
+          "c0"
+        ],
+        "overlay_98_99_tiles": [
+          "e4",
+          "e4"
+        ]
+      }
+    ],
+    "current_selected_effective_raster_OAM_guest_4032_medals": [
+      "a0",
+      "a2",
+      "a4"
+    ],
+    "current_selected_effective_raster_OAM_guest_4176_medals": [
+      "a0",
+      "a2",
+      "a4"
+    ],
+    "input_host_frame_4031_medals": [
+      "a0",
+      "a2",
+      "a4"
+    ],
+    "input_host_frame_4175_medals": [
+      "a0",
+      "a2",
+      "a4"
+    ],
+    "recorded_beam_counters_not_source_comparable_without_clock_calibration": true
+  },
+  "remaining": {
+    "original_and_native_CPU_instruction_NMI_VBlank_phase_equivalent": false,
+    "original_postrun_source_original_CPU_timing_equal_to_current_native": false,
+    "universal_plus_minus_2_frame_adjustment_authorized": false,
+    "incoming_source_DMA_to_effective_live_PPU_through_exact_activation_instruction_proven": false,
+    "native_VRAM_4bpp_priority_for_287_medal_pixels_proven": false,
+    "CGRAM_gray_pulse_renderer_correction_authorized": false,
+    "Windows_4K_7to6_342wide_4x_fallback_physical_accepted": false,
+    "HD_racer_owner_artistic_likeness_approved": false,
+    "QA08_QA10_release_admitted": false
+  }
+}

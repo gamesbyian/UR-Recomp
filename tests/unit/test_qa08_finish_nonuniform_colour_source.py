@@ -16,4 +16,19 @@ class ColourSourceTests(unittest.TestCase):
     def test_adjacent_original_targets_not_a_function_of_native_colour(self):
         by_native={0x10c6:{0x14e7,0x10c6}}
         self.assertEqual(len(by_native[0x10c6]),2)
+
+    def test_full_RGB8_transfer_rejects_cropped_and_ambiguous_target(self):
+        from tools.qa08_finish_nonuniform_colour_source import rgb8_finish_transfer, FINISH_FIELDS
+        a=bytes(PIXELS*4)
+        with self.assertRaisesRegex(ValueError,"cropped"):
+            rgb8_finish_transfer({f:b"" for f in FINISH_FIELDS},
+                                 {f:a for f in FINISH_FIELDS})
+        # Same true native RGB8 input, conflicting original normalised RGB5.
+        orig={f:a for f in FINISH_FIELDS}
+        nat={f:a for f in FINISH_FIELDS}
+        modified=bytearray(a)
+        modified[2]=40
+        orig[3664]=bytes(modified)
+        with self.assertRaisesRegex(ValueError,"not source-deterministic"):
+            rgb8_finish_transfer(orig,nat)
 if __name__=="__main__":unittest.main()

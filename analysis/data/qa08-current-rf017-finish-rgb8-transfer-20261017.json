@@ -1,0 +1,86 @@
+{
+  "schema": "qa08-current-RF017-15-finish-true-native-RGB8-to-source-RGB5-census/1",
+  "original_bundle_SHA256": "3475ee87b5b20768f9377d8d1c787927955c33ee6d4388dae008f5486a81370e",
+  "original_Snes9x_nested_SHA256": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+  "native_current_source_zip_SHA256": "91e0bf8f5d7b86b188526740d825af890a99b02ecc05093f9a2143fa56ce49cd",
+  "guest_crc_SHA256": "b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568",
+  "true_source_pixels_per_frame": 57344,
+  "source_frames": 15,
+  "true_pixels_examined": 860160,
+  "sample_frames": [
+    3648,
+    3664,
+    3680,
+    3696,
+    3712,
+    3728,
+    3744,
+    3760,
+    3776,
+    3792,
+    3808,
+    3824,
+    3840,
+    3856,
+    3872
+  ],
+  "wrong_original_native_RGB5": 90890,
+  "unique_native_RGB8_full_triples": 71,
+  "native_RGB8_to_original_RGB5_full_triple_collision_count": 0,
+  "native_red8_53_to_original_red5": {
+    "6": 2,
+    "7": 23724
+  },
+  "channel_only_native_RGB8_ambiguous_red": 1,
+  "ambiguous_green": 0,
+  "ambiguous_blue": 0,
+  "example_adjacent_native_RGB8": [
+    {
+      "frame": 3680,
+      "xy": [
+        96,
+        0
+      ],
+      "native_RGB8": [
+        38,
+        53,
+        53
+      ],
+      "native_RGB5": [
+        4,
+        6,
+        6
+      ],
+      "reference_RGB5": [
+        5,
+        7,
+        7
+      ]
+    },
+    {
+      "frame": 3680,
+      "xy": [
+        97,
+        0
+      ],
+      "native_RGB8": [
+        34,
+        49,
+        49
+      ],
+      "native_RGB5": [
+        4,
+        6,
+        6
+      ],
+      "reference_RGB5": [
+        4,
+        6,
+        6
+      ]
+    }
+  ],
+  "logical_summary": "RGB5 input is lossy; full RGB8 triplet mapping has zero collisions in 15 sampled finish frames, but red-only mapping is ambiguous and no source-authentic PPU stage identified",
+  "recolor_or_cpu_edit_authorized": false,
+  "qa08_qa10_or_release_accepted": false
+}

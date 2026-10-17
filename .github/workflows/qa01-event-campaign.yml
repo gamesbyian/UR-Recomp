@@ -52,10 +52,6 @@ on:
         required: false
         type: boolean
         default: false
-      qa01_rf035_ipl_order:
-        required: false
-        type: boolean
-        default: false
       qa01_cold_guest_reload:
         required: false
         type: boolean
@@ -132,11 +128,6 @@ on:
         type: boolean
         required: false
         default: false
-      qa01_rf035_ipl_order:
-        description: "TEMP RF035 source-only IPL comparator/CPU CC publish ordering (requires full SPC stage)"
-        type: boolean
-        required: false
-        default: false
       qa01_cold_guest_reload:
         description: "Opt-in fresh original/native guest reload of source-earned Zoom Zoo ranked record (requires zoom-zoo + source_followthrough)"
         type: boolean
@@ -179,7 +170,6 @@ jobs:
           QA01_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
           QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
           QA01_SPC_INTERRUPT_STAGE: ${{ inputs.baldosa_spc_interrupt_stage }}
-          QA01_RF035: ${{ inputs.qa01_rf035_ipl_order }}
           QA01_RF015_019: >-
             ${{ inputs.baldosa_refresh_beam_rate && inputs.baldosa_io_clock_order &&
                 inputs.baldosa_spc_reference_rate && inputs.baldosa_dp_pointer_once &&
@@ -216,10 +206,6 @@ jobs:
           # (the frame-clock tool also requires RF-016's clock).
           if [[ "$QA01_SPC_INTERRUPT_STAGE" == "true" && "$QA01_RF015_019" != "true" ]]; then
             echo "baldosa_spc_interrupt_stage needs all five RF-015..019 inputs" >&2
-            exit 1
-          fi
-          if [[ "$QA01_RF035" == "true" && ( "$SELECTED" != "zoom-zoo" || "$QA01_SPC_INTERRUPT_STAGE" != "true" ) ]]; then
-            echo "RF035 requires exact Zoo + RF015..028 stage" >&2
             exit 1
           fi
           python3 -m unittest discover -s tests/unit -p test_qa01_event_campaign.py
@@ -334,10 +320,6 @@ jobs:
             python3 tools/baldosa_spc_bus_cycle_patch.py --game baldosa
             python3 tools/baldosa_interrupt_entry_cost_patch.py --game baldosa
           fi
-          if [[ "${{ inputs.qa01_rf035_ipl_order }}" == "true" ]]; then
-            python3 -m unittest tests.unit.test_qa01_rf035_ipl_compare_before_cc
-            python3 tools/qa01_rf035_ipl_compare_before_cc.py --game baldosa
-          fi
           cmake -S baldosa -B baldosa/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
             -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
@@ -409,7 +391,6 @@ jobs:
           QA01_SOURCE_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
           QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
           QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}
-          UR_QA01_RF035_IPL_COMPARE_BEFORE_CC: ${{ inputs.qa01_rf035_ipl_order }}
           # Distinct original and native clock axes; historical Zoo result
           # windows, NOT time-shifted input or assumed frame equivalence.
           UR_QA01_APU_ORIGINAL_FIRST: "6748"

@@ -35,6 +35,9 @@ def launcher() -> bytes:
     commands = [
         "@echo off",
         "setlocal DisableDelayedExpansion",
+        'set "UR_BALDOSA_RECOVERY_ACTION="',
+        'set "UR_BALDOSA_RECOVERY_PROFILE_ID="',
+        'set "UR_BALDOSA_RECOVERY_ATTEMPTED=0"',
         'set "UR_BALDOSA_PACKAGE_DIR=%~dp0"',
         f'set "UR_BALDOSA_ROM=%~dp0{ROM}"',
         'if not exist "%UR_BALDOSA_ROM%" (echo UR-BALDOSA-STARTUP-ROM-MISSING: Copy a verified personal Uniracers USA dump beside the executable. 1>&2 & echo The file Uniracers_USA.sfc was not found next to this launcher. 1>&2 & echo Copy your own USA retail dump there under that exact name and start again. 1>&2 & echo Nothing was changed. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 2)',
@@ -103,7 +106,8 @@ def launcher() -> bytes:
         # Modern selector/profile/SRAM authority is incomplete or mismatched.
         # Keep that exact status and all save data; never start a default
         # anonymous game or tell players to delete the affected profile.
-        'if "%ERRORLEVEL%"=="7" (echo UR-BALDOSA-STARTUP-PROFILE-REJECTED: Named racer data was not authorized. Preserve both the raw save and Modern profile files; see the diagnostic above. 1>&2 & echo Your save files were not changed or deleted. Copy the whole save folder somewhere safe before asking for help. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 7)',
+        'if "%ERRORLEVEL%"=="7" goto UR-BALDOSA-RECOVERY-MENU',
+        'if "%ERRORLEVEL%"=="8" goto UR-BALDOSA-SAVE-FAILURE',
         # Preserve the independent release-auditor's existing exact
         # nonzero exit propagation marker; IF does not alter errorlevel.
         'if not "%ERRORLEVEL%"=="0" exit /b %ERRORLEVEL%',
@@ -120,6 +124,59 @@ def launcher() -> bytes:
         # a refusal would vanish unread. Hold the console for up to a minute
         # (any key continues). `timeout` fails at once without a console, so
         # scripted/CI callers are never delayed; UR_BALDOSA_NO_HOLD forces it.
+        # The existing launcher owns these explicit recovery choices. It
+        # reruns the SAME original executable with one-shot environment
+        # arguments; no fixture or competing save UI ships in the ZIP.
+        ':UR-BALDOSA-RECOVERY-MENU',
+        'if "%UR_BALDOSA_RECOVERY_ATTEMPTED%"=="1" (echo UR-BALDOSA-RECOVERY-RETRY-FAILED: Explicit recovery completed, but the new game still refused to start. Keep the archived snapshots. No second repair is offered. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 7)',
+        'echo UR-BALDOSA-STARTUP-PROFILE-REJECTED: Named racer rejected. Preserve both the raw save and Modern profile files. 1>&2',
+        'echo Back up your entire save directory before considering recovery. 1>&2',
+        'if not "%~1"=="" (call :UR-BALDOSA-HOLD & exit /b 7)',
+        'if defined UR_BALDOSA_NO_HOLD exit /b 7',
+        'echo R: Keep guest SRAM. May include newer progress; archive old typed data.',
+        'echo T: Restore last committed SRAM. May lose recent progress; archive raw data.',
+        'echo S: Switch to a verified healthy racer. Damaged racer remains untouched.',
+        'echo Q: Exit without changing any saved data. Safest if uncertain.',
+        'choice.exe /c RTSQ /n /m "Explicit recovery choice [R/T/S/Q]: "',
+        'if errorlevel 4 exit /b 7',
+        'if errorlevel 3 goto UR-BALDOSA-RECOVERY-HEALTHY',
+        'if errorlevel 2 goto UR-BALDOSA-RECOVERY-TYPED',
+        'if errorlevel 1 goto UR-BALDOSA-RECOVERY-RAW',
+        'exit /b 7',
+        ':UR-BALDOSA-RECOVERY-RAW',
+        'set "UR_BALDOSA_RECOVERY_ACTION=raw"',
+        'goto UR-BALDOSA-RECOVERY-EXECUTE',
+        ':UR-BALDOSA-RECOVERY-TYPED',
+        'set "UR_BALDOSA_RECOVERY_ACTION=typed"',
+        'goto UR-BALDOSA-RECOVERY-EXECUTE',
+        ':UR-BALDOSA-RECOVERY-HEALTHY',
+        'set "UR_BALDOSA_RECOVERY_ACTION=healthy"',
+        'echo Enter the registered PROFILE ID of the healthy alternate racer.',
+        'echo First field in each canonical catalog row is the profile ID:',
+        'if exist "%UR_RECOMP_USER_DATA_ROOT%\\profiles-v1.txt" type "%UR_RECOMP_USER_DATA_ROOT%\\profiles-v1.txt"',
+        'echo Only the named target is validated; unrelated broken profiles are untouched.',
+        'echo The damaged currently selected profile will not be modified.',
+        'set /p "UR_BALDOSA_RECOVERY_PROFILE_ID=Healthy registered profile ID: "',
+        'goto UR-BALDOSA-RECOVERY-EXECUTE',
+        ':UR-BALDOSA-RECOVERY-EXECUTE',
+        'echo Executing one explicit recovery choice before any guest frame.',
+        f'"%UR_BALDOSA_PACKAGE_DIR%{EXE}" --no-launcher "%UR_BALDOSA_ROM%"',
+        'if not "%ERRORLEVEL%"=="89" (echo UR-BALDOSA-RECOVERY-REFUSED: No automatic replacement was made. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 7)',
+        'set "UR_BALDOSA_RECOVERY_ACTION="',
+        'set "UR_BALDOSA_RECOVERY_PROFILE_ID="',
+        'set "UR_BALDOSA_FIRST_RACER_RELAUNCH=0"',
+        'set "UR_BALDOSA_RECOVERY_ATTEMPTED=1"',
+        'echo UR-BALDOSA-RECOVERY-COMMITTED: Relaunching with verified selected racer.',
+        'goto UR-BALDOSA-NATIVE-START',
+        # A guest session refused a save. Never classify exit 8 as a
+        # clean shutdown or offer startup-only recovery before cold boot.
+        ':UR-BALDOSA-SAVE-FAILURE',
+        'echo UR-BALDOSA-SAVE-FAILED: This game session could not finish saving. 1>&2',
+        'echo Some recent progress may not have been committed. Preserve your entire user-data folder. 1>&2',
+        'echo Do not delete a racer or overwrite its save. Relaunch to inspect recovery, or preserve a backup. 1>&2',
+        'if not "%~1"=="" exit /b 8',
+        'call :UR-BALDOSA-HOLD',
+        'exit /b 8',
         ':UR-BALDOSA-HOLD',
         'if defined UR_BALDOSA_NO_HOLD exit /b 0',
         'echo. 1>&2',
@@ -186,10 +243,31 @@ def readme(revision: str) -> bytes:
         "Only an exact matching single profile/catalog/8192-byte SRAM\n"
         "allows safe completion of the previously missing selector.\n"
         "Do not remove the save directory or choose another racer to fix it.\n"
+        "CRASHED NAMED RACER RECOVERY (WINDOWS DOUBLE-CLICK LAUNCHER)\n"
+        "If an authorized named racer cannot boot, the launcher offers\n"
+        "an explicit R/T/S/Q recovery choice. Copy the complete user-data\n"
+        "directory first. Q does not modify anything. No choice is automatic.\n"
+        "R keeps a complete guest-authored SRAM and archives prior metadata.\n"
+        "T restores the last committed typed SRAM after archiving raw bytes\n"
+        "and an exact pending intent where present. Both choices preserve\n"
+        "forensic old/new evidence and require valid existing authority.\n"
+        "S displays the canonical roster and lets you enter a registered\n"
+        "healthy profile ID, changing only the next-boot selector while\n"
+        "preserving damaged and unrelated racers, including 3+ catalogs.\n"
+        "Malformed/missing typed sidecars are never silently re-created.\n"
+        "Recovery uses a fresh invocation of the original native game exe.\n"
+        "A refused or incomplete session save exits with code 8 and warns\n"
+        "in the launcher; keep the entire user-data folder, even when\n"
+        "the old raw save and typed profile still look intact. Exit 8\n"
+        "never silently starts recovery or reports a successful save.\n"
+        "After a successful R/T/S repair the launcher retries the original\n"
+        "game only once. A further refusal exits 7 without a second prompt;\n"
+        "the preserved backup and original data are never auto-deleted.\n"
+        "Automated or command-line launcher runs retain fail-closed exit 7.\n\n"
         "If startup reports PROFILE-REJECTED or SAVE-MISMATCH, preserve\n"
         "both save.srm and host-profile.txt plus the roster and selector.\n"
-        "General recovery of a corrupt, mismatched or redirected profile\n"
-        "is NOT implemented. Never delete or overwrite a save to bypass it.\n\n"
+        "General recovery of a corrupt or missing typed sidecar remains\n"
+        "unsupported. Never delete or overwrite a save to bypass checks.\n\n"
         "To report a problem, include the exact startup diagnostic and\n"
         "reproduction steps, but never share personal ROMs or profile data.\n\n"
         f"Project source revision: {revision}\n"

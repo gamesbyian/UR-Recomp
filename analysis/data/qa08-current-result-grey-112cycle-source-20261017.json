@@ -55,5 +55,29 @@
     "CPU_CGRAM_write_cause_proven": false,
     "recolour_or_hardware_PPU_patch_authorized": false,
     "QA08_QA10_release_accepted": false
+  },
+  "historical_earlier_epoch_actual_CGRAM_writer_crosscheck": {
+    "receipt": "analysis/data/qa08-verified-native-CGRAM-CPU-writer-20261016.json",
+    "archive_adjudication_run": 38832857831,
+    "native_writer_guest_fields": [
+      5169,
+      5176,
+      5183,
+      5190
+    ],
+    "original_writer_fields": [
+      5171,
+      5178,
+      5157,
+      5164
+    ],
+    "four_colours_each_seven_guest_fields": true,
+    "observed_intrinsic_palette_period_fields": 28,
+    "sample_stride_guest_fields": 16,
+    "sampled_recurrence_lcm_guest_fields": 112,
+    "diagnostic_plus32_phase_modulo28": 4,
+    "earlier_native_guest_crc_sha256": "c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876",
+    "current_RF017_CPU_writer_epoch_independently_verified": false,
+    "CPU_or_CGRAM_causality_established_for_current_P7": false
   }
 }

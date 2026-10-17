@@ -49,7 +49,7 @@ static void ur_rf037_upstream(const char *kind, uint16 reg, uint8 value) {
   extern const char *g_last_recomp_func;
   int frame = snes_frame_counter;
   if (!getenv("UR_QA01_RF037_SOUND_BUS") || reg < 0x2142 ||
-      reg > 0x2143 || frame < 6055 || frame > 6064) return;
+      reg > 0x2143 || frame < 6055 || frame > 6115) return;
   static int last_frame = -1;
   static unsigned count;
   if (last_frame != frame) { last_frame = frame; count = 0; }
@@ -72,7 +72,7 @@ CPU_BYTE_EXTRA = r"""    /* UR_QA01_RF037_UPSTREAM_WRITER: before authoritative 
         extern const char *g_last_recomp_func;
         int f = snes_frame_counter;
         if (getenv("UR_QA01_RF037_SOUND_BUS") &&
-            (addr == 0x2142u || addr == 0x2143u) && f >= 6055 && f <= 6064) {
+            (addr == 0x2142u || addr == 0x2143u) && f >= 6055 && f <= 6115) {
             static int last_frame = -1;
             static unsigned count;
             if (last_frame != f) { last_frame = f; count = 0; }

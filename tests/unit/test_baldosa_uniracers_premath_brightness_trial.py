@@ -1,5 +1,10 @@
 """Adversarial pinned title-only pre-math brightness candidate."""
 import unittest
+from pathlib import Path
+import sys
+ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT))
+sys.path.insert(0,str(ROOT/"tools"))
 from tools import baldosa_uniracers_premath_brightness_trial as s
 class TestSource(unittest.TestCase):
     def test_formula_512_values_identity_and_source_examples(self):

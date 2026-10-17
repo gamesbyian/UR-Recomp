@@ -1,0 +1,200 @@
+#!/usr/bin/env python3
+"""Diagnostic RF037 source/native writer-clock crosswalk. Not a clock fix.
+
+Compares actual original SPC-age-at-CPU-port publication with native CPU
+master time at RtlApuWrite entry for matched port/value pairs. The nominal
+SPC/master ratio is a projection, NOT a verified SPC receiver timestamp.
+"""
+from __future__ import annotations
+import argparse
+from collections import Counter, defaultdict
+from fractions import Fraction
+from itertools import groupby
+import hashlib
+import json
+from pathlib import Path
+from statistics import median
+import zipfile
+
+from qa01_rf037_port_writer_report import (
+    ORIGINAL_LOG, NATIVE_LOG, logs, canonical_original_equal_age_pairs,
+)
+
+SPC_PER_MASTER = Fraction(15664, 328125)
+
+
+def stats(values):
+    return {"count": len(values),
+            "min_spc_cycles": round(min(values), 3),
+            "median_spc_cycles": round(median(values), 3),
+            "max_spc_cycles": round(max(values), 3)}
+
+
+def same_scanline_writer_gap_census(pairs):
+    """Within one original V line and native host frame, compare actual
+    consecutive CPU-port *publication* gaps, not SPC recipient latency.
+    Source h and native master are both SNES master clock units here.
+    """
+    histogram = Counter()
+    examples = []
+    for ordinal in range(1, len(pairs)):
+        original_prev, native_prev = pairs[ordinal-1]
+        original_now, native_now = pairs[ordinal]
+        if (original_prev.get("v") != original_now.get("v") or
+                native_prev.get("frame") != native_now.get("frame")):
+            continue
+        if any(k not in v for v, keys in ((original_prev, ("v", "h")),
+                (original_now, ("v", "h"))) for k in keys):
+            raise ValueError("original CPU beam unavailable")
+        original_gap = int(original_now["h"]) - int(original_prev["h"])
+        native_gap = int(native_now["master"]) - int(native_prev["master"])
+        delta = original_gap - native_gap
+        histogram[delta] += 1
+        examples.append({
+            "ordinal": ordinal,
+            "original_v": int(original_now["v"]),
+            "source_h_before_after": [int(original_prev["h"]), int(original_now["h"])],
+            "native_host_frame": int(native_now["frame"]),
+            "native_master_before_after": [int(native_prev["master"]), int(native_now["master"])],
+            "source_port_value_before_after": [
+                [int(original_prev["port"]), original_prev["val"]],
+                [int(original_now["port"]), original_now["val"]]],
+            "native_source_scopes": [native_prev.get("scope"), native_now.get("scope")],
+            "original_gap_master_clocks": original_gap,
+            "native_gap_master_clocks": native_gap,
+            "original_minus_native_gap_master_clocks": delta,
+        })
+    examples.sort(key=lambda x: (-abs(x["original_minus_native_gap_master_clocks"]), x["ordinal"]))
+    return {"compared_consecutive_same_scanline_pairs": sum(histogram.values()),
+            "gap_difference_histogram_master_clocks": {
+                str(k): histogram[k] for k in sorted(histogram)},
+            "largest_absolute_gap_differences": examples[:12],
+            "exact_writer_gap_is_not_spc_receiver_or_instruction_causality": True}
+
+
+def crosswalk(original: list[dict], native: list[dict],
+              truncated: list[dict] | None = None,
+              source_truncated: list[dict] | None = None) -> dict:
+    if truncated:
+        raise ValueError("native upstream capture truncated")
+    if source_truncated:
+        raise ValueError("original source port capture truncated")
+    if not original or len(native) < len(original):
+        raise ValueError("missing native port publication or unbalanced capture")
+    canonical = canonical_original_equal_age_pairs(original)
+    source = canonical["rows"]
+    pairs = list(zip(source, native[:len(source)]))
+    for index, (a, b) in enumerate(pairs):
+        if (int(a["port"]), int(a["val"], 16)) != (
+                int(b["reg"], 16) & 3, int(b["val"], 16)):
+            raise ValueError(f"port/value pair mismatch at ordinal {index}")
+    anchor_age = int(source[0]["age"])
+    anchor_master = int(native[0]["master"])
+    frame_residuals = defaultdict(list)
+    frame_ports = defaultdict(lambda: defaultdict(list))
+    residual_by_ordinal = []
+    last_native_master = anchor_master
+    last_source_age = anchor_age
+    for a, b in pairs:
+        if int(a["age"]) < last_source_age:
+            raise ValueError("original source SPC ages not monotone")
+        last_source_age = int(a["age"])
+        master = int(b["master"])
+        if master < last_native_master:
+            raise ValueError("native master clock is not monotone")
+        last_native_master = master
+        residual = float((int(a["age"]) - anchor_age) -
+                         (master - anchor_master) * SPC_PER_MASTER)
+        frame = int(b["frame"])
+        frame_residuals[frame].append(residual)
+        frame_ports[frame][int(a["port"])].append(residual)
+        residual_by_ordinal.append(residual)
+    native_scope_segments = []
+    for scope, members in groupby(enumerate(pairs),
+            key=lambda x: x[1][1].get("scope", "unknown-native-scope")):
+        indexed = list(members)
+        first_index, last_index = indexed[0][0], indexed[-1][0]
+        native_scope_segments.append({
+            "scope": scope,
+            "first_ordinal": first_index,
+            "last_ordinal": last_index,
+            "matched_writes": len(indexed),
+            "source_age_first_last": [int(source[first_index]["age"]),
+                                      int(source[last_index]["age"])],
+            "native_frame_first_last": [int(native[first_index]["frame"]),
+                                        int(native[last_index]["frame"])],
+            "projected_residual": stats(residual_by_ordinal[first_index:last_index+1]),
+        })
+    return {
+        "schema": "rf037-writer-clock-crosswalk-v1",
+        "original_port_publications": len(source),
+        "native_port_publications": len(native),
+        "matched_canonical_port_value_prefix": len(pairs),
+        "source_equal_age_pairs_reordered": canonical["reordered_groups"],
+        "projection_spc_cycles_per_master_clock": [
+            SPC_PER_MASTER.numerator, SPC_PER_MASTER.denominator],
+        "first_original_source_spc_age": anchor_age,
+        "first_native_cpu_master": anchor_master,
+        "contiguous_native_writer_scope_segments": native_scope_segments,
+        "same_scanline_cpu_writer_gap_census": same_scanline_writer_gap_census(pairs),
+        "native_frames": {
+            str(f): {**stats(vals),
+                     "per_port": {
+                         str(p): stats(v) for p, v in
+                         sorted(frame_ports[f].items())}}
+            for f, vals in sorted(frame_residuals.items())},
+        "qualified_claims": {
+            "port_value_prefix_equal_after_only_source_age_ties": True,
+            "relative_clock_residual_is_diagnostic_only": True,
+            "original_source_age_is_not_65816_bus_clock": True,
+            "native_cpu_master_is_not_spc_receive_age": True,
+            "cpu_to_spc_queue_apply_or_receiver_parity_proven": False,
+            "clock_fix_justified": False,
+            "complete_usa_events_admitted": 0,
+        },
+    }
+
+
+def report(case_zip: Path) -> dict:
+    with zipfile.ZipFile(case_zip) as z:
+        original, source_trunc = [], []
+        for tag, f in logs(z, ORIGINAL_LOG):
+            if tag == "QA01RF037ORIGCPU2":
+                original.append(f)
+        # The upstream RF037 event filter intentionally omits this sentinel.
+        # Detect it directly in the source logfile rather than implicitly
+        # trusting a parser that cannot emit the record.
+        with z.open(ORIGINAL_LOG) as original_log:
+            if any(line.startswith(b"QA01RF037ORIGCPU2_TRUNCATED ")
+                   for line in original_log):
+                source_trunc.append({"unparsed_tag": "QA01RF037ORIGCPU2_TRUNCATED"})
+        native, trunc = [], []
+        for tag, f in logs(z, NATIVE_LOG):
+            if tag == "QA01RF037NATIVEUP" and f.get("kind") == "rtl-apu-enter":
+                native.append(f)
+            elif tag == "QA01RF037NATIVEUP_TRUNCATED":
+                trunc.append(f)
+        out = crosswalk(original, native, trunc, source_trunc)
+    out["case_zip_sha256"] = hashlib.sha256(case_zip.read_bytes()).hexdigest()
+    out["source_artifact_case"] = case_zip.name
+    return out
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("case_zip", type=Path)
+    ap.add_argument("--json-out", type=Path)
+    args = ap.parse_args()
+    if not args.case_zip.is_file():
+        ap.error("missing source-bound case ZIP")
+    output = json.dumps(report(args.case_zip), sort_keys=True, indent=2) + "\n"
+    if args.json_out:
+        args.json_out.parent.mkdir(parents=True, exist_ok=True)
+        args.json_out.write_text(output, encoding="utf8")
+    else:
+        print(output, end="")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

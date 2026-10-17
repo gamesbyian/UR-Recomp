@@ -1,5 +1,5 @@
 # One-shot genuine original/native RF037. Remove immediately after run queues.
-name: RF037 Upstream Native CPU Writer Coverage
+name: RF037 Exact CPU Writer Boundaries V2
 on:
   push:
     branches:
@@ -7,7 +7,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: rf037-upstream-${{ github.ref }}
+  group: rf037-writer-v2-${{ github.ref }}
   cancel-in-progress: false
 jobs:
   real-zoo:

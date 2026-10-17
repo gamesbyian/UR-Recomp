@@ -25,6 +25,8 @@ on:
       - "tools/baldosa_native_first_racer_probe.py"
       - "tools/baldosa_native_second_racer_probe.py"
       - "tools/baldosa_native_practice_probe.py"
+      - "tools/baldosa_uniracers_v0_raster_before_hdma_patch.py"
+      - "tests/unit/test_baldosa_uniracers_v0_raster_before_hdma_patch.py"
       - "tools/baldosa_uniracers_hdma_firstline_patch.py"
       - "tests/unit/test_baldosa_uniracers_hdma_firstline_patch.py"
       - "tools/baldosa_dram_refresh_beam_rate_patch.py"
@@ -212,6 +214,7 @@ jobs:
           python tests/unit/test_baldosa_io_access_clock_order_patch.py
           python tests/unit/test_windows_rf017_source_identity.py
           python tests/unit/test_baldosa_uniracers_hdma_firstline_patch.py
+          python tests/unit/test_baldosa_uniracers_v0_raster_before_hdma_patch.py
           python tests/unit/test_bind_baldosa_candidate_receipt.py
           python tests/unit/test_audit_baldosa_romless_candidate.py
           python tests/unit/test_check_windows_pe_timestamp.py
@@ -259,6 +262,13 @@ jobs:
           # entry; after exact RF-017 regen, no cross-title framework edit.
           python tools/baldosa_uniracers_hdma_firstline_patch.py --game baldosa
           python tools/baldosa_uniracers_hdma_firstline_patch.py --game baldosa --apply-candidate
+          # Distinct QA-08 original-size finish correction: replay native
+          # vblank / V0 raster register values before the first HDMA transfer.
+          # All 5484 actual long-2P guest CRCs previously matched source
+          # baseline exactly, and the 2014 brightness LUT is NOT imported.
+          python tools/baldosa_uniracers_v0_raster_before_hdma_patch.py --game baldosa
+          python tools/baldosa_uniracers_v0_raster_before_hdma_patch.py --game baldosa --apply-candidate
+          echo "QA-08 title-scoped source V0-before-HDMA register order staged; remaining blackout/CGRAM/OBJ and physical acceptance remain open." >> "$GITHUB_STEP_SUMMARY"
           echo "QA-08 first-line source patch staged. 1P/results, physical screen and release still unaccepted." >> "$GITHUB_STEP_SUMMARY"
           python tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_execution_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"

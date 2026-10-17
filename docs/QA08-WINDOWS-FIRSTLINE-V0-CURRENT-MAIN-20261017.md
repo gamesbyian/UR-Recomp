@@ -1,0 +1,19 @@
+# QA-08: current-main Windows Original first-line/V0 production extraction
+17 October 2026 | **graphics-only, review candidate; HOLD release acceptance**
+
+This small production extraction combines the two already independent real-PE graphics experiments in one source-pinned Windows product build, leaving the 35+ file research archive and read-only observers on held [#1641](https://github.com/gamesbyian/UR-Recomp/pull/1641) and [#1649](https://github.com/gamesbyian/UR-Recomp/pull/1649). Prior single-fix clean source candidates: [#1755](https://github.com/gamesbyian/UR-Recomp/pull/1755) and [#1760](https://github.com/gamesbyian/UR-Recomp/pull/1760). The unit tests are reused without weakening negative guards. The current-main Windows workflow's product and QA-02 lanes are retained.
+
+## Exact production ordering
+After pinned Baldosa game `10b864b9` / SNESRecomp `075fbe4c`, RF-015 beam-rate staging, RF-017 regenerated source and the in-order generated-code verifier, apply:
+1. Uniracers-only consumed-firstline HDMA prime in `dma.c` (all enabled channels).
+2. Uniracers-only VBlank/V0 $2100 and $420C raster replay *before* initialising and priming HDMA in `beam_frame_driver.c`.
+3. Compile the authentic Windows x64 `UniracersSNESRecomp.exe` from that disposable title checkout; run its existing product journeys and ROM-free package assertions.
+
+Both scripts reject unexpected pinned source revisions, duplicate/altered marker bodies and competing source patches. Neither writes the repository's submodules nor changes global emulation, CPU/APU cycles, Modern persistence, release ledger, 7:6 PAR, world width, native density or art. The source remains reversibly isolated from other SNES titles.
+
+## Existing actual-source evidence and exact limits
+Original 2014 Snes9x RGB5 256x224 versus genuine real Windows P7 2P test: consumed-firstline HDMA corrected countdown 971→0 and moving 512→0 in the earlier bounded source epoch. Current RF-017 test [run 39004198644](https://github.com/gamesbyian/UR-Recomp/actions/runs/39004198644), [V0-only A/B run 39005184516](https://github.com/gamesbyian/UR-Recomp/actions/runs/39005184516), identical actual 5,484 guest CRC digest `b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568`: 361,085 newly correct finish pixels, 0 original-correct pixels regressed; all 101 moving 2P samples unchanged/exact. Separate 1P 261-frame A/B preserved 261/261 P7 hashes, not a complete original/native 1P event acceptance. Observer binaries and clean production PE hashes are different, therefore rerun actual Windows candidate and never inherit its absolute original pixel receipt without a same-source observer comparison.
+
+**Remaining defects** after the controlled 2P counterfactual: blackout guest4016 53,667 wrong pixels; results/return 599,536 wrong, including periodic CGRAM grey-state phase and invariant 287-pixel medal-shaped non-grey mask across three source epochs; countdown/finish low-amplitude RGB5 differences requiring hardware/reference-stage analysis. Do not globally phase-shift, import old 2014 Snes9x brightness LUT, recolour medals, change OAM names or touch CPU clocks. The merged [source census](QA08-RESULT-GREY-PHASE-112-CYCLE-20261017.md) owns phase/mask details and source ZIP digests.
+
+A successful compiled Win32 build validates only the exact tested build path, not owner visual acceptance, physical 3840×2160 output, whole 342×224 expanded-world source correctness, 4x fallback, source-visible 2P medal ownership, HD rider likeness or QA-08/10 release gates. Retain approved 7:6 and 342×224 with 512/513 fit, all 224 rows and nearest-density Original fallback; merge [#1779](https://github.com/gamesbyian/UR-Recomp/pull/1779) already asserts UHD geometry. Independent QA owns any release signoff.

@@ -45,6 +45,26 @@ class SoundWriterIntervalReport(unittest.TestCase):
         self.assertEqual(d["native_paced_port2142_read_helper_rows_between_writes"]["count"], 2)
         self.assertFalse(d["clock_fix_justified"])
 
+    def test_v2_six_original_polls_three_native_paced_reads(self):
+        o, n, op, _ = self.inputs()
+        for h in (492, 584, 636, 688, 740, 792):
+            op.append(dict(frame="6091", v="116", pre_h=str(h),
+                           post_h=str(h+22), pc="82:8301", opcode="CD"))
+        pace = [
+            dict(frame="6091", master=str(master), charge="6",
+                 op="read8", addr="2142")
+            for master in (2176886940, 2176886992, 2176887044)
+        ]
+        d = m.inspect(o, n, op, pace, ordinal=1)
+        self.assertEqual(d["original_executed_cmp_abs_82_8301_between_writes"]["count"], 6)
+        self.assertEqual(d["native_paced_port2142_read_helper_rows_between_writes"]["count"], 3)
+        self.assertEqual(d["source_minus_native_executed_port2142_poll_count"], 3)
+        self.assertEqual(d["native_observed_port2142_poll_spacing_master"], [52, 52])
+        self.assertEqual(d["original_minus_native_master"], 156)
+        self.assertTrue(d["poll_count_delta_is_not_spc_receiver_timing_proof"])
+        self.assertFalse(d["clock_fix_justified"])
+        self.assertEqual(d["complete_usa_events_admitted"], 0)
+
     def test_wrong_source_value_rejected(self):
         o, n, op, pace = self.inputs()
         o[1]["val"] = "03"
@@ -63,6 +83,7 @@ class SoundWriterIntervalReport(unittest.TestCase):
         o, n, op, pace = self.inputs()
         d = m.inspect(o, n, [], pace, ordinal=1)
         self.assertFalse(d["original_opcode_both_port_clocks_covered"])
+        self.assertIsNone(d["source_minus_native_executed_port2142_poll_count"])
         self.assertEqual(d["complete_usa_events_admitted"], 0)
         self.assertFalse(d["clock_fix_justified"])
 

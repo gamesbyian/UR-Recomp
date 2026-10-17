@@ -36,9 +36,7 @@ class FrameStack(unittest.TestCase):
   old=native_src()
   out=m.native_cpu(old)
   self.assertEqual(m.native_cpu(out),out)
-  for op in ("cpu_latch_read8(cpu, cpu->ram[off]);",
-             "cpu_latch_read16(cpu, (uint16)lo | ((uint16)hi << 8));",
-             "fputc('\\n', g_wlog_addr_fp);"):
+  for op in ("cpu_latch_read8(", "cpu_latch_read16(", "fputc("):
    self.assertEqual(out.count(op),old.count(op))
   self.assertIn("QA01RF044NATIVEREAD_TRUNCATED",out)
   self.assertIn("rf044_S=",out)

@@ -25,7 +25,7 @@ PIXEL_ANCHOR="  pixelBuffer[3] = 0;\n"
 RASTER_HEADER="#include <stdbool.h>\n"
 PORT_MARK="UR_QA08_CURRENT_BLACKOUT_WRITE_PORT"
 RASTER_MARK="UR_QA08_CURRENT_BLACKOUT_RASTER"
-PIXEL_MARK="UR_QA08_CURRENT_BLACKOUT_PIXEL"
+PIXEL_MARK="UR_QA08_CURRENT_PIXEL_PROBE_MARKER"
 PORT_TRACE=r"""  /* UR_QA08_CURRENT_BLACKOUT_WRITE_PORT: original $2100 write INPUT,
    * not a speculative host frame re-registration or a fabricated value. */
   if (adr == 0x00 && getenv("UR_QA08_CURRENT_BLACKOUT_TRACE") &&
@@ -52,7 +52,7 @@ RASTER_TRACE=r"""  /* UR_QA08_CURRENT_BLACKOUT_RASTER: actual legacy-line entry,
       (unsigned)ppu->cgadsub);
   }
 """
-PIXEL_TRACE=r"""  /* UR_QA08_CURRENT_BLACKOUT_PIXEL: source pixel after original PPU
+PIXEL_TRACE=r"""  /* UR_QA08_CURRENT_PIXEL_PROBE_MARKER: source pixel after original PPU
    * resolver. Input y is one-based raster line; report output y-1. */
   if (snes_frame_counter == 4016 &&
       ((x == 32 && y == 33) || (x == 128 && y == 113) ||

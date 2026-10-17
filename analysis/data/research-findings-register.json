@@ -873,6 +873,35 @@
       "uncertainty": "The first ready-loop instruction visibility divergence is source-executed and located. These are independently calibrated original/native SPC master ages and a single CPU/APU handshake; a universally source-faithful native port visibility policy across 92,543 writes, opcode handoffs and DSP output has NOT been demonstrated. Prior reader shift RF029 and global queue shift RF031 worsen genuine WRAM parity.",
       "resolving_experiment": "CPU/APU source implementation owner should construct a narrowly scoped source-constrained instruction-completion CPU-port visibility mapping, measure actual native/opcode bus events, then falsify against authentic source-original/native Zoo result +5163, +267 Bowl, 78 unmasked 128KiB WRAM checkpoints, 13 contiguous $63/$69 sound samples, all 11 earned SRAM snapshots and separately sourced more course families before any shipping correction. No blind one-cycle shift, input rephase or memory mask.",
       "consequence": "Handoff to gameplay CPU/APU implementation research only; preserve exact SHA positive observer, schedule/bus-phase proof, no Windows/Modern implementation or independent release-acceptance ownership, zero of 45 USA complete events accepted."
+    },
+    {
+      "id": "RF-035",
+      "title": "Actual original FastROM sound-upload opcodes and native CPU sound-pointer readers execute; native first residual C773 to C774 is live but paired +5045/port transaction remains unobserved",
+      "class": "original_native_discrepancy",
+      "status": "handed_off",
+      "evidence": "original_and_native",
+      "owner_lane": "qa01-gameplay",
+      "reproducer": {
+        "command": "Inspect source-pinned authentic 2014 USA Zoo run 38999341435, exact head aca0b56dd8e0da49e0ad7a1136570624658edfd7, case artifact 12088353984 ZIP sha256 7baa5367286689718a8c32f6df22c0442ba36f226f5c2fd725ee57c2ff00e606. Verify original QA01RF035ORIG frame 6072 82:82F0/82F2/82F6/8301, native QA01RF035NATIVE last frame6056 $63 word C773 vs first frame6057 word C774, and explicitly detect both TRUNCATED sentinel rows. Independently diff all 78 original and native full 128KiB WRAM sample hashes with RF034 run 38981131474 and compare 13 sound samples/11 full earned SRAM pairs.",
+        "runs": [
+          38999341435,
+          38981131474
+        ],
+        "race_relative_lag": 0,
+        "original_and_native_entry_hosts": [
+          1017,
+          1017
+        ]
+      },
+      "source_artifacts": [
+        "analysis/data/rf035-source-executed-live-sound-consumer-20261016.json",
+        "docs/RF035-EXECUTED-LIVE-SOUND-CONSUMER-20261016.md",
+        "run 38999341435 15-file artifact ZIP SHA256 7baa5367286689718a8c32f6df22c0442ba36f226f5c2fd725ee57c2ff00e606; original core cebae1d83b1c74d296f6db96d45cdbfe6f139f4415503cdff6d9bb188184008b; native research ELF 323d6e73d227586ba60dae91d45a56db08a784e2df92ba6f197e6efa9ffe785d"
+      ],
+      "observation": "Executed original bank 82 sound LDA [$63],Y, STA $2143, STA $2142 and CMP $2142 110/110/110/694 times in bounded ICPU.Frame=6072. Executed native WRAM bus-helper sound-pointer consumers in Snd_SeekDataBlock, Snd_UploadBlock and Snd_IncDataPtr scopes. Native frame6056 last $63 word read C773 in Snd_IncDataPtr; native frame6057 first $63 read C774 in Snd_UploadBlock_80D1. Low byte 74 matches native +5040 sample while original +5040 remains 73. Both real observer logs reached explicit truncation (original 1024, native 4096) before completing both +5040 and +5045 original/native port transactions. Exact original/native 78/78 full-WRAM hashes are invariant against RF034 baseline, true Zoo result +5163 and Bowl +267, 11/11 complete earned SRAM images and 51/78 unmasked pair exact with 92 residual bytes remain unchanged.",
+      "uncertainty": "Original internal ICPU.Frame not proven synchronized to native host frame. Native +5045 frame6062 falls after reader-log truncation, original sound opcode trace truncates in internal frame6072, and native direct AOT-memory reads may escape helper instrumentation. No original/native 2142/2143 publish/read chain is independently aligned at both boundaries; DSP PCM and exact Windows full-event equivalence unproven.",
+      "resolving_experiment": "RF036: replace per-opcode/read flood with bounded per-frame first/last/count/rolling event digests in two critical +5040/+5045 windows, independently calibrate original ICPU.Frame to host script, and trace real original/native CPU $2142/$2143 writes plus SPC consumer value alongside actual $63 reads. Only then source-constrained A/B a minimal correction, checking all 78 full WRAM and 13 contiguous DP checkpoints, 11 entire earned SRAM, real Zoo +5163/Bowl +267/cold restart, negative 2P and exact Windows source.",
+      "consequence": "Retain RF035 full executed original/native SHA-bound liveness witness, preserve RF018/029/031 negative A/B evidence and source #1744 Windows identity. No timing patch or controller rephase, no masked WRAM, no independent release ledger edits and USA accepted 0/45."
     }
   ]
 }

@@ -1,0 +1,29 @@
+# One-shot genuine original/native RF040. Source CPU returned port2 value and real SPC output echo at target 6091. Remove immediately after run queues.
+name: RF040 CPU Echo Return and SPC Publication
+on:
+  push:
+    branches:
+      - research/rf040-zoo-6091-cpu-echo-values-20261017
+permissions:
+  contents: read
+concurrency:
+  group: rf040-echo-return-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  real-zoo:
+    uses: ./.github/workflows/qa01-event-campaign.yml
+    with:
+      selected: zoom-zoo
+      zoo_race_mesh: true
+      zoo_dp_window: true
+      zoo_terminal_phase: true
+      source_followthrough: true
+      zoo_next_bowl: true
+      qa01_cold_guest_reload: true
+      baldosa_refresh_beam_rate: true
+      baldosa_io_clock_order: true
+      baldosa_spc_reference_rate: true
+      baldosa_dp_pointer_once: true
+      baldosa_hdma_cpu_stall: true
+      baldosa_spc_interrupt_stage: true
+      qa01_rf034_spc_boundary: true

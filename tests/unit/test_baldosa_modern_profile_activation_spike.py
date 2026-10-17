@@ -96,6 +96,18 @@ class BaldosaModernProfileActivationStage(unittest.TestCase):
             self.assertEqual(
                 staged_host.count("UR_BALDOSA_QA_CRASH_AFTER_NATIVE_SRAM_WRITE"), 1)
             self.assertIn("_Exit(86);", staged_host)
+            # Native save refusal must be visible to a player/launcher;
+            # startup code 7 is reserved for before-first-frame recovery.
+            self.assertEqual(staged_host.count("exit(8);"), 2)
+            self.assertEqual(staged_host.count("exit(9);"), 1)
+            self.assertIn("UR-BALDOSA-SWITCH-FAILED: Current racer save completed", staged_host)
+            self.assertIn("if (finish == 2)", staged_host)
+            self.assertIn("UR-BALDOSA-SAVE-FAILED", staged_host)
+            self.assertIn("Native save was refused before writing.", staged_host)
+            self.assertIn("Native save could not complete.", staged_host)
+            self.assertLess(
+                staged_host.index("UR_BALDOSA_NATIVE_PROFILE CHECKPOINT rejected"),
+                staged_host.index("exit(8);"))
             self.assertIn('strcmp(qa_profile, "1") == 0', staged_host)
             self.assertIn('strcmp(qa_mode, "modern") == 0', staged_host)
             self.assertIn('strcmp(qa_crash, "1") == 0', staged_host)
@@ -108,7 +120,28 @@ class BaldosaModernProfileActivationStage(unittest.TestCase):
             self.assertEqual(probe.patch_framework_save(staged_host), staged_host)
 
             self.assertIn("int native_saved = RtlWriteSram();", staged_host)
-            self.assertLess(staged_host.index("if (ur_baldosa_modern_profile_before_native_save())"), staged_host.index("RtlWriteSram();"))
+            self.assertIn("if (ur_baldosa_modern_profile_before_native_save() == 1)", staged_host)
+            self.assertLess(staged_host.index("ur_baldosa_modern_profile_before_native_save()"),
+                            staged_host.index("RtlWriteSram();"))
+            bridge = (Path(__file__).resolve().parents[2] /
+                      "tools/baldosa_modern_profile_activation.cpp").read_text()
+            header = (Path(__file__).resolve().parents[2] /
+                      "native/product/baldosa_native_existing_profile_next_boot.hpp").read_text()
+            for marker in (
+                "g_owned_next_boot_profile_id",
+                "requested_profile, false, true",  # dry-run X/A UI request
+                "finish_baldosa_sram_intent_under_lock(request)",
+                "profile_guard.reset();",
+                "catalog_guard.reset();",
+                "selector_guard.reset();",
+                "NEXT_BOOT_COMMITTED",
+                "NEXT_BOOT_COMMIT_FAILED",
+                "QA_POSTSAVE_NEXT_BOOT_GATE",
+            ):
+                self.assertIn(marker, bridge)
+            self.assertIn("bool validate_only = false", header)
+            self.assertIn("if (validate_only)", header)
+            self.assertNotIn("OWN_NEXT_BOOT_CLEAN_QUIT", staged_host)
             self.assertLess(staged_host.index("RtlWriteSram();"), staged_host.index("ur_baldosa_modern_profile_finish_native_save(native_saved)"))
             self.assertEqual(probe.patch_framework_save(staged_host), staged_host)
             self.assertEqual(framework.read_text(), original_shutdown)

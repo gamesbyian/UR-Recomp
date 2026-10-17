@@ -76,6 +76,7 @@ on:
       - "tools/audit_baldosa_romless_candidate.py"
       - "tools/verify_baldosa_windows_extracted_launcher.py"
       - "tools/baldosa_win32_interactive_recovery_q.py"
+      - "tools/baldosa_win32_interactive_recovery_rt.py"
       - "tests/unit/test_assemble_baldosa_windows_candidate.py"
       - "tests/unit/test_audit_baldosa_romless_candidate.py"
       - "native/product/modern_session_c_api.*"
@@ -892,6 +893,19 @@ jobs:
             --out "$RUNNER_TEMP/Baldosa Win32 Interactive Recovery Q" --timeout 100
           echo "PASS: genuine Win32 console Q choice preserves all original typed/raw/selector/catalog files, creates no manual recovery archive and exits 7. Source product only, not human/physical QA." >> "$GITHUB_STEP_SUMMARY"
 
+      # Distinct product-owned R/T proof. Preserve the previously qualified
+      # Q and fixed independent QA02/extracted CMD archive contracts.
+      - name: Prove original CMD interactive R and T recovery and cold boots
+        run: |
+          set -euo pipefail
+          python tools/baldosa_win32_interactive_recovery_rt.py \
+            --launcher "$RUNNER_TEMP/Baldosa Native Extracted Launcher QA/Extracted Baldosa Candidate With Spaces/run-baldosa-modern.cmd" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/baseline/Modern Player Data With Spaces/saves/save.srm" \
+            --out "$RUNNER_TEMP/Baldosa Win32 Interactive Recovery RT" --timeout 120
+          echo "PASS: original CMD real Win32 R/T console KEY_EVENT, archive-before-change, exact canonical source bytes and two cold original guest boots per choice. Product-only synthetic keys; no human-pad, full-volume or release QA credit." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Retain ROM-free Windows candidate only (no ROM or SRAM)
         uses: actions/upload-artifact@v4
         with:
@@ -934,6 +948,22 @@ jobs:
             ${{ runner.temp }}/Baldosa Win32 Interactive Recovery Q/original-fixture.log
             ${{ runner.temp }}/Baldosa Win32 Interactive Recovery Q/interactive-q-result.json
             ${{ runner.temp }}/Baldosa Win32 Interactive Recovery Q/source-bytes/**
+
+      - name: Retain original CMD interactive R/T repair source bytes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-interactive-recovery-rt
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/Baldosa Win32 Interactive Recovery RT/interactive-rt-result.json
+            ${{ runner.temp }}/Baldosa Win32 Interactive Recovery RT/R/*.log
+            ${{ runner.temp }}/Baldosa Win32 Interactive Recovery RT/T/*.log
+            ${{ runner.temp }}/Baldosa Win32 Interactive Recovery RT/R/result.json
+            ${{ runner.temp }}/Baldosa Win32 Interactive Recovery RT/T/result.json
+            ${{ runner.temp }}/Baldosa Win32 Interactive Recovery RT/R/source-bytes/**
+            ${{ runner.temp }}/Baldosa Win32 Interactive Recovery RT/T/source-bytes/**
 
       - name: Retain bounded extracted-CMD source transcripts separately
         if: always()

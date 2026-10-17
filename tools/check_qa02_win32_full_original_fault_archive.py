@@ -273,10 +273,11 @@ def audit(archive: Path, expected_sha256: str) -> dict:
         need(get(p, "selector.a-selected") != get(p, "selector.b-selected"),
              "journaled B did not explicitly select healthy A")
         intent = get(p, "intent.crash")
+        header = b"UR-BALDOSA-NATIVE-SRAM-INTENT/1\n"
         need(intent == get(p, "intent.archived") and
-             intent.startswith(b"UR-BALDOSA-NATIVE-SRAM-INTENT/1\\n".replace(b"\\n", b"\n")),
+             intent.startswith(header),
              "journaled B original durable intent/archive changed")
-        rest = intent[len(b"UR-BALDOSA-NATIVE-SRAM-INTENT/1\\n".replace(b"\\n", b"\n")):]
+        rest = intent[len(header):]
         parts = rest.split(b"\n", 2)
         need(len(parts) == 3 and
              all(re.fullmatch(rb"[0-9]{1,8}", x) is not None

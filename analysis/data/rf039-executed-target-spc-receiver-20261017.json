@@ -1,0 +1,186 @@
+{
+  "schema": "rf039-zoo-source-native-spc-target-receiver-v1",
+  "source_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39064227716",
+  "source_staging_sha": "a8a82f53865ea311dcdc3c1b9ed6b4face9a17a2",
+  "case_artifact_id": 12112223858,
+  "case_archive_sha256": "4fb6ea55d20d5bdad7dc271236b8066700348bdf6c911d07097d64903305d60b",
+  "case_files": 18,
+  "source_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+  "unchanged_input_sha256": "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52",
+  "source_original_core_sha256": "0e852d8ec600bcc0d690f234104961bc646effeca3f0bb35db14e3c11353b128",
+  "native_research_executable_sha256": "7d4d10c85bd929cb30e8d7d48a39e04aea084e480be2977dc56b5f29b3cd7a41",
+  "observed_cpu_writer_pair": {
+    "original_source": {
+      "frame": 6091,
+      "v": 116,
+      "first": {
+        "age": 103919450,
+        "h": 442,
+        "reg": "2142",
+        "value": "24"
+      },
+      "second": {
+        "age": 103919475,
+        "h": 972,
+        "reg": "2143",
+        "value": "02"
+      },
+      "master_delta": 530,
+      "actual_cmp_2142_count": 6
+    },
+    "native": {
+      "host_frame": 6091,
+      "first": {
+        "master": 2176886834,
+        "reg": "2142",
+        "value": "24",
+        "frame_local_port_write_index_zero_based": 750
+      },
+      "second": {
+        "master": 2176887208,
+        "reg": "2143",
+        "value": "02",
+        "frame_local_port_write_index_zero_based": 751
+      },
+      "master_delta": 374,
+      "actual_paced_read8_2142_count": 3
+    },
+    "source_minus_native_master_delta": 156
+  },
+  "native_queue_provenance": {
+    "frame_6091_actual_cpu_to_queue_schedule_port_value_prefix_count": 1289,
+    "first_port": {
+      "port": 2,
+      "value": "24",
+      "scheduled_at_spc_age": 103919298,
+      "queue_target": 103919434,
+      "applied_spc_age": 103919434,
+      "apply_spc_pc": "154D"
+    },
+    "second_port": {
+      "port": 3,
+      "value": "02",
+      "scheduled_at_spc_age": 103919444,
+      "queue_target": 103919452,
+      "applied_spc_age": 103919452,
+      "apply_spc_pc": "14D7"
+    },
+    "both_applied_at_exact_queue_target": true
+  },
+  "source_original_spc_receiver": [
+    {
+      "spc_age": 103919450,
+      "pc": "154F",
+      "port": 2,
+      "value": "23",
+      "phase": "last old value"
+    },
+    {
+      "spc_age": 103919457,
+      "pc": "154F",
+      "port": 2,
+      "value": "24"
+    },
+    {
+      "spc_age": 103919462,
+      "pc": "1553",
+      "port": 3,
+      "value": "E2"
+    },
+    {
+      "spc_age": 103919465,
+      "pc": "1555",
+      "port": 2,
+      "value": "24"
+    },
+    {
+      "spc_age": 103919505,
+      "pc": "1553",
+      "port": 3,
+      "value": "02"
+    }
+  ],
+  "native_spc_receiver": [
+    {
+      "spc_age": 103919427,
+      "pc": "154F",
+      "port": 2,
+      "value": "23",
+      "phase": "last old value"
+    },
+    {
+      "spc_age": 103919434,
+      "pc": "154F",
+      "port": 2,
+      "value": "24"
+    },
+    {
+      "spc_age": 103919439,
+      "pc": "1553",
+      "port": 3,
+      "value": "E2"
+    },
+    {
+      "spc_age": 103919443,
+      "pc": "1555",
+      "port": 2,
+      "value": "24"
+    },
+    {
+      "spc_age": 103919482,
+      "pc": "1553",
+      "port": 3,
+      "value": "02"
+    }
+  ],
+  "source_minus_native_matching_receiver_ages": [
+    23,
+    23,
+    23,
+    22,
+    23
+  ],
+  "receiver_relative_phase": {
+    "same_pc_port_value_order": true,
+    "source_age_deltas_between_successive_reads": [
+      7,
+      5,
+      3,
+      40
+    ],
+    "native_age_deltas_between_successive_reads": [
+      7,
+      5,
+      4,
+      39
+    ],
+    "native_applies_port2_and_receiver_reads_same_age": true,
+    "source_port2_writer_to_first_receiver_age_cycles": 7,
+    "native_port2_apply_to_first_receiver_age_cycles": 0,
+    "source_port3_writer_to_first_02_receiver_age_cycles": 30,
+    "native_port3_apply_to_first_02_receiver_age_cycles": 30
+  },
+  "strict_unchanged_controls": {
+    "original_native_pair_wram_samples": 78,
+    "unmasked_full_wram_equal_pairs": 51,
+    "unmasked_differing_byte_occurrences": 92,
+    "source_fresh_original_native_zoo_result_relative": 5163,
+    "next_bowl_from_zoo_result_relative": 267,
+    "earned_entire_sram_equal_pairs": 11,
+    "source_earned_cold_original_native_guest_record_reloads": true
+  },
+  "limitations": {
+    "recorder_truncations": 0,
+    "cross_guest_absolute_clock_phase_aligned": false,
+    "native_cpu_port2_return_values_captured": false,
+    "original_sound_echo_publication_clocks_captured": false,
+    "stack_residual_writers_readers_proven": false,
+    "complete_original_native_source_clock_parity": false,
+    "exact_integrated_windows_event_proven": false,
+    "windows_host_disk_hard_kill_proven": false,
+    "source_qualified_clock_fix_justified": false,
+    "complete_usa_events_accepted": 0
+  },
+  "next_discriminator": "source 65816 original CMP actual bus value and native cpu_read8_paced returned value at these exact three polls, with source/native SPC output-echo publication before any timing correction; separately stack last writes/next readers."
+}

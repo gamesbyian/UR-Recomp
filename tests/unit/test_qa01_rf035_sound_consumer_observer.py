@@ -18,6 +18,9 @@ class RF035ObserverTest(unittest.TestCase):
         self.assertLess(new.index("const unsigned ur_rf035_pc"), new.index(rf.ORIG_DISPATCH))
         self.assertLess(new.index(rf.ORIG_DISPATCH), new.index("QA01RF035ORIG frame="))
         self.assertIn("QA01RF035ORIG_TRUNCATED", new)
+        self.assertIn("ur_rf035_bank == 0x82u", new)
+        self.assertIn("ICPU.Frame >= 6000u", new)
+        self.assertIn("dp65=%02X", new)
 
     def test_native_reads_once_and_returns_unchanged_latch_values(self):
         source = (rf.NATIVE_HEADER + "void byte(void) {\n" + rf.NATIVE_BYTE +

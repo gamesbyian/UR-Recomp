@@ -77,8 +77,9 @@ int main() {
     const HostOutputViewport fixed_4k{480, 0, 2880, 2160};
     assert(resolve_output_viewport(original_wide, 3840, 2160) == wide_4k);
     assert(resolve_output_viewport(original_fixed, 3840, 2160) == fixed_4k);
+    const HostOutputViewport portrait_4k_drawable{0, 1312, 2160, 1215};
     assert(resolve_output_viewport(original_wide, 2160, 3840) ==
-           HostOutputViewport{0, 1312, 2160, 1215});
+           portrait_4k_drawable);
 
     assert(resolve_output_viewport(original_wide, 1280, 1024) == wide_1280x1024);
     assert(resolve_output_viewport(original_fixed, 1280, 1024) == fixed_1280x1024);

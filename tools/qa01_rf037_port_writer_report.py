@@ -52,6 +52,37 @@ def _first_last(rows: list[dict[str, str]], n: int = 2):
     return {"count": len(rows), "first": rows[:n], "last": rows[-n:]}
 
 
+def ordered_port_prefix(original: list[dict[str, str]],
+                        native: list[dict[str, str]]) -> dict:
+    """Compare ordinal port/value writes only within each independently gated log.
+
+    Matching ordinals cannot imply matching SPC timing or complete transfer.
+    The two capture windows may end at very different real guest times.
+    """
+    n = min(len(original), len(native))
+    matched = 0
+    for i in range(n):
+        source = (int(original[i]["port"]), original[i]["val"].upper())
+        recomp = (int(native[i]["reg"], 16) & 3, native[i]["val"].upper())
+        if source != recomp:
+            break
+        matched += 1
+    else:
+        i = n
+    return {
+        "original_count": len(original),
+        "native_count": len(native),
+        "matching_prefix": matched,
+        "compared_count": n,
+        "first_difference_index": i if i < n else None,
+        "first_difference": ({
+            "original": original[i], "native": native[i],
+        } if i < n else None),
+        "equal_captured_sequence": len(original) == len(native) == matched,
+        "time_aligned_or_complete_transfer_proven": False,
+    }
+
+
 def report(z: zipfile.ZipFile) -> dict:
     original: list[dict[str, str]] = []
     original_trunc: list[int] = []
@@ -125,6 +156,8 @@ def report(z: zipfile.ZipFile) -> dict:
             "cpu_writer_count": len(cpu),
             "cpu_writer_types": dict(Counter(f["kind"] for f in cpu)),
             "upstream_stage_counts": {k: len(stages.get(k, [])) for k in STAGES},
+            "ordinal_port_publication_prefix": ordered_port_prefix(
+                original, stages.get("rtl-apu-enter", [])),
             "native_by_frame": {
                 str(frame): dict(counts)
                 for frame, counts in sorted(by_frame.items())
@@ -148,6 +181,7 @@ def report(z: zipfile.ZipFile) -> dict:
             "Original writer SPC ages and native writer host frames are "
             "independent. Native APU schedule target ages permit limited "
             "nearest-value diagnostics, not one-to-one causal proof. "
+            "Matching port-value ordinal prefixes alone do not show sound-clock parity. "
             "Missing writes outside native host gate cannot be inferred."
         ),
     }

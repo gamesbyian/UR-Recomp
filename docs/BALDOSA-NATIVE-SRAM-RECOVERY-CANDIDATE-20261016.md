@@ -730,3 +730,49 @@ independent ledger unmodified. A CI-created genuine console cannot prove
 player-operated R/T/S/Q; do not claim actual NTFS disk-full/partial writes,
 physical power loss, simultaneous human consoles, physical two-pad input,
 integrated graphics, or a clean-machine owner playtest from these tests.
+
+
+## Real hosted Win32 NTFS full-volume original-game source trial (pending)
+
+Independent QA's [isolated Windows real NTFS apparatus #1803](https://github.com/gamesbyian/UR-Recomp/pull/1803)
+merged a proven 128 MiB disposable VHDX on the hosted Windows runner,
+achieving genuine Win32 `ERROR_DISK_FULL=112` in a separate process
+without any physical/system disk operation. Its successful substrate run
+[39074019158](https://github.com/gamesbyian/UR-Recomp/actions/runs/39074019158)
+did **not** execute the game and is not evidence of product save correctness.
+
+The owning product branch adds a **separate** original-game integration,
+`tools/baldosa_win32_real_ntfs_diskfull_game.ps1` plus
+`tools/baldosa_win32_real_ntfs_diskfull_game.py`, which consumes
+the already-verified pinned **original extracted Windows CMD and actual
+AOT PE**, the existing canonical C++ named-profile fixture and the original
+baseline 8 KiB SRAM. It mounts only its own disposable NTFS VHDX, asserts
+the unique W: volume identity and label, creates a **valid original
+racer before filling**, warms up the actual packaged guest, stores all
+four canonical original files outside W:, fills the isolated NTFS volume
+through real synchronous/flush writes, then demands genuine Win32 112
+from a **second independent OS process** before asking the actual
+packaged game to race and try its normal save.
+
+The strict product test requires the same-source genuine Modern 1P
+route and original guest race at frame 2200, an attempted normal save
+with original native/launcher **exit 8** and visible
+`UR-BALDOSA-SAVE-FAILED` warnings, **all four** canonical
+raw/typed/selector/catalog bytes unchanged, no opportunistic
+replacement/default profile, and two clean original Windows cold
+guest boots after deleting the isolated filler. A dedicated
+`baldosa-win32-original-real-ntfs-full-game` source artifact
+retains original CMD logs and SHA/length receipts for **16 binary
+stage members** (before, full denial, cold1, cold2 ×4).
+The original VHD, ROM, arbitrary file tree and real player data are
+NEVER uploaded. The apparatus `finally` block detaches
+only its own explicitly selected temporary VHDX, never selects a
+physical disk, and requires a disposable GitHub-hosted Windows runner.
+
+**PENDING actual original Windows execution and readback.** This is
+not a simulated 513-byte raw write, not proof of an actual **partial**
+raw write, and not an electrical power cut. If full-volume side
+effects prevent game startup before a source-authentic SRAM save
+attempt, the test must stay **RED / infrastructure or product blocker**;
+the existing OS-only QA proof may not be relabeled as game acceptance.
+No independent release ledger or physical owner gate is promoted.

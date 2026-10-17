@@ -1,0 +1,70 @@
+{
+  "schema": "qa08-exact-Windows-firstline-only-1p-vs-unaltered-2014-Snes9x-moving-source-20261017/1",
+  "graphics_diagnostic_pr": 1745,
+  "release_gate_accepted": false,
+  "firstline_only_windows": {
+    "head": "bf8cef9b70a574d624c3db461b445a1295f31f4f",
+    "run": 39003134249,
+    "artifact_id": 12090495864,
+    "archive_sha256": "853252419712c6338fb2f9a8187ad6451c617c58a8b440023366c0eb24c26cea",
+    "pe_sha256": "5bdd905c2a2b40e48b303473afdb5b2ba56eec7b05198d2cedffc38dd6cf86bc",
+    "original_USA_CRLF_script_sha256": "65567dd5629bc71d544d58a4ac31b51de6c0b382d070aaf06ec1a2be952a5cd1",
+    "actual_1p_guest_frames": 5447,
+    "guest_crc_transcript_sha256": "465ec5930c0d84b451c4c633d915184dbec44f2dd7728a0bb49093d913b69244",
+    "actual_source_callback_count": 261,
+    "source_frames": [
+      1280,
+      5440,
+      16
+    ],
+    "source_size": [
+      256,
+      224
+    ]
+  },
+  "original_reference": {
+    "producer_run": 38701112952,
+    "artifact_id": 11956168307,
+    "artifact_zip_sha256": "9b6f32bd00b89e5fda72bb82ea9d535ebd90baf62a4600a2fb0fd598b4ee648d",
+    "emulator": "pinned 2014 Snes9x libretro through snesref",
+    "original_core_binary_sha256": "720e5ccb9b84722cd94e9636c52575db642c3e6a7e4cd65af33cea85cdead089",
+    "unaltered_1p_script_only_turbo_removed": true,
+    "actual_callbacks_2176_to_2240_inclusive": 65,
+    "unique_original_images": 65,
+    "source_bytes": "BGRX8888 (RGB565-expanded)",
+    "green6_to_green5_only": true,
+    "other_pixel_crops_shifts_or_tolerances": false
+  },
+  "comparisons": [
+    {
+      "native_guest": 2192,
+      "original_callback": 2191,
+      "incorrect_rgb5_pixels": 0,
+      "total_pixels": 57344,
+      "nearest_other_original_wrong_pixels": 23039,
+      "native_P7_sha256": "39b5d5ab144a88ac97191abcca84e20bd3a76937a1f4c0367af865dd1651e3f5"
+    },
+    {
+      "native_guest": 2208,
+      "original_callback": 2207,
+      "incorrect_rgb5_pixels": 0,
+      "total_pixels": 57344,
+      "nearest_other_original_wrong_pixels": 20855,
+      "native_P7_sha256": "8ad1aee7ba2016078096a2460d3c1910f0bbff130e9140b70c8c4f1d3242f3e7"
+    },
+    {
+      "native_guest": 2224,
+      "original_callback": 2223,
+      "incorrect_rgb5_pixels": 0,
+      "total_pixels": 57344,
+      "nearest_other_original_wrong_pixels": 16449,
+      "native_P7_sha256": "9f27238bd54a5a2c06c7514ad19542a569f9a0f34acd5ed4715c7019118c9f6"
+    }
+  ],
+  "independent_original_1p_moving_RGB5_3_of_3_exact": true,
+  "source_registration_verified_for_these_only": true,
+  "complete_guest_original_65816_parity": false,
+  "clean_production_PE_byte_same_as_instrumented": false,
+  "full_1p_countdown_finish_result_original_source_parity": false,
+  "physical_4k_or_hd_art_admitted": false
+}

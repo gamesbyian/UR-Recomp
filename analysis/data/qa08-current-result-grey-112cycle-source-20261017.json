@@ -47,7 +47,57 @@
       "original_15_native_20": 4127
     },
     "diagnostic_offset_guest_fields": 32,
-    "repeated_original_equivalent_offset_guest_fields": -80
+    "repeated_original_equivalent_offset_guest_fields": -80,
+    "large_source_components": {
+      "phase_grey_pulses": 158191,
+      "palette_pairs_native_to_original": {
+        "17_to_20": 104533,
+        "20_to_15": 53658
+      },
+      "chromatic_large_error_pixels": 7175,
+      "chromatic_mask_occurrences": 25,
+      "chromatic_mask_frames": [
+        4032,
+        4080,
+        4128,
+        4176,
+        4224,
+        4272,
+        4320,
+        4368,
+        4416,
+        4464,
+        4512,
+        4560,
+        4608,
+        4656,
+        4704,
+        4752,
+        4800,
+        4848,
+        4896,
+        4944,
+        4992,
+        5040,
+        5088,
+        5136,
+        5184
+      ],
+      "identical_chromatic_masks": true,
+      "pixels_per_chromatic_mask": 287,
+      "mask_xy_bounding_box_inclusive": [
+        202,
+        91,
+        227,
+        153
+      ],
+      "chromatic_mask_index_le_u32_sha256": "9331534bc26928e66949644303bf1f4ae9b1185436f0090923a1f6dd6219da15",
+      "observed_upper_band_pixels_per_mask": 95,
+      "observed_lower_band_pixels_per_mask": 192,
+      "all_source_large_errors_disjointly_classified": true,
+      "original_source_same_field_OBJ_priority_proven": false,
+      "current_RF017_CGRAM_and_PPU_owner_causality_proven": false
+    }
   },
   "scope": {
     "original_reference_as_hardware_truth": false,

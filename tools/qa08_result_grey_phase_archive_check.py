@@ -79,12 +79,66 @@ def frame_large_counts(original_bytes, native_bytes, future_original=None):
     return wrong, large, forward
 
 
+def result_large_colour_components(original_bytes, native_bytes):
+    """Separate palette-phase greys from fixed-position chromatic source faults.
+
+    Actual 2014 Snes9x BGRX and original-size Win32 P7 RGBA. One RGB5
+    step is excluded here; no image repair, temporal re-registration or
+    rendering override is performed.
+    """
+    if len(original_bytes) != PIXELS * 4 or len(native_bytes) != PIXELS * 4:
+        raise ValueError("result image was cropped or source bytes missing")
+    grey_pairs = {}
+    non_grey_positions = []
+    for position in range(PIXELS):
+        off = position * 4
+        original = (original_bytes[off + 2] >> 3,
+                    original_bytes[off + 1] >> 3,
+                    original_bytes[off] >> 3)
+        native = (native_bytes[off] >> 3,
+                  native_bytes[off + 1] >> 3,
+                  native_bytes[off + 2] >> 3)
+        if max(abs(a - b) for a, b in zip(original, native)) <= 1:
+            continue
+        if original[0] == original[1] == original[2] and (
+                native[0] == native[1] == native[2]):
+            key = (native[0], original[0])
+            grey_pairs[key] = grey_pairs.get(key, 0) + 1
+        else:
+            non_grey_positions.append(position)
+    return grey_pairs, tuple(non_grey_positions)
+
+
 def measure(original, native):
     values = []
+    all_grey_pairs = {}
+    chromatic_masks = {}
     for f in RESULTS:
         wrong, large, forward = frame_large_counts(
             original[f], native[f], original.get(f + 32) if f in PEAKS else None)
         values.append((f, wrong, large, forward))
+        if large:
+            grey_pairs, chromatic_positions = result_large_colour_components(
+                original[f], native[f])
+            if sum(grey_pairs.values()) + len(chromatic_positions) != large:
+                raise ValueError("not all large original/native errors classified")
+            for key, count in grey_pairs.items():
+                all_grey_pairs[key] = all_grey_pairs.get(key, 0) + count
+            if chromatic_positions:
+                chromatic_masks[f] = chromatic_positions
+    chromatic_hashes = {
+        f: sha(b"".join(pos.to_bytes(4, "little") for pos in positions))
+        for f, positions in chromatic_masks.items()
+    }
+    static_positions = next(iter(chromatic_masks.values()), ())
+    bounding_box = [
+        min((pos % 256 for pos in static_positions), default=-1),
+        min((pos // 256 for pos in static_positions), default=-1),
+        max((pos % 256 for pos in static_positions), default=-1),
+        max((pos // 256 for pos in static_positions), default=-1)
+    ]
+    phase_grey_count = sum(all_grey_pairs.values())
+    chromatic_count = sum(len(x) for x in chromatic_masks.values())
     out = {
         "result_frames": len(values),
         "original_native_wrong_RGB5_pixels": sum(v[1] for v in values),
@@ -93,6 +147,24 @@ def measure(original, native):
         "same_position_native_equals_original_at_plus32_within_pulse": sum(v[3] for v in values),
         "pulse_count": len(PEAKS),
         "pulse_spacing_guest_frames": 112,
+        "large_source_components": {
+            "phase_grey_pulses": phase_grey_count,
+            "palette_pairs_native_to_original": {
+                f"{native}_to_{original}": count
+                for (native, original), count in sorted(all_grey_pairs.items())
+            },
+            "identical_chromatic_masks": len(set(chromatic_hashes.values())) == 1,
+            "chromatic_mask_occurrences": len(chromatic_masks),
+            "chromatic_mask_frames": sorted(chromatic_masks),
+            "pixels_per_chromatic_mask": len(static_positions),
+            "chromatic_large_error_pixels": chromatic_count,
+            "mask_xy_bounding_box_inclusive": bounding_box,
+            "chromatic_mask_index_le_u32_sha256": (
+                next(iter(chromatic_hashes.values()), "")),
+            "all_source_large_errors_disjointly_classified":
+                phase_grey_count + chromatic_count ==
+                sum(v[2] for v in values)
+        },
         "global_frame_shift_admitted": False,
         "CPU_or_CGRAM_causality_proven": False,
         "release_approved": False
@@ -102,6 +174,17 @@ def measure(original, native):
                    "same_position_native_equals_original_at_plus32_within_pulse", "pulse_count"))
     if observed != (91, 599536, 165366, 159339, 157027, 13):
         raise ValueError("primary-source grey result phase observation changed")
+    components = out["large_source_components"]
+    if (phase_grey_count != 158191
+            or all_grey_pairs != {(17, 20): 104533, (20, 15): 53658}
+            or chromatic_count != 7175
+            or len(chromatic_masks) != 25
+            or not components["identical_chromatic_masks"]
+            or len(static_positions) != 287
+            or bounding_box != [202, 91, 227, 153]
+            or components["chromatic_mask_index_le_u32_sha256"] !=
+               "9331534bc26928e66949644303bf1f4ae9b1185436f0090923a1f6dd6219da15"):
+        raise ValueError("original/native large-error pixel provenance drift")
     return out
 
 

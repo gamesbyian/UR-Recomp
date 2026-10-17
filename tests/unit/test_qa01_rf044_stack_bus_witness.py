@@ -38,6 +38,9 @@ class FrameStack(unittest.TestCase):
   self.assertEqual(m.native_cpu(out),out)
   for op in ("cpu_latch_read8(", "cpu_latch_read16(", "fputc("):
    self.assertEqual(out.count(op),old.count(op))
+  self.assertEqual(out.count("ur_qa01_rf035_read("),old.count("ur_qa01_rf035_read("))
+  self.assertEqual(out.count("cpu_latch_read8("),old.count("cpu_latch_read8("))
+  self.assertEqual(out.count("cpu_latch_read16("),old.count("cpu_latch_read16("))
   self.assertIn("QA01RF044NATIVEREAD_TRUNCATED",out)
   self.assertIn("rf044_S=",out)
   self.assertIn("sn es_frame_counter".replace(" ",""),out)

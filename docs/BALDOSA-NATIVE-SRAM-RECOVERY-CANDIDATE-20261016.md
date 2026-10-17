@@ -600,9 +600,12 @@ physical gamepad acceptance remain open.
 
 ## Packaged CMD exact-PE fault acceptance (additional product witness)
 
-The owning Windows source producer optionally exercises the original
-source-authenticated frame-1952 live postraw typed-publication sharing-denial
-fault **through the extracted ROMless ZIP's own run-baldosa-modern.cmd**.
+The owning Windows source producer exercises real controller-originated
+Modern **1P Play**, then holds the original guest in a source-authenticated
+live race until frame **2200**, where it provokes the same true Win32
+postraw typed-publication sharing denial through the extracted ROMless
+ZIP's own `run-baldosa-modern.cmd`. The separately green direct original
+2P source fault preserves the established frame-1952 witness.
 It uses the exact tested PE, a temporary verified original USA ROM, an
 original-native source SRAM seed and the production Modern profile fixture
 in disposable user data outside the extracted package. The live source guest

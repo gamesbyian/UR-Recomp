@@ -106,15 +106,33 @@ def run_native_win32_live_postraw_typed_denial(
             raise ctypes.WinError(ctypes.get_last_error())
         return handle
 
+    source_pause_frame = 1952
+    executed_source_script = script
     if packaged_launcher is not None:
         if (not packaged_launcher.is_file() or
             not packaged_launcher.parent.samefile(exe.parent) or
             not (packaged_launcher.parent / rom.name).is_file()):
             raise ValueError("Packaged live fault requires same extracted game/ROM")
+        # Shipping CMD intentionally enables Modern root. Use its proven
+        # physical-edge 1P Play handoff, not a direct 2P script that the
+        # real root correctly rejects as an unauthorized pause.
+        from baldosa_windows_native_pause_route import (
+            native_modern_race_entry_script,
+        )
+        route = native_modern_race_entry_script(1)
+        if route.count("dump go\nquit\n") != 1:
+            raise ValueError("Source-pinned Modern 1P route changed")
+        route = route.replace("dump go\nquit\n",
+                              "dump go\nwait 700\nquit\n")
+        executed_source_script = out / "modern-source-play-route.txt"
+        executed_source_script.write_text(route, encoding="ascii")
+        source_pause_frame = 2200
+        env["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"] = "1"
+        env["UR_BALDOSA_PAUSE_SMOKE_AT_FRAME"] = str(source_pause_frame)
         env["UR_RECOMP_USER_DATA_ROOT"] = str(user_root)
         env["UR_BALDOSA_NO_HOLD"] = "1"
         command = ["cmd.exe", "/d", "/c", "call", str(packaged_launcher),
-                   "--config", str(config), "--script", str(script)]
+                   "--config", str(config), "--script", str(executed_source_script)]
     else:
         command = [str(exe), "--no-launcher", "--config", str(config),
                    "--script", str(script), str(rom)]
@@ -237,6 +255,10 @@ def run_native_win32_live_postraw_typed_denial(
         "UR-BALDOSA-SAVE-FAILED: This game session could not finish saving."
         not in source_log):
         raise ValueError("Actual extracted CMD suppressed source save-failure guidance")
+    if (packaged_launcher is not None and
+        "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c"
+        not in source_log):
+        raise ValueError("Packaged source fault bypassed original Modern 1P Play")
     if (return_code != 8 or
         "UR-BALDOSA-SAVE-FAILED: Native save could not complete." not in source_log or
         replace_probe_winerror not in (5, 32) or
@@ -248,8 +270,9 @@ def run_native_win32_live_postraw_typed_denial(
         "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=native-ci-rider status=committed"
         in source_log or
         source_log.count(armed_marker) != 1 or
-        source_log.count("UR_BALDOSA_NATIVE_PAUSE ARMED guest=1952 "
-                         "live_race=1 modern_session=1 physical_sdl=1") != 1 or
+        source_log.count(
+            f"UR_BALDOSA_NATIVE_PAUSE ARMED guest={source_pause_frame} "
+            "live_race=1 modern_session=1 physical_sdl=1") != 1 or
         "UR_BALDOSA_NATIVE_PAUSE_MENU QUIT_QUEUED=1 paused=1 guest_steps=0"
         not in source_log):
         raise ValueError(
@@ -332,7 +355,11 @@ def run_native_win32_live_postraw_typed_denial(
         json.dumps(receipts, sort_keys=True, indent=2) + "\n",
         encoding="utf-8")
     outcome = {
-        "actual_original_win32_race_frame": 1952,
+        "actual_original_win32_race_frame": source_pause_frame,
+        "executed_source_script_sha256": hashlib.sha256(
+            executed_source_script.read_bytes()).hexdigest(),
+        "reference_guest_script_sha256": hashlib.sha256(script.read_bytes()).hexdigest(),
+        "packaged_Modern_controller_Play_1P_verified": packaged_launcher is not None,
         "original_RtlWriteSram_completed_before_ntfs_denial": True,
         "canonical_selector_catalog_profile_leases_remained_owned": True,
         "actual_OS_sharing_denied_live_typed_publication": True,

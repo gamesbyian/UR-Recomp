@@ -933,6 +933,7 @@ jobs:
           path: |
             ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/Packaged Actual Source Save Failure/native_real_win32_live_postraw_typed_denial/*.log
             ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/Packaged Actual Source Save Failure/native_real_win32_live_postraw_typed_denial/os-denial-result.json
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/Packaged Actual Source Save Failure/native_real_win32_live_postraw_typed_denial/modern-source-play-route.txt
             ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/Packaged Actual Source Save Failure/native_real_win32_live_postraw_typed_denial/fault-bytes/**
 
       # Genuine two-process negative after old rider's *successful*

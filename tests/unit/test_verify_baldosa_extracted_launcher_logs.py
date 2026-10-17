@@ -113,6 +113,10 @@ class RetainedLauncherTranscriptTests(unittest.TestCase):
         self.assertIn('packaged_save_failure["native_source_pe_sha256"]', source)
         self.assertIn("UR-BALDOSA-SAVE-FAILED: This game session", helper)
         self.assertIn("kernel_replace_probe_winerror", helper)
+        self.assertIn("native_modern_race_entry_script(1)", helper)
+        self.assertIn("source_pause_frame = 2200", helper)
+        self.assertIn('"UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"', helper)
+        self.assertIn("original Modern 1P Play", helper)
         self.assertIn("baldosa-win32-packaged-save-refusal-source-bytes", workflow)
         separate = workflow.split(
             "name: baldosa-win32-packaged-save-refusal-source-bytes", 1

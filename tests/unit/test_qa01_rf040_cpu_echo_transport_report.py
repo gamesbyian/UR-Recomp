@@ -70,7 +70,7 @@ class RF040Report(unittest.TestCase):
             m.analyze(a.replace("age=103919466 pc=1555", "age=103919467 pc=1555"), b)
         echo = "QA01RF040NATIVESPCECHO frame=6091 age=103919443 pc=1555 port=2 value=24\n"
         b = b.replace(echo, "") + echo
-        with self.assertRaisesRegex(ValueError, "not between"):
+        with self.assertRaisesRegex(ValueError, "echo 24"):
             m.analyze(a, b)
 
     def test_missing_true_original_opcode_and_native_paced_read_rejected(self):

@@ -19,7 +19,7 @@ The USA retail ROM SHA `859ec99f…`, archived movie `06dce29e…`, seed SRAM `a
 
 The initial [38999027073](https://github.com/gamesbyian/UR-Recomp/actions/runs/38999027073) run was a **research harness setup failure** (erroneous `runner/src/snes/cpu_state.c` path); it stopped before native build. The correction now targets the pinned actual `runner/src/cpu_state.c`, and [PR #1749](https://github.com/gamesbyian/UR-Recomp/pull/1749) holds only observer/test repairs, no shipping runtime changes. The corrected case passed; its temporary one-shot trigger was immediately removed and the shared QA workflow restored.
 
-## Executable next discriminator: RF-036, not a broad blind rerun
+## Executable next discriminator: RF-037, not a broad blind rerun
 
 Use the exact RF-035 source code and the existing genuine Zoo script, **but replace unbounded per-opcode and per-helper logs** with frame-scoped **first/last/read-write counts plus rolling event digests**, explicitly preserve the original internal-frame to script-host mapping, and capture CPU $2142/$2143 writes and SPC recipient observations for both original and native at +5040 and +5045. Pin native frames 6056/6057 and 6061/6062, source original corresponding frames only after independent clock-axis calibration. Require an **actually consumed** pointer byte and matched sound-port transaction before changing the CPU/SPC visibility scheduler. If this remains a non-semantic sampled staging difference, report that precisely to independent QA without changing their ledger, masking memory or inferring audio/Windows acceptance.
 

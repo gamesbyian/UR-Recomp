@@ -1,0 +1,54 @@
+{
+  "schema": "qa08-clean-firstline-windows-historical-source-receipt/1",
+  "scope": "diagnostic_original_size_P7_source_readonly",
+  "release_approved": false,
+  "diagnostic": {
+    "pr": 1745,
+    "head": "9b311887e5ea8ad84824ee10a2fe09e2c34e64b1",
+    "windows_run": 39000100984,
+    "artifact_id": 12088668732,
+    "artifact_zip_sha256": "3d8bca597c8109744ceef07b8b63d590d6610b9922b585c70fb8ff5edc3f5f87",
+    "pe_sha256": "8c26f410ee0cefc2190c76c33debb8d0b6db3d2883c530cfd0c0edb03eac4ec6",
+    "game_frames": 2473,
+    "controller_script_sha256": "4e714899f53c3bbe501bbfcacf91dd549989c9beb7c2cf6265b13eb687142ec6",
+    "source_size": [
+      256,
+      224
+    ]
+  },
+  "frames": [
+    {
+      "guest_frame": 1856,
+      "pam_sha256": "ed35731cde55e927165f173c1db29c27b3b7eeff19862fbca27db3467cb8bc87",
+      "equals_archived_corrected_native_P7": true,
+      "equals_archived_old_stock_P7": false
+    },
+    {
+      "guest_frame": 2192,
+      "pam_sha256": "fac9f37e04b752676346bd75345e6e988b88e5cf6703722618d8a968ec90b36c",
+      "equals_archived_corrected_native_P7": true,
+      "equals_archived_old_stock_P7": false
+    },
+    {
+      "guest_frame": 2208,
+      "pam_sha256": "bf8b4218fb72f94338b19da5c1386bd5ce09c0dc0c767093286e80895fa3353c",
+      "equals_archived_corrected_native_P7": true,
+      "equals_archived_old_stock_P7": false
+    },
+    {
+      "guest_frame": 2224,
+      "pam_sha256": "d64e7b2fee2ff9f21b5fad7f4e8618ea27ad8846c6b6047ca9c511583bde6bd8",
+      "equals_archived_corrected_native_P7": true,
+      "equals_archived_old_stock_P7": false
+    }
+  ],
+  "moving_frame_rgba_pixel_differences": {
+    "2192_to_2208": 35505,
+    "2208_to_2224": 36155
+  },
+  "historical_pre_RF017_guest_transcript_sha256": "992dfdc270802e8a0ec1be5a0be6ddc36872edca11c8a91d58367a6235e537cf",
+  "actual_current_RF017_guest_transcript_sha256": "d1fb659fe3c23d37329cd78624d46fdcbf1445a09b812105905d7c0ca0e5a348",
+  "historical_guest_state_parity_proven": false,
+  "clean_production_binary_pixels_verified": false,
+  "strict_USA_event_accepted": false
+}

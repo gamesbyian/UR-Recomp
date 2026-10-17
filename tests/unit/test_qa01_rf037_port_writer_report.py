@@ -56,11 +56,33 @@ class SourceWriterReportTests(unittest.TestCase):
                          {"write-reg": 1, "rtl-apu-enter": 1, "rtl-apu-after-filter": 1})
         self.assertEqual(v["native"]["writer_truncation"][0]["frame"], "6057")
         self.assertEqual(v["native"]["native_by_frame"]["6056"]["write-reg"], 1)
+        self.assertEqual(v["native"]["ordinal_port_publication_prefix"]["matching_prefix"], 1)
+        self.assertIsNone(v["native"]["ordinal_port_publication_prefix"]["first_difference"])
+        self.assertFalse(v["native"]["ordinal_port_publication_prefix"]["time_aligned_or_complete_transfer_proven"])
         candidates = v["native"]["schedule_nearest_source_value"]
         self.assertEqual([x["native_minus_nearest_original_spc_cycles"]
                           for x in candidates], [1, 0])
         self.assertTrue(all(not x["is_time_aligned_proof"] for x in candidates))
         self.assertEqual(v["bounded_control"]["release_credit"], 0)
+
+    def test_real_ordinal_mismatch_not_mistaken_for_timing_proof(self):
+        original = [
+            {"port": "2", "val": "00"},
+            {"port": "3", "val": "04"},
+            {"port": "2", "val": "C0"},
+        ]
+        native = [
+            {"reg": "2142", "val": "00"},
+            {"reg": "2143", "val": "04"},
+            {"reg": "2142", "val": "FF"},
+        ]
+        v = m.ordered_port_prefix(original, native)
+        self.assertEqual(v["matching_prefix"], 2)
+        self.assertEqual(v["first_difference_index"], 2)
+        self.assertFalse(v["equal_captured_sequence"])
+        self.assertFalse(v["time_aligned_or_complete_transfer_proven"])
+        self.assertFalse(m.ordered_port_prefix(original, native[:2])
+                         ["equal_captured_sequence"])
 
     def test_unknown_log_lines_and_no_matching_age(self):
         self.assertIsNone(m.event("QA01RF037NATIVEPTR frame=6057 val=0034"))

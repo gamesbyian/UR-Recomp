@@ -84,6 +84,40 @@ class SourceWriterReportTests(unittest.TestCase):
         self.assertFalse(m.ordered_port_prefix(original, native[:2])
                          ["equal_captured_sequence"])
 
+    def test_same_source_spc_age_pair_reversals_normalize_only_tied_age(self):
+        source = [
+            {"age": "103322523", "port": "2", "val": "00"},
+            {"age": "103322541", "port": "3", "val": "04"},
+            {"age": "103482707", "port": "2", "val": "C0"},
+            {"age": "103482707", "port": "3", "val": "FF"},
+        ]
+        native = [
+            {"reg": "2142", "val": "00"},
+            {"reg": "2143", "val": "04"},
+            {"reg": "2143", "val": "FF"},
+            {"reg": "2142", "val": "C0"},
+        ]
+        self.assertEqual(m.ordered_port_prefix(source, native)["matching_prefix"], 2)
+        canonical = m.canonical_original_equal_age_pairs(source)
+        self.assertEqual(canonical["equal_age_groups"], 1)
+        self.assertEqual(canonical["reordered_groups"], 1)
+        self.assertEqual(
+            m.ordered_port_prefix(canonical["rows"], native)["matching_prefix"], 4
+        )
+        self.assertEqual(m.port_value_digest(canonical["rows"], True),
+                         m.port_value_digest(native, False))
+        self.assertTrue(canonical["source_spc_age_is_not_an_exact_cpu_bus_clock"])
+
+    def test_distinct_source_spc_ages_must_never_be_reordered(self):
+        source = [
+            {"age": "100", "port": "2", "val": "C0"},
+            {"age": "101", "port": "3", "val": "FF"},
+        ]
+        v = m.canonical_original_equal_age_pairs(source)
+        self.assertEqual(v["rows"], source)
+        self.assertEqual(v["reordered_groups"], 0)
+        self.assertEqual(v["equal_age_groups"], 0)
+
     def test_unknown_log_lines_and_no_matching_age(self):
         self.assertIsNone(m.event("QA01RF037NATIVEPTR frame=6057 val=0034"))
         self.assertIsNone(m.event("ordinary log line"))

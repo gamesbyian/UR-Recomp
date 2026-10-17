@@ -258,23 +258,35 @@ def inspect_three_source_epoch_medal_mask(original_bundle: Path, original, curre
                 "historical_pre_RF017_guest_CRC_sha256": PREVIOUS_NATIVE_GUEST_SHA,
                 "mask_exact_against_current_RF017_all_25_frames": True
             }
-        # This old-epoch OAM/pixel ownership witness is bounded evidence of
-        # native lower-slot sprite overlap, not a same-source original OAM
-        # priority or current RF-017 guest writer equivalence test.
+        # The bundled earlier source record carries exact native PPU pixel
+        # OBJ winners and scanline OAM entries. The separate *more detailed*
+        # previous probe's VRAM/color-index overlap verdict is not a member
+        # here and must never be invented from this data.
         with ZipFile(BytesIO(wrapper.read("latest-windows.zip"))) as prior:
             owner = json.loads(prior.read("qa08-native-effective-pixel-owner.json"))
-        source = owner["bounded_gold_medal_live_VRAM_and_OBJ_indexes"]
-        overlap = source["corresponding_overlapping_sprite_pairs"]
-        observed = {
-            (x["native_guest"], tuple(x["original_screen_pixel"]))
-            for x in overlap if x.get("native_gold_tile_was_covered_by_lower_OAM_slot")
-        }
+        pixel_events = owner["native_real_PPU_resolved_pixels"]
+        source_OAM = owner["native_OAM_in_effect_on_selected_lines"]
         required = {
-            (frame, point) for frame in (4032, 4176)
-            for point in ((225, 96), (225, 120))
+            (frame, x, y) for frame in (4032, 4176)
+            for x, y in SAMPLED_OVERLAP_POINTS
+        }
+        observed = {
+            (p["native_guest"], p["x"], p["raster_y"])
+            for p in pixel_events
+            if p.get("resolved_main_layer") == 4
+            and p.get("resolved_sub_layer") == 4
+            and p.get("native_effective_OBJ_CGRAM_slot") in ("de", "e4")
         }
         if not required.issubset(observed):
-            raise ValueError("independent historical native medal OBJ overlap lost")
+            raise ValueError("authenticated historic native effective OBJ pixels lost")
+        for frame in (4032, 4176):
+            source_slots = {
+                x["OAM_slot"] for x in source_OAM
+                if x.get("native_guest") == frame
+                and x.get("x") == 205 and x.get("raster_y") == 115
+            }
+            if not {96, 97, 98, 99}.issubset(source_slots):
+                raise ValueError("historic OAM 96-99 source slots not present")
     return {
         "observed_medal_region_band_rows": [list(p) for p in MEDAL_ROW_BANDS],
         "observed_per_band_non_grey_pixels": list(band_counts),
@@ -282,7 +294,9 @@ def inspect_three_source_epoch_medal_mask(original_bundle: Path, original, curre
         "actual_native_mask_sample_count": 25,
         "sampled_source_pixel_overlap_xy": [list(p) for p in SAMPLED_OVERLAP_POINTS],
         "historical_before_RF017_native_source_witnesses": witnesses,
-        "historical_actual_OBJ_lower_OAM_slot_overlap": True,
+        "historical_actual_OBJ_main_and_sub_pixel_sources": True,
+        "historical_scanline_OAM_slots_96_99_observed": True,
+        "historical_lower_slot_gold_overlap_from_this_bundle_proven": False,
         "older_native_OBJs_prove_current_RF017_or_original_priority": False,
         "same_native_pixel_colours_across_source_epochs_claimed": False,
         "medal_discs_source_OAM_CGRAM_causality_proven": False,

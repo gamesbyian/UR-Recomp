@@ -1,0 +1,20 @@
+# RF039: bounded original/native SPC receiver at the RF038 Zoo polling gap
+
+**Prepared source-only observer, not executed; USA event acceptance 0/45. No timing correction.**
+
+Merged [RF038 #1775](https://github.com/gamesbyian/UR-Recomp/pull/1775) verified genuine source-original six `82:8301 CMP $2142` instructions vs three native paced CPU read helpers between the same two port publications at internal original CPU frame6091/V116 / native host6091. Source writer intervals **530 vs 374 master clocks**. Three additional source polls and native 52-clock cadence numerically explain 156 clocks but **the SPC700 receiver is not observed at this particular upload**. Earlier IPL F4 compare is a different clock epoch and globally moving queue timing already regressed WRAM parity (RF029/031/036).
+
+This minimal extension **reuses** exactly the existing RF037 original `mmio_read(addr)` F6/F7 observer (in original `apu/bapu/smp/core.cpp`) and the native `QA01RF037NATIVEBUS` true queue `schedule`, `apply`, and `spc-read` observer (in pinned `snesrecomp/runner/src/snes/apu.c`). It adds one *environment-guarded* original source SPC-age window **103918500..103920500** bracketing original CPU writers at source ages **103919450/103919475**, and one native **host6091** window. The independent original clock axis is source SMP age; native fields are `apu->portClock`, stored queue target and native SPC PC. The code does not change a read call count, source opcode execution, SPC tick accounting, queuing, input, ROM, generated gameplay or release state. Existing RF037 host6055..6064 and original early-SPC observation remain intact.
+
+To stage **after RF037** from repo root:
+
+```bash
+python3 tools/qa01_rf039_target_receiver_observer.py original --root .tools/src/snes9x-libretro
+python3 tools/qa01_rf039_target_receiver_observer.py native --root baldosa
+```
+
+The research replay must have both `UR_QA01_RF037_SOUND_BUS=1` and `UR_QA01_RF039_TARGET_RECEIVER=1`, plus the same RF034–RF038 source-pinned observer stack used in RF038 V2, unchanged genuine USA movie, exact comparator and full Zoo +5163 → Bowl +267 and earned/cold SRAM controls. Source original logs `QA01RF037ORIGSPC age=... pc=... port=... val=...`; native logs `QA01RF037NATIVEBUS kind=schedule/apply/spc-read frame=6091 age=... target=... pc=... port=... val=... q=...`. The native per-frame 16000-event recorder emits `QA01RF037NATIVEBUS_TRUNCATED` on exhaustion; **any truncation or absent bracket/reader is incomplete coverage, not timing evidence**.
+
+**Decision target:** At the specifically source-matched CPU port2 `24` / next port3 `02`, establish actual F6/F7 recipient opcodes, read values, queue target/application, echo publication and CPU reads, with each CPU/SPC clock domain explicit. Count/correlate only real observed instructions and bus operations. If the recipient discrepancy is genuine, separately implement the smallest source-qualified model correction and run independent unmodified baseline versus candidate A/B with all 78 unmasked WRAM checkpoints, +5034..+5046 sound DP mesh, real result/progression, 11 SRAM pairs and cold guest reload, as well as integrated Windows source compatibility and negative 2P/attract checks. Otherwise retain 0/45, do not mutate clocks, no broad factory, and investigate Zoo stack 01ED–01F1 last writers/readers next.
+
+No hosted Actions run or tested receiver parity is asserted here; this is an executable, bounded next experiment ready for source-pinned staging.

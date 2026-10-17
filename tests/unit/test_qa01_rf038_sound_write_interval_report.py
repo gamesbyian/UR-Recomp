@@ -21,8 +21,8 @@ class SoundWriterIntervalReport(unittest.TestCase):
             dict(frame="6073", v="116", pre_h="950", post_h="990",
                  pc="82:8304", opcode="8D")]
         pace = [
-            dict(frame="6091", master="2176886900", charge="8", op="read8"),
-            dict(frame="6091", master="2176887100", charge="16", op="read16")]
+            dict(frame="6091", master="2176886900", charge="8", op="read8", addr="2142"),
+            dict(frame="6091", master="2176887100", charge="16", op="read16", addr="2142")]
         return orig, native, op, pace
 
     def test_real_gap_and_separate_op_pacing_axes(self):
@@ -31,8 +31,19 @@ class SoundWriterIntervalReport(unittest.TestCase):
         self.assertEqual(data["native_paced_bus_master_charge_between_writes"], 24)
         self.assertEqual(data["native_interval_master_minus_logged_paced_charge"], 350)
         self.assertTrue(data["original_opcode_both_port_clocks_covered"])
+        self.assertEqual(data["native_paced_port2142_read_helper_rows_between_writes"]["count"], 2)
+        self.assertEqual(data["original_executed_cmp_abs_82_8301_between_writes"]["count"], 0)
         self.assertFalse(data["receiver_read_equivalence_proven"])
         self.assertEqual(data["complete_usa_events_admitted"], 0)
+
+    def test_actual_cmp_echo_counts_not_inferred_from_native_helper(self):
+        o, n, op, pace = self.inputs()
+        op.append(dict(frame="6073", v="116", pre_h="680", post_h="694",
+                       pc="82:8301", opcode="CD"))
+        d = m.inspect(o, n, op, pace, ordinal=1)
+        self.assertEqual(d["original_executed_cmp_abs_82_8301_between_writes"]["post_h"], [694])
+        self.assertEqual(d["native_paced_port2142_read_helper_rows_between_writes"]["count"], 2)
+        self.assertFalse(d["clock_fix_justified"])
 
     def test_wrong_source_value_rejected(self):
         o, n, op, pace = self.inputs()

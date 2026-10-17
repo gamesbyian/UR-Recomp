@@ -64,6 +64,14 @@ def inspect(original_ports: list[dict], native_ports: list[dict],
                if native_bounds[0][1] < int(x["master"]) <= native_bounds[1][1]
                and int(x.get("frame", "-1")) == native_bounds[0][0]]
     total_charge = sum(int(x["charge"]) for x in between)
+    original_echo_cmp = [x for x in selected
+                         if x.get("pc", "").upper() == "82:8301"
+                         and x.get("opcode", "").upper() == "CD"
+                         and original_bounds[0][1] < int(x["post_h"])
+                         < original_bounds[1][1]]
+    native_echo_bus_reads = [x for x in between
+                             if x.get("op") in ("read8", "read16")
+                             and x.get("addr", "").upper() == "2142"]
     return {
         "schema": "rf038-executed-source-writer-interval-v1",
         "ordinal": ordinal,
@@ -75,6 +83,16 @@ def inspect(original_ports: list[dict], native_ports: list[dict],
         "native_elapsed_master": nat_gap,
         "original_minus_native_master": orig_gap - nat_gap,
         "source_opcode_rows_overlapping_interval": selected,
+        "original_executed_cmp_abs_82_8301_between_writes": {
+            "count": len(original_echo_cmp),
+            "post_h": [int(x["post_h"]) for x in original_echo_cmp],
+            "opcodes": original_echo_cmp,
+        },
+        "native_paced_port2142_read_helper_rows_between_writes": {
+            "count": len(native_echo_bus_reads),
+            "rows": native_echo_bus_reads,
+            "paced_helper_row_is_not_proven_65816_opcode_count": True,
+        },
         "opcode_brackets_source_port_before_after": [
             {"count": len(x), "opcodes": x[:5]} for x in brackets],
         "original_opcode_both_port_clocks_covered": bool(brackets[0] and brackets[1]),

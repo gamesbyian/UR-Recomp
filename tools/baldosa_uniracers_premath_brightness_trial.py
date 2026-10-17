@@ -70,13 +70,13 @@ def patched(source:str)->str:
         return source
     if (source.count(START)!=1 or source.count(AFTER_SUB)!=1 or
         source.count(OUTPUT)!=1 or
-        any(source.count(k)!=1 for k in FIXED) or
+        any(source.count(k)!=2 for k in FIXED) or
         "ur_qa08_premath_brightness5" in source):
         raise ValueError("unknown pinned original PPU/competing brightness patch")
     out=source.replace(START,INTRO+START,1)
     out=out.replace(AFTER_SUB,BRIGHTEN+AFTER_SUB,1)
     for name,replacement in FIXED.items():
-        out=out.replace(name,replacement,1)
+        out=out.replace(name,replacement)
     return out.replace(OUTPUT,REPLACEMENT,1)
 
 def brightness5(value:int,b:int)->int:

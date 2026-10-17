@@ -14,6 +14,7 @@ import bisect
 from collections import Counter, defaultdict
 import hashlib
 import io
+import itertools
 import json
 from pathlib import Path
 import zipfile
@@ -83,6 +84,42 @@ def ordered_port_prefix(original: list[dict[str, str]],
     }
 
 
+def canonical_original_equal_age_pairs(original: list[dict[str, str]]) -> dict:
+    """Reorder ONLY equal-SPC-age writes by descending port, conservatively.
+
+    Coarse source-SPC age cannot distinguish sub-cycle order. This is a
+    canonical payload comparison, NOT proof of actual 65816 bus order.
+    """
+    result = []
+    same_age_groups = 0
+    reordered_groups = 0
+    for age, rows in itertools.groupby(original, key=lambda x: int(x["age"])):
+        group = list(rows)
+        if len(group) > 1:
+            same_age_groups += 1
+        ordered = sorted(group, key=lambda x: -int(x["port"]))
+        if [int(x["port"]) for x in group] != [int(x["port"]) for x in ordered]:
+            reordered_groups += 1
+        result.extend(ordered)
+    return {
+        "rows": result,
+        "equal_age_groups": same_age_groups,
+        "reordered_groups": reordered_groups,
+        "source_spc_age_is_not_an_exact_cpu_bus_clock": True,
+    }
+
+
+def port_value_digest(rows: list[dict[str, str]], original: bool) -> str:
+    """SHA256 of unambiguous binary port/byte pairs for an ordered prefix."""
+    return hashlib.sha256(bytes(
+        item for x in rows
+        for item in (
+            int(x["port"]) if original else (int(x["reg"], 16) & 3),
+            int(x["val"], 16),
+        )
+    )).hexdigest()
+
+
 def report(z: zipfile.ZipFile) -> dict:
     original: list[dict[str, str]] = []
     original_trunc: list[int] = []
@@ -136,6 +173,20 @@ def report(z: zipfile.ZipFile) -> dict:
             ),
             "is_time_aligned_proof": False,
         })
+    canonical = canonical_original_equal_age_pairs(original)
+    received = stages.get("rtl-apu-enter", [])
+    prefix_native = received[:len(original)]
+    equal_age_prefix = ordered_port_prefix(canonical["rows"], received)
+    equal_age_prefix["equal_age_groups"] = canonical["equal_age_groups"]
+    equal_age_prefix["reordered_groups"] = canonical["reordered_groups"]
+    equal_age_prefix["original_canonical_port_value_sha256"] = (
+        port_value_digest(canonical["rows"], True)
+    )
+    equal_age_prefix["native_captured_prefix_port_value_sha256"] = (
+        port_value_digest(prefix_native, False)
+    )
+    equal_age_prefix["source_age_ties_can_hide_order_not_payload"] = True
+    equal_age_prefix["time_aligned_or_complete_transfer_proven"] = False
     case = json.loads(z.read("case-result.json"))
     evidence = case.get("evidence", {})
     sampled = evidence.get("next_bowl_bounded", {})
@@ -158,6 +209,7 @@ def report(z: zipfile.ZipFile) -> dict:
             "upstream_stage_counts": {k: len(stages.get(k, [])) for k in STAGES},
             "ordinal_port_publication_prefix": ordered_port_prefix(
                 original, stages.get("rtl-apu-enter", [])),
+            "equal_source_spc_age_canonical_port_prefix": equal_age_prefix,
             "native_by_frame": {
                 str(frame): dict(counts)
                 for frame, counts in sorted(by_frame.items())
@@ -182,6 +234,8 @@ def report(z: zipfile.ZipFile) -> dict:
             "independent. Native APU schedule target ages permit limited "
             "nearest-value diagnostics, not one-to-one causal proof. "
             "Matching port-value ordinal prefixes alone do not show sound-clock parity. "
+            "Canonicalizing identical-age source writes is a comparison operation, "
+            "not evidence of actual bus order or SPC receipt. "
             "Missing writes outside native host gate cannot be inferred."
         ),
     }

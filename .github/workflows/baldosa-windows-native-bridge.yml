@@ -935,6 +935,21 @@ jobs:
             --out "$RUNNER_TEMP/Baldosa Win32 Interactive S Invalid Target" --timeout 120
           echo "PASS: actual original CMD S real console invalid target refused before guest; A/B/C/selector/catalog byte-identical, no repair invented; second fresh CMD Q still rejects bad A and exits 7. Product-only, no human release credit." >> "$GITHUB_STEP_SUMMARY"
 
+      # Valid catalog membership alone is not destination approval:
+      # original CMD S must refuse a registered racer whose raw does not
+      # equal independently authenticated typed SRAM, preserving all bytes.
+      - name: Prove original CMD S rejects registered corrupt target
+        run: |
+          set -euo pipefail
+          python tools/baldosa_win32_interactive_recovery_s_reject.py \
+            --launcher "$RUNNER_TEMP/Baldosa Native Extracted Launcher QA/Extracted Baldosa Candidate With Spaces/run-baldosa-modern.cmd" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/baseline/Modern Player Data With Spaces/saves/save.srm" \
+            --out "$RUNNER_TEMP/Baldosa Win32 Interactive S Corrupt Registered Target" \
+            --registered-corrupt-target --timeout 120
+          echo "PASS: genuine original packaged CMD S registered B destination with invalid raw/typed consistency refused before guest; damaged A/B, unrelated C, selector/catalog unchanged across failed choice and second original cold Q. No human acceptance credit." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Retain ROM-free Windows candidate only (no ROM or SRAM)
         uses: actions/upload-artifact@v4
         with:
@@ -1017,6 +1032,18 @@ jobs:
             ${{ runner.temp }}/Baldosa Win32 Interactive S Invalid Target/*.log
             ${{ runner.temp }}/Baldosa Win32 Interactive S Invalid Target/invalid-S-result.json
             ${{ runner.temp }}/Baldosa Win32 Interactive S Invalid Target/source-bytes/**
+
+      - name: Retain original CMD registered-corrupt S refusal bytes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-interactive-s-corrupt-target
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/Baldosa Win32 Interactive S Corrupt Registered Target/*.log
+            ${{ runner.temp }}/Baldosa Win32 Interactive S Corrupt Registered Target/invalid-S-result.json
+            ${{ runner.temp }}/Baldosa Win32 Interactive S Corrupt Registered Target/source-bytes/**
 
       - name: Retain bounded extracted-CMD source transcripts separately
         if: always()

@@ -49,7 +49,7 @@ class ReceiverWitness(unittest.TestCase):
     def test_same_age_original_old_before_cpu_write_native_apply_before_read(self):
         o, n = self.fixture()
         source_old = ("QA01RF037ORIGSPC age=103919450 pc=154F "
-                      "v=116 h=442 port=2 val=23\\n")
+                      "v=116 h=442 port=2 val=23\n")
         self.assertEqual(o.count(source_old), 1)
         # Fixture's original consumer is initially logged after the writer.
         # Reorder *only* that identical-age consumer ahead of publication.

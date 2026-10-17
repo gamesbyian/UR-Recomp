@@ -31,4 +31,20 @@ class ColourSourceTests(unittest.TestCase):
         orig[3664]=bytes(modified)
         with self.assertRaisesRegex(ValueError,"not source-deterministic"):
             rgb8_finish_transfer(orig,nat)
+
+    def test_all_five_bit_inputs_invert_at_brightness_seven(self):
+        forward={(((c<<3)|(c>>2))*7)//15:c for c in range(32)}
+        self.assertEqual(len(forward),32)
+        self.assertEqual(forward[53],14)
+        self.assertEqual((14*7+7)//15,7)
+        # Applying the 2014 LUT after full-add would regress the observed
+        # actual BG3+OBJ source pixel, whose pre-bright full-add red is 14.
+        self.assertNotEqual((14*7+7)//15,6)
+    def test_brightness7_counterfactual_is_never_green_on_fake_frames(self):
+        from tools.qa08_finish_nonuniform_colour_source import (
+            brightness7_postmath_counterfactual, FINISH_FIELDS)
+        a=bytes(PIXELS*4)
+        fake={f:a for f in FINISH_FIELDS}
+        with self.assertRaisesRegex(ValueError,"census drift"):
+            brightness7_postmath_counterfactual(fake,fake)
 if __name__=="__main__":unittest.main()

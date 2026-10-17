@@ -1,0 +1,67 @@
+{
+  "schema": "qa08-rf017-all-15-finish-P7-brightness7-offline-counterfactual/1",
+  "source_original_outer_zip": "3475ee87b5b20768f9377d8d1c787927955c33ee6d4388dae008f5486a81370e",
+  "source_original_inner_zip": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+  "native_source_zip": "91e0bf8f5d7b86b188526740d825af890a99b02ecc05093f9a2143fa56ce49cd",
+  "native_5484_guest_CRC_sha256": "b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568",
+  "actual_original_native_263_SHA_authenticated": true,
+  "finish_frames": 15,
+  "source_pixels": 860160,
+  "source_RBG5_wrong_before": 90890,
+  "hypothetical_brightness7_postmath_round_to_5_wrong_after": 2,
+  "hypothesized_native_brightness": 7,
+  "formula_native": "floor(expand5(postmath5)*7/15) returns 8-bit",
+  "formula_source_counterfactual": "floor((postmath5*7+7)/15) returns 5-bit",
+  "native_8bit_values_outside_32_expanded_source_levels": 0,
+  "remaining_two_source_mismatches": [
+    {
+      "guest": 3792,
+      "xy": [
+        121,
+        165
+      ],
+      "native_RGB8": [
+        53,
+        26,
+        3
+      ],
+      "original_RGB5": [
+        6,
+        3,
+        0
+      ],
+      "postmath_quantized_hypothetical_RGB5": [
+        7,
+        3,
+        0
+      ]
+    },
+    {
+      "guest": 3872,
+      "xy": [
+        121,
+        165
+      ],
+      "native_RGB8": [
+        53,
+        26,
+        3
+      ],
+      "original_RGB5": [
+        6,
+        3,
+        0
+      ],
+      "postmath_quantized_hypothetical_RGB5": [
+        7,
+        3,
+        0
+      ]
+    }
+  ],
+  "older_independently_source_proven_BG3_OBJ_full_add_relation": true,
+  "current_all_pixels_PPU_math_operand_source_proven": false,
+  "real_all_15_line_brightness7_independently_measured": false,
+  "any_output_LUT_sprite_fix_or_game_timing_shift_authorized": false,
+  "QA08_QA10_HD_art_release_approved": false
+}

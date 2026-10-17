@@ -2,7 +2,7 @@
 """RF038 disposable original opcode / native AOT paced-access probe.
 
 Single exact USA Zoo 156-master-clock interval at original source CPU frame
-6073, V116 and native host6091. Stage after RF037 in separately pinned
+6091, V116 and native host6091. Stage after RF037 in separately pinned
 original/native research checkouts. Emits read-only evidence. Never changes
 clock charges, I/O bus calls, real guest state, timing, input or source ROM.
 """
@@ -19,7 +19,7 @@ NATIVE = Path("snesrecomp/runner/src/cpu_state.c")
 OLD_DISPATCH = rf035.ORIG_DISPATCH
 ORIG_DISPATCH = r"""            /* UR_QA01_RF038_SOUND_WRITE_INTERVAL: exact real opcode boundary. */
             const int rf038_active =
-                (unsigned)ICPU.Frame == 6073u &&
+                (unsigned)ICPU.Frame == 6091u &&
                 (unsigned)CPU.V_Counter == 116u &&
                 (int)CPU.Cycles >= 300 && (int)CPU.Cycles <= 1050 &&
                 getenv("UR_QA01_RF038_INTERVAL");
@@ -40,7 +40,7 @@ ORIG_DISPATCH = r"""            /* UR_QA01_RF038_SOUND_WRITE_INTERVAL: exact rea
                        (unsigned)Registers.A.W, (unsigned)Registers.X.W,
                        (unsigned)Registers.Y.W, (unsigned)Registers.S.W);
                 else if (rf038_rows == 513u)
-                    fprintf(stderr, "QA01RF038ORIGOP_TRUNCATED frame=6073 v=116\n");
+                    fprintf(stderr, "QA01RF038ORIGOP_TRUNCATED frame=6091 v=116\n");
             }
 """
 HEADERS = (

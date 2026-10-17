@@ -52,7 +52,7 @@ def inspect(original_ports: list[dict], native_ports: list[dict],
     orig_gap = original_bounds[1][1] - original_bounds[0][1]
     nat_gap = native_bounds[1][1] - native_bounds[0][1]
     selected = [x for x in opcode_events
-                if int(x.get("frame", "-1")) == 6073
+                if int(x.get("frame", "-1")) == 6091
                 and int(x.get("v", "-1")) == 116
                 and int(x["pre_h"]) <= original_bounds[1][1]
                 and int(x["post_h"]) >= original_bounds[0][1]]

@@ -16,7 +16,7 @@ class SoundWriteIntervalProbe(unittest.TestCase):
         self.assertEqual(m.patch_original(out), out)
         self.assertEqual(out.count("(*Opcodes[Op].S9xOpcode)();"), 1)
         self.assertIn("QA01RF038ORIGOP frame=", out)
-        self.assertIn("ICPU.Frame == 6073u", out)
+        self.assertIn("ICPU.Frame == 6091u", out)
         self.assertIn("CPU.V_Counter == 116u", out)
         self.assertIn("pre_h", out)
         self.assertIn("QA01RF038ORIGOP_TRUNCATED", out)

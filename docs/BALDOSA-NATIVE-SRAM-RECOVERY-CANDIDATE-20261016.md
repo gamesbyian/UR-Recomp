@@ -374,3 +374,23 @@ requires two source guest cold boots after restoring access. This is
 an **actual OS DACL-denied prewrite file operation**, not a denied
 post-raw typed publication, disk-full or power-cut witness; it
 does not assert a human-visible error dialog or release QA credit.
+
+## Two live original Windows games sharing a named racer (product source route)
+
+The bounded product Win32 producer now reuses the **independent QA's
+existing byte-decoder/interleaving utilities without editing its evidence
+or candidate identity**. Actual original process A pauses in a source
+frame-1952 2P race and remains alive; actual original process B boots
+the same named profile and authentically writes changed native SRAM and
+typed metadata, while A waits behind the already-existing test-only
+pause-menu gate. A's later original guest Quit must refuse a stale raw
+write before it occurs. Four actual canonical files are snapshotted at
+before A, after B, after A and after cold C, and independently decoded
+raw/typed agreement and generation progression are required. C must
+reload B's authentic SRAM in a third separate Windows game.
+
+This is source-owned, real **overlapping game-process** coverage but
+is not claimed as a simultaneous lock-acquisition collision at the
+precise RtlWriteSram seam, NTFS disk-full, actual power loss, or
+independent QA gate acceptance.
+

@@ -815,6 +815,8 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_actual_win32_prewrite_dacl_denial/*.log
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_actual_win32_prewrite_dacl_denial/refusal.json
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_actual_win32_prewrite_dacl_denial/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_two_original_windows_games/*.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_two_original_windows_games/fault-bytes/**
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_three_profile_unrelated_damage/*.log
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_three_profile_unrelated_damage/fault-bytes/**
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/simulated_partial_raw_explicit_rollback/*.log

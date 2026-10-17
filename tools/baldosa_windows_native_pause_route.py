@@ -1529,6 +1529,118 @@ def run_native_pause_quit(
 
 
 
+def run_native_two_original_windows_games(
+    exe: Path, rom: Path, script: Path, root: Path,
+    fixture: Path, seed: Path, *, timeout: int,
+) -> dict[str, object]:
+    """Two actual overlapping original guests; one authentic stale writer."""
+    # Reuse the independent QA's established byte decoder and interleaving
+    # assertions without changing its candidate identity or gate authority.
+    from qa02_exact_owner_two_games import (
+        snapshot, validate_typed_raw, verify_interleaving,
+        environment, game, ARMED, QUIT,
+    )
+    out = root / "native_two_original_windows_games"
+    out.mkdir(parents=True, exist_ok=False)
+    user_root = out / "Same Named Profile With Spaces"
+    user_root.mkdir()
+    subprocess.run([str(fixture), str(user_root), str(seed)],
+                   cwd=out, check=True, capture_output=True,
+                   text=True, timeout=timeout)
+    evidence = out / "fault-bytes"
+    evidence.mkdir()
+    before = snapshot(user_root, evidence, "before_A")
+    if before["raw"] != seed.read_bytes():
+        raise ValueError("Source-original SRAM seed changed")
+    validate_typed_raw(before)
+    config = out / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+    a, b, c = (out / name for name in ("game-A", "game-B", "game-C"))
+    for path in (a, b, c):
+        path.mkdir()
+    gate = out / "second-game-completed.ready"
+    log_a = out / "game-A.log"
+    command = [str(exe), "--no-launcher", "--config", str(config),
+               "--script", str(script), str(rom)]
+    with log_a.open("wb") as sink:
+        first = subprocess.Popen(
+            command, cwd=a, env=environment(user_root, gate=gate),
+            stdout=sink, stderr=subprocess.STDOUT)
+        try:
+            deadline = time.monotonic() + timeout
+            while time.monotonic() < deadline:
+                first_log = log_a.read_text(encoding="utf-8", errors="replace")
+                if ARMED in first_log:
+                    break
+                if first.poll() is not None:
+                    raise ValueError("Original game A stopped before its race pause")
+                time.sleep(.02)
+            else:
+                raise TimeoutError("Original game A never reached frame-1952 pause")
+            if first.poll() is not None:
+                raise ValueError("Original game A not alive before B started")
+            rc_b, log_b = game(
+                exe, rom, script, config, b, environment(user_root),
+                out / "game-B.log")
+            if (rc_b != 0 or log_b.count(ARMED) != 1 or
+                log_b.count(QUIT) != 1 or
+                "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=native-ci-rider status=committed"
+                not in log_b):
+                raise ValueError("Original game B failed authentic source save")
+            verify_named_profile_boot_bytes(log_b, before["raw"])
+            saved_b = snapshot(user_root, evidence, "after_B")
+            validate_typed_raw(saved_b)
+            if first.poll() is not None:
+                raise ValueError("Original stale A died before B's committed save")
+            gate.write_text("real-B-committed\n", encoding="ascii")
+            first.wait(timeout=timeout)
+        except BaseException:
+            if first.poll() is None:
+                first.kill()
+                first.wait(timeout=30)
+            raise
+    saved_a = snapshot(user_root, evidence, "after_A")
+    first_log = log_a.read_text(encoding="utf-8", errors="replace")
+    if (first.returncode != 0 or first_log.count(ARMED) != 1 or
+        first_log.count(QUIT) != 1 or
+        "UR_BALDOSA_NATIVE_PROFILE native_save_preflight_failed" not in first_log or
+        "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=native-ci-rider"
+        in first_log):
+        raise ValueError("Stale original game A did not fail before raw save")
+    verify_named_profile_boot_bytes(first_log, before["raw"])
+    comparison = verify_interleaving(before, saved_b, saved_a)
+    cold = out / "short-cold.txt"
+    cold.write_text("turbo on\nwait 6\nquit\n", encoding="ascii")
+    rc_c, log_c = game(
+        exe, rom, cold, config, c, environment(user_root, pause=False),
+        out / "game-C.log")
+    if rc_c or "UR_BALDOSA_NATIVE_PROFILE REJECTED" in log_c:
+        raise ValueError("Cold original game C rejected B's valid saved SRAM")
+    verify_named_profile_boot_bytes(log_c, saved_b["raw"])
+    verify_native_profile_checkpoint(
+        fixture, user_root, "native-ci-rider", log_c, timeout)
+    saved_c = snapshot(user_root, evidence, "after_C")
+    validate_typed_raw(saved_c)
+    if (saved_c["selector"], saved_c["catalog"]) != (
+            saved_b["selector"], saved_b["catalog"]):
+        raise ValueError("Cold C mutated selector or catalog")
+    if any(user_root.rglob("*.urrun")) or any(user_root.rglob("*.urmatch")):
+        raise ValueError("Two original guests fabricated result records")
+    return {
+        "actual_overlapping_original_game_processes": True,
+        "same_profile_original_race_pause": 1952,
+        "B_native_raw_and_typed_committed": True,
+        "A_stale_save_refused_before_original_raw_write": True,
+        "all_four_B_bytes_unchanged_by_A": True,
+        "third_cold_game_loaded_B_SRAM": True,
+        "changed_raw_bytes": comparison["raw_changed_bytes"],
+        "source_original_canonical_four_stage_bytes_retained": True,
+        "true_simultaneous_raw_writer_collision_proven": False,
+        "physical_operator_acceptance": False,
+        "qa_gate_credit": 0,
+    }
+
+
 def run_native_real_win32_prewrite_directory_denial(
     exe: Path, rom: Path, script: Path, root: Path,
     fixture: Path, seed: Path, *, video: str, timeout: int,
@@ -3287,6 +3399,9 @@ def main() -> int:
     three_profile_proof = run_native_three_profile_unrelated_damage(
         exe, rom, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)
+    dual_game_proof = run_native_two_original_windows_games(
+        exe, rom, script, root, fixture, sram_seed,
+        timeout=args.timeout)
     real_dacl_prewrite_proof = run_native_real_win32_prewrite_directory_denial(
         exe, rom, script, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)
@@ -3329,6 +3444,7 @@ def main() -> int:
         "native_real_b_crash_healthy_a_recovery": real_b_crash_healthy_a_proof,
         "native_journaled_b_recovery_then_explicit_a": journaled_b_a_proof,
         "native_actual_win32_ntfs_directory_prewrite_denial": real_dacl_prewrite_proof,
+        "native_two_overlapping_original_games": dual_game_proof,
         "native_three_registered_unrelated_damaged_c": three_profile_proof,
         "native_paused_quit_selector_conflict": conflict_proof,
         "modern_root_race_entry_p1": race_p1_proof,

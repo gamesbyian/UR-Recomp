@@ -37,6 +37,7 @@ def launcher() -> bytes:
         "setlocal DisableDelayedExpansion",
         'set "UR_BALDOSA_RECOVERY_ACTION="',
         'set "UR_BALDOSA_RECOVERY_PROFILE_ID="',
+        'set "UR_BALDOSA_RECOVERY_ATTEMPTED=0"',
         'set "UR_BALDOSA_PACKAGE_DIR=%~dp0"',
         f'set "UR_BALDOSA_ROM=%~dp0{ROM}"',
         'if not exist "%UR_BALDOSA_ROM%" (echo UR-BALDOSA-STARTUP-ROM-MISSING: Copy a verified personal Uniracers USA dump beside the executable. 1>&2 & echo The file Uniracers_USA.sfc was not found next to this launcher. 1>&2 & echo Copy your own USA retail dump there under that exact name and start again. 1>&2 & echo Nothing was changed. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 2)',
@@ -126,6 +127,7 @@ def launcher() -> bytes:
         # reruns the SAME original executable with one-shot environment
         # arguments; no fixture or competing save UI ships in the ZIP.
         ':UR-BALDOSA-RECOVERY-MENU',
+        'if "%UR_BALDOSA_RECOVERY_ATTEMPTED%"=="1" (echo UR-BALDOSA-RECOVERY-RETRY-FAILED: Explicit recovery completed, but the new game still refused to start. Keep the archived snapshots. No second repair is offered. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 7)',
         'echo UR-BALDOSA-STARTUP-PROFILE-REJECTED: Named racer rejected. Preserve both the raw save and Modern profile files. 1>&2',
         'echo Back up your entire save directory before considering recovery. 1>&2',
         'if not "%~1"=="" (call :UR-BALDOSA-HOLD & exit /b 7)',
@@ -162,6 +164,7 @@ def launcher() -> bytes:
         'set "UR_BALDOSA_RECOVERY_ACTION="',
         'set "UR_BALDOSA_RECOVERY_PROFILE_ID="',
         'set "UR_BALDOSA_FIRST_RACER_RELAUNCH=0"',
+        'set "UR_BALDOSA_RECOVERY_ATTEMPTED=1"',
         'echo UR-BALDOSA-RECOVERY-COMMITTED: Relaunching with verified selected racer.',
         'goto UR-BALDOSA-NATIVE-START',
         ':UR-BALDOSA-HOLD',

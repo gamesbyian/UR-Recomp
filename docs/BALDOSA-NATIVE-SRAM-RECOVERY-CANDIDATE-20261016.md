@@ -394,3 +394,15 @@ is not claimed as a simultaneous lock-acquisition collision at the
 precise RtlWriteSram seam, NTFS disk-full, actual power loss, or
 independent QA gate acceptance.
 
+## Explicit-recovery restart bound
+
+After a genuine startup refusal (exit 7), the no-argument packaged CMD
+may offer R/T/S/Q only once. A successful one-shot R, T or S recovery
+returns exit 89 before guest execution, clears its inherited action
+variables and permits **one** new original Windows guest process. If that
+new process also refuses startup, the launcher retains the rejection and
+stops with exit 7; it does not re-open R/T/S/Q, repeatedly archive state or
+enter an unbounded consent loop. Scripted launches never prompt. A source
+unit assertion pins the recovery menu before choice and the retry guard
+before a second potential entry. Human-operated package acceptance remains
+independent and unverified.

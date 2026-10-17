@@ -1,0 +1,330 @@
+{
+  "schema": "qa08-source-qualified-eight-live-current-RF017-finish-PPU-operands/1",
+  "disposition": "8 real current source PPU operands agree with original 2014 source only when applying five_bit_brightness_to_each_operand_before_colour_add; no actual renderer patch",
+  "source": {
+    "diagnostic_pr": 1797,
+    "head": "6b345a4bbdf3f5929b75fb0e3126d025d7e2cb66",
+    "real_windows_run": 39073868268,
+    "artifact_id": 12115774634,
+    "artifact_zip_sha256": "49dfe8822b054212fd0acc187db3fd807a4ddcb28692526e7da0e751066e4d65",
+    "inner_JSON_sha256": "c06565c05a2e8aafc504544ed5eab86f83d05c10487ed2747fdc37fe467cfc87",
+    "actual_Windows_PE_sha256": "1cece3a89dc42fcf2eebc2ea6ec0265da13af2dc2e1da22e96ecdb3c915fb55d",
+    "real_guest_simulations": 5484,
+    "guest_crc_sha256": "b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568",
+    "controller_sha256": "ef74ec51fa585aa76652f4a14d2727f0074434b3925522ab2607e3bd29aa0194"
+  },
+  "original": {
+    "real_2014_Snes9x_outer_zip_sha256": "3475ee87b5b20768f9377d8d1c787927955c33ee6d4388dae008f5486a81370e",
+    "authentic_nested_original_zip_sha256": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+    "real_native_old_unmodified_P7_zip_sha256": "91e0bf8f5d7b86b188526740d825af890a99b02ecc05093f9a2143fa56ce49cd",
+    "Snes9x_original_video_callback_f_minus_1_maps_native_guest_f": true
+  },
+  "arithmetic": {
+    "source_original_snes9x_5bit_brightness": "floor((input5 * brightness + 7) / 15)",
+    "true_source_matched_samples": 8,
+    "all_true_native_live_8bit_output_samples_equal_previously_SHA_pinned_current_native_frames": true,
+    "real_native_good_moving_brightness15_control_pixels": 2,
+    "real_native_wrong_single_layer_brightness7_source_pixels": 4,
+    "real_native_BG3_OBJ_full_add_brightness7_pixels": 2,
+    "actual_source_main_sub_maths_match_recorded": "yes; source marker 04 full add and 02 CGWSEL subscreen",
+    "samples": [
+      {
+        "f": 1856,
+        "x": 96,
+        "y": 0,
+        "main": 1,
+        "sub": -1,
+        "math": 0,
+        "br": 15,
+        "pre": [
+          16,
+          20,
+          20
+        ],
+        "subPre": null,
+        "post": [
+          16,
+          20,
+          20
+        ],
+        "final": [
+          132,
+          165,
+          165
+        ],
+        "original": [
+          16,
+          20,
+          20
+        ],
+        "predicted": [
+          16,
+          20,
+          20
+        ]
+      },
+      {
+        "f": 1856,
+        "x": 97,
+        "y": 0,
+        "main": 1,
+        "sub": -1,
+        "math": 0,
+        "br": 15,
+        "pre": [
+          16,
+          20,
+          20
+        ],
+        "subPre": null,
+        "post": [
+          16,
+          20,
+          20
+        ],
+        "final": [
+          132,
+          165,
+          165
+        ],
+        "original": [
+          16,
+          20,
+          20
+        ],
+        "predicted": [
+          16,
+          20,
+          20
+        ]
+      },
+      {
+        "f": 3680,
+        "x": 92,
+        "y": 0,
+        "main": 1,
+        "sub": -1,
+        "math": 0,
+        "br": 7,
+        "pre": [
+          14,
+          18,
+          18
+        ],
+        "subPre": null,
+        "post": [
+          14,
+          18,
+          18
+        ],
+        "final": [
+          53,
+          69,
+          69
+        ],
+        "original": [
+          7,
+          8,
+          8
+        ],
+        "predicted": [
+          7,
+          8,
+          8
+        ]
+      },
+      {
+        "f": 3680,
+        "x": 93,
+        "y": 0,
+        "main": 1,
+        "sub": -1,
+        "math": 0,
+        "br": 7,
+        "pre": [
+          13,
+          17,
+          17
+        ],
+        "subPre": null,
+        "post": [
+          13,
+          17,
+          17
+        ],
+        "final": [
+          49,
+          65,
+          65
+        ],
+        "original": [
+          6,
+          8,
+          8
+        ],
+        "predicted": [
+          6,
+          8,
+          8
+        ]
+      },
+      {
+        "f": 3680,
+        "x": 96,
+        "y": 0,
+        "main": 1,
+        "sub": -1,
+        "math": 0,
+        "br": 7,
+        "pre": [
+          10,
+          14,
+          14
+        ],
+        "subPre": null,
+        "post": [
+          10,
+          14,
+          14
+        ],
+        "final": [
+          38,
+          53,
+          53
+        ],
+        "original": [
+          5,
+          7,
+          7
+        ],
+        "predicted": [
+          5,
+          7,
+          7
+        ]
+      },
+      {
+        "f": 3680,
+        "x": 97,
+        "y": 0,
+        "main": 1,
+        "sub": -1,
+        "math": 0,
+        "br": 7,
+        "pre": [
+          9,
+          13,
+          13
+        ],
+        "subPre": null,
+        "post": [
+          9,
+          13,
+          13
+        ],
+        "final": [
+          34,
+          49,
+          49
+        ],
+        "original": [
+          4,
+          6,
+          6
+        ],
+        "predicted": [
+          4,
+          6,
+          6
+        ]
+      },
+      {
+        "f": 3792,
+        "x": 121,
+        "y": 165,
+        "main": 2,
+        "sub": 4,
+        "math": 1,
+        "br": 7,
+        "pre": [
+          13,
+          0,
+          0
+        ],
+        "subPre": [
+          1,
+          7,
+          1
+        ],
+        "post": [
+          14,
+          7,
+          1
+        ],
+        "final": [
+          53,
+          26,
+          3
+        ],
+        "original": [
+          6,
+          3,
+          0
+        ],
+        "predicted": [
+          6,
+          3,
+          0
+        ]
+      },
+      {
+        "f": 3872,
+        "x": 121,
+        "y": 165,
+        "main": 2,
+        "sub": 4,
+        "math": 1,
+        "br": 7,
+        "pre": [
+          13,
+          0,
+          0
+        ],
+        "subPre": [
+          1,
+          7,
+          1
+        ],
+        "post": [
+          14,
+          7,
+          1
+        ],
+        "final": [
+          53,
+          26,
+          3
+        ],
+        "original": [
+          6,
+          3,
+          0
+        ],
+        "predicted": [
+          6,
+          3,
+          0
+        ]
+      }
+    ]
+  },
+  "limits": {
+    "all_263_new_PE_source_image_PARITY_not_observed": true,
+    "full_real_original_vs_native_PPU_layer_operand_correspondence_proven": false,
+    "source_CPU_NMI_beam_clock_equivalence_proven": false,
+    "hardware_SNES_brightness_proven": false,
+    "production_PPU_patch_admitted": false,
+    "CPU_APU_persistence_or_release_modified": false,
+    "HD_art_QA08_QA10_release_accepted": false
+  }
+}

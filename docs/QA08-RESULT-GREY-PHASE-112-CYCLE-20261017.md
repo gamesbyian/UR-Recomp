@@ -66,3 +66,27 @@ The current-era Windows incoming native $2102/$2103/$2104 writer captured **6,57
 In the same **current RF-017 guest** (not the historical `c782…` build), native input **host4031 and4032** already has medal `A0/A2/A4` and adjacent `CE/CE`; these are also the source-observed active raster at native guest4032. Native incoming host4175/4176 and active guest4176 likewise carry `A0/A2/A4`, `CE/CE`. The historic two-host-field source correspondence therefore survives RF-017 and both title-only HDMA/V0 corrections, giving a falsifiable **producer/callback/frame-phase boundary**, while **no generic OAM tile decoder correction is supported by those measured payloads**. The native incoming port stream and the sampled effective OAM agree on the later medal tile set, though the trace has not established original/native equal instructions, precise host-frame-to-NMI transfer causality, or all 287 pixel priority/VRAM conditions.
 
 **Do not** shift all frames by two, rewrite low OAM sprite tile names, recolour the result, import the 2014 brightness LUT, patch CPU/NMI timing in this graphics lane, claim physical display QA or approve procedural 4× characters. Original callback f−1 is the correct native guest f reference; original postrun capture host f has a different label from raw video callback f−1. Full current/source writer/beam/trigger causality remains a gameplay/CPU handoff. [Machine receipt](../analysis/data/qa08-current-rf017-full-oam-dma-20261017.json) records all 12 qualified source-payload SHA256 digests, true guard decisions, and outstanding limits. Keep one-shot source probe on #1785 unmerged and clean production #1780 as the separate QA-08 graphics candidate.
+
+## Current RF-017 blackout: authentic CPU $2100 writer and native PPU replay join (October 17)
+
+**Measured on the current guest, diagnostic only; not a graphics patch or release credit.** The real 2014 Snes9x source blackout (original callback4015, 57,344/57,344 RGB5 black) retains `INIDISP=80` on original postrun4015/4016 and changes to `02` only on original4017. The separately SHA-pinned current RF-017/firstline/V0 native PPU source at guest4016 has **53,667 nonblack** pixels. The original source observer [artifact 12017762924](https://github.com/gamesbyian/UR-Recomp/pull/1649) has ZIP SHA256 `8d7b3a65b8b40bb24ac39fb0b5c87c93d44cba3b6e189126f00604b5fa6818d6`.
+
+New true Windows source [diagnostic PR #1789](https://github.com/gamesbyian/UR-Recomp/pull/1789), [Windows run 39068738080](https://github.com/gamesbyian/UR-Recomp/actions/runs/39068738080), [source artifact 12114611914](https://github.com/gamesbyian/UR-Recomp/actions/runs/39068738080/artifacts/12114611914) re-executed **all 5,484 original two-pad guest frames**, unchanged CRC SHA256 `b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568`. Real Windows PE SHA256 `7e59ebb7b8c5694d1bf1a8baf25d598681652d3ac893cef4bd2595ddbd0ac5f5`, downloaded diagnostic ZIP SHA256 `bcba87f4bc6e18dfabf8c94d3d18b5766caffa7af0fb4d5fefbb5c6edd0953f5`, one 5,209-byte JSON SHA256 `3ec0901e0bb81ae4b05bbed8cf6e30aacb54c59b92cea305c35ea9b639aa2b99`.
+
+Actual native `ppu_write` observed **seven CPU-tagged** `INIDISP` writes (source0) and **seven distinct host raster-replay** writes (source3), all authentic `02/04/06/08/0A/0C/0E` values. Source registration:
+
+| $2100 value | Original CPU frame | Native CPU frame | Native replay frame |
+|---|---:|---:|---:|
+| 02 | 4017 | 4015 | 4016 |
+| 04 | 4018 | 4016 | 4017 |
+| 06 | 4019 | 4017 | 4018 |
+| 08 | 4020 | 4018 | 4019 |
+| 0A | 4021 | 4019 | 4020 |
+| 0C | 4022 | 4020 | 4021 |
+| 0E | 4023 | 4021 | 4022 |
+
+Native CPU writes were at **V230** (last V231), matching original source *V counters*, but H-counter representations are not normalized for source clock equivalence. Native replay occurred at **V225/H0** on the subsequent native frame. True native PPU line-entry state on **all three independently sampled lines 1/112/114**: guest4015 `80` (forced blank), 4016 `02` (brightness2), 4017 `04`, 4022 `0E`. Actual native guest4016 sampled PPU pixels at `(32,32)`, `(128,112)`, `(220,200)` were RGB8 `(19,19,19)`, `(9,9,9)`, `(19,19,19)` with live `INIDISP=02`, while correct reference callback4015 is entirely black.
+
+**Technical conclusion:** The **two-frame-earlier native guest CPU source write, followed by next-native-field PPU replay, survives RF-017**. It explains why native guest4016 displays brightness2 while original Snes9x callback4015 is black; it is **not an RGB5 decoder defect**. No equivalent executed 65816 instruction, NMI producer clock, Snes9x physical hardware event, CPU/PPU presentation clock or arbitrary frame shift is independently proved. This source/CPU timing handoff belongs to the gameplay/CPU owner. **Do not** overpaint black, apply an old brightness LUT, shift frames, modify graphics rendering in response, or grant QA-08/10/physical 4K/HD-racer or release credit.
+
+Bounded [machine receipt](../analysis/data/qa08-current-rf017-blackout-2100-20261017.json) retains exact original/native SHA identities and seven source-value joins. The disposable probe #1789 must be closed without merging; production graphics #1780 remains separately held.

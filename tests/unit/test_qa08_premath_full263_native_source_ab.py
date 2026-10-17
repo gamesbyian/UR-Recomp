@@ -1,5 +1,10 @@
 """Independent real BGRX original vs P7 RGBA A/B source comparison."""
 import unittest
+from pathlib import Path
+import sys
+ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT))
+sys.path.insert(0,str(ROOT/"tools"))
 from tools.qa08_premath_full263_native_source_ab import census,pixels,PIXELS,HEADER
 class TestAB(unittest.TestCase):
     def test_byte_order_exact_and_nonexact(self):

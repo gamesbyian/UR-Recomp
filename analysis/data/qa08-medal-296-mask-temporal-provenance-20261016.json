@@ -1,0 +1,83 @@
+{
+  "schema": "qa08-source-original-native-two-player-medal-mask-temporal-colours/1",
+  "source_original_original_zip_sha256": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+  "source_native_win32_zip_sha256": "4f766de13c702a108279293df4613538d8b49cbd1ecbc0876533c5f01f09293c",
+  "latest_native_screen_263_image_hashes_equal_previous": true,
+  "unmodified_5484_guest_CRC_sha256": "c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876",
+  "source_geometry": [
+    256,
+    224
+  ],
+  "sampled_normal_result_guest_frames": [
+    4032,
+    4080,
+    4128,
+    4224,
+    4272,
+    4320,
+    4368,
+    4416,
+    4464,
+    4560,
+    4608,
+    4656,
+    4704,
+    4752,
+    4800,
+    4896,
+    4944,
+    4992,
+    5040,
+    5088,
+    5136
+  ],
+  "persistent_each_normal_result_exact_wrong_RGB5_mask_pixels": 296,
+  "source_mismatch_bbox_xyxy": [
+    202,
+    91,
+    227,
+    153
+  ],
+  "eight_connected_wrong_mask_component_sizes": [
+    93,
+    92,
+    87,
+    9,
+    9,
+    2,
+    1,
+    1,
+    1,
+    1
+  ],
+  "temporal_colour_21frame_wrong_pixel_classification": {
+    "both_original_and_Win32_static": 249,
+    "original_changes_Win32_static": 41,
+    "original_static_Win32_changes": 6,
+    "both_changes": 0
+  },
+  "four_gray_phase_guests": [
+    4176,
+    4512,
+    4848,
+    5184
+  ],
+  "four_gray_phase_mask_includes_all_296_medal_pixels": true,
+  "wrong_pixel_counts_outside_medal_per_gray_frame": {
+    "4176": 24415,
+    "4512": 24481,
+    "4848": 24626,
+    "5184": 24336
+  },
+  "total_selected_25_frame_medal_mask_mismatches": 7400,
+  "source_witness_program": "tools/qa08_medal_mask_temporal_source.py",
+  "independent_archive_only_actions_run": 38977867632,
+  "independent_actions_result": "success",
+  "durable_artifact_id": 12079876844,
+  "artifact_sha256": "af6d9b1aeb6fdf2a00ffa06c05d0adff676d59bca3d0b607783a1c41b9a6efae",
+  "retention_until_utc": "2027-01-14T22:47:58Z",
+  "actual_original_effective_sprite_BG_mask_compositing_proven_for_entire_mask": false,
+  "single_palette_recolour_authorized": false,
+  "original_native_time_shift_authorized": false,
+  "release_QA08_10_or_HD_art_owner_accepted": false
+}

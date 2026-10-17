@@ -1,0 +1,204 @@
+{
+  "schema": "qa08-authentic-corresponding-medal-original-native-OAM-tile-differential/1",
+  "observed_date": "2026-10-16",
+  "original_full_263_video_zip_sha256": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+  "original_2014_additional_OAM_artifact_id": 12030581890,
+  "original_2014_additional_OAM_zip_sha256": "7a506cfc5f44bd8cc6aaba8482f42140b51618ba14aedec8f9bc7558417ad4b2",
+  "native_effective_pixel_OAM_artifact_id": 12030148116,
+  "native_effective_pixel_OAM_zip_sha256": "002c95a44f3539652760609c6f6d7376c82e6014f2481cc60bbb1f8990b3b970",
+  "actual_original_263_frames_unchanged_asserted_by_independent_original_results_chronology": true,
+  "actual_native_full_5484_guest_CRC_sha256": "c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876",
+  "exact_source_frame_pairing": [
+    {
+      "original": 4031,
+      "native": 4032
+    },
+    {
+      "original": 4175,
+      "native": 4176
+    }
+  ],
+  "original_source_callback_vs_original_post_retro_run_host_screenshot_not_equal": {
+    "1279": {
+      "wrong_pixels": 216,
+      "source_callback_sha256": "2b2dd9a44f0953fa74a9fb560eca87f2f36f6137e8bd2567ad23e0cdc270df3f",
+      "host_endfield_sha256": "a7f5a9f2f14743c0bfb1acbc14f52c274a4f1d9b2c8d756767b3d0ac57504e85"
+    },
+    "4031": {
+      "wrong_pixels": 778,
+      "source_callback_sha256": "390a9099715d9be31ae74387520c3635fcfaa8d8dff7b7e13e278baa79e6ed4f",
+      "host_endfield_sha256": "d1808715289da07846ae9b24fb91520c9c8dd2969325174f5154cf2f2c972659"
+    },
+    "4175": {
+      "wrong_pixels": 766,
+      "source_callback_sha256": "b9371d03817f3b9e0252e6a4ad4ef33b9f8dd1dd1f427af700985cfb1845a925",
+      "host_endfield_sha256": "653443da0f7302caaee74887adb396b2a2e4a133669c35a70e8c760d718270fa"
+    }
+  },
+  "native_actually_observed_2P_70_live_OAM_slot_records": true,
+  "slot_tile_comparisons": [
+    {
+      "original_completed_field": 4031,
+      "native_guest_field": 4032,
+      "slot": 96,
+      "original_tile_hex": "cc",
+      "native_tile_hex": "ce",
+      "native_minus_original": 2,
+      "corresponding_original_endfield_to_native_scanline_not_full_phase_certified": true
+    },
+    {
+      "original_completed_field": 4031,
+      "native_guest_field": 4032,
+      "slot": 97,
+      "original_tile_hex": "cc",
+      "native_tile_hex": "ce",
+      "native_minus_original": 2,
+      "corresponding_original_endfield_to_native_scanline_not_full_phase_certified": true
+    },
+    {
+      "original_completed_field": 4031,
+      "native_guest_field": 4032,
+      "slot": 98,
+      "original_tile_hex": "e6",
+      "native_tile_hex": "e6",
+      "native_minus_original": 0,
+      "corresponding_original_endfield_to_native_scanline_not_full_phase_certified": true
+    },
+    {
+      "original_completed_field": 4031,
+      "native_guest_field": 4032,
+      "slot": 99,
+      "original_tile_hex": "e6",
+      "native_tile_hex": "e6",
+      "native_minus_original": 0,
+      "corresponding_original_endfield_to_native_scanline_not_full_phase_certified": true
+    },
+    {
+      "original_completed_field": 4031,
+      "native_guest_field": 4032,
+      "slot": 112,
+      "original_tile_hex": "a2",
+      "native_tile_hex": "a0",
+      "native_minus_original": -2,
+      "corresponding_original_endfield_to_native_scanline_not_full_phase_certified": true
+    },
+    {
+      "original_completed_field": 4031,
+      "native_guest_field": 4032,
+      "slot": 113,
+      "original_tile_hex": "a4",
+      "native_tile_hex": "a2",
+      "native_minus_original": -2,
+      "corresponding_original_endfield_to_native_scanline_not_full_phase_certified": true
+    },
+    {
+      "original_completed_field": 4031,
+      "native_guest_field": 4032,
+      "slot": 114,
+      "original_tile_hex": "a6",
+      "native_tile_hex": "a4",
+      "native_minus_original": -2,
+      "corresponding_original_endfield_to_native_scanline_not_full_phase_certified": true
+    },
+    {
+      "original_completed_field": 4175,
+      "native_guest_field": 4176,
+      "slot": 96,
+      "original_tile_hex": "cc",
+      "native_tile_hex": "ce",
+      "native_minus_original": 2,
+      "corresponding_original_endfield_to_native_scanline_not_full_phase_certified": true
+    },
+    {
+      "original_completed_field": 4175,
+      "native_guest_field": 4176,
+      "slot": 97,
+      "original_tile_hex": "cc",
+      "native_tile_hex": "ce",
+      "native_minus_original": 2,
+      "corresponding_original_endfield_to_native_scanline_not_full_phase_certified": true
+    },
+    {
+      "original_completed_field": 4175,
+      "native_guest_field": 4176,
+      "slot": 98,
+      "original_tile_hex": "e2",
+      "native_tile_hex": "e2",
+      "native_minus_original": 0,
+      "corresponding_original_endfield_to_native_scanline_not_full_phase_certified": true
+    },
+    {
+      "original_completed_field": 4175,
+      "native_guest_field": 4176,
+      "slot": 99,
+      "original_tile_hex": "e2",
+      "native_tile_hex": "e2",
+      "native_minus_original": 0,
+      "corresponding_original_endfield_to_native_scanline_not_full_phase_certified": true
+    },
+    {
+      "original_completed_field": 4175,
+      "native_guest_field": 4176,
+      "slot": 112,
+      "original_tile_hex": "a2",
+      "native_tile_hex": "a0",
+      "native_minus_original": -2,
+      "corresponding_original_endfield_to_native_scanline_not_full_phase_certified": true
+    },
+    {
+      "original_completed_field": 4175,
+      "native_guest_field": 4176,
+      "slot": 113,
+      "original_tile_hex": "a4",
+      "native_tile_hex": "a2",
+      "native_minus_original": -2,
+      "corresponding_original_endfield_to_native_scanline_not_full_phase_certified": true
+    },
+    {
+      "original_completed_field": 4175,
+      "native_guest_field": 4176,
+      "slot": 114,
+      "original_tile_hex": "a6",
+      "native_tile_hex": "a4",
+      "native_minus_original": -2,
+      "corresponding_original_endfield_to_native_scanline_not_full_phase_certified": true
+    }
+  ],
+  "identical_source_XY_and_sprite_priority_palette_high_bits_for_each_slot": true,
+  "native_tile_deficit_medals_112_114": -2,
+  "native_tile_excess_adjacent_96_97": 2,
+  "native_tile_correct_adjacent_98_99": 0,
+  "original_2014_effective_mid_scanline_OBJ_owner_unverified": true,
+  "native_original_CPU_instruction_field_phase_equivalence_unverified": true,
+  "proof_of_right_sprite_or_implemented_renderer_correction": false,
+  "independent_graphics_quality_and_release_acceptance": false,
+  "research_only": true,
+  "original_complete_PPU_OAMDMA_byte_chronology": {
+    "1279": {
+      "journal_SHA256": "d35f96e06ccfb136ee6540cb170b9653e8dcd65585cfe1ca7d88bc4649afbb9e",
+      "DMA_writes": 544,
+      "first_V": 229,
+      "last_V": 232
+    },
+    "4031": {
+      "journal_SHA256": "2ad83b28ebd60707e712c29735c5ab0d7dbcfb95b66b147274fc2f36bb83e530",
+      "DMA_writes": 544,
+      "first_V": 226,
+      "last_V": 230
+    },
+    "4175": {
+      "journal_SHA256": "ea2624b4225e860732624ec664899a75c8da838ab2fd6671a1f9003242b67384",
+      "DMA_writes": 544,
+      "first_V": 227,
+      "last_V": 230
+    }
+  },
+  "original_544_observed_OAMDATA_bytes_identical_to_original_544_byte_end_OAM_for_all_three_fields": true,
+  "original_mid_visible_field_port_OAMDATA_writes_all_three_frames": 0,
+  "original_OAMDMA_written_before_visible_pixels_under_original_snesref_2014_field_chronology": true,
+  "original_reconstructed_full_scanline_OBJ_priority_or_final_math_accepted": false,
+  "invalidated_by_preincrement_vs_postincrement_original_frame_counter": true,
+  "previous_14_slot_comparisons_not_source_time_matched": true,
+  "reason": "do_dump g_frame N maps to video callback N-1; original 4031/4175 are earlier images than claimed; new originals must capture do_dump 4032/4176",
+  "graphics_correction_permitted": false
+}

@@ -1,0 +1,68 @@
+name: QA-08 corrected original/native medal OAM archive adjudication
+on:
+  # Source and entire OAM corpora are already SHA-verified and retained;
+  # rerun solely on explicit request, not each independent QA/main commit.
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: qa08-correct-registered-medal-source
+  cancel-in-progress: true
+jobs:
+  original-native-archives:
+    if: github.event_name != 'pull_request' || github.event.pull_request.number == 1649
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run adversarial corrected-registration source checks
+        run: |
+          set -euo pipefail
+          python3 -m unittest tests.unit.test_qa08_verify_corrected_registered_medal_oam tests.unit.test_qa08_original_native_full_oamdma_phase
+      - name: Fetch three already-produced independent source archives
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-corrected"
+          for item in "11996107746 original.zip" "12032487428 aligned.zip" "12030148116 native.zip" "12033679969 native-port.zip" "12030581890 legacy-original.zip"; do
+            read -r id name <<< "$item"
+            curl --fail --silent --show-error --location --retry 2 \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/$id/zip" \
+              -o "$RUNNER_TEMP/qa08-corrected/$name"
+          done
+          cd "$RUNNER_TEMP/qa08-corrected"
+          printf '%s\n' \
+            "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e  original.zip" \
+            "2fef0440b97a69025bf9ee539551b414ef7f1f11978172aea5565f338b35d4c9  aligned.zip" \
+            "002c95a44f3539652760609c6f6d7376c82e6014f2481cc60bbb1f8990b3b970  native.zip" \
+            "74fd88413c2a1cac2c14098c65b76fba4cdba909f989182618018d9a68a04888  native-port.zip" \
+            "7a506cfc5f44bd8cc6aaba8482f42140b51618ba14aedec8f9bc7558417ad4b2  legacy-original.zip" \
+            | sha256sum -c -
+      - name: Verify correct original callback and host counter with 544-byte DMA and 70 native line records
+        run: |
+          set -euo pipefail
+          python3 tools/qa08_verify_corrected_registered_medal_oam.py \
+            --original "$RUNNER_TEMP/qa08-corrected/original.zip" \
+            --original-registered "$RUNNER_TEMP/qa08-corrected/aligned.zip" \
+            --native "$RUNNER_TEMP/qa08-corrected/native.zip" \
+            --out "$RUNNER_TEMP/qa08-corrected/decision.json"
+          python3 tools/qa08_original_native_full_oamdma_phase.py \
+            --original "$RUNNER_TEMP/qa08-corrected/aligned.zip" \
+            --legacy-original "$RUNNER_TEMP/qa08-corrected/legacy-original.zip" \
+            --native "$RUNNER_TEMP/qa08-corrected/native-port.zip" \
+            --out "$RUNNER_TEMP/qa08-corrected/full-input-OAMDMA-phase.json"
+          echo "Four distinct authentic original host 4031/4032 and4175/4176 OAM images match ALL 544 input bytes in native 4029/4030 and4173/4174, respectively. Repeated native two-host-field input phase lead; CPU/NMI causal origin unproven; no tile shift." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain only decision JSON, not ROM SRAM WRAM VRAM or source screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-source-corrected-medal-OAM-decision
+          retention-days: 5
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa08-corrected/decision.json
+            ${{ runner.temp }}/qa08-corrected/full-input-OAMDMA-phase.json

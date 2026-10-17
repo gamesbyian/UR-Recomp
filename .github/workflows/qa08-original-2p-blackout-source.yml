@@ -1,0 +1,130 @@
+name: QA-08 original 2P source blackout INIDISP at 4015..4017
+
+# One bounded original CPU/PPU forced-blank observation of the 54,709-pixel
+# native frame 4016 discrepancy. No source controller, ROM, guest or renderer
+# edits. Assert ALL 263 previously independent original raw frames unchanged.
+# Retire this PR trigger immediately after one source-qualified result.
+# Completed source run 38833678872: original 263/263 pixels authenticated.
+# Keep the historical Snes9x producer manual only.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: qa08-original-blackout-readonly-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  original-source-register-journal:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          persist-credentials: false
+          submodules: recursive
+      - uses: actions/download-artifact@v4
+        with:
+          repository: gamesbyian/UR-Recomp
+          run-id: 38781958316
+          name: qa08-source-original-2p-authentic-race-result-return
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/qa08-previous-original-2p
+
+      - name: Independently pin source and form zero-frame PPU dump script
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478  reference/roms/retail/Uniracers_USA.sfc" | sha256sum -c -
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          cmp baldosa/tests/routes/race_2p.txt reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p.txt
+          python3 -m unittest tests.unit.test_qa08_original_twoplayer_ppu_register_trace tests.unit.test_qa08_original_results_port_chronology tests.unit.test_qa08_snesref_original_blackout_host_patch tests.unit.test_qa08_verify_original_blackout_source
+          mkdir -p "$RUNNER_TEMP/qa08-original-ppu-2p/frames" "$RUNNER_TEMP/qa08-original-ppu-2p/registers"
+          python3 tools/qa08_original_results_port_chronology.py \
+            --script reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p.txt \
+            --out-script "$RUNNER_TEMP/qa08-original-ppu-2p/qa08-ppu-observer.script"
+
+      - name: Build exact original 2014 Snes9x with its existing PPU debug hook
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends build-essential cmake pkg-config libsdl2-dev
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          make -C "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro" -j 2
+          test -s "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          # One disposable host-only readback at the completed original 5183.
+          # No script, libretro guest, CPU/PPU, or gameplay alteration.
+          python3 tools/qa08_snesref_results_previous_patch.py --game baldosa
+          python3 tools/qa08_snesref_results_previous_patch.py --game baldosa --apply-readonly-capture
+          # Additional opt-in source-only brightness/forced-blank boundary.
+          # The previous 3+1 dumps and entire input script remain unchanged.
+          python3 tools/qa08_snesref_original_blackout_host_patch.py --game baldosa
+          python3 tools/qa08_snesref_original_blackout_host_patch.py --game baldosa --apply-readonly-capture
+          cmake -S baldosa/snesrecomp/tools/snesref -B "$RUNNER_TEMP/qa08-original-ppu-snesref" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/qa08-original-ppu-snesref" -j 2
+          test -x "$RUNNER_TEMP/qa08-original-ppu-snesref/snesref"
+
+      - name: Reproduce original 2P input with additional host-only 4015..4017 blackout dumps
+        shell: bash
+        run: |
+          set -euo pipefail
+          UR_QA08_ORIGINAL_BLACKOUT=1 UR_QA08_CGRAM_HISTORY=1 UR_QA08_SNESREF_RESULTS_PREVIOUS=1 SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$RUNNER_TEMP/qa08-original-ppu-2p/qa08-ppu-observer.script" \
+          SNESREF_DUMP_DIR="$RUNNER_TEMP/qa08-original-ppu-2p/registers" \
+          SNESREF_FRAME_DUMP_DIR="$RUNNER_TEMP/qa08-original-ppu-2p/frames" \
+          SNESREF_FRAME_DUMP_NATIVE=1 SNESREF_FRAME_DUMP_FROM=1279 \
+          SNESREF_FRAME_DUMP_TO=5471 SNESREF_FRAME_DUMP_STEP=16 \
+          timeout 220 "$RUNNER_TEMP/qa08-original-ppu-snesref/snesref" \
+            "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            > "$RUNNER_TEMP/qa08-original-ppu-2p/original.log" 2>&1
+
+      - name: Prove 263 original BGRX frames unchanged and authenticate 4015..4017 $2100
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/qa08_original_results_port_chronology.py \
+            --script reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p.txt \
+            --verify-root "$RUNNER_TEMP/qa08-original-ppu-2p" \
+            --prior-original "$RUNNER_TEMP/qa08-previous-original-2p" \
+            --rom reference/roms/retail/Uniracers_USA.sfc \
+            --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            --result "$RUNNER_TEMP/qa08-original-ppu-2p/qa08-results-port-preceding-frame.json"
+          python3 tools/qa08_verify_original_blackout_source.py \
+            --script reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p.txt \
+            --verify-root "$RUNNER_TEMP/qa08-original-ppu-2p" \
+            --prior-original "$RUNNER_TEMP/qa08-previous-original-2p" \
+            --rom reference/roms/retail/Uniracers_USA.sfc \
+            --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            --result "$RUNNER_TEMP/qa08-original-ppu-2p/qa08-original-blackout-INIDISP-source.json"
+          echo "Original source black video at callback 4015 and actual 2100 writer phase; 263 source images unchanged. No native/release acceptance." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain source-bound original blackout $2100 registers and write ring
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-original-two-pad-4015-blackout-source-inidisp-writers
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa08-original-ppu-2p/qa08-results-port-preceding-frame.json
+            ${{ runner.temp }}/qa08-original-ppu-2p/qa08-original-blackout-INIDISP-source.json
+            ${{ runner.temp }}/qa08-original-ppu-2p/registers/qa08-original-blackout-3998-4035-INIDISP.tsv
+            ${{ runner.temp }}/qa08-original-ppu-2p/original.log
+            ${{ runner.temp }}/qa08-original-ppu-2p/qa08-ppu-observer.script
+            ${{ runner.temp }}/qa08-original-ppu-2p/registers/*.regs.json
+            ${{ runner.temp }}/qa08-original-ppu-2p/registers/*.ppuw.tsv
+            ${{ runner.temp }}/qa08-original-ppu-2p/registers/qa08-results-5072-5184-cgram-history.tsv
+            ${{ runner.temp }}/qa08-original-ppu-2p/registers/*.cgram.bin
+            ${{ runner.temp }}/qa08-original-ppu-2p/registers/*.oam.bin
+            ${{ runner.temp }}/qa08-original-ppu-2p/registers/*.info.json

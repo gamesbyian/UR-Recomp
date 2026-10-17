@@ -1,0 +1,28 @@
+{
+  "schema": "qa08-verified-original-2p-adjacent-results-cgram-20261015/1",
+  "status": "original_one_frame_CGRAM_update_rejected_before_native_causality",
+  "original_exact_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "authenticated_original_2014_core_sha256": "b001e489e775dea4e3f037b6bdd9d3603d5f7a73edaedc614fe6a6334b84dfc7",
+  "original_host_source_run_id": 38822001530,
+  "raw_artifact_id": 12013971294,
+  "raw_artifact_zip_sha256": "c547a38e64cc71a5c7041ea6126d10a0eb030ace08a2870716d3a0b91dcc5efc",
+  "original_source_script_sha256": "bddfb15fedbaba3fcb0e95e628f11e1506fd210d93f4be67c6e9855c705dd3db",
+  "original_script_quit_frame": 5484,
+  "real_original_frame_5183_CGRAM_512byte_FNV1a": "e8cdbe60",
+  "real_original_frame_5184_CGRAM_512byte_FNV1a": "e8cdbe60",
+  "original_adjacent_changed_15bit_palette_words": 0,
+  "original_5183_ppuw_2121_2122_records": 0,
+  "original_5184_ppuw_2121_2122_records": 0,
+  "original_256x224_source_BGRX_frames_byte_identical_to_unmodified_reference": 263,
+  "native_windows_5184_CGRAM_FNV1a": "898ece20",
+  "source_5183_5184_immediate_CGRAM_phase_update_explains_native_mismatch": false,
+  "failed_command_split_probe": {
+    "run_id": 38821308874,
+    "artifact_id": 12013131778,
+    "first_changed_original_callback": 5215,
+    "cause": "Snesref inserts a trailing idle frame after each press command"
+  },
+  "next_source_only_decision": "Read existing original PPU journal's real $2121/$2122 writes for previous 112 result frames 5072..5184; compare native only after exact guest phase and data-port writers are qualified",
+  "accepted_graphics_qa_gates": 0,
+  "accepted_release_gates": 0
+}

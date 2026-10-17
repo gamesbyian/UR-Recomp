@@ -1,0 +1,114 @@
+{
+  "schema": "qa08-fresh-exact-win32-2p-original-source-raster-and-oam-adjudication/1",
+  "date": "2026-10-16",
+  "status": "accepted_candidate_bound_original_reference_raster_regression_only_graphics_release_held",
+  "owned_lane": "QA-08/10 independent source/raster evidence; CPU/APU and QA release ledger remain other owners",
+  "original_snes9x": {
+    "run": 38781958316,
+    "artifact_id": 11996107746,
+    "zip_sha256": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+    "original_real_video_callbacks": 263,
+    "callback_labels": [
+      1279,
+      5471,
+      16
+    ]
+  },
+  "prior_windows_candidate": {
+    "run": 38824230943,
+    "artifact_id": 12014896975,
+    "zip_sha256": "f01ab5a4888c227f306a0b9cd89e67710a4b41cad4c22867072280a17811fa82",
+    "same_263_P7_image_SHA_verified_against_new_candidate": true,
+    "whole_5484_guest_CRC_verified_against_new_candidate": true
+  },
+  "fresh_windows_candidate": {
+    "graphics_head": "b8722af070c2e57747c6b0bdb6119d1b5cbed63e",
+    "native_windows_run": 38963502076,
+    "original_size_ppu_OAM_port_artifact_id": 12074238115,
+    "artifact_zip_sha256": "4f766de13c702a108279293df4613538d8b49cbd1ecbc0876533c5f01f09293c",
+    "compiled_windows_executable_sha256": "29431b073fd550e29b908f4e1d20fe9ee46b357b7a3e73b4fa21a224fa0dbf08",
+    "rom_free_windows_package_sha256": "369cf4eb40f30b655f4f55e4cf78de6ae8d11c5ea272cb003add22bcd9288280",
+    "native_guest_frames": 5484,
+    "full_guest_CRC_sha256": "c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876",
+    "original_source_guest_frames": [
+      1280,
+      5472,
+      16
+    ],
+    "independent_real_256x224_source_callbacks": 263,
+    "qualified_selected_live_native_pixel_owners": 11,
+    "qualified_live_raster_OAM_records": 70,
+    "complete_544_byte_native_OAMDMA_input_streams": 12,
+    "same_real_process_native_cgram_INIDISP_HDMA7_observer_source": true,
+    "further_native_player_journey_windows_build": "PASS",
+    "windows_run_full_conclusion": "PASS",
+    "project_tooling_tests": "PASS",
+    "repo_hygiene": "PASS"
+  },
+  "independent_archive_adjudication": {
+    "code_branch": "graphics/qa08-original-windows-1p-crossruntime",
+    "workflow": ".github/workflows/qa08-adjudicate-latest-graphics-2p-source.yml",
+    "strict_candidate_bound_source_recheck_run": 38965695031,
+    "source_comparison_artifact_id": 12074656193,
+    "source_comparison_artifact_zip_sha256": "120d4fd19bfe50ecf5e84176075976de9875fde465a58b5e3dd86654bf81de42",
+    "full_pixel_RGB5_source_pairs_checked": 263,
+    "source_pixel_dimensions": [
+      256,
+      224
+    ],
+    "all_RGB5_source_pixels_checked": 15081472,
+    "registered_original_callback_equals_native_guest_minus_one": true,
+    "only_original_Snes9x_green6_to_RGB5_normalization": true,
+    "spatial_crop_shift_mask_recolor_temporal_search_permitted": false,
+    "strict_exact_2014_original_frames": 203,
+    "strict_divergent_2014_original_frames": 60,
+    "historical_reference_wrong_RGB5_pixels": 385373,
+    "latest_all_263_P7_frame_sha_identical_to_prior_native": true,
+    "guest_CRC_same_as_prior_native": true,
+    "new_Windows_executable_differs_from_prior_native": true,
+    "actual_source_p1_p2_racer_identity_original_effective_priority_proven": false,
+    "physical_SNES_pixel_output_equivalent_to_2014_Snes9x_unproven": true
+  },
+  "disposition": {
+    "original_visual_source_regression": "unchanged for all 263 individual native P7 images",
+    "original_reference_raster": "203/263 exact, remainder source-divergent and independently preserved",
+    "original_emulator_math_backend_difference": "cursor pixel old Snes9x prebrightness math versus native/bsnes postmath unapproved as graphics correction",
+    "cpu_frame_counter_opcodes_NMI_dma_causality_accepted": false,
+    "original_same_scanline_obj_BG_window_math_priority_accepted": false,
+    "source_visible_P1_P2_racer_identity_comprehensive_accepted": false,
+    "title_countdown_finish_result_transition_complete_accepted": false,
+    "physical_display_7to6_pixel_aspect_widescreen_4x_accepted": false,
+    "procedural_historical_HD_racer_art_approved": false,
+    "QA08_QA10_release_quality_ledger_acceptance": false,
+    "pr1641_status": "draft hold; implementation candidate to be separated from diagnostics before any promotion",
+    "pr1649_status": "draft hold; independent source archive and comparator",
+    "next_graphics_discriminator": "same-field source-visible original OBJ/BG effective priority and actual Windows scaled 7:6/4x/342 wide output; avoid broad recolor/tile/time shift",
+    "next_cpu_owner_handoff": "historical exact original/native CPU-authored OAM, CGRAM and INIDISP frame labels differ by 2 in selected windows; instruction/NMI/beam phase remains unproven"
+  },
+  "archival_90day_retention": {
+    "status": "completed_immutable_archives_reverified_90day_rom_free",
+    "workflow_run": 38966089749,
+    "artifact_id": 12075111053,
+    "artifact_name": "qa08-source-raster-3producer-nested-90d",
+    "new_outer_archive_sha256": "3475ee87b5b20768f9377d8d1c787927955c33ee6d4388dae008f5486a81370e",
+    "new_outer_archive_bytes": 5237356,
+    "expires_utc": "2027-01-14T20:58:36Z",
+    "nested_individually_original_SHA256_verification": true,
+    "nested_archives": [
+      "original.zip",
+      "latest-windows.zip",
+      "prior-windows.zip"
+    ],
+    "separate_per_frame_comparison_receipt": "source-verdict.json",
+    "nested_source_zip_sha256": {
+      "original": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+      "fresh_windows": "4f766de13c702a108279293df4613538d8b49cbd1ecbc0876533c5f01f09293c",
+      "prior_windows": "f01ab5a4888c227f306a0b9cd89e67710a4b41cad4c22867072280a17811fa82"
+    },
+    "source_original_native_both_all_263_per_frame_hashed": true,
+    "no_ROM_SRAM_VRAM_WRAM_personal_user_state_members_in_nested_archives": true,
+    "independent_original_emulator_or_windows_compilation_rerun": false,
+    "ongoing_producer_workflows_manual_only": true,
+    "graphics_release_gate_credit": false
+  }
+}

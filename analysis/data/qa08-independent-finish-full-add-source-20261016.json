@@ -1,0 +1,120 @@
+{
+  "schema": "qa08-independent-exact-2p-finish-full-add-original-native-provenance/1",
+  "observed_date": "2026-10-16",
+  "status": "two_real_native_finish_Bg3_OBJ_full_add_source_hardware_original_effective_ownership_held",
+  "source_bound_2P": {
+    "original_snes9x_archived_run": 38781958316,
+    "original_zip_sha256": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+    "prior_native_original_archive_sha256": "4f766de13c702a108279293df4613538d8b49cbd1ecbc0876533c5f01f09293c",
+    "live_native_win32_run": 38971645604,
+    "exact_graphics_candidate_head": "e14e0be6d9a8507d9935eba5b28ec6049f05eae7",
+    "compiled_Win32_PE_sha256": "4373e112e24e79c05dcaa4b2f8a9dcd7e2046337a2d27f4bf482d7bcca6d5a89",
+    "live_263_source_native_archive_SHA256": "f467aaafc193e0b8e56934e6f505c10d60c3a4a1afa8727ffa376e5cdf7d53de",
+    "source_original_finish_CGRAM_snapshot_frame": 3683,
+    "original_CGRAM_512_byte_sha256": "b7aca48a35b4152ea7ce9a17ed68a08c9eed1e583397508b197e29dc50f73067",
+    "native_original_unmodified_5484_frame_CRC_sha256": "c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876",
+    "all_263_native_original_P7_source_hashes_unchanged_vs_previous": true,
+    "original_2014_green6_to_green5_only_no_crop_shift_mask": true,
+    "same_pixel_sample_count": 2,
+    "original_callback_native_guest_pairs": [
+      [
+        3791,
+        3792
+      ],
+      [
+        3871,
+        3872
+      ]
+    ],
+    "original_source_pixel_x_y": [
+      121,
+      165
+    ],
+    "original_source_RGB5_expanded": [
+      49,
+      24,
+      0
+    ],
+    "new_actual_Windows_RGB8": [
+      57,
+      24,
+      0
+    ],
+    "all_other_RGB5_pixels_in_these_two_frames_exact": true,
+    "original_2014_palette_CGRAM_1b_BG_RGB5": [
+      13,
+      0,
+      0
+    ],
+    "original_2014_palette_CGRAM_c6_OBJ_hex": "04e1"
+  },
+  "actual_live_native_two_source_pixels": {
+    "both_main_layer": "BG3",
+    "both_subscreen_layer": "OBJ",
+    "both_inidisp_hex": "07",
+    "both_cgadsub_hex": "04",
+    "both_main_RGB5": [
+      13,
+      0,
+      0
+    ],
+    "both_sub_RGB5": [
+      1,
+      7,
+      1
+    ],
+    "both_postmath_RGB5": [
+      14,
+      7,
+      1
+    ],
+    "both_math_enabled": true,
+    "both_window_clip_disabled": true,
+    "both_tsc_layer_guard": true,
+    "both_2014_early_palette_words_identical_to_effective_native_ones": true
+  },
+  "arithmetic_without_colour_or_time_edits": {
+    "historical_2014_Snes9x_palette_brightness_before_full_add_output_RGB8": [
+      49,
+      24,
+      0
+    ],
+    "native_and_independent_bsnes_style_full_add_before_output_brightness_RGB8": [
+      57,
+      24,
+      0
+    ],
+    "known_difference_only_red_channel_one_RGB5_level": true,
+    "hypothesized_half_add_at_these_pixels_refuted_by_actual_CGADSUB_04": true,
+    "conditional_prior_four_halfadd_palette_pairs_not_actual_live_2P_state": true
+  },
+  "independent_verification": {
+    "archive_only_workflow_run": 38973732131,
+    "completed_conclusion": "success",
+    "exact_two_pixel_full_add_discriminator_artifact_id": 12078700050,
+    "source_archives_90_day_workflow_run": 38974231988,
+    "retained_90day_artifact_id": 12078940121,
+    "retained_outer_zip_sha256": "6f88d5ca673bfaec075f19a766586b883f619580bbf279ebcb5cf019e5454d7d",
+    "retained_expiry_utc": "2027-01-14T22:11:27Z",
+    "archival_checks_no_ROM_SRAM_VRAM_WRAM_profile_material": true,
+    "snes9x_original_per_pixel_layer_winner_proven": true,
+    "actual_SNES_DAC_output_proven": false,
+    "Windows_7to6_4x_342wide_physical_display_accepted": false,
+    "original_complete_2P_race_accepted": false,
+    "HD_art_owner_reapproval": false,
+    "QA08_QA10_release_ledger_gate_credit": false,
+    "original_two_full_images_each_263_source_image_hash_identical": true,
+    "original_effective_BG3_high_priority_sub_OBJ_priority2_source_run": 38974726301,
+    "independent_original_native_pixel_owner_decoder_CI": 38975378858,
+    "original_native_pixel_owner_90day_artifact_id": 12078162775,
+    "original_native_pixel_owner_90day_zip_sha256": "fe781cd8b830936dcba01806166ff22050ea19ba3fd3a4ed788915650169220b"
+  },
+  "next_original_layer_discriminator": {
+    "source_observer": "tools/qa08_patch_original_finish_layer_callback.py",
+    "one_shot_workflow": ".github/workflows/qa08-original-finish-layer-callback.yml",
+    "allowed": "One unchanged 2P original route with opt-in read-only 2014 BG/sub depth callback tags, preserve all 263 original images SHA256; fail on absent or nonmatching source",
+    "state": "completed_source_verified_original_high_priority_BG3_and_sub_OBJ2; physical_SNESC_DAC_still_unaccepted",
+    "code_and_pixels_can_be_changed_to_force_match": false
+  },
+  "successor_more_complete_graphics_authority": "analysis/data/qa08-original-native-finish-two-pixel-priority-20261016.json"
+}

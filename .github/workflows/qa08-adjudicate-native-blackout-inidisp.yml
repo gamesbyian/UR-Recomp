@@ -1,0 +1,69 @@
+name: QA-08 authentic original/native INIDISP CPU and raster replay proof
+# One source-authentic ZIP-only original/Win32 comparison. No emulator runs.
+# Retire the research PR trigger immediately after a classified result.
+# Historical source-only writer experiment completed and classified green:
+# 38835754517, artifact 12018669038. Manual reproductions only.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: qa08-original-native-2100-writer-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  authenticate-cpu-and-replay:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve exact original and Windows before/after source artifacts
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-2100"
+          for pair in \
+            12017762924:original \
+            12017392389:old \
+            12019455335:actual; do
+            IFS=: read -r id name <<< "$pair"
+            curl --retry 3 -fLSs \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/$id/zip" \
+              -o "$RUNNER_TEMP/qa08-2100/$name.zip"
+          done
+          echo "8d7b3a65b8b40bb24ac39fb0b5c87c93d44cba3b6e189126f00604b5fa6818d6  $RUNNER_TEMP/qa08-2100/original.zip" | sha256sum -c -
+          echo "4b55a33917a5941e87d507ceb8af01391c01fc4574a2543fab3f0b3cf35402f0  $RUNNER_TEMP/qa08-2100/old.zip" | sha256sum -c -
+          echo "6da48bb07a52878c1ed77ddb077b037837379e7d3ebbd78aa4ee67211907373a  $RUNNER_TEMP/qa08-2100/actual.zip" | sha256sum -c -
+      - name: Independently prove 7 real original CPU and 7 native CPU and 7 host replay writes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest tests.unit.test_qa08_adjudicate_native_blackout_inidisp_writer
+          python3 tools/qa08_adjudicate_native_blackout_inidisp_writer.py \
+            --original-blackout "$RUNNER_TEMP/qa08-2100/original.zip" \
+            --old-native "$RUNNER_TEMP/qa08-2100/old.zip" \
+            --actual-native "$RUNNER_TEMP/qa08-2100/actual.zip" \
+            --out "$RUNNER_TEMP/qa08-2100/qa08-authentic-native-2100-cpu-raster-phase.json"
+          python3 - "$RUNNER_TEMP/qa08-2100/qa08-authentic-native-2100-cpu-raster-phase.json" <<'PY'
+          import json,sys
+          r=json.load(open(sys.argv[1]))
+          assert r["actual_native_CPU_2100_writes"]==7
+          assert r["actual_native_host_raster_replay_2100_writes"]==7
+          assert r["new_native_source_P7_full_256x224_images_unchanged"]==263
+          assert r["native_emulated_CPU_instruction_count_phase_or_frame_label_root_proven"] is False
+          assert r["guest_CPU_APU_clock_timing_or_PPU_raster_edit_approved"] is False
+          print("Original and native raw 2100 CPU writes, host replay, frame and beam phases verified; no clock fix")
+          PY
+          echo "Source-only CPU/PPU writer provenance: 7 original CPU, 7 native CPU, 7 host raster replay. No timing adjustment/release." >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve original/native INIDISP timing evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-source-original-native-2100-cpu-versus-host-replay
+          retention-days: 14
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/qa08-2100/qa08-authentic-native-2100-cpu-raster-phase.json

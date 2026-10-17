@@ -1,0 +1,128 @@
+name: QA-08 strict original-vs-Windows 2P complete-route sparse raster
+
+# ONE offline independent comparator. Source production is finished and
+# immutable: original run 38781958316, Windows run 38783232271.
+# Compare exactly 263 paired 256x224 frames, no CPU/APU/guest edits or
+# new emulator farm. Authenticated divergence remains a successful science
+# result; never interpret "green" as a graphics release gate.
+on:
+  # Archived original/native capture is classified; explicit rechecks only.
+  # Avoid a PR research fanout for immutable historical source artifacts.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: qa08-two-player-archived-comparator-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  independent-source-pixel-adjudication:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download immutable genuine original Snes9x source
+        uses: actions/download-artifact@v4
+        with:
+          repository: gamesbyian/UR-Recomp
+          run-id: 38781958316
+          name: qa08-source-original-2p-authentic-race-result-return
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/original
+      - name: Download immutable native Windows PPU source
+        uses: actions/download-artifact@v4
+        with:
+          repository: gamesbyian/UR-Recomp
+          run-id: 38783232271
+          name: qa08-win32-original-2p-fullroute-raster
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/windows
+      - name: Reuse exact finished read-only PPU register-probe build
+        uses: actions/download-artifact@v4
+        with:
+          repository: gamesbyian/UR-Recomp
+          run-id: 38792715112
+          name: qa08-win32-original-2p-fullroute-raster
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/windows-register-probed
+      - name: Independently establish native register probe had no framebuffer or guest effect
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - "$RUNNER_TEMP/windows" "$RUNNER_TEMP/windows-register-probed" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,pathlib,sys
+          original=pathlib.Path(sys.argv[1])
+          probed=pathlib.Path(sys.argv[2])
+          old=json.loads((original/"qa08-windows-2p-fullroute.json").read_text())
+          new=json.loads((probed/"qa08-windows-2p-fullroute.json").read_text())
+          assert old["source_frame_P7_SHA256_by_guest"]==new["source_frame_P7_SHA256_by_guest"]
+          assert old["actual_native_guest_CRC_sha256"]==new["actual_native_guest_CRC_sha256"]
+          assert old["actual_native_simulations"]==new["actual_native_simulations"]==5484
+          assert old["actual_windows_PE_sha256"]!=new["actual_windows_PE_sha256"]
+          rows=new["read_only_native_PPU_registers"]["per_line_native_PPU_state"]
+          found={(r["actual_native_snes_frame"],r["ppu_line"]):r for r in rows}
+          assert len(rows)>=590
+          def value(frame,line,k):
+              assert (frame,line) in found
+              return found[frame,line][k]
+          assert [value(3683,y,"brightness") for y in (1,112,114)]==[15,0,7]
+          assert value(3683,1,"cgram_full_512_byte_FNV1a")=="e79794a9"
+          assert value(5184,1,"brightness")==14
+          assert value(5184,1,"cgadsub")=="7f"
+          assert value(5184,1,"cgram_full_512_byte_FNV1a")=="898ece20"
+          print("QA08_READONLY_PROBE_AUTHENTIC 263/263_PPU_hashes=identical guest_CRC=identical")
+          with open(sys.argv[3],"a",encoding="utf-8") as out:
+              out.write("Source-certified read-only Windows INIDISP/CGRAM probe: 263/263 source frame hashes and all 5484 guest CRCs match uninstrumented earlier candidate. Frame3683 upper/divider/lower brightness 15/0/7 vs original Snes9x 7/0/7. Results frame5184 native full CGRAM 898ece20 vs original e8cdbe60; this is a separate palette/phase blocker.\n")
+          PY
+      - name: Reject any altered source archive even when runner manifest is forged
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - "$RUNNER_TEMP/original" "$RUNNER_TEMP/windows" <<'PY'
+          import hashlib,json,pathlib,sys
+          original,native=map(pathlib.Path,sys.argv[1:])
+          x=json.loads((original/"qa08-original-2p-fullroute.json").read_text())
+          y=json.loads((native/"qa08-windows-2p-fullroute.json").read_text())
+          assert x["actual_script_quit_frame"] == y["actual_native_simulations"] == 5484
+          assert x["actual_callbacks_captured"] == y["actual_source_count"] == 263
+          assert x["original_core_binary_sha256"] == "aeb7076a59a2e3bc2a55bacb9559d53b146a665a2c86f52fd4447626c6601d43"
+          assert y["actual_windows_PE_sha256"] == "9107fe4e5e6515f161f4f3e666349def7f4b2f242a1837db32ac09c70d1c1ac9"
+          assert y["actual_native_guest_CRC_sha256"] == "c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876"
+          assert hashlib.sha256((original/"original.script").read_bytes()).hexdigest()=="a6c8815482b742d90dca61645f876c15918f5d9985a027eef107ac4fdc515264"
+          print("QA08_ORIGINAL_NATIVE_2P_PINNED real=1 original=263 native=263 guest=5484")
+          PY
+      - name: Run adversarial source tests and compare every pixel of every real frame
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest tests.unit.test_qa08_compare_windows_original_twoplayer_sparse
+          python tools/qa08_compare_windows_original_twoplayer_sparse.py \
+            --original-dir "$RUNNER_TEMP/original" \
+            --windows-dir "$RUNNER_TEMP/windows" \
+            --route "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p.txt" \
+            --out "$RUNNER_TEMP/qa08-windows-original-two-pad-source-result.json"
+          python - "$RUNNER_TEMP/qa08-windows-original-two-pad-source-result.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          r=json.load(open(sys.argv[1]))
+          with open(sys.argv[2],"a",encoding="utf-8") as o:
+              o.write("### Independent source-registered 2P full race/result raster\n")
+              o.write(f"Authentic source frames: {r['actual_original_source_callback_count']}. "
+                      f"Exact: {r['strict_exact_2P_sampled_frames']}; "
+                      f"divergent: {r['strict_divergent_2P_sampled_frames']}; "
+                      f"incorrect RGB5 pixels: {r['total_original_vs_windows_incorrect_RGB5_pixels']}.\n")
+              for name,group in r["source_scene_groups"].items():
+                  o.write(f"- {name}: {group['exact_frames']}/{group['real_frames']} exact, "
+                          f"{group['wrong_pixels']} wrong RGB5 pixels\n")
+              o.write("Research-only source pixels. No inferred event, guest instruction, OAM, hardware, HD art or release acceptance.\n")
+          PY
+      - name: Retain complete per-frame mismatch coordinates and exact sources
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-original-native-2p-all263-source-rgb5-verdict
+          retention-days: 7
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/qa08-windows-original-two-pad-source-result.json

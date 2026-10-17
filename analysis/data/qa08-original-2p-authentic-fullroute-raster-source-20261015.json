@@ -1,0 +1,35 @@
+{
+  "schema": "qa08-independent-original-2p-fullrace-raster-source-manifest/1",
+  "actual_original_emulator_run": 38781958316,
+  "original_artifact_id": 11996107746,
+  "original_whole_artifact_sha256": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+  "original_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_pinned_2014_snes9x_core_binary_sha256": "aeb7076a59a2e3bc2a55bacb9559d53b146a665a2c86f52fd4447626c6601d43",
+  "unaltered_original_twopad_route_LF_without_turbo_sha256": "a6c8815482b742d90dca61645f876c15918f5d9985a027eef107ac4fdc515264",
+  "original_guest_script_exit_frame": 5484,
+  "original_source_crop_or_mask": false,
+  "original_video_pixel_format": "real unmodified Snes9x BGRX expanded RGB565",
+  "source_logical_geometry": [
+    256,
+    224
+  ],
+  "actual_raster_callback_selection": {
+    "first": 1279,
+    "last": 5471,
+    "step": 16,
+    "count": 263
+  },
+  "actual_distinct_frames": 242,
+  "actual_scene_cohorts": {
+    "pre_GO_and_countdown": 46,
+    "moving_two_player_split_race": 195,
+    "finish_result_menu_return": 22
+  },
+  "two_player_gameplay_guest_phase_parity_proven": false,
+  "exact_actual_windows_source_PPU_comparison_proven": false,
+  "native_CPU_APU_or_modern_state_mutated": false,
+  "whole_2P_event_accepted": false,
+  "human_4x_remastered_likeness_approved": false,
+  "release_quality_ledger_gates_accepted": 0,
+  "source_only_provenance": "Genuine Snes9x one-run source, not a replacement Windows gameplay oracle. Future comparison must preserve actual callback frames and source-size 256x224 full RGB5 pixels."
+}

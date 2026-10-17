@@ -1,0 +1,104 @@
+name: QA-08 compiled V0 Windows first-line HDMA 1P/2P independent A/B
+# Actual original Snes9x and actual Windows source immutable. Never rebuild
+# emulator, mutate ROM/guest, or launch another screenshot campaign.
+on:
+  # Archived original/native capture is classified; explicit rechecks only.
+  # Avoid a PR research fanout for immutable historical source artifacts.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: qa08-native-v0-archived-ab-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  independent-full-frame-1p2p-archived-source-ab:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Original independent Snes9x 261-frame 1P source
+        uses: actions/download-artifact@v4
+        with:
+          repository: gamesbyian/UR-Recomp
+          run-id: 38703931370
+          name: qa08-original-1p-sparse-real-raster-window
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/original1
+      - name: Previously accepted 261-frame Windows 1P brightness-corrected source
+        uses: actions/download-artifact@v4
+        with:
+          repository: gamesbyian/UR-Recomp
+          run-id: 38792715112
+          name: qa08-win32-original-oneplayer-transition-source
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/old1
+      - name: Exact compiled new V0-corrected 261-frame real Win32 1P source
+        uses: actions/download-artifact@v4
+        with:
+          repository: gamesbyian/UR-Recomp
+          run-id: 38810338859
+          name: qa08-win32-original-oneplayer-transition-source
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/new1
+      - name: Independently executed original 263-frame moving two-player Snes9x source
+        uses: actions/download-artifact@v4
+        with:
+          repository: gamesbyian/UR-Recomp
+          run-id: 38781958316
+          name: qa08-source-original-2p-authentic-race-result-return
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/original2
+      - name: Prior 263-frame Windows 2P genuine pre-V0 source
+        uses: actions/download-artifact@v4
+        with:
+          repository: gamesbyian/UR-Recomp
+          run-id: 38783232271
+          name: qa08-win32-original-2p-fullroute-raster
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/old2
+      - name: Compiled new V0-corrected 263-frame Windows 2P source
+        uses: actions/download-artifact@v4
+        with:
+          repository: gamesbyian/UR-Recomp
+          run-id: 38810338859
+          name: qa08-win32-original-2p-fullroute-raster
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/new2
+      - name: Independently validate all 524 original/native callback sources and native regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/qa08_verify_v0_compiled_original_windows_ab.py \
+            --original1 "$RUNNER_TEMP/original1" \
+            --old1 "$RUNNER_TEMP/old1" \
+            --new1 "$RUNNER_TEMP/new1" \
+            --route1 "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_1p.txt" \
+            --original2 "$RUNNER_TEMP/original2" \
+            --old2 "$RUNNER_TEMP/old2" \
+            --new2 "$RUNNER_TEMP/new2" \
+            --route2 "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p.txt" \
+            --out "$RUNNER_TEMP/qa08-independent-V0-1P2P-raster-adjudication.json"
+          python - "$RUNNER_TEMP/qa08-independent-V0-1P2P-raster-adjudication.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          data=json.load(open(sys.argv[1]))
+          assert not data["full_2P_event_guest_phase_and_graphics_release_accepted"]
+          with open(sys.argv[2],"a",encoding="utf-8") as out:
+              out.write("### Actual Win32 compiled V0-HD HDMA source-pixel regression result\n")
+              out.write("All 261 1P source raster frames byte-identical to prior corrected Windows. ")
+              out.write(f"Two-player exact scenes {data['two_player']['before_exact']} → "
+                        f"{data['two_player']['after_exact']}/263, incorrect RGB5 pixels "
+                        f"{data['two_player']['before_wrong']:,} → {data['two_player']['after_wrong']:,}. ")
+              out.write("15 real finish-fade scenes improved, zero regressions, same 1P/2P guest CRC. ")
+              out.write("RGB5 source-parity is narrower than real display/widescreen/HD and release acceptance.\n")
+          PY
+      - name: Retain independent source-bound all-frame V0 experiment verdict
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-source-registered-windows-V0-all524-before-after
+          retention-days: 14
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/qa08-independent-V0-1P2P-raster-adjudication.json

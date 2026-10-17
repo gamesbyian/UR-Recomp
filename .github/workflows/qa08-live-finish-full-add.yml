@@ -1,0 +1,108 @@
+name: QA-08 independent live native finish full-add source verification
+
+# Source-only archived exact Win32 head e14e0be, genuinely completed 2P,
+# plus immutable 2014 Snes9x and old Windows P7 source and original CGRAM.
+# No new Windows AOT, ROM, SNES9x process or output pixel manipulation.
+on:
+  # Source corpora and pass results are SHA-pinned and 90-day retained;
+  # source emulator/Win32 rebuilding and archived math analysis are explicit opt-ins only.
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: qa08-live-finish-full-add-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  source-only:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.number == 1649 }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve independently built original/new/prior source ZIPs with exact SHA
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-finish" 
+          cd "$RUNNER_TEMP/qa08-finish"
+          for row in \
+            original:11996107746 \
+            previous:12074238115 \
+            live:12077523803 \
+            original-registers:12000438001; do
+            name="${row%:*}" id="${row#*:}"
+            curl --fail --silent --show-error --location --retry 2 \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/${id}/zip" -o "${name}.zip"
+          done
+          printf '%s\n' \
+            "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e  original.zip" \
+            "4f766de13c702a108279293df4613538d8b49cbd1ecbc0876533c5f01f09293c  previous.zip" \
+            "f467aaafc193e0b8e56934e6f505c10d60c3a4a1afa8727ffa376e5cdf7d53de  live.zip" \
+            "d5e08ad76137c86125f64d52b6d0dc689352375ab536f4c430238f3bc6d6908e  original-registers.zip" | sha256sum -c -
+          mkdir regs
+          unzip -q original-registers.zip -d regs
+      - name: Validate both native source frames and actual 2014 Snes9x pixel math
+        run: |
+          set -euo pipefail
+          python3 -m unittest tests.unit.test_qa08_live_finish_full_add
+          python3 tools/qa08_live_finish_full_add.py \
+            --live "$RUNNER_TEMP/qa08-finish/live.zip" \
+            --original "$RUNNER_TEMP/qa08-finish/original.zip" \
+            --previous "$RUNNER_TEMP/qa08-finish/previous.zip" \
+            --palette "$RUNNER_TEMP/qa08-finish/regs/registers/qa08_finish_fade.cgram.bin" \
+            --out "$RUNNER_TEMP/qa08-finish/full-add-verdict.json"
+          python3 - "$RUNNER_TEMP/qa08-finish/full-add-verdict.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          z=json.load(open(sys.argv[1]))
+          assert z["formerly_assumed_half_colour_math_disproved_by_live_CGADSUB_04"] is True
+          assert z["all_263_new_native_frame_hashes_equal_prior_source"] is True
+          assert z["reference_original_effective_pixel_layers_observed"] is False
+          assert not z["renderer_patch_authorized"]
+          assert len(z["two_live_native_finish_pixels"])==2
+          with open(sys.argv[2],"a") as h:
+              h.write("### Exact native main BG3 + sub OBJ full colour addition\n")
+              h.write("At both genuine Win32 2P finish fields x121 y165, observed RGB5 main (13,0,0) + OBJ sub (1,7,1) and INIDISP=07 CGADSUB=04. Historical palette-first FULL ADD yields (49,24,0) original; native FULL ADD before output brightness yields (57,24,0). The previous hypothetical HALF ADD interpretation is refuted for this real pixel. No independently observed original effective OBJ ownership/hardware DAC or release acceptance.\n")
+          PY
+
+      - name: Verify full authentic source archives contain no ROM, saves or personal state
+        run: |
+          set -euo pipefail
+          python3 - "$RUNNER_TEMP/qa08-finish" <<'PY'
+          import pathlib,sys,zipfile
+          root=pathlib.Path(sys.argv[1])
+          for label in ("original","previous","live","original-registers"):
+              with zipfile.ZipFile(root/f"{label}.zip") as archive:
+                  names=archive.namelist()
+                  assert names and len(names)==len(set(names))
+                  for name in names:
+                      low=name.lower()
+                      assert not name.startswith("/") and ".." not in pathlib.PurePosixPath(name).parts
+                      assert not low.endswith((".sfc",".smc",".srm",".sav",".rom",".nes",".gb",".zip"))
+                      assert not any(tok in low for tok in (
+                          "wram.bin","sram.bin","vram.bin","profile.json","user-data"))
+          print("QA08 original/full-add/Windows source archives ROM/SRAM/profile-free")
+          PY
+      - name: Preserve SHA-pinned current Win32 PPU owners and original sources for 90 days
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-source-finish-full-add-3-archives-90d
+          retention-days: 90
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/qa08-finish/original.zip
+            ${{ runner.temp }}/qa08-finish/previous.zip
+            ${{ runner.temp }}/qa08-finish/live.zip
+            ${{ runner.temp }}/qa08-finish/original-registers.zip
+            ${{ runner.temp }}/qa08-finish/full-add-verdict.json
+      - name: Retain negative/positive exact-source verdict only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-live-finish-full-add-discriminator
+          retention-days: 14
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/qa08-finish/full-add-verdict.json

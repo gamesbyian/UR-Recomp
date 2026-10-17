@@ -1,0 +1,70 @@
+name: QA-08 join true original and native medals OAM and live pixels
+
+# Three independently SHA-pinned actual source producers. No guest/core run,
+# no synthetic or remapped source, no renderer/time/modern/release ownership.
+on:
+  # Exact immutable source result already produced, accepted and archived;
+  # rerun by explicit request only. Never rebuild original/native on docs edits.
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: qa08-two-medal-original-native-source-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  source-join:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.number == 1649 }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get original callback, real Win32 and real original on-pixel source archives
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-join"
+          cd "$RUNNER_TEMP/qa08-join"
+          curl --fail --silent --show-error --location --retry 2 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12078940121/zip" -o complete-90day.zip
+          echo "6f88d5ca673bfaec075f19a766586b883f619580bbf279ebcb5cf019e5454d7d  complete-90day.zip" | sha256sum -c -
+          unzip -q complete-90day.zip -d source
+          curl --fail --silent --show-error --location --retry 2 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12078893794/zip" -o original-medal.zip
+          echo "05c82ce0131594ce5f2a4e2de6a3d4328bc80e8eb599cda618ea32c1685c25c2  original-medal.zip" | sha256sum -c -
+          (cd source; printf '%s\n' \
+            "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e  original.zip" \
+            "f467aaafc193e0b8e56934e6f505c10d60c3a4a1afa8727ffa376e5cdf7d53de  live.zip" | sha256sum -c -)
+      - name: Strict original Snes9x Mode3 and native pixel/OAM adjudication
+        run: |
+          set -euo pipefail
+          python3 -m unittest tests.unit.test_qa08_original_medal_native_layer_join
+          python3 tools/qa08_original_medal_native_layer_join.py \
+            --original "$RUNNER_TEMP/qa08-join/source/original.zip" \
+            --native "$RUNNER_TEMP/qa08-join/source/live.zip" \
+            --original-medal "$RUNNER_TEMP/qa08-join/original-medal.zip" \
+            --out "$RUNNER_TEMP/qa08-join/qa08-medal-original-native-real-owners.json"
+          python3 - "$RUNNER_TEMP/qa08-join/qa08-medal-original-native-real-owners.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          z=json.load(open(sys.argv[1]))
+          assert z["total_genuine_corresponding_source_pixels"]==10
+          assert z["number_of_original_native_main_layer_disagreements"]==4
+          assert z["OAM_slot_count_verified"]==14
+          assert not z["global_sprite_tile_plus_minus_two_patch_authorized"]
+          with open(sys.argv[2],"a") as o:
+              o.write("Authentic original callbacks4031/4175 and real Win32 guest4032/4176: two repeated medal pixels have different BG1/OBJ main-layer winners, other three positions maintain OBJ but show different pixel colours. Seven OAM slots across both frames retain XY/palette/priority, with observed tile deltas +2/0/-2 by slot. This is not an authorized renderer or guest correction.\n")
+          PY
+      - name: Retain original/native source-layer verdict 90 days
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-source-medal-original-native-ppu-owners-90d
+          retention-days: 90
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/qa08-join/qa08-medal-original-native-real-owners.json
+            ${{ runner.temp }}/qa08-join/original-medal.zip

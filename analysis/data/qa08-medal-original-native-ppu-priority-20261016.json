@@ -1,0 +1,146 @@
+{
+  "schema": "qa08-independent-original-Snes9x-native-Win32-two-medal-effective-layers-and-OAM/1",
+  "date": "2026-10-16",
+  "status": "source_accepted_on_ten_PPU_pixels_and_fourteen_OAM_slot_records_only",
+  "original_Snes9x_source_callback_frames": [
+    4031,
+    4175
+  ],
+  "correct_native_guest_fields": [
+    4032,
+    4176
+  ],
+  "source_exact_image_geometry": [
+    256,
+    224
+  ],
+  "source_original_263image_archive_sha256": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+  "source_original_10pixel_14OAM_producer_artifact_id": 12078893794,
+  "source_original_10pixel_14OAM_zip_sha256": "05c82ce0131594ce5f2a4e2de6a3d4328bc80e8eb599cda618ea32c1685c25c2",
+  "native_exact_win32_263image_archive_sha256": "f467aaafc193e0b8e56934e6f505c10d60c3a4a1afa8727ffa376e5cdf7d53de",
+  "guest_CRC_5484_sha256": "c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876",
+  "source_read_only_unmodified_original_263_images_verified": true,
+  "real_compiled_windows_263_source_images_verified": true,
+  "original_2014_mode3_depths": "main OBJ priority1 Z40; BG1 low Z39",
+  "native_PPU_layer_code_BG1": 0,
+  "native_PPU_layer_code_OBJ": 4,
+  "native_PPU_layer_code_backdrop": 5,
+  "five_real_source_registered_locations": [
+    {
+      "xy": [
+        207,
+        91
+      ],
+      "original_main": "OBJ priority1",
+      "native_main": "BG1",
+      "original_RGB5_expanded": [
+        115,
+        57,
+        74
+      ],
+      "native_RGB8": [
+        115,
+        115,
+        115
+      ]
+    },
+    {
+      "xy": [
+        205,
+        115
+      ],
+      "original_main": "OBJ priority1",
+      "native_main": "OBJ",
+      "original_RGB5_expanded": [
+        115,
+        57,
+        74
+      ],
+      "native_RGB8": [
+        132,
+        49,
+        24
+      ]
+    },
+    {
+      "xy": [
+        205,
+        139
+      ],
+      "original_main": "BG1 low priority",
+      "native_main": "OBJ",
+      "original_RGB5_expanded": [
+        132,
+        132,
+        132
+      ],
+      "native_RGB8": [
+        115,
+        57,
+        74
+      ]
+    },
+    {
+      "xy": [
+        225,
+        96
+      ],
+      "original_main": "OBJ priority1",
+      "native_main": "OBJ",
+      "original_RGB5_expanded": [
+        206,
+        189,
+        140
+      ],
+      "native_RGB8": [
+        132,
+        123,
+        107
+      ]
+    },
+    {
+      "xy": [
+        225,
+        120
+      ],
+      "original_main": "OBJ priority1",
+      "native_main": "OBJ",
+      "original_RGB5_expanded": [
+        206,
+        189,
+        140
+      ],
+      "native_RGB8": [
+        132,
+        123,
+        107
+      ]
+    }
+  ],
+  "identical_pattern_in_original_callbacks_both_frames": true,
+  "total_correct_corresponding_pixel_pairs": 10,
+  "main_owner_different_in_four_pairs": true,
+  "original_and_native_sprite_xy_palette_priority_same_all_14_slots": true,
+  "native_minus_original_OAM_tile_delta_per_slot": {
+    "96": 2,
+    "97": 2,
+    "98": 0,
+    "99": 0,
+    "112": -2,
+    "113": -2,
+    "114": -2
+  },
+  "whole_original_DMA_image_matches_native_source_input_at_host_minus_2_independently_documented": true,
+  "corresponding_independent_actions_run": 38977985459,
+  "accepted_green_source_join": true,
+  "durable_artifact_id": 12079507817,
+  "artifact_sha256": "5765d54db67d427fbeb203489dd23c981e1711e5865c0980241421a48653687c",
+  "retention_until_utc": "2027-01-14T22:49:14Z",
+  "archive_contains_original_observer_source_zip": true,
+  "source_RBG_colour_math_order_not_sufficient_to_explain_owners": true,
+  "all_296_medal_positions_priority_or_VRAM_resolved": false,
+  "actual_CPU_NMI_OAM_frame_phase_root_cause_proven": false,
+  "global_tile_index_change_authorized": false,
+  "native_sprite_renderer_fix_authorized": false,
+  "release_QA08_10_or_HD_art_owner_accepted": false
+}

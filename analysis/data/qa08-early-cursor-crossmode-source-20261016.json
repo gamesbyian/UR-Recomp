@@ -1,0 +1,122 @@
+{
+  "schema": "qa08-two-independent-original-native-early-menu-cursor-source-rgb5/1",
+  "status": "observed_original_vs_compiled_Windows_1P_and_2P_shared_cursor_colour_discrepancy_no_correction_authorized",
+  "captured_2026_10_16_from_immutable_sources": true,
+  "authentic_original_video_frame_registration": "original_callback=Windows_guest-1; no frame search",
+  "original_color_conversion": "BGRX 2014 Snes9x green6_to5_only, native actual 256x224 P7 RGBA",
+  "no_cropping_masking_shifting_recoloring_or_inferred_frames": true,
+  "usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "source_ZIP_sha256": {
+    "oneplayer_original_Snes9x": "1b2fb01338380dc7e4d093ccbb0a5778bd04388945ee0bc7eb5b910d4de3ca59",
+    "oneplayer_compiled_Windows": "db0dc0aacde50503aee0cdbe8047dc22ef1550233afd83c4c69fa27099f1d005",
+    "twoplayer_original_Snes9x": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+    "twoplayer_compiled_Windows": "f01ab5a4888c227f306a0b9cd89e67710a4b41cad4c22867072280a17811fa82"
+  },
+  "real_capture_frame_guests": [
+    1280,
+    1664,
+    16
+  ],
+  "source_pairs_verified_per_mode": 25,
+  "unmasked_pixel_count_per_source_frame": 57344,
+  "pixels_compared_1p_plus_2p": 2867200,
+  "oneplayer": {
+    "wrong_pixel_counts_by_native_guest_frame": [
+      254,
+      166,
+      254,
+      122,
+      132,
+      122,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "first_divergent_native_guest": 1280,
+    "first_divergent_pixels": 254,
+    "first_divergent_bounding_box_xyxy": [
+      54,
+      193,
+      85,
+      210
+    ],
+    "total_wrong_RGB5_pixels_in_bounded_window": 1050,
+    "nonzero_in_first_six_samples_only": true
+  },
+  "twoplayer": {
+    "wrong_pixel_counts_by_native_guest_frame": [
+      245,
+      166,
+      243,
+      186,
+      254,
+      186,
+      254,
+      166,
+      243,
+      166,
+      260,
+      209,
+      282,
+      108,
+      254,
+      166,
+      254,
+      122,
+      132,
+      122,
+      132,
+      166,
+      171,
+      0,
+      0
+    ],
+    "first_divergent_native_guest": 1280,
+    "first_divergent_pixels": 245,
+    "first_divergent_bounding_box_xyxy": [
+      32,
+      65,
+      63,
+      80
+    ],
+    "total_wrong_RGB5_pixels_in_bounded_window": 4487,
+    "nonzero_in_first_23_samples_only": true,
+    "first_2p_moving_sample_1648_exact": true
+  },
+  "most_frequent_exact_original_to_native_color_substitution": {
+    "original_RGB5_expanded": [
+      90,
+      74,
+      82
+    ],
+    "compiled_Windows_RGBA_rgb": [
+      90,
+      66,
+      74
+    ],
+    "occurrences_1p": 480,
+    "occurrences_2p": 3035
+  },
+  "isolated_early_differences_in_menu_cursor_not_other_background": true,
+  "original_native_CGRAM_palette_words_math_flags_and_effective_sprite_priority_proven": false,
+  "cpu_instruction_or_camera_phase_certified": false,
+  "source_colour_remap_or_renderer_fix_admitted": false,
+  "unrelated_SNESRecomp_global_change_admitted": false,
+  "qa08_qa10_release_and_HD_racer_likeness_accepted": false
+}

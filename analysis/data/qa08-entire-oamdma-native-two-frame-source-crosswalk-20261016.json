@@ -1,0 +1,152 @@
+{
+  "schema": "qa08-original-native-four-complete-OAMDMA-input-phase-crosswalk/2",
+  "issued": "2026-10-16",
+  "source_authentic_2014_snes9x_correct_postrun_artifact": 12032487428,
+  "source_actual_Win32_native_OAM_port_artifact": 12033679969,
+  "pinned_archives": {
+    "original_SHA256": "2fef0440b97a69025bf9ee539551b414ef7f1f11978172aea5565f338b35d4c9",
+    "native_SHA256": "74fd88413c2a1cac2c14098c65b76fba4cdba909f989182618018d9a68a04888",
+    "legacy_source_original_OAM_SHA256": "7a506cfc5f44bd8cc6aaba8482f42140b51618ba14aedec8f9bc7558417ad4b2"
+  },
+  "native_guest_full_5484_CRC_SHA256": "c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876",
+  "original_postrun_video_registration": "original host postrun f = callback f-1; do not conflate same numbered image producers",
+  "validated_native_host_DMA_fields": [
+    4029,
+    4030,
+    4031,
+    4032,
+    4033,
+    4034,
+    4173,
+    4174,
+    4175,
+    4176,
+    4177,
+    4178
+  ],
+  "full_original_to_native_payload_matches": [
+    {
+      "original_postrun": 4031,
+      "original_video_callback": 4030,
+      "native_DMA_source_host_frame": 4029,
+      "delta_native_minus_original": -2,
+      "matched_bytes": 544,
+      "all_OAM_SHA256": "50cb34e03ed33faed97730792ba12a8aeab5fdff3d3cec15e4bb411d5640501e",
+      "slot_tile_bytes": {
+        "96": "cc",
+        "97": "cc",
+        "98": "e6",
+        "99": "e6",
+        "112": "a2",
+        "113": "a4",
+        "114": "a6"
+      }
+    },
+    {
+      "original_postrun": 4032,
+      "original_video_callback": 4031,
+      "native_DMA_source_host_frame": 4030,
+      "delta_native_minus_original": -2,
+      "matched_bytes": 544,
+      "all_OAM_SHA256": "9bd5f6e704e15237c5f8e9758098be9c7807970b9a5d14e0b3ff47dd59ca6120",
+      "slot_tile_bytes": {
+        "96": "cc",
+        "97": "cc",
+        "98": "e6",
+        "99": "e6",
+        "112": "a2",
+        "113": "a4",
+        "114": "a6"
+      }
+    },
+    {
+      "original_postrun": 4175,
+      "original_video_callback": 4174,
+      "native_DMA_source_host_frame": 4173,
+      "delta_native_minus_original": -2,
+      "matched_bytes": 544,
+      "all_OAM_SHA256": "3e5a91d8612d562aaac1a2787c7a58bd55d26ca40006ce57e7d40cda2ef950e0",
+      "slot_tile_bytes": {
+        "96": "cc",
+        "97": "cc",
+        "98": "e2",
+        "99": "e2",
+        "112": "a2",
+        "113": "a4",
+        "114": "a6"
+      }
+    },
+    {
+      "original_postrun": 4176,
+      "original_video_callback": 4175,
+      "native_DMA_source_host_frame": 4174,
+      "delta_native_minus_original": -2,
+      "matched_bytes": 544,
+      "all_OAM_SHA256": "8a7f8bd9bba818d3d2f2adc157f5023d9ef510008046ae8eabec2553d5a1e4f3",
+      "slot_tile_bytes": {
+        "96": "cc",
+        "97": "cc",
+        "98": "e2",
+        "99": "e2",
+        "112": "a2",
+        "113": "a4",
+        "114": "a6"
+      }
+    }
+  ],
+  "native_source_2102_2103_2104_order_and_544_low_high_OAM_bytes_verified": true,
+  "original_source_VBlank_OAMDMA_matches_original_OAM_memory": true,
+  "at_same_original_native_host_labels_medal_tiles_differ": true,
+  "identical_whole_OAM_seen_in_native_two_host_fields_earlier": true,
+  "native_guest_DMA_WRAM_and_NMI_causal_source_verified": false,
+  "original_native_CPU_instruction_and_beam_equivalence": false,
+  "graphics_renderer_or_sprite_offset_correction_authorized": false,
+  "complete_event_or_physical_release_QA08_QA10_approved": false,
+  "legacy_2014_original_OAM_host_capture_artifact": 12030581890,
+  "genuine_full_OAM_matched_pairs": 4,
+  "old_host_fields_4031_4175_valid_as_OAM_but_not_same_label_original_video_callbacks": true,
+  "four_separate_544_byte_input_payload_matches_minus_two_native_host_frame_labels": true,
+  "native_port_to_live_OAM_observer_coherence": {
+    "actual_native_raster_guest_frames": [
+      4032,
+      4176
+    ],
+    "source_selected_output_pixel_locations": [
+      [
+        207,
+        91
+      ],
+      [
+        205,
+        115
+      ],
+      [
+        205,
+        139
+      ],
+      [
+        225,
+        96
+      ],
+      [
+        225,
+        120
+      ]
+    ],
+    "actual_monitored_OAM_slots": [
+      96,
+      97,
+      98,
+      99,
+      112,
+      113,
+      114
+    ],
+    "full_source_DMA_bytes_per_native_guest": 544,
+    "actual_native_line_OAM_records_source_DMA_identical": 70,
+    "native_legacy_OAM_register_port_to_render_buffer_coherent_at_tested_lines": true,
+    "original_native_guest_CPU_beam_phase_equivalence_accepted": false,
+    "effective_original_PPU_final_pixel_priority_accepted": false,
+    "renderer_sprite_palette_or_tile_shift_fix_authorized": false
+  }
+}

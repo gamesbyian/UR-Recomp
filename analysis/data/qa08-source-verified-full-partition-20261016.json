@@ -1,0 +1,94 @@
+{
+  "schema": "qa08-recomputed-source-pinned-full-raster-sparse-residual-partition/1",
+  "source_pixel_geometry": [
+    256,
+    224
+  ],
+  "source_pixels_per_frame": 57344,
+  "source_original_native_frame_hashes_verified": 524,
+  "original_snes9x_callback_for_native_guest": "f-1 precommitted; no frame search",
+  "original_colour_normalization": "green6_to_green5 only; no mask, crop, shift, recolour",
+  "oneplayer": {
+    "frames": 261,
+    "exact": 162,
+    "incorrect_RGB5_pixels": 19153,
+    "opening_cursor_pixels": 1050,
+    "finish_cursor_pixels": 520,
+    "results_cursor_pixels": 17583,
+    "moving_race_pixel_errors": 0
+  },
+  "twoplayer": {
+    "frames": 263,
+    "exact": 203,
+    "incorrect_RGB5_pixels": 385373,
+    "opening_cursor_pixels": 4487,
+    "finish_pixels": 2,
+    "blackout_pixels": 54709,
+    "four_gray_CGRAM_signature_pixels": 318775,
+    "result_medal_pixel_errors": 7400,
+    "non_gray_medal_mask_SHA256": "8b83bed21e2ff70ca279f993f4256e1edd64ad8f1edb657ee87554527e0594be",
+    "gray_frames_with_same_296_pixel_medal_mask": [
+      4176,
+      4512,
+      4848,
+      5184
+    ],
+    "21_distinct_results_frames_with_same_mask": [
+      4032,
+      4080,
+      4128,
+      4224,
+      4272,
+      4320,
+      4368,
+      4416,
+      4464,
+      4560,
+      4608,
+      4656,
+      4704,
+      4752,
+      4800,
+      4896,
+      4944,
+      4992,
+      5040,
+      5088,
+      5136
+    ]
+  },
+  "source_archives": {
+    "oneplayer": {
+      "original": "1b2fb01338380dc7e4d093ccbb0a5778bd04388945ee0bc7eb5b910d4de3ca59",
+      "windows": "db0dc0aacde50503aee0cdbe8047dc22ef1550233afd83c4c69fa27099f1d005"
+    },
+    "twoplayer": {
+      "original": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+      "windows": "f01ab5a4888c227f306a0b9cd89e67710a4b41cad4c22867072280a17811fa82"
+    }
+  },
+  "source_accepted_as_full_CPU_APU_camera_frame_phase": false,
+  "effective_final_pixel_OBJ_window_and_colour_math_ownership_proven": false,
+  "released_or_HDriver_art_likeness_approved": false,
+  "palette_only_hypothesis": {
+    "opening_oneplayer_guest1280": {
+      "single_valued_wrong_RGB5_map": true,
+      "wrong_pixels_original_colour_unchanged_elsewhere": 233
+    },
+    "opening_twoplayer_guest1280": {
+      "single_valued_wrong_RGB5_map": true,
+      "wrong_pixels_original_colour_unchanged_elsewhere": 196
+    },
+    "result_medal_21_frames_single_RGB5_LUT_impossible": true,
+    "inconsistent_wrong_pixels_per_medal_frame_distribution": {
+      "290": 5,
+      "294": 16
+    },
+    "each_medal_frame_wrong_pixels": 296,
+    "each_medal_frame_distinct_original_RGB5_with_multiple_wrong_outputs": 28,
+    "each_medal_frame_wrong_pixels_same_colour_unchanged_elsewhere": 267,
+    "max_different_native_RGB5_for_same_original_RGB5": 8,
+    "per_sprite_index_or_priority_or_math_cause_adjudicated": false,
+    "global_palette_recolouring_admitted": false
+  }
+}

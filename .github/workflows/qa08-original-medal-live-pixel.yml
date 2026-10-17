@@ -1,0 +1,135 @@
+name: QA-08 original 2P results medal live PPU and sprite source
+
+# Read-only ORIGINAL 2014 source callback pixels; certified baseline 263/263.
+# Do not conflate libretro callback f with snesref postrun host do_dump(f).
+on:
+  # The original 263-image SHA-verified medal witness is completed;
+  # rebuilding the historical core is now an explicit bounded opt-in.
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: qa08-original-medal-source-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  original-medal-readonly:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.number == 1649 }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+      - name: Check original-USA ROM, guest pins and unchanged real two-pad route
+        run: |
+          set -euo pipefail
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          echo "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478  reference/roms/retail/Uniracers_USA.sfc" | sha256sum -c -
+          cmp baldosa/tests/routes/race_2p.txt reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p.txt
+          python3 -m unittest tests.unit.test_qa08_patch_original_medal_callback
+          mkdir -p "$RUNNER_TEMP/qa08-original-medal/frames"
+          grep -v '^turbo ' baldosa/tests/routes/race_2p.txt > "$RUNNER_TEMP/qa08-original-medal/original.script"
+      - name: Build pinned disposable 2014 Snes9x with read-only on-video-callback probe
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends build-essential cmake pkg-config libsdl2-dev
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          python3 tools/qa08_patch_original_medal_callback.py \
+            "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/libretro.cpp" --apply
+          make -C "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro" -j 2
+          cmake -S baldosa/snesrecomp/tools/snesref -B "$RUNNER_TEMP/qa08-medal-snesref" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/qa08-medal-snesref" -j 2
+      - name: Capture exact original 4031 and 4175 screen and PPU state
+        run: |
+          set -euo pipefail
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$RUNNER_TEMP/qa08-original-medal/original.script" \
+          SNESREF_DUMP_DIR="$RUNNER_TEMP/qa08-original-medal" \
+          SNESREF_FRAME_DUMP_DIR="$RUNNER_TEMP/qa08-original-medal/frames" \
+          SNESREF_FRAME_DUMP_NATIVE=1 SNESREF_FRAME_DUMP_FROM=1279 \
+          SNESREF_FRAME_DUMP_TO=9503 SNESREF_FRAME_DUMP_STEP=16 \
+          UR_QA08_ORIGINAL_MEDAL_PIXELS=2p-4031-4175 \
+          timeout 240 "$RUNNER_TEMP/qa08-medal-snesref/snesref" \
+            "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            > "$RUNNER_TEMP/qa08-original-medal/original.log" 2>&1
+          python3 tools/qa08_original_twoplayer_fullroute_manifest.py \
+            --frames "$RUNNER_TEMP/qa08-original-medal/frames" \
+            --script "$RUNNER_TEMP/qa08-original-medal/original.script" \
+            --log "$RUNNER_TEMP/qa08-original-medal/original.log" \
+            --rom reference/roms/retail/Uniracers_USA.sfc \
+            --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            --out "$RUNNER_TEMP/qa08-original-medal/new-original-2p-manifest.json"
+      - name: Independently require all 263 original 256x224 images unchanged
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 2 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/11996107746/zip" \
+            -o "$RUNNER_TEMP/qa08-original-medal/original-immutable.zip"
+          echo "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e  $RUNNER_TEMP/qa08-original-medal/original-immutable.zip" | sha256sum -c -
+          python3 - "$RUNNER_TEMP/qa08-original-medal" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import hashlib,json,pathlib,re,sys,zipfile
+          root=pathlib.Path(sys.argv[1])
+          report=json.loads((root/"new-original-2p-manifest.json").read_text())
+          assert report["actual_callbacks_captured"]==263
+          assert report["capture_selection"]==[1279,5471,16]
+          with zipfile.ZipFile(root/"original-immutable.zip") as original:
+              for cb in range(1279,5472,16):
+                  key=f"frames/frame_{cb:06d}_256x224.raw"
+                  a,b=original.read(key),(root/key).read_bytes()
+                  assert a==b and len(a)==256*224*4, f"changed authentic source video callback {cb}"
+          text=(root/"original.log").read_text(errors="replace")
+          pix=[s for s in text.splitlines() if s.startswith("QA08_ORIGINAL_MEDAL_PIXEL ")]
+          oam=[s for s in text.splitlines() if s.startswith("QA08_ORIGINAL_MEDAL_OAM ")]
+          assert len(pix)==10 and len(oam)==14,(len(pix),len(oam))
+          def parse(line):
+              return dict(re.findall(r"([A-Za-z_0-9]+)=([A-Za-z0-9_-]+)",line))
+          px=[parse(s) for s in pix]
+          om=[parse(s) for s in oam]
+          expected=[(207,91),(205,115),(205,139),(225,96),(225,120)]
+          for i,cb in enumerate((4031,4175)):
+              chosen=px[5*i:5*(i+1)]
+              assert all(int(r["callback"])==cb and int(r["cpu_frame"])==cb and int(r["total_emulated"])==cb+1 for r in chosen)
+              assert [(int(r["x"]),int(r["y"])) for r in chosen]==expected
+              assert all(int(r["brightness"])==14 and r["CGADSUB"].lower()=="7f" for r in chosen)
+              assert [(int(r["slot"])) for r in om[7*i:7*i+7]]==[96,97,98,99,112,113,114]
+          output={
+              "schema":"qa08-original-2014-two-results-medal-scanline-ppu-depth-oam/1",
+              "actual_original_video_callbacks":[4031,4175],
+              "native_correctly_registered_guest_frames":[4032,4176],
+              "observed_original_pixel_coordinates":[list(x) for x in expected],
+              "original_pixels":px,"original_oam_slots":om,
+              "original_263_callback_images_exact_against_untouched_source":True,
+              "original_guest_or_ppu_modified":False,
+              "does_not_prove_equivalent_CPU_APU_instruction_cycle":True,
+              "no_art_sprite_patches_or_release_gate":True
+          }
+          (root/"qa08-original-live-medal-pixels.json").write_text(json.dumps(output,indent=2)+"\n")
+          with open(sys.argv[2],"a") as o:
+              o.write("Original 2014 effective PPU main/sub depth at 10 medal pixels and exact 14 live OAM slot entries; all 263 source images unmodified. No source timing or render correction automatically authorized.\n")
+          PY
+      - name: Retain bounded original medal depth/OAM evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-original-2014-correct-medal-live-pixels
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa08-original-medal/qa08-original-live-medal-pixels.json
+            ${{ runner.temp }}/qa08-original-medal/new-original-2p-manifest.json
+            ${{ runner.temp }}/qa08-original-medal/original.log

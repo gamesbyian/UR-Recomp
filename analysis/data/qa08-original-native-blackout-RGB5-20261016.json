@@ -1,0 +1,48 @@
+{
+  "schema": "qa08-real-original-native-2P-blackout-RGB5-replayed/1",
+  "source_and_windows_color_frame_comparison": "strict_unmasked_256x224_RGB5_fixed_original_callback_equals_Windows_guest_minus_one",
+  "independent_run_id": 38834869549,
+  "independent_artifact_id": 12018662540,
+  "independent_artifact_zip_sha256": "341d52bd7e3f63a3e7556260911097e9dc508618e901000562350cd5d7c3025c",
+  "original_complete_2P_raster_ZIP_sha256": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+  "original_source_2100_register_ZIP_sha256": "8d7b3a65b8b40bb24ac39fb0b5c87c93d44cba3b6e189126f00604b5fa6818d6",
+  "actual_Windows_original_mode_2P_ZIP_sha256": "4b55a33917a5941e87d507ceb8af01391c01fc4574a2543fab3f0b3cf35402f0",
+  "real_original_source_frame_hashes_authenticated": 263,
+  "real_native_Windows_source_frame_hashes_authenticated": 263,
+  "source_original_callback_4015_exact_pixels_all_black": 57344,
+  "native_guest_frame_4016_incorrect_RGB5_pixels": 54709,
+  "scene_control_errors": {
+    "3984": 0,
+    "4000": 0,
+    "4016": 54709,
+    "4032": 296,
+    "4048": 0,
+    "4064": 24346,
+    "4080": 296,
+    "4096": 0
+  },
+  "original_INIDISP_by_original_frame": {
+    "4015": "80",
+    "4016": "80",
+    "4017": "02"
+  },
+  "actual_native_INIDISP_by_Windows_frame": {
+    "4015": "80",
+    "4016": "02",
+    "4017": "04"
+  },
+  "original_INIDISP_CPU_ladder": "4017..4023 writes 02,04,06,08,0A,0C,0E",
+  "original_beam_vcounter_by_write_frame": {
+    "4017": 230,
+    "4018": 230,
+    "4019": 230,
+    "4020": 230,
+    "4021": 230,
+    "4022": 230,
+    "4023": 231
+  },
+  "native_guest_CPU_port_writer_frame_independent_match": false,
+  "native_renderer_or_global_brightness_patch_accepted": false,
+  "release_ledger_QA08_10_and_HD_racer_likeness_approved": false,
+  "archived_research_workflow_manual_only": true
+}

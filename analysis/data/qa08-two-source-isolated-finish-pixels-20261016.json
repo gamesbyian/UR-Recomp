@@ -1,0 +1,117 @@
+{
+  "schema": "qa08-certified-2014-snes9x-original-vs-real-win32-two-rare-finish-pixels/1",
+  "status": "source_pixels_certified_PPU_color_math_cause_not_adjudicated",
+  "date": "2026-10-16",
+  "real_2014_original": {
+    "run_id": 38781958316,
+    "artifact_id": 11996107746,
+    "whole_zip_sha256": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+    "frame_callback_for_native_guest": "guest-1",
+    "full_source_size": [
+      256,
+      224
+    ]
+  },
+  "real_native_windows": {
+    "graphics_head_at_capture": "b8722af070c2e57747c6b0bdb6119d1b5cbed63e",
+    "run_id": 38963502076,
+    "archive_id": 12074238115,
+    "whole_zip_sha256": "4f766de13c702a108279293df4613538d8b49cbd1ecbc0876533c5f01f09293c",
+    "exe_sha256": "29431b073fd550e29b908f4e1d20fe9ee46b357b7a3e73b4fa21a224fa0dbf08",
+    "full_5484_guest_CRC_sha256": "c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876"
+  },
+  "proof": {
+    "archive_only_source_comparator": "tools/qa08_two_isolated_finish_pixels.py",
+    "adversarial_unit": "tests/unit/test_qa08_two_isolated_finish_pixels.py",
+    "workflow": "qa08-two-finish-pixels-archive.yml",
+    "run_id": 38972067222,
+    "artifact_id": 12077187899,
+    "artifact_sha256": "e2f501666f5847dc43ab5ff85acc72fb6ec5237ba363763867a03409ae95a892",
+    "retained_90day_nested_original_and_windows_id": 12075111053,
+    "retained_outer_zip_sha256": "3475ee87b5b20768f9377d8d1c787927955c33ee6d4388dae008f5486a81370e",
+    "original_sampled_frames": 263,
+    "source_pixels_compared": 15081472,
+    "strict_original_native_exact_frames": 203,
+    "strict_other_wrong_RGB5_pixels": 385371,
+    "original_rgb5_expanded_special_color": [
+      49,
+      24,
+      0
+    ],
+    "number_of_original_source_pixels_with_that_colour_in_all_263_frames": 2,
+    "original_colour_global_positions": [
+      [
+        3792,
+        121,
+        165
+      ],
+      [
+        3872,
+        121,
+        165
+      ]
+    ],
+    "finish_pixel_samples": [
+      {
+        "native_guest": 3792,
+        "original_callback": 3791,
+        "x": 121,
+        "y": 165,
+        "original_RGB5_expanded": [
+          49,
+          24,
+          0
+        ],
+        "actual_windows_RGB8": [
+          57,
+          24,
+          0
+        ],
+        "all_other_57343_source_pixels_exact": true,
+        "previous_and_next_guest_fields": [
+          3776,
+          3808
+        ]
+      },
+      {
+        "native_guest": 3872,
+        "original_callback": 3871,
+        "x": 121,
+        "y": 165,
+        "original_RGB5_expanded": [
+          49,
+          24,
+          0
+        ],
+        "actual_windows_RGB8": [
+          57,
+          24,
+          0
+        ],
+        "all_other_57343_source_pixels_exact": true,
+        "previous_and_next_guest_fields": [
+          3856,
+          3888
+        ]
+      }
+    ],
+    "source_5x5_neighbourhoods_in_retained_artifact": true,
+    "source_verified_original_GREEN6_to_GREEN5_only": true,
+    "source_current_native_all_263_P7_images_equal_to_prior_native_263": true,
+    "no_frame_offset_search_or_synthetic_frame": true,
+    "no_spatial_transform_mask_or_global_recolour": true
+  },
+  "interpretation": {
+    "source_image_location": "lower split-screen unicycle during PULL STUNT and WINNER visible scenes; visual registration only",
+    "repeated_identical_original_to_native_one_level_red_RGB5_difference": true,
+    "source_live_original_PPU_BG_OBJ_window_math_owner_accepted": false,
+    "source_live_native_PPU_BG_OBJ_window_math_owner_accepted": false,
+    "reference_Snes9x_2014_equivalent_to_physical_DAC_unproven": true,
+    "global_palette_LUT_ruled_out_by_only_this_colormap": false,
+    "gameplay_CPU_APU_frame_equivalence_accepted": false,
+    "code_fix_approved": false,
+    "graphics_QA08_QA10_release_ledger_credit": false,
+    "next_native_probe": "graphics draft #1641 stage read-only same-Pixel native PPU registers and live BG/OBJ/half-math at two exact guest labels, preserve existing 11 point and 70 OAM witnesses, source 263 image hashes, 5484 CRC",
+    "stop": "No source pixel recolor, tile swap, time shift or physical hardware claim until effective original compositor layer evidence distinguishes historical emulator math"
+  }
+}

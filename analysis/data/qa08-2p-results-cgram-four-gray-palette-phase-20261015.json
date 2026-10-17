@@ -1,0 +1,67 @@
+{
+  "schema": "qa08-native-original-2p-results-CGRAM-four-colour-cyclic-rotation/1",
+  "status": "source_registered_raster_palette_phase_divergence_not_a_fix",
+  "actual_original_source_run": 38781958316,
+  "actual_windows_native_source_run": 38783232271,
+  "source_callback_to_native_frame": "original source callback=windows guest-1",
+  "pixels_compared_at_every_frame": 57344,
+  "actual_2P_result_geometry": [
+    256,
+    224
+  ],
+  "no_shifting_cropping_interpolation_or_216_high": true,
+  "source_original_5184_CGRAM_512byte_FNV1a": "e8cdbe60",
+  "actual_windows_5184_CGRAM_512byte_FNV1a": "898ece20",
+  "original_and_windows_5184_INIDISP_brightness": 14,
+  "original_and_windows_5184_CGADSUB": "7f",
+  "actual_native_gray_to_original_expanded_RGB8": {
+    "123": 132,
+    "132": 140,
+    "140": 165,
+    "165": 123
+  },
+  "per_scene_wrong_gray_pixel_counts": {
+    "4064": {
+      "123→132": 8294,
+      "140→165": 7900,
+      "165→123": 4127,
+      "132→140": 4025,
+      "gray_wrong": 24346
+    },
+    "4176": {
+      "123→132": 8279,
+      "140→165": 7967,
+      "165→123": 4108,
+      "132→140": 4061,
+      "gray_wrong": 24415
+    },
+    "5184": {
+      "123→132": 8282,
+      "140→165": 7900,
+      "165→123": 4126,
+      "132→140": 4028,
+      "gray_wrong": 24336
+    },
+    "5408": {
+      "123→132": 8264,
+      "140→165": 8164,
+      "165→123": 4132,
+      "132→140": 4076,
+      "gray_wrong": 24636
+    }
+  },
+  "stability": "same four gray substitutions recur on 112-frame result animation phase, while nearby source frames have precise background composition",
+  "root_not_yet_proven": "live end-of-frame CGRAM vs original raster field-boundary palette latch, or native guest instruction/CPU I/O update phase",
+  "future_source_raster_experiment": "Compare actual original field-final CGRAM with native field-final CGRAM at guest 4064 and 5184, and whether a read-only CGRAM scanout latch at V225 preserves intervening native guest state. Do not patch game instructions, raster geometry or fixed gray values.",
+  "native_compiled_corrective_CGRAM_change_accepted": false,
+  "original_4x_artistic_signoff": false,
+  "release_quality_ledger_gates": 0,
+  "followup_20261015_four_state_source_evidence": "analysis/data/qa08-original-results-four-state-cgram-20261015.json",
+  "original_source_write_interval_frames": 7,
+  "original_four_phase_period_frames": 28,
+  "sparse_comparison_interval_frames": 16,
+  "112_frame_spaced_mismatch_could_be_sampling_alias": true,
+  "phase_checksum_native_matches_source_one_step_ahead_modulo_four": true,
+  "native_port_writer_causality_proven": false,
+  "updated_next_discriminator": "Capture original/native raw four CGRAM words 0x6c..0x6f and native 2121/2122 writer phase, not another completed-field snapshot"
+}

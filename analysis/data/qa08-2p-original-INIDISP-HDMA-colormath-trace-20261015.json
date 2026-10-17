@@ -1,0 +1,111 @@
+{
+  "schema": "qa08-original-snes9x-2p-inidisp-hdma-cgram-trace/1",
+  "source_original_debug_run_id": 38791934542,
+  "source_debug_artifact_id": 12000438001,
+  "source_artifact_zip_sha256": "d5e08ad76137c86125f64d52b6d0dc689352375ab536f4c430238f3bc6d6908e",
+  "source_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "source_pinned_debug_core_binary_sha256": "11cd574e85e003986ad4633b47ce126f8c1867d54912e18c7aa6b84e074f3975",
+  "original_uninstrumented_source_run_id": 38781958316,
+  "source_script_without_turbo_sha256": "a6c8815482b742d90dca61645f876c15918f5d9985a027eef107ac4fdc515264",
+  "source_script_readonly_dumps_sha256": "bddfb15fedbaba3fcb0e95e628f11e1506fd210d93f4be67c6e9855c705dd3db",
+  "actual_source_original_2p_finish_and_return_script_quit_frame": 5484,
+  "all_263_new_snes9x_source_frames_byte_equal_to_uninstrumented_prior_accepted_corpus": true,
+  "read_only_register_dumps": [
+    {
+      "tag": "qa08_before_finish",
+      "actual_source_1based_frame": 3622,
+      "source_INIDISP_brightness": 15,
+      "source_forced_blank": 0,
+      "source_CGADSUB": "04",
+      "source_CGWSEL": "02",
+      "source_CGRAM_512byte_FNV1a": "fe405bb5",
+      "source_2100_writes": [
+        {
+          "v": 225,
+          "h": 309,
+          "source": "cpu",
+          "value": "80"
+        },
+        {
+          "v": 242,
+          "h": 257,
+          "source": "cpu",
+          "value": "0F"
+        },
+        {
+          "v": 0,
+          "h": 307,
+          "source": "hdma",
+          "value": "0F"
+        },
+        {
+          "v": 111,
+          "h": 287,
+          "source": "hdma",
+          "value": "00"
+        },
+        {
+          "v": 113,
+          "h": 288,
+          "source": "hdma",
+          "value": "0F"
+        }
+      ]
+    },
+    {
+      "tag": "qa08_finish_fade",
+      "actual_source_1based_frame": 3683,
+      "source_INIDISP_brightness": 7,
+      "source_forced_blank": 0,
+      "source_CGADSUB": "04",
+      "source_CGWSEL": "02",
+      "source_CGRAM_512byte_FNV1a": "e79794a9",
+      "source_2100_writes": [
+        {
+          "v": 225,
+          "h": 310,
+          "source": "cpu",
+          "value": "80"
+        },
+        {
+          "v": 243,
+          "h": 15,
+          "source": "cpu",
+          "value": "0F"
+        },
+        {
+          "v": 0,
+          "h": 314,
+          "source": "hdma",
+          "value": "07"
+        },
+        {
+          "v": 111,
+          "h": 293,
+          "source": "hdma",
+          "value": "00"
+        },
+        {
+          "v": 113,
+          "h": 294,
+          "source": "hdma",
+          "value": "07"
+        }
+      ]
+    },
+    {
+      "tag": "qa08_results_cgram",
+      "actual_source_1based_frame": 5184,
+      "source_INIDISP_brightness": 14,
+      "source_forced_blank": 0,
+      "source_CGADSUB": "7F",
+      "source_CGWSEL": "02",
+      "source_CGRAM_512byte_FNV1a": "e8cdbe60",
+      "source_2100_writes": []
+    }
+  ],
+  "exact_native_PPU_CGRAM_brightness_register_equivalence_proven": false,
+  "native_PPU_log_pending": "graphics draft PR #1641 opt-in candidate",
+  "no_guest_instruction_timing_CPU_APU_or_persistence_changes": true,
+  "graphics_release_gates_admitted": 0
+}

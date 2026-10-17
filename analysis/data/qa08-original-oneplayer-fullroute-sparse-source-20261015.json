@@ -1,0 +1,55 @@
+{
+  "schema": "qa08-real-original-snes9x-oneplayer-fullroute-sparse-source/1",
+  "original_run": 38703931370,
+  "original_artifact_id": 11956993823,
+  "whole_artifact_zip_sha256": "1b2fb01338380dc7e4d093ccbb0a5778bd04388945ee0bc7eb5b910d4de3ca59",
+  "original_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "actual_emulator_binary_sha256": "56256c8f2210b19edd9470497415f154072d66d2bb927739b3ec7e5003541746",
+  "original_no_turbo_1P_input_script_sha256": "74527132f85e136985edfe5de9b84172a4d1a3ecd8814af7c6e481fd0603d56b",
+  "original_snes9x_script_exit_frame": 5447,
+  "frame_source_pixel_dimensions": [
+    256,
+    224
+  ],
+  "image_format": "unaltered_snes9x_BGRX8888_expanded_RGB565",
+  "original_callback_selection": {
+    "first": 1279,
+    "last": 5439,
+    "step": 16,
+    "count": 261
+  },
+  "distinct_original_source_image_hashes": 160,
+  "source_scene_regions": {
+    "menu_to_race": 31,
+    "race_cameras_and_movement": 209,
+    "finish_and_menu_return": 21
+  },
+  "previous_original_1P_reference": {
+    "run": 38701112952,
+    "artifact_id": 11956168307,
+    "whole_artifact_zip_sha256": "9b6f32bd00b89e5fda72bb82ea9d535ebd90baf62a4600a2fb0fd598b4ee648d",
+    "overlap_raw_source_images_identical": [
+      {
+        "callback": 2191,
+        "sha256": "9f1f316da60d59af2c145caf971546c8c49b2ad0ffdeb8df4e5c4d246e12550c"
+      },
+      {
+        "callback": 2207,
+        "sha256": "6582d0d242a56c15244e4f4549452cf4988e129264702cc8dd358f5edc60909d"
+      },
+      {
+        "callback": 2223,
+        "sha256": "94ff1924c10a502e02acd62aa7c2b5ba5eb2baaf22ca177327be2ad321a25edb"
+      },
+      {
+        "callback": 2239,
+        "sha256": "4bd877e6dccc6c5eb5cd626b88e1f3829652cd99c6011264781f106ec3367c56"
+      }
+    ]
+  },
+  "continuous_1P_original_guest_gameplay_vs_native_proven": false,
+  "native_video_alignment_camera_CPU_phase_proven": false,
+  "snes9x_source_image_hardware_equivalent_proven": false,
+  "window_PPU_widescreen_4x_HD_owner_approved": false,
+  "graphics_release_acceptance": 0
+}

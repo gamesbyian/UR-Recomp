@@ -207,6 +207,8 @@ jobs:
       - name: Guard guest CRC, pause witness and Modern mutable-root stage
         run: |
           python tests/unit/test_assemble_baldosa_windows_candidate.py
+          python tests/unit/test_baldosa_io_access_clock_order_patch.py
+          python tests/unit/test_windows_rf017_source_identity.py
           python tests/unit/test_bind_baldosa_candidate_receipt.py
           python tests/unit/test_audit_baldosa_romless_candidate.py
           python tests/unit/test_check_windows_pe_timestamp.py
@@ -237,8 +239,19 @@ jobs:
       - name: Stage only the verified UR native boundary
         run: |
           set -euo pipefail
-          # RF-015: one DRAM refresh per 1364-clock beam line (source-qualified correction).
+          # RF-015: source-qualified DRAM-refresh beam correction.
           python tools/baldosa_dram_refresh_beam_rate_patch.py --game baldosa
+          # RF-017: source-qualified in-order CPU I/O clocks.
+          # The existing Windows bridge must regenerate exact USA game source,
+          # not link RF-015-only code.
+          python tools/baldosa_io_access_clock_order_patch.py --game baldosa
+          (cd baldosa && bash tools/regen.sh --cfg-roots \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc")
+          python tools/baldosa_io_access_clock_order_patch.py \
+            --game baldosa --verify-gen | tee "$RUNNER_TEMP/rf017-generated-source.txt"
+          grep -Fx 'verified 89 generated files: 15484 in-order charge statements, every block total unchanged' \
+            "$RUNNER_TEMP/rf017-generated-source.txt"
+          echo "RF-015 + RF-017 generated game/CPU clock-order source verified; independent Windows event acceptance remains outstanding." >> "$GITHUB_STEP_SUMMARY"
           python tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_execution_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_pause_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"

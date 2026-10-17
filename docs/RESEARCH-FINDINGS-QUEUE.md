@@ -14,6 +14,12 @@
 
 **Classification:** research triage only. It never changes the strict comparator, the [release ledger](RELEASE-QUALITY-LEDGER.json) or any implementation lane's acceptance authority. The machine-readable register is [`analysis/data/research-findings-register.json`](../analysis/data/research-findings-register.json), validated by [`tools/research_findings.py`](../tools/research_findings.py) (`--queue` prints the live table). [Cumulative research](QA-CUMULATIVE-RESEARCH.md) owns campaign mechanics; this page owns *what the outputs mean and who should act*.
 
+## October 16 integration dispatch: source identity and cold guest proof (not release acceptance)
+
+- **Windows source identity #1686:** CPU source owner PR #1715 passed a real Windows x64 PR-head build staging RF-015+RF-017 with regeneration/verification of 89 generated banks and 15,484 in-order clock charges. Integrated-source revalidation is required; the old owner ZIP remains RF-015-only. This is a source correction, not proof of a complete event or of audio parity.
+- **QA-01 cold original/native guest:** PR #1716's genuine SHA-pinned run [38959452580](https://github.com/gamesbyian/UR-Recomp/actions/runs/38959452580) successfully restarted distinct research original/native guests from captured Zoo result+72 SRAM and recovered the source-earned 2510-centisecond record at frames 300/420. The authenticated extended controller-script digest was admitted by a fail-closed verifier; no Windows disk publication, complete-frame CPU/SPC parity or release event credit. [Bounded report](QA01-EXACT-COMPOSITE-COLD-GUEST-ELIGIBILITY-20261016.md).
+- **RF-034:** Executed first-CC SPC port visibility difference across actual opcode 78 remains the highest-value CPU/APU next investigation (see existing RF-034 entry above). RF-029/031 broad timing modifications were negative. Do not repeat the already-qualified cold load. **USA 0/45**.
+
 ## Significance classes
 
 Ordered by decision value. A finding is triaged in this order, whatever computation produced it.

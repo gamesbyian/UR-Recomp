@@ -124,6 +124,58 @@ class TestOriginalInvalidS(unittest.TestCase):
                 with self.assertRaises((ValueError, TypeError)):
                     qa.audit(self.path, self.pack(files), self.cmd)
 
+    def registered_corrupt_fixture(self):
+        files = dict(self.files)
+        for stage in qa.STAGES:
+            name = "source-bytes/" + stage + ".b-raw.bin"
+            raw = bytearray(files[name])
+            raw[0x0699] ^= 0x52
+            files[name] = bytes(raw)
+        record = json.loads(files["invalid-S-result.json"])
+        record["invalid_requested_profile"] = "native-ci-second"
+        record["registered_target_corrupt_sram"] = True
+        for stage in qa.STAGES:
+            name = stage + ".b-raw.bin"
+            raw = files["source-bytes/" + name]
+            record["source_bytes_sha256"][name] = {
+                "bytes": len(raw), "sha256": sha(raw)}
+        files["invalid-S-result.json"] = (
+            json.dumps(record, sort_keys=True, indent=2) + "\n").encode()
+        files["invalid-S.log"] = files["invalid-S.log"].replace(
+            b"next_profile=native-ci-no-such-racer completed=0",
+            b"next_profile=native-ci-second completed=0")
+        return files
+
+    def test_registered_corrupt_target_refused_without_mutation(self):
+        files = self.registered_corrupt_fixture()
+        receipt = qa.audit(self.path, self.pack(files), self.cmd)
+        self.assertEqual(receipt["invalid_target_type"], "registered_corrupt_raw")
+        self.assertTrue(receipt["registered_corrupt_B_one_byte"])
+        self.assertEqual(receipt["canonical_before_refused_cold_files_byte_identical"], 21)
+        self.assertEqual(receipt["release_gate_credit"], 0)
+
+    def test_registered_target_must_really_have_corrupt_raw(self):
+        files = self.registered_corrupt_fixture()
+        for stage in qa.STAGES:
+            raw_name = "source-bytes/" + stage + ".b-raw.bin"
+            files[raw_name] = self.files[raw_name]
+            record = json.loads(files["invalid-S-result.json"])
+            k = stage + ".b-raw.bin"
+            record["source_bytes_sha256"][k] = {
+                "bytes": len(files[raw_name]),
+                "sha256": sha(files[raw_name])}
+            files["invalid-S-result.json"] = (
+                json.dumps(record, sort_keys=True, indent=2) + "\n").encode()
+        with self.assertRaises(ValueError):
+            qa.audit(self.path, self.pack(files), self.cmd)
+        files = self.registered_corrupt_fixture()
+        record = json.loads(files["invalid-S-result.json"])
+        record["registered_target_corrupt_sram"] = False
+        files["invalid-S-result.json"] = (
+            json.dumps(record, sort_keys=True, indent=2) + "\n").encode()
+        with self.assertRaises(ValueError):
+            qa.audit(self.path, self.pack(files), self.cmd)
+
     def test_source_and_launcher_provenance_pins_must_match(self):
         receipt = self.pack(self.files)
         with self.assertRaises(ValueError):

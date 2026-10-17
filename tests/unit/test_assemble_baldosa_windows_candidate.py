@@ -97,6 +97,7 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
                 self.assertIn("INTERRUPTED FIRST-CREATE RECOVERY", readme)
                 self.assertIn("explicitly choose the SAME preset", readme)
                 self.assertIn("General recovery of a corrupt", readme)
+                self.assertIn("exits 7 without a second prompt", readme)
                 self.assertNotIn("explicit recovery is not yet implemented", readme)
                 self.assertNotIn("Practice, Records and Options are not yet", readme)
                 self.assertIn(candidate.USA_SHA256, readme)

@@ -40,8 +40,12 @@ extern "C" int ur_baldosa_modern_root_restore_practice_on_shutdown(void);
 #include <string_view>
 #include <utility>
 #include <system_error>
-#include <chrono>
-#include <thread>
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
 
 extern "C" void RtlSetSaveRoot(const char*);
 extern "C" const char* RtlSaveRoot(void);
@@ -894,7 +898,7 @@ extern "C" int ur_baldosa_modern_profile_finish_native_save(int saved) {
                 release = true;
                 break;
             }
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            ::Sleep(10);
         }
         if (!release) return reject("qa_postraw_gate_timeout");
     }

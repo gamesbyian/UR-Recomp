@@ -167,13 +167,17 @@ def run_native_win32_live_postraw_typed_denial(
         "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=native-ci-rider status=committed"
         in source_log or
         source_log.count(armed_marker) != 1 or
+        source_log.count("UR_BALDOSA_NATIVE_PAUSE ARMED guest=1952 "
+                         "live_race=1 modern_session=1 physical_sdl=1") != 1 or
         "UR_BALDOSA_NATIVE_PAUSE_MENU QUIT_QUEUED=1 paused=1 guest_steps=0"
         not in source_log):
         raise ValueError(
             "Live native game did not fail its actual OS-denied typed CAS "
             f"without modifying canonical bytes rc={return_code} "
             f"tail={source_log[-1800:]}")
-    if list(user_root.rglob("*.urrun")) or list(user_root.rglob("*.urmatch")):
+    if (list(user_root.rglob("*.urrun")) or
+        list(user_root.rglob("*.urmatch")) or
+        list(user_root.rglob("*.urghost"))):
         raise ValueError("Denied original save fabricated earned Records")
     clear = env.copy()
     for flag in (

@@ -98,8 +98,13 @@ def report(case_zip: Path) -> dict:
         for tag, f in logs(z, ORIGINAL_LOG):
             if tag == "QA01RF037ORIGCPU2":
                 original.append(f)
-            elif tag == "QA01RF037ORIGCPU2_TRUNCATED":
-                source_trunc.append(f)
+        # The upstream RF037 event filter intentionally omits this sentinel.
+        # Detect it directly in the source logfile rather than implicitly
+        # trusting a parser that cannot emit the record.
+        with z.open(ORIGINAL_LOG) as original_log:
+            if any(line.startswith(b"QA01RF037ORIGCPU2_TRUNCATED ")
+                   for line in original_log):
+                source_trunc.append({"unparsed_tag": "QA01RF037ORIGCPU2_TRUNCATED"})
         native, trunc = [], []
         for tag, f in logs(z, NATIVE_LOG):
             if tag == "QA01RF037NATIVEUP" and f.get("kind") == "rtl-apu-enter":

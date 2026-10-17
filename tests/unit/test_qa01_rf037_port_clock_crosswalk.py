@@ -61,6 +61,21 @@ class CrosswalkTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "not monotone"):
             m.crosswalk(source, native)
 
+    def test_report_detects_real_original_truncation_sentinel(self):
+        from tempfile import TemporaryDirectory
+        from zipfile import ZipFile
+        with TemporaryDirectory() as root:
+            p = Path(root) / "case.zip"
+            with ZipFile(p, "w") as z:
+                z.writestr(m.ORIGINAL_LOG,
+                           "QA01RF037ORIGCPU2 bucket=1 age=100 port=2 val=00\n"
+                           "QA01RF037ORIGCPU2_TRUNCATED bucket=1\n")
+                z.writestr(m.NATIVE_LOG,
+                           "QA01RF037NATIVEUP kind=rtl-apu-enter "
+                           "frame=1 master=1000 reg=2142 val=00\n")
+            with self.assertRaisesRegex(ValueError, "source port capture truncated"):
+                m.report(p)
+
     def test_empty_capture_fails(self):
         with self.assertRaisesRegex(ValueError, "unbalanced capture"):
             m.crosswalk([], [])

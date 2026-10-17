@@ -3,7 +3,7 @@ name: RF044 V2 Zoo First-Frame Stack Bus/NMI
 on:
   push:
     branches:
-      - research/rf044-v2-stack-bus-writer-20261017
+      - research/rf044-zoo-stack-bus-writer-20261017
 permissions:
   contents: read
 concurrency:

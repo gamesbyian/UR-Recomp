@@ -28,6 +28,29 @@ class GreyPhase(unittest.TestCase):
         native[:3] = bytes((24, 8, 0))
         self.assertEqual(c.frame_large_counts(original, native), (0, 0, 0))
 
+    def test_split_exact_rgb5_grey_phase_and_fixed_chromatic_coordinates(self):
+        original = bytearray(c.PIXELS * 4)
+        native = bytearray(c.PIXELS * 4)
+        # BGRX original RGB5 20, Win32 RGBA RGB5 17. A real palette
+        # phase mismatch, not a one-unit rounding difference.
+        original[0:3] = bytes((160, 160, 160))
+        native[0:3] = bytes((136, 136, 136))
+        # Chromatic source pixel at logical (3,2) must preserve its exact
+        # spatial index; do not hide moving OAM/OBJ regions with a palette.
+        k = 4 * (2 * 256 + 3)
+        original[k:k+3] = bytes((104, 208, 224))
+        native[k:k+3] = bytes((224, 192, 72))
+        palette, positions = c.result_large_colour_components(original, native)
+        self.assertEqual(palette, {(17, 20): 1})
+        self.assertEqual(positions, (2 * 256 + 3,))
+        # A one-step discrepancy is not an extra large-error source.
+        native[0:3] = bytes((152, 152, 152))
+        palette, positions = c.result_large_colour_components(original, native)
+        self.assertEqual(palette, {})
+        self.assertEqual(positions, (2 * 256 + 3,))
+        with self.assertRaisesRegex(ValueError, "cropped"):
+            c.result_large_colour_components(original[:-4], native)
+
     def test_reject_tampered_outer_archive_even_before_pixels(self):
         with tempfile.TemporaryDirectory() as d:
             o, n = Path(d) / "original.zip", Path(d) / "native.zip"

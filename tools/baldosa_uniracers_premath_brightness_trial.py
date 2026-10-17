@@ -26,6 +26,16 @@ SOURCE=Path("snesrecomp/runner/src/snes/ppu_legacy.c")
 MARK="UR_QA08_TITLE_PREMATH_FIVEBIT_BRIGHTNESS_TRIAL"
 START="static void ppu_render_pixel(Ppu *ppu, int x, int y) {\n"
 AFTER_SUB="    // TODO: subscreen pixels can be clipped to black as well\n"
+SATURATION_ANCHOR="      if (b < 0) b = 0;\n"
+SATURATION=(
+"      /* "+MARK+": 2014 Snes9x COLOR_ADD_BRIGHTNESS stage.\n"
+"       * Source brightness_cap clamps colour math outputs to XB[31],\n"
+"       * not hardware-independent raw5 limit 31. No scene/line masks. */\n"
+"      const int ur_qa08_cap = ur_qa08_premath_brightness5(31,ur_qa08_br);\n"
+"      if (r > ur_qa08_cap) r = ur_qa08_cap;\n"
+"      if (g > ur_qa08_cap) g = ur_qa08_cap;\n"
+"      if (b > ur_qa08_cap) b = ur_qa08_cap;\n"
+)
 OUTPUT=(
 "  pixelBuffer[0] = ((b << 3) | (b >> 2)) * PPU_brightness(ppu) / 15;\n"
 "  pixelBuffer[1] = ((g << 3) | (g >> 2)) * PPU_brightness(ppu) / 15;\n"
@@ -63,13 +73,14 @@ FIXED={
 }
 def patched(source:str)->str:
     if MARK in source:
-        if (source.count(MARK)!=2 or source.count(INTRO)!=1 or
-            source.count(BRIGHTEN)!=1 or source.count(REPLACEMENT)!=1 or
+        if (source.count(MARK)!=3 or source.count(INTRO)!=1 or
+            source.count(BRIGHTEN)!=1 or source.count(SATURATION)!=1 or
+            source.count(REPLACEMENT)!=1 or
             source.count(OUTPUT)!=0):
             raise ValueError("partial or altered title pre-math candidate")
         return source
     if (source.count(START)!=1 or source.count(AFTER_SUB)!=1 or
-        source.count(OUTPUT)!=1 or
+        source.count(OUTPUT)!=1 or source.count(SATURATION_ANCHOR)!=1 or
         any(source.count(k)!=2 for k in FIXED) or
         "ur_qa08_premath_brightness5" in source):
         raise ValueError("unknown pinned original PPU/competing brightness patch")
@@ -77,6 +88,7 @@ def patched(source:str)->str:
     out=out.replace(AFTER_SUB,BRIGHTEN+AFTER_SUB,1)
     for name,replacement in FIXED.items():
         out=out.replace(name,replacement)
+    out=out.replace(SATURATION_ANCHOR,SATURATION_ANCHOR+SATURATION,1)
     return out.replace(OUTPUT,REPLACEMENT,1)
 
 def brightness5(value:int,b:int)->int:

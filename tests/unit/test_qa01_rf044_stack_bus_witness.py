@@ -66,7 +66,9 @@ class FrameStack(unittest.TestCase):
       rf037.NATIVE_PTR_WORD+
       "        ur_qa01_rf037_ptr(cpu, bank, addr,\n"
       "                            (uint16)lo | ((uint16)hi << 8), 2);\n")
-  self.assertEqual(m.NATIVE_READ_16,expect16)
+  # RF044 matches only the already-decorated tail of the word-read block.
+  # The preceding high-byte fetch remains untouched in the native source.
+  self.assertTrue(expect16.endswith(m.NATIVE_READ_16))
  def test_reject_unrecognized_upstream_source(self):
   for fn in (m.original_getset,m.original_cpu,m.native_cpu):
    with self.assertRaisesRegex(ValueError,"source"):fn("nothing known\n")

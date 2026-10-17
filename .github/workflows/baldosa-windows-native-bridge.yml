@@ -35,6 +35,8 @@ on:
       - "tools/qa08_current_result_cgram_port_patch.py"
       - "tools/qa08_current_result_source_witness.py"
       - "tests/unit/test_qa08_current_result_readonly.py"
+      - "tools/qa08_current_result_oam_port_patch.py"
+      - "tests/unit/test_qa08_current_oam_dma_port_patch.py"
       - "tests/unit/test_baldosa_native_practice_probe.py"
       - "tests/unit/test_baldosa_native_second_racer_probe.py"
       - "tools/baldosa_native_first_racer_real_run_probe.py"
@@ -218,6 +220,7 @@ jobs:
           python tests/unit/test_baldosa_io_access_clock_order_patch.py
           python tests/unit/test_windows_rf017_source_identity.py
           python tests/unit/test_qa08_current_result_readonly.py
+          python tests/unit/test_qa08_current_oam_dma_port_patch.py
           python tests/unit/test_baldosa_uniracers_hdma_firstline_patch.py
           python tests/unit/test_baldosa_uniracers_v0_raster_before_hdma_patch.py
           python tests/unit/test_bind_baldosa_candidate_receipt.py
@@ -275,6 +278,7 @@ jobs:
           # never merge this observer into player-visible release source.
           python tools/qa08_current_result_pixel_owner_patch.py --game baldosa --apply-candidate
           python tools/qa08_current_result_cgram_port_patch.py --game baldosa --apply-candidate
+          python tools/qa08_current_result_oam_port_patch.py --game baldosa --apply-candidate
           echo "QA-08 game-only first-line + V0 PPU patches staged; results/blackout/medal, physical display and release remain unaccepted." >> "$GITHUB_STEP_SUMMARY"
           python tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_execution_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"

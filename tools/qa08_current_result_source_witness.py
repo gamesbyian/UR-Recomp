@@ -82,6 +82,63 @@ def inspect(log: str, crcs: list[str])->dict:
             "source_original_same_field_ownership_proven":False,
             "guest_CPU_instruction_phase_or_PPU_fix_proven":False,
             "source_P7_image_parity_not_proven":True,"release_approved":False}
+def inspect_current_oam_dma(log: str) -> dict:
+    """Scan exact logged port input, preserving original transfer chronology."""
+    from collections import defaultdict
+    frames=defaultdict(list)
+    required={"frame","v","h","port","val","src","adr","high","second","latch","oldlow","oldhigh"}
+    lines=[x for x in log.splitlines() if x.startswith("UR_QA08_WIN_OAM_PORT ")]
+    if not lines or len(lines)>18000:
+        raise ValueError("missing or unbounded current OAM PPU port input")
+    for line in lines:
+        r=row(line,"UR_QA08_WIN_OAM_PORT")
+        if set(r)!=required:raise ValueError("truncated OAM pre-write capture")
+        f=int(r["frame"])
+        if f not in set(range(4029,4035))|set(range(4173,4179)):
+            raise ValueError("OAM source trace outside exact active results")
+        x={k:(int(v,16) if k in ("port","val","adr","latch","oldlow","oldhigh")
+               else int(v)) for k,v in r.items()}
+        if (x["port"] not in (2,3,4) or x["src"] not in (0,1,2,3)
+            or x["high"] not in (0,1) or x["second"] not in (0,1)
+            or not 0<=x["val"]<=255 or not 0<=x["v"]<=262
+            or not 0<=x["h"]<=2000):
+            raise ValueError("invalid actual native OAM port beam/latch/source")
+        frames[f].append(x)
+    transfers=[]
+    for frame,events in sorted(frames.items()):
+        found=[]
+        for k in range(len(events)-543):
+            group=events[k:k+544]
+            if any(q["port"]!=4 or q["src"]!=1 for q in group):continue
+            if any(q["high"] != int(i>=512) or q["second"]!=i%2 or
+                   q["adr"] != ((i//2)&255 if i<512 else ((i-512)//2)&15)
+                   for i,q in enumerate(group)):continue
+            payload=bytes(q["val"] for q in group)
+            found.append({"native_host_frame":frame,"DMA_544byte_SHA256":sha(payload),
+                          "beam_start":[group[0]["v"],group[0]["h"]],
+                          "beam_end":[group[-1]["v"],group[-1]["h"]],
+                          "tile_byte_by_slot":{str(slot):f"{payload[4*slot+2]:02x}"
+                            for slot in (96,97,98,99,112,113,114)}})
+        if len(found)>1:raise ValueError("more than one full OAM payload in source field")
+        transfers.extend(found)
+    if len(transfers)<2:raise ValueError("no two full DMA result field sources observed")
+    original={"4032":"9bd5f6e704e15237c5f8e9758098be9c7807970b9a5d14e0b3ff47dd59ca6120",
+              "4176":"8a7f8bd9bba818d3d2f2adc157f5023d9ef510008046ae8eabec2553d5a1e4f3"}
+    by_native={x["native_host_frame"]:x for x in transfers}
+    matches={str(frame):by_native[frame-2]["DMA_544byte_SHA256"]==digest
+             if frame-2 in by_native else None for frame,digest in
+             ((int(k),v) for k,v in original.items())}
+    return {"schema":"qa08-current-RF017-native-input-544-OAM-DMA-readonly/1",
+            "all_real_oam_port_events":len(lines),
+            "host_fields_with_inputs":sorted(frames),
+            "full_544byte_DMA_transfers":transfers,
+            "original_2014_postrun_field_F_and_native_input_F_minus_2_digest_matches":matches,
+            "unobserved_matches_not_counted_as_true":True,
+            "same_CPU_instruction_or_beam_phase_proven":False,
+            "zero_render_OAM_or_guest_mutations":True,
+            "source_hardware_hypothesis_only":True,
+            "release_or_tile_fix_approved":False}
+
 def main()->None:
     a=argparse.ArgumentParser(description=__doc__)
     for k in ("exe","rom","script","out"):a.add_argument("--"+k,type=Path,required=True)
@@ -90,7 +147,8 @@ def main()->None:
     if sha(v.rom.read_bytes())!=ROM_SHA or sha(v.script.read_bytes())!=ROUTE_SHA:
         a.error("ROM/input identity mismatch")
     v.out.mkdir(parents=True,exist_ok=True)
-    keys={"UR_QA08_WINDOWS_PIXEL_OWNER_TRACE":"1",
+    keys={"UR_QA08_WINDOWS_OAM_PORT_TRACE":"1",
+          "UR_QA08_WINDOWS_PIXEL_OWNER_TRACE":"1",
           "UR_QA08_WINDOWS_CURRENT_CGRAM_TRACE":"1"}
     previous={k:os.environ.get(k) for k in keys}
     os.environ.update(keys)
@@ -101,11 +159,12 @@ def main()->None:
             if x is None:os.environ.pop(k,None)
             else:os.environ[k]=x
     report=inspect(log,crc)
+    report["current_OAM_input_DMA"]=inspect_current_oam_dma(log)
     report["actual_windows_PE_sha256"]=sha(v.exe.read_bytes())
     report["controller_script_sha256"]=ROUTE_SHA
     (v.out/"qa08-current-result-owners.json").write_text(
         json.dumps(report,indent=2,sort_keys=True)+"\n",encoding="utf-8")
     print("QA08_CURRENT_PPU_OWNERS",len(report["pixels"]),
-          "OAM",len(report["oam"]),"CGRAM",len(report["cgram_port_input_events"]),
+          "OAM",len(report["oam"]),"OAM_DMA",len(report["current_OAM_input_DMA"]["full_544byte_DMA_transfers"]),"CGRAM",len(report["cgram_port_input_events"]),
           "guest",report["real_guest_CRC_SHA256"],"release=0")
 if __name__=="__main__":main()

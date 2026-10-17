@@ -89,7 +89,7 @@ def patch_original(src: str) -> str:
         return src
     if src.count(ORIG_DISPATCH) != 1:
         raise ValueError("unknown original Snes9x opcode-dispatch site")
-    replacement = ORIG_BEFORE + ORIG_DISPATCH + "\n" + ORIG_AFTER.rstrip("\n")
+    replacement = ORIG_BEFORE + ORIG_DISPATCH + "\n" + ORIG_AFTER
     if replacement.count("(*Opcodes[Op].S9xOpcode)();") != 1:
         raise AssertionError("original CPU opcode dispatch altered")
     return src.replace(ORIG_DISPATCH, replacement, 1)

@@ -19,10 +19,10 @@ NATIVE = Path("snesrecomp/runner/src/cpu_state.c")
 OLD_DISPATCH = rf035.ORIG_DISPATCH
 ORIG_DISPATCH = r"""            /* UR_QA01_RF038_SOUND_WRITE_INTERVAL: exact real opcode boundary. */
             const int rf038_active =
-                getenv("UR_QA01_RF038_INTERVAL") &&
                 (unsigned)ICPU.Frame == 6073u &&
                 (unsigned)CPU.V_Counter == 116u &&
-                (int)CPU.Cycles >= 300 && (int)CPU.Cycles <= 1050;
+                (int)CPU.Cycles >= 300 && (int)CPU.Cycles <= 1050 &&
+                getenv("UR_QA01_RF038_INTERVAL");
             const unsigned rf038_pb = rf038_active ? (unsigned)Registers.PB : 0u;
             const unsigned rf038_pc = rf038_active ? (unsigned)Registers.PCw : 0u;
             const unsigned rf038_op = rf038_active ? (unsigned)Op : 0u;
@@ -54,10 +54,10 @@ static void ur_rf038_paced(CpuState *cpu, const char *kind,
                            uint8 bank, uint16 addr, uint32_t charge) {
     extern int snes_frame_counter;
     extern const char *g_last_recomp_func;
-    if (!getenv("UR_QA01_RF038_INTERVAL") ||
-        snes_frame_counter != 6091 ||
+    if (snes_frame_counter != 6091 ||
         cpu->master_cycles < 2176886750ull ||
-        cpu->master_cycles > 2176887550ull) return;
+        cpu->master_cycles > 2176887550ull ||
+        !getenv("UR_QA01_RF038_INTERVAL")) return;
     static unsigned count;
     if (count++ < 256u)
         fprintf(stderr,

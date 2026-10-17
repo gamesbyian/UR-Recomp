@@ -1,0 +1,80 @@
+{
+  "schema": "qa08-clean-firstline-windows-historical-source-receipt/1",
+  "scope": "diagnostic_original_size_P7_source_readonly",
+  "release_approved": false,
+  "diagnostic": {
+    "pr": 1745,
+    "head": "9b311887e5ea8ad84824ee10a2fe09e2c34e64b1",
+    "windows_run": 39000100984,
+    "artifact_id": 12088668732,
+    "artifact_zip_sha256": "3d8bca597c8109744ceef07b8b63d590d6610b9922b585c70fb8ff5edc3f5f87",
+    "pe_sha256": "8c26f410ee0cefc2190c76c33debb8d0b6db3d2883c530cfd0c0edb03eac4ec6",
+    "game_frames": 2473,
+    "controller_script_sha256": "4e714899f53c3bbe501bbfcacf91dd549989c9beb7c2cf6265b13eb687142ec6",
+    "source_size": [
+      256,
+      224
+    ],
+    "current_RF017_independent_two_process_run": 39001193675,
+    "current_RF017_independent_two_process_raster_artifact_id": 12088998049,
+    "current_RF017_independent_two_process_observer_off_guests_equal": true,
+    "current_RF017_independent_control_guest_frames": 2473,
+    "current_RF017_same_PE_SHA256": "3b0237d5022d2b35e69c6782ad0922a8c771190a1483410fc38b777d6f6008a2",
+    "current_RF017_full_guest_digest": "d1fb659fe3c23d37329cd78624d46fdcbf1445a09b812105905d7c0ca0e5a348",
+    "current_RF017_full_guest_legacy_before_RF017_digest_equal": false
+  },
+  "frames": [
+    {
+      "guest_frame": 1856,
+      "pam_sha256": "ed35731cde55e927165f173c1db29c27b3b7eeff19862fbca27db3467cb8bc87",
+      "equals_archived_corrected_native_P7": true,
+      "equals_archived_old_stock_P7": false
+    },
+    {
+      "guest_frame": 2192,
+      "pam_sha256": "fac9f37e04b752676346bd75345e6e988b88e5cf6703722618d8a968ec90b36c",
+      "equals_archived_corrected_native_P7": true,
+      "equals_archived_old_stock_P7": false
+    },
+    {
+      "guest_frame": 2208,
+      "pam_sha256": "bf8b4218fb72f94338b19da5c1386bd5ce09c0dc0c767093286e80895fa3353c",
+      "equals_archived_corrected_native_P7": true,
+      "equals_archived_old_stock_P7": false
+    },
+    {
+      "guest_frame": 2224,
+      "pam_sha256": "d64e7b2fee2ff9f21b5fad7f4e8618ea27ad8846c6b6047ca9c511583bde6bd8",
+      "equals_archived_corrected_native_P7": true,
+      "equals_archived_old_stock_P7": false
+    }
+  ],
+  "moving_frame_rgba_pixel_differences": {
+    "2192_to_2208": 35505,
+    "2208_to_2224": 36155
+  },
+  "historical_pre_RF017_guest_transcript_sha256": "992dfdc270802e8a0ec1be5a0be6ddc36872edca11c8a91d58367a6235e537cf",
+  "actual_current_RF017_guest_transcript_sha256": "d1fb659fe3c23d37329cd78624d46fdcbf1445a09b812105905d7c0ca0e5a348",
+  "historical_guest_state_parity_proven": false,
+  "clean_production_binary_pixels_verified": false,
+  "strict_USA_event_accepted": false,
+  "clean_source_head": "58a1dd6cb28efdcb9bc788fd4f7edc721a09f5df",
+  "clean_windows": {
+    "workflow_run": 39001879546,
+    "git_test_merge_source_revision": "63f9782b47cd0db937acf9e3712d6b8f6ae76e72",
+    "romless_artifact_id": 12090125094,
+    "bind_artifact_id": 12089279419,
+    "executable_size_bytes": 20279808,
+    "pe_sha256": "901106359d68763a4cc848122b18de178cc9a2a2c81dcf94221e821e2c64a1d3",
+    "romless_zip_sha256": "8841c4976b435f4b2e5f95a988f1c510cf1c2e016f1e126193b8cfbecb39a9fd",
+    "windows_source_stage_pinned_Rf015_Rf017": true,
+    "firstline_staged_after_RF017": true,
+    "real_Windows_x64_build_and_bundled_journeys": "success",
+    "project_unit_tests_run": 39001879486,
+    "project_unit_tests_result": "success",
+    "hygiene_run": 39001879506,
+    "hygiene_result": "success",
+    "independent_1P_result_scene_source_parity": "not_verified",
+    "physical_widescreen_4K": "not_verified"
+  }
+}

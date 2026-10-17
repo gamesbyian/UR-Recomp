@@ -1,0 +1,63 @@
+{
+  "schema": "qa08-rf017-no-single-valued-finish-RGB5-only-LUT/1",
+  "original_outer_sha": "3475ee87b5b20768f9377d8d1c787927955c33ee6d4388dae008f5486a81370e",
+  "original_inner_sha": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+  "native_inner_sha": "91e0bf8f5d7b86b188526740d825af890a99b02ecc05093f9a2143fa56ce49cd",
+  "guest_CRC_sha": "b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568",
+  "source_frame_count": 263,
+  "control_guest1856_equal_RGB5": 57344,
+  "finish_guest3680": {
+    "original_callback": 3679,
+    "native_RGB5": "10c6",
+    "total": 3078,
+    "original_hist": {
+      "10c6": 1341,
+      "14e7": 1737
+    },
+    "neighbours": [
+      {
+        "xy": [
+          96,
+          0
+        ],
+        "native": "10c6",
+        "original": "14e7"
+      },
+      {
+        "xy": [
+          97,
+          0
+        ],
+        "native": "10c6",
+        "original": "10c6"
+      },
+      {
+        "xy": [
+          92,
+          0
+        ],
+        "native": "1908",
+        "original": "1d08"
+      },
+      {
+        "xy": [
+          93,
+          0
+        ],
+        "native": "1908",
+        "original": "1908"
+      }
+    ]
+  },
+  "result_guest4064": {
+    "native_RGB5": "4631",
+    "original_hist": {
+      "4631": 79,
+      "5294": 7900
+    }
+  },
+  "per_frame_or_scanline_RGB5_only_LUT_possible": false,
+  "spatial_PPU_cause_proven": false,
+  "game_or_renderer_modified": false,
+  "release_admitted": false
+}

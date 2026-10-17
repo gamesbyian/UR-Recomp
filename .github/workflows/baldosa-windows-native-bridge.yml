@@ -79,6 +79,8 @@ on:
       - "tools/baldosa_win32_interactive_recovery_rt.py"
       - "tools/baldosa_win32_interactive_recovery_s.py"
       - "tools/baldosa_win32_interactive_recovery_s_reject.py"
+      - "tools/baldosa_win32_real_ntfs_diskfull_game.py"
+      - "tools/baldosa_win32_real_ntfs_diskfull_game.ps1"
       - "tests/unit/test_assemble_baldosa_windows_candidate.py"
       - "tests/unit/test_audit_baldosa_romless_candidate.py"
       - "native/product/modern_session_c_api.*"
@@ -950,6 +952,19 @@ jobs:
             --registered-corrupt-target --timeout 120
           echo "PASS: genuine original packaged CMD S registered B destination with invalid raw/typed consistency refused before guest; damaged A/B, unrelated C, selector/catalog unchanged across failed choice and second original cold Q. No human acceptance credit." >> "$GITHUB_STEP_SUMMARY"
 
+      # Product-owned actual OS disk-full original Windows guest save.
+      # Reuses QA02's proven 128 MiB isolated NTFS VHDX approach. Only
+      # W: is ever formatted, and all durable source evidence lives outside
+      # the VHD. This is source evidence, NOT a human QA release gate.
+      - name: Prove original packaged CMD save on actual full NTFS volume
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          ./tools/baldosa_win32_real_ntfs_diskfull_game.ps1 `
+            -MaximumMegabytes 128 -DriveLetter W `
+            -Output "$env:RUNNER_TEMP/Baldosa Win32 Original Real NTFS Full"
+          "PASS: genuine isolated NTFS VHDX Win32 112, real source-play original game CMD save refusal exit8, unchanged previous canonical SRAM and two original cold Windows boots. Source product only; not power cut, short write, human or release QA." | Out-File "$env:GITHUB_STEP_SUMMARY" -Append
+
       - name: Retain ROM-free Windows candidate only (no ROM or SRAM)
         uses: actions/upload-artifact@v4
         with:
@@ -1044,6 +1059,18 @@ jobs:
             ${{ runner.temp }}/Baldosa Win32 Interactive S Corrupt Registered Target/*.log
             ${{ runner.temp }}/Baldosa Win32 Interactive S Corrupt Registered Target/invalid-S-result.json
             ${{ runner.temp }}/Baldosa Win32 Interactive S Corrupt Registered Target/source-bytes/**
+
+      - name: Retain original game full NTFS source save witnesses
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-original-real-ntfs-full-game
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/Baldosa Win32 Original Real NTFS Full/*.log
+            ${{ runner.temp }}/Baldosa Win32 Original Real NTFS Full/*.json
+            ${{ runner.temp }}/Baldosa Win32 Original Real NTFS Full/source-bytes/**
 
       - name: Retain bounded extracted-CMD source transcripts separately
         if: always()

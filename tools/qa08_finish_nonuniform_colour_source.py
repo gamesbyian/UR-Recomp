@@ -111,6 +111,66 @@ def rgb8_finish_transfer(original:dict[int,bytes],native:dict[int,bytes])->dict:
       "QA08_QA10_or_release_passed":False
     }
 
+
+def brightness7_postmath_counterfactual(original:dict[int,bytes],
+                                        native:dict[int,bytes])->dict:
+    """Invert CURRENT legacy native output at hypothetical brightness=7.
+
+    Distinguish a reversible source discriminator from an approved pipeline
+    correction. Current 2014+native actual per-operand/math timings are NOT
+    proven by this pixel-only test; never write transformed output to game.
+    """
+    brightness=7
+    old_to_8={(((c<<3)|(c>>2))*brightness)//15:c for c in range(32)}
+    if len(old_to_8)!=32:raise ValueError("brightness7 native expansion not invertible")
+    bad_before=bad_after=actual=0
+    outside={}
+    misses=[]
+    for frame in FINISH_FIELDS:
+        a,b=original[frame],native[frame]
+        if len(a)!=PIXELS*4 or len(b)!=PIXELS*4:
+            raise ValueError("finish source video incomplete")
+        for idx in range(PIXELS):
+            p=4*idx
+            reference=(a[p+2]>>3,a[p+1]>>3,a[p]>>3)
+            native8=(b[p],b[p+1],b[p+2])
+            if any(v not in old_to_8 for v in native8):
+                for v in native8:
+                    if v not in old_to_8:
+                        outside[v]=outside.get(v,0)+1
+                continue
+            pre5=tuple(old_to_8[v] for v in native8)
+            hypothetical=tuple((c*brightness+7)//15 for c in pre5)
+            actual+=1
+            bad_before+=any((c>>3)!=orig for c,orig in zip(native8,reference))
+            incorrect=any(c!=orig for c,orig in zip(hypothetical,reference))
+            bad_after+=incorrect
+            if incorrect:
+                misses.append({"guest":frame,"xy":[idx%256,idx//256],
+                              "actual_native_RGB8":list(native8),
+                              "original_RGB5":list(reference),
+                              "postmath_brightness7_RGB5":list(hypothetical)})
+    if outside or actual!=15*PIXELS or bad_before!=90890 or bad_after!=2:
+        raise ValueError("real 15-frame brightness7 source counterfactual census drift")
+    positions={(p["guest"],tuple(p["xy"])) for p in misses}
+    if positions!={(3792,(121,165)),(3872,(121,165))}:
+        raise ValueError("unexpected failed BG3/OBJ full-add pixel location")
+    return {
+      "source_brightness_7_is_a_counterfactual_not_live_all_line_proof":True,
+      "real_finish_guest_frames":list(FINISH_FIELDS),
+      "pixels_checked":actual,
+      "source_original_native_wrong_RGB5_before":bad_before,
+      "hypothetical_brightness7_postmath_quantize_wrong_RGB5":bad_after,
+      "discrepant_BG3_OBJ_two_pixels":misses,
+      "native8_brightness7_inverse_is_one_to_one_for_all_32_5bit_inputs":True,
+      "actual_native_RGB8_values_outside_brightness7_inverse":0,
+      "real_original_2014_Snes9x_brightness_first_math_order_proven_here":False,
+      "offline_pixel_transformation_valid_as_production_PPU_patch":False,
+      "frames_or_clock_shifted":False,
+      "game_or_renderer_changed":False,
+      "QA08_QA10_or_release_approved":False
+    }
+
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--original-bundle",type=Path,required=True)
@@ -120,6 +180,7 @@ def main():
     original,native=loaded(a.original_bundle,a.windows_source)
     report=diagnose(original,native)
     report["full_finish_RGB8_observed_transfer"]=rgb8_finish_transfer(original,native)
+    report["source_only_brightness7_counterfactual"]=brightness7_postmath_counterfactual(original,native)
     a.out.parent.mkdir(parents=True,exist_ok=True)
     a.out.write_text(json.dumps(report,indent=2,sort_keys=True)+"\n")
     print("QA08_FINISH_PALETTE_LUT_IMPOSSIBLE",

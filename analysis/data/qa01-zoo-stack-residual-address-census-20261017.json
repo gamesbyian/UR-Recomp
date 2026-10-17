@@ -1,0 +1,100 @@
+{
+  "schema": "qa01-zoo-78-sample-full-wram-residual-address-census-v1",
+  "source_run": 39006650922,
+  "immutable_source": "db6c3b2e2ffdb55ea232831626965b6e587f1d56",
+  "case_artifact_id": 12091825707,
+  "case_zip_sha256": "2785bc65b8ce41bf2c4ddce39b90422a78a27a0f1a84f07a6b546c9095efeeec",
+  "case": "zoom-zoo",
+  "sampled_full_wram_bytes_per_guest": 131072,
+  "excluded_bytes": 0,
+  "paired_sample_count": 78,
+  "exact_sample_count": 51,
+  "differing_sample_count": 27,
+  "differing_byte_occurrences": 92,
+  "groups": [
+    {
+      "name": "stack four-byte return-context region",
+      "addresses": [
+        "7E:01ED",
+        "7E:01EE",
+        "7E:01EF",
+        "7E:01F0"
+      ],
+      "sample_count": 20,
+      "byte_occurrences": 80,
+      "relative_frames": [
+        1,
+        2,
+        4,
+        32,
+        219,
+        604,
+        840,
+        841,
+        1080,
+        1531,
+        1532,
+        1720,
+        1721,
+        1800,
+        2160,
+        2520,
+        2880,
+        3120,
+        3600,
+        4920
+      ]
+    },
+    {
+      "name": "stack two-byte near terminal sound upload",
+      "addresses": [
+        "7E:01EE",
+        "7E:01F1"
+      ],
+      "sample_count": 5,
+      "byte_occurrences": 10,
+      "relative_frames": [
+        5034,
+        5035,
+        5036,
+        5037,
+        5038
+      ]
+    },
+    {
+      "name": "sound DP pointer single-byte advance",
+      "addresses": [
+        "7E:0063"
+      ],
+      "sample_count": 2,
+      "byte_occurrences": 2,
+      "relative_frames": [
+        5040,
+        5045
+      ]
+    }
+  ],
+  "address_frequency": {
+    "7E:01ED": 20,
+    "7E:01EE": 25,
+    "7E:01EF": 20,
+    "7E:01F0": 20,
+    "7E:01F1": 5,
+    "7E:0063": 2
+  },
+  "other_address_mismatch_count": 0,
+  "classification": {
+    "stack_page_byte_occurrences": 90,
+    "sound_dp_byte_occurrences": 2,
+    "stack_page_semantically_dead_proven": false,
+    "original_native_actual_stack_writers_matched": false,
+    "masking_or_exemptions_applied": false
+  },
+  "authorities": [
+    "docs/QA01-STACK-PAGE-ORIGINAL-PC-CROSSWALK-20261010.md",
+    "docs/RF037-SOUND-TRANSACTION-20261017.md"
+  ],
+  "next": "Use existing genuine Switcher stack writer/NMI/JSR observers as reusable source-scoped archaeology for Zoo stack addresses 7E:01ED–01F1, without assuming original and native CPU frame correspondence. Prove actual writer/reader liveness and CPU/beam ordering before gameplay change.",
+  "accepted_complete_USA_events": 0,
+  "required_complete_USA_events": 45
+}

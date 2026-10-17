@@ -1,0 +1,89 @@
+{
+  "schema": "qa08-current-RF017-firstline-only-native-2P-versus-Snes9x-263frames/1",
+  "original": {
+    "emulator": "independent 2014 Snes9x",
+    "producer_run": 38781958316,
+    "archival_run": 38966089749,
+    "archival_artifact_id": 12075111053,
+    "nested_original_zip_sha256": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+    "authentic_LF_route_sha256": "a6c8815482b742d90dca61645f876c15918f5d9985a027eef107ac4fdc515264",
+    "original_callback_offset_to_windows_guest": -1
+  },
+  "current_windows": {
+    "diagnostic_PR": 1745,
+    "head": "66a5260c4ae988ec6a55571c592aa12ba0802917",
+    "actions_run": 39004198644,
+    "source_artifact_id": 12091090244,
+    "source_artifact_zip_sha256": "c23a86336149084ca636ebd35a0d070f8e62cdb9b91a7f9178a90462ef3bd764",
+    "exact_PE_sha256": "b0aba7c8c654750a929cf35a09d688d84d0b93c2d65c6fac40ac1fe8d76b934f",
+    "route_CRLF_sha256": "ef74ec51fa585aa76652f4a14d2727f0074434b3925522ab2607e3bd29aa0194",
+    "actual_guest_frames": 5484,
+    "actual_CRC_sha256": "b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568",
+    "old_guest_CRC_sha256": "c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876",
+    "old_CRC_equal": false,
+    "candidate_code": "all-channel consumed first-line only, RF-017; no extra V0 or historical brightness"
+  },
+  "comparison": {
+    "all_frames": 263,
+    "exact_frames": 132,
+    "divergent_frames": 131,
+    "pixels_per_frame": 57344,
+    "total_compared": 15081472,
+    "wrong_RGB5_pixels": 1251290,
+    "scenes": [
+      {
+        "name": "countdown",
+        "frames": 46,
+        "exact": 22,
+        "wrong_pixels": 146112
+      },
+      {
+        "name": "moving",
+        "frames": 101,
+        "exact": 101,
+        "wrong_pixels": 0
+      },
+      {
+        "name": "finish",
+        "frames": 23,
+        "exact": 8,
+        "wrong_pixels": 451975
+      },
+      {
+        "name": "blackout",
+        "frames": 2,
+        "exact": 1,
+        "wrong_pixels": 53667
+      },
+      {
+        "name": "result",
+        "frames": 91,
+        "exact": 0,
+        "wrong_pixels": 599536
+      }
+    ],
+    "same_coordinate_full_frame_no_mask_crop_shift": true,
+    "only_original_green6_to5": true
+  },
+  "current_2P_RGB_nonblack_pixels": {
+    "4000": 0,
+    "4016": 55656,
+    "4032": 55656,
+    "4176": 55656,
+    "5136": 55656,
+    "5472": 55656
+  },
+  "historical_mixed_graphics": {
+    "old_203_of_263_exact": true,
+    "wrong_pixels": 385373,
+    "source_epoch_guest_CRC_equal": false,
+    "extra_experiments": "V0 pre-HDMA plus historical Snes9x brightness LUT, separate Windows PE"
+  },
+  "causal_disposition": {
+    "whole_101_frame_2P_moving_corridor_exact": true,
+    "new_original_guest_CRC_equivalence_unproven": true,
+    "current_finish_and_result_causality_unproven": true,
+    "physical_4K_or_user_HD_approval": false,
+    "release_approved": false
+  }
+}

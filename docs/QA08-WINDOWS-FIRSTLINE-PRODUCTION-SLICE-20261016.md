@@ -74,3 +74,24 @@ I independently downloaded the preserved, separately executed, authentic **2014 
 Same-coordinate full 256×224 no ignored pixels, no 216-high crop, no shifted source, no invented frames; only Snes9x RGB565 green6→5 normalization. The unchanged original route drops only Snes9x-incompatible `turbo on`; the independently accepted Windows CRLF/Ubuntu LF literal script identities and full 2014 original execution come from [original 1P authority](https://github.com/gamesbyian/UR-Recomp/blob/graphics/qa08-original-windows-1p-crossruntime/docs/QA08-WINDOWS-ORIGINAL-MOVING-1P-RGB5-20261015.md). This is **newly re-executed genuine current-source Windows evidence** for the small extracted firstline-only patch, independently confirming the older mixed graphics draft's three moving 1P identities without crediting its V0/brightness code. The original’s 65 genuinely different frames and high next-best score rule out accepting a neighbouring frame as equivalent.
 
 **Boundary:** No direct physical pixels from the *clean* product PE #1755 were sampled (the diagnostic observer is not shipped). No original Snes9x 1P countdown, finish/result/menu, entire guest/CPU/NMI/camera trace, artwork or physical Windows 4K has been certified. Machine receipt: `analysis/data/qa08-current-firstline-windows-oneplayer-moving-original-exact-20261017.json`. Do not use this bounded three-frame pass to release or to reduce the strict original/native comparator.
+
+## Independent firstline-only current RF-017 Windows full-result source (October 17)
+
+Current real Windows run 39004198644 succeeded with complete genuine 5484-guest USA 2P route and 263 real 256x224 full RGBA original PPU P7 frames. Genuine source artifact 12091090244 ZIP SHA256 c23a86336149084ca636ebd35a0d070f8e62cdb9b91a7f9178a90462ef3bd764 and diagnostic Windows PE SHA256 b0aba7c8c654750a929cf35a09d688d84d0b93c2d65c6fac40ac1fe8d76b934f. Source runs with firstline-only and RF-017 clock ordering; it deliberately excludes V0, 2014-brightness LUT, and other held PPU observer/renderer experiments.
+
+Independently compared with all 263 authentic original 2014 Snes9x callbacks from reference archive 12075111053, nested original ZIP SHA256 72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e. Correctly registered original callback f-1 vs native guest f, matching semantic 2P USA route; full 256x224 RGB5, only Snes9x green6 to 5 reduction, no crop, mask, window, time shift, pixel waiver or synthetic source. All 15,081,472 pixels evaluated.
+
+| Scene | Exact / total source P7 frames | Wrong RGB5 pixels |
+|---|---:|---:|
+| countdown | 22/46 | 146,112 |
+| moving | 101/101 | 0 |
+| finish | 8/23 | 451,975 |
+| blackout | 1/2 | 53,667 |
+| result | 0/91 | 599,536 |
+| **Total** | **132/263** | **1,251,290** |
+
+Guest 4000 was fully black, then guest 4016 had 55,656 nonblack pixels even though the aligned original Snes9x was black. Original finish guest3648 has a dark upper split viewport; this new firstline-only build renders it overbright. Of its 30,687 bad full RGB5 pixels, 27,136 were in y0-111 and 3,551 in y112-223. This is evidence to isolate title V0-before-HDMA video-register sequencing, not permission to substitute a pixel mask.
+
+The older mixed research build with V0 and the Snes9x 2014 brightness ordering had 203/263 exact and 385,373 wrong, but its entire 5484-guest CRC transcript (c782121b...) does NOT match this current RF-017 build (b735b018...), so no change in total error can be assigned causally to one graphics patch yet. The complete 101-frame moving corridor matches the original exactly on this firstline-only current source. Strict original guest parity, historical colour math hardware ordering, result CGRAM/OAM, physical Windows 4K/7:6/342 world, and HD artwork approval remain unaccepted.
+
+Machine summary: analysis/data/qa08-current-firstline-win32-2p-263-original-source-adjudication-20261017.json. Held diagnostic PR #1745 and clean shipping-shaped draft #1755 remain distinct. No CPU/APU, Modern, release-ledger or original artwork changes.

@@ -14,7 +14,7 @@ from pathlib import Path
 
 MARK = "UR_QA01_RF035_SOUND_CONSUMER"
 ORIG = Path("cpuexec.cpp")
-NATIVE = Path("snesrecomp/runner/src/snes/cpu_state.c")
+NATIVE = Path("snesrecomp/runner/src/cpu_state.c")
 
 ORIG_DISPATCH = "\t\t\tRegisters.PCw++;\n\t\t\t(*Opcodes[Op].S9xOpcode)();"
 NATIVE_BYTE = "    if (off >= 0) return cpu_latch_read8(cpu, cpu->ram[off]);\n"
@@ -29,12 +29,12 @@ ORIG_BEFORE = r"""            /* UR_QA01_RF035_SOUND_CONSUMER: pre-dispatch only
             const unsigned ur_rf035_bank = (unsigned)Registers.PB;
             const unsigned ur_rf035_pc = (unsigned)Registers.PCw;
             const bool ur_rf035_sound =
-                getenv("UR_QA01_RF035_SOUND_CONSUMER") != NULL &&
                 (ur_rf035_bank == 0x02u || ur_rf035_bank == 0x82u) &&
+                (ur_rf035_pc == 0x82F0u || ur_rf035_pc == 0x82F2u ||
+                 ur_rf035_pc == 0x82F6u || ur_rf035_pc == 0x8301u) &&
                 (unsigned)ICPU.Frame >= 6000u &&
                 (unsigned)ICPU.Frame <= 6150u &&
-                (ur_rf035_pc == 0x82F0u || ur_rf035_pc == 0x82F2u ||
-                 ur_rf035_pc == 0x82F6u || ur_rf035_pc == 0x8301u);
+                getenv("UR_QA01_RF035_SOUND_CONSUMER") != NULL;
             const unsigned ur_rf035_op = ur_rf035_sound ? (unsigned)Op : 0u;
             const unsigned ur_rf035_a0 = ur_rf035_sound ? (unsigned)Registers.A.W : 0u;
             const unsigned ur_rf035_y0 = ur_rf035_sound ? (unsigned)Registers.Y.W : 0u;

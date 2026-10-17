@@ -33,6 +33,6 @@ class TestCurrentResultReadOnly(unittest.TestCase):
     def test_inspection_rejects_empty_and_wrong_guest(self):
         with self.assertRaisesRegex(ValueError,"5484"):
             w.inspect("",[])
-        with self.assertRaisesRegex(ValueError,"source"):
+        with self.assertRaisesRegex(ValueError,"RF-017 / route changed"):
             w.inspect("",["0xdeadbeef"]*5484)
 if __name__=="__main__":unittest.main()

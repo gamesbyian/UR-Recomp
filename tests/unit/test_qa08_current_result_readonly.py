@@ -1,5 +1,10 @@
 """Validate source-pinned, strictly read-only current result owner hooks."""
 import unittest
+import sys
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT))
+sys.path.insert(0,str(ROOT/"tools"))
 from tools import qa08_current_result_pixel_owner_patch as p
 from tools import qa08_current_result_cgram_port_patch as c
 from tools import qa08_current_result_source_witness as w

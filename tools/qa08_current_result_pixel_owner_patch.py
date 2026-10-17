@@ -7,9 +7,14 @@ game/core pinned and captures existing resolver outputs without re-evaluation.
 from __future__ import annotations
 import argparse
 from pathlib import Path
-from tools.baldosa_uniracers_hdma_firstline_patch import (
-    pinned_revision, GAME_REV, CORE_REV
-)
+try:
+    from tools.baldosa_uniracers_hdma_firstline_patch import (
+        pinned_revision, GAME_REV, CORE_REV
+    )
+except ImportError:
+    from baldosa_uniracers_hdma_firstline_patch import (
+        pinned_revision, GAME_REV, CORE_REV
+    )
 
 RELATIVE=Path("snesrecomp/runner/src/snes/ppu_legacy.c")
 MARK="UR_QA08_NATIVE_EFFECTIVE_PIXEL_OWNER"

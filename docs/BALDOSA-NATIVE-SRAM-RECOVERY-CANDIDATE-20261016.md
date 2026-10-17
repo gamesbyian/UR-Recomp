@@ -406,3 +406,29 @@ enter an unbounded consent loop. Scripted launches never prompt. A source
 unit assertion pins the recovery menu before choice and the retry guard
 before a second potential entry. Human-operated package acceptance remains
 independent and unverified.
+
+## Real NTFS denial during cold reconciliation of a genuine F2 write
+
+The native Windows product producer now clones the original **actual**
+frame-1952 F2 raw-written/pretyped process-abort user root into a second
+**disposable** test root, with the original entire raw SRAM, committed
+typed sidecar, selector/catalog and pending exact old/new intent
+**unchanged**. It applies an actual OS icacls deny to the current
+Windows runner SID and confirms a real exclusive-create operation is
+rejected by the kernel. A genuine original native cold process must
+then reject the pending transaction before any guest frame, preserving
+all four canonical files and the exact intent. In finally, the producer
+removes the DACL; two subsequent original Win32 cold game processes must
+reconcile exactly once, retain the immutable intent receipt, load
+source-written 8192 SRAM and leave selector, roster, typed generation
+and Records unchanged on repeat.
+
+The source original post-raw write itself did **not** encounter the
+OS-denied typed checkpoint. It was an authenticated process-abort F2;
+the later OS denial is **real** but deliberately applied to an exact
+copy during cold recovery. Consequently this is an actual post-raw-state
+OS denied-reconciliation test, **not** an injected failure between the
+live native RtlWriteSram and typed CAS, partial OS write, actual full
+disk, or device power cut. These positive product-source observations
+remain distinct from independent release QA; original 19-member flat
+QA02 ZIP contract is completely unchanged.

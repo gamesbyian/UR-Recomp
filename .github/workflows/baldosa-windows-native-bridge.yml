@@ -800,6 +800,8 @@ jobs:
           path: |
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_post_raw_pre_typed_crash/fault-bytes/**
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/native_postraw_recovery_dacl_denial/*.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/native_postraw_recovery_dacl_denial/fault-bytes/**
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/qa02-journaled-snapshot.zip
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/qa02-journaled-snapshot.sha256
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_typed_before_intent_recovery/fault-bytes/**

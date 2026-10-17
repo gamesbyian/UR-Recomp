@@ -2900,6 +2900,167 @@ def run_native_partial_raw_rollback_from_real_win32_cut(
     return report
 
 
+def run_native_win32_postraw_recovery_acl_denial(
+    exe: Path, rom: Path, output: Path, source_root: Path,
+    environment: dict[str, str], config: Path, intent_bytes: bytes, *,
+    timeout: int,
+) -> dict[str, object]:
+    """Actual Win32 DACL refusal of cold reconciliation after a genuine raw write.
+
+    Copy one source-original F2 post-raw / pretyped crash to a disposable root.
+    No synthetic SRAM state or invented progress: the *denial* is genuine NTFS
+    access control, but occurs on cold replay, not during the live raw writer.
+    """
+    isolated = output / "native_postraw_recovery_dacl_denial"
+    isolated.mkdir()
+    copied = isolated / "Disposable Authentic Interrupted SRAM"
+    shutil.copytree(source_root, copied, symlinks=True)
+    profile = copied / "saves/profile-native-ci-rider"
+    files = {
+        "raw-sram": profile / "save.srm",
+        "typed-profile": profile / "host-profile.txt",
+        "selector": copied / "host-state-v1.txt",
+        "roster": copied / "profiles-v1.txt",
+    }
+    pending = profile / "native-sram-checkpoint.pending"
+    before = {name: path.read_bytes() for name, path in files.items()}
+    if (len(before["raw-sram"]) != 8192 or
+        not pending.is_file() or pending.read_bytes() != intent_bytes or
+        not before["typed-profile"] or
+        list(copied.rglob("*.urrun")) or
+        list(copied.rglob("*.urmatch"))):
+        raise ValueError("ACL case missing authentic intact F2 Win32 source cut")
+    sid_call = subprocess.run(
+        ["whoami", "/user", "/fo", "csv", "/nh"], capture_output=True,
+        text=True, check=True, timeout=10)
+    parsed = list(csv.reader(sid_call.stdout.splitlines()))
+    if len(parsed) != 1 or not parsed[0] or not parsed[0][-1].startswith("S-1-5-"):
+        raise ValueError("No real Windows SID for post-raw ACL denial")
+    sid = parsed[0][-1]
+    def acl(*params: str) -> None:
+        process = subprocess.run(
+            ["icacls", str(profile), *params, "/T"],
+            capture_output=True, text=True, timeout=30)
+        if process.returncode or "Successfully processed" not in process.stdout:
+            raise ValueError("Win32 DACL change failed: " +
+                             (process.stdout + process.stderr)[-1000:])
+    script = isolated / "short-cold.txt"
+    script.write_text("turbo on\nwait 6\nquit\n", encoding="ascii")
+    args = [str(exe), "--no-launcher", "--config", str(config),
+            "--script", str(script), str(rom)]
+    env = environment.copy()
+    env["SNESRECOMP_USER_DATA_DIR"] = str(copied)
+    for key in ("UR_BALDOSA_QA_CRASH_AFTER_NATIVE_SRAM_WRITE",
+                "UR_BALDOSA_QA_LEGACY_UNJOURNALED_CRASH",
+                "UR_BALDOSA_QA_CRASH_AFTER_INTENT_BEFORE_RAW",
+                "UR_BALDOSA_QA_CRASH_AFTER_TYPED_PROFILE_COMMIT",
+                "UR_BALDOSA_RECOVERY_ACTION",
+                "UR_BALDOSA_RECOVERY_PROFILE_ID"):
+        env.pop(key, None)
+    denied_applied = False
+    denied_bytes = None
+    rc = None
+    refusal_log = ""
+    try:
+        acl("/deny", f"*{sid}:(WD,AD,WEA,WA,DE,DC)")
+        denied_applied = True
+        probe = profile / "_denial_probe_not_a_save.txt"
+        try:
+            with probe.open("xb") as handle:
+                handle.write(b"not a guest save")
+        except PermissionError:
+            if probe.exists():
+                raise ValueError("OS denied create but left unexpected probe file")
+        else:
+            probe.unlink(missing_ok=True)
+            raise ValueError("Actual Win32 post-raw replay folder is still writable")
+        attempted = subprocess.run(
+            args, cwd=isolated, env=env, capture_output=True, text=True,
+            errors="replace", timeout=timeout)
+        rc = attempted.returncode
+        refusal_log = attempted.stdout + "\n" + attempted.stderr
+        (isolated / "cold-os-refusal.log").write_text(
+            refusal_log, encoding="utf-8")
+        denied_bytes = {name: path.read_bytes() for name, path in files.items()}
+    finally:
+        if denied_applied:
+            acl("/remove:d", f"*{sid}")
+    if (rc != 7 or denied_bytes != before or
+        "UR_BALDOSA_NATIVE_PROFILE RECOVERY_REJECTED" not in refusal_log or
+        "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in refusal_log or
+        not pending.is_file() or pending.read_bytes() != intent_bytes or
+        list(profile.glob("native-sram-recovered-*.txt"))):
+        raise ValueError("Genuine denied NTFS cold replay changed authentic F2 state")
+    result = subprocess.run(
+        args, cwd=isolated, env=env, capture_output=True,
+        text=True, errors="replace", timeout=timeout)
+    recovered_log = result.stdout + "\n" + result.stderr
+    (isolated / "recovered-cold.log").write_text(recovered_log, encoding="utf-8")
+    if (result.returncode or
+        recovered_log.count("UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED "
+                            "exact_staged_guest_sram=1 no_records=1") != 1 or
+        "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" not in recovered_log):
+        raise ValueError("OS restoration did not permit exact F2 reconciliation")
+    verify_named_profile_boot_bytes(recovered_log, before["raw-sram"])
+    recovered = {name: path.read_bytes() for name, path in files.items()}
+    receipts = list(profile.glob("native-sram-recovered-*.txt"))
+    if (recovered["raw-sram"] != before["raw-sram"] or
+        recovered["typed-profile"] == before["typed-profile"] or
+        (recovered["selector"], recovered["roster"]) !=
+        (before["selector"], before["roster"]) or
+        pending.exists() or len(receipts) != 1 or
+        receipts[0].read_bytes() != intent_bytes):
+        raise ValueError("Recovered OS fault did not preserve source-intent bytes")
+    verified = subprocess.run(
+        args, cwd=isolated, env=env, capture_output=True,
+        text=True, errors="replace", timeout=timeout)
+    repeated_log = verified.stdout + "\n" + verified.stderr
+    (isolated / "second-cold.log").write_text(repeated_log, encoding="utf-8")
+    final = {name: path.read_bytes() for name, path in files.items()}
+    if (verified.returncode or
+        "UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED" in repeated_log or
+        final != recovered or pending.exists() or
+        receipts[0].read_bytes() != intent_bytes or
+        list(copied.rglob("*.urrun")) or list(copied.rglob("*.urmatch"))):
+        raise ValueError("Second cold boot failed exact idempotent replay invariant")
+    verify_named_profile_boot_bytes(repeated_log, before["raw-sram"])
+    evidence = isolated / "fault-bytes"
+    evidence.mkdir()
+    manifest = {}
+    for stage, snapshot in (("before", before), ("denied", denied_bytes),
+                            ("recovered", recovered), ("second-cold", final)):
+        for name, data in snapshot.items():
+            filename = name + "." + stage + ".bin"
+            (evidence / filename).write_bytes(data)
+            manifest[filename] = {
+                "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data),
+            }
+    for name, data in (("intent.authentic-F2.bin", intent_bytes),
+                       ("intent.immutable-receipt.bin", receipts[0].read_bytes())):
+        (evidence / name).write_bytes(data)
+        manifest[name] = {"sha256": hashlib.sha256(data).hexdigest(),
+                          "bytes": len(data)}
+    if len(manifest) != 18:
+        raise ValueError("Post-raw OS-denial evidence needs 18 source-byte objects")
+    (evidence / "hashes.json").write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8")
+    return {
+        "genuine_original_guest_post_raw_cut_reused_without_byte_edit": True,
+        "real_win32_ntfs_acl_create_deny": True,
+        "fresh_original_game_refused_before_guest": True,
+        "four_canonical_files_unchanged_on_denial": True,
+        "prewrite_intent_exact_and_immutable": True,
+        "denial_removed_before_healthy_recovery": True,
+        "exact_source_guest_sram_reconciled_once": True,
+        "second_source_cold_boot_identical": True,
+        "source_binary_receipt_members": 18,
+        "live_native_postraw_typed_save_denial_proven": False,
+        "simulated_disk_full_or_power_cut": False,
+        "independent_qa_gate_credit": 0,
+    }
+
+
 def run_native_crash_between_raw_and_typed(
     exe: Path, rom: Path, script: Path, root: Path,
     fixture: Path, seed: Path, *, video: str, timeout: int,
@@ -3004,6 +3165,11 @@ def run_native_crash_between_raw_and_typed(
         raise ValueError("Durable prewrite intent absent from actual Win32 cut")
     if not journaled and pending_crash_bytes is not None:
         raise ValueError("Historical unjournaled witness unexpectedly had intent")
+    real_acl_recovery = None
+    if journaled and pending_crash_bytes is not None:
+        real_acl_recovery = run_native_win32_postraw_recovery_acl_denial(
+            exe, rom, output, user_root, env, config, pending_crash_bytes,
+            timeout=timeout)
     partial_raw_rollback = None
     if journaled and pending_crash_bytes is not None:
         partial_raw_rollback = run_native_partial_raw_rollback_from_real_win32_cut(
@@ -3308,6 +3474,7 @@ def run_native_crash_between_raw_and_typed(
         "fresh_process_rejected_before_guest": not journaled,
         "validated_intent_reconciled_on_fresh_guest": journaled,
         "synthetic_partial_raw_explicit_rollback": partial_raw_rollback,
+        "real_postraw_acl_denied_cold_recovery": real_acl_recovery,
         "second_cold_boot_byte_identical": journaled,
         "actual_crash_intent_and_receipt_retained": journaled and snapshot_dir is not None,
         "qa02_flat_journaled_zip_exported": journaled and snapshot_dir is not None,

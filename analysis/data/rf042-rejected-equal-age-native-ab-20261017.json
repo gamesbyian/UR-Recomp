@@ -1,0 +1,128 @@
+{
+  "schema": "rf042-executed-negative-equal-age-spc-queue-ab-20261017-v1",
+  "experiment": "RF042 source-only RF026 final-base-cycle equal-target application-after-opcode candidate",
+  "disposition": "rejected; gameplay regressions and missing required target/IPL witnesses; no source-qualified timing correction",
+  "baseline": {
+    "run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39069703970",
+    "frozen_source_sha": "54c3660bcd985a7629f0c8fcc6980ccab9ad91e5",
+    "artifact_id": 12115251490,
+    "case_zip_sha256": "1c21481aff42ab3580f6292d94c3b0f255d71d8c548b688f2f4d00ae4190ebb0",
+    "case_file_count": 18,
+    "full_wram_pairs": 78,
+    "exact_full_wram_pairs": 51,
+    "unmasked_differing_byte_occurrences": 92,
+    "target_port2_24_native_master": 2176886834,
+    "target_native_scope": "Snd_UploadBlockList_82B4_M1X0",
+    "native_IPL_event_rows": 117
+  },
+  "trial": {
+    "run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39072151377",
+    "frozen_source_sha": "8be9337d2d8e2480933c18dd8d4d58ae7d68bb65",
+    "artifact_id": 12115434806,
+    "case_zip_sha256": "1fc55834927fcb5e3fd6f1ec5ba47910f4ffe642c50db2332780228b3be0167b",
+    "case_file_count": 14,
+    "action_plan": "success",
+    "action_build": "success",
+    "action_producer_exit_code": 0,
+    "action_case": "failure_after_producer",
+    "action_aggregate": "success",
+    "case_failure": "QA01IPLNATIVE source-qualified IPL events missing from native trace at auxiliary QA01 IPL report step",
+    "native_IPL_event_rows": 0,
+    "exact_target_RF038_82B4_port2_24_writer_present": false,
+    "actual_target_RF042_tie_marker_count": 0,
+    "sampled_native_sound_upload_scope_at_host6091": "Snd_UploadBlockList_82EF_M1X0",
+    "full_wram_pairs": 78,
+    "exact_full_wram_pairs": 46,
+    "unmasked_differing_byte_occurrences": 106,
+    "source_original_every_one_of_78_unmasked_128KiB_sample_sha256_equal_to_baseline": true,
+    "dense_13_frame_sound_DP_window_equal_to_baseline": false,
+    "sampled_zoo_to_bowl_handoff_object_equal_to_baseline": false,
+    "sampled_source_terminal_followthrough_object_equal_to_baseline": false,
+    "original_source_event_relative_result_frames": 5163,
+    "real_next_bowl_entry_relative_frames": 267,
+    "earned_whole_SRAM_pairs_equal": true,
+    "source_earned_ranked_record_reloads_in_fresh_guest_processes": true,
+    "cold_source_best_lap_centiseconds": 2510,
+    "additional_full_wram_differing_byte_occurrences": 14,
+    "changed_native_wram_sha256_frames": [
+      {
+        "relative_frame": 5040,
+        "baseline_difference_count": 1,
+        "trial_difference_count": 2,
+        "trial_first_addresses": [
+          "7E:0063",
+          "7E:0069"
+        ]
+      },
+      {
+        "relative_frame": 5041,
+        "baseline_difference_count": 0,
+        "trial_difference_count": 2,
+        "trial_first_addresses": [
+          "7E:0063",
+          "7E:0069"
+        ]
+      },
+      {
+        "relative_frame": 5042,
+        "baseline_difference_count": 0,
+        "trial_difference_count": 3,
+        "trial_first_addresses": [
+          "7E:0063",
+          "7E:0064",
+          "7E:0069"
+        ]
+      },
+      {
+        "relative_frame": 5043,
+        "baseline_difference_count": 0,
+        "trial_difference_count": 3,
+        "trial_first_addresses": [
+          "7E:0063",
+          "7E:0064",
+          "7E:0069"
+        ]
+      },
+      {
+        "relative_frame": 5044,
+        "baseline_difference_count": 0,
+        "trial_difference_count": 2,
+        "trial_first_addresses": [
+          "7E:0063",
+          "7E:0069"
+        ]
+      },
+      {
+        "relative_frame": 5045,
+        "baseline_difference_count": 1,
+        "trial_difference_count": 2,
+        "trial_first_addresses": [
+          "7E:0063",
+          "7E:0069"
+        ]
+      },
+      {
+        "relative_frame": 5046,
+        "baseline_difference_count": 0,
+        "trial_difference_count": 2,
+        "trial_first_addresses": [
+          "7E:0063",
+          "7E:0069"
+        ]
+      }
+    ]
+  },
+  "v1_setup_negative": {
+    "run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39071547245",
+    "cause": "opt-in patch required pristine upstream apu_cycle but the native research build already installed RF026 final-base-cycle SPC execution",
+    "real_zoo_case_executed": false
+  },
+  "decisions": {
+    "native_equal_target_write_after_final_base_cycle_rejected": true,
+    "promote_native_timing_patch": false,
+    "relax_strict_comparator": false,
+    "mask_stack_or_sound_pointer_bytes": false,
+    "accepted_complete_usa_events": 0,
+    "next_priority": "Independent actual last-writer/next-reader and NMI provenance for Zoo stack 01ED–01F1 plus source-qualified CPU/APU timestamp anchor investigation. No additional blind queue-phase trial."
+  }
+}

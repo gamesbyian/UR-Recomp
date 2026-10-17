@@ -1,0 +1,22 @@
+# RF-035: prove the sound-pointer consumer before changing SPC port ordering
+
+**Protocol prepared 2026-10-16. Not yet executed. No production timing change; USA complete-event admission remains 0/45.**
+
+## Decision
+
+RF-034 establishes that original Snes9x finishes SPC IPL opcode $78 at $FFCF before CPU port $2140 receives CC, but native Baldosa drains CC before the next opcode. Both CPUs later observe the CC echo, establishing a live CPU-level handshake consumer. This does not establish that the order caused Zoo +5040/+5045 sound-pointer $63 residuals. A prior RF-018 treatment improved pointer parity while demonstrably breaking genuine Bowl continuation; RF-029/RF-031 were also negative. Another global or opcode-special-case cycle adjustment is not justified.
+
+## Cheapest executable discriminator
+
+Use the same source-authenticated genuine Zoo producer, unchanged 2014 USA ROM (SHA256 859ec99f…), SMV (06dce29e…), original SRAM (a6af0ddf…), exact expanded script (1eb3e841…), result +5163 and authentic next Bowl +267. Reuse the RF-034 executable provenance, RF-015..028 experimental composite and exact controllers. Do not rebuild a separate runner or search input rephases.
+
+1. Stage tools/qa01_rf035_sound_consumer_observer.py into separately disposable source-pinned original Snes9x and native Baldosa guests using its original or native selection and --root path. This observer makes no guest-visible changes. Original: observe executed 02:82F0 (LDA [$63],Y), 02:82F2 (STA $2143), 02:82F6 (STA $2142) and 02:8301 (CMP $2142), capturing A, Y, DP $63/$64/$69, frame and beam. Native: observe WRAM bus-helper reads touching $63/$64/$69 around native host 6053..6068. Direct AOT memory reads may bypass helper instrumentation; no native row is an inconclusive coverage outcome.
+2. Enable UR_QA01_RF035_SOUND_CONSUMER=1 for the unchanged original/native replay. Preserve separate stderr traces, earlier RF030–034 port-echo logs, the existing native port request/apply/SPC read audio log and executed WRAM writer instrumentation. Match source-relative frame indices independently, never assume equality of original/native SPC integer clocks.
+3. At +5039..+5046 identify the actual instruction or native function-scope reading each changed $63/$64/$69 byte, the consumed address/value and downstream $2142/$2143 writes/echoes. Establish whether the CC visibility difference can propagate to the discrepant pointer *before* proposing an A/B correction. If actual reads are absent or unobserved, identify a direct AOT or original bus path first. Unconsumed stale DP or stack bytes may warrant a scoped independent QA judgement, but are not a reason to mask state.
+4. If and only if a source-qualified causal mechanism appears, make the smallest reversible source change and independently A/B test unchanged original/native input with 78 unmasked full 128-KiB WRAM samples, 13 consecutive +5034..+5046 sound samples, 11 complete earned 8192-byte SRAM pairs, Zoo +5163, Bowl +267, original cold record restart and 2P/attract negatives. Then bind source identity and runtime observations to the actual merged RF-015+RF-017 Windows executable. Never infer acceptance from the old research ELF or relax the strict comparator.
+
+**Stopping rule:** Missing original opcode execution, native bus-helper coverage without actual AOT consumer witness, mismatched source masks, or no linked sound-port transaction means stop as an explicit coverage gap. No fabricated source fix; no release event credit. Run python3 tests/unit/test_qa01_rf035_sound_consumer_observer.py before staging. Temporary Actions push triggers must be removed before any evidence merge.
+
+References: RF-034 (docs/RF034-SPC-OPCODE-PORT-VISIBILITY-20261016.md), exact cold research guest (docs/QA01-EXACT-COMPOSITE-COLD-GUEST-ELIGIBILITY-20261016.md), RF-018 negative (analysis/data/qa01-zoo-rf018-only-treatment-review-20261016.json), CPU owner issue #1689 and merged source identity PR #1744.
+
+**Three-project reuse preflight:** Audited the present all-lane plus conditional reuse register and matrix through tools/select_three_project_reuse.py and its data. Reused UR's original opcode-dispatch and native read-helper instrumentation, Baldosa's sound trace and native route, and Malmazuke's replay-manifest concept as an advisory input-identity check. Neither a new runtime nor a PAL oracle nor a duplicate release judge is introduced.

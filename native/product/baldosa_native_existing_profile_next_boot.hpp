@@ -37,17 +37,43 @@ struct BaldosaExistingProfileSelectionResult {
     }
 };
 
+// Emergency selector admission: a crashed currently selected source may
+// have missing/corrupt typed or raw bytes. Never read them as authoritative,
+// but refuse redirected paths and require canonical real directories. The
+// destination is independently validated using the full ordinary policy.
+inline bool baldosa_native_damaged_source_paths_are_safe(
+    const std::filesystem::path& root,
+    const std::filesystem::path& save_root) {
+    namespace fs = std::filesystem;
+    if (!baldosa_native_real_directory(root / "saves") ||
+        !baldosa_native_real_directory(root / save_root))
+        return false;
+    for (const auto* name : {"host-profile.txt", "save.srm"}) {
+        std::error_code ec;
+        const auto st = fs::symlink_status(root / save_root / name, ec);
+        if (st.type() == fs::file_type::not_found &&
+            (!ec || ec == std::errc::no_such_file_or_directory))
+            continue;
+        if (ec || !fs::is_regular_file(st) || fs::is_symlink(st))
+            return false;
+    }
+    return true;
+}
+
 inline BaldosaExistingProfileSelectionResult
 select_baldosa_existing_profile_for_next_boot(
     const std::filesystem::path& user_root,
     std::string_view expected_active_profile,
-    std::string_view requested_profile) {
+    std::string_view requested_profile,
+    bool allow_damaged_current = false,
+    bool validate_only = false) {
     namespace fs = std::filesystem;
     using Status = BaldosaExistingProfileSelectionStatus;
 
     // Refuse path traversal, anonymous selection, or an implicit profile
-    // directory scan. This operation only switches between two genuinely
-    // registered and fully validated stock-profile owners.
+    // directory scan. The only two filesystem owners inspected/locked are
+    // the explicitly named source and destination. A third unrelated racer
+    // (even with damaged SRAM) may not strand the requested healthy one.
     if (!user_root.is_absolute() ||
         !baldosa_native_real_directory(user_root) ||
         !is_safe_profile_storage_id(expected_active_profile) ||
@@ -77,29 +103,41 @@ select_baldosa_existing_profile_for_next_boot(
     const auto roster = load_host_profile_catalog_file(catalog.string());
     if (!global.loaded() || !global.state->active_profile_id ||
         *global.state->active_profile_id != expected_active_profile ||
-        !roster || roster->size() != 2u ||
-        (*roster)[0].profile_id == (*roster)[1].profile_id)
+        !roster || roster->size() < 2u)
         return {Status::RejectedAuthority, {}};
 
+    // Canonical catalog decoding already rejects invalid or colliding IDs
+    // across ALL entries. Under the catalog lock select only the requested
+    // two entries; unrelated profiles are neither read nor locked.
+    std::vector<const HostProfileCatalogEntry*> selected;
+    selected.reserve(2);
     std::vector<fs::path> typed_paths;
     typed_paths.reserve(2);
     bool found_source = false, found_destination = false;
     for (const auto& entry : *roster) {
+        if (entry.profile_id != expected_active_profile &&
+            entry.profile_id != requested_profile)
+            continue;
         if (!is_safe_profile_storage_id(entry.profile_id) ||
             !valid_racer_identity(entry.identity))
             return {Status::RejectedAuthority, {}};
         const auto location = resolve_host_profile_save_root(
             ExecutionMode::Modern, entry.profile_id);
         if (!location.isolated() ||
-            !baldosa_native_selected_profile_paths_are_real(
-                user_root, location.save_root))
+            !(allow_damaged_current &&
+              entry.profile_id == expected_active_profile
+                  ? baldosa_native_damaged_source_paths_are_safe(
+                        user_root, location.save_root)
+                  : baldosa_native_selected_profile_paths_are_real(
+                        user_root, location.save_root)))
             return {Status::RejectedAuthority, {}};
         typed_paths.push_back(
             user_root / location.save_root / "host-profile.txt");
+        selected.push_back(&entry);
         found_source |= entry.profile_id == expected_active_profile;
         found_destination |= entry.profile_id == requested_profile;
     }
-    if (!found_source || !found_destination)
+    if (!found_source || !found_destination || selected.size() != 2u)
         return {Status::RejectedAuthority, {}};
 
     std::sort(typed_paths.begin(), typed_paths.end());
@@ -125,13 +163,22 @@ select_baldosa_existing_profile_for_next_boot(
         !current_roster || *current_roster != *roster)
         return {Status::RejectedAuthority, {}};
 
-    for (const auto& entry : *roster) {
+    for (const auto* chosen : selected) {
+        const auto& entry = *chosen;
         const auto location = resolve_host_profile_save_root(
             ExecutionMode::Modern, entry.profile_id);
         if (!location.isolated() ||
-            !baldosa_native_selected_profile_paths_are_real(
-                user_root, location.save_root))
+            !(allow_damaged_current &&
+              entry.profile_id == expected_active_profile
+                  ? baldosa_native_damaged_source_paths_are_safe(
+                        user_root, location.save_root)
+                  : baldosa_native_selected_profile_paths_are_real(
+                        user_root, location.save_root)))
             return {Status::RejectedAuthority, {}};
+        // No bytes from the crashed source authorize destination activation.
+        if (allow_damaged_current &&
+            entry.profile_id == expected_active_profile)
+            continue;
         const auto profile = load_host_profile_state_file(
             ExecutionMode::Modern,
             (user_root / location.save_root / "host-profile.txt").string(),
@@ -152,10 +199,29 @@ select_baldosa_existing_profile_for_next_boot(
     // store only AFTER the exact locked previous state has been rechecked.
     auto next = *again.state;
     next.active_profile_id = std::string(requested_profile);
+    // The live original guest still owns the old SRAM at controller X/A.
+    // Frontend approval is a validated, in-memory next-boot REQUEST only.
+    // The actual source raw + typed shutdown checkpoint must complete
+    // BEFORE this authoritative selector may be changed.
+    if (validate_only)
+        return {Status::SelectedForNextBoot, std::string(requested_profile)};
     if (save_host_product_state_file(selector.string(), next) !=
         HostProductSaveStatus::Saved)
         return {Status::BusyOrIoError, {}};
     return {Status::SelectedForNextBoot, std::string(requested_profile)};
+}
+
+// Explicit emergency action, never used by ordinary controller selection.
+// Requires a separately confirmed target ID and leaves both snapshots of
+// the crashed current racer untouched, even if its typed sidecar is missing.
+// Caller must restart the native process before playing the new selection.
+inline BaldosaExistingProfileSelectionResult
+select_baldosa_healthy_profile_from_damaged_for_next_boot(
+    const std::filesystem::path& user_root,
+    std::string_view expected_active_profile,
+    std::string_view requested_profile) {
+    return select_baldosa_existing_profile_for_next_boot(
+        user_root, expected_active_profile, requested_profile, true);
 }
 
 }  // namespace ur::product

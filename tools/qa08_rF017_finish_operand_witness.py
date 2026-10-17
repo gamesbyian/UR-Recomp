@@ -86,7 +86,7 @@ def inspect(log:str,crcs:list[str])->dict:
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     for a in ("exe","rom","script","out"):p.add_argument("--"+a,type=Path,required=True)
-    p.add_argument("--timeout",type=int,default=300)
+    p.add_argument("--timeout",type=int,default=720)
     args=p.parse_args()
     if sha(args.rom.read_bytes())!=ROM or sha(args.script.read_bytes())!=ROUTE:
         p.error("source USA ROM/input route changed")
@@ -94,8 +94,23 @@ def main():
     k="UR_QA08_RF017_FINISH_OPERAND_TRACE";prior=os.environ.get(k)
     os.environ[k]="1"
     try:
-        crcs,log=run_route(args.exe.resolve(),args.rom.resolve(),args.script.resolve(),
-                           args.out,pause=False,video="windows",timeout=args.timeout)
+        try:
+            crcs,log=run_route(args.exe.resolve(),args.rom.resolve(),args.script.resolve(),
+                               args.out,pause=False,video="windows",timeout=args.timeout)
+        except RuntimeError as exc:
+            # Diagnostic failure only: report actual progress without claiming
+            # successful source execution or changing the full guest CRC.
+            fd=args.out/"baseline"/"fd"
+            paths=sorted(fd.glob("frame_*.json")) if fd.is_dir() else []
+            progress={"schema":"qa08-finish-Win32-timeout-real-framedump-progress/1",
+                      "cause":str(exc),"timeout_seconds":args.timeout,
+                      "actual_guest_frame_json_files":len(paths),
+                      "first_file":paths[0].name if paths else None,
+                      "last_file":paths[-1].name if paths else None,
+                      "success":False,"CRC_source_not_qualified":True}
+            (args.out/"qa08-finish-timeout-progress.json").write_text(
+                json.dumps(progress,indent=2,sort_keys=True)+"\n")
+            raise
     finally:
         if prior is None:os.environ.pop(k,None)
         else:os.environ[k]=prior

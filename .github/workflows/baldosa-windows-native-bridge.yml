@@ -241,8 +241,9 @@ jobs:
           set -euo pipefail
           # RF-015: source-qualified DRAM-refresh beam correction.
           python tools/baldosa_dram_refresh_beam_rate_patch.py --game baldosa
-          # RF-017: source-qualified in-order CPU I/O clocks; the existing Windows
-          # bridge must regenerate exact USA game source, not link RF-015-only code.
+          # RF-017: source-qualified in-order CPU I/O clocks.
+          # The existing Windows bridge must regenerate exact USA game source,
+          # not link RF-015-only code.
           python tools/baldosa_io_access_clock_order_patch.py --game baldosa
           (cd baldosa && bash tools/regen.sh --cfg-roots \
             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc")

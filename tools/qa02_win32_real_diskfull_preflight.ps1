@@ -92,7 +92,21 @@ try {
       }
     }
   }
-  finally { $stream.Dispose() }
+  finally {
+    # The first real Windows run proved NTFS ERROR_DISK_FULL, but FileStream
+    # also surfaced 112 during the final Dispose/flush. This is another
+    # genuine OS-volume-full failure, not a reason to abort before the
+    # independent second-process check or falsely report product failure.
+    try { $stream.Dispose() }
+    catch [IO.IOException] {
+      $win32 = $_.Exception.HResult -band 0xffff
+      if ($win32 -ne 112 -and $win32 -ne 39) {
+        throw "FAIL_CLOSED: unrelated final stream close error $win32"
+      }
+      $filled = $true
+      $stream.SafeFileHandle.Dispose()
+    }
+  }
   if (-not $filled) { throw 'FAIL_CLOSED: genuine disk-full not observed' }
 
   # An independent child process tests CREATE+WRITE while the VHD is full.

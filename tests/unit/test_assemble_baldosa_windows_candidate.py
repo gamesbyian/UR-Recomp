@@ -154,7 +154,24 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
         self.assertIn('goto UR-BALDOSA-REBOOT-FIRST-RACER', script)
         self.assertIn('goto UR-BALDOSA-NATIVE-START', script)
         self.assertIn('if not "%~1"=="" set "UR_BALDOSA_FIRST_RACER_RELAUNCH=0"', script)
-        self.assertEqual(script.count('goto UR-BALDOSA-NATIVE-START'), 1)
+        # One original first-racer restart and one consented recovery restart,
+        # both through the same game process entrypoint. No unbounded loop.
+        self.assertEqual(script.count('goto UR-BALDOSA-NATIVE-START'), 2)
+        self.assertIn(':UR-BALDOSA-RECOVERY-MENU', script)
+        self.assertIn('choice.exe /c RTSQ /n', script)
+        self.assertIn('UR_BALDOSA_RECOVERY_ACTION=raw', script)
+        self.assertIn('UR_BALDOSA_RECOVERY_ACTION=typed', script)
+        self.assertIn('UR_BALDOSA_RECOVERY_ACTION=healthy', script)
+        self.assertIn('type "%UR_RECOMP_USER_DATA_ROOT%\\profiles-v1.txt"', script)
+        self.assertIn('Only the named target is validated', script)
+        self.assertIn('if not "%~1"=="" (call :UR-BALDOSA-HOLD & exit /b 7)', script)
+        self.assertIn('if defined UR_BALDOSA_NO_HOLD exit /b 7', script)
+        self.assertIn('if not "%ERRORLEVEL%"=="89"', script)
+        self.assertLess(script.index('set "UR_BALDOSA_RECOVERY_ACTION="'),
+                        script.index(':UR-BALDOSA-NATIVE-START'))
+        self.assertLess(script.index(':UR-BALDOSA-RECOVERY-MENU'),
+                        script.index('choice.exe /c RTSQ'))
+        self.assertIn('CRASHED NAMED RACER RECOVERY', candidate.readme("test").decode("utf-8"))
         self.assertLess(script.index(':UR-BALDOSA-NATIVE-START'),
                         script.index(':UR-BALDOSA-REBOOT-FIRST-RACER'))
         self.assertNotIn("powershell.exe -ExecutionPolicy Bypass", script)

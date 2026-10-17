@@ -14,8 +14,10 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import time
+import zipfile
 
 USA_SHA256 = "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
 CRC = re.compile(r'"crc32_wram":\s*"(0x[0-9a-fA-F]+)"')
@@ -1526,20 +1528,1100 @@ def run_native_pause_quit(
 
 
 
+def run_native_journaled_b_crash_then_a_isolation(
+    exe: Path, rom: Path, script: Path, root: Path,
+    fixture: Path, seed: Path, *, video: str, timeout: int,
+) -> dict[str, object]:
+    """Real Win32 B after-raw journaled cut, then B replay and explicit healthy A.
+
+    Complements F5's REAL unjournaled B cut. Do not infer atomic NTFS
+    durability, an actual power cut, or human operation of the CMD menu.
+    """
+    out = root / "native_journaled_b_crash_then_a"
+    out.mkdir(parents=True, exist_ok=False)
+    user_root = out / "Journaled B and Intact A"
+    user_root.mkdir()
+    for args in (
+        [str(fixture), str(user_root), str(seed)],
+        [str(fixture), str(user_root), str(seed), "--add-second-keep-first"],
+    ):
+        subprocess.run(args, cwd=out, check=True,
+                       capture_output=True, text=True, timeout=timeout)
+    a = user_root / "saves/profile-native-ci-rider"
+    b = user_root / "saves/profile-native-ci-second"
+    files = {
+        "a-raw": a / "save.srm",
+        "a-typed": a / "host-profile.txt",
+        "b-raw": b / "save.srm",
+        "b-typed": b / "host-profile.txt",
+        "selector": user_root / "host-state-v1.txt",
+        "roster": user_root / "profiles-v1.txt",
+    }
+    orig = {name: path.read_bytes() for name, path in files.items()}
+    if (len(orig["a-raw"]) != 8192 or len(orig["b-raw"]) != 8192 or
+        orig["a-raw"] == orig["b-raw"]):
+        raise ValueError("Journaled two-racer fixture not independently valid")
+    config = out / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+    short = out / "fresh-short.txt"
+    short.write_text("turbo on\nwait 6\nquit\n", encoding="ascii")
+    env = os.environ.copy()
+    env.update({
+        "SNESRECOMP_USER_DATA_DIR": str(user_root),
+        "UR_EXECUTION_MODE": "modern",
+        "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
+        "UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS": "1",
+        "UR_BALDOSA_MODERN_INPUT": "1",
+        "SDL_VIDEODRIVER": video,
+        "SDL_AUDIODRIVER": "dummy",
+    })
+    def launch(tag: str, *, guest_script: Path = short,
+               extra: dict[str, str] | None = None) -> tuple[int, str]:
+        child_env = dict(env)
+        if extra:
+            child_env.update(extra)
+        child = subprocess.run(
+            [str(exe), "--no-launcher", "--config", str(config),
+             "--script", str(guest_script), str(rom)],
+            cwd=out, env=child_env, capture_output=True,
+            text=True, errors="replace", timeout=timeout)
+        log = child.stdout + "\n" + child.stderr
+        (out / f"{tag}.log").write_text(log, encoding="utf-8")
+        return child.returncode, log
+    rc, selected_log = launch("explicit-select-b", extra={
+        "UR_BALDOSA_RECOVERY_ACTION": "healthy",
+        "UR_BALDOSA_RECOVERY_PROFILE_ID": "native-ci-second",
+    })
+    if (rc != 89 or selected_log.count(
+            "UR_BALDOSA_RECOVERY_CHOICE choice=healthy") != 1 or
+        "completed=1" not in selected_log):
+        raise ValueError("Journaled B witness failed explicit original EXE selection")
+    selected = {name: path.read_bytes() for name, path in files.items()}
+    if (selected["selector"] == orig["selector"] or
+        any(selected[k] != orig[k] for k in files if k != "selector")):
+        raise ValueError("B selection changed unrelated source bytes")
+    rc, healthy_log = launch("healthy-b-boot")
+    if rc or "RECOVERY_RECONCILED" in healthy_log:
+        raise ValueError("Distinct stock racer B did not boot before cut")
+    verify_named_profile_boot_bytes(
+        healthy_log, selected["b-raw"], profile_id="native-ci-second")
+    rc, crash_log = launch("source-b-after-raw-crash", guest_script=script,
+        extra={
+            "UR_BALDOSA_PAUSE_SMOKE": "1",
+            "UR_BALDOSA_PAUSE_REQUIRE_RACE": "1",
+            "UR_BALDOSA_PAUSE_SMOKE_AT_FRAME": "1952",
+            "UR_BALDOSA_PHYSICAL_PAUSE_SMOKE": "1",
+            "UR_BALDOSA_PAUSE_QUIT_SMOKE": "1",
+            "UR_BALDOSA_PAUSE_PANEL_NAV_SMOKE": "0",
+            "UR_BALDOSA_DELAYED_RESTART_SMOKE": "0",
+            "UR_BALDOSA_RESTART_SAME_FRAME_SMOKE": "0",
+            "UR_BALDOSA_QA_CRASH_AFTER_NATIVE_SRAM_WRITE": "1",
+            "UR_BALDOSA_QA_LEGACY_UNJOURNALED_CRASH": "0",
+        })
+    if (rc != 86 or crash_log.count(
+            "UR_BALDOSA_NATIVE_PAUSE ARMED guest=1952 live_race=1") != 1 or
+        crash_log.count(
+            "UR_BALDOSA_NATIVE_PROFILE QA_CRASH_AFTER_RAW_WRITE exit=86 typed_checkpoint=0") != 1):
+        raise ValueError("Real journaled selected B did not stop at source raw cut")
+    verify_named_profile_boot_bytes(
+        crash_log, selected["b-raw"], profile_id="native-ci-second")
+    crashed = {name: path.read_bytes() for name, path in files.items()}
+    pending = b / "native-sram-checkpoint.pending"
+    if (len(crashed["b-raw"]) != 8192 or
+        crashed["b-raw"] == selected["b-raw"] or
+        any(crashed[k] != selected[k] for k in files if k != "b-raw") or
+        not pending.is_file() or pending.is_symlink()):
+        raise ValueError("Journaled source B crash not isolated to raw and intent")
+    intent = pending.read_bytes()
+    marker = b"UR-BALDOSA-NATIVE-SRAM-INTENT/1\n"
+    if not intent.startswith(marker) or len(intent) > 100_000:
+        raise ValueError("Selected B durable intent lacks canonical version/frame")
+    parts = intent[len(marker):].split(b"\n", 2)
+    if (len(parts) != 3 or not all(p.isdigit() for p in parts[:2]) or
+        any(len(p) > 8 for p in parts[:2])):
+        raise ValueError("Selected B durable intent lacks bounded old/new lengths")
+    old_len, new_len = int(parts[0]), int(parts[1])
+    if (old_len != len(crashed["b-typed"]) or
+        new_len <= 0 or new_len > 65_536 or
+        len(parts[2]) != old_len + new_len or
+        parts[2][:old_len] != crashed["b-typed"]):
+        raise ValueError("B prewrite intent does not contain exact old typed profile")
+    intended_next_typed = parts[2][old_len:]
+    rc, recon_log = launch("first-b-cold-recovery")
+    if (rc != 0 or recon_log.count(
+            "UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED exact_staged_guest_sram=1 no_records=1") != 1):
+        raise ValueError("Actual fresh B guest did not reconcile journal exactly once")
+    verify_named_profile_boot_bytes(
+        recon_log, crashed["b-raw"], profile_id="native-ci-second")
+    recovered = {name: path.read_bytes() for name, path in files.items()}
+    if (recovered["b-typed"] != intended_next_typed or
+        recovered["b-raw"] != crashed["b-raw"] or
+        recovered["b-typed"] == crashed["b-typed"] or
+        any(recovered[k] != crashed[k] for k in files if
+            k not in ("b-raw", "b-typed")) or pending.exists()):
+        raise ValueError("B journal recovery changed A/catalog/selector or failed typed CAS")
+    archived = list(b.glob("native-sram-recovered-*.txt"))
+    if len(archived) != 1 or archived[0].read_bytes() != intent:
+        raise ValueError("B journal was not archived and retired exactly")
+    rc, second_b_log = launch("second-b-cold")
+    if rc or "RECOVERY_RECONCILED" in second_b_log:
+        raise ValueError("B second cold boot repeated the typed commit")
+    verify_named_profile_boot_bytes(
+        second_b_log, crashed["b-raw"], profile_id="native-ci-second")
+    if any(path.read_bytes() != recovered[name] for name, path in files.items()):
+        raise ValueError("Second B original guest mutated reconciled state")
+    rc, choose_a_log = launch("explicit-select-a", extra={
+        "UR_BALDOSA_RECOVERY_ACTION": "healthy",
+        "UR_BALDOSA_RECOVERY_PROFILE_ID": "native-ci-rider",
+    })
+    if (rc != 89 or choose_a_log.count(
+            "UR_BALDOSA_RECOVERY_CHOICE choice=healthy") != 1 or
+        "completed=1" not in choose_a_log):
+        raise ValueError("Original executable did not explicitly switch to intact A")
+    switched = {name: path.read_bytes() for name, path in files.items()}
+    if (switched["selector"] != orig["selector"] or
+        any(switched[k] != recovered[k] for k in files if k != "selector")):
+        raise ValueError("Explicit A switch overwrote B's recovered source state")
+    for count in (1, 2):
+        rc, log = launch(f"healthy-a-cold-{count}")
+        if rc or "RECOVERY_RECONCILED" in log:
+            raise ValueError("Fresh native A did not boot independently after B replay")
+        verify_named_profile_boot_bytes(
+            log, orig["a-raw"], profile_id="native-ci-rider")
+        if (any(path.read_bytes() != switched[name]
+                for name, path in files.items()) or
+            pending.exists() or archived[0].read_bytes() != intent):
+            raise ValueError("A boots mutated B's journaled recovery or archive")
+    if (list(user_root.rglob("*.urrun")) or
+        list(user_root.rglob("*.urmatch"))):
+        raise ValueError("B journal/A selection minted unearned records")
+    evidence = out / "fault-bytes"
+    evidence.mkdir()
+    hashes = {}
+    for label in files:
+        for stage, snapshot in (
+            ("b-selected", selected), ("b-crash", crashed),
+            ("b-reconciled", recovered), ("a-selected", switched),
+        ):
+            data = snapshot[label]
+            name = f"{label}.{stage}.bin"
+            (evidence / name).write_bytes(data)
+            hashes[name] = {
+                "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data),
+            }
+        name = f"{label}.second-a-cold.bin"
+        data = files[label].read_bytes()
+        (evidence / name).write_bytes(data)
+        hashes[name] = {
+            "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data),
+        }
+    for label, data in (("intent.crash.bin", intent),
+                        ("intent.archived.bin", archived[0].read_bytes())):
+        (evidence / label).write_bytes(data)
+        hashes[label] = {
+            "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data),
+        }
+    if len(hashes) != 32 or pending.exists():
+        raise ValueError("Journaled B/A evidence member count or intent invalid")
+    (evidence / "file-receipt.json").write_text(
+        json.dumps(hashes, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8")
+    return {
+        "original_guest_b_journaled_post_raw_exit_86": True,
+        "b_typed_old_at_crash_and_new_after_one_cold": True,
+        "b_raw_preserved_and_intent_archived_byte_identical": True,
+        "intact_a_unchanged_through_b_reconciliation": True,
+        "original_executable_explicitly_selected_a": True,
+        "two_source_native_a_cold_boots_and_two_b_cold_boots": True,
+        "six_canonical_files_five_stages_plus_intents_retained": len(hashes),
+        "no_unearned_records": True,
+        "release_gate_credit": 0,
+    }
+
+
+def run_native_real_crashed_second_healthy_first(
+    exe: Path, rom: Path, script: Path, root: Path,
+    fixture: Path, seed: Path, *, video: str, timeout: int,
+) -> dict[str, object]:
+    """F5: actual original guest writes B raw then dies; intact A still boots.
+
+    No synthetic post-crash damage. The original Win32 RtlWriteSram writes the
+    selected B's 8 KiB raw image before _Exit(86). An explicit user-authorized
+    one-shot switch must select actual healthy A; no B recovery is performed.
+    """
+    out = root / "native_real_b_crash_healthy_a_recovery"
+    out.mkdir(parents=True, exist_ok=False)
+    user_root = out / "Two Separate Original Guest Racers"
+    user_root.mkdir()
+    for command in ([str(fixture), str(user_root), str(seed)],
+                    [str(fixture), str(user_root), str(seed),
+                     "--add-second-keep-first"]):
+        subprocess.run(command, cwd=out, check=True, timeout=timeout,
+                       capture_output=True, text=True)
+    a = user_root / "saves/profile-native-ci-rider"
+    b = user_root / "saves/profile-native-ci-second"
+    a_raw, a_typed = a / "save.srm", a / "host-profile.txt"
+    b_raw, b_typed = b / "save.srm", b / "host-profile.txt"
+    selector, catalog = user_root / "host-state-v1.txt", user_root / "profiles-v1.txt"
+    six = (a_raw, a_typed, b_raw, b_typed, selector, catalog)
+    before = {p: p.read_bytes() for p in six}
+    if (len(before[a_raw]) != 8192 or len(before[b_raw]) != 8192 or
+        before[a_raw] == before[b_raw]):
+        raise ValueError("F5 fixture lacks two distinct valid source racers")
+    config = out / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+    short = out / "cold.txt"
+    short.write_text("turbo on\nwait 6\nquit\n", encoding="ascii")
+    env = os.environ.copy()
+    env.update({
+        "SNESRECOMP_USER_DATA_DIR": str(user_root),
+        "UR_EXECUTION_MODE": "modern",
+        "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
+        "UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS": "1",
+        "UR_BALDOSA_MODERN_INPUT": "1",
+        "SDL_VIDEODRIVER": video,
+        "SDL_AUDIODRIVER": "dummy",
+    })
+    def invoke(*, source_script: Path = short,
+               overrides: dict[str, str] | None = None) -> tuple[int, str]:
+        launched = env.copy()
+        if overrides:
+            launched.update(overrides)
+        proc = subprocess.run(
+            [str(exe), "--no-launcher", "--config", str(config),
+             "--script", str(source_script), str(rom)],
+            cwd=out, env=launched, capture_output=True,
+            text=True, errors="replace", timeout=timeout)
+        return proc.returncode, proc.stdout + "\n" + proc.stderr
+    def save_log(name: str, log: str) -> None:
+        (out / (name + ".log")).write_text(log, encoding="utf-8")
+    # First select healthy B using the SAME explicit native action offered
+    # by the packaged launcher. Selection is next-process-only.
+    rc, log = invoke(overrides={
+        "UR_BALDOSA_RECOVERY_ACTION": "healthy",
+        "UR_BALDOSA_RECOVERY_PROFILE_ID": "native-ci-second",
+    })
+    save_log("select-b-before-fault", log)
+    if rc != 89 or "choice=healthy" not in log or "completed=1" not in log:
+        raise ValueError("F5 did not select separately authorized B")
+    selected = {p: p.read_bytes() for p in six}
+    if (any(selected[p] != before[p] for p in (a_raw, a_typed, b_raw, b_typed, catalog))
+        or selected[selector] == before[selector]):
+        raise ValueError("Pre-crash B selector changed unrelated canonical bytes")
+    rc, boot = invoke()
+    save_log("healthy-b-original-boot", boot)
+    if rc != 0:
+        raise ValueError("Original B guest did not boot before fault")
+    verify_named_profile_boot_bytes(
+        boot, selected[b_raw], profile_id="native-ci-second")
+    if any(p.read_bytes() != selected[p] for p in six):
+        raise ValueError("Healthy B pre-crash short guest modified authority")
+    cut_env = {
+        "UR_BALDOSA_PAUSE_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_REQUIRE_RACE": "1",
+        "UR_BALDOSA_PAUSE_SMOKE_AT_FRAME": "1952",
+        "UR_BALDOSA_PHYSICAL_PAUSE_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_QUIT_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_PANEL_NAV_SMOKE": "0",
+        "UR_BALDOSA_DELAYED_RESTART_SMOKE": "0",
+        "UR_BALDOSA_RESTART_SAME_FRAME_SMOKE": "0",
+        "UR_BALDOSA_QA_CRASH_AFTER_NATIVE_SRAM_WRITE": "1",
+        "UR_BALDOSA_QA_LEGACY_UNJOURNALED_CRASH": "1",
+    }
+    rc, crash_log = invoke(source_script=script, overrides=cut_env)
+    save_log("actual-b-post-raw-crash", crash_log)
+    if (rc != 86 or
+        crash_log.count("UR_BALDOSA_NATIVE_PAUSE ARMED guest=1952 live_race=1") != 1 or
+        crash_log.count("UR_BALDOSA_NATIVE_PROFILE QA_CRASH_AFTER_RAW_WRITE exit=86 typed_checkpoint=0") != 1):
+        raise ValueError(f"Original B writer did not terminate at F5 cut: {rc} {crash_log[-1200:]}")
+    verify_named_profile_boot_bytes(
+        crash_log, selected[b_raw], profile_id="native-ci-second")
+    crashed = {p: p.read_bytes() for p in six}
+    if (len(crashed[b_raw]) != 8192 or crashed[b_raw] == selected[b_raw] or
+        any(crashed[p] != selected[p] for p in
+            (a_raw, a_typed, b_typed, selector, catalog)) or
+        (b / "native-sram-checkpoint.pending").exists()):
+        raise ValueError("F5 did not isolate exact real B raw-only crash")
+    rc, rejected = invoke()
+    save_log("b-cold-refusal", rejected)
+    if rc != 7 or "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in rejected:
+        raise ValueError("Broken real B automatically recovered without intent")
+    if any(p.read_bytes() != crashed[p] for p in six):
+        raise ValueError("Refused B cold launch changed another racer")
+    rc, switched = invoke(overrides={
+        "UR_BALDOSA_RECOVERY_ACTION": "healthy",
+        "UR_BALDOSA_RECOVERY_PROFILE_ID": "native-ci-rider",
+    })
+    save_log("explicit-a-selection", switched)
+    if (rc != 89 or "choice=healthy" not in switched or
+        "completed=1" not in switched or
+        "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in switched):
+        raise ValueError("Original Windows recovery command could not select intact A")
+    after_switch = {p: p.read_bytes() for p in six}
+    if (any(after_switch[p] != crashed[p] for p in
+            (a_raw, a_typed, b_raw, b_typed, catalog)) or
+        after_switch[selector] != before[selector]):
+        raise ValueError("Real B recovery changed source or healthy A, or wrong selector")
+    for n in (1, 2):
+        rc, fresh = invoke()
+        save_log(f"cold-a-{n}", fresh)
+        if rc != 0 or "UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED" in fresh:
+            raise ValueError("Healthy A after genuine B crash did not boot cleanly")
+        verify_named_profile_boot_bytes(
+            fresh, before[a_raw], profile_id="native-ci-rider")
+        if any(p.read_bytes() != after_switch[p] for p in six):
+            raise ValueError("Healthy A replay mutated damaged B or unrelated data")
+    if (list(user_root.rglob("*.urrun")) or
+        list(user_root.rglob("*.urmatch"))):
+        raise ValueError("Cross-profile B crash recovery invented game Records")
+    evidence = out / "fault-bytes"
+    evidence.mkdir()
+    labels = {
+        "a-raw": a_raw, "a-typed": a_typed,
+        "b-raw": b_raw, "b-typed": b_typed,
+        "selector": selector, "roster": catalog,
+    }
+    receipt = {}
+    for label, p in labels.items():
+        for stage, state in (("selected", selected),
+                             ("crash", crashed),
+                             ("after", after_switch)):
+            data = state[p]
+            name = f"{label}.{stage}.bin"
+            (evidence / name).write_bytes(data)
+            receipt[name] = {"bytes": len(data),
+                             "sha256": hashlib.sha256(data).hexdigest()}
+        latest = p.read_bytes()
+        name = f"{label}.second-cold.bin"
+        (evidence / name).write_bytes(latest)
+        receipt[name] = {"bytes": len(latest),
+                         "sha256": hashlib.sha256(latest).hexdigest()}
+    if len(receipt) != 24:
+        raise ValueError("F5 6-file, four-stage evidence count mismatch")
+    (evidence / "file-receipt.json").write_text(
+        json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8")
+    return {
+        "original_windows_guest_b_post_raw_exit_86": True,
+        "genuine_guest_b_raw_differs": True,
+        "healthy_a_raw_typed_exact": True,
+        "damaged_b_raw_typed_exact_after_switch": True,
+        "explicit_same_exe_switch_to_a": True,
+        "two_clean_original_a_cold_boots": True,
+        "six_canonical_files_four_stages_archived": True,
+        "no_invented_records": True,
+        "release_gate_credit": 0,
+    }
+
+
+def run_native_three_profile_unrelated_damage(
+    exe: Path, rom: Path, root: Path, fixture: Path, seed: Path,
+    *, video: str, timeout: int,
+) -> dict[str, object]:
+    """Three genuinely rostered Modern racers, only source/target locked.
+
+    Unrelated C typed damage and selected A raw damage are deliberate,
+    synthetic fixture inputs. Both actual recovery and cold boot use the
+    same compiled original native Windows executable as the full game.
+    """
+    out = root / "native_three_profile_unrelated_damage"
+    out.mkdir(parents=True, exist_ok=False)
+    user_root = out / "Three Catalogued Racers"
+    user_root.mkdir()
+    for args in (
+        [str(fixture), str(user_root), str(seed)],
+        [str(fixture), str(user_root), str(seed), "--add-second-keep-first"],
+        [str(fixture), str(user_root), str(seed), "--add-third-keep-first"],
+    ):
+        subprocess.run(args, cwd=out, check=True, timeout=timeout,
+                       capture_output=True, text=True)
+    a = user_root / "saves/profile-native-ci-rider"
+    b = user_root / "saves/profile-native-ci-second"
+    c = user_root / "saves/profile-native-ci-third"
+    a_raw, a_typed = a / "save.srm", a / "host-profile.txt"
+    b_raw, b_typed = b / "save.srm", b / "host-profile.txt"
+    c_raw, c_typed = c / "save.srm", c / "host-profile.txt"
+    selector, roster = user_root / "host-state-v1.txt", user_root / "profiles-v1.txt"
+    files = (a_raw, a_typed, b_raw, b_typed, c_raw, selector, roster)
+    before = {p: p.read_bytes() for p in files}
+    old_c_typed = c_typed.read_bytes()
+    if (len(before[a_raw]) != 8192 or len(before[b_raw]) != 8192 or
+        len(before[c_raw]) != 8192 or
+        len({before[a_raw], before[b_raw], before[c_raw]}) != 3 or
+        len(old_c_typed) < 8192):
+        raise ValueError("Three-racer canonical fixture lacks distinct SRAM")
+    c_typed.unlink()  # unrelated damaged C, never chosen or repaired
+    changed = bytearray(before[a_raw])
+    changed[0x0711] ^= 0x35
+    a_raw.write_bytes(changed)
+    damaged = {p: p.read_bytes() for p in files}
+    if damaged[a_raw] == before[a_raw] or c_typed.exists():
+        raise ValueError("Three-racer fixture damage did not hold")
+    config = out / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+    short = out / "short.txt"
+    short.write_text("turbo on\nwait 6\nquit\n", encoding="ascii")
+    env = os.environ.copy()
+    env.update({
+        "SNESRECOMP_USER_DATA_DIR": str(user_root),
+        "UR_EXECUTION_MODE": "modern",
+        "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
+        "UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS": "1",
+        "UR_BALDOSA_MODERN_INPUT": "1",
+        "SDL_VIDEODRIVER": video,
+        "SDL_AUDIODRIVER": "dummy",
+    })
+    def invoke(overrides: dict[str, str] | None = None) -> tuple[int, str]:
+        supplied = {**env, **(overrides or {})}
+        p = subprocess.run(
+            [str(exe), "--no-launcher", "--config", str(config),
+             "--script", str(short), str(rom)],
+            cwd=out, env=supplied, capture_output=True, text=True,
+            errors="replace", timeout=timeout)
+        return p.returncode, p.stdout + "\n" + p.stderr
+    rc, rejected = invoke()
+    (out / "damaged-a-refusal.log").write_text(rejected, encoding="utf-8")
+    if rc != 7 or "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in rejected:
+        raise ValueError("Damaged selected A did not fail closed")
+    rc, blocked = invoke({
+        "UR_BALDOSA_RECOVERY_ACTION": "healthy",
+        "UR_BALDOSA_RECOVERY_PROFILE_ID": "native-ci-third",
+    })
+    (out / "invalid-c-selection.log").write_text(blocked, encoding="utf-8")
+    if rc != 88 or any(p.read_bytes() != damaged[p] for p in files):
+        raise ValueError("Damaged third target became implicitly authorized")
+    rc, switched = invoke({
+        "UR_BALDOSA_RECOVERY_ACTION": "healthy",
+        "UR_BALDOSA_RECOVERY_PROFILE_ID": "native-ci-second",
+    })
+    (out / "explicit-b-selection.log").write_text(switched, encoding="utf-8")
+    if (rc != 89 or "choice=healthy" not in switched or
+        "completed=1" not in switched or
+        "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in switched):
+        raise ValueError("Unrelated damaged C stranded otherwise valid B")
+    selected = {p: p.read_bytes() for p in files}
+    if (selected[selector] == damaged[selector] or
+        any(selected[p] != damaged[p] for p in files if p != selector) or
+        c_typed.exists()):
+        raise ValueError("Three-catalog healthy switch changed another owner")
+    for n in (1, 2):
+        rc, log = invoke()
+        (out / f"healthy-b-cold-{n}.log").write_text(
+            log, encoding="utf-8")
+        if rc != 0 or "UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED" in log:
+            raise ValueError("Healthy B could not cold boot with third broken")
+        verify_named_profile_boot_bytes(
+            log, before[b_raw], profile_id="native-ci-second")
+        if (any(p.read_bytes() != selected[p] for p in files) or
+            c_typed.exists()):
+            raise ValueError("Three-profile cold guest altered unrelated damaged C")
+    if list(user_root.rglob("*.urrun")) or list(user_root.rglob("*.urmatch")):
+        raise ValueError("Three-profile emergency selection invented Records")
+    evidence = out / "fault-bytes"
+    evidence.mkdir()
+    name_for = {
+        a_raw: "a-raw", a_typed: "a-typed",
+        b_raw: "b-raw", b_typed: "b-typed", c_raw: "c-raw",
+        selector: "selector", roster: "roster",
+    }
+    exact = {}
+    for p, label in name_for.items():
+        for stage, snapshot in (("before", before),
+                                ("damaged", damaged), ("after", selected)):
+            name = f"{label}.{stage}.bin"
+            data = snapshot[p]
+            (evidence / name).write_bytes(data)
+            exact[name] = {
+                "sha256": hashlib.sha256(data).hexdigest(),
+                "bytes": len(data),
+            }
+        name = f"{label}.second-cold.bin"
+        data = p.read_bytes()
+        (evidence / name).write_bytes(data)
+        exact[name] = {
+            "sha256": hashlib.sha256(data).hexdigest(),
+            "bytes": len(data),
+        }
+    (evidence / "c-typed.original-then-absent.bin").write_bytes(old_c_typed)
+    exact["c-typed.original-then-absent.bin"] = {
+        "sha256": hashlib.sha256(old_c_typed).hexdigest(),
+        "bytes": len(old_c_typed),
+    }
+    (evidence / "file-receipt.json").write_text(
+        json.dumps(exact, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8")
+    return {
+        "registered_three_canonical_racers": True,
+        "damaged_a_refused_before_guest": True,
+        "unrelated_c_missing_typed_preserved": True,
+        "invalid_c_target_rejected": True,
+        "explicit_b_target_selected": True,
+        "two_real_original_b_cold_boots": True,
+        "only_selector_changed_after_explicit_selection": True,
+        "source_storage_not_scanned_for_orphans": True,
+        "all_canonical_evidence_bytes_retained": len(exact),
+        "release_gate_credit": 0,
+    }
+
+
+def run_native_healthy_alternate_from_damaged_source(
+    exe: Path, rom: Path, root: Path, fixture: Path, seed: Path,
+    *, video: str, timeout: int,
+) -> dict[str, object]:
+    """A genuine fresh Windows binary leaves damaged P1 untouched and boots P2.
+
+    Production source selector only; initial disposable raw-byte damage is a
+    negative fixture, not a fabricated real guest crash. Original actual
+    _Exit(86) is separately established by the adjacent bounded producer.
+    """
+    output = root / "native_recovery_healthy_alternate"
+    output.mkdir(parents=True, exist_ok=False)
+    user_root = output / "Damaged P1 But Healthy P2"
+    user_root.mkdir()
+    subprocess.run(
+        [str(fixture), str(user_root), str(seed)],
+        cwd=output, check=True, capture_output=True,
+        text=True, timeout=timeout)
+    subprocess.run(
+        [str(fixture), str(user_root), str(seed),
+         "--add-second-keep-first"],
+        cwd=output, check=True, capture_output=True,
+        text=True, timeout=timeout)
+    source = user_root / "saves/profile-native-ci-rider"
+    healthy = user_root / "saves/profile-native-ci-second"
+    s_raw, s_typed = source / "save.srm", source / "host-profile.txt"
+    h_raw, h_typed = healthy / "save.srm", healthy / "host-profile.txt"
+    catalog = user_root / "profiles-v1.txt"
+    selector = user_root / "host-state-v1.txt"
+    baseline = {p: p.read_bytes() for p in
+                (s_raw, s_typed, h_raw, h_typed, catalog, selector)}
+    changed = bytearray(baseline[s_raw])
+    if len(changed) != 8192:
+        raise ValueError("Disposal test source is not full native SRAM")
+    changed[0x0711] ^= 0x35
+    s_raw.write_bytes(changed)
+    mismatch = s_raw.read_bytes()
+    if mismatch == baseline[s_raw] or h_raw.read_bytes() != baseline[h_raw]:
+        raise ValueError("No independent damaged source and healthy destination")
+    script = output / "short.txt"
+    script.write_text("turbo on\nwait 6\nquit\n", encoding="ascii")
+    config = output / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+    env = os.environ.copy()
+    env.update({
+        "SNESRECOMP_USER_DATA_DIR": str(user_root),
+        "UR_EXECUTION_MODE": "modern",
+        "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
+        "UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS": "1",
+        "SDL_VIDEODRIVER": video,
+        "SDL_AUDIODRIVER": "dummy",
+    })
+    args = [str(exe), "--no-launcher", "--config", str(config),
+            "--script", str(script), str(rom)]
+    refused = subprocess.run(
+        args, env=env, cwd=output, capture_output=True,
+        text=True, errors="replace", timeout=timeout)
+    refused_log = refused.stdout + "\n" + refused.stderr
+    (output / "damaged-source-refusal.log").write_text(
+        refused_log, encoding="utf-8")
+    if refused.returncode != 7 or (
+        "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in refused_log):
+        raise ValueError("Real Windows guest started with unauthorised raw source")
+    invalid = dict(env)
+    invalid.update({
+        "UR_BALDOSA_RECOVERY_ACTION": "healthy",
+        "UR_BALDOSA_RECOVERY_PROFILE_ID": "unregistered",
+    })
+    bad = subprocess.run(
+        args, env=invalid, cwd=output, capture_output=True,
+        text=True, errors="replace", timeout=timeout)
+    if bad.returncode != 88 or selector.read_bytes() != baseline[selector]:
+        raise ValueError("Unregistered emergency destination changed selector")
+    confirmed = dict(invalid)
+    confirmed["UR_BALDOSA_RECOVERY_PROFILE_ID"] = "native-ci-second"
+    switched = subprocess.run(
+        args, env=confirmed, cwd=output, capture_output=True,
+        text=True, errors="replace", timeout=timeout)
+    switched_log = switched.stdout + "\n" + switched.stderr
+    (output / "explicit-healthy-selection.log").write_text(
+        switched_log, encoding="utf-8")
+    if switched.returncode != 89 or (
+        "UR_BALDOSA_RECOVERY_CHOICE choice=healthy" not in switched_log
+    ) or "completed=1" not in switched_log or (
+        "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in switched_log):
+        raise ValueError("Original Win32 binary did not select healthy destination")
+    if selector.read_bytes() == baseline[selector]:
+        raise ValueError("Explicit selector publication did not occur")
+    for p in (s_typed, h_raw, h_typed, catalog):
+        if p.read_bytes() != baseline[p]:
+            raise ValueError(f"Healthy selection mutated canonical nonselector {p}")
+    if s_raw.read_bytes() != mismatch:
+        raise ValueError("Healthy selection silently repaired damaged source SRAM")
+    fresh = subprocess.run(
+        args, env=env, cwd=output, capture_output=True,
+        text=True, errors="replace", timeout=timeout)
+    log = fresh.stdout + "\n" + fresh.stderr
+    (output / "fresh-healthy-guest.log").write_text(log, encoding="utf-8")
+    if fresh.returncode:
+        raise ValueError(
+            f"Fresh native P2 rejected after explicit selector: {fresh.returncode}")
+    verify_named_profile_boot_bytes(
+        log, baseline[h_raw], profile_id="native-ci-second")
+    if s_raw.read_bytes() != mismatch or s_typed.read_bytes() != baseline[s_typed]:
+        raise ValueError("Fresh healthy guest modified damaged P1")
+    if list(user_root.rglob("*.urrun")):
+        raise ValueError("Healthy selector published invented Records")
+    return {
+        "real_windows_binary": True,
+        "damaged_source_refused_before_guest": True,
+        "unregistered_target_rejected": True,
+        "healthy_target_selected_without_live_guest": True,
+        "healthy_original_sram_booted_on_fresh_process": True,
+        "damaged_raw_and_typed_preserved": True,
+        "catalog_and_healthy_profile_unchanged": True,
+        "records_invented": False,
+    }
+
+
+def run_native_prewrite_intent_abandon(
+    exe: Path, rom: Path, script: Path, root: Path,
+    fixture: Path, seed: Path, *, video: str, timeout: int,
+) -> dict[str, object]:
+    """Actual native Win32 pre-raw process cut after durable write-ahead intent."""
+    out = root / "native_prewrite_intent_abandon"
+    out.mkdir(parents=True, exist_ok=False)
+    user_root = out / "Original Guest Prewrite Cut"
+    user_root.mkdir()
+    subprocess.run([str(fixture), str(user_root), str(seed)],
+                   check=True, cwd=out, capture_output=True,
+                   text=True, timeout=timeout)
+    profile = user_root / "saves/profile-native-ci-rider"
+    raw = profile / "save.srm"
+    typed = profile / "host-profile.txt"
+    selector = user_root / "host-state-v1.txt"
+    roster = user_root / "profiles-v1.txt"
+    pending = profile / "native-sram-checkpoint.pending"
+    sources = {
+        "raw-sram": raw, "typed-profile": typed,
+        "selector": selector, "roster": roster,
+    }
+    before = {name: path.read_bytes() for name, path in sources.items()}
+    if len(before["raw-sram"]) != 8192 or before["raw-sram"] != seed.read_bytes():
+        raise ValueError("F1 prewrite fault lacks genuine expected guest source SRAM")
+    config = out / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+    env = os.environ.copy()
+    env.update({
+        "SNESRECOMP_USER_DATA_DIR": str(user_root),
+        "UR_EXECUTION_MODE": "modern",
+        "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
+        "UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS": "1",
+        "UR_BALDOSA_MODERN_INPUT": "1",
+        "UR_BALDOSA_PAUSE_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_REQUIRE_RACE": "1",
+        "UR_BALDOSA_PAUSE_SMOKE_AT_FRAME": "1952",
+        "UR_BALDOSA_PHYSICAL_PAUSE_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_QUIT_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_PANEL_NAV_SMOKE": "0",
+        "UR_BALDOSA_DELAYED_RESTART_SMOKE": "0",
+        "UR_BALDOSA_RESTART_SAME_FRAME_SMOKE": "0",
+        "UR_BALDOSA_QA_CRASH_AFTER_INTENT_BEFORE_RAW": "1",
+        "SDL_VIDEODRIVER": video,
+        "SDL_AUDIODRIVER": "dummy",
+    })
+    original = subprocess.run(
+        [str(exe), "--no-launcher", "--config", str(config),
+         "--script", str(script), str(rom)],
+        cwd=out, env=env, capture_output=True, text=True,
+        errors="replace", timeout=timeout)
+    log = original.stdout + "\n" + original.stderr
+    (out / "crash.log").write_text(log, encoding="utf-8")
+    if (original.returncode != 84 or
+        log.count("UR_BALDOSA_NATIVE_PROFILE QA_CRASH_PRE_RAW "
+                  "exit=84 intent_durable=1 raw_not_written=1") != 1 or
+        log.count("UR_BALDOSA_NATIVE_PAUSE ARMED guest=1952 live_race=1") != 1 or
+        "UR_BALDOSA_NATIVE_PROFILE QA_CRASH_AFTER_RAW_WRITE" in log or
+        "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=" in log):
+        raise ValueError(
+            f"Real Win32 process failed pre-raw source cut rc={original.returncode}"
+            f" tail={log[-1200:]}")
+    verify_named_profile_boot_bytes(log, before["raw-sram"])
+    at_crash = {name: path.read_bytes() for name, path in sources.items()}
+    if at_crash != before or not pending.is_file() or pending.is_symlink():
+        raise ValueError("F1 prewrite fault mutated canonical files or lost intent")
+    intent = pending.read_bytes()
+    if len(intent) < 8192 or list(user_root.rglob("*.urrun")):
+        raise ValueError("F1 prewrite crash lacked intact intent or fabricated Records")
+    clean = env.copy()
+    clean.pop("UR_BALDOSA_QA_CRASH_AFTER_INTENT_BEFORE_RAW", None)
+    short = out / "fresh-short.txt"
+    short.write_text("turbo on\nwait 6\nquit\n", encoding="ascii")
+    command = [str(exe), "--no-launcher", "--config", str(config),
+               "--script", str(short), str(rom)]
+    stages = []
+    for index in (1, 2):
+        proc = subprocess.run(
+            command, cwd=out, env=clean,
+            capture_output=True, text=True,
+            errors="replace", timeout=timeout)
+        fresh = proc.stdout + "\n" + proc.stderr
+        (out / f"cold-{index}.log").write_text(fresh, encoding="utf-8")
+        if (proc.returncode != 0 or
+            "UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED" in fresh or
+            "UR_BALDOSA_NATIVE_PROFILE REJECTED" in fresh):
+            raise ValueError("F1 original cold Windows guest did not preserve old/old")
+        verify_named_profile_boot_bytes(fresh, before["raw-sram"])
+        snapshots = {name: path.read_bytes() for name, path in sources.items()}
+        if snapshots != before or pending.exists():
+            raise ValueError("F1 cold boot published unearned typed/raw or retained stale intent")
+        stages.append(snapshots)
+    evidence = out / "fault-bytes"
+    evidence.mkdir()
+    hashes = {}
+    for label in sources:
+        for stage, raw_files in (
+            ("before", before),
+            ("crash", at_crash),
+            ("first-cold", stages[0]),
+            ("second-cold", stages[1]),
+        ):
+            name = f"{label}.{stage}.bin"
+            b = raw_files[label]
+            (evidence / name).write_bytes(b)
+            hashes[name] = {"sha256": hashlib.sha256(b).hexdigest(),
+                            "bytes": len(b)}
+    (evidence / "intent.pre-raw.bin").write_bytes(intent)
+    hashes["intent.pre-raw.bin"] = {
+        "sha256": hashlib.sha256(intent).hexdigest(), "bytes": len(intent)}
+    (evidence / "file-receipt.json").write_text(
+        json.dumps(hashes, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8")
+    if (len(hashes) != 17 or
+        any(stages[i] != before for i in (0, 1))):
+        raise ValueError("F1 prewrite evidence export incomplete")
+    return {
+        "genuine_original_win32_guest_frame": 1952,
+        "source_process_cut_after_durable_intent": 84,
+        "original_rtl_write_sram_not_executed": True,
+        "canonical_raw_and_typed_unchanged_at_cut": True,
+        "intent_retired_only_during_first_cold": True,
+        "two_native_cold_boots_same_committed_generation": True,
+        "all_17_evidence_files_SHA256_bound": True,
+        "release_gate_credit": 0,
+    }
+
+
+def run_native_typed_commit_finalization_cut(
+    exe: Path, rom: Path, script: Path, root: Path,
+    fixture: Path, seed: Path, *, video: str, timeout: int,
+) -> dict[str, object]:
+    """Actual Win32 source guest process dies AFTER typed CAS, before intent retire."""
+    out = root / "native_typed_before_intent_recovery"
+    out.mkdir(parents=True, exist_ok=False)
+    user_root = out / "Typed Commit Cut With Spaces"
+    user_root.mkdir()
+    subprocess.run(
+        [str(fixture), str(user_root), str(seed)],
+        check=True, capture_output=True, text=True, timeout=timeout)
+    profile = user_root / "saves/profile-native-ci-rider"
+    raw = profile / "save.srm"
+    typed = profile / "host-profile.txt"
+    selector = user_root / "host-state-v1.txt"
+    catalog = user_root / "profiles-v1.txt"
+    pending = profile / "native-sram-checkpoint.pending"
+    files = (raw, typed, selector, catalog)
+    before = {p: p.read_bytes() for p in files}
+    if len(before[raw]) != 8192 or before[raw] != seed.read_bytes():
+        raise ValueError("Typed-cut fixture did not start from exact original native SRAM")
+    config = out / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+    env = os.environ.copy()
+    env.update({
+        "SNESRECOMP_USER_DATA_DIR": str(user_root),
+        "UR_EXECUTION_MODE": "modern",
+        "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
+        "UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS": "1",
+        "UR_BALDOSA_MODERN_INPUT": "1",
+        "UR_BALDOSA_PAUSE_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_REQUIRE_RACE": "1",
+        "UR_BALDOSA_PAUSE_SMOKE_AT_FRAME": "1952",
+        "UR_BALDOSA_PHYSICAL_PAUSE_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_QUIT_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_PANEL_NAV_SMOKE": "0",
+        "UR_BALDOSA_DELAYED_RESTART_SMOKE": "0",
+        "UR_BALDOSA_RESTART_SAME_FRAME_SMOKE": "0",
+        "UR_BALDOSA_QA_LEGACY_UNJOURNALED_CRASH": "0",
+        "UR_BALDOSA_QA_CRASH_AFTER_TYPED_PROFILE_COMMIT": "1",
+        "SDL_VIDEODRIVER": video,
+        "SDL_AUDIODRIVER": "dummy",
+    })
+    command = [str(exe), "--no-launcher", "--config", str(config),
+               "--script", str(script), str(rom)]
+    crashed = subprocess.run(
+        command, cwd=out, env=env, capture_output=True, text=True,
+        errors="replace", timeout=timeout)
+    log = crashed.stdout + "\n" + crashed.stderr
+    (out / "crash.log").write_text(log, encoding="utf-8")
+    if crashed.returncode != 87 or (
+        log.count("UR_BALDOSA_NATIVE_PROFILE QA_CRASH_AFTER_TYPED_COMMIT "
+                  "exit=87 intent_retained=1") != 1
+    ) or log.count("UR_BALDOSA_NATIVE_PAUSE ARMED guest=1952 live_race=1") != 1:
+        raise ValueError(
+            "Native source did not die AFTER genuine typed CAS: "
+            f"rc={crashed.returncode} log_tail={log[-1500:]}")
+    if not pending.is_file() or pending.is_symlink():
+        raise ValueError("Typed commit cut did not retain original prewrite intent")
+    intent_bytes = pending.read_bytes()
+    crash = {p: p.read_bytes() for p in files}
+    if (crash[raw] == before[raw] or len(crash[raw]) != 8192 or
+        crash[typed] == before[typed] or
+        any(crash[p] != before[p] for p in (selector, catalog))):
+        raise ValueError("Typed cut lacked exact raw+typed new/new state")
+    archive_before = list(profile.glob("native-sram-recovered-*.txt"))
+    if archive_before:
+        raise ValueError("Typed fault finalized or archived intent before process death")
+    clean = env.copy()
+    clean.pop("UR_BALDOSA_QA_CRASH_AFTER_TYPED_PROFILE_COMMIT", None)
+    short = out / "fresh-short.txt"
+    short.write_text("turbo on\nwait 6\nquit\n", encoding="ascii")
+    recovery_command = [
+        str(exe), "--no-launcher", "--config", str(config),
+        "--script", str(short), str(rom)]
+    first = subprocess.run(
+        recovery_command, cwd=out, env=clean, capture_output=True,
+        text=True, errors="replace", timeout=timeout)
+    first_log = first.stdout + "\n" + first.stderr
+    (out / "first-cold-boot.log").write_text(first_log, encoding="utf-8")
+    if (first.returncode != 0 or
+        first_log.count("UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED "
+                        "exact_staged_guest_sram=1 no_records=1") != 1):
+        raise ValueError(
+            "New/new typed cut did not reconcile original intent once: "
+            f"rc={first.returncode}, tail={first_log[-1400:]}")
+    verify_named_profile_boot_bytes(first_log, crash[raw])
+    after = {p: p.read_bytes() for p in files}
+    if any(after[p] != crash[p] for p in files):
+        raise ValueError("New/new cold replay fabricated a second typed generation")
+    archives = list(profile.glob("native-sram-recovered-*.txt"))
+    if len(archives) != 1 or archives[0].read_bytes() != intent_bytes:
+        raise ValueError("New/new recovery did not archive exact prewrite intent")
+    if pending.exists():
+        raise ValueError("Original intent remained after new/new cold replay")
+    second = subprocess.run(
+        recovery_command, cwd=out, env=clean, capture_output=True,
+        text=True, errors="replace", timeout=timeout)
+    second_log = second.stdout + "\n" + second.stderr
+    (out / "second-cold-boot.log").write_text(second_log, encoding="utf-8")
+    if (second.returncode or "UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED"
+        in second_log):
+        raise ValueError("New/new second cold boot repeated typed publication")
+    verify_named_profile_boot_bytes(second_log, crash[raw])
+    if (any(p.read_bytes() != after[p] for p in files) or
+        archives[0].read_bytes() != intent_bytes or pending.exists()):
+        raise ValueError("Repeated source-native boot altered typed-cut state")
+    if list(user_root.rglob("*.urrun")) or list(user_root.rglob("*.urmatch")):
+        raise ValueError("Typed-cut recovery minted source-unearned Records")
+    # Bounded disposable CI-owned receipt for independent byte checking.
+    names = {
+        "raw-sram": raw, "typed-profile": typed,
+        "selector": selector, "roster": catalog,
+    }
+    evidence = out / "fault-bytes"
+    evidence.mkdir()
+    receipts = {}
+    for label, p in names.items():
+        # F3: retain independent actual disk bytes after BOTH fresh native
+        # cold processes. The archive consumer can compare physical files,
+        # not solely trust the source-produced log's recovery count.
+        stages = {
+            "before": before[p], "crash": crash[p], "after": after[p],
+            "second-cold": p.read_bytes(),
+        }
+        for stage, data in stages.items():
+            (evidence / f"{label}.{stage}.bin").write_bytes(data)
+        receipts[label] = {stage + "_sha256": hashlib.sha256(data).hexdigest()
+                           for stage, data in stages.items()}
+    (evidence / "intent.crash.bin").write_bytes(intent_bytes)
+    (evidence / "intent.archived.bin").write_bytes(archives[0].read_bytes())
+    (evidence / "hashes.json").write_text(
+        json.dumps(receipts, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+    return {
+        "genuine_original_native_guest": True,
+        "typed_commit_before_exit_87": True,
+        "intent_retained_at_fault": True,
+        "raw_bytes_unchanged_on_recovery": True,
+        "typed_generation_not_duplicated": True,
+        "exact_intent_archived_once": True,
+        "two_cold_boots_idempotent": True,
+        "no_invented_records": True,
+    }
+
+
+def run_native_partial_raw_rollback_from_real_win32_cut(
+    exe: Path, rom: Path, output: Path, original_root: Path,
+    env: dict[str, str], config: Path, intent_bytes: bytes, *,
+    timeout: int,
+) -> dict[str, object]:
+    """Explicit repair on COPY of an actual Win32 post-raw, pending-intent cut.
+
+    Truncation itself is synthetic. This is NOT a tested Windows disk-full or
+    ACL failure. The repair and two cold boots use the real native executable.
+    """
+    isolated = output / "simulated_partial_raw_explicit_rollback"
+    isolated.mkdir()
+    copied = isolated / "Disposable Interrupted Guest"
+    shutil.copytree(original_root, copied, symlinks=True)
+    profile = copied / "saves/profile-native-ci-rider"
+    raw = profile / "save.srm"
+    typed = profile / "host-profile.txt"
+    pending = profile / "native-sram-checkpoint.pending"
+    selector = copied / "host-state-v1.txt"
+    catalog = copied / "profiles-v1.txt"
+    before = {p: p.read_bytes() for p in (raw, typed, selector, catalog)}
+    if (len(before[raw]) != 8192 or
+        not pending.is_file() or pending.read_bytes() != intent_bytes):
+        raise ValueError("Synthetic partial-write input lacked authentic Win32 intent")
+    # Preserve an exact interrupted prefix from the *real* native writer.
+    interrupted = before[raw][:513]
+    raw.write_bytes(interrupted)
+    copied_env = env.copy()
+    copied_env["SNESRECOMP_USER_DATA_DIR"] = str(copied)
+    copied_env.pop("UR_BALDOSA_QA_CRASH_AFTER_NATIVE_SRAM_WRITE", None)
+    copied_env.pop("UR_BALDOSA_QA_CRASH_AFTER_TYPED_PROFILE_COMMIT", None)
+    script = isolated / "fresh-short.txt"
+    script.write_text("turbo on\nwait 6\nquit\n", encoding="ascii")
+    args = [str(exe), "--no-launcher", "--config", str(config),
+            "--script", str(script), str(rom)]
+    refused = subprocess.run(
+        args, cwd=isolated, env=copied_env, capture_output=True,
+        text=True, errors="replace", timeout=timeout)
+    refused_log = refused.stdout + "\n" + refused.stderr
+    (isolated / "cold-refusal.log").write_text(
+        refused_log, encoding="utf-8")
+    if (refused.returncode != 7 or
+        "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in refused_log or
+        raw.read_bytes() != interrupted or
+        typed.read_bytes() != before[typed] or
+        pending.read_bytes() != intent_bytes):
+        raise ValueError("Original guest automatically trusted partial raw SRAM")
+    explicit_env = copied_env.copy()
+    explicit_env["UR_BALDOSA_RECOVERY_ACTION"] = "typed"
+    repaired = subprocess.run(
+        args, cwd=isolated, env=explicit_env, capture_output=True,
+        text=True, errors="replace", timeout=timeout)
+    repair_log = repaired.stdout + "\n" + repaired.stderr
+    (isolated / "explicit-typed-recovery.log").write_text(
+        repair_log, encoding="utf-8")
+    if (repaired.returncode != 89 or
+        repair_log.count("UR_BALDOSA_RECOVERY_CHOICE choice=typed ") != 1 or
+        "completed=1" not in repair_log or
+        "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in repair_log):
+        raise ValueError("Actual native Windows executable refused explicit typed rollback")
+    if (raw.read_bytes() == interrupted or
+        len(raw.read_bytes()) != 8192 or
+        pending.exists() or typed.read_bytes() != before[typed] or
+        selector.read_bytes() != before[selector] or
+        catalog.read_bytes() != before[catalog]):
+        raise ValueError("Explicit typed rollback failed or mutated unrelated authority")
+    archives = list(profile.glob("native-sram-manual-archive-*.bin"))
+    receipts = list(profile.glob("native-sram-recovered-*.txt"))
+    if (len(archives) != 1 or interrupted not in archives[0].read_bytes() or
+        len(receipts) != 1 or receipts[0].read_bytes() != intent_bytes):
+        raise ValueError("Typed rollback omitted exact interrupted raw/intent archives")
+    repaired_raw = raw.read_bytes()
+    for index in (1, 2):
+        clean = subprocess.run(
+            args, cwd=isolated, env=copied_env, capture_output=True,
+            text=True, errors="replace", timeout=timeout)
+        log = clean.stdout + "\n" + clean.stderr
+        (isolated / f"clean-boot-{index}.log").write_text(
+            log, encoding="utf-8")
+        if (clean.returncode or
+            "UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED" in log):
+            raise ValueError("Partial-raw rollback repeated or failed on cold boot")
+        verify_named_profile_boot_bytes(log, repaired_raw)
+        if (raw.read_bytes() != repaired_raw or
+            typed.read_bytes() != before[typed] or
+            receipts[0].read_bytes() != intent_bytes):
+            raise ValueError("Repeated native cold boot mutated committed rollback bytes")
+    if list(copied.rglob("*.urrun")) or list(copied.rglob("*.urmatch")):
+        raise ValueError("Explicit partial rollback fabricated event records")
+    # Expose CI-owned *original bytes* to the independent QA owner, not
+    # just source-produced assertions about archived partial data. No ROM,
+    # user-owned game state, executable or unbounded private root is copied.
+    evidence = isolated / "fault-bytes"
+    evidence.mkdir()
+    evidence_sources = {
+        "raw.original-source-win32.bin": before[raw],
+        "raw.synthetic-partial.bin": interrupted,
+        "raw.restored.bin": repaired_raw,
+        "raw.second-cold.bin": raw.read_bytes(),
+        "typed.old.bin": before[typed],
+        "typed.restored.bin": typed.read_bytes(),
+        "selector.before.bin": before[selector],
+        "selector.after.bin": selector.read_bytes(),
+        "roster.before.bin": before[catalog],
+        "roster.after.bin": catalog.read_bytes(),
+        "intent.crash.bin": intent_bytes,
+        "intent.archived.bin": receipts[0].read_bytes(),
+        "manual-raw-typed-archive.bin": archives[0].read_bytes(),
+    }
+    hashes = {}
+    for label, data in sorted(evidence_sources.items()):
+        (evidence / label).write_bytes(data)
+        hashes[label] = {
+            "sha256": hashlib.sha256(data).hexdigest(),
+            "bytes": len(data),
+        }
+    if (len(hashes) != 13 or
+        evidence_sources["raw.synthetic-partial.bin"] not in
+            evidence_sources["manual-raw-typed-archive.bin"] or
+        evidence_sources["intent.crash.bin"] !=
+            evidence_sources["intent.archived.bin"] or
+        evidence_sources["raw.restored.bin"] !=
+            evidence_sources["raw.second-cold.bin"] or
+        evidence_sources["typed.old.bin"] !=
+            evidence_sources["typed.restored.bin"] or
+        evidence_sources["selector.before.bin"] !=
+            evidence_sources["selector.after.bin"] or
+        evidence_sources["roster.before.bin"] !=
+            evidence_sources["roster.after.bin"]):
+        raise ValueError("Exact partial-raw recovery byte envelope inconsistent")
+    (evidence / "hashes.json").write_text(
+        json.dumps(hashes, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8")
+    report = {
+        "input_real_original_win32_post_raw_cut": True,
+        "truncation_is_synthetic_not_real_disk_io": True,
+        "interrupted_prefix_bytes": len(interrupted),
+        "synthetic_partial_raw_sha256": hashlib.sha256(interrupted).hexdigest(),
+        "cold_boot_refused": True,
+        "actual_win32_original_exe_explicit_restore_typed": True,
+        "archived_original_partial_raw_and_intent": True,
+        "two_subsequent_cold_boots_unmodified": True,
+        "exact_original_and_preserved_bytes_archived": True,
+        "evidence_file_count": len(evidence_sources),
+        "release_gate_credit": 0,
+    }
+    (isolated / "receipt.json").write_text(
+        json.dumps(report, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8")
+    return report
+
+
 def run_native_crash_between_raw_and_typed(
     exe: Path, rom: Path, script: Path, root: Path,
     fixture: Path, seed: Path, *, video: str, timeout: int,
-    snapshot_dir: Path | None = None,
+    snapshot_dir: Path | None = None, journaled: bool = False,
 ) -> dict[str, object]:
-    """Real paused-SDL Quit dies after upstream raw write, before typed CAS.
+    """Real paused guest, original SRAM writer, exact post-raw _Exit(86).
 
-    This is an explicitly destructive test of a NEW isolated named-profile
-    fixture, never of an existing personal save. The only fault injection is
-    an opt-in _Exit(86) *after* the pinned RtlWriteSram returns success. It
-    proves the last good typed snapshot survives and any raw mismatch fails
-    the next real native process closed. It does NOT repair the crash window.
+    Historical unjournaled negative remains reproducible in an isolated
+    fixture. The new journaled case must resume the exact staged guest
+    bytes in a SECOND genuine native Win32 process without inventing runs.
     """
-    output = root / "native_post_raw_pre_typed_crash"
+    output = root / ("native_intent_restart_recovery" if journaled
+                     else "native_post_raw_pre_typed_crash")
     output.mkdir(parents=True, exist_ok=False)
     user_root = output / "Crash QA Named Racer With Spaces"
     user_root.mkdir()
@@ -1581,6 +2663,7 @@ def run_native_crash_between_raw_and_typed(
         "UR_BALDOSA_DELAYED_RESTART_SMOKE": "0",
         "UR_BALDOSA_RESTART_SAME_FRAME_SMOKE": "0",
         "UR_BALDOSA_QA_CRASH_AFTER_NATIVE_SRAM_WRITE": "1",
+        "UR_BALDOSA_QA_LEGACY_UNJOURNALED_CRASH": "0" if journaled else "1",
         "SDL_VIDEODRIVER": video,
         "SDL_AUDIODRIVER": "dummy",
     })
@@ -1620,9 +2703,21 @@ def run_native_crash_between_raw_and_typed(
     if (user_root / "saves/save.srm").exists() or list(user_root.rglob("*.urrun")):
         raise ValueError("Fault injected guest created an unrelated save or result")
 
-    # New native process, no script simulation accepted: after_config must
-    # reject before the first RtlRunFrame. Preserve the mismatched raw evidence
-    # for an explicit future recovery decision, never silently auto-repair.
+    # A new source-backed process either rejects an unjournaled mismatch
+    # before frame one or replays ONLY the validated pre-write intent.
+    crash_state = {p: p.read_bytes() for p in (raw, typed, selector, roster)}
+    pending = profile / "native-sram-checkpoint.pending"
+    pending_crash_bytes = pending.read_bytes() if pending.is_file() else None
+    if journaled and (pending_crash_bytes is None or
+                      len(pending_crash_bytes) < 8192):
+        raise ValueError("Durable prewrite intent absent from actual Win32 cut")
+    if not journaled and pending_crash_bytes is not None:
+        raise ValueError("Historical unjournaled witness unexpectedly had intent")
+    partial_raw_rollback = None
+    if journaled and pending_crash_bytes is not None:
+        partial_raw_rollback = run_native_partial_raw_rollback_from_real_win32_cut(
+            exe, rom, output, user_root, env, config, pending_crash_bytes,
+            timeout=timeout)
     retry = output / "fresh_launch"
     retry.mkdir()
     short = retry / "no_guest.txt"
@@ -1636,25 +2731,74 @@ def run_native_crash_between_raw_and_typed(
         text=True, errors="replace", timeout=timeout,
     )
     fresh_log = fresh.stdout + "\n" + fresh.stderr
-    (output / "fresh-rejection.log").write_text(
-        fresh_log, encoding="utf-8")
-    if (fresh.returncode != 7 or
-        fresh_log.count(
-            "UR_BALDOSA_NATIVE_PROFILE REJECTED reason="
-            "selected_profile_sram_not_initialized") != 1 or
-        "UR-STARTUP-SAVE-ROOT: selected Modern profile rejected" not in fresh_log or
-        "UR-BALDOSA-SAVE-MISMATCH: Named racer SRAM differs from " not in fresh_log or
-        "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in fresh_log):
-        raise ValueError(
-            "Fresh native process did not reject divergent SRAM before "
-            f"guest boot: rc={fresh.returncode} tail={fresh_log[-1600:]}")
-    for path in (typed, selector, roster):
-        if path.read_bytes() != before[path]:
-            raise ValueError("Rejected retry modified committed Modern metadata")
-    if raw.read_bytes() != after_raw:
-        raise ValueError("Failed fresh boot silently repaired/overwrote raw evidence")
+    (output / ("fresh-recovery.log" if journaled else "fresh-rejection.log")
+     ).write_text(fresh_log, encoding="utf-8")
+    if journaled:
+        if (fresh.returncode != 0 or
+            fresh_log.count(
+                "UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED "
+                "exact_staged_guest_sram=1 no_records=1") != 1 or
+            "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" not in fresh_log or
+            "UR_BALDOSA_NATIVE_PROFILE REJECTED" in fresh_log):
+            raise ValueError(
+                "Fresh native guest did not reconcile the exact durable intent: "
+                f"rc={fresh.returncode} tail={fresh_log[-1600:]}")
+        verify_named_profile_boot_bytes(fresh_log, after_raw)
+        confirmed = subprocess.run(
+            [str(fixture), str(user_root), "native-ci-rider",
+             "--verify-native-save"],
+            capture_output=True, text=True, timeout=timeout)
+        if confirmed.returncode:
+            raise ValueError(
+                "Fresh process did not leave canonical typed/raw SRAM equal: "
+                f"rc={confirmed.returncode} {confirmed.stdout} {confirmed.stderr}")
+        if typed.read_bytes() == before[typed]:
+            raise ValueError("Journal replay never committed changed guest bytes")
+        receipts = list(profile.glob("native-sram-recovered-*.txt"))
+        if len(receipts) != 1 or receipts[0].stat().st_size < 8192:
+            raise ValueError("No single retained old/new recovery receipt")
+        if selector.read_bytes() != before[selector] or roster.read_bytes() != before[roster]:
+            raise ValueError("Intent replay changed a canonical selector or catalog")
+        if pending.exists() or receipts[0].read_bytes() != pending_crash_bytes:
+            raise ValueError("Recovered receipt does not exactly preserve Win32 intent")
+        # Another actual cold guest must consume identical typed/raw bytes,
+        # publish no second generation, and leave the same receipt intact.
+        repaired_files = {p: p.read_bytes() for p in (raw, typed, selector, roster)}
+        repeated = subprocess.run(
+            [str(exe), "--no-launcher", "--config", str(config),
+             "--script", str(short), str(rom)],
+            cwd=retry, env=clean_env, capture_output=True,
+            text=True, errors="replace", timeout=timeout)
+        repeat_log = repeated.stdout + "\n" + repeated.stderr
+        (output / "second-cold-recovery-boot.log").write_text(
+            repeat_log, encoding="utf-8")
+        if (repeated.returncode != 0 or
+            "UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED" in repeat_log):
+            raise ValueError("Second cold boot repeated prior journal publication")
+        verify_named_profile_boot_bytes(repeat_log, after_raw)
+        if any(p.read_bytes() != expected
+               for p, expected in repaired_files.items()):
+            raise ValueError("Second cold boot changed already recovered raw/typed pair")
+        if pending.exists() or receipts[0].read_bytes() != pending_crash_bytes:
+            raise ValueError("Second cold boot modified recovery receipt")
+    else:
+        if (fresh.returncode != 7 or
+            fresh_log.count(
+                "UR_BALDOSA_NATIVE_PROFILE REJECTED reason="
+                "selected_profile_sram_not_initialized") != 1 or
+            "UR-STARTUP-SAVE-ROOT: selected Modern profile rejected" not in fresh_log or
+            "UR-BALDOSA-SAVE-MISMATCH: Named racer SRAM differs from " not in fresh_log or
+            "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in fresh_log):
+            raise ValueError(
+                "Fresh native process did not reject *unjournaled* divergence: "
+                f"rc={fresh.returncode} tail={fresh_log[-1600:]}")
+        for path in (typed, selector, roster):
+            if path.read_bytes() != before[path]:
+                raise ValueError("Rejected retry modified committed Modern metadata")
+        if raw.read_bytes() != after_raw:
+            raise ValueError("Unjournaled retry silently overwrote changed raw save")
     if (user_root / "saves/save.srm").exists() or list(user_root.rglob("*.urrun")):
-        raise ValueError("Failed fresh boot invented an anonymous save or Records")
+        raise ValueError("Fresh guest invented anonymous save or Records")
 
     # Optional independent QA capture of ONLY these disposable fixture files.
     # The original test did not archive the raw/typed 8192-byte crash boundary,
@@ -1674,28 +2818,195 @@ def run_native_crash_between_raw_and_typed(
         }
         file_receipt = {}
         for label, path in labels.items():
-            previous, current = before[path], path.read_bytes()
+            previous, crashed_bytes, current = (
+                before[path], crash_state[path], path.read_bytes())
             (snapshot_dir / f"{label}.before.bin").write_bytes(previous)
+            (snapshot_dir / f"{label}.crash.bin").write_bytes(crashed_bytes)
             (snapshot_dir / f"{label}.after.bin").write_bytes(current)
             file_receipt[label] = {
                 "before_sha256": hashlib.sha256(previous).hexdigest(),
+                "crash_sha256": hashlib.sha256(crashed_bytes).hexdigest(),
                 "after_sha256": hashlib.sha256(current).hexdigest(),
                 "before_bytes": len(previous),
+                "crash_bytes": len(crashed_bytes),
                 "after_bytes": len(current),
+                "crash_changed_byte_count": sum(a != b for a, b in zip(previous, crashed_bytes))
+                    + abs(len(previous) - len(crashed_bytes)),
                 "changed_byte_count": sum(a != b for a, b in zip(previous, current))
-                                      + abs(len(previous) - len(current)),
+                    + abs(len(previous) - len(current)),
             }
         if (file_receipt["raw-sram"]["before_bytes"] != 8192 or
-            file_receipt["raw-sram"]["after_bytes"] != 8192 or
-            file_receipt["raw-sram"]["changed_byte_count"] == 0 or
-            any(file_receipt[label]["changed_byte_count"] for label in
+            file_receipt["raw-sram"]["crash_bytes"] != 8192 or
+            file_receipt["raw-sram"]["crash_changed_byte_count"] == 0 or
+            any(file_receipt[label]["crash_changed_byte_count"] for label in
                 ("typed-profile", "selector", "roster"))):
-            raise ValueError("Crash-seam archived bytes violate the actual P0 cut")
+            raise ValueError("Actual crash-seam bytes violate the P0 raw/typed cut")
+        if journaled and (
+            file_receipt["typed-profile"]["changed_byte_count"] == 0 or
+            any(file_receipt[label]["changed_byte_count"] for label in
+                ("selector", "roster"))):
+            raise ValueError("Journal replay did not isolate typed update")
+        if journaled:
+            # Immutable exact journal+receipt bytes qualify independent
+            # source-vs-disk comparisons. Never archive a ROM or personal root.
+            assert pending_crash_bytes is not None
+            recovered_archives = list(profile.glob("native-sram-recovered-*.txt"))
+            if len(recovered_archives) != 1:
+                raise ValueError("No unique journal receipt after cold replay")
+            archived = recovered_archives[0].read_bytes()
+            if archived != pending_crash_bytes:
+                raise ValueError("Archived journal bytes differ from actual crash")
+            (snapshot_dir / "intent.crash.bin").write_bytes(pending_crash_bytes)
+            (snapshot_dir / "intent.recovered-receipt.bin").write_bytes(archived)
+            intent_receipt = {
+                "crash_sha256": hashlib.sha256(pending_crash_bytes).hexdigest(),
+                "receipt_sha256": hashlib.sha256(archived).hexdigest(),
+                "bytes": len(pending_crash_bytes),
+                "byte_identical": True,
+                "pending_retired": not pending.exists(),
+            }
+            (snapshot_dir / "intent-receipt.json").write_text(
+                json.dumps(intent_receipt, sort_keys=True, indent=2) + "\n",
+                encoding="utf-8")
+            (snapshot_dir / "second-cold-recovery-boot.log").write_bytes(
+                (output / "second-cold-recovery-boot.log").read_bytes())
+            # The QA owner correctly distinguished a source log claiming no
+            # repeat publication from separate after-SECOND-boot disk bytes.
+            # Export and independently hash each actual canonical file after
+            # the second native process. Keep the flat 18-member QA verifier
+            # input UNCHANGED; these extra source files live only in the
+            # owning original fault-bytes artifact.
+            second_receipt = {}
+            for label, path in labels.items():
+                second_bytes = path.read_bytes()
+                expected = repaired_files[path]
+                if second_bytes != expected:
+                    raise ValueError(
+                        "Real second cold Win32 byte export differs: " + label)
+                (snapshot_dir / f"{label}.second-cold.bin").write_bytes(
+                    second_bytes)
+                second_receipt[label] = {
+                    "sha256": hashlib.sha256(second_bytes).hexdigest(),
+                    "bytes": len(second_bytes),
+                    "identical_to_first_recovered": True,
+                }
+            (snapshot_dir / "second-cold-file-receipt.json").write_text(
+                json.dumps(second_receipt, sort_keys=True, indent=2) + "\n",
+                encoding="utf-8")
         (snapshot_dir / "crash.log").write_text(log, encoding="utf-8")
-        (snapshot_dir / "cold-refusal.log").write_text(fresh_log, encoding="utf-8")
+        (snapshot_dir / ("cold-recovery.log" if journaled else "cold-refusal.log")
+         ).write_text(fresh_log, encoding="utf-8")
         (snapshot_dir / "file-receipt.json").write_text(
             json.dumps(file_receipt, indent=2, sort_keys=True) + "\n",
             encoding="utf-8")
+        if journaled:
+            # Machine-readable *producer* export that matches the separate
+            # independently owned QA02 read-only verifier. No QA authority
+            # moves here: the consumer must separately re-download, pin
+            # tested source/PE and independently verify these exact bytes.
+            # Retain the ordinary FOUR-label file-receipt EXACTLY. The
+            # independent QA02 read-only consumer requires its fifth
+            # (intent) receipt as a SEPARATE JSON member, never a fabricated
+            # "intent" key added to the four-file canonical manifest.
+            # Check this compatibility in the owning Windows workflow
+            # against QA's current actual verifier, without QA-gate credit.
+            expected = {
+                *(f"{name}.{stage}.bin"
+                  for name in ("raw-sram", "typed-profile", "selector", "roster")
+                  for stage in ("before", "crash", "after")),
+                "crash.log", "cold-recovery.log",
+                "second-cold-recovery-boot.log", "intent.crash.bin",
+                "intent.recovered-receipt.bin", "file-receipt.json",
+                "intent-receipt.json",
+            }
+            assert len(expected) == 19
+            qa_zip = output / "qa02-journaled-snapshot.zip"
+            with zipfile.ZipFile(qa_zip, "x") as archive:
+                for name in sorted(expected):
+                    data = (snapshot_dir / name).read_bytes()
+                    info = zipfile.ZipInfo(name, (1980, 1, 1, 0, 0, 0))
+                    info.external_attr = 0o100644 << 16
+                    info.compress_type = zipfile.ZIP_DEFLATED
+                    archive.writestr(info, data)
+            with zipfile.ZipFile(qa_zip) as archive:
+                if (len(archive.namelist()) != len(expected) or
+                    set(archive.namelist()) != expected or
+                    archive.testzip() is not None):
+                    raise ValueError("Exported flat journaled QA envelope invalid")
+            if qa_zip.stat().st_size > 1_000_000:
+                raise ValueError("Journaled QA envelope exceeds verifier budget")
+            (output / "qa02-journaled-snapshot.sha256").write_text(
+                sha256(qa_zip) + "  qa02-journaled-snapshot.zip\n",
+                encoding="ascii")
+
+    # Only AFTER the immutable historical failed-boot witness is captured,
+    # exercise the explicit recovery choice and a third real source process.
+    # The fixture performs the same canonical locked recovery backend; it is
+    # never shipped as an implicit startup policy or called by the guest.
+    legacy_choice_receipt = None
+    if not journaled:
+        # The same packaged original native executable now owns player
+        # recovery. Refuse any unknown action, without a guest frame or save
+        # mutation, before trying the explicit keep-raw choice.
+        invalid_env = clean_env.copy()
+        invalid_env["UR_BALDOSA_RECOVERY_ACTION"] = "invalid"
+        invalid = subprocess.run(
+            [str(exe), "--no-launcher", "--config", str(config), str(rom)],
+            cwd=retry, env=invalid_env, capture_output=True, text=True,
+            errors="replace", timeout=timeout)
+        if invalid.returncode != 88 or raw.read_bytes() != after_raw or (
+            typed.read_bytes() != before[typed]):
+            raise ValueError("Unrecognized native recovery action changed save data")
+        explicit_env = clean_env.copy()
+        explicit_env["UR_BALDOSA_RECOVERY_ACTION"] = "raw"
+        choice = subprocess.run(
+            [str(exe), "--no-launcher", "--config", str(config), str(rom)],
+            cwd=retry, env=explicit_env, capture_output=True,
+            text=True, errors="replace", timeout=timeout)
+        decision_log = choice.stdout + "\n" + choice.stderr
+        (output / "explicit-recovery-native-command.log").write_text(
+            decision_log, encoding="utf-8")
+        if choice.returncode != 89 or (
+            decision_log.count("UR_BALDOSA_RECOVERY_CHOICE choice=raw ") != 1
+        ) or "completed=1" not in decision_log or (
+            "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" in decision_log):
+            raise ValueError(
+                "Original game did not complete explicit one-shot recovery "
+                f"before guest: rc={choice.returncode} tail={decision_log[-1800:]}")
+        if raw.read_bytes() != after_raw or typed.read_bytes() == before[typed]:
+            raise ValueError("Manual recovery lost raw guest SRAM or failed typed CAS")
+        archive = list(profile.glob("native-sram-manual-archive-*.bin"))
+        if len(archive) != 1 or len(archive[0].read_bytes()) < 8192:
+            raise ValueError("Manual repair did not durably archive both snapshots")
+        recovered = subprocess.run(
+            [str(exe), "--no-launcher", "--config", str(config),
+             "--script", str(short), str(rom)],
+            cwd=retry, env=clean_env, capture_output=True,
+            text=True, errors="replace", timeout=timeout)
+        recovered_log = recovered.stdout + "\n" + recovered.stderr
+        (output / "explicit-recovery-fresh-boot.log").write_text(
+            recovered_log, encoding="utf-8")
+        if recovered.returncode or "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" not in recovered_log:
+            raise ValueError(
+                "Manual choice failed fresh authentic guest restart: "
+                f"rc={recovered.returncode} tail={recovered_log[-1600:]}")
+        verify_named_profile_boot_bytes(recovered_log, after_raw)
+        confirmed = subprocess.run(
+            [str(fixture), str(user_root), "native-ci-rider",
+             "--verify-native-save"],
+            capture_output=True, text=True, timeout=timeout)
+        if confirmed.returncode:
+            raise ValueError("Post-manual-repair guest left typed/raw divergent")
+        if list(user_root.rglob("*.urrun")):
+            raise ValueError("Manual repair published a fake Records run")
+        legacy_choice_receipt = {
+            "explicit": True,
+            "same_original_game_binary_recovery": True,
+            "unknown_action_no_mutation": True,
+            "restarted_native_guest": True,
+            "archived_both_snapshots": True,
+            "original_guest_raw_unchanged_through_repair": True,
+        }
 
     return {
         "real_native_guest_paused_at_frame": 1952,
@@ -1703,8 +3014,14 @@ def run_native_crash_between_raw_and_typed(
         "forced_process_exit_code": 86,
         "typed_profile_and_roster_unchanged": True,
         "raw_and_typed_sram_divergence_reproduced": True,
-        "fresh_process_rejected_before_guest": True,
-        "no_implicit_recovery_or_fake_result": True,
+        "fresh_process_rejected_before_guest": not journaled,
+        "validated_intent_reconciled_on_fresh_guest": journaled,
+        "synthetic_partial_raw_explicit_rollback": partial_raw_rollback,
+        "second_cold_boot_byte_identical": journaled,
+        "actual_crash_intent_and_receipt_retained": journaled and snapshot_dir is not None,
+        "qa02_flat_journaled_zip_exported": journaled and snapshot_dir is not None,
+        "manual_legacy_raw_choice": legacy_choice_receipt,
+        "no_implicit_recovery_or_fake_result": not journaled,
         "cross_file_crash_atomicity_proven": False,
     }
 
@@ -1776,6 +3093,29 @@ def main() -> int:
         video=args.video, timeout=args.timeout)
     post_raw_crash_proof = run_native_crash_between_raw_and_typed(
         exe, rom, script, root, fixture, sram_seed,
+        video=args.video, timeout=args.timeout,
+        snapshot_dir=root / "native_post_raw_pre_typed_crash/fault-bytes")
+    journal_recovery_proof = run_native_crash_between_raw_and_typed(
+        exe, rom, script, root, fixture, sram_seed,
+        video=args.video, timeout=args.timeout, journaled=True,
+        snapshot_dir=root / "native_intent_restart_recovery/fault-bytes")
+    prewrite_cut_proof = run_native_prewrite_intent_abandon(
+        exe, rom, script, root, fixture, sram_seed,
+        video=args.video, timeout=args.timeout)
+    typed_cut_proof = run_native_typed_commit_finalization_cut(
+        exe, rom, script, root, fixture, sram_seed,
+        video=args.video, timeout=args.timeout)
+    three_profile_proof = run_native_three_profile_unrelated_damage(
+        exe, rom, root, fixture, sram_seed,
+        video=args.video, timeout=args.timeout)
+    journaled_b_a_proof = run_native_journaled_b_crash_then_a_isolation(
+        exe, rom, script, root, fixture, sram_seed,
+        video=args.video, timeout=args.timeout)
+    real_b_crash_healthy_a_proof = run_native_real_crashed_second_healthy_first(
+        exe, rom, script, root, fixture, sram_seed,
+        video=args.video, timeout=args.timeout)
+    healthy_alternate_proof = run_native_healthy_alternate_from_damaged_source(
+        exe, rom, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)
     two_profiles_proof = run_second_named_profile_isolation(
         exe, rom, root, fixture, sram_seed,
@@ -1800,6 +3140,13 @@ def main() -> int:
         "modern_root_source_menu_reentry": reentry_proof,
         "native_modern_paused_quit": pause_quit_proof,
         "native_post_raw_pre_typed_crash": post_raw_crash_proof,
+        "native_journaled_post_raw_recovery": journal_recovery_proof,
+        "native_typed_commit_before_intent_retirement": typed_cut_proof,
+        "native_prewrite_intent_abandoned_without_raw_commit": prewrite_cut_proof,
+        "native_healthy_alternate_after_damaged_p1": healthy_alternate_proof,
+        "native_real_b_crash_healthy_a_recovery": real_b_crash_healthy_a_proof,
+        "native_journaled_b_recovery_then_explicit_a": journaled_b_a_proof,
+        "native_three_registered_unrelated_damaged_c": three_profile_proof,
         "native_paused_quit_selector_conflict": conflict_proof,
         "modern_root_race_entry_p1": race_p1_proof,
         "modern_root_race_entry_p2": race_p2_proof,

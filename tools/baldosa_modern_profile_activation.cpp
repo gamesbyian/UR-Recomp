@@ -15,6 +15,8 @@
 #include "host_profile_store.hpp"
 #include "host_profile_catalog.hpp"
 #include "baldosa_native_profile_sram_checkpoint.hpp"
+#include "baldosa_native_sram_recovery.hpp"
+#include "baldosa_native_manual_sram_recovery.hpp"
 #include "baldosa_native_profile_path_guard.hpp"
 #include "baldosa_native_first_profile.hpp"
 #include "baldosa_native_second_profile.hpp"
@@ -79,6 +81,75 @@ bool activated() {
 
 }  // namespace
 
+// This single-use management command belongs to the SAME original Baldosa
+// executable and to its normal after_config pre-guest initialization path.
+// It can be reached only through an explicit recovery choice; mere startup
+// and unrecognized action never replace a save. Exit 89 means a validated
+// mutation completed, 88 is a refusal (possibly after a preserved archive),
+// and 0 means ordinary gameplay may proceed. Never enter the guest on either
+// nonzero return. A separate already-running native process is not reused.
+extern "C" int ur_baldosa_modern_run_recovery_command(void) {
+    const char* action = std::getenv("UR_BALDOSA_RECOVERY_ACTION");
+    if (!action || !*action) return 0;
+    if (!activated()) return 88;
+    const char* root = std::getenv("SNESRECOMP_USER_DATA_DIR");
+    if (!root || !*root) return 88;
+    const std::filesystem::path user_root(root);
+    if (!user_root.is_absolute() ||
+        !ur::product::baldosa_native_real_directory(user_root))
+        return 88;
+    const char* override_selector = std::getenv("UR_HOST_STATE_PATH");
+    if (override_selector && *override_selector &&
+        std::strcmp(override_selector, "host-state-v1.txt") != 0)
+        return 88;
+    const auto global = ur::product::load_host_product_state_file(
+        (user_root / "host-state-v1.txt").string());
+    if (!global.loaded() || !global.state->active_profile_id ||
+        !ur::product::is_safe_profile_storage_id(
+            *global.state->active_profile_id))
+        return 88;
+    const auto& active = *global.state->active_profile_id;
+    bool committed = false;
+    const char* outcome = "refused";
+    if (std::strcmp(action, "raw") == 0 ||
+        std::strcmp(action, "typed") == 0) {
+        const bool raw = std::strcmp(action, "raw") == 0;
+        const auto status = ur::product::recover_baldosa_legacy_sram_explicit(
+            user_root, active,
+            raw ? ur::product::BaldosaManualSramChoice::TrustGuestRaw
+                : ur::product::BaldosaManualSramChoice::RestoreCommitted);
+        committed =
+            status == ur::product::BaldosaManualSramRecoveryStatus::RestoredRaw ||
+            status == ur::product::BaldosaManualSramRecoveryStatus::RestoredCommitted ||
+            status == ur::product::BaldosaManualSramRecoveryStatus::AlreadyConsistent;
+        outcome = raw ? "raw" : "typed";
+        std::fprintf(stderr,
+            "UR_BALDOSA_RECOVERY_CHOICE choice=%s status=%u "
+            "active_profile=%s completed=%d\n",
+            outcome, static_cast<unsigned>(status), active.c_str(),
+            committed ? 1 : 0);
+    } else if (std::strcmp(action, "healthy") == 0) {
+        const char* target = std::getenv("UR_BALDOSA_RECOVERY_PROFILE_ID");
+        if (!target || !*target ||
+            !ur::product::is_safe_profile_storage_id(target))
+            return 88;
+        const auto result =
+            ur::product::select_baldosa_healthy_profile_from_damaged_for_next_boot(
+                user_root, active, target);
+        committed = result.selected();
+        outcome = "healthy";
+        std::fprintf(stderr,
+            "UR_BALDOSA_RECOVERY_CHOICE choice=healthy status=%u "
+            "active_profile=%s next_profile=%s completed=%d\n",
+            static_cast<unsigned>(result.status), active.c_str(), target,
+            committed ? 1 : 0);
+    } else {
+        return 88;
+    }
+    std::fflush(stderr);
+    return committed ? 89 : 88;
+}
+
 /* Return 1 only when it is safe to enter the normal upstream native host.
  * Callers must fail closed on 0; the guest has not started at this point.
  */
@@ -124,8 +195,30 @@ extern "C" int ur_baldosa_modern_try_activate_profile(void) {
 
     const auto decision = ur::product::resolve_host_profile_save_root(
         ur::product::ExecutionMode::Modern, id);
+
     if (!decision.isolated())
         return reject("active_profile_id_invalid");
+
+    // A durable pre-write intent only authorizes the exact original guest
+    // SRAM transition whose old typed snapshot is still catalogued. Cold
+    // replay occurs before guest boot, under existing product locks.
+    const auto recovery =
+        ur::product::recover_baldosa_sram_intent_on_cold_boot(
+            native_root, *id);
+    if (recovery != ur::product::BaldosaSramIntentStatus::NoIntent &&
+        recovery != ur::product::BaldosaSramIntentStatus::Cleared &&
+        recovery != ur::product::BaldosaSramIntentStatus::Reconciled) {
+        std::fprintf(stderr,
+            "UR_BALDOSA_NATIVE_PROFILE RECOVERY_REJECTED status=%u "
+            "raw_and_typed_preserved=1\n",
+            static_cast<unsigned>(recovery));
+        std::fflush(stderr);
+        return reject("native_sram_recovery_unsafe");
+    }
+    if (recovery == ur::product::BaldosaSramIntentStatus::Reconciled)
+        std::fprintf(stderr,
+            "UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED "
+            "exact_staged_guest_sram=1 no_records=1\n");
 
     // A regular SRAM file can still be reached through a symlinked parent.
     // Admit the complete existing Modern profile path before reading data.
@@ -713,6 +806,36 @@ extern "C" int ur_baldosa_modern_profile_before_native_save(void) {
             sram_path, g_launch_profile->stock_sram->data(),
             ur::product::kStockSramBytes))
         return reject("save_baseline_mismatch");
+    // Sync the authorized old/new typed snapshots before any native raw
+    // write. A preexisting intent is *never* replaced by a new attempt.
+    // Preserve the historical _Exit(86) *unjournaled* Windows fault witness.
+    // This is QA-only and must be paired with the existing explicit process
+    // death switch. Production never skips a changed-SRAM intent.
+    const char* legacy = std::getenv("UR_BALDOSA_QA_LEGACY_UNJOURNALED_CRASH");
+    const char* fault = std::getenv("UR_BALDOSA_QA_CRASH_AFTER_NATIVE_SRAM_WRITE");
+    const bool legacy_qa_crash = legacy && std::strcmp(legacy, "1") == 0 &&
+        fault && std::strcmp(fault, "1") == 0;
+    if (!legacy_qa_crash) {
+        const auto intent =
+            ur::product::prepare_baldosa_sram_intent_under_lock(request);
+        if (intent != ur::product::BaldosaSramIntentStatus::Prepared &&
+            intent != ur::product::BaldosaSramIntentStatus::NoIntent)
+            return reject("native_sram_intent_not_durable");
+        // QA only: original native guest reached its legitimate save point,
+        // and durable old/new intent exists, but RtlWriteSram has NOT been
+        // invoked. The next real Win32 guest must discard this uncommitted
+        // intent without publishing typed generation or raw progress.
+        const char* pre_raw_cut =
+            std::getenv("UR_BALDOSA_QA_CRASH_AFTER_INTENT_BEFORE_RAW");
+        if (intent == ur::product::BaldosaSramIntentStatus::Prepared &&
+            pre_raw_cut && std::strcmp(pre_raw_cut, "1") == 0) {
+            std::fprintf(stderr,
+                "UR_BALDOSA_NATIVE_PROFILE QA_CRASH_PRE_RAW "
+                "exit=84 intent_durable=1 raw_not_written=1\n");
+            std::fflush(stderr);
+            std::_Exit(84);
+        }
+    }
     g_native_shutdown_selector_lock = std::move(candidate);
     g_native_shutdown_catalog_lock = std::move(catalog_candidate);
     g_native_shutdown_profile_lock = std::move(profile_candidate);
@@ -796,6 +919,26 @@ extern "C" int ur_baldosa_modern_profile_finish_native_save(int saved) {
         "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=%s status=%s\n",
         g_verified_native_profile_id.c_str(), verdict);
     std::fflush(stderr);
-    return result == ur::product::BaldosaSramCheckpointStatus::Committed ||
-           result == ur::product::BaldosaSramCheckpointStatus::Unchanged;
+    if (result != ur::product::BaldosaSramCheckpointStatus::Committed &&
+        result != ur::product::BaldosaSramCheckpointStatus::Unchanged)
+        return 0;  // keep the intent for a cold restart investigation
+    // QA-only genuine process-death cut AFTER the canonical typed CAS has
+    // durably published, but BEFORE the corresponding intent is retired.
+    // A new process must recognize exact new/raw + new/typed and archive
+    // and retire without incrementing its generation a second time.
+    // No synthetic result or alternative SRAM writer is involved.
+    if (result == ur::product::BaldosaSramCheckpointStatus::Committed) {
+        const char* typed_cut =
+            std::getenv("UR_BALDOSA_QA_CRASH_AFTER_TYPED_PROFILE_COMMIT");
+        if (typed_cut && std::strcmp(typed_cut, "1") == 0) {
+            std::fprintf(stderr,
+                "UR_BALDOSA_NATIVE_PROFILE QA_CRASH_AFTER_TYPED_COMMIT "
+                "exit=87 intent_retained=1\n");
+            std::fflush(stderr);
+            std::_Exit(87);
+        }
+    }
+    if (!ur::product::finish_baldosa_sram_intent_under_lock(request))
+        return reject("native_sram_intent_cleanup_failed");
+    return 1;
 }

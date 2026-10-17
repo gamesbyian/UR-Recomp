@@ -94,6 +94,14 @@ class TestOriginalInteractiveQ(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     qa.audit(self.path, digest, self.cmd)
 
+    def test_genuine_windows_crlf_injector_transcript(self):
+        files = dict(self.files)
+        files["key-injection.log"] = b"exit=0\r\n\r\n"
+        digest = self.archive(files)
+        result = qa.audit(self.path, digest, self.cmd)
+        self.assertEqual(result["original_binary_snapshots_independently_rehashed"], 8)
+        self.assertEqual(result["release_gate_credit"], 0)
+
     def test_wrong_external_original_artifact_or_cmd_sha_refused(self):
         digest = self.archive()
         with self.assertRaises(ValueError):

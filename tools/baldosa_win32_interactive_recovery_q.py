@@ -91,7 +91,7 @@ def inject_console_key(pid: int, letter: str = "Q") -> None:
         for i, down in enumerate((True, False)):
             records[i].EventType = KEY_EVENT
             records[i].Event.KeyEvent = ConsoleKey(
-                int(down), 1, vk, scan, letter, 0
+                int(down), 1, vk, scan, letter, 0)
         written = wintypes.DWORD(0)
         if not kernel.WriteConsoleInputW(
                 handle, records, 2, ctypes.byref(written)) or written.value != 2:

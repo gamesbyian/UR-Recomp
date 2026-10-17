@@ -26,7 +26,7 @@ $rom = Join-Path $env:GITHUB_WORKSPACE 'reference\roms\retail\Uniracers_USA.sfc'
 $fixture = Join-Path $env:GITHUB_WORKSPACE 'baldosa\build-ur-win\ur-baldosa-modern-profile-fixture.exe'
 $seed = Join-Path $env:RUNNER_TEMP 'UR Baldosa Win32 Pause Route\baseline\Modern Player Data With Spaces\saves\save.srm'
 $source = Join-Path $env:GITHUB_WORKSPACE 'tools\baldosa_win32_real_ntfs_diskfull_game.py'
-$user = Join-Path $drive 'Exact Original Guest On Disposable NTFS'
+$user = $drive + 'Exact Original Guest On Disposable NTFS'
 $out = [IO.Path]::GetFullPath($Output)
 if ($out.StartsWith($drive, [StringComparison]::OrdinalIgnoreCase) -or
     $out.StartsWith($root, [StringComparison]::OrdinalIgnoreCase)) {
@@ -52,8 +52,8 @@ function Invoke-OriginalPhase([string]$phase) {
     throw ('FAIL_CLOSED: actual original Windows product ' + $phase + ' failed')
   }
 }
-$filler = Join-Path $drive 'ur-product-ntfs-only-fill.bin'
-$secondFile = Join-Path $drive 'other-process-8192.bin'
+$filler = $drive + 'ur-product-ntfs-only-fill.bin'
+$secondFile = $drive + 'other-process-8192.bin'
 $attached = $false
 $filled = $false
 $accepted = [long]0

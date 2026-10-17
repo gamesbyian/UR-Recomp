@@ -27,8 +27,10 @@ def require_switch(log: str, current: str, next_id: str) -> None:
         f"from={current} to={next_id} activation=next_process",
         f"UR_BALDOSA_NATIVE_P1_SWITCH status=0 from={current} "
         f"to={next_id} activation=next_process",
-        "UR_BALDOSA_MODERN_ROOT existing_p1_saved=1 activation=next_process",
+        "UR_BALDOSA_MODERN_ROOT existing_p1_queued=1 activation=next_process",
         "UR_BALDOSA_MODERN_ROOT existing_p1_stale_race_blocked=1",
+        f"UR_BALDOSA_NATIVE_PROFILE NEXT_BOOT_COMMITTED from={current} "
+        f"to={next_id} original_raw_typed_saved=1",
     )
     offsets = []
     for step in steps:
@@ -43,6 +45,7 @@ def require_switch(log: str, current: str, next_id: str) -> None:
         "UR_BALDOSA_NATIVE_RUN CAPTURED=1",
         "UR_BALDOSA_NATIVE_MATCH CAPTURED=1",
         "UR_BALDOSA_NATIVE_RESULT observed=1",
+        "UR-BALDOSA-SAVE-FAILED:",
     ):
         if rejected in log:
             raise ValueError("UI selector hot-swapped guest or minted event: " + rejected)

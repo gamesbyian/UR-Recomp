@@ -97,6 +97,8 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
                 self.assertIn("INTERRUPTED FIRST-CREATE RECOVERY", readme)
                 self.assertIn("explicitly choose the SAME preset", readme)
                 self.assertIn("General recovery of a corrupt", readme)
+                self.assertIn("save exits with code 8", readme)
+                self.assertIn("exits 7 without a second prompt", readme)
                 self.assertNotIn("explicit recovery is not yet implemented", readme)
                 self.assertNotIn("Practice, Records and Options are not yet", readme)
                 self.assertIn(candidate.USA_SHA256, readme)
@@ -143,6 +145,12 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
         self.assertIn("if errorlevel 3", script)
         self.assertIn("if errorlevel 2", script)
         self.assertIn('if "%ERRORLEVEL%"=="7"', script)
+        self.assertIn('if "%ERRORLEVEL%"=="8" goto UR-BALDOSA-SAVE-FAILURE', script)
+        self.assertIn(':UR-BALDOSA-SAVE-FAILURE', script)
+        self.assertIn("UR-BALDOSA-SAVE-FAILED: This game session", script)
+        self.assertIn("exit /b 8", script)
+        self.assertLess(script.index('if "%ERRORLEVEL%"=="8"'),
+                        script.index("exit /b %ERRORLEVEL%"))
         self.assertIn("UR-BALDOSA-STARTUP-PROFILE-REJECTED", script)
         self.assertIn("Preserve both the raw save and Modern profile files", script)
         self.assertIn("exit /b 7", script)
@@ -154,7 +162,37 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
         self.assertIn('goto UR-BALDOSA-REBOOT-FIRST-RACER', script)
         self.assertIn('goto UR-BALDOSA-NATIVE-START', script)
         self.assertIn('if not "%~1"=="" set "UR_BALDOSA_FIRST_RACER_RELAUNCH=0"', script)
-        self.assertEqual(script.count('goto UR-BALDOSA-NATIVE-START'), 1)
+        # One original first-racer restart and one consented recovery restart,
+        # both through the same game process entrypoint. No unbounded loop.
+        self.assertEqual(script.count('goto UR-BALDOSA-NATIVE-START'), 2)
+        self.assertIn(':UR-BALDOSA-RECOVERY-MENU', script)
+        self.assertIn('choice.exe /c RTSQ /n', script)
+        self.assertIn("May include newer progress", script)
+        self.assertIn("May lose recent progress", script)
+        self.assertIn("Safest if uncertain", script)
+        self.assertIn('UR_BALDOSA_RECOVERY_ACTION=raw', script)
+        self.assertIn('UR_BALDOSA_RECOVERY_ACTION=typed', script)
+        self.assertIn('UR_BALDOSA_RECOVERY_ACTION=healthy', script)
+        # A successful repair launches exactly one fresh original process.
+        # Another refusal must not re-open an unbounded recovery menu.
+        self.assertIn('set "UR_BALDOSA_RECOVERY_ATTEMPTED=0"', script)
+        self.assertIn('set "UR_BALDOSA_RECOVERY_ATTEMPTED=1"', script)
+        self.assertIn('if "%UR_BALDOSA_RECOVERY_ATTEMPTED%"=="1"', script)
+        self.assertIn("UR-BALDOSA-RECOVERY-RETRY-FAILED", script)
+        self.assertLess(script.index('if "%UR_BALDOSA_RECOVERY_ATTEMPTED%"=="1"'),
+                        script.index("choice.exe /c RTSQ"))
+        self.assertLess(script.index('set "UR_BALDOSA_RECOVERY_ATTEMPTED=1"'),
+                        script.rindex("goto UR-BALDOSA-NATIVE-START"))
+        self.assertIn('type "%UR_RECOMP_USER_DATA_ROOT%\\profiles-v1.txt"', script)
+        self.assertIn('Only the named target is validated', script)
+        self.assertIn('if not "%~1"=="" (call :UR-BALDOSA-HOLD & exit /b 7)', script)
+        self.assertIn('if defined UR_BALDOSA_NO_HOLD exit /b 7', script)
+        self.assertIn('if not "%ERRORLEVEL%"=="89"', script)
+        self.assertLess(script.index('set "UR_BALDOSA_RECOVERY_ACTION="'),
+                        script.index(':UR-BALDOSA-NATIVE-START'))
+        self.assertLess(script.index(':UR-BALDOSA-RECOVERY-MENU'),
+                        script.index('choice.exe /c RTSQ'))
+        self.assertIn('CRASHED NAMED RACER RECOVERY', candidate.readme("test").decode("utf-8"))
         self.assertLess(script.index(':UR-BALDOSA-NATIVE-START'),
                         script.index(':UR-BALDOSA-REBOOT-FIRST-RACER'))
         self.assertNotIn("powershell.exe -ExecutionPolicy Bypass", script)

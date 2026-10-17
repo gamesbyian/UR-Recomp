@@ -18,9 +18,11 @@ def valid_switch(current: str = "mike", next_id: str = "andrew") -> str:
         f"from={current} to={next_id} activation=next_process\n"
         f"UR_BALDOSA_NATIVE_P1_SWITCH status=0 from={current} "
         f"to={next_id} activation=next_process\n"
-        "UR_BALDOSA_MODERN_ROOT existing_p1_saved=1 "
+        "UR_BALDOSA_MODERN_ROOT existing_p1_queued=1 "
         "activation=next_process\n"
         "UR_BALDOSA_MODERN_ROOT existing_p1_stale_race_blocked=1\n"
+        f"UR_BALDOSA_NATIVE_PROFILE NEXT_BOOT_COMMITTED from={current} "
+        f"to={next_id} original_raw_typed_saved=1\n"
     )
 
 
@@ -33,14 +35,16 @@ class ExistingP1ControllerSwitchTest(unittest.TestCase):
             valid_switch().replace("from=mike to=andrew", "from=mike to=mike"),
             valid_switch().replace("existing_p1_opened=1",
                                    "existing_p1_opened=0"),
-            valid_switch().replace("existing_p1_saved=1",
-                                   "existing_p1_saved=0"),
+            valid_switch().replace("existing_p1_queued=1",
+                                   "existing_p1_queued=0"),
             valid_switch().replace("profile=mike", "profile=andrew"),
             valid_switch() + valid_switch(),
             valid_switch() + "UR_BALDOSA_NATIVE_RUN CAPTURED=1\n",
             valid_switch() + "UR_BALDOSA_NATIVE_MATCH CAPTURED=1\n",
             valid_switch() + "UR_BALDOSA_MODERN_ROOT stock_entered players=1\n",
-            valid_switch() + "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=andrew\n",
+            valid_switch() + "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=andrew\n",            valid_switch().replace("NEXT_BOOT_COMMITTED", "NEXT_BOOT_COMMIT_FAILED"),
+            valid_switch() + "UR-BALDOSA-SAVE-FAILED: no save\n",
+
         ):
             with self.subTest(reason=invalid[-80:]), self.assertRaises(ValueError):
                 require_switch(invalid, "mike", "andrew")
@@ -55,7 +59,7 @@ class ExistingP1ControllerSwitchTest(unittest.TestCase):
             "g_named_profile_stale = true;",
             "g_existing_switch_saved = true;",
             "existing_p1_opened=1",
-            "existing_p1_saved=1",
+            "existing_p1_queued=1",
             'std::strcmp(opt, "6") == 0',
             "view.existing_profile_switch_saved = g_existing_switch_saved;",
         ):

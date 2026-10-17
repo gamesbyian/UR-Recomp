@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""RF035 bounded IPL bus-order counterfactual: dispatch the *live* CMP before CC.
+"""RF035 bounded IPL bus-order counterfactual: finish the *in-flight* CMP before CC.
 
 Only for a disposable RF015..028 exact composite research guest, AFTER RF026.
 This is a scoped causal A/B experiment, not a shipping correction or a
@@ -15,18 +15,18 @@ MARK = "UR_QA01_RF035_IPL_COMPARE_BEFORE_CC"
 APU = Path("snesrecomp/runner/src/snes/apu.c")
 OLD = rf026.CORRECTED_APU
 PRE = """  /* UR_QA01_RF035_IPL_COMPARE_BEFORE_CC: only the source-witnessed IPL
-   * $2140=CC write hitting the last bus cycle of CMP #CC,$F4 at FFCF.
+   * $2140=CC write pending while CMP #CC,$F4 at FFCF is in flight.
    * Source-original finishes this live compare before publishing CC.
-   * Keep the exact queue target and execute one unchanged SPC cycle. */
+   * Keep the exact queue target and finish the current SPC opcode. */
   const bool rf035_boundary =
       getenv("UR_QA01_RF035_IPL_COMPARE_BEFORE_CC") != NULL &&
       apu->romReadable && apu->spc->pc == 0xffcf &&
-      apu->cpuCyclesLeft == 0 && apu->pad[0] == 1 &&
+      apu->cpuCyclesLeft == 0 && apu->pad[0] != 0 &&
       apu->inPorts[0] != 0xcc &&
       apu->portQHead != apu->portQTail &&
       apu->portQueue[apu->portQHead & (APU_PORT_QUEUE_LEN - 1)].port == 0 &&
       apu->portQueue[apu->portQHead & (APU_PORT_QUEUE_LEN - 1)].val == 0xcc &&
-      apu->portQueue[apu->portQHead & (APU_PORT_QUEUE_LEN - 1)].target_cycle == apu->portClock;
+      apu->portQueue[apu->portQHead & (APU_PORT_QUEUE_LEN - 1)].target_cycle <= apu->portClock;
   if (rf035_boundary) {
     fprintf(stderr, "QA01RF035 pre age=%llu pc=%04X pad=%u left=%u head=%u tail=%u in=%02X target=%llu\\n",
             (unsigned long long)apu->portClock, (unsigned)apu->spc->pc,
@@ -38,9 +38,9 @@ PRE = """  /* UR_QA01_RF035_IPL_COMPARE_BEFORE_CC: only the source-witnessed IPL
   }
   if (!rf035_boundary) apu_drainPortQueue(apu);
 """
-POST = """  if (rf035_boundary) {
-    /* spc_runOpcode above has now read OLD $F4; publish at the same
-     * portClock, strictly after the live comparator, before clock++.
+POST = """  if (rf035_boundary && apu->pad[0] == 0) {
+    /* spc_runOpcode above has now read OLD $F4; publish on the
+     * comparator-completion tick, strictly after the live comparator, before clock++.
      * All non-matching queue traffic follows the exact old path. */
     apu_drainPortQueue(apu);
     fprintf(stderr, "QA01RF035 post age=%llu pc=%04X pad=%u left=%u in=%02X\\n",

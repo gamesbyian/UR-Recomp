@@ -15,15 +15,15 @@ class Rf035(unittest.TestCase):
         before = m.rf026.CORRECTED_APU
         after = m.patch(before)
         self.assertEqual(m.patch(after), after)
-        self.assertIn("apu->pad[0] == 1", after)
+        self.assertIn("apu->pad[0] != 0", after)
         self.assertIn("apu->spc->pc == 0xffcf", after)
-        self.assertIn("target_cycle == apu->portClock", after)
+        self.assertIn("target_cycle <= apu->portClock", after)
         self.assertIn("apu->inPorts[0] != 0xcc", after)
         self.assertIn('getenv("UR_QA01_RF035_IPL_COMPARE_BEFORE_CC")', after)
         self.assertEqual(after.count("spc_runOpcode(apu->spc)"), 1)
         self.assertEqual(after.count("apu->portClock++"), 0) # outside target block
         self.assertIn("if (!rf035_boundary) apu_drainPortQueue(apu);", after)
-        self.assertIn("if (rf035_boundary) {\n    /* spc_runOpcode above", after)
+        self.assertIn("if (rf035_boundary && apu->pad[0] == 0) {\n    /* spc_runOpcode above", after)
         self.assertLess(after.index("spc_runOpcode(apu->spc)"),
                         after.index("/* spc_runOpcode above"))
         with self.assertRaisesRegex(ValueError,"exact RF026"):
@@ -93,7 +93,15 @@ static unsigned exercise(unsigned pc, unsigned pad, unsigned val,
   if (opt_in) setenv("UR_QA01_RF035_IPL_COMPARE_BEFORE_CC","1",1);
   else unsetenv("UR_QA01_RF035_IPL_COMPARE_BEFORE_CC");
   apu_cycle(&apu);
-  if (apu.portQHead != 1 || apu.portClock != 101 || apu.inPorts[0] != val)
+  if (pc == 0xffcf && pad == 2 && val == 0xcc && opt_in) {
+    if (apu.portQHead != 0 || apu.portClock != 101 ||
+        apu.inPorts[0] != 0 || apu.pad[0] != 1) abort();
+    apu_cycle(&apu);
+  }
+  if (apu.portQHead != 1 ||
+      apu.portClock != (pc == 0xffcf && pad == 2 &&
+                        val == 0xcc && opt_in ? 102 : 101) ||
+      apu.inPorts[0] != val)
     abort();
   *delivered = apu.inPorts[0];
   return spc.last_read;
@@ -102,14 +110,16 @@ int main(void) {
   unsigned d = 0;
   // Source-witnessed CC collision: comparator reads OLD, then CC published.
   if (exercise(0xffcf,1,0xcc,1,&d) != 0 || d != 0xcc) return 1;
+  // Source-witnessed writer precedes comparator completion by one tick.
+  if (exercise(0xffcf,2,0xcc,1,&d) != 0 || d != 0xcc) return 6;
   // No opt-in: immutable native baseline sees CC before comparator.
   if (exercise(0xffcf,1,0xcc,0,&d) != 0xcc || d != 0xcc) return 2;
   // Unrelated live CPU write: original queue-before-opcode retained.
   if (exercise(0xffcf,1,0xaa,1,&d) != 0xaa || d != 0xaa) return 3;
   // Non-IPL opcode: queue-before-opcode retained.
   if (exercise(0xffd0,1,0xcc,1,&d) != 0xcc || d != 0xcc) return 4;
-  // Not last SPC bus cycle: queue drains unchanged, opcode not executed yet.
-  if (exercise(0xffcf,2,0xcc,1,&d) != 0 || d != 0xcc) return 5;
+  // Different in-flight opcode: queue still drains on its target.
+  if (exercise(0xffd0,2,0xcc,1,&d) != 0 || d != 0xcc) return 5;
   return 0;
 }
 """.replace("__RF035_LIVE_BLOCK__", m.NEW)

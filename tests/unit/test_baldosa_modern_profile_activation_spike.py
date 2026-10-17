@@ -96,6 +96,15 @@ class BaldosaModernProfileActivationStage(unittest.TestCase):
             self.assertEqual(
                 staged_host.count("UR_BALDOSA_QA_CRASH_AFTER_NATIVE_SRAM_WRITE"), 1)
             self.assertIn("_Exit(86);", staged_host)
+            # Native save refusal must be visible to a player/launcher;
+            # startup code 7 is reserved for before-first-frame recovery.
+            self.assertEqual(staged_host.count("exit(8);"), 2)
+            self.assertIn("UR-BALDOSA-SAVE-FAILED", staged_host)
+            self.assertIn("Native save was refused before writing.", staged_host)
+            self.assertIn("Native save could not complete.", staged_host)
+            self.assertLess(
+                staged_host.index("UR_BALDOSA_NATIVE_PROFILE CHECKPOINT rejected"),
+                staged_host.index("exit(8);"))
             self.assertIn('strcmp(qa_profile, "1") == 0', staged_host)
             self.assertIn('strcmp(qa_mode, "modern") == 0', staged_host)
             self.assertIn('strcmp(qa_crash, "1") == 0', staged_host)

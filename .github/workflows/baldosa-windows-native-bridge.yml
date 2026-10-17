@@ -562,7 +562,7 @@ jobs:
       # Uses the already compiled Windows binary and authenticated short 2P
       # route, never a second build, renderer or original guest. Archives
       # source-size P7 and negative results; cannot approve release/4K/HD.
-      - name: Compare four real Win32 first-line-only Original PPU frames
+      - name: Compare four real Win32 first-line-only Original PPU frames with independent same-core control
         if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 1745 }}
         shell: bash
         run: |
@@ -585,7 +585,9 @@ jobs:
           path: |
             ${{ runner.temp }}/QA08-Firstline-Only-Win32-P7/qa08-windows-source-result.json
             ${{ runner.temp }}/QA08-Firstline-Only-Win32-P7/source/*.pam
+            ${{ runner.temp }}/QA08-Firstline-Only-Win32-P7/guest-crcs-*.txt
             ${{ runner.temp }}/QA08-Firstline-Only-Win32-P7/baseline/log.txt
+            ${{ runner.temp }}/QA08-Firstline-Only-Win32-P7/independent-control/baseline/log.txt
 
       - name: Retain bounded parallel pilot timings without changing QA-12 artifacts
         if: ${{ always() && (github.event_name == 'pull_request' || inputs.parallel_journeys == true) }}

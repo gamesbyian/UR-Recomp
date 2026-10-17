@@ -65,6 +65,34 @@ def check_full_route_identity(route_sha: str, guest_crc_sha: str) -> None:
         raise ValueError("real 2473-frame short 2P guest CRC transcript has drifted")
 
 
+def check_current_core_control(route_sha: str, actual: list[str], control: list[str]) -> dict:
+    """Validate a second genuine process on *identical* integrated RF-017 code.
+
+    The legacy before-RF017 2473-frame SHA is retained as a historical negative,
+    not silently re-labelled as a new core source identity. Without an
+    independent same-PE/same-input process this graphics source witness fails.
+    """
+    if route_sha != SHORT_2P_SCRIPT_CRLF_SHA256:
+        raise ValueError("independent control was not the exact short 2P route")
+    if len(actual) != 2473 or len(control) != 2473:
+        raise ValueError("independent same-core Windows control missing guest frames")
+    if any(not re.fullmatch(r"0x[0-9a-fA-F]{8}", c)
+           for c in actual + control):
+        raise ValueError("malformed real guest CRC in independent Windows control")
+    divergence = next((i + 1 for i, (a, b) in enumerate(zip(actual, control))
+                       if a.lower() != b.lower()), None)
+    if divergence is not None:
+        raise ValueError(f"independent same-core native guest WRAM diverged frame={divergence}")
+    digest = sha256(("\n".join(x.lower() for x in control) + "\n").encode("ascii"))
+    return {
+        "independent_same_core_guest_frames": 2473,
+        "independent_same_core_guest_CRC_sha256": digest,
+        "independent_guest_transcript_exact": True,
+        "legacy_pre_RF017_transcript_matches": digest == SHORT_2P_GUEST_CRC_SHA256,
+        "no_pre_RF017_guest_equivalence_claimed": True,
+    }
+
+
 def inspect(source: Path, log: str, crcs: list[str]) -> dict:
     if len(crcs) != 2473 or any(not re.fullmatch(r"0x[0-9a-fA-F]{8}", s) for s in crcs):
         raise ValueError("incomplete or malformed original USA native 2P guest CRCs")
@@ -163,15 +191,48 @@ def main() -> None:
         receipt["actual_native_guest_CRC_sha256"] == SHORT_2P_GUEST_CRC_SHA256)
     (args.out / "qa08-windows-source-result.json").write_text(
         json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    # Retain the complete receipt before any genuine negative mismatch fails.
-    check_full_route_identity(route_sha, receipt["actual_native_guest_CRC_sha256"])
+    # The archived full guest SHA belongs to the before-RF017 generated-core
+    # epoch. Preserve its observed mismatch, never silently rewrite that
+    # evidence and never use 4 matching pictures as guest parity.
+    receipt["historical_pre_RF017_guest_transcript_sha256"] = SHORT_2P_GUEST_CRC_SHA256
+    receipt["integrated_RF017_guest_differs_from_historical_archive"] = (
+        receipt["actual_native_guest_CRC_sha256"] != SHORT_2P_GUEST_CRC_SHA256)
+    (args.out / "qa08-windows-source-result.json").write_text(
+        json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    # Observer OFF in a second clean native Windows process, independent save
+    # and framedumps, but identical executable, ROM, input route and RF-017
+    # guest. Full per-frame transcript must match; do NOT patch expected hash.
+    previous_capture = os.environ.pop("UR_QA08_WINDOWS_ORIGINAL_SOURCE_DIR", None)
+    try:
+        control_crcs, control_log = run_route(
+            args.exe.resolve(), args.rom.resolve(), args.script.resolve(),
+            args.out / "independent-control", pause=False,
+            video=args.video, timeout=args.timeout)
+    finally:
+        if previous_capture is not None:
+            os.environ["UR_QA08_WINDOWS_ORIGINAL_SOURCE_DIR"] = previous_capture
+    # Keep both *real* 2473-record transcripts for CPU-lane frame bisect.
+    for name, values in (("observed", crcs), ("independent-control", control_crcs)):
+        (args.out / f"guest-crcs-{name}.txt").write_text(
+            "\n".join(x.lower() for x in values) + "\n", encoding="ascii")
+    try:
+        control = check_current_core_control(route_sha, crcs, control_crcs)
+        receipt.update(control)
+        receipt["independent_second_real_windows_process"] = True
+        receipt["independent_observer_disabled"] = True
+    finally:
+        (args.out / "qa08-windows-source-result.json").write_text(
+            json.dumps(receipt, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
     if not receipt["all_four_countdown_and_moving_2P_original_source_exact"]:
         raise SystemExit(
             "QA08_WINDOWS_2P_PPU_NOT_ACCEPTED missing or divergent genuine "
             "countdown/three moving 256x224 original-source frames; inspect "
             "source-result.json without guessing alignment or ignoring pixels")
     print("QA08_WINDOWS_2P_PPU full_original_256x224_4frames_exact=1 "
-          "native_guest_frames=2473 release_approved=0")
+          "same_RF017_PE_independent_process_guest_2473_exact=1 "
+          "legacy_pre_RF017_guest_not_rebased=1 release_approved=0")
 
 
 if __name__ == "__main__":

@@ -169,6 +169,26 @@ class SourcePixelTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             check.inspect(self.folder, self.log(), self.crcs)
 
+    def test_current_core_guard_uses_second_real_process_without_waiving_legacy(self):
+        same = ["0x00000001"] * 2473
+        got = check.check_current_core_control(
+            check.SHORT_2P_SCRIPT_CRLF_SHA256, same, same[:])
+        self.assertTrue(got["independent_guest_transcript_exact"])
+        self.assertEqual(got["independent_same_core_guest_frames"], 2473)
+        self.assertFalse(got["legacy_pre_RF017_transcript_matches"])
+        self.assertTrue(got["no_pre_RF017_guest_equivalence_claimed"])
+        for bad in (same[:-1], ["broken"] * 2473):
+            with self.assertRaises(ValueError):
+                check.check_current_core_control(
+                    check.SHORT_2P_SCRIPT_CRLF_SHA256, same, bad)
+        different = same[:]
+        different[1134] = "0x00000002"
+        with self.assertRaisesRegex(ValueError, "frame=1135"):
+            check.check_current_core_control(
+                check.SHORT_2P_SCRIPT_CRLF_SHA256, same, different)
+        with self.assertRaises(ValueError):
+            check.check_current_core_control("0" * 64, same, same)
+
     def test_unchanged_legacy_stock_is_diagnostic_not_parity(self):
         self.save()
         with patch.dict(check.STOCK, {2208: self.digest}):

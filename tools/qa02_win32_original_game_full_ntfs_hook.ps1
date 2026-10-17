@@ -38,6 +38,8 @@ if (-not $VolumeRoot.EndsWith(':\') -or
 $dataRoot = Join-Path $VolumeRoot 'Original Win32 QA Game Profile With Spaces'
 New-Item -ItemType Directory -Path $ReceiptRoot -Force | Out-Null
 $manifestFile = Join-Path $ReceiptRoot 'baseline-manifest.json'
+$activeSram = Join-Path $dataRoot 'saves\save.srm'
+$preservedSram = Join-Path $dataRoot 'saves\QA-OLD-SRAM-PRESERVED.bin'
 $reportFile = Join-Path $ReceiptRoot ($Stage + '-result.json')
 $log = Join-Path $ReceiptRoot ($Stage + '-stdout.txt')
 $stderr = Join-Path $ReceiptRoot ($Stage + '-stderr.txt')
@@ -70,6 +72,19 @@ try {
     Copy-Item -LiteralPath $rom -Destination $installedRom
   } elseif (-not (Test-Path -LiteralPath $installedRom)) {
     throw 'QA02_GAME_FAIL_CLOSED: temporary original USA ROM missing'
+  }
+  if ($Stage -eq 'restored') {
+    if (-not (Test-Path -LiteralPath $preservedSram -PathType Leaf)) {
+      throw 'QA02_GAME_FAIL_CLOSED: previous 8 KiB source SRAM backup missing'
+    }
+    $previous = @(Get-Content -LiteralPath $manifestFile -Raw | ConvertFrom-Json)
+    $stock = @($previous | Where-Object { $_.path -eq 'saves/save.srm' })
+    if ($stock.Count -ne 1 -or $stock[0].bytes -ne 8192 -or
+        (Get-FileHash -LiteralPath $preservedSram -Algorithm SHA256).Hash.ToLowerInvariant() -ne $stock[0].sha256) {
+      throw 'QA02_GAME_DATA_INTEGRITY_DEFECT: preserved original SRAM changed before cold recovery'
+    }
+    if (Test-Path -LiteralPath $activeSram) { Remove-Item -LiteralPath $activeSram -Force }
+    Move-Item -LiteralPath $preservedSram -Destination $activeSram
   }
   $env:UR_RECOMP_USER_DATA_ROOT = $dataRoot
   $env:UR_BALDOSA_NO_HOLD = '1'
@@ -112,19 +127,37 @@ try {
       throw ('QA02_GAME_FAIL_CLOSED: authentic 8192-byte initial guest save absent; exit=' + $exitCode)
     }
     $canonical | ConvertTo-Json -Depth 5 | Out-File -LiteralPath $manifestFile -Encoding utf8
+    if ($saves.Count -ne 1 -or $saves[0].path -ne 'saves/save.srm') {
+      throw 'QA02_GAME_FAIL_CLOSED: baseline did not produce exactly one default original SRAM'
+    }
+    # NTFS can overwrite already allocated sectors on a 100%-full volume.
+    # Preserve the existing 8 KiB raw by a same-volume metadata-only rename
+    # BEFORE filling, requiring the next native save to allocate a new file.
+    if (Test-Path -LiteralPath $preservedSram) {
+      throw 'QA02_GAME_FAIL_CLOSED: preserved original source path already exists'
+    }
+    Move-Item -LiteralPath $activeSram -Destination $preservedSram
+    if ((Get-FileHash -LiteralPath $preservedSram -Algorithm SHA256).Hash.ToLowerInvariant() -ne
+        $saves[0].sha256) {
+      throw 'QA02_GAME_DATA_INTEGRITY_DEFECT: same-volume rename altered original SRAM'
+    }
   } else {
     if (-not (Test-Path -LiteralPath $manifestFile)) {
       throw 'QA02_GAME_FAIL_CLOSED: original baseline canonical source receipt missing'
     }
     $old = @(Get-Content -LiteralPath $manifestFile -Raw | ConvertFrom-Json)
-    $oldJSON = ConvertTo-Json -InputObject @($old) -Depth 5 -Compress
-    $newJSON = ConvertTo-Json -InputObject @($canonical) -Depth 5 -Compress
     if ($Stage -eq 'full') {
-      if ($oldJSON -ne $newJSON) {
-        throw 'QA02_GAME_DATA_INTEGRITY_DEFECT: real full-volume process changed canonical save bytes'
+      $stock = @($old | Where-Object { $_.path -eq 'saves/save.srm' })
+      if ($stock.Count -ne 1 -or
+          (Get-FileHash -LiteralPath $preservedSram -Algorithm SHA256).Hash.ToLowerInvariant() -ne $stock[0].sha256) {
+        throw 'QA02_GAME_DATA_INTEGRITY_DEFECT: full NTFS changed preserved original source SRAM'
+      }
+      $newRaw = @($canonical | Where-Object { $_.path -eq 'saves/save.srm' })
+      if ($newRaw.Count -gt 0 -and @($newRaw | Where-Object { $_.bytes -ge 8192 }).Count -gt 0) {
+        throw 'QA02_GAME_FAILURE_PATH_NOT_PROVEN: full NTFS unexpectedly allocated new 8 KiB raw'
       }
       if ($exitCode -ne 8 -or $visible -notmatch 'UR-BALDOSA-SAVE-FAILED:') {
-        throw ('QA02_GAME_FAILURE_PATH_NOT_PROVEN: packaged launcher exit=' + $exitCode)
+        throw ('QA02_GAME_FAILURE_PATH_NOT_PROVEN: missing actual new raw allocation refusal; exit=' + $exitCode)
       }
     }
     if ($Stage -eq 'restored' -and $exitCode -ne 0) {
@@ -197,6 +230,8 @@ $report = [ordered]@{
   original_packaged_preflight_stderr_excerpt = $originalStderrExcerpt
   original_launcher_bounded_markers = @($visibleMarkers)
   original_canonical_file_count = @($manifestAfter).Count
+  tested_demand_for_fresh_sram_allocation = $true
+  original_preserved_sram_sha256 = $(if (Test-Path -LiteralPath $preservedSram) { (Get-FileHash -LiteralPath $preservedSram -Algorithm SHA256).Hash.ToLowerInvariant() } else { '' })
   timeout = $timedOut
   canonical_receipts = @($manifestAfter)
   stdout_SHA256 = $(if (Test-Path -LiteralPath $log) { (Get-FileHash -LiteralPath $log -Algorithm SHA256).Hash.ToLowerInvariant() } else { '' })

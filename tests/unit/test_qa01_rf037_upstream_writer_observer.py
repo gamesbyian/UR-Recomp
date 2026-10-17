@@ -17,12 +17,13 @@ class UpstreamWriterSourcePin(unittest.TestCase):
         self.assertEqual(out.count("SNES::cpu.port_write(port & 3, byte);"),1)
         self.assertIn("ICPU.Frame",out)
         self.assertIn("QA01RF037ORIGCPU2",out)
-        self.assertIn("6077", "6077")  # +5045 lies in the bounded 6070..6081 source window
         self.assertIn("6081u",out)
         with self.assertRaisesRegex(ValueError,"requires RF037"):
             m.original(rf034.ORIGINAL_AFTER)
-        with self.assertRaisesRegex(ValueError,"unknown exact"):
+        with self.assertRaisesRegex(ValueError,"requires RF037"):
             m.original(staged.replace(base.ORIGINAL_APU_EXTRA,"broken"))
+        with self.assertRaisesRegex(ValueError,"partial/tampered"):
+            m.original(out.replace("ICPU.Frame", "BROKEN", 1))
 
     def test_native_common_rtl_exact_filter_executes_once(self):
         before=(m.RTL_HEADER+m.RTL_PORT_BRANCH+

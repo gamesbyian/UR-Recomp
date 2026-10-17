@@ -46,7 +46,8 @@ class SoundWriteIntervalProbe(unittest.TestCase):
     def test_truncation_and_both_host_axes_observed(self):
         self.assertIn("QA01RF038ORIGOP_TRUNCATED", m.ORIG_DISPATCH)
         self.assertIn("QA01RF038NATIVEPACE_TRUNCATED", m.NATIVE_HELPER)
-        self.assertIn("sn es", "sn es")  # no source execution side effects
+        self.assertNotIn("cpu->master_cycles +=", m.NATIVE_HELPER)
+        self.assertNotIn("apu_writePortNow", m.NATIVE_HELPER)
 
     def test_prod_windows_sources_not_targeted(self):
         self.assertEqual(str(m.ORIGINAL), "cpuexec.cpp")

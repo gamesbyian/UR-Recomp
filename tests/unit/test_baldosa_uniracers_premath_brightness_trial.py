@@ -19,16 +19,19 @@ class TestSource(unittest.TestCase):
     def test_exact_pinned_legacy_replace_and_second_pass_idempotent(self):
         src=(s.START+s.AFTER_SUB+
              "".join("r += "+x+";\n" for x in s.FIXED)+
-             "".join("r -= "+x+";\n" for x in s.FIXED)+s.OUTPUT)
+             "".join("r -= "+x+";\n" for x in s.FIXED)+s.SATURATION_ANCHOR+s.OUTPUT)
         trial=s.patched(src)
         self.assertEqual(trial,s.patched(trial))
         self.assertIn(s.REPLACEMENT,trial)
         self.assertIn(s.BRIGHTEN,trial)
-        self.assertEqual(trial.count(s.MARK),2)
+        self.assertEqual(trial.count(s.MARK),3)
+        self.assertIn(s.SATURATION,trial)
+        self.assertIn("ur_qa08_cap",trial)
         for source in (src.replace(s.OUTPUT,""),
                        trial.replace(s.MARK,"BAD",1),
                        trial.replace("return (value * brightness + 7) / 15;",
                                      "return (value * brightness) / 15;"),
+                       trial.replace("31,ur_qa08_br", "30,ur_qa08_br"),
                        src+src):
             with self.subTest(s=source[:35]),self.assertRaises(ValueError):
                 s.patched(source)

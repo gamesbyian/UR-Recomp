@@ -20,7 +20,8 @@ SOURCE = {f"source-bytes/{stage}.{name}.bin"
           for stage in STAGES for name in NAMES}
 SOURCE.add("source-bytes/unrelated-C-original-typed.bin")
 LOGS = {"fixture.log", "interactive-S.log", "interactive-S.key.log",
-        "cold-S-1.log", "cold-S-2.log", "interactive-s-result.json"}
+        "cold-S-1.log", "cold-S-2.log", "interactive-S.profile.log",
+        "interactive-s-result.json"}
 MEMBERS = SOURCE | LOGS
 HEXDIGEST = re.compile(r"[0-9a-f]{64}\Z")
 LIMIT = 500_000
@@ -53,7 +54,7 @@ def check_original_zip(path: Path, external_sha: str, cmd_sha: str) -> dict:
             "original source artifact absent/redirected/too large")
     require(sha(path.read_bytes()) == external_sha,
             "source original Actions artifact SHA256 mismatch")
-    require(len(MEMBERS) == 35, "internal ZIP inventory contract drift")
+    require(len(MEMBERS) == 36, "internal ZIP inventory contract drift")
     with zipfile.ZipFile(path) as z:
         info = z.infolist()
         require(len(info) == len(MEMBERS) and
@@ -147,6 +148,7 @@ def check_original_zip(path: Path, external_sha: str, cmd_sha: str) -> dict:
         fixture = z.read("fixture.log").decode("utf-8")
         source_log = z.read("interactive-S.log").decode("utf-8")
         injector = z.read("interactive-S.key.log").decode("utf-8")
+        profile_injector = z.read("interactive-S.profile.log").decode("utf-8")
         require(fixture.count("UR_BALDOSA_NATIVE_PROFILE_FIXTURE") == 3,
                 "three distinct genuine profile fixture stages missing")
         require(source_log.count("Explicit recovery choice [R/T/S/Q]:") == 1 and
@@ -161,7 +163,10 @@ def check_original_zip(path: Path, external_sha: str, cmd_sha: str) -> dict:
                 "original packaged CMD S console/guest evidence incomplete")
         require(injector.replace("\r\n", "\n").lstrip().startswith("exit=0\n") and
                 "Traceback" not in injector,
-                "genuine separate Win32 key/text injection not confirmed")
+                "genuine separate Win32 key input not confirmed")
+        require(profile_injector.replace("\r\n", "\n").lstrip().startswith("exit=0\n")
+                and "Traceback" not in profile_injector,
+                "literal Win32 registered-profile text injector refused")
         for i in (1, 2):
             log = z.read(f"cold-S-{i}.log").decode("utf-8")
             require(log.count("first frame simulated") == 1 and

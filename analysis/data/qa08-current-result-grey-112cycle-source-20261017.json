@@ -79,5 +79,18 @@
     "earlier_native_guest_crc_sha256": "c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876",
     "current_RF017_CPU_writer_epoch_independently_verified": false,
     "CPU_or_CGRAM_causality_established_for_current_P7": false
+  },
+  "current_RF017_V0_windows_long_retention": {
+    "archive_run": 39011724200,
+    "artifact_id": 12093440854,
+    "artifact_expires_at_UTC": "2027-01-15T06:55:48Z",
+    "enclosing_archive_zip_sha256": "4cb67a3ea8e5952c1757b4db8dadcbc3005a79f2609a7068a074171b2f8b28ea",
+    "contains_exactly_one_member": "native-source.zip",
+    "nested_size_bytes": 2043706,
+    "nested_authentic_Windows_source_zip_sha256": "91e0bf8f5d7b86b188526740d825af890a99b02ecc05093f9a2143fa56ce49cd",
+    "source_P7_frames_verified": 263,
+    "guest_frames_verified": 5484,
+    "ROM_and_save_members_absent": true,
+    "workflow_PR_closed_unmerged": 1766
   }
 }

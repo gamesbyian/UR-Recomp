@@ -1,0 +1,98 @@
+name: QA02 real game on isolated full NTFS source-pinned Windows package
+
+# Independent hosted Windows product fault observation, not a player acceptance.
+# Uses a previously built source-identity-pinned original AMD64 PE/ROM-free ZIP,
+# never recompiles or edits the game; uses a transient VHDX, no ROM upload.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".github/workflows/qa02-win32-original-game-real-full-volume.yml"
+      - "tools/qa02_win32_real_diskfull_preflight.ps1"
+      - "tools/qa02_win32_original_game_full_ntfs_hook.ps1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: qa02-game-genuine-full-ntfs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hosted-real-original-package-full-ntfs:
+    runs-on: windows-2022
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check out only independent QA tooling, authentic recorded original route/ROM
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Retrieve original already-built Windows candidate by immutable Actions artifact ID
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = Join-Path $env:RUNNER_TEMP 'qa02-exact-product-package'
+          New-Item -ItemType Directory -Path $root | Out-Null
+          $outer = Join-Path $root 'original-source-actions-artifact-12116096497.zip'
+          $headers = @{
+            Authorization = 'Bearer ' + $env:GH_TOKEN
+            Accept = 'application/vnd.github+json'
+            'X-GitHub-Api-Version' = '2022-11-28'
+          }
+          Invoke-WebRequest -Uri 'https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12116096497/zip' -Headers $headers -OutFile $outer -MaximumRedirection 5
+          if ((Get-FileHash $outer -Algorithm SHA256).Hash.ToLowerInvariant() -ne '239893a7d52677e6668ea0632e1fd32c708be8bfce5b577c70ecef260a2fb4d5') {
+            throw 'QA02_SOURCE_PIN_REJECTED: original Actions wrapper hash changed'
+          }
+          $wrapper = Join-Path $root 'source-wrapper'
+          Expand-Archive -LiteralPath $outer -DestinationPath $wrapper
+          $inner = Join-Path $wrapper 'UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip'
+          if ((Get-FileHash $inner -Algorithm SHA256).Hash.ToLowerInvariant() -ne '0b8710c7090fa7005ba49c41472f32673ddfa55811f6117eb7effd87f88201e0') {
+            throw 'QA02_SOURCE_PIN_REJECTED: original ROM-free portable ZIP hash changed'
+          }
+          $unpack = Join-Path $root 'extracted'
+          Expand-Archive -LiteralPath $inner -DestinationPath $unpack
+          $package = Join-Path $unpack 'UR-Recomp-Baldosa-Windows-x64'
+          $manifest = Get-Content -LiteralPath (Join-Path $package 'BALDOSA-CANDIDATE-MANIFEST.json') -Raw | ConvertFrom-Json
+          if ($manifest.project_revision -ne '2073471dd6bcf2d5dbc22042e587ddee1852af8c' -or
+              $manifest.rom_bundled -ne $false -or $manifest.profile_data_bundled -ne $false) {
+            throw 'QA02_SOURCE_PIN_REJECTED: wrong original source or ROM/user state bundled'
+          }
+          $env:UR_QA02_PACKAGED_GAME_DIR = $package
+          $env:UR_QA02_GAME_ROUTE = Join-Path $env:GITHUB_WORKSPACE 'reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p_split.txt'
+          $env:UR_QA02_PERSONAL_ROM_SOURCE = Join-Path $env:GITHUB_WORKSPACE 'reference/roms/retail/Uniracers_USA.sfc'
+          foreach ($setting in @('UR_QA02_PACKAGED_GAME_DIR','UR_QA02_GAME_ROUTE','UR_QA02_PERSONAL_ROM_SOURCE')) {
+            Add-Content -Path $env:GITHUB_ENV -Value ($setting + '=' + (Get-Item -LiteralPath (Get-Item env:$setting).Value).FullName)
+          }
+          Write-Output 'QA02 pinned source product archive admitted, original PE not rebuilt'
+
+      - name: Run real original Windows product on genuine full NTFS VHDX
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          ./tools/qa02_win32_real_diskfull_preflight.ps1 -MaximumMegabytes 128 -DriveLetter W -ProductHook (Join-Path $env:GITHUB_WORKSPACE 'tools/qa02_win32_original_game_full_ntfs_hook.ps1') -Output "$env:RUNNER_TEMP/qa02-real-ntfs-result/result.json"
+          $os = Get-Content "$env:RUNNER_TEMP/qa02-real-ntfs-result/result.json" -Raw | ConvertFrom-Json
+          if ($os.genuine_second_process_ERROR_DISK_FULL -ne 112 -or -not $os.native_game_tested -or $os.release_gate_credit -ne 0) {
+            throw 'QA02 original executable or OS-full witness not qualified'
+          }
+          foreach ($stage in @('baseline','full','restored')) {
+            $receipt = Get-Content "$env:RUNNER_TEMP/qa02-game-on-real-full-volume/$stage-result.json" -Raw | ConvertFrom-Json
+            if ($receipt.stage -ne $stage -or $receipt.result -ne 'bounded_pass' -or $receipt.release_gate_credit -ne 0) {
+              throw ('QA02 original game stage failed strict receipt: ' + $stage)
+            }
+          }
+          '### Source-pinned real original Windows product on genuine full NTFS' | Out-File -FilePath "$env:GITHUB_STEP_SUMMARY" -Append
+          'Three original game stages executed. Genuine OS error 112 on separate process. No hardware, power cut, complete USA event or physical QA credit.' | Out-File -FilePath "$env:GITHUB_STEP_SUMMARY" -Append
+      - name: Retain independent bounded SHA and original CMD-exit receipts ONLY
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa02-original-game-on-genuine-full-ntfs-receipts
+          path: |
+            ${{ runner.temp }}/qa02-real-ntfs-result/result.json
+            ${{ runner.temp }}/qa02-game-on-real-full-volume/*-result.json
+          retention-days: 14
+          if-no-files-found: warn

@@ -31,6 +31,9 @@ on:
       - "tests/unit/test_baldosa_uniracers_hdma_firstline_patch.py"
       - "tools/baldosa_uniracers_v0_raster_before_hdma_patch.py"
       - "tests/unit/test_baldosa_uniracers_v0_raster_before_hdma_patch.py"
+      - "tools/qa08_current_blackout_readonly_patch.py"
+      - "tools/qa08_current_blackout_source_witness.py"
+      - "tests/unit/test_qa08_current_blackout_readonly.py"
       - "tests/unit/test_baldosa_native_practice_probe.py"
       - "tests/unit/test_baldosa_native_second_racer_probe.py"
       - "tools/baldosa_native_first_racer_real_run_probe.py"
@@ -215,6 +218,7 @@ jobs:
           python tests/unit/test_windows_rf017_source_identity.py
           python tests/unit/test_baldosa_uniracers_hdma_firstline_patch.py
           python tests/unit/test_baldosa_uniracers_v0_raster_before_hdma_patch.py
+          python tests/unit/test_qa08_current_blackout_readonly.py
           python tests/unit/test_bind_baldosa_candidate_receipt.py
           python tests/unit/test_audit_baldosa_romless_candidate.py
           python tests/unit/test_check_windows_pe_timestamp.py
@@ -266,6 +270,10 @@ jobs:
           python tools/baldosa_uniracers_hdma_firstline_patch.py --game baldosa --apply-candidate
           python tools/baldosa_uniracers_v0_raster_before_hdma_patch.py --game baldosa
           python tools/baldosa_uniracers_v0_raster_before_hdma_patch.py --game baldosa --apply-candidate
+          # Diagnostic-only: capture current original PPU $2100 live write/raster
+          # boundary. This is not included in the uninstrumented #1780 PE.
+          python tools/qa08_current_blackout_readonly_patch.py --game baldosa
+          python tools/qa08_current_blackout_readonly_patch.py --game baldosa --apply-candidate
           echo "QA-08 game-only first-line + V0 PPU patches staged; results/blackout/medal, physical display and release remain unaccepted." >> "$GITHUB_STEP_SUMMARY"
           python tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_execution_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
@@ -336,6 +344,24 @@ jobs:
           PY
           echo "PASS: pinned Baldosa AOT Windows x64 with existing UR guest/input/native-pause hooks links and produces PE32+" >> "$GITHUB_STEP_SUMMARY"
           echo "NOT TESTED: Modern frontend, runtime interaction, package, per-profile SRAM, Records, replay, ghosts, or complete event." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Capture RF017 source-bound result blackout $2100 phase
+        run: |
+          set -euo pipefail
+          python tools/qa08_current_blackout_source_witness.py \
+            --exe baldosa/build-ur-win/UniracersSNESRecomp.exe \
+            --rom reference/roms/retail/Uniracers_USA.sfc \
+            --script reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p.txt \
+            --out "$RUNNER_TEMP/qa08-rf017-blackout-port" --timeout 300
+          echo "Blackout current RF017 diagnostic read-only; no renderer/release acceptance." >> "$GITHUB_STEP_SUMMARY"
+      - name: Archive bounded original/native result blackout PPU source
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-rf017-result-blackout-inidisp-source
+          retention-days: 14
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/qa08-rf017-blackout-port/qa08-current-blackout-INIDISP.json
 
       - name: Verify Baldosa Windows PE needs only clean-machine system DLLs
         run: |

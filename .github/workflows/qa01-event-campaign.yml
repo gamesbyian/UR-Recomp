@@ -52,10 +52,6 @@ on:
         required: false
         type: boolean
         default: false
-      qa01_rf034_spc_boundary:
-        required: false
-        type: boolean
-        default: false
       qa01_cold_guest_reload:
         required: false
         type: boolean
@@ -132,11 +128,6 @@ on:
         type: boolean
         required: false
         default: false
-      qa01_rf034_spc_boundary:
-        description: "Research RF034 exact original SPC opcode debt vs native queued-port instruction phase, no emulator change"
-        type: boolean
-        required: false
-        default: false
       qa01_cold_guest_reload:
         description: "Opt-in fresh original/native guest reload of source-earned Zoom Zoo ranked record (requires zoom-zoo + source_followthrough)"
         type: boolean
@@ -179,7 +170,6 @@ jobs:
           QA01_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
           QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
           QA01_SPC_INTERRUPT_STAGE: ${{ inputs.baldosa_spc_interrupt_stage }}
-          QA01_RF034: ${{ inputs.qa01_rf034_spc_boundary }}
           QA01_RF015_019: >-
             ${{ inputs.baldosa_refresh_beam_rate && inputs.baldosa_io_clock_order &&
                 inputs.baldosa_spc_reference_rate && inputs.baldosa_dp_pointer_once &&
@@ -216,14 +206,6 @@ jobs:
           # (the frame-clock tool also requires RF-016's clock).
           if [[ "$QA01_SPC_INTERRUPT_STAGE" == "true" && "$QA01_RF015_019" != "true" ]]; then
             echo "baldosa_spc_interrupt_stage needs all five RF-015..019 inputs" >&2
-            exit 1
-          fi
-          if [[ "$QA01_RF034" == "true" &&
-                ( "$SELECTED" != "zoom-zoo" || "$QA01_SPC_INTERRUPT_STAGE" != "true" ||
-                  "$QA01_RF015_019" != "true" || "$QA01_FOLLOWTHROUGH" != "true" ||
-                  "$QA01_NEXT_BOWL" != "true" || "$ZOO_MESH" != "true" ||
-                  "$ZOO_DP_WINDOW" != "true" ) ]]; then
-            echo "RF034 requires true Zoo 78 full 128KiB WRAM, adjacent sound samples and post-result Bowl" >&2
             exit 1
           fi
           python3 -m unittest discover -s tests/unit -p test_qa01_event_campaign.py
@@ -273,17 +255,6 @@ jobs:
           python3 -m unittest discover -s tests/unit -p test_qa01_zoo_dp_window.py
           python3 -m unittest discover -s tests/unit -p test_qa01_cold_result_record.py
           python3 -m unittest discover -s tests/unit -p test_qa01_postresult_sram_diff.py
-          python3 -m unittest discover -s tests/unit -p test_qa01_ipl_echo_trace_patch.py
-          python3 -m unittest discover -s tests/unit -p test_qa01_ipl_echo_report.py
-          python3 -m unittest discover -s tests/unit -p test_qa01_rf032_native_port_target_observer.py
-          python3 -m unittest discover -s tests/unit -p test_qa01_rf032_native_port_target_report.py
-          python3 -m unittest discover -s tests/unit -p test_qa01_rf033_original_native_master_clock.py
-          python3 -m unittest discover -s tests/unit -p test_qa01_rf033_cpu_master_clock_report.py
-          python3 -m unittest discover -s tests/unit -p test_qa01_rf034_spc_opcode_boundary_observer.py
-          python3 -m unittest discover -s tests/unit -p test_qa01_rf034_spc_opcode_boundary_report.py
-          python3 -m unittest discover -s tests/unit -p test_qa01_rf035_sound_consumer_observer.py
-          python3 -m unittest discover -s tests/unit -p test_qa01_rf037_sound_transaction_window.py
-          python3 -m unittest discover -s tests/unit -p test_qa01_rf037_upstream_writer_observer.py
           python3 -m unittest discover -s tests/unit -p 'test_baldosa_spc_*_patch.py'
           python3 -m unittest discover -s tests/unit -p test_baldosa_interrupt_entry_cost_patch.py
       - name: Build original Snes9x/snesref and research native exactly once
@@ -348,25 +319,6 @@ jobs:
             python3 tools/baldosa_spc_frame_clock_patch.py --game baldosa
             python3 tools/baldosa_spc_bus_cycle_patch.py --game baldosa
             python3 tools/baldosa_interrupt_entry_cost_patch.py --game baldosa
-          fi
-          if [[ "${{ inputs.qa01_rf034_spc_boundary }}" == "true" ]]; then
-            CORE_SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
-            # Sequential research observers only, all read-only, exact pins.
-            python3 tools/qa01_ipl_echo_trace_patch.py original --original-root "$CORE_SRC"
-            python3 tools/qa01_rf033_original_native_master_clock.py original --root "$CORE_SRC"
-            python3 tools/qa01_rf034_spc_opcode_boundary_observer.py original --root "$CORE_SRC"
-            python3 tools/qa01_rf035_sound_consumer_observer.py original --root "$CORE_SRC"
-            python3 tools/qa01_rf037_sound_transaction_window.py original --root "$CORE_SRC"
-            python3 tools/qa01_rf037_upstream_writer_observer.py original --root "$CORE_SRC"
-            touch "$CORE_SRC/apu/bapu/smp/smp.cpp"
-            make -C "$CORE_SRC/libretro" -j2
-            python3 tools/qa01_ipl_echo_trace_patch.py native --game baldosa
-            python3 tools/qa01_rf032_native_port_target_observer.py --game baldosa
-            python3 tools/qa01_rf033_original_native_master_clock.py native --root baldosa
-            python3 tools/qa01_rf034_spc_opcode_boundary_observer.py native --root baldosa
-            python3 tools/qa01_rf035_sound_consumer_observer.py native --root baldosa
-            python3 tools/qa01_rf037_sound_transaction_window.py native --root baldosa
-            python3 tools/qa01_rf037_upstream_writer_observer.py native --root baldosa
           fi
           cmake -S baldosa -B baldosa/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
@@ -436,13 +388,6 @@ jobs:
           QA01_ZOO_MESH: ${{ inputs.zoo_race_mesh }}
           QA01_ZOO_DP_WINDOW: ${{ inputs.zoo_dp_window }}
           QA01_APU_PHASE: ${{ inputs.qa01_apu_phase }}
-          QA01_RF034: ${{ inputs.qa01_rf034_spc_boundary }}
-          UR_QA01_IPL_ECHO_TRACE: ${{ inputs.qa01_rf034_spc_boundary && '1' || '' }}
-          UR_QA01_RF032_TARGET_ECHO: ${{ inputs.qa01_rf034_spc_boundary && '1' || '' }}
-          UR_QA01_RF033_MASTER_APU_CLOCK: ${{ inputs.qa01_rf034_spc_boundary && '1' || '' }}
-          UR_QA01_RF034_SPC_OPCODE_BOUNDARY: ${{ inputs.qa01_rf034_spc_boundary && '1' || '' }}
-          UR_QA01_RF035_SOUND_CONSUMER: ${{ inputs.qa01_rf034_spc_boundary && '1' || '' }}
-          UR_QA01_RF037_SOUND_BUS: ${{ inputs.qa01_rf034_spc_boundary && '1' || '' }}
           QA01_SOURCE_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
           QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
           QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}
@@ -628,25 +573,6 @@ jobs:
               --out "$ROOT/qa01-cold-guest-report.json"
             echo 'Fresh original/native guest record reload checked; host disk durability NOT proven; zero event credit' >> "$GITHUB_STEP_SUMMARY"
           fi
-          if [[ "$QA01_RF034" == "true" && "$producer_rc" -eq 0 ]]; then
-            python3 tools/qa01_ipl_echo_report.py \
-              --original-log "$ROOT/work/zoom-zoo/replay/reference.log" \
-              --native-log "$ROOT/work/zoom-zoo/replay/native.log" \
-              --out "$ROOT/qa01-rf030-ipl-echo-report.json"
-            python3 tools/qa01_rf032_native_port_target_report.py \
-              --original-log "$ROOT/work/zoom-zoo/replay/reference.log" \
-              --native-log "$ROOT/work/zoom-zoo/replay/native.log" \
-              --out "$ROOT/qa01-rf032-native-target-echo-report.json"
-            python3 tools/qa01_rf033_cpu_master_clock_report.py \
-              --original-log "$ROOT/work/zoom-zoo/replay/reference.log" \
-              --native-log "$ROOT/work/zoom-zoo/replay/native.log" \
-              --out "$ROOT/qa01-rf033-master-clock-report.json"
-            python3 tools/qa01_rf034_spc_opcode_boundary_report.py \
-              --original-log "$ROOT/work/zoom-zoo/replay/reference.log" \
-              --native-log "$ROOT/work/zoom-zoo/replay/native.log" \
-              --out "$ROOT/qa01-rf034-spc-boundary-report.json"
-            echo 'RF034 exact original SMP clock debt and native opcode queue-consumer observed; zero event credit' >> "$GITHUB_STEP_SUMMARY"
-          fi
           if [[ "$QA01_APU_PHASE" == "true" ]]; then
             python3 tools/qa01_apu_phase_report.py \
               --original-log "$ROOT/work/zoom-zoo/replay/reference.log" \
@@ -669,10 +595,6 @@ jobs:
             ${{ runner.temp }}/qa01-case/qa01-cold-guest-boot/original.log
             ${{ runner.temp }}/qa01-case/qa01-cold-guest-boot/native.log
             ${{ runner.temp }}/qa01-case/qa01-apu-edge-report.json
-            ${{ runner.temp }}/qa01-case/qa01-rf030-ipl-echo-report.json
-            ${{ runner.temp }}/qa01-case/qa01-rf032-native-target-echo-report.json
-            ${{ runner.temp }}/qa01-case/qa01-rf033-master-clock-report.json
-            ${{ runner.temp }}/qa01-case/qa01-rf034-spc-boundary-report.json
             ${{ runner.temp }}/qa01-case/producer-report.json
             ${{ runner.temp }}/qa01-case/producer.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/source/source-scan.log

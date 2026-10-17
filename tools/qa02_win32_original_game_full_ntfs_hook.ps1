@@ -77,8 +77,23 @@ try {
   $env:SDL_VIDEODRIVER = 'windows'
   Remove-Item Env:UR_BALDOSA_RECOVERY_ACTION -ErrorAction SilentlyContinue
   Remove-Item Env:UR_BALDOSA_RECOVERY_PROFILE_ID -ErrorAction SilentlyContinue
+  # A PowerShell 7 Actions parent may export its module search path to
+  # Windows PowerShell 5.1. Windows powershell.exe then cannot autoload
+  # Get-FileHash, causing the unchanged packaged ROM/root preflight to exit3.
+  # Supply only the normal Windows PowerShell 5.1 module directories to the
+  # child process. Do not change the original packaged CMD or global machine.
+  $windowsModuleRoot = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\Modules'
+  if (-not (Test-Path -LiteralPath $windowsModuleRoot -PathType Container)) {
+    throw 'QA02_GAME_FAIL_CLOSED: stock Windows PowerShell module directory missing'
+  }
+  $moduleRoots = @($windowsModuleRoot)
+  $machineModules = Join-Path $env:ProgramFiles 'WindowsPowerShell\Modules'
+  if (Test-Path -LiteralPath $machineModules -PathType Container) {
+    $moduleRoots += $machineModules
+  }
+  $nativeLauncherEnv = @{ PSModulePath = ($moduleRoots -join ';') }
   $arguments = '/d /s /c ""' + $cmd + '" --script "' + $route + '""'
-  $proc = Start-Process -FilePath 'cmd.exe' -ArgumentList $arguments -WorkingDirectory $package -PassThru -NoNewWindow -RedirectStandardOutput $log -RedirectStandardError $stderr
+  $proc = Start-Process -FilePath 'cmd.exe' -ArgumentList $arguments -WorkingDirectory $package -PassThru -NoNewWindow -Environment $nativeLauncherEnv -RedirectStandardOutput $log -RedirectStandardError $stderr
   if (-not $proc.WaitForExit(150000)) {
     $timedOut = $true
     & taskkill.exe /F /T /PID $proc.Id 2>$null | Out-Null
@@ -176,6 +191,7 @@ $report = [ordered]@{
   tested_CMD_SHA256 = $cmdSHA
   route_SHA256 = (Get-FileHash -LiteralPath $route -Algorithm SHA256).Hash.ToLowerInvariant()
   Windows_process_exit = $exitCode
+  native_launcher_WindowsPowerShell_modules_normalized = $true
   original_preflight_replay_exit = $preflightReplayExit
   original_preflight_replay_diagnostic = $preflightReplayClassification
   original_packaged_preflight_stderr_excerpt = $originalStderrExcerpt

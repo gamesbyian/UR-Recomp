@@ -645,3 +645,67 @@ fixture receipt, **eight exact canonical before/after binary files**
 a separate artifact outside all fixed QA archives. The product test does not claim a physical keyboard, human
 R/T/S/Q choices R/T/S, or independent release acceptance until real
 hosted Win32 execution and independent review succeed.
+
+
+## 2026-10-17 original Windows packaged interactive recovery evidence
+
+All four **positive original CMD menu choices** now have real hosted Win32,
+source-bound, per-choice, bounded evidence, with the *same original launcher*
+(`run-baldosa-modern.cmd`, SHA256
+`b61d6b3836e21da6dd91dc4bcbf5cff19a85df6f73f07ee2bcd29a377fc678c3`).
+The operator is a test subprocess using authentic Win32 console input
+events, **not** a human pressing the physical keyboard or gamepad.
+The positive retained artifact contracts MUST NOT be broadened with new
+experiments, or they will invalidate independent QA's exact source readers.
+
+- **Q:** exact Windows run
+  [39064195415](https://github.com/gamesbyian/UR-Recomp/actions/runs/39064195415),
+  Modern source `995b4724`, source artifact #12112648233. Original
+  pre-guest exit 7; Q key; all eight original raw, typed, catalog,
+  selector before/after files bit-identical; no archive or alternate.
+  Independently checked in merged QA #1783.
+- **R/T:** exact Windows run
+  [39065673609](https://github.com/gamesbyian/UR-Recomp/actions/runs/39065673609),
+  Modern source `89510914`, source artifact #12113990003. Original
+  CMD genuine R and T keys, respective guest-raw promotion or typed
+  rollback; exact pre-repair manual archive; 34 retained and independently
+  rehashed source objects; two real subsequent cold original game boots
+  per choice with byte-identical canonical states. Independently
+  documented and verified by merged QA #1786.
+- **S:** exact Windows run
+  [39068318622](https://github.com/gamesbyian/UR-Recomp/actions/runs/39068318622),
+  Modern source `c42f1f4`, *tested* PR-merge
+  `503464180dad14bb0275e9fea03f1902c1b5c861`, source artifact
+  #12114188428, original outer artifact SHA256
+  `38e096e4a377a4f1ec564cae231fdb8d43b494434d8ede168f552775e1085aef`.
+  Actual original S and typed target ID console events both exit 0,
+  only the canonical selector advances damaged A → verified B,
+  unrelated corrupted C remains unselected, seven A/B/C canonical
+  source files stay otherwise unchanged across after-switch and two
+  fresh B cold boots. 29 original source-object receipts rehashed
+  from the 36-member artifact. Independent QA verified same source;
+  C's missing typed *on-disk absence* is asserted by the product
+  producer but not itself provable from that binary ZIP.
+  Source-exact ROM-free ZIP SHA256
+  `33eb094ef5a9c2c959f79b03823e434f8f036ff05bf00fa3cb98bd96fd6bc596`
+  and tested native x64 PE SHA256
+  `2dfef82712ab6eae160d5b2962bcf828d604c03ac0630e287771b6a36388673b`.
+
+An **additional negative S-choice experiment** was added as a SEPARATE
+product-only source producer,
+`tools/baldosa_win32_interactive_recovery_s_reject.py` and dedicated
+Windows artifact `baldosa-win32-interactive-s-invalid-target`.
+It performs literal unregistered target ID entry through the original
+console S menu with a selected damaged A, intact B and missing C typed;
+requires explicit rejection, no guest frame and all original canonical
+bytes unchanged. A fresh original CMD process must still reject A, and
+a real Q console choice must exit 7 without mutation. **This negative
+control is PENDING exact-head Windows proof** until the new source CI
+run succeeds and its original bytes are reviewed. It does not overwrite
+any positive archive or count as independent physical QA.
+
+**Release remains held:** #1214 and #1751 remain open, #1713 draft,
+independent ledger unmodified. A CI-created genuine console cannot prove
+player-operated R/T/S/Q; do not claim actual NTFS disk-full/partial writes,
+physical power loss, simultaneous human consoles, physical two-pad input,
+integrated graphics, or a clean-machine owner playtest from these tests.

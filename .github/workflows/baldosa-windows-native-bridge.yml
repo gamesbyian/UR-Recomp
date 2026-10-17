@@ -350,7 +350,7 @@ jobs:
             --exe baldosa/build-ur-win/UniracersSNESRecomp.exe \
             --rom reference/roms/retail/Uniracers_USA.sfc \
             --script reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p.txt \
-            --out "$RUNNER_TEMP/qa08-finish-operands" --timeout 300
+            --out "$RUNNER_TEMP/qa08-finish-operands" --timeout 720
           echo "QA08 read-only guest-bound operand source only; no change to release acceptance." >> "$GITHUB_STEP_SUMMARY"
       - name: Archive bounded native finish PPU operands and source controls
         if: always()
@@ -359,7 +359,9 @@ jobs:
           name: qa08-current-rf017-finish-ppu-operands
           retention-days: 14
           if-no-files-found: warn
-          path: ${{ runner.temp }}/qa08-finish-operands/qa08-finish-operands.json
+          path: |
+            ${{ runner.temp }}/qa08-finish-operands/qa08-finish-operands.json
+            ${{ runner.temp }}/qa08-finish-operands/qa08-finish-timeout-progress.json
 
       - name: Verify Baldosa Windows PE needs only clean-machine system DLLs
         run: |

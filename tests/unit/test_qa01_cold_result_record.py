@@ -164,6 +164,99 @@ class ColdGuestRecordTests(unittest.TestCase):
             v.validate_source(bad, self.replay)
 
 
+    def composite_mesh_report(self):
+        import copy
+        report = copy.deepcopy(self.report)
+        report["input_sha256"] = v.COMPOSITE_MESH_NEXT_BOWL_INPUT_SHA
+        report["reference_script_sha256"] = v.COMPOSITE_MESH_NEXT_BOWL_INPUT_SHA
+        report["original_movie_window_sha256"] = v.NEXT_BOWL_MOVIE_WINDOW_SHA
+        report["reference_entry"] = 1017
+        report["native_entry"] = 1017
+        report["zoo_next_bowl_handoff"] = {
+            "source_next_bowl_active_entry_offset": 267,
+            "fresh_reference_next_bowl_entry_offset": 267,
+            "fresh_native_next_bowl_entry_offset": 267,
+            "next_bowl_entry_triple_equal": True,
+            "all_original_native_full_sram_pairs_equal": True,
+            "release_complete_event_credit": 0,
+        }
+        offsets = v.original.sample_frames("zoom-zoo", 5163,
+                                          zoo_race_mesh=True,
+                                          zoo_dp_window=True)
+        report["zoo_race_mesh"] = {
+            "schema": "UR-QA01-ZOO-FULL-RACE-UNMASKED-WRAM-MESH/1",
+            "archived_source_active_frames_to_result": 5163,
+            "original_2014_source_controller_masks_modified": False,
+            "masked_or_excluded_wram_bytes": 0,
+            "all_128k_wram_bytes_examined_per_pair": 131072,
+            "mesh_checkpoint_count": len(offsets),
+            "last_race_relative_checkpoint": 5120,
+            "every_gameplay_frame_compared": False,
+            "release_complete_usa_event_credit": 0,
+            "samples": [{
+                "race_relative_frame": f,
+                "original_absolute_host_frame": 1017 + f,
+                "native_absolute_host_frame": 1017 + f,
+                "original_native_full_wram_byte_difference": {
+                    "every_byte_compared": True,
+                    "full_wram_bytes_per_guest": 131072,
+                    "excluded_byte_count": 0,
+                    "differing_byte_count": 0,
+                },
+            } for f in offsets],
+            "late_direct_page_window": {
+                "schema": "UR-QA01-ZOO-5040-DENSE-DP-WRAM/1",
+                "range_inclusive": [5034, 5046],
+                "all_guest_frames_in_range_captured": True,
+                "raw_wram_bytes_excluded": 0,
+                "release_complete_event_credit": 0,
+                "samples": [
+                    {"race_relative_frame": f} for f in range(5034, 5047)],
+            },
+        }
+        self.assertEqual(len(offsets), 78)
+        return report
+
+    def test_authentic_composite_replay_script_is_cold_guest_eligible(self):
+        # This is a source-contract synthetic unit test, NOT a real game run.
+        report = self.composite_mesh_report()
+        self.assertEqual(set(v.validate_source(report, self.replay)),
+                         {"original", "native"})
+        for mutate, failure in (
+                (lambda r: r["zoo_race_mesh"]["samples"].pop(), "source mesh"),
+                (lambda r: r["zoo_race_mesh"]["samples"][60].update(
+                    {"original_absolute_host_frame": 0}), "mesh frame"),
+                (lambda r: r["zoo_race_mesh"].update(
+                    {"masked_or_excluded_wram_bytes": 4}), "source mesh"),
+                (lambda r: r["zoo_race_mesh"]["samples"][1][
+                    "original_native_full_wram_byte_difference"].update(
+                    {"excluded_byte_count": 1}), "mesh frame"),
+                (lambda r: r["zoo_race_mesh"]["late_direct_page_window"][
+                    "samples"].pop(), "SPC window"),
+                (lambda r: r.update(
+                    {"original_movie_window_sha256": "0" * 64}),
+                 "source movie/window/handoff"),
+                (lambda r: r["zoo_next_bowl_handoff"].update(
+                    {"fresh_native_next_bowl_entry_offset": 265}),
+                 "source movie/window/handoff"),
+        ):
+            import copy
+            altered = copy.deepcopy(report)
+            mutate(altered)
+            with self.subTest(failure=failure), self.assertRaisesRegex(
+                    v.ColdProofError, failure):
+                v.validate_source(altered, self.replay)
+
+    def test_composite_script_cannot_be_passed_off_as_short_source_replay(self):
+        report = self.composite_mesh_report()
+        report["zoo_race_mesh"] = None
+        with self.assertRaisesRegex(v.ColdProofError, "source mesh"):
+            v.validate_source(report, self.replay)
+        report = self.composite_mesh_report()
+        report["input_sha256"] = "1" * 64
+        with self.assertRaisesRegex(v.ColdProofError, "unknown original"):
+            v.validate_source(report, self.replay)
+
     def test_native_wrapper_places_real_sram_seed_in_guest_cwd_not_elf_directory(self):
         # Actual pinned host with --config does NOT chdir to executable dir.
         # Mock the process only to inspect exactly what its RtlReadSram sees.

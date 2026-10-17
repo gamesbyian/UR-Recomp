@@ -40,7 +40,7 @@ NEW_ORIG = r"""    /* UR_QA01_RF037_UPSTREAM_WRITER: original 2142/2143, full fr
     }
 """
 RTL_HEADER = "void WriteReg(uint16 reg, uint8 value) {\n"
-RTL_PORT_BRANCH = "  } else if (reg >= 0x2140 && reg < 0x2180) {\n"
+RTL_PORT_BRANCH = "  } else if (reg >= 0x2140 && reg < 0x2180) {\n#if SNESRECOMP_ENABLE_MODS\n"
 RTL_APU_HEADER = "void RtlApuWrite(uint16 adr, uint8 val) {\n"
 RTL_ACCEPTED = "  if (rtl_apu_port_observers_filter(adr, val)) return;\n"
 RTL_HELPER = r"""/* UR_QA01_RF037_UPSTREAM_WRITER: actual native CPU register dispatch. */
@@ -120,8 +120,10 @@ def native_rtl(src: str) -> str:
         if src.count(anchor) != 1:
             raise ValueError("RF037 unknown native common RTL source")
     src=src.replace(RTL_HEADER, RTL_HELPER+RTL_HEADER, 1)
-    src=src.replace(RTL_PORT_BRANCH, RTL_PORT_BRANCH+
-                    '    ur_rf037_upstream("write-reg", reg, value);\n', 1)
+    src=src.replace(RTL_PORT_BRANCH,
+                    RTL_PORT_BRANCH.replace("#if SNESRECOMP_ENABLE_MODS\n",
+                      '    ur_rf037_upstream("write-reg", reg, value);\n'
+                      "#if SNESRECOMP_ENABLE_MODS\n"), 1)
     src=src.replace(RTL_APU_HEADER, RTL_APU_HEADER+
                     '  ur_rf037_upstream("rtl-apu-enter", adr, val);\n', 1)
     src=src.replace(RTL_ACCEPTED, RTL_ACCEPTED+

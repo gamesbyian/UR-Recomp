@@ -29,7 +29,7 @@ class Rf035(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"exact RF026"):
             m.patch(m.rf026.PINNED_APU)
         with self.assertRaisesRegex(ValueError,"tampered"):
-            m.patch(after.replace("apu->pad[0] == 1","apu->pad[0] != 1"))
+            m.patch(after.replace("apu->pad[0] != 0","apu->pad[0] == 0"))
     def test_refuse_general_queue_or_release_touch(self):
         self.assertNotIn("portClock + 1",m.NEW)
         self.assertNotIn("target_cycle++",m.NEW)

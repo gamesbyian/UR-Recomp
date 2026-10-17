@@ -160,6 +160,14 @@ if ($visibleMarkers -contains 'UR-BALDOSA-STARTUP-PREFLIGHT') {
     }
   }
 }
+$originalStderrExcerpt = ''
+if ($visibleMarkers -contains 'UR-BALDOSA-STARTUP-PREFLIGHT' -and
+    (Test-Path -LiteralPath $stderr)) {
+  $originalStderrExcerpt = Get-Content -LiteralPath $stderr -Raw
+  if ($originalStderrExcerpt.Length -gt 1250) {
+    $originalStderrExcerpt = $originalStderrExcerpt.Substring(0,1250)
+  }
+}
 $report = [ordered]@{
   schema = 'UR-QA02-ORIGINAL-PACKAGED-GAME-REAL-NTFS-FULL/1'
   stage = $Stage
@@ -170,6 +178,7 @@ $report = [ordered]@{
   Windows_process_exit = $exitCode
   original_preflight_replay_exit = $preflightReplayExit
   original_preflight_replay_diagnostic = $preflightReplayClassification
+  original_packaged_preflight_stderr_excerpt = $originalStderrExcerpt
   original_launcher_bounded_markers = @($visibleMarkers)
   original_canonical_file_count = @($manifestAfter).Count
   timeout = $timedOut

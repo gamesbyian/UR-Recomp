@@ -259,6 +259,8 @@ def main()->None:
     p.add_argument("--timeout",type=int,default=300)
     p.add_argument("--raster-only",action="store_true",
                    help="firstline-only source raster without other QA08 timing/brightness probes")
+    p.add_argument("--require-same-rf017-guest",action="store_true",
+                   help="V0-only A/B control: require unchanged exact 5484-record firstline RF017 guest SHA")
     a=p.parse_args()
     if sha(a.rom.read_bytes())!=ROM_SHA:
         p.error("incorrect USA retail source ROM")
@@ -317,8 +319,19 @@ def main()->None:
         report["read_only_native_HDMA7_firstline"]=inspect_native_channel7_firstline(log)
     report["actual_windows_PE_sha256"]=sha(a.exe.read_bytes())
     report["actual_two_pad_route_sha256"]=sha(a.script.read_bytes())
+    if a.require_same_rf017_guest:
+        if not a.raster_only:
+            raise ValueError("V0 A/B guest equivalence requires raster-only source mode")
+        expected="b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568"
+        report["unchanged_firstline_RF017_guest_CRC_control_SHA256"]=expected
+        report["current_RF017_5484_guest_CRC_exact_match_to_firstline_only"]=(
+            report["actual_native_guest_CRC_sha256"]==expected)
+        report["no_original_guest_instruction_parity_claimed"]=True
     (a.out/"qa08-windows-2p-fullroute.json").write_text(
         json.dumps(report,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+    if a.require_same_rf017_guest and not report["current_RF017_5484_guest_CRC_exact_match_to_firstline_only"]:
+        # The report and all 263 actual P7 are preserved by always-upload CI.
+        raise SystemExit("QA08_V0_COUNTERFACTUAL_UNACCEPTED whole native guest CRC source drift")
     print("QA08_WINDOWS_2P_SOURCE",
           "actual_guest="+str(len(crcs)),
           "actual_source_256x224=263",

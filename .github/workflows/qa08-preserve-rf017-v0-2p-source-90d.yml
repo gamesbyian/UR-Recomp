@@ -17,13 +17,13 @@ jobs:
       - name: Acquire exact independently archived genuine Windows source, verify no ROM or saves
         shell: bash
         env:
-          GH_TOKEN: \${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           curl --fail --location --retry 3 --retry-all-errors --silent --show-error \
             -H "Authorization: Bearer $GH_TOKEN" \
             -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/\${GITHUB_REPOSITORY}/actions/artifacts/12090308473/zip" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/12090308473/zip" \
             -o native-source.zip
           echo "91e0bf8f5d7b86b188526740d825af890a99b02ecc05093f9a2143fa56ce49cd  native-source.zip" | sha256sum -c -
           python - <<'PY'

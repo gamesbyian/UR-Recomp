@@ -632,14 +632,14 @@ void choose() {
             g_existing_switch_failed = false;
             g_existing_switch_available = false;
             g_named_profile_stale = true;
-            g_racer_name = "P1 CHANGED - RESTART";
+            g_racer_name = "P1 SWITCH QUEUED - QUIT TO SAVE";
             std::fprintf(stderr,
-                "UR_BALDOSA_MODERN_ROOT existing_p1_saved=1 "
+                "UR_BALDOSA_MODERN_ROOT existing_p1_queued=1 "
                 "activation=next_process\n");
         } else {
             g_existing_switch_failed = true;
             std::fprintf(stderr,
-                "UR_BALDOSA_MODERN_ROOT existing_p1_saved=0 "
+                "UR_BALDOSA_MODERN_ROOT existing_p1_queued=0 "
                 "reason=verified_selector_rejected\n");
         }
         return;

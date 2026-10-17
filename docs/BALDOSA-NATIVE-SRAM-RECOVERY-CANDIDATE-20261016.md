@@ -582,7 +582,15 @@ decode exactly against its typed checkpoint, Andrew raw and catalog
 remain unchanged, no pending journal remains, and genuine source
 `CHECKPOINT status=committed|unchanged` must precede the post-save
 gate and `NEXT_BOOT_COMMIT_FAILED`. The original game and its external
-actor are two distinct Win32 processes, not a fabricated result writer.
+actor are two distinct Win32 processes, not a fabricated result writer. A separate product-only
+fault-byte artifact carries **24 actual canonical files**: the old and
+alternate racers' raw/typed states, roster and global selector at
+pre-save, source-save, external-selector and refused-original phases,
+plus SHA-256 receipts. Each stage is source-read-only. An independently
+replayed comparison must find the alternate racer and roster unchanged,
+only the legitimate old raw/typed update before the actor, and **only**
+the selector changed by the external winner; the refused original
+may not mutate any file.
 All evidence is product side and separate from independent release QA.
 
 This extra negative control is a candidate, **not release acceptance**,

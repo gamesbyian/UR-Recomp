@@ -950,6 +950,7 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_existing_p1_switch/postsave_selector_conflict/original-game.log
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_existing_p1_switch/postsave_selector_conflict/external-selector-actor.log
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_existing_p1_switch/postsave_selector_conflict/result.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_existing_p1_switch/postsave_selector_conflict/fault-bytes/**
 
       - name: Retain bounded Windows guest evidence (never ROM or saves)
         if: always()

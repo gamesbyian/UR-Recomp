@@ -144,7 +144,31 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
     config = denied / "config.ini"
     config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
     source_log_path = denied / "original-game.log"
-    error_message = None
+    witness = denied / "fault-bytes"
+    witness.mkdir()
+    canonical = {
+        "mike-raw": user / "saves/profile-mike/save.srm",
+        "mike-typed": user / "saves/profile-mike/host-profile.txt",
+        "andrew-raw": user / "saves/profile-andrew/save.srm",
+        "andrew-typed": user / "saves/profile-andrew/host-profile.txt",
+        "selector": selector, "catalog": roster,
+    }
+    receipts = {}
+    def snapshot(stage: str) -> dict[str, bytes]:
+        state = {}
+        for key, path in canonical.items():
+            if path.is_symlink() or not path.is_file():
+                raise ValueError("Postsave source authority missing or redirected")
+            value = path.read_bytes()
+            if key.endswith("-raw") and len(value) != 8192:
+                raise ValueError("Original source SRAM wrong size")
+            state[key] = value
+            member = f"{stage}.{key}.bin"
+            (witness / member).write_bytes(value)
+            receipts[member] = {"sha256": hashlib.sha256(value).hexdigest(),
+                                "bytes": len(value)}
+        return state
+    before_fault = snapshot("before")
     actor_log = ""
     old_before = profile_bytes(user, "mike")
     old_roster = roster.read_bytes()
@@ -184,6 +208,7 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
             # this producer's canonical 8192 SRAM before any outside change.
             verify_native_save_codec(fixture, user, timeout, profile="mike")
             changed_saved_raw = profile_bytes(user, "mike")
+            source_saved_fault = snapshot("after-source-save")
             if selector.read_bytes() != selector_before:
                 raise ValueError("Queued switch wrote selector before source save")
             external = subprocess.run(
@@ -196,6 +221,7 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
             if (external.returncode != 0 or
                 "existing_next_boot=andrew previous=mike" not in actor_log):
                 raise ValueError("Independent canonical selector transaction failed")
+            outside_won_fault = snapshot("after-external-selector")
             gate.write_text("external selector committed\n", encoding="ascii")
             try:
                 proc.wait(timeout=timeout)
@@ -205,6 +231,20 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
             if proc.poll() is None:
                 proc.kill()
                 proc.wait(timeout=30)
+    final_fault = snapshot("after-original-refusal")
+    if (not all(before_fault[k] == source_saved_fault[k]
+                for k in ("andrew-raw", "andrew-typed", "selector", "catalog")) or
+        not all(source_saved_fault[k] == outside_won_fault[k]
+                for k in canonical if k != "selector") or
+        outside_won_fault["selector"] == source_saved_fault["selector"] or
+        final_fault != outside_won_fault):
+        raise ValueError("Postsave selector race mutated canonical source bytes")
+    if len(receipts) != 24:
+        raise ValueError("Incomplete 24-object post-save binary witness")
+    (witness / "hashes.json").write_text(json.dumps({
+        "schema": "ur-win32-postsave-selector-snapshots/1",
+        "read_only_source_snapshots": receipts, "independent_qa_credit": 0,
+    }, sort_keys=True, indent=2) + "\n", encoding="utf-8")
     saved_source_log = source_log_path.read_text(
         encoding="utf-8", errors="replace")
     if (proc.returncode != 9 or
@@ -243,6 +283,7 @@ def run(exe: Path, rom: Path, fixture: Path, out: Path,
         "alternate_racer_raw_unchanged": True,
         "journal_retired": True,
         "player_facing_save_success_switch_failure": True,
+        "source_exact_binary_witness_count": len(receipts),
         "physical_hardware_or_os_power_cut": False,
         "independent_QA_credit": 0,
     }, sort_keys=True, indent=2) + "\n", encoding="utf-8")

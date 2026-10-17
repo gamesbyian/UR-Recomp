@@ -91,5 +91,39 @@ class RetainedLauncherTranscriptTests(unittest.TestCase):
         self.assertIn("current-drive-root-refusal.log", workflow)
 
 
+    def test_exact_source_packaged_exit8_is_separate_from_fixed_cmd_evidence(self):
+        source = (ROOT / "tools/verify_baldosa_windows_extracted_launcher.py"
+                  ).read_text()
+        helper = (ROOT / "tools/baldosa_win32_live_postraw_sharing_denial.py"
+                  ).read_text()
+        workflow = (ROOT / ".github/workflows/baldosa-windows-native-bridge.yml"
+                    ).read_text()
+        # Source fixture, guest route and seed are all required together,
+        # never a fake launcher stub, new SRAM writer or installed ROM.
+        for marker in (
+            "save_fault_fixture", "save_fault_seed", "save_fault_script",
+            "packaged_launcher=launcher",
+            'packaged_live_original_save_failure_exit_8',
+            'require_archive_unchanged(archive, approved_archive_sha256)',
+        ):
+            self.assertIn(marker, source)
+        self.assertIn("native_denied_process_return_code", helper)
+        self.assertIn("native_source_pe_sha256", helper)
+        self.assertIn("packaged_launcher_sha256", helper)
+        self.assertIn('packaged_save_failure["native_source_pe_sha256"]', source)
+        self.assertIn("UR-BALDOSA-SAVE-FAILED: This game session", helper)
+        self.assertIn("kernel_replace_probe_winerror", helper)
+        self.assertIn("baldosa-win32-packaged-save-refusal-source-bytes", workflow)
+        separate = workflow.split(
+            "name: baldosa-win32-packaged-save-refusal-source-bytes", 1
+        )[1].split("- name:", 1)[0]
+        self.assertIn("native_real_win32_live_postraw_typed_denial", separate)
+        self.assertIn("fault-bytes/**", separate)
+        fixed = workflow.split(
+            "name: baldosa-win32-extracted-cmd-source-evidence", 1
+        )[1].split("- name:", 1)[0]
+        self.assertNotIn("native_real_win32_live_postraw_typed_denial", fixed)
+        self.assertNotIn("fault-bytes/**", fixed)
+
 if __name__ == "__main__":
     unittest.main()

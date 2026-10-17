@@ -1,0 +1,115 @@
+{
+  "schema": "ur-rf037-upstream-writer-receipt-v1",
+  "case": "zoom-zoo",
+  "source_run": 39006650922,
+  "immutable_source": "db6c3b2e2ffdb55ea232831626965b6e587f1d56",
+  "original_native_case_artifact": {
+    "id": 12091825707,
+    "sha256": "2785bc65b8ce41bf2c4ddce39b90422a78a27a0f1a84f07a6b546c9095efeeec"
+  },
+  "binary_artifact": {
+    "id": 12091223685,
+    "sha256": "c38148ebb6d66907ea0ca7bff77c213fa6b3a0e72f2c441c90b3df7fb322198c"
+  },
+  "original_core_elf_sha256": "78cf49a6771ec06420febc896b7bf0f8109567ce9f246723a029d04521115923",
+  "native_elf_sha256": "10d20b36c76f1a602b68335e8db4847db0d9e64c4cd731309a8693e27c801862",
+  "original": {
+    "original_spc_age_band": [
+      103300000,
+      104200000
+    ],
+    "cpu_port2_3_writes": 45645,
+    "first_port2": {
+      "age": 103322523,
+      "val": "00"
+    },
+    "first_port3": {
+      "age": 103322541,
+      "val": "04"
+    },
+    "last_port2": {
+      "age": 104199985,
+      "val": "B5"
+    },
+    "executed_opcode_rows": 41325,
+    "opcode_frame_truncation_markers": [
+      6073,
+      6074,
+      6075,
+      6076,
+      6077,
+      6078,
+      6079,
+      6080
+    ],
+    "spc_reads": 3
+  },
+  "native": {
+    "host_window": [
+      6055,
+      6064
+    ],
+    "cpu_write8_records": 2,
+    "cpu_write16_records": 0,
+    "write_reg_entries": 2,
+    "rtl_apu_entries": 2,
+    "rtl_apu_after_filter": 2,
+    "apu_schedule": 2,
+    "apu_apply": 2,
+    "initial_port2": {
+      "frame": 6056,
+      "val": "00",
+      "scheduled_spc_age": 103322524,
+      "applied_spc_age": 103322524
+    },
+    "initial_port3": {
+      "frame": 6056,
+      "val": "04",
+      "scheduled_spc_age": 103322541,
+      "applied_spc_age": 103322541
+    },
+    "observed_pointer_reads": 20010,
+    "first_pointer_residual": {
+      "native_host": 6057,
+      "original_dp63_low_byte": "73",
+      "native_dp63_low_byte": "74",
+      "native_read_word": "C774"
+    },
+    "second_pointer_residual": {
+      "native_host": 6062,
+      "original_dp63_low_byte": "B3",
+      "native_dp63_low_byte": "B4",
+      "native_read_word": "D0B4"
+    }
+  },
+  "native_exact_elf_instructions": {
+    "function": "Snd_UploadBlock_80CE_M1X0.part.0",
+    "function_start": "0x69e390",
+    "function_size": "0x1644",
+    "port2_word_call_site": "0x69eb69",
+    "port2_word_target": "cpu_write16_paced",
+    "port2_byte_call_site": "0x69f724",
+    "port2_byte_target": "cpu_write8_paced",
+    "paced_byte_tail_jumps_to_cpu_write8": true,
+    "actual_late_callsite_execution_proven": false
+  },
+  "controls": {
+    "paired_exact_unmasked_wram_samples": 51,
+    "total_wram_sample_pairs": 78,
+    "original_event_duration_frames": 5163,
+    "native_event_duration_frames": 5163,
+    "original_next_bowl_entry_offset": 267,
+    "native_next_bowl_entry_offset": 267,
+    "complete_earned_sram_pair_agreement_count": 11,
+    "accepted_complete_USA_events": 0,
+    "total_required_USA_events": 45
+  },
+  "interpretation": {
+    "original_and_native_intervals_time_aligned": false,
+    "first_port2_original_vs_native_applied_spc_age_delta": 1,
+    "first_port3_original_vs_native_applied_spc_age_delta": 0,
+    "missing_native_cpu_port_writes_proven": false,
+    "late_2142_2143_execution_or_SPC_receiver_equivalence_proven": false
+  },
+  "next": "Widen native port-writer probe to host frames 6055..6115; compare port2/3 values and SPC target age, no timing patches."
+}

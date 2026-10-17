@@ -17,7 +17,7 @@ class TestSource(unittest.TestCase):
         self.assertEqual(s.brightness5(14,7),7)
         self.assertRaises(ValueError,s.brightness5,32,7)
     def test_exact_pinned_legacy_replace_and_second_pass_idempotent(self):
-        src=s.START+s.AFTER_SUB+ "".join("r -= "+x+";\n" for x in s.FIXED)+s.OUTPUT
+        src=(s.START+s.AFTER_SUB+\n             "".join("r += "+x+";\n" for x in s.FIXED)+\n             "".join("r -= "+x+";\n" for x in s.FIXED)+s.OUTPUT)
         trial=s.patched(src)
         self.assertEqual(trial,s.patched(trial))
         self.assertIn(s.REPLACEMENT,trial)

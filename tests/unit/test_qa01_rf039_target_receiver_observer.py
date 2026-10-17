@@ -27,8 +27,10 @@ class RF039Receiver(unittest.TestCase):
         self.assertIn("QA01RF037NATIVEBUS", out)
         self.assertIn("QA01RF037NATIVEBUS_TRUNCATED", out)
         self.assertIn("f < 6055 || f > 6064", out)
-        for kind in ("schedule", "apply", "spc-read"):
-            self.assertIn(kind, out)
+        self.assertIn("const char *kind", out)
+        self.assertIn("kind=%s", out)
+        # The reused RF037 caller sites own the literal schedule/apply/read
+        # labels; this patch must not duplicate or move those callers.
         self.assertEqual(out.count("apu_writePortNow("), src.count("apu_writePortNow("))
 
     def test_refuse_missing_wrong_or_partial_stage(self):

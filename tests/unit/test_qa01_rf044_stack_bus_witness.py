@@ -45,6 +45,28 @@ class FrameStack(unittest.TestCase):
   self.assertIn("QA01RF044NATIVEREAD_TRUNCATED",out)
   self.assertIn("rf044_S=",out)
   self.assertIn("sn es_frame_counter".replace(" ",""),out)
+ def test_native_composed_source_matches_rf035_and_rf037_exact_anchors(self):
+  import qa01_rf035_sound_consumer_observer as rf035
+  import qa01_rf037_sound_transaction_window as rf037
+  base8="""    if (off >= 0) {
+        uint8 value = cpu->ram[off];
+        ur_qa01_rf035_read(cpu, bank, addr, value, 1);
+        return cpu_latch_read8(cpu, value);
+    }
+"""
+  expect8=base8.replace(rf037.NATIVE_PTR_BYTE,
+      rf037.NATIVE_PTR_BYTE+"    ur_qa01_rf037_ptr(cpu, bank, addr, value, 1);\\n")
+  self.assertEqual(m.NATIVE_READ_8,expect8)
+  base16=rf035.NATIVE_WORD.replace(
+      "        return cpu_latch_read16",
+      "        ur_qa01_rf035_read(cpu, bank, addr,\\n"
+      "                            (uint16)lo | ((uint16)hi << 8), 2);\\n"
+      "        return cpu_latch_read16")
+  expect16=base16.replace(rf037.NATIVE_PTR_WORD,
+      rf037.NATIVE_PTR_WORD+
+      "        ur_qa01_rf037_ptr(cpu, bank, addr,\\n"
+      "                            (uint16)lo | ((uint16)hi << 8), 2);\\n")
+  self.assertEqual(m.NATIVE_READ_16,expect16)
  def test_reject_unrecognized_upstream_source(self):
   for fn in (m.original_getset,m.original_cpu,m.native_cpu):
    with self.assertRaisesRegex(ValueError,"source"):fn("nothing known\n")

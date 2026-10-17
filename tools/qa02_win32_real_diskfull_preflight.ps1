@@ -39,15 +39,12 @@ try {
     ('create vdisk file=' + $quotedDisk +
      " maximum=$MaximumMegabytes type=expandable"),
     ('select vdisk file=' + $quotedDisk),
-    'attach vdisk'
-  )
-  $attached = $true
-  Invoke-OnlyThisVHD @(
-    ('select vdisk file=' + $quotedDisk),
+    'attach vdisk',
     'create partition primary',
     'format fs=ntfs quick label="URQA02FULL"',
     ('assign letter=' + $DriveLetter)
   )
+  $attached = $true
   Start-Sleep -Seconds 3
   $vol = Get-Volume -DriveLetter $DriveLetter -ErrorAction Stop
   if ($vol.FileSystem -ne 'NTFS' -or $vol.FileSystemLabel -ne 'URQA02FULL' -or
@@ -154,7 +151,7 @@ try {
 }
 finally {
   # Deliberately no 'select disk', 'clean', or commands affecting system disks.
-  if ($attached -and (Test-Path -LiteralPath $disk)) {
+  if (Test-Path -LiteralPath $disk) {
     try {
       Invoke-OnlyThisVHD @(
         ('select vdisk file=' + '"' + $disk + '"'),

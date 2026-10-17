@@ -92,6 +92,7 @@ def make_fixture():
         b"UR_BALDOSA_NATIVE_PROFILE APPLIED profile=native-ci-second\n"
         b"first frame simulated\n")
     files["interactive-S.key.log"] = b"exit=0\r\n\r\n"
+    files["interactive-S.profile.log"] = b"exit=0\r\n\r\n"
     for i in (1, 2):
         files[f"cold-S-{i}.log"] = (
             b"UR_BALDOSA_NATIVE_PROFILE APPLIED profile=native-ci-second\n"
@@ -130,6 +131,7 @@ class TestOriginalS(unittest.TestCase):
             "no selector switch": ("source-bytes/after-S.selector.bin",
                                    self.data["source-bytes/before-S.selector.bin"]),
             "inj failed": ("interactive-S.key.log", b"exit=1\n"),
+            "literal text refused": ("interactive-S.profile.log", b"exit=1\n"),
             "wrong choice": ("interactive-S.log", b"Q"),
             "missing cold": ("cold-S-2.log", None),
             "unreviewed personal ROM": ("Uniracers_USA.sfc", b"ROM"),

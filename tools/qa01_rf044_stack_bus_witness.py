@@ -72,11 +72,13 @@ NMI_NEW=r"""                /* UR_QA01_RF044_STACK_BUS: real non-opcode NMI entr
                        (unsigned)Memory.RAM[0x01ef],(unsigned)Memory.RAM[0x01f0],
                        (unsigned)Memory.RAM[0x01f1]);"""
 
-# RF035 is an earlier mandatory observer in the genuine Zoo campaign.
-# Preserve its existing source-qualified read calls exactly once.
+# RF035 and RF037 were previously installed in this exact native guest.
+# Retain both actual observers and the original CPU bus return exactly once.
+import qa01_rf037_sound_transaction_window as rf037
 NATIVE_READ_8="""    if (off >= 0) {
         uint8 value = cpu->ram[off];
         ur_qa01_rf035_read(cpu, bank, addr, value, 1);
+    ur_qa01_rf037_ptr(cpu, bank, addr, value, 1);
         return cpu_latch_read8(cpu, value);
     }
 """
@@ -85,6 +87,8 @@ NATIVE_READ_8_NEW=NATIVE_READ_8.replace(
     "        ur_rf044_native_read(cpu,bank,addr,value,1);\n"
     "        return cpu_latch_read8",1)
 NATIVE_READ_16="""        ur_qa01_rf035_read(cpu, bank, addr,
+                            (uint16)lo | ((uint16)hi << 8), 2);
+        ur_qa01_rf037_ptr(cpu, bank, addr,
                             (uint16)lo | ((uint16)hi << 8), 2);
         return cpu_latch_read16(cpu, (uint16)lo | ((uint16)hi << 8));
 """

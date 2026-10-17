@@ -249,6 +249,58 @@ def audit(archive: Path, expected_sha256: str) -> dict:
              get(p, "b-raw.selected"),
              "original B crash not preserved while selecting healthy A")
 
+        # Journaled B _Exit(86) with valid A. Prove that B's complete
+        # typed/raw source is reconciled once without modifying healthy A,
+        # the catalog, or both independent later A cold starts.
+        p = "native_journaled_b_crash_then_a"
+        for label in ("a-raw", "a-typed", "roster"):
+            identical(p, (label,), ("b-selected", "b-crash",
+                                    "b-reconciled", "a-selected", "second-a-cold"))
+        for label in ("b-raw", "b-typed"):
+            identical(p, (label,), ("b-reconciled", "a-selected",
+                                    "second-a-cold"))
+        need(get(p, "b-raw.b-selected") != get(p, "b-raw.b-crash") ==
+             get(p, "b-raw.b-reconciled") and
+             get(p, "b-typed.b-selected") == get(p, "b-typed.b-crash") !=
+             get(p, "b-typed.b-reconciled") and
+             stock_sram(get(p, "b-typed.b-crash")) ==
+             get(p, "b-raw.b-selected") and
+             stock_sram(get(p, "b-typed.b-reconciled")) ==
+             get(p, "b-raw.b-reconciled"),
+             "journaled B original crashed/typed-recovered state invalid")
+        identical(p, ("selector",), ("b-selected", "b-crash", "b-reconciled"))
+        identical(p, ("selector",), ("a-selected", "second-a-cold"))
+        need(get(p, "selector.a-selected") != get(p, "selector.b-selected"),
+             "journaled B did not explicitly select healthy A")
+        intent = get(p, "intent.crash")
+        need(intent == get(p, "intent.archived") and
+             intent.startswith(b"UR-BALDOSA-NATIVE-SRAM-INTENT/1\\n".replace(b"\\n", b"\n")),
+             "journaled B original durable intent/archive changed")
+        rest = intent[len(b"UR-BALDOSA-NATIVE-SRAM-INTENT/1\\n".replace(b"\\n", b"\n")):]
+        parts = rest.split(b"\n", 2)
+        need(len(parts) == 3 and
+             all(re.fullmatch(rb"[0-9]{1,8}", x) is not None
+                 for x in parts[:2]),
+             "journaled B intent frame lengths malformed")
+        first_length, next_length = (int(x) for x in parts[:2])
+        need(first_length + next_length == len(parts[2]) and
+             parts[2][:first_length] == get(p, "b-typed.b-selected") and
+             parts[2][first_length:] == get(p, "b-typed.b-reconciled"),
+             "journaled B intent did not authorize exact typed old/new")
+        logs = {
+            "first-b-cold-recovery.log":
+                b"RECOVERY_RECONCILED exact_staged_guest_sram=1",
+            "second-b-cold.log":
+                b"UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=native-ci-second",
+            "healthy-a-cold-1.log":
+                b"UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=native-ci-rider",
+            "healthy-a-cold-2.log":
+                b"UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=native-ci-rider",
+        }
+        for filename, marker in logs.items():
+            need(marker in z.read(p + "/" + filename),
+                 "journaled B/A original guest process marker absent " + filename)
+
         partial = get("native_intent_restart_recovery/simulated_partial_raw_explicit_rollback",
                       "raw.synthetic-partial")
         need(len(partial) == 513, "source synthetic short raw was not 513 bytes")
@@ -264,6 +316,7 @@ def audit(archive: Path, expected_sha256: str) -> dict:
         "genuine_os_sharing_denial_then_idempotent_recovery": True,
         "F0_prewrite_and_F3_posttyped_restarts_byte_stable": True,
         "damaged_B_preserved_healthy_A": True,
+        "journaled_B_reconciled_once_preserved_A_and_exact_intent": True,
         "513_byte_partial_raw": "synthetically truncated fixture, not actual OS partial write",
         "product_PE_and_ZIP_bound_in_this_checker": False,
         "electrical_power_loss_or_disk_full_accepted": False,

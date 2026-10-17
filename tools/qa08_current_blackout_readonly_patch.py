@@ -71,6 +71,10 @@ def patch_port(src:str)->str:
         if src.count(PORT_ANCHOR+PORT_TRACE)!=1 or src.count(PORT_MARK)!=1:
             raise ValueError("partial/tampered current RF017 PPU write observer")
         return src
+    # A stripped sentinel must never bypass the no-double-patch contract.
+    # An existing port-output line is sufficient proof of partial staging.
+    if "UR_QA08_CURRENT_BLACKOUT_PORT " in src:
+        raise ValueError("instrumented port write has missing/tampered marker")
     if src.count(PORT_ANCHOR)!=1 or "#include <stdio.h>" not in src or "#include <stdlib.h>" not in src:
         raise ValueError("pinned original port write/headers changed")
     return src.replace(PORT_ANCHOR,PORT_ANCHOR+PORT_TRACE,1)

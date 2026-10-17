@@ -9,6 +9,9 @@ import qa01_rf035_sound_consumer_observer as rf
 
 
 class RF035ObserverTest(unittest.TestCase):
+    def test_pinned_baldosa_cpu_bridge_location(self):
+        self.assertEqual(rf.NATIVE.as_posix(), "snesrecomp/runner/src/cpu_state.c")
+
     def test_original_retains_one_real_opcode_and_is_idempotent(self):
         source = "void run() {\n" + rf.ORIG_DISPATCH + "\n}\n"
         new = rf.patch_original(source)

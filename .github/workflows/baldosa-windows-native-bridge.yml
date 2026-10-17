@@ -78,6 +78,7 @@ on:
       - "tools/baldosa_win32_interactive_recovery_q.py"
       - "tools/baldosa_win32_interactive_recovery_rt.py"
       - "tools/baldosa_win32_interactive_recovery_s.py"
+      - "tools/baldosa_win32_interactive_recovery_s_reject.py"
       - "tests/unit/test_assemble_baldosa_windows_candidate.py"
       - "tests/unit/test_audit_baldosa_romless_candidate.py"
       - "native/product/modern_session_c_api.*"
@@ -920,6 +921,20 @@ jobs:
             --out "$RUNNER_TEMP/Baldosa Win32 Interactive Recovery S" --timeout 120
           echo "PASS: genuine original CMD S and literal healthy profile ID entered through real Win32 console input, only selector changed, A and B bytes intact, unrelated damaged C untouched, two cold B process boots; test keys not human acceptance." >> "$GITHUB_STEP_SUMMARY"
 
+      # An invalid target in the real packaged S menu must never authorize
+      # a different racer or fix the damaged one. This negative witness has
+      # a separate artifact; fixed 36-member S and Q/R/T contracts stay sealed.
+      - name: Prove original CMD S nonexistent racer refuses without mutation
+        run: |
+          set -euo pipefail
+          python tools/baldosa_win32_interactive_recovery_s_reject.py \
+            --launcher "$RUNNER_TEMP/Baldosa Native Extracted Launcher QA/Extracted Baldosa Candidate With Spaces/run-baldosa-modern.cmd" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/baseline/Modern Player Data With Spaces/saves/save.srm" \
+            --out "$RUNNER_TEMP/Baldosa Win32 Interactive S Invalid Target" --timeout 120
+          echo "PASS: actual original CMD S real console invalid target refused before guest; A/B/C/selector/catalog byte-identical, no repair invented; second fresh CMD Q still rejects bad A and exits 7. Product-only, no human release credit." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Retain ROM-free Windows candidate only (no ROM or SRAM)
         uses: actions/upload-artifact@v4
         with:
@@ -991,6 +1006,18 @@ jobs:
             ${{ runner.temp }}/Baldosa Win32 Interactive Recovery S/interactive-s-result.json
             ${{ runner.temp }}/Baldosa Win32 Interactive Recovery S/source-bytes/**
       
+      - name: Retain original CMD invalid S refusal source bytes separately
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-interactive-s-invalid-target
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/Baldosa Win32 Interactive S Invalid Target/*.log
+            ${{ runner.temp }}/Baldosa Win32 Interactive S Invalid Target/invalid-S-result.json
+            ${{ runner.temp }}/Baldosa Win32 Interactive S Invalid Target/source-bytes/**
+
       - name: Retain bounded extracted-CMD source transcripts separately
         if: always()
         uses: actions/upload-artifact@v4

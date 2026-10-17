@@ -13,6 +13,8 @@ import stat
 from pathlib import Path
 import zipfile
 
+EXPECTED_FILENAME_ROSTER_SHA256 = "10fa7373def425c458ea8be8d8669686609d9f24d0c0473aa274bb1c7b7f9bb9"
+
 EXPECTED_ROOTS = frozenset((
     "native_actual_win32_prewrite_dacl_denial",
     "native_intent_restart_recovery",
@@ -114,7 +116,9 @@ def audit(archive: Path, expected_sha256: str) -> dict:
         infos = z.infolist()
         names = [item.filename for item in infos]
         need(len(names) == 306 and len(set(names)) == 306 and
-             {name.split("/", 1)[0] for name in names} == EXPECTED_ROOTS,
+             {name.split("/", 1)[0] for name in names} == EXPECTED_ROOTS and
+             sha(("\n".join(sorted(names)) + "\n").encode("utf-8")) ==
+             EXPECTED_FILENAME_ROSTER_SHA256,
              "original complete Windows fault inventory differs")
         need(sum(item.file_size for item in infos) <= 4_000_000 and
              z.testzip() is None, "original source ZIP CRC/size failure")

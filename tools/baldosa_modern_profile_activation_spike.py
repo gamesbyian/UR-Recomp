@@ -45,11 +45,16 @@ def patch_main(source: str) -> str:
         MAIN_HOST,
         "/* " + MARK + ": existing Modern active profile, before guest SRAM. */\n"
         "extern int ur_baldosa_modern_try_activate_profile(void);\n"
+        "extern int ur_baldosa_modern_run_recovery_command(void);\n"
         "extern void ur_baldosa_modern_profile_before_run_frame(void);\n"
         "extern void ur_baldosa_modern_root_after_config(void);\n"
         "extern int ur_baldosa_modern_root_draw_frame(\n"
         "    uint8_t*, size_t, const uint8_t*, int, int, double);\n"
         "static void ur_baldosa_modern_profile_after_config(void) {\n"
+        # One-shot recovery runs in the original Windows game binary,
+        # before any guest SRAM read or simulation, with no second frontend.
+        "    int recovery_code = ur_baldosa_modern_run_recovery_command();\n"
+        "    if (recovery_code) exit(recovery_code);\n"
         "    if (!ur_baldosa_modern_try_activate_profile()) {\n"
         "        fprintf(stderr, \"UR-STARTUP-SAVE-ROOT: selected Modern profile rejected\\n\");\n"
         "        exit(7);\n"
@@ -85,7 +90,7 @@ def patch_framework_save(source: str) -> str:
     )
     replacement = (
         "  if (!g_netplay_session) {\n"
-        "    if (ur_baldosa_modern_profile_before_native_save()) {\n"
+        "    if (ur_baldosa_modern_profile_before_native_save() == 1) {\n"
         "      int native_saved = RtlWriteSram();\n"
         # Opt-in deterministic power-loss boundary. Production never asks
         # for it; no synthetic SRAM, guest results or second save writer.
@@ -99,10 +104,23 @@ def patch_framework_save(source: str) -> str:
         "        fflush(stderr);\n"
         "        _Exit(86);\n"
         "      }\n"
-        "      if (!ur_baldosa_modern_profile_finish_native_save(native_saved))\n"
+        "      int finish = ur_baldosa_modern_profile_finish_native_save(native_saved);\n"
+        "      if (finish == 2) {\n"
+        '        fprintf(stderr, "UR-BALDOSA-SWITCH-FAILED: Current racer save completed; requested next racer could not be selected. Keep the current save and retry profile selection after a fresh launch.\\n");' "\n"
+        "        fflush(stderr);\n"
+        "        exit(9);\n"
+        "      }\n"
+        "      if (!finish) {\n"
         '        fprintf(stderr, "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT rejected\\n");' "\n"
+        '        fprintf(stderr, "UR-BALDOSA-SAVE-FAILED: Native save could not complete. Preserve the entire user-data folder; do not delete or overwrite the racer.\\n");' "\n"
+        "        fflush(stderr);\n"
+        "        exit(8);\n"
+        "      }\n"
         "    } else {\n"
         '      fprintf(stderr, "UR_BALDOSA_NATIVE_PROFILE native_save_preflight_failed\\n");' "\n"
+        '      fprintf(stderr, "UR-BALDOSA-SAVE-FAILED: Native save was refused before writing. Another game may own newer progress; preserve both racers.\\n");' "\n"
+        "      fflush(stderr);\n"
+        "      exit(8);\n"
         "    }\n"
         "  }"
     )

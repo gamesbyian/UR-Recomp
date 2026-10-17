@@ -1,0 +1,181 @@
+{
+  "schema": "rf041-executed-zoo-smp-queue-instruction-boundary-20261017-v1",
+  "status": "executed_narrow_original_native_spc_boundary; no_timing_correction; zero_usa_admissions",
+  "run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39069703970",
+  "source_staging_sha": "54c3660bcd985a7629f0c8fcc6980ccab9ad91e5",
+  "case_artifact_id": 12115251490,
+  "case_file_count": 18,
+  "case_zip_sha256": "1c21481aff42ab3580f6292d94c3b0f255d71d8c548b688f2f4d00ae4190ebb0",
+  "original_core_sha256": "20b27a7a77b5ec758238c06eba23df794080779a679f410d6a128f13ecfb5f96",
+  "native_elf_sha256": "122ab527255a82067009cfd8c172cc41f0b82d264f56071ec927a295be61b133",
+  "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+  "expanded_input_sha256": "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52",
+  "source_seed_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+  "source_original_cpu_to_smp_sync": [
+    {
+      "log_line_zero_based": 67660,
+      "phase": "before-sync",
+      "smp_age": 103919447,
+      "v": 116,
+      "h": 442,
+      "smp_clock_debt": 0,
+      "smp_pc": "154D",
+      "smp_opcode": "D0",
+      "smp_opcode_cycle": 0
+    },
+    {
+      "log_line_zero_based": 67663,
+      "phase": "after-sync-before-publish",
+      "smp_age": 103919450,
+      "v": 116,
+      "h": 442,
+      "smp_clock_debt": 0,
+      "smp_pc": "154F",
+      "smp_opcode": "7E",
+      "smp_opcode_cycle": 0
+    },
+    {
+      "log_line_zero_based": 67664,
+      "phase": "after-publish",
+      "smp_age": 103919450,
+      "v": 116,
+      "h": 442,
+      "smp_clock_debt": 0,
+      "smp_pc": "154F",
+      "smp_opcode": "7E",
+      "smp_opcode_cycle": 0
+    }
+  ],
+  "source_f6_and_cpu_write": [
+    {
+      "log_line": 67661,
+      "kind": "F6-read",
+      "smp_age": 103919450,
+      "spc_pc": "154F",
+      "spc_opcode": "7E",
+      "smp_clock_debt": 0,
+      "opcode_cycle": 2,
+      "value": "23"
+    },
+    {
+      "log_line": 67662,
+      "kind": "same_actual_F6_read_clock_debt",
+      "smp_age": 103919450,
+      "spc_pc": "154F",
+      "spc_opcode": "7E",
+      "smp_clock_debt": 0,
+      "opcode_cycle": 2,
+      "value": "23"
+    },
+    {
+      "log_line": 67665,
+      "kind": "CPU-port2-publish",
+      "smp_age": 103919450,
+      "port": 2,
+      "value": "24"
+    },
+    {
+      "log_line": 67671,
+      "kind": "next_F6-read",
+      "smp_age": 103919457,
+      "spc_pc": "154F",
+      "value": "24"
+    },
+    {
+      "log_line": 67672,
+      "kind": "next_F6-read_debt",
+      "smp_age": 103919457,
+      "spc_pc": "154F",
+      "spc_opcode": "7E",
+      "smp_clock_debt": 0,
+      "opcode_cycle": 2,
+      "value": "24"
+    }
+  ],
+  "native_queued_port_boundary": [
+    {
+      "log_line": 125027,
+      "kind": "preceding-spc-F6-read",
+      "age": 103919427,
+      "pc": "154F",
+      "value": "23",
+      "cpuCyclesLeft": 0
+    },
+    {
+      "log_line": 125030,
+      "kind": "actual-queue-apply",
+      "age": 103919434,
+      "target": 103919434,
+      "pc": "154D",
+      "port": 2,
+      "value": "24"
+    },
+    {
+      "log_line": 125031,
+      "kind": "queue-apply-clock-probe",
+      "age": 103919434,
+      "target": 103919434,
+      "pc": "154D",
+      "port": 2,
+      "value": "24",
+      "cpuCyclesLeft": 0
+    },
+    {
+      "log_line": 125032,
+      "kind": "actual-new-F6-read",
+      "age": 103919434,
+      "pc": "154F",
+      "port": 2,
+      "value": "24"
+    },
+    {
+      "log_line": 125033,
+      "kind": "F6-read-clock-probe",
+      "age": 103919434,
+      "pc": "154F",
+      "port": 2,
+      "value": "24",
+      "cpuCyclesLeft": 0
+    }
+  ],
+  "original_boundary_order": "same original SMP-age 103919450: F6 original old23 read before CPU port2 24 publication",
+  "native_boundary_order": "same native SPC-age 103919434: queued input24 apply before F6 new24 read",
+  "source_cpu_to_spc_sync_advances_age_cycles": 3,
+  "original_source_debt_nonzero_at_target": false,
+  "native_cpuCyclesLeft_nonzero_at_target": false,
+  "rf040_echo_relation": {
+    "original_old_polls": 5,
+    "original_new_poll_index_one_based": 6,
+    "native_old_polls": 2,
+    "native_new_poll_index_one_based": 3,
+    "source_receive_new_to_output_echo_local_spc_ticks": 9,
+    "native_receive_new_to_output_echo_local_spc_ticks": 9
+  },
+  "strict_controls": {
+    "rf040_case_sha256": "c7fd279d985d189ddb86d9e52aa02b99696b750aeb0bcffae08c1ee3dbe80947",
+    "all_78_full_wram_pair_records_identical": true,
+    "all_13_dense_direct_page_samples_identical": true,
+    "zoo_next_bowl_handoff_identical": true,
+    "terminal_result_followthrough_identical": true,
+    "whole_wram_pair_bytes_per_side": 131072,
+    "pair_count": 78,
+    "exact_pair_count": 51,
+    "unmasked_differing_byte_occurrences": 92,
+    "masked_or_excluded_bytes": 0,
+    "real_zoo_result_relative": 5163,
+    "next_bowl_relative": 267,
+    "earned_whole_sram_pairs_equal": 11,
+    "cold_source_earned_ranked_record_reloads": true
+  },
+  "limits": {
+    "cpu_spc_absolute_cross_guest_epoch_calibrated": false,
+    "architectural_queue_rule_proven": false,
+    "source_qualified_native_timing_fix_tested": false,
+    "unmasked_stack_writer_reader_proven": false,
+    "full_all_frame_state_parity_proven": false,
+    "windows_shipping_source_complete_event_proven": false,
+    "complete_usa_events_admitted": 0
+  },
+  "next_decision": "Source-original SMP executes old F6 read during the existing CPU→SPC synchronization before it publishes the new CPU port value; native queued target applies new value prior to F6 at tied local age. Research architectural instruction-atomic tie ordering and only after source-qualified, controls-preserving A/B; independently solve stack 01ED–01F1 last-write/next-read provenance."
+}

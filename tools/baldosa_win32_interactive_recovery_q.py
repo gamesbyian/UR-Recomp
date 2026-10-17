@@ -1,0 +1,253 @@
+#!/usr/bin/env python3
+"""Original extracted Win32 CMD interactive recovery Q, with genuine console key.
+
+No hook into the shipping launcher, no synthetic choice environment variable
+and no modification to the ten-file CMD / nineteen-file QA02 evidence archives.
+The only synthetic input is the user's Q key, dispatched as Win32 console
+KEY_EVENT records to the isolated original cmd.exe's console.
+"""
+from __future__ import annotations
+
+import argparse
+import ctypes
+from ctypes import wintypes
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+
+from assemble_baldosa_windows_candidate import ROM
+
+KEY_EVENT = 0x0001
+STDIN_READ_WRITE = 0xC0000000
+SHARE_READ_WRITE = 3
+OPEN_EXISTING = 3
+FILE_ATTRIBUTE_NORMAL = 0x80
+
+
+class ConsoleKey(ctypes.Structure):
+    _fields_ = [
+        ("bKeyDown", wintypes.BOOL),
+        ("wRepeatCount", wintypes.WORD),
+        ("wVirtualKeyCode", wintypes.WORD),
+        ("wVirtualScanCode", wintypes.WORD),
+        ("UnicodeChar", wintypes.WCHAR),
+        ("dwControlKeyState", wintypes.DWORD),
+    ]
+
+
+class ConsoleRecordUnion(ctypes.Union):
+    _fields_ = [("KeyEvent", ConsoleKey),
+                ("padding", ctypes.c_byte * ctypes.sizeof(ConsoleKey))]
+
+
+class ConsoleInputRecord(ctypes.Structure):
+    _fields_ = [("EventType", wintypes.WORD),
+                ("Event", ConsoleRecordUnion)]
+
+
+def inject_console_q(pid: int) -> None:
+    """Separate injector subprocess, so the verifier never loses its console."""
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.AttachConsole.argtypes = (wintypes.DWORD,)
+    kernel.AttachConsole.restype = wintypes.BOOL
+    kernel.FreeConsole.restype = wintypes.BOOL
+    kernel.CreateFileW.argtypes = (
+        wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD,
+        ctypes.c_void_p, wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE)
+    kernel.CreateFileW.restype = ctypes.c_void_p
+    kernel.WriteConsoleInputW.argtypes = (
+        ctypes.c_void_p, ctypes.POINTER(ConsoleInputRecord), wintypes.DWORD,
+        ctypes.POINTER(wintypes.DWORD))
+    kernel.WriteConsoleInputW.restype = wintypes.BOOL
+    kernel.CloseHandle.argtypes = (ctypes.c_void_p,)
+    kernel.CloseHandle.restype = wintypes.BOOL
+    if not kernel.AttachConsole(pid):
+        raise ctypes.WinError(ctypes.get_last_error())
+    handle = None
+    try:
+        handle = kernel.CreateFileW(
+            "CONIN$", STDIN_READ_WRITE, SHARE_READ_WRITE, None,
+            OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, None)
+        if handle in (None, ctypes.c_void_p(-1).value):
+            raise ctypes.WinError(ctypes.get_last_error())
+        records = (ConsoleInputRecord * 2)()
+        for i, down in enumerate((True, False)):
+            records[i].EventType = KEY_EVENT
+            records[i].Event.KeyEvent = ConsoleKey(
+                int(down), 1, 0x51, 0x10, "Q", 0)
+        written = wintypes.DWORD(0)
+        if not kernel.WriteConsoleInputW(
+                handle, records, 2, ctypes.byref(written)) or written.value != 2:
+            raise ctypes.WinError(ctypes.get_last_error())
+    finally:
+        if handle not in (None, ctypes.c_void_p(-1).value):
+            kernel.CloseHandle(handle)
+        kernel.FreeConsole()
+
+
+def digest(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def snapshot(root: Path) -> dict[str, bytes]:
+    expected = {
+        "selector": root / "host-state-v1.txt",
+        "catalog": root / "profiles-v1.txt",
+        "typed": root / "saves/profile-native-ci-rider/host-profile.txt",
+        "raw": root / "saves/profile-native-ci-rider/save.srm",
+    }
+    result = {}
+    for name, path in expected.items():
+        if path.is_symlink() or not path.is_file():
+            raise ValueError("Missing or redirected original canonical file " + name)
+        result[name] = path.read_bytes()
+    if len(result["raw"]) != 8192:
+        raise ValueError("Original save is not 8192 bytes")
+    return result
+
+
+def run(launcher: Path, fixture: Path, seed: Path, root: Path,
+        *, timeout: int = 100) -> dict:
+    if os.name != "nt":
+        raise ValueError("Only actual Windows console accepts this key witness")
+    if root.exists():
+        raise ValueError("Do not reuse or delete a previously tested root")
+    if not launcher.is_file() or not (launcher.parent / ROM).is_file():
+        raise ValueError("Use the exact extracted CMD with a verified original ROM")
+    if not fixture.is_file() or not seed.is_file():
+        raise ValueError("Source fixture and original SRAM seed are required")
+    root.mkdir(parents=True)
+    user = root / "Original Player With Spaces"
+    user.mkdir()
+    init = subprocess.run(
+        [str(fixture), str(user), str(seed)],
+        capture_output=True, text=True, timeout=timeout, check=True)
+    (root / "original-fixture.log").write_text(
+        init.stdout + "\n" + init.stderr, encoding="utf-8")
+    original = snapshot(user)
+    # A legacy mismatch without a pending intent is not recoverable without
+    # explicit user choice. Keep its original stock signature intact.
+    raw = user / "saves/profile-native-ci-rider/save.srm"
+    damaged = bytearray(original["raw"])
+    damaged[256] ^= 1
+    raw.write_bytes(damaged)
+    pre = snapshot(user)
+    if pre["raw"] == original["raw"] or any(
+            pre[x] != original[x] for x in ("selector", "catalog", "typed")):
+        raise ValueError("Test failed to create a precise raw-vs-typed mismatch")
+    if list(user.rglob("native-sram-checkpoint.pending")):
+        raise ValueError("Legacy mismatch must have no trusted pending intent")
+
+    transcript = root / "interactive-console.log"
+    # CONIN$ guarantees choice.exe reads the child's REAL console input.
+    # All output is redirected to a bounded local transcript, while the
+    # source launcher itself remains byte-for-byte unchanged.
+    wrapper = root / "run-original-console.cmd"
+    wrapper.write_text(
+        '@echo off\n'
+        f'call "{launcher}" <CONIN$ >"{transcript}" 2>&1\n'
+        'exit /b %ERRORLEVEL%\n', encoding="utf-8")
+    env = os.environ.copy()
+    env.pop("UR_BALDOSA_NO_HOLD", None)
+    env.pop("UR_BALDOSA_RECOVERY_ACTION", None)
+    env.pop("UR_BALDOSA_RECOVERY_PROFILE_ID", None)
+    env.update({
+        "UR_RECOMP_USER_DATA_ROOT": str(user),
+        "SDL_AUDIODRIVER": "dummy",
+        "SDL_VIDEODRIVER": "windows",
+    })
+    proc = subprocess.Popen(
+        ["cmd.exe", "/d", "/c", str(wrapper)],
+        cwd=launcher.parent, env=env,
+        creationflags=subprocess.CREATE_NEW_CONSOLE,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        prompt = "Explicit recovery choice [R/T/S/Q]:"
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            text = transcript.read_text(encoding="utf-8", errors="replace") \
+                if transcript.is_file() else ""
+            if prompt in text:
+                break
+            if proc.poll() is not None:
+                raise ValueError("Actual CMD exited without interactive choice: " +
+                                 text[-1500:])
+            time.sleep(0.025)
+        else:
+            raise TimeoutError("Original choice.exe prompt not visible")
+
+        # The independent helper owns only the isolated console; even CI's
+        # own console state is never detached or redirected.
+        injector = subprocess.run(
+            [sys.executable, str(Path(__file__).resolve()),
+             "--inject-console-q", str(proc.pid)],
+            cwd=root, capture_output=True, text=True, timeout=20)
+        (root / "key-injection.log").write_text(
+            f"exit={injector.returncode}\n" +
+            injector.stdout + "\n" + injector.stderr, encoding="utf-8")
+        if injector.returncode != 0:
+            raise ValueError("Real Win32 console Q key injection refused")
+        proc.wait(timeout=timeout)
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+            proc.wait(timeout=30)
+    text = transcript.read_text(encoding="utf-8", errors="replace")
+    if (proc.returncode != 7 or
+        text.count("UR-BALDOSA-STARTUP-PROFILE-REJECTED:") != 1 or
+        text.count("Explicit recovery choice [R/T/S/Q]:") != 1 or
+        "Q: Exit without changing any saved data." not in text or
+        "UR-BALDOSA-RECOVERY-COMMITTED:" in text or
+        "UR-BALDOSA-RECOVERY-REFUSED:" in text or
+        "UR-BALDOSA-FIRST-RACER:" in text):
+        raise ValueError("Q did not refuse a real original recovery menu")
+    post = snapshot(user)
+    if post != pre or list(user.rglob("native-sram-manual-archive-*.bin")) or \
+       list(user.rglob("native-sram-recovered-intent-*.bin")) or \
+       list(user.rglob("native-sram-checkpoint.pending")):
+        raise ValueError("Q changed canonical data or invented recovery receipts")
+    result = {
+        "schema": "ur-win32-interactive-original-cmd-q/1",
+        "genuine_win32_console_key_event": "Q",
+        "child_process_exit_code": proc.returncode,
+        "exact_extracted_cmd_sha256": digest(launcher.read_bytes()),
+        "native_profile_fixture_sha256": digest(fixture.read_bytes()),
+        "initial_original_seed_sha256": digest(seed.read_bytes()),
+        "legacy_raw_signature_preserved": pre["raw"][:16] == original["raw"][:16],
+        "original_persisted_bytes_equal_after_Q": True,
+        "typed_raw_selector_catalog_sha256": {
+            k: digest(value) for k, value in sorted(post.items())},
+        "manual_repair_archive_created": False,
+        "second_guest_or_default_fallback": False,
+        "independent_qa_release_credit": 0,
+    }
+    (root / "interactive-q-result.json").write_text(
+        json.dumps(result, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+    return result
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--inject-console-q", type=int)
+    ap.add_argument("--launcher", type=Path)
+    ap.add_argument("--fixture", type=Path)
+    ap.add_argument("--seed", type=Path)
+    ap.add_argument("--out", type=Path)
+    ap.add_argument("--timeout", type=int, default=100)
+    a = ap.parse_args()
+    if a.inject_console_q is not None:
+        inject_console_q(a.inject_console_q)
+    else:
+        if not all((a.launcher, a.fixture, a.seed, a.out)):
+            ap.error("launcher, fixture, seed and output required")
+        print(json.dumps(run(a.launcher.resolve(), a.fixture.resolve(),
+                             a.seed.resolve(), a.out.resolve(),
+                             timeout=a.timeout), sort_keys=True))
+
+
+if __name__ == "__main__":
+    main()

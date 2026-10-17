@@ -91,5 +91,70 @@ class RetainedLauncherTranscriptTests(unittest.TestCase):
         self.assertIn("current-drive-root-refusal.log", workflow)
 
 
+    def test_exact_source_packaged_exit8_is_separate_from_fixed_cmd_evidence(self):
+        source = (ROOT / "tools/verify_baldosa_windows_extracted_launcher.py"
+                  ).read_text()
+        helper = (ROOT / "tools/baldosa_win32_live_postraw_sharing_denial.py"
+                  ).read_text()
+        workflow = (ROOT / ".github/workflows/baldosa-windows-native-bridge.yml"
+                    ).read_text()
+        # Source fixture, guest route and seed are all required together,
+        # never a fake launcher stub, new SRAM writer or installed ROM.
+        for marker in (
+            "save_fault_fixture", "save_fault_seed", "save_fault_script",
+            "packaged_launcher=launcher",
+            'packaged_live_original_save_failure_exit_8',
+            'require_archive_unchanged(archive, approved_archive_sha256)',
+        ):
+            self.assertIn(marker, source)
+        self.assertIn("native_denied_process_return_code", helper)
+        self.assertIn("native_source_pe_sha256", helper)
+        self.assertIn("packaged_launcher_sha256", helper)
+        self.assertIn('packaged_save_failure["native_source_pe_sha256"]', source)
+        self.assertIn("UR-BALDOSA-SAVE-FAILED: This game session", helper)
+        self.assertIn("kernel_replace_probe_winerror", helper)
+        self.assertIn("native_modern_race_entry_script(1)", helper)
+        self.assertIn("source_pause_frame = 2200", helper)
+        self.assertIn('"UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"', helper)
+        self.assertIn("original Modern 1P Play", helper)
+        self.assertIn("baldosa-win32-packaged-save-refusal-source-bytes", workflow)
+        separate = workflow.split(
+            "name: baldosa-win32-packaged-save-refusal-source-bytes", 1
+        )[1].split("- name:", 1)[0]
+        self.assertIn("native_real_win32_live_postraw_typed_denial", separate)
+        self.assertIn("fault-bytes/**", separate)
+        fixed = workflow.split(
+            "name: baldosa-win32-extracted-cmd-source-evidence", 1
+        )[1].split("- name:", 1)[0]
+        self.assertNotIn("native_real_win32_live_postraw_typed_denial", fixed)
+        self.assertNotIn("fault-bytes/**", fixed)
+
+
+    def test_interactive_recovery_q_console_is_separate(self):
+        source = (ROOT / "tools/baldosa_win32_interactive_recovery_q.py"
+                  ).read_text()
+        workflow = (ROOT / ".github/workflows/baldosa-windows-native-bridge.yml"
+                    ).read_text()
+        for marker in (
+            'kernel.AttachConsole(pid)', 'kernel.WriteConsoleInputW(',
+            '"CONIN$"', 'creationflags=subprocess.CREATE_NEW_CONSOLE',
+            'genuine_win32_console_key_event',
+            'proc.returncode != 7',
+            'post != pre', 'native-sram-manual-archive-*.bin',
+        ):
+            self.assertIn(marker, source)
+        self.assertIn("baldosa-win32-interactive-recovery-q", workflow)
+        evidence = workflow.split(
+            "name: baldosa-win32-interactive-recovery-q", 1
+        )[1].split("- name:", 1)[0]
+        self.assertIn("interactive-console.log", evidence)
+        self.assertIn("interactive-q-result.json", evidence)
+        original = workflow.split(
+            "name: baldosa-win32-extracted-cmd-source-evidence", 1
+        )[1].split("- name:", 1)[0]
+        self.assertNotIn("interactive-console.log", original)
+        self.assertNotIn("interactive-q-result.json", original)
+        self.assertNotIn("fault-bytes/**", original)
+
 if __name__ == "__main__":
     unittest.main()

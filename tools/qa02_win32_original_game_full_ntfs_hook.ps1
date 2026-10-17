@@ -138,6 +138,51 @@ if (Get-Variable visible -ErrorAction SilentlyContinue) {
     if ($visible.Contains($marker)) { $visibleMarkers += $marker }
   }
 }
+$preflightReplayExit = -1
+$preflightReplayClassification = ''
+if ($visibleMarkers -contains 'UR-BALDOSA-STARTUP-PREFLIGHT') {
+  $preflightLine = @(Get-Content -LiteralPath $cmd |
+    Where-Object { $_ -match '^powershell.exe -NoProfile -NonInteractive -Command "' })
+  if ($preflightLine.Count -ne 1) {
+    $preflightReplayClassification = 'original command not uniquely found'
+  } elseif ($preflightLine[0] -match '^powershell.exe -NoProfile -NonInteractive -Command "(.*)"  schema = 'UR-QA02-ORIGINAL-PACKAGED-GAME-REAL-NTFS-FULL/1'
+  stage = $Stage
+  tested_product_pr_merge = '2073471dd6bcf2d5dbc22042e587ddee1852af8c'
+  tested_PE_SHA256 = $exeSHA
+  tested_CMD_SHA256 = $cmdSHA
+  route_SHA256 = (Get-FileHash -LiteralPath $route -Algorithm SHA256).Hash.ToLowerInvariant()
+  Windows_process_exit = $exitCode
+  original_preflight_replay_exit = $preflightReplayExit
+  original_preflight_replay_diagnostic = $preflightReplayClassification
+  original_launcher_bounded_markers = @($visibleMarkers)
+  original_canonical_file_count = @($manifestAfter).Count
+  timeout = $timedOut
+  canonical_receipts = @($manifestAfter)
+  stdout_SHA256 = $(if (Test-Path -LiteralPath $log) { (Get-FileHash -LiteralPath $log -Algorithm SHA256).Hash.ToLowerInvariant() } else { '' })
+  stderr_SHA256 = $(if (Test-Path -LiteralPath $stderr) { (Get-FileHash -LiteralPath $stderr -Algorithm SHA256).Hash.ToLowerInvariant() } else { '' })
+  result = $(if ($failure) { 'FAIL' } else { 'bounded_pass' })
+  failure = $failure
+  human_hardware_or_power_cut = $false
+  release_gate_credit = 0
+}
+$report | ConvertTo-Json -Depth 7 | Out-File -LiteralPath $reportFile -Encoding utf8
+if ($failure) { throw $failure }
+Write-Output ('QA02_ORIGINAL_GAME_STAGE_PASS ' + $Stage + ' exit=' + $exitCode)
+) {
+    $sourceExpression = $Matches[1]
+    $env:UR_BALDOSA_PACKAGE_DIR = $package + '\'
+    $env:UR_BALDOSA_ROM = $installedRom
+    $replay = @( & powershell.exe -NoProfile -NonInteractive -Command $sourceExpression 2>&1 )
+    $preflightReplayExit = $LASTEXITCODE
+    $preflightReplayClassification = (($replay | ForEach-Object { [string]$_ }) -join ' ')
+    if ($preflightReplayClassification.Length -gt 480) {
+      $preflightReplayClassification = $preflightReplayClassification.Substring(0,480)
+    }
+    if (-not $preflightReplayClassification) {
+      $preflightReplayClassification = 'no stderr emitted'
+    }
+  }
+}
 $report = [ordered]@{
   schema = 'UR-QA02-ORIGINAL-PACKAGED-GAME-REAL-NTFS-FULL/1'
   stage = $Stage

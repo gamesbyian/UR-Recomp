@@ -1,0 +1,97 @@
+{
+  "schema": "rf038-v2-source-executed-156clock-interval-v1",
+  "source_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39019821122",
+  "source_sha": "7ce5e2cbb395adb760fe43670fcba2fc0ede16d3",
+  "artifact_id": 12096114331,
+  "artifact_zip_sha256": "70da829b1f3a31cd2090db9fbdd1923bd9efcd5e10ff1b3b40999906b50e713a",
+  "artifact_files": 18,
+  "input_sha256": "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52",
+  "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+  "original_core_sha256": "0e2a8ca9b02e0a3f9ca78a1645acf90ff6f577b13904e9d188a78d5038a3d201",
+  "native_elf_sha256": "a3064811f0e2e4f55d8190f4c03f85b0d889755e254969b69ae6d2f6935f9866",
+  "disposition": "strict_candidate",
+  "matched_publications": {
+    "ordinal_first": 24390,
+    "first": {
+      "port": "2142",
+      "value": "24",
+      "original_v": 116,
+      "original_h": 442,
+      "native_frame": 6091,
+      "native_master": 2176886834
+    },
+    "second": {
+      "port": "2143",
+      "value": "02",
+      "original_v": 116,
+      "original_h": 972,
+      "native_frame": 6091,
+      "native_master": 2176887208
+    },
+    "original_interval_master": 530,
+    "native_interval_master": 374,
+    "original_minus_native_master": 156
+  },
+  "source_65816": {
+    "cpu_frame": 6091,
+    "opcode_rows": 29,
+    "first_writer_opcode": "82:82F6 STA $2142",
+    "second_writer_opcode": "82:82F2 STA $2143",
+    "actual_cmp_abs_82_8301_count": 6,
+    "cmp_pre_h": [
+      492,
+      584,
+      636,
+      688,
+      740,
+      792
+    ],
+    "cmp_post_h": [
+      514,
+      606,
+      658,
+      710,
+      762,
+      814
+    ],
+    "brackets_both_writes": true,
+    "no_interrupt_opcode_among_observed_rows": true
+  },
+  "native_aot": {
+    "scope": "Snd_UploadBlockList_82B4_M1X0",
+    "paced_transfer_rows": 16,
+    "read8_2142_count": 3,
+    "read8_2142_master": [
+      2176886940,
+      2176886992,
+      2176887044
+    ],
+    "observed_poll_spacing_master": [
+      52,
+      52
+    ],
+    "then_read16_dp_0063_master": 2176887162,
+    "then_read8_dp_0065_master": 2176887170,
+    "then_read8_bank10_F563_master": 2176887178
+  },
+  "extra_original_poll_count": 3,
+  "extra_poll_count_times_native_52_master_cadence": 156,
+  "truncation_sentinels": 0,
+  "controls": {
+    "unmasked_wram_samples": 78,
+    "byte_exact_pairs": 51,
+    "zoo_result_relative": 5163,
+    "next_bowl_relative": 267,
+    "earned_sram_equal_pairs": 11,
+    "cold_guest_record_reload": true
+  },
+  "limits": {
+    "spc_f6_f7_consumer_schedule_and_read_proven": false,
+    "spc_cpu_clock_phase_equivalence_proven": false,
+    "root_scheduling_defect_attributed": false,
+    "complete_event_accepted": false,
+    "windows_shipping_event_checked": false,
+    "usa_events_accepted": 0
+  }
+}

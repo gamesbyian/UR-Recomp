@@ -61,6 +61,27 @@ def command(launcher: Path, user: Path, work: Path,
     if not config.is_file():
         config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
     env = os.environ.copy()
+    # GitHub's pwsh 7 runner exports its own PSModulePath to Python. The
+    # original (unmodified) packaged CMD executes Windows PowerShell 5.1
+    # for the ROM/save-root SHA preflight, where pwsh 7's path hides the
+    # built-in Microsoft.PowerShell.Utility Get-FileHash command.
+    # Restore only the standard Windows PowerShell child module locations,
+    # as independently verified on the real hosted Windows runner by QA02.
+    # Never weaken/skip/change the shipping launcher's ROM or root gate.
+    system_root = Path(env.get("SystemRoot", ""))
+    if not system_root.is_absolute():
+        raise ValueError("Original Windows system module root unavailable")
+    stock_modules = (system_root / "System32" / "WindowsPowerShell" /
+                     "v1.0" / "Modules")
+    if not stock_modules.is_dir():
+        raise ValueError("Stock Windows PowerShell utility modules absent")
+    child_module_roots = [str(stock_modules)]
+    program_files = Path(env.get("ProgramFiles", ""))
+    if program_files.is_absolute():
+        machine_modules = program_files / "WindowsPowerShell" / "Modules"
+        if machine_modules.is_dir():
+            child_module_roots.append(str(machine_modules))
+    env["PSModulePath"] = os.pathsep.join(child_module_roots)
     for key in ("UR_BALDOSA_RECOVERY_ACTION",
                 "UR_BALDOSA_RECOVERY_PROFILE_ID",
                 "UR_BALDOSA_QA_POSTRAW_TYPED_DENIAL_GATE",

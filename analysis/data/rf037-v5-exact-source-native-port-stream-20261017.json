@@ -1,0 +1,84 @@
+{
+  "schema": "rf037-v5-full-native-writer-prefix-comparison-v1",
+  "case": "zoom-zoo",
+  "run_id": 39010683041,
+  "source_sha": "789dc8ba3adca300715cfa4cab76670dc052d9b4",
+  "source_original_case_artifact_id": 12093176984,
+  "source_original_case_zip_sha256": "f2f9cf77efedd371dbcf7c61b3a54431e79a6fb5f951884ca66f53d9dfb7941a",
+  "prior_v4_case_artifact_id": 12091825707,
+  "prior_v4_case_zip_sha256": "2785bc65b8ce41bf2c4ddce39b90422a78a27a0f1a84f07a6b546c9095efeeec",
+  "source_original": {
+    "observed_port2_port3_cpu_publications": 45645,
+    "source_spc_age_first": 103322523,
+    "source_spc_age_last": 104199985,
+    "distinct_spc_age_groups": 43855,
+    "same_age_two_write_groups": 1790,
+    "source_same_age_already_high_port_first_groups": 1787,
+    "source_same_age_low_port_first_groups": 3,
+    "original_opcode_rows": 41325,
+    "original_opcode_truncated_frames": [
+      6073,
+      6074,
+      6075,
+      6076,
+      6077,
+      6078,
+      6079,
+      6080
+    ]
+  },
+  "native": {
+    "host_window": [
+      6055,
+      6115
+    ],
+    "upstream_write_reg_count": 56041,
+    "upstream_rtl_apu_enter_count": 56041,
+    "upstream_after_filter_count": 56041,
+    "physical_cpu_write_api_records": 56038,
+    "physical_cpu_write_api_byte": 56035,
+    "physical_cpu_write_api_word": 3,
+    "native_writer_truncation_records": 0,
+    "port_publications_until_end_original_capture": 45645,
+    "native_extra_port_publications_after_original_capture": 10396,
+    "native_after_original_prefix_starts_host_frame": 6108,
+    "native_after_original_prefix_last_host_frame": 6115,
+    "first_port_source_pair_matches": true,
+    "late_spc_applied_and_receiver_equivalence_proven": false
+  },
+  "comparison": {
+    "raw_ordinal_source_vs_native_first_mismatch_index": 2,
+    "raw_ordinal_differing_entries_over_common_45645": 6,
+    "source_spc_same_age_adjacent_pair_reversals_at_indices": [
+      2,
+      6,
+      10
+    ],
+    "source_spc_same_age_pair_reversal_spc_ages": [
+      103482707,
+      103507880,
+      103589929
+    ],
+    "source_spc_age_tie_canonicalization": "Sort only original same-age port2/port3 writes by descending port (3 before 2). This accounts for only three source age-tied adjacent pair reversals and leaves all different-age operations in original order.",
+    "canonical_original_entire_45645_port_value_entries_match_native_prefix": true,
+    "canonical_original_port_value_byte_length": 91290,
+    "canonical_original_port_value_sha256": "ca1db861be56cabef9152f950be39a8d179722bb5cdb890e1ae23f9b7260f084",
+    "native_first_45645_port_value_sha256": "ca1db861be56cabef9152f950be39a8d179722bb5cdb890e1ae23f9b7260f084",
+    "has_demonstrated_payload_loss": false,
+    "has_demonstrated_spc_publish_or_receive_cycle_equivalence": false,
+    "original_spc_age_ties_resolved_to_true_cpu_bus_order": false
+  },
+  "strict_controls": {
+    "all_78_unmasked_full_wram_paired_checkpoints_bit_identical_across_v4_v5_experiments": true,
+    "paired_exact_full_wram": 51,
+    "total_samples": 78,
+    "mismatched_wram_byte_occurrences": 92,
+    "source_and_fresh_original_native_zoo_relative_result_frames": 5163,
+    "original_native_bowl_entry_relative_result_offset": 267,
+    "all_11_earned_sram_sample_pairs_equal": true,
+    "cold_guest_record_positive": true,
+    "complete_USA_event_accepted": 0,
+    "required_total_USA_events": 45
+  },
+  "next": "Extend original SPC F6/F7 receiver and native APU queue schedule/apply/SPC recipient observations to calibrated later sound-upload ages/host frames, with digest/aggregate bounds, without gameplay patches; independently source-audit Zoo stack 01ED–01F1."
+}

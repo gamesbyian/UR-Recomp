@@ -116,6 +116,57 @@ def analyze(original_log: str, native_log: str) -> dict:
                                for target, s in zip(targets, target_schedule))]
         vicinity_reads = [r for r in native_reads
                           if min(targets)-300 <= int(r["age"]) <= max(targets)+300]
+    # Cross-source clock origins are deliberately never equated here.
+    # Each ordering conclusion uses two *same-local-age* records in the
+    # same replay log, and preserves actual instrumentation line order.
+    orig_lines = original_log.splitlines()
+    nat_lines = native_log.splitlines()
+
+    def positions(lines: list[str], tag: str, **fields: str) -> list[int]:
+        found = []
+        for i, line in enumerate(lines):
+            event = parse_event(line, tag)
+            if event is not None and all(event.get(k) == v for k, v in fields.items()):
+                found.append(i)
+        return found
+
+    original_old_f6 = positions(orig_lines, "QA01RF037ORIGSPC",
+                                age=str(FIRST_ORIG_AGE), pc="154F",
+                                port="2", val="23")
+    original_pub_f6 = positions(orig_lines, "QA01RF037ORIGCPU2",
+                                age=str(FIRST_ORIG_AGE), port="2", val="24")
+    original_read_before_write = (
+        len(original_old_f6) == len(original_pub_f6) == 1
+        and original_old_f6[0] < original_pub_f6[0]
+    )
+    original_new_f6 = [r for r in src_spc
+                        if r["pc"] == "154F" and r["port"] == "2"
+                        and r["val"] == "24"
+                        and int(r["age"]) >= FIRST_ORIG_AGE]
+    original_new_f6_age = (
+        min(int(r["age"]) for r in original_new_f6)
+        if original_new_f6 else None
+    )
+    native_apply_before_read = False
+    native_same_age_first_read = None
+    native_apply_indices = []
+    native_read_indices = []
+    if target_schedule:
+        target_age = target_schedule[0]["target"]
+        native_apply_indices = positions(nat_lines, "QA01RF037NATIVEBUS",
+                                         frame=str(HOST), kind="apply",
+                                         age=target_age, target=target_age,
+                                         port="2", val="24")
+        native_read_indices = positions(nat_lines, "QA01RF037NATIVEBUS",
+                                        frame=str(HOST), kind="spc-read",
+                                        age=target_age, pc="154F",
+                                        port="2", val="24")
+        native_apply_before_read = (
+            len(native_apply_indices) == len(native_read_indices) == 1
+            and native_apply_indices[0] < native_read_indices[0]
+        )
+        if native_read_indices:
+            native_same_age_first_read = int(target_age)
     return {
         "schema": "rf039-target-cpu-spc-receiver-executed-v1",
         "original_cpu_writer_ages": [FIRST_ORIG_AGE, LAST_ORIG_AGE],
@@ -123,6 +174,21 @@ def analyze(original_log: str, native_log: str) -> dict:
         "native_cpu_writer_masters": [FIRST_NATIVE_MASTER, LAST_NATIVE_MASTER],
         "native_frame": HOST,
         "native_target_local_write_indices_zero_based": [index, index+1],
+        "original_same_local_age_spc_old_read_precedes_cpu_port_write": original_read_before_write,
+        "original_spc_old_read_log_indices": original_old_f6,
+        "original_cpu_port2_write_log_indices": original_pub_f6,
+        "original_first_port2_new_value_read_age": original_new_f6_age,
+        "original_first_new_value_read_minus_cpu_write_spc_ticks": (
+            original_new_f6_age - FIRST_ORIG_AGE
+            if original_new_f6_age is not None else None
+        ),
+        "native_same_local_age_queue_apply_precedes_f6_new_value_read": native_apply_before_read,
+        "native_port2_queue_apply_log_indices": native_apply_indices,
+        "native_port2_f6_new_read_log_indices": native_read_indices,
+        "native_first_f6_new_read_age": native_same_age_first_read,
+        "locally_proven_opposite_same_age_bus_order": (
+            original_read_before_write and native_apply_before_read
+        ),
         "original_spc_recipient_reads_count": len(src_spc),
         "original_spc_recipient_reads": src_spc,
         "native_bus_counts": dict(collections.Counter(r["kind"] for r in nat_bus)),

@@ -31,6 +31,9 @@ on:
       - "tests/unit/test_baldosa_uniracers_hdma_firstline_patch.py"
       - "tools/baldosa_uniracers_v0_raster_before_hdma_patch.py"
       - "tests/unit/test_baldosa_uniracers_v0_raster_before_hdma_patch.py"
+      - "tools/qa08_rF017_finish_operand_patch.py"
+      - "tools/qa08_rF017_finish_operand_witness.py"
+      - "tests/unit/test_qa08_rF017_finish_operand.py"
       - "tests/unit/test_baldosa_native_practice_probe.py"
       - "tests/unit/test_baldosa_native_second_racer_probe.py"
       - "tools/baldosa_native_first_racer_real_run_probe.py"
@@ -215,6 +218,7 @@ jobs:
           python tests/unit/test_windows_rf017_source_identity.py
           python tests/unit/test_baldosa_uniracers_hdma_firstline_patch.py
           python tests/unit/test_baldosa_uniracers_v0_raster_before_hdma_patch.py
+          python tests/unit/test_qa08_rF017_finish_operand.py
           python tests/unit/test_bind_baldosa_candidate_receipt.py
           python tests/unit/test_audit_baldosa_romless_candidate.py
           python tests/unit/test_check_windows_pe_timestamp.py
@@ -266,6 +270,8 @@ jobs:
           python tools/baldosa_uniracers_hdma_firstline_patch.py --game baldosa --apply-candidate
           python tools/baldosa_uniracers_v0_raster_before_hdma_patch.py --game baldosa
           python tools/baldosa_uniracers_v0_raster_before_hdma_patch.py --game baldosa --apply-candidate
+          python tools/qa08_rF017_finish_operand_patch.py --game baldosa
+          python tools/qa08_rF017_finish_operand_patch.py --game baldosa --apply-candidate
           echo "QA-08 game-only first-line + V0 PPU patches staged; results/blackout/medal, physical display and release remain unaccepted." >> "$GITHUB_STEP_SUMMARY"
           python tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_execution_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
@@ -336,6 +342,24 @@ jobs:
           PY
           echo "PASS: pinned Baldosa AOT Windows x64 with existing UR guest/input/native-pause hooks links and produces PE32+" >> "$GITHUB_STEP_SUMMARY"
           echo "NOT TESTED: Modern frontend, runtime interaction, package, per-profile SRAM, Records, replay, ghosts, or complete event." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Capture eight source-bound real finish PPU layer/math operands
+        run: |
+          set -euo pipefail
+          python tools/qa08_rF017_finish_operand_witness.py \
+            --exe baldosa/build-ur-win/UniracersSNESRecomp.exe \
+            --rom reference/roms/retail/Uniracers_USA.sfc \
+            --script reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p.txt \
+            --out "$RUNNER_TEMP/qa08-finish-operands" --timeout 300
+          echo "QA08 read-only guest-bound operand source only; no change to release acceptance." >> "$GITHUB_STEP_SUMMARY"
+      - name: Archive bounded native finish PPU operands and source controls
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-current-rf017-finish-ppu-operands
+          retention-days: 14
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/qa08-finish-operands/qa08-finish-operands.json
 
       - name: Verify Baldosa Windows PE needs only clean-machine system DLLs
         run: |

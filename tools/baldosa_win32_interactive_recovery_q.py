@@ -50,8 +50,13 @@ class ConsoleInputRecord(ctypes.Structure):
                 ("Event", ConsoleRecordUnion)]
 
 
-def inject_console_q(pid: int) -> None:
+def inject_console_key(pid: int, letter: str = "Q") -> None:
     """Separate injector subprocess, so the verifier never loses its console."""
+    keys = {"Q": (0x51, 0x10), "R": (0x52, 0x13),
+            "T": (0x54, 0x14)}
+    if letter not in keys:
+        raise ValueError("Only explicit recovery Q/R/T console keys supported")
+    vk, scan = keys[letter]
     kernel = ctypes.WinDLL("kernel32", use_last_error=True)
     kernel.AttachConsole.argtypes = (wintypes.DWORD,)
     kernel.AttachConsole.restype = wintypes.BOOL
@@ -86,7 +91,7 @@ def inject_console_q(pid: int) -> None:
         for i, down in enumerate((True, False)):
             records[i].EventType = KEY_EVENT
             records[i].Event.KeyEvent = ConsoleKey(
-                int(down), 1, 0x51, 0x10, "Q", 0)
+                int(down), 1, vk, scan, letter, 0
         written = wintypes.DWORD(0)
         if not kernel.WriteConsoleInputW(
                 handle, records, 2, ctypes.byref(written)) or written.value != 2:
@@ -95,6 +100,11 @@ def inject_console_q(pid: int) -> None:
         if handle not in (None, ctypes.c_void_p(-1).value):
             kernel.CloseHandle(handle)
         kernel.FreeConsole()
+
+
+def inject_console_q(pid: int) -> None:
+    """Preserve the original independently checked Q injector entry."""
+    inject_console_key(pid, "Q")
 
 
 def digest(data: bytes) -> str:
@@ -293,6 +303,7 @@ def run_with_personal_rom(launcher: Path, verified_rom: Path, fixture: Path,
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--inject-console-q", type=int)
+    ap.add_argument("--inject-console-key", nargs=2, metavar=("KEY", "PID"))
     ap.add_argument("--launcher", type=Path)
     ap.add_argument("--rom", type=Path)
     ap.add_argument("--fixture", type=Path)
@@ -300,7 +311,10 @@ def main() -> None:
     ap.add_argument("--out", type=Path)
     ap.add_argument("--timeout", type=int, default=100)
     a = ap.parse_args()
-    if a.inject_console_q is not None:
+    if a.inject_console_key:
+        letter, pid = a.inject_console_key
+        inject_console_key(int(pid), letter)
+    elif a.inject_console_q is not None:
         inject_console_q(a.inject_console_q)
     else:
         if not all((a.launcher, a.rom, a.fixture, a.seed, a.out)):

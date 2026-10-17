@@ -112,7 +112,7 @@ def audit(path: Path, external_sha: str, cmd_sha: str) -> dict:
              "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM" not in log and
              "ERROR: Access is denied." not in log,
              "source original CMD choice prompt or guest refusal missing")
-        need(keylog.lstrip().startswith("exit=0\n") and
+        need(keylog.replace("\r\n", "\n").lstrip().startswith("exit=0\n") and
              "Traceback" not in keylog and "PermissionError" not in keylog,
              "actual Win32 console key injector did not succeed")
         need("UR_BALDOSA_NATIVE_PROFILE_FIXTURE" in fixture and

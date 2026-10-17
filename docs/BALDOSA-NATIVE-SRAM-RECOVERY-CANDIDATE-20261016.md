@@ -721,9 +721,22 @@ active A and unrelated C remain damaged. Real original CMD S must
 refuse switching to B despite its legitimate catalog row, and all
 seven original source objects must stay byte-identical through
 a fresh cold Q. Its evidence uses a separate artifact
-`baldosa-win32-interactive-s-corrupt-target` and is **PENDING
-exact-head Windows execution**. The original independently reviewed
-positive S/R/T/Q artifacts remain unchanged.
+`baldosa-win32-interactive-s-corrupt-target` and is now **source-green** on [exact Windows
+39072745708](https://github.com/gamesbyian/UR-Recomp/actions/runs/39072745708),
+Modern head `583a302330ef021f5796e7d124bbd477b93ec446`.
+Original artifact #12115996792 has outer SHA256
+`62d4d15e5c97c8ee432f05e0aff5f532b0dcbc543f2b18c42901dcfea6c889c6`;
+all 29 members are CRC-clean, all 22 original binary length/hash receipts
+recomputed without mismatch, and all seven canonical objects are exactly
+unchanged before/refused/cold-Q. A raw differs from typed only at 0x0711
+(XOR0x35); independently B raw differs from its valid typed metadata
+only at 0x0699 (XOR0x52). Original CMD's real Win32 S key and typed
+registered B ID are accepted by the console, but source reports
+`choice=healthy status=3 ... next_profile=native-ci-second completed=0`,
+explicitly refuses the switch before a guest frame and a fresh original
+CMD Q exits 7. **This is source-owner verification, not independent QA
+release acceptance.** The original independently reviewed positive
+S/R/T/Q artifacts remain unchanged.
 
 **Release remains held:** #1214 and #1751 remain open, #1713 draft,
 independent ledger unmodified. A CI-created genuine console cannot prove

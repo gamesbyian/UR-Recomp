@@ -50,7 +50,7 @@ POST = """  if (rf035_boundary) {
   }
 """
 NEW = OLD.replace("  apu_drainPortQueue(apu);\n",PRE,1).replace("  apu->cpuCyclesLeft--;\n",POST+"  apu->cpuCyclesLeft--;\n",1)
-if NEW == OLD or NEW.count(MARK) != 1:
+if NEW == OLD or NEW.count(MARK) != 2:
     raise RuntimeError("RF035 patch construction failed")
 
 def patch(source: str) -> str:

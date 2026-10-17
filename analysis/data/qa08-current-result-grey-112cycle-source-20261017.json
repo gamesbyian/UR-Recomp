@@ -97,6 +97,51 @@
       "all_source_large_errors_disjointly_classified": true,
       "original_source_same_field_OBJ_priority_proven": false,
       "current_RF017_CGRAM_and_PPU_owner_causality_proven": false
+    },
+    "historical_medal_chromatic_mask_crosscheck": {
+      "row_bands": [
+        [
+          91,
+          105
+        ],
+        [
+          115,
+          129
+        ],
+        [
+          139,
+          153
+        ]
+      ],
+      "mask_count_per_band": [
+        95,
+        101,
+        91
+      ],
+      "mask_sha256": "9331534bc26928e66949644303bf1f4ae9b1185436f0090923a1f6dd6219da15",
+      "native_source_masks_same_over_25_samples_prior_and_latest_before_RF017_and_current_RF017": true,
+      "prior_before_RF017_archive_sha256": "f01ab5a4888c227f306a0b9cd89e67710a4b41cad4c22867072280a17811fa82",
+      "latest_before_RF017_archive_sha256": "4f766de13c702a108279293df4613538d8b49cbd1ecbc0876533c5f01f09293c",
+      "source_sample_xy": [
+        [
+          225,
+          96
+        ],
+        [
+          225,
+          120
+        ],
+        [
+          205,
+          115
+        ]
+      ],
+      "historical_native_OAM_lower_slot_overlap": false,
+      "same_original_OAM_priority_or_current_guest_source_proven": false,
+      "QA08_10_release_approved": false,
+      "historical_native_effective_OBJ_main_sub_samples": true,
+      "historical_scanline_OAM_96_99_samples": true,
+      "detailed_gold_overlap_witness_in_current_3producer_bundle": false
     }
   },
   "scope": {

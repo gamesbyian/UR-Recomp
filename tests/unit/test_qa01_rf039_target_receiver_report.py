@@ -46,6 +46,25 @@ class ReceiverWitness(unittest.TestCase):
         self.assertFalse(d["clock_fix_justified"])
         self.assertEqual(d["complete_usa_events_accepted"], 0)
 
+    def test_same_age_original_old_before_cpu_write_native_apply_before_read(self):
+        o, n = self.fixture()
+        source_old = ("QA01RF037ORIGSPC age=103919450 pc=154F "
+                      "v=116 h=442 port=2 val=23\\n")
+        self.assertEqual(o.count(source_old), 1)
+        # Fixture's original consumer is initially logged after the writer.
+        # Reorder *only* that identical-age consumer ahead of publication.
+        corrected = source_old + o.replace(source_old, "")
+        d = m.analyze(corrected, n)
+        self.assertTrue(d["locally_proven_opposite_same_age_bus_order"])
+        self.assertTrue(d["original_same_local_age_spc_old_read_precedes_cpu_port_write"])
+        self.assertTrue(d["native_same_local_age_queue_apply_precedes_f6_new_value_read"])
+        self.assertEqual(d["original_first_new_value_read_minus_cpu_write_spc_ticks"], 7)
+        self.assertFalse(d["clock_fix_justified"])
+        self.assertEqual(d["complete_usa_events_accepted"], 0)
+        # Same values/ages are insufficient without actual log ordering.
+        d2 = m.analyze(o, n)
+        self.assertFalse(d2["locally_proven_opposite_same_age_bus_order"])
+
     def test_missing_receiver_or_schedule_fails_closed(self):
         o, n = self.fixture()
         d = m.analyze(o.replace("QA01RF037ORIGSPC", "missing"), n)

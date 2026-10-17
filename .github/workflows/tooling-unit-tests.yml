@@ -6,6 +6,11 @@ on:
       - "tools/**"
       - "tests/unit/**"
       - "tests/native/**/*.c"
+      # QA-10 Original 7:6/PAR and UHD viewport source+fixture must run
+      # the actual compiled C++ policy regression, not just native smoke.
+      - "native/product/widescreen_output_composition.cpp"
+      - "native/product/widescreen_output_composition.hpp"
+      - "tests/native/widescreen_output_composition_test.cpp"
       - "tests/native/modern_pause_menu_test.cpp"
       - "tests/native/modern_pause_input_test.cpp"
       - "native/product/modern_pause_menu.cpp"

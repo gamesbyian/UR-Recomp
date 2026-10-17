@@ -68,6 +68,19 @@ int main() {
 
     assert(resolve_output_viewport(original_wide, 1920, 1080) == wide_1080);
     assert(resolve_output_viewport(original_fixed, 1920, 1080) == fixed_1080);
+
+    // QA-10: actual UHD drawable geometry. 342x224 source with 7:6 PAR
+    // and 512:513 fit fills 16:9 without cropping the final eight lines.
+    // Original 256x224 keeps its authentic 4:3 visible content centered;
+    // neither layout silently promotes a 216-high legacy crop.
+    const HostOutputViewport wide_4k{0, 0, 3840, 2160};
+    const HostOutputViewport fixed_4k{480, 0, 2880, 2160};
+    assert(resolve_output_viewport(original_wide, 3840, 2160) == wide_4k);
+    assert(resolve_output_viewport(original_fixed, 3840, 2160) == fixed_4k);
+    const HostOutputViewport portrait_4k_drawable{0, 1312, 2160, 1215};
+    assert(resolve_output_viewport(original_wide, 2160, 3840) ==
+           portrait_4k_drawable);
+
     assert(resolve_output_viewport(original_wide, 1280, 1024) == wide_1280x1024);
     assert(resolve_output_viewport(original_fixed, 1280, 1024) == fixed_1280x1024);
     assert(resolve_output_viewport(original_fixed, 0, 1080) == empty_viewport);

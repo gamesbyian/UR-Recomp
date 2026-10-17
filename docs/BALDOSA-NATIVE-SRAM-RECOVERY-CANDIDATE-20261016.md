@@ -627,8 +627,11 @@ exact-head Windows process succeeds and independent QA reviews it.
 ## Actual Windows interactive original recovery menu: Q no-change witness
 
 A new **product-only** Win32 console witness uses the extracted same-hash
-shipping `run-baldosa-modern.cmd`, verified USA ROM and shipping native
-profile fixture in disposable user data. It creates an exact 8192-byte
+shipping `run-baldosa-modern.cmd`, SHA-256-verified USA ROM and shipping
+native profile fixture in disposable user data. The preceding package test
+removes its temporary ROM; this Q test creates its **own** verified copy
+beside the extracted executable, then deletes that copy in `finally`
+even if the console experiment fails. It creates an exact 8192-byte
 legacy raw/typed mismatch with no trusted pending intent, verifies the
 original game exits before any guest frame and that CMD presents the
 actual `choice.exe /c RTSQ` menu. A separate Win32 injector process
@@ -637,7 +640,8 @@ records for **Q**, not an environment-variable recovery shortcut.
 The process must exit 7, with byte-exact raw, typed, catalog and selector
 unchanged; no archive, alternate profile, anonymous fallback or claimed
 earned result may be created. Separate bounded stdout, injector transcript,
-fixture receipt and SHA-256 result are retained outside all fixed QA
-archives. The product test does not claim a physical keyboard, human
+fixture receipt, **eight exact canonical before/after binary files**
+(typed, raw, selector, catalog ×2), and SHA-256 receipts are retained in
+a separate artifact outside all fixed QA archives. The product test does not claim a physical keyboard, human
 R/T/S/Q choices R/T/S, or independent release acceptance until real
 hosted Win32 execution and independent review succeed.

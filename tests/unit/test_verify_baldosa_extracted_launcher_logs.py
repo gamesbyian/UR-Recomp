@@ -149,6 +149,14 @@ class RetainedLauncherTranscriptTests(unittest.TestCase):
         )[1].split("- name:", 1)[0]
         self.assertIn("interactive-console.log", evidence)
         self.assertIn("interactive-q-result.json", evidence)
+        self.assertIn("source-bytes/**", evidence)
+        self.assertIn('retain_stage("before-Q", pre)', source)
+        self.assertIn('retain_stage("after-Q", post)', source)
+        self.assertIn("len(receipts) == 8", source)
+        self.assertIn("digest(verified_rom.read_bytes()) != USA_SHA256", source)
+        self.assertIn("shutil.copyfile(verified_rom, installed)", source)
+        self.assertIn("installed.unlink(missing_ok=True)", source)
+        self.assertIn('["cmd.exe", "/d", "/c", "call", str(wrapper)]', source)
         original = workflow.split(
             "name: baldosa-win32-extracted-cmd-source-evidence", 1
         )[1].split("- name:", 1)[0]

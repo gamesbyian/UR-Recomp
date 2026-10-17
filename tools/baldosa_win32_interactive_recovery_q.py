@@ -14,12 +14,13 @@ from ctypes import wintypes
 import hashlib
 import json
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import sys
 import time
 
-from assemble_baldosa_windows_candidate import ROM
+from assemble_baldosa_windows_candidate import ROM, USA_SHA256
 
 KEY_EVENT = 0x0001
 STDIN_READ_WRITE = 0xC0000000
@@ -142,6 +143,22 @@ def run(launcher: Path, fixture: Path, seed: Path, root: Path,
     if list(user.rglob("native-sram-checkpoint.pending")):
         raise ValueError("Legacy mismatch must have no trusted pending intent")
 
+    # Separate, product-only byte witness for INDEPENDENT rehash.
+    # These are CI fixture-owned original-format bytes, never a person's
+    # real profile and never added to strict QA02 or launcher artifacts.
+    byte_root = root / "source-bytes"
+    byte_root.mkdir()
+    receipts = {}
+    def retain_stage(stage: str, states: dict[str, bytes]) -> None:
+        if set(states) != {"selector", "catalog", "typed", "raw"}:
+            raise ValueError("Missing canonical source stage member")
+        for name, content in sorted(states.items()):
+            member = f"{stage}.{name}.bin"
+            (byte_root / member).write_bytes(content)
+            receipts[member] = {"sha256": digest(content), "bytes": len(content)}
+
+    retain_stage("before-Q", pre)
+
     transcript = root / "interactive-console.log"
     # CONIN$ guarantees choice.exe reads the child's REAL console input.
     # All output is redirected to a bounded local transcript, while the
@@ -161,7 +178,7 @@ def run(launcher: Path, fixture: Path, seed: Path, root: Path,
         "SDL_VIDEODRIVER": "windows",
     })
     proc = subprocess.Popen(
-        ["cmd.exe", "/d", "/c", str(wrapper)],
+        ["cmd.exe", "/d", "/c", "call", str(wrapper)],
         cwd=launcher.parent, env=env,
         creationflags=subprocess.CREATE_NEW_CONSOLE,
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -206,6 +223,7 @@ def run(launcher: Path, fixture: Path, seed: Path, root: Path,
         "UR-BALDOSA-FIRST-RACER:" in text):
         raise ValueError("Q did not refuse a real original recovery menu")
     post = snapshot(user)
+    retain_stage("after-Q", post)
     if post != pre or list(user.rglob("native-sram-manual-archive-*.bin")) or \
        list(user.rglob("native-sram-recovered-intent-*.bin")) or \
        list(user.rglob("native-sram-checkpoint.pending")):
@@ -221,6 +239,8 @@ def run(launcher: Path, fixture: Path, seed: Path, root: Path,
         "original_persisted_bytes_equal_after_Q": True,
         "typed_raw_selector_catalog_sha256": {
             k: digest(value) for k, value in sorted(post.items())},
+        "eight_original_before_after_binary_members": len(receipts) == 8,
+        "source_bytes_sha256": receipts,
         "manual_repair_archive_created": False,
         "second_guest_or_default_fallback": False,
         "independent_qa_release_credit": 0,
@@ -230,10 +250,41 @@ def run(launcher: Path, fixture: Path, seed: Path, root: Path,
     return result
 
 
+
+def run_with_personal_rom(launcher: Path, verified_rom: Path, fixture: Path,
+                          seed: Path, root: Path, *, timeout: int = 100) -> dict:
+    """Reuse the real extracted package while leaving no ROM inside it.
+
+    The preceding release acceptance intentionally REMOVES its temporary
+    retail ROM before returning. Copy this separately verified USA original
+    for the one Q attempt, then remove it on every exit, including failure.
+    Never write ROM data, names or bytes into any uploaded artifact.
+    """
+    if (not launcher.is_file() or not verified_rom.is_file() or
+        verified_rom.is_symlink() or
+        digest(verified_rom.read_bytes()) != USA_SHA256):
+        raise ValueError("Must supply verified personal original USA ROM")
+    installed = launcher.parent / ROM
+    if installed.exists() or installed.is_symlink():
+        raise ValueError("Extracted ROM-free candidate unexpectedly retained ROM")
+    try:
+        shutil.copyfile(verified_rom, installed)
+        if digest(installed.read_bytes()) != USA_SHA256:
+            raise ValueError("Temporary installed USA ROM bytes changed")
+        result = run(launcher, fixture, seed, root, timeout=timeout)
+        result["verified_original_USA_ROM_sha256"] = USA_SHA256
+        (root / "interactive-q-result.json").write_text(
+            json.dumps(result, sort_keys=True, indent=2) + "\n",
+            encoding="utf-8")
+        return result
+    finally:
+        installed.unlink(missing_ok=True)
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--inject-console-q", type=int)
     ap.add_argument("--launcher", type=Path)
+    ap.add_argument("--rom", type=Path)
     ap.add_argument("--fixture", type=Path)
     ap.add_argument("--seed", type=Path)
     ap.add_argument("--out", type=Path)
@@ -242,11 +293,12 @@ def main() -> None:
     if a.inject_console_q is not None:
         inject_console_q(a.inject_console_q)
     else:
-        if not all((a.launcher, a.fixture, a.seed, a.out)):
-            ap.error("launcher, fixture, seed and output required")
-        print(json.dumps(run(a.launcher.resolve(), a.fixture.resolve(),
-                             a.seed.resolve(), a.out.resolve(),
-                             timeout=a.timeout), sort_keys=True))
+        if not all((a.launcher, a.rom, a.fixture, a.seed, a.out)):
+            ap.error("launcher, ROM, fixture, seed and output required")
+        print(json.dumps(run_with_personal_rom(
+            a.launcher.resolve(), a.rom.resolve(),
+            a.fixture.resolve(), a.seed.resolve(), a.out.resolve(),
+            timeout=a.timeout), sort_keys=True))
 
 
 if __name__ == "__main__":

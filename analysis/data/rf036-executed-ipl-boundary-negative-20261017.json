@@ -1,0 +1,119 @@
+{
+  "schema": "UR-RF036-EXECUTED-IPL-BOUNDARY-NEGATIVE-ADJUDICATION/1",
+  "date": "2026-10-17",
+  "status": "rejected_source_executed_negative_no_release_credit",
+  "baseline": {
+    "rf": "RF-034",
+    "run": 38981131474,
+    "zip_sha256": "6efac6d4d1cf4f5a2b47b4b04c76d2b878a7312bc88641c2ac5e9921cb342052",
+    "whole_wram_exact_pairs": 51,
+    "whole_wram_pairs": 78,
+    "late_dp_5040": {
+      "pointer_63_original": 115,
+      "pointer_63_native": 116,
+      "counter_69_original": 190,
+      "counter_69_native": 190
+    },
+    "late_dp_5045": {
+      "pointer_63_original": 179,
+      "pointer_63_native": 180,
+      "counter_69_original": 254,
+      "counter_69_native": 254
+    },
+    "result_relative": 5163,
+    "next_bowl_result_relative": 267,
+    "earned_full_sram_pairs_equal": 11
+  },
+  "fixed_provenance": {
+    "usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "seed_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+    "input_sha256": "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52"
+  },
+  "experiments": [
+    {
+      "label": "A_same_cycle_cmp_first",
+      "source_sha": "bf5ede5453f1686f3159717166a29e6687abf14c",
+      "run": 38998740919,
+      "artifact_id": 12088856077,
+      "zip_sha256": "e14d89fffbe7551ff635dbca8ecd295f7a4e4665bc186bec8f307a1cec4dcaf6",
+      "native_elf_sha256": "afe9a9b59265d5e37d9be3336c4266b5ef41e577b141262bbe54b0b36a91008a",
+      "original_core_sha256": "bd2b68c7fd7bb26cd46ec835074e4f84a1e8b7874099767a6220644a4828370e",
+      "observed_native_post_comparator_cc_writes": 2,
+      "wram_exact_pairs": 46,
+      "wram_total_pairs": 78,
+      "first_diff_relative": 1,
+      "first_diff_address": "7E:01ED",
+      "dp_5040": {
+        "pointer_63_original": 115,
+        "pointer_63_native": 117,
+        "counter_69_original": 190,
+        "counter_69_native": 191
+      },
+      "dp_5045": {
+        "pointer_63_original": 179,
+        "pointer_63_native": 181,
+        "counter_69_original": 254,
+        "counter_69_native": 255
+      },
+      "bowl_wram_diff_byte_counts_at_266_267_280": [
+        4,
+        0,
+        4
+      ],
+      "result_relative": 5163,
+      "next_bowl_relative": 267,
+      "all_full_sram_pairs_equal": true,
+      "cold_guest_reload_match": true,
+      "admission": false
+    },
+    {
+      "label": "B_inflight_cmp_finish_first",
+      "source_sha": "72cb04870c3ac2256f4660942a6b9974f745b0ed",
+      "run": 38999611814,
+      "artifact_id": 12089225831,
+      "zip_sha256": "0393d920c74a208738b13a35aba3593c0b98968f601740d2c505c6dbd3fd7d85",
+      "native_elf_sha256": "e21875f5c05bfc9982d6823e72224ad931b3ca6b49f36eec340a746f96ab64cf",
+      "original_core_sha256": "291e93054e29086025bd8151817e872aaa985ab11a64e5b507f5bb9519de0564",
+      "observed_native_post_comparator_cc_writes": 6,
+      "observed_pre_cycle_rows": 11,
+      "wram_exact_pairs": 0,
+      "wram_total_pairs": 78,
+      "first_diff_relative": 0,
+      "first_diff_address": "7E:01D6",
+      "dp_5040": {
+        "pointer_63_original": 115,
+        "pointer_63_native": 116,
+        "counter_69_original": 190,
+        "counter_69_native": 190
+      },
+      "dp_5045": {
+        "pointer_63_original": 179,
+        "pointer_63_native": 180,
+        "counter_69_original": 254,
+        "counter_69_native": 255
+      },
+      "bowl_wram_diff_byte_counts_at_266_267_280": [
+        5,
+        1,
+        5
+      ],
+      "result_relative": 5163,
+      "next_bowl_relative": 267,
+      "all_full_sram_pairs_equal": true,
+      "cold_guest_reload_match": true,
+      "admission": false
+    }
+  ],
+  "limitations": {
+    "full_frame_instruction_clock_parity": false,
+    "shipping_windows_original_native_event_proven": false,
+    "cold_native_host_filesystem_durability_proven": false,
+    "pcm_audio_parity_proven": false,
+    "arbitrary_one_cycle_phasing_permitted": false,
+    "mask_or_exception_permitted": false,
+    "first_full_usa_event_admitted": false,
+    "release_credit": 0
+  },
+  "decision": "Reject both CPU-to-SPC IPL literal CC/FFCF postponement models; neither source-executed A/B improves all 78 WRAM pairs or downstream sound. Preserve RF-035 live sound-pointer consumer/writer investigation, no shipping patch."
+}

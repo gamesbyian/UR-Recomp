@@ -116,8 +116,17 @@ def check_original_zip(path: Path, external_sha: str, cmd_sha: str) -> dict:
         before_a = typed_sram(before["a-typed"])
         before_b = typed_sram(before["b-typed"])
         require(before_a[:16] == before["a-raw"][:16] and
-                sum(x != y for x, y in zip(before_a, before["a-raw"])) == 1,
-                "damaged selected racer A was not one-byte genuine mismatch")
+                [i for i, (x, y) in enumerate(zip(before_a, before["a-raw"]))
+                 if x != y] == [0x0711] and
+                before["a-raw"][0x0711] == before_a[0x0711] ^ 0x35,
+                "damaged selected racer A was not exact original source fixture")
+        require(before["a-typed"].count(
+                    b"profile=" + A.encode() + b"\n") == 1 and
+                before["b-typed"].count(
+                    b"profile=" + B.encode() + b"\n") == 1 and
+                third_typed.count(
+                    b"profile=" + C.encode() + b"\n") == 1,
+                "original saved typed identities do not match registered A/B/C")
         require(before_b == before["b-raw"], "target B not a healthy matched pair")
         third_typed = data["unrelated-C-original-typed.bin"]
         require(typed_sram(third_typed) == before["c-raw"],

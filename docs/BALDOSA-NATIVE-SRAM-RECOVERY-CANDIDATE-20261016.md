@@ -432,3 +432,39 @@ live native RtlWriteSram and typed CAS, partial OS write, actual full
 disk, or device power cut. These positive product-source observations
 remain distinct from independent release QA; original 19-member flat
 QA02 ZIP contract is completely unchanged.
+
+## Live Windows OS-denied typed publication after actual raw SRAM write
+
+**Candidate-bound, not accepted until this exact head's Win32 job passes.**
+The owning product adds an opt-in QA-only file gate **inside the normal
+post-RtlWriteSram callback**. The original game reaches a real paused
+frame-1952 race, writes the complete authentic 8192-byte SRAM through its
+existing raw writer and leaves the durable old/new write-ahead intent
+intact, holding the same selector/catalog/profile interprocess locks.
+Before the existing typed CAS begins, a different live Windows process
+observes the source-produced gate marker and verifies all four canonical
+files and pending-intent bytes. It then installs a genuine NTFS
+SID-specific deny-write ACL via `icacls`, confirms that Windows rejects
+a new file create, and releases the game gate. The **unchanged original
+typed CAS** must report I/O failure, leaving the raw SRAM, previous typed
+snapshot, selector, catalog and journal byte-for-byte unchanged from
+the postraw boundary. The test runner always kills its own disposable
+game process if necessary and removes the deny ACL in `finally`.
+
+After Windows access is restored, a cold original Windows process must
+reconcile the *actual guest* SRAM once from the pending exact intent;
+a second original process must reload identical raw bytes, must not
+publish another generation, and must preserve the immutable recovery
+receipt. Five four-file source stages plus two exact intent images
+(22 original binary objects) and SHA-256 receipts are exported under
+`native_real_win32_live_postraw_typed_denial/fault-bytes/`.
+There is **no second SRAM author, replay oracle, user-profile
+mutation or release-ledger edit**. The familiar independent 19-member
+flat recovery ZIP continues unchanged.
+
+This new route qualifies an **actual OS-denied typed checkpoint during
+the live native raw/typed transition** only if it passes real Windows
+execution. It does not prove real disk-full capacity exhaustion,
+partial raw writes, external power loss, physical/controller-operated
+R/T/S/Q, or independent packaged release acceptance.
+

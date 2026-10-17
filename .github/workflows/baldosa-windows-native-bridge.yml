@@ -9,6 +9,7 @@ on:
     paths:
       - ".github/workflows/baldosa-windows-native-bridge.yml"
       - "tools/baldosa_windows_native_pause_route.py"
+      - "tools/baldosa_win32_live_postraw_acl.py"
       - "tools/qa02_exact_owner_win32_seam.py"
       - "tools/qa02_original_two_profile_crash_blast.py"
       - "tests/unit/test_qa02_original_two_profile_crash_blast.py"
@@ -817,6 +818,9 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_actual_win32_prewrite_dacl_denial/*.log
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_actual_win32_prewrite_dacl_denial/refusal.json
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_actual_win32_prewrite_dacl_denial/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_win32_live_postraw_typed_denial/*.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_win32_live_postraw_typed_denial/os-denial-result.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_win32_live_postraw_typed_denial/fault-bytes/**
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_two_original_windows_games/*.log
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_two_original_windows_games/fault-bytes/**
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_three_profile_unrelated_damage/*.log

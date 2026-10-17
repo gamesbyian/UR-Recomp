@@ -40,6 +40,8 @@ extern "C" int ur_baldosa_modern_root_restore_practice_on_shutdown(void);
 #include <string_view>
 #include <utility>
 #include <system_error>
+#include <chrono>
+#include <thread>
 
 extern "C" void RtlSetSaveRoot(const char*);
 extern "C" const char* RtlSaveRoot(void);
@@ -866,6 +868,37 @@ extern "C" int ur_baldosa_modern_profile_finish_native_save(int saved) {
             "UR_BALDOSA_NATIVE_PROFILE native_save_failed\n");
         return 0;
     }
+#if defined(_WIN32)
+    // Original Windows guest OS-fault witness. Native RtlWriteSram
+    // has succeeded while the exact old/new intent and all canonical
+    // path locks remain in place. Another process installs a real NTFS
+    // denied-write ACL, then releases this file gate. The unchanged typed
+    // CAS tests the actual operating-system failure, not a fake status.
+    const char* post_raw_gate =
+        std::getenv("UR_BALDOSA_QA_POSTRAW_TYPED_DENIAL_GATE");
+    if (post_raw_gate && *post_raw_gate) {
+        const std::filesystem::path gate(post_raw_gate);
+        if (!gate.is_absolute() || std::filesystem::exists(gate))
+            return reject("qa_postraw_gate_invalid");
+        std::fprintf(stderr,
+            "UR_BALDOSA_NATIVE_PROFILE QA_POSTRAW_TYPED_GATE "
+            "native_raw_written=1 typed_not_attempted=1\n");
+        std::fflush(stderr);
+        bool release = false;
+        for (int attempt = 0; attempt < 4500; ++attempt) {
+            std::error_code ec;
+            // Some standard libraries return ENOENT for a pending gate.
+            // File absence is expected; wait until the external process
+            // has verified the actual NTFS refusal.
+            if (std::filesystem::is_regular_file(gate, ec) && !ec) {
+                release = true;
+                break;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+        if (!release) return reject("qa_postraw_gate_timeout");
+    }
+#endif
     if (!g_launch_global || !g_launch_profile ||
         g_native_user_root.empty() || !g_sram ||
         g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {

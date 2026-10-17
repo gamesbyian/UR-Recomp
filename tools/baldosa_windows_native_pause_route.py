@@ -3569,6 +3569,15 @@ def main() -> int:
     dual_game_proof = run_native_two_original_windows_games(
         exe, rom, script, root, fixture, sram_seed,
         timeout=args.timeout)
+    # The source guest's *real* raw SRAM write is complete and OS path
+    # leases remain held while an independent host applies an actual NTFS
+    # deny. The original native typed CAS must fail; cold replay follows.
+    from baldosa_win32_live_postraw_acl import (
+        run_native_win32_live_postraw_typed_denial,
+    )
+    actual_live_postraw_os_denial = run_native_win32_live_postraw_typed_denial(
+        exe, rom, script, root, fixture, sram_seed,
+        video=args.video, timeout=args.timeout)
     real_dacl_prewrite_proof = run_native_real_win32_prewrite_directory_denial(
         exe, rom, script, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)
@@ -3611,6 +3620,7 @@ def main() -> int:
         "native_real_b_crash_healthy_a_recovery": real_b_crash_healthy_a_proof,
         "native_journaled_b_recovery_then_explicit_a": journaled_b_a_proof,
         "native_actual_win32_ntfs_directory_prewrite_denial": real_dacl_prewrite_proof,
+        "native_actual_win32_live_postraw_typed_denial": actual_live_postraw_os_denial,
         "native_two_overlapping_original_games": dual_game_proof,
         "native_three_registered_unrelated_damaged_c": three_profile_proof,
         "native_paused_quit_selector_conflict": conflict_proof,

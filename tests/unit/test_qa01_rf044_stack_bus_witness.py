@@ -55,17 +55,17 @@ class FrameStack(unittest.TestCase):
     }
 """
   expect8=base8.replace(rf037.NATIVE_PTR_BYTE,
-      rf037.NATIVE_PTR_BYTE+"    ur_qa01_rf037_ptr(cpu, bank, addr, value, 1);\\n")
+      rf037.NATIVE_PTR_BYTE+"    ur_qa01_rf037_ptr(cpu, bank, addr, value, 1);\n")
   self.assertEqual(m.NATIVE_READ_8,expect8)
   base16=rf035.NATIVE_WORD.replace(
       "        return cpu_latch_read16",
-      "        ur_qa01_rf035_read(cpu, bank, addr,\\n"
-      "                            (uint16)lo | ((uint16)hi << 8), 2);\\n"
+      "        ur_qa01_rf035_read(cpu, bank, addr,\n"
+      "                            (uint16)lo | ((uint16)hi << 8), 2);\n"
       "        return cpu_latch_read16")
   expect16=base16.replace(rf037.NATIVE_PTR_WORD,
       rf037.NATIVE_PTR_WORD+
-      "        ur_qa01_rf037_ptr(cpu, bank, addr,\\n"
-      "                            (uint16)lo | ((uint16)hi << 8), 2);\\n")
+      "        ur_qa01_rf037_ptr(cpu, bank, addr,\n"
+      "                            (uint16)lo | ((uint16)hi << 8), 2);\n")
   self.assertEqual(m.NATIVE_READ_16,expect16)
  def test_reject_unrecognized_upstream_source(self):
   for fn in (m.original_getset,m.original_cpu,m.native_cpu):

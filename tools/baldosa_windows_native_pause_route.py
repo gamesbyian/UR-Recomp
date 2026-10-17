@@ -9,6 +9,7 @@ pause/resume witness. Neither touches the user's profile/save root.
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import json
 import os
@@ -1526,6 +1527,184 @@ def run_native_pause_quit(
         "event_success_synthesized": False,
     }
 
+
+
+def run_native_real_win32_prewrite_directory_denial(
+    exe: Path, rom: Path, script: Path, root: Path,
+    fixture: Path, seed: Path, *, video: str, timeout: int,
+) -> dict[str, object]:
+    """Actual Windows file system DACL denies native prewrite intent staging.
+
+    Uses a disposable CI-only profile. Unlike a synthetic denied callback,
+    icacls must actually prevent a fresh file from being created. The entire
+    DACL is restored in finally even if the source guest refuses or crashes.
+    """
+    out = root / "native_actual_win32_prewrite_dacl_denial"
+    out.mkdir(parents=True, exist_ok=False)
+    user_root = out / "Denied Real Win32 File System"
+    user_root.mkdir()
+    subprocess.run([str(fixture), str(user_root), str(seed)],
+                   cwd=out, capture_output=True,
+                   text=True, check=True, timeout=timeout)
+    profile = user_root / "saves/profile-native-ci-rider"
+    files = {
+        "raw-sram": profile / "save.srm",
+        "typed-profile": profile / "host-profile.txt",
+        "selector": user_root / "host-state-v1.txt",
+        "roster": user_root / "profiles-v1.txt",
+    }
+    before = {name: file.read_bytes() for name, file in files.items()}
+    if len(before["raw-sram"]) != 8192 or before["raw-sram"] != seed.read_bytes():
+        raise ValueError("ACL prewrite source fixture missing complete original guest SRAM")
+    config = out / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+    sid_out = subprocess.run(
+        ["whoami", "/user", "/fo", "csv", "/nh"],
+        capture_output=True, text=True, timeout=10, check=True)
+    sid_csv = list(csv.reader(sid_out.stdout.splitlines()))
+    if len(sid_csv) != 1 or not sid_csv[0] or not sid_csv[0][-1].startswith("S-1-5-"):
+        raise ValueError("Actual Windows user SID unavailable for disposable DACL test")
+    sid = sid_csv[0][-1]
+    denied = False
+    log = ""
+    rc = None
+    during = None
+    def icacls(*args: str) -> None:
+        process = subprocess.run(["icacls", str(profile), *args, "/T"],
+                                 capture_output=True, text=True, timeout=30)
+        if (process.returncode or
+            "Successfully processed" not in process.stdout):
+            raise ValueError(
+                "OS icacls " + " ".join(args[:1]) + " failed: " +
+                (process.stdout + process.stderr)[-1000:])
+    try:
+        icacls("/deny", f"*{sid}:(WD,AD,WEA,WA,DE,DC)")
+        denied = True
+        probe = profile / "_product_acl_probe_NOT_a_save.txt"
+        try:
+            with probe.open("xb") as f:
+                f.write(b"not a native game save")
+        except PermissionError:
+            if probe.exists():
+                raise ValueError("Denied Win32 probe created a forbidden file")
+        else:
+            probe.unlink(missing_ok=True)
+            raise ValueError("Actual OS DACL did not deny disposable profile write")
+        env = os.environ.copy()
+        env.update({
+            "SNESRECOMP_USER_DATA_DIR": str(user_root),
+            "UR_EXECUTION_MODE": "modern",
+            "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
+            "UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS": "1",
+            "UR_BALDOSA_MODERN_INPUT": "1",
+            "UR_BALDOSA_PAUSE_SMOKE": "1",
+            "UR_BALDOSA_PAUSE_REQUIRE_RACE": "1",
+            "UR_BALDOSA_PAUSE_SMOKE_AT_FRAME": "1952",
+            "UR_BALDOSA_PHYSICAL_PAUSE_SMOKE": "1",
+            "UR_BALDOSA_PAUSE_QUIT_SMOKE": "1",
+            "UR_BALDOSA_PAUSE_PANEL_NAV_SMOKE": "0",
+            "UR_BALDOSA_DELAYED_RESTART_SMOKE": "0",
+            "UR_BALDOSA_RESTART_SAME_FRAME_SMOKE": "0",
+            "SDL_VIDEODRIVER": video,
+            "SDL_AUDIODRIVER": "dummy",
+        })
+        proc = subprocess.run(
+            [str(exe), "--no-launcher", "--config", str(config),
+             "--script", str(script), str(rom)],
+            cwd=out, env=env, capture_output=True,
+            text=True, errors="replace", timeout=timeout)
+        rc = proc.returncode
+        log = proc.stdout + "\n" + proc.stderr
+        (out / "actual-win32-denied-save.log").write_text(log, encoding="utf-8")
+        during = {name: file.read_bytes() for name, file in files.items()}
+    finally:
+        if denied:
+            icacls("/remove:d", f"*{sid}")
+    if during is None:
+        raise ValueError("Win32 denial did not capture source canonical bytes")
+    if (log.count("UR_BALDOSA_NATIVE_PAUSE ARMED guest=1952 live_race=1") != 1 or
+        log.count("UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=native-ci-rider bytes=8192") != 1):
+        raise ValueError("Original Windows guest failed to reach actual denied save")
+    if ("native_sram_intent_not_durable" not in log and
+        "native_save_preflight_failed" not in log and
+        "save_profile_lock_unavailable" not in log):
+        raise ValueError(
+            f"Real NTFS denied write produced no source pre-raw refusal; exit={rc}")
+    pending = profile / "native-sram-checkpoint.pending"
+    if (during != before or pending.exists() or
+        list(user_root.rglob("*.urrun")) or list(user_root.rglob("*.urmatch"))):
+        raise ValueError("Real denied Win32 save mutated canonical source bytes")
+    short = out / "fresh-short.txt"
+    short.write_text("turbo on\nwait 6\nquit\n", encoding="ascii")
+    clean = env.copy()
+    clean.pop("UR_BALDOSA_PAUSE_SMOKE", None)
+    clean.pop("UR_BALDOSA_PAUSE_REQUIRE_RACE", None)
+    clean.pop("UR_BALDOSA_PAUSE_SMOKE_AT_FRAME", None)
+    clean.pop("UR_BALDOSA_PHYSICAL_PAUSE_SMOKE", None)
+    clean.pop("UR_BALDOSA_PAUSE_QUIT_SMOKE", None)
+    for i in (1, 2):
+        process = subprocess.run(
+            [str(exe), "--no-launcher", "--config", str(config),
+             "--script", str(short), str(rom)],
+            cwd=out, env=clean, capture_output=True,
+            text=True, errors="replace", timeout=timeout)
+        fresh = process.stdout + "\n" + process.stderr
+        (out / f"cold-boot-{i}.log").write_text(fresh, encoding="utf-8")
+        if process.returncode or "UR_BALDOSA_NATIVE_PROFILE REJECTED" in fresh:
+            raise ValueError("Restored NTFS DACL prevented subsequent native boot")
+        verify_named_profile_boot_bytes(fresh, before["raw-sram"])
+        if (any(path.read_bytes() != before[label] for label, path in files.items())
+            or pending.exists()):
+            raise ValueError("Post-DACL original cold guest changed committed save")
+    evidence = out / "fault-bytes"
+    evidence.mkdir()
+    measurements = {}
+    for label, file in files.items():
+        for stage, source in (
+            ("before", before), ("denied", during),
+        ):
+            data = source[label]
+            name = f"{label}.{stage}.bin"
+            (evidence / name).write_bytes(data)
+            measurements[name] = {
+                "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data),
+            }
+        name = f"{label}.second-cold.bin"
+        data = file.read_bytes()
+        (evidence / name).write_bytes(data)
+        measurements[name] = {
+            "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data),
+        }
+    if len(measurements) != 12:
+        raise ValueError("Win32 DACL witness lacks complete canonical evidence")
+    (evidence / "file-receipt.json").write_text(
+        json.dumps(measurements, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8")
+    (out / "refusal.json").write_text(
+        json.dumps({
+            "schema": "ur-baldosa-source-real-win32-prewrite-ntfs-dacl/1",
+            "actual_os_write_denied": True,
+            "write_access_restored_before_cold_boots": True,
+            "source_guest_frame": 1952,
+            "native_exit_code": rc,
+            "raw_guest_save_write_attempted": False,
+            "canonical_state_unchanged": True,
+            "second_boot_source_exact": True,
+            "real_disk_full_or_power_loss": False,
+            "post_raw_write_acl_denial": False,
+            "physical_operator_accepted": False,
+            "qa_gate_credit": 0,
+        }, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return {
+        "actual_windows_directory_dacl_write_denied": True,
+        "original_game_rejected_before_raw_overwrite": True,
+        "all_four_canonical_files_unchanged": True,
+        "dacl_restored_in_finally": True,
+        "two_source_original_guest_cold_boots_after_restoration": True,
+        "real_post_raw_denial": False,
+        "real_disk_full_power_loss": False,
+        "release_gate_credit": 0,
+    }
 
 
 def run_native_journaled_b_crash_then_a_isolation(
@@ -3108,6 +3287,9 @@ def main() -> int:
     three_profile_proof = run_native_three_profile_unrelated_damage(
         exe, rom, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)
+    real_dacl_prewrite_proof = run_native_real_win32_prewrite_directory_denial(
+        exe, rom, script, root, fixture, sram_seed,
+        video=args.video, timeout=args.timeout)
     journaled_b_a_proof = run_native_journaled_b_crash_then_a_isolation(
         exe, rom, script, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)
@@ -3146,6 +3328,7 @@ def main() -> int:
         "native_healthy_alternate_after_damaged_p1": healthy_alternate_proof,
         "native_real_b_crash_healthy_a_recovery": real_b_crash_healthy_a_proof,
         "native_journaled_b_recovery_then_explicit_a": journaled_b_a_proof,
+        "native_actual_win32_ntfs_directory_prewrite_denial": real_dacl_prewrite_proof,
         "native_three_registered_unrelated_damaged_c": three_profile_proof,
         "native_paused_quit_selector_conflict": conflict_proof,
         "modern_root_race_entry_p1": race_p1_proof,

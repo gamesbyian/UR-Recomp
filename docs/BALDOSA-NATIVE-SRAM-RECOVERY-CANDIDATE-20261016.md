@@ -356,3 +356,21 @@ copies, with SHA256/length receipts and every actual Windows process log.
 Source guest test, not actual power-cut/OS partial I/O, physical R/T/S/Q,
 or independent release QA credit. The preceding unjournaled B→A witness
 remains a separate, directly historical-comparable positive subtest.
+
+## F4 actual Windows directory DACL denial before the raw writer
+
+Unlike synthetic 513-byte input corruption, a separate product-only hosted
+Windows test uses Windows `whoami /user` to select the **actual runner
+security SID**, then `icacls /deny` on a disposable native profile folder
+and its files. A fresh exclusive-create write attempt in this very process
+**must fail with Win32 PermissionError** before the game starts. The
+original named native executable then reaches a genuine frame-1952
+paused save attempt while the directory is denied; the prewrite intent
+cannot be staged and the raw writer must be refused. The harness
+always removes the temporary denial in a `finally` block, retains
+the complete canonical raw/typed/selector/roster bytes at before,
+denied and second-cold stages (12 exact binaries + SHA receipts), and
+requires two source guest cold boots after restoring access. This is
+an **actual OS DACL-denied prewrite file operation**, not a denied
+post-raw typed publication, disk-full or power-cut witness; it
+does not assert a human-visible error dialog or release QA credit.

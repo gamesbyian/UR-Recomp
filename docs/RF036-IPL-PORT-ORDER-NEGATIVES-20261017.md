@@ -26,7 +26,7 @@ Both interventions are **real**, not just fixture-compiled. A's guest replay log
 
 Original/native post-result positive SRAM agreement and fresh-process guest record reloading do not waive **any** unmasked gameplay/stack/sound differences. A adds transfer counter errors and loses five exact checkpoints; B loses all exact checkpoints and pollutes the first race frame and Bowl entry. Both are conclusively worse than the untouched research baseline; they are **falsified as shipping corrections**. The speculative draft [#1747](https://github.com/gamesbyian/UR-Recomp/pull/1747) was closed *unmerged*; all temporary one-shot push triggers have been removed, and the shared QA workflow was restored byte-for-byte. No patch landed in Windows source, Modern, graphics or the independent release ledger.
 
-## Next justified causal experiment, not another global phase tweak
+## Next justified RF-037 causal experiment, not another global phase tweak
 
 The live RF-035 sound observer, source run [38999341435](https://github.com/gamesbyian/UR-Recomp/actions/runs/38999341435) and ongoing source-only [#1749](https://github.com/gamesbyian/UR-Recomp/pull/1749), directly witnesses real original `82:82F0/82F2/82F6/8301` upload instructions and native `Snd_IncDataPtr_M1X0` / `Snd_UploadBlock_80D1_M1X0` readers. Its 51/78 sampled full-WRAM equality and +5040/+5045 one-byte pointer residual are unchanged. However its first 1,024 original opcode records are all exhausted inside one core frame, and native 4,096 helper records truncate by host 6058, preventing a full +5045 bus-transaction conclusion.
 

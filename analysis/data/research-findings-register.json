@@ -900,8 +900,40 @@
       ],
       "observation": "Executed original bank 82 sound LDA [$63],Y, STA $2143, STA $2142 and CMP $2142 110/110/110/694 times in bounded ICPU.Frame=6072. Executed native WRAM bus-helper sound-pointer consumers in Snd_SeekDataBlock, Snd_UploadBlock and Snd_IncDataPtr scopes. Native frame6056 last $63 word read C773 in Snd_IncDataPtr; native frame6057 first $63 read C774 in Snd_UploadBlock_80D1. Low byte 74 matches native +5040 sample while original +5040 remains 73. Both real observer logs reached explicit truncation (original 1024, native 4096) before completing both +5040 and +5045 original/native port transactions. Exact original/native 78/78 full-WRAM hashes are invariant against RF034 baseline, true Zoo result +5163 and Bowl +267, 11/11 complete earned SRAM images and 51/78 unmasked pair exact with 92 residual bytes remain unchanged.",
       "uncertainty": "Original internal ICPU.Frame not proven synchronized to native host frame. Native +5045 frame6062 falls after reader-log truncation, original sound opcode trace truncates in internal frame6072, and native direct AOT-memory reads may escape helper instrumentation. No original/native 2142/2143 publish/read chain is independently aligned at both boundaries; DSP PCM and exact Windows full-event equivalence unproven.",
-      "resolving_experiment": "RF036: replace per-opcode/read flood with bounded per-frame first/last/count/rolling event digests in two critical +5040/+5045 windows, independently calibrate original ICPU.Frame to host script, and trace real original/native CPU $2142/$2143 writes plus SPC consumer value alongside actual $63 reads. Only then source-constrained A/B a minimal correction, checking all 78 full WRAM and 13 contiguous DP checkpoints, 11 entire earned SRAM, real Zoo +5163/Bowl +267/cold restart, negative 2P and exact Windows source.",
+      "resolving_experiment": "RF037: replace per-opcode/read flood with bounded per-frame first/last/count/rolling event digests in two critical +5040/+5045 windows, independently calibrate original ICPU.Frame to host script, and trace real original/native CPU $2142/$2143 writes plus SPC consumer value alongside actual $63 reads. Only then source-constrained A/B a minimal correction, checking all 78 full WRAM and 13 contiguous DP checkpoints, 11 entire earned SRAM, real Zoo +5163/Bowl +267/cold restart, negative 2P and exact Windows source.",
       "consequence": "Retain RF035 full executed original/native SHA-bound liveness witness, preserve RF018/029/031 negative A/B evidence and source #1744 Windows identity. No timing patch or controller rephase, no masked WRAM, no independent release ledger edits and USA accepted 0/45."
+    },
+    {
+      "id": "RF-036",
+      "title": "Source-executed original/native Zoo IPL CMP-before-CPU-$2140=CC visibility treatments worsen exact WRAM and sound parity despite genuine result, Bowl and earned cold SRAM",
+      "class": "method_hazard",
+      "status": "resolved",
+      "evidence": "original_and_native",
+      "owner_lane": "qa01-gameplay",
+      "reproducer": {
+        "command": "Inspect immutable genuine USA Zoo runs 38998740919 (actual CMP same-last-bus-cycle CC publication, SHA bf5ede5453f1686f3159717166a29e6687abf14c, case ZIP e14d89fffbe7551ff635dbca8ecd295f7a4e4665bc186bec8f307a1cec4dcaf6) and 38999611814 (CPU CC held through in-flight CMP completion, SHA 72cb04870c3ac2256f4660942a6b9974f745b0ed, case ZIP 0393d920c74a208738b13a35aba3593c0b98968f601740d2c505c6dbd3fd7d85), compare against RF034 run 38981131474. Independently inspect actual native QA01RF035 pre/post intervention rows in case replay/native.log (historical trace label predates RF036 numbering), all 78 paired complete 128-KiB WRAM checkpoints, 13 adjacent +5034..+5046 sound frames, 11 whole earned SRAM images and true +5163 result/+267 Bowl progression.",
+        "runs": [
+          38998740919,
+          38999611814,
+          38981131474
+        ],
+        "race_relative_lag": 0,
+        "original_and_native_entry_hosts": [
+          1017,
+          1017
+        ]
+      },
+      "source_artifacts": [
+        "analysis/data/rf036-executed-ipl-boundary-negative-20261017.json",
+        "docs/RF036-IPL-PORT-ORDER-NEGATIVES-20261017.md",
+        "run 38998740919 case artifact 12088856077 ZIP sha256 e14d89fffbe7551ff635dbca8ecd295f7a4e4665bc186bec8f307a1cec4dcaf6 native ELF afe9a9b59265d5e37d9be3336c4266b5ef41e577b141262bbe54b0b36a91008a",
+        "run 38999611814 case artifact 12089225831 ZIP sha256 0393d920c74a208738b13a35aba3593c0b98968f601740d2c505c6dbd3fd7d85 native ELF e21875f5c05bfc9982d6823e72224ad931b3ca6b49f36eec340a746f96ab64cf"
+      ],
+      "observation": "Both source-authenticated 2014 USA original/native Zoo runs execute actual queued CPU CC publication-order changes: A two post-CMP CC writes, B six post-CMP CC writes (11 pre-cycle records). All 78 source/native unmasked 128-KiB WRAM pairs agreed 51/78 under RF034 untouched control, only 46/78 under A and 0/78 under B. A added +5040/+5045 transfer counter and larger pointer errors. B produced first unmasked difference at Zoo +0 (7E:01D6), extra sound counter discrepancy +5045 and low-stack WRAM differences even at Bowl entry +267. Both retained genuine result +5163, Bowl +267, eleven full earned SRAM handoff pairs and original/native guest cold 2510-centisecond record reload; these positives do not prove logic parity or waive any divergent bytes.",
+      "uncertainty": "Experiments falsify the literal IPL comparator-order special cases as source-faithful repairs but do not prove that no general clock/debt/instruction-boundary model can succeed. At +5040/+5045 actual original/native sound pointer reads and $2142/$2143 writer/recipient chains are not yet fully paired; native direct AOT loads may bypass WRAM helpers. No Windows shipping exact full-event or physical OS power-loss evidence.",
+      "resolving_experiment": "RF036 phase-special-case research resolved negatively. RF037: independently calibrate source host to original internal CPU/SPC frames, record bounded first/last/per-frame sound pointer $63/$64/$65/$69 consumptions and actual $2142/$2143 CPU publish/SPC port read/echo at +5040 and +5045. Accept a candidate fix only after 78 full unmasked WRAM, 13 contiguous sound, 11 whole SRAM, +5163 Zoo, +267 Bowl, cold record, true logic ticks, Windows source and negative 2P/attract controls. No more blind IPL phase changes or masks.",
+      "consequence": "Close speculative PR #1747 without merge, preserve actual A/B artifacts and RF035 consumer evidence from #1749, keep permanent one-shot Actions triggers removed, no CPU/SPC shipping patch, no QA-01/07 event credit and no independent release ledger edits.",
+      "resolution": "Both real source-run A/B hypotheses conclusively regress 51/78 exact WRAM samples to 46/78 and 0/78; genuine native intervention observed in replay logs. Two immutable artifacts independently rehashed. Windows candidate unaltered. Accepted complete USA events 0/45."
     }
   ]
 }

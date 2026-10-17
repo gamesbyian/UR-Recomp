@@ -5,7 +5,8 @@
 param(
   [ValidateRange(96,256)][int]$MaximumMegabytes = 128,
   [ValidatePattern('^[A-Z]$')][string]$DriveLetter = 'W',
-  [Parameter(Mandatory=$true)][string]$Output
+  [Parameter(Mandatory=$true)][string]$Output,
+  [string]$ProductHook = ''
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -23,6 +24,17 @@ $diskpartScript = Join-Path $root 'diskpart.txt'
 $attached = $false
 $filled = $false
 $total = [long]0
+if ($ProductHook -and (-not (Test-Path -LiteralPath $ProductHook -PathType Leaf))) {
+  throw 'FAIL_CLOSED: optional independent game callback missing'
+}
+function Invoke-OnlyQAHook([string]$stage) {
+  if ($ProductHook) {
+    $receiptDir = Join-Path $env:RUNNER_TEMP 'qa02-game-on-real-full-volume'
+    New-Item -ItemType Directory -Path $receiptDir -Force | Out-Null
+    & $ProductHook -Stage $stage -VolumeRoot $drive -ReceiptRoot $receiptDir
+    if (-not $?) { throw ("FAIL_CLOSED: original game QA hook stage failed: " + $stage) }
+  }
+}
 
 function Invoke-OnlyThisVHD([string[]]$instructions) {
   [IO.File]::WriteAllLines($diskpartScript, $instructions, [Text.Encoding]::ASCII)
@@ -62,6 +74,7 @@ try {
   }
   [IO.File]::WriteAllBytes($incumbent, $saved)
   $incumbentSHA = (Get-FileHash -LiteralPath $incumbent -Algorithm SHA256).Hash.ToLowerInvariant()
+  Invoke-OnlyQAHook 'baseline'
 
   $filler = Join-Path $drive 'filler.bin'
   $stream = [IO.FileStream]::new(
@@ -134,6 +147,7 @@ try {
   if ((Get-FileHash -LiteralPath $incumbent -Algorithm SHA256).Hash.ToLowerInvariant() -ne $incumbentSHA) {
     throw 'FAIL_CLOSED: original incumbent changed during actual disk-full'
   }
+  Invoke-OnlyQAHook 'full'
   Remove-Item -LiteralPath $filler -Force
   Remove-Item -LiteralPath $next -Force -ErrorAction SilentlyContinue
   [IO.File]::WriteAllBytes($next, (New-Object byte[] 8192))
@@ -141,6 +155,7 @@ try {
       (Get-FileHash -LiteralPath $incumbent -Algorithm SHA256).Hash.ToLowerInvariant() -ne $incumbentSHA) {
     throw 'FAIL_CLOSED: restoration lost verified previous or new data'
   }
+  Invoke-OnlyQAHook 'restored'
   $report = [ordered]@{
     schema = 'UR-QA02-REAL-WIN32-ISOLATED-NTFS-DISKFULL-PREFLIGHT/1'
     source_revision = $env:GITHUB_SHA
@@ -153,8 +168,11 @@ try {
     accepted_filler_bytes = $total
     capacity_megabytes = $MaximumMegabytes
     checker_sha256 = (Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash.ToLowerInvariant()
-    native_game_tested = $false
-    user_ROM_or_player_data_used = $false
+    native_game_tested = [bool]$ProductHook
+    native_game_receipt_is_independent_stage_file = [bool]$ProductHook
+    game_ROM_used_in_ephemeral_runner = [bool]$ProductHook
+    user_ROM_or_player_data_used = [bool]$ProductHook
+    private_player_save_uploaded = $false
     power_loss_or_partial_IO_tested = $false
     physical_operator = $false
     release_gate_credit = 0

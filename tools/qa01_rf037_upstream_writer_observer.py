@@ -21,18 +21,21 @@ NATIVE_CPU = Path("snesrecomp/runner/src/cpu_state.c")
 OLD_ORIG = rf037.ORIGINAL_APU_EXTRA
 NEW_ORIG = r"""    /* UR_QA01_RF037_UPSTREAM_WRITER: original 2142/2143, full frame. */
     if ((port & 3) >= 2 && getenv("UR_QA01_RF037_SOUND_BUS")) {
-        const unsigned ur_f = (unsigned)ICPU.Frame;
-        if (ur_f >= 6070u && ur_f <= 6081u) {
-            static unsigned ur_last_frame = 0xffffffffu, ur_rows;
-            if (ur_last_frame != ur_f) { ur_last_frame = ur_f; ur_rows = 0; }
+        const uint64_t ur_age = SNES::ur_qa01_rf030_spc_age;
+        if (ur_age >= 103300000ull && ur_age <= 104200000ull) {
+            /* apu.cpp cannot legally access cpuexec.cpp's ICPU singleton.
+             * Partition by observed native-independent SPC age instead. */
+            const unsigned ur_bucket = (unsigned)((ur_age - 103300000ull) / 16000ull);
+            static unsigned ur_last_bucket = 0xffffffffu, ur_rows;
+            if (ur_last_bucket != ur_bucket) { ur_last_bucket = ur_bucket; ur_rows = 0; }
             if (ur_rows++ < 8000u)
                 fprintf(stderr,
-                  "QA01RF037ORIGCPU2 frame=%u age=%llu v=%u h=%d port=%u val=%02X\n",
-                  ur_f, (unsigned long long)SNES::ur_qa01_rf030_spc_age,
+                  "QA01RF037ORIGCPU2 bucket=%u age=%llu v=%u h=%d port=%u val=%02X\n",
+                  ur_bucket, (unsigned long long)ur_age,
                   (unsigned)::CPU.V_Counter, (int)::CPU.Cycles,
                   (unsigned)(port & 3), (unsigned)byte);
             else if (ur_rows == 8001u)
-                fprintf(stderr, "QA01RF037ORIGCPU2_TRUNCATED frame=%u\n", ur_f);
+                fprintf(stderr, "QA01RF037ORIGCPU2_TRUNCATED bucket=%u\n", ur_bucket);
         }
     }
 """

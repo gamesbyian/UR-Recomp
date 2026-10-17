@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 from collections import defaultdict
 from fractions import Fraction
+from itertools import groupby
 import hashlib
 import json
 from pathlib import Path
@@ -49,6 +50,7 @@ def crosswalk(original: list[dict], native: list[dict],
     anchor_master = int(native[0]["master"])
     frame_residuals = defaultdict(list)
     frame_ports = defaultdict(lambda: defaultdict(list))
+    residual_by_ordinal = []
     last_native_master = anchor_master
     last_source_age = anchor_age
     for a, b in pairs:
@@ -64,6 +66,23 @@ def crosswalk(original: list[dict], native: list[dict],
         frame = int(b["frame"])
         frame_residuals[frame].append(residual)
         frame_ports[frame][int(a["port"])].append(residual)
+        residual_by_ordinal.append(residual)
+    native_scope_segments = []
+    for scope, members in groupby(enumerate(pairs),
+            key=lambda x: x[1][1].get("scope", "unknown-native-scope")):
+        indexed = list(members)
+        first_index, last_index = indexed[0][0], indexed[-1][0]
+        native_scope_segments.append({
+            "scope": scope,
+            "first_ordinal": first_index,
+            "last_ordinal": last_index,
+            "matched_writes": len(indexed),
+            "source_age_first_last": [int(source[first_index]["age"]),
+                                      int(source[last_index]["age"])],
+            "native_frame_first_last": [int(native[first_index]["frame"]),
+                                        int(native[last_index]["frame"])],
+            "projected_residual": stats(residual_by_ordinal[first_index:last_index+1]),
+        })
     return {
         "schema": "rf037-writer-clock-crosswalk-v1",
         "original_port_publications": len(source),
@@ -74,6 +93,7 @@ def crosswalk(original: list[dict], native: list[dict],
             SPC_PER_MASTER.numerator, SPC_PER_MASTER.denominator],
         "first_original_source_spc_age": anchor_age,
         "first_native_cpu_master": anchor_master,
+        "contiguous_native_writer_scope_segments": native_scope_segments,
         "native_frames": {
             str(f): {**stats(vals),
                      "per_port": {

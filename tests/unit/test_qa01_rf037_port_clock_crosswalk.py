@@ -25,10 +25,15 @@ class CrosswalkTests(unittest.TestCase):
 
     def test_normalizes_only_equal_age_source_ambiguity(self):
         source, native = self.sample()
+        for i, item in enumerate(native):
+            item["scope"] = "writer-A" if i < 2 else "writer-B"
         result = m.crosswalk(source, native)
         self.assertEqual(result["matched_canonical_port_value_prefix"], 4)
         self.assertEqual(result["source_equal_age_pairs_reordered"], 1)
         self.assertEqual(result["native_frames"]["2"]["count"], 3)
+        self.assertEqual([(x["scope"], x["first_ordinal"], x["last_ordinal"])
+                          for x in result["contiguous_native_writer_scope_segments"]],
+                         [("writer-A", 0, 1), ("writer-B", 2, 3)])
         self.assertEqual(result["projection_spc_cycles_per_master_clock"],
                          [15664, 328125])
         self.assertFalse(result["qualified_claims"]["clock_fix_justified"])

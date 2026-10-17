@@ -30,6 +30,8 @@ A localized **change in the distribution** occurs *inside native host 6091*, aro
 
 `python3 tools/qa01_rf037_port_clock_crosswalk.py qa01-campaign-case-zoom-zoo.zip --json-out rf037-clock-crosswalk.json`
 
+**Executed native writer-scope crosswalk:** The source-matched native sequence gives a sharper transition than the frame median alone. Ordinal **24,385** is the last `Snd_UploadBlockList_82EF_M1X0` port2 value in its prior long span; ordinals **24,386–24,387** are the two real `Snd_SendByteWait_M1X0` writes. At **24,388** native execution enters `Snd_UploadBlockList_82B4_M1X0` (original matched source age `103919447`, value `E2` on port3). Its 540-writing contiguous segment has a projected residual median **+21.30**, versus **+14.16** over the preceding 11,235-write `82EF` span. On native host **6092**, the writer returns to the **same** `82EF` scope for 1,035 writes, median **+21.34**, demonstrating that the projection change is not merely the name or port composition of the `82B4` segment. These are actual native AOT scope labels and a matching source payload ordinal, *not* proof of the original opcode caller or source SPC read causality. The analyzer now exposes **every contiguous native writer-scope segment** with its ordinals, source ages, frames and residual distribution, enabling reproducible source-specific narrowing.
+
 **This is not yet a demonstrated cycle error or an identified writer.** A CPU code-path change, original APU execution debt, source-age quantization, native host timing, and actual SPC recipient timing remain competing explanations. Do **not** insert a seven-cycle shift, reschedule the queue, or infer that an SPC instruction reads the same value solely from matched CPU publications.
 
 ## Decision-changing next measurement

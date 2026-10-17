@@ -1,0 +1,28 @@
+# TEMPORARY source-only replay trigger; remove after queueing.
+name: RF035 Original Native Late-Zoo Sound Consumers Retest
+on:
+  push:
+    branches:
+      - research/rf035-executed-sound-consumer-20261016
+permissions:
+  contents: read
+concurrency:
+  group: rf035-zoo-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  source-sound-consumer:
+    uses: ./.github/workflows/qa01-event-campaign.yml
+    with:
+      selected: zoom-zoo
+      zoo_race_mesh: true
+      zoo_dp_window: true
+      zoo_terminal_phase: true
+      source_followthrough: true
+      zoo_next_bowl: true
+      baldosa_refresh_beam_rate: true
+      baldosa_io_clock_order: true
+      baldosa_spc_reference_rate: true
+      baldosa_dp_pointer_once: true
+      baldosa_hdma_cpu_stall: true
+      baldosa_spc_interrupt_stage: true
+      qa01_rf034_spc_boundary: true

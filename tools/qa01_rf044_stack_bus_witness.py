@@ -72,18 +72,27 @@ NMI_NEW=r"""                /* UR_QA01_RF044_STACK_BUS: real non-opcode NMI entr
                        (unsigned)Memory.RAM[0x01ef],(unsigned)Memory.RAM[0x01f0],
                        (unsigned)Memory.RAM[0x01f1]);"""
 
-NATIVE_READ_8="    if (off >= 0) return cpu_latch_read8(cpu, cpu->ram[off]);\n"
-NATIVE_READ_8_NEW="""    if (off >= 0) {
-        ur_rf044_native_read(cpu,bank,addr,cpu->ram[off],1);
-        return cpu_latch_read8(cpu,cpu->ram[off]);
+# RF035 is an earlier mandatory observer in the genuine Zoo campaign.
+# Preserve its existing source-qualified read calls exactly once.
+NATIVE_READ_8="""    if (off >= 0) {
+        uint8 value = cpu->ram[off];
+        ur_qa01_rf035_read(cpu, bank, addr, value, 1);
+        return cpu_latch_read8(cpu, value);
     }
 """
-NATIVE_READ_16="""        return cpu_latch_read16(cpu, (uint16)lo | ((uint16)hi << 8));
-"""
-NATIVE_READ_16_NEW="""        ur_rf044_native_read(cpu,bank,addr,
-                            (uint16)lo | ((uint16)hi << 8),2);
+NATIVE_READ_8_NEW=NATIVE_READ_8.replace(
+    "        return cpu_latch_read8",
+    "        ur_rf044_native_read(cpu,bank,addr,value,1);\n"
+    "        return cpu_latch_read8",1)
+NATIVE_READ_16="""        ur_qa01_rf035_read(cpu, bank, addr,
+                            (uint16)lo | ((uint16)hi << 8), 2);
         return cpu_latch_read16(cpu, (uint16)lo | ((uint16)hi << 8));
 """
+NATIVE_READ_16_NEW=NATIVE_READ_16.replace(
+    "        return cpu_latch_read16",
+    "        ur_rf044_native_read(cpu,bank,addr,\n"
+    "                            (uint16)lo | ((uint16)hi << 8),2);\n"
+    "        return cpu_latch_read16",1)
 NATIVE_WRITER_END="""    fputc('\\n', g_wlog_addr_fp);
     if (g_wlog_halt_off >= 0) {
 """

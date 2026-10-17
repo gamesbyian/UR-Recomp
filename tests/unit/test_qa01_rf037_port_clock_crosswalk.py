@@ -46,10 +46,18 @@ class CrosswalkTests(unittest.TestCase):
             m.crosswalk(source, native[:-1])
         with self.assertRaisesRegex(ValueError, "truncated"):
             m.crosswalk(source, native, [{"frame": "2"}])
+        with self.assertRaisesRegex(ValueError, "source port capture truncated"):
+            m.crosswalk(source, native, None, [{"bucket": "1"}])
 
     def test_nonmonotone_native_clock_fails(self):
         source, native = self.sample()
         native[3]["master"] = "3099"
+        with self.assertRaisesRegex(ValueError, "not monotone"):
+            m.crosswalk(source, native)
+
+    def test_source_spc_age_reversal_fails(self):
+        source, native = self.sample()
+        source[-1]["age"] = "199"
         with self.assertRaisesRegex(ValueError, "not monotone"):
             m.crosswalk(source, native)
 

@@ -30,9 +30,12 @@ def stats(values):
 
 
 def crosswalk(original: list[dict], native: list[dict],
-              truncated: list[dict] | None = None) -> dict:
+              truncated: list[dict] | None = None,
+              source_truncated: list[dict] | None = None) -> dict:
     if truncated:
         raise ValueError("native upstream capture truncated")
+    if source_truncated:
+        raise ValueError("original source port capture truncated")
     if not original or len(native) < len(original):
         raise ValueError("missing native port publication or unbalanced capture")
     canonical = canonical_original_equal_age_pairs(original)
@@ -47,7 +50,11 @@ def crosswalk(original: list[dict], native: list[dict],
     frame_residuals = defaultdict(list)
     frame_ports = defaultdict(lambda: defaultdict(list))
     last_native_master = anchor_master
+    last_source_age = anchor_age
     for a, b in pairs:
+        if int(a["age"]) < last_source_age:
+            raise ValueError("original source SPC ages not monotone")
+        last_source_age = int(a["age"])
         master = int(b["master"])
         if master < last_native_master:
             raise ValueError("native master clock is not monotone")
@@ -87,16 +94,19 @@ def crosswalk(original: list[dict], native: list[dict],
 
 def report(case_zip: Path) -> dict:
     with zipfile.ZipFile(case_zip) as z:
-        original = [
-            f for tag, f in logs(z, ORIGINAL_LOG)
-            if tag == "QA01RF037ORIGCPU2"]
+        original, source_trunc = [], []
+        for tag, f in logs(z, ORIGINAL_LOG):
+            if tag == "QA01RF037ORIGCPU2":
+                original.append(f)
+            elif tag == "QA01RF037ORIGCPU2_TRUNCATED":
+                source_trunc.append(f)
         native, trunc = [], []
         for tag, f in logs(z, NATIVE_LOG):
             if tag == "QA01RF037NATIVEUP" and f.get("kind") == "rtl-apu-enter":
                 native.append(f)
             elif tag == "QA01RF037NATIVEUP_TRUNCATED":
                 trunc.append(f)
-        out = crosswalk(original, native, trunc)
+        out = crosswalk(original, native, trunc, source_trunc)
     out["case_zip_sha256"] = hashlib.sha256(case_zip.read_bytes()).hexdigest()
     out["source_artifact_case"] = case_zip.name
     return out

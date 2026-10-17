@@ -31,6 +31,10 @@ on:
       - "tests/unit/test_baldosa_uniracers_hdma_firstline_patch.py"
       - "tools/baldosa_uniracers_v0_raster_before_hdma_patch.py"
       - "tests/unit/test_baldosa_uniracers_v0_raster_before_hdma_patch.py"
+      - "tools/qa08_current_result_pixel_owner_patch.py"
+      - "tools/qa08_current_result_cgram_port_patch.py"
+      - "tools/qa08_current_result_source_witness.py"
+      - "tests/unit/test_qa08_current_result_readonly.py"
       - "tests/unit/test_baldosa_native_practice_probe.py"
       - "tests/unit/test_baldosa_native_second_racer_probe.py"
       - "tools/baldosa_native_first_racer_real_run_probe.py"
@@ -213,6 +217,7 @@ jobs:
           python tests/unit/test_assemble_baldosa_windows_candidate.py
           python tests/unit/test_baldosa_io_access_clock_order_patch.py
           python tests/unit/test_windows_rf017_source_identity.py
+          python tests/unit/test_qa08_current_result_readonly.py
           python tests/unit/test_baldosa_uniracers_hdma_firstline_patch.py
           python tests/unit/test_baldosa_uniracers_v0_raster_before_hdma_patch.py
           python tests/unit/test_bind_baldosa_candidate_receipt.py
@@ -266,6 +271,10 @@ jobs:
           python tools/baldosa_uniracers_hdma_firstline_patch.py --game baldosa --apply-candidate
           python tools/baldosa_uniracers_v0_raster_before_hdma_patch.py --game baldosa
           python tools/baldosa_uniracers_v0_raster_before_hdma_patch.py --game baldosa --apply-candidate
+          # QA-08 one-shot diagnostic ONLY: existing pixel resolver and port input;
+          # never merge this observer into player-visible release source.
+          python tools/qa08_current_result_pixel_owner_patch.py --game baldosa --apply-candidate
+          python tools/qa08_current_result_cgram_port_patch.py --game baldosa --apply-candidate
           echo "QA-08 game-only first-line + V0 PPU patches staged; results/blackout/medal, physical display and release remain unaccepted." >> "$GITHUB_STEP_SUMMARY"
           python tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_execution_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
@@ -336,6 +345,24 @@ jobs:
           PY
           echo "PASS: pinned Baldosa AOT Windows x64 with existing UR guest/input/native-pause hooks links and produces PE32+" >> "$GITHUB_STEP_SUMMARY"
           echo "NOT TESTED: Modern frontend, runtime interaction, package, per-profile SRAM, Records, replay, ghosts, or complete event." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Capture bounded same-source RF-017 medal, OAM and CGRAM winners
+        run: |
+          set -euo pipefail
+          python tools/qa08_current_result_source_witness.py \
+            --exe baldosa/build-ur-win/UniracersSNESRecomp.exe \
+            --rom reference/roms/retail/Uniracers_USA.sfc \
+            --script reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p.txt \
+            --out "$RUNNER_TEMP/qa08-current-result-owner" --timeout 300
+          echo "QA-08 opt-in read-only source/guest receipt only; no release authority." >> "$GITHUB_STEP_SUMMARY"
+      - name: Archive bounded current-epoch medal/gray result PPU ownership
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-current-rf017-result-pixel-ownership
+          retention-days: 7
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/qa08-current-result-owner/qa08-current-result-owners.json
 
       - name: Verify Baldosa Windows PE needs only clean-machine system DLLs
         run: |

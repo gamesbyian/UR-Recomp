@@ -77,8 +77,13 @@ def audit(path: Path, original_sha: str, cmd_sha: str) -> dict:
                 report.get("schema") ==
                 "ur-win32-interactive-original-cmd-invalid-s/1" and
                 report.get("exact_original_extracted_cmd_sha256") == cmd_sha and
-                report.get("invalid_requested_profile") ==
-                "native-ci-no-such-racer" and
+                report.get("invalid_requested_profile") in (
+                    "native-ci-no-such-racer", "native-ci-second") and
+                report.get("registered_target_corrupt_sram", False) in (
+                    False, True) and
+                type(report.get("registered_target_corrupt_sram", False)) is bool and
+                (report.get("registered_target_corrupt_sram", False) is
+                 (report.get("invalid_requested_profile") == "native-ci-second")) and
                 report.get("real_win32_console_keys") ==
                 ["S", "literal target+Enter", "cold Q"] and
                 all(report.get(key) is True for key in (
@@ -90,6 +95,8 @@ def audit(path: Path, original_sha: str, cmd_sha: str) -> dict:
                 type(report.get("release_gate_credit")) is int and
                 report["release_gate_credit"] == 0,
                 "original report scope, CMD provenance or choice not qualified")
+        target = report["invalid_requested_profile"]
+        registered = report.get("registered_target_corrupt_sram", False)
         receipts = report.get("source_bytes_sha256")
         require(type(receipts) is dict and
                 set(receipts) ==
@@ -126,8 +133,13 @@ def audit(path: Path, original_sha: str, cmd_sha: str) -> dict:
         typed_b = stock(get(STAGES[0], "b-typed"), "native-ci-second")
         typed_c = stock(binary["unrelated-C-original-typed.bin"],
                         "native-ci-third")
-        require(typed_b == b and typed_c == c and
+        require(typed_c == c and
                 typed_a[:16] == a[:16] and
+                (typed_b == b if not registered else
+                 (typed_b[:16] == b[:16] and
+                  [i for i, (x, y) in enumerate(zip(typed_b, b))
+                   if x != y] == [0x0699] and
+                  b[0x0699] == (typed_b[0x0699] ^ 0x52))) and
                 [i for i, (x, y) in enumerate(zip(typed_a, a))
                  if x != y] == [0x0711] and
                 a[0x0711] == (typed_a[0x0711] ^ 0x35),
@@ -159,7 +171,7 @@ def audit(path: Path, original_sha: str, cmd_sha: str) -> dict:
                 start.count("UR-BALDOSA-STARTUP-PROFILE-REJECTED:") == 1 and
                 start.count("UR-BALDOSA-RECOVERY-REFUSED:") == 1 and
                 "choice=healthy status=3" in start and
-                "next_profile=native-ci-no-such-racer completed=0" in start and
+                f"next_profile={target} completed=0" in start and
                 start.count("UR-BALDOSA-RECOVERY-COMMITTED:") == 0 and
                 "UR_BALDOSA_NATIVE_PROFILE APPLIED" not in start and
                 "first frame simulated" not in start and
@@ -177,6 +189,9 @@ def audit(path: Path, original_sha: str, cmd_sha: str) -> dict:
         "canonical_before_refused_cold_files_byte_identical": 21,
         "S_key_profile_text_and_followup_Q_console_receipts": 3,
         "invalid_target_refused_without_guest_frame": True,
+        "invalid_target_type": (
+            "registered_corrupt_raw" if registered else "unregistered_profile"),
+        "registered_corrupt_B_one_byte": registered,
         "third_typed_on_disk_absence_independently_verified": False,
         "physical_human_operator_tested": False,
         "real_storage_fault_tested_by_this_subtest": False,

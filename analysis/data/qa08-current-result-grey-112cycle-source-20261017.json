@@ -1,0 +1,83 @@
+{
+  "schema": "qa08-result-grey-phase-independent-source-20261017/1",
+  "reference": {
+    "original_emulator": "pinned 2014 Snes9x",
+    "original_bundle_artifact": 12075111053,
+    "original_bundle_sha256": "3475ee87b5b20768f9377d8d1c787927955c33ee6d4388dae008f5486a81370e",
+    "nested_original_sha256": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+    "producer_original_run": 38781958316
+  },
+  "actual_windows": {
+    "current_Rf017_firstline_V0_win32_run": 39005184516,
+    "source_artifact": 12090308473,
+    "zip_sha256": "91e0bf8f5d7b86b188526740d825af890a99b02ecc05093f9a2143fa56ce49cd",
+    "real_2p_guest_frames": 5484,
+    "controller_CRLF_sha256": "ef74ec51fa585aa76652f4a14d2727f0074434b3925522ab2607e3bd29aa0194",
+    "real_guest_CRC_sha256": "b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568"
+  },
+  "sample": {
+    "size": [
+      256,
+      224
+    ],
+    "result_frames": 91,
+    "callback_registration": "original video callback f-1 versus Windows original PPU guest f",
+    "wrong_rgb5_pixels": 599536,
+    "larger_than_one_RGB5_difference": 165366,
+    "pulse_frames": [
+      4064,
+      4176,
+      4288,
+      4400,
+      4512,
+      4624,
+      4736,
+      4848,
+      4960,
+      5072,
+      5184,
+      5296,
+      5408
+    ],
+    "pulse_large_error_pixels": 159339,
+    "other_78_large_error_pixels": 6027,
+    "large_at_pulse_matching_original_same_coord_plus32": 157027,
+    "pulse_grey_4064": {
+      "original_20_native_17": 7900,
+      "original_15_native_20": 4127
+    },
+    "diagnostic_offset_guest_fields": 32,
+    "repeated_original_equivalent_offset_guest_fields": -80
+  },
+  "scope": {
+    "original_reference_as_hardware_truth": false,
+    "frame_shift_accepted": false,
+    "CPU_CGRAM_write_cause_proven": false,
+    "recolour_or_hardware_PPU_patch_authorized": false,
+    "QA08_QA10_release_accepted": false
+  },
+  "historical_earlier_epoch_actual_CGRAM_writer_crosscheck": {
+    "receipt": "analysis/data/qa08-verified-native-CGRAM-CPU-writer-20261016.json",
+    "archive_adjudication_run": 38832857831,
+    "native_writer_guest_fields": [
+      5169,
+      5176,
+      5183,
+      5190
+    ],
+    "original_writer_fields": [
+      5171,
+      5178,
+      5157,
+      5164
+    ],
+    "four_colours_each_seven_guest_fields": true,
+    "observed_intrinsic_palette_period_fields": 28,
+    "sample_stride_guest_fields": 16,
+    "sampled_recurrence_lcm_guest_fields": 112,
+    "diagnostic_plus32_phase_modulo28": 4,
+    "earlier_native_guest_crc_sha256": "c782121bdab59790cd11ba2cb02c567adf1ca4f0a6218c75da5a896b52f04876",
+    "current_RF017_CPU_writer_epoch_independently_verified": false,
+    "CPU_or_CGRAM_causality_established_for_current_P7": false
+  }
+}

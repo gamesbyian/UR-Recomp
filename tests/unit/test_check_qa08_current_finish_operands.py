@@ -19,6 +19,22 @@ class QA08CurrentSourceTest(unittest.TestCase):
             altered["arithmetic"]["samples"][6][field]=val
             with self.subTest(field=field),self.assertRaises(ValueError):
                 verify(altered)
+    def test_adjoining_correct_and_wrong_real_finish_controls(self):
+        real=json.loads(SOURCE.read_text())
+        by_x={r["x"]:r for r in real["arithmetic"]["samples"]
+              if r["f"]==3680}
+        for x in (92,96):
+            self.assertNotEqual([v>>3 for v in by_x[x]["final"]],
+                                by_x[x]["original"])
+        for x in (93,97):
+            self.assertEqual([v>>3 for v in by_x[x]["final"]],
+                             by_x[x]["original"])
+        # An adversary may not forge an all-exact finish source pair.
+        altered=copy.deepcopy(real)
+        altered["arithmetic"]["samples"][2]["original"] = [
+            v>>3 for v in altered["arithmetic"]["samples"][2]["final"]]
+        with self.assertRaisesRegex(ValueError,"hypothesis disproved"):
+            verify(altered)
     def test_reject_forged_source_identity(self):
         x=json.loads(SOURCE.read_text())
         x["source"]["guest_crc_sha256"]="0"*64

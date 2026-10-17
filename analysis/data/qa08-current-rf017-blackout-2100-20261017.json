@@ -1,0 +1,145 @@
+{
+  "schema": "qa08-current-RF017-real-Win32-original-2100-source-boundary/1",
+  "original": {
+    "artifact": 12017762924,
+    "sha256": "8d7b3a65b8b40bb24ac39fb0b5c87c93d44cba3b6e189126f00604b5fa6818d6",
+    "source_callback_4015_black_pixels": 57344,
+    "INIDISP_snapshots": {
+      "4015": "80",
+      "4016": "80",
+      "4017": "02"
+    }
+  },
+  "native": {
+    "run": 39068738080,
+    "diagnostic_pr": 1789,
+    "head": "65c3e400229f86e7db0b7ff01069385f4e91ab99",
+    "artifact": 12114611914,
+    "archive_sha256": "bcba87f4bc6e18dfabf8c94d3d18b5766caffa7af0fb4d5fefbb5c6edd0953f5",
+    "json_sha256": "3ec0901e0bb81ae4b05bbed8cf6e30aacb54c59b92cea305c35ea9b639aa2b99",
+    "pe_sha256": "7e59ebb7b8c5694d1bf1a8baf25d598681652d3ac893cef4bd2595ddbd0ac5f5",
+    "full_guest_count": 5484,
+    "crc_sha256": "b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568",
+    "script_sha256": "ef74ec51fa585aa76652f4a14d2727f0074434b3925522ab2607e3bd29aa0194",
+    "native_guest_4016_nonblack_source_RGB5_pixels": 53667,
+    "source_writer_counts": {
+      "CPU": 7,
+      "host_raster_replay": 7
+    },
+    "INIDISP_raster_frames_at_all_lines_1_112_114": {
+      "4015": "80",
+      "4016": "02",
+      "4017": "04",
+      "4022": "0e"
+    },
+    "guest4016_true_original_PPU_pixel_samples": [
+      {
+        "xy": [
+          32,
+          32
+        ],
+        "rgb": [
+          19,
+          19,
+          19
+        ]
+      },
+      {
+        "xy": [
+          128,
+          112
+        ],
+        "rgb": [
+          9,
+          9,
+          9
+        ]
+      },
+      {
+        "xy": [
+          220,
+          200
+        ],
+        "rgb": [
+          19,
+          19,
+          19
+        ]
+      }
+    ],
+    "matching_value_write_events": [
+      {
+        "original_cpu_frame": 4017,
+        "native_cpu_frame": 4015,
+        "native_replay_frame": 4016,
+        "reg_byte": "02",
+        "original_v": 230,
+        "native_cpu_v": 230,
+        "native_replay_v": 225
+      },
+      {
+        "original_cpu_frame": 4018,
+        "native_cpu_frame": 4016,
+        "native_replay_frame": 4017,
+        "reg_byte": "04",
+        "original_v": 230,
+        "native_cpu_v": 230,
+        "native_replay_v": 225
+      },
+      {
+        "original_cpu_frame": 4019,
+        "native_cpu_frame": 4017,
+        "native_replay_frame": 4018,
+        "reg_byte": "06",
+        "original_v": 230,
+        "native_cpu_v": 230,
+        "native_replay_v": 225
+      },
+      {
+        "original_cpu_frame": 4020,
+        "native_cpu_frame": 4018,
+        "native_replay_frame": 4019,
+        "reg_byte": "08",
+        "original_v": 230,
+        "native_cpu_v": 230,
+        "native_replay_v": 225
+      },
+      {
+        "original_cpu_frame": 4021,
+        "native_cpu_frame": 4019,
+        "native_replay_frame": 4020,
+        "reg_byte": "0a",
+        "original_v": 230,
+        "native_cpu_v": 230,
+        "native_replay_v": 225
+      },
+      {
+        "original_cpu_frame": 4022,
+        "native_cpu_frame": 4020,
+        "native_replay_frame": 4021,
+        "reg_byte": "0c",
+        "original_v": 230,
+        "native_cpu_v": 230,
+        "native_replay_v": 225
+      },
+      {
+        "original_cpu_frame": 4023,
+        "native_cpu_frame": 4021,
+        "native_replay_frame": 4022,
+        "reg_byte": "0e",
+        "original_v": 231,
+        "native_cpu_v": 231,
+        "native_replay_v": 225
+      }
+    ]
+  },
+  "limits": {
+    "native_cpu_pc_or_NMI_beam_equivalent_to_original": false,
+    "current_native_ppu_wrong_byte_for_own_received_state": false,
+    "manual_frame_shift_authorized": false,
+    "black_pixel_overpaint_authorized": false,
+    "global_brightness_LUT_authorized": false,
+    "same_PE_full_263_image_parity_qualified": false,
+    "QA08_QA10_or_release_credit": false
+  }
+}

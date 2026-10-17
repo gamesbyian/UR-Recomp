@@ -1,0 +1,110 @@
+{
+  "schema": "qa08-current-RF017-unchanged-guest-2P-V0-source-A-B/1",
+  "classification": "genuine_Windows_PPU_V0_order_restores_361085_exact_source_pixels_no_regressions",
+  "release_approved": false,
+  "source_producers": {
+    "actual_original_Snes9x": {
+      "producer_run": 38781958316,
+      "preserved_archive_run": 38966089749,
+      "artifact": 12075111053,
+      "archive_sha256": "3475ee87b5b20768f9377d8d1c787927955c33ee6d4388dae008f5486a81370e",
+      "nested_original_zip_sha256": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e"
+    },
+    "firstline_only": {
+      "diagnostic_PR": 1745,
+      "run": 39004198644,
+      "artifact": 12091090244,
+      "zip_sha256": "c23a86336149084ca636ebd35a0d070f8e62cdb9b91a7f9178a90462ef3bd764",
+      "exe_sha256": "b0aba7c8c654750a929cf35a09d688d84d0b93c2d65c6fac40ac1fe8d76b934f"
+    },
+    "firstline_plus_V0": {
+      "diagnostic_PR": 1759,
+      "head": "22c81ed69e3778b2bdbbc422e5480eef7640aecb",
+      "run": 39005184516,
+      "artifact": 12090308473,
+      "zip_sha256": "91e0bf8f5d7b86b188526740d825af890a99b02ecc05093f9a2143fa56ce49cd",
+      "exe_sha256": "4fe97f22480e858f7e1cca0fbdd98e67e5204e3c2df771186448bfe06bccb89c"
+    }
+  },
+  "authentication": {
+    "same_USA_controller_long_2P_CRLF_sha256": "ef74ec51fa585aa76652f4a14d2727f0074434b3925522ab2607e3bd29aa0194",
+    "independent_complete_guest_frames": 5484,
+    "guest_Wram_CRC_sha256_identical": "b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568",
+    "original_callback_registration": "native guest f against original 2014 callback f-1",
+    "all_source_callbacks": 263,
+    "geometry": [
+      256,
+      224
+    ],
+    "pixel_format": "RGB5 only, original BGRX 6bit-green down to green5",
+    "no_shift_or_crop_or_mask": true
+  },
+  "per_scene": [
+    {
+      "scene": "countdown",
+      "frames": 46,
+      "old_exact": 22,
+      "v0_exact": 22,
+      "old_wrong": 146112,
+      "v0_wrong": 146112,
+      "pixels_fixed": 0,
+      "pixels_regressed": 0
+    },
+    {
+      "scene": "moving",
+      "frames": 101,
+      "old_exact": 101,
+      "v0_exact": 101,
+      "old_wrong": 0,
+      "v0_wrong": 0,
+      "pixels_fixed": 0,
+      "pixels_regressed": 0
+    },
+    {
+      "scene": "finish",
+      "frames": 23,
+      "old_exact": 8,
+      "v0_exact": 8,
+      "old_wrong": 451975,
+      "v0_wrong": 90890,
+      "pixels_fixed": 361085,
+      "pixels_regressed": 0,
+      "source_pixels_changed": 400974
+    },
+    {
+      "scene": "blackout",
+      "frames": 2,
+      "old_exact": 1,
+      "v0_exact": 1,
+      "old_wrong": 53667,
+      "v0_wrong": 53667,
+      "pixels_fixed": 0,
+      "pixels_regressed": 0
+    },
+    {
+      "scene": "results",
+      "frames": 91,
+      "old_exact": 0,
+      "v0_exact": 0,
+      "old_wrong": 599536,
+      "v0_wrong": 599536,
+      "pixels_fixed": 0,
+      "pixels_regressed": 0
+    }
+  ],
+  "summary": {
+    "whole_P7_frames": 263,
+    "source_pixels_compared": 15081472,
+    "old_source_wrong_RGB5": 1251290,
+    "new_source_wrong_RGB5": 890205,
+    "newly_exact_pixels": 361085,
+    "newly_wrong_pixels": 0,
+    "source_pixels_changed": 400974,
+    "old_exact_frames": 132,
+    "new_exact_frames": 132,
+    "native_4016_still_unblanked": true
+  },
+  "hardware_or_full_gameplay_parity_proven": false,
+  "physical_Windows_4K_proven_for_this_PE": false,
+  "human_HD_art_approved": false
+}

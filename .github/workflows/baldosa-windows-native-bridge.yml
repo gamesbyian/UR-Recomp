@@ -28,6 +28,8 @@ on:
       - "tools/baldosa_qa08_windows_original_capture.cpp"
       - "tools/baldosa_qa08_windows_source_capture_patch.py"
       - "tools/check_qa08_windows_source_raster.py"
+      - "tools/qa08_windows_full_twoplayer_source_coverage.py"
+      - "tests/unit/test_qa08_windows_full_twoplayer_source_coverage.py"
       - "tools/qa08_windows_full_oneplayer_source_coverage.py"
       - "tests/unit/test_qa08_windows_full_oneplayer_source_coverage.py"
       - "tests/unit/test_baldosa_qa08_windows_source_capture.py"
@@ -217,6 +219,7 @@ jobs:
           python tests/unit/test_assemble_baldosa_windows_candidate.py
           python tests/unit/test_baldosa_qa08_windows_source_capture.py
           python tests/unit/test_qa08_windows_full_oneplayer_source_coverage.py
+          python tests/unit/test_qa08_windows_full_twoplayer_source_coverage.py
           python tests/unit/test_baldosa_uniracers_hdma_firstline_patch.py
           python tests/unit/test_baldosa_io_access_clock_order_patch.py
           python tests/unit/test_windows_rf017_source_identity.py
@@ -620,6 +623,31 @@ jobs:
             ${{ runner.temp }}/QA08-Firstline-Only-Win32-1P-P7/qa08-windows-original-oneplayer-coverage.json
             ${{ runner.temp }}/QA08-Firstline-Only-Win32-1P-P7/source/*.pam
             ${{ runner.temp }}/QA08-Firstline-Only-Win32-1P-P7/baseline/log.txt
+
+      - name: Capture first-line-only 2P original source across actual result/menu
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 1745 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/qa08_windows_full_twoplayer_source_coverage.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --script "baldosa/tests/routes/race_2p.txt" \
+            --raster-only --timeout 300 \
+            --out "$RUNNER_TEMP/QA08-Firstline-Only-Win32-2P-Full"
+          echo "QA08 native 2P full-route 263 real P7 images sampled; original Snes9x result and physical QA not yet admitted." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Preserve authentic firstline-only split/result 2P P7 and strict CRC
+        if: ${{ always() && github.event_name == 'pull_request' && github.event.pull_request.number == 1745 }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-firstline-only-win32-twoplayer-fullresult-source
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/QA08-Firstline-Only-Win32-2P-Full/qa08-windows-2p-fullroute.json
+            ${{ runner.temp }}/QA08-Firstline-Only-Win32-2P-Full/source/*.pam
+            ${{ runner.temp }}/QA08-Firstline-Only-Win32-2P-Full/baseline/log.txt
 
       - name: Retain bounded parallel pilot timings without changing QA-12 artifacts
         if: ${{ always() && (github.event_name == 'pull_request' || inputs.parallel_journeys == true) }}

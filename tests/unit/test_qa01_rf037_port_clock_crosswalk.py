@@ -10,16 +10,16 @@ import qa01_rf037_port_clock_crosswalk as m
 class CrosswalkTests(unittest.TestCase):
     def sample(self):
         source = [
-            dict(age="100", port="2", val="00"),
-            dict(age="200", port="2", val="C0"),
-            dict(age="200", port="3", val="FF"),
-            dict(age="210", port="3", val="04"),
+            dict(age="100", port="2", val="00", v="116", h="100"),
+            dict(age="200", port="2", val="C0", v="116", h="356"),
+            dict(age="200", port="3", val="FF", v="116", h="356"),
+            dict(age="210", port="3", val="04", v="116", h="556"),
         ]
         native = [
-            dict(master="1000", frame="1", reg="2142", val="00"),
-            dict(master="3100", frame="2", reg="2143", val="FF"),
-            dict(master="3100", frame="2", reg="2142", val="C0"),
-            dict(master="3300", frame="2", reg="2143", val="04"),
+            dict(master="1000", frame="2", reg="2142", val="00"),
+            dict(master="1100", frame="2", reg="2143", val="FF"),
+            dict(master="1100", frame="2", reg="2142", val="C0"),
+            dict(master="1300", frame="2", reg="2143", val="04"),
         ]
         return source, native
 
@@ -36,6 +36,10 @@ class CrosswalkTests(unittest.TestCase):
                          [("writer-A", 0, 1), ("writer-B", 2, 3)])
         self.assertEqual(result["projection_spc_cycles_per_master_clock"],
                          [15664, 328125])
+        gaps = result["same_scanline_cpu_writer_gap_census"]
+        self.assertEqual(gaps["compared_consecutive_same_scanline_pairs"], 3)
+        self.assertEqual(gaps["gap_difference_histogram_master_clocks"]["156"], 1)
+        self.assertEqual(gaps["largest_absolute_gap_differences"][0]["ordinal"], 1)
         self.assertFalse(result["qualified_claims"]["clock_fix_justified"])
         self.assertEqual(result["qualified_claims"]["complete_usa_events_admitted"], 0)
 
@@ -56,7 +60,7 @@ class CrosswalkTests(unittest.TestCase):
 
     def test_nonmonotone_native_clock_fails(self):
         source, native = self.sample()
-        native[3]["master"] = "3099"
+        native[3]["master"] = "1099"
         with self.assertRaisesRegex(ValueError, "not monotone"):
             m.crosswalk(source, native)
 

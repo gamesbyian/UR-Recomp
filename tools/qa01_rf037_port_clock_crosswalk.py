@@ -7,7 +7,7 @@ SPC/master ratio is a projection, NOT a verified SPC receiver timestamp.
 """
 from __future__ import annotations
 import argparse
-from collections import defaultdict
+from collections import Counter, defaultdict
 from fractions import Fraction
 from itertools import groupby
 import hashlib
@@ -28,6 +28,48 @@ def stats(values):
             "min_spc_cycles": round(min(values), 3),
             "median_spc_cycles": round(median(values), 3),
             "max_spc_cycles": round(max(values), 3)}
+
+
+def same_scanline_writer_gap_census(pairs):
+    """Within one original V line and native host frame, compare actual
+    consecutive CPU-port *publication* gaps, not SPC recipient latency.
+    Source h and native master are both SNES master clock units here.
+    """
+    histogram = Counter()
+    examples = []
+    for ordinal in range(1, len(pairs)):
+        original_prev, native_prev = pairs[ordinal-1]
+        original_now, native_now = pairs[ordinal]
+        if (original_prev.get("v") != original_now.get("v") or
+                native_prev.get("frame") != native_now.get("frame")):
+            continue
+        if any(k not in v for v, keys in ((original_prev, ("v", "h")),
+                (original_now, ("v", "h"))) for k in keys):
+            raise ValueError("original CPU beam unavailable")
+        original_gap = int(original_now["h"]) - int(original_prev["h"])
+        native_gap = int(native_now["master"]) - int(native_prev["master"])
+        delta = original_gap - native_gap
+        histogram[delta] += 1
+        examples.append({
+            "ordinal": ordinal,
+            "original_v": int(original_now["v"]),
+            "source_h_before_after": [int(original_prev["h"]), int(original_now["h"])],
+            "native_host_frame": int(native_now["frame"]),
+            "native_master_before_after": [int(native_prev["master"]), int(native_now["master"])],
+            "source_port_value_before_after": [
+                [int(original_prev["port"]), original_prev["val"]],
+                [int(original_now["port"]), original_now["val"]]],
+            "native_source_scopes": [native_prev.get("scope"), native_now.get("scope")],
+            "original_gap_master_clocks": original_gap,
+            "native_gap_master_clocks": native_gap,
+            "original_minus_native_gap_master_clocks": delta,
+        })
+    examples.sort(key=lambda x: (-abs(x["original_minus_native_gap_master_clocks"]), x["ordinal"]))
+    return {"compared_consecutive_same_scanline_pairs": sum(histogram.values()),
+            "gap_difference_histogram_master_clocks": {
+                str(k): histogram[k] for k in sorted(histogram)},
+            "largest_absolute_gap_differences": examples[:12],
+            "exact_writer_gap_is_not_spc_receiver_or_instruction_causality": True}
 
 
 def crosswalk(original: list[dict], native: list[dict],
@@ -94,6 +136,7 @@ def crosswalk(original: list[dict], native: list[dict],
         "first_original_source_spc_age": anchor_age,
         "first_native_cpu_master": anchor_master,
         "contiguous_native_writer_scope_segments": native_scope_segments,
+        "same_scanline_cpu_writer_gap_census": same_scanline_writer_gap_census(pairs),
         "native_frames": {
             str(f): {**stats(vals),
                      "per_port": {

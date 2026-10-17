@@ -9,6 +9,9 @@ import qa01_rf035_sound_consumer_observer as rf
 
 
 class RF035ObserverTest(unittest.TestCase):
+    def test_pinned_baldosa_cpu_bridge_location(self):
+        self.assertEqual(rf.NATIVE.as_posix(), "snesrecomp/runner/src/cpu_state.c")
+
     def test_original_retains_one_real_opcode_and_is_idempotent(self):
         source = "void run() {\n" + rf.ORIG_DISPATCH + "\n}\n"
         new = rf.patch_original(source)
@@ -18,6 +21,9 @@ class RF035ObserverTest(unittest.TestCase):
         self.assertLess(new.index("const unsigned ur_rf035_pc"), new.index(rf.ORIG_DISPATCH))
         self.assertLess(new.index(rf.ORIG_DISPATCH), new.index("QA01RF035ORIG frame="))
         self.assertIn("QA01RF035ORIG_TRUNCATED", new)
+        self.assertIn("ur_rf035_bank == 0x82u", new)
+        self.assertIn("ICPU.Frame >= 6000u", new)
+        self.assertIn("dp65=%02X", new)
 
     def test_native_reads_once_and_returns_unchanged_latch_values(self):
         source = (rf.NATIVE_HEADER + "void byte(void) {\n" + rf.NATIVE_BYTE +

@@ -1,3 +1,5 @@
+> **Execution update (2026-10-16):** This file preserves the *pre-run* protocol and its original "not yet executed" statement below. RF035 has now actually been executed; see [qualified source results and RF036 next gate](RF035-EXECUTED-LIVE-SOUND-CONSUMER-20261016.md). Both capped original/native logs proved live readers but truncated before two-window causal admission. No gameplay patch or USA event credit.
+
 # RF-035: prove the sound-pointer consumer before changing SPC port ordering
 
 **Protocol prepared 2026-10-16. Not yet executed. No production timing change; USA complete-event admission remains 0/45.**

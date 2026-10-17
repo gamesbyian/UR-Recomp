@@ -14,7 +14,7 @@ from pathlib import Path
 
 MARK = "UR_QA01_RF035_SOUND_CONSUMER"
 ORIG = Path("cpuexec.cpp")
-NATIVE = Path("snesrecomp/runner/src/snes/cpu_state.c")
+NATIVE = Path("snesrecomp/runner/src/cpu_state.c")
 
 ORIG_DISPATCH = "\t\t\tRegisters.PCw++;\n\t\t\t(*Opcodes[Op].S9xOpcode)();"
 NATIVE_BYTE = "    if (off >= 0) return cpu_latch_read8(cpu, cpu->ram[off]);\n"
@@ -29,26 +29,30 @@ ORIG_BEFORE = r"""            /* UR_QA01_RF035_SOUND_CONSUMER: pre-dispatch only
             const unsigned ur_rf035_bank = (unsigned)Registers.PB;
             const unsigned ur_rf035_pc = (unsigned)Registers.PCw;
             const bool ur_rf035_sound =
-                getenv("UR_QA01_RF035_SOUND_CONSUMER") != NULL &&
-                ur_rf035_bank == 0x02u &&
+                (ur_rf035_bank == 0x02u || ur_rf035_bank == 0x82u) &&
                 (ur_rf035_pc == 0x82F0u || ur_rf035_pc == 0x82F2u ||
-                 ur_rf035_pc == 0x82F6u || ur_rf035_pc == 0x8301u);
+                 ur_rf035_pc == 0x82F6u || ur_rf035_pc == 0x8301u) &&
+                (unsigned)ICPU.Frame >= 6000u &&
+                (unsigned)ICPU.Frame <= 6150u &&
+                getenv("UR_QA01_RF035_SOUND_CONSUMER") != NULL;
             const unsigned ur_rf035_op = ur_rf035_sound ? (unsigned)Op : 0u;
             const unsigned ur_rf035_a0 = ur_rf035_sound ? (unsigned)Registers.A.W : 0u;
             const unsigned ur_rf035_y0 = ur_rf035_sound ? (unsigned)Registers.Y.W : 0u;
             const unsigned ur_rf035_dp63 = ur_rf035_sound ? (unsigned)Memory.RAM[0x63] : 0u;
             const unsigned ur_rf035_dp64 = ur_rf035_sound ? (unsigned)Memory.RAM[0x64] : 0u;
+            const unsigned ur_rf035_dp65 = ur_rf035_sound ? (unsigned)Memory.RAM[0x65] : 0u;
             const unsigned ur_rf035_dp69 = ur_rf035_sound ? (unsigned)Memory.RAM[0x69] : 0u;
 """
 ORIG_AFTER = r"""            if (ur_rf035_sound) {
                 static unsigned ur_rf035_observed;
                 if (ur_rf035_observed++ < 1024u)
                     fprintf(stderr,
-                        "QA01RF035ORIG frame=%u v=%u h=%d pc=%02X:%04X op=%02X a0=%04X a1=%04X y0=%04X dp63=%02X dp64=%02X dp69=%02X\n",
+                        "QA01RF035ORIG frame=%u v=%u h=%d pc=%02X:%04X op=%02X a0=%04X a1=%04X y0=%04X dp63=%02X dp64=%02X dp65=%02X dp69=%02X\n",
                         (unsigned)ICPU.Frame, (unsigned)CPU.V_Counter,
                         (int)CPU.Cycles, ur_rf035_bank, ur_rf035_pc,
                         ur_rf035_op, ur_rf035_a0, (unsigned)Registers.A.W,
-                        ur_rf035_y0, ur_rf035_dp63, ur_rf035_dp64, ur_rf035_dp69);
+                        ur_rf035_y0, ur_rf035_dp63, ur_rf035_dp64,
+                        ur_rf035_dp65, ur_rf035_dp69);
                 else if (ur_rf035_observed == 1025u)
                     fprintf(stderr, "QA01RF035ORIG_TRUNCATED\n");
             }

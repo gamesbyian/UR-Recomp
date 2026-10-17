@@ -1,0 +1,110 @@
+{
+  "schema": "UR-RF035-SOURCE-EXECUTED-LIVE-SOUND-CONSUMER/1",
+  "status": "actual_original_native_live_sound_readers_observed_no_complete_two_boundary_causal_proof",
+  "source": {
+    "run": 38999341435,
+    "head": "aca0b56dd8e0da49e0ad7a1136570624658edfd7",
+    "case_artifact_id": 12088353984,
+    "case_zip_sha256": "7baa5367286689718a8c32f6df22c0442ba36f226f5c2fd725ee57c2ff00e606",
+    "case_files": 15,
+    "reference_core_sha256": "cebae1d83b1c74d296f6db96d45cdbfe6f139f4415503cdff6d9bb188184008b",
+    "native_executable_sha256": "323d6e73d227586ba60dae91d45a56db08a784e2df92ba6f197e6efa9ffe785d",
+    "producer_report_sha256": "94e1214ffd8577e004812b364da6b0f405e361e58bd2b3728e32d7625d700ca6",
+    "case_result_sha256": "871d1dc15bd15701171fc88081e1e7d14a167be3c91d56cead67b608434d3d35",
+    "original_log_sha256": "2b82b4d7f52641433ce2285b156d300d44505e07623f3f7ac98eff27472a2a07",
+    "native_log_sha256": "7d7039dac7db808878d0f5e3beba5d5ef76c5a5e98952ddc56ec4d12f2cca4b1"
+  },
+  "original_inputs": {
+    "usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "seed_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+    "script_sha256": "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52",
+    "original_and_native_entry_hosts": [
+      1017,
+      1017
+    ]
+  },
+  "cross_run_control": {
+    "run": 38981131474,
+    "case_zip_sha256": "6efac6d4d1cf4f5a2b47b4b04c76d2b878a7312bc88641c2ac5e9921cb342052",
+    "full_128KiB_wram_sample_frames": 78,
+    "original_frame_hashes_equal": 78,
+    "native_frame_hashes_equal": 78,
+    "unmasked_original_native_exact_sample_frames": 51,
+    "total_original_native_differing_byte_occurrences": 92,
+    "excluded_bytes": 0,
+    "sound_dp_frame_range_inclusive": [
+      5034,
+      5046
+    ],
+    "original_source_and_both_fresh_guest_zoo_result_relative": [
+      5163,
+      5163,
+      5163
+    ],
+    "original_source_and_both_fresh_guest_next_bowl_relative": [
+      267,
+      267,
+      267
+    ],
+    "matched_8192_byte_earned_sram_images": 11,
+    "rf034_spc_boundary_report_identical_sha256": "25a6aa3f450d0df10341ef451d79410adb189dc3a031324c7b079f31c587d97e",
+    "rf033_master_clock_report_identical_sha256": "fd14d720cc16e7fc9bee8cfce0ec2eac4b47c910513645ae2f9b646ba5db62ff"
+  },
+  "observed_original_cpu_sound_opcode": {
+    "raw_rows": 1024,
+    "truncated": true,
+    "observed_internal_cpu_frame": 6072,
+    "source_bank": "82",
+    "opcode_counts": {
+      "82:82F0_lDA_indirect_long_y_B7": 110,
+      "82:82F2_STA_2143_8D": 110,
+      "82:82F6_STA_2142_8D": 110,
+      "82:8301_CMP_2142_CD": 694
+    },
+    "actual_a_and_y_pre_post_logged": true,
+    "absolute_host_alignment_to_native_not_proven": true
+  },
+  "observed_native_cpu_sound_dp_reads": {
+    "raw_rows": 4096,
+    "truncated": true,
+    "scope_has_live_consumers": true,
+    "host_frame_rows": {
+      "6055": 50,
+      "6056": 770,
+      "6057": 1894,
+      "6058": 1382
+    },
+    "frame_6056_last_0063_read": {
+      "frame": 6056,
+      "scope": "Snd_IncDataPtr_M1X0",
+      "width": 2,
+      "word_hex": "C773"
+    },
+    "frame_6057_first_0063_read": {
+      "frame": 6057,
+      "scope": "Snd_UploadBlock_80D1_M1X0",
+      "width": 2,
+      "word_hex": "C774"
+    },
+    "frame_6057_native_sample_pointer_low_hex": "74",
+    "frame_6057_original_sample_pointer_low_hex": "73",
+    "unobserved_due_to_log_cap": [
+      "complete +5040 original CPU sound opcode frame",
+      "native +5045 host frame 6062",
+      "paired sound-port publish/consume transaction"
+    ]
+  },
+  "limitations": {
+    "original_native_cpu_internal_frame_axes_globally_aligned": false,
+    "live_native_0063_consumer_observed_at_first_residual": true,
+    "source_original_executed_sound_upload_present": true,
+    "source_original_and_native_at_both_sound_residuals_fully_adjudicated": false,
+    "windows_shipping_source_complete_event_proven": false,
+    "audio_pcm_parity_proven": false,
+    "corrected_gameplay_timing_implemented": false,
+    "release_complete_event_qa_credit": 0,
+    "usa_events_accepted": 0
+  },
+  "next_experiment": "RF036: Replace high-volume per-opcode/per-bus-reader logs with bounded per-host-frame first/last/count/rolling-digest source witnesses at both +5040 and +5045. Bind actual native CPU port $2142/$2143 writes and original actual source instruction post-state to the consumed DP $63/$64 values, explicitly calibrate ICPU.Frame vs host frame, retain observed opcode phase, source original and exact Windows-native source equivalence with full 78/13/11/Zoo+Bowl and 2P/attract negative gates. Stop if native helper misses AOT direct consumer or phase mapping cannot be attested."
+}

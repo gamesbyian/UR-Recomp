@@ -120,6 +120,24 @@ try {
   $failure = [string]$_
 }
 $manifestAfter = @(Canonical-Manifest)
+$markerSet = @(
+  'UR-BALDOSA-STARTUP-SAVE-ROOT',
+  'UR-BALDOSA-STARTUP-PREFLIGHT',
+  'UR-BALDOSA-STARTUP-ROM-INVALID',
+  'UR-BALDOSA-STARTUP-ROM-MISSING',
+  'UR-BALDOSA-FIRST-RACER',
+  'UR-BALDOSA-STARTUP-PROFILE-REJECTED',
+  'UR-BALDOSA-SAVE-FAILED',
+  'UR-BALDOSA-SWITCH-FAILED',
+  'UR_BALDOSA_NATIVE_PROFILE',
+  'first frame simulated'
+)
+$visibleMarkers = @()
+if (Get-Variable visible -ErrorAction SilentlyContinue) {
+  foreach ($marker in $markerSet) {
+    if ($visible.Contains($marker)) { $visibleMarkers += $marker }
+  }
+}
 $report = [ordered]@{
   schema = 'UR-QA02-ORIGINAL-PACKAGED-GAME-REAL-NTFS-FULL/1'
   stage = $Stage
@@ -128,6 +146,8 @@ $report = [ordered]@{
   tested_CMD_SHA256 = $cmdSHA
   route_SHA256 = (Get-FileHash -LiteralPath $route -Algorithm SHA256).Hash.ToLowerInvariant()
   Windows_process_exit = $exitCode
+  original_launcher_bounded_markers = @($visibleMarkers)
+  original_canonical_file_count = @($manifestAfter).Count
   timeout = $timedOut
   canonical_receipts = @($manifestAfter)
   stdout_SHA256 = $(if (Test-Path -LiteralPath $log) { (Get-FileHash -LiteralPath $log -Algorithm SHA256).Hash.ToLowerInvariant() } else { '' })

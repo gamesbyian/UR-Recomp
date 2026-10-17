@@ -14,6 +14,10 @@ class Probe(unittest.TestCase):
         self.assertEqual(staged,p.patch(staged))
         self.assertIn("pre_main=%d,%d,%d",staged)
         self.assertIn("snes_frame_counter == 3680",staged)
+        # Full guest original PPU renders ~314M raster pixels; the observer
+        # must not run getenv on ordinary coordinates.
+        self.assertLess(staged.index('snes_frame_counter == 3680'),
+                        staged.index('getenv("UR_QA08_RF017_FINISH_OPERAND_TRACE")'))
         for bad in (raw.replace(p.MAIN,""),staged.replace(p.MARK,"WRONG"),
                     staged.replace("post_math=%d,%d,%d","bogus"),raw+raw):
             with self.subTest(preview=bad[:45]),self.assertRaises(ValueError):

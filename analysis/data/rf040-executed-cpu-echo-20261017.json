@@ -1,0 +1,165 @@
+{
+  "schema": "rf040-executed-cpu-echo-witness-20261017-v1",
+  "run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39066224227",
+  "research_one_shot_head": "f28fa3168fae39fb160910fd647050b7fa62d0cf",
+  "case_artifact_id": 12113836860,
+  "case_zip_sha256": "c7fd279d985d189ddb86d9e52aa02b99696b750aeb0bcffae08c1ee3dbe80947",
+  "case_file_count": 18,
+  "runtime_binary_identity": {
+    "original_core_sha256": "bb7a6cb4f9c0bcde773d3a4aabb55f661c1af5a4f55f95da4d6516ab665fd1f7",
+    "native_research_executable_sha256": "69cfb9fae06ce3992124858fe919561537e3f3a76dc72f0e04d92b58bf3475b0"
+  },
+  "unchanged_input_identity": {
+    "usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_2014_smv_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "expanded_controller_input_sha256": "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52",
+    "source_seed_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828"
+  },
+  "source_writer_bracket": {
+    "first": {
+      "log_index_zero_based": 67661,
+      "v": 116,
+      "h": 442,
+      "spc_age": 103919450,
+      "port": 2,
+      "value": "24"
+    },
+    "last": {
+      "log_index_zero_based": 67692,
+      "v": 116,
+      "h": 972,
+      "spc_age": 103919475,
+      "port": 3,
+      "value": "02"
+    },
+    "elapsed_master_clocks": 530
+  },
+  "native_writer_bracket": {
+    "first": {
+      "log_index_zero_based": 125016,
+      "host_frame": 6091,
+      "master": 2176886834,
+      "port": 2,
+      "value": "24"
+    },
+    "last": {
+      "log_index_zero_based": 125053,
+      "host_frame": 6091,
+      "master": 2176887208,
+      "port": 3,
+      "value": "02"
+    },
+    "elapsed_master_clocks": 374
+  },
+  "source_minus_native_writer_interval_master": 156,
+  "source_original_executed_cpu_cmp_2142": [
+    {
+      "log_index": 67665,
+      "beam_h": 508,
+      "source_spc_age": 103919454,
+      "returned": "23"
+    },
+    {
+      "log_index": 67669,
+      "beam_h": 600,
+      "source_spc_age": 103919457,
+      "returned": "23"
+    },
+    {
+      "log_index": 67672,
+      "beam_h": 652,
+      "source_spc_age": 103919461,
+      "returned": "23"
+    },
+    {
+      "log_index": 67676,
+      "beam_h": 704,
+      "source_spc_age": 103919462,
+      "returned": "23"
+    },
+    {
+      "log_index": 67680,
+      "beam_h": 756,
+      "source_spc_age": 103919465,
+      "returned": "23"
+    },
+    {
+      "log_index": 67684,
+      "beam_h": 808,
+      "source_spc_age": 103919468,
+      "returned": "24"
+    }
+  ],
+  "original_spc_output_echo": {
+    "log_index": 67683,
+    "source_spc_age": 103919466,
+    "spc_pc": "1555",
+    "port": 2,
+    "value": "24",
+    "after_last_returned_old_23": true,
+    "before_first_returned_new_24": true
+  },
+  "native_executed_cpu_read8_paced_2142": [
+    {
+      "master": 2176886940,
+      "cpu_return_log_index": 125039,
+      "native_spc_age_at_return": 103919439,
+      "raw": "23",
+      "returned": "23"
+    },
+    {
+      "master": 2176886992,
+      "cpu_return_log_index": 125042,
+      "native_spc_age_at_return": 103919442,
+      "raw": "23",
+      "returned": "23"
+    },
+    {
+      "master": 2176887044,
+      "cpu_return_log_index": 125046,
+      "native_spc_age_at_return": 103919444,
+      "raw": "24",
+      "returned": "24"
+    }
+  ],
+  "native_spc_output_echo": {
+    "log_index": 125045,
+    "native_spc_age": 103919443,
+    "spc_pc": "1555",
+    "port": 2,
+    "value": "24",
+    "after_last_returned_old_23": true,
+    "before_first_returned_new_24": true
+  },
+  "cross_run_controls": {
+    "rf039_case_zip_sha256": "4fb6ea55d20d5bdad7dc271236b8066700348bdf6c911d07097d64903305d60b",
+    "rf039_vs_rf040_all_78_raw_wram_sample_records_identical": true,
+    "rf039_vs_rf040_dense_13_sample_direct_page_window_identical": true,
+    "rf039_vs_rf040_zoo_next_bowl_handoff_identical": true,
+    "rf039_vs_rf040_source_terminal_followthrough_identical": true,
+    "entire_wram_byte_length_per_sample": 131072,
+    "sampled_pairs": 78,
+    "byte_exact_original_native_pairs": 51,
+    "unmasked_differing_byte_occurrences": 92,
+    "zero_excluded_wram_bytes": true,
+    "source_original_and_fresh_original_native_zoo_result_relative": 5163,
+    "actual_next_bowl_after_zoo_result_relative": 267,
+    "whole_earned_sram_equal_pairs": 11,
+    "source_earned_ranked_record_reloads_from_separate_fresh_guest_processes": true,
+    "cold_source_record_best_lap_centiseconds": 2510,
+    "strict_case_disposition": "strict_candidate"
+  },
+  "conclusions": {
+    "original_echo_24_actual_publication_precedes_sixth_original_cpu_return": true,
+    "native_echo_24_actual_publication_precedes_third_native_cpu_return": true,
+    "same_local_returned_byte_sequence_shape_except_extra_old_polls": true,
+    "spc_cpu_cross_emulator_absolute_epoch_calibration_proven": false,
+    "cause_of_different_cpu_poll_counts_fully_attributed": false,
+    "smallest_safe_native_runtime_correction_proven": false,
+    "source_equivalent_entire_course_execution_proven": false,
+    "windows_product_event_verification_proven": false,
+    "hard_kill_host_disk_durability_proven": false,
+    "complete_usa_events_accepted": 0
+  },
+  "next_experiment": "At original CPU port2=24 age103919450, source SPC old F6 read at same-age 103919450 then new24 at103919457 and echo at103919466, versus native scheduled port2=24 age103919298 target/apply and new F6 read both103919434 followed echo103919443, instrument atomic original SMP clock debt/opcode completion and native queue application ordering at those exact operations; no guessed 7-cycle delay or global shift. Separately trace Zoo stack 01ED–01F1 actual writers/readers/NMI."
+}

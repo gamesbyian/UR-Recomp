@@ -7,6 +7,7 @@ not a physical power cut, human input, release gate or source/PE attestation.
 from __future__ import annotations
 import argparse
 import hashlib
+import io
 import json
 import re
 import stat
@@ -137,6 +138,33 @@ def audit(archive: Path, expected_sha256: str) -> dict:
                 group, value = audit_receipt(z, name)
                 counts[group] = counts.get(group, 0) + value
         need(counts == RECEIPT_COUNTS, "original receipt groups/populations differ")
+        # Independently prove the optional flat 19-object QA consumer export
+        # reproduces exactly the full original fault archive bytes. Older
+        # export versions had 18 members or an incompatible receipt schema.
+        nested_root = "native_intent_restart_recovery/"
+        flat = z.read(nested_root + "qa02-journaled-snapshot.zip")
+        sidecar = z.read(nested_root + "qa02-journaled-snapshot.sha256")
+        need(sidecar.decode("ascii").split()[:1] == [sha(flat)],
+             "nested original QA19 sidecar SHA mismatch")
+        expected_flat = {
+            label + "." + stage + ".bin"
+            for label in LABELS for stage in ("before", "crash", "after")
+        } | {
+            "file-receipt.json", "intent-receipt.json", "intent.crash.bin",
+            "intent.recovered-receipt.bin", "cold-recovery.log", "crash.log",
+            "second-cold-recovery-boot.log",
+        }
+        with zipfile.ZipFile(io.BytesIO(flat)) as inner:
+            infos_flat = inner.infolist()
+            need(len(infos_flat) == 19 and
+                 {entry.filename for entry in infos_flat} == expected_flat and
+                 inner.testzip() is None,
+                 "optional flat QA19 original receipt shape invalid")
+            for member in expected_flat:
+                need(inner.read(member) ==
+                     z.read(nested_root + "fault-bytes/" + member),
+                     "flat QA19 differs from independently retained source " + member)
+
         def get(prefix: str, name: str) -> bytes:
             return z.read(prefix + "/fault-bytes/" + name + ".bin")
         def identical(prefix: str, labels: tuple[str, ...],
@@ -229,6 +257,7 @@ def audit(archive: Path, expected_sha256: str) -> dict:
         "source_original_actions_sha256": expected_sha256,
         "original_actions_zip_members": 306,
         "binary_original_sha_receipts_verified": sum(counts.values()),
+        "nested_QA19_identical_to_original_fault_source": True,
         "original_receipt_groups_verified": len(counts),
         "genuine_ntfs_prewrite_denial_preserved_four_canonical_files": True,
         "original_native_guest_postraw_changed_bytes": changed,

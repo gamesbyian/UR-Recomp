@@ -36,7 +36,24 @@ def occupied_bounds(im):
     from PIL import Image, ImageChops
 
     frame = im.convert("RGB")
-    background = Image.new("RGB", frame.size, frame.getpixel((0, 0)))
+    # Prove the entire four-pixel border is background BEFORE using a corner
+    # as the background key. Otherwise a model touching (0,0) can poison the
+    # key and fool a bbox-only test into admitting a cropped animation.
+    width, height = frame.size
+    pixel = frame.load()
+    background_color = pixel[0, 0]
+    corners = (pixel[0, 0], pixel[width - 1, 0],
+               pixel[0, height - 1], pixel[width - 1, height - 1])
+    if any(c != background_color for c in corners):
+        raise ValueError("different fixed-camera background corners")
+    for y in range(height):
+        for x in range(width):
+            if (x < MIN_BORDER_PIXELS or y < MIN_BORDER_PIXELS or
+                x >= width-MIN_BORDER_PIXELS or
+                y >= height-MIN_BORDER_PIXELS):
+                if pixel[x, y] != background_color:
+                    raise ValueError("model touches protected fixed-camera border")
+    background = Image.new("RGB", frame.size, background_color)
     bounds = ImageChops.difference(frame, background).getbbox()
     if bounds is None:
         raise ValueError("all-background/empty rig motion frame")

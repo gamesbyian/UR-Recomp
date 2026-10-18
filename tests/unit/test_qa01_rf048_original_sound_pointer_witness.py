@@ -31,6 +31,8 @@ class OriginalPointerWitnessTests(unittest.TestCase):
         self.assertEqual(after.count("QA01RF048ORIGPTR count="), 1)
         self.assertEqual(after.count("QA01RF048ORIGPTR_TRUNCATED"), 1)
         self.assertIn("ur_rf035_pc == 0x82F0u", after)
+        self.assertIn("rf048_target || rf048_indexed_target", after)
+        self.assertIn("indexed_target=%u", after)
         self.assertEqual(rf048.patch_original(after), after)
 
     def test_fail_closed_on_unknown_or_tampered_original_source(self):

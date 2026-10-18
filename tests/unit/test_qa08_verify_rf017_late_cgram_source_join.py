@@ -3,6 +3,8 @@ import json
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+import sys
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
 from tools.qa08_verify_rf017_late_cgram_source_join import (
     PAIRS,COLORS,rgb15_group,original_groups,verify,ORIGINAL_SHA,CURRENT_SHA)
 ROOT=Path(__file__).resolve().parents[2]

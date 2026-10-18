@@ -609,8 +609,6 @@ jobs:
             ${{ runner.temp }}/qa01-case/qa01-apu-edge-report.json
             ${{ runner.temp }}/qa01-case/producer-report.json
             ${{ runner.temp }}/qa01-case/qa01-zoo-independent-raw-audit.json
-            # Only already-produced true guest WRAM/SRAM captures. Never ROM,
-            # savestate, generated source or a fabricated reconstructed dump.
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/ref/*.wram.bin
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/ref/*.sram.bin
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/native/*.wram.bin

@@ -15,13 +15,15 @@ import subprocess
 try:
     from .render_shared_unicycle_review import (
         inspect_model, authentic_sources, open_p7, occupied_bounds,
+        SADDLE_CHOICES, FRAME_CHOICES, validate_variant,
     )
 except ImportError:
     from render_shared_unicycle_review import (
         inspect_model, authentic_sources, open_p7, occupied_bounds,
+        SADDLE_CHOICES, FRAME_CHOICES, validate_variant,
     )
 
-SPANS = (1.0, 1.4, 1.8, 2.2)
+SPANS = SADDLE_CHOICES
 CAMERA = "0,0,1.6,90,0,0,22"
 SIZE = 400
 
@@ -45,8 +47,8 @@ def preview(model: Path, out: Path, source_zip: Path | None = None,
     from PIL import Image, ImageDraw, ImageEnhance
     inspect_model(model)
     prove_parameters(model.read_text(encoding="utf-8"))
-    if frame_mass not in (1.0, 1.4, 1.8, 2.0):
-        raise ValueError("non-reviewed fork mass outside bounded visual alternatives")
+    for span in SPANS:
+        validate_variant(span, frame_mass)
     if out.exists() and any(out.iterdir()):
         raise ValueError("output directory must be new or empty")
     original = authentic_sources(source_zip) if source_zip else None
@@ -136,7 +138,7 @@ def main():
     p.add_argument("--authentic-source-zip",type=Path)
     p.add_argument("--openscad",default="openscad")
     p.add_argument("--xvfb",action="store_true")
-    p.add_argument("--frame-mass",type=float,choices=(1.0,1.4,1.8,2.0),default=1.0,
+    p.add_argument("--frame-mass",type=float,choices=FRAME_CHOICES,default=1.0,
                    help="same rig, one bounded pre-rendered frame-bulk proposal")
     a=p.parse_args()
     sheet, report=preview(a.model.resolve(),a.out.resolve(),

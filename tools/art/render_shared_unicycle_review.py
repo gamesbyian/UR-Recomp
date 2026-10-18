@@ -31,6 +31,8 @@ SOURCES = {
                             "99069e31084161f64904a5733bd275ac9933af03c8fb03df558c3b06771ec5f5"),
 }
 MIN_BORDER_PIXELS = 4  # both static and moving OpenSCAD crop checks
+SADDLE_CHOICES = (1.0, 1.4, 1.8, 2.2)
+FRAME_CHOICES = (1.0, 1.4, 1.8, 2.0)
 GEOMETRY_MODULES = ("module tire()", "module rim_and_hub()", "module saddle(",
                     "module fork_and_frame()", "module pedals(", "module rig(")
 
@@ -124,8 +126,20 @@ def occupied_bounds(im):
         raise ValueError("model clipped at fixed-camera viewport boundary")
     return [left, top, right, bottom]
 
+def validate_variant(saddle_span, frame_mass):
+    """Bounded art-authoring proposals, never inferred original 3D values."""
+    if (type(saddle_span) not in (int,float) or
+        type(frame_mass) not in (int,float) or
+        saddle_span not in SADDLE_CHOICES or
+        frame_mass not in FRAME_CHOICES):
+        raise ValueError("unreviewed art geometry outside bounded parameters")
+    return saddle_span, frame_mass
+
+
 def render(model: Path, out: Path, *, openscad: str = "openscad",
-           xvfb: bool = False, size: int = 480) -> list[dict]:
+           xvfb: bool = False, size: int = 480,
+           saddle_span: float = 1.0, frame_mass: float = 1.0) -> list[dict]:
+    validate_variant(saddle_span, frame_mass)
     from PIL import Image
     if not 128 <= size <= 1024:
         raise ValueError("unbounded review render size")
@@ -138,7 +152,9 @@ def render(model: Path, out: Path, *, openscad: str = "openscad",
                 openscad, "--hardwarnings", "-o", str(out/name),
                 f"--imgsize={size},{size}", "--projection=o",
                 "--colorscheme=Tomorrow", f"--camera={camera}",
-                "-D", f'rig_pose="{pose}"', str(model)]
+                "-D", f'rig_pose="{pose}"',
+                "-D", f"rig_saddle_span={saddle_span}",
+                "-D", f"rig_frame_mass={frame_mass}", str(model)]
             result = subprocess.run(args, text=True, capture_output=True,
                                     check=False, timeout=90)
             if result.returncode or not (out/name).is_file():
@@ -149,7 +165,9 @@ def render(model: Path, out: Path, *, openscad: str = "openscad",
                 bounds = occupied_bounds(im)
             images.append({"view": view, "pose": pose, "fixed_camera": camera,
                            "file": name, "sha256": sha((out/name).read_bytes()),
-                           "silhouette_bbox": bounds, "edge_clipped": False})
+                           "silhouette_bbox": bounds, "edge_clipped": False,
+                           "review_saddle_span": saddle_span,
+                           "review_frame_mass": frame_mass})
     return images
 
 
@@ -205,6 +223,10 @@ def main() -> None:
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--authentic-source-zip", type=Path)
     parser.add_argument("--openscad", default="openscad")
+    parser.add_argument("--saddle-span", type=float, choices=SADDLE_CHOICES,
+                        default=1.0, help="unapproved model study only")
+    parser.add_argument("--frame-mass", type=float, choices=FRAME_CHOICES,
+                        default=1.0, help="unapproved model study only")
     parser.add_argument("--xvfb", action="store_true",
                         help="launch OpenSCAD under xvfb-run -a on headless Linux")
     args = parser.parse_args()
@@ -213,7 +235,8 @@ def main() -> None:
     if args.out.exists() and any(args.out.iterdir()):
         parser.error("output directory must be empty to prevent stale pose images")
     original=authentic_sources(args.authentic_source_zip) if args.authentic_source_zip else None
-    images=render(model,args.out,openscad=args.openscad,xvfb=args.xvfb)
+    images=render(model,args.out,openscad=args.openscad,xvfb=args.xvfb,
+                  saddle_span=args.saddle_span,frame_mass=args.frame_mass)
     preview=contact(args.out,images,original)
     receipt={
         "schema":"UR-single-rig-five-pose-art-blockout/1",
@@ -223,6 +246,8 @@ def main() -> None:
         "single_canonical_model":True,"locked_camera_per_view":True,
         "all_static_source_model_frames_unclipped": True,
         "static_review_border_px": MIN_BORDER_PIXELS,
+        "review_saddle_span": args.saddle_span,
+        "review_frame_mass": args.frame_mass,
         "gameplay_normal_size_previews_px":[64,32],
         "original_native_RGB5_PPU_equivalence":False,
         "measured_original_landmark_proportions":False,

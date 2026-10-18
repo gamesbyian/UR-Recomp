@@ -1,0 +1,83 @@
+{
+  "schema": "rf055-two-genuine-USA-Zoo-SPC-receiver-stage-cadence-v1",
+  "method": "read-only independent archive analysis requiring complete original/nat true SPC PC+port+value sequence, SHA256, original/native frozen producer controls and no guest replay",
+  "baseline_rf047": {
+    "artifact_id": 12124654817,
+    "zip_sha256": "1060a98744fb770bbe43fcdddd89b352bdef691e18f1ab24d4ead5f16996bf6b"
+  },
+  "case_A": {
+    "artifact_id": 12136344183,
+    "case_sha256": "f641cc39af5d63ac9d01c47cfd35ced5162d5c789d2be3444e47bfd50db92bbb",
+    "source_sha": "1a3e5b54e41c7a042ee4316fcabefc681f216e64",
+    "zip_members": 18
+  },
+  "case_B": {
+    "artifact_id": 12137208430,
+    "case_sha256": "ec8cffa84d742656c77dea1e27e13fd8bacaf316c10ff15160235df5883f8e50",
+    "source_sha": "f127074dce686b5caffbfbf68c5cff9c64cff606",
+    "zip_members": 18
+  },
+  "two_cases_full_RF047_zoo_bowl_cold_record_and_ROM_movie_input_sram_controls_unchanged": true,
+  "whole_original_native_WRAM_mesh": {
+    "pairs": 78,
+    "exact_pairs": 51,
+    "unmasked_128KiB": true,
+    "residual_differing_byte_occurrences": 92,
+    "masked_bytes": 0
+  },
+  "complete_USA_events_accepted": 0,
+  "observations_identical_in_both_cases": {
+    "source_spc_reads": 322,
+    "native_spc_reads_in_window": 1959,
+    "unique_full_spc_PC_port_byte_contiguous_match_start_zero_based": 828,
+    "source_and_native_full_sequence_PC_port_return_value_equal": true,
+    "receiver_packet_count": 107,
+    "read_PC_sequence": [
+      "1521 F6 CPU port2",
+      "1525 F7 CPU port3",
+      "1527 F6 CPU port2"
+    ],
+    "last_extra_PC": "1521",
+    "original_read_to_next_read_local_SPC_cycle_deltas": [
+      5,
+      3,
+      18
+    ],
+    "native_read_to_next_read_local_SPC_cycle_deltas": [
+      5,
+      4,
+      17
+    ],
+    "original_one_3read_packet_duration_local_SPC_ticks": 26,
+    "native_one_3read_packet_duration_local_SPC_ticks": 26,
+    "source_minus_native_read_clock_offset_by_PC": {
+      "1521": {
+        "23": 108
+      },
+      "1525": {
+        "23": 107
+      },
+      "1527": {
+        "22": 107
+      }
+    },
+    "source_minus_native_exact_322_element_clock_offset_pattern": "(23,23,22) repeated 107 times plus 23",
+    "source_minus_native_clock_offset_changes": 214,
+    "individual_SPC_inter_read_interval_differences": [
+      0,
+      -1,
+      1
+    ],
+    "per_complete_packet_SPC_tick_difference": 0
+  },
+  "qualified_conclusions": {
+    "true_recipient_payload_and_opcode_sequence_equal_on_observed_322_reads": true,
+    "no_cumulative_local_SPC_tick_drift_over_these_107_complete_packets": true,
+    "offset_is_100percent_instructive_PC_conditional": true,
+    "source_native_CPU_or_SPC_epoch_origins_calibrated": false,
+    "receiver_spc_opcode_bus_microcycle_and_DSP_audio_pcm_equivalence_proven": false,
+    "all_intervening_unobserved_65816_CPU_simulation_states_or_45_USA_events_proven": false,
+    "any_CPU_APU_global_clock_shift_or_SPC_queue_retime_authorized": false
+  },
+  "reproduce": "python3 tools/qa01_rf055_spc_receiver_cadence.py A.zip --compare B.zip --baseline rf047_baseline.zip"
+}

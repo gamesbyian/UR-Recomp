@@ -100,6 +100,29 @@ class EventRouteArtifactsTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "controller masks"):
             route.audit(root, self.report, replay_dir=replay)
 
+    def test_source_movie_segments_fail_if_both_guest_input_files_are_forged_consistently(self):
+        source = {
+            "raw_controller_window_sha256": "a" * 64,
+            "relative_input_segments": [
+                {"start": 0, "duration": 3, "mask": "0x012"},
+                {"start": 10, "duration": 2, "mask": "0x007"},
+            ],
+        }
+        report = dict(self.report, reference_entry=100,
+                      original_movie_window_sha256="a" * 64)
+        matched = route.audit(self.root, report, source_window=source)
+        self.assertTrue(matched["original_2014_movie_controller_window_recomputed"])
+        self.assertEqual(matched["source_original_movie_window_sha256"], "a" * 64)
+        bad = dict(source, relative_input_segments=[
+            {"start": 0, "duration": 3, "mask": "0x013"},
+            {"start": 10, "duration": 2, "mask": "0x007"},
+        ])
+        with self.assertRaisesRegex(ValueError, "source-movie controller window"):
+            route.audit(self.root, report, source_window=bad)
+        with self.assertRaisesRegex(ValueError, "window digest"):
+            route.audit(self.root, dict(report, original_movie_window_sha256="b"*64),
+                        source_window=source)
+
     def test_original_only_switcher_script_retained_and_hashed(self):
         report = make_fixture(self.root, "switcher")
         replay = self.root / "work" / "switcher" / "replay"

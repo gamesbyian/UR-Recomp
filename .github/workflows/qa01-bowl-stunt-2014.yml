@@ -141,6 +141,8 @@ jobs:
               --artifact-root "$RUNNER_TEMP/qa01-bowl" \
               --producer-report "$RUNNER_TEMP/qa01-bowl/bowl-report.json" \
               --replay-dir "$RUNNER_TEMP/qa01-bowl/bowl/replay" \
+              --movie "$GITHUB_WORKSPACE/reference/imported/tas-bots/dessyreqt-4250-submission.smv" \
+              --movie-meta "$GITHUB_WORKSPACE/analysis/generated/historical-2014-smv-metadata.json" \
               --out "$RUNNER_TEMP/qa01-bowl/bowl-source-input-identity.json"
           fi
           if [ "$rc" -eq 0 ]; then

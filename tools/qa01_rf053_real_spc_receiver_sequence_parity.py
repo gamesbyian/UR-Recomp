@@ -121,6 +121,59 @@ def exact_alignment(original: str, native: str, *, expected_count: int|None=None
         "selected_source_native_read_anchor_receipts":anchor,
     }
 
+def genuine_native_queue_to_receiver(native: str, alignment: dict)->dict:
+    """Observe actual native D0/63 schedule -> apply -> three true SPC reads.
+
+    Establishes a chain on the native-local clock only; the matching original
+    receiver chain is separately proven by its entire 322 true SPC-read rows.
+    Neither AOT producer instruction nor original CPU publication is inferred.
+    """
+    anchors=[r for r in alignment["selected_source_native_read_anchor_receipts"]
+             if r["original_seq"] in (7,8,9)]
+    if len(anchors)!=3 or [
+       (r["port"],r["value"],r["original_pc"]) for r in anchors
+    ]!=[(2,"63","1521"),(3,"D0","1525"),(2,"63","1527")]:
+        raise ValueError("matched native recipient lacks real post-original-publication triple")
+    reads=[r["native_age"] for r in anchors]
+    if sorted(reads)!=reads or len(set(reads))!=3:
+        raise ValueError("matched genuine native receiver clock ordering broken")
+    events=[fields(line) for line in native.splitlines()
+            if line.startswith(NATIVE_TAG)]
+    schedules=[x for x in events if x["kind"]=="schedule"]
+    candidates=[(a,b) for a,b in zip(schedules,schedules[1:]) if
+                (a["port"],a["val"],b["port"],b["val"])==("3","D0","2","63") and
+                int(b["clock"])<=reads[0]]
+    if len(candidates)!=1:
+        raise ValueError("native D0/63 queue candidate absent/ambiguous before matched receiver")
+    a,b=candidates[0]
+    if int(a["global_kind_ord"])+1!=int(b["global_kind_ord"]):
+        raise ValueError("native corresponding writer schedule ordinal not contiguous")
+    if int(a["clock"])!=int(b["clock"]):
+        raise ValueError("native original-sized port pair not co-scheduled in local clock")
+    matched=[]
+    for w in (a,b):
+        apply=[x for x in events if
+               x["kind"]=="apply" and x["port"]==w["port"] and
+               x["val"]==w["val"] and x["target"]==w["target"] and
+               x["global_kind_ord"]==w["global_kind_ord"]]
+        if len(apply)!=1 or int(apply[0]["clock"])!=int(w["target"]):
+            raise ValueError("native real schedule has no unique matching actual queue apply")
+        matched.append(apply[0])
+    if int(matched[0]["clock"])>=int(matched[1]["clock"]) or int(matched[1]["clock"])>=reads[0]:
+        raise ValueError("native D0/63 queue application is not before actual SPC receiver")
+    return {
+      "genuine_native_port3_D0_port2_63_schedule":{
+         "global_kind_ordinals":[int(a["global_kind_ord"]),int(b["global_kind_ord"])],
+         "native_local_schedule_portClocks":[int(a["clock"]),int(b["clock"])],
+         "native_queue_targets":[int(a["target"]),int(b["target"])],
+         "host_frame":[int(a["frame"]),int(b["frame"])]},
+      "actual_native_queue_apply_local_clocks":[int(x["clock"]) for x in matched],
+      "actual_native_receiver_F6_F7_F6_local_clocks":reads,
+      "native_actual_port_write_apply_receiver_chain_verified":True,
+      "source_original_CPU_writer_instruction_registered_to_native_AOT":False,
+      "universal_CPU_APU_clock_offset_inferred":False,
+    }
+
 def one_case(case:Path,baseline:Path)->dict:
     with zipfile.ZipFile(case) as z, zipfile.ZipFile(baseline) as old:
         source=z.read(ORIG).decode("utf8","replace")
@@ -146,6 +199,7 @@ def one_case(case:Path,baseline:Path)->dict:
     if not link["both_real_port_publications_inside_original_instruction_segments"]:
         raise ValueError("RF050 original CPU→APU instructions no longer directly linked")
     out=exact_alignment(source,native,expected_count=322)
+    out["native_true_schedule_apply_SPC_receiver"]=genuine_native_queue_to_receiver(native,out)
     out["source_exact_guest_sha"]=case_result["source_sha"]
     out["case_zip_sha256"]=hashlib.sha256(case.read_bytes()).hexdigest()
     out["baseline_zip_sha256"]=hashlib.sha256(baseline.read_bytes()).hexdigest()

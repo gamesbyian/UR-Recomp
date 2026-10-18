@@ -164,7 +164,8 @@ def launch_until_first_frame(launcher: Path, user: Path, root: Path,
 
 
 def run_case(launcher: Path, fixture: Path, seed: Path,
-             root: Path, choice: str, timeout: int) -> dict:
+             root: Path, choice: str, timeout: int,
+             noncanonical_typed: bool = False) -> dict:
     root.mkdir()
     user = root / "Original Player With Spaces"
     user.mkdir()
@@ -173,10 +174,27 @@ def run_case(launcher: Path, fixture: Path, seed: Path,
                           timeout=timeout)
     (root / "fixture.log").write_text(
         init.stdout + "\n" + init.stderr, encoding="utf-8")
+    raw = user / "saves/profile-native-ci-rider/save.srm"
+    typed_file = raw.with_name("host-profile.txt")
+    if noncanonical_typed:
+        if choice != "R":
+            raise ValueError("Only explicit R is covered by this source witness")
+        canonical = typed_file.read_bytes()
+        header, separator, remainder = canonical.partition(b"\n")
+        if (not separator or not remainder or
+            not header.startswith(b"UR-HOST-PROFILE/")):
+            raise ValueError("Original typed fixture header not recognized")
+        changed_typed = header + separator + b"\n" + remainder
+        typed_file.write_bytes(changed_typed)
+        if typed_file.read_bytes() != changed_typed:
+            raise ValueError("Exact noncanonical source profile bytes were lost")
     first = snapshot(user)
     if stock_sram(first["typed"]) != first["raw"]:
-        raise ValueError("Fixture did not produce canonical typed/raw pair")
-    raw = user / "saves/profile-native-ci-rider/save.srm"
+        raise ValueError("Fixture did not produce matching typed/raw pair")
+    if noncanonical_typed and not first["typed"].startswith(
+        b"UR-HOST-PROFILE/5\n\n"
+    ):
+        raise ValueError("Noncanonical original typed source did not persist")
     damaged = bytearray(first["raw"])
     damaged[256] ^= 1
     raw.write_bytes(damaged)
@@ -205,6 +223,10 @@ def run_case(launcher: Path, fixture: Path, seed: Path,
         raise ValueError("T must retain exactly the committed typed profile")
     if choice == "R" and after["typed"] == before["typed"]:
         raise ValueError("R must advance typed metadata to selected guest SRAM")
+    if noncanonical_typed and (after["typed"].startswith(
+        b"UR-HOST-PROFILE/5\n\n"
+    ) or after["typed"] == first["typed"]):
+        raise ValueError("R did not commit the canonical next profile state")
     archives = list(user.rglob("native-sram-manual-archive-*.bin"))
     if len(archives) != 1 or archives[0].is_symlink():
         raise ValueError("Expected exactly one real immutable manual receipt")
@@ -233,7 +255,10 @@ def run_case(launcher: Path, fixture: Path, seed: Path,
            archives[0].read_bytes() != archive:
             raise ValueError("Original cold restart mutated repaired authority")
     result = {
-        "schema": "ur-win32-interactive-original-cmd-rt/1",
+        "schema": ("ur-win32-interactive-noncanonical-raw-r/1"
+                   if noncanonical_typed else
+                   "ur-win32-interactive-original-cmd-rt/1"),
+        "noncanonical_original_typed_file_archived_exact": noncanonical_typed,
         "choice": choice,
         "exact_extracted_cmd_sha256": digest(launcher.read_bytes()),
         "original_seed_sha256": digest(seed.read_bytes()),
@@ -255,7 +280,8 @@ def run_case(launcher: Path, fixture: Path, seed: Path,
 
 
 def run_with_rom(launcher: Path, rom: Path, fixture: Path,
-                 seed: Path, root: Path, timeout: int) -> dict:
+                 seed: Path, root: Path, timeout: int,
+                 noncanonical_r_only: bool = False) -> dict:
     if os.name != "nt":
         raise ValueError("Real Win32 console required")
     if root.exists() or not launcher.is_file() or not fixture.is_file() or \
@@ -270,13 +296,17 @@ def run_with_rom(launcher: Path, rom: Path, fixture: Path,
         shutil.copyfile(rom, installed)
         if digest(installed.read_bytes()) != USA_SHA256:
             raise ValueError("Temporary original USA ROM differs")
+        choices = ("R",) if noncanonical_r_only else ("R", "T")
         result = {choice: run_case(
-            launcher, fixture, seed, root / choice, choice, timeout)
-                  for choice in ("R", "T")}
+            launcher, fixture, seed, root / choice, choice, timeout,
+            noncanonical_typed=noncanonical_r_only)
+                  for choice in choices}
         (root / "interactive-rt-result.json").write_text(
             json.dumps({
-                "schema": "ur-win32-interactive-original-cmd-rt/1",
-                "tested_choices": ["R", "T"],
+                "schema": ("ur-win32-interactive-noncanonical-raw-r/1"
+                           if noncanonical_r_only else
+                           "ur-win32-interactive-original-cmd-rt/1"),
+                "tested_choices": list(choices),
                 "results": result,
                 "physical_operator": False,
                 "release_gate_credit": 0,
@@ -294,10 +324,12 @@ def main() -> None:
     ap.add_argument("--seed", required=True, type=Path)
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--timeout", type=int, default=100)
+    ap.add_argument("--noncanonical-r-only", action="store_true")
     a = ap.parse_args()
     print(json.dumps(run_with_rom(
         a.launcher.resolve(), a.rom.resolve(), a.fixture.resolve(),
-        a.seed.resolve(), a.out.resolve(), a.timeout), sort_keys=True))
+        a.seed.resolve(), a.out.resolve(), a.timeout,
+        noncanonical_r_only=a.noncanonical_r_only), sort_keys=True))
 
 
 if __name__ == "__main__":

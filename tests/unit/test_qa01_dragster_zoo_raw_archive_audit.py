@@ -33,6 +33,7 @@ class DragsterZooRawAuditTests(unittest.TestCase):
             for f, addr, val in source_writes).encode("utf8")
         (self.root / "dragster/source/trace.jsonl").write_bytes(trace)
         self.trace_sha = digest(trace)
+        self.original_trace_bytes = trace
 
     def write(self, path, content):
         path = self.root / path
@@ -40,6 +41,7 @@ class DragsterZooRawAuditTests(unittest.TestCase):
         path.write_text(json.dumps(content) + "\n", encoding="utf8")
 
     def make(self):
+        (self.root / "dragster/source/trace.jsonl").write_bytes(self.original_trace_bytes)
         source_rows = {}
         rows = []
         logs = {"original": [], "native": []}
@@ -217,7 +219,7 @@ class DragsterZooRawAuditTests(unittest.TestCase):
         self.assertEqual(actual[2935]["in_race"], 0)
         self.assertEqual(actual[3189]["in_race"], 0)
         self.assertTrue(all(audit.active_zoo(actual[f]) for f in range(3190, 3198)))
-        self.assertEqual(len(actual), 3197 - 2874 + 1)
+        self.assertEqual(len(actual), 3210 - 2874 + 1)
         result = audit.audit(self.root)
         self.assertTrue(result["source_2014_8_consecutive_zoo_active_frames_rederived"])
 

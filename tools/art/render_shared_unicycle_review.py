@@ -15,6 +15,11 @@ import subprocess
 import zipfile
 from pathlib import Path
 
+try:
+    from .common_silhouette_preview import common_pose_crop
+except ImportError:  # standalone offline authoring script
+    from common_silhouette_preview import common_pose_crop
+
 POSES = ("upright", "pedal", "wheelie", "stunt", "bank")
 CAMERAS = {
     # Fixed common frame includes 2.2x seat and 2.0x body mass proposals.
@@ -166,6 +171,7 @@ def render(model: Path, out: Path, *, openscad: str = "openscad",
             images.append({"view": view, "pose": pose, "fixed_camera": camera,
                            "file": name, "sha256": sha((out/name).read_bytes()),
                            "silhouette_bbox": bounds, "edge_clipped": False,
+                           "source_render_size_px": size,
                            "review_saddle_span": saddle_span,
                            "review_frame_mass": frame_mass})
     return images
@@ -196,24 +202,35 @@ def contact(out: Path, images: list[dict], original: dict[str, bytes] | None):
         draw.text((3*side+8, 12), "Authentic source: archived", fill="black")
         draw.text((3*side+8, 32), "Title fade preview brightened 3.5x", fill="black")
         y += side
+    crops = {}
     for view in CAMERAS:
+        view_rows = [item for item in images if item["view"] == view]
+        sizes = {item["source_render_size_px"] for item in view_rows}
+        if len(view_rows) != len(POSES) or len(sizes) != 1:
+            raise ValueError("missing same-size original renders in fixed-view family")
+        source_size = sizes.pop()
+        crop = common_pose_crop([item["silhouette_bbox"] for item in view_rows],
+                                source_size, source_size)
+        crops[view] = list(crop)
         draw.text((10,y+8),f"LOCKED {view} camera | ONE shared rig",fill="black")
         for col, pose in enumerate(POSES):
             row = next(r for r in images if r["view"]==view and r["pose"]==pose)
             with Image.open(out/row["file"]) as im:
-                full = im.convert("RGB").resize((side,side), Image.Resampling.LANCZOS)
+                model_rgb = im.convert("RGB")
+                full = model_rgb.resize((side,side), Image.Resampling.LANCZOS)
+                thumbs = {px: model_rgb.crop(crop).resize((px,px), Image.Resampling.LANCZOS)
+                          for px in (64,32)}
             canvas.paste(full,(col*side,y+27))
             draw.text((col*side+12,y+side+34),pose,fill="black")
             for index, pixels in enumerate((64,32)):
-                thumb=full.resize((pixels,pixels),Image.Resampling.LANCZOS)
-                canvas.paste(thumb,(col*side + 10+85*index,y+side+50))
+                canvas.paste(thumbs[pixels],(col*side + 10+85*index,y+side+50))
         y += row_height
     draw.text((10,height-27),
               "UNAPPROVED CANDIDATE: no source PPU parity, visual or release approval",
               fill="black")
     target = out/"five-pose-fixed-camera-review.png"
     canvas.save(target)
-    return target
+    return target, crops
 
 
 def main() -> None:
@@ -237,7 +254,7 @@ def main() -> None:
     original=authentic_sources(args.authentic_source_zip) if args.authentic_source_zip else None
     images=render(model,args.out,openscad=args.openscad,xvfb=args.xvfb,
                   saddle_span=args.saddle_span,frame_mass=args.frame_mass)
-    preview=contact(args.out,images,original)
+    preview, preview_crops=contact(args.out,images,original)
     receipt={
         "schema":"UR-single-rig-five-pose-art-blockout/1",
         "rig_sha256":source_hash,
@@ -249,6 +266,9 @@ def main() -> None:
         "review_saddle_span": args.saddle_span,
         "review_frame_mass": args.frame_mass,
         "gameplay_normal_size_previews_px":[64,32],
+        "normal_size_previews_common_crop_per_view": preview_crops,
+        "normal_size_previews_per_pose_autofit": False,
+        "normal_size_previews_likeness_approved": False,
         "original_native_RGB5_PPU_equivalence":False,
         "measured_original_landmark_proportions":False,
         "original_animation_and_contact_approval":False,

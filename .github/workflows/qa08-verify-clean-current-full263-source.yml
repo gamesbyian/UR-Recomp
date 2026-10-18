@@ -1,0 +1,59 @@
+name: QA08 source-verify exact clean Windows 263 frames
+# Archive-only. No emulator or Windows build and no release QA promotion.
+on:
+  pull_request:
+    paths:
+      - "tools/qa08_verify_clean_current_full263_source.py"
+      - "tests/unit/test_qa08_verify_clean_current_full263_source.py"
+      - "analysis/data/qa08-current-clean-compiled-win32-full263-source-20261018.json"
+      - ".github/workflows/qa08-verify-clean-current-full263-source.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: qa08-current-clean-full263-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify-real-compiled-clean-source:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Recover SHA-qualified source archive from real clean Windows PE
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-clean"
+          curl --retry 3 -fLSs -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12124754077/zip" \
+            -o "$RUNNER_TEMP/qa08-clean/actual-clean-263.zip"
+          echo "6c01183698777683394794fc84ccde34667678548e51cf866e279b167d8dfff3  $RUNNER_TEMP/qa08-clean/actual-clean-263.zip" | sha256sum -c -
+      - name: Replay exact P7 SHA and full original/native RGB5 controls
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tests/unit/test_qa08_verify_clean_current_full263_source.py
+          python3 tools/qa08_verify_clean_current_full263_source.py \
+            --source "$RUNNER_TEMP/qa08-clean/actual-clean-263.zip" \
+            --out "$RUNNER_TEMP/qa08-clean/qa08-source-reconstructed.json"
+          python3 - "$RUNNER_TEMP/qa08-clean/qa08-source-reconstructed.json" <<'PY'
+          import json,sys
+          with open("analysis/data/qa08-current-clean-compiled-win32-full263-source-20261018.json") as f: expected=json.load(f)
+          with open(sys.argv[1]) as f: actual=json.load(f)
+          assert expected==actual,"SHA-bound source-only raster report changed"
+          assert actual["all_263_images_byte_equal_independent_clean_RF017_PPU"] is True
+          assert actual["current_clean_source_wrong_RGB5"]==890205
+          assert actual["real_4K_7to6_HD_artist_approval_or_release_accepted"] is False
+          PY
+          echo "QA08: real clean Win32 263 source P7 images equal independent prior baseline; uncorrected source/physical release held." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain independently checked compact source receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-verified-clean-win32-source-full263
+          retention-days: 90
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/qa08-clean/qa08-source-reconstructed.json

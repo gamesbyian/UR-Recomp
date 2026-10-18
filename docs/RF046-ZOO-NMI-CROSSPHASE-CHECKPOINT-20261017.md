@@ -20,6 +20,19 @@ This supports the **transient interrupt-stack observation-phase hypothesis** mor
 
 The preceding host offset matters. At source host1018, for example, the source NMI's own new `26 EE D4 82` is **not** the source checkpoint at +1/host1018; that checkpoint equals host1017's post-NMI `26 F0 D4 82`. A future probe must explicitly correlate source/native NMI/RTI boundaries with checkpoint sampling phases rather than compare same-labeled host numbers blindly.
 
+## Structural census of all 20 source-original four-byte residuals
+
+The complete archive also has **20** four-byte `01ED–01F0` residual checkpoints, not just the three with a recorded preceding original NMI. In **all 20**, the source-original four bytes have the structure `status, PC low, PC high, PB`, with `PC high=D4`, `PB=82`, `PC low=EE/F0` and status `26/27`. The exact count histogram is:
+
+| Source-original checkpoint image | Number of frames |
+|---|---:|
+| `26 F0 D4 82` | 1 |
+| `26 EE D4 82` | 4 |
+| `27 F0 D4 82` | 10 |
+| `27 EE D4 82` | 5 |
+
+These **20/20 NMI-shaped images** make a pure accidental byte mismatch increasingly implausible, but an interrupted-PC-like shape is **not itself execution evidence**. RF044 recorded actual source NMI pre/post for only host1017–1025, qualifying the +1/+2/+4 correspondences. The other **17** NMI-shaped residual checkpoints have no same-guest executed original NMI record and cannot be declared interrupt writes or harmless saved return addresses on shape alone. The analyzer requires this exact independently SHA-pinned histogram without pretending the other 17 interrupt executions were observed.
+
 ## Reproducible fail-closed audit
 
 `tools/qa01_rf046_zoo_nmi_checkpoint_crossphase.py` consumes the original immutable ZIP and refuses other SHA identities, any missing/truncated/malformed source NMI, incomplete original and native paired 78-checkpoint mesh, any nonzero masking, absent +0/+8 whole-WRAM equality, shifted checkpoint hosts, a changed mismatch address or one wrong pre/post byte. It independently checks 51/78 exact whole WRAM pairs, 92 unmasked differing-byte occurrences and explicit 0 release credit. Machine result in [`analysis/data/rf046-first-zoo-nmi-crossphase-20261017.json`](../analysis/data/rf046-first-zoo-nmi-crossphase-20261017.json).

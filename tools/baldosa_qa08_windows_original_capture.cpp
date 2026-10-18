@@ -19,6 +19,11 @@ constexpr unsigned kOnePlayerLast = 5440;
 constexpr unsigned kOnePlayerStep = 16;
 constexpr unsigned kOnePlayerSlots =
     (kOnePlayerLast - kOnePlayerFirst) / kOnePlayerStep + 1;
+/* 2014 Snes9x independent contiguous 1P capture callback 2176..2240;
+ * native original PPU callback registration is exactly f+1. */
+constexpr unsigned kExact1PFirst = 2177;
+constexpr unsigned kExact1PLast = 2241;
+constexpr unsigned kExact1PSlots = kExact1PLast - kExact1PFirst + 1;
 constexpr unsigned kTwoPlayerLast = 5472;
 constexpr unsigned kTwoPlayerSlots =
     (kTwoPlayerLast - kOnePlayerFirst) / kOnePlayerStep + 1;
@@ -27,6 +32,7 @@ constexpr int kHeight = 224;
 bool g_seen_default[4] = {};
 bool g_seen_oneplayer[kOnePlayerSlots] = {};
 bool g_seen_twoplayer[kTwoPlayerSlots] = {};
+bool g_seen_exact_oneplayer[kExact1PSlots] = {};
 
 // One explicitly bounded diagnostic case. The default post-PPU observer
 // remains exactly its previously accepted 2P four-frame experiment.
@@ -36,12 +42,23 @@ bool oneplayer_coverage_mode() noexcept {
     return mode && std::strcmp(mode, "oneplayer-coverage") == 0;
 }
 
+bool exact_oneplayer_65_mode() noexcept {
+    const char* mode = std::getenv("UR_QA08_WINDOWS_ORIGINAL_SOURCE_CASE");
+    return mode && std::strcmp(mode, "oneplayer-exact65") == 0;
+}
+
 bool twoplayer_coverage_mode() noexcept {
     const char* mode = std::getenv("UR_QA08_WINDOWS_ORIGINAL_SOURCE_CASE");
     return mode && std::strcmp(mode, "twoplayer-fullroute") == 0;
 }
 
-int wanted_index(unsigned frame, bool oneplayer, bool twoplayer) noexcept {
+int wanted_index(unsigned frame, bool oneplayer, bool twoplayer,
+                 bool exact1p) noexcept {
+    if (exact1p) {
+        if (frame < kExact1PFirst || frame > kExact1PLast)
+            return -1;
+        return static_cast<int>(frame - kExact1PFirst);
+    }
     if (oneplayer || twoplayer) {
         const unsigned last = twoplayer ? kTwoPlayerLast : kOnePlayerLast;
         if (frame < kOnePlayerFirst || frame > last ||
@@ -92,17 +109,19 @@ extern "C" void ur_qa08_windows_capture_original_source(
     if (!dir || !dir[0]) return;
     const char* mode = std::getenv("UR_QA08_WINDOWS_ORIGINAL_SOURCE_CASE");
     if (mode && mode[0] && !oneplayer_coverage_mode() &&
-        !twoplayer_coverage_mode()) {
+        !twoplayer_coverage_mode() && !exact_oneplayer_65_mode()) {
         // Bad diagnostic selectors fail closed. Not even a diagnostic file
         // is produced, and ordinary game output remains unmodified.
         return;
     }
     const bool oneplayer = oneplayer_coverage_mode();
     const bool twoplayer = twoplayer_coverage_mode();
-    const int index = wanted_index(guest_frame, oneplayer, twoplayer);
+    const bool exact1p = exact_oneplayer_65_mode();
+    const int index = wanted_index(guest_frame, oneplayer, twoplayer, exact1p);
     if (index < 0) return;
-    bool& seen = twoplayer ? g_seen_twoplayer[index] :
-        (oneplayer ? g_seen_oneplayer[index] : g_seen_default[index]);
+    bool& seen = exact1p ? g_seen_exact_oneplayer[index] :
+        (twoplayer ? g_seen_twoplayer[index] :
+        (oneplayer ? g_seen_oneplayer[index] : g_seen_default[index]));
     if (guest_frame == 0 || !field || seen) {
         std::fprintf(stderr, "UR_QA08_WINDOWS_SOURCE_REJECT frame=%u reason=repeat-or-null\n",
                      guest_frame);

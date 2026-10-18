@@ -16,6 +16,8 @@ class SaddleExperimentBoundaries(unittest.TestCase):
 
     def test_one_canonical_rig_and_exactly_bounded_proposal_values(self):
         self.assertEqual(study.SPANS,(1.0,1.4,1.8,2.2))
+        self.assertEqual(study.SPANS,study.SADDLE_CHOICES)
+        self.assertEqual(study.FRAME_CHOICES,(1.0,1.4,1.8,2.0))
         self.assertEqual(study.CAMERA,"0,0,1.6,90,0,0,22")
         self.assertEqual(study.SIZE,400)
         self.assertIn("bbox=occupied_bounds(im)",self.script)
@@ -31,7 +33,7 @@ class SaddleExperimentBoundaries(unittest.TestCase):
         self.assertEqual(self.text.count("module frame_member("),1)
         self.assertEqual(self.text.count("frame_member("),6)
         self.assertIn('"bounded_frame_mass":frame_mass',self.script)
-        self.assertIn('if frame_mass not in (1.0, 1.4, 1.8, 2.0)',self.script)
+        self.assertIn('validate_variant(span, frame_mass)',self.script)
 
 
     def test_missing_or_unbounded_shared_parameter_is_rejected(self):

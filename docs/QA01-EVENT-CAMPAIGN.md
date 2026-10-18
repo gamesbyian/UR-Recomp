@@ -265,6 +265,28 @@ producer, verify original ROM bytes from an archive, decide causal CPU/APU
 equivalence, or grant event/release credit. It stays a second transport
 integrity check; QA-01/07 and the census retain full admission authority.
 
+### Controller replay identity and completeness
+
+The existing event producer already constructs the actual Snes9x and pinned
+Baldosa injected-input files after independently calibrating both guest
+entry frames. The manual case artifact now also retains its
+\`work/<case>/replay/ref.input\`, \`pinned-baldosa.input\`, \`complete.script\`,
+and optional exact Switcher original-only supplementary script. The same
+read-only primary-artifact auditor checks all nonzero masks, durations and
+ordinal order against the **exact observed native frame shift**, checks the
+SHA256 of the executed reference/native script against the original producer
+hashes, and requires every advertised sparse sample's dump command, terminal
+onset, and settled result. Each case retains both original input-file digests
+in the compact audit receipt. Missing or mismatched routes are invalid
+transport, not gameplay divergence.
+
+The files are *supplied controller events* generated from the original SMV,
+not an independently measured consumed-button bus trace. Matching input
+files do not prove the original/native engines latched each mask on the
+same CPU phase, nor that unsampled game frames agree. Retain guest input
+execution evidence and independent QA-01/07 authority. No original movie,
+guest dump, ROM or native binary is added to the retained case archive.
+
 ## Failure triage and extension
 
 When infrastructure is red, use the aggregate's first missing/invalid case,

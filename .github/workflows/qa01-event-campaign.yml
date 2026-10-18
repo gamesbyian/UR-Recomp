@@ -606,6 +606,10 @@ jobs:
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/calibration/native.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/reference.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/native.log
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/complete.script
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/switcher-reference-penultimate.script
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/ref.input
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/pinned-baldosa.input
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/zoo-terminal-phase/reference.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/zoo-terminal-phase/native.log
 

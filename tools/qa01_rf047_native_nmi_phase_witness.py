@@ -12,6 +12,10 @@ from pathlib import Path
 
 BEAM = Path("snesrecomp/runner/src/beam_frame_driver.c")
 CPU = Path("snesrecomp/runner/src/cpu_state.c")
+BRIDGE = Path("snesrecomp/runner/src/snes/interp_bridge.c")
+BRIDGE_DECL = "extern Snes *g_snes;\n"
+BRIDGE_INTERP = "        if (stop_on_rti && op == 0x40) {\n            sync_interp_to_cpu(&in, cpu);\n"
+BRIDGE_COMPILED = "        if (stop_on_rti)\n            return 1;  /* compiled RTI consumed the interrupt frame */\n"
 STAMP = "UR_QA01_RF047_NATIVE_NMI_RETURN_SOURCE_PIN"
 BEAM_INCLUDE = "#include <stdint.h>\n"
 BEAM_RUN = "  cpu_push_interrupt_frame_at(&g_cpu, s_resume_pc);\n"
@@ -79,9 +83,23 @@ void ur_rf047_native_stack_read(CpuState *cpu, uint8 bank,
       (unsigned)g_snes->vPos, (unsigned)g_snes->hPos,
       (unsigned)ur_rf047_in_nmi);
 }
+
+void ur_rf047_native_rti_opcode(CpuState *cpu, uint32_t opcode_pc,
+                                 uint32_t return_pc, unsigned compiled) {
+  extern int snes_frame_counter;
+  if (!ur_rf047_in_nmi || !ur_rf047_allow_row()) return;
+  fprintf(stderr,
+      "QA01RF047NATIVE seq=%llu stage=%s f=%d opcodePC=%06X returnPC=%06X"
+      " P=%02X S=%04X master=%llu beamV=%u beamH=%u\n",
+      ++ur_rf047_seq, compiled ? "compiled_rti" : "interp_rti",
+      snes_frame_counter, (unsigned)opcode_pc, (unsigned)return_pc,
+      (unsigned)cpu->P, (unsigned)cpu->S,
+      (unsigned long long)cpu->master_cycles,
+      (unsigned)g_snes->vPos, (unsigned)g_snes->hPos);
+}
 """
 
-def patch(beam: str, cpu: str) -> tuple[str,str]:
+def patch(beam: str, cpu: str, bridge: str) -> tuple[str,str,str]:
     if STAMP in beam or STAMP in cpu:
         raise ValueError("RF047 already/partially installed")
     if any(beam.count(a) != 1 for a in
@@ -90,6 +108,10 @@ def patch(beam: str, cpu: str) -> tuple[str,str]:
     if "UR_QA01_RF044_STACK_BUS" not in cpu or \
        cpu.count(CPU_HOOK) != 1 or cpu.count(CPU_ANCHOR) != 1:
         raise ValueError("RF047 requires precise RF044 native real-read observer")
+
+    if any(bridge.count(x)!=1 for x in
+           (BRIDGE_DECL, BRIDGE_INTERP, BRIDGE_COMPILED)):
+        raise ValueError("RF047 pinned native interpreter RTI source drift")
     beam = beam.replace(BEAM_INCLUDE, BEAM_INCLUDE +
                         "#include <stdio.h>\n#include <stdlib.h>\n", 1)
     beam = beam.replace("static void run_interrupt(uint32_t vector, uint64_t deadline) {\n",
@@ -119,7 +141,21 @@ def patch(beam: str, cpu: str) -> tuple[str,str]:
             raise AssertionError("RF047 changed real NMI call count: " + operation)
     if cpu.count("ur_rf047_native_stack_read(cpu,bank,addr,value,width);") != 1:
         raise AssertionError("RF047 duplicate source read observer")
-    return beam,cpu
+    bridge = bridge.replace(BRIDGE_DECL,
+        BRIDGE_DECL + "extern void ur_rf047_native_rti_opcode(CpuState *,uint32_t,uint32_t,unsigned);\\n",1)
+    bridge = bridge.replace(BRIDGE_INTERP,
+        BRIDGE_INTERP +
+        '            ur_rf047_native_rti_opcode(cpu, pc_before,\\n'
+        '                ((uint32_t)in.k << 16) | in.pc, 0);\\n',1)
+    bridge = bridge.replace(BRIDGE_COMPILED,
+        '        if (stop_on_rti) {\\n'
+        '            ur_rf047_native_rti_opcode(cpu, target,\\n'
+        '                ((uint32_t)in->k << 16) | in->pc, 1);\\n'
+        '            return 1;  /* compiled RTI consumed the interrupt frame */\\n'
+        '        }\\n',1)
+    if bridge.count("ur_rf047_native_rti_opcode(cpu,") != 2:
+        raise AssertionError("RF047 native interp/compiled RTI callsite count")
+    return beam,cpu,bridge
 
 def main() -> None:
     ap=argparse.ArgumentParser(description=__doc__)
@@ -128,13 +164,16 @@ def main() -> None:
     root=a.root.resolve()
     b=root/BEAM
     c=root/CPU
-    if not b.is_file() or not c.is_file():
+    d=root/BRIDGE
+    if not b.is_file() or not c.is_file() or not d.is_file():
         ap.error("missing pinned disposable Baldosa source files")
     old_b=b.read_text(encoding="utf8")
     old_c=c.read_text(encoding="utf8")
-    nb,nc=patch(old_b,old_c)
+    old_d=d.read_text(encoding="utf8")
+    nb,nc,nd=patch(old_b,old_c,old_d)
     b.write_text(nb,encoding="utf8")
     c.write_text(nc,encoding="utf8")
+    d.write_text(nd,encoding="utf8")
     print("RF047 staged native true NMI entry/return/stack-read source observer")
 
 if __name__=="__main__":main()

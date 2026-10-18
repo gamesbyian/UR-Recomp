@@ -1,0 +1,48 @@
+{
+  "schema": "qa08-authentic-2014-snes9x-1p65-vs-current-rf017-native-premath-capture/1",
+  "diagnostic": {
+    "draft_pr": 1807,
+    "head": "29d5d7f2c2faf0e9659f7bfbc38f5701dde9e1ce",
+    "Windows_run": 39089898281,
+    "artifact_id": 12122323401,
+    "artifact_zip_SHA256": "74144f2b8c548d4f2aaabe0cd755bf8a885be2acd173c9dcadd1243cd26d02c7",
+    "inner_json_sha256": "5ae7c0f954830b3b9c1c519b2d32dbfc96e60dcba42ffd92b93f7b974a13dfa6",
+    "native_image_nested_zip_sha256": "b3760272fac98b153faed121e258f8b77b43cff00d4ce480d6967a2e5d866c11",
+    "win32_PE_sha256": "d7ea02a69aad961146b727ca1b87c5f19c4492a7b08e0e13784d71ac9beabafe"
+  },
+  "source": {
+    "original_2014_snes9x_1p_artifact_id": 11956168307,
+    "original_2014_artifact_zip_sha256": "9b6f32bd00b89e5fda72bb82ea9d535ebd90baf62a4600a2fb0fd598b4ee648d",
+    "original_65frame_manifest_SHA256": "4c2cb772d8102de6f0c8d04bf076313329ce1b99b26eb60261a9bf8c40e29fd7",
+    "original_NO_TURBO_controller_script_SHA256": "74527132f85e136985edfe5de9b84172a4d1a3ecd8814af7c6e481fd0603d56b",
+    "native_complete_5447frame_guest_CRC_sha256": "465ec5930c0d84b451c4c633d915184dbec44f2dd7728a0bb49093d913b69244",
+    "native_all_65_complete_P7_frame_SHA256_sequence_digest": "3024c9c9e851b30c5d450c0581257e19e0298b0803adbeb88afbe18fcdd3b2b1",
+    "original_all_65_BGRX_frame_SHA256_sequence_digest": "4640def67fb6388e8fdfb89af36c081d2a72991493474cd09127b54250872be2"
+  },
+  "actual_source_comparison": {
+    "original_callbacks": {
+      "first": 2176,
+      "last": 2240
+    },
+    "native_guest_frames": {
+      "first": 2177,
+      "last": 2241
+    },
+    "registration": "original_callback_f -> native_guest_f_plus_one (no search)",
+    "real_1p_race_source_frames": 65,
+    "per_frame_full_256x224_pixels": 57344,
+    "actual_RGB5_source_pixels_compared": 3727360,
+    "RGB5_pixel_differences": 0,
+    "source_exact_full_frames": 65,
+    "missing_or_duplicate_frames": 0
+  },
+  "limits": {
+    "source_unmodified_native_1P_original65_reference_complete": false,
+    "relative_1P_raster_improvement_over_unmodified_baseline_qualified": false,
+    "full_native_original_1P_gameplay_event_or_CPU_clock_parity_proven": false,
+    "physical_3840x2160_342wide_7to6_4x_accepted": false,
+    "HD_racer_artistically_approved": false,
+    "experiment_merged_into_player_binary": false,
+    "QA08_QA10_or_release_accepted": false
+  }
+}

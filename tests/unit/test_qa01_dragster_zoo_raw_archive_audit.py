@@ -29,7 +29,7 @@ class DragsterZooRawAuditTests(unittest.TestCase):
         ]
         trace = "".join(
             json.dumps({"f": f, "adr": f"0x{addr:05x}", "old": "0x00",
-                        "val": f"0x{val:02x}"}, separators=(",", ":")) + "\\n"
+                        "val": f"0x{val:02x}"}, separators=(",", ":")) + "\n"
             for f, addr, val in source_writes).encode("utf8")
         (self.root / "dragster/source/trace.jsonl").write_bytes(trace)
         self.trace_sha = digest(trace)

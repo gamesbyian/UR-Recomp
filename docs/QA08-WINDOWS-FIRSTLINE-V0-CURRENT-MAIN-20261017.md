@@ -1,6 +1,9 @@
 # QA-08: current-main Windows Original first-line/V0 production extraction
 17 October 2026 | **graphics-only, review candidate; HOLD release acceptance**
 
+**Latest-main source reconciliation:** Merge parent `51dedeba4703124610b069be56b4dc2ed6f2fddd` adds all current main files and preserves every existing Windows bridge line in order; only the four patch trigger paths, two unit invocations and the single post-RF017/prechained Win32-build stage are added. The production candidate contains **no** experimental #1807 brightness-before-math changes. This is an integration of production source scaffolding, not a new source A/B on this exact PE: retain HOLD pending fresh compiled Win32 result-source pixels, final Modern #1713 integration and independent release QA. The now-current main graph already retains merged #1815 65 genuine 1P pixel-exact evidence, which remains source/PE-scoped and cannot qualify the new binary.
+
+
 This small production extraction combines the two already independent real-PE graphics experiments in one source-pinned Windows product build, leaving the 35+ file research archive and read-only observers on held [#1641](https://github.com/gamesbyian/UR-Recomp/pull/1641) and [#1649](https://github.com/gamesbyian/UR-Recomp/pull/1649). Prior single-fix clean source candidates: [#1755](https://github.com/gamesbyian/UR-Recomp/pull/1755) and [#1760](https://github.com/gamesbyian/UR-Recomp/pull/1760). The unit tests are reused without weakening negative guards. The current-main Windows workflow's product and QA-02 lanes are retained.
 
 ## Exact production ordering

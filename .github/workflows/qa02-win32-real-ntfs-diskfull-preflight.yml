@@ -1,0 +1,50 @@
+name: QA02 isolated Windows NTFS full-volume apparatus preflight
+
+# QA-owned Windows failure infrastructure, independent of Modern product.
+# Single disposable VHDX. Does NOT boot the game or qualify a release gate.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".github/workflows/qa02-win32-real-ntfs-diskfull-preflight.yml"
+      - "tools/qa02_win32_real_diskfull_preflight.ps1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa02-windows-diskfull-preflight-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-ntfs-error-disk-full:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - name: Check out QA-owned preflight only
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Actual isolated NTFS VHDX full disk with fresh Windows writer
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          ./tools/qa02_win32_real_diskfull_preflight.ps1 -MaximumMegabytes 128 -DriveLetter W -Output "$env:RUNNER_TEMP/qa02-real-ntfs-result/result.json"
+          $r = Get-Content "$env:RUNNER_TEMP/qa02-real-ntfs-result/result.json" -Raw | ConvertFrom-Json
+          if (-not $r.actual_Win32_disk_full_observed -or
+              $r.genuine_second_process_ERROR_DISK_FULL -ne 112 -or
+              -not $r.real_original_8192_bytes_preserved -or
+              $r.release_gate_credit -ne 0 -or $r.native_game_tested) {
+            throw 'Original QA02 real NTFS-full preflight verdict invalid'
+          }
+          "### Actual Windows OS disk-full substrate (not native game/release proof)" | Out-File -FilePath "$env:GITHUB_STEP_SUMMARY" -Append
+          "One ephemeral NTFS VHDX, actual WriteFile ERROR_DISK_FULL, fresh second process sees 112, incumbent 8192 bytes unchanged and new write resumes after deleting filler. Full-volume game-save proof remains **unverified**." | Out-File -FilePath "$env:GITHUB_STEP_SUMMARY" -Append
+      - name: Preserve only bounded OS result, never disk or save bytes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa02-real-win32-ntfs-diskfull-apparatus-result
+          path: ${{ runner.temp }}/qa02-real-ntfs-result/result.json
+          retention-days: 14
+          if-no-files-found: warn

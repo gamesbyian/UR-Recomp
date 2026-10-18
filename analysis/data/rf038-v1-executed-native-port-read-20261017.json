@@ -1,0 +1,102 @@
+{
+  "schema": "rf038-v1-original-native-zoo-port-read-receipt",
+  "date": "2026-10-17",
+  "source_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39019040425",
+  "immutable_source_commit": "20dfca8b547c8fce14a41d49e66b90938912689e",
+  "case_artifact_id": 12095489030,
+  "case_zip_sha256": "22dd73c49d84ee26f660a0d6cfd9d57f2c450bf3a378ca41fc863ca9397892b0",
+  "case_disposition": "strict_candidate",
+  "original_target_writer": {
+    "cpu_v": 116,
+    "before_h": 442,
+    "before_port": 2,
+    "before_value": "24",
+    "after_h": 972,
+    "after_port": 3,
+    "after_value": "02",
+    "elapsed_master_clocks": 530,
+    "source_spc_age_first": 103919450,
+    "source_spc_age_last": 103919475
+  },
+  "native_target_writer": {
+    "host_frame": 6091,
+    "before_master": 2176886834,
+    "after_master": 2176887208,
+    "elapsed_master_clocks": 374,
+    "native_scope": "Snd_UploadBlockList_82B4_M1X0"
+  },
+  "writer_elapsed_delta_master": 156,
+  "native_executed_paced_port2142_reads_between_writes": [
+    {
+      "master": 2176886940,
+      "bank": "80",
+      "address": "2142",
+      "charge": 6,
+      "kind": "read8"
+    },
+    {
+      "master": 2176886992,
+      "bank": "80",
+      "address": "2142",
+      "charge": 6,
+      "kind": "read8"
+    },
+    {
+      "master": 2176887044,
+      "bank": "80",
+      "address": "2142",
+      "charge": 6,
+      "kind": "read8"
+    }
+  ],
+  "native_paced_port2142_read_count": 3,
+  "additional_actual_native_paced_reads": [
+    {
+      "master": 2176887162,
+      "bank": "00",
+      "address": "0063",
+      "kind": "read16",
+      "charge": 16
+    },
+    {
+      "master": 2176887170,
+      "bank": "00",
+      "address": "0065",
+      "kind": "read8",
+      "charge": 8
+    },
+    {
+      "master": 2176887178,
+      "bank": "10",
+      "address": "F563",
+      "kind": "read8",
+      "charge": 8
+    }
+  ],
+  "original_v1_opcode_capture": {
+    "frame": 6073,
+    "v": 116,
+    "captured_rows": 30,
+    "matches_target_source_epoch": false,
+    "belongs_to_previous_source_spc_age": 103612376,
+    "original_target_opcode_polls_proven": false
+  },
+  "source_controls": {
+    "full_128k_wram_pair_samples": 78,
+    "full_wram_pair_exact": 51,
+    "masked_bytes": 0,
+    "zoo_result_relative": 5163,
+    "next_bowl_relative": 267,
+    "full_earned_sram_pairs_agree": 11,
+    "fresh_source_earned_cold_ranked_record_reload": true
+  },
+  "limitations": {
+    "original_target_opcode_proven": false,
+    "original_spc_receiver_proven": false,
+    "native_spc_receiver_proven": false,
+    "three_versus_original_poll_count_established": false,
+    "clock_fix_justified": false,
+    "source_exact_complete_usa_events_admitted": 0
+  },
+  "corrected_followup_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39019821122"
+}

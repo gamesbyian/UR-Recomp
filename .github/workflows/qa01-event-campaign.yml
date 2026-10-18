@@ -418,6 +418,9 @@ jobs:
           ROOT="$RUNNER_TEMP/qa01-case"
           BIN="$RUNNER_TEMP/qa01-binaries"
           mkdir -p "$ROOT"
+          # Reuse the SHA256SUMS already validated against the shared binaries.
+          # Retain the tiny original manifest beside this case's producer JSON.
+          cp "$BIN/SHA256SUMS" "$ROOT/SHA256SUMS"
           set +e
           timeout --signal=TERM --kill-after=30s 75m \
             python3 tools/probe_original_event_complete.py \
@@ -596,6 +599,7 @@ jobs:
             ${{ runner.temp }}/qa01-case/qa01-cold-guest-boot/native.log
             ${{ runner.temp }}/qa01-case/qa01-apu-edge-report.json
             ${{ runner.temp }}/qa01-case/producer-report.json
+            ${{ runner.temp }}/qa01-case/SHA256SUMS
             ${{ runner.temp }}/qa01-case/producer.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/source/source-scan.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/calibration/reference.log

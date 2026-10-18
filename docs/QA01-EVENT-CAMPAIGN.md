@@ -234,7 +234,13 @@ missing primary source JSON. The aggregate job now runs the ROM-free,
 read-only `tools/qa01_event_primary_artifact_audit.py` on its already-downloaded
 case artifacts, with no extra emulator build, workflow trigger or runner.
 It checks the exact producer bytes against their recorded SHA-256,
-requires the full advertised original/native sampled-frame population,
+requires the **original shared build's three-line SHA256SUMS** in each case
+archive, checks original/native producer executable digests against that
+already-verified manifest and checks the manifest identity across case
+shards. It retains the third staged `snesref` digest for build provenance
+without claiming the manifest by itself proves emulator execution.
+The checker additionally requires the full advertised original/native
+sampled-frame population,
 reconstructs the first sampled named-field divergence and fresh-entry
 equivalence from raw observation rows, reclassifies each case from the
 primary report and compares the entire derived receipt. It also recomputes the published aggregate and rejects
@@ -250,7 +256,8 @@ python3 tools/qa01_event_primary_artifact_audit.py \
   --out qa01-primary-artifact-audit.json
 ```
 
-Any missing primary report, changed producer bytes, forged case summary,
+Any missing primary report or SHA256SUMS, changed producer bytes,
+different case manifest, mismatched executable digest, forged case summary,
 aggregate disagreement or producer failure is an incomplete/invalid audit;
 it cannot be promoted as source-authentic coverage. The checker does
 **not** authenticate original emulator execution independently of the

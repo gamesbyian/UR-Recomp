@@ -6,6 +6,9 @@ on:
       - "tools/qa08_instrument_original_snes9x_medal_tile_calls.py"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snes9x-libretro.json"
+      - "tools/validate_island.py"
+      - "third_party/manifest.json"
+      - "third_party/src/snes9x-libretro/**"
       - "tests/unit/test_qa08_instrument_original_snes9x_medal_tile_calls.py"
       - "tests/input/qa08-original-medal-source-2014.script"
   workflow_dispatch:
@@ -45,7 +48,25 @@ jobs:
           sudo apt-get install -y --no-install-recommends build-essential cmake pkg-config libsdl2-dev
           python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
           SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
-          test "$(git -C "$SRC" rev-parse HEAD)" = "1bcc369e89f08243e0a462882fb1f3e42e51de3a"
+          # --offline uses the hashed *vendored* source closure, not a Git
+          # checkout; a git rev-parse here fails even after a successful build.
+          # Validate the repository-owned source bytes, both SHA/revision
+          # authorities and the exact original pin, before patching gfx.cpp.
+          python3 tools/validate_island.py
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          pin = "1bcc369e89f08243e0a462882fb1f3e42e51de3a"
+          source_sha = "ba85424ee81b08bc8ae392c089ace824da57d2bbd4000e7215edbed8dfddea6e"
+          entry = json.loads(Path("tools/toolchain-entries/snes9x-libretro.json").read_text())
+          manifest = json.loads(Path("third_party/manifest.json").read_text())
+          components = [x for x in manifest["components"] if x.get("id") == "snes9x-libretro"]
+          assert len(components) == 1 and components[0]["revision"] == pin
+          assert entry["revision"] == pin and components[0]["mode"] == "vendored"
+          assert components[0]["source_sha256"] == source_sha
+          assert Path(".tools/src/snes9x-libretro/gfx.cpp").is_file()
+          print("QA08_ORIGINAL_VENDORED_SNES9X",pin,source_sha)
+          PY
           # Historical source is patched read-only in the CI worktree only.
           python3 tools/qa08_instrument_original_snes9x_medal_tile_calls.py "$SRC/gfx.cpp"
           python3 tools/qa08_instrument_original_snes9x_medal_tile_calls.py "$SRC/gfx.cpp" --apply

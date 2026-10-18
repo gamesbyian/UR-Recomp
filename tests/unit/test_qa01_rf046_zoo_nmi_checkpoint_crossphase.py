@@ -25,6 +25,20 @@ class NMICrossPhase(unittest.TestCase):
             f"QA01RF044ORIGNMI f={f} f1={f} pc={pc} S0=01F0 S1=01EC old={old} new={new}"
             for f,pc,old,new in sequence
         ) + "\n"
+        shapes = {
+            1:"26F0D482", 2:"26EED482", 4:"26EED482",
+            32:"26EED482", 219:"26EED482",
+            604:"27F0D482",840:"27F0D482",841:"27F0D482",
+            1080:"27F0D482",1531:"27F0D482",1532:"27EED482",
+            1720:"27F0D482",1721:"27EED482",1800:"27F0D482",
+            2160:"27F0D482",2520:"27F0D482",2880:"27EED482",
+            3120:"27EED482",3600:"27EED482",4920:"27F0D482"
+        }
+        for rel,pattern in shapes.items():
+            entries = samplemap[rel]["original_native_full_wram_byte_difference"][
+                "first_24_differences"]
+            for i,entry in enumerate(entries):
+                entry["original_byte"] = int(pattern[i*2:i*2+2],16)
         for rel in rf046.EARLY:
             host = 1017 + rel
             _, _, pre, post = sequence[host-1-1017]
@@ -41,6 +55,9 @@ class NMICrossPhase(unittest.TestCase):
                             and x["original_checkpoint_equals_preceding_source_NMI_post"]
                             for x in r["exact_early_checkpoint_NMI_matches"]))
         self.assertEqual(r["original_NMI_nine_frame_census_count"],9)
+        self.assertEqual(r["source_original_twenty_four_byte_image_histogram"],
+                         rf046.EXPECTED_ORIGINAL_NMI_SHAPE_COUNTS)
+        self.assertFalse(r["later_frames_have_executed_source_NMI_proven"])
         self.assertFalse(r["native_actual_NMI_instruction_phase_from_correspondence_proven"])
         self.assertFalse(r["differing_stack_bytes_never_consumed_proven"])
         self.assertEqual(r["complete_USA_events_admitted"],0)

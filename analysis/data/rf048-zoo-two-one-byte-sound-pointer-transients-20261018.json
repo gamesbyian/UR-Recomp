@@ -1,0 +1,296 @@
+{
+  "schema": "rf048-two-Zoo-brief-sound-pointer-sampling-residuals-v1",
+  "source": "sha-qualified executed RF047 corrected original/native USA Zoo genuine 18-file case",
+  "artifact": {
+    "run_id": 39096831814,
+    "artifact_id": 12124654817,
+    "source_sha": "f47dda877272c4d1672ba75d8fe36c8efb6fc45b",
+    "sha256": "1060a98744fb770bbe43fcdddd89b352bdef691e18f1ab24d4ead5f16996bf6b"
+  },
+  "reference": {
+    "rf045_artifact_id": 12121250300,
+    "sha256": "3f06c51d20414833c71ff603ec1ec0b947f765007cf45add3e586f14035daf15357",
+    "zoo_race_mesh_and_Bowl_result_objects_exact_equal": true
+  },
+  "source_guest_absolute_entry_host": 1017,
+  "native_guest_absolute_entry_host": 1017,
+  "late_observations": [
+    {
+      "race_relative_frame": 5034,
+      "original_guest_host": 6051,
+      "native_guest_host": 6051,
+      "full_128KiB_WRAM_mismatches": 2,
+      "all_128KiB_bytes_compared": true,
+      "excluded": 0,
+      "differences": [
+        {
+          "addr": "7E:01EE",
+          "original_hex": "F0",
+          "native_hex": "EE"
+        },
+        {
+          "addr": "7E:01F1",
+          "original_hex": "F4",
+          "native_hex": "FB"
+        }
+      ],
+      "sound_DP": null
+    },
+    {
+      "race_relative_frame": 5035,
+      "original_guest_host": 6052,
+      "native_guest_host": 6052,
+      "full_128KiB_WRAM_mismatches": 2,
+      "all_128KiB_bytes_compared": true,
+      "excluded": 0,
+      "differences": [
+        {
+          "addr": "7E:01EE",
+          "original_hex": "F0",
+          "native_hex": "EE"
+        },
+        {
+          "addr": "7E:01F1",
+          "original_hex": "F4",
+          "native_hex": "FB"
+        }
+      ],
+      "sound_DP": null
+    },
+    {
+      "race_relative_frame": 5036,
+      "original_guest_host": 6053,
+      "native_guest_host": 6053,
+      "full_128KiB_WRAM_mismatches": 2,
+      "all_128KiB_bytes_compared": true,
+      "excluded": 0,
+      "differences": [
+        {
+          "addr": "7E:01EE",
+          "original_hex": "F0",
+          "native_hex": "EE"
+        },
+        {
+          "addr": "7E:01F1",
+          "original_hex": "F4",
+          "native_hex": "FB"
+        }
+      ],
+      "sound_DP": null
+    },
+    {
+      "race_relative_frame": 5037,
+      "original_guest_host": 6054,
+      "native_guest_host": 6054,
+      "full_128KiB_WRAM_mismatches": 2,
+      "all_128KiB_bytes_compared": true,
+      "excluded": 0,
+      "differences": [
+        {
+          "addr": "7E:01EE",
+          "original_hex": "F0",
+          "native_hex": "EE"
+        },
+        {
+          "addr": "7E:01F1",
+          "original_hex": "F4",
+          "native_hex": "FB"
+        }
+      ],
+      "sound_DP": null
+    },
+    {
+      "race_relative_frame": 5038,
+      "original_guest_host": 6055,
+      "native_guest_host": 6055,
+      "full_128KiB_WRAM_mismatches": 2,
+      "all_128KiB_bytes_compared": true,
+      "excluded": 0,
+      "differences": [
+        {
+          "addr": "7E:01EE",
+          "original_hex": "F0",
+          "native_hex": "EE"
+        },
+        {
+          "addr": "7E:01F1",
+          "original_hex": "F4",
+          "native_hex": "FB"
+        }
+      ],
+      "sound_DP": null
+    },
+    {
+      "race_relative_frame": 5039,
+      "original_guest_host": 6056,
+      "native_guest_host": 6056,
+      "full_128KiB_WRAM_mismatches": 0,
+      "all_128KiB_bytes_compared": true,
+      "excluded": 0,
+      "differences": [],
+      "sound_DP": {
+        "addr_0063_original": 176,
+        "addr_0063_native": 176,
+        "addr_0069_original": 159,
+        "addr_0069_native": 159
+      }
+    },
+    {
+      "race_relative_frame": 5040,
+      "original_guest_host": 6057,
+      "native_guest_host": 6057,
+      "full_128KiB_WRAM_mismatches": 1,
+      "all_128KiB_bytes_compared": true,
+      "excluded": 0,
+      "differences": [
+        {
+          "addr": "7E:0063",
+          "original_hex": "73",
+          "native_hex": "74"
+        }
+      ],
+      "sound_DP": {
+        "addr_0063_original": 115,
+        "addr_0063_native": 116,
+        "addr_0069_original": 190,
+        "addr_0069_native": 190
+      }
+    },
+    {
+      "race_relative_frame": 5041,
+      "original_guest_host": 6058,
+      "native_guest_host": 6058,
+      "full_128KiB_WRAM_mismatches": 0,
+      "all_128KiB_bytes_compared": true,
+      "excluded": 0,
+      "differences": [],
+      "sound_DP": {
+        "addr_0063_original": 77,
+        "addr_0063_native": 77,
+        "addr_0069_original": 151,
+        "addr_0069_native": 151
+      }
+    },
+    {
+      "race_relative_frame": 5042,
+      "original_guest_host": 6059,
+      "native_guest_host": 6059,
+      "full_128KiB_WRAM_mismatches": 0,
+      "all_128KiB_bytes_compared": true,
+      "excluded": 0,
+      "differences": [],
+      "sound_DP": {
+        "addr_0063_original": 39,
+        "addr_0063_native": 39,
+        "addr_0069_original": 113,
+        "addr_0069_native": 113
+      }
+    },
+    {
+      "race_relative_frame": 5043,
+      "original_guest_host": 6060,
+      "native_guest_host": 6060,
+      "full_128KiB_WRAM_mismatches": 0,
+      "all_128KiB_bytes_compared": true,
+      "excluded": 0,
+      "differences": [],
+      "sound_DP": {
+        "addr_0063_original": 0,
+        "addr_0063_native": 0,
+        "addr_0069_original": 74,
+        "addr_0069_native": 74
+      }
+    },
+    {
+      "race_relative_frame": 5044,
+      "original_guest_host": 6061,
+      "native_guest_host": 6061,
+      "full_128KiB_WRAM_mismatches": 0,
+      "all_128KiB_bytes_compared": true,
+      "excluded": 0,
+      "differences": [],
+      "sound_DP": {
+        "addr_0063_original": 218,
+        "addr_0063_native": 218,
+        "addr_0069_original": 36,
+        "addr_0069_native": 36
+      }
+    },
+    {
+      "race_relative_frame": 5045,
+      "original_guest_host": 6062,
+      "native_guest_host": 6062,
+      "full_128KiB_WRAM_mismatches": 1,
+      "all_128KiB_bytes_compared": true,
+      "excluded": 0,
+      "differences": [
+        {
+          "addr": "7E:0063",
+          "original_hex": "B3",
+          "native_hex": "B4"
+        }
+      ],
+      "sound_DP": {
+        "addr_0063_original": 179,
+        "addr_0063_native": 180,
+        "addr_0069_original": 254,
+        "addr_0069_native": 254
+      }
+    },
+    {
+      "race_relative_frame": 5046,
+      "original_guest_host": 6063,
+      "native_guest_host": 6063,
+      "full_128KiB_WRAM_mismatches": 0,
+      "all_128KiB_bytes_compared": true,
+      "excluded": 0,
+      "differences": [],
+      "sound_DP": {
+        "addr_0063_original": 141,
+        "addr_0063_native": 141,
+        "addr_0069_original": 215,
+        "addr_0069_native": 215
+      }
+    }
+  ],
+  "full_mesh_pair_count": 78,
+  "exact_full_wram_pair_count": 51,
+  "all_mesh_differing_occurrences": 92,
+  "stack_differing_occurrences": 90,
+  "sound_pointer_differing_occurrences": 2,
+  "native_actual_consumers": {
+    "source": "RF035 and RF037 genuinely executed pinned native cpu_read helper",
+    "previous_to_first_residual_pointer_word": "C773",
+    "first_native_host6057_word": "C774",
+    "previous_to_second_residual_pointer_word": "D0B3",
+    "first_native_host6062_word": "D0B4",
+    "qualified_native_reader_for_both": true
+  },
+  "original_65816_source": [
+    "82:82CC LDY $63",
+    "82:82CE STZ $63",
+    "82:82D0 STZ $64",
+    "82:82F0 LDA [$63],Y",
+    "82:82F2 STA $2143",
+    "82:82F6 STA $2142",
+    "82:82F9 INY",
+    "82:8301 CMP $2142"
+  ],
+  "CPU_port_payload_original_prefix_matches_native": {
+    "actual_original_port2_port3_payload_count": 45645,
+    "match_count": 45645,
+    "three_original_same_SPC_age_order_ties_not_architecturally_resolved": true,
+    "all_frame_clock_compatibility_proven": false
+  },
+  "conclusions": {
+    "current_sound_pointer_residual_only_at_5040_and_5045": true,
+    "full_wram_equal_at_5039_5041_5044_5046": true,
+    "counter_0069_equal_every_adjacent_frame": true,
+    "native_consumed_pointer_value_is_live": true,
+    "original_corresponding_CPU_port_and_SPC_consumer_at_these_frame_boundaries_proven": false,
+    "causal_sound_timing_patch_justified": false,
+    "stack_mask_or_clock_rephase_authorized": false,
+    "USA_complete_events_accepted": 0
+  },
+  "next_unique_witness": "One independently registered original/native pointer first-reader-to-CPU $2142/$2143 publication and SPC F6/F7 actual receipt at +5040/+5045, if needed for independent L4/QA-01 event acceptance. No broad rerun without an already qualified matching producer."
+}

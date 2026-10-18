@@ -81,7 +81,13 @@ def classify(original: str, native: str) -> dict:
             "native_actual_helper_read_covered":True,
             "source_original_host_frame_equivalence_proven":False,
         })
+    # The original 82:82CE clears the base pointer before LDA [$63],Y.
+    # A matching physical effective-address *candidate* may therefore occur
+    # while raw_ptr is zero. Never conflate these independent observations.
     target=[row for row in orows if row["target"]=="1"]
+    indexed=[row for row in orows if
+             0xC770 <= (int(row["effective_candidate"],16)&0xffff) <= 0xC779 or
+             0xD0B0 <= (int(row["effective_candidate"],16)&0xffff) <= 0xD0B9]
     per_frame=Counter(int(row["frame"]) for row in orows)
     per_target=Counter(int(row["frame"]) for row in target)
     return {
@@ -91,12 +97,16 @@ def classify(original: str, native: str) -> dict:
         "original_target_raw_pointer_rows":len(target),
         "original_target_raw_pointer_source_frames":{str(k):v for k,v in sorted(per_target.items())},
         "original_first_candidate_rows":target[:12],
+        "original_indexed_effective_candidate_rows":len(indexed),
+        "original_indexed_effective_source_frames":
+            {str(k):v for k,v in sorted(Counter(int(row["frame"]) for row in indexed).items())},
+        "original_indexed_effective_candidate_examples":indexed[:12],
         "original_raw_WRAM_mirror_is_not_actual_second_bus_read":True,
         "native_verified_boundary_read_pairs":pairs,
         "source_original_internal_frame_equals_native_host_proven":False,
         "original_effective_pointer_vs_native_consumer_proven":False,
         "original_native_SPC_publication_causality_proven":False,
-        "source_window_coverage":"target_candidate_seen" if target else "missing_target_candidate",
+        "source_window_coverage":"indexed_candidate_observed" if indexed else "sparse_source_samples_no_indexed_target",
         "complete_USA_event_credit":0,
     }
 

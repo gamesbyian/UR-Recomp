@@ -6,18 +6,21 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[2]/"tools"))
 import qa01_rf055_compiled_pc_observer as rf
 
 # Minimal deterministic copy of the emitter's instruction loop, not an emulator.
-SOURCE='''bank=0x82
-func_name="Snd_UploadBlockList_82EF_M1X0"
-skip_emit_idx=set()
-emitted=[]
-for ii, (di_insn, ir_ops) in enumerate(pairs):
-    lines=[]
-    if ii in skip_emit_idx:
-        continue
+SOURCE='''def exercise(pairs):
+    emitted=[]
+    for key in (1,):
+        bank=0x82
+        func_name="Snd_UploadBlockList_82EF_M1X0"
+        skip_emit_idx=set()
+        for ii, (di_insn, ir_ops) in enumerate(pairs):
+            lines=[]
+            if ii in skip_emit_idx:
+                continue
             # Axis-2 step C dynamics: charge runtime-only modifiers (D.l != 0,
-    for op in ir_ops:
-        lines.append("original IR unchanged")
-    emitted.append(lines)
+            for op in ir_ops:
+                lines.append("original IR unchanged")
+            emitted.append(lines)
+    return emitted
 '''
 class RF055ExecutedInstruction(unittest.TestCase):
     def test_only_three_exact_original_opcode_PCs_are_observed(self):
@@ -28,7 +31,7 @@ class RF055ExecutedInstruction(unittest.TestCase):
         ctx={"pairs":[(SimpleNamespace(addr=pc),["effect"]) for pc in (
             0x8282EE,0x8282F0,0x8282F2,0x8282F6,0x8282F8,0x8182F0)]}
         exec(compile(after,"<rf055 emitter fixture>","exec"),ctx,ctx)
-        recorded=ctx["emitted"]
+        recorded=ctx["exercise"](ctx["pairs"])
         self.assertEqual(len(recorded),6)
         for i,pc in ((1,"8282F0"),(2,"8282F2"),(3,"8282F6")):
             self.assertEqual(len(recorded[i]),3)

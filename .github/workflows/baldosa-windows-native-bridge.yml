@@ -31,6 +31,13 @@ on:
       - "tests/unit/test_baldosa_uniracers_hdma_firstline_patch.py"
       - "tools/baldosa_uniracers_v0_raster_before_hdma_patch.py"
       - "tests/unit/test_baldosa_uniracers_v0_raster_before_hdma_patch.py"
+      - "tools/qa08_current_result_pixel_owner_patch.py"
+      - "tools/qa08_current_result_cgram_port_patch.py"
+      - "tools/qa08_current_result_source_witness.py"
+      - "tests/unit/test_qa08_current_result_readonly.py"
+      - "tools/qa08_current_medal_obj_fetch_patch.py"
+      - "tools/qa08_join_current_medal_obj_fetch.py"
+      - "tests/unit/test_qa08_current_medal_4bpp_fetch.py"
       - "tests/unit/test_baldosa_native_practice_probe.py"
       - "tests/unit/test_baldosa_native_second_racer_probe.py"
       - "tools/baldosa_native_first_racer_real_run_probe.py"
@@ -215,6 +222,8 @@ jobs:
           python tests/unit/test_windows_rf017_source_identity.py
           python tests/unit/test_baldosa_uniracers_hdma_firstline_patch.py
           python tests/unit/test_baldosa_uniracers_v0_raster_before_hdma_patch.py
+          python tests/unit/test_qa08_current_result_readonly.py
+          python tests/unit/test_qa08_current_medal_4bpp_fetch.py
           python tests/unit/test_bind_baldosa_candidate_receipt.py
           python tests/unit/test_audit_baldosa_romless_candidate.py
           python tests/unit/test_check_windows_pe_timestamp.py
@@ -265,6 +274,12 @@ jobs:
           python tools/baldosa_uniracers_hdma_firstline_patch.py --game baldosa --apply-candidate
           python tools/baldosa_uniracers_v0_raster_before_hdma_patch.py --game baldosa
           python tools/baldosa_uniracers_v0_raster_before_hdma_patch.py --game baldosa --apply-candidate
+          # One-shot original PPU medal source instrumentation, read-only.
+          # This must never merge into the real Windows product renderer.
+          python tools/qa08_current_result_pixel_owner_patch.py --game baldosa --apply-candidate
+          python tools/qa08_current_result_cgram_port_patch.py --game baldosa --apply-candidate
+          python tools/qa08_current_medal_obj_fetch_patch.py --game baldosa
+          python tools/qa08_current_medal_obj_fetch_patch.py --game baldosa --apply-candidate
           echo "QA08 HDMA/V0 source staged; original results, 4K and release gate unaccepted." >> "$GITHUB_STEP_SUMMARY"
           python tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_execution_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
@@ -335,6 +350,26 @@ jobs:
           PY
           echo "PASS: pinned Baldosa AOT Windows x64 with existing UR guest/input/native-pause hooks links and produces PE32+" >> "$GITHUB_STEP_SUMMARY"
           echo "NOT TESTED: Modern frontend, runtime interaction, package, per-profile SRAM, Records, replay, ghosts, or complete event." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record genuine original/native result 4bpp medal fetch winner
+        run: |
+          set -euo pipefail
+          python tools/qa08_current_result_source_witness.py \
+            --exe baldosa/build-ur-win/UniracersSNESRecomp.exe \
+            --rom reference/roms/retail/Uniracers_USA.sfc \
+            --script reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p.txt \
+            --out "$RUNNER_TEMP/qa08-medal-4bpp-actual" --timeout 300
+          echo "QA08 current 4bpp/OAM per-pixel winner only; original result and release remain held." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain bounded real native medal 4bpp trace, even on negative
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-rf017-genuine-medal-4bpp-winners
+          retention-days: 90
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa08-medal-4bpp-actual/qa08-current-result-owners.json
+            ${{ runner.temp }}/qa08-medal-4bpp-actual/baseline/log.txt
 
       - name: Verify Baldosa Windows PE needs only clean-machine system DLLs
         run: |

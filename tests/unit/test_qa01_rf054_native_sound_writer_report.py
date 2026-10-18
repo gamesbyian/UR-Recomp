@@ -33,7 +33,7 @@ class RF054ActualWriter(unittest.TestCase):
         for name,wrong,expect in (
             ("no original writer",data.replace("val=0063","val=0064"),"absent/nonunique"),
             ("repeated pair",data+"\n"+event("writer",3,170,"002143","00D0")+"\n"+event("writer",4,220,"002142","0063"),"absent/nonunique"),
-            ("malformed read",data.replace("addr=11C774 A=","addr=ZZC774 A="),"outside qualified"),
+            ("malformed read",data.replace("addr=11C774 A=","addr=ZZC774 A="),"physical address malformed"),
             ("missing helper sequence",data.replace("kind=read8 seq=1","kind=read8 seq=3"),"lost or duplicated"),
             ("truncated",data+"\nQA01RF054NATIVE_TRUNCATED kind=rom-map","truncated"),
             ("real-bus-truncated",data+"\nQA01RF054NATIVEBUS_TRUNCATED","truncated"),

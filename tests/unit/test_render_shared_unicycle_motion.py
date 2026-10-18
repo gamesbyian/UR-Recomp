@@ -47,6 +47,8 @@ class SharedRigMotionContract(unittest.TestCase):
         self.assertNotIn("--autocenter",self.reviewer)
         self.assertIn("model clipped at fixed-camera viewport boundary",self.reviewer)
         self.assertIn('"all_18_source_model_unclipped": True',self.reviewer)
+        self.assertIn('"two_continuous_motion_loops_pixel_exact_at_endpoints": True',self.reviewer)
+        self.assertIn("animated rig loop has discontinuous rendered endpoints",self.reviewer)
 
     def test_full_pixel_border_guard_blocks_real_crop_not_just_corners(self):
         w=h=16

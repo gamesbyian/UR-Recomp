@@ -46,7 +46,7 @@ class AuthenticStack(unittest.TestCase):
   with self.assertRaisesRegex(ValueError,"return pulls"):
    m.observe(a.replace("kind=pullB addr=01ED width=1 value=0026",
                        "kind=pullB addr=01ED width=1 value=0027",1),b)
-  def test_wrong_or_missing_NMI_source_macros_fail(self):
+ def test_wrong_or_missing_NMI_source_macros_fail(self):
   a,b=self.fixture()
   with self.assertRaisesRegex(ValueError,"missing/misaligned"):
    m.observe(a.replace("kind=pushW addr=01EE","kind=pushW addr=01EF",1),b)

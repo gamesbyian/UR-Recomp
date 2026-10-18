@@ -54,6 +54,7 @@ class DragsterColdGuestTests(unittest.TestCase):
                 "original_entry_frame":794,
                 "original_result_frame":2874,
                 "source_active_frames_to_result":2080,
+                "source_next_zoo":{"sample_offsets":list(next_zoo.OFFSETS)},
             },
             "comparison":{
                 "terminal_result_guest_frame":{
@@ -102,6 +103,7 @@ class DragsterColdGuestTests(unittest.TestCase):
     def test_source_does_not_accept_forged_result_controller_or_wrong_race(self):
         for f in (
             lambda r:r["original_source_event"].update({"original_result_frame":2875}),
+            lambda r:r["original_source_event"]["source_next_zoo"].update({"sample_offsets":[304]}),
             lambda r:r.update({"original_movie_window_sha256":"4"*64}),
             lambda r:r.update({"input_sha256":"4"*64}),
             lambda r:r["comparison"]["terminal_result_guest_frame"].update({"native_relative":2080}),

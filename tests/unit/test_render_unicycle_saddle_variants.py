@@ -23,11 +23,20 @@ class SaddleExperimentBoundaries(unittest.TestCase):
         self.assertEqual(self.text.count('rig(rig_pose);'),1)
         self.assertIn("is_undef(rig_saddle_span)?1:rig_saddle_span",self.text)
         self.assertIn("out-of-scope unreviewed saddle shape",self.text)
+        self.assertIn("out-of-scope unreviewed fork mass",self.text)
+        self.assertIn("is_undef(rig_frame_mass)?1:rig_frame_mass",self.text)
+        self.assertIn("r1*rig_frame_mass",self.text)
+        self.assertEqual(self.text.count("module frame_member("),1)
+        self.assertEqual(self.text.count("frame_member("),6)
+        self.assertIn('"bounded_frame_mass":frame_mass',self.script)
+        self.assertIn('if frame_mass not in (1.0, 1.4, 1.8, 2.0)',self.script)
+
 
     def test_missing_or_unbounded_shared_parameter_is_rejected(self):
         for replacement in (
             self.text.replace("rig_saddle_span=is_undef","wrong=is_undef"),
             self.text.replace("rig_saddle_span <= 2.2","rig_saddle_span <= 99"),
+            self.text.replace("rig_frame_mass <= 2","rig_frame_mass <= 99"),
             self.text.replace("scale([rig_saddle_span,1,1])","scale([1,1,1])"),
             self.text.replace('rig(rig_pose);','rig("upright");'),
         ):

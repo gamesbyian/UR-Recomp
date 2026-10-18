@@ -1,0 +1,102 @@
+{
+  "schema": "rf056-bowl-input-offset-vs-executed-wram-transition-onset-v1",
+  "replayed_guest_state_artifact": {
+    "run_id": 39169304323,
+    "source_sha": "d8fc9099ea2827c6a919ec01bd2c49472701803c",
+    "artifact_id": 12151982503,
+    "sha256": "c2262b40e43b4e167cbdf291623b0e34207561187e103af39eca7a46fa4b0edc",
+    "full_member_count": 78
+  },
+  "qualified_supplied_controller_archive": {
+    "run_id": 39170675242,
+    "source_sha": "3d609c9bb384028255f0085253ed1c0a20d25706",
+    "artifact_id": 12152457075,
+    "sha256": "0fe45f6116e2b9c1e90a126acb67d9530e64beb5144fb58c637c9b6a228eeaf1",
+    "ref_input_path": "bowl/replay/ref.input",
+    "ref_input_sha256": "24e8cb669271e1e1a57dc3bfff0cb1a54d30c2946e15ab3edabe4e1a8838b825",
+    "native_input_path": "bowl/replay/pinned-baldosa.input",
+    "native_input_sha256": "0db2471a91bb00befe5e113c2eebe7c820b405ee38880e68d4a5c939be5543d5",
+    "metadata_path": "bowl-source-input-identity.json",
+    "supplied_event_count_per_guest": 593,
+    "all_masks_and_durations_pairwise_identical": true,
+    "all_native_frame_start_equal_original_plus_one": true
+  },
+  "unchanged_source_replay": {
+    "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "seed_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+    "shared_replay_script_sha256": "3ae5e12c664033f6299a97cf40cb0f8a576d6fed6b73a4d8c600512c72eb9422",
+    "full_original_native_bowl_next_switcher_handoff_object_equal_across_two_runs": true
+  },
+  "onset": {
+    "original_transition_full_WRAM_mutations": {
+      "first_from_host": 4688,
+      "first_to_host": 4689,
+      "first_result_relative_pair": [
+        339,
+        340
+      ],
+      "number_exact_address_before_after_triples": 31,
+      "second_from_host": 4689,
+      "second_to_host": 4690,
+      "second_exact_triples": 642
+    },
+    "native_transition_full_WRAM_mutations": {
+      "first_from_host": 4691,
+      "first_to_host": 4692,
+      "first_result_relative_pair": [
+        342,
+        343
+      ],
+      "number_exact_address_before_after_triples": 31,
+      "second_from_host": 4692,
+      "second_to_host": 4693,
+      "second_exact_triples": 642
+    },
+    "original_and_native_first_673_full_WRAM_mutation_triples_identical": true,
+    "supplied_p1_at_first_mutation": {
+      "original": {
+        "host_frame": 4689,
+        "mask_hex": "080",
+        "segment_start": 4689,
+        "duration_frames": 7,
+        "elapsed_since_start": 0
+      },
+      "native": {
+        "host_frame": 4692,
+        "mask_hex": "080",
+        "segment_start": 4690,
+        "duration_frames": 7,
+        "elapsed_since_start": 2
+      }
+    },
+    "preceding_supplied_input": {
+      "original": {
+        "host_frame": 4688,
+        "mask_hex": "040",
+        "segment_start": 4688,
+        "duration_frames": 1
+      },
+      "native": {
+        "host_frame": 4691,
+        "mask_hex": "080",
+        "segment_start": 4690,
+        "duration_frames": 7,
+        "elapsed_since_start": 1
+      }
+    },
+    "supplied_native_input_offset_frames": 1,
+    "guest_state_mutation_start_offset_frames": 3,
+    "relative_lag_beyond_supplied_input_offset_frames": 2
+  },
+  "negative_claims": {
+    "actual_native_or_original_65816_CPU_joypad_register_read_observed": false,
+    "same_CPU_master_or_interrupt_NMI_epoch_proven": false,
+    "input_shift_or_guest_state_modified": false,
+    "isolated_causal_65816_branch_or_timer_proven": false,
+    "complete_gameplay_event_certified": false,
+    "usa_event_credit": 0,
+    "historical_movie_already_has_different_pretrigger_WRAM_and_SRAM": true
+  },
+  "reproduction": "python3 tools/qa01_rf056_bowl_supplied_input_onset_bridge.py bowl-3guest-original-native-2014-source.zip --source-qualified-input-case bowl-input-qualified-1856.zip"
+}

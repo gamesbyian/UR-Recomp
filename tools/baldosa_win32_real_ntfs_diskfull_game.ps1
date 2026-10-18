@@ -173,7 +173,23 @@ try {
     throw 'FAIL_CLOSED: isolated W: free space not restored'
   }
   Invoke-OriginalPhase 'cold'
+  # Preserve the exact independently accepted 25-member early refusal
+  # artifact unchanged. The second, different failure phase has its own
+  # sibling output and never writes its evidence onto disposable W:.
+  $postrawSource = Join-Path $env:GITHUB_WORKSPACE 'tools\baldosa_win32_real_ntfs_postraw_game.py'
+  if (-not (Test-Path -LiteralPath $postrawSource -PathType Leaf)) {
+    throw 'FAIL_CLOSED: owning original-game postraw researcher missing'
+  }
+  $postrawOutput = $out + '-postraw'
+  if (Test-Path -LiteralPath $postrawOutput) {
+    throw 'FAIL_CLOSED: postraw source evidence root unexpectedly exists'
+  }
+  & python $postrawSource --launcher $launcher --rom $rom --fixture $fixture --seed $seed --user $user --out $postrawOutput --timeout 120
+  if ($LASTEXITCODE -ne 0) {
+    throw 'FAIL_CLOSED: actual original Windows postraw full-volume typed publication unproven'
+  }
   Write-Output 'UR_ORIGINAL_CMD_REAL_NTFS_DISK_FULL_PRODUCT_PASS'
+  Write-Output 'UR_ORIGINAL_CMD_REAL_NTFS_POSTRAW_TYPED_FULL_PRODUCT_PASS'
 }
 finally {
   if ($attached) {

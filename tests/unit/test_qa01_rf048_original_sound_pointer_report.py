@@ -26,6 +26,8 @@ class FirstConsumerReportTest(unittest.TestCase):
     def test_source_and_native_positive_no_false_cross_epoch(self):
         out=rf.classify(SOURCE_ROW,native_records())
         self.assertEqual(out["original_target_raw_pointer_rows"],1)
+        self.assertEqual(out["original_exact_13C774_source_operand_observations"],1)
+        self.assertEqual(out["original_indexed_candidate_by_bank"],{"13":1})
         self.assertEqual(out["native_verified_boundary_read_pairs"][0]["native_first_bus_helper_read"],"C774")
         self.assertEqual(out["native_verified_boundary_read_pairs"][1]["native_first_bus_helper_read"],"D0B4")
         self.assertFalse(out["source_original_internal_frame_equals_native_host_proven"])

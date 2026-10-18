@@ -440,6 +440,107 @@ int main() {
 
 
     {
+        // A malformed pending intent must NEVER auto-authorize guest raw.
+        // But a human's explicit typed rollback can preserve opaque bad
+        // intent, preserve original guest raw and restore the known-good pair.
+        const auto dir = intent_fixture("malformed-intent-explicit-typed");
+        const auto [global, profile] = before_save(dir);
+        const auto root = dir / "saves/profile-mike";
+        const auto raw = root / "save.srm";
+        const auto typed = root / "host-profile.txt";
+        const auto pending = root / "native-sram-checkpoint.pending";
+        const auto selector = dir / "host-state-v1.txt";
+        const auto roster = dir / "profiles-v1.txt";
+        const std::string old_typed = bytes(typed);
+        const std::string old_selector = bytes(selector);
+        const std::string old_catalog = bytes(roster);
+        write_bytes(raw, make_changed(profile));
+        const std::string changed_raw = bytes(raw);
+        const std::string corrupt("INVALID\\0INTENT\\xff", 15);
+        { std::ofstream out(pending, std::ios::binary);
+          out.write(corrupt.data(), corrupt.size()); }
+        assert(recover_baldosa_sram_intent_on_cold_boot(dir, "mike") ==
+               BaldosaSramIntentStatus::Rejected);
+        assert(recover_baldosa_legacy_sram_explicit(
+            dir, "mike", BaldosaManualSramChoice::TrustGuestRaw) ==
+               BaldosaManualSramRecoveryStatus::Rejected);
+        assert(bytes(raw) == changed_raw &&
+               bytes(typed) == old_typed && bytes(pending) == corrupt);
+        assert(recover_baldosa_legacy_sram_explicit(
+            dir, "mike", BaldosaManualSramChoice::RestoreCommitted) ==
+               BaldosaManualSramRecoveryStatus::RestoredCommitted);
+        assert(!fs::exists(pending));
+        assert(bytes(raw) ==
+               std::string(reinterpret_cast<const char*>(
+                   profile.stock_sram->data()), kStockSramBytes));
+        assert(bytes(typed) == old_typed &&
+               bytes(selector) == old_selector &&
+               bytes(roster) == old_catalog);
+        std::size_t manual_count = 0, bad_intent_count = 0;
+        for (const auto& entry : fs::directory_iterator(root)) {
+            const std::string name = entry.path().filename().string();
+            if (name.find("native-sram-manual-archive-") == 0) {
+                ++manual_count;
+                assert(bytes(entry.path()).find(changed_raw) !=
+                       std::string::npos);
+            } else if (name.find("native-sram-untrusted-intent-") == 0) {
+                ++bad_intent_count;
+                const auto record = bytes(entry.path());
+                assert(record.find(
+                    "UR-BALDOSA-UNTRUSTED-SRAM-INTENT/1\\n") == 0);
+                assert(record.substr(record.size() - corrupt.size()) ==
+                       corrupt);
+            }
+        }
+        assert(manual_count == 1 && bad_intent_count == 1);
+        assert(recover_baldosa_sram_intent_on_cold_boot(dir, "mike") ==
+               BaldosaSramIntentStatus::NoIntent);
+        assert(recover_baldosa_legacy_sram_explicit(
+            dir, "mike", BaldosaManualSramChoice::RestoreCommitted) ==
+               BaldosaManualSramRecoveryStatus::AlreadyConsistent);
+    }
+    {
+        // Even if original raw == typed, malformed pending remains a cold
+        // blocker until explicit archive-first typed retirement.
+        const auto dir = intent_fixture("malformed-intent-old-raw");
+        const auto raw = dir / "saves/profile-mike/save.srm";
+        const auto typed = dir / "saves/profile-mike/host-profile.txt";
+        const auto pending = dir /
+            "saves/profile-mike/native-sram-checkpoint.pending";
+        const auto canonical = bytes(raw);
+        const auto canonical_typed = bytes(typed);
+        { std::ofstream out(pending, std::ios::binary);
+          out << "bad intent"; }
+        assert(recover_baldosa_sram_intent_on_cold_boot(dir, "mike") ==
+               BaldosaSramIntentStatus::Rejected);
+        assert(recover_baldosa_legacy_sram_explicit(
+            dir, "mike", BaldosaManualSramChoice::RestoreCommitted) ==
+               BaldosaManualSramRecoveryStatus::RestoredCommitted);
+        assert(!fs::exists(pending) && bytes(raw) == canonical &&
+               bytes(typed) == canonical_typed);
+        assert(recover_baldosa_sram_intent_on_cold_boot(dir, "mike") ==
+               BaldosaSramIntentStatus::NoIntent);
+    }
+    {
+        // Never read a huge or redirected pending path into the manual
+        // untrusted-intent archive, or discard it under a recovery choice.
+        const auto dir = intent_fixture("malformed-intent-too-large");
+        const auto raw = dir / "saves/profile-mike/save.srm";
+        const auto typed = dir / "saves/profile-mike/host-profile.txt";
+        const auto pending = dir /
+            "saves/profile-mike/native-sram-checkpoint.pending";
+        const auto old_raw = bytes(raw), old_typed = bytes(typed);
+        { std::ofstream out(pending, std::ios::binary);
+          out << std::string(100001, 'X'); }
+        assert(recover_baldosa_legacy_sram_explicit(
+            dir, "mike", BaldosaManualSramChoice::RestoreCommitted) ==
+               BaldosaManualSramRecoveryStatus::Rejected);
+        assert(bytes(raw) == old_raw && bytes(typed) == old_typed &&
+               bytes(pending).size() == 100001);
+    }
+
+
+    {
         // Historical post-raw/pre-typed _Exit(86) WITHOUT any intent: the
         // guest-authored bytes cannot be promoted without human choice.
         const auto dir = intent_fixture("legacy-raw-choice");

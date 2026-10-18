@@ -16,11 +16,11 @@ MARK="UR_QA01_RF055_COMPILED_PC"
 ANCHOR="            # Axis-2 step C dynamics: charge runtime-only modifiers (D.l != 0,\n"
 
 INJECTION='''            # UR_QA01_RF055_COMPILED_PC: executed original-ROM PC, not
-            # a C function-scope guess or a fall-through block's start PC.
+            # a C function-scope guess or a fall-through block's start PC.\n            # Compare ALL 24 ROM address bits: bank82 vs bank81 decoy.
             # The site executes before its own dynamic clock charges and
             # instruction IR. The existing IR is emitted once, unchanged.
-            if (bank & 0xFF) == 0x82 and (di_insn.addr & 0xFFFF) in (
-                    0x82F0, 0x82F2, 0x82F6):
+            if (bank & 0xFF) == 0x82 and (di_insn.addr & 0xFFFFFF) in (
+                    0x8282F0, 0x8282F2, 0x8282F6):
                 _site_pc = ((bank & 0xFF) << 16) | (di_insn.addr & 0xFFFF)
                 _site_name = f"{func_name}"
                 lines.append("extern int snes_frame_counter;")

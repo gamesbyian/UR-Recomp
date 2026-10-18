@@ -86,8 +86,12 @@ def audit(root: Path) -> dict:
             mesh.get("mesh_checkpoint_count") == CHECKPOINT_COUNT and
             mesh.get("all_128k_wram_bytes_examined_per_pair") == 131072 and
             mesh.get("masked_or_excluded_wram_bytes") == 0 and
-            mesh.get("release_complete_usa_event_credit") == 0,
-            "missing/modified real full-race unmasked Zoo mesh")
+            mesh.get("release_complete_usa_event_credit") == 0 and
+            mesh.get("every_gameplay_frame_compared") is False and
+            mesh.get("cpu_instruction_or_logic_tick_parity_proven") is False and
+            mesh.get("native_os_disk_persistence_proven") is False and
+            mesh.get("original_2014_source_controller_masks_modified") is False,
+            "missing/modified real full-race unmasked Zoo mesh or falsely promoted proof")
     rows = mesh.get("samples")
     require(isinstance(rows, list) and len(rows) == CHECKPOINT_COUNT,
             "missing actual 78 original/native full-WRAM checkpoint observations")
@@ -166,12 +170,19 @@ def audit(root: Path) -> dict:
             "first_differing_address": f["first_differing_address"],
             "differing_byte_count": f["differing_byte_count"],
         }, "reported first real Zoo original/native byte divergence altered")
+    else:
+        require(mesh.get("first_nonidentical_raw_wram_pair") is None,
+                "reported first Zoo divergence exists despite byte-exact guest memory")
 
     handoff = report.get("zoo_next_bowl_handoff")
     require(isinstance(handoff, dict) and
             handoff.get("sample_offsets") == list(BOWL_OFFSETS) and
             handoff.get("sample_count") == len(BOWL_OFFSETS) and
             handoff.get("release_complete_event_credit") == 0 and
+            handoff.get("source_controller_masks_modified") is False and
+            handoff.get("full_event_guest_logic_tick_equivalence_proven") is False and
+            handoff.get("shipping_windows_candidate_proven") is False and
+            handoff.get("cold_process_disk_persistence_proven") is False and
             isinstance(handoff.get("samples"), list) and
             len(handoff["samples"]) == len(BOWL_OFFSETS),
             "source-authentic Zoo next Bowl proof absent")

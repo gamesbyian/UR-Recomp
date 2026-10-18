@@ -27,7 +27,7 @@ class OriginalPointerWitnessTests(unittest.TestCase):
         self.assertEqual(after.count("(*Opcodes[Op].S9xOpcode)();"), 1)
         self.assertEqual(after.count(rf048.MARK), 1)
         self.assertEqual(after.count("Memory.RAM[rf048_dp]"), 1)
-        self.assertEqual(after.count("QA01RF048ORIGPTR "), 0)
+        self.assertEqual(after.count("QA01RF048ORIGPTR "), 1)
         self.assertEqual(after.count("QA01RF048ORIGPTR count="), 1)
         self.assertEqual(after.count("QA01RF048ORIGPTR_TRUNCATED"), 1)
         self.assertIn("ur_rf035_pc == 0x82F0u", after)

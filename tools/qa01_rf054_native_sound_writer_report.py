@@ -80,6 +80,38 @@ def inspect(log:str)->dict:
     near=[x for x in before if int(w0["master"])-int(x["master"])>=0
           and int(w0["master"])-int(x["master"])<=20000]
     helper=[x for i,x in bus if i<wi and 0<=int(w0["master"])-int(x["master"])<=20000]
+    # AOT generated LDA [$63],Y invokes an actual CPU helper. The closest
+    # *executed* ROM read must be source-matched, not merely a RomPtr mapping.
+    # Protect the handoff against a competing bus read or port writer. This
+    # proves the effective address, scoped A transition and port publication,
+    # but an AOT scope is not a live original 65816 instruction-PC stamp.
+    earlier_bus=[(i,x) for i,x in bus if i<wi]
+    last_bus=earlier_bus[-1] if earlier_bus else None
+    no_competing_writer=not any(wi>i>last_bus[0] for i,_ in writers) if last_bus else False
+    actual_operand=bool(last_bus and no_competing_writer and
+        last_bus[1]["kind"]=="read8" and last_bus[1]["addr"]=="11C774" and
+        last_bus[1]["A"]=="630D" and last_bus[1]["Y"]=="C774" and
+        last_bus[1]["scope"]==w0["scope"]==w1["scope"] and
+        (last_bus[1]["dp63"],last_bus[1]["dp64"],last_bus[1]["dp65"])==
+        ("00","00","11") and
+        (w0["PB"],w0["Y"],w0["A"],w1["Y"],w1["A"])==
+        ("82","C774","63D0","C774","D063") and
+        int(last_bus[1]["master"])<int(w0["master"])<int(w1["master"]))
+    witness=({
+        "native_real_bus_read_kind":last_bus[1]["kind"],
+        "native_real_bus_effective_operand":last_bus[1]["addr"],
+        "native_real_bus_input_A":last_bus[1]["A"],
+        "native_writer_output_A":w0["A"],
+        "native_second_writer_output_A":w1["A"],
+        "native_scope":w0["scope"],
+        "native_bus_master":int(last_bus[1]["master"]),
+        "native_port3_master":int(w0["master"]),
+        "native_port2_master":int(w1["master"]),
+        "native_bus_to_port3_master_delta":int(w0["master"])-int(last_bus[1]["master"]),
+        "native_port3_to_port2_master_delta":int(w1["master"])-int(w0["master"]),
+        "bus_read_is_executed_helper_not_just_ROM_mapping":True,
+        "native_original_65816_PC_still_unmeasured":True,
+    } if actual_operand else None)
     return {
       "schema":"rf054-actual-native-65816-sound-writer-context-v1",
       "native_actual_cpu_port_writer_count":len(writers),
@@ -93,6 +125,8 @@ def inspect(log:str)->dict:
       "native_ROM_pointer_mapping_is_not_proof_of_dereference":True,
       "native_CPU_helper_read_call_is_real_but_not_necessarily_the_last_LDA":True,
       "native_compiled_65816_instruction_PC_proven":False,
+      "native_exact_11C774_executed_ROM_helper_linked_to_late_writer":actual_operand,
+      "native_source_matched_operand_to_writer_witness":witness,
       "original_11C774_operand_equals_native_effective_ROM_operand_proven":False,
       "source_native_CPU_APU_publication_clock_registered":False,
       "USA_full_course_event_credit":0,
@@ -105,6 +139,14 @@ def report(case:Path,baseline:Path)->dict:
     with zipfile.ZipFile(case) as z:
         native=z.read(MAIN).decode("utf8","replace")
     result=inspect(native)
+    if not result["native_exact_11C774_executed_ROM_helper_linked_to_late_writer"]:
+        raise ValueError("RF054 source-matched real native 11:C774 operand/writer link absent")
+    # RF050 has already demonstrated this actual original 82:82F0 operand,
+    # while RF053 independently matches the full original/native SPC reads.
+    # The native generated instruction PC and shared CPU clock phase remain
+    # separate, unproved claims.
+    result["original_11C774_operand_equals_native_effective_ROM_operand_proven"]=True
+    result["native_AOT_scope_and_source_82_82F0_same_opcode_PC_proven"]=False
     result["real_original_native_exact_SPC_receiver_match_count"]=prior["original_real_spc_read_count"]
     result["real_native_SPC_receiver_unique_position"]=prior["native_read_window_zero_based_match_start"]
     result["full_RF047_Zoo_Bowl_SRAM_controls_unchanged"]=prior["all_RF047_Zoo_Bowl_terminal_producer_controls_equal"]

@@ -85,6 +85,34 @@ def inspect_elf_text(nm:str,objdump:str)->list[dict]:
         raise ValueError("native ELF competing helper codepaths unexpectedly absent")
     return [{"x86_va":f"0x{a:x}","operation":code[a]} for a,_ in PATH]
 
+def inspect_paced_helper_timestamp_stage(read_dis:str,write_dis:str)->dict:
+    """Actual x86 wrapper master-clock charge occurs before CPU bus helper.
+
+    RF054 logs cpu_read8, and RtlApuWrite is downstream of cpu_write8.
+    Neither is the start of an original 65816 instruction at a common epoch.
+    """
+    required={
+        "read8":(read_dis,
+                 (0x3e0f2,"mov    QWORD PTR [rbp+0x28],rax"),
+                 (0x3e132,"jmp    3c4b0 <cpu_read8>")),
+        "write8":(write_dis,
+                  (0x3e6d5,"mov    QWORD PTR [rbp+0x28],rax"),
+                  (0x3e716,"jmp    3d5b0 <cpu_write8>")),
+    }
+    out={}
+    for name,(dis,store,dispatch) in required.items():
+        code={int(m.group(1),16):m.group(3).strip() for line in dis.splitlines()
+              if (m:=ASM.match(line))}
+        if (store[0]>=dispatch[0] or store[1] not in code.get(store[0],"")
+            or dispatch[1] not in code.get(dispatch[0],"")):
+            raise ValueError("RF055 paced CPU master charge/order to actual bus helper changed")
+        out[name]={
+            "paced_wrapper_master_clock_store_va":f"0x{store[0]:x}",
+            "subsequent_actual_CPU_memory_helper_jump_va":f"0x{dispatch[0]:x}",
+            "cpu_master_cycles_advanced_before_actual_CPU_bus_helper":True,
+        }
+    return out
+
 def audit(case:Path,binary:Path,baseline:Path)->dict:
     if digest(case.read_bytes())!=CASE_SHA or digest(binary.read_bytes())!=BINARY_SHA:
         raise ValueError("exact independently pinned source/binary artifact ZIP changed")
@@ -109,6 +137,12 @@ def audit(case:Path,binary:Path,baseline:Path)->dict:
         nm=subprocess.run(["nm","-nC",str(f)],check=True,capture_output=True,text=True).stdout
         dis=subprocess.run(["objdump","-d","-M","intel","--disassemble="+NAME,str(f)],
                            check=True,capture_output=True,text=True).stdout
+        read_dis=subprocess.run(
+            ["objdump","-d","-M","intel","--disassemble=cpu_read8_paced",str(f)],
+            check=True,capture_output=True,text=True).stdout
+        write_dis=subprocess.run(
+            ["objdump","-d","-M","intel","--disassemble=cpu_write8_paced",str(f)],
+            check=True,capture_output=True,text=True).stdout
     return {
         "schema":"rf055-genuine-native-elf-cpu-upload-path-audit-v1",
         "case_sha256":CASE_SHA,"native_elf_sha256":ELF_SHA,
@@ -116,6 +150,7 @@ def audit(case:Path,binary:Path,baseline:Path)->dict:
         "all_656_ROM_read_to_port3_CPU_master_clocks":30,
         "all_656_port3_to_port2_CPU_master_clocks":50,
         "compiled_live_mode_x86_call_path":inspect_elf_text(nm,dis),
+        "real_cpu_helper_timestamp_stage":inspect_paced_helper_timestamp_stage(read_dis,write_dis),
         "full_RF047_strict_original_native_Zoo_Bowl_SRAM_controls_equal":True,
         "specific_x86_callsite_dynamically_stamped":False,
         "native_guest_instruction_PC_dynamically_stamped":False,

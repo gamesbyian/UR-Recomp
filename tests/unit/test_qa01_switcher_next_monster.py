@@ -30,7 +30,7 @@ class NextMonsterTest(unittest.TestCase):
             self.states[f] = {
                 "menu": 0 if active else 0x16,
                 "track": 4 if active else 3,
-                "in_race": 1 if active else 0}
+                "in_race": 1 if active else 0, "tour_row": 0}
         self.proof = witness.source_next_monster(self.states,self.source_event)
         self.logs = []
         for side, directory, entry, relative, active_delta in (
@@ -72,6 +72,21 @@ class NextMonsterTest(unittest.TestCase):
             states[17030+i]=dict(self.states[17030+i],in_race=0)
         with self.assertRaisesRegex(witness.SwitcherMonsterError,"missing/ambiguous"):
             witness.source_next_monster(states,self.source_event)
+
+    def test_reject_wrong_tour_using_same_track_id(self):
+        wrong = dict(self.states)
+        for f in range(17030 + self.delta, 17030 + 350):
+            wrong[f] = dict(wrong[f], tour_row=1)
+        with self.assertRaisesRegex(witness.SwitcherMonsterError, "missing/ambiguous"):
+            witness.source_next_monster(wrong, self.source_event)
+        tag = f"switcher-next-monster-{self.delta:04d}"
+        path = self.native / f"{tag}.wram.bin"
+        w = bytearray(path.read_bytes())
+        w[0x00d0] = 1
+        path.write_bytes(w)
+        result = self._observe()
+        self.assertNotEqual(result["release_complete_event_credit"], 1)
+        self.assertFalse(result["all_three_entries_same_result_relative_offset"])
 
     def test_actual_guest_clocks_source_disagreement_and_zero_credit(self):
         result=self._observe()

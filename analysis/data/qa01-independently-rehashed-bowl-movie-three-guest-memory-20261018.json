@@ -1,0 +1,186 @@
+{
+  "schema": "UR-QA01-INDEPENDENT-ORIGINAL-MOVIE-FRESH-THREEWAY-BOWL-RAW/1",
+  "date": "2026-10-18",
+  "source_execution": {
+    "repository": "gamesbyian/UR-Recomp",
+    "run_id": 39169304323,
+    "source_commit": "d8fc9099ea2827c6a919ec01bd2c49472701803c",
+    "artifact_id": 12151982503,
+    "artifact_zip_sha256": "c2262b40e43b4e167cbdf291623b0e34207561187e103af39eca7a46fa4b0edc",
+    "artifact_zip_bytes": 520751,
+    "artifact_members": 78
+  },
+  "scope": {
+    "case": "USA Bowl Stunt course:03",
+    "movie_bowl_result_frame": 11985,
+    "movie_next_switcher_entry_frame": 12327,
+    "movie_next_switcher_relative_offset": 342,
+    "fresh_snes9x_next_switcher_result_relative_offset": 341,
+    "fresh_native_next_switcher_result_relative_offset": 344,
+    "independent_host_clock_axes": true,
+    "controller_masks_unchanged_by_this_review": true
+  },
+  "independently_recomputed_from_actual_downloaded_zip": {
+    "zip_sha256_matches_provider": true,
+    "all_48_movie_snes9x_native_wram_sram_images_retained": true,
+    "all_48_image_sizes_checked": true,
+    "wram_bytes_per_capture": 131072,
+    "sram_bytes_per_capture": 8192,
+    "pairs_compared_without_masks": true,
+    "rows": [
+      {
+        "result_relative_offset": 334,
+        "full_128k_wram_different_bytes": {
+          "original_2014_movie_vs_fresh_snes9x": 44,
+          "original_2014_movie_vs_native_baldosa": 45,
+          "fresh_snes9x_vs_native_baldosa": 2
+        },
+        "full_8k_sram_different_bytes": {
+          "original_2014_movie_vs_fresh_snes9x": 71,
+          "original_2014_movie_vs_native_baldosa": 73,
+          "fresh_snes9x_vs_native_baldosa": 3
+        }
+      },
+      {
+        "result_relative_offset": 339,
+        "full_128k_wram_different_bytes": {
+          "original_2014_movie_vs_fresh_snes9x": 44,
+          "original_2014_movie_vs_native_baldosa": 45,
+          "fresh_snes9x_vs_native_baldosa": 2
+        },
+        "full_8k_sram_different_bytes": {
+          "original_2014_movie_vs_fresh_snes9x": 71,
+          "original_2014_movie_vs_native_baldosa": 73,
+          "fresh_snes9x_vs_native_baldosa": 3
+        }
+      },
+      {
+        "result_relative_offset": 340,
+        "full_128k_wram_different_bytes": {
+          "original_2014_movie_vs_fresh_snes9x": 73,
+          "original_2014_movie_vs_native_baldosa": 45,
+          "fresh_snes9x_vs_native_baldosa": 33
+        },
+        "full_8k_sram_different_bytes": {
+          "original_2014_movie_vs_fresh_snes9x": 71,
+          "original_2014_movie_vs_native_baldosa": 73,
+          "fresh_snes9x_vs_native_baldosa": 3
+        }
+      },
+      {
+        "result_relative_offset": 341,
+        "full_128k_wram_different_bytes": {
+          "original_2014_movie_vs_fresh_snes9x": 687,
+          "original_2014_movie_vs_native_baldosa": 74,
+          "fresh_snes9x_vs_native_baldosa": 666
+        },
+        "full_8k_sram_different_bytes": {
+          "original_2014_movie_vs_fresh_snes9x": 71,
+          "original_2014_movie_vs_native_baldosa": 73,
+          "fresh_snes9x_vs_native_baldosa": 3
+        }
+      },
+      {
+        "result_relative_offset": 342,
+        "full_128k_wram_different_bytes": {
+          "original_2014_movie_vs_fresh_snes9x": 266,
+          "original_2014_movie_vs_native_baldosa": 705,
+          "fresh_snes9x_vs_native_baldosa": 688
+        },
+        "full_8k_sram_different_bytes": {
+          "original_2014_movie_vs_fresh_snes9x": 71,
+          "original_2014_movie_vs_native_baldosa": 73,
+          "fresh_snes9x_vs_native_baldosa": 3
+        }
+      },
+      {
+        "result_relative_offset": 343,
+        "full_128k_wram_different_bytes": {
+          "original_2014_movie_vs_fresh_snes9x": 186,
+          "original_2014_movie_vs_native_baldosa": 709,
+          "fresh_snes9x_vs_native_baldosa": 671
+        },
+        "full_8k_sram_different_bytes": {
+          "original_2014_movie_vs_fresh_snes9x": 71,
+          "original_2014_movie_vs_native_baldosa": 73,
+          "fresh_snes9x_vs_native_baldosa": 3
+        }
+      },
+      {
+        "result_relative_offset": 344,
+        "full_128k_wram_different_bytes": {
+          "original_2014_movie_vs_fresh_snes9x": 179,
+          "original_2014_movie_vs_native_baldosa": 293,
+          "fresh_snes9x_vs_native_baldosa": 289
+        },
+        "full_8k_sram_different_bytes": {
+          "original_2014_movie_vs_fresh_snes9x": 71,
+          "original_2014_movie_vs_native_baldosa": 73,
+          "fresh_snes9x_vs_native_baldosa": 3
+        }
+      },
+      {
+        "result_relative_offset": 354,
+        "full_128k_wram_different_bytes": {
+          "original_2014_movie_vs_fresh_snes9x": 126,
+          "original_2014_movie_vs_native_baldosa": 140,
+          "fresh_snes9x_vs_native_baldosa": 113
+        },
+        "full_8k_sram_different_bytes": {
+          "original_2014_movie_vs_fresh_snes9x": 71,
+          "original_2014_movie_vs_native_baldosa": 73,
+          "fresh_snes9x_vs_native_baldosa": 3
+        }
+      }
+    ]
+  },
+  "pre_next_race_true_bytes": {
+    "at_relative_334_source_vs_fresh_snes9x_wram_difference_count": 44,
+    "at_relative_334_source_vs_fresh_snes9x_sram_difference_count": 71,
+    "at_relative_334_fresh_snes9x_vs_native_wram_difference_count": 2,
+    "at_relative_334_fresh_snes9x_vs_native_sram_difference_count": 3,
+    "at_relative_334_fresh_snes9x_vs_native_wram_differences": [
+      {
+        "address": "7E:00C6",
+        "original": 1,
+        "native": 0,
+        "source_movie": 15
+      },
+      {
+        "address": "7E:00C8",
+        "original": 5,
+        "native": 4,
+        "source_movie": 5
+      }
+    ],
+    "at_relative_334_fresh_snes9x_vs_native_sram_differences": [
+      {
+        "offset": "0EF6",
+        "original": 1,
+        "native": 0
+      },
+      {
+        "offset": "0F31",
+        "original": 1,
+        "native": 0
+      },
+      {
+        "offset": "0F33",
+        "original": 5,
+        "native": 4
+      }
+    ],
+    "at_relative_340_fresh_snes9x_vs_native_wram_different_bytes": 33,
+    "at_relative_341_fresh_snes9x_begins_active_switcher_but_native_does_not": true
+  },
+  "adjudication": {
+    "movie_history_and_fresh_guest_states_are_not_byte_identical_before_next_race": true,
+    "source_movie_vs_fresh_original_timing_gap_cannot_be_attributed_to_native_cpu_apu_alone": true,
+    "fresh_original_native_timing_gap_is_actual_and_unchanged": true,
+    "causal_origin_of_three_clock_progression_difference_proven": false,
+    "guest_consumed_input_or_all_frame_parity_proven": false,
+    "shipping_windows_durable_record_proven": false,
+    "accepted_usa_events": 0,
+    "release_gates": 0
+  }
+}

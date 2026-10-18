@@ -20,6 +20,8 @@ Use [Manual ROM-free Windows technical playtest](https://github.com/gamesbyian/U
 
 The user must supply a verified personal **Uniracers USA** ROM dump named `Uniracers_USA.sfc` alongside the extracted game executable, then launch `run-baldosa-modern.cmd` on Windows x64. The launcher rejects missing or wrong-ROM bytes and uses a per-user data directory outside the package. For an early playtest use a disposable data root (via `UR_RECOMP_USER_DATA_ROOT`) rather than existing valued saves. Preserve the SHA and playtest revision when reporting defects.
 
+**Windows startup environment note:** Launch the packaged CMD from File Explorer or an ordinary Windows `cmd.exe` prompt for the first physical test. A hosted Windows investigation of a *different, later source-pinned Modern build* reproduced launcher exit **3 / `UR-BALDOSA-STARTUP-PREFLIGHT`** when starting from a PowerShell 7 environment whose inherited `PSModulePath` prevented Windows PowerShell 5.1 from finding `Get-FileHash`. This failure occurred **before the game loaded or saved**. If seen on physical Windows, record the launch shell, CMD exit, full warning and module environment, then retry from Explorer/CMD to isolate the cause; do **not** bypass the ROM SHA verification, alter package files or mark the failed startup as accepted. This caution does not imply the archived owner candidate was independently reproduced with that environment.
+
 ## A focused one-hour owner playtest
 
 This is not a replacement for the independent, fixed [release QA journeys](QA-PLAYER-JOURNEYS.md) or [gate ledger](RELEASE-QUALITY-LEDGER.json). Record *actual physical* hardware and player observations that scripts cannot supply.

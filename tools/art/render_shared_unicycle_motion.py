@@ -107,6 +107,15 @@ def render(model: Path, out: Path, openscad="openscad", xvfb=False):
                        "edge_clipped": False})
     if len(actual) != 18:
         raise ValueError("did not render the full unbroken 18-image cycle")
+    # A full pedal or 360-degree stunt cycle must wrap to exactly the same
+    # visible 320x320 pixels. This is an art-tool loop contract only; no
+    # assertion about source game timing, stunt contact or RGB5 parity.
+    from PIL import ImageChops
+    for mode in MODES:
+        with Image.open(out/f"{mode}-00.png") as first, \
+             Image.open(out/f"{mode}-{STEPS:02d}.png") as last:
+            if ImageChops.difference(first.convert("RGB"), last.convert("RGB")).getbbox():
+                raise ValueError("animated rig loop has discontinuous rendered endpoints")
     tile_w, row_h = 170, 252
     sheet = Image.new("RGB", (9*tile_w, 2*row_h+55), "#f0f1f4")
     draw = ImageDraw.Draw(sheet)
@@ -135,6 +144,7 @@ def render(model: Path, out: Path, openscad="openscad", xvfb=False):
         "camera_one_fixed_per_all_18": CAMERA,
         "all_18_complete_320_square_pixel_frames": True,
         "all_18_source_model_unclipped": True,
+        "two_continuous_motion_loops_pixel_exact_at_endpoints": True,
         "frames": actual,
         "original_gameplay_stunt_kinematics_proven": False,
         "gameplay_contact_and_pixel_aspect_registered": False,

@@ -7,6 +7,9 @@
 $fn=50;
 rig_pose=is_undef(rig_pose)?"upright":rig_pose;
 rig_color=is_undef(rig_color)?[0.11,0.35,0.87]:rig_color;
+rig_time=is_undef(rig_time)?0:rig_time;
+function unit_time(t)=min(1,max(0,t));
+function ease_time(t)=let(u=unit_time(t)) u*u*(3-2*u);
 function vadd(a,b)=[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
 module member(a,b,r1,r2) {
   hull(){
@@ -97,6 +100,16 @@ module shared_rig(pedal=0,seat_lean=0){
   }
 }
 // All stunt and motion poses are transforms of one coherent character mesh.
+// Non-shipping animation probes. Continuous motion transforms a shared mesh.
+// An in-air 360-degree spin pivots around character center, not wheel contact;
+// any authentic original-frame stunt pivot remains to be measured.
+module continuous_rig(time,spin=false){
+  u=unit_time(time);
+  pitch=spin?360*ease_time(u):0;
+  translate([0,0,1.80]) rotate([0,-pitch,0]) translate([0,0,-1.80])
+  rotate([3*sin(720*u),0,7*sin(360*u)])
+    shared_rig(pedal=18+720*u,seat_lean=3*sin(360*u));
+}
 module rig(p){
   if(p=="upright")shared_rig(pedal=18,seat_lean=0);
   else if(p=="pedal")shared_rig(pedal=88,seat_lean=-5);
@@ -106,6 +119,8 @@ module rig(p){
     shared_rig(pedal=120,seat_lean=-9);
   else if(p=="bank")rotate([11,0,-8])
     shared_rig(pedal=150,seat_lean=4);
+  else if(p=="ride")continuous_rig(rig_time,false);
+  else if(p=="stunt_cycle")continuous_rig(rig_time,true);
   else assert(false,str("unknown rig_pose: ",p));
 }
 rig(rig_pose);

@@ -46,7 +46,7 @@ def record(s:str)->dict:
         not (0<=d["px"]<8 and 0<=d["src_col"]<64) or
         not (0<=d["row"]<64) or
         d["palette"] not in range(0x80,0x100,0x10) or
-        d["priority"] not in (2,6,10,14) or
+        not (0<=d["priority"]<=255) or
         not (1<=d["pixel"]<=15) or
         not (0<=d["plane"]<=0xffffffff)):
         raise ValueError("unqualified current native medal sprite fetch")

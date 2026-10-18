@@ -83,7 +83,7 @@ class Medal4BppSource(unittest.TestCase):
         invalid=[
             source.replace("pixel=1","pixel=2",1),
             source.replace("plane=00000080","plane=00000000",1),
-            source.replace("priority=2","priority=12",1),
+            source.replace("priority=2","priority=256",1),
             source.replace("frame=4032","frame=4031",1),
             source.replace("writer_obj=0281","writer_obj=0282",1),
             source.replace("slot=112","slot=128",1),

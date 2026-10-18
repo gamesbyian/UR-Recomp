@@ -99,3 +99,23 @@ existing Windows workflow remains an ordered untouched subsequence.
 The actual source route is still RF017 with 5484 original native frames.
 This experimental branch is never a release candidate; the previously
 accepted graphics #1780 remains unchanged and explicitly held.
+
+## First actual Windows capture: validator interpretation fixed
+
+[Windows run 39122418205](https://github.com/gamesbyian/UR-Recomp/actions/runs/39122418205)
+compiled and executed the read-only probe successfully on 5484 authentic
+RF017 guest frames, then rejected the source in the post-run Python parser.
+Archived raw log artifact 12135106848 contains **25 actual 4bpp source
+writes**, including native guest 4032 slots 112/113 and 96/97/98/99,
+with OAM tile names A0/A2/E6/CE and real VRAM plane words.
+The parser incorrectly treated the PPU's actual encoded `prio=100` as
+invalid. The SNESRecomp macro can embed additional priority/math flags;
+there is no justification for restricting it to the four simple
+`2,6,10,14` values. Retain the exact 8-bit priority range and verify
+it algebraically against the **actual resulting zbuffer** and the decoded
+4bpp nibble, so a false priority cannot pass by range alone. The true
+sprite source is untouched. The original evaluator's zero-based Y and
+composer's Y+1 source registration were also corrected before this run;
+the native trace now uses `raster_y`. The prior failed run cannot be
+reinterpreted as an accepted winner. The updated source requires fresh
+same-head CI and revalidation.

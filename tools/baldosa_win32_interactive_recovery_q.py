@@ -167,7 +167,10 @@ def digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def snapshot(root: Path) -> dict[str, bytes]:
+def snapshot(root: Path, *, expected_raw_bytes: int = 8192) -> dict[str, bytes]:
+    """Capture canonical files; a damaged raw size needs explicit fixture scope."""
+    if expected_raw_bytes not in (513, 8192):
+        raise ValueError("Unsupported recovery snapshot raw size")
     expected = {
         "selector": root / "host-state-v1.txt",
         "catalog": root / "profiles-v1.txt",
@@ -179,8 +182,8 @@ def snapshot(root: Path) -> dict[str, bytes]:
         if path.is_symlink() or not path.is_file():
             raise ValueError("Missing or redirected original canonical file " + name)
         result[name] = path.read_bytes()
-    if len(result["raw"]) != 8192:
-        raise ValueError("Original save is not 8192 bytes")
+    if len(result["raw"]) != expected_raw_bytes:
+        raise ValueError(f"Original save is not {expected_raw_bytes} bytes")
     return result
 
 

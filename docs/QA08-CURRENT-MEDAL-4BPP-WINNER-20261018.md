@@ -119,3 +119,37 @@ composer's Y+1 source registration were also corrected before this run;
 the native trace now uses `raster_y`. The prior failed run cannot be
 reinterpreted as an accepted winner. The updated source requires fresh
 same-head CI and revalidation.
+
+## Second exact Windows capture: CGRAM-versus-OBJ type correction
+
+[Run 39123459879](https://github.com/gamesbyian/UR-Recomp/actions/runs/39123459879)
+compiled and executed all 5,484 real RF017 guest frames, retaining **25
+physical 4bpp sprite writes, 25 PPU pixel-owner records, 175 OAM records
+and 276 CGRAM writer events** in artifact 12134793278. Exact outer ZIP
+SHA256 `725ef03df3d43ff5d30b4bea944e32555974fb0b0e01af025da76ef88959b408`;
+raw source member `baseline/log.txt` SHA256
+`ff0ca813911fb4b8d3c61cadc358df49e8b409e82eae9619956a09ce3433a602`.
+
+Independent offline joining of these original, byte-bound trace lines
+found **19 OBJ-main pixels with real physical sprite writes, and 19/19
+last-writer OBJ zbuffer values equal the corresponding effective PPU OBJ
+zbuffer values.** Six more sampled main pixels are BG1, with no sprite
+write to their coordinates. Six tested coordinates had two genuine sprite
+contenders; the lower-index OAM sprite wrote last. Thus the prior apparent
+winner discrepancy was a trace scanline-registration error, not proven
+new-renderer versus legacy buffer disagreement.
+
+The run's post-processing Python then failed because the older witness's
+`obj_word` means **CGRAM RGB15 palette data**, not an encoded PPU sprite
+buffer value. It had compared sprite zbuffer `64e4` to CGRAM colour
+`0cd1`. The correct actual field is `obj`, now propagated as distinctly
+named `obj_zbuffer` and checked against the 4bpp fetch. Positive and
+negative unit controls explicitly give the CGRAM colour an unrelated
+value so no new accidental reinterpretation can pass. The source PPU
+itself was unchanged. The 39123459879 post-run Python failure still
+means no successful machine receipt was emitted by that run; a subsequent
+exact-head CI run is required before accepting the corrected receipt.
+
+These findings establish current/native physical OAM/VRAM ownership only,
+not original 2014 Snes9x physical medal ownership, input-frame parity,
+CPU/NMI causality, human HD art or independent release QA.

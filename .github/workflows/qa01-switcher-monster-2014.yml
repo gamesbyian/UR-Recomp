@@ -136,6 +136,8 @@ jobs:
             ${{ runner.temp }}/qa01-switcher-monster/switcher-report.json
             ${{ runner.temp }}/qa01-switcher-monster/switcher/source/source-scan.log
             ${{ runner.temp }}/qa01-switcher-monster/switcher/source/source-event-diagnostic.json
+            ${{ runner.temp }}/qa01-switcher-monster/switcher/source/switcher-next-monster-source.json
+            ${{ runner.temp }}/qa01-switcher-monster/switcher/source/trace.jsonl
             ${{ runner.temp }}/qa01-switcher-monster/switcher/source/source-entry.log
             ${{ runner.temp }}/qa01-switcher-monster/switcher/calibration/reference.log
             ${{ runner.temp }}/qa01-switcher-monster/switcher/calibration/native.log

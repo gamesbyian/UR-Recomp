@@ -1653,6 +1653,11 @@ def scan_source(args, work: Path, sram: Path, source_input: Path,
     if args.switcher_next_monster:
         event["source_next_monster"] = switcher_monster.source_next_monster(
             states, event)
+        event["source_next_monster"]["original_source_trace_sha256"] = sha(
+            scan / "trace.jsonl")
+        (scan / "switcher-next-monster-source.json").write_text(
+            json.dumps(event["source_next_monster"], indent=2) + "\n",
+            encoding="utf-8")
     if args.bowl_source_movie_memory:
         event["source_movie_handoff_state_samples"] = {
             str(offset): states[bowl_source_memory.SOURCE_RESULT + offset]

@@ -101,6 +101,39 @@ def inspect(log:str,expected_transfers:int|None=None)->dict:
         "event_admission_credit":0,
     }
 
+def local_cpu_master_intervals(source:str,native:str,
+                               expected_original:int=16,
+                               expected_native:int=656)->dict:
+    """Compare only same-CPU publication gaps, never absolute CPU/SPC axes.
+
+    The original's H/V beam timestamps and the native CPU master counter
+    measure local 65816 master-clock intervals. Same pair payload identity
+    alone does not calibrate their origins or the SPC queue schedule.
+    """
+    original=[rf054.fields(s) for s in source.splitlines()
+              if s.startswith("QA01RF050ORIGAPU ")]
+    native_writers=[rf054.fields(s) for s in native.splitlines()
+                    if s.startswith(WRITER)]
+    original_gaps=[]
+    for a,b in zip(original,original[1:]):
+        if a.get("port")=="3" and b.get("port")=="2":
+            original_gaps.append((int(b["v"])-int(a["v"]))*1364+
+                                 int(b["h"])-int(a["h"]))
+    native_gaps=[]
+    for a,b in zip(native_writers,native_writers[1:]):
+        if a.get("addr")=="002143" and b.get("addr")=="002142":
+            native_gaps.append(int(b["master"])-int(a["master"]))
+    if len(original_gaps)!=expected_original or len(native_gaps)!=expected_native:
+        raise ValueError("RF055 native/original real publication pair census changed")
+    if set(original_gaps)!={50} or set(native_gaps)!={50}:
+        raise ValueError("RF055 original/native intra-CPU master interval regression")
+    return {
+        "original_real_port3_to_port2_master_interval_count":len(original_gaps),
+        "native_real_port3_to_port2_master_interval_count":len(native_gaps),
+        "original_and_native_all_local_master_intervals":50,
+        "interval_is_not_absolute_cpu_or_spc_clock_alignment":True,
+    }
+
 def report(case:Path,baseline:Path)->dict:
     prior=rf054.report(case,baseline)
     if prior["real_original_native_exact_SPC_receiver_match_count"]!=322 or (
@@ -108,7 +141,10 @@ def report(case:Path,baseline:Path)->dict:
         raise ValueError("RF055 real RF054/SPC controls changed")
     with zipfile.ZipFile(case) as z:
         log=z.read(PATH).decode("utf8","replace")
+        source=z.read("work/zoom-zoo/replay/reference.log").decode("utf8","replace")
     out=inspect(log,expected_transfers=656)
+    out["source_native_65816_master_interval_parity"]=local_cpu_master_intervals(
+        source,log)
     out["original_real_SPC_PC_port_byte_sequence_unique_match_count"]=322
     out["original_native_full_RF047_controls_unchanged"]=True
     out["source_exact_guest_sha"]=prior["frozen_experiment_source_sha"]

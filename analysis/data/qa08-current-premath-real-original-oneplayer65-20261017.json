@@ -1,0 +1,42 @@
+{
+  "schema": "qa08-real-current-premath-Snes9x2014-1p65-images-observed-unqualified/1",
+  "diagnostic": {
+    "pr": 1809,
+    "head": "9dda9e7bb15bc0c0c659ef966a5422de321a2808",
+    "win32_run": 39085386452,
+    "artifact_id": 12120138493,
+    "outer_zip_sha256": "d6c2a84bfb45a4902b1fbb07c5cd8a55b2b395f6b4e8f770f1ef7e7fbc33d7a7",
+    "inner_image_zip_sha256": "cbd26e4f9f9d5db378d5d10d616e86a8d91391ed80693077c2c6ea16c0e2b803",
+    "experimental_Win32_PE_sha256": "2c6bfb9efdd67785c48c8a1661366246f50699d0de4952d90cd6b58745f0a8aa"
+  },
+  "source": {
+    "original_2014_snes9x_artifact_id": 11956168307,
+    "original_sha256": "9b6f32bd00b89e5fda72bb82ea9d535ebd90baf62a4600a2fb0fd598b4ee648d",
+    "original_callback_first": 2176,
+    "original_callback_last": 2240,
+    "native_guest_first": 2177,
+    "native_guest_last": 2241,
+    "frame_count": 65,
+    "full_256x224_pixels": 3727360,
+    "wrong_rgb5_pixels": 0,
+    "unique_real_native_image_hashes": 65,
+    "source_first_to_last_changed_rgb5": 26657,
+    "original_nth_callback_maps_native_guest_nplus1": true
+  },
+  "guest": {
+    "total_native_run_frames": 5447,
+    "script_sha256": "65567dd5629bc71d544d58a4ac31b51de6c0b382d070aaf06ec1a2be952a5cd1",
+    "current_experimental_Win32_guest_CRC_sha256": "465ec5930c0d84b451c4c633d915184dbec44f2dd7728a0bb49093d913b69244",
+    "superseded_older_guest_CRC_sha256": "45d7675858ebf3e3a051a58d2af104b6d2d9a66e7700da8248ad571713662c41",
+    "historical_guest_CRC_equal": false,
+    "clean_current_RF017_same_script_guest_CRC_verified": false,
+    "clean_current_RF017_guest_crc_sha256": null,
+    "original_snes9x_2014_CPU_equivalence_proven": false
+  },
+  "quality": {
+    "original_source_pixel_equivalence_observed": true,
+    "current_guest_source_parity_accepted": false,
+    "full_1P_event_exact": false,
+    "physical_4K_7to6_HD_likeness_release_accepted": false
+  }
+}

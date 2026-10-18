@@ -132,7 +132,56 @@
     "early_pre_switcher_difference_at_304_wram": 17,
     "first_guest_next_course_named_mismatch_offset": 315,
     "both_guest_true_zoo_course_payload_loaded_reported_by_producer": true,
-    "source_zoo_rnc_payload_bytes_independently_verified_from_archived_zip": false
+    "source_zoo_rnc_payload_bytes_independently_verified_from_archived_zip": false,
+    "three_captured_frame_displaced_transition_pairs": [
+      {
+        "fresh_snes9x": "314->315",
+        "native_baldosa": "317->318",
+        "original_guest_mutated_bytes": 641,
+        "native_guest_mutated_bytes": 642,
+        "identical_address_old_new_mutations": 636,
+        "shifted_destination_whole_wram_different_bytes": 17
+      },
+      {
+        "fresh_snes9x": "315->316",
+        "native_baldosa": "318->319",
+        "original_guest_mutated_bytes": 223,
+        "native_guest_mutated_bytes": 225,
+        "identical_address_old_new_mutations": 221,
+        "shifted_destination_whole_wram_different_bytes": 13
+      },
+      {
+        "fresh_snes9x": "316->317",
+        "native_baldosa": "319->320",
+        "original_guest_mutated_bytes": 147,
+        "native_guest_mutated_bytes": 147,
+        "identical_address_old_new_mutations": 147,
+        "shifted_destination_whole_wram_different_bytes": 13
+      },
+      {
+        "fresh_snes9x": "317->318",
+        "native_baldosa": "320->321",
+        "original_guest_mutated_bytes": 195,
+        "native_guest_mutated_bytes": 195,
+        "identical_address_old_new_mutations": 195,
+        "shifted_destination_whole_wram_different_bytes": 13
+      }
+    ],
+    "persistent_shifted_guest_wram_differences_316_vs_319_and_317_vs_320_and_318_vs_321_decimal": [
+      198,
+      200,
+      391,
+      392,
+      393,
+      394,
+      395,
+      396,
+      397,
+      398,
+      401,
+      402,
+      403
+    ]
   },
   "bounds": {
     "original_movie_first_sustained_8_consecutive_zoo_active_frames_producer_reported": true,
@@ -150,6 +199,8 @@
     "original_movie_first_sustained_8_consecutive_zoo_active_frames_independently_replayed_from_raw_source_wram_write_trace": true,
     "all_324_original_movie_frames_2874_through_3197_reconstructed_from_raw_source_Wram_write_log": true,
     "verified_earlier_menu_zoo_selection_at_frame_2935_is_not_active_racing": true,
-    "original_source_2014_movie_named_state_for_each_14_frame_compared_to_retained_proof": true
+    "original_source_2014_movie_named_state_for_each_14_frame_compared_to_retained_proof": true,
+    "crossframe_alignment_used_only_for_diagnostic_mutation_census_not_clock_waiver": true,
+    "causal_65816_input_or_nmi_branch_trigger_proven": false
   }
 }

@@ -1,0 +1,140 @@
+{
+  "schema": "qa08-current-rf017-source-registered-win32-medal-gray-ppu-observers/1",
+  "status": "read_only_actual_current_native_source_witness; no release or raster repair",
+  "producer": {
+    "workflow_run": 39064610341,
+    "pr": 1782,
+    "branch_head": "1442de24db4767852ddd740c4857d0c74baf1a4f",
+    "actual_PE_sha256": "4ba80996448dec36917e09462c8cc3e74960a79b64c0c13705a3df5d090c4d63",
+    "artifact_id": 12112479708,
+    "downloaded_artifact_zip_sha256": "68761492c29aa4544b7137a4a0b2c5bf0a1a610825acaba2be67a8e4803d6fe8",
+    "archived_inner_JSON_sha256": "a2a8544f836eb9c5cfc6b0c45a72d65c867345d12478544a72f018584488c341",
+    "archived_inner_JSON_bytes": 83785,
+    "source_produced_by_actual_windows_PE": true
+  },
+  "identity": {
+    "real_guest_frames": 5484,
+    "full_guest_CRC_sha256": "b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568",
+    "controller_route_sha256": "ef74ec51fa585aa76652f4a14d2727f0074434b3925522ab2607e3bd29aa0194",
+    "original_snes9x_callback_registration": "callback f-1 corresponds native PPU guest f, not CPU-source frame equality"
+  },
+  "samples": {
+    "native_guests": [
+      4032,
+      4048,
+      4064,
+      4080,
+      4176
+    ],
+    "logical_xy": [
+      [
+        207,
+        91
+      ],
+      [
+        205,
+        115
+      ],
+      [
+        205,
+        139
+      ],
+      [
+        225,
+        96
+      ],
+      [
+        225,
+        120
+      ]
+    ],
+    "exact_effective_native_pixel_samples": 25,
+    "genuine_native_scanline_oam_slot_records": 175,
+    "current_windows_cpu_CGRAM_data_port_records": 276,
+    "actual_CGRAM_source_enum": "0 (CPU)",
+    "non_CPU_port_write_rows": 0,
+    "palette_write_frames": {
+      "first": 4028,
+      "last": 4182,
+      "step": 7,
+      "count": 23,
+      "writes_per_frame": 12
+    },
+    "CGRAM_indices": [
+      "6c",
+      "6d",
+      "6e",
+      "6f"
+    ],
+    "four_15bit_colours": [
+      "4210",
+      "4631",
+      "4a52",
+      "56b5"
+    ],
+    "different_full_four_word_state_count": 4,
+    "intrinsic_palette_cycle_guest_fields": 28,
+    "sparse_P7_source_sample_cadence_guest_fields": 16,
+    "observed_alias_LCM_guest_fields": 112,
+    "native_oam_medal_slots_112_113_114_tile_names": {
+      "4032": [
+        "a0",
+        "a2",
+        "a4"
+      ],
+      "4048": [
+        "a6",
+        "a8",
+        "aa"
+      ],
+      "4064": [
+        "ac",
+        "ae",
+        "a0"
+      ],
+      "4080": [
+        "a0",
+        "a2",
+        "a4"
+      ],
+      "4176": [
+        "a0",
+        "a2",
+        "a4"
+      ]
+    },
+    "original_2014_source_postrun_field4032_tile_names_slots_112_113_114": [
+      "a2",
+      "a4",
+      "a6"
+    ],
+    "native_guest4032_actual_main_layer": {
+      "207,91": "BG1 (native enum 0)",
+      "205,115": "OBJ (native enum 4)",
+      "205,139": "OBJ (native enum 4)",
+      "225,96": "OBJ (native enum 4)",
+      "225,120": "OBJ (native enum 4)"
+    },
+    "native_4032_obj_CGRAM_index": {
+      "205,115": "e4",
+      "205,139": "f6",
+      "225,96": "de",
+      "225,120": "de"
+    },
+    "native_4048_gold_contenders_same_xy_OBJ_index": {
+      "225,96": "df",
+      "225,120": "df"
+    },
+    "observed_current_mask_behaviour_consistent_with_prior_287_pixel_source_census": true
+  },
+  "limits": {
+    "original_vs_current_native_same_field_CPU_instruction_clock_proven": false,
+    "incoming_current_epoch_full_544byte_OAM_DMA_join_to_active_ppu_proven": false,
+    "current_native_VRAM_4bpp_index_for_both_overlap_contenders_proven": false,
+    "strict_complete_263_P7_same_executable_parity_proven": false,
+    "global_palette_frame_shift_or_tile_reindex_authorized": false,
+    "historical_2014_Snes9x_reference_as_physical_SNES_DAC_proven": false,
+    "QA08_QA10_or_artistic_acceptance": false,
+    "release_quality_ledger_change": false
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "schema": "rf046-first-zoo-NMI-prepost-crossphase-match-v1",
+  "source_run": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39078406796",
+  "case_artifact_id": 12118217074,
+  "rf044_genuine_case_zip_sha256": "84d6906af7ebfe0dee3f77fb90b4c4f50400fc7c45add3e586f14035daf15357",
+  "research_execution_source_sha": "216a8818f5a6719f7963205208e362c9e812cf30",
+  "comparison": [
+    {
+      "relative_frame": 1,
+      "original_checkpoint_host": 1018,
+      "native_checkpoint_host": 1018,
+      "preceding_original_NMI_host": 1017,
+      "original_NMI_interrupted_pc": "82D4F0",
+      "original_NMI_before_stack_01ED_01F0": "81970055",
+      "original_NMI_after_stack_01ED_01F0": "26F0D482",
+      "checkpoint_original_stack_01ED_01F0": "26F0D482",
+      "checkpoint_native_stack_01ED_01F0": "81970055",
+      "original_matches_prior_source_post": true,
+      "native_matches_prior_source_pre": true
+    },
+    {
+      "relative_frame": 2,
+      "original_checkpoint_host": 1019,
+      "native_checkpoint_host": 1019,
+      "preceding_original_NMI_host": 1018,
+      "original_NMI_interrupted_pc": "82D4EE",
+      "original_NMI_before_stack_01ED_01F0": "8197FF27",
+      "original_NMI_after_stack_01ED_01F0": "26EED482",
+      "checkpoint_original_stack_01ED_01F0": "26EED482",
+      "checkpoint_native_stack_01ED_01F0": "8197FF27",
+      "original_matches_prior_source_post": true,
+      "native_matches_prior_source_pre": true
+    },
+    {
+      "relative_frame": 4,
+      "original_checkpoint_host": 1021,
+      "native_checkpoint_host": 1021,
+      "preceding_original_NMI_host": 1020,
+      "original_NMI_interrupted_pc": "82D4EE",
+      "original_NMI_before_stack_01ED_01F0": "8197FF27",
+      "original_NMI_after_stack_01ED_01F0": "26EED482",
+      "checkpoint_original_stack_01ED_01F0": "26EED482",
+      "checkpoint_native_stack_01ED_01F0": "8197FF27",
+      "original_matches_prior_source_post": true,
+      "native_matches_prior_source_pre": true
+    }
+  ],
+  "archive_controls": {
+    "source_original_nine_true_nonopcode_NMI_rows": 9,
+    "raw_128KiB_WRAM_original_native_pairs": 78,
+    "unmasked_bytes_excluded": 0,
+    "cross_guest_exact_pairs": 51,
+    "unmasked_differing_byte_occurrences": 92,
+    "whole_WRAM_equal_at_entry_plus0": true,
+    "whole_WRAM_equal_again_at_plus8": true,
+    "real_zoo_result_relative": 5163,
+    "real_next_bowl_relative": 267,
+    "all_earned_sram_pairs_equal": true,
+    "cold_guest_record_reopen_equal": true
+  },
+  "limitations": {
+    "native_NMI_real_opcode_phase_proven": false,
+    "original_source_individual_stack_bus_calls_proven": false,
+    "first_original_or_native_stack_pull_consumer_before_overwrite_proven": false,
+    "source_equivalent_all_frame_CPU_instruction_clock_parity_proven": false,
+    "timing_fix_justified": false,
+    "mask_stack_allowed": false,
+    "whole_USA_events_accepted": 0,
+    "later_17_preceding_original_NMI_pushes_observed": false,
+    "twenty_four_byte_status_PC_shapes_prove_NMI_causality": false
+  },
+  "next": "Compare actual Snes9x PushB/PushW/PullB/PullW execution, true interrupt entry/RTI and native NMI entry/exit in calibrated host1017..1025; correlate with exact full WRAM checkpoints, never infer from matching pre/post values alone.",
+  "source_original_twenty_four_byte_image_histogram": {
+    "26F0D482": 1,
+    "26EED482": 4,
+    "27F0D482": 10,
+    "27EED482": 5
+  },
+  "source_original_twenty_NMI_shaped_samples": [
+    {
+      "relative_frame": 1,
+      "source_original_stack_image": "26F0D482",
+      "preceding_original_NMI_executed_record_available": true
+    },
+    {
+      "relative_frame": 2,
+      "source_original_stack_image": "26EED482",
+      "preceding_original_NMI_executed_record_available": true
+    },
+    {
+      "relative_frame": 4,
+      "source_original_stack_image": "26EED482",
+      "preceding_original_NMI_executed_record_available": true
+    },
+    {
+      "relative_frame": 32,
+      "source_original_stack_image": "26EED482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 219,
+      "source_original_stack_image": "26EED482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 604,
+      "source_original_stack_image": "27F0D482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 840,
+      "source_original_stack_image": "27F0D482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 841,
+      "source_original_stack_image": "27F0D482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 1080,
+      "source_original_stack_image": "27F0D482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 1531,
+      "source_original_stack_image": "27F0D482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 1532,
+      "source_original_stack_image": "27EED482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 1720,
+      "source_original_stack_image": "27F0D482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 1721,
+      "source_original_stack_image": "27EED482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 1800,
+      "source_original_stack_image": "27F0D482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 2160,
+      "source_original_stack_image": "27F0D482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 2520,
+      "source_original_stack_image": "27F0D482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 2880,
+      "source_original_stack_image": "27EED482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 3120,
+      "source_original_stack_image": "27EED482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 3600,
+      "source_original_stack_image": "27EED482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 4920,
+      "source_original_stack_image": "27F0D482",
+      "preceding_original_NMI_executed_record_available": false
+    }
+  ]
+}

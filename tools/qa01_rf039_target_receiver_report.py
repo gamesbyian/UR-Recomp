@@ -1,0 +1,243 @@
+#!/usr/bin/env python3
+"""RF039 original/native target SPC receiver analysis; never grants USA acceptance."""
+from __future__ import annotations
+import argparse
+import collections
+import hashlib
+import json
+import zipfile
+from pathlib import Path
+from qa01_rf038_sound_write_interval_report import parse_event
+
+ORIGINAL = "work/zoom-zoo/replay/reference.log"
+NATIVE = "work/zoom-zoo/replay/native.log"
+HOST = 6091
+FIRST_NATIVE_MASTER = 2176886834
+LAST_NATIVE_MASTER = 2176887208
+FIRST_ORIG_AGE = 103919450
+LAST_ORIG_AGE = 103919475
+ORIG_SPC_AGE_LO = 103918500
+ORIG_SPC_AGE_HI = 103920500
+TRUNCATIONS = ("QA01RF037ORIGSPC_TRUNCATED", "QA01RF037NATIVEBUS_TRUNCATED",
+               "QA01RF037NATIVEUP_TRUNCATED", "QA01RF037ORIGCPU2_TRUNCATED")
+
+
+def select(log: str, marker: str) -> list[dict]:
+    return [row for line in log.splitlines()
+            if (row := parse_event(line, marker)) is not None]
+
+
+def analyze(original_log: str, native_log: str) -> dict:
+    for sentinel in TRUNCATIONS:
+        if sentinel in original_log or sentinel in native_log:
+            raise ValueError("RF039 truncated source recorder: " + sentinel)
+    cpu_src = select(original_log, "QA01RF037ORIGCPU2")
+    cpu_nat = [r for r in select(native_log, "QA01RF037NATIVEUP")
+               if r.get("kind") == "rtl-apu-enter" and int(r["frame"]) == HOST]
+    source_before = [r for r in cpu_src
+                     if int(r["age"]) == FIRST_ORIG_AGE and
+                     int(r["port"]) == 2 and r["val"] == "24"]
+    source_after = [r for r in cpu_src
+                    if int(r["age"]) == LAST_ORIG_AGE and
+                    int(r["port"]) == 3 and r["val"] == "02"]
+    native_before = [i for i, r in enumerate(cpu_nat)
+                     if int(r["master"]) == FIRST_NATIVE_MASTER
+                     and r["reg"].upper() == "2142" and r["val"] == "24"]
+    native_after = [i for i, r in enumerate(cpu_nat)
+                    if int(r["master"]) == LAST_NATIVE_MASTER
+                    and r["reg"].upper() == "2143" and r["val"] == "02"]
+    if any(len(x) != 1 for x in
+           (source_before, source_after, native_before, native_after)):
+        raise ValueError("RF039 source/native CPU writer target missing or duplicated")
+    if native_after[0] != native_before[0] + 1:
+        raise ValueError("RF039 native writer target no longer consecutive")
+    src_spc = [r for r in select(original_log, "QA01RF037ORIGSPC")
+               if ORIG_SPC_AGE_LO <= int(r["age"]) <= ORIG_SPC_AGE_HI
+               and int(r["port"]) in (2, 3)]
+    nat_bus = [r for r in select(native_log, "QA01RF037NATIVEBUS")
+               if int(r["frame"]) == HOST and int(r["port"]) in (2, 3)]
+    schedules = [r for r in nat_bus if r["kind"] == "schedule"]
+    applies = [r for r in nat_bus if r["kind"] == "apply"]
+    native_reads = [r for r in nat_bus if r["kind"] == "spc-read"]
+    # Four immutable real recipient reads uniquely identify the RF038 transfer
+    # and its immediate next payload. The prior old-23 read guards against
+    # confusing the upload with a later re-use of the same byte value.
+    expected_source = [
+        (103919450, "154F", "2", "23"),
+        (103919457, "154F", "2", "24"),
+        (103919462, "1553", "3", "E2"),
+        (103919465, "1555", "2", "24"),
+        (103919505, "1553", "3", "02"),
+    ]
+    expected_native = [
+        (103919427, "154F", "2", "23"),
+        (103919434, "154F", "2", "24"),
+        (103919439, "1553", "3", "E2"),
+        (103919443, "1555", "2", "24"),
+        (103919482, "1553", "3", "02"),
+    ]
+    def pick_exact(rows, expected):
+        picked = []
+        for age, pc, port, value in expected:
+            matches = [r for r in rows if
+                       int(r["age"]) == age and r["pc"].upper() == pc
+                       and r["port"] == port and r["val"].upper() == value]
+            if len(matches) != 1:
+                return []
+            picked.append(matches[0])
+        return picked
+
+    src_target = pick_exact(src_spc, expected_source)
+    native_target = pick_exact(native_reads, expected_native)
+    target_values_match = bool(
+        len(src_target) == len(expected_source) and
+        len(native_target) == len(expected_native) and
+        [(r["pc"], r["port"], r["val"]) for r in src_target] ==
+        [(r["pc"], r["port"], r["val"]) for r in native_target])
+    index = native_before[0]
+    # Native ordinal reconciliation avoids projecting source SMP age onto the
+    # native CPU master clock. If any upstream writes bypass queue scheduling,
+    # the positional receiver attribution remains unproven and is rejected.
+    matched_schedule_prefix = (
+        len(schedules) > index + 1 and
+        all(int(c["reg"], 16) & 3 == int(s["port"]) and
+            c["val"].upper() == s["val"].upper()
+            for c, s in zip(cpu_nat[:index+2], schedules[:index+2]))
+    )
+    target_schedule = schedules[index:index+2] if matched_schedule_prefix else []
+    target_apply = []
+    vicinity_reads = []
+    if target_schedule:
+        targets = [int(r["target"]) for r in target_schedule]
+        target_apply = [r for r in applies
+                        if any(int(r["target"]) == target and
+                               r["port"] == s["port"] and
+                               r["val"] == s["val"]
+                               for target, s in zip(targets, target_schedule))]
+        vicinity_reads = [r for r in native_reads
+                          if min(targets)-300 <= int(r["age"]) <= max(targets)+300]
+    # Cross-source clock origins are deliberately never equated here.
+    # Each ordering conclusion uses two *same-local-age* records in the
+    # same replay log, and preserves actual instrumentation line order.
+    orig_lines = original_log.splitlines()
+    nat_lines = native_log.splitlines()
+
+    def positions(lines: list[str], tag: str, **fields: str) -> list[int]:
+        found = []
+        for i, line in enumerate(lines):
+            event = parse_event(line, tag)
+            if event is not None and all(event.get(k) == v for k, v in fields.items()):
+                found.append(i)
+        return found
+
+    original_old_f6 = positions(orig_lines, "QA01RF037ORIGSPC",
+                                age=str(FIRST_ORIG_AGE), pc="154F",
+                                port="2", val="23")
+    original_pub_f6 = positions(orig_lines, "QA01RF037ORIGCPU2",
+                                age=str(FIRST_ORIG_AGE), port="2", val="24")
+    original_read_before_write = (
+        len(original_old_f6) == len(original_pub_f6) == 1
+        and original_old_f6[0] < original_pub_f6[0]
+    )
+    original_new_f6 = [r for r in src_spc
+                        if r["pc"] == "154F" and r["port"] == "2"
+                        and r["val"] == "24"
+                        and int(r["age"]) >= FIRST_ORIG_AGE]
+    original_new_f6_age = (
+        min(int(r["age"]) for r in original_new_f6)
+        if original_new_f6 else None
+    )
+    native_apply_before_read = False
+    native_same_age_first_read = None
+    native_apply_indices = []
+    native_read_indices = []
+    if target_schedule:
+        target_age = target_schedule[0]["target"]
+        native_apply_indices = positions(nat_lines, "QA01RF037NATIVEBUS",
+                                         frame=str(HOST), kind="apply",
+                                         age=target_age, target=target_age,
+                                         port="2", val="24")
+        native_read_indices = positions(nat_lines, "QA01RF037NATIVEBUS",
+                                        frame=str(HOST), kind="spc-read",
+                                        age=target_age, pc="154F",
+                                        port="2", val="24")
+        native_apply_before_read = (
+            len(native_apply_indices) == len(native_read_indices) == 1
+            and native_apply_indices[0] < native_read_indices[0]
+        )
+        if native_read_indices:
+            native_same_age_first_read = int(target_age)
+    return {
+        "schema": "rf039-target-cpu-spc-receiver-executed-v1",
+        "original_cpu_writer_ages": [FIRST_ORIG_AGE, LAST_ORIG_AGE],
+        "original_cpu_writer_values": [source_before[0], source_after[0]],
+        "native_cpu_writer_masters": [FIRST_NATIVE_MASTER, LAST_NATIVE_MASTER],
+        "native_frame": HOST,
+        "native_target_local_write_indices_zero_based": [index, index+1],
+        "original_same_local_age_spc_old_read_precedes_cpu_port_write": original_read_before_write,
+        "original_spc_old_read_log_indices": original_old_f6,
+        "original_cpu_port2_write_log_indices": original_pub_f6,
+        "original_first_port2_new_value_read_age": original_new_f6_age,
+        "original_first_new_value_read_minus_cpu_write_spc_ticks": (
+            original_new_f6_age - FIRST_ORIG_AGE
+            if original_new_f6_age is not None else None
+        ),
+        "native_same_local_age_queue_apply_precedes_f6_new_value_read": native_apply_before_read,
+        "native_port2_queue_apply_log_indices": native_apply_indices,
+        "native_port2_f6_new_read_log_indices": native_read_indices,
+        "native_first_f6_new_read_age": native_same_age_first_read,
+        "locally_proven_opposite_same_age_bus_order": (
+            original_read_before_write and native_apply_before_read
+        ),
+        "original_spc_recipient_reads_count": len(src_spc),
+        "original_spc_recipient_reads": src_spc,
+        "native_bus_counts": dict(collections.Counter(r["kind"] for r in nat_bus)),
+        "native_schedule_prefix_matches_actual_writers": matched_schedule_prefix,
+        "native_target_schedule": target_schedule,
+        "native_target_apply": target_apply,
+        "native_target_vicinity_spc_reads": vicinity_reads,
+        "source_target_spc_reads": src_target,
+        "native_target_spc_reads": native_target,
+        "target_recipient_pc_port_value_sequence_equal": target_values_match,
+        "source_minus_native_target_spc_age_differences": (
+            [int(a["age"]) - int(b["age"])
+             for a, b in zip(src_target, native_target)]
+            if target_values_match else []),
+        "receiver_coverage_complete": bool(
+            target_values_match and matched_schedule_prefix and
+            len(target_apply) == 2 and vicinity_reads and
+            len(target_schedule) == 2 and
+            all(int(a["age"]) == int(s["target"])
+                for a, s in zip(target_apply, target_schedule))),
+        "source_and_native_clocks_independently_labeled": True,
+        "phase_or_bus_order_equivalence_proven": False,
+        "clock_fix_justified": False,
+        "complete_usa_events_accepted": 0,
+    }
+
+
+def report(case_zip: Path) -> dict:
+    with zipfile.ZipFile(case_zip) as z:
+        result = analyze(z.read(ORIGINAL).decode("utf8", "replace"),
+                         z.read(NATIVE).decode("utf8", "replace"))
+    result["case_zip_sha256"] = hashlib.sha256(case_zip.read_bytes()).hexdigest()
+    result["case_zip_file"] = case_zip.name
+    return result
+
+
+def main() -> int:
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("case_zip", type=Path)
+    p.add_argument("--json-out", type=Path)
+    a = p.parse_args()
+    value = json.dumps(report(a.case_zip), indent=2, sort_keys=True) + "\n"
+    if a.json_out:
+        a.json_out.parent.mkdir(parents=True, exist_ok=True)
+        a.json_out.write_text(value, encoding="utf8")
+    else:
+        print(value, end="")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

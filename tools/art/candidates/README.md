@@ -116,6 +116,16 @@ frame/rainbow, and its camera/perspective is unknown, so **do not**
 infer a physical saddle/wheel dimension from this title screenshot.
 The source title screenshot is not included in the repository.
 
+A second **optional, unapproved** `rig_frame_mass` parameter
+preserves the same canonical physical fork/crown/stem geometry while
+multiplying only its segment radius; wheel, crank, saddle, and
+all motion transforms remain identical. The allowed frame mass values
+are exactly `1.0, 1.4, 1.8, 2.0`, with `1.0` still the unchanged default.
+Offline OpenSCAD variants at fixed 12.5 camera show a progression from a
+skinny bicycle fork to a rounder toy/CGI body. These alternatives are
+**not** a calibrated original 3D model; frame occlusion in the title
+prevents deriving a canonical radius.
+
 The same canonical OpenSCAD mesh now has an **unapproved authoring
 parameter**, `rig_saddle_span`, with default `1.0` preserving the
 original five-pose artwork and continuous motion path. Values must
@@ -128,7 +138,8 @@ square pixel output), rather than resizing each candidate to fit:
 python tools/art/render_unicycle_saddle_variants.py \
   --out /tmp/ur-saddle-choices \
   --authentic-source-zip /secure/local/baldosa-native-spike-evidence.zip \
-  --xvfb
+  --frame-mass 1.8 --xvfb
+# --frame-mass 1.0 preserves the unchanged default. Allowed: 1,1.4,1.8,2.
 # Omitting --authentic-source-zip makes model-only comparisons.
 ```
 

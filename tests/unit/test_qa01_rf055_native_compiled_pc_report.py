@@ -42,10 +42,10 @@ class RF055NativePC(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError,reason):
                     rf.inspect("\n".join(modified),expected_transfers=1)
     def test_true_local_cpu_master_interval_without_global_phase(self):
-        source="\\n".join((
+        source="\n".join((
             "QA01RF050ORIGAPU seq=21 age=104485254 v=159 h=1016 port=3 val=D0",
             "QA01RF050ORIGAPU seq=22 age=104485258 v=159 h=1066 port=2 val=63"))
-        native="\\n".join((
+        native="\n".join((
             writer(1,"002143","00D0",130,"63D0"),
             writer(2,"002142","0063",180,"D063")))
         out=rf.local_cpu_master_intervals(source,native,1,1)

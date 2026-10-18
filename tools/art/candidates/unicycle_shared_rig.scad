@@ -8,6 +8,11 @@ $fn=50;
 rig_pose=is_undef(rig_pose)?"upright":rig_pose;
 rig_color=is_undef(rig_color)?[0.11,0.35,0.87]:rig_color;
 rig_time=is_undef(rig_time)?0:rig_time;
+// Title-source proportions are provisional: variants are for comparative
+// review ONLY, never a shipping default or a fitted 1994 3D model.
+rig_saddle_span=is_undef(rig_saddle_span)?1:rig_saddle_span;
+assert(rig_saddle_span >= 1 && rig_saddle_span <= 2.2,
+       "out-of-scope unreviewed saddle shape");
 function unit_time(t)=min(1,max(0,t));
 function ease_time(t)=let(u=unit_time(t)) u*u*(3-2*u);
 function vadd(a,b)=[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
@@ -57,7 +62,7 @@ module saddle_section(x,h,rx,ry,rz) {
   translate([x,0,h])scale([rx,ry,rz])sphere(1,$fn=40);
 }
 module saddle(lean=0) {
-  translate([0.04,0,2.27])rotate([0,lean,0]){
+  translate([0.04,0,2.27])rotate([0,lean,0])scale([rig_saddle_span,1,1]){
     color([0.085,0.092,0.105])union(){
       hull(){
         saddle_section(-0.66,0.19,0.35,0.34,0.21);

@@ -181,7 +181,101 @@
       401,
       402,
       403
-    ]
+    ],
+    "sram_to_wram_source_correlations": {
+      "reason": "Source-pinned genuine original/native RAM observation only, not an executed memory copy instruction",
+      "comparisons_from_original_actions_zip_12154480620": true,
+      "all_fourteen_full_sram_difference_address_old_value_new_value_triples_identical": true,
+      "same_guest_source_wram_equals_battery_sram_bytes": {
+        "fresh_snes9x_exact": 182,
+        "fresh_snes9x_examined": 182,
+        "native_baldosa_exact": 182,
+        "native_baldosa_examined": 182
+      },
+      "thirteen_distinct_wram_sram_offset_pairs": [
+        {
+          "wram_address": "7E:00C6",
+          "sram_offset": "0x0F31",
+          "fresh_original_byte": 7,
+          "native_guest_byte": 5
+        },
+        {
+          "wram_address": "7E:00C8",
+          "sram_offset": "0x0F33",
+          "fresh_original_byte": 4,
+          "native_guest_byte": 2
+        },
+        {
+          "wram_address": "7E:0187",
+          "sram_offset": "0x0FF2",
+          "fresh_original_byte": 1,
+          "native_guest_byte": 0
+        },
+        {
+          "wram_address": "7E:0188",
+          "sram_offset": "0x0FF3",
+          "fresh_original_byte": 4,
+          "native_guest_byte": 3
+        },
+        {
+          "wram_address": "7E:0189",
+          "sram_offset": "0x0FF4",
+          "fresh_original_byte": 6,
+          "native_guest_byte": 5
+        },
+        {
+          "wram_address": "7E:018A",
+          "sram_offset": "0x0FF5",
+          "fresh_original_byte": 9,
+          "native_guest_byte": 8
+        },
+        {
+          "wram_address": "7E:018B",
+          "sram_offset": "0x0FF6",
+          "fresh_original_byte": 11,
+          "native_guest_byte": 10
+        },
+        {
+          "wram_address": "7E:018C",
+          "sram_offset": "0x0FF7",
+          "fresh_original_byte": 14,
+          "native_guest_byte": 13
+        },
+        {
+          "wram_address": "7E:018D",
+          "sram_offset": "0x0FF8",
+          "fresh_original_byte": 16,
+          "native_guest_byte": 15
+        },
+        {
+          "wram_address": "7E:018E",
+          "sram_offset": "0x0FF9",
+          "fresh_original_byte": 19,
+          "native_guest_byte": 18
+        },
+        {
+          "wram_address": "7E:0191",
+          "sram_offset": "0x0FFC",
+          "fresh_original_byte": 3,
+          "native_guest_byte": 2
+        },
+        {
+          "wram_address": "7E:0192",
+          "sram_offset": "0x0FFD",
+          "fresh_original_byte": 18,
+          "native_guest_byte": 17
+        },
+        {
+          "wram_address": "7E:0193",
+          "sram_offset": "0x0FFE",
+          "fresh_original_byte": 3,
+          "native_guest_byte": 2
+        }
+      ],
+      "copy_direction_or_guest_instruction_proven": false,
+      "original_movie_pre_dragster_sram_identical_to_fresh_original_proven": false,
+      "event_credit": 0
+    }
   },
   "bounds": {
     "original_movie_first_sustained_8_consecutive_zoo_active_frames_producer_reported": true,

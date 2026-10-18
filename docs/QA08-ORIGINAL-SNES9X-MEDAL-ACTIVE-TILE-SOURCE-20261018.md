@@ -82,3 +82,55 @@ research/negative findings can transfer in a separate docs-only
 source evidence PR. Production #1780, Modern #1713, accepted CPU/APU
 source phase, 3840×2160, 7:6, new HD racer artwork and independent
 release ledger remain untouched and explicitly **HOLD**.
+
+
+## Executed original painter probe and sharpened discriminator, October 18
+
+The **real original 2014 Snes9x** run on source PR commit
+61b1a70321f2666419b46bba100406733652eaf8,
+GitHub Actions [39159919267](https://github.com/gamesbyian/UR-Recomp/actions/runs/39159919267),
+completed successfully with exact original ROM SHA 859ec99f...,
+unchanged input script SHA bddfb15f..., and
+'script f=5484 quit'. Preserved original ZIP artifact **12148830469** has
+SHA256 0f73e5f84e6f65f2939b8ff1b0242838a7670b59b53ef8fd7a4e2a128bd0fd56.
+The original compiled Snes9x painter emitted **252 actual tile-call records**
+on 18 internal source frame labels (4028..4036, 4172..4180),
+14 per frame: two repeated original render passes containing seven per-pass
+tile candidates. No source game/renderer state was deliberately modified.
+
+For original labels 4032 and 4176, the *same-original-pass* tile-call
+before/after depth increases from **00 to 28** at four selected pixels:
+(225,96) from OBJ97 tile 15de; (205,115) from OBJ113 tile 19a2;
+(225,120) from OBJ96 tile 15de; (205,139) from OBJ114 tile 1da4.
+At (207,91), OBJ112's tile call leaves depth unchanged at 00.
+OBJ99 and OBJ98 also submit tile calls at x225 but leave depth at 28,
+after lower OAM contenders 97 and 96 have changed it. These are observed
+original painter operations, not slot deductions from native graphics.
+
+**Critical uncertainty:** DrawOBJS executes *before* the following BG
+draws in original Snes9x RenderScreen, and a tile's depth write does
+not establish the winning *final* main-screen pixel. It also cannot
+prove that the same numbered native frame corresponds to that original
+paint pass. The standalone original 263-source image archive
+12075111053 uses historical route/script SHA256
+a6c8815482b742d90dca61645f876c15918f5d9985a027eef107ac4fdc515264,
+which is **different** from this painter probe's authentic script
+bddfb15f...; therefore neither its callback images nor the derived
+wrong-pixel classifications are joined to these 252 painter calls.
+Likewise held native #1833/merged #1835 references imported Baldosa
+race_2p.txt: numeric frame labels alone do not establish its consumed
+input equality to the pinned original painter route.
+
+The follow-on read-only stage probe in this draft instruments original
+Snes9x RenderScreen to emit **post-OBJ, post-each-BG and post-backdrop**
+host depth/RGB565 in precisely the same render pass at the same five
+original pixel coordinates. It does not draw pixels or change clock,
+tile/OAM, depth or guest state. A successful run can distinguish an
+original OBJ still owning depth from an intervening BG write; its
+proof ends at the original render stage until independent callback/input/
+guest registration is supplied.
+
+**Disposition:** retain #1836 as an unmerged diagnostic. Reported
+original depth changes and native #1835 4bpp writer agreement do not
+qualify production HDMA/V0, fix medal colour, permit a frame shift or
+advance the QA release ledger.

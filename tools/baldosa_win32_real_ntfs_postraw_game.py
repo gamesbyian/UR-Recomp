@@ -86,7 +86,7 @@ def fill_and_independent_os_112(user: Path, out: Path) -> dict:
     witnessed = False
     stream = open(filler, "xb", buffering=0)
     try:
-        for width in (1048576, 4096, 1):
+        for width in (1048576, 4096):
             block = bytes(width)
             for attempt in range(16384):
                 try:

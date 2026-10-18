@@ -368,9 +368,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: qa08-current-rf017-medal-4bpp-winner-source
-          retention-days: 7
+          retention-days: 90
           if-no-files-found: warn
-          path: ${{ runner.temp }}/qa08-current-result-owner/qa08-current-result-owners.json
+          path: |
+            ${{ runner.temp }}/qa08-current-result-owner/qa08-current-result-owners.json
+            ${{ runner.temp }}/qa08-current-result-owner/baseline/log.txt
 
       - name: Verify Baldosa Windows PE needs only clean-machine system DLLs
         run: |

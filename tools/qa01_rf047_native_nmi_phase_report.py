@@ -21,12 +21,15 @@ def classify(native: str)->dict:
         raise ValueError("RF047 native source read/interrupt log truncated")
     observed=[]
     for line in native.splitlines():
-        if not line.startswith(TAG):
-            continue
-        row=fields(line)
+        # Native WRAM writer fragments can precede a whole atomic RF047
+        # record on the same physical line. Extract only the single-event
+        # suffix; never interpret line order as event order.
+        pos=line.find(TAG)
+        if pos<0:continue
+        row=fields(line[pos:])
         if not all(k in row for k in ("seq","stage","f")):
             raise ValueError("RF047 truncated native event header")
-        if int(row["f"]) not in FRAMES or row["stage"] not in ("entry","after_push","handler_return","read"):
+        if int(row["f"]) not in FRAMES or row["stage"] not in ("entry","after_push","handler_return","read","interp_rti","compiled_rti"):
             raise ValueError("RF047 out-of-domain native event")
         observed.append({**row,"seq":int(row["seq"]),"f":int(row["f"])})
     if not observed:
@@ -42,7 +45,7 @@ def classify(native: str)->dict:
     result=[]
     for f in FRAMES:
         rows=by_frame[f]
-        boundary=[row for row in rows if row["stage"]!="read"]
+        boundary=[row for row in rows if row["stage"] in ("entry","after_push","handler_return")]
         if [r["stage"] for r in boundary] != ["entry","after_push","handler_return"]:
             raise ValueError(f"RF047 missing or repeated native interrupt boundary {f}")
         before,pushed,returned=boundary
@@ -60,6 +63,17 @@ def classify(native: str)->dict:
         inside=[x for x in rows if x["stage"]=="read"
                  and pushed["seq"]<x["seq"]<returned["seq"] and x.get("nmi")=="1"]
         first_reader=inside[0] if inside else None
+        return_ops=[x for x in rows if x["stage"] in ("interp_rti","compiled_rti")]
+        if len(return_ops)>1:
+            raise ValueError(f"RF047 duplicate native RTI source events at {f}")
+        return_op=return_ops[0] if return_ops else None
+        if return_op is not None:
+            if not (pushed["seq"]<return_op["seq"]<returned["seq"]):
+                raise ValueError(f"RF047 RTI outside native NMI boundaries at {f}")
+            if any(k not in return_op for k in ("opcodePC","returnPC","P","S","master")):
+                raise ValueError(f"RF047 incomplete native RTI source event at {f}")
+            if return_op["S"]!=returned["S"]:
+                raise ValueError(f"RF047 RTI versus native handler-return SP mismatch at {f}")
         result.append({"native_host_frame":f,
                        "native_interrupt_entry_resume_PC":before["resume"],
                        "native_interrupt_vector":before["vector"],
@@ -71,13 +85,23 @@ def classify(native: str)->dict:
                        "native_handler_return_master":int(returned["master"]),
                        "native_inhandler_actual_read_helper_count":len(inside),
                        "native_first_inhandler_actual_stack_read":first_reader,
-                       "native_true_RTI_opcode_and_return_PC_proven":False})
-    return {"schema":"rf047-native-NMI-phase-true-guest-ops-v1",
+                       "native_explicit_RTI_event":return_op,
+                       "native_actual_RTI_return_PC":return_op["returnPC"] if return_op else None,
+                       "native_RTI_return_PC_matches_saved_resume":
+                           return_op["returnPC"]==before["resume"] if return_op else None,
+                       "native_true_RTI_opcode_and_return_PC_proven":
+                           return_op is not None and return_op["stage"]=="interp_rti"})
+    explicit=sum(x["native_explicit_RTI_event"] is not None for x in result)
+    if 0<explicit<len(result):
+        raise ValueError("RF047 native partial actual RTI instrumentation")
+    return {"schema":"rf047-native-NMI-phase-true-guest-ops-v2",
             "native_source_order_is_event_sequence_not_merged_log_lines":True,
+            "native_explicit_RTI_evidence_frames":explicit,
             "native_nmi_frames":len(result),
             "native_all_nine_first_window_NMI_entry_afterpush_return":True,
             "native_interrupt_paired_operations":result,
-            "native_exact_RTI_opcode_proven":False,
+            "native_exact_RTI_opcode_proven":
+                explicit==len(result) and all(x["native_true_RTI_opcode_and_return_PC_proven"] for x in result),
             "native_checkpoints_share_original_interrupt_phase_proven":False,
             "complete_USA_event_credit":0}
 def report(path:Path,prior:Path|None=None)->dict:
@@ -93,6 +117,21 @@ def report(path:Path,prior:Path|None=None)->dict:
        c["disposition"]!="strict_candidate":
         raise ValueError("RF047 genuine unmasked Zoo input/control changed")
     out=classify(native)
+    source_pc={}
+    for line in source.splitlines():
+        if line.startswith("QA01RF044ORIGNMI "):
+            row=fields(line)
+            source_pc[int(row["f"])]=row["pc"]
+    if set(source_pc)!=set(FRAMES):
+        raise ValueError("RF047 missing nine actual original NMI PCs")
+    for pair in out["native_interrupt_paired_operations"]:
+        frame=pair["native_host_frame"]
+        pair["original_same_host_actual_interrupted_PC"]=source_pc[frame]
+        pair["native_resume_equals_original_same_host_PC"]=(
+            pair["native_interrupt_entry_resume_PC"]==source_pc[frame])
+    out["native_resume_and_original_NMI_PC_9_frame_equal_count"]=sum(
+        p["native_resume_equals_original_same_host_PC"]
+        for p in out["native_interrupt_paired_operations"])
     out.update({"case_zip_sha256":digest,"source_sha":c["source_sha"],
                 "full_WM_pairs":78,"unmasked_exact_pairs":51,"USA_events_accepted":0})
     if prior:

@@ -99,7 +99,9 @@ def joined(log:str, owner:dict)->dict:
         if not writes:
             raise ValueError("current native OBJ main pixel has no genuine sprite fetch")
         last=writes[-1]
-        source_obj=int(p["obj_word"],16)
+        if "obj_zbuffer" not in p:
+            raise ValueError("actual effective PPU encoded OBJ zbuffer missing")
+        source_obj=int(p["obj_zbuffer"],16)
         if last["writer_obj"]!=source_obj:
             raise ValueError(
                 "OBJ buffer winner not last regular fetched sprite; "

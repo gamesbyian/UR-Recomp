@@ -15,7 +15,7 @@ CPU = Path("snesrecomp/runner/src/cpu_state.c")
 STAMP = "UR_QA01_RF047_NATIVE_NMI_RETURN_SOURCE_PIN"
 BEAM_INCLUDE = "#include <stdint.h>\n"
 BEAM_RUN = "  cpu_push_interrupt_frame_at(&g_cpu, s_resume_pc);\n"
-BEAM_RETURN = "  update_resume_pc();\n"
+BEAM_RETURN = "  update_resume_pc();\n}"
 BEAM_NMI = "    run_interrupt(nmi_vector(), frame_end);\n"
 CPU_HOOK = "    static unsigned rows;\n    if (rows++ < 8192u)\n"
 CPU_ANCHOR = "static void ur_rf044_native_read(CpuState *cpu,uint8 bank,uint16 addr,\n"
@@ -99,8 +99,8 @@ def patch(beam: str, cpu: str) -> tuple[str,str]:
                         "  ur_rf047_nmi_snapshot(\"entry\", vector);\n" +
                         BEAM_RUN +
                         "  ur_rf047_nmi_snapshot(\"after_push\", vector);\n", 1)
-    beam = beam.replace(BEAM_RETURN, BEAM_RETURN +
-                        "  ur_rf047_nmi_snapshot(\"handler_return\", vector);\n", 1)
+    beam = beam.replace(BEAM_RETURN, "  update_resume_pc();\\n" +
+                        "  ur_rf047_nmi_snapshot(\"handler_return\", vector);\\n}", 1)
     beam = beam.replace(BEAM_NMI,
                         "    const uint32_t ur_rf047_vector = nmi_vector();\n"
                         "    ur_rf047_in_nmi = 1;\n"

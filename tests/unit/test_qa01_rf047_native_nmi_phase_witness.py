@@ -33,18 +33,18 @@ class NativePhaseSource(unittest.TestCase):
     "        fprintf(stderr, \"read\");\n"
     "}\n")
   bridge = (
-    'extern Snes *g_snes;\\n'
-    'static int bridge_native_handoff(void) {\\n'
-    '        if (stop_on_rti)\\n'
-    '            return 1;  /* compiled RTI consumed the interrupt frame */\\n'
-    '}\\n'
-    'static int _interp_run_core(void) {\\n'
-    '        if (stop_on_rti && op == 0x40) {\\n'
-    '            sync_interp_to_cpu(&in, cpu);\\n'
-    '            bridge_apu_flush(cpu);\\n'
-    '            return 1;\\n'
-    '        }\\n'
-    '}\\n')
+    'extern Snes *g_snes;\n'
+    'static int bridge_native_handoff(void) {\n'
+    '        if (stop_on_rti)\n'
+    '            return 1;  /* compiled RTI consumed the interrupt frame */\n'
+    '}\n'
+    'static int _interp_run_core(void) {\n'
+    '        if (stop_on_rti && op == 0x40) {\n'
+    '            sync_interp_to_cpu(&in, cpu);\n'
+    '            bridge_apu_flush(cpu);\n'
+    '            return 1;\n'
+    '        }\n'
+    '}\n')
   return beam,cpu,bridge
  def test_single_architectural_interrupt_and_reader_unchanged(self):
   beam,cpu,bridge=self.fixture()

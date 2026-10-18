@@ -79,14 +79,18 @@ class NextMonsterTest(unittest.TestCase):
             wrong[f] = dict(wrong[f], tour_row=1)
         with self.assertRaisesRegex(witness.SwitcherMonsterError, "missing/ambiguous"):
             witness.source_next_monster(wrong, self.source_event)
-        tag = f"switcher-next-monster-{self.delta:04d}"
-        path = self.native / f"{tag}.wram.bin"
-        w = bytearray(path.read_bytes())
-        w[0x00d0] = 1
-        path.write_bytes(w)
+        for offset in self.proof["sample_offsets"]:
+            if offset >= self.delta + 2:
+                tag = f"switcher-next-monster-{offset:04d}"
+                path = self.native / f"{tag}.wram.bin"
+                w = bytearray(path.read_bytes())
+                w[0x00d0] = 1
+                path.write_bytes(w)
         result = self._observe()
-        self.assertNotEqual(result["release_complete_event_credit"], 1)
+        self.assertIsNone(result["native_entry_relative_result_offset"])
+        self.assertFalse(result["native_monster_source_course_loaded_on_active_sample"])
         self.assertFalse(result["all_three_entries_same_result_relative_offset"])
+        self.assertEqual(result["release_complete_event_credit"], 0)
 
     def test_actual_guest_clocks_source_disagreement_and_zero_credit(self):
         result=self._observe()

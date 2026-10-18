@@ -54,7 +54,7 @@ TRACE = r"""        // Lower OAM indices are processed later and overwrite highe
                     "oam_tile=%02x used_tile=%03x objadr=%04x "
                     "row=%d src_col=%d px=%d "
                     "palette=%02x priority=%u pixel=%x plane=%08x "
-                    "writer_obj=%04x\\n",
+                    "writer_obj=%04x\n",
                     (unsigned)snes_frame_counter, col + x + px, line,
                     (unsigned)slot,
                     (unsigned)ppu->oam[index], (unsigned)oam1,

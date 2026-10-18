@@ -25,6 +25,7 @@ import analyze_rnc_streams as rnc
 import extract_historical_smv_scene_window as movie
 import extract_menu_visual_language as visual
 import probe_attract_cycle as trace
+import qa01_bowl_switcher_handoff as bowl_handoff
 import probe_jumpover_fallthrough_native as engine
 import probe_original_non_dragster_course_entry as entry
 import probe_result_screens as result_probe
@@ -403,10 +404,14 @@ BOWL_TALLY_MEMORY_SIZES = {"wram": 0x20000, "vram": 0x10000, "cgram": 512}
 def replay_script(slot: int, result_menu: int, frames: list[int],
                   stunt: bool, tally_phase: bool = False,
                   source_followthrough: bool = False,
-                  zoo_next_bowl: bool = False) -> str:
+                  zoo_next_bowl: bool = False,
+                  bowl_next_switcher: bool = False) -> str:
     if zoo_next_bowl and (slot != 2 or result_menu != 0xBC or stunt
                           or not source_followthrough):
         raise CompleteEventError("Zoo next Bowl requires original Circuit plus source followthrough")
+    if bowl_next_switcher and (slot != 3 or result_menu != 0x18 or not stunt
+                                 or not source_followthrough):
+        raise CompleteEventError("Bowl next Switcher requires original Stunt and source followthrough")
     if tally_phase and (not stunt or slot != 3 or result_menu != 0x18):
         raise CompleteEventError("only proven source-original scored Bowl tally supports phase samples")
     lines = stock_crawler_script(slot).rstrip().splitlines()
@@ -439,6 +444,13 @@ def replay_script(slot: int, result_menu: int, frames: list[int],
             if offset <= previous or offset > 280:
                 raise CompleteEventError("nonmonotonic genuine Zoo-to-Bowl source handoff")
             lines += [f"wait {offset - previous}", f"dump zoo-next-bowl-{offset:03d}"]
+            previous = offset
+    if bowl_next_switcher:
+        previous = SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS[-1]
+        for offset in bowl_handoff.OFFSETS:
+            if offset <= previous or offset > 360:
+                raise CompleteEventError("nonmonotonic genuine Bowl-to-Switcher source handoff")
+            lines += [f"wait {offset - previous}", f"dump bowl-next-switcher-{offset:03d}"]
             previous = offset
     lines.append("quit")
     return "\n".join(lines) + "\n"
@@ -1618,6 +1630,9 @@ def scan_source(args, work: Path, sram: Path, source_input: Path,
     if args.zoo_next_bowl:
         event["source_next_bowl"] = source_zoo_next_bowl(
             states, event["original_result_frame"])
+    if args.bowl_next_switcher:
+        event["source_next_switcher"] = bowl_handoff.source_next_switcher(
+            states, event["original_result_frame"])
     if args.case == "dragster" and (
             event["original_entry_frame"] != 794
             or event["original_result_frame"] != 2874
@@ -1781,6 +1796,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="opt-in archived original/native +8/+16/+24/+32 postresult guest WRAM; no admission")
     ap.add_argument("--zoo-next-bowl", action="store_true",
                     help="opt-in unchanged 2014 Zoo original input through source Bowl active race at movie frame 8620")
+    ap.add_argument("--bowl-next-switcher", action="store_true",
+                    help="opt-in unchanged 2014 Bowl input through next Switcher at movie frame 12327; no acceptance")
     ap.add_argument("--observe-one-frame-stunt-lead", action="store_true",
                     help="report a verified narrow Stunt phase gap as diagnostic CI success; never admit a course")
     ap.add_argument("--snesref", type=Path, required=True)
@@ -1809,6 +1826,10 @@ def main(argv: list[str] | None = None) -> int:
                                or not args.source_followthrough
                                or args.native_backend != "pinned-baldosa"):
         ap.error("Next Bowl entry requires pinned original/native Zoom Zoo source followthrough")
+    if args.bowl_next_switcher and (args.case != "bowl"
+                                    or not args.source_followthrough
+                                    or args.native_backend != "pinned-baldosa"):
+        ap.error("Bowl next Switcher requires pinned original/native Bowl source followthrough")
     if args.source_horizon < 12500 or args.source_horizon > 24000:
         ap.error("source horizon must be 12500..24000")
     streams = list(rnc.find_streams(args.rom.read_bytes()))
@@ -1831,7 +1852,8 @@ def main(argv: list[str] | None = None) -> int:
     original_bytes, _ = movie.read_movie(args.movie)
     pinned_meta = json.loads(args.movie_meta.read_text())
     source_length = original_event["source_active_frames_to_result"] + (
-        max(ZOO_NEXT_BOWL_OFFSETS) + 6 if args.zoo_next_bowl
+        max(bowl_handoff.OFFSETS) + 6 if args.bowl_next_switcher
+        else max(ZOO_NEXT_BOWL_OFFSETS) + 6 if args.zoo_next_bowl
         else 80 if args.source_followthrough else 40)
     source_window = movie.window(original_bytes, pinned_meta,
                                  original_event["original_entry_frame"], source_length)
@@ -1873,7 +1895,8 @@ def main(argv: list[str] | None = None) -> int:
         stream, menu, frames, kind == "stunt",
         tally_phase=args.bowl_tally_phase,
         source_followthrough=args.source_followthrough,
-        zoo_next_bowl=args.zoo_next_bowl))
+        zoo_next_bowl=args.zoo_next_bowl,
+        bowl_next_switcher=args.bowl_next_switcher))
     reference_script = script
     if args.switcher_same_host_penultimate:
         if args.case != "switcher" or args.native_backend != "pinned-baldosa":
@@ -1951,6 +1974,16 @@ def main(argv: list[str] | None = None) -> int:
         original_event["source_next_bowl"], rf, nf,
         terminal_frames["reference_relative"], terminal_frames["native_relative"])
         if args.zoo_next_bowl else None)
+    next_switcher = (bowl_handoff.observe_next_switcher(
+        replay / "ref", replay / "native", rl, nl,
+        original_event["source_next_switcher"], rf, nf,
+        terminal_frames["reference_relative"], terminal_frames["native_relative"],
+        observed_dump_frame=observed_dump_frame,
+        decode_sram=decode_qa01_crawler_battery_sram,
+        audit_wram=audit_qa01_wram_pair,
+        switcher_payload=unpack_method1(streams[3][1]),
+        validate_course_payload=is_fully_loaded_course)
+        if args.bowl_next_switcher else None)
     switcher_same_host_memory = (observe_switcher_same_host_memory_offsets(
         replay / "ref", replay / "native", switcher_same_host)
         if args.switcher_same_host_full_memory_offsets else None)
@@ -1972,6 +2005,7 @@ def main(argv: list[str] | None = None) -> int:
         "switcher_same_host_full_memory_offsets": switcher_same_host_memory,
         "source_terminal_followthrough": source_followthrough,
         "zoo_next_bowl_handoff": next_bowl,
+        "bowl_next_switcher_handoff": next_switcher,
         "reference_script_sha256": sha(reference_script),
         "reference": reference, "native": native,
         "scope": "original archived scene inputs, fresh reference/native stock menu; event results text from guest PPU dumps; instruction-time contact causality unproven"

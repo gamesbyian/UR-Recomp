@@ -1,0 +1,52 @@
+{
+  "schema": "UR-QA01-BOWL-COLD-ORIGINAL-NATIVE-20261018/1",
+  "execution": {
+    "source_sha": "255886a0bf9d9415109c3b43d862306efcc61e48",
+    "workflow_run_id": 39167303557,
+    "job_id": 117792950718,
+    "url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39167303557",
+    "conclusion": "success",
+    "artifact_id": 12151073721,
+    "artifact_provider_sha256": "22958a681d4d96809d5ffb3c4793ebc614105a094568cb62766d5f318b3878a9"
+  },
+  "source": {
+    "rom": "USA original retail",
+    "course_id": "course:03",
+    "source_movie_entry": 8620,
+    "source_movie_result": 11985,
+    "original_relative_result": 3365,
+    "native_relative_result": 3364,
+    "source_next_switcher": 342,
+    "fresh_original_next_switcher": 341,
+    "fresh_native_next_switcher": 344
+  },
+  "cold_guest": {
+    "authentic_source_earned_rank0_bowl_score": 764,
+    "boot_frames": [
+      300,
+      420
+    ],
+    "fresh_original_guest_boots": 1,
+    "fresh_native_guest_boots": 1,
+    "score_and_150_rank_words_holders_checksum_remain_source_exact": true,
+    "original_guest_and_native_guest_records_equal": true,
+    "guest_in_memory_image_seeded_from_actual_post_bowl_plus354": true
+  },
+  "handoff": {
+    "canonical_switcher_payload_confirmed_original": true,
+    "canonical_switcher_payload_confirmed_native": true,
+    "first_original_native_named_divergence_bowl_result_offset": 341,
+    "first_whole_sram_different_offset": 334,
+    "whole_sram_mismatch_across_all_twelve_samples": true,
+    "all_twelve_full_wram_pair_mismatches": true
+  },
+  "adjudication": {
+    "strict_full_event": false,
+    "original_native_cpu_spc_instruction_parity": false,
+    "windows_native_host_disk_durability": false,
+    "independent_raw_capture_archive_verification": false,
+    "accepted_usa_events": 0,
+    "release_qa_gates": 0
+  },
+  "provenance_limit": "Official GitHub artifact provider SHA is not independently byte-rehashed in this session. First two genuine run ZIPs omitted raw handoff guest memory files; raw retention and standalone QA checker were staged subsequently."
+}

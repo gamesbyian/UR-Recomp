@@ -84,7 +84,7 @@ def movie_states_from_actual_trace(path: Path) -> dict[int, dict]:
     """
     require(path.is_file() and not path.is_symlink(),
             "missing genuine 2014 source memory-write trace")
-    start, finish = MOVIE_RESULT, MOVIE_ZOO + 7
+    start, finish = MOVIE_RESULT, MOVIE_RESULT + max(OFFSETS)
     wanted = range(start, finish + 1)
     values = {at: 0 for at in NAME_ADDR.values()}
     matched = {

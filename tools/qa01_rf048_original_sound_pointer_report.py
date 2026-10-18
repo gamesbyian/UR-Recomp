@@ -53,6 +53,13 @@ def classify(original: str, native: str) -> dict:
         for name in ("dp_base", "dp_slot", "raw_ptr", "y", "effective_candidate","a0","a1"):
             if any(c not in "0123456789ABCDEF" for c in row[name]):
                 raise ValueError("invalid original source address/value")
+        candidate=int(row["effective_candidate"],16)&0xffff
+        actual_indexed=(row["mirror"]=="1" and
+                        (0xC770<=candidate<=0xC779 or
+                         0xD0B0<=candidate<=0xD0B9))
+        if ("indexed_target" in row and
+            row["indexed_target"]!=str(int(actual_indexed))):
+            raise ValueError("RF048 claimed indexed target disagrees with recorded original address")
     counts=[int(row["count"]) for row in orows]
     if counts!=sorted(set(counts)):
         raise ValueError("original source opcode event ordinal regress/duplicate")
@@ -85,9 +92,9 @@ def classify(original: str, native: str) -> dict:
     # A matching physical effective-address *candidate* may therefore occur
     # while raw_ptr is zero. Never conflate these independent observations.
     target=[row for row in orows if row["target"]=="1"]
-    indexed=[row for row in orows if
-             0xC770 <= (int(row["effective_candidate"],16)&0xffff) <= 0xC779 or
-             0xD0B0 <= (int(row["effective_candidate"],16)&0xffff) <= 0xD0B9]
+    indexed=[row for row in orows if row["mirror"]=="1" and
+             (0xC770 <= (int(row["effective_candidate"],16)&0xffff) <= 0xC779 or
+              0xD0B0 <= (int(row["effective_candidate"],16)&0xffff) <= 0xD0B9)]
     per_frame=Counter(int(row["frame"]) for row in orows)
     per_target=Counter(int(row["frame"]) for row in target)
     return {

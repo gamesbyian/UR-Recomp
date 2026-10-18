@@ -73,6 +73,10 @@ python tools/art/render_shared_unicycle_motion.py \
   --model tools/art/candidates/unicycle_shared_rig.scad \
   --out /tmp/ur-single-rig-motion --xvfb
 
+# For the denser 17+17 genuine model poses behind the local video review:
+python tools/art/render_shared_unicycle_motion.py \
+  --out /tmp/ur-single-rig-motion-dense --steps 16 --xvfb
+
 # Manual mid-cycle pose: one shared rig at exactly t=0.375.
 openscad -o /tmp/ur-stunt-mid.png --imgsize=320,320 \
   --projection=o --colorscheme=Tomorrow \
@@ -81,9 +85,10 @@ openscad -o /tmp/ur-stunt-mid.png --imgsize=320,320 \
   tools/art/candidates/unicycle_shared_rig.scad
 ```
 
-The tool uses **one unchanged side-view camera** for all 18 samples (nine
-ride + nine stunt) and enforces **pixel-identical first/last rendered frames for each cycle**, then writes `continuous-motion-review-receipt.json`
-with per-image SHA-256, silhouette bounding boxes, rig identity and
+The tool uses **one unchanged side-view camera** for either 18 samples (nine
+ride + nine stunt) or **34 samples** (17+17, `--steps 16`) and enforces **pixel-identical first/last rendered frames for each cycle**, then writes `continuous-motion-review-receipt.json`
+with per-image SHA-256, silhouette bounding boxes, rig identity, exact
+first/last rendered cycle equality, sample count and
 explicit negative approval/Original-source claims. It aborts if any
 silhouette reaches within four pixels of a window edge, if a frame is
 missing/blank or if stale output is present. The initially used

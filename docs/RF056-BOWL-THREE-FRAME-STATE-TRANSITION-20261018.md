@@ -71,6 +71,8 @@ python3 tools/qa01_rf056_bowl_supplied_input_onset_bridge.py \
   --source-qualified-input-case bowl-input-qualified-1856.zip
 ```
 
+**Fresh original/native stored joypad-state candidate cross-check:** Independently reopening the *full* original/native 128KiB snapshots at shifted +339/+342, +340/+343 and +341/+344 shows **identical WRAM bytes at every candidate controller field**, including `7E:0072–0075=80 A4 85 80`, `7E:008F=00` and `7E:030D–0310=00 00 00 00` in both guests at all three pairs. Those addresses' `wJoy*`/`wInputLatch` names come from imported reverse-engineering labels and are advisory. The source input file's `080` supply mask is not interchangeable with the stored word `80 A4`, and these immutable snapshots do **not** observe an actual SNES `$4218/$4219` read or a CPU conditional instruction. The offline temporal bridge now independently verifies these bytes and rejects unequal or incomplete full-WRAM images.
+
 The next *causal* instrumentation should print **actual source and native CPU reads of P1 registers and the first transition branch PC** for the original 4688→4689 / native 4691→4692 boundaries, plus actual NMI/frame/beam clock registration. The existing `00C6/00C8` imported timer labels remain hypotheses until a true consuming instruction is witnessed. No APU queue, global clock, controller transport, or full-event comparator patch is authorized.
 
 ## Concrete next original/native CPU intervention boundary

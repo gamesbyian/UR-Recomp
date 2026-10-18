@@ -15,6 +15,11 @@ from pathlib import Path
 CASE_SHA = "84d6906af7ebfe0dee3f77fb90b4c4f50400fc7c45add3e586f14035daf15357"
 SOURCE_LOG = "work/zoom-zoo/replay/reference.log"
 EARLY = (1, 2, 4)
+FOUR_STACK_FRAMES = (1,2,4,32,219,604,840,841,1080,1531,1532,1720,
+                     1721,1800,2160,2520,2880,3120,3600,4920)
+EXPECTED_ORIGINAL_NMI_SHAPE_COUNTS = {
+    "26F0D482": 1, "26EED482": 4, "27F0D482": 10, "27EED482": 5
+}
 ADDRESSES = tuple(f"7E:{a:04X}" for a in range(0x01ED, 0x01F1))
 NMI_RE = re.compile(
     r"^QA01RF044ORIGNMI f=(\d+) f1=(\d+) pc=([A-F0-9]{6}) "
@@ -70,6 +75,30 @@ def compare(producer: dict, case: dict, original_log: str) -> dict:
         if rel not in byframe or byframe[rel][
                 "original_native_full_wram_byte_difference"]["differing_byte_count"] != 0:
             raise ValueError("RF046 entry or +8 whole-WRAM equality missing")
+    # The other 17 four-byte checkpoint images have the same status + PC
+    # + program-bank *shape*, but lack RF044 executed NMI rows; do not
+    # elevate them to source bus/NMI timing evidence.
+    shape_counts: dict[str, int] = {}
+    shape_samples = []
+    for rel in FOUR_STACK_FRAMES:
+        if rel not in byframe:
+            raise ValueError("RF046 four-byte stack checkpoint missing")
+        diff = byframe[rel]["original_native_full_wram_byte_difference"]
+        entries = diff["first_24_differences"]
+        if (diff["differing_byte_count"] != 4 or
+            len(entries) != 4 or
+            tuple(e["snes_address"] for e in entries) != ADDRESSES):
+            raise ValueError("RF046 20-frame four-byte stack distribution drift")
+        value = "".join(f"{int(e['original_byte']):02X}" for e in entries)
+        if not (value[:2] in ("26", "27") and
+                value[2:4] in ("EE", "F0") and value[4:] == "D482"):
+            raise ValueError("RF046 original stack return-PC shaped bytes drift")
+        shape_counts[value] = shape_counts.get(value, 0) + 1
+        shape_samples.append({"relative_frame":rel,
+                              "checkpoint_original_return_stack_image":value,
+                              "actual_source_NMI_at_this_frame_observed": rel in EARLY})
+    if shape_counts != EXPECTED_ORIGINAL_NMI_SHAPE_COUNTS:
+        raise ValueError("RF046 original 20-frame status/PC shape census drift")
     comparisons = []
     for rel in EARLY:
         if rel not in byframe:
@@ -105,6 +134,9 @@ def compare(producer: dict, case: dict, original_log: str) -> dict:
         })
     return {
         "schema": "rf046-first-zoo-NMI-prepost-crossphase-match-v1",
+        "source_original_all_twenty_four_byte_stack_shapes": shape_samples,
+        "source_original_twenty_four_byte_image_histogram": shape_counts,
+        "later_frames_have_executed_source_NMI_proven": False,
         "exact_early_checkpoint_NMI_matches": comparisons,
         "original_NMI_nine_frame_census_count": len(nmis),
         "original_NMI_first_host": min(nmis),

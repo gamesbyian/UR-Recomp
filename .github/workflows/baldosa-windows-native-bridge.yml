@@ -80,6 +80,7 @@ on:
       - "tools/baldosa_win32_interactive_recovery_s.py"
       - "tools/baldosa_win32_interactive_recovery_s_reject.py"
       - "tools/baldosa_win32_real_ntfs_diskfull_game.py"
+      - "tools/baldosa_win32_real_ntfs_postraw_game.py"
       - "tools/baldosa_win32_real_ntfs_diskfull_game.ps1"
       - "tests/unit/test_assemble_baldosa_windows_candidate.py"
       - "tests/unit/test_audit_baldosa_romless_candidate.py"
@@ -1071,6 +1072,21 @@ jobs:
             ${{ runner.temp }}/Baldosa Win32 Original Real NTFS Full/*.log
             ${{ runner.temp }}/Baldosa Win32 Original Real NTFS Full/*.json
             ${{ runner.temp }}/Baldosa Win32 Original Real NTFS Full/source-bytes/**
+
+      # A separate fixed 22-source-byte original postraw/typed fault witness.
+      # Do not append this to the independently audited 25-member early
+      # refusal artifact contract; user-data W: and source ROM are excluded.
+      - name: Retain original game real NTFS postraw typed evidence separately
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-original-real-ntfs-postraw-typed
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/Baldosa Win32 Original Real NTFS Full-postraw/*.log
+            ${{ runner.temp }}/Baldosa Win32 Original Real NTFS Full-postraw/*.json
+            ${{ runner.temp }}/Baldosa Win32 Original Real NTFS Full-postraw/source-bytes/**
 
       - name: Retain bounded extracted-CMD source transcripts separately
         if: always()

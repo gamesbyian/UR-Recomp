@@ -60,15 +60,18 @@ def parse(log: str) -> dict:
         events=rows[f]
         if len(events) != 12:
             raise ValueError("incomplete four-color true port writer packet")
-        words=[]
+        words={}
         for j in range(4):
             addr,low,high=events[3*j:3*j+3]
+            slot=addr["value"]
             if ([addr["port"],low["port"],high["port"]] != [33,34,34] or
-                addr["value"] != 0x6c+j):
+                slot not in (0x6c,0x6d,0x6e,0x6f) or slot in words):
                 raise ValueError("real source CGRAM data order/address unexpected")
-            words.append(f"{(low['value'] | (high['value']<<8)) & 0x7fff:04x}")
+            words[slot]=f"{(low['value'] | (high['value']<<8)) & 0x7fff:04x}"
+        if set(words) != {0x6c,0x6d,0x6e,0x6f}:
+            raise ValueError("not all four authentic CGRAM slots were written")
         output.append({"native_CPU_input_host_frame":f,
-                       "colour_words_6c_to_6f_RGB15":words,
+                       "colour_words_6c_to_6f_RGB15":[words[k] for k in sorted(words)],
                        "actual_twelve_port_events":events})
     return {"actual_native_writer_frame_sequence":frames,
             "genuine_CPU_input_CGRAM_port_events":sum(map(len,rows.values())),

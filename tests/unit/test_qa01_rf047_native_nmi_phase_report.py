@@ -41,6 +41,7 @@ class NmiPhase(unittest.TestCase):
   r=m.classify(self.fixture("compiled_rti"))
   self.assertFalse(r["native_exact_RTI_opcode_proven"])
   self.assertEqual(r["native_explicit_RTI_evidence_frames"],9)
+  self.assertTrue(all(p["native_actual_RTI_return_PC"] is None and p["native_RTI_return_PC_matches_saved_resume"] is None for p in r["native_interrupt_paired_operations"]))
   with self.assertRaisesRegex(ValueError,"partial actual RTI"):
    m.classify(self.fixture("interp_rti").replace("stage=interp_rti f=1017","stage=read f=1017",1))
  def test_incomplete_native_trace_fails_closed(self):

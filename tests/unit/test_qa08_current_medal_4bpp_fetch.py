@@ -24,7 +24,7 @@ def full_owner():
     owner["pixels"]=[
         {"frame":f,"xy":[x,y],"main":"4" if (f==4032 and (x,y) in
          ((205,115),(205,139),(225,96),(225,120))) else "0",
-         "obj_word":"0281"} for f in j.FRAMES for x,y in j.COORDS
+         "obj_zbuffer":"0281","obj_word":"7c12"} for f in j.FRAMES for x,y in j.COORDS
     ]
     return owner
 
@@ -67,6 +67,14 @@ class Medal4BppSource(unittest.TestCase):
         self.assertFalse(report["source_2014_Snes9x_pixel_winner_tile_identical_proven"])
         self.assertFalse(report["global_output_shift_or_tile_reindex_authorized"])
         self.assertFalse(report["renderer_mutation_or_art_release_accepted"])
+
+    def test_encoded_obj_pixel_is_not_cgram_palette_word(self):
+        owner=full_owner()
+        owner["pixels"][3]["obj_word"]="cafe" # colour must not enter priority check
+        self.assertEqual(j.joined(four_rows(),owner)["current_native_exact_sprite_winners"],4)
+        owner["pixels"][3]["obj_zbuffer"]="0282"
+        with self.assertRaisesRegex(ValueError,"OBJ buffer winner"):
+            j.joined(four_rows(),owner)
 
     def test_true_overlapping_OAM_writer_wins_last_without_repainting(self):
         rows=four_rows().splitlines()

@@ -58,8 +58,8 @@ def inspect(log: str) -> dict:
     if not (0<=int(br['master'])-int(site['master'])<=200):
         raise ValueError('RF055 native decoded opcode→helper interval unqualified')
     writers=prior['native_real_paired_writer_context']
-    if br['scope']!=writers[0]['scope'] or
-        [w['val'] for w in writers]!=['00D0','0063']:
+    if (br['scope']!=writers[0]['scope'] or
+            [w['val'] for w in writers]!=['00D0','0063']):
         raise ValueError('RF055 native read to APU writer scope/payload broken')
     return {
         'schema':'rf055-executed-generated-65816-opcode-site-v1',

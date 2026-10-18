@@ -1,5 +1,67 @@
 # Native Windows SRAM crash-recovery candidate (Modern product owner)
 
+## Latest owner-source qualification and remaining acceptance (2026-10-18)
+
+**Draft Modern implementation, not shipping acceptance.** Source files from
+product HEAD `b9165d23437316dbfce0701f9ce5a237ad03bed0` were compiled by
+the actual GitHub PR test merge
+`f5776eb7e136204ad6cc53df54da7d7b98e21808` in
+[original Windows x64 run 39108429842](https://github.com/gamesbyian/UR-Recomp/actions/runs/39108429842).
+That entire workflow was **GREEN**, including 13 genuine hosted original-game
+journeys, original packaged CMD **R/T/S/Q**, two fresh native cold boots after
+recoveries, actual 128 MiB NTFS-volume exhaustion at both *before-intent* and
+*after-raw/before-typed* points, and actual separate Win32 **ERROR_DISK_FULL 112**
+probes. The original game visibly rejects a denied save (exit 8); its verified
+new raw is reconciled once to the typed profile when authorized, while
+selector/catalog and the archived original 33,094-byte intent remain intact.
+This is not evidence of an electrical power cut or true torn/partial raw write.
+
+A further Windows-specific byte-preservation issue was discovered and fixed:
+manual recovery archives the exact originally stored typed profile, not its
+decoder's normalized re-encoding, and closes the typed-file read handle
+**before** Windows atomic replacement. A separate genuine original-game CMD
+**T** test proves restoration of a valid noncanonical typed file (one extra
+blank line) with exact original typed, changed raw, and opaque malformed
+intent bytes retained in separate immutable archives. It has two successful
+cold-game process reopens. **Do not combine its inventory with the earlier
+malformed-intent T artifact:** both are distinct 25-member source envelopes.
+
+Product-owned source-byte evidence, original immutable artifacts from that
+exact [39108429842 run](https://github.com/gamesbyian/UR-Recomp/actions/runs/39108429842):
+- [Noncanonical typed T, 25 members, #12129452451](https://github.com/gamesbyian/UR-Recomp/actions/runs/39108429842/artifacts/12129452451),
+  SHA256 `3cfe8028759f7341d48860d123507c5acab0aef1c97f936afd91ff1b6bc26c4a`.
+- [Original bad-intent T, 25 members, #12129552157](https://github.com/gamesbyian/UR-Recomp/actions/runs/39108429842/artifacts/12129552157),
+  SHA256 `12811d508d69f804d9a41149d3ec27c5bf410f7cd4b6b03ba5682c6a5b438381`.
+- [Original postraw/pretyped full-NTFS, 29 members, #12128804990](https://github.com/gamesbyian/UR-Recomp/actions/runs/39108429842/artifacts/12128804990),
+  SHA256 `65fb2fbb6d2d0bf7a2313fffc319f1de78aa6aa7d627652db34adc218b68a15a`.
+- [Original preintent full-NTFS, 25 members, #12128764985](https://github.com/gamesbyian/UR-Recomp/actions/runs/39108429842/artifacts/12128764985),
+  SHA256 `6d7d9e5987d6edb127326fc35709395ffb4c1eafaa7815b1f19a507f888d301f`.
+The product owner re-downloaded the original archives and independently
+recomputed **76/76 original SHA256/length binary receipts**. The ROM-free
+[package #12129606971](https://github.com/gamesbyian/UR-Recomp/actions/runs/39108429842/artifacts/12129606971)
+has inner ZIP SHA256
+`70ab7fb44afc24a2dfcc0f4127d1f71d9f792ae2ef94d72e1500e2196a59aeec`
+and AMD64 PE SHA256
+`07cdc534c6fac97f610e6b65e2e06c3ddb1d8e99bf872d5526b015ad206d5331`,
+independently matching the
+[binding artifact #12130015221](https://github.com/gamesbyian/UR-Recomp/actions/runs/39108429842/artifacts/12130015221).
+The candidate archive contains **no ROM**.
+
+After this success, product branch `88fa724a6b23d90f6c5156c15d776271c7ab1f21`
+incorporates newer **RF049/QA08 main** without changing any of the
+29 tested product file blobs. Its own exact-head Windows/unit/seam tests
+must finish before treating the new merger as green.
+**Independent [QA #1810](https://github.com/gamesbyian/UR-Recomp/pull/1810)
+has not yet accepted this evidence.** Keep [P0 #1214](https://github.com/gamesbyian/UR-Recomp/issues/1214)
+OPEN and [product PR #1713](https://github.com/gamesbyian/UR-Recomp/pull/1713)
+DRAFT. Real electrical power cuts, torn/partial device writes, physical
+human-controlled input, clean-machine acceptance and the authoritative
+`docs/RELEASE-QUALITY-LEDGER.json` are independently held. Nothing here
+credits a release QA gate or proves any complete original/native USA event.
+Older source/date sections below record the state *at that time*; a statement
+that original postraw NTFS work was pending is now superseded by this dated
+source-bound result.
+
 Status: **source candidate / not independent QA accepted / do not merge yet**.
 Owning issue: [#1214](https://github.com/gamesbyian/UR-Recomp/issues/1214).
 This describes the new transaction protocol, not a power-loss-atomicity claim.

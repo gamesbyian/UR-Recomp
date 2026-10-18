@@ -1,0 +1,19 @@
+# QA-01: original 2014 movie vs fresh Bowl guest memory, 18 October 2026
+
+**Status: opt-in experiment; pending real execution; zero event/QA credit.**
+
+[Exact raw-audited predecessor](https://github.com/gamesbyian/UR-Recomp/actions/runs/39168164480) on merged PR #1844 has proved Bowl score 764 and cold record loads, but also found **source movie** next Switcher active +342, **fresh original Snes9x** +341 and **native Baldosa** +344 relative to the respective observed Bowl results. The separate QA raw checker verified all 12 paired fresh original/native handoff memory/SRAM images. Those true differences remain strict negative, not a frame-shift allowance.
+
+The fresh original Snes9x divergence from the original archived 2014 Snes9x movie is *earlier* than any causal claim about Baldosa's CPU/APU implementation. The source movie arrived at Bowl after the earlier Crawler tour scenes, whereas each fresh guest was started from the stock menu with archived SRAM and then presented the historical Bowl controller window relative to its own observed race entry. The existing entry-state comparator checks a **named subset**, not entire original/guest state; whether source-exact movie memory differs before the +341 transition is unmeasured.
+
+## One narrowly scoped original-source evidence capture
+
+The existing `.github/workflows/qa01-bowl-stunt-2014.yml` invokes `--bowl-source-movie-memory`, which requires `--case bowl --native-backend pinned-baldosa --source-followthrough --bowl-next-switcher`. The existing source-original Snes9x trace scan is extended with *read-only* WRAM/SRAM dumps at movie Bowl result offsets **+334,+339,+340,+341,+342,+343,+344,+354** (2014 movie absolute frames 12319, 12324..12329, 12339). Its unchanged historical controller file, ROM, SRAM, emulator binary and horizon are reused. There is no second source replay, runner, input shift, poked memory or new CI fanout.
+
+Each full **131072-byte source WRAM** and **8192-byte source SRAM** image is compared, separately, against the authentic already captured reference/native image at that guest's own result-relative offset. Every byte is counted, exact difference values/addresses/digests are retained, and every movie `script f=N dump` acknowledgement is checked. Named menu/track/race state must agree with the historical source trace frame: failure means **invalid source clock registration**, not a native gameplay failure. The existing separate QA original/native raw archive audit still runs. The workflow retains the new source movie raw files, old 48 fresh guest raw files, original report, trace and logs, and cold-guest result. Missing or truncated source bytes fail closed.
+
+**The discriminator:** Does the *source movie* already have differing unmasked WRAM/SRAM vs fresh original at +334 (before either next-race boundary), or only at +341 when the fresh original enters its next event one frame earlier? Record the earliest registered source/fresh original difference, identity of the retained exact bytes, and the effect on earned Bowl record values. Neither observation justifies source/movie normalization or masking; causal emulator/CPU timing belongs to the CPU/APU agent.
+
+A positive observation is only an **independently timestamped three-guest source-memory comparison**. It cannot prove full continuous gameplay, a causal explanation for mismatch, a shipping Windows binary, OS disk durability or a complete USA event. Independent QA retains sole 0/45 event authority. Avoid further build cycles after a decision-bearing executed archive, and report raw differences to the independent QA/CPU owners without overlapping their fixes.
+
+The three-project reuse preflight was completed in the predecessor lane and the code reuses the same original SNES ROM/SMV input, fresh Snes9x/Baldosa guest transport, checksum decoder and SHA-bound outputs. There is no replacement game source or acceptance oracle.

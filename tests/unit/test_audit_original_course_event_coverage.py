@@ -81,8 +81,9 @@ class OriginalCourseCensusTests(unittest.TestCase):
                       if row["rom"] == "usa-retail" and row["course_id"] == "course:02")
         self.assertEqual(source["status"], "partial")
         self.assertEqual(source["evidence_ref"],
-                         "analysis/data/zoo-original-baldosa-completed-circuit-candidate.json")
-        self.assertIn("Sram_RestoreDirectPage", source["coverage_note"])
+                         "analysis/data/rf047-corrected-executed-native-nmi-rtis-20261018.json")
+        self.assertIn("92 differing-byte occurrences", source["coverage_note"])
+        self.assertIn("0/45 USA accepted", source["coverage_note"])
         report = audit.build_census(self.catalog, self.evidence)
         row = next(x for x in report["entries"]
                    if x["rom"] == "usa-retail" and x["course_id"] == "course:02")

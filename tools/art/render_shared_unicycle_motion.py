@@ -26,7 +26,10 @@ try:
                                               SADDLE_CUP_CHOICES, SADDLE_DEPTH_CHOICES)
 except ImportError:
     from render_shared_unicycle_review import (inspect_model, require_clean_border,
-                                            occupied_bounds, MIN_BORDER_PIXELS)
+                                            occupied_bounds, MIN_BORDER_PIXELS,
+                                            validate_variant, validate_cupped_saddle,
+                                            SADDLE_CHOICES, FRAME_CHOICES,
+                                            SADDLE_CUP_CHOICES, SADDLE_DEPTH_CHOICES)
 
 MODES = ("ride", "stunt_cycle")
 STEPS = 8

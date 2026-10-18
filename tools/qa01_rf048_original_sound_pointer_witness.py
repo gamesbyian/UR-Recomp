@@ -43,6 +43,14 @@ AFTER = r"""
                        (rf048_lo | (rf048_hi << 8)) <= 0xC779u) ||
                       ((rf048_lo | (rf048_hi << 8)) >= 0xD0B0u &&
                        (rf048_lo | (rf048_hi << 8)) <= 0xD0B9u));
+                /* The original uploader STZs base $63/$64, then increments
+                 * Y. A raw zero base does not make the LDA target zero. */
+                const unsigned rf048_indexed_low = rf048_effective & 0xffffu;
+                const int rf048_indexed_target = rf048_mirror &&
+                    ((rf048_indexed_low >= 0xC770u &&
+                      rf048_indexed_low <= 0xC779u) ||
+                     (rf048_indexed_low >= 0xD0B0u &&
+                      rf048_indexed_low <= 0xD0B9u));
                 if (rf048_last_frame != rf048_frame) {
                     if (rf048_last_frame != 0xffffffffu)
                         fprintf(stderr,
@@ -54,15 +62,16 @@ AFTER = r"""
                 ++rf048_frame_count;
                 ++rf048_total;
                 if (rf048_frame >= 6060u && rf048_frame <= 6100u &&
-                    (rf048_target || rf048_frame_count <= 4u)) {
+                    (rf048_target || rf048_indexed_target || rf048_frame_count <= 4u)) {
                     if (rf048_logged++ < 4096u)
                         fprintf(stderr,
-                          "QA01RF048ORIGPTR count=%u frame=%u v=%u h=%d dp_base=%04X dp_slot=%04X mirror=%u raw_ptr=%06X y=%04X effective_candidate=%06X a0=%04X a1=%04X target=%u\n",
+                          "QA01RF048ORIGPTR count=%u frame=%u v=%u h=%d dp_base=%04X dp_slot=%04X mirror=%u raw_ptr=%06X y=%04X effective_candidate=%06X a0=%04X a1=%04X target=%u indexed_target=%u\n",
                           rf048_total, rf048_frame, (unsigned)CPU.V_Counter,
                           (int)CPU.Cycles, rf048_d, rf048_dp,
                           (unsigned)rf048_mirror, rf048_base, rf048_y,
                           rf048_effective, ur_rf035_a0,
-                          (unsigned)Registers.A.W, (unsigned)rf048_target);
+                          (unsigned)Registers.A.W, (unsigned)rf048_target,
+                          (unsigned)rf048_indexed_target);
                     else if (rf048_logged == 4097u)
                         fprintf(stderr, "QA01RF048ORIGPTR_TRUNCATED\n");
                 }

@@ -162,7 +162,7 @@ def launcher() -> bytes:
         ':UR-BALDOSA-RECOVERY-EXECUTE',
         'echo Executing one explicit recovery choice before any guest frame.',
         f'"%UR_BALDOSA_PACKAGE_DIR%{EXE}" --no-launcher "%UR_BALDOSA_ROM%"',
-        'if not "%ERRORLEVEL%"=="89" (echo UR-BALDOSA-RECOVERY-REFUSED: No automatic replacement was made. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 7)',
+        'if not "%ERRORLEVEL%"=="89" (echo UR-BALDOSA-RECOVERY-REFUSED: Recovery did not complete; no safe relaunch was authorized. 1>&2 & echo Some files may already have been archived or restored. Preserve the complete save folder before further action. 1>&2 & call :UR-BALDOSA-HOLD & exit /b 7)',
         'set "UR_BALDOSA_RECOVERY_ACTION="',
         'set "UR_BALDOSA_RECOVERY_PROFILE_ID="',
         'set "UR_BALDOSA_FIRST_RACER_RELAUNCH=0"',

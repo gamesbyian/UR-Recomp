@@ -191,6 +191,11 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
         self.assertIn('if not "%~1"=="" (call :UR-BALDOSA-HOLD & exit /b 7)', script)
         self.assertIn('if defined UR_BALDOSA_NO_HOLD exit /b 7', script)
         self.assertIn('if not "%ERRORLEVEL%"=="89"', script)
+        # R may fail before any archive, but T can write raw before journal
+        # removal fails. A refusal cannot promise that no bytes changed.
+        self.assertIn("Recovery did not complete; no safe relaunch was authorized", script)
+        self.assertIn("Some files may already have been archived or restored", script)
+        self.assertNotIn("No automatic replacement was made", script)
         self.assertLess(script.index('set "UR_BALDOSA_RECOVERY_ACTION="'),
                         script.index(':UR-BALDOSA-NATIVE-START'))
         self.assertLess(script.index(':UR-BALDOSA-RECOVERY-MENU'),

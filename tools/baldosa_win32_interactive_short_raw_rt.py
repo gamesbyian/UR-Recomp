@@ -81,6 +81,8 @@ def reject_raw_with_actual_console(launcher: Path, user: Path, root: Path,
     if (not injected or not refused or
         full_log.count("Explicit recovery choice [R/T/S/Q]:") != 1 or
         full_log.count("UR-BALDOSA-RECOVERY-REFUSED:") != 1 or
+        "Recovery did not complete; no safe relaunch was authorized" not in full_log or
+        "Some files may already have been archived or restored" not in full_log or
         "UR_BALDOSA_RECOVERY_CHOICE choice=raw status=3" not in full_log or
         "UR-BALDOSA-RECOVERY-COMMITTED:" in full_log or
         "first frame simulated" in full_log):

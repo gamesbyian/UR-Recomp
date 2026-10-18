@@ -13,6 +13,7 @@ class RF052OriginalNativeSourceContract(unittest.TestCase):
         self.assertEqual(result.count("apu_writePortNow("),original.count("apu_writePortNow("))
         self.assertEqual(result.count("QA01RF052NATIVE seq="),1)
         self.assertEqual(result.count("QA01RF052NATIVE_FINAL clock="),1)
+        self.assertIn('port >= 2u && port <= 3u',result)
         self.assertIn("104478000ull",result)
         self.assertIn("104495000ull",result)
         self.assertEqual(result.count("ur_qa01_rf037_port("),original.count("ur_qa01_rf037_port("))

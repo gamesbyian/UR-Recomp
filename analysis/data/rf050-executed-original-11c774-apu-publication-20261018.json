@@ -1,0 +1,130 @@
+{
+  "schema": "rf050-executed-real-original-cpu-port-late-instruction-linked-v1",
+  "source": {
+    "run_id": 39112615924,
+    "frozen_source_sha": "0c7c17e8a1c0a345256b23667f71bf01af0d01c1",
+    "case_artifact_id": 12131342408,
+    "case_file_count": 18,
+    "case_zip_sha256": "b6538eb1e1a9b51996690b4baa1303037f8b9f417eaaa5d2189cc6d33c2b4fbd",
+    "baseline_RF047_zip_sha256": "1060a98744fb770bbe43fcdddd89b352bdef691e18f1ab24d4ead5f16996bf6b",
+    "case_disposition": "strict_candidate",
+    "release_credit": 0
+  },
+  "source_original_late_publications": {
+    "observer": "QA01RF050ORIGAPU",
+    "observed_records": 38,
+    "recorder_truncated": false,
+    "source_local_SPC_age_range": [
+      104212297,
+      104689974
+    ],
+    "source_gate": "104200000..106500000, CPU V159 H850..1200, real S9xAPUWritePort after one authoritative source CPU port write",
+    "consecutive_D0_63_pairs_within_source_gate": 1,
+    "first": {
+      "line_index_zero_based": 92068,
+      "sequence": 21,
+      "original_SPC_age": 104485254,
+      "V": 159,
+      "H": 1016,
+      "port": 3,
+      "value": "D0",
+      "between_original_LDA_and_first_STA": true
+    },
+    "second": {
+      "line_index_zero_based": 92070,
+      "sequence": 22,
+      "original_SPC_age": 104485258,
+      "V": 159,
+      "H": 1066,
+      "port": 2,
+      "value": "63",
+      "between_original_first_and_second_STA": true
+    },
+    "observed_source_local_SPC_ticks_between_writes": 4
+  },
+  "source_original_executed_instruction_order": [
+    {
+      "line_index_zero_based": 92067,
+      "kind": "LDA",
+      "pc": "82:82F0",
+      "original_internal_frame": 6124,
+      "V": 159,
+      "H": 992,
+      "full_24bit_operand": "11C774",
+      "pointer": "110000",
+      "Y": "C774",
+      "acc_before": "630D",
+      "acc_after": "63D0"
+    },
+    {
+      "line_index_zero_based": 92068,
+      "kind": "actual S9xAPUWritePort port3",
+      "original_SPC_age": 104485254,
+      "V": 159,
+      "H": 1016,
+      "value": "D0"
+    },
+    {
+      "line_index_zero_based": 92069,
+      "kind": "executed STA $2143 completion",
+      "pc": "82:82F2",
+      "original_internal_frame": 6124,
+      "V": 159,
+      "H": 1022,
+      "A": "63D0"
+    },
+    {
+      "line_index_zero_based": 92070,
+      "kind": "actual S9xAPUWritePort port2",
+      "original_SPC_age": 104485258,
+      "V": 159,
+      "H": 1066,
+      "value": "63"
+    },
+    {
+      "line_index_zero_based": 92071,
+      "kind": "executed STA $2142 completion",
+      "pc": "82:82F6",
+      "original_internal_frame": 6124,
+      "V": 159,
+      "H": 1072,
+      "A": "D063"
+    }
+  ],
+  "retrospective_earlier_identical_pair": {
+    "original_source_earlier_source_SPC_ages": [
+      104162887,
+      104162889
+    ],
+    "native_earlier_host_frame": 6105,
+    "native_earlier_master_clocks": [
+      2181986178,
+      2181986228
+    ],
+    "same_payload_D0_63": true,
+    "same_original_instruction_transaction_proven": false,
+    "original_first_age_difference_from_older_pair": 322367,
+    "source_original_late_pair_distinct_from_earlier_logged_pair": true
+  },
+  "unchanged_controls": {
+    "entire_zoo_race_mesh_JSON_equals_RF047": true,
+    "entire_zoo_next_bowl_handoff_JSON_equals_RF047": true,
+    "entire_source_terminal_followthrough_JSON_equals_RF047": true,
+    "whole_WRAM_pairs": 78,
+    "exact_Wram_pairs": 51,
+    "masked_or_excluded_wram_bytes": 0,
+    "unmasked_differing_byte_occurrences": 92,
+    "genuine_Zoo_result_relative_frame": 5163,
+    "genuine_next_Bowl_result_followthrough_relative_frame": 267,
+    "full_earned_SRAM_and_cold_guest_ranked_record_control_unchanged": true
+  },
+  "claims": {
+    "original_11C774_LDA_actual_original_CPU_to_APU_publication_proven": true,
+    "original_SPC_input_F6_F7_receiver_after_these_late_writes_proven": false,
+    "late_original_pair_matches_identical_native_transaction_proven": false,
+    "source_original_CPU_frame_vs_native_host_clock_registered": false,
+    "CPU_APU_timing_correction_justified": false,
+    "complete_accepted_USA_events": 0
+  },
+  "next": "Investigate a separately observed original/native SPC receive/publication ordinal near late source age104485254, with actual native first corresponding later audio upload, without equating the earlier identical payload or changing source clocks. Preserve every strict QA control and avoid another broad replay without a registered target."
+}

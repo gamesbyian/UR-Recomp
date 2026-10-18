@@ -3,7 +3,7 @@
 
 Both animation rows use ONE model, a single fixed camera and the same scale.
 Fail closed on any clipped model pose. A screenshot at rest alone is
-insufficient: render all nine intervals in each pedal/spin cycle.
+insufficient: render every source interval in each pedal/spin cycle.
 """
 from __future__ import annotations
 
@@ -27,9 +27,11 @@ MIN_BORDER_PIXELS = 4
 def sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
-def samples():
-    return tuple((mode, i, i / STEPS)
-                 for mode in MODES for i in range(STEPS + 1))
+def samples(steps=STEPS):
+    if steps not in (8, 16):
+        raise ValueError("only source-bounded 8/16 sample intervals supported")
+    return tuple((mode, i, i / steps)
+                 for mode in MODES for i in range(steps + 1))
 
 def require_clean_border(pixels, width: int, height: int):
     """Pure pixel-access guard. Works without Pillow in dependency-free tests.
@@ -70,8 +72,9 @@ def occupied_bounds(im):
         raise ValueError("model clipped at fixed-camera viewport boundary")
     return [left, top, right, bottom]
 
-def render(model: Path, out: Path, openscad="openscad", xvfb=False):
+def render(model: Path, out: Path, openscad="openscad", xvfb=False, steps=STEPS):
     from PIL import Image, ImageDraw
+    samples(steps)  # validate time-grid before touching output
 
     if out.exists() and any(out.iterdir()):
         raise ValueError("output must be empty; old motion images could be reused")
@@ -84,7 +87,7 @@ def render(model: Path, out: Path, openscad="openscad", xvfb=False):
         raise ValueError("motion must transform one common rig, with two modes")
     out.mkdir(parents=True, exist_ok=True)
     actual = []
-    for mode, i, t in samples():
+    for mode, i, t in samples(steps):
         filename = f"{mode}-{i:02d}.png"
         command = (["xvfb-run", "-a"] if xvfb else []) + [
             openscad, "--hardwarnings", "-o", str(out/filename),
@@ -105,45 +108,48 @@ def render(model: Path, out: Path, openscad="openscad", xvfb=False):
                        "fixed_camera": CAMERA, "filename": filename,
                        "sha256": sha(raw), "silhouette_bbox": bounds,
                        "edge_clipped": False})
-    if len(actual) != 18:
-        raise ValueError("did not render the full unbroken 18-image cycle")
+    count = 2*(steps+1)
+    if len(actual) != count:
+        raise ValueError("did not render both complete bounded motion cycles")
     # A full pedal or 360-degree stunt cycle must wrap to exactly the same
     # visible 320x320 pixels. This is an art-tool loop contract only; no
     # assertion about source game timing, stunt contact or RGB5 parity.
     from PIL import ImageChops
     for mode in MODES:
         with Image.open(out/f"{mode}-00.png") as first, \
-             Image.open(out/f"{mode}-{STEPS:02d}.png") as last:
+             Image.open(out/f"{mode}-{steps:02d}.png") as last:
             if ImageChops.difference(first.convert("RGB"), last.convert("RGB")).getbbox():
                 raise ValueError("animated rig loop has discontinuous rendered endpoints")
     tile_w, row_h = 170, 252
-    sheet = Image.new("RGB", (9*tile_w, 2*row_h+55), "#f0f1f4")
+    sheet = Image.new("RGB", ((steps+1)*tile_w, 2*row_h+55), "#f0f1f4")
     draw = ImageDraw.Draw(sheet)
     for r, mode in enumerate(MODES):
         y = r*row_h
         draw.text((8,y+6),
-                  f"LOCKED SIDE CAMERA | {mode} | 9 samples, one coherent rig",
+                  f"LOCKED SIDE CAMERA | {mode} | {steps+1} samples, one coherent rig",
                   fill="#111")
-        for i in range(STEPS+1):
+        for i in range(steps+1):
             x = i*tile_w+5
             with Image.open(out/f"{mode}-{i:02d}.png") as im:
                 full = im.convert("RGB").resize((160,160), Image.Resampling.LANCZOS)
             sheet.paste(full,(x,y+34))
-            draw.text((x,y+194),f"t={i/STEPS:.3f}",fill="#111")
+            draw.text((x,y+194),f"t={i/steps:.3f}",fill="#111")
             sheet.paste(full.resize((32,32), Image.Resampling.LANCZOS),
                         (x,y+210))
     draw.text((8,sheet.height-30),
               "UNAPPROVED MODEL | CONTINUOUS RIG ONLY | NOT SOURCE-REGISTERED OR IN GAME",
               fill="#111")
-    preview = out/"continuous-motion-18frame-contact.png"
+    preview = out/f"continuous-motion-{count}frame-contact.png"
     sheet.save(preview)
     result = {
         "schema": "UR-unicycle-one-rig-continuous-motion-review/1",
         "shared_rig_sha256": sha(model.read_bytes()),
         "contact_sha256": sha(preview.read_bytes()),
-        "camera_one_fixed_per_all_18": CAMERA,
-        "all_18_complete_320_square_pixel_frames": True,
-        "all_18_source_model_unclipped": True,
+        "camera_one_fixed_per_all_frames": CAMERA,
+        "source_animation_frame_count": count,
+        "source_animation_samples_per_mode": steps+1,
+        "all_complete_320_square_pixel_frames": True,
+        "all_source_model_unclipped": True,
         "two_continuous_motion_loops_pixel_exact_at_endpoints": True,
         "frames": actual,
         "original_gameplay_stunt_kinematics_proven": False,
@@ -165,10 +171,12 @@ def main() -> None:
     cli.add_argument("--out", type=Path, required=True)
     cli.add_argument("--openscad", default="openscad")
     cli.add_argument("--xvfb", action="store_true")
+    cli.add_argument("--steps", type=int, choices=(8,16), default=8,
+                     help="eight or sixteen intervals, two complete cycles")
     args = cli.parse_args()
     try:
         preview, receipt = render(args.model.resolve(), args.out.resolve(),
-                                  args.openscad, args.xvfb)
+                                  args.openscad, args.xvfb, args.steps)
     except (OSError, RuntimeError, ValueError, subprocess.TimeoutExpired) as exc:
         cli.exit(2, f"UNAPPROVED_RIG_MOTION_REVIEW_FAILED: {exc}\n")
     print("UNAPPROVED_RIG_MOTION_REVIEW", str(preview),

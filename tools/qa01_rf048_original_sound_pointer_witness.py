@@ -46,7 +46,7 @@ AFTER = r"""
                 if (rf048_last_frame != rf048_frame) {
                     if (rf048_last_frame != 0xffffffffu)
                         fprintf(stderr,
-                           "QA01RF048ORIGCOUNT frame=%u actual_lda=%u\\n",
+                           "QA01RF048ORIGCOUNT frame=%u actual_lda=%u\n",
                            rf048_last_frame, rf048_frame_count);
                     rf048_last_frame = rf048_frame;
                     rf048_frame_count = 0;
@@ -57,14 +57,14 @@ AFTER = r"""
                     (rf048_target || rf048_frame_count <= 4u)) {
                     if (rf048_logged++ < 4096u)
                         fprintf(stderr,
-                          "QA01RF048ORIGPTR count=%u frame=%u v=%u h=%d dp_base=%04X dp_slot=%04X mirror=%u raw_ptr=%06X y=%04X effective_candidate=%06X a0=%04X a1=%04X target=%u\\n",
+                          "QA01RF048ORIGPTR count=%u frame=%u v=%u h=%d dp_base=%04X dp_slot=%04X mirror=%u raw_ptr=%06X y=%04X effective_candidate=%06X a0=%04X a1=%04X target=%u\n",
                           rf048_total, rf048_frame, (unsigned)CPU.V_Counter,
                           (int)CPU.Cycles, rf048_d, rf048_dp,
                           (unsigned)rf048_mirror, rf048_base, rf048_y,
                           rf048_effective, ur_rf035_a0,
                           (unsigned)Registers.A.W, (unsigned)rf048_target);
                     else if (rf048_logged == 4097u)
-                        fprintf(stderr, "QA01RF048ORIGPTR_TRUNCATED\\n");
+                        fprintf(stderr, "QA01RF048ORIGPTR_TRUNCATED\n");
                 }
             }
 """

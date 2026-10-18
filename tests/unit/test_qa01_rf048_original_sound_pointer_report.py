@@ -33,8 +33,15 @@ class FirstConsumerReportTest(unittest.TestCase):
         self.assertEqual(out["complete_USA_event_credit"],0)
 
     def test_no_original_matching_target_is_coverage_not_parity(self):
+        # Source clears its DP base and advances Y, so an indexed match
+        # must be reported even when the raw pointer is not in that range.
         out=rf.classify(SOURCE_ROW.replace("target=1","target=0"),native_records())
-        self.assertEqual(out["source_window_coverage"],"missing_target_candidate")
+        self.assertEqual(out["source_window_coverage"],"indexed_candidate_observed")
+        self.assertEqual(out["original_indexed_effective_candidate_rows"],1)
+        absent=rf.classify(SOURCE_ROW.replace("target=1","target=0")
+                          .replace("effective_candidate=13C774",
+                                   "effective_candidate=13B100"),native_records())
+        self.assertEqual(absent["source_window_coverage"],"sparse_source_samples_no_indexed_target")
         self.assertFalse(out["original_native_SPC_publication_causality_proven"])
 
     def test_missing_bad_duplicate_truncated_and_reordered_rejected(self):

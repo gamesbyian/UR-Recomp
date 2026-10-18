@@ -89,9 +89,9 @@ class OriginalCourseCensusTests(unittest.TestCase):
         self.assertEqual(len(review["artifacts"]), 4)
         self.assertTrue(review["byte_recomputed_checks"][
             "all_four_downloaded_zip_sha256_match_provider"])
-        self.assertEqual(review["published_producer_difference_census_recalculated_from_captured_json"][
+        self.assertEqual(review["published_producer_difference_census_recalculated_from_captured_json_not_raw_wram"][
             "differing_byte_occurrences"], 92)
-        self.assertFalse(review["published_producer_difference_census_recalculated_from_captured_json"][
+        self.assertFalse(review["published_producer_difference_census_recalculated_from_captured_json_not_raw_wram"][
             "recomputed_directly_from_raw_original_native_memory_bytes"])
         self.assertEqual(review["decision"]["accepted_usa_events"], 0)
         report = audit.build_census(self.catalog, self.evidence)

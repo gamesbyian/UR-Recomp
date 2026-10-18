@@ -1,5 +1,14 @@
 # Native Windows SRAM crash-recovery candidate (Modern product owner)
 
+## Exact combined-head owner qualification (2026-10-18; latest product bytes)
+
+**Implementation is feature-complete for the bounded hosted recovery contract; P0 is still OPEN and #1713 is DRAFT awaiting independent release adjudication.** Exact product head `beb1fc58d9edea6d5e64ccd631d54862c569626f` on main `e9a5cdca136ecc35fe25c74191cc995aada4f885` was compiled as actual GitHub test merge `3900ddeec44352cc39be4bb6dd3330ba682ed2b1`, with all four Actions GREEN: [real Windows 39165422931](https://github.com/gamesbyian/UR-Recomp/actions/runs/39165422931), units 39165422893, native seam 39165422897, hygiene 39165422894. The Windows run includes 13/13 genuine hosted original-game journeys, packaged CMD R/T/S/Q, actual pre-intent and postraw NTFS-full guest refusals (OS error 112, exit 8), exact two-cold-boot recovery and a synthetically truncated 513-byte raw R refusal followed by explicit archive-first T restoration. Default production SRAM validation remains exactly 8,192 bytes; no trust/promotion of a short raw file.
+
+Product owner separately downloaded original source artifacts, CRC-checked all **179 ZIP entries**, recomputed **129/129 original source binary length/SHA-256 receipts** across six distinct archive schemas and inspected byte-equality/real recovery framing. The actual [portable ROM-free ZIP artifact #12150497508](https://github.com/gamesbyian/UR-Recomp/actions/runs/39165422931/artifacts/12150497508) contains inner ZIP SHA256 `7d3a97bb858927e04e17fb91d26d0d63842fc17181ba808c303ec96463381202`, real 20,332,544-byte AMD64 PE SHA256 `b07f6ee104800da8afb33491b266c96823834c221064b07e600e744eba5b5797`, and CMD SHA256 `b61d6b3836e21da6dd91dc4bcbf5cff19a85df6f73f07ee2bcd29a377fc678c3`; independent downloaded same-run [binding #12150318168](https://github.com/gamesbyian/UR-Recomp/actions/runs/39165422931/artifacts/12150318168) matches source, executable and package identities. Exact original fault artifact links and digests are handed to [independent QA #1810](https://github.com/gamesbyian/UR-Recomp/pull/1810#issuecomment-6255240307), not counted as its sign-off.
+
+**Remaining boundary:** Actual physical device power loss/torn OS write, human-operated console/gamepads and clean-machine release acceptance are not demonstrated. A synthetic damaged-file fixture and genuine volume-full test cannot substitute for those phenomena. Independent #1810 must qualify downloaded exact-current-source PE/ZIP/NTFS and original fault bytes before merge. No independent QA gate, 45-event proof or release-ledger claim. The historical section immediately below refers to an *earlier* `b9165d`/391084 run, not the latest source.
+
+
 ## Latest owner-source qualification and remaining acceptance (2026-10-18)
 
 **Draft Modern implementation, not shipping acceptance.** Source files from

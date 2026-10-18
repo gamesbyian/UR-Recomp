@@ -40,6 +40,12 @@ Install optional **OpenSCAD 2021.01+** and Python **Pillow** locally, then run:
 python tools/art/render_shared_unicycle_review.py \
   --out /tmp/ur-five-pose
 
+# Reproduce the widest permitted combined shape across all five source poses
+# and both fixed view cameras. Any four-pixel-border overlap aborts.
+python tools/art/render_shared_unicycle_review.py \
+  --saddle-span 2.2 --frame-mass 2.0 \
+  --out /tmp/ur-five-pose-extreme --xvfb
+
 # For the genuine independent original/stock/old-art comparison, supply
 # already downloaded GitHub artifact 11863045863 (original ZIP SHA256
 # 6fb7e9ad5ce53e02f0dda0896f520e2a667f5798c58f8d65b5541ed2d53a5431).
@@ -59,6 +65,16 @@ member hashes before any display-only title-frame brightness change; the
 3.5× brightness enhancement is **only for the title fade preview**. This
 is not a PPU comparison nor a scheme for inferring a camera from raster
 pixels.
+
+The two optional authoring controls use *one* bounded authority:
+`SADDLE_CHOICES=(1.0,1.4,1.8,2.2)` and
+`FRAME_CHOICES=(1.0,1.4,1.8,2.0)`. Static review, four-shape
+saddle comparison and CLI reject out-of-range or undefined geometry,
+while default 1.0/1.0 preserves the previously visible character.
+The actual 14-frame extremal 200px OpenSCAD local sweep at 2.2/2.0
+passed both fixed-camera silhouettes with a minimum 16-pixel edge
+margin; this covers a bounded **authoring frame**, not all real
+SNES gameplay views or user approval.
 
 The initial arbitrary-ground-pivot stunt transform dropped the wheel
 partly outside the fixed-camera view. It now rotates the **same whole

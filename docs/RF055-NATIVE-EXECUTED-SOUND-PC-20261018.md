@@ -26,6 +26,33 @@ The *earlier* authenticated RF054 case archive12149640496 (SHA256 `3ccb209a92045
 
 This narrowly supports matched *intra-CPU write pacing* in the observed intervals, **not** identical original/native CPU-SPC epochs, identical upload instruction lengths, SPC queue visibility, sound samples or 45 complete gameplay events.
 
+
+## Real 656-transaction AOT executable and CPU bus correspondence (additional independently reproduced audit)
+
+[Actual RF055 case12151730258](https://github.com/gamesbyian/UR-Recomp/actions/runs/39167048486/artifacts/12151730258) and [actual native binaries12151237301](https://github.com/gamesbyian/UR-Recomp/actions/runs/39167048486/artifacts/12151237301) were downloaded/rehashed again, with the full [immutable RF047 baseline12124654817](https://github.com/gamesbyian/UR-Recomp/actions/runs/39096831814/artifacts/12124654817) used as an independent comparator. These three original artifacts are all that the [new fail-closed offline auditor](../tools/qa01_rf055_native_elf_cpu_sound_path_audit.py) needs. It neither reads the local ROM nor launches an emulator. Reproduction on Linux with GNU binutils:
+
+```bash
+python3 tools/qa01_rf055_native_elf_cpu_sound_path_audit.py rf055-zoo-case.zip \
+  --binary rf055-native-binaries.zip \
+  --baseline rf047-zoo-baseline.zip \
+  --out rf055-live-native-aot-audit.json
+```
+
+**Every one of the actual 656 native CPU ROM read-helper rows is within `Snd_UploadBlockList_82EF_M1X0`** at native host6124. Each effective 24-bit operand is strictly contiguous from `11:C589` to `11:C818`, equals `11:0000 + live Y`, and matches the following two same-scope *real* `RtlApuWrite` port publications at the same Y. **All 656/656 original native-ROM read→port3 gaps are exactly 30 *native CPU master clocks*, and 656/656 port3→port2 gaps are exactly 50; all 1,312/1,312 port bytes agree with the observed low accumulator byte.** The original 2014 Snes9x independently measures 16 genuine port3→port2 intervals of 50 source-local CPU master clocks, but their two source clock origins are not registered. Source-matched native `11:C774` remains actual read ordinal492, master2188739002, followed by port3 D0 at2188739032 and port2 63 at2188739082.
+
+The independently reopened, exact **16,587,264-byte native x86-64 ELF** (SHA256 `cac96d0ba41ce21eee5d310477ac1266c3fceea1490f7cb52ec98105db09db9e`) contains a separate *actual live-mode* optimized function `Snd_UploadBlockList_82EF_M1X0.part.0` at virtual address **`0x6aea70`**. `nm -nC` and `objdump -d -M intel --disassemble=Snd_UploadBlockList_82EF_M1X0.part.0` independently show this ordered concrete CPU data/codepath:
+
+| Native x86 VA | Statically compiled operation |
+| --- | --- |
+| `6aeb39` | `rol dx,0x8` (first accumulator exchange) |
+| `6aeb96`, `6aebae` | `cpu_read16_paced`, `cpu_read8_paced` (DP pointer low word and bank) |
+| `6aebc3`, `6aebcf` | `add esi,eax`, `cpu_read8_paced` (indexed 24-bit sound data) |
+| `6aec3e`, `6aec4a` | `mov edx,0x2143`, `cpu_write8_paced` (CPU port3) |
+| `6aec79` | `rol cx,0x8` (second exchange) |
+| `6aecb5`, `6aecc4` | `mov edx,0x2142`, `cpu_write8_paced` (CPU port2) |
+
+These correspond anatomically to the independently pinned generated `L_82EF_M1X0` ROM loop, but **multiple native `cpu_read8_paced` callsites occur elsewhere inside this function**, and the RF054 dynamic logger captures a function-scope name rather than a return address. Thus even this stronger *static executable plus genuine dynamic effect* bridge does **not** establish which particular native x86 callsite a given 656-read operation executed, nor produce the missing live `82:82F0` native instruction marker, nor reconcile absolute CPU/SPC clocks or sound PCM. No timing intervention follows. The exact executable/case hashes and all preserved controls are in [the machine receipt](../analysis/data/rf055-native-elf-live-upload-656-transaction-audit-20261018.json); negative unit fixtures test changed opcodes, compiled function scope, source-bank operands, port values and cycle deltas.
+
 ## Resolution, integration boundary and next causal question
 
 The previously drafted RF055 codegen observer, companion reporter and unit fixtures were deliberately **retired from PR #1841**. They never provided an executed native PC marker and duplicate [independent research PR #1845](https://github.com/gamesbyian/UR-Recomp/pull/1845). This PR retains only unique source-authenticated negative provenance and interval evidence, and leaves the one live opcode investigation to #1845. The precise binary/mode finding was [communicated on #1845](https://github.com/gamesbyian/UR-Recomp/pull/1845#issuecomment-6255471413).

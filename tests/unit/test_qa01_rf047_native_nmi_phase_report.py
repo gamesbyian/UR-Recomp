@@ -5,7 +5,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[2]/"tools"))
 import qa01_rf047_native_nmi_phase_report as m
 
 class NmiPhase(unittest.TestCase):
- def fixture(self):
+ def fixture(self, return_stage=None):
   lines=[]
   n=0
   for f in m.FRAMES:
@@ -20,6 +20,9 @@ class NmiPhase(unittest.TestCase):
    lines.append(snap("after_push","01EC"))
    n+=1
    lines.append("QA01RF047NATIVE seq=%d stage=read f=%d bank=00 addr=01ED width=1 value=0026 PB=82 P=26 S=01EC master=2200001 beamV=226 beamH=111 nmi=1"%(n,f))
+   if return_stage is not None:
+    n+=1
+    lines.append("QA01RF047NATIVE seq=%d stage=%s f=%d opcodePC=008588 returnPC=82D4EE P=26 S=01F0 master=2200002 beamV=226 beamH=112"%(n,return_stage,f))
    lines.append(snap("handler_return","01F0"))
   return "\n".join(lines)+"\n"
  def test_exact_executed_window_with_genuine_ordered_reads(self):
@@ -28,6 +31,18 @@ class NmiPhase(unittest.TestCase):
   self.assertEqual(sum(x["native_inhandler_actual_read_helper_count"] for x in r["native_interrupt_paired_operations"]),9)
   self.assertFalse(r["native_exact_RTI_opcode_proven"])
   self.assertEqual(r["complete_USA_event_credit"],0)
+ def test_actual_interpreted_return_pc_and_source_opcode(self):
+  r=m.classify(self.fixture("interp_rti"))
+  self.assertTrue(r["native_exact_RTI_opcode_proven"])
+  self.assertEqual(r["native_explicit_RTI_evidence_frames"],9)
+  self.assertEqual([x["native_actual_RTI_return_PC"] for x in r["native_interrupt_paired_operations"]],["82D4EE"]*9)
+  self.assertTrue(all(x["native_RTI_return_PC_matches_saved_resume"] for x in r["native_interrupt_paired_operations"]))
+ def test_compiled_return_does_not_prove_opcode_pc(self):
+  r=m.classify(self.fixture("compiled_rti"))
+  self.assertFalse(r["native_exact_RTI_opcode_proven"])
+  self.assertEqual(r["native_explicit_RTI_evidence_frames"],9)
+  with self.assertRaisesRegex(ValueError,"partial actual RTI"):
+   m.classify(self.fixture("interp_rti").replace("stage=interp_rti f=1017","stage=read f=1017",1))
  def test_incomplete_native_trace_fails_closed(self):
   s=self.fixture()
   with self.assertRaisesRegex(ValueError,"sequence gap|duplication"):

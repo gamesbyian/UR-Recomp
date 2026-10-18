@@ -56,11 +56,10 @@
     "plan_case_aggregate_source_commit_identical": true,
     "plan_sha256_identical_all_receipts": "35409c1773ff083254e9aea486125e5d00a360586cbdb8328a57ffdaaf34d120",
     "source_movie_sha256_recorded_not_source_smv_bytes_rehashed": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
-    "usa_rom_sha256_recorded_not_rom_bytes_rehashed": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
+    "usa_rom_sha256_recorded_not_rom_bytes_rehashed": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "usa_original_rom_or_2014_movie_bytes_not_in_archived_bundle": true
   },
   "actual_original_native_guest_log_observations": {
-    "source_2014_entry_movie_frame": 3190,
-    "source_2014_result_movie_frame": 8353,
     "original_guest_entry_host_frame": 1017,
     "native_guest_entry_host_frame": 1017,
     "sampled_wram_checkpoint_acknowledgments_per_guest": 78,
@@ -68,10 +67,11 @@
     "source_original_guest_result_onset_host_frame": 6180,
     "native_guest_result_onset_host_frame": 6180,
     "both_guest_result_stable_host_frame": 6186,
-    "both_guest_next_bowl_active_host_frame": 6447,
-    "source_movie_next_bowl_frame": 8620,
     "both_guest_next_bowl_result_relative_offset": 267,
-    "sampled_guest_controller_consumed_port_values_verified": false
+    "sampled_guest_controller_consumed_port_values_verified": false,
+    "original_source_movie_entry_3190_result_8353_and_next_bowl_8620_are_producer_report_claims_not_independently_replayed": true,
+    "both_guest_next_bowl_sample_dump_host_frame": 6447,
+    "next_bowl_active_course_state_is_from_producer_capture_not_guest_text_log": true
   },
   "published_producer_difference_census_recalculated_from_captured_json_not_raw_wram": {
     "checkpoint_pairs": 78,

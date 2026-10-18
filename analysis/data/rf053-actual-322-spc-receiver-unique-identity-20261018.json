@@ -1,0 +1,148 @@
+{
+  "schema": "rf053-authentic-unique-original-native-spc700-receiver-multi-run-parity-v1",
+  "baseline": {
+    "artifact_id": 12124654817,
+    "case_sha256": "1060a98744fb770bbe43fcdddd89b352bdef691e18f1ab24d4ead5f16996bf6b"
+  },
+  "trials": [
+    {
+      "run": 39127686106,
+      "artifact": 12136344183,
+      "source_sha": "1a3e5b54e41c7a042ee4316fcabefc681f216e64",
+      "zip_sha256": "f641cc39af5d63ac9d01c47cfd35ced5162d5c789d2be3444e47bfd50db92bbb",
+      "global_native_spc_read_first_last": [
+        1987437,
+        1987758
+      ]
+    },
+    {
+      "run": 39127883367,
+      "artifact": 12137208430,
+      "source_sha": "f127074dce686b5caffbfbf68c5cff9c64cff606",
+      "zip_sha256": "ec8cffa84d742656c77dea1e27e13fd8bacaf316c10ff15160235df5883f8e50",
+      "global_native_spc_read_first_last": [
+        1352346,
+        1352667
+      ]
+    }
+  ],
+  "source_original": {
+    "real_spc_reads": 322,
+    "ages_first_last": [
+      104485209,
+      104487998
+    ],
+    "true_CPU_APU_port3_D0_age": 104485254,
+    "true_CPU_APU_port2_63_age": 104485258,
+    "postpublication_receiver": [
+      {
+        "age": 104485261,
+        "pc": "1521",
+        "port": 2,
+        "value": "63"
+      },
+      {
+        "age": 104485266,
+        "pc": "1525",
+        "port": 3,
+        "value": "D0"
+      },
+      {
+        "age": 104485269,
+        "pc": "1527",
+        "port": 2,
+        "value": "63"
+      }
+    ]
+  },
+  "native": {
+    "all_real_queue_and_spc_reads_in_capture": 4571,
+    "real_spc_reads": 1959,
+    "real_native_schedule": 1306,
+    "real_native_apply": 1306,
+    "native_host_frame_for_target_pair": 6124,
+    "native_schedule_pair": [
+      {
+        "native_clock": 104485222,
+        "target": 104485230,
+        "port": 3,
+        "value": "D0"
+      },
+      {
+        "native_clock": 104485222,
+        "target": 104485233,
+        "port": 2,
+        "value": "63"
+      }
+    ],
+    "real_apply_pair": [
+      {
+        "clock": 104485230,
+        "port": 3,
+        "value": "D0"
+      },
+      {
+        "clock": 104485233,
+        "port": 2,
+        "value": "63"
+      }
+    ],
+    "postapply_receiver": [
+      {
+        "clock": 104485238,
+        "pc": "1521",
+        "port": 2,
+        "value": "63"
+      },
+      {
+        "clock": 104485243,
+        "pc": "1525",
+        "port": 3,
+        "value": "D0"
+      },
+      {
+        "clock": 104485247,
+        "pc": "1527",
+        "port": 2,
+        "value": "63"
+      }
+    ]
+  },
+  "alignment": {
+    "key_fields": [
+      "actual_executed_SPC_PC",
+      "actual_F6_or_F7_port",
+      "actually_returned_byte"
+    ],
+    "entire_original_sequence_contiguous_in_real_native_read_trace": true,
+    "original_read_count": 322,
+    "native_read_count": 1959,
+    "unique_exact_full_match_count": 1,
+    "native_zero_based_spc_read_start_index": 828,
+    "all_322_original_native_triples_equal": true,
+    "local_source_age_minus_local_native_clock_histogram": {
+      "22": 107,
+      "23": 215
+    },
+    "original_native_CPU_publication_clock_equal_proven": false,
+    "universal_clock_offset_proven": false,
+    "complete_CPU_APU_timing_parity_proven": false
+  },
+  "frozen_controls": {
+    "entire_zoo_race_mesh_equal_RF047": true,
+    "entire_zoo_next_bowl_handoff_equal_RF047": true,
+    "entire_source_terminal_followthrough_equal_RF047": true,
+    "original_ROM_movie_input_SRAM_identical": true,
+    "whole_128KiB_WRAM_pairs": 78,
+    "exact_pairs": 51,
+    "unmasked_differing_byte_occurrences": 92,
+    "masked_bytes": 0,
+    "real_original_Zoo_result_relative_frame": 5163,
+    "following_Bowl_relative_frame": 267,
+    "earned_11_entire_SRAM_pairs_and_fresh_cold_ranked_reload": true,
+    "case_disposition": "strict_candidate",
+    "release_credit": 0,
+    "accepted_USA_complete_events": 0
+  },
+  "scope_limit": "Two unchanged 2014 USA Zoo replays with different native debug counter implementations; one unique observed genuine SPC receiver sequence, not a proof of universal CPU/SPC time equality, audio waveform parity or USA full-event acceptance."
+}

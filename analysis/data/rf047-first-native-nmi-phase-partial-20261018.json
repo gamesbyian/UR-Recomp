@@ -49,7 +49,15 @@
         "address": "01ED",
         "value": "26"
       },
-      "native_SP_after_handler": "01F0"
+      "native_SP_after_handler": "01F0",
+      "original_actual_PB_pull_local_source_v_h": [
+        226,
+        738
+      ],
+      "native_handler_return_model_beam_v_h": [
+        226,
+        322
+      ]
     },
     {
       "host_frame": 1018,
@@ -62,7 +70,15 @@
         "address": "01ED",
         "value": "26"
       },
-      "native_SP_after_handler": "01F0"
+      "native_SP_after_handler": "01F0",
+      "original_actual_PB_pull_local_source_v_h": [
+        230,
+        276
+      ],
+      "native_handler_return_model_beam_v_h": [
+        226,
+        308
+      ]
     },
     {
       "host_frame": 1019,
@@ -75,7 +91,15 @@
         "address": "01ED",
         "value": "26"
       },
-      "native_SP_after_handler": "01F0"
+      "native_SP_after_handler": "01F0",
+      "original_actual_PB_pull_local_source_v_h": [
+        230,
+        276
+      ],
+      "native_handler_return_model_beam_v_h": [
+        229,
+        1206
+      ]
     },
     {
       "host_frame": 1020,
@@ -88,7 +112,15 @@
         "address": "01ED",
         "value": "26"
       },
-      "native_SP_after_handler": "01F0"
+      "native_SP_after_handler": "01F0",
+      "original_actual_PB_pull_local_source_v_h": [
+        245,
+        600
+      ],
+      "native_handler_return_model_beam_v_h": [
+        229,
+        1204
+      ]
     },
     {
       "host_frame": 1021,
@@ -101,7 +133,15 @@
         "address": "01ED",
         "value": "26"
       },
-      "native_SP_after_handler": "01F0"
+      "native_SP_after_handler": "01F0",
+      "original_actual_PB_pull_local_source_v_h": [
+        245,
+        148
+      ],
+      "native_handler_return_model_beam_v_h": [
+        244,
+        1322
+      ]
     },
     {
       "host_frame": 1022,
@@ -114,7 +154,15 @@
         "address": "01ED",
         "value": "26"
       },
-      "native_SP_after_handler": "01F0"
+      "native_SP_after_handler": "01F0",
+      "original_actual_PB_pull_local_source_v_h": [
+        245,
+        596
+      ],
+      "native_handler_return_model_beam_v_h": [
+        244,
+        948
+      ]
     },
     {
       "host_frame": 1023,
@@ -127,7 +175,15 @@
         "address": "01ED",
         "value": "26"
       },
-      "native_SP_after_handler": "01F0"
+      "native_SP_after_handler": "01F0",
+      "original_actual_PB_pull_local_source_v_h": [
+        245,
+        138
+      ],
+      "native_handler_return_model_beam_v_h": [
+        244,
+        1320
+      ]
     },
     {
       "host_frame": 1024,
@@ -140,7 +196,15 @@
         "address": "01ED",
         "value": "26"
       },
-      "native_SP_after_handler": "01F0"
+      "native_SP_after_handler": "01F0",
+      "original_actual_PB_pull_local_source_v_h": [
+        245,
+        530
+      ],
+      "native_handler_return_model_beam_v_h": [
+        244,
+        940
+      ]
     },
     {
       "host_frame": 1025,
@@ -153,7 +217,15 @@
         "address": "01ED",
         "value": "26"
       },
-      "native_SP_after_handler": "01F0"
+      "native_SP_after_handler": "01F0",
+      "original_actual_PB_pull_local_source_v_h": [
+        245,
+        178
+      ],
+      "native_handler_return_model_beam_v_h": [
+        244,
+        1338
+      ]
     }
   ],
   "source_native_resume_same_host_PC_equality_count": 5,
@@ -161,5 +233,6 @@
   "native_instruction_phase_vs_original_proven_equal": false,
   "runtime_correction_justified": false,
   "complete_USA_events_accepted": 0,
-  "next_single_witness": "Re-execute only because RF047 output acquisition was corrupted. Emit each bounded native event with one atomic write(2) and instrument actual interpreted RTI vs compiled return in source before a strict causal conclusion."
+  "next_single_witness": "Re-execute only because RF047 output acquisition was corrupted. Emit each bounded native event with one atomic write(2) and instrument actual interpreted RTI vs compiled return in source before a strict causal conclusion.",
+  "timing_comparison_boundary": "Original Snes9x v/h at executed PullB, native modeled beam v/h at handler-return, both independently observed. No assumed absolute clock-axis identity and native beam clock can trail native CPU master; no cross-guest cycle delta inferred."
 }

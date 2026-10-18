@@ -62,6 +62,8 @@ class SharedRigArtBoundary(unittest.TestCase):
         self.assertIn("--camera=", source)
         self.assertNotIn("--viewall", source)
         self.assertNotIn("--autocenter", source)
+        self.assertIn("round(src.width*7/6)",source)
+        self.assertIn("Image.Resampling.NEAREST",source)
         self.assertIn('"shipping_ready":False', source)
         self.assertIn('"human_visual_approval":False', source)
         self.assertIn('"original_native_RGB5_PPU_equivalence":False', source)

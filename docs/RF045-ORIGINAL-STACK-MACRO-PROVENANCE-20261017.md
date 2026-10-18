@@ -1,6 +1,6 @@
 # RF045: actual original Snes9x source PushB/PushW/PullB/PullW stack transactions
 
-**Unexecuted source-only instrumentation until genuine one-shot. No CPU/APU correction or USA event acceptance.**
+**Executed genuine original/native Zoo one-shot (4/4 green), with source NMI return values actually consumed. No demonstrated native interrupt-phase defect, CPU/APU correction or USA event acceptance.** See [executed RF045 source witness and strict controls](RF045-EXECUTED-ZOO-STACK-RETURN-20261017.md).
 
 ## Existing evidence and exact causal question
 
@@ -10,7 +10,7 @@ The pinned source `snes9xgit/snes9x@1bcc369e89f08243e0a462882fb1f3e42e51de3a` im
 
 `tools/qa01_rf045_source_stack_macro_witness.py` stages a **read-only, source-pinned, opt-in** observer into a disposable original `cpuops.cpp`, after the original RF037–044 source instrumentation stack. Each macro evaluates its original input expression **once**, performs exactly the same original bus function call **once**, the same SP change **once**, and then records kind, effective stack address, returned/pushed value, pre/post SP, actual PB:PC and source CPU horizontal/host clock. Gate: independently calibrated original host **1017..1025**, stack **01ED..01F1**, bounded 4096 rows with an explicit truncation sentinel. No new game bus calls, no bus value modification, clock charge, input, ROM, NMI entry, APU/CPU rate or native guest runtime modification. Native RF044 unmodified actual writer and reader log remains the comparison anchor.
 
-## Required one-shot and proof threshold
+## Historical pre-run one-shot protocol and proof threshold
 
 Only one genuine decision-bearing original/native Zoom Zoo replay after exact source macro tests, pinned binaries, three-project reuse preflight and strict clean guest builds. Keep the same authentic 2014 USA source movie, original ROM, real input SHA, SRAM seed, **78 unmasked complete 128KiB WRAM pairs**, 13 dense sound pointer frames, Zoo result +5163, Bowl +267, eleven paired complete earned SRAMs and fresh original/native cold guest ranked-record loads. Fail closed if original macro bus rows missing/truncated, native real stack writer logs missing, original NMI operation no longer exactly once per frame, any full-WRAM/SRAM control differs from RF044, or elapsed/reference clocks are silently rebased.
 
@@ -20,4 +20,4 @@ For each of the first four stack addresses `01ED..01F0`, distinguish real origin
 
 ## Single corrected original-native execution identity
 
-A one-shot genuine Zoo case was queued at **immutable source `1cd260093ce3eb11ef6bb8c70bd06321ab3faed1`** as [RF045 Action 39085484707](https://github.com/gamesbyian/UR-Recomp/actions/runs/39085484707), using the RF044 exact same original/native USA source pins and strict event controls. The temporary one-shot trigger and shared campaign instrumentation were immediately restored to authoritative main campaign blob `5f5dda6b20aaa6bbde61f5420ef3bd6dd6977cdb` on the clean draft branch. Source-only original `cpuops.cpp` macro observer is staged *after* original RF044 getset/NMI; native RF044 true WRAM writer/reader is unchanged. No gameplay result, valid source Push/Pull row, new sound-pointer conclusion, Windows event or USA acceptance is claimed until the real case archive and exact machine parser succeed. If setup/build fails, record a harness negative, not a game divergence. **0/45** accepted.
+The now-successful one-shot genuine Zoo case was dispatched at **immutable source `1cd260093ce3eb11ef6bb8c70bd06321ab3faed1`** as [RF045 Action 39085484707](https://github.com/gamesbyian/UR-Recomp/actions/runs/39085484707), using the RF044 exact same original/native USA source pins and strict event controls. The temporary one-shot trigger and shared campaign instrumentation were immediately restored to authoritative main campaign blob `5f5dda6b20aaa6bbde61f5420ef3bd6dd6977cdb` on the clean draft branch. Source-only original `cpuops.cpp` macro observer is staged *after* original RF044 getset/NMI; native RF044 true WRAM writer/reader is unchanged. The [executed archive](RF045-EXECUTED-ZOO-STACK-RETURN-20261017.md) now proves 1,806 original source stack macros (903 pushes and 903 pulls), nine original NMI return consumption groups, and unchanged strict RF044 guest controls. Native NMI/RTI instruction-phase and a complete USA event remain unproven. **0/45** accepted.

@@ -28,3 +28,30 @@ Original 2014 Snes9x RGB5 256x224 versus genuine real Windows P7 2P test: consum
 **Remaining defects** after the controlled 2P counterfactual: blackout guest4016 53,667 wrong pixels; results/return 599,536 wrong, including periodic CGRAM grey-state phase and invariant 287-pixel medal-shaped non-grey mask across three source epochs; countdown/finish low-amplitude RGB5 differences requiring hardware/reference-stage analysis. Do not globally phase-shift, import old 2014 Snes9x brightness LUT, recolour medals, change OAM names or touch CPU clocks. The merged [source census](QA08-RESULT-GREY-PHASE-112-CYCLE-20261017.md) owns phase/mask details and source ZIP digests.
 
 A successful compiled Win32 build validates only the exact tested build path, not owner visual acceptance, physical 3840×2160 output, whole 342×224 expanded-world source correctness, 4x fallback, source-visible 2P medal ownership, HD rider likeness or QA-08/10 release gates. Retain approved 7:6 and 342×224 with 512/513 fit, all 224 rows and nearest-density Original fallback; merge [#1779](https://github.com/gamesbyian/UR-Recomp/pull/1779) already asserts UHD geometry. Independent QA owns any release signoff.
+
+## RF050 main reconciliation (18 October; no release acceptance)
+
+The latest source refresh incorporates `main` at
+`9e697cd071c8f9a18e077e8a91ea380d3af26b9f`, including the previously merged source-only combined Modern+graphics
+candidate proof #1829, RF049 sound census and RF050 original sound-port
+publication. These additions do not alter this six-file title-scoped PPU
+correction or any Modern/CPU implementation. All existing ${ls.length} lines of
+the latest main Windows bridge are preserved, plus exactly four graphics path
+triggers, two unit checks and eight scoped post-RF017/pre-compiled-PE lines.
+
+Already qualified *older* graphics-only native Windows journey
+[39107280573](https://github.com/gamesbyian/UR-Recomp/actions/runs/39107280573)
+was green with exact tested executable and ROM-free archive; independently
+bound combined Modern P0/graphics candidate from source merge
+`5c5c992ecdc156f638c13a0d6d6c20a3331c52d6` also passed native
+Windows player/save/recovery journeys: PE SHA256
+`1786c474399b245305ba6ab22ff816653ad762ea36d4ac6a4667ec6a74e7ef53`,
+ZIP SHA256
+`fdd53e041772459e2df3b78275a959d81ca379c1cec48ffc41fa5c2991a122eb`.
+Those historical receipts do **not** qualify this newly rebased binary or
+Modern #1713's newer head `e1937cc4e05b4a499094b3e6f31dc938d6c0e260`.
+The full 263-frame result source census still retains 890,205 wrong RGB5
+positions and exact 1P/2P results/blackout/gray/medal acceptance remain
+HOLD. No release ledger, original game clock, Modern SRAM, physical UHD,
+7:6/4× or artist approval changed or promoted.
+

@@ -34,6 +34,11 @@ BEFORE=r"""            /* UR_QA01_RF057_BOWL_EXECUTED_ORIGINAL_MENU_PREDICATE.
             const unsigned ur_rf057_y0 = ur_rf057_observe ? (unsigned)Registers.Y.W : 0u;
             const unsigned ur_rf057_p0 = ur_rf057_observe ? (unsigned)Registers.P.W : 0u;
             const unsigned ur_rf057_s0 = ur_rf057_observe ? (unsigned)Registers.S.W : 0u;
+            /* Snes9x caches arithmetic flags outside packed Registers.P. */
+            const unsigned ur_rf057_c0 = ur_rf057_observe ? (unsigned)ICPU._Carry : 0u;
+            const unsigned ur_rf057_z0 = ur_rf057_observe ? (unsigned)ICPU._Zero : 0u;
+            const unsigned ur_rf057_n0 = ur_rf057_observe ? (unsigned)ICPU._Negative : 0u;
+            const unsigned ur_rf057_o0 = ur_rf057_observe ? (unsigned)ICPU._Overflow : 0u;
             const unsigned ur_rf057_v0 = ur_rf057_observe ? (unsigned)CPU.V_Counter : 0u;
             const int ur_rf057_h0 = ur_rf057_observe ? (int)CPU.Cycles : 0;
 """
@@ -42,7 +47,7 @@ AFTER=r"""            if (ur_rf057_observe) {
                 const unsigned idx = ur_rf057_f - 4686u;
                 if (++ur_rf057_rows[idx] <= 8192u)
                     fprintf(stderr,
-                       "QA01RF057ORIGCPU frame=%u seq=%u pre_v=%u pre_h=%d pc=%02X:%04X op=%02X a0=%04X x0=%04X y0=%04X p0=%04X s0=%04X next=%02X:%04X a1=%04X p1=%04X s1=%04X post_v=%u post_h=%d joy72=%02X joy73=%02X joy74=%02X joy75=%02X latch8f=%02X raw30d=%02X raw30f=%02X\n",
+                       "QA01RF057ORIGCPU frame=%u seq=%u pre_v=%u pre_h=%d pc=%02X:%04X op=%02X a0=%04X x0=%04X y0=%04X p0=%04X s0=%04X next=%02X:%04X a1=%04X p1=%04X s1=%04X post_v=%u post_h=%d c0=%u z0=%u n0=%u o0=%u c1=%u z1=%u n1=%u o1=%u joy72=%02X joy73=%02X joy74=%02X joy75=%02X latch8f=%02X raw30d=%02X raw30f=%02X\n",
                        ur_rf057_f, ur_rf057_rows[idx], ur_rf057_v0,
                        ur_rf057_h0, ur_rf057_pb, ur_rf057_pc, ur_rf057_opcode,
                        ur_rf057_a0, ur_rf057_x0, ur_rf057_y0,
@@ -50,7 +55,10 @@ AFTER=r"""            if (ur_rf057_observe) {
                        (unsigned)Registers.PB, (unsigned)Registers.PCw,
                        (unsigned)Registers.A.W, (unsigned)Registers.P.W,
                        (unsigned)Registers.S.W, (unsigned)CPU.V_Counter,
-                       (int)CPU.Cycles, (unsigned)Memory.RAM[0x72],
+                       (int)CPU.Cycles, ur_rf057_c0, ur_rf057_z0, ur_rf057_n0,
+                       ur_rf057_o0, (unsigned)ICPU._Carry,
+                       (unsigned)ICPU._Zero, (unsigned)ICPU._Negative,
+                       (unsigned)ICPU._Overflow, (unsigned)Memory.RAM[0x72],
                        (unsigned)Memory.RAM[0x73], (unsigned)Memory.RAM[0x74],
                        (unsigned)Memory.RAM[0x75], (unsigned)Memory.RAM[0x8f],
                        (unsigned)Memory.RAM[0x30d], (unsigned)Memory.RAM[0x30f]);

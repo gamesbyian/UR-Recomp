@@ -46,20 +46,27 @@ inline std::string baldosa_manual_sram_hex64(std::uint64_t n) {
 inline bool archive_baldosa_manual_sram_choice(
     const std::filesystem::path& root,
     const HostProfileState& committed,
+    std::string_view exact_typed_bytes,
     bool raw_present,
     std::string_view raw_bytes) {
     namespace fs = std::filesystem;
-    const std::string typed = encode_host_profile_state(committed);
-    if (typed.empty() || raw_bytes.size() > kStockSramBytes)
+    // The typed loader legitimately accepts some text-equivalent forms,
+    // including empty lines and reordered fields. Never silently archive a
+    // freshly ENCODED substitute for the player's exact original file.
+    const auto decoded = decode_host_profile_state(exact_typed_bytes);
+    if (!decoded || !(*decoded.state == committed) ||
+        exact_typed_bytes.empty() ||
+        exact_typed_bytes.size() > kStockSramBytes * 2 + 1024 ||
+        raw_bytes.size() > kStockSramBytes)
         return false;
     // Framed raw bytes are binary; no line ending, UTF conversion or text
     // parsing must alter an opaque guest image.
     const std::string bytes =
         "UR-BALDOSA-MANUAL-SRAM-RECOVERY/1\n" +
-        std::to_string(typed.size()) + "\n" +
+        std::to_string(exact_typed_bytes.size()) + "\n" +
         std::to_string(raw_present ? 1 : 0) + "\n" +
         std::to_string(raw_bytes.size()) + "\n" +
-        typed + std::string(raw_bytes);
+        std::string(exact_typed_bytes) + std::string(raw_bytes);
     std::uint64_t fnv = 14695981039346656037ull;
     for (unsigned char ch : bytes) {
         fnv ^= ch;
@@ -239,10 +246,23 @@ inline BaldosaManualSramRecoveryStatus recover_baldosa_legacy_sram_explicit(
         return Status::Rejected;
 
     // Do not turn unknown raw into a supposedly earned medal or record.
-    // First make a verified, durable immutable receipt containing BOTH
-    // canonical committed typed and the entire existing raw byte stream.
+    // Archive the ORIGINAL committed typed FILE bytes, not their decoded
+    // re-encoding: even valid legacy/whitespace variants must be restorable
+    // from the exact forensic receipt. Reject a changed/unreadable file.
+    std::error_code typed_error;
+    const auto typed_size = fs::file_size(typed, typed_error);
+    if (typed_error || typed_size == 0 ||
+        typed_size > kStockSramBytes * 2 + 1024)
+        return Status::BusyOrIoError;
+    std::ifstream typed_in(typed, std::ios::binary);
+    if (!typed_in) return Status::BusyOrIoError;
+    std::string exact_typed_bytes{
+        std::istreambuf_iterator<char>(typed_in),
+        std::istreambuf_iterator<char>()};
+    if (typed_in.bad() || exact_typed_bytes.size() != typed_size)
+        return Status::BusyOrIoError;
     if (!archive_baldosa_manual_sram_choice(
-            root, *profile.state, !absent, raw_bytes))
+            root, *profile.state, exact_typed_bytes, !absent, raw_bytes))
         return Status::BusyOrIoError;
     if (interrupted && !archive_baldosa_recovered_intent(
                            root, *interrupted))

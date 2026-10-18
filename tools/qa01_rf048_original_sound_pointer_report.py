@@ -108,6 +108,14 @@ def classify(original: str, native: str) -> dict:
         "original_indexed_effective_source_frames":
             {str(k):v for k,v in sorted(Counter(int(row["frame"]) for row in indexed).items())},
         "original_indexed_effective_candidate_examples":indexed[:12],
+        "original_indexed_candidate_by_bank":{
+            f"{bank:02X}":count for bank,count in
+            sorted(Counter(int(row["effective_candidate"],16)>>16
+                           for row in indexed).items())},
+        "original_exact_13C774_source_operand_observations":sum(
+            row["effective_candidate"]=="13C774" for row in indexed),
+        "original_exact_13D0B4_source_operand_observations":sum(
+            row["effective_candidate"]=="13D0B4" for row in indexed),
         "original_raw_WRAM_mirror_is_not_actual_second_bus_read":True,
         "native_verified_boundary_read_pairs":pairs,
         "source_original_internal_frame_equals_native_host_proven":False,

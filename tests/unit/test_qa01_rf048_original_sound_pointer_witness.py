@@ -25,7 +25,7 @@ class OriginalPointerWitnessTests(unittest.TestCase):
         before = self.fixture()
         after = rf048.patch_original(before)
         self.assertEqual(after.count("(*Opcodes[Op].S9xOpcode)();"), 1)
-        self.assertEqual(after.count(rf048.MARK), 1)
+        self.assertEqual(after.count("/* UR_QA01_RF048_ORIG_SOUND_POINTER:"), 1)
         self.assertEqual(after.count("Memory.RAM[rf048_dp]"), 1)
         self.assertEqual(after.count("QA01RF048ORIGPTR "), 1)
         self.assertEqual(after.count("QA01RF048ORIGPTR count="), 1)

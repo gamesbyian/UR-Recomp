@@ -29,7 +29,11 @@ def hash_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 def prove_parameters(text: str) -> None:
-    if (text.count("rig_saddle_span=is_undef") != 1 or
+    if (text.count("rig_frame_mass=is_undef") != 1 or
+        text.count("module frame_member(") != 1 or
+        text.count("rig_frame_mass <= 2") != 1 or
+        text.count("rig_frame_mass >= 1") != 1 or
+        if (text.count("rig_saddle_span=is_undef") != 1 or
         text.count("scale([rig_saddle_span,1,1])") != 1 or
         'rig_saddle_span <= 2.2' not in text or
         'rig_saddle_span >= 1' not in text or
@@ -37,10 +41,12 @@ def prove_parameters(text: str) -> None:
         raise ValueError("saddle sweep no longer shares one bounded canonical rig")
 
 def preview(model: Path, out: Path, source_zip: Path | None = None,
-            openscad: str = "openscad", xvfb: bool = False):
+            openscad: str = "openscad", xvfb: bool = False, frame_mass: float = 1.0):
     from PIL import Image, ImageDraw, ImageEnhance
     inspect_model(model)
     prove_parameters(model.read_text(encoding="utf-8"))
+    if frame_mass not in (1.0, 1.4, 1.8, 2.0):
+        raise ValueError("non-reviewed fork mass outside bounded visual alternatives")
     if out.exists() and any(out.iterdir()):
         raise ValueError("output directory must be new or empty")
     original = authentic_sources(source_zip) if source_zip else None
@@ -53,7 +59,8 @@ def preview(model: Path, out: Path, source_zip: Path | None = None,
             f"--imgsize={SIZE},{SIZE}", "--projection=o",
             "--colorscheme=Tomorrow", f"--camera={CAMERA}",
             "-D", 'rig_pose="upright"',
-            "-D", f"rig_saddle_span={span}", str(model)]
+            "-D", f"rig_saddle_span={span}",
+            "-D", f"rig_frame_mass={frame_mass}", str(model)]
         result=subprocess.run(argv,capture_output=True,text=True,timeout=90)
         if result.returncode:
             raise ValueError("original CAD saddle study failed: "+result.stderr[-300:])
@@ -107,6 +114,7 @@ def preview(model: Path, out: Path, source_zip: Path | None = None,
             "source_archive_sha256":hash_file(source_zip) if source_zip else None,
             "camera":CAMERA,"same_model_no_replacement_art_merged":True,
             "candidate_count":len(records),"candidates":records,
+            "bounded_frame_mass":frame_mass,
             "original_title_wheel_top_unmeasurable_occluded":True,
             "title_camera_perspective_unknown":True,
             "comparative_cad_geometry_not_verified_likeness":True,
@@ -125,10 +133,12 @@ def main():
     p.add_argument("--authentic-source-zip",type=Path)
     p.add_argument("--openscad",default="openscad")
     p.add_argument("--xvfb",action="store_true")
+    p.add_argument("--frame-mass",type=float,choices=(1.0,1.4,1.8,2.0),default=1.0,
+                   help="same rig, one bounded pre-rendered frame-bulk proposal")
     a=p.parse_args()
     sheet, report=preview(a.model.resolve(),a.out.resolve(),
                           a.authentic_source_zip.resolve() if a.authentic_source_zip else None,
-                          a.openscad,a.xvfb)
+                          a.openscad,a.xvfb,a.frame_mass)
     print(f"UR_UNAPPROVED_SADDLE_VARIANTS {sheet} "
           f"SHA256={report['contact_sha256']} human_approved=0")
 

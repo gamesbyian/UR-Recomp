@@ -77,6 +77,7 @@ on:
       - "tools/verify_baldosa_windows_extracted_launcher.py"
       - "tools/baldosa_win32_interactive_recovery_q.py"
       - "tools/baldosa_win32_interactive_recovery_rt.py"
+      - "tools/baldosa_win32_interactive_bad_intent_t.py"
       - "tools/baldosa_win32_interactive_recovery_s.py"
       - "tools/baldosa_win32_interactive_recovery_s_reject.py"
       - "tools/baldosa_win32_real_ntfs_diskfull_game.py"
@@ -911,6 +912,19 @@ jobs:
             --out "$RUNNER_TEMP/Baldosa Win32 Interactive Recovery RT" --timeout 120
           echo "PASS: original CMD real Win32 R/T console KEY_EVENT, archive-before-change, exact canonical source bytes and two cold original guest boots per choice. Product-only synthetic keys; no human-pad, full-volume or release QA credit." >> "$GITHUB_STEP_SUMMARY"
 
+      # Explicit malformed-intent T witness; not the historical unjournaled
+      # RT contract, which remains independently rehashable and untouched.
+      - name: Prove original CMD T archives corrupt pending intent before typed restore
+        run: |
+          set -euo pipefail
+          python tools/baldosa_win32_interactive_bad_intent_t.py \
+            --launcher "$RUNNER_TEMP/Baldosa Native Extracted Launcher QA/Extracted Baldosa Candidate With Spaces/run-baldosa-modern.cmd" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/baseline/Modern Player Data With Spaces/saves/save.srm" \
+            --out "$RUNNER_TEMP/Baldosa Win32 Invalid Intent Typed Recovery" --timeout 120
+          echo "PASS: original Windows CMD actual console T archives malformed binary pending, original raw and typed before exact committed restore; two cold original guest processes idempotent. No auto trust, physical input, short-write or release QA credit." >> "$GITHUB_STEP_SUMMARY"
+
       # S is the real original no-argument CMD menu with literal profile
       # ID input, not an environment repair shortcut or a simulated roster.
       - name: Prove original CMD interactive S switches only healthy racer
@@ -1024,6 +1038,19 @@ jobs:
             ${{ runner.temp }}/Baldosa Win32 Interactive Recovery RT/T/result.json
             ${{ runner.temp }}/Baldosa Win32 Interactive Recovery RT/R/source-bytes/**
             ${{ runner.temp }}/Baldosa Win32 Interactive Recovery RT/T/source-bytes/**
+
+      - name: Retain original CMD malformed intent T original-source evidence separately
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-interactive-bad-intent-t
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/Baldosa Win32 Invalid Intent Typed Recovery/result.json
+            ${{ runner.temp }}/Baldosa Win32 Invalid Intent Typed Recovery/*.log
+            ${{ runner.temp }}/Baldosa Win32 Invalid Intent Typed Recovery/*.key.log
+            ${{ runner.temp }}/Baldosa Win32 Invalid Intent Typed Recovery/source-bytes/**
 
       - name: Retain original CMD interactive S source bytes separately
         if: always()

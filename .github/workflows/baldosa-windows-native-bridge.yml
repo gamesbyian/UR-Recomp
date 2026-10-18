@@ -940,6 +940,21 @@ jobs:
             --noncanonical-typed --timeout 120
           echo "PASS: original packaged Windows CMD T retained the exact noncanonical typed file, guest raw and corrupt intent as distinct immutable source bytes through explicit rollback and two genuine cold boots. No physical operator, torn write or QA release credit." >> "$GITHUB_STEP_SUMMARY"
 
+      # A separate original Win32 console R witness specifically exercises
+      # a valid noncanonical typed file through the typed CAS (not the
+      # committed-typed T branch). Never alter the existing R/T evidence.
+      - name: Prove original CMD R archives noncanonical typed before native raw promotion
+        run: |
+          set -euo pipefail
+          python tools/baldosa_win32_interactive_recovery_rt.py \
+            --launcher "$RUNNER_TEMP/Baldosa Native Extracted Launcher QA/Extracted Baldosa Candidate With Spaces/run-baldosa-modern.cmd" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/baseline/Modern Player Data With Spaces/saves/save.srm" \
+            --out "$RUNNER_TEMP/Baldosa Win32 Noncanonical Typed R Recovery" \
+            --noncanonical-r-only --timeout 120
+          echo "PASS: original Windows CMD source console R archived the original noncanonical typed bytes and old changed raw before publishing the new typed guest SRAM, with two genuine original cold process boots. No physical operator or independent release QA credit." >> "$GITHUB_STEP_SUMMARY"
+
       # S is the real original no-argument CMD menu with literal profile
       # ID input, not an environment repair shortcut or a simulated roster.
       - name: Prove original CMD interactive S switches only healthy racer
@@ -1079,6 +1094,20 @@ jobs:
             ${{ runner.temp }}/Baldosa Win32 Noncanonical Typed T Recovery/*.log
             ${{ runner.temp }}/Baldosa Win32 Noncanonical Typed T Recovery/*.key.log
             ${{ runner.temp }}/Baldosa Win32 Noncanonical Typed T Recovery/source-bytes/**
+
+      - name: Retain original CMD noncanonical typed R binary evidence separately
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-interactive-noncanonical-typed-r
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/Baldosa Win32 Noncanonical Typed R Recovery/interactive-rt-result.json
+            ${{ runner.temp }}/Baldosa Win32 Noncanonical Typed R Recovery/R/result.json
+            ${{ runner.temp }}/Baldosa Win32 Noncanonical Typed R Recovery/R/*.log
+            ${{ runner.temp }}/Baldosa Win32 Noncanonical Typed R Recovery/R/*.key.log
+            ${{ runner.temp }}/Baldosa Win32 Noncanonical Typed R Recovery/R/source-bytes/**
 
       - name: Retain original CMD interactive S source bytes separately
         if: always()

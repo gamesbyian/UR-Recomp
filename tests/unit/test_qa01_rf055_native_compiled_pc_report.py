@@ -41,6 +41,20 @@ class RF055NativePC(unittest.TestCase):
             with self.subTest(label=label):
                 with self.assertRaisesRegex(ValueError,reason):
                     rf.inspect("\n".join(modified),expected_transfers=1)
+    def test_true_local_cpu_master_interval_without_global_phase(self):
+        source="\\n".join((
+            "QA01RF050ORIGAPU seq=21 age=104485254 v=159 h=1016 port=3 val=D0",
+            "QA01RF050ORIGAPU seq=22 age=104485258 v=159 h=1066 port=2 val=63"))
+        native="\\n".join((
+            writer(1,"002143","00D0",130,"63D0"),
+            writer(2,"002142","0063",180,"D063")))
+        out=rf.local_cpu_master_intervals(source,native,1,1)
+        self.assertEqual(out["original_and_native_all_local_master_intervals"],50)
+        self.assertTrue(out["interval_is_not_absolute_cpu_or_spc_clock_alignment"])
+        with self.assertRaisesRegex(ValueError,"interval regression"):
+            rf.local_cpu_master_intervals(source,native.replace("master=180","master=190"),1,1)
+        with self.assertRaisesRegex(ValueError,"pair census"):
+            rf.local_cpu_master_intervals(source,native,16,656)
     def test_truncation_and_wrong_count_fail_closed(self):
         with self.assertRaisesRegex(ValueError,"truncated"):
             rf.inspect("\n".join(ROWS)+"\nQA01RF054NATIVEBUS_TRUNCATED",expected_transfers=1)

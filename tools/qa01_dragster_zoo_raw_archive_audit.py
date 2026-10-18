@@ -221,8 +221,8 @@ def audit(root: Path) -> dict:
                  if brackets["native"]["exact_adjacent_onset_offset"] is not None else None) and
             handoff.get("first_source_or_guest_named_mismatch_offset") ==
                 next((o["offset"] for o in observed
-                      if any(o[key][k] != o["movie"][k] for key in NAME_ADDR
-                             for k in ("original", "native"))), None) and
+                      if any(o[side][key] != o["movie"][key] for key in NAME_ADDR
+                             for side in ("original", "native"))), None) and
             handoff.get("all_full_sram_pairs_equal") is
                 all(item["sram_differing_bytes"] == 0 for item in differences) and
             handoff.get("full_wram_difference_offsets") ==

@@ -8,7 +8,9 @@ CPU/input phase. Source-original execution remains independently adjudicated.
 """
 from __future__ import annotations
 
+import argparse
 import hashlib
+import json
 import re
 from pathlib import Path
 
@@ -49,7 +51,7 @@ def events(path: Path, label: str) -> tuple[list[tuple[int, int, int]], str]:
     return rows, hashlib.sha256(raw).hexdigest()
 
 
-def audit(root: Path, report: dict) -> dict:
+def audit(root: Path, report: dict, *, replay_dir: Path | None = None) -> dict:
     """Check source-event injections, script bytes and every selected dump.
 
     The source runner publishes its own calibrated frame shift. Never infer
@@ -61,7 +63,7 @@ def audit(root: Path, report: dict) -> dict:
     shift = report.get("native_frame_shift")
     if type(shift) is not int or not -1000 <= shift <= 1000:
         raise ValueError("invalid independently calibrated native frame shift")
-    replay = root / "work" / case / "replay"
+    replay = replay_dir if replay_dir is not None else root / "work" / case / "replay"
     reference, ref_sha = events(replay / "ref.input", "Snes9x reference")
     native, native_sha = events(replay / "pinned-baldosa.input", "Baldosa native")
     if len(reference) != len(native) or any(
@@ -112,3 +114,37 @@ def audit(root: Path, report: dict) -> dict:
         "guest_controller_consumption_proven": False,
         "release_credit": 0,
     }
+
+
+def main() -> int:
+    """Validate actual supplied controller route without emulating or editing gameplay."""
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--artifact-root", required=True, type=Path)
+    p.add_argument("--producer-report", required=True, type=Path)
+    p.add_argument("--replay-dir", type=Path,
+                   help="explicit original replay directory for standalone Bowl archives")
+    p.add_argument("--out", required=True, type=Path)
+    args = p.parse_args()
+    try:
+        primary_bytes = args.producer_report.read_bytes()
+        report = json.loads(primary_bytes)
+        evidence = audit(args.artifact_root, report, replay_dir=args.replay_dir)
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        p.exit(2, "QA01_INPUT_SOURCE_ARTIFACT_INVALID: " + str(exc) + "\n")
+    result = {
+        "schema": "ur-qa01-source-input-replay-artifact/1",
+        "original_case": report["name"],
+        "original_producer_sha256": hashlib.sha256(primary_bytes).hexdigest(),
+        "route": evidence,
+        "usa_event_admissions": 0,
+        "scope": "supplied original/native controller files only; guest-consumed bus inputs NOT observed",
+    }
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    args.out.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n",
+                        encoding="utf-8")
+    print("Source-supplied event input identity verified; USA event admissions: 0")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

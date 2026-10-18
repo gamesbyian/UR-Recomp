@@ -87,6 +87,19 @@ class EventRouteArtifactsTest(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     route.audit(self.root, corrupt)
 
+    def test_standalone_bowl_archive_explicit_replay_path_reuses_source_verifier(self):
+        root = self.root / "standalone-bowl"
+        replay = root / "bowl" / "replay"
+        replay.mkdir(parents=True)
+        for name in ("ref.input", "pinned-baldosa.input", "complete.script"):
+            (replay / name).write_bytes((self.replay / name).read_bytes())
+        evidence = route.audit(root, self.report, replay_dir=replay)
+        self.assertEqual(evidence["input_event_rows_per_guest"], 2)
+        self.assertFalse(evidence["guest_controller_consumption_proven"])
+        (replay / "pinned-baldosa.input").write_text("103:3:012\n112:2:007\n")
+        with self.assertRaisesRegex(ValueError, "controller masks"):
+            route.audit(root, self.report, replay_dir=replay)
+
     def test_original_only_switcher_script_retained_and_hashed(self):
         report = make_fixture(self.root, "switcher")
         replay = self.root / "work" / "switcher" / "replay"

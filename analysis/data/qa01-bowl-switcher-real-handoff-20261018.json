@@ -1,0 +1,53 @@
+{
+  "schema": "UR-QA01-REAL-BOWL-TO-SWITCHER-20261018/1",
+  "attribution": "exact original 2014 USA movie and same-workflow independently booted Snes9x/native Baldosa",
+  "execution": {
+    "repository": "gamesbyian/UR-Recomp",
+    "run_id": 39165986390,
+    "run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39165986390",
+    "exact_tested_source": "c634918f541a7c1d33e5bd51ae75c4d7b5506532",
+    "job_id": 117788912677,
+    "job_conclusion": "success",
+    "original_artifact_id": 12150668058,
+    "archive_sha256": "1e2233cab50902fabbbbcd9318fb0504987c63f5f6a33dd6bbcc49e66ff12108",
+    "artifact_members_retained": "Bowl producer report, full source scan and calibration/replay logs; no ROM"
+  },
+  "source_original": {
+    "movie_event": "USA course 03 Bowl scored Stunt",
+    "movie_entry": 8620,
+    "movie_score_tally": 11915,
+    "movie_result": 11985,
+    "positive_p1_score": 764,
+    "qualify_score": 68,
+    "movie_next_switcher_entry": 12327,
+    "movie_result_relative": 3365,
+    "movie_next_event_result_offset": 342
+  },
+  "genuine_replay": {
+    "reference_bowl_entry_host": 984,
+    "native_bowl_entry_host": 985,
+    "reference_result_relative": 3365,
+    "native_result_relative": 3364,
+    "original_native_result_same_absolute_host": true,
+    "reference_next_switcher_result_relative": 341,
+    "native_next_switcher_result_relative": 344,
+    "reference_next_switcher_absolute_host": 4690,
+    "native_next_switcher_absolute_host": 4693,
+    "next_switcher_event_clock_parity": false,
+    "whole_sram_pairs_all_equal": false,
+    "whole_unmasked_wram_pairs_all_equal": false,
+    "source_earned_bowl_rank0_score764_and_checksum_at_all_samples": true,
+    "first_sample_disagreement_in_active_bowl": null
+  },
+  "limitations": [
+    "Bowl visible result matches, true guest-relative result differs by one frame",
+    "Fresh Snes9x enters next Switcher one frame before the archived movie; native enters two frames after the movie and three after fresh Snes9x",
+    "Do not globally shift controller inputs or waive differing SRAM/128KiB WRAM",
+    "Source/guest SPC/CPU/PPU and full event all-frame parity not proven",
+    "Windows shipping source and OS-durable cold recovery not proven",
+    "Next Switcher live canonical stream identity not certified by this earlier tool version",
+    "Original archive ZIP digest is provider reported, not independently rehashed by owner in this session"
+  ],
+  "accepted_usa_events": 0,
+  "release_gates": 0
+}

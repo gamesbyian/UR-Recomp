@@ -7,6 +7,8 @@ on:
       - ".github/workflows/qa01-bowl-stunt-2014.yml"
       - "tools/probe_original_event_complete.py"
       - "tools/qa01_bowl_switcher_handoff.py"
+      - "tools/qa01_bowl_cold_record.py"
+      - "tests/unit/test_qa01_bowl_cold_record.py"
       - "tests/unit/test_qa01_bowl_next_switcher.py"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snes9x-libretro.json"
@@ -48,6 +50,7 @@ jobs:
           test -s reference/imported/tas-bots/dessyreqt-4250-submission.smv
           python3 -m unittest discover -s tests/unit -p test_probe_original_event_complete.py
           python3 -m unittest discover -s tests/unit -p test_qa01_bowl_next_switcher.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_bowl_cold_record.py
 
       - name: Build one original Snes9x and one native Baldosa guest
         shell: bash
@@ -122,6 +125,21 @@ jobs:
           },indent=2))
           PY
           fi
+          if [ "$rc" -eq 0 ]; then
+            # Separate fresh Snes9x and Baldosa processes load the TWO actual
+            # captured post-Bowl SRAM images, never synthesized score bytes.
+            python3 tools/qa01_bowl_cold_record.py \
+              --producer-report "$RUNNER_TEMP/qa01-bowl/bowl-report.json" \
+              --replay "$RUNNER_TEMP/qa01-bowl/bowl/replay" \
+              --snesref "$RUNNER_TEMP/bowl-snesref/snesref" \
+              --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+              --native "$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --movie "$GITHUB_WORKSPACE/reference/imported/tas-bots/dessyreqt-4250-submission.smv" \
+              --work "$RUNNER_TEMP/qa01-bowl/bowl-cold-process" \
+              --out "$RUNNER_TEMP/qa01-bowl/bowl-cold-report.json"
+            echo "Source-earned Bowl ranked score tested through two real cold guest processes; no disk durability or course credit" >> "$GITHUB_STEP_SUMMARY"
+          fi
           exit "$rc"
 
       - name: Retain bounded Bowl diagnostic logs and non-ROM metadata only
@@ -134,6 +152,9 @@ jobs:
           path: |
             ${{ runner.temp }}/qa01-bowl/attempt.log
             ${{ runner.temp }}/qa01-bowl/bowl-report.json
+            ${{ runner.temp }}/qa01-bowl/bowl-cold-report.json
+            ${{ runner.temp }}/qa01-bowl/bowl-cold-process/original.log
+            ${{ runner.temp }}/qa01-bowl/bowl-cold-process/native.log
             ${{ runner.temp }}/qa01-bowl/bowl/source/source-scan.log
             ${{ runner.temp }}/qa01-bowl/bowl/source/source-event-diagnostic.json
             ${{ runner.temp }}/qa01-bowl/bowl/source/source-entry.log

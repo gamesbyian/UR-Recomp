@@ -77,3 +77,22 @@ The observer remains diagnostic-only, with no source engine modification
 permitted into shipping. Modern SRAM #1713, approved HD racer art,
 physical 3840x2160/7:6, final Windows OS recovery and
 `docs/RELEASE-QUALITY-LEDGER.json` remain with their respective owners.
+
+## Durable complete machine witness after exact source replay
+
+Archive-only [Actions run 39128050846](https://github.com/gamesbyian/UR-Recomp/actions/runs/39128050846)
+**PASSED** on the exact genuine Win32 source ZIP. The fully reconstructed
+machine report is now retained permanently in-repository as
+[`analysis/data/qa08-current-native-medal-4bpp-winners-20261018.json.gz`](../analysis/data/qa08-current-native-medal-4bpp-winners-20261018.json.gz),
+not merely in a 90-day Actions artifact. It contains all 19 individual
+native OBJ winning tile, OAM slot, VRAM plane, palette, encoded priority
+and pixel records, plus six BG1 negative controls. Decompress with
+`gzip -dc analysis/data/qa08-current-native-medal-4bpp-winners-20261018.json.gz`.
+
+Compressed receipt SHA256:
+`28452009973c64b920716ba4745427d50b23925eeb53fa345fafdd5b63fe4d72`
+(1,192 bytes). Decompressed full canonical JSON SHA256:
+`f219ad689cc7d0aac1a391e998334f1aa41b94a98da1bf4126f94f680381ea71`
+(12,747 bytes). Both are independently fixed by a fail-closed
+repository unit test. This is only technical PPU provenance; **no
+original/native source equality or release signoff is inferred**.

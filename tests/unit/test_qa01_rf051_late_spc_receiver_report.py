@@ -44,7 +44,7 @@ class SourceNativeReceiverTests(unittest.TestCase):
             rf.analyze(source,native+"\nQA01RF051NATIVE_TRUNCATED")
         with self.assertRaisesRegex(ValueError,"ordinal gap"):
             rf.analyze(source.replace("ordinal=2 age=104485263","ordinal=3 age=104485263"),native)
-        with self.assertRaisesRegex(ValueError,"source original"):
+        with self.assertRaisesRegex(ValueError,"does not match actual STA"):
             rf.analyze(source.replace("port=2 val=63","port=2 val=64",1),native)
         with self.assertRaisesRegex(ValueError,"original SPC receiver age outside"):
             rf.analyze(source.replace("age=104485261","age=104485999"),native)

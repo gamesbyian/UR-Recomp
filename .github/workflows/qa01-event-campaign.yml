@@ -635,6 +635,17 @@ jobs:
             --results-dir "$RUNNER_TEMP/qa01-results" \
             --out "$RUNNER_TEMP/campaign-result.json" \
             --summary "$GITHUB_STEP_SUMMARY"
+      - name: Independently reopen all retained primary producer reports
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/qa01_event_primary_artifact_audit.py \
+            --plan "$RUNNER_TEMP/qa01-input/qa01-plan.json" \
+            --results-dir "$RUNNER_TEMP/qa01-results" \
+            --campaign-result "$RUNNER_TEMP/campaign-result.json" \
+            --out "$RUNNER_TEMP/qa01-primary-artifact-audit.json" \
+            --summary "$GITHUB_STEP_SUMMARY"
       - name: Upload final bounded campaign report
         if: always()
         uses: actions/upload-artifact@v4
@@ -642,4 +653,6 @@ jobs:
           name: qa01-campaign-aggregate
           retention-days: 14
           if-no-files-found: warn
-          path: ${{ runner.temp }}/campaign-result.json
+          path: |
+            ${{ runner.temp }}/campaign-result.json
+            ${{ runner.temp }}/qa01-primary-artifact-audit.json

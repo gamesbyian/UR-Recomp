@@ -600,7 +600,9 @@ int main() {
         const std::string noncanonical =
             canonical.substr(0, header_end + 1) + "\n" +
             canonical.substr(header_end + 1);
-        write_bytes(typed, noncanonical);
+        { std::ofstream out(typed, std::ios::binary | std::ios::trunc);
+          assert(out && out.write(noncanonical.data(),
+                                  static_cast<std::streamsize>(noncanonical.size()))); }
         const auto accepted = load_host_profile_state_file(
             ExecutionMode::Modern, typed.string(), "mike");
         assert(accepted.loaded() && *accepted.state == profile);

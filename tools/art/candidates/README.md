@@ -82,7 +82,7 @@ openscad -o /tmp/ur-stunt-mid.png --imgsize=320,320 \
 ```
 
 The tool uses **one unchanged side-view camera** for all 18 samples (nine
-ride + nine stunt) and writes `continuous-motion-review-receipt.json`
+ride + nine stunt) and enforces **pixel-identical first/last rendered frames for each cycle**, then writes `continuous-motion-review-receipt.json`
 with per-image SHA-256, silhouette bounding boxes, rig identity and
 explicit negative approval/Original-source claims. It aborts if any
 silhouette reaches within four pixels of a window edge, if a frame is

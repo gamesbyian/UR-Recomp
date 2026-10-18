@@ -287,6 +287,28 @@ same CPU phase, nor that unsampled game frames agree. Retain guest input
 execution evidence and independent QA-01/07 authority. No original movie,
 guest dump, ROM or native binary is added to the retained case archive.
 
+### Original/native result-gate claim reconstruction
+
+A second source-only check, \`tools/qa01_event_result_gate_audit.py\`,
+independently recalculates the existing producer's eight raw result claims
+from retained guest observations. It verifies actual onset/stable result
+menu, original versus native final/intermediate PPU text, the archived
+MIKE/P1 positive time or stunt score, observed Circuit lap decrements,
+the final zero-lap state and non-active terminal race bytes. Both positive
+and negative claims must agree with these raw source records. The
+existing first sampled-field comparison, source-entry flags, source/native
+relative terminal clocks, source-progression and SRAM witnesses remain
+separate checks.
+
+This validator deliberately mirrors the **existing** original event
+producer's rules without changing the producer or independently
+declaring a complete-event pass. It rejects a self-consistent set of
+reported booleans when the underlying observed guest result disagrees.
+It does not reconstruct decoded text directly from original PPU binary
+bytes (the producer owns that capture), prove unsampled laps/frames, or
+establish input-consumer timing. No additional emulator execution,
+release ledger write or 45-event credit is introduced.
+
 ## Failure triage and extension
 
 When infrastructure is red, use the aggregate's first missing/invalid case,

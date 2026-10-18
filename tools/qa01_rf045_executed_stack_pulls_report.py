@@ -55,12 +55,39 @@ def observe(source:str, native:str)->dict:
     if len(ordered)<27:
         raise ValueError("RF045 source NMI macro bus witness absent")
     pulls=[e for e in ordered if e["kind"].startswith("pull")]
+    # Both instruments write into the source process' own ordered log.  Each
+    # NMI return must actually pull the just-pushed status, PC and bank, not
+    # merely leave a plausible four-byte RAM image at a later checkpoint.
+    # This does not establish any cross-process native interrupt phase.
+    source_lines=source.splitlines()
+    returns=[]
+    for nmi,(nmi_index,frame) in zip(nmi_calls,nmi_indices):
+        pc=nmi["NMI_interrupted_pc"]
+        following=[e for e in ordered if e["frame"]==frame and e["log_index"]>nmi_index]
+        first=following[:3]
+        if len(first)!=3 or [(e["kind"],e["address"],e["width"],e["value"]) for e in first]!=[
+            ("pullB","01ED",1,"0026"),("pullW","01EE",2,pc[2:]),("pullB","01F0",1,"0082")]:
+            raise ValueError(f"RF045 missing/misaligned actual source NMI return pulls at {frame}")
+        if any("QA01RF044ORIGBUS " in line and
+               any("addr="+addr in line for addr in ("01ED","01EE","01EF","01F0"))
+               for line in source_lines[nmi_index+1:first[-1]["log_index"]]):
+            raise ValueError(f"RF045 observed intervening source bus writer before NMI return at {frame}")
+        returns.append({"frame":frame,"actual_first_three_NMI_return_reads":first,
+                        "source_return_values_equal_source_NMI_pushes":True})
+    push_count=sum(e["kind"].startswith("push") for e in ordered)
+    # RF044's actual getset observer became productive in the RF045 binary:
+    # it reports write operations, whereas PullB/PullW supply the read values.
+    # Do not mistake its lack of read rows for absence of reads.
     return {
         "schema":"rf045-genuine-zoo-stack-Push-Pull-origin-nmi-v1",
         "source_real_NMI_push_macro_groups":nmi_calls,
         "source_actual_stack_macro_rows":len(ordered),
         "source_actual_stack_pull_macro_rows":len(pulls),
         "source_actual_bounded_pulls":pulls,
+        "source_actual_stack_push_macro_rows":push_count,
+        "source_actual_getset_write_rows":base["original_getset_bus_row_count"],
+        "source_actual_NMI_return_pull_groups":returns,
+        "source_NMI_return_status_PC_PB_actually_consumed":len(returns)==9,
         "source_actual_NMI_push_instruction_calls_proven":True,
         "native_first_four_genuine_WM_WRAM_writer_rows":base["native_first_four_writer_per_frame"],
         "native_intact_read_helper_rows":base["native_valid_read_row_count"],

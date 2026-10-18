@@ -1,0 +1,112 @@
+{
+  "schema": "rf050-retrospective-identical-sound-bytes-not-identical-transaction-v1",
+  "source_prior_case": {
+    "artifact_id": 12129931946,
+    "sha256": "172511ef7d97d76d1c93191ccfd1cea53c5140d5393e9e6e248414aabe8578bd",
+    "immutable_source_sha": "3cf7d366ae651d7e19dd863f4efab0a5e3c8b1b2",
+    "case_type": "original/native genuine 2014 USA Zoom Zoo",
+    "file_count": 18
+  },
+  "original_earlier_captured_writes": {
+    "tag": "QA01RF037ORIGCPU2",
+    "source_writer_capture_age_first_last": [
+      103322523,
+      104199985
+    ],
+    "published_prefix_count": 45645,
+    "pair_occurrences_with_port3_D0_then_port2_63": 1,
+    "pair_zero_based_ordinals": [
+      42931,
+      42932
+    ],
+    "pair_log_line_zero_based": [
+      89233,
+      89234
+    ],
+    "first": {
+      "age": 104162887,
+      "v": 186,
+      "h": 1286,
+      "port": 3,
+      "value": "D0"
+    },
+    "second": {
+      "age": 104162889,
+      "v": 186,
+      "h": 1336,
+      "port": 2,
+      "value": "63"
+    }
+  },
+  "native_earlier_captured_writes": {
+    "tag": "QA01RF037NATIVEUP kind=rtl-apu-enter",
+    "captured_count": 56041,
+    "pair_occurrences_with_port3_D0_then_port2_63": 1,
+    "pair_zero_based_ordinals": [
+      42931,
+      42932
+    ],
+    "first": {
+      "host_frame": 6105,
+      "master": 2181986178,
+      "register": "2143",
+      "value": "D0",
+      "scope": "Snd_UploadBlockList_82EF_M1X0"
+    },
+    "second": {
+      "host_frame": 6105,
+      "master": 2181986228,
+      "register": "2142",
+      "value": "63",
+      "scope": "Snd_UploadBlockList_82EF_M1X0"
+    }
+  },
+  "later_original_source_instruction": {
+    "LDA": {
+      "tag": "QA01RF049LDA",
+      "reference_log_line_zero_based": 92047,
+      "source_frame": 6124,
+      "v": 159,
+      "h": 992,
+      "pc": "82:82F0",
+      "ptr": "110000",
+      "y": "C774",
+      "effective_address": "11C774",
+      "a0": "630D",
+      "a1": "63D0"
+    },
+    "stores": [
+      {
+        "tag": "QA01RF049STA",
+        "reference_log_line_zero_based": 92048,
+        "v": 159,
+        "h": 1022,
+        "pc": "82:82F2",
+        "result_accumulator": "63D0",
+        "encoded_port": 3,
+        "encoded_byte": "D0"
+      },
+      {
+        "tag": "QA01RF049STA",
+        "reference_log_line_zero_based": 92049,
+        "v": 159,
+        "h": 1072,
+        "pc": "82:82F6",
+        "result_accumulator": "D063",
+        "encoded_port": 2,
+        "encoded_byte": "63"
+      }
+    ]
+  },
+  "separation": {
+    "last_captured_original_CPU2_log_line_zero_based": 91956,
+    "late_LDA_log_line_zero_based": 92047,
+    "older_writer_pair_is_earlier_in_source_log": true,
+    "late_LDA_port_publication_observed_by_original_RF037_capture": false,
+    "byte_sequence_match_is_not_transaction_identity": true,
+    "source_original_internal_frame_to_native_host_alignment_proven": false,
+    "CPU_to_SPC_receipt_at_late_original_store_proven": false
+  },
+  "next_discriminator": "Read-only observe real original S9xAPUWritePort after source RF049 82F2/82F6 beam window, with SPC-age and original V/H, independently relate to source LDA/STA; preserve exact 78 full WRAM, 11 earned SRAM, Zoo +5163/Bowl +267 and source/native clocks. No game timing patch.",
+  "complete_USA_events_accepted": 0
+}

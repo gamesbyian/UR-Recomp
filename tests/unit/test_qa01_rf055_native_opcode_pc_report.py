@@ -38,7 +38,7 @@ class LiveOpcodeSite(unittest.TestCase):
             ('wrong opcode',good.replace('opcode=B7','opcode=B6'),'incorrect/gapped'),
             ('wrong PC',good.replace('pc=8282F0','pc=8282EF'),'incorrect/gapped'),
             ('wrong pointer',good.replace('ptr65=11','ptr65=12'),'registers/pointer'),
-            ('wrong A',good.replace('A=630D','A=630E'),'registers/pointer'),
+            ('wrong A',good.replace(SITE,SITE.replace('A=630D','A=630E')),'registers/pointer'),
             ('competing writer','\n'.join((SITE,WR1,BUS,WR2)),'competing'),
             ('competing bus',good.replace(BUS,BUS+'\n'+BUS.replace('seq=1','seq=2')),'ambiguous'),
             ('truncated',good+'\nQA01RF055NATIVEPC_TRUNCATED','truncated'),

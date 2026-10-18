@@ -151,6 +151,12 @@ def audit(path: Path) -> dict:
                     "original_mutation_triples":len(a),
                     "native_mutation_triples":len(b),
                     "original_only_mutation_triples":len(a-b),
+                    "native_only_mutation_values":[
+                        {"wram_address":f"7E:{i:04X}","old":old,"new":new}
+                        for i,old,new in sorted(b-a)],
+                    "original_only_mutation_values":[
+                        {"wram_address":f"7E:{i:04X}","old":old,"new":new}
+                        for i,old,new in sorted(a-b)],
                     "native_only_mutation_triples":len(b-a),
                     "frames_shifted_for_gameplay_or_input":False,
                 })

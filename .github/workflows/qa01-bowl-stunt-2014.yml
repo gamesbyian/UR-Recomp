@@ -6,6 +6,8 @@ on:
     paths:
       - ".github/workflows/qa01-bowl-stunt-2014.yml"
       - "tools/probe_original_event_complete.py"
+      - "tools/qa01_bowl_switcher_handoff.py"
+      - "tests/unit/test_qa01_bowl_next_switcher.py"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snes9x-libretro.json"
       - "tests/unit/test_probe_original_event_complete.py"
@@ -45,6 +47,7 @@ jobs:
           test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
           test -s reference/imported/tas-bots/dessyreqt-4250-submission.smv
           python3 -m unittest discover -s tests/unit -p test_probe_original_event_complete.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_bowl_next_switcher.py
 
       - name: Build one original Snes9x and one native Baldosa guest
         shell: bash
@@ -84,6 +87,8 @@ jobs:
             --native-backend pinned-baldosa \
             --observe-one-frame-stunt-lead \
             --bowl-tally-phase \
+            --source-followthrough \
+            --bowl-next-switcher \
             --snesref "$RUNNER_TEMP/bowl-snesref/snesref" \
             --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
             --native "$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp" \
@@ -111,6 +116,7 @@ jobs:
             "diagnostic_success_not_admission":d.get("comparison",{}).get("diagnostic_exit_success_without_full_event_parity",False),
             "terminal_frames_guest_relative":d.get("comparison",{}).get("terminal_result_guest_frame"),
             "tally_anchored_guest_phase":d.get("tally_anchored_guest_phase"),
+            "bowl_next_switcher":({k:v for k,v in (d.get("bowl_next_switcher_handoff") or {}).items() if k!="samples"}),
             "p1_scored_stunt":d.get("comparison",{}).get("stunt_positive_score_visible"),
             "official_admitted_usa_events":0
           },indent=2))

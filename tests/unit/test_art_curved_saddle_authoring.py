@@ -1,5 +1,6 @@
 """Unapproved one-rig saddle source fidelity and bounded shape studies."""
 import math
+import subprocess
 import sys
 import unittest
 from pathlib import Path
@@ -42,6 +43,18 @@ class BoundedSourceCharacter(unittest.TestCase):
         self.assertIn('"owner_visual_approval": False',source)
         self.assertIn('"shipping_art_approved": False',source)
         self.assertEqual(len(motion.samples(8)),18)
+
+    def test_both_scripts_still_operate_as_direct_standalone_cli(self):
+        for script in ("render_shared_unicycle_review.py",
+                       "render_shared_unicycle_motion.py"):
+            proc=subprocess.run([sys.executable,str(ROOT/"tools/art"/script),"--help"],
+                                text=True,capture_output=True,timeout=10)
+            with self.subTest(script=script):
+                self.assertEqual(proc.returncode,0,proc.stderr)
+                self.assertIn("--saddle-cup",proc.stdout)
+                self.assertIn("--saddle-depth",proc.stdout)
+                if "motion" in script:
+                    self.assertIn("--camera-distance",proc.stdout)
 
     def test_static_reviewer_is_review_only(self):
         source=(ROOT/"tools/art/render_shared_unicycle_review.py").read_text()

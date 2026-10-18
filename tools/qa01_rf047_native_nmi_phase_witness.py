@@ -28,6 +28,21 @@ NOTE = r"""/* UR_QA01_RF047_NATIVE_NMI_RETURN_SOURCE_PIN
  * Frame 1017..1025 native guest timing and actual stack-helper reads.
  * Every RF047 event uses its OWN sequence counter in this process, so mixed
  * stdout/stderr lines cannot be mistaken for native execution order. */
+static void ur_rf047_emit(const char *fmt, ...) {
+  char line[512];
+  va_list ap;
+  va_start(ap, fmt);
+  int n = vsnprintf(line, sizeof line, fmt, ap);
+  va_end(ap);
+  if (n < 0 || (size_t)n >= sizeof line) {
+    static const char truncated[] = "QA01RF047NATIVE_TRUNCATED\n";
+    (void)write(2, truncated, sizeof truncated - 1);
+    return;
+  }
+  /* One bounded syscall: the other WRAM logger writes fragments to stderr.
+   * Never allow a writer fragment to split a native sequence event. */
+  (void)write(2, line, (size_t)n);
+}
 static int ur_rf047_enabled = -1;
 static int ur_rf047_in_nmi = 0;
 static unsigned ur_rf047_events = 0;
@@ -45,7 +60,7 @@ static int ur_rf047_allow_row(void) {
   if (!ur_rf047_allowed()) return 0;
   if (ur_rf047_events++ >= 8192u) {
     if (ur_rf047_events == 8193u)
-      fputs("QA01RF047NATIVE_TRUNCATED\n", stderr);
+      ur_rf047_emit("QA01RF047NATIVE_TRUNCATED\n");
     return 0;
   }
   return 1;
@@ -53,7 +68,7 @@ static int ur_rf047_allow_row(void) {
 static void ur_rf047_nmi_snapshot(const char *stage, uint32_t vector) {
   extern int snes_frame_counter;
   if (!ur_rf047_in_nmi || !ur_rf047_allow_row()) return;
-  fprintf(stderr,
+  ur_rf047_emit(
       "QA01RF047NATIVE seq=%llu stage=%s f=%d resume=%06X vector=%06X"
       " PB=%02X P=%02X S=%04X emu=%u master=%llu beamMaster=%llu"
       " beamV=%u beamH=%u stack=%02X%02X%02X%02X\n",
@@ -72,7 +87,7 @@ void ur_rf047_native_stack_read(CpuState *cpu, uint8 bank,
   if (!ur_rf047_allowed() || addr > 0x01f1u ||
       (unsigned)addr + width - 1u < 0x01edu ||
       !ur_rf047_allow_row()) return;
-  fprintf(stderr,
+  ur_rf047_emit(
       "QA01RF047NATIVE seq=%llu stage=read f=%d bank=%02X"
       " addr=%04X width=%u value=%04X PB=%02X P=%02X S=%04X"
       " master=%llu beamV=%u beamH=%u nmi=%u\n",
@@ -88,7 +103,7 @@ void ur_rf047_native_rti_opcode(CpuState *cpu, uint32_t opcode_pc,
                                  uint32_t return_pc, unsigned compiled) {
   extern int snes_frame_counter;
   if (!ur_rf047_in_nmi || !ur_rf047_allow_row()) return;
-  fprintf(stderr,
+  ur_rf047_emit(
       "QA01RF047NATIVE seq=%llu stage=%s f=%d opcodePC=%06X returnPC=%06X"
       " P=%02X S=%04X master=%llu beamV=%u beamH=%u\n",
       ++ur_rf047_seq, compiled ? "compiled_rti" : "interp_rti",
@@ -113,7 +128,7 @@ def patch(beam: str, cpu: str, bridge: str) -> tuple[str,str,str]:
            (BRIDGE_DECL, BRIDGE_INTERP, BRIDGE_COMPILED)):
         raise ValueError("RF047 pinned native interpreter RTI source drift")
     beam = beam.replace(BEAM_INCLUDE, BEAM_INCLUDE +
-                        "#include <stdio.h>\n#include <stdlib.h>\n", 1)
+                        "#include <stdio.h>\n#include <stdlib.h>\n#include <stdarg.h>\n#include <unistd.h>\n", 1)
     beam = beam.replace("static void run_interrupt(uint32_t vector, uint64_t deadline) {\n",
                         NOTE +
                         "static void run_interrupt(uint32_t vector, uint64_t deadline) {\n", 1)

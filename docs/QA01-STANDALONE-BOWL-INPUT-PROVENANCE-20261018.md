@@ -16,6 +16,8 @@ For manual offline review of a future extracted *original* Bowl artifact:
 python3 tools/qa01_event_route_artifact_audit.py \
   --artifact-root /path/to/original-archive   --producer-report /path/to/original-archive/bowl-report.json \
   --replay-dir /path/to/original-archive/bowl/replay \
+  --movie reference/imported/tas-bots/dessyreqt-4250-submission.smv \
+  --movie-meta analysis/generated/historical-2014-smv-metadata.json \
   --out /tmp/bowl-source-input-identity.json
 ```
 

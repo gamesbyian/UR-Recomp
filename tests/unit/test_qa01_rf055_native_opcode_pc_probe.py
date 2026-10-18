@@ -23,6 +23,22 @@ class NativePcSite(unittest.TestCase):
         self.assertIn("QA01RF055NATIVEPC_TRUNCATED",x)
         self.assertNotIn("cpu_read8(",x)
         self.assertNotIn("cpu_read16(",x)
+    def test_emitted_c_strings_preserve_literal_newline_escapes(self):
+        # The Python patcher string is parsed twice (SITE, then emitted C).
+        # A physical newline inside a C string failed genuine build 39166185730.
+        import textwrap
+        class Insn:
+            addr=0x8282F0
+            mnem='LDA'
+            opcode=0xB7
+            operand=0x63
+        lines=[]
+        exec(textwrap.dedent(rf.SITE), {'bank':0x82,'di_insn':Insn,'lines':lines})
+        emitted='\\n'.join(lines)
+        self.assertIn(r'scope=%s\\n",',emitted)
+        self.assertIn(r'QA01RF055NATIVEPC_TRUNCATED\\n',emitted)
+        self.assertNotIn('scope=%s\\n",',emitted)
+        self.assertNotIn('TRUNCATED\\n",',emitted)
     def test_unknown_or_duplicate_emitter_fails_before_write(self):
         for src in ("empty",SOURCE.replace('for op in ir_ops:', 'for op in other_ops:'),
                     SOURCE+rf.ANCHOR):

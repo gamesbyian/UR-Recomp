@@ -4,19 +4,19 @@ from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/"tools"))
 import qa01_rf054_native_sound_writer_report as rf
 
-def event(kind,seq,master,addr,val,scope="Snd_UploadBlock_80D1_M1X0"):
+def event(kind,seq,master,addr,val,scope="Snd_UploadBlockList_82EF_M1X0",A="63D0"):
     return (f"QA01RF054NATIVE kind={kind} seq={seq} frame=6124 master={master} "
-            f"addr={addr} val={val} PB=82 DB=11 D=0000 Y=C774 A=63D0 "
+            f"addr={addr} val={val} PB=82 DB=80 D=0000 Y=C774 A={A} "
             f"dp63=00 dp64=00 dp65=11 scope={scope}")
 def bus(seq,master,addr):
     return (f"QA01RF054NATIVEBUS kind=read8 seq={seq} frame=6124 master={master} "
             f"addr={addr} A=630D Y=C774 D=0000 dp63=00 dp64=00 dp65=11 "
-            f"scope=Snd_UploadBlock_80D1_M1X0")
+            f"scope=Snd_UploadBlockList_82EF_M1X0")
 
 M=event("rom-map",1,100,"11C774","0000")
 B=bus(1,105,"11C774")
 W1=event("writer",1,110,"002143","00D0")
-W2=event("writer",2,160,"002142","0063")
+W2=event("writer",2,160,"002142","0063",A="D063")
 
 class RF054ActualWriter(unittest.TestCase):
     def test_actual_publication_and_true_helper_do_not_infer_opcodes(self):
@@ -27,6 +27,9 @@ class RF054ActualWriter(unittest.TestCase):
         self.assertEqual(out["mapping_requests_prior_to_writer_20000_master_clock_window"][0]["addr"],"11C774")
         self.assertFalse(out["native_compiled_65816_instruction_PC_proven"])
         self.assertFalse(out["original_11C774_operand_equals_native_effective_ROM_operand_proven"])
+        self.assertTrue(out["native_exact_11C774_executed_ROM_helper_linked_to_late_writer"])
+        self.assertEqual(out["native_source_matched_operand_to_writer_witness"]["native_real_bus_effective_operand"],"11C774")
+        self.assertEqual(out["native_source_matched_operand_to_writer_witness"]["native_bus_to_port3_master_delta"],5)
         self.assertFalse(out["source_native_CPU_APU_publication_clock_registered"])
     def test_no_invented_transfer_when_bytes_or_identity_missing(self):
         data="\n".join((M,B,W1,W2))
@@ -41,8 +44,21 @@ class RF054ActualWriter(unittest.TestCase):
             with self.subTest(name=name):
                 with self.assertRaisesRegex(ValueError,expect):
                     rf.inspect(wrong)
+    def test_real_operand_proof_fails_closed_under_decoys(self):
+        data="\n".join((M,B,W1,W2))
+        for name,wrong in (
+            ("mapping alone",data.replace(B+"\n","")),
+            ("wrong executed operand",data.replace("kind=read8 seq=1 frame=6124 master=105 addr=11C774","kind=read8 seq=1 frame=6124 master=105 addr=11C775")),
+            ("wrong helper scope",data.replace(B,B.replace("Snd_UploadBlockList_82EF_M1X0","Snd_Other_82EF_M1X0")),
+            ("wrong loaded accumulator",data.replace("A=630D Y=C774","A=630E Y=C774")),
+            ("wrong post-load accumulator",data.replace("A=63D0 dp63","A=63D1 dp63")),
+            ("second bus read before writer",data.replace(B,B+"\n"+bus(2,106,"11C775"))),
+        ):
+            with self.subTest(name=name):
+                self.assertFalse(rf.inspect(wrong)["native_exact_11C774_executed_ROM_helper_linked_to_late_writer"])
     def test_real_bus_helper_not_mistaken_for_rom_map(self):
         out=rf.inspect("\n".join((M,W1,W2)))
         self.assertEqual(out["native_actual_CPU_ROM_bus_helper_read_count"],0)
         self.assertTrue(out["native_ROM_pointer_mapping_is_not_proof_of_dereference"])
+        self.assertFalse(out["native_exact_11C774_executed_ROM_helper_linked_to_late_writer"])
 if __name__=="__main__":unittest.main()

@@ -61,7 +61,7 @@ AFTER = r"""
                 }
                 ++rf048_frame_count;
                 ++rf048_total;
-                if (rf048_frame >= 6060u && rf048_frame <= 6100u &&
+                if (rf048_frame >= 6060u && rf048_frame <= 6150u &&
                     (rf048_target || rf048_indexed_target || rf048_frame_count <= 4u)) {
                     if (rf048_logged++ < 4096u)
                         fprintf(stderr,

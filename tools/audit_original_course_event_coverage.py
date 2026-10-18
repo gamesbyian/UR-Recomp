@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from collections import Counter
 from pathlib import Path
 
@@ -28,6 +29,23 @@ RACE_EVENTS = ("menu_entry", "start_state", "contact", "checkpoint",
 STUNT_EVENTS = ("menu_entry", "start_state", "contact", "stunt_scoring",
                 "timer_expiry", "result")
 ACCEPTED_CORE = ("pinned-snes9x", "mesen-ce")
+
+# Independently inventoried, edition-specific ROM SHA-256 identities. An
+# authenticated event cannot refer to arbitrary 64-character text or silently
+# substitute PAL/prototype bytes for the USA release. Identity source:
+# analysis/generated/reference-rom-inventory.md and rom_identity.txt.
+EXPECTED_ROM_SHA256 = {
+    "usa-retail": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "europe-retail": "a1105819d48c04d680c8292bbfa9abbce05224f1bc231afd66af43b7e0a1fd4e",
+    "pal-prototype-1994-11-29": "bbfbcf24e36b297710c1cc88948814ac651336c19ff8ec67b6cdfe64496bd627",
+}
+
+
+def canonical_hex_digest(value: object, length: int) -> bool:
+    """Accept exactly lowercase ASCII hexadecimal, without normalization."""
+    return isinstance(value, str) and re.fullmatch(
+        rf"[0-9a-f]{{{length}}}", value, flags=re.ASCII
+    ) is not None
 
 
 def validate_catalog(catalog: dict) -> list[dict]:
@@ -84,20 +102,22 @@ def historic_start_probe(course: dict) -> dict:
     }
 
 
-def validated_witness(witness: dict, kind: str) -> bool:
+def validated_witness(witness: dict, kind: str, *, rom: str | None = None) -> bool:
     """True only for a full, independently compared end-to-end event.
 
-    These assertions validate report completeness, not the truth of an
-    external measurement. A human/reviewer still admits its provenance.
+    These assertions validate report completeness and canonical source
+    identity format, not the truth of an external measurement. An independent
+    reviewer still must authenticate the source runs and guest execution.
     """
+    if not isinstance(witness, dict):
+        return False
     required = STUNT_EVENTS if kind == "stunt" else RACE_EVENTS
     observed = witness.get("event_observations")
     return (
         witness.get("reference_core") in ACCEPTED_CORE
-        and isinstance(witness.get("candidate_sha"), str)
-        and len(witness["candidate_sha"]) == 40
-        and isinstance(witness.get("rom_sha256"), str)
-        and len(witness["rom_sha256"]) == 64
+        and canonical_hex_digest(witness.get("candidate_sha"), 40)
+        and canonical_hex_digest(witness.get("rom_sha256"), 64)
+        and (rom is None or witness["rom_sha256"] == EXPECTED_ROM_SHA256.get(rom))
         and isinstance(witness.get("reference_run"), str)
         and bool(witness["reference_run"].strip())
         and isinstance(witness.get("native_run"), str)
@@ -133,7 +153,7 @@ def build_census(catalog: dict, source: dict) -> dict:
         if not observation.get("evidence_ref"):
             raise ValueError(f"observation missing evidence path: {key}")
         if observation["status"] == "passed" and not validated_witness(
-            observation, known[cid]["track_kind"]
+            observation, known[cid]["track_kind"], rom=region
         ):
             raise ValueError(f"complete event pass lacks independent witness: {key}")
         keyed[key] = observation

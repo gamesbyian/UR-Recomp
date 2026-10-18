@@ -585,7 +585,7 @@ jobs:
           fi
           exit "$case_rc"
       - name: Independently reopen full Zoo original/native raw mesh and next-Bowl SRAM
-        if: ${{ success() && matrix.case == 'zoom-zoo' && inputs.zoo_race_mesh && inputs.zoo_dp_window && inputs.zoo_next_bowl }}
+        if: ${{ always() && matrix.case == 'zoom-zoo' && inputs.zoo_race_mesh && inputs.zoo_dp_window && inputs.zoo_next_bowl }}
         shell: bash
         run: |
           set -euo pipefail

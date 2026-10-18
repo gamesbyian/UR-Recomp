@@ -73,7 +73,28 @@ def analyze_native(native:str)->dict:
     for first,second in zip(schedules,schedules[1:]):
         if (first["port"],first["val"],second["port"],second["val"])!=("3","D0","2","63"):
             continue
+        # Tie native schedule to its own queue application by the actual
+        # target clock, port and value, not by an inferred CPU/source frame.
+        # Missing or ambiguous apply observations are an explicit limitation.
+        def applied(schedule):
+            return [x for x in out if x["kind"]=="apply"
+                    and (x["port"],x["val"],x["target"])==
+                        (schedule["port"],schedule["val"],schedule["target"])
+                    and int(x["seq"])>int(schedule["seq"])]
+        first_apply=applied(first)
+        second_apply=applied(second)
+        uniquely_applied=len(first_apply)==1 and len(second_apply)==1
+        later_reads=(
+            [x for x in out if x["kind"]=="spc-read"
+             and int(x["seq"])>max(int(first_apply[0]["seq"]),
+                                  int(second_apply[0]["seq"]))]
+            if uniquely_applied else [])
         candidates.append({
+            "native_queue_first_second_unique_target_applies":uniquely_applied,
+            "native_matched_true_queue_apply_records":
+                [first_apply[0],second_apply[0]] if uniquely_applied else [],
+            "native_later_SPC_reads_are_only_compatible_not_proven_transfer":True,
+            "native_later_SPC_receiver_examples":later_reads[:16],
             "native_schedule_global_kind_ordinals":[int(first["global_kind_ord"]),int(second["global_kind_ord"])],
             "native_port_clocks":[int(first["clock"]),int(second["clock"])],
             "native_host_frames":[int(first["frame"]),int(second["frame"])],

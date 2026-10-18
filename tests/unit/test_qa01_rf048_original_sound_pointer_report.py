@@ -18,8 +18,10 @@ def native_records():
     return "\n".join([
       "QA01RF037NATIVEPTR frame=6056 bank=00 addr=0063 width=2 val=C773 A=00BD scope=Snd_IncDataPtr_M1X0",
       "QA01RF037NATIVEPTR frame=6057 bank=00 addr=0063 width=2 val=C774 A=00BD scope=Snd_UploadBlock_80D1_M1X0",
+      "QA01RF037NATIVEPTR frame=6057 bank=00 addr=0065 width=1 val=0013 A=00BD scope=Snd_UploadBlock_80D1_M1X0",
       "QA01RF037NATIVEPTR frame=6061 bank=00 addr=0063 width=2 val=D0B3 A=00FD scope=Snd_IncDataPtr_M1X0",
       "QA01RF037NATIVEPTR frame=6062 bank=00 addr=0063 width=2 val=D0B4 A=00FD scope=Snd_UploadBlock_80D1_M1X0",
+      "QA01RF037NATIVEPTR frame=6062 bank=00 addr=0065 width=1 val=0013 A=00FD scope=Snd_UploadBlock_80D1_M1X0",
     ])
 
 class FirstConsumerReportTest(unittest.TestCase):
@@ -30,6 +32,13 @@ class FirstConsumerReportTest(unittest.TestCase):
         self.assertEqual(out["original_indexed_candidate_by_bank"],{"13":1})
         self.assertEqual(out["native_verified_boundary_read_pairs"][0]["native_first_bus_helper_read"],"C774")
         self.assertEqual(out["native_verified_boundary_read_pairs"][1]["native_first_bus_helper_read"],"D0B4")
+        self.assertEqual(
+            [x["native_first_24bit_indexed_operand"] for x in
+             out["native_verified_boundary_read_pairs"]],
+            ["13C774","13D0B4"])
+        self.assertEqual(
+            [x["original_same_24bit_indexed_operand_observations"] for x in
+             out["native_verified_boundary_read_pairs"]],[1,0])
         self.assertFalse(out["source_original_internal_frame_equals_native_host_proven"])
         self.assertFalse(out["original_effective_pointer_vs_native_consumer_proven"])
         self.assertEqual(out["complete_USA_event_credit"],0)
@@ -66,6 +75,17 @@ class FirstConsumerReportTest(unittest.TestCase):
               ["original_indexed_effective_candidate_rows"],1)
         with self.assertRaisesRegex(ValueError,"indexed target disagrees"):
             rf.classify(SOURCE_ROW+" indexed_target=0",native_records())
+        with self.assertRaisesRegex(ValueError,"missing native high-bank"):
+            rf.classify(SOURCE_ROW,native_records().replace(
+                "frame=6057 bank=00 addr=0065","frame=6057 bank=00 addr=0066"))
+        low_only=rf.classify(
+            SOURCE_ROW.replace("raw_ptr=13C774","raw_ptr=11C774")
+                      .replace("effective_candidate=13C774","effective_candidate=11C774"),
+            native_records())
+        self.assertTrue(low_only["source_indexed_lowword_matches_only"])
+        self.assertEqual(
+            low_only["native_verified_boundary_read_pairs"][0]
+                     ["original_same_24bit_indexed_operand_observations"],0)
 
 if __name__=="__main__":
     unittest.main()

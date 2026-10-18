@@ -1,5 +1,9 @@
 """Fail-closed pure checks for bounded late current-epoch CGRAM observer."""
 import unittest
+import sys
+from pathlib import Path
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
 from tools import qa08_current_late_cgram_port_patch as p
 from tools import qa08_current_late_cgram_witness as w
 

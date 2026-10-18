@@ -103,7 +103,8 @@ def run_case(launcher: Path, fixture: Path, seed: Path,
         raise ValueError("Source fixture lacked exact typed/raw authority")
     raw = user / "saves/profile-native-ci-rider/save.srm"
     raw.write_bytes(original["raw"][:513])
-    before = snapshot(user)
+    # Deliberately damaged source: only this witness opts into 513-byte capture.
+    before = snapshot(user, expected_raw_bytes=513)
     if (len(before["raw"]) != 513 or
         before["raw"] != original["raw"][:513] or
         any(before[k] != original[k]
@@ -116,7 +117,7 @@ def run_case(launcher: Path, fixture: Path, seed: Path,
     retain(byte_root, "before-r", before, receipts)
     reject_log, injected = reject_raw_with_actual_console(
         launcher, user, root, timeout)
-    refused = snapshot(user)
+    refused = snapshot(user, expected_raw_bytes=513)
     retain(byte_root, "after-refused-r", refused, receipts)
     if (not injected or refused != before or
         list(user.rglob("native-sram-manual-archive-*")) or

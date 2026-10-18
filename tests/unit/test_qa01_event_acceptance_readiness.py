@@ -23,7 +23,9 @@ def fixture():
                 "original_movie_window_sha256", "reference_script_sha256")},
             "strict_candidate": True, "terminal_frame_matched": True,
             "strict_producer_gate_audit": {
-                "gates": {"candidate": True, "frame": True},
+                "gates": {name: True for name in (
+                    *readiness.campaign.STRICT_PRODUCER_GATES,
+                    "no_sampled_state_disagreement", "same_guest_relative_result_onset")},
                 "recomputed_candidate": True},
             "source_original_movie_vs_fresh_guest_result_phase": {
                 "three_relative_durations_equal": True,
@@ -78,7 +80,8 @@ class ReadinessTests(unittest.TestCase):
         row["disposition"] = "strict_divergence"
         row["evidence"]["strict_candidate"] = False
         row["evidence"]["strict_producer_gate_audit"] = {
-            "gates": {"candidate": True, "frame": False},
+            "gates": {**fixture()["evidence"]["strict_producer_gate_audit"]["gates"],
+                      "timed_race_or_circuit_result_visible": False},
             "recomputed_candidate": False}
         self.assertIn("strict_original_native_result_or_active_state_divergence",
                       readiness.assess(row)["blocking_requirements"])
@@ -94,10 +97,15 @@ class ReadinessTests(unittest.TestCase):
             lambda x: x["evidence"].update(strict_candidate=False),
             lambda x: x["evidence"]["strict_producer_gate_audit"].update(
                 recomputed_candidate=False),
+            lambda x: x["evidence"]["strict_producer_gate_audit"]["gates"].clear(),
+            lambda x: x["evidence"]["strict_producer_gate_audit"]["gates"].update(
+                unknown=True),
             lambda x: x["evidence"]["next_bowl_bounded"].update(
                 unsampled_frames_or_windows_disk_persistence_proven=True),
             lambda x: x["evidence"]["next_bowl_bounded"].update(
                 raw_wram_differing_byte_occurrences=0),
+            lambda x: x["evidence"]["next_bowl_bounded"].update(
+                raw_wram_differing_sample_offsets=[999]),
             lambda x: x["evidence"]["source_original_movie_vs_fresh_guest_result_phase"].update(
                 continuous_original_to_fresh_equivalence_proven=True),
             lambda x: x.update(source_sha="main"),

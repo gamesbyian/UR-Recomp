@@ -11,6 +11,8 @@ import json
 import re
 from pathlib import Path
 
+import qa01_event_campaign as campaign
+
 SCHEMA = "ur-qa01-independent-event-readiness/1"
 HEX = re.compile(r"[0-9a-f]{64}\Z")
 CASES = {"zoom-zoo": "course:02", "bowl": "course:03", "switcher": "course:04"}
@@ -65,7 +67,11 @@ def assess(row: dict) -> dict:
         audit = ev.get("strict_producer_gate_audit")
         require(isinstance(audit, dict) and isinstance(audit.get("gates"), dict) and
                 audit.get("recomputed_candidate") is strict and
+                set(audit["gates"]) == (set(campaign.STRICT_PRODUCER_GATES) | {
+                    "no_sampled_state_disagreement", "same_guest_relative_result_onset"}) and
                 all(type(v) is bool for v in audit["gates"].values()) and
+                audit["gates"]["same_guest_relative_result_onset"] is
+                    ev["terminal_frame_matched"] and
                 all(audit["gates"].values()) is strict,
                 "contradictory strict producer-gate audit")
         phase = ev.get("source_original_movie_vs_fresh_guest_result_phase")
@@ -113,7 +119,9 @@ def assess(row: dict) -> dict:
         count = handoff.get("raw_wram_differing_byte_occurrences")
         require(isinstance(offsets, list) and all(type(x) is int for x in offsets) and
                 offsets == sorted(set(offsets)) and
-                type(count) is int and count >= 0 and bool(count) == bool(offsets),
+                all(x in campaign.ZOO_BOWL_OFFSETS for x in offsets) and
+                type(count) is int and count >= 0 and bool(count) == bool(offsets) and
+                (handoff["status"] != "not_observed" or (offsets == [] and count == 0)),
                 "malformed full-WRAM residual")
         bounded["handoff_unmasked_wram_differing_offsets"] = offsets
         bounded["handoff_unmasked_wram_differing_byte_occurrences"] = count

@@ -42,6 +42,27 @@ class ActualMedal4BppArchive(unittest.TestCase):
             with self.subTest(x=candidate),self.assertRaises(ValueError):
                 v.checked_fetch(candidate)
 
+    def test_retained_machine_receipt_from_real_archive_is_immutable(self):
+        import gzip
+        import hashlib
+        import json
+        path=ROOT/"analysis/data/qa08-current-native-medal-4bpp-winners-20261018.json.gz"
+        raw=path.read_bytes()
+        self.assertEqual(hashlib.sha256(raw).hexdigest(),
+            "28452009973c64b920716ba4745427d50b23925eeb53fa345fafdd5b63fe4d72")
+        decompressed=gzip.decompress(raw)
+        self.assertEqual(hashlib.sha256(decompressed).hexdigest(),
+            "f219ad689cc7d0aac1a391e998334f1aa41b94a98da1bf4126f94f680381ea71")
+        receipt=json.loads(decompressed)
+        self.assertEqual(receipt["source_registered_native_OBJ_winner_count"],19)
+        self.assertEqual(len(receipt["source_native_obj_winners"]),19)
+        self.assertEqual(receipt["source_native_BG1_negative_controls"],6)
+        self.assertEqual(receipt["source_double_write_coordinates"],6)
+        self.assertEqual(receipt["actual_physical_4bpp_fetches"],25)
+        self.assertFalse(receipt["renderer_or_release_approved"])
+        self.assertFalse(receipt["original_2014_Snes9x_effective_pixel_owner_identical_proven"])
+        self.assertFalse(receipt["strict_5484_frame_CRC_recomputed_from_this_log"])
+
     def test_declared_source_and_no_acceptance_boundaries(self):
         self.assertEqual(v.ARTIFACT_ID,12134793278)
         self.assertEqual(v.RUN_ID,39123459879)

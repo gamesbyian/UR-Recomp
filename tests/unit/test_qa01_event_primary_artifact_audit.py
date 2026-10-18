@@ -37,22 +37,25 @@ def write_synthetic_source_replay(folder: Path, case: str) -> None:
 def producer(case: str, *, matched: bool) -> dict:
     rel = 5163
     frames = [0, 1, 2, 4, 8, 16, 32, 100]
+    source_laps = [3, 3, 2, 2, 1, 0, 0, 0] if case == "zoom-zoo" else [2] * len(frames)
     original_rows = [
-        {"relative_frame": f, "menu": 0x16, "p1_laps": 2, "in_race": 1}
-        for f in frames
+        {"relative_frame": f, "menu": 0x16, "p1_laps": laps, "in_race": 1}
+        for f, laps in zip(frames, source_laps)
     ]
     native_rows = [dict(row) for row in original_rows]
     if not matched:
         native_rows[-1]["p1_laps"] = 1
     first = None if matched else {
         "relative_frame": 100, "fields": ["p1_laps"],
-        "reference": {"p1_laps": 2},
+        "reference": {"p1_laps": original_rows[-1]["p1_laps"]},
         "native": {"p1_laps": 1},
     }
+    expected_menu = {"zoom-zoo": 0xBC, "bowl": 0x18, "switcher": 0x99}[case]
+    final_text = ["MIKE", ": 123" if case == "bowl" else "1:08.81"]
     terminal = {
-        "onset": {"menu": 0x18, "in_race": 0x3C},
-        "result": {"menu": 0x18, "in_race": 0x3C},
-        "result_text": {"final": ["MIKE", "123"]},
+        "onset": {"menu": expected_menu, "in_race": 0x3C, "p1_laps": 0},
+        "result": {"menu": expected_menu, "in_race": 0x3C, "p1_laps": 0},
+        "result_text": {"final": final_text},
     }
     return {
         "schema_version": 1, "name": case,
@@ -77,6 +80,7 @@ def producer(case: str, *, matched: bool) -> dict:
             "paired_event_candidate": matched,
             "fresh_guest_entry_equivalent": True,
             "original_source_entry_equivalent": True,
+            "intermediate_result_text_matched": True,
             "terminal_result_frame_matched": matched,
             "terminal_result_guest_frame": {
                 "reference_relative": rel,
@@ -204,6 +208,19 @@ class PrimaryArtifactAuditTest(unittest.TestCase):
         observed = self.inspect(with_aggregate=True)
         self.assertFalse(observed["primary_artifact_audit_complete"])
         self.assertIn("replay script", observed["cases"][0]["reason"])
+
+    def test_forged_positive_result_gate_denied_despite_rehashed_coherent_case(self):
+        record = campaign.load_json(self.primary)
+        record["comparison"]["both_reached_terminal_menu"] = False
+        record["comparison"]["paired_event_candidate"] = False
+        campaign.write_json(self.primary, record)
+        derived = campaign.classify("bowl", 1, self.primary, self.plan)
+        self.assertEqual(derived["disposition"], "strict_divergence")
+        campaign.write_json(self.receipt, derived)
+        self.assertTrue(campaign.aggregate(self.plan, self.root)[0]["transport_complete"])
+        independent = self.inspect()
+        self.assertFalse(independent["primary_artifact_audit_complete"])
+        self.assertIn("both_reached_terminal_menu", independent["cases"][0]["reason"])
 
     def test_real_strict_divergence_is_valid_negative_evidence(self):
         self.put_case(matched=False)

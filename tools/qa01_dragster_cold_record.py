@@ -88,7 +88,7 @@ def source_seeds(report: dict, replay: Path) -> dict:
             or hand.get("original_movie_dragster_result_frame") != RESULT
             or hand.get("original_movie_zoo_entry_frame") != NEXT_ZOO_ENTRY
             or hand.get("original_movie_zoo_entry_relative_to_dragster_result") != 316
-            or hand.get("sample_offsets") != list(handoff.OFFSETS)
+            or source.get("source_next_zoo", {}).get("sample_offsets") != list(handoff.OFFSETS)
             or hand.get("source_controller_masks_rephased") is not False
             or hand.get("release_complete_usa_event_credit") != 0
             or hand.get("original_native_ranked_checksum_valid_all_samples") is not True

@@ -225,6 +225,68 @@ qualified lead only. No new workflow, new CI trigger, replacement emulator,
 guest logic, CPU/APU runtime correction or second 45-course denominator
 was introduced.
 
+## Independent primary-artifact receipt audit (2026-10-18)
+
+The manual campaign's aggregate rechecks the derived `case-result.json`
+assertions but does not itself reopen the source `producer-report.json`.
+A complete-looking derived receipt can therefore outlive an altered or
+missing primary source JSON. The aggregate job now runs the ROM-free,
+read-only `tools/qa01_event_primary_artifact_audit.py` on its already-downloaded
+case artifacts, with no extra emulator build, workflow trigger or runner.
+It checks the exact producer bytes against their recorded SHA-256,
+requires the **original shared build's three-line SHA256SUMS** in each case
+archive, checks original/native producer executable digests against that
+already-verified manifest and checks the manifest identity across case
+shards. It retains the third staged `snesref` digest for build provenance
+without claiming the manifest by itself proves emulator execution.
+The checker additionally requires the full advertised original/native
+sampled-frame population,
+reconstructs the first sampled named-field divergence and fresh-entry
+equivalence from raw observation rows, reclassifies each case from the
+primary report and compares the entire derived receipt. It also recomputes the published aggregate and rejects
+unexpected case directories. The audit's separate JSON and job summary
+explicitly distinguish **verified transport only** from acceptance.
+
+For local inspection of downloaded plan, cases and aggregate:
+
+```bash
+python3 tools/qa01_event_primary_artifact_audit.py \
+  --plan qa01-plan.json --results-dir cases/ \
+  --campaign-result campaign-result.json \
+  --out qa01-primary-artifact-audit.json
+```
+
+Any missing primary report or SHA256SUMS, changed producer bytes,
+different case manifest, mismatched executable digest, forged case summary,
+aggregate disagreement or producer failure is an incomplete/invalid audit;
+it cannot be promoted as source-authentic coverage. The checker does
+**not** authenticate original emulator execution independently of the
+producer, verify original ROM bytes from an archive, decide causal CPU/APU
+equivalence, or grant event/release credit. It stays a second transport
+integrity check; QA-01/07 and the census retain full admission authority.
+
+### Controller replay identity and completeness
+
+The existing event producer already constructs the actual Snes9x and pinned
+Baldosa injected-input files after independently calibrating both guest
+entry frames. The manual case artifact now also retains its
+\`work/<case>/replay/ref.input\`, \`pinned-baldosa.input\`, \`complete.script\`,
+and optional exact Switcher original-only supplementary script. The same
+read-only primary-artifact auditor checks all nonzero masks, durations and
+ordinal order against the **exact observed native frame shift**, checks the
+SHA256 of the executed reference/native script against the original producer
+hashes, and requires every advertised sparse sample's dump command, terminal
+onset, and settled result. Each case retains both original input-file digests
+in the compact audit receipt. Missing or mismatched routes are invalid
+transport, not gameplay divergence.
+
+The files are *supplied controller events* generated from the original SMV,
+not an independently measured consumed-button bus trace. Matching input
+files do not prove the original/native engines latched each mask on the
+same CPU phase, nor that unsampled game frames agree. Retain guest input
+execution evidence and independent QA-01/07 authority. No original movie,
+guest dump, ROM or native binary is added to the retained case archive.
+
 ## Failure triage and extension
 
 When infrastructure is red, use the aggregate's first missing/invalid case,

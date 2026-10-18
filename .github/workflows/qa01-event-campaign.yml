@@ -418,6 +418,9 @@ jobs:
           ROOT="$RUNNER_TEMP/qa01-case"
           BIN="$RUNNER_TEMP/qa01-binaries"
           mkdir -p "$ROOT"
+          # Reuse the SHA256SUMS already validated against the shared binaries.
+          # Retain the tiny original manifest beside this case's producer JSON.
+          cp "$BIN/SHA256SUMS" "$ROOT/SHA256SUMS"
           set +e
           timeout --signal=TERM --kill-after=30s 75m \
             python3 tools/probe_original_event_complete.py \
@@ -596,12 +599,17 @@ jobs:
             ${{ runner.temp }}/qa01-case/qa01-cold-guest-boot/native.log
             ${{ runner.temp }}/qa01-case/qa01-apu-edge-report.json
             ${{ runner.temp }}/qa01-case/producer-report.json
+            ${{ runner.temp }}/qa01-case/SHA256SUMS
             ${{ runner.temp }}/qa01-case/producer.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/source/source-scan.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/calibration/reference.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/calibration/native.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/reference.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/native.log
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/complete.script
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/switcher-reference-penultimate.script
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/ref.input
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/pinned-baldosa.input
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/zoo-terminal-phase/reference.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/zoo-terminal-phase/native.log
 
@@ -635,6 +643,16 @@ jobs:
             --results-dir "$RUNNER_TEMP/qa01-results" \
             --out "$RUNNER_TEMP/campaign-result.json" \
             --summary "$GITHUB_STEP_SUMMARY"
+      - name: Independently reopen all retained primary producer reports
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/qa01_event_primary_artifact_audit.py \
+            --plan "$RUNNER_TEMP/qa01-input/qa01-plan.json" \
+            --results-dir "$RUNNER_TEMP/qa01-results" \
+            --campaign-result "$RUNNER_TEMP/campaign-result.json" \
+            --out "$RUNNER_TEMP/qa01-primary-artifact-audit.json" \
+            --summary "$GITHUB_STEP_SUMMARY"
       - name: Upload final bounded campaign report
         if: always()
         uses: actions/upload-artifact@v4
@@ -642,4 +660,6 @@ jobs:
           name: qa01-campaign-aggregate
           retention-days: 14
           if-no-files-found: warn
-          path: ${{ runner.temp }}/campaign-result.json
+          path: |
+            ${{ runner.temp }}/campaign-result.json
+            ${{ runner.temp }}/qa01-primary-artifact-audit.json

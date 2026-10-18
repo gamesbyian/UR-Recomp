@@ -1,0 +1,168 @@
+{
+  "schema": "UR-QA01-INDEPENDENT-REAL-BOWL-RAW-IMAGE-ADJUDICATION/1",
+  "status": "strict_progression_negative; zero_usa_event_admission",
+  "execution": {
+    "run_id": 39168164480,
+    "exact_github_head_sha": "9ee3b8cb876f630d259882dde62da07ba6217c8d",
+    "original_artifact_id": 12151357791,
+    "actual_archive_sha256_rehashed": "2924534f2700714c655647b43e2453c54d4e76f0e258566bcf500439d962ea79",
+    "actual_uncompressed_archive_members": 62,
+    "real_original_native_wram_images_128k": 24,
+    "real_original_native_sram_images_8k": 24,
+    "original_producer_report_sha256_rehashed": "55fd130ea2e52110ce89d7c3f33c6bfaf9182a4b2d1b82289a10845b0b1ca390",
+    "original_independent_audit_report_sha256_rehashed": "1e4e124f3064bfc1f99eae654c0067a0ed19242d1727538de1e32682a4fa8821"
+  },
+  "method": "Independent offline ZIP SHA-256 rehash; ZIP CRC; each of 48 actual raw image lengths, producer-reported per-image SHA-256, three guest PPU named state bytes, whole 150-record SRAM checksum and Bowl course-2 rank0=764; independently diff every byte of all 12 WRAM/SRAM pairs; compare exact acknowledgment host frames in retained original/native logs and producer JSON. Not an independent repeat of emulator execution.",
+  "source": {
+    "movie_bowl_entry_frame": 8620,
+    "movie_bowl_result_frame": 11985,
+    "movie_next_switcher_frame": 12327,
+    "movie_next_entry_result_offset": 342,
+    "fresh_snes9x_result_relative": 3365,
+    "fresh_native_result_relative": 3364,
+    "fresh_snes9x_next_active_offset": 341,
+    "fresh_native_next_active_offset": 344,
+    "fresh_snes9x_next_active_absolute_host": 4690,
+    "fresh_native_next_active_absolute_host": 4693,
+    "controller_frames_shifted_by_reviewer": false
+  },
+  "comparison": {
+    "whole_wram_exact_pairs": 0,
+    "total_wram_differing_byte_occurrences": 3041,
+    "whole_sram_exact_pairs": 0,
+    "persistent_three_sram_different_bytes": [
+      {
+        "offset": "0x0EF6",
+        "original": 1,
+        "native": 0
+      },
+      {
+        "offset": "0x0F31",
+        "original": 1,
+        "native": 0
+      },
+      {
+        "offset": "0x0F33",
+        "original": 5,
+        "native": 4
+      }
+    ],
+    "every_sample_original_and_native_bowl_record764_with_valid_full_rank_checksum": true,
+    "samples": [
+      {
+        "offset_after_guest_bowl_result": 334,
+        "host_frame": 4683,
+        "unmasked_wram_differing_bytes": 2,
+        "sram_differing_bytes": 3,
+        "fresh_original_switcher_active": false,
+        "fresh_native_switcher_active": false
+      },
+      {
+        "offset_after_guest_bowl_result": 338,
+        "host_frame": 4687,
+        "unmasked_wram_differing_bytes": 2,
+        "sram_differing_bytes": 3,
+        "fresh_original_switcher_active": false,
+        "fresh_native_switcher_active": false
+      },
+      {
+        "offset_after_guest_bowl_result": 339,
+        "host_frame": 4688,
+        "unmasked_wram_differing_bytes": 2,
+        "sram_differing_bytes": 3,
+        "fresh_original_switcher_active": false,
+        "fresh_native_switcher_active": false
+      },
+      {
+        "offset_after_guest_bowl_result": 340,
+        "host_frame": 4689,
+        "unmasked_wram_differing_bytes": 33,
+        "sram_differing_bytes": 3,
+        "fresh_original_switcher_active": false,
+        "fresh_native_switcher_active": false
+      },
+      {
+        "offset_after_guest_bowl_result": 341,
+        "host_frame": 4690,
+        "unmasked_wram_differing_bytes": 666,
+        "sram_differing_bytes": 3,
+        "fresh_original_switcher_active": true,
+        "fresh_native_switcher_active": false
+      },
+      {
+        "offset_after_guest_bowl_result": 342,
+        "host_frame": 4691,
+        "unmasked_wram_differing_bytes": 688,
+        "sram_differing_bytes": 3,
+        "fresh_original_switcher_active": true,
+        "fresh_native_switcher_active": false
+      },
+      {
+        "offset_after_guest_bowl_result": 343,
+        "host_frame": 4692,
+        "unmasked_wram_differing_bytes": 671,
+        "sram_differing_bytes": 3,
+        "fresh_original_switcher_active": true,
+        "fresh_native_switcher_active": false
+      },
+      {
+        "offset_after_guest_bowl_result": 344,
+        "host_frame": 4693,
+        "unmasked_wram_differing_bytes": 289,
+        "sram_differing_bytes": 3,
+        "fresh_original_switcher_active": true,
+        "fresh_native_switcher_active": true
+      },
+      {
+        "offset_after_guest_bowl_result": 345,
+        "host_frame": 4694,
+        "unmasked_wram_differing_bytes": 214,
+        "sram_differing_bytes": 3,
+        "fresh_original_switcher_active": true,
+        "fresh_native_switcher_active": true
+      },
+      {
+        "offset_after_guest_bowl_result": 346,
+        "host_frame": 4695,
+        "unmasked_wram_differing_bytes": 184,
+        "sram_differing_bytes": 3,
+        "fresh_original_switcher_active": true,
+        "fresh_native_switcher_active": true
+      },
+      {
+        "offset_after_guest_bowl_result": 349,
+        "host_frame": 4698,
+        "unmasked_wram_differing_bytes": 177,
+        "sram_differing_bytes": 3,
+        "fresh_original_switcher_active": true,
+        "fresh_native_switcher_active": true
+      },
+      {
+        "offset_after_guest_bowl_result": 354,
+        "host_frame": 4703,
+        "unmasked_wram_differing_bytes": 113,
+        "sram_differing_bytes": 3,
+        "fresh_original_switcher_active": true,
+        "fresh_native_switcher_active": true
+      }
+    ]
+  },
+  "earliest_registered_boundaries": {
+    "at_result_334_338_339": "Only WRAM 7E:00C6 cursor-animation and 7E:00C8 menu-palette-cycle timers differ, original 01/05 versus native 00/04. Imported Baldosa source labels are advisory.",
+    "at_result_340": "33 differing WRAM bytes before either guest is in the next race. Actual locations include 7E:0057 (NMI-done flag), 7E:01EC-01F5 (stack window), 7E:121F (track HDMA theme), 7E:126B/1277 (CPU rival level/speed), 7E:1359/135B (race sound parameters), 7E:2000/2002/2004 (sound-queue read/write indices and APU toggle), 7E:2069 (HDMA bottom-half brightness). Labels from reference/imported/reverse-engineering/baldosa-uniracers-recomp/decomp/ram.txt are hypotheses, NOT writer or consumer provenance.",
+    "at_result_341": "Fresh Snes9x first observed active, Baldosa not yet; 666 unmasked raw WRAM bytes differ.",
+    "at_result_344": "Baldosa first observed active; 289 WRAM differences remain, and the 3-byte SRAM mismatch persists.",
+    "first_memory_difference_not_a_proven_causal_gameplay_divergence": true,
+    "first_large_multi_state_difference_precedes_named_race_entry": true
+  },
+  "limits": {
+    "source_movie_eight_continuous_frames_reexecuted_independently": false,
+    "unique_cpu_apu_writer_or_first_reader_proven": false,
+    "verified_source_guest_input_mask_consumption": false,
+    "exact_windows_shipping_guest_proven": false,
+    "os_disk_cold_persistence_proven": false,
+    "all_frame_fidelity_proven": false,
+    "complete_usa_events_accepted": 0,
+    "release_qa_gates": 0
+  }
+}

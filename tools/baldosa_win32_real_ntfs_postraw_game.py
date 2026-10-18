@@ -114,7 +114,7 @@ def fill_and_independent_os_112(user: Path, out: Path) -> dict:
     child = out / "independent-real-ntfs-112.ps1"
     child.write_text(
         "param([string]$Path)\n"
-        "try { [IO.File]::WriteAllBytes($Path, (New-Object byte[] 8192)); exit 9 }\n"
+        "try { [IO.File]::WriteAllBytes($Path, ([byte[]]::new(8192))); exit 9 }\n"
         "catch [IO.IOException] { $code = $_.Exception.HResult -band 0xffff; "
         "if ($code -eq 112 -or $code -eq 39) { exit 112 }; exit 2 }\n",
         encoding="ascii",

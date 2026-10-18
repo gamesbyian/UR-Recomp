@@ -86,9 +86,9 @@ def classify(native: str)->dict:
                        "native_inhandler_actual_read_helper_count":len(inside),
                        "native_first_inhandler_actual_stack_read":first_reader,
                        "native_explicit_RTI_event":return_op,
-                       "native_actual_RTI_return_PC":return_op["returnPC"] if return_op else None,
+                       "native_actual_RTI_return_PC":return_op["returnPC"] if return_op and return_op["stage"]=="interp_rti" else None,
                        "native_RTI_return_PC_matches_saved_resume":
-                           return_op["returnPC"]==before["resume"] if return_op else None,
+                           return_op["returnPC"]==before["resume"] if return_op and return_op["stage"]=="interp_rti" else None,
                        "native_true_RTI_opcode_and_return_PC_proven":
                            return_op is not None and return_op["stage"]=="interp_rti"})
     explicit=sum(x["native_explicit_RTI_event"] is not None for x in result)

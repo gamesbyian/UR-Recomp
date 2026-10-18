@@ -11,6 +11,9 @@ on:
 permissions:
   contents: read
   actions: read
+concurrency:
+  group: qa08-current-original-late-cgram-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   real-original-native-source-join:
     runs-on: ubuntu-22.04

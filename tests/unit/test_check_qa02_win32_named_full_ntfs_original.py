@@ -17,7 +17,7 @@ spec = importlib.util.spec_from_file_location("qa02_full_named", SOURCE)
 qa = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(qa)
 
-PRODUCT = "a" * 64
+PRODUCT = "a" * 40
 CMD = "b" * 64
 FIXTURE = "c" * 64
 ROM = "d" * 64

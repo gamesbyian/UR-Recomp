@@ -1,0 +1,76 @@
+{
+  "schema": "rf055-real-cpu-port3-port2-local-interval-census-v1",
+  "source_artifact": {
+    "workflow_run": 39161563837,
+    "artifact_id": 12149640496,
+    "zip_sha256": "3ccb209a92045e9e89113442e68af51b85a453a160a9b9efaf8ca0d59e79631c",
+    "frozen_source_sha": "7334a568f52ea390ae5866d3ee132e392635a186",
+    "archive_members": 18,
+    "original_path": "work/zoom-zoo/replay/reference.log",
+    "native_path": "work/zoom-zoo/replay/native.log"
+  },
+  "original_CPU_observation": {
+    "log_tag": "QA01RF050ORIGAPU",
+    "actual_source_APU_port_publications": 38,
+    "adjacent_port3_to_port2_pairs": 16,
+    "master_clocks_derived_from_same_source_beam": {
+      "line_master_clocks": 1364,
+      "all_gaps_master": 50,
+      "histogram": {
+        "50": 16
+      }
+    },
+    "source_local_SPC_age_gap_histogram": {
+      "2": 8,
+      "4": 8
+    },
+    "late_target": {
+      "source_CPU_instruction": "82:82F0",
+      "effective_operand": "11:C774",
+      "source_port3": {
+        "port": 3,
+        "value": "D0",
+        "v": 159,
+        "h": 1016,
+        "spc_age": 104485254
+      },
+      "source_port2": {
+        "port": 2,
+        "value": "63",
+        "v": 159,
+        "h": 1066,
+        "spc_age": 104485258
+      }
+    }
+  },
+  "native_CPU_observation": {
+    "log_tag": "QA01RF054NATIVE kind=writer",
+    "actual_CPU_RtlApuWrite_publications": 1312,
+    "adjacent_port3_to_port2_pairs": 656,
+    "gaps_native_cpu_master_histogram": {
+      "50": 656
+    },
+    "rom_helper_reads": 656,
+    "rom_helper_read_effective_address_contiguous_from": "11:C589",
+    "rom_helper_read_effective_address_contiguous_through": "11:C818",
+    "rom_helper_stride_bytes": 1,
+    "late_target": {
+      "compiled_cpu_scope": "Snd_UploadBlockList_82EF_M1X0",
+      "actual_helper": "cpu_read8",
+      "actual_effective_operand": "11:C774",
+      "master_read": 2188739002,
+      "native_port3_value": "D0",
+      "native_master_port3": 2188739032,
+      "native_port2_value": "63",
+      "native_master_port2": 2188739082
+    }
+  },
+  "claim_scope": {
+    "local_CPU_port3_to_port2_master_intervals_identical_for_observed_pairs": true,
+    "absolute_original_native_CPU_master_clocks_registered": false,
+    "absolute_original_native_SPC_age_registered": false,
+    "CPU_to_SPC_scheduler_order_correction_authorized": false,
+    "original_native_full_event_CPU_instruction_equivalence": false,
+    "complete_USA_event_admission": 0
+  }
+}

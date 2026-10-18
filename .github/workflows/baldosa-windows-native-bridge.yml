@@ -37,6 +37,8 @@ on:
       - "tools/qa08_premath_full263_native_source_ab.py"
       - "tests/unit/test_baldosa_uniracers_premath_brightness_trial.py"
       - "tests/unit/test_qa08_premath_full263_native_source_ab.py"
+      - "tools/qa08_premath_oneplayer65_source_ab.py"
+      - "tests/unit/test_qa08_premath_oneplayer65_source_ab.py"
       - "tests/unit/test_baldosa_native_practice_probe.py"
       - "tests/unit/test_baldosa_native_second_racer_probe.py"
       - "tools/baldosa_native_first_racer_real_run_probe.py"
@@ -223,6 +225,7 @@ jobs:
           python tests/unit/test_baldosa_uniracers_v0_raster_before_hdma_patch.py
           python tests/unit/test_baldosa_uniracers_premath_brightness_trial.py
           python tests/unit/test_qa08_premath_full263_native_source_ab.py
+          python tests/unit/test_qa08_premath_oneplayer65_source_ab.py
           python tests/unit/test_bind_baldosa_candidate_receipt.py
           python tests/unit/test_audit_baldosa_romless_candidate.py
           python tests/unit/test_check_windows_pe_timestamp.py
@@ -379,6 +382,36 @@ jobs:
             --current-outer "$RUNNER_TEMP/qa08-premath-reference/native-current-outer.zip" \
             --out "$RUNNER_TEMP/qa08-premath-test/full2p" --timeout 720
           echo "QA08 genuine 263-field RGB5 A/B done; no release/QA credit." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify authentic independent 1P 65 consecutive source callbacks
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'graphics/qa08-premath-real-oneplayer-65-source-ab-20261017' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-1p-reference"
+          curl --fail --silent --show-error --location --retry 2 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/11956168307/zip" \
+            -o "$RUNNER_TEMP/qa08-1p-reference/actual-original-Snes9x.zip"
+          python tools/qa08_premath_oneplayer65_source_ab.py \
+            --exe baldosa/build-ur-win/UniracersSNESRecomp.exe \
+            --rom reference/roms/retail/Uniracers_USA.sfc \
+            --script reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_1p.txt \
+            --original-artifact "$RUNNER_TEMP/qa08-1p-reference/actual-original-Snes9x.zip" \
+            --out "$RUNNER_TEMP/qa08-1p-65-experiment/current" --timeout 720
+          echo "QA08 65 authenticated original/native 1P moving frames only, no release QA credit." >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve actual independent 1P 65-frame Win32 PPU source results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-premath-real-oneplayer-65-source
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa08-1p-65-experiment/current/qa08-premath-oneplayer65.json
+            ${{ runner.temp }}/qa08-1p-65-experiment/current/qa08-premath-oneplayer65-images.zip
       - name: Archive actual 263-frame PPU A/B and pixel regressions
         if: always()
         uses: actions/upload-artifact@v4

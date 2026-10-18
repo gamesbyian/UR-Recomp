@@ -1,0 +1,60 @@
+name: QA08 authentic Windows medal 4bpp source archive proof
+on:
+  pull_request:
+    paths:
+      - "tools/qa08_verify_archived_native_medal_4bpp.py"
+      - "tests/unit/test_qa08_verify_archived_native_medal_4bpp.py"
+      - ".github/workflows/qa08-medal-4bpp-source-archive-proof.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: qa08-real-4bpp-source-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  original-native-ppu-observation:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download one real archived source, no Windows emulator or ROM
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-medal-source"
+          curl --retry 3 --fail --location --silent --show-error \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12134793278/zip" \
+            -o "$RUNNER_TEMP/qa08-medal-source/source.zip"
+          echo "725ef03df3d43ff5d30b4bea944e32555974fb0b0e01af025da76ef88959b408  $RUNNER_TEMP/qa08-medal-source/source.zip" | sha256sum -c -
+      - name: Independently recompute all actual 4bpp pixels and OBJ buffer owners
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tests/unit/test_qa08_verify_archived_native_medal_4bpp.py
+          python3 tools/qa08_verify_archived_native_medal_4bpp.py \
+            --archive "$RUNNER_TEMP/qa08-medal-source/source.zip" \
+            --out "$RUNNER_TEMP/qa08-medal-source/proven-medal-physical-source.json"
+          python3 - "$RUNNER_TEMP/qa08-medal-source/proven-medal-physical-source.json" <<'PY'
+          import json,sys
+          p=json.load(open(sys.argv[1]))
+          assert p["source_registered_native_OBJ_winner_count"]==19
+          assert p["source_native_BG1_negative_controls"]==6
+          assert p["source_double_write_coordinates"]==6
+          assert p["actual_physical_4bpp_fetches"]==25
+          assert p["original_2014_Snes9x_effective_pixel_owner_identical_proven"] is False
+          assert p["renderer_or_release_approved"] is False
+          PY
+          echo "Real current native PPU source: 19/19 exact OBJ sprite-fetch -> zbuffer, 6 BG1 controls. Original 2014 parity/release HOLD." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain source-only replay receipt, not a reconstructed ROM
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-original-native-medal-4bpp-source-archive-verified
+          retention-days: 90
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/qa08-medal-source/proven-medal-physical-source.json

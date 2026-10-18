@@ -940,6 +940,20 @@ jobs:
             --out "$RUNNER_TEMP/Baldosa Win32 Invalid Intent Typed Recovery" --timeout 120
           echo "PASS: original Windows CMD actual console T archives malformed binary pending, original raw and typed before exact committed restore; two cold original guest processes idempotent. No auto trust, physical input, short-write or release QA credit." >> "$GITHUB_STEP_SUMMARY"
 
+      # Actual Win32 held-open pending file denies deletion *after* explicit
+      # typed T has restored canonical raw. The original CMD must disclose
+      # partial completion, retain archives and refuse unsafe relaunch.
+      - name: Prove original CMD T partial rollback warns on real journal-delete denial
+        run: |
+          set -euo pipefail
+          python tools/baldosa_win32_interactive_t_pending_delete_denial.py \
+            --launcher "$RUNNER_TEMP/Baldosa Native Extracted Launcher QA/Extracted Baldosa Candidate With Spaces/run-baldosa-modern.cmd" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/baseline/Modern Player Data With Spaces/saves/save.srm" \
+            --out "$RUNNER_TEMP/Baldosa Win32 Held Pending T Denial" --timeout 120
+          echo "PASS: actual Windows held journal file denied post-restore unlink, original CMD T warned of partial work/no safe relaunch, preserved exact archives, and a NEW explicit T and two cold boots succeeded. Not physical torn write, power cut, operator or release QA." >> "$GITHUB_STEP_SUMMARY"
+
       # Separate original Windows source-bound acceptance for a valid but
       # noncanonical typed-save file. The original malformed-intent-T artifact
       # is unchanged; do not conflate the two 25-member envelopes.
@@ -1109,6 +1123,19 @@ jobs:
             ${{ runner.temp }}/Baldosa Win32 Invalid Intent Typed Recovery/*.log
             ${{ runner.temp }}/Baldosa Win32 Invalid Intent Typed Recovery/*.key.log
             ${{ runner.temp }}/Baldosa Win32 Invalid Intent Typed Recovery/source-bytes/**
+
+      - name: Retain original CMD T post-restore pending-delete denial bytes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-interactive-t-pending-delete-denial
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/Baldosa Win32 Held Pending T Denial/result.json
+            ${{ runner.temp }}/Baldosa Win32 Held Pending T Denial/*.log
+            ${{ runner.temp }}/Baldosa Win32 Held Pending T Denial/*.key.log
+            ${{ runner.temp }}/Baldosa Win32 Held Pending T Denial/source-bytes/**
 
       - name: Retain separate original CMD noncanonical typed T source bytes
         if: always()

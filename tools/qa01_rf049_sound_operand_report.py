@@ -52,6 +52,24 @@ def analyze_source(original: str)->dict:
         raise ValueError("original RF049 incomplete per-bank opcode coverage")
     if d["target_overflow"] or d["unclosed"]:
         raise ValueError("original RF049 target observation truncated/unpaired")
+    # RF048 was independently installed before RF049 on this immutable
+    # source guest; cross-check every completed source frame's LDA count.
+    independent=[]
+    for line in lines:
+        if line.startswith("QA01RF048ORIGCOUNT "):
+            x=fields(line)
+            if "frame" not in x or "actual_lda" not in x:
+                raise ValueError("original RF048 independent frame count incomplete")
+            independent.append((int(x["frame"]),int(x["actual_lda"])))
+    expected_frames=list(range(d["first"],d["last"]))
+    if [frame for frame,_ in independent]!=expected_frames:
+        raise ValueError("original RF048 independently counted frame window incomplete")
+    if any(count<=0 or count>2000 for _,count in independent):
+        raise ValueError("original RF048 impossible independent source frame count")
+    independent_prior_sum=sum(count for _,count in independent)
+    final_frame_count=d["total"]-independent_prior_sum
+    if final_frame_count<=0 or final_frame_count>2000:
+        raise ValueError("original RF049 census conflicts with independent RF048 frame counts")
     for k in range(10,14):
         n=d["bank"+str(k)]
         if n and d["min"+str(k)]>d["max"+str(k)]:
@@ -90,6 +108,9 @@ def analyze_source(original: str)->dict:
       "schema":"rf049-source-opcode-full-operand-census-v1",
       "original_first_last_internal_frames":[d["first"],d["last"]],
       "genuine_original_82F0_LDA_count":d["total"],
+      "independent_RF048_prior_frame_count_receipts":len(independent),
+      "independent_RF048_prior_frames_LDA_total":independent_prior_sum,
+      "qualified_final_original_frame_LDA_count":final_frame_count,
       "source_bank_counts":{str(k):d["bank"+str(k)] for k in range(10,14)},
       "source_bank_lowword_extrema":{
          str(k):[f'{d["min"+str(k)]:04X}',f'{d["max"+str(k)]:04X}']

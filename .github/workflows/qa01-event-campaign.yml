@@ -665,6 +665,8 @@ jobs:
             --plan "$RUNNER_TEMP/qa01-input/qa01-plan.json" \
             --results-dir "$RUNNER_TEMP/qa01-results" \
             --campaign-result "$RUNNER_TEMP/campaign-result.json" \
+            --source-movie "$GITHUB_WORKSPACE/reference/imported/tas-bots/dessyreqt-4250-submission.smv" \
+            --source-meta "$GITHUB_WORKSPACE/analysis/generated/historical-2014-smv-metadata.json" \
             --out "$RUNNER_TEMP/qa01-primary-artifact-audit.json" \
             --summary "$GITHUB_STEP_SUMMARY"
       - name: Upload final bounded campaign report

@@ -101,7 +101,15 @@ def original_t_declined(
     finally:
         forced_stop_tree(proc)
     text = transcript.read_text(encoding="utf-8", errors="replace")
-    if (not injected or not refused or
+    if not refused:
+        raise ValueError("Original CMD did not show refusal")
+    validate_refused_t_transcript(text, injected)
+    return text, injected
+
+
+def validate_refused_t_transcript(text: str, injected: bool) -> None:
+    """Reject any source CMD log that lacks exact partial-failure semantics."""
+    if (not injected or
         text.count("Explicit recovery choice [R/T/S/Q]:") != 1 or
         text.count("UR-BALDOSA-RECOVERY-REFUSED:") != 1 or
         "UR_BALDOSA_RECOVERY_CHOICE choice=typed status=4" not in text or
@@ -112,7 +120,7 @@ def original_t_declined(
         "UR-BALDOSA-RECOVERY-COMMITTED:" in text or
         "first frame simulated" in text):
         raise ValueError("Original T did not report truthful partial failure")
-    return text, injected
+
 
 
 def run_case(launcher: Path, rom: Path, fixture: Path, seed: Path,

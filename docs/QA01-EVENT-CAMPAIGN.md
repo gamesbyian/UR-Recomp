@@ -445,3 +445,42 @@ factory or release-ledger write. See source-owner
 [CPU/APU #1689](https://github.com/gamesbyian/UR-Recomp/issues/1689)
 for executed clock/instruction attribution; [#1686](https://github.com/gamesbyian/UR-Recomp/issues/1686)
 remains the separate actual Windows RF-017 shipping-source mismatch.
+
+
+### Reconstruct the supplied event inputs from the *actual* 2014 source SMV
+
+The final manual campaign's independent primary auditor no longer stops at
+the mutually consistent Snes9x/Baldosa `ref.input` and
+`pinned-baldosa.input` rows. It reopens the **unchanged, pinned, reset-anchored
+2014 source SMV** and metadata from the checked-out repository, requires the
+exact canonical movie archive SHA-256
+`06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442`,
+and separately checks the original 2014 observed Zoo, Bowl or Switcher event
+entry and settled result movie frames. The exact historical movie span is
+independently located using the producer's `original_movie_window_sha256`
+over possible bounded post-result window lengths. It must select **one
+unique matching original raw source-controller window**, which is then
+fully revalidated by the existing SMV parser for source version, NTSC,
+controller metadata, ROM CRC, and source frame bounds.
+
+The existing `tools/qa01_event_route_artifact_audit.py` verifies that the
+**entire original Snes9x supplied input event stream** equals the exact
+2014 movie's independently recomputed masks/start/duration tuple by tuple,
+and that the native stream consists of precisely those same source masks
+rebased only by the *separately observed* guest entry-frame offset.
+Matching-but-forged reference/native input files fail even if both files
+were modified in exactly the same way. It also retains the previous
+compiled binary manifest, producer hashes, observed source PPU result,
+raw-gate reconstruction and unchanged no-acceptance rule.
+
+No ROM or 2014 SMV is newly included in the public case artifact; the
+existing canonical imported archive in the working source checkout is
+read **only** by the aggregate runner. Offline replay of the final
+attestation requires both `--source-movie` and `--source-meta`; omitting
+these preserves earlier transport-only API compatibility but means the
+`original_2014_movie_controller_window_recomputed` receipt field remains
+`false`. Neither the original/source controller file nor this audit proves
+the exact CPU frame/beam at which the guest actually *consumed* the input,
+source/native all-frame gameplay parity, Windows shipping identity or
+OS-durable ranked-record publication. The 45-event acceptance denominator
+and release QA ledger remain unchanged.

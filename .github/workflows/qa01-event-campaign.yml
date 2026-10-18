@@ -468,7 +468,7 @@ jobs:
           UR_QA01_RF044_STACK_BUS: ${{ inputs.qa01_rf034_spc_boundary && '1' || '' }}
           UR_QA01_RF045_STACK_PUSH_PULL: ${{ inputs.qa01_rf034_spc_boundary && '1' || '' }}
           UR_QA01_RF047_NATIVE_NMI_RETURN: '1'
-           UR_QA01_RF048_ORIG_SOUND_POINTER: '1'
+          UR_QA01_RF048_ORIG_SOUND_POINTER: '1'
           UR_QA_ZOO_NATIVE_WRITE_FIRST: '1017'
           UR_QA_ZOO_NATIVE_WRITE_LAST: '1025'
           SNESRECOMP_WLOG_ADDR: '01EC:01F1:/dev/stderr'

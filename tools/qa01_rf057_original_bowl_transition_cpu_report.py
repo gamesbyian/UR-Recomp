@@ -27,7 +27,7 @@ def inspect(log:str)->dict:
         if not line.startswith(TAG):continue
         f=dict(KV.findall(line))
         required=("frame","seq","pc","next","op","pre_h","pre_v","post_h",
-                  "post_v","a0","a1","p0","p1","s0","s1","joy72","joy73",
+                  "post_v","a0","a1","p0","p1","s0","s1","c0","z0","n0","o0","c1","z1","n1","o1","joy72","joy73",
                   "joy74","joy75","latch8f","raw30d","raw30f")
         if any(k not in f for k in required):
             raise ValueError("RF057 missing original executed CPU context")

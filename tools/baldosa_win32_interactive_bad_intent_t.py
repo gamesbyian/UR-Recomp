@@ -21,7 +21,8 @@ from baldosa_win32_interactive_recovery_rt import (
 
 
 def main_case(launcher: Path, rom: Path, fixture: Path, seed: Path,
-              root: Path, timeout: int) -> dict:
+              root: Path, timeout: int,
+              noncanonical_typed: bool = False) -> dict:
     if os.name != "nt" or root.exists() or not all(
         p.is_file() and not p.is_symlink()
         for p in (launcher, rom, fixture, seed)
@@ -42,12 +43,30 @@ def main_case(launcher: Path, rom: Path, fixture: Path, seed: Path,
             capture_output=True, text=True, timeout=timeout, check=True)
         (root / "fixture.log").write_text(
             setup.stdout + "\n" + setup.stderr, encoding="utf-8")
-        old = snapshot(user)
-        if stock_sram(old["typed"]) != old["raw"] or len(old["raw"]) != 8192:
-            raise ValueError("Expected canonical original guest stock SRAM")
         profile = user / "saves/profile-native-ci-rider"
         raw = profile / "save.srm"
+        typed = profile / "host-profile.txt"
         pending = profile / "native-sram-checkpoint.pending"
+        if noncanonical_typed:
+            # The product typed decoder accepts empty lines but an archive
+            # must preserve the ACTUAL original text, not its re-encoding.
+            # This second Windows case is a separate envelope; the existing
+            # canonical bad-intent T artifact and QA contract remain intact.
+            original = typed.read_bytes()
+            first_line, sep, rest = original.partition(b"\n")
+            if not sep or not rest or not first_line.startswith(
+                b"UR-HOST-PROFILE"
+            ):
+                raise ValueError("Fixture has no recognized typed profile header")
+            changed_typed = first_line + sep + b"\n" + rest
+            if changed_typed == original:
+                raise ValueError("Noncanonical typed fixture was not changed")
+            typed.write_bytes(changed_typed)
+            if typed.read_bytes() != changed_typed:
+                raise ValueError("Noncanonical original bytes not preserved")
+        old = snapshot(user)
+        if stock_sram(old["typed"]) != old["raw"] or len(old["raw"]) != 8192:
+            raise ValueError("Expected original guest stock SRAM")
         if pending.exists() or pending.is_symlink():
             raise ValueError("Fixture already has pending intent")
         damaged = bytearray(old["raw"])
@@ -73,7 +92,9 @@ def main_case(launcher: Path, rom: Path, fixture: Path, seed: Path,
         retain(byte_root, "after", after, receipts)
         if (not injected or after != old or pending.exists() or
             pending.is_symlink() or stock_sram(after["typed"]) != after["raw"]):
-            raise ValueError("Original CMD did not restore committed typed SRAM")
+            raise ValueError("Original CMD did not restore exact committed typed SRAM")
+        if noncanonical_typed and typed.read_bytes() != old["typed"]:
+            raise ValueError("Win32 recovery normalized the original typed file")
         manual = list(profile.glob("native-sram-manual-archive-*.bin"))
         suspect = list(profile.glob("native-sram-untrusted-intent-*.bin"))
         if (len(manual) != 1 or len(suspect) != 1 or
@@ -111,7 +132,10 @@ def main_case(launcher: Path, rom: Path, fixture: Path, seed: Path,
             list(user.rglob("native-sram-checkpoint.pending"))):
             raise ValueError("Recovery manufactured an event or replay authority")
         result = {
-            "schema": "ur-win32-interactive-malformed-intent-typed/1",
+            "schema": ("ur-win32-interactive-noncanonical-typed-restore/1"
+                       if noncanonical_typed else
+                       "ur-win32-interactive-malformed-intent-typed/1"),
+            "exact_noncanonical_typed_bytes_preserved": noncanonical_typed,
             "candidate_cmd_sha256": digest(launcher.read_bytes()),
             "stock_seed_sha256": digest(seed.read_bytes()),
             "genuine_original_windows_cmd": True,
@@ -143,10 +167,12 @@ def main() -> None:
     ap.add_argument("--seed", required=True, type=Path)
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--timeout", type=int, default=120)
+    ap.add_argument("--noncanonical-typed", action="store_true")
     a = ap.parse_args()
     print(json.dumps(main_case(
         a.launcher.resolve(), a.rom.resolve(), a.fixture.resolve(),
-        a.seed.resolve(), a.out.resolve(), a.timeout), sort_keys=True))
+        a.seed.resolve(), a.out.resolve(), a.timeout,
+        noncanonical_typed=a.noncanonical_typed), sort_keys=True))
 
 
 if __name__ == "__main__":

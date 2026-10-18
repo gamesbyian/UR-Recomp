@@ -22,7 +22,15 @@ class DragsterZooRawAuditTests(unittest.TestCase):
         for d in ("ref", "native"):
             (self.replay / d).mkdir(parents=True)
         (self.root / "dragster/source").mkdir(parents=True)
-        trace = b"fixture source trace; not a real movie\n"
+        source_writes = [
+            (1, 0x9F, 0), (1, 0xCE, 0), (1, 0x313, 0), (1, 0xD0, 0),
+            (2874, 0x9F, 153), (2935, 0x9F, 246), (2935, 0xCE, 1),
+            (3178, 0x9F, 0), (3190, 0x313, 1), (3211, 0x313, 1),
+        ]
+        trace = "".join(
+            json.dumps({"f": f, "adr": f"0x{addr:05x}", "old": "0x00",
+                        "val": f"0x{val:02x}"}, separators=(",", ":")) + "\\n"
+            for f, addr, val in source_writes).encode("utf8")
         (self.root / "dragster/source/trace.jsonl").write_bytes(trace)
         self.trace_sha = digest(trace)
 
@@ -199,6 +207,31 @@ class DragsterZooRawAuditTests(unittest.TestCase):
             "script f=3342 dump dragster-next-zoo-316",
             "script f=3330 dump dragster-next-zoo-316"))
         with self.assertRaisesRegex(ValueError, "host clock"):
+            audit.audit(self.root)
+
+    def test_source_selection_is_not_active_zoo(self):
+        self.make()
+        actual = audit.movie_states_from_actual_trace(
+            self.root / "dragster/source/trace.jsonl")
+        self.assertEqual(actual[2935]["track"], 1)
+        self.assertEqual(actual[2935]["in_race"], 0)
+        self.assertEqual(actual[3189]["in_race"], 0)
+        self.assertTrue(all(audit.active_zoo(actual[f]) for f in range(3190, 3198)))
+        self.assertEqual(len(actual), 3197 - 2874 + 1)
+        result = audit.audit(self.root)
+        self.assertTrue(result["source_2014_8_consecutive_zoo_active_frames_rederived"])
+
+    def test_source_early_active_false_positive_rejected(self):
+        report = self.make()
+        path = self.root / "dragster/source/trace.jsonl"
+        text = path.read_text(encoding="utf8").replace(
+            '"f":3190', '"f":3189')
+        path.write_text(text, encoding="utf8")
+        proof = report["original_source_event"]["source_next_zoo"]
+        proof["original_source_trace_sha256"] = digest(path.read_bytes())
+        self.write("dragster/source/dragster-next-zoo-original.json", proof)
+        self.write("dragster-report.json", report)
+        with self.assertRaisesRegex(ValueError, "eight consecutive Zoo frames"):
             audit.audit(self.root)
 
     def test_source_trace_and_ranked_record_authentication(self):

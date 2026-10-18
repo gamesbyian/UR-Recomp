@@ -29,6 +29,10 @@ on:
       - "tools/baldosa_native_second_racer_probe.py"
       - "tools/baldosa_native_practice_probe.py"
       - "tools/baldosa_dram_refresh_beam_rate_patch.py"
+      - "tools/baldosa_uniracers_hdma_firstline_patch.py"
+      - "tools/baldosa_uniracers_v0_raster_before_hdma_patch.py"
+      - "tests/unit/test_baldosa_uniracers_hdma_firstline_patch.py"
+      - "tests/unit/test_baldosa_uniracers_v0_raster_before_hdma_patch.py"
       - "tests/unit/test_baldosa_dram_refresh_beam_rate_patch.py"
       - "tests/unit/test_baldosa_native_practice_probe.py"
       - "tests/unit/test_baldosa_native_second_racer_probe.py"
@@ -223,6 +227,8 @@ jobs:
           python tests/unit/test_assemble_baldosa_windows_candidate.py
           python tests/unit/test_baldosa_io_access_clock_order_patch.py
           python tests/unit/test_windows_rf017_source_identity.py
+          python tests/unit/test_baldosa_uniracers_hdma_firstline_patch.py
+          python tests/unit/test_baldosa_uniracers_v0_raster_before_hdma_patch.py
           python tests/unit/test_bind_baldosa_candidate_receipt.py
           python tests/unit/test_audit_baldosa_romless_candidate.py
           python tests/unit/test_check_windows_pe_timestamp.py
@@ -267,6 +273,14 @@ jobs:
           grep -Fx 'verified 89 generated files: 15484 in-order charge statements, every block total unchanged' \
             "$RUNNER_TEMP/rf017-generated-source.txt"
           echo "RF-015 + RF-017 generated game/CPU clock-order source verified; independent Windows event acceptance remains outstanding." >> "$GITHUB_STEP_SUMMARY"
+          # QA08 title-only HDMA firstline + V0 raster source correction.
+          # Exact pinned Baldosa/SNESRecomp after RF017 verify, before PE build.
+          # Experimental brightness and research observers intentionally excluded.
+          python tools/baldosa_uniracers_hdma_firstline_patch.py --game baldosa
+          python tools/baldosa_uniracers_hdma_firstline_patch.py --game baldosa --apply-candidate
+          python tools/baldosa_uniracers_v0_raster_before_hdma_patch.py --game baldosa
+          python tools/baldosa_uniracers_v0_raster_before_hdma_patch.py --game baldosa --apply-candidate
+          echo "QA08 staged clean title-only firstline/V0. Result parity and physical QA remain held." >> "$GITHUB_STEP_SUMMARY"
           python tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_execution_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_pause_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"

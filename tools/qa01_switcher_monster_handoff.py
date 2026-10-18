@@ -27,6 +27,11 @@ def active(row: dict, track: int) -> bool:
             and type(row.get("track")) is int and row["track"] == track)
 
 
+def crawler_monster_active(row: dict) -> bool:
+    return (active(row, MONSTER_TRACK) and
+            type(row.get("tour_row")) is int and row["tour_row"] == 0)
+
+
 def source_next_monster(states: dict[int, dict], switcher: dict) -> dict:
     """First truly sustained subsequent source course, with real frame tags."""
     if (switcher.get("original_entry_frame") != SWITCHER_SOURCE_ENTRY
@@ -38,9 +43,9 @@ def source_next_monster(states: dict[int, dict], switcher: dict) -> dict:
                    SWITCHER_SOURCE_RESULT + SOURCE_MAX_OFFSET)
     candidates = []
     for frame in range(first, last + 1):
-        if (active(states.get(frame, {}), MONSTER_TRACK)
-                and not active(states.get(frame - 1, {}), MONSTER_TRACK)
-                and all(active(states.get(frame + i, {}), MONSTER_TRACK)
+        if (crawler_monster_active(states.get(frame, {}))
+                and not crawler_monster_active(states.get(frame - 1, {}))
+                and all(crawler_monster_active(states.get(frame + i, {}))
                         for i in range(8))):
             candidates.append(frame)
     if len(candidates) != 1:
@@ -63,17 +68,18 @@ def source_next_monster(states: dict[int, dict], switcher: dict) -> dict:
         state = states.get(SWITCHER_SOURCE_RESULT + o)
         if (not isinstance(state, dict) or
                 any(type(state.get(k)) is not int
-                    for k in ("menu", "track", "in_race"))):
+                    for k in ("menu", "track", "in_race", "tour_row"))):
             raise SwitcherMonsterError("original movie source missing exact frame")
         source_samples[str(o)] = {
             "movie_host_frame": SWITCHER_SOURCE_RESULT + o,
             "menu": state["menu"],
             "track": state["track"],
             "in_race": state["in_race"],
+            "tour_row": state["tour_row"],
         }
-    if active(source_samples[str(offset - 1)], MONSTER_TRACK):
+    if crawler_monster_active(source_samples[str(offset - 1)]):
         raise SwitcherMonsterError("source Monster entry lacks immediate inactive preceding frame")
-    if not all(active(source_samples[str(offset+i)], MONSTER_TRACK)
+    if not all(crawler_monster_active(source_samples[str(offset+i)])
                for i in (0,1,2,3,4,5,7,10)):
         raise SwitcherMonsterError("source Monster active run not sustained")
     return {
@@ -93,7 +99,7 @@ def _bracket(rows: list[dict], side: str) -> dict:
     for row in rows:
         offset = row["offset"]
         state = row["movie"] if side == "movie" else row["guests"][side]
-        current = active(state, MONSTER_TRACK)
+        current = crawler_monster_active(state)
         if current:
             return {
                 "first_observed_active_offset": offset,
@@ -133,7 +139,7 @@ def observe_next_monster(original_dir: Path, native_dir: Path,
     for offset in samples:
         movie = source["source_samples"][str(offset)]
         if (movie.get("movie_host_frame") != SWITCHER_SOURCE_RESULT + offset
-                or any(type(movie.get(k)) is not int for k in ("menu", "track", "in_race"))):
+                or any(type(movie.get(k)) is not int for k in ("menu", "track", "in_race", "tour_row"))):
             raise SwitcherMonsterError("unregistered original source movie frame")
         guests = {}
         raw = {}
@@ -166,7 +172,7 @@ def observe_next_monster(original_dir: Path, native_dir: Path,
         rows.append({
             "offset":offset, "movie":movie, "guests":guests,
             "triplet_named_state_equal": all(
-                all(guests[s][k] == movie[k] for k in ("menu","track","in_race"))
+                all(guests[s][k] == movie[k] for k in ("menu","track","in_race","tour_row"))
                 for s in ("original", "native")),
             "full_sram_pair_equal": sram["original"] == sram["native"],
             "unmasked_full_wram": audit_wram(raw["original"], raw["native"])
@@ -193,10 +199,10 @@ def observe_next_monster(original_dir: Path, native_dir: Path,
                                       if not row["unmasked_full_wram"]["byte_exact"]],
         "original_monster_source_course_loaded_on_active_sample":any(
             row["guests"]["original"]["canonical_source_monster_course_payload_loaded"]
-            for row in rows if active(row["guests"]["original"],MONSTER_TRACK)),
+            for row in rows if crawler_monster_active(row["guests"]["original"])),
         "native_monster_source_course_loaded_on_active_sample":any(
             row["guests"]["native"]["canonical_source_monster_course_payload_loaded"]
-            for row in rows if active(row["guests"]["native"],MONSTER_TRACK)),
+            for row in rows if crawler_monster_active(row["guests"]["native"])),
         "samples":rows,
         "controller_input_rephased":False,
         "source_2014_monster_complete_result_proven":False,

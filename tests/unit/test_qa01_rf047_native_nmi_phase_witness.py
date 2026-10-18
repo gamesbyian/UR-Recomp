@@ -32,10 +32,23 @@ class NativePhaseSource(unittest.TestCase):
     "    if (rows++ < 8192u)\n"
     "        fprintf(stderr, \"read\");\n"
     "}\n")
-  return beam,cpu
+  bridge = (
+    'extern Snes *g_snes;\\n'
+    'static int bridge_native_handoff(void) {\\n'
+    '        if (stop_on_rti)\\n'
+    '            return 1;  /* compiled RTI consumed the interrupt frame */\\n'
+    '}\\n'
+    'static int _interp_run_core(void) {\\n'
+    '        if (stop_on_rti && op == 0x40) {\\n'
+    '            sync_interp_to_cpu(&in, cpu);\\n'
+    '            bridge_apu_flush(cpu);\\n'
+    '            return 1;\\n'
+    '        }\\n'
+    '}\\n')
+  return beam,cpu,bridge
  def test_single_architectural_interrupt_and_reader_unchanged(self):
-  beam,cpu=self.fixture()
-  after,read=rf.patch(beam,cpu)
+  beam,cpu,bridge=self.fixture()
+  after,read,rtis=rf.patch(beam,cpu,bridge)
   self.assertEqual(after.count("cpu_push_interrupt_frame_at(&g_cpu, s_resume_pc)"),1)
   self.assertEqual(after.count("interp_bridge_run_interrupt(&g_cpu, vector)"),1)
   self.assertEqual(after.count("nmi_vector()"),1)
@@ -44,16 +57,19 @@ class NativePhaseSource(unittest.TestCase):
   self.assertEqual(read.count("ur_rf047_native_stack_read(cpu,bank,addr,value,width);"),1)
   self.assertEqual(read.count("static unsigned rows;"),1)
   self.assertEqual(read.count("fprintf(stderr, \"read\")"),1)
+  self.assertEqual(rtis.count("ur_rf047_native_rti_opcode(cpu,"),2)
  def test_fail_closed_missing_source_or_partial_patch(self):
-  b,c=self.fixture()
+  b,c,d=self.fixture()
   with self.assertRaisesRegex(ValueError,"pinned"):
    rf.patch(b.replace("run_interrupt(nmi_vector(), frame_end)",
-                      "run_interrupt(irq_vector(), frame_end)"),c)
+                      "run_interrupt(irq_vector(), frame_end)"),c,d)
   with self.assertRaisesRegex(ValueError,"requires precise"):
-   rf.patch(b,c.replace("static unsigned rows;","static int rows;"))
-  a,d=rf.patch(b,c)
+   rf.patch(b,c.replace("static unsigned rows;","static int rows;"),d)
+  with self.assertRaisesRegex(ValueError,"interpreter RTI"):
+   rf.patch(b,c,d.replace("if (stop_on_rti && op == 0x40)","if (stop_on_rti && op == 0x41)"))
+  a,e,f=rf.patch(b,c,d)
   with self.assertRaisesRegex(ValueError,"already/partially"):
-   rf.patch(a,d)
+   rf.patch(a,e,f)
 
 if __name__=="__main__":
  unittest.main()

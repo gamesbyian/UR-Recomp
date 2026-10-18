@@ -39,6 +39,8 @@ on:
       - "tests/unit/test_qa08_premath_full263_native_source_ab.py"
       - "tools/qa08_premath_oneplayer65_source_ab.py"
       - "tests/unit/test_qa08_premath_oneplayer65_source_ab.py"
+      - "tools/qa08_premath_oneplayer_clean_current_guest.py"
+      - "tests/unit/test_qa08_premath_oneplayer_clean_current_guest.py"
       - "tests/unit/test_baldosa_native_practice_probe.py"
       - "tests/unit/test_baldosa_native_second_racer_probe.py"
       - "tools/baldosa_native_first_racer_real_run_probe.py"
@@ -226,6 +228,7 @@ jobs:
           python tests/unit/test_baldosa_uniracers_premath_brightness_trial.py
           python tests/unit/test_qa08_premath_full263_native_source_ab.py
           python tests/unit/test_qa08_premath_oneplayer65_source_ab.py
+          python tests/unit/test_qa08_premath_oneplayer_clean_current_guest.py
           python tests/unit/test_bind_baldosa_candidate_receipt.py
           python tests/unit/test_audit_baldosa_romless_candidate.py
           python tests/unit/test_check_windows_pe_timestamp.py
@@ -402,6 +405,26 @@ jobs:
             --original-artifact "$RUNNER_TEMP/qa08-1p-reference/actual-original-Snes9x.zip" \
             --out "$RUNNER_TEMP/qa08-1p-65-experiment/current" --timeout 720
           echo "QA08 65 authenticated original/native 1P moving frames only, no release QA credit." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify current clean RF017 and pre-math 1P real guest CRC equality
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'graphics/qa08-premath-real-oneplayer-65-source-ab-20261017' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-1p-clean-reference"
+          curl --fail --silent --show-error --location --retry 2 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12112651647/zip" \
+            -o "$RUNNER_TEMP/qa08-1p-clean-reference/clean-current-RF017.zip"
+          python tools/qa08_premath_oneplayer_clean_current_guest.py \
+            --rom reference/roms/retail/Uniracers_USA.sfc \
+            --script reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_1p.txt \
+            --clean-artifact "$RUNNER_TEMP/qa08-1p-clean-reference/clean-current-RF017.zip" \
+            --trial-report "$RUNNER_TEMP/qa08-1p-65-experiment/current/qa08-premath-oneplayer65.json" \
+            --out "$RUNNER_TEMP/qa08-1p-clean-current-crc" --timeout 720
+          echo "QA08 two independent *current RF017* guest streams compared, no 2014 CPU/QA/release credit." >> "$GITHUB_STEP_SUMMARY"
       - name: Preserve actual independent 1P 65-frame Win32 PPU source results
         if: always()
         uses: actions/upload-artifact@v4
@@ -412,6 +435,7 @@ jobs:
           path: |
             ${{ runner.temp }}/qa08-1p-65-experiment/current/qa08-premath-oneplayer65.json
             ${{ runner.temp }}/qa08-1p-65-experiment/current/qa08-premath-oneplayer65-images.zip
+            ${{ runner.temp }}/qa08-1p-clean-current-crc/qa08-1p-clean-vs-premath-crc.json
       - name: Archive actual 263-frame PPU A/B and pixel regressions
         if: always()
         uses: actions/upload-artifact@v4

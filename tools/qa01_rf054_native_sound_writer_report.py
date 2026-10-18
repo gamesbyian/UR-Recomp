@@ -55,7 +55,11 @@ def inspect(log:str)->dict:
             raise ValueError("RF054 actual native CPU helper observation incomplete")
         if int(row["seq"])<=0 or int(row["frame"])!=6124 or row["kind"] not in ("read8","read16"):
             raise ValueError("RF054 real native CPU helper read identity invalid")
-        if int(row["addr"],16)>>16 not in (0x10,0x11,0x12,0x13):
+        try:
+            bus_address=int(row["addr"],16)
+        except ValueError as exc:
+            raise ValueError("RF054 actual bus physical address malformed") from exc
+        if bus_address>>16 not in (0x10,0x11,0x12,0x13):
             raise ValueError("RF054 actual bus helper read outside qualified ROM bank")
     if [int(x["seq"]) for _,x in bus]!=list(range(1,len(bus)+1)):
         raise ValueError("RF054 native bus read rows lost or duplicated")

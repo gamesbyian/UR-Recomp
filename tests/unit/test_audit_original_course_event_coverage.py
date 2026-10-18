@@ -184,6 +184,69 @@ class OriginalCourseCensusTests(unittest.TestCase):
             self.assertFalse(audit.validated_witness(dict(good, **{key: bad}), "race-a"))
         self.assertFalse(audit.validated_witness(good, "stunt"))
 
+    def test_digest_malformed_and_wrong_edition_cannot_admit_pass(self):
+        valid = {
+            "reference_core": "pinned-snes9x",
+            "candidate_sha": "a" * 40,
+            "rom_sha256": audit.EXPECTED_ROM_SHA256["usa-retail"],
+            "reference_run": "independent-original-run",
+            "native_run": "candidate-native-run",
+            "input_script": "observed-input.script",
+            "result_compared": True,
+            "fresh_process": True,
+            "event_observations": {
+                event: "reference_matched" for event in audit.RACE_EVENTS
+            },
+        }
+        self.assertTrue(audit.validated_witness(valid, "race-a", rom="usa-retail"))
+        self.assertFalse(audit.validated_witness(valid, "race-a", rom="europe-retail"))
+        self.assertFalse(audit.validated_witness(valid, "race-a", rom="nonexistent"))
+        for field, malformed in (
+            ("candidate_sha", "!" * 40),
+            ("candidate_sha", "G" * 40),
+            ("candidate_sha", "A" * 40),
+            ("candidate_sha", "a" * 39),
+            ("candidate_sha", "a" * 41),
+            ("candidate_sha", True),
+            ("candidate_sha", None),
+            ("rom_sha256", "z" * 64),
+            ("rom_sha256", "F" * 64),
+            ("rom_sha256", "a" * 63 + " "),
+            ("rom_sha256", "a" * 65),
+            ("rom_sha256", "a" * 63),
+            ("rom_sha256", False),
+            ("rom_sha256", None),
+        ):
+            self.assertFalse(
+                audit.validated_witness(dict(valid, **{field: malformed}), "race-a"),
+                (field, malformed),
+            )
+        self.assertFalse(audit.validated_witness(None, "race-a"))
+
+        # Passing the direct report-shape check is insufficient: the source
+        # register binds the digest to its declared cartridge edition.
+        for region in audit.COMPARISON_ROMS:
+            valid_region = dict(valid, rom_sha256=audit.EXPECTED_ROM_SHA256[region])
+            row = dict(
+                self.evidence["observations"][0],
+                rom=region,
+                status="passed",
+                **valid_region,
+            )
+            report = audit.build_census(
+                self.catalog, {"schema_version": 1, "observations": [row]}
+            )
+            self.assertEqual(report["status_counts"]["passed"], 1)
+            for wrong_rom in audit.COMPARISON_ROMS:
+                if wrong_rom == region:
+                    continue
+                forged = dict(row, rom_sha256=audit.EXPECTED_ROM_SHA256[wrong_rom])
+                with self.assertRaisesRegex(ValueError, "lacks independent witness"):
+                    audit.build_census(
+                        self.catalog,
+                        {"schema_version": 1, "observations": [forged]},
+                    )
+
     def test_fake_pass_missing_runtime_evidence_is_rejected(self):
         bad = dict(self.evidence["observations"][0], status="passed")
         with self.assertRaisesRegex(ValueError, "lacks independent witness"):

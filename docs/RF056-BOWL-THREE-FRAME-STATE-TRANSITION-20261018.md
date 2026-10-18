@@ -47,6 +47,32 @@ The original 2014 movie's *own* first transition occurs **+340→+341** (one sou
 
 The existing preserved **fresh Snes9x replay log** records `[input] frame=4687 mask=080`, `frame=4688 mask=040`, and `frame=4689 mask=080`; the next visible source input-change record is `frame=4696 mask=280`. In the **unchanged** 78-member archived source/fresh/native case, the fresh original's 31-byte transition occurs between actual snapshots **host4688→4689**; the native's *identical 31-byte triple set* occurs **host4691→4692**, while native+340/+341/+342 already observed its pretransition WRAM state. The exact 642-byte transition sets similarly occur original **host4689→4690** and native **host4692→4693**. These are true file clocks, **not a rephase**. The old archive's native log does not independently print consumed P1 controller masks, and no guest 65816 PC/branch read was sampled, so the original `[input]` records must not be mislabelled as an independently proven native controller-consumer event. Merged Bowl [#1856](https://github.com/gamesbyian/UR-Recomp/pull/1856) now retains actual source-bound replay controller files in a newer run; its independent input verification is a prerequisite to deciding whether this difference is an input-consumer, menu conditional or CPU master/beam scheduling effect.
 
+## New independently source-validated P1 input-to-transition temporal discriminator
+
+The existing retained Bowl controller closure from merged [PR #1856](https://github.com/gamesbyian/UR-Recomp/pull/1856) finished in [Action39170675242](https://github.com/gamesbyian/UR-Recomp/actions/runs/39170675242), exact head `3d609c9bb384028255f0085253ed1c0a20d25706`. Its authentic [case archive12152457075](https://github.com/gamesbyian/UR-Recomp/actions/runs/39170675242/artifacts/12152457075) SHA256 `0fe45f6116e2b9c1e90a126acb67d9530e64beb5144fb58c637c9b6a228eeaf1` contains the **actual supplied** `ref.input` SHA256 `24e8cb66…`, `pinned-baldosa.input` SHA256 `0db2471a…`, shared `complete.script` and the independent `bowl-source-input-identity.json`. The original source ROM/movie/SRAM and script SHA, plus the *entire* prior `bowl_next_switcher_handoff` outcome object, match the earlier genuine 78-member RF056 three-guest state archive. This is an independent input artifact from another actual genuine Bowl replay, **not generated or rephased by this research**.
+
+Parsing all **593 source and 593 native supplied controller events** reveals exact identity of every P1 bitmask and its held-frame duration. Each supplied native event begins at **source host frame +1**, consistent with the previously independently recorded native transport offset. Immediately around the two genuine first-full-memory mutation onsets:
+
+| Evidence | Fresh Snes9x | Native Baldosa |
+| --- | --- | --- |
+| One-frame preceding supplied P1 | host 4688: `040` | host 4691: `080` |
+| Seven-frame supplied P1 `080` begins | host **4689** | host **4690** |
+| Identical 31-byte WRAM transition occurs | **4688→4689** | **4691→4692** |
+| Position inside supplied `080` segment at observed mutation | first frame (elapsed 0) | third frame (elapsed 2) |
+| Identical 642-byte next transition occurs | **4689→4690** | **4692→4693** |
+
+**New decision:** the three guest-snapshot-frame onset displacement exceeds the independently authenticated **one-frame input-supply shift by two frames**. In particular, native's first 31-byte transition occurs with the supplied P1 already `080` for two preceding guest frames; it is not contemporaneous with a *new* native supplied P1 event. Neither emulator's actual CPU-side controller-port read, 65816 instruction branch predicate nor common CPU↔SPC master-clock origin was observed in these archives. Therefore this is an input-*supply*-to-guest-state timing discriminator, **not** proof of a two-frame CPU defect or consumed-controller lag. Original/movie histories remain distinct; do not remove source-approved one-frame transport offset or shift the movie to force a pass.
+
+The new [fail-closed archive-only temporal bridge](../tools/qa01_rf056_bowl_supplied_input_onset_bridge.py) reads both authentic ZIPs, rehashes exact source and input identities, independently checks the unchanged real event/progression result and original RF056 31+642 full-byte triples, validates **all 593** native events against original for masks and durations, then rejects any unexpected onset span or lack of unique supplied-mask coverage. It cannot promote event acceptance or infer CPU input-register consumption. [Negative unit cases](../tests/unit/test_qa01_rf056_bowl_supplied_input_onset_bridge.py) cover changed shift, input mask, event duration, truncated event census and untrusted archives; [machine receipt](../analysis/data/rf056-bowl-source-qualified-supplied-input-onset-crosswalk-20261018.json) fixes both original artifact IDs/hashes. To reproduce, without emulating or modifying a frame:
+
+```bash
+python3 tools/qa01_rf056_bowl_supplied_input_onset_bridge.py \
+  bowl-3guest-original-native-2014-source.zip \
+  --source-qualified-input-case bowl-input-qualified-1856.zip
+```
+
+The next *causal* instrumentation should print **actual source and native CPU reads of P1 registers and the first transition branch PC** for the original 4688→4689 / native 4691→4692 boundaries, plus actual NMI/frame/beam clock registration. The existing `00C6/00C8` imported timer labels remain hypotheses until a true consuming instruction is witnessed. No APU queue, global clock, controller transport, or full-event comparator patch is authorized.
+
 ## Concrete next original/native CPU intervention boundary
 
 Investigate the **earliest actually executed branch/predicate and input/state read** preceding the original guest's first 31-byte mutation set at +339→+340, versus the native guest's identical set at +342→+343. Reuse the existing exact source movie, authentic fresh original/native controller input identity now retained by merged [#1856](https://github.com/gamesbyian/UR-Recomp/pull/1856), and the existing guest result recording. Require true executed 65816 PC, input sample, V/H or independent CPU master clock and writes that cause the first `7E:0057` NMI and race-transition state; identify whether `00C6/00C8` is actually *read* by a transition consumer before asserting causality.

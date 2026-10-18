@@ -103,6 +103,25 @@ class ZooRawArchiveAuditTest(unittest.TestCase):
             "differing_byte_count": first[
                 "original_native_full_wram_byte_difference"]["differing_byte_count"],
         }
+        dense_rows = []
+        for off in range(5034, 5047):
+            dense_rows.append({
+                "race_relative_frame": off,
+                "original_absolute_host_frame": 1017 + off,
+                "native_absolute_host_frame": 1017 + off,
+                "bytes": [
+                    {"address": f"7E:{addr:04X}",
+                     "original": 0, "native": 0, "differs": False}
+                    for addr in (0x63, 0x69)],
+                "full_wram_differing_bytes": 0,
+            })
+        for sample in handoff:
+            off = sample["offset_from_observed_zoo_result"]
+            sample["original_movie"] = {
+                "original_movie_host_frame": 8353 + off,
+                "menu": 0, "track": 0, "in_race": 0,
+            }
+            sample["triplet_named_states_equal"] = True
         report = {
             "name": "zoom-zoo",
             "course_id": "course:02",
@@ -121,6 +140,15 @@ class ZooRawArchiveAuditTest(unittest.TestCase):
                 "release_complete_usa_event_credit": 0,
                 "raw_byte_exact_sample_count": 77 if mesh_byte_difference else 78,
                 "first_nonidentical_raw_wram_pair": first_report,
+                "late_direct_page_window": {
+                    "range_inclusive": [5034, 5046],
+                    "all_guest_frames_in_range_captured": True,
+                    "raw_wram_bytes_excluded": 0,
+                    "release_complete_event_credit": 0,
+                    "samples": dense_rows,
+                    "first_sampled_direct_page_disagreement": None,
+                    "last_sampled_direct_page_disagreement": None,
+                },
                 "samples": rows,
             },
             "zoo_next_bowl_handoff": {
@@ -129,6 +157,10 @@ class ZooRawArchiveAuditTest(unittest.TestCase):
                 "release_complete_event_credit": 0,
                 "all_original_native_full_sram_pairs_equal": True,
                 "all_original_native_full_wram_pairs_equal": True,
+                "all_triplet_named_states_equal": True,
+                "zoo_rank0_2510_and_checksum_preserved_every_sample": True,
+                "fresh_reference_next_bowl_entry_offset": None,
+                "fresh_native_next_bowl_entry_offset": None,
                 "samples": handoff,
             },
         }
@@ -192,6 +224,29 @@ class ZooRawArchiveAuditTest(unittest.TestCase):
             "script f=1020 dump scene-00001"), encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "host clock"):
             target.audit(self.root)
+
+    def test_forged_dense_sound_pointer_and_earned_bowl_claims_rejected(self):
+        report = self.make()
+        report["zoo_race_mesh"]["late_direct_page_window"]["samples"][6]["bytes"][0][
+            "original"] = 1
+        self.save_report(report)
+        with self.assertRaisesRegex(ValueError, "dense 13-frame"):
+            target.audit(self.root)
+        report = self.make()
+        report["zoo_next_bowl_handoff"][
+            "zoo_rank0_2510_and_checksum_preserved_every_sample"] = False
+        self.save_report(report)
+        with self.assertRaisesRegex(ValueError, "earned record"):
+            target.audit(self.root)
+
+    def test_legitimate_strict_divergence_still_gets_raw_byte_audit(self):
+        self.make(mesh_byte_difference=True)
+        classification = json.loads((self.root / "case-result.json").read_text())
+        classification["disposition"] = "strict_divergence"
+        self.write_json("case-result.json", classification)
+        result = target.audit(self.root)
+        self.assertEqual(result["full_zoo_mesh_unmasked_differing_byte_occurrences"], 1)
+        self.assertEqual(result["independent_usa_event_adjudication"], "HOLD")
 
     def test_rank_checksum_uses_complete_original_150_word_table(self):
         battery = bytearray(8192)

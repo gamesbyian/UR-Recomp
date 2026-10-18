@@ -20,7 +20,10 @@ except ImportError:
 
 try:
     from .render_shared_unicycle_review import (inspect_model, require_clean_border,
-                                              occupied_bounds, MIN_BORDER_PIXELS)
+                                              occupied_bounds, MIN_BORDER_PIXELS,
+                                              validate_variant, validate_cupped_saddle,
+                                              SADDLE_CHOICES, FRAME_CHOICES,
+                                              SADDLE_CUP_CHOICES, SADDLE_DEPTH_CHOICES)
 except ImportError:
     from render_shared_unicycle_review import (inspect_model, require_clean_border,
                                             occupied_bounds, MIN_BORDER_PIXELS)
@@ -28,7 +31,8 @@ except ImportError:
 MODES = ("ride", "stunt_cycle")
 STEPS = 8
 RENDER_SIZE = 320
-CAMERA = "0,0,1.6,90,0,0,12.5"  # deliberately zoomed out from static art
+CAMERA = "0,0,1.6,90,0,0,12.5"  # historical default, pixel controls unchanged
+MOTION_CAMERAS = {12.5: CAMERA, 16.0: "0,0,1.6,90,0,0,16"}  # entire run uses ONE camera
 
 def sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
@@ -39,9 +43,16 @@ def samples(steps=STEPS):
     return tuple((mode, i, i / steps)
                  for mode in MODES for i in range(steps + 1))
 
-def render(model: Path, out: Path, openscad="openscad", xvfb=False, steps=STEPS):
+def render(model: Path, out: Path, openscad="openscad", xvfb=False, steps=STEPS,
+           *, saddle_span=1.0, frame_mass=1.0,
+           saddle_cup=1.0, saddle_depth=1.0, camera_distance=12.5):
     from PIL import Image, ImageDraw
     samples(steps)  # validate time-grid before touching output
+    validate_variant(saddle_span, frame_mass)
+    validate_cupped_saddle(saddle_cup, saddle_depth)
+    if type(camera_distance) not in (float,int) or camera_distance not in MOTION_CAMERAS:
+        raise ValueError("unreviewed motion camera distance")
+    camera = MOTION_CAMERAS[camera_distance]
 
     if out.exists() and any(out.iterdir()):
         raise ValueError("output must be empty; old motion images could be reused")
@@ -60,8 +71,12 @@ def render(model: Path, out: Path, openscad="openscad", xvfb=False, steps=STEPS)
             openscad, "--hardwarnings", "-o", str(out/filename),
             f"--imgsize={RENDER_SIZE},{RENDER_SIZE}",
             "--projection=o", "--colorscheme=Tomorrow",
-            f"--camera={CAMERA}", "-D", f'rig_pose="{mode}"',
-            "-D", f"rig_time={t}", str(model)]
+            f"--camera={camera}", "-D", f'rig_pose="{mode}"',
+            "-D", f"rig_time={t}",
+            "-D", f"rig_saddle_span={saddle_span}",
+            "-D", f"rig_frame_mass={frame_mass}",
+            "-D", f"rig_saddle_cup={saddle_cup}",
+            "-D", f"rig_saddle_depth={saddle_depth}",str(model)]
         result = subprocess.run(command, capture_output=True, text=True,
                                 timeout=90, check=False)
         if result.returncode:
@@ -72,7 +87,7 @@ def render(model: Path, out: Path, openscad="openscad", xvfb=False, steps=STEPS)
                 raise ValueError("unexpected non-320px art-study frame")
             bounds = occupied_bounds(im)
         actual.append({"mode": mode, "index": i, "normalized_time": t,
-                       "fixed_camera": CAMERA, "filename": filename,
+                       "fixed_camera": camera, "filename": filename,
                        "sha256": sha(raw), "silhouette_bbox": bounds,
                        "edge_clipped": False})
     count = 2*(steps+1)
@@ -119,7 +134,12 @@ def render(model: Path, out: Path, openscad="openscad", xvfb=False, steps=STEPS)
         "schema": "UR-unicycle-one-rig-continuous-motion-review/1",
         "shared_rig_sha256": sha(model.read_bytes()),
         "contact_sha256": sha(preview.read_bytes()),
-        "camera_one_fixed_per_all_frames": CAMERA,
+        "camera_one_fixed_per_all_frames": camera,
+        "motion_fixed_camera_distance": camera_distance,
+        "review_saddle_span": saddle_span,
+        "review_frame_mass": frame_mass,
+        "review_saddle_cup": saddle_cup,
+        "review_saddle_depth": saddle_depth,
         "source_animation_frame_count": count,
         "source_animation_samples_per_mode": steps+1,
         "all_complete_320_square_pixel_frames": True,
@@ -151,10 +171,18 @@ def main() -> None:
     cli.add_argument("--xvfb", action="store_true")
     cli.add_argument("--steps", type=int, choices=(8,16), default=8,
                      help="eight or sixteen intervals, two complete cycles")
+    cli.add_argument("--saddle-span", type=float, choices=SADDLE_CHOICES, default=1.0)
+    cli.add_argument("--frame-mass", type=float, choices=FRAME_CHOICES, default=1.0)
+    cli.add_argument("--saddle-cup", type=float, choices=SADDLE_CUP_CHOICES, default=1.0)
+    cli.add_argument("--saddle-depth", type=float, choices=SADDLE_DEPTH_CHOICES, default=1.0)
+    cli.add_argument("--camera-distance", type=float, choices=tuple(MOTION_CAMERAS), default=12.5)
     args = cli.parse_args()
     try:
         preview, receipt = render(args.model.resolve(), args.out.resolve(),
-                                  args.openscad, args.xvfb, args.steps)
+                                  args.openscad, args.xvfb, args.steps,
+                                  saddle_span=args.saddle_span,frame_mass=args.frame_mass,
+                                  saddle_cup=args.saddle_cup,saddle_depth=args.saddle_depth,
+                                  camera_distance=args.camera_distance)
     except (OSError, RuntimeError, ValueError, subprocess.TimeoutExpired) as exc:
         cli.exit(2, f"UNAPPROVED_RIG_MOTION_REVIEW_FAILED: {exc}\n")
     print("UNAPPROVED_RIG_MOTION_REVIEW", str(preview),

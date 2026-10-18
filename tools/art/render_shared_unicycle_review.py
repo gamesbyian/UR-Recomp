@@ -38,6 +38,8 @@ SOURCES = {
 MIN_BORDER_PIXELS = 4  # both static and moving OpenSCAD crop checks
 SADDLE_CHOICES = (1.0, 1.4, 1.8, 2.2)
 FRAME_CHOICES = (1.0, 1.4, 1.8, 2.0)
+SADDLE_CUP_CHOICES = (1.0, 1.7, 2.25)
+SADDLE_DEPTH_CHOICES = (1.0, 1.45, 1.65)
 GEOMETRY_MODULES = ("module tire()", "module rim_and_hub()", "module saddle(",
                     "module fork_and_frame()", "module pedals(", "module rig(")
 
@@ -141,10 +143,20 @@ def validate_variant(saddle_span, frame_mass):
     return saddle_span, frame_mass
 
 
+def validate_cupped_saddle(cup, depth):
+    """Only bounded, unapproved single-rig shape proposals; defaults unchanged."""
+    if (type(cup) not in (float,int) or type(depth) not in (float,int) or
+        cup not in SADDLE_CUP_CHOICES or depth not in SADDLE_DEPTH_CHOICES):
+        raise ValueError("unreviewed original-rig saddle profile")
+    return cup, depth
+
+
 def render(model: Path, out: Path, *, openscad: str = "openscad",
            xvfb: bool = False, size: int = 480,
-           saddle_span: float = 1.0, frame_mass: float = 1.0) -> list[dict]:
+           saddle_span: float = 1.0, frame_mass: float = 1.0,
+           saddle_cup: float = 1.0, saddle_depth: float = 1.0) -> list[dict]:
     validate_variant(saddle_span, frame_mass)
+    validate_cupped_saddle(saddle_cup, saddle_depth)
     from PIL import Image
     if not 128 <= size <= 1024:
         raise ValueError("unbounded review render size")
@@ -159,7 +171,9 @@ def render(model: Path, out: Path, *, openscad: str = "openscad",
                 "--colorscheme=Tomorrow", f"--camera={camera}",
                 "-D", f'rig_pose="{pose}"',
                 "-D", f"rig_saddle_span={saddle_span}",
-                "-D", f"rig_frame_mass={frame_mass}", str(model)]
+                "-D", f"rig_frame_mass={frame_mass}",
+                "-D", f"rig_saddle_cup={saddle_cup}",
+                "-D", f"rig_saddle_depth={saddle_depth}", str(model)]
             result = subprocess.run(args, text=True, capture_output=True,
                                     check=False, timeout=90)
             if result.returncode or not (out/name).is_file():
@@ -173,7 +187,9 @@ def render(model: Path, out: Path, *, openscad: str = "openscad",
                            "silhouette_bbox": bounds, "edge_clipped": False,
                            "source_render_size_px": size,
                            "review_saddle_span": saddle_span,
-                           "review_frame_mass": frame_mass})
+                           "review_frame_mass": frame_mass,
+                           "review_saddle_cup": saddle_cup,
+                           "review_saddle_depth": saddle_depth})
     return images
 
 
@@ -244,6 +260,10 @@ def main() -> None:
                         default=1.0, help="unapproved model study only")
     parser.add_argument("--frame-mass", type=float, choices=FRAME_CHOICES,
                         default=1.0, help="unapproved model study only")
+    parser.add_argument("--saddle-cup", type=float, choices=SADDLE_CUP_CHOICES,
+                        default=1.0, help="unapproved title-direction cushion profile")
+    parser.add_argument("--saddle-depth", type=float, choices=SADDLE_DEPTH_CHOICES,
+                        default=1.0, help="unapproved cushion thickness")
     parser.add_argument("--xvfb", action="store_true",
                         help="launch OpenSCAD under xvfb-run -a on headless Linux")
     args = parser.parse_args()
@@ -253,7 +273,8 @@ def main() -> None:
         parser.error("output directory must be empty to prevent stale pose images")
     original=authentic_sources(args.authentic_source_zip) if args.authentic_source_zip else None
     images=render(model,args.out,openscad=args.openscad,xvfb=args.xvfb,
-                  saddle_span=args.saddle_span,frame_mass=args.frame_mass)
+                  saddle_span=args.saddle_span,frame_mass=args.frame_mass,
+                  saddle_cup=args.saddle_cup,saddle_depth=args.saddle_depth)
     preview, preview_crops=contact(args.out,images,original)
     receipt={
         "schema":"UR-single-rig-five-pose-art-blockout/1",
@@ -265,6 +286,8 @@ def main() -> None:
         "static_review_border_px": MIN_BORDER_PIXELS,
         "review_saddle_span": args.saddle_span,
         "review_frame_mass": args.frame_mass,
+        "review_saddle_cup": args.saddle_cup,
+        "review_saddle_depth": args.saddle_depth,
         "gameplay_normal_size_previews_px":[64,32],
         "normal_size_previews_common_crop_per_view": preview_crops,
         "normal_size_previews_per_pose_autofit": False,

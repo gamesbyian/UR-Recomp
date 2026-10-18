@@ -14,6 +14,13 @@ rig_saddle_span=is_undef(rig_saddle_span)?1:rig_saddle_span;
 // A second bounded independent review axis: chunky pre-rendered fork mass.
 // Default 1.0 preserves all original blockout pose semantics.
 rig_frame_mass=is_undef(rig_frame_mass)?1:rig_frame_mass;
+// Nonshipping art study: source-shaped saddle cup and cushion, default 1 unchanged.
+rig_saddle_cup=is_undef(rig_saddle_cup)?1:rig_saddle_cup;
+rig_saddle_depth=is_undef(rig_saddle_depth)?1:rig_saddle_depth;
+assert(rig_saddle_cup>=1 && rig_saddle_cup<=2.5,
+       "out-of-scope unreviewed saddle cup");
+assert(rig_saddle_depth>=1 && rig_saddle_depth<=1.8,
+       "out-of-scope unreviewed saddle depth");
 assert(rig_frame_mass >= 1 && rig_frame_mass <= 2,
        "out-of-scope unreviewed fork mass");
 assert(rig_saddle_span >= 1 && rig_saddle_span <= 2.2,
@@ -64,7 +71,11 @@ module pedals(phase=0) {
 // A loft of consecutive cushion sections allows a cupped saddle.
 // A single convex hull would flatten the original title character's valley.
 module saddle_section(x,h,rx,ry,rz) {
-  translate([x,0,h])scale([rx,ry,rz])sphere(1,$fn=40);
+  // Preserve the historical default source expression exactly.
+  if (rig_saddle_cup==1 && rig_saddle_depth==1)
+    translate([x,0,h])scale([rx,ry,rz])sphere(1,$fn=40);
+  else
+    translate([x,0,h*rig_saddle_cup])scale([rx,ry,rz*rig_saddle_depth])sphere(1,$fn=40);
 }
 module saddle(lean=0) {
   translate([0.04,0,2.27])rotate([0,lean,0])scale([rig_saddle_span,1,1]){

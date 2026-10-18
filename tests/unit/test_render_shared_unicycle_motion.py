@@ -52,7 +52,9 @@ class SharedRigMotionContract(unittest.TestCase):
         self.assertEqual(motion.CAMERA,"0,0,1.6,90,0,0,12.5")
         self.assertEqual(motion.RENDER_SIZE,320)
         self.assertEqual(motion.MIN_BORDER_PIXELS,4)
-        self.assertIn('f"--camera={CAMERA}"',self.reviewer)
+        self.assertIn('f"--camera={camera}"',self.reviewer)
+        self.assertEqual(motion.MOTION_CAMERAS[12.5], motion.CAMERA)
+        self.assertEqual(motion.MOTION_CAMERAS[16.0], "0,0,1.6,90,0,0,16")
         self.assertNotIn("--viewall",self.reviewer)
         self.assertNotIn("--autocenter",self.reviewer)
         self.assertIn("model clipped at fixed-camera viewport boundary",

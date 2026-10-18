@@ -184,7 +184,7 @@ class BowlNextSwitcherTests(unittest.TestCase):
                 data = bytearray(path.read_bytes())
                 data[0x10000:0x10000 + len(payload)] = payload
                 # Live course stream mutates only the 0x0B/0x0C cursor bytes.
-                data[0x1000B:0x1000D] = b"\\x00\\xff"
+                data[0x1000B:0x1000D] = bytes((0, 255))
                 path.write_bytes(data)
         kwargs = dict(
             observed_dump_frame=producer.observed_dump_frame,

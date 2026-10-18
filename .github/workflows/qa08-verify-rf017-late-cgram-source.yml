@@ -1,0 +1,56 @@
+name: QA08 verify current RF017 late CGRAM against original
+# Source archives only; no emulation or product build. One source-bound join.
+on:
+  pull_request:
+    paths:
+      - "tools/qa08_verify_rf017_late_cgram_source_join.py"
+      - "tests/unit/test_qa08_verify_rf017_late_cgram_source_join.py"
+      - "analysis/data/qa08-current-rf017-late-cgram-original-writer-join-20261018.json"
+      - ".github/workflows/qa08-verify-rf017-late-cgram-source.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  real-original-native-source-join:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download exactly the previously SHA-pinned true source archives
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-source-join"
+          curl --retry 3 -fLSs -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12013432991/zip" \
+            -o "$RUNNER_TEMP/qa08-source-join/original.zip"
+          curl --retry 3 -fLSs -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12125295776/zip" \
+            -o "$RUNNER_TEMP/qa08-source-join/native.zip"
+          echo "d725ee45db1b66d098e79499263dd089dba80a26de517c30db674f91e20f80a8  $RUNNER_TEMP/qa08-source-join/original.zip" | sha256sum -c -
+          echo "a62f0c228e85c741a8f1da0b92a4444f9091681c065c93c8a678b4ee2bb6f2ef  $RUNNER_TEMP/qa08-source-join/native.zip" | sha256sum -c -
+      - name: Independently join all 72 true Win32 PPU input records with 2014 source CPU journal
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tests/unit/test_qa08_verify_rf017_late_cgram_source_join.py
+          python3 tools/qa08_verify_rf017_late_cgram_source_join.py \
+            --original "$RUNNER_TEMP/qa08-source-join/original.zip" \
+            --native "$RUNNER_TEMP/qa08-source-join/native.zip" \
+            --out "$RUNNER_TEMP/qa08-source-join/qa08-verified-source-join.json"
+          cmp analysis/data/qa08-current-rf017-late-cgram-original-writer-join-20261018.json \
+            "$RUNNER_TEMP/qa08-source-join/qa08-verified-source-join.json"
+          echo "QA08: current RF017 native source late CGRAM phase matched 6/6 original 2014 CPU writer palette packets. CPU/NMI clocks, PPU result pixels and release still held." >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve source-join receipt only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-rf017-late-cgram-source-join
+          retention-days: 90
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/qa08-source-join/qa08-verified-source-join.json

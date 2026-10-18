@@ -1,0 +1,135 @@
+{
+  "schema": "rf049-original-824f0-full-sound-operand-census/1",
+  "actual_source": {
+    "run_id": 39108848540,
+    "source_commit": "3cf7d366ae651d7e19dd863f4efab0a5e3c8b1b2",
+    "case_artifact_id": 12129931946,
+    "case_archive_sha256": "172511ef7d97d76d1c93191ccfd1cea53c5140d5393e9e6e248414aabe8578bd",
+    "archive_file_count": 18,
+    "plan_build_case_aggregate_success": true,
+    "guest_original_core_sha256": "554de61e3826eec49dc6d31adc457579d154059cfe761ed46bbd9b205549bacd",
+    "guest_native_elf_sha256": "6fce771cbf3e387fb69077d2603be0fb83d26864bc74d1ab4bae4cf8d8189608"
+  },
+  "immutable_inputs": {
+    "usa_retail_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_2014_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "expanded_controller_script_sha256": "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52",
+    "seed_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828"
+  },
+  "original_live_65816_opcode_census": {
+    "opcode": "82:82F0 LDA [$63],Y",
+    "complete_qualified_source_internal_frame_range": [
+      6072,
+      6138
+    ],
+    "unfiltered_executed_LDA_count": 42582,
+    "source_banks": {
+      "10": {
+        "count": 7202,
+        "min_lowword": "8002",
+        "max_lowword": "F874"
+      },
+      "11": {
+        "count": 21824,
+        "min_lowword": "9C95",
+        "max_lowword": "FFFF"
+      },
+      "12": {
+        "count": 4770,
+        "min_lowword": "8000",
+        "max_lowword": "C054"
+      },
+      "13": {
+        "count": 8786,
+        "min_lowword": "89C2",
+        "max_lowword": "BF3E"
+      }
+    },
+    "other_bank_count": 0,
+    "unmapped_DP_count": 0,
+    "exact_lowword_C774_all_banks": 1,
+    "exact_lowword_D0B4_all_banks": 0,
+    "exact_full_24bit_operand_13C774": 0,
+    "exact_full_24bit_operand_13D0B4": 0,
+    "selected_original_LDA_rows": 1,
+    "selected_original_STA_rows": 2,
+    "missing_or_overflowed_target_records": 0,
+    "unclosed_LDA_STA_sequences": 0,
+    "independent_rf048_frame_count_witness_rows": 66,
+    "independent_rf048_completed_frames_LDA_sum": 42420,
+    "final_6138_frame_LDA_count": 162
+  },
+  "original_actual_instruction_chain": {
+    "source_original_frame": 6124,
+    "original_24bit_operand": "11C774",
+    "source_LDA_ordinal": 33703,
+    "source_D": "0000",
+    "source_pointer": "110000",
+    "indexed_Y": "C774",
+    "opcode": "82:82F0",
+    "beam_after_LDA": {
+      "v": 159,
+      "h": 992
+    },
+    "acc_before": "630D",
+    "acc_after": "63D0",
+    "followup": true,
+    "actual_source_82F2_STA_2143": {
+      "pc": "82:82F2",
+      "opcode": "8D",
+      "beam": {
+        "v": 159,
+        "h": 1022
+      },
+      "A": "63D0"
+    },
+    "actual_source_82F6_STA_2142": {
+      "pc": "82:82F6",
+      "opcode": "8D",
+      "beam": {
+        "v": 159,
+        "h": 1072
+      },
+      "A": "D063"
+    },
+    "actual_APU_S9xAPUWritePort_link_for_this_late_source_window_observed": false
+  },
+  "native_existing_helper_reference": {
+    "host_frame_6057": {
+      "dp63": "C774",
+      "dp65": "13",
+      "full_base": "13C774"
+    },
+    "host_frame_6062": {
+      "dp63": "D0B4",
+      "dp65": "13",
+      "full_base": "13D0B4"
+    },
+    "original_vs_native_clock_phase_or_instruction_ordinal_register_proven": false
+  },
+  "controls": {
+    "baseline_rf047_artifact_sha256": "1060a98744fb770bbe43fcdddd89b352bdef691e18f1ab24d4ead5f16996bf6b",
+    "zoo_race_mesh_json_identical_to_rf047": true,
+    "zoo_next_bowl_handoff_json_identical_to_rf047": true,
+    "source_terminal_followthrough_json_identical_to_rf047": true,
+    "whole_128k_WRAM_samples": 78,
+    "exact_full_WRAM_pairs": 51,
+    "unmasked_differing_byte_occurrences": 92,
+    "excluded_or_masked_WRAM_bytes": 0,
+    "authentic_zoo_result_relative_frame": 5163,
+    "authentic_next_bowl_result_relative_frame": 267,
+    "earned_sram_and_cold_record_consistency": true,
+    "case_disposition": "strict_candidate",
+    "accepted_complete_USA_events": 0,
+    "release_credit": 0
+  },
+  "classification": {
+    "exact_bank13_targets_absent_in_full_qualified_original_82F0_window": true,
+    "source_full_24bit_original_consumer_equals_native_first_helper_proven": false,
+    "global_absence_outside_original_source_window_proven": false,
+    "source_actual_APU_publication_after_11C774_proven": false,
+    "original_native_absolute_clock_registration_proven": false,
+    "timing_or_guest_gameplay_patch_justified": false
+  },
+  "next_gate": "If independent CPU/APU QA demands a source/native homologous sound transaction, register actual original/native writer ordinals and original S9xAPUWritePort for the 82F2/82F6 sequence, including original clock/source region, before trying any CPU/SPC correction; otherwise retain tested negative and stop."
+}

@@ -225,6 +225,39 @@ qualified lead only. No new workflow, new CI trigger, replacement emulator,
 guest logic, CPU/APU runtime correction or second 45-course denominator
 was introduced.
 
+## Independent primary-artifact receipt audit (2026-10-18)
+
+The manual campaign's aggregate rechecks the derived `case-result.json`
+assertions but does not itself reopen the source `producer-report.json`.
+A complete-looking derived receipt can therefore outlive an altered or
+missing primary source JSON. The aggregate job now runs the ROM-free,
+read-only `tools/qa01_event_primary_artifact_audit.py` on its already-downloaded
+case artifacts, with no extra emulator build, workflow trigger or runner.
+It checks the exact producer bytes against their recorded SHA-256,
+requires the full advertised original/native sampled-frame population,
+reconstructs the first sampled named-field divergence and fresh-entry
+equivalence from raw observation rows, reclassifies each case from the
+primary report and compares the entire derived receipt. It also recomputes the published aggregate and rejects
+unexpected case directories. The audit's separate JSON and job summary
+explicitly distinguish **verified transport only** from acceptance.
+
+For local inspection of downloaded plan, cases and aggregate:
+
+```bash
+python3 tools/qa01_event_primary_artifact_audit.py \
+  --plan qa01-plan.json --results-dir cases/ \
+  --campaign-result campaign-result.json \
+  --out qa01-primary-artifact-audit.json
+```
+
+Any missing primary report, changed producer bytes, forged case summary,
+aggregate disagreement or producer failure is an incomplete/invalid audit;
+it cannot be promoted as source-authentic coverage. The checker does
+**not** authenticate original emulator execution independently of the
+producer, verify original ROM bytes from an archive, decide causal CPU/APU
+equivalence, or grant event/release credit. It stays a second transport
+integrity check; QA-01/07 and the census retain full admission authority.
+
 ## Failure triage and extension
 
 When infrastructure is red, use the aggregate's first missing/invalid case,

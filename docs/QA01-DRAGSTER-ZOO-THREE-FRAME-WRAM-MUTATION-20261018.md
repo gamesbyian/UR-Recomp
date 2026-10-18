@@ -17,6 +17,8 @@ The new read-only offline tool counts full-image **(byte address, old value, new
 
 First pair has five original-only and six native-only triples; second has two original-only and four native-only. Last two changes agree **exactly** across all actual WRAM mutation addresses and values. No temporal shift, byte mask or tolerance is applied to either original/native *same-relative* comparison. The 3-frame-shifted **structural fingerprint** resembles the separately executed RF056 Bowl 31/31 and 642/642 mutation observations, but neither shared trigger nor legal clock correction has been proven.
 
+**Exact first-transition exceptions:** The four stack/return positions `7E:01ED..01F0` have different real old/new tuples in the two guests. The original-only scene tuple is `7E:2000 02→04`; native instead has `7E:2000 02→03` and `7E:2004 40→80`. In the second transition, stack bytes `7E:01ED/01EE` converge to the same new values from different old values (original `41→81`, `02→97`; native `87→81`, `7F→97`); native also changes `7E:2000 03→04` and `7E:2004 80→40`. The later two transitions have **no unmatched mutation triples**. These exact exception addresses and raw byte values now remain in the verifier output; they are not treated as harmless.
+
 True 2014 original movie Dragster result +2080, fresh Snes9x result +2081, Baldosa result +2079. Next active Zoo source +316, fresh original +315 and fresh native +318 **from their respective scored Dragster results**; actual host onset is original 3341 and native 3342, *not the same host frame*. These are genuine strict timing negatives despite visually matched decoded result and next-course payload.
 
 ## Persistent source-vs-native memory distinction

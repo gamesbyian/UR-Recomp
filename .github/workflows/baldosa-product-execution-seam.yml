@@ -18,6 +18,11 @@ on:
       - "tools/baldosa_modern_profile_activation.cpp"
       - "tools/baldosa_modern_profile_native_fixture.cpp"
       - "tests/native/baldosa_modern_profile_activation_test.cpp"
+      - "tests/native/baldosa_native_existing_profile_next_boot_test.cpp"
+      - "native/product/baldosa_native_existing_profile_next_boot.hpp"
+      - "native/product/baldosa_native_sram_recovery.hpp"
+      - "native/product/baldosa_native_manual_sram_recovery.hpp"
+      - "native/product/baldosa_native_profile_sram_checkpoint.hpp"
       - "tests/unit/test_baldosa_modern_profile_activation_spike.py"
       - "tools/baldosa_native_pause_lifecycle.cpp"
       - "tools/baldosa_native_product_pause_authority.cpp"
@@ -79,6 +84,30 @@ jobs:
             native/product/multiplayer_match_catalog.cpp \
             -o "$RUNNER_TEMP/baldosa-modern-profile-root-test"
           "$RUNNER_TEMP/baldosa-modern-profile-root-test"
+          # Recovery unit tests must actually execute. A green lifecycle
+          # seam alone cannot certify the archive-first bad-intent changes.
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic \
+            -I native/product -I native/title \
+            tests/native/baldosa_native_existing_profile_next_boot_test.cpp \
+            tools/baldosa_modern_profile_activation.cpp \
+            native/product/clean_stock_sram.cpp \
+            native/product/output_resolution_policy.cpp \
+            native/product/host_product_state.cpp \
+            native/product/host_product_store.cpp \
+            native/product/host_profile_runtime.cpp \
+            native/product/host_profile_state.cpp \
+            native/product/host_profile_store.cpp \
+            native/product/host_profile_catalog.cpp \
+            native/product/modern_racer_identity.cpp \
+            native/product/completed_run_record.cpp \
+            native/product/completed_run_store.cpp \
+            native/product/baldosa_native_run_record_admission.cpp \
+            native/product/local_multiplayer_match_binding.cpp \
+            native/product/multiplayer_match_record.cpp \
+            native/product/multiplayer_match_catalog.cpp \
+            -o "$RUNNER_TEMP/baldosa-native-existing-profile-next-boot-test"
+          "$RUNNER_TEMP/baldosa-native-existing-profile-next-boot-test"
+          echo "PASS: native C++ named-profile transactional recovery assertions executed including malformed pending intent explicit typed rollback and immutable archives" >> "$GITHUB_STEP_SUMMARY"
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic \
             -I native/product \
             -c tools/baldosa_native_product_execution.cpp \

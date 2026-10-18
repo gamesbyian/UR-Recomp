@@ -181,9 +181,9 @@ def audit(root: Path) -> dict:
         require(row.get("original_native_full_sram_equal") is same_sram and
                 row.get("battery_sram_differing_byte_count") == len(differences) and
                 row.get("battery_first_differences") == [
-                    {"offset": i, "reference_byte": actual["ref"][1][i],
+                    {"offset": i, "original_byte": actual["ref"][1][i],
                      "native_byte": actual["native"][1][i]}
-                    for i in differences[:16]],
+                    for i in differences[:8]],
                 "raw original/native 8KiB SRAM differ from actual producer claim")
         if differences:
             unequal_sram.append(offset)

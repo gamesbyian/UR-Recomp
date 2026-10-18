@@ -222,16 +222,35 @@ def run(phase: str, launcher: Path, rom: Path, fixture: Path,
                         "original_guest_save_message": "UR-BALDOSA-SAVE-FAILED:" in log,
                         "original_game_race_armed": "UR_BALDOSA_NATIVE_PAUSE ARMED guest=2200" in log,
                         "canonical_equal_before_after": after == previous,
+                        "real_ntfs_pre_intent_durable_allocation_refused":
+                            "reason=native_sram_intent_not_durable" in log,
+                        "real_original_guest_exit8": rc == 8,
                         "qa_gate_credit": 0}, indent=2) + "\n",
             encoding="utf-8")
-        if (after != previous or rc != 8 or
+        # A full volume can refuse durable journal allocation *before*
+        # RtlWriteSram. This is the observed source-game branch, distinct
+        # from the existing postraw typed-CAS sharing failure.
+        before_raw_refusal = (
+            "UR_BALDOSA_NATIVE_PROFILE REJECTED "
+            "reason=native_sram_intent_not_durable" in log and
+            "UR_BALDOSA_NATIVE_PROFILE native_save_preflight_failed" in log and
+            "UR-BALDOSA-SAVE-FAILED: Native save was refused before writing."
+            in log
+        )
+        if (after != previous or rc != 8 or not before_raw_refusal or
             "UR_BALDOSA_NATIVE_PAUSE ARMED guest=2200" not in log or
             "UR_BALDOSA_NATIVE_PAUSE_MENU QUIT_QUEUED=1" not in log or
             "UR-BALDOSA-SAVE-FAILED: This game session could not finish saving."
             not in log or
-            "UR-BALDOSA-SAVE-FAILED: Native save could not complete." not in log or
+            "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=native-ci-rider"
+            in log or
             "UR-BALDOSA-FIRST-RACER:" in log or
-            "UR-BALDOSA-RECOVERY-COMMITTED:" in log):
+            "UR-BALDOSA-RECOVERY-COMMITTED:" in log or
+            any(user.rglob("native-sram-checkpoint.pending")) or
+            any(user.rglob("native-sram-recovered-*.txt")) or
+            any(user.rglob("*.urrun")) or
+            any(user.rglob("*.urmatch")) or
+            any(user.rglob("*.urghost"))):
             raise ValueError("Actual full NTFS source game did not safely refuse save: " +
                              log[-2600:])
         return
@@ -248,7 +267,10 @@ def run(phase: str, launcher: Path, rom: Path, fixture: Path,
             if (rc or saved != previous or
                 "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=native-ci-rider" not in log or
                 "UR-BALDOSA-STARTUP-PROFILE-REJECTED" in log or
-                list(user.rglob("native-sram-checkpoint.pending"))):
+                list(user.rglob("native-sram-checkpoint.pending")) or
+                list(user.rglob("*.urrun")) or
+                list(user.rglob("*.urmatch")) or
+                list(user.rglob("*.urghost"))):
                 raise ValueError("Actual original cold boot after freeing real NTFS volume changed save")
     finally:
         installed.unlink(missing_ok=True)

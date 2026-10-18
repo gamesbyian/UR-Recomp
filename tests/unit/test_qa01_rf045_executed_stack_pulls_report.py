@@ -36,7 +36,7 @@ class AuthenticStack(unittest.TestCase):
   a,b=self.fixture()
   with self.assertRaisesRegex(ValueError,"missing/misaligned"):
    m.observe(a.replace("kind=pushW addr=01EE","kind=pushW addr=01EF",1),b)
-  with self.assertRaisesRegex(ValueError,"NMI calendar"):
+  with self.assertRaisesRegex(ValueError,"nine source NMI|NMI calendar"):
    m.observe("\n".join(a.splitlines()[:-1]),b)
   with self.assertRaisesRegex(ValueError,"truncated"):
    m.observe(a+"QA01RF045ORIGSTACK_TRUNCATED\n",b)

@@ -1,0 +1,165 @@
+{
+  "schema": "RF047-real-Zoo-native-phase-first-execution-partial-v1",
+  "completed_run": 39095578733,
+  "source_sha": "12245a10f83563cedfb54f56b60e1ab628741964",
+  "genuine_case_artifact": 12124801698,
+  "outer_zip_sha256": "9188eebef5385ff1fdb5770ae06d8fee9dc33b8e1a4a86eb1fbaf5235506dcc3",
+  "case_file_count": 18,
+  "original_core_sha256": "a952cd3f410e49678c4edf49288b28942658f1991d1e38b6270624c1fcbe15e6",
+  "native_executable_sha256": "0e645ec70272a07e7680b7fdb9133114b4e64e3bd13c66d2e25ca7cc41f751d0",
+  "source_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+  "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "exact_input_sha256": "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52",
+  "first_baseline_artifact": 12121250300,
+  "baseline_sha256": "3f06c51d20414833c71ff603ec1ec0b947f765007cf45d250bef158276091773",
+  "controls": {
+    "full_wram_pairs": 78,
+    "exact_wram_pairs": 51,
+    "unmasked_differing_byte_occurrences": 92,
+    "mask_count": 0,
+    "zoo_race_mesh_and_result_Bowl_controls_json_equal_to_RF045": true,
+    "producer_exit": 0,
+    "case_disposition": "strict_candidate",
+    "event_credit": 0,
+    "cold_guest_records_equal_excluding_updated_executable_and_report_source_identity": true
+  },
+  "native_trace_integrity": {
+    "native_log_sha256": "f7bc26eaf512746da992c0e7dec6d44f5c92c37957e999afc8178cfba7c65bb7",
+    "source_log_sha256": "1f4536d088805bc4e2f9e6a33111e29bd6686bd85503930ed1141c94d7da829b",
+    "sequence_max": 2732,
+    "complete_ordered_native_events": 2703,
+    "missing_or_corrupted_sequence_ids": 29,
+    "malformed_containing_RF047_prefix_physical_lines": 21,
+    "complete_native_NMI_entry_rows": 8,
+    "complete_native_afterpush_rows": 9,
+    "complete_native_handler_return_rows": 9,
+    "complete_native_inhandler_status_reader_rows": 9,
+    "strict_sequence_coverage_satisfied": false,
+    "output_corruption_cause": "native RF047 fprintf(stderr) interleaved with multi-fragment WRAM writer logger at /dev/stderr; do not reconstruct missing bytes"
+  },
+  "native_observations": [
+    {
+      "host_frame": 1017,
+      "original_NMI_interrupted_pc": "82D4F0",
+      "native_saved_resume_pc": "82D4EE",
+      "native_entry_sequence": 1,
+      "native_real_after_push_stack": "26EED482",
+      "native_actual_inhandler_read": {
+        "sequence": 3,
+        "address": "01ED",
+        "value": "26"
+      },
+      "native_SP_after_handler": "01F0"
+    },
+    {
+      "host_frame": 1018,
+      "original_NMI_interrupted_pc": "82D4EE",
+      "native_saved_resume_pc": "82D4EE",
+      "native_entry_sequence": 301,
+      "native_real_after_push_stack": "26EED482",
+      "native_actual_inhandler_read": {
+        "sequence": 303,
+        "address": "01ED",
+        "value": "26"
+      },
+      "native_SP_after_handler": "01F0"
+    },
+    {
+      "host_frame": 1019,
+      "original_NMI_interrupted_pc": "82D4F0",
+      "native_saved_resume_pc": "82D4EE",
+      "native_entry_sequence": null,
+      "native_real_after_push_stack": "26EED482",
+      "native_actual_inhandler_read": {
+        "sequence": 600,
+        "address": "01ED",
+        "value": "26"
+      },
+      "native_SP_after_handler": "01F0"
+    },
+    {
+      "host_frame": 1020,
+      "original_NMI_interrupted_pc": "82D4EE",
+      "native_saved_resume_pc": "82D4EE",
+      "native_entry_sequence": 897,
+      "native_real_after_push_stack": "26EED482",
+      "native_actual_inhandler_read": {
+        "sequence": 899,
+        "address": "01ED",
+        "value": "26"
+      },
+      "native_SP_after_handler": "01F0"
+    },
+    {
+      "host_frame": 1021,
+      "original_NMI_interrupted_pc": "82D4F0",
+      "native_saved_resume_pc": "82D4EE",
+      "native_entry_sequence": 1199,
+      "native_real_after_push_stack": "26EED482",
+      "native_actual_inhandler_read": {
+        "sequence": 1201,
+        "address": "01ED",
+        "value": "26"
+      },
+      "native_SP_after_handler": "01F0"
+    },
+    {
+      "host_frame": 1022,
+      "original_NMI_interrupted_pc": "82D4EE",
+      "native_saved_resume_pc": "82D4EE",
+      "native_entry_sequence": 1513,
+      "native_real_after_push_stack": "26EED482",
+      "native_actual_inhandler_read": {
+        "sequence": 1515,
+        "address": "01ED",
+        "value": "26"
+      },
+      "native_SP_after_handler": "01F0"
+    },
+    {
+      "host_frame": 1023,
+      "original_NMI_interrupted_pc": "82D4F0",
+      "native_saved_resume_pc": "82D4EE",
+      "native_entry_sequence": 1817,
+      "native_real_after_push_stack": "26EED482",
+      "native_actual_inhandler_read": {
+        "sequence": 1819,
+        "address": "01ED",
+        "value": "26"
+      },
+      "native_SP_after_handler": "01F0"
+    },
+    {
+      "host_frame": 1024,
+      "original_NMI_interrupted_pc": "82D4EE",
+      "native_saved_resume_pc": "82D4EE",
+      "native_entry_sequence": 2121,
+      "native_real_after_push_stack": "26EED482",
+      "native_actual_inhandler_read": {
+        "sequence": 2123,
+        "address": "01ED",
+        "value": "26"
+      },
+      "native_SP_after_handler": "01F0"
+    },
+    {
+      "host_frame": 1025,
+      "original_NMI_interrupted_pc": "82D4EE",
+      "native_saved_resume_pc": "82D4EE",
+      "native_entry_sequence": 2427,
+      "native_real_after_push_stack": "26EED482",
+      "native_actual_inhandler_read": {
+        "sequence": 2429,
+        "address": "01ED",
+        "value": "26"
+      },
+      "native_SP_after_handler": "01F0"
+    }
+  ],
+  "source_native_resume_same_host_PC_equality_count": 5,
+  "native_actual_RTI_opcode_and_return_PC_proven": false,
+  "native_instruction_phase_vs_original_proven_equal": false,
+  "runtime_correction_justified": false,
+  "complete_USA_events_accepted": 0,
+  "next_single_witness": "Re-execute only because RF047 output acquisition was corrupted. Emit each bounded native event with one atomic write(2) and instrument actual interpreted RTI vs compiled return in source before a strict causal conclusion."
+}

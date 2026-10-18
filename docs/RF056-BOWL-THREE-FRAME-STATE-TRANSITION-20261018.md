@@ -81,6 +81,24 @@ Investigate the **earliest actually executed branch/predicate and input/state re
 
 Prefer a single adjacent-frame, read-only execution trace/conditional, with complete genuine source input fingerprints and the existing 131,072-byte raw equality controls. **Do not** immediately shift the game clock, controller movie, SPC queue or gate event acceptance because the two byte-transition sets match at shifted positions. The 2014 movie already differs from fresh original, and a genuine first reader/clock origin still has not been established. Inform QA/Bowl agents, but leave their event fixture, input pipeline and ledger unchanged.
 
+## Constrained original-65816 CPU instruction shortlist (imported symbols, not executions)
+
+The existing `reference/imported/reverse-engineering/baldosa-uniracers-recomp/decomp/symbols.txt` supplies **candidate, unvalidated USA runtime labels** for menu/button dispatch. These are valuable *where to look*, not evidence that the code executed at the Bowl-to-Switcher boundary:
+
+| Candidate retail USA 65816 PC | Imported symbol and suspected role |
+| --- | --- |
+| `80:D1DB` | `Input_ReadPads`, writes sampled pads into WRAM `0072/0074` |
+| `80:B708` | `Input_IsConfirmHeld`, button mask `9080` |
+| `80:B8AF` | `Input_IsStartOrAHeld`, button mask `1080` |
+| `80:C1F5` | `Input_WaitAnyButton`, described as a two-frame confirm |
+| `80:F7E5` | `Menu_WaitFramesOrButton`, frame wait that can return early on input |
+| `80:ADD4` | `PostRace_Menu`, NEXT TRACK/RETRY/etc. |
+| `80:AE81` | `PostRace_NextTrack`, possible eventual course advance |
+
+The actually supplied `080` input overlaps the **imported** confirm masks; this does *not* prove an input condition, two-frame debounce implementation, delayed guest entry or direct `$4218/$4219` consumption. **Do not silently equate** source supplied `080` with stored guest `0072=80,0073=A4`. At minimum, first verify each byte opcode/entry address against the exact original 2014 USA ROM and compare only **genuinely executed** source/native instruction PCs within original replay host4687–4690 and native host4688–4693, with their independently registered NMI/beam times, controller-read values, branch outcomes, and start/end of the 31-byte state mutation. Exclude unexecuted functions as a negative, and record the first actual *writer/reader* rather than assuming the earliest different WRAM byte is causal.
+
+**Proposed smallest actionable discriminator:** observe the real transition predicate (including any executed `Input_WaitAnyButton` two-frame gating) at the above source windows and compare true consumed P1 state at its instruction boundary. Keep both real native supplied controller offset +1 and the measured transition onset offset +3 unchanged. Capture enough pre- and post-NMI CPU context to distinguish a host-frame bookkeeping artifact from a genuine guest-state delay. This is a source-qualification protocol, **not** authority to insert two dummy CPU frames, a global CPU/SPC retime, or a guessed queue delay.
+
 ## Three-project reuse preflight and ownership
 
 The repository's strict original/native Zoo/Bowl comparator, existing independently proven original controller/source evidence and immutable source images are authoritative for this USA course. Pinned Baldosa supplies the native generated-CPU and helper interfaces; Malmazuke's reconstruction can suggest instruction and RAM labels only after a direct source-ROM check, never PAL→USA timing or acceptance. This PR owns only **offline, source-identity-bound CPU/gameplay event causality research**, and edits no shared workflow or acceptance authority.

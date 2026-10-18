@@ -59,6 +59,11 @@ class FirstConsumerReportTest(unittest.TestCase):
             rf.classify(SOURCE_ROW.replace("mirror=1","mirror=0"),native_records())
         with self.assertRaisesRegex(ValueError,"incomplete original"):
             rf.classify(SOURCE_ROW.replace(" y=0000",""),native_records())
+        self.assertEqual(
+            rf.classify(SOURCE_ROW+" indexed_target=1",native_records())
+              ["original_indexed_effective_candidate_rows"],1)
+        with self.assertRaisesRegex(ValueError,"indexed target disagrees"):
+            rf.classify(SOURCE_ROW+" indexed_target=0",native_records())
 
 if __name__=="__main__":
     unittest.main()

@@ -91,7 +91,8 @@ def main()->None:
         a.error("ROM/input identity mismatch")
     v.out.mkdir(parents=True,exist_ok=True)
     keys={"UR_QA08_WINDOWS_PIXEL_OWNER_TRACE":"1",
-          "UR_QA08_WINDOWS_CURRENT_CGRAM_TRACE":"1"}
+          "UR_QA08_WINDOWS_CURRENT_CGRAM_TRACE":"1",
+          "UR_QA08_WINDOWS_OBJ_FETCH_TRACE":"1"}
     previous={k:os.environ.get(k) for k in keys}
     os.environ.update(keys)
     try:crc,log=run_route(v.exe.resolve(),v.rom.resolve(),v.script.resolve(),
@@ -101,6 +102,8 @@ def main()->None:
             if x is None:os.environ.pop(k,None)
             else:os.environ[k]=x
     report=inspect(log,crc)
+    from qa08_join_current_medal_obj_fetch import joined
+    report["genuine_native_4bpp_medal_winners"] = joined(log,report)
     report["actual_windows_PE_sha256"]=sha(v.exe.read_bytes())
     report["controller_script_sha256"]=ROUTE_SHA
     (v.out/"qa08-current-result-owners.json").write_text(

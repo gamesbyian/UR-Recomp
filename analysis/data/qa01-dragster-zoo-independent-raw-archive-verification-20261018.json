@@ -197,10 +197,10 @@
     "accepted_usa_events": 0,
     "release_gates_passed": 0,
     "original_movie_first_sustained_8_consecutive_zoo_active_frames_independently_replayed_from_raw_source_wram_write_trace": true,
-    "all_324_original_movie_frames_2874_through_3197_reconstructed_from_raw_source_Wram_write_log": true,
     "verified_earlier_menu_zoo_selection_at_frame_2935_is_not_active_racing": true,
     "original_source_2014_movie_named_state_for_each_14_frame_compared_to_retained_proof": true,
     "crossframe_alignment_used_only_for_diagnostic_mutation_census_not_clock_waiver": true,
-    "causal_65816_input_or_nmi_branch_trigger_proven": false
+    "causal_65816_input_or_nmi_branch_trigger_proven": false,
+    "all_337_original_movie_frames_2874_through_3210_reconstructed_from_raw_source_Wram_write_log": true
   }
 }

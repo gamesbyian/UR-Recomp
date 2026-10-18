@@ -22,6 +22,12 @@ class SharedRigArtBoundary(unittest.TestCase):
         self.assertEqual(len(study.POSES), 5)
         self.assertEqual(len(study.CAMERAS), 2)
         self.assertEqual(len(set(study.CAMERAS.values())), 2)
+        self.assertEqual(study.SADDLE_CHOICES,(1.0,1.4,1.8,2.2))
+        self.assertEqual(study.FRAME_CHOICES,(1.0,1.4,1.8,2.0))
+        self.assertEqual(study.validate_variant(2.2,2.0),(2.2,2.0))
+        for invalid in ((0.5,1.0),(1.0,2.4),(float("nan"),1.0),(True,1.0)):
+            with self.subTest(params=invalid), self.assertRaises(ValueError):
+                study.validate_variant(*invalid)
         self.assertTrue(all(v.endswith(",22") for v in study.CAMERAS.values()))
         source = self.model.read_text(encoding="utf-8")
         self.assertEqual(source.count("rig(rig_pose);"), 1)
@@ -62,6 +68,10 @@ class SharedRigArtBoundary(unittest.TestCase):
         source = self.script.read_text(encoding="utf-8")
         self.assertIn("--camera=", source)
         self.assertIn("bounds = occupied_bounds(im)",source)
+        self.assertIn('f"rig_saddle_span={saddle_span}"',source)
+        self.assertIn('f"rig_frame_mass={frame_mass}"',source)
+        self.assertIn('"review_saddle_span": args.saddle_span',source)
+        self.assertIn('"review_frame_mass": args.frame_mass',source)
         self.assertIn('"all_static_source_model_frames_unclipped": True',source)
         self.assertNotIn("--viewall", source)
         self.assertNotIn("--autocenter", source)

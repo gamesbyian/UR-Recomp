@@ -89,7 +89,6 @@ jobs:
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic \
             -I native/product -I native/title \
             tests/native/baldosa_native_existing_profile_next_boot_test.cpp \
-            tools/baldosa_modern_profile_activation.cpp \
             native/product/clean_stock_sram.cpp \
             native/product/output_resolution_policy.cpp \
             native/product/host_product_state.cpp \

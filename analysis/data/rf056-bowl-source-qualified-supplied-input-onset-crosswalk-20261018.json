@@ -98,5 +98,45 @@
     "usa_event_credit": 0,
     "historical_movie_already_has_different_pretrigger_WRAM_and_SRAM": true
   },
-  "reproduction": "python3 tools/qa01_rf056_bowl_supplied_input_onset_bridge.py bowl-3guest-original-native-2014-source.zip --source-qualified-input-case bowl-input-qualified-1856.zip"
+  "reproduction": "python3 tools/qa01_rf056_bowl_supplied_input_onset_bridge.py bowl-3guest-original-native-2014-source.zip --source-qualified-input-case bowl-input-qualified-1856.zip",
+  "genuine_full_WRAM_stored_joypad_candidate_values_at_crossframe_pairs": {
+    "pairs": [
+      [
+        339,
+        342
+      ],
+      [
+        340,
+        343
+      ],
+      [
+        341,
+        344
+      ]
+    ],
+    "source_and_native_equal_at_each_pair": true,
+    "observations": [
+      {
+        "wram_address_range": "7E:0072..0075",
+        "imported_name": "wJoy1Held/wJoy2Held",
+        "source_hex": "80A48580",
+        "native_hex": "80A48580"
+      },
+      {
+        "wram_address_range": "7E:008F",
+        "imported_name": "wInputLatch",
+        "source_hex": "00",
+        "native_hex": "00"
+      },
+      {
+        "wram_address_range": "7E:030D..0310",
+        "imported_name": "wJoy1RawLo/wJoy2RawLo/wJoy1RawHi/wJoy2RawHi",
+        "source_hex": "00000000",
+        "native_hex": "00000000"
+      }
+    ],
+    "no_actual_CPU_controller_read_or_memory_read_PC_logged": true,
+    "no_inference_that_current_supplied_mask_080_equals_stored_0072_word": true,
+    "no_unsupported_relabel_of_imported_RAM_variables": true
+  }
 }

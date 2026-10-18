@@ -51,8 +51,11 @@ the comparison is invalid without that source identity.
 
 Five sampled genuine native result guests:
 4032,4048,4064,4080,4176. Each probes original logical coordinates
-(207,91), (205,115), (205,139), (225,96), (225,120), with native internal
-`ppu_line=raster_y+1`. Our already-proven native 25 effective PPU
+(207,91), (205,115), (205,139), (225,96), (225,120), The exact pinned PPU path calls `ppu_evaluateSprites(ppu, line - 1)`
+from `ppu_runLine(ppu, line)`. **The actual 4bpp OBJ fetch observes
+zero-based `raster_y`**, whereas the later pixel owner-compositor logs
+`ppu_line=raster_y+1`. They must not be treated as identical numeric
+counters or compared without explicit registration. Our already-proven native 25 effective PPU
 pixel witnesses and 175 OAM candidates are required, along with current
 real source CGRAM port writers. One new source witness is emitted only
 when an actual nontransparent in-bounds sprite writes one of those

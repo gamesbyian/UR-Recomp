@@ -13,7 +13,7 @@ from __future__ import annotations
 FRAMES=(4032,4048,4064,4080,4176)
 COORDS=((207,91),(205,115),(205,139),(225,96),(225,120))
 PREFIX="UR_QA08_WIN_OBJ_FETCH "
-FIELDS={"frame","x","ppu_line","slot","oam","attrs","oam_tile",
+FIELDS={"frame","x","raster_y","slot","oam","attrs","oam_tile",
         "used_tile","objadr","row","src_col","px","palette","priority",
         "pixel","plane","writer_obj"}
 MAX_WRITES=700
@@ -30,15 +30,15 @@ def record(s:str)->dict:
         parts[k]=v
     if set(parts)!=FIELDS:
         raise ValueError("missing/extra actual original PPU fetch operand")
-    dec=["frame","x","ppu_line","slot","row","src_col","px","priority"]
+    dec=["frame","x","raster_y","slot","row","src_col","px","priority"]
     hx=[k for k in FIELDS if k not in dec]
     try:
         d={k:int(parts[k],10) for k in dec}
         d.update({k:int(parts[k],16) for k in hx})
     except ValueError as e:
         raise ValueError("malformed genuine PPU OAM/VRAM operand") from e
-    f,x,y=d["frame"],d["x"],d["ppu_line"]
-    if (f not in FRAMES or (x,y-1) not in COORDS or
+    f,x,y=d["frame"],d["x"],d["raster_y"]
+    if (f not in FRAMES or (x,y) not in COORDS or
         not (0<=d["slot"]<128) or
         not (0<=d["oam"]<=0xffff and 0<=d["attrs"]<=0xffff) or
         d["oam_tile"]!=(d["attrs"]&0xff) or
@@ -75,7 +75,7 @@ def joined(log:str, owner:dict)->dict:
     for ln in log.splitlines():
         if not ln.startswith(PREFIX):continue
         d=record(ln)
-        key=(d["frame"],d["x"],d["ppu_line"]-1)
+        key=(d["frame"],d["x"],d["raster_y"])
         samples.setdefault(key,[]).append(d)
         count+=1
         if count>MAX_WRITES:

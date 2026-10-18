@@ -29,7 +29,7 @@ def full_owner():
     return owner
 
 def writer(frame,x,y,slot=112,plane=0x80,pixel=1,z=0x281):
-    return (f"UR_QA08_WIN_OBJ_FETCH frame={frame} x={x} ppu_line={y+1} "
+    return (f"UR_QA08_WIN_OBJ_FETCH frame={frame} x={x} raster_y={y} "
             f"slot={slot} oam=607d attrs=0000 "
             f"oam_tile=00 used_tile=000 objadr=0000 "
             f"row=0 src_col=0 px=0 palette=80 priority=2 "

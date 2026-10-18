@@ -42,14 +42,14 @@ TRACE = r"""        // Lower OAM indices are processed later and overwrite highe
                      snes_frame_counter == 4064 ||
                      snes_frame_counter == 4080 ||
                      snes_frame_counter == 4176) &&
-                    (((col + x + px == 207) && (line == 92)) ||
+                    (((col + x + px == 207) && (line == 91)) ||
                      ((col + x + px == 205) &&
-                      (line == 116 || line == 140)) ||
+                      (line == 115 || line == 139)) ||
                      ((col + x + px == 225) &&
-                      (line == 97 || line == 121))) &&
+                      (line == 96 || line == 120))) &&
                     getenv("UR_QA08_WINDOWS_OBJ_FETCH_TRACE")) {
                   fprintf(stderr,
-                    "UR_QA08_WIN_OBJ_FETCH frame=%u x=%d ppu_line=%d "
+                    "UR_QA08_WIN_OBJ_FETCH frame=%u x=%d raster_y=%d "
                     "slot=%u oam=%04x attrs=%04x "
                     "oam_tile=%02x used_tile=%03x objadr=%04x "
                     "row=%d src_col=%d px=%d "

@@ -25,11 +25,11 @@ INJECTION='''            # UR_QA01_RF055_COMPILED_PC: executed original-ROM PC, 
                 _site_name = f"{func_name}"
                 lines.append("extern int snes_frame_counter;")
                 lines.append(
-                    "if (getenv(\\\"UR_QA01_RF055_NATIVE_INSN_PC\\\") && "
+                    "if (getenv(\"UR_QA01_RF055_NATIVE_INSN_PC\") && "
                     "snes_frame_counter == 6124) fprintf(stderr, "
-                    f"\\\"QA01RF055NATIVEPC pc={_site_pc:06X} scope={_site_name} "
+                    f"\"QA01RF055NATIVEPC pc={_site_pc:06X} scope={_site_name} "
                     "frame=%d master=%llu A=%04X Y=%04X D=%04X "
-                    "dp63=%02X dp64=%02X dp65=%02X\\\\n\\\", "
+                    "dp63=%02X dp64=%02X dp65=%02X\\n\", "
                     "snes_frame_counter, "
                     "(unsigned long long)cpu->master_cycles, "
                     "(unsigned)cpu->A, (unsigned)cpu->Y, (unsigned)cpu->D, "

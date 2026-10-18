@@ -20,6 +20,10 @@ constexpr unsigned kOnePlayerStep = 16;
 constexpr unsigned kOnePlayerSlots =
     (kOnePlayerLast - kOnePlayerFirst) / kOnePlayerStep + 1;
 constexpr unsigned kTwoPlayerLast = 5472;
+/* Exact genuine 2014 original 1P callback2176..2240 maps to native f+1. */
+constexpr unsigned kRealOriginal1PFirst = 2177;
+constexpr unsigned kRealOriginal1PLast = 2241;
+constexpr unsigned kRealOriginal1PSlots = 65;
 constexpr unsigned kTwoPlayerSlots =
     (kTwoPlayerLast - kOnePlayerFirst) / kOnePlayerStep + 1;
 constexpr int kWidth = 256;
@@ -27,6 +31,7 @@ constexpr int kHeight = 224;
 bool g_seen_default[4] = {};
 bool g_seen_oneplayer[kOnePlayerSlots] = {};
 bool g_seen_twoplayer[kTwoPlayerSlots] = {};
+bool g_seen_real_original1p[kRealOriginal1PSlots] = {};
 
 // One explicitly bounded diagnostic case. The default post-PPU observer
 // remains exactly its previously accepted 2P four-frame experiment.
@@ -34,6 +39,11 @@ bool g_seen_twoplayer[kTwoPlayerSlots] = {};
 bool oneplayer_coverage_mode() noexcept {
     const char* mode = std::getenv("UR_QA08_WINDOWS_ORIGINAL_SOURCE_CASE");
     return mode && std::strcmp(mode, "oneplayer-coverage") == 0;
+}
+
+bool real_original1p_65_mode() noexcept {
+    const char* mode = std::getenv("UR_QA08_WINDOWS_ORIGINAL_SOURCE_CASE");
+    return mode && std::strcmp(mode, "oneplayer-original65") == 0;
 }
 
 bool twoplayer_coverage_mode() noexcept {
@@ -92,16 +102,21 @@ extern "C" void ur_qa08_windows_capture_original_source(
     if (!dir || !dir[0]) return;
     const char* mode = std::getenv("UR_QA08_WINDOWS_ORIGINAL_SOURCE_CASE");
     if (mode && mode[0] && !oneplayer_coverage_mode() &&
-        !twoplayer_coverage_mode()) {
+        !twoplayer_coverage_mode() && !real_original1p_65_mode()) {
         // Bad diagnostic selectors fail closed. Not even a diagnostic file
         // is produced, and ordinary game output remains unmodified.
         return;
     }
+    const bool real1p = real_original1p_65_mode();
     const bool oneplayer = oneplayer_coverage_mode();
     const bool twoplayer = twoplayer_coverage_mode();
-    const int index = wanted_index(guest_frame, oneplayer, twoplayer);
+    const int index = real1p ?
+        (guest_frame >= kRealOriginal1PFirst && guest_frame <= kRealOriginal1PLast ?
+         static_cast<int>(guest_frame - kRealOriginal1PFirst) : -1) :
+        wanted_index(guest_frame, oneplayer, twoplayer);
     if (index < 0) return;
-    bool& seen = twoplayer ? g_seen_twoplayer[index] :
+    bool& seen = real1p ? g_seen_real_original1p[index] :
+        twoplayer ? g_seen_twoplayer[index] :
         (oneplayer ? g_seen_oneplayer[index] : g_seen_default[index]);
     if (guest_frame == 0 || !field || seen) {
         std::fprintf(stderr, "UR_QA08_WINDOWS_SOURCE_REJECT frame=%u reason=repeat-or-null\n",

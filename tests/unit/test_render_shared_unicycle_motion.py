@@ -29,6 +29,16 @@ class SharedRigMotionContract(unittest.TestCase):
         self.assertEqual(frames[8],("ride",8,1.0))
         self.assertEqual(frames[9],("stunt_cycle",0,0.0))
         self.assertEqual(frames[-1],("stunt_cycle",8,1.0))
+        dense = motion.samples(16)
+        self.assertEqual(len(dense),34)
+        self.assertEqual(dense[0],("ride",0,0.0))
+        self.assertEqual(dense[16],("ride",16,1.0))
+        self.assertEqual(dense[17],("stunt_cycle",0,0.0))
+        self.assertEqual(dense[-1],("stunt_cycle",16,1.0))
+        with self.assertRaises(ValueError):
+            motion.samples(7)
+        with self.assertRaises(ValueError):
+            motion.samples(17)
         self.assertEqual(self.source.count("module continuous_rig("),1)
         self.assertEqual(self.source.count("shared_rig(pedal=18+720*u"),1)
         self.assertEqual(self.source.count('else if(p=="ride")'),1)
@@ -46,7 +56,8 @@ class SharedRigMotionContract(unittest.TestCase):
         self.assertNotIn("--viewall",self.reviewer)
         self.assertNotIn("--autocenter",self.reviewer)
         self.assertIn("model clipped at fixed-camera viewport boundary",self.reviewer)
-        self.assertIn('"all_18_source_model_unclipped": True',self.reviewer)
+        self.assertIn('"all_source_model_unclipped": True',self.reviewer)
+        self.assertIn('"source_animation_frame_count": count',self.reviewer)
         self.assertIn('"two_continuous_motion_loops_pixel_exact_at_endpoints": True',self.reviewer)
         self.assertIn("animated rig loop has discontinuous rendered endpoints",self.reviewer)
 

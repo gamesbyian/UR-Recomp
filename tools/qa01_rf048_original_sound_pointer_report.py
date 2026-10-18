@@ -53,6 +53,14 @@ def classify(original: str, native: str) -> dict:
         for name in ("dp_base", "dp_slot", "raw_ptr", "y", "effective_candidate","a0","a1"):
             if any(c not in "0123456789ABCDEF" for c in row[name]):
                 raise ValueError("invalid original source address/value")
+        if row["mirror"]=="1":
+            base=int(row["raw_ptr"],16)
+            y=int(row["y"],16)
+            derived=(base+y)&0xffffff
+            if (int(row["effective_candidate"],16)!=derived or
+                int(row["dp_slot"],16)!=(
+                    (int(row["dp_base"],16)+0x63)&0xffff)):
+                raise ValueError("RF048 original indexed effective operand disagrees with DP/Y evidence")
         candidate=int(row["effective_candidate"],16)&0xffff
         actual_indexed=(row["mirror"]=="1" and
                         (0xC770<=candidate<=0xC779 or

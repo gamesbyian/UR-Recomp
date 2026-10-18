@@ -64,6 +64,14 @@ def synthetic_archives(root: Path, *, bad_pixel=False, bad_depth=False,
             "original_1based_frame": frame + (2 if bad_label else 1),
             "original_unchanged_BGRX_sha256": reg.digest(image_members[name])
         })
+    # Model the complete 263-label metadata census without any original ROM
+    # images: only the two selected frames require image bytes in this test.
+    for unused in range(261):
+        callback_rows.append({
+            "real_original_snes9x_callback_frame": unused,
+            "original_1based_frame": unused + 1,
+            "original_unchanged_BGRX_sha256": "0" * 64
+        })
     script = b"synthetic route only; no original assets"
     manifest = {
         "actual_callbacks_captured": 263, "actual_script_quit_frame": 5484,

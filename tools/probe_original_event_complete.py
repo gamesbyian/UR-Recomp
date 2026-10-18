@@ -26,6 +26,7 @@ import extract_historical_smv_scene_window as movie
 import extract_menu_visual_language as visual
 import probe_attract_cycle as trace
 import qa01_bowl_switcher_handoff as bowl_handoff
+import qa01_bowl_source_movie_memory as bowl_source_memory
 import probe_jumpover_fallthrough_native as engine
 import probe_original_non_dragster_course_entry as entry
 import probe_result_screens as result_probe
@@ -1599,7 +1600,9 @@ def scan_source(args, work: Path, sram: Path, source_input: Path,
     scan = work / "source"
     scan.mkdir(parents=True)
     (scan / "scan.script").write_text(
-        f"wait {args.source_horizon}\ndump source-horizon\nquit\n")
+        bowl_source_memory.source_movie_scan_script(args.source_horizon)
+        if args.bowl_source_movie_memory
+        else f"wait {args.source_horizon}\ndump source-horizon\nquit\n")
     env = dict(os.environ, SNESREF_HEADLESS="1", SNESREF_FAST="1",
                SNESREF_WRAM_FILL="0", SNESREF_SRAM_IN=str(sram),
                SNESREF_SCRIPT=str(scan / "scan.script"),
@@ -1633,6 +1636,10 @@ def scan_source(args, work: Path, sram: Path, source_input: Path,
     if args.bowl_next_switcher:
         event["source_next_switcher"] = bowl_handoff.source_next_switcher(
             states, event["original_result_frame"])
+    if args.bowl_source_movie_memory:
+        event["source_movie_handoff_state_samples"] = {
+            str(offset): states[bowl_source_memory.SOURCE_RESULT + offset]
+            for offset in bowl_source_memory.OFFSETS}
     if args.case == "dragster" and (
             event["original_entry_frame"] != 794
             or event["original_result_frame"] != 2874
@@ -1798,6 +1805,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="opt-in unchanged 2014 Zoo original input through source Bowl active race at movie frame 8620")
     ap.add_argument("--bowl-next-switcher", action="store_true",
                     help="opt-in unchanged 2014 Bowl input through next Switcher at movie frame 12327; no acceptance")
+    ap.add_argument("--bowl-source-movie-memory", action="store_true",
+                    help="opt-in original 2014 Bowl movie full raw WRAM/SRAM vs fresh guests around Switcher, no acceptance")
     ap.add_argument("--observe-one-frame-stunt-lead", action="store_true",
                     help="report a verified narrow Stunt phase gap as diagnostic CI success; never admit a course")
     ap.add_argument("--snesref", type=Path, required=True)
@@ -1830,6 +1839,10 @@ def main(argv: list[str] | None = None) -> int:
                                     or not args.source_followthrough
                                     or args.native_backend != "pinned-baldosa"):
         ap.error("Bowl next Switcher requires pinned original/native Bowl source followthrough")
+    if args.bowl_source_movie_memory and (args.case != "bowl"
+                                         or not args.bowl_next_switcher
+                                         or args.native_backend != "pinned-baldosa"):
+        ap.error("Bowl source raw memory requires exact 2014 Bowl-to-Switcher pinned guests")
     if args.source_horizon < 12500 or args.source_horizon > 24000:
         ap.error("source horizon must be 12500..24000")
     streams = list(rnc.find_streams(args.rom.read_bytes()))
@@ -1984,6 +1997,16 @@ def main(argv: list[str] | None = None) -> int:
         switcher_payload=unpack_method1(streams[3][1]),
         validate_course_payload=is_fully_loaded_course)
         if args.bowl_next_switcher else None)
+    source_movie_handoff = (bowl_source_memory.observe_movie_guest_memory(
+        work / "source", replay / "ref", replay / "native",
+        (work / "source" / "source-scan.log").read_text(), rl, nl,
+        {bowl_source_memory.SOURCE_RESULT + int(offset): state
+         for offset, state in original_event["source_movie_handoff_state_samples"].items()},
+        original_event["source_next_switcher"], rf, nf,
+        terminal_frames["reference_relative"], terminal_frames["native_relative"],
+        observed_dump_frame=observed_dump_frame,
+        decode_sram=decode_qa01_crawler_battery_sram)
+        if args.bowl_source_movie_memory else None)
     switcher_same_host_memory = (observe_switcher_same_host_memory_offsets(
         replay / "ref", replay / "native", switcher_same_host)
         if args.switcher_same_host_full_memory_offsets else None)
@@ -2006,6 +2029,7 @@ def main(argv: list[str] | None = None) -> int:
         "source_terminal_followthrough": source_followthrough,
         "zoo_next_bowl_handoff": next_bowl,
         "bowl_next_switcher_handoff": next_switcher,
+        "bowl_source_movie_three_guest_memory": source_movie_handoff,
         "reference_script_sha256": sha(reference_script),
         "reference": reference, "native": native,
         "scope": "original archived scene inputs, fresh reference/native stock menu; event results text from guest PPU dumps; instruction-time contact causality unproven"

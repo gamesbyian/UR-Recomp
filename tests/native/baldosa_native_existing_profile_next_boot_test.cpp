@@ -456,7 +456,7 @@ int main() {
         const std::string old_catalog = bytes(roster);
         write_bytes(raw, make_changed(profile));
         const std::string changed_raw = bytes(raw);
-        const std::string corrupt("INVALID\\0INTENT\\xff", 15);
+        const std::string corrupt("INVALID\0INTENT\xff", 15);
         { std::ofstream out(pending, std::ios::binary);
           out.write(corrupt.data(), corrupt.size()); }
         assert(recover_baldosa_sram_intent_on_cold_boot(dir, "mike") ==
@@ -487,7 +487,7 @@ int main() {
                 ++bad_intent_count;
                 const auto record = bytes(entry.path());
                 assert(record.find(
-                    "UR-BALDOSA-UNTRUSTED-SRAM-INTENT/1\\n") == 0);
+                    "UR-BALDOSA-UNTRUSTED-SRAM-INTENT/1\n") == 0);
                 assert(record.substr(record.size() - corrupt.size()) ==
                        corrupt);
             }

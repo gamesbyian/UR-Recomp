@@ -1,0 +1,172 @@
+{
+  "schema": "rf054-genuine-2014-usa-zoo-native-sound-operand-writer-receiver-witness-v1",
+  "observation_type": "independent read-only audit of immutable Actions 18-file case, no replay or emulator change",
+  "source_pr_head_at_one_shot": "7334a568f52ea390ae5866d3ee132e392635a186",
+  "workflow_run": 39161563837,
+  "artifact_id": 12149640496,
+  "artifact_zip_sha256": "3ccb209a92045e9e89113442e68af51b85a453a160a9b9efaf8ca0d59e79631c",
+  "baseline_rf047": {
+    "artifact_id": 12124654817,
+    "zip_sha256": "1060a98744fb770bbe43fcdddd89b352bdef691e18f1ab24d4ead5f16996bf6b"
+  },
+  "baseline_rf052": {
+    "artifact_id": 12136344183,
+    "zip_sha256": "f641cc39af5d63ac9d01c47cfd35ced5162d5c789d2be3444e47bfd50db92bbb"
+  },
+  "control_equal_whole_producer_objects": [
+    "zoo_race_mesh",
+    "zoo_next_bowl_handoff",
+    "source_terminal_followthrough"
+  ],
+  "immutable_source_inputs_exact_equal": [
+    "rom_sha256",
+    "original_movie_sha256",
+    "source_sram_sha256",
+    "input_sha256"
+  ],
+  "control_checkpoint_count": 78,
+  "unmasked_wram_checkpoint_equal_pairs": 51,
+  "unmasked_differing_byte_occurrences": 92,
+  "source_and_native_zoo_result_relative_frames": 5163,
+  "next_bowl_relative_frames": 267,
+  "full_earned_sram_pairs": 11,
+  "cold_ranked_record_reload_unchanged": true,
+  "disposition": "strict_candidate",
+  "release_credit": 0,
+  "original_actual": {
+    "executed_cpu_load_pc": "82:82F0",
+    "physical_ROM_operand": "11:C774",
+    "accumulator_before": "630D",
+    "accumulator_after": "63D0",
+    "cpu_to_spc_publication": [
+      {
+        "port": 3,
+        "value": "D0",
+        "original_local_spc_age": 104485254
+      },
+      {
+        "port": 2,
+        "value": "63",
+        "original_local_spc_age": 104485258
+      }
+    ],
+    "executed_spc_reads": [
+      {
+        "pc": "1521",
+        "port": 2,
+        "value": "63",
+        "original_spc_age": 104485261
+      },
+      {
+        "pc": "1525",
+        "port": 3,
+        "value": "D0",
+        "original_spc_age": 104485266
+      },
+      {
+        "pc": "1527",
+        "port": 2,
+        "value": "63",
+        "original_spc_age": 104485269
+      }
+    ]
+  },
+  "native_actual": {
+    "cpu_65816_compiled_scope": "Snd_UploadBlockList_82EF_M1X0",
+    "cpu_rom_read8_helper_count_at_host6124": 656,
+    "cpu_rom_pointer_mapping_request_count_at_host6124": 656,
+    "cpu_apu_writer_count_at_host6124": 1312,
+    "actual_bus_read": {
+      "kind": "cpu_read8",
+      "seq": 492,
+      "host_frame": 6124,
+      "physical_ROM_operand": "11:C774",
+      "native_master_clock": 2188739002,
+      "cpu_A_before": "630D",
+      "cpu_Y": "C774",
+      "cpu_DP_pointer_bytes": [
+        "00",
+        "00",
+        "11"
+      ]
+    },
+    "corresponding_rom_mapping": {
+      "kind": "RomPtr",
+      "seq": 492,
+      "physical_ROM_operand": "11:C774",
+      "native_master_clock": 2188739002,
+      "mapping_alone_proves_dereference": false
+    },
+    "cpu_apu_publications": [
+      {
+        "seq": 983,
+        "port": 3,
+        "value": "D0",
+        "native_master_clock": 2188739032,
+        "cpu_A": "63D0",
+        "cpu_PB": "82",
+        "cpu_Y": "C774"
+      },
+      {
+        "seq": 984,
+        "port": 2,
+        "value": "63",
+        "native_master_clock": 2188739082,
+        "cpu_A": "D063",
+        "cpu_PB": "82",
+        "cpu_Y": "C774"
+      }
+    ],
+    "bus_to_port3_native_master_clock_delta": 30,
+    "port3_to_port2_native_master_clock_delta": 50,
+    "native_spc_queue_schedule": [
+      104485222,
+      104485222
+    ],
+    "native_queue_apply": [
+      104485230,
+      104485233
+    ],
+    "native_executed_spc_reads": [
+      {
+        "pc": "1521",
+        "port": 2,
+        "value": "63",
+        "native_port_clock": 104485238
+      },
+      {
+        "pc": "1525",
+        "port": 3,
+        "value": "D0",
+        "native_port_clock": 104485243
+      },
+      {
+        "pc": "1527",
+        "port": 2,
+        "value": "63",
+        "native_port_clock": 104485247
+      }
+    ],
+    "full_spc_reads_source": 322,
+    "native_window_spc_reads": 1959,
+    "native_window_queue_and_receiver_events": 4571,
+    "unique_full_spc_pc_port_value_alignment_start_zero_based": 828,
+    "original_minus_native_local_spc_age_histogram": {
+      "22": 107,
+      "23": 215
+    },
+    "native_recorder_overflow": false,
+    "native_causal_operand_and_port_witness_found": true
+  },
+  "claim_boundary": {
+    "actual_native_cpu_helper_effective_address_matches_original_real_operand": true,
+    "actual_native_writer_values_and_scope_identified": true,
+    "native_writer_queue_apply_receiver_lifecycle_executed": true,
+    "original_and_native_entire_322_spc_read_sequence_matches": true,
+    "native_true_65816_instruction_pc_observed": false,
+    "independently_registered_original_native_cpu_master_clock_origins": false,
+    "full_cpu_apu_tick_or_audio_sample_equivalence": false,
+    "independent_complete_USA_event_accepted": false,
+    "new_gameplay_timing_correction_authorized": false
+  }
+}

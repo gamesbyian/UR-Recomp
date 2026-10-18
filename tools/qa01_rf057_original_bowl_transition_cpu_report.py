@@ -44,11 +44,29 @@ def inspect(log:str)->dict:
         raise ValueError("RF057 no original source executed menu instructions observed")
     by_group=Counter(r[2] for r in rows)
     frame_counts=Counter(r[0] for r in rows)
+    # Only *actual* decoded source original instruction sites. No native
+    # guest address, CPU bus consumption or omitted opcode is invented.
+    interest={0xADD4,0xB708,0xB8AF,0xC1F5,0xC1FE,0xC205,
+              0xC20B,0xC20F,0xC21B,0xC221,0xC225,
+              0xD1DB,0xD1DE,0xF7E5}
+    actual_sites=Counter(f"{f['pc']}" for frame,pc,g,f in rows if pc in interest)
+    close=[]
+    for frame in (4688,4689,4690,4691,4692):
+        subset=[f for x,pc,g,f in rows if x==frame]
+        # Bounded first/last executed CPU windows, never a synthesized trace.
+        first_last=(subset[:36]+subset[-36:]) if len(subset)>72 else subset
+        close.extend({k:v for k,v in f.items() if k in
+                      ('frame','seq','pc','op','pre_v','pre_h','post_v',
+                       'post_h','a0','a1','c0','z0','n0','o0',
+                       'c1','z1','n1','o1','joy72','joy73',
+                       'latch8f','raw30d')} for f in first_last)
     return {
        "schema":"rf057-executed-retail-USA-original-bowl-menu-instruction-boundary-v1",
        "recorded_original_executed_CPU_instruction_count":len(rows),
        "original_actual_cpu_guest_frame_histogram":{str(k):v for k,v in sorted(frame_counts.items())},
        "original_decoded_executed_candidate_group_count":dict(sorted(by_group.items())),
+       "actual_executed_source_entry_pc_histogram":dict(sorted(actual_sites.items())),
+       "actual_bowl_onset_source_cpu_bounded_instruction_windows":close,
        "first_original_guest_executed_candidate_row":rows[0][3],
        "last_original_guest_executed_candidate_row":rows[-1][3],
        "source_original_opcode_dispatch_repeated_or_reordered":False,

@@ -156,6 +156,67 @@ class BowlNextSwitcherTests(unittest.TestCase):
         self.assertFalse(result["all_full_8192_sram_pairs_equal"])
         self.assertEqual(result["release_complete_event_credit"], 0)
 
+    def test_first_named_sram_divergence_and_offset_receipts_are_independent(self):
+        path = self.native / "bowl-next-switcher-340.wram.bin"
+        wram = bytearray(path.read_bytes())
+        wram[0x1199] = 1
+        path.write_bytes(wram)
+        path = self.native / "bowl-next-switcher-343.sram.bin"
+        sram = bytearray(path.read_bytes())
+        sram[0x10A7] = 13
+        path.write_bytes(sram)
+        result = self.observe()
+        self.assertEqual(result["first_original_native_named_divergence_offset"], 340)
+        self.assertEqual(result["first_full_sram_differing_sample_offset"], 343)
+        self.assertEqual(result["full_sram_differing_sample_offsets"], [343])
+        row = next(r for r in result["samples"]
+                   if r["offset_from_observed_bowl_result"] == 343)
+        self.assertEqual(row["full_sram_differing_byte_count"], 1)
+        self.assertEqual(row["full_sram_first_16_differences"],
+                         [{"offset": 0x10A7, "original_byte": 0, "native_byte": 13}])
+        self.assertEqual(result["release_complete_event_credit"], 0)
+
+    def test_exact_new_course_resource_payload_is_reported_without_inferred_acceptance(self):
+        payload = bytes(range(32))
+        for directory in (self.ref, self.native):
+            for offset in (342, 343, 344, 345, 346, 349, 354):
+                path = directory / f"bowl-next-switcher-{offset:03d}.wram.bin"
+                data = bytearray(path.read_bytes())
+                data[0x10000:0x10000 + len(payload)] = payload
+                # Live course stream mutates only the 0x0B/0x0C cursor bytes.
+                data[0x1000B:0x1000D] = b"\\x00\\xff"
+                path.write_bytes(data)
+        kwargs = dict(
+            observed_dump_frame=producer.observed_dump_frame,
+            decode_sram=producer.decode_qa01_crawler_battery_sram,
+            audit_wram=producer.audit_qa01_wram_pair,
+            switcher_payload=payload,
+            validate_course_payload=producer.is_fully_loaded_course)
+        result = target.observe_next_switcher(
+            self.ref, self.native, self.ref_log, self.native_log,
+            self.proof, 984, 985, 3365, 3364, **kwargs)
+        self.assertEqual(result["source_exact_switcher_payload_observed"],
+                         {"original": True, "native": True})
+        self.assertEqual(result["release_complete_event_credit"], 0)
+        path = self.native / "bowl-next-switcher-349.wram.bin"
+        data = bytearray(path.read_bytes())
+        data[0x1001F] ^= 1
+        path.write_bytes(data)
+        result = target.observe_next_switcher(
+            self.ref, self.native, self.ref_log, self.native_log,
+            self.proof, 984, 985, 3365, 3364, **kwargs)
+        row = next(r for r in result["samples"]
+                   if r["offset_from_observed_bowl_result"] == 349)
+        self.assertFalse(row["fresh_guests"]["native"]["source_exact_switcher_course_payload"])
+        self.assertFalse(row["full_wram_byte_difference"]["byte_exact"])
+        self.assertEqual(result["release_complete_event_credit"], 0)
+        kwargs["switcher_payload"] = None
+        with self.assertRaisesRegex(target.BowlSwitcherEvidenceError,
+                                    "supplied together"):
+            target.observe_next_switcher(
+                self.ref, self.native, self.ref_log, self.native_log,
+                self.proof, 984, 985, 3365, 3364, **kwargs)
+
     def test_missing_or_truncated_actual_dump_and_false_report_rejected(self):
         path = self.native / "bowl-next-switcher-342.wram.bin"
         path.write_bytes(bytes(0x20000 - 1))

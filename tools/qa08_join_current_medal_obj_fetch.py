@@ -66,6 +66,10 @@ def joined(log:str, owner:dict)->dict:
         len(owner.get("pixels",[]))!=25 or
         owner.get("source_original_same_field_ownership_proven") is not False):
         raise ValueError("authentic current RF017 original PPU owner gate missing")
+    keys=[(p["frame"],p["xy"][0],p["xy"][1]) for p in owner["pixels"]]
+    expected={(f,x,y) for f in FRAMES for x,y in COORDS}
+    if len(set(keys))!=len(keys) or set(keys)!=expected:
+        raise ValueError("native source owner set missing/duplicated a medal point")
     samples={}
     count=0
     for ln in log.splitlines():

@@ -80,11 +80,40 @@ def classify(original: str, native: str) -> dict:
             raise ValueError(f"missing real native pointer read at {pre}/{post}")
         if before[-1]["val"]!=old or after[0]["val"]!=new:
             raise ValueError(f"native exact pointer-consumer boundary differs at {pre}/{post}")
+        # The native pointer's high-bank byte is a distinct, genuinely
+        # executed helper read at DP65, immediately after the DP63 pair.
+        # A low-word-only match cannot be elevated to a 24-bit match.
+        ptr_index=nrows.index(after[0])
+        if ptr_index+1>=len(nrows):
+            raise ValueError(f"missing native high-bank consumer at {post}")
+        bank_row=nrows[ptr_index+1]
+        if (bank_row.get("bank")!="00" or bank_row.get("addr")!="0065" or
+            bank_row.get("width")!="1" or
+            bank_row.get("frame")!=str(post) or
+            bank_row.get("scope")!=after[0]["scope"]):
+            raise ValueError(f"missing native high-bank consumer at {post}")
+        try:
+            native_bank=int(bank_row["val"],16)
+        except ValueError as exc:
+            raise ValueError(f"invalid native bank read at {post}") from exc
+        if not 0<=native_bank<=0xff:
+            raise ValueError(f"invalid native bank read at {post}")
+        expected_guest=f"{native_bank:02X}{new}"
+        matching_original=[row for row in orows
+                           if row["mirror"]=="1" and
+                           row["effective_candidate"]==expected_guest]
         pairs.append({
             "native_host_last_frame":pre, "native_last_bus_helper_read":old,
             "native_host_next_frame":post, "native_first_bus_helper_read":new,
             "native_old_scope":before[-1]["scope"],
             "native_new_scope":after[0]["scope"],
+            "native_first_actual_bank_byte":f"{native_bank:02X}",
+            "native_first_24bit_indexed_operand":expected_guest,
+            "native_actual_DP65_bank_helper_read_covered":True,
+            "original_same_24bit_indexed_operand_observations":len(matching_original),
+            "original_same_24bit_indexed_operand_source_frames":
+                [int(row["frame"]) for row in matching_original],
+            "source_original_24bit_operand_and_native_consumer_clock_proven":False,
             "native_actual_helper_read_covered":True,
             "source_original_host_frame_equivalence_proven":False,
         })
@@ -98,7 +127,7 @@ def classify(original: str, native: str) -> dict:
     per_frame=Counter(int(row["frame"]) for row in orows)
     per_target=Counter(int(row["frame"]) for row in target)
     return {
-        "schema":"rf048-original-indexed-sound-first-consumer-v1",
+        "schema":"rf048-original-indexed-sound-first-consumer-v2",
         "original_executed_opcode_rows":len(orows),
         "original_recorded_source_frames":{str(k):v for k,v in sorted(per_frame.items())},
         "original_target_raw_pointer_rows":len(target),
@@ -121,6 +150,8 @@ def classify(original: str, native: str) -> dict:
         "source_original_internal_frame_equals_native_host_proven":False,
         "original_effective_pointer_vs_native_consumer_proven":False,
         "original_native_SPC_publication_causality_proven":False,
+        "source_indexed_lowword_matches_only":bool(indexed) and not any(
+            x["original_same_24bit_indexed_operand_observations"] for x in pairs),
         "source_window_coverage":"indexed_candidate_observed" if indexed else "sparse_source_samples_no_indexed_target",
         "complete_USA_event_credit":0,
     }

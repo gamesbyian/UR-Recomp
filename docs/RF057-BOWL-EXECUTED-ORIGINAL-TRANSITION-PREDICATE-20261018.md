@@ -1,0 +1,23 @@
+# RF057: genuine source-executed Bowl menu predicate discriminator
+
+**Research-only / source original USA CPU lane. USA events accepted: 0/45.** This is a narrow follow-up to merged RF056 #1864, whose two independent genuine Bowl source archives prove 31+642 exact fresh-original/native WRAM mutation triples three observed guest frames apart, though original/native supplied input files agree for all 593 controller event masks/durations and native input delivery has only a preexisting +1 host-frame offset.
+
+## Decision: first actual retail-USA post-race input/transition branch
+
+The source 2014 movie and separately booted original Snes9x are not the same state history. For fresh Snes9x the first 31-byte WRAM transition occurs between host4688→4689, for native host4691→4692, with the 642-byte next transition following at 4690 versus 4693. We **do not know** whether the input is actually consumed by CPU then, whether `$0072` is read, which 65816 branch makes the decision, or whether a visible frame/CPU/NMI registration discrepancy causes the two-frame residual beyond the independently supplied controller offset.
+
+Existing imported source-symbol guesses are not execution proof. The following *candidate* USA bank80 ranges cover post-race `80:ADD4..AF0C`, button-confirm `80:B6BE..B926`, button-wait `80:C1F5..C23B`, actual pad refresh `80:D1DB..D1F9`, and wait-frame-or-button `80:F7E5..F805`. Source offset addresses are not promoted to executed functions merely because labels appear in imported lists.
+
+The [RF057 disposable original Snes9x patch](../tools/qa01_rf057_original_bowl_transition_trace_patch.py) is pinned to actual `snes9xgit/snes9x@1bcc369e89f08243e0a462882fb1f3e42e51de3a` `cpuexec.cpp` and requires the unchanged unique `Registers.PCw++;` / `(*Opcodes[Op].S9xOpcode)();` instruction dispatcher. Exactly one dispatch remains. Between original guest frames4686..4694, only actual executed bank80/00 candidate instructions record source PC, opcode byte, pre/post A/X/Y/P/S, V/H and read-only raw WRAM joy-state candidate snapshots; max8192 records per frame, with an explicit fail-closed truncation sentinel. The capture deliberately observes **no additional CPU bus read**. Native CPU, APU, SPC, ROM, input and production code are untouched.
+
+The [separate RF057 original opcode proof checker](../tools/qa01_rf057_original_bowl_transition_cpu_report.py) refuses empty observations, truncations, missing fields, fabricated candidate PC/bank, unqualified source-frame axes, wrong record ordinals or wrong retail USA original ROM identity. It never claims that sampled bytes constitute a CPU controller-port read. Synthetic tests exercise pinned dispatcher uniqueness and these negatives.
+
+## Genuine one-shot acceptance requirements
+
+Run **one** historical Bowl source/fresh-Snes9x/Baldosa diagnostic using the *existing* `qa01-bowl-stunt-2014.yml` workflow on a frozen research source; patch and rebuild only the disposable original reference core after the unchanged normal pinned toolchain bootstrap, set only `UR_QA01_RF057_BOWL_CPU_TRACE=1` in the real producer step. Retain the original source-core identity, original/new guest input files, exact 2014 USA source movie/seed SRAM, all real 128KiB/8KiB snapshots, independent stored-source image hashes, 2014 source/fresh-reference/native Bowl score and next Switcher handoff +342/+341/+344, original/native 31+642 displaced mutation sets and unmasked SRAM residuals.
+
+Do not infer no executions from logging silence until the pinned codegen/recompiled original core and reference log are independently checked. If the probe records genuine executed candidate instructions, correlate their sequence, register P flags and result relative frame to the first 31-byte transition; select one actual source/native opcode/consumer pair for the next decision. The native actual-PC trace requires separately qualified executing mode and real input-read origin; a generated static function name alone is insufficient. **Never introduce a 2-frame synthetic wait, rephase supplied controller stream, alter clock/SPC queue or relax event acceptance just because 31 and 642 state transitions match displaced frames.**
+
+## Source reuse and lane
+
+Use the existing Snes9x original core and `snesref`, pinned Baldosa native guest, UR genuine Bowl event producer and raw-image/source controller auditors. Malmazuke imported USA/PAL names remain advisory; the actual original retail-USA PC observer is the arbiter of whether a candidate executes. No duplicate backend, new recurring Actions workflow, second owner of Bowl QA fixture or release ledger. Retire any disposable one-shot trigger and restore shared Bowl workflow byte-for-byte once scheduled.

@@ -1,0 +1,77 @@
+{
+  "schema": "rf051-original-late-spc-first-receiver-v1",
+  "run": 39122314804,
+  "source": "a752f53627729dad2173e4613630d2a0af9ce7f7",
+  "artifact": 12134778810,
+  "case_sha256": "5784ca13ab78c7545026659f22efc8270806b5a37c443e346858af056e44dfe5",
+  "count": 322,
+  "truncated": false,
+  "age_first": 104485209,
+  "age_last": 104487998,
+  "original_cpu_publications": [
+    {
+      "port": 3,
+      "value": "D0",
+      "age": 104485254,
+      "v": 159,
+      "h": 1016
+    },
+    {
+      "port": 2,
+      "value": "63",
+      "age": 104485258,
+      "v": 159,
+      "h": 1066
+    }
+  ],
+  "original_spc_reads_after_publication": [
+    {
+      "seq": 7,
+      "age": 104485261,
+      "port": 2,
+      "value": "63",
+      "pc": "1521",
+      "v": 159,
+      "h": 1184
+    },
+    {
+      "seq": 8,
+      "age": 104485266,
+      "port": 3,
+      "value": "D0",
+      "pc": "1525",
+      "v": 159,
+      "h": 1288
+    },
+    {
+      "seq": 9,
+      "age": 104485269,
+      "port": 2,
+      "value": "63",
+      "pc": "1527",
+      "v": 159,
+      "h": 1340
+    }
+  ],
+  "controls": {
+    "entire_zoo_race_mesh_equals_RF047": true,
+    "entire_next_bowl_equals_RF047": true,
+    "entire_terminal_followthrough_equals_RF047": true,
+    "whole_128KiB_WRAM_pairs": 78,
+    "exact": 51,
+    "unmasked_differing_byte_occurrences": 92,
+    "original_zoo_result_relative_frame": 5163,
+    "following_bowl_relative_frame": 267,
+    "earned_SRAM_cold_records_unchanged": true,
+    "baseline_sha256": "1060a98744fb770bbe43fcdddd89b352bdef691e18f1ab24d4ead5f16996bf6b"
+  },
+  "separations_on_one_original_local_spc_clock": {
+    "after_port2_first_F6": 3,
+    "after_port2_first_F7": 8,
+    "after_port2_second_F6": 11
+  },
+  "native_corresponding_transaction_identified": false,
+  "source_native_clock_aligned": false,
+  "gameplay_patch_justified": false,
+  "complete_USA_events": 0
+}

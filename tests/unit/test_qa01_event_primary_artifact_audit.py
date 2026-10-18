@@ -84,9 +84,9 @@ class PrimaryArtifactAuditTest(unittest.TestCase):
         self.receipt = self.folder / "case-result.json"
         self.put_case(matched=True)
         (self.folder / "SHA256SUMS").write_text(
-            "c" * 64 + "  snesref\\n"
-            + "a" * 64 + "  native\\n"
-            + "a" * 64 + "  snes9x_libretro.so\\n",
+            "c" * 64 + "  snesref\n"
+            + "a" * 64 + "  native\n"
+            + "a" * 64 + "  snes9x_libretro.so\n",
             encoding="ascii",
         )
 
@@ -119,7 +119,7 @@ class PrimaryArtifactAuditTest(unittest.TestCase):
             initial.replace("  native", " *native"),
             initial.replace("snes9x_libretro.so", "native"),
             initial.replace("a" * 64, "A" * 64),
-            initial.rstrip("\\n"),
+            initial.rstrip("\n"),
         ):
             with self.subTest(modified=modified[:32]):
                 manifest.write_text(modified, encoding="ascii")

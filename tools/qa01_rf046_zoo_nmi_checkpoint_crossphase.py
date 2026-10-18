@@ -96,7 +96,7 @@ def compare(producer: dict, case: dict, original_log: str) -> dict:
         shape_counts[value] = shape_counts.get(value, 0) + 1
         shape_samples.append({"relative_frame":rel,
                               "checkpoint_original_return_stack_image":value,
-                              "actual_source_NMI_at_this_frame_observed": rel in EARLY})
+                              "preceding_source_NMI_observed_for_pair": rel in EARLY})
     if shape_counts != EXPECTED_ORIGINAL_NMI_SHAPE_COUNTS:
         raise ValueError("RF046 original 20-frame status/PC shape census drift")
     comparisons = []

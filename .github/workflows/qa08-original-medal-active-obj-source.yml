@@ -20,6 +20,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+      - name: Checkout pinned original 2P reference host
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
       - name: Verify exact USA original ROM and historical original input
         shell: bash
         run: |
@@ -41,7 +49,9 @@ jobs:
           python3 tools/qa08_instrument_original_snes9x_medal_tile_calls.py "$SRC/gfx.cpp" --apply
           make -C "$SRC/libretro" -j2
           test -s "$SRC/libretro/snes9x_libretro.so"
-          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/qa08-original-medal-build" -DCMAKE_BUILD_TYPE=Release
+          test "$(git -C baldosa rev-parse HEAD)" = "10b864b9d14a7b7416dd909eb7b054c88faef101"
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = "075fbe4c8e0d97b0013be541795c39cb644a9709"
+          cmake -S baldosa/snesrecomp/tools/snesref -B "$RUNNER_TEMP/qa08-original-medal-build" -DCMAKE_BUILD_TYPE=Release
           cmake --build "$RUNNER_TEMP/qa08-original-medal-build" -j2
           test -x "$RUNNER_TEMP/qa08-original-medal-build/snesref"
           sha256sum "$SRC/libretro/snes9x_libretro.so" | tee "$RUNNER_TEMP/qa08-original-medal-core.sha256"

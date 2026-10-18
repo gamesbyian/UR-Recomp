@@ -1,0 +1,79 @@
+{
+  "schema": "qa08-RF017-premath-real-Win32-result91-split-gray-and-static-medal-mask/1",
+  "source": {
+    "experimental_pr": 1807,
+    "win32_run": 39078184408,
+    "artifact_id": 12117609133,
+    "original_snes9x_artifact_id": 12075111053,
+    "original_callback_label": "f-1",
+    "native_guest_label": "f",
+    "guest_CRC_sha256": "b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568",
+    "actual_win32_PE_sha256": "7154826a200abb262d5c071ce2e3e31af6353742fa30cccc5c7fa45e563e3f19"
+  },
+  "result": {
+    "first_guest": 4032,
+    "last_guest": 5472,
+    "stride": 16,
+    "sampled_frames": 91,
+    "wrong_RGB5_total": 326175,
+    "RGB5_difference_greater_than_one": 165366,
+    "wrong_both_sources_achromatic": 318775,
+    "wrong_chromatic_source": 7400,
+    "gray_phase_mappings_native_to_original": {
+      "15_to_16": 107868,
+      "17_to_20": 104533,
+      "20_to_15": 53658,
+      "16_to_17": 52716
+    },
+    "medals": {
+      "source_frames": [
+        4032,
+        4080,
+        4128,
+        4176,
+        4224,
+        4272,
+        4320,
+        4368,
+        4416,
+        4464,
+        4512,
+        4560,
+        4608,
+        4656,
+        4704,
+        4752,
+        4800,
+        4848,
+        4896,
+        4944,
+        4992,
+        5040,
+        5088,
+        5136,
+        5184
+      ],
+      "count": 25,
+      "pixels_each": 296,
+      "wrong_RGB5_total": 7400,
+      "upper_91_to_105": 97,
+      "middle_115_to_129": 105,
+      "lower_139_to_153": 94,
+      "x_min": 202,
+      "x_max": 227,
+      "y_min": 91,
+      "y_max": 153,
+      "mask_SHA256_yx_uint16le_sorted": "44177a1d3d80574412566926b617b60eaf9d80d19da2044e8f9894da7128c8d5",
+      "same_chromatic_discrepancy_mask_all_25": true,
+      "large_difference_gt1_pixels_each": 287,
+      "remaining_RGB5_at_most_one_pixels_each": 9,
+      "medal_rectangle_multiset_matches_original": false
+    }
+  },
+  "limits": {
+    "RGB5_only_recolor_authorized": false,
+    "medal_source_OAM_winning_OBJ_priority_proven_current_epoch": false,
+    "physical_SNESC_DAC_original_CGRAM_CPU_NMI_phase_fixed": false,
+    "QA08_QA10_or_release_accepted": false
+  }
+}

@@ -33,7 +33,7 @@ def prove_parameters(text: str) -> None:
         text.count("module frame_member(") != 1 or
         text.count("rig_frame_mass <= 2") != 1 or
         text.count("rig_frame_mass >= 1") != 1 or
-        if (text.count("rig_saddle_span=is_undef") != 1 or
+        text.count("rig_saddle_span=is_undef") != 1 or
         text.count("scale([rig_saddle_span,1,1])") != 1 or
         'rig_saddle_span <= 2.2' not in text or
         'rig_saddle_span >= 1' not in text or

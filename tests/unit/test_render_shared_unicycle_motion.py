@@ -48,6 +48,19 @@ class SharedRigMotionContract(unittest.TestCase):
         self.assertIn("model clipped at fixed-camera viewport boundary",self.reviewer)
         self.assertIn('"all_18_source_model_unclipped": True',self.reviewer)
 
+    def test_full_pixel_border_guard_blocks_real_crop_not_just_corners(self):
+        w=h=16
+        data={(x,y):(248,248,248) for y in range(h) for x in range(w)}
+        data[8,8]=(20,70,210)
+        self.assertEqual(motion.require_clean_border(data,w,h),(248,248,248))
+        for x,y in ((0,8),(1,8),(3,8),(8,3),(15,8),(8,15),(0,0)):
+            sample=dict(data)
+            sample[x,y]=(0,0,0)
+            with self.subTest(x=x,y=y),self.assertRaises(ValueError):
+                motion.require_clean_border(sample,w,h)
+        with self.assertRaises(ValueError):
+            motion.require_clean_border({(0,0):(255,255,255)},8,16)
+
     def test_no_shipping_or_fake_source_acceptance(self):
         for statement in (
             '"original_gameplay_stunt_kinematics_proven": False',

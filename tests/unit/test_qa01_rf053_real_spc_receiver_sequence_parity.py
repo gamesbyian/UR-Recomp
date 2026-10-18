@@ -62,5 +62,32 @@ class SourceNativeReceiverTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"not uniquely matched"):
             rf.exact_alignment(a,n,expected_count=2)
 
+    def test_native_actual_queue_and_three_receiver_reads_form_one_chain(self):
+        anchors={"selected_source_native_read_anchor_receipts":[
+            {"original_seq":7,"original_pc":"1521","port":2,"value":"63","native_age":104485238},
+            {"original_seq":8,"original_pc":"1525","port":3,"value":"D0","native_age":104485243},
+            {"original_seq":9,"original_pc":"1527","port":2,"value":"63","native_age":104485247},
+        ]}
+        data=[
+         "QA01RF052NATIVE seq=1 kind=schedule global_kind_ord=10 frame=6124 clock=104485222 target=104485230 pc=1527 port=3 val=D0 q=1",
+         "QA01RF052NATIVE seq=2 kind=schedule global_kind_ord=11 frame=6124 clock=104485222 target=104485233 pc=1527 port=2 val=63 q=2",
+         "QA01RF052NATIVE seq=3 kind=apply global_kind_ord=10 frame=6124 clock=104485230 target=104485230 pc=152B port=3 val=D0 q=2",
+         "QA01RF052NATIVE seq=4 kind=apply global_kind_ord=11 frame=6124 clock=104485233 target=104485233 pc=152C port=2 val=63 q=1",
+         "QA01RF052NATIVE seq=5 kind=spc-read global_kind_ord=100 frame=6124 clock=104485238 target=104485238 pc=1521 port=2 val=63 q=0",
+         "QA01RF052NATIVE seq=6 kind=spc-read global_kind_ord=101 frame=6124 clock=104485243 target=104485243 pc=1525 port=3 val=D0 q=0",
+         "QA01RF052NATIVE seq=7 kind=spc-read global_kind_ord=102 frame=6124 clock=104485247 target=104485247 pc=1527 port=2 val=63 q=0",
+        ]
+        result=rf.genuine_native_queue_to_receiver("\n".join(data),anchors)
+        self.assertTrue(result["native_actual_port_write_apply_receiver_chain_verified"])
+        self.assertEqual(result["actual_native_receiver_F6_F7_F6_local_clocks"],
+                         [104485238,104485243,104485247])
+        self.assertFalse(result["universal_CPU_APU_clock_offset_inferred"])
+        with self.assertRaisesRegex(ValueError,"no unique matching"):
+            rf.genuine_native_queue_to_receiver("\n".join(
+                x.replace("kind=apply global_kind_ord=11","kind=spc-read global_kind_ord=11")
+                for x in data),anchors)
+        with self.assertRaisesRegex(ValueError,"absent/ambiguous"):
+            rf.genuine_native_queue_to_receiver("\n".join(data[:2]+data),anchors)
+
 if __name__=="__main__":
     unittest.main()

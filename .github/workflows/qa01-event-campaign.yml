@@ -636,7 +636,6 @@ jobs:
             --out "$RUNNER_TEMP/campaign-result.json" \
             --summary "$GITHUB_STEP_SUMMARY"
       - name: Independently reopen all retained primary producer reports
-        if: always()
         shell: bash
         run: |
           set -euo pipefail

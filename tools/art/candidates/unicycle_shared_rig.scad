@@ -102,7 +102,7 @@ module rig(p){
   else if(p=="pedal")shared_rig(pedal=88,seat_lean=-5);
   else if(p=="wheelie")translate([0,0,0.16])rotate([0,-28,0])
     shared_rig(pedal=44,seat_lean=12);
-  else if(p=="stunt")translate([0,0,0.45])rotate([0,-130,0])
+  else if(p=="stunt")translate([0,0,1.80])rotate([0,-130,0])translate([0,0,-1.80])
     shared_rig(pedal=120,seat_lean=-9);
   else if(p=="bank")rotate([11,0,-8])
     shared_rig(pedal=150,seat_lean=4);

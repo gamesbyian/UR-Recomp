@@ -85,6 +85,32 @@ def crosswalk(source:list[tuple[int,int,int]],
         "complete_USA_event_acceptance_credit":0,
     }
 
+def raw_cross_guest_candidate_input_state(source:bytes,native:bytes)->dict:
+    """Only stored guest WRAM bytes. Imported variable names are advisory.
+
+    Identical bytes do not prove a joypad register read, IRQ order or a branch.
+    """
+    if len(source)!=rf056.W_BYTES or len(native)!=rf056.W_BYTES:
+        raise ValueError("RF056 candidate joypad state requires complete unmasked WRAM")
+    sites={
+        "7E:0072..0075":"joy-held candidate word pair",
+        "7E:008F":"menu-input latch candidate",
+        "7E:030D..0310":"NMI joy-input raw candidate bytes",
+    }
+    slices={"7E:0072..0075":(0x72,0x76),
+            "7E:008F":(0x8F,0x90),
+            "7E:030D..0310":(0x30D,0x311)}
+    out={}
+    for name,(start,end) in slices.items():
+        a=source[start:end]; b=native[start:end]
+        if a!=b:
+            raise ValueError("RF056 cross-guest candidate input-memory bytes already unequal")
+        out[name]={"source_original_hex":a.hex().upper(),
+                   "native_guest_hex":b.hex().upper(),
+                   "identical_full_raw_bytes":True,
+                   "imported_label_advisory_only":sites[name]}
+    return out
+
 def report(old_case:Path,input_case:Path)->dict:
     verified=rf056.report(old_case)
     if verified["independently_accepted_complete_USA_events"]!=0 or (
@@ -112,6 +138,15 @@ def report(old_case:Path,input_case:Path)->dict:
         or m["route"]["shared_replay_script_sha256"]!=o["input_sha256"]):
         raise ValueError("RF056 immutable input evidence not source-qualified")
     result=crosswalk(parse_events(source),parse_events(native))
+    # Reopen independently retained actual original/native 128-KiB snapshots.
+    # This does not imply an observed controller read or a synchronized CPU PC.
+    candidate={}
+    with zipfile.ZipFile(old_case) as archive:
+        for original,nat in ((339,342),(340,343),(341,344)):
+            a=archive.read(f"bowl/replay/ref/bowl-next-switcher-{original}.wram.bin")
+            b=archive.read(f"bowl/replay/native/bowl-next-switcher-{nat}.wram.bin")
+            candidate[f"source_plus{original}_native_plus{nat}"]=raw_cross_guest_candidate_input_state(a,b)
+    result["source_native_stored_input_candidate_WRAM_snapshots"]=candidate
     result["original_three_guest_case_sha256"]=rf056.ZIP_SHA
     result["qualified_input_case_sha256"]=INPUT_ZIP_SHA
     result["original_movie_sram_rom_and_full_handoff_controls_unchanged"]=True

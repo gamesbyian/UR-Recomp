@@ -18,6 +18,7 @@ class NativeRF052Report(unittest.TestCase):
         candidate=result["native_D0_63_scheduled_candidate_pairs"][0]
         self.assertEqual(candidate["native_schedule_global_kind_ordinals"],[62337,62338])
         self.assertEqual(candidate["native_local_clock_separation"],12)
+        self.assertFalse(candidate["native_queue_first_second_unique_target_applies"])
         self.assertFalse(candidate["source_original_late_transaction_identity_proven"])
         self.assertFalse(result["clock_epoch_correspondence_proven"])
     def test_require_complete_native_age_window(self):
@@ -35,6 +36,19 @@ class NativeRF052Report(unittest.TestCase):
         for pattern,text in cases.items():
             with self.subTest(pattern=pattern):
                 with self.assertRaisesRegex(ValueError,pattern):rf.analyze_native(text)
+
+    def test_true_native_schedule_target_to_two_applies_is_qualified_locally(self):
+        after=C+"\n"
+        apply2="QA01RF052NATIVE seq=4 kind=apply global_kind_ord=61002 frame=6125 clock=104485220 target=104485220 pc=1521 port=2 val=63 q=0"
+        read=D.replace("seq=4","seq=5")
+        final=F.replace("printed=4","printed=5")
+        native=rf.analyze_native("\n".join((A,B,C,apply2,read,final)))
+        witness=native["native_D0_63_scheduled_candidate_pairs"][0]
+        self.assertTrue(witness["native_queue_first_second_unique_target_applies"])
+        self.assertEqual(
+            [x["target"] for x in witness["native_matched_true_queue_apply_records"]],
+            ["104485208","104485220"])
+        self.assertTrue(witness["native_later_SPC_reads_are_only_compatible_not_proven_transfer"])
     def test_missing_pair_does_not_invent_native_transfer(self):
         result=rf.analyze_native("\n".join((A.replace("val=D0","val=21"),B,C,D,F)))
         self.assertEqual(result["native_D0_63_candidate_count"],0)

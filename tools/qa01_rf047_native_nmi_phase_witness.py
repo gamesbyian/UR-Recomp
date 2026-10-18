@@ -142,17 +142,17 @@ def patch(beam: str, cpu: str, bridge: str) -> tuple[str,str,str]:
     if cpu.count("ur_rf047_native_stack_read(cpu,bank,addr,value,width);") != 1:
         raise AssertionError("RF047 duplicate source read observer")
     bridge = bridge.replace(BRIDGE_DECL,
-        BRIDGE_DECL + "extern void ur_rf047_native_rti_opcode(CpuState *,uint32_t,uint32_t,unsigned);\\n",1)
+        BRIDGE_DECL + "extern void ur_rf047_native_rti_opcode(CpuState *,uint32_t,uint32_t,unsigned);\n",1)
     bridge = bridge.replace(BRIDGE_INTERP,
         BRIDGE_INTERP +
-        '            ur_rf047_native_rti_opcode(cpu, pc_before,\\n'
-        '                ((uint32_t)in.k << 16) | in.pc, 0);\\n',1)
+        '            ur_rf047_native_rti_opcode(cpu, pc_before,\n'
+        '                ((uint32_t)in.k << 16) | in.pc, 0);\n',1)
     bridge = bridge.replace(BRIDGE_COMPILED,
-        '        if (stop_on_rti) {\\n'
-        '            ur_rf047_native_rti_opcode(cpu, target,\\n'
-        '                ((uint32_t)in->k << 16) | in->pc, 1);\\n'
-        '            return 1;  /* compiled RTI consumed the interrupt frame */\\n'
-        '        }\\n',1)
+        '        if (stop_on_rti) {\n'
+        '            ur_rf047_native_rti_opcode(cpu, target,\n'
+        '                ((uint32_t)in->k << 16) | in->pc, 1);\n'
+        '            return 1;  /* compiled RTI consumed the interrupt frame */\n'
+        '        }\n',1)
     if bridge.count("ur_rf047_native_rti_opcode(cpu,") != 2:
         raise AssertionError("RF047 native interp/compiled RTI callsite count")
     return beam,cpu,bridge

@@ -11,6 +11,11 @@ rig_time=is_undef(rig_time)?0:rig_time;
 // Title-source proportions are provisional: variants are for comparative
 // review ONLY, never a shipping default or a fitted 1994 3D model.
 rig_saddle_span=is_undef(rig_saddle_span)?1:rig_saddle_span;
+// A second bounded independent review axis: chunky pre-rendered fork mass.
+// Default 1.0 preserves all original blockout pose semantics.
+rig_frame_mass=is_undef(rig_frame_mass)?1:rig_frame_mass;
+assert(rig_frame_mass >= 1 && rig_frame_mass <= 2,
+       "out-of-scope unreviewed fork mass");
 assert(rig_saddle_span >= 1 && rig_saddle_span <= 2.2,
        "out-of-scope unreviewed saddle shape");
 function unit_time(t)=min(1,max(0,t));
@@ -89,14 +94,17 @@ module saddle(lean=0) {
     }
   }
 }
+module frame_member(a,b,r1,r2){
+  member(a,b,r1*rig_frame_mass,r2*rig_frame_mass);
+}
 module fork_and_frame(){
   for(y=[-0.225,0.225]){
-    color(rig_color)member([-0.02,y,0.07],[-0.10,y,0.83],0.09,0.105);
-    color(rig_color)member([-0.10,y,0.83],[-0.17,y*0.63,1.42],0.105,0.14);
+    color(rig_color)frame_member([-0.02,y,0.07],[-0.10,y,0.83],0.09,0.105);
+    color(rig_color)frame_member([-0.10,y,0.83],[-0.17,y*0.63,1.42],0.105,0.14);
   }
-  color(rig_color)member([-0.17,0,1.39],[-0.25,0,2.09],0.16,0.126);
-  color([0.75,0.81,0.84])member([-0.21,0,1.91],[-0.19,0,2.13],0.116,0.105);
-  color([0.30,0.40,0.45])member([-0.20,0,2.1],[-0.03,0,2.2],0.10,0.09);
+  color(rig_color)frame_member([-0.17,0,1.39],[-0.25,0,2.09],0.16,0.126);
+  color([0.75,0.81,0.84])frame_member([-0.21,0,1.91],[-0.19,0,2.13],0.116,0.105);
+  color([0.30,0.40,0.45])frame_member([-0.20,0,2.1],[-0.03,0,2.2],0.10,0.09);
   color([0.52,0.60,0.67])rotate([90,0,0])cylinder(h=0.56,r=0.13,center=true);
 }
 module shared_rig(pedal=0,seat_lean=0){

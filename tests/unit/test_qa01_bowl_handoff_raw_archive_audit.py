@@ -25,8 +25,8 @@ class RawBowlArchiveTests(unittest.TestCase):
         movie_samples = {}
         rows = []
         logs = {"reference": [], "native": []}
-        original_host, native_host = 984, 985
-        original_result, native_result = 3365, 3364
+        original_host, native_host = 984, 984
+        original_result, native_result = 3365, 3365
         sram = bytearray(8192)
         sram[0x0426:0x0428] = (764).to_bytes(2, "little")
         sram[0x054E:0x0550] = (764).to_bytes(2, "little")
@@ -130,7 +130,8 @@ class RawBowlArchiveTests(unittest.TestCase):
             "native_frame_shift": native_host - original_host,
             "original_source_event": original_source,
             "comparison": {
-                "paired_event_candidate": not native_mismatch,
+                "paired_event_candidate": True,
+                "terminal_result_frame_matched": True,
                 "terminal_result_guest_frame": {
                     "reference_relative": original_result,
                     "native_relative": native_result,

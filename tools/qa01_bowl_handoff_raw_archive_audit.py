@@ -142,6 +142,10 @@ def audit(root: Path) -> dict:
     for key in ("reference_relative", "native_relative"):
         must(type(clocks.get(key)) is int and clocks[key] > 0,
              "invalid independently observed result clock: " + key)
+    same_duration = clocks["reference_relative"] == clocks["native_relative"]
+    must(comparison.get("terminal_result_frame_matched") is same_duration and
+         (not comparison["paired_event_candidate"] or same_duration),
+         "strict event result claims contradict separate guest clocks")
     for key in ("reference_entry", "native_entry"):
         must(type(report.get(key)) is int and report[key] >= 0,
              "invalid independently observed entry clock: " + key)

@@ -202,11 +202,11 @@ def audit(root: Path) -> dict:
         raw = {}
         batteries = {}
         rank_valid = []
-        for side, folder, expected in (
-            ("original", "reference", report["reference_entry"] + clocks["reference_relative"] + offset),
-            ("native", "native", report["native_entry"] + clocks["native_relative"] + offset)):
+        for side, folder, log_name, expected in (
+            ("original", "ref", "reference", report["reference_entry"] + clocks["reference_relative"] + offset),
+            ("native", "native", "native", report["native_entry"] + clocks["native_relative"] + offset)):
             tag = f"bowl-next-switcher-{offset:03d}"
-            logged = read_logged_frame(logs[folder], tag)
+            logged = read_logged_frame(logs[log_name], tag)
             must(logged == expected, "independent guest frame receipt mismatch: " + side + "/" + tag)
             guest = guests[side]
             must(isinstance(guest, dict) and guest.get("actual_host_frame") == expected,

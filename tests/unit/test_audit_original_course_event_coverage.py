@@ -81,9 +81,19 @@ class OriginalCourseCensusTests(unittest.TestCase):
                       if row["rom"] == "usa-retail" and row["course_id"] == "course:02")
         self.assertEqual(source["status"], "partial")
         self.assertEqual(source["evidence_ref"],
-                         "analysis/data/rf047-corrected-executed-native-nmi-rtis-20261018.json")
+                         "analysis/data/qa01-rf054-independently-rehashed-four-artifact-bundle-20261018.json")
         self.assertIn("92 differing-byte occurrences", source["coverage_note"])
-        self.assertIn("0/45 USA accepted", source["coverage_note"])
+        self.assertIn("0/45 USA events", source["coverage_note"])
+        review = json.loads((ROOT / source["evidence_ref"]).read_text())
+        self.assertEqual(review["schema"], "UR-QA01-INDEPENDENT-FOUR-ARCHIVE-RF054/1")
+        self.assertEqual(len(review["artifacts"]), 4)
+        self.assertTrue(review["byte_recomputed_checks"][
+            "all_four_downloaded_zip_sha256_match_provider"])
+        self.assertEqual(review["published_producer_difference_census_recalculated_from_captured_json"][
+            "differing_byte_occurrences"], 92)
+        self.assertFalse(review["published_producer_difference_census_recalculated_from_captured_json"][
+            "recomputed_directly_from_raw_original_native_memory_bytes"])
+        self.assertEqual(review["decision"]["accepted_usa_events"], 0)
         report = audit.build_census(self.catalog, self.evidence)
         row = next(x for x in report["entries"]
                    if x["rom"] == "usa-retail" and x["course_id"] == "course:02")
@@ -97,9 +107,17 @@ class OriginalCourseCensusTests(unittest.TestCase):
                        and row["course_id"] == "course:03")
         self.assertEqual(witness["status"], "partial")
         self.assertEqual(witness["evidence_ref"],
-                         "analysis/data/bowl-original-baldosa-scored-stunt-candidate-20261009.json")
-        self.assertIn("28 sampled", witness["coverage_note"])
-        self.assertIn("+3365 versus native +3364", witness["coverage_note"])
+                         "analysis/data/qa01-independently-rehashed-bowl-movie-three-guest-memory-20261018.json")
+        self.assertIn("3365/3364", witness["coverage_note"])
+        self.assertIn("0/45", witness["coverage_note"])
+        new_review = json.loads((ROOT / witness["evidence_ref"]).read_text())
+        self.assertEqual(new_review["schema"],
+                         "UR-QA01-INDEPENDENT-ORIGINAL-MOVIE-FRESH-THREEWAY-BOWL-RAW/1")
+        self.assertTrue(new_review["independently_recomputed_from_actual_downloaded_zip"][
+            "all_48_movie_snes9x_native_wram_sram_images_retained"])
+        self.assertEqual(new_review["adjudication"]["accepted_usa_events"], 0)
+        self.assertTrue(new_review["adjudication"][
+            "fresh_original_native_timing_gap_is_actual_and_unchanged"])
         report = audit.build_census(self.catalog, self.evidence)
         self.assertEqual(report["by_rom"]["usa-retail"],
                          {"partial": 4, "unverified": 41})
@@ -109,8 +127,11 @@ class OriginalCourseCensusTests(unittest.TestCase):
         # Source witness is part of main once PR #1119 lands. Only the
         # actual scored result, tested guest agreement and *negative*
         # complete-event status may support a census entry.
-        evidence = json.loads(
-            (ROOT / witness["evidence_ref"]).read_text(encoding="utf-8"))
+        # Preserve the prior scored-Stunt baseline checks even after the
+        # canonical partial row advances to independently rehashed 2026 bytes.
+        evidence = json.loads((
+            ROOT / "analysis/data/bowl-original-baldosa-scored-stunt-candidate-20261009.json"
+        ).read_text(encoding="utf-8"))
         self.assertEqual(evidence["schema"],
                          "UR-QA01-2014-BOWL-SCORED-STUNT-PAIRED-WITNESS/1")
         self.assertEqual(evidence["paired_fresh_guest"]["course_id"], "course:03")

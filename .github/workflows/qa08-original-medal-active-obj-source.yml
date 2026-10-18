@@ -4,6 +4,8 @@ on:
     paths:
       - ".github/workflows/qa08-original-medal-active-obj-source.yml"
       - "tools/qa08_instrument_original_snes9x_medal_tile_calls.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snes9x-libretro.json"
       - "tests/unit/test_qa08_instrument_original_snes9x_medal_tile_calls.py"
       - "tests/input/qa08-original-medal-source-2014.script"
   workflow_dispatch:

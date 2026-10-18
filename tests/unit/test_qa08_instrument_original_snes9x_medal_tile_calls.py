@@ -28,7 +28,8 @@ class PinnedOriginalTileProbe(unittest.TestCase):
             "DrawClippedTile(source_tile,O,x-X,w,TileLine,1);"),1)
         self.assertIn("GFX.DB[y*GFX.PPL+x]",patched)
         self.assertIn("GFX.S[y*GFX.PPL+x]",patched)
-        self.assertIn('"original_guest_phase_proven=0',patched)
+        self.assertIn('original_guest_phase_proven=0',patched)
+        self.assertIn('changed_z=%u changed_rgb=%u original_guest_phase_proven=0',patched)
         self.assertNotIn("Memory.VRAM[",patched)
         self.assertNotIn("S9xSetByte",patched)
 

@@ -121,6 +121,11 @@ def contact(out: Path, images: list[dict], original: dict[str, bytes] | None):
     if original:
         for col, (name, raw) in enumerate(original.items()):
             src = open_p7(raw)
+            # Game/old 4x source is SNES 7:6 PAR. Candidate 3D previews
+            # stay square-pixel. This is DISPLAY-ONLY nearest, not a source
+            # transform used for pixel-equality or original crop acceptance.
+            src = src.resize((round(src.width*7/6),src.height),
+                             Image.Resampling.NEAREST)
             if name == "original_title":
                 # Display brightening is explicitly NOT a comparison transform.
                 src = ImageEnhance.Brightness(src).enhance(3.5)

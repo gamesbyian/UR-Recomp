@@ -1,0 +1,82 @@
+name: QA08 original 2014 Snes9x active medal OBJ tile calls
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa08-original-medal-active-obj-source.yml"
+      - "tools/qa08_instrument_original_snes9x_medal_tile_calls.py"
+      - "tests/unit/test_qa08_instrument_original_snes9x_medal_tile_calls.py"
+      - "tests/input/qa08-original-medal-source-2014.script"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: qa08-original-medal-active-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  authentic-original-2014-active-tiles:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Verify exact USA original ROM and historical original input
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          echo "bddfb15fedbaba3fcb0e95e628f11e1506fd210d93f4be67c6e9855c705dd3db  tests/input/qa08-original-medal-source-2014.script" | sha256sum -c -
+          python3 tests/unit/test_qa08_instrument_original_snes9x_medal_tile_calls.py
+      - name: Prepare actual pinned Snes9x original and deterministic snesref
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends build-essential cmake pkg-config libsdl2-dev
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          test "$(git -C "$SRC" rev-parse HEAD)" = "1bcc369e89f08243e0a462882fb1f3e42e51de3a"
+          # Historical source is patched read-only in the CI worktree only.
+          python3 tools/qa08_instrument_original_snes9x_medal_tile_calls.py "$SRC/gfx.cpp"
+          python3 tools/qa08_instrument_original_snes9x_medal_tile_calls.py "$SRC/gfx.cpp" --apply
+          make -C "$SRC/libretro" -j2
+          test -s "$SRC/libretro/snes9x_libretro.so"
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/qa08-original-medal-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/qa08-original-medal-build" -j2
+          test -x "$RUNNER_TEMP/qa08-original-medal-build/snesref"
+          sha256sum "$SRC/libretro/snes9x_libretro.so" | tee "$RUNNER_TEMP/qa08-original-medal-core.sha256"
+      - name: Execute one genuine 5484-frame unmodified original USA source route
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-original-medal/dumps"
+          SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/qa08-original-medal-source-2014.script" \
+          SNESREF_DUMP_DIR="$RUNNER_TEMP/qa08-original-medal/dumps" \
+            timeout 480 "$RUNNER_TEMP/qa08-original-medal-build/snesref" \
+            "$SRC/libretro/snes9x_libretro.so" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            > "$RUNNER_TEMP/qa08-original-medal/original.log" 2>&1
+          grep -q '^script f=5484 quit' "$RUNNER_TEMP/qa08-original-medal/original.log"
+          test -s "$RUNNER_TEMP/qa08-original-medal/dumps/end.wram.bin"
+          grep '^UR_QA08_ORIGINAL_ACTIVE_MEDAL_TILE ' \
+            "$RUNNER_TEMP/qa08-original-medal/original.log" \
+            > "$RUNNER_TEMP/qa08-original-medal/active-tile-candidates.log" || true
+          printf 'Actual original sprite-call source records: '
+          wc -l < "$RUNNER_TEMP/qa08-original-medal/active-tile-candidates.log"
+          sha256sum "$RUNNER_TEMP/qa08-original-medal/dumps/end.wram.bin" \
+            "$RUNNER_TEMP/qa08-original-medal/active-tile-candidates.log"
+          echo "Source-only original 2014 Snes9x sprite tile CALLS, not adjudicated native same-frame winners or physical output." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain genuine original 2014 source call bytes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-original-snes9x-active-medal-painter-call-source
+          retention-days: 90
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa08-original-medal/original.log
+            ${{ runner.temp }}/qa08-original-medal/active-tile-candidates.log
+            ${{ runner.temp }}/qa08-original-medal/dumps/end.info.json
+            ${{ runner.temp }}/qa08-original-medal-core.sha256

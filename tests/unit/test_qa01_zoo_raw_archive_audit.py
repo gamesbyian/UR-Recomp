@@ -70,6 +70,7 @@ class ZooRawArchiveAuditTest(unittest.TestCase):
                 (self.base / side / (tag + ".sram.bin")).write_bytes(sram)
                 logs[side].append(f"script f={1017 + 5163 + off} dump {tag} ok")
                 guests[label] = {
+                    "menu": 0, "track": 0, "in_race": 0,
                     "actual_host_frame": 1017 + 5163 + off,
                     "full_wram_bytes": 131072,
                     "wram_sha256": target.digest(original),

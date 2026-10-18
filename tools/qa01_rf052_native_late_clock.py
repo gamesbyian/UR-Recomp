@@ -17,7 +17,7 @@ PIVOT="  int f = snes_frame_counter;\n"
 HOOK=r"""  /* UR_QA01_RF052_NATIVE_LATE_CLOCK: existing real port event only.
    * Cumulative kind ordinal counts all observed native events, not just
    * those printed inside this deliberately bounded native clock window. */
-  if (getenv("UR_QA01_RF052_NATIVE_LATE_CLOCK")) {
+  if (getenv("UR_QA01_RF052_NATIVE_LATE_CLOCK") && port >= 2u && port <= 3u) {
     static unsigned long long rf052_global[3];
     static unsigned rf052_printed, rf052_complete;
     static unsigned rf052_overflow;

@@ -11,6 +11,7 @@ No real partial-write/power-cut or human release credit.
 from __future__ import annotations
 
 import argparse
+import errno
 import ctypes
 from ctypes import wintypes
 import json
@@ -82,23 +83,49 @@ def fill_and_independent_os_112(user: Path, out: Path) -> dict:
     second = user.parent / "ur-postraw-only-second-8192.bin"
     if filler.exists() or second.exists():
         raise ValueError("Isolated NTFS filler targets already exist")
+    if (filler.drive.upper() != "W:" or second.drive.upper() != "W:"):
+        raise ValueError("Filler and independent probe must be on isolated W:")
     accepted = 0
-    witnessed = False
+    exhaustion: list[dict] = []
+
+    def record_filler_full(exc: OSError, stage: str) -> None:
+        # CPython's Windows CRT can expose genuine ERROR_DISK_FULL as
+        # errno.ENOSPC (28) with *no* winerror attribute. This is evidence
+        # only of filler exhaustion, never of the native guest's typed write.
+        # A separate Windows process MUST still report Win32 112 below.
+        winerror = getattr(exc, "winerror", None)
+        if winerror not in (112, 39) and exc.errno != errno.ENOSPC:
+            raise exc
+        exhaustion.append({
+            "stage": stage,
+            "python_errno": exc.errno,
+            "python_winerror": winerror,
+            "exception_type": type(exc).__name__,
+            "message": str(exc),
+            "file": "isolated-W-filler",
+        })
+        (out / "filler-exhaustion.json").write_text(
+            json.dumps({"schema": "ur-win32-filler-exhaustion/1",
+                        "guest_postraw_typed_failure_proven": False,
+                        "events": exhaustion}, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+
     stream = open(filler, "xb", buffering=0)
     try:
         for width in (1048576, 4096):
             block = bytes(width)
             for attempt in range(16384):
+                stage = "filler-write"
                 try:
                     amount = stream.write(block)
                     if amount != width:
                         raise ValueError("Genuine short NTFS write, not full-write proof")
+                    stage = "filler-fsync"
                     os.fsync(stream.fileno())
                     accepted += amount
                 except OSError as exc:
-                    if getattr(exc, "winerror", None) not in (112, 39):
-                        raise
-                    witnessed = True
+                    record_filler_full(exc, stage)
                     break
             else:
                 raise ValueError("Bounded flush-filler attempt limit exceeded")
@@ -106,10 +133,8 @@ def fill_and_independent_os_112(user: Path, out: Path) -> dict:
         try:
             stream.close()
         except OSError as exc:
-            if getattr(exc, "winerror", None) not in (112, 39):
-                raise
-            witnessed = True
-    if not witnessed:
+            record_filler_full(exc, "filler-close")
+    if not exhaustion:
         raise ValueError("Actual W: disk full never observed")
     child = out / "independent-real-ntfs-112.ps1"
     child.write_text(
@@ -132,6 +157,7 @@ def fill_and_independent_os_112(user: Path, out: Path) -> dict:
     if checked.returncode != 112:
         raise ValueError("Another real Windows process did not report ERROR_DISK_FULL")
     return {"actual_fsync_filler_bytes": accepted,
+            "filler_os_exhaustion": exhaustion,
             "first_process_real_ntfs_full": True,
             "second_process_win32_error": 112}
 

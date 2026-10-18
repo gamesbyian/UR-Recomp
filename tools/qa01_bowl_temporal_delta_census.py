@@ -37,8 +37,7 @@ def audit(path: Path, expected_archive_sha256: str) -> dict:
     require(SHA.fullmatch(expected_archive_sha256) is not None,
             "expected original archive SHA256 must be 64 lowercase hex characters")
     require(path.is_file() and not path.is_symlink(), "missing original GitHub archive")
-    with path.open("rb") as stream:
-        digest = hashlib.file_digest(stream, "sha256").hexdigest()
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
     require(digest == expected_archive_sha256, "original GitHub ZIP SHA256 mismatch")
     try:
         with ZipFile(path) as archive:

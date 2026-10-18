@@ -32,7 +32,7 @@ MANIFEST_ROW = re.compile(r"([0-9a-f]{64})  (snesref|native|snes9x_libretro[.]so
 def read_build_binary_manifest(path: Path) -> tuple[dict[str, str], str]:
     """Verify a retained SHA256SUMS list; no binary execution is inferred."""
     if not path.is_file() or path.is_symlink():
-        raise ValueError("missing, non-regular or symlinked original build SHA256SUMS")
+        raise ValueError("missing, non-regular or symlinked original build manifest SHA256SUMS")
     raw = path.read_bytes()
     if len(raw) > 512 or raw.count(b"\n") != 3 or not raw.endswith(b"\n"):
         raise ValueError("shared binary manifest must contain three complete SHA256SUMS rows")

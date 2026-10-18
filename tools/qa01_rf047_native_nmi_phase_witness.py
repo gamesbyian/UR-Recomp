@@ -99,8 +99,8 @@ def patch(beam: str, cpu: str) -> tuple[str,str]:
                         "  ur_rf047_nmi_snapshot(\"entry\", vector);\n" +
                         BEAM_RUN +
                         "  ur_rf047_nmi_snapshot(\"after_push\", vector);\n", 1)
-    beam = beam.replace(BEAM_RETURN, "  update_resume_pc();\\n" +
-                        "  ur_rf047_nmi_snapshot(\"handler_return\", vector);\\n}", 1)
+    beam = beam.replace(BEAM_RETURN, "  update_resume_pc();\n" +
+                        "  ur_rf047_nmi_snapshot(\"handler_return\", vector);\n}", 1)
     beam = beam.replace(BEAM_NMI,
                         "    const uint32_t ur_rf047_vector = nmi_vector();\n"
                         "    ur_rf047_in_nmi = 1;\n"

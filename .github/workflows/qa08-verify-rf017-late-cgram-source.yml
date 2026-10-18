@@ -43,8 +43,15 @@ jobs:
             --original "$RUNNER_TEMP/qa08-source-join/original.zip" \
             --native "$RUNNER_TEMP/qa08-source-join/native.zip" \
             --out "$RUNNER_TEMP/qa08-source-join/qa08-verified-source-join.json"
-          cmp analysis/data/qa08-current-rf017-late-cgram-original-writer-join-20261018.json \
-            "$RUNNER_TEMP/qa08-source-join/qa08-verified-source-join.json"
+          python3 - "$RUNNER_TEMP/qa08-source-join/qa08-verified-source-join.json" <<'PY'
+          import json,sys
+          with open("analysis/data/qa08-current-rf017-late-cgram-original-writer-join-20261018.json") as f: pinned=json.load(f)
+          with open(sys.argv[1]) as f: reconstructed=json.load(f)
+          assert pinned == reconstructed, "source archive replay changed the stored exact receipt"
+          assert reconstructed["exact_CGRAM_four_RGB15_word_source_matches"] == 6
+          assert reconstructed["direct_source_frame_pair_matches"] == 4
+          assert reconstructed["QA08_QA10_4K_art_or_release_accepted"] is False
+          PY
           echo "QA08: current RF017 native source late CGRAM phase matched 6/6 original 2014 CPU writer palette packets. CPU/NMI clocks, PPU result pixels and release still held." >> "$GITHUB_STEP_SUMMARY"
       - name: Preserve source-join receipt only
         if: always()

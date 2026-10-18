@@ -152,8 +152,14 @@ jobs:
             ${{ runner.temp }}/qa01-dragster-zoo/dragster/calibration/native.log
             ${{ runner.temp }}/qa01-dragster-zoo/dragster/replay/reference.log
             ${{ runner.temp }}/qa01-dragster-zoo/dragster/replay/native.log
-            ${{ runner.temp }}/qa01-dragster-zoo/dragster/replay/ref/dragster-next-zoo-*.wram.bin
-            ${{ runner.temp }}/qa01-dragster-zoo/dragster/replay/ref/dragster-next-zoo-*.sram.bin
-            ${{ runner.temp }}/qa01-dragster-zoo/dragster/replay/native/dragster-next-zoo-*.wram.bin
-            ${{ runner.temp }}/qa01-dragster-zoo/dragster/replay/native/dragster-next-zoo-*.sram.bin
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/replay/complete.script
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/replay/ref.input
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/replay/pinned-baldosa.input
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/source/source-race-entered.wram.bin
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/calibration/ref/race-entered.wram.bin
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/calibration/native/race-entered.wram.bin
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/replay/ref/*.wram.bin
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/replay/ref/*.sram.bin
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/replay/native/*.wram.bin
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/replay/native/*.sram.bin
             ${{ runner.temp }}/qa01-dragster-zoo/dragster/original-movie-meta.json

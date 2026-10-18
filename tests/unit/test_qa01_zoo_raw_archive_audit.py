@@ -138,6 +138,10 @@ class ZooRawArchiveAuditTest(unittest.TestCase):
                 "all_128k_wram_bytes_examined_per_pair": 131072,
                 "masked_or_excluded_wram_bytes": 0,
                 "release_complete_usa_event_credit": 0,
+                "every_gameplay_frame_compared": False,
+                "cpu_instruction_or_logic_tick_parity_proven": False,
+                "native_os_disk_persistence_proven": False,
+                "original_2014_source_controller_masks_modified": False,
                 "raw_byte_exact_sample_count": 77 if mesh_byte_difference else 78,
                 "first_nonidentical_raw_wram_pair": first_report,
                 "late_direct_page_window": {
@@ -155,6 +159,10 @@ class ZooRawArchiveAuditTest(unittest.TestCase):
                 "sample_offsets": list(target.BOWL_OFFSETS),
                 "sample_count": len(target.BOWL_OFFSETS),
                 "release_complete_event_credit": 0,
+                "source_controller_masks_modified": False,
+                "full_event_guest_logic_tick_equivalence_proven": False,
+                "shipping_windows_candidate_proven": False,
+                "cold_process_disk_persistence_proven": False,
                 "all_original_native_full_sram_pairs_equal": True,
                 "all_original_native_full_wram_pairs_equal": True,
                 "all_triplet_named_states_equal": True,
@@ -237,6 +245,18 @@ class ZooRawArchiveAuditTest(unittest.TestCase):
             "zoo_rank0_2510_and_checksum_preserved_every_sample"] = False
         self.save_report(report)
         with self.assertRaisesRegex(ValueError, "earned record"):
+            target.audit(self.root)
+
+    def test_cannot_promote_sampled_bytes_to_unobserved_cpu_or_disk_proof(self):
+        report = self.make()
+        report["zoo_race_mesh"]["cpu_instruction_or_logic_tick_parity_proven"] = True
+        self.save_report(report)
+        with self.assertRaisesRegex(ValueError, "falsely promoted proof"):
+            target.audit(self.root)
+        report = self.make()
+        report["zoo_next_bowl_handoff"]["shipping_windows_candidate_proven"] = True
+        self.save_report(report)
+        with self.assertRaisesRegex(ValueError, "next Bowl proof absent"):
             target.audit(self.root)
 
     def test_legitimate_strict_divergence_still_gets_raw_byte_audit(self):

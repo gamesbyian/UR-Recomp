@@ -51,7 +51,8 @@ class FirstConsumerReportTest(unittest.TestCase):
         self.assertEqual(out["original_indexed_effective_candidate_rows"],1)
         absent=rf.classify(SOURCE_ROW.replace("target=1","target=0")
                           .replace("effective_candidate=13C774",
-                                   "effective_candidate=13B100"),native_records())
+                                   "effective_candidate=13B100")
+                          .replace("raw_ptr=13C774","raw_ptr=13B100"),native_records())
         self.assertEqual(absent["source_window_coverage"],"sparse_source_samples_no_indexed_target")
         self.assertFalse(out["original_native_SPC_publication_causality_proven"])
 
@@ -75,6 +76,12 @@ class FirstConsumerReportTest(unittest.TestCase):
               ["original_indexed_effective_candidate_rows"],1)
         with self.assertRaisesRegex(ValueError,"indexed target disagrees"):
             rf.classify(SOURCE_ROW+" indexed_target=0",native_records())
+        with self.assertRaisesRegex(ValueError,"indexed effective operand disagrees"):
+            rf.classify(SOURCE_ROW.replace("effective_candidate=13C774",
+                                          "effective_candidate=13C775"),native_records())
+        with self.assertRaisesRegex(ValueError,"indexed effective operand disagrees"):
+            rf.classify(SOURCE_ROW.replace("dp_slot=0063","dp_slot=0064"),
+                        native_records())
         with self.assertRaisesRegex(ValueError,"missing native high-bank"):
             rf.classify(SOURCE_ROW,native_records().replace(
                 "frame=6057 bank=00 addr=0065","frame=6057 bank=00 addr=0066"))

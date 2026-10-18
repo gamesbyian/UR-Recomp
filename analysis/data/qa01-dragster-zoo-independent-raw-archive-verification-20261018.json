@@ -1,0 +1,151 @@
+{
+  "schema": "UR-QA01-INDEPENDENT-AUTHENTIC-DRAGSTER-ZOO-PRIMARY-BYTES/1",
+  "review_date": "2026-10-18",
+  "source": {
+    "repo": "gamesbyian/UR-Recomp",
+    "run_id": 39174631932,
+    "source_commit": "542205bd596306ef14a753dd005e391f60a8d413",
+    "artifact_id": 12154480620,
+    "artifact_name": "qa01-dragster-next-zoo-original-native",
+    "artifact_members": 69,
+    "downloaded_archive_sha256": "f036f80d72000b05a5c2edb42152eb433b89fa44c5fc36238ccc73bd143e2947",
+    "source_trace_sha256": "3de122406937fcf839988d7990972e9275b8e7bbd47db1b958fea20113c27c54",
+    "producer_report_retained": true,
+    "guest_log_dump_acknowledgments": {
+      "fresh_original": 14,
+      "native": 14,
+      "all_frame_exact": true
+    }
+  },
+  "identity": {
+    "usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "historical_smv_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "guest_result_relative": {
+      "fresh_original": 2081,
+      "native": 2079
+    },
+    "source_movie_dragster_result_frame": 2874,
+    "source_movie_next_zoo_active_frame": 3190,
+    "source_active_zoo_result_relative": 316,
+    "fresh_original_zoo_result_relative": 315,
+    "native_zoo_result_relative": 318
+  },
+  "independent_raw_byte_comparison": {
+    "whole_wram_bytes_per_guest": 131072,
+    "whole_sram_bytes_per_guest": 8192,
+    "source_movie_wram_sram_images_retained": false,
+    "actual_original_native_whole_wram_pairs_examined": 14,
+    "actual_original_native_whole_sram_pairs_examined": 14,
+    "whole_wram_byte_exact_pairs": 0,
+    "whole_sram_byte_exact_pairs": 0,
+    "total_full_wram_different_byte_occurrences": 3616,
+    "total_full_sram_different_byte_occurrences": 182,
+    "sram_diff_count_each_sample": 13,
+    "unique_sram_different_byte_offsets_decimal": [
+      3889,
+      3891,
+      4082,
+      4083,
+      4084,
+      4085,
+      4086,
+      4087,
+      4088,
+      4089,
+      4092,
+      4093,
+      4094
+    ],
+    "per_offset": [
+      {
+        "dragster_result_relative_offset": 304,
+        "whole_128k_wram_differing_bytes": 17,
+        "whole_8k_sram_differing_bytes": 13
+      },
+      {
+        "dragster_result_relative_offset": 308,
+        "whole_128k_wram_differing_bytes": 13,
+        "whole_8k_sram_differing_bytes": 13
+      },
+      {
+        "dragster_result_relative_offset": 312,
+        "whole_128k_wram_differing_bytes": 13,
+        "whole_8k_sram_differing_bytes": 13
+      },
+      {
+        "dragster_result_relative_offset": 314,
+        "whole_128k_wram_differing_bytes": 43,
+        "whole_8k_sram_differing_bytes": 13
+      },
+      {
+        "dragster_result_relative_offset": 315,
+        "whole_128k_wram_differing_bytes": 675,
+        "whole_8k_sram_differing_bytes": 13
+      },
+      {
+        "dragster_result_relative_offset": 316,
+        "whole_128k_wram_differing_bytes": 701,
+        "whole_8k_sram_differing_bytes": 13
+      },
+      {
+        "dragster_result_relative_offset": 317,
+        "whole_128k_wram_differing_bytes": 677,
+        "whole_8k_sram_differing_bytes": 13
+      },
+      {
+        "dragster_result_relative_offset": 318,
+        "whole_128k_wram_differing_bytes": 314,
+        "whole_8k_sram_differing_bytes": 13
+      },
+      {
+        "dragster_result_relative_offset": 319,
+        "whole_128k_wram_differing_bytes": 262,
+        "whole_8k_sram_differing_bytes": 13
+      },
+      {
+        "dragster_result_relative_offset": 320,
+        "whole_128k_wram_differing_bytes": 267,
+        "whole_8k_sram_differing_bytes": 13
+      },
+      {
+        "dragster_result_relative_offset": 321,
+        "whole_128k_wram_differing_bytes": 246,
+        "whole_8k_sram_differing_bytes": 13
+      },
+      {
+        "dragster_result_relative_offset": 324,
+        "whole_128k_wram_differing_bytes": 176,
+        "whole_8k_sram_differing_bytes": 13
+      },
+      {
+        "dragster_result_relative_offset": 328,
+        "whole_128k_wram_differing_bytes": 135,
+        "whole_8k_sram_differing_bytes": 13
+      },
+      {
+        "dragster_result_relative_offset": 336,
+        "whole_128k_wram_differing_bytes": 77,
+        "whole_8k_sram_differing_bytes": 13
+      }
+    ],
+    "source_earned_dragster_rank0_2508_and_150_word_checksum_valid_all_guests": true,
+    "early_pre_switcher_difference_at_304_wram": 17,
+    "first_guest_next_course_named_mismatch_offset": 315,
+    "both_guest_true_zoo_course_payload_loaded_reported_by_producer": true,
+    "source_zoo_rnc_payload_bytes_independently_verified_from_archived_zip": false
+  },
+  "bounds": {
+    "original_movie_first_sustained_8_consecutive_zoo_active_frames_producer_reported": true,
+    "original_source_trace_sha_byte_rehashed": true,
+    "source_original_2014_movie_named_state_for_each_14_frame_compared_to_retained_proof": true,
+    "actual_guest_log_unique_host_dump_tags_independently_verified": true,
+    "original_and_native_controller_masks_consumed_by_cpu_at_same_age_proven": false,
+    "original_and_native_65816_cpu_spc_logic_tick_equivalence_proven": false,
+    "full_all_frame_event_completeness_proven": false,
+    "shipping_windows_pe_identity_proven": false,
+    "windows_actual_disk_powercut_persistence_proven": false,
+    "real_event_adjudication": "HOLD",
+    "accepted_usa_events": 0,
+    "release_gates_passed": 0
+  }
+}

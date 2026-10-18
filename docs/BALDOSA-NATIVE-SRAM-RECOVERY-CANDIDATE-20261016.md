@@ -782,10 +782,52 @@ NEVER uploaded. The apparatus `finally` block detaches
 only its own explicitly selected temporary VHDX, never selects a
 physical disk, and requires a disposable GitHub-hosted Windows runner.
 
-**PENDING actual original Windows execution and readback.** This is
-not a simulated 513-byte raw write, not proof of an actual **partial**
-raw write, and not an electrical power cut. If full-volume side
-effects prevent game startup before a source-authentic SRAM save
-attempt, the test must stay **RED / infrastructure or product blocker**;
-the existing OS-only QA proof may not be relabeled as game acceptance.
-No independent release ledger or physical owner gate is promoted.
+**Exact source-green result, 2026-10-17:** [Windows run
+39089830603](https://github.com/gamesbyian/UR-Recomp/actions/runs/39089830603)
+completed GREEN at owning Modern head
+`62b5c534094e3ef2d8ee12c7770b935bddbb6479`, **actually tested
+PR merge** `58b978f3f4dbd5ef20f1361deb1349ad25b2d8ad`. Original
+[25-entry Actions artifact #12122167992](https://github.com/gamesbyian/UR-Recomp/actions/runs/39089830603/artifacts/12122167992),
+outer SHA256
+`7af30ee0fd01b3448b9b27dcc83dfd713aa3744df41da2288357171b47b055f3`,
+was independently downloaded and rehashed by the source owner: CRC
+clean; 16 binary SHA256+length receipts exact; all four canonical
+original 8192-byte raw, 16525-byte typed, 241-byte selector and
+44-byte catalog objects **bit-identical** before, immediately after
+native save refusal and through two separate original Windows cold
+CMD processes. This is genuine NTFS VHDX full-volume error: 118,272,000
+flushed filler bytes, separate fresh Windows process reports real
+`ERROR_DISK_FULL=112`. The original game reached frame 2200 during
+a real 1P race and refused source checkpoint **before raw**, emitting
+`native_sram_intent_not_durable`, player-visible
+`UR-BALDOSA-SAVE-FAILED` and native CMD exit **8**. The old
+canonical state remained intact, no pending journal was left, and
+after removal of the isolated filler both source Windows cold boots
+exited **0** with original SRAM unchanged.
+
+The original same-run candidate-binding artifact
+[#12123030125](https://github.com/gamesbyian/UR-Recomp/actions/runs/39089830603/artifacts/12123030125)
+pins original ROM-free ZIP SHA256
+`cdc6107e05421a1f3527414cb78e2a08111d38cd5f1c9553ae877f0297466104`,
+the 20,327,424-byte AMD64 PE
+`81d8842900f38f81bcdcaebd5ce838d20615c0e9cc4f04af9eebf5f74d388f98`,
+unchanged packaged CMD
+`b61d6b3836e21da6dd91dc4bcbf5cff19a85df6f73f07ee2bcd29a377fc678c3`,
+and exact tested merge above. C++ fixture SHA256
+`8adb22735b8fdb642cbc1c853db561a5689297af97cfc2e08a5c4435efec2f1f`
+and genuine USA ROM SHA256
+`859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478`
+are bound in source. Independent QA's strict
+[#1810](https://github.com/gamesbyian/UR-Recomp/pull/1810)
+reader has been given these exact identities; **independent acceptance
+must be recorded by QA, not inferred from this owner verification**.
+
+This is an actual **early durable-intent allocation failure**, not a
+simulated 513-byte raw write, not proof of a real **partial write**, not
+proof that **postraw typed CAS on a full volume** recovers, and not an
+electrical power cut. The next owning experiment must use the existing
+original source postraw gate to pause with a genuinely new raw 8192-byte
+SRAM and durable pending transaction, exhaust W: at that exact moment,
+refuse the native typed publication visibly, then perform two original
+cold boots with exact raw/typed/intent and unrelated-player byte
+preservation. No release ledger or physical owner gate is promoted.

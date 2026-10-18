@@ -31,28 +31,36 @@ def samples():
     return tuple((mode, i, i / STEPS)
                  for mode in MODES for i in range(STEPS + 1))
 
-def occupied_bounds(im):
-    """Return the model silhouette bbox; refuse all-empty/full-window frames."""
-    from PIL import Image, ImageChops
+def require_clean_border(pixels, width: int, height: int):
+    """Pure pixel-access guard. Works without Pillow in dependency-free tests.
 
-    frame = im.convert("RGB")
-    # Prove the entire four-pixel border is background BEFORE using a corner
-    # as the background key. Otherwise a model touching (0,0) can poison the
-    # key and fool a bbox-only test into admitting a cropped animation.
-    width, height = frame.size
-    pixel = frame.load()
-    background_color = pixel[0, 0]
-    corners = (pixel[0, 0], pixel[width - 1, 0],
-               pixel[0, height - 1], pixel[width - 1, height - 1])
-    if any(c != background_color for c in corners):
+    Check four entire border strips, not just bounding boxes against a corner
+    that might already contain the model. Reject too-small/empty viewports.
+    """
+    if width <= 2*MIN_BORDER_PIXELS or height <= 2*MIN_BORDER_PIXELS:
+        raise ValueError("insufficient fixed-camera protected border")
+    color = pixels[0, 0]
+    if any(pixels[x, y] != color for x, y in (
+        (width - 1, 0), (0, height - 1), (width - 1, height - 1)
+    )):
         raise ValueError("different fixed-camera background corners")
     for y in range(height):
         for x in range(width):
             if (x < MIN_BORDER_PIXELS or y < MIN_BORDER_PIXELS or
                 x >= width-MIN_BORDER_PIXELS or
                 y >= height-MIN_BORDER_PIXELS):
-                if pixel[x, y] != background_color:
+                if pixels[x, y] != color:
                     raise ValueError("model touches protected fixed-camera border")
+    return color
+
+
+def occupied_bounds(im):
+    """Return the silhouette bbox; reject every clipped/empty frame."""
+    from PIL import Image, ImageChops
+
+    frame = im.convert("RGB")
+    width, height = frame.size
+    background_color = require_clean_border(frame.load(), width, height)
     background = Image.new("RGB", frame.size, background_color)
     bounds = ImageChops.difference(frame, background).getbbox()
     if bounds is None:

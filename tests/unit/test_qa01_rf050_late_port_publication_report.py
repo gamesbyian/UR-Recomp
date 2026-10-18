@@ -31,7 +31,7 @@ class LatePortTest(unittest.TestCase):
               "pc=82:82F2 op=8D a0=63D0 a1=63D0")
         sta2=("QA01RF049STA target=1 frame=6124 v=159 h=1072 "
               "pc=82:82F6 op=8D a0=D063 a1=D063")
-        live="\\n".join([lda,A,sta3,B,sta2])
+        live="\n".join([lda,A,sta3,B,sta2])
         out=rf.source_instruction_publication_link(live)
         self.assertTrue(out["both_real_port_publications_inside_original_instruction_segments"])
         self.assertEqual(
@@ -40,13 +40,13 @@ class LatePortTest(unittest.TestCase):
             [104350003,104350005])
         self.assertFalse(out["native_host_clock_registered"])
         absent=rf.source_instruction_publication_link(
-            "\\n".join([lda,sta3,sta2]))
+            "\n".join([lda,sta3,sta2]))
         self.assertFalse(absent["both_real_port_publications_inside_original_instruction_segments"])
         self.assertTrue(absent["source_original_STA_to_actual_APU_publications"][0]
                         ["missing_coverage_is_not_no_publication"])
         with self.assertRaisesRegex(ValueError,"multiple source APU publications"):
             rf.source_instruction_publication_link(
-                "\\n".join([lda,A,A.replace("seq=1","seq=2"),sta3,B,sta2]))
+                "\n".join([lda,A,A.replace("seq=1","seq=2"),sta3,B,sta2]))
         with self.assertRaisesRegex(ValueError,"does not match actual STA"):
             rf.source_instruction_publication_link(
                 live.replace("port=3 val=D0","port=3 val=D1"))

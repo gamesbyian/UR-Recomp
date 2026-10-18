@@ -1,0 +1,220 @@
+{
+  "schema": "rf056-source-authentic-Bowl-cross-frame-raw-WRAM-delta-identity-20261018-v1",
+  "original_source": {
+    "repository": "gamesbyian/UR-Recomp",
+    "github_run": 39169304323,
+    "source_sha": "d8fc9099ea2827c6a919ec01bd2c49472701803c",
+    "artifact_id": 12151982503,
+    "zip_sha256": "c2262b40e43b4e167cbdf291623b0e34207561187e103af39eca7a46fa4b0edc",
+    "zip_members": 78,
+    "usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1ab2dea4b442",
+    "source_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828"
+  },
+  "method": "Download exactly 78-member existing authentic original-2014/movie fresh-original/native Bowl result→Switcher artifact. Rehash ZIP, inspect real byte arrays; compare full 131072-byte WRAM and 8192-byte SRAM without excluding bytes. Compare each consecutive guest snapshot's complete (absolute address, before, after) byte-mutation triple sets, and separately cross-guest already-captured samples three result-relative frames apart. Never shift controller inputs, emulate another frame or grant an event.",
+  "sample_guest_relative_offsets": [
+    334,
+    338,
+    339,
+    340,
+    341,
+    342,
+    343,
+    344,
+    345,
+    346,
+    349,
+    354
+  ],
+  "raw_full_WRAM_SRAM_excluded_bytes": 0,
+  "unmasked_original_native_same_frame_WRAM_difference_counts": {
+    "334": 2,
+    "338": 2,
+    "339": 2,
+    "340": 33,
+    "341": 666,
+    "342": 688,
+    "343": 671,
+    "344": 289,
+    "345": 214,
+    "346": 184,
+    "349": 177,
+    "354": 113
+  },
+  "cross_guest_original_offset_to_native_offset": [
+    {
+      "original_result_relative": 340,
+      "native_result_relative": 343,
+      "full_128kiB_WRAM_unmasked_differing_bytes": 2,
+      "difference_addresses": [
+        "7E:00C6",
+        "7E:00C8"
+      ]
+    },
+    {
+      "original_result_relative": 341,
+      "native_result_relative": 344,
+      "full_128kiB_WRAM_unmasked_differing_bytes": 2,
+      "difference_addresses": [
+        "7E:00C6",
+        "7E:00C8"
+      ]
+    },
+    {
+      "original_result_relative": 342,
+      "native_result_relative": 345,
+      "full_128kiB_WRAM_unmasked_differing_bytes": 6,
+      "difference_addresses": [
+        "7E:00C6",
+        "7E:00C8",
+        "7E:01ED",
+        "7E:01EE",
+        "7E:01EF",
+        "7E:01F0"
+      ]
+    },
+    {
+      "original_result_relative": 343,
+      "native_result_relative": 346,
+      "full_128kiB_WRAM_unmasked_differing_bytes": 2,
+      "difference_addresses": [
+        "7E:00C6",
+        "7E:00C8"
+      ]
+    }
+  ],
+  "actual_mutation_sets": [
+    {
+      "original_between_result_relative": [
+        339,
+        340
+      ],
+      "native_between_result_relative": [
+        342,
+        343
+      ],
+      "original_changed_full_WRAM_triples": 31,
+      "native_changed_full_WRAM_triples": 31,
+      "whole_absolute_address_old_byte_new_byte_sets_equal": true
+    },
+    {
+      "original_between_result_relative": [
+        340,
+        341
+      ],
+      "native_between_result_relative": [
+        343,
+        344
+      ],
+      "original_changed_full_WRAM_triples": 642,
+      "native_changed_full_WRAM_triples": 642,
+      "whole_absolute_address_old_byte_new_byte_sets_equal": true
+    },
+    {
+      "original_between_result_relative": [
+        341,
+        342
+      ],
+      "native_between_result_relative": [
+        344,
+        345
+      ],
+      "original_changed_full_WRAM_triples": 220,
+      "native_changed_full_WRAM_triples": 219,
+      "exact_three_field_triple_overlap": 216,
+      "unmatched_difference_region": "NMI stack page 7E:01ED–01F0"
+    }
+  ],
+  "original_native_two_persistent_menu_bytes": [
+    {
+      "wram": "7E:00C6",
+      "fresh_original": 1,
+      "native": 0
+    },
+    {
+      "wram": "7E:00C8",
+      "fresh_original": 5,
+      "native": 4
+    }
+  ],
+  "original_native_persistent_SRAM_mismatches": [
+    {
+      "sram_offset": "0EF6",
+      "fresh_original": 1,
+      "native": 0
+    },
+    {
+      "sram_offset": "0F31",
+      "fresh_original": 1,
+      "native": 0
+    },
+    {
+      "sram_offset": "0F33",
+      "fresh_original": 5,
+      "native": 4
+    }
+  ],
+  "strict_comparison_and_causal_limits": {
+    "historical_original_2014_movie_vs_fresh_snes9x_already_unequal_at_334_WRAM_bytes": 44,
+    "historical_original_2014_movie_vs_fresh_snes9x_already_unequal_at_334_SRAM_bytes": 71,
+    "same_frame_original_native_transition_WRAM_divergence_real": true,
+    "same_original_native_input_stream_or_read_stage_proven": false,
+    "actual_first_conditional_branch_and_controller_consumer_proven": false,
+    "source_native_CPU_master_SPC_clock_origins_identically_registered": false,
+    "original_movie_next_switcher_relative_frame": 342,
+    "fresh_snes9x_next_switcher_relative_frame": 341,
+    "fresh_native_next_switcher_relative_frame": 344,
+    "acceptance_status": "strict progression negative",
+    "accepted_complete_USA_events": 0,
+    "release_gates": 0
+  },
+  "next_precise_CPU_causality_target": "Observe actual first original guest 65816 predicate/opcode or input-read leading into the 31-byte mutation at original result +339→340, versus native +342→343. Determine whether 7E:00C6/00C8, controller transport, or independent instruction/beam phase affects the real branch; do not assume cosmetic counters causal or rephase inputs. Preserve distinct source-movie/fresh-original/native clocks, all full memory and earned SRAM.",
+  "owner_boundary": "Research/CPU-original gameplay only; QA/alternative-event lane independently owns event source inputs, acceptance, ledger, Modern and graphics.",
+  "historical_movie_separate_execution_transition_triples": [
+    {
+      "source_movie_result_offsets": [
+        340,
+        341
+      ],
+      "movie_original_full_WRAM_change_triples": 31,
+      "fresh_original_result_offsets": [
+        339,
+        340
+      ],
+      "fresh_and_native_exact_triples": 31,
+      "common_movie_fresh_native_three_field_triples": 22,
+      "reason_boundary": "2014 movie is a different execution state history; source NMI stack and sound queue contain distinct values"
+    },
+    {
+      "source_movie_result_offsets": [
+        341,
+        342
+      ],
+      "movie_original_full_WRAM_change_triples": 644,
+      "fresh_original_result_offsets": [
+        340,
+        341
+      ],
+      "fresh_and_native_exact_triples": 642,
+      "common_movie_fresh_native_three_field_triples": 637
+    },
+    {
+      "source_movie_result_offsets": [
+        342,
+        343
+      ],
+      "movie_original_full_WRAM_change_triples": 222,
+      "fresh_original_result_offsets": [
+        341,
+        342
+      ],
+      "fresh_guest_change_triples": 220,
+      "native_result_offsets": [
+        344,
+        345
+      ],
+      "native_guest_change_triples": 219,
+      "common_movie_fresh_native_three_field_triples": 216
+    }
+  ]
+}

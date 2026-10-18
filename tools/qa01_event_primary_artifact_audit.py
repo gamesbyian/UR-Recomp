@@ -17,6 +17,7 @@ from pathlib import Path
 import qa01_event_campaign as campaign
 import qa01_event_route_artifact_audit as replay_route
 import qa01_event_result_gate_audit as guest_results
+import qa01_event_historical_source_attestation as source_2014
 
 SCHEMA = "ur-qa01-event-primary-artifact-audit/1"
 
@@ -113,7 +114,9 @@ def validate_capture_population(report: dict) -> None:
         raise ValueError("fresh entry equivalence contradicts source observations")
 
 
-def audit(plan: dict, results_dir: Path, aggregate_report: dict | None = None) -> dict:
+def audit(plan: dict, results_dir: Path, aggregate_report: dict | None = None,
+          *, source_movie: Path | None = None,
+          source_meta: Path | None = None) -> dict:
     """Verify all selected primary reports, including source and case identity.
 
     A self-consistent case-result.json alone is not evidence. Even a fully
@@ -121,6 +124,8 @@ def audit(plan: dict, results_dir: Path, aggregate_report: dict | None = None) -
     source execution, temporal and persistence review.
     """
     campaign.validate_plan(plan)
+    if (source_movie is None) != (source_meta is None):
+        raise ValueError("both original 2014 source movie and metadata are required for source audit")
     selected = [row["id"] for row in plan["cases"]]
     selected_set = set(selected)
     unexpected = sorted(
@@ -161,7 +166,13 @@ def audit(plan: dict, results_dir: Path, aggregate_report: dict | None = None) -
                 raise ValueError("genuine original/native report executable identities differ from shared binary manifest")
             validate_capture_population(original_report)
             result_gates = guest_results.validate(original_report)
-            route_identity = replay_route.audit(directory, original_report)
+            source_window = (
+                source_2014.source_window(original_report, source_movie, source_meta)
+                if source_movie is not None else None
+            )
+            route_identity = replay_route.audit(
+                directory, original_report, source_window=source_window
+            )
             independently_derived = campaign.classify(
                 case, row["producer_exit_code"], primary, plan
             )
@@ -175,6 +186,9 @@ def audit(plan: dict, results_dir: Path, aggregate_report: dict | None = None) -
                 "original_shared_binary_manifest_sha256": manifest_sha,
                 "staged_snesref_sha256": binary_hashes["snesref"],
                 "source_supplied_controller_route": route_identity,
+                "source_2014_controller_window_frames": (
+                    source_window["frames"] if source_window is not None else None
+                ),
                 "raw_guest_result_gates_recomputed": result_gates,
                 "release_credit": 0,
             })
@@ -204,7 +218,8 @@ def audit(plan: dict, results_dir: Path, aggregate_report: dict | None = None) -
         "campaign_aggregate_matches_sources": aggregate_matches,
         "primary_artifact_audit_complete": complete,
         "release_admissions": 0,
-        "scope": "producer/compiled-binary/supplied-controller replay integrity only; no independently repeated execution, proof of consumed masks or USA event admission",
+        "scope": "producer/build/supplied-controller transport and optional immutable 2014 SMV byte-identity only; no independent guest-controller consumption or USA event admission",
+        "immutable_2014_smv_source_reconstruction_requested": source_movie is not None,
         "cases": cases,
     }
 
@@ -215,6 +230,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--results-dir", type=Path, required=True)
     p.add_argument("--campaign-result", type=Path,
                    help="also reconstruct and compare the published aggregate")
+    p.add_argument("--source-movie", type=Path,
+                   help="reconstruct original P1 from exact immutable 2014 SMV archive")
+    p.add_argument("--source-meta", type=Path,
+                   help="pinned 2014 SMV metadata; requires --source-movie")
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--summary", type=Path)
     args = p.parse_args(argv)
@@ -222,7 +241,10 @@ def main(argv: list[str] | None = None) -> int:
         plan = campaign.load_json(args.plan)
         published = (campaign.load_json(args.campaign_result)
                      if args.campaign_result else None)
-        report = audit(plan, args.results_dir, published)
+        report = audit(
+            plan, args.results_dir, published,
+            source_movie=args.source_movie, source_meta=args.source_meta
+        )
     except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
         report = {
             "schema": SCHEMA, "primary_artifact_audit_complete": False,

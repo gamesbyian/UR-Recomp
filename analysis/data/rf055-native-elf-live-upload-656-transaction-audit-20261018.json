@@ -1,0 +1,117 @@
+{
+  "schema": "rf055-genuine-native-elf-sound-upload-bus-and-port-stream-census-v1",
+  "experiment": {
+    "run": 39167048486,
+    "source_sha": "3148dc522e03549823a8ed1305a996dc9bc3a02d",
+    "original_native_case_artifact_id": 12151730258,
+    "case_zip_sha256": "18bfc0fd6c9efb4d0d849930aded4657f4d8079be065b0f0e294c08439dbb84a",
+    "original_native_binary_artifact_id": 12151237301,
+    "binary_zip_sha256": "2b47a6596362c68d39f1b7d1ca8e9491ab7fa7d4cfd87b99b880404681139dc2",
+    "native_elf_sha256": "cac96d0ba41ce21eee5d310477ac1266c3fceea1490f7cb52ec98105db09db9e",
+    "native_elf_bytes": 16587264
+  },
+  "method": "read-only independently rehashed ZIP members, genuine native RF054 CPU helper/port trace, GNU nm -nC and objdump -d -M intel --disassemble=Snd_UploadBlockList_82EF_M1X0.part.0; verified unchanged full RF047 producer objects. No replay, observer, timing or game change.",
+  "actual_native_elf_x86_64": {
+    "function": "Snd_UploadBlockList_82EF_M1X0.part.0",
+    "first_instruction_va": "0x6aea70",
+    "compiled_source_linkage": "2014 USA generated bank82 L_82EF_M1X0 starts with XBA, LDA [$63],Y, STA $2143, XBA, STA $2142; optimized ELF section matches this data/control structure",
+    "callsites_within_compiled_path": [
+      {
+        "va": "0x6aeb39",
+        "instruction": "rol dx,0x8",
+        "meaning": "XBA-like accumulator exchange before long indirect read"
+      },
+      {
+        "va": "0x6aeb96",
+        "instruction": "call cpu_read16_paced",
+        "meaning": "read direct-page pointer low 16 bits"
+      },
+      {
+        "va": "0x6aebae",
+        "instruction": "call cpu_read8_paced",
+        "meaning": "read direct-page pointer bank byte"
+      },
+      {
+        "va": "0x6aebc3",
+        "instruction": "add esi,eax",
+        "meaning": "combine 24-bit pointer with Y"
+      },
+      {
+        "va": "0x6aebcf",
+        "instruction": "call cpu_read8_paced",
+        "meaning": "read indexed sound data from effective bank/offset"
+      },
+      {
+        "va": "0x6aec3e",
+        "instruction": "mov edx,0x2143",
+        "meaning": "select port3"
+      },
+      {
+        "va": "0x6aec4a",
+        "instruction": "call cpu_write8_paced",
+        "meaning": "publish port3 through real helper"
+      },
+      {
+        "va": "0x6aec79",
+        "instruction": "rol cx,0x8",
+        "meaning": "second accumulator-byte exchange"
+      },
+      {
+        "va": "0x6aecb5",
+        "instruction": "mov edx,0x2142",
+        "meaning": "select port2"
+      },
+      {
+        "va": "0x6aecc4",
+        "instruction": "call cpu_write8_paced",
+        "meaning": "publish port2 through real helper"
+      }
+    ],
+    "qualifier": "ELF callsite existence and ordered disassembly alone do not prove the particular generated instruction-site executed. RF054 actual helper records establish dynamic function-scope, effective ROM operand, registers and CPU publication. Multiple helper callsites in this function and no logged native return address prohibit a unique live x86 callsite proof."
+  },
+  "dynamic_native_actual": {
+    "read8_record_tag": "QA01RF054NATIVEBUS kind=read8",
+    "writer_record_tag": "QA01RF054NATIVE kind=writer",
+    "scope": "Snd_UploadBlockList_82EF_M1X0",
+    "source_host_frame": 6124,
+    "actual_read8_count": 656,
+    "actual_port_publications_count": 1312,
+    "all_rom_reads_in_live_scope": true,
+    "all_writes_in_live_scope": true,
+    "all_source_data_operands_strictly_contiguous": true,
+    "first_rom_operand": "11:C589",
+    "last_rom_operand": "11:C818",
+    "all_actual_effective_addresses_equal_0x110000_plus_live_Y": true,
+    "all_656_real_cpu_read_to_port3_master_deltas": 30,
+    "all_656_port3_to_port2_cpu_master_deltas": 50,
+    "all_656_port_publication_pairs_ports_in_order": [
+      "2143",
+      "2142"
+    ],
+    "all_1312_published_values_equal_low_byte_of_live_A": true,
+    "all_656_Rom_read_and_two_port_writer_live_Y_equal": true,
+    "unique_late_11c774_helper_ordinal_1based": 492,
+    "unique_late_11c774_helper_native_master": 2188739002,
+    "unique_late_11c774_port3_native_master": 2188739032,
+    "unique_late_11c774_port2_native_master": 2188739082,
+    "live_generated_82F0_instruction_PC_observed": false,
+    "RF055_marker_reason": "generated format strings only in nonexecuting Snd_UploadBlockList_M0X0, not in active Snd_UploadBlockList_82EF_M1X0"
+  },
+  "original_and_controls": {
+    "original_source_exec_original_82_82f0_11c774": true,
+    "original_real_port3_to_port2_all_16_intervals_CPU_master": 50,
+    "real_receiver_322_source_native_exact_sequence": true,
+    "whole_unmasked_128kiB_WRAM_pairs": 78,
+    "whole_WRAM_pair_exact": 51,
+    "unmasked_differing_byte_occurrences": 92,
+    "all_three_full_RF047_producer_objects_equal": true,
+    "first_Zoo_result_offset": 5163,
+    "next_Bowl_offset": 267,
+    "earned_full_SRAM_pairs": 11,
+    "cold_guest_ranked_record_equal": true,
+    "absolute_CPU_SPC_clock_phase_registered": false,
+    "all_audio_samples_or_CPU_instructions_proven": false,
+    "first_independently_accepted_USA_event": false,
+    "event_acceptance_count": 0
+  }
+}

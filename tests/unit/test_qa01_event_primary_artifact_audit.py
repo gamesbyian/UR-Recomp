@@ -83,6 +83,12 @@ class PrimaryArtifactAuditTest(unittest.TestCase):
         self.primary = self.folder / "producer-report.json"
         self.receipt = self.folder / "case-result.json"
         self.put_case(matched=True)
+        (self.folder / "SHA256SUMS").write_text(
+            "c" * 64 + "  snesref\n"
+            + "a" * 64 + "  native\n"
+            + "a" * 64 + "  snes9x_libretro.so\n",
+            encoding="ascii",
+        )
 
     def put_case(self, *, matched: bool):
         campaign.write_json(self.primary, producer("bowl", matched=matched))
@@ -101,6 +107,59 @@ class PrimaryArtifactAuditTest(unittest.TestCase):
         self.assertEqual(observed["primary_receipts_verified"], 1)
         self.assertTrue(observed["campaign_aggregate_matches_sources"])
         self.assertEqual(observed["cases"][0]["disposition"], "strict_candidate")
+
+    def test_missing_and_malformed_shared_binary_manifest_fail_closed(self):
+        manifest = self.folder / "SHA256SUMS"
+        initial = manifest.read_text(encoding="ascii")
+        manifest.unlink()
+        self.assertFalse(self.inspect()["primary_artifact_audit_complete"])
+        self.assertIn("manifest", self.inspect()["cases"][0]["reason"].lower())
+        for modified in (
+            initial.replace("  snesref", "  ../snesref"),
+            initial.replace("  native", " *native"),
+            initial.replace("snes9x_libretro.so", "native"),
+            initial.replace("a" * 64, "A" * 64),
+            initial.rstrip("\n"),
+        ):
+            with self.subTest(modified=modified[:32]):
+                manifest.write_text(modified, encoding="ascii")
+                self.assertFalse(self.inspect()["primary_artifact_audit_complete"])
+
+    def test_case_cannot_claim_replaced_native_or_snes9x_binary(self):
+        for name in ("native_executable_sha256", "reference_core_sha256"):
+            with self.subTest(name=name):
+                original = campaign.load_json(self.primary)
+                original[name] = "d" * 64
+                campaign.write_json(self.primary, original)
+                # Recreate a superficially self-consistent case receipt.
+                campaign.write_json(self.receipt, campaign.classify(
+                    "bowl", 0, self.primary, self.plan))
+                observed = self.inspect()
+                self.assertFalse(observed["primary_artifact_audit_complete"])
+                self.assertIn("executable identities", observed["cases"][0]["reason"])
+                self.put_case(matched=True)
+
+    def test_multi_case_same_original_binary_manifest_required(self):
+        self.plan = campaign.make_plan("all", "b" * 40)
+        for case in ("zoom-zoo", "switcher"):
+            folder = self.root / ("qa01-campaign-case-" + case)
+            folder.mkdir()
+            raw = folder / "producer-report.json"
+            campaign.write_json(raw, producer(case, matched=True))
+            receipt = campaign.classify(case, 0, raw, self.plan)
+            campaign.write_json(folder / "case-result.json", receipt)
+            (folder / "SHA256SUMS").write_bytes(
+                (self.folder / "SHA256SUMS").read_bytes())
+        # Existing synthetic Bowl was classified using the single-case plan.
+        campaign.write_json(self.receipt, campaign.classify(
+            "bowl", 0, self.primary, self.plan))
+        self.assertTrue(self.inspect(with_aggregate=True)["primary_artifact_audit_complete"])
+        switched = self.root / "qa01-campaign-case-switcher" / "SHA256SUMS"
+        switched.write_text(switched.read_text().replace(
+            "c" * 64 + "  snesref", "d" * 64 + "  snesref"))
+        broken = self.inspect()
+        self.assertFalse(broken["primary_artifact_audit_complete"])
+        self.assertIn("do not share", broken["cases"][-1]["reason"])
 
     def test_real_strict_divergence_is_valid_negative_evidence(self):
         self.put_case(matched=False)

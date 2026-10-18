@@ -70,6 +70,7 @@ def inspect(log: str, crcs: list[str])->dict:
                        "rgb":pixels[f,x,y]["final"],
                        "obj_cgram_index":pixels[f,x,y]["obj_cgram_index"],
                        "obj_word":pixels[f,x,y]["obj_word"],
+                       "obj_zbuffer":pixels[f,x,y]["obj"],
                        "inidisp":pixels[f,x,y]["inidisp"],
                        "cgadsub":pixels[f,x,y]["cgadsub"]}
                       for f in FRAMES for x,y in COORDS],

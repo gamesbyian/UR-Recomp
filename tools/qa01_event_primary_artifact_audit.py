@@ -15,6 +15,7 @@ import re
 from pathlib import Path
 
 import qa01_event_campaign as campaign
+import qa01_event_route_artifact_audit as replay_route
 
 SCHEMA = "ur-qa01-event-primary-artifact-audit/1"
 
@@ -158,6 +159,7 @@ def audit(plan: dict, results_dir: Path, aggregate_report: dict | None = None) -
                         binary_hashes["snes9x_libretro.so"]):
                 raise ValueError("genuine original/native report executable identities differ from shared binary manifest")
             validate_capture_population(original_report)
+            route_identity = replay_route.audit(directory, original_report)
             independently_derived = campaign.classify(
                 case, row["producer_exit_code"], primary, plan
             )
@@ -170,6 +172,7 @@ def audit(plan: dict, results_dir: Path, aggregate_report: dict | None = None) -
                 "producer_sha256": sha,
                 "original_shared_binary_manifest_sha256": manifest_sha,
                 "staged_snesref_sha256": binary_hashes["snesref"],
+                "source_supplied_controller_route": route_identity,
                 "release_credit": 0,
             })
         except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
@@ -198,7 +201,7 @@ def audit(plan: dict, results_dir: Path, aggregate_report: dict | None = None) -
         "campaign_aggregate_matches_sources": aggregate_matches,
         "primary_artifact_audit_complete": complete,
         "release_admissions": 0,
-        "scope": "report/compiled-binary manifest transport consistency only; SHA256SUMS was verified in the original case runner; no independently repeated execution or USA event admission",
+        "scope": "producer/compiled-binary/supplied-controller replay integrity only; no independently repeated execution, proof of consumed masks or USA event admission",
         "cases": cases,
     }
 

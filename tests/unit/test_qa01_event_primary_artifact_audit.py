@@ -1,6 +1,7 @@
 """ROM-free negative tests for actual QA-01 case and aggregate artifact integrity."""
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 import tempfile
@@ -11,6 +12,26 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 import qa01_event_campaign as campaign
 import qa01_event_primary_artifact_audit as receipts
+
+
+def source_replay_script(case: str) -> str:
+    offsets = [0, 1, 2, 4, 8, 16, 32, 100]
+    return (
+        "dump race-entered\n"
+        + "".join(f"dump scene-{frame:05d}\n" for frame in offsets[1:])
+        + "dump result-onset\n"
+        + "dump result-stable\n"
+        + ("dump result-tally\n" if case == "bowl" else "")
+    )
+
+
+def write_synthetic_source_replay(folder: Path, case: str) -> None:
+    replay = folder / "work" / case / "replay"
+    replay.mkdir(parents=True, exist_ok=True)
+    (replay / "complete.script").write_text(source_replay_script(case), encoding="ascii")
+    (replay / "ref.input").write_text("100:3:12\n110:2:7\n", encoding="ascii")
+    (replay / "pinned-baldosa.input").write_text(
+        "102:3:012\n112:2:007\n", encoding="ascii")
 
 
 def producer(case: str, *, matched: bool) -> dict:
@@ -69,6 +90,10 @@ def producer(case: str, *, matched: bool) -> dict:
             "rom_sha256", "original_movie_sha256", "native_executable_sha256",
             "reference_core_sha256", "input_sha256", "source_sram_sha256",
             "original_movie_window_sha256", "reference_script_sha256")},
+        "input_sha256": hashlib.sha256(
+            source_replay_script(case).encode("ascii")).hexdigest(),
+        "reference_script_sha256": hashlib.sha256(
+            source_replay_script(case).encode("ascii")).hexdigest(),
     }
 
 
@@ -83,6 +108,7 @@ class PrimaryArtifactAuditTest(unittest.TestCase):
         self.primary = self.folder / "producer-report.json"
         self.receipt = self.folder / "case-result.json"
         self.put_case(matched=True)
+        write_synthetic_source_replay(self.folder, "bowl")
         (self.folder / "SHA256SUMS").write_text(
             "c" * 64 + "  snesref\n"
             + "a" * 64 + "  native\n"
@@ -150,6 +176,7 @@ class PrimaryArtifactAuditTest(unittest.TestCase):
             campaign.write_json(folder / "case-result.json", receipt)
             (folder / "SHA256SUMS").write_bytes(
                 (self.folder / "SHA256SUMS").read_bytes())
+            write_synthetic_source_replay(folder, case)
         # Existing synthetic Bowl was classified using the single-case plan.
         campaign.write_json(self.receipt, campaign.classify(
             "bowl", 0, self.primary, self.plan))
@@ -160,6 +187,23 @@ class PrimaryArtifactAuditTest(unittest.TestCase):
         broken = self.inspect()
         self.assertFalse(broken["primary_artifact_audit_complete"])
         self.assertIn("do not share", broken["cases"][-1]["reason"])
+
+    def test_archived_controller_input_pair_denied_if_changed_even_with_valid_producer_summary(self):
+        replay = self.folder / "work" / "bowl" / "replay"
+        path = replay / "pinned-baldosa.input"
+        path.write_text("103:3:012\n112:2:007\n", encoding="ascii")
+        observed = self.inspect(with_aggregate=True)
+        self.assertFalse(observed["primary_artifact_audit_complete"])
+        self.assertIn("controller masks", observed["cases"][0]["reason"])
+        self.assertEqual(observed["release_admissions"], 0)
+
+    def test_missing_replay_script_denied_even_when_old_campaign_says_transport_complete(self):
+        replay = self.folder / "work" / "bowl" / "replay"
+        (replay / "complete.script").unlink()
+        self.assertTrue(campaign.aggregate(self.plan, self.root)[0]["transport_complete"])
+        observed = self.inspect(with_aggregate=True)
+        self.assertFalse(observed["primary_artifact_audit_complete"])
+        self.assertIn("replay script", observed["cases"][0]["reason"])
 
     def test_real_strict_divergence_is_valid_negative_evidence(self):
         self.put_case(matched=False)

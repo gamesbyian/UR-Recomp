@@ -23,6 +23,24 @@ class RF055ELFAudit(unittest.TestCase):
             rf.inspect_elf_text(nm,asm.replace(
                 "6affff:\t90\tcall   3e040 <cpu_read8_paced>",
                 "6affff:\t90\tcall   3e040 <cpu_read16_paced>"))
+    def test_paced_helper_CPU_clocks_are_charged_before_real_bus_helper(self):
+        read="\n".join((
+            "  3e0f2:\t90\tmov    QWORD PTR [rbp+0x28],rax",
+            "  3e132:\t90\tjmp    3c4b0 <cpu_read8>",
+        ))
+        write="\n".join((
+            "  3e6d5:\t90\tmov    QWORD PTR [rbp+0x28],rax",
+            "  3e716:\t90\tjmp    3d5b0 <cpu_write8>",
+        ))
+        out=rf.inspect_paced_helper_timestamp_stage(read,write)
+        self.assertTrue(out["read8"]["cpu_master_cycles_advanced_before_actual_CPU_bus_helper"])
+        self.assertTrue(out["write8"]["cpu_master_cycles_advanced_before_actual_CPU_bus_helper"])
+        with self.assertRaisesRegex(ValueError,"master charge/order"):
+            rf.inspect_paced_helper_timestamp_stage(
+                read.replace("3e0f2","3e0f3"),write)
+        with self.assertRaisesRegex(ValueError,"master charge/order"):
+            rf.inspect_paced_helper_timestamp_stage(
+                read,write.replace("<cpu_write8>","<cpu_write16>"))
     def make_real_bus_rows(self):
         rows=[]
         base=2188739002-491*250

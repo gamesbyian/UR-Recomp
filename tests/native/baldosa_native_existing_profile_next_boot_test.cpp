@@ -587,6 +587,49 @@ int main() {
                !fs::exists(dir / "multiplayer-runs"));
     }
     {
+        // The loader accepts harmless noncanonical typed text. A manual
+        // recovery archive must retain the ACTUAL original file bytes, not
+        // silently encode the decoded state back to canonical formatting.
+        const auto dir = intent_fixture("legacy-typed-exact-file-archive");
+        const auto [global, profile] = before_save(dir);
+        const auto raw = dir / "saves/profile-mike/save.srm";
+        const auto typed = dir / "saves/profile-mike/host-profile.txt";
+        const std::string canonical = bytes(typed);
+        const auto header_end = canonical.find('\n');
+        assert(header_end != std::string::npos);
+        const std::string noncanonical =
+            canonical.substr(0, header_end + 1) + "\n" +
+            canonical.substr(header_end + 1);
+        write_bytes(typed, noncanonical);
+        const auto accepted = load_host_profile_state_file(
+            ExecutionMode::Modern, typed.string(), "mike");
+        assert(accepted.loaded() && *accepted.state == profile);
+        const auto changed = make_changed(profile);
+        write_bytes(raw, changed);
+        const std::string interrupted_raw = bytes(raw);
+        assert(recover_baldosa_legacy_sram_explicit(
+            dir, "mike", BaldosaManualSramChoice::RestoreCommitted) ==
+               BaldosaManualSramRecoveryStatus::RestoredCommitted);
+        assert(bytes(typed) == noncanonical && bytes(raw) != interrupted_raw);
+        std::size_t count = 0;
+        for (const auto& entry : fs::directory_iterator(
+                 dir / "saves/profile-mike")) {
+            if (entry.path().filename().string().find(
+                    "native-sram-manual-archive-") != 0)
+                continue;
+            ++count;
+            const std::string expected =
+                "UR-BALDOSA-MANUAL-SRAM-RECOVERY/1\n" +
+                std::to_string(noncanonical.size()) + "\n1\n8192\n" +
+                noncanonical + interrupted_raw;
+            assert(bytes(entry.path()) == expected);
+        }
+        assert(count == 1);
+        assert(recover_baldosa_legacy_sram_explicit(
+            dir, "mike", BaldosaManualSramChoice::RestoreCommitted) ==
+               BaldosaManualSramRecoveryStatus::AlreadyConsistent);
+    }
+    {
         const auto dir = intent_fixture("legacy-typed-choice");
         const auto [global, profile] = before_save(dir);
         const auto raw = dir / "saves/profile-mike/save.srm";

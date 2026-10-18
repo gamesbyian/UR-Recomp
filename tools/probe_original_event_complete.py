@@ -27,6 +27,7 @@ import extract_menu_visual_language as visual
 import probe_attract_cycle as trace
 import qa01_bowl_switcher_handoff as bowl_handoff
 import qa01_bowl_source_movie_memory as bowl_source_memory
+import qa01_switcher_monster_handoff as switcher_monster
 import probe_jumpover_fallthrough_native as engine
 import probe_original_non_dragster_course_entry as entry
 import probe_result_screens as result_probe
@@ -406,13 +407,17 @@ def replay_script(slot: int, result_menu: int, frames: list[int],
                   stunt: bool, tally_phase: bool = False,
                   source_followthrough: bool = False,
                   zoo_next_bowl: bool = False,
-                  bowl_next_switcher: bool = False) -> str:
+                  bowl_next_switcher: bool = False,
+                  switcher_next_monster_offsets: list[int] | None = None) -> str:
     if zoo_next_bowl and (slot != 2 or result_menu != 0xBC or stunt
                           or not source_followthrough):
         raise CompleteEventError("Zoo next Bowl requires original Circuit plus source followthrough")
     if bowl_next_switcher and (slot != 3 or result_menu != 0x18 or not stunt
                                  or not source_followthrough):
         raise CompleteEventError("Bowl next Switcher requires original Stunt and source followthrough")
+    if switcher_next_monster_offsets is not None and (slot != 4
+                       or result_menu != 0x99 or stunt or not source_followthrough):
+        raise CompleteEventError("Switcher next Monster requires source-qualified Race B followthrough")
     if tally_phase and (not stunt or slot != 3 or result_menu != 0x18):
         raise CompleteEventError("only proven source-original scored Bowl tally supports phase samples")
     lines = stock_crawler_script(slot).rstrip().splitlines()
@@ -452,6 +457,15 @@ def replay_script(slot: int, result_menu: int, frames: list[int],
             if offset <= previous or offset > 360:
                 raise CompleteEventError("nonmonotonic genuine Bowl-to-Switcher source handoff")
             lines += [f"wait {offset - previous}", f"dump bowl-next-switcher-{offset:03d}"]
+            previous = offset
+    if switcher_next_monster_offsets is not None:
+        previous = SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS[-1]
+        for offset in switcher_next_monster_offsets:
+            if (type(offset) is not int or offset <= previous
+                    or offset > switcher_monster.SOURCE_MAX_OFFSET + 16):
+                raise CompleteEventError("nonmonotonic actual Switcher-to-Monster handoff")
+            lines.extend((f"wait {offset-previous}",
+                          f"dump switcher-next-monster-{offset:04d}"))
             previous = offset
     lines.append("quit")
     return "\n".join(lines) + "\n"
@@ -1636,6 +1650,9 @@ def scan_source(args, work: Path, sram: Path, source_input: Path,
     if args.bowl_next_switcher:
         event["source_next_switcher"] = bowl_handoff.source_next_switcher(
             states, event["original_result_frame"])
+    if args.switcher_next_monster:
+        event["source_next_monster"] = switcher_monster.source_next_monster(
+            states, event)
     if args.bowl_source_movie_memory:
         event["source_movie_handoff_state_samples"] = {
             str(offset): states[bowl_source_memory.SOURCE_RESULT + offset]
@@ -1807,6 +1824,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="opt-in unchanged 2014 Bowl input through next Switcher at movie frame 12327; no acceptance")
     ap.add_argument("--bowl-source-movie-memory", action="store_true",
                     help="opt-in original 2014 Bowl movie full raw WRAM/SRAM vs fresh guests around Switcher, no acceptance")
+    ap.add_argument("--switcher-next-monster", action="store_true",
+                    help="opt-in source-derived genuine Switcher result into following Monster Circuit B, no acceptance")
     ap.add_argument("--observe-one-frame-stunt-lead", action="store_true",
                     help="report a verified narrow Stunt phase gap as diagnostic CI success; never admit a course")
     ap.add_argument("--snesref", type=Path, required=True)
@@ -1843,6 +1862,10 @@ def main(argv: list[str] | None = None) -> int:
                                          or not args.bowl_next_switcher
                                          or args.native_backend != "pinned-baldosa"):
         ap.error("Bowl source raw memory requires exact 2014 Bowl-to-Switcher pinned guests")
+    if args.switcher_next_monster and (args.case != "switcher"
+                                         or not args.source_followthrough
+                                         or args.native_backend != "pinned-baldosa"):
+        ap.error("Source next Monster requires stock pinned Switcher Race B followthrough")
     if args.source_horizon < 12500 or args.source_horizon > 24000:
         ap.error("source horizon must be 12500..24000")
     streams = list(rnc.find_streams(args.rom.read_bytes()))
@@ -1865,6 +1888,8 @@ def main(argv: list[str] | None = None) -> int:
     original_bytes, _ = movie.read_movie(args.movie)
     pinned_meta = json.loads(args.movie_meta.read_text())
     source_length = original_event["source_active_frames_to_result"] + (
+        max(original_event["source_next_monster"]["sample_offsets"]) + 12
+        if args.switcher_next_monster else
         max(bowl_handoff.OFFSETS) + 6 if args.bowl_next_switcher
         else max(ZOO_NEXT_BOWL_OFFSETS) + 6 if args.zoo_next_bowl
         else 80 if args.source_followthrough else 40)
@@ -1909,7 +1934,10 @@ def main(argv: list[str] | None = None) -> int:
         tally_phase=args.bowl_tally_phase,
         source_followthrough=args.source_followthrough,
         zoo_next_bowl=args.zoo_next_bowl,
-        bowl_next_switcher=args.bowl_next_switcher))
+        bowl_next_switcher=args.bowl_next_switcher,
+        switcher_next_monster_offsets=(
+            original_event["source_next_monster"]["sample_offsets"]
+            if args.switcher_next_monster else None)))
     reference_script = script
     if args.switcher_same_host_penultimate:
         if args.case != "switcher" or args.native_backend != "pinned-baldosa":
@@ -2007,6 +2035,15 @@ def main(argv: list[str] | None = None) -> int:
         observed_dump_frame=observed_dump_frame,
         decode_sram=decode_qa01_crawler_battery_sram)
         if args.bowl_source_movie_memory else None)
+    next_monster = (switcher_monster.observe_next_monster(
+        replay / "ref", replay / "native", rl, nl,
+        original_event["source_next_monster"], rf, nf,
+        terminal_frames["reference_relative"], terminal_frames["native_relative"],
+        observed_dump_frame=observed_dump_frame,
+        audit_wram=audit_qa01_wram_pair,
+        monster_payload=unpack_method1(streams[4][1]),
+        validate_course_payload=is_fully_loaded_course)
+        if args.switcher_next_monster else None)
     switcher_same_host_memory = (observe_switcher_same_host_memory_offsets(
         replay / "ref", replay / "native", switcher_same_host)
         if args.switcher_same_host_full_memory_offsets else None)
@@ -2030,13 +2067,22 @@ def main(argv: list[str] | None = None) -> int:
         "zoo_next_bowl_handoff": next_bowl,
         "bowl_next_switcher_handoff": next_switcher,
         "bowl_source_movie_three_guest_memory": source_movie_handoff,
+        "switcher_next_monster_handoff": next_monster,
         "reference_script_sha256": sha(reference_script),
         "reference": reference, "native": native,
         "scope": "original archived scene inputs, fresh reference/native stock menu; event results text from guest PPU dumps; instruction-time contact causality unproven"
     }
+    switcher_next_diagnostic = bool(
+        args.switcher_next_monster and next_monster is not None
+        and next_monster["original_entry_relative_result_offset"] is not None
+        and next_monster["native_entry_relative_result_offset"] is not None
+        and next_monster["original_monster_source_course_loaded_on_active_sample"]
+        and next_monster["native_monster_source_course_loaded_on_active_sample"])
     diagnostic = bool(
-        args.observe_one_frame_stunt_lead
-        and comparison["bounded_stunt_one_frame_phase_observed"])
+        (args.observe_one_frame_stunt_lead
+         and comparison["bounded_stunt_one_frame_phase_observed"])
+        or switcher_next_diagnostic)
+    comparison["bounded_switcher_next_monster_diagnostic_success_without_full_event_parity"] = switcher_next_diagnostic
     comparison["diagnostic_exit_success_without_full_event_parity"] = diagnostic
     args.json_out.parent.mkdir(parents=True, exist_ok=True)
     args.json_out.write_text(json.dumps(report, indent=2) + "\n")

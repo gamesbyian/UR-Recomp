@@ -68,9 +68,22 @@ def command(launcher: Path, user: Path, work: Path,
     # Restore only the standard Windows PowerShell child module locations,
     # as independently verified on the real hosted Windows runner by QA02.
     # Never weaken/skip/change the shipping launcher's ROM or root gate.
-    system_root = Path(env.get("SystemRoot", ""))
-    if not system_root.is_absolute():
-        raise ValueError("Original Windows system module root unavailable")
+    # The Git Bash/pwsh -> Python child can omit SystemRoot entirely.
+    # Ask the running Windows kernel for the installed Windows directory,
+    # rather than trusting a shell-specific environment variable or a
+    # guessed C:\\Windows drive. Still require the real stock module path.
+    import ctypes
+    from ctypes import wintypes
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.GetWindowsDirectoryW.argtypes = (wintypes.LPWSTR, wintypes.UINT)
+    kernel.GetWindowsDirectoryW.restype = wintypes.UINT
+    windows_dir = ctypes.create_unicode_buffer(32768)
+    length = kernel.GetWindowsDirectoryW(windows_dir, len(windows_dir))
+    if not (0 < length < len(windows_dir)):
+        raise ctypes.WinError(ctypes.get_last_error())
+    system_root = Path(windows_dir.value)
+    if not system_root.is_absolute() or not system_root.is_dir():
+        raise ValueError("Windows kernel reported an invalid system root")
     stock_modules = (system_root / "System32" / "WindowsPowerShell" /
                      "v1.0" / "Modules")
     if not stock_modules.is_dir():

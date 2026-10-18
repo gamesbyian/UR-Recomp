@@ -13,6 +13,15 @@ class SourceReceipt(unittest.TestCase):
         self.assertEqual(r["unique_real_native_image_hashes"],65)
         self.assertEqual(r["source_first_to_last_changed_rgb5"],26657)
         self.assertEqual(r["native_guest_first"],r["original_callback_first"]+1)
+    def test_current_two_real_windows_guest_transcripts_equal(self):
+        x=self.r
+        self.assertTrue(x["guest"]["clean_current_RF017_same_script_guest_CRC_comparison_completed"])
+        self.assertTrue(x["guest"]["current_clean_native_guest_CRC_equivalence_verified"])
+        self.assertEqual(x["guest"]["clean_current_RF017_guest_crc_sha256"],
+                         x["guest"]["current_experimental_Win32_guest_CRC_sha256"])
+        self.assertTrue(x["verified_independent_guest_pair"]["native_guest_CRC_equal"])
+        self.assertFalse(x["guest"]["original_snes9x_2014_CPU_equivalence_proven"])
+        self.assertFalse(x["quality"]["current_guest_source_parity_accepted"])
     def test_historical_crc_mismatch_cannot_be_qualified(self):
         x=self.r
         self.assertFalse(x["guest"]["historical_guest_CRC_equal"])

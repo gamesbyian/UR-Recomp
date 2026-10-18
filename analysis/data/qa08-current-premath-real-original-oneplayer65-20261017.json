@@ -30,13 +30,27 @@
     "superseded_older_guest_CRC_sha256": "45d7675858ebf3e3a051a58d2af104b6d2d9a66e7700da8248ad571713662c41",
     "historical_guest_CRC_equal": false,
     "clean_current_RF017_same_script_guest_CRC_verified": false,
-    "clean_current_RF017_guest_crc_sha256": null,
-    "original_snes9x_2014_CPU_equivalence_proven": false
+    "clean_current_RF017_guest_crc_sha256": "465ec5930c0d84b451c4c633d915184dbec44f2dd7728a0bb49093d913b69244",
+    "original_snes9x_2014_CPU_equivalence_proven": false,
+    "clean_current_RF017_same_script_guest_CRC_comparison_completed": true,
+    "current_clean_native_guest_CRC_equivalence_verified": true
   },
   "quality": {
     "original_source_pixel_equivalence_observed": true,
     "current_guest_source_parity_accepted": false,
     "full_1P_event_exact": false,
-    "physical_4K_7to6_HD_likeness_release_accepted": false
+    "physical_4K_7to6_HD_likeness_release_accepted": false,
+    "current_native_clean_vs_trial_guest_equivalence_verified": true
+  },
+  "verified_independent_guest_pair": {
+    "current_head": "5667565e0b5335ebd7c50e159e8ff2947cc7b9d0",
+    "source_run": 39085870378,
+    "artifact_id": 12120802729,
+    "artifact_SHA256": "3dc058f3f22d1ef0d8f4ee5675e95ac785bf5e55057268d0c6d38b61a8701024",
+    "source_trial_PE_sha256": "f9a84eeb4c7022e9920c9309c59623a3d2f0392a1829ad59ba75dd351ab8aa86",
+    "independent_clean_RF017_PE_sha256": "157180a26a78dd34f96ff3ad353a9676a7e5811dbd1ed537bb15ddfdbfadb93b",
+    "unmodified_clean_RF017_package_sha256": "03d250901a78192a0a7ac0d788c471986a7e3abacb370943e6e8542d97eac52f",
+    "actual_both_5447_guest_crc_sha256": "465ec5930c0d84b451c4c633d915184dbec44f2dd7728a0bb49093d913b69244",
+    "native_guest_CRC_equal": true
   }
 }

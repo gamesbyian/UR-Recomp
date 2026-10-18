@@ -1,0 +1,95 @@
+{
+  "schema": "qa08-current-RF017-real-Windows-vs-2014-late-CGRAM-writer/1",
+  "actual_Windows_PE_sha256": "41433d4e7bf678c191799d94d01b2ad3984cbc9fd5aa168cb5b5160b15c6d5b4",
+  "actual_native_guest_CRC_sha256": "b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568",
+  "source_original_archive_sha256": "d725ee45db1b66d098e79499263dd089dba80a26de517c30db674f91e20f80a8",
+  "source_native_archive_sha256": "a62f0c228e85c741a8f1da0b92a4444f9091681c065c93c8a678b4ee2bb6f2ef",
+  "original_2014_CPU_port_journal_SHA256": "7e1f36a58fe52205011c9f34d4704c6311d929ac75caf11ea7e6958a6cc386c4",
+  "actual_Windows_CGRAM_receipt_SHA256": "33e27bc151c020e38beb40672fe67e2cc74bc43b8456bdbfd72af6f9c04dedda",
+  "source_original_2014_writers": 192,
+  "actual_current_native_CPU_port_records": 72,
+  "actual_current_native_writer_fields": 6,
+  "exact_CGRAM_four_RGB15_word_source_matches": 6,
+  "direct_source_frame_pair_matches": 4,
+  "prior_28_field_phase_matches": 2,
+  "actual_native_original_CPU_writer_source_pairs": [
+    {
+      "native_CPU_input_frame": 5155,
+      "observed_original_2014_CPU_write_frame": 5157,
+      "match_type": "direct",
+      "actual_four_RGB15_words": {
+        "6c": "4a52",
+        "6d": "4631",
+        "6e": "4210",
+        "6f": "56b5"
+      },
+      "original_vs_native_CPU_instruction_time_aligned": false
+    },
+    {
+      "native_CPU_input_frame": 5162,
+      "observed_original_2014_CPU_write_frame": 5164,
+      "match_type": "direct",
+      "actual_four_RGB15_words": {
+        "6c": "4631",
+        "6d": "4210",
+        "6e": "56b5",
+        "6f": "4a52"
+      },
+      "original_vs_native_CPU_instruction_time_aligned": false
+    },
+    {
+      "native_CPU_input_frame": 5169,
+      "observed_original_2014_CPU_write_frame": 5171,
+      "match_type": "direct",
+      "actual_four_RGB15_words": {
+        "6c": "4210",
+        "6d": "56b5",
+        "6e": "4a52",
+        "6f": "4631"
+      },
+      "original_vs_native_CPU_instruction_time_aligned": false
+    },
+    {
+      "native_CPU_input_frame": 5176,
+      "observed_original_2014_CPU_write_frame": 5178,
+      "match_type": "direct",
+      "actual_four_RGB15_words": {
+        "6c": "56b5",
+        "6d": "4a52",
+        "6e": "4631",
+        "6f": "4210"
+      },
+      "original_vs_native_CPU_instruction_time_aligned": false
+    },
+    {
+      "native_CPU_input_frame": 5183,
+      "observed_original_2014_CPU_write_frame": 5157,
+      "match_type": "28-field prior-cycle",
+      "actual_four_RGB15_words": {
+        "6c": "4a52",
+        "6d": "4631",
+        "6e": "4210",
+        "6f": "56b5"
+      },
+      "original_vs_native_CPU_instruction_time_aligned": false
+    },
+    {
+      "native_CPU_input_frame": 5190,
+      "observed_original_2014_CPU_write_frame": 5164,
+      "match_type": "28-field prior-cycle",
+      "actual_four_RGB15_words": {
+        "6c": "4631",
+        "6d": "4210",
+        "6e": "56b5",
+        "6f": "4a52"
+      },
+      "original_vs_native_CPU_instruction_time_aligned": false
+    }
+  ],
+  "two_source_frame_label_lead_reobserved_current_RF017": true,
+  "source_timestamp_or_NMI_instruction_clock_root_cause_proven": false,
+  "original_vs_native_H_counter_units_equivalent": false,
+  "blanking_and_medal_effective_owner_resolved": false,
+  "output_palette_or_frame_shift_approved": false,
+  "QA08_QA10_4K_art_or_release_accepted": false
+}

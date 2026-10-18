@@ -1,0 +1,448 @@
+{
+  "schema": "rf047-corrected-executed-original-native-zoo-nmi-return-v2",
+  "source_run": {
+    "id": 39096831814,
+    "source_commit": "f47dda877272c4d1672ba75d8fe36c8efb6fc45b",
+    "case_artifact_id": 12124654817,
+    "case_outer_zip_sha256": "1060a98744fb770bbe43fcdddd89b352bdef691e18f1ab24d4ead5f16996bf6b",
+    "case_file_count": 18,
+    "original_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "historical_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "expanded_input_sha256": "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52"
+  },
+  "baseline": {
+    "case_artifact_id": 12121250300,
+    "outer_zip_sha256": "3f06c51d20414833c71ff603ec1ec0b947f765007cf45d250bef158276091773",
+    "mesh_source_terminal_and_bowl_objects_exactly_equal": true
+  },
+  "unmasked_controls": {
+    "whole_wram_pair_count": 78,
+    "whole_wram_pair_exact": 51,
+    "unmasked_total_differing_byte_occurrences": 92,
+    "dense_sound_DP_window_count": 13,
+    "source_Zoo_result_relative_frame": 5163,
+    "next_Bowl_relative_to_result": 267,
+    "full_original_native_cold_guest_ranked_record_equal": true,
+    "producer_exit_code": 0,
+    "disposition": "strict_candidate",
+    "release_credit": 0
+  },
+  "native_recorder": {
+    "allocated_sequence_ids": 2741,
+    "fully_parsed_rows": 2741,
+    "missing_ids": 0,
+    "duplicate_ids": 0,
+    "malformed_marker_rows": 0,
+    "truncation_marker_seen": false,
+    "stage_counts": {
+      "read": 2705,
+      "entry": 9,
+      "after_push": 9,
+      "compiled_rti": 9,
+      "handler_return": 9
+    },
+    "instrumentation_log_write_atomic": true
+  },
+  "native_event_frames": [
+    {
+      "native_host_frame": 1017,
+      "actual_original_NMI_interrupted_PC": "82D4F0",
+      "native_architectural_resume_source_PC": "82D4EE",
+      "same_host_interrupted_PC_equal": false,
+      "native_sequence": {
+        "entry": 1,
+        "after_push": 2,
+        "compiled_rti": 4,
+        "handler_return": 5
+      },
+      "native_state": {
+        "pre_SP": "01F0",
+        "after_push_SP": "01EC",
+        "after_compiled_rti_SP": "01F0",
+        "post_SP": "01F0",
+        "interrupt_pushed_stack_01ED_01F0": "26EED482",
+        "restored_P": "26",
+        "observed_physical_inhandler_read": {
+          "address": "01ED",
+          "width": 1,
+          "value": "26",
+          "count": 1
+        }
+      },
+      "compiled_return_callback": {
+        "source_callsite": "interp_bridge.c bridge_native_handoff normal stop_on_rti return",
+        "source_target_hint": "008588",
+        "host_callback_hint": "808588",
+        "is_guest_saved_PC_read": false
+      },
+      "native_local_clock": {
+        "entry_master": 363392870,
+        "handler_return_master": 363394804,
+        "handler_return_modeled_beam": [
+          226,
+          322
+        ]
+      },
+      "other_bounded_stack_helper_reads_in_same_native_host": 296,
+      "source_and_native_master_time_axes_proven_identical": false
+    },
+    {
+      "native_host_frame": 1018,
+      "actual_original_NMI_interrupted_PC": "82D4EE",
+      "native_architectural_resume_source_PC": "82D4EE",
+      "same_host_interrupted_PC_equal": true,
+      "native_sequence": {
+        "entry": 302,
+        "after_push": 303,
+        "compiled_rti": 305,
+        "handler_return": 306
+      },
+      "native_state": {
+        "pre_SP": "01F0",
+        "after_push_SP": "01EC",
+        "after_compiled_rti_SP": "01F0",
+        "post_SP": "01F0",
+        "interrupt_pushed_stack_01ED_01F0": "26EED482",
+        "restored_P": "26",
+        "observed_physical_inhandler_read": {
+          "address": "01ED",
+          "width": 1,
+          "value": "26",
+          "count": 1
+        }
+      },
+      "compiled_return_callback": {
+        "source_callsite": "interp_bridge.c bridge_native_handoff normal stop_on_rti return",
+        "source_target_hint": "008588",
+        "host_callback_hint": "808588",
+        "is_guest_saved_PC_read": false
+      },
+      "native_local_clock": {
+        "entry_master": 363750224,
+        "handler_return_master": 363752158,
+        "handler_return_modeled_beam": [
+          226,
+          308
+        ]
+      },
+      "other_bounded_stack_helper_reads_in_same_native_host": 293,
+      "source_and_native_master_time_axes_proven_identical": false
+    },
+    {
+      "native_host_frame": 1019,
+      "actual_original_NMI_interrupted_PC": "82D4F0",
+      "native_architectural_resume_source_PC": "82D4EE",
+      "same_host_interrupted_PC_equal": false,
+      "native_sequence": {
+        "entry": 600,
+        "after_push": 601,
+        "compiled_rti": 603,
+        "handler_return": 604
+      },
+      "native_state": {
+        "pre_SP": "01F0",
+        "after_push_SP": "01EC",
+        "after_compiled_rti_SP": "01F0",
+        "post_SP": "01F0",
+        "interrupt_pushed_stack_01ED_01F0": "26EED482",
+        "restored_P": "26",
+        "observed_physical_inhandler_read": {
+          "address": "01ED",
+          "width": 1,
+          "value": "26",
+          "count": 1
+        }
+      },
+      "compiled_return_callback": {
+        "source_callsite": "interp_bridge.c bridge_native_handoff normal stop_on_rti return",
+        "source_target_hint": "008588",
+        "host_callback_hint": "808588",
+        "is_guest_saved_PC_read": false
+      },
+      "native_local_clock": {
+        "entry_master": 364107590,
+        "handler_return_master": 364114516,
+        "handler_return_modeled_beam": [
+          229,
+          1206
+        ]
+      },
+      "other_bounded_stack_helper_reads_in_same_native_host": 295,
+      "source_and_native_master_time_axes_proven_identical": false
+    },
+    {
+      "native_host_frame": 1020,
+      "actual_original_NMI_interrupted_PC": "82D4EE",
+      "native_architectural_resume_source_PC": "82D4EE",
+      "same_host_interrupted_PC_equal": true,
+      "native_sequence": {
+        "entry": 900,
+        "after_push": 901,
+        "compiled_rti": 903,
+        "handler_return": 904
+      },
+      "native_state": {
+        "pre_SP": "01F0",
+        "after_push_SP": "01EC",
+        "after_compiled_rti_SP": "01F0",
+        "post_SP": "01F0",
+        "interrupt_pushed_stack_01ED_01F0": "26EED482",
+        "restored_P": "26",
+        "observed_physical_inhandler_read": {
+          "address": "01ED",
+          "width": 1,
+          "value": "26",
+          "count": 1
+        }
+      },
+      "compiled_return_callback": {
+        "source_callsite": "interp_bridge.c bridge_native_handoff normal stop_on_rti return",
+        "source_target_hint": "008588",
+        "host_callback_hint": "808588",
+        "is_guest_saved_PC_read": false
+      },
+      "native_local_clock": {
+        "entry_master": 364464956,
+        "handler_return_master": 364471882,
+        "handler_return_modeled_beam": [
+          229,
+          1204
+        ]
+      },
+      "other_bounded_stack_helper_reads_in_same_native_host": 298,
+      "source_and_native_master_time_axes_proven_identical": false
+    },
+    {
+      "native_host_frame": 1021,
+      "actual_original_NMI_interrupted_PC": "82D4F0",
+      "native_architectural_resume_source_PC": "82D4EE",
+      "same_host_interrupted_PC_equal": false,
+      "native_sequence": {
+        "entry": 1203,
+        "after_push": 1204,
+        "compiled_rti": 1206,
+        "handler_return": 1207
+      },
+      "native_state": {
+        "pre_SP": "01F0",
+        "after_push_SP": "01EC",
+        "after_compiled_rti_SP": "01F0",
+        "post_SP": "01F0",
+        "interrupt_pushed_stack_01ED_01F0": "26EED482",
+        "restored_P": "26",
+        "observed_physical_inhandler_read": {
+          "address": "01ED",
+          "width": 1,
+          "value": "26",
+          "count": 1
+        }
+      },
+      "compiled_return_callback": {
+        "source_callsite": "interp_bridge.c bridge_native_handoff normal stop_on_rti return",
+        "source_target_hint": "008588",
+        "host_callback_hint": "808588",
+        "is_guest_saved_PC_read": false
+      },
+      "native_local_clock": {
+        "entry_master": 364822322,
+        "handler_return_master": 364849868,
+        "handler_return_modeled_beam": [
+          244,
+          1322
+        ]
+      },
+      "other_bounded_stack_helper_reads_in_same_native_host": 310,
+      "source_and_native_master_time_axes_proven_identical": false
+    },
+    {
+      "native_host_frame": 1022,
+      "actual_original_NMI_interrupted_PC": "82D4EE",
+      "native_architectural_resume_source_PC": "82D4EE",
+      "same_host_interrupted_PC_equal": true,
+      "native_sequence": {
+        "entry": 1518,
+        "after_push": 1519,
+        "compiled_rti": 1521,
+        "handler_return": 1522
+      },
+      "native_state": {
+        "pre_SP": "01F0",
+        "after_push_SP": "01EC",
+        "after_compiled_rti_SP": "01F0",
+        "post_SP": "01F0",
+        "interrupt_pushed_stack_01ED_01F0": "26EED482",
+        "restored_P": "26",
+        "observed_physical_inhandler_read": {
+          "address": "01ED",
+          "width": 1,
+          "value": "26",
+          "count": 1
+        }
+      },
+      "compiled_return_callback": {
+        "source_callsite": "interp_bridge.c bridge_native_handoff normal stop_on_rti return",
+        "source_target_hint": "008588",
+        "host_callback_hint": "808588",
+        "is_guest_saved_PC_read": false
+      },
+      "native_local_clock": {
+        "entry_master": 365179704,
+        "handler_return_master": 365206822,
+        "handler_return_modeled_beam": [
+          244,
+          948
+        ]
+      },
+      "other_bounded_stack_helper_reads_in_same_native_host": 300,
+      "source_and_native_master_time_axes_proven_identical": false
+    },
+    {
+      "native_host_frame": 1023,
+      "actual_original_NMI_interrupted_PC": "82D4F0",
+      "native_architectural_resume_source_PC": "82D4EE",
+      "same_host_interrupted_PC_equal": false,
+      "native_sequence": {
+        "entry": 1823,
+        "after_push": 1824,
+        "compiled_rti": 1826,
+        "handler_return": 1827
+      },
+      "native_state": {
+        "pre_SP": "01F0",
+        "after_push_SP": "01EC",
+        "after_compiled_rti_SP": "01F0",
+        "post_SP": "01F0",
+        "interrupt_pushed_stack_01ED_01F0": "26EED482",
+        "restored_P": "26",
+        "observed_physical_inhandler_read": {
+          "address": "01ED",
+          "width": 1,
+          "value": "26",
+          "count": 1
+        }
+      },
+      "compiled_return_callback": {
+        "source_callsite": "interp_bridge.c bridge_native_handoff normal stop_on_rti return",
+        "source_target_hint": "008588",
+        "host_callback_hint": "808588",
+        "is_guest_saved_PC_read": false
+      },
+      "native_local_clock": {
+        "entry_master": 365537056,
+        "handler_return_master": 365564602,
+        "handler_return_modeled_beam": [
+          244,
+          1320
+        ]
+      },
+      "other_bounded_stack_helper_reads_in_same_native_host": 300,
+      "source_and_native_master_time_axes_proven_identical": false
+    },
+    {
+      "native_host_frame": 1024,
+      "actual_original_NMI_interrupted_PC": "82D4EE",
+      "native_architectural_resume_source_PC": "82D4EE",
+      "same_host_interrupted_PC_equal": true,
+      "native_sequence": {
+        "entry": 2128,
+        "after_push": 2129,
+        "compiled_rti": 2131,
+        "handler_return": 2132
+      },
+      "native_state": {
+        "pre_SP": "01F0",
+        "after_push_SP": "01EC",
+        "after_compiled_rti_SP": "01F0",
+        "post_SP": "01F0",
+        "interrupt_pushed_stack_01ED_01F0": "26EED482",
+        "restored_P": "26",
+        "observed_physical_inhandler_read": {
+          "address": "01ED",
+          "width": 1,
+          "value": "26",
+          "count": 1
+        }
+      },
+      "compiled_return_callback": {
+        "source_callsite": "interp_bridge.c bridge_native_handoff normal stop_on_rti return",
+        "source_target_hint": "008588",
+        "host_callback_hint": "808588",
+        "is_guest_saved_PC_read": false
+      },
+      "native_local_clock": {
+        "entry_master": 365894432,
+        "handler_return_master": 365921550,
+        "handler_return_modeled_beam": [
+          244,
+          940
+        ]
+      },
+      "other_bounded_stack_helper_reads_in_same_native_host": 302,
+      "source_and_native_master_time_axes_proven_identical": false
+    },
+    {
+      "native_host_frame": 1025,
+      "actual_original_NMI_interrupted_PC": "82D4EE",
+      "native_architectural_resume_source_PC": "82D4EE",
+      "same_host_interrupted_PC_equal": true,
+      "native_sequence": {
+        "entry": 2435,
+        "after_push": 2436,
+        "compiled_rti": 2438,
+        "handler_return": 2439
+      },
+      "native_state": {
+        "pre_SP": "01F0",
+        "after_push_SP": "01EC",
+        "after_compiled_rti_SP": "01F0",
+        "post_SP": "01F0",
+        "interrupt_pushed_stack_01ED_01F0": "26EED482",
+        "restored_P": "26",
+        "observed_physical_inhandler_read": {
+          "address": "01ED",
+          "width": 1,
+          "value": "26",
+          "count": 1
+        }
+      },
+      "compiled_return_callback": {
+        "source_callsite": "interp_bridge.c bridge_native_handoff normal stop_on_rti return",
+        "source_target_hint": "008588",
+        "host_callback_hint": "808588",
+        "is_guest_saved_PC_read": false
+      },
+      "native_local_clock": {
+        "entry_master": 366251810,
+        "handler_return_master": 366279356,
+        "handler_return_modeled_beam": [
+          244,
+          1338
+        ]
+      },
+      "other_bounded_stack_helper_reads_in_same_native_host": 302,
+      "source_and_native_master_time_axes_proven_identical": false
+    }
+  ],
+  "findings": {
+    "same_host_original_native_interrupted_PC_equal_count": 5,
+    "original_source_PC_F0_four_hosts": [
+      1017,
+      1019,
+      1021,
+      1023
+    ],
+    "native_resume_PC_EE_all_nine": true,
+    "actual_native_interpreter_rti_count": 0,
+    "actual_native_compiled_rti_count": 9,
+    "actual_native_inhandler_stack_status_reads": 9,
+    "actual_native_inhandler_saved_PC_or_PB_reads": 0,
+    "compiled_RTI_skips_saved_PC_and_PB": "Baldosa pinned codegen.py _emit_return interrupt uses cpu_read8 for P then advances cpu->S +2 PC and +1 PB; host C continuation",
+    "return_PC_equivalence_qualifier": "D4F0 is BPL D4EE with saved P=26 N clear and NMI $57=FF publication, while native resumes D4EE BIT $57. Both reach D4F2 if handler's flag write remains live",
+    "all_frame_CPU_clock_and_semantic_parity_proven": false,
+    "architectural_native_wrong_consumed_PC_proven": false,
+    "changing_guest_timing_or_masking_authorized": false,
+    "first_complete_USA_event_independently_accepted": false,
+    "accepted_count": 0
+  },
+  "required_independent_review": "Classify observed source/native original stack WRAM residue as phase sampling versus strict event-level mismatch using source-proven BPL->BIT convergence, without masking stack. Independently settle whole-event CPU/APU clocks, sound pointer residual and shipping-source identity."
+}

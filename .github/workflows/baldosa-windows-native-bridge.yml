@@ -258,14 +258,14 @@ jobs:
           grep -Fx 'verified 89 generated files: 15484 in-order charge statements, every block total unchanged' \
             "$RUNNER_TEMP/rf017-generated-source.txt"
           echo "RF-015 + RF-017 generated game/CPU clock-order source verified; independent Windows event acceptance remains outstanding." >> "$GITHUB_STEP_SUMMARY"
-          # QA-08: title-only Original HDMA prime and V0-register ordering.
-          # Keep after verified generated RF-017 source, before real Win32 PE.
-          # Never carry experimental brightness/color-math or source time shift.
+          # QA08 clean title-only Windows production source: replay V0 before HDMA.
+          # Only after RF017 regenerates/verifies original guest, before real PE build.
+          # Do not import #1807 pre-math trial or any read-only diagnostic observers.
           python tools/baldosa_uniracers_hdma_firstline_patch.py --game baldosa
           python tools/baldosa_uniracers_hdma_firstline_patch.py --game baldosa --apply-candidate
           python tools/baldosa_uniracers_v0_raster_before_hdma_patch.py --game baldosa
           python tools/baldosa_uniracers_v0_raster_before_hdma_patch.py --game baldosa --apply-candidate
-          echo "QA-08 title-only HDMA/V0 staged; results, blackout, medal and release unaccepted." >> "$GITHUB_STEP_SUMMARY"
+          echo "QA08 HDMA/V0 source staged; original results, 4K and release gate unaccepted." >> "$GITHUB_STEP_SUMMARY"
           python tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_execution_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_pause_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"

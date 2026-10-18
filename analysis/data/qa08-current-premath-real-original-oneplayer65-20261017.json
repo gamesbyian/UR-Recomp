@@ -29,7 +29,7 @@
     "current_experimental_Win32_guest_CRC_sha256": "465ec5930c0d84b451c4c633d915184dbec44f2dd7728a0bb49093d913b69244",
     "superseded_older_guest_CRC_sha256": "45d7675858ebf3e3a051a58d2af104b6d2d9a66e7700da8248ad571713662c41",
     "historical_guest_CRC_equal": false,
-    "clean_current_RF017_same_script_guest_CRC_verified": false,
+    "clean_current_RF017_same_script_guest_CRC_verified": true,
     "clean_current_RF017_guest_crc_sha256": "465ec5930c0d84b451c4c633d915184dbec44f2dd7728a0bb49093d913b69244",
     "original_snes9x_2014_CPU_equivalence_proven": false,
     "clean_current_RF017_same_script_guest_CRC_comparison_completed": true,

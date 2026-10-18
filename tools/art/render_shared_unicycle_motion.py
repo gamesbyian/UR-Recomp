@@ -14,15 +14,16 @@ from pathlib import Path
 import subprocess
 
 try:
-    from .render_shared_unicycle_review import inspect_model
+    from .render_shared_unicycle_review import (inspect_model, require_clean_border,
+                                              occupied_bounds, MIN_BORDER_PIXELS)
 except ImportError:
-    from render_shared_unicycle_review import inspect_model
+    from render_shared_unicycle_review import (inspect_model, require_clean_border,
+                                            occupied_bounds, MIN_BORDER_PIXELS)
 
 MODES = ("ride", "stunt_cycle")
 STEPS = 8
 RENDER_SIZE = 320
 CAMERA = "0,0,1.6,90,0,0,12.5"  # deliberately zoomed out from static art
-MIN_BORDER_PIXELS = 4
 
 def sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
@@ -32,45 +33,6 @@ def samples(steps=STEPS):
         raise ValueError("only source-bounded 8/16 sample intervals supported")
     return tuple((mode, i, i / steps)
                  for mode in MODES for i in range(steps + 1))
-
-def require_clean_border(pixels, width: int, height: int):
-    """Pure pixel-access guard. Works without Pillow in dependency-free tests.
-
-    Check four entire border strips, not just bounding boxes against a corner
-    that might already contain the model. Reject too-small/empty viewports.
-    """
-    if width <= 2*MIN_BORDER_PIXELS or height <= 2*MIN_BORDER_PIXELS:
-        raise ValueError("insufficient fixed-camera protected border")
-    color = pixels[0, 0]
-    if any(pixels[x, y] != color for x, y in (
-        (width - 1, 0), (0, height - 1), (width - 1, height - 1)
-    )):
-        raise ValueError("different fixed-camera background corners")
-    for y in range(height):
-        for x in range(width):
-            if (x < MIN_BORDER_PIXELS or y < MIN_BORDER_PIXELS or
-                x >= width-MIN_BORDER_PIXELS or
-                y >= height-MIN_BORDER_PIXELS):
-                if pixels[x, y] != color:
-                    raise ValueError("model touches protected fixed-camera border")
-    return color
-
-
-def occupied_bounds(im):
-    """Return the silhouette bbox; reject every clipped/empty frame."""
-    from PIL import Image, ImageChops
-
-    frame = im.convert("RGB")
-    width, height = frame.size
-    background_color = require_clean_border(frame.load(), width, height)
-    background = Image.new("RGB", frame.size, background_color)
-    bounds = ImageChops.difference(frame, background).getbbox()
-    if bounds is None:
-        raise ValueError("all-background/empty rig motion frame")
-    left, top, right, bottom = bounds
-    if min(left, top, frame.width-right, frame.height-bottom) < MIN_BORDER_PIXELS:
-        raise ValueError("model clipped at fixed-camera viewport boundary")
-    return [left, top, right, bottom]
 
 def render(model: Path, out: Path, openscad="openscad", xvfb=False, steps=STEPS):
     from PIL import Image, ImageDraw

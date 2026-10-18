@@ -16,8 +16,10 @@ class SaddleExperimentBoundaries(unittest.TestCase):
 
     def test_one_canonical_rig_and_exactly_bounded_proposal_values(self):
         self.assertEqual(study.SPANS,(1.0,1.4,1.8,2.2))
-        self.assertEqual(study.CAMERA,"0,0,1.6,90,0,0,12.5")
+        self.assertEqual(study.CAMERA,"0,0,1.6,90,0,0,22")
         self.assertEqual(study.SIZE,400)
+        self.assertIn("bbox=occupied_bounds(im)",self.script)
+        self.assertIn("range(0,int(SIZE*0.42))",self.script)
         study.prove_parameters(self.text)
         self.assertEqual(self.text.count("scale([rig_saddle_span,1,1])"),1)
         self.assertEqual(self.text.count('rig(rig_pose);'),1)

@@ -14,15 +14,15 @@ from pathlib import Path
 import subprocess
 try:
     from .render_shared_unicycle_review import (
-        inspect_model, authentic_sources, open_p7,
+        inspect_model, authentic_sources, open_p7, occupied_bounds,
     )
 except ImportError:
     from render_shared_unicycle_review import (
-        inspect_model, authentic_sources, open_p7,
+        inspect_model, authentic_sources, open_p7, occupied_bounds,
     )
 
 SPANS = (1.0, 1.4, 1.8, 2.2)
-CAMERA = "0,0,1.6,90,0,0,12.5"
+CAMERA = "0,0,1.6,90,0,0,22"
 SIZE = 400
 
 def hash_file(path: Path) -> str:
@@ -67,10 +67,12 @@ def preview(model: Path, out: Path, source_zip: Path | None = None,
         with Image.open(image) as im:
             if im.size != (SIZE,SIZE):
                 raise ValueError("unexpected source model image")
+            bbox=occupied_bounds(im)
             bg=im.convert("RGB").getpixel((0,0))
-            # The saddle is the dark body above Y=110, before the wheel.
+            # The 22-unit common camera shifts the upper seat lower on the
+            # tile; 110px would discard most of the broad saddle silhouette.
             pixels=im.convert("RGB").load()
-            saddle=[(x,y) for y in range(0,110) for x in range(SIZE)
+            saddle=[(x,y) for y in range(0,int(SIZE*0.42)) for x in range(SIZE)
                     if max(pixels[x,y]) < 125]
             if not saddle:
                 raise ValueError("saddle not visible in common camera")
@@ -78,7 +80,8 @@ def preview(model: Path, out: Path, source_zip: Path | None = None,
             if left<4 or right>SIZE-5:
                 raise ValueError("candidate saddle clipped by fixed camera")
         records.append({"scale":span,"file":image.name,"sha256":hash_file(image),
-                        "camera":CAMERA,
+                        "camera":CAMERA,"full_rig_silhouette_bbox":bbox,
+                        "source_model_edge_clipped":False,
                         "candidate_dark_saddle_projected_width_px":right-left+1})
     panel_height=SIZE+(250 if original else 0)+75
     canvas=Image.new("RGB",(SIZE*len(SPANS),panel_height),"#f5f6f8")

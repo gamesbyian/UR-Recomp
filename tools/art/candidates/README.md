@@ -10,6 +10,22 @@ This is **one coherent unicycle model**, with five pose configurations, introduc
 
 The authentic P7 source columns are resampled for display at original **7:6 horizontal PAR** using nearest-neighbour; authored HD rig columns remain modern square-pixel. Neither transform affects archived source hashes, and neither claims physical 4K acceptance.
 
+**18 October static review crop correction:** Actual OpenSCAD parameter
+extremes (2.2× saddle with 2.0× frame mass) clipped several posed racers
+at the former 11/12.5-unit fixed camera. A common **22-unit camera** now
+frames both authored side/three-quarter silhouette review sets; the static
+review reuses the animated tool's full four-pixel crop-border oracle,
+rejecting any hidden/cropped candidate rather than silently approving it.
+This conservative shared framing is *only an artist study*, not the
+original camera, a game zoom choice or player-facing asset approval.
+The moving rig's old 12.5-unit camera remains valid solely for the
+unchanged default-width model and does not qualify widened stunt variants.
+At 400px and 22-unit frame, a dark-saddle measurement restricted to the
+first 110 rows clipped the **measurement**, even when the 3D saddle was
+visible. The visual sweep now includes the upper 42% of its 400px tile.
+Neither its dark-region width nor the occluded original title image can
+establish exact 3D proportions or human acceptance.
+
 The first rough render used OpenSCAD `--viewall --autocenter` separately for
 each pose. This is **not** adequate for a multi-pose shape comparison: it can
 change the camera fit and make character geometry appear more consistent than
@@ -121,7 +137,7 @@ preserves the same canonical physical fork/crown/stem geometry while
 multiplying only its segment radius; wheel, crank, saddle, and
 all motion transforms remain identical. The allowed frame mass values
 are exactly `1.0, 1.4, 1.8, 2.0`, with `1.0` still the unchanged default.
-Offline OpenSCAD variants at fixed 12.5 camera show a progression from a
+Offline OpenSCAD variants at fixed 22 camera show a progression from a
 skinny bicycle fork to a rounder toy/CGI body. These alternatives are
 **not** a calibrated original 3D model; frame occlusion in the title
 prevents deriving a canonical radius.
@@ -131,7 +147,7 @@ parameter**, `rig_saddle_span`, with default `1.0` preserving the
 original five-pose artwork and continuous motion path. Values must
 remain within `[1,2.2]` and are *review alternatives*, not an
 automatically selected player-facing option or source-derived 3D truth.
-Use a fixed orthographic camera (distance 12.5 across all variants,
+Use a fixed orthographic camera (distance 22 across all variants,
 square pixel output), rather than resizing each candidate to fit:
 
 ```sh

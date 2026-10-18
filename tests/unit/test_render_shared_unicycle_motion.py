@@ -55,7 +55,8 @@ class SharedRigMotionContract(unittest.TestCase):
         self.assertIn('f"--camera={CAMERA}"',self.reviewer)
         self.assertNotIn("--viewall",self.reviewer)
         self.assertNotIn("--autocenter",self.reviewer)
-        self.assertIn("model clipped at fixed-camera viewport boundary",self.reviewer)
+        self.assertIn("model clipped at fixed-camera viewport boundary",
+                      (ROOT/"tools/art/render_shared_unicycle_review.py").read_text())
         self.assertIn('"all_source_model_unclipped": True',self.reviewer)
         self.assertIn('"source_animation_frame_count": count',self.reviewer)
         self.assertIn('"two_continuous_motion_loops_pixel_exact_at_endpoints": True',self.reviewer)

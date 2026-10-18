@@ -22,6 +22,7 @@ class SharedRigArtBoundary(unittest.TestCase):
         self.assertEqual(len(study.POSES), 5)
         self.assertEqual(len(study.CAMERAS), 2)
         self.assertEqual(len(set(study.CAMERAS.values())), 2)
+        self.assertTrue(all(v.endswith(",22") for v in study.CAMERAS.values()))
         source = self.model.read_text(encoding="utf-8")
         self.assertEqual(source.count("rig(rig_pose);"), 1)
         self.assertTrue(study.inspect_model(self.model))
@@ -60,6 +61,8 @@ class SharedRigArtBoundary(unittest.TestCase):
     def test_review_is_offline_fixed_camera_and_no_shipping_claim(self):
         source = self.script.read_text(encoding="utf-8")
         self.assertIn("--camera=", source)
+        self.assertIn("bounds = occupied_bounds(im)",source)
+        self.assertIn('"all_static_source_model_frames_unclipped": True',source)
         self.assertNotIn("--viewall", source)
         self.assertNotIn("--autocenter", source)
         self.assertIn("round(src.width*7/6)",source)

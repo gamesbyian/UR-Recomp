@@ -17,8 +17,9 @@ from pathlib import Path
 
 POSES = ("upright", "pedal", "wheelie", "stunt", "bank")
 CAMERAS = {
-    "side": "0,0,1.6,90,0,0,11",
-    "three_quarter": "0,0,1.7,72,0,28,11",
+    # Fixed common frame includes 2.2x seat and 2.0x body mass proposals.
+    "side": "0,0,1.6,90,0,0,22",
+    "three_quarter": "0,0,1.7,72,0,28,22",
 }
 AOT_SHA = "6fb7e9ad5ce53e02f0dda0896f520e2a667f5798c58f8d65b5541ed2d53a5431"
 SOURCES = {
@@ -29,6 +30,7 @@ SOURCES = {
     "visually_rejected_4x": ("baldosa-hd-captures-4x/ur-baldosa-frame-001856.pam",
                             "99069e31084161f64904a5733bd275ac9933af03c8fb03df558c3b06771ec5f5"),
 }
+MIN_BORDER_PIXELS = 4  # both static and moving OpenSCAD crop checks
 GEOMETRY_MODULES = ("module tire()", "module rim_and_hub()", "module saddle(",
                     "module fork_and_frame()", "module pedals(", "module rig(")
 
@@ -83,6 +85,45 @@ def open_p7(blob: bytes):
     return Image.frombytes("RGBA", (width, height), data).convert("RGB")
 
 
+def require_clean_border(pixels, width: int, height: int):
+    """Pure pixel-access guard. Works without Pillow in dependency-free tests.
+
+    Check four entire border strips, not just bounding boxes against a corner
+    that might already contain the model. Reject too-small/empty viewports.
+    """
+    if width <= 2*MIN_BORDER_PIXELS or height <= 2*MIN_BORDER_PIXELS:
+        raise ValueError("insufficient fixed-camera protected border")
+    color = pixels[0, 0]
+    if any(pixels[x, y] != color for x, y in (
+        (width - 1, 0), (0, height - 1), (width - 1, height - 1)
+    )):
+        raise ValueError("different fixed-camera background corners")
+    for y in range(height):
+        for x in range(width):
+            if (x < MIN_BORDER_PIXELS or y < MIN_BORDER_PIXELS or
+                x >= width-MIN_BORDER_PIXELS or
+                y >= height-MIN_BORDER_PIXELS):
+                if pixels[x, y] != color:
+                    raise ValueError("model touches protected fixed-camera border")
+    return color
+
+
+def occupied_bounds(im):
+    """Return the silhouette bbox; reject every clipped/empty frame."""
+    from PIL import Image, ImageChops
+
+    frame = im.convert("RGB")
+    width, height = frame.size
+    background_color = require_clean_border(frame.load(), width, height)
+    background = Image.new("RGB", frame.size, background_color)
+    bounds = ImageChops.difference(frame, background).getbbox()
+    if bounds is None:
+        raise ValueError("all-background/empty rig motion frame")
+    left, top, right, bottom = bounds
+    if min(left, top, frame.width-right, frame.height-bottom) < MIN_BORDER_PIXELS:
+        raise ValueError("model clipped at fixed-camera viewport boundary")
+    return [left, top, right, bottom]
+
 def render(model: Path, out: Path, *, openscad: str = "openscad",
            xvfb: bool = False, size: int = 480) -> list[dict]:
     from PIL import Image
@@ -105,8 +146,10 @@ def render(model: Path, out: Path, *, openscad: str = "openscad",
             with Image.open(out/name) as im:
                 if im.size != (size, size):
                     raise ValueError("OpenSCAD image geometry changed")
+                bounds = occupied_bounds(im)
             images.append({"view": view, "pose": pose, "fixed_camera": camera,
-                           "file": name, "sha256": sha((out/name).read_bytes())})
+                           "file": name, "sha256": sha((out/name).read_bytes()),
+                           "silhouette_bbox": bounds, "edge_clipped": False})
     return images
 
 
@@ -178,6 +221,8 @@ def main() -> None:
         "original_source_archive_sha256":AOT_SHA if original else None,
         "pose_images":images,"review_contact_sha256":sha(preview.read_bytes()),
         "single_canonical_model":True,"locked_camera_per_view":True,
+        "all_static_source_model_frames_unclipped": True,
+        "static_review_border_px": MIN_BORDER_PIXELS,
         "gameplay_normal_size_previews_px":[64,32],
         "original_native_RGB5_PPU_equivalence":False,
         "measured_original_landmark_proportions":False,

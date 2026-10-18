@@ -258,7 +258,10 @@ def run_case(launcher: Path, fixture: Path, seed: Path,
         "schema": ("ur-win32-interactive-noncanonical-raw-r/1"
                    if noncanonical_typed else
                    "ur-win32-interactive-original-cmd-rt/1"),
-        "noncanonical_original_typed_file_archived_exact": noncanonical_typed,
+        # Leave the original R/T result envelope byte-for-byte unchanged.
+        # The extra source witness records its marker ONLY for opt-in R.
+        **({"noncanonical_original_typed_file_archived_exact": True}
+           if noncanonical_typed else {}),
         "choice": choice,
         "exact_extracted_cmd_sha256": digest(launcher.read_bytes()),
         "original_seed_sha256": digest(seed.read_bytes()),

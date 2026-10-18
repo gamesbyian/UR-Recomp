@@ -49,7 +49,7 @@ class RF054ActualWriter(unittest.TestCase):
         for name,wrong in (
             ("mapping alone",data.replace(B+"\n","")),
             ("wrong executed operand",data.replace("kind=read8 seq=1 frame=6124 master=105 addr=11C774","kind=read8 seq=1 frame=6124 master=105 addr=11C775")),
-            ("wrong helper scope",data.replace(B,B.replace("Snd_UploadBlockList_82EF_M1X0","Snd_Other_82EF_M1X0")),
+            ("wrong helper scope",data.replace(B,B.replace("Snd_UploadBlockList_82EF_M1X0","Snd_Other_82EF_M1X0"))),
             ("wrong loaded accumulator",data.replace("A=630D Y=C774","A=630E Y=C774")),
             ("wrong post-load accumulator",data.replace("A=63D0 dp63","A=63D1 dp63")),
             ("second bus read before writer",data.replace(B,B+"\n"+bus(2,106,"11C775"))),

@@ -1,0 +1,167 @@
+{
+  "schema": "rf048-executed-v2-source-actual-indexed-consumer-receipt-v1",
+  "provenance": {
+    "run_id": 39103100557,
+    "run_source_sha": "3162e8a2f4885e1bad740b60792082d37da4ae44",
+    "case_artifact_id": 12127692502,
+    "case_zip_sha256": "d121346ffaf4f63b932d89652603221df8eda8732d2c85eb679b8b64982f8c50",
+    "baseline_rf047_zip_sha256": "1060a98744fb770bbe43fcdddd89b352bdef691e18f1ab24d4ead5f16996bf6b",
+    "file_count": 18,
+    "all_four_jobs_success": true,
+    "source_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "source_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "input_sha256": "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52"
+  },
+  "original": {
+    "actual_executed_bank82_82F0_LDA_rows": 278,
+    "detailed_first_last_source_internal_frame": [
+      6072,
+      6138
+    ],
+    "raw_DP_base": "0000",
+    "DP_lowword_during_observed_LDA": "0000",
+    "no_truncation": true,
+    "indexed_neighbourhood_observed_count": 10,
+    "indexed_neighbourhood_full_bank_counts": {
+      "11": 10
+    },
+    "source_proven_11C770_to_11C779": [
+      {
+        "source_original_opcode_ordinal": 33699,
+        "source_original_internal_frame": 6124,
+        "original_24bit_indexed_operand": "11C770",
+        "source_Y": "C770",
+        "source_raw_DP_63_64_65": "110000",
+        "source_beam_v": 158,
+        "source_beam_h": 168
+      },
+      {
+        "source_original_opcode_ordinal": 33700,
+        "source_original_internal_frame": 6124,
+        "original_24bit_indexed_operand": "11C771",
+        "source_Y": "C771",
+        "source_raw_DP_63_64_65": "110000",
+        "source_beam_v": 158,
+        "source_beam_h": 748
+      },
+      {
+        "source_original_opcode_ordinal": 33701,
+        "source_original_internal_frame": 6124,
+        "original_24bit_indexed_operand": "11C772",
+        "source_Y": "C772",
+        "source_raw_DP_63_64_65": "110000",
+        "source_beam_v": 158,
+        "source_beam_h": 1236
+      },
+      {
+        "source_original_opcode_ordinal": 33702,
+        "source_original_internal_frame": 6124,
+        "original_24bit_indexed_operand": "11C773",
+        "source_Y": "C773",
+        "source_raw_DP_63_64_65": "110000",
+        "source_beam_v": 159,
+        "source_beam_h": 412
+      },
+      {
+        "source_original_opcode_ordinal": 33703,
+        "source_original_internal_frame": 6124,
+        "original_24bit_indexed_operand": "11C774",
+        "source_Y": "C774",
+        "source_raw_DP_63_64_65": "110000",
+        "source_beam_v": 159,
+        "source_beam_h": 992
+      },
+      {
+        "source_original_opcode_ordinal": 33704,
+        "source_original_internal_frame": 6124,
+        "original_24bit_indexed_operand": "11C775",
+        "source_Y": "C775",
+        "source_raw_DP_63_64_65": "110000",
+        "source_beam_v": 160,
+        "source_beam_h": 168
+      },
+      {
+        "source_original_opcode_ordinal": 33705,
+        "source_original_internal_frame": 6124,
+        "original_24bit_indexed_operand": "11C776",
+        "source_Y": "C776",
+        "source_raw_DP_63_64_65": "110000",
+        "source_beam_v": 160,
+        "source_beam_h": 748
+      },
+      {
+        "source_original_opcode_ordinal": 33706,
+        "source_original_internal_frame": 6124,
+        "original_24bit_indexed_operand": "11C777",
+        "source_Y": "C777",
+        "source_raw_DP_63_64_65": "110000",
+        "source_beam_v": 160,
+        "source_beam_h": 1236
+      },
+      {
+        "source_original_opcode_ordinal": 33707,
+        "source_original_internal_frame": 6124,
+        "original_24bit_indexed_operand": "11C778",
+        "source_Y": "C778",
+        "source_raw_DP_63_64_65": "110000",
+        "source_beam_v": 161,
+        "source_beam_h": 412
+      },
+      {
+        "source_original_opcode_ordinal": 33708,
+        "source_original_internal_frame": 6124,
+        "original_24bit_indexed_operand": "11C779",
+        "source_Y": "C779",
+        "source_raw_DP_63_64_65": "110000",
+        "source_beam_v": 161,
+        "source_beam_h": 940
+      }
+    ],
+    "source_exact_13C774_rows": 0,
+    "source_exact_13D0B4_rows": 0
+  },
+  "native": [
+    {
+      "host_frame_pre": 6056,
+      "pre_last_DP63": "C773",
+      "host_frame_consumer": 6057,
+      "first_DP63": "C774",
+      "actual_next_DP65": "0013",
+      "source_guest_data_operand": "13C774",
+      "native_scope": "Snd_UploadBlock_80D1_M1X0",
+      "source_same_24bit_address_rows": 0
+    },
+    {
+      "host_frame_pre": 6061,
+      "pre_last_DP63": "D0B3",
+      "host_frame_consumer": 6062,
+      "first_DP63": "D0B4",
+      "actual_next_DP65": "0013",
+      "source_guest_data_operand": "13D0B4",
+      "native_scope": "Snd_UploadBlock_80D1_M1X0",
+      "source_same_24bit_address_rows": 0
+    }
+  ],
+  "strict_control": {
+    "zoo_race_mesh_equals_RF047": true,
+    "zoo_next_bowl_handoff_equals_RF047": true,
+    "source_terminal_followthrough_equals_RF047": true,
+    "full_128KiB_WRAM_pairs": 78,
+    "exact_WRAM_pairs": 51,
+    "unmasked_differing_byte_occurrences": 92,
+    "excluded_or_masked_byte_count": 0,
+    "authentic_Zoo_result_relative_frame": 5163,
+    "authentic_next_Bowl_relative_frame": 267,
+    "source_original_native_earned_SRAM_and_cold_ranked_record_preserved": true,
+    "case_disposition": "strict_candidate",
+    "release_credit": 0
+  },
+  "limitation": "Source 11:C774 is a different physical 24-bit address from native 13:C774; no genuine original 13:C774 or 13:D0B4 first-consumer instruction was captured in bounded sampled window. Sparse four-per-frame sampling cannot prove these addresses were never executed. Original Snes9x source ICPU.Frame and native host frame are not causally registered for these reads; matching low 16 bits do not establish source/native sound-byte parity.",
+  "decision": {
+    "original_full_bank_native_consumer_equivalence_proven": false,
+    "actual_CPU_to_SPC_publication_equivalence_proven": false,
+    "clock_adjustment_justified": false,
+    "full_USA_events_accepted": 0,
+    "followup": "Source-qualify exact original 13:C774 / 13:D0B4 indexed operands and immediately ensuing STA 2143/2142 at a registered instruction/clock boundary, but do not infer a bug or replay a new wide campaign from sparse absence."
+  }
+}

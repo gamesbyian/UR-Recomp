@@ -29,8 +29,11 @@ def compare(folder:Path,originalzip:zipfile.ZipFile,crcs:list[str])->dict:
     if len(crcs)!=5447 or any(re.fullmatch(r"0x[0-9a-fA-F]{8}",x) is None for x in crcs):
         raise ValueError("exact 5447 native guest frames not completed")
     digest=sha(("\n".join(x.lower() for x in crcs)+"\n").encode())
-    if digest!=NATIVE_GUEST_CRC:
-        raise ValueError("current native 1P CPU/WRAM guest source differs from authenticated USA route")
+    # Source provenance must be retained, never waived. This old native CRC
+    # was measured before RF017. It is NOT an equivalence claim for the
+    # current RF017 guest; a mismatch leaves the 65 raster pixel counts
+    # observational only, pending a separately measured clean RF017 route.
+    same_old_guest = digest==NATIVE_GUEST_CRC
     expected={f"ur-baldosa-original-source-{f:06}.pam" for f in FRAMES}
     actual={x.name for x in folder.iterdir() if x.is_file()}
     if actual!=expected:
@@ -53,6 +56,10 @@ def compare(folder:Path,originalzip:zipfile.ZipFile,crcs:list[str])->dict:
       "schema":"qa08-current-premath-authenticated-Windows-vs-2014-oneplayer-65/1",
       "source_2014_Snes9x_artifact_sha256":ORIG_ZIP,
       "native_USA_guest_CRC_sha256":digest,
+      "archived_pre_RF017_1P_guest_CRC_sha256":NATIVE_GUEST_CRC,
+      "current_matches_archived_pre_RF017_guest_CRC":same_old_guest,
+      "current_RF017_clean_same_route_guest_CRC_comparison_completed":False,
+      "image_comparison_source_frame_parity_qualified":False,
       "native_script_sha256":SCRIPT,
       "original_fminus1_vs_native_guest_f":True,
       "actual_65_contiguous_full_256x224_frames":len(frames),
@@ -103,5 +110,7 @@ def main():
             out.write(folder/v,arcname="source/"+v)
     print("QA08_REAL_1P_SOURCE",report["actual_65_contiguous_full_256x224_frames"],
           "exact",report["full_original_native_pixel_exact_frames"],
-          "wrong",report["wrong_pixels"],"release=0")
+          "wrong",report["wrong_pixels"],
+          "old_guest_match="+str(int(report["current_matches_archived_pre_RF017_guest_CRC"])),
+          "source_parity_qualified=0 release=0")
 if __name__=="__main__":main()

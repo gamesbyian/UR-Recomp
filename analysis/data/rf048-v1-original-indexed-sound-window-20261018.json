@@ -1,0 +1,60 @@
+{
+  "schema": "rf048-first-executed-original-indexed-sound-consumer-v1-coverage",
+  "source_run": {
+    "run_id": 39102185270,
+    "source_sha": "2ffe06a12fd927cc45ebb978846189699c4b9bfd",
+    "case_artifact_id": 12126898698,
+    "case_zip_sha256": "24755c6fbc75ebfee0ed26e8749f31e31033dc694dfb4b943ad6a77eabff0eab",
+    "case_file_count": 18
+  },
+  "immutable_control": {
+    "rf047_case_sha256": "1060a98744fb770bbe43fcdddd89b352bdef691e18f1ab24d4ead5f16996bf6b",
+    "mesh_zoo_bowl_and_source_terminal_followthrough_json_equal": true,
+    "full_128kiB_wram_pairs": 78,
+    "exact_wram_pairs": 51,
+    "unmasked_differing_byte_occurrences": 92,
+    "finish_relative_frame": 5163,
+    "next_bowl_relative_to_finish": 267,
+    "candidate_disposition": "strict_candidate",
+    "release_credit": 0
+  },
+  "original_live_opcode": {
+    "opcode": "82:82F0 LDA [$63],Y",
+    "source_CpuDP_base": "0000",
+    "source_mirrored_DP_lowword_at_LDA": "0000",
+    "source_mirrored_pointer_bank_varies": "10,11,12,13",
+    "source_indexed_effective_address_is_DPbase24_plus_Y": true,
+    "exact_detail_rows": 116,
+    "detailed_source_internal_frames": {
+      "first": 6072,
+      "last": 6100
+    },
+    "source_frame_count_receipts": 66,
+    "count_receipt_source_internal_frames": {
+      "first": 6072,
+      "last": 6137
+    },
+    "emitted_truncation_marker": false,
+    "source_raw_pointer_C773_C774_D0B3_D0B4_rows": 0,
+    "source_indexed_effective_C773_C774_D0B3_D0B4_rows_in_detailed_samples": 0,
+    "source_source_frame_same_as_native_host_not_proven": true
+  },
+  "native_real_helper_consumers": [
+    {
+      "old_host": 6056,
+      "old_word": "C773",
+      "next_host": 6057,
+      "new_word": "C774"
+    },
+    {
+      "old_host": 6061,
+      "old_word": "D0B3",
+      "next_host": 6062,
+      "new_word": "D0B4"
+    }
+  ],
+  "source_assembly": "reference/imported/reverse-engineering/nitrodon/bank 82.txt: 82:82CC LDY $63; 82:82CE/D0 STZ $63/$64; 82:82F0 LDA [$63],Y; 82:82F2 STA $2143; 82:82F6 STA $2142",
+  "limitation": "Observed original executed source LDA into internal frame 6137, but V1 detailed gate ended frame 6100. No original C774/D0B4 consumer match was captured. This is an explicit source-observer coverage gap, not a proven gameplay bug.",
+  "next_one_correction": "Include source internal frames 6101..6150 and select Y-indexed effective candidate neighbourhood, while preserving original actual host/opcode and all unmasked course controls.",
+  "complete_USA_event_credit": 0
+}

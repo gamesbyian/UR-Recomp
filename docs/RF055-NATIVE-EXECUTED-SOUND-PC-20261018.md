@@ -27,6 +27,26 @@ previously verified RF054 11:C774/D0/63 upload transaction.
   immutable RF047 baseline artifact 12124654817 and RF052 source artifact
   12136344183; `strict_candidate` grants **zero** event credit.
 
+## Independent archive-only 65816 local master-clock constraint
+
+[Original RF054 authenticated replay 39161563837](https://github.com/gamesbyian/UR-Recomp/actions/runs/39161563837), artifact12149640496
+SHA256 `3ccb209a92045e9e89113442e68af51b85a453a160a9b9efaf8ca0d59e79631c`,
+includes 38 genuinely executed original `S9xAPUWritePort` records
+in RF050 and 1,312 genuinely invoked native `RtlApuWrite` CPU records in
+RF054. Pair each *adjacent real port3→port2 instruction publication* and
+measure original Snes9x local beam-master interval
+`(V₂−V₁)×1364+(H₂−H₁)` against native actual
+`CPU.master_cycles` subtraction. **All 16/16 original and 656/656 native
+pairs are exactly 50 local CPU master clocks**. The original source-local
+SPC-age gaps were **2 ticks ×8** and **4 ticks ×8**, so equal CPU master
+intervals must not be mistaken for equal CPU→SPC port queue visibility or
+absolute CPU/SPC epoch registration. All 656 native actual `cpu_read8`
+ROM operand effective addresses form an *unbroken* bank11 byte sequence
+`11:C589..11:C818`, with the independently established target
+`11:C774` as index492 (one-based). [Immutable machine census](../analysis/data/rf055-original-native-cpu-local-writer-interval-census-20261018.json).
+No correction or complete-event credit follows; the earlier genuine six-vs-three
+sound echo polls remain a separate observed CPU execution difference.
+
 ## Executed source-PC discriminator
 
 The pinned Baldosa v2 emitter
@@ -80,3 +100,5 @@ transaction alone cannot waive those residuals. An independently accepted
 complete USA event remains **0/45**, and this research lane never edits the
 shipping CPU/APU, graphics, Modern, release package, observation mask or QA
 ledger.
+
+**Qualified bounded retry:** Source fixture escaping and exact 24-bit decoded guest-PC guard were repaired and actual [unit run39166846551](https://github.com/gamesbyian/UR-Recomp/actions/runs/39166846551) plus [hygiene39166846606](https://github.com/gamesbyian/UR-Recomp/actions/runs/39166846606) finished green. [One-shot run39167048486](https://github.com/gamesbyian/UR-Recomp/actions/runs/39167048486) checked out immutable source `3148dc522e03549823a8ed1305a996dc9bc3a02d` and passed the pinned original/native **build**. The actual guest-replay decision requires its preserved case logs; no replay result is inferred from successful compilation. Immediately after scheduling, the second one-shot trigger was removed and the reusable campaign restored byte-for-byte to main. This experiment must stop on the actual reporter's earliest genuine failure without further speculative timing trials.

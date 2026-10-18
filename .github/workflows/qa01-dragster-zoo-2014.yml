@@ -1,0 +1,159 @@
+name: QA-01 2014 USA Dragster Race A to next Zoom Zoo original-native witness
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/qa01-dragster-zoo-2014.yml"
+      - "tools/qa01_dragster_zoo_handoff.py"
+      - "tests/unit/test_qa01_dragster_next_zoo.py"
+      - "tools/probe_original_event_complete.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa01-dragster-next-zoo-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  original-native-dragster-zoo:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 50
+    steps:
+      - name: Check out canonical original USA source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Check out pinned Baldosa native guest plus framework
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Prove exact original input and pinned guest identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          test -s reference/imported/tas-bots/dessyreqt-4250-submission.smv
+          python3 -m unittest discover -s tests/unit -p test_probe_original_event_complete.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_bowl_next_switcher.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_bowl_source_movie_memory.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_bowl_cold_record.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_bowl_handoff_raw_archive_audit.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_event_route_artifact_audit.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_dragster_next_zoo.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_bowl_joint_source_provenance.py
+
+      - name: Build one original Snes9x and one native Baldosa guest
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build pkg-config build-essential cmake libsdl2-dev \
+            libgl-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxss-dev libwayland-dev \
+            libxkbcommon-dev libegl-dev libgles-dev libdrm-dev \
+            libgbm-dev libasound2-dev libpulse-dev libudev-dev \
+            libdbus-1-dev xvfb
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          cmake -S baldosa/snesrecomp/tools/snesref \
+            -B "$RUNNER_TEMP/dragster-snesref" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/dragster-snesref" -j2
+          # QA-only input-file transport already validated in the Zoo route.
+          # Absolutely no guest code, original ROM, SRAM or gameplay edit.
+          python3 tools/baldosa_qa_dense_scene_input_patch.py \
+            --host baldosa/snesrecomp/runner/src/desktop/host_main.c
+          cmake -S baldosa -B baldosa/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
+          cmake --build baldosa/build --target UniracersSNESRecomp -j3
+          test -x baldosa/build/UniracersSNESRecomp
+          test -x "$RUNNER_TEMP/dragster-snesref/snesref"
+
+      - name: Genuine source-original Dragster result and fresh original/native next Zoo
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/qa01-dragster-zoo"
+          mkdir -p "$ROOT"
+          sha256sum "$RUNNER_TEMP/dragster-snesref/snesref" \
+            "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            "$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp" > "$ROOT/executables.sha256"
+          set +e
+          timeout --signal=TERM --kill-after=30s 16m \
+            python3 tools/probe_original_event_complete.py \
+              --case dragster \
+              --native-backend pinned-baldosa \
+              --source-followthrough \
+              --dragster-next-zoo \
+              --source-horizon 22000 \
+              --snesref "$RUNNER_TEMP/dragster-snesref/snesref" \
+              --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+              --native "$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --work-dir "$ROOT" \
+              --json-out "$ROOT/dragster-report.json" \
+              > "$ROOT/attempt.log" 2>&1
+          rc=$?
+          set -e
+          echo "Original/native producer exit: $rc (diagnostic only, 0/45)" >> "$GITHUB_STEP_SUMMARY"
+          tail -n 65 "$ROOT/attempt.log"
+          if [ -s "$ROOT/dragster-report.json" ]; then
+            python3 - "$ROOT/dragster-report.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          h=d.get("dragster_next_zoo_handoff") or {}
+          o=d.get("original_source_event") or {}
+          row={
+            "original_event_entry":o.get("original_entry_frame"),
+            "original_result":o.get("original_result_frame"),
+            "source_next_zoo":o.get("source_next_zoo"),
+            "fresh_original_native_result_clocks":d.get("comparison",{}).get("terminal_result_guest_frame"),
+            "observed_three_way":{k:v for k,v in h.items() if k!="samples"},
+            "strict_original_native_candidate":d.get("comparison",{}).get("paired_event_candidate"),
+            "official_accepted_usa_events":0,
+          }
+          s=json.dumps(row,sort_keys=True,indent=2)
+          print(s)
+          with open(sys.argv[2],"a",encoding="utf8") as f:f.write("\n\x60\x60\x60json\n"+s+"\n\x60\x60\x60\n")
+          PY
+          fi
+          exit "$rc"
+
+      - name: Archive real source plus original/native handoff images
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-dragster-next-zoo-original-native
+          retention-days: 7
+          if-no-files-found: warn
+          compression-level: 6
+          path: |
+            ${{ runner.temp }}/qa01-dragster-zoo/executables.sha256
+            ${{ runner.temp }}/qa01-dragster-zoo/attempt.log
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster-report.json
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/source/dragster-next-zoo-original.json
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/source/source-event-diagnostic.json
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/source/trace.jsonl
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/source/source-scan.log
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/source/source-entry.log
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/calibration/reference.log
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/calibration/native.log
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/replay/reference.log
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/replay/native.log
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/replay/ref/dragster-next-zoo-*.wram.bin
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/replay/ref/dragster-next-zoo-*.sram.bin
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/replay/native/dragster-next-zoo-*.wram.bin
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/replay/native/dragster-next-zoo-*.sram.bin
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster/original-movie-meta.json

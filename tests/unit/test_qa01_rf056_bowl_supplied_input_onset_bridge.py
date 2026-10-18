@@ -48,6 +48,18 @@ class RF056SuppliedInput(unittest.TestCase):
             with self.subTest(sample=sample):
                 with self.assertRaisesRegex(ValueError,reason):
                     rf.parse_events(sample)
+    def test_full_Wram_stored_controller_candidate_bytes_not_cpu_reads(self):
+        a=bytearray(131072); b=bytearray(131072)
+        a[0x72:0x76]=b[0x72:0x76]=bytes.fromhex("80A48580")
+        values=rf.raw_cross_guest_candidate_input_state(bytes(a),bytes(b))
+        self.assertEqual(values["7E:0072..0075"]["source_original_hex"],"80A48580")
+        self.assertEqual(values["7E:030D..0310"]["native_guest_hex"],"00000000")
+        self.assertTrue(values["7E:008F"]["identical_full_raw_bytes"])
+        b[0x30d]=0x80
+        with self.assertRaisesRegex(ValueError,"already unequal"):
+            rf.raw_cross_guest_candidate_input_state(bytes(a),bytes(b))
+        with self.assertRaisesRegex(ValueError,"complete unmasked"):
+            rf.raw_cross_guest_candidate_input_state(bytes(a[:-1]),bytes(b))
     def test_no_unpinned_real_archives_are_admitted(self):
         with TemporaryDirectory() as folder:
             p=Path(folder)/"spoof.zip"

@@ -53,6 +53,50 @@ stock contact registration, followed by real source-visible live 1P/2P
 capture and owner aesthetic review. In particular a 32px thumbnail is
 only an *evaluation*, never a source-matched 32px animation frame.
 
+## Continuous pose coherence and clipping review (18 October)
+
+The same canonical `shared_rig` now supports two further **non-shipping,
+normalized-time** animation states, `ride` (two full crank rotations) and
+`stunt_cycle` (one eased 360° midair rotation around a provisional
+character-centre pivot). Static `upright/pedal/wheelie/stunt/bank` choices
+remain intact. The geometry, palette and rider identity are exactly the
+same object; only the transforms vary. This is a *kinematic blockout*, not
+reverse-engineered original stunt timing, track contact, wheel physics or
+SNES-derived animation.
+
+Use the new fail-closed authoring tool to inspect the entire temporal
+trajectory, rather than five hand-picked attractive stills:
+
+```sh
+# Needs OpenSCAD and Pillow. On headless Linux add --xvfb.
+python tools/art/render_shared_unicycle_motion.py \
+  --model tools/art/candidates/unicycle_shared_rig.scad \
+  --out /tmp/ur-single-rig-motion --xvfb
+
+# Manual mid-cycle pose: one shared rig at exactly t=0.375.
+openscad -o /tmp/ur-stunt-mid.png --imgsize=320,320 \
+  --projection=o --colorscheme=Tomorrow \
+  --camera=0,0,1.6,90,0,0,12.5 \
+  -D 'rig_pose="stunt_cycle"' -D 'rig_time=0.375' \
+  tools/art/candidates/unicycle_shared_rig.scad
+```
+
+The tool uses **one unchanged side-view camera** for all 18 samples (nine
+ride + nine stunt) and writes `continuous-motion-review-receipt.json`
+with per-image SHA-256, silhouette bounding boxes, rig identity and
+explicit negative approval/Original-source claims. It aborts if any
+silhouette reaches within four pixels of a window edge, if a frame is
+missing/blank or if stale output is present. The initially used
+static-study camera distance of 11 **really cropped** the interpolated
+stunt at normalized `t=0.125`; moving the **entire motion study** to
+distance 12.5 restored a minimum visible edge margin of 18px at the
+sampled times without per-pose zoom. The study's camera is only a
+review instrument, not an original-game camera assumption. A separate
+17-step-per-mode local preview confirmed 34/34 uncropped frames, including
+start/end restoration at both motion endpoints. The review source lives
+under `tools/art` and never modifies the game, saves, upstream renderer
+or acceptance ledger. Actual artist sign-off remains blocked as below.
+
 **Review is presently BLOCKED.** Before baking any 256×256 candidate into the existing `native/presentation/racer_hd_presenter.hpp` or enabling new 1P/2P substitution, obtain source-hashed original-title/period-art landmark annotations, review a consistent **side and three-quarter** model across adjacent authentic poses, retarget pivot/contact/7:6 source registration, compare at real race and split-screen scale, and obtain **new explicit owner visual approval**. Earlier `shipping_art_approved` technical hashes do not authorize this candidate. Never promise parity from the five static previews. The finished media and 4K display acceptance are distinct gates, left to the independent QA owner.
 
 **No runtime or shipping changes in this branch:** authentic Original and the existing fail-closed Remastered fallback remain exactly as before. This blockout should be rejected, changed or deleted if detailed reference comparisons show a proportion or personality mismatch. It is a reviewable single-rig input for an actual artist, not an automatic replacement for approved work.

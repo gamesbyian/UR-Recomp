@@ -34,11 +34,11 @@ class NativePcSite(unittest.TestCase):
             operand=0x63
         lines=[]
         exec(textwrap.dedent(rf.SITE), {'bank':0x82,'di_insn':Insn,'lines':lines})
-        emitted='\\n'.join(lines)
-        self.assertIn(r'scope=%s\\n",',emitted)
-        self.assertIn(r'QA01RF055NATIVEPC_TRUNCATED\\n',emitted)
-        self.assertNotIn('scope=%s\\n",',emitted)
-        self.assertNotIn('TRUNCATED\\n",',emitted)
+        emitted='\n'.join(lines)
+        self.assertIn(r'scope=%s\n",',emitted)
+        self.assertIn(r'QA01RF055NATIVEPC_TRUNCATED\n',emitted)
+        self.assertNotIn('scope=%s\n",',emitted)
+        self.assertNotIn('TRUNCATED\n",',emitted)
     def test_unknown_or_duplicate_emitter_fails_before_write(self):
         for src in ("empty",SOURCE.replace('for op in ir_ops:', 'for op in other_ops:'),
                     SOURCE+rf.ANCHOR):

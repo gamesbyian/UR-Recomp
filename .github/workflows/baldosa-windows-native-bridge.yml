@@ -34,6 +34,9 @@ on:
       - "tools/qa08_current_result_pixel_owner_patch.py"
       - "tools/qa08_current_result_cgram_port_patch.py"
       - "tools/qa08_current_result_source_witness.py"
+      - "tools/qa08_current_medal_obj_fetch_patch.py"
+      - "tools/qa08_join_current_medal_obj_fetch.py"
+      - "tests/unit/test_qa08_current_medal_4bpp_fetch.py"
       - "tests/unit/test_qa08_current_result_readonly.py"
       - "tests/unit/test_baldosa_native_practice_probe.py"
       - "tests/unit/test_baldosa_native_second_racer_probe.py"
@@ -218,6 +221,7 @@ jobs:
           python tests/unit/test_baldosa_io_access_clock_order_patch.py
           python tests/unit/test_windows_rf017_source_identity.py
           python tests/unit/test_qa08_current_result_readonly.py
+          python tests/unit/test_qa08_current_medal_4bpp_fetch.py
           python tests/unit/test_baldosa_uniracers_hdma_firstline_patch.py
           python tests/unit/test_baldosa_uniracers_v0_raster_before_hdma_patch.py
           python tests/unit/test_bind_baldosa_candidate_receipt.py
@@ -275,6 +279,10 @@ jobs:
           # never merge this observer into player-visible release source.
           python tools/qa08_current_result_pixel_owner_patch.py --game baldosa --apply-candidate
           python tools/qa08_current_result_cgram_port_patch.py --game baldosa --apply-candidate
+          # Read only the real native OBJ tile/palette/4bpp pixel writer.
+          # This observer NEVER ships as a production renderer correction.
+          python tools/qa08_current_medal_obj_fetch_patch.py --game baldosa
+          python tools/qa08_current_medal_obj_fetch_patch.py --game baldosa --apply-candidate
           echo "QA-08 game-only first-line + V0 PPU patches staged; results/blackout/medal, physical display and release remain unaccepted." >> "$GITHUB_STEP_SUMMARY"
           python tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_execution_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
@@ -359,7 +367,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: qa08-current-rf017-result-pixel-ownership
+          name: qa08-current-rf017-medal-4bpp-winner-source
           retention-days: 7
           if-no-files-found: warn
           path: ${{ runner.temp }}/qa08-current-result-owner/qa08-current-result-owners.json

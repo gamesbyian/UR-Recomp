@@ -15,6 +15,8 @@
 
 ## Fresh-agent route
 
+**P0 plan:** [three-blocker decision gates](THREE-BLOCKER-CLOSURE-DISPATCH-20261017.md).
+
 Archived [October 10 queue](archive/WORK-QUEUE-OCT10-HANDOFF-20261011.md), [handoff](INTEGRATION-RECONCILIATION-20261010.md) and [beta plan](WINDOWS-BETA-QUALITY-CAMPAIGN-20261010.md) are not live instructions. Read [PROJECT-PLAN](PROJECT-PLAN.md), lane authority and [QA campaign](QA-BOUNDED-RELEASE-CAMPAIGN.md). Refresh main/PR/CI and run the **three-project reuse preflight** in `AGENTS.md` before implementation.
 
 ## Current delivery board and ownership

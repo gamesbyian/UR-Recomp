@@ -284,8 +284,7 @@ The files are *supplied controller events* generated from the original SMV,
 not an independently measured consumed-button bus trace. Matching input
 files do not prove the original/native engines latched each mask on the
 same CPU phase, nor that unsampled game frames agree. Retain guest input
-execution evidence and independent QA-01/07 authority. No original movie,
-guest dump, ROM or native binary is added to the retained case archive.
+execution evidence and independent QA-01/07 authority. No original 2014 movie, ROM or native executable is added to the retained case archive. **New opt-in raw Zoo full-memory guest captures** are separately retained and independently rechecked as described below; these are real Snes9x/Baldosa WRAM and SRAM images, never synthesized gameplay states.
 
 ### Original/native result-gate claim reconstruction
 
@@ -308,6 +307,24 @@ It does not reconstruct decoded text directly from original PPU binary
 bytes (the producer owns that capture), prove unsampled laps/frames, or
 establish input-consumer timing. No additional emulator execution,
 release ledger write or 45-event credit is introduced.
+
+### Original/raw Zoo checkpoint and earned SRAM bytes (2026-10-18)
+
+Earlier RF054 Zoo research [run 39161563837](https://github.com/gamesbyian/UR-Recomp/actions/runs/39161563837) genuinely executed **78 original/native full-WRAM checkpoint comparisons**, observed result +5163 and next Bowl +267, and reported 11 matching earned full-SRAM handoff snapshots, but its original 18-member case ZIP did **not** retain the actual 128KiB/8KiB guest images. [The independently rehashed original four-artifact review](../analysis/data/qa01-rf054-independently-rehashed-four-artifact-bundle-20261018.json) can validate source, genuine ELF/core bytes, logs and producer arithmetic, **not recompute those 78+11 memory pairs** from unavailable historical bytes. No retroactive parity claim is permitted.
+
+The existing **manual-only** campaign now retains only the **already-generated original/native `*.wram.bin` and `*.sram.bin` images** under `work/<case>/replay/{ref,native}/` alongside its original producer, binary SHA manifest, input and execution logs, within the existing 7-day case artifact. This may increase ZIP size but adds **zero** new guest simulation, separate build, recurring workflow or artificial evidence. No game ROM, movie, savestate or compiled research ELF is copied into the case artifact.
+
+For `selected=zoom-zoo` with **all three** `zoo_race_mesh=true`, `zoo_dp_window=true`, `zoo_next_bowl=true`, the successful existing case job runs `tools/qa01_zoo_raw_archive_audit.py`. The verifier reopens **every byte** in the 78 original/native 128-KiB WRAM checkpoint pairs and the 11 Zoo→Bowl full WRAM/8-KiB SRAM pairs, requires unique correct logged dump host frames, checks all SHA-256/count/first-byte/changed-page producer claims, recalculates the earned 2510-centisecond Zoo rank and complete record-table checksum, and refuses truncated, missing or inconsistent raw images **even if the producer summary says passed**. Its exact additional receipt is `qa01-zoo-independent-raw-audit.json`; the signed source/gameplay acceptance obligations are **unchanged**.
+
+To recheck a downloaded and extracted authentic original case artifact containing these raw files:
+
+```bash
+python3 tools/qa01_zoo_raw_archive_audit.py \
+  --artifact-root /path/to/extracted/qa01-campaign-case-zoom-zoo \
+  --out /tmp/qa01-zoo-independent-raw-audit.json
+```
+
+An observed nonmatching byte is a **verified bounded difference**, not an invalid artifact. A missing/tampered raw image, contradictory digest/count/host clock or fabricated positive **is** invalid evidence. Even full exact 78+11 raw-memory agreement would not prove every unsampled game frame, CPU/SPC instruction causality, the shipping Windows PE, source-consumed gamepad input or disk/power-cut persistence. The read-only audit **always holds accepted USA events at 0**, leaving independent QA-01/07 and the 45-event census sole authority. Its unit tests are synthesized ROM-free byte fixtures and cannot stand in for a real guest run.
 
 ## Failure triage and extension
 

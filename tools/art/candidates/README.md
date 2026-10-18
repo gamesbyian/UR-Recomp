@@ -8,6 +8,8 @@ This is **one coherent unicycle model**, with five pose configurations, introduc
 
 ## Reproducible fixed-camera artwork review
 
+The authentic P7 source columns are resampled for display at original **7:6 horizontal PAR** using nearest-neighbour; authored HD rig columns remain modern square-pixel. Neither transform affects archived source hashes, and neither claims physical 4K acceptance.
+
 The first rough render used OpenSCAD `--viewall --autocenter` separately for
 each pose. This is **not** adequate for a multi-pose shape comparison: it can
 change the camera fit and make character geometry appear more consistent than

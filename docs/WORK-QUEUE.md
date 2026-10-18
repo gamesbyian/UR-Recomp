@@ -1,6 +1,6 @@
 # UR-Recomp: active work queue
 
-**Conditional PAL reuse:** [R-0097/R-0098](CROSS-PROJECT-BEHAVIOR-CORROBORATION.md#october-15-2026-pal-intake-menu-controls-and-multi-tour-leagues-conditional) advise existing USA menu/league discrepancy work only. No new factory or release/event credit; R-0095 ingested.
+**Conditional PAL reuse:** [R-0097/98/99](CROSS-PROJECT-BEHAVIOR-CORROBORATION.md#october-17-pal-follow-up-accepted-league-tours-and-podium-audio-conditional-usa-leads) inform USA 2P league/podium controls, score/Records and audio checks *only after a live discrepancy*. Upstream PAL #81/#82 merged; not USA proof, factory or gate credit.
 
 **Integrated baseline:** Main includes #1648 Modern, #1667 nominated owner ZIP, #1663 Zoo→Bowl observer and opt-in research-only #1705 SPC stage (not shipping). Graphics #1641/#1649 remain held; refresh main/PRs/CI. Only [release ledger](RELEASE-QUALITY-LEDGER.json) owns acceptance.
 

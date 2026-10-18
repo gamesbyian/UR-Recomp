@@ -31,6 +31,9 @@ on:
       - "tests/unit/test_baldosa_uniracers_hdma_firstline_patch.py"
       - "tools/baldosa_uniracers_v0_raster_before_hdma_patch.py"
       - "tests/unit/test_baldosa_uniracers_v0_raster_before_hdma_patch.py"
+      - "tools/qa08_current_late_cgram_port_patch.py"
+      - "tools/qa08_current_late_cgram_witness.py"
+      - "tests/unit/test_qa08_current_late_cgram.py"
       - "tests/unit/test_baldosa_native_practice_probe.py"
       - "tests/unit/test_baldosa_native_second_racer_probe.py"
       - "tools/baldosa_native_first_racer_real_run_probe.py"
@@ -215,6 +218,7 @@ jobs:
           python tests/unit/test_windows_rf017_source_identity.py
           python tests/unit/test_baldosa_uniracers_hdma_firstline_patch.py
           python tests/unit/test_baldosa_uniracers_v0_raster_before_hdma_patch.py
+          python tests/unit/test_qa08_current_late_cgram.py
           python tests/unit/test_bind_baldosa_candidate_receipt.py
           python tests/unit/test_audit_baldosa_romless_candidate.py
           python tests/unit/test_check_windows_pe_timestamp.py
@@ -265,6 +269,9 @@ jobs:
           python tools/baldosa_uniracers_hdma_firstline_patch.py --game baldosa --apply-candidate
           python tools/baldosa_uniracers_v0_raster_before_hdma_patch.py --game baldosa
           python tools/baldosa_uniracers_v0_raster_before_hdma_patch.py --game baldosa --apply-candidate
+          # Research-ONLY descendant of clean #1780; never promote this logger.
+          python tools/qa08_current_late_cgram_port_patch.py --game baldosa
+          python tools/qa08_current_late_cgram_port_patch.py --game baldosa --apply-candidate
           echo "QA-08 title-only HDMA/V0 staged; results, blackout, medal and release unaccepted." >> "$GITHUB_STEP_SUMMARY"
           python tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_product_execution_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
@@ -335,6 +342,24 @@ jobs:
           PY
           echo "PASS: pinned Baldosa AOT Windows x64 with existing UR guest/input/native-pause hooks links and produces PE32+" >> "$GITHUB_STEP_SUMMARY"
           echo "NOT TESTED: Modern frontend, runtime interaction, package, per-profile SRAM, Records, replay, ghosts, or complete event." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Observe exact RF017 late result CGRAM source CPU writes
+        run: |
+          set -euo pipefail
+          python tools/qa08_current_late_cgram_witness.py \
+            --exe baldosa/build-ur-win/UniracersSNESRecomp.exe \
+            --rom reference/roms/retail/Uniracers_USA.sfc \
+            --script reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p.txt \
+            --out "$RUNNER_TEMP/qa08-late-cgram" --timeout 300
+          echo "Late result CPU-source CGRAM input captured only; original join and release remain outstanding." >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve bounded current-native source writer receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-rf017-late-cgram-readonly
+          retention-days: 90
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/qa08-late-cgram/qa08-current-rf017-late-cgram.json
 
       - name: Verify Baldosa Windows PE needs only clean-machine system DLLs
         run: |

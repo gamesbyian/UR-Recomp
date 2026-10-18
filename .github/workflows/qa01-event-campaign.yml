@@ -584,6 +584,15 @@ jobs:
             echo 'QA-01 source/native APU clock receipts retained (no release credit)' >> "$GITHUB_STEP_SUMMARY"
           fi
           exit "$case_rc"
+      - name: Independently reopen full Zoo original/native raw mesh and next-Bowl SRAM
+        if: ${{ always() && matrix.case == 'zoom-zoo' && inputs.zoo_race_mesh && inputs.zoo_dp_window && inputs.zoo_next_bowl }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/qa01_zoo_raw_archive_audit.py \
+            --artifact-root "$RUNNER_TEMP/qa01-case" \
+            --out "$RUNNER_TEMP/qa01-case/qa01-zoo-independent-raw-audit.json"
+          echo 'Original/native full 78-checkpoint Zoo WRAM and 11 Zoo-to-Bowl WRAM/SRAM bytes independently rechecked (USA credit 0)' >> "$GITHUB_STEP_SUMMARY"
       - name: Always retain per-case receipt and bounded diagnostic logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -599,6 +608,11 @@ jobs:
             ${{ runner.temp }}/qa01-case/qa01-cold-guest-boot/native.log
             ${{ runner.temp }}/qa01-case/qa01-apu-edge-report.json
             ${{ runner.temp }}/qa01-case/producer-report.json
+            ${{ runner.temp }}/qa01-case/qa01-zoo-independent-raw-audit.json
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/ref/*.wram.bin
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/ref/*.sram.bin
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/native/*.wram.bin
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/native/*.sram.bin
             ${{ runner.temp }}/qa01-case/SHA256SUMS
             ${{ runner.temp }}/qa01-case/producer.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/source/source-scan.log

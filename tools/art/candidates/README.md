@@ -102,6 +102,53 @@ start/end restoration at both motion endpoints. The review source lives
 under `tools/art` and never modifies the game, saves, upstream renderer
 or acceptance ledger. Actual artist sign-off remains blocked as below.
 
+## Wide-saddle source review: one rig, several bounded hypotheses
+
+The retained authentic 2014 title frame `baldosa-fixed-source/
+ur-baldosa-original-source-000400.pam` (member SHA-256
+`ee97b26ca9deac86809604665097473357d078867bad9a2f3da2384056eb9362`,
+outer AOT artifact 11863045863 SHA `6fb7e9ad...`) provides a useful
+**qualitative** contrast. Its blue unicycle has a broad, organically
+curved black saddle that dominates the upper character silhouette.
+The previous 3D blockout's thin, almost handlebar-like saddle was
+visibly less faithful. The title's wheel top is occluded by coloured
+frame/rainbow, and its camera/perspective is unknown, so **do not**
+infer a physical saddle/wheel dimension from this title screenshot.
+The source title screenshot is not included in the repository.
+
+The same canonical OpenSCAD mesh now has an **unapproved authoring
+parameter**, `rig_saddle_span`, with default `1.0` preserving the
+original five-pose artwork and continuous motion path. Values must
+remain within `[1,2.2]` and are *review alternatives*, not an
+automatically selected player-facing option or source-derived 3D truth.
+Use a fixed orthographic camera (distance 12.5 across all variants,
+square pixel output), rather than resizing each candidate to fit:
+
+```sh
+python tools/art/render_unicycle_saddle_variants.py \
+  --out /tmp/ur-saddle-choices \
+  --authentic-source-zip /secure/local/baldosa-native-spike-evidence.zip \
+  --xvfb
+# Omitting --authentic-source-zip makes model-only comparisons.
+```
+
+The source archive is checked against the same existing authentic
+title/gameplay/old 4x member hashes, before any **display-only**
+7:6 nearest resize or title fade brightening. The four renderings use
+spans `1.0, 1.4, 1.8, 2.2` from **one** rig and camera, with
+per-candidate SHA-256 and high-contrast dark-saddle *projected*
+width observations; they are not a statement that the title view and
+review camera match. The original-title image's occluded wheel makes
+automatic wheel-diameter normalization inappropriate here.
+
+The offline fixed-camera OpenSCAD sweep was rendered successfully for
+all four candidate spans and visually inspected. None is endorsed
+as the real Uniracers shape yet, and none has been exported to the
+Windows game or validated at actual live 1P/2P raster. Revisit the
+original source-projected landmark protocol and acquire an independent
+unoccluded official view before selecting any 3D ratio. Continue
+to require fresh owner artistic approval.
+
 **Review is presently BLOCKED.** Before baking any 256×256 candidate into the existing `native/presentation/racer_hd_presenter.hpp` or enabling new 1P/2P substitution, obtain source-hashed original-title/period-art landmark annotations, review a consistent **side and three-quarter** model across adjacent authentic poses, retarget pivot/contact/7:6 source registration, compare at real race and split-screen scale, and obtain **new explicit owner visual approval**. Earlier `shipping_art_approved` technical hashes do not authorize this candidate. Never promise parity from the five static previews. The finished media and 4K display acceptance are distinct gates, left to the independent QA owner.
 
 **No runtime or shipping changes in this branch:** authentic Original and the existing fail-closed Remastered fallback remain exactly as before. This blockout should be rejected, changed or deleted if detailed reference comparisons show a proportion or personality mismatch. It is a reviewable single-rig input for an actual artist, not an automatic replacement for approved work.

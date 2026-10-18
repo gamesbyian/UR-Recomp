@@ -1,0 +1,123 @@
+{
+  "schema": "UR-QA01-BOWL-2014-THREE-GUEST-RAW-20261018/1",
+  "execution": {
+    "run_id": 39169304323,
+    "commit": "d8fc9099ea2827c6a919ec01bd2c49472701803c",
+    "artifact_id": 12151982503,
+    "zip_sha256": "c2262b40e43b4e167cbdf291623b0e34207561187e103af39eca7a46fa4b0edc",
+    "independently_rehashed_zip": true,
+    "archive_file_count": 78,
+    "full_wram_files": 32,
+    "full_sram_files": 32,
+    "producer_report_sha256": "e965cada128c4beb89aae8244bc11e9f3b68068158d1ee9baaab265b43cc2b15"
+  },
+  "source_movie_bowl_result_frame": 11985,
+  "source_movie_next_switcher_frame": 12327,
+  "relative_switcher_entry_offsets": {
+    "movie": 342,
+    "fresh_original": 341,
+    "fresh_native": 344
+  },
+  "sample_offsets": [
+    334,
+    339,
+    340,
+    341,
+    342,
+    343,
+    344,
+    354
+  ],
+  "wram_byte_differences": {
+    "movie_vs_fresh_original": [
+      44,
+      44,
+      73,
+      687,
+      266,
+      186,
+      179,
+      126
+    ],
+    "movie_vs_fresh_native": [
+      45,
+      45,
+      45,
+      74,
+      705,
+      709,
+      293,
+      140
+    ],
+    "fresh_original_vs_fresh_native": [
+      2,
+      2,
+      33,
+      666,
+      688,
+      671,
+      289,
+      113
+    ]
+  },
+  "sram_byte_differences": {
+    "movie_vs_fresh_original": [
+      71,
+      71,
+      71,
+      71,
+      71,
+      71,
+      71,
+      71
+    ],
+    "movie_vs_fresh_native": [
+      73,
+      73,
+      73,
+      73,
+      73,
+      73,
+      73,
+      73
+    ],
+    "fresh_original_vs_fresh_native": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3
+    ]
+  },
+  "first_source_movie_vs_fresh_original_wram_diff_offset": 334,
+  "first_source_movie_vs_fresh_original_named_difference_offset": 341,
+  "first_source_movie_vs_native_named_difference_offset": 342,
+  "earliest_static_movie_original_wram_diffs": [
+    12,
+    105,
+    188,
+    189,
+    198,
+    337,
+    339,
+    340
+  ],
+  "movie_original_sram_prior_record_differences_at": [
+    560,
+    562,
+    688,
+    689,
+    1058,
+    1059,
+    1060,
+    1061
+  ],
+  "all_three_bowl_rank0_score": 764,
+  "all_ranked_record_checksums_valid": true,
+  "raw_comparisons_unmasked": true,
+  "scope": "Independently rehashed genuine archive, compare every raw byte separately per guest result-relative frame. Historical tour progress is different from fresh calibrated entry. Cause of one-frame transition delta, continuous CPU/SPC execution, cold Windows disk durability and full USA event acceptance NOT proven.",
+  "accepted_events": 0
+}

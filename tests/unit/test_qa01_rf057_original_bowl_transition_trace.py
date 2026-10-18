@@ -25,6 +25,8 @@ class OriginalUSAOpcode(unittest.TestCase):
            "op":"C2","pre_h":180,"pre_v":108,"post_h":186,
            "post_v":108,"a0":"0080","a1":"0080","p0":"0034",
            "p1":"0034","s0":"01FD","s1":"01FD",
+           "c0":1,"z0":0,"n0":0,"o0":0,
+           "c1":1,"z1":1,"n1":0,"o1":0,
            "joy72":"80","joy73":"A4","joy74":"85","joy75":"80",
            "latch8f":"00","raw30d":"00","raw30f":"00",
         }
@@ -34,6 +36,7 @@ class OriginalUSAOpcode(unittest.TestCase):
         self.assertEqual(r["recorded_original_executed_CPU_instruction_count"],2)
         self.assertEqual(r["original_decoded_executed_candidate_group_count"],
                          {"menu-confirm":1,"wait-input":1})
+        self.assertEqual(r["first_original_guest_executed_candidate_row"]["z0"],"0")
         self.assertFalse(r["native_generated_PC_executed_witness_proven"])
         self.assertFalse(r["first_transition_writer_predicate_proven"])
         self.assertEqual(r["accepted_complete_USA_events"],0)

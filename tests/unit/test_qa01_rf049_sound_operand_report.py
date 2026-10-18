@@ -22,7 +22,7 @@ def source_case():
     # RF048 original observer independently counted every completed frame.
     prior=[f"QA01RF048ORIGCOUNT frame={f} actual_lda=640"
            for f in range(6072,6138)]
-    return "\\n".join((*prior,BASE,LDA,S1,S2))
+    return "\n".join((*prior,BASE,LDA,S1,S2))
 
 class RF049SourceReportTests(unittest.TestCase):
     def test_exact_all_bank_census_without_false_native_equivalence(self):

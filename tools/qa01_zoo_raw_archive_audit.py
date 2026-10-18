@@ -107,6 +107,7 @@ def audit(root: Path) -> dict:
 
     exact, occurrences = 0, 0
     by_address = {}
+    dense_bytes = []
     for row in rows:
         offset = row["race_relative_frame"]
         tag = "race-entered" if offset == 0 else f"scene-{offset:05d}"
@@ -120,6 +121,19 @@ def audit(root: Path) -> dict:
             for side, host in (("ref", original_host), ("native", native_host))
         }
         row_diff = verify_wram_pair(actual, row.get("original_native_full_wram_byte_difference"))
+        if 5034 <= offset <= 5046:
+            dense_bytes.append({
+                "race_relative_frame": offset,
+                "original_absolute_host_frame": original_host,
+                "native_absolute_host_frame": native_host,
+                "bytes": [
+                    {"address": f"7E:{address:04X}",
+                     "original": actual["ref"][0][address],
+                     "native": actual["native"][0][address],
+                     "differs": actual["ref"][0][address] != actual["native"][0][address]}
+                    for address in (0x63, 0x69)],
+                "full_wram_differing_bytes": row_diff["differing_byte_count"],
+            })
         exact += int(row_diff["byte_exact"])
         occurrences += row_diff["differing_byte_count"]
         for item in row_diff["first_24_differences"]:
@@ -127,6 +141,20 @@ def audit(root: Path) -> dict:
             by_address[address] = by_address.get(address, 0) + 1
     require(exact == mesh.get("raw_byte_exact_sample_count"),
             "reported Zoo full-WRAM exact checkpoints disagree with independently reopened bytes")
+    dense = mesh.get("late_direct_page_window")
+    disagree = [x["race_relative_frame"] for x in dense_bytes
+                if any(byte["differs"] for byte in x["bytes"])]
+    require(isinstance(dense, dict) and
+            dense.get("range_inclusive") == [5034, 5046] and
+            dense.get("all_guest_frames_in_range_captured") is True and
+            dense.get("raw_wram_bytes_excluded") == 0 and
+            dense.get("release_complete_event_credit") == 0 and
+            dense.get("samples") == dense_bytes and
+            dense.get("first_sampled_direct_page_disagreement") ==
+                (disagree[0] if disagree else None) and
+            dense.get("last_sampled_direct_page_disagreement") ==
+                (disagree[-1] if disagree else None),
+            "dense 13-frame source/native Zoo sound-pointer claims contradict original raw bytes")
     first = next((r for r in rows
                   if r["original_native_full_wram_byte_difference"]["differing_byte_count"]), None)
     if first:
@@ -149,6 +177,9 @@ def audit(root: Path) -> dict:
             "source-authentic Zoo next Bowl proof absent")
     unequal_sram = []
     handoff_wram_unequal = []
+    earned_valid = []
+    triplet_equal = []
+    fresh_entry = {"original": None, "native": None}
     for offset, row in zip(BOWL_OFFSETS, handoff["samples"]):
         require(row.get("offset_from_observed_zoo_result") == offset,
                 "misregistered or reordered real Zoo next-Bowl sample")
@@ -163,7 +194,15 @@ def audit(root: Path) -> dict:
             g = guests[name]
             wram, sram = actual[side]
             rank = rank_and_checksum(sram)
-            require(g.get("actual_host_frame") == host and
+            earned_valid.append(rank["value_word"] == 2510 and
+                                rank["holder_index"] == 0 and
+                                rank["checksum_stored"] == rank["checksum_calculated"])
+            named = {key: wram[address] for key, address in
+                     (("menu", 0x9F), ("track", 0xCE), ("in_race", 0x313))}
+            if named["track"] == 2 and named["in_race"] == 1 and fresh_entry[name] is None:
+                fresh_entry[name] = offset
+            require(all(g.get(key) == value for key, value in named.items()) and
+                    g.get("actual_host_frame") == host and
                     g.get("full_wram_bytes") == len(wram) and
                     g.get("wram_sha256") == digest(wram) and
                     g.get("sram_sha256") == digest(sram) and
@@ -185,13 +224,31 @@ def audit(root: Path) -> dict:
                      "native_byte": actual["native"][1][i]}
                     for i in differences[:8]],
                 "raw original/native 8KiB SRAM differ from actual producer claim")
+        movie = row.get("original_movie")
+        require(isinstance(movie, dict) and
+                movie.get("original_movie_host_frame") == 8353 + offset and
+                all(type(movie.get(key)) is int
+                    for key in ("menu", "track", "in_race")),
+                "original 2014 movie frame/guest state not independently replayed")
+        movie_named = {k: movie[k] for k in ("menu", "track", "in_race")}
+        triplet = all(
+            {k: actual[side][0][address] for k, address in
+             (("menu", 0x9F), ("track", 0xCE), ("in_race", 0x313))} == movie_named
+            for side in ("ref", "native"))
+        require(row.get("triplet_named_states_equal") is triplet,
+                "reported movie/guest triplet agreement contradicts raw guest bytes")
+        triplet_equal.append(triplet)
         if differences:
             unequal_sram.append(offset)
         if not pair["byte_exact"]:
             handoff_wram_unequal.append(offset)
     require(handoff.get("all_original_native_full_sram_pairs_equal") is (not bool(unequal_sram)) and
-            handoff.get("all_original_native_full_wram_pairs_equal") is (not bool(handoff_wram_unequal)),
-            "producer Zoo next-Bowl aggregate hides actual raw guest differences")
+            handoff.get("all_original_native_full_wram_pairs_equal") is (not bool(handoff_wram_unequal)) and
+            handoff.get("all_triplet_named_states_equal") is all(triplet_equal) and
+            handoff.get("zoo_rank0_2510_and_checksum_preserved_every_sample") is all(earned_valid) and
+            handoff.get("fresh_reference_next_bowl_entry_offset") == fresh_entry["original"] and
+            handoff.get("fresh_native_next_bowl_entry_offset") == fresh_entry["native"],
+            "producer Zoo next-Bowl aggregate hides actual raw guest differences or earned record")
     return {
         "schema": SCHEMA,
         "producer_sha256": digest(raw_producer),
@@ -204,6 +261,11 @@ def audit(root: Path) -> dict:
         "next_bowl_full_wram_and_sram_pairs_rehashed": len(BOWL_OFFSETS),
         "next_bowl_wram_unequal_offsets": handoff_wram_unequal,
         "next_bowl_sram_unequal_offsets": unequal_sram,
+        "zoo_13_dense_sound_direct_page_raw_records_rechecked": len(dense_bytes),
+        "zoo_sound_pointer_disagreement_offsets": disagree,
+        "all_source_earned_zoo_rank0_2510_and_full_checksums_valid": all(earned_valid),
+        "fresh_source_verified_bowl_entry_offsets": fresh_entry,
+        "source_movie_named_states_producer_only": True,
         "source_movie_raw_memory_rehashed": False,
         "all_frame_cpu_spc_gameplay_equivalence_proven": False,
         "exact_windows_shipping_candidate_proven": False,

@@ -15,6 +15,24 @@ import qa01_event_primary_artifact_audit as receipts
 
 def producer(case: str, *, matched: bool) -> dict:
     rel = 5163
+    frames = [0, 1, 2, 4, 8, 16, 32, 100]
+    original_rows = [
+        {"relative_frame": f, "menu": 0x16, "p1_laps": 2, "in_race": 1}
+        for f in frames
+    ]
+    native_rows = [dict(row) for row in original_rows]
+    if not matched:
+        native_rows[-1]["p1_laps"] = 1
+    first = None if matched else {
+        "relative_frame": 100, "fields": ["p1_laps"],
+        "reference": {"p1_laps": 2},
+        "native": {"p1_laps": 1},
+    }
+    terminal = {
+        "onset": {"menu": 0x18, "in_race": 0x3C},
+        "result": {"menu": 0x18, "in_race": 0x3C},
+        "result_text": {"final": ["MIKE", "123"]},
+    }
     return {
         "schema_version": 1, "name": case,
         "course_id": campaign.CASES[case]["course_id"],
@@ -26,15 +44,24 @@ def producer(case: str, *, matched: bool) -> dict:
             "original_result_frame": 3190 + rel,
             "source_active_frames_to_result": rel,
         },
+        "relative_sample_frames": frames,
+        "reference": {"samples": original_rows, **terminal},
+        "native": {"samples": native_rows, **terminal},
+        "original_source_vs_fresh_entry": {
+            "fresh_reference_native_equivalent": True,
+            "source_original_state_equivalent": True,
+        },
         "reference_entry": 984, "native_entry": 986, "native_frame_shift": 2,
         "comparison": {
             "paired_event_candidate": matched,
+            "fresh_guest_entry_equivalent": True,
+            "original_source_entry_equivalent": True,
             "terminal_result_frame_matched": matched,
             "terminal_result_guest_frame": {
                 "reference_relative": rel,
                 "native_relative": rel if matched else rel - 1,
             },
-            "first_sample_disagreement": None if matched else {"relative_frame": 100},
+            "first_sample_disagreement": first,
             **{gate: True for gate in campaign.STRICT_PRODUCER_GATES},
             "diagnostic_exit_success_without_full_event_parity": False,
         },
@@ -81,6 +108,29 @@ class PrimaryArtifactAuditTest(unittest.TestCase):
         self.assertTrue(observed["primary_artifact_audit_complete"])
         self.assertEqual(observed["cases"][0]["disposition"], "strict_divergence")
         self.assertEqual(observed["release_admissions"], 0)
+
+    def test_unrecorded_sample_is_invalid_even_with_rehashed_coherent_receipt(self):
+        altered = campaign.load_json(self.primary)
+        altered["native"]["samples"].pop()
+        campaign.write_json(self.primary, altered)
+        # Existing campaign transport classifier consumes derived predicates;
+        # the primary-artifact checker must reject omitted raw observations.
+        row = campaign.classify("bowl", 0, self.primary, self.plan)
+        campaign.write_json(self.receipt, row)
+        observed = self.inspect()
+        self.assertFalse(observed["primary_artifact_audit_complete"])
+        self.assertIn("sample frames", observed["cases"][0]["reason"])
+
+    def test_forged_first_difference_is_invalid_even_when_rehashed(self):
+        self.put_case(matched=False)
+        altered = campaign.load_json(self.primary)
+        altered["comparison"]["first_sample_disagreement"]["reference"]["p1_laps"] = 123
+        campaign.write_json(self.primary, altered)
+        row = campaign.classify("bowl", 1, self.primary, self.plan)
+        campaign.write_json(self.receipt, row)
+        observed = self.inspect()
+        self.assertFalse(observed["primary_artifact_audit_complete"])
+        self.assertIn("first sampled divergence", observed["cases"][0]["reason"])
 
     def test_missing_primary_denied_even_when_summary_is_complete(self):
         self.primary.unlink()

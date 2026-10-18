@@ -22,6 +22,66 @@ def _failure(case: str, reason: str) -> dict:
     return {"case": case, "status": "invalid", "reason": reason}
 
 
+def validate_capture_population(report: dict) -> None:
+    """Inspect actual published observation rows, not their derived booleans.
+
+    Only completeness and the earliest *sampled* field difference are
+    re-evaluated here. Sparse frames do not prove unsampled execution.
+    """
+    offsets = report.get("relative_sample_frames")
+    if (not isinstance(offsets, list) or len(offsets) < 8
+            or any(type(f) is not int or f < 0 for f in offsets)
+            or offsets != sorted(set(offsets)) or offsets[0] != 0):
+        raise ValueError("missing, unordered, duplicate or invalid sampled frame population")
+    sides = []
+    for guest in ("reference", "native"):
+        capture = report.get(guest)
+        if not isinstance(capture, dict):
+            raise ValueError("missing original/native raw capture: " + guest)
+        samples = capture.get("samples")
+        if (not isinstance(samples, list) or len(samples) != len(offsets)
+                or any(not isinstance(row, dict) for row in samples)
+                or [row.get("relative_frame") for row in samples] != offsets):
+            raise ValueError("missing or misregistered original/native sample frames: " + guest)
+        for phase in ("onset", "result"):
+            state = capture.get(phase)
+            if (not isinstance(state, dict) or
+                    type(state.get("menu")) is not int or
+                    type(state.get("in_race")) is not int):
+                raise ValueError("missing observed guest terminal state: " + guest + "/" + phase)
+        texts = capture.get("result_text")
+        if (not isinstance(texts, dict)
+                or not isinstance(texts.get("final"), list)
+                or any(not isinstance(line, str) for line in texts["final"])):
+            raise ValueError("missing guest decoded source PPU result text: " + guest)
+        sides.append(samples)
+    first = None
+    for original, native in zip(*sides):
+        if set(original) != set(native):
+            raise ValueError("missing named original/native sample fields")
+        unequal = sorted(k for k in original if original[k] != native[k])
+        if unequal:
+            first = {
+                "relative_frame": original["relative_frame"],
+                "fields": unequal,
+                "reference": {k: original[k] for k in unequal},
+                "native": {k: native[k] for k in unequal},
+            }
+            break
+    comparison = report.get("comparison")
+    if not isinstance(comparison, dict) or comparison.get("first_sample_disagreement") != first:
+        raise ValueError("published first sampled divergence differs from raw captures")
+    baseline = report.get("original_source_vs_fresh_entry")
+    if (not isinstance(baseline, dict)
+            or any(type(baseline.get(key)) is not bool for key in (
+                "fresh_reference_native_equivalent", "source_original_state_equivalent"))
+            or comparison.get("fresh_guest_entry_equivalent") is not
+                baseline["fresh_reference_native_equivalent"]
+            or comparison.get("original_source_entry_equivalent") is not
+                baseline["source_original_state_equivalent"]):
+        raise ValueError("fresh entry equivalence contradicts source observations")
+
+
 def audit(plan: dict, results_dir: Path, aggregate_report: dict | None = None) -> dict:
     """Verify all selected primary reports, including source and case identity.
 
@@ -57,6 +117,7 @@ def audit(plan: dict, results_dir: Path, aggregate_report: dict | None = None) -
             sha = hashlib.sha256(primary.read_bytes()).hexdigest()
             if evidence.get("producer_sha256") != sha:
                 raise ValueError("primary producer report SHA-256 differs from case receipt")
+            validate_capture_population(campaign.load_json(primary))
             independently_derived = campaign.classify(
                 case, row["producer_exit_code"], primary, plan
             )

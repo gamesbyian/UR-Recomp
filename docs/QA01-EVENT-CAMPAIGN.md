@@ -234,8 +234,10 @@ missing primary source JSON. The aggregate job now runs the ROM-free,
 read-only `tools/qa01_event_primary_artifact_audit.py` on its already-downloaded
 case artifacts, with no extra emulator build, workflow trigger or runner.
 It checks the exact producer bytes against their recorded SHA-256,
-reclassifies each case from the primary report and compares the entire
-derived receipt. It also recomputes the published aggregate and rejects
+requires the full advertised original/native sampled-frame population,
+reconstructs the first sampled named-field divergence and fresh-entry
+equivalence from raw observation rows, reclassifies each case from the
+primary report and compares the entire derived receipt. It also recomputes the published aggregate and rejects
 unexpected case directories. The audit's separate JSON and job summary
 explicitly distinguish **verified transport only** from acceptance.
 

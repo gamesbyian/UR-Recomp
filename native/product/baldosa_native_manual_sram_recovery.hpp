@@ -254,13 +254,18 @@ inline BaldosaManualSramRecoveryStatus recover_baldosa_legacy_sram_explicit(
     if (typed_error || typed_size == 0 ||
         typed_size > kStockSramBytes * 2 + 1024)
         return Status::BusyOrIoError;
-    std::ifstream typed_in(typed, std::ios::binary);
-    if (!typed_in) return Status::BusyOrIoError;
-    std::string exact_typed_bytes{
-        std::istreambuf_iterator<char>(typed_in),
-        std::istreambuf_iterator<char>()};
-    if (typed_in.bad() || exact_typed_bytes.size() != typed_size)
-        return Status::BusyOrIoError;
+    std::string exact_typed_bytes;
+    {
+        // On Windows the ordinary ifstream handle does not share DELETE.
+        // It MUST close before the typed CAS below atomically replaces this
+        // same file. Keep no original typed file handle across publication.
+        std::ifstream typed_in(typed, std::ios::binary);
+        if (!typed_in) return Status::BusyOrIoError;
+        exact_typed_bytes.assign(std::istreambuf_iterator<char>(typed_in),
+                                 std::istreambuf_iterator<char>());
+        if (typed_in.bad() || exact_typed_bytes.size() != typed_size)
+            return Status::BusyOrIoError;
+    }
     if (!archive_baldosa_manual_sram_choice(
             root, *profile.state, exact_typed_bytes, !absent, raw_bytes))
         return Status::BusyOrIoError;

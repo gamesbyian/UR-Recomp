@@ -4,12 +4,14 @@ on:
     paths:
       - ".github/workflows/qa08-original-medal-active-obj-source.yml"
       - "tools/qa08_instrument_original_snes9x_medal_tile_calls.py"
+      - "tools/qa08_instrument_original_snes9x_medal_final_layers.py"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snes9x-libretro.json"
       - "tools/validate_island.py"
       - "third_party/manifest.json"
       - "third_party/src/snes9x-libretro/**"
       - "tests/unit/test_qa08_instrument_original_snes9x_medal_tile_calls.py"
+      - "tests/unit/test_qa08_instrument_original_snes9x_medal_final_layers.py"
       - "tests/input/qa08-original-medal-source-2014.script"
   workflow_dispatch:
 permissions:
@@ -40,6 +42,7 @@ jobs:
           python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
           echo "bddfb15fedbaba3fcb0e95e628f11e1506fd210d93f4be67c6e9855c705dd3db  tests/input/qa08-original-medal-source-2014.script" | sha256sum -c -
           python3 tests/unit/test_qa08_instrument_original_snes9x_medal_tile_calls.py
+          python3 tests/unit/test_qa08_instrument_original_snes9x_medal_final_layers.py
       - name: Prepare actual pinned Snes9x original and deterministic snesref
         shell: bash
         run: |
@@ -70,6 +73,8 @@ jobs:
           # Historical source is patched read-only in the CI worktree only.
           python3 tools/qa08_instrument_original_snes9x_medal_tile_calls.py "$SRC/gfx.cpp"
           python3 tools/qa08_instrument_original_snes9x_medal_tile_calls.py "$SRC/gfx.cpp" --apply
+          python3 tools/qa08_instrument_original_snes9x_medal_final_layers.py "$SRC/gfx.cpp"
+          python3 tools/qa08_instrument_original_snes9x_medal_final_layers.py "$SRC/gfx.cpp" --apply
           make -C "$SRC/libretro" -j2
           test -s "$SRC/libretro/snes9x_libretro.so"
           test "$(git -C baldosa rev-parse HEAD)" = "10b864b9d14a7b7416dd909eb7b054c88faef101"
@@ -96,10 +101,17 @@ jobs:
           grep '^UR_QA08_ORIGINAL_ACTIVE_MEDAL_TILE ' \
             "$RUNNER_TEMP/qa08-original-medal/original.log" \
             > "$RUNNER_TEMP/qa08-original-medal/active-tile-candidates.log" || true
+          grep '^UR_QA08_ORIGINAL_MEDAL_LAYER ' \
+            "$RUNNER_TEMP/qa08-original-medal/original.log" \
+            > "$RUNNER_TEMP/qa08-original-medal/original-layer-stages.log" || true
+          test -s "$RUNNER_TEMP/qa08-original-medal/original-layer-stages.log"
+          printf 'Actual original layer source records: '
+          wc -l < "$RUNNER_TEMP/qa08-original-medal/original-layer-stages.log"
           printf 'Actual original sprite-call source records: '
           wc -l < "$RUNNER_TEMP/qa08-original-medal/active-tile-candidates.log"
           sha256sum "$RUNNER_TEMP/qa08-original-medal/dumps/end.wram.bin" \
-            "$RUNNER_TEMP/qa08-original-medal/active-tile-candidates.log"
+            "$RUNNER_TEMP/qa08-original-medal/active-tile-candidates.log" \
+            "$RUNNER_TEMP/qa08-original-medal/original-layer-stages.log"
           echo "Source-only original 2014 Snes9x sprite tile CALLS, not adjudicated native same-frame winners or physical output." >> "$GITHUB_STEP_SUMMARY"
       - name: Retain genuine original 2014 source call bytes
         if: always()
@@ -111,5 +123,6 @@ jobs:
           path: |
             ${{ runner.temp }}/qa08-original-medal/original.log
             ${{ runner.temp }}/qa08-original-medal/active-tile-candidates.log
+            ${{ runner.temp }}/qa08-original-medal/original-layer-stages.log
             ${{ runner.temp }}/qa08-original-medal/dumps/end.info.json
             ${{ runner.temp }}/qa08-original-medal-core.sha256

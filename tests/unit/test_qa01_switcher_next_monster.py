@@ -68,7 +68,7 @@ class NextMonsterTest(unittest.TestCase):
             witness.source_next_monster(self.states,dict(self.source_event,
                                                  original_result_frame=17031))
         states=dict(self.states)
-        for i in range(330,338):
+        for i in range(330,350):
             states[17030+i]=dict(self.states[17030+i],in_race=0)
         with self.assertRaisesRegex(witness.SwitcherMonsterError,"missing/ambiguous"):
             witness.source_next_monster(states,self.source_event)

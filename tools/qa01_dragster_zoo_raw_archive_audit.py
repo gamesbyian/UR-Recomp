@@ -74,6 +74,78 @@ def sha_file(path: Path) -> str:
     return h.hexdigest()
 
 
+
+def movie_states_from_actual_trace(path: Path) -> dict[int, dict]:
+    """Replay original WRAM writes for the complete result→Zoo source window.
+
+    Frame counters in this archived original write trace are the source's
+    own `f` domain. They must not be equated to fresh guest frame clocks.
+    This is not a second original emulator or a fabricated original image.
+    """
+    require(path.is_file() and not path.is_symlink(),
+            "missing genuine 2014 source memory-write trace")
+    start, finish = MOVIE_RESULT, MOVIE_ZOO + 7
+    wanted = range(start, finish + 1)
+    values = {at: 0 for at in NAME_ADDR.values()}
+    matched = {
+        b'"adr":"0x0009f"': 0x9F,
+        b'"adr":"0x000ce"': 0xCE,
+        b'"adr":"0x00313"': 0x313,
+        b'"adr":"0x000d0"': 0xD0,
+    }
+    out: dict[int, dict] = {}
+    frame = None
+
+    def hold(stop: int) -> None:
+        if frame is None:
+            return
+        for n in wanted:
+            if frame <= n < stop and n not in out:
+                out[n] = {k: values[address] for k, address in NAME_ADDR.items()}
+
+    with path.open("rb") as stream:
+        for line in stream:
+            match = next((addr for needle, addr in matched.items() if needle in line), None)
+            if match is None:
+                continue
+            row = json.loads(line)
+            f = row["f"]
+            require(type(f) is int and f >= 1 and
+                    (frame is None or f >= frame),
+                    "source movie trace frame order not monotonic")
+            if frame is not None and f > frame:
+                hold(f)
+            frame = f
+            require(int(row["adr"], 16) == match,
+                    "source trace writer address mismatched")
+            values[match] = int(row["val"], 16)
+    require(frame is not None and frame >= finish,
+            "original source trace ends before eight active Zoo frames")
+    hold(finish + 1)
+    require(len(out) == len(wanted),
+            "gaps in original 2014 source frame-state reconstruction")
+    return out
+
+
+def verify_source_movie(source: dict, trace: dict[int, dict]) -> None:
+    require(trace[MOVIE_RESULT]["menu"] == 0x99 and
+            trace[2935]["track"] == 1 and trace[2935]["in_race"] == 0,
+            "historical Dragster result or Zoo selection false")
+    require(not active_zoo(trace[MOVIE_ZOO - 1]) and
+            all(active_zoo(trace[f]) for f in range(MOVIE_ZOO, MOVIE_ZOO + 8)),
+            "original movie does not actually enter eight consecutive Zoo frames")
+    for f in range(MOVIE_RESULT + 1, MOVIE_ZOO):
+        if active_zoo(trace[f]) and all(
+                active_zoo(trace.get(f + k, {})) for k in range(8)):
+            require(False, "earlier source Zoo active race omitted")
+    for offset in OFFSETS:
+        row = source["source_samples"][str(offset)]
+        movie_frame = MOVIE_RESULT + offset
+        require(row.get("original_movie_host_frame") == movie_frame and
+                all(row.get(k) == trace[movie_frame][k] for k in NAME_ADDR),
+                "producer historical movie state contradicts real WRAM source trace")
+
+
 def audit(root: Path) -> dict:
     report_path = root / "dragster-report.json"
     proof_path = root / "dragster/source/dragster-next-zoo-original.json"
@@ -114,6 +186,8 @@ def audit(root: Path) -> dict:
     require(isinstance(trace_sha, str) and
             trace_sha == sha_file(root / "dragster/source/trace.jsonl"),
             "original 2014 source raw trace digest differs from proof")
+    movie_trace_states = movie_states_from_actual_trace(root / "dragster/source/trace.jsonl")
+    verify_source_movie(proof, movie_trace_states)
     result = report.get("comparison")
     require(isinstance(result, dict) and result.get("paired_event_candidate") is False and
             result.get("terminal_result_frame_matched") is False and
@@ -231,6 +305,8 @@ def audit(root: Path) -> dict:
 
     return {"schema": SCHEMA, "producer_sha256": digest(report_path.read_bytes()),
             "historical_source_trace_sha256": trace_sha,
+            "full_source_result_to_zoo_raw_trace_movie_frames_rebuilt": len(movie_trace_states),
+            "source_2014_8_consecutive_zoo_active_frames_rederived": True,
             "all_14_pairs_rehashed_from_actual_guest_bytes": True,
             "paired_wram_byte_occurrences": sum(x["unmasked_wram_differing_bytes"] for x in differences),
             "paired_sram_byte_occurrences": sum(x["sram_differing_bytes"] for x in differences),

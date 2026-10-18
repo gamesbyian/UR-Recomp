@@ -30,6 +30,7 @@ JSONS = (
 )
 MEMBERS = BINARIES | set(LOGS) | set(JSONS)
 HASH64 = re.compile(r"[0-9a-f]{64}\Z")
+COMMIT = re.compile(r"[0-9a-f]{40}\Z")
 TYPED = re.compile(rb"(?m)^stock_sram=([0-9a-f]{16384})\r?$")
 
 
@@ -56,10 +57,12 @@ def audit(
     expected_fixture: str,
     expected_rom: str,
 ) -> dict:
+    must(type(expected_source) is str and
+         COMMIT.fullmatch(expected_source) is not None,
+         "expected exact 40-character tested Git commit")
     for name, value in (
-        ("artifact", original_artifact_sha), ("source", expected_source),
-        ("CMD", expected_cmd), ("native fixture", expected_fixture),
-        ("USA ROM", expected_rom),
+        ("artifact", original_artifact_sha), ("CMD", expected_cmd),
+        ("native fixture", expected_fixture), ("USA ROM", expected_rom),
     ):
         must(type(value) is str and HASH64.fullmatch(value) is not None,
              "missing explicit independent " + name + " identity")

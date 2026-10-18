@@ -74,10 +74,59 @@ def analyze(original:str)->dict:
         "USA_complete_events_admitted":0,
     }
 
+def source_instruction_publication_link(original:str)->dict:
+    """Bind real APU records only when within the executed LDA->STA log segment.
+
+    RF050 runs in S9xAPUWritePort after the real port write; RF049 prints
+    after the same 65816 opcode. No ICPU.Frame variable is imported into
+    apu.cpp. The authoritative original stream's contiguous instruction
+    ordering is an independent linkage discriminator.
+    """
+    lines=original.splitlines()
+    ld=[(i,parse(line)) for i,line in enumerate(lines)
+        if line.startswith("QA01RF049LDA ") and "ea=11C774" in line]
+    st=[(i,parse(line)) for i,line in enumerate(lines)
+        if line.startswith("QA01RF049STA ") and "target=1" in line]
+    if len(ld)!=1 or len(st)!=2 or not(ld[0][0]<st[0][0]<st[1][0]):
+        raise ValueError("RF050 source LDA/STA instruction-boundary identity missing")
+    windows=[(ld[0][0],st[0][0],3,"D0"),(st[0][0],st[1][0],2,"63")]
+    events=[]
+    for before,after,port,value in windows:
+        rows=[(i,parse(line)) for i,line in enumerate(lines[before+1:after],before+1)
+              if line.startswith(TAG)]
+        if len(rows)>1:raise ValueError("multiple source APU publications between one original opcode pair")
+        if not rows:
+            events.append({"preceding_source_log_line":before,
+                           "source_STA_completion_log_line":after,
+                           "real_APU_publication_captured_inside_instruction":False,
+                           "missing_coverage_is_not_no_publication":True})
+            continue
+        line_idx,row=rows[0]
+        if (row.get("port"),row.get("val"))!=(str(port),value):
+            raise ValueError("intervening original APU port/value does not match actual STA")
+        events.append({"preceding_source_log_line":before,
+                       "real_original_APU_publication_log_line":line_idx,
+                       "source_STA_completion_log_line":after,
+                       "real_APU_publication_captured_inside_instruction":True,
+                       "source_SPC_age":int(row["age"]),
+                       "source_CPU_V":int(row["v"]),
+                       "source_CPU_H":int(row["h"]),
+                       "port":port,"value":value})
+    return {
+       "late_original_11C774_instruction":ld[0][1],
+       "late_original_STA_source_row_numbers":[x[0] for x in st],
+       "source_original_STA_to_actual_APU_publications":events,
+       "both_real_port_publications_inside_original_instruction_segments":
+           all(x["real_APU_publication_captured_inside_instruction"] for x in events),
+       "native_host_clock_registered":False,
+       "SPC_receiver_ack_for_late_original_publication_proven":False,
+    }
+
 def report(case:Path,rf047_baseline:Path)->dict:
     with zipfile.ZipFile(case) as z:
         orig=z.read(REF).decode("utf8","replace")
     audit=analyze(orig)
+    audit["original_instruction_to_live_APU_source_order"]=source_instruction_publication_link(orig)
     prior=rf049.report(case,rf047_baseline)
     audit["source_full_operand_census"]={
         k:prior[k] for k in

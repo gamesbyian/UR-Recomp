@@ -65,7 +65,117 @@
     "source_equivalent_all_frame_CPU_instruction_clock_parity_proven": false,
     "timing_fix_justified": false,
     "mask_stack_allowed": false,
-    "whole_USA_events_accepted": 0
+    "whole_USA_events_accepted": 0,
+    "later_17_preceding_original_NMI_pushes_observed": false,
+    "twenty_four_byte_status_PC_shapes_prove_NMI_causality": false
   },
-  "next": "Compare actual Snes9x PushB/PushW/PullB/PullW execution, true interrupt entry/RTI and native NMI entry/exit in calibrated host1017..1025; correlate with exact full WRAM checkpoints, never infer from matching pre/post values alone."
+  "next": "Compare actual Snes9x PushB/PushW/PullB/PullW execution, true interrupt entry/RTI and native NMI entry/exit in calibrated host1017..1025; correlate with exact full WRAM checkpoints, never infer from matching pre/post values alone.",
+  "source_original_twenty_four_byte_image_histogram": {
+    "26F0D482": 1,
+    "26EED482": 4,
+    "27F0D482": 10,
+    "27EED482": 5
+  },
+  "source_original_twenty_NMI_shaped_samples": [
+    {
+      "relative_frame": 1,
+      "source_original_stack_image": "26F0D482",
+      "preceding_original_NMI_executed_record_available": true
+    },
+    {
+      "relative_frame": 2,
+      "source_original_stack_image": "26EED482",
+      "preceding_original_NMI_executed_record_available": true
+    },
+    {
+      "relative_frame": 4,
+      "source_original_stack_image": "26EED482",
+      "preceding_original_NMI_executed_record_available": true
+    },
+    {
+      "relative_frame": 32,
+      "source_original_stack_image": "26EED482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 219,
+      "source_original_stack_image": "26EED482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 604,
+      "source_original_stack_image": "27F0D482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 840,
+      "source_original_stack_image": "27F0D482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 841,
+      "source_original_stack_image": "27F0D482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 1080,
+      "source_original_stack_image": "27F0D482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 1531,
+      "source_original_stack_image": "27F0D482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 1532,
+      "source_original_stack_image": "27EED482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 1720,
+      "source_original_stack_image": "27F0D482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 1721,
+      "source_original_stack_image": "27EED482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 1800,
+      "source_original_stack_image": "27F0D482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 2160,
+      "source_original_stack_image": "27F0D482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 2520,
+      "source_original_stack_image": "27F0D482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 2880,
+      "source_original_stack_image": "27EED482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 3120,
+      "source_original_stack_image": "27EED482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 3600,
+      "source_original_stack_image": "27EED482",
+      "preceding_original_NMI_executed_record_available": false
+    },
+    {
+      "relative_frame": 4920,
+      "source_original_stack_image": "27F0D482",
+      "preceding_original_NMI_executed_record_available": false
+    }
+  ]
 }

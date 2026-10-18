@@ -169,5 +169,52 @@
     "release_gates": 0
   },
   "next_precise_CPU_causality_target": "Observe actual first original guest 65816 predicate/opcode or input-read leading into the 31-byte mutation at original result +339→340, versus native +342→343. Determine whether 7E:00C6/00C8, controller transport, or independent instruction/beam phase affects the real branch; do not assume cosmetic counters causal or rephase inputs. Preserve distinct source-movie/fresh-original/native clocks, all full memory and earned SRAM.",
-  "owner_boundary": "Research/CPU-original gameplay only; QA/alternative-event lane independently owns event source inputs, acceptance, ledger, Modern and graphics."
+  "owner_boundary": "Research/CPU-original gameplay only; QA/alternative-event lane independently owns event source inputs, acceptance, ledger, Modern and graphics.",
+  "historical_movie_separate_execution_transition_triples": [
+    {
+      "source_movie_result_offsets": [
+        340,
+        341
+      ],
+      "movie_original_full_WRAM_change_triples": 31,
+      "fresh_original_result_offsets": [
+        339,
+        340
+      ],
+      "fresh_and_native_exact_triples": 31,
+      "common_movie_fresh_native_three_field_triples": 22,
+      "reason_boundary": "2014 movie is a different execution state history; source NMI stack and sound queue contain distinct values"
+    },
+    {
+      "source_movie_result_offsets": [
+        341,
+        342
+      ],
+      "movie_original_full_WRAM_change_triples": 644,
+      "fresh_original_result_offsets": [
+        340,
+        341
+      ],
+      "fresh_and_native_exact_triples": 642,
+      "common_movie_fresh_native_three_field_triples": 637
+    },
+    {
+      "source_movie_result_offsets": [
+        342,
+        343
+      ],
+      "movie_original_full_WRAM_change_triples": 222,
+      "fresh_original_result_offsets": [
+        341,
+        342
+      ],
+      "fresh_guest_change_triples": 220,
+      "native_result_offsets": [
+        344,
+        345
+      ],
+      "native_guest_change_triples": 219,
+      "common_movie_fresh_native_three_field_triples": 216
+    }
+  ]
 }

@@ -1,0 +1,49 @@
+{
+  "schema": "rf051-pre-run-source-native-writer-clock-projection-v1",
+  "input_source": {
+    "original_native_raced_case_artifact": 12131342408,
+    "case_sha256": "b6538eb1e1a9b51996690b4baa1303037f8b9f417eaaa5d2189cc6d33c2b4fbd",
+    "source_sha": "0c7c17e8a1c0a345256b23667f71bf01af0d01c1",
+    "original_log": "work/zoom-zoo/replay/reference.log",
+    "native_log": "work/zoom-zoo/replay/native.log"
+  },
+  "baseline_matching_writer_ordinal": 42931,
+  "baseline_source_SPC_age": 104162887,
+  "baseline_native_master_cycle": 2181986178,
+  "baseline_native_host_frame": 6105,
+  "source_late_real_S9xAPUWritePort_first_age": 104485254,
+  "nominal_SPC_per_native_master_ratio": [
+    15664,
+    328125
+  ],
+  "source_local_SPC_delta_from_matched_writer": 322367,
+  "projected_native_master_delta_from_nominal_ratio": 6752851.881703268,
+  "projected_native_master_clock": 2188739029.8817034,
+  "nominal_native_frame_master_clocks": 357368,
+  "projected_native_host_frame_from_one_anchor": 6123.8960731842335,
+  "source_original_writer_prefix_count": 45645,
+  "native_observed_writer_prefix_count": 56041,
+  "matched_original_native_ordinal_segment": [
+    42931,
+    45644
+  ],
+  "matched_segment_original_native_local_master_residual_relative_to_ordinal_42931": {
+    "at_45644": 9.687308478052728,
+    "observed_min": -136.70767364656786,
+    "observed_max": 17.777323799789883,
+    "observed_median": -13.665506894780265,
+    "original_source_age_at_segment_end": 104199985,
+    "qualification": "Validated residuals refer to observed matched ordinal segment only; no extrapolated bound to late age104485254, no native receiver phase proof"
+  },
+  "unobserved_source_age_gap_from_last_matched_writer_to_late_source_publish": 285269,
+  "conclusion": {
+    "motivates_broad_native_host_6110_to_6140_capture": true,
+    "absolute_original_native_clock_equivalence_proven": false,
+    "matched_native_late_sound_transaction_proven": false,
+    "receiver_phase_or_port_delivery_proven": false,
+    "native_guest_frame_6124_is_diagnostic_projection_only": true,
+    "runtime_clock_patch_justified": false,
+    "complete_accepted_USA_events": 0
+  },
+  "source_basis": "tools/qa01_rf037_port_clock_crosswalk.py nominal 15664/328125 SPC per native master, real RF037 original and RtlApuWrite writer ordinal data from exact RF050 archived logs"
+}

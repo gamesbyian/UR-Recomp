@@ -189,8 +189,8 @@ def audit(root: Path) -> dict:
             unequal_sram.append(offset)
         if not pair["byte_exact"]:
             handoff_wram_unequal.append(offset)
-    require(handoff.get("all_original_native_full_sram_pairs_equal") is not bool(unequal_sram) and
-            handoff.get("all_original_native_full_wram_pairs_equal") is not bool(handoff_wram_unequal),
+    require(handoff.get("all_original_native_full_sram_pairs_equal") is (not bool(unequal_sram)) and
+            handoff.get("all_original_native_full_wram_pairs_equal") is (not bool(handoff_wram_unequal)),
             "producer Zoo next-Bowl aggregate hides actual raw guest differences")
     return {
         "schema": SCHEMA,

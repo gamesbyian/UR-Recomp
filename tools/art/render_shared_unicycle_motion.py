@@ -14,6 +14,11 @@ from pathlib import Path
 import subprocess
 
 try:
+    from .common_silhouette_preview import common_pose_crop
+except ImportError:
+    from common_silhouette_preview import common_pose_crop
+
+try:
     from .render_shared_unicycle_review import (inspect_model, require_clean_border,
                                               occupied_bounds, MIN_BORDER_PIXELS)
 except ImportError:
@@ -82,6 +87,11 @@ def render(model: Path, out: Path, openscad="openscad", xvfb=False, steps=STEPS)
              Image.open(out/f"{mode}-{steps:02d}.png") as last:
             if ImageChops.difference(first.convert("RGB"), last.convert("RGB")).getbbox():
                 raise ValueError("animated rig loop has discontinuous rendered endpoints")
+    # One crop across BOTH motion modes and ALL frames, never a per-frame
+    # camera fit. At 32px preview the RACER occupies the image rather than
+    # shrinking the entire 320px authoring viewport to 32px.
+    sprite_crop = common_pose_crop([row["silhouette_bbox"] for row in actual],
+                                   RENDER_SIZE, RENDER_SIZE)
     tile_w, row_h = 170, 252
     sheet = Image.new("RGB", ((steps+1)*tile_w, 2*row_h+55), "#f0f1f4")
     draw = ImageDraw.Draw(sheet)
@@ -96,8 +106,10 @@ def render(model: Path, out: Path, openscad="openscad", xvfb=False, steps=STEPS)
                 full = im.convert("RGB").resize((160,160), Image.Resampling.LANCZOS)
             sheet.paste(full,(x,y+34))
             draw.text((x,y+194),f"t={i/steps:.3f}",fill="#111")
-            sheet.paste(full.resize((32,32), Image.Resampling.LANCZOS),
-                        (x,y+210))
+            with Image.open(out/f"{mode}-{i:02d}.png") as source_im:
+                sprite_thumbnail = source_im.convert("RGB").crop(sprite_crop).resize(
+                    (32,32), Image.Resampling.LANCZOS)
+            sheet.paste(sprite_thumbnail,(x,y+210))
     draw.text((8,sheet.height-30),
               "UNAPPROVED MODEL | CONTINUOUS RIG ONLY | NOT SOURCE-REGISTERED OR IN GAME",
               fill="#111")
@@ -112,6 +124,10 @@ def render(model: Path, out: Path, openscad="openscad", xvfb=False, steps=STEPS)
         "source_animation_samples_per_mode": steps+1,
         "all_complete_320_square_pixel_frames": True,
         "all_source_model_unclipped": True,
+        "normal_size_preview_px": 32,
+        "normal_size_preview_common_crop_all_modes": list(sprite_crop),
+        "normal_size_preview_per_frame_autofit": False,
+        "normal_size_preview_owner_approved": False,
         "two_continuous_motion_loops_pixel_exact_at_endpoints": True,
         "frames": actual,
         "original_gameplay_stunt_kinematics_proven": False,

@@ -1,0 +1,106 @@
+{
+  "schema": "UR-QA01-INDEPENDENT-FOUR-ARCHIVE-RF054/1",
+  "review_date": "2026-10-18",
+  "provenance": {
+    "repository": "gamesbyian/UR-Recomp",
+    "workflow_run_id": 39161563837,
+    "source_commit": "7334a568f52ea390ae5866d3ee132e392635a186",
+    "run_conclusion": "success",
+    "auditor": "independent exact downloaded-archive ZIP/SHA/producer-log review"
+  },
+  "artifacts": [
+    {
+      "role": "plan",
+      "id": 12148524493,
+      "zip_sha256": "0a08ef3aecdce65f6291db70c65198f53d760eaadfc9b489718c7e5e37d945c3",
+      "zip_bytes": 439,
+      "members": 1
+    },
+    {
+      "role": "binaries",
+      "id": 12149460639,
+      "zip_sha256": "b26a78f82cc4fb4d7f3781e6c5f41ab42cd6b853ff4af97fecd71792e14cce7a",
+      "zip_bytes": 6498971,
+      "members": 4
+    },
+    {
+      "role": "case",
+      "id": 12149640496,
+      "zip_sha256": "3ccb209a92045e9e89113442e68af51b85a453a160a9b9efaf8ca0d59e79631c",
+      "zip_bytes": 4317230,
+      "members": 18
+    },
+    {
+      "role": "aggregate",
+      "id": 12149212195,
+      "zip_sha256": "0f0b4d90e1fd48e10fb550c7908343932592054aeb87e9245998dbdd6d2d7983",
+      "zip_bytes": 2011,
+      "members": 1
+    }
+  ],
+  "byte_recomputed_checks": {
+    "all_four_downloaded_zip_sha256_match_provider": true,
+    "manifest_exact_file_names": [
+      "snesref",
+      "native",
+      "snes9x_libretro.so"
+    ],
+    "manifest_byte_rehashed_and_matches_all_three_compiled_files": true,
+    "compiled_snesref_sha256": "5fb3cca1f51d13762e7b82e736133cdab702aafbca07b9164d568139a3bcc18a",
+    "compiled_native_sha256": "7509b0954fb91c5c28d8b97b3ae8a3a291871f926ee84cab3485b4e8a56fe60e",
+    "compiled_snes9x_core_sha256": "dfc915fad56acf1992f0a87a5fd55c1ed232c90deae2eba41ef95b9c901180fc",
+    "producer_json_sha256": "0984aaa3af9096c75d0834e26834293f20fd0098c9411a5c9308e35f9ec45133",
+    "producer_sha_matches_case_receipt": true,
+    "native_and_core_byte_hashes_match_producer": true,
+    "case_receipt_deep_equal_to_original_aggregate_case": true,
+    "plan_case_aggregate_source_commit_identical": true,
+    "plan_sha256_identical_all_receipts": "35409c1773ff083254e9aea486125e5d00a360586cbdb8328a57ffdaaf34d120",
+    "source_movie_sha256_recorded_not_source_smv_bytes_rehashed": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "usa_rom_sha256_recorded_not_rom_bytes_rehashed": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
+  },
+  "actual_original_native_guest_log_observations": {
+    "source_2014_entry_movie_frame": 3190,
+    "source_2014_result_movie_frame": 8353,
+    "original_guest_entry_host_frame": 1017,
+    "native_guest_entry_host_frame": 1017,
+    "sampled_wram_checkpoint_acknowledgments_per_guest": 78,
+    "all_guest_mesh_dump_tags_unique_and_at_reported_actual_host_frames": true,
+    "source_original_guest_result_onset_host_frame": 6180,
+    "native_guest_result_onset_host_frame": 6180,
+    "both_guest_result_stable_host_frame": 6186,
+    "both_guest_next_bowl_active_host_frame": 6447,
+    "source_movie_next_bowl_frame": 8620,
+    "both_guest_next_bowl_result_relative_offset": 267,
+    "sampled_guest_controller_consumed_port_values_verified": false
+  },
+  "published_producer_difference_census_recalculated_from_captured_json_not_raw_wram": {
+    "checkpoint_pairs": 78,
+    "checkpoint_pairs_reported_full_wram_128k": true,
+    "byte_exact_pairs": 51,
+    "nonexact_pairs": 27,
+    "differing_byte_occurrences": 92,
+    "all_published_differing_byte_occurrences_have_individual_reported_offset_and_values": true,
+    "differing_address_occurrences": {
+      "7E:0063": 2,
+      "7E:01ED": 20,
+      "7E:01EE": 25,
+      "7E:01EF": 20,
+      "7E:01F0": 20,
+      "7E:01F1": 5
+    },
+    "next_bowl_8192_sram_pairs_reported_equal": 11,
+    "recomputed_directly_from_raw_original_native_memory_bytes": false,
+    "archive_contains_raw_128k_wram_slices": false,
+    "archive_contains_raw_8192_sram_slices": false
+  },
+  "decision": {
+    "bounded_producer_transport_and_executed_frame_acknowledgments_verified": true,
+    "complete_cpu_spc_logic_tick_causality_proven": false,
+    "all_frame_gameplay_equivalence_proven": false,
+    "windows_shipping_executable_source_identity_proven": false,
+    "real_windows_on_disk_cold_persistence_proven": false,
+    "independent_complete_usa_event": "HOLD",
+    "accepted_usa_events": 0,
+    "release_qa_gates": 0
+  }
+}

@@ -29,3 +29,21 @@ Original Dragster Race result is source **+2080**, fresh Snes9x **+2081**, nativ
 ## Qualifying original player-created ranked-record cold loading
 
 A second narrow test on the same code lane now reuses the already validated Bowl/Zoo original/native cold-guest transport and imports the **actual captured post-Dragster +336 SRAM** for each guest without manufacturing `2508` bytes. It verifies exact canonical movie/window/controller/ROM/core/native hashes, complete ranked table and checksum at the seed, then independently restarts original Snes9x and Baldosa and rechecks the entire 150-course ranked table and holder bytes at cold guest boot +300 and +420. As with Bowl's analogous proof, this is **memory-seeded guest reload**, not actual Windows file publication/power-failure/corruption handling. The additional supplied `ref.input`, `pinned-baldosa.input`, `complete.script`, source-entry raw image and all actual guest checkpoint raw memory files are retained for later independent QA reauthentication, because the first execution archive did not contain every supplied controller file. This new cold-stage result remains **pending actual execution**; no credit may be inferred from its synthetic unit tests.
+
+## Same-absolute-guest-host crosswalk (no new emulator run)
+
+The true [run 39175660355](https://github.com/gamesbyian/UR-Recomp/actions/runs/39175660355) source `22c1eee15d5e2c84a6edb6bfcf8fc3a91d6e06f9` retained all existing original/native guest WRAM/SRAM handoff images and the supplied input/script files. The original archive (artifact **12154088792**, SHA256 `9c2e7e91a8cc76f4ce87aabbea6bf44adbd1f0979f50c4496a42b3e8e60ed223`) was rehashed and its guest log acknowledgments and per-image SHA256 values rechecked. The new read-only `tools/qa01_dragster_same_host_archive.py` independently re-pairs original and native at **one identical absolute fresh-guest host frame** wherever the existing executed captures overlap. Original source movie frame numbers are never equated to these fresh guest host frames and no controller input is shifted. The test compares every one of 131072 WRAM and 8192 SRAM bytes with zero exclusions and rejects forged input archive hashes, guest dump times, memory hashes and onsets.
+
+| Same absolute fresh-guest host | Original result-relative capture | Native result-relative capture | Whole WRAM differing bytes | Whole SRAM differing bytes |
+|---:|---:|---:|---:|---:|
+| 3338 | +312 | +314 | 13 | 13 |
+| 3340 | +314 | +316 | 43 | 13 |
+| 3341 | +315 | +317 | 654 | 13 |
+| 3342 | +316 | +318 | 238 | 13 |
+| 3343 | +317 | +319 | 160 | 13 |
+| 3344 | +318 | +320 | 208 | 13 |
+| 3345 | +319 | +321 | 188 | 13 |
+
+Both guests are inactive at 3340. At **3341 only fresh original Snes9x is active in next Zoo**; at **3342 both are active**, with 238 genuine unmasked WRAM differences still present. Their *absolute* next-Zoo entry is fresh original 3341 versus native 3342, whereas source movie result-relative next-Zoo is +316, fresh original +315, native +318. A different guest-relative result onset (+2081/+2079) explains the difference between the two ways of expressing the frame delta. This is observation, **not** proof of any consumed CPU/SPC writer, synchronization shift or complete USA event. [Machine crosswalk receipt](../analysis/data/qa01-dragster-same-host-independent-crosswalk-20261018.json).
+
+The same genuine run 39175660355 reached its previous scored Dragster result and 14 next-Zoo source/raw samples, but the added cold-boot helper rejected the actual producer shape before starting any fresh guest: it incorrectly read `sample_offsets` from the bounded guest summary instead of `original_source_event.source_next_zoo`. That **harness contract** is corrected on this branch and regression-tested against a forged source-offset population. Run 39175660355 must remain a **cold-process nonexecution**, not a failed 2508 reload. Only a new real run can prove the corrected guest cold start; keep cold startup credit and 0/45 held until then.

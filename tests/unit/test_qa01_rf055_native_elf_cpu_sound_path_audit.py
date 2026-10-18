@@ -21,7 +21,8 @@ class RF055ELFAudit(unittest.TestCase):
             rf.inspect_elf_text(nm,asm.replace("mov    edx,0x2143","mov    edx,0x2144"))
         with self.assertRaisesRegex(ValueError,"competing helper"):
             rf.inspect_elf_text(nm,asm.replace(
-                "call   3e040 <cpu_read8_paced>","call   3e040 <cpu_read16_paced>"))
+                "6affff:\t90\tcall   3e040 <cpu_read8_paced>",
+                "6affff:\t90\tcall   3e040 <cpu_read16_paced>"))
     def make_real_bus_rows(self):
         rows=[]
         base=2188739002-491*250

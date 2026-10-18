@@ -1980,7 +1980,9 @@ def main(argv: list[str] | None = None) -> int:
         terminal_frames["reference_relative"], terminal_frames["native_relative"],
         observed_dump_frame=observed_dump_frame,
         decode_sram=decode_qa01_crawler_battery_sram,
-        audit_wram=audit_qa01_wram_pair)
+        audit_wram=audit_qa01_wram_pair,
+        switcher_payload=unpack_method1(streams[3][1]),
+        validate_course_payload=is_fully_loaded_course)
         if args.bowl_next_switcher else None)
     switcher_same_host_memory = (observe_switcher_same_host_memory_offsets(
         replay / "ref", replay / "native", switcher_same_host)

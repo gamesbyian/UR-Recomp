@@ -103,6 +103,41 @@ def evaluate(attestation: dict, causal: dict | None, frames: dict | None,
                      and independent.get("source_sha") == attestation["source_sha"]
                      and independent.get("source_memory_bytes_independently_recomputed_for_retained_frames") is True,
                      "missing independent raw image byte verification")
+    if independent is not None and frames is not None:
+        identity, extent = frames["source_identity"], frames["coverage"]
+        expected_window = {
+            "start": extent.get("start"), "end": extent.get("end"),
+            "required_frames": extent.get("required_frames"),
+            "observation_phase": identity.get("observation_phase"),
+            "original_frame_origin": identity.get("original_frame_origin"),
+            "native_frame_origin": identity.get("native_frame_origin"),
+        }
+        members = frames.get("raw_retained_members")
+        assert_valid(type(members) is list and all(
+            type(m) is dict and type(m.get("member")) is str for m in members),
+            "missing manifest of re-opened original/native raw bytes")
+        assert_valid(
+            independent.get("fingerprint_report_canonical_sha256") ==
+                frame_verifier.canonical_sha256(frames) and
+            independent.get("frame_source_identity") == identity and
+            independent.get("verified_relative_frame_window") == expected_window and
+            independent.get("retained_raw_manifest_canonical_sha256") ==
+                frame_verifier.canonical_sha256(sorted(
+                    members, key=lambda member: member["member"])) and
+            independent.get("verified_differing_byte_occurrences") ==
+                frames.get("full_unmasked_differing_byte_occurrences"),
+            "independent raw receipt belongs to a different frame report")
+    if causal is not None and frames is not None:
+        extent = frames["coverage"]
+        phase = frames["source_identity"].get("observation_phase")
+        assert_valid(causal.get("observation_phase") == phase and all(
+            type(causal.get(name)) is dict and
+            type(causal[name].get("checkpoint")) is int and
+            type(extent.get("start")) is int and
+            type(extent.get("end")) is int and
+            extent["start"] <= causal[name]["checkpoint"] <= extent["end"]
+            for name in ("original_window", "native_window")),
+            "causal checkpoint outside captured frame interval/phase")
     known = {
         "causal_report": causal is not None,
         "frame_report": frames is not None,

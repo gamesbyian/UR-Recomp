@@ -1,0 +1,71 @@
+{
+  "schema": "ur-qa01-genuine-original-rf071-getter-versus-frame-independent-receipt/1",
+  "date": "2026-10-19",
+  "genuine_source_execution_run_id": 39307624432,
+  "genuine_source_case_artifact_id": 12215281695,
+  "genuine_source_case_zip_sha256": "90b03d7e035c7a1939b488211b98165615e3fc63226fe57ac718fc7e3e772763",
+  "independent_archived_verification_run_id": 39312840489,
+  "independent_archived_verification_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39312840489",
+  "independent_verdict_artifact_id": 12216122314,
+  "independent_verdict_zip_sha256": "b97bccd7ae82d40c3c4acfe685f1298943e81a7964127a1c01db99db5359a758",
+  "independent_verdict_json_sha256": "c58099abbebc5597f01dc0020f271750f673c80d4caf61bbd4c159578490a8de",
+  "original_actual_getset_read_entries_with_unique_post_return_join": 903,
+  "original_getter_calls_crossing_own_video_scanline": 12,
+  "historical_original_controller_waveform_sha256": "4b17b2f7173428ce642f8e09431339c4e46607e85fe70c5998939a705a1fbcff",
+  "independently_reopened_raw_Wram_image_count": 6,
+  "raw_Wram_image_bytes": 131072,
+  "original_native_raw_byte_masks": 0,
+  "frames": [
+    {
+      "relative": 1,
+      "guest_host_original": 1018,
+      "guest_host_native": 1018,
+      "original_real_getset_read_operations_touching_differences": 74,
+      "real_getter_read_byte_observations": 104,
+      "original_script_dump_only": 3,
+      "native_script_dump_only": 6,
+      "neither_script_dump": 95
+    },
+    {
+      "relative": 2,
+      "guest_host_original": 1019,
+      "guest_host_native": 1019,
+      "original_real_getset_read_operations_touching_differences": 91,
+      "real_getter_read_byte_observations": 119,
+      "original_script_dump_only": 3,
+      "native_script_dump_only": 5,
+      "neither_script_dump": 111
+    },
+    {
+      "relative": 4,
+      "guest_host_original": 1021,
+      "guest_host_native": 1021,
+      "original_real_getset_read_operations_touching_differences": 97,
+      "real_getter_read_byte_observations": 128,
+      "original_script_dump_only": 3,
+      "native_script_dump_only": 5,
+      "neither_script_dump": 120
+    }
+  ],
+  "physical_addresses": [
+    "7E:01ED",
+    "7E:01EE",
+    "7E:01EF",
+    "7E:01F0"
+  ],
+  "totals": {
+    "source_real_getter_read_operations": 262,
+    "source_real_getter_read_byte_observations": 351,
+    "original_dump_only": 9,
+    "native_dump_only": 16,
+    "neither_dump": 326
+  },
+  "physical_original_getset_entry_byte_observation_proven": true,
+  "same_host_script_dump_comparable_to_read_phase_proven": false,
+  "source_getter_PC_is_decoded_opcode_fetch_PC_proven": false,
+  "actual_corresponding_native_executed_read_value_proven": false,
+  "first_original_native_consumed_causal_divergence_proven": false,
+  "independently_accepted_complete_USA_events": 0,
+  "Windows_release_QA_gates": 0,
+  "disposition": "HOLD; source original actual getter-entry is not replaceable with a separately sampled same-host WRAM script-dump"
+}

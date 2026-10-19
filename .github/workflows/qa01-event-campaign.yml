@@ -593,6 +593,48 @@ jobs:
               --out "$ROOT/qa01-apu-edge-report.json"
             echo 'QA-01 source/native APU clock receipts retained (no release credit)' >> "$GITHUB_STEP_SUMMARY"
           fi
+          # Temporary RF062 ON/OFF SCIENTIFIC CONTROL: same exact prebuilt
+          # Snes9x/core/native executable, unchanged source, ROM and genuine
+          # controller/movie streams. The native probe uses getenv in the
+          # *same* compiled wrapper, so this isolates logging/runtime branch
+          # behavior, NOT the shim-vs-unmodified-emitter substitution.
+          if [[ "$QA01_CASE" == "zoom-zoo" &&
+                "${UR_QA01_RF062_SOUND_DIRECT_PC:-}" == "1" ]]; then
+            AB="$RUNNER_TEMP/qa01-rf062-ab"
+            mkdir -p "$AB/off" "$AB/on/work/zoom-zoo/replay"
+            cp "$ROOT/producer-report.json" "$AB/on/producer-report.json"
+            for member in reference.log native.log ref.input pinned-baldosa.input; do
+              cp "$ROOT/work/zoom-zoo/replay/$member" \
+                 "$AB/on/work/zoom-zoo/replay/$member"
+            done
+            set +e
+            timeout --signal=TERM --kill-after=30s 38m \
+              env -u UR_QA01_RF062_SOUND_DIRECT_PC \
+              python3 tools/probe_original_event_complete.py \
+                --case "$QA01_CASE" --native-backend pinned-baldosa \
+                --source-horizon 22000 \
+                --snesref "$BIN/snesref" \
+                --core "$BIN/snes9x_libretro.so" \
+                --native "$BIN/native" \
+                --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+                --work-dir "$AB/off/work" \
+                --json-out "$AB/off/producer-report.json" \
+                "${extra_args[@]}" \
+                > "$AB/off/producer.log" 2>&1
+            ab_off_rc=$?
+            set -e
+            printf '%s\n' "$ab_off_rc" > "$AB/off/producer-exit-code.txt"
+            printf '%s\n' "$producer_rc" > "$AB/on/producer-exit-code.txt"
+            if [[ ! -s "$AB/off/producer-report.json" ]]; then
+              echo "RF062 OFF control did not complete source-qualified producer" >&2
+              exit 1
+            fi
+            python3 tools/qa01_rf062_same_binary_ab.py \
+              --off "$AB/off" --on "$AB/on" \
+              --output "$AB/independent-same-binary-ab.json"
+            cat "$AB/independent-same-binary-ab.json"
+            echo "One exact native executable, genuine RF062 observe ON/OFF: no USA event credit" >> "$GITHUB_STEP_SUMMARY"
+          fi
           exit "$case_rc"
       - name: Independently reopen full Zoo original/native raw mesh and next-Bowl SRAM
         if: ${{ always() && matrix.case == 'zoom-zoo' && inputs.zoo_race_mesh && inputs.zoo_dp_window && inputs.zoo_next_bowl }}
@@ -624,6 +666,20 @@ jobs:
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/native/*.wram.bin
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/native/*.sram.bin
             ${{ runner.temp }}/qa01-case/SHA256SUMS
+            ${{ runner.temp }}/qa01-rf062-ab/independent-same-binary-ab.json
+            ${{ runner.temp }}/qa01-rf062-ab/on/producer-report.json
+            ${{ runner.temp }}/qa01-rf062-ab/off/producer-report.json
+            ${{ runner.temp }}/qa01-rf062-ab/on/producer-exit-code.txt
+            ${{ runner.temp }}/qa01-rf062-ab/off/producer-exit-code.txt
+            ${{ runner.temp }}/qa01-rf062-ab/off/producer.log
+            ${{ runner.temp }}/qa01-rf062-ab/on/work/zoom-zoo/replay/reference.log
+            ${{ runner.temp }}/qa01-rf062-ab/on/work/zoom-zoo/replay/native.log
+            ${{ runner.temp }}/qa01-rf062-ab/on/work/zoom-zoo/replay/ref.input
+            ${{ runner.temp }}/qa01-rf062-ab/on/work/zoom-zoo/replay/pinned-baldosa.input
+            ${{ runner.temp }}/qa01-rf062-ab/off/work/zoom-zoo/replay/reference.log
+            ${{ runner.temp }}/qa01-rf062-ab/off/work/zoom-zoo/replay/native.log
+            ${{ runner.temp }}/qa01-rf062-ab/off/work/zoom-zoo/replay/ref.input
+            ${{ runner.temp }}/qa01-rf062-ab/off/work/zoom-zoo/replay/pinned-baldosa.input
             ${{ runner.temp }}/qa01-case/producer.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/source/source-scan.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/calibration/reference.log

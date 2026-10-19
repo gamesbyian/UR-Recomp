@@ -208,6 +208,13 @@ def evaluate(attestation: dict, causal: dict | None, frames: dict | None,
     if original_event_bytes is None or native_event_bytes is None:
         reasons.append("missing_actual_original_native_event_payloads")
     elif causal is not None:
+        # The caller-provided artifact fingerprints must match the exact
+        # event bytes consumed, not a previous read of a mutable file.
+        for guest, raw in (("original", original_event_bytes),
+                           ("native", native_event_bytes)):
+            assert_valid(input_hashes.get(guest + "_event_payload") ==
+                         hashlib.sha256(raw).hexdigest(),
+                         "actual " + guest + " event payload digest changed")
         # Re-execute the merged read-only causal parser over actual source and
         # native event payload bytes, not an unverified human-edited report.
         rederived = causal_consumer.assess(
@@ -280,9 +287,13 @@ def main() -> None:
     for guest, path in (("original", args.original_events),
                         ("native", args.native_events)):
         if path is not None:
-            document, sha = load(path)
-            hashes[guest + "_event_payload"] = sha
-            events[guest] = path.read_bytes()
+            assert_valid(path.is_file() and not path.is_symlink(),
+                         "missing/symlinked event payload: " + str(path))
+            raw = path.read_bytes()
+            assert_valid(type(json.loads(raw)) is dict,
+                         "event payload must be an object")
+            hashes[guest + "_event_payload"] = hashlib.sha256(raw).hexdigest()
+            events[guest] = raw
     verdict = evaluate(attestation, *(x for x, _ in loaded), hashes,
                        raw_root=args.retained_raw,
                        original_event_bytes=events.get("original"),

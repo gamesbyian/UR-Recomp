@@ -84,6 +84,35 @@ class LateEffectiveSourceProof(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unbounded"):
             witness.summarize_trace("x" * 24_000_001)
 
+    def test_real_span_prefix_and_explicit_renderer_identity(self):
+        line = source().replace("UR_QA08_LATE_PPU_SOURCE ",
+                                "UR_QA08_LATE_SPAN_SOURCE ")
+        end = final().replace("UR_QA08_LATE_PPU_FINAL ",
+                              "UR_QA08_LATE_SPAN_FINAL ")
+        k, row = witness.parse_row(line)
+        self.assertEqual((k,row["renderer"]),("source","span"))
+        k, row = witness.parse_row(end)
+        self.assertEqual((k,row["renderer"]),("final","span"))
+        lines = "\n".join(
+            source(x,y).replace("UR_QA08_LATE_PPU_SOURCE ","UR_QA08_LATE_SPAN_SOURCE ")
+            + "\n" + final(x,y).replace("UR_QA08_LATE_PPU_FINAL ","UR_QA08_LATE_SPAN_FINAL ")
+            for x,y in witness.POINTS)
+        result = witness.summarize_trace(lines)
+        self.assertEqual(result["observed_span_anchors"],8)
+        self.assertTrue(result["all_anchors_actual_span_renderer"])
+        with self.assertRaisesRegex(ValueError,"different renderer"):
+            witness.summarize_trace(lines.replace(
+                "UR_QA08_LATE_SPAN_FINAL ","UR_QA08_LATE_PPU_FINAL ",1))
+
+    def test_host_object_override_is_explicit_negative_evidence(self):
+        with self.assertRaisesRegex(ValueError,"host OBJ palette override"):
+            witness.parse_row("UR_QA08_LATE_SPAN_OBJECT_OVERRIDE "
+                              "frame=5184 x=70 logical_y=58 layer=4 index=6c "
+                              "selected_rgb555=56b5")
+        with self.assertRaisesRegex(ValueError,"host OBJ palette override"):
+            witness.summarize_trace(
+                source() + "\n" + final() + "\nUR_QA08_LATE_SPAN_OBJECT_OVERRIDE x=70")
+
     def test_missing_genuine_CRC_never_promoted_to_source_witness(self):
         with patch.object(witness.Path,"read_bytes",return_value=b"forged"):
             with self.assertRaisesRegex(ValueError,"SHA mismatch"):

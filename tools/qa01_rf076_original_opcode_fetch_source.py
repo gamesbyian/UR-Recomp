@@ -13,6 +13,7 @@ from pathlib import Path
 SOURCE = Path('cpuexec.cpp')
 STAMP = 'UR_QA01_RF076_ORIGINAL_FETCH_PC'
 NMI = '\t\t\t\tS9xOpcode_NMI();'
+NMI_WAKE = '\t\t\t\tTimings.NMITriggerPos = 0xffff;\n\t\t\t\tif (CPU.WaitingForInterrupt)'
 FETCH = '\t\t\tRegisters.PCw++;\n\t\t\t(*Opcodes[Op].S9xOpcode)();'
 HEADER = 'static inline void S9xReschedule (void);\n'
 TARGETS = (0xD4EE, 0xD4F0, 0xD4F2, 0xD4F4, 0xD4F5)
@@ -40,10 +41,11 @@ static void ur_rf076_original_fetched_opcode(const char *stage, uint8 opcode) {
     fprintf(stderr,
         "QA01RF076ORIGPC seq=%llu stage=%s f=%u"
         " actualFetchedPC=%06X fetchedOpcode=%02X S=%04X"
-        " v=%u h=%d\n",
+        " v=%u h=%d wai=%u\n",
         ++seq, stage, (unsigned)ICPU.Frame, pc,
         (unsigned)opcode, (unsigned)Registers.S.W,
-        (unsigned)CPU.V_Counter, (int)CPU.Cycles);
+        (unsigned)CPU.V_Counter, (int)CPU.Cycles,
+        (unsigned)CPU.WaitingForInterrupt);
 }
 
 '''
@@ -52,7 +54,8 @@ static void ur_rf076_original_fetched_opcode(const char *stage, uint8 opcode) {
 def patch(source: str) -> str:
     if STAMP in source:
         raise ValueError('RF076 original fetched opcode hook already staged')
-    if source.count(HEADER) != 1 or source.count(NMI) != 1 or source.count(FETCH) != 1:
+    if source.count(HEADER) != 1 or source.count(NMI) != 1 or \
+       source.count(FETCH) != 1 or source.count(NMI_WAKE) != 1:
         raise ValueError('RF076 pinned source S9xMainLoop opcode/NMI structural drift')
     # Require the original fast-direct and slow-bus fetched operand *before*
     # creating an observer that might otherwise log a fabricated opcode.
@@ -60,13 +63,17 @@ def patch(source: str) -> str:
        source.count('Op = S9xGetByte(Registers.PBPC);') != 1:
         raise ValueError('RF076 original fast/slow opcode fetch sources changed')
     result = source.replace(HEADER, HEADER + '\n' + HOOK, 1)
+    result = result.replace(NMI_WAKE,
+                            '\t\t\t\tTimings.NMITriggerPos = 0xffff;\n'
+                            '\t\t\t\tur_rf076_original_fetched_opcode("nmi_pending", 0);\n'
+                            '\t\t\t\tif (CPU.WaitingForInterrupt)',1)
     result = result.replace(NMI,
                             '\t\t\t\tur_rf076_original_fetched_opcode("nmi_before", 0);\n'
                             + NMI, 1)
     result = result.replace(FETCH,
                             '\t\t\tur_rf076_original_fetched_opcode("fetch", Op);\n'
                             + FETCH, 1)
-    if result.count('ur_rf076_original_fetched_opcode(') != 3:
+    if result.count('ur_rf076_original_fetched_opcode(') != 4:
         raise AssertionError('RF076 native/original source hook insertion count changed')
     # No new original source guest bus/CPU side effects in the transformed call.
     for needle in ('Op = S9xGetByte(Registers.PBPC);',

@@ -94,9 +94,13 @@ def verify(report: dict, raw_root: Path) -> dict:
                 coverage.get("between_frame_opcode_semantics_proven") is False,
                 "capture report attempted unsupported course promotion")
     entries = report.get("raw_retained_members")
+    scope = report.get("raw_retained_scope")
     frames.must(type(entries) is list and entries and
-                report.get("raw_retained_scope") == "all differing frames plus first and final pair",
+                scope in ("all differing frames plus first and final pair",
+                          "all compared frame pairs"),
                 "producer omitted original raw byte retention")
+    if scope == "all compared frame pairs":
+        required_frames.update(range(start, end + 1))
     expected = {(rel, kind, guest) for rel in required_frames
                 for kind in ("wram", "sram") for guest in ("original", "native")}
     observed = {}

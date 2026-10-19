@@ -630,7 +630,19 @@ jobs:
             native_control_rc=$?
             set -e
             printf '%s\n' "$native_control_rc" > "$CONTROL/producer-exit-code.txt"
+            # Treat divergent scientific outcomes as negative research data,
+            # never relax the existing guest source/transport classifier.
+            python3 tools/qa01_event_campaign.py classify \
+              --plan "$RUNNER_TEMP/qa01-input/qa01-plan.json" \
+              --case "$QA01_CASE" \
+              --producer-exit "$native_control_rc" \
+              --producer-report "$CONTROL/producer-report.json" \
+              --producer-log "$CONTROL/producer.log" \
+              --out "$CONTROL/case-result.json"
             cp "$BIN/SHA256SUMS" "$CONTROL/SHA256SUMS"
+            python3 tools/qa01_zoo_raw_archive_audit.py \
+              --artifact-root "$CONTROL" \
+              --out "$CONTROL/qa01-zoo-independent-raw-audit.json"
             cp "$BIN/CONTROL_NATIVE_SHA256SUMS" "$ROOT/CONTROL_NATIVE_SHA256SUMS"
             cp "$BIN/rf062-wrapper-only-static.json" "$ROOT/rf062-wrapper-only-static.json"
             set +e
@@ -684,6 +696,9 @@ jobs:
             ${{ runner.temp }}/qa01-case/rf062-wrapper-only-static.json
             ${{ runner.temp }}/qa01-case/rf062-wrapper-substitution-result.json
             ${{ runner.temp }}/qa01-case/wrapper-control/producer-report.json
+            ${{ runner.temp }}/qa01-case/wrapper-control/case-result.json
+            ${{ runner.temp }}/qa01-case/wrapper-control/SHA256SUMS
+            ${{ runner.temp }}/qa01-case/wrapper-control/qa01-zoo-independent-raw-audit.json
             ${{ runner.temp }}/qa01-case/wrapper-control/producer.log
             ${{ runner.temp }}/qa01-case/wrapper-control/producer-exit-code.txt
             ${{ runner.temp }}/qa01-case/wrapper-control/work/zoom-zoo/replay/reference.log

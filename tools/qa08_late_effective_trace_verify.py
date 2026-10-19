@@ -25,6 +25,9 @@ ORIGINAL_ZIP = "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e
 ORIGINAL_5183_BGRX = "f0ee58c682776592d8a93003a42c508629c49973b206d6a6da2c71ec9dc993b7"
 PREFIX_SOURCE = "UR_QA08_LATE_PPU_SOURCE "
 PREFIX_FINAL = "UR_QA08_LATE_PPU_FINAL "
+PREFIX_SPAN_SOURCE = "UR_QA08_LATE_SPAN_SOURCE "
+PREFIX_SPAN_FINAL = "UR_QA08_LATE_SPAN_FINAL "
+PREFIX_SPAN_OBJECT_OVERRIDE = "UR_QA08_LATE_SPAN_OBJECT_OVERRIDE "
 DEC_SOURCE = ("frame", "x", "logical_y", "ppu_line", "sub", "layer", "directcolor")
 HEX_SOURCE = ("index", "selected_rgb555", "cgram_index_word",
               "cgram6c", "cgram6d", "cgram6e", "cgram6f",
@@ -45,7 +48,10 @@ def sha(data: bytes) -> str:
 
 
 def parse_row(line: str) -> tuple[str, dict] | None:
-    markers = [p for p in (PREFIX_SOURCE, PREFIX_FINAL) if p in line]
+    if PREFIX_SPAN_OBJECT_OVERRIDE in line:
+        raise ValueError("host OBJ palette override is not a CGRAM witness")
+    markers = [p for p in (PREFIX_SOURCE, PREFIX_FINAL,
+                           PREFIX_SPAN_SOURCE, PREFIX_SPAN_FINAL) if p in line]
     if not markers:
         return None
     if len(markers) != 1:
@@ -59,13 +65,14 @@ def parse_row(line: str) -> tuple[str, dict] | None:
         if key in fields:
             raise ValueError("duplicate logger field")
         fields[key] = value
-    kind = "source" if prefix == PREFIX_SOURCE else "final"
+    kind = "source" if prefix in (PREFIX_SOURCE, PREFIX_SPAN_SOURCE) else "final"
+    renderer = "span" if prefix in (PREFIX_SPAN_SOURCE, PREFIX_SPAN_FINAL) else "legacy"
     dec = DEC_SOURCE if kind == "source" else DEC_FINAL
     hx = HEX_SOURCE if kind == "source" else HEX_FINAL
     required = set(dec) | set(hx) | ({"RGB8"} if kind == "final" else set())
     if set(fields) != required:
         raise ValueError("missing or unknown effective-PPU fields")
-    row = {}
+    row = {"renderer": renderer}
     for k in dec:
         if not fields[k].isdigit():
             raise ValueError("nondecimal observer value")
@@ -137,6 +144,8 @@ def summarize_trace(trace: str) -> dict:
         main, end = source[key + (0,)], final[key]
         if main["inidisp"] != end["inidisp"]:
             raise ValueError("source/final brightness register mismatch")
+        if main["renderer"] != end["renderer"]:
+            raise ValueError("main pixel and composed pixel used different renderer")
         observed = tuple(v >> 3 for v in end["RGB8"])
         reference, old_native = EXPECTED_GRAY[(x, y)]
         results.append({
@@ -152,6 +161,7 @@ def summarize_trace(trace: str) -> dict:
             "main_current_index_CGRAM_word": f"{main['cgram_index_word']:04x}",
             "main_directcolor": bool(main["directcolor"]),
             "main_layer": main["layer"],
+            "actual_renderer": main["renderer"],
             "current_main_CGRAM_6c_6f": [
                 f"{main[k]:04x}" for k in
                 ("cgram6c", "cgram6d", "cgram6e", "cgram6f")
@@ -163,6 +173,10 @@ def summarize_trace(trace: str) -> dict:
         "bounded_source_observations": len(source),
         "bounded_final_observations": len(final),
         "guest5184_anchor_count": len(results),
+        "observed_span_anchors": sum(x["actual_renderer"] == "span"
+                                    for x in results),
+        "all_anchors_actual_span_renderer": all(
+            x["actual_renderer"] == "span" for x in results),
         "anchors": results,
         "identical_native_binary_to_archived_CGRAM_writer_proven": False,
         "original_native_beam_and_CPU_instruction_parity_proven": False,
@@ -194,7 +208,9 @@ def verify(on: Path, off: Path, original: Path, crc_on: Path, crc_off: Path,
             frame[pos] >> 3) != (expected,) * 3:
             raise ValueError("original source anchor RGB5 changed")
     off_text = off.read_text(encoding="utf-8", errors="replace")
-    if PREFIX_SOURCE in off_text or PREFIX_FINAL in off_text:
+    if any(p in off_text for p in (
+        PREFIX_SOURCE, PREFIX_FINAL, PREFIX_SPAN_SOURCE, PREFIX_SPAN_FINAL,
+        PREFIX_SPAN_OBJECT_OVERRIDE)):
         raise ValueError("OFF control contains unexpected effective observer")
     result = summarize_trace(on.read_text(encoding="utf-8", errors="replace"))
     result.update({

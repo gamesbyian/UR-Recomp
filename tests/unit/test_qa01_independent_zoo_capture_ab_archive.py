@@ -69,6 +69,7 @@ class SourceAuthenticAB(unittest.TestCase):
                 "fresh_native_next_bowl_entry_offset": 266,
                 "all_original_native_full_sram_pairs_equal": False},
             "reference_script_sha256": "e" * 64,
+            "input_sha256": "e" * 64,
             "qa01_continuous_memory_capture": None,
             "qa01_capture_ab_control": {
                 "schema": "ur-qa01-capture-ab-replay-control/1",
@@ -84,6 +85,7 @@ class SourceAuthenticAB(unittest.TestCase):
         }
         on = copy.deepcopy(off)
         on["reference_script_sha256"] = "f" * 64
+        on["input_sha256"] = "f" * 64
         on["qa01_capture_ab_control"]["reference_script_sha256"] = "f" * 64
         on["qa01_capture_ab_control"]["capturing_continuous_frames"] = True
         d_fp = json.dumps(fp, sort_keys=True).encode()
@@ -156,6 +158,19 @@ class SourceAuthenticAB(unittest.TestCase):
                 "terminal_result_guest_frame"].update(native_relative=3))
         with self.assertRaisesRegex(ValueError, "changed original/native game"):
             self.run_case(mutate)
+
+    def test_input_field_is_replay_script_not_controller_window(self):
+        receipt = self.run_case()
+        self.assertTrue(receipt["reported_game_state_unchanged_by_dump_insertion"])
+        # Unlike the unchanged actual controller-window and supplied guest
+        # input file hashes, this producer's top-level input_sha256 is the
+        # augmented replay *command script*. All three script hashes must
+        # agree WITHIN each producer, but differ from capture off to on.
+        def corrupt(members):
+            self.mutate_json(members, "on", lambda d: d.update(
+                input_sha256="f" * 63 + "e"))
+        with self.assertRaisesRegex(ValueError, "altered guest input"):
+            self.run_case(corrupt)
 
     def test_false_exit_stable_claim_rejected(self):
         with self.assertRaisesRegex(ValueError, "producer's strict gameplay exit"):

@@ -1,0 +1,71 @@
+# TEMP RF073 read-only validator, never merge this workflow to main.
+name: RF073 verify genuine historic native NMI return brackets once
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/workflows/qa01-rf073-historic-native-one-shot.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: qa01-rf073-exact-archive-\${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  verified-source-native-brackets:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Download exact genuine original/native RF054 archive
+        shell: bash
+        env:
+          GH_TOKEN: \${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --retry 2 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12149640496/zip" \
+            --output "$RUNNER_TEMP/rf073-real-source-native-RF054.zip"
+          echo "3ccb209a92045e9e89113442e68af51b85a453a160a9b9efaf8ca0d59e79631c  $RUNNER_TEMP/rf073-real-source-native-RF054.zip" | sha256sum --check
+      - name: Execute complete RF073 nine-frame original/native NMI evidence contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/qa01_rf073_native_nmi_brackets.py \
+            "$RUNNER_TEMP/rf073-real-source-native-RF054.zip" \
+            --out "$RUNNER_TEMP/rf073-real-native-NMI-brackets.json"
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          a=json.loads((Path(os.environ["RUNNER_TEMP"])/"rf073-real-native-NMI-brackets.json").read_text())
+          assert a["native_RF047_event_count"]==2741
+          assert a["native_RF047_event_ordinals_contiguous"] is True
+          assert a["native_RF047_other_logger_prefix_fragment_count"]==62
+          assert a["native_RF047_compiled_RTI_events_with_prefix_fragments"]==2
+          assert a["native_compiled_NMI_brackets_with_one_actual_status_helper_read"]==9
+          assert a["native_saved_PC_or_PB_helper_reads_between_push_and_compiled_RTI"]==0
+          assert a["source_original_native_NMI_saved_PC_low_differences"]==4
+          assert a["original_native_same_intra_frame_semantic_phase_proven"] is False
+          assert a["accepted_complete_USA_events"]==0
+          assert len(a["brackets"])==9
+          assert [b["native_true_status_stack_helper_read_seq"] for b in a["brackets"]]==[3,304,602,902,1205,1520,1825,2130,2437]
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as out:
+              out.write("RF073 exact archive: native 2741/2741 sequenced events, nine 26 status helper reads before compiled RTI, no saved PC/PB RF047 helper read in the handler, four frame-labelled saved-PC low differences. Same-phase original/native causality and USA course acceptance remain HOLD (0/45).\n")
+          PY
+      - name: Retain independently produced genuine nine-bracket result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rf073-authentic-nine-native-NMI-brackets
+          path: \${{ runner.temp }}/rf073-real-native-NMI-brackets.json
+          retention-days: 30
+          if-no-files-found: warn

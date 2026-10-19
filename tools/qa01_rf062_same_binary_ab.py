@@ -198,9 +198,16 @@ def main() -> None:
                for guest,name in (("original","ref.input"),
                                   ("native","pinned-baldosa.input"))}
         return report,logs,inp
-    off,off_logs,off_input=collect(args.off)
-    on,on_logs,on_input=collect(args.on)
-    result=control(off,on,off_logs,on_logs,off_input,on_input)
+    if args.archive is not None:
+        must(args.off is None and args.on is None,
+             "use only archive or off/on directories")
+        result=archived(args.archive,args.expect_sha256)
+    else:
+        must(args.off is not None and args.on is not None,
+             "missing A/B input population")
+        off,off_logs,off_input=collect(args.off)
+        on,on_logs,on_input=collect(args.on)
+        result=control(off,on,off_logs,on_logs,off_input,on_input)
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text(json.dumps(result,sort_keys=True,indent=2)+"\n")
     print(result["schema"],"read probes",result["rf062_actual_native_read_count_off_on"],

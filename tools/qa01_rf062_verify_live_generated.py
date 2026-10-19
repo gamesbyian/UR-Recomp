@@ -17,8 +17,8 @@ DECL = re.compile(r"(?m)^[ \t]*RecompReturn[ \t]+" + SCOPE +
                   r"[ \t]*\([ \t]*CpuState[ \t]*\*[ \t]*cpu[ \t]*\)[ \t]*\{")
 NEXT = re.compile(r"(?m)^[ \t]*RecompReturn[ \t]+\w+[ \t]*\(")
 TARGET = re.compile(
-    r"ur_rf062_cpu_read8_pc[ \t]*\([ \t]*cpu[ \t]*,[^;]*,"
-    r"[ \t]*0x8282F0u[ \t]*\)[ \t]*;")
+    r"ur_rf062_read8_pc_8282f0[ \t]*\([ \t]*cpu[ \t]*,[^;]*\)[ \t]*;"
+    r"[ \t]*/\*[ \t]*UR_QA01_RF062_DIRECT_PC_8282F0[ \t]*\*/")
 
 
 def audit(generated_dir: Path) -> dict:

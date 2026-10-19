@@ -1,0 +1,173 @@
+#!/usr/bin/env python3
+"""Independently reopen genuine RF064 source-return archive; zero event credit.
+
+Reads the original Snes9x RF044/045/063/064 outputs, checks their actual
+sequencing and returned values, and reports missing getset-observer reads
+without claiming that the underlying original game never read the stack.
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import re
+import zipfile
+from collections import Counter
+from pathlib import Path
+
+SCHEMA = "ur-qa01-rf064-independent-original-source-audit/1"
+PULL_PREFIX = "QA01RF064ORIGPULL "
+STACK_PREFIX = "QA01RF045ORIGSTACK "
+BUS_PREFIX = "QA01RF063ORIGBUS "
+BASE_PREFIX = "QA01RF044ORIGBUS "
+CHECK_PREFIX = "QA01RF063ORIGCHECKPOINT "
+NMI_PREFIX = "QA01RF044ORIGNMI "
+REQUIRED = ("rf064-original-pulls.json", "rf064-original-log-sha256.txt",
+            "case-result.json", "work/zoom-zoo/replay/reference.log")
+PAT = re.compile(r"\b([a-z][a-z0-9]*)=([^\s]+)")
+
+
+def require(flag: bool, why: str) -> None:
+    if not flag:
+        raise ValueError(why)
+
+
+def rows(lines: list[str], prefix: str) -> list[dict[str, str]]:
+    result = []
+    for line in lines:
+        if line.startswith(prefix):
+            found = PAT.findall(line)
+            parsed = dict(found)
+            require(len(found) == len(parsed) and bool(parsed),
+                    "duplicate or missing original source fields in " + prefix)
+            result.append(parsed)
+    return result
+
+
+def examine(archive: Path, expected_sha256: str | None = None) -> dict:
+    with archive.open("rb") as handle:
+        archive_hash = hashlib.file_digest(handle, "sha256").hexdigest()
+    if expected_sha256 is not None:
+        require(archive_hash == expected_sha256, "wrong immutable archive SHA256")
+    with zipfile.ZipFile(archive) as z:
+        members = z.infolist()
+        require(len(members) < 2000 and
+                len({m.filename for m in members}) == len(members),
+                "excessive or duplicated source archive membership")
+        require(set(REQUIRED) <= set(z.namelist()), "missing primary original evidence")
+        require(all(not m.filename.startswith("/") and
+                    ".." not in Path(m.filename).parts for m in members),
+                "unsafe original source archive member")
+        def read(name: str, limit: int) -> bytes:
+            info = z.getinfo(name)
+            require(info.file_size <= limit and not info.is_dir(),
+                    "bad source member size: " + name)
+            return z.read(name)
+        report = json.loads(read("rf064-original-pulls.json", 100_000))
+        case = json.loads(read("case-result.json", 250_000))
+        claimed_hash = read("rf064-original-log-sha256.txt", 1000).decode().split()
+        require(len(claimed_hash) == 2 and
+                re.fullmatch(r"[0-9a-f]{64}", claimed_hash[0]) is not None,
+                "unrecognized original replay log SHA receipt")
+        log = read("work/zoom-zoo/replay/reference.log", 4_000_000)
+        require(hashlib.sha256(log).hexdigest() == claimed_hash[0],
+                "actual original replay log hash differs from receipt")
+    lines = log.decode("utf8").splitlines()
+    require(not any("_TRUNCATED" in line and line.startswith("QA01RF0")
+                    for line in lines), "original source recorder overflow")
+    rf45 = rows(lines, STACK_PREFIX)
+    rf64 = rows(lines, PULL_PREFIX)
+    rf63 = rows(lines, BUS_PREFIX)
+    rf44 = rows(lines, BASE_PREFIX)
+    checkpoints = rows(lines, CHECK_PREFIX)
+    nmis = rows(lines, NMI_PREFIX)
+    pulls = [r for r in rf45 if r.get("kind") in ("pullB", "pullW")]
+    pushes = [r for r in rf45 if r.get("kind") in ("pushB", "pushW")]
+    require(rf64 and len(rf64) == len(pulls),
+            "missing RF064 true post-call pull rows")
+    require(len(pushes) == len(rf63) == len(rf44),
+            "RF063/044 bus population differs from source push population")
+    require(len(checkpoints) == 1 and nmis, "missing real original NMI checkpoint")
+    original_order = [dict(PAT.findall(line)) for line in lines
+                      if line.startswith((BUS_PREFIX, CHECK_PREFIX))]
+    require([int(r["seq"]) for r in original_order] ==
+            list(range(1, len(original_order) + 1)),
+            "missing or reordered original RF063 local ordinal")
+    for a, b in zip(pulls, rf64):
+        require(all(a.get(key) == b.get(key)
+                    for key in ("f", "v", "h", "kind", "pc"))
+                and a.get("value") == b.get("returned")
+                and int(a["addr"], 16) == int(b["base"], 16)
+                and int(a["width"]) == int(b["width"]),
+                "true RF045/064 pull identity or returned data mismatch")
+        require(int(b["after"]) >= int(b["before"]) and
+                b["unique"] in ("0", "1") and
+                (b["unique"] == "1") ==
+                (int(b["after"]) == int(b["before"]) + 1),
+                "inconsistent source-local pull transaction claim")
+    for a, b in zip(rf44, rf63):
+        require(all(a.get(key) == b.get(key)
+                    for key in ("f", "v", "h", "kind")) and
+                a["addr"] == b["addr"] and a["w"] == b["width"] and
+                int(a["value"], 16) == int(b["sampled"], 16) and
+                a["pb"] + ":" + a["pc"] == b["pc"],
+                "RF063 sequenced getset not same genuine RF044 bus entry")
+    for c in checkpoints:
+        matches = [n for n in nmis if n.get("f") == c.get("f") and
+                   n.get("f1") == c.get("f1") and n.get("new") == c.get("stack")]
+        require(len(matches) == 1 and c.get("phase") == "post_real_nmi_push",
+                "real source NMI checkpoint does not match unmasked RF044 stack")
+    unique = sum(r["unique"] == "1" for r in rf64)
+    absent = sum(r["before"] == r["after"] for r in rf64)
+    require(report.get("schema") == "ur-qa01-rf064-original-consumed-pull-join/1"
+            and report.get("post_call_actual_original_pull_count") == len(rf64)
+            and report.get("sequenced_original_bus_entries") == len(rf63)
+            and report.get("actual_returns_with_unique_source_bus_entry") == unique
+            and report.get("ambiguous_or_reentrant_original_pulls") == len(rf64)-unique
+            and report.get("accepted_USA_events") == 0,
+            "RF064 producer claims do not agree with actual replay log")
+    require(case.get("release_credit") == 0 and case.get("source_sha") and
+            case.get("evidence", {}).get("rom_sha256"),
+            "original producer source identity/release status missing")
+    kinds = Counter(r["kind"] for r in rf63)
+    read_count = kinds.get("rb", 0) + kinds.get("rw", 0)
+    return {
+        "schema": SCHEMA, "classification": "diagnostic_HOLD_no_guest_event_credit",
+        "archive_sha256": archive_hash,
+        "reference_log_sha256": claimed_hash[0],
+        "source_sha": case["source_sha"],
+        "rom_sha256": case["evidence"]["rom_sha256"],
+        "original_pull_returns_qualified_by_rf045": len(rf64),
+        "original_pull_byte_count": sum(r["kind"] == "pullB" for r in rf64),
+        "original_pull_word_count": sum(r["kind"] == "pullW" for r in rf64),
+        "sequenced_getset_kind_counts": dict(sorted(kinds.items())),
+        "sequenced_original_getset_reads_observed": read_count,
+        "all_pull_returns_without_intervening_sequenced_bus_entry": absent,
+        "original_pull_returns_joined_to_unique_getset_event": unique,
+        "rf044_and_rf063_original_getset_rows_match": True,
+        "rf063_ordinals_complete": True,
+        "real_nmi_checkpoint_raw_stack_matches_rf044": True,
+        "source_read_path_status": (
+            "no_original_stack_reads_observed_at_current_getset_probe"
+            if read_count == 0 else "reads_observed_requires_separate_causal_join"),
+        "original_emulator_did_not_read_stack_proven": False,
+        "actual_return_proves_specific_underlying_bus_site": False,
+        "native_executed_pc_or_clock_equivalence_proven": False,
+        "accepted_USA_events": 0,
+    }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--archive", type=Path, required=True)
+    parser.add_argument("--expect-sha256")
+    parser.add_argument("--output", type=Path, required=True)
+    args = parser.parse_args()
+    verdict = examine(args.archive, args.expect_sha256)
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(verdict, sort_keys=True, indent=2) + "\n")
+    print("RF064 independent true source-return audit: HOLD, 0/45 USA")
+
+
+if __name__ == "__main__":
+    main()

@@ -320,6 +320,13 @@ jobs:
             python3 tools/baldosa_spc_bus_cycle_patch.py --game baldosa
             python3 tools/baldosa_interrupt_entry_cost_patch.py --game baldosa
           fi
+          # RF062 ONE-SHOT ONLY; never merge this temporary workflow change.
+          python3 tools/qa01_rf054_native_sound_writer_identity.py --root baldosa
+          python3 tools/qa01_rf062_direct_sound_bus_pc_patch.py --root baldosa
+          (cd baldosa && bash tools/regen.sh --cfg-roots \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc")
+          python3 tools/qa01_rf062_verify_live_generated.py baldosa/src/gen \
+            --output "$RUNNER_TEMP/qa01-rf062-static.json"
           cmake -S baldosa -B baldosa/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
             -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
@@ -328,6 +335,7 @@ jobs:
           mkdir -p "$OUT"
           install -m 755 "$RUNNER_TEMP/qa01-snesref/snesref" "$OUT/snesref"
           install -m 755 baldosa/build/UniracersSNESRecomp "$OUT/native"
+          cp "$RUNNER_TEMP/qa01-rf062-static.json" "$OUT/rf062-static.json"
           cp .tools/src/snes9x-libretro/libretro/snes9x_libretro.so "$OUT/snes9x_libretro.so"
           (cd "$OUT" && sha256sum snesref native snes9x_libretro.so > SHA256SUMS && \
             sha256sum -c SHA256SUMS)
@@ -391,6 +399,8 @@ jobs:
           QA01_SOURCE_FOLLOWTHROUGH: ${{ inputs.source_followthrough }}
           QA01_NEXT_BOWL: ${{ inputs.zoo_next_bowl }}
           QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}
+          UR_QA01_RF054_NATIVE_SOUND_WRITER: "1"
+          UR_QA01_RF062_SOUND_DIRECT_PC: "1"
           # Distinct original and native clock axes; historical Zoo result
           # windows, NOT time-shifted input or assumed frame equivalence.
           UR_QA01_APU_ORIGINAL_FIRST: "6748"

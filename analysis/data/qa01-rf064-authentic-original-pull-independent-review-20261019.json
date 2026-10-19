@@ -35,7 +35,7 @@
         "physical_wram_base": "7E:01ED",
         "width": 1,
         "actual_returned_value_hex": "26",
-        "executed_original_pc": "80:B0EB",
+        "original_post_call_pb_pcw": "80:B0EB",
         "original_frame": 1017,
         "original_v": 226,
         "original_h": 714
@@ -45,7 +45,7 @@
         "physical_wram_base": "7E:01EE",
         "width": 2,
         "actual_returned_value_hex": "D4F0",
-        "executed_original_pc": "80:D4F0",
+        "original_post_call_pb_pcw": "80:D4F0",
         "original_frame": 1017,
         "original_v": 226,
         "original_h": 730
@@ -55,7 +55,7 @@
         "physical_wram_base": "7E:01F0",
         "width": 1,
         "actual_returned_value_hex": "82",
-        "executed_original_pc": "82:D4F0",
+        "original_post_call_pb_pcw": "82:D4F0",
         "original_frame": 1017,
         "original_v": 226,
         "original_h": 738
@@ -65,7 +65,7 @@
         "physical_wram_base": "7E:01F1",
         "width": 1,
         "actual_returned_value_hex": "26",
-        "executed_original_pc": "82:D4F5",
+        "original_post_call_pb_pcw": "82:D4F5",
         "original_frame": 1017,
         "original_v": 226,
         "original_h": 834

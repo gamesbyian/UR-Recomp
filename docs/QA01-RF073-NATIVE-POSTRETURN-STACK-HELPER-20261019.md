@@ -6,7 +6,7 @@ For **every** native NMI bracket the actual compiled sequence is entry, push `26
 
 ## Genuine native first observed helper reads *after* the compiled return
 
-The independently inspected genuine RF047 substream has **45 first-later native helper records**, five named stack addresses in each of nine native frames, all `nmi=0` and strictly after that frame's compiled return by native-local event ordinal **and native master time**.
+The independently inspected genuine RF047 substream has **45 first-later byte-address observations from 29 distinct actual native helper operations**, five byte positions in each of nine native frames, all `nmi=0` and strictly after that frame's compiled return by native-local event ordinal **and native master time**.
 
 | Native host frame | First later `01ED` | `01EE` | `01EF` | `01F0` | `01F1` |
 |---|---|---|---|---|---|
@@ -20,7 +20,7 @@ The source original host-frame NMI contexts `82:D4F0` versus native saved resume
 
 ## Repeatable bounded QA, no new emulator execution
 
-New independent `tools/qa01_independent_rf073_posthandler_stack_helpers.py` opens the exact immutable RF054 original/native case, calls merged RF073's full 2,741-event validator, and collects the first subsequent `nmi=0` physical native helper read for each `00:01ED..01F1` address in each independently delimited native NMI frame. It splits real width-one and width-two reads into the corresponding little-endian byte observations, retaining one physical event ordinal per actual read rather than inventing two bus calls. It fails closed on altered status, missing later read, event ordinal corruption, native master clock rollback or wrong pinned ZIP; unit tests use only synthetic non-ROM event data. Output retains **all 45 original native event ordinals and true master clocks**, plus explicit false qualifications for decoded opcode fetch PC, complete writer visibility and original/native same-phase reads:
+New independent `tools/qa01_independent_rf073_posthandler_stack_helpers.py` opens the exact immutable RF054 original/native case, calls merged RF073's full 2,741-event validator, and collects the first subsequent `nmi=0` physical native helper read for each `00:01ED..01F1` address in each independently delimited native NMI frame. It splits real width-one and width-two reads into the corresponding little-endian byte observations, retaining one physical event ordinal per actual read rather than inventing two bus calls. The exact pinned source ZIP must yield **45 first byte positions but only 29 distinct read events**; changed widths or event coverage fail qualification. It fails closed on altered status, missing later read, event ordinal corruption, native master clock rollback or wrong pinned ZIP; unit tests use only synthetic non-ROM event data. Output retains **all 45 original native event ordinals and true master clocks**, plus explicit false qualifications for decoded opcode fetch PC, complete writer visibility and original/native same-phase reads:
 
 ```bash
 python3 tools/qa01_independent_rf073_posthandler_stack_helpers.py \

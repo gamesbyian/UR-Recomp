@@ -181,7 +181,7 @@ class SourceAuthenticAB(unittest.TestCase):
         def mutate(members):
             self.mutate_json(members, "on", lambda d: d[
                 "qa01_capture_ab_control"].update(controller_movie_window_sha256="a" * 64))
-        with self.assertRaisesRegex(ValueError, "underlying input"):
+        with self.assertRaisesRegex(ValueError, "altered guest input"):
             self.run_case(mutate)
 
     def test_pinned_sha_required_even_for_valid_synthetic(self):

@@ -22,7 +22,7 @@
 | `fix/` | 14 |
 | `media/` | 13 |
 | `experiment/` | 12 |
-| Other prefixes, including single-branch experiment names and `main` | 151 |
+| Other prefixes, including single-branch experiment names and `main` | 149 |
 | **Total** | **1,541** |
 
 Counts describe the branch namespace *at census time* and do not guarantee a future invariant. The first 100 alphabetically ordered refs were mostly October 7–8 `agent/` experiments; recent `research/rf071`–`rf075` and QA work also remain. Both old and new names can contain unmerged evidence.

@@ -1,5 +1,18 @@
 # October 19 flagship recruitment film: native, widescreen, reconstructed
 
+## Finished media
+
+- **[85-second flagship trailer (1920×1080/60fps)](ur-recomp-flagship-85s-1080p.mp4)**, SHA-256 `6b5015fb83cb6e6deaebb08b8adf55f86004918f4169da7a71e73e46bc23cd9c`.
+- **[27-second redesigned social trailer (1080×1920/60fps)](ur-recomp-flagship-27s-social-ambient.mp4)**, SHA-256 `da3208ab71807542abc38a5fd89e460efeb39b827fd94c883fbb25310184e4ed`. Full genuine two-player frame centered above animated blurred editorial surroundings.
+- **[27-second original matte portrait cut](ur-recomp-flagship-27s-vertical.mp4)**, SHA-256 `74785eb6bef6ae7b5ee007e60fd4a421b57c1b2a2e681cca7a3e18541e9a5ade`. Exact preceding video used to author the enhanced social variant.
+- **[1920×1080 source-derived poster](ur-recomp-flagship-poster.png)**, SHA-256 `af85d31667800f67ab7a2112b3e8618a5dfc12e71299be6d05120699f239475e`.
+- **[Final source/video identities and shot timeline](flagship-provenance.json)**, **[exact decoded output audit](flagship-output-review.json)** and [output contact sheet](flagship-output-contact-sheet.png), plus [ambient provenance and six decoded review witnesses](flagship-social-ambient-provenance.json).
+
+Accepted media-only [flagship encode run 39339897759](https://github.com/gamesbyian/UR-Recomp/actions/runs/39339897759) and [ambient portrait run 39341026993](https://github.com/gamesbyian/UR-Recomp/actions/runs/39341026993) both completed successfully. Each single-use workflow self-deleted after passing and publishing its source-checked output. No native game builds or release gate changes were involved.
+
+[Detailed model-assisted visual audit and restrictions](VISUAL-REVIEW.md).
+
+
 This is a **separate media-only sequel** to the previously accepted October 10 recruitment film, not an assertion of a new Windows release. The baseline target is **85 seconds of 1920×1080/60fps video plus a 27-second vertical 1080×1920/60fps social cut**.
 
 All source video is committed to `main` and pinned by exact SHA-256 inside `tools/showcase/build_flagship_recruitment_20261019.py`. The builder fails before rendering if any media source or its exact duration/fps/dimensions change. This edit neither executes a game nor regenerates missing game footage. The original native 600-frame split-screen race contributes two disjoint excerpts: first 240 and final 360 frames; both remain contiguous and in the original recorded order, and 600 other frames are neither synthesized nor duplicated. The animated widescreen reveal reuses a previously approved editorial side-masking edit of the same underlying native session. The standalone original-versus-wide comparison remains [here](../../2026-10-10/recruitment/presentation-edits/same-capture-centre-vs-wide-5s.mp4).

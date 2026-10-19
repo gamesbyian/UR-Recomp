@@ -12,7 +12,7 @@ This patcher is designed to collect that missing **native effective pixel stage*
 
 `tools/qa08_late_effective_cgram_probe.py` targets only the pinned Baldosa title `10b864b9d14a7b7416dd909eb7b054c88faef101`, pinned SNESRecomp core `075fbe4c8e0d97b0013be541795c39cb644a9709` and the actual generated `src/gen/dispatch_v2.c`. It inserts only opt-in source-read log calls in `snesrecomp/runner/src/snes/ppu_legacy.c`:
 
-1. **Already resolved main/sub pixels:** selected renderer layer, the original resolver's `pixel` palette index, the RGB555 value reconstructed from its actual existing R/G/B outputs, `ppu->cgram[pixel & 255]`, and raw `ppu->cgram[$6C..$6F]`, plus INIDISP/CGADSUB/CGWSEL.
+1. **Already resolved main/sub pixels:** selected renderer layer, the original resolver's `pixel` index (**not a CGRAM lookup for direct-colour pixels; a `directcolor` flag is logged**), the RGB555 value reconstructed from its actual existing R/G/B outputs, `ppu->cgram[pixel & 255]`, and raw `ppu->cgram[$6C..$6F]`, plus INIDISP/CGADSUB/CGWSEL.
 2. **Already composed output:** final RGBA buffer R/G/B, source x and y, physical PPU line, brightness, fixed colour and main/sub enable registers.
 
 Both probes are restricted to guest **5176..5186 inclusive** and eight SHA-authenticated source coordinates that cover all four observed original→native RGB5 substitutions in both 2P bands. The actual legacy renderer uses `ppu_line = logical_source_y + 1`; this is reflected in the filter and both log labels. The independent source observation does **not** imply that the CPU source-frame counter, original emulator callback stage, renderer invocation, and physical beam clock are equivalent.

@@ -45,6 +45,12 @@ Independently obtained [RF054 actual Zoo case archive](https://github.com/gamesb
 
 **Precise blocker found:** the original RF045 macros have executed guest PCs but no shared event sequence number across all buses/checkpoint markers. All **2,705 native RF047 read records lack an actual guest opcode PC**; other `IPC` hints in the archive are historically stale, and some stderr/stdout fragments interleave. Neither side preserves a complete single-ordinal last-writer/first-reader/checkpoint timeline. Accordingly the new causal consumer must **not** fabricate normalized witness rows from this archive or declare the stack difference harmless. The next source-pinned probe is much smaller: add those missing fields to the *existing* RF045/RF047 instrumentation for the known nine-frame window, preserving original clocks, controls and raw bytes. No second emulator or wholesale trace rewrite is needed.
 
+## Second authentic archive calibration: Bowl result→Switcher
+
+Independently downloaded and SHA-256 checked the actual [Bowl run 39168164480 artifact 12151357791](https://github.com/gamesbyian/UR-Recomp/actions/runs/39168164480/artifacts/12151357791), ZIP `2924534f2700714c655647b43e2453c54d4e76f0e258566bcf500439d962ea79`. Reopened the actual **12 original + 12 native full 128KiB WRAM and 8KiB SRAM images** for result-relative offsets `334,338,339,340,341,342,343,344,345,346,349,354`. Compared every raw byte again: **3,041 observed differing WRAM byte occurrences and 36 SRAM byte occurrences** (three differing SRAM bytes per sampled offset), matching the established independent Bowl witness. [Small machine-readable calibration receipt](../analysis/data/qa01-bowl-genuine-sparse-raw-calibration-20261018.json).
+
+This source archive is genuinely raw and independently checkable, but **not continuous**: offsets 335–337, 347–348 and 350–353 do not appear. Therefore the new full-frame auditor correctly cannot be given a pretend 334..354 complete input. This is a reusable real-archive calibration for raw comparison and missing-population guard design, **not a passing end-to-end continuous-capture test or source/guest behavioral fix**. A full-contiguous source producer and real replay benchmarking remain outstanding.
+
 ## Pilot qualification and stop/go
 
 1. **Local unit stage:** `python3 -m unittest tests.unit.test_qa01_fidelity_evidence_pilots -v`; positive and negative fixtures exercise no ROM/emulator. CI green here means only schema/comparison contract correctness.

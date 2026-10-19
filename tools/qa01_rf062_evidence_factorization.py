@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 import zipfile
 
@@ -31,15 +32,70 @@ def require(ok: bool, why: str) -> None:
         raise ValueError(why)
 
 
+
+HOST_VIDEO_TOTALS = re.compile(
+    r"^\\[host \\+[0-9]+\\.[0-9]+s\\] video totals: "
+    r"simulations=([0-9]+) presentations=([0-9]+) seconds=([0-9]+\\.[0-9]+)$"
+)
+
+
+def independently_qualify_terminal_host_walltime(off: bytes, on: bytes) -> dict:
+    """Constrain one exactly labelled wall-clock statistic, never guest rows.
+
+    The merged RF062 source comparator intentionally disallows differing
+    suffixes even inside host lines. Do NOT change that strict consumer or
+    backfill its prior verdict. Normalize exactly *one* final host seconds
+    field only after verifying unchanged 6460 simulation/presentation totals.
+    Re-run its complete native line-by-line comparator on the original ten
+    diagnostic-row population.
+    """
+    cleaned = []
+    seen = []
+    for name, raw in (("off",off),("on",on)):
+        lines = raw.decode("utf-8").splitlines(keepends=True)
+        matched = [(i,HOST_VIDEO_TOTALS.fullmatch(line.rstrip("\\r\\n")))
+                   for i,line in enumerate(lines)]
+        hit = [(i,m) for i,m in matched if m is not None]
+        require(len(hit) == 1,
+                "missing/duplicated authentic terminal native wall-clock totals: " + name)
+        index, match = hit[0]
+        simulation, presentation, wall_seconds = match.groups()
+        require(simulation == presentation == "6460" and
+                index == len(lines)-1 and lines[index].endswith("\\n"),
+                "terminal source log changed simulation/presentation count or framing")
+        seen.append(wall_seconds)
+        lines[index] = re.sub(r"seconds=[0-9]+\\.[0-9]+(?=\\n$)",
+                              "seconds=<qualified_host_elapsed>",
+                              lines[index])
+        cleaned.append("".join(lines).encode("utf-8"))
+    require(seen[0] != seen[1],
+            "unexpected source host elapsed seconds identity for pinned A/B ZIP")
+    strict_before = logging_ab.strictly_qualified_native_logging_variation(off,on)
+    strict_after = logging_ab.strictly_qualified_native_logging_variation(
+        cleaned[0],cleaned[1])
+    require(strict_before["all_other_native_lines_byte_equal_after_strict_host_metadata"] is False
+            and strict_after["all_other_native_lines_byte_equal_after_strict_host_metadata"] is True
+            and strict_after["original_native_observer_ten_direct_rows_excluded"] == 10,
+            "source/native guest trace differs outside one qualified host statistic")
+    return {
+        "strict_existing_native_source_comparator_nonRF062_passed":False,
+        "single_host_video_totals_seconds_field_only_qualified":True,
+        "same_simulations_and_presentations_off_on":[6460,6460],
+        "actual_host_video_elapsed_seconds_off_on":seen,
+        "all_other_native_guest_trace_rows_equal_after_host_only_metadata":True,
+        "RF062_direct_logged_rows_excluded":10,
+        "guest_CPU_Wram_or_audio_equivalence_beyond_samples_proven":False,
+    }
+
 def classify(ab: dict, cross: dict, executed: dict, report: dict,
-             actual_case_inputs: dict[str, str]) -> dict:
+             actual_case_inputs: dict[str, str], host_stats: dict) -> dict:
     """Pure strict evidence judgment, exercised by adversarial ROM-free tests."""
     compiled = ab.get("independently_reopened_compiled_binaries")
     logging_checks = {
         "schema": ab.get("schema") == logging_ab.SCHEMA,
         "published_archive_SHA": ab.get("authenticated_evidence_archive_sha256") == AB_ZIP,
         "actual_source_ZIP_reopened": ab.get("zip_archive_raw_byte_reopened") is True,
-        "logging_runtime_noninterference": ab.get("runtime_RF062_logging_noninterference_supported") is True,
+        "existing_strict_logging_claim_is_not_promoted": ab.get("runtime_RF062_logging_noninterference_supported") is False,
         "wrapper_noninterference_still_false": ab.get("wrapper_replacement_noninterference_proven") is False,
         "no_USA_event_credit": ab.get("USA_events_accepted") == 0,
         "655_real_native_helpers_each_mode": ab.get("native_real_sound_helper_count_off_on") == [655,655],
@@ -49,11 +105,19 @@ def classify(ab: dict, cross: dict, executed: dict, report: dict,
         "sampled_mesh_followthrough_equal": ab.get("original_native_whole_mesh_and_followthrough_equal") is True,
         "native_diagnostic_rows_0_to_10": ab.get("rf062_actual_native_read_count_off_on") == [0,10],
         "original_nonpath_log_equal": ab.get("original_qualified_source_log_path_differences",{}).get("source_nonpath_log_equality_proven") is True,
-        "native_nonRF062_nonhost_log_equal": ab.get("native_complete_nonRF062_log_metadata_limited_comparison",{}).get("all_other_native_lines_byte_equal_after_strict_host_metadata") is True,
+        "existing_strict_native_trace_still_HOLD": ab.get("native_complete_nonRF062_log_metadata_limited_comparison",{}).get("all_other_native_lines_byte_equal_after_strict_host_metadata") is False,
     }
     for name, passes in logging_checks.items():
         require(passes,
                 "genuine runtime logging on/off no longer has identical bounded source/native observations: " + name)
+    require(type(host_stats) is dict and
+            host_stats.get("strict_existing_native_source_comparator_nonRF062_passed") is False and
+            host_stats.get("single_host_video_totals_seconds_field_only_qualified") is True and
+            host_stats.get("same_simulations_and_presentations_off_on") == [6460,6460] and
+            host_stats.get("all_other_native_guest_trace_rows_equal_after_host_only_metadata") is True and
+            host_stats.get("RF062_direct_logged_rows_excluded") == 10 and
+            host_stats.get("guest_CPU_Wram_or_audio_equivalence_beyond_samples_proven") is False,
+            "unindependently validated host video totals seconds or attempted native noninterference waiver")
     require(type(compiled) is dict and
             compiled.get("binary_artifact_SHA256") == AB_BINARY_ZIP and
             compiled.get("actual_native_binary_SHA256") == TARGET_NATIVE_BINARY and
@@ -105,6 +169,9 @@ def classify(ab: dict, cross: dict, executed: dict, report: dict,
         "real_native_8282F0_direct_read_counts_off_on": [0,10],
         "real_native_operand_11C774_returned": "D0",
         "helper_address_register_master_clock_sequence_unchanged_under_logging": True,
+        "existing_native_logging_strict_full_log_comparator_passed":False,
+        "single_host_walltime_statistic_exception_independently_reviewed":host_stats,
+        "bounded_native_guest_trace_equal_after_only_exact_host_metric":True,
         "guest_mesh_and_successor_samples_unchanged_under_logging": True,
         "historical_RF066_to_instrumented_RF062_78_mesh_exact": [
             cross["earlier_RF066_original_native_race_mesh"]["raw_byte_exact_race_mesh_pairs"],
@@ -130,6 +197,12 @@ def audit(rf066: Path, rf062: Path, ab_case: Path, ab_binaries: Path) -> dict:
     # binary archive must be checked against their published immutable pins.
     cross = epochs.audit(rf066,rf062)
     logging = logging_ab.archived(ab_case,AB_ZIP,ab_binaries,AB_BINARY_ZIP)
+    with zipfile.ZipFile(ab_case) as z:
+        off_log = z.read(
+            "qa01-rf062-ab/off/work/zoom-zoo/replay/native.log")
+        on_log = z.read(
+            "qa01-rf062-ab/on/work/zoom-zoo/replay/native.log")
+        host_stats = independently_qualify_terminal_host_walltime(off_log,on_log)
     with epochs.audited_zip(rf062, epochs.RF062_SHA, 407) as z:
         report = json.loads(z.read("producer-report.json"))
         executed = reads.observed_native_reads(
@@ -140,7 +213,7 @@ def audit(rf066: Path, rf062: Path, ab_case: Path, ab_binaries: Path) -> dict:
             for guest,path in (("original","ref.input"),
                                ("native","pinned-baldosa.input"))
         }
-    return classify(logging,cross,executed,report,actual_inputs)
+    return classify(logging,cross,executed,report,actual_inputs,host_stats)
 
 
 def main() -> None:

@@ -97,7 +97,7 @@ class SameBinaryNativeProbeAB(unittest.TestCase):
                 for name,raw in binaries.items():
                     z.writestr(name,raw)
                 z.writestr("SHA256SUMS","".join(
-                    receipts[k]+"  "+k+"\\n" for k in binaries).encode())
+                    receipts[k]+"  "+k+"\n" for k in binaries).encode())
             source={"native_executable_sha256":receipts["native"],
                     "reference_core_sha256":receipts["snes9x_libretro.so"]}
             receipt=x.independent_binaries(path,source,

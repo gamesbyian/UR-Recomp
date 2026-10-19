@@ -38,6 +38,7 @@ def patch(source:str)->str:
         raise ValueError("RF070 requires main CPU source RF045/RF064/RF066 probes")
     if source.count(rf45.HELPER)!=1 or source.count(RF066_HELPER)!=1:
         raise ValueError("RF070 original source helper anchors drifted")
+    original=source
     for orig,stub in ((rf45.HELPER,RF045_SA1_STUB),(RF066_HELPER,RF064_SA1_STUB)):
         guarded=(f"#ifndef SA1_OPCODES /* {STAMP} */\n"
                  + orig + "#else\n" + stub + "#endif\n")
@@ -46,10 +47,10 @@ def patch(source:str)->str:
     # macros, real Snes9xGet/Set or original timing code.
     for name in ("S9xGetByte(","S9xGetWord(","S9xSetByte(","S9xSetWord(",
                  "S9xOpcode_NMI();"):
-        if source.count(name)!=(source.replace(RF045_SA1_STUB,"")
-                                .replace(RF064_SA1_STUB,"").count(name)):
-            raise AssertionError("RF070 SA-1 isolation added gameplay bus calls")
-    if source.count(STAMP)!=2 or source.count("#ifndef SA1_OPCODES")!=2:
+        if source.count(name)!=original.count(name):
+            raise AssertionError("RF070 SA-1 isolation altered gameplay bus calls")
+    if (source.count(STAMP)!=2 or
+            source.count(f"#ifndef SA1_OPCODES /* {STAMP} */")!=2):
         raise AssertionError("RF070 original C++ guard population wrong")
     return source
 

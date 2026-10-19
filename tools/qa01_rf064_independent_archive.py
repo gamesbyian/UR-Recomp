@@ -44,6 +44,66 @@ def rows(lines: list[str], prefix: str) -> list[dict[str, str]]:
     return result
 
 
+
+def post_nmi_return_witness(lines: list[str], checkpoint: dict[str, str]) -> dict:
+    """Check actual returned NMI stack values, never inventing a bus read."""
+    target = next((i for i, line in enumerate(lines)
+                   if line.startswith(CHECK_PREFIX) and
+                   dict(PAT.findall(line)).get("seq") == checkpoint["seq"]), None)
+    require(target is not None, "source-local NMI checkpoint absent from log")
+    next_bus = next((i for i in range(target + 1, len(lines))
+                    if lines[i].startswith(BUS_PREFIX)), len(lines))
+    nearby = rows(lines[target + 1:next_bus], PULL_PREFIX)
+    result = {
+        "source_nmi_frame": int(checkpoint["f"]),
+        "source_local_checkpoint_seq": int(checkpoint["seq"]),
+        "source_nmi_stack_bytes": checkpoint["stack"],
+        "eligible_sequenced_getset_entries_before_next_bus": 0,
+        "matched_post_nmi_true_return_sequence": False,
+        "return_records": [],
+        "actual_underlying_read_bus_entry_proven": False,
+        "original_native_executed_pc_equivalence_proven": False,
+    }
+    saved = checkpoint["stack"]
+    require(re.fullmatch(r"[0-9A-F]{10}", saved) is not None,
+            "real NMI stack must have five unmasked bytes")
+    expected = [
+        ("pullB", 0x01ED, 1, int(saved[0:2], 16)),
+        ("pullW", 0x01EE, 2,
+         int(saved[2:4], 16) | int(saved[4:6], 16) << 8),
+        ("pullB", 0x01F0, 1, int(saved[6:8], 16)),
+        ("pullB", 0x01F1, 1, int(saved[8:10], 16)),
+    ]
+    if len(nearby) < len(expected):
+        return result
+    selected = nearby[:len(expected)]
+    timestamps = []
+    for row, (kind, base, width, value) in zip(selected, expected):
+        require(row.get("kind") == kind and
+                int(row["base"], 16) == base and
+                int(row["width"]) == width and
+                int(row["returned"], 16) == value and
+                int(row["before"]) == int(checkpoint["seq"]) and
+                int(row["after"]) == int(checkpoint["seq"]) and
+                row["unique"] == "0",
+                "true post-NMI return bytes disagree with unmasked source stack")
+        stamps = (int(row["f"]), int(row["v"]), int(row["h"]))
+        timestamps.append(stamps)
+        result["return_records"].append({
+            "kind": kind, "physical_wram_base": f"7E:{base:04X}",
+            "width": width, "actual_returned_value_hex": f"{value:0{width*2}X}",
+            "executed_original_pc": row["pc"],
+            "original_frame": stamps[0], "original_v": stamps[1],
+            "original_h": stamps[2],
+        })
+    require(timestamps == sorted(timestamps) and
+            timestamps[0] >= (int(checkpoint["f"]),
+                              int(checkpoint["v"]), int(checkpoint["h"])),
+            "true original NMI return clock order invalid")
+    result["matched_post_nmi_true_return_sequence"] = True
+    return result
+
+
 def examine(archive: Path, expected_sha256: str | None = None) -> dict:
     digest = hashlib.sha256()
     with archive.open("rb") as handle:
@@ -132,6 +192,7 @@ def examine(archive: Path, expected_sha256: str | None = None) -> dict:
     require(case.get("release_credit") == 0 and case.get("source_sha") and
             case.get("evidence", {}).get("rom_sha256"),
             "original producer source identity/release status missing")
+    post_nmi = post_nmi_return_witness(lines, checkpoints[0])
     kinds = Counter(r["kind"] for r in rf63)
     read_count = kinds.get("rb", 0) + kinds.get("rw", 0)
     return {
@@ -150,6 +211,7 @@ def examine(archive: Path, expected_sha256: str | None = None) -> dict:
         "rf044_and_rf063_original_getset_rows_match": True,
         "rf063_ordinals_complete": True,
         "real_nmi_checkpoint_raw_stack_matches_rf044": True,
+        "post_nmi_original_return_witness": post_nmi,
         "source_read_path_status": (
             "no_original_stack_reads_observed_at_current_getset_probe"
             if read_count == 0 else "reads_observed_requires_separate_causal_join"),

@@ -1,0 +1,50 @@
+{
+  "schema": "ur-qa06-hosted-options-practice-device-inventory/1",
+  "observed_at": "2026-10-19",
+  "source_archive": {
+    "run_id": 38813101482,
+    "artifact_id": 12010555537,
+    "outer_zip_sha256": "0dc7618f81136a8288459e6ad8908d368c0a20bffffc098c6917b1a7ba6145b1",
+    "member_count": 20,
+    "crc_all_members_passed": true
+  },
+  "source_commit": "11501a15dea38fa912335cfc63103ce3a7208001",
+  "exe_sha256": "0701f72481531ad4f2803caadc62bbb072f292abef69f039edda004b01c18ea9",
+  "log_population": 18,
+  "logs_explicit_zero_sdl_joysticks": 18,
+  "logs_explicit_dummy_audio": 18,
+  "logs_with_physical_sdl_1": 3,
+  "physical_sdl_1_paths": [
+    "native_practice_courses/pause-options-sdl_keys/log.txt",
+    "native_practice_courses/pause-options-p1_pad_semantic/log.txt",
+    "native_practice_courses/restart-in-practice/log.txt"
+  ],
+  "native_options_processes": 5,
+  "practice_courses_admitted": 10,
+  "hardware_claim": "No observed physical SDL joystick; physical_sdl=1 indicates SDL pause/event path only and must not override explicit zero-device report",
+  "genuine_records_from_practice": false,
+  "physical_gamepad_certified": false,
+  "physical_audio_certified": false,
+  "actual_4k_display_certified": false,
+  "no_new_original_native_event_credit": true,
+  "release_gate_credit": 0,
+  "disposition": "Hosted Windows navigation evidence confirmed; physical hardware and audio untested",
+  "extracted_launcher_archive": {
+    "artifact_id": 12010495750,
+    "run_id": 38813101482,
+    "outer_zip_sha256": "5845040dbbc8ba93d9202f043dd3457f5937fdd62d4200771f0aa031f7f35891",
+    "member_count": 7,
+    "crc_all_members_passed": true,
+    "log_members": 6,
+    "log_members_with_sdl_init": 5,
+    "log_members_with_zero_joysticks": 5,
+    "log_members_with_dummy_audio": 5,
+    "refusal_log": "profile-rejected-launch.log",
+    "source_manifest_report": "launcher-acceptance.json",
+    "source_and_exe_bound_to_original_owner": true,
+    "native_extracted_cmd_on_hosted_windows": true,
+    "clean_ordinary_end_user_windows_executed_here": false,
+    "physical_controller_or_audible_audio_verified": false,
+    "controller_only_first_racer_autorelaunch": "hosted SDL semantic input, not physical-pad event"
+  }
+}

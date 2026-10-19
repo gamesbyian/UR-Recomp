@@ -30,6 +30,30 @@ def synthetic_45_source():
     }
 
 
+def qa04_synthetic_hardware_witness(label, *, environment="physical", clean=False):
+    """Synthetic metadata for structural tests, never actual hardware proof."""
+    return {
+        "source_commit": "a" * 40, "artifact_sha256": "b" * 64,
+        "source": "synthetic independent machine evidence " + label,
+        "tested_at": "2026-10-11T06:00:00Z", "layer": "L5",
+        "tested_executable_sha256": "c" * 64,
+        "package_unchanged_after_launch": True,
+        "hardware": {
+            "setup_id": label,
+            "environment": environment,
+            "clean_environment": clean,
+            "windows_version": "Windows 11 test " + label,
+            "gpu": "Distinct GPU " + label,
+            "display": "Real display " + label,
+            "controller": "Physical controller " + label,
+            "audio": "Real audio output " + label,
+            "physical_controller_observed": environment == "physical",
+            "audible_output_observed": environment == "physical",
+            "visible_display_observed": environment == "physical",
+        },
+    }
+
+
 class ReleaseQualityLedgerTests(unittest.TestCase):
     def test_current_unverified_register_is_structurally_valid(self):
         data = baseline()
@@ -341,13 +365,14 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
         data["candidate"]["physical_hardware_verified"] = True
         self.assertTrue(any("L5 witness needs Windows/GPU/display/controller/audio" in x
                             for x in validator.check_registry(data, ROOT)))
-        gate["witnesses"][0]["hardware"] = {
-            "windows_version": "Windows 11 retail 23H2",
-            "gpu": "Hardware graphics adapter model, reviewed",
-            "display": "Real 4K monitor at 3840x2160",
-            "controller": "Two physical SDL/XInput controllers, verified",
-            "audio": "Actual system playback output",
-        }
+        gate["witnesses"][0] = qa04_synthetic_hardware_witness(
+            "physical-1", clean=True)
+        self.assertTrue(any("QA-04 needs three" in x
+                            for x in validator.check_registry(data, ROOT)))
+        gate["witnesses"].extend([
+            qa04_synthetic_hardware_witness("physical-2"),
+            qa04_synthetic_hardware_witness("physical-3"),
+        ])
         self.assertEqual(validator.check_registry(data, ROOT), [])
 
     def test_physical_flag_requires_the_accepted_qa04_hardware_gate(self):
@@ -374,20 +399,13 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
         gate = data["gates"][3]
         gate["candidate_commit"] = "a" * 40
         gate["status"] = "passed"
-        gate["witnesses"] = [{
-            "source_commit": "a" * 40, "artifact_sha256": "b" * 64,
-            "source": "independent real-device acceptance report",
-            "tested_at": "2026-10-11T06:00:00Z", "layer": "L5",
-            "hardware": {
-                "windows_version": "Windows 10",
-                "gpu": "Physical AMD GPU",
-                "display": "1080p physical HDMI monitor",
-                "controller": "Physical XInput pad",
-                "audio": "Real playback device",
-            },
-        }]
+        gate["witnesses"] = [
+            qa04_synthetic_hardware_witness("l5-real-1", clean=True),
+            qa04_synthetic_hardware_witness("l5-real-2"),
+            qa04_synthetic_hardware_witness("l5-real-3"),
+        ]
         self.assertEqual(validator.check_registry(data, ROOT), [])
-        for field in list(gate["witnesses"][0]["hardware"]):
+        for field in ("windows_version", "gpu", "display", "controller", "audio"):
             with self.subTest(field=field):
                 damaged = copy.deepcopy(data)
                 damaged["gates"][3]["witnesses"][0]["hardware"][field] = ""
@@ -396,6 +414,72 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
         data["candidate"]["physical_hardware_verified"] = False
         self.assertTrue(any("L5 witness without physical" in x
                             for x in validator.check_registry(data, ROOT)))
+
+    def test_qa04_hardware_coverage_rejects_duplicate_hosted_and_single_machine(self):
+        data = baseline()
+        data["candidate"].update(commit_sha="a" * 40, zip_sha256="b" * 64,
+                                 physical_hardware_verified=True)
+        gate = data["gates"][3]
+        gate.update(status="passed", candidate_commit="a" * 40)
+        three_real = [
+            qa04_synthetic_hardware_witness("pc-1", clean=True),
+            qa04_synthetic_hardware_witness("pc-2"),
+            qa04_synthetic_hardware_witness("pc-3"),
+        ]
+        gate["witnesses"] = copy.deepcopy(three_real)
+        self.assertEqual(validator.check_registry(data, ROOT), [])
+        variants = []
+        variants.append(three_real[:1])  # one box cannot represent three machines
+        variants.append(three_real[:2])
+        duplicate = copy.deepcopy(three_real)
+        duplicate[2]["hardware"]["setup_id"] = "pc-2"
+        variants.append(duplicate)
+        identical = copy.deepcopy(three_real)
+        identical[1]["hardware"]["gpu"] = identical[0]["hardware"]["gpu"]
+        identical[1]["hardware"]["display"] = identical[0]["hardware"]["display"]
+        identical[1]["hardware"]["controller"] = identical[0]["hardware"]["controller"]
+        identical[2]["hardware"]["gpu"] = identical[0]["hardware"]["gpu"]
+        identical[2]["hardware"]["display"] = identical[0]["hardware"]["display"]
+        identical[2]["hardware"]["controller"] = identical[0]["hardware"]["controller"]
+        variants.append(identical)
+        only_two_unique = copy.deepcopy(three_real)
+        for key in ("gpu", "display", "controller"):
+            only_two_unique[2]["hardware"][key] = only_two_unique[1]["hardware"][key]
+        variants.append(only_two_unique)
+        no_clean = copy.deepcopy(three_real)
+        for w in no_clean:
+            w["hardware"]["clean_environment"] = False
+        variants.append(no_clean)
+        hosted = copy.deepcopy(three_real)
+        for w in hosted:
+            w["hardware"]["environment"] = "hosted-ci"
+        variants.append(hosted)
+        dummy = copy.deepcopy(three_real)
+        dummy[0]["hardware"]["audible_output_observed"] = False
+        variants.append(dummy)
+        unequal_exe = copy.deepcopy(three_real)
+        unequal_exe[2]["tested_executable_sha256"] = "d" * 64
+        variants.append(unequal_exe)
+        changed_zip = copy.deepcopy(three_real)
+        changed_zip[0]["package_unchanged_after_launch"] = False
+        variants.append(changed_zip)
+        for i, witnesses in enumerate(variants):
+            changed = copy.deepcopy(data)
+            changed["gates"][3]["witnesses"] = witnesses
+            with self.subTest(case=i):
+                self.assertTrue(any("QA-04 needs three" in err for err in
+                                    validator.check_registry(changed, ROOT)))
+        gate["witnesses"] = [
+            qa04_synthetic_hardware_witness("win-real-1"),
+            qa04_synthetic_hardware_witness("win-real-2"),
+            qa04_synthetic_hardware_witness("isolated-clean-1",
+                                            environment="isolated-clean-vm", clean=True),
+        ]
+        self.assertEqual(validator.check_registry(data, ROOT), [])
+        gate["witnesses"][1]["hardware"]["environment"] = "isolated-clean-vm"
+        gate["witnesses"][1]["hardware"]["clean_environment"] = True
+        self.assertTrue(any("QA-04 needs three" in err for err in
+                            validator.check_registry(data, ROOT)))
 
     def test_evidence_requires_unambiguous_timestamp_and_reviewed_waiver(self):
         data = baseline()

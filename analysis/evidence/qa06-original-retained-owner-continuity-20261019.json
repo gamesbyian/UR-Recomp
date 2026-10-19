@@ -1,16 +1,47 @@
 {
-  "actions_binding": {},
-  "actions_original": {},
-  "actions_retained": {},
+  "actions_binding": {
+    "run_id": 38813101482,
+    "artifact_id": 12010675093,
+    "outer_zip_sha256": "d396c11061f34b751c6138670cb160c01d011022b93800ac14b57eb2854c2a69",
+    "crc_all_members_passed": true
+  },
+  "actions_original": {
+    "run_id": 38813101482,
+    "artifact_id": 12009612842,
+    "outer_zip_sha256": "5a4de66f09a9ceea5cb7b431f808a17821f770bf09c48117a8cb3bd9a0c83722",
+    "crc_all_members_passed": true
+  },
+  "actions_retained": {
+    "run_id": 38828519791,
+    "artifact_id": 12016101293,
+    "outer_zip_sha256": "5604af1c673df09465b3fbd950898cd08a038705e076aedfba8141e9d83fd8ce",
+    "crc_all_members_passed": true
+  },
   "audit_date": "2026-10-19",
   "binding_member_sha256": "eb88144b49adf4a2a66c53fa9a3e96b458e526ec87de74882434de73a5a0e921",
   "disposition": "HOLD historical artifact package provenance independently confirmed",
-  "executable": {},
-  "inner_romfree_zip": {},
+  "executable": {
+    "sha256": "0701f72481531ad4f2803caadc62bbb072f292abef69f039edda004b01c18ea9",
+    "bytes": 19808768,
+    "format": "PE32+",
+    "architecture": "AMD64"
+  },
+  "inner_romfree_zip": {
+    "sha256": "5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7",
+    "bytes": 5973812,
+    "crc_all_members_passed": true,
+    "member_count": 4,
+    "manifest_immutable_members_verified": 3
+  },
   "launcher_sha256": "da052f558f979e1645fcc5ddd11ffe89c51d004f3c613a64e5ff666d17b51416",
   "named_profile_ntfs_faults_executed": false,
   "native_windows_executed_in_this_audit": false,
-  "original_file_sha256": {},
+  "original_file_sha256": {
+    "PLAYTEST-PROVENANCE.json": "b1b5dc42406055fb3addd144fd18e5f165b8270129331d9cffe8be0f13e98881",
+    "RELEASE-NOTES.md": "d390f6373b2c21c0c121a5f68ebf9d3ff053d025985ae9f98da60b8e189c4e65",
+    "UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip": "5605aaf2ab1773b35385601564ee320ef065ce9bde091117b1e8e5a4661ed1f7",
+    "UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256": "f3cb79305c099f7ab01fd8193bb943ade1aefa30c84ef3f119ba6f09b400d3ea"
+  },
   "original_native_usa_events_accepted": 0,
   "original_retained_exact_four_member_byte_equality": true,
   "physical_controller_audio_display_verified": false,

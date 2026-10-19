@@ -320,6 +320,14 @@ jobs:
             python3 tools/baldosa_spc_bus_cycle_patch.py --game baldosa
             python3 tools/baldosa_interrupt_entry_cost_patch.py --game baldosa
           fi
+          # RESEARCH-ONLY RF062 wrapper substitution A/B. Both native builds
+          # inherit precisely the same pinned Baldosa/RF015-028, original ROM,
+          # RF018 pointer-once and RF054 real helper observer sources.
+          # Build the unwrapped control BEFORE staging any RF062 read shim.
+          python3 tools/qa01_rf054_native_sound_writer_identity.py --root baldosa
+          (cd baldosa && bash tools/regen.sh --cfg-roots \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc")
+          cp -a baldosa/src/gen "$RUNNER_TEMP/qa01-rf062-control-gen"
           cmake -S baldosa -B baldosa/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
             -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
@@ -327,10 +335,24 @@ jobs:
           OUT="$RUNNER_TEMP/qa01-binaries"
           mkdir -p "$OUT"
           install -m 755 "$RUNNER_TEMP/qa01-snesref/snesref" "$OUT/snesref"
+          install -m 755 baldosa/build/UniracersSNESRecomp "$OUT/native-control"
+          # Only permitted generated code delta: one sound decoded-PC read
+          # call, introduced *after* ordinary paced-byte clock accounting.
+          python3 tools/qa01_rf062_direct_sound_bus_pc_patch.py --root baldosa
+          (cd baldosa && bash tools/regen.sh --cfg-roots \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc")
+          python3 tools/qa01_rf062_wrapper_only_diff.py \
+            "$RUNNER_TEMP/qa01-rf062-control-gen" baldosa/src/gen \
+            --output "$OUT/rf062-wrapper-only-static.json"
+          python3 tools/qa01_rf062_verify_live_generated.py baldosa/src/gen \
+            --output "$OUT/rf062-live-site.json"
+          cmake --build baldosa/build --target UniracersSNESRecomp -j3
           install -m 755 baldosa/build/UniracersSNESRecomp "$OUT/native"
           cp .tools/src/snes9x-libretro/libretro/snes9x_libretro.so "$OUT/snes9x_libretro.so"
           (cd "$OUT" && sha256sum snesref native snes9x_libretro.so > SHA256SUMS && \
-            sha256sum -c SHA256SUMS)
+            sha256sum -c SHA256SUMS && \
+            sha256sum native-control > CONTROL_NATIVE_SHA256SUMS && \
+            sha256sum -c CONTROL_NATIVE_SHA256SUMS)
       - name: Upload one immutable candidate for all case shards
         uses: actions/upload-artifact@v4
         with:
@@ -372,7 +394,8 @@ jobs:
             libxkbcommon0 libegl1 libgles2 libdrm2 libgbm1 \
             libasound2 libpulse0 libudev1 libdbus-1-3 xvfb
           (cd "$RUNNER_TEMP/qa01-binaries" && sha256sum -c SHA256SUMS)
-          chmod +x "$RUNNER_TEMP/qa01-binaries/native" "$RUNNER_TEMP/qa01-binaries/snesref"
+          chmod +x "$RUNNER_TEMP/qa01-binaries/native" "$RUNNER_TEMP/qa01-binaries/native-control" "$RUNNER_TEMP/qa01-binaries/snesref"
+          (cd "$RUNNER_TEMP/qa01-binaries" && sha256sum -c CONTROL_NATIVE_SHA256SUMS)
           ldd "$RUNNER_TEMP/qa01-binaries/native" > "$RUNNER_TEMP/qa01-native-ldd.log"
           cat "$RUNNER_TEMP/qa01-native-ldd.log"
           if grep -q 'not found' "$RUNNER_TEMP/qa01-native-ldd.log"; then

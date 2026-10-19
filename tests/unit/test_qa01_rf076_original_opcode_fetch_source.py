@@ -59,8 +59,8 @@ class OriginalFetch(unittest.TestCase):
                 m.patch(fixture().replace(a, a+a))
 
     def test_unstaged_2014_original_is_rejected(self):
-        original=fixture().replace('/* UR_QA01_RF044_STACK_BUS */\\n','').replace(
-            '/* UR_QA01_RF063_SOURCE_BUS_CHECKPOINT_SEQUENCE */\\n','')
+        original=fixture().replace('/* UR_QA01_RF044_STACK_BUS */\n','').replace(
+            '/* UR_QA01_RF063_SOURCE_BUS_CHECKPOINT_SEQUENCE */\n','')
         with self.assertRaisesRegex(ValueError, 'requires actual RF044/RF063'):
             m.patch(original)
 
@@ -74,7 +74,7 @@ class OriginalFetch(unittest.TestCase):
                         m.patch(damaged)
                 else:
                     with self.assertRaisesRegex(ValueError,'structural drift'):
-                        m.patch(fixture().replace(fragment,fragment+'\\n'+fragment))
+                        m.patch(fixture().replace(fragment,fragment+'\n'+fragment))
 
     def test_no_duplicate_source_staging(self):
         with self.assertRaisesRegex(ValueError, 'already staged'):

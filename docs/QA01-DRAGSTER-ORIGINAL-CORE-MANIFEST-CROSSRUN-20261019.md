@@ -1,0 +1,21 @@
+# QA-01: exact original Dragster core manifests across three authentic archives
+
+**Correction to archival validation, not game behavior. USA accepted 0/45.**
+
+The independently merged source audit `tools/qa01_dragster_zoo_raw_archive_audit.py` recently pinned one original Snes9x core SHA-256 from a genuine early 69-file run. This created an **incorrect archive rejection** for the later two genuine source-qualified Dragster ZIPs, even though the original USA ROM, reset-anchored 2014 movie, source SRAM, scripted controller replay, original source-window digest and source WRAM write history remain unchanged. A changed original *binary hash* must be separately authenticated, not silently equated with source/controller drift.
+
+I independently reopened all three **original** GitHub Actions ZIPs (not synthetic fixture files), verified complete ZIP SHA-256 and rehashed the actual `dragster/source/trace.jsonl` member. Each original archive retains `executables.sha256` with three lines listing the executed original Snes9x libretro core, `snesref` and Baldosa executable by exact GitHub runner path:
+
+| Original source run | Retained original ZIP / SHA-256 | Full original Snes9x core SHA-256 |
+|---|---|---|
+| [39174631932](https://github.com/gamesbyian/UR-Recomp/actions/runs/39174631932), 69 members | artifact **12154480620**, `f036f80d72000b05a5c2edb42152eb433b89fa44c5fc36238ccc73bd143e2947` | `f7548718783409c2636374d0a68c21671e5ea214bcb9d11780c4622e80d96fe0` |
+| [39180473171](https://github.com/gamesbyian/UR-Recomp/actions/runs/39180473171), 205 members | artifact **12155314437**, `1d8ca903cbe911bb36bb8444d8f6b4fe055fd4aabfe33bf379a6c917c928a92f` | `931094b5772ce832f832809728e4b42f92799109ca62991d44c8f953d4640f31` |
+| [39181915696](https://github.com/gamesbyian/UR-Recomp/actions/runs/39181915696), 206 members | artifact **12156438655**, `a2e89f0acf1ac610e343ddc00d5b1c6d7e0d7d62cb05f46b77010ff588345ceb` | `1e36493285da04109d67d194ba68116f9d3222d3b0866b080a8b12bce87ce683` |
+
+All three retained original source traces have **identical** SHA-256 `3de122406937fcf839988d7990972e9275b8e7bbd47db1b958fea20113c27c54`. Each has pinned source ROM `859ec99f…`, SMV `06dce29e…`, source SRAM `a6af0ddf…`, replay-script `6bc10df3…`, controller-window `aec7f885…`, original `snesref` binary `5fb3cca1f51d13762e7b82e736133cdab702aafbca07b9164d568139a3bcc18a`, and Baldosa executable `439ac76fa8d90f141436dc25426e522561667cb3aa575d5c326a06afc6cb5ba8`. The actual per-archive core digest matches **both** that original producer report and the separate `executables.sha256` member. No source mask, original trace or guest state was edited in this audit.
+
+**Fail-closed rule:** pin the original ROM/movie/SRAM/input/window/trace **exactly as before**; pin the original `snesref` and native executable; require an original preserved **three-row executable manifest** with exact absolute original GitHub runner paths, lowercase SHA-256 and no duplicates, require its original core hash to match the report, and accept only the three actual independently verified original-core hashes above. An unrecognized fourth core is a **new evidence decision**, not automatically trusted. An absent, altered, extra, misnamed or inconsistent manifest fails independent QA. Synthetic tests explicitly cover each qualified core and all those negatives.
+
+This is only **source-bound compiled binary provenance**. The ZIPs preserve manifest hashes, not the actual executable binaries. Thus this check does **not** independently rehash a compiled core or Windows PE from the ZIP, prove that the original/native CPU actually consumed the supplied P1 masks at matching ticks, clear the Dragster +2081/+2079 result divergence or next Zoo +315/+318 onset mismatch, or authorize a memory-byte exemption. The authentic existing raw-mesh checker still reads 28 full 128KiB WRAM images and 28 full 8KiB SRAM images and independently rederives negative byte differences. There is **no change to complete USA event credit (0/45) or release gate credit (0/12)**, and no new original/native execution or workflow trigger.
+
+The original Actions archives expire under their retention policy; this document and the code's pinned hashes are a provenance record, not substitutes for their missing original raw binary members.

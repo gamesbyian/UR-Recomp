@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 
 from qa01_bowl_handoff_raw_archive_audit import (
@@ -20,17 +21,33 @@ SCHEMA = "UR-QA01-INDEPENDENT-DRAGSTER-ZOO-RAW-ARCHIVE/1"
 PRODUCER_SCHEMA = "UR-QA01-DRAGSTER-TO-ZOO-FRESH-GUEST-PROGRESSION/1"
 OFFSETS = (304, 308, 312, 314, 315, 316, 317, 318, 319, 320, 321, 324, 328, 336)
 MOVIE_RESULT, MOVIE_ZOO = 2874, 3190
-# Exact original 2014 USA source, seed, reference core and controller route.
-# These are archived receipt identities; their source ROM/SMV/ELF bytes
-# are NOT all contained in the research case ZIP for independent rehash.
+# Exact original 2014 USA ROM, movie, seed and controller route, independent
+# of which separately qualified and actually manifested Snes9x core rebuilt
+# for an immutable Actions run. Native/2014 binary *bytes* are not in ZIP.
 FROZEN_SOURCE = {
     "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
     "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
     "source_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
-    "reference_core_sha256": "f7548718783409c2636374d0a68c21671e5ea214bcb9d11780c4622e80d96fe0",
     "input_sha256": "6bc10df3649717482c96edd1d72c52c62f5f53baeb1a2b142c725fca0d864905",
     "original_movie_window_sha256": "aec7f8850085d662656117303f9daa802e737aca2d12b8af89962acbb206d1c1",
 }
+# Each value was independently recomputed from the manifest + producer in an
+# actual original 2014 USA Dragster Actions ZIP, NOT guessed from a new build:
+# 69-member 12154480620 (f754...), 205-member 12155314437 (9310...),
+# 206-member 12156438655 (1e36...). Future cores must be separately verified.
+QUALIFIED_ORIGINAL_CORES = frozenset({
+    "f7548718783409c2636374d0a68c21671e5ea214bcb9d11780c4622e80d96fe0",
+    "931094b5772ce832f832809728e4b42f92799109ca62991d44c8f953d4640f31",
+    "1e36493285da04109d67d194ba68116f9d3222d3b0866b080a8b12bce87ce683",
+})
+QUALIFIED_SNESREF_SHA256 = "5fb3cca1f51d13762e7b82e736133cdab702aafbca07b9164d568139a3bcc18a"
+QUALIFIED_NATIVE_SHA256 = "439ac76fa8d90f141436dc25426e522561667cb3aa575d5c326a06afc6cb5ba8"
+MANIFEST_PATHS = {
+    "snesref": "/home/runner/work/_temp/dragster-snesref/snesref",
+    "core": "/home/runner/work/UR-Recomp/UR-Recomp/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so",
+    "native": "/home/runner/work/UR-Recomp/UR-Recomp/baldosa/build/UniracersSNESRecomp",
+}
+MANIFEST_LINE = re.compile(r"([0-9a-f]{64})  (/home/runner/work/[^\r\n]+)\Z")
 FROZEN_MOVIE_TRACE = "3de122406937fcf839988d7990972e9275b8e7bbd47db1b958fea20113c27c54"
 NAME_ADDR = {"menu": 0x9F, "track": 0xCE, "in_race": 0x313, "tour_row": 0xD0}
 
@@ -38,6 +55,52 @@ NAME_ADDR = {"menu": 0x9F, "track": 0xCE, "in_race": 0x313, "tour_row": 0xD0}
 def require(ok: bool, reason: str) -> None:
     if not ok:
         raise ValueError(reason)
+
+
+def verify_executed_binary_manifest(root: Path, report: dict) -> dict:
+    """Check the exact retained original build manifest with known real cores.
+
+    These entries are SHA receipts from the original executed build, NOT
+    rehashed PE/ELF/source binaries (which this ZIP does not include).
+    """
+    path = root / "executables.sha256"
+    require(path.is_file() and not path.is_symlink(),
+            "missing exact source-execution binary SHA256 manifest")
+    raw = path.read_bytes()
+    require(raw.endswith(b"\n") and len(raw) <= 768 and
+            raw.count(b"\n") == 3,
+            "source-execution manifest has wrong row population")
+    try:
+        lines = raw.decode("ascii").splitlines()
+    except UnicodeDecodeError as exc:
+        raise ValueError("non-ASCII source-execution manifest") from exc
+    entries = {}
+    for line in lines:
+        match = MANIFEST_LINE.fullmatch(line)
+        require(match is not None, "malformed source-execution SHA256 manifest row")
+        sha, fullpath = match.groups()
+        candidates = [key for key, exact_path in MANIFEST_PATHS.items()
+                      if fullpath == exact_path]
+        require(len(candidates) == 1 and candidates[0] not in entries,
+                "untrusted or duplicated source-execution binary manifest name")
+        entries[candidates[0]] = sha
+    require(set(entries) == set(MANIFEST_PATHS),
+            "source-execution manifest omits original or native binary")
+    require(report.get("reference_core_sha256") in QUALIFIED_ORIGINAL_CORES,
+            "unknown original Snes9x binary not independently source-qualified")
+    require(entries["core"] == report["reference_core_sha256"] and
+            entries["snesref"] == QUALIFIED_SNESREF_SHA256 and
+            entries["native"] == report.get("native_executable_sha256") ==
+                QUALIFIED_NATIVE_SHA256,
+            "original/native executed producer binary hashes contradict source manifest")
+    return {
+        "original_core_sha256": entries["core"],
+        "source_snesref_sha256": entries["snesref"],
+        "native_executable_sha256": entries["native"],
+        "source_execution_manifest_sha256": hashlib.sha256(raw).hexdigest(),
+        "original_core_on_independently_verified_archive_allowlist": True,
+        "compiled_binaries_physically_in_case_zip": False,
+    }
 
 
 def real_dragster_record(sram: bytes) -> tuple[list[dict], bool]:
@@ -174,10 +237,7 @@ def audit(root: Path) -> dict:
     require(all(report.get(key) == value for key, value in FROZEN_SOURCE.items()) and
             report.get("reference_script_sha256") == FROZEN_SOURCE["input_sha256"],
             "actual 2014 USA ROM/movie/core/seed/controller identity not source-pinned")
-    native_sha = report.get("native_executable_sha256")
-    require(isinstance(native_sha, str) and len(native_sha) == 64 and
-            all(ch in "0123456789abcdef" for ch in native_sha),
-            "missing native executable receipt identity (ELF bytes not in this archive)")
+    build = verify_executed_binary_manifest(root, report)
     event = report.get("original_source_event")
     require(isinstance(event, dict) and event.get("original_entry_frame") == 794 and
             event.get("original_result_frame") == MOVIE_RESULT and
@@ -332,6 +392,7 @@ def audit(root: Path) -> dict:
             "raw three-clock entry/bracket, score or course-payload claim disagrees with receipt")
 
     return {"schema": SCHEMA, "producer_sha256": digest(report_path.read_bytes()),
+            "actual_source_executable_manifest": build,
             "historical_source_trace_sha256": trace_sha,
             "full_source_result_to_zoo_raw_trace_movie_frames_rebuilt": len(movie_trace_states),
             "source_2014_8_consecutive_zoo_active_frames_rederived": True,

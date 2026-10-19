@@ -153,7 +153,9 @@ class DragsterZooRawAuditTests(unittest.TestCase):
             "native_backend": "pinned-baldosa",
             "admission": "investigative candidate; not a release-ledger pass",
             **audit.FROZEN_SOURCE,
-            "native_executable_sha256": "a" * 64,
+            "native_executable_sha256": audit.QUALIFIED_NATIVE_SHA256,
+            "reference_core_sha256":
+                "f7548718783409c2636374d0a68c21671e5ea214bcb9d11780c4622e80d96fe0",
             "reference_script_sha256": audit.FROZEN_SOURCE["input_sha256"],
             "reference_entry": 945, "native_entry": 945, "native_frame_shift": 0,
             "original_source_event": {"original_entry_frame": 794,
@@ -168,8 +170,61 @@ class DragsterZooRawAuditTests(unittest.TestCase):
             "dragster_next_zoo_handoff": handoff,
         }
         self.write("dragster-report.json", report)
+        # Authentic executed original manifests contain fixed 3 original
+        # executable suffixes. Synthetic tests exercise their exact receipts.
+        self.manifest_source(report)
         self.write("dragster/source/dragster-next-zoo-original.json", proof)
         return report
+
+    def manifest_source(self, report):
+        parts = {
+            "snesref": audit.QUALIFIED_SNESREF_SHA256,
+            "core": report["reference_core_sha256"],
+            "native": report["native_executable_sha256"],
+        }
+        rows = []
+        for key, exact_path in audit.MANIFEST_PATHS.items():
+            rows.append(f"{parts[key]}  {exact_path}\n")
+        (self.root / "executables.sha256").write_text(
+            "".join(rows), encoding="ascii")
+
+    def test_all_three_independently_verified_original_core_archives_accepted(self):
+        for sha in audit.QUALIFIED_ORIGINAL_CORES:
+            report = self.make()
+            report["reference_core_sha256"] = sha
+            self.write("dragster-report.json", report)
+            self.manifest_source(report)
+            evidence = audit.audit(self.root)
+            self.assertEqual(evidence["actual_source_executable_manifest"][
+                "original_core_sha256"], sha)
+            self.assertTrue(evidence["actual_source_executable_manifest"][
+                "original_core_on_independently_verified_archive_allowlist"])
+            self.assertFalse(evidence["actual_source_executable_manifest"][
+                "compiled_binaries_physically_in_case_zip"])
+
+    def test_missing_tampered_misnamed_or_unqualified_original_manifest_rejected(self):
+        self.make()
+        manifest = self.root / "executables.sha256"
+        raw = manifest.read_text()
+        for mutated in (
+                raw.replace(audit.QUALIFIED_NATIVE_SHA256, "f"*64),
+                raw.replace("snes9x_libretro.so", "not-original.so"),
+                raw.replace("  /home/runner/work", "  /tmp/fake"),
+                raw.replace("dragster-snesref/snesref", "baldosa/build/UniracersSNESRecomp"),
+                raw.replace("\n", "", 1)):
+            with self.subTest(mutated=mutated[:65]):
+                manifest.write_text(mutated)
+                with self.assertRaisesRegex(ValueError, "manifest|original/native"):
+                    audit.audit(self.root)
+        manifest.unlink()
+        with self.assertRaisesRegex(ValueError, "missing exact source-execution"):
+            audit.audit(self.root)
+        report = self.make()
+        report["reference_core_sha256"] = "f"*64
+        self.write("dragster-report.json", report)
+        self.manifest_source(report)
+        with self.assertRaisesRegex(ValueError, "not independently source-qualified"):
+            audit.audit(self.root)
 
     def test_all_fourteen_original_native_raw_snapshots_stay_unaccepted(self):
         self.make()

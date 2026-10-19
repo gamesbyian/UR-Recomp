@@ -35,6 +35,23 @@ The first source original `pullW` returns `9141` at frame 1017/v0/h30, PC `82:91
 
 The same genuine run produced a source/native diagnostic `strict_candidate` for the Zoom Zoo result at +5163 and next Bowl entry at +267, but retained **8 unmasked WRAM differing-byte occurrences** around next Bowl +266/+280, no original/native whole-race parity and no independently proven guest controller CPU polls/Windows cold persistence. Those outcomes are preserved without a waiver. [QA01 event requirements](QA01-INDEPENDENT-FIRST-USA-EVENT-ACCEPTANCE-20261018.md) and [factory preflight](QA01-RESEARCH-FACTORY-ADMISSION-20261019.md) remain HOLD. No large research campaign or event credit.
 
+## Source-original **actual post-NMI return values** (distinct positive witness)
+
+The one real RF063 checkpoint `seq=67`, original frame 1017, v225/h78, has physical stack bytes at `7E:01ED..01F1` equal to `26 F0 D4 82 26`, independently equal to RF044's immediately post-NMI real snapshot. **Before the next sequenced RF063 getset event** (a later write, seq68), the original RF064 post-call logger and separately matching RF045 post-call macro report exactly these four returns, at original frame 1017:
+
+| Source-local v/h | Physical stack address | Actual returned value | Original reported post-call PB:PCw |
+| --- | --- | --- | --- |
+| v226/h714 | `7E:01ED` | `26` (one byte) | `80:B0EB` |
+| v226/h730 | `7E:01EE` | `D4F0` (two little-endian bytes) | `80:D4F0` |
+| v226/h738 | `7E:01F0` | `82` (one byte) | `82:D4F0` |
+| v226/h834 | `7E:01F1` | `26` (one byte) | `82:D4F5` |
+
+This is **positive evidence that the original source S9xGetByte/Word pull macros actually returned the saved NMI-stack values** in this sampled early frame, not merely that those bytes were present in a snapshot. The independent verifier now recomputes each return from the checkpoint's five unmasked bytes and checks the ordinal, actual return, original timestamp order and original PC. No eligible RF063 getset *write* intervenes, and no eligible RF063 getset *read* is recorded either. It therefore **cannot identify the missing underlying read bus-entry site** or establish independent native same-PC/state equivalence. The first recorded post-call register pair `80:B0EB` is an actual original source observation of `Registers.PB/PCw` at the RF064 return hook, **not yet proof of the decoded opcode entry PC** and not a native instruction witness.
+
+The same independent scan also verifies **all nine genuine RF044 NMI snapshots** across original host frames 1017–1025, each followed by precisely four original RF064 returned stack values matching its own saved bytes before the next **observed** sequenced getset write. This independently yields **36 actual returned reads across nine original NMIs**, not nine RF063 checkpoints: only the first NMI has a shared source-local `RF063ORIGCHECKPOINT` record, and the remaining eight are qualified against their actual RF044 NMI log lines and the most recent genuine RF063 getset ordinal. Saved status/return addresses alternate as actually logged; no additional source instruction or bus event is manufactured. The machine report records the distinct `source_nmi_return_sequences` and preserves `native_equivalence_proven=false`. The stronger series check is **within one original source execution**, not nine independent replay replicates.
+
+**Frame caution:** RF044/RF064 instrumented **original host 1017..1025**, near Zoo race entry, *not* the later race-relative +5034..5042 divergence in the separate nine-frame capture. Do not promote these early reads to first consumed reads of the late stack/sound pointer differences. An authentic late bounded experiment must prove its own original and native host-frame origins and independent source input/clock registration first.
+
 ## Immediate follow-up for producer owners
 
 RF063/064 source owner: preserve genuine RF045 returns and the newly qualified original core compile, but find the actual original pull data path before normalizing a single bus-read ordinal. Native RF062 owner: independently qualify the real 82:82F0 emitted guest PC in its own clock domain. Independent QA: after authentic original/native equivalent *executed* reads are available, join them to the already retained +5034–+5042 unmasked original/native frame evidence with the merged `qa01_causal_window.py` and `qa01_factory_preflight.py`. Retain source/input/ROM/guest identity; never synthesize missing events from logged host-state snapshots.

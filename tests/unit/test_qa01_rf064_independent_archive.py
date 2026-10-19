@@ -20,8 +20,8 @@ def lines():
         "QA01RF044ORIGBUS f=1017 v=0 h=78 kind=ww bank=00 addr=01F0 w=2 value=914E pb=82 pc=914F S=01F1",
         "QA01RF063ORIGBUS seq=1 f=1017 v=0 h=78 kind=ww bank=00 addr=01F0 width=2 sampled=914E pc=82:914F S=01F1 phase=getset_entry",
         "QA01RF045ORIGSTACK seq=2 f=1017 v=0 h=94 kind=pushW addr=01F0 width=2 value=914E sp0=01F1 sp1=01EF pc=82:914F",
-        "QA01RF044ORIGNMI f=1017 f1=1017 pc=82D4F0 S0=01F0 S1=01EC old=8197005526 new=26F0D48226",
         "QA01RF063ORIGCHECKPOINT seq=2 f=1017 f1=1017 phase=post_real_nmi_push stack=26F0D48226 v=225 h=78 pc=00:8588",
+        "QA01RF044ORIGNMI f=1017 f1=1017 pc=82D4F0 S0=01F0 S1=01EC old=8197005526 new=26F0D48226",
     ]
 
 
@@ -64,6 +64,69 @@ class IndependentRF064Archive(unittest.TestCase):
         self.assertEqual(receipt["all_pull_returns_without_intervening_sequenced_bus_entry"], 1)
         self.assertFalse(receipt["actual_return_proves_specific_underlying_bus_site"])
         self.assertEqual(receipt["accepted_USA_events"], 0)
+
+    def post_nmi_rows(self):
+        return lines() + [
+            "QA01RF064ORIGPULL f=1017 v=226 h=714 kind=pullB base=01ED width=1 returned=0026 before=2 after=2 unique=0 pc=80:B0EB",
+            "QA01RF064ORIGPULL f=1017 v=226 h=730 kind=pullW base=01EE width=2 returned=D4F0 before=2 after=2 unique=0 pc=80:D4F0",
+            "QA01RF064ORIGPULL f=1017 v=226 h=738 kind=pullB base=01F0 width=1 returned=0082 before=2 after=2 unique=0 pc=82:D4F0",
+            "QA01RF064ORIGPULL f=1017 v=226 h=834 kind=pullB base=01F1 width=1 returned=0026 before=2 after=2 unique=0 pc=82:D4F5",
+        ]
+
+    def test_actual_original_nmi_return_bytes_and_pc_are_preserved(self):
+        checkpoint = {"seq": "2", "f": "1017", "v": "225", "h": "78",
+                      "stack": "26F0D48226"}
+        witness = audit.post_nmi_return_witness(self.post_nmi_rows(), checkpoint)
+        self.assertTrue(witness["matched_post_nmi_true_return_sequence"])
+        self.assertEqual([r["actual_returned_value_hex"] for r in
+                          witness["return_records"]], ["26", "D4F0", "82", "26"])
+        self.assertEqual([r["original_post_call_pb_pcw"] for r in
+                          witness["return_records"]],
+                         ["80:B0EB", "80:D4F0", "82:D4F0", "82:D4F5"])
+        self.assertFalse(witness["actual_underlying_read_bus_entry_proven"])
+        self.assertFalse(witness["original_native_executed_pc_equivalence_proven"])
+
+    def test_missing_source_returns_cannot_claim_nmi_consumption(self):
+        checkpoint = {"seq": "2", "f": "1017", "v": "225", "h": "78",
+                      "stack": "26F0D48226"}
+        witness = audit.post_nmi_return_witness(lines(), checkpoint)
+        self.assertFalse(witness["matched_post_nmi_true_return_sequence"])
+
+    def test_altered_post_nmi_return_byte_rejected(self):
+        checkpoint = {"seq": "2", "f": "1017", "v": "225", "h": "78",
+                      "stack": "26F0D48226"}
+        forged = [s.replace("returned=D4F0", "returned=D4F1")
+                  for s in self.post_nmi_rows()]
+        with self.assertRaisesRegex(ValueError, "return bytes disagree"):
+            audit.post_nmi_return_witness(forged, checkpoint)
+
+    def test_post_nmi_return_clock_cannot_precede_nmi_checkpoint(self):
+        checkpoint = {"seq": "2", "f": "1017", "v": "225", "h": "78",
+                      "stack": "26F0D48226"}
+        forged = [s.replace("v=226 h=714", "v=224 h=714")
+                  for s in self.post_nmi_rows()]
+        with self.assertRaisesRegex(ValueError, "clock order invalid"):
+            audit.post_nmi_return_witness(forged, checkpoint)
+
+    def test_series_checks_real_return_values_for_each_original_nmi(self):
+        log = self.post_nmi_rows()
+        series = audit.original_nmi_return_series(log)
+        self.assertEqual(series["original_nmi_observations"], 1)
+        self.assertEqual(series["nmis_with_four_matching_actual_source_returns"], 1)
+        self.assertTrue(series["all_observed_nmis_have_four_matching_returns"])
+        self.assertFalse(series["native_equivalence_proven"])
+
+    def test_series_without_returns_is_incomplete(self):
+        series = audit.original_nmi_return_series(lines())
+        self.assertEqual(series["original_nmi_observations"], 1)
+        self.assertEqual(series["nmis_with_four_matching_actual_source_returns"], 0)
+        self.assertFalse(series["all_observed_nmis_have_four_matching_returns"])
+
+    def test_series_false_actual_original_return_does_not_count(self):
+        forged = [s.replace("returned=D4F0", "returned=D4F1")
+                  for s in self.post_nmi_rows()]
+        with self.assertRaisesRegex(ValueError, "actual returned source bytes disagree"):
+            audit.original_nmi_return_series(forged)
 
     def test_archive_hash_pin_rejects_replacement(self):
         with self.assertRaisesRegex(ValueError, "immutable archive"):

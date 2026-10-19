@@ -1,0 +1,250 @@
+{
+  "schema": "rf059-retail-USA-Bowl-executed-original-race-initialization-24-instruction-boundary-witness-v1",
+  "run": {
+    "github_actions_id": 39185419776,
+    "source_commit": "1ea1ccd85c3f221a0bfd9ac161434e416dcbe776",
+    "conclusion": "success",
+    "artifact_id": 12157764081,
+    "zip_sha256": "b5854c0c8290b989bac9e7ec81a59d7552c06d7f5e06568eb4e6f3483d3a3db0",
+    "member_count": 84,
+    "original_executed_receipt_sha256": "3e93a8574d33c166b3ab029ea1cd82a7fd7c0151ae7ed5de4f07e0e2f7095ba2",
+    "actual_original_reference_log_sha256": "fe9d31c1618faedcdd5d44e4ad351fb06e979cc5fabb721a7261d562b268fea0",
+    "actual_instrumented_source_core_sha256": "a9e0bc5bb49c627fdcf67425b603f0d3e73a526cabaaf0db0b3dccc445451ff3"
+  },
+  "baseline": {
+    "original_actions_run": 39169304323,
+    "artifact_id": 12151982503,
+    "zip_sha256": "c2262b40e43b4e167cbdf291623b0e34207561187e103af39eca7a46fa4b0edc",
+    "unmodified_original_core_sha256": "0182cfc3446e5a2c1d00453928b857b3d1d9c23148486c7339c895c4facc25c5"
+  },
+  "observations": {
+    "actual_source_CPU_frame_heartbeats": 9,
+    "source_frame_window": [
+      4686,
+      4694
+    ],
+    "genuine_changed_raw_byte_instruction_intervals": 24,
+    "all_17_requested_scene_byte_addresses_observed": true,
+    "unmasked_full_original_native_historical_movie_images_equal": 64,
+    "raw_guest_memory_masked_byte_count": 0,
+    "genuine_original_source_guest_gameplay_race_handback_unchanged": true
+  },
+  "ordered_scene_events": [
+    {
+      "original_frame": 4688,
+      "pre_v": 3,
+      "pre_h": 1146,
+      "pc": "82:8017",
+      "opcode": "9F",
+      "byte": "7E:2007",
+      "old": "04",
+      "new": "FF",
+      "stage": "CPU APU sound packet 1"
+    },
+    {
+      "original_frame": 4688,
+      "pre_v": 4,
+      "pre_h": 972,
+      "pc": "83:CAC4",
+      "opcode": "8D",
+      "byte": "7E:1359",
+      "old": "00",
+      "new": "FF",
+      "stage": "race sound parameters"
+    },
+    {
+      "original_frame": 4688,
+      "pre_v": 4,
+      "pre_h": 1012,
+      "pc": "83:CAC7",
+      "opcode": "8D",
+      "byte": "7E:135D",
+      "old": "00",
+      "new": "FF",
+      "stage": "race sound parameters"
+    },
+    {
+      "original_frame": 4688,
+      "pre_v": 4,
+      "pre_h": 1076,
+      "pc": "83:CACD",
+      "opcode": "8D",
+      "byte": "7E:135B",
+      "old": "00",
+      "new": "7F",
+      "stage": "race sound parameters"
+    },
+    {
+      "original_frame": 4688,
+      "pre_v": 4,
+      "pre_h": 1116,
+      "pc": "83:CAD0",
+      "opcode": "8D",
+      "byte": "7E:135F",
+      "old": "00",
+      "new": "7F",
+      "stage": "race sound parameters"
+    },
+    {
+      "original_frame": 4688,
+      "pre_v": 7,
+      "pre_h": 590,
+      "pc": "83:CBE2",
+      "opcode": "8D",
+      "byte": "7E:121F",
+      "old": "00",
+      "new": "01",
+      "stage": "track HDMA theme"
+    },
+    {
+      "original_frame": 4688,
+      "pre_v": 7,
+      "pre_h": 966,
+      "pc": "83:CC1C",
+      "opcode": "8E",
+      "byte": "7E:126B",
+      "old": "00",
+      "new": "01",
+      "stage": "CPU rival level"
+    },
+    {
+      "original_frame": 4688,
+      "pre_v": 7,
+      "pre_h": 1240,
+      "pc": "83:CC47",
+      "opcode": "8D",
+      "byte": "7E:1277",
+      "old": "00",
+      "new": "60",
+      "stage": "CPU rival base speed"
+    },
+    {
+      "original_frame": 4688,
+      "pre_v": 10,
+      "pre_h": 260,
+      "pc": "82:D699",
+      "opcode": "8F",
+      "byte": "7E:2069",
+      "old": "0F",
+      "new": "60",
+      "stage": "race HDMA bottom screen"
+    },
+    {
+      "original_frame": 4688,
+      "pre_v": 226,
+      "pre_h": 524,
+      "pc": "80:8850",
+      "opcode": "8F",
+      "byte": "7E:2069",
+      "old": "60",
+      "new": "00",
+      "stage": "NMI bottom screen override"
+    },
+    {
+      "original_frame": 4689,
+      "pre_v": 104,
+      "pre_h": 962,
+      "pc": "82:8059",
+      "opcode": "8F",
+      "byte": "7E:2004",
+      "old": "80",
+      "new": "40",
+      "stage": "next sound command handshake"
+    },
+    {
+      "original_frame": 4689,
+      "pre_v": 104,
+      "pre_h": 1082,
+      "pc": "82:8066",
+      "opcode": "8F",
+      "byte": "7E:2000",
+      "old": "03",
+      "new": "04",
+      "stage": "next sound command read index"
+    }
+  ],
+  "other_actual_sound_queue_instruction_intervals": [
+    {
+      "pc": "82:8017",
+      "count": 3,
+      "fields": [
+        "7E:2007",
+        "7E:2008",
+        "7E:2009"
+      ]
+    },
+    {
+      "pc": "82:801C",
+      "count": 3,
+      "fields": [
+        "7E:2017",
+        "7E:2018",
+        "7E:2019"
+      ]
+    },
+    {
+      "pc": "82:8024",
+      "count": 3,
+      "field": "7E:2002",
+      "sequence": [
+        "01→02",
+        "02→03",
+        "03→04"
+      ]
+    },
+    {
+      "pc": "82:8059",
+      "count": 3,
+      "field": "7E:2004",
+      "sequence": [
+        "80→40",
+        "40→80",
+        "80→40"
+      ]
+    },
+    {
+      "pc": "82:8066",
+      "count": 3,
+      "field": "7E:2000",
+      "sequence": [
+        "01→02",
+        "02→03",
+        "03→04"
+      ]
+    }
+  ],
+  "supplied_input_clock_distinction": {
+    "original_CPU_execution_frame_with_scene_writes": 4688,
+    "original_supplied_P1_mask_at_host_frame_4688": "040",
+    "source_supplied_P1_mask_080_start": 4689,
+    "native_supplied_mask_040_host_frame": 4689,
+    "native_supplied_mask_080_start": 4690,
+    "source_scene_bytes_first_written_in_CPU_frame_BEFORE_supplied_080_start": true,
+    "actual_original_65816_controller_register_read_at_transition_observed": false,
+    "actual_source_to_native_CPU_host_input_consumer_epoch_registered": false,
+    "explanation": "The real source CPU writes scene fields in source CPU frame4688, before the file's 080 event begins at host4689. They cannot be attributed directly to that later supplied 080 input without independently proving controller buffering/consumption or frame-clock registration."
+  },
+  "three_report_object_deltas_and_strict_controls": {
+    "known_expected_additions": [
+      "comparison.bounded_dragster_to_zoo_diagnostic_without_full_event_parity=false",
+      "dragster_next_zoo_handoff=null"
+    ],
+    "expected_change": "reference_core_sha256: unmodified→instrumented actual CPU Snes9x core",
+    "derived_independent_raw_audit_hash_change": "producer_sha256 changes only because the parent report's authenticated SHA changes",
+    "all_other_original_native_source_report_fields_equal": true,
+    "whole_64_original_native_historical_movie_images_equal": true,
+    "strict_original_next_switcher_offset": 341,
+    "strict_native_next_switcher_offset": 344,
+    "original_2014_movie_next_switcher_offset": 342,
+    "independent_USA_complete_event_acceptance": 0
+  },
+  "hypothesis_scope": {
+    "actual_source_CPU_race_initialization_writer_PCs_proven": true,
+    "unique_source_first_branch_which_enters_Race_Main_proven": false,
+    "same_mode_exact_native_CPU_writer_PCs_proven": false,
+    "actual_source_or_native_CPU_joypad_read_proven": false,
+    "same_original_native_CPU_master_clock_epoch_proven": false,
+    "behavioral_CPU_or_APU_clock_fix_justified": false
+  },
+  "next_decisive_observation": "Register true original source 65816 bank83 Race_Main entry/caller/condition before host4688 V3 and compare native transition entry after known +1 supplied input shift, without altering game clocks, inputs, guest memory, observer masks or independent event ledger."
+}

@@ -65,8 +65,12 @@ class SameBinaryNativeProbeAB(unittest.TestCase):
 
     def test_same_byte_wrong_native_master_rejected(self):
         a,b,c,d,e,f=fixtures()
-        d["native"]=d["native"].replace(b"master=3160 addr=11C774",
-                                        b"master=3161 addr=11C774")
+        actual = d["native"].splitlines(keepends=True)
+        d["native"] = b"".join(
+            row.replace(b"master=3160 addr=11C774",
+                        b"master=3161 addr=11C774")
+            if row.startswith(b"QA01RF062NATIVE ") else row
+            for row in actual)
         # Uncorroborated RF062 wrapper rows are never admissible.
         with self.assertRaisesRegex(ValueError,"not a real same-clock"):
             x.control(a,b,c,d,e,f)

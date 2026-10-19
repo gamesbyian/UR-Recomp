@@ -1,0 +1,42 @@
+{
+  "schema": "QA08-2014-full-CGRAM-readback-vs-RF017-native-CPU-writer/1",
+  "analysis_date": "2026-10-19",
+  "original_zip_artifact": 12013432991,
+  "original_zip_sha256": "d725ee45db1b66d098e79499263dd089dba80a26de517c30db674f91e20f80a8",
+  "original_previous_source_frame": 5183,
+  "original_next_source_frame": 5184,
+  "original_previous_cgram_member": "registers/qa08_results_previous.cgram.bin",
+  "original_next_cgram_member": "registers/qa08_results_cgram.cgram.bin",
+  "original_both_snapshots_bytes": 512,
+  "original_both_snapshots_sha256": "431224685084e4a1ec62da7d7aaab96a7c36beb78aa8d257b0569be416737c12",
+  "original_both_full_CGRAM_snapshots_identical": true,
+  "original_source_port_journal_member": "registers/qa08-results-5072-5184-cgram-history.tsv",
+  "original_source_port_journal_sha256": "7e1f36a58fe52205011c9f34d4704c6311d929ac75caf11ea7e6958a6cc386c4",
+  "original_last_observed_four_word_writer_frame": 5178,
+  "original_no_observed_CPU_CGRAM_writer_between_5183_and_5184": true,
+  "native_current_RF017_zip_artifact": 12125295776,
+  "native_current_RF017_zip_sha256": "a62f0c228e85c741a8f1da0b92a4444f9091681c065c93c8a678b4ee2bb6f2ef",
+  "native_compiled_guest_CRC_sha256": "b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568",
+  "native_CPU_port_packet_frame": 5183,
+  "native_CPU_port_packet_event_count": 12,
+  "original_effective_full_CGRAM_words_6c_to_6f": [
+    "56b5",
+    "4a52",
+    "4631",
+    "4210"
+  ],
+  "native_CPU_submitted_words_6c_to_6f": [
+    "4a52",
+    "4631",
+    "4210",
+    "56b5"
+  ],
+  "raw_original_readback_words_match_original_5178_writer": true,
+  "all_four_native_port_words_differ_from_original_readback": true,
+  "native_effective_PPU_CGRAM_words_at_render_proven": false,
+  "native_actual_pixel_palette_indices_proven": false,
+  "same_original_native_CPU_instruction_and_beam_phase_proven": false,
+  "exact_same_diagnostic_Windows_PE_between_CGRAM_and_raster": false,
+  "no_palette_recolour_frame_shift_CPU_clock_or_renderer_fix_authorized": true,
+  "QA08_QA10_release_acceptance": false
+}

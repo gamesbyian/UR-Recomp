@@ -1,6 +1,6 @@
 # QA01 fidelity-evidence pilots: causal window and continuous frame audit
 
-**Status (18 October 2026): ROM-free tools and adversarial tests proposed for review. Not a new original/native experiment, course witness, emulator, product implementation, accepted observation contract or QA gate. Complete USA events remain 0/45; release QA 0/12.** Method intake: [issue #1900](https://github.com/gamesbyian/UR-Recomp/issues/1900). Source authority: [first USA acceptance review](QA01-INDEPENDENT-FIRST-USA-EVENT-ACCEPTANCE-20261018.md). Live priority: [work queue](WORK-QUEUE.md).
+**Status (18 October 2026): ROM-free diagnostic tools and adversarial tests merged to main as [#1901](https://github.com/gamesbyian/UR-Recomp/pull/1901) at `a36a1dc77e86cb90e03cb628b0fbc886c07ccff5` after both required CI workflows passed. Source/native producer adapters, actual bounded causal witness, full-race capture, noninterference benchmark and independent product acceptance remain unqualified. Complete USA events remain 0/45; release QA 0/12.** Method intake: [issue #1900](https://github.com/gamesbyian/UR-Recomp/issues/1900). Source authority: [first USA acceptance review](QA01-INDEPENDENT-FIRST-USA-EVENT-ACCEPTANCE-20261018.md). Live priority: [work queue](WORK-QUEUE.md).
 
 These pilots target two recurring costs: (1) uncertain first *consumed* Zoo stack/sound divergence despite extensive existing RF043/045/046/047/053/054 receipts; (2) sparse 78-checkpoint coverage and expired source archives missing raw WRAM/SRAM bytes.
 
@@ -57,7 +57,7 @@ The 12-offset Bowl archive contains one useful continuous interval: result-relat
 
 ## Integration qualification and CI repair (19 October)
 
-The first branch CI unit run [39200843454](https://github.com/gamesbyian/UR-Recomp/actions/runs/39200843454) failed **only** the two existing document-bound tests: `docs/WORK-QUEUE.md` measured 17,268 characters against the under-16,000 policy. All three other unit shards passed, and the failing shard reported 940 tests with those two failures. The work queue has now been condensed to **15,439 characters**, retaining live gate priorities and relocating historical details to [#1899](https://github.com/gamesbyian/UR-Recomp/issues/1899). **This source edit has not yet been shown passing the newer CI head**; no passing CI has been asserted. The pilot's ROM-free test coverage remains a separate qualification from the genuine evidence-producer demonstration.
+The earlier branch CI unit run [39200843454](https://github.com/gamesbyian/UR-Recomp/actions/runs/39200843454) failed **only** the two existing document-bound tests: `docs/WORK-QUEUE.md` measured 17,268 characters against the under-16,000 policy. All three other unit shards passed, and the failing shard reported 940 tests with those two failures. The work queue has now been condensed to **15,439 characters**, retaining live gate priorities and relocating historical details to [#1899](https://github.com/gamesbyian/UR-Recomp/issues/1899). **Resolved:** the subsequent head `4ad22654031e6fe49ec6fbca1cdf9ec00dcd5a73` passed both Repository hygiene and Project tooling unit tests, and was squash merged as #1901. The pilot's ROM-free test coverage remains a separate qualification from the genuine evidence-producer demonstration.
 
 ## Pilot qualification and stop/go
 

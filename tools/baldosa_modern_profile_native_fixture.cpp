@@ -289,10 +289,52 @@ static int seed_readonly_two_player_archive(
 }
 
 
+namespace {
+// Native Win32 fixture for the *real* create-only file API path, not an
+// injected disk-full, true physical torn-write, or two-game-process oracle.
+std::filesystem::path g_late_receipt_path;
+bool g_late_receipt_written = false;
+void publish_late_receipt_for_test() {
+    std::ofstream out(g_late_receipt_path, std::ios::binary);
+    out << "external prior receipt";
+    out.flush();
+    g_late_receipt_written = out.good();
+}
+int verify_immutable_recovery_archive_on_host(
+    const std::filesystem::path& root) {
+    namespace fs = std::filesystem;
+    if (!fs::is_directory(root)) return 90;
+    const auto read = [](const fs::path& path) {
+        std::ifstream file(path, std::ios::binary);
+        std::string content;
+        std::getline(file, content);
+        return content;
+    };
+    const auto first = root / "first-recovery-receipt.bin";
+    if (!ur::product::write_host_create_staged(
+            first.string(), "first evidence", "archive-win32")) return 91;
+    if (read(first) != "first evidence") return 92;
+    if (ur::product::write_host_create_staged(
+            first.string(), "later evidence", "archive-win32")) return 93;
+    if (read(first) != "first evidence") return 94;
+    g_late_receipt_path = root / "late-collision-receipt.bin";
+    g_late_receipt_written = false;
+    if (ur::product::write_host_create_staged(
+            g_late_receipt_path.string(), "not allowed", "archive-win32",
+            publish_late_receipt_for_test)) return 95;
+    if (!g_late_receipt_written ||
+        read(g_late_receipt_path) != "external prior receipt") return 96;
+    std::puts("UR_WIN32_SRAM_ARCHIVE_NO_REPLACE_PASS");
+    return 0;
+}
+} // namespace
+
 int main(int argc, char** argv) {
     namespace fs = std::filesystem;
     using namespace ur::product;
     constexpr const char* kProfile = "native-ci-rider";
+    if (argc == 4 && std::strcmp(argv[3], "--verify-archive-no-replace") == 0)
+        return verify_immutable_recovery_archive_on_host(argv[1]);
     if (argc == 4 && std::strcmp(argv[3], "--seed-readonly-records") == 0)
         return seed_readonly_records_archive(argv[1], argv[2]);
     if (argc == 4 && std::strcmp(argv[3], "--seed-readonly-2p") == 0)

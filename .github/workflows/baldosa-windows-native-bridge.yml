@@ -318,6 +318,16 @@ jobs:
             --source-epoch "$SOURCE_DATE_EPOCH"
           echo "PASS: original linked AMD64 PE COFF/debug timestamps are exact source epoch; no post-link mutation, no release QA credit." >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Prove Win32 immutable SRAM recovery archive cannot replace occupied name
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/ur-win32-archive-noreplace"
+          mkdir -p "$root"
+          "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            "$root" ignored --verify-archive-no-replace | tee "$RUNNER_TEMP/win32-archive-noreplace.log"
+          grep -qx "UR_WIN32_SRAM_ARCHIVE_NO_REPLACE_PASS" "$RUNNER_TEMP/win32-archive-noreplace.log"
+          echo "PASS: original native Windows C++ create-only publication resists both an existing receipt and a writer claiming the destination after staging. Does not simulate disk full or power loss." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Admit only a real Windows x64 PE32+ executable
         run: |
           set -euo pipefail

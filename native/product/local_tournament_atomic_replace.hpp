@@ -217,8 +217,11 @@ inline bool write_host_create_staged(
     }
     if (after_staging_for_test) after_staging_for_test();
 #if defined(_WIN32)
-    // Same-volume MoveFileW refuses an existing destination on NTFS.
-    const bool published = MoveFileW(tmp.c_str(), target.c_str()) != 0;
+    // Same-volume MoveFileExW without REPLACE_EXISTING atomically refuses
+    // an occupied name. Retain WRITE_THROUGH from the original staged
+    // durability contract without permitting a last-writer-wins replace.
+    const bool published = MoveFileExW(
+        tmp.c_str(), target.c_str(), MOVEFILE_WRITE_THROUGH) != 0;
 #else
     // POSIX rename would overwrite. Atomic hard-link creation never does.
     std::error_code ec;

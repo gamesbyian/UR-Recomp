@@ -85,5 +85,25 @@
   "accepted_Windows_release_QA_gates": 0,
   "disposition": "native status read actually observed 9/9, no RF047 helper evidence of saved PC/PB reads inside compiled NMI RTI, 4 original/native host-frame saved low PC discrepancies; cannot infer full emulation correctness or same semantic phase",
   "archived_actions_artifact_id": 12149640496,
-  "original_artifact_run_URL_not_independently_verified": true
+  "original_artifact_run_URL_not_independently_verified": true,
+  "independent_archived_case_verifier_run_id": 39315578731,
+  "independent_archived_case_verifier_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39315578731",
+  "independent_archived_case_verifier_status": "success",
+  "independent_nine_bracket_machine_report_artifact_id": 12218035427,
+  "independent_nine_bracket_machine_report_artifact_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39315578731/artifacts/12218035427",
+  "independent_nine_bracket_machine_report_archive_sha256": "6badd597bdcdd2f433e8235fa623d6d4abbfb32d006a82d51d8642e90e53e946",
+  "independent_machine_archive_reopened_and_CRC_qualified": true,
+  "independent_machine_schema": "ur-qa01-rf073-native-nmi-return-brackets/1",
+  "independent_recomputed_nine_frame_status_seq": [
+    3,
+    304,
+    602,
+    902,
+    1205,
+    1520,
+    1825,
+    2130,
+    2437
+  ],
+  "independent_accepted_USA_events": 0
 }

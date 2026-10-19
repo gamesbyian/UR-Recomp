@@ -146,6 +146,19 @@ jobs:
             --on-native-input "$ROOT/on/zoom-zoo/replay/pinned-baldosa.input" \
             --output "$ROOT/independent-controller-stream-review.json"
           cat "$ROOT/independent-controller-stream-review.json"
+          # Reopen the *actual 2014 original SMV*; do not rely on a producer
+          # copying its claimed source-window digest into another JSON field.
+          python3 tools/qa01_verify_2014_movie_controller_supply.py \
+            --baseline "$ROOT/off/producer-report.json" \
+            --captured "$ROOT/on/producer-report.json" \
+            --off-original-input "$ROOT/off/zoom-zoo/replay/ref.input" \
+            --off-native-input "$ROOT/off/zoom-zoo/replay/pinned-baldosa.input" \
+            --on-original-input "$ROOT/on/zoom-zoo/replay/ref.input" \
+            --on-native-input "$ROOT/on/zoom-zoo/replay/pinned-baldosa.input" \
+            --movie "$GITHUB_WORKSPACE/reference/imported/tas-bots/dessyreqt-4250-submission.smv" \
+            --movie-metadata "$GITHUB_WORKSPACE/analysis/generated/historical-2014-smv-metadata.json" \
+            --output "$ROOT/independent-original-2014-movie-controller-review.json"
+          cat "$ROOT/independent-original-2014-movie-controller-review.json"
           echo "No QA01 event admission or CPU input-poll parity is implied by bounded success."
 
       - name: Preserve immutable 9-frame raw evidence and independent A/B receipts
@@ -159,6 +172,7 @@ jobs:
             ${{ runner.temp }}/qa01-zoo-binaries.sha256
             ${{ runner.temp }}/qa01-zoo-ab/independent-ab-review.json
             ${{ runner.temp }}/qa01-zoo-ab/independent-controller-stream-review.json
+            ${{ runner.temp }}/qa01-zoo-ab/independent-original-2014-movie-controller-review.json
             ${{ runner.temp }}/qa01-zoo-ab/off/zoom-zoo/replay/ref.input
             ${{ runner.temp }}/qa01-zoo-ab/off/zoom-zoo/replay/pinned-baldosa.input
             ${{ runner.temp }}/qa01-zoo-ab/on/zoom-zoo/replay/ref.input

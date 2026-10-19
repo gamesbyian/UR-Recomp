@@ -240,3 +240,23 @@ python3 tools/qa01_verify_supplied_controller_streams.py \
 ```
 
 The receipt also retains **every** independently normalized source-relative start/duration/mask segment plus a canonical SHA-256 for direct future comparison against witnessed CPU joypad read ordinals; it never invents zero-mask events in between nonzero segments. The already manual-only `.github/workflows/qa01-zoo-frame-ab-once.yml` now retains these four small actual input-file artifacts and runs this independent check before publishing a verdict. The original successful 19 October archive does **not** contain them and can never retrospectively qualify independent reopening. Reproducing the source-2014 SMV controller window from the full movie and tracing actual executed original/native joypad polls remain separate uncompleted evidence gates. This verifier upgrades supply-path reproducibility only; it cannot prove guests *consumed* those masks, game-state equivalence, a complete race, true causal divergence, 45-event admission or Windows shipping persistence. **0/45 original USA events and 0/12 release QA gates.**
+## 2014 source SMV controller bytes bound to actual guest input files (19 October)
+
+The actual 2014 original Zoom Zoo historical movie is **already in-repo** at `reference/imported/tas-bots/dessyreqt-4250-submission.smv`, with pinned `analysis/generated/historical-2014-smv-metadata.json`. The `tools/qa01_verify_2014_movie_controller_supply.py` offline reviewer builds on the separate guest-input audit from #1932. It **re-opens** that exact immutable original movie container (SHA-256 `06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442`) and validates original Snes9x SMV v4/ROM-CRC/reset anchor/controller sample count against the historical metadata using the preexisting `extract_historical_smv_scene_window.window` implementation. It independently extracts the pinned source movie span from original race-entry **3190** through the producer's real result +5163 and the requested Zoo→Bowl +280/+6 tail: **5,449 original movie controller frames**. The required raw window SHA-256 is `7b03f40e3401d844c16c7c4e1cc7375e5419f33882793c8187dcebc88dbc8c93`.
+
+It then **independently re-opens all four original/native capture OFF/ON supplied input files** through the merged ROM-free controller auditor, compares the exact source-relative start/duration/mask sequence to every nonzero segment derived from actual archived SMV controller bytes, and refuses altered game/source identity, input masks, durations, source window SHA, metadata, ROM CRC, frame origins, symlinks and self-reported CPU-poll assertions. The separate original/native race-entry host frames remain **1017/1019**, *not* an inferred shared clock. The audit retains digests/counts and no invented zeros between explicit mask segments. This is the final supply-path link `original archived SMV bytes → pinned source movie frame window → two guest-specific real input files`, not proof of when or whether the game CPUs read those values.
+
+```bash
+python3 tools/qa01_verify_2014_movie_controller_supply.py \
+  --baseline /actual/zoo/capture-off/producer-report.json \
+  --captured /actual/zoo/capture-on/producer-report.json \
+  --off-original-input /actual/zoo/capture-off/replay/ref.input \
+  --off-native-input /actual/zoo/capture-off/replay/pinned-baldosa.input \
+  --on-original-input /actual/zoo/capture-on/replay/ref.input \
+  --on-native-input /actual/zoo/capture-on/replay/pinned-baldosa.input \
+  --movie reference/imported/tas-bots/dessyreqt-4250-submission.smv \
+  --movie-metadata analysis/generated/historical-2014-smv-metadata.json \
+  --output /new/source-smv-original-native-supply-review.json
+```
+
+Because historic genuine Zoo archive `12167633197` did not retain the four guest input files, its actual archived evidence **cannot** retrospectively satisfy this new integrated consumer. The real repository movie file gives us a genuine anchored source-window test today; true four-input joining needs a future original/native source-authentic replay archive. No nightly factory or emulator run is warranted merely to obtain this receipt. Matching genuine supplied input bytes is not proof of actual executed CPU joypad reads or equal CPU/SPC timing. **No acceptance advance: 0/45 original USA events, 0/12 release QA gates.**

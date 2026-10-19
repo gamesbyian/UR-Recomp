@@ -17,6 +17,10 @@ The machine-readable authority is `tools/tool_interop.json`. Its handoffs use th
 | Patch experiment loop | original ROM + IPS/BPS ↔ Flips → derived ROM → ROM verifier → deterministic execution/differential | Makes ROM mutations reproducible and keeps the patch separate from the canonical input. |
 | RNC archaeology | ROM → project RNC scanner/Method-1 decoder → CRC-verified decoded bytes → payload/course analyzers | The period compression format, game corpus and project analyzers already form a working pipeline. |
 
+## QA01 bounded causal and frame-capture consumers (experimental)
+
+The candidate consumer tools `qa01_causal_window.py` and `qa01_frame_fingerprint.py` reuse existing original/native bus and full-WRAM concepts instead of creating another emulator or QA gate. The first requires genuinely executed, per-guest, ordinal bus access rows; the second audits already-produced contiguous 128KiB WRAM and 8KiB SRAM snapshots and can retain all differing raw pairs. **Transport status: candidate, ROM-free contract tests only.** Neither has a qualified original/native whole-race producer; details and first actual qualification route are in [the QA01 pilot note](QA01-FIDELITY-EVIDENCE-PILOTS-20261018.md). Do not list this as verified interoperation or event acceptance.
+
 ## UI state atlas chain
 
 The frontend mapping work uses the same fixture-first interoperability rule as gameplay validation. Controller-only scripts drive the native runtime; SNESRecomp's existing `dump <tag>` facility emits framebuffer BMPs alongside WRAM, VRAM, CGRAM, OAM, registers and metadata; `analysis/ui-capture-manifest.json` states which tags correspond to conceptual UI states; and `tools/build_ui_atlas.py` reduces those raw bundles to compact JSON/Markdown evidence.

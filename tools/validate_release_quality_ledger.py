@@ -288,7 +288,7 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
                  and g.get("id") == "QA-04"), None)
     if isinstance(qa04, dict) and qa04.get("status") == "passed":
         qa04_witnesses = qa04.get("witnesses")
-        setups: list[tuple[str, str, tuple[str, str, str], bool]] = []
+        setups: list[tuple[str, str, tuple[str, str, str], bool, str]] = []
         if isinstance(qa04_witnesses, list):
             for w in qa04_witnesses:
                 if not isinstance(w, dict) or w.get("layer") != "L5":
@@ -314,20 +314,26 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
                 ):
                     continue
                 traits = (hw.get("gpu"), hw.get("display"), hw.get("controller"))
-                if any(not isinstance(v, str) or not v.strip() for v in traits):
+                exe_digest = w.get("tested_executable_sha256")
+                if (any(not isinstance(v, str) or not v.strip() for v in traits)
+                        or not isinstance(exe_digest, str)
+                        or SHA256.fullmatch(exe_digest) is None
+                        or w.get("package_unchanged_after_launch") is not True):
                     continue
-                setups.append((ident.strip(), environment, traits, clean))
+                setups.append((ident.strip(), environment, traits, clean, exe_digest))
         phys = [s for s in setups if s[1] == "physical"]
         vm = [s for s in setups if s[1] == "isolated-clean-vm"]
         if (len(setups) < 3 or len(phys) < 2 or len(vm) > 1
                 or len({s[0] for s in setups}) != len(setups)
                 or not any(s[3] for s in setups)
-                or len({s[2] for s in phys}) < 2):
+                or len({s[2] for s in phys}) < 2
+                or len({s[4] for s in setups}) != 1):
             errors.append(
                 "QA-04 needs three independently identified dissimilar L5 "
                 "Windows setups (three physical or one isolated clean VM "
                 "plus two physical), an actual clean environment and "
-                "explicit controller/audio/display observation on real systems"
+                "explicit controller/audio/display observation on real systems; "
+                "all three must bind the same actual PE and immutable package"
             )
 
     if decision == "public_release":

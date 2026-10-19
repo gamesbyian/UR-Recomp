@@ -1,0 +1,50 @@
+# TEMP research-only RF062 wrapper *substitution* A/B. DO NOT MERGE.
+# Exact source/ROM/movie plus the same RF018/RF054 native stages. The only
+# generated-code difference must be one actual 82:82F0 paced ROM byte read
+# invoking the RF062 wrapper. Runtime logging is OFF in BOTH native binaries.
+name: RF062 same-source native wrapper substitution Zoo one-shot
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/workflows/qa01-rf062-wrapper-substitution-once.yml"
+
+concurrency:
+  group: rf062-wrapper-control-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  static-wrapper-source-gate:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check exact source wrapper, unchanged paced read and fail-closed AOT code diff
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s tests/unit -p 'test_qa01_rf062_direct_sound_bus_pc_patch.py' -v
+          python3 -m unittest discover -s tests/unit -p 'test_qa01_rf062_verify_live_generated.py' -v
+          python3 -m unittest discover -s tests/unit -p 'test_qa01_rf062_wrapper_only_diff.py' -v
+          python3 -m unittest discover -s tests/unit -p 'test_qa01_rf062_wrapper_substitution_compare.py' -v
+  authentic-bounded-native-source-ab:
+    needs: static-wrapper-source-gate
+    uses: ./.github/workflows/qa01-event-campaign.yml
+    with:
+      selected: zoom-zoo
+      zoo_terminal_phase: true
+      zoo_race_mesh: true
+      zoo_dp_window: true
+      qa01_apu_phase: false
+      source_followthrough: true
+      baldosa_refresh_beam_rate: true
+      baldosa_io_clock_order: true
+      baldosa_spc_reference_rate: true
+      baldosa_dp_pointer_once: true
+      baldosa_hdma_cpu_stall: true
+      baldosa_spc_interrupt_stage: true
+      qa01_cold_guest_reload: true
+      zoo_next_bowl: true

@@ -20,6 +20,8 @@ class TrueOriginalSource(unittest.TestCase):
         d=m.inspect(log())
         self.assertEqual(d['source_events'],4)
         self.assertEqual(d['source_observed_nmi_before_marker_count'],1)
+        self.assertFalse(d['complete_nine_original_NMI_frames_observed'])
+        self.assertEqual(d['missing_original_NMI_frames'],list(range(1018,1026)))
         self.assertEqual(d['source_observed_selected_actual_opcode_fetches'],2)
         b=d['source_NMI_brackets'][0]
         self.assertTrue(b['original_source_wake_incremented_PC'])
@@ -29,6 +31,28 @@ class TrueOriginalSource(unittest.TestCase):
         self.assertEqual(b['first_selected_original_opcode_fetch_after_NMI']['source_guest_PC_context'],'82D4F0')
         self.assertFalse(d['original_native_semantically_aligned_NMI_proven'])
         self.assertEqual(d['accepted_USA_events'],0)
+
+    def test_all_nine_source_NMI_frames_explicitly_qualified(self):
+        row=[]
+        for f in range(1017,1026):
+            for sample in log().splitlines():
+                sample=sample.replace('f=1017',f'f={f}')
+                sample=sample.replace('seq='+sample.split('seq=')[1].split()[0],
+                                      'seq='+str(len(row)+1),1)
+                row.append(sample)
+        v=m.inspect('\n'.join(row)+'\n')
+        self.assertTrue(v['complete_nine_original_NMI_frames_observed'])
+        self.assertEqual(v['missing_original_NMI_frames'],[])
+        self.assertEqual(v['source_observed_nmi_before_marker_count'],9)
+        self.assertFalse(v['original_native_semantically_aligned_NMI_proven'])
+
+    def test_duplicate_frame_nmi_is_scientific_hold(self):
+        lines=log().splitlines()
+        extra=[line.replace('seq=2 ','seq=5 ').replace('seq=3 ','seq=5 ')
+                    for line in lines[1:3]]
+        extra[1]=extra[1].replace('seq=5 ','seq=6 ')
+        with self.assertRaisesRegex(ValueError,'duplicated or reordered'):
+            m.inspect('\n'.join(lines+extra)+'\n')
 
     def test_no_wai_no_pre_nmi_pc_advance(self):
         sample=log().replace('82D4EE fetchedOpcode=00 S=01F0 v=225 h=0 wai=1',

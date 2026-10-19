@@ -33,8 +33,8 @@ static void ur_rf076_original_fetched_opcode(const char *stage, uint8 opcode) {
          pc != 0x82D4F2u && pc != 0x82D4F4u &&
          pc != 0x82D4F5u))
         return;
-    if (count++ >= 8192u) {
-        if (count == 8193u)
+    if (count++ >= 131072u) {
+        if (count == 131073u)
             fprintf(stderr, "QA01RF076ORIGPC_TRUNCATED\n");
         return;
     }

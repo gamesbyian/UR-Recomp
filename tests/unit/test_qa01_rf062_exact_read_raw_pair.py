@@ -78,6 +78,42 @@ class SoundFrameJoin(unittest.TestCase):
         # claimed host frames, and audit() created the immutable manifest.
         pass
 
+    def test_original_native_sound_and_raw_run_identity_cannot_be_spliced(self):
+        identity = self.fp["source_identity"]
+        self.sound["candidate_source_sha"] = identity["source_sha"]
+        evidence = {
+            "rom_sha256": identity["rom_sha256"],
+            "movie_sha256": identity["movie_sha256"],
+            "original_movie_window_sha256": identity["input_sha256"],
+            "reference_entry_frame": identity["original_frame_origin"],
+            "native_entry_frame": identity["native_frame_origin"],
+        }
+        case = {"source_sha": identity["source_sha"], "evidence": evidence}
+        producer = {
+            "rom_sha256": identity["rom_sha256"],
+            "original_movie_sha256": identity["movie_sha256"],
+            "original_movie_window_sha256": identity["input_sha256"],
+        }
+        pair.validate_case_provenance(self.sound, self.fp, case, producer)
+        for target,field,bad,error in (
+                (case,"source_sha","f"*40,"source identity"),
+                (evidence,"rom_sha256","0"*64,"ROM/movie"),
+                (producer,"original_movie_sha256","f"*64,"ROM/movie"),
+                (evidence,"original_movie_window_sha256","0"*64,"input window"),
+                (evidence,"reference_entry_frame",1017,"race-entry origins"),
+                (evidence,"native_entry_frame",1019,"race-entry origins")):
+            original = target[field]
+            target[field] = bad
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError,error):
+                pair.validate_case_provenance(self.sound,self.fp,case,producer)
+            target[field] = original
+        # The separately captured original and native host origins may be
+        # equal in a genuine replay; never impose historical 1017/1019.
+        evidence["native_entry_frame"] = evidence["reference_entry_frame"]
+        altered = copy.deepcopy(self.fp)
+        altered["source_identity"]["native_frame_origin"] = evidence["native_entry_frame"]
+        pair.validate_case_provenance(self.sound,altered,case,producer)
+
     def test_missing_original_at_true_host_fails(self):
         self.valid_rebased()
         (self.retained / "original-relative-000004-wram.bin").unlink()

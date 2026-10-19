@@ -1,0 +1,81 @@
+name: QA01 genuine RF066 original Zoo controller-source archive
+
+# Read-only archival qualification. Never build or execute the emulator,
+# dispatch a research factory, or award 2014 USA event credit.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa01-rf066-source-controller-archive.yml"
+      - "tools/qa01_rf066_source_controller_archive.py"
+      - "tools/qa01_verify_2014_movie_controller_supply.py"
+      - "tools/qa01_verify_supplied_controller_streams.py"
+      - "tests/unit/test_qa01_rf066_source_controller_archive.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: qa01-rf066-controller-source-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  original-movie-to-executed-guest-input-supply:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Genuine 2014 SMV original/native input parser negative fixtures
+        run: |
+          set -euo pipefail
+          python3 -m unittest \
+            tests.unit.test_qa01_rf066_source_controller_archive \
+            tests.unit.test_qa01_verify_2014_movie_controller_supply \
+            tests.unit.test_qa01_verify_supplied_controller_streams -v
+
+      - name: Reopen immutable genuine RF066 Zoom Zoo original/native archive
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/rf066-controller"
+          curl --fail --show-error --silent --location --retry 2 \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -o "$RUNNER_TEMP/rf066-controller/original-guest-case.zip" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12171791431/zip"
+          sha256sum "$RUNNER_TEMP/rf066-controller/original-guest-case.zip"
+          python3 tools/qa01_rf066_source_controller_archive.py \
+            --archive "$RUNNER_TEMP/rf066-controller/original-guest-case.zip" \
+            --movie reference/imported/tas-bots/dessyreqt-4250-submission.smv \
+            --metadata analysis/generated/historical-2014-smv-metadata.json \
+            --output "$RUNNER_TEMP/rf066-controller/independent-source-supply.json"
+          python3 - "$RUNNER_TEMP/rf066-controller/independent-source-supply.json" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x["source_case_zip_sha256"] == "494737bb6a1c422141c40f7175883f212767c3d774ee63fb0ba82add78cb445f"
+          assert x["source_original_native_segment_population"] == 397
+          assert x["original_2014_controller_frames_reopened"] == 5449
+          assert x["original_actual_guest_race_entry_host_frame"] == 1017
+          assert x["native_actual_guest_race_entry_host_frame"] == 1017
+          assert x["source_movie_nonzero_input_frames"] == 5233
+          assert x["source_movie_zero_input_frames"] == 216
+          assert x["source_movie_full_scheduled_mask_sha256"] == "4b17b2f7173428ce642f8e09431339c4e46607e85fe70c5998939a705a1fbcff"
+          assert x["all_5449_individual_source_original_native_supplied_masks_equal"] is True
+          assert x["both_actual_guest_logs_sha256_verified"] is True
+          assert x["all_actual_2014_movie_to_supplied_guest_segments_equal"] is True
+          assert x["actual_CPU_joypad_poll_consumption_proven"] is False
+          assert x["accepted_USA_events"] == x["release_QA_gates_awarded"] == 0
+          print("Authentic RF066: 397 exact source movie/input segments; CPU-read claim HOLD; 0/45")
+          PY
+
+      - name: Preserve small independent original/native source receipt only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-genuine-rf066-2014-controller-source-review
+          retention-days: 7
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/rf066-controller/independent-source-supply.json

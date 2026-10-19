@@ -96,6 +96,31 @@ def examine(raw: str) -> dict:
     rf64_count=Counter(key(x,"returned") for x in rf64_rows)
     if not orig_count or orig_count!=rf64_count or len(rf64_rows)!=len(pulls):
         raise ValueError("RF066 population differs from genuine RF045 / RF064 returned stack operations")
+    # Multiset agreement cannot qualify a *source-ordered* returned-read
+    # producer: repeated 0x26/0x81 values could be swapped between actual
+    # guest PC contexts or V/H clock positions without changing Counters.
+    # Preserve the original encounter order, original-local frame/V/H clocks,
+    # physical stack address, width, true returned value and *post-call*
+    # PB:PCw snapshots across all three independently logged producers.
+    pull_macros=[x for x in rf45 if x.get("kind") in ("pullW","pullB")]
+    if len(pull_macros)!=len(rf64_rows) or len(rf64_rows)!=len(pulls):
+        raise ValueError("RF066 source return ordinal population incomplete")
+    for ordinal,(macro,prior,(_,now)) in enumerate(
+            zip(pull_macros,rf64_rows,pulls),1):
+        if any(macro.get(k)!=prior.get(k) or prior.get(k)!=now.get(k)
+               for k in ("f","v","h","kind","width")):
+            raise ValueError("RF066 source clock or operation order moved at pull " + str(ordinal))
+        if macro.get("addr")!=prior.get("base") or prior.get("base")!=now.get("base"):
+            raise ValueError("RF066 physical source stack address reordered")
+        if any(key(row,label)!=key(macro,"value") for row,label in
+               ((prior,"returned"),(now,"returned"))):
+            raise ValueError("RF066 returned data not ordered with RF045 macro")
+        pc=macro.get("pc")
+        if pc is None or prior.get("pc")!=pc or (
+                now.get("postPB")+":"+now.get("postPC") if
+                now.get("postPB") is not None and now.get("postPC") is not None
+                else None)!=pc:
+            raise ValueError("RF066 original post-call PB:PCw context reordered")
     rf64_identified=Counter((key(x,"returned"),int(x["before"]),int(x["after"])) for x in rf64_rows)
     consumed=Counter()
     no_interleaving=0
@@ -140,6 +165,8 @@ def examine(raw: str) -> dict:
         "actual_original_returns_with_no_other_RF063_event_inside_getter":no_interleaving,
         "actual_original_returns_with_intervening_RF063_events":with_interleaving,
         "real_original_return_matches_RF045_and_RF064":True,
+        "all_original_returns_strictly_positional_across_RF045_RF064_RF066":True,
+        "strict_source_clock_domain_original_only":True,
         "getset_entry_time_return_value_proven":False,
         "read_value_physically_observed_post_call":True,
         "complete_original_and_native_bus_read_population_proven":False,

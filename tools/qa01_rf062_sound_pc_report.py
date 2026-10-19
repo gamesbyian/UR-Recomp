@@ -44,7 +44,12 @@ def report(candidate: Path, baseline: Path) -> dict:
         old_p = json.loads(prior.read("producer-report.json"))
         p = json.loads(z.read("producer-report.json"))
         c = json.loads(z.read("case-result.json"))
-        original_bytes, native_bytes = z.read(ORIG), z.read(NATIVE)
+        # Original RF049/050 authoritatively executed in the rehashed prior
+        # archive. It need not be *reinstrumented* just to observe native
+        # direct-PC source. Changed original core/movie/input/control forbids
+        # this reuse; no source/native clock rebasing is permitted.
+        original_bytes = prior.read(ORIG)
+        candidate_original_bytes, native_bytes = z.read(ORIG), z.read(NATIVE)
     require(c["disposition"] == "strict_candidate" and c["release_credit"] == 0,
             "candidate was inappropriately promoted")
     require(all(p[name] == old_p[name] for name in CONTROLS),
@@ -116,7 +121,9 @@ def report(candidate: Path, baseline: Path) -> dict:
         "candidate_zip_sha256": hashlib.sha256(case_data).hexdigest(),
         "baseline_zip_sha256": BASELINE_SHA,
         "candidate_source_sha": c["source_sha"],
-        "original_log_sha256": hashlib.sha256(original_bytes).hexdigest(),
+        "original_baseline_log_sha256": hashlib.sha256(original_bytes).hexdigest(),
+        "candidate_original_log_sha256": hashlib.sha256(candidate_original_bytes).hexdigest(),
+        "original_sound_opcode_provenance": "immutable genuine RF054 baseline only",
         "native_log_sha256": hashlib.sha256(native_bytes).hexdigest(),
         "actual_native_decoder_bound_read_count": 10,
         "actual_source_and_native_11C774_consumed_byte_same": True,

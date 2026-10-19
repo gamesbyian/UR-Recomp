@@ -42,6 +42,19 @@ python3 tools/check_qa06_ntfs_original_archives.py \
 
 Actual downloaded-archive offline execution returned 16 pre-intent files, 22 postraw files, 74 changed raw byte positions, recovered typed generation 2, two cold boots and `release_gate_credit=0`. See the [immutable independent receipt](../analysis/evidence/qa06-independent-pr1990-ntfs-original-review-20261019.json). The positive was executed offline here; subsequent CI on this PR is a separate test.
 
+## Additional independently reviewed original Win32 recovery/refusal cases
+
+Four more **original** ZIPs were independently downloaded, external-wrapper SHA256 and CRC checked, and their **complete original binary populations** checked against every producer member SHA/byte length; none is a physical end-user playtest:
+
+| Original case | Original Actions artifact | Externally measured wrapper SHA256 | Byte finding |
+| --- | --- | --- | --- |
+| Programmatic console **S** | `12228118019` | `45f8060416c68868ad6a9cc02a885063e6910f43bb1dc62248a448f8e7c8cf3a` | 29/29 archived stage bytes verified; healthy B and damaged A plus unrelated C actual data unchanged; only intended selector changed, exactly retained in two subsequent real cold B boots |
+| Programmatic console **Q** | `12228083147` | `9b06a8d30260a0babe5d226ae43883e494bb84a8d8a51fdd228819ae0bfc9495` | 8/8 before/after original raw, typed, selector, catalog bytes identical; original CMD exit 7 without guest/default fallback or manual archive |
+| **513-byte synthetic short raw** then R refusal and T restore | `12228073233` | `1221f2c0bee62f741a4bee77a2d10d0884249ba9e2bbefc4e88c5f2006e61b05` | 21/21 original captured bytes; R leaves all four original files unchanged, T restores canonical 8192-byte SRAM and both cold boots preserve exact restored bytes; this does **not** establish a real torn disk write |
+| **Actual OS sharing denial after raw** | `12228287822` | `aca4d73da3d60aaa10ae94504196fb1e119a620ecd2992685450212059fbbf71` | 22/22 original binary receipts rehashed; source game writes 74 changed raw SRAM bytes, Win32 kernel replace probe returns **5** (access denied), CMD exits **8**, raw/typed divergence preserves typed/catalog/selector, first cold reconciles typed and second remains stable |
+
+The OS-sharing denial is a distinct, authentic Windows filesystem failure from the full-volume `112` evidence above. Its file order is causally meaningful: real original guest raw publication, preserved typed/roster/selector on denial, retained durable intent, then correct cold typed finalization. It still does **not** establish independent adversarial noncooperating writers, arbitrary denied path classes, true short physical writes, 1P/2P human journeys or electrical interruption. Complete hashes and exact qualified scope are stored in the [machine-readable Agent 6 receipt](../analysis/evidence/qa06-independent-pr1990-ntfs-original-review-20261019.json).
+
 ## Evidence boundary and next owner
 
 This is positive evidence about **one named profile on the genuine source-compiled Windows guest, in a source-qualified but unmerged synthetic PR checkout**. The postraw ZIP does not itself embed full tested source SHA; source linkage also uses the separately inspected original Actions run and matching compiled CMD. Request a separate producer-local full source/PE/ZIP receipt per future scenario. Still missing: one immutable integrated **merged-main** Windows ZIP, active competing writers, denied/share/short and electrical interruption coverage, full real 1P/2P profile/Records player journey, dissimilar clean consumer PCs, actual dual controllers, audible audio, true UHD/7:6 display and authoritative original/native USA events. Retain original nominated October 15 source and ZIP without relabeling, QA-02 in progress, physical=false, release_decision=not_assessed, **0/12 Windows release gates and 0/45 complete USA events**.

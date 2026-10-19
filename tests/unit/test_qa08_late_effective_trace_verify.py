@@ -1,0 +1,106 @@
+"""Adversarial ROM-free source-stage QA08 effective observer log tests."""
+import sys
+import unittest
+from pathlib import Path
+from unittest.mock import patch
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+from tools import qa08_late_effective_trace_verify as witness
+
+
+def source(x=70, y=58, frame=5184, sub=0, word="56b5", direct=0):
+    return (
+        f"UR_QA08_LATE_PPU_SOURCE frame={frame} x={x} logical_y={y} "
+        f"ppu_line={y+1} sub={sub} layer=0 directcolor={direct} "
+        f"index=6c selected_rgb555={word} cgram_index_word={word} "
+        "cgram6c=56b5 cgram6d=4a52 cgram6e=4631 cgram6f=4210 "
+        "inidisp=0f cgadsub=00 cgwsel=00"
+    )
+
+
+def final(x=70, y=58, frame=5184, rgb="136,136,136"):
+    return (
+        f"UR_QA08_LATE_PPU_FINAL frame={frame} x={x} logical_y={y} "
+        f"ppu_line={y+1} RGB8={rgb} inidisp=0f fixed=0000 tm=01 ts=00"
+    )
+
+
+class LateEffectiveSourceProof(unittest.TestCase):
+    def test_typed_production_source_and_final_logger_rows(self):
+        kind, row = witness.parse_row(source())
+        self.assertEqual(kind, "source")
+        self.assertEqual(row["cgram_index_word"], 0x56b5)
+        self.assertEqual(row["index"], 0x6c)
+        self.assertEqual(row["ppu_line"], 59)
+        kind, row = witness.parse_row(final())
+        self.assertEqual(kind, "final")
+        self.assertEqual(row["RGB8"], (136,136,136))
+        self.assertIsNone(witness.parse_row("unrelated Windows output"))
+
+    def test_all_eight_authenticated_guest5184_pixels(self):
+        lines = "\n".join(source(x,y) + "\n" + final(x,y)
+                          for x,y in witness.POINTS)
+        result = witness.summarize_trace(lines)
+        self.assertEqual(result["guest5184_anchor_count"], 8)
+        self.assertEqual(result["bounded_source_observations"], 8)
+        self.assertEqual(result["bounded_final_observations"], 8)
+        self.assertEqual(result["anchors"][0]["main_actual_resolved_rgb555"], "56b5")
+        self.assertEqual(result["anchors"][0]["new_native_final_RGB5"], [17]*3)
+        self.assertFalse(result["instrumentation_noninterference_proven_by_text"])
+        self.assertFalse(result["QA08_QA10_or_release_authorized"])
+
+    def test_duplicate_missing_and_changing_selected_CGRAM_rejected(self):
+        lines = "\n".join(source(x,y) + "\n" + final(x,y)
+                          for x,y in witness.POINTS)
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            witness.summarize_trace(lines + "\n" + source())
+        with self.assertRaisesRegex(ValueError, "missing guest5184"):
+            witness.summarize_trace(lines.replace(final(), "absent"))
+        with self.assertRaisesRegex(ValueError, "selected colour disagrees"):
+            witness.parse_row(source().replace("selected_rgb555=56b5",
+                                               "selected_rgb555=4210"))
+
+    def test_directcolor_is_not_mislabeled_CGRAM(self):
+        kind,row=witness.parse_row(
+            source(direct=1).replace("selected_rgb555=56b5",
+                                     "selected_rgb555=4210"))
+        self.assertEqual(kind, "source")
+        self.assertEqual(row["directcolor"], 1)
+        with self.assertRaisesRegex(ValueError, "direct color cannot"):
+            witness.parse_row(source(direct=1).replace("layer=0", "layer=4"))
+
+    def test_host_frame_source_y_channels_and_bounds_fail_closed(self):
+        for row in (
+            source(frame=5175), source(x=71), source().replace("ppu_line=59","ppu_line=58"),
+            source().replace("index=6c", "index=abcde"),
+            source().replace("sub=0", "sub=9"),
+            final().replace("RGB8=136,136,136", "RGB8=300,0,0"),
+            source()+" stray", source().replace("index=6c","index=6c index=6c")
+        ):
+            with self.subTest(row=row[:65]):
+                with self.assertRaises(ValueError):
+                    witness.parse_row(row)
+        with self.assertRaisesRegex(ValueError, "unbounded"):
+            witness.summarize_trace("x" * 24_000_001)
+
+    def test_missing_genuine_CRC_never_promoted_to_source_witness(self):
+        with patch.object(witness.Path,"read_bytes",return_value=b"forged"):
+            with self.assertRaisesRegex(ValueError,"SHA mismatch"):
+                witness.verify(Path("on"),Path("off"),Path("original"),
+                               Path("CRC-on"),Path("CRC-off"),
+                               Path("route-on"),Path("route-off"))
+
+    def test_historical_sha_and_negative_evidence_gates(self):
+        self.assertEqual(witness.ORIGINAL_ZIP,
+                         "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e")
+        self.assertEqual(witness.ORIGINAL_5183_BGRX,
+                         "f0ee58c682776592d8a93003a42c508629c49973b206d6a6da2c71ec9dc993b7")
+        self.assertEqual(len(witness.POINTS), 8)
+        self.assertEqual(set(witness.POINTS),set(witness.EXPECTED_GRAY))
+        self.assertEqual(set(witness.EXPECTED_GRAY.values()),
+                         {(15,20),(16,15),(17,16),(20,17)})
+
+
+if __name__ == "__main__":
+    unittest.main()

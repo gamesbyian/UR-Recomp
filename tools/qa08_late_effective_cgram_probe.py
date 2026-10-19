@@ -32,16 +32,18 @@ PREDICATE = ("snes_frame_counter >= 5176 && snes_frame_counter <= 5186 &&\n"
 RESOLVER_TRACE = f'''  /* {MARK_RESOLVER}: selected source pixel; no second resolver. */
   if ({PREDICATE}) {{
     const unsigned qa08_index = (unsigned)(pixel & 255);
+    const unsigned qa08_direct = (unsigned)(PPU_directColor(ppu) &&
+      layer < 4 && bit_depths_per_mode[actMode][layer] == 8);
     const unsigned qa08_selected_rgb555 =
       (unsigned)(*r | (*g << 5) | (*b << 10));
     fprintf(stderr,
       "UR_QA08_LATE_PPU_SOURCE frame=%d x=%d logical_y=%d ppu_line=%d "
-      "sub=%u layer=%d index=%02x selected_rgb555=%04x "
+      "sub=%u layer=%d directcolor=%u index=%02x selected_rgb555=%04x "
       "cgram_index_word=%04x cgram6c=%04x cgram6d=%04x "
       "cgram6e=%04x cgram6f=%04x inidisp=%02x "
       "cgadsub=%02x cgwsel=%02x\\n",
       snes_frame_counter, x, y-1, y, (unsigned)sub, layer,
-      qa08_index, qa08_selected_rgb555,
+      qa08_direct, qa08_index, qa08_selected_rgb555,
       (unsigned)ppu->cgram[qa08_index],
       (unsigned)ppu->cgram[0x6c], (unsigned)ppu->cgram[0x6d],
       (unsigned)ppu->cgram[0x6e], (unsigned)ppu->cgram[0x6f],

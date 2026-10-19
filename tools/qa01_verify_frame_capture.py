@@ -14,6 +14,12 @@ from pathlib import Path
 import qa01_frame_fingerprint as frames
 
 
+def canonical_sha256(data: object) -> str:
+    """Stable evidence binding, independent of pretty-printed JSON whitespace."""
+    raw = json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    return hashlib.sha256(raw.encode("ascii")).hexdigest()
+
+
 def verify(report: dict, raw_root: Path) -> dict:
     frames.must(type(report) is dict and report.get("schema") == frames.SCHEMA,
                 "invalid frame capture report")
@@ -129,6 +135,24 @@ def verify(report: dict, raw_root: Path) -> dict:
     return {
         "schema": "ur-qa01-independent-frame-capture-audit/1",
         "source_sha": identity["source_sha"],
+        # These fields bind the auditor's already re-opened raw bytes to the
+        # *exact* producer report and its immutable input/frame identity. A
+        # downstream preflight must rehash its supplied producer JSON before
+        # matching this receipt; a bare matching source SHA is insufficient.
+        # Hashing a JSON report does NOT authenticate its publisher or prove
+        # the claimed source input/guest executed, and does not re-open any
+        # deliberately unretained digest-only interior frame.
+        "fingerprint_report_canonical_sha256": canonical_sha256(report),
+        "frame_source_identity": dict(identity),
+        "verified_relative_frame_window": {
+            "start": start, "end": end,
+            "required_frames": len(rows),
+            "observation_phase": identity["observation_phase"],
+            "original_frame_origin": identity["original_frame_origin"],
+            "native_frame_origin": identity["native_frame_origin"],
+        },
+        "retained_raw_manifest_canonical_sha256": canonical_sha256(
+            sorted(entries, key=lambda item: item["member"])),
         "verified_raw_frames": len(required_frames),
         "digest_only_equal_frames_not_independently_reopened": len(rows) - len(required_frames),
         "verified_raw_files": len(observed),

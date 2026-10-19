@@ -78,8 +78,8 @@ def patch_generated(s:str)->str:
             or s.count(EXTERN)!=1):
             raise ValueError("RF061 mode-qualified native CPU observer partially installed")
         return s
-    if (s.count(GEN_MARK)!=1 or s.count(GEN_PRIOR)!=1
-        or s.count(GEN_RETURN)!=1 or s.count(HEADER_MARK)!=1):
+    if (s.count(GEN_MARK)!=1 or s.count(GEN_RETURN)!=1
+        or s.count(HEADER_MARK)!=1):
         raise ValueError("RF061 pinned physical bank03 M0X0 IPL/RTL code changed")
     # Fail closed on wrong generated function despite an identical symbol in
     # another generated function or wrong M/X variant.
@@ -89,9 +89,10 @@ def patch_generated(s:str)->str:
     section=s[start:end]
     if section.count(GEN_PRIOR)!=1 or section.count(GEN_RETURN)!=1:
         raise ValueError("RF061 target code is not inside actual Race_Main_CA91_M0X0")
-    out=s.replace(HEADER_MARK,HEADER_MARK+EXTERN,1)
-    out=out.replace(GEN_PRIOR,CASE_REWRITE,1)
-    out=out.replace(GEN_RETURN,LABEL_REWRITE,1)
+    replaced=section.replace(GEN_PRIOR,CASE_REWRITE,1)
+    replaced=replaced.replace(GEN_RETURN,LABEL_REWRITE,1)
+    out=s[:start]+replaced+s[end:]
+    out=out.replace(HEADER_MARK,HEADER_MARK+EXTERN,1)
     if out.count("Snd_UploadBlockListLong_M0X0(cpu)")!=s.count("Snd_UploadBlockListLong_M0X0(cpu)"):
         raise AssertionError("RF061 changed guest sound upload call count")
     return out

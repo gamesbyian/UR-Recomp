@@ -1,0 +1,90 @@
+{
+  "schema": "UR-QA01-DRAGSTER-ZOO-RAW-COLD-EXECUTED-EVIDENCE/1",
+  "execution": {
+    "run_id": 39179819289,
+    "url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39179819289",
+    "source_sha": "f0806f0a355f6e73f2ac03bddc00a5ee359f4e0f",
+    "artifact_id": 12156196001,
+    "artifact_zip_sha256": "53321b448c833a8ec3337008d64e732f34589f7c31fcce000a9ff5082221156b",
+    "independently_verified_zip_digest": true,
+    "member_count": 205
+  },
+  "source": {
+    "original_movie_dragster_entry": 794,
+    "original_movie_dragster_result": 2874,
+    "original_movie_next_zoo_active": 3190,
+    "original_movie_next_zoo_result_relative": 316,
+    "fresh_original_next_zoo_result_relative": 315,
+    "fresh_native_next_zoo_result_relative": 318,
+    "fresh_original_next_zoo_absolute": 3341,
+    "fresh_native_next_zoo_absolute": 3342
+  },
+  "independent_raw_handoff": {
+    "audit_schema": "UR-QA01-INDEPENDENT-DRAGSTER-ZOO-RAW-ARCHIVE/1",
+    "producer_report_sha256": "f62738d45549bac43aacbb22799cf1b15806d5ad7f473df73441c62da2a0fcff",
+    "source_trace_sha256": "3de122406937fcf839988d7990972e9275b8e7bbd47db1b958fea20113c27c54",
+    "original_native_unmasked_wram_differences_across_14_pairs": 3616,
+    "original_native_whole_sram_differing_byte_occurrences_across_14_pairs": 182,
+    "all_14_raw_pairs_rehashed": true,
+    "independent_source_eight_frame_zoo_entrance": true
+  },
+  "raw_cold": {
+    "audit_schema": "UR-QA01-DRAGSTER-COLD-RAW-GUEST-SNAPSHOT-AUDIT/1",
+    "cold_report_sha256": "0008e92edda9e37dd254b44ca715dce26bc706165bd1a3f6aa65b3db07db546a",
+    "new_process_count": 2,
+    "full_cold_sram_files": 4,
+    "each_full_sram_size_bytes": 8192,
+    "boot_frame_relative": [
+      300,
+      420
+    ],
+    "raw_images_independently_rehashed": true,
+    "source_earned_dragster_centiseconds": 2508,
+    "holder_index": 0,
+    "ranked_words_holders_checksum_equal_original_native": true,
+    "record_checksum": 64620,
+    "cold_full_sram_equal_original_seed": false,
+    "windows_host_disk_durability_proven": false
+  },
+  "source_vs_fresh_scene_entry": {
+    "archived_movie_entry_host": 794,
+    "fresh_original_entry_host": 945,
+    "fresh_native_entry_host": 945,
+    "all_three_named_course_states_equal": true,
+    "full_131072_byte_wram_source_vs_fresh_original_differences": 19,
+    "full_131072_byte_wram_source_vs_fresh_native_differences": 15,
+    "fresh_original_vs_fresh_native_differences": 4,
+    "fresh_original_native_only_differing_offsets": [
+      "0x01ED",
+      "0x01EE",
+      "0x01EF",
+      "0x01F0"
+    ],
+    "source_movie_vs_both_fresh_shared_differences": [
+      "0x00C6",
+      "0x00C8",
+      "0x00C9",
+      "0x0187",
+      "0x0188",
+      "0x0189",
+      "0x018A",
+      "0x018B",
+      "0x018C",
+      "0x018D",
+      "0x018E",
+      "0x0191",
+      "0x0192",
+      "0x0193",
+      "0x0194"
+    ],
+    "causal_proof_of_stack_residual": false
+  },
+  "limitations": {
+    "historical_source_supplied_masks_independently_verified_against_original_movie": false,
+    "actual_cpu_spc_guest_consumed_controller_parity": false,
+    "full_event_frame_equivalence": false,
+    "shipping_windows_portable_binary_bound": false,
+    "host_disk_power_failure_persistence": false,
+    "usa_events_accepted": 0
+  }
+}

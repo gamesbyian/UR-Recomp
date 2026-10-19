@@ -645,6 +645,10 @@ jobs:
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/native.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/complete.script
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/switcher-reference-penultimate.script
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/qa01-frame-evidence/fingerprints.json
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/qa01-frame-evidence/independent-review.json
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/qa01-frame-evidence/metrics.json
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/qa01-frame-evidence/retained/*.bin
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/ref.input
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/pinned-baldosa.input
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/zoo-terminal-phase/reference.log

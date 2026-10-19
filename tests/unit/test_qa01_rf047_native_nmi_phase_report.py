@@ -44,6 +44,23 @@ class NmiPhase(unittest.TestCase):
   self.assertTrue(all(p["native_actual_RTI_return_PC"] is None and p["native_RTI_return_PC_matches_saved_resume"] is None for p in r["native_interrupt_paired_operations"]))
   with self.assertRaisesRegex(ValueError,"partial actual RTI"):
    m.classify(self.fixture("interp_rti").replace("stage=interp_rti f=1017","stage=read f=1017",1))
+ def test_genuine_opcode_marker_has_ordinal_but_is_not_a_read(self):
+  text=self.fixture()
+  text=text.replace("QA01RF047NATIVE seq=4 stage=handler_return",
+    "QA01RF047NATIVE seq=4 stage=opcode f=1017 guestPC=82D4F0 tier=aot master=2200002\n"
+    "QA01RF047NATIVE seq=5 stage=handler_return",1)
+  # Shift later ordinals to preserve a single physical execution sequence.
+  import re
+  lines=text.splitlines()
+  for idx,line in enumerate(lines):
+   if idx>4 and line.startswith("QA01RF047NATIVE seq="):
+    n=int(re.search(r"seq=(\\d+)",line).group(1))
+    if n>=5:lines[idx]=line.replace(f"seq={n} ",f"seq={n+1} ",1)
+  result=m.classify("\n".join(lines))
+  self.assertEqual(result["native_actual_executed_opcode_markers"],1)
+  self.assertTrue(result["native_opcode_marker_is_not_bus_consumer_proof"])
+  with self.assertRaisesRegex(ValueError,"executed native guest PC"):
+   m.classify("\n".join(lines).replace("guestPC=82D4F0","guestPC=FFFFFFX"))
  def test_incomplete_native_trace_fails_closed(self):
   s=self.fixture()
   with self.assertRaisesRegex(ValueError,"sequence gap|duplication"):

@@ -751,7 +751,9 @@ class QA01CampaignTest(unittest.TestCase):
         self.assertIn("fail-fast: false", workflow)
         self.assertIn("max-parallel: 2", workflow)
         self.assertIn("timeout-minutes: 90", workflow)
-        self.assertEqual(workflow.count("cmake --build baldosa/build"), 1)
+        # TEMP research PR #1975 specifically builds two SOURCE-FROZEN native variants.
+        # Production main retains the one-build invariant; this test change is unmerged.
+        self.assertEqual(workflow.count("cmake --build baldosa/build"), 2)
         self.assertEqual(workflow.count("bootstrap_toolchain.py --offline --tool snes9x-libretro"), 1)
         self.assertIn("tools/probe_original_event_complete.py", workflow)
         self.assertIn("tools/qa01_event_campaign.py aggregate", workflow)
@@ -785,7 +787,29 @@ class QA01CampaignTest(unittest.TestCase):
         guard = 'if [[ "${{ inputs.baldosa_refresh_beam_rate }}" == "true" ]]; then'
         self.assertLess(workflow.index(guard), workflow.index(stage))
         self.assertLess(workflow.index(stage), workflow.index("cmake -S baldosa -B baldosa/build"))
-        self.assertEqual(workflow.count("cmake --build baldosa/build"), 1)
+        # TEMP research PR #1975 specifically builds two SOURCE-FROZEN native variants.
+        # Production main retains the one-build invariant; this test change is unmerged.
+        self.assertEqual(workflow.count("cmake --build baldosa/build"), 2)
+
+    def test_temporary_two_native_builds_are_strictly_one_wrapper_patch_apart(self):
+        # Explicit exception to production one-build policy only in the
+        # disposable RF062 native wrapper-substitution experiment. Its first
+        # native binary must be saved before RF062 source is even touched.
+        work=(ROOT/".github/workflows/qa01-event-campaign.yml").read_text()
+        first,second=(i for i in range(len(work))
+                      if work.startswith("cmake --build baldosa/build",i))
+        patched="python3 tools/qa01_rf062_direct_sound_bus_pc_patch.py --root baldosa"
+        copy='install -m 755 baldosa/build/UniracersSNESRecomp "$OUT/native-control"'
+        source='python3 tools/qa01_rf054_native_sound_writer_identity.py --root baldosa'
+        self.assertEqual(work.count(patched),1)
+        self.assertEqual(work.count(copy),1)
+        self.assertLess(work.index(source),first)
+        self.assertLess(first,work.index(copy))
+        self.assertLess(work.index(copy),work.index(patched))
+        self.assertLess(work.index(patched),second)
+        self.assertLess(work.index("tools/qa01_rf062_wrapper_only_diff.py"),second)
+        self.assertIn('python3 tools/qa01_zoo_raw_archive_audit.py \\',work)
+        self.assertIn("wrapper-control/qa01-zoo-independent-raw-audit.json",work)
 
     def test_spc_interrupt_stage_is_opt_in_ordered_and_gated_on_rf015_019(self):
         workflow = (ROOT/".github/workflows/qa01-event-campaign.yml").read_text()

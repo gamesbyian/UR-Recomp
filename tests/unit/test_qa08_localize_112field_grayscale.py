@@ -1,5 +1,6 @@
 """ROM-free adversarial QA08 grayscale spatial localization tests."""
 import sys
+import subprocess
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -96,6 +97,16 @@ class AuthenticRasterSpatialTests(unittest.TestCase):
         clean[0][0] = 42
         with self.assertRaisesRegex(ValueError, "invalid RGB5"):
             spatial.summarize_classes(clean)
+
+    def test_direct_script_cli_reaches_archive_fail_closed_guard(self):
+        cmd = [sys.executable, str(ROOT / "tools/qa08_localize_112field_grayscale.py"),
+               "--original", str(ROOT / "missing-original-qa08.zip"),
+               "--native", str(ROOT / "missing-native-qa08.zip")]
+        run = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True,
+                             check=False)
+        self.assertEqual(run.returncode, 2)
+        self.assertIn("QA08_GRAY_SPATIAL_REFUSED:", run.stderr)
+        self.assertNotIn("ImportError", run.stderr)
 
     def test_provenance_verification_must_run_before_archives_open(self):
         with patch.object(spatial.source, "verify",

@@ -143,5 +143,52 @@
     "audio_driver": "dummy",
     "physical_consumer_machine": false,
     "qa_gate_credit": 0
-  }
+  },
+  "additional_storage_faults": [
+    {
+      "kind": "original-live-Win32-sharing-denial-postraw",
+      "artifact_id": 12228827581,
+      "outer_sha256": "943696d4af8ce583e8f0f9ce34c33bde1e715feb4ff8f35b90587b4fc98a87ae",
+      "original_members_hashed": 22,
+      "crc_ok": true,
+      "kernel_replace_error": 5,
+      "game_exit": 8,
+      "raw_byte_positions_changed": 74,
+      "postraw_typed_unchanged": true,
+      "denied_matches_postraw": true,
+      "cold_recovered_typed_raw_agree": true,
+      "second_cold_equal": true,
+      "intent_receipt_immutable": true,
+      "physical_power_loss": false
+    },
+    {
+      "kind": "synthetically-truncated-513-byte-raw-R-refuses-T-restores",
+      "artifact_id": 12228652995,
+      "outer_sha256": "0e9d73d9cd28bffd82b3d8f14029c7742a26b26588e156d330212d1a1257bc37",
+      "original_members_hashed": 21,
+      "crc_ok": true,
+      "short_raw_bytes": 513,
+      "refused_R_unchanged": true,
+      "explicit_T_restores_raw_bytes": 8192,
+      "two_cold_original_windows_boots_stable": true,
+      "actual_electrical_torn_write": false
+    },
+    {
+      "kind": "actual-Win32-pending-intent-delete-sharing-denial",
+      "artifact_id": 12228742665,
+      "outer_sha256": "288adbed60f357e74d8e7405dc5584c24527c28e7dd42b6f529b34869d14cc22",
+      "original_members_hashed": 24,
+      "crc_ok": true,
+      "real_nonshare_delete_handle": true,
+      "first_explicit_T_exit7": true,
+      "raw_already_restored_despite_failure": true,
+      "typed_catalog_selector_stayed_original": true,
+      "old_pending_preserved_for_retry": true,
+      "second_explicit_T_after_unlock": true,
+      "canonical_raw_typed_stable_after_retry": true,
+      "two_cold_original_windows_boots_stable": true,
+      "deny_did_not_leave_unchanged_raw": false,
+      "actual_powercut": false
+    }
+  ]
 }

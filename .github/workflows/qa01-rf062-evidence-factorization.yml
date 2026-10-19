@@ -1,0 +1,90 @@
+name: QA01 RF062 runtime logging versus distinct executable-epoch controls
+
+# Four immutable *archived* source/native ZIPs. Never recompile, rerun, mask
+# guest bytes, schedule a research factory or award a race/release gate.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa01-rf062-evidence-factorization.yml"
+      - "tools/qa01_rf062_evidence_factorization.py"
+      - "tests/unit/test_qa01_rf062_evidence_factorization.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: qa01-rf062-evidence-matrix-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  classify-archived-four-evidence-controls:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail-closed evidence distinctions in ROM-free tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest tests.unit.test_qa01_rf062_evidence_factorization \
+            tests.unit.test_qa01_rf062_same_binary_ab \
+            tests.unit.test_qa01_rf066_rf062_full_raw_crosswalk -v
+
+      - name: Reopen actual RF066, RF062, and logging ON/OFF guest plus binaries ZIPs
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/qa01-native-four-control-review"
+          mkdir -p "$ROOT"
+          get_case() {
+            curl --fail --show-error --silent --location --retry 2 \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -o "$ROOT/$2" \
+              "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/$1/zip"
+          }
+          get_case 12171791431 rf066.zip
+          get_case 12214214743 rf062.zip
+          get_case 12219402017 logging-on-off.zip
+          get_case 12218451896 logging-binaries.zip
+          python3 tools/qa01_rf062_evidence_factorization.py \
+            --rf066 "$ROOT/rf066.zip" \
+            --rf062 "$ROOT/rf062.zip" \
+            --ab-case "$ROOT/logging-on-off.zip" \
+            --ab-binaries "$ROOT/logging-binaries.zip" \
+            --output "$ROOT/qa01-rf062-distinct-controls-verdict.json"
+          python3 - "$ROOT/qa01-rf062-distinct-controls-verdict.json" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x["logging_toggle_native_helper_counts_off_on"]==[655,655]
+          assert x["real_native_8282F0_direct_read_counts_off_on"]==[0,10]
+          assert x["helper_address_register_master_clock_sequence_unchanged_under_logging"] is True
+          assert x["existing_native_logging_strict_full_log_comparator_passed"] is False
+          assert x["single_host_walltime_statistic_exception_independently_reviewed"][
+              "all_other_native_guest_trace_rows_equal_after_host_only_metadata"] is True
+          assert x["single_host_walltime_statistic_exception_independently_reviewed"][
+              "actual_host_video_elapsed_seconds_off_on"] == ["109.566","109.591"]
+          assert x["bounded_native_guest_trace_equal_after_only_exact_host_metric"] is True
+          assert x["historical_RF066_to_instrumented_RF062_78_mesh_exact"]==[51,46]
+          assert x["historical_RF066_to_instrumented_RF062_78_mesh_unmasked_byte_differences"]==[92,104]
+          assert x["different_binary_episodes_native_Wram_changed_files"]==15
+          assert x["different_binary_episodes_native_Wram_changed_bytes"]==77
+          assert x["RF062_read_wrapper_replacement_noninterference_proven"] is False
+          assert x["different_binary_epoch_native_Wram_change_cause_proven"] is False
+          assert x["first_source_native_differing_consumed_byte_proven"] is False
+          assert x["full_USA_events_accepted"]==x["release_QA_gates"]==0
+          print("Genuine 4-ZIP review: 655/655 logging positive, cross-binary 15/77 unexplained, wrapper HOLD")
+          PY
+
+      - name: Retain small independently reviewed evidence control result only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-rf062-genuine-native-logging-versus-wrapper-evidence
+          retention-days: 7
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/qa01-native-four-control-review/qa01-rf062-distinct-controls-verdict.json

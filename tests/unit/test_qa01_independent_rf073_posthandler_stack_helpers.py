@@ -51,7 +51,9 @@ class PostReturnNativeStackHelper(unittest.TestCase):
         events,brackets=synthetic()
         report=qa.first_posthandler(events,brackets)
         self.assertEqual(report["nine_authentic_native_NMI_windows"],9)
-        self.assertEqual(report["actual_first_outside_handler_native_helper_observations"],45)
+        self.assertEqual(report["actual_first_later_stack_byte_observations"],45)
+        self.assertEqual(
+            report["distinct_native_helper_operations_supplying_first_later_bytes"],45)
         self.assertTrue(report["first_posthandler_read_is_01F1_26_in_all_nine"])
         self.assertFalse(report["native_saved_PC_or_PB_read_during_compiled_RTI_proven"])
         self.assertFalse(report["first_original_native_differing_consumed_stack_byte_proven"])
@@ -80,7 +82,9 @@ class PostReturnNativeStackHelper(unittest.TestCase):
         self.assertEqual(row["00:01F0"]["native_value"],"00")
         self.assertEqual(row["00:01EF"]["native_RF047_local_seq"],
                          row["00:01F0"]["native_RF047_local_seq"])
-        self.assertEqual(r["actual_first_outside_handler_native_helper_observations"],45)
+        self.assertEqual(r["actual_first_later_stack_byte_observations"],45)
+        self.assertEqual(r[
+            "distinct_native_helper_operations_supplying_first_later_bytes"],43)
         self.assertFalse(r["native_saved_PC_or_PB_read_during_compiled_RTI_proven"])
 
     def test_missing_posthandler_helper_refused_instead_of_invented(self):

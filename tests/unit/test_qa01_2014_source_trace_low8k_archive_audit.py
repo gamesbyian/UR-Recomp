@@ -27,17 +27,27 @@ class OriginalSourceArchiveTests(unittest.TestCase):
             low[address]=value
         events=[
             (794,0x313,1),(795,0x313,0),
-            (2874,0x9f,153),(2875,0x9f,0),
+            (2800,0x313,1),(2835,0x9f,132),(2869,0x9f,22),
+            (2873,0x313,0),(2874,0x9f,153),(2882,0x9f,0),
             (3190,0xce,1),(3190,0x313,1),(3191,0x313,0),
-            (8353,0x9f,188),(8354,0x9f,0),
+            (8250,0x313,1),(8314,0x9f,132),(8314,0xce,0),
+            (8348,0x9f,22),(8348,0xce,1),(8352,0x313,0),
+            (8353,0x9f,188),(8353,0x313,61),
+            (8361,0x9f,0),(8361,0x313,0),
             (8620,0xce,2),(8620,0x313,1),(8621,0x313,0),
-            (11985,0x9f,24),(11986,0x9f,0),
+            (11830,0x313,1),(11867,0x9f,132),(11867,0xce,0),
+            (11901,0x9f,22),(11901,0xce,2),(11905,0x313,0),
+            (11906,0x9f,122),(11906,0x313,60),
+            (11915,0x9f,47),(11923,0x9f,216),
+            (11985,0x9f,24),(11993,0x9f,0),(11993,0x313,0),
             (12325,0xce,3),(12327,0x313,1),
             (16991,0x9f,132),(16991,0xce,0),
             (17025,0x9f,22),(17025,0xce,3),
             (17029,0x313,0),(17030,0x9f,153),(17088,0x9f,246),
-            (22940,0xce,0),(22941,0x313,1),(25343,0x313,0),
-            (25344,0x9f,153),(25352,0x9f,0),(25731,0x313,1),
+            (22940,0x9f,0),(22940,0xce,0),(22941,0x313,1),
+            (25305,0x9f,132),(25339,0x9f,22),
+            (25343,0x313,0),(25344,0x9f,153),
+            (25352,0x9f,0),(25731,0x313,1),
         ]
         for event in events:write(*event)
         self.trace=("\n".join(json.dumps(x,separators=(",",":"))
@@ -87,7 +97,8 @@ class OriginalSourceArchiveTests(unittest.TestCase):
     def test_exact_source_entry_result_and_three_low_wram_dump_positives(self):
         r=target.audit(self.path,self.write())
         self.assertEqual(r["trace_distinct_low_wram_addresses"],3)
-        self.assertEqual(r["real_2014_snes9x_trace_writes_replayed"],29)
+        self.assertEqual(r["real_2014_snes9x_trace_writes_replayed"],55)
+        self.assertEqual(r["five_source_original_result_stages"]["original_completed_attempts"],5)
         self.assertEqual(r["switcher_original_source_terminal"]["source_prelude_track0_frames"],[16991,17024])
         self.assertEqual(r["switcher_original_source_terminal"]["source_movie_result_relative_frames"],4703)
         self.assertEqual(r["post_switcher_known_course_repeat"]["real_source_result"],25344)
@@ -117,6 +128,45 @@ class OriginalSourceArchiveTests(unittest.TestCase):
             with self.subTest(frame=frame,addr=hex(addr)):
                 with self.assertRaisesRegex(target.ArchiveError,expected_error):
                     target.attest_switcher_original_source_terminal(modified)
+
+    def test_source_original_five_family_stages_are_distinct_results(self):
+        states,_,_=target.reconstruct(
+            self.members["source/source-trace.jsonl"].splitlines())
+        proof=target.attest_2014_five_source_result_preludes(states)
+        self.assertEqual(proof["shared_title_stage_duration"],34)
+        self.assertEqual(proof["distinct_source_course_ids"],4)
+        self.assertEqual([row["course_id"] for row in proof["observed_events"]],
+                         [0,1,2,3,0])
+        self.assertEqual([row["source_final_result_frame"] for row
+                          in proof["observed_events"]],
+                         [2874,8353,11985,17030,25344])
+        self.assertFalse(proof["common_CPU_PC_proven"])
+        self.assertFalse(proof["native_timing_parity_proven"])
+        self.assertEqual(proof["new_accepted_usa_event_credit"],0)
+
+    def test_original_family_rejects_fake_course_or_stunt_score(self):
+        states,_,_=target.reconstruct(
+            self.members["source/source-trace.jsonl"].splitlines())
+        for frame,addr,value,reason in (
+            (2835,0x9f,0,"not exactly 34"),
+            (8313,0xce,0,"previous actual source course"),
+            (8330,0x313,60,"not exactly 34"),
+            (8348,0xce,0,"not restored for four"),
+            (11905,0x313,1,"inactive pre-result"),
+            (11906,0x9f,47,"first scoring accumulator"),
+            (11985,0x9f,47,"eventual source scored"),
+            (16994,0xce,1,"not exactly 34"),
+            (17030,0x9f,188,"stable source family-specific"),
+            (25339,0x9f,132,"not restored for four"),
+            (25344,0x9f,188,"stable source family-specific"),
+        ):
+            changed=dict(states)
+            altered=bytearray(changed[frame])
+            altered[addr]=value
+            changed[frame]=bytes(altered)
+            with self.subTest(frame=frame,addr=hex(addr)):
+                with self.assertRaisesRegex(target.ArchiveError,reason):
+                    target.attest_2014_five_source_result_preludes(changed)
 
     def test_wrong_full_dump_low_byte_rejected_but_upper_120k_not_inferred(self):
         name="source/new-horizon.wram.bin"

@@ -23,7 +23,10 @@ TARGETS = tuple(sorted(set((
     25335,25336,25337,25338,25339,25340,25341,25342,25343,
     25344,25345,25346,25347,25348,25349,25350,25351,
     25730,25731,36000)) | set(range(12326,12335))
-    | set(range(16990,17038)) | {17087,17088}))
+    | set(range(16990,17038)) | {17087,17088}
+    | set(range(2834,2882)) | set(range(8313,8362))
+    | set(range(11866,11924)) | set(range(11985,11993))
+    | set(range(25304,25352))))
 DUMPS = ((17030,"original-switcher-result"),(22000,"prior-horizon"),
          (36000,"new-horizon"))
 BASELINE = ((794,0,1),(3190,1,1),(8620,2,1),(12327,3,1))
@@ -158,6 +161,72 @@ def attest_switcher_original_source_terminal(snapshots: dict[int, bytes]) -> dic
     }
 
 
+def attest_2014_five_source_result_preludes(snapshots: dict[int, bytes]) -> dict:
+    """Exact original WRAM stage evidence, not a CPU/PC or native equivalence claim."""
+    cases = (
+        ("Dragster Race A first", 0, 2835, 2874, 0x99, 0),
+        ("Zoom Zoo Circuit A", 1, 8314, 8353, 0xBC, 61),
+        ("Bowl Stunt", 2, 11867, 11915, 0x2F, 60),
+        ("Switcher Race B", 3, 16991, 17030, 0x99, 0),
+        ("Dragster Race A replay", 0, 25305, 25344, 0x99, 0),
+    )
+    def state(frame: int) -> dict:
+        raw = snapshots.get(frame)
+        must(isinstance(raw, bytes) and len(raw) == 8192,
+             f"missing actual source low-WRAM frame {frame}")
+        return named(raw)
+
+    rows = []
+    for name, course, prelude, result, result_menu, result_flag in cases:
+        must(state(prelude - 1) == {
+            "menu": 0, "track": course, "in_race": 1, "tour_row": 0},
+            f"{name}: previous actual source course identity is absent")
+        must(all(state(f) == {
+            "menu": 0x84, "track": 0, "in_race": 1, "tour_row": 0}
+            for f in range(prelude, prelude + 34)),
+            f"{name}: shared source title/stage is not exactly 34 frames")
+        must(all(state(f) == {
+            "menu": 0x16, "track": course, "in_race": 1, "tour_row": 0}
+            for f in range(prelude + 34, prelude + 38)),
+            f"{name}: actual course is not restored for four active frames")
+        must(state(prelude + 38) == {
+            "menu": 0x16, "track": course, "in_race": 0, "tour_row": 0},
+            f"{name}: inactive pre-result course predecessor differs")
+        must(all(state(f) == {
+            "menu": result_menu, "track": course,
+            "in_race": result_flag, "tour_row": 0}
+            for f in range(result, result + 8)),
+            f"{name}: stable source family-specific result/tally is not witnessed")
+        if course == 2:
+            must(state(11906) == {
+                "menu": 0x7A, "track": 2, "in_race": 60, "tour_row": 0},
+                "Bowl: actual first scoring accumulator state absent")
+            must(all(state(f) == {
+                "menu": 0x18, "track": 2, "in_race": 60, "tour_row": 0}
+                for f in range(11985, 11993)),
+                "Bowl: eventual source scored Stunt result absent")
+        rows.append({
+            "source_original_event": name, "course_id": course,
+            "source_stage_frames": [prelude, prelude + 33],
+            "source_restored_active_frames": [prelude + 34, prelude + 37],
+            "source_inactive_frame": prelude + 38,
+            "source_first_result_or_tally_frame": result,
+            "source_final_result_frame": 11985 if course == 2 else result,
+        })
+    return {
+        "schema": "UR-QA01-2014-FIVE-ORIGINAL-SCORED-STAGES/1",
+        "original_completed_attempts": 5,
+        "distinct_source_course_ids": 4,
+        "shared_title_stage_duration": 34,
+        "restored_active_course_duration": 4,
+        "family_specific_tally_and_result_separated": True,
+        "observed_events": rows,
+        "common_CPU_PC_proven": False,
+        "native_timing_parity_proven": False,
+        "new_accepted_usa_event_credit": 0,
+    }
+
+
 def audit(archive: Path, expected_zip_sha256: str) -> dict:
     must(re.fullmatch("[0-9a-f]{64}",expected_zip_sha256) is not None,
          "expected original Actions artifact SHA256 mandatory")
@@ -217,6 +286,7 @@ def audit(archive: Path, expected_zip_sha256: str) -> dict:
                  and measured["in_race"]!=1,
                  "old original movie terminal result not reproduced from trace")
         switcher_original=attest_switcher_original_source_terminal(snapshots)
+        family_original=attest_2014_five_source_result_preludes(snapshots)
         first,done,next_entry=(named(snapshots[f]) for f in (22941,25344,25731))
         must(named(snapshots[22940])["in_race"]!=1 and
              all(named(snapshots[f])["in_race"]==1 and
@@ -265,6 +335,7 @@ def audit(archive: Path, expected_zip_sha256: str) -> dict:
             "exact_full_128k_guest_dumps_checked_for_low8k":all_sources,
             "four_prior_original_course_entries_and_results_reproduced":True,
             "switcher_original_source_terminal":switcher_original,
+            "five_source_original_result_stages":family_original,
             "post_switcher_known_course_repeat":{
                 "track":0,"tour_row":0,"real_source_entry":22941,
                 "real_source_result":25344,

@@ -18,7 +18,11 @@ def fixture(clone=False):
     names=list(GROUPS.values())
     if clone: names.append(GROUPS["read_word"]+".constprop.0")
     nm="".join(f"{0x45200+i*4096:016x} t {n}\n" for i,n in enumerate(names))
-    dis={n:f"0000000000045200 <{n}>:\n   45205: e8 28 47 fe ff    call 2fb70 <getenv@plt>\n"
+    dis={n:(f"0000000000045200 <{n}>:\n"
+            "   45205: e8 28 47 fe ff    call 2fb70 <getenv@plt>\n"
+            "   45215: e8 28 47 fe ff    call 2fb70 <getenv@plt>\n"
+            "   45225: 48 8b 05  mov 0x3486cf(%rip),%rax # <ur_rf063_source_bus_seq>\n"
+            "   45235: e8 8e dc fe ff  call 2fd10 <__fprintf_chk@plt>\n")
          for n in names}
     return nm,dis
 
@@ -70,6 +74,16 @@ class SourceBuildELFProof(unittest.TestCase):
                    " 461ae: e8 3d bd ff ff  call 41ef0 <any_helper>\n")
         with self.assertRaisesRegex(ValueError,"stale/uninstrumented"):
             rf.audit(nm,dis)
+
+    def test_direct_incidental_getenv_without_ordinal_or_real_logger_rejected(self):
+        nm,dis=fixture()
+        name=GROUPS["read_byte"]
+        for altered in (
+                dis[name].replace("<ur_rf063_source_bus_seq>","<unrelated>"),
+                dis[name].replace("<__fprintf_chk@plt>","<irrelevant>"),
+                dis[name].replace("   45215: e8 28 47 fe ff    call 2fb70 <getenv@plt>\n","")):
+            with self.subTest(mode=altered[:45]),self.assertRaisesRegex(ValueError,"stale/uninstrumented"):
+                rf.audit(nm,{**dis,name:altered})
 
     def test_original_real_archived_elf_read_functions_uninstrumented(self):
         # Authentic RF066 original ELF (run 39219862021) had getter

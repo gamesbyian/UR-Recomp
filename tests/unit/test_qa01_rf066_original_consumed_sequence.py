@@ -71,6 +71,8 @@ class SourceEvidence(unittest.TestCase):
         self.assertEqual(r["actual_original_post_getter_return_count"],1)
         self.assertEqual(r["actual_original_returns_with_no_other_RF063_event_inside_getter"],1)
         self.assertTrue(r["real_original_return_matches_RF045_and_RF064"])
+        self.assertTrue(r["all_original_returns_strictly_positional_across_RF045_RF064_RF066"])
+        self.assertTrue(r["strict_source_clock_domain_original_only"])
         self.assertFalse(r["getset_entry_time_return_value_proven"])
         self.assertFalse(r["eligible_for_qa01_causal_window"])
         self.assertEqual(r["accepted_USA_events"],0)
@@ -82,6 +84,23 @@ class SourceEvidence(unittest.TestCase):
         r=receipt.examine(b)
         self.assertEqual(r["actual_original_returns_with_intervening_RF063_events"],1)
         self.assertFalse(r["eligible_for_qa01_causal_window"])
+
+    def test_rejects_genuine_value_assigned_to_wrong_source_clock_or_pc(self):
+        # These forged rows preserve every value/frame/memory multiset.
+        # Before positional qualification, the producer's Counter checks
+        # accepted the wrong host H-clock or original post-call PB:PCw.
+        variants = (
+            actual_rows().replace("QA01RF066ORIGCONSUMED seq=3 f=1018 v=225 h=80",
+                                  "QA01RF066ORIGCONSUMED seq=3 f=1018 v=225 h=81"),
+            actual_rows().replace("postPB=80 postPC=B0EB",
+                                  "postPB=81 postPC=B0EB"),
+            actual_rows().replace("QA01RF045ORIGSTACK seq=1 f=1018 v=225 h=80",
+                                  "QA01RF045ORIGSTACK seq=1 f=1018 v=225 h=79"),
+        )
+        for index, corrupted in enumerate(variants):
+            with self.subTest(index=index), self.assertRaisesRegex(
+                    ValueError, "source clock or operation order|PB:PCw context"):
+                receipt.examine(corrupted)
 
     def test_rejects_missing_normalized_or_counterfeit_return(self):
         good=actual_rows()

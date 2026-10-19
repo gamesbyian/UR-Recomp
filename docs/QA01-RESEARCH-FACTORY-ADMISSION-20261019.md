@@ -42,6 +42,14 @@ A review attestation with all `checks=true` is not by itself trustworthy. The re
 
 The raw-byte check does **not** independently establish CPU phase alignment or genuine emulator provenance; those are still distinct `checks` requiring externally verified executed source input and no capture perturbation. A forged self-attestation or a dishonest original emulator producer remains possible; this is a fail-closed integration contract, not a cryptographic authority oracle. A missing raw directory produces HOLD (exit 2), never a synthetic positive. No PR should introduce a factory runner from a mere tool-level `bounded_pilot_ready` without the human-reviewed independent evidence.
 
+## Require an actually consumed discriminator before scaling (19 October)
+
+The merged v2 preflight previously admitted a ten-case research pilot if it found **any** byte difference at an authenticated checkpoint, even when both true guests **overwrote the byte before reading it**, never read it inside the bounded window, or first read it at different guest PCs. That is valuable diagnostic data but not yet a reproducible causal discriminator worth scaling as a factory.
+
+A positive factory-readiness report now additionally requires the existing `qa01_causal_window.py` consumer to find **at least one source/native matching executed guest-PC read with different returned bytes before either guest overwrites that address**. The source and native local clocks stay separate. The gate reexecutes both original/native event payloads, verifies their full original ROM/movie/real-input digest identity against the frame and attestation records, and independently matches both checkpoint bytes to retained raw WRAM. A checkpoint-only mismatch, missing read, overwritten-before-read value, or same byte at different guest PCs results in `HOLD` with `no_actual_same_pc_consumed_value_difference`. The machine receipt names the candidate physical addresses only; `actual_candidate_is_gameplay_causality_proof=false`, always.
+
+**This is a factory scaling threshold, not an injunction against further short instrumentation tests.** A CPU/APU agent may still need a single bounded authentic replay to *find* or *disprove* such a consumer. But it does not qualify a ten-case factory because a snapshot happened to disagree, and it never establishes whole-race correctness. Existing archived Zoo A/B evidence remains HOLD because its actual guest bus event pairs have not yet been produced and independently joined to the same raw checkpoint.
+
 ## Ownership and nonduplication
 
 - **CPU/APU:** executed-PC, original shared ordinal, actual causal guest reads/writes; gameplay correction only from genuine consumption evidence.

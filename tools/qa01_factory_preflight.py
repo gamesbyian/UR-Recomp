@@ -158,6 +158,7 @@ def evaluate(attestation: dict, causal: dict | None, frames: dict | None,
         for name in REPORTS:
             assert_valid(pins[name] == input_hashes[name],
                          "independent review digest pin disagrees: " + name)
+    consumed_candidate_addresses = []
     if causal is None:
         reasons.append("missing_executed_causal_report")
     else:
@@ -167,10 +168,35 @@ def evaluate(attestation: dict, causal: dict | None, frames: dict | None,
         assert_valid(causal.get("accepted_complete_USA_events") == 0 and
                      causal.get("complete_gameplay_or_instruction_equivalence_proven") is False,
                      "causal report claims unsupported event proof")
+        # The causal consumer independently checked both guests' exact ROM,
+        # 2014 movie and real input digests. A matched source commit alone
+        # cannot bind a report to this frame population/attestation.
+        causal_identity = causal.get("input_identity")
+        assert_valid(type(causal_identity) is dict and
+                     all(causal_identity.get(k) == attestation[k] for k in
+                         ("source_sha", "rom_sha256", "movie_sha256", "input_sha256")),
+                     "causal input identity differs from independently reviewed run")
         assert_valid(type(causal.get("addresses")) is list and causal["addresses"],
                      "causal report missing address observations")
         if not any(x.get("checkpoint_differs") is True for x in causal["addresses"]):
             reasons.append("no_observed_mismatch_for_a_causal_discriminator")
+        # A sampled byte difference can be overwritten before either guest
+        # executes a consumer. Require the real executed-event consumer to
+        # identify at least one *candidate* same-PC read of differing values
+        # before either side overwrites the checkpoint. This still does NOT
+        # prove opcode-path or gameplay causality, and can never admit a race.
+        consumed_candidate_addresses = [
+            x["address"] for x in causal["addresses"]
+            if x.get("candidate_consumed_value_difference") is True and
+               x.get("checkpoint_differs") is True and
+               x.get("matching_guest_pc_of_first_read") is True and
+               all(type(x.get(g)) is dict and
+                   x[g].get("fate") == "read_before_overwrite" and
+                   type(x[g].get("first_actual_read_before_overwrite")) is dict
+                   for g in ("original", "native"))
+        ]
+        if not consumed_candidate_addresses:
+            reasons.append("no_actual_same_pc_consumed_value_difference")
     if frames is None:
         reasons.append("missing_contiguous_frame_report")
     else:
@@ -253,6 +279,8 @@ def evaluate(attestation: dict, causal: dict | None, frames: dict | None,
         "readiness": "bounded_pilot_ready" if not reasons else "hold",
         "missing_or_negative_conditions": reasons,
         "raw_checkpoint_crosscheck": crosscheck,
+        "actual_same_pc_consumed_candidate_addresses": consumed_candidate_addresses,
+        "actual_candidate_is_gameplay_causality_proof": False,
         "allowed_next_case_count": 10 if not reasons else 0,
         "automatic_dispatch_authorized": False,
         "one_thousand_or_more_cases_authorized": False,

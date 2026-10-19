@@ -97,6 +97,8 @@ class FactoryPreflight(unittest.TestCase):
         self.assertEqual(r["readiness"], "bounded_pilot_ready")
         self.assertEqual(r["raw_checkpoint_crosscheck"]["relative_frame"], 1)
         self.assertEqual(r["raw_checkpoint_crosscheck"]["causal_differences_recomputed_from_raw"], 1)
+        self.assertEqual(r["actual_same_pc_consumed_candidate_addresses"], ["7E:01ED"])
+        self.assertFalse(r["actual_candidate_is_gameplay_causality_proof"])
         self.assertEqual(r["allowed_next_case_count"], 10)
         self.assertFalse(r["automatic_dispatch_authorized"])
         self.assertFalse(r["one_thousand_or_more_cases_authorized"])
@@ -141,6 +143,48 @@ class FactoryPreflight(unittest.TestCase):
         wrong["causal_report"] = "7" * 64
         with self.assertRaisesRegex(ValueError, "digest pin disagrees"):
             self.check(hashes=wrong)
+
+    def test_difference_without_actual_consumption_is_hold(self):
+        # These are *real executed-event-shaped* mutations, independently
+        # reparsed and replayed into the existing causal consumer, not an
+        # assertion flag manually flipped on an otherwise trusted report.
+        for variant in ("original_no_read", "native_overwrites_first",
+                        "different_guest_read_pc"):
+            original = guest("original", 0x26)
+            native = guest("native", 0x81)
+            if variant == "original_no_read":
+                original["events"].pop()
+            elif variant == "native_overwrites_first":
+                native["events"][2]["kind"] = "write"
+            else:
+                native["events"][2]["pc"] = "82D4F3"
+            raw_original, raw_native = json.dumps(original).encode(), json.dumps(native).encode()
+            result = causal.assess(original, native, raw_original, raw_native)
+            self.assertTrue(result["addresses"][0]["checkpoint_differs"])
+            self.assertFalse(result["addresses"][0]["candidate_consumed_value_difference"])
+            att = copy.deepcopy(self.att)
+            sha = dict(self.hashes)
+            sha["causal_report"] = jhash(result)
+            sha["original_event_payload"] = hashlib.sha256(raw_original).hexdigest()
+            sha["native_event_payload"] = hashlib.sha256(raw_native).hexdigest()
+            att["evidence_sha256"]["causal_report"] = sha["causal_report"]
+            with self.subTest(variant=variant):
+                verdict = preflight.evaluate(att, result, self.frames, self.verified,
+                                             sha, raw_root=self.raw_root,
+                                             original_event_bytes=raw_original,
+                                             native_event_bytes=raw_native)
+                self.assertEqual(verdict["readiness"], "hold")
+                self.assertEqual(verdict["allowed_next_case_count"], 0)
+                self.assertIn("no_actual_same_pc_consumed_value_difference",
+                              verdict["missing_or_negative_conditions"])
+
+    def test_causal_report_input_identity_must_match_same_movie_rom_and_controls(self):
+        for field in ("source_sha", "rom_sha256", "movie_sha256", "input_sha256"):
+            forged = copy.deepcopy(self.causal)
+            forged["input_identity"][field] = "0" * (40 if field == "source_sha" else 64)
+            with self.subTest(field=field), self.assertRaisesRegex(
+                    ValueError, "causal input identity differs"):
+                self.check(c=forged, events=False)
 
     def test_missing_executed_event_payloads_is_hold(self):
         r = self.check(events=False)

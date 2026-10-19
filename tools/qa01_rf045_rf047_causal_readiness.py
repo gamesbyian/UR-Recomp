@@ -79,6 +79,26 @@ def inspect(source: str, native: str) -> dict:
     native_seq = contiguous(events, "native RF047 NMI/read/opcode")
     late_seq = contiguous(late, "native RF047 late-PC")
 
+    # The genuine RF054 native stderr has RF044 WRAM-helper fragments
+    # interrupted by RF047 logger calls. A complete RF047-local seq does NOT
+    # make the merged physical text-line order an executed cross-recorder bus
+    # chronology. Retain the usable local rows and expose collisions rather
+    # than silently reclassifying them as atomic lines.
+    native_lines = [line for line in native.splitlines() if NATIVE_TAG in line]
+    if len(native_lines) != native.count(NATIVE_TAG) or len(native_lines) != len(events):
+        raise ValueError("two native RF047 records merged into one text line")
+    mixed_rows = [rows(native_line, NATIVE_TAG)[0] for native_line in native_lines
+                  if not native_line.startswith(NATIVE_TAG)]
+    native_mixed_reads = sum(row.get("stage") == "read" for row in mixed_rows)
+    native_mixed_rti = sum(row.get("stage") in ("compiled_rti", "interp_rti")
+                           for row in mixed_rows)
+    native_read_required = {"seq", "stage", "f", "bank", "addr", "width",
+                            "value", "PB", "P", "S", "master", "beamV",
+                            "beamH", "nmi"}
+    native_read_rows_missing_fields = sum(
+        not native_read_required.issubset(row)
+        for row in events if row.get("stage") == "read")
+
     for event in events:
         if event.get("stage") == "opcode":
             if not PC.fullmatch(event.get("guestPC", "")) or event.get("tier") not in ("aot", "interp"):
@@ -109,6 +129,12 @@ def inspect(source: str, native: str) -> dict:
         "original_nmi_markers_without_snapshot_phase_ordinal": len(nmis),
         "native_rf047_rows": len(events),
         "native_rf047_seq_contiguous": native_seq,
+        "native_rf047_records_embedded_in_other_log_lines": len(mixed_rows),
+        "native_rf047_embedded_read_records": native_mixed_reads,
+        "native_rf047_embedded_rti_records": native_mixed_rti,
+        "native_rf047_read_records_missing_required_fields":
+            native_read_rows_missing_fields,
+        "combined_native_recorders_log_line_order_is_executed_bus_order_proven": False,
         "native_actual_opcode_pc_markers": sum(x.get("stage") == "opcode" for x in events),
         "native_late_opcode_pc_markers": len(late),
         "native_late_pc_seq_contiguous": late_seq,

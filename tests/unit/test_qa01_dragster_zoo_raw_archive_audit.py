@@ -263,8 +263,14 @@ class DragsterZooRawAuditTests(unittest.TestCase):
         proof["original_source_trace_sha256"] = digest(path.read_bytes())
         self.write("dragster/source/dragster-next-zoo-original.json", proof)
         self.write("dragster-report.json", report)
-        with self.assertRaisesRegex(ValueError, "eight consecutive Zoo frames"):
+        # The immutable real-source trace guard correctly rejects the tamper
+        # first. Then override only that constant in this synthetic fixture
+        # to exercise the separate no-early-Zoo source-state gate.
+        with self.assertRaisesRegex(ValueError, "source raw trace digest"):
             audit.audit(self.root)
+        with mock.patch.object(audit, "FROZEN_MOVIE_TRACE", proof["original_source_trace_sha256"]):
+            with self.assertRaisesRegex(ValueError, "eight consecutive Zoo frames"):
+                audit.audit(self.root)
 
     def test_source_trace_and_ranked_record_authentication(self):
         self.make()

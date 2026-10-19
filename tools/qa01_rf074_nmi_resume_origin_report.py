@@ -87,7 +87,8 @@ def inspect(raw:str)->dict:
             beam_h=int(orig["beamH"])
             source_bridge=int(orig["bridgeDepth"])
             source_sched=int(orig["schedDepth"])
-            wai=int(orig["waiHalted"])
+            wai_before=int(orig["waiBeforeNMI"])
+            wai_at_push=int(orig["waiAtPush"])
         except (ValueError,KeyError) as e:
             raise ValueError("native resume source assignment/context fields missing") from e
         require(0<=ring_seq<ring_total and ring_total-ring_seq<=1024 and
@@ -95,7 +96,7 @@ def inspect(raw:str)->dict:
                 0<=prev_pc<=0xffffff and 0<=scheduler_pc<=0xffffff and
                 scheduler_pc==emitted_pc and
                 -128<=source_bridge<=127 and -128<=source_sched<=127 and
-                wai in (0,1) and beam_v>=0 and beam_h>=0,
+                wai_before in (0,1) and wai_at_push==0 and beam_v>=0 and beam_h>=0,
                 "native last resume ring assignment value/age inconsistent")
         require(orig["resume"]==entry["resume"]==push["resume"] and
                 orig["vector"]==entry["vector"]==push["vector"] and
@@ -119,6 +120,8 @@ def inspect(raw:str)->dict:
             "last_resume_ring_source_SP":f"{source_sp:04X}",
             "last_resume_ring_seq":ring_seq,
             "last_resume_ring_total":ring_total,
+            "wai_halted_before_the_native_NMI_wake":bool(wai_before),
+            "wai_halted_at_actual_guest_NMI_push":bool(wai_at_push),
             "original_native_equivalent_instruction_phase_proven":False,
             "actual_guest_opcode_fetch_at_scheduler_resume_PC_proven":False
         })

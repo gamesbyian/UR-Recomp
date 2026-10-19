@@ -2,7 +2,6 @@
   "schema": "ur-qa01-rf073-native-nmi-return-brackets/1",
   "date": "2026-10-19",
   "archived_real_case": "RF054 genuine 2014 original/native USA Zoom Zoo",
-  "run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39123346478",
   "genuine_case_artifact_zip_sha256": "3ccb209a92045e9e89113442e68af51b85a453a160a9b9efaf8ca0d59e79631c",
   "genuine_original_log_sha256": "308b8e70122fa1f0ba7edcdc4c8d16e4df0137dc289533f0dc1d90bafae14c5a",
   "genuine_native_log_sha256": "e7aa6bb4340acbdaa1cc38ff39f601dd0a8dbba24d6a244ffcad82fe8bbd705f",
@@ -84,5 +83,7 @@
   "fresh_next_Bowl_result_relative_entry_frames": 267,
   "accepted_complete_USA_events": 0,
   "accepted_Windows_release_QA_gates": 0,
-  "disposition": "native status read actually observed 9/9, no RF047 helper evidence of saved PC/PB reads inside compiled NMI RTI, 4 original/native host-frame saved low PC discrepancies; cannot infer full emulation correctness or same semantic phase"
+  "disposition": "native status read actually observed 9/9, no RF047 helper evidence of saved PC/PB reads inside compiled NMI RTI, 4 original/native host-frame saved low PC discrepancies; cannot infer full emulation correctness or same semantic phase",
+  "archived_actions_artifact_id": 12149640496,
+  "original_artifact_run_URL_not_independently_verified": true
 }

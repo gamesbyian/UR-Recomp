@@ -173,7 +173,9 @@ def archived(zip_path: Path, expected_sha256: str | None = None) -> dict:
                 "native":member(mode+"/work/zoom-zoo/replay/pinned-baldosa.input", 100_000)
             }
             population.append((report,logs,supplied))
-        result = control(*population[0], *population[1])
+        off, off_logs, off_inputs = population[0]
+        on, on_logs, on_inputs = population[1]
+        result = control(off, on, off_logs, on_logs, off_inputs, on_inputs)
     result["authenticated_evidence_archive_sha256"] = artifact_sha
     result["zip_archive_raw_byte_reopened"] = True
     return result

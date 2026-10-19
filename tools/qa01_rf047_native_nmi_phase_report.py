@@ -29,7 +29,7 @@ def classify(native: str)->dict:
         row=fields(line[pos:])
         if not all(k in row for k in ("seq","stage","f")):
             raise ValueError("RF047 truncated native event header")
-        if int(row["f"]) not in FRAMES or row["stage"] not in ("entry","after_push","handler_return","read","interp_rti","compiled_rti"):
+        if int(row["f"]) not in FRAMES or row["stage"] not in ("entry","after_push","handler_return","read","interp_rti","compiled_rti","opcode"):
             raise ValueError("RF047 out-of-domain native event")
         observed.append({**row,"seq":int(row["seq"]),"f":int(row["f"])})
     if not observed:
@@ -42,6 +42,13 @@ def classify(native: str)->dict:
     ordered=sorted(observed,key=lambda r:r["seq"])
     by_frame=defaultdict(list)
     for row in ordered:by_frame[row["f"]].append(row)
+    # Optional RF047 companion opcode markers share this native event sequence.
+    # They prove an AOT/interpreter site executed, not which helper consumed
+    # a later memory value. Original and native clocks remain independent.
+    for row in ordered:
+        if row["stage"]=="opcode":
+            if row.get("tier") not in ("aot","interp") or not re.fullmatch(r"[0-9A-F]{6}",row.get("guestPC","")):
+                raise ValueError("RF047 incomplete executed native guest PC marker")
     result=[]
     for f in FRAMES:
         rows=by_frame[f]
@@ -98,6 +105,8 @@ def classify(native: str)->dict:
             "native_source_order_is_event_sequence_not_merged_log_lines":True,
             "native_explicit_RTI_evidence_frames":explicit,
             "native_nmi_frames":len(result),
+            "native_actual_executed_opcode_markers":sum(x["stage"]=="opcode" for x in ordered),
+            "native_opcode_marker_is_not_bus_consumer_proof":True,
             "native_all_nine_first_window_NMI_entry_afterpush_return":True,
             "native_interrupt_paired_operations":result,
             "native_exact_RTI_opcode_proven":

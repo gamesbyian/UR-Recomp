@@ -10,7 +10,7 @@ from pathlib import Path
 import qa01_rf044_zoo_stack_nmi_report as rf044
 
 MACRO_RE=re.compile(
- r"^QA01RF045ORIGSTACK f=(\d+) v=(\d+) h=(-?\d+) "
+ r"^QA01RF045ORIGSTACK (?:seq=(\d+) )?f=(\d+) v=(\d+) h=(-?\d+) "
  r"kind=(pushB|pushW|pullB|pullW) addr=([A-F0-9]{4}) "
  r"width=(\d+) value=([A-F0-9]{4}) sp0=([A-F0-9]{4}) "
  r"sp1=([A-F0-9]{4}) pc=([A-F0-9]{2}):([A-F0-9]{4})$")
@@ -24,11 +24,13 @@ def observe(source:str, native:str)->dict:
         raise ValueError("RF045 genuine source stack log truncated")
     ordered=[]
     nmi_indices=[]
+    recorder_seqs=[]
     for i,line in enumerate(source.splitlines()):
         if line.startswith("QA01RF045ORIGSTACK"):
             match=MACRO_RE.fullmatch(line)
             if not match:raise ValueError("RF045 malformed authentic source macro")
-            f,v,h,kind,addr,width,val,sp0,sp1,pb,pc=match.groups()
+            seq,f,v,h,kind,addr,width,val,sp0,sp1,pb,pc=match.groups()
+            recorder_seqs.append(None if seq is None else int(seq))
             if int(f) not in FRAMES:raise ValueError("RF045 out-of-bounds frame")
             width=int(width)
             if ((kind.endswith("B") and width!=1) or
@@ -36,11 +38,18 @@ def observe(source:str, native:str)->dict:
                 (kind.startswith("push") and int(sp1,16)!=int(sp0,16)-width) or
                 (kind.startswith("pull") and int(sp1,16)!=int(sp0,16)+width)):
                 raise ValueError("RF045 stack macro width/SP does not match true operation")
-            ordered.append({"log_index":i,"frame":int(f),"beam_v":int(v),"beam_h":int(h),
+            ordered.append({"log_index":i,"macro_seq":int(seq) if seq is not None else None,
+                            "frame":int(f),"beam_v":int(v),"beam_h":int(h),
                             "kind":kind,"address":addr,"width":width,"value":val,
                             "SP0":sp0,"SP1":sp1,"PB_PC":pb+":"+pc})
         elif line.startswith("QA01RF044ORIGNMI "):
             nmi_indices.append((i,int(line.split()[1].split("=")[1])))
+    # Earlier original archives contain no local macro sequence. Do not
+    # pretend rendered line order is a shared RF044 bus/checkpoint ordinal.
+    if any(x is None for x in recorder_seqs) and any(x is not None for x in recorder_seqs):
+        raise ValueError("RF045 mixed legacy and sequenced macro records")
+    if recorder_seqs and recorder_seqs[0] is not None and recorder_seqs != list(range(1,len(recorder_seqs)+1)):
+        raise ValueError("RF045 original macro sequence gap, duplicate or reordering")
     if len(nmi_indices)!=9 or [f for _,f in nmi_indices]!=list(FRAMES):
         raise ValueError("RF045 original true NMI calendar changed")
     nmi_calls=[]
@@ -82,6 +91,8 @@ def observe(source:str, native:str)->dict:
         "schema":"rf045-genuine-zoo-stack-Push-Pull-origin-nmi-v1",
         "source_real_NMI_push_macro_groups":nmi_calls,
         "source_actual_stack_macro_rows":len(ordered),
+        "source_macro_local_ordinals_complete":bool(recorder_seqs and recorder_seqs[0] is not None),
+        "original_all_bus_and_checkpoint_ordinals_complete":False,
         "source_actual_stack_pull_macro_rows":len(pulls),
         "source_actual_bounded_pulls":pulls,
         "source_actual_stack_push_macro_rows":push_count,

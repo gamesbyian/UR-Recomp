@@ -4,6 +4,10 @@
 
 These pilots target two recurring costs: (1) uncertain first *consumed* Zoo stack/sound divergence despite extensive existing RF043/045/046/047/053/054 receipts; (2) sparse 78-checkpoint coverage and expired source archives missing raw WRAM/SRAM bytes.
 
+## RF061 executable-PC and local ordinal producer staging (19 October)
+
+[RF061 producer qualification](RF061-ZOO-EXECUTED-PC-CAUSAL-PRODUCER-20261019.md) extends source-pinned RF045 with its own original macro ordinals and RF047 with opt-in native *actually emitted* decoded-opcode PCs across compiled M/X variants and interpreter fetches, including the previously missed live sound-upload M1X0 variant. A raw-log readiness auditor binds actual ZIP/log hashes and identifies gaps before the `qa01_causal_window.py` consumer; **it does not submit invented normalized rows**. The original source RF044 bus writer/checkpoint records still lack one shared event ordinal, and native helper-read PCs remain unbound to their actual bus instruction lifetime. There is no newly qualified source-authentic replay, raw checkpoint capture, gameplay fix or USA event promotion in this staging PR. **0/45 USA, 0/12 release QA.**
+
 ## Pilot A: ordered actual-bus causal consumer
 
 `tools/qa01_causal_window.py` takes **separate** original and native JSON payloads. Each is strictly bound to a 40-digit source commit, 64-digit canonical USA ROM, movie and controller-input digests. The `window` declares relative frame start/checkpoint/end, the exact sampled observation phase, complete/nonoverflow recorder status and unmasked physical addresses. `observed` maps each address to its actual byte at that checkpoint. `events` contains individually executed, guest-local sequential bus `read`/`write` records with physical address, byte, guest opcode PC, local clock domain and clock, plus exactly one `checkpoint` event. The tool rejects gaps/duplicates, invalid bytes/PCs, cross-input identity, phase disagreement, missing completeness or inconsistent first reads. It never equates a source CPU clock to a native master/SPC/host clock.

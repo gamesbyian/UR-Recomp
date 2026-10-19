@@ -18,6 +18,8 @@ class StagedStack(unittest.TestCase):
    for op in ("S9xSetWord(","S9xSetByte(","S9xGetWord(","S9xGetByte("):
     self.assertEqual(old_macro.count(op),new_macro.count(op))
   self.assertIn("QA01RF045ORIGSTACK_TRUNCATED",new)
+  self.assertIn("QA01RF045ORIGSTACK seq=%u",new)
+  self.assertIn("count,(unsigned)ICPU.Frame",new)
  def test_one_effective_stack_width_and_address_each_kind(self):
   new=m.patch(self.fixture())
   for op in ('"pushW"','"pushB"','"pullW"','"pullB"'):

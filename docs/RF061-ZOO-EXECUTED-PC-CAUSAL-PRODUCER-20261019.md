@@ -43,3 +43,18 @@ The authentic archive contains **1,806 original RF045 stack macros** with true g
 **A concrete bounded actual-consumer result:** Across source/native guest-host frames1017..1025, the original Snes9x **actually pulls** status byte `26` from `00:01ED` at true original guest PC `80:B0EB`, and native **actually reads** the same status `26` from the same address after its own observed NMI status push, in **all nine of nine frames**. Native `after_push`→status reader ordinal pairs are `2→3`, `303→304`, `601→602`, `901→902`, `1204→1205`, `1519→1520`, `1824→1825`, `2129→2130`, `2436→2437`. This locally demonstrates that the real status consumer sees the freshly written status despite pre-entry stale stack differences; it does **not** establish parity for saved PC/PB consumption or other stack instructions. Original actual NMI resume is `82:D4EE` in five frames and `82:D4F0` in four; native resumes `82:D4EE` in all nine. Absolute clocks, native instruction dispatch and all non-NMI memory-read provenance remain separate.
 
 The original/native case still has **78 full, unmasked 128KiB WRAM comparisons, 51 byte-exact, 92 differing-byte occurrences**. These raw full-WRAM images are represented by hashes and byte-difference summaries, **not retained as bytes in this archived case**, so it still **cannot** be admitted by `qa01_causal_window.py`. The observed matching status reads are a *narrow negative discriminator*, not the first genuinely consumed different gameplay byte. Sound-pointer read identity, unshared source bus/checkpoint ordinals and genuine native read-PC attribution remain open. **No gameplay correction; 0/45.**
+
+## Executable archive recheck: require real source/native reads
+
+The RF061 historical status finding now has a stand-alone fail-closed archive validator: `tools/qa01_rf061_verify_archived_status.py`. It reopens the actual original `QA01RF044ORIGNMI` / `QA01RF045ORIGSTACK` rows, checks every one of 2,741 native `QA01RF047NATIVE` ordinal IDs, insists on exactly one real original status return pull and one native post-push status helper read in each of the nine genuine NMI frames, and recomputes per-sample zero-mask / full-WRAM exactness controls. It independently checks the frozen ROM, movie, input and binary identity fields against the ZIP's own producer report. No different original/native clocks are equated.
+
+For exactly artifact 12149640496, SHA256 `3ccb209a92045e9e89113442e68af51b85a453a160a9b9efaf8ca0d59e79631c`:
+
+```bash
+python3 tools/qa01_rf061_verify_archived_status.py /path/to/authentic-rf054-case.zip \
+  --receipt analysis/data/rf061-authentic-rf054-archive-consumed-nmi-status-20261019.json \
+  --output /tmp/rf061-verified-status.json
+python3 -m unittest tests.unit.test_qa01_rf061_verify_archived_status -v
+```
+
+The default SHA is pinned to the real archive; synthetic adversarial tests alone can override it. A successful run confirms only the observed NMI status read, never first-consumed-differing-byte proof, complete original/native instruction equivalence, `qa01_causal_window.py` admission or a USA event. The RF061 new instrumented guest build and read-PC join still need authentic replay evidence.

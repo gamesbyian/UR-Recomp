@@ -12,6 +12,7 @@ on:
       - "tools/qa01_rf045_source_stack_macro_witness.py"
       - "tools/qa01_rf063_original_shared_sequence.py"
       - "tools/qa01_rf064_original_post_call_pull.py"
+      - "tools/qa01_rf066_original_consumed_sequence.py"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snes9x-libretro.json"
       - "third_party/manifest.json"
@@ -68,9 +69,11 @@ jobs:
           python3 tools/qa01_rf045_source_stack_macro_witness.py --root "$SRC"
           python3 tools/qa01_rf063_original_shared_sequence.py --root "$SRC"
           python3 tools/qa01_rf064_original_post_call_pull.py --root "$SRC"
+          python3 tools/qa01_rf066_original_consumed_sequence.py --root "$SRC"
           grep -Fq 'UR_QA01_RF063_SOURCE_BUS_CHECKPOINT_SEQUENCE' "$SRC/getset.h"
           grep -Fq 'UR_QA01_RF063_SOURCE_BUS_CHECKPOINT_SEQUENCE' "$SRC/cpuexec.cpp"
           grep -Fq 'UR_QA01_RF064_ORIGINAL_POST_CALL_PULL_JOIN' "$SRC/cpuops.cpp"
+          grep -Fq 'UR_QA01_RF066_ORIGINAL_POST_CALL_EXECUTED_READ' "$SRC/cpuops.cpp"
           test "$(grep -Fc 'ur_rf064_post_pull("pullB"' "$SRC/cpuops.cpp")" -eq 1
           test "$(grep -Fc 'ur_rf064_post_pull("pullW"' "$SRC/cpuops.cpp")" -eq 1
           sha256sum "$SRC/getset.h" "$SRC/cpuexec.cpp" "$SRC/cpuops.cpp" > "$RUNNER_TEMP/rf065/instrumented-source-sha256.txt"
@@ -86,7 +89,7 @@ jobs:
           {
             echo "Original upstream source revision: 1bcc369e89f08243e0a462882fb1f3e42e51de3a (verified vendored island source SHA)"
             echo "UR-Recomp workflow source SHA: $GITHUB_SHA"
-            echo "Stock source libretro and RF044/RF045/RF063/RF064 instrumented libretro both compiled."
+            echo "Stock source libretro and RF044/RF045/RF063/RF064/RF066 instrumented libretro both compiled."
             echo "No ROM, movie, controller input, native replay, evidence normalization or USA event admission."
             echo "USA event gate: 0/45. Windows release gates: 0/12."
           } > "$RUNNER_TEMP/rf065/README.txt"

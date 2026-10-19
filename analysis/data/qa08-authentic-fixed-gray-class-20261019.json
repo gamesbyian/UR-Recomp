@@ -1,0 +1,112 @@
+{
+  "schema": "QA08-real-source-fixed-gray-class-20261019/1",
+  "original_2014_inner_sha256": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+  "native_integrated_outer_sha256": "832c08263e2d3013d5b15df82b2b0574fabfd3114194b7cbef9f6bb1b2959727",
+  "native_guest_CRC_sha256": "b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568",
+  "actual_pair_class_spatial_identity": {
+    "schema": "QA08-112field-authentic-fixed-gray-cycle-class/1",
+    "observed_sample_count": 13,
+    "all_frame_observed_cycle_pixels": 318775,
+    "union_positions": 24940,
+    "intersection_positions_all_13": 24096,
+    "cross_class_coordinate_conflicts": 0,
+    "per_gray_pair": [
+      {
+        "original_to_native_RGB5": "15->20",
+        "sampled_pixel_occurrences": 53658,
+        "union_source_positions": 4181,
+        "intersection_source_positions_all_13": 4088,
+        "intersection_source_position_uint32le_sha256": "8c9baad1742001cfb818829bf42f817732929fe2d708938639cdd604d44730e3",
+        "upper_raster_intersection_source_positions": 1958,
+        "lower_raster_intersection_source_positions": 2130
+      },
+      {
+        "original_to_native_RGB5": "16->15",
+        "sampled_pixel_occurrences": 107868,
+        "union_source_positions": 8380,
+        "intersection_source_positions_all_13": 8236,
+        "intersection_source_position_uint32le_sha256": "b8099bf5747380b83b0a8a99a314b371bb5b2193382864828963f6d6540e9ab1",
+        "upper_raster_intersection_source_positions": 4163,
+        "lower_raster_intersection_source_positions": 4073
+      },
+      {
+        "original_to_native_RGB5": "17->16",
+        "sampled_pixel_occurrences": 52716,
+        "union_source_positions": 4131,
+        "intersection_source_positions_all_13": 3969,
+        "intersection_source_position_uint32le_sha256": "0b4405386ca5cc8c1683a599ed147098278b7d4219e1d57c8b2ec7b5a6e936d5",
+        "upper_raster_intersection_source_positions": 1999,
+        "lower_raster_intersection_source_positions": 1970
+      },
+      {
+        "original_to_native_RGB5": "20->17",
+        "sampled_pixel_occurrences": 104533,
+        "union_source_positions": 8248,
+        "intersection_source_positions_all_13": 7803,
+        "intersection_source_position_uint32le_sha256": "96afcf5f1a40bd2500ef874eaac0a56c16ff1b42b276febb0707feb778f98da8",
+        "upper_raster_intersection_source_positions": 3827,
+        "lower_raster_intersection_source_positions": 3976
+      }
+    ],
+    "frames": [
+      {
+        "native_guest": 4064,
+        "observed_four_state_cycle_pixels": 24346
+      },
+      {
+        "native_guest": 4176,
+        "observed_four_state_cycle_pixels": 24415
+      },
+      {
+        "native_guest": 4288,
+        "observed_four_state_cycle_pixels": 24717
+      },
+      {
+        "native_guest": 4400,
+        "observed_four_state_cycle_pixels": 24663
+      },
+      {
+        "native_guest": 4512,
+        "observed_four_state_cycle_pixels": 24481
+      },
+      {
+        "native_guest": 4624,
+        "observed_four_state_cycle_pixels": 24427
+      },
+      {
+        "native_guest": 4736,
+        "observed_four_state_cycle_pixels": 24425
+      },
+      {
+        "native_guest": 4848,
+        "observed_four_state_cycle_pixels": 24626
+      },
+      {
+        "native_guest": 4960,
+        "observed_four_state_cycle_pixels": 24744
+      },
+      {
+        "native_guest": 5072,
+        "observed_four_state_cycle_pixels": 24491
+      },
+      {
+        "native_guest": 5184,
+        "observed_four_state_cycle_pixels": 24336
+      },
+      {
+        "native_guest": 5296,
+        "observed_four_state_cycle_pixels": 24468
+      },
+      {
+        "native_guest": 5408,
+        "observed_four_state_cycle_pixels": 24636
+      }
+    ],
+    "CGRAM_effective_pixel_index_proven": false,
+    "original_native_beam_instruction_clock_equivalent": false,
+    "global_recolour_or_frame_shift_authorized": false,
+    "release_QA08_QA10_accepted": false
+  },
+  "no_original_native_approver_parity": true,
+  "no_runtime_change": true
+}

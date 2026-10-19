@@ -1,0 +1,104 @@
+{
+  "schema": "UR-QA01-DRAGSTER-SAME-ABSOLUTE-HOST-RAW-ARCHIVE/1",
+  "source_artifact": {
+    "workflow_run_id": 39175660355,
+    "source_head_sha": "22c1eee15d5e2c84a6edb6bfcf8fc3a91d6e06f9",
+    "artifact_id": 12154088792,
+    "archive_sha256": "9c2e7e91a8cc76f4ce87aabbea6bf44adbd1f0979f50c4496a42b3e8e60ed223",
+    "archive_rehashed_locally": true,
+    "producer_report_sha256": "3b876b69d8c2bedaa5a4eeb065d7db1c89490ea2d075a76449ec19ec4ed18e7c",
+    "raw_sram_wram_digests_checked": true,
+    "full_guest_dump_log_host_frames_checked": true
+  },
+  "movie_clock": {
+    "original_dragster_result": 2874,
+    "original_zoo_active": 3190,
+    "movie_result_relative_next_event": 316,
+    "never_equated_to_fresh_guest_absolute_frames": true
+  },
+  "fresh_original_native": {
+    "result_relative_frames": {
+      "original": 2081,
+      "native": 2079
+    },
+    "absolute_guest_next_zoo": {
+      "original": 3341,
+      "native": 3342
+    },
+    "source_controller_masks_changed": false
+  },
+  "sample_records": [
+    {
+      "absolute_guest_host_frame": 3338,
+      "reference_result_relative_offset": 312,
+      "native_result_relative_offset": 314,
+      "original_native_named_state_equal": true,
+      "full_131072_byte_wram_differing_byte_count": 13,
+      "full_8192_byte_sram_differing_byte_count": 13,
+      "excluded_bytes": 0
+    },
+    {
+      "absolute_guest_host_frame": 3340,
+      "reference_result_relative_offset": 314,
+      "native_result_relative_offset": 316,
+      "original_native_named_state_equal": true,
+      "full_131072_byte_wram_differing_byte_count": 43,
+      "full_8192_byte_sram_differing_byte_count": 13,
+      "excluded_bytes": 0
+    },
+    {
+      "absolute_guest_host_frame": 3341,
+      "reference_result_relative_offset": 315,
+      "native_result_relative_offset": 317,
+      "original_native_named_state_equal": false,
+      "full_131072_byte_wram_differing_byte_count": 654,
+      "full_8192_byte_sram_differing_byte_count": 13,
+      "excluded_bytes": 0
+    },
+    {
+      "absolute_guest_host_frame": 3342,
+      "reference_result_relative_offset": 316,
+      "native_result_relative_offset": 318,
+      "original_native_named_state_equal": true,
+      "full_131072_byte_wram_differing_byte_count": 238,
+      "full_8192_byte_sram_differing_byte_count": 13,
+      "excluded_bytes": 0
+    },
+    {
+      "absolute_guest_host_frame": 3343,
+      "reference_result_relative_offset": 317,
+      "native_result_relative_offset": 319,
+      "original_native_named_state_equal": true,
+      "full_131072_byte_wram_differing_byte_count": 160,
+      "full_8192_byte_sram_differing_byte_count": 13,
+      "excluded_bytes": 0
+    },
+    {
+      "absolute_guest_host_frame": 3344,
+      "reference_result_relative_offset": 318,
+      "native_result_relative_offset": 320,
+      "original_native_named_state_equal": true,
+      "full_131072_byte_wram_differing_byte_count": 208,
+      "full_8192_byte_sram_differing_byte_count": 13,
+      "excluded_bytes": 0
+    },
+    {
+      "absolute_guest_host_frame": 3345,
+      "reference_result_relative_offset": 319,
+      "native_result_relative_offset": 321,
+      "original_native_named_state_equal": true,
+      "full_131072_byte_wram_differing_byte_count": 188,
+      "full_8192_byte_sram_differing_byte_count": 13,
+      "excluded_bytes": 0
+    }
+  ],
+  "strict_limitations": {
+    "complete_usa_event_credit": 0,
+    "full_event_frame_parity_proven": false,
+    "all_same_host_full_wram_pairs_equal": false,
+    "all_same_host_full_sram_pairs_equal": false,
+    "source_original_native_cpu_apu_causality_proven": false,
+    "actual_shipping_windows_cold_disk_proven": false
+  },
+  "interpretation": "Seven genuine post-Dragster raw guest image pairs at equal absolute guest hosts, re-paired from archived original/native execution without a new emulator run or assumed input phase. Both guests active at host3342, native one host frame later than original, with 238 unmasked WRAM byte differences."
+}

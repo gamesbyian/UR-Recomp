@@ -418,6 +418,9 @@ jobs:
           ROOT="$RUNNER_TEMP/qa01-case"
           BIN="$RUNNER_TEMP/qa01-binaries"
           mkdir -p "$ROOT"
+          # Reuse the SHA256SUMS already validated against the shared binaries.
+          # Retain the tiny original manifest beside this case's producer JSON.
+          cp "$BIN/SHA256SUMS" "$ROOT/SHA256SUMS"
           set +e
           timeout --signal=TERM --kill-after=30s 75m \
             python3 tools/probe_original_event_complete.py \
@@ -581,6 +584,15 @@ jobs:
             echo 'QA-01 source/native APU clock receipts retained (no release credit)' >> "$GITHUB_STEP_SUMMARY"
           fi
           exit "$case_rc"
+      - name: Independently reopen full Zoo original/native raw mesh and next-Bowl SRAM
+        if: ${{ always() && matrix.case == 'zoom-zoo' && inputs.zoo_race_mesh && inputs.zoo_dp_window && inputs.zoo_next_bowl }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/qa01_zoo_raw_archive_audit.py \
+            --artifact-root "$RUNNER_TEMP/qa01-case" \
+            --out "$RUNNER_TEMP/qa01-case/qa01-zoo-independent-raw-audit.json"
+          echo 'Original/native full 78-checkpoint Zoo WRAM and 11 Zoo-to-Bowl WRAM/SRAM bytes independently rechecked (USA credit 0)' >> "$GITHUB_STEP_SUMMARY"
       - name: Always retain per-case receipt and bounded diagnostic logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -596,12 +608,22 @@ jobs:
             ${{ runner.temp }}/qa01-case/qa01-cold-guest-boot/native.log
             ${{ runner.temp }}/qa01-case/qa01-apu-edge-report.json
             ${{ runner.temp }}/qa01-case/producer-report.json
+            ${{ runner.temp }}/qa01-case/qa01-zoo-independent-raw-audit.json
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/ref/*.wram.bin
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/ref/*.sram.bin
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/native/*.wram.bin
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/native/*.sram.bin
+            ${{ runner.temp }}/qa01-case/SHA256SUMS
             ${{ runner.temp }}/qa01-case/producer.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/source/source-scan.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/calibration/reference.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/calibration/native.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/reference.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/native.log
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/complete.script
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/switcher-reference-penultimate.script
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/ref.input
+            ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/replay/pinned-baldosa.input
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/zoo-terminal-phase/reference.log
             ${{ runner.temp }}/qa01-case/work/${{ matrix.case }}/zoo-terminal-phase/native.log
 
@@ -643,6 +665,8 @@ jobs:
             --plan "$RUNNER_TEMP/qa01-input/qa01-plan.json" \
             --results-dir "$RUNNER_TEMP/qa01-results" \
             --campaign-result "$RUNNER_TEMP/campaign-result.json" \
+            --source-movie "$GITHUB_WORKSPACE/reference/imported/tas-bots/dessyreqt-4250-submission.smv" \
+            --source-meta "$GITHUB_WORKSPACE/analysis/generated/historical-2014-smv-metadata.json" \
             --out "$RUNNER_TEMP/qa01-primary-artifact-audit.json" \
             --summary "$GITHUB_STEP_SUMMARY"
       - name: Upload final bounded campaign report

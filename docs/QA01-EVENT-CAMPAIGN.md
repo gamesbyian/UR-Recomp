@@ -234,7 +234,13 @@ missing primary source JSON. The aggregate job now runs the ROM-free,
 read-only `tools/qa01_event_primary_artifact_audit.py` on its already-downloaded
 case artifacts, with no extra emulator build, workflow trigger or runner.
 It checks the exact producer bytes against their recorded SHA-256,
-requires the full advertised original/native sampled-frame population,
+requires the **original shared build's three-line SHA256SUMS** in each case
+archive, checks original/native producer executable digests against that
+already-verified manifest and checks the manifest identity across case
+shards. It retains the third staged `snesref` digest for build provenance
+without claiming the manifest by itself proves emulator execution.
+The checker additionally requires the full advertised original/native
+sampled-frame population,
 reconstructs the first sampled named-field divergence and fresh-entry
 equivalence from raw observation rows, reclassifies each case from the
 primary report and compares the entire derived receipt. It also recomputes the published aggregate and rejects
@@ -250,13 +256,75 @@ python3 tools/qa01_event_primary_artifact_audit.py \
   --out qa01-primary-artifact-audit.json
 ```
 
-Any missing primary report, changed producer bytes, forged case summary,
+Any missing primary report or SHA256SUMS, changed producer bytes,
+different case manifest, mismatched executable digest, forged case summary,
 aggregate disagreement or producer failure is an incomplete/invalid audit;
 it cannot be promoted as source-authentic coverage. The checker does
 **not** authenticate original emulator execution independently of the
 producer, verify original ROM bytes from an archive, decide causal CPU/APU
 equivalence, or grant event/release credit. It stays a second transport
 integrity check; QA-01/07 and the census retain full admission authority.
+
+### Controller replay identity and completeness
+
+The existing event producer already constructs the actual Snes9x and pinned
+Baldosa injected-input files after independently calibrating both guest
+entry frames. The manual case artifact now also retains its
+\`work/<case>/replay/ref.input\`, \`pinned-baldosa.input\`, \`complete.script\`,
+and optional exact Switcher original-only supplementary script. The same
+read-only primary-artifact auditor checks all nonzero masks, durations and
+ordinal order against the **exact observed native frame shift**, checks the
+SHA256 of the executed reference/native script against the original producer
+hashes, and requires every advertised sparse sample's dump command, terminal
+onset, and settled result. Each case retains both original input-file digests
+in the compact audit receipt. Missing or mismatched routes are invalid
+transport, not gameplay divergence.
+
+The files are *supplied controller events* generated from the original SMV,
+not an independently measured consumed-button bus trace. Matching input
+files do not prove the original/native engines latched each mask on the
+same CPU phase, nor that unsampled game frames agree. Retain guest input
+execution evidence and independent QA-01/07 authority. No original 2014 movie, ROM or native executable is added to the retained case archive. **New opt-in raw Zoo full-memory guest captures** are separately retained and independently rechecked as described below; these are real Snes9x/Baldosa WRAM and SRAM images, never synthesized gameplay states.
+
+### Original/native result-gate claim reconstruction
+
+A second source-only check, \`tools/qa01_event_result_gate_audit.py\`,
+independently recalculates the existing producer's eight raw result claims
+from retained guest observations. It verifies actual onset/stable result
+menu, original versus native final/intermediate PPU text, the archived
+MIKE/P1 positive time or stunt score, observed Circuit lap decrements,
+the final zero-lap state and non-active terminal race bytes. Both positive
+and negative claims must agree with these raw source records. The
+existing first sampled-field comparison, source-entry flags, source/native
+relative terminal clocks, source-progression and SRAM witnesses remain
+separate checks.
+
+This validator deliberately mirrors the **existing** original event
+producer's rules without changing the producer or independently
+declaring a complete-event pass. It rejects a self-consistent set of
+reported booleans when the underlying observed guest result disagrees.
+It does not reconstruct decoded text directly from original PPU binary
+bytes (the producer owns that capture), prove unsampled laps/frames, or
+establish input-consumer timing. No additional emulator execution,
+release ledger write or 45-event credit is introduced.
+
+### Original/raw Zoo checkpoint and earned SRAM bytes (2026-10-18)
+
+Earlier RF054 Zoo research [run 39161563837](https://github.com/gamesbyian/UR-Recomp/actions/runs/39161563837) genuinely executed **78 original/native full-WRAM checkpoint comparisons**, observed result +5163 and next Bowl +267, and reported 11 matching earned full-SRAM handoff snapshots, but its original 18-member case ZIP did **not** retain the actual 128KiB/8KiB guest images. [The independently rehashed original four-artifact review](../analysis/data/qa01-rf054-independently-rehashed-four-artifact-bundle-20261018.json) can validate source, genuine ELF/core bytes, logs and producer arithmetic, **not recompute those 78+11 memory pairs** from unavailable historical bytes. No retroactive parity claim is permitted.
+
+The existing **manual-only** campaign now retains only the **already-generated original/native `*.wram.bin` and `*.sram.bin` images** under `work/<case>/replay/{ref,native}/` alongside its original producer, binary SHA manifest, input and execution logs, within the existing 7-day case artifact. This may increase ZIP size but adds **zero** new guest simulation, separate build, recurring workflow or artificial evidence. No game ROM, movie, savestate or compiled research ELF is copied into the case artifact.
+
+For `selected=zoom-zoo` with **all three** `zoo_race_mesh=true`, `zoo_dp_window=true`, `zoo_next_bowl=true`, the successful existing case job runs `tools/qa01_zoo_raw_archive_audit.py`. The verifier reopens **every byte** in the 78 original/native 128-KiB WRAM checkpoint pairs and the 11 Zoo→Bowl full WRAM/8-KiB SRAM pairs, requires unique correct logged dump host frames, checks all SHA-256/count/first-byte/changed-page producer claims, recalculates the earned 2510-centisecond Zoo rank and complete record-table checksum, and refuses truncated, missing or inconsistent raw images **even if the producer summary says passed**. Its exact additional receipt is `qa01-zoo-independent-raw-audit.json`; the signed source/gameplay acceptance obligations are **unchanged**.
+
+To recheck a downloaded and extracted authentic original case artifact containing these raw files:
+
+```bash
+python3 tools/qa01_zoo_raw_archive_audit.py \
+  --artifact-root /path/to/extracted/qa01-campaign-case-zoom-zoo \
+  --out /tmp/qa01-zoo-independent-raw-audit.json
+```
+
+An observed nonmatching byte is a **verified bounded difference**, not an invalid artifact. A missing/tampered raw image, contradictory digest/count/host clock or fabricated positive **is** invalid evidence. Even full exact 78+11 raw-memory agreement would not prove every unsampled game frame, CPU/SPC instruction causality, the shipping Windows PE, source-consumed gamepad input or disk/power-cut persistence. The read-only audit **always holds accepted USA events at 0**, leaving independent QA-01/07 and the 45-event census sole authority. Its unit tests are synthesized ROM-free byte fixtures and cannot stand in for a real guest run.
 
 ## Failure triage and extension
 
@@ -394,3 +462,42 @@ factory or release-ledger write. See source-owner
 [CPU/APU #1689](https://github.com/gamesbyian/UR-Recomp/issues/1689)
 for executed clock/instruction attribution; [#1686](https://github.com/gamesbyian/UR-Recomp/issues/1686)
 remains the separate actual Windows RF-017 shipping-source mismatch.
+
+
+### Reconstruct the supplied event inputs from the *actual* 2014 source SMV
+
+The final manual campaign's independent primary auditor no longer stops at
+the mutually consistent Snes9x/Baldosa `ref.input` and
+`pinned-baldosa.input` rows. It reopens the **unchanged, pinned, reset-anchored
+2014 source SMV** and metadata from the checked-out repository, requires the
+exact canonical movie archive SHA-256
+`06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442`,
+and separately checks the original 2014 observed Zoo, Bowl or Switcher event
+entry and settled result movie frames. The exact historical movie span is
+independently located using the producer's `original_movie_window_sha256`
+over possible bounded post-result window lengths. It must select **one
+unique matching original raw source-controller window**, which is then
+fully revalidated by the existing SMV parser for source version, NTSC,
+controller metadata, ROM CRC, and source frame bounds.
+
+The existing `tools/qa01_event_route_artifact_audit.py` verifies that the
+**entire original Snes9x supplied input event stream** equals the exact
+2014 movie's independently recomputed masks/start/duration tuple by tuple,
+and that the native stream consists of precisely those same source masks
+rebased only by the *separately observed* guest entry-frame offset.
+Matching-but-forged reference/native input files fail even if both files
+were modified in exactly the same way. It also retains the previous
+compiled binary manifest, producer hashes, observed source PPU result,
+raw-gate reconstruction and unchanged no-acceptance rule.
+
+No ROM or 2014 SMV is newly included in the public case artifact; the
+existing canonical imported archive in the working source checkout is
+read **only** by the aggregate runner. Offline replay of the final
+attestation requires both `--source-movie` and `--source-meta`; omitting
+these preserves earlier transport-only API compatibility but means the
+`original_2014_movie_controller_window_recomputed` receipt field remains
+`false`. Neither the original/source controller file nor this audit proves
+the exact CPU frame/beam at which the guest actually *consumed* the input,
+source/native all-frame gameplay parity, Windows shipping identity or
+OS-durable ranked-record publication. The 45-event acceptance denominator
+and release QA ledger remain unchanged.

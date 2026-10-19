@@ -1,0 +1,64 @@
+{
+  "schema": "QA08-exact-clean-HDMA-V0-Modern-Windows-candidate/2",
+  "observation_date": "2026-10-18",
+  "source_integration_pr": 1851,
+  "source_graphics_production_pr": 1780,
+  "source_modern_pr": 1713,
+  "integration_head_at_build": "c7127e7cba0e7d5ed3039dc0480d90e2444890ac",
+  "modern_parent_at_build": "02214145f5e377302ab897ae0d69090971751d92",
+  "github_test_merge_source_revision": "b498dc096649a128b34d0d03c7b0c4914460812a",
+  "github_test_merge_parents": [
+    "02214145f5e377302ab897ae0d69090971751d92",
+    "c7127e7cba0e7d5ed3039dc0480d90e2444890ac"
+  ],
+  "run_ids": {
+    "real_windows": 39168543664,
+    "tooling": 39168543631,
+    "hygiene": 39168543638
+  },
+  "run_conclusions": {
+    "real_windows": "success",
+    "tooling": "success",
+    "hygiene": "success"
+  },
+  "source_binary_identity": {
+    "binding_artifact_id": 12152455037,
+    "binding_outer_zip_sha256": "a315a1dc8655a34a212d53077bb7b7710e1757918bb924b0ccb4505c00eba5b0",
+    "binding_json_sha256": "79bfec6c939e5e6c54a3c389b0ddc0c53920cf50ad01a043c7ebe9753f6a52b8",
+    "original_package_artifact_id": 12151548147,
+    "package_outer_zip_sha256": "40efd28a42d2b29325f6ea5e4976f29465452f1dbe130e9d986d81fc4c9f4cd6",
+    "portable_inner_zip_sha256": "26beb351900c60347adb9c6fb900f6ca1bbc450391c43ca44d9b0a340fa5c276",
+    "portable_zip_bytes": 6057064,
+    "actual_windows_executable_sha256": "516e406993805ce686e602ce3064c6fef2d0674050fda817944cb85c9a37aa6b",
+    "actual_windows_executable_bytes": 20332544,
+    "pe_machine": "8664",
+    "pe_format": "PE32+",
+    "pe_timestamp_unix": 1792359350,
+    "launcher_sha256": "b61d6b3836e21da6dd91dc4bcbf5cff19a85df6f73f07ee2bcd29a377fc678c3",
+    "required_USA_ROM_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "authentic_ROM_bundled": false,
+    "user_profiles_bundled": false,
+    "inner_zip_members": 4
+  },
+  "real_windows_observations": {
+    "stock_native_two_pad_route_frames": 2473,
+    "named_1p_2p_modern_13_of_13_journeys": true,
+    "actual_native_Q_R_T_S_recovery": true,
+    "actual_ntfs_disk_full_and_postraw_typed_faults": true,
+    "fresh_native_process_restart": true,
+    "source_pinned_first_line_hdma_staged": true,
+    "source_pinned_v0_before_hdma_staged": true
+  },
+  "important_negative_gates": {
+    "modern_head_newer_than_tested_source": true,
+    "this_PE_full_263_source_images_compared_to_2014_Snes9x": false,
+    "remaining_890205_RGB5_pixel_mismatch_fixed": false,
+    "black_guest4016_cause_fixed": false,
+    "gray_CGRAM_phase_fixed": false,
+    "medal_cross_emulator_beam_parity_proven": false,
+    "same_PE_true_3840x2160_widescreen_7_6_physical_output_certified": false,
+    "original_playable_4x_HDracer_art_owner_approved": false,
+    "independent_QA08_or_release_pass": false,
+    "production_graphics_or_modern_branch_merged_by_receipt": false
+  }
+}

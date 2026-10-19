@@ -106,7 +106,7 @@ def patch(gen: str, emitter: str, cpu: str, header: str) -> tuple[str, str, str,
         raise ValueError("RF062 exact pinned or RF018-corrected Read IR source drift")
     if corrected:
         if "UR_BALDOSA_DP_INDIRECT_LONG_POINTER_ONCE" not in gen or (
-                gen.count("return prelude + [") != 1):
+                gen.count("return prelude + [f") != 1):
             raise ValueError("RF062 RF018 pointer-once producer incomplete")
         gen = replace_one(gen, READ_SITE_RF018,
                           READ_SITE_RF018 + READ_PATCH_RF018,

@@ -1,0 +1,79 @@
+{
+  "schema": "ur-qa01-bowl-consecutive-eight-raw-archive-calibration/1",
+  "scope": "Independently re-opened eight consecutive genuine original/native Bowl result handoff memory pairs; not a whole course nor new emulator execution",
+  "source_sha": "9ee3b8cb876f630d259882dde62da07ba6217c8d",
+  "original_archive": {
+    "run": 39168164480,
+    "artifact": 12151357791,
+    "sha256": "2924534f2700714c655647b43e2453c54d4e76f0e258566bcf500439d962ea79"
+  },
+  "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "input_sha256": "3ae5e12c664033f6299a97cf40cb0f8a576d6fed6b73a4d8c600512c72eb9422",
+  "original_source_result_frame": 11985,
+  "continuous_result_relative_frames": {
+    "first": 339,
+    "last": 346,
+    "count": 8,
+    "complete_at_listed_boundaries": true
+  },
+  "bytes_per_guest_per_frame": {
+    "wram": 131072,
+    "sram": 8192
+  },
+  "unmasked_byte_comparison": [
+    {
+      "result_relative_frame": 339,
+      "original_native_full_wram_differing_bytes": 2,
+      "original_native_full_sram_differing_bytes": 3
+    },
+    {
+      "result_relative_frame": 340,
+      "original_native_full_wram_differing_bytes": 33,
+      "original_native_full_sram_differing_bytes": 3
+    },
+    {
+      "result_relative_frame": 341,
+      "original_native_full_wram_differing_bytes": 666,
+      "original_native_full_sram_differing_bytes": 3
+    },
+    {
+      "result_relative_frame": 342,
+      "original_native_full_wram_differing_bytes": 688,
+      "original_native_full_sram_differing_bytes": 3
+    },
+    {
+      "result_relative_frame": 343,
+      "original_native_full_wram_differing_bytes": 671,
+      "original_native_full_sram_differing_bytes": 3
+    },
+    {
+      "result_relative_frame": 344,
+      "original_native_full_wram_differing_bytes": 289,
+      "original_native_full_sram_differing_bytes": 3
+    },
+    {
+      "result_relative_frame": 345,
+      "original_native_full_wram_differing_bytes": 214,
+      "original_native_full_sram_differing_bytes": 3
+    },
+    {
+      "result_relative_frame": 346,
+      "original_native_full_wram_differing_bytes": 184,
+      "original_native_full_sram_differing_bytes": 3
+    }
+  ],
+  "totals": {
+    "wram_byte_difference_occurrences": 2747,
+    "sram_byte_difference_occurrences": 24
+  },
+  "sha256_of_sha256_digests_for_original_wram_native_wram_original_sram_native_sram_in_frame_order": "e7629d3bd6f99a919ee6db53dd7f802778bcd05683ef39e03408d6b21eec729d",
+  "claims": {
+    "complete_eight_frame_raw_pair_comparison": true,
+    "original_and_native_exact_at_eight_frames": false,
+    "whole_course_continuous_coverage": false,
+    "actual_frame_phase_alignment_independently_proven": false,
+    "windows_package_or_disk_persistence_proven": false,
+    "usa_events_accepted": 0
+  },
+  "next": "Use exactly these 8 consecutive raw pairs as bounded compatibility/calibration, never as a full Zoom Zoo or Bowl complete race."
+}

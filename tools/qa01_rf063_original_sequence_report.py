@@ -78,7 +78,8 @@ def inspect(raw: str) -> dict:
         raise ValueError("RF063 raw NMI checkpoint disagrees with independent RF044 observation")
     return {
         "schema":"ur-qa01-rf063-original-source-order/1",
-        "sha256_source_log":hashlib.sha256(raw.encode()).hexdigest(),
+        "sha256_source_log_text":hashlib.sha256(raw.encode()).hexdigest(),
+        "source_identity_independently_authenticated":False,
         "sequenced_original_bus_entries":sum(not c for _,_,c in seen),
         "sequenced_original_checkpoint_count":1,
         "checkpoint_seq":checkpoints[0][0],
@@ -100,7 +101,7 @@ def main() -> None:
     p.add_argument("source_log",type=Path)
     p.add_argument("--out",required=True,type=Path)
     a=p.parse_args()
-    report=inspect(a.source_log.read_text())
+    report=inspect(a.source_log.read_bytes().decode("utf8"))
     a.out.parent.mkdir(parents=True,exist_ok=True)
     a.out.write_text(json.dumps(report,indent=2,sort_keys=True)+"\n")
     print("RF063 original source ordering qualified; read-return/native parity remain HOLD")

@@ -130,12 +130,12 @@ class BoundedObservationsRemainDistinct(unittest.TestCase):
 
     def test_exact_one_native_terminal_host_wallclock_statistic_only(self):
         off = (b"[host +109.676s] video totals: simulations=6460 "
-               b"presentations=6460 seconds=109.566\\n")
+               b"presentations=6460 seconds=109.566\n")
         direct = b"".join(
             b"QA01RF062NATIVE seq=" + str(i).encode() +
-            b" f=6124 executedPC=8282F0 value=D0\\n" for i in range(1,11))
+            b" f=6124 executedPC=8282F0 value=D0\n" for i in range(1,11))
         on = direct + (b"[host +109.698s] video totals: simulations=6460 "
-                       b"presentations=6460 seconds=109.591\\n")
+                       b"presentations=6460 seconds=109.591\n")
         result=gate.independently_qualify_terminal_host_walltime(off,on)
         self.assertFalse(result["strict_existing_native_source_comparator_nonRF062_passed"])
         self.assertTrue(result["all_other_native_guest_trace_rows_equal_after_host_only_metadata"])
@@ -145,17 +145,17 @@ class BoundedObservationsRemainDistinct(unittest.TestCase):
 
     def test_modified_simulations_guest_data_and_unqualified_metadata_fail(self):
         off = (b"[host +109.676s] video totals: simulations=6460 "
-               b"presentations=6460 seconds=109.566\\n")
+               b"presentations=6460 seconds=109.566\n")
         direct = b"".join(
             b"QA01RF062NATIVE seq=" + str(i).encode() +
-            b" f=6124 executedPC=8282F0 value=D0\\n" for i in range(1,11))
+            b" f=6124 executedPC=8282F0 value=D0\n" for i in range(1,11))
         on = direct + (b"[host +109.698s] video totals: simulations=6460 "
-                       b"presentations=6460 seconds=109.591\\n")
+                       b"presentations=6460 seconds=109.591\n")
         for variant, other in (
             ("changed_simulations",on.replace(b"simulations=6460",b"simulations=6459")),
             ("changed_presentations",on.replace(b"presentations=6460",b"presentations=6461")),
-            ("new_native_guest_bus_record",b"QA01RF054NATIVEBUS addr=11C774 value=D1\\n"+on),
-            ("missing_final_newline",on.rstrip(b"\\n")),
+            ("new_native_guest_bus_record",b"QA01RF054NATIVEBUS addr=11C774 value=D1\n"+on),
+            ("missing_final_newline",on.rstrip(b"\n")),
             ("invalid_time",on.replace(b"109.591",b"not-time")),
             ("identical_host_elapsed_secs",on.replace(b"109.591",b"109.566")),
             ("duplicated_host_totals",on + on.splitlines(keepends=True)[-1]),

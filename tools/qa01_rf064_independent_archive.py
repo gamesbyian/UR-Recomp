@@ -45,8 +45,11 @@ def rows(lines: list[str], prefix: str) -> list[dict[str, str]]:
 
 
 def examine(archive: Path, expected_sha256: str | None = None) -> dict:
+    digest = hashlib.sha256()
     with archive.open("rb") as handle:
-        archive_hash = hashlib.file_digest(handle, "sha256").hexdigest()
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    archive_hash = digest.hexdigest()
     if expected_sha256 is not None:
         require(archive_hash == expected_sha256, "wrong immutable archive SHA256")
     with zipfile.ZipFile(archive) as z:

@@ -24,7 +24,7 @@ namespace ur::product {
 enum class BaldosaSramIntentStatus {
     NoIntent,       // no changed guest SRAM, or no pending transaction
     Prepared,       // durable pre-write intent, native write may begin
-    Cleared,        // raw/typed old: write never completed
+    Cleared,        // raw/typed old: archive exact uncommitted guest intent before retirement
     Reconciled,     // raw/typed new: typed publication complete or replayed
     Rejected,       // uncertain or corrupt state: preserve EVERYTHING
     IoError,
@@ -188,7 +188,8 @@ inline bool finish_baldosa_sram_intent_under_lock(
 // has NO load authority. Stable generation-based name makes retries idempotent.
 inline bool archive_baldosa_recovered_intent(
     const std::filesystem::path& profile_root,
-    const BaldosaSramIntent& intent) {
+    const BaldosaSramIntent& intent,
+    bool uncommitted_prewrite_only = false) {
     // Distinguish repeated attempts after an explicit rollback: both may
     // target the same generation but legitimately contain different guest
     // SRAM. Never overwrite an earlier archive or block a second good save.
@@ -204,7 +205,9 @@ inline bool archive_baldosa_recovered_intent(
         hash >>= 4u;
     }
     const auto path = profile_root /
-        ("native-sram-recovered-" +
+        ((uncommitted_prewrite_only
+              ? "native-sram-uncommitted-"
+              : "native-sram-recovered-") +
          std::to_string(intent.previous.autosave_generation) + "-to-" +
          std::to_string(intent.next.autosave_generation) + "-" +
          digest + ".txt");
@@ -278,9 +281,17 @@ inline BaldosaSramIntentStatus recover_baldosa_sram_intent_on_cold_boot(
     if (!((raw_old && typed_old) || (raw_new && (typed_old || typed_new))))
         return BaldosaSramIntentStatus::Rejected;
 
-    // Pre-write cut: original committed pair is already intact, so no
-    // progression is invented and the abandoned intent may be removed.
+    // Crash after durable intent but before RtlWriteSram: canonical raw and
+    // typed are both OLD, but the exact journal is the *only durable copy*
+    // of guest-authored NEW SRAM. Do not promote it as a completed save.
+    // Equally, do not discard it merely because native raw was never written.
+    // The immutable forensic archive has NO replay authority and is marked
+    // uncommitted to distinguish this cut from authenticated new/raw replay.
+    // If archive creation, validation or final unlink fails, preserve the
+    // pending intent and refuse the cold guest instead of losing evidence.
     if (raw_old && typed_old) {
+        if (!archive_baldosa_recovered_intent(root, *intent, true))
+            return BaldosaSramIntentStatus::IoError;
         std::error_code ec;
         return fs::remove(pending, ec) && !ec
             ? BaldosaSramIntentStatus::Cleared

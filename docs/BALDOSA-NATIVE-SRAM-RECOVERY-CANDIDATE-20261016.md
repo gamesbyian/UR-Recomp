@@ -1,6 +1,10 @@
 # Native Windows SRAM crash-recovery candidate (Modern product owner)
 
-## Current October 19 reinstatement, final source requalification pending
+## Current October 19 reinstatement, further source requalification pending
+
+**Latest added cold-start preservation correction:** The raw-old/typed-old crash cut still contains a durable pending intent with the original guest's complete *new* 8192-byte SRAM. Previously it retired that journal without keeping those guest bytes after a crash between the intent publication and original `RtlWriteSram`. The next candidate first archives the **exact immutable intent** as `native-sram-uncommitted-<generation>-to-<generation>-<digest>.txt`, then retires the pending path. That receipt is forensic and has *no automatic load or Records authority*: the old canonical typed/raw pair remains authoritative. On failed archival, existing name collision with different bytes, or failed retirement, cold boot refuses and leaves the pending intact; an explicit player's recovery decision is needed to use any alternate data. Focused native tests now require exact archival, no typed-generation change, second cold-boot idempotence, and a hostile same-name archive collision fail-closed with all canonical files and pending preserved. This changes product recovery behavior; the previous successful source/PE/ZIP cannot qualify it. Real Windows original pre-RtlWriteSram crash staging and low-space archive refusal remain separate follow-up witnesses.
+
+
 
 The previously documented [#1713](https://github.com/gamesbyian/UR-Recomp/pull/1713) was **administratively closed unmerged** on October 19. Its actual source and genuine Windows archives were preserved, not accepted as current main. [Draft Modern #1990](https://github.com/gamesbyian/UR-Recomp/pull/1990) freshly reapplies exactly 33 original Modern product/harness paths onto main `be40cf9a34172bdd17c276f0b85d0a02985cd35e` without conflicting with any changed path since their common ancestor. It remains held for independent QA02 and real physical acceptance. Do not treat the archived section below as today's branch head.
 

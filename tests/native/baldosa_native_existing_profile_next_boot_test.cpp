@@ -335,12 +335,79 @@ int main() {
             dir / "saves/profile-mike/host-profile.txt");
         assert(stage_intent(dir, global, profile, changed) ==
                BaldosaSramIntentStatus::Rejected);
+        const auto pending = dir / "saves/profile-mike/native-sram-checkpoint.pending";
+        const std::string exact_guest_intent = bytes(pending);
         assert(recover_baldosa_sram_intent_on_cold_boot(dir, "mike") ==
                BaldosaSramIntentStatus::Cleared);
+        assert(!fs::exists(pending));
         assert(bytes(raw) == old_raw);
         assert(bytes(dir / "saves/profile-mike/host-profile.txt") == old_typed);
+        fs::path retained_uncommitted;
+        std::size_t retained_count = 0;
+        for (const auto& entry : fs::directory_iterator(
+                 dir / "saves/profile-mike")) {
+            if (entry.path().filename().string().find(
+                    "native-sram-uncommitted-") == 0) {
+                retained_uncommitted = entry.path();
+                ++retained_count;
+            }
+        }
+        assert(retained_count == 1);
+        assert(bytes(retained_uncommitted) == exact_guest_intent);
+        const auto retained = decode_baldosa_sram_intent(
+            bytes(retained_uncommitted), "mike");
+        assert(retained && retained->previous == profile &&
+               retained->next.stock_sram == changed &&
+               retained->next.autosave_generation ==
+                   profile.autosave_generation + 1);
+        // An uncommitted copy must never silently mint typed progress,
+        // a run record, or another cold-start repair.
         assert(recover_baldosa_sram_intent_on_cold_boot(dir, "mike") ==
                BaldosaSramIntentStatus::NoIntent);
+        assert(bytes(retained_uncommitted) == exact_guest_intent);
+        assert(!fs::exists(dir / "runs"));
+    }
+    {
+        const auto dir = intent_fixture("intent-before-raw-archive-conflict");
+        const auto [global, profile] = before_save(dir);
+        const auto changed = make_changed(profile);
+        assert(stage_intent(dir, global, profile, changed) ==
+               BaldosaSramIntentStatus::Prepared);
+        const auto root = dir / "saves/profile-mike";
+        const auto pending = root / "native-sram-checkpoint.pending";
+        const auto original = bytes(pending);
+        const auto old_raw = bytes(root / "save.srm");
+        const auto old_typed = bytes(root / "host-profile.txt");
+        const auto intent = read_baldosa_sram_intent(pending, "mike");
+        assert(intent);
+        assert(archive_baldosa_recovered_intent(root, *intent, true));
+        fs::path archive;
+        for (const auto& entry : fs::directory_iterator(root)) {
+            if (entry.path().filename().string().find(
+                    "native-sram-uncommitted-") == 0) {
+                assert(archive.empty());
+                archive = entry.path();
+            }
+        }
+        assert(!archive.empty());
+        // Hostile preexisting same-name receipt has no authority.
+        // A retry must refuse rather than replace it or retire pending.
+        { std::ofstream out(archive, std::ios::binary | std::ios::trunc);
+          assert(out);
+          out << "foreign untrusted archive";
+          assert(out.good()); }
+        assert(recover_baldosa_sram_intent_on_cold_boot(dir, "mike") ==
+               BaldosaSramIntentStatus::IoError);
+        assert(bytes(archive) == "foreign untrusted archive");
+        assert(bytes(pending) == original);
+        assert(bytes(root / "save.srm") == old_raw);
+        assert(bytes(root / "host-profile.txt") == old_typed);
+        fs::remove(archive);
+        assert(recover_baldosa_sram_intent_on_cold_boot(dir, "mike") ==
+               BaldosaSramIntentStatus::Cleared);
+        assert(bytes(archive) == original && !fs::exists(pending));
+        assert(bytes(root / "save.srm") == old_raw);
+        assert(bytes(root / "host-profile.txt") == old_typed);
     }
     {
         const auto dir = intent_fixture("intent-after-raw");

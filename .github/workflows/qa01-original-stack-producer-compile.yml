@@ -1,0 +1,101 @@
+# RF065: real pinned original Snes9x source compilation, NO ROM execution.
+# Narrow merge gate: the Python patch fixtures alone cannot prove that the
+# actual historical original 2014 C++ translation units still compile.
+name: QA01 original 2014 stack observer source compile
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/workflows/qa01-original-stack-producer-compile.yml"
+      - "tools/qa01_rf044_stack_bus_witness.py"
+      - "tools/qa01_rf045_source_stack_macro_witness.py"
+      - "tools/qa01_rf063_original_shared_sequence.py"
+      - "tools/qa01_rf064_original_post_call_pull.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+      - "third_party/manifest.json"
+      - "third_party/src/snes9x-libretro/**"
+      - "tools/validate_island.py"
+      - "tools/patches/snes9x-snesref-debug-exports.patch"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa01-original-stack-compile-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  original-source-compile:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build exact pinned uninstrumented original core
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          # --offline bootstraps repository-owned VENDORED source without .git.
+          # A git rev-parse here accidentally resolves the PARENT PR checkout;
+          # instead check the upstream revision AND the exact source-tree hash.
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from tools.validate_island import tree_sha256
+          island=json.loads(Path("third_party/manifest.json").read_text())
+          c=next(x for x in island["components"] if x["id"]=="snes9x-libretro")
+          t=json.loads(Path("tools/toolchain-entries/snes9x-libretro.json").read_text())
+          pin="1bcc369e89f08243e0a462882fb1f3e42e51de3a"
+          assert c["revision"] == t["revision"] == pin
+          assert c["source_sha256"] == tree_sha256(Path(c["source_path"]))
+          assert c["mode"]=="vendored"
+          print("RF065 original upstream commit and vendored pristine source SHA verified")
+          PY
+          test -s "$SRC/libretro/snes9x_libretro.so"
+          mkdir -p "$RUNNER_TEMP/rf065"
+          sha256sum "$SRC/libretro/snes9x_libretro.so" > "$RUNNER_TEMP/rf065/stock-core-sha256.txt"
+      - name: Stage genuine original CPU/stack probes without adding guest bus calls
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          python3 tools/qa01_rf044_stack_bus_witness.py original --root "$SRC"
+          python3 tools/qa01_rf045_source_stack_macro_witness.py --root "$SRC"
+          python3 tools/qa01_rf063_original_shared_sequence.py --root "$SRC"
+          python3 tools/qa01_rf064_original_post_call_pull.py --root "$SRC"
+          grep -Fq 'UR_QA01_RF063_SOURCE_BUS_CHECKPOINT_SEQUENCE' "$SRC/getset.h"
+          grep -Fq 'UR_QA01_RF063_SOURCE_BUS_CHECKPOINT_SEQUENCE' "$SRC/cpuexec.cpp"
+          grep -Fq 'UR_QA01_RF064_ORIGINAL_POST_CALL_PULL_JOIN' "$SRC/cpuops.cpp"
+          test "$(grep -Fc 'ur_rf064_post_pull("pullB"' "$SRC/cpuops.cpp")" -eq 1
+          test "$(grep -Fc 'ur_rf064_post_pull("pullW"' "$SRC/cpuops.cpp")" -eq 1
+          sha256sum "$SRC/getset.h" "$SRC/cpuexec.cpp" "$SRC/cpuops.cpp" > "$RUNNER_TEMP/rf065/instrumented-source-sha256.txt"
+      - name: Compile instrumented original real 2014 Snes9x C++ library
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          rm -f "$SRC/libretro/snes9x_libretro.so"
+          make -C "$SRC/libretro" -j2
+          test -s "$SRC/libretro/snes9x_libretro.so"
+          sha256sum "$SRC/libretro/snes9x_libretro.so" > "$RUNNER_TEMP/rf065/instrumented-core-sha256.txt"
+          {
+            echo "Original upstream source revision: 1bcc369e89f08243e0a462882fb1f3e42e51de3a (verified vendored island source SHA)"
+            echo "UR-Recomp workflow source SHA: $GITHUB_SHA"
+            echo "Stock source libretro and RF044/RF045/RF063/RF064 instrumented libretro both compiled."
+            echo "No ROM, movie, controller input, native replay, evidence normalization or USA event admission."
+            echo "USA event gate: 0/45. Windows release gates: 0/12."
+          } > "$RUNNER_TEMP/rf065/README.txt"
+          cat "$RUNNER_TEMP/rf065/README.txt" >> "$GITHUB_STEP_SUMMARY"
+      - name: Keep compact immutable compile receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rf065-original-stack-source-build-receipt
+          path: ${{ runner.temp }}/rf065/
+          retention-days: 14
+          if-no-files-found: warn

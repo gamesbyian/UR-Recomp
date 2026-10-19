@@ -170,6 +170,14 @@ class SameBinaryNativeProbeAB(unittest.TestCase):
         self.assertFalse(result["native_actual_RF054_CPU_master_clocks_equal"])
         self.assertFalse(result["runtime_RF062_logging_noninterference_supported"])
 
+    def test_original_control_log_change_cannot_yield_positive_native_ab(self):
+        a,b,c,d,e,f=fixtures()
+        d["original"] += b"UNEXPLAINED_SOURCE_NMI_CHANGE\\n"
+        result=x.control(a,b,c,d,e,f)
+        self.assertFalse(result["original_complete_log_byte_identical"])
+        self.assertTrue(result["native_actual_RF054_CPU_master_clocks_equal"])
+        self.assertFalse(result["runtime_RF062_logging_noninterference_supported"])
+
     def test_guest_progression_difference_never_waived(self):
         a,b,c,d,e,f=fixtures()
         b["zoo_next_bowl_handoff"]={"offset":268}

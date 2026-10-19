@@ -82,5 +82,50 @@
     "complete_original_native_usa_event": false,
     "human_clean_machine_test": false
   },
-  "decision": "Second exact distinct synthetic PR Windows binary and real archived NTFS fault parity verified; QA02 and full release held."
+  "decision": "Second exact distinct synthetic PR Windows binary and real archived NTFS fault parity verified; QA02 and full release held.",
+  "same_source_created_pair_records": {
+    "artifact_id": 12228658029,
+    "outer_archive_sha256": "c8f2c8f111c368c83855855b877197e9649eaa79cd13209e800e61ccc298682d",
+    "zip_members": 52,
+    "crc_ok": true,
+    "prerecords_artifact_id": 12228883086,
+    "prerecords_outer_sha256": "1e6bb7db07570d7ad38acbddcd6f6aacc5a624df5a30bf2b7fe8f8640a27f6c5",
+    "prerecords_members": 3,
+    "pre_crc_ok": true,
+    "original_manifest_nine_members_hashes_and_lengths_verified": true,
+    "real_scored_guest_two_player_result": {
+      "p1": "MIKE",
+      "p1_rider": 0,
+      "p1_hundredths": 2761,
+      "p2": "MARTIN",
+      "p2_rider": 2,
+      "p2_hundredths": 2757,
+      "winner": "P2 MARTIN",
+      "observed_host_frame": 4379,
+      "input_frames": 2232
+    },
+    "run_sha256": "d54ade82fdeb213db2c48bd7e4338c5bcae0f2af981fd70c27a467366acbc487",
+    "match_sha256": "d16eb5d8ce868c8df6ef59169cd5b83ff5b1ed93235c4ad58624de30f8050749",
+    "run_fnv1a64": "a8327800e49e4c44",
+    "match_fnv1a64": "5838b68b19e040cb",
+    "actual_pre_post_run_match_bytes_identical": true,
+    "reopened_fresh_mike_records": "LAST 01 LOSS 00:27.61",
+    "reopened_fresh_martin_records": "LAST 01 WIN 00:27.57",
+    "sram_raw_8192_match_typed_host_mike": true,
+    "sram_raw_8192_match_typed_host_martin": true,
+    "run_match_payload_identical_to_prior_1990_windows_source": true,
+    "source_exe_build_distinct_from_prior": true,
+    "actual_physical_two_gamepads": false,
+    "real_audio": false,
+    "real_4k_display": false,
+    "qa_release_credit": 0
+  },
+  "extracted_original_cmd_archive": {
+    "artifact_id": 12230030247,
+    "outer_sha256": "4aeac36feabde3427d5cfa76e1b49ba57693e0678b67d1b10a9addfb4d99a5be",
+    "members": 10,
+    "crc_ok": true,
+    "source_bound_to_same_win32_build": true,
+    "hosted_only": true
+  }
 }

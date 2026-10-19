@@ -27,6 +27,7 @@ def fixture():
             "source_nonpath_log_equality_proven":True},
         "native_complete_nonRF062_log_metadata_limited_comparison":{
             "all_other_native_lines_byte_equal_after_strict_host_metadata":True},
+        "actual_supplied_input_sha256":{"original":"a"*64,"native":"b"*64},
         "independently_reopened_compiled_binaries":{
             "binary_artifact_SHA256":gate.AB_BINARY_ZIP,
             "actual_native_binary_SHA256":gate.TARGET_NATIVE_BINARY,
@@ -63,7 +64,7 @@ def fixture():
     report={"native_executable_sha256":gate.TARGET_NATIVE_BINARY,
             "rom_sha256":gate.PINNED_ROM,
             "reference_entry":1017,"native_entry":1017}
-    return a,raw,native,report
+    return a,raw,native,report,{"original":"a"*64,"native":"b"*64}
 
 
 class BoundedObservationsRemainDistinct(unittest.TestCase):
@@ -99,6 +100,8 @@ class BoundedObservationsRemainDistinct(unittest.TestCase):
             ("native_return_forgery",2,("native_read_rows",4,"native_returned_byte"),"D1"),
             ("wrong_guest_origin",3,("native_entry",),1019),
             ("different_ROM",3,("rom_sha256",),"0"*64),
+            ("wrong_original_controller",4,("original",),"0"*64),
+            ("wrong_native_controller",4,("native",),"0"*64),
         )
         for name,index,path,value in experiments:
             with self.subTest(name=name):

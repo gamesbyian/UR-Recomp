@@ -57,7 +57,8 @@ FILM = [
 ]
 # 27-second portrait short, gameplay fitted rather than cutting either 2P band.
 SHORT = [
-    ("title", 270, 120, "THE ORIGINAL / 1994", "capture"),
+    ("title", 270, 90, "THE ORIGINAL / 1994", "capture"),
+    ("title", 420, 30, "AUTHENTIC CHECKERBOARD MENU", "capture"),
     ("reveal", 0, 420, "THE WORLD OPENS / ORIGINAL WIDE", "editing"),
     ("modern", 0, 240, "A REAL MODERN FRONTEND CAPTURE", "capture"),
     ("code", 0, 120, "65816 → NATIVE C / VERIFIED SOURCE", "editorial"),
@@ -214,6 +215,7 @@ def make_segment(src,start,frames,source_fps,caption,kind,output,vertical=False)
         width,height,"60/1",round(dur*FPS)), (output,o)
 
 def make_film(shots,sources,cards,target,score,tmp,vertical=False):
+    tmp.mkdir(parents=True,exist_ok=True)
     parts=[]
     total=0
     for i,(key,start,frames,caption,kind) in enumerate(shots):

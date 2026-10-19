@@ -134,6 +134,18 @@ jobs:
             --captured-native-log "$ROOT/on/zoom-zoo/replay/native.log" \
             --output "$ROOT/independent-ab-review.json"
           cat "$ROOT/independent-ab-review.json"
+          # These actual replay-supplied input files are tiny. Independently
+          # parse/normalize the original and Baldosa guest-local clock axes
+          # rather than calling unequal transport SHA hashes unequal controls.
+          python3 tools/qa01_verify_supplied_controller_streams.py \
+            --baseline "$ROOT/off/producer-report.json" \
+            --captured "$ROOT/on/producer-report.json" \
+            --off-original-input "$ROOT/off/zoom-zoo/replay/ref.input" \
+            --off-native-input "$ROOT/off/zoom-zoo/replay/pinned-baldosa.input" \
+            --on-original-input "$ROOT/on/zoom-zoo/replay/ref.input" \
+            --on-native-input "$ROOT/on/zoom-zoo/replay/pinned-baldosa.input" \
+            --output "$ROOT/independent-controller-stream-review.json"
+          cat "$ROOT/independent-controller-stream-review.json"
           echo "No QA01 event admission or CPU input-poll parity is implied by bounded success."
 
       - name: Preserve immutable 9-frame raw evidence and independent A/B receipts
@@ -146,6 +158,11 @@ jobs:
           path: |
             ${{ runner.temp }}/qa01-zoo-binaries.sha256
             ${{ runner.temp }}/qa01-zoo-ab/independent-ab-review.json
+            ${{ runner.temp }}/qa01-zoo-ab/independent-controller-stream-review.json
+            ${{ runner.temp }}/qa01-zoo-ab/off/zoom-zoo/replay/ref.input
+            ${{ runner.temp }}/qa01-zoo-ab/off/zoom-zoo/replay/pinned-baldosa.input
+            ${{ runner.temp }}/qa01-zoo-ab/on/zoom-zoo/replay/ref.input
+            ${{ runner.temp }}/qa01-zoo-ab/on/zoom-zoo/replay/pinned-baldosa.input
             ${{ runner.temp }}/qa01-zoo-ab/off/producer-report.json
             ${{ runner.temp }}/qa01-zoo-ab/on/producer-report.json
             ${{ runner.temp }}/qa01-zoo-ab/off/exit-code.txt

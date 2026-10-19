@@ -20,6 +20,7 @@ STAMP="UR_QA01_RF074_NMI_SCHEDULER_RESUME_ORIGIN"
 BEAM=rf47.BEAM
 BEFORE_PUSH='  ur_rf047_nmi_snapshot("entry", vector);\n'
 INTERRUPT='static void run_interrupt(uint32_t vector, uint64_t deadline) {\n'
+NMI_WAI='    g_snes->inNmi = true;\n    s_wai_halted = false;\n'
 
 HELPER=r"""/* UR_QA01_RF074_NMI_SCHEDULER_RESUME_ORIGIN
  * The permanently-on bridge resume ring stores old/new PC, assignment site,
@@ -27,6 +28,7 @@ HELPER=r"""/* UR_QA01_RF074_NMI_SCHEDULER_RESUME_ORIGIN
  * Sample its LAST SET/RESTORE event, NOT an older arbitrary event that happens
  * to match today's resume PC. Snapshot is before real native interrupt push.
  * If origin not recoverable, print matched=0 and HOLD; never invent a PC. */
+static unsigned ur_rf074_wai_before_nmi;
 static void ur_rf074_native_nmi_resume_origin(uint32_t vector) {
   extern int snes_frame_counter;
   if (!ur_rf047_in_nmi || !ur_rf047_allowed()) return;
@@ -60,7 +62,7 @@ static void ur_rf074_native_nmi_resume_origin(uint32_t vector) {
       " oldPC=%06X newPC=%06X"
       " kind=%s site=%s sourceFrame=%d sourceS=%04X"
       " bridgeDepth=%d schedDepth=%d"
-      " waiHalted=%u master=%llu beamV=%u beamH=%u\n",
+      " waiBeforeNMI=%u waiAtPush=%u master=%llu beamV=%u beamH=%u\n",
       ++ur_rf047_seq, snes_frame_counter,
       (unsigned)(s_resume_pc & 0xFFFFFFu), (unsigned)(vector & 0xFFFFFFu),
       found, matches, (unsigned long long)n, (unsigned long long)seq,
@@ -70,7 +72,7 @@ static void ur_rf074_native_nmi_resume_origin(uint32_t vector) {
       found ? source.frame : -1, (unsigned)source.sp,
       found ? (int)source.bridge_depth : -1,
       found ? (int)source.sched_depth : -1,
-      s_wai_halted ? 1u : 0u,
+      ur_rf074_wai_before_nmi, s_wai_halted ? 1u : 0u,
       (unsigned long long)g_cpu.master_cycles,
       (unsigned)g_snes->vPos, (unsigned)g_snes->hPos);
 }
@@ -80,7 +82,7 @@ def patch(beam: str)->str:
     if STAMP in beam:
         raise ValueError("RF074 already or partially staged")
     if (rf47.STAMP not in beam or beam.count(INTERRUPT)!=1 or
-        beam.count(BEFORE_PUSH)!=1 or
+        beam.count(BEFORE_PUSH)!=1 or beam.count(NMI_WAI)!=1 or
         "ur_rf047_allow_row" not in beam or
         '#include "snes/interp_bridge.h"' not in beam or
         "cpu_push_interrupt_frame_at(&g_cpu, s_resume_pc);" not in beam):
@@ -92,6 +94,10 @@ def patch(beam: str)->str:
         if HELPER.count(op)!=0:
             raise AssertionError("RF074 helper would introduce guest operations: "+op)
     updated=beam.replace(INTERRUPT, HELPER+INTERRUPT,1)
+    updated=updated.replace(NMI_WAI,
+                            "    g_snes->inNmi = true;\n"
+                            "    ur_rf074_wai_before_nmi = s_wai_halted ? 1u : 0u;\n"
+                            "    s_wai_halted = false;\n",1)
     updated=updated.replace(BEFORE_PUSH,
                             BEFORE_PUSH+
                             "  ur_rf074_native_nmi_resume_origin(vector);\n",1)

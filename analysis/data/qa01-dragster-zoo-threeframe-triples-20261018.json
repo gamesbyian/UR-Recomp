@@ -1,0 +1,151 @@
+{
+  "schema": "UR-QA01-DRAGSTER-ZOO-AUTHENTIC-TRIPLE-WITNESS/1",
+  "source": {
+    "run_id": 39174631932,
+    "source_sha": "542205bd596306ef14a753dd005e391f60a8d413",
+    "artifact_id": 12154480620,
+    "zip_members": 69,
+    "zip_sha256": "f036f80d72000b05a5c2edb42152eb433b89fa44c5fc36238ccc73bd143e2947",
+    "producer_sha256": "be912d6dbcfe5d3f4c3c12ce6c00b44b649eb5d679b6ee07a4382872112d1936",
+    "full_guest_wram_sram_image_sha256_rechecked": 56,
+    "original_archive_verified_against_github": true
+  },
+  "movie_and_fresh_clocks": {
+    "source_result_relative": 2080,
+    "fresh_original_result_relative": 2081,
+    "fresh_native_result_relative": 2079,
+    "source_next_zoo_after_result": 316,
+    "fresh_original_next_zoo_after_result": 315,
+    "fresh_native_next_zoo_after_result": 318
+  },
+  "original_native_memory": {
+    "sample_offsets": [
+      304,
+      308,
+      312,
+      314,
+      315,
+      316,
+      317,
+      318,
+      319,
+      320,
+      321,
+      324,
+      328,
+      336
+    ],
+    "same_offset_unmasked_wram_differences": [
+      17,
+      13,
+      13,
+      43,
+      675,
+      701,
+      677,
+      314,
+      262,
+      267,
+      246,
+      176,
+      135,
+      77
+    ],
+    "same_offset_unmasked_sram_differences": [
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13,
+      13
+    ],
+    "sram_static_offsets": [
+      "0x0F31",
+      "0x0F33",
+      "0x0FF2",
+      "0x0FF3",
+      "0x0FF4",
+      "0x0FF5",
+      "0x0FF6",
+      "0x0FF7",
+      "0x0FF8",
+      "0x0FF9",
+      "0x0FFC",
+      "0x0FFD",
+      "0x0FFE"
+    ],
+    "all_13_sram_values_correspond_to_low_wram_plus_0x0E6B_each_of_14_samples": true,
+    "correlation_is_not_proven_memory_copy": true
+  },
+  "three_frame_original_native_wram_triple_witness": [
+    {
+      "original": [
+        314,
+        315
+      ],
+      "native": [
+        317,
+        318
+      ],
+      "original_triples": 641,
+      "native_triples": 642,
+      "exact_common_triples": 636
+    },
+    {
+      "original": [
+        315,
+        316
+      ],
+      "native": [
+        318,
+        319
+      ],
+      "original_triples": 223,
+      "native_triples": 225,
+      "exact_common_triples": 221
+    },
+    {
+      "original": [
+        316,
+        317
+      ],
+      "native": [
+        319,
+        320
+      ],
+      "original_triples": 147,
+      "native_triples": 147,
+      "exact_common_triples": 147
+    },
+    {
+      "original": [
+        317,
+        318
+      ],
+      "native": [
+        320,
+        321
+      ],
+      "original_triples": 195,
+      "native_triples": 195,
+      "exact_common_triples": 195
+    }
+  ],
+  "acceptance": {
+    "guest_controller_cpu_latch_proven": false,
+    "source_native_full_frame_parity_proven": false,
+    "clock_rephasing_justified": false,
+    "masking_or_discarded_bytes": 0,
+    "accepted_usa_events": 0,
+    "release_quality_gates": 0
+  },
+  "archive_retention": "Original 69-member GitHub Actions ZIP expires; this derived receipt does not replace raw image bytes."
+}

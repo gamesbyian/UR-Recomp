@@ -27,7 +27,7 @@ DOC = {
     "metrics": RAW + "metrics.json",
 }
 SEMANTIC_EXCLUSIONS = frozenset((
-    "reference_script_sha256", "qa01_capture_ab_control",
+    "reference_script_sha256", "input_sha256", "qa01_capture_ab_control",
     "qa01_continuous_memory_capture",
 ))
 
@@ -73,6 +73,13 @@ def verify(archive: Path, expected_sha: str = PINNED_SHA) -> dict:
                 and a["schema"] == b["schema"] ==
                     "ur-qa01-capture-ab-replay-control/1"
                 and all(a[k] == b[k] for k in keys)
+                # This producer names the *replay command script* hash
+                # "input_sha256"; it is NOT the independently tracked movie
+                # controller-window hash. Adding dump tags changes this.
+                and off["input_sha256"] == off["reference_script_sha256"] ==
+                    a["reference_script_sha256"]
+                and on["input_sha256"] == on["reference_script_sha256"] ==
+                    b["reference_script_sha256"]
                 and a["reference_script_sha256"] != b["reference_script_sha256"],
                 "capture test altered guest input or failed to toggle dump scripts")
         exits = {side: int(z.read(ROOT + side + "/exit-code.txt").strip())

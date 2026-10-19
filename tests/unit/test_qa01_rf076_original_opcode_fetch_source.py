@@ -11,7 +11,11 @@ def fixture():
             'void S9xMainLoop (void) {\n'
             '\t\t\t\tTimings.NMITriggerPos = 0xffff;\n'
             '\t\t\t\tif (CPU.WaitingForInterrupt)\n'
-            '\t\t\t\tS9xOpcode_NMI();\n'
+            '/* UR_QA01_RF044_STACK_BUS */\n'
+            '/* UR_QA01_RF063_SOURCE_BUS_CHECKPOINT_SEQUENCE */\n'
+            '/* QA01RF063ORIGCHECKPOINT */\n'
+            'const bool rf044_nmi=true;\n'
+            '                S9xOpcode_NMI();\n'
             '\t\t\t\tOp = CPU.PCBase[Registers.PCw];\n'
             '\t\t\t\tOp = S9xGetByte(Registers.PBPC);\n'
             '\t\t\tRegisters.PCw++;\n'
@@ -53,6 +57,24 @@ class OriginalFetch(unittest.TestCase):
         for a in (m.HEADER, m.FETCH, m.NMI, m.NMI_WAKE):
             with self.subTest(a=a), self.assertRaises(ValueError):
                 m.patch(fixture().replace(a, a+a))
+
+    def test_unstaged_2014_original_is_rejected(self):
+        original=fixture().replace('/* UR_QA01_RF044_STACK_BUS */\\n','').replace(
+            '/* UR_QA01_RF063_SOURCE_BUS_CHECKPOINT_SEQUENCE */\\n','')
+        with self.assertRaisesRegex(ValueError, 'requires actual RF044/RF063'):
+            m.patch(original)
+
+    def test_duplicate_rf044_or_rf063_nmi_call_fails(self):
+        for fragment in ('                S9xOpcode_NMI();',
+                         'QA01RF063ORIGCHECKPOINT'):
+            with self.subTest(fragment=fragment):
+                if fragment=='QA01RF063ORIGCHECKPOINT':
+                    damaged=fixture().replace(fragment,'other_writer')
+                    with self.assertRaisesRegex(ValueError,'requires actual RF044/RF063'):
+                        m.patch(damaged)
+                else:
+                    with self.assertRaisesRegex(ValueError,'structural drift'):
+                        m.patch(fixture().replace(fragment,fragment+'\\n'+fragment))
 
     def test_no_duplicate_source_staging(self):
         with self.assertRaisesRegex(ValueError, 'already staged'):

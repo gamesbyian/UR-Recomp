@@ -85,6 +85,8 @@ class RealConsumedReturn(unittest.TestCase):
           good.replace('new=2600EE0000','new=2700EE0000'),
           good.replace('QA01RF045ORIGSTACK','QA01RF045MISSING'),
           good.replace('QA01RF063ORIGCHECKPOINT','QA01RF063OTHER'),
+          good + ('QA01RF045ORIGSTACK seq=2 f=1018 v=225 h=80 kind=pullB'
+                  ' addr=01ED width=1 value=0026 sp0=01EC sp1=01ED pc=80:B0EB\n'),
           good + 'QA01RF064ORIGPULL_TRUNCATED\n',
         )
         for i,bad in enumerate(cases):

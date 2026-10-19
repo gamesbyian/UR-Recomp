@@ -22,7 +22,8 @@ TARGETS = tuple(sorted(set((
     22940,22941,22942,22943,22944,22945,22946,22947,22948,
     25335,25336,25337,25338,25339,25340,25341,25342,25343,
     25344,25345,25346,25347,25348,25349,25350,25351,
-    25730,25731,36000))))
+    25730,25731,36000)) | set(range(12326,12335))
+    | set(range(16990,17038)) | {17087,17088}))
 DUMPS = ((17030,"original-switcher-result"),(22000,"prior-horizon"),
          (36000,"new-horizon"))
 BASELINE = ((794,0,1),(3190,1,1),(8620,2,1),(12327,3,1))
@@ -99,6 +100,64 @@ def named(low: bytes) -> dict:
     return dict(zip(NAMES,(low[i] for i in ADDRESSES)))
 
 
+def attest_switcher_original_source_terminal(snapshots: dict[int, bytes]) -> dict:
+    """Exact 2014 source WRAM result prelude, never a native timing exception.
+
+    Low 8KiB values are reconstructed with old-byte validation from the
+    authenticated Snes9x source trace and registered to its three full
+    original-source guest memory dumps. Require every original frame of
+    the 34-frame transient track-0 stage, four restored active course-3
+    frames, the one inactive predecessor, and the stable Race B result.
+    """
+    def state(frame: int) -> dict:
+        raw=snapshots.get(frame)
+        must(isinstance(raw,bytes) and len(raw)==8192,
+             "missing original Switcher source frame from real low-WRAM trace")
+        return named(raw)
+
+    must(state(12326)["track"]==3 and state(12326)["in_race"]!=1,
+         "original Switcher source entry was not preceded by inactive course 3")
+    must(all(state(f)["track"]==3 and state(f)["in_race"]==1
+             and state(f)["tour_row"]==0 for f in range(12327,12335)),
+         "original Switcher course 3 race entry not sustained eight frames")
+    must(state(16990)["track"]==3 and state(16990)["in_race"]==1,
+         "original Switcher prelude is not downstream of active course 3")
+    must(all(state(f)["menu"]==0x84 and state(f)["track"]==0
+             and state(f)["in_race"]==1 and state(f)["tour_row"]==0
+             for f in range(16991,17025)),
+         "original Switcher transient course-zero prelude not exactly 34 frames")
+    must(all(state(f)["menu"]==0x16 and state(f)["track"]==3
+             and state(f)["in_race"]==1 and state(f)["tour_row"]==0
+             for f in range(17025,17029)),
+         "original Switcher four restored active course-3 frames absent")
+    must(state(17029)=={"menu":0x16,"track":3,"in_race":0,"tour_row":0},
+         "original Switcher race-active exit predecessor differs")
+    must(all(state(f)=={"menu":0x99,"track":3,"in_race":0,"tour_row":0}
+             for f in list(range(17030,17038))+[17087]),
+         "original Switcher Race B result was not stable and course-qualified")
+    must(state(17088)=={"menu":0xF6,"track":3,"in_race":0,"tour_row":0},
+         "original Switcher source result exit to selection not authenticated")
+    return {
+        "schema":"UR-QA01-SWITCHER-2014-ORIGINAL-RAW-TERMINAL/1",
+        "event_course_id":"course:04",
+        "source_movie_entry_frame":12327,
+        "source_movie_result_frame":17030,
+        "source_movie_result_relative_frames":4703,
+        "source_prelude_track0_frames":[16991,17024],
+        "source_prelude_menu_0x84_title_not_second_dragster_race":True,
+        "source_restored_course3_active_frames":[17025,17028],
+        "source_race_inactive_predecessor":17029,
+        "source_stable_result_menu_0x99_frames":[17030,17087],
+        "source_result_exit_select_tour_frame":17088,
+        "all_transition_frames_independently_replayed_from_source_low8k":True,
+        "genuine_stable_result_is_switcher_not_earlier_dragster":True,
+        "native_guest_clocks_compared":False,
+        "second_course0_event_during_prelude_proven":False,
+        "source_original_upper_120k_intermediate_reconstructed":False,
+        "accepted_usa_course_credit":0,
+    }
+
+
 def audit(archive: Path, expected_zip_sha256: str) -> dict:
     must(re.fullmatch("[0-9a-f]{64}",expected_zip_sha256) is not None,
          "expected original Actions artifact SHA256 mandatory")
@@ -157,6 +216,7 @@ def audit(archive: Path, expected_zip_sha256: str) -> dict:
             must(measured["track"]==track and measured["menu"]==menu
                  and measured["in_race"]!=1,
                  "old original movie terminal result not reproduced from trace")
+        switcher_original=attest_switcher_original_source_terminal(snapshots)
         first,done,next_entry=(named(snapshots[f]) for f in (22941,25344,25731))
         must(named(snapshots[22940])["in_race"]!=1 and
              all(named(snapshots[f])["in_race"]==1 and
@@ -204,6 +264,7 @@ def audit(archive: Path, expected_zip_sha256: str) -> dict:
             "outside_trace_120k_reconstruction_possible":False,
             "exact_full_128k_guest_dumps_checked_for_low8k":all_sources,
             "four_prior_original_course_entries_and_results_reproduced":True,
+            "switcher_original_source_terminal":switcher_original,
             "post_switcher_known_course_repeat":{
                 "track":0,"tour_row":0,"real_source_entry":22941,
                 "real_source_result":25344,

@@ -32,8 +32,10 @@ class OriginalSourceArchiveTests(unittest.TestCase):
             (8353,0x9f,188),(8354,0x9f,0),
             (8620,0xce,2),(8620,0x313,1),(8621,0x313,0),
             (11985,0x9f,24),(11986,0x9f,0),
-            (12327,0xce,3),(12327,0x313,1),(12328,0x313,0),
-            (17030,0x9f,153),(17031,0x9f,0),
+            (12325,0xce,3),(12327,0x313,1),
+            (16991,0x9f,132),(16991,0xce,0),
+            (17025,0x9f,22),(17025,0xce,3),
+            (17029,0x313,0),(17030,0x9f,153),(17088,0x9f,246),
             (22940,0xce,0),(22941,0x313,1),(25343,0x313,0),
             (25344,0x9f,153),(25352,0x9f,0),(25731,0x313,1),
         ]
@@ -85,13 +87,36 @@ class OriginalSourceArchiveTests(unittest.TestCase):
     def test_exact_source_entry_result_and_three_low_wram_dump_positives(self):
         r=target.audit(self.path,self.write())
         self.assertEqual(r["trace_distinct_low_wram_addresses"],3)
-        self.assertEqual(r["real_2014_snes9x_trace_writes_replayed"],25)
+        self.assertEqual(r["real_2014_snes9x_trace_writes_replayed"],29)
+        self.assertEqual(r["switcher_original_source_terminal"]["source_prelude_track0_frames"],[16991,17024])
+        self.assertEqual(r["switcher_original_source_terminal"]["source_movie_result_relative_frames"],4703)
         self.assertEqual(r["post_switcher_known_course_repeat"]["real_source_result"],25344)
         self.assertTrue(r["four_prior_original_course_entries_and_results_reproduced"])
         self.assertFalse(r["outside_trace_120k_reconstruction_possible"])
         self.assertFalse(r["historical_second_dragster_full_128k_entry_image_available"])
         self.assertEqual(r["distinct_new_usa_courses_proven"],0)
         self.assertEqual(r["usa_event_accepted_credit"],0)
+
+    def test_switcher_source_terminal_exact_transient_and_results_fail_closed(self):
+        snapshots,_,_=target.reconstruct(
+            self.members["source/source-trace.jsonl"].splitlines())
+        verified=target.attest_switcher_original_source_terminal(snapshots)
+        self.assertTrue(verified["source_prelude_menu_0x84_title_not_second_dragster_race"])
+        self.assertEqual(verified["accepted_usa_course_credit"],0)
+        for frame,addr,value,expected_error in (
+            (16994,0xCE,1,"transient course-zero prelude"),
+            (17025,0x313,0,"four restored active"),
+            (17030,0x9f,188,"Race B result"),
+            (17087,0x9f,246,"Race B result"),
+            (17088,0x9f,153,"exit to selection"),
+        ):
+            modified=dict(snapshots)
+            raw=bytearray(modified[frame])
+            raw[addr]=value
+            modified[frame]=bytes(raw)
+            with self.subTest(frame=frame,addr=hex(addr)):
+                with self.assertRaisesRegex(target.ArchiveError,expected_error):
+                    target.attest_switcher_original_source_terminal(modified)
 
     def test_wrong_full_dump_low_byte_rejected_but_upper_120k_not_inferred(self):
         name="source/new-horizon.wram.bin"

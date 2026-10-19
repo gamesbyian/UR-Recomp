@@ -1,8 +1,12 @@
 """ROM-free adversarial on/off original/native helper observation tests."""
 from __future__ import annotations
 import copy
+import hashlib
+import json
 import sys
+import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 import qa01_rf062_same_binary_ab as x
@@ -36,6 +40,50 @@ def fixtures():
 
 
 class SameBinaryNativeProbeAB(unittest.TestCase):
+    def make_archive(self, path, *, omit=None, prefix=""):
+        a,b,c,d,e,f=fixtures()
+        payload={}
+        for mode,report,logs,inputs in (("off",a,c,e),("on",b,d,f)):
+            base=(prefix + "/" if prefix else "") + "qa01-rf062-ab/" + mode + "/"
+            payload[base+"producer-report.json"]=json.dumps(report).encode()
+            for guest,label in (("original","reference.log"),("native","native.log")):
+                payload[base+"work/zoom-zoo/replay/"+label]=logs[guest]
+            for guest,label in (("original","ref.input"),("native","pinned-baldosa.input")):
+                payload[base+"work/zoom-zoo/replay/"+label]=inputs[guest]
+        if omit is not None:
+            payload.pop(next(k for k in payload if k.endswith(omit)))
+        with zipfile.ZipFile(path,"w") as z:
+            for name,bytes_ in payload.items():
+                z.writestr(name,bytes_)
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+
+    def test_independent_zip_archive_replay_from_immutable_hash(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path=Path(temp)/"real-shaped.zip"
+            digest=self.make_archive(path,prefix="runner-archive")
+            result=x.archived(path,digest)
+            self.assertEqual(result["authenticated_evidence_archive_sha256"],digest)
+            self.assertTrue(result["zip_archive_raw_byte_reopened"])
+            self.assertTrue(result["runtime_RF062_logging_noninterference_supported"])
+            with self.assertRaisesRegex(ValueError,"SHA256 changed"):
+                x.archived(path,"0"*64)
+
+    def test_archive_missing_guest_control_is_not_implicitly_recovered(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path=Path(temp)/"missing.zip"
+            self.make_archive(path,omit="off/work/zoom-zoo/replay/ref.input")
+            with self.assertRaisesRegex(ValueError,"missing or unbounded"):
+                x.archived(path)
+
+    def test_archive_duplicate_member_is_not_accepted(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path=Path(temp)/"duplicate.zip"
+            self.make_archive(path)
+            with zipfile.ZipFile(path,"a") as z:
+                z.writestr("qa01-rf062-ab/on/producer-report.json",b"{}")
+            with self.assertRaisesRegex(ValueError,"duplicate/unsafe"):
+                x.archived(path)
+
     def test_real_same_binary_fixture_but_no_wrapper_parity_claim(self):
         result=x.control(*fixtures())
         self.assertTrue(result["runtime_RF062_logging_noninterference_supported"])

@@ -22,8 +22,8 @@ SITE = "UR_QA01_RF062_DIRECT_PC_8282F0"
 READ_SITE = ("def _emit_read(op: Read) -> List[str]:\n"
              "    bank, addr = _segref_addr_expr(op.seg)\n")
 READ_SITE_RF018 = (
-    "def _emit_read(op: Read) -> List[str]:\\n"
-    "    prelude, bank, addr = _segref_hoisted(op.seg)\\n"
+    "def _emit_read(op: Read) -> List[str]:\n"
+    "    prelude, bank, addr = _segref_hoisted(op.seg)\n"
 )
 READ_PATCH_RF018 = """    # UR_QA01_RF062_DIRECT_CPU_BUS_GUEST_PC: RF018 hoists the
     # [dp],Y pointer exactly once. Keep its prelude and account any

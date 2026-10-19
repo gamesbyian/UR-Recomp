@@ -113,7 +113,7 @@ def observed_native_reads(text: str) -> dict:
 
 
 def actual_original(z: zipfile.ZipFile) -> dict:
-    orig = content(z, ORIG, 3_000_000).decode("utf8")
+    orig = content(z, ORIG, 12_000_000).decode("utf8")
     lda = [x for x in records(orig, "QA01RF049LDA ")
            if x.get("ea") == "11C774"]
     need(len(lda) == 1 and
@@ -253,7 +253,7 @@ def audit(baseline: Path, native: Path, binaries: Path, paired: Path) -> dict:
         newer = observed_native_reads(content(p,NATIVE,2_000_000).decode())
         need(earlier["native_read_rows"] == newer["native_read_rows"],
              "native live source opcode event chronology changed during raw capture")
-        old_bus = records(content(b,NATIVE,2_000_000).decode(),"QA01RF054NATIVEBUS ")
+        old_bus = records(content(b,NATIVE,40_000_000).decode(),"QA01RF054NATIVEBUS ")
         need(len(old_bus) == 656 and len(newer["native_read_rows"]) == 10,
              "baseline or genuine native sound census missing")
         result = compare_frame_raw(p,late_case)

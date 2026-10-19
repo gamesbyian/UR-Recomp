@@ -91,6 +91,26 @@ def verified_bytes(archive: zipfile.ZipFile, entries: dict) -> dict[str, bytes]:
     return result
 
 
+def fnv1a32(raw: bytes) -> str:
+    """Guest BOOT_SRAM's actual byte-level FNV-1a32, not a producer digest."""
+    result = 0x811C9DC5
+    for value in raw:
+        result = ((result ^ value) * 0x01000193) & 0xFFFFFFFF
+    return f"{result:08x}"
+
+
+def require_boot_log(archive: zipfile.ZipFile, filename: str, raw: bytes, *,
+                     reconciled: bool) -> None:
+    text = archive.read(filename).decode("utf-8", "replace")
+    assert_line = ("UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM "
+                   "profile=native-ci-rider bytes=8192 fnv=" + fnv1a32(raw))
+    require(text.count(assert_line) == 1, "original guest boot raw SRAM digest mismatch: " + filename)
+    marker = "UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED"
+    require((marker in text) is reconciled, "cold-process recovery chronology differs: " + filename)
+    require("UR_BALDOSA_GUEST_SNAPSHOT frame=1" in text,
+            "cold-process never executed guest frame: " + filename)
+
+
 def stage(raw: dict[str, bytes], name: str) -> dict[str, bytes]:
     values = {k: raw[name + "." + k + ".bin"] for k in KINDS}
     require(len(values["raw"]) == 8192, "raw SRAM must be exactly 8192 bytes")
@@ -172,11 +192,26 @@ def inspect(pre_path: Path, post_path: Path, *, pre_sha: str, post_sha: str,
                 and any(x.get("python_errno") == 28 or x.get("python_winerror") in (112, 39)
                         for x in exhaustion.get("events", [])),
                 "filler exhaustion proof absent/misattributed")
-        first = post.read("cold-1-original-CMD.log").decode("utf-8", "replace")
-        second = post.read("cold-2-original-CMD.log").decode("utf-8", "replace")
-        require("RECOVERY_RECONCILED" in first and "RECOVERY_RECONCILED" not in second
-                and "BOOT_SRAM" in first and "BOOT_SRAM" in second,
-                "cold-boot guest recovery progression differs")
+        # Tie guest-consumed SRAM bytes to archived raw files on both sides
+        # of each actual Windows original-CMD fault, not just JSON assertions.
+        for name in ("warm.log", "cold-1.log", "cold-2.log"):
+            require_boot_log(pre, name, baseline["raw"], reconciled=False)
+        require_boot_log(post, "cold-1-original-CMD.log",
+                         recovered["raw"], reconciled=True)
+        require_boot_log(post, "cold-2-original-CMD.log",
+                         cold2["raw"], reconciled=False)
+        before_guest = pre.read("full-ntfs-original-CMD.log").decode("utf-8", "replace")
+        failed_guest = post.read("real-postraw-full-original-CMD.log").decode("utf-8", "replace")
+        error_probe = post.read("second-process-112.log").decode("ascii").strip()
+        require("UR_BALDOSA_NATIVE_PROFILE REJECTED reason=native_sram_intent_not_durable"
+                in before_guest and "UR-BALDOSA-SAVE-FAILED" in before_guest,
+                "pre-intent original guest refusal absent")
+        require("QA_POSTRAW_TYPED_GATE native_raw_written=1 typed_not_attempted=1"
+                in failed_guest
+                and "CHECKPOINT profile=native-ci-rider status=io_error" in failed_guest
+                and "UR-BALDOSA-SAVE-FAILED" in failed_guest,
+                "postraw original guest boundary/refusal absent")
+        require(error_probe == "exit=112", "independent real Win32 112 process log missing")
         changed = sum(a != b for a, b in zip(baseline["raw"], postraw["raw"]))
         return {
             "schema": "ur-qa06-independent-real-ntfs-original-consumer/1",
@@ -185,6 +220,10 @@ def inspect(pre_path: Path, post_path: Path, *, pre_sha: str, post_sha: str,
             "pre_intent_exact_original_bytes": len(before),
             "post_raw_exact_original_bytes": len(after),
             "raw_changed_positions": changed,
+            "actual_guest_boot_before_fnv1a32": fnv1a32(baseline["raw"]),
+            "actual_guest_boot_recovered_fnv1a32": fnv1a32(recovered["raw"]),
+            "guest_boot_sram_consumed_bytes_verified": True,
+            "original_guest_native_fault_logs_verified": True,
             "recovered_typed_generation": new_generation,
             "fresh_boots_after_ntfs_fault": 2,
             "windows_original_process_executed_here": False,

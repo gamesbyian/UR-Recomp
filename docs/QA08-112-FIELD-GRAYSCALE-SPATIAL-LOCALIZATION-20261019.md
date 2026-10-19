@@ -90,3 +90,19 @@ To prevent the next original/native producer from scanning an entire result rast
 | (190,161) | Lower | 17 → 16 |
 
 These eight pixel samples are an **experiment selection**, not representative counts or an effective PPU palette-slot attribution. A tiny follow-up logger can instrument their *actual* guest/source pixel palette index, CGRAM word and main/sub-color operands at the relevant beam phase, including a background-region and sprite-region negative control if available. Retain the original 2014 callback f−1/native guest f video registration and original/native instrument PE/source epoch differences. No unverified OBJ or layer claim is attached to the coordinates. This additional coordinate reread changes no code, raw source images, acceptance or RGB5 totals.
+
+## New per-coordinate four-class invariance on all thirteen original/native samples
+
+The full original/native source images were independently re-opened to ask a stricter question than the combined 24,940-position footprint: **can a coordinate ever switch from one of the four actual grayscale substitutions to another?** Across all thirteen authentic 112-field source pairs, the answer is **zero observed cross-class switches**, including the 844 positions that are not wrong on *every* sampled field. A pixel can be exact on one sample and have its designated mismatch class on another, but no position maps to two different four-state grayscale transitions in these captures.
+
+| Original → native RGB5 gray | Authenticated wrong-pixel occurrences | Distinct source coordinates | Positions wrong in all 13 | Upper / lower half of persistent positions |
+| --- | ---: | ---: | ---: | --- |
+| 15→20 | 53,658 | 4,181 | 4,088 | 1,958 / 2,130 |
+| 16→15 | 107,868 | 8,380 | 8,236 | 4,163 / 4,073 |
+| 17→16 | 52,716 | 4,131 | 3,969 | 1,999 / 1,970 |
+| 20→17 | 104,533 | 8,248 | 7,803 | 3,827 / 3,976 |
+| **Total** | **318,775** | **24,940** | **24,096** | **11,947 / 12,149** |
+
+The read-only verifier now records and checks **four separate SHA256 hashes** of the sorted little-endian 32-bit *persistent source-position indexes* (without publishing masks or source artwork). Its fail-closed synthetic tests reject a coordinate that changes class between fields, impossible class identifiers, incomplete source sets or changed original/native pixel accounting. The observed source-authorized receipt is [qa08-authentic-fixed-gray-class-20261019.json](../analysis/data/qa08-authentic-fixed-gray-class-20261019.json).
+
+This tightens the static four-phase color **correlation**: a persistent one-to-one spatial assignment of original/native gray substitutions across the 112-field *sampling alias*. It does **not** prove four CGRAM source indices at those pixels, their exact write/ingestion order, effective PPU priority or a continuously fixed visual mask during the intervening 111 frames. Four per-class spatial hashes, 0 cross-class switches and two new negative-control tests add **no release gate credit or corrected pixel positions**.

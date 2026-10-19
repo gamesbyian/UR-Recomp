@@ -149,7 +149,9 @@ def evaluate(attestation: dict, causal: dict | None, frames: dict | None,
     if type(pins) is not dict or set(pins) != set(REPORTS) or not all(
             type(pins[k]) is str and SHA.fullmatch(pins[k]) for k in REPORTS):
         reasons.append("missing_independent_report_digest_pins")
-    elif all(input_hashes.get(k) is not None for k in REPORTS):
+    elif not all(input_hashes.get(k) is not None for k in REPORTS):
+        reasons.append("missing_actual_report_file_sha256")
+    else:
         for name in REPORTS:
             assert_valid(pins[name] == input_hashes[name],
                          "independent review digest pin disagrees: " + name)

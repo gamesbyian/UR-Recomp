@@ -159,6 +159,54 @@ class AuthenticRasterSpatialTests(unittest.TestCase):
                          "QA08_QA10_or_release_gate_accepted"):
             self.assertIs(packet[boundary], False)
 
+    def test_late_seven_field_bracket_classification_and_bad_controls(self):
+        frames = [bytearray(spatial.WIDTH*spatial.HEIGHT)
+                  for _ in spatial.source.SPIKES]
+        for frame in frames:
+            frame[0] = spatial.CYCLE
+            frame[1] = spatial.CYCLE
+        controls = {f:bytearray(spatial.WIDTH*spatial.HEIGHT)
+                    for f in spatial.LATE_BRACKET}
+        controls[5184][0] = spatial.CYCLE
+        controls[5184][1] = spatial.CYCLE
+        report = spatial.classify_late_writer_bracket(frames, controls)
+        self.assertEqual(report["persistent_source_positions"], 2)
+        self.assertEqual([x["native_guest"] for x in report["correctly_registered_seven_fields"]],
+                         list(spatial.LATE_BRACKET))
+        self.assertEqual([x["four_cycle_wrong_RGB5"]
+                          for x in report["correctly_registered_seven_fields"]],
+                         [0, 0, 0, 2, 0, 0, 0])
+        self.assertTrue(all(x["original_callback"] == x["native_guest"]-1
+                            for x in report["correctly_registered_seven_fields"]))
+        self.assertIs(report["PPU_CGRAM_or_beam_causality_proven"], False)
+        with self.assertRaisesRegex(ValueError, "incomplete"):
+            spatial.classify_late_writer_bracket(
+                frames, {k:v for k,v in controls.items() if k != 5184})
+        frames[0] = bytearray(spatial.WIDTH*spatial.HEIGHT-1)
+        with self.assertRaisesRegex(ValueError, "incomplete"):
+            spatial.classify_late_writer_bracket(frames, controls)
+
+    def test_committed_sevenfield_control_receipt_is_source_bound_and_releaseless(self):
+        path = ROOT / "analysis/data/qa08-authentic-sevenfield-gray-pulse-bracket-20261019.json"
+        data = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(data["original_callback_inner_zip_sha256"], spatial.source.ORIGINAL_INNER_SHA)
+        self.assertEqual(data["native_Win32_integrated_outer_zip_sha256"], spatial.source.NATIVE_OUTER_SHA)
+        self.assertEqual(data["real_native_guest_CRC_sha256"], spatial.source.NATIVE_CRC_SHA)
+        self.assertEqual(data["persistent_cycle_position_count"], 24096)
+        self.assertEqual(data["persistent_cycle_position_index_uint32le_sha256"],
+                         "4646f2123c596b1e9bbca6813d92b1ae3b9a4a53e08e300c17bf2e5f2ebb7b95")
+        rows = data["seven_frames"]
+        self.assertEqual([r["native_guest"] for r in rows], list(spatial.LATE_BRACKET))
+        self.assertEqual([r["stable_positions_RGB5_exact"] for r in rows],
+                         [24096,24096,24096,0,24096,24096,24096])
+        self.assertEqual([r["stable_positions_RGB5_gray_cycle_wrong"] for r in rows],
+                         [0,0,0,24096,0,0,0])
+        self.assertTrue(all(r["original_callback"] == r["native_guest"]-1 for r in rows))
+        self.assertTrue(all(len(r["original_BGRX_sha256"]) == 64 and
+                            len(r["native_P7_sha256"]) == 64 for r in rows))
+        self.assertFalse(data["QA08_QA10_or_release_accepted"])
+        self.assertFalse(data["per_pixel_consumed_CGRAM_slot_and_color_math_proven"])
+
     def test_direct_script_cli_reaches_archive_fail_closed_guard(self):
         cmd = [sys.executable, str(ROOT / "tools/qa08_localize_112field_grayscale.py"),
                "--original", str(ROOT / "missing-original-qa08.zip"),

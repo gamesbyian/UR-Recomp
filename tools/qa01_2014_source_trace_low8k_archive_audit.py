@@ -17,8 +17,12 @@ SCHEMA = "UR-QA01-POST-SWITCHER-ORIGINAL-LOW8K-RAW-AUDIT/1"
 PRODUCER_SCHEMA = "UR-QA01-2014-POST-SWITCHER-SOURCE-CONTINUATION/1"
 ROM_SHA = "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
 MOVIE_SHA = "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442"
-TARGETS = (794,2874,3190,8353,8620,11985,12327,17030,
-           22000,22941,25344,25731,36000)
+TARGETS = tuple(sorted(set((
+    794,2874,3190,8353,8620,11985,12327,17030,22000,
+    22940,22941,22942,22943,22944,22945,22946,22947,22948,
+    25335,25336,25337,25338,25339,25340,25341,25342,25343,
+    25344,25345,25346,25347,25348,25349,25350,25351,
+    25730,25731,36000))))
 DUMPS = ((17030,"original-switcher-result"),(22000,"prior-horizon"),
          (36000,"new-horizon"))
 BASELINE = ((794,0,1),(3190,1,1),(8620,2,1),(12327,3,1))
@@ -145,6 +149,21 @@ def audit(archive: Path, expected_zip_sha256: str) -> dict:
                  and measured["in_race"]!=1,
                  "old original movie terminal result not reproduced from trace")
         first,done,next_entry=(named(snapshots[f]) for f in (22941,25344,25731))
+        must(named(snapshots[22940])["in_race"]!=1 and
+             all(named(snapshots[f])["in_race"]==1 and
+                 named(snapshots[f])["track"]==0 for f in range(22941,22949)),
+             "not a genuinely entering and sustained repeat of original Dragster")
+        must(all(named(snapshots[f])["in_race"]==1 and
+                 named(snapshots[f])["track"]==0 for f in range(25335,25343))
+             and named(snapshots[25343])["in_race"]!=1,
+             "original Dragster repeat terminal predecessor not observed")
+        must(all(named(snapshots[f])["menu"]==153 and
+                 named(snapshots[f])["track"]==0 and
+                 named(snapshots[f])["in_race"]!=1 for f in range(25344,25352)),
+             "original repeated Dragster stable eight-frame result absent")
+        must(named(snapshots[25730])["in_race"]!=1 and
+             named(snapshots[36000])["in_race"]==1,
+             "subsequent same-course attempt boundary absent")
         must(first["track"]==0 and first["tour_row"]==0 and first["in_race"]==1,
              "later source Dragster entry unsupported by WRAM")
         must(done["menu"]==153 and done["track"]==0

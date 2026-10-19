@@ -145,3 +145,26 @@ ROM-free adversarial tests synthesize complete A/B reports and real retained raw
 A direct independent *two-ZIP* original/native producer crosswalk has now reopened RF054 case artifact **12149640496** and the new nine-frame A/B artifact **12167633197**. The ROM, archived original movie, source seed SRAM, exact original SMV controller-window SHA256 `7b03f40e...`, and 2014 original source-event metadata are **identical**. Original race entry remains host frame **1017** in both. Historical RF054's native entry was also host **1017**, with `native_frame_shift=0`; the new A/B's native entry is host **1019** with `native_frame_shift=2`. Historical first relative +0 raw full-WRAM pair was byte-identical; the new first relative +0 pair differs at **four real unmasked bytes** `7E:01ED,01EE,2000,2004`. The original reference core changed from SHA256 `dfc915...` to `16fca3...`, the native ELF from `7509b095...` to `439ac76...` and research Git source from `7334a568...` to `a238df6...`, so the shift cannot be singled out as a cause. Sparse game controls changed from **78/51** to **66/44** original/native equal frames, source/native result +5163/+5163 to +5163/+5162, following Bowl +267/+267 to +267/+266, matching versus nonmatching retained full SRAM pairs. The new source/native mismatch already exists at the true entry checkpoint; it is not merely a post-result graphical phase discrepancy.
 
 **Actionable independent QA discriminator:** Preserve both actual origin clocks and the unchanged external SMV+SRAM identity while requiring the same-executable/capture-off/capture-on **actual CPU input polls** and unmasked +0 checkpoint; examine why exact native entry calibration differs *before* hypothesizing gameplay correction. Never hardcode `native_frame_shift=0` or shift user controller frames to reproduce RF054 numbers. All independent attestations remain per execution/phase/build. Complete-USA and release status remains **0/45 / 0/12**.
+
+## October 19 latest genuine scored Bowl archive: independent twelve-pair re-open
+
+Independently downloaded actual [Bowl scored-stunt run 39214735456](https://github.com/gamesbyian/UR-Recomp/actions/runs/39214735456), Actions artifact **12169591862**, 83-member ZIP SHA256 `7889b2a92d920c302c176d8db2c2541a6381dbc1e58d29fbce5e8b24677a038c` (all ZIP CRCs valid). The archive retains **24 actual 128-KiB WRAM guest images and 24 actual 8-KiB SRAM guest images** at source-result-relative offsets **+334, +338, +339, +340, +341, +342, +343, +344, +345, +346, +349, +354**. It also retains **eight 2014 original-movie WRAM/SRAM full-image pairs** at separate 2014 source-host clock origins, 64 total raw images. I independently reopened all full images, checked exact length, recomputed every unmasked original/native byte and compared the existing archive's independent raw review.
+
+| Offset | WRAM unlike bytes | SRAM unlike bytes |
+| ---: | ---: | ---: |
+| +334 / +338 / +339 | 2 each | 3 each |
+| +340 | 33 | 3 |
+| +341 | 666 | 3 |
+| +342 | 688 | 3 |
+| +343 | 671 | 3 |
+| +344 | 289 | 3 |
+| +345 | 214 | 3 |
+| +346 | 184 | 3 |
+| +349 | 177 | 3 |
+| +354 | 113 | 3 |
+
+Totals: **3,041 WRAM differing-byte occurrences and 36 SRAM differing-byte occurrences** over the 12 paired observations. All three differing SRAM bytes recur in every sample; nothing was excluded. The existing observer's retained source score is **764** and the source/native next Switcher transition remains genuinely **historical movie +342, fresh original +341, native +344**. Native and original core/executable SHA-256 values in this exact case are **`439ac76fa8d90f141436dc25426e522561667cb3aa575d5c326a06afc6cb5ba8`** and **`48159515caf6676ffeaa95e04c07f5f9c4c4be1240d41ebac6d926124e854380`** respectively, neither of which is a substitute for a byte-rehashed, actual source-attested production Windows PE.
+
+The retained guest cold-process report independently identifies two actual boot host-frame checkpoints **300 and 420**, with original/native ranked **Bowl rank-0 score 764** and valid recorded checksums at both. Their **full 8,192-byte SRAM hashes remain different** (`f5e386...` vs `f493e02...`) despite equal earned ranked values. These are *fresh emulated guest process* cold observations, **not actual Windows disk publication or physical power-cut recovery**. Neither the historical movie's +342, the shifted original/native +341/+344 comparison nor sparse per-frame byte agreement admits a complete event or authorizes any frame retime.
+
+**Independent disposition:** authentic scored original/native Bowl memory and two guest cold-boot rank witnesses are reproducible; the unreconciled 3-byte SRAM residual, next-event transition timing differences, missing actual CPU input-poll consumption, full-event continuous execution and exact shipping Windows cold-disk proof remain HOLD. **0/45 USA events, 0/12 release QA gates.** No gameplay patch, byte exclusion, rephasing or event-ledger update.

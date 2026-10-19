@@ -42,10 +42,10 @@ QUALIFIED_ORIGINAL_CORES = frozenset({
 })
 QUALIFIED_SNESREF_SHA256 = "5fb3cca1f51d13762e7b82e736133cdab702aafbca07b9164d568139a3bcc18a"
 QUALIFIED_NATIVE_SHA256 = "439ac76fa8d90f141436dc25426e522561667cb3aa575d5c326a06afc6cb5ba8"
-MANIFEST_PATH_SUFFIXES = {
-    "snesref": "/dragster-snesref/snesref",
-    "core": "/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so",
-    "native": "/baldosa/build/UniracersSNESRecomp",
+MANIFEST_PATHS = {
+    "snesref": "/home/runner/work/_temp/dragster-snesref/snesref",
+    "core": "/home/runner/work/UR-Recomp/UR-Recomp/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so",
+    "native": "/home/runner/work/UR-Recomp/UR-Recomp/baldosa/build/UniracersSNESRecomp",
 }
 MANIFEST_LINE = re.compile(r"([0-9a-f]{64})  (/home/runner/work/[^\r\n]+)\Z")
 FROZEN_MOVIE_TRACE = "3de122406937fcf839988d7990972e9275b8e7bbd47db1b958fea20113c27c54"
@@ -79,12 +79,12 @@ def verify_executed_binary_manifest(root: Path, report: dict) -> dict:
         match = MANIFEST_LINE.fullmatch(line)
         require(match is not None, "malformed source-execution SHA256 manifest row")
         sha, fullpath = match.groups()
-        candidates = [key for key, suffix in MANIFEST_PATH_SUFFIXES.items()
-                      if fullpath.endswith(suffix)]
+        candidates = [key for key, exact_path in MANIFEST_PATHS.items()
+                      if fullpath == exact_path]
         require(len(candidates) == 1 and candidates[0] not in entries,
                 "untrusted or duplicated source-execution binary manifest name")
         entries[candidates[0]] = sha
-    require(set(entries) == set(MANIFEST_PATH_SUFFIXES),
+    require(set(entries) == set(MANIFEST_PATHS),
             "source-execution manifest omits original or native binary")
     require(report.get("reference_core_sha256") in QUALIFIED_ORIGINAL_CORES,
             "unknown original Snes9x binary not independently source-qualified")

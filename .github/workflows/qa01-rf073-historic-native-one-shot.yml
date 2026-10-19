@@ -12,7 +12,7 @@ permissions:
   actions: read
 
 concurrency:
-  group: qa01-rf073-exact-archive-\${{ github.event.pull_request.number }}
+  group: qa01-rf073-exact-archive-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
@@ -26,7 +26,7 @@ jobs:
       - name: Download exact genuine original/native RF054 archive
         shell: bash
         env:
-          GH_TOKEN: \${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           curl --fail --location --silent --show-error --retry 2 \
@@ -66,6 +66,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: rf073-authentic-nine-native-NMI-brackets
-          path: \${{ runner.temp }}/rf073-real-native-NMI-brackets.json
+          path: ${{ runner.temp }}/rf073-real-native-NMI-brackets.json
           retention-days: 30
           if-no-files-found: warn

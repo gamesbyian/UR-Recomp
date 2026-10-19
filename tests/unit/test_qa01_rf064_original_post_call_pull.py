@@ -93,7 +93,7 @@ class RealConsumedReturn(unittest.TestCase):
           good.replace('sampled=0026 pc=80:B0EB','sampled=0027 pc=80:B0EB'),
           good.replace('kind=rb','kind=wb'),
           good.replace('base=01ED width=1 returned','base=01EE width=1 returned'),
-          good.replace('after=3 unique=1','after=5 unique=0'),
+          good.replace('after=3 unique=1','after=5 unique=1'),
           good.replace('new=2600EE0000','new=2700EE0000'),
           good.replace('QA01RF045ORIGSTACK','QA01RF045MISSING'),
           good.replace('QA01RF063ORIGCHECKPOINT','QA01RF063OTHER'),

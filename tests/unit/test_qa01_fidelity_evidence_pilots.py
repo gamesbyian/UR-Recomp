@@ -191,6 +191,52 @@ class FrameFingerprintTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "hash mismatch"):
                 verify_frame.verify(report, evidence)
 
+    def test_raw_verdict_binds_exact_frame_report_not_merely_source_sha(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            a, b = self.make_capture(root)
+            long_report = frames.audit(
+                self.identity(), a, b, 0, 2, retained=root / "long-raw")
+            short_report = frames.audit(
+                self.identity(), a, b, 0, 1, retained=root / "short-raw")
+            long = verify_frame.verify(long_report, root / "long-raw")
+            short = verify_frame.verify(short_report, root / "short-raw")
+            # Two genuine independently reopened verdicts for the very same
+            # source, ROM, movie, input and observation phase cannot be
+            # substituted for each other by a downstream factory preflight.
+            self.assertEqual(long["source_sha"], short["source_sha"])
+            self.assertEqual(long["frame_source_identity"],
+                             short["frame_source_identity"])
+            self.assertNotEqual(
+                long["fingerprint_report_canonical_sha256"],
+                short["fingerprint_report_canonical_sha256"])
+            self.assertEqual(long["verified_relative_frame_window"],
+                             {"start": 0, "end": 2, "required_frames": 3,
+                              "observation_phase": "post-script-dump",
+                              "original_frame_origin": 1017,
+                              "native_frame_origin": 2017})
+            self.assertEqual(short["verified_relative_frame_window"]["end"], 1)
+            self.assertEqual(long["fingerprint_report_canonical_sha256"],
+                             verify_frame.canonical_sha256(long_report))
+            # JSON key order and insignificant whitespace are not evidence
+            # changes; an actual source identity or phase mutation IS.
+            roundtrip = json.loads(json.dumps(long_report, indent=4))
+            self.assertEqual(long["fingerprint_report_canonical_sha256"],
+                             verify_frame.canonical_sha256(roundtrip))
+            phased = copy.deepcopy(long_report)
+            phased["source_identity"]["observation_phase"] = "other-guest-phase"
+            other = verify_frame.verify(phased, root / "long-raw")
+            self.assertEqual(long["source_sha"], other["source_sha"])
+            self.assertNotEqual(long["fingerprint_report_canonical_sha256"],
+                                other["fingerprint_report_canonical_sha256"])
+            self.assertNotEqual(long["frame_source_identity"],
+                                other["frame_source_identity"])
+            self.assertEqual(long["retained_raw_manifest_canonical_sha256"],
+                             verify_frame.canonical_sha256(sorted(
+                                 long_report["raw_retained_members"],
+                                 key=lambda row: row["member"])))
+            self.assertEqual(long["complete_USA_events_accepted"], 0)
+
     def test_independent_verifier_refuses_lost_or_forged_capture(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)

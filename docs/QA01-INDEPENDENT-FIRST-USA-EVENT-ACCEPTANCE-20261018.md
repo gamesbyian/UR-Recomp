@@ -232,7 +232,11 @@ The **genuine executed original** RF066 case [Actions 39219862021](https://githu
 | --- | --- | ---: | ---: |
 | `S9xGetByte(unsigned int)` | `0x45720`, `0x618` bytes | 0 / 0 | **0** |
 | `S9xGetWord(unsigned int, s9xwrap_t)` | `0x45d40`, `0xbc8` bytes | 0 / 0 | **0** |
+| `S9xSetByte(unsigned char, unsigned int)` | `0x4ac20`, `0x7f4` bytes | 2 / 2 | **2** |
+| `S9xSetWord(unsigned short, unsigned int, ...)` | `0x4b420`, `0x10f7` bytes | 2 / 2 | **2** |
 | `Op68E0M0()` | `0x80060`, `0x36d` bytes | 4 / 3 | **4** |
+
+**Positive writer-side control:** both compiled source **setters** contain actual `getenv`, `__fprintf_chk`, RF044 log counter and RF063 shared-ordinal references. This is not a missing-all-observers build: the absence is selective to the compiled getters examined. A staged `getset.h` text patch or archived string alone cannot establish the compiled read path was modified.
 
 The compiled `Op68E0M0()` instruction at **`0x800bf`** makes a real direct call to **`0x45d40`**, the compiled word-getter symbol. This getter has **no RF044 source-read recorder, RF063 source-ordinal reference, environment hook or formatted output call in its entire out-of-line executable body**. `S9xGetByte` likewise has no such reader-observer code. Post-return instrumentation survives inside the opcode path, explaining why post-call return observations can coexist with missing getset read-entry events. Other `getset.h` write observer symbols/strings are present in the binary, so a source-code marker string alone is not a sufficient witness that the **getter path** is instrumented.
 

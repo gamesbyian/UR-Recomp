@@ -175,6 +175,15 @@ class ReleaseQualityAuthority(unittest.TestCase):
         gate["witnesses"] = [physical("pc-a", clean=True),
                              physical("pc-b"), physical("pc-c")]
         self.assertEqual(self.check(data)["approved_gate_count"], 1)
+        # A stale source/ZIP cannot be laundried through the hardware flag.
+        gate["witnesses"][1]["source_commit"] = "d" * 40
+        with self.assertRaisesRegex(ValueError, "not bound to exact candidate"):
+            self.check(data)
+        gate["witnesses"][1]["source_commit"] = src
+        gate["witnesses"][1]["artifact_sha256"] = "e" * 64
+        with self.assertRaisesRegex(ValueError, "not bound to exact candidate"):
+            self.check(data)
+        gate["witnesses"][1]["artifact_sha256"] = zhash
         # A green structural test never executes any of these synthetic PCs.
         gate["witnesses"][2]["tested_executable_sha256"] = "d" * 64
         with self.assertRaisesRegex(ValueError, "fewer than three"):

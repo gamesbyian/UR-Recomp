@@ -16,7 +16,7 @@ import zipfile
 
 try:
     from tools import qa08_verify_112field_grey_pixel_budget as source
-except ModuleNotFoundError:
+except (ModuleNotFoundError, ImportError):
     import qa08_verify_112field_grey_pixel_budget as source
 
 WIDTH, HEIGHT, TILE = 256, 224, 8

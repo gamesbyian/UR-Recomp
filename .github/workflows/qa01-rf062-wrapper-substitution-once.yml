@@ -1,4 +1,6 @@
 # TEMP research-only RF062 wrapper *substitution* A/B. DO NOT MERGE.
+# Two explicit source-frozen native builds are required by this experiment.
+# Production's one-build policy is unchanged.
 # Exact source/ROM/movie plus the same RF018/RF054 native stages. The only
 # generated-code difference must be one actual 82:82F0 paced ROM byte read
 # invoking the RF062 wrapper. Runtime logging is OFF in BOTH native binaries.

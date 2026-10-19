@@ -30,6 +30,57 @@ def events(text,prefix):
             rows.append(dict(vals))
     return rows
 
+
+def retained_memory_control(wrapped:Path,control:Path,source:dict,baseline:dict)->dict:
+    from qa01_zoo_raw_archive_audit import CHECKPOINT_COUNT, BOWL_OFFSETS
+    mesh=source.get("zoo_race_mesh",{}).get("samples",[])
+    control_mesh=baseline.get("zoo_race_mesh",{}).get("samples",[])
+    require(len(mesh)==len(control_mesh)==CHECKPOINT_COUNT==78,
+            "missing 78 full frame raw original/native checkpoints")
+    actual=[r.get("race_relative_frame") for r in mesh]
+    require(actual==[r.get("race_relative_frame") for r in control_mesh]
+            and actual==sorted(set(actual)) and actual[0]==0
+            and actual[-1]==5120,
+            "actual independent relative Zoo WRAM phases differ")
+    handoff=source.get("zoo_next_bowl_handoff",{})
+    control_handoff=baseline.get("zoo_next_bowl_handoff",{})
+    require(handoff.get("sample_offsets")==list(BOWL_OFFSETS) and
+            control_handoff.get("sample_offsets")==list(BOWL_OFFSETS),
+            "source-earned original/native Bowl handoff population absent")
+    tags=[("race-entered" if n==0 else f"scene-{n:05d}",n,"course")
+          for n in actual]
+    tags.extend((f"zoo-next-bowl-{n:03d}",n,"Bowl") for n in BOWL_OFFSETS)
+    mismatches=[]
+    files=0
+    for label,num,phase in tags:
+        for side in ("ref","native"):
+            for kind,expected_size in (("wram",131072),("sram",8192)):
+                base=Path("work")/"zoom-zoo"/"replay"/side/(label+"."+kind+".bin")
+                left,right=wrapped/base,control/base
+                require(left.is_file() and right.is_file() and
+                        not left.is_symlink() and not right.is_symlink() and
+                        left.stat().st_size==right.stat().st_size==expected_size,
+                        "incomplete actual original/native full raw memory at "+str(base))
+                a,b=left.read_bytes(),right.read_bytes()
+                files+=2
+                if a!=b:
+                    mismatches.append({
+                        "phase":phase,"offset":num,"guest":side,"memory":kind,
+                        "number_of_changed_bytes":sum(x!=y for x,y in zip(a,b)),
+                        "wrapped_sha256":hashlib.sha256(a).hexdigest(),
+                        "unwrapped_sha256":hashlib.sha256(b).hexdigest(),
+                    })
+    return {
+        "full_raw_images_independently_reopened":files,
+        "unique_relative_race_frames":len(actual),
+        "earned_Bowl_handoff_offsets":len(BOWL_OFFSETS),
+        "original_and_native_exact_variant_raw_memory_equal":not mismatches,
+        "first_12_between_variant_raw_memory_differences":mismatches[:12],
+        "number_of_between_variant_raw_memory_differences":len(mismatches),
+        "every_unsampled_CPU_opcode_or_frame_proven_equivalent":False,
+    }
+
+
 def compare(wrapped:Path,control:Path, static:Path,wrapped_bin:Path,
             control_bin:Path)->dict:
     source=json.loads((wrapped/"producer-report.json").read_text())
@@ -52,7 +103,8 @@ def compare(wrapped:Path,control:Path, static:Path,wrapped_bin:Path,
     r1=(wrapped/OG).read_text()
     r2=(control/OG).read_text()
     # From separately merged same-native-binary independent examiner.
-    from qa01_rf062_same_binary_ab import strictly_qualified_original_path_variation
+    from qa01_rf062_same_binary_ab import (strictly_qualified_original_path_variation,
+         strictly_qualified_native_logging_variation)
     original=strictly_qualified_original_path_variation(r1.encode(),r2.encode())
     require(original["source_nonpath_log_equality_proven"],
             "original emulator actual execution differs outside exact working-directory paths")
@@ -61,6 +113,7 @@ def compare(wrapped:Path,control:Path, static:Path,wrapped_bin:Path,
     require("QA01RF054NATIVEBUS_TRUNCATED" not in a+b and
             "QA01RF062NATIVE " not in a+b,
             "native helper trace truncated or runtime diagnostic logging enabled")
+    native_log_control=strictly_qualified_native_logging_variation(b.encode(),a.encode())
     native,unwrapped=events(a,"QA01RF054NATIVEBUS "),events(b,"QA01RF054NATIVEBUS ")
     for name,rows in (("wrapped",native),("unwrapped",unwrapped)):
         require(rows and [int(r["seq"]) for r in rows]==list(range(1,len(rows)+1))
@@ -79,11 +132,13 @@ def compare(wrapped:Path,control:Path, static:Path,wrapped_bin:Path,
     same_mesh={key:source.get(key)==baseline.get(key)
                and isinstance(source.get(key),dict)
                for key in CONTROLS}
+    raw=retained_memory_control(wrapped,control,source,baseline)
     # Do not turn a negative into a failing source producer. A *difference*
     # is scientifically informative, and must be retained for causal followup.
     return {
         "schema":SCHEMA, "original_native_same_source_rom_movie_inputs":True,
-        "native_executables_differ_only_at_verified_generated_guest_site":True,
+        "generated_guest_code_only_one_sound_read_site_changed":True,
+        "additional_native_runtime_helper_introduced_by_RF062":True,
         "wrapped_native_executable_sha256":sha(wrapped_bin),
         "control_native_executable_sha256":sha(control_bin),
         "genuine_CPU_helper_count_unwrapped":len(unwrapped),
@@ -93,10 +148,15 @@ def compare(wrapped:Path,control:Path, static:Path,wrapped_bin:Path,
         "all_helper_observed_address_register_rows_equal":all_rows,
         "all_helper_native_local_master_cycles_equal":master,
         "original_nonpath_source_log_equal":True,
+        "native_nonhost_metadata_log_equal":native_log_control["all_other_native_lines_byte_equal_after_strict_host_metadata"],
+        "native_log_control":native_log_control,
+        "actual_full_original_native_raw_memory_between_variants":raw,
         "all_mesh_and_result_followthrough_control_equal":all(same_mesh.values()),
         "mesh_and_followthrough_components":same_mesh,
         "bounded_wrapper_substitution_noninterference_supported":
-            all_rows and master and all(same_mesh.values()),
+            all_rows and master and all(same_mesh.values()) and
+            raw["original_and_native_exact_variant_raw_memory_equal"] and
+            native_log_control["all_other_native_lines_byte_equal_after_strict_host_metadata"],
         "undetected_CPU_instructions_or_CPU_joypad_polls_equivalent_proven":False,
         "native_source_original_instruction_epoch_equal_proven":False,
         "sound_PCM_full_course_fidelity_proven":False,

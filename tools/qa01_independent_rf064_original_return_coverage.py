@@ -106,7 +106,7 @@ def corroborate_last_observed_push(original_log: str) -> dict:
             else:
                 different += 1
     return {
-        "real_post_call_returns_corrobated_by_last_observed_RF045_push": matched,
+        "real_post_call_returns_corroborated_by_last_observed_RF045_push": matched,
         "returns_without_prior_observed_RF045_push_bytes": unknown,
         "returns_differing_from_last_observed_RF045_push": different,
         "post_call_returns_observed_in_order": pulls,

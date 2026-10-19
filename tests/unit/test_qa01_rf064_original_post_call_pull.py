@@ -10,7 +10,7 @@ import qa01_rf064_original_pull_return_report as audit
 
 def source_fixture():
     return ('#include "cpumacro.h"\n'
-            + rf45.HELPER + '\n' + rf45.PULL_B_NEW + '\n' + rf45.PULL_W_NEW)
+            + rf45.HELPER + '\n' + rf45.PULL_B_NEW + '\n' + rf45.PULL_NEW)
 
 def genuine_rows():
     return (
@@ -49,7 +49,7 @@ class OriginalPullPatch(unittest.TestCase):
         for bad in (original.replace(rf45.STAMP,'not_RF045'),
                     original.replace(patcher.HEADER_ANCHOR,''),
                     original.replace(patcher.PULL_B_GET,'        b=0; \\\n'),
-                    original.replace(rf45.PULL_W_NEW,rf45.PULL_W_OLD)):
+                    original.replace(rf45.PULL_NEW,rf45.PULL_OLD)):
             with self.subTest(case=bad[:30]):
                 with self.assertRaises(ValueError):
                     patcher.patch(bad)

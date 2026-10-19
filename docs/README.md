@@ -2,6 +2,10 @@
 
 **For agents:** start at [AGENTS.md](../AGENTS.md) and the *short, current* [WORK-QUEUE.md](WORK-QUEUE.md). A dated investigation or historical implementation phase never independently schedules work. This index owns only **where facts live**, not a second backlog.
 
+## QA01 experimental fidelity evidence tools
+
+[QA01-FIDELITY-EVIDENCE-PILOTS-20261018.md](QA01-FIDELITY-EVIDENCE-PILOTS-20261018.md) owns the bounded, ROM-free causal bus consumer and continuous full-memory capture auditor contracts. These are diagnostic candidates only. The current QA01 acceptance boundary, event census and release ledger retain exclusive course/release verdict authority; no live event or original/native producer is qualified by the synthetic tool tests.
+
 ## Desktop post-race video
 
 [DESKTOP-POST-RACE-VIDEO.md](DESKTOP-POST-RACE-VIDEO.md) owns the Windows/macOS/Linux Modern **Save Race Video / Discard Video** result feature, evidence-backed capture/export backend choices, concrete resource/latency expectations, playback/job confirmation semantics, and staged acceptance. It is not an implemented feature or a new P0. Existing `COMPLETED-RUN-RECORDS.md`, `COMPLETED-RUN-BROWSER.md` and `MODERN-RESULTS-NAVIGATION.md` retain their separate run/replay/navigation authorities.

@@ -28,13 +28,13 @@ READ_SITE_RF018 = (
 READ_PATCH_RF018 = """    # UR_QA01_RF062_DIRECT_CPU_BUS_GUEST_PC: RF018 hoists the
     # [dp],Y pointer exactly once. Keep its prelude and account any
     # actual paced guest reads before substituting this single operand.
-    if _CURRENT_SOURCE_PC24 == 0x8282F0 and op.width == 1:
+    if _CURRENT_SOURCE_PC24 in (0x0282F0, 0x8282F0) and op.width == 1:
         return prelude + [f"{widths.ctype(op.width)} {_v(op.out)} = "
                           f"{widths.read_fn(op.width)}(cpu, {bank}, {addr}); /* UR_QA01_RF062_DIRECT_PC_8282F0 */"]
 """
 READ_PATCH = """    # UR_QA01_RF062_DIRECT_CPU_BUS_GUEST_PC: source decoded opcode PC.
     # Mark but DO NOT replace this real cpu_read8 call before pacing pass.
-    if _CURRENT_SOURCE_PC24 == 0x8282F0 and op.width == 1:
+    if _CURRENT_SOURCE_PC24 in (0x0282F0, 0x8282F0) and op.width == 1:
         return [f"{widths.ctype(op.width)} {_v(op.out)} = "
                 f"{widths.read_fn(op.width)}(cpu, {bank}, {addr}); /* UR_QA01_RF062_DIRECT_PC_8282F0 */"]
 """
@@ -63,6 +63,7 @@ uint8 ur_rf062_read8_pc_8282f0(CpuState *cpu, uint8 bank, uint16 addr) {
     extern int snes_frame_counter;
     if (getenv("UR_QA01_RF062_SOUND_DIRECT_PC") &&
         snes_frame_counter == 6124 &&
+        cpu->PB == 0x82u && /* 02:82F0 decoded mirror executes as PB=82 */
         bank == 0x11u && addr >= 0xC770u && addr <= 0xC779u) {
         static unsigned seq;
         if (++seq <= 8192u)

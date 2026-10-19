@@ -326,7 +326,7 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
         if (len(setups) < 3 or len(phys) < 2 or len(vm) > 1
                 or len({s[0] for s in setups}) != len(setups)
                 or not any(s[3] for s in setups)
-                or len({s[2] for s in phys}) < 2
+                or len({s[2] for s in phys}) != len(phys)
                 or len({s[4] for s in setups}) != 1):
             errors.append(
                 "QA-04 needs three independently identified dissimilar L5 "

@@ -9,6 +9,8 @@ import qa01_rf076_original_opcode_fetch_source as m
 def fixture():
     return ('static inline void S9xReschedule (void);\n'
             'void S9xMainLoop (void) {\n'
+            '\t\t\t\tTimings.NMITriggerPos = 0xffff;\n'
+            '\t\t\t\tif (CPU.WaitingForInterrupt)\n'
             '\t\t\t\tS9xOpcode_NMI();\n'
             '\t\t\t\tOp = CPU.PCBase[Registers.PCw];\n'
             '\t\t\t\tOp = S9xGetByte(Registers.PBPC);\n'
@@ -23,6 +25,10 @@ class OriginalFetch(unittest.TestCase):
         self.assertEqual(src.count(m.STAMP), 2)
         self.assertLess(src.index('ur_rf076_original_fetched_opcode("fetch", Op);'),
                         src.index('Registers.PCw++;'))
+        self.assertLess(src.index('ur_rf076_original_fetched_opcode("nmi_pending", 0);'),
+                        src.index('if (CPU.WaitingForInterrupt)'))
+        self.assertLess(src.index('ur_rf076_original_fetched_opcode("nmi_pending", 0);'),
+                        src.index('ur_rf076_original_fetched_opcode("nmi_before", 0);'))
         self.assertLess(src.index('ur_rf076_original_fetched_opcode("nmi_before", 0);'),
                         src.index('S9xOpcode_NMI();'))
         self.assertLess(src.index('Op = CPU.PCBase[Registers.PCw];'),
@@ -30,6 +36,7 @@ class OriginalFetch(unittest.TestCase):
         self.assertLess(src.index('Op = S9xGetByte(Registers.PBPC);'),
                         src.index('ur_rf076_original_fetched_opcode("fetch", Op);'))
         self.assertIn('actualFetchedPC=%06X fetchedOpcode=%02X', src)
+        self.assertIn('wai=%u', src)
         self.assertIn('UR_QA01_RF076_ORIGINAL_FETCH_PC', src)
         self.assertIn('QA01RF076ORIGPC_TRUNCATED', src)
         self.assertEqual(old.count('S9xGetByte('), src.count('S9xGetByte('))
@@ -43,7 +50,7 @@ class OriginalFetch(unittest.TestCase):
                 m.patch(fixture().replace(a, 'BAD;'))
 
     def test_ambiguous_guest_dispatch_or_nmi_fails(self):
-        for a in (m.HEADER, m.FETCH, m.NMI):
+        for a in (m.HEADER, m.FETCH, m.NMI, m.NMI_WAKE):
             with self.subTest(a=a), self.assertRaises(ValueError):
                 m.patch(fixture().replace(a, a+a))
 

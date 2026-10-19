@@ -20,12 +20,14 @@ static inline void ur_rf045_stack_note(const char *op,uint16 sp0,
         (unsigned)ICPU.Frame<1017u || (unsigned)ICPU.Frame>1025u ||
         base>0x01f1u || base+width-1u<0x01edu)
         return;
+    /* Recorder-local ordinal. RF044 getset and NMI stdout/stderr do NOT
+     * share this sequence, and it cannot order cross-recorder bus events. */
     static unsigned count;
     if (count++<4096u)
        fprintf(stderr,
-          "QA01RF045ORIGSTACK f=%u v=%u h=%d kind=%s addr=%04X"
+          "QA01RF045ORIGSTACK seq=%u f=%u v=%u h=%d kind=%s addr=%04X"
           " width=%u value=%04X sp0=%04X sp1=%04X pc=%02X:%04X\n",
-          (unsigned)ICPU.Frame,(unsigned)CPU.V_Counter,(int)CPU.Cycles,
+          count,(unsigned)ICPU.Frame,(unsigned)CPU.V_Counter,(int)CPU.Cycles,
           op,base,width,(unsigned)value,(unsigned)sp0,(unsigned)sp1,
           (unsigned)Registers.PB,(unsigned)Registers.PCw);
     else if(count==4097u)

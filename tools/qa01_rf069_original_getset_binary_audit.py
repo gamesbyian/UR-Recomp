@@ -66,8 +66,9 @@ def audit(nm_text:str, disassemblies:dict[str,str]) -> dict:
             if not dump or f"<{name}>:" not in dump:
                 missing.append({"operation":role,"symbol":name,"reason":"disassembly missing"})
                 continue
-            if GETENV.search(dump):
-                methods[role][name]="direct_getenv_guard"
+            if (len(GETENV.findall(dump))>=2 and RF063_GLOBAL.search(dump)
+                    and REAL_PRINT.search(dump)):
+                methods[role][name]="direct_original_RF044_RF063_probe_and_source_ordinal_guard"
                 continue
             calls=set(CALL_TARGET.findall(dump))
             proven=sorted(calls.intersection(helpers))

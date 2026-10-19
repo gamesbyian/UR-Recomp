@@ -69,6 +69,23 @@ This is valuable same-executable integration evidence combining the *new* storag
 
 The tightened **original archived source** was replayed locally with both real original ZIPs: 16 before-stage state files, 22 postraw-stage files, 74 changed raw SRAM byte offsets, generation-2 typed alignment, and two cold boots still PASS. Four independently altered copies of the *real* postraw ZIP were built, with recomputed valid outer ZIP SHA256s: (1) forged first-cold `BOOT_SRAM` FNV, (2) fake repeated second-cold `RECOVERY_RECONCILED`, (3) substituted independent OS probe `exit=0`, and (4) erased the postraw `SAVE-FAILED` marker. **All four fail closed** for the corresponding missing causal witness. These mutations are local negative test fixtures, not actual Windows runs or release gate passes; no original ROM or saved profile bytes were committed.
 
+## Independent second distinct Windows binary: reproducibility rather than identity splicing
+
+Agent 5's later green [Win32 run `39340984124`](https://github.com/gamesbyian/UR-Recomp/actions/runs/39340984124) used a **different** actual GitHub synthetic merge checkout **`f639277f2c0410d85f773b77835c9a526dd2e65d`** (GitHub commit parents then-main `34a308f66f0d7ba9bc6857a628c2fc92157e19a1`, PR head `38a8840e3e99b4812ebc1bf0e5b44c7a3b6ac0a3`). This source is neither the earlier tested `f7db1b92…` nor integrated merged `main`. The new original Actions artifacts were **downloaded independently**, hashed and CRC-checked:
+
+| Evidence | Original artifact | External outer ZIP SHA256 |
+| --- | --- | --- |
+| ROM-free portable ZIP | `12229955330` | `9ebe81ed2e98143c32efdcca19b46282088b67ec83ce14aad491548d326e6470` |
+| Exact source/tested PE/packaging binding | `12229626228` | `a8e19fd7f4dae85634fd30769e0753892026bc2236e95e2b129c9117b03a8f6c` |
+| Pre-intent original NTFS W: full | `12229596389` | `4b0ee83d5a504e4f3dd81835f8f478c4aae1f81ea20182b84db4541520842c31` |
+| Post-raw/pre-typed original NTFS W: full | `12228772773` | `c5f48470785fc0698a1ff598d97dd67e76d2ed63e64e083e7c937098b3a2e700` |
+
+Rehashed **playable inner ZIP** SHA256 `87c0e5221b20149f91dae16144a3a8c31661bf5066775c71dccfa88fe964d772` (6,058,239 bytes), independently rehashed embedded **AMD64 PE32+** SHA256 `5201916cee6455f307ecd58c957cc8616ba2acbe7ac9efdbd7de8453525d6256` (20,334,592 bytes), and each of three immutable manifest members including unchanged CMD `2f2a6cdbe9d4c37e331b82577ed3c947342e545a19bd0c022d0b940fa7cac8e0`. Manifest, sidecar, original compiled executable binding, and actual PR-merge checkout all agree.
+
+Ran the **strengthened** read-only archive consumer again on these independently downloaded new original source ZIPs, with their new external outer SHA pins and new tested source. It PASSed all 16 pre-intent and 22 postraw original byte digests, real W: Win32 error `112` and native original CMD exits `8`, unchanged raw+typed old state before intent, 74 changed raw SRAM positions after durable intent and source gate, intact selector/catalog, new typed generation 2 at first cold boot, unchanged second cold boot and all source log markers. More importantly it **independently recomputed guest-consumed SRAM FNV-1a32**: `63568e07` before and `255e468b` after recovery, both actually observed in the new guest first-frame logs.
+
+The [second-source immutable receipt](../analysis/evidence/qa06-independent-second-win32-ntfs-pr1990-20261019.json) deliberately carries both the newer and prior candidate identities so they cannot accidentally be interchanged. This establishes **bounded reproducibility on a second genuine different Windows PE**, not a merged-main QA-02 pass, physical storage power-cut, full fault/hostile-writer matrix, or consumer hardware. Retain **0/12, 0/45, release HOLD**.
+
 ## Evidence boundary and next owner
 
 This is positive evidence about **one named profile on the genuine source-compiled Windows guest, in a source-qualified but unmerged synthetic PR checkout**. The postraw ZIP does not itself embed full tested source SHA; source linkage also uses the separately inspected original Actions run and matching compiled CMD. Request a separate producer-local full source/PE/ZIP receipt per future scenario. Still missing: one immutable integrated **merged-main** Windows ZIP, active competing writers, denied/share/short and electrical interruption coverage, full real 1P/2P profile/Records player journey, dissimilar clean consumer PCs, actual dual controllers, audible audio, true UHD/7:6 display and authoritative original/native USA events. Retain original nominated October 15 source and ZIP without relabeling, QA-02 in progress, physical=false, release_decision=not_assessed, **0/12 Windows release gates and 0/45 complete USA events**.

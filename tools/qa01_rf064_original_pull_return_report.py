@@ -83,6 +83,8 @@ def check(raw: str) -> dict:
         if int(bus.get("sampled","-1"),16)!=value:
             raise ValueError("RF064 consumed original pull differs from bus-entry RAM sample")
         qualified+=1
+    if any(count != 0 for count in macro_counts.values()):
+        raise ValueError("RF064 missing source-original post-call records for RF045 true pulls")
     return {
         "schema":"ur-qa01-rf064-original-consumed-pull-join/1",
         "sequenced_original_bus_entries":original["sequenced_original_bus_entries"],

@@ -131,6 +131,33 @@ def correlate(sound: dict, fingerprint: dict, independent: dict,
     }
 
 
+
+def validate_case_provenance(sound: dict, fingerprint: dict,
+                             case: dict, producer: dict) -> None:
+    """Require one real case for opcode, original source and raw host origins."""
+    identity = fingerprint.get("source_identity", {})
+    evidence = case.get("evidence", {})
+    require(case.get("source_sha") == sound.get("candidate_source_sha") ==
+                identity.get("source_sha"),
+            "source identity differs between opcode and raw evidence")
+    require(identity.get("rom_sha256") == evidence.get("rom_sha256") ==
+                producer.get("rom_sha256") and
+            identity.get("movie_sha256") == evidence.get("movie_sha256") ==
+                producer.get("original_movie_sha256"),
+            "ROM/movie differs between actual source/native run and raw evidence")
+    require(identity.get("input_sha256") ==
+                evidence.get("original_movie_window_sha256") ==
+                producer.get("original_movie_window_sha256"),
+            "input window identity differs between actual CPU trace and raw frames")
+    require(type(evidence.get("reference_entry_frame")) is int and
+            type(evidence.get("native_entry_frame")) is int and
+            evidence["reference_entry_frame"] ==
+                identity.get("original_frame_origin") and
+            evidence["native_entry_frame"] ==
+                identity.get("native_frame_origin"),
+            "real original/native race-entry origins do not match captured raw")
+
+
 def report(candidate: Path, baseline: Path, expected_sha: str | None = None) -> dict:
     digest = hashlib.sha256(candidate.read_bytes()).hexdigest()
     if expected_sha is not None:
@@ -150,30 +177,9 @@ def report(candidate: Path, baseline: Path, expected_sha: str | None = None) -> 
                     "no genuine continuous paired raw frame report")
             fps = json.loads(z.read(FRAME_DIR + "fingerprints.json"))
             audit = json.loads(z.read(FRAME_DIR + "independent-review.json"))
-            # All pairing identities must originate in the SAME genuine case.
-            # Unlike the original/native host origins, a matching ROM SHA by
-            # itself does not establish the replay/movie/input provenance.
-            identity = fps.get("source_identity", {})
-            evidence = case.get("evidence", {})
-            require(case.get("source_sha") == sound["candidate_source_sha"] ==
-                        identity.get("source_sha"),
-                    "source identity differs between opcode and raw evidence")
-            require(identity.get("rom_sha256") == evidence.get("rom_sha256") ==
-                        producer.get("rom_sha256") and
-                    identity.get("movie_sha256") == evidence.get("movie_sha256") ==
-                        producer.get("original_movie_sha256"),
-                    "ROM/movie differs between actual source/native run and raw evidence")
-            require(identity.get("input_sha256") ==
-                        evidence.get("original_movie_window_sha256") ==
-                        producer.get("original_movie_window_sha256"),
-                    "input window identity differs between actual CPU trace and raw frames")
-            require(type(evidence.get("reference_entry_frame")) is int and
-                    type(evidence.get("native_entry_frame")) is int and
-                    evidence["reference_entry_frame"] ==
-                        identity.get("original_frame_origin") and
-                    evidence["native_entry_frame"] ==
-                        identity.get("native_frame_origin"),
-                    "real original/native race-entry origins do not match captured raw")
+            # Matching per-run provenance is an independently unit-tested
+            # *positive requirement*, never inherited from a prior experiment.
+            validate_case_provenance(sound, fps, case, producer)
             for x in fps.get("raw_retained_members", []):
                 member = x.get("member", "")
                 require(type(member) is str and

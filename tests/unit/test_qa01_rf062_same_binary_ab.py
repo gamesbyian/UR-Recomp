@@ -170,6 +170,46 @@ class SameBinaryNativeProbeAB(unittest.TestCase):
         self.assertFalse(result["native_actual_RF054_CPU_master_clocks_equal"])
         self.assertFalse(result["runtime_RF062_logging_noninterference_supported"])
 
+    def test_exact_three_original_source_workdir_paths_not_guest_behavior(self):
+        original_lines = (
+            "[input] loaded 397 event(s) from /runner/A/work/zoom-zoo/replay/ref.input",
+            "script: loaded 112 command(s) from /runner/A/work/zoom-zoo/replay/complete.script",
+            "[memory] loaded 8192 SRAM bytes from /runner/A/work/zoom-zoo/anchored.srm",
+            "QA01RF049LDA frame=6124 pc=82:82F0 ea=11C774 a1=63D0",
+        )
+        off = ("\n".join(original_lines) + "\n").encode()
+        on = ("\n".join(x.replace("/runner/A/", "/runner/B/")
+                         for x in original_lines) + "\n").encode()
+        scope = x.strictly_qualified_original_path_variation(off,on)
+        self.assertFalse(scope["exact_log_bytes_equal"])
+        self.assertTrue(scope["source_nonpath_log_equality_proven"])
+        self.assertEqual(len(scope["allowed_path_metadata_changes"]),3)
+        a,b,c,d,e,f=fixtures()
+        c["original"], d["original"] = off,on
+        result=x.control(a,b,c,d,e,f)
+        self.assertTrue(result["runtime_RF062_logging_noninterference_supported"])
+        self.assertFalse(result["original_complete_log_byte_identical"])
+        self.assertEqual(len(result["original_qualified_source_log_path_differences"]
+                             ["allowed_path_metadata_changes"]),3)
+
+    def test_guest_read_byte_or_clock_cannot_be_hidden_as_a_path_difference(self):
+        original = (
+            "[input] loaded 397 event(s) from /runner/A/work/zoom-zoo/replay/ref.input\n"
+            "QA01RF049LDA frame=6124 pc=82:82F0 ea=11C774 a1=63D0\n"
+        ).encode()
+        other=original.replace(b"/runner/A/", b"/runner/B/").replace(
+            b"a1=63D0", b"a1=63D1")
+        a,b,c,d,e,f=fixtures()
+        c["original"],d["original"]=original,other
+        result=x.control(a,b,c,d,e,f)
+        self.assertFalse(result["runtime_RF062_logging_noninterference_supported"])
+        self.assertFalse(result["original_qualified_source_log_path_differences"]
+                         ["source_nonpath_log_equality_proven"])
+        # Even a changed input count at the exact allowed file suffix fails.
+        other=original.replace(b"397 event(s)", b"396 event(s)")
+        scope=x.strictly_qualified_original_path_variation(original,other)
+        self.assertFalse(scope["source_nonpath_log_equality_proven"])
+
     def test_original_control_log_change_cannot_yield_positive_native_ab(self):
         a,b,c,d,e,f=fixtures()
         d["original"] += b"UNEXPLAINED_SOURCE_NMI_CHANGE\\n"

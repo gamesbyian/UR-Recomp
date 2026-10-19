@@ -1,0 +1,87 @@
+{
+  "schema": "UR-QA01-DRAGSTER-205-ACTUAL-POSTBOOT-SRAM-INDEPENDENT/1",
+  "decision": "HOLD",
+  "source": {
+    "repo": "gamesbyian/UR-Recomp",
+    "run_id": 39180473171,
+    "run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39180473171",
+    "source_head": "ea4d61de8d6ece7daa9323fab5f33b1eb28d74fa",
+    "merged_event_pr": 1869,
+    "artifact_id": 12155314437,
+    "artifact_bytes": 14033918,
+    "artifact_members": 205,
+    "original_zip_sha256": "1d8ca903cbe911bb36bb8444d8f6b4fe055fd4aabfe33bf379a6c917c928a92f",
+    "same_sha256_as_github_provider": true,
+    "original_producer_sha256": "6620a1de7787c05ccd31a7a149e8b712ba95c5ed3d986b4d1d67c1b2fb8469f8",
+    "original_cold_report_sha256": "d8a8e9d316bb7758c4f564599d96d0c8e2b9125904ff063d4439465a7904f7c7",
+    "independent_cold_raw_report_sha256": "70f4f441bf2cc11038f0653fea236c1ab52046ef77e5eb5171e957bf0c76cdee",
+    "original_guest_raw_report_sha256": "3c9d0b9f6383d26bebc232200f3b73b1ed30a2f4b1fecd91d322e986625cdc77",
+    "exact_producer_hash_matches_all_real_derived_cold_reports": true
+  },
+  "raw": {
+    "original_native_14_sample_full_wram_sram_images_independently_rehashed": 56,
+    "original_native_14_sample_full_guest_wram_extent_each": 131072,
+    "original_native_14_sample_full_guest_sram_extent_each": 8192,
+    "all_56_guest_producer_digests_recomputed_and_agree": true,
+    "source_supplied_input_files_and_script_sha256_verified": true,
+    "original_source_p1_window_independently_reconstructed_from_2014_smv": false
+  },
+  "cold": {
+    "original_and_native_fresh_guest_processes": 2,
+    "actual_frames": [
+      300,
+      420
+    ],
+    "full_raw_postboot_sram_images_independently_rehashed": 4,
+    "bytes_per_image": 8192,
+    "earned_dragster_score_centiseconds": 2508,
+    "holder": 0,
+    "full_150_ranked_words_sha256": "2919ece9365dedffade5f4f6e1adda769e739cfea4b1a3d853eb4dede355a64b",
+    "full_150_ranked_holders_sha256": "fa80e9aae5d12d37e45e1a56d7ab79cf57bf700925e23af7637a13210534e0f0",
+    "stored_and_recomputed_checksum": 64620,
+    "original_guest_seed_sha256": "1fa9b909926a1b4c7374bdfc5d7fedd09ab76523c51f2e7e7ad484fcf47ad16c",
+    "native_guest_seed_sha256": "c93233602204915ef3f5994d93d0333405b0e5797ba9d3e7e52e4d3bdb2b9be8",
+    "original_cold_300_420_sha256": "0c81f68465651cbb3376c371f192f9943175ac2c22f63acfad2eb02a419df1f3",
+    "native_cold_300_420_sha256": "30be0de4479951436a43656298888312844e6f97a00cbe9f8d75602a40d8beff",
+    "per_guest_exact_changed_seed_to_cold_bytes": [
+      {
+        "offset": "0x0742",
+        "source_earned_seed_byte": 2,
+        "postboot_byte": 0
+      }
+    ],
+    "byte_identical_cold_sram_300_and_420_within_each_guest": true,
+    "original_native_postboot_full_sram_differing_bytes": 13,
+    "persistent_original_native_difference_offsets": [
+      "0x0F31",
+      "0x0F33",
+      "0x0FF2",
+      "0x0FF3",
+      "0x0FF4",
+      "0x0FF5",
+      "0x0FF6",
+      "0x0FF7",
+      "0x0FF8",
+      "0x0FF9",
+      "0x0FFC",
+      "0x0FFD",
+      "0x0FFE"
+    ],
+    "postboot_values_are_directly_recomputed_from_all_four_raw_images": true
+  },
+  "remaining_gates": {
+    "source_original_result_relative": 2080,
+    "original_guest_result_relative": 2081,
+    "native_guest_result_relative": 2079,
+    "source_next_zoo_result_relative": 316,
+    "original_next_zoo_result_relative": 315,
+    "native_next_zoo_result_relative": 318,
+    "all_frame_cpu_spc_parity": false,
+    "consumed_input_timing_proven": false,
+    "exact_shipping_windows_pe_bound": false,
+    "actual_windows_disk_publication_power_cut_proven": false,
+    "complete_usa_events_accepted": 0,
+    "windows_release_gates_passed": 0
+  },
+  "retention_warning": "Derived receipt is not a copy of the original 205-member binary Actions ZIP, which has limited retention."
+}

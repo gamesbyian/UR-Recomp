@@ -72,6 +72,48 @@ def classify(pulls: list[dict], buses: list[dict], verified: dict) -> dict:
     }
 
 
+def corroborate_last_observed_push(original_log: str) -> dict:
+    """Compare real post-call returns to previous *observed* RF045 pushes.
+
+    This is strictly per-byte and per-log-order. It does not assert there were
+    no unlogged physical writers, does not add a game read and cannot prove
+    that RF063 observed an actual source guest bus read.
+    """
+    known: dict[int, int] = {}
+    matched = different = unknown = pulls = 0
+    for line in original_log.splitlines():
+        if line.startswith("QA01RF045ORIGSTACK "):
+            row = dict(token.split("=", 1) for token in line.split()[1:])
+            if row.get("kind") not in ("pushB", "pushW"):
+                continue
+            address = int(row["addr"], 16)
+            width = int(row["width"])
+            value = int(row["value"], 16)
+            for offset in range(width):
+                known[(address + offset) & 0xFFFF] = (value >> (offset * 8)) & 0xFF
+        elif line.startswith("QA01RF064ORIGPULL "):
+            row = dict(token.split("=", 1) for token in line.split()[1:])
+            pulls += 1
+            address = int(row["base"], 16)
+            width = int(row["width"])
+            actual = int(row["returned"], 16)
+            readback = [known.get((address + i) & 0xFFFF)
+                        for i in range(width)]
+            if any(byte is None for byte in readback):
+                unknown += 1
+            elif actual == sum(byte << (i * 8) for i, byte in enumerate(readback)):
+                matched += 1
+            else:
+                different += 1
+    return {
+        "real_post_call_returns_corrobated_by_last_observed_RF045_push": matched,
+        "returns_without_prior_observed_RF045_push_bytes": unknown,
+        "returns_differing_from_last_observed_RF045_push": different,
+        "post_call_returns_observed_in_order": pulls,
+        "complete_actual_source_bus_writer_history_proven": False,
+    }
+
+
 def zip_open(path: Path, digest: str) -> zipfile.ZipFile:
     require(sha256(path.read_bytes()) == digest, "wrong exact ZIP provenance: " + path.name)
     z = zipfile.ZipFile(path)
@@ -99,6 +141,10 @@ def audit(case: Path, binaries: Path, aggregate: Path, *,
         pull_rows = rf064.extract(raw, rf064.PULL)
         bus_rows = rf064.extract(raw, rf064.BUS)
         classification = classify(pull_rows, bus_rows, independently)
+        push_corroboration = corroborate_last_observed_push(raw)
+        require(push_corroboration["post_call_returns_observed_in_order"] ==
+                independently["post_call_actual_original_pull_count"],
+                "genuine macro return count differs from source log-order observation")
 
         manifest = zc.read("SHA256SUMS")
         require(manifest == zb.read("SHA256SUMS"),
@@ -148,6 +194,7 @@ def audit(case: Path, binaries: Path, aggregate: Path, *,
             "verified_original_nmi_stack": independently[
                 "original_post_nmi_unmasked_stack"],
             **classification,
+            **push_corroboration,
             "original_result_relative": 5163,
             "native_result_relative": 5163,
             "next_bowl_original_native_relative": 267,

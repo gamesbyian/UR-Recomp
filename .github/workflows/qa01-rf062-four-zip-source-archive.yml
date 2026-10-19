@@ -1,0 +1,106 @@
+name: QA01 genuine RF062 four source ZIP integrity admission
+
+# Source archive qualification only. No original/native emulator execution,
+# no research factory and no user ROM or gameplay/release acceptance.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa01-rf062-four-zip-source-archive.yml"
+      - "tools/qa01_rf062_real_read_raw_archive.py"
+      - "tests/unit/test_qa01_rf062_real_read_raw_archive.py"
+      - "tools/qa01_rf062_script_only_provenance.py"
+      - "tests/unit/test_qa01_rf062_script_only_provenance.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: qa01-rf062-four-case-archive-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qualify-immutable-executed-source-archives:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify adversarial ZIP identity and real helper join tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest tests.unit.test_qa01_rf062_real_read_raw_archive tests.unit.test_qa01_rf062_script_only_provenance -v
+
+      - name: Reopen four immutable original/native case and compiled binary archives
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa01-rf062-four-sources"
+          for line in \
+            "12149640496:historical-original.zip" \
+            "12214214743:executed-native.zip" \
+            "12215541266:compiled-binaries.zip" \
+            "12216270293:paired-raw.zip"
+          do
+            id="${line%%:*}"
+            filename="${line#*:}"
+            curl --fail --show-error --silent --location --retry 2 \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -o "$RUNNER_TEMP/qa01-rf062-four-sources/$filename" \
+              "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/$id/zip"
+          done
+          # Preserve original strict replay-script SHA failure as a negative
+          # control. This exact raw replay MUST NOT accidentally turn green.
+          if python3 tools/qa01_rf062_real_read_raw_archive.py \
+            --original-baseline "$RUNNER_TEMP/qa01-rf062-four-sources/historical-original.zip" \
+            --native-case "$RUNNER_TEMP/qa01-rf062-four-sources/executed-native.zip" \
+            --native-binaries "$RUNNER_TEMP/qa01-rf062-four-sources/compiled-binaries.zip" \
+            --raw-case "$RUNNER_TEMP/qa01-rf062-four-sources/paired-raw.zip" \
+            --output "$RUNNER_TEMP/qa01-rf062-four-sources/strict-MUST-NOT-EXIST.json" \
+            > "$RUNNER_TEMP/qa01-rf062-four-sources/strict-cold-stderr.txt" 2>&1; then
+            echo "ERROR: Changed guest script incorrectly passed strict cold replay qualification"
+            exit 1
+          fi
+          grep -F "unchanged original movie/input or strict course result not preserved" \
+            "$RUNNER_TEMP/qa01-rf062-four-sources/strict-cold-stderr.txt"
+          test ! -f "$RUNNER_TEMP/qa01-rf062-four-sources/strict-MUST-NOT-EXIST.json"
+          # Independent source-script admission: pins all four identical
+          # historic ZIP bytes, checks actual controller files, and proves
+          # that only the three named dump operations partitioned wait 20.
+          # It explicitly denies instrumentation noninterference and cold proof.
+          python3 tools/qa01_rf062_script_only_provenance.py \
+            --baseline "$RUNNER_TEMP/qa01-rf062-four-sources/historical-original.zip" \
+            --native "$RUNNER_TEMP/qa01-rf062-four-sources/executed-native.zip" \
+            --binaries "$RUNNER_TEMP/qa01-rf062-four-sources/compiled-binaries.zip" \
+            --raw-pair "$RUNNER_TEMP/qa01-rf062-four-sources/paired-raw.zip" \
+            --output "$RUNNER_TEMP/qa01-rf062-four-sources/independent-four-zip.json"
+          python3 - "$RUNNER_TEMP/qa01-rf062-four-sources/independent-four-zip.json" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x["schema"] == "ur-qa01-rf062-four-archive-replay-script-difference/1"
+          assert len(x["four_independently_pinned_original_ZIP_sha256"]) == 4
+          assert x["baseline_script_sha256"] == "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52"
+          assert x["raw_capture_script_sha256"] == "92012c94af3a27c54144e34c9d1d7a6cdb97ddf3e519d3f24c375c7c76bf6bc2"
+          assert len(x["real_original_and_native_controller_input_files"]) == 2
+          assert x["normalized_original_control_command_sequence_equal"] is True
+          assert x["source_script_sha_changed"] is True
+          assert x["extra_script_commands_are_CPU_invisible_proven"] is False
+          assert x["strict_original_raw_guest_script_SHA_equivalence_proven"] is False
+          assert x["cold_process_reload_proven_for_changed_script"] is False
+          assert x["observer_noninterference_proven"] is False
+          assert x["native_helper_population_656_vs_655_explained_as_benign"] is False
+          assert x["accepted_USA_events"] == x["release_QA_gates"] == 0
+          print("RF062 all four exact ZIPs and script-only additions qualified; strict cold replay HOLD")
+          PY
+      - name: Retain only small digest-bound QA verdict
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-rf062-genuine-four-zip-integrity-verdict
+          retention-days: 7
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/qa01-rf062-four-sources/independent-four-zip.json

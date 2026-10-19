@@ -125,7 +125,49 @@ def control(off: dict, on: dict, off_logs: dict[str, bytes],
 
 
 
-def archived(zip_path: Path, expected_sha256: str | None = None) -> dict:
+
+def independent_binaries(artifact: Path, report: dict,
+                         pinned_sha256: str | None = None) -> dict:
+    """Reopen *actual* original/native emulator bytes, not only report SHAs."""
+    digest = hashlib.sha256()
+    with artifact.open("rb") as file:
+        for block in iter(lambda: file.read(1 << 20), b""):
+            digest.update(block)
+    file_sha = digest.hexdigest()
+    if pinned_sha256 is not None:
+        must(file_sha == pinned_sha256, "immutable RF062 binary artifact changed")
+    with zipfile.ZipFile(artifact) as zip_file:
+        paths = zip_file.namelist()
+        must(len(paths) == len(set(paths)) and
+             {"native","snes9x_libretro.so","snesref","SHA256SUMS"} <= set(paths),
+             "missing/duplicated native or reference binary")
+        entries = zip_file.read("SHA256SUMS").decode().splitlines()
+        pairs = [line.split() for line in entries]
+        must(len(pairs) == 3 and
+             all(len(pair) == 2 and len(pair[0]) == 64 for pair in pairs),
+             "unrecognized actual emulator binary SHA receipt")
+        known = {name:digest for digest,name in pairs}
+        must(set(known) == {"native","snes9x_libretro.so","snesref"},
+             "incomplete or duplicate emulator binary digest listing")
+        for name,want in known.items():
+            size=zip_file.getinfo(name).file_size
+            must(0 < size <= 30_000_000 and
+                 sha(zip_file.read(name)) == want,
+                 "actual source/native emulator binary digest mismatch: "+name)
+        must(known["native"] == report["native_executable_sha256"] and
+             known["snes9x_libretro.so"] == report["reference_core_sha256"],
+             "real emulator binary bytes disagree with original/native A/B")
+    return {
+        "binary_artifact_SHA256":file_sha,
+        "actual_native_binary_SHA256":known["native"],
+        "actual_original_core_SHA256":known["snes9x_libretro.so"],
+        "all_three_emulator_tool_binaries_rehashed":True,
+    }
+
+
+def archived(zip_path: Path, expected_sha256: str | None = None,
+             binary_artifact: Path | None = None,
+             binary_sha256: str | None = None) -> dict:
     """Reopen one *completed* genuine Actions ON/OFF archive without emulator.
 
     Artifacts sometimes have one additional upload common-root prefix. Resolve
@@ -176,6 +218,11 @@ def archived(zip_path: Path, expected_sha256: str | None = None) -> dict:
         off, off_logs, off_inputs = population[0]
         on, on_logs, on_inputs = population[1]
         result = control(off, on, off_logs, on_logs, off_inputs, on_inputs)
+    if binary_artifact is not None:
+        result["independently_reopened_compiled_binaries"] = independent_binaries(
+            binary_artifact, off, binary_sha256)
+    else:
+        result["independently_reopened_compiled_binaries"] = None
     result["authenticated_evidence_archive_sha256"] = artifact_sha
     result["zip_archive_raw_byte_reopened"] = True
     return result
@@ -187,6 +234,8 @@ def main() -> None:
     p.add_argument("--on", type=Path)
     p.add_argument("--archive", type=Path)
     p.add_argument("--expect-sha256")
+    p.add_argument("--binary-artifact", type=Path)
+    p.add_argument("--expect-binary-sha256")
     p.add_argument("--output", type=Path, required=True)
     args = p.parse_args()
     def collect(path: Path):
@@ -201,10 +250,12 @@ def main() -> None:
     if args.archive is not None:
         must(args.off is None and args.on is None,
              "use only archive or off/on directories")
-        result=archived(args.archive,args.expect_sha256)
+        result=archived(args.archive,args.expect_sha256,
+                        args.binary_artifact,args.expect_binary_sha256)
     else:
-        must(args.off is not None and args.on is not None,
-             "missing A/B input population")
+        must(args.off is not None and args.on is not None and
+             args.binary_artifact is None,
+             "missing or mixed A/B input population")
         off,off_logs,off_input=collect(args.off)
         on,on_logs,on_input=collect(args.on)
         result=control(off,on,off_logs,on_logs,off_input,on_input)

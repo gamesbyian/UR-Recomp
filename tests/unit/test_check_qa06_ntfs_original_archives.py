@@ -49,7 +49,20 @@ def scenario(root: Path):
         return {key: {"bytes": len(value), "sha256": sha(value)}
                 for key, value in files.items()}
 
+    def boot_log(raw, reconciled=False):
+        marker = ("UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED "
+                  "exact_staged_guest_sram=1 no_records=1\n") if reconciled else ""
+        return (marker + "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM "
+                "profile=native-ci-rider bytes=8192 fnv=" + qa.fnv1a32(raw) +
+                "\nUR_BALDOSA_GUEST_SNAPSHOT frame=1 p1=0x0000 p2=0x0000\n")
+
     pre = {
+        "warm.log": boot_log(baseline_raw),
+        "cold-1.log": boot_log(baseline_raw),
+        "cold-2.log": boot_log(baseline_raw),
+        "full-ntfs-original-CMD.log": (
+            "UR_BALDOSA_NATIVE_PROFILE REJECTED reason=native_sram_intent_not_durable\n"
+            "UR-BALDOSA-SAVE-FAILED: Save refused\n"),
         "result.json": {
             "exact_before_full_two_cold_binary_members": manifest(pre_bytes),
             "original_cmd_sha256": CMD,
@@ -75,8 +88,15 @@ def scenario(root: Path):
         "filler-exhaustion.json": {
             "guest_postraw_typed_failure_proven": False,
             "events": [{"python_errno": 28}]},
-        "cold-1-original-CMD.log": "BOOT_SRAM RECOVERY_RECONCILED",
-        "cold-2-original-CMD.log": "BOOT_SRAM",
+        "cold-1-original-CMD.log": boot_log(changed_raw, reconciled=True),
+        "cold-2-original-CMD.log": boot_log(changed_raw),
+        "real-postraw-full-original-CMD.log": (
+            "UR_BALDOSA_NATIVE_PROFILE QA_POSTRAW_TYPED_GATE "
+            "native_raw_written=1 typed_not_attempted=1\n"
+            "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT "
+            "profile=native-ci-rider status=io_error\n"
+            "UR-BALDOSA-SAVE-FAILED: Save refused\n"),
+        "second-process-112.log": "exit=112\n",
     }
 
     def archive(path, fields, files):
@@ -105,6 +125,8 @@ class IndependentRealNTFSArchiveConsumerTests(unittest.TestCase):
 
             report = qa.inspect(pre_path, post_path, **pins(pre_sha, post_sha))
             self.assertEqual(report["raw_changed_positions"], 1)
+            self.assertTrue(report["guest_boot_sram_consumed_bytes_verified"])
+            self.assertEqual(report["actual_guest_boot_before_fnv1a32"], qa.fnv1a32(bytes(8192)))
             self.assertEqual(report["post_raw_exact_original_bytes"], 22)
             self.assertEqual(report["release_gate_credit"], 0)
             self.assertFalse(report["windows_original_process_executed_here"])
@@ -131,6 +153,28 @@ class IndependentRealNTFSArchiveConsumerTests(unittest.TestCase):
             damaged["result.json"]["original_cmd_sha256"] = "f" * 64
             mutated_hash = write(post_path, damaged, post_bytes)
             with self.assertRaisesRegex(ValueError, "binding conflict"):
+                qa.inspect(pre_path, post_path, **pins(pre_sha, mutated_hash))
+
+            # Even when a forged producer updates its outer ZIP digest and
+            # source-file hashes, guest-consumed SRAM must still match bytes.
+            damaged = copy.deepcopy(post)
+            damaged["cold-1-original-CMD.log"] = damaged[
+                "cold-1-original-CMD.log"].replace("fnv=", "fnv=ffffffff-extra-")
+            mutated_hash = write(post_path, damaged, post_bytes)
+            with self.assertRaisesRegex(ValueError, "boot raw SRAM digest mismatch"):
+                qa.inspect(pre_path, post_path, **pins(pre_sha, mutated_hash))
+
+            damaged = copy.deepcopy(post)
+            damaged["cold-2-original-CMD.log"] = damaged[
+                "cold-1-original-CMD.log"]
+            mutated_hash = write(post_path, damaged, post_bytes)
+            with self.assertRaisesRegex(ValueError, "cold-process recovery chronology"):
+                qa.inspect(pre_path, post_path, **pins(pre_sha, mutated_hash))
+
+            damaged = copy.deepcopy(post)
+            damaged["second-process-112.log"] = "exit=0\\n"
+            mutated_hash = write(post_path, damaged, post_bytes)
+            with self.assertRaisesRegex(ValueError, "independent real Win32 112"):
                 qa.inspect(pre_path, post_path, **pins(pre_sha, mutated_hash))
 
             post_sha = write(post_path, post, post_bytes)

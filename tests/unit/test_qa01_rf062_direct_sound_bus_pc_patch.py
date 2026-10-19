@@ -162,7 +162,7 @@ class DirectSoundRead(unittest.TestCase):
         source = (
             "#include <stdint.h>\n#include <stdio.h>\n#include <stdlib.h>\n"
             "typedef uint8_t uint8;\ntypedef uint16_t uint16;\ntypedef uint32_t uint32;\n"
-            "typedef struct CpuState { uint16 A,Y,D; uint8 ram[65536];"
+            "typedef struct CpuState { uint16 A,Y,D; uint8 PB; uint8 ram[65536];"
             " unsigned long long master_cycles; } CpuState;\n"
             "extern int snes_frame_counter;\n"
             "extern uint8 cpu_read8_paced(CpuState *, uint8, uint16);\n" + rf.HELPER)

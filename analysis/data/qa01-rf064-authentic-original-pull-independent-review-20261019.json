@@ -22,5 +22,56 @@
   "original_emulator_did_not_read_stack_proven": false,
   "actual_return_proves_specific_underlying_bus_site": false,
   "native_executed_pc_or_clock_equivalence_proven": false,
-  "accepted_USA_events": 0
+  "accepted_USA_events": 0,
+  "post_nmi_original_return_witness": {
+    "source_nmi_frame": 1017,
+    "source_local_checkpoint_seq": 67,
+    "source_nmi_stack_bytes": "26F0D48226",
+    "eligible_sequenced_getset_entries_before_next_bus": 0,
+    "matched_post_nmi_true_return_sequence": true,
+    "return_records": [
+      {
+        "kind": "pullB",
+        "physical_wram_base": "7E:01ED",
+        "width": 1,
+        "actual_returned_value_hex": "26",
+        "executed_original_pc": "80:B0EB",
+        "original_frame": 1017,
+        "original_v": 226,
+        "original_h": 714
+      },
+      {
+        "kind": "pullW",
+        "physical_wram_base": "7E:01EE",
+        "width": 2,
+        "actual_returned_value_hex": "D4F0",
+        "executed_original_pc": "80:D4F0",
+        "original_frame": 1017,
+        "original_v": 226,
+        "original_h": 730
+      },
+      {
+        "kind": "pullB",
+        "physical_wram_base": "7E:01F0",
+        "width": 1,
+        "actual_returned_value_hex": "82",
+        "executed_original_pc": "82:D4F0",
+        "original_frame": 1017,
+        "original_v": 226,
+        "original_h": 738
+      },
+      {
+        "kind": "pullB",
+        "physical_wram_base": "7E:01F1",
+        "width": 1,
+        "actual_returned_value_hex": "26",
+        "executed_original_pc": "82:D4F5",
+        "original_frame": 1017,
+        "original_v": 226,
+        "original_h": 834
+      }
+    ],
+    "actual_underlying_read_bus_entry_proven": false,
+    "original_native_executed_pc_equivalence_proven": false
+  }
 }

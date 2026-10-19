@@ -97,6 +97,8 @@ class FactoryPreflight(unittest.TestCase):
         self.assertEqual(r["readiness"], "bounded_pilot_ready")
         self.assertEqual(r["raw_checkpoint_crosscheck"]["relative_frame"], 1)
         self.assertEqual(r["raw_checkpoint_crosscheck"]["causal_differences_recomputed_from_raw"], 1)
+        self.assertEqual(r["actual_same_pc_consumed_candidate_addresses"], ["7E:01ED"])
+        self.assertFalse(r["actual_candidate_is_gameplay_causality_proof"])
         self.assertEqual(r["allowed_next_case_count"], 10)
         self.assertFalse(r["automatic_dispatch_authorized"])
         self.assertFalse(r["one_thousand_or_more_cases_authorized"])

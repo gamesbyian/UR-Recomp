@@ -279,6 +279,57 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
                     errors.append(f"{name} L5 witness without physical hardware confirmation")
         if status != "passed" and witnesses and gate.get("candidate_commit") != commit:
             errors.append(f"{name} witness candidate mismatch")
+    # QA-04's L5 release requirement is deliberately more demanding than a
+    # one-off device list: three dissimilar environments, at least two actual
+    # physical systems, with at most one isolated clean VM. A positive boolean
+    # or three copies of the same hosted SDL fixture cannot be a hardware pass.
+    # This validates evidence metadata only; it never attests devices existed.
+    qa04 = next((g for g in gates if isinstance(g, dict)
+                 and g.get("id") == "QA-04"), None)
+    if isinstance(qa04, dict) and qa04.get("status") == "passed":
+        qa04_witnesses = qa04.get("witnesses")
+        setups: list[tuple[str, str, tuple[str, str, str], bool]] = []
+        if isinstance(qa04_witnesses, list):
+            for w in qa04_witnesses:
+                if not isinstance(w, dict) or w.get("layer") != "L5":
+                    continue
+                hw = w.get("hardware")
+                if not isinstance(hw, dict):
+                    continue
+                ident = hw.get("setup_id")
+                environment = hw.get("environment")
+                clean = hw.get("clean_environment")
+                if (not isinstance(ident, str) or not ident.strip()
+                        or environment not in ("physical", "isolated-clean-vm")
+                        or type(clean) is not bool):
+                    continue
+                if environment == "isolated-clean-vm" and not clean:
+                    continue
+                if environment == "physical" and not all(
+                    hw.get(flag) is True for flag in (
+                        "physical_controller_observed",
+                        "audible_output_observed",
+                        "visible_display_observed",
+                    )
+                ):
+                    continue
+                traits = (hw.get("gpu"), hw.get("display"), hw.get("controller"))
+                if any(not isinstance(v, str) or not v.strip() for v in traits):
+                    continue
+                setups.append((ident.strip(), environment, traits, clean))
+        phys = [s for s in setups if s[1] == "physical"]
+        vm = [s for s in setups if s[1] == "isolated-clean-vm"]
+        if (len(setups) < 3 or len(phys) < 2 or len(vm) > 1
+                or len({s[0] for s in setups}) != len(setups)
+                or not any(s[3] for s in setups)
+                or len({s[2] for s in phys}) < 2):
+            errors.append(
+                "QA-04 needs three independently identified dissimilar L5 "
+                "Windows setups (three physical or one isolated clean VM "
+                "plus two physical), an actual clean environment and "
+                "explicit controller/audio/display observation on real systems"
+            )
+
     if decision == "public_release":
         if not isinstance(candidate.get("release_approved_by"), str) or not candidate["release_approved_by"].strip():
             errors.append("public release requires a separately recorded human approver")

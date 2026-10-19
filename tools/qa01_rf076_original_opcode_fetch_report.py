@@ -41,41 +41,57 @@ def inspect(log: str) -> dict:
             op = int(row['fetchedOpcode'], 16)
             sp = int(row['S'], 16)
             v, h = int(row['v']), int(row['h'])
+            wai = int(row['wai'])
         except (ValueError,KeyError) as exc:
             raise ValueError('original opcode marker missing source context') from exc
         if not 1017 <= frame <= 1025 or not 0 <= pc <= 0xffffff or \
            not 0 <= op <= 255 or not 0 <= sp <= 0xffff or \
-           not 0 <= v <= 311 or h < 0:
+           not 0 <= v <= 311 or h < 0 or wai not in (0,1):
             raise ValueError('original opcode marker outside bounded source context')
-        if row.get('stage') not in ('fetch', 'nmi_before'):
+        if row.get('stage') not in ('fetch', 'nmi_pending', 'nmi_before'):
             raise ValueError('original opcode marker invalid source stage')
         if row['stage']=='fetch' and pc not in FETCH_TARGETS:
             raise ValueError('original actual fetched instruction not in source allowlist')
-        if row['stage']=='nmi_before' and op != 0:
+        if row['stage'] in ('nmi_pending','nmi_before') and op != 0:
             raise ValueError('original non-fetched NMI sentinel incorrectly labelled opcode')
         parsed.append({
             'source_local_seq':len(parsed)+1, 'stage':row['stage'],
             'original_host_frame':frame, 'original_local_V':v,'original_local_H':h,
             'source_guest_PC_context':f'{pc:06X}', 'raw_fetched_opcode_if_fetch':
                 f'{op:02X}' if row['stage']=='fetch' else None,
-            'source_stack_SP':f'{sp:04X}',
+            'source_stack_SP':f'{sp:04X}', 'waiting_for_interrupt':bool(wai),
             'decoded_original_guest_fetch_executed':row['stage']=='fetch'})
     if not parsed:
         raise ValueError('no actual original opcode/NMI source events')
     nmies=[(i,x) for i,x in enumerate(parsed) if x['stage']=='nmi_before']
     frames=[]
     for i,e in nmies:
+        if i == 0 or parsed[i-1]['stage'] != 'nmi_pending':
+            raise ValueError('original NMI wake-pending marker missing before actual push')
+        pending = parsed[i-1]
+        if pending['original_host_frame'] != e['original_host_frame'] or \
+           pending['waiting_for_interrupt'] is None or e['waiting_for_interrupt']:
+            raise ValueError('original NMI wake flag/host frame source contradiction')
+        prior_pc = int(pending['source_guest_PC_context'],16)
+        after_pc = int(e['source_guest_PC_context'],16)
+        expected_pc = (prior_pc & 0xff0000) | (((prior_pc & 0xffff) + int(pending['waiting_for_interrupt'])) & 0xffff)
+        if after_pc != expected_pc:
+            raise ValueError('original NMI WAI wake PC advancement contradicted by source')
         before=next((x for x in reversed(parsed[:i]) if x['stage']=='fetch'),None)
         after=next((x for x in parsed[i+1:] if x['stage']=='fetch'),None)
         frames.append({
+            'original_NMI_wake_pending_event':pending,
             'original_NMI_before_push_event':e,
+            'original_source_wake_incremented_PC':pending['waiting_for_interrupt'],
+            'original_source_wake_pc_before':pending['source_guest_PC_context'],
+            'original_source_wake_pc_after':e['source_guest_PC_context'],
             'last_selected_original_opcode_fetch_before_NMI':before,
             'first_selected_original_opcode_fetch_after_NMI':after,
             'all_intervening_unselected_opcode_fetches_observed':False})
     return {
         'schema':'ur-qa01-rf076-original-true-fetched-PC-NMI-order/1',
         'source_observed_nmi_before_marker_count':len(nmies),
-        'source_observed_selected_actual_opcode_fetches':len(parsed)-len(nmies),
+        'source_observed_selected_actual_opcode_fetches':sum(x['stage']=='fetch' for x in parsed),
         'source_events':len(parsed), 'source_NMI_brackets':frames,
         'original_opcode_fetches_unselected_sites_observed':False,
         'original_native_semantically_aligned_NMI_proven':False,

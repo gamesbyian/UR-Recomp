@@ -66,5 +66,16 @@
   "original_native_raw_byte_differences_in_those_pairs": 92,
   "USA_complete_events_independently_accepted": 0,
   "Windows_release_gates_accepted": 0,
-  "claim_scope": "Original-only actual 65816 bounded source stack read before next observed getset write. Not a waiver for source/native WRAM differences, not native phase alignment, not QA01 causal-window normalization."
+  "claim_scope": "Original-only actual 65816 bounded source stack read before next observed getset write. Not a waiver for source/native WRAM differences, not native phase alignment, not QA01 causal-window normalization.",
+  "independent_execution_of_RF072_verifier_run_id": 39312520355,
+  "independent_execution_of_RF072_verifier_workflow_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39312520355",
+  "independent_exact_source_case_verifier_conclusion": "success",
+  "independent_recomputed_five_byte_fate_artifact_id": 12215937413,
+  "independent_recomputed_five_byte_fate_artifact_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39312520355/artifacts/12215937413",
+  "independent_recomputed_report_zip_sha256": "35a6e4d10be39021816b6c466ebac6285bc7980395cebfaf16a6f6ea1bf37a6a",
+  "independent_report_archive_CRC_valid": true,
+  "independent_report_schema": "ur-qa01-rf072-original-after-NMI-source-byte-fates/1",
+  "independent_report_original_NMI_global_sequence": 193,
+  "independent_report_verified_903_RF071_real_original_source_transactions": true,
+  "independent_report_QA01_USA_events_accepted": 0
 }

@@ -1,0 +1,96 @@
+{
+  "schema": "UR-QA01-FIVE-2014-SOURCE-RESULT-PRELUDE-FAMILY/1",
+  "source": {
+    "run": 39182875249,
+    "archive": 12156932774,
+    "zip_sha256": "d1a5dd92b4ed039b76ebbbfea08d2401d4cf700fb35ecf9eb30ffb909761ab4a",
+    "trace_sha256": "cc49becd72650460e10c8f8d67a59ec997c731365869babe677f922f9a7d162f",
+    "movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "trace_covers_only_low_8k": true
+  },
+  "events": [
+    {
+      "name": "Dragster first",
+      "course_id": 0,
+      "title_stage": [
+        2835,
+        2868
+      ],
+      "restored_active": [
+        2869,
+        2872
+      ],
+      "inactive_predecessor": 2873,
+      "first_result_or_tally": 2874,
+      "final_scored_result": 2874
+    },
+    {
+      "name": "Zoom Zoo",
+      "course_id": 1,
+      "title_stage": [
+        8314,
+        8347
+      ],
+      "restored_active": [
+        8348,
+        8351
+      ],
+      "inactive_predecessor": 8352,
+      "first_result_or_tally": 8353,
+      "final_scored_result": 8353
+    },
+    {
+      "name": "Bowl",
+      "course_id": 2,
+      "title_stage": [
+        11867,
+        11900
+      ],
+      "restored_active": [
+        11901,
+        11904
+      ],
+      "inactive_predecessor": 11905,
+      "first_result_or_tally": 11915,
+      "final_scored_result": 11985
+    },
+    {
+      "name": "Switcher",
+      "course_id": 3,
+      "title_stage": [
+        16991,
+        17024
+      ],
+      "restored_active": [
+        17025,
+        17028
+      ],
+      "inactive_predecessor": 17029,
+      "first_result_or_tally": 17030,
+      "final_scored_result": 17030
+    },
+    {
+      "name": "Dragster repeat",
+      "course_id": 0,
+      "title_stage": [
+        25305,
+        25338
+      ],
+      "restored_active": [
+        25339,
+        25342
+      ],
+      "inactive_predecessor": 25343,
+      "first_result_or_tally": 25344,
+      "final_scored_result": 25344
+    }
+  ],
+  "limits": {
+    "five_completed_source_attempts": true,
+    "distinct_original_source_courses": 4,
+    "common_executed_CPU_routine_identified": false,
+    "native_guest_equivalence_proven": false,
+    "complete_128k_between_source_dumps_proven": false,
+    "new_USA_event_acceptance": 0
+  }
+}

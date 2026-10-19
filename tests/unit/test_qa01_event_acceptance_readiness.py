@@ -41,7 +41,8 @@ def fixture():
                 "all_sampled_named_triplets_equal": True,
                 "unsampled_frames_or_windows_disk_persistence_proven": False,
                 "raw_wram_differing_sample_offsets": [266, 280],
-                "raw_wram_differing_byte_occurrences": 8},
+                "raw_wram_differing_byte_occurrences": 8,
+                "all_sampled_full_wram_pairs_equal": False},
         },
     }
 
@@ -62,11 +63,41 @@ class ReadinessTests(unittest.TestCase):
         handoff = row["evidence"]["next_bowl_bounded"]
         handoff["raw_wram_differing_sample_offsets"] = []
         handoff["raw_wram_differing_byte_occurrences"] = 0
+        handoff["all_sampled_full_wram_pairs_equal"] = True
         report = readiness.assess(row)
         self.assertEqual(report["event_adjudication"], "HOLD")
         self.assertEqual(report["accepted_event_credit"], 0)
         self.assertNotIn("observed_unwaived_handoff_full_wram_differences_need_causality",
                          report["blocking_requirements"])
+
+    def test_impossible_raw_wram_aggregate_and_equality_claims_rejected(self):
+        # Two distinct differing full-WRAM pairs require >=2 unequal bytes.
+        # They cannot report more than 2 * 128 KiB different bytes either.
+        for mismatch in ("too_few", "too_many", "false_equality",
+                         "false_inequality"):
+            row = fixture()
+            handoff = row["evidence"]["next_bowl_bounded"]
+            if mismatch == "too_few":
+                handoff["raw_wram_differing_byte_occurrences"] = 1
+            elif mismatch == "too_many":
+                handoff["raw_wram_differing_byte_occurrences"] = 2 * 131072 + 1
+            elif mismatch == "false_equality":
+                handoff["all_sampled_full_wram_pairs_equal"] = True
+            else:
+                handoff["raw_wram_differing_sample_offsets"] = []
+                handoff["raw_wram_differing_byte_occurrences"] = 0
+            with self.subTest(mismatch=mismatch), self.assertRaisesRegex(
+                    ValueError, "WRAM"):
+                readiness.assess(row)
+
+    def test_bounds_are_inclusive_and_do_not_award_promotion(self):
+        for count in (2, 2 * 131072):
+            row = fixture()
+            row["evidence"]["next_bowl_bounded"][
+                "raw_wram_differing_byte_occurrences"] = count
+            result = readiness.assess(row)
+            self.assertEqual(result["event_adjudication"], "HOLD")
+            self.assertEqual(result["accepted_event_credit"], 0)
 
     def test_archived_source_clock_is_independent(self):
         row = fixture()

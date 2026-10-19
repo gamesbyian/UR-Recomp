@@ -120,9 +120,16 @@ def assess(row: dict) -> dict:
         require(isinstance(offsets, list) and all(type(x) is int for x in offsets) and
                 offsets == sorted(set(offsets)) and
                 all(x in campaign.ZOO_BOWL_OFFSETS for x in offsets) and
-                type(count) is int and count >= 0 and bool(count) == bool(offsets) and
+                type(count) is int and len(offsets) <= count <= 131072 * len(offsets) and
                 (handoff["status"] != "not_observed" or (offsets == [] and count == 0)),
                 "malformed full-WRAM residual")
+        if handoff["status"] != "not_observed":
+            require(type(handoff.get("all_sampled_full_wram_pairs_equal")) is bool and
+                    handoff["all_sampled_full_wram_pairs_equal"] is (count == 0),
+                    "contradictory full-WRAM equality claim")
+        else:
+            require(handoff.get("all_sampled_full_wram_pairs_equal") is None,
+                    "unobserved handoff claims full-WRAM equality")
         bounded["handoff_unmasked_wram_differing_offsets"] = offsets
         bounded["handoff_unmasked_wram_differing_byte_occurrences"] = count
         if count:

@@ -10,18 +10,17 @@ The independently inspected genuine RF047 substream has **45 first-later native 
 
 | Native host frame | First later `01ED` | `01EE` | `01EF` | `01F0` | `01F1` |
 |---|---|---|---|---|---|
-| 1017 | `41` | `85` | `01` | `8C` | `26` |
-| 1018 | `B9` | `85` | `01` | `8C` | `26` |
-| 1019 | `B9` | `85` | `01` | `8C` | `26` |
-| 1020–1025 (each) | `01` | `85` | `0A` | `8C` | `26` |
+| 1017 | `41` | `02` | `01` | `00` | `26` |
+| 1018–1019 (each) | `B9` | `85` | `01` | `00` | `26` |
+| 1020–1025 (each) | `01` | `00` | `0A` | `00` | `26` |
 
-In **all nine**, the first helper after the compiled return is `01F1=26`, with sequence exactly `handler_return+1`. The earliest later `01EE=85` and `01F0=8C` are **not** the saved `01EE=EE` and `01F0=82` pushed at native NMI entry. This is *not evidence of an incorrect RTI consumed value*: the later getset helper reads occur during subsequent gameplay, at distinct native master counts, with **intervening native RAM writes not comprehensively traced**. They are not semantically equivalent to the original RF072 first post-NMI reads of `26 F0 D4 82 26` because those original observations come from a different research executable epoch with different CPU coverage and no proven source/native clock alignment.
+In **all nine**, the first helper after the compiled return is `01F1=26`, with sequence exactly `handler_return+1`. **Read width matters:** in frame 1017 the first `01ED` and `01EE` byte observations are the *same actual word read* `01ED=0241` (little-endian bytes `41 02`) at seq7; the first `01EF` and `01F0` similarly share the actual word read `01EF=0001` at seq8. For 1020–1025, word reads `01ED=0001` and `01EF=000A` each cover two byte addresses. These first later bytes are **not** the saved `01EE=EE` and `01F0=82` pushed at native NMI entry. This is *not evidence of an incorrect RTI consumed value*: the later getset helper reads occur during subsequent gameplay, at distinct native master counts, with **intervening native RAM writes not comprehensively traced**. They are not semantically equivalent to the original RF072 first post-NMI reads of `26 F0 D4 82 26` because those original observations come from a different research executable epoch with different CPU coverage and no proven source/native clock alignment.
 
 The source original host-frame NMI contexts `82:D4F0` versus native saved resume `82:D4EE` in four frames remain **same-host-frame snapshots, not same fetched-opcode/interrupt phases**. Avoid inferring a skipped CPU read, unchanged value, first diverging consumed byte or correctness/bug from these later helper records. Keep all stack residuals unmasked.
 
 ## Repeatable bounded QA, no new emulator execution
 
-New independent `tools/qa01_independent_rf073_posthandler_stack_helpers.py` opens the exact immutable RF054 original/native case, calls merged RF073's full 2,741-event validator, and collects the first subsequent `nmi=0` physical native helper read for each `00:01ED..01F1` address in each independently delimited native NMI frame. It fails closed on altered status, missing later read, event ordinal corruption, native master clock rollback or wrong pinned ZIP; unit tests use only synthetic non-ROM event data. Output retains **all 45 original native event ordinals and true master clocks**, plus explicit false qualifications for decoded opcode fetch PC, complete writer visibility and original/native same-phase reads:
+New independent `tools/qa01_independent_rf073_posthandler_stack_helpers.py` opens the exact immutable RF054 original/native case, calls merged RF073's full 2,741-event validator, and collects the first subsequent `nmi=0` physical native helper read for each `00:01ED..01F1` address in each independently delimited native NMI frame. It splits real width-one and width-two reads into the corresponding little-endian byte observations, retaining one physical event ordinal per actual read rather than inventing two bus calls. It fails closed on altered status, missing later read, event ordinal corruption, native master clock rollback or wrong pinned ZIP; unit tests use only synthetic non-ROM event data. Output retains **all 45 original native event ordinals and true master clocks**, plus explicit false qualifications for decoded opcode fetch PC, complete writer visibility and original/native same-phase reads:
 
 ```bash
 python3 tools/qa01_independent_rf073_posthandler_stack_helpers.py \

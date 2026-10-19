@@ -58,7 +58,7 @@ def check(raw: str) -> dict:
         kind=row.get("kind")
         if kind not in ("pullB","pullW") or width!=(1 if kind=="pullB" else 2):
             raise ValueError("RF064 source pull operation identity invalid")
-        if not 1017<=frame<=1025 or not 0x01ed<=base<=0x01f1 or base+width-1>0x01f1:
+        if not 1017<=frame<=1025 or base>0x01f1 or base+width-1<0x01ed:
             raise ValueError("RF064 source pull outside bounded physical stack")
         key=(str(frame),kind,f"{base:04X}",str(width),f"{value:04X}")
         # RF045 may print a byte as "0026" or "26" (%04X always 0026).

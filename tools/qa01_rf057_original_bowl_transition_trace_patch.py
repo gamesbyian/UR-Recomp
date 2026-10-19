@@ -17,6 +17,22 @@ DISPATCH="\t\t\tRegisters.PCw++;\n\t\t\t(*Opcodes[Op].S9xOpcode)();"
 BEFORE=r"""            /* UR_QA01_RF057_BOWL_EXECUTED_ORIGINAL_MENU_PREDICATE.
              * Actual CPU instruction only: pre-state; do not read CPU bus. */
             const unsigned ur_rf057_f = (unsigned)ICPU.Frame;
+            /* Source frame-registration heartbeat, independent of imported
+             * candidate function address. Once every 128 actual CPU frames,
+             * plus every frame around the expected source handoff. If even
+             * this is absent, no source instruction nonexecution inference. */
+            if (getenv("UR_QA01_RF057_BOWL_CPU_TRACE")) {
+                static unsigned ur_rf057_heartbeat_frame = 0xffffffffu;
+                if (ur_rf057_heartbeat_frame != ur_rf057_f) {
+                    ur_rf057_heartbeat_frame = ur_rf057_f;
+                    if ((ur_rf057_f % 128u) == 0u ||
+                        (ur_rf057_f >= 4678u && ur_rf057_f <= 4705u))
+                        fprintf(stderr,
+                          "QA01RF057HEART frame=%u v=%u h=%d pc=%02X:%04X flag=1\n",
+                          ur_rf057_f,(unsigned)CPU.V_Counter,(int)CPU.Cycles,
+                          (unsigned)Registers.PB,(unsigned)Registers.PCw);
+                }
+            }
             const unsigned ur_rf057_pb = (unsigned)Registers.PB;
             const unsigned ur_rf057_pc = (unsigned)Registers.PCw;
             const int ur_rf057_observe =

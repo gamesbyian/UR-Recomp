@@ -30,6 +30,7 @@ jobs:
           python3 -m unittest discover -s tests/unit -p 'test_qa01_rf062_verify_live_generated.py' -v
           python3 -m unittest discover -s tests/unit -p 'test_qa01_rf062_wrapper_only_diff.py' -v
           python3 -m unittest discover -s tests/unit -p 'test_qa01_rf062_wrapper_substitution_compare.py' -v
+          python3 -m unittest discover -s tests/unit -p 'test_qa01_rf062_wrapper_retained_memory.py' -v
   authentic-bounded-native-source-ab:
     needs: static-wrapper-source-gate
     uses: ./.github/workflows/qa01-event-campaign.yml

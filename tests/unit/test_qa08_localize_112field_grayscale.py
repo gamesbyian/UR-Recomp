@@ -1,5 +1,6 @@
 """ROM-free adversarial QA08 grayscale spatial localization tests."""
 import sys
+import json
 import subprocess
 import unittest
 from pathlib import Path
@@ -97,6 +98,35 @@ class AuthenticRasterSpatialTests(unittest.TestCase):
         clean[0][0] = 42
         with self.assertRaisesRegex(ValueError, "invalid RGB5"):
             spatial.summarize_classes(clean)
+
+    def test_committed_real_source_receipt_conserves_all_counts_and_hold(self):
+        path = ROOT / "analysis/data/qa08-authentic-grayscale-spatial-20261019.json"
+        receipt = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(receipt["original_inner_sha256"], spatial.source.ORIGINAL_INNER_SHA)
+        self.assertEqual(receipt["native_outer_sha256"], spatial.source.NATIVE_OUTER_SHA)
+        self.assertEqual(receipt["native_guest_5484_crc_sha256"], spatial.source.NATIVE_CRC_SHA)
+        self.assertEqual(receipt["frame_labels"], list(spatial.source.SPIKES))
+        classes = receipt["class_counts"]
+        self.assertEqual(classes["four_cycle_gray_to_gray_wrong"], 318775)
+        self.assertEqual(classes["other_gray_to_gray_wrong"], 23311)
+        self.assertEqual(classes["non_grayscale_wrong"], 16927)
+        self.assertEqual(classes["all_RGB5_wrong"], 359013)
+        self.assertEqual(sum(classes[k] for k in (
+            "exact_RGB5", "four_cycle_gray_to_gray_wrong",
+            "other_gray_to_gray_wrong", "non_grayscale_wrong")),
+            13 * spatial.WIDTH * spatial.HEIGHT)
+        self.assertEqual([x["guest"] for x in receipt["per_frame"]],
+                         list(spatial.source.SPIKES))
+        self.assertEqual([sum(row[k] for row in receipt["per_frame"])
+                          for k in ("cycle", "other_gray", "non_gray")],
+                         [318775, 23311, 16927])
+        self.assertEqual(receipt["four_cycle_pixel_position_union_13_frames"], 24940)
+        self.assertEqual(receipt["four_cycle_pixel_position_intersection_all_13"], 24096)
+        self.assertEqual(receipt["spatial_grid"]["cycle_cells_all_64_pixels_wrong_in_every_frame"], 289)
+        self.assertEqual(receipt["entire_original_native_263_frame_wrong_RGB5_baseline_unchanged"],
+                         890205)
+        self.assertFalse(receipt["qa08_qa10_release_gates_accepted"])
+        self.assertTrue(receipt["no_source_clock_or_beam_causality_proven"])
 
     def test_direct_script_cli_reaches_archive_fail_closed_guard(self):
         cmd = [sys.executable, str(ROOT / "tools/qa08_localize_112field_grayscale.py"),

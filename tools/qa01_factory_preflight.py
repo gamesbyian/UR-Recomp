@@ -170,6 +170,10 @@ def main() -> None:
     ap.add_argument("--causal-report", type=Path)
     ap.add_argument("--frame-report", type=Path)
     ap.add_argument("--independent-raw-report", type=Path)
+    ap.add_argument("--retained-raw", type=Path,
+                    help="genuine original/native raw-memory directory, reopened in preflight")
+    ap.add_argument("--causal-original-events", type=Path)
+    ap.add_argument("--causal-native-events", type=Path)
     ap.add_argument("--output", type=Path, required=True)
     args = ap.parse_args()
     attestation, ah = load(args.attestation)
@@ -180,7 +184,24 @@ def main() -> None:
     hashes = {"attestation": ah}
     hashes.update({label: sha for (label, _), (_, sha) in zip(provided, loaded)
                    if sha is not None})
-    verdict = evaluate(attestation, *(x for x, _ in loaded), hashes)
+    causal, frames, independent = (x for x, _ in loaded)
+    if causal is not None:
+        assert_valid(args.causal_original_events is not None and
+                     args.causal_native_events is not None,
+                     "missing actual guest event files; causal JSON alone is not provenance")
+        a, b = (path.read_bytes() for path in
+                (args.causal_original_events, args.causal_native_events))
+        recomputed = causal_verifier.assess(json.loads(a), json.loads(b), a, b)
+        assert_valid(recomputed == causal, "real event files contradict causal receipt")
+        hashes["causal_original_events"] = hashlib.sha256(a).hexdigest()
+        hashes["causal_native_events"] = hashlib.sha256(b).hexdigest()
+    if independent is not None:
+        assert_valid(frames is not None and args.retained_raw is not None,
+                     "independent raw audit requires actual raw images and producer report")
+        reread = frame_verifier.verify(frames, args.retained_raw)
+        assert_valid(reread == independent,
+                     "reopened raw image bytes contradict independent review receipt")
+    verdict = evaluate(attestation, causal, frames, independent, hashes)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(verdict, indent=2, sort_keys=True) + "\n")
     print(verdict["readiness"], "-", ", ".join(verdict["missing_or_negative_conditions"]) or

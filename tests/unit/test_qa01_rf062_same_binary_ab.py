@@ -210,6 +210,32 @@ class SameBinaryNativeProbeAB(unittest.TestCase):
         scope=x.strictly_qualified_original_path_variation(original,other)
         self.assertFalse(scope["source_nonpath_log_equality_proven"])
 
+    def test_native_host_elapsed_and_exact_script_path_do_not_mask_cpu_events(self):
+        a,b,c,d,e,f=fixtures()
+        c["native"] = (
+            b"[host +0.080s] SDL init ok: video=x11 audio=dummy\n"
+            b"script: loaded 112 entries from '/runner/A/zoom-zoo/replay/complete.script'\n"
+            + c["native"]
+            + b"[host +109.676s] exit: script quit after 6460 frames\n"
+        )
+        d["native"] = (
+            b"[host +0.078s] SDL init ok: video=x11 audio=dummy\n"
+            b"script: loaded 112 entries from '/runner/B/zoom-zoo/replay/complete.script'\n"
+            + d["native"]
+            + b"[host +109.698s] exit: script quit after 6460 frames\n"
+        )
+        report=x.control(a,b,c,d,e,f)
+        native=report["native_complete_nonRF062_log_metadata_limited_comparison"]
+        self.assertTrue(native["all_other_native_lines_byte_equal_after_strict_host_metadata"])
+        self.assertEqual(len(native["accepted_host_only_metadata_lines"]),3)
+        self.assertTrue(report["runtime_RF062_logging_noninterference_supported"])
+        # A changed CPU/SPC line is NOT host elapsed time or script metadata.
+        d["native"]+=b"QA01RF050NATIVEPORT port=3 val=DE\n"
+        broken=x.control(a,b,c,d,e,f)
+        self.assertFalse(broken["runtime_RF062_logging_noninterference_supported"])
+        self.assertFalse(broken["native_complete_nonRF062_log_metadata_limited_comparison"]
+                         ["all_other_native_lines_byte_equal_after_strict_host_metadata"])
+
     def test_original_control_log_change_cannot_yield_positive_native_ab(self):
         a,b,c,d,e,f=fixtures()
         d["original"] += b"UNEXPLAINED_SOURCE_NMI_CHANGE\\n"

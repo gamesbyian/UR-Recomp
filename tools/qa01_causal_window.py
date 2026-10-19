@@ -168,6 +168,13 @@ def assess(original: dict, native: dict, original_bytes: bytes, native_bytes: by
     return {
         "schema": "ur-qa01-causal-window-readonly-report/1",
         "source_sha": original["source_sha"],
+        # These four identities were each checked on BOTH executed guest
+        # inputs before constructing this read-only verdict. Source SHA alone
+        # cannot bind a causal trace to the same ROM/movie/input as a frame
+        # fingerprint or reviewed research-factory attestation.
+        "input_identity": {
+            name: original[name] for name in
+            ("source_sha", "rom_sha256", "movie_sha256", "input_sha256")},
         "original_event_sha256": hashlib.sha256(original_bytes).hexdigest(),
         "native_event_sha256": hashlib.sha256(native_bytes).hexdigest(),
         "observation_phase": original["window"]["phase"],

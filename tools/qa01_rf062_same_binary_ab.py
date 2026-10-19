@@ -317,7 +317,28 @@ def archived(zip_path: Path, expected_sha256: str | None = None,
             population.append((report,logs,supplied))
         off, off_logs, off_inputs = population[0]
         on, on_logs, on_inputs = population[1]
+        # Bind both comparison populations to the actual case source commit
+        # and terminal case disposition, not only matching self-declared
+        # ROM/movie/EXE hashes. The producing replay used a single checkout;
+        # nevertheless this does not cryptographically attest its filesystem.
+        root_prefix = root + "/" if root else ""
+        case_path = root_prefix + "qa01-case/case-result.json"
+        primary_path = root_prefix + "qa01-case/producer-report.json"
+        must(case_path in paths and primary_path in paths,
+             "actual original/native case source receipt missing")
+        case = json.loads(z.read(case_path))
+        case_source = case.get("source_sha")
+        must(type(case_source) is str and len(case_source) == 40 and
+             all(c in "0123456789abcdef" for c in case_source) and
+             case.get("release_credit") == 0 and
+             case.get("producer_exit_code") == 0 and
+             case.get("disposition") in ("strict_candidate","strict_divergence"),
+             "case source SHA or genuine negative-only event disposition invalid")
+        must(z.read(primary_path) == member("on/producer-report.json",2_000_000),
+             "case actual ON producer report disagrees with retained ON log")
         result = control(off, on, off_logs, on_logs, off_inputs, on_inputs)
+        result["actual_single_checkout_case_source_sha"] = case_source
+        result["actual_case_disposition"] = case["disposition"]
     if binary_artifact is not None:
         result["independently_reopened_compiled_binaries"] = independent_binaries(
             binary_artifact, off, binary_sha256)

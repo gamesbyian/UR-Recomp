@@ -442,6 +442,10 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
         identical[2]["hardware"]["display"] = identical[0]["hardware"]["display"]
         identical[2]["hardware"]["controller"] = identical[0]["hardware"]["controller"]
         variants.append(identical)
+        only_two_unique = copy.deepcopy(three_real)
+        for key in ("gpu", "display", "controller"):
+            only_two_unique[2]["hardware"][key] = only_two_unique[1]["hardware"][key]
+        variants.append(only_two_unique)
         no_clean = copy.deepcopy(three_real)
         for w in no_clean:
             w["hardware"]["clean_environment"] = False

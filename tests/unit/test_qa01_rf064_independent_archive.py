@@ -108,6 +108,26 @@ class IndependentRF064Archive(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "clock order invalid"):
             audit.post_nmi_return_witness(forged, checkpoint)
 
+    def test_series_checks_real_return_values_for_each_original_nmi(self):
+        log = self.post_nmi_rows()
+        series = audit.original_nmi_return_series(log)
+        self.assertEqual(series["original_nmi_observations"], 1)
+        self.assertEqual(series["nmis_with_four_matching_actual_source_returns"], 1)
+        self.assertTrue(series["all_observed_nmis_have_four_matching_returns"])
+        self.assertFalse(series["native_equivalence_proven"])
+
+    def test_series_without_returns_is_incomplete(self):
+        series = audit.original_nmi_return_series(lines())
+        self.assertEqual(series["original_nmi_observations"], 1)
+        self.assertEqual(series["nmis_with_four_matching_actual_source_returns"], 0)
+        self.assertFalse(series["all_observed_nmis_have_four_matching_returns"])
+
+    def test_series_false_actual_original_return_does_not_count(self):
+        forged = [s.replace("returned=D4F0", "returned=D4F1")
+                  for s in self.post_nmi_rows()]
+        with self.assertRaisesRegex(ValueError, "actual returned source bytes disagree"):
+            audit.original_nmi_return_series(forged)
+
     def test_archive_hash_pin_rejects_replacement(self):
         with self.assertRaisesRegex(ValueError, "immutable archive"):
             audit.examine(self.path, "0"*64)

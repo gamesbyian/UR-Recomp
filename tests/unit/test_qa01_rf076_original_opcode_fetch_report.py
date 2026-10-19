@@ -42,7 +42,7 @@ class TrueOriginalSource(unittest.TestCase):
         for src in (log().replace('wai=1','wai=2'),
                     log().replace('82D4EF fetchedOpcode=00','82D4EE fetchedOpcode=00'),
                     log().replace('82D4EF fetchedOpcode=00','82D4F0 fetchedOpcode=00'),
-                    log().replace('wai=0','wai=1',1)):
+                    log().replace('v=225 h=12 wai=0','v=225 h=12 wai=1')):
             with self.subTest(src=src[:100]), self.assertRaises(ValueError):
                 m.inspect(src)
 

@@ -1,0 +1,83 @@
+name: QA01 genuine RF066 same-host return versus raw temporal counterexample
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa01-rf066-same-host-return-raw.yml"
+      - "tools/qa01_rf066_same_host_stack_return_raw.py"
+      - "tests/unit/test_qa01_rf066_same_host_stack_return_raw.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: qa01-rf066-same-host-byte-source-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  original-real-macro-return-versus-separately-sampled-memory:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run independent source-return/raw frame mismatch adversarial tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest \
+            tests.unit.test_qa01_rf066_same_host_stack_return_raw \
+            tests.unit.test_qa01_rf066_original_consumed_sequence -v
+
+      - name: Reopen actual RF066 guest source + 2014 SMV + three original/native WRAM pairs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/rf066-same-host-stack"
+          curl --fail --show-error --silent --location --retry 2 \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -o "$RUNNER_TEMP/rf066-same-host-stack/authentic-zoo-case.zip" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12171791431/zip"
+          python3 tools/qa01_rf066_same_host_stack_return_raw.py \
+            --archive "$RUNNER_TEMP/rf066-same-host-stack/authentic-zoo-case.zip" \
+            --movie reference/imported/tas-bots/dessyreqt-4250-submission.smv \
+            --metadata analysis/generated/historical-2014-smv-metadata.json \
+            --output "$RUNNER_TEMP/rf066-same-host-stack/temporal-review.json"
+          python3 - "$RUNNER_TEMP/rf066-same-host-stack/temporal-review.json" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x["immutable_case_zip_sha256"] == "494737bb6a1c422141c40f7175883f212767c3d774ee63fb0ba82add78cb445f"
+          assert x["all_actual_original_RF066_macro_returns_verified"] == 903
+          assert [r["race_relative_frame"] for r in x["same_host_raw_frames"]] == [1,2,4]
+          assert [r["original_return_operations_touching_differing_addresses"]
+                  for r in x["same_host_raw_frames"]] == [74,91,97]
+          assert [r["return_byte_observations_touching_differing_addresses"]
+                  for r in x["same_host_raw_frames"]] == [104,119,128]
+          assert [r["individual_return_byte_values_vs_same_host_script_dump"][
+                  "matches_neither_same_host_dump"]
+                  for r in x["same_host_raw_frames"]] == [95,111,120]
+          assert x["total_true_original_return_operations_touching_same_host_differing_WRAM"] == 262
+          assert x["total_returned_source_byte_observations"] == 351
+          assert x["total_returned_source_byte_comparison_classes"] == {
+              "matches_original_same_host_dump_only":9,
+              "matches_native_same_host_dump_only":16,
+              "matches_neither_same_host_dump":326}
+          assert x["original_getset_entry_time_read_value_proven"] is False
+          assert x["first_consumed_original_native_causal_divergence_proven"] is False
+          assert x["accepted_USA_events"] == x["release_QA_gates"] == 0
+          print("Genuine 2014 source: 326/351 actual returned bytes are neither same-host script-dump value; 0/45")
+          PY
+
+      - name: Keep compact independent receipt only, never raw game memory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-rf066-real-same-host-true-return-vs-raw
+          retention-days: 7
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/rf066-same-host-stack/temporal-review.json

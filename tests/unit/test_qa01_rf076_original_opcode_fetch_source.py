@@ -20,7 +20,7 @@ class OriginalFetch(unittest.TestCase):
     def test_true_pre_increment_opcode_marker_and_real_nmi(self):
         old = fixture()
         src = m.patch(old)
-        self.assertEqual(src.count(m.STAMP), 1)
+        self.assertEqual(src.count(m.STAMP), 2)
         self.assertLess(src.index('ur_rf076_original_fetched_opcode("fetch", Op);'),
                         src.index('Registers.PCw++;'))
         self.assertLess(src.index('ur_rf076_original_fetched_opcode("nmi_before", 0);'),

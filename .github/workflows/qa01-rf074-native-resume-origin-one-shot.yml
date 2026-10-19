@@ -1,22 +1,22 @@
-# TEMP RF074 genuine USA Zoo 2014 original Snes9x actual read getset.
+# TEMP RF074 genuine dual-guest USA Zoo NMI scheduler-origin execution.
 # Do NOT merge this file or the temporary campaign modifications to main.
-name: RF074 genuine Zoo original clean-header-stack-reader one-shot
+name: RF074 genuine Zoo original/native resume-origin and executed opcode one-shot
 
 on:
   pull_request:
     types: [opened, reopened, synchronize]
     paths:
-      - ".github/workflows/qa01-rf074-clean-original-one-shot.yml"
+      - ".github/workflows/qa01-rf074-native-resume-origin-one-shot.yml"
 
 permissions:
   contents: read
 
 concurrency:
-  group: qa01-rf074-clean-source-getset-${{ github.event.pull_request.number }}
+  group: qa01-rf074-guest-scheduler-origin-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
-  authenticated-RF074-original:
+  authenticated-RF074-original-native:
     uses: ./.github/workflows/qa01-event-campaign.yml
     with:
       selected: zoom-zoo

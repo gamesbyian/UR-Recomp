@@ -13,6 +13,7 @@ import argparse
 import hashlib
 import json
 import os
+import time
 import re
 import shutil
 import subprocess
@@ -28,6 +29,7 @@ import probe_attract_cycle as trace
 import qa01_bowl_switcher_handoff as bowl_handoff
 import qa01_bowl_source_movie_memory as bowl_source_memory
 import qa01_dragster_zoo_handoff as dragster_zoo
+import qa01_frame_capture_replay as continuous_capture
 import probe_jumpover_fallthrough_native as engine
 import probe_original_non_dragster_course_entry as entry
 import probe_result_screens as result_probe
@@ -408,7 +410,9 @@ def replay_script(slot: int, result_menu: int, frames: list[int],
                   source_followthrough: bool = False,
                   zoo_next_bowl: bool = False,
                   bowl_next_switcher: bool = False,
-                  dragster_next_zoo: bool = False) -> str:
+                  dragster_next_zoo: bool = False,
+                  continuous_window: tuple[int, int] | None = None,
+                  source_result_frame: int | None = None) -> str:
     if zoo_next_bowl and (slot != 2 or result_menu != 0xBC or stunt
                           or not source_followthrough):
         raise CompleteEventError("Zoo next Bowl requires original Circuit plus source followthrough")
@@ -420,10 +424,38 @@ def replay_script(slot: int, result_menu: int, frames: list[int],
         raise CompleteEventError("Next original Zoo requires completed Dragster Race A source followthrough")
     if tally_phase and (not stunt or slot != 3 or result_menu != 0x18):
         raise CompleteEventError("only proven source-original scored Bowl tally supports phase samples")
+    if continuous_window is not None:
+        if (type(continuous_window) is not tuple or len(continuous_window) != 2
+                or any(type(v) is not int for v in continuous_window)
+                or not 0 <= continuous_window[0] <= continuous_window[1] < 20000
+                or (source_result_frame is not None and
+                    (type(source_result_frame) is not int
+                     or not 1 <= source_result_frame < 20000
+                     or continuous_window[1] > source_result_frame))):
+            raise CompleteEventError("invalid bounded continuous frame window")
+    # Retain original semantic scene dumps at their original relative frames.
+    # Source controller events never change. After the last sparse checkpoint,
+    # formerly implicit result-predicate advances become explicit frame waits.
+    markers: dict[int, list[str]] = {f: [f"scene-{f:05d}"] for f in frames[1:]}
+    if continuous_window is not None:
+        # A result-onset dump is separately appended at the genuine observed
+        # semantic milestone; never wait an assumed number of result frames.
+        last_preresult = (source_result_frame - 1
+                          if source_result_frame is not None
+                          else continuous_window[1])
+        for f in range(max(1, continuous_window[0]),
+                       min(continuous_window[1], last_preresult) + 1):
+            markers.setdefault(f, []).append(f"qa01-frame-{f:06d}")
     lines = stock_crawler_script(slot).rstrip().splitlines()
+    if continuous_window is not None and continuous_window[0] == 0:
+        lines.append("dump qa01-frame-000000")
     last = 0
-    for f in frames[1:]:
-        lines += [f"wait {f - last}", f"dump scene-{f:05d}"]
+    for f, names in sorted(markers.items()):
+        if f < last:
+            raise CompleteEventError("nonmonotonic continuous guest frame dump")
+        if f > last:
+            lines.append(f"wait {f - last}")
+        lines.extend("dump " + name for name in names)
         last = f
     if stunt:
         lines += ["until 009F == 2F 9000", "dump result-tally"]
@@ -436,7 +468,13 @@ def replay_script(slot: int, result_menu: int, frames: list[int],
                           f"dump tally-plus-{offset:02d}"]
                 previous = offset
     lines += [f"until 009F == {result_menu:02X} 9000",
-              "dump result-onset", "wait 6", "dump result-stable"]
+              "dump result-onset"]
+    if (continuous_window is not None and source_result_frame is not None
+            and continuous_window[1] == source_result_frame):
+        # A guest whose result clock differs from the source-authentic result
+        # fails independent host-acknowledgment validation.
+        lines.append(f"dump qa01-frame-{source_result_frame:06d}")
+    lines += ["wait 6", "dump result-stable"]
     if source_followthrough:
         previous = 6
         for offset in SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS:
@@ -1827,6 +1865,12 @@ def main(argv: list[str] | None = None) -> int:
                     help="opt-in original 2014 Bowl movie full raw WRAM/SRAM vs fresh guests around Switcher, no acceptance")
     ap.add_argument("--dragster-next-zoo", action="store_true",
                     help="opt-in authentic 2014 Dragster Race A result into following Zoom Zoo Circuit A, no event credit")
+    ap.add_argument("--qa01-frame-start", type=int,
+                    help="opt-in first race-relative frame including entry frame zero")
+    ap.add_argument("--qa01-frame-end", type=int,
+                    help="opt-in last frame up to and including actual result onset")
+    ap.add_argument("--qa01-frame-max-retained", type=int, default=200,
+                    help="fail-closed cap for all differing and boundary raw pairs")
     ap.add_argument("--observe-one-frame-stunt-lead", action="store_true",
                     help="report a verified narrow Stunt phase gap as diagnostic CI success; never admit a course")
     ap.add_argument("--snesref", type=Path, required=True)
@@ -1899,6 +1943,16 @@ def main(argv: list[str] | None = None) -> int:
             original_event["source_active_frames_to_result"]
             + max(SOURCE_RESULT_FOLLOWTHROUGH_OFFSETS)):
         raise CompleteEventError("archived source controller window does not cover follow-through")
+    if (args.qa01_frame_start is None) != (args.qa01_frame_end is None):
+        ap.error("QA01 continuous capture requires both frame start and end")
+    continuous_window = None
+    if args.qa01_frame_start is not None:
+        if (not 0 <= args.qa01_frame_start <= args.qa01_frame_end <=
+                original_event["source_active_frames_to_result"]):
+            ap.error("continuous capture cannot exceed source-verified result onset")
+        if args.qa01_frame_max_retained < 1:
+            ap.error("QA01 raw evidence retention cap must be positive")
+        continuous_window = (args.qa01_frame_start, args.qa01_frame_end)
     frames = sample_frames(
         args.case, original_event["source_active_frames_to_result"],
         zoo_race_mesh=args.zoo_race_mesh,
@@ -1935,7 +1989,10 @@ def main(argv: list[str] | None = None) -> int:
         source_followthrough=args.source_followthrough,
         zoo_next_bowl=args.zoo_next_bowl,
         bowl_next_switcher=args.bowl_next_switcher,
-        dragster_next_zoo=args.dragster_next_zoo))
+        dragster_next_zoo=args.dragster_next_zoo,
+        continuous_window=continuous_window,
+        source_result_frame=(original_event["source_active_frames_to_result"]
+                             if continuous_window is not None else None)))
     reference_script = script
     if args.switcher_same_host_penultimate:
         if args.case != "switcher" or args.native_backend != "pinned-baldosa":
@@ -1946,9 +2003,13 @@ def main(argv: list[str] | None = None) -> int:
             frames))
     events = [(rf + part["start"], part["duration"], int(part["mask"], 16))
               for part in source_window["relative_input_segments"]]
+    replay_t0 = time.perf_counter()
     rl = engine.run_reference(replay, args, reference_script, events)
+    replay_ref_seconds = time.perf_counter() - replay_t0
     (replay / "reference.log").write_text(rl)
+    replay_t1 = time.perf_counter()
     nl = replay_native(replay, args, script, events, nf - rf)
+    replay_nat_seconds = time.perf_counter() - replay_t1
     (replay / "native.log").write_text(nl)
     if engine.race_entry_frame(rl) != rf or engine.race_entry_frame(nl) != nf:
         raise CompleteEventError("race entry changed after scene-relative transplant")
@@ -2046,6 +2107,105 @@ def main(argv: list[str] | None = None) -> int:
     switcher_same_host_memory = (observe_switcher_same_host_memory_offsets(
         replay / "ref", replay / "native", switcher_same_host)
         if args.switcher_same_host_full_memory_offsets else None)
+    # Both instrumented and ordinary control replays must publish the same
+    # source-bound controller and binary witnesses. The source movie-window
+    # digest and the two *supplied* input files remain three different things.
+    reference_input = replay / "ref.input"
+    native_input = replay / (
+        "pinned-baldosa.input" if args.native_backend == "pinned-baldosa"
+        else "native.input")
+    if not reference_input.is_file() or not native_input.is_file():
+        raise CompleteEventError("QA01 replay lacks actual supplied guest input files")
+    ab_control = {
+        "schema": "ur-qa01-capture-ab-replay-control/1",
+        "repository_source_sha": subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
+        "controller_movie_window_sha256": source_window["raw_controller_window_sha256"],
+        "reference_supplied_input_sha256": sha(reference_input),
+        "native_supplied_input_sha256": sha(native_input),
+        "reference_supplied_input_bytes": reference_input.stat().st_size,
+        "native_supplied_input_bytes": native_input.stat().st_size,
+        "reference_guest_log_sha256": sha(replay / "reference.log"),
+        "native_guest_log_sha256": sha(replay / "native.log"),
+        "reference_replay_wall_seconds": round(replay_ref_seconds, 6),
+        "native_replay_wall_seconds": round(replay_nat_seconds, 6),
+        "reference_script_sha256": sha(reference_script),
+        "native_script_sha256": sha(script),
+        "capturing_continuous_frames": continuous_window is not None,
+        "cpu_joypad_reads_proven": False,
+        "full_event_accepted": False,
+    }
+    frame_evidence = None
+    if continuous_window is not None:
+        source_sha = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+        identity = {
+            "source_sha": source_sha,
+            "rom_sha256": sha(args.rom),
+            "movie_sha256": sha(args.movie),
+            # Authenticated 2014 movie input-window bytes, not the script
+            # command file. Per-guest supplied input files are hashed below.
+            "input_sha256": source_window["raw_controller_window_sha256"],
+            "observation_phase": "post-script-dump",
+            "original_frame_origin": rf,
+            "native_frame_origin": nf,
+            "masked_wram_bytes": 0,
+            "masked_sram_bytes": 0,
+        }
+        evidence_root = replay / "qa01-frame-evidence"
+        evidence_root.mkdir()
+        fingerprints = evidence_root / "fingerprints.json"
+        independent_review = evidence_root / "independent-review.json"
+        retained = evidence_root / "retained"
+        metrics = continuous_capture.audit_replay(
+            original_root=replay / "ref", native_root=replay / "native",
+            original_log=replay / "reference.log",
+            native_log=replay / "native.log",
+            identity=identity,
+            start=continuous_window[0], end=continuous_window[1],
+            prefix="qa01-frame-", width=6,
+            report=fingerprints, retained=retained, review=independent_review,
+            max_retained=args.qa01_frame_max_retained)
+        (evidence_root / "metrics.json").write_text(
+            json.dumps(metrics, sort_keys=True, indent=2) + "\n")
+        reference_input = replay / "ref.input"
+        native_input = replay / (
+            "pinned-baldosa.input" if args.native_backend == "pinned-baldosa"
+            else "native.input")
+        if (not reference_input.is_file() or
+                not native_input.is_file()):
+            raise CompleteEventError(
+                "continuous capture requires both actual supplied controller files")
+        frame_evidence = {
+            "scope": "actual same-guest script frame dumps, not opcode equivalence",
+            "original_controller_supplied_file_sha256": sha(reference_input),
+            "native_controller_supplied_file_sha256": sha(native_input),
+            "source_movie_controller_window_sha256":
+                source_window["raw_controller_window_sha256"],
+            "actual_cpu_joypad_poll_consumption_proven": False,
+            "reference_replay_wall_seconds": round(replay_ref_seconds, 6),
+            "native_replay_wall_seconds": round(replay_nat_seconds, 6),
+            "capture_overhead_vs_identical_no-capture_control_measured": False,
+            "native_binary_sha256": sha(args.native),
+            "reference_core_sha256": sha(args.core),
+            "reference_guest_acknowledgment_log_sha256":
+                sha(replay / "reference.log"),
+            "native_guest_acknowledgment_log_sha256":
+                sha(replay / "native.log"),
+            "reference_supplied_input_length_bytes":
+                reference_input.stat().st_size,
+            "native_supplied_input_length_bytes":
+                native_input.stat().st_size,
+            "source_original_movie_sha256": sha(args.movie),
+            "source_controller_window_sha256":
+                source_window["raw_controller_window_sha256"],
+            "original_script_sha256": sha(reference_script),
+            "native_script_sha256": sha(script),
+            "fingerprints_sha256": sha(fingerprints),
+            "independent_review_sha256": sha(independent_review),
+            "metrics": metrics,
+            "accepted_complete_USA_events": 0,
+        }
     report = {
         "schema_version": 1, "admission": "investigative candidate; not a release-ledger pass",
         "course_id": f"course:{stream:02d}", "name": args.case, "family": kind,
@@ -2067,6 +2227,8 @@ def main(argv: list[str] | None = None) -> int:
         "bowl_next_switcher_handoff": next_switcher,
         "bowl_source_movie_three_guest_memory": source_movie_handoff,
         "dragster_next_zoo_handoff": next_zoo,
+        "qa01_continuous_memory_capture": frame_evidence,
+        "qa01_capture_ab_control": ab_control,
         "reference_script_sha256": sha(reference_script),
         "reference": reference, "native": native,
         "scope": "original archived scene inputs, fresh reference/native stock menu; event results text from guest PPU dumps; instruction-time contact causality unproven"

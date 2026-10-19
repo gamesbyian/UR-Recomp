@@ -58,11 +58,16 @@ def raw(path: Path, expected: int) -> bytes:
 
 def audit(identity: dict, original_root: Path, native_root: Path,
           start: int, end: int, retained: Path | None = None,
-          max_retained: int = 200) -> dict:
+          max_retained: int = 200, retain_all_raw: bool = False) -> dict:
     validate_identity(identity)
     must(type(start) is int and type(end) is int and 0 <= start <= end and
          end - start < 20000, "invalid or unbounded frame interval")
     must(type(max_retained) is int and max_retained > 0, "invalid raw retention limit")
+    must(type(retain_all_raw) is bool and
+         (not retain_all_raw or retained is not None),
+         "full raw source/native retention requires a destination")
+    must(not retain_all_raw or end - start + 1 <= max_retained,
+         "full raw source/native retention cap exceeded")
     must(original_root.resolve() != native_root.resolve(),
          "reference/native raw image roots cannot be identical")
     counts = {"wram": 0, "sram": 0}
@@ -101,7 +106,7 @@ def audit(identity: dict, original_root: Path, native_root: Path,
                 "full_image_bytes_per_guest": size,
             }
         rows.append(row)
-        if changed or relative in (start, end):
+        if retain_all_raw or changed or relative in (start, end):
             selected.append((relative, hosts, pair))
     must(retained is None or len(selected) <= max_retained,
          "raw evidence retention cap exceeded; raise cap explicitly or narrow case")
@@ -136,7 +141,9 @@ def audit(identity: dict, original_root: Path, native_root: Path,
         "frame_pair_digest_chain_sha256": sha_total.hexdigest(),
         "rows": rows,
         "raw_retained_members": retained_manifest,
-        "raw_retained_scope": ("all differing frames plus first and final pair"
+        "raw_retained_scope": (("all compared frame pairs"
+                                if retain_all_raw else
+                                "all differing frames plus first and final pair")
                                if retained is not None else "none; digest-only report"),
         "producer_binary_and_executed_input_independently_verified": False,
         "windows_disk_persistence_proven": False,

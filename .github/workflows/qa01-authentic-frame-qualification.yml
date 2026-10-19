@@ -1,0 +1,75 @@
+name: QA01 genuine Bowl continuous-frame archival qualification
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa01-authentic-frame-qualification.yml"
+      - "tools/qa01_frame_fingerprint.py"
+      - "tools/qa01_verify_frame_capture.py"
+      - "tools/qa01_frame_capture_replay.py"
+      - "tools/qa01_qualify_authentic_bowl_frames.py"
+      - "tests/unit/test_qa01_continuous_frame_capture.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: qa01-genuine-frame-archive-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qualify-immutable-bowl-source:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ROM-free frame and adversarial audit tests
+        run: |
+          set -euo pipefail
+          python3 -m unittest tests.unit.test_qa01_continuous_frame_capture tests.unit.test_qa01_fidelity_evidence_pilots -v
+
+      - name: Reopen exact real original/native 2014 Bowl evidence archive
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa01-archive"
+          # The forensic consumer itself creates the verdict root, and
+          # refuses any preexisting destination to prevent mixing runs.
+          # This is GitHub's immutable 39168164480 / 12151357791 evidence,
+          # not a newly simulated race or a generated ROM-free fixture.
+          curl --fail --show-error --silent --location --retry 2 \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $GITHUB_TOKEN" \
+            --output "$RUNNER_TEMP/qa01-archive/genuine-bowl.zip" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12151357791/zip"
+          sha256sum "$RUNNER_TEMP/qa01-archive/genuine-bowl.zip"
+          python3 tools/qa01_qualify_authentic_bowl_frames.py \
+            --archive "$RUNNER_TEMP/qa01-archive/genuine-bowl.zip" \
+            --output "$RUNNER_TEMP/qa01-verdict"
+          python3 - "$RUNNER_TEMP/qa01-verdict/qualification.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          assert d["genuine_consecutive_raw_frame_pairs"]==8
+          assert d["unmasked_wram_byte_difference_occurrences"]==2747
+          assert d["unmasked_sram_byte_difference_occurrences"]==24
+          assert d["new_emulator_execution_performed"] is False
+          assert d["whole_race_continuous_coverage"] is False
+          assert d["USA_events_accepted"]==0
+          print("Genuine original/native 32-file eight-frame independent audit: qualified (bounded, 0/45)")
+          PY
+
+      - name: Retain only small authenticated offline receipts, never bulk memory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-genuine-bowl-contiguous-8-review
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa01-verdict/qualification.json
+            ${{ runner.temp }}/qa01-verdict/independent-review.json
+            ${{ runner.temp }}/qa01-verdict/frame-fingerprints.json

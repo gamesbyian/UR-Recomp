@@ -1,0 +1,160 @@
+name: QA01 one bounded genuine Zoo capture-on/off noninterference
+
+# Exactly one source-bound experiment for a named nine-frame window. This is
+# never a research factory, schedule, completed course credit or release gate.
+# The first source-authentic bounded 9-frame A/B passed on PR #1904
+# (run 39211385737). Future runs require deliberate workflow_dispatch:
+# neither PR edits nor bootstrap changes should rebuild both emulators.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: qa01-zoo-capture-ab-once-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  zoo-nine-frame-ab:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Qualify actual old source bytes before attempting any expensive build
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa01-old-source"
+          curl --fail --show-error --silent --location --retry 2 \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -o "$RUNNER_TEMP/qa01-old-source/imm-bowl.zip" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12151357791/zip"
+          python3 tools/qa01_qualify_authentic_bowl_frames.py \
+            --archive "$RUNNER_TEMP/qa01-old-source/imm-bowl.zip" \
+            --output "$RUNNER_TEMP/qa01-old-source/qualification"
+          python3 -m unittest tests.unit.test_qa01_continuous_frame_capture tests.unit.test_qa01_verify_capture_ab -v
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+
+      - name: Check out pinned Baldosa guest and framework, source-authentically
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Build exact original and Baldosa native guests once
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build pkg-config build-essential cmake libsdl2-dev \
+            libgl-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxss-dev libwayland-dev \
+            libxkbcommon-dev libegl-dev libgles-dev libdrm-dev \
+            libgbm-dev libasound2-dev libpulse-dev libudev-dev \
+            libdbus-1-dev xvfb
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          cmake -S baldosa/snesrecomp/tools/snesref \
+            -B "$RUNNER_TEMP/qa01-zoo-snesref" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/qa01-zoo-snesref" -j2
+          python3 tools/baldosa_qa_dense_scene_input_patch.py \
+            --host baldosa/snesrecomp/runner/src/desktop/host_main.c
+          cmake -S baldosa -B baldosa/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
+          cmake --build baldosa/build --target UniracersSNESRecomp -j3
+          test -x baldosa/build/UniracersSNESRecomp
+          test -s .tools/src/snes9x-libretro/libretro/snes9x_libretro.so
+          sha256sum baldosa/build/UniracersSNESRecomp \
+            .tools/src/snes9x-libretro/libretro/snes9x_libretro.so \
+            > "$RUNNER_TEMP/qa01-zoo-binaries.sha256"
+
+      - name: Two true replay executions with unchanged source/movie/input
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/qa01-zoo-ab"
+          mkdir -p "$ROOT"
+          COMMON=(
+            --case zoom-zoo --native-backend pinned-baldosa
+            --zoo-race-mesh --source-followthrough --zoo-next-bowl
+            --snesref "$RUNNER_TEMP/qa01-zoo-snesref/snesref"
+            --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+            --native "$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp"
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          )
+          # Each producer may return nonzero for *real* unmasked gameplay
+          # mismatch. Preserve diagnostics; only completeness is prerequisite.
+          for mode in off on; do
+            mkdir -p "$ROOT/$mode"
+            args=()
+            if [[ "$mode" == "on" ]]; then
+              args=(--qa01-frame-start 5034 --qa01-frame-end 5042 \
+                    --qa01-frame-max-retained 9)
+            fi
+            set +e
+            timeout --signal=TERM --kill-after=30s 24m \
+              python3 tools/probe_original_event_complete.py \
+                "${COMMON[@]}" "${args[@]}" \
+                --work-dir "$ROOT/$mode" \
+                --json-out "$ROOT/$mode/producer-report.json" \
+                > "$ROOT/$mode/producer.log" 2>&1
+            rc=$?
+            set -e
+            printf '%s\n' "$rc" > "$ROOT/$mode/exit-code.txt"
+            tail -n 45 "$ROOT/$mode/producer.log"
+            test -s "$ROOT/$mode/producer-report.json" || {
+              echo "No completed original/native diagnostic report for $mode" >&2
+              exit 1
+            }
+          done
+          test -s "$ROOT/on/zoom-zoo/replay/qa01-frame-evidence/fingerprints.json"
+          test -d "$ROOT/on/zoom-zoo/replay/qa01-frame-evidence/retained"
+          python3 tools/qa01_verify_capture_ab.py \
+            --baseline "$ROOT/off/producer-report.json" \
+            --captured "$ROOT/on/producer-report.json" \
+            --fingerprints "$ROOT/on/zoom-zoo/replay/qa01-frame-evidence/fingerprints.json" \
+            --retained-raw "$ROOT/on/zoom-zoo/replay/qa01-frame-evidence/retained" \
+            --baseline-original-log "$ROOT/off/zoom-zoo/replay/reference.log" \
+            --baseline-native-log "$ROOT/off/zoom-zoo/replay/native.log" \
+            --captured-original-log "$ROOT/on/zoom-zoo/replay/reference.log" \
+            --captured-native-log "$ROOT/on/zoom-zoo/replay/native.log" \
+            --output "$ROOT/independent-ab-review.json"
+          cat "$ROOT/independent-ab-review.json"
+          echo "No QA01 event admission or CPU input-poll parity is implied by bounded success."
+
+      - name: Preserve immutable 9-frame raw evidence and independent A/B receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-zoo-authentic-5034-5042-source-native-ab
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa01-zoo-binaries.sha256
+            ${{ runner.temp }}/qa01-zoo-ab/independent-ab-review.json
+            ${{ runner.temp }}/qa01-zoo-ab/off/producer-report.json
+            ${{ runner.temp }}/qa01-zoo-ab/on/producer-report.json
+            ${{ runner.temp }}/qa01-zoo-ab/off/exit-code.txt
+            ${{ runner.temp }}/qa01-zoo-ab/on/exit-code.txt
+            ${{ runner.temp }}/qa01-zoo-ab/off/producer.log
+            ${{ runner.temp }}/qa01-zoo-ab/on/producer.log
+            ${{ runner.temp }}/qa01-zoo-ab/off/zoom-zoo/replay/reference.log
+            ${{ runner.temp }}/qa01-zoo-ab/off/zoom-zoo/replay/native.log
+            ${{ runner.temp }}/qa01-zoo-ab/on/zoom-zoo/replay/reference.log
+            ${{ runner.temp }}/qa01-zoo-ab/on/zoom-zoo/replay/native.log
+            ${{ runner.temp }}/qa01-zoo-ab/on/zoom-zoo/replay/qa01-frame-evidence/*.json
+            ${{ runner.temp }}/qa01-zoo-ab/on/zoom-zoo/replay/qa01-frame-evidence/retained/*.bin

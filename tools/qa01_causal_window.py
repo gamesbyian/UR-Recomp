@@ -168,6 +168,13 @@ def assess(original: dict, native: dict, original_bytes: bytes, native_bytes: by
     return {
         "schema": "ur-qa01-causal-window-readonly-report/1",
         "source_sha": original["source_sha"],
+        # The consumer validated these actual original/native JSON event
+        # inputs against each other. Downstream research factories must bind
+        # more than code revision: a different ROM/movie/input trace built
+        # from the same source is NOT the same causal experiment.
+        "input_identity": {
+            name: original[name] for name in (
+                "source_sha", "rom_sha256", "movie_sha256", "input_sha256")},
         "original_event_sha256": hashlib.sha256(original_bytes).hexdigest(),
         "native_event_sha256": hashlib.sha256(native_bytes).hexdigest(),
         "observation_phase": original["window"]["phase"],

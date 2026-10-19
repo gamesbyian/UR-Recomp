@@ -1,0 +1,32 @@
+{
+  "Windows_Oct19_session_video_shown": false,
+  "contact_sheet_sha256": "2eb3faa1dee29c31dcf0942e802d9704918a7beda94bbfe3ec665bb4c8dfe904",
+  "full_human_screening": false,
+  "physical_4k_video_shown": false,
+  "review_frames_sha256": {
+    "ur-recomp-flagship-27s-vertical-frame-0015.png": "1c21c57ef498db0bc94e87247dd1f4f03cff320dc50e270dcb1c359b4ed76f36",
+    "ur-recomp-flagship-27s-vertical-frame-0104.png": "114928aa2798604af0db41919b34c82a3f90bc284e78b6e64b38b2e9212b1beb",
+    "ur-recomp-flagship-27s-vertical-frame-0430.png": "9ec6ea2af3760163123c568bc73cfad12c3a652f0b48dc099062701413e0aa1f",
+    "ur-recomp-flagship-27s-vertical-frame-0775.png": "d25163152cfb6ba68d001f3dcfa744dc185fb39a6d77d3a9b49f66f3fb64729e",
+    "ur-recomp-flagship-27s-vertical-frame-0995.png": "5563ef5b7dc7cdd7d09529c9251f65d7f3c4280e04b2806e7f4517dbf6b5c972",
+    "ur-recomp-flagship-27s-vertical-frame-1250.png": "3784f253170c6865b2936d14e9d637bb40f137be8cbe50088f0a61d6568e8ab8",
+    "ur-recomp-flagship-27s-vertical-frame-1500.png": "4436368cde731706c1e00752f0d5d251bc2fd40f6978a8a115606c5e52062d3e",
+    "ur-recomp-flagship-85s-1080p-frame-0015.png": "e067c0b507f09bba901cfda2805bdaba85ca46f7d690700aceed54188bac8bbb",
+    "ur-recomp-flagship-85s-1080p-frame-0115.png": "af27f76a2b070b11356b097b0b93d18047ccf30de55d72c18e2c9c853b6c8edd",
+    "ur-recomp-flagship-85s-1080p-frame-0390.png": "44f11a6c44e568fa0ebbddddb25c2f236f1053c8195c80d3c448178673f93144",
+    "ur-recomp-flagship-85s-1080p-frame-0715.png": "8c2870d708184f41dc501da3ec66dca008105e29e36e73346ae9eebb69cfead0",
+    "ur-recomp-flagship-85s-1080p-frame-1170.png": "21346a6940f9487c5993179b8e8910f6820f1d335b2e35e2bf11b839bb171857",
+    "ur-recomp-flagship-85s-1080p-frame-1450.png": "f9c297905f4d9af47793e90f1867610bf36e9fead248829335caa9e803cf4772",
+    "ur-recomp-flagship-85s-1080p-frame-1910.png": "88450db87222c6f921404a5a8ffe3423dbe4e74c29269b02ef3cfe31f984d150",
+    "ur-recomp-flagship-85s-1080p-frame-2400.png": "ade77d1457cb3ac0bc450f272b73bae14fd26e822152b1b73144fba70b090e43",
+    "ur-recomp-flagship-85s-1080p-frame-2780.png": "8ec9838ebb5360cd3b46aad4909408f016afc237165e46a643c767f403e8ea8e",
+    "ur-recomp-flagship-85s-1080p-frame-3120.png": "fc68acea8dc7a79dc468e58d7e502244cdbb5f6f0c35ce82a729cfdb9c4446cd",
+    "ur-recomp-flagship-85s-1080p-frame-3600.png": "4c6d2c8d8bbb3756757eacd65f2e662ac9a6f56594ea0e34760218bc21f02037",
+    "ur-recomp-flagship-85s-1080p-frame-3980.png": "b8689bb0e7645c1be3b6e2e0e0554dddb8f1c6f303d109858f930296a3fb63db",
+    "ur-recomp-flagship-85s-1080p-frame-4500.png": "63b2e2fe2f2cf9e7c0d31547b1cfaf68d7b72f12779bbec38fd2e661be66ca9f",
+    "ur-recomp-flagship-85s-1080p-frame-4850.png": "084c3ce75a080027795b530bd6d7c978ef61f8e9a7f0e1343dd3f97bfc85f146"
+  },
+  "schema": "UR-FLAGSHIP-DECODED-QA/1",
+  "source_manifest_sha256": "b1e93226b00dd34e58ae397a25efa385fee3c0344e4ef43a3d2a621b6ea79fe5",
+  "status": "SHA_and_exact_ordinal_decode_passed_pending_visual_review"
+}

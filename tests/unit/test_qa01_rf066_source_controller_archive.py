@@ -112,6 +112,12 @@ class RealSMVCase(unittest.TestCase):
             self.assertTrue(result["all_actual_2014_movie_to_supplied_guest_segments_equal"])
             self.assertFalse(result["actual_CPU_joypad_poll_consumption_proven"])
             self.assertEqual(result["accepted_USA_events"], 0)
+            self.assertEqual(result["source_movie_nonzero_input_frames"], 5233)
+            self.assertEqual(result["source_movie_zero_input_frames"], 216)
+            self.assertEqual(result["source_movie_full_scheduled_mask_sha256"],
+                             "4b17b2f7173428ce642f8e09431339c4e46607e85fe70c5998939a705a1fbcff")
+            self.assertTrue(result[
+                "all_5449_individual_source_original_native_supplied_masks_equal"])
 
     def test_forged_native_pad_value_rejected_even_with_new_sha_receipt(self):
         with tempfile.TemporaryDirectory() as directory:

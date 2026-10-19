@@ -60,6 +60,10 @@ jobs:
           assert x["original_2014_controller_frames_reopened"] == 5449
           assert x["original_actual_guest_race_entry_host_frame"] == 1017
           assert x["native_actual_guest_race_entry_host_frame"] == 1017
+          assert x["source_movie_nonzero_input_frames"] == 5233
+          assert x["source_movie_zero_input_frames"] == 216
+          assert x["source_movie_full_scheduled_mask_sha256"] == "4b17b2f7173428ce642f8e09431339c4e46607e85fe70c5998939a705a1fbcff"
+          assert x["all_5449_individual_source_original_native_supplied_masks_equal"] is True
           assert x["both_actual_guest_logs_sha256_verified"] is True
           assert x["all_actual_2014_movie_to_supplied_guest_segments_equal"] is True
           assert x["actual_CPU_joypad_poll_consumption_proven"] is False

@@ -7,9 +7,11 @@ import unittest
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 import qa01_factory_preflight as preflight
+import qa01_verify_frame_capture as raw_verifier
 
 
 def control():
+    """Structurally coherent synthetic receipts, NOT real executed evidence."""
     checks = {k: True for k in preflight.REQUIRED_ATTESTATIONS}
     att = {"schema": preflight.SCHEMA, "source_sha": "a" * 40,
            "rom_sha256": "b" * 64, "movie_sha256": "c" * 64,
@@ -17,28 +19,49 @@ def control():
     causal = {
         "schema": "ur-qa01-causal-window-readonly-report/1",
         "source_sha": att["source_sha"],
+        "input_identity": {k: att[k] for k in
+                           ("source_sha", "rom_sha256", "movie_sha256", "input_sha256")},
+        "original_event_sha256": "e" * 64, "native_event_sha256": "f" * 64,
+        "observation_phase": "post-script-dump",
+        "original_window": {"checkpoint": 2},
+        "native_window": {"checkpoint": 2},
         "accepted_complete_USA_events": 0,
         "complete_gameplay_or_instruction_equivalence_proven": False,
-        "addresses": [{"causal_equivalence_proven": False, "checkpoint_differs": True}],
+        "addresses": [{"causal_equivalence_proven": False,
+                       "checkpoint_differs": True}],
     }
+    identity = {**{k: att[k] for k in
+                   ("source_sha", "rom_sha256", "movie_sha256", "input_sha256")},
+                "observation_phase": "post-script-dump",
+                "original_frame_origin": 1017, "native_frame_origin": 2017,
+                "masked_wram_bytes": 0, "masked_sram_bytes": 0}
+    coverage = {"start": 0, "end": 7, "continuous_at_declared_frame_phase": True,
+                "between_frame_opcode_semantics_proven": False,
+                "required_frames": 8, "observed_original_frames": 8,
+                "observed_native_frames": 8}
     frames = {
         "schema": "ur-qa01-frame-fingerprint/1",
-        "source_identity": {**{k: att[k] for k in
-                                ("source_sha", "rom_sha256", "movie_sha256", "input_sha256")},
-                            "masked_wram_bytes": 0, "masked_sram_bytes": 0},
-        "coverage": {"continuous_at_declared_frame_phase": True,
-                     "between_frame_opcode_semantics_proven": False,
-                     "required_frames": 8, "observed_original_frames": 8,
-                     "observed_native_frames": 8},
+        "source_identity": identity,
+        "coverage": coverage,
+        "raw_retained_members": [],
+        "full_unmasked_differing_byte_occurrences": {"wram": 1, "sram": 0},
         "accepted_USA_events": 0,
     }
     verified = {
         "schema": "ur-qa01-independent-frame-capture-audit/1",
         "source_sha": att["source_sha"], "complete_USA_events_accepted": 0,
         "source_memory_bytes_independently_recomputed_for_retained_frames": True,
+        "fingerprint_report_canonical_sha256": raw_verifier.canonical_sha256(frames),
+        "frame_source_identity": copy.deepcopy(identity),
+        "verified_relative_frame_window": {
+            "start": 0, "end": 7, "required_frames": 8,
+            "observation_phase": identity["observation_phase"],
+            "original_frame_origin": 1017, "native_frame_origin": 2017},
+        "retained_raw_manifest_canonical_sha256":
+            raw_verifier.canonical_sha256([]),
+        "verified_differing_byte_occurrences": {"wram": 1, "sram": 0},
     }
     return att, causal, frames, verified
-
 
 class FactoryPreflight(unittest.TestCase):
     def call(self, *args):

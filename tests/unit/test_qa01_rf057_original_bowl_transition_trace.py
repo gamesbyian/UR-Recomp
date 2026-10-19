@@ -31,8 +31,24 @@ class OriginalUSAOpcode(unittest.TestCase):
            "latch8f":"00","raw30d":"00","raw30f":"00",
         }
         return report.TAG+" ".join(f"{k}={v}" for k,v in fields.items())
+    def heartbeats(self):
+        return "\n".join(
+            f"QA01RF057HEART frame={f} v=225 h=40 pc=80:ADD4 flag=1"
+            for f in range(4687,4694))
+    def test_no_menu_candidate_requires_verified_full_original_CPU_frame_coverage(self):
+        data=report.inspect(self.heartbeats())
+        self.assertEqual(data["recorded_original_executed_CPU_instruction_count"],0)
+        self.assertTrue(data["no_candidate_PC_executes_despite_confirmed_CPU_window"])
+        self.assertTrue(data["source_frame_window_CPU_dispatch_coverage_proven"])
+        with self.assertRaisesRegex(ValueError,"no qualified CPU handoff window"):
+            report.inspect("QA01RF057HEART frame=128 v=0 h=0 pc=00:0000 flag=1")
+        with self.assertRaisesRegex(ValueError,"repeated/reordered"):
+            report.inspect(self.heartbeats()+"\n"+self.heartbeats())
+        with self.assertRaisesRegex(ValueError,"never evidenced"):
+            report.inspect("")
     def test_only_genuinely_recorded_original_PC_and_actual_seq(self):
-        r=report.inspect("\n".join((self.line(seq=1),self.line(pc="80:B708",seq=2))))
+        r=report.inspect(self.heartbeats()+"\n"+"\n".join(
+            (self.line(seq=1),self.line(pc="80:B708",seq=2))))
         self.assertEqual(r["recorded_original_executed_CPU_instruction_count"],2)
         self.assertEqual(r["original_decoded_executed_candidate_group_count"],
                          {"menu-confirm":1,"wait-input":1})
@@ -42,7 +58,7 @@ class OriginalUSAOpcode(unittest.TestCase):
         self.assertEqual(r["accepted_complete_USA_events"],0)
     def test_reject_missing_truncated_wrong_pc_clock_and_sequence(self):
         samples=[
-            ("", "no original"),
+            ("", "never evidenced"),
             (self.line()+"\nQA01RF057ORIGCPU_TRUNCATED", "truncated"),
             (self.line(pc="80:82F0"),"PC/frame/sequence"),
             (self.line(pc="82:C1F5"),"PC/frame/sequence"),
@@ -53,6 +69,6 @@ class OriginalUSAOpcode(unittest.TestCase):
         for s,error in samples:
             with self.subTest(s=s[:50]):
                 with self.assertRaisesRegex(ValueError,error):
-                    report.inspect(s)
+                    report.inspect(self.heartbeats()+("\n"+s if s else ""))
 
 if __name__=="__main__":unittest.main()

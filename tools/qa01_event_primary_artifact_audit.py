@@ -135,10 +135,11 @@ def audit(plan: dict, results_dir: Path, aggregate_report: dict | None = None,
     cases = []
     shared_manifest_sha256 = None
     for case in selected:
-        directory = results_dir / ("qa01-campaign-case-" + case)
-        receipt = directory / "case-result.json"
-        primary = directory / "producer-report.json"
+        artifact_directory = results_dir / ("qa01-campaign-case-" + case)
         try:
+            directory = campaign.exact_case_artifact_root(artifact_directory)
+            receipt = directory / "case-result.json"
+            primary = directory / "producer-report.json"
             if not receipt.is_file() or not primary.is_file():
                 raise ValueError("missing original case-result.json or producer-report.json")
             if receipt.is_symlink() or primary.is_symlink():

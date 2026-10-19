@@ -12,6 +12,12 @@ on:
     paths:
       - ".github/workflows/qa01-rf062-native-operand-one-shot.yml"
 
+# Serialize disposable research on each exact PR. Never cancel an
+# already-running authentic original/native replay merely for a new commit.
+concurrency:
+  group: rf062-authentic-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 

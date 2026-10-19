@@ -401,6 +401,10 @@ jobs:
           QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}
           UR_QA01_RF054_NATIVE_SOUND_WRITER: "1"
           UR_QA01_RF062_SOUND_DIRECT_PC: "1"
+          # Research-only: source and native host frame 6124 may correspond
+          # to different *relative* frames. Snapshot both guests across the
+          # three relative frames containing those separately labeled instants.
+          UR_QA01_RF062_RAW_PAIR: "1"
           # Distinct original and native clock axes; historical Zoo result
           # windows, NOT time-shifted input or assumed frame equivalence.
           UR_QA01_APU_ORIGINAL_FIRST: "6748"
@@ -424,6 +428,15 @@ jobs:
           fi
           if [[ "$QA01_NEXT_BOWL" == "true" ]]; then
             extra_args+=(--zoo-next-bowl)
+          fi
+          if [[ "${UR_QA01_RF062_RAW_PAIR:-}" == "1" ]]; then
+            # Genuine prior observations: original entry frame 1017, native
+            # entry frame 1019. Each local guest's frame 6124 therefore lies
+            # on a distinct relative offset: original +5107, native +5105.
+            # Keep the full three-frame interval on BOTH sides, not one
+            # deceptively shared semantic observation clock.
+            extra_args+=(--qa01-frame-start 5105 --qa01-frame-end 5107
+                         --qa01-frame-max-retained 3)
           fi
           ROOT="$RUNNER_TEMP/qa01-case"
           BIN="$RUNNER_TEMP/qa01-binaries"

@@ -1,0 +1,32 @@
+# TEMPORARY source-authentic RF062 run. Research branch only, DO NOT MERGE.
+# The reusable campaign is modified on this branch to stage the real native
+# helper, direct decoded-PC IR read, generated-M1X0 static gate, and capture.
+name: RF062 genuine USA Zoo direct sound operand one-shot
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/workflows/qa01-rf062-native-operand-one-shot.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  authentic-rf062-zoo:
+    uses: ./.github/workflows/qa01-event-campaign.yml
+    with:
+      selected: zoom-zoo
+      zoo_terminal_phase: true
+      zoo_race_mesh: true
+      zoo_dp_window: true
+      qa01_apu_phase: false
+      source_followthrough: true
+      baldosa_refresh_beam_rate: true
+      baldosa_io_clock_order: true
+      baldosa_spc_reference_rate: true
+      baldosa_dp_pointer_once: true
+      baldosa_hdma_cpu_stall: true
+      baldosa_spc_interrupt_stage: true
+      qa01_cold_guest_reload: true
+      zoo_next_bowl: true

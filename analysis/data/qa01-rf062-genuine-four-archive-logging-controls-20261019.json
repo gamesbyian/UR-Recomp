@@ -1,0 +1,60 @@
+{
+  "schema": "ur-qa01-independent-four-zip-rf062-native-diagnostic-source-receipt/1",
+  "date": "2026-10-19",
+  "independent_archive_workflow_run_id": 39331072506,
+  "independent_archive_artifact_id": 12223084924,
+  "independent_verdict_zip_sha256": "7ff7fd1ea8b6b62fa66fd84fb9f18ca2f1cadf10121ddf975bceb785bf1fb751",
+  "independent_verdict_JSON_sha256": "c9f1d025d0894a6da52b6a56e49f8c30dd39a24f00818817f8f01432dcf2c3ac",
+  "original_source_RF066_case_zip_sha256": "494737bb6a1c422141c40f7175883f212767c3d774ee63fb0ba82add78cb445f",
+  "instrumented_RF062_case_zip_sha256": "b8287234d2fe515ee32b19b3d2a9b0e1bb58104b437de3a5cbe2e32e3af093ff",
+  "native_same_compiled_binary_logging_case_zip_sha256": "b94660b8ffb0cfb1cd35ec9fe3a3c1c8c6b44a46d865272b8cfdad2e62078cbd",
+  "compiled_binary_zip_sha256": "83233faded8aa546025f59abe50c9ba29f109250f5bcafb2e20cdb5d7780bc37",
+  "reopened_native_executable_sha256": "31790cd408950ef20153031b5633f4045aa753368f6b94170ece607b5950a53a",
+  "reopened_same_original_native_input_bytes_across_case_and_logging": {
+    "original_SHA256": "a5b909fe87aa394024cdba8f5eaf67a0ac6652000df145252bf558d755ed79b8",
+    "native_SHA256": "bc3d364ff3b2ac1a120be3b3efa33b4938749c648e1b64df28d29742b4c64160"
+  },
+  "native_sampled_snd_helper_count_logging_off_on": [
+    655,
+    655
+  ],
+  "actual_native_RF062_direct_record_count_off_on": [
+    0,
+    10
+  ],
+  "native_read_82_82F0_operand_11_C774": "D0",
+  "all_native_helper_operands_registers_and_master_clocks_identical": true,
+  "original_strict_full_native_log_comparator_positive": false,
+  "single_exact_host_video_totals_field_exception": {
+    "simulations_off_on": [
+      6460,
+      6460
+    ],
+    "presentations_off_on": [
+      6460,
+      6460
+    ],
+    "host_video_seconds_off_on": [
+      "109.566",
+      "109.591"
+    ],
+    "all_other_actual_native_guest_log_rows_equal_after_exact_metadata_classification": true,
+    "full_guest_cpu_or_spc_equivalence_beyond_sampled_traces_proven": false
+  },
+  "RF066_RF062_cross_compiled_epoch_native_WRAM_changed_images": 15,
+  "RF066_RF062_cross_compiled_epoch_native_WRAM_differing_byte_occurrences": 77,
+  "RF066_RF062_original_native_78_mesh_byte_exact_counts": [
+    51,
+    46
+  ],
+  "RF066_RF062_original_native_78_mesh_unmasked_differing_byte_occurrences": [
+    92,
+    104
+  ],
+  "same_native_binary_wrapper_substitution_noninterference_proven": false,
+  "historical_656_to_655_helper_change_causally_attributed": false,
+  "original_native_same_phase_first_differing_read_proven": false,
+  "accepted_complete_USA_events": 0,
+  "accepted_windows_release_QA_gates": 0,
+  "disposition": "HOLD: original strict logging log comparator negative on host wall-clock video seconds; one separately qualified host-only field reconciles nonRF062 guest text without proving wrapper, gameplay or release equivalence"
+}

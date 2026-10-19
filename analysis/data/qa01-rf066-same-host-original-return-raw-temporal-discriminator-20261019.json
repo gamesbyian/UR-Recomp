@@ -1,0 +1,92 @@
+{
+  "schema": "ur-qa01-rf066-same-host-return-vs-script-dump-independent-receipt/1",
+  "date": "2026-10-19",
+  "source_archive_artifact_id": 12171791431,
+  "source_archive_zip_sha256": "494737bb6a1c422141c40f7175883f212767c3d774ee63fb0ba82add78cb445f",
+  "source_original_log_sha256": "a373b15087f9e1f88658979c77b4defb82238f8b4121d3de437288d8fd44766d",
+  "independent_genuine_verification_run": 39310639780,
+  "independent_verification_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39310639780",
+  "independent_verdict_artifact_id": 12216140316,
+  "independent_verdict_artifact_zip_sha256": "d80418e7efaa1d24c4932331bced0a7578e07dc638b281e75af4cffc71610817",
+  "independent_verdict_json_sha256": "0877a43947afc1144fbc73cae77384f965b8b48dd44f829b449536e461fb9ae8",
+  "original_true_post_macro_returns_source_local_qualified": 903,
+  "original_getset_read_entry_records": 0,
+  "original_guest_race_entry_host": 1017,
+  "native_guest_race_entry_host": 1017,
+  "raw_memory_images_independently_reopened": 6,
+  "bytes_per_image": 131072,
+  "unmasked_observed_source_native_differing_stack_addresses": [
+    "7E:01ED",
+    "7E:01EE",
+    "7E:01EF",
+    "7E:01F0"
+  ],
+  "relative_frame_rows": [
+    {
+      "frame": 1,
+      "original_host": 1018,
+      "native_host": 1018,
+      "pulls_touching_differing_stack": 74,
+      "returned_byte_observations": 104,
+      "match_original_same_host_dump": 3,
+      "match_native_same_host_dump": 6,
+      "match_neither_same_host_dump": 95,
+      "by_physical_address": {
+        "7E:01ED": 22,
+        "7E:01EE": 22,
+        "7E:01EF": 30,
+        "7E:01F0": 30
+      }
+    },
+    {
+      "frame": 2,
+      "original_host": 1019,
+      "native_host": 1019,
+      "pulls_touching_differing_stack": 91,
+      "returned_byte_observations": 119,
+      "match_original_same_host_dump": 3,
+      "match_native_same_host_dump": 5,
+      "match_neither_same_host_dump": 111,
+      "by_physical_address": {
+        "7E:01ED": 22,
+        "7E:01EE": 21,
+        "7E:01EF": 29,
+        "7E:01F0": 47
+      }
+    },
+    {
+      "frame": 4,
+      "original_host": 1021,
+      "native_host": 1021,
+      "pulls_touching_differing_stack": 97,
+      "returned_byte_observations": 128,
+      "match_original_same_host_dump": 3,
+      "match_native_same_host_dump": 5,
+      "match_neither_same_host_dump": 120,
+      "by_physical_address": {
+        "7E:01ED": 24,
+        "7E:01EE": 22,
+        "7E:01EF": 30,
+        "7E:01F0": 52
+      }
+    }
+  ],
+  "totals": {
+    "real_original_post_macro_operations_intersecting_raw_difference": 262,
+    "returned_byte_observations": 351,
+    "matching_original_same_host_dump_only": 9,
+    "matching_native_same_host_dump_only": 16,
+    "matching_neither_same_host_dump": 326
+  },
+  "source_original_movie_and_guest_input_supply_independently_verified": true,
+  "getter_entry_time_read_sample_proven": false,
+  "native_corresponding_guest_read_value_proven": false,
+  "same_host_label_means_same_opcode_observation_phase": false,
+  "first_original_native_causal_consumed_difference_proven": false,
+  "full_USA_events_accepted": 0,
+  "Windows_release_QA_gates": 0,
+  "disposition": "HOLD: actual post-call source bytes are not a replacement for same-host script-dump bytes",
+  "return_vs_script_dump_chronological_order_proven": false,
+  "original_2014_combined_log_physical_line_order_admitted_as_event_order": false,
+  "independent_verdict_sha256_is_pre_chronology_wording_correction": true
+}

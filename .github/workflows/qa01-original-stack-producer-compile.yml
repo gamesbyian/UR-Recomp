@@ -12,7 +12,11 @@ on:
       - "tools/qa01_rf045_source_stack_macro_witness.py"
       - "tools/qa01_rf063_original_shared_sequence.py"
       - "tools/qa01_rf064_original_post_call_pull.py"
-      - "tools/toolchain.json"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+      - "third_party/manifest.json"
+      - "third_party/src/snes9x-libretro/**"
+      - "tools/validate_island.py"
       - "tools/patches/snes9x-snesref-debug-exports.patch"
 
 permissions:
@@ -36,7 +40,22 @@ jobs:
           set -euo pipefail
           python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
           SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
-          test "$(git -C "$SRC" rev-parse HEAD)" = 1bcc369e89f08243e0a462882fb1f3e42e51de3a
+          # --offline bootstraps repository-owned VENDORED source without .git.
+          # A git rev-parse here accidentally resolves the PARENT PR checkout;
+          # instead check the upstream revision AND the exact source-tree hash.
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from tools.validate_island import tree_sha256
+          island=json.loads(Path("third_party/manifest.json").read_text())
+          c=next(x for x in island["components"] if x["id"]=="snes9x-libretro")
+          t=json.loads(Path("tools/toolchain-entries/snes9x-libretro.json").read_text())
+          pin="1bcc369e89f08243e0a462882fb1f3e42e51de3a"
+          assert c["revision"] == t["revision"] == pin
+          assert c["source_sha256"] == tree_sha256(Path(c["source_path"]))
+          assert c["mode"]=="vendored"
+          print("RF065 original upstream commit and vendored pristine source SHA verified")
+          PY
           test -s "$SRC/libretro/snes9x_libretro.so"
           mkdir -p "$RUNNER_TEMP/rf065"
           sha256sum "$SRC/libretro/snes9x_libretro.so" > "$RUNNER_TEMP/rf065/stock-core-sha256.txt"
@@ -65,7 +84,7 @@ jobs:
           test -s "$SRC/libretro/snes9x_libretro.so"
           sha256sum "$SRC/libretro/snes9x_libretro.so" > "$RUNNER_TEMP/rf065/instrumented-core-sha256.txt"
           {
-            echo "Original source SHA: $(git -C "$SRC" rev-parse HEAD)"
+            echo "Original upstream source revision: 1bcc369e89f08243e0a462882fb1f3e42e51de3a (verified vendored island source SHA)"
             echo "UR-Recomp workflow source SHA: $GITHUB_SHA"
             echo "Stock source libretro and RF044/RF045/RF063/RF064 instrumented libretro both compiled."
             echo "No ROM, movie, controller input, native replay, evidence normalization or USA event admission."

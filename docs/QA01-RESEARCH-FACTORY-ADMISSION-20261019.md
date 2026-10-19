@@ -18,6 +18,8 @@ Input attestation JSON requires `schema="ur-qa01-research-factory-preflight/2"` 
 python3 tools/qa01_factory_preflight.py \
   --attestation /tmp/qa01-independent-source-attestation.json \
   --causal-report /tmp/qa01-real-causal.json \
+  --original-events /tmp/qa01-actual-original-bus-events.json \
+  --native-events /tmp/qa01-actual-native-bus-events.json \
   --frame-report /tmp/qa01-real-frames.json \
   --independent-raw-report /tmp/qa01-independent-raw.json \
   --retained-raw /tmp/qa01-retained-original-native-raw \
@@ -29,6 +31,8 @@ Every provided report is parsed fail-closed for the named schema and source/inpu
 ## Stronger three-consumer binding before admission
 
 A review attestation with all `checks=true` is not by itself trustworthy. The revised `/2` contract additionally requires `evidence_sha256` mapping **exactly** `causal_report`, `frame_report`, and `independent_raw_report` to the SHA256 of each supplied JSON file. Those digests must be independently reviewed and recorded before the preflight runs. Swapped reports fail rather than silently inheriting somebody else's sign-off.
+
+**For positive readiness, both `--original-events` and `--native-events` are also mandatory.** The preflight hashes each source/native event file from a single read, independently reruns `qa01_causal_window.assess` on those bytes and demands the entire recomputed causal report match exactly. A fabricated native executed PC, tampered event sequence or stale report fails rather than yielding a provisional green. This is read-only evidence recomputation, not an emulator run; independent original provenance and true guest-PC execution still require the explicit external attestation.
 
 **For positive readiness, `--retained-raw` is mandatory.** The preflight reruns the project's independent `qa01_verify_frame_capture.verify` against the actual original/native raw image files and compares its counts against the independently supplied audit. It requires that the causal original and native windows share the frame fingerprint's **same declared observation phase**, and that the causal checkpoint falls inside the genuine continuous frame interval. For each causal physical `7E/7F` WRAM address, it independently opens the **same retained original/native frame** and verifies both source bytes, the differing-byte claim and the full-WRAM diff bound. Executed guest event SHA256 and complete/nonoverflow recorder flags are also required.
 

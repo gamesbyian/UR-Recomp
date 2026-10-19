@@ -93,7 +93,7 @@ def inspect(raw: str) -> dict:
             if off>0x01f1 or off+width-1<0x01ed or not (bank==0x7e or ((bank&0x7f)<0x40 and off<0x2000)):
                 raise ValueError("RF063 bus outside pinned stack filter")
         seen.append((seq,frame,CONSUMED if consumed else CHECK if checkpoint else BUS))
-    if not seen or not any(not c for _,_,c in seen):
+    if not seen or not any(kind==BUS for _,_,kind in seen):
         raise ValueError("no actual original getset-entry samples")
     if len(checkpoints)!=1:
         raise ValueError("need exactly one original 2014 physical NMI checkpoint")

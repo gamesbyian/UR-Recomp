@@ -12,6 +12,7 @@ from typing import List
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 import qa01_rf062_direct_sound_bus_pc_patch as rf
+import baldosa_dp_indirect_long_pointer_once_patch as dp
 
 
 class DirectSoundRead(unittest.TestCase):
@@ -106,6 +107,50 @@ class DirectSoundRead(unittest.TestCase):
                      args[2], args[3])
         with self.assertRaisesRegex(ValueError, "already/partially"):
             rf.patch(*rf.patch(*args))
+
+    def test_rf018_real_replacement_retains_full_pointer_once_read(self):
+        # Use the actual RF018 patch's corrected codegen, not a fake anchor.
+        gen, emitter, cpu, header = self.fixture()
+        fixed = "_CURRENT_SOURCE_PC24 = 0\n# " + dp.MARK + "\n" + dp.CORRECTED_READ_WRITE
+        generated, paced, actual_cpu, actual_header = rf.patch(
+            fixed, emitter, cpu, header)
+        self.assertIn(rf.READ_PATCH_RF018, generated)
+        self.assertIn("return prelude + [", generated)
+        self.assertIn("_segref_hoisted(op.seg)", generated)
+        self.assertEqual(generated.count(rf.SITE), 1)
+        self.assertEqual(actual_cpu.count("uint8 value = cpu_read8_paced(cpu, bank, addr);"), 1)
+        self.assertIn(rf.PROTOTYPE, actual_header)
+        namespace = {
+            "Read": object, "Write": object, "List": List,
+            "SegRef": object, "SegKind": SimpleNamespace(DP_INDIRECT_LONG=10),
+            "Reg": SimpleNamespace(X=1, Y=2),
+            "_segref_addr_expr": lambda seg: ("0x11", "0xC774"),
+            "_v": lambda out: "v",
+            "widths": SimpleNamespace(
+                ctype=lambda width: "uint8" if width == 1 else "uint16",
+                read_fn=lambda width: "cpu_read8" if width == 1 else "cpu_read16",
+                write_fn=lambda width: "cpu_write8" if width == 1 else "cpu_write16"),
+        }
+        exec(generated, namespace)
+        for pc, instrumented in ((0x8282F0, True), (0x8282F2, False)):
+            namespace["_CURRENT_SOURCE_PC24"] = pc
+            output = namespace["_emit_read"](SimpleNamespace(
+                seg=SimpleNamespace(kind=10, index=2, offset=0x63),
+                width=1, out=1))
+            self.assertEqual(len(output), 4)
+            self.assertIn("cpu_read16", output[0])
+            self.assertIn("cpu_read8", output[1])
+            self.assertIn("_ea", output[2])
+            self.assertEqual(rf.SITE in output[-1], instrumented)
+
+    def test_rf018_marker_with_wrong_read_shape_refuses_staging(self):
+        gen, emitter, cpu, header = self.fixture()
+        with self.assertRaisesRegex(ValueError, "RF018 marker"):
+            rf.patch("# " + dp.MARK + "\n" + gen, emitter, cpu, header)
+        with self.assertRaisesRegex(ValueError, "Read IR source drift"):
+            rf.patch(gen.replace("bank, addr = _segref_addr_expr(op.seg)",
+                                 "bank, addr = unknown(op.seg)"),
+                     emitter, cpu, header)
 
     def test_native_wrapper_compiles_without_an_extra_guest_read(self):
         cc = shutil.which("cc")

@@ -44,5 +44,15 @@
   "game_native_first_actually_consumed_differing_byte_proven": false,
   "accepted_USA_events": 0,
   "Windows_release_accepted_gates": 0,
-  "purpose": "Positive evidence for actual original helper-entry and macro-return source-local intervals only, without asserting cross-emulator clock equivalence or completed course acceptance"
+  "purpose": "Positive evidence for actual original helper-entry and macro-return source-local intervals only, without asserting cross-emulator clock equivalence or completed course acceptance",
+  "independent_full_archived_case_reexecution_workflow_run_id": 39310950499,
+  "independent_full_archived_case_reexecution_workflow_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39310950499",
+  "independent_full_archived_case_reexecution_result": "success",
+  "independent_903_row_receipt_artifact_id": 12215263789,
+  "independent_903_row_receipt_artifact_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39310950499/artifacts/12215263789",
+  "independent_903_row_receipt_archive_sha256": "ccd28eae3bdaa8d746fd9c301c8e6e1003af5bf5a56511fdb96597facdfbd140",
+  "independent_receipt_actual_schema": "ur-qa01-rf071-original-executed-getset-stack-pull-transaction/1",
+  "independent_receipt_actual_transaction_count": 903,
+  "independent_receipt_artifact_crc_valid": true,
+  "independent_complete_USA_admission": 0
 }

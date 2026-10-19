@@ -15,6 +15,7 @@ import re
 from pathlib import Path
 
 import qa01_verify_frame_capture as raw_verifier
+import qa01_causal_window as causal_consumer
 
 SHA = re.compile(r"[0-9a-f]{64}\Z")
 SOURCE = re.compile(r"[0-9a-f]{40}\Z")
@@ -127,7 +128,9 @@ def causal_scope(causal: dict, frames: dict, raw_root: Path) -> dict:
 
 def evaluate(attestation: dict, causal: dict | None, frames: dict | None,
              independent: dict | None, input_hashes: dict[str, str],
-             *, raw_root: Path | None = None) -> dict:
+             *, raw_root: Path | None = None,
+             original_event_bytes: bytes | None = None,
+             native_event_bytes: bytes | None = None) -> dict:
     assert_valid(attestation.get("schema") in (SCHEMA, LEGACY_SCHEMA),
                  "invalid preflight attestation schema")
     assert_valid(type(attestation.get("source_sha")) is str and
@@ -202,6 +205,16 @@ def evaluate(attestation: dict, causal: dict | None, frames: dict | None,
                      and independent.get("actual_guest_frame_acknowledgments_verified") is False
                      and independent.get("original_input_consumption_verified") is False,
                      "invalid/overclaimed independent raw-image audit")
+    if original_event_bytes is None or native_event_bytes is None:
+        reasons.append("missing_actual_original_native_event_payloads")
+    elif causal is not None:
+        # Re-execute the merged read-only causal parser over actual source and
+        # native event payload bytes, not an unverified human-edited report.
+        rederived = causal_consumer.assess(
+            json.loads(original_event_bytes), json.loads(native_event_bytes),
+            original_event_bytes, native_event_bytes)
+        assert_valid(rederived == causal,
+                     "causal report does not reproduce from actual event payloads")
     if raw_root is None:
         reasons.append("missing_retained_raw_dir_for_independent_reopen")
     crosscheck = None
@@ -247,6 +260,10 @@ def main() -> None:
     ap.add_argument("--causal-report", type=Path)
     ap.add_argument("--frame-report", type=Path)
     ap.add_argument("--independent-raw-report", type=Path)
+    ap.add_argument("--original-events", type=Path,
+                    help="actual original executed-bus JSON; required for pilot readiness")
+    ap.add_argument("--native-events", type=Path,
+                    help="actual native executed-bus JSON; required for pilot readiness")
     ap.add_argument("--retained-raw", type=Path,
                     help="source/native raw image directory; required to authorize a pilot")
     ap.add_argument("--output", type=Path, required=True)
@@ -259,8 +276,17 @@ def main() -> None:
     hashes = {"attestation": ah}
     hashes.update({label: sha for (label, _), (_, sha) in zip(provided, loaded)
                    if sha is not None})
+    events = {}
+    for guest, path in (("original", args.original_events),
+                        ("native", args.native_events)):
+        if path is not None:
+            document, sha = load(path)
+            hashes[guest + "_event_payload"] = sha
+            events[guest] = path.read_bytes()
     verdict = evaluate(attestation, *(x for x, _ in loaded), hashes,
-                       raw_root=args.retained_raw)
+                       raw_root=args.retained_raw,
+                       original_event_bytes=events.get("original"),
+                       native_event_bytes=events.get("native"))
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(verdict, indent=2, sort_keys=True) + "\n")
     print(verdict["readiness"], "-", ", ".join(verdict["missing_or_negative_conditions"]) or

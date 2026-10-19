@@ -73,6 +73,55 @@ def source_event_register_summary(repo_root: pathlib.Path) -> dict:
     }
 
 
+def qa04_physical_coverage(witnesses: object) -> bool:
+    """Check L5 hardware witness diversity and byte identity, not device truth.
+
+    Shared by both ledger auditors; reviewers must still corroborate every
+    asserted device and launch against actual independent Windows evidence.
+    """
+    if not isinstance(witnesses, list):
+        return False
+    setups: list[tuple[str, str, tuple[str, str, str], bool, str]] = []
+    for witness in witnesses:
+        if not isinstance(witness, dict) or witness.get("layer") != "L5":
+            continue
+        hardware = witness.get("hardware")
+        if not isinstance(hardware, dict):
+            continue
+        setup_id = hardware.get("setup_id")
+        environment = hardware.get("environment")
+        clean = hardware.get("clean_environment")
+        if (not isinstance(setup_id, str) or not setup_id.strip()
+                or environment not in ("physical", "isolated-clean-vm")
+                or type(clean) is not bool):
+            continue
+        if environment == "isolated-clean-vm" and not clean:
+            continue
+        if environment == "physical" and not all(
+            hardware.get(flag) is True for flag in (
+                "physical_controller_observed",
+                "audible_output_observed",
+                "visible_display_observed",
+            )
+        ):
+            continue
+        traits = (hardware.get("gpu"), hardware.get("display"),
+                  hardware.get("controller"))
+        exe = witness.get("tested_executable_sha256")
+        if (any(not isinstance(v, str) or not v.strip() for v in traits)
+                or not isinstance(exe, str) or SHA256.fullmatch(exe) is None
+                or witness.get("package_unchanged_after_launch") is not True):
+            continue
+        setups.append((setup_id.strip(), environment, traits, clean, exe))
+    real = [entry for entry in setups if entry[1] == "physical"]
+    virtual = [entry for entry in setups if entry[1] == "isolated-clean-vm"]
+    return (len(setups) >= 3 and len(real) >= 2 and len(virtual) <= 1
+            and len({entry[0] for entry in setups}) == len(setups)
+            and any(entry[3] for entry in setups)
+            and len({entry[2] for entry in real}) == len(real)
+            and len({entry[4] for entry in setups}) == 1)
+
+
 def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
     errors: list[str] = []
     if not isinstance(registry, dict):
@@ -279,62 +328,19 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
                     errors.append(f"{name} L5 witness without physical hardware confirmation")
         if status != "passed" and witnesses and gate.get("candidate_commit") != commit:
             errors.append(f"{name} witness candidate mismatch")
-    # QA-04's L5 release requirement is deliberately more demanding than a
-    # one-off device list: three dissimilar environments, at least two actual
-    # physical systems, with at most one isolated clean VM. A positive boolean
-    # or three copies of the same hosted SDL fixture cannot be a hardware pass.
-    # This validates evidence metadata only; it never attests devices existed.
+    # QA-04 needs three distinct real hardware footprints or a clean VM
+    # plus two physical systems. No hosted shim or differing executable counts.
     qa04 = next((g for g in gates if isinstance(g, dict)
                  and g.get("id") == "QA-04"), None)
-    if isinstance(qa04, dict) and qa04.get("status") == "passed":
-        qa04_witnesses = qa04.get("witnesses")
-        setups: list[tuple[str, str, tuple[str, str, str], bool, str]] = []
-        if isinstance(qa04_witnesses, list):
-            for w in qa04_witnesses:
-                if not isinstance(w, dict) or w.get("layer") != "L5":
-                    continue
-                hw = w.get("hardware")
-                if not isinstance(hw, dict):
-                    continue
-                ident = hw.get("setup_id")
-                environment = hw.get("environment")
-                clean = hw.get("clean_environment")
-                if (not isinstance(ident, str) or not ident.strip()
-                        or environment not in ("physical", "isolated-clean-vm")
-                        or type(clean) is not bool):
-                    continue
-                if environment == "isolated-clean-vm" and not clean:
-                    continue
-                if environment == "physical" and not all(
-                    hw.get(flag) is True for flag in (
-                        "physical_controller_observed",
-                        "audible_output_observed",
-                        "visible_display_observed",
-                    )
-                ):
-                    continue
-                traits = (hw.get("gpu"), hw.get("display"), hw.get("controller"))
-                exe_digest = w.get("tested_executable_sha256")
-                if (any(not isinstance(v, str) or not v.strip() for v in traits)
-                        or not isinstance(exe_digest, str)
-                        or SHA256.fullmatch(exe_digest) is None
-                        or w.get("package_unchanged_after_launch") is not True):
-                    continue
-                setups.append((ident.strip(), environment, traits, clean, exe_digest))
-        phys = [s for s in setups if s[1] == "physical"]
-        vm = [s for s in setups if s[1] == "isolated-clean-vm"]
-        if (len(setups) < 3 or len(phys) < 2 or len(vm) > 1
-                or len({s[0] for s in setups}) != len(setups)
-                or not any(s[3] for s in setups)
-                or len({s[2] for s in phys}) != len(phys)
-                or len({s[4] for s in setups}) != 1):
-            errors.append(
-                "QA-04 needs three independently identified dissimilar L5 "
-                "Windows setups (three physical or one isolated clean VM "
-                "plus two physical), an actual clean environment and "
-                "explicit controller/audio/display observation on real systems; "
-                "all three must bind the same actual PE and immutable package"
-            )
+    if (isinstance(qa04, dict) and qa04.get("status") == "passed"
+            and not qa04_physical_coverage(qa04.get("witnesses"))):
+        errors.append(
+            "QA-04 needs three independently identified dissimilar L5 "
+            "Windows setups (three physical or one isolated clean VM "
+            "plus two physical), an actual clean environment and "
+            "explicit controller/audio/display observation on real systems; "
+            "all three must bind the same actual PE and immutable package"
+        )
 
     if decision == "public_release":
         if not isinstance(candidate.get("release_approved_by"), str) or not candidate["release_approved_by"].strip():

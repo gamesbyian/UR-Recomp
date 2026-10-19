@@ -84,13 +84,17 @@ def verify(archive: Path, expected_sha: str = PINNED_SHA) -> dict:
                 "capture test altered guest input or failed to toggle dump scripts")
         exits = {side: int(z.read(ROOT + side + "/exit-code.txt").strip())
                  for side in ("off", "on")}
-        require(exits["on"] == exits["off"],
-                "capture changed the producer's strict gameplay exit status")
+        require(exits["on"] == exits["off"] == 1,
+                "original/native strict gameplay mismatch requires both red producer exits")
         require(on["comparison"]["paired_event_candidate"] is False
                 and on["comparison"]["terminal_result_frame_matched"] is False
                 and on["zoo_race_mesh"]["masked_or_excluded_wram_bytes"] == 0
                 and on["zoo_race_mesh"]["every_gameplay_frame_compared"] is False
-                and on["zoo_next_bowl_handoff"]["release_complete_event_credit"] == 0,
+                and on["zoo_next_bowl_handoff"]["release_complete_event_credit"] == 0
+                and on["zoo_next_bowl_handoff"][
+                    "all_original_native_full_sram_pairs_equal"] is False
+                and on["zoo_next_bowl_handoff"][
+                    "next_bowl_entry_triple_equal"] is False,
                 "bounded research case is incorrectly claimed as accepted game")
         frames = d["frames"]
         ident = frames["source_identity"]
@@ -104,9 +108,14 @@ def verify(archive: Path, expected_sha: str = PINNED_SHA) -> dict:
                     hashlib.sha256(z.read(DOC["frames"])).hexdigest()
                 and capture["independent_review_sha256"] ==
                     hashlib.sha256(z.read(DOC["review"])).hexdigest()
-                and capture["metrics"] == d["metrics"],
-                "producer capture report's exact evidence hashes changed")
+                and capture["metrics"] == d["metrics"]
+                and capture.get("accepted_complete_USA_events") == 0
+                and capture.get("actual_cpu_joypad_poll_consumption_proven") is False,
+                "producer capture report's exact evidence hashes or limitations changed")
         require(d["ab"]["admitted_usa_events"] == 0
+                and d["ab"]["actual_input_CPU_read_trace_proven"] is False
+                and d["ab"]["full_race_or_Windows_persistence_proven"] is False
+                and d["metrics"]["same_guest_inputs_actually_consumed_proven"] is False
                 and d["ab"]["existing_semantic_observations_unchanged"] is True
                 and d["ab"]["same_supplied_original_native_input_bytes_digest"] is True
                 and d["ab"]["same_source_controller_and_binaries"] is True

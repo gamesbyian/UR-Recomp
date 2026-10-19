@@ -45,6 +45,8 @@ class ExactSourceProbe(unittest.TestCase):
         self.assertIn('  pixelBuffer[3] = 0;\n',after)
         self.assertIn('(unsigned)ppu->cgram[qa08_index]', after)
         self.assertIn('selected_rgb555=%04x', after)
+        self.assertIn('directcolor=%u', after)
+        self.assertIn('bit_depths_per_mode[actMode][layer] == 8', after)
         self.assertIn('RGB8=%u,%u,%u', after)
 
     def test_missing_duplicate_partial_and_competing_source_refused(self):

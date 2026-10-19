@@ -1,0 +1,81 @@
+{
+  "schema": "ur-qa01-rf072-authentic-source-first-NMI-byte-consumers/1",
+  "date": "2026-10-19",
+  "original_source_case": "RF069 authentic USA Zoom Zoo 2014 Snes9x original",
+  "run_id": 39307624432,
+  "archive_artifact_id": 12215281695,
+  "source_case_zip_sha256": "90b03d7e035c7a1939b488211b98165615e3fc63226fe57ac718fc7e3e772763",
+  "original_source_log_sha256": "04989c5b60a92b9d393a66ad8e5a84e522f72d8f92bde2af83de5df2cd94bcb9",
+  "independent_RF071_full_903_transaction_qualifier_run_id": 39310950499,
+  "original_source_NMI_checkpoint_global_seq": 193,
+  "original_source_NMI_checkpoint_frame": 1017,
+  "original_real_post_NMI_raw_bytes_01ed_to_01f1": "26F0D48226",
+  "all_five_original_stack_bytes_actually_read_before_next_observed_getset_write": true,
+  "byte_fates": [
+    {
+      "address": "00:01ED",
+      "checkpoint_byte": "26",
+      "first_real_original_read_global_seq": 194,
+      "first_real_original_read_value": "26",
+      "first_real_original_read_pc_context": "80:B0EB",
+      "first_observed_original_write_global_seq": 210,
+      "first_observed_original_write_value": "B9"
+    },
+    {
+      "address": "00:01EE",
+      "checkpoint_byte": "F0",
+      "first_real_original_read_global_seq": 196,
+      "first_real_original_read_value": "F0",
+      "first_real_original_read_pc_context": "80:B0EB",
+      "first_observed_original_write_global_seq": 210,
+      "first_observed_original_write_value": "85"
+    },
+    {
+      "address": "00:01EF",
+      "checkpoint_byte": "D4",
+      "first_real_original_read_global_seq": 196,
+      "first_real_original_read_value": "D4",
+      "first_real_original_read_pc_context": "80:B0EB",
+      "first_observed_original_write_global_seq": 203,
+      "first_observed_original_write_value": "01"
+    },
+    {
+      "address": "00:01F0",
+      "checkpoint_byte": "82",
+      "first_real_original_read_global_seq": 198,
+      "first_real_original_read_value": "82",
+      "first_real_original_read_pc_context": "80:D4F0",
+      "first_observed_original_write_global_seq": 203,
+      "first_observed_original_write_value": "00"
+    },
+    {
+      "address": "00:01F1",
+      "checkpoint_byte": "26",
+      "first_real_original_read_global_seq": 200,
+      "first_real_original_read_value": "26",
+      "first_real_original_read_pc_context": "82:D4F5",
+      "first_observed_original_write_global_seq": 202,
+      "first_observed_original_write_value": "00"
+    }
+  ],
+  "original_source_getset_entire_guest_race_bus_coverage_proven": false,
+  "native_equivalent_post_NMI_semantic_checkpoint_proven": false,
+  "native_actual_first_differing_byte_consumption_proven": false,
+  "cross_emulator_absolute_clocks_rebased": false,
+  "original_native_78_unmasked_full_128KiB_WRAM_pairs": 78,
+  "original_native_raw_byte_differences_in_those_pairs": 92,
+  "USA_complete_events_independently_accepted": 0,
+  "Windows_release_gates_accepted": 0,
+  "claim_scope": "Original-only actual 65816 bounded source stack read before next observed getset write. Not a waiver for source/native WRAM differences, not native phase alignment, not QA01 causal-window normalization.",
+  "independent_execution_of_RF072_verifier_run_id": 39312520355,
+  "independent_execution_of_RF072_verifier_workflow_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39312520355",
+  "independent_exact_source_case_verifier_conclusion": "success",
+  "independent_recomputed_five_byte_fate_artifact_id": 12215937413,
+  "independent_recomputed_five_byte_fate_artifact_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39312520355/artifacts/12215937413",
+  "independent_recomputed_report_zip_sha256": "35a6e4d10be39021816b6c466ebac6285bc7980395cebfaf16a6f6ea1bf37a6a",
+  "independent_report_archive_CRC_valid": true,
+  "independent_report_schema": "ur-qa01-rf072-original-after-NMI-source-byte-fates/1",
+  "independent_report_original_NMI_global_sequence": 193,
+  "independent_report_verified_903_RF071_real_original_source_transactions": true,
+  "independent_report_QA01_USA_events_accepted": 0
+}

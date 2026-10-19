@@ -270,6 +270,14 @@ jobs:
             libgbm-dev libasound2-dev libpulse-dev libudev-dev \
             libdbus-1-dev xvfb
           python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          # RF066 TEMP ORIGINAL-ONLY research. DO NOT MERGE this campaign edit.
+          CORE_SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          python3 tools/qa01_rf044_stack_bus_witness.py original --root "$CORE_SRC"
+          python3 tools/qa01_rf045_source_stack_macro_witness.py --root "$CORE_SRC"
+          python3 tools/qa01_rf063_original_shared_sequence.py --root "$CORE_SRC"
+          python3 tools/qa01_rf064_original_post_call_pull.py --root "$CORE_SRC"
+          python3 tools/qa01_rf066_original_consumed_sequence.py --root "$CORE_SRC"
+          make -C "$CORE_SRC/libretro" -j2
           # Explicitly opted-in, disposable source+native observers only.
           if [[ "${{ inputs.qa01_apu_phase }}" == "true" ]]; then
             CORE_SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
@@ -329,6 +337,7 @@ jobs:
           install -m 755 "$RUNNER_TEMP/qa01-snesref/snesref" "$OUT/snesref"
           install -m 755 baldosa/build/UniracersSNESRecomp "$OUT/native"
           cp .tools/src/snes9x-libretro/libretro/snes9x_libretro.so "$OUT/snes9x_libretro.so"
+          sha256sum "$CORE_SRC/getset.h" "$CORE_SRC/cpuexec.cpp" "$CORE_SRC/cpuops.cpp" > "$OUT/rf066-original-source-sha256.txt"
           (cd "$OUT" && sha256sum snesref native snes9x_libretro.so > SHA256SUMS && \
             sha256sum -c SHA256SUMS)
       - name: Upload one immutable candidate for all case shards
@@ -393,6 +402,13 @@ jobs:
           QA01_COLD_GUEST: ${{ inputs.qa01_cold_guest_reload }}
           # Distinct original and native clock axes; historical Zoo result
           # windows, NOT time-shifted input or assumed frame equivalence.
+          # Only the disposable pinned original Snes9x reporter sees these.
+          # Real original true return + source-ordered bus entry; no guest bus additions.
+          UR_QA01_RF044_STACK_BUS: "1"
+          UR_QA01_RF045_STACK_PUSH_PULL: "1"
+          UR_QA01_RF063_SOURCE_ORDER: "1"
+          UR_QA01_RF064_POST_CALL_PULL: "1"
+          UR_QA01_RF066_ORIGINAL_CONSUMED_ORDER: "1"
           UR_QA01_APU_ORIGINAL_FIRST: "6748"
           UR_QA01_APU_ORIGINAL_LAST: "6778"
           UR_QA01_APU_NATIVE_FIRST: "6748"
@@ -584,6 +600,30 @@ jobs:
             echo 'QA-01 source/native APU clock receipts retained (no release credit)' >> "$GITHUB_STEP_SUMMARY"
           fi
           exit "$case_rc"
+      - name: Reopen genuine RF064 original returned stack pull evidence; retain blockers
+        if: ${{ always() && matrix.case == 'zoom-zoo' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/qa01-case"
+          LOG="$ROOT/work/zoom-zoo/replay/reference.log"
+          if [[ ! -s "$LOG" ]]; then
+            echo "RF064 HOLD: genuine original Zoom Zoo log missing" > "$ROOT/rf064-original-readiness.txt"
+          elif python3 tools/qa01_rf064_original_pull_return_report.py "$LOG" --out "$ROOT/rf064-original-pulls.json" > "$ROOT/rf064-original-readiness.txt" 2>&1; then
+            echo 'RF064 source-local original returned-value join observed; native causal/full-race acceptance HOLD' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'RF064 HOLD: original real returned-value/entry join unavailable; unaltered source log retained' >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [[ -s "$LOG" ]]; then
+            sha256sum "$LOG" > "$ROOT/rf064-original-log-sha256.txt"
+            if python3 tools/qa01_rf066_original_consumed_report.py "$LOG" --out "$ROOT/rf066-original-consumed.json" > "$ROOT/rf066-original-readiness.txt" 2>&1; then
+              echo "RF066 original real returned values source-ordered; game/native first-consumer parity remains HOLD" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "RF066 HOLD: real original return events missing or incomplete; source log retained, no release credit" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          else
+            echo "RF066 HOLD: authentic original run log missing" > "$ROOT/rf066-original-readiness.txt"
+          fi
       - name: Independently reopen full Zoo original/native raw mesh and next-Bowl SRAM
         if: ${{ always() && matrix.case == 'zoom-zoo' && inputs.zoo_race_mesh && inputs.zoo_dp_window && inputs.zoo_next_bowl }}
         shell: bash
@@ -602,6 +642,11 @@ jobs:
           if-no-files-found: warn
           path: |
             ${{ runner.temp }}/qa01-case/case-result.json
+            ${{ runner.temp }}/qa01-case/rf064-original-pulls.json
+            ${{ runner.temp }}/qa01-case/rf066-original-consumed.json
+            ${{ runner.temp }}/qa01-case/rf066-original-readiness.txt
+            ${{ runner.temp }}/qa01-case/rf064-original-readiness.txt
+            ${{ runner.temp }}/qa01-case/rf064-original-log-sha256.txt
             ${{ runner.temp }}/qa01-case/qa01-postresult-sram-differences.json
             ${{ runner.temp }}/qa01-case/qa01-cold-guest-report.json
             ${{ runner.temp }}/qa01-case/qa01-cold-guest-boot/original.log

@@ -31,6 +31,46 @@ class SourceBuildELFProof(unittest.TestCase):
         self.assertFalse(r["guest_ROM_executed"])
         self.assertEqual(r["accepted_USA_events"],0)
 
+    def test_genuine_clean_LTO_word_getter_calls_audited_outlined_helper(self):
+        # Actual freshly clean rebuilt Snes9x has two S9xGetWord variants
+        # that call the local 2014 RF044/RF063 recorder helper rather than
+        # invoking getenv directly. Verify the entire call edge + helper.
+        nm,dis=fixture(clone=True)
+        helper=rf.HELPER_PREFIX+".lto_priv.0"
+        nm+="0000000000041ef0 t "+helper+"\n"
+        for name in list(dis):
+            if name.startswith(GROUPS["read_word"]):
+                dis[name]=(f"0000000000046160 <{name}>:\n"
+                           f"  461ae: e8 3d bd ff ff  call 41ef0 <{helper}>\n")
+        dis[helper]=(f"0000000000041ef0 <{helper}>:\n"
+                     " 41f13: e8 58 dc fe ff  call 2fb70 <getenv@plt>\n"
+                     " 41f78: e8 f3 db fe ff  call 2fb70 <getenv@plt>\n"
+                     " 41f82: 48 8b 05   mov 0x3486cf(%rip),%rax  # <ur_rf063_source_bus_seq>\n"
+                     " 4207d: e8 8e dc fe ff  call 2fd10 <__fprintf_chk@plt>\n")
+        result=rf.audit(nm,dis)
+        self.assertEqual(result["verified_outlined_RF044_RF063_helper_symbols"],[helper])
+        for name in (GROUPS["read_word"],GROUPS["read_word"]+".constprop.0"):
+            self.assertEqual(
+                result["per_original_executable_variant_probe_mechanism"]["read_word"][name],
+                "call_verified_outlined_original_RF044_RF063_recorder")
+        for defect in (
+                dis[helper].replace("<ur_rf063_source_bus_seq>","<unrelated>"),
+                dis[helper].replace("call 2fb70 <getenv@plt>","call 2fb70 <getenv@plt>",1)
+                .replace(" 41f78: e8 f3 db fe ff  call 2fb70 <getenv@plt>\n",""),
+                dis[helper].replace("<__fprintf_chk@plt>","<no_log>"),
+                dis[helper].replace(f"<{helper}>:","<different_helper>:")
+            ):
+            with self.subTest(defect=defect[:60]), self.assertRaisesRegex(ValueError,"stale/uninstrumented"):
+                rf.audit(nm,{**dis,helper:defect})
+
+    def test_unrelated_helper_call_cannot_impersonate_verified_original(self):
+        nm,dis=fixture()
+        name=GROUPS["read_word"]
+        dis[name]=(f"0000000000046160 <{name}>:\n"
+                   " 461ae: e8 3d bd ff ff  call 41ef0 <any_helper>\n")
+        with self.assertRaisesRegex(ValueError,"stale/uninstrumented"):
+            rf.audit(nm,dis)
+
     def test_original_real_archived_elf_read_functions_uninstrumented(self):
         # Authentic RF066 original ELF (run 39219862021) had getter
         # functions with no getenv guard while S9xSetWord did have one.

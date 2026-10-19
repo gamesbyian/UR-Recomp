@@ -12,6 +12,7 @@ import hashlib
 import json
 import re
 import stat
+import struct
 import tempfile
 import zipfile
 from pathlib import Path
@@ -56,7 +57,31 @@ def success_frame(log: bytes, label: str, guest: str) -> int:
     return int(hits[0])
 
 
-def original_movie_segments(movie: Path, metadata: Path) -> tuple[dict, list[dict]]:
+def full_scheduled_masks(rows: list[dict], length: int) -> list[int]:
+    must(type(length) is int and 0 < length <= 24000,
+         "invalid actual source controller window length")
+    masks = [0] * length
+    previous_end = 0
+    for item in rows:
+        at, span, mask = (item["start_relative_to_actual_guest_entry"],
+                          item["duration_frames"],
+                          int(item["nonzero_mask_hex"], 16))
+        must(type(at) is int and type(span) is int and
+             previous_end <= at and 0 < span and
+             at + span <= length and 0 < mask <= 0x0FFF,
+             "guest controller schedule shifted or outside source movie")
+        masks[at:at + span] = [mask] * span
+        previous_end = at + span
+    return masks
+
+
+def frame_mask_digest(masks: list[int]) -> str:
+    # Canonical 2-byte little-endian translated SNES P1 mask per movie
+    # frame, including all legitimate zero-button gaps. No virtual polls.
+    return digest(b"".join(mask.to_bytes(2, "little") for mask in masks))
+
+
+def original_movie_segments(movie: Path, metadata: Path) -> tuple[dict, list[dict], list[int]]:
     must(movie.is_file() and not movie.is_symlink() and
          metadata.is_file() and not metadata.is_symlink(),
          "missing/symlinked immutable original movie or source metadata")
@@ -90,7 +115,18 @@ def original_movie_segments(movie: Path, metadata: Path) -> tuple[dict, list[dic
          "nonzero_mask_hex": f"{int(row['mask'], 16):03x}"}
         for row in window["relative_input_segments"] if int(row["mask"], 16)
     ]
-    return window, normalized
+    # Decode the actual original 2-byte SMV sample payload a second way:
+    # per-frame masks include no-press gaps omitted by runs(). Crosscheck
+    # the full source waveform with the independently supplied segments.
+    offset = meta["controller_data_offset"] + movie_identity.MOVIE_RACE_ENTRY * 2
+    sampled = struct.unpack_from("<" + str(window["frames"]) + "H",
+                                 raw_movie, offset)
+    must(not any(x == 0xFFFF or x & 0x000F for x in sampled),
+         "invalid original SMV reset marker/controller reserved bits")
+    translated = [smv.translate_mask(x) for x in sampled]
+    must(translated == full_scheduled_masks(normalized, window["frames"]),
+         "source movie normalized nonzero events omit an input change")
+    return window, normalized, translated
 
 
 def verify(archive: Path, movie: Path, metadata: Path,
@@ -196,9 +232,15 @@ def verify(archive: Path, movie: Path, metadata: Path,
                  success_frame(log, "result-stable", guest) - origin == 5169,
                  "source/native actual successful dump frame origins or results changed")
             seen[guest] = origin
-    window, original_segments = original_movie_segments(movie, metadata)
+    window, original_segments, original_masks = original_movie_segments(
+        movie, metadata)
     must(parsed["original"] == original_segments,
          "original 2014 actual SMV pad segments differ from both replay-supplied inputs")
+    must(full_scheduled_masks(parsed["original"], window["frames"]) ==
+         original_masks and
+         full_scheduled_masks(parsed["native"], window["frames"]) ==
+         original_masks,
+         "original/native full frame-wise scheduled controller masks differ from the SMV")
     serialized = json.dumps(original_segments, sort_keys=True,
                             separators=(",", ":"), ensure_ascii=True).encode("ascii")
     return {
@@ -216,6 +258,14 @@ def verify(archive: Path, movie: Path, metadata: Path,
         "both_supplied_guest_input_files_independently_reopened": True,
         "source_original_native_segment_population": len(original_segments),
         "source_original_native_segment_sha256": digest(serialized),
+        "source_movie_full_scheduled_mask_sha256": frame_mask_digest(original_masks),
+        "source_movie_full_scheduled_mask_encoding":
+            "5449 uint16-le translated SNES P1 masks, including idle frames",
+        "source_movie_nonzero_input_frames":
+            sum(mask != 0 for mask in original_masks),
+        "source_movie_zero_input_frames":
+            sum(mask == 0 for mask in original_masks),
+        "all_5449_individual_source_original_native_supplied_masks_equal": True,
         "all_actual_2014_movie_to_supplied_guest_segments_equal": True,
         "actual_CPU_joypad_poll_consumption_proven": False,
         "original_native_instruction_phase_equivalence_proven": False,

@@ -20,8 +20,8 @@ def lines():
         "QA01RF044ORIGBUS f=1017 v=0 h=78 kind=ww bank=00 addr=01F0 w=2 value=914E pb=82 pc=914F S=01F1",
         "QA01RF063ORIGBUS seq=1 f=1017 v=0 h=78 kind=ww bank=00 addr=01F0 width=2 sampled=914E pc=82:914F S=01F1 phase=getset_entry",
         "QA01RF045ORIGSTACK seq=2 f=1017 v=0 h=94 kind=pushW addr=01F0 width=2 value=914E sp0=01F1 sp1=01EF pc=82:914F",
-        "QA01RF044ORIGNMI f=1017 f1=1017 pc=82D4F0 S0=01F0 S1=01EC old=8197005526 new=26F0D48226",
         "QA01RF063ORIGCHECKPOINT seq=2 f=1017 f1=1017 phase=post_real_nmi_push stack=26F0D48226 v=225 h=78 pc=00:8588",
+        "QA01RF044ORIGNMI f=1017 f1=1017 pc=82D4F0 S0=01F0 S1=01EC old=8197005526 new=26F0D48226",
     ]
 
 

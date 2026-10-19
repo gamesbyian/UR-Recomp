@@ -1,0 +1,108 @@
+{
+  "schema": "RF057-authentic-USA-Bowl-executed-original-CPU-frame-qualified-narrow-PC-negative-v1",
+  "run": {
+    "id": 39181728913,
+    "head_sha": "1059a125a63a66c02c716dfa2a4afe4fffa1f15f",
+    "conclusion": "success",
+    "artifact_id": 12156941546,
+    "zip_sha256": "ca0664f464fe057738a3e64dc6f87d584d299a8a025c5195c3c25ec843b86175",
+    "artifact_members": 84,
+    "original_reference_log_sha256": "d5366f61a93cfeec8d1b149a3b6172bd4df6ff77e8965bfd4e45e4a089348e09",
+    "executed_PC_receipt_sha256": "063a0e08f9df1a193835c508558c775d32823e2efa3edd0b6eb446503fa8e258"
+  },
+  "source_true_original_65816_CPU_dispatch": {
+    "bounded_frame_heartbeat_rows": 62,
+    "first_frame": 0,
+    "last_frame": 4702,
+    "continuous_actual_source_CPU_frames": [
+      4687,
+      4688,
+      4689,
+      4690,
+      4691,
+      4692,
+      4693
+    ],
+    "candidate_PC_executed_rows": 0,
+    "excluded_actual_source_bank80_or_00_candidate_windows": [
+      "80/00:ADD4..AF0C",
+      "80/00:B6BE..B926",
+      "80/00:C1F5..C23B",
+      "80/00:D1DB..D1F9",
+      "80/00:F7E5..F805"
+    ],
+    "sampled_first_actual_CPU_PC_per_frame_near_source_transition": [
+      {
+        "frame": 4687,
+        "pc": "82:82F9",
+        "v": 0,
+        "h": 32
+      },
+      {
+        "frame": 4688,
+        "pc": "82:8332",
+        "v": 0,
+        "h": 36
+      },
+      {
+        "frame": 4689,
+        "pc": "82:8F95",
+        "v": 0,
+        "h": 32
+      },
+      {
+        "frame": 4690,
+        "pc": "82:A392",
+        "v": 0,
+        "h": 38
+      },
+      {
+        "frame": 4691,
+        "pc": "82:A999",
+        "v": 0,
+        "h": 28
+      },
+      {
+        "frame": 4692,
+        "pc": "82:A05D",
+        "v": 0,
+        "h": 24
+      },
+      {
+        "frame": 4693,
+        "pc": "82:90DA",
+        "v": 0,
+        "h": 12
+      }
+    ],
+    "original_source_core_observer_active": true,
+    "original_retained_source_opcode_dispatch_operational": true,
+    "only_the_named_bank80_00_intervals_excluded": true,
+    "all_bank80_00_CPU_instructions_excluded": false,
+    "actual_causal_bank82_83_branch_resolved": false
+  },
+  "preserved_reference": {
+    "baseline_artifact": 12151982503,
+    "baseline_zip_sha256": "c2262b40e43b4e167cbdf291623b0e34207561187e103af39eca7a46fa4b0edc",
+    "full_128KiB_8KiB_guest_images": 48,
+    "full_128KiB_8KiB_original_movie_images": 16,
+    "all_64_full_unmasked_byte_exact": true,
+    "source_ROM_movie_SRAM_input_script_identity_equal": true,
+    "complete_original_native_Bowl_handoff_object_equal": true,
+    "complete_original_native_Bowl_comparison_equal": true,
+    "source_movie_next_switcher_relative": 342,
+    "fresh_source_next_switcher_relative": 341,
+    "native_next_switcher_relative": 344,
+    "first_transition_WRAM_triples_31_identical_at_native_plus3": true,
+    "next_transition_WRAM_triples_642_identical_at_native_plus3": true
+  },
+  "limits": {
+    "first_true_writer_PC_not_yet_identified": true,
+    "original_guest_input_consumption_not_yet_observed": true,
+    "native_guest_instruction_PC_not_yet_observed": true,
+    "CPU_SPC_same_absolute_epoch_not_proven": true,
+    "accepted_complete_USA_events": 0,
+    "gameplay_changes": 0
+  },
+  "next_target": "Observe actual opcode-before/after unmasked WRAM change at source frames 4687..4693 across bank82/83, especially 7E:0057 E2→00 and 7E:0000 20→02; report instruction PC, pre/post A/X/Y, V/H and cached branch flags with a real complete 64-image no-drift audit. Do not reuse refuted bank80 menu shortcut or guess a 2-frame controller delay."
+}

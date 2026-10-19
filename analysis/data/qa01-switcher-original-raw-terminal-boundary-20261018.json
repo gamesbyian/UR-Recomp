@@ -1,0 +1,49 @@
+{
+  "schema": "UR-QA01-SWITCHER-SOURCE-REAL-RAW-TERMINAL-ARCHIVAL/1",
+  "source": {
+    "run_id": 39182875249,
+    "exact_source_sha": "f97d60d38c3861e937f9bae6bf76383870ebb7fa",
+    "archive_id": 12156932774,
+    "archive_sha256": "d1a5dd92b4ed039b76ebbbfea08d2401d4cf700fb35ecf9eb30ffb909761ab4a",
+    "raw_wram_trace_sha256": "cc49becd72650460e10c8f8d67a59ec997c731365869babe677f922f9a7d162f",
+    "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "USA_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_real_full_128k_switcher_result_f17030_sha256": "590e441557ffe378d5e5da66f3f2d1c1aa422808250db745b1cbfe190f69d533"
+  },
+  "entry": {
+    "course": "course:04",
+    "event_family": "Race B",
+    "source_guest_frame": 12327,
+    "stable_race_eight_frame_range": [
+      12327,
+      12334
+    ]
+  },
+  "terminal": {
+    "source_result_frame": 17030,
+    "result_relative_frames": 4703,
+    "transient_track0_menu132": [
+      16991,
+      17024
+    ],
+    "restored_track3_active_menu22": [
+      17025,
+      17028
+    ],
+    "inactive_predecessor": 17029,
+    "stable_track3_result_menu153": [
+      17030,
+      17087
+    ],
+    "selection_exit": 17088
+  },
+  "limitations": {
+    "true_source_low8k_bytes_verified": true,
+    "source_full128k_available_at_result": true,
+    "upper120k_between_dumps_unproven": true,
+    "original_native_result_relative_equal": false,
+    "prior_native_raw_october10_archive_expired": true,
+    "complete_usa_event_accepted": false,
+    "usa_accepted_count": 0
+  }
+}

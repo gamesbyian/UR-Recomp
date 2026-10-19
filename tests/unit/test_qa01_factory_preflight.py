@@ -77,14 +77,20 @@ class FactoryPreflight(unittest.TestCase):
         att["evidence_sha256"] = {key: hashes[key] for key in preflight.REPORTS}
         self.att, self.causal, self.frames, self.verified = att, c, f, v
         self.hashes, self.raw_root = hashes, evidence
+        self.original_event_bytes, self.native_event_bytes = (json.dumps(a).encode(),
+                                                             json.dumps(b).encode())
+        self.hashes["original_event_payload"] = hashlib.sha256(self.original_event_bytes).hexdigest()
+        self.hashes["native_event_payload"] = hashlib.sha256(self.native_event_bytes).hexdigest()
 
-    def check(self, att=None, c=None, f=None, v=None, raw=True, hashes=None):
+    def check(self, att=None, c=None, f=None, v=None, raw=True, hashes=None, events=True):
         return preflight.evaluate(att if att is not None else self.att,
                                   c if c is not None else self.causal,
                                   f if f is not None else self.frames,
                                   v if v is not None else self.verified,
                                   hashes if hashes is not None else self.hashes,
-                                  raw_root=self.raw_root if raw else None)
+                                  raw_root=self.raw_root if raw else None,
+                                  original_event_bytes=self.original_event_bytes if events else None,
+                                  native_event_bytes=self.native_event_bytes if events else None)
 
     def test_real_bytes_read_back_for_qualified_bounded_diagnostic(self):
         r = self.check()
@@ -125,7 +131,9 @@ class FactoryPreflight(unittest.TestCase):
             # Exercise the API directly because None is the default shortcut
             with self.subTest(missing=missing):
                 r = preflight.evaluate(args["att"], args["c"], args["f"], args["v"],
-                                       self.hashes, raw_root=self.raw_root)
+                                       self.hashes, raw_root=self.raw_root,
+                                       original_event_bytes=self.original_event_bytes,
+                                       native_event_bytes=self.native_event_bytes)
                 self.assertEqual(r["readiness"], "hold")
 
     def test_pinned_review_rejects_swapped_or_replaced_report(self):
@@ -133,6 +141,30 @@ class FactoryPreflight(unittest.TestCase):
         wrong["causal_report"] = "7" * 64
         with self.assertRaisesRegex(ValueError, "digest pin disagrees"):
             self.check(hashes=wrong)
+
+    def test_missing_executed_event_payloads_is_hold(self):
+        r = self.check(events=False)
+        self.assertEqual(r["readiness"], "hold")
+        self.assertIn("missing_actual_original_native_event_payloads",
+                      r["missing_or_negative_conditions"])
+
+    def test_forged_guest_pc_in_original_event_payload_is_rejected(self):
+        src = json.loads(self.original_event_bytes)
+        src["events"][2]["pc"] = "82D4FF"
+        raw = json.dumps(src).encode()
+        digests = dict(self.hashes)
+        digests["original_event_payload"] = hashlib.sha256(raw).hexdigest()
+        with self.assertRaisesRegex(ValueError, "does not reproduce from actual event"):
+            preflight.evaluate(self.att, self.causal, self.frames, self.verified,
+                               digests, raw_root=self.raw_root,
+                               original_event_bytes=raw,
+                               native_event_bytes=self.native_event_bytes)
+
+    def test_event_payload_digest_not_a_temporary_claim(self):
+        digests = dict(self.hashes)
+        digests["native_event_payload"] = "9" * 64
+        with self.assertRaisesRegex(ValueError, "event payload digest changed"):
+            self.check(hashes=digests)
 
     def test_missing_report_file_digest_cannot_inherit_green_attestation(self):
         incomplete = copy.deepcopy(self.hashes)

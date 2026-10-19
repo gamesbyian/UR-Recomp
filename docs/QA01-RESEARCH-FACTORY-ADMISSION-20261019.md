@@ -12,7 +12,7 @@
 
 ## New read-only admission check
 
-Input attestation JSON requires `schema="ur-qa01-research-factory-preflight/1"`, immutable `source_sha`, `rom_sha256`, `movie_sha256`, `input_sha256`, and explicit boolean `checks` for source binary, native binary, controller reads, guest frame acknowledgments, phase qualification, no instrumentation perturbation, original clocks/unaltered input and unmasked retained memory. These claims must be independently backed by real signed/hashed source-owner evidence, not entered by guesswork.
+Input attestation JSON requires `schema="ur-qa01-research-factory-preflight/2"` for positive readiness (legacy `/1` returns HOLD), immutable `source_sha`, `rom_sha256`, `movie_sha256`, `input_sha256`, and explicit boolean `checks` for source binary, native binary, controller reads, guest frame acknowledgments, phase qualification, no instrumentation perturbation, original clocks/unaltered input and unmasked retained memory. These claims must be independently backed by real signed/hashed source-owner evidence, not entered by guesswork.
 
 ```bash
 python3 tools/qa01_factory_preflight.py \
@@ -20,6 +20,7 @@ python3 tools/qa01_factory_preflight.py \
   --causal-report /tmp/qa01-real-causal.json \
   --frame-report /tmp/qa01-real-frames.json \
   --independent-raw-report /tmp/qa01-independent-raw.json \
+  --retained-raw /tmp/qa01-retained-original-native-raw \
   --output /tmp/qa01-factory-admission.json
 ```
 

@@ -1,0 +1,140 @@
+{
+  "schema": "ur-qa01-rf061-archived-original-native-bounded-consumption/1",
+  "provenance": {
+    "artifact_id": 12149640496,
+    "case_zip_sha256": "3ccb209a92045e9e89113442e68af51b85a453a160a9b9efaf8ca0d59e79631c",
+    "case_zip_bytes": 4317230,
+    "original_reference_log_sha256": "308b8e70122fa1f0ba7edcdc4c8d16e4df0137dc289533f0dc1d90bafae14c5a",
+    "native_replay_log_sha256": "e7aa6bb4340acbdaa1cc38ff39f601dd0a8dbba24d6a244ffcad82fe8bbd705f",
+    "case_source_sha": "7334a568f52ea390ae5866d3ee132e392635a186",
+    "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "expanded_input_sha256": "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52",
+    "native_elf_sha256": "7509b0954fb91c5c28d8b97b3ae8a3a291871f926ee84cab3485b4e8a56fe60e",
+    "source_core_sha256": "dfc915fad56acf1992f0a87a5fd55c1ed232c90deae2eba41ef95b9c901180fc"
+  },
+  "original": {
+    "actual_RF045_stack_macro_records": 1806,
+    "original_macro_local_ordinal_rows": 0,
+    "actual_RF044_bus_writer_records": 903,
+    "actual_RF044_NMI_records": 9,
+    "true_macro_guest_PC_records": 1806,
+    "shared_ordinal_across_bus_macro_checkpoint": false
+  },
+  "native": {
+    "actual_RF047_events": 2741,
+    "RF047_seq_is_complete_1_through_2741": true,
+    "actual_RF047_bus_helper_reads": 2705,
+    "bus_helper_read_executed_guest_PC_rows": 0,
+    "actual_guest_opcode_markers": 0,
+    "actual_RF054_sound_CPU_ROM_reads": 656,
+    "read_11C774": {
+      "actual_bus_read_ordinal": 492,
+      "native_host_frame": 6124,
+      "native_CPU_master": "2188739002",
+      "compiled_scope": "Snd_UploadBlockList_82EF_M1X0",
+      "effective_address": "11:C774",
+      "accumulator": "630D",
+      "y": "C774"
+    }
+  },
+  "original_native_NMI": {
+    "range_host_frames": [
+      1017,
+      1025
+    ],
+    "validated_frame_count": 9,
+    "original_true_status_pull_bus_address": "00:01ED",
+    "original_true_status_pull_guest_PC": "80:B0EB",
+    "native_true_NMI_status_read_bus_address": "00:01ED",
+    "both_actual_consumed_status_values": "26",
+    "nine_of_nine_status_values_match": true,
+    "original_guest_resume_by_frame": {
+      "1017": "82D4F0",
+      "1018": "82D4EE",
+      "1019": "82D4F0",
+      "1020": "82D4EE",
+      "1021": "82D4F0",
+      "1022": "82D4EE",
+      "1023": "82D4F0",
+      "1024": "82D4EE",
+      "1025": "82D4EE"
+    },
+    "native_guest_resume_by_frame": {
+      "1017": "82D4EE",
+      "1018": "82D4EE",
+      "1019": "82D4EE",
+      "1020": "82D4EE",
+      "1021": "82D4EE",
+      "1022": "82D4EE",
+      "1023": "82D4EE",
+      "1024": "82D4EE",
+      "1025": "82D4EE"
+    },
+    "native_after_push_status_read_ordinal_pairs": [
+      [
+        2,
+        3
+      ],
+      [
+        303,
+        304
+      ],
+      [
+        601,
+        602
+      ],
+      [
+        901,
+        902
+      ],
+      [
+        1204,
+        1205
+      ],
+      [
+        1519,
+        1520
+      ],
+      [
+        1824,
+        1825
+      ],
+      [
+        2129,
+        2130
+      ],
+      [
+        2436,
+        2437
+      ]
+    ],
+    "source_guest_resume_address_equivalence_across_all_nine": false,
+    "source_native_clock_epoch_equivalence_claim": false,
+    "entire_RTI_saved_PC_PB_consumption_equivalence_claim": false,
+    "local_first_status_consumption_converged": true,
+    "all_later_stack_reads_proven_equal": false
+  },
+  "unmasked_controls": {
+    "pair_count": 78,
+    "per_pair_original_and_native_bytes": 131072,
+    "excluded_memory_bytes": 0,
+    "whole_Wram_byte_exact_pairs": 51,
+    "differing_byte_occurrences": 92,
+    "original_raw_unmasked_memory_files_archived": false,
+    "actual_case_disposition": "strict_candidate",
+    "accepted_complete_USA_events": 0
+  },
+  "qa01_causal_window": {
+    "schema": "ur-qa01-causal-window/1",
+    "admission": "HOLD",
+    "qualified_first_consumed_divergence": false,
+    "remaining_producer_holes": [
+      "original RF045 macro recorder and RF044 writes/checkpoint lack a shared actual sequence",
+      "native RF047 read rows have no proven executing opcode PCs",
+      "archive retains full-WRAM hashes and difference summaries, not raw checkpoint images",
+      "original source SPC/CPU and native CPU/SPC clocks have independent origins"
+    ]
+  },
+  "experiment_scope": "Independent re-opening and bounded read-only analysis of an already executed genuine USA Zoom Zoo source/native replay ZIP, not a new emulator replay and not an RF061-instrumented binary."
+}

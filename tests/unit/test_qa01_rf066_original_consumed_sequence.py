@@ -58,7 +58,7 @@ class SourceInstrument(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"already"):
             witness.patch(witness.patch(old))
         with self.assertRaisesRegex(ValueError,"requires unmodified"):
-            witness.patch(old.replace('actual value.',"unknown value."))
+            witness.patch(old.replace('One eligible RF063 getset entry',"Zero eligible RF063 getset entry"))
 
 
 class SourceEvidence(unittest.TestCase):

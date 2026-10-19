@@ -52,6 +52,20 @@ class MedalRegisteredScrubber(unittest.TestCase):
         offset=((91-78)*(246-184)+(207-184))*3
         self.assertEqual(heat[offset:offset+3],bytes((255,56,60)))
 
+    def test_context_and_actual_medal_region_counts_remain_distinct(self):
+        self.assertEqual(scrub.MEDAL_BOX,(202,91,228,154))
+        width=(scrub.CROP[2]-scrub.CROP[0])
+        height=(scrub.CROP[3]-scrub.CROP[1])
+        heat=bytearray(bytes((25,29,34)) * (width*height))
+        def mark(x,y):
+            start=((y-scrub.CROP[1])*width+x-scrub.CROP[0])*3
+            heat[start:start+3]=bytes((255,56,60))
+        mark(207,91)  # in true medal region
+        mark(184,78)  # outside medal region but in wider scene
+        self.assertEqual(scrub.count_large_errors_in_box(bytes(heat)),1)
+        with self.assertRaisesRegex(ValueError,"within true source crop"):
+            scrub.count_large_errors_in_box(bytes(heat),(0,0,1,1))
+
     def test_decode_rejects_cropped_and_forged_channel(self):
         a,b=field_pair()
         with self.assertRaisesRegex(ValueError,"shape"):

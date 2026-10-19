@@ -158,6 +158,7 @@ def evaluate(attestation: dict, causal: dict | None, frames: dict | None,
         for name in REPORTS:
             assert_valid(pins[name] == input_hashes[name],
                          "independent review digest pin disagrees: " + name)
+    consumed_candidate_addresses = []
     if causal is None:
         reasons.append("missing_executed_causal_report")
     else:
@@ -184,14 +185,17 @@ def evaluate(attestation: dict, causal: dict | None, frames: dict | None,
         # identify at least one *candidate* same-PC read of differing values
         # before either side overwrites the checkpoint. This still does NOT
         # prove opcode-path or gameplay causality, and can never admit a race.
-        if not any(x.get("candidate_consumed_value_difference") is True and
-                   x.get("checkpoint_differs") is True and
-                   x.get("matching_guest_pc_of_first_read") is True and
-                   all(type(x.get(g)) is dict and
-                       x[g].get("fate") == "read_before_overwrite" and
-                       type(x[g].get("first_actual_read_before_overwrite")) is dict
-                       for g in ("original", "native"))
-                   for x in causal["addresses"]):
+        consumed_candidate_addresses = [
+            x["address"] for x in causal["addresses"]
+            if x.get("candidate_consumed_value_difference") is True and
+               x.get("checkpoint_differs") is True and
+               x.get("matching_guest_pc_of_first_read") is True and
+               all(type(x.get(g)) is dict and
+                   x[g].get("fate") == "read_before_overwrite" and
+                   type(x[g].get("first_actual_read_before_overwrite")) is dict
+                   for g in ("original", "native"))
+        ]
+        if not consumed_candidate_addresses:
             reasons.append("no_actual_same_pc_consumed_value_difference")
     if frames is None:
         reasons.append("missing_contiguous_frame_report")
@@ -275,6 +279,8 @@ def evaluate(attestation: dict, causal: dict | None, frames: dict | None,
         "readiness": "bounded_pilot_ready" if not reasons else "hold",
         "missing_or_negative_conditions": reasons,
         "raw_checkpoint_crosscheck": crosscheck,
+        "actual_same_pc_consumed_candidate_addresses": consumed_candidate_addresses,
+        "actual_candidate_is_gameplay_causality_proof": False,
         "allowed_next_case_count": 10 if not reasons else 0,
         "automatic_dispatch_authorized": False,
         "one_thousand_or_more_cases_authorized": False,

@@ -1,4 +1,6 @@
 # TEMPORARY source-authentic RF062 run. Research branch only, DO NOT MERGE.
+# Corrected read-only RF018 check discriminates the single Read expression
+# from the separate pointer-once Write expression (no host/game timing edit).
 # RF018 read shape is qualified in an independent small preflight, then the
 # reusable campaign is modified on this branch to stage the real native
 # helper, direct decoded-PC IR read, generated-M1X0 static gate, and capture.

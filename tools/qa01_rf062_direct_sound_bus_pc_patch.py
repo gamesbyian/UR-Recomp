@@ -21,6 +21,17 @@ SITE = "UR_QA01_RF062_DIRECT_PC_8282F0"
 
 READ_SITE = ("def _emit_read(op: Read) -> List[str]:\n"
              "    bank, addr = _segref_addr_expr(op.seg)\n")
+READ_SITE_RF018 = (
+    "def _emit_read(op: Read) -> List[str]:\\n"
+    "    prelude, bank, addr = _segref_hoisted(op.seg)\\n"
+)
+READ_PATCH_RF018 = """    # UR_QA01_RF062_DIRECT_CPU_BUS_GUEST_PC: RF018 hoists the
+    # [dp],Y pointer exactly once. Keep its prelude and account any
+    # actual paced guest reads before substituting this single operand.
+    if _CURRENT_SOURCE_PC24 == 0x8282F0 and op.width == 1:
+        return prelude + [f"{widths.ctype(op.width)} {_v(op.out)} = "
+                          f"{widths.read_fn(op.width)}(cpu, {bank}, {addr}); /* UR_QA01_RF062_DIRECT_PC_8282F0 */"]
+"""
 READ_PATCH = """    # UR_QA01_RF062_DIRECT_CPU_BUS_GUEST_PC: source decoded opcode PC.
     # Mark but DO NOT replace this real cpu_read8 call before pacing pass.
     if _CURRENT_SOURCE_PC24 == 0x8282F0 and op.width == 1:
@@ -86,8 +97,25 @@ def patch(gen: str, emitter: str, cpu: str, header: str) -> tuple[str, str, str,
         raise ValueError("RF062 original per-Read or paced-byte attribution missing")
     if CPU_SITE not in cpu or "return cpu_read8(cpu, bank, addr);" not in cpu:
         raise ValueError("RF062 real paced native CPU reader missing")
-    gen = replace_one(gen, READ_SITE, READ_SITE + READ_PATCH,
-                      "v2 decoded source Read IR")
+    # RF018's pointer-once correction is legitimately staged before this
+    # observer in the genuine Zoo workflow. Never revert to the pre-RF018
+    # emitter, drop the hoisted pointer prelude or accept an unknown shape.
+    bare = gen.count(READ_SITE)
+    corrected = gen.count(READ_SITE_RF018)
+    if bare + corrected != 1:
+        raise ValueError("RF062 exact pinned or RF018-corrected Read IR source drift")
+    if corrected:
+        if "UR_BALDOSA_DP_INDIRECT_LONG_POINTER_ONCE" not in gen or (
+                gen.count("return prelude + [") != 1):
+            raise ValueError("RF062 RF018 pointer-once producer incomplete")
+        gen = replace_one(gen, READ_SITE_RF018,
+                          READ_SITE_RF018 + READ_PATCH_RF018,
+                          "RF018 pointer-once Read IR")
+    else:
+        if "UR_BALDOSA_DP_INDIRECT_LONG_POINTER_ONCE" in gen:
+            raise ValueError("RF062 RF018 marker without corrected Read IR")
+        gen = replace_one(gen, READ_SITE, READ_SITE + READ_PATCH,
+                          "v2 decoded source Read IR")
     emitter = replace_one(emitter, PACE_SITE, PACE_PATCH,
                           "v2 paced guest byte accounting")
     cpu = replace_one(cpu, CPU_SITE, HELPER + CPU_SITE, "actual paced CPU helper")

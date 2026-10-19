@@ -11,9 +11,12 @@ on:
       - "tools/qa01_frame_delta_atlas.py"
       - "tools/qa01_zoo_archived_frame_atlas.py"
       - "tools/qa01_independent_zoo_capture_ab_archive.py"
+      - "tools/qa01_zoo_raw_archive_audit.py"
+      - "tests/unit/test_qa01_zoo_raw_archive_audit.py"
       - "tests/unit/test_qa01_frame_delta_atlas.py"
       - "tests/unit/test_qa01_zoo_archived_frame_atlas.py"
       - "tests/unit/test_qa01_continuous_frame_capture.py"
+      - "tests/unit/test_qa01_independent_zoo_capture_ab_archive.py"
   workflow_dispatch:
 
 permissions:
@@ -34,7 +37,7 @@ jobs:
       - name: ROM-free frame and adversarial audit tests
         run: |
           set -euo pipefail
-          python3 -m unittest tests.unit.test_qa01_continuous_frame_capture tests.unit.test_qa01_fidelity_evidence_pilots tests.unit.test_qa01_frame_delta_atlas tests.unit.test_qa01_zoo_archived_frame_atlas -v
+          python3 -m unittest tests.unit.test_qa01_continuous_frame_capture tests.unit.test_qa01_fidelity_evidence_pilots tests.unit.test_qa01_frame_delta_atlas tests.unit.test_qa01_zoo_archived_frame_atlas tests.unit.test_qa01_independent_zoo_capture_ab_archive tests.unit.test_qa01_zoo_raw_archive_audit -v
 
       - name: Reopen exact real original/native 2014 Bowl evidence archive
         env:
@@ -95,14 +98,83 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/qa01-zoo-authenticated"
-          curl --fail --show-error --silent --location --retry 2 \
+          # Prefer the original provider artifact while it exists. After
+          # 2026-10-26 it expires; the exact inner ZIP was independently
+          # copied to 90-day artifact 12227922098 only after source-verified
+          # QA succeeded (run 39339058464). Do not confuse GitHub wrapper
+          # digest with the immutable *original* source ZIP SHA.
+          if ! curl --fail --show-error --silent --location --retry 2 \
             --header "Accept: application/vnd.github+json" \
             --header "Authorization: Bearer $GITHUB_TOKEN" \
             --output "$RUNNER_TEMP/qa01-zoo-authenticated/real-zoo-ab.zip" \
-            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12167633197/zip"
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12167633197/zip"; then
+            curl --fail --show-error --silent --location --retry 2 \
+              --header "Accept: application/vnd.github+json" \
+              --header "Authorization: Bearer $GITHUB_TOKEN" \
+              --output "$RUNNER_TEMP/qa01-zoo-authenticated/verified-outer-backup.zip" \
+              "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12227922098/zip"
+            python3 - "$RUNNER_TEMP/qa01-zoo-authenticated/verified-outer-backup.zip" \
+                      "$RUNNER_TEMP/qa01-zoo-authenticated/real-zoo-ab.zip" <<'PY'
+          import hashlib,io,sys,zipfile
+          from pathlib import Path
+          outer=Path(sys.argv[1]).read_bytes()
+          assert hashlib.sha256(outer).hexdigest()=="4c99f8fbb924b0e188ebcba484d8f14a23bb61c45bad1f8505c24601a1aee465", "backup wrapper SHA changed"
+          with zipfile.ZipFile(io.BytesIO(outer)) as z:
+              assert z.namelist()==["real-zoo-ab.zip"], "unexpected backup wrapper entries"
+              assert z.testzip() is None, "backup wrapper CRC changed"
+              original=z.read("real-zoo-ab.zip")
+          assert hashlib.sha256(original).hexdigest()=="be72834ac617da8dfb96c591e06efaa18adbfe7d872cc64f6a306d3db8db0765", "original Zoo source digest changed"
+          Path(sys.argv[2]).write_bytes(original)
+          print("Original GitHub source unavailable: qualified byte-identical 90-day nested original archive instead")
+          PY
+          fi
+          # Exercise the archive fallback *while both source objects exist*,
+          # so a future expiry does not leave a never-tested backup path.
+          # This asserts original-byte equality, not just two wrapper hashes.
+          if [ ! -s "$RUNNER_TEMP/qa01-zoo-authenticated/verified-outer-backup.zip" ]; then
+            curl --fail --show-error --silent --location --retry 2 \
+              --header "Accept: application/vnd.github+json" \
+              --header "Authorization: Bearer $GITHUB_TOKEN" \
+              --output "$RUNNER_TEMP/qa01-zoo-authenticated/verified-outer-backup.zip" \
+              "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12227922098/zip"
+          fi
+          python3 - "$RUNNER_TEMP/qa01-zoo-authenticated/verified-outer-backup.zip" \
+                    "$RUNNER_TEMP/qa01-zoo-authenticated/real-zoo-ab.zip" <<'PY'
+          import hashlib,io,sys,zipfile
+          from pathlib import Path
+          outer=Path(sys.argv[1]).read_bytes()
+          assert hashlib.sha256(outer).hexdigest()=="4c99f8fbb924b0e188ebcba484d8f14a23bb61c45bad1f8505c24601a1aee465"
+          with zipfile.ZipFile(io.BytesIO(outer)) as z:
+              assert z.namelist()==["real-zoo-ab.zip"]
+              assert z.testzip() is None
+              inner=z.read("real-zoo-ab.zip")
+          original=Path(sys.argv[2]).read_bytes()
+          assert hashlib.sha256(inner).hexdigest()=="be72834ac617da8dfb96c591e06efaa18adbfe7d872cc64f6a306d3db8db0765"
+          assert original==inner, "backup inner bytes differ from the admitted original source"
+          print("Original provider ZIP and 90-day backup: independently byte-identical source")
+          PY
           python3 tools/qa01_zoo_archived_frame_atlas.py \
             --archive "$RUNNER_TEMP/qa01-zoo-authenticated/real-zoo-ab.zip" \
             --output "$RUNNER_TEMP/qa01-zoo-authenticated/independent-atlas.json"
+          # Independently reopen the same pinned archive from bytes actually
+          # SHA256-verified by the QA01 consumer; preserve real red guest exits.
+          # Diagnostic pass is never a successful original/native event.
+          python3 tools/qa01_independent_zoo_capture_ab_archive.py \
+            "$RUNNER_TEMP/qa01-zoo-authenticated/real-zoo-ab.zip" \
+            --output "$RUNNER_TEMP/qa01-zoo-authenticated/independent-raw-ab-verdict.json"
+          python3 - "$RUNNER_TEMP/qa01-zoo-authenticated/independent-raw-ab-verdict.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          assert d["source_zip_sha256"]=="be72834ac617da8dfb96c591e06efaa18adbfe7d872cc64f6a306d3db8db0765"
+          assert d["capture_off_producer_exit"]==d["capture_on_producer_exit"]==1
+          assert d["original_result_frame"]==5163 and d["native_result_frame"]==5162
+          assert d["original_next_bowl"]==267 and d["native_next_bowl"]==266
+          assert d["guest_cpu_controller_polls_proven"] is False
+          assert d["actual_compiled_binaries_reopened"] is False
+          assert d["accepted_USA_events"]==d["release_QA_gates"]==0
+          assert d["adjudication"]=="HOLD"
+          print("Immutable original/native Zoo A/B ZIP audited, both genuine strict producer exits red, 0/45")
+          PY
           python3 - "$RUNNER_TEMP/qa01-zoo-authenticated/independent-atlas.json" <<'PY'
           import json,sys
           report=json.load(open(sys.argv[1]))
@@ -123,6 +195,163 @@ jobs:
           print("Genuine original/native Zoo nine-frame A/B raw atlas: 13 WRAM, no event")
           PY
 
+      - name: Independent full RF076 original/native raw Zoo mesh and strict trace rejection
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ROOT="$GITHUB_WORKSPACE/qa01-rf076-source-audit"
+          mkdir -p "$ROOT/expanded"
+          # Original provider case/binary artifacts expire 2026-10-26.
+          # Their first independently validated 90-day wrapper is 12229131984.
+          # Always authenticate both: before expiry, prove the preserved inner
+          # bytes equal the originals; afterward fall back to only those same
+          # exact bytes. Never substitute the outer wrapper's SHA for source.
+          curl --fail --show-error --silent --location --retry 2 \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -o "$ROOT/independent-backup-wrapper.zip" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12229131984/zip"
+          python3 - "$ROOT/independent-backup-wrapper.zip" "$ROOT" <<'PY'
+          import hashlib,io,sys,zipfile
+          from pathlib import Path
+          data=Path(sys.argv[1]).read_bytes()
+          assert hashlib.sha256(data).hexdigest()=="d2e46ee5570bdefea9e780ae1a8fcae2bac4751cc6554430bd91dc89e90b82da"
+          with zipfile.ZipFile(io.BytesIO(data)) as z:
+              assert set(z.namelist())=={"immutable-case.zip","immutable-binaries.zip","independent-raw.json"}
+              assert len(z.infolist())==3 and z.testzip() is None
+              for name,expected in [
+                  ("immutable-case.zip","e3ec117e4ae3b625a8d3d7d370877fdbd60d1ff28662ace0503154aa3bdb448e"),
+                  ("immutable-binaries.zip","620bccb81fabdc29513f27ae4818ad5c83b1056b4b91e1f33f8632f71a9f3b14")]:
+                  inner=z.read(name)
+                  assert hashlib.sha256(inner).hexdigest()==expected
+                  Path(sys.argv[2], "backed-up-"+name).write_bytes(inner)
+          print("Original RF076 research case and binary backups preserved with exact inner source SHA")
+          PY
+          for line in \
+            "12228052877:immutable-case.zip" \
+            "12227821973:immutable-binaries.zip"
+          do
+            id="${line%%:*}"; name="${line#*:}"
+            if curl --fail --show-error --silent --location --retry 2 \
+                -H "Accept: application/vnd.github+json" \
+                -H "Authorization: Bearer $GITHUB_TOKEN" \
+                -o "$ROOT/$name" \
+                "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/$id/zip"; then
+              cmp "$ROOT/$name" "$ROOT/backed-up-$name"
+              echo "Original and retained RF076 $name byte-identical"
+            else
+              cp "$ROOT/backed-up-$name" "$ROOT/$name"
+              echo "Original RF076 $name expired: exact SHA-pinned independent backup used"
+            fi
+          done
+          python3 - "$ROOT/immutable-case.zip" "$ROOT/immutable-binaries.zip" <<'PY'
+          import hashlib,io,json,re,stat,sys,zipfile
+          from pathlib import Path
+          raw=Path(sys.argv[1]).read_bytes()
+          binary_bytes=Path(sys.argv[2]).read_bytes()
+          assert hashlib.sha256(raw).hexdigest()=="e3ec117e4ae3b625a8d3d7d370877fdbd60d1ff28662ace0503154aa3bdb448e"
+          assert hashlib.sha256(binary_bytes).hexdigest()=="620bccb81fabdc29513f27ae4818ad5c83b1056b4b91e1f33f8632f71a9f3b14"
+          with zipfile.ZipFile(io.BytesIO(raw)) as source, zipfile.ZipFile(io.BytesIO(binary_bytes)) as binaries:
+              infos=binaries.infolist()
+              assert len(infos)==8 and len({i.filename for i in infos})==8
+              assert binaries.testzip() is None
+              assert sum(i.file_size for i in infos)<24_000_000
+              assert all(not i.is_dir() and stat.S_IFMT(i.external_attr>>16) in (0,stat.S_IFREG) for i in infos)
+              manifest=source.read("SHA256SUMS")
+              assert manifest==binaries.read("SHA256SUMS")
+              case=json.loads(source.read("case-result.json"))
+              actual={}
+              for line in manifest.decode("ascii").splitlines():
+                  m=re.fullmatch(r"([0-9a-f]{64})  (snesref|native|snes9x_libretro[.]so)",line)
+                  assert m and m.group(2) not in actual
+                  actual[m.group(2)]=m.group(1)
+                  assert hashlib.sha256(binaries.read(m.group(2))).hexdigest()==m.group(1)
+              assert len(actual)==3
+              assert actual["native"]==case["evidence"]["native_sha256"]
+              assert actual["snes9x_libretro.so"]==case["evidence"]["core_sha256"]
+          print("RF076 original 8-member compiled binary archive independently SHA256/CRC/source-manifest authenticated")
+          PY
+          python3 - "$ROOT/immutable-case.zip" "$ROOT/expanded" <<'PY'
+          import hashlib,io,json,stat,sys,zipfile
+          from pathlib import Path
+          raw=Path(sys.argv[1]).read_bytes()
+          assert hashlib.sha256(raw).hexdigest()=="e3ec117e4ae3b625a8d3d7d370877fdbd60d1ff28662ace0503154aa3bdb448e"
+          with zipfile.ZipFile(io.BytesIO(raw)) as z:
+              members=z.infolist();names=[i.filename for i in members]
+              assert len(members)==414 and len(set(names))==414 and z.testzip() is None
+              assert sum(x.file_size for x in members)<40_000_000
+              for e in members:
+                  name=e.filename
+                  assert len(name)<512 and not e.is_dir() and not(e.flag_bits&1)
+                  assert not name.startswith("/") and chr(92) not in name and ":" not in name
+                  assert all(p not in ("",".","..") and not p.endswith((" ",".")) for p in name.split("/"))
+                  assert stat.S_IFMT(e.external_attr>>16) in (0,stat.S_IFREG)
+                  assert e.file_size<2_000_000
+              case=json.loads(z.read("case-result.json"))
+              assert case["source_sha"]=="bb3238a8d3472db954210f53749bfd1b3d3e6e77"
+              assert case["case"]=="zoom-zoo" and case["release_credit"]==0
+              native=z.read("work/zoom-zoo/replay/native.log")
+              assert hashlib.sha256(native).hexdigest()=="67beef9031e21f7051b943c726e2394306164b990197ebff6cffff41e873672c"
+              assert native.count(b"QA01RF047NATIVE_TRUNCATED")==1
+              assert b"ValueError: RF047 native event stream truncated" in z.read("rf076-readiness.txt")
+              assert b"ValueError: native shared event stream overflow" in z.read("rf074-readiness.txt")
+              labels={n.split("/")[-1] for n in names if n.startswith("work/zoom-zoo/replay/ref/") and n.endswith(".sram.bin")}
+              assert len(labels)==97
+              for label in labels:
+                  left=z.read("work/zoom-zoo/replay/ref/"+label)
+                  right=z.read("work/zoom-zoo/replay/native/"+label)
+                  assert len(left)==len(right)==8192 and left==right
+              root=Path(sys.argv[2])
+              for e in members:
+                  dest=root/e.filename;dest.parent.mkdir(parents=True,exist_ok=True)
+                  dest.write_bytes(z.read(e))
+          print("Exact RF076 414-member source ZIP/97 paired SRAM: independently pinned; native opcode trace truncated")
+          PY
+          python3 tools/qa01_zoo_raw_archive_audit.py \
+            --artifact-root "$ROOT/expanded" --out "$ROOT/independent-raw.json"
+          python3 - "$ROOT/independent-raw.json" <<'PY'
+          import json,sys
+          r=json.load(open(sys.argv[1]))
+          assert (r["full_zoo_mesh_rehashed_original_native_128k_pairs"],
+                  r["full_zoo_mesh_exact_pairs"],r["full_zoo_mesh_nonexact_pairs"],
+                  r["full_zoo_mesh_unmasked_differing_byte_occurrences"])==(78,51,27,92)
+          assert r["full_zoo_mesh_reported_difference_address_occurrences"]=={
+              "7E:0063":2,"7E:01ED":20,"7E:01EE":25,
+              "7E:01EF":20,"7E:01F0":20,"7E:01F1":5}
+          assert r["next_bowl_wram_unequal_offsets"]==[266,280]
+          assert r["next_bowl_sram_unequal_offsets"]==[]
+          assert r["all_frame_cpu_spc_gameplay_equivalence_proven"] is False
+          assert r["independent_usa_event_adjudication"]=="HOLD"
+          assert r["accepted_usa_events"]==0
+          print("Independently reviewed 78 genuine RF076 mesh frames, 92 WRAM differences: HOLD 0/45")
+          PY
+
+      - name: Preserve exact RF076 source and independent QA receipt
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-rf076-immutable-case-independent-raw-verdict
+          retention-days: 90
+          if-no-files-found: error
+          path: |
+            qa01-rf076-source-audit/immutable-case.zip
+            qa01-rf076-source-audit/immutable-binaries.zip
+            qa01-rf076-source-audit/independent-raw.json
+
+      - name: Preserve 260-KB original Actions ZIP bytes before source expires
+        # Original provider artifact 12167633197 expires 2026-10-26.
+        # Keep the exact authentic nested ZIP, never reconstruct raw images or
+        # equate the new wrapper artifact digest with the original ZIP digest.
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-zoo-original-ab-immutable-source-preservation
+          path: ${{ runner.temp }}/qa01-zoo-authenticated/real-zoo-ab.zip
+          retention-days: 90
+          if-no-files-found: error
+
       - name: Retain only small authenticated offline receipts, never bulk memory
         if: always()
         uses: actions/upload-artifact@v4
@@ -136,3 +365,4 @@ jobs:
             ${{ runner.temp }}/qa01-verdict/frame-fingerprints.json
             ${{ runner.temp }}/qa01-verdict/independent-frame-delta-atlas.json
             ${{ runner.temp }}/qa01-zoo-authenticated/independent-atlas.json
+            ${{ runner.temp }}/qa01-zoo-authenticated/independent-raw-ab-verdict.json

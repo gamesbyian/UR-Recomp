@@ -1,0 +1,67 @@
+{
+  "schema": "ur-qa01-rf076-independent-authentic-zoo-source-receipt/1",
+  "date": "2026-10-19",
+  "research_origin": {
+    "workflow_run_id": 39337657773,
+    "source_checkout_sha": "bb3238a8d3472db954210f53749bfd1b3d3e6e77",
+    "case_artifact_id": 12228052877,
+    "case_zip_sha256": "e3ec117e4ae3b625a8d3d7d370877fdbd60d1ff28662ace0503154aa3bdb448e",
+    "case_zip_members": 414,
+    "case_zip_crc_ok": true,
+    "binaries_artifact_id": 12227821973,
+    "binaries_zip_sha256": "620bccb81fabdc29513f27ae4818ad5c83b1056b4b91e1f33f8632f71a9f3b14",
+    "binaries_zip_members": 8,
+    "binaries_crc_ok": true
+  },
+  "independently_rehashed_compiled_binaries": {
+    "native": "7a445e9560cea0ad900ba90a195827cf628d594650c10cf542eb2c2cc09aefcf",
+    "snes9x_libretro_so": "af61b1d043e4a7389658734dfecff2e46cfe979a9b9ed9b05607db51222faf98",
+    "binary_manifest_byte_identical_in_case_and_binary_zip": true
+  },
+  "independently_rehashed_execution_logs": {
+    "original_sha256": "ade98fad1c730391e57246fc31485c36019ab557793b542996811a19339f0ff7",
+    "native_sha256": "67beef9031e21f7051b943c726e2394306164b990197ebff6cffff41e873672c"
+  },
+  "independently_reopened_raw": {
+    "wram_image_bytes_per_side": 131072,
+    "sram_image_bytes_per_side": 8192,
+    "paired_named_raw_wram_and_sram_samples": 97,
+    "raw_original_native_sram_pairs_equal": 97,
+    "race_mesh_wram_pairs": 78,
+    "race_mesh_equal_wram_pairs": 51,
+    "race_mesh_unequal_wram_pairs": 27,
+    "race_mesh_unmasked_differing_byte_occurrences": 92,
+    "race_mesh_address_occurrences": {
+      "7E:01ED": 20,
+      "7E:01EE": 25,
+      "7E:01EF": 20,
+      "7E:01F0": 20,
+      "7E:01F1": 5,
+      "7E:0063": 2
+    },
+    "zoo_next_bowl_raw_wram_unequal_offsets": [
+      266,
+      280
+    ],
+    "zoo_next_bowl_unequal_byte_occurrences": 8,
+    "zoo_next_bowl_sram_equal": true
+  },
+  "strict_native_truncation_negative": {
+    "rf047_native_truncated_marker": true,
+    "rf035_native_truncated_marker": true,
+    "rf076_readiness_failed": "RF047 native event stream truncated",
+    "rf074_readiness_failed": "native shared event stream overflow",
+    "native_reporter_full_nine_frame_chronology_qualified": false,
+    "original_native_first_consumed_byte_or_semantic_instruction_phase_qualified": false
+  },
+  "scope_and_stop": [
+    "New RF076 binary epoch; counts match older RF054 but do not replace missing RF054 raw files",
+    "Named post-script observation snapshots are not proof of unsampled full-event equivalence",
+    "Native RF047 opcode rows are bounded, truncated and interleaved, not nine contiguous NMI brackets",
+    "Research guest battery-memory equality does not certify Windows disk durability",
+    "Source consumer and generated recorder do not independently authenticate literal fetched ROM bus transaction"
+  ],
+  "accepted_complete_usa_events": 0,
+  "windows_release_gates": 0,
+  "adjudication": "HOLD"
+}

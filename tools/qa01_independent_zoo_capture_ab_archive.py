@@ -8,9 +8,11 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import io
 import json
 import tempfile
 import zipfile
+import stat
 from pathlib import Path
 
 import qa01_verify_frame_capture as raw_verifier
@@ -42,17 +44,43 @@ def stable_guest_semantics(d: dict) -> dict:
             if key not in SEMANTIC_EXCLUSIONS}
 
 
+def safe_zip_member(info: zipfile.ZipInfo) -> bool:
+    """Refuse filesystem aliases and archive symlinks before reading guest evidence.
+
+    No ZIP member is extracted as a pathname by this consumer. Still, a
+    malformed additional member must not pass as a provenance-safe archive,
+    even if a caller deliberately supplies a matching ZIP digest for review.
+    """
+    name = info.filename
+    components = name.split("/")
+    return (
+        bool(name) and len(name) <= 512
+        and not info.is_dir() and not (info.flag_bits & 1)
+        and not name.startswith("/") and "\\" not in name and ":" not in name
+        and all(ord(char) >= 32 and ord(char) != 127 for char in name)
+        and all(component not in ("", ".", "..")
+                and not component.endswith((" ", ".")) for component in components)
+        and stat.S_IFMT(info.external_attr >> 16) in (0, stat.S_IFREG)
+        and 0 <= info.file_size <= 2_000_000
+    )
+
+
 def verify(archive: Path, expected_sha: str = PINNED_SHA) -> dict:
+    # Review the same immutable byte sequence that was hashed, not a second
+    # filesystem open that could follow a changed path between source pinning
+    # and member decoding. This preserves the original pinned-source contract.
+    require(archive.is_file() and not archive.is_symlink(),
+            "missing or symlinked source ZIP")
     data = archive.read_bytes()
+    require(0 < len(data) <= 64_000_000,
+            "empty or oversized source ZIP")
     require(hashlib.sha256(data).hexdigest() == expected_sha,
             "source ZIP SHA256 differs from pinned original")
-    with zipfile.ZipFile(archive) as z:
+    with zipfile.ZipFile(io.BytesIO(data)) as z:
         infos = z.infolist()
         names = [item.filename for item in infos]
         require(len(infos) <= 2000 and len(names) == len(set(names))
-                and all(not it.is_dir() and not it.filename.startswith("/")
-                        and ".." not in Path(it.filename).parts
-                        and it.file_size <= 2_000_000 for it in infos)
+                and all(safe_zip_member(it) for it in infos)
                 and sum(x.file_size for x in infos) <= 30_000_000
                 and z.testzip() is None, "unsafe, duplicated or corrupt archive members")
         require(all(n in names for n in DOC.values())

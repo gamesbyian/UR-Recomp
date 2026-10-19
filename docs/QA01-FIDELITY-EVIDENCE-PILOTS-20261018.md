@@ -51,6 +51,10 @@ Independently downloaded and SHA-256 checked the actual [Bowl run 39168164480 ar
 
 This source archive is genuinely raw and independently checkable, but **not continuous**: offsets 335–337, 347–348 and 350–353 do not appear. Therefore the new full-frame auditor correctly cannot be given a pretend 334..354 complete input. This is a reusable real-archive calibration for raw comparison and missing-population guard design, **not a passing end-to-end continuous-capture test or source/guest behavioral fix**. A full-contiguous source producer and real replay benchmarking remain outstanding.
 
+## Integration qualification and CI repair (19 October)
+
+The first branch CI unit run [39200843454](https://github.com/gamesbyian/UR-Recomp/actions/runs/39200843454) failed **only** the two existing document-bound tests: `docs/WORK-QUEUE.md` measured 17,268 characters against the under-16,000 policy. All three other unit shards passed, and the failing shard reported 940 tests with those two failures. The work queue has now been condensed to **15,439 characters**, retaining live gate priorities and relocating historical details to [#1899](https://github.com/gamesbyian/UR-Recomp/issues/1899). **This source edit has not yet been shown passing the newer CI head**; no passing CI has been asserted. The pilot's ROM-free test coverage remains a separate qualification from the genuine evidence-producer demonstration.
+
 ## Pilot qualification and stop/go
 
 1. **Local unit stage:** `python3 -m unittest tests.unit.test_qa01_fidelity_evidence_pilots -v`; positive and negative fixtures exercise no ROM/emulator. CI green here means only schema/comparison contract correctness.

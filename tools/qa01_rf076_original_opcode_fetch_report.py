@@ -66,6 +66,10 @@ def inspect(log: str) -> dict:
     nmies=[(i,x) for i,x in enumerate(parsed) if x['stage']=='nmi_before']
     if sum(x['stage']=='nmi_pending' for x in parsed) != len(nmies):
         raise ValueError('original NMI wake-pending and before-push populations differ')
+    seen_frames = [e['original_host_frame'] for _,e in nmies]
+    if seen_frames != sorted(set(seen_frames)):
+        raise ValueError('original NMI frame chronology duplicated or reordered')
+    missing_frames = sorted(set(range(1017,1026))-set(seen_frames))
     frames=[]
     for i,e in nmies:
         if i == 0 or parsed[i-1]['stage'] != 'nmi_pending':
@@ -80,7 +84,9 @@ def inspect(log: str) -> dict:
         if after_pc != expected_pc:
             raise ValueError('original NMI WAI wake PC advancement contradicted by source')
         before=next((x for x in reversed(parsed[:i]) if x['stage']=='fetch'),None)
-        after=next((x for x in parsed[i+1:] if x['stage']=='fetch'),None)
+        next_nmi=next((j for j in range(i+1,len(parsed))
+                       if parsed[j]['stage']=='nmi_pending'),len(parsed))
+        after=next((x for x in parsed[i+1:next_nmi] if x['stage']=='fetch'),None)
         frames.append({
             'original_NMI_wake_pending_event':pending,
             'original_NMI_before_push_event':e,
@@ -93,9 +99,12 @@ def inspect(log: str) -> dict:
     return {
         'schema':'ur-qa01-rf076-original-true-fetched-PC-NMI-order/1',
         'source_observed_nmi_before_marker_count':len(nmies),
+        'complete_nine_original_NMI_frames_observed':not missing_frames and len(nmies)==9,
+        'missing_original_NMI_frames':missing_frames,
         'source_observed_selected_actual_opcode_fetches':sum(x['stage']=='fetch' for x in parsed),
         'source_events':len(parsed), 'source_NMI_brackets':frames,
         'original_opcode_fetches_unselected_sites_observed':False,
+        'original_source_incomplete_witness_can_grant_USA_credit':False,
         'original_native_semantically_aligned_NMI_proven':False,
         'original_native_same_binary_source_epoch_proven':False,
         'first_differing_consumed_stack_byte_proven':False,

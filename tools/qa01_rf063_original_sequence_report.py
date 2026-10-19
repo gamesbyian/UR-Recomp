@@ -15,12 +15,12 @@ from pathlib import Path
 BUS="QA01RF063ORIGBUS "
 CHECK="QA01RF063ORIGCHECKPOINT "
 NMI="QA01RF044ORIGNMI "
-HEX5=re.compile(r"[0-9A-Fa-f]{10}\\Z")
-HEX4=re.compile(r"[0-9A-Fa-f]{4}\\Z")
+HEX5=re.compile(r"[0-9A-Fa-f]{10}\Z")
+HEX4=re.compile(r"[0-9A-Fa-f]{4}\Z")
 
 
 def fields(line: str) -> dict[str, str]:
-    return dict(re.findall(r"(?<!\\S)([A-Za-z][A-Za-z0-9]*)=([^\\s]+)",line))
+    return dict(re.findall(r"(?<!\S)([A-Za-z][A-Za-z0-9]*)=([^\s]+)",line))
 
 
 def inspect(raw: str) -> dict:
@@ -102,7 +102,7 @@ def main() -> None:
     a=p.parse_args()
     report=inspect(a.source_log.read_text())
     a.out.parent.mkdir(parents=True,exist_ok=True)
-    a.out.write_text(json.dumps(report,indent=2,sort_keys=True)+"\\n")
+    a.out.write_text(json.dumps(report,indent=2,sort_keys=True)+"\n")
     print("RF063 original source ordering qualified; read-return/native parity remain HOLD")
 
 

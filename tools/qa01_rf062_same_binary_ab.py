@@ -94,6 +94,7 @@ def control(off: dict, on: dict, off_logs: dict[str, bytes],
     same_operand = len(a) == len(b) == matches
     same_cpu_clock = same_operand and all(
         x["master"] == y["master"] for x,y in zip(off_bus,on_bus))
+    same_original = off_logs["original"] == on_logs["original"]
     same_outputs = all(off.get(k) == on.get(k) for k in
                        ("zoo_race_mesh", "source_terminal_followthrough",
                         "zoo_next_bowl_handoff"))
@@ -106,8 +107,7 @@ def control(off: dict, on: dict, off_logs: dict[str, bytes],
                                        sha(on_logs["original"])],
         "native_log_sha256_off_on": [sha(off_logs["native"]),
                                      sha(on_logs["native"])],
-        "original_complete_log_byte_identical": (
-            off_logs["original"] == on_logs["original"]),
+        "original_complete_log_byte_identical": same_original,
         "rf062_actual_native_read_count_off_on": [len(absent),len(present)],
         "native_real_sound_helper_count_off_on": [len(a),len(b)],
         "native_sound_helper_matching_ordered_observations": matches,
@@ -116,7 +116,7 @@ def control(off: dict, on: dict, off_logs: dict[str, bytes],
         "native_actual_RF054_CPU_master_clocks_equal": same_cpu_clock,
         "original_native_whole_mesh_and_followthrough_equal": same_outputs,
         "runtime_RF062_logging_noninterference_supported": (
-            same_operand and same_cpu_clock and same_outputs),
+            same_original and same_operand and same_cpu_clock and same_outputs),
         "wrapper_replacement_noninterference_proven": False,
         "original_native_opcode_clock_equivalence_proven": False,
         "actual_CPU_joypad_poll_equivalence_proven": False,

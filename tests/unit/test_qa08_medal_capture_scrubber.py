@@ -30,7 +30,7 @@ class MedalRegisteredScrubber(unittest.TestCase):
         self.assertEqual(scrub.INTEGRATED_SHA,
             "832c08263e2d3013d5b15df82b2b0574fabfd3114194b7cbef9f6bb1b2959727")
         self.assertEqual(scrub.CROP,(184,78,246,169))
-        self.assertIn("native guest frame f",scrub.__doc__)
+        self.assertIn("Original callback is always guest-1",scrub.__doc__)
         self.assertIn("original",scrub.HTML.lower())
         self.assertNotIn("https://",scrub.HTML)  # fully offline
 

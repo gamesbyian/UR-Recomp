@@ -74,6 +74,13 @@ def control(off: dict, on: dict, off_logs: dict[str, bytes],
              all(x["scope"] == "Snd_UploadBlockList_82EF_M1X0" and
                  x["frame"] == "6124" and x["kind"] == "read8" for x in rows),
              "actual RF054 native helper trace invalid: " + name)
+    # The extra ten RF062 rows must be actual *returned* operations, each
+    # uniquely present in RF054's separately instrumented paced CPU helper
+    # at the identical native-local master clock and register context.
+    for read in present:
+        hits = [row for row in on_bus if all(
+            row[k] == read[k] for k in ("addr", "master", "A", "Y", "D"))]
+        must(len(hits) == 1, "RF062 direct record was not a real same-clock RF054 helper read")
     a = [tuple(x[k] for k in COMPARE) for x in off_bus]
     b = [tuple(x[k] for k in COMPARE) for x in on_bus]
     changes = difflib.SequenceMatcher(None, a, b, autojunk=False).get_opcodes()

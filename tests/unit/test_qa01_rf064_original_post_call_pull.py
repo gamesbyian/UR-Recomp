@@ -43,6 +43,8 @@ class OriginalPullPatch(unittest.TestCase):
         self.assertIn('const unsigned joined = after == before + 1u',modified)
         self.assertEqual(modified.count('ur_rf045_stack_note("pullB"'),1)
         self.assertEqual(modified.count('ur_rf045_stack_note("pullW"'),1)
+        self.assertIn('(uint16)(ur_rf045_sp0+1)',modified)
+        self.assertNotIn('(uint16)(rf045_sp0+1)',modified)
 
     def test_missing_prerequisites_drift_and_restage_fail_closed(self):
         original=source_fixture()

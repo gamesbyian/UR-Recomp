@@ -1,0 +1,125 @@
+name: QA01 2014 USA post-Switcher original-source continuation ONE-SHOT
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/qa01-2014-post-switcher-source-once.yml"
+      - "tools/qa01_2014_post_switcher_source_discovery.py"
+      - "tests/unit/test_qa01_2014_post_switcher_source_discovery.py"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa01-2014-post-switcher-original-only-\${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-only-next-original-event:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 50
+    steps:
+      - name: Check out exact USA original source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Check out pinned Snes9x reference runner source, not native game
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Verify exact ROM/movie and source-only fail-closed tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          echo '06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442  reference/imported/tas-bots/dessyreqt-4250-submission.smv' | sha256sum -c -
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          python3 -m unittest discover -s tests/unit -p test_qa01_2014_post_switcher_source_discovery.py
+
+      - name: Build original Snes9x reference runner only
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build pkg-config build-essential cmake libsdl2-dev \
+            libgl-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxss-dev libwayland-dev \
+            libxkbcommon-dev libegl-dev libgles-dev libdrm-dev \
+            libgbm-dev libasound2-dev libpulse-dev libudev-dev \
+            libdbus-1-dev
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          cmake -S baldosa/snesrecomp/tools/snesref \
+            -B "$RUNNER_TEMP/qa01-source-snesref" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/qa01-source-snesref" -j2
+          test -x "$RUNNER_TEMP/qa01-source-snesref/snesref"
+          test -s "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+
+      - name: Exactly one real source replay to 36000, no Baldosa build or event credit
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/qa01-post-switcher-source"
+          mkdir -p "$ROOT"
+          set +e
+          timeout --signal=TERM --kill-after=30s 20m \
+            python3 tools/qa01_2014_post_switcher_source_discovery.py \
+              --snesref "$RUNNER_TEMP/qa01-source-snesref/snesref" \
+              --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --movie "$GITHUB_WORKSPACE/reference/imported/tas-bots/dessyreqt-4250-submission.smv" \
+              --work "$ROOT/source" \
+              --out "$ROOT/source-report.json" \
+              > "$ROOT/attempt.log" 2>&1
+          rc=$?
+          set -e
+          tail -n 100 "$ROOT/attempt.log"
+          if [ "$rc" -eq 0 ]; then
+            python3 - "$ROOT/source-report.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          r=json.load(open(sys.argv[1]))
+          assert r["USA_accepted_event_credit"] == 0
+          assert r["source_controller_masks_modified"] is False
+          summary={
+            "historical_source_run_sha256":r["original_movie_sha256"],
+            "source_horizon":r["new_horizon"],
+            "source_event_status":r["new_event_status"],
+            "sustained_active_after_switcher":r["genuine_original_source_sustained_active_runs_after_switcher"],
+            "real_new_complete_source_candidates":r["complete_new_source_event_candidates"],
+            "USA_accepted_events":0,
+          }
+          s=json.dumps(summary,sort_keys=True,indent=2)
+          print(s)
+          with open(sys.argv[2],"a") as f:f.write("Source-only original USA 2014 route census; no event acceptance.\n\n" + s + "\n")
+          PY
+          else
+            echo "Invalid or missing historical source replay; no next-event claim." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$rc"
+
+      - name: Retain authentic original source trace and bounded machine receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-2014-post-switcher-source-36000
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 6
+          path: |
+            \${{ runner.temp }}/qa01-post-switcher-source/attempt.log
+            \${{ runner.temp }}/qa01-post-switcher-source/source-report.json
+            \${{ runner.temp }}/qa01-post-switcher-source/source/source.log
+            \${{ runner.temp }}/qa01-post-switcher-source/source/source.script
+            \${{ runner.temp }}/qa01-post-switcher-source/source/movie-meta.json
+            \${{ runner.temp }}/qa01-post-switcher-source/source/source-trace.jsonl
+            \${{ runner.temp }}/qa01-post-switcher-source/source/original-switcher-result.wram.bin
+            \${{ runner.temp }}/qa01-post-switcher-source/source/prior-horizon.wram.bin
+            \${{ runner.temp }}/qa01-post-switcher-source/source/new-horizon.wram.bin

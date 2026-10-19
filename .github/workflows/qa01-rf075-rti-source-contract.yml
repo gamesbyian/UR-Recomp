@@ -1,0 +1,66 @@
+# Source-authentic RF075 ABI validation, no ROM or native-game rebuild.
+name: QA01 pinned RTI return ABI static contract
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/workflows/qa01-rf075-rti-source-contract.yml"
+      - "tools/qa01_rf075_native_rti_source_contract.py"
+      - "tests/unit/test_qa01_rf075_native_rti_source_contract.py"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rf075-actual-source-abi-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  pinned-original-native-return-contract:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out research reviewer
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check out exact pinned independent Baldosa SNES recomp source
+        uses: actions/checkout@v4
+        with:
+          repository: RetroPortingToolKit/snesrecomp
+          ref: 075fbe4c8e0d97b0013be541795c39cb644a9709
+          path: rf075-upstream
+          persist-credentials: false
+          submodules: false
+      - name: Check exact pinned upstream source and run adversarial tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C rf075-upstream rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          python3 -m unittest tests.unit.test_qa01_rf075_native_rti_source_contract -v
+          mkdir -p "$RUNNER_TEMP/rf075"
+          python3 tools/qa01_rf075_native_rti_source_contract.py --root rf075-upstream --out "$RUNNER_TEMP/rf075/pinned-native-interpreted-rti-source-contract.json"
+          python3 - "$RUNNER_TEMP/rf075/pinned-native-interpreted-rti-source-contract.json" <<'PY'
+          import json,sys
+          r=json.load(open(sys.argv[1]))
+          assert r["pinned_all_five_unmodified_source_blobs_verified"]
+          assert r["compiled_RTI_guest_status_load_count"]==1
+          assert r["compiled_RTI_guest_saved_PC_load_count"]==0
+          assert r["compiled_RTI_guest_saved_PB_load_count"]==0
+          assert r["interpreted_RTI_stacked_status_PC_PB_restored"]
+          assert not r["native_actual_fetched_opcode_pc_proven"]
+          assert r["accepted_USA_events"]==0
+          PY
+          {
+            echo "RF075: immutable source-bound compiled-vs-interpreted RTI ABI confirmed."
+            echo "No native ROM execution, no decoded fetch-PC proof, and 0/45 USA event admission."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain source-verified scope-limited RTI contract
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rf075-pinned-actual-source-RTI-ABI
+          path: ${{ runner.temp }}/rf075/
+          retention-days: 14
+          if-no-files-found: warn

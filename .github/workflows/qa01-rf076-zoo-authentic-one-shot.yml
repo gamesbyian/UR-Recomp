@@ -1,6 +1,10 @@
 # TEMP RF076 source-qualified original/native Zoom Zoo NMI one-shot.
 # Attempt 2: qualify native AOT sound markers and interpreter fetch source.
-# First attempted genuine regen had no compiled D4 call sites; preserve negative.
+# Historic v2 narrow source-regex missed 5 D4 AOT call sites; authentic
+# run 39337657773 EXECUTED thousands of tier=aot D4 markers and
+# saturated strict RF047 at 8192 in frame 1018. Never call these absent.
+# Third and final bounded witness retains all 9 native NMI brackets via an
+# explicit 131072-event finite cap, never suppressing TRUNCATED.
 # Do NOT merge this file or the temporary campaign modifications to main.
 name: RF076 genuine Zoo original/native resume-origin and executed opcode one-shot
 

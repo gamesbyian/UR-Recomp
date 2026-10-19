@@ -171,5 +171,38 @@
       "physical_hardware_verified": false,
       "release_gate_credit": 0
     }
-  ]
+  ],
+  "joined_player_journey_on_same_exact_pr1990_windows_source": {
+    "artifact_id": 12228277849,
+    "original_outer_sha256": "7572678c890601230dad0df0896443343fcdaa8512ac5901b5b00adcbc2a4446",
+    "member_count": 52,
+    "crc_all_members_passed": true,
+    "pre_records_artifact_id": 12227778561,
+    "pre_records_outer_sha256": "138f3bad12ff3a3c207aafbdba97fbe5a8aa4e271ef10c27e23c52094f58d6eb",
+    "pre_records_members": 3,
+    "pre_records_crc_all_members_passed": true,
+    "true_frontend_created_two_profiles": [
+      "mike",
+      "martin"
+    ],
+    "genuine_original_guest_2p_scored_result": true,
+    "winning_guest_rider": 2,
+    "p1_time_hundredths": 2761,
+    "p2_time_hundredths": 2757,
+    "original_raw_members_independently_sha_verified": 9,
+    "original_played_run_sha256": "d54ade82fdeb213db2c48bd7e4338c5bcae0f2af981fd70c27a467366acbc487",
+    "original_played_match_sha256": "d16eb5d8ce868c8df6ef59169cd5b83ff5b1ed93235c4ad58624de30f8050749",
+    "actual_fnv_run_valid": "a8327800e49e4c44",
+    "actual_fnv_match_valid": "5838b68b19e040cb",
+    "pre_and_post_original_run_match_bytes_equal": true,
+    "actual_player_relative_fresh_records_mike": "LAST 01 LOSS 00:27.61",
+    "actual_player_relative_fresh_records_martin": "LAST 01 WIN 00:27.57",
+    "both_original_named_raw_8192_sram_equal_decoded_typed_profile": true,
+    "original_run_and_match_identical_to_historical_oct15_byte_payloads": true,
+    "actual_member_filenames_include_distinct_timestamps": true,
+    "physical_controllers_used": false,
+    "dummy_audio_accepted_as_physical": false,
+    "original_native_Snes9x_event_accepted": false,
+    "release_gate_credit": 0
+  }
 }

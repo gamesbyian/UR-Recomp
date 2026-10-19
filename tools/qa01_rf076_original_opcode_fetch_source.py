@@ -12,7 +12,7 @@ from pathlib import Path
 
 SOURCE = Path('cpuexec.cpp')
 STAMP = 'UR_QA01_RF076_ORIGINAL_FETCH_PC'
-NMI = '\t\t\t\tS9xOpcode_NMI();'
+NMI = '                S9xOpcode_NMI();'  # Real RF044/RF063 staged call, spaces
 NMI_WAKE = '\t\t\t\tTimings.NMITriggerPos = 0xffff;\n\t\t\t\tif (CPU.WaitingForInterrupt)'
 FETCH = '\t\t\tRegisters.PCw++;\n\t\t\t(*Opcodes[Op].S9xOpcode)();'
 HEADER = 'static inline void S9xReschedule (void);\n'
@@ -54,6 +54,14 @@ static void ur_rf076_original_fetched_opcode(const char *stage, uint8 opcode) {
 def patch(source: str) -> str:
     if STAMP in source:
         raise ValueError('RF076 original fetched opcode hook already staged')
+    # RF044 replaces the original tab-indented call with a source-qualified
+    # instrumentation block. RF063 then augments that exact real call with
+    # its post-push WRAM checkpoint. Never match a stray textual NMI call.
+    if ('UR_QA01_RF044_STACK_BUS' not in source or
+        'UR_QA01_RF063_SOURCE_BUS_CHECKPOINT_SEQUENCE' not in source or
+        'rf044_nmi' not in source or
+        'QA01RF063ORIGCHECKPOINT' not in source):
+        raise ValueError('RF076 requires actual RF044/RF063 staged original NMI')
     if source.count(HEADER) != 1 or source.count(NMI) != 1 or \
        source.count(FETCH) != 1 or source.count(NMI_WAKE) != 1:
         raise ValueError('RF076 pinned source S9xMainLoop opcode/NMI structural drift')
@@ -68,7 +76,7 @@ def patch(source: str) -> str:
                             '\t\t\t\tur_rf076_original_fetched_opcode("nmi_pending", 0);\n'
                             '\t\t\t\tif (CPU.WaitingForInterrupt)',1)
     result = result.replace(NMI,
-                            '\t\t\t\tur_rf076_original_fetched_opcode("nmi_before", 0);\n'
+                            '                ur_rf076_original_fetched_opcode("nmi_before", 0);\n'
                             + NMI, 1)
     result = result.replace(FETCH,
                             '\t\t\tur_rf076_original_fetched_opcode("fetch", Op);\n'

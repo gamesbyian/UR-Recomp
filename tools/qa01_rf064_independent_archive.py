@@ -92,7 +92,7 @@ def post_nmi_return_witness(lines: list[str], checkpoint: dict[str, str]) -> dic
         result["return_records"].append({
             "kind": kind, "physical_wram_base": f"7E:{base:04X}",
             "width": width, "actual_returned_value_hex": f"{value:0{width*2}X}",
-            "executed_original_pc": row["pc"],
+            "original_post_call_pb_pcw": row["pc"],
             "original_frame": stamps[0], "original_v": stamps[1],
             "original_h": stamps[2],
         })

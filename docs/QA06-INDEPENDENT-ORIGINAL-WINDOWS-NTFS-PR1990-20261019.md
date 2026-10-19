@@ -1,0 +1,47 @@
+# Agent 6: independent original Windows NTFS archival QA of PR #1990 (2026-10-19)
+
+**Disposition: qualified hosted original-Windows fault observations, not a Windows release gate.** This report independently rehashes real artifact bytes; no Windows processes or human hardware were exercised by QA.
+
+## Immutable tested executable and archive identity
+
+Original green Windows run: https://github.com/gamesbyian/UR-Recomp/actions/runs/39337845469, PR #1990. The actual tested synthetic PR-merge source is `f7db1b92fbe347f1315cfe8de8ea3451857cb5fc`, authenticated by its two GitHub commit parents `34a308f66f0d7ba9bc6857a628c2fc92157e19a1` (then-main) and `70b3fe5147e0b807f16ce083bf1453b9b38fffd7` (PR head). The former historical owner ZIP on source `11501a15…` cannot inherit this result; neither can an unbuilt later main.
+
+Independently downloaded, SHA256 verified and ZIP CRC checked original Actions artifacts:
+
+| Original artifact | ID | Outer ZIP SHA256 |
+| --- | --- | --- |
+| ROM-free package with sidecar | `12227738503` | `41a0ea31eb0d030be7fe816a478ddcdb1fc8af6a5cf655a65b58bd125c3c28e6` |
+| Same-run Windows executable binding | `12227853333` | `12bc7e7a252c18b708e481c80a84efd06dd17e5d5c965ec018f97667c5a32106` |
+| Original pre-intent NTFS full-volume | `12227993287` | `bdafb211fba24f1f9ce8eb6c9759cb90cd72fe2391a4c8ba4f48e8e9124908fe` |
+| Original postraw/pretyped NTFS full-volume | `12227608721` | `530dd48a0fe0af40220c329e0371b86b779a46be97f35540f2969255fbb30f60` |
+| Interactive original CMD R/T paths | `12227793421` | `fa78c6c066f7c44507e646747229540f394b624fa57ccb2d36647539eed959be` |
+
+Actual **inner playable ROM-free ZIP** SHA256 `2b0ed905047a2520ba1c9ef7aa0bd781e2f58b8bee3b9598562187b73c852b55` (6,057,753 bytes); original actual **PE32+ AMD64 executable** SHA256 `d418b2e9bb812bb064b825744e33753d88a9eb3cec9668377e8a15f1072c5c6e` (20,334,080 bytes). All immutable manifest member bytes agree with the independently verified ZIP/binding. Packaged CMD SHA256 `2f2a6cdbe9d4c37e331b82577ed3c947342e545a19bd0c022d0b940fa7cac8e0`. Independent PE import parsing found 31 normal DLL imports conforming to existing Windows inbox/API-set policy, no dynamic MSVCP/VCRUNTIME/SDL import, and an empty delay-import directory. Static portability does not certify clean Windows loading or hardware.
+
+## Actual original Windows fault evidence, independently checked
+
+**Pre-intent:** The original 25-member ZIP has 16 independently SHA/length-verified raw binary snapshot members. The genuine extracted original game CMD on an isolated 128 MiB NTFS VHDX refused durable intent allocation before raw SRAM publication, exited `8` with a save-error warning, and the Windows substrate records actual separate process error `112` (disk full). Full original 8,192-byte SRAM, typed profile, selector and catalog remain byte-identical to baseline through the failed save and **two distinct cold Windows process boots**. This is a controlled hosted Windows VHDX, not physical power removal.
+
+**Postraw/pretyped:** The separate 29-member original ZIP's **22** binary stage files independently match every reported SHA/length. Its starting baseline exactly equals the pre-intent population. Native guest raw SRAM changes at **74** actual byte offsets, while generation-1 typed SRAM, catalog and selector stay identical; the denied state remains identical to postraw. The actual guest exits `8` with a save error, the filler records `errno=28` (with no WinError) and an independent Windows process records Win32 `112`. The full original intent bytes equal the archived recovered-intent receipt exactly. On the **first cold boot**, the guest reports `RECOVERY_RECONCILED` and new typed generation **2** contains precisely the actual modified 8 KiB raw SRAM; selector/catalog stay unchanged. The **second** cold process reports no repeated reconciliation and all four state files remain identical. Producer fault metadata and original logs were checked separately from raw byte comparisons. Neither electrical interruption nor a genuine torn disk write was exercised.
+
+**Interactive R/T:** The original 47-member R/T ZIP passed CRC verification and 34 original stage-file SHA checks. Its console keys were programmatically injected, with both two-process cold restarts, not an uncoached human or physical-controller test. S/Q and real noncooperating concurrent writers remain separately reviewable.
+
+## Independent reusable verifier and exact reproduction
+
+`tools/check_qa06_ntfs_original_archives.py` requires independent outer ZIP SHA pins, exact synthetic checkout source and packaged CMD SHA, CRC/safe bounded ZIP structure, all original member lengths/hashes, explicit original Win32 errors, full 8KiB raw-vs-typed SRAM agreement, isolated postraw divergence, immutable intent, generation advance and both cold boots. It grants zero gates and has synthetic fail-closed negative tests for outer-hash replacement, false Windows errors, altered second-cold SRAM, wrong CMD identity, and forged source.
+
+```bash
+python3 tools/check_qa06_ntfs_original_archives.py \
+  --pre ORIGINAL_ARTIFACT_12227993287.zip \
+  --post ORIGINAL_ARTIFACT_12227608721.zip \
+  --expected-pre-sha256 bdafb211fba24f1f9ce8eb6c9759cb90cd72fe2391a4c8ba4f48e8e9124908fe \
+  --expected-post-sha256 530dd48a0fe0af40220c329e0371b86b779a46be97f35540f2969255fbb30f60 \
+  --source-sha f7db1b92fbe347f1315cfe8de8ea3451857cb5fc \
+  --cmd-sha256 2f2a6cdbe9d4c37e331b82577ed3c947342e545a19bd0c022d0b940fa7cac8e0
+```
+
+Actual downloaded-archive offline execution returned 16 pre-intent files, 22 postraw files, 74 changed raw byte positions, recovered typed generation 2, two cold boots and `release_gate_credit=0`. See the [immutable independent receipt](../analysis/evidence/qa06-independent-pr1990-ntfs-original-review-20261019.json). The positive was executed offline here; subsequent CI on this PR is a separate test.
+
+## Evidence boundary and next owner
+
+This is positive evidence about **one named profile on the genuine source-compiled Windows guest, in a source-qualified but unmerged synthetic PR checkout**. The postraw ZIP does not itself embed full tested source SHA; source linkage also uses the separately inspected original Actions run and matching compiled CMD. Request a separate producer-local full source/PE/ZIP receipt per future scenario. Still missing: one immutable integrated **merged-main** Windows ZIP, active competing writers, denied/share/short and electrical interruption coverage, full real 1P/2P profile/Records player journey, dissimilar clean consumer PCs, actual dual controllers, audible audio, true UHD/7:6 display and authoritative original/native USA events. Retain original nominated October 15 source and ZIP without relabeling, QA-02 in progress, physical=false, release_decision=not_assessed, **0/12 Windows release gates and 0/45 complete USA events**.

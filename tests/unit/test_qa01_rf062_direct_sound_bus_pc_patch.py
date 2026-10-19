@@ -100,6 +100,8 @@ class DirectSoundRead(unittest.TestCase):
         self.assertEqual(rf.HELPER.count("cpu_read8_paced(cpu, bank, addr)"), 1)
         self.assertIn("return value;", rf.HELPER)
         self.assertIn("executedPC=8282F0", rf.HELPER)
+        self.assertIn("cpu->PB == 0x82u", rf.HELPER)
+        self.assertIn("0x0282F0, 0x8282F0", rf.READ_PATCH_RF018)
         self.assertNotIn("cpu->master_cycles +=", rf.HELPER)
         args = self.fixture()
         with self.assertRaisesRegex(ValueError, "source drift"):
@@ -132,7 +134,8 @@ class DirectSoundRead(unittest.TestCase):
                 write_fn=lambda width: "cpu_write8" if width == 1 else "cpu_write16"),
         }
         exec(generated, namespace)
-        for pc, instrumented in ((0x8282F0, True), (0x8282F2, False)):
+        for pc, instrumented in ((0x0282F0, True), (0x8282F0, True),
+                                 (0x0282F2, False), (0x8282F2, False)):
             namespace["_CURRENT_SOURCE_PC24"] = pc
             output = namespace["_emit_read"](SimpleNamespace(
                 seg=SimpleNamespace(kind=10, index=2, offset=0x63),

@@ -1,0 +1,154 @@
+name: QA01 2014 USA Switcher original-native dense terminal ONE-SHOT
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/qa01-switcher-terminal-mesh.yml"
+      - "tools/probe_original_event_complete.py"
+      - "tools/qa01_switcher_dense_terminal.py"
+      - "tests/unit/test_qa01_switcher_dense_terminal.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa01-switcher-terminal-mesh-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  switcher-terminal-original-native:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+      - name: Exact ROM/movie/runner and negative tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          echo '06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442  reference/imported/tas-bots/dessyreqt-4250-submission.smv' | sha256sum -c -
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          python3 -m unittest discover -s tests/unit -p test_qa01_switcher_dense_terminal.py
+          python3 -m unittest discover -s tests/unit -p test_probe_original_event_complete.py
+      - name: Build one original Snes9x and one pinned Baldosa guest
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build pkg-config build-essential cmake libsdl2-dev \
+            libgl-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxss-dev libwayland-dev \
+            libxkbcommon-dev libegl-dev libgles-dev libdrm-dev \
+            libgbm-dev libasound2-dev libpulse-dev libudev-dev \
+            libdbus-1-dev xvfb
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          cmake -S baldosa/snesrecomp/tools/snesref -B "$RUNNER_TEMP/switcher-snesref" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/switcher-snesref" -j2
+          python3 tools/baldosa_qa_dense_scene_input_patch.py \
+            --host baldosa/snesrecomp/runner/src/desktop/host_main.c
+          cmake -S baldosa -B baldosa/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
+          cmake --build baldosa/build --target UniracersSNESRecomp -j3
+          test -x baldosa/build/UniracersSNESRecomp
+          test -x "$RUNNER_TEMP/switcher-snesref/snesref"
+      - name: Execute source Switcher through 44 real original/native result frames
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/qa01-switcher-dense"
+          mkdir -p "$ROOT"
+          sha256sum "$RUNNER_TEMP/switcher-snesref/snesref" \
+            "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            "$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp" > "$ROOT/executables.sha256"
+          set +e
+          timeout --signal=TERM --kill-after=30s 16m \
+            python3 tools/probe_original_event_complete.py \
+              --case switcher --native-backend pinned-baldosa \
+              --switcher-terminal-dense --source-horizon 22000 \
+              --snesref "$RUNNER_TEMP/switcher-snesref/snesref" \
+              --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+              --native "$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --work-dir "$ROOT" --json-out "$ROOT/switcher-report.json" \
+              > "$ROOT/attempt.log" 2>&1
+          rc=$?
+          set -e
+          tail -n 70 "$ROOT/attempt.log"
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 1 ]; then exit "$rc"; fi
+          test -s "$ROOT/switcher-report.json"
+          python3 tools/qa01_switcher_dense_terminal.py \
+            --work-root "$ROOT" --out "$ROOT/switcher-dense-raw.json"
+          python3 - "$ROOT/switcher-dense-raw.json" "$ROOT/switcher-report.json" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import json,sys
+          a=json.load(open(sys.argv[1]))
+          r=json.load(open(sys.argv[2]))
+          assert a["independent_USA_event_acceptance"]==0
+          assert a["same_absolute_guest_host_pair_count"]>=30
+          assert a["memory_bytes_excluded"]==0
+          row={
+            "original_movie_entry_result":[a["actual_source_original_movie_entry"],a["actual_source_original_movie_result"]],
+            "independent_fresh_guest_result_clocks":a["original_native_real_result_relative_frames"],
+            "observed_true_title_stage_intervals":a["original_native_stages_observed"],
+            "actual_same_absolute_host_pairs":a["same_absolute_guest_host_pair_count"],
+            "strict_complete_event_candidate":r["comparison"]["paired_event_candidate"],
+            "accepted_usa_events":0,
+          }
+          s=json.dumps(row,indent=2,sort_keys=True)
+          print(s)
+          with open(sys.argv[3],"a") as f:f.write("\nSwitcher 2014 original/native diagnostic only, 0/45.\n\n"+s+"\n")
+          PY
+      - name: Independently bind supplied original/native inputs to archived 2014 SMV
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/qa01-switcher-dense"
+          python3 tools/qa01_event_route_artifact_audit.py \
+            --artifact-root "$ROOT" --producer-report "$ROOT/switcher-report.json" \
+            --replay-dir "$ROOT/switcher/replay" \
+            --movie "$GITHUB_WORKSPACE/reference/imported/tas-bots/dessyreqt-4250-submission.smv" \
+            --movie-meta "$GITHUB_WORKSPACE/analysis/generated/historical-2014-smv-metadata.json" \
+            --out "$ROOT/switcher-source-input-identity.json"
+      - name: Archive exact executed original/native memory and input
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-switcher-original-native-dense-2014
+          retention-days: 7
+          if-no-files-found: warn
+          compression-level: 6
+          path: |
+            ${{ runner.temp }}/qa01-switcher-dense/executables.sha256
+            ${{ runner.temp }}/qa01-switcher-dense/attempt.log
+            ${{ runner.temp }}/qa01-switcher-dense/switcher-report.json
+            ${{ runner.temp }}/qa01-switcher-dense/switcher-dense-raw.json
+            ${{ runner.temp }}/qa01-switcher-dense/switcher-source-input-identity.json
+            ${{ runner.temp }}/qa01-switcher-dense/switcher/source/source-event-diagnostic.json
+            ${{ runner.temp }}/qa01-switcher-dense/switcher/source/source-scan.log
+            ${{ runner.temp }}/qa01-switcher-dense/switcher/calibration/reference.log
+            ${{ runner.temp }}/qa01-switcher-dense/switcher/calibration/native.log
+            ${{ runner.temp }}/qa01-switcher-dense/switcher/replay/reference.log
+            ${{ runner.temp }}/qa01-switcher-dense/switcher/replay/native.log
+            ${{ runner.temp }}/qa01-switcher-dense/switcher/replay/complete.script
+            ${{ runner.temp }}/qa01-switcher-dense/switcher/replay/ref.input
+            ${{ runner.temp }}/qa01-switcher-dense/switcher/replay/pinned-baldosa.input
+            ${{ runner.temp }}/qa01-switcher-dense/switcher/replay/ref/scene-*.wram.bin
+            ${{ runner.temp }}/qa01-switcher-dense/switcher/replay/ref/scene-*.sram.bin
+            ${{ runner.temp }}/qa01-switcher-dense/switcher/replay/native/scene-*.wram.bin
+            ${{ runner.temp }}/qa01-switcher-dense/switcher/replay/native/scene-*.sram.bin
+            ${{ runner.temp }}/qa01-switcher-dense/switcher/replay/ref/result-onset.wram.bin
+            ${{ runner.temp }}/qa01-switcher-dense/switcher/replay/native/result-onset.wram.bin

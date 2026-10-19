@@ -365,8 +365,8 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
         data["candidate"]["physical_hardware_verified"] = True
         self.assertTrue(any("L5 witness needs Windows/GPU/display/controller/audio" in x
                             for x in validator.check_registry(data, ROOT)))
-        gate["witnesses"][0]["hardware"] = qa04_synthetic_hardware_witness(
-            "physical-1", clean=True)["hardware"]
+        gate["witnesses"][0] = qa04_synthetic_hardware_witness(
+            "physical-1", clean=True)
         self.assertTrue(any("QA-04 needs three" in x
                             for x in validator.check_registry(data, ROOT)))
         gate["witnesses"].extend([

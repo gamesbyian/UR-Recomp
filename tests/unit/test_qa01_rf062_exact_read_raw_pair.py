@@ -21,8 +21,8 @@ class SoundFrameJoin(unittest.TestCase):
         original, native, retained = (root / n for n in ("original", "native", "retained"))
         original.mkdir()
         native.mkdir()
-        for guest, directory, origin in (("original", original, 10),
-                                         ("native", native, 12)):
+        for guest, directory, origin in (("original", original, 6120),
+                                         ("native", native, 6122)):
             for f in range(2, 5):
                 wram = bytearray(131072)
                 wram[0x63] = (0x30 + f + (0 if guest == "original" else 3))
@@ -35,8 +35,8 @@ class SoundFrameJoin(unittest.TestCase):
             "movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
             "input_sha256": "b"*64,
             "observation_phase": "post-script-dump",
-            "original_frame_origin": 10,
-            "native_frame_origin": 12,
+            "original_frame_origin": 6120,
+            "native_frame_origin": 6122,
             "masked_wram_bytes": 0,
             "masked_sram_bytes": 0,
         }
@@ -61,16 +61,8 @@ class SoundFrameJoin(unittest.TestCase):
         }
 
     def test_distinct_relative_frames_both_reopen_same_named_host_6124(self):
-        # Test fixture uses host14, not 6124. Rebase both origins so the
-        # physical saved files/labels model the real sound host 6124.
-        self.fp["source_identity"]["original_frame_origin"] = 6120
-        self.fp["source_identity"]["native_frame_origin"] = 6122
-        for row in self.fp["rows"]:
-            row["original_actual_host_frame"] = 6120 + row["relative_frame"]
-            row["native_actual_host_frame"] = 6122 + row["relative_frame"]
-        # Recompute receipt, hashes and raw manifest are unchanged but
-        # source-identity hash is not. Do not pretend the old review survives.
-        self.independent = raw.verify(self.fp, self.retained)
+        # Actual test files and their saved manifest already use true distinct
+        # original/native frame origins. No retrospective report relabeling.
         result = pair.correlate(self.sound, self.fp, self.independent, self.retained)
         self.assertEqual(result["reopened_raw_images_each_guest_at_its_own_host_frame"]
                          ["original"]["guest_relative_frame"], 4)
@@ -82,12 +74,9 @@ class SoundFrameJoin(unittest.TestCase):
         self.assertEqual(result["accepted_USA_events"], 0)
 
     def valid_rebased(self):
-        self.fp["source_identity"]["original_frame_origin"] = 6120
-        self.fp["source_identity"]["native_frame_origin"] = 6122
-        for row in self.fp["rows"]:
-            row["original_actual_host_frame"] = 6120 + row["relative_frame"]
-            row["native_actual_host_frame"] = 6122 + row["relative_frame"]
-        self.independent = raw.verify(self.fp, self.retained)
+        # No synthetic relabeling: actual source files were created at the
+        # claimed host frames, and audit() created the immutable manifest.
+        pass
 
     def test_missing_original_at_true_host_fails(self):
         self.valid_rebased()

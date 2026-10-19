@@ -211,6 +211,20 @@ class DragsterZooRawAuditTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "host clock"):
             audit.audit(self.root)
 
+    def test_no_fake_earned_dragster_or_reported_zoo_payload_aggregate(self):
+        report = self.make()
+        report["dragster_next_zoo_handoff"][
+            "original_native_ranked_checksum_valid_all_samples"] = False
+        self.write("dragster-report.json", report)
+        with self.assertRaisesRegex(ValueError, "score or course-payload"):
+            audit.audit(self.root)
+        report = self.make()
+        report["dragster_next_zoo_handoff"][
+            "fresh_native_loaded_true_zoo_course_while_active"] = False
+        self.write("dragster-report.json", report)
+        with self.assertRaisesRegex(ValueError, "score or course-payload"):
+            audit.audit(self.root)
+
     def test_source_selection_is_not_active_zoo(self):
         self.make()
         actual = audit.movie_states_from_actual_trace(

@@ -194,7 +194,7 @@ def make_segment(src,start,frames,source_fps,caption,kind,output,vertical=False)
           "x=(w-text_w)/2:y=450:box=1:boxcolor=black@0.62:boxborderw=14")
     else:
         width,height=1920,1080
-        visual="scale=1706:960:flags=neighbor,pad=1920:1080:107:60:0x08101f"
+        visual="scale=1707:960:flags=neighbor,pad=1920:1080:106:60:0x08101f"
         cap=caption.replace("'","").replace(":"," ").replace("→","TO")[:78]
         stamp=(
            ",drawtext=text='"+cap+"':fontsize=25:fontcolor=white:"

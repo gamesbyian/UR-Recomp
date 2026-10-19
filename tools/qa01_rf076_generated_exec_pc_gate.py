@@ -79,10 +79,12 @@ def inspect(root: Path) -> dict:
     if missing_sound:
         raise ValueError('missing generated sound AOT opcode-PC targets: ' +
                          ','.join(f'{pc:06X}' for pc in sorted(missing_sound)))
-    # Historical genuine 39336562146 found all 5 NMI candidate sites absent
-    # from AOT but all 3 SOUND_AOT present. Preserve that negative explicitly:
-    # the source-staged interpreter fetch hook may observe them later; only
-    # real native replay can decide which tier actually executes those PCs.
+    # First preflight 39336562146 could not find five D4 site *call lines*
+    # with this narrow regex. Later authentic run 39337657773 observed
+    # thousands of tier=aot D4 decoded-instruction markers in real native
+    # execution. This static regex is therefore INCOMPLETE for D4 sites:
+    # report unmatched patterns, NEVER infer absent generated code or
+    # interpreter-only execution. Guest trace remains independent authority.
     return {
         'schema': 'ur-qa01-rf076-generated-exec-pc-preflight/3',
         'generated_dir': GENERATED.as_posix(),
@@ -90,13 +92,14 @@ def inspect(root: Path) -> dict:
         'marker_bearing_translation_units': witnessed,
         'required_sound_AOT_sites': [f'{pc:06X}' for pc in sorted(SOUND_AOT)],
         'NMI_candidate_sites': [f'{pc:06X}' for pc in sorted(NMI_CANDIDATES)],
-        'NMI_candidate_AOT_sites_observed': [f'{pc:06X}' for pc in sorted(NMI_CANDIDATES & observed)],
-        'NMI_candidate_AOT_sites_absent': [f'{pc:06X}' for pc in sorted(NMI_CANDIDATES - observed)],
+        'NMI_candidate_AOT_sites_matched_by_narrow_source_regex': [f'{pc:06X}' for pc in sorted(NMI_CANDIDATES & observed)],
+        'NMI_candidate_AOT_sites_unmatched_by_narrow_source_regex': [f'{pc:06X}' for pc in sorted(NMI_CANDIDATES - observed)],
         'actual_interpreter_fetch_hook_source_staged': True,
         'interpreter_source_sha256': bridge_sha,
         'native_event_recorder_source_sha256': recorder_sha,
         'sound_AOT_compiled_calls_present': True,
         'NMI_candidate_fetched_opcode_observed_in_native_guest': False,
+        'unmatched_static_NMI_call_pattern_implies_absent_AOT_code': False,
         'actual_native_guest_execution_checked': False,
         'original_native_same_semantic_phase': False,
         'accepted_USA_events': 0,

@@ -20,6 +20,18 @@ SCHEMA = "UR-QA01-INDEPENDENT-DRAGSTER-ZOO-RAW-ARCHIVE/1"
 PRODUCER_SCHEMA = "UR-QA01-DRAGSTER-TO-ZOO-FRESH-GUEST-PROGRESSION/1"
 OFFSETS = (304, 308, 312, 314, 315, 316, 317, 318, 319, 320, 321, 324, 328, 336)
 MOVIE_RESULT, MOVIE_ZOO = 2874, 3190
+# Exact original 2014 USA source, seed, reference core and controller route.
+# These are archived receipt identities; their source ROM/SMV/ELF bytes
+# are NOT all contained in the research case ZIP for independent rehash.
+FROZEN_SOURCE = {
+    "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "source_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+    "reference_core_sha256": "f7548718783409c2636374d0a68c21671e5ea214bcb9d11780c4622e80d96fe0",
+    "input_sha256": "6bc10df3649717482c96edd1d72c52c62f5f53baeb1a2b142c725fca0d864905",
+    "original_movie_window_sha256": "aec7f8850085d662656117303f9daa802e737aca2d12b8af89962acbb206d1c1",
+}
+FROZEN_MOVIE_TRACE = "3de122406937fcf839988d7990972e9275b8e7bbd47db1b958fea20113c27c54"
 NAME_ADDR = {"menu": 0x9F, "track": 0xCE, "in_race": 0x313, "tour_row": 0xD0}
 
 
@@ -159,12 +171,13 @@ def audit(root: Path) -> dict:
             report.get("native_backend") == "pinned-baldosa" and
             report.get("admission") == "investigative candidate; not a release-ledger pass",
             "unqualified original/native USA Dragster report")
-    for key in ("rom_sha256", "original_movie_sha256", "source_sram_sha256",
-                "native_executable_sha256", "reference_core_sha256", "input_sha256"):
-        v = report.get(key)
-        require(isinstance(v, str) and len(v) == 64 and
-                all(ch in "0123456789abcdef" for ch in v),
-                "missing exact frozen source/input/binary identity: " + key)
+    require(all(report.get(key) == value for key, value in FROZEN_SOURCE.items()) and
+            report.get("reference_script_sha256") == FROZEN_SOURCE["input_sha256"],
+            "actual 2014 USA ROM/movie/core/seed/controller identity not source-pinned")
+    native_sha = report.get("native_executable_sha256")
+    require(isinstance(native_sha, str) and len(native_sha) == 64 and
+            all(ch in "0123456789abcdef" for ch in native_sha),
+            "missing native executable receipt identity (ELF bytes not in this archive)")
     event = report.get("original_source_event")
     require(isinstance(event, dict) and event.get("original_entry_frame") == 794 and
             event.get("original_result_frame") == MOVIE_RESULT and
@@ -183,9 +196,9 @@ def audit(root: Path) -> dict:
             set(proof.get("source_samples", {})) == set(map(str, OFFSETS)),
             "historical source selected Zoo but did not establish active race")
     trace_sha = proof.get("original_source_trace_sha256")
-    require(isinstance(trace_sha, str) and
+    require(trace_sha == FROZEN_MOVIE_TRACE and
             trace_sha == sha_file(root / "dragster/source/trace.jsonl"),
-            "original 2014 source raw trace digest differs from proof")
+            "original 2014 source raw trace digest differs from pinned original")
     movie_trace_states = movie_states_from_actual_trace(root / "dragster/source/trace.jsonl")
     verify_source_movie(proof, movie_trace_states)
     result = report.get("comparison")
@@ -224,6 +237,8 @@ def audit(root: Path) -> dict:
         logs[side] = path.read_text(encoding="utf8", errors="replace")
 
     observed, differences, sram_offsets = [], [], set()
+    earned_records_valid = []
+    reported_course_payloads = {"original": [], "native": []}
     for offset, row in zip(OFFSETS, handoff["samples"]):
         require(isinstance(row, dict) and
                 row.get("offset_from_respective_dragster_result") == offset and
@@ -250,14 +265,21 @@ def audit(root: Path) -> dict:
             w = read_exact(path / (tag + ".wram.bin"), 131072)
             s = read_exact(path / (tag + ".sram.bin"), 8192)
             ranks, good = real_dragster_record(s)
+            earned_records_valid.append(good and
+                                        ranks[0]["rank"] == 0 and
+                                        ranks[0]["value_word"] == 2508 and
+                                        ranks[0]["holder_index"] == 0)
             state = {k: w[addr] for k, addr in NAME_ADDR.items()}
+            reported_course_payloads[side].append(
+                active_zoo(state) and g.get("true_source_zoo_payload_loaded") is True)
             require(g.get("full_wram_bytes") == len(w) and
                     g.get("full_wram_sha256") == digest(w) and
                     g.get("full_sram_bytes") == len(s) and
                     g.get("full_sram_sha256") == digest(s) and
                     all(g.get(k) == v for k, v in state.items()) and
                     g.get("dragster_record_three_ranks") == ranks and
-                    g.get("ranked_records_checksum_valid") is good,
+                    g.get("ranked_records_checksum_valid") is good and
+                    type(g.get("true_source_zoo_payload_loaded")) is bool,
                     "real guest raw memory, ranked record or source state contradicted")
             named[side], raw[side] = state, (w, s)
         delta = [key for key in NAME_ADDR
@@ -300,8 +322,14 @@ def audit(root: Path) -> dict:
             handoff.get("all_full_sram_pairs_equal") is
                 all(item["sram_differing_bytes"] == 0 for item in differences) and
             handoff.get("full_wram_difference_offsets") ==
-                [x["offset"] for x in differences if x["unmasked_wram_differing_bytes"]],
-            "raw three-clock entry/bracket or aggregate guest differences fabricated")
+                [x["offset"] for x in differences if x["unmasked_wram_differing_bytes"]] and
+            handoff.get("original_native_ranked_checksum_valid_all_samples") is
+                all(earned_records_valid) and
+            handoff.get("fresh_original_loaded_true_zoo_course_while_active") is
+                any(reported_course_payloads["original"]) and
+            handoff.get("fresh_native_loaded_true_zoo_course_while_active") is
+                any(reported_course_payloads["native"]),
+            "raw three-clock entry/bracket, score or course-payload claim disagrees with receipt")
 
     return {"schema": SCHEMA, "producer_sha256": digest(report_path.read_bytes()),
             "historical_source_trace_sha256": trace_sha,
@@ -313,6 +341,9 @@ def audit(root: Path) -> dict:
             "unique_persistent_sram_difference_offsets": sorted(sram_offsets),
             "per_offset": differences, "guest_entry_brackets": brackets,
             "source_movie_raw_sram_wram_bytes_in_archive": False,
+            "earned_rank0_2508_and_full_checksum_recomputed_for_28_images":
+                all(earned_records_valid),
+            "guest_course_payload_only_qualified_from_producer_boolean": True,
             "authentic_course_payload_independently_rehashed": False,
             "actual_cpu_spc_or_consumed_input_parity_proven": False,
             "shipping_windows_elf_or_durable_disk_proven": False,

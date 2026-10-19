@@ -6,6 +6,7 @@ import json
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
@@ -34,6 +35,12 @@ class DragsterZooRawAuditTests(unittest.TestCase):
         (self.root / "dragster/source/trace.jsonl").write_bytes(trace)
         self.trace_sha = digest(trace)
         self.original_trace_bytes = trace
+        # Synthetic fixtures cannot recreate the original 135MB source trace.
+        # Override ONLY the frozen trace hash to exercise independent frame
+        # reconstruction, leaving original fixed ROM/movie/core hash checks live.
+        patcher = mock.patch.object(audit, "FROZEN_MOVIE_TRACE", self.trace_sha)
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
     def write(self, path, content):
         path = self.root / path
@@ -145,9 +152,9 @@ class DragsterZooRawAuditTests(unittest.TestCase):
             "course_id": "course:01", "name": "dragster", "family": "race-a",
             "native_backend": "pinned-baldosa",
             "admission": "investigative candidate; not a release-ledger pass",
-            **{key: "a" * 64 for key in (
-                "rom_sha256", "original_movie_sha256", "source_sram_sha256",
-                "native_executable_sha256", "reference_core_sha256", "input_sha256")},
+            **audit.FROZEN_SOURCE,
+            "native_executable_sha256": "a" * 64,
+            "reference_script_sha256": audit.FROZEN_SOURCE["input_sha256"],
             "reference_entry": 945, "native_entry": 945, "native_frame_shift": 0,
             "original_source_event": {"original_entry_frame": 794,
                                       "original_result_frame": 2874,
@@ -211,6 +218,29 @@ class DragsterZooRawAuditTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "host clock"):
             audit.audit(self.root)
 
+    def test_no_fake_earned_dragster_or_reported_zoo_payload_aggregate(self):
+        report = self.make()
+        report["dragster_next_zoo_handoff"][
+            "original_native_ranked_checksum_valid_all_samples"] = False
+        self.write("dragster-report.json", report)
+        with self.assertRaisesRegex(ValueError, "score or course-payload"):
+            audit.audit(self.root)
+        report = self.make()
+        report["dragster_next_zoo_handoff"][
+            "fresh_native_loaded_true_zoo_course_while_active"] = False
+        self.write("dragster-report.json", report)
+        with self.assertRaisesRegex(ValueError, "score or course-payload"):
+            audit.audit(self.root)
+
+    def test_wrong_frozen_original_rom_movie_or_controller_rejected(self):
+        for key in ("rom_sha256", "original_movie_sha256",
+                    "source_sram_sha256", "input_sha256"):
+            report = self.make()
+            report[key] = "b" * 64
+            self.write("dragster-report.json", report)
+            with self.assertRaisesRegex(ValueError, "source-pinned"):
+                audit.audit(self.root)
+
     def test_source_selection_is_not_active_zoo(self):
         self.make()
         actual = audit.movie_states_from_actual_trace(
@@ -233,8 +263,14 @@ class DragsterZooRawAuditTests(unittest.TestCase):
         proof["original_source_trace_sha256"] = digest(path.read_bytes())
         self.write("dragster/source/dragster-next-zoo-original.json", proof)
         self.write("dragster-report.json", report)
-        with self.assertRaisesRegex(ValueError, "eight consecutive Zoo frames"):
+        # The immutable real-source trace guard correctly rejects the tamper
+        # first. Then override only that constant in this synthetic fixture
+        # to exercise the separate no-early-Zoo source-state gate.
+        with self.assertRaisesRegex(ValueError, "source raw trace digest"):
             audit.audit(self.root)
+        with mock.patch.object(audit, "FROZEN_MOVIE_TRACE", proof["original_source_trace_sha256"]):
+            with self.assertRaisesRegex(ValueError, "eight consecutive Zoo frames"):
+                audit.audit(self.root)
 
     def test_source_trace_and_ranked_record_authentication(self):
         self.make()

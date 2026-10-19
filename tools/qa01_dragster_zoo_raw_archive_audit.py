@@ -224,6 +224,8 @@ def audit(root: Path) -> dict:
         logs[side] = path.read_text(encoding="utf8", errors="replace")
 
     observed, differences, sram_offsets = [], [], set()
+    earned_records_valid = []
+    reported_course_payloads = {"original": [], "native": []}
     for offset, row in zip(OFFSETS, handoff["samples"]):
         require(isinstance(row, dict) and
                 row.get("offset_from_respective_dragster_result") == offset and
@@ -250,14 +252,21 @@ def audit(root: Path) -> dict:
             w = read_exact(path / (tag + ".wram.bin"), 131072)
             s = read_exact(path / (tag + ".sram.bin"), 8192)
             ranks, good = real_dragster_record(s)
+            earned_records_valid.append(good and
+                                        ranks[0]["rank"] == 0 and
+                                        ranks[0]["value_word"] == 2508 and
+                                        ranks[0]["holder_index"] == 0)
             state = {k: w[addr] for k, addr in NAME_ADDR.items()}
+            reported_course_payloads[side].append(
+                active_zoo(state) and g.get("true_source_zoo_payload_loaded") is True)
             require(g.get("full_wram_bytes") == len(w) and
                     g.get("full_wram_sha256") == digest(w) and
                     g.get("full_sram_bytes") == len(s) and
                     g.get("full_sram_sha256") == digest(s) and
                     all(g.get(k) == v for k, v in state.items()) and
                     g.get("dragster_record_three_ranks") == ranks and
-                    g.get("ranked_records_checksum_valid") is good,
+                    g.get("ranked_records_checksum_valid") is good and
+                    type(g.get("true_source_zoo_payload_loaded")) is bool,
                     "real guest raw memory, ranked record or source state contradicted")
             named[side], raw[side] = state, (w, s)
         delta = [key for key in NAME_ADDR
@@ -300,8 +309,14 @@ def audit(root: Path) -> dict:
             handoff.get("all_full_sram_pairs_equal") is
                 all(item["sram_differing_bytes"] == 0 for item in differences) and
             handoff.get("full_wram_difference_offsets") ==
-                [x["offset"] for x in differences if x["unmasked_wram_differing_bytes"]],
-            "raw three-clock entry/bracket or aggregate guest differences fabricated")
+                [x["offset"] for x in differences if x["unmasked_wram_differing_bytes"]] and
+            handoff.get("original_native_ranked_checksum_valid_all_samples") is
+                all(earned_records_valid) and
+            handoff.get("fresh_original_loaded_true_zoo_course_while_active") is
+                any(reported_course_payloads["original"]) and
+            handoff.get("fresh_native_loaded_true_zoo_course_while_active") is
+                any(reported_course_payloads["native"]),
+            "raw three-clock entry/bracket, score or course-payload claim disagrees with receipt")
 
     return {"schema": SCHEMA, "producer_sha256": digest(report_path.read_bytes()),
             "historical_source_trace_sha256": trace_sha,
@@ -313,6 +328,9 @@ def audit(root: Path) -> dict:
             "unique_persistent_sram_difference_offsets": sorted(sram_offsets),
             "per_offset": differences, "guest_entry_brackets": brackets,
             "source_movie_raw_sram_wram_bytes_in_archive": False,
+            "earned_rank0_2508_and_full_checksum_recomputed_for_28_images":
+                all(earned_records_valid),
+            "guest_course_payload_only_qualified_from_producer_boolean": True,
             "authentic_course_payload_independently_rehashed": False,
             "actual_cpu_spc_or_consumed_input_parity_proven": False,
             "shipping_windows_elf_or_durable_disk_proven": False,

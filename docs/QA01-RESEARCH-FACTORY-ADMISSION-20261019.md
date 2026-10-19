@@ -2,6 +2,10 @@
 
 **Disposition:** merged first-generation ROM-free readiness gate (#1909); independent raw-byte causal-checkpoint binding proposed in a separate follow-up. No new campaign, scheduler or runner dispatched, no changed ledger writer, no accepted original/native event. This is a supplement to [seven source-owned cumulative campaigns](QA-CUMULATIVE-RESEARCH.md), not an eighth campaign or release gate. Work queue and QA01 acceptance retain priority.
 
+## First genuine producer result consumed (19 October)
+
+The first source-authentic Zoo capture-on/off archival experiment has been independently rehashed and byte-reviewed, and the RF062 one-shot producer failure has been classified. See [actual run intake](QA01-AUTHENTIC-PRODUCER-RESULT-INTAKE-20261019.md) and [machine bytes](../analysis/data/qa01-authentic-producer-consumption-20261019.json). Result: **9 continuous paired script-dump frames, 13 unmasked WRAM differences at four concrete DP/stack addresses, 0 SRAM differences and a bounded noninterference A/B positive**. RF062's attempted genuine PC/read producer failed **before guest execution** on the v2 Read-IR source anchor. We have no same-checkpoint cross-guest ordered bus event payloads or CPU input-poll proof. Therefore **v2 factory admission is HOLD, no ten-case pilot or larger frontier batch is authorized, and QA01 remains 0/45**. The original/native source and guest controller files are independently hashed but *not byte-identical to each other*; matched controls are within each guest's on/off replay.
+
 ## Trigger and sequence
 
 1. CPU/APU producer qualifies actually executed original RF045 + native RF047 read/write/checkpoint ordinals, real guest PC, complete fixed local observation window, original controller consumption, immutable original/movie/ROM/native hashes and noninterference. [RF061 producer staging](RF061-ZOO-EXECUTED-PC-CAUSAL-PRODUCER-20261019.md) identifies still-missing fields; do not fabricate them from stale IPC or interleaved stdout.

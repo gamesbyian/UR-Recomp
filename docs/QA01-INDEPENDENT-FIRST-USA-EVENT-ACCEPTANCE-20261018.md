@@ -252,3 +252,20 @@ python3 -m unittest tests.unit.test_qa01_independent_original_elf_getter_audit -
 ```
 
 Retained strict status **0/45 USA complete events; 0/12 release QA gates**; no raw retail ROM, emulation patches, clocks, memory masks or acceptance credit were changed.
+
+## October 19 actual RF064→RF066 original/native full retained raw-image noninterference
+
+Independently reopened **both** genuine source-authentic USA Zoo case ZIPs, not a SHA-only producer JSON: RF064 run [39216237965](https://github.com/gamesbyian/UR-Recomp/actions/runs/39216237965), case artifact **12170321915**, ZIP SHA256 `7891a24124c67f414e9b00ed2bb1dbe2e59e4a2b6c50b558e920c25d885e63ea`; and RF066 run [39219862021](https://github.com/gamesbyian/UR-Recomp/actions/runs/39219862021), case artifact **12171791431**, ZIP SHA256 `494737bb6a1c422141c40f7175883f212767c3d774ee63fb0ba82add78cb445f`. Both ZIP CRCs passed. These are distinct source original instrumentation epochs: source Git SHA and actual original Snes9x compiled ELF SHA changed, but **USA ROM, 2014 SMV, input script/controller movie window, initial SRAM, supplied per-guest controller file SHA/lengths, and native research ELF** are source-reported unchanged.
+
+Every one of the **388 actual full WRAM/SRAM images retained under `work/zoom-zoo/replay/{ref,native}/`** exists in *both* source artifacts with the same name, full 128KiB or 8KiB length and **exactly the same raw bytes**: **27,017,216 actual bytes independently compared; zero bytes unlike across runs**. This includes 97 retained observation labels × both original/native guest × both full WRAM and SRAM types. Both producer reports also have unchanged original/native race-entry and result, sparse 78-point raw-mesh counts **51/78 exact, 92 unlike WRAM occurrences**, next Bowl +267, source follow-through and guest states. This is stronger than the prior 156-image sampled WRAM-only historical SHA crosswalk: it compares every archived pre/post-result *actual* original/native memory member from **both** epochs, not a producer-reported hash on one side.
+
+The new read-only tool `tools/qa01_independent_rf064_rf066_memory_crosswalk.py` pins both genuine ZIP SHA256s, rejects inconsistent exact controller-source identities, requires the exact set of **388** original/native raw images, reopens each byte, validates length, and refuses changed guest reports; ROM-free negative tests reject missing/extra images, corrupt bytes, wrong lengths, altered guest names and substituted ZIPs. CLI after obtaining the two Actions ZIPs:
+
+```bash
+python3 tools/qa01_independent_rf064_rf066_memory_crosswalk.py \
+  --rf064 /tmp/rf064-genuine-zoo-case.zip \
+  --rf066 /tmp/rf066-genuine-zoo-case.zip \
+  --output /tmp/qa01-rf064-rf066-full-memory.json
+```
+
+**Limits:** source byte identity proves **noninterference only at those 97 individually retained observation labels**, not continuous frames or instruction/data phase equivalence between labels. It does not prove which compiled getter an actual original instruction used (see RF066 ELF audit), replace RF063's missing physical `rb/rw` source reads, certify CPU joypad consumption or native sound executed PC, or validate shipping Windows PE + disk power-cut recovery. **0/45 USA complete events and 0/12 release QA gates; no clock retiming, masks or code/gameplay correction.**

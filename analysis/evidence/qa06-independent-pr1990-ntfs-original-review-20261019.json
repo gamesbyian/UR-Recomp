@@ -204,5 +204,25 @@
     "dummy_audio_accepted_as_physical": false,
     "original_native_Snes9x_event_accepted": false,
     "release_gate_credit": 0
+  },
+  "original_guest_consumed_sram_at_first_guest_frame": {
+    "fnv1a32_original_baseline": "63568e07",
+    "fnv1a32_reconciled": "255e468b",
+    "preintent_warm_firstcold_secondcold_logs_verified": 3,
+    "postraw_firstcold_secondcold_logs_verified": 2,
+    "log_first_frame_and_profile_identity_required": true,
+    "recovered_exact_guest_sram_fnv_matches_archived_8192_raw_bytes": true,
+    "fault_preintent_original_guest_reason": "native_sram_intent_not_durable",
+    "fault_postraw_source_marker": "QA_POSTRAW_TYPED_GATE native_raw_written=1 typed_not_attempted=1",
+    "independent_os_process_log": "exit=112",
+    "independently_mutated_real_original_zip_negative_cases": [
+      "wrong first-cold guest FNV",
+      "reconciliation falsely repeated on second cold",
+      "second-process Win32 112 replaced with exit 0",
+      "native guest save failure marker removed"
+    ],
+    "all_four_original_zip_mutations_rejected": true,
+    "native_windows_processes_executed_for_mutations": false,
+    "release_gate_credit": 0
   }
 }

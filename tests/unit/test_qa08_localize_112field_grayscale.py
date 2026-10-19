@@ -208,7 +208,7 @@ class AuthenticRasterSpatialTests(unittest.TestCase):
         self.assertFalse(data["per_pixel_consumed_CGRAM_slot_and_color_math_proven"])
 
     def test_per_coordinate_fixed_gray_class_never_changes_silently(self):
-        original, native = test_images([
+        original, native = images([
             (0, 0, (15,15,15), (20,20,20)),
             (8, 112, (16,16,16), (15,15,15)),
             (8, 16, (1,2,3), (1,2,4)),

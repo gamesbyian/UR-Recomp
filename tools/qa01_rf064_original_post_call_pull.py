@@ -56,7 +56,7 @@ def patch(source: str) -> str:
         raise ValueError("RF064 already or partially staged")
     if source.count(rf45.HELPER) != 1:
         raise ValueError("RF064 requires unmodified RF045 post-call witness")
-    if source.count(rf45.PULL_B_NEW) != 1 or source.count(rf45.PULL_W_NEW) != 1:
+    if source.count(rf45.PULL_B_NEW) != 1 or source.count(rf45.PULL_NEW) != 1:
         raise ValueError("RF064 requires unmodified real RF045 pull macros")
     if source.count(HEADER_ANCHOR) != 1:
         raise ValueError("RF064 pinned original cpuops include drift")
@@ -70,7 +70,7 @@ def patch(source: str) -> str:
         + '        ur_rf064_post_pull("pullB",rf064_before,rf064_after, \\\n'
         + '                            (uint8)(b),1,Registers.S.W); \\\n',
         1)
-    pull_w=rf45.PULL_W_NEW.replace(
+    pull_w=rf45.PULL_NEW.replace(
         PULL_W_GET,
         '        const unsigned long long rf064_before = ur_rf063_source_bus_seq; \\\n'
         + PULL_W_GET,1)
@@ -82,14 +82,14 @@ def patch(source: str) -> str:
         + '                            (uint16)(w),2,(uint16)(rf045_sp0+1)); \\\n',1)
     source=source.replace(HEADER_ANCHOR,HEADER_ANCHOR+EXTERN+HELPER,1)
     source=source.replace(rf45.PULL_B_NEW,pull_b,1)
-    source=source.replace(rf45.PULL_W_NEW,pull_w,1)
+    source=source.replace(rf45.PULL_NEW,pull_w,1)
     for instr in ("S9xGetByte(", "S9xGetWord(", "S9xSetByte(", "S9xSetWord("):
         # The only transformations on macros are local counters and a
         # post-return host-only recorder, NEVER another game bus invocation.
         if instr in HELPER:
             raise AssertionError("RF064 helper unexpectedly contains game bus")
     if pull_b.count("S9xGetByte(") != rf45.PULL_B_NEW.count("S9xGetByte(") or \
-       pull_w.count("S9xGetWord(") != rf45.PULL_W_NEW.count("S9xGetWord("):
+       pull_w.count("S9xGetWord(") != rf45.PULL_NEW.count("S9xGetWord("):
         raise AssertionError("RF064 changed actual stack bus call multiplicity")
     if source.count('ur_rf064_post_pull("pullB"') != 1 or \
        source.count('ur_rf064_post_pull("pullW"') != 1:

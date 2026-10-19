@@ -65,6 +65,49 @@ class IndependentRF064Archive(unittest.TestCase):
         self.assertFalse(receipt["actual_return_proves_specific_underlying_bus_site"])
         self.assertEqual(receipt["accepted_USA_events"], 0)
 
+    def post_nmi_rows(self):
+        return lines() + [
+            "QA01RF064ORIGPULL f=1017 v=226 h=714 kind=pullB base=01ED width=1 returned=0026 before=2 after=2 unique=0 pc=80:B0EB",
+            "QA01RF064ORIGPULL f=1017 v=226 h=730 kind=pullW base=01EE width=2 returned=D4F0 before=2 after=2 unique=0 pc=80:D4F0",
+            "QA01RF064ORIGPULL f=1017 v=226 h=738 kind=pullB base=01F0 width=1 returned=0082 before=2 after=2 unique=0 pc=82:D4F0",
+            "QA01RF064ORIGPULL f=1017 v=226 h=834 kind=pullB base=01F1 width=1 returned=0026 before=2 after=2 unique=0 pc=82:D4F5",
+        ]
+
+    def test_actual_original_nmi_return_bytes_and_pc_are_preserved(self):
+        checkpoint = {"seq": "2", "f": "1017", "v": "225", "h": "78",
+                      "stack": "26F0D48226"}
+        witness = audit.post_nmi_return_witness(self.post_nmi_rows(), checkpoint)
+        self.assertTrue(witness["matched_post_nmi_true_return_sequence"])
+        self.assertEqual([r["actual_returned_value_hex"] for r in
+                          witness["return_records"]], ["26", "D4F0", "82", "26"])
+        self.assertEqual([r["executed_original_pc"] for r in
+                          witness["return_records"]],
+                         ["80:B0EB", "80:D4F0", "82:D4F0", "82:D4F5"])
+        self.assertFalse(witness["actual_underlying_read_bus_entry_proven"])
+        self.assertFalse(witness["original_native_executed_pc_equivalence_proven"])
+
+    def test_missing_source_returns_cannot_claim_nmi_consumption(self):
+        checkpoint = {"seq": "2", "f": "1017", "v": "225", "h": "78",
+                      "stack": "26F0D48226"}
+        witness = audit.post_nmi_return_witness(lines(), checkpoint)
+        self.assertFalse(witness["matched_post_nmi_true_return_sequence"])
+
+    def test_altered_post_nmi_return_byte_rejected(self):
+        checkpoint = {"seq": "2", "f": "1017", "v": "225", "h": "78",
+                      "stack": "26F0D48226"}
+        forged = [s.replace("returned=D4F0", "returned=D4F1")
+                  for s in self.post_nmi_rows()]
+        with self.assertRaisesRegex(ValueError, "return bytes disagree"):
+            audit.post_nmi_return_witness(forged, checkpoint)
+
+    def test_post_nmi_return_clock_cannot_precede_nmi_checkpoint(self):
+        checkpoint = {"seq": "2", "f": "1017", "v": "225", "h": "78",
+                      "stack": "26F0D48226"}
+        forged = [s.replace("v=226 h=714", "v=224 h=714")
+                  for s in self.post_nmi_rows()]
+        with self.assertRaisesRegex(ValueError, "clock order invalid"):
+            audit.post_nmi_return_witness(forged, checkpoint)
+
     def test_archive_hash_pin_rejects_replacement(self):
         with self.assertRaisesRegex(ValueError, "immutable archive"):
             audit.examine(self.path, "0"*64)

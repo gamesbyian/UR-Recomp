@@ -1,0 +1,64 @@
+{
+  "schema": "QA08-real-CGRAM-word-to-gray-error-class-crossjoin/1",
+  "date": "2026-10-19",
+  "classification": "source_authenticated_CGRAM_packet_arithmetic_consistency_not_effective_PPU_causality",
+  "original_2014_CGRAM_artifact_id": 12013432991,
+  "original_2014_CGRAM_outer_sha256": "d725ee45db1b66d098e79499263dd089dba80a26de517c30db674f91e20f80a8",
+  "original_2014_CGRAM_journal_sha256": "7e1f36a58fe52205011c9f34d4704c6311d929ac75caf11ea7e6958a6cc386c4",
+  "original_observed_writer_field": 5178,
+  "native_real_Win32_writer_artifact_id": 12125295776,
+  "native_real_Win32_writer_outer_sha256": "a62f0c228e85c741a8f1da0b92a4444f9091681c065c93c8a678b4ee2bb6f2ef",
+  "native_real_Win32_writer_receipt_sha256": "33e27bc151c020e38beb40672fe67e2cc74bc43b8456bdbfd72af6f9c04dedda",
+  "native_observed_writer_field": 5183,
+  "actual_native_guest_5484_CRC_sha256": "b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568",
+  "displayed_2014_Snes9x_callback_raster_source_artifact": 12075111053,
+  "displayed_Win32_P7_source_artifact": 12151839452,
+  "empirical_diagnostic_gray_mapping": "RGB555 grey source component minus 1; class correspondence only, not verified DAC/brightness function",
+  "palette_packets_by_CGRAM_index": [
+    {
+      "index": "6c",
+      "original_5178_RGB555": "56b5",
+      "native_5183_RGB555": "4a52",
+      "implied_original_gray_RGB5": 20,
+      "implied_native_gray_RGB5": 17,
+      "observed_original_to_native_pair": "20->17",
+      "genuine_observed_pixel_occurrences_13_frames": 104533
+    },
+    {
+      "index": "6d",
+      "original_5178_RGB555": "4a52",
+      "native_5183_RGB555": "4631",
+      "implied_original_gray_RGB5": 17,
+      "implied_native_gray_RGB5": 16,
+      "observed_original_to_native_pair": "17->16",
+      "genuine_observed_pixel_occurrences_13_frames": 52716
+    },
+    {
+      "index": "6e",
+      "original_5178_RGB555": "4631",
+      "native_5183_RGB555": "4210",
+      "implied_original_gray_RGB5": 16,
+      "implied_native_gray_RGB5": 15,
+      "observed_original_to_native_pair": "16->15",
+      "genuine_observed_pixel_occurrences_13_frames": 107868
+    },
+    {
+      "index": "6f",
+      "original_5178_RGB555": "4210",
+      "native_5183_RGB555": "56b5",
+      "implied_original_gray_RGB5": 15,
+      "implied_native_gray_RGB5": 20,
+      "observed_original_to_native_pair": "15->20",
+      "genuine_observed_pixel_occurrences_13_frames": 53658
+    }
+  ],
+  "four_of_four_observed_pair_types_match_packet_permutation": true,
+  "observed_pixel_occurrences_total_in_authentic_13_rasters": 318775,
+  "actual_original_native_effective_PPU_CGRAM_at_render_proven": false,
+  "pixel_to_palette_index_source_consumption_proven": false,
+  "original_native_guest_instruction_clock_and_H_counter_equivalence_proven": false,
+  "same_native_PE_between_register_and_raster_archives": false,
+  "source_color_to_RGB5_minus_one_is_mechanistically_proven": false,
+  "palette_recolor_frame_shift_brightness_or_CPU_timing_change_authorized": false,
+  "QA08_QA10_or_release_gate_accepted": false
+}

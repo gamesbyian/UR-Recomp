@@ -25,8 +25,7 @@ class SourceSa1ObserverIsolation(unittest.TestCase):
         self.assertEqual(new.count(f"#ifndef SA1_OPCODES /* {rf70.STAMP} */"),2)
         self.assertEqual(new.count(rf70.RF045_SA1_STUB),1)
         self.assertEqual(new.count(rf70.RF064_SA1_STUB),1)
-        self.assertIn('ur_rf066_source',new.lower() if False else
-                      'UR_QA01_RF066_ORIGINAL_POST_CALL_EXECUTED_READ')
+        self.assertIn(rf66.STAMP,new)
         for op in ("S9xGetByte(","S9xGetWord(","S9xSetByte(",
                    "S9xSetWord(","S9xOpcode_NMI();"):
             self.assertEqual(new.count(op),old.count(op))

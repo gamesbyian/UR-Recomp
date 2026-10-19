@@ -364,13 +364,16 @@ def source_event(states: dict[int, dict], track: int, result_menu: int) -> dict:
 
 def sample_frames(case: str, source_duration: int, *,
                   zoo_race_mesh: bool = False,
-                  zoo_dp_window: bool = False) -> list[int]:
+                  zoo_dp_window: bool = False,
+                  switcher_terminal_dense: bool = False) -> list[int]:
     if source_duration <= 600:
         raise CompleteEventError("source event too short for bounded test")
     if zoo_race_mesh and (case != "zoom-zoo" or source_duration != 5163):
         raise CompleteEventError("full-race mesh requires exact archived 2014 Zoo source duration")
     if zoo_dp_window and not zoo_race_mesh:
         raise CompleteEventError("Zoo +5040 direct-page window requires full source race mesh")
+    if switcher_terminal_dense and (case != "switcher" or source_duration != 4703):
+        raise CompleteEventError("dense Switcher source witness requires authentic 2014 Race B result")
     cap = min(2400, source_duration - 300)
     if case == "switcher":
         # Derive relative host captures only from the independently
@@ -378,8 +381,9 @@ def sample_frames(case: str, source_duration: int, *,
         # Minimum 2-frame lead is strictly BEFORE Baldosa's earliest
         # independently observed +4702 result; no result-time rebasing.
         extra = (source_duration - lead for lead in SWITCHER_TERMINAL_SOURCE_LEADS)
+        dense = set(range(4658, 4702)) if switcher_terminal_dense else set()
         return sorted(set(INITIAL_FRAMES) | set(range(120, cap + 1, 120))
-                      | {f for f in extra if f > cap and f > 0})
+                      | {f for f in extra if f > cap and f > 0} | dense)
     extra = ZOO_PROGRESS_FRAMES if case == "zoom-zoo" else ()
     mesh = (
         set(range(2520, 5041, 120)) | {5100, 5120}
@@ -1805,6 +1809,8 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--case", choices=tuple(CASES), required=True)
     ap.add_argument("--native-backend", choices=("legacy", "pinned-baldosa"), default="legacy")
+    ap.add_argument("--switcher-terminal-dense", action="store_true",
+                    help="opt-in full raw original/native +4658..+4701 Switcher pre-result consecutive frames; no event admission")
     ap.add_argument("--switcher-same-host-penultimate", action="store_true",
                     help="optional read-only original +4703 / native +4701 same-host 5782 guest observation; no admission")
     ap.add_argument("--switcher-same-host-full-memory-offsets", action="store_true",
@@ -1846,6 +1852,9 @@ def main(argv: list[str] | None = None) -> int:
         ap.error("only canonical USA retail ROM is admitted")
     if args.switcher_same_host_full_memory_offsets and not args.switcher_same_host_penultimate:
         ap.error("Switcher full-memory offsets require --switcher-same-host-penultimate")
+    if args.switcher_terminal_dense and (
+            args.case != "switcher" or args.native_backend != "pinned-baldosa"):
+        ap.error("dense source Switcher mesh requires the pinned original/native Race B guests")
     if args.zoo_race_mesh and (args.case != "zoom-zoo"
                                or args.native_backend != "pinned-baldosa"):
         ap.error("Zoo race mesh requires actual pinned Baldosa/original 2014 Zoom Zoo")
@@ -1902,7 +1911,8 @@ def main(argv: list[str] | None = None) -> int:
     frames = sample_frames(
         args.case, original_event["source_active_frames_to_result"],
         zoo_race_mesh=args.zoo_race_mesh,
-        zoo_dp_window=args.zoo_dp_window) 
+        zoo_dp_window=args.zoo_dp_window,
+        switcher_terminal_dense=args.switcher_terminal_dense) 
     # Both calibrations boot afresh with exactly the same original SRAM.
     args.sram = sram
     calibration = work / "calibration"

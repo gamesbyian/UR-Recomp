@@ -87,7 +87,7 @@ class OriginalRF064ReadCoverage(unittest.TestCase):
         )
         report = evidence.corroborate_last_observed_push(raw)
         self.assertEqual(
-            report["real_post_call_returns_corrobated_by_last_observed_RF045_push"], 2)
+            report["real_post_call_returns_corroborated_by_last_observed_RF045_push"], 2)
         self.assertEqual(report["returns_without_prior_observed_RF045_push_bytes"], 1)
         self.assertEqual(report["returns_differing_from_last_observed_RF045_push"], 0)
         self.assertFalse(report["complete_actual_source_bus_writer_history_proven"])
@@ -100,7 +100,7 @@ class OriginalRF064ReadCoverage(unittest.TestCase):
         )
         report = evidence.corroborate_last_observed_push(raw)
         self.assertEqual(report["returns_differing_from_last_observed_RF045_push"], 1)
-        self.assertEqual(report["real_post_call_returns_corrobated_by_last_observed_RF045_push"], 0)
+        self.assertEqual(report["real_post_call_returns_corroborated_by_last_observed_RF045_push"], 0)
         self.assertFalse(report["complete_actual_source_bus_writer_history_proven"])
 
     def test_absent_pinned_case_cannot_impersonate_real_zip(self):

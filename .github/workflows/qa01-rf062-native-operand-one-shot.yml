@@ -1,5 +1,6 @@
 # TEMPORARY source-authentic RF062 run. Research branch only, DO NOT MERGE.
-# The reusable campaign is modified on this branch to stage the real native
+# RF018 read shape is qualified in an independent small preflight, then the
+# reusable campaign is modified on this branch to stage the real native
 # helper, direct decoded-PC IR read, generated-M1X0 static gate, and capture.
 name: RF062 genuine USA Zoo direct sound operand one-shot
 
@@ -13,7 +14,19 @@ permissions:
   contents: read
 
 jobs:
+  rf018-source-compat-preflight:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact research code
+        uses: actions/checkout@v4
+      - name: Verify RF018 hoisted pointer and RF062 one-read compatibility
+        run: |
+          python3 -m unittest discover -s tests/unit -p 'test_qa01_rf062_direct_sound_bus_pc_patch.py' -v
+          python3 -m unittest discover -s tests/unit -p 'test_baldosa_dp_indirect_long_pointer_once_patch.py' -v
+
   authentic-rf062-zoo:
+    needs: rf018-source-compat-preflight
     uses: ./.github/workflows/qa01-event-campaign.yml
     with:
       selected: zoom-zoo

@@ -1,6 +1,6 @@
 # QA-01/07: independent first-USA-event acceptance boundary (18 October 2026)
 
-**Decision: HOLD, 0/45.** This is the independent acceptance review of genuine Zoo/Bowl evidence available on main at `e9a5cdca136ecc35fe25c74191cc995aada4f885`. It does not supersede [the 45-event census](ORIGINAL-COURSE-EVENT-CENSUS.md), [the release ledger](RELEASE-QUALITY-LEDGER.json) or the CPU/APU source owner's RF record. A research `strict_candidate` is valid *as a candidate* but is not independently accepted as a full USA event. No byte mask, assumed emulator clock shift, rephased controller input or new shipping CPU fix is approved here.
+**Decision: HOLD, 0/45.** The [first-USA-event missing-witness matrix (October 19)](QA01-FIRST-USA-EVENT-MISSING-WITNESS-MATRIX-20261019.md) gives the current per-obligation stop condition and archive reuse order for the best Zoo candidate. It is a derivative QA checklist, not an independent observed event or a competing census. This is the independent acceptance review of genuine Zoo/Bowl evidence available on main at `e9a5cdca136ecc35fe25c74191cc995aada4f885`. It does not supersede [the 45-event census](ORIGINAL-COURSE-EVENT-CENSUS.md), [the release ledger](RELEASE-QUALITY-LEDGER.json) or the CPU/APU source owner's RF record. A research `strict_candidate` is valid *as a candidate* but is not independently accepted as a full USA event. No byte mask, assumed emulator clock shift, rephased controller input or new shipping CPU fix is approved here.
 
 ## Audited best available event: USA Zoom Zoo Circuit
 

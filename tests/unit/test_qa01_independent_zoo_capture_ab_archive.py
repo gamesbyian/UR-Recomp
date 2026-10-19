@@ -3,10 +3,13 @@ from __future__ import annotations
 
 import copy
 import hashlib
+import io
 import json
+import stat
 import sys
 import tempfile
 import unittest
+from unittest import mock
 import zipfile
 from pathlib import Path
 
@@ -221,6 +224,92 @@ class SourceAuthenticAB(unittest.TestCase):
                 "qa01_capture_ab_control"].update(controller_movie_window_sha256="a" * 64))
         with self.assertRaisesRegex(ValueError, "altered guest input"):
             self.run_case(mutate)
+
+    def test_rejects_path_aliases_even_if_outer_zip_digest_is_rehashed(self):
+        # The real source ZIP remains pinned. Explicit synthetic digest
+        # overrides must not allow a rehashed path alias into the consumer.
+        for bad in (
+            audit.ROOT + "off\\forged.bin",
+            audit.ROOT + "off//forged.bin",
+            audit.ROOT + "off/./forged.bin",
+            audit.ROOT + "off/../forged.bin",
+            audit.ROOT + "off/trailing./forged.bin",
+            audit.ROOT + "off/name:ads.bin",
+            audit.ROOT + "off/control\nname.bin",
+        ):
+            with self.subTest(path=bad), self.assertRaisesRegex(
+                    ValueError, "unsafe, duplicated or corrupt archive members"):
+                self.run_case(lambda members: members.update({bad: b"forged"}))
+
+    def test_rejects_zip_symlink_even_with_matching_outer_digest(self):
+        archive = self.root / "symlink.zip"
+        target = audit.DOC["metrics"]
+        with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as z:
+            for name, payload in self.members.items():
+                if name != target:
+                    z.writestr(name, payload)
+                    continue
+                entry = zipfile.ZipInfo(name)
+                entry.create_system = 3
+                entry.external_attr = (stat.S_IFLNK | 0o777) << 16
+                z.writestr(entry, payload)
+        with self.assertRaisesRegex(
+                ValueError, "unsafe, duplicated or corrupt archive members"):
+            audit.verify(archive,
+                         expected_sha=hashlib.sha256(archive.read_bytes()).hexdigest())
+
+    def test_rejects_nonregular_unix_member_modes(self):
+        for file_type in (stat.S_IFIFO, stat.S_IFCHR, stat.S_IFBLK, stat.S_IFSOCK):
+            with self.subTest(file_type=file_type):
+                archive = self.root / f"special-{file_type}.zip"
+                target = audit.DOC["metrics"]
+                with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as z:
+                    for name, payload in self.members.items():
+                        if name != target:
+                            z.writestr(name, payload)
+                            continue
+                        entry = zipfile.ZipInfo(name)
+                        entry.create_system = 3
+                        entry.external_attr = (file_type | 0o644) << 16
+                        z.writestr(entry, payload)
+                with self.assertRaisesRegex(
+                        ValueError, "unsafe, duplicated or corrupt archive members"):
+                    audit.verify(
+                        archive,
+                        expected_sha=hashlib.sha256(archive.read_bytes()).hexdigest())
+
+    def test_decodes_the_same_zip_bytes_it_hashed(self):
+        # With the archive already built, the independent reader must receive
+        # the immutable BytesIO of authenticated bytes, not a second file
+        # path lookup that could change after the SHA256 calculation.
+        self.run_case()
+        archive = self.root / "artifact.zip"
+        # Patch with a real-constructor delegate: a MagicMock with wraps
+        # would replace ZipFile's context-manager magic methods and turn
+        # the test into an accidental mock-of-the-reader.
+        actual_zip_ctor = zipfile.ZipFile
+        opened = []
+
+        def observe_open(source, *args, **kwargs):
+            opened.append(source)
+            return actual_zip_ctor(source, *args, **kwargs)
+
+        with mock.patch.object(audit.zipfile, "ZipFile", side_effect=observe_open):
+            verdict = audit.verify(
+                archive, expected_sha=hashlib.sha256(archive.read_bytes()).hexdigest())
+        self.assertEqual(verdict["adjudication"], "HOLD")
+        self.assertEqual(len(opened), 1)
+        self.assertIsInstance(opened[0], io.BytesIO)
+
+    def test_archive_path_symlink_rejected_before_parsing(self):
+        self.run_case()
+        alias = self.root / "alias.zip"
+        try:
+            alias.symlink_to(self.root / "artifact.zip")
+        except (OSError, NotImplementedError):
+            self.skipTest("host disallows creating symbolic links")
+        with self.assertRaisesRegex(ValueError, "missing or symlinked source ZIP"):
+            audit.verify(alias, expected_sha=hashlib.sha256(alias.read_bytes()).hexdigest())
 
     def test_pinned_sha_required_even_for_valid_synthetic(self):
         # Test helper passes the synthetic SHA explicitly. Default accepts

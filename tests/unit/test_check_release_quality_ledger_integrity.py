@@ -140,6 +140,55 @@ class ReleaseQualityAuthority(unittest.TestCase):
         self.assertEqual(self.check(data)["original_USA_complete_event_passes"], 45)
         self.assertFalse(self.check(data)["release_decision_structurally_admissible"])
 
+    def test_both_auditors_refuse_one_machine_qa04_pass(self):
+        data = synthetic_baseline()
+        src, zhash = "a" * 40, "b" * 64
+        data["candidate"].update(commit_sha=src, zip_sha256=zhash,
+                                 physical_hardware_verified=True)
+        gate = data["gates"][3]
+        gate.update(status="passed", candidate_commit=src)
+
+        def physical(label, clean=False):
+            return {
+                "source_commit": src, "artifact_sha256": zhash,
+                "tested_executable_sha256": "c" * 64,
+                "package_unchanged_after_launch": True,
+                "source": "synthetic QA-04 setup, not authentic evidence",
+                "tested_at": "2026-10-19T00:00:00Z", "layer": "L5",
+                "hardware": {
+                    "setup_id": label, "environment": "physical",
+                    "clean_environment": clean,
+                    "windows_version": "Windows 11 " + label,
+                    "gpu": "GPU " + label,
+                    "display": "Display " + label,
+                    "controller": "Controller " + label,
+                    "audio": "Audio " + label,
+                    "physical_controller_observed": True,
+                    "audible_output_observed": True,
+                    "visible_display_observed": True,
+                },
+            }
+
+        gate["witnesses"] = [physical("only-one", clean=True)]
+        with self.assertRaisesRegex(ValueError, "fewer than three"):
+            self.check(data)
+        gate["witnesses"] = [physical("pc-a", clean=True),
+                             physical("pc-b"), physical("pc-c")]
+        self.assertEqual(self.check(data)["approved_gate_count"], 1)
+        # A stale source/ZIP cannot be laundried through the hardware flag.
+        gate["witnesses"][1]["source_commit"] = "d" * 40
+        with self.assertRaisesRegex(ValueError, "not bound to exact candidate"):
+            self.check(data)
+        gate["witnesses"][1]["source_commit"] = src
+        gate["witnesses"][1]["artifact_sha256"] = "e" * 64
+        with self.assertRaisesRegex(ValueError, "not bound to exact candidate"):
+            self.check(data)
+        gate["witnesses"][1]["artifact_sha256"] = zhash
+        # A green structural test never executes any of these synthetic PCs.
+        gate["witnesses"][2]["tested_executable_sha256"] = "d" * 64
+        with self.assertRaisesRegex(ValueError, "fewer than three"):
+            self.check(data)
+
     def test_release_ready_needs_all_gates_hardware_and_exact_candidate(self):
         data = synthetic_baseline()
         data["candidate"].update(commit_sha="a" * 40,

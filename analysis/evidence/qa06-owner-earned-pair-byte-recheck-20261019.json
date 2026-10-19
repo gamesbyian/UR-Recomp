@@ -1,0 +1,76 @@
+{
+  "schema": "ur-qa06-independent-source-bound-earned-pair-byte-check/1",
+  "reviewed_on": "2026-10-19",
+  "source_commit": "11501a15dea38fa912335cfc63103ce3a7208001",
+  "exact_executable_sha256": "0701f72481531ad4f2803caadc62bbb072f292abef69f039edda004b01c18ea9",
+  "evidence": [
+    {
+      "artifact_id": 12010421091,
+      "workflow_run_id": 38813101482,
+      "outer_archive_sha256": "485f37190ba1e12fd6ba4745f05c3a50d3056d05cf36151cf69f7699125fc0b9",
+      "zip_members": 52,
+      "crc_pass": true,
+      "source": "original played+fresh-Records Windows native processes plus raw saved snapshots"
+    },
+    {
+      "artifact_id": 12010490843,
+      "workflow_run_id": 38813101482,
+      "outer_archive_sha256": "421daddd16bf0b8cfb4127bf0c05a88b9a3080e21cbe07868595e588d683f82b",
+      "zip_members": 3,
+      "crc_pass": true,
+      "source": "original separate pre-Records pair"
+    }
+  ],
+  "archived_raw_manifest": {
+    "member_count": 9,
+    "actual_member_sha256_and_lengths_match": true,
+    "private_data_in_repository": false
+  },
+  "earned_pair": {
+    "population": 1,
+    "course": "course:01",
+    "mode": "race-2p",
+    "source_native_logged_result_host_frame": 4379,
+    "input_frame_count": 2232,
+    "p1": {
+      "profile": "mike",
+      "name": "MIKE",
+      "stock_rider": 0,
+      "finish_hundredths": 2761,
+      "fresh_process_2p_records": "LAST 01 LOSS 00:27.61",
+      "sram_bytes": 8192,
+      "typed_host_sram_matches_original_raw_bytes": true
+    },
+    "p2": {
+      "profile": "martin",
+      "name": "MARTIN",
+      "stock_rider": 2,
+      "finish_hundredths": 2757,
+      "fresh_process_2p_records": "LAST 01 WIN 00:27.57",
+      "sram_bytes": 8192,
+      "typed_host_sram_matches_original_raw_bytes": true
+    },
+    "run_sha256": "d54ade82fdeb213db2c48bd7e4338c5bcae0f2af981fd70c27a467366acbc487",
+    "match_sha256": "d16eb5d8ce868c8df6ef59169cd5b83ff5b1ed93235c4ad58624de30f8050749",
+    "run_stored_and_independently_recomputed_fnv1a64": "a8327800e49e4c44",
+    "match_stored_and_independently_recomputed_fnv1a64": "5838b68b19e040cb",
+    "run_and_match_byte_identical_before_after_fresh_records": true,
+    "opponent_relative_outcome_and_times_consistent": true,
+    "both_saved_raw_sram_equal_typed_stock_sram": true
+  },
+  "qualified_scope": "real Windows hosted native guest P1/P2 source result, exactly one original archived saved 2P run+match with valid checksums and cold-process Records evidence, same historical executable",
+  "unsupported": {
+    "raw_1p_earned_urrun_bytes_uploaded": false,
+    "physical_pads_attached_to_runner": false,
+    "real_audio_observed": false,
+    "actual_4k_display_observed": false,
+    "ntfs_full_or_power_cut_executed_here": false,
+    "independent_snes9x_native_complete_course_fidelity": false,
+    "physical_controller_only_uncoached_first_onboarding": false,
+    "cross_process_hostile_writer_tested": false
+  },
+  "read_only_independent_raw_byte_verification": true,
+  "release_gate_credit": 0,
+  "accepted_complete_usa_events": 0,
+  "verdict": "historical bounded positive, strict physical/release hold"
+}

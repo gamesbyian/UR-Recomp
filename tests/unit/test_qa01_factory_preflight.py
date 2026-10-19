@@ -75,6 +75,51 @@ class FactoryPreflight(unittest.TestCase):
         self.assertFalse(result["one_thousand_or_more_cases_authorized"])
         self.assertEqual(result["independent_USA_events_accepted"], 0)
 
+    def test_cross_case_splice_and_fabricated_provenance_fail_closed(self):
+        faults = (
+            lambda a, c, f, v: c["input_identity"].update(movie_sha256="9" * 64),
+            lambda a, c, f, v: c.update(native_event_sha256="not-a-sha"),
+            lambda a, c, f, v: c["original_window"].update(checkpoint=100),
+            lambda a, c, f, v: c.update(observation_phase="different-phase"),
+            lambda a, c, f, v: f["coverage"].update(start=1),
+            lambda a, c, f, v: f["source_identity"].update(original_frame_origin=1018),
+            lambda a, c, f, v: v.update(
+                fingerprint_report_canonical_sha256="0" * 64),
+            lambda a, c, f, v: v["verified_relative_frame_window"].update(end=6),
+            lambda a, c, f, v: v["frame_source_identity"].update(
+                native_frame_origin=2999),
+            lambda a, c, f, v: v.update(
+                retained_raw_manifest_canonical_sha256="1" * 64),
+            lambda a, c, f, v: v["verified_differing_byte_occurrences"].update(wram=0),
+        )
+        for mutate in faults:
+            att, causal, frames, verified = control()
+            mutate(att, causal, frames, verified)
+            with self.subTest(mutate=mutate), self.assertRaises(ValueError):
+                self.call(att, causal, frames, verified)
+
+    def test_cli_requires_actual_causal_event_files(self):
+        # Evaluate() works on synthetic structures only; main() must reopen
+        # actual original/native JSON events and raw image files before READY.
+        import json
+        import tempfile
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            att, causal, frames, verified = control()
+            for name, item in (("att.json", att), ("causal.json", causal),
+                               ("frames.json", frames), ("raw.json", verified)):
+                (root / name).write_text(json.dumps(item))
+            argv = ["qa01_factory_preflight.py", "--attestation",
+                    str(root / "att.json"), "--causal-report",
+                    str(root / "causal.json"), "--frame-report",
+                    str(root / "frames.json"), "--independent-raw-report",
+                    str(root / "raw.json"), "--output", str(root / "out.json")]
+            with patch.object(sys, "argv", argv), self.assertRaisesRegex(
+                    ValueError, "actual guest event files"):
+                preflight.main()
+            self.assertFalse((root / "out.json").exists())
+
     def test_missing_reports_hold(self):
         att, causal, frames, verified = control()
         for args in ((att, None, frames, verified),

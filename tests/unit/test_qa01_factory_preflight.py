@@ -186,20 +186,20 @@ class FactoryPreflight(unittest.TestCase):
         c = copy.deepcopy(self.causal)
         c["addresses"][0]["original"]["checkpoint_byte"] = 0x25
         with self.assertRaisesRegex(ValueError, "not from the retained"):
-            self.check(c=c)
+            self.check(c=c, events=False)
 
     def test_observation_phase_mismatch_rejected(self):
         c = copy.deepcopy(self.causal)
         c["observation_phase"] = "pre-nmi"
         with self.assertRaisesRegex(ValueError, "observation phase differs"):
-            self.check(c=c)
+            self.check(c=c, events=False)
 
     def test_wrong_causal_frame_rejected(self):
         c = copy.deepcopy(self.causal)
         c["original_window"]["checkpoint"] = 3
         c["native_window"]["checkpoint"] = 3
         with self.assertRaisesRegex(ValueError, "not in the real frame"):
-            self.check(c=c)
+            self.check(c=c, events=False)
 
     def test_forged_independent_raw_audit_and_missing_raw_byte_rejected(self):
         v = copy.deepcopy(self.verified)
@@ -223,7 +223,7 @@ class FactoryPreflight(unittest.TestCase):
         c = copy.deepcopy(self.causal)
         c["addresses"][0]["checkpoint_differs"] = False
         with self.assertRaisesRegex(ValueError, "flag disagrees"):
-            self.check(c=c)
+            self.check(c=c, events=False)
 
 
 if __name__ == "__main__":

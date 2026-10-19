@@ -1,0 +1,136 @@
+{
+  "schema": "qa08-immutable-medal-results-recurring-source/1",
+  "provenance": {
+    "genuine_original_callback_outer_sha256": "3475ee87b5b20768f9377d8d1c787927955c33ee6d4388dae008f5486a81370e",
+    "genuine_original_painter_zip_sha256": "8387c413d42cf8d2da2a61ba3ec67e8375394f938171dc4d73a3e4ba567920e4",
+    "genuine_integrated_native_source_outer_sha256": "832c08263e2d3013d5b15df82b2b0574fabfd3114194b7cbef9f6bb1b2959727",
+    "native_actual_guest_5484_crc_sha256": "b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568",
+    "original_painter_callback_consumed_26_inputs_sha256": "9c9072123a8eadceb7af228088a51bf074e362f81772500daf3ac83a382aa4f0"
+  },
+  "recurring": {
+    "native_guest_first": 4032,
+    "native_guest_last": 5184,
+    "step": 48,
+    "source_frames": 25,
+    "original_callback_label_rule": "native_guest-1",
+    "positions_per_frame": 5,
+    "actual_registered_RGB5_disagreements": 125,
+    "actual_registered_RGB5_agreements": 0
+  },
+  "colour_positions": [
+    {
+      "pixel": [
+        207,
+        91
+      ],
+      "original_RGB5": [
+        14,
+        7,
+        9
+      ],
+      "native_RGB5": [
+        14,
+        14,
+        14
+      ],
+      "repeat": 25
+    },
+    {
+      "pixel": [
+        205,
+        115
+      ],
+      "original_RGB5": [
+        14,
+        7,
+        9
+      ],
+      "native_RGB5": [
+        16,
+        5,
+        2
+      ],
+      "repeat": 25
+    },
+    {
+      "pixel": [
+        205,
+        139
+      ],
+      "original_RGB5_histogram": {
+        "15,15,15": 3,
+        "16,16,16": 8,
+        "17,17,17": 7,
+        "20,20,20": 7
+      },
+      "native_RGB5": [
+        14,
+        7,
+        9
+      ],
+      "repeat": 25
+    },
+    {
+      "pixel": [
+        225,
+        96
+      ],
+      "original_RGB5": [
+        25,
+        23,
+        17
+      ],
+      "native_RGB5": [
+        16,
+        15,
+        13
+      ],
+      "repeat": 25
+    },
+    {
+      "pixel": [
+        225,
+        120
+      ],
+      "original_RGB5": [
+        25,
+        23,
+        17
+      ],
+      "native_RGB5": [
+        16,
+        15,
+        13
+      ],
+      "repeat": 25
+    }
+  ],
+  "counterfactual_internal_original_stage": {
+    "source_labels": [
+      4032,
+      4176
+    ],
+    "original_painter_stage_RGB5_matching_native_final": 8,
+    "source_pixel_observations": 10,
+    "nonmatching_pixel": [
+      205,
+      115
+    ],
+    "nonmatching_native_minus_painter_RGB5": [
+      0,
+      -1,
+      -1
+    ],
+    "observed_final_depth_BG0": "27",
+    "observed_final_depth_OBJ": "28",
+    "two_actual_original_painter_fields_only": true
+  },
+  "interpretation": {
+    "original_painter_to_same_original_callback_exact": 10,
+    "original_native_consumed_input_and_beam_identity_proven": false,
+    "correct_2014_callback_to_native_result_parity": false,
+    "global_video_frame_shift_permitted": false,
+    "brightness_or_colour_repaint_permitted": false,
+    "independent_QA08_and_release_accepted": false
+  }
+}

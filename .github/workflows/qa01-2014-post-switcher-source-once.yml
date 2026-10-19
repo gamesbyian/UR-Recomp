@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: qa01-2014-post-switcher-original-only-\${{ github.ref }}
+  group: qa01-2014-post-switcher-original-only-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -93,7 +93,9 @@ jobs:
             "source_horizon":r["new_horizon"],
             "source_event_status":r["new_event_status"],
             "sustained_active_after_switcher":r["genuine_original_source_sustained_active_runs_after_switcher"],
-            "real_new_complete_source_candidates":r["complete_new_source_event_candidates"],
+            "completed_post_switcher_attempts":r["completed_post_switcher_source_attempts"],
+            "completed_known_course_repeats":r["completed_repeat_of_previously_sourced_course"],
+            "new_unique_course_candidates":r["completed_new_unique_source_course_candidates"],
             "USA_accepted_events":0,
           }
           s=json.dumps(summary,sort_keys=True,indent=2)
@@ -114,12 +116,12 @@ jobs:
           retention-days: 7
           compression-level: 6
           path: |
-            \${{ runner.temp }}/qa01-post-switcher-source/attempt.log
-            \${{ runner.temp }}/qa01-post-switcher-source/source-report.json
-            \${{ runner.temp }}/qa01-post-switcher-source/source/source.log
-            \${{ runner.temp }}/qa01-post-switcher-source/source/source.script
-            \${{ runner.temp }}/qa01-post-switcher-source/source/movie-meta.json
-            \${{ runner.temp }}/qa01-post-switcher-source/source/source-trace.jsonl
-            \${{ runner.temp }}/qa01-post-switcher-source/source/original-switcher-result.wram.bin
-            \${{ runner.temp }}/qa01-post-switcher-source/source/prior-horizon.wram.bin
-            \${{ runner.temp }}/qa01-post-switcher-source/source/new-horizon.wram.bin
+            ${{ runner.temp }}/qa01-post-switcher-source/attempt.log
+            ${{ runner.temp }}/qa01-post-switcher-source/source-report.json
+            ${{ runner.temp }}/qa01-post-switcher-source/source/source.log
+            ${{ runner.temp }}/qa01-post-switcher-source/source/source.script
+            ${{ runner.temp }}/qa01-post-switcher-source/source/movie-meta.json
+            ${{ runner.temp }}/qa01-post-switcher-source/source/source-trace.jsonl
+            ${{ runner.temp }}/qa01-post-switcher-source/source/original-switcher-result.wram.bin
+            ${{ runner.temp }}/qa01-post-switcher-source/source/prior-horizon.wram.bin
+            ${{ runner.temp }}/qa01-post-switcher-source/source/new-horizon.wram.bin

@@ -147,11 +147,21 @@ def assess(states: list[dict]) -> dict:
         "old_2014_original_source_horizon":ORIGINAL_HORIZON,
         "new_horizon":HORIZON,
         "genuine_original_source_sustained_active_runs_after_switcher":candidates,
-        "complete_new_source_event_candidates":sum(
+        "completed_post_switcher_source_attempts":sum(
             x["complete_source_entry_and_terminal_candidate"] for x in candidates),
-        "new_event_status":("genuine_candidate_requires_event_specific_verification"
-                            if any(x["complete_source_entry_and_terminal_candidate"] for x in candidates)
-                            else "no_source_qualified_complete_new_event_through_horizon"),
+        "completed_repeat_of_previously_sourced_course":sum(
+            x["complete_source_entry_and_terminal_candidate"] and
+            x["track"] in (0,1,2,3) for x in candidates),
+        "completed_new_unique_source_course_candidates":sum(
+            x["complete_source_entry_and_terminal_candidate"] and
+            x["track"] not in (0,1,2,3) for x in candidates),
+        "new_event_status":(
+            "new_unique_course_source_candidate_requires_event_specific_proof"
+            if any(x["complete_source_entry_and_terminal_candidate"] and
+                   x["track"] not in (0,1,2,3) for x in candidates)
+            else "post_switcher_repeats_previously_sourced_course"
+            if any(x["complete_source_entry_and_terminal_candidate"] for x in candidates)
+            else "no_complete_post_switcher_source_attempt_through_horizon"),
         "post22000_state_change_prefix":change_points,
         "post22000_state_change_prefix_is_truncated":sum(
             1 for i in range(1,len(window))

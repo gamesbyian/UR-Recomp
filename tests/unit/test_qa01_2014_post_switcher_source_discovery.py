@@ -28,8 +28,8 @@ class SourceOnlyTests(unittest.TestCase):
             s[f]={"menu":0xf6,"track":4,"in_race":0,"tour_row":0}
         x=target.assess(s)
         self.assertEqual(x["new_event_status"],
-                         "no_source_qualified_complete_new_event_through_horizon")
-        self.assertEqual(x["complete_new_source_event_candidates"],0)
+                         "no_complete_post_switcher_source_attempt_through_horizon")
+        self.assertEqual(x["completed_new_unique_source_course_candidates"],0)
         self.assertEqual(x["genuine_original_source_sustained_active_runs_after_switcher"],[])
         self.assertFalse(x["fresh_original_or_native_event_proven"])
         self.assertEqual(x["USA_accepted_event_credit"],0)
@@ -39,15 +39,31 @@ class SourceOnlyTests(unittest.TestCase):
         for f in range(23500,23900):
             s[f]={"menu":0,"track":4,"in_race":1,"tour_row":0}
         x=target.assess(s)
-        self.assertEqual(x["complete_new_source_event_candidates"],0)
+        self.assertEqual(x["completed_new_unique_source_course_candidates"],0)
         self.assertEqual(x["genuine_original_source_sustained_active_runs_after_switcher"][0]["start"],23500)
         for f in range(23910,23920):
             s[f]={"menu":0xbc,"track":4,"in_race":0,"tour_row":0}
         x=target.assess(s)
-        self.assertEqual(x["complete_new_source_event_candidates"],1)
+        self.assertEqual(x["completed_new_unique_source_course_candidates"],1)
         self.assertEqual(x["genuine_original_source_sustained_active_runs_after_switcher"][0]
                          ["separately_observed_terminal_result"],
                          {"host_frame":23910,"result_menu":0xbc})
+        self.assertEqual(x["USA_accepted_event_credit"],0)
+
+    def test_completed_repeated_dragster_is_not_a_fifth_distinct_usa_course(self):
+        s=self.make_states()
+        for f in range(22941,25343):
+            s[f]={"menu":0,"track":0,"in_race":1,"tour_row":0}
+        for f in range(25344,25354):
+            s[f]={"menu":0x99,"track":0,"in_race":0,"tour_row":0}
+        for f in range(25731,36001):
+            s[f]={"menu":0,"track":0,"in_race":1,"tour_row":0}
+        x=target.assess(s)
+        self.assertEqual(x["completed_post_switcher_source_attempts"],1)
+        self.assertEqual(x["completed_repeat_of_previously_sourced_course"],1)
+        self.assertEqual(x["completed_new_unique_source_course_candidates"],0)
+        self.assertEqual(x["new_event_status"],"post_switcher_repeats_previously_sourced_course")
+        self.assertEqual(len(x["genuine_original_source_sustained_active_runs_after_switcher"]),2)
         self.assertEqual(x["USA_accepted_event_credit"],0)
 
     def test_single_frame_track_scratch_and_nonrace_flag_60_do_not_count(self):

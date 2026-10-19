@@ -49,6 +49,38 @@ class CausalReadiness(unittest.TestCase):
         self.assertFalse(report["checkpoint_unmasked_actual_raw_bytes_reopened"])
         self.assertFalse(report["native_bus_pc_instruction_lifetime_proven"])
 
+    def test_mixed_logger_fragments_preserve_only_local_event_sequence(self):
+        native = (
+            "QA01RF044NATIVEREAD f=1017 kind=r1 bank=00 addr=0"
+            "QA01RF047NATIVE seq=1 stage=read f=1017 bank=00 "
+            "addr=01EE width=1 value=0085 PB=81 P=15 S=01EE "
+            "master=363435878 beamV=230 beamH=1110 nmi=0\\n"
+            "QA01RF047NATIVE seq=2 stage=opcode f=1017 "
+            "guestPC=82D4F0 tier=aot master=42\\n"
+        )
+        report = m.inspect(self.original(), native)
+        self.assertEqual(report["native_rf047_rows"], 2)
+        self.assertTrue(report["native_rf047_seq_contiguous"])
+        self.assertEqual(report["native_rf047_records_embedded_in_other_log_lines"], 1)
+        self.assertEqual(report["native_rf047_embedded_read_records"], 1)
+        self.assertEqual(report["native_rf047_embedded_rti_records"], 0)
+        self.assertEqual(report["native_rf047_read_records_missing_required_fields"], 0)
+        self.assertFalse(report["combined_native_recorders_log_line_order_is_executed_bus_order_proven"])
+        self.assertFalse(report["eligible_for_causal_window_assess"])
+
+    def test_physical_line_double_rf047_event_rejected_not_silently_ignored(self):
+        native = ("QA01RF047NATIVE seq=1 stage=entry f=1017 "
+                  "QA01RF047NATIVE seq=2 stage=read f=1017\\n")
+        with self.assertRaisesRegex(ValueError, "two native RF047 records"):
+            m.inspect(self.original(), native)
+
+    def test_clean_single_recorder_lines_still_cannot_assert_cross_bus_order(self):
+        native = self.native().replace("WRAM writer fragment ", "")
+        report = m.inspect(self.original(), native)
+        self.assertEqual(report["native_rf047_records_embedded_in_other_log_lines"], 0)
+        self.assertTrue(report["native_rf047_seq_contiguous"])
+        self.assertFalse(report["combined_native_recorders_log_line_order_is_executed_bus_order_proven"])
+
     def test_gaps_and_fake_pc_fail_closed(self):
         with self.assertRaisesRegex(ValueError, "gap"):
             m.inspect(self.original(), self.native().replace("seq=2 stage=read","seq=3 stage=read"))

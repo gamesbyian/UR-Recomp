@@ -1,0 +1,72 @@
+# Temporary read-only exact-source RF072 archived evidence consumer.
+# DO NOT MERGE. No ROM/native run or source CPU changes.
+name: RF072 authentic original post-NMI first-reader archival one-shot
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/workflows/qa01-rf072-authentic-archive-once.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: qa01-rf072-archive-once-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  source-original-five-byte-fates:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Reopen immutable genuine RF069 Zoo source/native raw ZIP
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --retry 2 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12215281695/zip" \
+            --output "$RUNNER_TEMP/rf072-genuine-original-zoo.zip"
+          echo "90b03d7e035c7a1939b488211b98165615e3fc63226fe57ac718fc7e3e772763  $RUNNER_TEMP/rf072-genuine-original-zoo.zip" | sha256sum --check
+      - name: Independently execute RF072 real source 5-byte first-consumer report
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/qa01_rf072_original_postnmi_first_byte_fates.py \
+            "$RUNNER_TEMP/rf072-genuine-original-zoo.zip" \
+            --out "$RUNNER_TEMP/rf072-authenticated-original-five-byte-fates.json"
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          q=json.loads((Path(os.environ["RUNNER_TEMP"])/"rf072-authenticated-original-five-byte-fates.json").read_text())
+          assert q["all_five_original_bytes_have_a_real_qualified_read_before_next_observed_write"] is True
+          assert q["source_original_checkpoint_seq"]==193
+          assert q["source_real_post_NMI_stack_01ed_to_01f1"]=="26F0D48226"
+          assert q["reused_RF071_903_original_real_bus_getter_return_join_count"]==903
+          assert q["unmasked_original_native_full_Wram_byte_difference_occurrences"]==92
+          assert q["accepted_USA_events"]==0
+          expected_read=[194,196,196,198,200]
+          expected_write=[210,210,203,203,202]
+          rows=[q["source_original_byte_fates"][f"00:{i:04X}"] for i in range(0x01ED,0x01F2)]
+          assert [r["first_actual_original_byte_read"]["source_global_seq"] for r in rows]==expected_read
+          assert [r["first_observed_original_byte_write"]["source_global_seq"] for r in rows]==expected_write
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as f:
+              f.write("RF072 exact-source original stack: 5/5 actual NMI bytes read before first observed getset write, original-native parity and USA admission remain HOLD (0/45).\n")
+          PY
+      - name: Archive exact immutable genuine first-consumer receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rf072-real-original-five-byte-first-read-fates
+          path: ${{ runner.temp }}/rf072-authenticated-original-five-byte-fates.json
+          retention-days: 30
+          if-no-files-found: warn

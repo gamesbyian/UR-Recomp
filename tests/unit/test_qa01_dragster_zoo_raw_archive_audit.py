@@ -183,11 +183,8 @@ class DragsterZooRawAuditTests(unittest.TestCase):
             "native": report["native_executable_sha256"],
         }
         rows = []
-        for key, suffix in audit.MANIFEST_PATH_SUFFIXES.items():
-            rows.append(
-                f"{parts[key]}  /home/runner/work/UR-Recomp/UR-Recomp"
-                f"{suffix}\n"
-            )
+        for key, exact_path in audit.MANIFEST_PATHS.items():
+            rows.append(f"{parts[key]}  {exact_path}\n")
         (self.root / "executables.sha256").write_text(
             "".join(rows), encoding="ascii")
 

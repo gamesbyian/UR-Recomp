@@ -1,0 +1,70 @@
+{
+  "schema": "UR-QA01-DRAGSTER-INDEPENDENT-GENUINE-COLD-ARCHIVE-REVIEW/1",
+  "adjudication": "HOLD",
+  "accepted_complete_usa_events": 0,
+  "release_quality_gates": 0,
+  "execution": {
+    "head": "2df90ffc6fa1ce036d2c29406209001f01a62dc2",
+    "run_id": 39176703119,
+    "artifact_id": 12155170209,
+    "zip_bytes": 14029293,
+    "zip_members": 199,
+    "original_zip_sha256": "a1266ed8fd567b9a3bc6234484e223d109ce610f6d029a135bf611187fb0dd93",
+    "original_zip_sha256_equal_github_provider": true,
+    "original_producer_report_sha256": "8d5eae4353019f0ffb24f7229ebbe2a737b00f1eac357e022b5d4fb2a2c596be",
+    "retained_cold_report_sha256": "5595c8ada240e66bdb16567db8acc6c1011a65e2e2c5ed9d1fc84c53a8228590",
+    "cold_report_exactly_binds_original_producer_hash": true
+  },
+  "source": {
+    "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "source_event": "Dragster Race A course:01",
+    "source_result_relative_frame": 2080,
+    "reference_result_relative_frame": 2081,
+    "native_result_relative_frame": 2079,
+    "source_next_zoo_result_relative_frame": 316,
+    "reference_next_zoo_result_relative_frame": 315,
+    "native_next_zoo_result_relative_frame": 318
+  },
+  "seeded_actual_original_native_sram": {
+    "bytes_each": 8192,
+    "original_seed_sha256": "1fa9b909926a1b4c7374bdfc5d7fedd09ab76523c51f2e7e7ad484fcf47ad16c",
+    "native_seed_sha256": "c93233602204915ef3f5994d93d0333405b0e5797ba9d3e7e52e4d3bdb2b9be8",
+    "both_seeds_independently_rehashed_from_original_zip": true,
+    "both_actual_dragster_rank0_centiseconds": 2508,
+    "both_actual_rank0_holder": 0,
+    "stored_checksum": 64620,
+    "recomputed_sum_over_actual_150_record_words": 64620,
+    "actual_150_record_words_sha256": "2919ece9365dedffade5f4f6e1adda769e739cfea4b1a3d853eb4dede355a64b",
+    "actual_150_record_holders_sha256": "fa80e9aae5d12d37e45e1a56d7ab79cf57bf700925e23af7637a13210534e0f0",
+    "full_150_record_and_holder_hashes_independently_recomputed_from_both_actual_seeds": true
+  },
+  "retained_source_input": {
+    "per_guest_supplied_rows": 311,
+    "reference_input_sha256": "0cd971f0e5f98457837c180a7dde3c1503132635ec1a3f925ad233431b9ab8f5",
+    "native_input_sha256": "b60dfbeb414a6024ac83de7381deff6230a71acf7993f60e64f9c4b716476986",
+    "original_native_input_start_duration_mask_tuples_equal": true,
+    "original_native_zero_padded_hex_format_differs": true,
+    "actual_shared_script_sha256": "6bc10df3649717482c96edd1d72c52c62f5f53baeb1a2b142c725fca0d864905",
+    "shared_script_hash_matches_original_producer": true
+  },
+  "cold_new_guest_execution": {
+    "cold_script_sha256": "7790c6aa560d3abbaae82b84fcba03b89559f937b06c85240c40fb4b4eaba924",
+    "original_log_sha256": "f3fd967cb98bceaec9e213305b1cd45cd8002fc179642814fa44bc8236ed0d29",
+    "native_log_sha256": "9648d66a8ce1095c137887c5de715415faf07cbff5c6704596d76f5586533c2f",
+    "original_and_native_guest_processes_reached_dump_host_frames": [
+      300,
+      420
+    ],
+    "source_seed_guest_load_paths_acknowledged_in_logs": true,
+    "cold_producer_claims_rank0_2508_holder0_table_and_checksum_preserved_both_guests": true,
+    "cold_producer_claims_original_postboot_sram_sha256": "0c81f68465651cbb3376c371f192f9943175ac2c22f63acfad2eb02a419df1f3",
+    "cold_producer_claims_native_postboot_sram_sha256": "30be0de4479951436a43656298888312844e6f97a00cbe9f8d75602a40d8beff",
+    "actual_post_cold_sram_bytes_archived": false,
+    "actual_post_cold_sram_bytes_independently_rehashed": false,
+    "actual_windows_disk_publication_qualified": false,
+    "cpu_spc_all_frame_equivalence_qualified": false,
+    "note": "Live cold-boot logs and report are authentic, but 4 actual output SRAM image files are absent. The post-cold guest ranked-record fields were not independently recomputed from post-cold bytes. All stored postboot hashes are producer claims."
+  },
+  "limits": "No release admission; source-native score/result and next Zoo progression are temporally unequal; original guest seeded fresh processes are not Windows OS filesystem power-cut restarts. The source ZIP is not preserved in this compact JSON after GitHub artifact expiry."
+}

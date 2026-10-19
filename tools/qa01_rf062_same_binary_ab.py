@@ -48,11 +48,11 @@ def events(log: bytes, prefix: str) -> list[dict[str, str]]:
 # Preserve the original input count, script command count, SRAM byte count,
 # and every other source line verbatim. No native instructions are excluded.
 PATH_META = (
-    (re.compile(r"^(\\[input\\] loaded [0-9]+ event\\(s\\) from )(/\\S+)$"),
+    (re.compile(r"^(\[input\] loaded [0-9]+ event\(s\) from )(/\S+)$"),
      "/zoom-zoo/replay/ref.input", "original_supplied_input_path"),
-    (re.compile(r"^(script: loaded [0-9]+ command\\(s\\) from )(/\\S+)$"),
+    (re.compile(r"^(script: loaded [0-9]+ command\(s\) from )(/\S+)$"),
      "/zoom-zoo/replay/complete.script", "original_script_path"),
-    (re.compile(r"^(\\[memory\\] loaded [0-9]+ SRAM bytes from )(/\\S+)$"),
+    (re.compile(r"^(\[memory\] loaded [0-9]+ SRAM bytes from )(/\S+)$"),
      "/zoom-zoo/anchored.srm", "original_sram_path"),
 )
 

@@ -35,6 +35,8 @@ Every frame is required with no gaps. Each full raw image is SHA-256 hashed and 
 
 ## Pilot C: capture once, independently verify many
 
+`tools/qa01_verify_frame_capture.py` independently reopens the retained full-WRAM/SRAM images instead of trusting the producer's JSON. It requires every differing relative frame plus boundary frames, all four source/native WRAM/SRAM members per retained frame, exact filename/frame mapping, file length, SHA256, digest-chain agreement and **recomputed unequal byte counts**. Missing, malformed, shifted, tampered or extra raw files fail the audit. Example: `python3 tools/qa01_verify_frame_capture.py --report /tmp/zoo-frame-report.json --retained-raw /tmp/zoo-decisions --output /tmp/zoo-independent-review.json`. The verdict explicitly leaves actual guest input/host acknowledgments, instruction parity, Windows persistence and 0/45 unchanged.
+
 The pilot B JSON plus retained raw evidence can serve CPU, memory and QA consumers after source provenance checks. Do not commit bulk binary frames to Git or proclaim SHA lists as independently verified original evidence. The eventual producer/consumer flow should reuse `tools/evidence_contract.py` and the current source archive identity, not add a second release ledger, input translator, emulator, or Windows backend. Retain actual source binary/PE, original SMV, ROM fingerprint, true guest controller reads and raw archive SHA, with an independent reader recomputing relevant bytes. Source evidence already indicates [Bowl historical movie vs fresh original divergence](ORIGINAL-COURSE-EVENT-CENSUS.md); keep all three histories and clocks separate.
 
 ## Pilot qualification and stop/go

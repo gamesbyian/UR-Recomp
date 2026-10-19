@@ -99,7 +99,7 @@ def patch(beam: str, emitter: str, bridge: str) -> tuple[str, str, str]:
     # di_insn.addr supplies actual decoded 24-bit guest opcode site. All M/X
     # variants are visited, including Snd_UploadBlockList_82EF_M1X0.
     call = ('            if (di_insn.addr & 0xFFFFFF) in ' +
-            repr(TARGET_PCS) + ':\n' +
+            "(" + ", ".join(f"0x{x:06X}" for x in TARGET_PCS) + "):\n" +
             '                lines.append(f"  ur_rf047_mark_executed_pc(0x{di_insn.addr & 0xFFFFFF:06X}u, 1u);")\n')
     emitter = once(emitter, EMITTER_SITE, call + EMITTER_SITE,
                    "compiled actual decoded instruction site")

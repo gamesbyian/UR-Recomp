@@ -1,0 +1,104 @@
+{
+  "schema": "ur-qa01-executed-rf066-rf062-two-epoch-full-raw-crosswalk-receipt/1",
+  "date": "2026-10-19",
+  "actual_RF066_original_native_case": {
+    "run_id": 39219862021,
+    "artifact_id": 12171791431,
+    "ZIP_SHA256": "494737bb6a1c422141c40f7175883f212767c3d774ee63fb0ba82add78cb445f",
+    "archive_members": 411
+  },
+  "actual_RF062_instrumented_native_case": {
+    "run_id": 39308179192,
+    "artifact_id": 12214214743,
+    "ZIP_SHA256": "b8287234d2fe515ee32b19b3d2a9b0e1bb58104b437de3a5cbe2e32e3af093ff",
+    "archive_members": 407
+  },
+  "independent_verification": {
+    "run_id": 39315164934,
+    "artifact_id": 12216974394,
+    "verdict_zip_sha256": "3d450d53d0d3339beb81ee40291cb5f10e8032bdc08a574834a6dcca5c3d6fbd",
+    "inner_independent_crosswalk_JSON_sha256": "5ceff5403c38133cc51fb595e8cb582eed72c8ca04b51e5d73af9e02afe58963",
+    "actual_source_raw_ZIP_members_per_case_compared": 388
+  },
+  "source_cross_epoch_controls": {
+    "original_2014_ROM_movie_window_seed_equal": true,
+    "actual_original_and_native_guest_input_file_bytes_equal": true,
+    "original_guest_entry_host_RF066_RF062": [
+      1017,
+      1017
+    ],
+    "native_guest_entry_host_RF066_RF062": [
+      1017,
+      1017
+    ],
+    "compiled_original_core_SHA_changed": true,
+    "compiled_native_guest_ELF_SHA_changed": true
+  },
+  "raw_immutable_images": {
+    "images_per_epoch_by_memory_territory": {
+      "original_wram": 97,
+      "original_sram": 97,
+      "native_wram": 97,
+      "native_sram": 97
+    },
+    "identical_images_between_epochs": {
+      "original_wram": 97,
+      "original_sram": 97,
+      "native_wram": 82,
+      "native_sram": 97
+    },
+    "changed_images_between_epochs": {
+      "original_wram": 0,
+      "original_sram": 0,
+      "native_wram": 15,
+      "native_sram": 0
+    },
+    "unmasked_changed_byte_occurrences": {
+      "original_wram": 0,
+      "original_sram": 0,
+      "native_wram": 77,
+      "native_sram": 0
+    },
+    "native_changed_WRAM_image_member_counts": {
+      "result-onset": 5,
+      "result-stable": 3,
+      "original-follow-08": 8,
+      "original-follow-16": 1,
+      "original-follow-24": 12,
+      "original-follow-32": 12,
+      "original-follow-64": 15,
+      "original-follow-72": 7,
+      "scene-05040": 2,
+      "scene-05041": 2,
+      "scene-05042": 2,
+      "scene-05043": 2,
+      "scene-05044": 2,
+      "scene-05045": 2,
+      "scene-05046": 2
+    },
+    "native_late_DP_changed_occurrences": {
+      "7E:0063": 7,
+      "7E:0069": 7
+    },
+    "native_result_followthrough_stack_region_changed_occurrences": 63
+  },
+  "true_within_epoch_source_native_race_mesh": {
+    "RF066": {
+      "pairs": 78,
+      "byte_exact": 51,
+      "unmasked_wram_different_occurrences": 92
+    },
+    "RF062": {
+      "pairs": 78,
+      "byte_exact": 46,
+      "unmasked_wram_different_occurrences": 104
+    }
+  },
+  "real_native_82_82F0_to_11_C774_D0_read_is_separately_bounded": true,
+  "causal_RF062_instrumentation_on_off_same_binary_family_proven": false,
+  "original_native_same_instruction_semantic_phase_proven": false,
+  "source_native_all_race_frames_equal_proven": false,
+  "accepted_USA_events": 0,
+  "accepted_windows_release_gates": 0,
+  "adjudication": "HOLD; 15 changed genuine native WRAM checkpoints across different native and original compiled guest binary/source epochs; no causal attribution"
+}

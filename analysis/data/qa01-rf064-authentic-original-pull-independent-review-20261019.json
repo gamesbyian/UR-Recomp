@@ -1,0 +1,26 @@
+{
+  "schema": "ur-qa01-rf064-independent-original-source-audit/1",
+  "classification": "diagnostic_HOLD_no_guest_event_credit",
+  "archive_sha256": "7891a24124c67f414e9b00ed2bb1dbe2e59e4a2b6c50b558e920c25d885e63ea",
+  "reference_log_sha256": "0dfe14195cffc9fc2e044adb372f81c9440e4b0e5330671906934d475bfad",
+  "source_sha": "2d572750b5d1658fd18a0e6af82f3c2cb9ca1662",
+  "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_pull_returns_qualified_by_rf045": 903,
+  "original_pull_byte_count": 193,
+  "original_pull_word_count": 710,
+  "sequenced_getset_kind_counts": {
+    "wb": 193,
+    "ww": 710
+  },
+  "sequenced_original_getset_reads_observed": 0,
+  "all_pull_returns_without_intervening_sequenced_bus_entry": 903,
+  "original_pull_returns_joined_to_unique_getset_event": 0,
+  "rf044_and_rf063_original_getset_rows_match": true,
+  "rf063_ordinals_complete": true,
+  "real_nmi_checkpoint_raw_stack_matches_rf044": true,
+  "source_read_path_status": "no_original_stack_reads_observed_at_current_getset_probe",
+  "original_emulator_did_not_read_stack_proven": false,
+  "actual_return_proves_specific_underlying_bus_site": false,
+  "native_executed_pc_or_clock_equivalence_proven": false,
+  "accepted_USA_events": 0
+}

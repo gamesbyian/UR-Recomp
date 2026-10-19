@@ -1,0 +1,86 @@
+{
+  "schema": "QA08-authentic-7-field-CGRAM-gray-pulse-bracket/1",
+  "analysis_date": "2026-10-19",
+  "original_2014_full_263_callback_artifact": 12075111053,
+  "original_callback_inner_zip_sha256": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+  "native_Win32_integrated_P7_source_artifact": 12151839452,
+  "native_Win32_integrated_outer_zip_sha256": "832c08263e2d3013d5b15df82b2b0574fabfd3114194b7cbef9f6bb1b2959727",
+  "native_Win32_source_image_inner_zip_sha256": "c36fdd0238735e739219b013d25665e42a008a7827ee97631a322217c9f4f0cd",
+  "real_native_guest_CRC_sha256": "b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568",
+  "source_registration": "original_snes9x_callback_guest_minus_one_to_native_guest",
+  "selection": "intersection_of_exact_four_state_cycle_positions_over_all_13_authentic_112_field_samples",
+  "persistent_cycle_position_count": 24096,
+  "persistent_cycle_position_index_uint32le_sha256": "4646f2123c596b1e9bbca6813d92b1ae3b9a4a53e08e300c17bf2e5f2ebb7b95",
+  "seven_source_complete_native_guest_fields": [5136,5152,5168,5184,5200,5216,5232],
+  "seven_frames": [
+    {
+      "native_guest": 5136,
+      "original_callback": 5135,
+      "original_BGRX_sha256": "d7c195c4b9dfe497fc6041f5f7a7260f5c626f867ce911fa2e609f56514372b7",
+      "native_P7_sha256": "947f9d30254f67d9ffcb58ed3d75be1b51fe57791e25da3a1565c1eb552f4b29",
+      "stable_positions_RGB5_exact": 24096,
+      "stable_positions_RGB5_gray_cycle_wrong": 0,
+      "full_frame_wrong_RGB5": 3235
+    },
+    {
+      "native_guest": 5152,
+      "original_callback": 5151,
+      "original_BGRX_sha256": "03a68c95b5f6dbfb20e966b5f5341b808f9929dc373f11c668124c2d4ac5f4a0",
+      "native_P7_sha256": "e66482f074a78b2f8a885966f7dc89fdbd6994569f932be3fafd652e7b61a985",
+      "stable_positions_RGB5_exact": 24096,
+      "stable_positions_RGB5_gray_cycle_wrong": 0,
+      "full_frame_wrong_RGB5": 2989
+    },
+    {
+      "native_guest": 5168,
+      "original_callback": 5167,
+      "original_BGRX_sha256": "d3c6605df780ee144a83bfafa3661106f364b1d22200b49f00eb221f6429ed27",
+      "native_P7_sha256": "ac4e52bd2f16622ea9dcdb2e776c693f1ee51f650b2f40725d455e99dadc4ece",
+      "stable_positions_RGB5_exact": 24096,
+      "stable_positions_RGB5_gray_cycle_wrong": 0,
+      "full_frame_wrong_RGB5": 3065
+    },
+    {
+      "native_guest": 5184,
+      "original_callback": 5183,
+      "original_BGRX_sha256": "f0ee58c682776592d8a93003a42c508629c49973b206d6a6da2c71ec9dc993b7",
+      "native_P7_sha256": "8dae60c1433aa26cd6edc20edda980d1dec17e8935a799d7edc6d0878ae387a8",
+      "stable_positions_RGB5_exact": 0,
+      "stable_positions_RGB5_gray_cycle_wrong": 24096,
+      "full_frame_wrong_RGB5": 27569
+    },
+    {
+      "native_guest": 5200,
+      "original_callback": 5199,
+      "original_BGRX_sha256": "cf9a731e94420151efb6076810489b7d215c058e64299182f105a89febc9002e",
+      "native_P7_sha256": "15bd7933ab155ab3ec02ac57a4c1eca6e38dc2756e81fb56baaf51510545801c",
+      "stable_positions_RGB5_exact": 24096,
+      "stable_positions_RGB5_gray_cycle_wrong": 0,
+      "full_frame_wrong_RGB5": 2989
+    },
+    {
+      "native_guest": 5216,
+      "original_callback": 5215,
+      "original_BGRX_sha256": "93954df51f780cb54f6aa871fb049cd7fb9f3e601512f4b3bed61c25f5a3e447",
+      "native_P7_sha256": "d2b2de1f996221bdb7112e09713691d08736b892ead68d0ee814051dbc21091e",
+      "stable_positions_RGB5_exact": 24096,
+      "stable_positions_RGB5_gray_cycle_wrong": 0,
+      "full_frame_wrong_RGB5": 3066
+    },
+    {
+      "native_guest": 5232,
+      "original_callback": 5231,
+      "original_BGRX_sha256": "93fddd2dae19cd561d91f73872cd7746b7698f4a7b4e9ddb2c50a816ca75ed48",
+      "native_P7_sha256": "310b144729d54d5e1179ae5a479358ea796b2383bdea59872cabf142aa8c5e78",
+      "stable_positions_RGB5_exact": 24096,
+      "stable_positions_RGB5_gray_cycle_wrong": 0,
+      "full_frame_wrong_RGB5": 3023
+    }
+  ],
+  "same_PPU_capture_PE_as_native_CGRAM_writer_trace": false,
+  "per_pixel_consumed_CGRAM_slot_and_color_math_proven": false,
+  "original_native_CPU_beam_clock_equivalence_proven": false,
+  "frame_rephase_pixel_mask_or_palette_patch_authorized": false,
+  "source_pixels_changed_by_this_analysis": 0,
+  "QA08_QA10_or_release_accepted": false
+}

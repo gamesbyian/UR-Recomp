@@ -93,6 +93,7 @@ jobs:
           make -C "$SRC/libretro" -j2
           test -s "$SRC/libretro/snes9x_libretro.so"
           sha256sum "$SRC/libretro/snes9x_libretro.so" > "$RUNNER_TEMP/rf065/instrumented-core-sha256.txt"
+          cp "$SRC/libretro/snes9x_libretro.so" "$RUNNER_TEMP/rf065/instrumented-original-libretro.so"
           python3 tools/qa01_rf069_original_getset_binary_audit.py \
             --binary "$SRC/libretro/snes9x_libretro.so" \
             --out "$RUNNER_TEMP/rf065/rf069-actual-original-ELF-getset.json"

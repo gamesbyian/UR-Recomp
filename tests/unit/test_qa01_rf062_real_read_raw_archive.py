@@ -23,7 +23,61 @@ def fixture():
     return "\n".join(rows)+"\n"
 
 
+
+def helper_rows(start: int, end: int):
+    return [{
+        "seq":str(i-start+1), "frame":"6124",
+        "kind":"read8", "scope":"Snd_UploadBlockList_82EF_M1X0",
+        "addr":f"11{i:04X}", "A":f"{(i+0x10)&65535:04X}",
+        "Y":f"{i:04X}", "D":"0000",
+        "dp63":"00","dp64":"00","dp65":"11",
+        "master":str(i*540),
+    } for i in range(start,end)]
+
+
 class AuthenticNativeOpcodeRead(unittest.TestCase):
+    def test_observed_frame_boundary_shift_not_an_interior_missing_read(self):
+        base=helper_rows(0xC589,0xC819)
+        revised=helper_rows(0xC58B,0xC81A)
+        result=probe.compare_native_helper_windows(base,revised)
+        self.assertEqual(result["baseline_helper_rows"],656)
+        self.assertEqual(result["instrumented_helper_rows"],655)
+        self.assertEqual(result["matched_address_and_register_rows_in_order"],654)
+        self.assertEqual(result["baseline_rows_not_matched"],2)
+        self.assertEqual(result["instrumented_rows_not_matched"],1)
+        self.assertTrue(result["all_omissions_additions_confined_to_frame_edges"])
+        self.assertEqual([x["change"] for x in result["observed_population_edits"]],
+                         ["delete","insert"])
+        self.assertFalse(result["wrapper_causal_noninterference_proven"])
+
+    def test_interior_missing_helper_is_never_disguised_as_window_shift(self):
+        base=helper_rows(0xC589,0xC595)
+        revised=helper_rows(0xC58A,0xC595)
+        revised.pop(3)
+        revised.append(dict(revised[-1],addr="11C595",Y="C595",A="C5A5"))
+        for i,row in enumerate(revised):
+            row["seq"]=str(i+1)
+        result=probe.compare_native_helper_windows(base,revised)
+        self.assertFalse(result["all_omissions_additions_confined_to_frame_edges"])
+        self.assertTrue(result["unmatched_interior_population_changes"])
+
+    def test_swapped_register_value_is_real_interior_observation_difference(self):
+        base=helper_rows(0xC589,0xC595)
+        revised=copy.deepcopy(base)
+        revised[5]["A"]="FFFF"
+        result=probe.compare_native_helper_windows(base,revised)
+        self.assertFalse(result["all_omissions_additions_confined_to_frame_edges"])
+        self.assertLess(result["matched_address_and_register_rows_in_order"],len(base))
+
+    def test_forged_clock_sequence_or_helper_type_cannot_be_aligned(self):
+        base=helper_rows(0xC589,0xC595)
+        for edit in ("seq","kind","frame"):
+            new=copy.deepcopy(base)
+            new[3][edit]={"seq":"5","kind":"write8","frame":"6125"}[edit]
+            with self.subTest(edit=edit),self.assertRaisesRegex(ValueError,
+                                                                 "frame-local helper"):
+                probe.compare_native_helper_windows(base,new)
+
     def test_real_helper_join_and_target(self):
         result=probe.observed_native_reads(fixture())
         self.assertEqual(result["source_bound_native_read_count"],10)

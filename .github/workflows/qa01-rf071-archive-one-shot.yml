@@ -1,0 +1,68 @@
+# RF071 research validation only. DO NOT MERGE this artifact-download workflow.
+# Download EXACT previously executed original/native case bytes, rerun RF071,
+# and prove the machine-parseable receipt really works against that ZIP.
+name: RF071 authenticated historical Zoo original getter join audit
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/workflows/qa01-rf071-archive-one-shot.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: qa01-rf071-archive-once-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  original-real-case-rf071:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Independently download frozen executed original/native ZIP and verify exact SHA
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --retry 2 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12215281695/zip" \
+            --output "$RUNNER_TEMP/rf071-original-zoo.zip"
+          echo "90b03d7e035c7a1939b488211b98165615e3fc63226fe57ac718fc7e3e772763  $RUNNER_TEMP/rf071-original-zoo.zip" | sha256sum --check
+      - name: Execute complete RF071 original getset to actual return verifier on real archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/qa01_rf071_original_real_read_join.py \
+            "$RUNNER_TEMP/rf071-original-zoo.zip" \
+            --out "$RUNNER_TEMP/rf071-authenticated-source-transactions.json"
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          report=json.loads((Path(os.environ["RUNNER_TEMP"])/"rf071-authenticated-source-transactions.json").read_text())
+          assert report["authenticated_original_source"] is True
+          assert report["read_entries_uniquely_bound_to_real_return"]==903
+          assert report["genuine_getter_calls_crossing_original_V_scanline"]==12
+          assert len(report["transactions"])==903
+          assert report["unmasked_differing_byte_occurrences"]==92
+          assert report["accepted_USA_events"]==0
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as out:
+              out.write("RF071 exact historical case: 903/903 REAL source original getter/return transactions; 12 valid scanline crossings; unmasked WRAM residual 92; USA 0/45.\n")
+          PY
+      - name: Preserve actual independently recomputed receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rf071-authentic-original-903-read-return-receipt
+          path: ${{ runner.temp }}/rf071-authenticated-source-transactions.json
+          retention-days: 30
+          if-no-files-found: warn

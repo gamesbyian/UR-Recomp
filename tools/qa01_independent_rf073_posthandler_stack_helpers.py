@@ -55,19 +55,32 @@ def first_posthandler(events: list[dict], brackets: list[dict]) -> dict:
         # text ordering is not, because RF044 and RF047 logger lines collide.
         after = [e for e in local if int(e["seq"]) > return_seq and
                  e["stage"] == "read" and e["bank"] == "00" and
-                 e["width"] == "1" and e["nmi"]=="0"]
+                 e["width"] in ("1","2") and e["nmi"]=="0"]
         got = {}
         for addr in BYTES:
             label = f"00:{addr:04X}"
-            rows = [e for e in after if e["addr"]==f"{addr:04X}"]
-            need(rows, "no actual later native stack helper for "+label)
+            # The native helper genuinely emits width=2 reads. One actual
+            # word at 01ED returns BOTH 01ED and 01EE in little-endian
+            # order; do not skip it merely because no one-byte row exists.
+            rows = [e for e in after if
+                    int(e["addr"],16) <= addr <
+                    int(e["addr"],16) + int(e["width"])]
+            need(rows, "no actual later native stack helper covering "+label)
             first = rows[0]
-            need(int(first["seq"]) > return_seq and
+            start = int(first["addr"],16)
+            shift = (addr - start) * 8
+            whole = int(first["value"],16)
+            byte = (whole >> shift) & 0xFF
+            need(whole < 1 << (8 * int(first["width"])) and
+                 int(first["seq"]) > return_seq and
                  int(first["master"]) > int(handler["master"]),
-                 "later native helper read not strictly after RTI handler")
+                 "native byte/word helper is malformed or not strictly after RTI")
             got[label] = {
                 "native_RF047_local_seq": int(first["seq"]),
-                "native_value": first["value"],
+                "native_value": f"{byte:02X}",
+                "native_full_helper_value": first["value"],
+                "actual_helper_base_address": f"00:{start:04X}",
+                "actual_helper_width_bytes": int(first["width"]),
                 "native_master": int(first["master"]),
                 "native_cycles_after_handler_return":
                     int(first["master"]) - int(handler["master"]),
@@ -79,7 +92,7 @@ def first_posthandler(events: list[dict], brackets: list[dict]) -> dict:
         need(got["00:01F1"]["native_RF047_local_seq"] ==
              br["native_first_post_handler_stack_helper_read_seq"],
              "RF073 first post-handler stack-helper identity drift")
-        need(got["00:01F1"]["native_value"]=="0026" and
+        need(got["00:01F1"]["native_value"]=="26" and
              got["00:01F1"]["native_RF047_local_seq"] ==
              return_seq+1, "the genuine first native outside-NMI read changed")
         native_first_status_reads += 1

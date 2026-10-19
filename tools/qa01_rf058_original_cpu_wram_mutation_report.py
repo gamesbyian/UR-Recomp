@@ -90,6 +90,25 @@ def images(z:zipfile.ZipFile)->dict[str,bytes]:
     return {p:z.read(p) for p in z.namelist() if p.startswith(("bowl/replay/ref/",
            "bowl/replay/native/","bowl/source/")) and p.endswith((".wram.bin",".sram.bin"))}
 
+def qualify_full_original_native_producer(a:dict,b:dict)->None:
+    # Instrumenting the actual original Snes9x source must change its
+    # binary digest. A newer diagnostics producer also appends precisely
+    # one false Dragster metadata flag. Everything ELSE, not just a
+    # handpicked list of source keys, must remain bit-for-bit identical.
+    if (a.get("reference_core_sha256")!=ORIGINAL_INSTRUMENTED_CORE_SHA or
+        b.get("reference_core_sha256")!=ORIGINAL_UNMODIFIED_CORE_SHA):
+        raise ValueError("RF058 actual original source core was not exactly the pinned patch")
+    diagnostic_key="bounded_dragster_to_zoo_diagnostic_without_full_event_parity"
+    a_cmp=a.get("comparison");b_cmp=b.get("comparison")
+    if (not isinstance(a_cmp,dict) or not isinstance(b_cmp,dict) or
+        diagnostic_key in b_cmp or
+        a_cmp.get(diagnostic_key) is not False or
+        {k:v for k,v in a_cmp.items() if k!=diagnostic_key}!=b_cmp):
+        raise ValueError("RF058 original/native Bowl comparison drift or unexpected metadata")
+    allowed={"reference_core_sha256","comparison"}
+    if set(a)!=set(b) or any(a[k]!=b[k] for k in a if k not in allowed):
+        raise ValueError("RF058 genuine source ROM/input/SRAM/guest producer fields drifted")
+
 def case(actual:Path,reference:Path)->dict:
     if hashlib.sha256(reference.read_bytes()).hexdigest()!=BASE_SHA:
         raise ValueError("RF058 independently pinned original 2014 USA Bowl reference ZIP changed")
@@ -100,23 +119,7 @@ def case(actual:Path,reference:Path)->dict:
             raise ValueError("RF058 actual source opcode trace missing")
         t=inspect(z.read("bowl/replay/reference.log").decode("utf8","replace"))
         a=json.loads(z.read("bowl-report.json"));b=json.loads(r.read("bowl-report.json"))
-        # Instrumenting the actual original Snes9x source must change its
-        # binary digest. A newer diagnostics producer also appends precisely
-        # one false Dragster metadata flag. Everything ELSE, not just a
-        # handpicked list of source keys, must remain bit-for-bit identical.
-        if (a.get("reference_core_sha256")!=ORIGINAL_INSTRUMENTED_CORE_SHA or
-            b.get("reference_core_sha256")!=ORIGINAL_UNMODIFIED_CORE_SHA):
-            raise ValueError("RF058 actual original source core was not exactly the pinned patch")
-        diagnostic_key="bounded_dragster_to_zoo_diagnostic_without_full_event_parity"
-        a_cmp=a.get("comparison");b_cmp=b.get("comparison")
-        if (not isinstance(a_cmp,dict) or not isinstance(b_cmp,dict) or
-            diagnostic_key in b_cmp or
-            a_cmp.get(diagnostic_key) is not False or
-            {k:v for k,v in a_cmp.items() if k!=diagnostic_key}!=b_cmp):
-            raise ValueError("RF058 original/native Bowl comparison drift or unexpected metadata")
-        allowed={"reference_core_sha256","comparison"}
-        if set(a)!=set(b) or any(a[k]!=b[k] for k in a if k not in allowed):
-            raise ValueError("RF058 genuine source ROM/input/SRAM/guest producer fields drifted")
+        qualify_full_original_native_producer(a,b)
         fresh,ref=images(z),images(r)
         if set(fresh)!=set(ref) or len(ref)!=64:
             raise ValueError("RF058 missing one of 64 exact original/native/movie memory images")

@@ -41,14 +41,14 @@ class AuthenticNativeOpcodeRead(unittest.TestCase):
         log=fixture()
         first=next(x for x in log.splitlines()
                    if x.startswith("QA01RF054NATIVEBUS "))
-        with self.assertRaisesRegex(ValueError,"native executed PC"):
+        with self.assertRaisesRegex(ValueError,"helper population"):
             probe.observed_native_reads(log + first + "\n")
 
     def test_actual_paced_native_helper_missing_rejected(self):
         log="\n".join(x for x in fixture().splitlines()
                       if not (x.startswith("QA01RF054NATIVEBUS ") and
                               "addr=11C774" in x))
-        with self.assertRaisesRegex(ValueError,"native executed PC"):
+        with self.assertRaisesRegex(ValueError,"helper population"):
             probe.observed_native_reads(log)
 
     def test_same_value_at_different_clock_not_a_join(self):

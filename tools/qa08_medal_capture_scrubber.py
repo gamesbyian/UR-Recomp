@@ -26,6 +26,7 @@ P7_HEADER = (b"P7\nWIDTH 256\nHEIGHT 224\nDEPTH 4\nMAXVAL 255\n"
              b"TUPLTYPE RGB_ALPHA\nENDHDR\n")
 GUEST_FRAMES = tuple(range(4032, 5185, 48))
 CROP = (184, 78, 246, 169)
+MEDAL_BOX = (202, 91, 228, 154)  # fixed medal ROI, separate from scene context
 
 
 def sha(data: bytes) -> str:
@@ -78,6 +79,22 @@ def read_crop(original: bytes, native: bytes,
     return bytes(a), bytes(b), bytes(mask), wrong, different
 
 
+def count_large_errors_in_box(heat: bytes,
+                              box: tuple[int, int, int, int] = MEDAL_BOX) -> int:
+    """Count red disagreement pixels inside bounded fixed medal region."""
+    x0, y0, x1, y1 = CROP
+    mx0, my0, mx1, my1 = box
+    width, height = x1-x0, y1-y0
+    if not (x0 <= mx0 < mx1 <= x1 and y0 <= my0 < my1 <= y1 and
+            len(heat) == width * height * 3):
+        raise ValueError("medal region is not within true source crop")
+    return sum(
+        heat[((y - y0) * width + (x - x0)) * 3:
+             ((y - y0) * width + (x - x0)) * 3 + 3] == b"\\xff\\x38\\x3c"
+        for y in range(my0, my1) for x in range(mx0, mx1)
+    )
+
+
 def uri(rgb: bytes, width: int, height: int) -> str:
     return "data:image/png;base64," + base64.b64encode(rgb_png(width, height, rgb)).decode("ascii")
 
@@ -128,12 +145,15 @@ def build(original_zip: Path, integrated_zip: Path) -> list[dict]:
                 a, b, delta, large, any_rgb5 = read_crop(source, native)
                 rows.append({
                     "guest": guest, "original": original_frame,
-                    "large": large, "any_rgb5": any_rgb5,
+                    "large": large, "medal_large": count_large_errors_in_box(delta),
+                    "any_rgb5": any_rgb5,
                     "original_png": uri(a, width, height),
                     "native_png": uri(b, width, height),
                     "difference_png": uri(delta, width, height)
                 })
-    if len(rows) != 25 or rows[0]["large"] != 287 or any(row["large"] < 1 for row in rows):
+    if (len(rows) != 25 or rows[0]["large"] != 287 or
+        rows[0]["medal_large"] != 287 or
+        any(row["medal_large"] < 287 for row in rows)):
         raise ValueError("true source medial region residual mismatch changed")
     return rows
 
@@ -160,13 +180,13 @@ figure img{display:block;margin:auto;width:100%;max-width:260px;aspect-ratio:62/
 <h1>Uniracers QA08 · Medal timing review</h1>
 <p>25 genuine 2014 original and compiled native Windows source captures, sampled every 48 guest frames.
 <strong>Original video callback f−1</strong> is paired only with <strong>native guest frame f</strong>.
-Red shows any RGB5 channel more than one step different. No frame shifts, recolouring or synthesized pixels.</p>
+Red shows any RGB5 channel more than one step different. No frame shifts, recolouring or synthesized pixels. Context and fixed medal ROI counts are kept separate.</p>
 <div class="panel"><div class="row"><button id="prev" type="button">← Previous</button>
 <button id="next" type="button">Next →</button><span id="position" class="stat"></span></div>
 <label for="slider"><p>Guest field <strong id="guest"></strong></p></label>
 <input type="range" id="slider" min="0" max="24" step="1" value="0">
 <div class="row"><span class="stat" id="pair"></span><span id="large" class="stat"></span>
-<span class="stat" id="any"></span></div></div>
+<span class="stat" id="any"></span><span class="stat" id="medal"></span></div></div>
 <div class="images"><figure class="panel"><figcaption>2014 original callback</figcaption>
 <img id="original" alt="Correct registered original source pixel crop" width="62" height="91"></figure>
 <figure class="panel"><figcaption>Native Windows PPU</figcaption>
@@ -186,6 +206,7 @@ function display(index){const i=Math.max(0,Math.min(frames.length-1,Number(index
 $("position").textContent="Capture "+(i+1)+" / "+frames.length;
 $("guest").textContent=f.guest;$("pair").textContent="Original "+f.original+" ↔ native "+f.guest;
 $("large").textContent=f.large+" large-error pixels in crop";
+$("medal").textContent=f.medal_large+" within medal 26×63 region";
 $("any").textContent=f.any_rgb5+" any RGB5 difference";
 $("original").src=f.original_png;$("native").src=f.native_png;$("diff").src=f.difference_png;
 $("prev").disabled=i===0;$("next").disabled=i===frames.length-1}

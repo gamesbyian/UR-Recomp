@@ -58,3 +58,9 @@ python3 -m unittest tests.unit.test_qa01_rf061_verify_archived_status -v
 ```
 
 The default SHA is pinned to the real archive; synthetic adversarial tests alone can override it. A successful run confirms only the observed NMI status read, never first-consumed-differing-byte proof, complete original/native instruction equivalence, `qa01_causal_window.py` admission or a USA event. The RF061 new instrumented guest build and read-PC join still need authentic replay evidence.
+
+## Pinned upstream source preflight before a new replay
+
+Run `python3 tools/qa01_rf061_source_preflight.py --root baldosa --out RF061-preflight.json` **after the existing RF047 disposable runtime patch is staged, but before the companion RF061 hook and native regeneration**. The command does not fetch/build/execute games or generate guest event credit. It asserts the actual pinned v2 emitter's decoded-instruction loop still has the syntactic skip/continue boundary and source IR ordering necessary to place the RF061 hook; it applies the proposed transform to in-memory strings and compiles the transformed Python AST as a syntax guard. Drift or partial staging fails closed, minimizing expensive dead-end CI.
+
+The pinned upstream identity must still be verified separately with `git -C baldosa/snesrecomp rev-parse HEAD` equal to `075fbe4c8e0d97b0013be541795c39cb644a9709`. Even a positive preflight reports `live_Snd_UploadBlockList_82EF_M1X0_marker_executed=false`: only rebuilt AOT inspection and actual source-authentic guest execution can change that finding. It cannot prove a helper read-PC correlation, arbitrary ROM pointer equivalence or first consumed sound divergence. **0/45**.

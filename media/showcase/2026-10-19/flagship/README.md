@@ -2,7 +2,7 @@
 
 This is a **separate media-only sequel** to the previously accepted October 10 recruitment film, not an assertion of a new Windows release. The baseline target is **85 seconds of 1920×1080/60fps video plus a 27-second vertical 1080×1920/60fps social cut**.
 
-All source video is committed to `main` and pinned by exact SHA-256 inside `tools/showcase/build_flagship_recruitment_20261019.py`. The builder fails before rendering if any media source or its exact duration/fps/dimensions change. This edit neither executes a game nor regenerates missing game footage. The original native 600-frame split-screen race contributes two disjoint excerpts: first 240 and final 360 frames; both remain contiguous and in the original recorded order, and 600 other frames are neither synthesized nor duplicated. The animated widescreen reveal reuses a previously approved editorial side-masking edit of the same underlying native session. The standalone original-versus-wide comparison remains [here](../2026-10-10/recruitment/presentation-edits/same-capture-centre-vs-wide-5s.mp4).
+All source video is committed to `main` and pinned by exact SHA-256 inside `tools/showcase/build_flagship_recruitment_20261019.py`. The builder fails before rendering if any media source or its exact duration/fps/dimensions change. This edit neither executes a game nor regenerates missing game footage. The original native 600-frame split-screen race contributes two disjoint excerpts: first 240 and final 360 frames; both remain contiguous and in the original recorded order, and 600 other frames are neither synthesized nor duplicated. The animated widescreen reveal reuses a previously approved editorial side-masking edit of the same underlying native session. The standalone original-versus-wide comparison remains [here](../../2026-10-10/recruitment/presentation-edits/same-capture-centre-vs-wide-5s.mp4).
 
 ## Source-locked 85s narrative
 
@@ -27,19 +27,19 @@ Every moving native frame comes from the committed captured videos, with 60fps s
 
 ## Research and release claims
 
-The latest authoritative [active work queue](../../../docs/WORK-QUEUE.md) and [release quality ledger](../../../docs/RELEASE-QUALITY-LEDGER.json) still report **0/45 complete USA events independently accepted** and **0/12 Windows release gates accepted** as of October 19. Source-perfect Original centre, bounded 3840×2160 SDL readback, accepted 1P/2P user journeys and broader Modern menus are independent narrower accomplishments. The video depicts them accordingly.
+The latest authoritative [active work queue](../../../../docs/WORK-QUEUE.md) and [release quality ledger](../../../../docs/RELEASE-QUALITY-LEDGER.json) still report **0/45 complete USA events independently accepted** and **0/12 Windows release gates accepted** as of October 19. Source-perfect Original centre, bounded 3840×2160 SDL readback, accepted 1P/2P user journeys and broader Modern menus are independent narrower accomplishments. The video depicts them accordingly.
 
 The video **does not** show physical-controller hardware qualification, a human Windows new-player session recorded on October 19, finished Windows beta, complete original-vs-native event parity, shipping 4× racer likeness, or full-width Remastered art. The 4× procedural demonstration's earlier byte-level approvals do not override the October 10 artistic veto in `docs/HD-RACER-CHARACTER-RECONSTRUCTION.md`.
 
 Evidence behind visible engineering claims:
 
-- [Original/wide 0/57,344 exact centre differences](../../../docs/QA08-NATIVE-STOCK-CENTER-PARITY-20261010.md)
-- [Real 3840×2160 SDL readback, original native 2P, frame 2208](../../../docs/QA08-REAL-4K-POST-GO-20261010.md)
-- [Original source / real generated MainLoop code evidence](../2026-10-10/technical-motion/README.md)
-- [Modern scripted native Windows journeys, named racers, retained Records](../../../docs/MODERN-FRONTEND-SHIPPING-STATUS.md)
-- [New racer character likeness veto and reconstruction brief](../../../docs/HD-RACER-CHARACTER-RECONSTRUCTION.md)
-- [October 10 native continuous capture and source identities](../2026-10-10/recruitment/continuous/README.md)
-- [October 10 verified Original title and Modern front-end captures](../2026-10-10/recruitment/README.md)
+- [Original/wide 0/57,344 exact centre differences](../../../../docs/QA08-NATIVE-STOCK-CENTER-PARITY-20261010.md)
+- [Real 3840×2160 SDL readback, original native 2P, frame 2208](../../../../docs/QA08-REAL-4K-POST-GO-20261010.md)
+- [Original source / real generated MainLoop code evidence](../../2026-10-10/technical-motion/README.md)
+- [Modern scripted native Windows journeys, named racers, retained Records](../../../../docs/MODERN-FRONTEND-SHIPPING-STATUS.md)
+- [New racer character likeness veto and reconstruction brief](../../../../docs/HD-RACER-CHARACTER-RECONSTRUCTION.md)
+- [October 10 native continuous capture and source identities](../../2026-10-10/recruitment/continuous/README.md)
+- [October 10 verified Original title and Modern front-end captures](../../2026-10-10/recruitment/README.md)
 
 ## Render
 
@@ -52,3 +52,14 @@ python3 tools/showcase/build_flagship_recruitment_20261019.py \
 The script builds temporary intermediate source-locked segments, produces 85s and 27s H.264/AAC videos, an authentic original-gameplay poster and `flagship-provenance.json`. Every rendered video and the poster is SHA-256 recorded, with per-shot source ordinals, source identity and exclusions. Rendering requires no ROM, native executable, guest launch, shader changes or external network.
 
 **Distribution rights remain separately unverified.** Packaging a promotional trailer is not clearance to distribute rights-controlled gameplay imagery or a ROM. A full human viewing pass has not been implied by tool-level verification; visual inspection is documented separately in the release review receipt.
+
+## Portrait-first social edition
+
+The base source-locked 27-second portrait cut preserves the full fitted 16:9 gameplay frame in a 1080×1920 matte. The optional **ambient social cut** in `ur-recomp-flagship-27s-social-ambient.mp4` keeps that same entire 1080×608 gameplay area at exactly (0,656) while filling only the background with a low-resolution, heavily blurred/colour-muted transform of its own recorded video pixels. Animated surrounding captions are editorial; the blurred matte is never represented as real additional track geometry. The short's score is copied unchanged.
+
+```sh
+python3 tools/showcase/upgrade_flagship_vertical_20261019.py \
+  --outdir media/showcase/2026-10-19/flagship
+```
+
+The upgrade requires the *exact accepted* base portrait SHA and writes its own output SHA/provenance. The original 27-second vertical delivery remains available as the stable fall-back.

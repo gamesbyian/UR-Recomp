@@ -19,8 +19,10 @@ SCHEMA = "ur-qa01-compiled-original-stack-getter-observer/1"
 RF066_CORE_SHA256 = "9682cd2c2732541487c88cfef84f0d1b5a1005d4de0b00e95d43bac1cf9215c0"
 GET_BYTE = "S9xGetByte(unsigned int)"
 GET_WORD = "S9xGetWord(unsigned int, s9xwrap_t)"
+SET_BYTE = "S9xSetByte(unsigned char, unsigned int)"
+SET_WORD = "S9xSetWord(unsigned short, unsigned int, s9xwrap_t, s9xwriteorder_t)"
 PULL_OPCODE = "Op68E0M0()"
-SOURCES = (GET_BYTE, GET_WORD, PULL_OPCODE)
+SOURCES = (GET_BYTE, GET_WORD, SET_BYTE, SET_WORD, PULL_OPCODE)
 SYM = re.compile(r"^([0-9a-fA-F]+)\s+([0-9a-fA-F]+)\s+[tT]\s+(.+)$")
 CALL = re.compile(r"\bcall(?:q)?\s+.*<([^>]+)>")
 HEX64 = re.compile("[0-9a-f]{64}\Z")
@@ -80,6 +82,13 @@ def classify(sites: dict[str, dict], spans: dict) -> dict:
                        obj["source_bus_ordinal_references"] or
                        obj["source_RF044_counter_references"])
         getter_sides[label] = missing
+    setter_sides = {
+        label: bool(sites[label]["direct_getenv_calls"] and
+                    sites[label]["direct_formatted_output_calls"] and
+                    sites[label]["source_bus_ordinal_references"] and
+                    sites[label]["source_RF044_counter_references"])
+        for label in (SET_BYTE, SET_WORD)
+    }
     opcode = sites[PULL_OPCODE]
     direct = GET_WORD in opcode["call_destinations"]
     require(direct, "compiled original opcode does not directly call this getter")
@@ -93,6 +102,9 @@ def classify(sites: dict[str, dict], spans: dict) -> dict:
             getter_sides[GET_BYTE],
         "compiled_getword_no_direct_RF044_RF063_logger":
             getter_sides[GET_WORD],
+        "both_compiled_setters_have_RF044_RF063_writer_hooks":
+            all(setter_sides.values()),
+        "setter_hook_controls": setter_sides,
         "compiled_opcode_postcall_sequence_references_present":
             opcode["source_bus_ordinal_references"] > 0,
         "actual_original_executable_guest_instruction_path_proven": False,

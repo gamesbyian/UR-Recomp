@@ -33,9 +33,16 @@ def inspect(root: Path) -> dict:
     # A valid hook inserted at the wrong scope might compile and NEVER execute.
     # Require the skipped synthetic instruction to continue first, then the
     # original instruction's clock charge and real IR exactly once in order.
-    if not (src.count(SKIP)==1 and
-            src.find(CONTINUE,src.index(SKIP))<src.index(witness.EMITTER_SITE)<
-            src.index(IR) and src.count(witness.EMITTER_SITE)==1):
+    if (src.count(SKIP)!=1 or src.count(witness.EMITTER_SITE)!=1 or
+            src.count(IR)!=1):
+        raise ValueError("Baldosa decoded-instruction execution-loop structure changed")
+    skip_at=src.index(SKIP)
+    continue_at=src.find(CONTINUE,skip_at+len(SKIP))
+    emit_at=src.index(witness.EMITTER_SITE)
+    ir_at=src.index(IR)
+    # str.find returns -1 on absence; -1 < emit_at is NOT evidence that
+    # skipped synthetic instructions still jump around this probe.
+    if not (skip_at < continue_at < emit_at < ir_at):
         raise ValueError("Baldosa decoded-instruction execution-loop structure changed")
     if "for ii, (di_insn, ir_ops) in enumerate(pairs):" not in src:
         raise ValueError("decoded instruction pair iterator missing")

@@ -83,6 +83,51 @@ class CausalWindowTests(unittest.TestCase):
         self.assertIsNone(item["native"]["first_actual_read_before_overwrite"])
         self.assertFalse(item["native"]["proves_never_read_during_entire_race"])
 
+    def test_precheckpoint_last_writer_must_match_raw_checkpoint(self):
+        a, b = causal_guest("original", 0x26), causal_guest("native", 0x81)
+        a["events"][0]["value"] = 0x25
+        # The subsequent real checkpoint and first read still agree, so this
+        # used to pass even though the alleged last bus writer did not.
+        with self.assertRaisesRegex(ValueError, "last executed writer"):
+            self.report(a, b)
+
+    def test_read_must_track_last_executed_write_on_either_side_of_checkpoint(self):
+        for before in (True, False):
+            a, b = causal_guest("original", 0x26), causal_guest("native", 0x81)
+            if before:
+                bad_read = {"frame": 0, "clock": 1, "clock_domain": "cpu-master",
+                            "kind": "read", "address": "7E:01ED", "value": 0x25,
+                            "pc": "82D4F1"}
+                a["events"].insert(1, bad_read)
+            else:
+                bad_read = {"frame": 3, "clock": 5, "clock_domain": "cpu-master",
+                            "kind": "read", "address": "7E:01ED", "value": 0x26,
+                            "pc": "82D4F6"}
+                a["events"].append(bad_read)
+            for index, event in enumerate(a["events"], 1):
+                event["seq"] = index
+            with self.subTest(before_checkpoint=before), self.assertRaisesRegex(
+                    ValueError, "actual read conflicts"):
+                self.report(a, b)
+
+    def test_host_frame_regression_invalidates_bus_event_order(self):
+        a, b = causal_guest("original", 0x26), causal_guest("native", 0x81)
+        a["events"][2]["frame"] = 0
+        with self.assertRaisesRegex(ValueError, "host frame regressed"):
+            self.report(a, b)
+
+    def test_unknown_prior_writer_does_not_fabricate_a_memory_contradiction(self):
+        a, b = causal_guest("original", 0x26), causal_guest("native", 0x81)
+        # A bounded window need not include the write that established its
+        # first byte. The real checkpoint seeds the first known observation.
+        a["events"].pop(0)
+        for index, event in enumerate(a["events"], 1):
+            event["seq"] = index
+        report = self.report(a, b)
+        self.assertIsNone(report["addresses"][0]["original"]["last_observed_writer_before_checkpoint"])
+        self.assertFalse(report["addresses"][0]["causal_equivalence_proven"])
+        self.assertEqual(report["accepted_complete_USA_events"], 0)
+
     def test_multiple_clock_domains_are_not_cross_compared(self):
         a, b = causal_guest("original", 0x26), causal_guest("native", 0x81)
         for data in (a, b):

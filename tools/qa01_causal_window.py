@@ -55,6 +55,13 @@ def check_guest(data: dict, guest: str) -> None:
     require(type(ev) is list and len(ev) > 0, "missing executed event rows")
     marks = []
     last_clock_by_domain = {}
+    last_frame = None
+    # WRAM is ordinary byte-addressable memory. As long as coverage is
+    # declared complete, every observed read must agree with the last actual
+    # write to that physical address, including writes before the checkpoint.
+    # An address with no preceding observed write is unknown until the real
+    # checkpoint supplies its first independently captured byte.
+    known_bytes = {}
     for index, row in enumerate(ev, 1):
         require(type(row) is dict and type(row.get("seq")) is int and
                 row["seq"] == index and row.get("kind") in KINDS,
@@ -62,6 +69,9 @@ def check_guest(data: dict, guest: str) -> None:
         require(type(row.get("frame")) is int and
                 w["start"] <= row["frame"] <= w["end"],
                 "event frame outside bounded window")
+        require(last_frame is None or row["frame"] >= last_frame,
+                "executed guest host frame regressed within ordered bus events")
+        last_frame = row["frame"]
         require(type(row.get("clock")) is int and row["clock"] >= 0 and
                 type(row.get("clock_domain")) is str and row["clock_domain"],
                 "missing actual source-local event clock")
@@ -75,25 +85,28 @@ def check_guest(data: dict, guest: str) -> None:
                     row.get("phase") == w["phase"] and
                     "address" not in row and "value" not in row,
                     "checkpoint phase or sample identity changed")
+            for address in addrs:
+                if address in known_bytes:
+                    require(known_bytes[address] == observed[address],
+                            "last executed writer conflicts with raw checkpoint memory")
+            # The checkpoint is the first known state for addresses whose
+            # previous writer lies outside this bounded trace.
+            known_bytes.update(observed)
             marks.append(index - 1)
         else:
             require(row.get("address") in addrs and type(row.get("value")) is int
                     and 0 <= row["value"] <= 255 and
                     type(row.get("pc")) is str and PC.fullmatch(row["pc"]),
                     "missing physical bus address, byte or executed guest PC")
-    require(len(marks) == 1, "exactly one real checkpoint is required")
-    mark = marks[0]
-    # A consumer cannot establish cross-guest clock equivalence. Within a
-    # guest, bus read values before the next write must equal the raw sample.
-    for address in addrs:
-        v = observed[address]
-        for row in ev[mark + 1:]:
-            if row["kind"] == "checkpoint" or row.get("address") != address:
-                continue
+            address = row["address"]
             if row["kind"] == "write":
-                break
-            require(row["value"] == v,
-                    "first actual read conflicts with checkpoint memory image")
+                known_bytes[address] = row["value"]
+            elif address in known_bytes:
+                require(row["value"] == known_bytes[address],
+                        "actual read conflicts with last executed write or checkpoint byte")
+    require(len(marks) == 1, "exactly one real checkpoint is required")
+    # No inference about cross-guest clock equivalence, unobserved earlier
+    # writers, or reads outside this explicitly bounded executed window.
 
 
 def guest_fates(data: dict) -> dict:

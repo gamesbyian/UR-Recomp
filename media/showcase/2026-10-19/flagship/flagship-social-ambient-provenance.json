@@ -1,0 +1,65 @@
+{
+  "authentic_extra_world_pixels_claimed": false,
+  "decoded_independent_frame_sha256": {
+    "ambient-review-00.png": "35a383b0b32378a09144491f23e4ed98bfc98aa8b7c388a6dcc522471df083ac",
+    "ambient-review-01.png": "858fcb0edbd44bdc2610e8e0abebc42acc1b3ed9f3da3e46d54b6ea3e7a9e6f7",
+    "ambient-review-02.png": "e5bcf2eba0bf3474641639fa2bea4905e2dbe117eb81685a438264f44cd0f97a",
+    "ambient-review-03.png": "069f22633e2e1b122995361417fc9f06f0ca585a3bd5be4f9c7096fc81f75306",
+    "ambient-review-04.png": "689d89a6581c701fc007a2b11829972d605bb2f1dd25b082babd88f86e1c4731",
+    "ambient-review-05.png": "b0c15aec15efa6552335054118e6f143e06aa7f3aed2b124596129d0a1323c64"
+  },
+  "editorial_blurred_matte": true,
+  "frames": 1620,
+  "original_fitted_gameplay_geometry_preserved": true,
+  "original_source_labels_removed_and_recreated_from_verified_source_ranges": true,
+  "out_name": "ur-recomp-flagship-27s-social-ambient.mp4",
+  "out_sha256": "da3208ab71807542abc38a5fd89e460efeb39b827fd94c883fbb25310184e4ed",
+  "physical_4k_video_claimed": false,
+  "review_status": "SHA/fps/frame/drawable and six independent decoded witnesses passed; visual screening still separate",
+  "schema": "UR-FLAGSHIP-PORTRAIT-AMBIENCE/1",
+  "shots": [
+    [
+      0,
+      1.5,
+      "THE ORIGINAL 1994"
+    ],
+    [
+      1.5,
+      2,
+      "GENUINE MAIN MENU"
+    ],
+    [
+      2,
+      9,
+      "THE 342 COLUMN WORLD"
+    ],
+    [
+      9,
+      13,
+      "REAL MODERN NAVIGATION - OCT 10"
+    ],
+    [
+      13,
+      17,
+      "VERIFIED 65816 TO NATIVE C"
+    ],
+    [
+      17,
+      23,
+      "ACTUAL TWO PLAYER RACING"
+    ],
+    [
+      23,
+      27,
+      "HELP BUILD WHAT COMES NEXT"
+    ]
+  ],
+  "source_name": "ur-recomp-flagship-27s-vertical.mp4",
+  "source_sha256": "74785eb6bef6ae7b5ee007e60fd4a421b57c1b2a2e681cca7a3e18541e9a5ade",
+  "visible_game_source_area_xywh": [
+    0,
+    656,
+    1080,
+    608
+  ]
+}

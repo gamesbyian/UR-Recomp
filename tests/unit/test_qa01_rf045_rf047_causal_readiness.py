@@ -54,9 +54,9 @@ class CausalReadiness(unittest.TestCase):
             "QA01RF044NATIVEREAD f=1017 kind=r1 bank=00 addr=0"
             "QA01RF047NATIVE seq=1 stage=read f=1017 bank=00 "
             "addr=01EE width=1 value=0085 PB=81 P=15 S=01EE "
-            "master=363435878 beamV=230 beamH=1110 nmi=0\\n"
+            "master=363435878 beamV=230 beamH=1110 nmi=0\n"
             "QA01RF047NATIVE seq=2 stage=opcode f=1017 "
-            "guestPC=82D4F0 tier=aot master=42\\n"
+            "guestPC=82D4F0 tier=aot master=42\n"
         )
         report = m.inspect(self.original(), native)
         self.assertEqual(report["native_rf047_rows"], 2)
@@ -70,7 +70,7 @@ class CausalReadiness(unittest.TestCase):
 
     def test_physical_line_double_rf047_event_rejected_not_silently_ignored(self):
         native = ("QA01RF047NATIVE seq=1 stage=entry f=1017 "
-                  "QA01RF047NATIVE seq=2 stage=read f=1017\\n")
+                  "QA01RF047NATIVE seq=2 stage=read f=1017\n")
         with self.assertRaisesRegex(ValueError, "two native RF047 records"):
             m.inspect(self.original(), native)
 

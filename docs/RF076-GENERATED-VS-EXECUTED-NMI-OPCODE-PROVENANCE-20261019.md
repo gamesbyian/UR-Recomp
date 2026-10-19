@@ -1,0 +1,29 @@
+# RF076: published AOT coverage versus actual NMI opcode execution
+
+**19 October 2026. CPU/APU producer evidence. Research HOLD.** Read [RF074](RF074-NATIVE-NMI-RESUME-PROVENANCE-20261019.md), [RF072](RF072-ORIGINAL-NMI-STACK-FIRST-CONSUMPTION-20261019.md), and [RF075](RF075-PINNED-NATIVE-COMPILED-VS-INTERP-RTI-20261019.md) first. Independent USA events remain **0/45**, Windows QA gates **0/12**. This note is not the independent acceptance authority.
+
+## Two authentic generated-source preflight failures, distinct mechanisms
+
+1. Historical closed disposable [#1969](https://github.com/gamesbyian/UR-Recomp/pull/1969) [run 39319591578](https://github.com/gamesbyian/UR-Recomp/actions/runs/39319591578), build job 118289972093, regenerated the pinned native sources but looked for a marker in nonexistent `baldosa/snesrecomp/runner/src/gen`. Actual pinned `gamesbyian/uniracers-recomp@10b864b9...` runs `tools/regen.sh` with `--out-dir src/gen`. Its build log confirms an atomic `baldosa/src/gen` publication. The failure is a path gate error **before executable/guest execution**, not proof of any missing guest opcode.
+2. RF076 attempt 1, disposable [#1991](https://github.com/gamesbyian/UR-Recomp/pull/1991), exact source head `f37690cbee89c69317d43400c93b7cefecfc6c9f`, authentic [run 39336562146](https://github.com/gamesbyian/UR-Recomp/actions/runs/39336562146), build job 118347495838, did reach the correct generated C files. Generator reported **820 roots, 1,587 exact variants, 1,576 AOT eligible, 11 LLE-only, eight published banks**. The original RF076 v2 checker intentionally required *all eight* target decoded opcode constants to appear in generated AOT calls, and correctly stopped with **five missing compiled D4 sites**: `82D4EE`, `82D4F0`, `82D4F2`, `82D4F4`, `82D4F5`. The three generated sound sites `8282F0`, `8282F2`, `8282F6` were present. **No new guest replay executed in that run either.**
+
+The second failure is a **real negative for static AOT-coverage expectations**. It does not prove the five NMI candidate instructions executed in interpreter mode, were not decoded at all, or caused a guest divergence. The 11 LLE-only variants are an upstream count, not an independent mapping of these five addresses to specific variants.
+
+## Tier-aware, still fail-closed RF076 preflight
+
+`tools/qa01_rf076_generated_exec_pc_gate.py` now requires actual emitted AOT call statements for the three sound sites, *plus* the genuine `interp_bridge.c` opcode-fetch source insertion immediately after `bridge_bus_read(cpu, pc_before)`, the native RF047 recorder definition, its opt-in environment condition and its explicit allowlist for **all eight** target PCs. It reports and hashes emitted bank part files and both native interpreter/recorder source files, listing D4 AOT absences as absences. A marker mentioned only in a C comment, a declaration, a non-published directory, an incomplete target filter, or a missing interpreter fetch hook cannot satisfy the preflight. Only actual original/native replay may populate an observed `stage=opcode` guest event; no static result awards such an event.
+
+The separate `tools/qa01_rf076_executed_pc_vs_resume.py` reads the actual RF047 native-local, contiguous source event stream, requires all nine bounded NMI stage brackets and qualified scheduler-push identity, records any truly emitted AOT/interpreted decoded opcode markers before/inside/after each native NMI, and leaves unsupported execution and cross-guest claims explicitly false. It cannot infer an opcode from `resume`, old RF047 `opcodePC` fields, saved `EE/F0`, or a next-frame `master` value. Even an equal scheduler PC and *later* decoded opcode site is only a source-local correlation.
+
+The revised ROM-free local suite passes **14/14 focused tests**, covering both scripts. It is not a replacement for a fresh pinned native game build or the independent QA rules. The tier-aware second single-Zoo guest attempt runs on the disposable #1991 PR and must retain its real log/ELF/ROM/movie/input identities, original source getter returns and unmasked WRAM. Do not merge its workflow.
+
+## Next decision tree
+
+| Actual next observation | Qualification | Next cheapest discriminator |
+| --- | --- | --- |
+| AOT sound targets present, interpreter fetch hook source-staged, **no** real NMI decoded opcode rows | Instrument staging only; NMI executed site unknown | Check generated NMI decode/actual LLE route and source event truncation before choosing additional targeted PCs |
+| Real `stage=opcode` rows at `82:D4xx` | Native **observed** decoded instruction site within its own clock and RF047 ordinal | Join exact native scheduler SET/RESTORE and compiled RTI successor by native-local ordinal; compare original physical bus operands at a separately qualified source-original semantic stage |
+| Saved native NMI PC `EE` versus original `F0` under only same host-frame labels | Historical state difference only, **not** aligned instruction/guest fetch parity | Capture both emulator-side instruction-fetch/interrupt boundary in the same immutable run |
+| Genuine same-phase original/native first consumed *differing* stack or memory byte, first writer accounted for | Bounded causal candidate, not event credit | Independently check continuous race/result/progression, all raw state and cold SRAM under QA01 authority |
+
+Original RF072 already proves five original source NMI stack bytes actually read before the next observed getset writes in its own archive; RF075 source contract independently shows compiled native RTI loads only status while interpreted RTI restores PC/PB. **Those source and native observations from different executable epochs must not be spliced into a single presumed cause.** Preserve raw 92/104 occurrence histories, do not mask stack bytes, retime the guest, rewrite the RTI, or award **1/45** without independent end-to-end acceptance.

@@ -59,7 +59,7 @@ def audit(root: Path, report: dict, *, replay_dir: Path | None = None,
     a new offset by aligning inputs after the fact.
     """
     case = report.get("name")
-    if case not in {"zoom-zoo", "bowl", "switcher"}:
+    if case not in {"dragster", "zoom-zoo", "bowl", "switcher"}:
         raise ValueError("unsupported source-qualified USA event fixture")
     shift = report.get("native_frame_shift")
     if type(shift) is not int or not -1000 <= shift <= 1000:
@@ -152,7 +152,7 @@ def main() -> int:
     p.add_argument("--artifact-root", required=True, type=Path)
     p.add_argument("--producer-report", required=True, type=Path)
     p.add_argument("--replay-dir", type=Path,
-                   help="explicit original replay directory for standalone Bowl archives")
+                   help="explicit original replay directory for independently captured event archives")
     p.add_argument("--movie", type=Path, help="unaltered original reset-anchored 2014 SMV")
     p.add_argument("--movie-meta", type=Path, help="pinned original SMV metadata")
     p.add_argument("--out", required=True, type=Path)
@@ -164,22 +164,28 @@ def main() -> int:
             raise ValueError("original source movie and metadata must be supplied together")
         source = None
         if args.movie is not None:
-            import extract_historical_smv_scene_window as archive_movie
-            event = report.get("original_source_event") or {}
-            handoff = report.get("bowl_next_switcher_handoff") or {}
-            if (report.get("name") != "bowl" or
-                    event.get("original_entry_frame") != 8620 or
-                    event.get("source_active_frames_to_result") != 3365 or
-                    handoff.get("sample_offsets") !=
-                        [334, 338, 339, 340, 341, 342, 343, 344, 345, 346, 349, 354]):
-                raise ValueError("only authentic scored-2014 Bowl handoff has pinned source movie window")
-            if hashlib.sha256(args.movie.read_bytes()).hexdigest() != report.get(
-                    "original_movie_sha256"):
-                raise ValueError("original 2014 SMV SHA256 differs from executed producer")
-            movie_data, _ = archive_movie.read_movie(args.movie)
-            metadata = json.loads(args.movie_meta.read_text(encoding="utf-8"))
-            source = archive_movie.window(
-                movie_data, metadata, 8620, 3365 + 354 + 6)
+            # Preserve the separately verified Bowl post-result window exactly.
+            # Other authenticated events reuse the canonical 2014 SMV oracle.
+            if report.get("name") == "bowl":
+                import extract_historical_smv_scene_window as archive_movie
+                event = report.get("original_source_event") or {}
+                handoff = report.get("bowl_next_switcher_handoff") or {}
+                if (event.get("original_entry_frame") != 8620 or
+                        event.get("source_active_frames_to_result") != 3365 or
+                        handoff.get("sample_offsets") !=
+                            [334, 338, 339, 340, 341, 342, 343, 344, 345, 346, 349, 354]):
+                    raise ValueError("wrong scored-2014 Bowl source movie handoff")
+                if hashlib.sha256(args.movie.read_bytes()).hexdigest() != report.get(
+                        "original_movie_sha256"):
+                    raise ValueError("original 2014 SMV SHA256 differs from executed producer")
+                movie_data, _ = archive_movie.read_movie(args.movie)
+                metadata = json.loads(args.movie_meta.read_text(encoding="utf-8"))
+                source = archive_movie.window(
+                    movie_data, metadata, 8620, 3365 + 354 + 6)
+            else:
+                import qa01_event_historical_source_attestation as canonical
+                source = canonical.source_window(
+                    report, args.movie, args.movie_meta)
         evidence = audit(args.artifact_root, report, replay_dir=args.replay_dir,
                          source_window=source)
     except (OSError, ValueError, KeyError, TypeError) as exc:

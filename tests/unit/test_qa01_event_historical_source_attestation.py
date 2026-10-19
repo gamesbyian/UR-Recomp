@@ -138,6 +138,51 @@ class HistoricControllerSourceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "ROM CRC"):
             historical.source_window(self.report, self.movie, self.meta)
 
+    def test_dragster_canonical_movie_and_actual_supplied_guest_routes(self):
+        # Source retail USA Dragster enters 794 / results 2874. The reference
+        # and native event files must independently match the 2014 P1 source.
+        movie_path, meta_path, report, length = genuine_shape_fixture(
+            self.root, "dragster")
+        report["native_frame_shift"] = 0
+        with patch.object(
+            historical, "SOURCE_2014_ARCHIVE_SHA256",
+            report["original_movie_sha256"]
+        ):
+            observed = historical.source_window(report, movie_path, meta_path)
+            self.assertEqual(observed["frames"], length)
+            replay = self.root / "dragster" / "replay"
+            replay.mkdir(parents=True, exist_ok=True)
+            pairs = [
+                (report["reference_entry"] + event["start"],
+                 event["duration"], int(event["mask"], 16))
+                for event in observed["relative_input_segments"]
+            ]
+            for filename in ("ref.input", "pinned-baldosa.input"):
+                (replay / filename).write_text(
+                    "".join(f"{start}:{duration}:{mask:03x}\n"
+                            for start,duration,mask in pairs))
+            (replay / "complete.script").write_text(
+                "dump race-entered\ndump scene-00001\ndump scene-00002\n"
+                "dump result-onset\ndump result-stable\n")
+            result = route.audit(self.root, report, replay_dir=replay,
+                                 source_window=observed)
+            self.assertEqual(result["input_event_rows_per_guest"], 2)
+            self.assertTrue(result["original_2014_movie_controller_window_recomputed"])
+            self.assertEqual(result["native_supplied_input_shift_exact"], 0)
+            self.assertFalse(result["guest_controller_consumption_proven"])
+            pairs[0] = (pairs[0][0], pairs[0][1], pairs[0][2] ^ 1)
+            for filename in ("ref.input", "pinned-baldosa.input"):
+                (replay / filename).write_text(
+                    "".join(f"{start}:{duration}:{mask:03x}\n"
+                            for start,duration,mask in pairs))
+            with self.assertRaisesRegex(ValueError, "source-movie controller window"):
+                route.audit(self.root, report, replay_dir=replay,
+                            source_window=observed)
+            bad = json.loads(json.dumps(report))
+            bad["original_source_event"]["original_result_frame"] += 1
+            with self.assertRaisesRegex(ValueError, "event identity"):
+                historical.source_window(bad, movie_path, meta_path)
+
     def test_truncated_source_window_without_unique_source_hash_fails(self):
         data = self.movie.read_bytes()
         m = json.loads(self.meta.read_text())

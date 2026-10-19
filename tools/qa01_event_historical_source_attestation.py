@@ -19,6 +19,7 @@ SOURCE_2014_ARCHIVE_SHA256 = (
     "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442"
 )
 SOURCE_EVENT_ANCHORS = {
+    "dragster": ("course:01", 794, 2874),
     "zoom-zoo": ("course:02", 3190, 8353),
     "bowl": ("course:03", 8620, 11985),
     "switcher": ("course:04", 12327, 17030),

@@ -6,6 +6,7 @@ import json
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
@@ -34,6 +35,12 @@ class DragsterZooRawAuditTests(unittest.TestCase):
         (self.root / "dragster/source/trace.jsonl").write_bytes(trace)
         self.trace_sha = digest(trace)
         self.original_trace_bytes = trace
+        # Synthetic fixtures cannot recreate the original 135MB source trace.
+        # Override ONLY the frozen trace hash to exercise independent frame
+        # reconstruction, leaving original fixed ROM/movie/core hash checks live.
+        patcher = mock.patch.object(audit, "FROZEN_MOVIE_TRACE", self.trace_sha)
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
     def write(self, path, content):
         path = self.root / path
@@ -145,9 +152,9 @@ class DragsterZooRawAuditTests(unittest.TestCase):
             "course_id": "course:01", "name": "dragster", "family": "race-a",
             "native_backend": "pinned-baldosa",
             "admission": "investigative candidate; not a release-ledger pass",
-            **{key: "a" * 64 for key in (
-                "rom_sha256", "original_movie_sha256", "source_sram_sha256",
-                "native_executable_sha256", "reference_core_sha256", "input_sha256")},
+            **audit.FROZEN_SOURCE,
+            "native_executable_sha256": "a" * 64,
+            "reference_script_sha256": audit.FROZEN_SOURCE["input_sha256"],
             "reference_entry": 945, "native_entry": 945, "native_frame_shift": 0,
             "original_source_event": {"original_entry_frame": 794,
                                       "original_result_frame": 2874,
@@ -224,6 +231,15 @@ class DragsterZooRawAuditTests(unittest.TestCase):
         self.write("dragster-report.json", report)
         with self.assertRaisesRegex(ValueError, "score or course-payload"):
             audit.audit(self.root)
+
+    def test_wrong_frozen_original_rom_movie_or_controller_rejected(self):
+        for key in ("rom_sha256", "original_movie_sha256",
+                    "source_sram_sha256", "input_sha256"):
+            report = self.make()
+            report[key] = "b" * 64
+            self.write("dragster-report.json", report)
+            with self.assertRaisesRegex(ValueError, "source-pinned"):
+                audit.audit(self.root)
 
     def test_source_selection_is_not_active_zoo(self):
         self.make()

@@ -18,6 +18,12 @@ def verify(report: dict, raw_root: Path) -> dict:
     frames.must(type(report) is dict and report.get("schema") == frames.SCHEMA,
                 "invalid frame capture report")
     frames.validate_identity(report.get("source_identity"))
+    # This offline schema has no signed original input polls, independent guest
+    # frame acknowledgments, or Windows cold-disk execution. The producer may
+    # not mint either external attestation through a self-reported flag.
+    frames.must(report.get("producer_binary_and_executed_input_independently_verified") is False
+                and report.get("windows_disk_persistence_proven") is False,
+                "unsupported external provenance/persistence attestation")
     coverage = report.get("coverage")
     frames.must(type(coverage) is dict and
                 all(type(coverage.get(x)) is int
@@ -53,12 +59,20 @@ def verify(report: dict, raw_root: Path) -> dict:
                         and type(item.get("unmasked_differing_byte_count")) is int
                         and 0 <= item["unmasked_differing_byte_count"] <= size,
                         "invalid image length or unequal-byte count")
+            pair_digests = {}
             for guest in ("original", "native"):
                 sha = item.get(guest + "_sha256")
                 frames.must(type(sha) is str and frames.HEX64.fullmatch(sha),
                             "missing true source/guest digest")
+                pair_digests[guest] = sha
                 chain.update(bytes.fromhex(sha))
             count = item["unmasked_differing_byte_count"]
+            # Every row, including digest-only interior frames, must agree
+            # logically: equal SHA256 implies zero differences; unequal
+            # SHA256 implies at least one unmasked differing byte. Recomputing
+            # the chain alone cannot detect a self-consistent forged row.
+            frames.must((pair_digests["original"] == pair_digests["native"]) == (count == 0),
+                        "reported digest/count inconsistency")
             counts[kind] += count
             if count and earliest[kind] is None:
                 earliest[kind] = rel
@@ -109,13 +123,14 @@ def verify(report: dict, raw_root: Path) -> dict:
             count = sum(x != y for x, y in zip(a, b))
             frames.must(count == rows[rel - start]["types"][kind]["unmasked_differing_byte_count"],
                         "retained raw pair disagrees with producer's per-frame byte count")
-    actual_files = {p.name for p in raw_root.iterdir() if p.is_file()}
+    actual_files = {p.name for p in raw_root.iterdir()}
     frames.must(actual_files == {x["member"] for x in entries},
                 "unmanifested raw evidence file or missing member")
     return {
         "schema": "ur-qa01-independent-frame-capture-audit/1",
         "source_sha": identity["source_sha"],
         "verified_raw_frames": len(required_frames),
+        "digest_only_equal_frames_not_independently_reopened": len(rows) - len(required_frames),
         "verified_raw_files": len(observed),
         "verified_differing_byte_occurrences": counts,
         "source_memory_bytes_independently_recomputed_for_retained_frames": True,

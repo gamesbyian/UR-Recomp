@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 import sys
 import tempfile
@@ -171,6 +172,55 @@ class FrameFingerprintTests(unittest.TestCase):
             forged["coverage"]["observed_native_frames"] = 2
             with self.assertRaisesRegex(ValueError, "incomplete"):
                 verify_frame.verify(forged, evidence)
+
+    def test_unretained_interior_digest_disagrees_with_zero_count(self):
+        # The middle frame is digest-only, so the independent reader cannot
+        # reopen it. A forged digest with a recomputed valid digest chain used
+        # to pass despite contradicting the declared zero unequal bytes.
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            a, b = self.make_capture(root)
+            frames.snapshot_path(b, 2018, "wram").write_bytes(bytes(frames.WRAM))
+            frames.snapshot_path(b, 2019, "sram").write_bytes(bytes(frames.SRAM))
+            evidence = root / "evidence"
+            report = frames.audit(self.identity(), a, b, 0, 2, retained=evidence)
+            self.assertEqual(len(report["raw_retained_members"]), 8)
+            baseline = verify_frame.verify(report, evidence)
+            self.assertEqual(baseline["digest_only_equal_frames_not_independently_reopened"], 1)
+            forged = copy.deepcopy(report)
+            forged["rows"][1]["types"]["wram"]["native_sha256"] = "e" * 64
+            chain = hashlib.sha256()
+            for row in forged["rows"]:
+                for kind in ("wram", "sram"):
+                    for guest in ("original", "native"):
+                        chain.update(bytes.fromhex(row["types"][kind][guest + "_sha256"]))
+            forged["frame_pair_digest_chain_sha256"] = chain.hexdigest()
+            with self.assertRaisesRegex(ValueError, "digest/count inconsistency"):
+                verify_frame.verify(forged, evidence)
+
+    def test_cannot_self_assert_external_source_or_windows_attestations(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            a, b = self.make_capture(root)
+            evidence = root / "evidence"
+            report = frames.audit(self.identity(), a, b, 0, 2, retained=evidence)
+            for flag in ("producer_binary_and_executed_input_independently_verified",
+                         "windows_disk_persistence_proven"):
+                forged = copy.deepcopy(report)
+                forged[flag] = True
+                with self.subTest(flag=flag), self.assertRaisesRegex(
+                        ValueError, "unsupported external"):
+                    verify_frame.verify(forged, evidence)
+
+    def test_unmanifested_directory_is_rejected(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            a, b = self.make_capture(root)
+            evidence = root / "evidence"
+            report = frames.audit(self.identity(), a, b, 0, 2, retained=evidence)
+            (evidence / "unlisted").mkdir()
+            with self.assertRaisesRegex(ValueError, "unmanifested"):
+                verify_frame.verify(report, evidence)
 
     def test_missing_short_masked_and_same_root_rejected(self):
         with tempfile.TemporaryDirectory() as d:

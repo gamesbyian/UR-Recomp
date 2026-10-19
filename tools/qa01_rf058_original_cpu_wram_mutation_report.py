@@ -14,6 +14,9 @@ BEAT="QA01RF058CPUHEART "
 CHANGE="QA01RF058OPWRAM "
 KV=re.compile(r"([A-Za-z][A-Za-z0-9_]*)=([^\s]+)")
 BASE_SHA="c2262b40e43b4e167cbdf291623b0e34207561187e103af39eca7a46fa4b0edc"
+ACTUAL_SHA="2248cf04d75208a4b55da83fd18af11b57ddf37148b7ddf4b9446e39f880cd04"
+ORIGINAL_INSTRUMENTED_CORE_SHA="aeaa1c2d89f60f25bed39507291eecf1e90efb57bb9f30d87dadf377e5ad1e69"
+ORIGINAL_UNMODIFIED_CORE_SHA="0182cfc3446e5a2c1d00453928b857b3d1d9c23148486c7339c895c4facc25c5"
 WATCH={0x0:(0x20,0x02),0x57:(0xe2,0x00),0x6f:(0x0f,0x00),0x83:(0x86,0x94)}
 FRAMES=list(range(4687,4694))
 
@@ -90,15 +93,30 @@ def images(z:zipfile.ZipFile)->dict[str,bytes]:
 def case(actual:Path,reference:Path)->dict:
     if hashlib.sha256(reference.read_bytes()).hexdigest()!=BASE_SHA:
         raise ValueError("RF058 independently pinned original 2014 USA Bowl reference ZIP changed")
+    if hashlib.sha256(actual.read_bytes()).hexdigest()!=ACTUAL_SHA:
+        raise ValueError("RF058 actual genuine executed-original case ZIP SHA256 changed")
     with zipfile.ZipFile(actual) as z,zipfile.ZipFile(reference) as r:
         if "bowl/replay/reference.log" not in z.namelist():
             raise ValueError("RF058 actual source opcode trace missing")
         t=inspect(z.read("bowl/replay/reference.log").decode("utf8","replace"))
         a=json.loads(z.read("bowl-report.json"));b=json.loads(r.read("bowl-report.json"))
-        for k in ("rom_sha256","original_movie_sha256","source_sram_sha256",
-                  "input_sha256","bowl_next_switcher_handoff","comparison"):
-            if a.get(k)!=b.get(k):
-                raise ValueError("RF058 source/input/stored event comparison object drift "+k)
+        # Instrumenting the actual original Snes9x source must change its
+        # binary digest. A newer diagnostics producer also appends precisely
+        # one false Dragster metadata flag. Everything ELSE, not just a
+        # handpicked list of source keys, must remain bit-for-bit identical.
+        if (a.get("reference_core_sha256")!=ORIGINAL_INSTRUMENTED_CORE_SHA or
+            b.get("reference_core_sha256")!=ORIGINAL_UNMODIFIED_CORE_SHA):
+            raise ValueError("RF058 actual original source core was not exactly the pinned patch")
+        diagnostic_key="bounded_dragster_to_zoo_diagnostic_without_full_event_parity"
+        a_cmp=a.get("comparison");b_cmp=b.get("comparison")
+        if (not isinstance(a_cmp,dict) or not isinstance(b_cmp,dict) or
+            diagnostic_key in b_cmp or
+            a_cmp.get(diagnostic_key) is not False or
+            {k:v for k,v in a_cmp.items() if k!=diagnostic_key}!=b_cmp):
+            raise ValueError("RF058 original/native Bowl comparison drift or unexpected metadata")
+        allowed={"reference_core_sha256","comparison"}
+        if set(a)!=set(b) or any(a[k]!=b[k] for k in a if k not in allowed):
+            raise ValueError("RF058 genuine source ROM/input/SRAM/guest producer fields drifted")
         fresh,ref=images(z),images(r)
         if set(fresh)!=set(ref) or len(ref)!=64:
             raise ValueError("RF058 missing one of 64 exact original/native/movie memory images")
@@ -107,7 +125,10 @@ def case(actual:Path,reference:Path)->dict:
                 raise ValueError("RF058 truncated genuine full guest image")
             if raw!=fresh[path]:
                 raise ValueError("RF058 actual original/native/movie guest images changed: "+path)
-    t["actual_replayed_case_zip_sha256"]=hashlib.sha256(actual.read_bytes()).hexdigest()
+    t["actual_replayed_case_zip_sha256"]=ACTUAL_SHA
+    t["instrumented_original_core_sha256"]=ORIGINAL_INSTRUMENTED_CORE_SHA
+    t["unmodified_original_core_sha256"]=ORIGINAL_UNMODIFIED_CORE_SHA
+    t["only_report_metadata_delta"]="bounded_dragster_to_zoo_diagnostic_without_full_event_parity=false"
     t["source_ROM_movie_seed_SRAM_script_and_full_handoff_unchanged"]=True
     t["all_64_original_native_historical_movie_full_memory_images_byte_exact"]=True
     t["unmasked_mem_bytes_excluded"]=0

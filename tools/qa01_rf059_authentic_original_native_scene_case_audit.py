@@ -67,8 +67,13 @@ def certify_archive(actual:Path,reference:Path)->dict:
             raise ValueError("RF059 producer's actual source opcode evidence changed")
         actual_hand=json.loads(z.read("bowl-independent-raw-audit.json"))
         previous=json.loads(b.read("bowl-independent-raw-audit.json"))
-        if actual_hand!=previous:
-            raise ValueError("RF059 independent raw audit object changed")
+        actual_producer_sha=hashlib.sha256(z.read("bowl-report.json")).hexdigest()
+        prior_producer_sha=hashlib.sha256(b.read("bowl-report.json")).hexdigest()
+        if (actual_hand.get("producer_sha256")!=actual_producer_sha or
+            previous.get("producer_sha256")!=prior_producer_sha or
+            {k:v for k,v in actual_hand.items() if k!="producer_sha256"} !=
+            {k:v for k,v in previous.items() if k!="producer_sha256"}):
+            raise ValueError("RF059 independent raw audit differs beyond its authenticated parent producer SHA")
     return {
         "schema":"rf059-genuine-2014-USA-Bowl-original-CPU-scene-setup-whole-archive-audit-v1",
         "original_source_replay_sha256":CASE_SHA,

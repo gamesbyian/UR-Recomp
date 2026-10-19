@@ -153,11 +153,16 @@ def compare_native_helper_windows(baseline: list[dict[str, str]],
         for tag,i1,i2,j1,j2 in codes if tag=="equal"
         for n in range(i2-i1)
     ]
-    interior_changes = [
-        x for x in shifted
-        if x["baseline_range_zero_based"][0] not in (0,len(baseline)) and
-           x["instrumented_range_zero_based"][0] not in (0,len(instrumented))
-    ]
+    # A changed block is a genuine frame-edge difference only when it
+    # touches the *same* leading or trailing boundary on both trace axes.
+    # An edit at one axis' boundary but another axis' middle is not safe
+    # to dismiss as a benign sampler shift.
+    def is_joint_edge(edit: dict) -> bool:
+        a1,a2=edit["baseline_range_zero_based"]
+        b1,b2=edit["instrumented_range_zero_based"]
+        return (a1 == b1 == 0 or
+                (a2 == len(baseline) and b2 == len(instrumented)))
+    interior_changes = [x for x in shifted if not is_joint_edge(x)]
     return {
         "schema": "ur-qa01-rf062-source-vs-instrumented-helper-window-alignment/1",
         "baseline_helper_rows": len(baseline),

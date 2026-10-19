@@ -90,7 +90,7 @@ def count_large_errors_in_box(heat: bytes,
         raise ValueError("medal region is not within true source crop")
     return sum(
         heat[((y - y0) * width + (x - x0)) * 3:
-             ((y - y0) * width + (x - x0)) * 3 + 3] == b"\\xff\\x38\\x3c"
+             ((y - y0) * width + (x - x0)) * 3 + 3] == bytes((255, 56, 60))
         for y in range(my0, my1) for x in range(mx0, mx1)
     )
 

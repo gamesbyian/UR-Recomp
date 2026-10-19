@@ -28,5 +28,23 @@
   "actual_4k_display_certified": false,
   "no_new_original_native_event_credit": true,
   "release_gate_credit": 0,
-  "disposition": "Hosted Windows navigation evidence confirmed; physical hardware and audio untested"
+  "disposition": "Hosted Windows navigation evidence confirmed; physical hardware and audio untested",
+  "extracted_launcher_archive": {
+    "artifact_id": 12010495750,
+    "run_id": 38813101482,
+    "outer_zip_sha256": "5845040dbbc8ba93d9202f043dd3457f5937fdd62d4200771f0aa031f7f35891",
+    "member_count": 7,
+    "crc_all_members_passed": true,
+    "log_members": 6,
+    "log_members_with_sdl_init": 5,
+    "log_members_with_zero_joysticks": 5,
+    "log_members_with_dummy_audio": 5,
+    "refusal_log": "profile-rejected-launch.log",
+    "source_manifest_report": "launcher-acceptance.json",
+    "source_and_exe_bound_to_original_owner": true,
+    "native_extracted_cmd_on_hosted_windows": true,
+    "clean_ordinary_end_user_windows_executed_here": false,
+    "physical_controller_or_audible_audio_verified": false,
+    "controller_only_first_racer_autorelaunch": "hosted SDL semantic input, not physical-pad event"
+  }
 }

@@ -26,14 +26,16 @@ For reproducibility, pin the authentic Actions artifact ZIP SHA256 and run:
 
 ```sh
 python3 tools/qa01_rf062_same_binary_ab.py \
-  --archive /tmp/real-qa01-rf062-case-artifact.zip \
-  --expect-sha256 REAL_64_DIGIT_SHA256 \
-  --binary-artifact /tmp/real-qa01-campaign-reference-and-native-binaries.zip \
-  --expect-binary-sha256 REAL_BINARY_ZIP_64_DIGIT_SHA256 \
+  --archive /tmp/qa01-rf062-ab-genuine-case.zip \
+  --expect-sha256 b94660b8ffb0cfb1cd35ec9fe3a3c1c8c6b44a46d865272b8cfdad2e62078cbd \
+  --binary-artifact /tmp/qa01-rf062-ab-genuine-binaries.zip \
+  --expect-binary-sha256 83233faded8aa546025f59abe50c9ba29f109250f5bcafb2e20cdb5d7780bc37 \
   --output /tmp/rf062-independent-on-off.json
 ```
 
 When the separate exact-head binary artifact is supplied, the examiner independently opens `native`, `snes9x_libretro.so`, `snesref` and `SHA256SUMS`, rehashes **all three actual executable files**, and checks the native and original-core hashes against the two case reports. Without `--binary-artifact`, the result explicitly leaves `independently_reopened_compiled_binaries=null`: matching producer-claimed hashes alone are not independent binary authentication. Similarly, source commit ancestry must be separately validated against the actual Actions checkout/plan; the case's `producer-report.json` itself doesn't contain a signed source commit ID. No automatic USA acceptance or factory admission follows a green A/B receipt.
+
+The ZIP auditor also demands the genuine case's `case-result.json` source commit SHA and non-promoting disposition, and byte-matches its primary ON producer report against the separately retained ON copy. Only exact same-case evidence may be compared; old original/native observations are not substituted.
 
 The tool can also consume original on/off directories with `--off`, `--on` and `--output`. The ZIP path is preferred for independent archival reproducibility. It rejects unsafe/duplicate ZIP members, missing real guest logs, altered original/native replay-supplied controller files, source-ROM/movie/window, original core SHA, original replay script SHA, and native executable SHA. Source reports are always re-opened from disk, never copied from CI job conclusion. For **all ten observed RF062 native actual read returns**, it demands a unique genuinely instrumented RF054 CPU helper at the same native-local address, A, Y, D and master clock. Then it compares complete ordered RF054 populations (including DP registers) and exact CPU master values between observation ON and OFF; it requires the full original-emulator replay logs to be byte-identical for a positive result and records all insertion/deletion/replacement blocks, original log SHA values, sound-helper count, full Zoo mesh, terminal followthrough and next Bowl. The result never accepts any USA event and marks native-wrapper substitution equivalence **false** even when the logged ON/OFF result is positive.
 

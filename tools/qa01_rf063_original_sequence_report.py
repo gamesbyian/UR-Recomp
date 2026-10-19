@@ -14,6 +14,7 @@ from pathlib import Path
 
 BUS="QA01RF063ORIGBUS "
 CHECK="QA01RF063ORIGCHECKPOINT "
+CONSUMED="QA01RF066ORIGCONSUMED "
 NMI="QA01RF044ORIGNMI "
 HEX5=re.compile(r"[0-9A-Fa-f]{10}\Z")
 HEX4=re.compile(r"[0-9A-Fa-f]{4}\Z")
@@ -28,16 +29,17 @@ def inspect(raw: str) -> dict:
     checkpoints=[]
     nmis=[]
     for line in raw.splitlines():
-        for tag in (BUS,CHECK):
+        for tag in (BUS,CHECK,CONSUMED):
             if tag in line and not line.startswith(tag):
                 raise ValueError("RF063 event embedded in another log record")
-        if "QA01RF063ORIGBUS_TRUNCATED" in line:
+        if "QA01RF063ORIGBUS_TRUNCATED" in line or "QA01RF066ORIGCONSUMED_TRUNCATED" in line:
             raise ValueError("RF063 original bus recorder truncated")
         if line.startswith(NMI):
             nmis.append(fields(line))
-        if not line.startswith(BUS) and not line.startswith(CHECK):
+        if not any(line.startswith(x) for x in (BUS,CHECK,CONSUMED)):
             continue
         checkpoint=line.startswith(CHECK)
+        consumed=line.startswith(CONSUMED)
         f=fields(line)
         try:
             seq=int(f["seq"])
@@ -50,6 +52,31 @@ def inspect(raw: str) -> dict:
             if frame!=1017 or f.get("phase")!="post_real_nmi_push" or not HEX5.fullmatch(f.get("stack","")):
                 raise ValueError("RF063 original checkpoint missing real raw five bytes")
             checkpoints.append((seq,f))
+        elif consumed:
+            # RF066 joins the SAME source-local ordinal only AFTER the
+            # real original stack getter returned. Never reinterpret it as
+            # a genuine S9xGetByte/Word function-entry event.
+            try:
+                before=int(f["before"])
+                after=int(f["after"])
+                bounded=int(f["bounded"])
+                base=int(f["base"],16)
+                width=int(f["width"])
+                value=int(f["returned"],16)
+                pb=int(f["postPB"],16)
+                pc=int(f["postPC"],16)
+            except (KeyError,ValueError) as e:
+                raise ValueError("RF066 source post-call byte/interval provenance missing") from e
+            if (f.get("phase")!="post_real_stack_getter_return" or
+                    f.get("kind") not in ("pullB","pullW") or
+                    width!=(1 if f["kind"]=="pullB" else 2) or
+                    not (0<=value<(1<<(width*8))) or
+                    not (0<=pb<=255 and 0<=pc<=65535) or
+                    not (base<=0x01f1 and base+width-1>=0x01ed) or
+                    before<0 or after<before or after+1!=seq or
+                    bounded!=int(before==after) or
+                    len(f.get("postPB",""))!=2 or len(f.get("postPC",""))!=4):
+                raise ValueError("RF066 true post-call event invalid or guessed")
         else:
             if f.get("phase")!="getset_entry" or f.get("kind") not in ("rb","rw","wb","ww"):
                 raise ValueError("RF063 original bus entry incomplete")
@@ -65,7 +92,7 @@ def inspect(raw: str) -> dict:
             width=int(f["width"])
             if off>0x01f1 or off+width-1<0x01ed or not (bank==0x7e or ((bank&0x7f)<0x40 and off<0x2000)):
                 raise ValueError("RF063 bus outside pinned stack filter")
-        seen.append((seq,frame,checkpoint))
+        seen.append((seq,frame,CONSUMED if consumed else CHECK if checkpoint else BUS))
     if not seen or not any(not c for _,_,c in seen):
         raise ValueError("no actual original getset-entry samples")
     if len(checkpoints)!=1:
@@ -80,7 +107,10 @@ def inspect(raw: str) -> dict:
         "schema":"ur-qa01-rf063-original-source-order/1",
         "sha256_source_log_text":hashlib.sha256(raw.encode()).hexdigest(),
         "source_identity_independently_authenticated":False,
-        "sequenced_original_bus_entries":sum(not c for _,_,c in seen),
+        "sequenced_original_bus_entries":sum(kind==BUS for _,_,kind in seen),
+        "sequenced_real_postcall_returns":sum(kind==CONSUMED for _,_,kind in seen),
+        "shared_original_postcall_ordinals_qualified":True,
+        "original_getset_read_entries_not_inferred_from_postcall":True,
         "sequenced_original_checkpoint_count":1,
         "checkpoint_seq":checkpoints[0][0],
         "checkpoint_frame":1017,

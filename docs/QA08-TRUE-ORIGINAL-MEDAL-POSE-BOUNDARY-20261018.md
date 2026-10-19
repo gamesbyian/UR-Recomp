@@ -18,6 +18,10 @@ The earlier 4175 original painter uses alternative source tile `15f2` at the x22
 
 Critically, an original 2014 **video callback labeled 4031** genuinely corresponds to original painter internal 4031 (and callback4175 to painter4175), **10/10 exact RGB samples**, already mechanically proven in merged [#1846](https://github.com/gamesbyian/UR-Recomp/pull/1846). The current native renderer at guest4032/4176 has the actual following source painter's winner/tile identity, **8/8 OBJ and 2/2 BG**, already proven in merged [#1880](https://github.com/gamesbyian/UR-Recomp/pull/1880). These two statements answer *different* time registration questions. At the **correctly paired original video callback** the native pixels still disagree and the broader [#1874](https://github.com/gamesbyian/UR-Recomp/pull/1874) census still shows 125/125 wrong pixels across 25 real result samples.
 
+### Native brightness operand explains the two *remaining numerical shades*, not the medal timing
+
+At genuine native guest4032 **and** guest4176, the physical PPU reports the actual winning source pixel at (205,115): **OBJ113, CGRAM word `0cd1`, pre-main RGB5 (17,6,3), postmath RGB5 (17,6,3), live INIDISP `0e`, final RGB8 (130,45,22)**. The original Snes9x **following internal painter stage** at the same numbered field is RGB565 `8183`, equivalent to RGB5 (16,6,3). After native brightness/host output the numerical difference is **(0,-1,-1)** RGB5, reproduced on both source fields. At the other four positions per field, native final RGB5 matches the following 2014 source stage. This directly narrows the *two otherwise unexplained one-step pixels* to a source-stage-versus-post-brightness arithmetic distinction; it neither proves the correct original 2014 final-video RGB nor licenses a global brightness adjustment, which would conflict with guest4016 blackout.
+
 ### Repeatable guard
 
 The new stdlib script reuses the independent source SHA/consumed-input, Snes9x callback and physical native 4bpp verifiers rather than rebuilding another emulator or loosening their tests:

@@ -204,3 +204,20 @@ I independently reopened **156 actual complete 131,072-byte WRAM images** and **
 **Important limits:** The original RF054 156 raw WRAM files are absent from its immutable ZIP and were not independently reopened. Accordingly the historical end of this digest crosswalk is **previously recorded producer SHA claims**, while the new RF064 side is actually rehashed raw bytes. Both source original core and native ELF have changed between these two research epochs (RF064 actual executable SHA original `c67b3ad9...`, native `9a3bd17a...`), and this sampled equality is strong noninterference evidence **for those 78 observation phases**, not continuous or instruction parity in unsampled intervals. The new original RF064 returns 903 times but RF044/RF063 never emits one physical `rb/rw` entry; see preceding missing-reader audit. No original/native CPU pad-consumption identity, exact executed guest PC join, shipping Windows product, hard disk power recovery or complete-USA race is proven. Event credit remains **0/45 USA**, release **0/12 gates**. Never interpolate unretained RF054 bytes or insert new clocks/byte masks.
 
 This independent crosswalk is also preserved as machine-readable receipt `qa01-rf064-vs-rf054-78-real-frame-cross-epoch-independent-20261019.json` generated from the three immutable source artifacts and original/native raw bytes; the receipt is not checked into the repository because it contains the machine analysis rather than an additional source-executed witness.
+
+### Six-address source-original/native raw residual census, 78 Zoo snapshots
+
+The independently re-opened RF064 78-pair true raw WRAM bytes reduce **all 92 observed unmasked original/native byte differences** to **six physical WRAM addresses**, without excluding or zeroing any memory:
+
+| Physical address | Unlike sampled frames | First observed source-relative frame |
+| --- | ---: | ---: |
+| `7E:01ED` | 20 | +1 |
+| `7E:01EE` | 25 | +1 |
+| `7E:01EF` | 20 | +1 |
+| `7E:01F0` | 20 | +1 |
+| `7E:01F1` | 5 | +5034 |
+| `7E:0063` | 2 | +5040 |
+
+All counts sum to **92**; 51/78 original/native pairs remain full-WRAM byte-exact, 78/78 SRAM pairs byte-exact. Late five-frame `+5034..+5038` stack `01EE F0/EE` and `01F1 F4/FB` are genuine. In **this exact RF064 ELF/core epoch**, sound pointer `0063` differs only at **+5040 `73/74`** and **+5045 `B3/B4`**. Do not import the distinct additional `0069` sound-pointer residual observed under the different A/B source/native executable epoch. The first sampled original/native difference at +1 spans four stack bytes `01ED..01F0`, but no cross-guest first *actually consumed* divergent byte or same-opcode phase is proven by these snapshots.
+
+Separately, genuine RF063 source-original post-NMI checkpoint local ordinal **67**, original host frame **1017**, physical stack `26F0D48226`, precedes four authentic RF064/RF045 original post-call returns with **no intervening observed eligible RF063 bus entry**: 1-byte `01ED=26`, word `01EE=D4F0`, byte `01F0=82`, byte `01F1=26`, in that original-local order. Independent source-return verifier [#1934](https://github.com/gamesbyian/UR-Recomp/pull/1934) owns the exact post-call and NMI source proof; this census **does not promote post-call PC context to a physically observed getset read-entry PC**, nor prove corresponding native consumption. Prioritize matching executed native reads and source/guest observation phases before a causal gameplay patch. No byte masks, user-input shifts or automatic acceptance: **0/45 USA, 0/12 release QA**.

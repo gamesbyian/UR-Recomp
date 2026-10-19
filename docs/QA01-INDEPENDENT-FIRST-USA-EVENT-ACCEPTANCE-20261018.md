@@ -221,3 +221,30 @@ The independently re-opened RF064 78-pair true raw WRAM bytes reduce **all 92 ob
 All counts sum to **92**; 51/78 original/native pairs remain full-WRAM byte-exact, 78/78 SRAM pairs byte-exact. Late five-frame `+5034..+5038` stack `01EE F0/EE` and `01F1 F4/FB` are genuine. In **this exact RF064 ELF/core epoch**, sound pointer `0063` differs only at **+5040 `73/74`** and **+5045 `B3/B4`**. Do not import the distinct additional `0069` sound-pointer residual observed under the different A/B source/native executable epoch. The first sampled original/native difference at +1 spans four stack bytes `01ED..01F0`, but no cross-guest first *actually consumed* divergent byte or same-opcode phase is proven by these snapshots.
 
 Separately, genuine RF063 source-original post-NMI checkpoint local ordinal **67**, original host frame **1017**, physical stack `26F0D48226`, precedes four authentic RF064/RF045 original post-call returns with **no intervening observed eligible RF063 bus entry**: 1-byte `01ED=26`, word `01EE=D4F0`, byte `01F0=82`, byte `01F1=26`, in that original-local order. Independent source-return verifier [#1934](https://github.com/gamesbyian/UR-Recomp/pull/1934) owns the exact post-call and NMI source proof; this census **does not promote post-call PC context to a physically observed getset read-entry PC**, nor prove corresponding native consumption. Prioritize matching executed native reads and source/guest observation phases before a causal gameplay patch. No byte masks, user-input shifts or automatic acceptance: **0/45 USA, 0/12 release QA**.
+
+## October 19: compiled RF066 original Snes9x getter path disassembly, independent byte audit
+
+The **genuine executed original** RF066 case [Actions 39219862021](https://github.com/gamesbyian/UR-Recomp/actions/runs/39219862021) retained an actual compiled, unstripped Snes9x x86-64 \`snes9x_libretro.so\` in binary artifact **12171087892**, ZIP SHA256 \`fbd977fd03b05daa47537ba78268461308c49e7ec7cc9f1038c41c56a594b430\`; the original ELF byte SHA256 was independently rehashed as \`9682cd2c2732541487c88cfef84f0d1b5a1005d4de0b00e95d43bac1cf9215c0\`. The original same-run source-authentic case artifact **12171791431** has 903 actual post-getter return records and **zero** RF063 \`rb/rw\` records, despite source-local ordinal continuity and 903 recorded stack writes. Exact game result +5163/+5163, next Bowl +267/+267, 78 bounded source/native original WRAM mesh and cold earned SRAM remain historical bounded controls, not acceptance.
+
+**New actual ELF disassembly finding (not a source-header text inference):**
+
+| Compiled exact original ELF symbol | Address, size | Calls to \`getenv\` / formatted output | RF063 shared source event ordinal references |
+| --- | --- | ---: | ---: |
+| \`S9xGetByte(unsigned int)\` | \`0x45720\`, \`0x618\` bytes | 0 / 0 | **0** |
+| \`S9xGetWord(unsigned int, s9xwrap_t)\` | \`0x45d40\`, \`0xbc8\` bytes | 0 / 0 | **0** |
+| \`Op68E0M0()\` | \`0x80060\`, \`0x36d\` bytes | 4 / 3 | **4** |
+
+The compiled \`Op68E0M0()\` instruction at **\`0x800bf\`** makes a real direct call to **\`0x45d40\`**, the compiled word-getter symbol. This getter has **no RF044 source-read recorder, RF063 source-ordinal reference, environment hook or formatted output call in its entire out-of-line executable body**. \`S9xGetByte\` likewise has no such reader-observer code. Post-return instrumentation survives inside the opcode path, explaining why post-call return observations can coexist with missing getset read-entry events. Other \`getset.h\` write observer symbols/strings are present in the binary, so a source-code marker string alone is not a sufficient witness that the **getter path** is instrumented.
+
+**Precisely scoped inference:** this directly demonstrates **one compiled original stack-pull opcode callsite reaching an uninstrumented out-of-line getter**, not that all 903 true source pull calls used that exact opcode or that no separately inlined or cloned getter carries different instrumentation. Nor does it prove *why* those observer calls were missing in final machine code (source patch/inclusion route, multiple instantiations, compiler/LTO specialization, or other build mechanism). It does not reclassify the original's true returned bytes or invent a new guest read. The next CPU/APU producer should inspect the exact patched \`getset.h\` used to generate this executable, qualify all relevant compiled instantiations/callsites, and instrument the **actually executed physical getter** with a real source ordinal, without adding a guest bus access or shifting the CPU clock.
+
+An executable, read-only Linux ELF classifier is available as \`tools/qa01_independent_original_elf_getter_audit.py\`; it pins the genuine core SHA256, uses \`nm -SnC\` exact unstripped function spans plus \`objdump -d -C\` disassembly, checks the opcode→getter direct call, and reports hook absence **without claiming guest callsite execution**. With the genuine executable extracted from artifact **12171087892**:
+
+\`\`\`bash
+python3 tools/qa01_independent_original_elf_getter_audit.py \
+  /tmp/rf066/snes9x_libretro.so \
+  --output /tmp/qa01-rf066-original-elf-reader-site.json
+python3 -m unittest tests.unit.test_qa01_independent_original_elf_getter_audit -v
+\`\`\`
+
+Retained strict status **0/45 USA complete events; 0/12 release QA gates**; no raw retail ROM, emulation patches, clocks, memory masks or acceptance credit were changed.

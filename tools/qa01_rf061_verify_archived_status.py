@@ -44,11 +44,18 @@ def verify(case: Path, receipt: dict | None = None, *, expected_sha: str = ARCHI
             decision.get("disposition") == "strict_candidate",
             "case source identity / acceptance changed")
     mesh = producer["zoo_race_mesh"]
-    require(mesh["mesh_checkpoint_count"] == 78 and
+    samples = [row["original_native_full_wram_byte_difference"]
+               for row in mesh["samples"]]
+    require(len(samples) == 78 and mesh["mesh_checkpoint_count"] == 78 and
             mesh["raw_byte_exact_sample_count"] == 51 and
             mesh["masked_or_excluded_wram_bytes"] == 0 and
-            sum(row["original_native_full_wram_byte_difference"]["differing_byte_count"]
-                for row in mesh["samples"]) == 92,
+            sum(row["differing_byte_count"] for row in samples) == 92 and
+            sum(row["differing_byte_count"] == 0 for row in samples) == 51 and
+            all(row["full_wram_bytes_per_guest"] == 131072 and
+                row["every_byte_compared"] is True and
+                row["excluded_byte_count"] == 0 and
+                row["byte_exact"] is (row["differing_byte_count"] == 0) and
+                row["release_complete_event_credit"] == 0 for row in samples),
             "unmasked full-WRAM controls changed")
     require("QA01RF045ORIGSTACK_TRUNCATED" not in original and
             "QA01RF047NATIVE_TRUNCATED" not in native,

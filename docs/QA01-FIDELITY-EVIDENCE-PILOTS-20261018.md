@@ -218,3 +218,25 @@ python3 tools/qa01_zoo_archived_frame_atlas.py \
 The new **same-guest raw transition census**, compared against the prior *retained* full-frame images, demonstrates **zero** WRAM/SRAM changes inside either guest from +5034 to +5035 or from +5036 to +5037; at +5036 only native WRAM changes by one byte, and at +5038 native WRAM changes by one byte. The old archive's +5039 source/native raw images were **not retained**, so a real transition into +5040 cannot be computed: both guest change fields are `null`. At +5041 and +5042, **both** original and native WRAM each change at three byte positions per adjacent observed frame (SRAM unchanged), even though original-vs-native differences at each of those frames involve only two addresses. This distinction is factual byte observation, not a causal inference.
 
 The experimental original and native guest-local host origins remain **1017/1019**; never cross-align them. No actual original/native guest execution log bytes, original CPU joypad bus reads, opcode writer/read ordinals, or shipping Windows persistent-record witness can be reconstructed from the old archive. In particular, the zero-byte within-guest changes at two sampled boundaries do **not** establish absence of transient or between-dump CPU/APU state changes. This atlas exists to focus RF061/062/063/064 physical-bus investigations on witnessed changing bytes rather than create game code or acceptance credit: **0/45 events; 0/12 QA gates**.
+
+
+## Actual supplied original/native controller stream re-opening (October 19)
+
+Merged authentic Zoo capture A/B #1904 established that ON and OFF replays supplied identical *per-guest* input file hashes/lengths, but original and native input files intentionally differ as raw text. The original Snes9x transport writes `START:DURATION:MASK_HEX`; the pinned native Baldosa transport writes `(START + native_entry - original_entry):DURATION:MASK_HEX_3_DIGITS`. The native non-pinned transport may include a fourth `:0` field. Raw SHA equality **across different guests** is therefore not an appropriate acceptance criterion; the actual source-relative mask, onset, and duration tuples must match instead. These input files encode *supplied* controller events only, never the executed CPU joypad read trace.
+
+The new ROM-free `tools/qa01_verify_supplied_controller_streams.py` independently opens all four real ON/OFF guest input files (not just stored SHA fields), enforces canonical ASCII/line structure, nonzero SNES masks, ordered nonoverlapping intervals, real individual guest race-entry origins, exact producer-reported file sizes and SHA-256, and byte-identical original OFF/ON plus native OFF/ON file contents. It then independently subtracts each guest's **own observed race-entry host frame** and compares the resulting event tuples (relative onset, duration, hexadecimal mask) between original and native. It fails closed on modified mask, shifted/relabelled start, wrong endpoint, symlink/missing input, improper native transport syntax or any attempted CPU-input-consumption claim. No source ROM, gameplay code, save file, emulator, frame clock, actual input events, artifact factory or release gate is modified.
+
+Example using future **real** persisted guest files (these were *not* retained by the historical successful archive `12167633197`):
+
+```bash
+python3 tools/qa01_verify_supplied_controller_streams.py \
+  --baseline /real/zoo/capture-off/producer-report.json \
+  --captured /real/zoo/capture-on/producer-report.json \
+  --off-original-input /real/zoo/capture-off/replay/ref.input \
+  --off-native-input /real/zoo/capture-off/replay/pinned-baldosa.input \
+  --on-original-input /real/zoo/capture-on/replay/ref.input \
+  --on-native-input /real/zoo/capture-on/replay/pinned-baldosa.input \
+  --output /new/qa01-independent-supplied-input-streams.json
+```
+
+The receipt also retains **every** independently normalized source-relative start/duration/mask segment plus a canonical SHA-256 for direct future comparison against witnessed CPU joypad read ordinals; it never invents zero-mask events in between nonzero segments. The already manual-only `.github/workflows/qa01-zoo-frame-ab-once.yml` now retains these four small actual input-file artifacts and runs this independent check before publishing a verdict. The original successful 19 October archive does **not** contain them and can never retrospectively qualify independent reopening. Reproducing the source-2014 SMV controller window from the full movie and tracing actual executed original/native joypad polls remain separate uncompleted evidence gates. This verifier upgrades supply-path reproducibility only; it cannot prove guests *consumed* those masks, game-state equivalence, a complete race, true causal divergence, 45-event admission or Windows shipping persistence. **0/45 original USA events and 0/12 release QA gates.**

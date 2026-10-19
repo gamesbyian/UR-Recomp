@@ -1,0 +1,121 @@
+name: One-shot October 19 source-locked flagship media render
+on:
+  push:
+    branches: [media/oct19-flagship-recruitment-film]
+    paths: [.github/workflows/one-shot-oct19-flagship-media.yml]
+permissions:
+  contents: write
+concurrency:
+  group: october19-flagship-media-once
+  cancel-in-progress: false
+jobs:
+  render-and-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Install lightweight media-only dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg python3-pil
+          python3 -m py_compile tools/showcase/build_flagship_recruitment_20261019.py
+          ffmpeg -hide_banner -version | head -n 1
+      - name: Source-locked flagship 85s and social 27s encode
+        run: |
+          set -euo pipefail
+          python3 tools/showcase/build_flagship_recruitment_20261019.py \
+            --outdir media/showcase/2026-10-19/flagship
+      - name: Independent exact frames and final output SHA audit
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,json,subprocess
+          from pathlib import Path
+          from PIL import Image,ImageOps,ImageDraw,ImageFont,ImageStat
+          root=Path('media/showcase/2026-10-19/flagship')
+          m=json.loads((root/'flagship-provenance.json').read_text())
+          assert m['schema']=='UR-FLAGSHIP-RECRUITMENT/1'
+          assert m['total_horizontal_frames']==5100 and m['total_vertical_frames']==1620
+          assert m['no_interpolation'] and m['editorial_cards_not_gameplay']
+          assert m['claims_and_exclusions']['independently_accepted_USA_events'].startswith('0/45')
+          assert m['claims_and_exclusions']['windows_release_QA_gates'].startswith('0/12')
+          assert len(m['horizontal_shots'])==15 and len(m['vertical_shots'])==7
+          sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+          selected={
+           'ur-recomp-flagship-85s-1080p.mp4':((1920,1080),5100,[15,115,390,715,1170,1450,1910,2400,2780,3120,3600,3980,4500,4850]),
+           'ur-recomp-flagship-27s-vertical.mp4':((1080,1920),1620,[15,104,430,775,995,1250,1500])}
+          out={}
+          review=[]
+          for name,(dims,expected,ordinals) in selected.items():
+            p=root/name
+            assert sha(p)==m['output_sha256'][name],(name,'hash')
+            s=json.loads(subprocess.check_output(['ffprobe','-v','error','-count_frames',
+                '-select_streams','v:0','-show_entries','stream=width,height,r_frame_rate,nb_read_frames',
+                '-of','json',str(p)]))['streams'][0]
+            assert (s['width'],s['height'],s['r_frame_rate'],int(s['nb_read_frames']))==(*dims,'60/1',expected),(name,s)
+            expr='+'.join('eq(n\\,'+str(n)+')' for n in ordinals)
+            tmp=root/(name+'.sample-%02d.png')
+            subprocess.run(['ffmpeg','-nostdin','-hide_banner','-loglevel','error','-y','-i',str(p),
+              '-vf',f'select={expr}','-fps_mode','vfr','-frames:v',str(len(ordinals)),
+              '-start_number','0',str(tmp)],check=True)
+            for i,n in enumerate(ordinals):
+              source=root/(name+f'.sample-{i:02d}.png')
+              assert source.exists(),(name,n)
+              target=root/(name.removesuffix('.mp4')+f'-frame-{n:04d}.png')
+              source.rename(target)
+              with Image.open(target) as im:
+                assert im.size==dims
+                im.load()
+                if n==15:
+                  bbox=(120,180,1750,975) if dims==(1920,1080) else (110,660,950,1250)
+                  assert max(ImageStat.Stat(im.crop(bbox)).mean)>25,'black source opening'
+                preview=ImageOps.contain(im,(480,270) if dims==(1920,1080) else (210,372))
+                review.append((name,n,preview.copy()))
+              with Image.open(target) as im:im.verify()
+              out[target.name]=sha(target)
+          poster=root/'ur-recomp-flagship-poster.png'
+          assert sha(poster)==m['output_sha256'][poster.name]
+          with Image.open(poster) as im:
+            assert im.size==(1920,1080)
+            im.verify()
+          # Reviewable contact sheet is specifically labelled editorial QC.
+          per_row=4
+          sheet=Image.new('RGB',(per_row*490,((len(review)+3)//4)*320),(8,16,31))
+          draw=ImageDraw.Draw(sheet)
+          for i,(file,n,preview) in enumerate(review):
+             x=(i%per_row)*490
+             y=(i//per_row)*320
+             sheet.paste(preview,(x,y+28))
+             draw.text((x+4,y+3),file.replace('ur-recomp-flagship-','')[:28]+f'  /  {n:04d}',fill=(227,240,250))
+          sheet_path=root/'flagship-output-contact-sheet.png'
+          sheet.save(sheet_path)
+          (root/'flagship-output-review.json').write_text(json.dumps({
+             'schema':'UR-FLAGSHIP-DECODED-QA/1',
+             'source_manifest_sha256':sha(root/'flagship-provenance.json'),
+             'review_frames_sha256':out,
+             'contact_sheet_sha256':sha(sheet_path),
+             'status':'SHA_and_exact_ordinal_decode_passed_pending_visual_review',
+             'physical_4k_video_shown':False,
+             'Windows_Oct19_session_video_shown':False,
+             'full_human_screening':False},indent=2,sort_keys=True)+'\n')
+          print('PASS source-locked 85s, 27s, poster, and',len(out),'exact decoded frames')
+          PY
+      - name: Retain inspectable exact evidence artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ur-oct19-flagship-film-and-review
+          path: media/showcase/2026-10-19/flagship/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Commit verified media and self-retire one-shot workflow
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add media/showcase/2026-10-19/flagship/
+          git rm -f .github/workflows/one-shot-oct19-flagship-media.yml
+          git commit -m "media: publish source-checked 85s flagship and 27s portrait plus review witnesses"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

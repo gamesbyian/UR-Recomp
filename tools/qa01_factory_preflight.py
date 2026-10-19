@@ -12,6 +12,9 @@ import json
 import re
 from pathlib import Path
 
+import qa01_causal_window as causal_verifier
+import qa01_verify_frame_capture as frame_verifier
+
 SHA = re.compile(r"[0-9a-f]{64}\Z")
 SOURCE = re.compile(r"[0-9a-f]{40}\Z")
 SCHEMA = "ur-qa01-research-factory-preflight/1"
@@ -61,6 +64,12 @@ def evaluate(attestation: dict, causal: dict | None, frames: dict | None,
         assert_valid(causal.get("accepted_complete_USA_events") == 0 and
                      causal.get("complete_gameplay_or_instruction_equivalence_proven") is False,
                      "causal report claims unsupported event proof")
+        expected_input = {key: attestation[key] for key in (
+            "source_sha", "rom_sha256", "movie_sha256", "input_sha256")}
+        assert_valid(causal.get("input_identity") == expected_input and
+                     all(type(causal.get(key)) is str and SHA.fullmatch(causal[key])
+                         for key in ("original_event_sha256", "native_event_sha256")),
+                     "causal original/native event or immutable ROM/movie/input mismatch")
         assert_valid(type(causal.get("addresses")) is list and causal["addresses"],
                      "causal report missing address decisions")
         for item in causal["addresses"]:

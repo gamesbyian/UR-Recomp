@@ -1,6 +1,7 @@
-"""RF062 direct decoded-PC sound ROM reader: ROM-free execution-site tests."""
+"""RF062 decoded opcode binds to real read only AFTER paced CPU-byte counting."""
 from __future__ import annotations
 
+import re
 import shutil
 import subprocess
 import sys
@@ -21,16 +22,25 @@ class DirectSoundRead(unittest.TestCase):
             "    bank, addr = _segref_addr_expr(op.seg)\n"
             '    return [f"{widths.ctype(op.width)} {_v(op.out)} = "\n'
             '            f"{widths.read_fn(op.width)}(cpu, {bank}, {addr});"]\n')
+        emitter = (
+            "def _pace_bus_lines(lines):\n"
+            "    out, data_bytes = [], 0\n"
+            "    for ln in lines:\n"
+            '        if "_host_rp" not in ln:\n'
+            '            ln = _BUS_RE.sub(lambda m: f"cpu_{m.group(1)}{m.group(2)}_paced(", ln)\n'
+            '        data_bytes += sum(1 if m.group(1) == "8" else 2 for m in _PACED_RE.finditer(ln))\n'
+            "        out.append(ln)\n"
+            "    return out, data_bytes\n")
         cpu = (
             "uint8_t cpu_read8_paced(CpuState *cpu, uint8_t bank, uint16_t addr) {\n"
             "    cpu->master_cycles += cpu_region_speed(((uint32_t)bank << 16) | addr);\n"
             "    return cpu_read8(cpu, bank, addr);\n"
             "}\n")
         header = "uint8  cpu_read8_paced (CpuState *cpu, uint8 bank, uint16 addr);\n"
-        return gen, cpu, header
+        return gen, emitter, cpu, header
 
-    def test_actual_codegen_emission_follows_decoded_pc_and_width(self):
-        gen, cpu, header = rf.patch(*self.fixture())
+    def patched_codegen(self):
+        gen, emitter, cpu, header = rf.patch(*self.fixture())
         namespace = {
             "Read": object,
             "List": List,
@@ -38,46 +48,66 @@ class DirectSoundRead(unittest.TestCase):
             "_v": lambda out: "v",
             "widths": SimpleNamespace(
                 ctype=lambda width: "uint8" if width == 1 else "uint16",
-                read_fn=lambda width: "cpu_read8_paced" if width == 1 else "cpu_read16_paced"),
+                read_fn=lambda width: "cpu_read8" if width == 1 else "cpu_read16"),
         }
         exec(gen, namespace)
-        read = SimpleNamespace(width=1, out=1, seg=None)
-        namespace["_CURRENT_SOURCE_PC24"] = 0x8282F0
-        live = namespace["_emit_read"](read)
-        self.assertEqual(live, ["uint8 v = ur_rf062_cpu_read8_pc(cpu, 0x11, 0xC774, 0x8282F0u);"])
-        namespace["_CURRENT_SOURCE_PC24"] = 0x8282F2
-        self.assertIn("cpu_read8_paced(cpu, 0x11, 0xC774)",
-                      namespace["_emit_read"](read)[0])
-        namespace["_CURRENT_SOURCE_PC24"] = 0x8282F0
-        self.assertIn("cpu_read16_paced", namespace["_emit_read"](
-            SimpleNamespace(width=2, out=1, seg=None))[0])
+        pace_ns = {
+            "_BUS_RE": re.compile(r"\bcpu_(read|write)(8|16)\("),
+            "_PACED_RE": re.compile(r"\bcpu_(?:read|write)(8|16)_paced\("),
+        }
+        exec(emitter, pace_ns)
+        return namespace, pace_ns, cpu, header
+
+    def test_true_82f0_compiled_read_preserves_exact_guest_byte_charge(self):
+        gen, pace, cpu, header = self.patched_codegen()
+        gen["_CURRENT_SOURCE_PC24"] = 0x8282F0
+        out = gen["_emit_read"](SimpleNamespace(width=1, out=1, seg=None))
+        self.assertIn("cpu_read8(cpu, 0x11, 0xC774)", out[0])
+        self.assertIn(rf.SITE, out[0])
+        emitted, charged_bytes = pace["_pace_bus_lines"](out)
+        self.assertEqual(charged_bytes, 1)
+        self.assertEqual(emitted, [
+            "uint8 v = ur_rf062_read8_pc_8282f0(cpu, 0x11, 0xC774); "
+            "/* UR_QA01_RF062_DIRECT_PC_8282F0 */"])
+        self.assertIn("uint8 ur_rf062_read8_pc_8282f0(", header)
         self.assertEqual(cpu.count("uint8 value = cpu_read8_paced(cpu, bank, addr);"), 1)
-        self.assertEqual(gen.count("ur_rf062_cpu_read8_pc(cpu,"), 1)
-        self.assertIn("uint8 ur_rf062_cpu_read8_pc(", header)
-        self.assertNotIn("g_interp816_cur_pc", gen + cpu + header)
 
-    def test_real_bus_return_used_and_no_other_read(self):
-        helper = rf.HELPER
-        self.assertEqual(helper.count("cpu_read8_paced(cpu, bank, addr)"), 1)
-        self.assertIn("uint8 value = cpu_read8_paced(cpu, bank, addr);", helper)
-        self.assertIn("return value;", helper)
-        self.assertIn("pc == 0x8282F0u", helper)
-        self.assertIn("addr >= 0xC770u && addr <= 0xC779u", helper)
-        self.assertIn('QA01RF062NATIVE_TRUNCATED', helper)
-        self.assertNotIn("cpu_read8(cpu", helper)
-        self.assertNotIn("cpu->master_cycles +=", helper)
+    def test_other_PC_width_and_nested_original_bus_calls_account_normally(self):
+        gen, pace, _, _ = self.patched_codegen()
+        gen["_CURRENT_SOURCE_PC24"] = 0x8282F2
+        read = gen["_emit_read"](SimpleNamespace(width=1, out=1, seg=None))
+        out, charged = pace["_pace_bus_lines"](read)
+        self.assertEqual(charged, 1)
+        self.assertIn("cpu_read8_paced(cpu", out[0])
+        self.assertNotIn("ur_rf062_", out[0])
+        gen["_CURRENT_SOURCE_PC24"] = 0x8282F0
+        wide = gen["_emit_read"](SimpleNamespace(width=2, out=1, seg=None))
+        emitted, charged = pace["_pace_bus_lines"](wide)
+        self.assertEqual(charged, 2)
+        self.assertIn("cpu_read16_paced", emitted[0])
+        self.assertNotIn("ur_rf062_", emitted[0])
+        original = (
+            "uint8 v = cpu_read8(cpu, cpu_read8(cpu, 0x00, 0x0065), 0xC774); "
+            "/* UR_QA01_RF062_DIRECT_PC_8282F0 */")
+        output, bytes_charged = pace["_pace_bus_lines"]([original])
+        self.assertEqual(bytes_charged, 2)
+        self.assertIn("ur_rf062_read8_pc_8282f0(cpu, cpu_read8_paced", output[0])
+        with self.assertRaisesRegex(ValueError, "did not use paced bus"):
+            pace["_pace_bus_lines"](["uint8 v=99; /* UR_QA01_RF062_DIRECT_PC_8282F0 */"])
 
-    def test_exact_pinned_anchors_and_repatch_fail_closed(self):
+    def test_actual_bus_byte_return_and_strict_source_pin(self):
+        self.assertEqual(rf.HELPER.count("cpu_read8_paced(cpu, bank, addr)"), 1)
+        self.assertIn("return value;", rf.HELPER)
+        self.assertIn("executedPC=8282F0", rf.HELPER)
+        self.assertNotIn("cpu->master_cycles +=", rf.HELPER)
         args = self.fixture()
         with self.assertRaisesRegex(ValueError, "source drift"):
-            rf.patch(args[0].replace("bank, addr = _segref_addr_expr(op.seg)",
-                                     "bank, addr = some_fake_pointer(op.seg)"), args[1], args[2])
-        with self.assertRaisesRegex(ValueError, "source drift"):
-            rf.patch(args[0], args[1], args[2].replace("cpu_read8_paced ", "cpu_read8 "))
+            rf.patch(args[0], args[1].replace("out.append(ln)", "out.append(other)"),
+                     args[2], args[3])
         with self.assertRaisesRegex(ValueError, "already/partially"):
             rf.patch(*rf.patch(*args))
 
-    def test_c_native_wrapper_compiles_in_isolation(self):
+    def test_native_wrapper_compiles_without_an_extra_guest_read(self):
         cc = shutil.which("cc")
         if cc is None:
             self.skipTest("no C compiler")

@@ -105,6 +105,11 @@ def audit(ledger: dict) -> dict[str, object]:
                     id + " nonwaived gate retains contradictory waiver")
         if status == "passed":
             if id == "QA-04":
+                require(all(type(w) is dict and w.get("source_commit") == src
+                            and w.get("artifact_sha256") == zip_digest
+                            for w in gate["witnesses"]),
+                        "QA-04 physical hardware witnesses not bound to "
+                        "exact candidate source and playable inner ZIP")
                 require(qa04_physical_coverage(gate["witnesses"]),
                         "QA-04 cannot accept fewer than three dissimilar "
                         "L5 candidate-bound physical/clean-machine witnesses")

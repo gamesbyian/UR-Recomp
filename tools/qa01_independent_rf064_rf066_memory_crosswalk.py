@@ -79,7 +79,7 @@ def checked_zip(path: Path, sha: str) -> zipfile.ZipFile:
     require(len(infos) <= 1000 and
             len(infos) == len(set(entry.filename for entry in infos)) and
             all(not x.is_dir() and not x.filename.startswith("/") and
-                ".." not in Path(x.filename).parts and x.file_size <= W_SIZE * 2
+                ".." not in Path(x.filename).parts and x.file_size <= 2_000_000
                 for x in infos) and z.testzip() is None,
             "unsafe, duplicate or corrupt source-authentic ZIP member")
     return z
@@ -107,11 +107,17 @@ def audit(before: Path, after: Path) -> dict:
         samples = compare_images(a, b, required_count=PINNED_IMAGES)
         require(samples["reopened_actual_memory_bytes"] == PINNED_RAW_BYTES,
                 "incomplete genuine 27 MB original/native memory replay")
-        require(pa["zoo_race_mesh"]["full_wram_exact_pairs"] == 51 and
-                pb["zoo_race_mesh"]["full_wram_exact_pairs"] == 51 and
-                pa["zoo_race_mesh"]["full_wram_differing_byte_occurrences"] == 92 and
-                pb["zoo_race_mesh"]["full_wram_differing_byte_occurrences"] == 92,
-                "sampled race baseline changed between original guest epochs")
+        qa, qb = (
+            json.loads(z.read("qa01-zoo-independent-raw-audit.json"))
+            for z in (a, b))
+        require(all(q["full_zoo_mesh_rehashed_original_native_128k_pairs"] == 78 and
+                    q["full_zoo_mesh_exact_pairs"] == 51 and
+                    q["full_zoo_mesh_nonexact_pairs"] == 27 and
+                    q["full_zoo_mesh_unmasked_differing_byte_occurrences"] == 92
+                    for q in (qa, qb)) and
+                pa["zoo_race_mesh"]["raw_byte_exact_sample_count"] == 51 and
+                pb["zoo_race_mesh"]["raw_byte_exact_sample_count"] == 51,
+                "independent 78-point race baseline changed between original guest epochs")
         return {
             "schema": SCHEMA, "rf064_case_zip_sha256": RF064_SHA,
             "rf066_case_zip_sha256": RF066_SHA,

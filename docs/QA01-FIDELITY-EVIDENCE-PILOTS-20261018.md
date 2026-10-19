@@ -194,3 +194,27 @@ python3 tools/qa01_frame_delta_atlas.py \
 **Never invent equal-frame source memory from a digest.** The original Zoo +5034..+5042 artifact `12167633197` retained eight differing/boundary raw pairs and only the fingerprint digest for equal +5039. The atlas must therefore report that interval as `equal_by_digest_only_source_pair_not_reopened`, with null per-byte and intra-guest transitions. It must not bridge transitions across this interval or claim independently reopened data where none was archived. The newer all-frame-small-window retention added by merged #1904 allows a future genuine nine-frame artifact to include +5039; that should yield a complete atlas with all nine rows independently reopened. Both modes preserve separate original/native actual host frame origin IDs; no cross-clock alignment.
 
 The output names each observed physical address (`7E`/`7F` WRAM, `SRAM` offset), exact original and native byte values at each retained pair, source-provenance fingerprint canonical SHA-256, total WRAM/SRAM byte-difference occurrences and the number/identity of equal digest-only unarchived frames. It distinguishes an observed differing frame from the **first genuinely consumed** CPU/SPC divergence, which cannot be inferred from snapshots alone. The source RF061/062/063/064 writer/reader owner must provide real guest executed PCs and original event ordinals to establish cause. This is an analytical accelerator, not new full-course coverage, proof of intervening opcodes, event admission, a research factory, or a release gate. **0/45 events; 0/12 QA release gates**.
+
+
+### Real original Zoom Zoo ZIP integration: source-bound delta atlas (19 October)
+
+The atlas has a separate **exact immutable original/native archive** entry point which first independently re-opens the complete A/B primary evidence with `qa01_independent_zoo_capture_ab_archive.verify` (already on main), checks pinned SHA256 `be72834ac617da8dfb96c591e06efaa18adbfe7d872cc64f6a306d3db8db0765`, source/game states, true input-file identity and all 32 retained raw images, then re-derives the temporal atlas. Run:
+
+```bash
+python3 tools/qa01_zoo_archived_frame_atlas.py \
+  --archive /verified/actions-39211385737-artifact-12167633197.zip \
+  --output /new/zoo-source-authentic-frame-atlas.json
+```
+
+[Actions run 39218213121](https://github.com/gamesbyian/UR-Recomp/actions/runs/39218213121) independently passed **both genuine Bowl and original Zoo A/B archive** source re-openings on the same code. It retained the readable `independent-atlas.json` as artifact `12170068734`; this is *not* a new emulator execution. The strict original Zoo output confirms 9 frame positions (+5034..+5042), **8 raw reopened pairs, 1 unarchived digest-only equal pair at +5039**, 13 unmasked WRAM occurrences at exactly four physical addresses, and zero SRAM differences:
+
+| Address | Occurrences; frames | Actual original/native bytes |
+|---|---|---|
+| `7E:01EE` | 5; +5034..+5038 | F0 / EE throughout |
+| `7E:01F1` | 2; +5036..+5037 | F4 / FB |
+| `7E:0063` | 3; +5040..+5042 | 73/77, 4D/51, 27/2C |
+| `7E:0069` | 3; +5040..+5042 | BE/C1, 97/9C, 71/76 |
+
+The new **same-guest raw transition census**, compared against the prior *retained* full-frame images, demonstrates **zero** WRAM/SRAM changes inside either guest from +5034 to +5035 or from +5036 to +5037; at +5036 only native WRAM changes by one byte, and at +5038 native WRAM changes by one byte. The old archive's +5039 source/native raw images were **not retained**, so a real transition into +5040 cannot be computed: both guest change fields are `null`. At +5041 and +5042, **both** original and native WRAM each change at three byte positions per adjacent observed frame (SRAM unchanged), even though original-vs-native differences at each of those frames involve only two addresses. This distinction is factual byte observation, not a causal inference.
+
+The experimental original and native guest-local host origins remain **1017/1019**; never cross-align them. No actual original/native guest execution log bytes, original CPU joypad bus reads, opcode writer/read ordinals, or shipping Windows persistent-record witness can be reconstructed from the old archive. In particular, the zero-byte within-guest changes at two sampled boundaries do **not** establish absence of transient or between-dump CPU/APU state changes. This atlas exists to focus RF061/062/063/064 physical-bus investigations on witnessed changing bytes rather than create game code or acceptance credit: **0/45 events; 0/12 QA gates**.

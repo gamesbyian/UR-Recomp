@@ -84,7 +84,7 @@ def patch(gen: str, emitter: str, cpu: str, header: str) -> tuple[str, str, str,
     if "_CURRENT_SOURCE_PC24" not in gen or "widths.read_fn(op.width)" not in gen or \
        "_pace_bus_lines" not in emitter or "_PACED_RE" not in emitter:
         raise ValueError("RF062 original per-Read or paced-byte attribution missing")
-    if "cpu_read8_paced(cpu, bank, addr)" not in cpu:
+    if CPU_SITE not in cpu or "return cpu_read8(cpu, bank, addr);" not in cpu:
         raise ValueError("RF062 real paced native CPU reader missing")
     gen = replace_one(gen, READ_SITE, READ_SITE + READ_PATCH,
                       "v2 decoded source Read IR")

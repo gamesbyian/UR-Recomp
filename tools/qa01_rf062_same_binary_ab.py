@@ -10,11 +10,13 @@ import argparse
 import difflib
 import hashlib
 import json
+import zipfile
 from pathlib import Path
 
 SCHEMA = "ur-qa01-rf062-same-executable-logging-ab/1"
 IMMUTABLE = ("rom_sha256", "original_movie_sha256",
              "original_movie_window_sha256", "input_sha256",
+             "reference_core_sha256", "reference_script_sha256",
              "native_executable_sha256")
 COMPARE = ("addr", "A", "Y", "D", "dp63", "dp64", "dp65")
 
@@ -122,10 +124,67 @@ def control(off: dict, on: dict, off_logs: dict[str, bytes],
     }
 
 
+
+def archived(zip_path: Path, expected_sha256: str | None = None) -> dict:
+    """Reopen one *completed* genuine Actions ON/OFF archive without emulator.
+
+    Artifacts sometimes have one additional upload common-root prefix. Resolve
+    exactly one copy of every member under a matched qa01-rf062-ab root.
+    Reject duplicates, wrong byte sizes and incomplete original/native files.
+    """
+    h = hashlib.sha256()
+    with zip_path.open("rb") as f:
+        for block in iter(lambda: f.read(1 << 20), b""):
+            h.update(block)
+    artifact_sha = h.hexdigest()
+    if expected_sha256 is not None:
+        must(artifact_sha == expected_sha256,
+             "authenticated RF062 ON/OFF artifact SHA256 changed")
+    with zipfile.ZipFile(zip_path) as z:
+        members = z.infolist()
+        paths = [m.filename for m in members]
+        must(len(members) < 1000 and len(paths) == len(set(paths)) and
+             sum(m.file_size for m in members) <= 100_000_000 and
+             all(not p.startswith("/") and ".." not in Path(p).parts
+                 for p in paths),
+             "duplicate/unsafe/unbounded authentic A/B archive members")
+        name = "/qa01-rf062-ab/off/producer-report.json"
+        roots = {p[:-len(name)] for p in paths if p.endswith(name)}
+        if "qa01-rf062-ab/off/producer-report.json" in paths:
+            roots.add("")
+        must(len(roots) == 1, "ambiguous actual A/B archive root")
+        root = next(iter(roots))
+        prefix = root + "/qa01-rf062-ab" if root else "qa01-rf062-ab"
+        def member(where: str, limit: int) -> bytes:
+            target = prefix + "/" + where
+            must(target in paths and
+                 z.getinfo(target).file_size <= limit,
+                 "missing or unbounded original/native A/B source: " + where)
+            return z.read(target)
+        population = []
+        for mode in ("off", "on"):
+            report = json.loads(member(mode+"/producer-report.json", 2_000_000))
+            logs = {
+                "original":member(mode+"/work/zoom-zoo/replay/reference.log", 12_000_000),
+                "native":member(mode+"/work/zoom-zoo/replay/native.log", 30_000_000)
+            }
+            supplied = {
+                "original":member(mode+"/work/zoom-zoo/replay/ref.input", 100_000),
+                "native":member(mode+"/work/zoom-zoo/replay/pinned-baldosa.input", 100_000)
+            }
+            population.append((report,logs,supplied))
+        result = control(*population[0], *population[1])
+    result["authenticated_evidence_archive_sha256"] = artifact_sha
+    result["zip_archive_raw_byte_reopened"] = True
+    return result
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--off", type=Path, required=True)
-    p.add_argument("--on", type=Path, required=True)
+    p.add_argument("--off", type=Path)
+    p.add_argument("--on", type=Path)
+    p.add_argument("--archive", type=Path)
+    p.add_argument("--expect-sha256")
     p.add_argument("--output", type=Path, required=True)
     args = p.parse_args()
     def collect(path: Path):

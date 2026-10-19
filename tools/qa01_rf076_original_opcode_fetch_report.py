@@ -64,6 +64,8 @@ def inspect(log: str) -> dict:
     if not parsed:
         raise ValueError('no actual original opcode/NMI source events')
     nmies=[(i,x) for i,x in enumerate(parsed) if x['stage']=='nmi_before']
+    if sum(x['stage']=='nmi_pending' for x in parsed) != len(nmies):
+        raise ValueError('original NMI wake-pending and before-push populations differ')
     frames=[]
     for i,e in nmies:
         if i == 0 or parsed[i-1]['stage'] != 'nmi_pending':

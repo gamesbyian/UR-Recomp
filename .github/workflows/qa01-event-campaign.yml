@@ -278,6 +278,8 @@ jobs:
           python3 tools/qa01_rf064_original_post_call_pull.py --root "$CORE_SRC"
           python3 tools/qa01_rf066_original_consumed_sequence.py --root "$CORE_SRC"
           python3 tools/qa01_rf070_original_sa1_probe_isolation.py --root "$CORE_SRC"
+          # RF076 TEMP: actual original direct/slow fetched Op and NMI WAI PC boundary.
+          python3 tools/qa01_rf076_original_opcode_fetch_source.py --root "$CORE_SRC"
           # RF069: invalidate all stock *.o compiled before getset.h was
           # instrumented. The pinned 2014 Makefile does NOT depend on headers.
           make -C "$CORE_SRC/libretro" clean
@@ -374,6 +376,7 @@ jobs:
           cp .tools/src/snes9x-libretro/libretro/snes9x_libretro.so "$OUT/snes9x_libretro.so"
           sha256sum "$CORE_SRC/getset.h" "$CORE_SRC/cpuexec.cpp" "$CORE_SRC/cpuops.cpp" > "$OUT/rf066-original-source-sha256.txt"
           cp "$RUNNER_TEMP/qa01-rf069-actual-ELF-guards.json" "$OUT/rf069-actual-ELF-guards.json"
+          sha256sum "$CORE_SRC/cpuexec.cpp" > "$OUT/rf076-original-opcode-source-sha256.txt"
           cp "$RUNNER_TEMP/rf074-native-exec-preflight.json" "$OUT/rf074-native-exec-preflight.json"
           cp "$RUNNER_TEMP/rf076-generated-exec-pc-preflight.json" "$OUT/rf076-generated-exec-pc-preflight.json"
           cp "$RUNNER_TEMP/rf076-bounded-event-cap-receipt.json" "$OUT/rf076-bounded-event-cap-receipt.json"
@@ -448,6 +451,7 @@ jobs:
           UR_QA01_RF063_SOURCE_ORDER: "1"
           UR_QA01_RF064_POST_CALL_PULL: "1"
           UR_QA01_RF066_ORIGINAL_CONSUMED_ORDER: "1"
+          UR_QA01_RF076_ORIGINAL_FETCH_PC: "1"
           UR_QA01_RF035_SOUND_CONSUMER: "1"
           UR_QA01_RF047_NATIVE_NMI_RETURN: "1"
           UR_QA01_RF047_EXEC_PC: "1"
@@ -667,6 +671,20 @@ jobs:
           else
             echo "RF066 HOLD: authentic original run log missing" > "$ROOT/rf066-original-readiness.txt"
           fi
+      - name: Preserve genuine original fetched opcode and WAI wake chronology
+        if: ${{ always() && matrix.case == 'zoom-zoo' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/qa01-case"
+          LOG="$ROOT/work/zoom-zoo/replay/reference.log"
+          if [[ -s "$LOG" ]] && python3 tools/qa01_rf076_original_opcode_fetch_report.py "$LOG" \
+                --out "$ROOT/rf076-original-fetch.json" > "$ROOT/rf076-original-readiness.txt" 2>&1; then
+            echo "RF076 original real fetched opcode/WAI wake captured; original-native phase equality HOLD" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "RF076 original fetch HOLD: missing/incomplete/invalid real original source event chronology" >> "$GITHUB_STEP_SUMMARY"
+            test -e "$ROOT/rf076-original-readiness.txt" || echo "original RF076 source log absent" > "$ROOT/rf076-original-readiness.txt"
+          fi
       - name: Verify authentic native resume origin against actual RF047 stack brackets
         if: ${{ always() && matrix.case == 'zoom-zoo' }}
         shell: bash
@@ -714,6 +732,8 @@ jobs:
             ${{ runner.temp }}/qa01-case/rf064-original-pulls.json
             ${{ runner.temp }}/qa01-case/rf066-original-consumed.json
             ${{ runner.temp }}/qa01-case/rf074-native-resume-origin.json
+            ${{ runner.temp }}/qa01-case/rf076-original-fetch.json
+            ${{ runner.temp }}/qa01-case/rf076-original-readiness.txt
             ${{ runner.temp }}/qa01-case/rf076-native-opcode-vs-scheduler.json
             ${{ runner.temp }}/qa01-case/rf076-readiness.txt
             ${{ runner.temp }}/qa01-case/rf074-readiness.txt

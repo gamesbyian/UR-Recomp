@@ -1,6 +1,6 @@
 # QA01 research-factory upgrade: evidence first, volume second (19 October 2026)
 
-**Disposition:** bounded preflight candidate; no new campaign, no scheduler or runner dispatched, no changed ledger writer, no accepted original/native event. This is a supplement to [seven source-owned cumulative campaigns](QA-CUMULATIVE-RESEARCH.md), not an eighth campaign or release gate. Work queue and QA01 acceptance retain priority.
+**Disposition:** merged first-generation ROM-free readiness gate (#1909); independent raw-byte causal-checkpoint binding proposed in a separate follow-up. No new campaign, scheduler or runner dispatched, no changed ledger writer, no accepted original/native event. This is a supplement to [seven source-owned cumulative campaigns](QA-CUMULATIVE-RESEARCH.md), not an eighth campaign or release gate. Work queue and QA01 acceptance retain priority.
 
 ## Trigger and sequence
 
@@ -12,18 +12,31 @@
 
 ## New read-only admission check
 
-Input attestation JSON requires `schema="ur-qa01-research-factory-preflight/1"`, immutable `source_sha`, `rom_sha256`, `movie_sha256`, `input_sha256`, and explicit boolean `checks` for source binary, native binary, controller reads, guest frame acknowledgments, phase qualification, no instrumentation perturbation, original clocks/unaltered input and unmasked retained memory. These claims must be independently backed by real signed/hashed source-owner evidence, not entered by guesswork.
+Input attestation JSON requires `schema="ur-qa01-research-factory-preflight/2"` for positive readiness (legacy `/1` returns HOLD), immutable `source_sha`, `rom_sha256`, `movie_sha256`, `input_sha256`, and explicit boolean `checks` for source binary, native binary, controller reads, guest frame acknowledgments, phase qualification, no instrumentation perturbation, original clocks/unaltered input and unmasked retained memory. These claims must be independently backed by real signed/hashed source-owner evidence, not entered by guesswork.
 
 ```bash
 python3 tools/qa01_factory_preflight.py \
   --attestation /tmp/qa01-independent-source-attestation.json \
   --causal-report /tmp/qa01-real-causal.json \
+  --original-events /tmp/qa01-actual-original-bus-events.json \
+  --native-events /tmp/qa01-actual-native-bus-events.json \
   --frame-report /tmp/qa01-real-frames.json \
   --independent-raw-report /tmp/qa01-independent-raw.json \
+  --retained-raw /tmp/qa01-retained-original-native-raw \
   --output /tmp/qa01-factory-admission.json
 ```
 
 Every provided report is parsed fail-closed for the named schema and source/input relationship, non-promoting event verdict, actual unmasked frame counts and independent raw-byte comparison. The output carries SHA256 hashes of all input JSON and missing/negative conditions. A report is a **read-only readiness aid, not proof that the signed producer is truly original**. Do not modify `research/qa-cumulative-ledger` from this tool, and never add a new scheduled factory merely because the tool reports readiness.
+
+## Stronger three-consumer binding before admission
+
+A review attestation with all `checks=true` is not by itself trustworthy. The revised `/2` contract additionally requires `evidence_sha256` mapping **exactly** `causal_report`, `frame_report`, and `independent_raw_report` to the SHA256 of each supplied JSON file. Those digests must be independently reviewed and recorded before the preflight runs. Swapped reports fail rather than silently inheriting somebody else's sign-off.
+
+**For positive readiness, both `--original-events` and `--native-events` are also mandatory.** The preflight hashes each source/native event file from a single read, independently reruns `qa01_causal_window.assess` on those bytes and demands the entire recomputed causal report match exactly. A fabricated native executed PC, tampered event sequence or stale report fails rather than yielding a provisional green. This is read-only evidence recomputation, not an emulator run; independent original provenance and true guest-PC execution still require the explicit external attestation.
+
+**For positive readiness, `--retained-raw` is mandatory.** The preflight reruns the project's independent `qa01_verify_frame_capture.verify` against the actual original/native raw image files and compares its counts against the independently supplied audit. It requires that the causal original and native windows share the frame fingerprint's **same declared observation phase**, and that the causal checkpoint falls inside the genuine continuous frame interval. For each causal physical `7E/7F` WRAM address, it independently opens the **same retained original/native frame** and verifies both source bytes, the differing-byte claim and the full-WRAM diff bound. Executed guest event SHA256 and complete/nonoverflow recorder flags are also required.
+
+The raw-byte check does **not** independently establish CPU phase alignment or genuine emulator provenance; those are still distinct `checks` requiring externally verified executed source input and no capture perturbation. A forged self-attestation or a dishonest original emulator producer remains possible; this is a fail-closed integration contract, not a cryptographic authority oracle. A missing raw directory produces HOLD (exit 2), never a synthetic positive. No PR should introduce a factory runner from a mere tool-level `bounded_pilot_ready` without the human-reviewed independent evidence.
 
 ## Ownership and nonduplication
 

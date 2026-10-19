@@ -79,7 +79,7 @@ def patch(source: str) -> str:
         PULL_W_ADD
         + '        const unsigned long long rf064_after = ur_rf063_source_bus_seq; \\\n'
         + '        ur_rf064_post_pull("pullW",rf064_before,rf064_after, \\\n'
-        + '                            (uint16)(w),2,(uint16)(rf045_sp0+1)); \\\n',1)
+        + '                            (uint16)(w),2,(uint16)(ur_rf045_sp0+1)); \\\n',1)
     source=source.replace(HEADER_ANCHOR,HEADER_ANCHOR+EXTERN+HELPER,1)
     source=source.replace(rf45.PULL_B_NEW,pull_b,1)
     source=source.replace(rf45.PULL_NEW,pull_w,1)

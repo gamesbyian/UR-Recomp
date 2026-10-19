@@ -63,6 +63,8 @@ def verify(original_zip: Path, native_zip: Path) -> dict:
     for line in raw_stages:
         data=decode(line,"UR_QA08_ORIGINAL_MEDAL_LAYER")
         if data["stage"]!="FINAL": continue
+        if data["range"]!="0,223" or data["bgmode"]!="3":
+            raise ValueError("original Snes9x source display geometry/mode changed")
         key=(int(data["frame"]),int(data["x"]),int(data["y"]))
         if key in final_depth: raise ValueError("duplicate original final layer")
         final_depth[key]=inthex(data["depth"])
@@ -106,7 +108,7 @@ def verify(original_zip: Path, native_zip: Path) -> dict:
             winner=OWNERS[(x,y)]
             real=[d for d in first if d["changed_z"]=="1"]
             if winner is None:
-                if real or nfetch or final_depth[key]!=0x27 or n["main"]=="4":
+                if real or nfetch or final_depth[key]!=0x27 or n["main"]!="0":
                     raise ValueError("BG negative control was promoted into sprite")
                 out.append({"guest_internal_field":frame,"pixel":[x,y],
                             "original_owner":"BG0","native_owner":"background (main enum 0)",

@@ -34,8 +34,8 @@ def require(ok: bool, why: str) -> None:
 
 
 HOST_VIDEO_TOTALS = re.compile(
-    r"^\\[host \\+[0-9]+\\.[0-9]+s\\] video totals: "
-    r"simulations=([0-9]+) presentations=([0-9]+) seconds=([0-9]+\\.[0-9]+)$"
+    r"^\[host \+[0-9]+\.[0-9]+s\] video totals: "
+    r"simulations=([0-9]+) presentations=([0-9]+) seconds=([0-9]+\.[0-9]+)$"
 )
 
 
@@ -53,7 +53,7 @@ def independently_qualify_terminal_host_walltime(off: bytes, on: bytes) -> dict:
     seen = []
     for name, raw in (("off",off),("on",on)):
         lines = raw.decode("utf-8").splitlines(keepends=True)
-        matched = [(i,HOST_VIDEO_TOTALS.fullmatch(line.rstrip("\\r\\n")))
+        matched = [(i,HOST_VIDEO_TOTALS.fullmatch(line.rstrip("\r\n")))
                    for i,line in enumerate(lines)]
         hit = [(i,m) for i,m in matched if m is not None]
         require(len(hit) == 1,
@@ -61,10 +61,10 @@ def independently_qualify_terminal_host_walltime(off: bytes, on: bytes) -> dict:
         index, match = hit[0]
         simulation, presentation, wall_seconds = match.groups()
         require(simulation == presentation == "6460" and
-                index == len(lines)-1 and lines[index].endswith("\\n"),
+                index == len(lines)-1 and lines[index].endswith("\n"),
                 "terminal source log changed simulation/presentation count or framing")
         seen.append(wall_seconds)
-        lines[index] = re.sub(r"seconds=[0-9]+\\.[0-9]+(?=\\n$)",
+        lines[index] = re.sub(r"seconds=[0-9]+\.[0-9]+(?=\n$)",
                               "seconds=<qualified_host_elapsed>",
                               lines[index])
         cleaned.append("".join(lines).encode("utf-8"))

@@ -1,0 +1,117 @@
+{
+  "schema": "RF058-authentic-original-2014-Bowl-opcode-boundary-raw-WRAM-write-census-v1",
+  "experiment": {
+    "run": 39183201114,
+    "source_sha": "ab392bcd8e2fc14d45c1550fec92e6737ea4691f",
+    "run_conclusion": "success",
+    "genuine_original_native_producer_exit_code": 0,
+    "case_artifact": 12157461467,
+    "case_zip_sha256": "2248cf04d75208a4b55da83fd18af11b57ddf37148b7ddf4b9446e39f880cd04",
+    "case_members": 84,
+    "reference_log_sha256": "964bf95d741fd75b8ac2a69df54e9dd34386a2f15e53415a4ffd443fa5bbf537",
+    "rf058_own_original_cpu_receipt_sha256": "bb0bace9ab1a20451892ff80b73e00f3ae8784b1c8716a50588d0d8271fddf21",
+    "original_instrumented_core_sha256": "aeaa1c2d89f60f25bed39507291eecf1e90efb57bb9f30d87dadf377e5ad1e69"
+  },
+  "source": {
+    "baseline_run": 39169304323,
+    "artifact_id": 12151982503,
+    "zip_sha256": "c2262b40e43b4e167cbdf291623b0e34207561187e103af39eca7a46fa4b0edc",
+    "unmodified_snes9x_core_sha256": "0182cfc3446e5a2c1d00453928b857b3d1d9c23148486c7339c895c4facc25c5",
+    "same_guest_2014_usa_rom_movie_seed_sram_input": true
+  },
+  "true_executed_cpu_qualified": {
+    "actual_source_cpu_dispatch_heartbeats": 9,
+    "actual_source_cpu_frames": [
+      4686,
+      4687,
+      4688,
+      4689,
+      4690,
+      4691,
+      4692,
+      4693,
+      4694
+    ],
+    "original_source_65816_opcode_interval_mutation_rows": 358,
+    "truncated": false,
+    "raw_snes_CPU_bus_helpers_called_additionally": 0,
+    "per_address_change_counts": {
+      "7E:0000": 315,
+      "7E:0057": 14,
+      "7E:006F": 15,
+      "7E:0083": 14
+    }
+  },
+  "original_actual_PC_interval_witness": [
+    {
+      "address": "7E:0000",
+      "source_pc": "83:CC0E",
+      "opcode": "85",
+      "from": "20",
+      "to": "02",
+      "source_cpu_frame": 4688,
+      "observation": "first observed byte change during actual original opcode (STA); 315 mutations in the bounded window show it is a frequently reused scratch byte"
+    },
+    {
+      "address": "7E:0057",
+      "source_pc": "82:D4EC",
+      "opcode": "64",
+      "from": "E2",
+      "to": "00",
+      "source_cpu_frame": 4688,
+      "pre_v": 11,
+      "pre_h": 584,
+      "post_v": 11,
+      "post_h": 600,
+      "observation": "real original STZ direct page NMI/frame synchronization byte; subsequent real 80:8630 opcode85 returns 00->FF, repeatedly"
+    },
+    {
+      "address": "7E:006F",
+      "source_pc": "82:8318",
+      "opcode": "C6",
+      "from": "0F",
+      "to": "0E",
+      "source_cpu_frame": 4687,
+      "observation": "actual DEC direct page sound-echo countdown repeated fifteen times to 00 in next frame; no single 0F->00 opcode writer"
+    },
+    {
+      "address": "7E:0083",
+      "source_pc": "82:82B5",
+      "opcode": "86",
+      "from": "86",
+      "to": "87",
+      "source_cpu_frame": 4687,
+      "observation": "actual STX direct page sound upload block index repeated fourteen times to 94 next frame; no single 86->94 opcode writer"
+    }
+  ],
+  "exact_full_guest_outcome": {
+    "historical_movie_and_fresh_original_and_native_entire_original_WRAM_SRAM_image_count": 64,
+    "whole_128K_8K_byte_exact_images": 64,
+    "excluded_memory_bytes": 0,
+    "all_source_ROM_movie_seed_SRAM_and_controller_input_hashes_identical": true,
+    "full_original_native_Bowl_to_Switcher_object_equal": true,
+    "full_original_native_SRAM_score_cold_record_reloaded": true,
+    "whole_top_level_bowl_report_differences": [
+      "reference_core_sha256",
+      "comparison.bounded_dragster_to_zoo_diagnostic_without_full_event_parity (new false only)"
+    ],
+    "known_only_allowed_provenance_change": true,
+    "strict_native_source_next_switcher_same_guest_clock_parity": false,
+    "original_next_switcher_relative": 341,
+    "native_next_switcher_relative": 344,
+    "original_2014_movie_next_switcher_relative": 342,
+    "source_original_native_first_31_WRAM_transition_triples_same_at_relative_plus3": true,
+    "next_642_Wram_triples_identical_at_plus3": true,
+    "accepted_complete_USA_events": 0
+  },
+  "limits": {
+    "first_Cpu_branch_that_commits_Bowl_to_Switcher_transition_found": false,
+    "all_Wram_bus_writers_directly_instrumented": false,
+    "actual_native_input_4218_CPU_read_witness": false,
+    "native_instruction_PC_witness": false,
+    "original_native_CPU_clock_epoch_proven": false
+  },
+  "next": "Original first-frame 31 WRAM writes mostly NMI/audio/scratch, not trigger. Trace actual source opcodes writing persistent race/track setup bytes 7E:121F,126B,1277,1359/5B/5D/5F and 7E:2000,2002,2004,2007/8/9,2017..2019,2069 with one source-qualified per-instruction observer, then identify earliest decision-path source/native consumer. Avoid attributing composite frame differences to single writes or changing source input/clock.",
+  "shared_Bowl_workflow_modified": false,
+  "one_shot_trigger_still_in_open_PR": false
+}

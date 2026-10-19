@@ -10,6 +10,8 @@ on:
       - "tools/qa01_dragster_cold_record.py"
       - "tests/unit/test_qa01_dragster_cold_record.py"
       - "tools/qa01_dragster_same_host_archive.py"
+      - "tools/qa01_dragster_cold_raw_archive.py"
+      - "tests/unit/test_qa01_dragster_cold_raw_archive.py"
       - "tests/unit/test_qa01_dragster_same_host_archive.py"
       - "tools/probe_original_event_complete.py"
       - "tools/bootstrap_toolchain.py"
@@ -58,6 +60,7 @@ jobs:
           python3 -m unittest discover -s tests/unit -p test_qa01_dragster_next_zoo.py
           python3 -m unittest discover -s tests/unit -p test_qa01_dragster_cold_record.py
           python3 -m unittest discover -s tests/unit -p test_qa01_dragster_same_host_archive.py
+          python3 -m unittest discover -s tests/unit -p test_qa01_dragster_cold_raw_archive.py
           python3 -m unittest discover -s tests/unit -p test_qa01_bowl_joint_source_provenance.py
 
       - name: Build one original Snes9x and one native Baldosa guest
@@ -137,6 +140,13 @@ jobs:
           fi
           exit "$rc"
 
+      - name: Independently re-open all original source and guest Dragster handoff bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/qa01_dragster_zoo_raw_archive_audit.py             --archive-root "$RUNNER_TEMP/qa01-dragster-zoo"             --out "$RUNNER_TEMP/qa01-dragster-zoo/dragster-independent-raw.json"
+          echo "Independent QA retained guest WRAM/SRAM and 2014 source trace validated; zero course passes" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Independently restart actual original/native guests using earned Dragster 25.08 SRAM
         shell: bash
         run: |
@@ -152,7 +162,8 @@ jobs:
               --movie "$GITHUB_WORKSPACE/reference/imported/tas-bots/dessyreqt-4250-submission.smv" \
               --work "$RUNNER_TEMP/qa01-dragster-zoo/cold-boot" \
               --out "$RUNNER_TEMP/qa01-dragster-zoo/dragster-cold.json"
-          echo "Earned Dragster score 2508 reloaded in two genuine new guest processes; 0/45 course credit" >> "$GITHUB_STEP_SUMMARY"
+          python3 tools/qa01_dragster_cold_raw_archive.py             --archive-root "$RUNNER_TEMP/qa01-dragster-zoo"             --out "$RUNNER_TEMP/qa01-dragster-zoo/dragster-cold-raw-audit.json"
+          echo "Earned Dragster score 2508 independently raw-verified in two genuine new guest processes; 0/45 course credit" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Archive real source plus original/native handoff images
         if: always()
@@ -167,6 +178,10 @@ jobs:
             ${{ runner.temp }}/qa01-dragster-zoo/attempt.log
             ${{ runner.temp }}/qa01-dragster-zoo/dragster-report.json
             ${{ runner.temp }}/qa01-dragster-zoo/dragster-cold.json
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster-independent-raw.json
+            ${{ runner.temp }}/qa01-dragster-zoo/dragster-cold-raw-audit.json
+            ${{ runner.temp }}/qa01-dragster-zoo/cold-boot/original/ref/cold-*.sram.bin
+            ${{ runner.temp }}/qa01-dragster-zoo/cold-boot/native/native/cold-*.sram.bin
             ${{ runner.temp }}/qa01-dragster-zoo/cold-boot/original.log
             ${{ runner.temp }}/qa01-dragster-zoo/cold-boot/native.log
             ${{ runner.temp }}/qa01-dragster-zoo/cold-boot/cold.script

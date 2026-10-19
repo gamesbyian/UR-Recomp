@@ -1,0 +1,184 @@
+{
+  "schema": "rf060-original-USA-Bowl-dynamic-race-resumption-after-sound-upload-v1",
+  "source_run": {
+    "github_run": 39189415611,
+    "immutable_source_sha": "fecf649e6d20548c6bddd75381baaac859e10cda",
+    "conclusion": "success",
+    "artifact_id": 12158644871,
+    "zip_sha256": "df90dc70d1fc85d470ea47d44cf3b5469f0fc37569bd251ddaffd8e47c34a382",
+    "artifact_members": 84,
+    "original_reference_log_sha256": "17832a86f11af99d4eb5c560c64994caab9104f3fd6393bd2b812a86c069241e",
+    "true_original_executed_race_entry_receipt_sha256": "c7d879e65b3ba0d069edd287018180b34361f0ebdfcab56c64391ec16dce4a8f",
+    "instrumented_source_original_Snes9x_core_sha256": "196279380c2ce48c61421b65f9e98c49b69faea4156ac47f4f700bf8288fa16d"
+  },
+  "preserved_baseline": {
+    "run": 39169304323,
+    "artifact_id": 12151982503,
+    "zip_sha256": "c2262b40e43b4e167cbdf291623b0e34207561187e103af39eca7a46fa4b0edc",
+    "unmodified_Snes9x_core_sha256": "0182cfc3446e5a2c1d00453928b857b3d1d9c23148486c7339c895c4facc25c5",
+    "whole_original_native_and_historical_movie_Wram_Sram_images_equal": 64,
+    "bytes_masked": 0,
+    "full_original_native_Bowl_to_Switcher_handoff_equal": true,
+    "all_original_USA_ROM_movie_input_sram_unchanged": true,
+    "additional_producer_metadata_only": [
+      "comparison.bounded_dragster_to_zoo_diagnostic_without_full_event_parity=false",
+      "dragster_next_zoo_handoff=null"
+    ],
+    "raw_audit_other_fields_equal": true,
+    "raw_audit_producer_sha256_matches_own_report_on_both_cases": true
+  },
+  "true_original_cpu_trace": {
+    "actual_source_cpu_heartbeat_frames": [
+      4686,
+      4687,
+      4688,
+      4689,
+      4690,
+      4691,
+      4692,
+      4693,
+      4694
+    ],
+    "actual_executed_original_65816_opcodes_within_83C8E0_CC70": 101,
+    "original_distinct_executed_opcode_PCs": 65,
+    "cross_range_resume_or_entry_rows": 22,
+    "source_first_range_appearance": {
+      "source_cpu_frame": 4688,
+      "source_beam_v": 3,
+      "source_beam_h": 736,
+      "physical_original_PC": "83:CAB3",
+      "opcode": "A9",
+      "A_before": "E780",
+      "A_after": "08FF",
+      "P_before": "0084",
+      "S_before": "01F6",
+      "actual_immediately_previous_original_opcode_PC": "82:82A8",
+      "previous_opcode": "6B",
+      "previous_opcode_mnemonic": "RTL",
+      "source_identification_of_previous_function": "Snd_UploadBlockListLong wrapper returns from real SPC/IPL block list upload to Race_Main",
+      "actual_first_observed_original_target_is_Race_Main_function_entry_83C8E0": false
+    },
+    "observed_subsequent_source_sound_queue_returns": [
+      {
+        "source_cpu_frame": 4688,
+        "V": 4,
+        "H": 140,
+        "current_PC": "83:CABA",
+        "previous_actual_PC": "82:802D",
+        "previous_op": "6B",
+        "previous_function": "Snd_QueueCommand",
+        "current_opcode": "A9",
+        "actual_previous_snes_CPU_RTL": true
+      },
+      {
+        "source_cpu_frame": 4688,
+        "V": 4,
+        "H": 948,
+        "current_PC": "83:CAC1",
+        "previous_actual_PC": "82:802D",
+        "previous_op": "6B",
+        "previous_function": "Snd_QueueCommand",
+        "current_opcode": "A9"
+      },
+      {
+        "source_cpu_frame": 4688,
+        "V": 5,
+        "H": 764,
+        "current_PC": "83:CBBC",
+        "previous_actual_PC": "82:802D",
+        "previous_op": "6B",
+        "current_op": "22",
+        "category": "returned from sound queue prior to new JSL"
+      },
+      {
+        "source_cpu_frame": 4688,
+        "V": 6,
+        "H": 362,
+        "current_PC": "83:CBC0",
+        "previous_actual_PC": "82:8076",
+        "previous_op": "6B",
+        "current_op": "22",
+        "previous_source_region": "Snd_UploadBlock"
+      },
+      {
+        "source_cpu_frame": 4688,
+        "V": 6,
+        "H": 862,
+        "current_PC": "83:CBC4",
+        "previous_actual_PC": "82:807D",
+        "previous_op": "6B",
+        "current_op": "22",
+        "previous_source_region": "Snd_UploadBlock"
+      }
+    ],
+    "source_original_race_setup_writers_independently_crossmatched": [
+      {
+        "pc": "83:CAC4",
+        "frame": 4688,
+        "V": 4,
+        "H": 972,
+        "op": "8D",
+        "field": "7E:1359",
+        "written_value": "FF"
+      },
+      {
+        "pc": "83:CBE2",
+        "frame": 4688,
+        "V": 7,
+        "H": 590,
+        "op": "8D",
+        "field": "7E:121F",
+        "written_value": "01"
+      },
+      {
+        "pc": "83:CC1C",
+        "frame": 4688,
+        "V": 7,
+        "H": 966,
+        "op": "8E",
+        "field": "7E:126B",
+        "written_value": "01"
+      },
+      {
+        "pc": "83:CC47",
+        "frame": 4688,
+        "V": 7,
+        "H": 1240,
+        "op": "8D",
+        "field": "7E:1277",
+        "written_value": "60"
+      }
+    ]
+  },
+  "pinned_native_compiler_static_reference": {
+    "repository": "gamesbyian/uniracers-recomp",
+    "pin": "10b864b9d14a7b7416dd909eb7b054c88faef101",
+    "generated_source": "src/gen/bank03_part09_v2.c",
+    "actual_git_blob": "51499fc78b3dffa4502716ca693cb67af76ce6f7",
+    "actual_original_FastROM_alias": "83:CA91/83:CAB3 are physically 03:CA91/03:CAB3 in native generator",
+    "identified_compiled_function": "Race_Main_CA91_M0X0",
+    "compiled_block": "L_CAB3_M0X0",
+    "generated_prior_JSL": "Snd_UploadBlockListLong_M0X0 via 0x82:82A5 at 03:CAAF",
+    "compiled_mode_select": "direct M0X0 call; alternate M0X1/M1X0/M1X1 branches explicitly route interpreter/LLE; none dynamically established for native Bowl",
+    "secondary_compiled_returns": "L_CABA_M0X0 and L_CAC1_M0X0 follow Snd_QueueCommand mode-qualified calls",
+    "native_dynamic_L_CAB3_M0X0_actual_execution_proven": false,
+    "native_dynamic_exact_return_cpu_cycles_registered": false
+  },
+  "timing_and_event_limits": {
+    "original_race_initialization_sound_and_scene_writer_frame": 4688,
+    "source_supplied_P1_mask_host4688": "040",
+    "source_supplied_P1_080_start_frame": 4689,
+    "native_supplied_P1_080_start_frame": 4690,
+    "source_native_original_synthetic_input_rephase_performed": false,
+    "first_actual_CPU_original_Race_Main_function_entry_83C8E0_observed": false,
+    "first_actually_branching_trigger_proven": false,
+    "original_native_same_host_CPU_clock_epoch_registered": false,
+    "source_vs_native_SPC_IPL_port_receiver_latency_proven_equal": false,
+    "first_exact_native_generated_cpu_return_PC_proven": false,
+    "strict_fresh_original_Switcher_relative": 341,
+    "strict_native_Switcher_relative": 344,
+    "strict_original_2014_movie_Switcher_relative": 342,
+    "independent_complete_USA_events_accepted": 0
+  },
+  "next_decisive_witness": "Instrument the actual native executing physical bank03 Race_Main_CA91_M0X0 generated label L_CAB3_M0X0 and its immediately preceding direct Snd_UploadBlockListLong_M0X0 call return. Observe native host/frame/CPU master and PB/M/X, plus real sound/APU handshake consumer; compare with genuine original 83:CAB3 after 82:82A8 RTL at source CPU frame4688 V3 H736. Without common CPU↔SPC clock epoch, do not shift game clock or exempt 3-frame progression."
+}

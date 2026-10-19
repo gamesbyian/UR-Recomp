@@ -46,6 +46,26 @@ class AuthenticStack(unittest.TestCase):
   with self.assertRaisesRegex(ValueError,"return pulls"):
    m.observe(a.replace("kind=pullB addr=01ED width=1 value=0026",
                        "kind=pullB addr=01ED width=1 value=0027",1),b)
+ def test_sequenced_macro_observations_are_local_not_bus_wide(self):
+  a,b=self.fixture()
+  n=0
+  lines=[]
+  for line in a.splitlines():
+   if line.startswith("QA01RF045ORIGSTACK "):
+    n+=1
+    line=line.replace("QA01RF045ORIGSTACK ",
+                      f"QA01RF045ORIGSTACK seq={n} ",1)
+   lines.append(line)
+  recorded="\n".join(lines)+"\n"
+  out=m.observe(recorded,b)
+  self.assertTrue(out["source_macro_local_ordinals_complete"])
+  self.assertFalse(out["original_all_bus_and_checkpoint_ordinals_complete"])
+  self.assertEqual(out["source_actual_stack_macro_rows"],54)
+  self.assertFalse(m.observe(a,b)["source_macro_local_ordinals_complete"])
+  with self.assertRaisesRegex(ValueError,"sequence gap"):
+   m.observe(recorded.replace("seq=2 f=", "seq=3 f=",1),b)
+  with self.assertRaisesRegex(ValueError,"mixed legacy"):
+   m.observe(recorded.replace("seq=2 f=", "f=",1),b)
  def test_wrong_or_missing_NMI_source_macros_fail(self):
   a,b=self.fixture()
   with self.assertRaisesRegex(ValueError,"missing/misaligned"):

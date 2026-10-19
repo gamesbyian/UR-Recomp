@@ -1,0 +1,74 @@
+{
+  "schema": "UR-QA01-2014-SOURCE-AFTER-SWITCHER-RAW-VERIFIED/1",
+  "exact_source": {
+    "run_id": 39182875249,
+    "pr_number": 1887,
+    "commit": "f97d60d38c3861e937f9bae6bf76383870ebb7fa",
+    "artifact_id": 12156932774,
+    "archive_sha256": "d1a5dd92b4ed039b76ebbbfea08d2401d4cf700fb35ecf9eb30ffb909761ab4a",
+    "archive_size_bytes": 20108681,
+    "archive_members": 9,
+    "source_producer_sha256": "48595b9a9d4d86c1a07845bf4663b10c54ff38c78e3026b2fdd4507d73f90213",
+    "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "original_USA_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_reference_core_sha256": "3ad7c167fab750d333bee6e86e04137f10583f667b6087d168a7bf549127afbd",
+    "original_snesref_executable_sha256": "5fb3cca1f51d13762e7b82e736133cdab702aafbca07b9164d568139a3bcc18a"
+  },
+  "trace": {
+    "sha256": "cc49becd72650460e10c8f8d67a59ec997c731365869babe677f922f9a7d162f",
+    "bytes": 204116383,
+    "wram_writes": 3806733,
+    "distinct_low_wram_addresses": 8192,
+    "recorded_range": [
+      0,
+      8191
+    ],
+    "old_value_contradictions": 0,
+    "full_low8k_reconstruction_matches_original_guest_dumps_at": [
+      17030,
+      22000,
+      36000
+    ],
+    "upper_120k_intermediate_memory_proven": false
+  },
+  "real_guest_full_128k_dumps": [
+    {
+      "frame": 17030,
+      "sha256": "590e441557ffe378d5e5da66f3f2d1c1aa422808250db745b1cbfe190f69d533"
+    },
+    {
+      "frame": 22000,
+      "sha256": "476b79cd1b6e7a8fbdc446e0ef38806c4bdf487264be45243823267ce96a3d87"
+    },
+    {
+      "frame": 36000,
+      "sha256": "8d25d29143006aa19670a4cc83c8e78c7d432cafa3c0ff9f10ea4e802bbeefcf"
+    }
+  ],
+  "post_switcher_source": [
+    {
+      "course": 0,
+      "known_course": "Dragster",
+      "active_start": 22941,
+      "active_last": 25342,
+      "result_frame": 25344,
+      "result_menu": 153,
+      "complete_source_attempt": true
+    },
+    {
+      "course": 0,
+      "known_course": "Dragster",
+      "active_start": 25731,
+      "observed_active_through": 36000,
+      "complete_source_attempt": false
+    }
+  ],
+  "interpretation": {
+    "unique_new_distinct_source_course_proven": false,
+    "source_movie_reproduced_without_input_changes": true,
+    "source_vs_native_complete_event_proven": false,
+    "accepted_usa_events": 0,
+    "release_gates": 0,
+    "retired_workflow_to_manual_only": true
+  }
+}

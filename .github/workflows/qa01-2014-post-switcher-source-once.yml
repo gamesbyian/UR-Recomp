@@ -1,12 +1,9 @@
-name: QA01 2014 USA post-Switcher original-source continuation ONE-SHOT
+name: QA01 archived USA 2014 original source continuation MANUAL ONLY
 
+# Exact 36,000-frame research question answered. Retain only an explicit
+# manual source-original replay; no PR-triggered historic emulator rebuilds.
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - ".github/workflows/qa01-2014-post-switcher-source-once.yml"
-      - "tools/qa01_2014_post_switcher_source_discovery.py"
-      - "tests/unit/test_qa01_2014_post_switcher_source_discovery.py"
 
 permissions:
   contents: read

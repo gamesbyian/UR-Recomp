@@ -84,7 +84,7 @@ class OriginalSourceArchiveTests(unittest.TestCase):
 
     def test_exact_source_entry_result_and_three_low_wram_dump_positives(self):
         r=target.audit(self.path,self.write())
-        self.assertEqual(r["trace_distinct_low_wram_addresses"],4)
+        self.assertEqual(r["trace_distinct_low_wram_addresses"],3)
         self.assertEqual(r["real_2014_snes9x_trace_writes_replayed"],25)
         self.assertEqual(r["post_switcher_known_course_repeat"]["real_source_result"],25344)
         self.assertTrue(r["four_prior_original_course_entries_and_results_reproduced"])

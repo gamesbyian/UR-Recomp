@@ -126,11 +126,20 @@ def audit(archive: Path, expected_zip_sha256: str) -> dict:
              "real original runner execution log digest mismatches")
         for frame,tag in DUMPS:
             actual_host(log.decode("utf8",errors="replace"),tag,frame)
-        trace=read_exact(z,"source/source-trace.jsonl")
-        must(len(trace)==r.get("source_trace_bytes") and
-             sha(trace)==r.get("source_raw_trace_sha256"),
+        trace_member="source/source-trace.jsonl"
+        must(trace_member in names, "original source write trace missing")
+        trace_info=z.getinfo(trace_member)
+        must(trace_info.file_size==r.get("source_trace_bytes"),
+             "original source trace byte length differs")
+        source_digest=hashlib.sha256()
+        with z.open(trace_member) as stream:
+            for block in iter(lambda:stream.read(1024*1024),b""):
+                source_digest.update(block)
+        trace_sha=source_digest.hexdigest()
+        must(trace_sha==r.get("source_raw_trace_sha256"),
              "actual original source trace bytes/hash differ from producer")
-        snapshots,total,distinct=reconstruct(trace.splitlines())
+        with z.open(trace_member) as stream:
+            snapshots,total,distinct=reconstruct(stream)
         all_sources=[]
         for frame,tag in DUMPS:
             full=read_exact(z,f"source/{tag}.wram.bin",131072)
@@ -185,7 +194,7 @@ def audit(archive: Path, expected_zip_sha256: str) -> dict:
             "schema":SCHEMA,
             "original_actions_zip_sha256":expected_zip_sha256,
             "original_source_producer_report_sha256":sha(rbytes),
-            "original_source_trace_sha256":sha(trace),
+            "original_source_trace_sha256":trace_sha,
             "original_2014_movie_sha256":MOVIE_SHA,
             "usa_rom_sha256":ROM_SHA,
             "real_2014_snes9x_trace_writes_replayed":total,

@@ -125,7 +125,23 @@
     "outer_sha256": "4aeac36feabde3427d5cfa76e1b49ba57693e0678b67d1b10a9addfb4d99a5be",
     "members": 10,
     "crc_ok": true,
-    "source_bound_to_same_win32_build": true,
-    "hosted_only": true
+    "canonical_binding": {
+      "candidate_source": "f639277f2c0410d85f773b77835c9a526dd2e65d",
+      "candidate_zip": "87c0e5221b20149f91dae16144a3a8c31661bf5066775c71dccfa88fe964d772",
+      "packaged_pe": "5201916cee6455f307ecd58c957cc8616ba2acbe7ac9efdbd7de8453525d6256"
+    },
+    "root_refusal_cases": [
+      "drive_relative",
+      "current_drive_root_relative"
+    ],
+    "both_original_cmd_exit3": true,
+    "actual_raw_stderr_sha256": "10585ab78729dcdc2e8c3509aefca1bda6a78ed6d68936b35ca7ad1498eedfda",
+    "original_report_stderr_hashes_independently_matched": true,
+    "cold_racer_autorelaunch_hosted": true,
+    "settings_hosted_persisted": true,
+    "actual_joystick_devices_on_all_sdl_initializations": 0,
+    "audio_driver": "dummy",
+    "physical_consumer_machine": false,
+    "qa_gate_credit": 0
   }
 }

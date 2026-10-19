@@ -1,0 +1,84 @@
+name: QA01 real RF071 original getter entry versus same-host WRAM
+
+# Offline source-authentic witness only: no emulator build, ROM upload,
+# research factory, guest timer shift, byte mask or event acceptance.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa01-rf071-getter-vs-script-dump.yml"
+      - "tools/qa01_rf071_getter_vs_script_dump.py"
+      - "tests/unit/test_qa01_rf071_getter_vs_script_dump.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: qa01-rf071-getter-versus-frame-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  independent-real-getset-entry-versus-memory-phase:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run source-real-getset physical provenance negative fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest \
+            tests.unit.test_qa01_rf071_getter_vs_script_dump \
+            tests.unit.test_qa01_rf071_original_real_read_join \
+            tests.unit.test_qa01_rf066_same_host_stack_return_raw -v
+
+      - name: Independently reopen genuine RF069 clean-getter Zoo case and 2014 original movie
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/rf071-real-read-phase"
+          curl --fail --show-error --silent --location --retry 2 \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -o "$RUNNER_TEMP/rf071-real-read-phase/genuine-getter-case.zip" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12215281695/zip"
+          python3 tools/qa01_rf071_getter_vs_script_dump.py \
+            --archive "$RUNNER_TEMP/rf071-real-read-phase/genuine-getter-case.zip" \
+            --movie reference/imported/tas-bots/dessyreqt-4250-submission.smv \
+            --metadata analysis/generated/historical-2014-smv-metadata.json \
+            --output "$RUNNER_TEMP/rf071-real-read-phase/getter-vs-dump.json"
+          python3 - "$RUNNER_TEMP/rf071-real-read-phase/getter-vs-dump.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          assert d["source_case_zip_sha256"] == "90b03d7e035c7a1939b488211b98165615e3fc63226fe57ac718fc7e3e772763"
+          assert d["original_source_getset_read_return_joins_reopened"] == 903
+          assert d["original_source_getter_calls_crossing_video_scanline"] == 12
+          assert [x["race_relative_frame"] for x in d["frames"]] == [1,2,4]
+          assert [x["original_return_operations_touching_differing_addresses"]
+                  for x in d["frames"]] == [74,91,97]
+          assert [x["return_byte_observations_touching_differing_addresses"]
+                  for x in d["frames"]] == [104,119,128]
+          assert d["sampled_original_getset_read_operations_overlapping_differing_Wram"] == 262
+          assert d["sampled_original_getset_read_byte_observations"] == 351
+          assert d["actual_original_getset_read_bytes_vs_same_host_raw_classes"] == {
+              "matches_original_same_host_dump_only":9,
+              "matches_native_same_host_dump_only":16,
+              "matches_neither_same_host_dump":326}
+          assert d["return_vs_script_dump_chronological_order_proven"] is False
+          assert d["actual_native_corresponding_getset_read_proven"] is False
+          assert d["accepted_USA_events"] == d["accepted_Windows_release_QA_gates"] == 0
+          print("Source-authentic RF071 actual getter-entry read-versus-WRAM phase negative: 0/45")
+          PY
+
+      - name: Preserve small read-only actual original-source receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-authentic-rf071-source-read-vs-raw
+          retention-days: 7
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/rf071-real-read-phase/getter-vs-dump.json

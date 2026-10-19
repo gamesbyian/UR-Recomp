@@ -32,6 +32,7 @@ def first_posthandler(events: list[dict], brackets: list[dict]) -> dict:
     frames = []
     counts = {f"00:{addr:04X}": 0 for addr in BYTES}
     native_first_status_reads = 0
+    distinct_later_helper_operations = 0
     for br in brackets:
         frame = br["native_frame"]
         local = [e for e in events if int(e["f"]) == frame]
@@ -96,6 +97,8 @@ def first_posthandler(events: list[dict], brackets: list[dict]) -> dict:
              got["00:01F1"]["native_RF047_local_seq"] ==
              return_seq+1, "the genuine first native outside-NMI read changed")
         native_first_status_reads += 1
+        distinct_later_helper_operations += len({
+            row["native_RF047_local_seq"] for row in got.values()})
         frames.append({
             "native_host_frame": frame,
             "compiled_native_handler_return_seq": return_seq,
@@ -111,7 +114,9 @@ def first_posthandler(events: list[dict], brackets: list[dict]) -> dict:
     return {
         "schema": SCHEMA,
         "nine_authentic_native_NMI_windows": len(frames),
-        "actual_first_outside_handler_native_helper_observations": sum(counts.values()),
+        "actual_first_later_stack_byte_observations": sum(counts.values()),
+        "distinct_native_helper_operations_supplying_first_later_bytes":
+            distinct_later_helper_operations,
         "native_helpers_during_compiled_RTI_for_saved_PC_or_PB": 0,
         "first_posthandler_read_is_01F1_26_in_all_nine":native_first_status_reads==9,
         "native_first_helper_counts_by_stack_address": counts,

@@ -61,6 +61,11 @@
       "id": 12230068102,
       "sha256": "d70b483f32c32463433db647e0f9deec55af2102a928c2449af1624e75e97ad0",
       "members": 37
+    },
+    "parallel_hosted_player_journeys": {
+      "id": 12229618508,
+      "sha256": "3001b49a34a3280bc3b13e39caa5012af8626798c43d219c76f4353a4fe43946",
+      "members": 1
     }
   },
   "package": {
@@ -185,6 +190,22 @@
     "canonical_urmutex_0byte_lock_files_preserved_in_manifest": true,
     "source_emulated_real_two_player_result_in_this_artifact": false,
     "human_intervention": false,
+    "release_gate_credit": 0
+  },
+  "parallel_hosted_journeys": {
+    "source_and_executable_sha_match_actual_candidate": true,
+    "workers": 3,
+    "executed_cases": 13,
+    "expected_cases": 13,
+    "all_original_case_exit_codes_zero": true,
+    "overlap_baseline": true,
+    "elapsed_wall_seconds": 260.219,
+    "sum_separate_case_seconds": 723,
+    "identity_changed": false,
+    "missing_cases": [],
+    "archive_contains_process_logs": false,
+    "arbitrary_noncooperating_same_profile_writer_tested": false,
+    "physical_hardware_tested": false,
     "release_gate_credit": 0
   }
 }

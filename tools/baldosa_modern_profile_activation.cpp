@@ -224,6 +224,17 @@ extern "C" int ur_baldosa_modern_try_activate_profile(void) {
         std::fflush(stderr);
         return reject("native_sram_recovery_unsafe");
     }
+    if (recovery == ur::product::BaldosaSramIntentStatus::Cleared) {
+        // A crash after intent persistence but BEFORE RtlWriteSram can leave
+        // the only durable NEW guest SRAM inside the old/old journal. Archive
+        // it before unlink, keep the original typed/raw authoritative, and
+        // surface an explicit message instead of silently losing evidence.
+        std::fprintf(stderr,
+            "UR_BALDOSA_NATIVE_PROFILE PREWRITE_GUEST_INTENT_ARCHIVED "
+            "uncommitted_guest_sram_preserved=1 "
+            "old_raw_and_typed_authoritative=1 no_records=1\n");
+        std::fflush(stderr);
+    }
     if (recovery == ur::product::BaldosaSramIntentStatus::Reconciled)
         std::fprintf(stderr,
             "UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED "
@@ -833,8 +844,9 @@ extern "C" int ur_baldosa_modern_profile_before_native_save(void) {
             return reject("native_sram_intent_not_durable");
         // QA only: original native guest reached its legitimate save point,
         // and durable old/new intent exists, but RtlWriteSram has NOT been
-        // invoked. The next real Win32 guest must discard this uncommitted
-        // intent without publishing typed generation or raw progress.
+        // invoked. A next cold boot must ARCHIVE this uncommitted new-guest
+        // intent, retaining its exact 8192-byte SRAM for forensic recovery,
+        // while keeping the old typed/raw authoritative. No auto-promotion.
         const char* pre_raw_cut =
             std::getenv("UR_BALDOSA_QA_CRASH_AFTER_INTENT_BEFORE_RAW");
         if (intent == ur::product::BaldosaSramIntentStatus::Prepared &&

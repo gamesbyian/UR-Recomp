@@ -2547,6 +2547,8 @@ def run_native_prewrite_intent_abandon(
     intent = pending.read_bytes()
     if len(intent) < 8192 or list(user_root.rglob("*.urrun")):
         raise ValueError("F1 prewrite crash lacked intact intent or fabricated Records")
+    if list(profile.glob("native-sram-uncommitted-*.txt")):
+        raise ValueError("F1 prewrite archive appeared before recovery")
     clean = env.copy()
     clean.pop("UR_BALDOSA_QA_CRASH_AFTER_INTENT_BEFORE_RAW", None)
     short = out / "fresh-short.txt"
@@ -2554,6 +2556,7 @@ def run_native_prewrite_intent_abandon(
     command = [str(exe), "--no-launcher", "--config", str(config),
                "--script", str(short), str(rom)]
     stages = []
+    retained_archive: bytes | None = None
     for index in (1, 2):
         proc = subprocess.run(
             command, cwd=out, env=clean,
@@ -2565,10 +2568,24 @@ def run_native_prewrite_intent_abandon(
             "UR_BALDOSA_NATIVE_PROFILE RECOVERY_RECONCILED" in fresh or
             "UR_BALDOSA_NATIVE_PROFILE REJECTED" in fresh):
             raise ValueError("F1 original cold Windows guest did not preserve old/old")
+        marker = ("UR_BALDOSA_NATIVE_PROFILE PREWRITE_GUEST_INTENT_ARCHIVED "
+                  "uncommitted_guest_sram_preserved=1 "
+                  "old_raw_and_typed_authoritative=1 no_records=1")
+        if fresh.count(marker) != (1 if index == 1 else 0):
+            raise ValueError("F1 source guest did not accurately report archival only once")
         verify_named_profile_boot_bytes(fresh, before["raw-sram"])
         snapshots = {name: path.read_bytes() for name, path in sources.items()}
         if snapshots != before or pending.exists():
             raise ValueError("F1 cold boot published unearned typed/raw or retained stale intent")
+        archives = list(profile.glob("native-sram-uncommitted-*.txt"))
+        if len(archives) != 1 or archives[0].is_symlink():
+            raise ValueError("F1 uncommitted guest intent was not archived exactly once")
+        actual_archive = archives[0].read_bytes()
+        if actual_archive != intent:
+            raise ValueError("F1 archived guest-authored intent changed one or more bytes")
+        if retained_archive is not None and actual_archive != retained_archive:
+            raise ValueError("F1 second cold boot altered the forensic archive")
+        retained_archive = actual_archive
         stages.append(snapshots)
     evidence = out / "fault-bytes"
     evidence.mkdir()
@@ -2588,10 +2605,16 @@ def run_native_prewrite_intent_abandon(
     (evidence / "intent.pre-raw.bin").write_bytes(intent)
     hashes["intent.pre-raw.bin"] = {
         "sha256": hashlib.sha256(intent).hexdigest(), "bytes": len(intent)}
+    if retained_archive is None:
+        raise ValueError("F1 archival was not checked across cold boots")
+    (evidence / "intent.uncommitted-archive.bin").write_bytes(retained_archive)
+    hashes["intent.uncommitted-archive.bin"] = {
+        "sha256": hashlib.sha256(retained_archive).hexdigest(),
+        "bytes": len(retained_archive)}
     (evidence / "file-receipt.json").write_text(
         json.dumps(hashes, sort_keys=True, indent=2) + "\n",
         encoding="utf-8")
-    if (len(hashes) != 17 or
+    if (len(hashes) != 18 or
         any(stages[i] != before for i in (0, 1))):
         raise ValueError("F1 prewrite evidence export incomplete")
     return {
@@ -2600,8 +2623,9 @@ def run_native_prewrite_intent_abandon(
         "original_rtl_write_sram_not_executed": True,
         "canonical_raw_and_typed_unchanged_at_cut": True,
         "intent_retired_only_during_first_cold": True,
+        "exact_uncommitted_guest_intent_archived_before_retirement": True,
         "two_native_cold_boots_same_committed_generation": True,
-        "all_17_evidence_files_SHA256_bound": True,
+        "all_18_evidence_files_SHA256_bound": True,
         "release_gate_credit": 0,
     }
 

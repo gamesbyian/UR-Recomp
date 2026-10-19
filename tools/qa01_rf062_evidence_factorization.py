@@ -22,6 +22,7 @@ SCHEMA = "ur-qa01-rf062-distinct-controls-runtime-logging-versus-cross-epoch/1"
 AB_ZIP = "b94660b8ffb0cfb1cd35ec9fe3a3c1c8c6b44a46d865272b8cfdad2e62078cbd"
 AB_BINARY_ZIP = "83233faded8aa546025f59abe50c9ba29f109250f5bcafb2e20cdb5d7780bc37"
 TARGET_NATIVE_BINARY = "31790cd408950ef20153031b5633f4045aa753368f6b94170ece607b5950a53a"
+PINNED_ROM = "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
 
 
 def require(ok: bool, why: str) -> None:
@@ -72,7 +73,7 @@ def classify(ab: dict, cross: dict, executed: dict, report: dict) -> dict:
             "full native memory cross-epoch data missing or causality falsely upgraded")
     require(report.get("native_executable_sha256") == TARGET_NATIVE_BINARY and
             report.get("native_executable_sha256") == compiled["actual_native_binary_SHA256"] and
-            report.get("rom_sha256") == epochs_reference_rom(report) and
+            report.get("rom_sha256") == PINNED_ROM and
             report.get("reference_entry") == 1017 and
             report.get("native_entry") == 1017,
             "true RF062 native 82:82F0 case not bound to same logging A/B binary")
@@ -110,11 +111,6 @@ def classify(ab: dict, cross: dict, executed: dict, report: dict) -> dict:
         "release_QA_gates":0,
         "adjudication":"HOLD: runtime logging alone is bounded nonperturbing; same-binary-family wrapper substitution and native/source gameplay remain unresolved",
     }
-
-
-def epochs_reference_rom(report: dict) -> str:
-    # No external/optional source controls are silently filled in.
-    return "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
 
 
 def audit(rf066: Path, rf062: Path, ab_case: Path, ab_binaries: Path) -> dict:

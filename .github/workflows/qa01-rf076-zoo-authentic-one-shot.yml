@@ -1,0 +1,35 @@
+# TEMP RF076 source-qualified original/native Zoom Zoo NMI one-shot.
+# Do NOT merge this file or the temporary campaign modifications to main.
+name: RF076 genuine Zoo original/native resume-origin and executed opcode one-shot
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/workflows/qa01-rf076-zoo-authentic-one-shot.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa01-rf076-guest-scheduler-origin-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  authenticated-RF076-original-native:
+    uses: ./.github/workflows/qa01-event-campaign.yml
+    with:
+      selected: zoom-zoo
+      zoo_terminal_phase: true
+      zoo_race_mesh: true
+      zoo_dp_window: true
+      qa01_apu_phase: false
+      source_followthrough: true
+      baldosa_refresh_beam_rate: true
+      baldosa_io_clock_order: true
+      baldosa_spc_reference_rate: true
+      baldosa_dp_pointer_once: true
+      baldosa_hdma_cpu_stall: true
+      baldosa_spc_interrupt_stage: true
+      qa01_cold_guest_reload: true
+      zoo_next_bowl: true

@@ -80,7 +80,7 @@ class IndependentRF064Archive(unittest.TestCase):
         self.assertTrue(witness["matched_post_nmi_true_return_sequence"])
         self.assertEqual([r["actual_returned_value_hex"] for r in
                           witness["return_records"]], ["26", "D4F0", "82", "26"])
-        self.assertEqual([r["executed_original_pc"] for r in
+        self.assertEqual([r["original_post_call_pb_pcw"] for r in
                           witness["return_records"]],
                          ["80:B0EB", "80:D4F0", "82:D4F0", "82:D4F5"])
         self.assertFalse(witness["actual_underlying_read_bus_entry_proven"])

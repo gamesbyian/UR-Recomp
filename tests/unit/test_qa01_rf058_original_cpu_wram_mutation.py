@@ -49,7 +49,7 @@ class TrueOriginalBowlWRAM(unittest.TestCase):
           (self.heartbeat()+"\n"+self.changed(frame=4699),"opcode/frame"),
           (self.heartbeat()+"\n"+self.changed().replace("nextpc=","not_next="),"missing context"),
           (self.heartbeat()+"\n"+self.changed()+"\nQA01RF058OPWRAM_TRUNCATED","truncated"),
-          (self.heartbeat().replace("frame=4691","frame=4696")+"\n"+self.changed(),"not observed"),
+          (self.heartbeat().replace("frame=4691","frame=4696")+"\n"+self.changed(),"anomaly"),
         ]
         for log,msg in examples:
             with self.subTest(description=msg,log=log[:40]):

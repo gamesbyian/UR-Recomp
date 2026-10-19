@@ -128,6 +128,37 @@ class AuthenticRasterSpatialTests(unittest.TestCase):
         self.assertFalse(receipt["qa08_qa10_release_gates_accepted"])
         self.assertTrue(receipt["no_source_clock_or_beam_causality_proven"])
 
+    def test_real_cgram_word_permutation_matches_gray_class_types_only(self):
+        packet_path = ROOT / "analysis/data/qa08-late-cgram-four-color-raster-crossjoin-20261019.json"
+        packet = json.loads(packet_path.read_text(encoding="utf-8"))
+        seen = {}
+        for row in packet["palette_packets_by_CGRAM_index"]:
+            old = int(row["original_5178_RGB555"], 16)
+            new = int(row["native_5183_RGB555"], 16)
+            def gray_level(word):
+                channels = ((word >> 0) & 31, (word >> 5) & 31, (word >> 10) & 31)
+                self.assertEqual(len(set(channels)), 1)
+                self.assertGreater(channels[0], 0)
+                return channels[0] - 1  # candidate quantization only
+            ref, native = gray_level(old), gray_level(new)
+            self.assertEqual((ref, native),
+                             (row["implied_original_gray_RGB5"],
+                              row["implied_native_gray_RGB5"]))
+            self.assertIn((ref, native), spatial.source.CYCLE)
+            seen[f"{ref}->{native}"] = row["genuine_observed_pixel_occurrences_13_frames"]
+        self.assertEqual(seen, {"15->20":53658, "16->15":107868,
+                                "17->16":52716, "20->17":104533})
+        self.assertEqual(sum(seen.values()), 318775)
+        self.assertIs(packet["four_of_four_observed_pair_types_match_packet_permutation"], True)
+        for boundary in ("actual_original_native_effective_PPU_CGRAM_at_render_proven",
+                         "pixel_to_palette_index_source_consumption_proven",
+                         "original_native_guest_instruction_clock_and_H_counter_equivalence_proven",
+                         "same_native_PE_between_register_and_raster_archives",
+                         "source_color_to_RGB5_minus_one_is_mechanistically_proven",
+                         "palette_recolor_frame_shift_brightness_or_CPU_timing_change_authorized",
+                         "QA08_QA10_or_release_gate_accepted"):
+            self.assertIs(packet[boundary], False)
+
     def test_direct_script_cli_reaches_archive_fail_closed_guard(self):
         cmd = [sys.executable, str(ROOT / "tools/qa08_localize_112field_grayscale.py"),
                "--original", str(ROOT / "missing-original-qa08.zip"),

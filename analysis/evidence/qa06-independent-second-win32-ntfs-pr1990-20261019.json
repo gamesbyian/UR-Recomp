@@ -1,0 +1,86 @@
+{
+  "schema": "ur-qa06-independent-second-win32-real-ntfs/1",
+  "observed_at": "2026-10-19",
+  "release_gate_credit": 0,
+  "run": {
+    "id": 39340984124,
+    "trigger": "pull_request",
+    "conclusion": "success",
+    "pr": 1990,
+    "branch_head": "38a8840e3e99b4812ebc1bf0e5b44c7a3b6ac0a3",
+    "actual_checkout": "f639277f2c0410d85f773b77835c9a526dd2e65d",
+    "synthetic_checkout_parents": [
+      "34a308f66f0d7ba9bc6857a628c2fc92157e19a1",
+      "38a8840e3e99b4812ebc1bf0e5b44c7a3b6ac0a3"
+    ],
+    "merged_main_release_candidate": false
+  },
+  "original_archive_hashes": {
+    "package": {
+      "artifact_id": 12229955330,
+      "outer_sha256": "9ebe81ed2e98143c32efdcca19b46282088b67ec83ce14aad491548d326e6470"
+    },
+    "binding": {
+      "artifact_id": 12229626228,
+      "outer_sha256": "a8e19fd7f4dae85634fd30769e0753892026bc2236e95e2b129c9117b03a8f6c"
+    },
+    "preintent_full_ntfs": {
+      "artifact_id": 12229596389,
+      "outer_sha256": "4b0ee83d5a504e4f3dd81835f8f478c4aae1f81ea20182b84db4541520842c31"
+    },
+    "postraw_full_ntfs": {
+      "artifact_id": 12228772773,
+      "outer_sha256": "c5f48470785fc0698a1ff598d97dd67e76d2ed63e64e083e7c937098b3a2e700"
+    }
+  },
+  "inner_romfree_zip": {
+    "sha256": "87c0e5221b20149f91dae16144a3a8c31661bf5066775c71dccfa88fe964d772",
+    "size_bytes": 6058239,
+    "zip_members": 4,
+    "all_crc_ok": true,
+    "manifest_source": "f639277f2c0410d85f773b77835c9a526dd2e65d",
+    "rom_bundled": false,
+    "profile_data_bundled": false,
+    "three_immutable_members_hash_and_length_verified": true
+  },
+  "pe": {
+    "sha256": "5201916cee6455f307ecd58c957cc8616ba2acbe7ac9efdbd7de8453525d6256",
+    "size_bytes": 20334592,
+    "pe_signature": "MZ/PE",
+    "machine": "AMD64"
+  },
+  "original_cmd_sha256": "2f2a6cdbe9d4c37e331b82577ed3c947342e545a19bd0c022d0b940fa7cac8e0",
+  "exact_authentic_offline_original_ntfs_checks": {
+    "external_outer_pins_verified": true,
+    "original_zip_crc_pass": true,
+    "pre_intent_original_files_verified": 16,
+    "postraw_original_files_verified": 22,
+    "actual_preintent_guest_save_failure_exit": 8,
+    "actual_postraw_guest_save_failure_exit": 8,
+    "second_process_win32_os_error": 112,
+    "raw_changed_positions": 74,
+    "first_cold_recovered_typed_generation": 2,
+    "second_cold_no_repeat_reconciliation": true,
+    "old_guest_boot_sram_fnv1a32": "63568e07",
+    "new_guest_boot_sram_fnv1a32": "255e468b",
+    "guest_boot_matches_raw_archived_sram": true,
+    "original_guest_failure_log_markers_verified": true
+  },
+  "provenance_rules": {
+    "same_as_prior_original_20261019_source": false,
+    "prior_synthetic_checkout": "f7db1b92fbe347f1315cfe8de8ea3451857cb5fc",
+    "prior_inner_zip": "2b0ed905047a2520ba1c9ef7aa0bd781e2f58b8bee3b9598562187b73c852b55",
+    "do_not_transfer_exe_claims": true,
+    "not_a_merged_main_package": true
+  },
+  "absent": {
+    "physical_two_controller": false,
+    "audible_audio": false,
+    "real_UHD_display": false,
+    "real_electrical_power_loss": false,
+    "actual_short_torn_write": false,
+    "complete_original_native_usa_event": false,
+    "human_clean_machine_test": false
+  },
+  "decision": "Second exact distinct synthetic PR Windows binary and real archived NTFS fault parity verified; QA02 and full release held."
+}

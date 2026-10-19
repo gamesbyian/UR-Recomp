@@ -1,0 +1,230 @@
+{
+  "schema": "ur-qa01-authentic-producer-archive-independent-consumption/1",
+  "classification": "immutable archived, bounded authentic original/native research only; diagnostic HOLD",
+  "observed_at": "2026-10-19",
+  "zoo_capture_ab": {
+    "github_run_id": 39211385737,
+    "artifact_id": 12167633197,
+    "zip_sha256": "be72834ac617da8dfb96c591e06efaa18adbfe7d872cc64f6a306d3db8db0765",
+    "repository_source_sha_from_producer": "a238df6edfff6893e6986e4ebb43af949069b620",
+    "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "normalized_movie_controller_window_sha256": "7b03f40e3401d844c16c7c4e1cc7375e5419f33882793c8187dcebc88dbc8c93",
+    "original_supplied_input_sha256": "a5b909fe87aa394024cdba8f5eaf67a0ac6652000df145252bf558d755ed79b8",
+    "native_supplied_input_sha256": "55ce2e7e2cd0428df409411c108352ecc7c3badeb90b7bd5deb1f6705b2f1973",
+    "original_supplied_input_bytes": 4264,
+    "native_supplied_input_bytes": 4470,
+    "same_unchanged_files_for_each_guest_between_off_and_on": true,
+    "identical_raw_original_and_native_supplied_input_bytes": false,
+    "native_executable_sha256": "439ac76fa8d90f141436dc25426e522561667cb3aa575d5c326a06afc6cb5ba8",
+    "reference_core_sha256": "16fca3f6489e17abe4a6b9ac01de11738ef137640bbf5ef6eb8c3a2782c71bc6",
+    "both_producer_exit_codes": {
+      "capture_off": 1,
+      "capture_on": 1
+    },
+    "meaning_of_exit_code": "diagnostic strict original/native event differences remain; both off/on reports present; not acceptance",
+    "source_native_capture_window": {
+      "start": 5034,
+      "end": 5042,
+      "observed_frames_each_guest": 9,
+      "relative_frames": [
+        {
+          "relative_frame": 5034,
+          "original_native_wram_unequal_bytes": [
+            {
+              "physical_address": "7E:01EE",
+              "original_hex": "F0",
+              "native_hex": "EE"
+            }
+          ],
+          "unequal_wram_count": 1,
+          "unequal_sram_count": 0
+        },
+        {
+          "relative_frame": 5035,
+          "original_native_wram_unequal_bytes": [
+            {
+              "physical_address": "7E:01EE",
+              "original_hex": "F0",
+              "native_hex": "EE"
+            }
+          ],
+          "unequal_wram_count": 1,
+          "unequal_sram_count": 0
+        },
+        {
+          "relative_frame": 5036,
+          "original_native_wram_unequal_bytes": [
+            {
+              "physical_address": "7E:01EE",
+              "original_hex": "F0",
+              "native_hex": "EE"
+            },
+            {
+              "physical_address": "7E:01F1",
+              "original_hex": "F4",
+              "native_hex": "FB"
+            }
+          ],
+          "unequal_wram_count": 2,
+          "unequal_sram_count": 0
+        },
+        {
+          "relative_frame": 5037,
+          "original_native_wram_unequal_bytes": [
+            {
+              "physical_address": "7E:01EE",
+              "original_hex": "F0",
+              "native_hex": "EE"
+            },
+            {
+              "physical_address": "7E:01F1",
+              "original_hex": "F4",
+              "native_hex": "FB"
+            }
+          ],
+          "unequal_wram_count": 2,
+          "unequal_sram_count": 0
+        },
+        {
+          "relative_frame": 5038,
+          "original_native_wram_unequal_bytes": [
+            {
+              "physical_address": "7E:01EE",
+              "original_hex": "F0",
+              "native_hex": "EE"
+            }
+          ],
+          "unequal_wram_count": 1,
+          "unequal_sram_count": 0
+        },
+        {
+          "relative_frame": 5039,
+          "original_native_wram_unequal_bytes": [],
+          "unequal_wram_count": 0,
+          "unequal_sram_count": 0
+        },
+        {
+          "relative_frame": 5040,
+          "original_native_wram_unequal_bytes": [
+            {
+              "physical_address": "7E:0063",
+              "original_hex": "73",
+              "native_hex": "77"
+            },
+            {
+              "physical_address": "7E:0069",
+              "original_hex": "BE",
+              "native_hex": "C1"
+            }
+          ],
+          "unequal_wram_count": 2,
+          "unequal_sram_count": 0
+        },
+        {
+          "relative_frame": 5041,
+          "original_native_wram_unequal_bytes": [
+            {
+              "physical_address": "7E:0063",
+              "original_hex": "4D",
+              "native_hex": "51"
+            },
+            {
+              "physical_address": "7E:0069",
+              "original_hex": "97",
+              "native_hex": "9C"
+            }
+          ],
+          "unequal_wram_count": 2,
+          "unequal_sram_count": 0
+        },
+        {
+          "relative_frame": 5042,
+          "original_native_wram_unequal_bytes": [
+            {
+              "physical_address": "7E:0063",
+              "original_hex": "27",
+              "native_hex": "2C"
+            },
+            {
+              "physical_address": "7E:0069",
+              "original_hex": "71",
+              "native_hex": "76"
+            }
+          ],
+          "unequal_wram_count": 2,
+          "unequal_sram_count": 0
+        }
+      ]
+    },
+    "raw_retention": {
+      "raw_images_independently_opened_and_rehashed": 32,
+      "raw_frames_fully_reopened": 8,
+      "one_equal_digest_only_frame": 5039,
+      "full_wram_bytes_per_guest_per_frame": 131072,
+      "full_sram_bytes_per_guest_per_frame": 8192,
+      "sha256_frame_pair_digest_chain": "759c24c1cc87072c8abb188fb210879e4ff600c4e0461907162e5dc13d457a5c",
+      "total_unmasked_wram_byte_occurrences": 13,
+      "total_unmasked_sram_byte_occurrences": 0,
+      "per_address_occurrence_counts": {
+        "7E:01EE": 5,
+        "7E:01F1": 2,
+        "7E:0063": 3,
+        "7E:0069": 3
+      },
+      "raw_retained_bytes": 2228224
+    },
+    "replay_control": {
+      "same_source_controller_and_binaries": true,
+      "existing_semantic_observations_unchanged": true,
+      "script_dump_frame_acknowledgments": 9,
+      "actual_cpu_joypad_poll_trace_proven": false,
+      "independent_instruction_phase_equivalence_proven": false,
+      "full_race_continuous_capture_proven": false,
+      "source_and_native_executed_causal_bus_payloads_present_in_archive": false,
+      "full_windows_cold_disk_persistence_proven": false
+    },
+    "measured_oneshot_replay_wall_time_seconds": {
+      "original_off": 4.837964,
+      "original_on": 4.863855,
+      "native_off": 109.049805,
+      "native_on": 109.079837
+    },
+    "comparison_outcome": "bounded capture A/B passed; source-native WRAM is not exact; producer did not prove guest CPU reads"
+  },
+  "rf062_sound_opcode_case": {
+    "github_run_id": 39211687859,
+    "aggregate_artifact_id": 12167669187,
+    "plan_artifact_id": 12167369773,
+    "aggregate_zip_sha256": "28656297dfa9b27d767f3cc3856c35a5f4c79808785d440fc9038d89145633d7",
+    "plan_zip_sha256": "3e3de19c320e7b56ae37f3361b2261177ba9c58181ee984e63b35030908026db",
+    "run_source_sha_from_plan": "ccba6f2983b4bdf3c4160928b74255f4bdb0e74e",
+    "original_native_replay_cases_completed": 0,
+    "original_native_case_disposition": "missing_evidence",
+    "build_failure": "ValueError: RF062 exact pinned v2 decoded source Read IR source drift",
+    "failing_source_python_file": "tools/qa01_rf062_direct_sound_bus_pc_patch.py",
+    "failing_source_function": "patch: replace_one(gen, READ_SITE, READ_SITE + READ_PATCH, ...)",
+    "actual_sound_bus_returns_captured": 0,
+    "release_admissions": 0,
+    "interpretation": "instrumentation stage failed before guest execution; no gameplay/audio parity conclusion"
+  },
+  "factory_preflight_decision": {
+    "status": "HOLD",
+    "authentic_raw_frame_archive_positive": true,
+    "source_native_causal_payloads_missing": true,
+    "actual_CPU_joypad_poll_consumption_unverified": true,
+    "original_native_instruction_phase_equivalence_unverified": true,
+    "complete_race_unsampled_frames_remain": true,
+    "original_native_selected_memory_differs": true,
+    "independent_shipping_PE_and_cold_disk_unverified": true,
+    "authorized_auto_factory_dispatch": false,
+    "authorized_ten_case_pilot": false,
+    "accepted_USA_events": 0,
+    "recommended_next_qualifications": [
+      "RF062 owner requalify pinned live emitter Read IR anchor in static source before costly replay",
+      "RF063/RF064 original + RF062 native executed data must contain actual bus-read returns, local ordinals and PC, with original/native separately preserved",
+      "Qualify source/native checkpoint event JSON at one of the actual nine frames with true phase, then rerun v2 factory preflight against retained raw images",
+      "Capture original/native full race only after bounded source authentic data and A/B noninterference are independently approved"
+    ]
+  }
+}

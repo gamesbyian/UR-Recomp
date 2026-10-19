@@ -51,6 +51,11 @@
       "id": 12230290671,
       "sha256": "5aecf8bc969a567ea838d953468798ce9afecede2f49faef448fecfbe3066c60",
       "members": 32
+    },
+    "postsave_two_process_selector_conflict": {
+      "id": 12230585375,
+      "sha256": "081cb48d4d3ca81304c759905c1f013b1adb382dd2ce77fb945813d3b1f4eac5",
+      "members": 28
     }
   },
   "package": {
@@ -132,5 +137,20 @@
     "release_decision": "not_assessed",
     "credit": 0
   },
-  "decision": "THIRD distinctly built Windows synthetic PR candidate authentic hosted NTFS and genuine saved 2P positive; NO release or physical acceptance"
+  "decision": "THIRD distinctly built Windows synthetic PR candidate authentic hosted NTFS and genuine saved 2P positive; NO release or physical acceptance",
+  "postsave_two_process_selector_conflict": {
+    "actual_original_binary_members_sha_and_length_verified": 24,
+    "actors": "original native game + external writer using existing canonical product selector transaction",
+    "profile_mike_before_after_saved_different": true,
+    "mike_raw_and_typed_save_published_together": true,
+    "profile_andrew_raw_and_typed_unchanged": true,
+    "profile_catalog_unchanged": true,
+    "original_selector_before_equals_after_guest_save": true,
+    "selector_changed_only_after_external_actor": true,
+    "selector_after_original_refusal_equals_after_external_actor": true,
+    "original_guest_exit": 9,
+    "diagnostic": "Current racer save completed; requested next racer could not be selected.",
+    "release_gate_credit": 0,
+    "noncooperating_hostile_writer_stress_proven": false
+  }
 }

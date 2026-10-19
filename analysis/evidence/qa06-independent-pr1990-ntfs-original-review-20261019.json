@@ -103,5 +103,73 @@
     "release_decision": "not_assessed",
     "qa02": "in_progress"
   },
-  "disposition": "Independent real Win32 hosted NTFS postraw/cold recovery archival positive; acceptance HOLD"
+  "disposition": "Independent real Win32 hosted NTFS postraw/cold recovery archival positive; acceptance HOLD",
+  "additional_original_windows_archives": [
+    {
+      "kind": "console-S-healthy-profile-selection",
+      "artifact_id": 12228118019,
+      "outer_sha256": "45f8060416c68868ad6a9cc02a885063e6910f43bb1dc62248a448f8e7c8cf3a",
+      "members_crc_verified": 36,
+      "original_binary_members_rehashed": 29,
+      "source_cmd_sha256": "2f2a6cdbe9d4c37e331b82577ed3c947342e545a19bd0c022d0b940fa7cac8e0",
+      "actual_game_windows_console_key_injected": true,
+      "damaged_A_raw_typed_unchanged": true,
+      "healthy_B_raw_typed_unchanged": true,
+      "unrelated_C_raw_unchanged": true,
+      "catalog_unchanged": true,
+      "only_authorized_selector_changed": true,
+      "two_cold_B_boots_preserve_after_selection": true,
+      "physical_human_operator": false,
+      "release_gate_credit": 0
+    },
+    {
+      "kind": "console-Q-readonly-exit",
+      "artifact_id": 12228083147,
+      "outer_sha256": "9b06a8d30260a0babe5d226ae43883e494bb84a8d8a51fdd228819ae0bfc9495",
+      "members_crc_verified": 12,
+      "original_binary_members_rehashed": 8,
+      "source_cmd_sha256": "2f2a6cdbe9d4c37e331b82577ed3c947342e545a19bd0c022d0b940fa7cac8e0",
+      "actual_windows_exit_code": 7,
+      "all_four_original_before_after_bytes_equal": true,
+      "recovery_without_mutation": true,
+      "no_new_game_fallback": true,
+      "physical_human_operator": false,
+      "release_gate_credit": 0
+    },
+    {
+      "kind": "synthetically-short-raw-R-reject-T-restore",
+      "artifact_id": 12228073233,
+      "outer_sha256": "1221f2c0bee62f741a4bee77a2d10d0884249ba9e2bbefc4e88c5f2006e61b05",
+      "members_crc_verified": 29,
+      "original_binary_members_rehashed": 21,
+      "short_raw_fixture_bytes": 513,
+      "source_cmd_sha256": "2f2a6cdbe9d4c37e331b82577ed3c947342e545a19bd0c022d0b940fa7cac8e0",
+      "original_R_refused_all_four_old_files_unchanged": true,
+      "original_T_restored_8192_byte_raw_exact": true,
+      "two_cold_original_boots_match_T": true,
+      "actual_torn_disk_write_proven": false,
+      "physical_powercut_proven": false,
+      "release_gate_credit": 0
+    },
+    {
+      "kind": "actual-win32-postraw-typed-OS-sharing-denial",
+      "artifact_id": 12228287822,
+      "outer_sha256": "aca4d73da3d60aaa10ae94504196fb1e119a620ecd2992685450212059fbbf71",
+      "members_crc_verified": 29,
+      "original_binary_members_rehashed": 22,
+      "original_source_pe_sha256": "d418b2e9bb812bb064b825744e33753d88a9eb3cec9668377e8a15f1072c5c6e",
+      "source_cmd_sha256": "2f2a6cdbe9d4c37e331b82577ed3c947342e545a19bd0c022d0b940fa7cac8e0",
+      "original_win32_kernel_replace_probe_error": 5,
+      "guest_source_save_failure_exit": 8,
+      "postraw_raw_byte_differences": 74,
+      "postraw_typed_selector_catalog_remain_old": true,
+      "denied_original_files_unchanged": true,
+      "archived_intent_matches_recovered_receipt": true,
+      "cold_original_recovery_typed_matches_raw": true,
+      "second_cold_idempotent": true,
+      "actual_NTFS_full_or_electrical_torn_write_proven": false,
+      "physical_hardware_verified": false,
+      "release_gate_credit": 0
+    }
+  ]
 }

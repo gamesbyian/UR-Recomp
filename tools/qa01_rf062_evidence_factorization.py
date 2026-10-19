@@ -134,6 +134,10 @@ def classify(ab: dict, cross: dict, executed: dict, report: dict,
               {"ref_wram":0,"ref_sram":0,"native_wram":15,"native_sram":0} and
             cross.get("per_guest_memory_type_changed_byte_occurrences") ==
               {"ref_wram":0,"ref_sram":0,"native_wram":77,"native_sram":0} and
+            cross.get("earlier_RF066_original_native_race_mesh",{}).get("raw_byte_exact_race_mesh_pairs") == 51 and
+            cross.get("later_RF062_original_native_race_mesh",{}).get("raw_byte_exact_race_mesh_pairs") == 46 and
+            cross.get("earlier_RF066_original_native_race_mesh",{}).get("unmasked_guest_race_mesh_WRAM_byte_occurrences") == 92 and
+            cross.get("later_RF062_original_native_race_mesh",{}).get("unmasked_guest_race_mesh_WRAM_byte_occurrences") == 104 and
             cross.get("causal_reason_for_cross_epoch_native_stack_or_DP_byte_change_proven") is False and
             cross.get("instrumentation_on_off_same_binary_family_noninterference_proven") is False and
             cross.get("full_USA_events_accepted") == 0 and

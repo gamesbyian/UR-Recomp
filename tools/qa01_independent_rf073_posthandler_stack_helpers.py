@@ -142,6 +142,9 @@ def authentic(path: Path) -> dict:
          and prior["native_saved_PC_or_PB_helper_reads_between_push_and_compiled_RTI"]==0,
          "RF073 original/native host-source witness changed")
     result = first_posthandler(events, prior["brackets"])
+    need(result["actual_first_later_stack_byte_observations"] == 45 and
+         result["distinct_native_helper_operations_supplying_first_later_bytes"] == 29,
+         "RF073 genuine first-later native 16-bit helper census changed")
     result.update({
         "exact_authenticated_native_original_Zoo_zip_SHA256":
             prior["exact_authenticated_RF054_zip_sha256"],

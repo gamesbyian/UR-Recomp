@@ -74,6 +74,35 @@ class OriginalRF064ReadCoverage(unittest.TestCase):
             with self.subTest(pulls=pulls, buses=buses), self.assertRaises(ValueError):
                 evidence.classify(pulls, buses, checked(pulls, buses, **(kw or {})))
 
+    def test_actual_postcall_return_can_match_prior_push_without_bus_read_record(self):
+        raw = (
+            "QA01RF064ORIGPULL f=1017 kind=pullW base=01F0 width=2 "
+            "returned=9141 before=0 after=0 unique=0\n"
+            "QA01RF045ORIGSTACK seq=1 kind=pushW addr=01F0 width=2 value=914E\n"
+            "QA01RF064ORIGPULL f=1017 kind=pullW base=01F0 width=2 "
+            "returned=914E before=1 after=1 unique=0\n"
+            "QA01RF045ORIGSTACK seq=2 kind=pushB addr=01EE width=1 value=0026\n"
+            "QA01RF064ORIGPULL f=1017 kind=pullB base=01EE width=1 "
+            "returned=0026 before=2 after=2 unique=0\n"
+        )
+        report = evidence.corroborate_last_observed_push(raw)
+        self.assertEqual(
+            report["real_post_call_returns_corrobated_by_last_observed_RF045_push"], 2)
+        self.assertEqual(report["returns_without_prior_observed_RF045_push_bytes"], 1)
+        self.assertEqual(report["returns_differing_from_last_observed_RF045_push"], 0)
+        self.assertFalse(report["complete_actual_source_bus_writer_history_proven"])
+
+    def test_source_postcall_return_mismatch_is_reported_not_reinterpreted(self):
+        raw = (
+            "QA01RF045ORIGSTACK seq=1 kind=pushW addr=01F0 width=2 value=914E\n"
+            "QA01RF064ORIGPULL f=1017 kind=pullW base=01F0 width=2 "
+            "returned=914F before=1 after=1 unique=0\n"
+        )
+        report = evidence.corroborate_last_observed_push(raw)
+        self.assertEqual(report["returns_differing_from_last_observed_RF045_push"], 1)
+        self.assertEqual(report["real_post_call_returns_corrobated_by_last_observed_RF045_push"], 0)
+        self.assertFalse(report["complete_actual_source_bus_writer_history_proven"])
+
     def test_absent_pinned_case_cannot_impersonate_real_zip(self):
         with tempfile.TemporaryDirectory() as d:
             archive = Path(d) / "synthetic.zip"

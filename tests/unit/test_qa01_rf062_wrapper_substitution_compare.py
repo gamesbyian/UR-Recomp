@@ -1,6 +1,7 @@
 """ROM-free adversarial controls for identical-source wrapper-only A/B."""
 from __future__ import annotations
 import copy,hashlib,json,sys,tempfile,unittest
+from unittest import mock
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/"tools"))
 import qa01_rf062_wrapper_substitution_compare as target
@@ -46,7 +47,16 @@ class RF062WrapperAB(unittest.TestCase):
         self.items=fixture(Path(t.name))
 
     def check(self):
-        return target.compare(*self.items)
+        with mock.patch.object(target,"retained_memory_control",return_value={
+            "original_and_native_exact_variant_raw_memory_equal":True,
+            "full_raw_images_independently_reopened":712,
+            "unique_relative_race_frames":78,
+            "earned_Bowl_handoff_offsets":11,
+            "first_12_between_variant_raw_memory_differences":[],
+            "number_of_between_variant_raw_memory_differences":0,
+            "every_unsampled_CPU_opcode_or_frame_proven_equivalent":False,
+        }):
+            return target.compare(*self.items)
 
     def test_genuine_shaped_positive_stays_bounded(self):
         r=self.check()

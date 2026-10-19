@@ -135,12 +135,34 @@ def verify(original_outer: Path, painter: Path, native_4bpp: Path) -> dict:
     if (native_result["original_sprite_pixels_matching_native_slot_and_tile_suffix"] != 8
             or native_result["original_native_background_negative_controls"] != 2):
         raise ValueError("physical native 4bpp ownership not source-matched")
+    # Native-source pre-colour-math, live brightness and actual final RGB
+    # distinguish the two one-step shade differences from sprite identity.
+    # This is an ORIGINAL-INTERNAL-STAGE diagnostic, not correctly registered
+    # original-video colour parity or a license to alter final brightness.
+    raw_native = owners.member(native_4bpp, owners.NATIVE_SHA, owners.NATIVE_LOG)
+    shade = []
+    for line in raw_native.decode("utf-8").splitlines():
+        if not line.startswith("UR_QA08_WIN_PIXEL_OWNER "):
+            continue
+        d = owners.decode(line, "UR_QA08_WIN_PIXEL_OWNER")
+        if ((int(d["frame"]) in SOURCE_FRAMES) and
+            (int(d["x"]), int(d["raster_y"])) == (205, 115)):
+            if (d["inidisp"] != "0e" or d["premain"] != "17,6,3" or
+                d["postmath"] != "17,6,3" or d["obj_word"] != "0cd1" or
+                d["final"] != "130,45,22"):
+                raise ValueError("actual native live brightness/colour operand changed")
+            shade.append(int(d["frame"]))
+    if sorted(shade) != list(SOURCE_FRAMES):
+        raise ValueError("not both authentic native source brightness samples")
     table = signature_table(painter)
     rows = []
     for first in SOURCE_FRAMES:
         rows.extend(true_source_boundary(table, first))
     if len(rows) != 10:
         raise ValueError("original pose transition sample count changed")
+    shade_source=[table[(frame,205,115)][1] for frame in SOURCE_FRAMES]
+    if shade_source != [0x8183,0x8183]:
+        raise ValueError("original following-internal-stage RGB565 shade changed")
     if [tuple(table[(f, *point)]) for point in POINTS for f in SOURCE_FRAMES[0:1]] != [
         tuple(table[(SOURCE_FRAMES[1], *point)]) for point in POINTS
     ]:
@@ -156,6 +178,16 @@ def verify(original_outer: Path, painter: Path, native_4bpp: Path) -> dict:
         "original_144_field_pose_recurrence": True,
         "native_actual_matching_source_internal_OBJ": 8,
         "native_actual_matching_source_internal_BG": 2,
+        "native_two_shade_controls": {
+            "pixel": [205, 115],
+            "frames": list(SOURCE_FRAMES),
+            "original_next_stage_rgb565": "8183",
+            "native_pre_math_RGB5": [17, 6, 3],
+            "native_live_INIDISP": "0e",
+            "native_actual_final_RGB8": [130, 45, 22],
+            "native_minus_original_stage_RGB5": [0, -1, -1],
+            "true_original_video_causality_proven": False,
+        },
         "source_original_native_consumed_input_and_beam_proven": False,
         "global_frame_shift_permitted": False,
         "original_native_correct_callback_RGB5_parity_proven": False,

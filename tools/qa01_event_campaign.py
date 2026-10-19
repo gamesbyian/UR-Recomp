@@ -726,18 +726,38 @@ def classify(case: str, producer_rc: int, producer_path: Path,
     return row
 
 
+
+def exact_case_artifact_root(folder: Path) -> Path:
+    """Resolve exactly one legal Actions case payload root, never both.
+
+    A multi-root upload can retain qa01-case/ beneath the artifact directory
+    when additional research files are uploaded beside the primary case.
+    Fail closed on mixed layouts or symlinks instead of silently picking the
+    most flattering case report.
+    """
+    flat = folder / "case-result.json"
+    nested_dir = folder / "qa01-case"
+    nested = nested_dir / "case-result.json"
+    if flat.is_symlink() or nested_dir.is_symlink() or nested.is_symlink():
+        raise ValueError("symlinked primary case receipt or nested upload root")
+    if flat.is_file() and nested.is_file():
+        raise ValueError("ambiguous flat and nested QA01 case receipts")
+    return nested_dir if nested.is_file() else folder
+
+
 def aggregate(plan: dict, results_dir: Path) -> tuple[dict, str]:
     validate_plan(plan)
     results = []
     expected = {row["id"] for row in plan["cases"]}
     unexpected = []
-    for path in sorted(results_dir.glob("qa01-campaign-case-*/case-result.json")):
-        case_dir = path.parent.name
-        if case_dir.removeprefix("qa01-campaign-case-") not in expected:
+    for directory in sorted(results_dir.glob("qa01-campaign-case-*")):
+        case_dir = directory.name
+        if directory.is_dir() and case_dir.removeprefix("qa01-campaign-case-") not in expected:
             unexpected.append(case_dir)
     for case in [row["id"] for row in plan["cases"]]:
-        path = results_dir / ("qa01-campaign-case-" + case) / "case-result.json"
+        directory = results_dir / ("qa01-campaign-case-" + case)
         try:
+            path = exact_case_artifact_root(directory) / "case-result.json"
             row = load_json(path)
             if (row.get("schema") != SCHEMA or row.get("case") != case or
                 row.get("course_id") != CASES[case]["course_id"] or

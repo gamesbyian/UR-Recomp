@@ -138,6 +138,26 @@ class PrimaryArtifactAuditTest(unittest.TestCase):
         self.assertTrue(observed["campaign_aggregate_matches_sources"])
         self.assertEqual(observed["cases"][0]["disposition"], "strict_candidate")
 
+    def test_multi_root_actions_upload_preserves_primary_source_verification(self):
+        nested=self.folder/"qa01-case"
+        nested.mkdir()
+        for entry in list(self.folder.iterdir()):
+            if entry != nested:
+                entry.rename(nested/entry.name)
+        # Exactly the shape emitted by Actions for the genuine RF062
+        # experiment once its case ZIP also contains qa01-rf062-ab/.
+        (self.folder/"qa01-rf062-ab"/"off").mkdir(parents=True)
+        result=self.inspect(with_aggregate=True)
+        self.assertTrue(result["primary_artifact_audit_complete"])
+        self.assertEqual(result["primary_receipts_verified"],1)
+        self.assertEqual(result["release_admissions"],0)
+        # Ambiguous primary roots must never be cherry-picked.
+        campaign.write_json(self.folder/"case-result.json",
+                            campaign.load_json(nested/"case-result.json"))
+        bad=self.inspect(with_aggregate=True)
+        self.assertFalse(bad["primary_artifact_audit_complete"])
+        self.assertEqual(bad["release_admissions"],0)
+
     def test_missing_and_malformed_shared_binary_manifest_fail_closed(self):
         manifest = self.folder / "SHA256SUMS"
         initial = manifest.read_text(encoding="ascii")

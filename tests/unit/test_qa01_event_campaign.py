@@ -239,6 +239,40 @@ class QA01CampaignTest(unittest.TestCase):
             "recomputed_candidate"])
         self.assertEqual(admitted["release_credit"], 0)
 
+    def test_real_actions_case_mixed_upload_root_is_a_completed_case(self):
+        plan=self.plan("zoom-zoo")
+        row=c.classify("zoom-zoo",0,self.report_file("zoom-zoo",matched=True),plan)
+        directory=self.root/"multi-root"/"qa01-campaign-case-zoom-zoo"
+        c.write_json(directory/"qa01-case"/"case-result.json",row)
+        # Extra research output changes Actions' common upload ancestor,
+        # but must not relabel a completed actual case as missing evidence.
+        (directory/"qa01-rf062-ab"/"off").mkdir(parents=True)
+        result,_=c.aggregate(plan,self.root/"multi-root")
+        self.assertTrue(result["transport_complete"])
+        self.assertEqual(result["counts"]["strict_candidate"],1)
+        self.assertEqual(result["release_admissions"],0)
+        self.assertEqual(c.exact_case_artifact_root(directory),directory/"qa01-case")
+
+    def test_ambiguous_or_symlinked_nested_case_receipts_are_not_selected(self):
+        plan=self.plan("zoom-zoo")
+        row=c.classify("zoom-zoo",0,self.report_file("zoom-zoo",matched=True),plan)
+        directory=self.root/"multi-root"/"qa01-campaign-case-zoom-zoo"
+        c.write_json(directory/"qa01-case"/"case-result.json",row)
+        c.write_json(directory/"case-result.json",row)
+        with self.assertRaisesRegex(ValueError,"ambiguous"):
+            c.exact_case_artifact_root(directory)
+        invalid,_=c.aggregate(plan,self.root/"multi-root")
+        self.assertFalse(invalid["transport_complete"])
+        self.assertEqual(invalid["counts"]["missing_evidence"],1)
+        (directory/"case-result.json").unlink()
+        (directory/"qa01-case"/"case-result.json").unlink()
+        (directory/"qa01-case").rmdir()
+        (directory/"qa01-case").symlink_to(self.root/"multi-root",target_is_directory=True)
+        with self.assertRaisesRegex(ValueError,"symlinked"):
+            c.exact_case_artifact_root(directory)
+        still_invalid,_=c.aggregate(plan,self.root/"multi-root")
+        self.assertEqual(still_invalid["release_admissions"],0)
+
     def test_distributed_aggregate_rejects_corrupted_strict_gate_receipt(self):
         plan = self.plan("zoom-zoo")
         path = self.report_file("zoom-zoo", matched=True)

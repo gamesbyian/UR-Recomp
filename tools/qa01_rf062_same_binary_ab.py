@@ -91,6 +91,48 @@ def strictly_qualified_original_path_variation(off: bytes, on: bytes) -> dict:
     }
 
 
+
+NATIVE_HOST_LINE = re.compile(r"^\[host \+[0-9]+\.[0-9]+s\] (.+)$")
+NATIVE_SCRIPT_PATH = re.compile(r"^(script: loaded [0-9]+ entries from ')(/[^']+)'$")
+
+
+def strictly_qualified_native_logging_variation(off: bytes, on: bytes) -> dict:
+    """Strip actual ten independent RF062 observations and compare every other line.
+
+    Only varying host *elapsed wall time* and exact native source-script work
+    directory path may differ. A changed CPU/SPC/source record cannot pass.
+    """
+    all_off=off.decode("utf8").splitlines()
+    all_on=on.decode("utf8").splitlines()
+    left=[row for row in all_off if not row.startswith("QA01RF062NATIVE ")]
+    right=[row for row in all_on if not row.startswith("QA01RF062NATIVE ")]
+    accepted=[]
+    clean=len(left)==len(right)
+    for index,(old,new) in enumerate(zip(left,right)):
+        if old==new:
+            continue
+        a,b=NATIVE_HOST_LINE.fullmatch(old),NATIVE_HOST_LINE.fullmatch(new)
+        if a and b and a.group(1)==b.group(1):
+            accepted.append({"line_zero_based":index,"type":"host_elapsed_wall_clock_only"})
+            continue
+        a,b=NATIVE_SCRIPT_PATH.fullmatch(old),NATIVE_SCRIPT_PATH.fullmatch(new)
+        if (a and b and a.group(1)==b.group(1)
+                and a.group(2).endswith("/zoom-zoo/replay/complete.script")
+                and b.group(2).endswith("/zoom-zoo/replay/complete.script")
+                and not any(x["type"]=="native_script_workdir" for x in accepted)):
+            accepted.append({"line_zero_based":index,"type":"native_script_workdir"})
+            continue
+        clean=False
+        break
+    return {
+        "original_native_observer_ten_direct_rows_excluded": len(all_on)-len(right),
+        "off_on_other_native_line_counts":[len(left),len(right)],
+        "native_without_RF062_exact_equal":left==right,
+        "accepted_host_only_metadata_lines":accepted if clean else [],
+        "all_other_native_lines_byte_equal_after_strict_host_metadata":clean,
+    }
+
+
 def control(off: dict, on: dict, off_logs: dict[str, bytes],
             on_logs: dict[str, bytes], off_inputs: dict[str, bytes],
             on_inputs: dict[str, bytes]) -> dict:
@@ -145,7 +187,11 @@ def control(off: dict, on: dict, off_logs: dict[str, bytes],
         x["master"] == y["master"] for x,y in zip(off_bus,on_bus))
     original_control = strictly_qualified_original_path_variation(
         off_logs["original"], on_logs["original"])
+    native_control = strictly_qualified_native_logging_variation(
+        off_logs["native"], on_logs["native"])
     same_original = original_control["source_nonpath_log_equality_proven"]
+    same_native_source = native_control[
+        "all_other_native_lines_byte_equal_after_strict_host_metadata"]
     same_outputs = all(off.get(k) == on.get(k) for k in
                        ("zoo_race_mesh", "source_terminal_followthrough",
                         "zoo_next_bowl_handoff"))
@@ -160,6 +206,7 @@ def control(off: dict, on: dict, off_logs: dict[str, bytes],
                                      sha(on_logs["native"])],
         "original_complete_log_byte_identical": original_control["exact_log_bytes_equal"],
         "original_qualified_source_log_path_differences": original_control,
+        "native_complete_nonRF062_log_metadata_limited_comparison": native_control,
         "rf062_actual_native_read_count_off_on": [len(absent),len(present)],
         "native_real_sound_helper_count_off_on": [len(a),len(b)],
         "native_sound_helper_matching_ordered_observations": matches,
@@ -168,7 +215,8 @@ def control(off: dict, on: dict, off_logs: dict[str, bytes],
         "native_actual_RF054_CPU_master_clocks_equal": same_cpu_clock,
         "original_native_whole_mesh_and_followthrough_equal": same_outputs,
         "runtime_RF062_logging_noninterference_supported": (
-            same_original and same_operand and same_cpu_clock and same_outputs),
+            same_original and same_native_source and
+            same_operand and same_cpu_clock and same_outputs),
         "wrapper_replacement_noninterference_proven": False,
         "original_native_opcode_clock_equivalence_proven": False,
         "actual_CPU_joypad_poll_equivalence_proven": False,

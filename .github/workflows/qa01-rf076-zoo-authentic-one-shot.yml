@@ -1,4 +1,6 @@
 # TEMP RF076 source-qualified original/native Zoom Zoo NMI one-shot.
+# Attempt 2: qualify native AOT sound markers and interpreter fetch source.
+# First attempted genuine regen had no compiled D4 call sites; preserve negative.
 # Do NOT merge this file or the temporary campaign modifications to main.
 name: RF076 genuine Zoo original/native resume-origin and executed opcode one-shot
 

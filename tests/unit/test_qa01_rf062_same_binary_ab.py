@@ -50,6 +50,12 @@ class SameBinaryNativeProbeAB(unittest.TestCase):
                 payload[base+"work/zoom-zoo/replay/"+label]=logs[guest]
             for guest,label in (("original","ref.input"),("native","pinned-baldosa.input")):
                 payload[base+"work/zoom-zoo/replay/"+label]=inputs[guest]
+        common_root=(prefix + "/" if prefix else "")
+        payload[common_root+"qa01-case/case-result.json"]=json.dumps({
+            "source_sha":"a"*40, "producer_exit_code":0,
+            "disposition":"strict_candidate", "release_credit":0,
+        }).encode()
+        payload[common_root+"qa01-case/producer-report.json"]=json.dumps(b).encode()
         if omit is not None:
             payload.pop(next(k for k in payload if k.endswith(omit)))
         with zipfile.ZipFile(path,"w") as z:
@@ -67,6 +73,16 @@ class SameBinaryNativeProbeAB(unittest.TestCase):
             self.assertTrue(result["runtime_RF062_logging_noninterference_supported"])
             with self.assertRaisesRegex(ValueError,"SHA256 changed"):
                 x.archived(path,"0"*64)
+
+    def test_archived_actual_source_case_must_identify_on_replay(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path=Path(temp)/"source-join.zip"
+            self.make_archive(path,omit="qa01-case/producer-report.json")
+            with self.assertRaisesRegex(ValueError,"case source receipt missing"):
+                x.archived(path)
+            self.make_archive(path,omit="qa01-case/case-result.json")
+            with self.assertRaisesRegex(ValueError,"case source receipt missing"):
+                x.archived(path)
 
     def test_archive_missing_guest_control_is_not_implicitly_recovered(self):
         with tempfile.TemporaryDirectory() as temp:

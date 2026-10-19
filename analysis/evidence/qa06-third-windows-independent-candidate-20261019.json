@@ -56,6 +56,11 @@
       "id": 12230585375,
       "sha256": "081cb48d4d3ca81304c759905c1f013b1adb382dd2ce77fb945813d3b1f4eac5",
       "members": 28
+    },
+    "player2_catalog_stage_archive": {
+      "id": 12230068102,
+      "sha256": "d70b483f32c32463433db647e0f9deec55af2102a928c2449af1624e75e97ad0",
+      "members": 37
     }
   },
   "package": {
@@ -152,5 +157,34 @@
     "diagnostic": "Current racer save completed; requested next racer could not be selected.",
     "release_gate_credit": 0,
     "noncooperating_hostile_writer_stress_proven": false
+  },
+  "source_created_p2_catalog_recovery": {
+    "five_stages": [
+      "after-p1-created",
+      "after-p2-created",
+      "catalog-row-lost",
+      "after-p2-recovered",
+      "after-source-go"
+    ],
+    "total_original_stage_binary_members_sha_and_length_verified": 32,
+    "stages_member_counts": [
+      4,
+      7,
+      7,
+      7,
+      7
+    ],
+    "actual_row_loss_changed_only": "profiles-v1.txt",
+    "created_vs_recovered_all_original_files_byte_equal": true,
+    "source_GO_changed_only": [
+      "saves/profile-mike/save.srm",
+      "saves/profile-mike/host-profile.txt"
+    ],
+    "player_martin_raw_and_typed_bytes_unchanged_after_GO": true,
+    "all_available_mike_martin_stage_raw_8192_equals_full_typed_stock_sram": true,
+    "canonical_urmutex_0byte_lock_files_preserved_in_manifest": true,
+    "source_emulated_real_two_player_result_in_this_artifact": false,
+    "human_intervention": false,
+    "release_gate_credit": 0
   }
 }

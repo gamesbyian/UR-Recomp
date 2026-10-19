@@ -57,9 +57,31 @@ class PostReturnNativeStackHelper(unittest.TestCase):
         self.assertFalse(report["first_original_native_differing_consumed_stack_byte_proven"])
         self.assertEqual(report["accepted_complete_USA_events"],0)
         first=report["frames"][0]
-        self.assertEqual(first["observed_first_later_stack_helper_reads"]["00:01EE"]["native_value"],"0085")
-        self.assertEqual(first["observed_first_later_stack_helper_reads"]["00:01F1"]["native_value"],"0026")
+        self.assertEqual(first["observed_first_later_stack_helper_reads"]["00:01EE"]["native_value"],"85")
+        self.assertEqual(first["observed_first_later_stack_helper_reads"]["00:01F1"]["native_value"],"26")
         self.assertFalse(first["these_later_reads_are_the_compiled_RTI_saved_PC_reads"])
+
+    def test_first_real_word_covers_two_stack_bytes_without_extra_guest_reads(self):
+        events,brackets=synthetic()
+        first_ed=next(e for e in events if e["f"]=="1017" and
+                      e.get("addr")=="01ED" and e.get("nmi")=="0")
+        first_ed.update(value="0241",width="2")
+        first_ef=next(e for e in events if e["f"]=="1017" and
+                      e.get("addr")=="01EF" and e.get("nmi")=="0")
+        first_ef.update(value="0001",width="2")
+        r=qa.first_posthandler(events,brackets)
+        row=r["frames"][0]["observed_first_later_stack_helper_reads"]
+        self.assertEqual(row["00:01ED"]["native_RF047_local_seq"],
+                         row["00:01EE"]["native_RF047_local_seq"])
+        self.assertEqual(row["00:01ED"]["native_value"],"41")
+        self.assertEqual(row["00:01EE"]["native_value"],"02")
+        self.assertEqual(row["00:01EE"]["actual_helper_width_bytes"],2)
+        self.assertEqual(row["00:01EF"]["native_value"],"01")
+        self.assertEqual(row["00:01F0"]["native_value"],"00")
+        self.assertEqual(row["00:01EF"]["native_RF047_local_seq"],
+                         row["00:01F0"]["native_RF047_local_seq"])
+        self.assertEqual(r["actual_first_outside_handler_native_helper_observations"],45)
+        self.assertFalse(r["native_saved_PC_or_PB_read_during_compiled_RTI_proven"])
 
     def test_missing_posthandler_helper_refused_instead_of_invented(self):
         events,brackets=synthetic()

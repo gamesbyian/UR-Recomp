@@ -1,0 +1,98 @@
+{
+  "schema": "ur-qa01-rf076-native-nine-NMI-independent-source-verdict/1",
+  "recorded_date": "2026-10-19",
+  "original_source_case": {
+    "workflow_run_id": 39340150765,
+    "case_artifact_id": 12229745143,
+    "sha256": "33119ca55e3868981e7760c83e1796daa47b6fc72274c14588f72086b37609e4",
+    "members": 416,
+    "all_crc_pass": true,
+    "exact_actions_merge_source": "477d738bad9fd514ad0f11e97c9b1561391f0859",
+    "original_log_sha256": "f357f876f61b687aae8f42aa10c2505aa81ea8438a266925192dbb318967d308",
+    "native_log_sha256": "eda4004608338d82b7947e942a1f9a9969c2fe6e6d4389382a002ca4d7779421"
+  },
+  "original_binary_archive": {
+    "artifact_id": 12229240455,
+    "sha256": "68bcdc28dbd2751cf61a9a8206414ea8d63bac10c987877fe30e7471504e0a39",
+    "members": 9,
+    "crc_pass": true,
+    "manifest_identical_to_case": true,
+    "actual_rehashed_binary_sha256": {
+      "native": "ca58d0d8020f2b7375dce5aa9f9aa00e7109d76cbdeae2f67dffe3fd2799bbfc",
+      "snes9x_libretro_so": "7300d5fa3b39a23bfcd43c4f0504317ea3beba8dd97d1d1ff77e0069b1dd1684",
+      "snesref": "5fb3cca1f51d13762e7b82e736133cdab702aafbca07b9164d568139a3bcc18a"
+    }
+  },
+  "independently_recomputed_raw_memory": {
+    "named_original_native_sram_pairs_equal": 97,
+    "race_mesh_original_native_wram_pairs": 78,
+    "wram_exact": 51,
+    "wram_nonexact": 27,
+    "unmasked_wram_differing_byte_occurrences": 92,
+    "per_address_differing_occurrences": {
+      "7E:0063": 2,
+      "7E:01ED": 20,
+      "7E:01EE": 25,
+      "7E:01EF": 20,
+      "7E:01F0": 20,
+      "7E:01F1": 5
+    },
+    "first_nonexact_observed_pair_relative_frame": 1,
+    "first_observed_stack_5_original_hex": "26f0d48226",
+    "first_observed_stack_5_native_hex": "8197005526"
+  },
+  "native_RF047_observation": {
+    "all_expected_source_local_events_seq_contiguous": true,
+    "RF047_source_local_events": 47853,
+    "selected_AOT_opcode_events": 45103,
+    "RF047_read_helper_events": 2705,
+    "native_NMI_frame_labels": [
+      1017,
+      1018,
+      1019,
+      1020,
+      1021,
+      1022,
+      1023,
+      1024,
+      1025
+    ],
+    "complete_nmi_stage_brackets": 9,
+    "all_scheduler_last_assignment_site": "deadline_unwind",
+    "all_scheduler_saved_resume_PC": "82D4EE",
+    "each_first_observed_selected_AOT_post_return_opcode_PC": "82D4EE",
+    "RF047_truncated": false,
+    "physical_RF047_records_with_partial_other_logger_prefix": 75,
+    "interleaved_by_stage": {
+      "read": 73,
+      "compiled_rti": 2
+    },
+    "every_RF047_source_event_on_atomic_isolated_physical_line": false
+  },
+  "admission_scope": {
+    "native_selected_marker_continuation_correlation_proven": true,
+    "actual_literal_bus_opcode_fetch_proven": false,
+    "original_native_equivalent_semantic_NMI_phase_proven": false,
+    "original_2014_Snes9x_fetched_opcode_capture_in_this_case": false,
+    "first_actually_consumed_differing_original_native_byte_proven": false,
+    "full_unsampled_guest_course_CPU_state_parity_proven": false,
+    "exact_Windows_PE_cold_disk_restart_proven": false,
+    "accepted_USA_events": 0,
+    "accepted_Windows_QA_gates": 0
+  },
+  "verdict": "HOLD",
+  "next_request": "Independently qualify same-epoch original fetched-opcode/NMI-wake and first actual operand consumption against the nine native brackets; preserve 75 interleaved transport rows and no inferred clock shift.",
+  "preserved_original_source_bytes": {
+    "archive_only_qa_run_id": 39344364860,
+    "passed": true,
+    "retained_artifact_id": 12230088756,
+    "retained_wrapper_sha256": "b041dace391e3cbcc5cf02862515617e122aec23364ec2970fb951c31d48a66e",
+    "retained_case_inner_sha256": "33119ca55e3868981e7760c83e1796daa47b6fc72274c14588f72086b37609e4",
+    "retained_binaries_inner_sha256": "68bcdc28dbd2751cf61a9a8206414ea8d63bac10c987877fe30e7471504e0a39",
+    "original_provider_expiration_utc": "2026-10-26",
+    "retained_wrapper_expiration_utc": "2027-01-17",
+    "outer_wrapper_is_original_executed_case": false,
+    "original_and_saved_inner_bytes_independently_equal": true,
+    "actual_expiry_fallback_tested_in_hosted_environment": false
+  }
+}

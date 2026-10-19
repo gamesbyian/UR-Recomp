@@ -54,7 +54,7 @@ class NmiPhase(unittest.TestCase):
   lines=text.splitlines()
   for idx,line in enumerate(lines):
    if idx>4 and line.startswith("QA01RF047NATIVE seq="):
-    n=int(re.search(r"seq=(\\d+)",line).group(1))
+    n=int(re.search(r"seq=(\d+)",line).group(1))
     if n>=5:lines[idx]=line.replace(f"seq={n} ",f"seq={n+1} ",1)
   result=m.classify("\n".join(lines))
   self.assertEqual(result["native_actual_executed_opcode_markers"],1)

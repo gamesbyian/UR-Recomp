@@ -18,7 +18,7 @@
     "exact_RGB5": 386459,
     "four_cycle_gray_to_gray_wrong": 318775,
     "other_gray_to_gray_wrong": 23311,
-    "non_gray_to_gray_wrong": 16927,
+    "non_grayscale_wrong": 16927,
     "all_RGB5_wrong": 359013
   },
   "four_cycle_pixel_position_union_13_frames": 24940,

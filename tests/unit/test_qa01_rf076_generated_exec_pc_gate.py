@@ -37,10 +37,11 @@ class GeneratedGate(unittest.TestCase):
             v = m.inspect(root)
             self.assertEqual(v['generated_dir'], 'src/gen')
             self.assertEqual(v['generated_bank_part_count'], 1)
-            self.assertEqual(set(v['NMI_candidate_AOT_sites_absent']),
+            self.assertEqual(set(v['NMI_candidate_AOT_sites_unmatched_by_narrow_source_regex']),
                              {f'{pc:06X}' for pc in m.NMI_CANDIDATES})
             self.assertTrue(v['actual_interpreter_fetch_hook_source_staged'])
             self.assertFalse(v['NMI_candidate_fetched_opcode_observed_in_native_guest'])
+            self.assertFalse(v['unmatched_static_NMI_call_pattern_implies_absent_AOT_code'])
             self.assertFalse(v['actual_native_guest_execution_checked'])
             self.assertEqual(v['accepted_USA_events'], 0)
 
@@ -50,8 +51,8 @@ class GeneratedGate(unittest.TestCase):
             choice = next(iter(m.NMI_CANDIDATES))
             fixture(root, nmi_emitted={choice})
             v = m.inspect(root)
-            self.assertEqual(v['NMI_candidate_AOT_sites_observed'], [f'{choice:06X}'])
-            self.assertEqual(len(v['NMI_candidate_AOT_sites_absent']), 4)
+            self.assertEqual(v['NMI_candidate_AOT_sites_matched_by_narrow_source_regex'], [f'{choice:06X}'])
+            self.assertEqual(len(v['NMI_candidate_AOT_sites_unmatched_by_narrow_source_regex']), 4)
             self.assertFalse(v['NMI_candidate_fetched_opcode_observed_in_native_guest'])
 
     def test_sound_missing_is_fatal(self):

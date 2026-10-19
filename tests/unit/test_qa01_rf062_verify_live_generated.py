@@ -13,8 +13,8 @@ import qa01_rf062_verify_live_generated as rf
 class LiveModeSource(unittest.TestCase):
     @staticmethod
     def generated(mode="M1X0", *, shim=True):
-        call = ("uint8 v42 = ur_rf062_cpu_read8_pc(cpu, 0x11, "
-                "((uint16)cpu->Y), 0x8282F0u);") if shim else (
+        call = ("uint8 v42 = ur_rf062_read8_pc_8282f0(cpu, 0x11, "
+                "((uint16)cpu->Y)); /* UR_QA01_RF062_DIRECT_PC_8282F0 */") if shim else (
                     "uint8 v42 = cpu_read8_paced(cpu, 0x11, ((uint16)cpu->Y));")
         return (
             "RecompReturn Snd_UploadBlockList_82EF_%s(CpuState *cpu) {\n" % mode
@@ -55,7 +55,7 @@ class LiveModeSource(unittest.TestCase):
             root = Path(tmp)
             text = self.generated(mode="M1X0", shim=False)
             text += "RecompReturn Decoy(CpuState *cpu) {\n"
-            text += "  uint8 x = ur_rf062_cpu_read8_pc(cpu, 0x11, cpu->Y, 0x8282F0u);\n}\n"
+            text += "  uint8 x = ur_rf062_read8_pc_8282f0(cpu, 0x11, cpu->Y); /* UR_QA01_RF062_DIRECT_PC_8282F0 */\n}\n"
             (root / "src.c").write_text(text)
             with self.assertRaisesRegex(ValueError, "lacks real executed"):
                 rf.audit(root)

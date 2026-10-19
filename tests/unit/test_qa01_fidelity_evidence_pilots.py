@@ -56,6 +56,24 @@ class CausalWindowTests(unittest.TestCase):
         self.assertEqual(first["native"]["first_actual_read_before_overwrite"]["value"], 0x81)
         self.assertEqual(result["accepted_complete_USA_events"], 0)
 
+    def test_causal_verdict_binds_both_guest_input_identities_not_just_code(self):
+        first = self.report()
+        self.assertEqual(first["input_identity"], identities())
+        # A distinct but internally consistent original/native guest pair
+        # built from the SAME source commit may use another movie/input.
+        # The resulting valid causal report must not be interchangeable.
+        a, b = causal_guest("original", 0x26), causal_guest("native", 0x81)
+        for data in (a, b):
+            data["movie_sha256"] = "9" * 64
+            data["input_sha256"] = "8" * 64
+        alternate = self.report(a, b)
+        self.assertEqual(first["source_sha"], alternate["source_sha"])
+        self.assertEqual(alternate["input_identity"]["movie_sha256"], "9" * 64)
+        self.assertEqual(alternate["input_identity"]["input_sha256"], "8" * 64)
+        self.assertNotEqual(first["input_identity"], alternate["input_identity"])
+        self.assertEqual(first["accepted_complete_USA_events"], 0)
+        self.assertEqual(alternate["accepted_complete_USA_events"], 0)
+
     def test_provenance_window_phase_and_overflow_fail_closed(self):
         for mutation in ("sha", "phase", "overflow", "seq", "value"):
             a, b = causal_guest("original", 0x26), causal_guest("native", 0x81)

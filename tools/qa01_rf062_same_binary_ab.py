@@ -10,6 +10,7 @@ import argparse
 import difflib
 import hashlib
 import json
+import re
 import zipfile
 from pathlib import Path
 
@@ -40,6 +41,54 @@ def events(log: bytes, prefix: str) -> list[dict[str, str]]:
         must(len(fields) == len(row), "duplicated guest record field")
         entries.append(row)
     return entries
+
+
+
+# Only these exact three reporter path lines are host-directory metadata.
+# Preserve the original input count, script command count, SRAM byte count,
+# and every other source line verbatim. No native instructions are excluded.
+PATH_META = (
+    (re.compile(r"^(\\[input\\] loaded [0-9]+ event\\(s\\) from )(/\\S+)$"),
+     "/zoom-zoo/replay/ref.input", "original_supplied_input_path"),
+    (re.compile(r"^(script: loaded [0-9]+ command\\(s\\) from )(/\\S+)$"),
+     "/zoom-zoo/replay/complete.script", "original_script_path"),
+    (re.compile(r"^(\\[memory\\] loaded [0-9]+ SRAM bytes from )(/\\S+)$"),
+     "/zoom-zoo/anchored.srm", "original_sram_path"),
+)
+
+
+def strictly_qualified_original_path_variation(off: bytes, on: bytes) -> dict:
+    left = off.decode("utf8").splitlines()
+    right = on.decode("utf8").splitlines()
+    changed = []
+    clean = len(left) == len(right)
+    observed = set()
+    if clean:
+        for i, (a, b) in enumerate(zip(left, right)):
+            if a == b:
+                continue
+            qualified = None
+            for pattern, tail, name in PATH_META:
+                match_a, match_b = pattern.fullmatch(a), pattern.fullmatch(b)
+                if (match_a is not None and match_b is not None and
+                        match_a.group(1) == match_b.group(1) and
+                        match_a.group(2).endswith(tail) and
+                        match_b.group(2).endswith(tail) and
+                        name not in observed):
+                    qualified = name
+                    break
+            if qualified is None:
+                clean = False
+                break
+            observed.add(qualified)
+            changed.append({"line_zero_based": i, "metadata_field": qualified})
+    return {
+        "exact_log_bytes_equal": off == on,
+        "different_lines_only_qualified_host_path_metadata": clean,
+        "allowed_path_metadata_changes": changed if clean else [],
+        "source_log_line_counts_off_on": [len(left), len(right)],
+        "source_nonpath_log_equality_proven": clean,
+    }
 
 
 def control(off: dict, on: dict, off_logs: dict[str, bytes],
@@ -94,7 +143,9 @@ def control(off: dict, on: dict, off_logs: dict[str, bytes],
     same_operand = len(a) == len(b) == matches
     same_cpu_clock = same_operand and all(
         x["master"] == y["master"] for x,y in zip(off_bus,on_bus))
-    same_original = off_logs["original"] == on_logs["original"]
+    original_control = strictly_qualified_original_path_variation(
+        off_logs["original"], on_logs["original"])
+    same_original = original_control["source_nonpath_log_equality_proven"]
     same_outputs = all(off.get(k) == on.get(k) for k in
                        ("zoo_race_mesh", "source_terminal_followthrough",
                         "zoo_next_bowl_handoff"))
@@ -107,7 +158,8 @@ def control(off: dict, on: dict, off_logs: dict[str, bytes],
                                        sha(on_logs["original"])],
         "native_log_sha256_off_on": [sha(off_logs["native"]),
                                      sha(on_logs["native"])],
-        "original_complete_log_byte_identical": same_original,
+        "original_complete_log_byte_identical": original_control["exact_log_bytes_equal"],
+        "original_qualified_source_log_path_differences": original_control,
         "rf062_actual_native_read_count_off_on": [len(absent),len(present)],
         "native_real_sound_helper_count_off_on": [len(a),len(b)],
         "native_sound_helper_matching_ordered_observations": matches,

@@ -70,6 +70,11 @@ class OriginalMedalSourceTransition(unittest.TestCase):
             'owners.verify(painter, native_4bpp)',
         ):
             self.assertIn(literal,source)
+        for observed in ('"native_pre_math_RGB5": [17, 6, 3]',
+                         '"native_live_INIDISP": "0e"',
+                         '"native_actual_final_RGB8": [130, 45, 22]',
+                         '"native_minus_original_stage_RGB5": [0, -1, -1]'):
+            self.assertIn(observed, source)
         self.assertNotIn("PpuSetOverlayOamRange",source)
 
 if __name__=="__main__":

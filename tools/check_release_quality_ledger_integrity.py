@@ -14,6 +14,8 @@ import json
 from pathlib import Path
 import re
 
+from validate_release_quality_ledger import qa04_physical_coverage
+
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT = ROOT / "docs/RELEASE-QUALITY-LEDGER.json"
 HEX40 = re.compile(r"[0-9a-f]{40}\Z")
@@ -102,6 +104,10 @@ def audit(ledger: dict) -> dict[str, object]:
             require(gate.get("waiver_reason") is None,
                     id + " nonwaived gate retains contradictory waiver")
         if status == "passed":
+            if id == "QA-04":
+                require(qa04_physical_coverage(gate["witnesses"]),
+                        "QA-04 cannot accept fewer than three dissimilar "
+                        "L5 candidate-bound physical/clean-machine witnesses")
             passed.append(id)
             requires_hardware |= gate["required_layer"] == "L5"
         elif status != "waived":

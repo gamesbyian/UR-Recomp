@@ -52,6 +52,89 @@ def classify_frame(original: bytes, native: bytes) -> bytearray:
     return kinds
 
 
+def classify_cycle_pair_map(original: bytes, native: bytes) -> bytearray:
+    """Four original->native gray identities per source pixel; zero elsewhere.
+
+    Genuine image member hashes are checked separately by analyze(), and this
+    local classification still validates the full raster/fourth-channel shape.
+    """
+    classes = classify_frame(original, native)
+    result = bytearray(WIDTH * HEIGHT)
+    offset = len(source.P7_HEADER)
+    labels = {pair: k + 1 for k, pair in enumerate(source.CYCLE)}
+    for pixel, kind in enumerate(classes):
+        if kind != CYCLE:
+            continue
+        pos = pixel * 4
+        pair = (original[pos + 2] >> 3, native[offset + pos] >> 3)
+        if pair not in labels:
+            raise ValueError("gray-cycle pixels must retain exact RGB5 pairs")
+        result[pixel] = labels[pair]
+    return result
+
+
+def summarize_cycle_pair_identity(pair_frames: list[bytearray]) -> dict:
+    """Observe class identity at one coordinate through all 13 sampled fields.
+
+    A pixel may be correct at some fields (zero), but if it is ever a
+    four-state gray mismatch, the original->native substitution class must
+    never silently turn into another class. This is measured, not a palette
+    ingestion or winning-layer attribution.
+    """
+    if len(pair_frames) != len(source.SPIKES) or any(
+        len(frame) != WIDTH * HEIGHT for frame in pair_frames
+    ):
+        raise ValueError("exactly 13 complete cycle-class source maps required")
+    if any(value > len(source.CYCLE) for frame in pair_frames for value in frame):
+        raise ValueError("unknown cycle-class pixel value")
+    entries = []
+    ever = bytearray(WIDTH * HEIGHT)
+    totals = Counter()
+    for label, frame in zip(source.SPIKES, pair_frames):
+        counts = Counter(frame)
+        totals.update(counts)
+        for i, kind in enumerate(frame):
+            if kind and ever[i] and ever[i] != kind:
+                raise ValueError("a source coordinate changed its gray-cycle class")
+            if kind:
+                ever[i] = kind
+        entries.append({"native_guest": label,
+                        "observed_four_state_cycle_pixels": sum(counts[k]
+                            for k in range(1, len(source.CYCLE) + 1))})
+    regions = []
+    for k, pair in enumerate(source.CYCLE, 1):
+        union = [i for i, v in enumerate(ever) if v == k]
+        stable = [i for i in union if all(frame[i] == k for frame in pair_frames)]
+        regions.append({
+            "original_to_native_RGB5": f"{pair[0]}->{pair[1]}",
+            "sampled_pixel_occurrences": totals[k],
+            "union_source_positions": len(union),
+            "intersection_source_positions_all_13": len(stable),
+            "intersection_source_position_uint32le_sha256": hashlib.sha256(
+                b"".join(i.to_bytes(4, "little") for i in stable)
+            ).hexdigest(),
+            "upper_raster_intersection_source_positions": sum(
+                i < WIDTH * 112 for i in stable),
+            "lower_raster_intersection_source_positions": sum(
+                i >= WIDTH * 112 for i in stable),
+        })
+    return {
+        "schema": "QA08-112field-authentic-fixed-gray-cycle-class/1",
+        "observed_sample_count": len(pair_frames),
+        "all_frame_observed_cycle_pixels": sum(totals[k] for k in range(1,5)),
+        "union_positions": sum(x["union_source_positions"] for x in regions),
+        "intersection_positions_all_13": sum(
+            x["intersection_source_positions_all_13"] for x in regions),
+        "cross_class_coordinate_conflicts": 0,
+        "per_gray_pair": regions,
+        "frames": entries,
+        "CGRAM_effective_pixel_index_proven": False,
+        "original_native_beam_instruction_clock_equivalent": False,
+        "global_recolour_or_frame_shift_authorized": False,
+        "release_QA08_QA10_accepted": False,
+    }
+
+
 def summarize_classes(classified: list[bytearray]) -> dict:
     """Locate real errors without changing registration or source pixels."""
     if len(classified) != len(source.SPIKES) or any(
@@ -165,6 +248,7 @@ def analyze(original_path: Path, native_path: Path) -> dict:
         source.sha(native_bytes) != source.NATIVE_OUTER_SHA):
         raise ValueError("source archives changed after identity verification")
     classified = []
+    phase_pair_maps = []
     late_control = {}
     late_member_hashes = {}
     with zipfile.ZipFile(io.BytesIO(original_bytes)) as original, \
@@ -177,6 +261,7 @@ def analyze(original_path: Path, native_path: Path) -> dict:
                 ref = original.read(f"frames/frame_{guest-1:06}_256x224.raw")
                 now = win32.read(f"source/ur-baldosa-original-source-{guest:06}.pam")
                 classified.append(classify_frame(ref, now))
+                phase_pair_maps.append(classify_cycle_pair_map(ref, now))
             original_manifest = json.loads(original.read("qa08-original-2p-fullroute.json"))
             win_report = json.loads(outer.read("qa08-premath-full263-ab.json"))
             original_by_frame = {row["real_original_snes9x_callback_frame"]: row
@@ -204,6 +289,14 @@ def analyze(original_path: Path, native_path: Path) -> dict:
                     "original_BGRX_sha256": old_sha, "native_P7_sha256": new_sha,
                 }
     result = summarize_classes(classified)
+    identity = summarize_cycle_pair_identity(phase_pair_maps)
+    expected = (53658, 107868, 52716, 104533)
+    if ([x["sampled_pixel_occurrences"] for x in identity["per_gray_pair"]] != list(expected) or
+        identity["all_frame_observed_cycle_pixels"] != 318775 or
+        identity["union_positions"] != 24940 or
+        identity["intersection_positions_all_13"] != 24096):
+        raise ValueError("authentic source cycle identity counts changed")
+    result["four_state_cycle_spatial_identity"] = identity
     bracket = classify_late_writer_bracket(classified, late_control)
     if (bracket["persistent_source_positions"] != 24096 or
         bracket["persistent_positions_uint32le_sha256"] !=

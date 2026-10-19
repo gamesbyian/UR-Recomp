@@ -266,6 +266,34 @@ class AuthenticRasterSpatialTests(unittest.TestCase):
         self.assertFalse(classes["CGRAM_effective_pixel_index_proven"])
         self.assertFalse(classes["release_QA08_QA10_accepted"])
 
+    def test_original_full_cgram_readback_vs_native_input_receipt(self):
+        receipt = json.loads((ROOT / "analysis/data/qa08-original-full-cgram-stable-vs-native-port-20261019.json").read_text())
+        self.assertEqual(receipt["original_zip_sha256"],
+                         "d725ee45db1b66d098e79499263dd089dba80a26de517c30db674f91e20f80a8")
+        self.assertEqual(receipt["native_current_RF017_zip_sha256"],
+                         "a62f0c228e85c741a8f1da0b92a4444f9091681c065c93c8a678b4ee2bb6f2ef")
+        self.assertEqual(receipt["native_compiled_guest_CRC_sha256"], spatial.source.NATIVE_CRC_SHA)
+        self.assertEqual(receipt["original_both_snapshots_bytes"], 512)
+        self.assertTrue(receipt["original_both_full_CGRAM_snapshots_identical"])
+        self.assertEqual(receipt["original_both_snapshots_sha256"],
+                         "431224685084e4a1ec62da7d7aaab96a7c36beb78aa8d257b0569be416737c12")
+        self.assertEqual(receipt["original_previous_source_frame"], 5183)
+        self.assertEqual(receipt["original_next_source_frame"], 5184)
+        self.assertEqual(receipt["original_last_observed_four_word_writer_frame"], 5178)
+        old = [int(x,16) for x in receipt["original_effective_full_CGRAM_words_6c_to_6f"]]
+        new = [int(x,16) for x in receipt["native_CPU_submitted_words_6c_to_6f"]]
+        self.assertEqual(old, [0x56b5, 0x4a52, 0x4631, 0x4210])
+        self.assertEqual(new, [old[1], old[2], old[3], old[0]])
+        self.assertTrue(all(a != b for a,b in zip(old,new)))
+        packets = json.loads((ROOT / "analysis/data/qa08-late-cgram-four-color-raster-crossjoin-20261019.json").read_text())["palette_packets_by_CGRAM_index"]
+        self.assertEqual([int(row["original_5178_RGB555"],16) for row in packets],old)
+        self.assertEqual([int(row["native_5183_RGB555"],16) for row in packets],new)
+        self.assertFalse(receipt["native_effective_PPU_CGRAM_words_at_render_proven"])
+        self.assertFalse(receipt["native_actual_pixel_palette_indices_proven"])
+        self.assertFalse(receipt["same_original_native_CPU_instruction_and_beam_phase_proven"])
+        self.assertFalse(receipt["QA08_QA10_release_acceptance"])
+        self.assertTrue(receipt["no_palette_recolour_frame_shift_CPU_clock_or_renderer_fix_authorized"])
+
     def test_direct_script_cli_reaches_archive_fail_closed_guard(self):
         cmd = [sys.executable, str(ROOT / "tools/qa08_localize_112field_grayscale.py"),
                "--original", str(ROOT / "missing-original-qa08.zip"),

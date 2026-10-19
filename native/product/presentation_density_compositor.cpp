@@ -2,6 +2,8 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
+#include <limits>
 
 namespace ur::product {
 
@@ -18,21 +20,42 @@ bool compose_nearest_density_frame(
         return false;
     }
 
-    const std::size_t out_width =
-        static_cast<std::size_t>(frame_width) * static_cast<std::size_t>(scale);
-    if (pitch < out_width * 4u) return false;
+    const std::size_t width = static_cast<std::size_t>(frame_width);
+    const std::size_t height = static_cast<std::size_t>(frame_height);
+    const std::size_t density = static_cast<std::size_t>(scale);
+    constexpr std::size_t pixel_bytes = sizeof(std::uint32_t);
+    constexpr std::size_t max = std::numeric_limits<std::size_t>::max();
 
-    for (int y = 0; y < frame_height; ++y) {
-        const auto* src = reinterpret_cast<const std::uint32_t*>(
-            field + static_cast<std::size_t>(y) *
-                        static_cast<std::size_t>(frame_width) * 4u);
-        for (int sy = 0; sy < scale; ++sy) {
-            auto* row = reinterpret_cast<std::uint32_t*>(
-                dst + static_cast<std::size_t>(y * scale + sy) * pitch);
-            for (int x = 0; x < frame_width; ++x) {
-                const std::uint32_t pixel = src[x];
-                for (int sx = 0; sx < scale; ++sx) {
-                    row[x * scale + sx] = pixel;
+    // The interface accepts byte buffers and an arbitrary destination pitch.
+    // Check address arithmetic before touching memory. Allocation extents and
+    // non-overlapping source/destination remain obligations of the caller.
+    if (width > max / pixel_bytes ||
+        height > max / (width * pixel_bytes) ||
+        width > max / density ||
+        width * density > max / pixel_bytes ||
+        height > max / density) {
+        return false;
+    }
+    const std::size_t source_pitch = width * pixel_bytes;
+    const std::size_t output_row_bytes = width * density * pixel_bytes;
+    const std::size_t output_height = height * density;
+    if (pitch < output_row_bytes || pitch > max / output_height) {
+        return false;
+    }
+
+    for (std::size_t y = 0; y < height; ++y) {
+        const std::uint8_t* source = field + y * source_pitch;
+        for (std::size_t sy = 0; sy < density; ++sy) {
+            std::uint8_t* row = dst + (y * density + sy) * pitch;
+            for (std::size_t x = 0; x < width; ++x) {
+                std::uint32_t pixel = 0;
+                // Real SDL/host buffers need not be uint32_t-aligned. The
+                // previous reinterpret_cast dereferences had undefined
+                // behaviour on odd row pitches and non-aligned source data.
+                std::memcpy(&pixel, source + x * pixel_bytes, pixel_bytes);
+                for (std::size_t sx = 0; sx < density; ++sx) {
+                    std::memcpy(row + (x * density + sx) * pixel_bytes,
+                                &pixel, pixel_bytes);
                 }
             }
         }

@@ -4,6 +4,8 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
+#include <limits>
 #include <vector>
 
 using ur::product::compose_nearest_density_frame;
@@ -62,11 +64,121 @@ void assert_3x_with_padded_pitch() {
     }
 }
 
+
+void assert_unaligned_original_source_and_odd_host_pitch() {
+    // A source buffer and each destination row are deliberately unaligned.
+    // A 17-byte pitch rotates destination row alignment every scanline.
+    constexpr std::array<std::uint32_t, 4> source_pixels{A, B, C, D};
+    constexpr std::size_t logical_width = 2;
+    constexpr std::size_t scale = 2;
+    constexpr std::size_t destination_pitch = 17;
+    std::array<std::uint8_t, 18> source{};
+    source.fill(0xBAu);
+    for (std::size_t i = 0; i < source_pixels.size(); ++i) {
+        std::memcpy(source.data() + 1 + i * 4, &source_pixels[i], 4);
+    }
+    std::array<std::uint8_t, 1 + 4 * destination_pitch + 1> result{};
+    result.fill(0xCDu);
+    assert(compose_nearest_density_frame(
+        result.data() + 1, destination_pitch, source.data() + 1,
+        static_cast<int>(logical_width), 2, static_cast<int>(scale)));
+    assert(result.front() == 0xCDu && result.back() == 0xCDu);
+    const std::array<std::uint32_t, 16> expected{
+        A, A, B, B,
+        A, A, B, B,
+        C, C, D, D,
+        C, C, D, D,
+    };
+    for (std::size_t y = 0; y < 4; ++y) {
+        const std::uint8_t* row = result.data() + 1 + y * destination_pitch;
+        for (std::size_t x = 0; x < 4; ++x) {
+            std::uint32_t observed = 0;
+            std::memcpy(&observed, row + x * 4, 4);
+            assert(observed == expected[y * 4 + x]);
+        }
+        // The byte following each 16-byte output line belongs to pitch,
+        // not to the source raster and may not be overwritten.
+        assert(row[16] == 0xCDu);
+    }
+    // Source data and both external sentinels are never modified.
+    assert(source.front() == 0xBAu && source.back() == 0xBAu);
+    for (std::size_t i = 0; i < source_pixels.size(); ++i) {
+        std::uint32_t value = 0;
+        std::memcpy(&value, source.data() + 1 + i * 4, 4);
+        assert(value == source_pixels[i]);
+    }
+}
+
+void assert_full_real_title_dimensions_preserve_every_original_pixel() {
+    // Cover the complete supported original centre and widened source
+    // raster sizes at all four densities. Use a non-flat per-pixel pattern,
+    // odd source alignment, and odd padded pitches to catch any changed
+    // block, row ownership, or edge between P1 and P2 split bands.
+    for (int width : {256, 342}) {
+        constexpr int height = 224;
+        std::vector<std::uint8_t> field(
+            1 + static_cast<std::size_t>(width * height) * 4u + 1u, 0xBAu);
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                const std::uint32_t pixel = 0xFF000000u |
+                    ((static_cast<std::uint32_t>(x * 73 + y * 19) & 255u) << 16) |
+                    ((static_cast<std::uint32_t>(x * 7 + y * 151) & 255u) << 8) |
+                    (static_cast<std::uint32_t>(x * 149 + y * 5) & 255u);
+                std::memcpy(field.data() + 1u +
+                            static_cast<std::size_t>(y * width + x) * 4u,
+                            &pixel, 4u);
+            }
+        }
+        for (int scale = 1; scale <= 4; ++scale) {
+            const std::size_t w = static_cast<std::size_t>(width * scale);
+            const std::size_t h = static_cast<std::size_t>(height * scale);
+            const std::size_t pitch = w * 4u + 1u;
+            std::vector<std::uint8_t> dst(1u + h * pitch + 1u, 0xCDu);
+            assert(compose_nearest_density_frame(dst.data() + 1u, pitch,
+                                                  field.data() + 1u,
+                                                  width, height, scale));
+            for (std::size_t sy = 0; sy < h; ++sy) {
+                const auto* row = dst.data() + 1u + sy * pitch;
+                const auto* src_row = field.data() + 1u +
+                    (sy / static_cast<std::size_t>(scale)) *
+                        static_cast<std::size_t>(width) * 4u;
+                for (std::size_t sx = 0; sx < w; ++sx) {
+                    const std::size_t src_x =
+                        sx / static_cast<std::size_t>(scale);
+                    assert(std::memcmp(row + sx * 4u,
+                                       src_row + src_x * 4u, 4u) == 0);
+                }
+                assert(row[w * 4u] == 0xCDu);
+            }
+            assert(dst.front() == 0xCDu && dst.back() == 0xCDu);
+            assert(field.front() == 0xBAu && field.back() == 0xBAu);
+        }
+    }
+}
+
+void assert_invalid_stride_arithmetic_rejected_without_writes() {
+    const std::array<std::uint32_t, 1> source{A};
+    std::array<std::uint8_t, 16> result{};
+    result.fill(0xEAu);
+    // A pathological pitch times output height must be checked before
+    // pointer arithmetic, including on 32-bit size_t hosts.
+    assert(!compose_nearest_density_frame(
+        result.data(), std::numeric_limits<std::size_t>::max(),
+        reinterpret_cast<const std::uint8_t*>(source.data()), 1, 2, 4));
+    assert(!compose_nearest_density_frame(
+        result.data(), 4, reinterpret_cast<const std::uint8_t*>(source.data()),
+        std::numeric_limits<int>::max(), 1, 4));
+    for (auto byte : result) assert(byte == 0xEAu);
+}
+
 }  // namespace
 
 int main() {
     assert_2x();
     assert_3x_with_padded_pitch();
+    assert_unaligned_original_source_and_odd_host_pitch();
+    assert_invalid_stride_arithmetic_rejected_without_writes();
+    assert_full_real_title_dimensions_preserve_every_original_pixel();
 
     {
         constexpr int logical_width = 342;

@@ -5,8 +5,8 @@
       "rom": "usa-retail",
       "course_id": "course:01",
       "status": "partial",
-      "evidence_ref": "analysis/data/dragster-finish-contact-transition.json",
-      "coverage_note": "Native postframe P1/P2 contact and checkpoint/lap transition at 2903; no independent instruction-time 82:8C32/81:805D event capture, full end result, or course-wide launch witness."
+      "evidence_ref": "analysis/data/qa01-dragster-zoo-independent-raw-archive-verification-20261018.json",
+      "coverage_note": "Authentic USA 2014 Dragster Race A source movie active at frame794 and result 2874, then next Zoo Circuit A eight continuous active source frames from frame3190 (source result+316). Frozen original/native run39174631932, source542205bd596306ef14a753dd005e391f60a8d413, genuine 69-member artifact12154480620 independent whole-archive SHA256 f036f80d72000b05a5c2edb42152eb433b89fa44c5fc36238ccc73bd143e2947. Fresh original Snes9x Dragster result-relative +2081 versus Baldosa +2079 (not strict equal); next Zoo active at fresh original result+315 versus native+318 (historical original movie+316). Actual 14/14 original/native whole 128KiB WRAM pairs differ, total 3616 unmasked differing byte occurrences. Actual 14/14 complete 8KiB SRAM pairs differ at the same 13 original/native offsets (182 occurrences). Both retain source-earned ranked MIKE 0:25.08 / 2508 centiseconds and correct complete record-table checksum; 14 unique per-guest real log dump acknowledgments and source trace digest independently rehashed. Authentic Zoo course payload loaded in both guests is a producer assertion, not a separately rehashed RNC in this archive. No same-age original/native consumed controller input, all-frame event parity, original 2014 source raw movie memory, complete next Zoo lifecycle, cold Windows disk or exact shipping candidate evidence. This green bounded diagnostic is a genuine strict-negative PARTIAL source event, NOT an accepted complete course; 0/45 accepted. Prior input/lap/result note: analysis/data/qa01-dragster-2014-original-baldosa-first-pair-20261014.json."
     },
     {
       "rom": "usa-retail",

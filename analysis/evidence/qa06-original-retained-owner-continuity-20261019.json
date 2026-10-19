@@ -52,5 +52,19 @@
   "schema": "ur-independent-qa06-owner-continuity/1",
   "scope": "independent offline CRC/SHA and original-retention byte equality; not runtime, clean machine, physical QA or a new candidate",
   "source_commit": "11501a15dea38fa912335cfc63103ce3a7208001",
-  "source_exe_zip_binding_equal": true
+  "source_exe_zip_binding_equal": true,
+  "executable_import_audit": {
+    "parser": "GNU objdump -p independently parsed actual archived PE; checked 31 unique DLL imports against existing tools/check_windows_portable_binary.py Windows 10/11 inbox + api-ms-win/ext-ms-win policy",
+    "import_dll_count": 31,
+    "unexpected_non_inbox_dlls": [],
+    "delay_import_directory_rva": "0000000000000000",
+    "delay_import_directory_size": "00000000",
+    "missing_msvc_redistributable_dlls": [
+      "no MSVCP*.dll import",
+      "no VCRUNTIME*.dll import"
+    ],
+    "no_external_dll_direct_dependency_observed": true,
+    "clean_end_user_os_execution_proven": false,
+    "limitation": "API-set and Windows inbox policy matching is static; actual clean Windows loader and hardware must still be tested"
+  }
 }

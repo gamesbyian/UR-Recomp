@@ -36,6 +36,8 @@ def qa04_synthetic_hardware_witness(label, *, environment="physical", clean=Fals
         "source_commit": "a" * 40, "artifact_sha256": "b" * 64,
         "source": "synthetic independent machine evidence " + label,
         "tested_at": "2026-10-11T06:00:00Z", "layer": "L5",
+        "tested_executable_sha256": "c" * 64,
+        "package_unchanged_after_launch": True,
         "hardware": {
             "setup_id": label,
             "environment": environment,
@@ -451,6 +453,12 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
         dummy = copy.deepcopy(three_real)
         dummy[0]["hardware"]["audible_output_observed"] = False
         variants.append(dummy)
+        unequal_exe = copy.deepcopy(three_real)
+        unequal_exe[2]["tested_executable_sha256"] = "d" * 64
+        variants.append(unequal_exe)
+        changed_zip = copy.deepcopy(three_real)
+        changed_zip[0]["package_unchanged_after_launch"] = False
+        variants.append(changed_zip)
         for i, witnesses in enumerate(variants):
             changed = copy.deepcopy(data)
             changed["gates"][3]["witnesses"] = witnesses

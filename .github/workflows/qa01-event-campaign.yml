@@ -675,6 +675,19 @@ jobs:
           else
             echo "RF074 HOLD: genuine source-native resume ring events missing/invalid" >> "$GITHUB_STEP_SUMMARY"
           fi
+      - name: Classify decoded native opcode events separately from scheduler PC
+        if: ${{ always() && matrix.case == 'zoom-zoo' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/qa01-case"
+          LOG="$ROOT/work/zoom-zoo/replay/native.log"
+          if [[ -s "$LOG" ]] && python3 tools/qa01_rf076_executed_pc_vs_resume.py "$LOG" \
+                --out "$ROOT/rf076-native-opcode-vs-scheduler.json" > "$ROOT/rf076-readiness.txt" 2>&1; then
+            echo "RF076 native decoded opcode-site chronology retained; original/native same-phase HOLD" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "RF076 HOLD: native guest log or decoded opcode chronology incomplete" >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Independently reopen full Zoo original/native raw mesh and next-Bowl SRAM
         if: ${{ always() && matrix.case == 'zoom-zoo' && inputs.zoo_race_mesh && inputs.zoo_dp_window && inputs.zoo_next_bowl }}
         shell: bash
@@ -696,6 +709,8 @@ jobs:
             ${{ runner.temp }}/qa01-case/rf064-original-pulls.json
             ${{ runner.temp }}/qa01-case/rf066-original-consumed.json
             ${{ runner.temp }}/qa01-case/rf074-native-resume-origin.json
+            ${{ runner.temp }}/qa01-case/rf076-native-opcode-vs-scheduler.json
+            ${{ runner.temp }}/qa01-case/rf076-readiness.txt
             ${{ runner.temp }}/qa01-case/rf074-readiness.txt
             ${{ runner.temp }}/qa01-case/rf066-original-readiness.txt
             ${{ runner.temp }}/qa01-case/rf064-original-readiness.txt

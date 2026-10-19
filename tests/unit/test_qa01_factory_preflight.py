@@ -134,6 +134,22 @@ class FactoryPreflight(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "digest pin disagrees"):
             self.check(hashes=wrong)
 
+    def test_missing_report_file_digest_cannot_inherit_green_attestation(self):
+        incomplete = copy.deepcopy(self.hashes)
+        incomplete.pop("frame_report")
+        r = self.check(hashes=incomplete)
+        self.assertEqual(r["readiness"], "hold")
+        self.assertIn("missing_actual_report_file_sha256",
+                      r["missing_or_negative_conditions"])
+
+    def test_missing_attested_report_pins_is_hold(self):
+        att = copy.deepcopy(self.att)
+        att.pop("evidence_sha256")
+        r = self.check(att=att)
+        self.assertEqual(r["readiness"], "hold")
+        self.assertIn("missing_independent_report_digest_pins",
+                      r["missing_or_negative_conditions"])
+
     def test_original_native_byte_mutation_rejected_even_when_flags_claim_green(self):
         c = copy.deepcopy(self.causal)
         c["addresses"][0]["original"]["checkpoint_byte"] = 0x25

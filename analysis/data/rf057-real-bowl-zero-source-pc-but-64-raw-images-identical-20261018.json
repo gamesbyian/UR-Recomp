@@ -1,0 +1,52 @@
+{
+  "schema": "rf057-original-USA-bowl-true-source-PC-observer-negative-run-v1",
+  "frozen_replay": {
+    "github_run": 39176758875,
+    "workflow": "RF057 Executed Original Bowl CPU Predicate",
+    "source_commit": "d753a7f095a202f1625d9f00b779b2c75d3bce5c",
+    "conclusion": "failure",
+    "failed_step": "Independent source-original Bowl score then paired stock-entry native replay",
+    "producer_exit_code": 0,
+    "artifact_id": 12155116024,
+    "artifact_zip_sha256": "462b00cb713e871764dddf8894222f3364547f7d2e7e58e44c3e8ffa0a19f2c4",
+    "artifact_member_count": 83,
+    "source_reference_log_sha256": "5ce1a6a385aa1c758f318174447e16874fb4f1604ba306edec3d3e2ca9325102"
+  },
+  "actual_original_guest_trace": {
+    "RF057_actual_executed_cpu_candidate_rows": 0,
+    "RF057_heartbeat_rows": 0,
+    "original_guest_trace_installed_in_binary_by_build_grep": true,
+    "flag_set_in_workflow_producer_env": true,
+    "source_CPU_frame_in_original_core_registered_against_snesref_host": false,
+    "explanation": "No evidence that source CPU decoder never visits postrace/joypad routines. Either actual frame domain, opcode bank/location, source debug activation or other instrumentation coverage gate may be wrong. No branch/nonexecution conclusion is licensed."
+  },
+  "actual_gameplay_result": {
+    "bowl_producer_exit": 0,
+    "full_guest_raw_images": 48,
+    "full_2014_original_movie_raw_images": 16,
+    "all_64_raw_images_byte_for_byte_same_as_RF056_baseline": true,
+    "images_masked": 0,
+    "rom_movie_seed_sram_and_complete_script_identical": true,
+    "bowl_next_switcher_handoff_object_exact_same": true,
+    "full_producer_comparison_object_equal": true,
+    "genuine_cold_original_native_ranked_record_reloaded": true,
+    "strict_source_original_2014_next_switcher_plus": 342,
+    "fresh_source_original_next_switcher_plus": 341,
+    "native_next_switcher_plus": 344,
+    "complete_USA_event_accepted": 0
+  },
+  "prior_baseline": {
+    "artifact_id": 12151982503,
+    "sha256": "c2262b40e43b4e167cbdf291623b0e34207561187e103af39eca7a46fa4b0edc",
+    "case_members": 78
+  },
+  "next_discriminator": "Log one bounded executed-CPU opcode-dispatch heartbeat every 128 *actual ICPU.Frame* and every frame 4678..4705 independently of imported menu candidate PC, preserving actual PB:PC; only claim candidate nonexecution if real CPU frame window is covered. Do not alter original/native host clock, game logic or supplied input. Require full 64 immutable raw image comparand unchanged.",
+  "claim_limits": {
+    "exact_source_PC_witness_proven": false,
+    "real_original_joypad_CPU_bus_read_proven": false,
+    "first_transition_branch_proven": false,
+    "native_generated_PC_proven": false,
+    "cpu_spc_absolute_phase_proven": false,
+    "release_USA_complete_event_credits": 0
+  }
+}

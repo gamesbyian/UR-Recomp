@@ -1,0 +1,107 @@
+{
+  "schema": "ur-qa06-independent-new-windows-ntfs-review/1",
+  "date": "2026-10-19",
+  "producer": {
+    "pr": 1990,
+    "run_id": 39337845469,
+    "run_status": "success",
+    "event": "pull_request",
+    "head_sha": "70b3fe5147e0b807f16ce083bf1453b9b38fffd7",
+    "actual_checked_out_source": "f7db1b92fbe347f1315cfe8de8ea3451857cb5fc",
+    "checkout_parents": [
+      "34a308f66f0d7ba9bc6857a628c2fc92157e19a1",
+      "70b3fe5147e0b807f16ce083bf1453b9b38fffd7"
+    ],
+    "release_on_merged_main": false
+  },
+  "candidate": {
+    "candidate_wrapper_artifact_id": 12227738503,
+    "wrapper_sha256": "41a0ea31eb0d030be7fe816a478ddcdb1fc8af6a5cf655a65b58bd125c3c28e6",
+    "binding_artifact_id": 12227853333,
+    "binding_wrapper_sha256": "12bc7e7a252c18b708e481c80a84efd06dd17e5d5c965ec018f97667c5a32106",
+    "romfree_inner_zip_sha256": "2b0ed905047a2520ba1c9ef7aa0bd781e2f58b8bee3b9598562187b73c852b55",
+    "romfree_inner_zip_bytes": 6057753,
+    "actual_pe_sha256": "d418b2e9bb812bb064b825744e33753d88a9eb3cec9668377e8a15f1072c5c6e",
+    "pe_bytes": 20334080,
+    "pe_machine": "AMD64",
+    "pe_optional_magic": "PE32+",
+    "manifest_member_hashes_recomputed": true,
+    "archived_cmd_sha256": "2f2a6cdbe9d4c37e331b82577ed3c947342e545a19bd0c022d0b940fa7cac8e0",
+    "pe_normal_import_dlls": 31,
+    "noninbox_imports": 0,
+    "delay_import_directory_empty": true,
+    "rom_bundled": false
+  },
+  "pre_intent": {
+    "artifact_id": 12227993287,
+    "outer_sha256": "bdafb211fba24f1f9ce8eb6c9759cb90cd72fe2391a4c8ba4f48e8e9124908fe",
+    "zip_members": 25,
+    "zip_crc_ok": true,
+    "original_file_bytes_rehashed": 16,
+    "real_isolated_ntfs_vhdx_reported": true,
+    "external_win32_disk_full_error": 112,
+    "original_packaged_cmd_guest_exit": 8,
+    "pre_intent_durable_write_refused": true,
+    "all_four_before_full_cold1_cold2_bytes_equal": true,
+    "legacy_profile_raw_typed_consistent": true
+  },
+  "post_raw": {
+    "artifact_id": 12227608721,
+    "outer_sha256": "530dd48a0fe0af40220c329e0371b86b779a46be97f35540f2969255fbb30f60",
+    "zip_members": 29,
+    "zip_crc_ok": true,
+    "original_file_bytes_rehashed": 22,
+    "physical_os_volume": "isolated hosted Windows W: NTFS VHDX",
+    "native_game_exit": 8,
+    "second_process_win32_error": 112,
+    "filler_python_errno": 28,
+    "raw_changed_positions_before_vs_postraw": 74,
+    "postraw_typed_remained_generation_1": true,
+    "postraw_raw_typed_diverged": true,
+    "denied_snapshot_equals_postraw": true,
+    "receipt_matches_intent_bytes": true,
+    "first_cold_original_cmd_reconciled": true,
+    "recovered_raw_typed_equal": true,
+    "recovered_typed_generation": 2,
+    "cold_2_matches_recovered": true,
+    "second_cold_no_repeat_reconcile": true,
+    "unchanged_catalog_and_selector": true
+  },
+  "manual_interactive": {
+    "artifact_id": 12227793421,
+    "outer_sha256": "fa78c6c066f7c44507e646747229540f394b624fa57ccb2d36647539eed959be",
+    "zip_crc_ok": true,
+    "original_source_receipt_manifests_rehashed": 34,
+    "console_keys_injected_by_automation": true,
+    "authenticated_human_player_not_claimed": true,
+    "choices": [
+      "R",
+      "T"
+    ],
+    "both_cold_restart": true
+  },
+  "independent_checker": "tools/check_qa06_ntfs_original_archives.py",
+  "limitations": {
+    "original_host_windows_runtime_executed_by_producer_only": true,
+    "independent_review_replays_original_archived_bytes": true,
+    "packaged_after_main_merge_not_proven": true,
+    "physical_ntfs_personal_windows_not_proven": true,
+    "electrical_power_cut_not_proven": true,
+    "partial_torn_write_not_proven": true,
+    "physical_dual_gamepads_not_proven": true,
+    "audible_output_not_proven": true,
+    "real_4k_display_not_proven": true,
+    "full_career_tournament_stress_not_proven": true,
+    "archive_bounded_to_one_profile": true,
+    "postraw_archive_own_manifest_does_not_include_full_source_sha": true,
+    "not_final_release_candidate": true
+  },
+  "release_status": {
+    "accepted_gates": 0,
+    "accepted_complete_usa_events": 0,
+    "physical_hardware_verified": false,
+    "release_decision": "not_assessed",
+    "qa02": "in_progress"
+  },
+  "disposition": "Independent real Win32 hosted NTFS postraw/cold recovery archival positive; acceptance HOLD"
+}

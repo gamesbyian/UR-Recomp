@@ -101,9 +101,12 @@ def main() -> None:
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--root",required=True,type=Path)
     a=p.parse_args()
-    path=a.root.resolve()/FILE
-    if not path.is_file():
-        p.error("missing pinned original cpuops.cpp")
+    root=a.root.resolve()
+    path=root/FILE
+    if not path.is_file() or not (root/rf63.GETSET).is_file() or not (root/rf63.EXEC).is_file():
+        p.error("missing pinned original CPU/WRAM sources")
+    if rf63.STAMP not in (root/rf63.GETSET).read_text() or rf63.STAMP not in (root/rf63.EXEC).read_text():
+        p.error("stage RF063 original shared ordinal before RF064")
     source=path.read_text()
     path.write_text(patch(source))
     print("RF064 source true post-call pull sequenced (no guest bus additions)")

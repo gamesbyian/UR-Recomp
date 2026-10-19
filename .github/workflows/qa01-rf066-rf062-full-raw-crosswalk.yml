@@ -1,0 +1,83 @@
+name: QA01 authentic RF066 RF062 all-raw 388 image crosswalk
+
+# Two exact genuine original/native Zoo guest executions, immutable ZIPs.
+# Archive-only; no emulator build, research factory or release promotion.
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa01-rf066-rf062-full-raw-crosswalk.yml"
+      - "tools/qa01_rf066_rf062_full_raw_crosswalk.py"
+      - "tests/unit/test_qa01_rf066_rf062_full_raw_crosswalk.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: qa01-rf066-rf062-all-raw-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  independent-source-epochs-all-image-rehash:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test raw/case provenance and fail-closed byte comparison
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest tests.unit.test_qa01_rf066_rf062_full_raw_crosswalk -v
+      - name: Independently reopen all 388 images from two actual original/native sources
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa01-source-epoch-crosswalk"
+          curl --fail --show-error --silent --location --retry 2 \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -o "$RUNNER_TEMP/qa01-source-epoch-crosswalk/real-rf066.zip" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12171791431/zip"
+          curl --fail --show-error --silent --location --retry 2 \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -o "$RUNNER_TEMP/qa01-source-epoch-crosswalk/real-rf062.zip" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12214214743/zip"
+          python3 tools/qa01_rf066_rf062_full_raw_crosswalk.py \
+            --rf066 "$RUNNER_TEMP/qa01-source-epoch-crosswalk/real-rf066.zip" \
+            --rf062 "$RUNNER_TEMP/qa01-source-epoch-crosswalk/real-rf062.zip" \
+            --output "$RUNNER_TEMP/qa01-source-epoch-crosswalk/independent-crosswalk.json"
+          python3 - "$RUNNER_TEMP/qa01-source-epoch-crosswalk/independent-crosswalk.json" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1]))
+          assert x["complete_source_guest_Wram_Sram_archive_members_reopened"]==388
+          assert x["per_guest_memory_type_identical_image_counts"]=={
+              "ref_wram":97,"ref_sram":97,"native_wram":82,"native_sram":97}
+          assert x["per_guest_memory_type_changed_image_counts"]=={
+              "ref_wram":0,"ref_sram":0,"native_wram":15,"native_sram":0}
+          assert x["per_guest_memory_type_changed_byte_occurrences"]=={
+              "ref_wram":0,"ref_sram":0,"native_wram":77,"native_sram":0}
+          assert x["earlier_RF066_original_native_race_mesh"][
+              "raw_byte_exact_race_mesh_pairs"]==51
+          assert x["earlier_RF066_original_native_race_mesh"][
+              "unmasked_guest_race_mesh_WRAM_byte_occurrences"]==92
+          assert x["later_RF062_original_native_race_mesh"][
+              "raw_byte_exact_race_mesh_pairs"]==46
+          assert x["later_RF062_original_native_race_mesh"][
+              "unmasked_guest_race_mesh_WRAM_byte_occurrences"]==104
+          assert x["causal_reason_for_cross_epoch_native_stack_or_DP_byte_change_proven"] is False
+          assert x["instrumentation_on_off_same_binary_family_noninterference_proven"] is False
+          assert x["full_USA_events_accepted"]==x["release_QA_gates"]==0
+          print("Verified 388 authentic guest images: 15 native WRAM changed, 77 raw bytes; cause HOLD")
+          PY
+      - name: Retain compact raw provenance only, never 2014 ROM or complete guest memory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-genuine-rf066-rf062-raw-memory-crosswalk
+          retention-days: 7
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/qa01-source-epoch-crosswalk/independent-crosswalk.json

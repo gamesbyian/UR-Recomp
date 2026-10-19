@@ -63,6 +63,12 @@ jobs:
           assert x["logging_toggle_native_helper_counts_off_on"]==[655,655]
           assert x["real_native_8282F0_direct_read_counts_off_on"]==[0,10]
           assert x["helper_address_register_master_clock_sequence_unchanged_under_logging"] is True
+          assert x["existing_native_logging_strict_full_log_comparator_passed"] is False
+          assert x["single_host_walltime_statistic_exception_independently_reviewed"][
+              "all_other_native_guest_trace_rows_equal_after_host_only_metadata"] is True
+          assert x["single_host_walltime_statistic_exception_independently_reviewed"][
+              "actual_host_video_elapsed_seconds_off_on"] == ["109.566","109.591"]
+          assert x["bounded_native_guest_trace_equal_after_only_exact_host_metric"] is True
           assert x["historical_RF066_to_instrumented_RF062_78_mesh_exact"]==[51,46]
           assert x["historical_RF066_to_instrumented_RF062_78_mesh_unmasked_byte_differences"]==[92,104]
           assert x["different_binary_episodes_native_Wram_changed_files"]==15

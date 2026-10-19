@@ -35,23 +35,25 @@ def classify(ab: dict, cross: dict, executed: dict, report: dict,
              actual_case_inputs: dict[str, str]) -> dict:
     """Pure strict evidence judgment, exercised by adversarial ROM-free tests."""
     compiled = ab.get("independently_reopened_compiled_binaries")
-    require(ab.get("schema") == logging_ab.SCHEMA and
-            ab.get("authenticated_evidence_archive_sha256") == AB_ZIP and
-            ab.get("zip_archive_raw_byte_reopened") is True and
-            ab.get("runtime_RF062_logging_noninterference_supported") is True and
-            ab.get("wrapper_replacement_noninterference_proven") is False and
-            ab.get("USA_events_accepted") == 0 and
-            ab.get("native_real_sound_helper_count_off_on") == [655,655] and
-            ab.get("native_sound_helper_matching_ordered_observations") == 655 and
-            ab.get("native_actual_RF054_address_and_register_rows_equal") is True and
-            ab.get("native_actual_RF054_CPU_master_clocks_equal") is True and
-            ab.get("original_native_whole_mesh_and_followthrough_equal") is True and
-            ab.get("rf062_actual_native_read_count_off_on") == [0,10] and
-            ab.get("original_qualified_source_log_path_differences",{})
-              .get("source_nonpath_log_equality_proven") is True and
-            ab.get("native_complete_nonRF062_log_metadata_limited_comparison",{})
-              .get("all_other_native_lines_byte_equal_after_strict_host_metadata") is True,
-            "genuine runtime logging on/off no longer has identical bounded source/native observations")
+    logging_checks = {
+        "schema": ab.get("schema") == logging_ab.SCHEMA,
+        "published_archive_SHA": ab.get("authenticated_evidence_archive_sha256") == AB_ZIP,
+        "actual_source_ZIP_reopened": ab.get("zip_archive_raw_byte_reopened") is True,
+        "logging_runtime_noninterference": ab.get("runtime_RF062_logging_noninterference_supported") is True,
+        "wrapper_noninterference_still_false": ab.get("wrapper_replacement_noninterference_proven") is False,
+        "no_USA_event_credit": ab.get("USA_events_accepted") == 0,
+        "655_real_native_helpers_each_mode": ab.get("native_real_sound_helper_count_off_on") == [655,655],
+        "655_exact_ordered_helper_matches": ab.get("native_sound_helper_matching_ordered_observations") == 655,
+        "native_helper_operands_equal": ab.get("native_actual_RF054_address_and_register_rows_equal") is True,
+        "native_helper_master_clocks_equal": ab.get("native_actual_RF054_CPU_master_clocks_equal") is True,
+        "sampled_visited_merchant_state_equal": ab.get("original_native_whole_mesh_and_followthrough_equal") is True,
+        "native_diagnostic_rows_0_to_10": ab.get("rf062_actual_native_read_count_off_on") == [0,10],
+        "original_nonpath_log_equal": ab.get("original_qualified_source_log_path_differences",{}).get("source_nonpath_log_equality_proven") is True,
+        "native_nonRF062_nonhost_log_equal": ab.get("native_complete_nonRF062_log_metadata_limited_comparison",{}).get("all_other_native_lines_byte_equal_after_strict_host_metadata") is True,
+    }
+    for name, passes in logging_checks.items():
+        require(passes,
+                "genuine runtime logging on/off no longer has identical bounded source/native observations: " + name)
     require(type(compiled) is dict and
             compiled.get("binary_artifact_SHA256") == AB_BINARY_ZIP and
             compiled.get("actual_native_binary_SHA256") == TARGET_NATIVE_BINARY and

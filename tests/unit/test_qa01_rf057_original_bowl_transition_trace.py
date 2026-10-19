@@ -69,6 +69,6 @@ class OriginalUSAOpcode(unittest.TestCase):
         for s,error in samples:
             with self.subTest(s=s[:50]):
                 with self.assertRaisesRegex(ValueError,error):
-                    report.inspect(self.heartbeats()+("\n"+s if s else ""))
+                    report.inspect((self.heartbeats()+"\n"+s) if s else "")
 
 if __name__=="__main__":unittest.main()

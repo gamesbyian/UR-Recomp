@@ -9,6 +9,7 @@ from collections import Counter
 from pathlib import Path
 
 TAG="QA01RF057ORIGCPU "
+HEART="QA01RF057HEART "
 KV=re.compile(r"(\w+)=([^\s]+)")
 CANDIDATES={
     "post-race-menu":(0xADD4,0xAF0C),
@@ -18,7 +19,38 @@ CANDIDATES={
     "wait-frames-or-button":(0xF7E5,0xF805),
 }
 EXPECTED_SHA="859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
+def heartbeat(log:str)->dict:
+    """Real core dispatch-frame proof, independent of candidate symbol PCs."""
+    if "QA01RF057HEART_TRUNCATED" in log:
+        raise ValueError("RF057 source CPU frame registration truncated")
+    rows=[]
+    for line in log.splitlines():
+        if not line.startswith(HEART):
+            continue
+        fields=dict(KV.findall(line))
+        if any(x not in fields for x in ("frame","v","h","pc","flag")):
+            raise ValueError("RF057 incomplete actual source opcode heartbeat")
+        if fields["flag"]!="1":
+            raise ValueError("RF057 source CPU heartbeat not enabled")
+        rows.append(fields)
+    if not rows:
+        raise ValueError("RF057 actual CPU opcode dispatcher never evidenced")
+    actual=[int(r["frame"]) for r in rows]
+    if actual!=sorted(set(actual)):
+        raise ValueError("RF057 original source CPU frame heartbeat repeated/reordered")
+    hits=[x for x in actual if 4687<=x<=4693]
+    return {"actual_original_cpu_heartbeat_sample_count":len(rows),
+            "actual_source_cpu_heartbeat_first_frame":actual[0],
+            "actual_source_cpu_heartbeat_last_frame":actual[-1],
+            "sampled_actual_source_cpu_frames_during_expected_Bowl_transition":hits,
+            "source_frame_window_CPU_dispatch_coverage_proven":
+                hits==list(range(4687,4694)),
+            "source_CPU_heartbeat_rows_near_transition":
+                [r for r in rows if 4687<=int(r["frame"])<=4693],
+            "guest_CPU_frame_counter_equals_host_frame_authoritatively_proven":False}
+
 def inspect(log:str)->dict:
+    frame_coverage=heartbeat(log)
     if "QA01RF057ORIGCPU_TRUNCATED" in log:
         raise ValueError("RF057 actual source CPU opcode records truncated")
     rows=[]
@@ -40,8 +72,8 @@ def inspect(log:str)->dict:
             raise ValueError("RF057 actual original CPU PC/frame/sequence invalid")
         last[frame]=int(f["seq"])
         rows.append((frame,pc,group,f))
-    if not rows:
-        raise ValueError("RF057 no original source executed menu instructions observed")
+    if not rows and not frame_coverage["source_frame_window_CPU_dispatch_coverage_proven"]:
+        raise ValueError("RF057 no actual candidate PC and no qualified CPU handoff window")
     by_group=Counter(r[2] for r in rows)
     frame_counts=Counter(r[0] for r in rows)
     # Only *actual* decoded source original instruction sites. No native
@@ -62,13 +94,16 @@ def inspect(log:str)->dict:
                        'latch8f','raw30d')} for f in first_last)
     return {
        "schema":"rf057-executed-retail-USA-original-bowl-menu-instruction-boundary-v1",
+       **frame_coverage,
        "recorded_original_executed_CPU_instruction_count":len(rows),
+       "no_candidate_PC_executes_despite_confirmed_CPU_window":
+           len(rows)==0 and frame_coverage["source_frame_window_CPU_dispatch_coverage_proven"],
        "original_actual_cpu_guest_frame_histogram":{str(k):v for k,v in sorted(frame_counts.items())},
        "original_decoded_executed_candidate_group_count":dict(sorted(by_group.items())),
        "actual_executed_source_entry_pc_histogram":dict(sorted(actual_sites.items())),
        "actual_bowl_onset_source_cpu_bounded_instruction_windows":close,
-       "first_original_guest_executed_candidate_row":rows[0][3],
-       "last_original_guest_executed_candidate_row":rows[-1][3],
+       "first_original_guest_executed_candidate_row":rows[0][3] if rows else None,
+       "last_original_guest_executed_candidate_row":rows[-1][3] if rows else None,
        "source_original_opcode_dispatch_repeated_or_reordered":False,
        "native_generated_PC_executed_witness_proven":False,
        "original_native_absolute_CPU_NMI_epoch_registered":False,

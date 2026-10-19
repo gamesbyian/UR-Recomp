@@ -13,23 +13,23 @@ import qa01_rf063_original_sequence_report as report
 def fixture():
     # Exact upstream RF044/045 staged segments; no outside ROM needed.
     src=rf44.ORIG_HELPER
-    executor='#include "movie.h"\\nvoid original_nmi() {\\n' + rf44.NMI_NEW + '\\n}\\n'
-    macros=rf45.STAMP + '\\n'
+    executor='#include "movie.h"\nvoid original_nmi() {\n' + rf44.NMI_NEW + '\n}\n'
+    macros=rf45.STAMP + '\n'
     return src,executor,macros
 
 
 def example():
     return ('QA01RF063ORIGBUS seq=1 f=1017 v=225 h=56 kind=wb'
             ' bank=00 addr=01ED width=1 sampled=0026'
-            ' pc=80:B0E8 S=01ED phase=getset_entry\\n'
+            ' pc=80:B0E8 S=01ED phase=getset_entry\n'
             'QA01RF063ORIGCHECKPOINT seq=2 f=1017 f1=1017'
             ' phase=post_real_nmi_push stack=2600EE0000'
-            ' v=225 h=65 pc=80:B0EB\\n'
+            ' v=225 h=65 pc=80:B0EB\n'
             'QA01RF044ORIGNMI f=1017 f1=1017 pc=82D4F0 S0=01F0 S1=01ED'
-            ' old=0000000000 new=2600EE0000\\n'
+            ' old=0000000000 new=2600EE0000\n'
             'QA01RF063ORIGBUS seq=3 f=1018 v=225 h=70 kind=rb'
             ' bank=00 addr=01ED width=1 sampled=0026'
-            ' pc=80:B0EB S=01ED phase=getset_entry\\n')
+            ' pc=80:B0EB S=01ED phase=getset_entry\n')
 
 
 class StagedOriginal(unittest.TestCase):
@@ -88,7 +88,7 @@ class OriginalOrderReceipt(unittest.TestCase):
             normal.replace("bank=00 addr=01ED","bank=60 addr=01ED"),
             normal.replace("seq=2 f=1017","seq=2 f=1018"),
             normal.replace("QA01RF044ORIGNMI","QA01RF044NO_NMI"),
-            normal + "QA01RF063ORIGBUS_TRUNCATED\\n",
+            normal + "QA01RF063ORIGBUS_TRUNCATED\n",
             normal.replace("QA01RF063ORIGBUS seq=3","other_prefix QA01RF063ORIGBUS seq=3"),
         )
         for i,bad in enumerate(variants):

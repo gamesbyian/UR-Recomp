@@ -1,0 +1,96 @@
+{
+  "schema": "ur-qa01-rf062-authentic-original-native-read-raw-observation/1",
+  "date": "2026-10-19",
+  "disposition": "bounded genuine native read + original archived operand + verified frame memory; STILL HOLD",
+  "authentic_case": {
+    "run_id": 39308179192,
+    "artifact_id": 12214214743,
+    "sha256": "b8287234d2fe515ee32b19b3d2a9b0e1bb58104b437de3a5cbe2e32e3af093ff",
+    "source_sha": "5964d2af0c19ae6d5ae6bc200d2a7d460b4d6ed2",
+    "disposition": "strict_candidate",
+    "release_credit": 0
+  },
+  "original_Rf054": {
+    "artifact_id": 12149640496,
+    "archive_sha256": "3ccb209a92045e9e89113442e68af51b85a453a160a9b9efaf8ca0d59e79631c",
+    "source_sha": "7334a568f52ea390ae5866d3ee132e392635a186",
+    "RF049_original_guest_PC": "82:82F0",
+    "source_host_frame": 6124,
+    "physical_rom_operand": "11:C774",
+    "A_before": "630D",
+    "A_after": "63D0",
+    "returned_byte": "D0",
+    "source_RF050_actual_ports": {
+      "port3": "D0",
+      "port2": "63"
+    },
+    "original_current_raw_case_reinstrumented": false
+  },
+  "native_static": {
+    "artifact_id": 12215541266,
+    "archive_sha256": "5d6ffbf1313d83961f496f3c7dc83021323d76fcd977dfc2662ef9afbf6c7b46",
+    "native_executable_sha256": "31790cd408950ef20153031b5633f4045aa753368f6b94170ece607b5950a53a",
+    "compiled_live_M1X0_function": "Snd_UploadBlockList_82EF_M1X0",
+    "live_generated_read_callsites": 1,
+    "live_generated_function_body_sha256": "5ee35bca624b6d101859a4e6ea9c3cef1c72fc7d724240016aba4f934e549446"
+  },
+  "native_execution": {
+    "native_host_frame": 6124,
+    "logged_guest_opcode_pc": "82:82F0",
+    "actual_native_RF062_read_count": 10,
+    "actual_native_RF054_cpu_helper_reads_in_frame": 655,
+    "original_baseline_native_RF054_helper_reads_in_frame": 656,
+    "all_ten_RF062_calls_one_to_one_join_actual_native_RF054_helper": true,
+    "target_direct_local_seq": 5,
+    "target_actual_native_RF054_helper_seq": 490,
+    "target_native_master_clock": 2188738232,
+    "target_physical_rom_operand": "11:C774",
+    "target_returned_byte": "D0",
+    "baseline_native_target_RF054_helper_seq": 492,
+    "baseline_native_target_master_clock": 2188739002,
+    "frame_local_first_bus_read_before": "11:C589",
+    "frame_local_first_bus_read_after": "11:C58B",
+    "frame_local_last_bus_read_before": "11:C818",
+    "frame_local_last_bus_read_after": "11:C819"
+  },
+  "raw_frame_case": {
+    "run_id": 39308189433,
+    "artifact_id": 12216270293,
+    "zip_sha256": "85b8585539001210e4a9d2b22e5484034679fbda5d40808300d221e1ec583aed",
+    "source_sha": "66ca51097fdb72ce49fbe0d9246641fbdd8d78c6",
+    "same_native_executable_as_no_raw_probe": true,
+    "source_host_origin": 1017,
+    "native_host_origin": 1017,
+    "relative_window": [
+      5105,
+      5107
+    ],
+    "source_native_host6124_relative_frame": 5107,
+    "each_guest_script_dump_frames": 3,
+    "retained_genuine_raw_files": 12,
+    "retained_wram_bytes_per_file": 131072,
+    "retained_sram_bytes_per_file": 8192,
+    "all_12_actual_zip_images_rehashed": true,
+    "original_native_wram_unequal_byte_occurrences": 0,
+    "original_native_sram_unequal_byte_occurrences": 0,
+    "original_native_6124_wram_sha256": "67ba356b436d911804b24626e7e49f37a60064363d8a9846cd57289d1d07dcf5",
+    "original_native_6124_sram_sha256": "97ea9642f49f5897f6e6a7d13e31652b025e6dad6580c8ce54128cfa5c167c8b",
+    "fingerprint_canonical_sha256": "48b9d661764ad61096330b002c4b925366ce87a37a0bdf98d0bac4178f98fa59",
+    "retained_raw_manifest_canonical_sha256": "bbcfded01efa382ca1e7e64be484c6572d52248a8accb1307725e2d8d7e52341",
+    "same_original_2014_rom_movie_window": true
+  },
+  "known_failures": {
+    "original_native_guest_CPU_instruction_same_phase_proven": false,
+    "between_frame_CPU_or_input_poll_parity_proven": false,
+    "sound_audio_PCM_parity_proven": false,
+    "native_uninstrumented_causal_noninterference_proven": false,
+    "new_native_frame6124_RF054_helper_population_matches_baseline": false,
+    "new_native_zoo_whole_mesh_matches_baseline": false,
+    "new_native_postresult_memory_matches_baseline": false,
+    "raw_capture_cold_replay_script_SHA_qualified": false,
+    "source_native_full_race_accepted": false
+  },
+  "qualification_note": "The original RF049 execution came from immutable historical RF054; new raw files are post-script-dump whole-memory frames, not live CPU instruction-time memory. A shared byte D0 and full-frame equality do not qualify factory v2 or a complete event.",
+  "USA_events_accepted": 0,
+  "release_gates_passed": 0
+}

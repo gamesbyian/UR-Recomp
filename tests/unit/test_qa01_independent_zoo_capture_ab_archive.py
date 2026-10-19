@@ -51,6 +51,7 @@ class SourceAuthenticAB(unittest.TestCase):
             "native_guest_acknowledged_frames": 3,
             "retained_full_raw_image_bytes": 2 * 2 * (131072 + 8192),
             "accepted_USA_events": 0,
+            "same_guest_inputs_actually_consumed_proven": False,
         }
         off = {
             "name": "zoom-zoo", "rom_sha256": identity["rom_sha256"],
@@ -67,7 +68,8 @@ class SourceAuthenticAB(unittest.TestCase):
                 "release_complete_event_credit": 0,
                 "fresh_reference_next_bowl_entry_offset": 267,
                 "fresh_native_next_bowl_entry_offset": 266,
-                "all_original_native_full_sram_pairs_equal": False},
+                "all_original_native_full_sram_pairs_equal": False,
+                "next_bowl_entry_triple_equal": False},
             "reference_script_sha256": "e" * 64,
             "input_sha256": "e" * 64,
             "qa01_continuous_memory_capture": None,
@@ -94,6 +96,8 @@ class SourceAuthenticAB(unittest.TestCase):
             "fingerprints_sha256": hashlib.sha256(d_fp).hexdigest(),
             "independent_review_sha256": hashlib.sha256(d_check).hexdigest(),
             "metrics": metrics,
+            "accepted_complete_USA_events": 0,
+            "actual_cpu_joypad_poll_consumption_proven": False,
         }
         prefix = audit.RAW + "retained/"
         self.members = {
@@ -104,6 +108,8 @@ class SourceAuthenticAB(unittest.TestCase):
             audit.DOC["metrics"]: json.dumps(metrics).encode(),
             audit.DOC["ab"]: json.dumps({
                 "admitted_usa_events": 0,
+                "actual_input_CPU_read_trace_proven": False,
+                "full_race_or_Windows_persistence_proven": False,
                 "existing_semantic_observations_unchanged": True,
                 "same_supplied_original_native_input_bytes_digest": True,
                 "same_source_controller_and_binaries": True,
@@ -173,8 +179,25 @@ class SourceAuthenticAB(unittest.TestCase):
             self.run_case(corrupt)
 
     def test_false_exit_stable_claim_rejected(self):
-        with self.assertRaisesRegex(ValueError, "producer's strict gameplay exit"):
+        with self.assertRaisesRegex(ValueError, "both red producer exits"):
             self.run_case(lambda m: m.update({audit.ROOT + "on/exit-code.txt": b"0\n"}))
+
+    def test_both_green_producer_processes_cannot_mask_known_strict_negative(self):
+        def mutate(members):
+            members[audit.ROOT + "off/exit-code.txt"] = b"0\n"
+            members[audit.ROOT + "on/exit-code.txt"] = b"0\n"
+        with self.assertRaisesRegex(ValueError, "both red producer exits"):
+            self.run_case(mutate)
+
+    def test_source_cannot_self_attest_cpu_reads_or_event_acceptance(self):
+        for flag in ("actual_input_CPU_read_trace_proven",
+                     "full_race_or_Windows_persistence_proven"):
+            def mutate(members):
+                self.mutate_json(members, "ab",
+                                 lambda d: d.update({flag: True}))
+            with self.subTest(flag=flag), self.assertRaisesRegex(
+                    ValueError, "zero-credit bounded capture"):
+                self.run_case(mutate)
 
     def test_tampered_actual_raw_memory_rejected(self):
         def mutate(members):

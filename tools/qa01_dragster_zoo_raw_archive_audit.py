@@ -47,7 +47,7 @@ MANIFEST_PATH_SUFFIXES = {
     "core": "/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so",
     "native": "/baldosa/build/UniracersSNESRecomp",
 }
-MANIFEST_LINE = re.compile(r"([0-9a-f]{64})  (/home/runner/work/[^\\r\\n]+)\\Z")
+MANIFEST_LINE = re.compile(r"([0-9a-f]{64})  (/home/runner/work/[^\r\n]+)\Z")
 FROZEN_MOVIE_TRACE = "3de122406937fcf839988d7990972e9275b8e7bbd47db1b958fea20113c27c54"
 NAME_ADDR = {"menu": 0x9F, "track": 0xCE, "in_race": 0x313, "tour_row": 0xD0}
 
@@ -67,8 +67,8 @@ def verify_executed_binary_manifest(root: Path, report: dict) -> dict:
     require(path.is_file() and not path.is_symlink(),
             "missing exact source-execution binary SHA256 manifest")
     raw = path.read_bytes()
-    require(raw.endswith(b"\\n") and len(raw) <= 768 and
-            raw.count(b"\\n") == 3,
+    require(raw.endswith(b"\n") and len(raw) <= 768 and
+            raw.count(b"\n") == 3,
             "source-execution manifest has wrong row population")
     try:
         lines = raw.decode("ascii").splitlines()

@@ -76,6 +76,24 @@ class SourceGreyPhase(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"fourth channel"):
             q.measure_frame(bytes(bad),nat)
 
+    def test_committed_numeric_receipt_is_consistent_and_releaseless(self):
+        import json
+        path=ROOT/"analysis/data/qa08-real-112field-13frame-grayscale-error-budget-20261019.json"
+        report=json.loads(path.read_text(encoding="utf-8"))
+        rows=report["frames_summary"]
+        self.assertEqual([x["native_guest"] for x in rows],list(q.SPIKES))
+        self.assertTrue(all(x["original_callback"]==x["native_guest"]-1
+                            for x in rows))
+        sums=report["totals"]
+        self.assertEqual(sum(x["wrong_rgb5"] for x in rows),359013)
+        self.assertEqual(sum(x["both_grayscale_wrong_rgb5"] for x in rows),342086)
+        self.assertEqual(sum(x["four_cycle_wrong_rgb5"] for x in rows),318775)
+        self.assertEqual(sum(sums["four_cycle_wrong_rgb5_pair_counts"].values()),318775)
+        self.assertEqual(sums["fraction_of_all_263_wrong_pixels_from_four_cycle_ppm"],
+                         318775*1000000//890205)
+        self.assertTrue(all(x["four_cycle_wrong_rgb5"]>20000 for x in rows))
+        self.assertTrue(all(report["negative_gates"].values()))
+
     def test_unmatched_archive_sha_refused_prior_to_any_pixel_claim(self):
         with tempfile.TemporaryDirectory() as d:
             p=Path(d)/"forged-original.zip"

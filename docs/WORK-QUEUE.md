@@ -2,7 +2,7 @@
 
 **Only current assignment board.** Start from [AGENTS.md](../AGENTS.md), this queue, then the **one owning specialist authority**. Historical dispatches and the [previous queue snapshot](archive/WORK-QUEUE-BEFORE-20261019-REORGANIZATION.md) provide context, **not instructions**. Each agent rechecks latest `main`, PRs, first failing CI step and the three-project reuse preflight before implementation.
 
-**Release truth (sole authority: [release ledger](RELEASE-QUALITY-LEDGER.json)): 0/45 independently accepted complete USA events; 0/12 Windows QA gates.** The source-bound [October 15 owner ZIP](QA-EXACT-MAIN-WINDOWS-OWNER-CANDIDATE-20261015.md) is an old immutable test candidate, not a current-main release or a physical two-controller/audio/display/power-cut acceptance. The integrated Modern Play/2P/Records/Options/Practice #1648 passed 13 hosted Windows journeys; those do not establish physical readiness.
+**Release truth (sole authority: [release ledger](RELEASE-QUALITY-LEDGER.json)): 0/45 independently accepted complete USA events; 0/12 Windows QA gates.** The source-bound [October 15 owner ZIP](QA-EXACT-MAIN-WINDOWS-OWNER-CANDIDATE-20261015.md) is an old immutable test candidate, not a current-main release or a physical two-controller/audio/display/power-cut acceptance. The integrated Baldosa/Modern Play/2P/Records/Options/Practice #1648 passed 13 hosted Windows journeys; those do not establish physical readiness.
 
 ## Decision-first dispatch board
 

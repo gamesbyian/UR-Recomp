@@ -11,6 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 import qa01_causal_window as causal
 import qa01_frame_fingerprint as frames
+import qa01_verify_frame_capture as verify_frame
 
 
 def identities():
@@ -126,6 +127,42 @@ class FrameFingerprintTests(unittest.TestCase):
             self.assertEqual(r["first_differing_relative_frame"], {"wram": 1, "sram": 2})
             self.assertEqual(len(r["raw_retained_members"]), 12)
             self.assertEqual(r["accepted_USA_events"], 0)
+
+    def test_independent_reopen_and_corrupted_raw_pair_rejected(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            a, b = self.make_capture(root)
+            evidence = root / "evidence"
+            report = frames.audit(self.identity(), a, b, 0, 2, retained=evidence)
+            verdict = verify_frame.verify(report, evidence)
+            self.assertEqual(verdict["verified_raw_files"], 12)
+            self.assertEqual(verdict["verified_differing_byte_occurrences"], {"wram": 1, "sram": 1})
+            self.assertEqual(verdict["complete_USA_events_accepted"], 0)
+            member = evidence / "native-relative-000001-wram.bin"
+            changed = bytearray(member.read_bytes())
+            changed[0x1ED] ^= 0x40
+            member.write_bytes(changed)
+            with self.assertRaisesRegex(ValueError, "hash mismatch"):
+                verify_frame.verify(report, evidence)
+
+    def test_independent_verifier_refuses_lost_or_forged_capture(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            a, b = self.make_capture(root)
+            evidence = root / "evidence"
+            report = frames.audit(self.identity(), a, b, 0, 2, retained=evidence)
+            forged = copy.deepcopy(report)
+            forged["rows"][1]["types"]["wram"]["unmasked_differing_byte_count"] = 0
+            with self.assertRaises(ValueError):
+                verify_frame.verify(forged, evidence)
+            forged = copy.deepcopy(report)
+            forged["raw_retained_members"].pop()
+            with self.assertRaisesRegex(ValueError, "missing"):
+                verify_frame.verify(forged, evidence)
+            forged = copy.deepcopy(report)
+            forged["coverage"]["observed_native_frames"] = 2
+            with self.assertRaisesRegex(ValueError, "incomplete"):
+                verify_frame.verify(forged, evidence)
 
     def test_missing_short_masked_and_same_root_rejected(self):
         with tempfile.TemporaryDirectory() as d:

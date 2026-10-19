@@ -116,7 +116,7 @@ class BoundedObservationsRemainDistinct(unittest.TestCase):
     def test_missing_whole_native_binary_archive_not_accepted(self):
         items=list(copy.deepcopy(fixture()))
         items[0]["independently_reopened_compiled_binaries"]=None
-        with self.assertRaisesRegex(ValueError,"binary"):
+        with self.assertRaisesRegex(ValueError,"compiled executable provenance"):
             gate.classify(*items)
 
 

@@ -1,0 +1,90 @@
+{
+  "schema": "ur-qa01-rf054-pilot-readiness-independent-archive-audit/1",
+  "scope": "Read-only inspection of original RF054 genuine USA Zoom Zoo archived replay log members; NOT a new execution, provenance bypass, CPU fix or event admission.",
+  "archive": {
+    "github_run": 39161563837,
+    "artifact_id": 12149640496,
+    "original_archive_sha256": "3ccb209a92045e9e89113442e68af51b85a453a160a9b9efaf8ca0d59e79631c",
+    "source_sha": "7334a568f52ea390ae5866d3ee132e392635a186",
+    "case_disposition": "strict_candidate",
+    "case_release_credit": 0,
+    "members": {
+      "case-result.json": {
+        "size": 4364,
+        "sha256": "b3f2094e298402b1dd715f1afad3946ad7571d21ced81b9b5fc263185a759d6b"
+      },
+      "producer-report.json": {
+        "size": 371102,
+        "sha256": "0984aaa3af9096c75d0834e26834293f20fd0098c9411a5c9308e35f9ec45133"
+      },
+      "work/zoom-zoo/replay/reference.log": {
+        "size": 8229847,
+        "sha256": "308b8e70122fa1f0ba7edcdc4c8d16e4df0137dc289533f0dc1d90bafae14c5a"
+      },
+      "work/zoom-zoo/replay/native.log": {
+        "size": 31510676,
+        "sha256": "e7aa6bb4340acbdaa1cc38ff39f601dd0a8dbba24d6a244ffcad82fe8bbd705f"
+      }
+    }
+  },
+  "observed_original": {
+    "QA01RF045ORIGSTACK": {
+      "total": 1806,
+      "pullW": 710,
+      "pushW": 710,
+      "pullB": 193,
+      "pushB": 193,
+      "frames": "1017..1025 inclusive",
+      "contains_guest_pc": true,
+      "contains_global_guest_local_sequence_number": false
+    },
+    "QA01RF044ORIGBUS": {
+      "total": 903,
+      "ww": 710,
+      "wb": 193,
+      "frames": "1017..1025 inclusive",
+      "contains_global_guest_local_sequence_number": false
+    },
+    "QA01RF044ORIGNMI": {
+      "total": 9,
+      "frames": "1017..1025 inclusive"
+    },
+    "QA01RF045ORIGSTACK_TRUNCATED": false,
+    "QA01RF044ORIGBUS_TRUNCATED": false
+  },
+  "observed_native": {
+    "QA01RF047NATIVE": {
+      "total": 2741,
+      "read": 2705,
+      "entry": 9,
+      "after_push": 9,
+      "compiled_rti": 9,
+      "handler_return": 9,
+      "first_seq": 1,
+      "last_seq": 2741,
+      "unique_contiguous_sequence": true,
+      "frames": "1017..1025 inclusive",
+      "actual_read_rows_missing_executed_guest_PC": 2705
+    },
+    "QA01RF044NATIVEREAD": "Contains additional overlapping helper records, some text interleaving; IPC metadata already known unreliable as true guest PC in RF046 review.",
+    "QA01RF047NATIVE_TRUNCATED": false
+  },
+  "pilot_decision": {
+    "can_produce_complete_first_consumer_pair_without_new_adapter": false,
+    "missing": [
+      "One shared original recorder local execution ordinal across source stack macro reads/writes, NMI and checkpoint phase, without inferring stdout/beam ordering.",
+      "One native actual executed guest instruction PC and same-ordinal writer/reader lineage attached to native RF047 events; PB and stale IPC are insufficient.",
+      "Authentic local checkpoint phase markers and the actual raw original/native WRAM at the chosen checkpoint, independently retained.",
+      "True first read/overwrite observation that is complete for the bounded address range; no hypothetical unobserved PC or writes."
+    ],
+    "next_smallest_probe": "Extend existing RF045/RF047 source/native observers with exact guest PC and ordered actual bus read/write/checkpoint events over source-bound Zoo host1017..1025 (or +5034..5045 sound pointer), then audit with qa01_causal_window.py. Preserve unmodified race +5163, Bowl +267, 78 unmasked checkpoint controls and 0/45.",
+    "unproved": [
+      "Any single global CPU/SPC clock relationship",
+      "Full-race source/native instruction equivalence",
+      "Stack-value causal harmlessness",
+      "Windows packaged game disk persistence",
+      "Complete USA event"
+    ]
+  },
+  "accepted_USA_events": 0
+}

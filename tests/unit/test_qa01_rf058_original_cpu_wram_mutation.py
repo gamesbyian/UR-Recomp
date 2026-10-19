@@ -55,6 +55,31 @@ class TrueOriginalBowlWRAM(unittest.TestCase):
             with self.subTest(description=msg,log=log[:40]):
                 with self.assertRaisesRegex(ValueError,msg):
                     rf.inspect(log)
+    def test_producer_exact_except_source_core_and_one_false_metadata(self):
+        baseline={"reference_core_sha256":rf.ORIGINAL_UNMODIFIED_CORE_SHA,
+                  "comparison":{"terminal_result_frame_matched":False,
+                                "guest_progression_source":True},
+                  "rom_sha256":"rom","source_sram_sha256":"sram",
+                  "bowl_next_switcher_handoff":{"source_next":342,"native_next":344}}
+        case=dict(baseline,
+                  reference_core_sha256=rf.ORIGINAL_INSTRUMENTED_CORE_SHA,
+                  comparison=dict(baseline["comparison"],
+                       bounded_dragster_to_zoo_diagnostic_without_full_event_parity=False))
+        rf.qualify_full_original_native_producer(case,baseline)
+        for name,spoof,err in (
+          ("wrong ROM",dict(case,rom_sha256="changed"),"producer fields"),
+          ("missing core",dict(case,reference_core_sha256="not original"),"pinned patch"),
+          ("new extra producer metadata",dict(case,other=True),"producer fields"),
+          ("false diagnostic changed",dict(case,comparison=dict(case["comparison"],
+                  bounded_dragster_to_zoo_diagnostic_without_full_event_parity=True)),"comparison drift"),
+          ("missing comparator field",dict(case,comparison={
+                  "terminal_result_frame_matched":False,
+                  "bounded_dragster_to_zoo_diagnostic_without_full_event_parity":False}),"comparison drift"),
+          ("changed outcome",dict(case,bowl_next_switcher_handoff={"source_next":342,"native_next":345}),"producer fields"),
+        ):
+            with self.subTest(case=name):
+                with self.assertRaisesRegex(ValueError,err):
+                    rf.qualify_full_original_native_producer(spoof,baseline)
     def test_no_unsourced_full_raw_guest_state(self):
         from tempfile import TemporaryDirectory
         with TemporaryDirectory() as d:

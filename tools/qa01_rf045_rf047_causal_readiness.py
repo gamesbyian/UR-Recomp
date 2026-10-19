@@ -70,6 +70,11 @@ def inspect(source: str, native: str) -> dict:
         if marker in native:
             raise ValueError("native recorder truncated: " + marker)
 
+    # Check physical line multiplicity before field parsing: flattening two
+    # events on one line could silently overwrite the earlier seq/stage keys.
+    native_lines = [line for line in native.splitlines() if NATIVE_TAG in line]
+    if len(native_lines) != native.count(NATIVE_TAG):
+        raise ValueError("two native RF047 records merged into one text line")
     macros = rows(source, SOURCE_TAG)
     bus = rows(source, "QA01RF044ORIGBUS ")
     nmis = rows(source, "QA01RF044ORIGNMI ")
@@ -84,9 +89,8 @@ def inspect(source: str, native: str) -> dict:
     # make the merged physical text-line order an executed cross-recorder bus
     # chronology. Retain the usable local rows and expose collisions rather
     # than silently reclassifying them as atomic lines.
-    native_lines = [line for line in native.splitlines() if NATIVE_TAG in line]
-    if len(native_lines) != native.count(NATIVE_TAG) or len(native_lines) != len(events):
-        raise ValueError("two native RF047 records merged into one text line")
+    if len(native_lines) != len(events):
+        raise ValueError("native RF047 source event population changed")
     mixed_rows = [rows(native_line, NATIVE_TAG)[0] for native_line in native_lines
                   if not native_line.startswith(NATIVE_TAG)]
     native_mixed_reads = sum(row.get("stage") == "read" for row in mixed_rows)

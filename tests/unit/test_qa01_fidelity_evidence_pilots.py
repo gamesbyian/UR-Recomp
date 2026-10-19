@@ -160,6 +160,14 @@ class FrameFingerprintTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "missing"):
                 verify_frame.verify(forged, evidence)
             forged = copy.deepcopy(report)
+            forged["first_differing_relative_frame"]["wram"] = 2
+            with self.assertRaisesRegex(ValueError, "first differing frame"):
+                verify_frame.verify(forged, evidence)
+            forged = copy.deepcopy(report)
+            forged["accepted_USA_events"] = 1
+            with self.assertRaisesRegex(ValueError, "unsupported course promotion"):
+                verify_frame.verify(forged, evidence)
+            forged = copy.deepcopy(report)
             forged["coverage"]["observed_native_frames"] = 2
             with self.assertRaisesRegex(ValueError, "incomplete"):
                 verify_frame.verify(forged, evidence)

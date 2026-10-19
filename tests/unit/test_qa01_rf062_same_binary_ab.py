@@ -84,6 +84,36 @@ class SameBinaryNativeProbeAB(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,"duplicate/unsafe"):
                 x.archived(path)
 
+    def test_real_binary_artifact_bytes_not_merely_report_digest_strings(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path=Path(temp)/"native-and-original.zip"
+            binaries={
+                "native":b"dummy test native image",
+                "snes9x_libretro.so":b"dummy independent original core",
+                "snesref":b"dummy source movie runner",
+            }
+            receipts={k:hashlib.sha256(v).hexdigest() for k,v in binaries.items()}
+            with zipfile.ZipFile(path,"w") as z:
+                for name,raw in binaries.items():
+                    z.writestr(name,raw)
+                z.writestr("SHA256SUMS","".join(
+                    receipts[k]+"  "+k+"\\n" for k in binaries).encode())
+            source={"native_executable_sha256":receipts["native"],
+                    "reference_core_sha256":receipts["snes9x_libretro.so"]}
+            receipt=x.independent_binaries(path,source,
+                                           hashlib.sha256(path.read_bytes()).hexdigest())
+            self.assertTrue(receipt["all_three_emulator_tool_binaries_rehashed"])
+            source["native_executable_sha256"]="0"*64
+            with self.assertRaisesRegex(ValueError,"real emulator binary bytes disagree"):
+                x.independent_binaries(path,source)
+            source["native_executable_sha256"]=receipts["native"]
+            with self.assertRaisesRegex(ValueError,"binary artifact changed"):
+                x.independent_binaries(path,source,"f"*64)
+            with zipfile.ZipFile(path,"a") as z:
+                z.writestr("native",b"replaced")
+            with self.assertRaisesRegex(ValueError,"missing/duplicated"):
+                x.independent_binaries(path,source)
+
     def test_real_same_binary_fixture_but_no_wrapper_parity_claim(self):
         result=x.control(*fixtures())
         self.assertTrue(result["runtime_RF062_logging_noninterference_supported"])

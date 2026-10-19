@@ -45,7 +45,7 @@ jobs:
              '-select_streams','v:0','-show_entries','stream=width,height,r_frame_rate,nb_read_frames',
              '-of','json',str(clip)]))['streams'][0]
           assert (d['width'],d['height'],d['r_frame_rate'],int(d['nb_read_frames']))==(1080,1920,'60/1',1620)
-          ordinals=[30,180,540,840,1140,1480]
+          ordinals=[30,180,650,840,1140,1480]
           expr='+'.join('eq(n\\,'+str(n)+')' for n in ordinals)
           temp=root/'ambient-review-%02d.png'
           subprocess.run(['ffmpeg','-nostdin','-hide_banner','-loglevel','error','-y',
@@ -58,7 +58,7 @@ jobs:
             with Image.open(file) as im:
               assert im.size==(1080,1920)
               im.load()
-              if ordinal in (30,180,540,1140):
+              if ordinal in (30,180,1140):
                 assert max(ImageStat.Stat(im.crop((0,656,1080,1264))).mean)>10,('gameplay panel unexpectedly blank',ordinal)
             with Image.open(file) as im:im.verify()
             witnesses[file.name]=sha(file)

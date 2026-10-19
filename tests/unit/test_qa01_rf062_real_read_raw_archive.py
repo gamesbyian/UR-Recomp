@@ -1,7 +1,12 @@
 """RF062 genuine archived native operand consumer, without a proprietary ROM."""
 import copy
+import hashlib
+import io
+import stat
 import sys
+import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/"tools"))
@@ -33,6 +38,143 @@ def helper_rows(start: int, end: int):
         "dp63":"00","dp64":"00","dp65":"11",
         "master":str(i*540),
     } for i in range(start,end)]
+
+
+class ArchiveIdentityIntegrity(unittest.TestCase):
+    def make(self, destination, *, extra=None, duplicate=False, symlink=False):
+        with zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED) as z:
+            z.writestr("producer-report.json", b'{"admission":0}')
+            if extra:
+                z.writestr(extra, b"outside the genuine run")
+            if duplicate:
+                # This is ambiguous even if an attacker rehashes the new ZIP.
+                import warnings
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", UserWarning)
+                    z.writestr("producer-report.json", b'{"admission":1}')
+            if symlink:
+                info=zipfile.ZipInfo("substitute-input")
+                info.create_system=3
+                info.external_attr=(stat.S_IFLNK | 0o777) << 16
+                z.writestr(info, b"/another-evidence-file")
+        return hashlib.sha256(destination.read_bytes()).hexdigest()
+
+    def test_all_four_real_research_cases_have_separate_immutable_sha_pins(self):
+        sha=[probe.BASELINE_SHA,probe.NATIVE_CASE_SHA,
+             probe.NATIVE_BINARIES_SHA,probe.RAW_PAIR_CASE_SHA]
+        self.assertEqual(len(sha),len(set(sha)))
+        self.assertTrue(all(len(x)==64 for x in sha))
+
+    def test_qualified_source_bytes_remain_immutable_if_path_changes(self):
+        # The ZIP actually parsed must be the same byte snapshot whose outer
+        # digest, complete members and CRCs were qualified, even if another
+        # process replaces the pathname between qualification and parsing.
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "case.zip"
+            original_sha = self.make(path)
+            actual, image = probe.qualified_zip_snapshot(path, original_sha, "fixture")
+            self.assertEqual(actual, original_sha)
+            self.make(path, extra="unqualified-replacement.txt")
+            self.assertNotEqual(hashlib.sha256(path.read_bytes()).hexdigest(),
+                                original_sha)
+            with zipfile.ZipFile(io.BytesIO(image)) as z:
+                self.assertEqual(z.namelist(), ["producer-report.json"])
+                self.assertEqual(z.read("producer-report.json"),
+                                 b'{"admission":0}')
+            with self.assertRaisesRegex(ValueError, "SHA256 differs"):
+                probe.qualified_zip_snapshot(path, original_sha, "fixture")
+
+    def test_altered_even_unconsumed_member_does_not_requalify_zip(self):
+        with tempfile.TemporaryDirectory() as d:
+            from pathlib import Path
+            root=Path(d)
+            path=root/"case.zip"
+            genuine=self.make(path)
+            self.assertEqual(probe.independently_pin_zip(path,genuine,"fixture"),genuine)
+            self.make(path,extra="irrelevant.txt")
+            with self.assertRaisesRegex(ValueError,"SHA256 differs"):
+                probe.independently_pin_zip(path,genuine,"fixture")
+
+    def test_rehashed_duplicate_symlink_or_parent_traversal_rejected(self):
+        with tempfile.TemporaryDirectory() as d:
+            from pathlib import Path
+            root=Path(d)
+            for fault in ("duplicate","symlink","traversal"):
+                with self.subTest(fault=fault):
+                    path=root/(fault+".zip")
+                    checksum=self.make(
+                        path,
+                        duplicate=fault=="duplicate",
+                        symlink=fault=="symlink",
+                        extra="../outside.json" if fault=="traversal" else None)
+                    with self.assertRaisesRegex(ValueError,"unsafe, ambiguous"):
+                        probe.independently_pin_zip(path,checksum,"fixture")
+
+    def test_rehashed_cross_platform_member_aliases_fail_closed(self):
+        # POSIX Path.parts alone does not reject Windows separators, drives or
+        # alternate data streams. Even a newly rehashed synthetic ZIP is unsafe.
+        bad_names = (
+            "nested\\\\..\\\\escape.json", "C:/absolute-on-windows.json",
+            "member:alternate-stream", "nested//duplicate-separator.json",
+            "nested/./normalized-alias.json", "nested/../escape.json",
+            "trailing./member.json", "newline\\nmember.json",
+        )
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            for i, bad in enumerate(bad_names):
+                with self.subTest(bad=bad):
+                    archive = root / f"alias-{i}.zip"
+                    with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as z:
+                        z.writestr("normal.json", b"{}")
+                        z.writestr(bad, b"forged")
+                    checksum = hashlib.sha256(archive.read_bytes()).hexdigest()
+                    with self.assertRaisesRegex(ValueError, "unsafe, ambiguous"):
+                        probe.independently_pin_zip(archive, checksum, "synthetic alias")
+
+    def test_rehashed_nonregular_unix_zip_entries_fail_closed(self):
+        with tempfile.TemporaryDirectory() as d:
+            for kind in (stat.S_IFDIR, stat.S_IFIFO, stat.S_IFCHR, stat.S_IFBLK,
+                         stat.S_IFSOCK):
+                with self.subTest(kind=kind):
+                    archive = Path(d) / f"special-{kind}.zip"
+                    info = zipfile.ZipInfo("looks-like-ordinary-file")
+                    info.create_system = 3
+                    info.external_attr = (kind | 0o644) << 16
+                    with zipfile.ZipFile(archive, "w") as z:
+                        z.writestr(info, b"forged")
+                    checksum = hashlib.sha256(archive.read_bytes()).hexdigest()
+                    with self.assertRaisesRegex(ValueError, "unsafe, ambiguous"):
+                        probe.independently_pin_zip(archive, checksum,
+                                                   "synthetic special file")
+
+    def test_rehashed_invalid_member_crc_is_not_original_source_evidence(self):
+        with tempfile.TemporaryDirectory() as d:
+            from pathlib import Path
+            root=Path(d)
+            path=root/"case.zip"
+            with zipfile.ZipFile(path,"w",zipfile.ZIP_STORED) as z:
+                z.writestr("producer-report.json",b"AAAABBBBCCCCDDDD")
+            data=path.read_bytes()
+            self.assertEqual(data.count(b"AAAABBBBCCCCDDDD"),1)
+            path.write_bytes(data.replace(b"AAAABBBBCCCCDDDD",b"AAAABBBBCCCDDDDD"))
+            # Even a hash pin chosen by a forger for the corrupt ZIP
+            # must not bypass the independently reopened member CRC.
+            with self.assertRaisesRegex(ValueError,"CRC"):
+                probe.independently_pin_zip(
+                    path,hashlib.sha256(path.read_bytes()).hexdigest(),"fixture")
+
+    def test_file_alias_and_absent_zip_rejected_before_reading(self):
+        with tempfile.TemporaryDirectory() as d:
+            from pathlib import Path
+            root=Path(d)
+            path=root/"case.zip"
+            good=self.make(path)
+            alias=root/"alias.zip"
+            alias.symlink_to(path)
+            for target in (alias,root/"missing.zip"):
+                with self.subTest(target=str(target)),self.assertRaisesRegex(
+                        ValueError,"missing, symlinked"):
+                    probe.independently_pin_zip(target,good,"fixture")
 
 
 class AuthenticNativeOpcodeRead(unittest.TestCase):

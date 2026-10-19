@@ -66,6 +66,18 @@ class RealConsumedReturn(unittest.TestCase):
         self.assertFalse(output["source_native_full_memory_causal_ready"])
         self.assertEqual(output["accepted_USA_events"],0)
 
+    def test_original_boundary_overlapping_word_pull_is_not_discarded(self):
+        original=genuine_rows()
+        altered=(original
+          .replace('kind=rb bank=00 addr=01ED width=1 sampled=0026',
+                   'kind=rw bank=00 addr=01EC width=2 sampled=0026')
+          .replace('kind=pullB addr=01ED width=1 value=0026',
+                   'kind=pullW addr=01EC width=2 value=0026')
+          .replace('kind=pullB base=01ED width=1 returned=0026',
+                   'kind=pullW base=01EC width=2 returned=0026'))
+        qualified=audit.check(altered)
+        self.assertEqual(qualified["actual_returns_with_unique_source_bus_entry"],1)
+
     def test_multiple_entries_inside_pull_are_preserved_as_ambiguous(self):
         altered=genuine_rows().replace('before=2 after=3 unique=1','before=1 after=3 unique=0')
         output=audit.check(altered)

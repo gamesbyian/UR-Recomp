@@ -54,7 +54,7 @@ def check_guest(data: dict, guest: str) -> None:
     ev = data.get("events")
     require(type(ev) is list and len(ev) > 0, "missing executed event rows")
     marks = []
-    last_clock = None
+    last_clock_by_domain = {}
     for index, row in enumerate(ev, 1):
         require(type(row) is dict and type(row.get("seq")) is int and
                 row["seq"] == index and row.get("kind") in KINDS,
@@ -65,10 +65,11 @@ def check_guest(data: dict, guest: str) -> None:
         require(type(row.get("clock")) is int and row["clock"] >= 0 and
                 type(row.get("clock_domain")) is str and row["clock_domain"],
                 "missing actual source-local event clock")
-        clock = (row["frame"], row["clock"])
-        require(last_clock is None or clock >= last_clock,
-                "guest local event clock regressed")
-        last_clock = clock
+        domain = row["clock_domain"]
+        previous = last_clock_by_domain.get(domain)
+        require(previous is None or row["clock"] >= previous,
+                "guest clock regressed within its own domain")
+        last_clock_by_domain[domain] = row["clock"]
         if row["kind"] == "checkpoint":
             require(row["frame"] == w["checkpoint"] and
                     row.get("phase") == w["phase"] and

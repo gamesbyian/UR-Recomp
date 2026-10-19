@@ -37,7 +37,7 @@ def symbol_groups(nm_text: str) -> dict[str, list[str]]:
 # code still contains BOTH RF044/RF063 environment guards, the RF063 shared
 # ordinal update, and the actual source stderr writer.
 HELPER_PREFIX="_ZL17ur_rf044_orig_busPKcjtj"
-CALL_TARGET=re.compile(r"\\bcallq?\\s+[^\\n]*<([^>]+)>")
+CALL_TARGET=re.compile(r"\bcallq?\s+[^\n]*<([^>]+)>")
 RF063_GLOBAL=re.compile(r"<ur_rf063_source_bus_seq>")
 REAL_PRINT=re.compile(r"<(?:__fprintf_chk|fprintf)(?:@plt)?>")
 

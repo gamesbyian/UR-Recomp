@@ -38,6 +38,7 @@ def verify(report: dict, raw_root: Path) -> dict:
     chain = hashlib.sha256()
     required_frames = {start, end}
     counts = {"wram": 0, "sram": 0}
+    earliest = {"wram": None, "sram": None}
     for rel, row in enumerate(rows, start):
         frames.must(type(row) is dict and row.get("relative_frame") == rel and
                     row.get("original_actual_host_frame") == identity["original_frame_origin"] + rel
@@ -59,12 +60,19 @@ def verify(report: dict, raw_root: Path) -> dict:
                 chain.update(bytes.fromhex(sha))
             count = item["unmasked_differing_byte_count"]
             counts[kind] += count
+            if count and earliest[kind] is None:
+                earliest[kind] = rel
             if count:
                 required_frames.add(rel)
     frames.must(report.get("frame_pair_digest_chain_sha256") == chain.hexdigest(),
                 "frame digest-chain contents changed")
     frames.must(report.get("full_unmasked_differing_byte_occurrences") == counts,
                 "total unmasked difference count changed")
+    frames.must(report.get("first_differing_relative_frame") == earliest,
+                "first differing frame metadata changed")
+    frames.must(report.get("accepted_USA_events") == 0 and
+                coverage.get("between_frame_opcode_semantics_proven") is False,
+                "capture report attempted unsupported course promotion")
     entries = report.get("raw_retained_members")
     frames.must(type(entries) is list and entries and
                 report.get("raw_retained_scope") == "all differing frames plus first and final pair",

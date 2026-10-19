@@ -33,7 +33,20 @@ def check(baseline: Path, wrapped: Path) -> dict:
         raise ValueError("generated file population drift")
     changed=[p for p in a if a[p]!=b[p]]
     if len(changed)!=1 or not changed[0].endswith(".c"):
-        raise ValueError("expected exactly one generated live C source changed")
+        diagnostics=[{
+            "file":p,
+            "baseline_sha256":hashlib.sha256(a[p]).hexdigest(),
+            "wrapped_sha256":hashlib.sha256(b[p]).hexdigest(),
+            "rf062_marker_count":b[p].count(MARK.encode()),
+            "rf062_wrapper_function_call_count":b[p].count(
+                b"ur_rf062_read8_pc_8282f0("),
+            "baseline_bytes":len(a[p]),"wrapped_bytes":len(b[p]),
+        } for p in changed]
+        raise ValueError(
+            "expected exactly one generated live C source changed: "+
+            json.dumps({"total_changed":len(changed),
+                        "first_changed":diagnostics[:20]},
+                        sort_keys=True,separators=(",",":")))
     src_old=a[changed[0]].decode("utf8")
     src_new=b[changed[0]].decode("utf8")
     sites=list(PAT.finditer(src_new))

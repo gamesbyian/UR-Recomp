@@ -43,3 +43,28 @@ The graphics producer must preserve the exact compiled PE SHA256, pinned source 
 If a genuine consumer receives effective native CGRAM and selected palette indices, compare them to the independently archived original 5183/5184 full CGRAM words at correctly qualified stages, with actual produced raster pixels at guest5184 and nearby unsampled original/native fields. The original 2014 CPU journal and native CPU source register writer still have different H-counter units and unqualified instruction clocks; do not label a host-frame difference as a CPU clock cause. The original guest4016 blackout, fixed medal chromatic error, 342×224/7:6/UHD Windows output and human HD character approval remain independent.
 
 **Stop rule:** The observer exists to decide *which effective palette word was consumed by a wrong pixel*. It is a draft engineering instrument until a real Windows source execution, raw pixel witness and independent noninterference result exist. No palette swap, output recolouring, global video phase shift, brightness patch, original/native event acceptance, QA08/10 credit or 4K/HD-art release award follows from the patcher's local tests.
+
+
+
+## New fail-closed Windows-log adjudicator
+
+`tools/qa08_late_effective_trace_verify.py` is a separate ROM-free evidence reader for a **future, genuine** observer-ON/OFF pair. It refuses row-format drift, forged/duplicate/missing guest5184 pixel observations, invented source coordinates, reversed renderer-Y numbering, invalid direct-colour attribution, selected-RGB555 disagreement with an actually referenced CGRAM word, impossible PPU register values and absent source provenance. It requires *all eight* authentic guest5184 logical coordinates in **both the original resolver's actual main-screen selection and completed final source pixel**, and distinguishes optional sub-screen rows rather than treating them as main-screen ownership.
+
+It also reopens the exact original 2014 Snes9x **inner** source ZIP SHA256 `72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e`, verifies callback5183 original BGRX source member SHA256 `f0ee58c682776592d8a93003a42c508629c49973b206d6a6da2c71ec9dc993b7`, and independently checks the eight original RGB5 values against its real uncropped 256×224 bytes. For both ON and OFF experiments, it requires the exact 5,484-frame guest CRC transcript file SHA256 `b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568` and original script bytes SHA256 `ef74ec51fa585aa76652f4a14d2727f0074434b3925522ab2607e3bd29aa0194`. Unexpected effective-PPU source logs in the OFF control are refused.
+
+```sh
+python3 tools/qa08_late_effective_trace_verify.py \
+  --on /private/actual-compiled-Windows-observer-ON.stderr.log \
+  --off /private/actual-compiled-Windows-observer-OFF.stderr.log \
+  --original-inner /private/authentic-original-2014-inner.zip \
+  --crc-on /private/actual-ON-complete-5484-guest-CRC.txt \
+  --crc-off /private/actual-OFF-complete-5484-guest-CRC.txt \
+  --route-on /private/actual-ON-route-bytes.txt \
+  --route-off /private/actual-OFF-route-bytes.txt \
+  --out /private/read-only-late-effective-result.json
+python3 -m unittest tests.unit.test_qa08_late_effective_trace_verify
+```
+
+The result includes original/reference native RGB5 and newly observed compiled-native RGB5 for each real anchor, main layer/direct-color, the native main selected CGRAM index where applicable, the actual selected 15-bit source colour and all four native effective palette words. **Never infer a fixed pipeline stage from the per-field guest label alone**. A matching text log and archived CRC digest do not prove the executable actually consumed that script, that ON/OFF binaries or source images were unmodified, or that the renderer's effective sample has the original emulator's instruction/beam time. These still require independent binary/manifest/whole-P7 source qualification. Accordingly the report's `whole_P7_ON_OFF_noninterference_proven`, `compiled_Windows_PE_identity_proven` and `QA08_QA10_or_release_authorized` statements stay false.
+
+Seven additional adversarial unit tests exercise log field parsing, eight-anchor main/final pairing, duplicate/missing sources, RGB555/CGRAM disagreement, direct-color avoidance, malformed frame/y/register/RGB and false guest/route SHA admission. **No real Win32 source output exists for this new logger yet.** The checker neither paints any pixel nor interprets test output as a product fix.

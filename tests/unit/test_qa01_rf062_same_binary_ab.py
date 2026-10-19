@@ -67,12 +67,9 @@ class SameBinaryNativeProbeAB(unittest.TestCase):
         a,b,c,d,e,f=fixtures()
         d["native"]=d["native"].replace(b"master=3160 addr=11C774",
                                         b"master=3161 addr=11C774")
-        # The separate same-byte direct record is not treated as parity
-        # because the helper's master value was preserved separately.
-        result=x.control(a,b,c,d,e,f)
-        self.assertTrue(result["native_actual_RF054_CPU_master_clocks_equal"])
-        # on/off shim events alone are not a full CPU timing oracle.
-        self.assertEqual(result["USA_events_accepted"],0)
+        # Uncorroborated RF062 wrapper rows are never admissible.
+        with self.assertRaisesRegex(ValueError,"not a real same-clock"):
+            x.control(a,b,c,d,e,f)
 
     def test_actual_helper_missing_at_frame_edge_is_reported_not_hidden(self):
         a,b,c,d,e,f=fixtures()

@@ -1,0 +1,106 @@
+{
+  "schema": "ur-qa01-bowl-authentic-sparse-frame-calibration/1",
+  "archive": {
+    "run": 39168164480,
+    "artifact_id": 12151357791,
+    "sha256": "2924534f2700714c655647b43e2453c54d4e76f0e258566bcf500439d962ea79",
+    "source_sha": "9ee3b8cb876f630d259882dde62da07ba6217c8d"
+  },
+  "provenance": "independently reopened original archived 62-member ZIP; true 128KiB WRAM and 8192-byte SRAM source/native byte comparison for every present handoff checkpoint",
+  "observed_relative_result_offsets": [
+    334,
+    338,
+    339,
+    340,
+    341,
+    342,
+    343,
+    344,
+    345,
+    346,
+    349,
+    354
+  ],
+  "raw_per_offset": [
+    {
+      "offset": 334,
+      "wram_differing_bytes": 2,
+      "sram_differing_bytes": 3
+    },
+    {
+      "offset": 338,
+      "wram_differing_bytes": 2,
+      "sram_differing_bytes": 3
+    },
+    {
+      "offset": 339,
+      "wram_differing_bytes": 2,
+      "sram_differing_bytes": 3
+    },
+    {
+      "offset": 340,
+      "wram_differing_bytes": 33,
+      "sram_differing_bytes": 3
+    },
+    {
+      "offset": 341,
+      "wram_differing_bytes": 666,
+      "sram_differing_bytes": 3
+    },
+    {
+      "offset": 342,
+      "wram_differing_bytes": 688,
+      "sram_differing_bytes": 3
+    },
+    {
+      "offset": 343,
+      "wram_differing_bytes": 671,
+      "sram_differing_bytes": 3
+    },
+    {
+      "offset": 344,
+      "wram_differing_bytes": 289,
+      "sram_differing_bytes": 3
+    },
+    {
+      "offset": 345,
+      "wram_differing_bytes": 214,
+      "sram_differing_bytes": 3
+    },
+    {
+      "offset": 346,
+      "wram_differing_bytes": 184,
+      "sram_differing_bytes": 3
+    },
+    {
+      "offset": 349,
+      "wram_differing_bytes": 177,
+      "sram_differing_bytes": 3
+    },
+    {
+      "offset": 354,
+      "wram_differing_bytes": 113,
+      "sram_differing_bytes": 3
+    }
+  ],
+  "sum_unmasked_wram_differing_byte_occurrences": 3041,
+  "sum_unmasked_sram_differing_byte_occurrences": 36,
+  "present_original_native_raw_pair_count": 12,
+  "missing_offsets_between_334_and_354": [
+    335,
+    336,
+    337,
+    347,
+    348,
+    350,
+    351,
+    352,
+    353
+  ],
+  "complete_consecutive_frame_population": false,
+  "full_event_frame_coverage": false,
+  "eligible_for_continuous_frame_fingerprint_pilot": false,
+  "actual_native_course_handoff_parity": false,
+  "accepted_USA_events": 0,
+  "followup": "Do not treat this sparse 12-offset archive as a continuous frame run; use it to validate isolated raw-image comparisons. The full-frame pilot requires genuine consecutive recorded WRAM/SRAM for both guests, plus exact source/input and sample phase."
+}

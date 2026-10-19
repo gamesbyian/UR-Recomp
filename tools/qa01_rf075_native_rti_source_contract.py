@@ -73,7 +73,7 @@ def verify(codegen:str,interpreter:str,stack:str,beam:str,bridge:str)->dict:
     native=excerpt(bridge,"static int bridge_native_handoff(CpuState *cpu, Interp816 *in,",
                    "/* " if False else "    if (s_lle_unwind_active) {", "native compiled RTI handoff")
     require("cpu_dispatch_pc_from(cpu, target, cpu->S, target)" in native and
-            "if (stop_on_rti)\n             return 1;" in native and
+            "if (stop_on_rti)\n            return 1;" in native and
             'sync_cpu_to_interp(cpu, in);' in native,
             "RF075 compiled RTI host return path changed")
     interpreter_stop=excerpt(bridge,"if (stop_on_rti && op == 0x40) {",

@@ -39,7 +39,7 @@ class ExecutedPC(unittest.TestCase):
         self.assertIn("0x8282F0", e)
         self.assertIn("0x82D4F0", e)
         self.assertLess(e.index("if ii in skip_emit_idx"),
-                        e.index("ur_rf047_mark_executed_pc"))
+                        e.index("ur_rf047_mark_executed_pc(0x{di_insn.addr"))
         self.assertLess(e.index("ur_rf047_mark_executed_pc(0x{di_insn.addr"),
                         e.index("for op in ir_ops:"))
         self.assertIn("const uint8_t  op = bridge_bus_read(cpu, pc_before);\n"

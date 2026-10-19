@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import collections
+import difflib
 import hashlib
 import json
 import tempfile
@@ -109,6 +110,77 @@ def observed_native_reads(text: str) -> dict:
         "frame_6124_first_read": helper[0]["addr"],
         "frame_6124_last_read": helper[-1]["addr"],
         "native_read_rows": matches,
+    }
+
+
+
+def compare_native_helper_windows(baseline: list[dict[str, str]],
+                                  instrumented: list[dict[str, str]]) -> dict:
+    """Find genuine *observed* frame-window insertions/deletions.
+
+    Compare read site/guest registers, never require native-local CPU cycles
+    to be synchronized between different source commits or binaries. A matching
+    observed sequence does not by itself prove no unsampled guest accesses.
+    """
+    signature = ("addr", "A", "Y", "D", "dp63", "dp64", "dp65")
+    for name, rows in (("baseline", baseline), ("instrumented", instrumented)):
+        need(rows and all(all(field in row for field in
+             (*signature, "master", "seq", "frame", "kind", "scope"))
+             for row in rows) and
+             [int(r["seq"]) for r in rows] == list(range(1,len(rows)+1)) and
+             all(r["frame"] == "6124" and r["kind"] == "read8" and
+                 r["scope"] == "Snd_UploadBlockList_82EF_M1X0"
+                 for r in rows),
+             "invalid " + name + " original/native frame-local helper population")
+    left = [tuple(r[k] for k in signature) for r in baseline]
+    right = [tuple(r[k] for k in signature) for r in instrumented]
+    codes = difflib.SequenceMatcher(None,left,right,autojunk=False).get_opcodes()
+    matched = sum(i2-i1 for t,i1,i2,j1,j2 in codes if t=="equal")
+    shifted = []
+    for tag,i1,i2,j1,j2 in codes:
+        if tag == "equal":
+            continue
+        shifted.append({
+            "change": tag,
+            "baseline_range_zero_based": [i1,i2],
+            "instrumented_range_zero_based": [j1,j2],
+            "baseline_first_ROM_address": baseline[i1]["addr"] if i1<i2 else None,
+            "instrumented_first_ROM_address":
+                instrumented[j1]["addr"] if j1<j2 else None,
+        })
+    common_deltas = [
+        int(instrumented[j1+n]["master"])-int(baseline[i1+n]["master"])
+        for tag,i1,i2,j1,j2 in codes if tag=="equal"
+        for n in range(i2-i1)
+    ]
+    # A changed block is a genuine frame-edge difference only when it
+    # touches the *same* leading or trailing boundary on both trace axes.
+    # An edit at one axis' boundary but another axis' middle is not safe
+    # to dismiss as a benign sampler shift.
+    def is_joint_edge(edit: dict) -> bool:
+        a1,a2=edit["baseline_range_zero_based"]
+        b1,b2=edit["instrumented_range_zero_based"]
+        return (a1 == b1 == 0 or
+                (a2 == len(baseline) and b2 == len(instrumented)))
+    interior_changes = [x for x in shifted if not is_joint_edge(x)]
+    return {
+        "schema": "ur-qa01-rf062-source-vs-instrumented-helper-window-alignment/1",
+        "baseline_helper_rows": len(baseline),
+        "instrumented_helper_rows": len(instrumented),
+        "matched_address_and_register_rows_in_order": matched,
+        "baseline_rows_not_matched": len(baseline)-matched,
+        "instrumented_rows_not_matched": len(instrumented)-matched,
+        "observed_population_edits": shifted,
+        "unmatched_interior_population_changes": interior_changes,
+        "all_omissions_additions_confined_to_frame_edges": not interior_changes,
+        "native_master_cycle_delta_min":
+            min(common_deltas) if common_deltas else None,
+        "native_master_cycle_delta_max":
+            max(common_deltas) if common_deltas else None,
+        "same_exact_native_binary_and_source_proven": False,
+        "actual_underlying_CPU_reads_beyond_observer_proven": False,
+        "wrapper_causal_noninterference_proven": False,
+        "accepted_USA_events": 0,
     }
 
 
@@ -256,6 +328,9 @@ def audit(baseline: Path, native: Path, binaries: Path, paired: Path) -> dict:
         old_bus = records(content(b,NATIVE,40_000_000).decode(),"QA01RF054NATIVEBUS ")
         need(len(old_bus) == 656 and len(newer["native_read_rows"]) == 10,
              "baseline or genuine native sound census missing")
+        helper_alignment = compare_native_helper_windows(old_bus,
+            records(content(p,NATIVE,40_000_000).decode(),
+                    "QA01RF054NATIVEBUS "))
         result = compare_frame_raw(p,late_case)
     return {
         "schema":SCHEMA,
@@ -275,6 +350,7 @@ def audit(baseline: Path, native: Path, binaries: Path, paired: Path) -> dict:
         "raw_original_and_native":result,
         "archived_frame6124_helper_count":len(old_bus),
         "new_frame6124_helper_count":newer["frame_6124_real_helper_read_count"],
+        "cross_run_native_helper_window_alignment":helper_alignment,
         "first_native_RF054_helper_addr_original":old_bus[0]["addr"],
         "first_native_RF054_helper_addr_instrumented":newer["frame_6124_first_read"],
         "native_whole_mesh_identical_to_original_baseline":

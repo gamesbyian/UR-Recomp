@@ -3,7 +3,7 @@ name: RF059 Actual Original 65816 Next Race State Writers
 on:
   push:
     branches:
-      - research/rf059-source-bowl-opcode-first-unmasked-wram-mutation-20261018
+      - research/rf059-first-real-next-race-WRAM-writers-20261018
 
 permissions:
   contents: read

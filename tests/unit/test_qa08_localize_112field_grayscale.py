@@ -207,6 +207,65 @@ class AuthenticRasterSpatialTests(unittest.TestCase):
         self.assertFalse(data["QA08_QA10_or_release_accepted"])
         self.assertFalse(data["per_pixel_consumed_CGRAM_slot_and_color_math_proven"])
 
+    def test_per_coordinate_fixed_gray_class_never_changes_silently(self):
+        original, native = test_images([
+            (0, 0, (15,15,15), (20,20,20)),
+            (8, 112, (16,16,16), (15,15,15)),
+            (8, 16, (1,2,3), (1,2,4)),
+        ])
+        pixels = spatial.classify_cycle_pair_map(original, native)
+        self.assertEqual(pixels[0], 1)
+        self.assertEqual(pixels[112*spatial.WIDTH+8], 2)
+        self.assertEqual(pixels[16*spatial.WIDTH+8], 0)
+        frames = [bytearray(spatial.WIDTH*spatial.HEIGHT)
+                  for _ in spatial.source.SPIKES]
+        for i, f in enumerate(frames):
+            f[0] = 1
+            if i % 2 == 0:
+                f[112*spatial.WIDTH+8] = 2
+        result = spatial.summarize_cycle_pair_identity(frames)
+        self.assertEqual(result["union_positions"], 2)
+        self.assertEqual(result["intersection_positions_all_13"], 1)
+        self.assertEqual(result["cross_class_coordinate_conflicts"], 0)
+        self.assertEqual([r["intersection_source_positions_all_13"]
+                          for r in result["per_gray_pair"]], [1,0,0,0])
+        self.assertEqual([r["sampled_pixel_occurrences"]
+                          for r in result["per_gray_pair"]], [13,7,0,0])
+        self.assertEqual(result["per_gray_pair"][1]["lower_raster_intersection_source_positions"], 0)
+        self.assertFalse(result["CGRAM_effective_pixel_index_proven"])
+        frames[4][0] = 3
+        with self.assertRaisesRegex(ValueError, "changed its gray-cycle class"):
+            spatial.summarize_cycle_pair_identity(frames)
+        frames[4][0] = 1
+        frames[4][1] = 5
+        with self.assertRaisesRegex(ValueError, "unknown cycle-class"):
+            spatial.summarize_cycle_pair_identity(frames)
+        with self.assertRaisesRegex(ValueError, "exactly 13"):
+            spatial.summarize_cycle_pair_identity(frames[:-1])
+
+    def test_authenticated_four_class_spatial_receipt_retains_negative_causality(self):
+        path = ROOT / "analysis/data/qa08-authentic-fixed-gray-class-20261019.json"
+        receipt = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(receipt["original_2014_inner_sha256"], spatial.source.ORIGINAL_INNER_SHA)
+        self.assertEqual(receipt["native_integrated_outer_sha256"], spatial.source.NATIVE_OUTER_SHA)
+        self.assertEqual(receipt["native_guest_CRC_sha256"], spatial.source.NATIVE_CRC_SHA)
+        rows = receipt["actual_pair_class_spatial_identity"]["per_gray_pair"]
+        self.assertEqual([x["original_to_native_RGB5"] for x in rows],
+                         ["15->20", "16->15", "17->16", "20->17"])
+        self.assertEqual([x["union_source_positions"] for x in rows],
+                         [4181,8380,4131,8248])
+        self.assertEqual([x["intersection_source_positions_all_13"] for x in rows],
+                         [4088,8236,3969,7803])
+        self.assertEqual([x["sampled_pixel_occurrences"] for x in rows],
+                         [53658,107868,52716,104533])
+        classes = receipt["actual_pair_class_spatial_identity"]
+        self.assertEqual(classes["cross_class_coordinate_conflicts"],0)
+        self.assertEqual(classes["union_positions"],24940)
+        self.assertEqual(classes["intersection_positions_all_13"],24096)
+        self.assertEqual(classes["all_frame_observed_cycle_pixels"],318775)
+        self.assertFalse(classes["CGRAM_effective_pixel_index_proven"])
+        self.assertFalse(classes["release_QA08_QA10_accepted"])
+
     def test_direct_script_cli_reaches_archive_fail_closed_guard(self):
         cmd = [sys.executable, str(ROOT / "tools/qa08_localize_112field_grayscale.py"),
                "--original", str(ROOT / "missing-original-qa08.zip"),

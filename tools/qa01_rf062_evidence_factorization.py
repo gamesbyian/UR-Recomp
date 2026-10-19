@@ -10,6 +10,7 @@ scientific questions and MUST stay unproved.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import zipfile
@@ -30,7 +31,8 @@ def require(ok: bool, why: str) -> None:
         raise ValueError(why)
 
 
-def classify(ab: dict, cross: dict, executed: dict, report: dict) -> dict:
+def classify(ab: dict, cross: dict, executed: dict, report: dict,
+             actual_case_inputs: dict[str, str]) -> dict:
     """Pure strict evidence judgment, exercised by adversarial ROM-free tests."""
     compiled = ab.get("independently_reopened_compiled_binaries")
     require(ab.get("schema") == logging_ab.SCHEMA and
@@ -77,6 +79,12 @@ def classify(ab: dict, cross: dict, executed: dict, report: dict) -> dict:
             report.get("reference_entry") == 1017 and
             report.get("native_entry") == 1017,
             "true RF062 native 82:82F0 case not bound to same logging A/B binary")
+    require(type(actual_case_inputs) is dict and
+            set(actual_case_inputs) == {"original","native"} and
+            ab.get("actual_supplied_input_sha256") == actual_case_inputs and
+            all(type(value) is str and len(value) == 64
+                for value in actual_case_inputs.values()),
+            "logging native executable shares RF062 but supplied original/native controller bytes differ")
     require(executed.get("source_bound_native_read_count") == 10 and
             executed.get("frame_6124_real_helper_read_count") == 655 and
             executed["native_read_rows"][4]["native_returned_byte"] == "D0" and
@@ -89,6 +97,8 @@ def classify(ab: dict, cross: dict, executed: dict, report: dict) -> dict:
         "source_same_native_binary_logging_ab_case_SHA256": AB_ZIP,
         "source_reopened_emulator_binaries_SHA256": AB_BINARY_ZIP,
         "same_actual_native_binary_SHA256_in_RF062_and_logging_ab": TARGET_NATIVE_BINARY,
+        "original_native_supplied_guest_input_SHA256_same_in_RF062_and_logging_ab":
+            actual_case_inputs,
         "logging_toggle_native_helper_counts_off_on": [655,655],
         "real_native_8282F0_direct_read_counts_off_on": [0,10],
         "real_native_operand_11C774_returned": "D0",
@@ -122,7 +132,13 @@ def audit(rf066: Path, rf062: Path, ab_case: Path, ab_binaries: Path) -> dict:
         report = json.loads(z.read("producer-report.json"))
         executed = reads.observed_native_reads(
             z.read(reads.NATIVE).decode("utf-8"))
-    return classify(logging,cross,executed,report)
+        actual_inputs = {
+            guest: hashlib.sha256(z.read(
+                "work/zoom-zoo/replay/" + path)).hexdigest()
+            for guest,path in (("original","ref.input"),
+                               ("native","pinned-baldosa.input"))
+        }
+    return classify(logging,cross,executed,report,actual_inputs)
 
 
 def main() -> None:

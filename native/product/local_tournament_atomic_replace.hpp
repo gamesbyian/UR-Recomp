@@ -177,6 +177,60 @@ inline bool write_host_replace_staged(
     return published;
 }
 
+// Recovery intents and forensic receipts need no-replace publication: a
+// concurrent writer may create the final name after an earlier absence test.
+// Do not use the normal last-writer-wins settings/profile replacement here.
+// Stage and request an OS flush BEFORE claiming an immutable destination.
+inline bool write_host_create_staged(
+    const std::string& final_name,
+    std::string_view data,
+    std::string_view staging_family,
+    void (*after_staging_for_test)() = nullptr) {
+    namespace fs = std::filesystem;
+    if (final_name.empty() || data.empty()) return false;
+    const fs::path target(final_name);
+    const auto stage = detail::reserve_tournament_staging(
+        target.parent_path(), staging_family);
+    if (!stage) return false;
+    const auto tmp = *stage / "record.tmp";
+    const auto cleanup = [&] {
+        std::error_code ec;
+        fs::remove_all(*stage, ec);
+    };
+#if defined(_WIN32)
+    std::FILE* file = _wfopen(tmp.c_str(), L"wb");
+#else
+    std::FILE* file = std::fopen(tmp.c_str(), "wb");
+#endif
+    if (!file) {
+        cleanup();
+        return false;
+    }
+    const auto written = std::fwrite(data.data(), 1, data.size(), file);
+    const bool flushed = std::fflush(file) == 0;
+    const bool synced = written == data.size() && flushed &&
+                        detail::sync_staged_file(file);
+    const bool closed = std::fclose(file) == 0;
+    if (!synced || !closed) {
+        cleanup();
+        return false;
+    }
+    if (after_staging_for_test) after_staging_for_test();
+#if defined(_WIN32)
+    // Same-volume MoveFileW refuses an existing destination on NTFS.
+    const bool published = MoveFileW(tmp.c_str(), target.c_str()) != 0;
+#else
+    // POSIX rename would overwrite. Atomic hard-link creation never does.
+    std::error_code ec;
+    fs::create_hard_link(tmp, target, ec);
+    const bool published = !ec;
+#endif
+    if (published)
+        detail::sync_published_directory_best_effort(target.parent_path());
+    cleanup();
+    return published;
+}
+
 // Compatibility entrypoint for the tournament stores and existing tests.
 inline bool write_tournament_replace_staged(
     const std::string& final_name,

@@ -9,6 +9,7 @@ on:
     paths:
       - ".github/workflows/baldosa-windows-native-bridge.yml"
       - "tools/baldosa_windows_native_pause_route.py"
+      - "tools/baldosa_win32_live_postraw_sharing_denial.py"
       - "tools/qa02_exact_owner_win32_seam.py"
       - "tools/qa02_original_two_profile_crash_blast.py"
       - "tests/unit/test_qa02_original_two_profile_crash_blast.py"
@@ -23,6 +24,8 @@ on:
       - "tools/baldosa_native_1p_records_probe.py"
       - "tools/baldosa_native_2p_records_probe.py"
       - "tools/baldosa_native_first_racer_probe.py"
+      - "tools/baldosa_native_existing_p1_ui_probe.py"
+      - "tests/unit/test_baldosa_native_existing_p1_ui_probe.py"
       - "tools/baldosa_native_second_racer_probe.py"
       - "tools/baldosa_native_practice_probe.py"
       - "tools/baldosa_dram_refresh_beam_rate_patch.py"
@@ -72,6 +75,15 @@ on:
       - "tests/unit/test_bind_baldosa_candidate_receipt.py"
       - "tools/audit_baldosa_romless_candidate.py"
       - "tools/verify_baldosa_windows_extracted_launcher.py"
+      - "tools/baldosa_win32_interactive_recovery_q.py"
+      - "tools/baldosa_win32_interactive_recovery_rt.py"
+      - "tools/baldosa_win32_interactive_short_raw_rt.py"
+      - "tools/baldosa_win32_interactive_bad_intent_t.py"
+      - "tools/baldosa_win32_interactive_recovery_s.py"
+      - "tools/baldosa_win32_interactive_recovery_s_reject.py"
+      - "tools/baldosa_win32_real_ntfs_diskfull_game.py"
+      - "tools/baldosa_win32_real_ntfs_postraw_game.py"
+      - "tools/baldosa_win32_real_ntfs_diskfull_game.ps1"
       - "tests/unit/test_assemble_baldosa_windows_candidate.py"
       - "tests/unit/test_audit_baldosa_romless_candidate.py"
       - "native/product/modern_session_c_api.*"
@@ -87,6 +99,8 @@ on:
       - "native/presentation/racer_replacement_selector.*"
       - "native/product/baldosa_execution_backend.hpp"
       - "native/product/baldosa_guest_result_observer.*"
+      - "native/product/baldosa_native_sram_recovery.hpp"
+      - "native/product/baldosa_native_manual_sram_recovery.hpp"
       - "native/product/baldosa_native_multiplayer_records_summary.*"
       - "native/product/baldosa_native_records_summary.*"
       - "native/product/baldosa_native_run_record_admission.*"
@@ -217,6 +231,7 @@ jobs:
           python tests/unit/test_baldosa_native_2p_records_probe.py
           python tests/unit/test_baldosa_native_first_profile_cpp.py
           python tests/unit/test_baldosa_native_first_racer_probe.py
+          python tests/unit/test_baldosa_native_existing_p1_ui_probe.py
           python tests/unit/test_baldosa_native_second_racer_probe.py
           python tests/unit/test_baldosa_native_first_racer_real_run_probe.py
           python tests/unit/test_baldosa_modern_user_data_spike.py
@@ -768,6 +783,68 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/pause-options-sdl_keys/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_practice_courses/pause-options-p1_pad_semantic/log.txt
 
+      # Exact disposable CI-owned bytes for independent QA F0-F7. Only the
+      # bounded producer's before/crash/after + intact pre-write intent and
+      # committed receipt are retained. No game ROM, personal root, EXE,
+      # unbounded user saves or separate release-ledger assertions.
+      # Product-side compatibility guard only. A successful invocation
+      # demonstrates consumer schema agreement on exact source-produced
+      # bytes, not independent QA qualification or release ledger credit.
+      - name: Validate journaled Win32 evidence against independent QA02 reader
+        if: ${{ github.event_name == 'pull_request' || inputs.parallel_journeys == true }}
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/qa02-journaled-snapshot.zip"
+          # GNU sha256sum escapes backslashes in Windows filenames and can
+          # prefix the hash with a literal backslash. Feed the strict QA
+          # reader a verified *plain* 64-digit hex digest instead.
+          digest="$(python -c 'import hashlib, pathlib, sys; print(hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest())' "$archive")"
+          python tools/check_qa02_win32_fault_snapshots.py \
+            --zip "$archive" --sha256 "$digest" --case journaled
+          echo "PASS: producer F2 journaled archive satisfies separate QA-owned exact 19-member reader (not a gate credit)." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain exact CI-owned native SRAM crash and recovery byte evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-native-sram-recovery-fault-bytes
+          retention-days: 14
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_post_raw_pre_typed_crash/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/native_postraw_recovery_dacl_denial/*.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/native_postraw_recovery_dacl_denial/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/qa02-journaled-snapshot.zip
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/qa02-journaled-snapshot.sha256
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_typed_before_intent_recovery/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_prewrite_intent_abandon/*.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_prewrite_intent_abandon/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_typed_before_intent_recovery/crash.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_typed_before_intent_recovery/first-cold-boot.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_typed_before_intent_recovery/second-cold-boot.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_b_crash_healthy_a_recovery/*.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_b_crash_healthy_a_recovery/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_journaled_b_crash_then_a/*.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_journaled_b_crash_then_a/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_actual_win32_prewrite_dacl_denial/*.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_actual_win32_prewrite_dacl_denial/refusal.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_actual_win32_prewrite_dacl_denial/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_win32_live_postraw_typed_denial/*.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_win32_live_postraw_typed_denial/os-denial-result.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_real_win32_live_postraw_typed_denial/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_two_original_windows_games/*.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_two_original_windows_games/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_three_profile_unrelated_damage/*.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_three_profile_unrelated_damage/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/simulated_partial_raw_explicit_rollback/*.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/simulated_partial_raw_explicit_rollback/receipt.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_intent_restart_recovery/simulated_partial_raw_explicit_rollback/fault-bytes/**
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_post_raw_pre_typed_crash/explicit-recovery-native-command.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_post_raw_pre_typed_crash/explicit-recovery-fresh-boot.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_recovery_healthy_alternate/damaged-source-refusal.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_recovery_healthy_alternate/explicit-healthy-selection.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_recovery_healthy_alternate/fresh-healthy-guest.log
       - name: Assemble verified ROM-free Baldosa Modern Windows candidate
         run: |
           set -euo pipefail
@@ -803,8 +880,164 @@ jobs:
             --zip "$RUNNER_TEMP/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip" \
             --rom "reference/roms/retail/Uniracers_USA.sfc" \
             --out "$RUNNER_TEMP/Baldosa Native Extracted Launcher QA" \
-            --timeout 80 --expected-revision "$GITHUB_SHA"
-          echo "PASS: actual ROM-free ZIP extracted on Windows; double-click CMD rejects missing/wrong ROM and package-local/relative saves, accepts valid personal ROM, opens shared Modern root and saves exact native SRAM outside extracted executable directory. No ROM or saved data uploaded." >> "$GITHUB_STEP_SUMMARY"
+            --timeout 120 --expected-revision "$GITHUB_SHA" \
+            --save-fault-fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --save-fault-seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/baseline/Modern Player Data With Spaces/saves/save.srm" \
+            --save-fault-script "baldosa/tests/routes/race_2p_split.txt"
+           echo "PASS: actual extracted source Windows CMD launcher, fresh first racer, real frame-1952 share-denied typed save reported as exit 8 with warning, and two exact fresh cold recoveries; no ROM or personal files uploaded, no release gate credit." >> "$GITHUB_STEP_SUMMARY"
+
+      # Real Windows CMD choice.exe input on a standalone console with
+      # kernel KEY_EVENT Q, not a scripted --recovery-action shortcut.
+      # The profile is a disposable original-format legacy mismatch.
+      - name: Prove interactive original CMD recovery Q leaves data untouched
+        run: |
+          set -euo pipefail
+          python tools/baldosa_win32_interactive_recovery_q.py \
+            --launcher "$RUNNER_TEMP/Baldosa Native Extracted Launcher QA/Extracted Baldosa Candidate With Spaces/run-baldosa-modern.cmd" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/baseline/Modern Player Data With Spaces/saves/save.srm" \
+            --out "$RUNNER_TEMP/Baldosa Win32 Interactive Recovery Q" --timeout 100
+          echo "PASS: genuine Win32 console Q choice preserves all original typed/raw/selector/catalog files, creates no manual recovery archive and exits 7. Source product only, not human/physical QA." >> "$GITHUB_STEP_SUMMARY"
+
+      # Distinct product-owned R/T proof. Preserve the previously qualified
+      # Q and fixed independent QA02/extracted CMD archive contracts.
+      - name: Prove original CMD interactive R and T recovery and cold boots
+        run: |
+          set -euo pipefail
+          python tools/baldosa_win32_interactive_recovery_rt.py \
+            --launcher "$RUNNER_TEMP/Baldosa Native Extracted Launcher QA/Extracted Baldosa Candidate With Spaces/run-baldosa-modern.cmd" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/baseline/Modern Player Data With Spaces/saves/save.srm" \
+            --out "$RUNNER_TEMP/Baldosa Win32 Interactive Recovery RT" --timeout 120
+          echo "PASS: original CMD real Win32 R/T console KEY_EVENT, archive-before-change, exact canonical source bytes and two cold original guest boots per choice. Product-only synthetic keys; no human-pad, full-volume or release QA credit." >> "$GITHUB_STEP_SUMMARY"
+
+      # Deliberately short raw is NOT proof of a real torn disk write.
+      # Real original packaged Windows R must refuse without touching ANY
+      # canonical bytes; a separate source CMD T must archive and restore.
+      - name: Prove original CMD short raw R refusal and archived T recovery
+        run: |
+          set -euo pipefail
+          python tools/baldosa_win32_interactive_short_raw_rt.py \
+            --launcher "$RUNNER_TEMP/Baldosa Native Extracted Launcher QA/Extracted Baldosa Candidate With Spaces/run-baldosa-modern.cmd" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/baseline/Modern Player Data With Spaces/saves/save.srm" \
+            --out "$RUNNER_TEMP/Baldosa Win32 Short Raw Recovery" --timeout 120
+          echo "PASS: actual original Win32 CMD R refuses 513-byte raw without canonical mutation, then CMD T archives exact prior typed and short raw and restores stock SRAM before two original cold boots. Artificially shortened source fixture only; no genuine torn disk write, power cut, human operator or release gate." >> "$GITHUB_STEP_SUMMARY"
+
+      # Explicit malformed-intent T witness; not the historical unjournaled
+      # RT contract, which remains independently rehashable and untouched.
+      - name: Prove original CMD T archives corrupt pending intent before typed restore
+        run: |
+          set -euo pipefail
+          python tools/baldosa_win32_interactive_bad_intent_t.py \
+            --launcher "$RUNNER_TEMP/Baldosa Native Extracted Launcher QA/Extracted Baldosa Candidate With Spaces/run-baldosa-modern.cmd" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/baseline/Modern Player Data With Spaces/saves/save.srm" \
+            --out "$RUNNER_TEMP/Baldosa Win32 Invalid Intent Typed Recovery" --timeout 120
+          echo "PASS: original Windows CMD actual console T archives malformed binary pending, original raw and typed before exact committed restore; two cold original guest processes idempotent. No auto trust, physical input, short-write or release QA credit." >> "$GITHUB_STEP_SUMMARY"
+
+      # Actual Win32 held-open pending file denies deletion *after* explicit
+      # typed T has restored canonical raw. The original CMD must disclose
+      # partial completion, retain archives and refuse unsafe relaunch.
+      - name: Prove original CMD T partial rollback warns on real journal-delete denial
+        run: |
+          set -euo pipefail
+          python tools/baldosa_win32_interactive_t_pending_delete_denial.py \
+            --launcher "$RUNNER_TEMP/Baldosa Native Extracted Launcher QA/Extracted Baldosa Candidate With Spaces/run-baldosa-modern.cmd" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/baseline/Modern Player Data With Spaces/saves/save.srm" \
+            --out "$RUNNER_TEMP/Baldosa Win32 Held Pending T Denial" --timeout 120
+          echo "PASS: actual Windows held journal file denied post-restore unlink, original CMD T warned of partial work/no safe relaunch, preserved exact archives, and a NEW explicit T and two cold boots succeeded. Not physical torn write, power cut, operator or release QA." >> "$GITHUB_STEP_SUMMARY"
+
+      # Separate original Windows source-bound acceptance for a valid but
+      # noncanonical typed-save file. The original malformed-intent-T artifact
+      # is unchanged; do not conflate the two 25-member envelopes.
+      - name: Prove original CMD T preserves noncanonical typed file verbatim
+        run: |
+          set -euo pipefail
+          python tools/baldosa_win32_interactive_bad_intent_t.py \
+            --launcher "$RUNNER_TEMP/Baldosa Native Extracted Launcher QA/Extracted Baldosa Candidate With Spaces/run-baldosa-modern.cmd" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/baseline/Modern Player Data With Spaces/saves/save.srm" \
+            --out "$RUNNER_TEMP/Baldosa Win32 Noncanonical Typed T Recovery" \
+            --noncanonical-typed --timeout 120
+          echo "PASS: original packaged Windows CMD T retained the exact noncanonical typed file, guest raw and corrupt intent as distinct immutable source bytes through explicit rollback and two genuine cold boots. No physical operator, torn write or QA release credit." >> "$GITHUB_STEP_SUMMARY"
+
+      # A separate original Win32 console R witness specifically exercises
+      # a valid noncanonical typed file through the typed CAS (not the
+      # committed-typed T branch). Never alter the existing R/T evidence.
+      - name: Prove original CMD R archives noncanonical typed before native raw promotion
+        run: |
+          set -euo pipefail
+          python tools/baldosa_win32_interactive_recovery_rt.py \
+            --launcher "$RUNNER_TEMP/Baldosa Native Extracted Launcher QA/Extracted Baldosa Candidate With Spaces/run-baldosa-modern.cmd" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/baseline/Modern Player Data With Spaces/saves/save.srm" \
+            --out "$RUNNER_TEMP/Baldosa Win32 Noncanonical Typed R Recovery" \
+            --noncanonical-r-only --timeout 120
+          echo "PASS: original Windows CMD source console R archived the original noncanonical typed bytes and old changed raw before publishing the new typed guest SRAM, with two genuine original cold process boots. No physical operator or independent release QA credit." >> "$GITHUB_STEP_SUMMARY"
+
+      # S is the real original no-argument CMD menu with literal profile
+      # ID input, not an environment repair shortcut or a simulated roster.
+      - name: Prove original CMD interactive S switches only healthy racer
+        run: |
+          set -euo pipefail
+          python tools/baldosa_win32_interactive_recovery_s.py \
+            --launcher "$RUNNER_TEMP/Baldosa Native Extracted Launcher QA/Extracted Baldosa Candidate With Spaces/run-baldosa-modern.cmd" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/baseline/Modern Player Data With Spaces/saves/save.srm" \
+            --out "$RUNNER_TEMP/Baldosa Win32 Interactive Recovery S" --timeout 120
+          echo "PASS: genuine original CMD S and literal healthy profile ID entered through real Win32 console input, only selector changed, A and B bytes intact, unrelated damaged C untouched, two cold B process boots; test keys not human acceptance." >> "$GITHUB_STEP_SUMMARY"
+
+      # An invalid target in the real packaged S menu must never authorize
+      # a different racer or fix the damaged one. This negative witness has
+      # a separate artifact; fixed 36-member S and Q/R/T contracts stay sealed.
+      - name: Prove original CMD S nonexistent racer refuses without mutation
+        run: |
+          set -euo pipefail
+          python tools/baldosa_win32_interactive_recovery_s_reject.py \
+            --launcher "$RUNNER_TEMP/Baldosa Native Extracted Launcher QA/Extracted Baldosa Candidate With Spaces/run-baldosa-modern.cmd" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/baseline/Modern Player Data With Spaces/saves/save.srm" \
+            --out "$RUNNER_TEMP/Baldosa Win32 Interactive S Invalid Target" --timeout 120
+          echo "PASS: actual original CMD S real console invalid target refused before guest; A/B/C/selector/catalog byte-identical, no repair invented; second fresh CMD Q still rejects bad A and exits 7. Product-only, no human release credit." >> "$GITHUB_STEP_SUMMARY"
+
+      # Valid catalog membership alone is not destination approval:
+      # original CMD S must refuse a registered racer whose raw does not
+      # equal independently authenticated typed SRAM, preserving all bytes.
+      - name: Prove original CMD S rejects registered corrupt target
+        run: |
+          set -euo pipefail
+          python tools/baldosa_win32_interactive_recovery_s_reject.py \
+            --launcher "$RUNNER_TEMP/Baldosa Native Extracted Launcher QA/Extracted Baldosa Candidate With Spaces/run-baldosa-modern.cmd" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe" \
+            --seed "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/baseline/Modern Player Data With Spaces/saves/save.srm" \
+            --out "$RUNNER_TEMP/Baldosa Win32 Interactive S Corrupt Registered Target" \
+            --registered-corrupt-target --timeout 120
+          echo "PASS: genuine original packaged CMD S registered B destination with invalid raw/typed consistency refused before guest; damaged A/B, unrelated C, selector/catalog unchanged across failed choice and second original cold Q. No human acceptance credit." >> "$GITHUB_STEP_SUMMARY"
+
+      # Product-owned actual OS disk-full original Windows guest save.
+      # Reuses QA02's proven 128 MiB isolated NTFS VHDX approach. Only
+      # W: is ever formatted, and all durable source evidence lives outside
+      # the VHD. This is source evidence, NOT a human QA release gate.
+      - name: Prove original packaged CMD save on actual full NTFS volume
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          ./tools/baldosa_win32_real_ntfs_diskfull_game.ps1 `
+            -MaximumMegabytes 128 -DriveLetter W `
+            -Output "$env:RUNNER_TEMP/Baldosa Win32 Original Real NTFS Full"
+          "PASS: genuine isolated NTFS VHDX Win32 112, real source-play original game CMD save refusal exit8, unchanged previous canonical SRAM and two original cold Windows boots. Source product only; not power cut, short write, human or release QA." | Out-File "$env:GITHUB_STEP_SUMMARY" -Append
 
       - name: Retain ROM-free Windows candidate only (no ROM or SRAM)
         uses: actions/upload-artifact@v4
@@ -829,6 +1062,171 @@ jobs:
       # packaged Options chronology. Separate fixed paths; the strict QA-12
       # ZIP above and the extracted game root, ROM and profile trees are
       # never included. Each log is size-bounded by the verifier.
+      # The existing ten-file extracted CMD transcript contract stays
+      # unchanged. This additional product-only 22-source-binary witness
+      # is separately auditable and never inserted into the QA-12 or QA02
+      # flat release archives.
+      # Separate narrow source artifact; do not change the fixed ten-file
+      # launcher acceptance contract or nineteen-file QA02 journal archive.
+      - name: Retain original CMD interactive Q console evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-interactive-recovery-q
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/Baldosa Win32 Interactive Recovery Q/interactive-console.log
+            ${{ runner.temp }}/Baldosa Win32 Interactive Recovery Q/key-injection.log
+            ${{ runner.temp }}/Baldosa Win32 Interactive Recovery Q/original-fixture.log
+            ${{ runner.temp }}/Baldosa Win32 Interactive Recovery Q/interactive-q-result.json
+            ${{ runner.temp }}/Baldosa Win32 Interactive Recovery Q/source-bytes/**
+
+      - name: Retain original CMD interactive R/T repair source bytes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-interactive-recovery-rt
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/Baldosa Win32 Interactive Recovery RT/interactive-rt-result.json
+            ${{ runner.temp }}/Baldosa Win32 Interactive Recovery RT/R/*.log
+            ${{ runner.temp }}/Baldosa Win32 Interactive Recovery RT/T/*.log
+            ${{ runner.temp }}/Baldosa Win32 Interactive Recovery RT/R/result.json
+            ${{ runner.temp }}/Baldosa Win32 Interactive Recovery RT/T/result.json
+            ${{ runner.temp }}/Baldosa Win32 Interactive Recovery RT/R/source-bytes/**
+            ${{ runner.temp }}/Baldosa Win32 Interactive Recovery RT/T/source-bytes/**
+
+      - name: Retain original CMD short raw R rejection and T archive evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-interactive-short-raw-r-reject-t-restore
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/Baldosa Win32 Short Raw Recovery/short-raw-rt/result.json
+            ${{ runner.temp }}/Baldosa Win32 Short Raw Recovery/short-raw-rt/*.log
+            ${{ runner.temp }}/Baldosa Win32 Short Raw Recovery/short-raw-rt/*.key.log
+            ${{ runner.temp }}/Baldosa Win32 Short Raw Recovery/short-raw-rt/source-bytes/**
+
+      - name: Retain original CMD malformed intent T original-source evidence separately
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-interactive-bad-intent-t
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/Baldosa Win32 Invalid Intent Typed Recovery/result.json
+            ${{ runner.temp }}/Baldosa Win32 Invalid Intent Typed Recovery/*.log
+            ${{ runner.temp }}/Baldosa Win32 Invalid Intent Typed Recovery/*.key.log
+            ${{ runner.temp }}/Baldosa Win32 Invalid Intent Typed Recovery/source-bytes/**
+
+      - name: Retain original CMD T post-restore pending-delete denial bytes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-interactive-t-pending-delete-denial
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/Baldosa Win32 Held Pending T Denial/result.json
+            ${{ runner.temp }}/Baldosa Win32 Held Pending T Denial/*.log
+            ${{ runner.temp }}/Baldosa Win32 Held Pending T Denial/*.key.log
+            ${{ runner.temp }}/Baldosa Win32 Held Pending T Denial/source-bytes/**
+
+      - name: Retain separate original CMD noncanonical typed T source bytes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-interactive-noncanonical-typed-t
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/Baldosa Win32 Noncanonical Typed T Recovery/result.json
+            ${{ runner.temp }}/Baldosa Win32 Noncanonical Typed T Recovery/*.log
+            ${{ runner.temp }}/Baldosa Win32 Noncanonical Typed T Recovery/*.key.log
+            ${{ runner.temp }}/Baldosa Win32 Noncanonical Typed T Recovery/source-bytes/**
+
+      - name: Retain original CMD noncanonical typed R binary evidence separately
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-interactive-noncanonical-typed-r
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/Baldosa Win32 Noncanonical Typed R Recovery/interactive-rt-result.json
+            ${{ runner.temp }}/Baldosa Win32 Noncanonical Typed R Recovery/R/result.json
+            ${{ runner.temp }}/Baldosa Win32 Noncanonical Typed R Recovery/R/*.log
+            ${{ runner.temp }}/Baldosa Win32 Noncanonical Typed R Recovery/R/*.key.log
+            ${{ runner.temp }}/Baldosa Win32 Noncanonical Typed R Recovery/R/source-bytes/**
+
+      - name: Retain original CMD interactive S source bytes separately
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-interactive-recovery-s
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/Baldosa Win32 Interactive Recovery S/*.log
+            ${{ runner.temp }}/Baldosa Win32 Interactive Recovery S/interactive-s-result.json
+            ${{ runner.temp }}/Baldosa Win32 Interactive Recovery S/source-bytes/**
+      
+      - name: Retain original CMD invalid S refusal source bytes separately
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-interactive-s-invalid-target
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/Baldosa Win32 Interactive S Invalid Target/*.log
+            ${{ runner.temp }}/Baldosa Win32 Interactive S Invalid Target/invalid-S-result.json
+            ${{ runner.temp }}/Baldosa Win32 Interactive S Invalid Target/source-bytes/**
+
+      - name: Retain original CMD registered-corrupt S refusal bytes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-interactive-s-corrupt-target
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/Baldosa Win32 Interactive S Corrupt Registered Target/*.log
+            ${{ runner.temp }}/Baldosa Win32 Interactive S Corrupt Registered Target/invalid-S-result.json
+            ${{ runner.temp }}/Baldosa Win32 Interactive S Corrupt Registered Target/source-bytes/**
+
+      - name: Retain original game full NTFS source save witnesses
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-original-real-ntfs-full-game
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/Baldosa Win32 Original Real NTFS Full/*.log
+            ${{ runner.temp }}/Baldosa Win32 Original Real NTFS Full/*.json
+            ${{ runner.temp }}/Baldosa Win32 Original Real NTFS Full/source-bytes/**
+
+      # A separate fixed 22-source-byte original postraw/typed fault witness.
+      # Do not append this to the independently audited 25-member early
+      # refusal artifact contract; user-data W: and source ROM are excluded.
+      - name: Retain original game real NTFS postraw typed evidence separately
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-original-real-ntfs-postraw-typed
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/Baldosa Win32 Original Real NTFS Full-postraw/*.log
+            ${{ runner.temp }}/Baldosa Win32 Original Real NTFS Full-postraw/*.json
+            ${{ runner.temp }}/Baldosa Win32 Original Real NTFS Full-postraw/source-bytes/**
+
       - name: Retain bounded extracted-CMD source transcripts separately
         if: always()
         uses: actions/upload-artifact@v4
@@ -847,6 +1245,36 @@ jobs:
             ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/drive-relative-root-refusal.log
             ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/current-drive-root-refusal.log
             ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/rooted-relative-rejections.json
+
+      - name: Retain original packaged CMD live save-refusal fault bytes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-packaged-save-refusal-source-bytes
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/Packaged Actual Source Save Failure/native_real_win32_live_postraw_typed_denial/*.log
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/Packaged Actual Source Save Failure/native_real_win32_live_postraw_typed_denial/os-denial-result.json
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/Packaged Actual Source Save Failure/native_real_win32_live_postraw_typed_denial/modern-source-play-route.txt
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/Packaged Actual Source Save Failure/native_real_win32_live_postraw_typed_denial/fault-bytes/**
+
+      # Genuine two-process negative after old rider's *successful*
+      # original SRAM and typed save: external canonical selector wins
+      # the next-boot publication. Retain distinct exit-9 evidence,
+      # never merge into the fixed release-acceptance archives.
+      - name: Retain source-qualified old-save success and switch-refused evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-postsave-selector-refusal
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_existing_p1_switch/postsave_selector_conflict/original-game.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_existing_p1_switch/postsave_selector_conflict/external-selector-actor.log
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_existing_p1_switch/postsave_selector_conflict/result.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_existing_p1_switch/postsave_selector_conflict/fault-bytes/**
 
       - name: Retain bounded Windows guest evidence (never ROM or saves)
         if: always()

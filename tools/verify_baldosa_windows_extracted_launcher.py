@@ -155,7 +155,10 @@ def verify_first_user_cmd_relaunch_log(log: str) -> None:
 
 
 def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
-        *, expected_revision: str | None = None) -> dict:
+        *, expected_revision: str | None = None,
+        save_fault_fixture: Path | None = None,
+        save_fault_seed: Path | None = None,
+        save_fault_script: Path | None = None) -> dict:
     if os.name != "nt":
         raise ValueError("actual Windows CMD executable is required")
     if output.exists():
@@ -369,6 +372,40 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
             "First-run native CMD wrote mutable SRAM into ROM-free package")
     require_archive_unchanged(archive, approved_archive_sha256)
 
+    # One additional real-player package acceptance, separate from the
+    # flat/independent QA02 archive. The same packaged PE that just passed
+    # the immutable ROM and clean launcher checks must report a real
+    # mid-save Win32 atomic-replacement failure as EXIT 8 to the CMD
+    # launcher, not clean exit 0 or mistaken startup repair code 7.
+    supplied = (save_fault_fixture, save_fault_seed, save_fault_script)
+    require(all(x is None for x in supplied) or all(x is not None for x in supplied),
+            "packaged native save-failure witness requires fixture, seed and script together")
+    packaged_save_failure = None
+    if all(x is not None for x in supplied):
+        from baldosa_win32_live_postraw_sharing_denial import (
+            run_native_win32_live_postraw_typed_denial,
+        )
+        require(all(x.is_file() for x in supplied),
+                "packaged save-failure witness needs actual existing pinned inputs")
+        witness_root = output / "Packaged Actual Source Save Failure"
+        witness_root.mkdir()
+        packaged_save_failure = run_native_win32_live_postraw_typed_denial(
+            installed / EXE, installed_rom, save_fault_script,
+            witness_root, save_fault_fixture, save_fault_seed,
+            video="windows", timeout=timeout, packaged_launcher=launcher)
+        require(
+            packaged_save_failure["native_denied_process_return_code"] == 8 and
+            packaged_save_failure["native_source_pe_sha256"] == audit["exe_sha256"] and
+            packaged_save_failure["packaged_launcher_sha256"] == audit["launcher_sha256"] and
+            packaged_save_failure["real_extracted_package_cmd_exercised"] and
+            packaged_save_failure["packaged_cmd_save_failure_warning_verified"] and
+            packaged_save_failure["source_cold_recovered_original_guest_SRAM"] and
+            packaged_save_failure["second_original_source_boot_idempotent"],
+            "actual extracted Windows CMD did not report original denied save")
+        require_archive_unchanged(archive, approved_archive_sha256)
+        require(digest(installed / EXE) == audit["exe_sha256"],
+                "actual packaged failure test changed tested Windows PE")
+
     # Packaged Options through the exact CMD launcher, no --script argument:
     # real P1 semantic pad edges change Display/VSync/Volume and quit. State
     # must land under the user root (never in the immutable package), a
@@ -468,6 +505,8 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int,
         "packaged_options_persist_outside_package": True,
         "packaged_damaged_options_reported_not_forced": True,
         "exact_native_profile_refusal_code_and_guidance": True,
+        "packaged_live_original_save_failure_exit_8": packaged_save_failure is not None,
+        "packaged_live_original_save_failure_source_witness": packaged_save_failure,
         "rejected_profile_save_unchanged": True,
         "native_root_drawn": True,
         "canonical_8192_byte_save_outside_package": True,
@@ -488,12 +527,24 @@ def main() -> int:
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--timeout", type=int, default=80)
     ap.add_argument("--expected-revision", help="exact checked-out source commit")
+    ap.add_argument("--save-fault-fixture", type=Path,
+                    help="exact same-commit original native profile fixture")
+    ap.add_argument("--save-fault-seed", type=Path,
+                    help="actual original native 8192 SRAM, never manufactured")
+    ap.add_argument("--save-fault-script", type=Path,
+                    help="source-authenticated original frame-1952 race route")
     args = ap.parse_args()
     if args.timeout <= 0:
         raise ValueError("positive timeout required")
     print(json.dumps(run(args.zip.resolve(), args.rom.resolve(),
                          args.out.resolve(), args.timeout,
-                         expected_revision=args.expected_revision), sort_keys=True))
+                         expected_revision=args.expected_revision,
+                         save_fault_fixture=args.save_fault_fixture.resolve()
+                             if args.save_fault_fixture else None,
+                         save_fault_seed=args.save_fault_seed.resolve()
+                             if args.save_fault_seed else None,
+                         save_fault_script=args.save_fault_script.resolve()
+                             if args.save_fault_script else None), sort_keys=True))
     return 0
 
 if __name__ == "__main__":

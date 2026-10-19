@@ -77,6 +77,27 @@ int main() {
     const HostOutputViewport fixed_4k{480, 0, 2880, 2160};
     assert(resolve_output_viewport(original_wide, 3840, 2160) == wide_4k);
     assert(resolve_output_viewport(original_fixed, 3840, 2160) == fixed_4k);
+    // QA-10: a *square-pixel* 342x224 Remastered scene does not have the
+    // Original-mode 7:6 display PAR. Retaining 342 logical columns cannot
+    // populate a physical 16:9 UHD drawable with square source texels.
+    // Explicitly preserve true output geometry, without quietly stretching
+    // the source/authoring grid to pass a future HD-asset acceptance gate.
+    const HostOutputViewport remastered_wide_4k{271, 0, 3298, 2160};
+    const HostOutputViewport remastered_fixed_4k{685, 0, 2469, 2160};
+    assert(resolve_output_viewport(remastered_wide, 3840, 2160) ==
+           remastered_wide_4k);
+    assert(resolve_output_viewport(remastered_fixed, 3840, 2160) ==
+           remastered_fixed_4k);
+    assert(remastered_wide_4k.width < wide_4k.width);
+    assert(remastered_wide_4k.x > 0);
+    assert(remastered_wide.display_pixel_aspect == square_par);
+    assert(original_wide.display_pixel_aspect == authentic_par);
+    // The wide Remastered source remains narrower than the 16:9 drawable
+    // until independently authored square-pixel border/world content exists.
+    const HostOutputViewport remastered_wide_1080{135, 0, 1649, 1080};
+    assert(resolve_output_viewport(remastered_wide, 1920, 1080) ==
+           remastered_wide_1080);
+
     const HostOutputViewport portrait_4k_drawable{0, 1312, 2160, 1215};
     assert(resolve_output_viewport(original_wide, 2160, 3840) ==
            portrait_4k_drawable);

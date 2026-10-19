@@ -24,6 +24,7 @@ COLS, ROWS = WIDTH // TILE, HEIGHT // TILE
 EXACT, CYCLE, OTHER_GRAY, CHROMATIC = range(4)
 CLASS_NAMES = ("exact", "four_cycle", "other_grayscale_wrong",
                "non_grayscale_wrong")
+LATE_BRACKET = tuple(range(5136, 5233, 16))
 
 
 def classify_frame(original: bytes, native: bytes) -> bytearray:
@@ -111,6 +112,47 @@ def summarize_classes(classified: list[bytearray]) -> dict:
     return result
 
 
+def classify_late_writer_bracket(
+    cycle_frames: list[bytearray], controls: dict[int, bytearray]
+) -> dict:
+    """Observe identical source coordinates over seven actual adjacent P7 samples.
+
+    Selection is conditioned on positions wrong in all 13 grayscale-cycle
+    frames; all controls still use the unshifted original f-1/native f pairing.
+    """
+    if (len(cycle_frames) != len(source.SPIKES) or
+        set(controls) != set(LATE_BRACKET) or
+        any(len(row) != WIDTH * HEIGHT for row in (*cycle_frames, *controls.values()))):
+        raise ValueError("late-packet temporal raster window is incomplete")
+    shared = set(range(WIDTH * HEIGHT))
+    for frame in cycle_frames:
+        shared.intersection_update(i for i, kind in enumerate(frame) if kind == CYCLE)
+    if not shared:
+        raise ValueError("no persistent source-cycle positions")
+    digest = hashlib.sha256(
+        b"".join(i.to_bytes(4, "little") for i in sorted(shared))
+    ).hexdigest()
+    rows = []
+    for guest in LATE_BRACKET:
+        counts = Counter(controls[guest][pos] for pos in shared)
+        if any(kind > CHROMATIC for kind in counts):
+            raise ValueError("invalid temporal mismatch class")
+        rows.append({
+            "native_guest": guest, "original_callback": guest - 1,
+            "exact_RGB5": counts[EXACT],
+            "four_cycle_wrong_RGB5": counts[CYCLE],
+            "other_gray_wrong_RGB5": counts[OTHER_GRAY],
+            "non_grayscale_wrong_RGB5": counts[CHROMATIC],
+        })
+    return {
+        "persistent_source_positions": len(shared),
+        "persistent_positions_uint32le_sha256": digest,
+        "correctly_registered_seven_fields": rows,
+        "PPU_CGRAM_or_beam_causality_proven": False,
+        "video_frame_shift_or_palette_patch_authorized": False,
+    }
+
+
 def analyze(original_path: Path, native_path: Path) -> dict:
     pinned = source.verify(original_path, native_path)
     if (pinned["independent_graphics_or_release_acceptance"] is not False or
@@ -123,6 +165,8 @@ def analyze(original_path: Path, native_path: Path) -> dict:
         source.sha(native_bytes) != source.NATIVE_OUTER_SHA):
         raise ValueError("source archives changed after identity verification")
     classified = []
+    late_control = {}
+    late_member_hashes = {}
     with zipfile.ZipFile(io.BytesIO(original_bytes)) as original, \
          zipfile.ZipFile(io.BytesIO(native_bytes)) as outer:
         nested = outer.read("qa08-premath-source-images.zip")
@@ -133,7 +177,48 @@ def analyze(original_path: Path, native_path: Path) -> dict:
                 ref = original.read(f"frames/frame_{guest-1:06}_256x224.raw")
                 now = win32.read(f"source/ur-baldosa-original-source-{guest:06}.pam")
                 classified.append(classify_frame(ref, now))
+            original_manifest = json.loads(original.read("qa08-original-2p-fullroute.json"))
+            win_report = json.loads(outer.read("qa08-premath-full263-ab.json"))
+            original_by_frame = {row["real_original_snes9x_callback_frame"]: row
+                                 for row in original_manifest["each_authentic_callback"]}
+            native_by_guest = {row["guest"]: row for row in win_report["per_frame"]}
+            if len(original_by_frame) != 263 or len(native_by_guest) != 263:
+                raise ValueError("original/native per-frame identity collapsed")
+            for guest in LATE_BRACKET:
+                callback = guest - 1
+                old_ref = original_by_frame.get(callback)
+                new_ref = native_by_guest.get(guest)
+                if (not old_ref or not new_ref or
+                    old_ref["original_1based_frame"] != guest or
+                    new_ref["original_callback"] != callback):
+                    raise ValueError("late CGRAM field source alignment changed")
+                o = original.read(f"frames/frame_{callback:06}_256x224.raw")
+                n = win32.read(f"source/ur-baldosa-original-source-{guest:06}.pam")
+                old_sha = source.sha(o)
+                new_sha = source.sha(n)
+                if (old_sha != old_ref["original_unchanged_BGRX_sha256"] or
+                    new_sha != new_ref["experimental_P7_sha256"]):
+                    raise ValueError("late source window pixel member SHA changed")
+                late_control[guest] = classify_frame(o, n)
+                late_member_hashes[guest] = {
+                    "original_BGRX_sha256": old_sha, "native_P7_sha256": new_sha,
+                }
     result = summarize_classes(classified)
+    bracket = classify_late_writer_bracket(classified, late_control)
+    if (bracket["persistent_source_positions"] != 24096 or
+        bracket["persistent_positions_uint32le_sha256"] !=
+            "4646f2123c596b1e9bbca6813d92b1ae3b9a4a53e08e300c17bf2e5f2ebb7b95"):
+        raise ValueError("late source-cycle intersection differs from real archive")
+    for row in bracket["correctly_registered_seven_fields"]:
+        guest = row["native_guest"]
+        if ((guest == 5184 and (row["four_cycle_wrong_RGB5"] != 24096 or
+                                row["exact_RGB5"] != 0)) or
+            (guest != 5184 and (row["exact_RGB5"] != 24096 or
+                                row["four_cycle_wrong_RGB5"] != 0)) or
+            row["other_gray_wrong_RGB5"] or row["non_grayscale_wrong_RGB5"]):
+            raise ValueError("late source-consumed RGB5 temporal pulse changed")
+        row.update(late_member_hashes[guest])
+    result["late_writer_temporal_bracket"] = bracket
     for actual, recorded in zip(result["frames"], pinned["frames"]):
         if (actual["native_guest"] != recorded["native_guest"] or
             actual["wrong_rgb5"] != recorded["total_wrong_rgb5"] or

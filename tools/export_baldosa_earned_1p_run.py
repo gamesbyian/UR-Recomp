@@ -46,7 +46,7 @@ def export(journey: Path, destination: Path) -> dict[str, object]:
             'active_selector_and_catalog_preserved',
             'anonymous_sram_preserved',
         )
-    ) or report.get('release_gate_credit') != 0 or any(
+    ) or (type(report.get('release_gate_credit')) is not int or report['release_gate_credit'] != 0) or any(
         report.get(key) is not False for key in (
             'physical_gamepad_verified', 'strict_original_native_event_pass',
         )
@@ -107,7 +107,7 @@ def main() -> int:
     parser.add_argument('--journey', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
     args = parser.parse_args()
-    manifest = export(args.journey.resolve(), args.out.absolute())
+    manifest = export(args.journey.absolute(), args.out.absolute())
     print('UR_CI_EARNED_1P_RUN_EXPORTED', manifest['members']['earned.urrun']['sha256'])
     return 0
 

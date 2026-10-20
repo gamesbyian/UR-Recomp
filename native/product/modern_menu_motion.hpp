@@ -78,6 +78,9 @@ struct ModernMenuMotionState {
     // never teleport to the previous semantic row.
     int cursor_origin_y = 0;
     int cursor_row_pitch = 21;
+    // Reduced-motion mode semantically completes an already-visible entrance.
+    // Re-enabling animation must not resurrect an old transition.
+    bool intro_suppressed = false;
     std::uint64_t first_tick = 0;
     std::uint64_t selection_tick = 0;
     std::uint64_t last_tick = 0;
@@ -155,6 +158,7 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
         state.previous_selection = selection;
         state.cursor_origin_y = static_cast<int>(selection) * row_pitch;
         state.cursor_row_pitch = row_pitch;
+        state.intro_suppressed = false;
         state.first_tick = input.tick60;
         state.selection_tick = input.tick60;
     } else if (selection != state.selection) {
@@ -168,6 +172,9 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
                 state.cursor_origin_y - old_target_y, elapsed);
         state.previous_selection = state.selection;
         state.selection = selection;
+        // A fresh focus edge may animate again only when motion is enabled.
+        if (!input.reduced_motion)
+            state.intro_suppressed = false;
         // Only adjacent movement has a meaningful continuous path. Wrapped
         // or external multi-step focus switches snap to the real new target.
         const int target = static_cast<int>(selection);
@@ -181,13 +188,23 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
     pose.visible = true;
     pose.selection = selection;
     pose.reduced_motion = input.reduced_motion;
-    if (input.reduced_motion) return pose;
+    if (input.reduced_motion) {
+        // The semantic focus is already on this row. Suppress any ongoing
+        // interpolation and entrance for this visible root session, so
+        // switching reduced motion off cannot replay stale movement.
+        state.cursor_origin_y = static_cast<int>(selection) * row_pitch;
+        state.previous_selection = selection;
+        state.selection_tick = input.tick60;
+        state.intro_suppressed = true;
+        return pose;
+    }
 
     pose.cursor_spin_phase = static_cast<int>(
         (input.tick60 / 2u) % 16u);
     const int entry_age = modern_menu_clamp_age(
         input.tick60, state.first_tick, kModernMenuMotionEntranceFrames);
-    pose.entrance_distance_px = modern_menu_entrance_remaining(entry_age);
+    pose.entrance_distance_px = state.intro_suppressed ? 0 :
+        modern_menu_entrance_remaining(entry_age);
 
     const int age = modern_menu_clamp_age(
         input.tick60, state.selection_tick,
@@ -213,9 +230,10 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
     // then HOLD the last pose. There is no evidence 1213..1220 loops:
     // cycling it would invent a jump from source frame 1220 to 1213.
     // Source sprite admission is separately required by the hero compositor.
-    pose.hero_frame_ordinal =
-        age >= kModernMenuStockHeroMaxCycle
-            ? kModernMenuStockHeroMaxCycle - 1 : age;
+    pose.hero_frame_ordinal = state.intro_suppressed ?
+        kModernMenuStockHeroMaxCycle - 1 :
+        (age >= kModernMenuStockHeroMaxCycle
+            ? kModernMenuStockHeroMaxCycle - 1 : age);
     pose.hero_lean_px = (age < 4 && previous != current)
         ? (previous < current ? 1 : -1) : 0;
     return pose;

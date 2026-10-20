@@ -1,0 +1,92 @@
+name: One-shot blue-cover art direction and rebuilt recruitment film
+on:
+  push:
+    branches: [media/blue-art-direction-recruitment-20261020]
+    paths: [.github/workflows/one-shot-blue-recruitment.yml]
+permissions:
+  contents: write
+concurrency:
+  group: ur-blue-recruitment
+  cancel-in-progress: false
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Install Pillow and FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq python3-pil ffmpeg
+          python3 -m py_compile tools/showcase/blue_trailer_art_direction.py tools/showcase/build_flagship_recruitment_20261019.py
+      - name: Generate all cohesive image cards and 75-second video
+        run: |
+          set -euo pipefail
+          python3 tools/showcase/build_flagship_recruitment_20261019.py \
+            --outdir media/showcase/2026-10-20/blue-cut
+      - name: Source hash, actual decoded frames, nonblack visual witnesses
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,json,subprocess
+          from pathlib import Path
+          from PIL import Image
+          root=Path('media/showcase/2026-10-20/blue-cut')
+          manifest=json.loads((root/'flagship-provenance.json').read_text())
+          assert manifest['schema']=='UR-FLAGSHIP-RECRUITMENT/1'
+          assert manifest['total_horizontal_frames']==4500
+          assert manifest['total_vertical_frames']==1380
+          assert all(x['source']!='modern' for x in manifest['horizontal_shots'])
+          assert all(x['source']!='modern' for x in manifest['vertical_shots'])
+          movies={'ur-recomp-blue-75s-1080p.mp4':(1920,1080,4500,[90,370,840,1160,1480,1760,2260,2670,3200,3790,4330]),
+                  'ur-recomp-blue-23s-vertical.mp4':(1080,1920,1380,[90,400,850,1150,1310])}
+          sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+          thumbs={}
+          for movie,(w,h,frames,numbers) in movies.items():
+            p=root/movie
+            assert sha(p)==manifest['output_sha256'][movie]
+            x=json.loads(subprocess.check_output(['ffprobe','-v','error','-count_frames','-select_streams','v:0',
+               '-show_entries','stream=width,height,r_frame_rate,nb_read_frames','-of','json',str(p)]))['streams'][0]
+            assert (x['width'],x['height'],x['r_frame_rate'],int(x['nb_read_frames']))==(w,h,'60/1',frames),(movie,x)
+            expr='+'.join('eq(n\\,'+str(n)+')' for n in numbers)
+            subprocess.run(['ffmpeg','-nostdin','-hide_banner','-loglevel','error','-y',
+              '-i',str(p),'-vf','select='+expr,'-fps_mode','vfr','-frames:v',str(len(numbers)),
+              '-start_number','0',str(root/(movie+'.review-%02d.png'))],check=True)
+            for i,n in enumerate(numbers):
+              source=root/(movie+f'.review-{i:02d}.png')
+              dest=root/(movie.removesuffix('.mp4')+f'-frame-{n:04d}.png')
+              source.rename(dest)
+              with Image.open(dest) as im:
+                assert im.size==(w,h)
+                im.load()
+              with Image.open(dest) as im:im.verify()
+              thumbs[dest.name]=sha(dest)
+          (root/'blue-visual-review.json').write_text(json.dumps({
+            'schema':'UR-BLUE-EDITORIAL-RECRUITMENT-QA/1',
+            'sha256_source_manifest':sha(root/'flagship-provenance.json'),
+            'decoded_witnesses':thumbs,
+            'grey_temporary_modern_capture_removed':True,
+            'jump_loop_ramp_not_claimed_without_new_video':True,
+            'review_status':'exact-source-render-and-16-frames-passed; visual screening still needed'
+          },indent=2,sort_keys=True)+'\n')
+          print('BLUE_SOURCE_VERIFICATION',len(thumbs))
+          PY
+      - name: Retain all output review assets
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ur-blue-trailer-review
+          path: media/showcase/2026-10-20/blue-cut/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Publish bounded exact clips, self-retire workflow
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add media/showcase/2026-10-20/blue-cut/
+          git rm -f .github/workflows/one-shot-blue-recruitment.yml
+          git commit -m "media: publish blue-box-art 75s full film and 23s social, source-verified"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

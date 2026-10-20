@@ -159,7 +159,10 @@ def export(journey: Path, destination: Path) -> dict[str, object]:
     # through Win32. Refuse reserved DOS device basenames before transport.
     device_stem = source_name.split('.', 1)[0].upper().translate(
         str.maketrans('¹²³', '123'))
-    if (device_stem in {'CON', 'PRN', 'AUX', 'NUL', 'CONIN
+    if (device_stem in {'CON', 'PRN', 'AUX', 'NUL', 'CONIN$', 'CONOUT$'} or
+            device_stem in {f'{prefix}{n}' for prefix in ('COM', 'LPT') for n in range(1, 10)}):
+        raise ValueError('Nonportable source-earned run filename')
+    data = _regular_bytes(candidates[0], MAX_RUN_BYTES)
     actual = hashlib.sha256(data).hexdigest()
     if actual != expected:
         raise ValueError('Source-earned run differs from original Windows report')
@@ -198,115 +201,6 @@ def export(journey: Path, destination: Path) -> dict[str, object]:
             raise FileExistsError(f'Evidence destination already exists: {destination}')
         # Same-parent rename publishes the complete evidence set at once.
         # Windows refuses a directory collision; on POSIX reject it first.
-        _publish_directory_no_replace(staging, destination)
-    finally:
-        if staging.exists():
-            shutil.rmtree(staging)
-    return manifest
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--journey', type=Path, required=True)
-    parser.add_argument('--out', type=Path, required=True)
-    args = parser.parse_args()
-    manifest = export(args.journey.absolute(), args.out.absolute())
-    print('UR_CI_EARNED_1P_RUN_EXPORTED', manifest['members']['earned.urrun']['sha256'])
-    return 0
-
-
-if __name__ == '__main__':
-    raise SystemExit(main())
-, 'CONOUT
-    actual = hashlib.sha256(data).hexdigest()
-    if actual != expected:
-        raise ValueError('Source-earned run differs from original Windows report')
-    if destination.exists() or destination.is_symlink():
-        raise FileExistsError(f'Evidence destination already exists: {destination}')
-    if not destination.parent.is_dir():
-        raise ValueError('Evidence destination parent does not exist')
-    staging = Path(tempfile.mkdtemp(prefix='.pending-earned-1p-',
-                                    dir=destination.parent))
-    try:
-        members = {
-            'earned.urrun': data,
-            'source-report.json': report_bytes,
-        }
-        for name, payload in members.items():
-            with (staging / name).open('xb') as output:
-                output.write(payload)
-            if _regular_bytes(staging / name, MAX_RUN_BYTES) != payload:
-                raise ValueError('CI evidence copy differs from original bytes')
-        manifest = {
-            'schema_version': 1,
-            'source_run_filename': candidates[0].name,
-            'source_scope': SOURCE_SCOPE,
-            'members': {name: {'sha256': hashlib.sha256(payload).hexdigest(),
-                               'bytes': len(payload)}
-                        for name, payload in members.items()},
-            'independent_release_acceptance': False,
-        }
-        with (staging / 'manifest.json').open('x', encoding='utf-8') as output:
-            json.dump(manifest, output, indent=2, sort_keys=True)
-            output.write('\n')
-        if destination.exists() or destination.is_symlink():
-            raise FileExistsError(f'Evidence destination already exists: {destination}')
-        _publish_directory_no_replace(staging, destination)
-    finally:
-        if staging.exists():
-            shutil.rmtree(staging)
-    return manifest
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--journey', type=Path, required=True)
-    parser.add_argument('--out', type=Path, required=True)
-    args = parser.parse_args()
-    manifest = export(args.journey.absolute(), args.out.absolute())
-    print('UR_CI_EARNED_1P_RUN_EXPORTED', manifest['members']['earned.urrun']['sha256'])
-    return 0
-
-
-if __name__ == '__main__':
-    raise SystemExit(main())
-} or
-            device_stem in {f'{prefix}{n}' for prefix in ('COM', 'LPT') for n in range(1, 10)}):
-        raise ValueError('Nonportable source-earned run filename')
-    data = _regular_bytes(candidates[0], MAX_RUN_BYTES)
-    actual = hashlib.sha256(data).hexdigest()
-    if actual != expected:
-        raise ValueError('Source-earned run differs from original Windows report')
-    if destination.exists() or destination.is_symlink():
-        raise FileExistsError(f'Evidence destination already exists: {destination}')
-    if not destination.parent.is_dir():
-        raise ValueError('Evidence destination parent does not exist')
-    staging = Path(tempfile.mkdtemp(prefix='.pending-earned-1p-',
-                                    dir=destination.parent))
-    try:
-        members = {
-            'earned.urrun': data,
-            'source-report.json': report_bytes,
-        }
-        for name, payload in members.items():
-            with (staging / name).open('xb') as output:
-                output.write(payload)
-            if _regular_bytes(staging / name, MAX_RUN_BYTES) != payload:
-                raise ValueError('CI evidence copy differs from original bytes')
-        manifest = {
-            'schema_version': 1,
-            'source_run_filename': candidates[0].name,
-            'source_scope': SOURCE_SCOPE,
-            'members': {name: {'sha256': hashlib.sha256(payload).hexdigest(),
-                               'bytes': len(payload)}
-                        for name, payload in members.items()},
-            'independent_release_acceptance': False,
-        }
-        with (staging / 'manifest.json').open('x', encoding='utf-8') as output:
-            json.dump(manifest, output, indent=2, sort_keys=True)
-            output.write('\n')
-        if destination.exists() or destination.is_symlink():
-            raise FileExistsError(f'Evidence destination already exists: {destination}')
         _publish_directory_no_replace(staging, destination)
     finally:
         if staging.exists():

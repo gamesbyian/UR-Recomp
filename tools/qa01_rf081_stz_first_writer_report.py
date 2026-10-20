@@ -55,7 +55,21 @@ def parse(original:str,native:str)->dict:
         after=[(i,e) for i,e in observed
                if i>entries[0] and int(e["f"])==frame]
         must(len(after)>=2,"original real post-NMI STZ source event absent")
-        (_,original_set),(_,original_commit)=after[:2]
+        (original_set_line,original_set),(original_commit_line,original_commit)=after[:2]
+        earlier_bpl=[rf079.fields(line,"QA01RF079ORIG ") for line in
+                     original_lines[entries[0]+1:original_set_line]
+                     if line.startswith("QA01RF079ORIG ") and
+                     f" f={frame} " in line and
+                     "before=82D4F0 " in line]
+        must(earlier_bpl,"original actual post-NMI BPL result before STZ missing")
+        original_first_bpl=earlier_bpl[0]
+        must(original_first_bpl.get("phase")=="after_real_guest_opcode",
+             "original first BPL lacked genuine post-op clock stage")
+        ov0=int(original_first_bpl["V"]);oh0=int(original_first_bpl["H"])
+        ov1=int(original_set["v"]);oh1=int(original_set["h"])
+        original_local_delta=(ov1-ov0)*1364+(oh1-oh0)
+        must(original_local_delta>=0,
+             "original first BPL to STZ local source clock not monotone")
         must((original_set["stage"],original_commit["stage"])==
              ("setbyte_enter","after_stz_opcode"),
              "original first after-NMI writer ordering invalid")
@@ -99,6 +113,8 @@ def parse(original:str,native:str)->dict:
                    if e.get("stage")=="bpl_actual_input"]
         must(prior_bpl and int(prior_bpl[0]["seq"])<int(native_write["seq"]),
              "native real first BPL decision did not precede first STZ write")
+        native_local_delta=int(native_write["master"])-int(prior_bpl[0]["master"])
+        must(native_local_delta>=0,"native BPL pre-op to STZ write local master clock regressed")
         rows.append({
           "source_host_frame_label_only":frame,
           "original_actual_first_STZ_setter":{
@@ -120,6 +136,12 @@ def parse(original:str,native:str)->dict:
               "value_from_actual_cpu_write8_paced":native_write["written"],
               "host_physical_RAM_mirror":native_write["rawAfter"],
               "source_master_cycle":int(native_write["master"])},
+          "original_local_vh_ticks_first_BPL_post_execution_to_true_setbyte_entry":
+              original_local_delta,
+          "native_local_master_ticks_first_BPL_pre_execution_to_true_paced_commit":
+              native_local_delta,
+          "clock_deltas_have_different_start_end_semantic_stages":True,
+          "cross_emulator_subtraction_valid":False,
           "same_emulated_STZ_opcode_and_value":True,
           "same_intrastage_guest_clock_proven":False,
           "post_STZ_gameplay_causality_proven":False

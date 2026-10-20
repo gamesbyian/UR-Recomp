@@ -48,7 +48,7 @@ inline ModernNativeDestinationCanvas modern_native_destination_canvas(
     if (x < root.x || y < root.y ||
         width > root.x + root.width - x ||
         height > root.y + root.height - y) return {};
-    return {x, y, width, height, scale, panel_w >= 320};
+    return {x, y, width, height, scale, panel_w >= 300};
 }
 
 inline bool modern_native_destination_is_open(

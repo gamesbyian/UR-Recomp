@@ -1,0 +1,136 @@
+name: QA08 native effective CGRAM Win32 experiment (draft)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/qa08-native-effective-cgram-windows.yml"
+      - "tools/qa08_late_effective_*.py"
+      - "tests/unit/test_qa08_late_effective_*.py"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: qa08-native-source-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bounded-windows-source:
+    if: github.head_ref == 'agent7/qa08-late-effective-ppu-optin-probe-20261019'
+    runs-on: windows-2022
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+      - name: Qualify source pins and strict local PPU tests
+        run: |
+          set -euo pipefail
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          python tests/unit/test_qa08_late_effective_cgram_probe.py
+          python tests/unit/test_qa08_late_effective_span_probe.py
+          python tests/unit/test_qa08_late_effective_trace_verify.py
+          python tests/unit/test_qa08_late_effective_windows_pair.py
+      - name: Stage exact RF015/RF017 generated game and native host bridges
+        run: |
+          set -euo pipefail
+          python tools/baldosa_dram_refresh_beam_rate_patch.py --game baldosa
+          python tools/baldosa_io_access_clock_order_patch.py --game baldosa
+          (cd baldosa && bash tools/regen.sh --cfg-roots \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc")
+          python tools/baldosa_io_access_clock_order_patch.py --game baldosa --verify-gen
+          python tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_product_execution_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_product_pause_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_modern_user_data_spike.py --game baldosa
+          python tools/baldosa_modern_user_data_spike.py --game baldosa
+          python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_modern_options_spike.py --game baldosa
+          python tools/baldosa_modern_options_spike.py --game baldosa
+      - name: Fetch exact Windows compiler and build instrument-free source control
+        run: |
+          set -euo pipefail
+          bash baldosa/snesrecomp/tools/ci/fetch_toolchain.sh --artifact windows-x64 --tag v1.0.14
+          test -s ".cache/toolchain-pack/env.sh"
+          source ".cache/toolchain-pack/env.sh"
+          clang --version | head -n1 | grep -F '22.1.8'
+          export SOURCE_DATE_EPOCH="$(git show -s --format=%ct "$GITHUB_SHA")"
+          cmake -S baldosa -B baldosa/build-qa08-off -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_ENABLE_TRACE=OFF
+          cmake --build baldosa/build-qa08-off --target UniracersSNESRecomp -j 3
+          python tools/check_windows_pe_timestamp.py --exe baldosa/build-qa08-off/UniracersSNESRecomp.exe --source-epoch "$SOURCE_DATE_EPOCH"
+      - name: Apply opt-in PPU observers in disposable core and independently link native PE
+        run: |
+          set -euo pipefail
+          python tools/qa08_late_effective_cgram_probe.py --game baldosa
+          python tools/qa08_late_effective_span_probe.py --game baldosa
+          python tools/qa08_late_effective_cgram_probe.py --game baldosa --apply-candidate
+          python tools/qa08_late_effective_span_probe.py --game baldosa --apply-candidate
+          source "$TOOLCHAIN_DIR/env.sh"
+          export SOURCE_DATE_EPOCH="$(git show -s --format=%ct "$GITHUB_SHA")"
+          cmake -S baldosa -B baldosa/build-qa08-on -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_ENABLE_TRACE=OFF
+          cmake --build baldosa/build-qa08-on --target UniracersSNESRecomp -j 3
+          python tools/check_windows_pe_timestamp.py --exe baldosa/build-qa08-on/UniracersSNESRecomp.exe --source-epoch "$SOURCE_DATE_EPOCH"
+          test "$(sha256sum baldosa/build-qa08-off/UniracersSNESRecomp.exe | cut -d' ' -f1)" != \
+               "$(sha256sum baldosa/build-qa08-on/UniracersSNESRecomp.exe | cut -d' ' -f1)"
+      - name: Obtain frozen historical source references, exact SHA or refuse
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa08-refs"
+          curl --retry 3 -fLSs -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12075111053/zip" \
+            -o "$RUNNER_TEMP/qa08-refs/original-outer.zip"
+          curl --retry 3 -fLSs -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12151839452/zip" \
+            -o "$RUNNER_TEMP/qa08-refs/native-outer.zip"
+          echo "3475ee87b5b20768f9377d8d1c787927955c33ee6d4388dae008f5486a81370e  $RUNNER_TEMP/qa08-refs/original-outer.zip" | sha256sum -c -
+          echo "832c08263e2d3013d5b15df82b2b0574fabfd3114194b7cbef9f6bb1b2959727  $RUNNER_TEMP/qa08-refs/native-outer.zip" | sha256sum -c -
+          python - <<'PY'
+          import os,hashlib,zipfile
+          from pathlib import Path
+          p=Path(os.environ["RUNNER_TEMP"])/"qa08-refs"
+          with zipfile.ZipFile(p/"original-outer.zip") as z: inner=z.read("original.zip")
+          assert hashlib.sha256(inner).hexdigest()=="72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e"
+          (p/"original-inner.zip").write_bytes(inner)
+          PY
+      - name: Run independent 2P Windows sources and demand correct guest CRC
+        run: |
+          set -euo pipefail
+          python tools/qa08_late_effective_windows_pair.py \
+            --off-exe baldosa/build-qa08-off/UniracersSNESRecomp.exe \
+            --on-exe baldosa/build-qa08-on/UniracersSNESRecomp.exe \
+            --rom reference/roms/retail/Uniracers_USA.sfc \
+            --script reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/race_2p.txt \
+            --original-inner "$RUNNER_TEMP/qa08-refs/original-inner.zip" \
+            --native-outer "$RUNNER_TEMP/qa08-refs/native-outer.zip" \
+            --out "$RUNNER_TEMP/qa08-effective-source" --timeout 360
+          echo 'Only authentic source diagnostic. Full P7/beam/QA/HD art acceptance HOLD.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain bounded logs and exact refusal only (no ROM, PE, pixel images)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa08-effective-CGRAM-native-source-only
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa08-effective-source/status.json
+            ${{ runner.temp }}/qa08-effective-source/witness.json
+            ${{ runner.temp }}/qa08-effective-source/on-source.log
+            ${{ runner.temp }}/qa08-effective-source/off-source.log
+            ${{ runner.temp }}/qa08-effective-source/on-guest-crc.txt
+            ${{ runner.temp }}/qa08-effective-source/off-guest-crc.txt

@@ -116,6 +116,8 @@ def _publish_directory_no_replace(staging: Path, destination: Path) -> None:
 
 
 def export(journey: Path, destination: Path) -> dict[str, object]:
+    if destination == journey or journey in destination.parents:
+        raise ValueError('Evidence destination must be outside source journey')
     if (journey.is_symlink() or not journey.is_dir() or
             journey.resolve(strict=True) != journey.absolute()):
         raise ValueError('Missing/redirected native Windows journey')
@@ -144,8 +146,9 @@ def export(journey: Path, destination: Path) -> dict[str, object]:
     if (runs_root.is_symlink() or not runs_root.is_dir() or
             runs_root.resolve(strict=True) != runs_root.absolute()):
         raise ValueError('Missing/redirected earned-run namespace')
-    candidates = list(runs_root.glob('*.urrun'))
-    if len(candidates) != 1:
+    candidates = [entry for entry in runs_root.iterdir()
+                  if entry.name.split(':', 1)[0].rstrip(' .').casefold().endswith('.urrun')]
+    if len(candidates) != 1 or candidates[0].suffix != '.urrun':
         raise ValueError('Expected exactly one source-earned .urrun')
     source_name = candidates[0].name
     if (unicodedata.normalize('NFC', source_name) != source_name or

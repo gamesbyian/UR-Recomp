@@ -5,7 +5,7 @@ On the bounded Windows QA runner: launch exact prepared Baldosa PE and personal
 canonical ROM with a disposable clean save root, record full process log,
 actual SDL readback/P7 and lossless PNG, and emit an explicitly *unapproved*
 receipt. No physical controller or human approval. Do not archive the ROM or
-private save root in GitHub Actions. Supports only the real SDL2 drawable probe.
+private save root in GitHub Actions. Uses actual SDL3/SDL2 renderer output, never a source framebuffer or resized image.
 """
 from __future__ import annotations
 
@@ -41,13 +41,16 @@ def sha256(path: Path) -> str:
 
 
 def launch(exe: Path, rom: Path, root: Path, name: str,
-           expected: tuple[int, int], video: str, timeout: int) -> dict:
+           expected: tuple[int, int], video: str, timeout: int,
+           window_size: tuple[int, int] | None = None) -> dict:
     stage = root / name
     stage.mkdir(parents=True, exist_ok=False)
     home = stage / "Fresh Modern Screenshot State"
     home.mkdir()
     config = stage / "config.ini"
-    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+    size_config = (f"[Graphics]\nWindowSize = {window_size[0]}x{window_size[1]}\n"
+                   if window_size is not None else "")
+    config.write_text(size_config + "[Sound]\nEnableAudio = 0\n", encoding="ascii")
     script = stage / "stock-guest.route"
     # Capture host PRESENT 40, not guest frame 40. Turbo can simulate 62
     # guest frames in ~60ms while SDL draws only three frames, making that
@@ -103,7 +106,7 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
 
 
 def run(exe: Path, rom: Path, out: Path, source_sha: str, video: str,
-        timeout: int) -> dict:
+        timeout: int, window_size: tuple[int, int] | None = None) -> dict:
     if (not EXPECTED_SOURCE.fullmatch(source_sha) or
             not exe.is_file() or exe.is_symlink() or
             not rom.is_file() or rom.is_symlink() or
@@ -112,13 +115,26 @@ def run(exe: Path, rom: Path, out: Path, source_sha: str, video: str,
     if out.exists() or out.is_symlink():
         raise ValueError("Output directory already exists")
     out.mkdir(parents=True)
-    first = launch(exe, rom, out, "probe_first", (1280, 720), video, timeout)
-    selected = first
-    # The default SDL drawable need not be 1280x720. Record its *actual* size
-    # and make a second genuine fresh-state native process only if needed.
-    if not first["readback_saved"]:
-        selected = launch(exe, rom, out, "capture_observed",
-                          first["observed"], video, timeout)
+    if window_size is not None:
+        if (len(window_size) != 2 or
+                not (320 <= window_size[0] <= MAX_DIM[0] and
+                     224 <= window_size[1] <= MAX_DIM[1])):
+            raise ValueError("Unsafe exact native Win32 output request")
+        first = launch(exe, rom, out, "probe_first", window_size, video, timeout,
+                       window_size=window_size)
+        # Never silently downgrade an explicit 16:9/4:3 Windows request to
+        # the host's default 640x480 and then label it as a requested capture.
+        if not first["readback_saved"]:
+            raise RuntimeError("Exact requested SDL drawable was not observed: " +
+                               str(window_size) + " actual=" + str(first["observed"]))
+        selected = first
+    else:
+        first = launch(exe, rom, out, "probe_first", (1280, 720), video, timeout)
+        selected = first
+        # Default drawable can differ; this is ONLY automatic baseline mode.
+        if not first["readback_saved"]:
+            selected = launch(exe, rom, out, "capture_observed",
+                              first["observed"], video, timeout)
     if not selected["readback_saved"] or selected["observed"] != selected["expected"]:
         raise RuntimeError("Exact-size real SDL drawable not captured")
     raw = selected["capture"]
@@ -132,6 +148,7 @@ def run(exe: Path, rom: Path, out: Path, source_sha: str, video: str,
         "native_process_exit": 0,
         "actual_sdl_renderer_output": list(selected["observed"]),
         "observed_in_draw": 40,
+        "requested_window_size": list(window_size) if window_size else None,
         "SDL_driver": video,
         "native_process_log_sha256": sha256(selected["stage"] / "native-process.log"),
         "p7_sha256": sha256(raw),
@@ -157,11 +174,18 @@ def main() -> int:
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--source-sha", required=True)
     p.add_argument("--video", default="windows")
+    p.add_argument("--window-size",
+                   help="Exact native WindowSize WxH; no fallback, no rescaling")
     p.add_argument("--timeout", type=int, default=95)
     args = p.parse_args()
     try:
+        window = None
+        if args.window_size is not None:
+            if not re.fullmatch(r"[0-9]{3,4}x[0-9]{3,4}", args.window_size):
+                raise ValueError("Invalid explicit WidthxHeight size")
+            window = tuple(map(int, args.window_size.split("x")))
         result = run(args.exe, args.rom, args.out, args.source_sha,
-                     args.video, args.timeout)
+                     args.video, args.timeout, window_size=window)
         print(json.dumps(result, indent=2))
         return 0
     except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as exc:

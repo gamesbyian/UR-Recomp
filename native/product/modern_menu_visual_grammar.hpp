@@ -9,6 +9,7 @@
 // provisional host ASCII fallback as the original type or cursor art.
 
 #include "modern_stock_menu_palette.hpp"
+#include "modern_menu_source_atlas.hpp"  // optional source-verified raster adapter
 
 #include <array>
 #include <cstdint>

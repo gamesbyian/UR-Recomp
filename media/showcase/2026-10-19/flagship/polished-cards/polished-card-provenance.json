@@ -1,0 +1,11 @@
+{
+  "editorial_not_gameplay": true,
+  "output_sha256": {
+    "polished-card_4k.png": "a60c3d3b1169ac4b98f47140c937972b35fd62dab8eb257d9103b670896b3bde",
+    "polished-card_cta.png": "6f5a5891dfe69f5a0a48744608d311f808b80b280799dd149228bf560d006f07",
+    "polished-card_windows.png": "915e0fa8dbc485384b290569e0b097401fae2e80fd6b130c832ca89d8dbb8335"
+  },
+  "schema": "UR-POLISHED-EDITORIAL-CARDS/1",
+  "source_kind": "previously verified native race poster, intentionally blurred to editorial background",
+  "source_poster_sha256": "d9bcbda5335a2656f81c79607be1fd540ca7403acba403111ad12f4b4270189a"
+}

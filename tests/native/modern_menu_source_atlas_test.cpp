@@ -45,6 +45,39 @@ int main() {
     const ModernMenuSourcePixels cursor_view{cursor.data(),cursor.size(),624,624,39};
     const ModernMenuSourcePixels backdrop_view{
         backdrop.data(),backdrop.size(),256,256,224};
+    // RGBA bytes from PNG storage must be unpacked to host AARRGGBB
+    // words. Test fully transparent, colored and invalid-alpha pixels.
+    std::vector<std::uint8_t> source_rgba(640 * 16 * 4, 0u);
+    std::vector<std::uint32_t> converted(640 * 16, 0xAABBCCDDu);
+    source_rgba[0] = 17; source_rgba[1] = 34;
+    source_rgba[2] = 51; source_rgba[3] = 255;
+    source_rgba[4] = 255; source_rgba[5] = 99;
+    source_rgba[6] = 77; source_rgba[7] = 0;
+    assert(modern_menu_pack_source_rgba(
+        ModernMenuSourceSheet::Heading,source_rgba.data(),source_rgba.size(),
+        converted.data(),converted.size(),640,16));
+    assert(converted[0] == 0xFF112233u);
+    assert(converted[1] == 0u);
+    assert(converted[2] == 0u);
+    converted.assign(converted.size(),0xAABBCCDDu);
+    source_rgba[11] = 128; // invalid alpha at later pixel
+    assert(!modern_menu_pack_source_rgba(
+        ModernMenuSourceSheet::Heading,source_rgba.data(),source_rgba.size(),
+        converted.data(),converted.size(),640,16));
+    assert(converted.front() == 0xAABBCCDDu);
+    assert(converted.back() == 0xAABBCCDDu);
+    source_rgba[11] = 0;
+    assert(!modern_menu_pack_source_rgba(
+        ModernMenuSourceSheet::Heading,source_rgba.data(),source_rgba.size()-1,
+        converted.data(),converted.size(),640,16));
+    assert(!modern_menu_pack_source_rgba(
+        ModernMenuSourceSheet::Heading,source_rgba.data(),source_rgba.size(),
+        converted.data(),converted.size()-1,640,16));
+    assert(!modern_menu_pack_source_rgba(
+        ModernMenuSourceSheet::Cursor,source_rgba.data(),source_rgba.size(),
+        converted.data(),converted.size(),640,16));
+    assert(converted.front() == 0xAABBCCDDu);
+
     assert(modern_menu_source_buffer(big_view,640,16));
     assert(!modern_menu_source_buffer(big_view,640,32));
     assert(!modern_menu_source_buffer(

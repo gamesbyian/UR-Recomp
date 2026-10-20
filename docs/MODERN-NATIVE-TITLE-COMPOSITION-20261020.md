@@ -109,3 +109,31 @@ individual callbacks; re-run unit, native boot and original-vs-native QA
 on the merged head. `docs/WORK-QUEUE.md` and release quality ledger remain
 owned by integration/QA. No USA event, Windows QA or visual-release gate is
 promoted by this title PR.
+
+## Bounded Windows source-bound capture workflow
+
+The existing `.github/workflows/baldosa-windows-native-bridge.yml` builds the
+exact pinned Windows AOT executable. For this **title branch only**, it now
+runs `tools/capture_baldosa_modern_title_win32.py` against that very binary
+with the verified USA retail ROM and existing Baldosa route fixture. It uses
+the original host `--no-launcher --config --script --framedump` arguments
+and actual native P1 semantic A at frame 60. The runner accepts only
+**both** 342×224 P7 files with ordered guest-frame witnesses, matching
+native-emitted RGBA FNV64, correct source-safe paths, nonblank pixels, and
+the registered exact retail title raster crop digest. It records the real
+PE executable SHA256 and writes `native-title-receipt.json`, retaining
+the native log and PAM files as a 14-day CI artifact even if a check fails.
+`tests/unit/test_capture_baldosa_modern_title_win32.py` proves that fake,
+blank, dimension-mismatched or missing-witness captures do not pass.
+
+This is not a second CI build, an independent simulator or a test fixture
+masquerading as source evidence. The new job step is branch-gated inside the
+already-running native Windows bridge, while the independent #2041 final
+SDL drawable/perceptual review remains a separate check. Do not promote a
+green test if the job was skipped, another head built, or an artifact omitted.
+
+**Reduced motion:** the same `UR_REDUCED_MOTION=1` opt-in used by #2042
+leaves the retail title visible with a steady prompt and no intro or
+exit movement. A fresh confirm edge still hands off safely to the
+established Modern root. This is not yet a player-facing persistent Options
+setting, nor a completed reduced-motion/assistive-technology certification.

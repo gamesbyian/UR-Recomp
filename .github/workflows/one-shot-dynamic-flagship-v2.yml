@@ -16,6 +16,13 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg python3-pil
           python3 -m py_compile tools/showcase/build_dynamic_flagship_v2.py
+      - name: Recover immutable merged baseline 85s source film
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin main
+          mkdir -p media/showcase/2026-10-19/flagship
+          git show origin/main:media/showcase/2026-10-19/flagship/ur-recomp-flagship-85s-1080p.mp4 > media/showcase/2026-10-19/flagship/ur-recomp-flagship-85s-1080p.mp4
+          echo '6b5015fb83cb6e6deaebb08b8adf55f86004918f4169da7a71e73e46bc23cd9c  media/showcase/2026-10-19/flagship/ur-recomp-flagship-85s-1080p.mp4' | sha256sum -c -
       - name: Re-cut real source racing into 90s flagship
         run: |
           python3 tools/showcase/build_dynamic_flagship_v2.py --outdir media/showcase/2026-10-19/dynamic-native-2p/flagship-v2

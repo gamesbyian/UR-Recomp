@@ -262,7 +262,7 @@ def _strict_zip_envelope(blob, archive):
     next_offset = 0
     for member in members:
         local = member.header_offset
-        if local != next_offset or blob[local:local+4] != b'PK\\x03\\x04':
+        if local != next_offset or blob[local:local+4] != b'PK\x03\x04':
             raise ValueError('QA08 unindexed local ZIP gap or header')
         if local + 30 > eocd:
             raise ValueError('QA08 local header out of bounds')
@@ -276,7 +276,7 @@ def _strict_zip_envelope(blob, archive):
             raise ValueError('QA08 local member header contradiction')
         data_end = data_start + member.compress_size
         if flags & 0x08:
-            if blob[data_end:data_end+4] != b'PK\\x07\\x08':
+            if blob[data_end:data_end+4] != b'PK\x07\x08':
                 raise ValueError('QA08 missing local ZIP data descriptor')
             if data_end + 16 > eocd:
                 raise ValueError('QA08 local ZIP data descriptor truncated')

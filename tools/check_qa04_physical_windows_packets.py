@@ -43,9 +43,9 @@ def safe_member(root: Path, name: object) -> Path:
     require(type(name) is str and bool(name) and "\\" not in name
             and not name.startswith("/") and "\x00" not in name,
             "invalid evidence relative path")
-    parts = PurePosixPath(name).parts
+    parts = name.split("/")
     require(len(parts) <= 6 and all(p not in ("", ".", "..") for p in parts)
-            and "//" not in name and not name.endswith("/"),
+            and not name.endswith("/") and PurePosixPath(name).parts == tuple(parts),
             "evidence path traversal or alias")
     path = root
     for part in parts:
@@ -118,6 +118,9 @@ def inspect_packet(path: Path, *, commit: str, zip_sha: str,
         observed_kinds.add(kind)
         observed_files.add(filename)
         original = safe_member(path.parent, filename)
+        require(str(original.resolve()) not in observed_files,
+                "aliased evidence source file")
+        observed_files.add(str(original.resolve()))
         total += size
         require(total <= MAX_TOTAL_BYTES and original.stat().st_size == size
                 and sha256_file(original) == digest,

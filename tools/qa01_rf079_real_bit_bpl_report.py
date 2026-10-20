@@ -142,8 +142,33 @@ def case_archive(path):
     require(bool(strict_lines) and
             all(line.startswith('QA01RF047NATIVE seq=') for line in strict_lines),
             'RF047 sidecar contains a non-source line or overflow')
+    # A dedicated source stream must never silently erase the separate
+    # historical raw-stderr source-integrity failure. Match only complete
+    # raw lines byte-for-byte against the isolated source sequence; never
+    # extract embedded RF047 records from other logger fragments.
+    side_by_seq = {}
+    for i, line in enumerate(strict_lines, 1):
+        require(line.startswith(f'QA01RF047NATIVE seq={i} '),
+                'native strict sidecar sequence not contiguous')
+        side_by_seq[i] = line
+    raw_matched = 0
+    raw_malformed = 0
+    for line in nat_stderr.decode('utf-8').splitlines():
+        if not line.startswith('QA01RF047NATIVE seq='):
+            continue
+        match = re.match(r'QA01RF047NATIVE seq=(\\d+) ', line)
+        if match is None or int(match.group(1)) not in side_by_seq:
+            raw_malformed += 1
+        elif line == side_by_seq[int(match.group(1))]:
+            raw_matched += 1
+        else:
+            raw_malformed += 1
     result=inspect(orig.decode('utf-8'),nat.decode('utf-8'))
     result.update({
+        'native_raw_stderr_byte_exact_RF047_source_events':raw_matched,
+        'native_raw_stderr_malformed_or_mismatched_RF047_prefix_rows':raw_malformed,
+        'native_raw_stderr_missing_complete_RF047_source_events':
+            len(side_by_seq)-raw_matched,
         'case_zip_sha256':hashlib.sha256(raw).hexdigest(),
         'original_log_sha256':hashlib.sha256(orig).hexdigest(),
         'native_raw_stderr_sha256':hashlib.sha256(nat_stderr).hexdigest(),

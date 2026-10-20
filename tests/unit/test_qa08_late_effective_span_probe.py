@@ -104,6 +104,60 @@ class SpanEffectiveObserverTest(unittest.TestCase):
         self.assertNotIn("rgb555=%04x\n\"",span.TRACE)
         self.assertNotIn("cgwsel=%02x\n\"",span.TRACE)
 
+    def test_injected_span_observer_compiles_with_strict_C11_format_checks(self):
+        cc = shutil.which("gcc") or shutil.which("clang")
+        if not cc:
+            self.skipTest("C compiler unavailable; source syntax unverified here")
+        c = """
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+typedef unsigned uint;
+typedef struct { uint16_t data[512]; } PixelLine;
+typedef struct {
+    uint32_t renderFlags;
+    PixelLine bgBuffers[2];
+    uint16_t objectColors[512];
+    unsigned extraObjectCount;
+    uint16_t cgram[256];
+    uint8_t inidisp, cgadsub, cgwsel;
+    uint16_t fixedColor;
+    uint8_t screenEnabled[2];
+    uint8_t *renderBuffer;
+    size_t renderPitch;
+    int extraLeftRight;
+    uint8_t mode;
+    bool directColor;
+} Ppu;
+#define kPpuRenderFlags_NewRenderer 1u
+#define kPpuExtraLeftRight 128
+#define kPpuOverlaySource_Obj 1
+#define PPU_mode(p) ((p)->mode)
+#define PPU_directColor(p) ((p)->directColor)
+static int snes_frame_counter;
+static uint16_t PpuPixelColor(const Ppu *p, uint16_t pixel, size_t x) {
+  (void)x;
+  return p->cgram[pixel & 255u];
+}
+static void PpuWriteOverlayRenderLine(Ppu *p, int which, unsigned y) {
+  (void)p; (void)which; (void)y;
+}
+static void PpuDrawWholeLine(Ppu *ppu, uint y) {
+  bool rendered_subscreen = false;
+""" + span.TRACE + """
+  PpuWriteOverlayRenderLine(ppu, kPpuOverlaySource_Obj, y);
+}
+"""
+        with tempfile.TemporaryDirectory() as d:
+            source = Path(d) / "qa08_span_syntax.c"
+            source.write_text(c, encoding="utf-8")
+            result = subprocess.run(
+                [cc, "-std=c11", "-Wall", "-Wextra", "-Werror",
+                 "-fsyntax-only", str(source)],
+                capture_output=True, text=True, check=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_unavailable_game_direct_cli_fails_closed(self):
         out=subprocess.run([sys.executable,str(ROOT/"tools/qa08_late_effective_span_probe.py"),
                             "--game",str(ROOT/"qa08-absent-baldosa")],

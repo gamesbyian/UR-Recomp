@@ -13,6 +13,8 @@ on:
       - "tools/qa01_independent_zoo_capture_ab_archive.py"
       - "tools/qa01_zoo_raw_archive_audit.py"
       - "tools/qa01_rf076_original_fetch_archive.py"
+      - "tools/qa01_rf079_bit_bpl_archive.py"
+      - "tests/unit/test_qa01_rf079_bit_bpl_archive.py"
       - "tests/unit/test_qa01_rf076_original_fetch_archive.py"
       - "tests/unit/test_qa01_zoo_raw_archive_audit.py"
       - "tests/unit/test_qa01_frame_delta_atlas.py"
@@ -42,7 +44,7 @@ jobs:
       - name: ROM-free frame and adversarial audit tests
         run: |
           set -euo pipefail
-          python3 -m unittest tests.unit.test_qa01_continuous_frame_capture tests.unit.test_qa01_fidelity_evidence_pilots tests.unit.test_qa01_frame_delta_atlas tests.unit.test_qa01_zoo_archived_frame_atlas tests.unit.test_qa01_independent_zoo_capture_ab_archive tests.unit.test_qa01_zoo_raw_archive_audit tests.unit.test_qa01_rf076_original_fetch_archive -v
+          python3 -m unittest tests.unit.test_qa01_continuous_frame_capture tests.unit.test_qa01_fidelity_evidence_pilots tests.unit.test_qa01_frame_delta_atlas tests.unit.test_qa01_zoo_archived_frame_atlas tests.unit.test_qa01_independent_zoo_capture_ab_archive tests.unit.test_qa01_zoo_raw_archive_audit tests.unit.test_qa01_rf076_original_fetch_archive tests.unit.test_qa01_rf079_bit_bpl_archive -v
 
       - name: Reopen exact real original/native 2014 Bowl evidence archive
         env:
@@ -683,6 +685,100 @@ jobs:
           path: ${{ runner.temp }}/qa01-zoo-authenticated/real-zoo-ab.zip
           retention-days: 90
           if-no-files-found: error
+
+      - name: Independently classify genuine RF079 source BIT and BPL outcomes
+        # Real 1017 divergent NMI and 1018 same-label control, no emulator.
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/qa01-rf079"
+          mkdir -p "$ROOT"
+          # Genuine RF079 provider artifacts expire 2026-10-27. Preserve
+          # exact original inner ZIP bytes; never authenticate using merely
+          # the new wrapper SHA or the producer report's self-description.
+          curl --fail --show-error --silent --location --retry 2 \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -o "$ROOT/verified-90day-wrapper.zip" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12233500139/zip"
+          python3 - "$ROOT/verified-90day-wrapper.zip" "$ROOT" <<'PY'
+          import hashlib,io,sys,zipfile
+          from pathlib import Path
+          wrapper=Path(sys.argv[1]).read_bytes()
+          assert hashlib.sha256(wrapper).hexdigest()=="f13f7c26e2accd4605443026c00e2a1be287e7bd1ed7d62df4adf3cd09c3d016"
+          with zipfile.ZipFile(io.BytesIO(wrapper)) as z:
+              assert len(z.infolist())==3 and set(z.namelist())=={
+                  "original-case.zip","original-binaries.zip","independent-bit-bpl-verdict.json"}
+              assert z.testzip() is None
+              for name,expected in (
+                  ("original-case.zip","2721255d5f642422e414ec42db68d950f19382cd9b061e7e71846acd102c82e1"),
+                  ("original-binaries.zip","3566cf6b3d9e1abf054e3e86420087c4590544ff4650b07286c1c9efc5745086")):
+                  original=z.read(name)
+                  assert hashlib.sha256(original).hexdigest()==expected
+                  (Path(sys.argv[2])/("backup-"+name)).write_bytes(original)
+          print("RF079 outer preservation wrapper plus both original research inner ZIP SHA256s verified")
+          PY
+          if curl --fail --show-error --silent --location --retry 2 \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -o "$ROOT/original-case.zip" \
+              "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12232740002/zip"; then
+            cmp "$ROOT/original-case.zip" "$ROOT/backup-original-case.zip"
+            echo "RF079 original case provider and 90-day backup byte-identical"
+          else
+            cp "$ROOT/backup-original-case.zip" "$ROOT/original-case.zip"
+            echo "RF079 original case provider expired; exact pinned inner backup used"
+          fi
+          if curl --fail --show-error --silent --location --retry 2 \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -o "$ROOT/original-binaries.zip" \
+              "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12232261218/zip"; then
+            cmp "$ROOT/original-binaries.zip" "$ROOT/backup-original-binaries.zip"
+            echo "RF079 actual original/native binaries provider and backup byte-identical"
+          else
+            cp "$ROOT/backup-original-binaries.zip" "$ROOT/original-binaries.zip"
+            echo "RF079 original binary provider expired; exact pinned inner backup used"
+          fi
+          python3 tools/qa01_rf079_bit_bpl_archive.py \
+            --case "$ROOT/original-case.zip" \
+            --binaries "$ROOT/original-binaries.zip" \
+            --out "$ROOT/independent-bit-bpl-verdict.json"
+          python3 - "$ROOT/independent-bit-bpl-verdict.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          assert d["original_post_instruction_observations"]==12958
+          assert d["native_source_local_RF047_observations"]==60819
+          assert d["native_direct_page_bit_return_observations"]==6483
+          assert d["native_BPL_flag_input_observations"]==6483
+          assert d["native_interleaved_physical_lines"]==75
+          assert [x["original_extra_N0_branch_before_BIT"] for x in
+                  d["bounded_post_NMI_branch_convergence"]]==[True,False]
+          assert [x["native_actual_paced_DP_0057_return"] for x in
+                  d["bounded_post_NMI_branch_convergence"]]==["FF","FF"]
+          assert [x["original_BPL_falls_through_to_PC"] for x in
+                  d["bounded_post_NMI_branch_convergence"]]==["82D4F2","82D4F2"]
+          assert d["actual_original_bus_read_DP_0057_proven"] is False
+          assert d["first_causally_consumed_differing_guest_byte_proven"] is False
+          assert d["same_intraclock_original_native_NMI_phase_proven"] is False
+          assert d["accepted_USA_events"]==d["accepted_Windows_gates"]==0
+          assert d["adjudication"]=="HOLD"
+          print("Authenticated original/native RF079 BIT/BPL source outcome bounded; no first consumed unequal byte or 1/45")
+          PY
+
+      - name: Preserve genuine RF079 case, binaries and bounded independent QA verdict
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-rf079-original-native-bit-bpl-genuine-source
+          retention-days: 90
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/qa01-rf079/original-case.zip
+            ${{ runner.temp }}/qa01-rf079/original-binaries.zip
+            ${{ runner.temp }}/qa01-rf079/independent-bit-bpl-verdict.json
 
       - name: Preserve original 2014 Bowl source bytes before October 25 expiry
         # The source-original 39168164480 artifact 12151357791 expires

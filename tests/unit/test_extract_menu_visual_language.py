@@ -1,3 +1,4 @@
+import copy
 import hashlib
 import json
 import struct
@@ -96,6 +97,51 @@ class MenuVisualLanguageTests(unittest.TestCase):
     def test_run_lengths_and_deltas(self) -> None:
         self.assertEqual(mvl.run_lengths([8, 8, 4, 4, 0]), [[8, 2], [4, 2], [0, 1]])
         self.assertEqual(mvl.deltas([0, 1, 3, 6]), [1, 2, 3])
+
+    def test_four_atlas_bundle_rejects_mixed_source_captures(self) -> None:
+        # Synthetic SHA-only fixtures, never game or exported asset bytes.
+        h = lambda c: c * 64
+        tag = "mvl-idle-00"
+        big = {"source_fixture": mvl.SCRIPT, "source_tag": tag,
+               "dimensions": [640, 16], "image_png_sha256": h("a"),
+               "source_vram_sha256": h("b"), "source_cgram_sha256": h("c")}
+        small = {"source_fixture": mvl.SCRIPT, "source_tag": "mvl-track-00",
+                 "dimensions": [360, 16], "sha256": h("d"),
+                 "source_vram_sha256": h("e"), "source_cgram_sha256": h("f"),
+                 "source_char_base_word": 0}
+        cursor = {"source_fixture": mvl.SCRIPT, "atlas_rgba_dimensions": [624, 39],
+                  "atlas_png_sha256": h("a"), "source_frames": [
+                      {"source_tag": f"mvl-idle-{i:02d}",
+                       "source_obj_tile": tile,
+                       "ppu_sha256": {"vram": h("b"), "cgram": h("c"), "oam": h("f")}}
+                      for i, tile in enumerate(mvl.CURSOR_SOURCE_TILE_CYCLE)]}
+        bg1 = {"source_fixture": mvl.SCRIPT, "source_tag": tag,
+               "dimensions": [256, 224], "png_sha256": h("d"),
+               "vram_sha256": h("b"), "cgram_sha256": h("c")}
+        receipt = mvl.build_menu_source_art_bundle(big, small, cursor, bg1)
+        self.assertTrue(receipt["reference_only"])
+        self.assertFalse(receipt["asset_distribution_approved"])
+        self.assertFalse(receipt["native_render_and_visual_acceptance"])
+        self.assertEqual(receipt["source_main_tag"], tag)
+        self.assertEqual(receipt["output_dimensions"]["cursor"], [624, 39])
+        self.assertEqual(len(receipt["asset_png_sha256"]), 4)
+
+        def rejects(source, mutation):
+            copies = [copy.deepcopy(x) for x in (big, small, cursor, bg1)]
+            mutation(copies[source])
+            with self.assertRaises(ValueError):
+                mvl.build_menu_source_art_bundle(*copies)
+
+        rejects(0, lambda a: a.update(source_vram_sha256=h("f")))
+        rejects(1, lambda a: a.update(source_tag="mvl-idle-00"))
+        rejects(1, lambda a: a.update(source_char_base_word=None))
+        rejects(2, lambda a: a.update(atlas_rgba_dimensions=[623, 39]))
+        rejects(2, lambda a: a["source_frames"][0].update(source_obj_tile=4))
+        rejects(2, lambda a: a["source_frames"][0]["ppu_sha256"].update(vram=h("f")))
+        rejects(3, lambda a: a.update(source_tag="mvl-idle-09"))
+        rejects(3, lambda a: a.update(cgram_sha256=""))
+        rejects(3, lambda a: a.update(dimensions=[256, 216]))
+        rejects(0, lambda a: a.update(source_fixture="other reference"))
 
     def test_original_big_font_atlas_has_source_identity_receipt(self) -> None:
         class Sample:

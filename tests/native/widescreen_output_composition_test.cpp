@@ -1,5 +1,6 @@
 #include "widescreen_output_composition.hpp"
 
+#include <array>
 #include <cassert>
 
 using namespace ur::product;
@@ -143,6 +144,40 @@ int main() {
            HostSceneComposition::FixedCenter);
     assert(observe_widescreen_scene(nullptr, 0x01, 0x00) ==
            HostSceneComposition::FixedCenter);
+
+    // QA10 property sweep: real C++ viewport arithmetic including tiny,
+    // odd, portrait and UHD drawables; keep source dimensions invariant.
+    const HostOutputCompositionPlan plans[] = {
+        original_wide, original_fixed, remastered_wide, remastered_fixed,
+    };
+    const auto check_drawable = [&](int drawable_w, int drawable_h) {
+        for (const auto& plan : plans) {
+            const auto vp = resolve_output_viewport(plan, drawable_w, drawable_h);
+            assert(vp.width >= 1 && vp.height >= 1);
+            assert(vp.x >= 0 && vp.y >= 0);
+            assert(vp.x + vp.width <= drawable_w);
+            assert(vp.y + vp.height <= drawable_h);
+            assert(plan.logical_view_height == 224);
+            assert(plan.logical_view_width == 256 || plan.logical_view_width == 342);
+        }
+    };
+    for (int w = 1; w <= 256; ++w) {
+        for (int h = 1; h <= 256; ++h) {
+            check_drawable(w, h);
+        }
+    }
+    for (const auto& size : std::array<std::array<int, 2>, 9>{{
+             {{257, 255}}, {{511, 513}}, {{1280, 1024}},
+             {{1920, 1080}}, {{2560, 1440}}, {{3440, 1440}},
+             {{3840, 2160}}, {{2160, 3840}}, {{7680, 4320}},
+         }}) {
+        check_drawable(size[0], size[1]);
+    }
+    for (const auto& plan : plans) {
+        assert(resolve_output_viewport(plan, 0, 2160) == empty_viewport);
+        assert(resolve_output_viewport(plan, 3840, 0) == empty_viewport);
+        assert(resolve_output_viewport(plan, -1, 2160) == empty_viewport);
+    }
 
     return 0;
 }

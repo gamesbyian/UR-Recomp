@@ -139,11 +139,13 @@ void test_motion() {
     assert(pose.cursor_remainder_px == 0);
 }
 void test_raster() {
-    // Real native pixel-buffer writes for both original and wide dimensions.
-    for (int scale : {1, 4}) {
-        const int w = scale == 1 ? 256 : 1536;
+    // Actual source/modern host geometry: 256x224 compact and 342x224
+    // widescreen, each at 1x and 4x. A fictitious 384-wide logical panel
+    // must not be mistaken for the shipping 16:9 composition.
+    for (int logical_width : {256, 342}) for (int scale : {1, 4}) {
+        const int w = logical_width * scale;
         const int h = 224 * scale;
-        const int panel_w = scale == 1 ? 240 : 356;
+        const int panel_w = logical_width == 342 ? 320 : 240;
         const HostOverlayRect panel{
             (w - panel_w * scale) / 2, 10 * scale,
             panel_w * scale, 204 * scale};

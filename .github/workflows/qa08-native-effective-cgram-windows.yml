@@ -12,6 +12,10 @@ permissions:
   contents: read
   actions: read
 
+concurrency:
+  group: qa08-native-source-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   bounded-windows-source:
     if: github.head_ref == 'agent7/qa08-late-effective-ppu-optin-probe-20261019'

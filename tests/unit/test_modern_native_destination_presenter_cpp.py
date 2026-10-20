@@ -35,6 +35,9 @@ class ModernNativeDestinationPresenterTest(unittest.TestCase):
         self.assertIn("view.first_racer_preset_name = presets[chosen].name;", source)
         self.assertIn("(width != 256 && width != 342)", source)
         self.assertIn("width == 342 ? 320 : 240", source)
+        self.assertIn("modern_native_frontend_compact_drawable(", source)
+        self.assertIn("*logical_width = 256;", source)
+        self.assertIn("*logical_width = 342;", source)
         self.assertIn("root_rect, shell_view);", source)
         self.assertIn("root_rect, view);", source)
         # Native diagnostic receipts are emitted only *after* successful

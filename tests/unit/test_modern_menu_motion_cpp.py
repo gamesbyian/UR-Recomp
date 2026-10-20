@@ -49,7 +49,7 @@ class ModernMenuMotionTest(unittest.TestCase):
         # A 342-wide owner build must not paint the moving focus relative
         # to a different rectangle than the background shell. Integration
         # may widen/recentre root_rect but must pass it to BOTH painters.
-        self.assertIn("const HostOverlayRect root_rect{8,10,240,204}", baldosa)
+        self.assertIn("const HostOverlayRect root_rect{", baldosa)
         self.assertIn("root_rect, view);", baldosa)
         self.assertIn("root_rect, phase);", baldosa)
         self.assertNotIn("HostOverlayRect{(width - 240) / 2", baldosa)

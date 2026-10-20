@@ -193,6 +193,25 @@ class WindowsPhysicalWitnessPacketTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "reused across independent"):
             self.review()
 
+    def test_refuses_ambiguous_json_and_extra_private_machine_identifiers(self):
+        old = self.paths[0].read_text(encoding="utf-8")
+        try:
+            # Python's normal JSON parser would silently take the last value.
+            self.paths[0].write_text(
+                old[:-1] + ', "source_commit": "' + SOURCE + '"}',
+                encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "duplicate JSON key"):
+                self.review()
+        finally:
+            self.paths[0].write_text(old, encoding="utf-8")
+        try:
+            change(self.paths[0], lambda x:
+                   x["hardware"].__setitem__("device_serial", "private-serial"))
+            with self.assertRaisesRegex(ValueError, "privacy-bounded"):
+                self.review()
+        finally:
+            self.paths[0].write_text(old, encoding="utf-8")
+
     def test_refuses_manufactured_release_claim_and_self_review(self):
         for key, val in (("release_gate_credit", 1),
                          ("physical_hardware_verified", True),

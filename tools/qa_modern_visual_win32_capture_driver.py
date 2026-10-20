@@ -32,6 +32,21 @@ EXPECTED_SOURCE = re.compile(r"^[0-9a-f]{40}$")
 MAX_DIM = (3840, 2160)
 # Exact in-repo test-only native semantic routes, never synthetic guest writes.
 # Draw ordinal is a paced REAL SDL EndDraw count, not a simulation index.
+def upstream_ppm_visibility(path: Path) -> dict:
+    """Verify a genuine unscaled native pre-SDL P6 composed frame."""
+    import re as _re
+    payload = path.read_bytes()
+    header = _re.match(rb"\AP6\n([1-9][0-9]*) ([1-9][0-9]*)\n255\n", payload)
+    if not header:
+        raise RuntimeError("Authentic host pre-SDL screenshot missing/invalid P6 header")
+    width, height = map(int, header.groups())
+    if width > 3840 or height > 2160 or len(payload) - header.end() != width * height * 3:
+        raise RuntimeError("Authentic host pre-SDL screenshot size invalid")
+    rgb = payload[header.end():]
+    count = sum(any(rgb[i:i + 3]) for i in range(0, len(rgb), 3))
+    return {"width": width, "height": height, "nonblack_rgb_pixels": count}
+
+
 ROUTES = {
     "root-quit": ("14", 40, ""),
     "records-keyboard": ("1", 64, "UR_BALDOSA_MODERN_ROOT records_opened=1"),
@@ -88,6 +103,12 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
         "UR_MODERN_VISUAL_SDL_CAPTURE_EXPECT_WIDTH": str(expected[0]),
         "UR_MODERN_VISUAL_SDL_CAPTURE_EXPECT_HEIGHT": str(expected[1]),
     })
+    if execution_mode == "authentic":
+        # Existing pinned host's post-RtlDrawPpuFrame/ComposeOsd P6 witness.
+        # Compare source composition against SDL3 final-drawable readback on
+        # the same guest timeline; this does not edit game or renderer code.
+        env["SNESRECOMP_SCREENSHOT"] = str(stage / "stock-composed-before-sdl.ppm")
+        env["SNESRECOMP_SCREENSHOT_FRAME"] = str(capture_draw)
     p = subprocess.run(
         [str(exe), "--no-launcher", "--config", str(config),
          "--script", str(script), str(rom)],
@@ -130,9 +151,27 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
         if not raw.startswith(header) or len(raw) != len(header) + found[0] * found[1] * 4:
             raise RuntimeError("Authentic stock SDL frame has invalid raster")
         rgba = memoryview(raw)[len(header):]
-        if not any(rgba[i+3] and (rgba[i] or rgba[i+1] or rgba[i+2])
-                   for i in range(0, len(rgba), 4)):
-            raise RuntimeError("Authentic stock SDL framebuffer has no visible pixels")
+        visible = sum(1 for i in range(0, len(rgba), 4)
+                      if rgba[i+3] and (rgba[i] or rgba[i+1] or rgba[i+2]))
+        composed = stage / "stock-composed-before-sdl.ppm"
+        source_visibility = upstream_ppm_visibility(composed) if composed.is_file() else None
+        diagnostic = {
+            "source": "pinned-host-composed-before-SDL",
+            "original_source_pixels": source_visibility,
+            "sdl_drawable_pixels": list(found),
+            "sdl_visible_rgba_pixels": visible,
+            "meaning": "independent first-divergence diagnostic, NOT Authentic approval",
+            "authentic_isolation_approved": False,
+            "release_gate_credit": 0,
+        }
+        (stage / "authentic-source-vs-sdl.json").write_text(
+            json.dumps(diagnostic, indent=2) + "\\n", encoding="utf-8")
+        if source_visibility is None:
+            raise RuntimeError("Authentic host pre-SDL source capture missing")
+        if source_visibility["nonblack_rgb_pixels"] == 0:
+            raise RuntimeError("Authentic guest composition and SDL both visually empty")
+        if not visible:
+            raise RuntimeError("Authentic composed source has pixels but SDL drawable empty")
     return {
         "stage": stage,
         "log": log,

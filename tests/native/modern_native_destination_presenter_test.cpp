@@ -144,6 +144,26 @@ int main() {
     assert(!has("> VSYNC    < ON >"));
     clear();
 
+    // Pause reuses the same OPTIONS state while leaving guest/pause routing
+    // to the existing native owner; both 1x and 2x native pause geometries.
+    v.options_controls_help = false;
+    assert(render_modern_native_pause_destination(
+        painter,scratch,256,256,224,v));
+    assert(has("UNIRACERS"));
+    assert(has("PAUSED - GUEST FROZEN"));
+    assert(has("OPTIONS"));
+    assert(has("> VSYNC    < ON >"));
+    bounds(256,224);
+    clear();
+    assert(render_modern_native_pause_destination(
+        painter,scratch,512,512,448,v));
+    assert(has("PAUSED - GUEST FROZEN"));
+    assert(has("OPTIONS"));
+    bounds(512,448);
+    clear();
+    assert(!render_modern_native_pause_destination(
+        painter,scratch,240,240,224,v));
+    assert(painted.empty());
     v.options_open = false;
     v.two_seat_join_open = true;
     v.join_p1_name = "MIKE";

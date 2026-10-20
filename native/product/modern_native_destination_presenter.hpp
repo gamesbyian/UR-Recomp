@@ -60,20 +60,45 @@ inline bool modern_native_destination_is_open(
            v.unbound_two_player_warning_open;
 }
 
+// Run summaries may have a long course label followed by the *actual*
+// recorded time. Preserve the complete trailing time token in compact 4:3
+// instead of silently losing its hundredths when the course name grows.
+// Other too-long text is explicitly marked truncated with a final dot.
+inline std::string modern_native_destination_fit(
+    std::string_view value, std::size_t cells,
+    bool keep_last_token = false) {
+    if (cells == 0) return {};
+    if (value.size() <= cells) return std::string(value);
+    if (keep_last_token && cells > 4) {
+        const auto split = value.find_last_of(' ');
+        if (split != std::string_view::npos) {
+            const auto last = value.substr(split + 1);
+            // Reserve 2 cells for the visible continuation marker.
+            if (last.size() + 3 <= cells) {
+                const auto first = value.substr(0, cells - last.size() - 2);
+                return std::string(first) + ".." + std::string(last);
+            }
+        }
+    }
+    if (cells == 1) return ".";
+    return std::string(value.substr(0, cells - 1)) + ".";
+}
+
 inline void modern_native_destination_line(
     const ModernRootOverlayPainter& p, std::uint32_t* pixels,
     int stride, int surface_height,
     const ModernNativeDestinationCanvas& c,
     int y, std::string_view value, std::uint32_t colour,
-    int x = 9, int text_scale = 1) {
+    int x = 9, int text_scale = 1, bool keep_last_token = false) {
     // All text is contained within the panel. Never silently crop the right
     // edge of a stock name, saved time, controls legend or options value.
     const int available = c.w / c.scale - x - 5;
     if (available < 8 * text_scale || y + 8 * text_scale > c.h / c.scale)
         return;
-    const auto fit = fit_modern_overlay_text(
+    const auto fit = modern_native_destination_fit(
         value, static_cast<std::size_t>(
-            available / (kModernOverlayCellPixels * text_scale)));
+            available / (kModernOverlayCellPixels * text_scale)),
+        keep_last_token);
     p.draw_text(pixels, stride, surface_height,
                 c.x + x * c.scale, c.y + y * c.scale, fit.c_str(),
                 colour, text_scale * c.scale);
@@ -246,11 +271,11 @@ inline bool render_modern_native_destination(
             v.records_status, col.title_yellow);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 88,
-            v.records_recent, 0xFFFFFFFFu);
+            v.records_recent, 0xFFFFFFFFu, 9, 1, true);
         if (v.read_only_records_two_player && !v.records_detail.empty())
             modern_native_destination_line(
                 p, pixels, stride, surface_height, c, 101,
-                v.records_detail, col.secondary_grey);
+                v.records_detail, col.secondary_grey, 9, 1, true);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 114,
             "READ ONLY - NO REPLAY", col.secondary_grey);

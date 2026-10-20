@@ -8,10 +8,10 @@ from fractions import Fraction as F
 import json
 
 
-def raster_roi(source_w, source_h, host_w, host_h, par=F(7, 6)):
+def raster_roi(source_w, source_h, host_w, host_h, par=F(7, 6), horizontal_fit=F(1)):
     if min(source_w, source_h, host_w, host_h) <= 0 or par <= 0:
         raise ValueError("invalid source or host dimensions")
-    physical_w = F(source_w) * par
+    physical_w = F(source_w) * par * horizontal_fit
     scale = min(F(host_w) / physical_w, F(host_h, source_h))
     ideal_w, ideal_h = physical_w * scale, F(source_h) * scale
     width, height = round(ideal_w), round(ideal_h)
@@ -33,7 +33,7 @@ def raster_roi(source_w, source_h, host_w, host_h, par=F(7, 6)):
         "pixel_margin_lr": [x, host_w - x - width],
         "pixel_margin_tb": [y, host_h - y - height],
         "ideal_extent": [str(ideal_w), str(ideal_h)],
-        "max_aspect_error": str(abs(F(width, height) - F(source_w, source_h) * par)),
+        "max_aspect_error": str(abs(F(width, height) - F(source_w, source_h) * par * horizontal_fit)),
         "full_source_interval": [0, source_w, 0, source_h],
         "source_center_endpoints": [str(v) for v in endpoints],
         "reference_only": True,
@@ -46,12 +46,12 @@ def report():
              (1365, 768), (3440, 1440)]
     return {
         "schema": "qa06-proposed-screenshot-roi/1",
-        "policy": "exact 7:6 PAR, nearest-integer centered ROI, no 216-row crop",
+        "policy": "exact 7:6 PAR; world342 horizontal_fit=512/513 per native compositor; no crop",
         "render_observed": False, "release_gate_credit": 0,
         "cases": {
             f"{w}x{h}": {
                 "original": raster_roi(256, 224, w, h),
-                "world342": raster_roi(342, 224, w, h),
+                "world342": raster_roi(342, 224, w, h, horizontal_fit=F(512, 513)),
             }
             for w, h in hosts
         },

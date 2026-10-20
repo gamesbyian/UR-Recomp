@@ -81,6 +81,7 @@ struct ModernMenuMotionState {
     // Reduced-motion mode semantically completes an already-visible entrance.
     // Re-enabling animation must not resurrect an old transition.
     bool intro_suppressed = false;
+    bool hero_hold_pose = false;
     std::uint64_t first_tick = 0;
     std::uint64_t selection_tick = 0;
     std::uint64_t last_tick = 0;
@@ -159,6 +160,7 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
         state.cursor_origin_y = static_cast<int>(selection) * row_pitch;
         state.cursor_row_pitch = row_pitch;
         state.intro_suppressed = false;
+        state.hero_hold_pose = false;
         state.first_tick = input.tick60;
         state.selection_tick = input.tick60;
     } else if (selection != state.selection) {
@@ -172,9 +174,10 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
                 state.cursor_origin_y - old_target_y, elapsed);
         state.previous_selection = state.selection;
         state.selection = selection;
-        // A fresh focus edge may animate again only when motion is enabled.
+        // A fresh enabled focus edge can animate its source clip again;
+        // the already-suppressed screen entrance must stay settled.
         if (!input.reduced_motion)
-            state.intro_suppressed = false;
+            state.hero_hold_pose = false;
         // Only adjacent movement has a meaningful continuous path. Wrapped
         // or external multi-step focus switches snap to the real new target.
         const int target = static_cast<int>(selection);
@@ -196,6 +199,7 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
         state.previous_selection = selection;
         state.selection_tick = input.tick60;
         state.intro_suppressed = true;
+        state.hero_hold_pose = true;
         return pose;
     }
 
@@ -230,7 +234,7 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
     // then HOLD the last pose. There is no evidence 1213..1220 loops:
     // cycling it would invent a jump from source frame 1220 to 1213.
     // Source sprite admission is separately required by the hero compositor.
-    pose.hero_frame_ordinal = state.intro_suppressed ?
+    pose.hero_frame_ordinal = state.hero_hold_pose ?
         kModernMenuStockHeroMaxCycle - 1 :
         (age >= kModernMenuStockHeroMaxCycle
             ? kModernMenuStockHeroMaxCycle - 1 : age);

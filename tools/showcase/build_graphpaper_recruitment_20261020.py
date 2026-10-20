@@ -16,7 +16,7 @@ import build_flagship_recruitment_20261019 as film
 ROOT=Path(__file__).resolve().parents[2]
 ART_DIR=ROOT/"media/showcase/2026-10-20/graphpaper-source"
 LOGO=ART_DIR/"uniracers_graphpaper_logo.jpg"
-TRACK=ART_DIR/"uniracers_footer_long.png"
+TRACK=ART_DIR/"uniracers_footer_long.jpg"
 NAMING={
 "ur-recomp-blue-action-80s-1080p.mp4":"ur-recomp-graphpaper-action-80s-1080p.mp4",
 "ur-recomp-blue-action-27s-vertical.mp4":"ur-recomp-graphpaper-action-27s-vertical.mp4",
@@ -31,6 +31,7 @@ def sha(path):
 def render(out, cards_only=False):
     assert LOGO.is_file(), "Original hand-inked logo source is required"
     assert TRACK.is_file(), ("Owner supplied 2026-10-20 long footer missing: " + str(TRACK) + ". Do not silently substitute the obsolete hand-drawn extension.")
+    assert sha(TRACK) == "744d61c5855be55b113c16313b44d2e0a37479a4019363ef4a9c8690a8029fd7", "New long footer source SHA mismatch"
     out=Path(out)
     out.mkdir(parents=True,exist_ok=True)
     if cards_only:

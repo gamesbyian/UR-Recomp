@@ -110,7 +110,9 @@ class MenuVisualLanguageTests(unittest.TestCase):
                  "source_vram_sha256": h("e"), "source_cgram_sha256": h("f"),
                  "source_char_base_word": 0}
         cursor = {"source_fixture": mvl.SCRIPT, "atlas_rgba_dimensions": [624, 39],
-                  "atlas_png_sha256": h("a"), "source_frames": [
+                  "atlas_png_sha256": h("a"), "captured_idle_frames": 64,
+                  "frames_per_pose": 2, "cycle_frames": 32,
+                  "source_frames": [
                       {"source_tag": f"mvl-idle-{i:02d}",
                        "source_obj_tile": tile,
                        "ppu_sha256": {"vram": h("b"), "cgram": h("c"), "oam": h("f")}}
@@ -385,7 +387,8 @@ class MenuVisualLanguageTests(unittest.TestCase):
             shadow = 128 + 5 * 16 + 1
             cgram[2 * arrow:2 * arrow + 2] = (0x7FFF).to_bytes(2, "little")
             cgram[2 * shadow:2 * shadow + 2] = (0x4210).to_bytes(2, "little")
-            for phase, tile in enumerate(mvl.CURSOR_SOURCE_TILE_CYCLE):
+            for index in range(64):
+                tile = mvl.CURSOR_SOURCE_TILE_CYCLE[(index // 2) % 16]
                 # Identical source pixel for all frames; tile identity is
                 # separately and strictly checked from authentic OAM.
                 vram[tile * 32] = 0x80
@@ -395,7 +398,7 @@ class MenuVisualLanguageTests(unittest.TestCase):
                 oam[0:4] = bytes([79, 70, tile, 7 << 1])
                 oam[4:8] = bytes([86, 77, (tile + 4) & 255, 5 << 1])
                 oam[512] = 0x0A  # OAM 0,1 use large=32 mode1
-                tag = f"mvl-idle-{phase:02d}"
+                tag = f"mvl-idle-{index:03d}"
                 (dump_dir / f"{tag}.vram.bin").write_bytes(vram)
                 (dump_dir / f"{tag}.cgram.bin").write_bytes(cgram)
                 (dump_dir / f"{tag}.oam.bin").write_bytes(oam)
@@ -408,6 +411,8 @@ class MenuVisualLanguageTests(unittest.TestCase):
             receipt = mvl.export_cursor_atlas(dump_dir, png, manifest)
             self.assertEqual(receipt["atlas_rgba_dimensions"], [624, 39])
             self.assertEqual(len(receipt["source_frames"]), 16)
+            self.assertEqual(receipt["captured_idle_frames"], 64)
+            self.assertEqual(receipt["source_frames"][0]["source_tag"], "mvl-idle-000")
             self.assertEqual({f["source_obj_sel"]
                               for f in receipt["source_frames"]}, {0x20})
             self.assertEqual([f["source_obj_tile"] for f in receipt["source_frames"]],
@@ -415,9 +420,29 @@ class MenuVisualLanguageTests(unittest.TestCase):
             self.assertEqual(hashlib.sha256(png.read_bytes()).hexdigest(),
                              receipt["atlas_png_sha256"])
             self.assertEqual(json.loads(manifest.read_text()), receipt)
-            # Remove one phase: under no circumstances emit an invented
-            # replacement frame and call a 15-pose sequence source-derived.
-            (dump_dir / "mvl-idle-15.oam.bin").unlink()
+            # One syntactically valid wrong tile at sample 003 must fail
+            # the original 2-frame CHR cadence, not be silently skipped.
+            sample3 = dump_dir / "mvl-idle-003.oam.bin"
+            original_oam = sample3.read_bytes()
+            wrong_oam = bytearray(original_oam)
+            wrong_oam[2] = 8
+            sample3.write_bytes(wrong_oam)
+            with self.assertRaisesRegex(ValueError, "cadence"):
+                mvl.export_cursor_atlas(dump_dir, png)
+            sample3.write_bytes(original_oam)
+            # The same tile with changed original CGRAM is *not* the same
+            # source pose and must fail despite the identical OAM index.
+            sample1 = dump_dir / "mvl-idle-001.cgram.bin"
+            original_cgram = sample1.read_bytes()
+            changed = bytearray(original_cgram)
+            changed[2 * arrow:2 * arrow + 2] = (0x001F).to_bytes(2, "little")
+            sample1.write_bytes(changed)
+            with self.assertRaisesRegex(ValueError, "drifted"):
+                mvl.export_cursor_atlas(dump_dir, png)
+            sample1.write_bytes(original_cgram)
+            # The complete 64-frame sequence is mandatory. A short 16-pose
+            # set cannot establish the stock 2-tick hold / 32-tick period.
+            (dump_dir / "mvl-idle-063.vram.bin").unlink()
             with self.assertRaises(FileNotFoundError):
                 mvl.export_cursor_atlas(dump_dir, png)
 

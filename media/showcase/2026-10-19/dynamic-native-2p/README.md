@@ -99,3 +99,22 @@ The original SDL2 framework prints `script f=<frame> dump cinematic-go ok` from 
 ### Real independent rider track positions
 
 The bounded post-GO routes now emit three read-only scene dumps (`cinematic-lead`, `cinematic-middle`, `cinematic-late`) from the actual native guest. The existing framework's `dump` command consumes **zero simulated frames**. Its genuine 128KiB WRAM image contains P1 and P2 world X at `7E:0411/0413` and world Y at `7E:0415/0417`, independently recovered in the project's original/non-Dragster course entry probe. The verifier checks exact semantic dump guest frame IDs, **byte-identical full WRAM in capture-off and capture-on runs**, and retains the source X/Y words, raw differences and original state hashes in the publication manifest. No game-memory editing is performed, and raw WRAM images stay outside the repo. Raw X/Y differences are not course-geodesic distances or proof of airborne rotation. They are concrete evidence the two riders actually moved independently, complementing the necessary visual-screening gate.
+
+## Fail-closed final hill + loop + ramp highlight montage
+
+`tools/showcase/assemble_authentic_topology_reel.py` assembles a 1080p, 60fps **silent, editorial hard-cut montage of real footage only**, but refuses to create a video until a separate authenticated source capture and substantive independent visual review both exist.
+
+The reviewer provides a JSON manifest conforming to `UR-DYNAMIC-TOPOLOGY-VISUAL-REVIEW/1`. It records an actual identifiable hill, loop and ramp seen in three **distinct** captured original courses, a named visual reviewer and honest observation method, real native video SHA256s, chosen source ordinals and frame counts (180–420 each), on-screen separate riders, retained full 2P view and an observation explaining concrete geometry and racer movement. Three real guest read-only position witnesses must also exist for every route, including an actual P1/P2 raw coordinate difference of at least 32 world units (a raw displacement witness, not proof of separate course-arc locations). A course's *name* or scripted B/L/R presses cannot substitute for visual evidence.
+
+Only after verifying the same real 900 consecutive native source frames, manifest SHA and written independent observations will this work:
+
+```sh
+python3 tools/showcase/assemble_authentic_topology_reel.py \
+  --ledger /tmp/ur-dynamic-native/published/dynamic-racing-provenance.json \
+  --review /tmp/ur-dynamic-native/accepted-topology-visual-review.json \
+  --out /tmp/ur-dynamic-native/true-hill-loop-ramp-reel.mp4
+```
+
+The tool first checks the review without encoding when `--out` is omitted. It then source-hash verifies each MP4, trims *exact original frame ordinals* (no optical interpolation), joins the visibly separate course shots and checks the emitted total decoded frame count, writing an immutable source/shot/output SHA256 ledger alongside the film. It cannot silently pull from an unreviewed course or mislabel ordinary track as a loop. The recipe's raw footage remains unchanged. Trailer #1994 can source these highlights only **after** this independent acceptance.
+
+**As of the source-only PR, no legitimate review manifest or rendered hill/loop/ramp reel exists.** A permissioned native runner with a legal original ROM and actual visual source footage is indispensable; a fake acceptance manifest would violate the project's evidentiary policy.

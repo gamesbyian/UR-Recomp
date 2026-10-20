@@ -114,3 +114,25 @@ The readback is taken **after host texture composition and before SDL_RenderPres
 The PNG converter validates a strict P7 RGB_ALPHA header, size and complete raw length. It preserves RGBA samples exactly, inserts only required PNG per-scanline filter bytes, CRCs each native PNG chunk, and records both P7 and PNG SHA256s. Its tests decompress the resulting image again and compare the entire row stream to the source. It cannot prove the supplied P7 was captured from SDL, that the native executable matches its filename, or that the image looks correct. The independent capture manifest must retain the actual game log's SDL readback marker, input route evidence, exact native PE, source SHA, **P7 and conversion receipt** in addition to the PNG. The primary 25-case verifier checks final-output PNG hashes/dimensions/route markers and never grants approval. Cross-file provenance from P7 and the source binary still needs independent investigation; future instrumented runs must bind these bytes to one immutable executable.
 
 **Execution status:** new adapter, converter and adversarial fixtures committed, but **not yet staged into a native Windows source build or run against an attached drawable**. No claim of a newly captured image, Windows package, physical display or reachable 342-wide destination follows from these tests alone. The next meaningful run belongs to the eventual **combined title + shared-grammar + destinations + motion native PR head**, otherwise an isolated capture may show only one or two producers' code. Confirm output size with the real SDL readback, then inspect readable focus/text and controller response frame-by-frame.
+
+
+## Combined native owner-hook preflight (integration-only)
+
+All four independent visual implementation PRs touch a shared native frontend. Individual source/unit success is **not compositional integration proof**:
+
+- \`#2038\` supplies the shared source-measured visual grammar and edits the existing root presenter.
+- \`#2040\` supplies actual native destination paint and uses \`tools/baldosa_native_modern_root.cpp\` to overpaint children without ghosting legacy dialogs. Its later candidate supports a 320-logical-pixel panel **conditional on** a 342-wide host buffer.
+- \`#2042\` supplies the Modern root animation model and also patches the Baldosa native draw callback, including reduced-motion and held-guest host ticks.
+- \`#2043\` supplies the opt-in 342-wide native title/host viewport callback and original retail title assets; its draw and input callbacks overlap the other two branches. The shared \`.github/workflows/baldosa-windows-native-bridge.yml\` path is edited by **#2038, #2040 and #2043**.
+
+After integrating these in one source epoch, run:
+
+\`\`\`sh
+python3 tools/qa_modern_visual_integration_contract.py --strict \
+  --out /tmp/combined-modern-visual-native-hooks.json
+python3 -m unittest tests.unit.test_qa_modern_visual_integration_contract
+\`\`\`
+
+The inventory requires the title, grammar, destination and animation modules plus **actual native Baldosa host callsites** for title painting, child painting, motion input and focus ornament, real 342-wide preparation, semantic P1/keyboard edge ownership, and an Authentic execution exclusion. If a merge silently drops a child renderer, animation hook or source-mode guard, it rejects the supposed integrated source. An apparent green result is expressly \`eligible_for_native_acceptance_run\`, with \`native_executed=false\`, \`screenshots_captured=0\` and zero approval/gate credit. It does not compile the Windows candidate, verify call ordering or override screenshot/identity proof.
+
+Integration owner must reconcile the four PR heads and shared workflow once, preserving all unowned functional states; then run **exact combined-head** native Windows compile, title→root→destination/back and 1P/2P journeys, P7/drawable capture and independent source-aligned visual review. Avoid claiming wide-menu acceptance from a component's theoretical 342-wide layout while the real host still supplies 240px.

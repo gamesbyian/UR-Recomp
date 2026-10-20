@@ -1,0 +1,67 @@
+name: One-shot topology-aware genuine racing scout
+on:
+  push:
+    branches: [media/oct19-dynamic-native-racing]
+    paths: [.github/workflows/one-shot-topology-scout.yml]
+permissions:
+  contents: read
+concurrency:
+  group: ur-real-topology-media-scout
+  cancel-in-progress: false
+jobs:
+  scout:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check source-only course and asymmetric-control tests
+        run: |
+          set -euo pipefail
+          python3 tools/showcase/build_dynamic_2p_routes.py --self-test
+          python3 tools/showcase/build_topology_2p_routes.py --self-test
+          python3 -m unittest tests.unit.test_topology_2p_routes tests.unit.test_dynamic_native_2p_routes
+      - name: Confirm legally supplied local ROM is already accessible
+        id: rom
+        run: |
+          if test -r reference/roms/retail/Uniracers_USA.sfc; then
+            python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+          else
+            echo "No legitimate local ROM provisioned; cannot execute real native original without one" >&2
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.rom.outputs.ready == 'true'
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+      - name: Install native capture tools
+        if: steps.rom.outputs.ready == 'true'
+        run: |
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends \
+            cmake ninja-build pkg-config libsdl2-dev libgl-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxss-dev libwayland-dev libxkbcommon-dev libegl-dev \
+            libgles-dev libdrm-dev libgbm-dev libasound2-dev libpulse-dev libudev-dev \
+            libdbus-1-dev xvfb x11-utils ffmpeg python3-pil
+      - name: Source-locked native hill-loop-ramp scout
+        if: steps.rom.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          bash tools/showcase/run_dynamic_native_capture.sh \
+            "$GITHUB_WORKSPACE/baldosa" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            "$RUNNER_TEMP/ur-topology-scout" --topology
+      - name: Retain only source-qualified candidate outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: authentic-hill-loop-ramp-candidates
+          path: |
+            ${{ runner.temp }}/ur-topology-scout/published/
+            ${{ runner.temp }}/ur-topology-scout/routes/
+          if-no-files-found: warn
+          retention-days: 14

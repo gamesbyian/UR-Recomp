@@ -325,3 +325,33 @@ currently older title/host/capture code with these owner blobs while
 retaining sibling #2038, #2040 and #2042 menu/cursor/animation
 contracts. Do not promote the merged release gates or merge this PR
 based solely on isolated title-native checks.
+
+## Native keyboard Enter route in the actual Windows executable
+
+The original source-bound title artifact tested P1 A using the real
+`ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, ...)` physical-edge
+path. The on-screen prompt additionally supports keyboard Enter, but
+pure C++ input-coalescer tests alone do not prove the full SDL desktop
+keyboard handler actually reaches the transition.
+
+The title PR now extends the **existing test-only** native Windows smoke
+selector with mode `16`, leaving modes 1..14's historical direct-root
+fixtures and mode 15's P1 A title route unchanged. At guest frame60,
+mode16 calls `ur_baldosa_modern_root_key(SDLK_RETURN,1)` then key-up
+through the same production handler used for a physical desktop Enter.
+A separate fresh Windows game process (`--confirm keyboard`) must
+emit exactly one `native_keyboard_enter=1 frame=60` receipt, the same
+real root-entry event and exactly verified original logo/source and
+post-OSD host-presented title/root P7/P6 pixels. The verifier rejects a
+forged P1-A receipt standing in for Enter, duplicate native key receipts
+or stale/out-of-order root entry. The expanded native acceptance runs
+**five distinct scenarios against the same compiled PE**: widescreen P1,
+genuine 4:3 P1, reduced-motion P1, widescreen keyboard Enter, and
+original Authentic root off/on.
+
+This is real native **handler** reachability, not a tested physical
+keyboard model or final SDL drawable. It does not alter source guest
+simulation, race timing, title logo pixel provenance or the product's
+normal input mapping. **New native Windows CI outcome still pending**
+for the keyboard route; existing 16:9/4:3/reduced/Authentic green
+witnesses remain recorded above.

@@ -86,7 +86,7 @@ struct ModernMenuMotionPose {
     int entrance_distance_px = 0; // measured stock BG2 slide remaining
     int hero_bob_px = 0;       // host composition only, opt-in stock hero
     int hero_lean_px = 0;      // host composition only, opt-in stock hero
-    int hero_frame_ordinal = 0; // provisional 6-tick stock pose preview
+    int hero_frame_ordinal = 0; // one-shot source-frame ordinal, then hold
     bool reduced_motion = false;
 };
 
@@ -174,11 +174,14 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
     }};
     const auto bob = static_cast<std::size_t>((input.tick60 / 4u) % 16u);
     pose.hero_bob_px = kIdleBob[bob];
-    // Original pose animation cadence remains unqualified. The six-tick
-    // preview cycle is host-only and requires a separately verified ordered
-    // stock pose family before it can be drawn, never guessed frame IDs.
+    // On new root entry or any semantic selection change, use the source's
+    // one distinct Original guest pose per 60Hz frame for eight frames,
+    // then HOLD the last pose. There is no evidence 1213..1220 loops:
+    // cycling it would invent a jump from source frame 1220 to 1213.
+    // Source sprite admission is separately required by the hero compositor.
     pose.hero_frame_ordinal =
-        static_cast<int>((input.tick60 / 6u) % kModernMenuStockHeroMaxCycle);
+        age >= kModernMenuStockHeroMaxCycle
+            ? kModernMenuStockHeroMaxCycle - 1 : age;
     pose.hero_lean_px = (age < 4 && previous != current)
         ? (previous < current ? 1 : -1) : 0;
     return pose;

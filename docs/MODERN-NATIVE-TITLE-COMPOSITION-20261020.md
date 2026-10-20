@@ -115,7 +115,7 @@ promoted by this title PR.
 The existing `.github/workflows/baldosa-windows-native-bridge.yml` builds the
 exact pinned Windows AOT executable. For this **title branch only**, it now
 runs `tools/capture_baldosa_modern_title_win32.py` against that very binary
-with the verified USA retail ROM and existing Baldosa route fixture. It uses
+with the verified USA retail ROM and a bounded `tests/input/baldosa-modern-title-native-capture.script` fixture containing only Baldosa's established `turbo on / wait 180 / quit` commands. It neither asks the guest to race nor waits for an impossible stock menu while the Modern host owns input. It uses
 the original host `--no-launcher --config --script --framedump` arguments
 and actual native P1 semantic A at frame 60. The runner accepts only
 **both** 342×224 P7 files with ordered guest-frame witnesses, matching

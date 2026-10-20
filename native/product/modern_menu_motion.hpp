@@ -48,20 +48,43 @@ constexpr std::uint64_t modern_menu_tick60(std::uint64_t milliseconds) noexcept 
 // guest clock, UI input, or frame-count side effects. Strict decimal only:
 // malformed / overflow values fail closed to the real presentation clock.
 // This is a presentation screenshot override, never a saved setting.
-inline std::uint64_t modern_menu_resolve_test_tick60(
-    std::uint64_t presentation_tick60, const char* decimal) noexcept {
-    if (!decimal || !*decimal) return presentation_tick60;
+inline bool modern_menu_parse_test_tick60(
+    const char* decimal, std::uint64_t& value) noexcept {
+    if (!decimal || !*decimal) return false;
     std::uint64_t parsed = 0;
     for (const char* current = decimal; *current; ++current) {
         const unsigned char ch = static_cast<unsigned char>(*current);
-        if (ch < '0' || ch > '9') return presentation_tick60;
+        if (ch < '0' || ch > '9') return false;
         const auto digit = static_cast<std::uint64_t>(ch - '0');
-        constexpr auto maximum = UINT64_MAX;
-        if (parsed > (maximum - digit) / 10u)
-            return presentation_tick60;
+        if (parsed > (UINT64_MAX - digit) / 10u)
+            return false;
         parsed = parsed * 10u + digit;
     }
-    return parsed;
+    value = parsed;
+    return true;
+}
+
+inline std::uint64_t modern_menu_resolve_test_tick60(
+    std::uint64_t presentation_tick60, const char* decimal) noexcept {
+    std::uint64_t parsed = 0;
+    return modern_menu_parse_test_tick60(decimal, parsed)
+        ? parsed : presentation_tick60;
+}
+
+// Exact-head source/SDL capture may advance a pinned presentation clock
+// by ONE tick per actual root present, not per guest CPU/frame or thread tick.
+// Fixed mode remains backwards compatible. Invalid seed always falls back
+// to real SDL time, and cumulative capture arithmetic saturates.
+// A named host-present ordinal must accompany any resulting pixel evidence.
+inline std::uint64_t modern_menu_capture_test_tick60(
+    std::uint64_t presentation_tick60, const char* seed_decimal,
+    bool step_per_present, std::uint64_t root_present_ordinal) noexcept {
+    std::uint64_t seed = 0;
+    if (!modern_menu_parse_test_tick60(seed_decimal, seed))
+        return presentation_tick60;
+    if (!step_per_present) return seed;
+    return root_present_ordinal > UINT64_MAX - seed
+        ? UINT64_MAX : seed + root_present_ordinal;
 }
 
 struct ModernMenuMotionInput {

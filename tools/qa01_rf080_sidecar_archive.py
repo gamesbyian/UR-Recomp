@@ -56,6 +56,12 @@ def qualify_sidecar(raw):
                   "unqualified actual native BPL N input")
     return lines, rows, stages
 
+def raw_byte_differences(original: bytes, native: bytes, expected_size: int):
+    """Return every differing physical offset, without gameplay/stack masks."""
+    check(len(original) == len(native) == expected_size,
+          "missing or malformed complete original/native physical image")
+    return [offset for offset,(a,b) in enumerate(zip(original,native)) if a != b]
+
 def qualify(case_file: Path, binary_file: Path):
     with qa.source_zip(case_file, CASE_SHA, 200, 45_000_000) as case, \
          qa.source_zip(binary_file, BIN_SHA, 11, 25_000_000) as bins:
@@ -144,12 +150,29 @@ def qualify(case_file: Path, binary_file: Path):
         samples={p.split("/")[-1] for p in case.namelist()
                  if p.startswith(root+"ref/") and p.endswith(".wram.bin")}
         check(len(samples)==44, "missing or extra sampled source original/native WRAM")
+        all_differences=collections.Counter()
+        exact_WRAM=0
+        exact_SRAM=0
         for sample in samples:
             ref=case.read(root+"ref/"+sample)
             nat=case.read(root+"native/"+sample)
-            check(len(ref)==len(nat)==131072
-                  and all(ref[offset]==nat[offset] for offset in (0x57,0x59)),
+            changes=raw_byte_differences(ref,nat,131072)
+            all_differences.update(changes)
+            if not changes:
+                exact_WRAM+=1
+            check(all(ref[offset]==nat[offset] for offset in (0x57,0x59)),
                   "physical 0057/0059 sampled WRAM differed")
+            suffix=sample.removesuffix(".wram.bin")
+            old=case.read(root+"ref/"+suffix+".sram.bin")
+            new=case.read(root+"native/"+suffix+".sram.bin")
+            if not raw_byte_differences(old,new,8192):
+                exact_SRAM+=1
+        expected_differences={475:2,476:2,477:2,478:2,479:2,482:1,
+                484:2,485:1,486:1,487:1,490:1,491:1,492:1,
+                493:16,494:16,495:15,496:15,499:1}
+        check(exact_WRAM==27 and exact_SRAM==44
+              and all_differences==collections.Counter(expected_differences),
+              "authentic 44 raw-pair WRAM/SRAM negative census altered")
         return {
           "schema":"ur-qa01-rf080-true-native-event-sidecar/1",
           "actual_case_zip_sha256":CASE_SHA,
@@ -165,6 +188,13 @@ def qualify(case_file: Path, binary_file: Path):
           "legacy_raw_stderr_mixed_physical_lines":75,
           "legacy_raw_stderr_RF035_truncation_retained":True,
           "source_local_branch_outcome_crosswalk":checkpoints,
+          "paired_unmasked_full_WRAM_images":44,
+          "fully_byte_equal_WRAM_pairs":exact_WRAM,
+          "unequal_WRAM_pairs":44-exact_WRAM,
+          "unmasked_full_WRAM_differing_byte_occurrences":sum(all_differences.values()),
+          "all_unmasked_difference_address_occurrences":{
+              f"7E:{offset:04X}":count for offset,count in sorted(all_differences.items())},
+          "paired_full_original_native_SRAM_equal":exact_SRAM,
           "physical_WRAM_0057_0059_equal_sample_pairs":44,
           "original_actual_bus_read_0057_proven":False,
           "first_0059_STZ_writer_consumption_proven":False,

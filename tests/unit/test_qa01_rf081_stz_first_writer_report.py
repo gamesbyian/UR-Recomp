@@ -20,10 +20,10 @@ def fixture():
             frame=int(re.search(r"f=(\d+)",line).group(1))
             ordinal+=1
             o.append(f"QA01RF081ORIG seq={ordinal} stage=setbyte_enter f={frame} pc=82D4F2"
-                     " D=0000 addr=000059 value=00 committed=0 v=226 h=880 phase=source_local")
+                     " D=0000 addr=000059 value=00 committed=0 v=226 h=970 phase=source_local")
             ordinal+=1
             o.append(f"QA01RF081ORIG seq={ordinal} stage=after_stz_opcode f={frame} pc=82D4F2"
-                     " D=0000 addr=000059 value=00 committed=1 v=226 h=904 phase=source_local")
+                     " D=0000 addr=000059 value=00 committed=1 v=226 h=995 phase=source_local")
     n=[]
     for line in native.splitlines():
         n.append(line)
@@ -48,6 +48,8 @@ class StzFirstWriter(unittest.TestCase):
         self.assertEqual(data["accepted_USA_events"],0)
         self.assertEqual(data["frames"][0]["original_true_STZ_dispatch_completed"]["host_physical_RAM_mirror"],"00")
         self.assertEqual(data["frames"][0]["native_true_paced_STZ_committed"]["source_master_cycle"],209)
+        self.assertEqual(data["frames"][0]["original_local_vh_ticks_first_BPL_post_execution_to_true_setbyte_entry"],26)
+        self.assertFalse(data["frames"][0]["cross_emulator_subtraction_valid"])
 
     def test_wrong_source_actual_write_value_or_effective_address_is_a_failure(self):
         o,n=fixture()

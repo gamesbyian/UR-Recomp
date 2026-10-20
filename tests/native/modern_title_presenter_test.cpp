@@ -167,7 +167,9 @@ int main() {
             opening = modern_title_advance(opening);
         assert(render_modern_title(paint, surf.pixels.data(),
                 surf.stride, surf.height, width, opening));
-        assert(saw("UNIRACERS"));
+        // The brand appears as pixel-exact original retail artwork;
+        // avoid a second stock-font copy of the game name above it.
+        assert(!saw("UNIRACERS"));
         assert(saw("THE ONE-WHEEL RACING CLASSIC"));
         assert(saw("PRESS A / START"));
         assert(!saw("UNIRALLY"));
@@ -196,7 +198,7 @@ int main() {
         words.clear();
         assert(render_modern_title(paint, surf.pixels.data(),
                 surf.stride, surf.height, width, opening, true));
-        assert(saw("UNIRALLY"));
+        assert(!saw("UNIRALLY"));
         assert(!saw("UNIRACERS"));
         assert(asset_digest() == regional_title_asset::kTargetCropBgrFnv1a64);
         words.clear();

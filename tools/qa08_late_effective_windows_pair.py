@@ -110,7 +110,8 @@ def run_pair(off: Path, on: Path, rom: Path, route: Path, original: Path,
             # pretending old source frames or input epochs are equivalent.
             try:
                 selected = summarize_trace(
-                    (out / "on-source.log").read_text(encoding="utf-8"))
+                    (out / "on-source.log").read_text(encoding="utf-8"),
+                    require_full_window=True)
                 results["unadmitted_live_PPU_sample"] = [{
                     "xy": row["xy"],
                     "actual_renderer": row["actual_renderer"],

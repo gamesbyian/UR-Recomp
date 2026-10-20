@@ -56,6 +56,15 @@ def parse(original:str,native:str)->dict:
                if i>entries[0] and int(e["f"])==frame]
         must(len(after)>=2,"original real post-NMI STZ source event absent")
         (original_set_line,original_set),(original_commit_line,original_commit)=after[:2]
+        actual_opcodes=[rf079.fields(line,"QA01RF076ORIGPC ")
+                        for line in original_lines[entries[0]+1:original_set_line]
+                        if line.startswith("QA01RF076ORIGPC ") and
+                        f" f={frame} " in line and
+                        "stage=fetch" in line]
+        must(bool(actual_opcodes) and
+             actual_opcodes[-1].get("actualFetchedPC")=="82D4F2" and
+             actual_opcodes[-1].get("fetchedOpcode")=="64",
+             "original true fetched STZ 82:D4F2/64 absent before S9xSetByte entry")
         earlier_bpl=[rf079.fields(line,"QA01RF079ORIG ") for line in
                      original_lines[entries[0]+1:original_set_line]
                      if line.startswith("QA01RF079ORIG ") and
@@ -93,6 +102,11 @@ def parse(original:str,native:str)->dict:
                     if e.get("stage")=="stz_real_commit"]
         must(native_stz,"native actual STZ paced writer never returned")
         native_pos,native_write=native_stz[0]
+        native_direct_page=int(native_write.get("D","-1"),16)
+        native_address=int(native_write.get("addr","-1"),16)
+        must(native_direct_page==d and native_address==addr and
+             addr<0x2000,
+             "original/native first STZ direct page/effective WRAM address differs")
         must(native_write.get("guestPC")=="82D4F2" and
              native_write.get("bank")=="00" and
              int(native_write.get("addr","-1"),16)==

@@ -94,6 +94,8 @@ def verify_source_art_bundle(receipt: dict, paths: dict[str, Path]) -> dict:
     checked = {}
     for name, (width, height) in EXPECTED.items():
         path = paths[name]
+        if path.stat().st_size > MAX_PNG_BYTES:
+            raise ValueError(f"{name}: source PNG too large")
         digest = hashlib.sha256(path.read_bytes()).hexdigest()
         if (not isinstance(hashes.get(name), str) or
                 digest != hashes[name] or dims.get(name) != [width, height]):
@@ -120,7 +122,9 @@ def verify_source_art_bundle(receipt: dict, paths: dict[str, Path]) -> dict:
     for a, b in zip(left, right):
         if b != b"".join(a[x:x + 4] for x in range(28, -1, -4)):
             raise ValueError("detail: ')' is not a horizontal mirror of '('")
-    if any(detail_cell(44)):
+    if not any(any(x for x in line[3::4]) for line in detail_cell(38)):
+        raise ValueError("detail: source parenthesis glyph is blank")
+    if any(any(v for v in line) for line in detail_cell(44)):
         raise ValueError("detail: original blank-space glyph has ink")
     cursor = read_png_rgba(paths["cursor"], *EXPECTED["cursor"])
     for n in range(16):

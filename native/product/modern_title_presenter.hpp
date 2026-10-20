@@ -6,6 +6,7 @@
 // 342x224 at the preserved 7:6 PAR is a physical 16:9 composition. The 256px
 // fallback is deliberately composed (not cropped from 342) for fixed hosts.
 #include "modern_root_overlay_presenter.hpp"
+#include "modern_title_retail_reference.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -102,25 +103,40 @@ inline bool render_modern_title(
                         0xFF07101Bu);
     }
 
-    // Narrow stock-yellow badge and authentic Uniracers name, both supplied
-    // through the project's established host text painter.
+    // Retail-verified 238x81 Uniracers/Unirally title logo and two title
+    // unicycles, preserved without resampling or an AI redraw. The original
+    // indexed RGB content comes from regional_title_retail_asset.hpp, whose
+    // exact source/EU crops were independently hash-qualified. The border
+    // deliberately frames a 4:3 source plate within the Modern 16:9 field.
     const char* brand = europe ? "UNIRALLY" : "UNIRACERS";
     const int brand_chars = europe ? 8 : 9;
-    const int logo_x = center - brand_chars * 8;
     const int reveal = state.phase == ModernTitlePhase::Intro
         ? static_cast<int>(std::min(state.age, 24u)) : 24;
     if (reveal > 4) {
         const int lift = (24 - reveal) / 2;
-        paint.fill_rect(pixels, stride, surface_height,
-                        center - 67, 29 + lift, 134, 3, cobalt);
+        const int artwork_x = center - regional_title_asset::kWidth / 2;
+        const int artwork_y = 27 + lift;
         paint.draw_text(pixels, stride, surface_height,
-                        logo_x + 2, 55 + lift + 2, brand,
-                        0xFF03060Bu, 2);
-        paint.draw_text(pixels, stride, surface_height,
-                        logo_x, 55 + lift, brand, gold, 2);
+                        center - brand_chars * 4, 12, brand, grey, 1);
+        paint.stroke_rect(pixels, stride, surface_height,
+                          artwork_x - 2, artwork_y - 2,
+                          regional_title_asset::kWidth + 4,
+                          regional_title_asset::kHeight + 4, cobalt);
+        const bool retail_drawn = title_retail_reference::paint_retail_title_art(
+            pixels, stride, surface_height, artwork_x, artwork_y, europe);
+        if (!retail_drawn) {
+            // Corrupt or absent retail data fails closed to the same
+            // stock-yellow 16px title treatment as the Modern root.
+            paint.draw_text(pixels, stride, surface_height,
+                            center - brand_chars * 8 + 1, 54 + lift + 1,
+                            brand, black, 2);
+            paint.draw_text(pixels, stride, surface_height,
+                            center - brand_chars * 8, 54 + lift,
+                            brand, gold, 2);
+        }
         const char* strap = "THE ONE-WHEEL RACING CLASSIC";
         paint.draw_text(pixels, stride, surface_height,
-                        center - 28 * 4, 91 + lift, strap, grey, 1);
+                        center - 28 * 4, 116 + lift, strap, grey, 1);
     }
 
     // Silhouette: a native vector/pixel treatment of a single wheel, not

@@ -40,12 +40,12 @@ inline ModernNativeDestinationCanvas modern_native_destination_canvas(
         root.y > surface_height ||
         root.height > surface_height - root.y ||
         panel_w * scale > root.width ||
-        root.height < 185 * scale) return {};
-    const int inset = 11 * scale;
+        root.height < 204 * scale) return {};
+    const int inset = 2 * scale;
     const int width = panel_w * scale - 2 * inset;
-    const int height = 138 * scale;
+    const int height = 154 * scale;
     const int x = root.x + inset;
-    const int y = root.y + 42 * scale;
+    const int y = root.y + 50 * scale;
     if (x < root.x || y < root.y ||
         width > root.x + root.width - x ||
         height > root.y + root.height - y) return {};

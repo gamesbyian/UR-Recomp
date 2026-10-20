@@ -109,8 +109,21 @@ int main() {
            "root-notice");
     const auto narrow = modern_native_destination_canvas(256,224,1,240,original);
     const auto expanded = modern_native_destination_canvas(342,224,1,320,wide);
-    assert(narrow.scale == 1 && !narrow.wide && narrow.w == 218);
-    assert(expanded.scale == 1 && expanded.wide && expanded.w == 298);
+    assert(narrow.scale == 1 && !narrow.wide && narrow.w == 236);
+    assert(expanded.scale == 1 && expanded.wide && expanded.w == 316);
+    // Actual Windows SDL image comparison (integration PR #2053) found legacy
+    // root selection stripes and root-only A/B footer escaping the child.
+    // An opened destination now occludes the root interactive area from
+    // beyond its cursor inset all the way to the original root bottom.
+    for (auto c : {narrow, expanded}) {
+        assert(c.x <= (c.wide ? wide.x : original.x) + 5 * c.scale);
+        assert(c.y == (c.wide ? wide.y : original.y) + 50 * c.scale);
+        assert(c.y + c.h ==
+               (c.wide ? wide.y + wide.height
+                       : original.y + original.height));
+    }
+    assert(!modern_native_destination_canvas(
+        256,224,1,240,{8,10,240,203}).scale);
     assert(!modern_native_destination_canvas(256,224,1,320,original).scale);
     assert(!modern_native_destination_canvas(256,224,0,240,original).scale);
     assert(!modern_native_destination_canvas(256,224,2147483647,240,original).scale);
@@ -298,8 +311,8 @@ int main() {
     v.join_p2_name = "QRSTUVWXYZABCDEFGHIJ";
     assert(render_modern_native_destination(painter,scratch,256,224,
                                              1,240,original,v));
-    assert(has("  P1  ABCDEFGHIJ.  ACTIVE"));
-    assert(has("> P2  QRSTUVWXYZ.  CHOOSE"));
+    assert(has("  P1  ABCDEFGHIJKL.  ACTIVE"));
+    assert(has("> P2  QRSTUVWXYZAB.  CHOOSE"));
     bounds(256,224);
     clear();
     // In 342-wide composition both complete 20-character names fit.

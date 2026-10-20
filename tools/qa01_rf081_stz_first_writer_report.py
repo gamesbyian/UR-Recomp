@@ -93,6 +93,9 @@ def parse(original:str,native:str)->dict:
              "original opcode return did not prove one real committed zero byte")
         must(int(original_set["seq"])+1==int(original_commit["seq"]),
              "original STZ setter-to-commit source ordinal not adjacent")
+        original_commit_delta=(int(original_commit["v"])-int(original_set["v"]))*1364+(int(original_commit["h"])-int(original_set["h"]))
+        must(original_commit_delta>=0,
+             "original STZ setter-to-completion source clock regressed")
         subset=[e for e in events if int(e["f"])==frame]
         interrupt=[i for i,e in enumerate(subset)
                    if e.get("stage")=="handler_return"]
@@ -127,6 +130,9 @@ def parse(original:str,native:str)->dict:
                    if e.get("stage")=="bpl_actual_input"]
         must(prior_bpl and int(prior_bpl[0]["seq"])<int(native_write["seq"]),
              "native real first BPL decision did not precede first STZ write")
+        must(int(prior_bpl[0]["master"])<=int(prior_opcode["master"])<=
+             int(native_write["master"])<=int(next_opcode["master"]),
+             "native BPL/STZ commit/next-opcode source master clock regressed")
         native_local_delta=int(native_write["master"])-int(prior_bpl[0]["master"])
         must(native_local_delta>=0,"native BPL pre-op to STZ write local master clock regressed")
         rows.append({

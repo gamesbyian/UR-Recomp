@@ -1,0 +1,86 @@
+{
+  "closed_loop_completion_claimed": false,
+  "film": {
+    "path": "media/showcase/2026-10-19/flagship/ur-recomp-flagship-85s-1080p.mp4",
+    "sha256": "6b5015fb83cb6e6deaebb08b8adf55f86004918f4169da7a71e73e46bc23cd9c",
+    "source_frames": 5100
+  },
+  "genuine_race_motion_interpolated": false,
+  "genuine_racer_position_source": "native recorded guest play, distinct independently evidenced P1/P2 coordinates",
+  "jump_or_landing_success_overclaimed": false,
+  "new_audio": "Original preexisting promotional soundtrack spliced from original film; no new commercial music",
+  "new_output_fps": 60,
+  "new_output_frames": 5400,
+  "new_output_sha256": "22fab3aeb9eaae74a40dfacfd205b36d406b248a2bffe33571b6b0051463828c",
+  "old_flat_gameplay_removal_source_frames": [
+    [
+      600,
+      839
+    ],
+    [
+      4200,
+      4559
+    ]
+  ],
+  "original_2p_cameras_repositioned": false,
+  "output_review_frames_sha256": {
+    "dynamic-v2-source-ordinal-0075.png": "19466c71dcdd41def0cfa18bbfd61bdce1eaf4fc7435d21d56107c2d0f13ce59",
+    "dynamic-v2-source-ordinal-0420.png": "92570925a5c0f14cb2db4633052284f13fe12b57cf20b1f7bde05596d9718cb6",
+    "dynamic-v2-source-ordinal-0720.png": "a0cc6241e7fc0c2faf453ee07b5c183700728a66f12237f2729a36d0103582dd",
+    "dynamic-v2-source-ordinal-0975.png": "1eb9a92171f5cbfd075f7e46942bc988086cd27b4d024fde494765da43a43696",
+    "dynamic-v2-source-ordinal-1230.png": "1e4168bf67ecea535388a741561f7047ba83a6dddcf629021a46b27972398c2a",
+    "dynamic-v2-source-ordinal-1470.png": "6330c8909f609b869f9a4b3e73fdb8d7b24ada1680fde2df6f4627c813848820",
+    "dynamic-v2-source-ordinal-1680.png": "d5ecbfdab2ab353200c484f43e18774f100dd28b376e79bd59af83afadb2ef45",
+    "dynamic-v2-source-ordinal-2300.png": "8d771ebeab58c031c67c28d446088a96c778f2fd5e4dcaa2100edd6dae4523b3",
+    "dynamic-v2-source-ordinal-3300.png": "4c6d2c8d8bbb3756757eacd65f2e662ac9a6f56594ea0e34760218bc21f02037",
+    "dynamic-v2-source-ordinal-4620.png": "7a78d6546dc8e46253f0b7b2c5fb6c15e9ce3bb7e8beb466769de13bcab1a812",
+    "dynamic-v2-source-ordinal-5160.png": "40282c9e5c134898d577c7266e65d77d61e27d44279d970c9136b48779f6dff3"
+  },
+  "race": {
+    "path": "media/showcase/2026-10-19/dynamic-native-2p/native-dynamic-2p-three-courses-15s.mp4",
+    "sha256": "46b5bf43bcfb4f8bdd4874e7a9994f70996688c2c86a259bef01d5102630598d",
+    "source_frames": 900
+  },
+  "race_provenance_sha256": "8245826a70a0fa2c46f42b07bb01f399640e67bcb22c5a099861238db5c4beee",
+  "review_status": "exact-source-and-11-decoded-frames-validated_pending_visual_screening",
+  "schema": "UR-NATIVE-DYNAMIC-90S-FLAGSHIP/1",
+  "source_verified_shots": [
+    {
+      "frames": [
+        0,
+        599
+      ],
+      "role": "original-title-and-wide-reveal",
+      "source": "original 85s film"
+    },
+    {
+      "courses": [
+        "MegaJump",
+        "Jumps",
+        "Looper"
+      ],
+      "frames": [
+        0,
+        899
+      ],
+      "role": "three-distinct-native-2p-races",
+      "source": "15s true multi-course reel"
+    },
+    {
+      "frames": [
+        840,
+        4199
+      ],
+      "role": "Modern-engineering-and-art",
+      "source": "original 85s film"
+    },
+    {
+      "frames": [
+        4560,
+        5099
+      ],
+      "role": "recruitment-invitation",
+      "source": "original 85s film"
+    }
+  ]
+}

@@ -997,8 +997,10 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     // Existing scripted journeys start directly at root. Mode 15 is the
     // explicit title journey; ordinary Modern launches display the title.
     const char* fixture = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
+    const char* reduced = std::getenv("UR_REDUCED_MOTION");
     g_title = ur::product::modern_title_boot(
-        !(fixture && *fixture && std::strcmp(fixture, "15") != 0));
+        !(fixture && *fixture && std::strcmp(fixture, "15") != 0),
+        reduced && std::strcmp(reduced, "1") == 0);
     g_title_logged = false;
     g_title_intro_captured = false;
     g_title_root_captured = false;

@@ -695,8 +695,21 @@ def export_cursor_atlas(directory: Path, path: Path,
     """16 source PPU poses, no synthesized interpolation or source art commit."""
     unique: dict[int, tuple[Dump, bytes]] = {}
     idle = series(directory, "idle")
-    for sample in idle:
+    # The canonical script records two entire 32-frame rotations, 64
+    # consecutively numbered original PPU snapshots. Merely collecting one
+    # example of each tile would NOT establish the real 2-tick hold cadence
+    # or that repeated phases retain identical original raster/palette data.
+    if len(idle) != 64:
+        raise ValueError("original cursor requires all 64 source idle frames")
+    for index, sample in enumerate(idle):
+        if sample.tag != f"mvl-idle-{index:03d}":
+            raise ValueError("original cursor source idle samples reordered")
         tile, rgba = original_menu_cursor_pose(sample)
+        expected = CURSOR_SOURCE_TILE_CYCLE[(index // 2) % 16]
+        if tile != expected:
+            raise ValueError("original cursor 2-frame tile cadence differs")
+        if tile in unique and rgba != unique[tile][1]:
+            raise ValueError("original cursor phase art/palette drifted")
         unique.setdefault(tile, (sample, rgba))
     if tuple(unique) != CURSOR_SOURCE_TILE_CYCLE:
         raise ValueError("stock arrow tile sequence/phase evidence changed")
@@ -733,6 +746,7 @@ def export_cursor_atlas(directory: Path, path: Path,
         "shadow_offset": [7, 7],
         "frames_per_pose": 2,
         "cycle_frames": 32,
+        "captured_idle_frames": 64,
         "atlas_png_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
         "source_frames": frames,
         "distribution": "Research-only locally extracted original game art; do not commit PNG",
@@ -762,6 +776,10 @@ def build_menu_source_art_bundle(big: dict, small: dict,
         raise ValueError("original cursor phase sequence is incomplete")
     if [p.get("source_obj_tile") for p in phases] != list(CURSOR_SOURCE_TILE_CYCLE):
         raise ValueError("original cursor source phase order mismatch")
+    if cursor.get("captured_idle_frames") != 64 or (
+            cursor.get("frames_per_pose") != 2 or
+            cursor.get("cycle_frames") != 32):
+        raise ValueError("original cursor full capture/cadence proof missing")
     original = phases[0]
     source_tag = big.get("source_tag")
     if (not isinstance(source_tag, str) or not source_tag.startswith("mvl-idle-") or

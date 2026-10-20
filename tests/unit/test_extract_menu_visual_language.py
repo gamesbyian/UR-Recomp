@@ -97,6 +97,32 @@ class MenuVisualLanguageTests(unittest.TestCase):
         self.assertEqual(mvl.run_lengths([8, 8, 4, 4, 0]), [[8, 2], [4, 2], [0, 1]])
         self.assertEqual(mvl.deltas([0, 1, 3, 6]), [1, 2, 3])
 
+    def test_original_big_font_atlas_has_source_identity_receipt(self) -> None:
+        class Sample:
+            pass
+
+        d = Sample()
+        d.tag = "mvl-idle-00"
+        d.vram = bytearray(65536)
+        d.cgram = bytearray(512)
+        with tempfile.TemporaryDirectory() as td:
+            atlas = Path(td) / "main-title.png"
+            mvl.write_atlas(atlas, d, 0)
+            receipt = mvl.original_big_font_manifest(atlas, d)
+            self.assertEqual(receipt["dimensions"], [640, 16])
+            self.assertEqual(receipt["glyph_cell"], [16, 16])
+            self.assertEqual(len(receipt["slots"]), 40)
+            self.assertEqual(receipt["slots"][0], "0")
+            self.assertNotIn("O", receipt["slots"])
+            self.assertEqual(receipt["slots"][35], "OK")
+            self.assertEqual(receipt["source_tag"], "mvl-idle-00")
+            self.assertEqual(receipt["image_png_sha256"],
+                             hashlib.sha256(atlas.read_bytes()).hexdigest())
+            self.assertEqual(receipt["source_vram_sha256"],
+                             hashlib.sha256(d.vram).hexdigest())
+            self.assertEqual(receipt["source_cgram_sha256"],
+                             hashlib.sha256(d.cgram).hexdigest())
+
     def test_original_bg1_mode3_8bpp_source_flips_scroll_and_16px(self) -> None:
         class Sample:
             pass

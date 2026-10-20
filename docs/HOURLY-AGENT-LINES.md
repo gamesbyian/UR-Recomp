@@ -1,10 +1,24 @@
 # Ten rotating hourly agent work lines
 
-**Live rotating dispatch board, created 2026-10-19.** This is a replaceable allocation of current problems, **not** permanent specialties or proof of running agents. `docs/WORK-QUEUE.md` remains the master priority authority; `docs/RELEASE-QUALITY-LEDGER.json` alone owns gate results. Reconcile this board whenever priorities, evidence or PR ownership change. The hourly agents use the **latest board**, never a remembered assignment. One numbered agent takes its matching numbered line by default, but may take another explicitly unclaimed line when its line is demonstrably blocked/finished; write the reassignment here or in the relevant PR so subsequent runs avoid collisions. No agent should edit a branch being actively written by another agent.
+**Live rotating dispatch board, created 2026-10-19.** This is a replaceable allocation of current problems, **not** permanent specialties or proof of running agents. `docs/WORK-QUEUE.md` remains the master priority authority; `docs/RELEASE-QUALITY-LEDGER.json` alone owns gate results. Reconcile this board whenever priorities, evidence or PR ownership change. The hourly agents use the **latest board**, never a remembered assignment. An hourly agent owns the two lines mapped in the five-agent table, but may take another explicitly unclaimed line when both are demonstrably blocked/finished; write the reassignment here or in the relevant PR so subsequent runs avoid collisions. No agent should edit a branch being actively written by another agent.
+
+## Five hourly agents, two rotating lines each
+
+The **scheduling authority** is five runs per hour, evenly staggered. Each invocation tackles both of its current lines when useful; pick the most urgent decision-bearing step first, then advance the second independently while waiting for tests. Never pretend both received work if they did not.
+
+| Hourly agent | Start | Lines owned this hour | Independence constraint |
+| --- | --- | --- | --- |
+| **Agent 1** | **:00** | **1 CPU first-divergence + 8 decentralized P2P** | No independent event verdicts |
+| **Agent 2** | **:12** | **2 independent QA01 + 10 knowledge/reproducibility** | No gameplay producer edits |
+| **Agent 3** | **:24** | **3 Modern Windows storage + 7 records/replay/video** | No Windows QA self-certification |
+| **Agent 4** | **:36** | **4 independent Windows QA + 9 CI/integration/hygiene** | May integrate qualified changes; cannot waive independent review |
+| **Agent 5** | **:48** | **5 raster/PPU + 6 graphics/HD/UHD presentation** | Separate diagnostic observation from shipping changes and art approval |
+
+**Ten lines remain independent problem definitions, not fixed permanent roles.** Change pairings here when priorities shift, without changing scheduled prompts. The minute numbers in the underlying ten-line catalog below are **historical six-minute proposal labels only** and no longer schedule individual agents.
 
 ## Current ten lines (all provisional)
 
-| Agent / minute | Current line | Bounded next deliverable | Exclusive write boundary |
+| Line / former minute (non-scheduling) | Current line | Bounded next deliverable | Exclusive write boundary |
 | --- | --- | --- | --- |
 | 1 / :00 | **Original/native CPU first divergence.** Follow merged RF076–081 from actual post-PLP/RTS phase and prove the first causally meaningful fetched instruction, read or write mismatch. | One genuine comparable original/native source-qualified discriminator or a precise negative report with immutable artifacts. | CPU/NMI instrumentation and RF source evidence; cannot grant QA01 event credit. |
 | 2 / :06 | **Independent QA01 event acceptance.** Audit complete course events and original/native witnesses against QA campaign, event census and RF062 evidence. | First-event missing witness and independently reproduced verdict; reject same-SRAM/PC-only shortcuts. | Independent validators/census proposal; no producer CPU changes or self-awarded release gates. |

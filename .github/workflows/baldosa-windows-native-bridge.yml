@@ -150,6 +150,7 @@ on:
       - "native/product/modern_stock_menu_palette.hpp"
       # Compiled by the shared native Modern root/title visual presenter.
       - "native/product/modern_menu_visual_grammar.hpp"
+      - "native/product/modern_menu_source_atlas.hpp"
       - "native/product/modern_text_catalog.hpp"
       - "native/product/modern_text_layout.hpp"
       - "native/product/quick_practice_availability.hpp"

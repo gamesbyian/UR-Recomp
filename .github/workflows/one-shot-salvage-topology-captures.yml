@@ -1,0 +1,58 @@
+name: One-shot salvage three verified native topology captures
+on:
+  push:
+    branches: [media/oct19-dynamic-native-racing]
+    paths: [.github/workflows/one-shot-salvage-topology-captures.yml]
+permissions:
+  contents: write
+  actions: read
+jobs:
+  salvage:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: real-2p-course-topology-source-witnesses
+          run-id: 39356424570
+          github-token: ${{ github.token }}
+          path: /tmp/topology-source-evidence
+      - name: Install review-only tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg python3-pil
+      - name: Independently verify and rescue three successful real captures
+        run: |
+          set -euo pipefail
+          root=/tmp/topology-source-evidence
+          find "$root" -maxdepth 3 -type f | head -50
+          test -f "$root/published/native-looper-p1-leads-900f.mp4"
+          test -f "$root/published/native-megajump-p2-leads-900f.mp4"
+          test -f "$root/published/native-jumps-p1-leads-900f.mp4"
+          for name in looper-p1-leads megajump-p2-leads jumps-p1-leads; do
+            test -f "$root/working/$name-control/log.txt"
+            test -f "$root/working/$name-recorded/log.txt"
+            test -f "$root/working/$name-control/dump/cinematic-lead.wram.bin"
+            test -f "$root/working/$name-recorded/dump/cinematic-lead.wram.bin"
+          done
+          python3 tools/showcase/audit_dynamic_native_2p.py \
+            --publish "$root/published" \
+            --route-manifest "$root/routes/topology-candidate-manifest.json" \
+            --native-sha "$root/working/native-binary-sha256.txt" \
+            --rom-sha 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478 \
+            --source-sha 447f8acc59a1196c6619ad47d0af659ad22aa6fa \
+            --work-root "$root/working" \
+            --names looper-p1-leads megajump-p2-leads jumps-p1-leads
+      - name: Publish video, hashes, and visual contact sheets only
+        run: |
+          set -euo pipefail
+          mkdir -p media/showcase/2026-10-19/dynamic-native-2p
+          cp /tmp/topology-source-evidence/published/* media/showcase/2026-10-19/dynamic-native-2p/
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add media/showcase/2026-10-19/dynamic-native-2p
+          git rm -f .github/workflows/one-shot-salvage-topology-captures.yml
+          git rm -f .github/workflows/one-shot-real-topology-footage.yml
+          git commit -m 'media: salvage three genuine verified native topology capture candidates'
+          git push origin "HEAD:${GITHUB_REF_NAME}"

@@ -125,8 +125,8 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
         # Reject empty/transparent *late* stock frames rather than granting a
         # misleading green visual receipt.
         raw = capture.read_bytes()
-        header = (f"P7\\nWIDTH {found[0]}\\nHEIGHT {found[1]}\\nDEPTH 4\\n"
-                  "MAXVAL 255\\nTUPLTYPE RGB_ALPHA\\nENDHDR\\n").encode("ascii")
+        header = (f"P7\nWIDTH {found[0]}\nHEIGHT {found[1]}\nDEPTH 4\n"
+                  "MAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n").encode("ascii")
         if not raw.startswith(header) or len(raw) != len(header) + found[0] * found[1] * 4:
             raise RuntimeError("Authentic stock SDL frame has invalid raster")
         rgba = memoryview(raw)[len(header):]

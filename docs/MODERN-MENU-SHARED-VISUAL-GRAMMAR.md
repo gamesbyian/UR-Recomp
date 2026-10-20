@@ -33,6 +33,34 @@ Visual cross-checks outside the project's ROM capture: the [MobyGames original m
 
 The shared Modern native presenter `native/product/modern_root_overlay_presenter.hpp` consumes these raster helpers in the existing five-destination root and native Options selected-row path; both the traditional Modern executor and integrated Baldosa host call the same presenter. The five settled destinations, prompts, modals, scores and controller semantics remain unchanged. All other screens can adopt these helpers incrementally after review instead of embedding different palette/selection/checker constants. The absence of a real sprite or font atlas is a blocker for claiming final visual polish.
 
+## Decoded original-art reference path (no copyrighted assets committed)
+
+The existing first-party `tools/extract_menu_visual_language.py` already decodes the original **40-slot 16×16** BG2 yellow type atlas from legitimate source PPU dumps. This lane extends that *same* extractor with all three missing complementary original raster references:
+
+1. `--small-atlas-out` and optional `--small-atlas-manifest-out`: original **8×16 grey** character atlas, including zero reused for O, known punctuation and the H-flipped closing parenthesis. Glyph-to-VRAM-tile mappings, image dimensions and SHA256 are captured in the JSON manifest. No invented font face.
+2. `--cursor-atlas-out` and optional `--cursor-manifest-out`: the actual **16-frame 32×32 palette-7 OBJ arrow plus palette-5 shadow displaced +7,+7**, decoded through `$2101` OBSEL VRAM name/base pages, source OAM size bits, original 4bpp palette and alpha transparency. The resulting image is 624×39, sixteen adjacent 39×39 cells. Pose order must match the captured 16 unique CHR tiles; missing or reordered phases fail closed, with source VRAM/CGRAM/OAM SHA256 receipts.
+3. `--bg1-out` and optional `--bg1-manifest-out`: **actual fixed 256×224 8bpp BG1 art** showing the original static title/logo/checker/leaf motif as encoded in VRAM and CGRAM, rather than a substitute navy grid. Decode honours BG tile size, flipped tilemap entries and original scroll. This is BG1 only; BG2 menu lettering, OBJ arrow, colour math and final presentation remain outside the exported image. The manifest records the precise source and output hashes.
+
+Run from a privately available canonical clean-boot `tests/input/menu-visual-language.script` capture and supply distinct local filenames, for example:
+
+```sh
+python3 tools/extract_menu_visual_language.py "$CAPTURE_DIR" \
+  --out "$TMPDIR/menu-visual-language.json" \
+  --atlas-out "$TMPDIR/stock-16px-font.png" \
+  --small-atlas-out "$TMPDIR/stock-8px-font.png" \
+  --small-atlas-manifest-out "$TMPDIR/stock-8px-font.json" \
+  --cursor-atlas-out "$TMPDIR/stock-cursor-16poses.png" \
+  --cursor-manifest-out "$TMPDIR/stock-cursor-16poses.json" \
+  --bg1-out "$TMPDIR/stock-bg1-layer.png" \
+  --bg1-manifest-out "$TMPDIR/stock-bg1-layer.json"
+```
+
+The command is a **reproducible source-asset research route**, not a claim that this session executed it on an original ROM or delivered shippable game assets. It requires the separate authentic input capture; no binary atlas, ROM, game art or host screenshot is added to this PR. The original 16×16 font's older standalone `--atlas-out` has no manifest; downstream should retain the exact PPU source identity and hash any local export before making asset decisions.
+
+A source-extracted image is eligible for artistic comparison and a **separately licensed/integrated renderer proposal**. It does not automatically grant redistribution rights, author approval, runtime native font/arrow rendering or packaged-Windows screenshot QA. RGB5-to-RGB8 sampling uses the existing shift-by-3 decoder: other PPU output-brightness/color-math effects are explicitly outside this reference layer.
+
+The automated ROM-free checks in `tests/unit/test_extract_menu_visual_language.py` synthesize 8bpp BG1 tilemap H-flip and scroll, 8×16 punctuation/H-flip, OBJ second-page addressing, RGBA transparency, palette choice, 7px arrow/shadow displacement, phase enumeration and exact source hash receipts. Full output from original PPU frames remains a **pending real-domain acceptance step**.
+
 ## 4:3 and 16:9 design rules
 
 | Layout | Native logical field | Shared compositor policy | Screen composition freedom |
@@ -56,6 +84,6 @@ Used the source-grounded [reuse register](../analysis/three-project-reuse-opport
 
 `tests/native/modern_menu_visual_grammar_test.cpp` compiles against the **actual shared C++ header** and asserts native source palette constants, all 39 scroll positions, 32-frame tile cycle, eased movement, logical geometries, raster clipping and sampled focus/checker pixels. Its `tests/unit/test_modern_menu_visual_grammar_cpp.py` runner uses C++17 pedantic warnings-as-errors and asserts the **native shipping root presenter** consumes the new helpers; existing `test_modern_root_overlay_presenter.py` exercises the actual linked presenter for both stock and wide host rectangles. A green ROM-free fixture proves code/raster contract only.
 
-**Still open for screen/art/QA owners:** actual 16×16 type atlas with the source glyph identities, decoded 32×32 rotating cursor and 7px shadow, source-bound character/background/logo art including leaf motifs, reduced-motion policy wired to the host, title and modal composition, final contrasting grey checker choice, original/Modern region split, real transition/SFX hookup, 4:3 and 16:9 output screenshots of the **packaged native Windows game**, motion/selection frames, 1×/4× density, real controller/keyboard, and a separate untouched Authentic capture. Source-only synthetic pixel tests are **not packaged-game screenshots** and grant no graphics/QA or human visual sign-off.
+**Still open for screen/art/QA owners:** execution of the existing source-bound 16×16 font and newly added 8×16/cursor/BG1 atlas exporters against real original captures, artwork licensing and the actual native consumption/rendering of those verified pixels, source-faithful approved racer art, reduced-motion policy wired to the host, title and modal composition, final contrasting grey checker choice, original/Modern region split, real transition/SFX hookup, 4:3 and 16:9 output screenshots of the **packaged native Windows game**, motion/selection frames, 1×/4× density, real controller/keyboard, and a separate untouched Authentic capture. Source-only synthetic pixel tests are **not packaged-game screenshots** and grant no graphics/QA or human visual sign-off.
 
 Coordinate integration by having each screen owner use this header, preserve current product models and submit its own screen screenshots/approval ledger; only the shared visual-grammar owner edits these common visual tokens in this PR.

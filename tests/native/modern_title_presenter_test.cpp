@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
+#include <cstring>
 #include <string>
 #include <vector>
 
@@ -33,8 +34,16 @@ void stroke(std::uint32_t* p, int stride, int height,
     fill(p, stride, height, x, y, w, 1, color);
     fill(p, stride, height, x, y + h - 1, w, 1, color);
 }
-void text(std::uint32_t*, int, int, int, int,
-          const char* value, std::uint32_t, int) {
+void text(std::uint32_t*, int stride, int height, int x, int y,
+          const char* value, std::uint32_t, int scale) {
+    assert(value != nullptr);
+    assert(scale > 0);
+    assert(x >= 0 && y >= 0);
+    // Host stock menu glyphs occupy an 8x8 logical cell. Prove that text
+    // remains fully inside the actual source-buffer rectangle, including
+    // the 23-character A / Start / Enter prompt at original 256 width.
+    assert(x + static_cast<int>(std::strlen(value)) * 8 * scale <= stride);
+    assert(y + 8 * scale <= height);
     words.emplace_back(value);
 }
 bool saw(const char* text) {

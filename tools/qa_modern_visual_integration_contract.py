@@ -56,9 +56,9 @@ REQUIREMENTS = {
         "tools/baldosa_native_modern_root.cpp",
         r"modern_title_active\s*\(",
     ),
-    "native_342_requested_only_by_host": (
+    "native_host_chooses_wide_logical_source": (
         "tools/baldosa_native_modern_root.cpp",
-        r"\*logical_width\s*=\s*342\s*;",
+        r"\*logical_width\s*=\s*(?:342\s*;|ur::product::modern_title_logical_width\s*\()",
     ),
     "native_wide_canvas_supported": (
         "tools/baldosa_native_modern_root.cpp",
@@ -94,7 +94,7 @@ REQUIREMENTS = {
 REQUIRED_NATIVE = (
     "native_title_drawn", "native_destinations_drawn", "native_motion_updated",
     "native_motion_painted", "native_title_controller_confirm",
-    "native_342_requested_only_by_host", "native_p1_edges_owned",
+    "native_host_chooses_wide_logical_source", "native_p1_edges_owned",
     "native_keyboard_edges_owned", "authentic_mode_can_disable_root",
 )
 
@@ -114,12 +114,31 @@ def inventory(root: Path) -> dict:
     # individually tested headers happen to coexist in the repository.
     missing = [key for key, row in checked.items() if not row["present"]]
     native_missing = [key for key in REQUIRED_NATIVE if not checked[key]["present"]]
+    # This is an ACTUAL integration defect in isolated #2042: its dynamic
+    # motion ornament assumes a centered 240px root even on the 342px
+    # canvas where #2040's root and child occupy the same 320px rectangle.
+    # A merge containing every "callsite" is still wrong if that literal
+    # survives inside the painter call. Do not bless marker-only integration.
+    root_source = root / "tools/baldosa_native_modern_root.cpp"
+    text = (root_source.read_text(encoding="utf-8")
+            if root_source.is_file() and not root_source.is_symlink() else "")
+    motion_draw = re.search(
+        r"paint_modern_menu_selection_motion\\s*\\([\\s\\S]{0,420}?\\);", text)
+    if motion_draw is None:
+        motion_draw = re.search(
+            r"paint_modern_menu_selection_motion\\s*\\([\\s\\S]{0,600}?\\);", text)
+    conflicts = []
+    if (motion_draw and
+            re.search(r"HostOverlayRect\\s*\\{\\s*\\(width\\s*-\\s*240\\)\\s*/\\s*2\\s*,"
+                      r"\\s*10\\s*,\\s*240\\s*,\\s*204\\s*\\}", motion_draw.group())):
+        conflicts.append("motion_uses_240px_root_under_342px_child_canvas")
     return {
         "schema_version": 1,
         "checked": checked,
         "missing": missing,
         "missing_native_integration_hooks": native_missing,
-        "eligible_for_native_acceptance_run": not missing,
+        "known_host_geometry_conflicts": conflicts,
+        "eligible_for_native_acceptance_run": not missing and not conflicts,
         "native_executed": False,
         "screenshots_captured": 0,
         "human_visual_approved": False,
@@ -141,7 +160,8 @@ def main() -> int:
         if args.out:
             args.out.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
         print(json.dumps(result, indent=2))
-        return 2 if args.strict and result["missing"] else 0
+        return 2 if args.strict and (result["missing"] or
+                                   result["known_host_geometry_conflicts"]) else 0
     except (OSError, ValueError, UnicodeError) as exc:
         print("MODERN_VISUAL_INTEGRATION_INCONCLUSIVE:", exc)
         return 2

@@ -111,6 +111,7 @@ std::string g_practice_previous_save_root;
 ModernRootMenu g_menu{};
 ur::product::ModernTitleState g_title{};
 bool g_title_logged = false;
+bool g_title_painted_reported = false;
 unsigned g_title_guest_frame = 0;
 bool g_title_intro_captured = false;
 bool g_title_root_captured = false;
@@ -1002,6 +1003,7 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
         !(fixture && *fixture && std::strcmp(fixture, "15") != 0),
         reduced && std::strcmp(reduced, "1") == 0);
     g_title_logged = false;
+    g_title_painted_reported = false;
     g_title_intro_captured = false;
     g_title_root_captured = false;
     g_navigation_edges.reset();
@@ -1270,6 +1272,12 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
             static_cast<int>(pitch / 4), height, width, g_title);
         if (drawn) {
             ++g_paint_count;
+            if (!g_title_painted_reported) {
+                std::fprintf(stderr,
+                    "UR_BALDOSA_MODERN_TITLE painted=1 raster=%dx%d host=modern\n",
+                    width, height);
+                g_title_painted_reported = true;
+            }
             if (!g_title_intro_captured &&
                 g_title.phase == ur::product::ModernTitlePhase::Intro &&
                 g_title.age >= 40) {

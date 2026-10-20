@@ -102,15 +102,19 @@ inline bool modern_menu_paint_source_cell(
         static_cast<std::int64_t>(left) + cw * scale > stride ||
         static_cast<std::int64_t>(top) + ch * scale > height)
         return false; // no partial glyph/raster writes
-    // First pass makes malformed source pixels an atomic refusal, never a
-    // partially painted sprite and false return that looks safe to the caller.
+    // First pass makes malformed or blank source pixels an atomic refusal,
+    // never an apparently accepted sprite that paints no selected state.
+    bool has_ink = false;
     for (int y = 0; y < ch; ++y)
         for (int x = 0; x < cw; ++x) {
             const auto alpha = atlas.pixels[
                 static_cast<std::size_t>(y) * atlas.stride +
                 static_cast<std::size_t>(cell * cw + x)] >> 24;
             if (alpha != 0 && alpha != 255) return false;
+            if (alpha == 255) has_ink = true;
         }
+    if (!has_ink &&
+        !(sheet == ModernMenuSourceSheet::Detail && cell == 44)) return false;
     for (int y = 0; y < ch; ++y) {
         for (int x = 0; x < cw; ++x) {
             const std::uint32_t pixel =
@@ -168,6 +172,7 @@ inline bool modern_menu_paint_source_text(
         const int index = sheet == ModernMenuSourceSheet::Heading
             ? modern_menu_heading_slot(c) : modern_menu_detail_slot(c);
         if (index == -2) continue;
+        bool has_ink = false;
         for (int yy = 0; yy < 16; ++yy)
             for (int xx = 0; xx < cw; ++xx) {
                 const auto pixel = atlas.pixels[
@@ -175,7 +180,10 @@ inline bool modern_menu_paint_source_text(
                     static_cast<std::size_t>(index * cw + xx)];
                 const auto alpha = pixel >> 24;
                 if (alpha != 0 && alpha != 255) return false;
+                if (alpha == 255) has_ink = true;
             }
+        if (!has_ink && !(sheet == ModernMenuSourceSheet::Detail &&
+                          c == ' ')) return false;
     }
     int pen_x = left;
     for (char c : value) {

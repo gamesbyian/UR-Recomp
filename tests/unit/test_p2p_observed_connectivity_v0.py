@@ -124,5 +124,16 @@ class OfflineR5Observations(unittest.TestCase):
             self.assertEqual(oversized.returncode, 2)
             self.assertIn("bounded limit", oversized.stderr)
 
+    def test_duplicate_and_exponent_overflow_rejected_at_file_boundary(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / 'observation.json'
+            for raw in ('{"source":"manual","source":"none"}',
+                        '{"descriptor":1e999}', '{"descriptor":NaN}'):
+                path.write_text(raw, encoding='utf-8')
+                run = subprocess.run([sys.executable, str(MODULE), str(path)],
+                                     text=True, capture_output=True, timeout=10)
+                self.assertEqual(run.returncode, 2, run.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()

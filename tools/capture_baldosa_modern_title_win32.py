@@ -160,13 +160,19 @@ def retail_art_digest(width: int, rgba: bytes) -> int:
     return fnv_pixels(bgr)
 
 
-def verify_native_title_entry(log: str, *, reduced_motion: bool = False) -> None:
+def verify_native_title_entry(
+    log: str, *, reduced_motion: bool = False, confirm: str = "gamepad"
+) -> None:
     # Real native P1 A is applied INSIDE the gamepad callback. With reduced
     # motion it immediately enters root before the CI script can report the
     # *successful* gamepad call; ordinary motion logs only after 14 frames.
     # Both orders are causally correct but MUST be explicitly selected.
     opened = "UR_BALDOSA_MODERN_ROOT opened=1"
-    input_ack = "UR_BALDOSA_MODERN_TITLE native_p1_start=1 frame=60"
+    if confirm not in ("gamepad", "keyboard"):
+        raise ValueError("unsupported native title confirm route")
+    input_ack = ("UR_BALDOSA_MODERN_TITLE native_p1_start=1 frame=60"
+                 if confirm == "gamepad" else
+                 "UR_BALDOSA_MODERN_TITLE native_keyboard_enter=1 frame=60")
     entered = "UR_BALDOSA_MODERN_TITLE entered_root=1"
     root_paint = "UR_BALDOSA_MODERN_ROOT painted=1"
     witness = (
@@ -185,8 +191,10 @@ def verify_native_title_entry(log: str, *, reduced_motion: bool = False) -> None
 
 def validate_native_capture(
     folder: Path, log: str, *, exe_sha256: str,
-    expected_width: int = 342, reduced_motion: bool = False) -> dict:
-    verify_native_title_entry(log, reduced_motion=reduced_motion)
+    expected_width: int = 342, reduced_motion: bool = False,
+    confirm: str = "gamepad") -> dict:
+    verify_native_title_entry(
+        log, reduced_motion=reduced_motion, confirm=confirm)
     output = {"executable_sha256": exe_sha256, "captures": []}
     for stage in ("title", "root"):
         name = f"modern-native-{stage}-{expected_width}x224.pam"
@@ -226,6 +234,9 @@ def main() -> int:
     parser.add_argument("--script", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--timeout", type=int, default=100)
+    parser.add_argument("--confirm", choices=("gamepad", "keyboard"),
+                        default="gamepad",
+                        help="exact native controller or Enter handler")
     parser.add_argument("--reduced-motion", action="store_true",
                         help="require steady stock title art before P1 confirm")
     parser.add_argument("--aspect", choices=("wide", "4:3"), default="wide",
@@ -265,7 +276,8 @@ def main() -> int:
         "UR_EXECUTION_MODE": "modern",
         "UR_BALDOSA_MODERN_ROOT": "1",
         "UR_BALDOSA_MODERN_PROFILE_SELECT": "0",
-        "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "15",
+        "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": (
+            "16" if args.confirm == "keyboard" else "15"),
         "UR_REDUCED_MOTION": "1" if args.reduced_motion else "0",
         "UR_BALDOSA_MODERN_TITLE_CAPTURE_DIR": str(captures),
         "SNESRECOMP_SCREENSHOT_DIR": str(presented),
@@ -291,12 +303,13 @@ def main() -> int:
     expected_width = 256 if args.aspect == "4:3" else 342
     receipt = validate_native_capture(
         captures, log, exe_sha256=exe_hash, expected_width=expected_width,
-        reduced_motion=args.reduced_motion)
+        reduced_motion=args.reduced_motion, confirm=args.confirm)
     receipt["native_presented"] = verify_native_presented_frames(
         presented, captures, expected_width=expected_width,
         reduced_motion=args.reduced_motion)
     receipt["drawable_aspect"] = args.aspect
     receipt["reduced_motion"] = args.reduced_motion
+    receipt["native_confirm_route"] = args.confirm
     import json
     (target / "native-title-receipt.json").write_text(
         json.dumps(receipt, indent=2) + "\n", encoding="utf-8")

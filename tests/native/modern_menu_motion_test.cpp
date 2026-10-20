@@ -198,6 +198,26 @@ void test_raster() {
         const HostOverlayRect offscreen{w - 3, 0, 40, 204};
         assert(!paint_modern_menu_selection_motion(
             FakePainter{}, pixels.data(), w, h, scale, offscreen, pose));
+        // Invalid client geometry must neither overflow signed arithmetic
+        // nor render to a wrong focus row (even at 4x density).
+        const auto unchanged = pixels;
+        pose.cursor_remainder_px = INT32_MAX;
+        assert(!paint_modern_menu_selection_motion(
+            FakePainter{}, pixels.data(), w, h, scale, panel, pose));
+        pose.cursor_remainder_px = INT32_MIN;
+        assert(!paint_modern_menu_selection_motion(
+            FakePainter{}, pixels.data(), w, h, scale, panel, pose));
+        pose.cursor_remainder_px = 0;
+        assert(!paint_modern_menu_selection_motion(
+            FakePainter{}, pixels.data(), w, h, INT32_MAX, panel, pose));
+        assert(!paint_modern_menu_selection_motion(
+            FakePainter{}, pixels.data(), w, h, scale, panel, pose,
+            {INT32_MAX, INT32_MAX, INT32_MAX}));
+        pose.selection = 255;
+        assert(!paint_modern_menu_selection_motion(
+            FakePainter{}, pixels.data(), w, h, scale, panel, pose));
+        pose.selection = 1;
+        assert(pixels == unchanged);
     }
 }
 

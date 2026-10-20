@@ -17,6 +17,7 @@ import qa01_rf076_executed_pc_vs_resume as native_rf076
 
 ORIG='work/zoom-zoo/replay/reference.log'
 NATIVE='work/zoom-zoo/replay/native.log'
+STRICT_SIDECAR='rf079-native-rf047-strict.log'
 ORIG_TAG='QA01RF079ORIG '
 FRAMES=(1017,1018)
 
@@ -132,12 +133,24 @@ def case_archive(path):
         require(z.testzip() is None,'ZIP CRC failed')
         require(ORIG in z.namelist() and NATIVE in z.namelist(),
                 'same-case original/native actual logs absent')
-        orig=z.read(ORIG);nat=z.read(NATIVE)
+        require(STRICT_SIDECAR in z.namelist(),
+                'strict native event sidecar absent: cannot repair mixed stderr after execution')
+        orig=z.read(ORIG)
+        nat_stderr=z.read(NATIVE)
+        nat=z.read(STRICT_SIDECAR)
+    strict_lines=nat.decode('utf-8').splitlines()
+    require(bool(strict_lines) and
+            all(line.startswith('QA01RF047NATIVE seq=') for line in strict_lines),
+            'RF047 sidecar contains a non-source line or overflow')
     result=inspect(orig.decode('utf-8'),nat.decode('utf-8'))
     result.update({
         'case_zip_sha256':hashlib.sha256(raw).hexdigest(),
         'original_log_sha256':hashlib.sha256(orig).hexdigest(),
-        'native_log_sha256':hashlib.sha256(nat).hexdigest()
+        'native_raw_stderr_sha256':hashlib.sha256(nat_stderr).hexdigest(),
+        'native_strict_RF047_sidecar_sha256':hashlib.sha256(nat).hexdigest(),
+        'native_RF047_dedicated_source_ordinals_verified':True,
+        'native_raw_stderr_separately_preserved_unchanged':True,
+        'native_stderr_full_RF047_source_continuity_claimed':False
     })
     return result
 

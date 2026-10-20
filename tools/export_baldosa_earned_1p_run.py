@@ -9,35 +9,119 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 import re
 import os
 import shutil
 import tempfile
+import stat
+import sys
+import unicodedata
 
 MAX_RUN_BYTES = 64 * 1024 * 1024
 MAX_REPORT_BYTES = 32 * 1024
 SOURCE_SCOPE = 'actual-native-windows-first-racer-to-earned-one-player-records'
 
 
+def _unique_pairs(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f'Duplicate source report JSON key: {key}')
+        result[key] = value
+    return result
+
+
+def _finite_float(value):
+    parsed = float(value)
+    if not math.isfinite(parsed):
+        raise ValueError('Nonfinite source report JSON number')
+    return parsed
+
+
+def _reject_constant(value):
+    raise ValueError(f'Nonfinite source report JSON constant: {value}')
+
+
 def _regular_bytes(path: Path, limit: int) -> bytes:
-    if path.is_symlink() or not path.is_file():
-        raise ValueError(f'Missing/redirected source evidence: {path.name}')
-    size = path.stat().st_size
-    if not (0 < size <= limit):
-        raise ValueError(f'Invalid source evidence length: {path.name}')
-    with path.open('rb') as source:
+    """Read a stable regular-file descriptor, refusing symlinked leaf swaps.
+
+    Hardlinked aliases are also refused to keep source namespace provenance.
+    O_NOFOLLOW is enforced on POSIX platforms that expose it. On Windows,
+    pre/post lstat plus fstat bind the path to the opened file; ancestor
+    reparse-point substitution remains outside this bounded helper's proof.
+    """
+    try:
+        before = path.lstat()
+    except FileNotFoundError as exc:
+        raise ValueError(f'Missing source evidence: {path.name}') from exc
+    if (not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 or
+            not (0 < before.st_size <= limit)):
+        raise ValueError(f'Missing/redirected/invalid source evidence: {path.name}')
+    flags = os.O_RDONLY | getattr(os, 'O_BINARY', 0) | getattr(os, 'O_NOFOLLOW', 0)
+    try:
+        fd = os.open(path, flags)
+    except OSError as exc:
+        raise ValueError(f'Unable to open unredirected source evidence: {path.name}') from exc
+    with os.fdopen(fd, 'rb') as source:
+        opened = os.fstat(source.fileno())
+        if not stat.S_ISREG(opened.st_mode) or opened.st_nlink != 1 or (
+                opened.st_dev, opened.st_ino, opened.st_size, opened.st_mtime_ns) != (
+                before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns):
+            raise ValueError(f'Source evidence changed before open: {path.name}')
         data = source.read(limit + 1)
-    if len(data) != size:
-        raise ValueError(f'Source evidence changed/oversized: {path.name}')
+        closed = os.fstat(source.fileno())
+    after = path.lstat()
+    identity = lambda st: (st.st_dev, st.st_ino, st.st_size, st.st_mtime_ns)
+    if (len(data) != opened.st_size or identity(before) != identity(closed)
+            or identity(before) != identity(after) or not stat.S_ISREG(after.st_mode)
+            or closed.st_nlink != 1 or after.st_nlink != 1):
+        raise ValueError(f'Source evidence changed during read: {path.name}')
     return data
 
 
+def _publish_directory_no_replace(staging: Path, destination: Path) -> None:
+    """Publish an evidence directory atomically without replacing an incumbent.
+
+    Linux renameat2(RENAME_NOREPLACE) and Windows MoveFileW refuse an
+    existing destination in the filesystem operation itself. Other hosts fail
+    closed instead of silently weakening the publication guarantee.
+    """
+    import ctypes
+    import sys
+
+    if sys.platform.startswith('linux'):
+        libc = ctypes.CDLL(None, use_errno=True)
+        operation = getattr(libc, 'renameat2', None)
+        if operation is None:
+            raise OSError('Linux renameat2 RENAME_NOREPLACE unavailable')
+        operation.argtypes = (ctypes.c_int, ctypes.c_char_p,
+                              ctypes.c_int, ctypes.c_char_p, ctypes.c_uint)
+        operation.restype = ctypes.c_int
+        result = operation(-100, os.fsencode(staging), -100,
+                           os.fsencode(destination), 1)
+        if result != 0:
+            error = ctypes.get_errno()
+            raise OSError(error, os.strerror(error), str(destination))
+    elif os.name == 'nt':
+        kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+        operation = kernel.MoveFileW
+        operation.argtypes = (ctypes.c_wchar_p, ctypes.c_wchar_p)
+        operation.restype = ctypes.c_int
+        if not operation(str(staging), str(destination)):
+            raise ctypes.WinError(ctypes.get_last_error())
+    else:
+        raise OSError('No audited atomic no-replace directory publish on this host')
+
+
 def export(journey: Path, destination: Path) -> dict[str, object]:
-    if journey.is_symlink() or not journey.is_dir():
+    if (journey.is_symlink() or not journey.is_dir() or
+            journey.resolve(strict=True) != journey.absolute()):
         raise ValueError('Missing/redirected native Windows journey')
     report_bytes = _regular_bytes(journey / 'report.json', MAX_REPORT_BYTES)
-    report = json.loads(report_bytes)
+    report = json.loads(report_bytes, object_pairs_hook=_unique_pairs,
+                        parse_float=_finite_float, parse_constant=_reject_constant)
     if not isinstance(report, dict) or report.get('scope') != SOURCE_SCOPE or any(
         report.get(key) is not True for key in (
             'first_game_created_first_named_racer',
@@ -46,7 +130,8 @@ def export(journey: Path, destination: Path) -> dict[str, object]:
             'active_selector_and_catalog_preserved',
             'anonymous_sram_preserved',
         )
-    ) or report.get('release_gate_credit') != 0 or any(
+    ) or (type(report.get('release_gate_credit')) is not int or
+        report['release_gate_credit'] != 0) or any(
         report.get(key) is not False for key in (
             'physical_gamepad_verified', 'strict_original_native_event_pass',
         )
@@ -56,18 +141,37 @@ def export(journey: Path, destination: Path) -> dict[str, object]:
     if not isinstance(expected, str) or not re.fullmatch(r'[0-9a-f]{64}', expected):
         raise ValueError('Missing canonical source-earned run digest')
     runs_root = journey / 'Brand New Player With Spaces' / 'runs' / 'mike'
-    if runs_root.is_symlink() or not runs_root.is_dir():
+    if (runs_root.is_symlink() or not runs_root.is_dir() or
+            runs_root.resolve(strict=True) != runs_root.absolute()):
         raise ValueError('Missing/redirected earned-run namespace')
     candidates = list(runs_root.glob('*.urrun'))
     if len(candidates) != 1:
         raise ValueError('Expected exactly one source-earned .urrun')
+    source_name = candidates[0].name
+    if (unicodedata.normalize('NFC', source_name) != source_name or
+            len(source_name.encode('utf-8')) > 255 or
+            any(ord(ch) < 32 or unicodedata.category(ch) == 'Cf'
+                for ch in source_name) or
+            source_name[-1] in (' ', '.') or
+            any(ch in '<>:"|?*\\' for ch in source_name)):
+        raise ValueError('Nonportable source-earned run filename')
+    # A Linux-produced fixture may carry a filename that cannot be reopened
+    # through Win32. Refuse reserved DOS device basenames before transport.
+    device_stem = source_name.split('.', 1)[0].upper().translate(
+        str.maketrans('¹²³', '123'))
+    if (device_stem in {'CON', 'PRN', 'AUX', 'NUL', 'CONIN$', 'CONOUT$'} or
+            device_stem in {f'{prefix}{n}' for prefix in ('COM', 'LPT') for n in range(1, 10)}):
+        raise ValueError('Nonportable source-earned run filename')
     data = _regular_bytes(candidates[0], MAX_RUN_BYTES)
     actual = hashlib.sha256(data).hexdigest()
     if actual != expected:
         raise ValueError('Source-earned run differs from original Windows report')
+    # Build outside the published artifact name. If verification or a write
+    # fails, upload-artifact must never mistake partial bytes for evidence.
     if destination.exists() or destination.is_symlink():
         raise FileExistsError(f'Evidence destination already exists: {destination}')
-    if not destination.parent.is_dir():
+    if (not destination.parent.is_dir() or
+            destination.parent.resolve(strict=True) != destination.parent.absolute()):
         raise ValueError('Evidence destination parent does not exist')
     staging = Path(tempfile.mkdtemp(prefix='.pending-earned-1p-',
                                     dir=destination.parent))
@@ -95,7 +199,9 @@ def export(journey: Path, destination: Path) -> dict[str, object]:
             output.write('\n')
         if destination.exists() or destination.is_symlink():
             raise FileExistsError(f'Evidence destination already exists: {destination}')
-        os.rename(staging, destination)
+        # Same-parent rename publishes the complete evidence set at once.
+        # Windows refuses a directory collision; on POSIX reject it first.
+        _publish_directory_no_replace(staging, destination)
     finally:
         if staging.exists():
             shutil.rmtree(staging)
@@ -107,7 +213,7 @@ def main() -> int:
     parser.add_argument('--journey', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
     args = parser.parse_args()
-    manifest = export(args.journey.resolve(), args.out.absolute())
+    manifest = export(args.journey.absolute(), args.out.absolute())
     print('UR_CI_EARNED_1P_RUN_EXPORTED', manifest['members']['earned.urrun']['sha256'])
     return 0
 

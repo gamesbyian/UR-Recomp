@@ -65,7 +65,7 @@ class ExportEarnedRunTests(unittest.TestCase):
 
     def test_cli_handles_space_bearing_journey_and_publishes_only_complete(self):
         script = Path(__file__).resolve().parents[2] / 'tools' / 'export_baldosa_earned_1p_run.py'
-        destination = self.journey / 'ci owned earned 1p run'
+        destination = self.base / 'ci owned earned 1p run'
         completed = subprocess.run(
             [sys.executable, str(script), '--journey', str(self.journey),
              '--out', str(destination)], text=True, capture_output=True)

@@ -14,6 +14,8 @@ using namespace ur::product;
 
 namespace {
 std::vector<std::string> text_seen;
+struct PaintedText { int x, y, size; std::size_t cells; };
+std::vector<PaintedText> painted_text;
 struct Rectangle {int x,y,w,h; std::uint32_t colour;};
 std::vector<Rectangle> painted;
 void fill(std::uint32_t*, int, int, int x, int y, int w, int h,
@@ -24,19 +26,25 @@ void draw(std::uint32_t*, int, int, int x, int y, const char* str,
           std::uint32_t, int size) {
     // Preserve actual text/scale and catch glyph overdraw on both surfaces.
     text_seen.emplace_back(str);
+    painted_text.push_back({x,y,size,std::string(str).size()});
     assert(x >= 0 && y >= 0 && size > 0);
 }
 bool has(std::string_view text) {
     return std::find(text_seen.begin(), text_seen.end(),
                      std::string(text)) != text_seen.end();
 }
-void clear() { text_seen.clear(); painted.clear(); }
+void clear() { text_seen.clear(); painted.clear(); painted_text.clear(); }
 void bounds(int width, int height) {
     for (const auto& rect : painted) {
         assert(rect.x >= 0 && rect.y >= 0);
         assert(rect.w > 0 && rect.h > 0);
         assert(rect.x + rect.w <= width);
         assert(rect.y + rect.h <= height);
+    }
+    for (const auto& label : painted_text) {
+        assert(label.x + static_cast<int>(label.cells) *
+                   8 * label.size <= width);
+        assert(label.y + 8 * label.size <= height);
     }
 }
 } // namespace
@@ -78,6 +86,14 @@ int main() {
     assert(has("ENTERING ORIGINAL COURSE"));
     assert(has("WAIT FOR SOURCE GO") && has("B CANCEL"));
     bounds(342,224);
+    clear();
+
+    // Presentation density is a strict integer transform, not a wider-font
+    // guess. The same already-authoritative 342x224 layout also fits 4x.
+    constexpr HostOverlayRect wide4{48,40,1272,816};
+    assert(render_modern_native_destination(painter,scratch,1368,896,
+                                             4,318,wide4,v));
+    bounds(1368,896);
     clear();
 
     v.practice_launch_pending = false;

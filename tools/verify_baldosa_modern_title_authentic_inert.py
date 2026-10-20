@@ -18,7 +18,7 @@ from pathlib import Path
 import re
 import subprocess
 
-from tools.capture_baldosa_modern_title_win32 import read_present_ppm, EXPECTED_USA_ROM
+from capture_baldosa_modern_title_win32 import read_present_ppm, EXPECTED_USA_ROM
 
 CRC = re.compile(r'"crc32_wram":\s*"(0x[0-9a-fA-F]+)"')
 

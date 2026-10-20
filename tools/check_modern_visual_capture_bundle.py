@@ -236,6 +236,56 @@ def check_lossless_sdl_conversion(
             raise CaptureError("SDL P7/PNG exact RGBA pixel mismatch")
 
 
+def check_authentic_original_rgb(
+    root: Path, shot: dict, pixels: tuple[int, int], route_log: str,
+) -> None:
+    """Authentic screenshots additionally require the ORIGINAL pre-SDL P6.
+
+    Authentic SDL3 may return alpha=0 despite correct nonblack original RGB.
+    Structural PNG/P7 equality does not prove that RGB came from stock guest
+    composition. Reuse the independent full-pixel centre-of-pixel oracle.
+    """
+    try:
+        from tools.qa_authentic_presdl_sdl_rgb_parity import (
+            verify as verify_source_rgb, ParityError)
+    except ModuleNotFoundError:  # direct python tools/check_*.py
+        from qa_authentic_presdl_sdl_rgb_parity import (
+            verify as verify_source_rgb, ParityError)
+    p6 = checked_hash(root, shot.get("authentic_source_p6"),
+                      shot.get("authentic_source_p6_sha256"))
+    p7 = checked_hash(root, shot.get("capture_p7"),
+                      shot.get("capture_p7_sha256"))
+    receipt = checked_hash(root, shot.get("authentic_rgb_receipt"),
+                           shot.get("authentic_rgb_receipt_sha256"))
+    if ("[snes_load]" not in route_log or
+            "UR_BALDOSA_MODERN_ROOT opened=1" in route_log or
+            "UR_BALDOSA_MODERN_ROOT painted=1" in route_log or
+            "source=SDL_RenderReadPixels backend=sdl3" not in route_log):
+        raise CaptureError("Authentic guest source/SDL3 isolation markers absent or leaked")
+    try:
+        actual = verify_source_rgb(p6, p7)
+    except ParityError as exc:
+        raise CaptureError("Authentic original RGB source/SDL pixel mismatch") from exc
+    if actual["drawable_pixels"] != list(pixels):
+        raise CaptureError("Authentic original image drawable dimensions differ")
+    try:
+        declared = json.loads(receipt.read_text(encoding="utf-8"))
+    except (UnicodeError, ValueError) as exc:
+        raise CaptureError("Authentic source-to-SDL pixel receipt invalid") from exc
+    if (not isinstance(declared, dict) or
+            any(declared.get(name) != actual[name] for name in (
+                "source_ppm_sha256", "sdl_pam_sha256", "source_pixels",
+                "drawable_pixels", "authentic_content_viewport",
+                "source_to_sdl_exact_rgb_pixels",
+                "outside_black_exact_rgb_pixels", "all_rgb_pixels_checked",
+                "rgb_pixel_match_fraction", "sdl_nonzero_alpha_pixels"
+            )) or declared.get("physical_display_approved") is not False or
+            declared.get("guest_crc_oracle_approved") is not False or
+            declared.get("authentic_final_approved") is not False or
+            declared.get("release_gate_credit") != 0):
+        raise CaptureError("Authentic original RGB proof receipt inconsistent or overapproved")
+
+
 def read_matrix(matrix: dict) -> dict:
     if matrix.get("schema_version") != 1 or not isinstance(matrix.get("cases"), list):
         raise CaptureError("unsupported visual case matrix")
@@ -306,6 +356,8 @@ def audit(matrix: dict, bundle: dict, evidence_root: Path) -> dict:
                     for m in markers)):
             raise CaptureError(key + ": route marker absent from retained native log")
         check_lossless_sdl_conversion(evidence_root, shot, actual, frame, observed)
+        if expected["mode"] == "authentic":
+            check_authentic_original_rgb(evidence_root, shot, actual, observed)
         checked.append(key)
     missing = sorted(set(cases) - seen)
     return {

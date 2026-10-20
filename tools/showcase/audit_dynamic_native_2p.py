@@ -94,7 +94,8 @@ def inspect(folder, route_manifest, binary_file, rom_sha, source_sha, names=NAME
     for name in names:
         if work_root is None:
             raise ValueError("Real original guest world-position witness directory required")
-        if name not in routes:
+        route_key = name if name in routes else f"{name}.txt"
+        if route_key not in routes:
             raise ValueError("Missing variant in controller manifest")
         movie = folder / f"native-{name}-900f.mp4"
         verified = json.loads((folder / f"verified-{name}.json").read_text())
@@ -150,7 +151,7 @@ def inspect(folder, route_manifest, binary_file, rom_sha, source_sha, names=NAME
         out["routes"][name] = {
             "real_guest_world_position_witnesses": witnesses,
             "world_position_measurement_caveat": "raw original 7E:0411/0413 and 0415/0417 words; do not assert track-arc distance",
-            **routes[name],
+            **routes[route_key],
             "movie": movie.name,
             "capture_go_frame": clock["source_go_guest_frame"],
             "capture_frame_start_end": [expected_start, expected_start + 899],

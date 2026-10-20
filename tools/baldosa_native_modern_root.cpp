@@ -1279,7 +1279,7 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
             std::fprintf(stderr,
                 "UR_BALDOSA_MODERN_DESTINATION stage=%s "
                 "raster=%dx%d root=%d,%d,%d,%d "
-                "source=modern_product_view\\n",
+                "source=modern_product_view\n",
                 stage, width, height, root_rect.x, root_rect.y,
                 root_rect.width, root_rect.height);
         }

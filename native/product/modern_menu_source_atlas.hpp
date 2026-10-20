@@ -102,16 +102,21 @@ inline bool modern_menu_paint_source_cell(
         static_cast<std::int64_t>(left) + cw * scale > stride ||
         static_cast<std::int64_t>(top) + ch * scale > height)
         return false; // no partial glyph/raster writes
+    // First pass makes malformed source pixels an atomic refusal, never a
+    // partially painted sprite and false return that looks safe to the caller.
+    for (int y = 0; y < ch; ++y)
+        for (int x = 0; x < cw; ++x) {
+            const auto alpha = atlas.pixels[
+                static_cast<std::size_t>(y) * atlas.stride +
+                static_cast<std::size_t>(cell * cw + x)] >> 24;
+            if (alpha != 0 && alpha != 255) return false;
+        }
     for (int y = 0; y < ch; ++y) {
         for (int x = 0; x < cw; ++x) {
             const std::uint32_t pixel =
                 atlas.pixels[static_cast<std::size_t>(y) * atlas.stride +
                              static_cast<std::size_t>(cell * cw + x)];
             if ((pixel >> 24) == 0) continue;
-            // Original palette exports are opaque/transparent. Fail closed
-            // on unexpected alpha, rather than silently repainting a pixel
-            // whose blend equation has not been qualified for native output.
-            if ((pixel >> 24) != 255) return false;
             for (int yy = 0; yy < scale; ++yy)
                 for (int xx = 0; xx < scale; ++xx)
                     destination[static_cast<std::size_t>(top + y * scale + yy)

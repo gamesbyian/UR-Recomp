@@ -47,6 +47,20 @@ struct FakePainter {
     constexpr bool valid() const noexcept { return true; }
 };
 void test_motion() {
+    // A native capture may freeze one exact UI tick without changing the
+    // guest-frame clock. Invalid numeric strings cannot hijack the clock.
+    assert(modern_menu_resolve_test_tick60(123u, nullptr) == 123u);
+    assert(modern_menu_resolve_test_tick60(123u, "") == 123u);
+    assert(modern_menu_resolve_test_tick60(123u, "0") == 0u);
+    assert(modern_menu_resolve_test_tick60(123u, "000041") == 41u);
+    assert(modern_menu_resolve_test_tick60(123u,
+        "18446744073709551615") == UINT64_MAX);
+    assert(modern_menu_resolve_test_tick60(123u,
+        "18446744073709551616") == 123u);
+    assert(modern_menu_resolve_test_tick60(123u, "12x") == 123u);
+    assert(modern_menu_resolve_test_tick60(123u, "+12") == 123u);
+    assert(modern_menu_resolve_test_tick60(123u, "-12") == 123u);
+    assert(modern_menu_resolve_test_tick60(123u, " 12") == 123u);
     ModernMenuMotionState state{};
     auto pose = advance_modern_menu_motion(state, {1000, 0, true, false});
     assert(pose.visible && pose.selection == 0);

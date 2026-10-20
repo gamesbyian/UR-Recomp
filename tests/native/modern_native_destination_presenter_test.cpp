@@ -179,7 +179,7 @@ int main() {
     v.unbound_two_player_warning_open = true;
     assert(render_modern_native_destination(painter,scratch,256,224,
                                              1,240,original,v));
-    assert(has("NO MATCH HISTORY WILL SAVE"));
+    assert(has("NO MATCH HISTORY SAVED"));
     assert(has("P1 A ANYWAY   B BACK"));
     clear();
     assert(!render_modern_native_destination({},scratch,256,224,

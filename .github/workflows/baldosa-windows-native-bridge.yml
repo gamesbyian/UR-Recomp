@@ -338,23 +338,23 @@ jobs:
       # PAMs are source pixels with guest-frame/EXE hashes, not final SDL
       # drawable/hardware certification or an independently approved release.
       - name: Capture genuine Modern title-to-root native source frames
-        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
+        if: ${{ github.event_name == 'pull_request' && (github.head_ref == 'visual/modern-native-widescreen-title-20261020' || github.head_ref == 'integration/modern-visual-rehearsal-20261020') }}
         run: |
           set -euo pipefail
           python tools/capture_baldosa_modern_title_win32.py \
             --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
             --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-native-capture.script" \
-            --out "$RUNNER_TEMP/modern-title-native-pr2043" \
+            --out "$RUNNER_TEMP/modern-title-native-integration" \
             --timeout 100
           echo "Verified exact original source title raster and actual native title→root guest-frame ordering; final drawable/human visual approval remain pending." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain native Modern title capture or failure diagnostics
-        if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
+        if: ${{ always() && github.event_name == 'pull_request' && (github.head_ref == 'visual/modern-native-widescreen-title-20261020' || github.head_ref == 'integration/modern-visual-rehearsal-20261020') }}
         uses: actions/upload-artifact@v4
         with:
-          name: modern-title-native-source-pr2043
-          path: ${{ runner.temp }}/modern-title-native-pr2043
+          name: modern-title-native-source-integration
+          path: ${{ runner.temp }}/modern-title-native-integration
           if-no-files-found: warn
           retention-days: 14
 

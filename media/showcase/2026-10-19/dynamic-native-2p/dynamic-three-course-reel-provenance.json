@@ -1,0 +1,63 @@
+{
+  "decoded_witness_sha256": {
+    "dynamic-action-reel-source-frame-0150.png": "6719bd554b6162d15a2119481514a1cc315144a00c64186eb27c5d3f2eabbcee",
+    "dynamic-action-reel-source-frame-0450.png": "7f9a9b4e4253ff40f0d2b8f9afd855649bd88d5ed538bd7b0bd03ac0492d5511",
+    "dynamic-action-reel-source-frame-0750.png": "f57c59fcc022b8dec80bb35bdff6769c458a3a837b1ee366c566c61abefeb1f6"
+  },
+  "distinct_original_guest_sessions": true,
+  "fps": "60/1",
+  "hard_cuts_explicit": true,
+  "has_certified_Hill_Climb": false,
+  "has_certified_closed_loop": false,
+  "no_interpolation": true,
+  "not_a_single_continuous_race": true,
+  "output_file": "native-dynamic-2p-three-courses-15s.mp4",
+  "output_sha256": "46b5bf43bcfb4f8bdd4874e7a9994f70996688c2c86a259bef01d5102630598d",
+  "recorded_gameplay": true,
+  "review_state": "verified-source-and-three-output-frame-samples; independent full-film human screening not claimed",
+  "schema": "UR-GENUINE-DYNAMIC-THREE-COURSE-SOURCE-REEL/1",
+  "shots": [
+    {
+      "camera_and_guest_state_unmodified": true,
+      "course": "MegaJump",
+      "description": "MegaJump / steep curves and separated 2P",
+      "frame_count": 300,
+      "route": "megajump-p2-leads",
+      "source_guest_frame_first": 2270,
+      "source_guest_frame_last": 2569,
+      "source_ordinal_first": 280,
+      "source_ordinal_last": 579,
+      "src_sha256": "cee7dbdf271068896c9636206c6613bda302ba938a1c473ac4483ab6369617a4",
+      "visual_screening_type": "representative source decoded-frame inspection; not full-loop certification"
+    },
+    {
+      "camera_and_guest_state_unmodified": true,
+      "course": "Jumps",
+      "description": "Jumps / visible inverted airborne rider",
+      "frame_count": 300,
+      "route": "jumps-p1-leads",
+      "source_guest_frame_first": 2290,
+      "source_guest_frame_last": 2589,
+      "source_ordinal_first": 300,
+      "source_ordinal_last": 599,
+      "src_sha256": "46283d6fb1f698868a736df0cee857aa8928cc587f39d88c77a41c41813c9b03",
+      "visual_screening_type": "representative source decoded-frame inspection; not full-loop certification"
+    },
+    {
+      "camera_and_guest_state_unmodified": true,
+      "course": "Looper",
+      "description": "Looper / rolling graded terrain; full closed loop not certified",
+      "frame_count": 300,
+      "route": "looper-p1-leads",
+      "source_guest_frame_first": 2110,
+      "source_guest_frame_last": 2409,
+      "source_ordinal_first": 120,
+      "source_ordinal_last": 419,
+      "src_sha256": "3de690c458b70d802af692418a155b31bb0381d595e61c897a62be492aeecbe3",
+      "visual_screening_type": "representative source decoded-frame inspection; not full-loop certification"
+    }
+  ],
+  "source_capture_ledger_sha256": "e466a01056626ae665b2c1db62a20047adb59eedcef20a2d5743106f394ad754",
+  "total_duration_seconds": 15,
+  "total_frames": 900
+}

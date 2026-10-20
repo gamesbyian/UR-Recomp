@@ -1,0 +1,25 @@
+{
+  "decoded_witnesses": {
+    "ur-recomp-blue-23s-vertical-frame-0090.png": "b59c661a0562aca7aaa7d8737c7e5a3fce76c4b565ad7278e15b4ba6d7d00333",
+    "ur-recomp-blue-23s-vertical-frame-0400.png": "9e56f894d18b3272e174b0ed5e1f9311369fe037e59973e195cd8160032bd7dd",
+    "ur-recomp-blue-23s-vertical-frame-0850.png": "2f17a784cc3ad5153ba0885e37be64dbd702fc8f62c48e7f9943c473a7021312",
+    "ur-recomp-blue-23s-vertical-frame-1150.png": "12163d8544920d216e6d8a3495bbfc7227ae8b4a1cd3b59e6a5f4a01bc7cb124",
+    "ur-recomp-blue-23s-vertical-frame-1310.png": "f46c73c128f396a389a22502ed848bc4bb1c0579bc0982120354f55d8b83b9a0",
+    "ur-recomp-blue-75s-1080p-frame-0090.png": "4c6d2c8d8bbb3756757eacd65f2e662ac9a6f56594ea0e34760218bc21f02037",
+    "ur-recomp-blue-75s-1080p-frame-0370.png": "7eb0195f63b599cf72686c5a7d5bd26042549359eea06a6e8e72a2bf44b54535",
+    "ur-recomp-blue-75s-1080p-frame-0840.png": "4c6d2c8d8bbb3756757eacd65f2e662ac9a6f56594ea0e34760218bc21f02037",
+    "ur-recomp-blue-75s-1080p-frame-1160.png": "d5db914b0f77213ed0fae54e23e28c0087445c473004d50d2eca50f6f798af70",
+    "ur-recomp-blue-75s-1080p-frame-1480.png": "d597ae2697e05e447c37c1012399af2cece93530cdc93089d54afcda2bd6c4bd",
+    "ur-recomp-blue-75s-1080p-frame-1760.png": "e6bc2d49817230ebed4e54186d8f4efb5c9b89c2934f2af95cf277af6c1fc13b",
+    "ur-recomp-blue-75s-1080p-frame-2260.png": "1e962ce8f9291551b6aa75949a3ba3b8513a4649ce32446ac68bdc532ad3d684",
+    "ur-recomp-blue-75s-1080p-frame-2670.png": "ee02da4e16b6e65dfcfc0d8d7044c42bd5cad270ac5b0e4b6493717a5e39cbac",
+    "ur-recomp-blue-75s-1080p-frame-3200.png": "eb4017f337a79c7aff4616665653e6fe08195ed2eee8ef648f8bd734aee5b9ac",
+    "ur-recomp-blue-75s-1080p-frame-3790.png": "c1a1a92c5da3b085d3c1ddf2b44be50c0140b42adb08d1676be7c443cf14d4d2",
+    "ur-recomp-blue-75s-1080p-frame-4330.png": "02f494279983ec4d5f744712b1cd28b39ac3cc64367f421d8af1f008d773058f"
+  },
+  "grey_temporary_modern_capture_removed": true,
+  "jump_loop_ramp_not_claimed_without_new_video": true,
+  "review_status": "exact-source-render-and-16-frames-passed; visual screening still needed",
+  "schema": "UR-BLUE-EDITORIAL-RECRUITMENT-QA/1",
+  "sha256_source_manifest": "c2e00ab7e31481ec24cf6f1bafd22d3f2496198b829721dea3f970a6ad6c4c58"
+}

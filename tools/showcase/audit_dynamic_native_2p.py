@@ -122,7 +122,7 @@ def inspect(folder, route_manifest, binary_file, rom_sha, source_sha, names=NAME
         target = folder / f"{name}-sample-%02d.png"
         subprocess.run(["ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error",
                         "-y", "-i", str(movie), "-vf", f"select={expr}",
-                        "-fps_mode", "vfr", "-frames:v", str(len(SAMPLES)),
+                        "-vsync", "vfr", "-frames:v", str(len(SAMPLES)),
                         "-start_number", "0", str(target)], check=True)
         sheet = Image.new("RGB", (1920, 900), "#061120")
         d = ImageDraw.Draw(sheet)

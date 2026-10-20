@@ -88,6 +88,23 @@ class ExportEarnedRunTests(unittest.TestCase):
         self.assertFalse(self.out.exists())
         self.assertFalse(list(self.journey.glob('.pending-earned-1p-*')))
 
+    def test_rejects_boolean_release_credit(self):
+        self.report['release_gate_credit'] = False
+        self.report_path.write_text(json.dumps(self.report), encoding='utf-8')
+        with self.assertRaises(ValueError):
+            export(self.journey, self.out)
+        self.assertFalse(self.out.exists())
+
+    def test_cli_rejects_symlinked_journey(self):
+        import subprocess
+        script = Path(__file__).resolve().parents[2] / 'tools' / 'export_baldosa_earned_1p_run.py'
+        link = self.base / 'linked journey'
+        link.symlink_to(self.journey, target_is_directory=True)
+        run = subprocess.run([sys.executable, str(script), '--journey', str(link),
+                              '--out', str(self.out)], capture_output=True, text=True)
+        self.assertNotEqual(run.returncode, 0)
+        self.assertFalse(self.out.exists())
+
     def test_rejects_duplicate_empty_oversized_and_symlinked_run(self):
         duplicate = self.runs / 'second.urrun'
         duplicate.write_bytes(b'extra')

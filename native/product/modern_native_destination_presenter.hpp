@@ -197,12 +197,14 @@ inline bool render_modern_native_destination(
             p, pixels, stride, surface_height, c, 91,
             v.practice_launch_pending ? "SOURCE ROUTE IN PROGRESS" : unlocked,
             col.secondary_grey);
+        if (!v.practice_launch_pending && v.practice_courses_open > 1)
+            modern_native_destination_line(
+                p, pixels, stride, surface_height, c, 110,
+                "UP/DN COURSE   L/R TOUR", col.secondary_grey);
         modern_native_destination_line(
-            p, pixels, stride, surface_height, c, 122,
-            v.practice_launch_pending ? "B CANCEL" :
-            v.practice_courses_open > 1
-                ? "A START  UP/DN  B BACK"
-                : "A START   B BACK", col.cursor_blue);
+            p, pixels, stride, surface_height, c, 125,
+            v.practice_launch_pending ? "B CANCEL" : "A START   B BACK",
+            col.cursor_blue);
     } else if (v.read_only_records_open) {
         modern_native_destination_row(
             p, pixels, stride, surface_height, c, 37,

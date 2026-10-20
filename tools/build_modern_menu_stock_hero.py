@@ -24,6 +24,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 from prototype_racer_hd_replacement import (
     alpha_contact_anchor_x2_y2,
     build_stock_rgba,
+    encode_png_rgba,
     object_flip_pivot_x2_y2,
 )
 
@@ -56,6 +57,16 @@ def rgba_to_argb(rgba: bytes) -> list[int]:
         (rgba[q + 1] << 8) | rgba[q + 2]
         for q in range(0, len(rgba), 4)
     ]
+
+
+def argb_to_rgba(frame: list[int]) -> bytes:
+    if len(frame) != WIDTH * HEIGHT:
+        raise ValueError("source plate is not a 64x64 original raster")
+    result = bytearray()
+    for p in frame:
+        result.extend(((p >> 16) & 255, (p >> 8) & 255,
+                       p & 255, (p >> 24) & 255))
+    return bytes(result)
 
 
 def verified_clip(rom: bytes, registry: dict, source: dict) -> tuple[list[dict], list[list[int]]]:
@@ -168,7 +179,8 @@ def cpp_header(rows: list[dict], frames: list[list[int]]) -> str:
     return "\n".join(lines)
 
 
-def build(rom_path: Path, output_header: Path, output_manifest: Path) -> dict:
+def build(rom_path: Path, output_header: Path, output_manifest: Path,
+          frames_dir: Path | None = None) -> dict:
     source = json.loads(SOURCE.read_text(encoding="utf-8"))
     registry = json.loads(MANIFEST.read_text(encoding="utf-8"))
     if not rom_path.is_file() or rom_path.stat().st_size > MAX_BYTES:
@@ -189,6 +201,15 @@ def build(rom_path: Path, output_header: Path, output_manifest: Path) -> dict:
         "generated_header_sha256": hashlib.sha256(header.encode()).hexdigest(),
         "frames": rows,
     }
+    if frames_dir is not None:
+        frames_dir.mkdir(parents=True, exist_ok=True)
+        for row, argb in zip(rows, frames):
+            png = encode_png_rgba(WIDTH, HEIGHT, argb_to_rgba(argb))
+            plate = frames_dir / f"original-stock-{row['original_guest_frame']:04d}.png"
+            plate.write_bytes(png)
+            row["review_png_sha256"] = hashlib.sha256(png).hexdigest()
+        # Retain the plate fingerprints in the exact same source manifest.
+        manifest["frames"] = rows
     output_header.parent.mkdir(parents=True, exist_ok=True)
     output_manifest.parent.mkdir(parents=True, exist_ok=True)
     output_header.write_text(header, encoding="utf-8")
@@ -201,8 +222,9 @@ def main() -> int:
     parser.add_argument("--rom", type=Path, default=ROM)
     parser.add_argument("--header", type=Path, required=True)
     parser.add_argument("--manifest", type=Path, required=True)
+    parser.add_argument("--frames-dir", type=Path, help="Optional original-raster review PNGs; not native screenshot evidence")
     args = parser.parse_args()
-    result = build(args.rom, args.header, args.manifest)
+    result = build(args.rom, args.header, args.manifest, args.frames_dir)
     print("ORIGINAL_MENU_HERO_EXPERIMENTAL_OK frames=" +
           str(len(result["frames"])) + " source=" + SOURCE_PROVENANCE)
     return 0

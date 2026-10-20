@@ -776,13 +776,16 @@ def build_menu_source_art_bundle(big: dict, small: dict,
         raise ValueError("original cursor phase sequence is incomplete")
     if [p.get("source_obj_tile") for p in phases] != list(CURSOR_SOURCE_TILE_CYCLE):
         raise ValueError("original cursor source phase order mismatch")
+    if [p.get("source_tag") for p in phases] != [
+            f"mvl-idle-{i * 2:03d}" for i in range(16)]:
+        raise ValueError("original cursor exact capture phase tags mismatch")
     if cursor.get("captured_idle_frames") != 64 or (
             cursor.get("frames_per_pose") != 2 or
             cursor.get("cycle_frames") != 32):
         raise ValueError("original cursor full capture/cadence proof missing")
     original = phases[0]
     source_tag = big.get("source_tag")
-    if (not isinstance(source_tag, str) or not source_tag.startswith("mvl-idle-") or
+    if (source_tag != "mvl-idle-000" or
         source_tag != bg1.get("source_tag") or
         source_tag != original.get("source_tag")):
         raise ValueError("original BG1/title/cursor first phase source tags disagree")

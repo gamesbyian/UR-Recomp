@@ -50,12 +50,12 @@ class H18EvidenceBoundaries(unittest.TestCase):
         padding = b"UNINDEXED-HIDDEN-BYTES"
         patched = bytearray(original[:insertion] + padding + original[insertion:])
         shifted = central + len(padding)
-        eocd = patched.rfind(b"PK\\x05\\x06")
+        eocd = patched.rfind(b"PK\x05\x06")
         self.assertGreaterEqual(eocd, 0)
         struct.pack_into("<I", patched, eocd + 16, shifted)
         cursor = shifted
         for _ in range(5):
-            self.assertEqual(patched[cursor:cursor+4], b"PK\\x01\\x02")
+            self.assertEqual(patched[cursor:cursor+4], b"PK\x01\x02")
             old_offset = struct.unpack_from("<I", patched, cursor+42)[0]
             if old_offset >= insertion:
                 struct.pack_into("<I", patched, cursor+42, old_offset+len(padding))

@@ -131,8 +131,8 @@ def patch_host(source: str) -> str:
     lo, anchor, hi = source.index(START), source.index(ANCHOR), source.index(STOP)
     if not lo < anchor < hi:
         raise ValueError("capture anchor outside pinned native SDL EndDraw")
-    return (source[:lo] + INSTRUMENT + "\n" + source[lo:])
-        .replace(ANCHOR, REPLACEMENT, 1)
+    return (source[:lo] + INSTRUMENT + "\n" + source[lo:]).replace(
+        ANCHOR, REPLACEMENT, 1)
 
 
 def stage(framework: Path) -> bool:

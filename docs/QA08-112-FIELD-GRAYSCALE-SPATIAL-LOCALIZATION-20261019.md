@@ -121,3 +121,26 @@ Machine-readable [original-CGRAM/full-state versus native-port source receipt](.
 ## CI authority reconciliation before integration (October 19)
 
 A previous exact-head tooling run on this evidence branch failed partly because the shared `tests.unit.test_document_authority` test expected the name `Baldosa` in `docs/WORK-QUEUE.md`. Agent 7's separate new synthetic regression helper typo was fixed in commit `166ce822c28397c3fffdbac485371c2c1d3ec09b`; the next full tooling run then reported only the shared document-authority failure. **Current main now contains the required Baldosa reference in the shared queue**, so this branch's subsequent PR merge-test must be requalified against current main, with no special-case test relaxation. Agent 7 does not own the queue or independent ledger, and leaves branch rebase/merge to Agent 8. A green head check would only qualify tools and documentation, not the original/native raster or physical release acceptance.
+
+
+
+## Full 263-source RGB5 versus RGB8 comparison (independently measured October 19)
+
+A separate complete byte-level census reopened the same SHA-pinned original 2014 Snes9x BGRX8888 **RGB565-derived** archive and compiled Windows P7 RGBA archive, on all 263 actual callback f−1/native guest f pairs. Every one of the 15,081,472 source pixel positions was checked both at **RGB5 component precision** and by full RGB8 components, without crop, shift or recolour:
+
+| Pixel-level measure | Actual positions |
+| --- | ---: |
+| RGB5 incorrect (original authenticity benchmark) | 890,205 |
+| RGB8 bytes differ | 13,293,424 |
+| RGB5 exact but RGB8 differ | **12,403,219** |
+| Full RGB8-exact positions | 1,788,048 |
+| Entirely RGB5-exact frames | 132 of 263 |
+| Entirely RGB8-exact frames | 18 of 263 |
+
+All RGB5 errors are necessarily RGB8 errors. The large extra set shares the *same* top five RGB bits in each channel but differs in lower bits. This reflects the comparison of different captured **presentation pipelines** and is **not** an additional 12.4 million proven source-CGRAM/beam failures. It would be wrong to silently promote the more severe raw-RGB8 count into the accepted RGB5 graphical-fidelity budget. Byte-exact host presentation/DAC conversion should be studied independently, with a declared RGB565/Snes9x versus native RGBA colour-space contract and actual output surfaces.
+
+Reproduction: `tools/qa08_authentic_rgb8_depth_census.py --original-inner /private/exact-original-inner.zip --native-outer /private/exact-Win32-outer.zip --out /private/bitdepth-census.json`. This qualifies the exact archive SHA, original/native 263-frame registration, source per-frame P7 hashes and the inherited original/native 890,205 RGB5 count; it reports both precision levels and refuses any source drift. Its ROM-free synthetic unit tests check full-source geometry, channel order, RGB5-exact-but-RGB8-different classification, alpha and negative release gates. The compact [numeric receipt](../analysis/data/qa08-authentic-rgb8-source-budget-20261019.json) contains the actual aggregate.
+
+A second qualified observation explains the four recurring **RGB5 levels** previously described by an empirical component-minus-one mapping. Original 2014 Snes9x full display-register snapshots at original source fields **5183 and 5184** explicitly record `$2100 INIDISP=0E`, brightness **14/15**, forced blank off (per-source JSON SHA256 `8816b95e8e1832af2002b82c8a841a7d258f8d31390f31723a2f97cc86961a0f` and `960108750128708828579592469049fc38fd627b545143949f94147130c7af85`). The pinned native *legacy* renderer's 5→8 expansion/brightness math `(((c << 3) | (c >> 2)) * 14 // 15) >> 3` maps the actual equal-channel RGB555 palette values **21,18,17,16** to the observed RGB5 levels **20,17,16,15** exactly. Native post-brightness RGB8 values are **161,138,130,123**, respectively; the independently archived Snes9x original BGRX pixels may have different RGB8 low bits, e.g. the original RGB5=20 sample is `(165,166,165)`. So this derivation establishes the **RGB5 class correspondence**, not identical original 8-bit DAC output or an effective native PPU palette-index witness.
+
+All output pixels remain unchanged; this source-only analysis authorizes no palette lookup rewrite, guessed fixed brightness, 216-line crop, frame shift, CPU clock repair, QA08/10 release acceptance or approval of procedural HD racer artwork.

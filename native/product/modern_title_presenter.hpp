@@ -24,10 +24,13 @@ struct ModernTitleState {
     ModernTitlePhase phase = ModernTitlePhase::Root;
     unsigned age = 0;
     unsigned exit_age = 0;
+    bool reduced_motion = false;
 };
 
-constexpr ModernTitleState modern_title_boot(bool enabled) noexcept {
-    return {enabled ? ModernTitlePhase::Intro : ModernTitlePhase::Root, 0u, 0u};
+constexpr ModernTitleState modern_title_boot(
+    bool enabled, bool reduced_motion = false) noexcept {
+    return {enabled ? ModernTitlePhase::Intro : ModernTitlePhase::Root,
+            reduced_motion ? 40u : 0u, 0u, reduced_motion};
 }
 
 constexpr bool modern_title_active(ModernTitleState state) noexcept {
@@ -39,7 +42,8 @@ constexpr bool modern_title_active(ModernTitleState state) noexcept {
 // A held button cannot select PLAY on the following frame.
 constexpr ModernTitleState modern_title_confirm(ModernTitleState state) noexcept {
     if (state.phase == ModernTitlePhase::Intro) {
-        state.phase = ModernTitlePhase::Leaving;
+        state.phase = state.reduced_motion
+            ? ModernTitlePhase::Root : ModernTitlePhase::Leaving;
         state.exit_age = 0;
     }
     return state;
@@ -183,7 +187,7 @@ inline bool render_modern_title(
     paint.fill_rect(pixels, stride, surface_height,
                     0, h - 31, w, 2, gold);
     if (state.phase == ModernTitlePhase::Intro) {
-        const bool bright = (state.age / 30u) % 2u == 0u;
+        const bool bright = state.reduced_motion || (state.age / 30u) % 2u == 0u;
         constexpr char prompt[] = "PRESS A / START";
         paint.draw_text(pixels, stride, surface_height,
                         center - 15 * 4, h - 21, prompt,

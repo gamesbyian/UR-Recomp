@@ -116,6 +116,23 @@ int main() {
         big_view,ModernMenuSourceSheet::Heading,
         screen.data(),screen.size(),342,224,0,0,"",1));
     assert(screen == before);
+    // A blank art sheet is never silently accepted as an invisible cursor,
+    // and a blank *later* glyph cannot partially paint the earlier O.
+    big[16*24] = 0u;
+    assert(!modern_menu_paint_source_text(
+        big_view,ModernMenuSourceSheet::Heading,
+        screen.data(),screen.size(),342,224,0,100,"O P",1));
+    assert(screen == before);
+    big[16*24] = 0xFFC8C800u;
+    assert(!modern_menu_paint_source_cell(
+        cursor_view,ModernMenuSourceSheet::Cursor,
+        screen.data(),screen.size(),342,224,0,0,14,1));
+    assert(screen == before);
+    // The original 8px small-font SPACE sheet is intentionally empty.
+    assert(modern_menu_paint_source_text(
+        small_view,ModernMenuSourceSheet::Detail,
+        screen.data(),screen.size(),342,224,0,100," ",1));
+    assert(screen == before);
     big[0] = 0x80808080u;
     assert(!modern_menu_paint_source_text(
         big_view,ModernMenuSourceSheet::Heading,

@@ -17,7 +17,9 @@ def fixture():
     for line in original.splitlines():
         o.append(line)
         if line.startswith("QA01RF079ORIG ") and "before=82D4F0 " in line:
-            frame=int(re.search(r"f=(\d+)",line).group(1))
+            frame=int(re.search(r"f=(\\d+)",line).group(1))
+            o.append(f"QA01RF076ORIGPC seq={frame-1016} stage=fetch f={frame}"
+                     " actualFetchedPC=82D4F2 fetchedOpcode=64 S=01F0 v=226 h=964 wai=0")
             ordinal+=1
             o.append(f"QA01RF081ORIG seq={ordinal} stage=setbyte_enter f={frame} pc=82D4F2"
                      " D=0000 addr=000059 value=00 committed=0 v=226 h=970 phase=source_local")
@@ -61,6 +63,10 @@ class StzFirstWriter(unittest.TestCase):
             (o.replace("stage=after_stz_opcode f=1017 pc=82D4F2 D=0000 addr=000059 value=00",
                        "stage=after_stz_opcode f=1017 pc=82D4F2 D=0000 addr=000059 value=FF",1),n),
             (o.replace("committed=1","committed=0",1),n),
+            (o.replace("actualFetchedPC=82D4F2 fetchedOpcode=64",
+                       "actualFetchedPC=82D4F3 fetchedOpcode=64",1),n),
+            (o,n.replace("guestPC=82D4F2 D=0000 bank=00",
+                         "guestPC=82D4F2 D=0001 bank=00",1)),
             (o,n.replace("addr=0059 written=00","addr=0058 written=00",1)),
             (o,n.replace("written=00 rawAfter=00","written=00 rawAfter=FF",1)),
             (o,n.replace("guestPC=82D4F2 D=0000 bank=00","guestPC=82D4F2 D=0000 bank=01",1))

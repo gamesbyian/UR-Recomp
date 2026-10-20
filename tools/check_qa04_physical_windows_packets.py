@@ -41,7 +41,8 @@ def sha256_file(path: Path) -> str:
 
 def safe_member(root: Path, name: object) -> Path:
     require(type(name) is str and bool(name) and "\\" not in name
-            and not name.startswith("/") and "\x00" not in name,
+            and not name.startswith("/") and "\x00" not in name
+            and ":" not in name and not any(ch in name for ch in "*?<>|"),
             "invalid evidence relative path")
     parts = name.split("/")
     require(len(parts) <= 6 and all(p not in ("", ".", "..") for p in parts)
@@ -114,13 +115,14 @@ def inspect_packet(path: Path, *, commit: str, zip_sha: str,
                 and type(size) is int and 0 < size <= MAX_FILE_BYTES,
                 "invalid attachment hash or bounded size")
         filename = item["path"]
-        require(filename not in observed_files, "duplicated evidence path")
+        require(filename.casefold() not in observed_files,
+                "duplicated or Windows-case-alias evidence path")
         observed_kinds.add(kind)
-        observed_files.add(filename)
+        observed_files.add(filename.casefold())
         original = safe_member(path.parent, filename)
-        require(str(original.resolve()) not in observed_files,
+        require(str(original.resolve()).casefold() not in observed_files,
                 "aliased evidence source file")
-        observed_files.add(str(original.resolve()))
+        observed_files.add(str(original.resolve()).casefold())
         total += size
         require(total <= MAX_TOTAL_BYTES and original.stat().st_size == size
                 and sha256_file(original) == digest,

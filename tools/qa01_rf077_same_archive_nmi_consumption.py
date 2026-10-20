@@ -42,6 +42,10 @@ def parse(original, native):
                       (native, 'QA01RF047NATIVE_TRUNCATED')):
         require(tag not in text, 'source stream truncated: '+tag)
     orig_lines = original.splitlines()
+    actual_fetch_stream = any(x.startswith('QA01RF076ORIGPC seq=')
+                              for x in orig_lines)
+    if 'QA01RF076ORIGPC_TRUNCATED' in original:
+        raise ValueError('original real fetch stream truncated')
     nat_events = []
     for line in native.splitlines():
         if NAT_TAG not in line:
@@ -109,7 +113,46 @@ def parse(original, native):
                 reads[0].get('width')=='1' and
                 int(reads[0].get('value','-1'),16)==int(ns[:2],16),
                 f'native compiled RTI status real getter mismatch frame={frame}')
+        original_next = None
+        native_next = None
+        if actual_fetch_stream:
+            # Only genuine already-fetched guest instruction events AFTER the
+            # original architectural PC/PB returns, within this NMI epoch.
+            last_pull_position = next(i for i in range(at+1, limit)
+                if orig_lines[i].startswith(ORIG_GET) and
+                fields(orig_lines[i], ORIG_GET)['seq']==pulls[2]['seq'])
+            actual = [fields(line, 'QA01RF076ORIGPC ') for line in
+                orig_lines[last_pull_position+1:limit]
+                if line.startswith('QA01RF076ORIGPC ') and 'stage=fetch' in line]
+            require(bool(actual), f'original post-RTI actual fetched opcode absent frame={frame}')
+            original_next = actual[0]
+            require(original_next.get('f')==str(frame) and
+                    original_next.get('stage')=='fetch' and
+                    int(original_next.get('actualFetchedPC','-1'),16)==(bank<<16|pc),
+                    f'original post-return selected fetched PC differs from consumed architectural RTI frame={frame}')
+            op = int(original_next.get('fetchedOpcode','-1'),16)
+            require((pc,op) in ((0xD4EE,0x24),(0xD4F0,0x10)),
+                    f'original selected opcode is not authentic BIT/BPL frame={frame}')
+            # In the native self-contained RF047 event stream the first
+            # SELECTED decoded instruction marker after real handler_return
+            # must coincide with the scheduler's published resume site.
+            observed = [e for e in nat[stages[4][0]+1:]
+                        if e.get('stage')=='opcode']
+            require(bool(observed), f'native post-handler decoded marker absent frame={frame}')
+            native_next=observed[0]
+            require(native_next.get('tier')=='aot' and
+                    native_next.get('guestPC')==origin['resume'],
+                    f'native first selected AOT post-RTI marker contradicts true scheduler frame={frame}')
         rows.append({
+            'genuine_first_original_selected_fetch_after_RTI':
+                None if original_next is None else original_next['actualFetchedPC'],
+            'genuine_first_original_selected_opcode_after_RTI':
+                None if original_next is None else original_next['fetchedOpcode'],
+            'genuine_first_native_selected_decoded_AOT_after_RTI':
+                None if native_next is None else native_next['guestPC'],
+            'observed_selected_post_NMI_loop_opcode_identity_differs':
+                None if original_next is None else
+                original_next['actualFetchedPC']!=native_next['guestPC'],
             'source_host_frame_label':frame,
             'original_saved_PC':f'{bank:02X}{pc:04X}',
             'native_scheduler_saved_PC':origin['resume'],
@@ -134,7 +177,11 @@ def parse(original, native):
         'first_causally_significant_gameplay_divergence_proven':False,
         'same_original_native_interrupt_instruction_phase_proven':False,
         'source_binary_epoch_authenticated_by_external_receipts_only':True,
-        'actual_original_fetch_PC_proven_by_this_report':False,
+        'actual_original_fetch_PC_proven_by_this_report':actual_fetch_stream,
+        'real_post_RTI_selected_opcode_PC_disagreement_count':
+            sum(x['observed_selected_post_NMI_loop_opcode_identity_differs']
+                for x in rows) if actual_fetch_stream else None,
+        'selected_loop_PC_disagreement_does_not_prove_gameplay_causality':True,
         'accepted_USA_events':0,'per_frame':rows,
     }
 

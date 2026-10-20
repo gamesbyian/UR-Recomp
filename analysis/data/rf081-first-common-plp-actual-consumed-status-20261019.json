@@ -1,0 +1,85 @@
+{
+  "schema": "ur-qa01-rf081-first-common-PLP-consumed-byte-after-branch-rejoin/1",
+  "same_epoch_source_case_zip_sha256": "e23139e64f75099a43c0c77b6c53f3c4c87c1afb17ae12f82448f05f878ac412",
+  "independent_native_RF047_source_sidecar_sha256": "1cab9fd4f9384d2043394957cf794daf9187b7fae5dd3b4ab4e59615d88dd424",
+  "actual_original_getter_and_native_helper_both_return_26_at_00_01F1_on_first_postloop_PLP": true,
+  "first_common_STZ_actual_committed_byte_unqualified_by_this_read_only_receipt": true,
+  "cross_guest_clock_equality_proven": false,
+  "first_persistent_gameplay_divergence_proven": false,
+  "accepted_USA_events": 0,
+  "frames": [
+    {
+      "host_label": 1017,
+      "original_actual_fetch_sequence": [
+        {
+          "pc": "82D4F2",
+          "opcode": "64"
+        },
+        {
+          "pc": "82D4F4",
+          "opcode": "28"
+        },
+        {
+          "pc": "82D4F5",
+          "opcode": "60"
+        }
+      ],
+      "original_real_PLP_consumed_getter": {
+        "source_seq": 201,
+        "guest_address": "00:01F1",
+        "returned": "26",
+        "source_v": 226,
+        "source_h": 834
+      },
+      "native_real_postloop_selected_AOT_marker_seqs": [
+        11,
+        12,
+        14
+      ],
+      "native_real_PLP_helper_getter": {
+        "source_seq": 13,
+        "guest_address": "00:01F1",
+        "returned": "26",
+        "source_master": 363394906
+      },
+      "actual_returned_byte_equal": true
+    },
+    {
+      "host_label": 1018,
+      "original_actual_fetch_sequence": [
+        {
+          "pc": "82D4F2",
+          "opcode": "64"
+        },
+        {
+          "pc": "82D4F4",
+          "opcode": "28"
+        },
+        {
+          "pc": "82D4F5",
+          "opcode": "60"
+        }
+      ],
+      "original_real_PLP_consumed_getter": {
+        "source_seq": 495,
+        "guest_address": "00:01F1",
+        "returned": "26",
+        "source_v": 230,
+        "source_h": 354
+      },
+      "native_real_postloop_selected_AOT_marker_seqs": [
+        13236,
+        13237,
+        13239
+      ],
+      "native_real_PLP_helper_getter": {
+        "source_seq": 13238,
+        "guest_address": "00:01F1",
+        "returned": "26",
+        "source_master": 363752260
+      },
+      "actual_returned_byte_equal": true
+    }
+  ],
+  "limitation": "Actual original Snes9x PC is a fetched opcode, native is an executed decoded AOT marker, not a separately fetched opcode bus operation. Same local PLP consumed status is qualified at a selected common instruction stage only; clock comparability, writer at STZ, complete course and semantic equivalence are not proven."
+}

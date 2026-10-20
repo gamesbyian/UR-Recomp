@@ -1,0 +1,93 @@
+{
+  "schema": "ur-qa01-rf081-authentic-stz-first-committed-write/1",
+  "date": "2026-10-19",
+  "experiment_run_id": 39353520555,
+  "temporary_pr": 2012,
+  "temporary_branch_head": "b0d4d12eddfe7f6ff9d44a6a86561f8f27eb4924",
+  "actions_checkout_source_sha": "e0abbf18212cbe7fd5e440ad1c4cf1b8e2900f45",
+  "case_artifact_id": 12234698495,
+  "case_zip_sha256": "df35ddcd8e87bd6664e4e01fe6cbc91fabef6b45292d92564bdab92214bcff37",
+  "case_zip_members": 202,
+  "case_zip_crc_all_valid": true,
+  "binary_artifact_id": 12234727616,
+  "binary_zip_sha256": "f7f5d657fa528e4e977dccd00e5cf72fa636268e809f0903ccef4560f187d29e",
+  "exact_original_snes9x_elf_sha256": "0b4bec486f85a631c4c2df9326474d3699aaa37edc043cc6ec828614b5c6bafd",
+  "exact_native_elf_sha256": "6b18a3e06b4fcfa2a6d0b659f7e62b415d15f147e6957876f5042d1a35629177",
+  "staged_original_cpuexec_sha256": "a9590f9b37365e315a6263eaf5159a70d386854696c8a22cb85855efa907c89a",
+  "staged_original_getset_sha256": "ab248b73186fac30374210cbcffbaa88b86dace4b7b643d22eaf002c64856dd7",
+  "staged_native_beam_sha256": "4310c55c2273c5bbd3b016fa6c4e7fa6d3abdb2234eeadb1d770f0f8df49125f",
+  "staged_native_cpu_sha256": "7e34c4f4ae7a94c70027f4cc38029031d61783261aa1bdbebd243d5a5a93681e",
+  "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+  "source_controller_script_sha256": "1163b26e1f1c37cb600f64dfcd884990a22f4cbd7b5a87928d93cb482fab11a8",
+  "original_raw_log_sha256": "0a40d15a06bdbfdbee0a38588c239131216709910e6035fa5a5a94265e49b778",
+  "native_raw_stderr_sha256": "9e989f22b9398dbd1758f4458f0d5d65eb8c3eeb250cfac4e7e790b362311fd7",
+  "native_strict_source_sidecar_sha256": "6297007499e8684ba0348a602243b4fa25d80d3983290ec15d72f132e4cdbceb",
+  "actual_native_RF047_contiguous_source_events": 60821,
+  "actual_original_true_STZ_setter_and_postdispatch_events": 4,
+  "native_true_paced_STZ_commits": 2,
+  "native_RF047_source_truncated": false,
+  "same_effective_guest_write_address_and_byte_qualified": true,
+  "next_real_original_native_PLP_returned_byte_0x26_equal": true,
+  "source_comparable_clock_phase_proven": false,
+  "persisting_gameplay_causal_divergence_proven": false,
+  "release_credit": 0,
+  "windows_QA_gates": 0,
+  "frames": [
+    {
+      "source_host_label": 1017,
+      "original_actual_fetched_PC": "82D4F2",
+      "original_actual_opcode": "64",
+      "original_STZ_S9xSetByte_enter_seq": 1,
+      "original_post_STZ_dispatch_seq": 2,
+      "original_effective_D": "0000",
+      "original_actual_guest_write": "00:0059=00",
+      "original_after_dispatch_host_RAM_value": "00",
+      "original_writer_source_VH": [
+        226,
+        800
+      ],
+      "original_postwrite_source_VH": [
+        226,
+        808
+      ],
+      "original_first_BPL_post_to_STZ_setter_source_VH_ticks": 44,
+      "native_pre_STZ_decoded_AOT_seq": 11,
+      "native_actual_write_commit_seq": 12,
+      "native_post_STZ_AOT_seq": 13,
+      "native_actual_guest_write": "00:0059=00",
+      "native_postwrite_host_RAM_value": "00",
+      "native_writer_local_master": 363394898,
+      "native_first_BPL_pre_to_STZ_writer_master_ticks": 62,
+      "next_original_native_PLP_real_getter_byte": "26"
+    },
+    {
+      "source_host_label": 1018,
+      "original_actual_fetched_PC": "82D4F2",
+      "original_actual_opcode": "64",
+      "original_STZ_S9xSetByte_enter_seq": 3,
+      "original_post_STZ_dispatch_seq": 4,
+      "original_effective_D": "0000",
+      "original_actual_guest_write": "00:0059=00",
+      "original_after_dispatch_host_RAM_value": "00",
+      "original_writer_source_VH": [
+        230,
+        320
+      ],
+      "original_postwrite_source_VH": [
+        230,
+        328
+      ],
+      "original_first_BPL_post_to_STZ_setter_source_VH_ticks": 12,
+      "native_pre_STZ_decoded_AOT_seq": 13237,
+      "native_actual_write_commit_seq": 13238,
+      "native_post_STZ_AOT_seq": 13239,
+      "native_actual_guest_write": "00:0059=00",
+      "native_postwrite_host_RAM_value": "00",
+      "native_writer_local_master": 363752252,
+      "native_first_BPL_pre_to_STZ_writer_master_ticks": 62,
+      "next_original_native_PLP_real_getter_byte": "26"
+    }
+  ],
+  "limitations": "Actual first matching 82:D4F2 STZ same-value writer and first matching 82:D4F4 PLP consumed status are bounded positive source-local observations. Original Snes9x CPU V/H uses a different collection stage from native AOT master, so neither the reported 44/12 vs 62/62 deltas nor host label identity prove same semantic clocks. Old raw native stderr remains non-authoritative for 60,821 source ordinals; only isolated dedicated sidecar qualifies. No full USA event/cold guest acceptance or downstream gameplay-causality conclusion."
+}

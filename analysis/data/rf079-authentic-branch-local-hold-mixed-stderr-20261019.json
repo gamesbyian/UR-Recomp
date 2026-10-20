@@ -1,0 +1,96 @@
+{
+  "schema": "ur-rf079-first-authentic-branch-contrast-with-failed-global-source-ordinal/1",
+  "date": "2026-10-19",
+  "disposition": "BRANCH_LOCAL_OBSERVATION; GLOBAL_NATIVE_CHRONOLOGY_HOLD",
+  "source_branch_head": "f30209b344d720a29e667dcba4550938fe8c18da",
+  "workflow_run_id": 39347619428,
+  "case_artifact_id": 12232740002,
+  "case_zip_sha256": "2721255d5f642422e414ec42db68d950f19382cd9b061e7e71846acd102c82e1",
+  "zip_member_count": 199,
+  "zip_all_CRC_ok": true,
+  "original_log_sha256": "bf36108b5fa45bd01e3be4983b7602b9b722bfc6d40d9a7b2da39ffdec59ae37",
+  "native_log_sha256": "105902f7dbcc8fe3ba2f3aebc6e29637c2eee769bf1dcc24773eca596e47fbd7",
+  "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+  "controller_script_sha256": "1163b26e1f1c37cb600f64dfcd884990a22f4cbd7b5a87928d93cb482fab11a8",
+  "original_elf_sha256": "4b2c7391e3b4fb5b5bf1f2b7968b6aefe1c746229c54f3ebb0814fcc49325089",
+  "native_elf_sha256": "c088ad8954df577ebffad84aa8d28d1e7e028385f74e2c64fd7e7dfbe0b3560e",
+  "original_source_post_dispatch_rows": 12958,
+  "native_rf047_events_with_complete_line_prefix": 60744,
+  "native_rf047_highest_source_ordinal": 60819,
+  "native_missing_line_prefix_source_ordinals": 75,
+  "native_rf047_full_sequence_qualified": false,
+  "original_RF079_truncated": false,
+  "native_RF047_truncated": false,
+  "native_RF035_other_helper_logger_truncated": true,
+  "native_real_BIT_return_rows": 6483,
+  "native_real_BPL_flag_rows": 6483,
+  "source_guest_clocks_aligned": false,
+  "frame_1017": {
+    "original_last_real_BIT_before_NMI": {
+      "seq": 6455,
+      "PC": "82D4EE",
+      "post_Bit_N": 0,
+      "post_Bit_PC": "82D4F0",
+      "V": 225,
+      "H": 18
+    },
+    "original_first_BPL_after_NMI": {
+      "seq": 6456,
+      "PC": "82D4F0",
+      "N": 0,
+      "branch_taken": true,
+      "after_PC": "82D4EE",
+      "V": 226,
+      "H": 756
+    },
+    "native_first_real_BIT_after_NMI": {
+      "RF047_seq": 8,
+      "read_address": "00:0057",
+      "D": "0000",
+      "returned_value": "FF",
+      "N_from_return": 1,
+      "master": 363394836
+    },
+    "native_first_BPL_after_NMI": {
+      "RF047_seq": 10,
+      "N": 1,
+      "branch_taken": false
+    },
+    "first_branch_decision_differs_in_original_and_native_source_local_records": true,
+    "native_RF047_seq_1_through_15_source_line_prefix_intact": true
+  },
+  "frame_1018": {
+    "original_first_BIT_after_NMI": {
+      "PC": "82D4EE",
+      "returned_lazy_negative_byte": "FF",
+      "N": 1
+    },
+    "original_first_BPL_after_NMI": {
+      "seq": 12958,
+      "PC": "82D4F0",
+      "N": 1,
+      "after_PC": "82D4F2",
+      "branch_taken": false,
+      "V": 230,
+      "H": 308
+    },
+    "native_first_real_BIT_after_NMI": {
+      "RF047_seq": 13233,
+      "read_address": "00:0057",
+      "returned_value": "FF",
+      "N": 1
+    },
+    "native_first_BPL_after_NMI": {
+      "RF047_seq": 13235,
+      "N": 1,
+      "branch_taken": false
+    },
+    "first_branch_decision_matches": true
+  },
+  "first_gameplay_visible_divergence_proven": false,
+  "complete_rf079_strict_global_ordinal_attestation_proven": false,
+  "accepted_USA_events": 0,
+  "windows_QA_gates_accepted": 0,
+  "next_discriminator": "Re-run exactly one Zoo case with a dedicated RF047 event-only source log FD, retaining raw stderr intact; require all 60819+ source ordinals strictly contiguous before classifying full NMI/branch chronology. Then bound first shared post-loop PC and guest memory without clock rebasing."
+}

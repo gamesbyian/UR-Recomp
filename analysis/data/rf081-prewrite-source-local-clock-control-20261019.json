@@ -1,0 +1,74 @@
+{
+  "schema": "ur-qa01-rf081-prewrite-source-local-clock-control/1",
+  "source_case_zip_sha256": "e23139e64f75099a43c0c77b6c53f3c4c87c1afb17ae12f82448f05f878ac412",
+  "source_event_log_sha256s": {
+    "work/zoom-zoo/replay/reference.log": "feba42a853b281b82b4430f3e9375edb7cb4421781c07e327ac2a1b0bf6cc050",
+    "rf079-native-rf047-strict.log": "1cab9fd4f9384d2043394957cf794daf9187b7fae5dd3b4ab4e59615d88dd424"
+  },
+  "full_original_native_first_STZ_byte_write_proven": false,
+  "no_cross_guest_clock_math_permitted": true,
+  "source_host_labels_only": true,
+  "accepted_USA_events": 0,
+  "rows": [
+    {
+      "source_host_label": 1017,
+      "original_first_post_NMI_BPL_after_instruction": {
+        "source_seq": 6456,
+        "N": 0,
+        "destination": "82D4EE",
+        "V": 226,
+        "H": 756
+      },
+      "original_first_STZ_opcode_fetch": {
+        "source_seq": 6461,
+        "pc": "82D4F2",
+        "opcode": "64",
+        "V": 226,
+        "H": 794
+      },
+      "original_BPL_post_to_STZ_fetch_VH_affine_ticks": 38,
+      "native_first_BPL_pre_instruction": {
+        "source_seq": 10,
+        "N": 1,
+        "master": 363394836
+      },
+      "native_first_STZ_AOT_decoded_PC": {
+        "source_seq": 11,
+        "pc": "82D4F2",
+        "master": 363394890
+      },
+      "native_BPL_pre_to_STZ_marker_master_delta": 54,
+      "same_semantic_start_end_stage_proven": false
+    },
+    {
+      "source_host_label": 1018,
+      "original_first_post_NMI_BPL_after_instruction": {
+        "source_seq": 12958,
+        "N": 1,
+        "destination": "82D4F2",
+        "V": 230,
+        "H": 308
+      },
+      "original_first_STZ_opcode_fetch": {
+        "source_seq": 12966,
+        "pc": "82D4F2",
+        "opcode": "64",
+        "V": 230,
+        "H": 314
+      },
+      "original_BPL_post_to_STZ_fetch_VH_affine_ticks": 6,
+      "native_first_BPL_pre_instruction": {
+        "source_seq": 13235,
+        "N": 1,
+        "master": 363752190
+      },
+      "native_first_STZ_AOT_decoded_PC": {
+        "source_seq": 13236,
+        "pc": "82D4F2",
+        "master": 363752244
+      },
+      "native_BPL_pre_to_STZ_marker_master_delta": 54,
+      "same_semantic_start_end_stage_proven": false
+    }
+  ]
+}

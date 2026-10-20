@@ -1,0 +1,28 @@
+{
+  "schema": "ur-qa01-rf081-compiled-writer-instrumentation-preflight/1",
+  "kind": "compiled_static_provenance_not_executed_guest_witness",
+  "run_id": 39353520555,
+  "build_artifact_id": 12234727616,
+  "build_zip_sha256": "f7f5d657fa528e4e977dccd00e5cf72fa636268e809f0903ccef4560f187d29e",
+  "native_elf_sha256": "6b18a3e06b4fcfa2a6d0b659f7e62b415d15f147e6957876f5042d1a35629177",
+  "original_libretro_sha256": "0b4bec486f85a631c4c2df9326474d3699aaa37edc043cc6ec828614b5c6bafd",
+  "original_staged_cpuexec_sha256": "a9590f9b37365e315a6263eaf5159a70d386854696c8a22cb85855efa907c89a",
+  "original_staged_getset_sha256": "ab248b73186fac30374210cbcffbaa88b86dace4b7b643d22eaf002c64856dd7",
+  "native_staged_beam_sha256": "4310c55c2273c5bbd3b016fa6c4e7fa6d3abdb2234eeadb1d770f0f8df49125f",
+  "native_staged_cpu_sha256": "7e34c4f4ae7a94c70027f4cc38029031d61783261aa1bdbebd243d5a5a93681e",
+  "native_elf_nm_symbols": {
+    "cpu_write8_paced": "0x3DC20",
+    "ur_rf081_native_committed_stz": "0x413C0",
+    "ur_rf047_mark_executed_pc": "0x41530"
+  },
+  "native_compiled_paced_write_order": {
+    "actual_cpu_write8_call_vma": "0x3DD5A",
+    "subsequent_rf081_committed_stz_tail_jmp_vma": "0x3DD73",
+    "post_guest_writer_order_verified_statically": true
+  },
+  "original_libretro_RF081_strings_present": true,
+  "actual_guest_STZ_executed_proven": false,
+  "original_native_STZ_written_values_proven": false,
+  "clock_semantic_alignment_proven": false,
+  "accepted_USA_events": 0
+}

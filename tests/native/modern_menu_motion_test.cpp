@@ -220,8 +220,11 @@ void test_source_stock_hero() {
         wide.data(), 1536, 896, {0, 0, 1536, 896},
         {650, 280, 4}, sequence, wide_pose) ==
         ModernMenuStockHeroDraw::Drawn);
-    assert(wide[static_cast<std::size_t>(280 + 128) * 1536u +
-                650u + 128u] == 0xff0000ffu);
+    assert(wide[static_cast<std::size_t>(
+                280 + wide_pose.hero_bob_px * 4 + 128) * 1536u +
+                static_cast<std::size_t>(
+                    650 + wide_pose.hero_lean_px * 4 + 128)] ==
+           0xff0000ffu);
     assert(wide[0] == 0xff101010u);
 }
 } // namespace

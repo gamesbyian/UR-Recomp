@@ -1184,12 +1184,18 @@ extern "C" int ur_baldosa_modern_root_gamepad(
 }
 
 extern "C" void ur_baldosa_modern_root_prepare_frame(
-    int, int, int* logical_width, int* logical_height) {
-    // Only host-owned Modern frontend output widens. Authentic, guest
-    // menus, racing and result frames keep their original raster unchanged.
+    int drawable_width, int drawable_height,
+    int* logical_width, int* logical_height) {
+    // The original guest, Authentic mode, racing and results retain their
+    // stock raster. Only the real Modern frontend chooses host presentation
+    // geometry from the actual SDL output measured by PreparePpuFrame().
     if (!logical_width || !logical_height || !configured() || !g_visible)
         return;
-    *logical_width = 342;
+    if (ur::product::modern_native_frontend_compact_drawable(
+            drawable_width, drawable_height))
+        *logical_width = 256;
+    else
+        *logical_width = 342;
     *logical_height = 224;
 }
 

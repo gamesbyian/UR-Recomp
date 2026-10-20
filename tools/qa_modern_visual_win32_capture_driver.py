@@ -165,7 +165,7 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
             "release_gate_credit": 0,
         }
         (stage / "authentic-source-vs-sdl.json").write_text(
-            json.dumps(diagnostic, indent=2) + "\\n", encoding="utf-8")
+            json.dumps(diagnostic, indent=2) + "\n", encoding="utf-8")
         if source_visibility is None:
             raise RuntimeError("Authentic host pre-SDL source capture missing")
         if source_visibility["nonblack_rgb_pixels"] == 0:

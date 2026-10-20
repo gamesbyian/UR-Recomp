@@ -93,6 +93,8 @@ def classify(ab: dict, cross: dict, executed: dict, report: dict,
     compiled = ab.get("independently_reopened_compiled_binaries")
     logging_checks = {
         "schema": ab.get("schema") == logging_ab.SCHEMA,
+        "source_identity_matches": ab.get("source_identity_matches") is True,
+        "same_binaries": ab.get("same_binaries") is True,
         "published_archive_SHA": ab.get("authenticated_evidence_archive_sha256") == AB_ZIP,
         "actual_source_ZIP_reopened": ab.get("zip_archive_raw_byte_reopened") is True,
         "existing_strict_logging_claim_is_not_promoted": ab.get("runtime_RF062_logging_noninterference_supported") is False,

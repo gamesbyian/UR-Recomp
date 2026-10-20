@@ -444,6 +444,75 @@ def write_atlas(path: Path, d: Dump, char_base: int) -> None:
     write_png(path, width, height, bytes(buf))
 
 
+# -------------------------------------------- original BG1 backdrop art ---
+# Draw *only BG1* from the canonical PPU capture. The original UNIRACERS
+# logo, checkerboard and leaf motif live on this static 8bpp layer. It is
+# not a final-screen screenshot: BG2 letters, OBJ arrow, colour math, output
+# scale and other layers are deliberately absent. Never commit extracted PNG.
+def original_menu_bg1_rgba(d: Dump, width: int = 256,
+                           height: int = 224) -> bytes:
+    """Decode real MODE3 BG1 tiles, tilemap flips and source horizontal scroll."""
+    if not (1 <= width <= 512 and 1 <= height <= 448):
+        raise ValueError("bounded reference capture dimensions required")
+    if len(d.vram) != 65536 or len(d.cgram) != 512:
+        raise ValueError("incorrect original PPU VRAM/CGRAM lengths")
+    if "2105" not in d.fillram:
+        raise ValueError("source PPU capture is missing BGMODE ($2105)")
+    mode = int(d.fillram["2105"], 16)
+    if (mode & 7) != 3:
+        raise ValueError("the original menu BG1 reference requires MODE3 8bpp")
+    map_base, char_base, map_w, map_h = bg_layout(d.fillram, 0)
+    cell = 16 if mode & 0x10 else 8
+    bg = d.ppu["bg"][0]
+    hofs, vofs = int(bg["hofs"]), int(bg["vofs"])
+    decoded_tiles: dict[int, list[list[int]]] = {}
+    output = bytearray(width * height * 4)
+    opaque = 0
+    for y in range(height):
+        sy = (y + vofs) % (map_h * cell)
+        row = sy // cell
+        cy = sy % cell
+        for x in range(width):
+            sx = (x + hofs) % (map_w * cell)
+            column, cx = sx // cell, sx % cell
+            entry = tilemap_entry(d.vram, map_base, map_w, column, row)
+            u = cell - 1 - cx if entry & 0x4000 else cx
+            v = cell - 1 - cy if entry & 0x8000 else cy
+            # 16px BG characters consist of an adjacent 2x2 8px tile
+            # block; source tile number advances +1 right and +16 down.
+            tile = ((entry & 0x3FF) +
+                    (u // 8) + (v // 8) * 16) & 0x3FF
+            if tile not in decoded_tiles:
+                decoded_tiles[tile] = tile_pixels(d.vram, char_base, tile, 8)
+            value = decoded_tiles[tile][v % 8][u % 8]
+            if value == 0:
+                continue  # BG1 transparent index, no invented backdrop
+            idx = (y * width + x) * 4
+            output[idx:idx + 4] = bytes(bgr555(d.cgram, value) + [255])
+            opaque += 1
+    if opaque == 0:
+        raise ValueError("source BG1 art decodes completely transparent")
+    return bytes(output)
+
+
+def write_original_menu_bg1(path: Path, d: Dump) -> dict:
+    rgba = original_menu_bg1_rgba(d)
+    write_png(path, 256, 224, rgba)
+    return {
+        "schema_version": 1,
+        "source_tag": d.tag,
+        "source_fixture": SCRIPT,
+        "layers": ["BG1 8bpp MODE3 only"],
+        "not_included": ["BG2 labels", "OBJ cursor", "colour math", "host scaling"],
+        "dimensions": [256, 224],
+        "vram_sha256": hashlib.sha256(d.vram).hexdigest(),
+        "cgram_sha256": hashlib.sha256(d.cgram).hexdigest(),
+        "rgba_sha256": hashlib.sha256(rgba).hexdigest(),
+        "png_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "distribution": "Locally extracted original game art; never commit image",
+    }
+
+
 # ------------------------------------------------- original small font art ---
 # Exact BG2 8x16 stock font is a different tile family from 16x16 titles.
 # Export when requested to enable a faithful reconstructed native text path;
@@ -755,6 +824,8 @@ def main() -> int:
     ap.add_argument("dump_dir", type=Path, help=f"snesref dump directory from {SCRIPT}")
     ap.add_argument("--out", type=Path, default=ROOT / "analysis/generated/menu-visual-language.json")
     ap.add_argument("--atlas-out", type=Path, help="optional PNG of the decoded glyph sheet (do not commit)")
+    ap.add_argument("--bg1-out", type=Path, help="optional source BG1 logo/grey checker/leaf PNG (do not commit)")
+    ap.add_argument("--bg1-manifest-out", type=Path, help="optional source/PNG SHA receipt for --bg1-out")
     ap.add_argument("--small-atlas-out", type=Path, help="optional original grey 8x16 detail font PNG (do not commit)")
     ap.add_argument("--small-atlas-manifest-out", type=Path, help="optional small-font charset, aliases and atlas digest")
     ap.add_argument("--cursor-atlas-out", type=Path, help="optional decoded original 16-pose OBJ cursor PNG (do not commit)")
@@ -785,6 +856,12 @@ def main() -> int:
     args.out.write_text(json.dumps(contract, indent=1) + "\n")
     if args.atlas_out:
         write_atlas(args.atlas_out, main_dump, char_base)
+    if args.bg1_manifest_out and not args.bg1_out:
+        ap.error("--bg1-manifest-out requires --bg1-out")
+    if args.bg1_out:
+        backdrop = write_original_menu_bg1(args.bg1_out, main_dump)
+        if args.bg1_manifest_out:
+            args.bg1_manifest_out.write_text(json.dumps(backdrop, indent=2) + "\n")
     if args.small_atlas_manifest_out and not args.small_atlas_out:
         ap.error("--small-atlas-manifest-out requires --small-atlas-out")
     if args.small_atlas_out:

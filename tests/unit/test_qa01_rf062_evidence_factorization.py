@@ -14,6 +14,8 @@ def fixture():
         "schema":"ur-qa01-rf062-same-executable-logging-ab/1",
         "authenticated_evidence_archive_sha256":gate.AB_ZIP,
         "zip_archive_raw_byte_reopened":True,
+        "source_identity_matches":True,
+        "same_binaries":True,
         "runtime_RF062_logging_noninterference_supported":False,
         "wrapper_replacement_noninterference_proven":False,
         "USA_events_accepted":0,
@@ -95,6 +97,8 @@ class BoundedObservationsRemainDistinct(unittest.TestCase):
 
     def test_unsafe_promotions_and_missing_positive_proof_fail(self):
         experiments=(
+            ("source_identity_not_qualified",0,("source_identity_matches",),False),
+            ("same_binary_identity_not_qualified",0,("same_binaries",),False),
             ("changed_native_emu_binary",0,("independently_reopened_compiled_binaries",
                                             "actual_native_binary_SHA256"),"0"*64),
             ("helper_count_off_changes",0,("native_real_sound_helper_count_off_on",),[656,655]),

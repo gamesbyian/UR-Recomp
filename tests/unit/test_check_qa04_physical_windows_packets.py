@@ -177,6 +177,22 @@ class WindowsPhysicalWitnessPacketTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "symlinked"):
             self.review()
 
+    def test_rejects_copied_genuine_attachment_between_claimed_machines(self):
+        # A compromised reporter can rewrite the SHA and file length. The
+        # two supposedly independent setups must still not recycle evidence.
+        source = self.paths[0].parent / "controller-p1.txt"
+        target = self.paths[1].parent / "controller-p1.txt"
+        data = source.read_bytes()
+        target.write_bytes(data)
+        def bind_copied_evidence(x):
+            item = next(a for a in x["attachments"]
+                        if a["kind"] == "controller-p1")
+            item["sha256"] = hashlib.sha256(data).hexdigest()
+            item["bytes"] = len(data)
+        change(self.paths[1], bind_copied_evidence)
+        with self.assertRaisesRegex(ValueError, "reused across independent"):
+            self.review()
+
     def test_refuses_manufactured_release_claim_and_self_review(self):
         for key, val in (("release_gate_credit", 1),
                          ("physical_hardware_verified", True),

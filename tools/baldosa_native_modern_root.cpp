@@ -1299,9 +1299,10 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
                     painter, reinterpret_cast<std::uint32_t*>(dst),
                     static_cast<int>(pitch / 4), height, 1,
                     root_rect, phase);
-            // Native QA only: one attested host PRESENT per record, including
-            // the exact root and semantic focus. Never synthesize/claim a
-            // guest frame. The final P7 SDL readback must be checked separately.
+            // Native QA only: one ACTUAL native root compositor paint per
+            // record, NOT a guaranteed SDL swap/present. The final P7
+            // readback must be independently matched to this draw and its
+            // selection/clock; never synthesize or claim a guest frame.
             if (provenance_log) {
                 std::fprintf(stderr,
                     "UR_MODERN_MENU_MOTION_CAPTURE ordinal=%llu tick60=%llu "

@@ -75,6 +75,24 @@ int main() {
         assert(saw("THE ONE-WHEEL RACING CLASSIC"));
         assert(saw("PRESS A / START"));
         assert(!saw("UNIRALLY"));
+        // Full original-title pixel art is read from the verified retail
+        // asset, not procedurally reconstructed. Digest the exact unscaled
+        // 238x81 crop through the Modern host framebuffer.
+        const auto asset_digest = [&surf, width]() {
+            std::uint64_t h = 1469598103934665603ull;
+            const int left = (width - regional_title_asset::kWidth) / 2;
+            for (int y = 27; y < 27 + regional_title_asset::kHeight; ++y) {
+                for (int x = left; x < left + regional_title_asset::kWidth; ++x) {
+                    const std::uint32_t p = surf.pixels[y * surf.stride + x];
+                    for (int shift = 0; shift <= 16; shift += 8) {
+                        h ^= (p >> shift) & 0xffu;
+                        h *= 1099511628211ull;
+                    }
+                }
+            }
+            return h;
+        };
+        assert(asset_digest() == regional_title_asset::kSourceCropBgrFnv1a64);
         assert(fill_count > 100);  // track sections and wheel ring
         assert(surf.pixels.front() != 0x12345678u);
         assert(surf.pixels.back() != 0x12345678u);
@@ -84,6 +102,7 @@ int main() {
                 surf.stride, surf.height, width, opening, true));
         assert(saw("UNIRALLY"));
         assert(!saw("UNIRACERS"));
+        assert(asset_digest() == regional_title_asset::kTargetCropBgrFnv1a64);
         words.clear();
         opening = modern_title_confirm(opening);
         assert(render_modern_title(paint, surf.pixels.data(),

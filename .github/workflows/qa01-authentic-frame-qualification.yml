@@ -541,6 +541,18 @@ jobs:
           retention-days: 90
           if-no-files-found: error
 
+      - name: Preserve original 2014 Bowl source bytes before October 25 expiry
+        # The source-original 39168164480 artifact 12151357791 expires
+        # 2026-10-25 21:38 UTC. Preserve only after the full independent Bowl
+        # archive audit above passes; do not alter the original ZIP digest.
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-bowl-original-2014-immutable-source-preservation
+          path: ${{ runner.temp }}/qa01-archive/genuine-bowl.zip
+          retention-days: 90
+          if-no-files-found: error
+
       - name: Retain only small authenticated offline receipts, never bulk memory
         if: always()
         uses: actions/upload-artifact@v4

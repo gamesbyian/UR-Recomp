@@ -6,7 +6,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'tools'))
 import qa01_rf077_same_archive_nmi_consumption as r
 
-def fixture():
+def fixture(with_fetch=False):
     original, native = [], []
     def native_event(frame, stage, extra):
         native.append(f'QA01RF047NATIVE seq={len(native)+1} stage={stage} f={frame} {extra}')
@@ -29,6 +29,13 @@ def fixture():
         native_event(f,'read','addr=01ED width=1 value=0026')
         native_event(f,'compiled_rti','S=01F0')
         native_event(f,'handler_return','S=01F0 resume=82D4EE')
+        if with_fetch:
+            opcode=0x10 if pc==0xD4F0 else 0x24
+            original.append(
+                f'QA01RF076ORIGPC seq={f-1016} stage=fetch f={f}'
+                f' actualFetchedPC=82{pc:04X} fetchedOpcode={opcode:02X}'
+                f' S=01F0 v=226 h=744 wai=0')
+            native_event(f,'opcode','tier=aot guestPC=82D4EE')
     return '\n'.join(original)+'\n','\n'.join(native)+'\n'
 
 class SameArchiveConsumption(unittest.TestCase):
@@ -42,6 +49,29 @@ class SameArchiveConsumption(unittest.TestCase):
         self.assertFalse(result['first_causally_significant_gameplay_divergence_proven'])
         self.assertFalse(result['same_original_native_interrupt_instruction_phase_proven'])
         self.assertEqual(result['accepted_USA_events'],0)
+
+    def test_real_post_RTI_selected_opcode_fetch_join(self):
+        o,n=fixture(with_fetch=True)
+        result=r.parse(o,n)
+        self.assertTrue(result['actual_original_fetch_PC_proven_by_this_report'])
+        self.assertEqual(result['real_post_RTI_selected_opcode_PC_disagreement_count'],5)
+        self.assertFalse(result['first_causally_significant_gameplay_divergence_proven'])
+        for row in result['per_frame']:
+            self.assertEqual(row['genuine_first_original_selected_fetch_after_RTI'],
+                             row['original_saved_PC'])
+            self.assertEqual(row['genuine_first_native_selected_decoded_AOT_after_RTI'],
+                             row['native_scheduler_saved_PC'])
+
+    def test_wrong_original_fetched_opcode_or_native_return_marker_fails(self):
+        o,n=fixture(with_fetch=True)
+        for oo,nn in (
+            (o.replace('fetchedOpcode=10','fetchedOpcode=24',1),n),
+            (o.replace('actualFetchedPC=82D4F0','actualFetchedPC=82D4EE',1),n),
+            (o,n.replace('tier=aot guestPC=82D4EE','tier=interp guestPC=82D4EE',1)),
+            (o,n.replace('tier=aot guestPC=82D4EE','tier=aot guestPC=82D4F0',1)),
+        ):
+            with self.assertRaises(ValueError):
+                r.parse(oo,nn)
 
     def test_original_consumed_operand_missing_or_modified_fails(self):
         o,n=fixture()

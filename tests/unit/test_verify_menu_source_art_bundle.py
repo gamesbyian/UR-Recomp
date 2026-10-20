@@ -98,8 +98,6 @@ class SourceArtBundleVerifierTest(unittest.TestCase):
             rgba = bytearray(640 * 16 * 4)
             pixel(rgba, 640, 0, 0)
             import zlib
-            compressed = bytearray(zlib.decompress(
-                base[41:-16])) if False else None  # don't assume IDAT offsets
             index = base.index(b"IDAT")
             chunk_length = struct.unpack(">I", base[index - 4:index])[0]
             raw = bytearray(zlib.decompress(base[index + 4:index + 4 + chunk_length]))

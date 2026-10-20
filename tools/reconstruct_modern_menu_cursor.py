@@ -154,6 +154,9 @@ def verify_source_frames(dumps: list[mvl.Dump], contract: dict) -> list[dict]:
         if [mvl.bgr555(d.cgram, 128 + 7 * 16 + j) for j in range(16)] != \
            cursor["arrow_palette_rgb"]:
             raise ValueError("original cursor palette drifted")
+        if mvl.bgr555(d.cgram, 128 + 5 * 16 + 1) != \
+           cursor["shadow_palette_rgb"]:
+            raise ValueError("original cursor shadow CGRAM colour drifted")
         arrow_flip = source_sprite_flips(d, arrow)
         shadow_flip = source_sprite_flips(d, shadow)
         if i % 2 and (arrow_flip != report[-1]["arrow_flip"] or
@@ -173,22 +176,34 @@ def verify_source_frames(dumps: list[mvl.Dump], contract: dict) -> list[dict]:
 def reconstruct(dumps: list[mvl.Dump], contract: dict) -> tuple[list[bytes], list[dict]]:
     records = verify_source_frames(dumps, contract)
     frames = []
-    for phase in range(FRAMES):
-        index = phase * 2
-        d = dumps[index]
+    previous: bytes | None = None
+    source_cycle: list[bytes] = []
+    # Rendering only pose 0/2/4/... is not enough: a bad VRAM/CGRAM dump on
+    # frame 1 could invalidate the measured two-frame CHR hold unnoticed.
+    # Independently rasterize EVERY one of the 64 true source PPU snapshots.
+    for index, d in enumerate(dumps):
         sprites = mvl.sprites(d.oam)
         arrow = next(obj for obj in sprites if obj["palette"] == 7)
         shadow = next(obj for obj in sprites if obj["palette"] == 5)
         buffer = bytearray(CANVAS * CANVAS * 4)
         draw_sprite(d, shadow, buffer, SHADOW_OFFSET, SHADOW_OFFSET)
         draw_sprite(d, arrow, buffer, 0, 0)
-        frames.append(bytes(buffer))
-        records[index]["rgba_sha256"] = hashlib.sha256(buffer).hexdigest()
+        source_rgba = bytes(buffer)
+        if index % 2 and source_rgba != previous:
+            raise ValueError("two-frame original cursor raster hold diverged")
+        if index >= 32 and source_rgba != source_cycle[index % 32]:
+            raise ValueError("second original cursor raster revolution diverged")
+        if index < 32:
+            source_cycle.append(source_rgba)
+        if index % 2 == 0 and index < 32:
+            frames.append(source_rgba)
+        previous = source_rgba
+        records[index]["rgba_sha256"] = hashlib.sha256(source_rgba).hexdigest()
         records[index]["opaque_pixels"] = sum(
             buffer[j] != 0 for j in range(3, len(buffer), 4))
         if records[index]["opaque_pixels"] < 64:
             raise ValueError("unpopulated source OBJ sprite")
-    if len({hashlib.sha256(frame).hexdigest() for frame in frames}) < 8:
+    if len(frames) != FRAMES or len(set(frame for frame in frames)) < 8:
         raise ValueError("original source cursor rotation unexpectedly static")
     return frames, records
 

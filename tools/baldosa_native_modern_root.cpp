@@ -6,6 +6,7 @@
  * launch, Records callbacks, or route completeness for other destinations.
  */
 #include "modern_root_overlay_presenter.hpp"
+#include "modern_title_presenter.hpp"
 #include "modern_root_physical_edges.hpp"
 #include "baldosa_native_records_summary.hpp"
 #include "baldosa_native_multiplayer_records_summary.hpp"
@@ -108,6 +109,8 @@ bool g_practice_session_active = false;
 std::vector<std::uint8_t> g_practice_sram_snapshot;
 std::string g_practice_previous_save_root;
 ModernRootMenu g_menu{};
+ur::product::ModernTitleState g_title{};
+bool g_title_logged = false;
 // Native OPTIONS: only controls the pinned host genuinely applies.
 ur::product::BaldosaNativeOptions g_options{};
 bool options_host_get_display(void*, int* fullscreen, int* vsync) {
@@ -356,6 +359,7 @@ bool reopen_on_observed_stock_main() {
         g_ram[0x0313] == 0x01u) return false;
     if (!restore_practice_session()) return false;
     g_menu = ur::product::modern_root_menu_reset();
+    g_title = ur::product::modern_title_boot(false); // no intro on reentry
     g_visible = true;
     g_confirm_quit = false;
     g_records_open = false;
@@ -987,6 +991,12 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     if (!configured()) return;
     if (!restore_practice_session()) std::abort();
     g_menu = ur::product::modern_root_menu_reset();
+    // Existing scripted journeys start directly at root. Mode 15 is the
+    // explicit title journey; ordinary Modern launches display the title.
+    const char* fixture = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
+    g_title = ur::product::modern_title_boot(
+        !(fixture && *fixture && std::strcmp(fixture, "15") != 0));
+    g_title_logged = false;
     g_navigation_edges.reset();
     g_p2_join_edges.reset();
     g_two_seat_join.cancel();
@@ -1082,6 +1092,11 @@ extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
         return key == SDLK_ESCAPE && first_press &&
                reopen_on_observed_stock_main() ? 1 : 0;
     if (!first_press) return 1;
+    if (ur::product::modern_title_active(g_title)) {
+        if (action == 2)
+            g_title = ur::product::modern_title_confirm(g_title);
+        return 1;
+    }
     g_root_notice.clear();
     if (action == 2) choose();
     else if (action == 3) back();
@@ -1135,6 +1150,11 @@ extern "C" int ur_baldosa_modern_root_gamepad(
         return button == kGamepadBtn_B && first_press &&
                reopen_on_observed_stock_main() ? 1 : 0;
     if (!first_press) return 1;
+    if (ur::product::modern_title_active(g_title)) {
+        if (action == 2)
+            g_title = ur::product::modern_title_confirm(g_title);
+        return 1;
+    }
     g_root_notice.clear();
     if (action == 2) choose();
     else if (action == 3) back();
@@ -1153,7 +1173,7 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         return 0;
     // Retain the stock 256x224 output and exact pitch. The HD/widescreen
     // compositors own all other raster modes; no attempt to fake density.
-    if (!dst || !field || width != 256 || height != 224 ||
+    if (!dst || !field || (width != 256 && width != 342) || height != 224 ||
         pitch < static_cast<std::size_t>(width) * 4 ||
         pitch % 4 != 0) return 0;
     for (int y = 0; y < height; ++y)
@@ -1166,6 +1186,13 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         return ur::product::render_baldosa_native_run_save_feedback(
             painter, reinterpret_cast<std::uint32_t*>(dst),
             static_cast<int>(pitch / 4), height, g_run_save_feedback) ? 1 : 0;
+    if (ur::product::modern_title_active(g_title)) {
+        const bool drawn = ur::product::render_modern_title(
+            painter, reinterpret_cast<std::uint32_t*>(dst),
+            static_cast<int>(pitch / 4), height, width, g_title);
+        if (drawn) ++g_paint_count;
+        return drawn ? 1 : 0;
+    }
     ModernRootOverlayView view{
         g_menu, false, g_racer_name,
         false, g_confirm_quit, kNativeRootAvailable, false,
@@ -1430,6 +1457,15 @@ extern "C" void ur_baldosa_modern_root_stock_observe_guest(void) {
 
 extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     ur_baldosa_modern_root_stock_observe_guest();
+    if (g_visible && ur::product::modern_title_active(g_title)) {
+        g_title = ur::product::modern_title_advance(g_title);
+        if (!ur::product::modern_title_active(g_title) && !g_title_logged) {
+            g_title_logged = true;
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=%u input_owned=1\n",
+                frame);
+        }
+    }
     // A genuine 1P/2P terminal result may show the SAME existing Modern
     // acknowledgement strip. It is revoked on any new race, setup screen,
     // lost source handoff, or mode change. No guest result is fabricated.
@@ -1501,7 +1537,7 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         char* parse_end = nullptr;
         const long mode = opt && *opt ? std::strtol(opt, &parse_end, 10) : 0;
         if (!g_visible || !opt || !parse_end || *parse_end != '\0' ||
-            mode < 1 || mode > 14) return;
+            mode < 1 || mode > 15) return;
         // Test-only: stop scripted input after this frame so a human or a
         // screenshot harness can inspect the held screen.
         const char* last = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE_LAST_FRAME");
@@ -1709,6 +1745,16 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
         std::fprintf(stderr,
             "UR_BALDOSA_MODERN_ROOT options_gamepad frame=%u button=%d\n",
             frame, button);
+        return;
+    }
+    // CI-only mode 15: drive title -> existing root via actual native P1 A.
+    if (std::strcmp(opt, "15") == 0) {
+        if (frame != 60) return;
+        if (!ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 1) ||
+            !ur_baldosa_modern_root_gamepad(0, kGamepadBtn_A, 0))
+            std::abort();
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_TITLE native_p1_start=1 frame=%u\n", frame);
         return;
     }
     // CI-only mode 14: boot, then ask to quit and confirm (B, A) through the

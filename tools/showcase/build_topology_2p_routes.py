@@ -35,6 +35,7 @@ TARGETS = {
     "looper": ("Looper", 11, 2, 0, "race-a", "loop topology scout"),
     "megajump": ("MegaJump", 12, 2, 1, "circuit-a", "ramp/jump scout"),
     "jumps": ("Jumps", 13, 2, 2, "stunt", "repeated-ramp stunt scout"),
+    "hill-climb": ("Hill Climb", 23, 4, 2, "stunt", "actual hill/slope geometry scout"),
 }
 
 def sha(s: str) -> str:
@@ -67,19 +68,20 @@ def menu_route(source: str, key: str) -> str:
     name, stream, tour, row, kind, expectation = TARGETS[key]
     if source.count(SOURCE_ANCHOR) != 1 or source.count("until 0E1F != 00\n") != 1:
         raise ValueError("Unknown native 2P menu/GO anchors")
-    if tour not in (0, 2):
-        raise ValueError("Only source-verified Crawler/Shuffler navigation supported")
+    if tour not in (0, 2, 4):
+        raise ValueError("Only default Crawler and tier-zero Shuffler/Walker prospective routes supported")
     section = [
         "press p2:start 2",
         "until 009F == 6D 1200",
         "wait 60",
     ]
-    if tour == 2:
-        section += [
-            "press down 2",
-            "until 009B == 02 600",
-            "wait 30",
-        ]
+    if tour:
+        # Original one-edge Shuffler (tour index 2) is independently
+        # source verified. Second-edge Walker index 4 is prospective and
+        # must be guest-state-checked; no false assertion of proven 2P UI.
+        for _ in range(tour // 2):
+            section += ["press down 2", "wait 12"]
+        section += [f"until 009B == {tour:02X} 600", "wait 30"]
     section += [
         "press start 2",
         "until 009F == 91 1200",
@@ -116,7 +118,8 @@ def produce(source: str, key: str, profile: str) -> tuple[str, dict]:
         "track_kind_catalogued": kind,
         "tour_index_zero_based": tour,
         "track_row_zero_based": row,
-        "menu_selection_source_identity": "stock original menu source code, no direct guest state injection",
+        "menu_selection_source_identity": "source-derived original menu controls; 2P route must independently execute",
+        "tour_navigation_evidence": ("first Shuffler down edge source verified" if tour == 2 else ("default Crawler" if tour == 0 else "prospective second down edge, NOT source-verified in 2P")),
         "source_catalog_sha256": hashlib.sha256(CATALOG.read_bytes()).hexdigest(),
         "source_original_native_menu_sha256": sha(source),
         "topology_expectation": expectation,
@@ -147,7 +150,7 @@ def self_test():
             assert script.count("turbo off\n") == 1
             assert fixture.split("press p2:start 2")[0] == script.split("press p2:start 2")[0]
             results.append((name, profile))
-    assert len(results) == 10
+    assert len(results) == 12
     for wrong in [fixture.replace("until16 0053 == 8610", "wait 5"),
                   fixture.replace("press p2:start 2", "press p2:a 2")]:
         try:

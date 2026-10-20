@@ -118,7 +118,21 @@ class LateEffectiveSourceProof(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,"SHA mismatch"):
                 witness.verify(Path("on"),Path("off"),Path("original"),
                                Path("CRC-on"),Path("CRC-off"),
-                               Path("route-on"),Path("route-off"))
+                               Path("route-on"),Path("route-off"),Path("native-outer"))
+
+    def test_archived_native_P7_identity_is_independently_bound(self):
+        self.assertEqual(witness.ARCHIVED_NATIVE_OUTER,
+                         "832c08263e2d3013d5b15df82b2b0574fabfd3114194b7cbef9f6bb1b2959727")
+        self.assertEqual(witness.ARCHIVED_NATIVE_INNER,
+                         "c36fdd0238735e739219b013d25665e42a008a7827ee97631a322217c9f4f0cd")
+        self.assertEqual(witness.ARCHIVED_NATIVE_5184_P7,
+                         "8dae60c1433aa26cd6edc20edda980d1dec17e8935a799d7edc6d0878ae387a8")
+        self.assertEqual(witness.P7_HEADER,
+                         b"P7\\nWIDTH 256\\nHEIGHT 224\\nDEPTH 4\\nMAXVAL 255\\n"
+                         b"TUPLTYPE RGB_ALPHA\\nENDHDR\\n")
+        with patch.object(witness.Path, "read_bytes", return_value=b"forged"):
+            with self.assertRaisesRegex(ValueError, "outer ZIP SHA"):
+                witness.verify_archived_native_pixels(Path("fake.zip"))
 
     def test_historical_sha_and_negative_evidence_gates(self):
         self.assertEqual(witness.ORIGINAL_ZIP,

@@ -4,6 +4,8 @@ import argparse
 import hashlib
 import json
 import os
+import re
+import struct
 import subprocess
 from pathlib import Path
 
@@ -21,7 +23,52 @@ def sha(path):
     return h.hexdigest()
 
 
-def inspect(folder, route_manifest, binary_file, rom_sha, source_sha, names=NAMES):
+def read_world_snapshot(path: Path) -> dict:
+    """4 original 7E WRAM player-position words; no false path-distance claim."""
+    data = path.read_bytes()
+    if len(data) != 0x20000:
+        raise ValueError("Invalid 128KiB guest WRAM scene dump")
+    p1x, p2x, p1y, p2y = (struct.unpack_from("<H", data, off)[0]
+                          for off in (0x0411, 0x0413, 0x0415, 0x0417))
+    return {
+        "p1_world_x_u16": p1x,
+        "p2_world_x_u16": p2x,
+        "p1_world_y_u16": p1y,
+        "p2_world_y_u16": p2y,
+        "raw_abs_x_difference": abs(p1x - p2x),
+        "raw_abs_y_difference": abs(p1y - p2y),
+        "distance_status": "raw_coordinate_difference_not_course_arc_distance",
+    }
+
+
+def read_guest_dump_witnesses(work_root: Path, name: str) -> list[dict]:
+    """Compare exact semantic dump tags with no-video control run."""
+    cases = ("cinematic-lead", "cinematic-middle", "cinematic-late")
+    ctrl = work_root / f"{name}-control"
+    rec = work_root / f"{name}-recorded"
+    ctrl_log = (ctrl / "log.txt").read_text(errors="replace")
+    rec_log = (rec / "log.txt").read_text(errors="replace")
+    out = []
+    for tag in cases:
+        pattern = r"script f=(\\d+) dump " + re.escape(tag) + r" ok"
+        a = re.findall(pattern, ctrl_log)
+        b = re.findall(pattern, rec_log)
+        if len(a) != 1 or len(b) != 1 or a[0] != b[0]:
+            raise ValueError(f"Guest semantic dump tag missing/nonidentical: {name}/{tag}")
+        path_control = ctrl / "dump" / f"{tag}.wram.bin"
+        path_recorded = rec / "dump" / f"{tag}.wram.bin"
+        if sha(path_control) != sha(path_recorded):
+            raise ValueError(f"Source WRAM changed with recording: {name}/{tag}")
+        out.append({
+            "tag": tag,
+            "guest_frame": int(a[0]),
+            "control_vs_recorded_wram_sha256": sha(path_control),
+            **read_world_snapshot(path_recorded),
+        })
+    return out
+
+
+def inspect(folder, route_manifest, binary_file, rom_sha, source_sha, names=NAMES, work_root=None):
     route_data = json.loads(Path(route_manifest).read_text())
     routes = route_data.get("routes", route_data.get("cases"))
     if not isinstance(routes, dict) or not names or len(names) != len(set(names)):
@@ -43,6 +90,8 @@ def inspect(folder, route_manifest, binary_file, rom_sha, source_sha, names=NAME
         "routes": {}
     }
     for name in names:
+        if work_root is None:
+            raise ValueError("Real original guest world-position witness directory required")
         if name not in routes:
             raise ValueError("Missing variant in controller manifest")
         movie = folder / f"native-{name}-900f.mp4"
@@ -91,11 +140,14 @@ def inspect(folder, route_manifest, binary_file, rom_sha, source_sha, names=NAME
             x = (idx % 4) * 480
             y = (idx // 4) * 300
             sheet.paste(thumb, (x, y + 28))
-            d.text((x + 10, y + 7), f"{name}  guest frame {2100+ordinal}", fill="white")
+            d.text((x + 10, y + 7), f"{name}  guest frame {expected_start+ordinal}", fill="white")
             hashes[q.name] = sha(q)
         sheet_path = folder / f"{name}-contact-sheet.png"
         sheet.save(sheet_path)
+        witnesses = read_guest_dump_witnesses(work_root, name)
         out["routes"][name] = {
+            "real_guest_world_position_witnesses": witnesses,
+            "world_position_measurement_caveat": "raw original 7E:0411/0413 and 0415/0417 words; do not assert track-arc distance",
             **routes[name],
             "movie": movie.name,
             "capture_go_frame": clock["source_go_guest_frame"],
@@ -121,11 +173,12 @@ def main():
     p.add_argument("--native-sha", type=Path, required=True)
     p.add_argument("--rom-sha", required=True)
     p.add_argument("--source-sha", required=True)
+    p.add_argument("--work-root", type=Path, required=True)
     p.add_argument("--names", nargs="+", default=list(NAMES))
     a = p.parse_args()
     a.publish.mkdir(parents=True, exist_ok=True)
     doc = inspect(a.publish, a.route_manifest, a.native_sha, a.rom_sha,
-                  a.source_sha, names=a.names)
+                  a.source_sha, names=a.names, work_root=a.work_root)
     (a.publish / "dynamic-racing-provenance.json").write_text(
         json.dumps(doc, sort_keys=True, indent=2) + "\n")
     print(json.dumps({"movies": {k: v["sha256"] for k, v in doc["routes"].items()},

@@ -111,6 +111,7 @@ python3 "$UR_ROOT/tools/showcase/audit_dynamic_native_2p.py" \
   --native-sha "$OUT/working/native-binary-sha256.txt" \
   --rom-sha "$USA_ROM_SHA256" \
   --source-sha "$(git -C "$UR_ROOT" rev-parse HEAD)" \
+  --work-root "$OUT/working" \
   --names "${names[@]}"
 echo "Source-verified candidate videos and contact sheets: $OUT/published"
 echo "No airborne/trick claim accepted until independent visual review."

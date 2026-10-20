@@ -222,12 +222,16 @@ inline bool paint_modern_menu_selection_motion(
         py < rect.y || py + marker_height > rect.y + rect.height)
         return false;
     const auto& palette = kModernStockMenuPalette;
-    // The original 32-tick cursor cycle drives a deliberately restrained
-    // yellow/blue alternating rim on top of the current selection highlight.
-    const auto colour = (pose.cursor_spin_phase & 3) < 2
-        ? palette.title_yellow : palette.cursor_blue;
+    // Original cursor OBJ is blue. Avoid fabricated rapid yellow/blue
+    // flashing until the genuine 32x32 spinning source sprite is extracted.
+    // A one-pixel height/inset breath twice per 32-tick source cycle offers
+    // modest idle feedback while retaining a constant readable blue focus.
+    const int inset = !pose.reduced_motion &&
+                      pose.cursor_spin_phase >= 4 &&
+                      pose.cursor_spin_phase < 12 ? scale : 0;
     paint.fill_rect(pixels, stride, height,
-        px, py, 2 * scale, marker_height, colour);
+        px, py + inset, 2 * scale, marker_height - 2 * inset,
+        palette.cursor_blue);
     return true;
 }
 

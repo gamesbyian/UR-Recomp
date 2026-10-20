@@ -40,22 +40,15 @@ Payoff:
 
 Unlocks a real course parser, renderer, custom-course path and stronger Widescreen staging logic.
 
-## 3. Can the recovered bot drive both reference and native runtimes?
+## 3. What prevents a first independently accepted complete USA event?
 
-Known:
+**Confirmed:** The recovered bot, historical SMV and shared native/`snesref` race-entry route already exist. Both guests have reached scored Zoo, Bowl and Dragster results. The old question about merely reaching a native race is settled; see [autonomous play and input](autonomous-play-and-input.md).
 
-- source exists;
-- frontend state logic exists;
-- deterministic SMVs exist;
-- native game reaches title screen.
+**Unknown/conflict:** The best Zoo witness still has nonzero unmasked stack/sound WRAM differences at sampled frames. Genuine original/native post-NMI source phases and the first persistent consumed divergence remain unclosed. A scored result and same relative next-event entry are insufficient to certify continuous course equivalence.
 
-Smallest useful test:
+**Smallest useful test:** Use one source-and-binary-qualified Zoo case to compare the actual first causally relevant post-NMI read/write, original fetched PC, native executed marker and unchanged input stream; independently reopen retained raw guest memory. Keep original movie, fresh original and native clock origins distinct.
 
-Port only enough bot state/input abstraction to reach the same one-player race in native and `snesref`.
-
-Payoff:
-
-Unlocks the fidelity harness, menu automation and autonomous regression.
+**Payoff:** Separates a harmless transient from a gameplay-affecting divergence and gives independent QA a falsifiable first-event acceptance candidate. [QA01 evidence authority](../QA01-INDEPENDENT-FIRST-USA-EVENT-ACCEPTANCE-20261018.md) owns detailed obligations and release adjudication.
 
 ## 4. Which bot/TAS RAM labels are exactly correct in the canonical ROM?
 
@@ -113,16 +106,12 @@ Payoff:
 
 Prevents accidental removal or misclassification of intentional low-level behavior.
 
-## 8. What did USJO know that the 2014 bot does not?
+## 8. Which USJO v13-specific behavior remains unrecovered?
 
-Known:
+**Confirmed:** The 2014 real-time Tabletop bot is preserved, and the recovered Dessyreqt workspace already contains USJO v14, v14a, a backup and a test sibling. V14 adds 16-bit boost reads; v14a has a more elaborate stunt-search and delayed HUD/message-credit evaluator. Exact v13 bytes remain unavailable.
 
-The 2014 realtime bot is recovered. USJO v13 remains missing and used savestate search for stunt optimization.
+**Unknown:** Whether v13 contained a distinct optimization rule absent from the recovered later versions. Missing a numbered intermediate version is not evidence that its capabilities are lost.
 
-Smallest useful test:
+**Smallest useful test:** Compare pinned recovered v14/v14a source and available v8 against specific historical v13 claims; search for v13 only if a behavior or provenance question remains unresolved.
 
-Continue targeted archival recovery of `usjo13.lua` and descendants, but do not block engineering work on it.
-
-Payoff:
-
-Potential stunt evaluator, search logic, timing rules and additional memory semantics.
+**Payoff:** Avoids redundant archival hunts while preserving a precise target for genuinely missing stunt-search behavior. See [autonomous play and input](autonomous-play-and-input.md).

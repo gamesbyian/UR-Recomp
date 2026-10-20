@@ -63,6 +63,18 @@ class PinnedNTFSReceipts(unittest.TestCase):
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 ntfs.check(self.path, SCHEMA, digest)
 
+    def test_symlinked_ancestor_refused_even_with_valid_sha(self):
+        digest = self.archive()
+        real = self.root / 'real'
+        real.mkdir()
+        copy = real / 'source.zip'
+        copy.write_bytes(self.path.read_bytes())
+        link = self.root / 'redirected-parent'
+        link.symlink_to(real, target_is_directory=True)
+        with self.assertRaisesRegex(ValueError, 'redirected source archive ancestor'):
+            ntfs.check(link / 'source.zip', SCHEMA, digest)
+        ntfs.check(copy, SCHEMA, digest)
+
     def test_symlinked_archive_rejected(self):
         digest = self.archive()
         alias = self.root / 'alias.zip'

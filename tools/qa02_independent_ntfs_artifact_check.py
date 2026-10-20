@@ -42,6 +42,8 @@ def sha(data):
 def check(path, expected_schema, expected_sha):
     if not path.is_file() or path.is_symlink():
         raise ValueError('missing or symlinked source ZIP')
+    if path.absolute() != path.resolve(strict=True):
+        raise ValueError('redirected source archive ancestor')
     raw = path.read_bytes()
     if sha(raw) != expected_sha:
         raise ValueError('external source ZIP SHA256 mismatch')

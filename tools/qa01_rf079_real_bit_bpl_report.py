@@ -156,7 +156,7 @@ def case_archive(path):
     for line in nat_stderr.decode('utf-8').splitlines():
         if not line.startswith('QA01RF047NATIVE seq='):
             continue
-        match = re.match(r'QA01RF047NATIVE seq=(\\d+) ', line)
+        match = re.match(r'QA01RF047NATIVE seq=(\d+) ', line)
         if match is None or int(match.group(1)) not in side_by_seq:
             raw_malformed += 1
         elif line == side_by_seq[int(match.group(1))]:

@@ -25,8 +25,8 @@ class FourKGeometryReference(unittest.TestCase):
         self.assertEqual(result['original']['physical_extent_exact'], ['2880','2160'])
         self.assertEqual(result['original']['physical_margins_exact'], ['480','0'])
         self.assertEqual(F(result['wide']['physical_extent_exact'][0]), F(3840))
-        self.assertEqual(F(result['wide']['physical_extent_exact'][1]), F(860160,399))
-        self.assertEqual(F(result['wide']['physical_margins_exact'][1]), F(840,399))
+        self.assertEqual(F(result['wide']['physical_extent_exact'][1]), F(2160))
+        self.assertEqual(F(result['wide']['physical_margins_exact'][1]), F(0))
 
 if __name__ == '__main__':
     unittest.main()

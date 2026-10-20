@@ -36,6 +36,26 @@ class ModernTitleNativeCaptureTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "missing/duplicate"):
             verify_native_title_entry(ordinary + "\n" + pressed)
 
+    def test_real_host_enter_route_is_separate_from_gamepad(self):
+        opened = "UR_BALDOSA_MODERN_ROOT opened=1"
+        keyboard = "UR_BALDOSA_MODERN_TITLE native_keyboard_enter=1 frame=60"
+        gamepad = "UR_BALDOSA_MODERN_TITLE native_p1_start=1 frame=60"
+        entered = "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=60 input_owned=1"
+        painted = "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared"
+        keyboard_log = "\n".join((opened, keyboard, entered, painted))
+        immediate = "\n".join((opened, entered, keyboard, painted))
+        verify_native_title_entry(keyboard_log, confirm="keyboard")
+        verify_native_title_entry(immediate, reduced_motion=True, confirm="keyboard")
+        for log in (keyboard_log, immediate):
+            with self.assertRaisesRegex(ValueError, "missing/duplicate"):
+                verify_native_title_entry(log, confirm="gamepad")
+        with self.assertRaisesRegex(ValueError, "missing/duplicate"):
+            verify_native_title_entry(
+                "\n".join((opened, gamepad, entered, painted)),
+                confirm="keyboard")
+        with self.assertRaisesRegex(ValueError, "unsupported"):
+            verify_native_title_entry(keyboard_log, confirm="other")
+
     def test_bad_header_and_dimensions_rejected(self):
         with tempfile.TemporaryDirectory() as root:
             path = Path(root) / "capture.pam"

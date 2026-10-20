@@ -78,7 +78,7 @@ class ExactSourceProbe(unittest.TestCase):
                 return probe.GAME_REV if p.resolve()==root.resolve() else probe.CORE_REV
             with patch.object(probe,'pinned_revision',side_effect=revisions):
                 path=probe.apply_game(root,write=False)
-                self.assertEqual(path,source_file)
+                self.assertTrue(path.samefile(source_file))
                 self.assertEqual(source_file.read_text(), BASE)
                 probe.apply_game(root,write=True)
                 self.assertIn(probe.MARK_RESOLVER,source_file.read_text())

@@ -1,0 +1,293 @@
+{
+  "schema": "ur-qa06-cross-four-original-windows-candidates/1",
+  "reviewed_at": "2026-10-19",
+  "factual_scope": "exact original downloaded Actions bytes, independently SHA/ZIP/raw file receipts, actual hosted native Win32 guest logs; no new executable run by independent QA",
+  "product_pr": 1990,
+  "all_are_synthetic_pr_checkout_binaries": true,
+  "all_distinct_source_checkout_shas": true,
+  "all_distinct_original_portable_zip_hashes": true,
+  "all_distinct_original_executable_sha256s": true,
+  "original_oct15_owner_candidate_not_replaced": true,
+  "all_4_ntfs_original_source_bytes_verified": true,
+  "all_4_player_pairs_from_original_archives_verified": true,
+  "release_credit": 0,
+  "accepted_usa_events": 0,
+  "release_gate_count": 0,
+  "physical_gamepad_claim": false,
+  "real_audio_claim": false,
+  "electrical_power_cut_claim": false,
+  "builds": [
+    {
+      "windows_run_id": 39337845469,
+      "source_checkout_sha": "f7db1b92fbe347f1315cfe8de8ea3451857cb5fc",
+      "checkout_parents": [
+        "34a308f66f0d7ba9bc6857a628c2fc92157e19a1",
+        "70b3fe5147e0b807f16ce083bf1453b9b38fffd7"
+      ],
+      "portable_inner_sha256": "2b0ed905047a2520ba1c9ef7aa0bd781e2f58b8bee3b9598562187b73c852b55",
+      "executable_pe_sha256": "d418b2e9bb812bb064b825744e33753d88a9eb3cec9668377e8a15f1072c5c6e",
+      "original_artifacts": {
+        "package": {
+          "id": 12227738503,
+          "outer_sha256": "41a0ea31eb0d030be7fe816a478ddcdb1fc8af6a5cf655a65b58bd125c3c28e6"
+        },
+        "binding": {
+          "id": 12227853333,
+          "outer_sha256": "12bc7e7a252c18b708e481c80a84efd06dd17e5d5c965ec018f97667c5a32106"
+        },
+        "ntfs_pre": {
+          "id": 12227993287,
+          "outer_sha256": "bdafb211fba24f1f9ce8eb6c9759cb90cd72fe2391a4c8ba4f48e8e9124908fe"
+        },
+        "ntfs_post": {
+          "id": 12227608721,
+          "outer_sha256": "530dd48a0fe0af40220c329e0371b86b779a46be97f35540f2969255fbb30f60"
+        },
+        "scored_2p": {
+          "id": 12228277849,
+          "outer_sha256": "7572678c890601230dad0df0896443343fcdaa8512ac5901b5b00adcbc2a4446"
+        },
+        "pre_records": {
+          "id": 12227778561,
+          "outer_sha256": "138f3bad12ff3a3c207aafbdba97fbe5a8aa4e271ef10c27e23c52094f58d6eb"
+        }
+      },
+      "independent_ntfs": {
+        "pre_raw_members_sha_verified": 16,
+        "post_raw_members_sha_verified": 22,
+        "guest_exit": 8,
+        "isolated_ntfs_win32_error": 112,
+        "raw_changed_positions": 74,
+        "typed_generation_before": 1,
+        "typed_generation_recovered": 2,
+        "first_cold_reconciled": true,
+        "second_cold_byte_stable": true,
+        "guest_boot_before_fnv1a32": "63568e07",
+        "guest_boot_after_fnv1a32": "255e468b"
+      },
+      "independent_2p": {
+        "saved_original_manifest_members_sha_verified": 9,
+        "run_sha256": "d54ade82fdeb213db2c48bd7e4338c5bcae0f2af981fd70c27a467366acbc487",
+        "match_sha256": "d16eb5d8ce868c8df6ef59169cd5b83ff5b1ed93235c4ad58624de30f8050749",
+        "run_fnv1a64": "a8327800e49e4c44",
+        "match_fnv1a64": "5838b68b19e040cb",
+        "pre_records_run_match_byte_identical": true,
+        "profiles_raw_8192_equal_typed_stock_sram": true,
+        "mike_loss_hundredths": 2761,
+        "martin_win_hundredths": 2757
+      },
+      "independent_hardware": {
+        "physical_two_controllers": false,
+        "non_dummy_audio": false,
+        "real_4k_display": false,
+        "power_interruption": false,
+        "independent_original_snes9x_race_fidelity": false
+      },
+      "release_gate_credit": 0
+    },
+    {
+      "windows_run_id": 39340984124,
+      "source_checkout_sha": "f639277f2c0410d85f773b77835c9a526dd2e65d",
+      "checkout_parents": [
+        "34a308f66f0d7ba9bc6857a628c2fc92157e19a1",
+        "38a8840e3e99b4812ebc1bf0e5b44c7a3b6ac0a3"
+      ],
+      "portable_inner_sha256": "87c0e5221b20149f91dae16144a3a8c31661bf5066775c71dccfa88fe964d772",
+      "executable_pe_sha256": "5201916cee6455f307ecd58c957cc8616ba2acbe7ac9efdbd7de8453525d6256",
+      "original_artifacts": {
+        "package": {
+          "id": 12229955330,
+          "outer_sha256": "9ebe81ed2e98143c32efdcca19b46282088b67ec83ce14aad491548d326e6470"
+        },
+        "binding": {
+          "id": 12229626228,
+          "outer_sha256": "a8e19fd7f4dae85634fd30769e0753892026bc2236e95e2b129c9117b03a8f6c"
+        },
+        "ntfs_pre": {
+          "id": 12229596389,
+          "outer_sha256": "4b0ee83d5a504e4f3dd81835f8f478c4aae1f81ea20182b84db4541520842c31"
+        },
+        "ntfs_post": {
+          "id": 12228772773,
+          "outer_sha256": "c5f48470785fc0698a1ff598d97dd67e76d2ed63e64e083e7c937098b3a2e700"
+        },
+        "scored_2p": {
+          "id": 12228658029,
+          "outer_sha256": "c8f2c8f111c368c83855855b877197e9649eaa79cd13209e800e61ccc298682d"
+        },
+        "pre_records": {
+          "id": 12228883086,
+          "outer_sha256": "1e6bb7db07570d7ad38acbddcd6f6aacc5a624df5a30bf2b7fe8f8640a27f6c5"
+        }
+      },
+      "independent_ntfs": {
+        "pre_raw_members_sha_verified": 16,
+        "post_raw_members_sha_verified": 22,
+        "guest_exit": 8,
+        "isolated_ntfs_win32_error": 112,
+        "raw_changed_positions": 74,
+        "typed_generation_before": 1,
+        "typed_generation_recovered": 2,
+        "first_cold_reconciled": true,
+        "second_cold_byte_stable": true,
+        "guest_boot_before_fnv1a32": "63568e07",
+        "guest_boot_after_fnv1a32": "255e468b"
+      },
+      "independent_2p": {
+        "saved_original_manifest_members_sha_verified": 9,
+        "run_sha256": "d54ade82fdeb213db2c48bd7e4338c5bcae0f2af981fd70c27a467366acbc487",
+        "match_sha256": "d16eb5d8ce868c8df6ef59169cd5b83ff5b1ed93235c4ad58624de30f8050749",
+        "run_fnv1a64": "a8327800e49e4c44",
+        "match_fnv1a64": "5838b68b19e040cb",
+        "pre_records_run_match_byte_identical": true,
+        "profiles_raw_8192_equal_typed_stock_sram": true,
+        "mike_loss_hundredths": 2761,
+        "martin_win_hundredths": 2757
+      },
+      "independent_hardware": {
+        "physical_two_controllers": false,
+        "non_dummy_audio": false,
+        "real_4k_display": false,
+        "power_interruption": false,
+        "independent_original_snes9x_race_fidelity": false
+      },
+      "release_gate_credit": 0
+    },
+    {
+      "windows_run_id": 39342967638,
+      "source_checkout_sha": "6179a312c50d304116dfe3f16e32d0641c1ba24e",
+      "checkout_parents": [
+        "c10d6e3a9ed0ca925d95330684f0e5226e0559b1",
+        "94cf196f12fe617de3c89555ad668b4353824c0a"
+      ],
+      "portable_inner_sha256": "4b01a28f1f42db00ce1562d6a5817dfc64a79c5d76a468f3027eb445965bde0f",
+      "executable_pe_sha256": "2488ad4f3f6f5f0c47e08585472e9422fd8ca7da17167ba3b620c757793b6c95",
+      "original_artifacts": {
+        "package": {
+          "id": 12229893445,
+          "outer_sha256": "203845f87ff0cf46d646da76006ea9e5f77a80a94727e36694c4ff9099ef7a8a"
+        },
+        "binding": {
+          "id": 12229918402,
+          "outer_sha256": "c23f7bcda1d7420350a9f4629ade7fae8a4f583ac7ddd8c1c820bbab262876e2"
+        },
+        "ntfs_pre": {
+          "id": 12229803843,
+          "outer_sha256": "420fc62830f88b3af2c08991a8c4fb486736510597095638639cc958148e7686"
+        },
+        "ntfs_post": {
+          "id": 12229893492,
+          "outer_sha256": "e1244c90b9d4ec86c7e5b47f2015066917492cecd25fe1513ef81fa9380a8c55"
+        },
+        "scored_2p": {
+          "id": 12230235801,
+          "outer_sha256": "c2ed60074d9de60e555ced7d7ab3bdffd932c7d88f9efc810ba24e35bbe0e059"
+        },
+        "pre_records": {
+          "id": 12229898540,
+          "outer_sha256": "25f100d18c75b1f85ad946b87f7c8c670b8b09f9a72887936e38aa35f1e82eca"
+        }
+      },
+      "independent_ntfs": {
+        "pre_raw_members_sha_verified": 16,
+        "post_raw_members_sha_verified": 22,
+        "guest_exit": 8,
+        "isolated_ntfs_win32_error": 112,
+        "raw_changed_positions": 74,
+        "typed_generation_before": 1,
+        "typed_generation_recovered": 2,
+        "first_cold_reconciled": true,
+        "second_cold_byte_stable": true,
+        "guest_boot_before_fnv1a32": "63568e07",
+        "guest_boot_after_fnv1a32": "255e468b"
+      },
+      "independent_2p": {
+        "saved_original_manifest_members_sha_verified": 9,
+        "run_sha256": "d54ade82fdeb213db2c48bd7e4338c5bcae0f2af981fd70c27a467366acbc487",
+        "match_sha256": "d16eb5d8ce868c8df6ef59169cd5b83ff5b1ed93235c4ad58624de30f8050749",
+        "run_fnv1a64": "a8327800e49e4c44",
+        "match_fnv1a64": "5838b68b19e040cb",
+        "pre_records_run_match_byte_identical": true,
+        "profiles_raw_8192_equal_typed_stock_sram": true,
+        "mike_loss_hundredths": 2761,
+        "martin_win_hundredths": 2757
+      },
+      "independent_hardware": {
+        "physical_two_controllers": false,
+        "non_dummy_audio": false,
+        "real_4k_display": false,
+        "power_interruption": false,
+        "independent_original_snes9x_race_fidelity": false
+      },
+      "release_gate_credit": 0
+    },
+    {
+      "windows_run_id": 39344781583,
+      "source_checkout_sha": "1952ba34c6bbfe522dc572be4340818f8ce2c960",
+      "checkout_parents": [
+        "ea76aa7bb66a88a9788a7fdffdd4ddea9394c393",
+        "8a51abc4979a7fd491496327f8e3a482c10c22d4"
+      ],
+      "portable_inner_sha256": "45f51978ca9721cd18fec0170c10a0c08e0e695a3d69a18bdb76417d946becab",
+      "executable_pe_sha256": "d7a95a9d367ca9ed2dcbdfefc8535881a3df24c42eb960edcd47f11b6018ab96",
+      "original_artifacts": {
+        "package": {
+          "id": 12231302106,
+          "outer_sha256": "f598ba3046bcdcccd570a24bb5b7903b7daef86102d1ecc3f709a660285837fa"
+        },
+        "binding": {
+          "id": 12230549159,
+          "outer_sha256": "8442ab027c231477db2e2e51ff54786a6058d265784e37f97ceeaadd1d333e28"
+        },
+        "ntfs_pre": {
+          "id": 12231376913,
+          "outer_sha256": "d3265ac9e008bed02802a453e5b687874dec770e7d037a0cbc9154f7d69b0192"
+        },
+        "ntfs_post": {
+          "id": 12230254428,
+          "outer_sha256": "2dc653e6a506b717127e392086a6835ad94242e0d9316b4704354772dac83b7d"
+        },
+        "scored_2p": {
+          "id": 12230589114,
+          "outer_sha256": "069bf903aa1b79c40cbd3a926ba51ca5266c9ce8ae8841cf6c5beb5b6878cfa0"
+        },
+        "pre_records": {
+          "id": 12230244677,
+          "outer_sha256": "24fb579efcbb12a673c50581fdc4b5da067f0a8cda72c66038286129ae69a178"
+        }
+      },
+      "independent_ntfs": {
+        "pre_raw_members_sha_verified": 16,
+        "post_raw_members_sha_verified": 22,
+        "guest_exit": 8,
+        "isolated_ntfs_win32_error": 112,
+        "raw_changed_positions": 74,
+        "typed_generation_before": 1,
+        "typed_generation_recovered": 2,
+        "first_cold_reconciled": true,
+        "second_cold_byte_stable": true,
+        "guest_boot_before_fnv1a32": "63568e07",
+        "guest_boot_after_fnv1a32": "255e468b"
+      },
+      "independent_2p": {
+        "saved_original_manifest_members_sha_verified": 9,
+        "run_sha256": "d54ade82fdeb213db2c48bd7e4338c5bcae0f2af981fd70c27a467366acbc487",
+        "match_sha256": "d16eb5d8ce868c8df6ef59169cd5b83ff5b1ed93235c4ad58624de30f8050749",
+        "run_fnv1a64": "a8327800e49e4c44",
+        "match_fnv1a64": "5838b68b19e040cb",
+        "pre_records_run_match_byte_identical": true,
+        "profiles_raw_8192_equal_typed_stock_sram": true,
+        "mike_loss_hundredths": 2761,
+        "martin_win_hundredths": 2757
+      },
+      "independent_hardware": {
+        "physical_two_controllers": false,
+        "non_dummy_audio": false,
+        "real_4k_display": false,
+        "power_interruption": false,
+        "independent_original_snes9x_race_fidelity": false
+      },
+      "release_gate_credit": 0
+    }
+  ]
+}

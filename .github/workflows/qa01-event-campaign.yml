@@ -369,6 +369,7 @@ jobs:
             --out "$RUNNER_TEMP/rf076-generated-exec-pc-preflight.json"
           # RF079 one-case native real BIT returned-byte and BPL N source reporter.
           python3 tools/qa01_rf079_native_real_bit_branch.py --root baldosa
+          python3 tools/qa01_rf080_rf047_strict_source_sidecar.py --root baldosa
           cmake -S baldosa -B baldosa/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
             -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
@@ -460,6 +461,7 @@ jobs:
           UR_QA01_RF076_ORIGINAL_FETCH_PC: "1"
           UR_QA01_RF079_ORIGINAL_BIT_BPL: "1"
           UR_QA01_RF079_NATIVE_BIT_BPL: "1"
+          UR_QA01_RF047_EVENT_SIDECAR: ${{ runner.temp }}/qa01-case/rf079-native-rf047-strict.log
           UR_QA01_RF035_SOUND_CONSUMER: "1"
           UR_QA01_RF047_NATIVE_NMI_RETURN: "1"
           UR_QA01_RF047_EXEC_PC: "1"
@@ -743,6 +745,7 @@ jobs:
             ${{ runner.temp }}/qa01-case/rf076-original-fetch.json
             ${{ runner.temp }}/qa01-case/rf076-original-readiness.txt
             ${{ runner.temp }}/qa01-case/rf076-native-opcode-vs-scheduler.json
+            ${{ runner.temp }}/qa01-case/rf079-native-rf047-strict.log
             ${{ runner.temp }}/qa01-case/rf076-readiness.txt
             ${{ runner.temp }}/qa01-case/rf074-readiness.txt
             ${{ runner.temp }}/qa01-case/rf066-original-readiness.txt

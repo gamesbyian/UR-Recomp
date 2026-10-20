@@ -289,5 +289,38 @@
       },
       "release_gate_credit": 0
     }
-  ]
+  ],
+  "independent_static_pe_import_recheck": {
+    "compared_original_embedded_pe_sha256": [
+      "d418b2e9bb812bb064b825744e33753d88a9eb3cec9668377e8a15f1072c5c6e",
+      "d7a95a9d367ca9ed2dcbdfefc8535881a3df24c42eb960edcd47f11b6018ab96"
+    ],
+    "tool": "GNU objdump -p on original downloaded Windows PE bytes",
+    "distinct_normal_import_dlls_each": 31,
+    "normal_import_name_sets_equal": true,
+    "delay_import_directories_empty": true,
+    "extra_distributed_msvc_sdl_dll_names": [],
+    "non_api_set_dll_names": [
+      "advapi32.dll",
+      "comdlg32.dll",
+      "d2d1.dll",
+      "dbghelp.dll",
+      "dwrite.dll",
+      "gdi32.dll",
+      "imm32.dll",
+      "kernel32.dll",
+      "ole32.dll",
+      "oleaut32.dll",
+      "opengl32.dll",
+      "setupapi.dll",
+      "shell32.dll",
+      "user32.dll",
+      "version.dll",
+      "winmm.dll",
+      "ws2_32.dll"
+    ],
+    "source_of_truth_policy": "tools/check_windows_portable_binary.py",
+    "actual_clean_windows_dependency_loader_test": false,
+    "qualification": "static dependency surface only, not proof on clean end-user Windows installations"
+  }
 }

@@ -432,6 +432,23 @@ def write_png(path: Path, width: int, height: int, rgba: bytes) -> None:
                      + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b""))
 
 
+def original_big_font_manifest(path: Path, d: Dump) -> dict:
+    """Source-qualified digest for the existing original 640x16 glyph atlas."""
+    return {
+        "schema_version": 1,
+        "source_fixture": SCRIPT,
+        "source_tag": d.tag,
+        "source_vram_sha256": hashlib.sha256(d.vram).hexdigest(),
+        "source_cgram_sha256": hashlib.sha256(d.cgram).hexdigest(),
+        "dimensions": [640, 16],
+        "glyph_cell": [16, 16],
+        "palette": 7,
+        "slots": [char_for_slot(slot) for slot in range(FONT_SLOTS)],
+        "image_png_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "distribution": "Locally extracted original game art; never commit image",
+    }
+
+
 def write_atlas(path: Path, d: Dump, char_base: int) -> None:
     width, height = FONT_SLOTS * 16, 16
     buf = bytearray(width * height * 4)
@@ -831,6 +848,7 @@ def main() -> int:
     ap.add_argument("dump_dir", type=Path, help=f"snesref dump directory from {SCRIPT}")
     ap.add_argument("--out", type=Path, default=ROOT / "analysis/generated/menu-visual-language.json")
     ap.add_argument("--atlas-out", type=Path, help="optional PNG of the decoded glyph sheet (do not commit)")
+    ap.add_argument("--atlas-manifest-out", type=Path, help="optional verified 16x16 glyph source/PNG digest receipt")
     ap.add_argument("--bg1-out", type=Path, help="optional source BG1 logo/grey checker/leaf PNG (do not commit)")
     ap.add_argument("--bg1-manifest-out", type=Path, help="optional source/PNG SHA receipt for --bg1-out")
     ap.add_argument("--small-atlas-out", type=Path, help="optional original grey 8x16 detail font PNG (do not commit)")
@@ -861,8 +879,13 @@ def main() -> int:
         contract["sound_timing"] = sound_timing(args.log, args.wav, args.control_wav)
         contract["not_covered"] = [n for n in contract["not_covered"] if n != "menu sounds"] + ["menu SFX identity (timing only)"]
     args.out.write_text(json.dumps(contract, indent=1) + "\n")
+    if args.atlas_manifest_out and not args.atlas_out:
+        ap.error("--atlas-manifest-out requires --atlas-out")
     if args.atlas_out:
         write_atlas(args.atlas_out, main_dump, char_base)
+        if args.atlas_manifest_out:
+            args.atlas_manifest_out.write_text(json.dumps(
+                original_big_font_manifest(args.atlas_out, main_dump), indent=2) + "\\n")
     if args.bg1_manifest_out and not args.bg1_out:
         ap.error("--bg1-manifest-out requires --bg1-out")
     if args.bg1_out:

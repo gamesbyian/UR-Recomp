@@ -45,12 +45,13 @@ int main() {
     std::uint32_t scratch[64]{};
     constexpr ModernRootOverlayPainter painter{&fill,&stroke,&draw};
     constexpr HostOverlayRect original{8,10,240,204};
-    constexpr HostOverlayRect wide{16,10,320,204};
+    // 342x224 logical pixels with 7:6 PAR project to physical 16:9.
+    constexpr HostOverlayRect wide{12,10,318,204};
     ModernRootOverlayView v{};
     const auto narrow = modern_native_destination_canvas(256,224,1,240,original);
-    const auto expanded = modern_native_destination_canvas(352,224,1,320,wide);
+    const auto expanded = modern_native_destination_canvas(342,224,1,318,wide);
     assert(narrow.scale == 1 && !narrow.wide && narrow.w == 218);
-    assert(expanded.scale == 1 && expanded.wide && expanded.w == 298);
+    assert(expanded.scale == 1 && expanded.wide && expanded.w == 296);
     assert(!modern_native_destination_canvas(256,224,1,320,original).scale);
     assert(!modern_native_destination_canvas(256,224,0,240,original).scale);
     assert(!modern_native_destination_canvas(256,224,1,240,{40,10,240,204}).scale);
@@ -72,11 +73,11 @@ int main() {
     clear();
     v.practice_picker_open = false;
     v.practice_launch_pending = true;
-    assert(render_modern_native_destination(painter,scratch,352,224,
-                                             1,320,wide,v));
+    assert(render_modern_native_destination(painter,scratch,342,224,
+                                             1,318,wide,v));
     assert(has("ENTERING ORIGINAL COURSE"));
     assert(has("WAIT FOR SOURCE GO") && has("B CANCEL"));
-    bounds(352,224);
+    bounds(342,224);
     clear();
 
     v.practice_launch_pending = false;
@@ -96,8 +97,8 @@ int main() {
     v.records_status = "MY 2P 1  UNAVAILABLE 3";
     v.records_recent = "W 1  L 0  D 0";
     v.records_detail = "LAST 01 WIN 00:28.76";
-    assert(render_modern_native_destination(painter,scratch,352,224,
-                                             1,320,wide,v));
+    assert(render_modern_native_destination(painter,scratch,342,224,
+                                             1,318,wide,v));
     assert(has("> 2P MATCHES"));
     assert(has("LAST 01 WIN 00:28.76"));
     clear();
@@ -148,8 +149,8 @@ int main() {
     clear();
     v.first_racer_is_switch = true;
     v.first_racer_created = true;
-    assert(render_modern_native_destination(painter,scratch,352,224,
-                                             1,320,wide,v));
+    assert(render_modern_native_destination(painter,scratch,342,224,
+                                             1,318,wide,v));
     assert(has("ACTIVE P1 AT NEXT BOOT"));
     assert(has("SAVED FOR NEXT LAUNCH"));
     assert(has("QUIT AND RESTART GAME"));

@@ -1,0 +1,192 @@
+#!/usr/bin/env python3
+"""Independent preflight of PRIVATE, human-authored Windows hardware witness packets.
+
+Verifies source/package identity, three dissimilar installations and hashed
+supporting files. Never certifies that observations are genuine or admits a
+release gate. The QA-04 ledger and independent physical reviewers own that.
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+from pathlib import Path, PurePosixPath
+import re
+
+from validate_release_quality_ledger import qa04_physical_coverage
+
+SHA = re.compile(r"[0-9a-f]{64}\Z")
+COMMIT = re.compile(r"[0-9a-f]{40}\Z")
+KINDS = frozenset(("portable-verifier", "startup-log", "controller-p1",
+                   "controller-p2", "audio-output", "visible-display",
+                   "played-journey"))
+REQUIRED_PHYSICAL = KINDS
+REQUIRED_VM = frozenset(("portable-verifier", "startup-log", "played-journey"))
+MAX_FILE_BYTES = 32 * 1024 * 1024
+MAX_TOTAL_BYTES = 128 * 1024 * 1024
+
+
+def require(ok: bool, message: str) -> None:
+    if not ok:
+        raise ValueError("QA04_PACKET_REJECTED: " + message)
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def safe_member(root: Path, name: object) -> Path:
+    require(type(name) is str and bool(name) and "\\" not in name
+            and not name.startswith("/") and "\x00" not in name,
+            "invalid evidence relative path")
+    parts = PurePosixPath(name).parts
+    require(len(parts) <= 6 and all(p not in ("", ".", "..") for p in parts)
+            and "//" not in name and not name.endswith("/"),
+            "evidence path traversal or alias")
+    path = root
+    for part in parts:
+        path = path / part
+        require(not path.is_symlink(), "symlinked evidence file or directory")
+    require(path.is_file() and not path.is_symlink(),
+            "evidence file missing or redirected")
+    return path
+
+
+def inspect_packet(path: Path, *, commit: str, zip_sha: str,
+                   pe_sha: str) -> tuple[dict, dict]:
+    require(path.is_file() and not path.is_symlink()
+            and 0 < path.stat().st_size <= 1024 * 1024,
+            "missing/unsafe receipt JSON")
+    receipt = json.loads(path.read_text(encoding="utf-8"))
+    require(type(receipt) is dict
+            and receipt.get("schema") == "ur-windows-physical-witness/1",
+            "unrecognized witness receipt")
+    require(not any(key in receipt for key in (
+        "release_gate_credit", "gate_passed", "physical_hardware_verified",
+        "independently_accepted", "release_decision")),
+        "producer may not self-admit release gates")
+    for key, expected in (("source_commit", commit),
+                          ("artifact_sha256", zip_sha),
+                          ("tested_executable_sha256", pe_sha)):
+        require(receipt.get(key) == expected, "stale/mixed candidate: " + key)
+    require(receipt.get("package_unchanged_after_launch") is True,
+            "no immutable package-after-launch observation")
+    require(receipt.get("zip_sha256_before_launch") == zip_sha
+            and receipt.get("zip_sha256_after_launch") == zip_sha
+            and receipt.get("pe_sha256_before_launch") == pe_sha
+            and receipt.get("pe_sha256_after_launch") == pe_sha,
+            "inconsistent before/after package hashes")
+    hw = receipt.get("hardware")
+    require(type(hw) is dict and type(hw.get("setup_id")) is str
+            and bool(hw["setup_id"].strip())
+            and type(hw.get("environment")) is str
+            and hw["environment"] in ("physical", "isolated-clean-vm")
+            and type(hw.get("clean_environment")) is bool,
+            "unidentified setup/environment/clean status")
+    require(all(type(hw.get(k)) is str and hw[k].strip()
+                for k in ("windows_version", "gpu", "display", "controller", "audio")),
+            "missing recorded OS, graphics, display, controller or audio identity")
+    for flag in ("physical_controller_observed", "audible_output_observed",
+                 "visible_display_observed"):
+        require(type(hw.get(flag)) is bool, "nonboolean observation: " + flag)
+    # No automated probe can prove a real device was operated. Human-authored
+    # observations must remain separately reviewable, and cannot be signed off
+    # by data submitted by the same machine.
+    require(type(receipt.get("operator_notes")) is str
+            and bool(receipt["operator_notes"].strip())
+            and receipt.get("independent_review_completed") is False,
+            "missing operator notes or improper reviewer signoff")
+    attachments = receipt.get("attachments")
+    require(type(attachments) is list and attachments,
+            "missing original, local supporting evidence")
+    observed_kinds, observed_files, total = set(), set(), 0
+    for item in attachments:
+        require(type(item) is dict and set(item) == {"path", "sha256", "bytes", "kind"},
+                "unrecognized/partial evidence attachment")
+        kind, digest, size = item["kind"], item["sha256"], item["bytes"]
+        require(kind in KINDS and kind not in observed_kinds,
+                "duplicate/unrecognized evidence kind")
+        require(type(digest) is str and SHA.fullmatch(digest) is not None
+                and type(size) is int and 0 < size <= MAX_FILE_BYTES,
+                "invalid attachment hash or bounded size")
+        filename = item["path"]
+        require(filename not in observed_files, "duplicated evidence path")
+        observed_kinds.add(kind)
+        observed_files.add(filename)
+        original = safe_member(path.parent, filename)
+        total += size
+        require(total <= MAX_TOTAL_BYTES and original.stat().st_size == size
+                and sha256_file(original) == digest,
+                "attached original source bytes changed or oversized")
+    needed = REQUIRED_PHYSICAL if hw["environment"] == "physical" else REQUIRED_VM
+    require(needed <= observed_kinds, "missing independent observations: " +
+            ",".join(sorted(needed - observed_kinds)))
+    if hw["environment"] == "physical":
+        require(all(hw[flag] is True for flag in (
+            "physical_controller_observed", "audible_output_observed",
+            "visible_display_observed")),
+            "the physical tester has not observed all three device classes")
+    else:
+        require(hw["clean_environment"] is True,
+                "isolated VM must be a clean installation")
+    return receipt, {"setup_id": hw["setup_id"], "environment": hw["environment"],
+                     "attachment_count": len(attachments),
+                     "attachment_bytes": total,
+                     "attached_kind_names": sorted(observed_kinds),
+                     "local_attachment_sha256_verified": True}
+
+
+def audit(paths: list[Path], *, source_sha: str,
+          portable_zip_sha: str, executable_sha: str) -> dict:
+    require(type(source_sha) is str and COMMIT.fullmatch(source_sha) is not None
+            and type(portable_zip_sha) is str and SHA.fullmatch(portable_zip_sha) is not None
+            and type(executable_sha) is str and SHA.fullmatch(executable_sha) is not None,
+            "exact independent source/ZIP/PE pins required")
+    require(len(paths) == 3 and len({str(p.resolve()) for p in paths}) == 3,
+            "exactly three separate packet paths required")
+    receipts, summaries = [], []
+    for path in paths:
+        witness, summary = inspect_packet(path, commit=source_sha,
+                                           zip_sha=portable_zip_sha,
+                                           pe_sha=executable_sha)
+        receipts.append(witness)
+        summaries.append(summary)
+    require(qa04_physical_coverage(receipts),
+            "not three dissimilar source-bound L5 physical/clean-machine setups")
+    return {
+        "schema": "ur-qa04-packet-preflight/1",
+        "exact_source_sha": source_sha,
+        "exact_playable_zip_sha256": portable_zip_sha,
+        "exact_executable_sha256": executable_sha,
+        "original_private_attachments_hash_verified": True,
+        "structural_three_setup_coverage": True,
+        "setups": summaries,
+        "independent_hardware_observation_certified_by_tool": False,
+        "original_native_course_fidelity_certified_by_tool": False,
+        "release_gate_credit": 0,
+        "next_step": "Separate human reviewers must observe the devices, "
+                     "inspect logs/screenshots and adjudicate QA-04 on the ledger",
+    }
+
+
+def main() -> int:
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("receipts", nargs=3, type=Path,
+                   help="exactly three PRIVATE per-setup receipt JSON files")
+    p.add_argument("--source-sha", required=True)
+    p.add_argument("--portable-zip-sha256", required=True)
+    p.add_argument("--executable-sha256", required=True)
+    args = p.parse_args()
+    print(json.dumps(audit(args.receipts, source_sha=args.source_sha,
+                           portable_zip_sha=args.portable_zip_sha256,
+                           executable_sha=args.executable_sha256), indent=2,
+                     sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

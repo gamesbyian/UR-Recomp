@@ -10065,8 +10065,10 @@ extern "C" void ur_uniracers_modern_system_overlay(
             // motion model has no SDL or gameplay timing dependencies.
             const auto pose = ur::product::advance_modern_menu_motion(
                 g_modern_root_motion,
-                {ur::product::modern_menu_tick60(
-                     static_cast<std::uint64_t>(SDL_GetTicks())),
+                {ur::product::modern_menu_resolve_test_tick60(
+                     ur::product::modern_menu_tick60(
+                         static_cast<std::uint64_t>(SDL_GetTicks())),
+                     std::getenv("UR_MODERN_MENU_TEST_TICK60")),
                  static_cast<std::uint8_t>(
                      ur::product::modern_root_destination_index(
                          ur::product::modern_root_menu_selected(view.menu))),

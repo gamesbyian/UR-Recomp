@@ -53,10 +53,13 @@ python3 tools/extract_menu_visual_language.py "$CAPTURE_DIR" \
   --cursor-atlas-out "$TMPDIR/stock-cursor-16poses.png" \
   --cursor-manifest-out "$TMPDIR/stock-cursor-16poses.json" \
   --bg1-out "$TMPDIR/stock-bg1-layer.png" \
-  --bg1-manifest-out "$TMPDIR/stock-bg1-layer.json"
+  --bg1-manifest-out "$TMPDIR/stock-bg1-layer.json" \
+  --bundle-manifest-out "$TMPDIR/stock-source-bundle.json"
 ```
 
 The command is a **reproducible source-asset research route**, not a claim that this session executed it on an original ROM or delivered shippable game assets. It requires the separate authentic input capture; no binary atlas, ROM, game art or host screenshot is added to this PR. The original 16×16 font now also emits an optional `--atlas-manifest-out` receipt with all 40 source slots and original PPU VRAM/CGRAM hashes, making all four art exports independently source-bound; do not substitute a self-authored image with a copied receipt.
+
+`--bundle-manifest-out` requires all four PNG outputs and verifies their **mutual** provenance: big font, BG1 and first cursor pose must have identical original idle-snapshot VRAM/CGRAM roots and tags; the small font must originate from a track-select source snapshot; every sheet must have its exact measured dimensions and the cursor must include all 16 ordered CHR phases. A mixed-capture bundle fails with an explicit error. The resulting JSON is a source research receipt and deliberately sets `asset_distribution_approved` and `native_render_and_visual_acceptance` to false. It contains hashes, not original art or redistribution permission.
 
 A source-extracted image is eligible for artistic comparison and a **separately licensed/integrated renderer proposal**. It does not automatically grant redistribution rights, author approval, runtime native font/arrow rendering or packaged-Windows screenshot QA. RGB5-to-RGB8 sampling uses the existing shift-by-3 decoder: other PPU output-brightness/color-math effects are explicitly outside this reference layer.
 

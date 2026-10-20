@@ -126,6 +126,15 @@ int main() {
 
     // Every pixel of the original retail title stays identical while
     // its 24-tick entry lift settles (at tick16: exactly +4 rows).
+    static_assert(modern_title_logical_width(1280, 720, true) == 342);
+    static_assert(modern_title_logical_width(1024, 640, true) == 342);
+    static_assert(modern_title_logical_width(960, 720, true) == 256);
+    static_assert(modern_title_logical_width(900, 600, true) == 256);
+    static_assert(modern_title_logical_width(1280, 720, false) == 256);
+    static_assert(modern_title_logical_width(0, 0, true) == 342);
+    static_assert(modern_title_logical_width(2147483647, 1, true) == 342);
+    static_assert(modern_title_logical_width(1, 2147483647, true) == 256);
+
     for (int width : {256, 342}) {
         Surface entering(width);
         Surface settled(width);

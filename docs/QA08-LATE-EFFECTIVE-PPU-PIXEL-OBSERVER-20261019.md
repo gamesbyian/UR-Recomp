@@ -57,6 +57,7 @@ python3 tools/qa08_late_effective_trace_verify.py \
   --on /private/actual-compiled-Windows-observer-ON.stderr.log \
   --off /private/actual-compiled-Windows-observer-OFF.stderr.log \
   --original-inner /private/authentic-original-2014-inner.zip \
+  --native-outer /private/authentic-integrated-Win32-P7-outer.zip \
   --crc-on /private/actual-ON-complete-5484-guest-CRC.txt \
   --crc-off /private/actual-OFF-complete-5484-guest-CRC.txt \
   --route-on /private/actual-ON-route-bytes.txt \
@@ -88,3 +89,10 @@ python3 tools/qa08_late_effective_cgram_probe.py --game /private/pinned-baldosa-
 python3 tools/qa08_late_effective_span_probe.py --game /private/pinned-baldosa-uniracers --apply-candidate
 ```
 The resulting source changes are **only in that disposable external checkout**, not UR-Recomp's production PPU. Compile and execute in a bounded real Windows experiment with the same full two-pad route, guest CRC, ROM identity, ON/OFF genuine P7 images and exact executable/source hashes. Distinct host-width/renderer choices require distinct measured source receipts. This double-observer source staging, like all proposed instrumentation, is **draft-only and does not promote a release acceptance verdict**.
+
+
+## October 19: independently authenticate archived native RGB5 reference
+
+The future log verifier now refuses source comparisons unless **both** reference renderers' pixels are re-opened from exact authentic ZIP bytes: the 2014 Snes9x original callback5183 BGRX member and the compiled integrated Windows guest5184 P7 member. The extra required `--native-outer` argument is the actual outer artifact **12151839452** with SHA256 `832c08263e2d3013d5b15df82b2b0574fabfd3114194b7cbef9f6bb1b2959727`. It must contain nested P7 ZIP SHA256 `c36fdd0238735e739219b013d25665e42a008a7827ee97631a322217c9f4f0cd` and the exact frame SHA256 `8dae60c1433aa26cd6edc20edda980d1dec17e8935a799d7edc6d0878ae387a8`. The verifier checks all 8 genuine archived native source RGB5 values **from those actual PNG-equivalent P7 bytes**, separately from the archived original values, rather than trusting hard-coded color-class pairs. All images are retained outside the repository; no copying copyrighted source frames to a PR.
+
+The original and native archives were reopened independently for this extension. All eight native pixels have a zero fourth channel and the expected actual RGB5: (70,58)/(202,182) = 17; (84,77)/(175,145) = 20; (53,41)/(187,160) = 15; (65,52)/(190,161) = 16. This establishes the reference baseline, not any newly executed Windows observer result or proof of same beam stage.

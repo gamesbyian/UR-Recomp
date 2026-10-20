@@ -83,10 +83,27 @@ def produce(source: str, route: str) -> tuple[str, dict]:
     if "turbo off" in before:
         raise ValueError("Original already had altered turbo policy")
     script = before + PREFIX + "dump cinematic-go\nturbo off\n"
-    for mask, frames in ROUTES[route]:
+    # The framework's scene dumps are read-only, consume zero guest frames
+    # and retain real 128 KiB WRAM. Three spaced checkpoints provide actual
+    # P1/P2 world-position evidence without changing camera or physics.
+    issued = 0
+    checkpoints = set()
+    for index, (mask, frames) in enumerate(ROUTES[route]):
         if frames < 1 or not re.fullmatch(r"(?:p2:)?[a-z]+(?:\+(?:p2:)?[a-z]+)*", mask):
             raise ValueError("Invalid controller command")
         script += f"press {mask} {frames}\n"
+        issued += frames + 1  # scene-script hold includes one idle release
+        if index == 0:
+            script += "dump cinematic-lead\n"
+            checkpoints.add("lead")
+        if issued >= 500 and "middle" not in checkpoints:
+            script += "dump cinematic-middle\n"
+            checkpoints.add("middle")
+        if issued >= 1000 and "late" not in checkpoints:
+            script += "dump cinematic-late\n"
+            checkpoints.add("late")
+    if checkpoints != {"lead", "middle", "late"}:
+        raise ValueError("Route did not span all source-world position checkpoints")
     script += "dump cinematic-end\nquit\n"
     count = sum(frames for _, frames in ROUTES[route])
     if count < 1150:
@@ -104,6 +121,7 @@ def produce(source: str, route: str) -> tuple[str, dict]:
             {"mask": mask, "duration": duration} for mask, duration in ROUTES[route]
         ],
         "controls_are_attempts_not_visual_or_landing_proof": True,
+        "read_only_guest_position_dumps": ["cinematic-lead", "cinematic-middle", "cinematic-late"],
         "rendering_geometry_and_guest_unchanged": True,
     }
     return script, metadata
@@ -118,6 +136,7 @@ def self_test() -> None:
         assert data["post_go_scripted_frames"] >= 1150
         assert data["unchanged_menu_and_go"]
         assert rendered.endswith("dump cinematic-end\nquit\n")
+        assert all(rendered.count("dump cinematic-" + tag + "\n") == 1 for tag in ("lead", "middle", "late"))
         assert rendered != source
         assert "right+b" in rendered or "p2:b" in rendered
     for changed in (source.replace("until 0E1F != 00", "wait 9"),

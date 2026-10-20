@@ -42,7 +42,7 @@ jobs:
             tests.unit.test_qa_modern_visual_win32_capture_driver \
             tests.unit.test_check_modern_visual_capture_bundle
           python tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
-      - name: Stage original Modern native host and opt-in SDL2 readback
+      - name: Stage original Modern native host and opt-in SDL3 readback
         run: |
           set -euo pipefail
           python tools/baldosa_dram_refresh_beam_rate_patch.py --game baldosa
@@ -90,6 +90,36 @@ jobs:
             --video windows --timeout 100
           test -s "$RUNNER_TEMP/ur-modern-win32-visual-baseline/actual-sdl-drawable.png"
           echo "Real Win32 original Modern root only; no integrated visual skin, physical pads, release or visual approval." >> "$GITHUB_STEP_SUMMARY"
+      - name: Capture native widescreen and fallback Windows output on SAME exact PE
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          for size in 1280x720 1024x768; do
+            python tools/qa_modern_visual_win32_capture_driver.py \
+              --exe "$EXE" --rom "$ROM" --source-sha "$(git rev-parse HEAD)" \
+              --out "$RUNNER_TEMP/ur-modern-win32-visual-$size" \
+              --video windows --timeout 100 --window-size "$size"
+            test -s "$RUNNER_TEMP/ur-modern-win32-visual-$size/actual-sdl-drawable.png"
+            test -s "$RUNNER_TEMP/ur-modern-win32-visual-$size/readback-receipt.json"
+          done
+          echo "Actual final-drawable Windows Modern engineering baseline 1280x720 and 1024x768; same PE, separate clean runs; no redesign or physical-device approval." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain exact widescreen and 4-to-3 SDL output without player data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-visual-win32-size-comparison
+          path: |
+            ${{ runner.temp }}/ur-modern-win32-visual-1280x720/actual-sdl-drawable.png
+            ${{ runner.temp }}/ur-modern-win32-visual-1280x720/readback-receipt.json
+            ${{ runner.temp }}/ur-modern-win32-visual-1280x720/probe_first/actual-sdl-drawable.pam
+            ${{ runner.temp }}/ur-modern-win32-visual-1280x720/probe_first/native-process.log
+            ${{ runner.temp }}/ur-modern-win32-visual-1024x768/actual-sdl-drawable.png
+            ${{ runner.temp }}/ur-modern-win32-visual-1024x768/readback-receipt.json
+            ${{ runner.temp }}/ur-modern-win32-visual-1024x768/probe_first/actual-sdl-drawable.pam
+            ${{ runner.temp }}/ur-modern-win32-visual-1024x768/probe_first/native-process.log
+          if-no-files-found: warn
+          retention-days: 7
       - name: Retain exact readback, logs, hash receipts, no ROM/user saves
         if: always()
         uses: actions/upload-artifact@v4

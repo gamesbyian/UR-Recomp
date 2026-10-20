@@ -62,6 +62,8 @@ int main() {
     assert(expanded.scale == 1 && expanded.wide && expanded.w == 298);
     assert(!modern_native_destination_canvas(256,224,1,320,original).scale);
     assert(!modern_native_destination_canvas(256,224,0,240,original).scale);
+    assert(!modern_native_destination_canvas(256,224,2147483647,240,original).scale);
+    assert(!modern_native_destination_canvas(342,224,1,100000,wide).scale);
     assert(!modern_native_destination_canvas(256,224,1,240,{40,10,240,204}).scale);
     assert(!modern_native_destination_is_open(v));
     assert(!render_modern_native_destination(painter,scratch,256,224,

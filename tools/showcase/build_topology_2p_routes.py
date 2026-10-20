@@ -131,7 +131,7 @@ def produce(source: str, key: str, profile: str) -> tuple[str, dict]:
 def self_test():
     dynamic = dynamic_module()
     fixture = (
-        "turbo on\n" + SOURCE_ANCHOR + "until 0E1F != 00\n"
+        "turbo on\n" + SOURCE_ANCHOR + "until 0E1F != 00\ndump go\n"
         + dynamic.EXPECTED_TAIL + "\n"
     )
     validate_catalog(json.loads(CATALOG.read_text(encoding="utf-8")))

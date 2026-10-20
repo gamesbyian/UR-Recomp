@@ -1,0 +1,93 @@
+{
+  "schema": "ur-qa01-rf078-authenticated-native-wait-loop-AOT-deadline-boundary/1",
+  "date": "2026-10-19",
+  "case_run_id": 39342841750,
+  "native_binary_artifact_id": 12229419837,
+  "native_binary_artifact_zip_sha256": "713cac1696fdeacd4b079f3b53e768b879f5f7a506c77e2b617cf24e3452188d",
+  "native_elf_sha256": "ca58d0d8020f2b7375dce5aa9f9aa00e7109d76cbdeae2f67dffe3fd2799bbfc",
+  "native_elf_architecture": "ELF64 x86-64 unstripped",
+  "symbol": "WaitForNMI_D4EE_M1X0",
+  "symbol_entry_file_vaddr_hex": "0xB7FA60",
+  "aot_body_symbol": "WaitForNMI_D4EE_M1X0.part.0",
+  "aot_body_vaddr_hex": "0xB6ED60",
+  "proof_steps": [
+    {
+      "vaddr": "0xB7FA8F",
+      "instruction": "call interp_bridge_lle_master_deadline_reached",
+      "role": "deadline tested before executing guest wait-loop BIT"
+    },
+    {
+      "vaddr": "0xB7FAB0",
+      "instruction": "call RecompStackPopYield",
+      "role": "deadline yield path"
+    },
+    {
+      "vaddr": "0xB7FAC6",
+      "instruction": "or esi,0xD4EE",
+      "role": "published 16-bit resume offset 0xD4EE"
+    },
+    {
+      "vaddr": "0xB7FACC",
+      "instruction": "jmp interp_bridge_lle_yield_unwind",
+      "role": "native scheduler continuation published at block entry"
+    },
+    {
+      "vaddr": "0xB6EE1C",
+      "instruction": "mov edi,0x82D4EE",
+      "role": "real AOT opcode marker PC before BIT"
+    },
+    {
+      "vaddr": "0xB6EE4E",
+      "instruction": "call cpu_read8_paced",
+      "role": "BIT direct-page operand read: D+0x57, from preceding movzx D and add 0x57"
+    },
+    {
+      "vaddr": "0xB6EE58",
+      "instruction": "mov edi,0x82D4F0",
+      "role": "real AOT marker for following BPL"
+    },
+    {
+      "vaddr": "0xB6EE7D",
+      "instruction": "cmp byte ptr [rbp+0x11],0",
+      "role": "BPL tests N flag set by preceding BIT read"
+    },
+    {
+      "vaddr": "0xB6EE9C",
+      "instruction": "call interp_bridge_lle_master_deadline_reached",
+      "role": "repeat loop deadline gate after BIT/BPL"
+    }
+  ],
+  "corroborating_guest_observation": {
+    "original_actual_fetched_82D4EE_opcode_hex": "24",
+    "original_actual_fetched_82D4F0_opcode_hex": "10",
+    "original_source_NMI_first_post_handler_BPL_frame_labels": [
+      1017,
+      1019,
+      1021,
+      1023
+    ],
+    "native_scheduler_deadline_unwind_resume_PC": "82D4EE",
+    "native_all_nine_first_observed_AOT_post_handler_opcode_PC": "82D4EE",
+    "all_nine_original_NMI_WAI_flag": false,
+    "all_nine_native_NMI_WAI_flag": false,
+    "all_nine_native_resume_sites": "deadline_unwind"
+  },
+  "raw_memory_sampling": {
+    "artifact_id": 12231020072,
+    "WRAM_offset_hex": "0x0057",
+    "pairs_checked": 97,
+    "all_sample_pairs_equal_at_offset_0057": true,
+    "original_and_native_each_have_matching_value_histogram": {
+      "0x00": 70,
+      "0xE2": 12,
+      "0xFF": 15
+    },
+    "warning": "This is same-host-checkpoint raw WRAM offset 0x0057, not the actual BIT operand read nor proof D=0 or intraframe phase parity."
+  },
+  "first_causally_significant_guest_memory_divergence_proven": false,
+  "same_original_native_NMI_instruction_phase_proven": false,
+  "gameplay_behavior_causality_proven": false,
+  "admitted_USA_events": 0,
+  "windows_QA_gates_accepted": 0,
+  "next_discriminator": "At one divergent NMI (frame label 1017) and one matching control (1018), observe the already executed BIT direct-page read value and N flag used by BPL, avoiding any added guest read and keeping each emulator source clock separate."
+}

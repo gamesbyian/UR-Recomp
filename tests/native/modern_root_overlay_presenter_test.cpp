@@ -56,6 +56,21 @@ int main() {
     assert(contains("A/ENTER SELECT   B/ESC QUIT"));
     assert(count("UNIRACERS") == 2); // unchanged title/shadow
     assert(!contains("SELECTED")); // narrow default shell
+    // Real 640x480 SDL baseline: the anonymous rider was previously printed
+    // as "RACER: STOCK RACER - NO PROF", losing the source state.
+    painted.clear();
+    view.racer_name = "STOCK RACER - NO PROFILE";
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("RACER: NO PROFILE"));
+    assert(!contains("RACER: STOCK RACER - NO PROF"));
+    painted.clear();
+    view.racer_name = "THIS IS AN EXCESSIVELY LONG RACER NAME";
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("RACER: THIS IS AN EXCESSI..."));
+    assert(!contains("RACER: THIS IS AN EXCESSIV"));
+    painted.clear();
 
     painted.clear();
     view.europe = true;
@@ -72,9 +87,11 @@ int main() {
     assert(contains("RACER: CUSTOM RACER"));
     assert(contains("> RECORDS"));
     assert(contains("SELECTED"));
-    // The shared painter applies the existing cell budget to detail copy.
-    assert(contains(fit_modern_overlay_text(
-        "RUNS AND BEST TIMES", modern_overlay_text_cells(356 - 193))));
+    // Original stock-family wide context must expose both complete clauses.
+    // Earlier 320px-panel output silently emitted only "RUNS AND BEST".
+    assert(contains("RUNS AND"));
+    assert(contains("BEST TIMES"));
+    assert(!contains("RUNS AND BEST"));
     assert(contains("QUIT TO DESKTOP?"));
     assert(contains("A/ENTER YES   B/ESC NO"));
     assert(!contains("CONTINUE READY")); // only on selected Play
@@ -85,6 +102,40 @@ int main() {
                                       wide_view,view));
     assert(contains("CONTINUE READY"));
 
+    painted.clear();
+    // The actual 320-logical-pixel Modern root admits just 13 text cells
+    // in the secondary column, at both 1x logical size and 4x scaling.
+    constexpr HostOverlayRect real_wide_view{0,0,320*4,204*4};
+    view.available_destinations = 0x1fu;
+    view.quit_confirm = false;
+    view.tour_continue_available = false;
+    constexpr const char* expected_lines[][2] = {
+        {"TOUR AND", "CONTINUE"},
+        {"CHOOSE A", "COURSE"},
+        {"LOCAL", "TWO PLAYER"},
+        {"RUNS AND", "BEST TIMES"},
+        {"DISPLAY AND", "CONTROLS"}
+    };
+    for (unsigned i = 0; i < kModernRootDestinationCount; ++i) {
+        painted.clear();
+        view.menu = modern_root_menu_reset();
+        for (unsigned j = 0; j < i; ++j)
+            view.menu = modern_root_menu_move(view.menu, 1);
+        assert(render_modern_root_overlay(painter,pixels,1536,896,4,320,
+                                          real_wide_view,view));
+        assert(contains(expected_lines[i][0]));
+        assert(contains(expected_lines[i][1]));
+        assert(!contains("TOUR AND CONT")); // old silently cropped copy
+        assert(!contains("DISPLAY AND CON")); // old silently cropped copy
+    }
+    painted.clear();
+    view.menu = modern_root_menu_reset();
+    view.available_destinations = 0;
+    assert(render_modern_root_overlay(painter,pixels,1536,896,4,320,
+                                      real_wide_view,view));
+    assert(contains("NOT YET"));
+    assert(contains("AVAILABLE"));
+    assert(!contains("NOT YET AVAI"));
     painted.clear();
     // Native Baldosa exposes only Play and Multiplayer until the underlying
     // Modern routes are wired. The shared ship renderer remains unchanged.

@@ -77,6 +77,9 @@ int main() {
                                              1,240,original,v));
     assert(has("PRACTICE") && has("ZOOM ZOO") && has("CRAWLER  /  CIRCUIT"));
     assert(has("5 STOCK-UNLOCKED COURSES"));
+    // Tour and course navigation are separate real native input actions.
+    assert(has("UP/DN COURSE   L/R TOUR"));
+    assert(has("A START   B BACK"));
     bounds(256,224);
     clear();
     v.practice_picker_open = false;

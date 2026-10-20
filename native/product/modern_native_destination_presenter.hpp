@@ -100,6 +100,17 @@ inline const char* modern_native_destination_stage(
     return "root";
 }
 
+// The original menu atlas uses uppercase text. Render source course/tour
+// labels in that documented display grammar without changing catalog bytes
+// or locale-sensitive process state (ASCII-only cartridge course names).
+inline std::string modern_native_display_caps(std::string_view name) {
+    std::string shown(name);
+    for (char& ch : shown)
+        if (ch >= 'a' && ch <= 'z')
+            ch = static_cast<char>(ch - ('a' - 'A'));
+    return shown;
+}
+
 inline std::string modern_native_destination_fit(
     std::string_view value, std::size_t cells,
     bool keep_last_token = false) {
@@ -265,12 +276,14 @@ inline bool render_modern_native_destination(
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 38,
             v.practice_launch_pending ? "ENTERING ORIGINAL COURSE"
-                                      : v.practice_course_name,
+                                      : modern_native_display_caps(
+                                            v.practice_course_name),
             col.title_yellow);
-        std::string context(v.practice_tour_name);
+        std::string context =
+            modern_native_display_caps(v.practice_tour_name);
         if (!v.practice_kind_label.empty()) {
             if (!context.empty()) context += "  /  ";
-            context += v.practice_kind_label;
+            context += modern_native_display_caps(v.practice_kind_label);
         }
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 63,

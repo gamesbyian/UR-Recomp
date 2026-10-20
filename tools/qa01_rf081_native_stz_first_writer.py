@@ -58,7 +58,7 @@ def patch(beam:str,cpu:str)->tuple[str,str]:
     if STAMP in beam or STAMP in cpu:
         raise ValueError("RF081 native STZ source already or partly staged")
     if (rf079.STAMP not in beam or rf080.STAMP not in beam or
-        rf079.STAMP not in cpu):
+        "ur_rf079_native_actual_bit_read(cpu,bank,addr,ur_rf079_actual_value);" not in cpu):
         raise ValueError("RF081 requires real RF079 BIT and RF080 strict source log")
     for label, src, key in (("opcode",beam,RECORDER),("paced8",cpu,PACE_HEADER),
                             ("writer",cpu,PACE_TAIL)):

@@ -37,6 +37,13 @@ class ModernNativeDestinationPresenterTest(unittest.TestCase):
         self.assertIn("width == 342 ? 320 : 240", source)
         self.assertIn("root_rect, shell_view);", source)
         self.assertIn("root_rect, view);", source)
+        # Native diagnostic receipts are emitted only *after* successful
+        # painting from the authoritative view, with the actual root/raster.
+        self.assertIn("modern_native_destination_stage(view)", source)
+        self.assertIn("g_last_native_destination_stage != stage", source)
+        self.assertIn("UR_BALDOSA_MODERN_DESTINATION stage=%s", source)
+        self.assertIn("raster=%dx%d root=%d,%d,%d,%d", source)
+        self.assertIn("source=modern_product_view", source)
         self.assertNotIn("SDL_", PRESENTER.read_text(encoding="utf-8"))
 
     def test_cpp_native_destination_views_compile_and_render(self):

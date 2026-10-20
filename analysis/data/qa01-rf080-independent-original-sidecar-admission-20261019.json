@@ -26,7 +26,32 @@
     "paired_wram_0059_equal": 44,
     "frame_1017_original_extra_BPL_N0_loop": true,
     "frame_1017_next_D4F2_both": true,
-    "frame_1018_next_D4F2_both": true
+    "frame_1018_next_D4F2_both": true,
+    "full_original_native_WRAM_sample_pairs": 44,
+    "fully_equal_WRAM_pairs": 27,
+    "unequal_WRAM_pairs": 17,
+    "unmasked_WRAM_difference_occurrences": 82,
+    "all_difference_address_occurrences": {
+      "7E:01DB": 2,
+      "7E:01DC": 2,
+      "7E:01DD": 2,
+      "7E:01DE": 2,
+      "7E:01DF": 2,
+      "7E:01E2": 1,
+      "7E:01E4": 2,
+      "7E:01E5": 1,
+      "7E:01E6": 1,
+      "7E:01E7": 1,
+      "7E:01EA": 1,
+      "7E:01EB": 1,
+      "7E:01EC": 1,
+      "7E:01ED": 16,
+      "7E:01EE": 16,
+      "7E:01EF": 15,
+      "7E:01F0": 15,
+      "7E:01F3": 1
+    },
+    "full_original_native_SRAM_equal_pairs": 44
   },
   "retention": {
     "backup_artifact_id": 12234675074,

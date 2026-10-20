@@ -24,7 +24,7 @@ static_assert(modern_menu_heading_slot('_') == -1);
 static_assert(modern_menu_detail_slot('O') == 35);
 static_assert(modern_menu_detail_slot('0') == 0);
 static_assert(modern_menu_detail_slot('%') == 36);
-static_assert(modern_menu_detail_slot('\\'') == 37);
+static_assert(modern_menu_detail_slot(static_cast<char>(39)) == 37);
 static_assert(modern_menu_detail_slot('(') == 38);
 static_assert(modern_menu_detail_slot('+') == 39);
 static_assert(modern_menu_detail_slot('-') == 40);

@@ -129,7 +129,7 @@ class LateEffectiveSourceProof(unittest.TestCase):
         result = witness.summarize_trace(lines)
         self.assertEqual(result["observed_span_anchors"],8)
         self.assertTrue(result["all_anchors_actual_span_renderer"])
-        with self.assertRaisesRegex(ValueError,"different renderer"):
+        with self.assertRaisesRegex(ValueError,"mixed renderer identities|different renderer"):
             witness.summarize_trace(lines.replace(
                 "UR_QA08_LATE_SPAN_FINAL ","UR_QA08_LATE_PPU_FINAL ",1))
 

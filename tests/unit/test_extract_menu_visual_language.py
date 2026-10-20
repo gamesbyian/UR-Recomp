@@ -224,11 +224,33 @@ class MenuVisualLanguageTests(unittest.TestCase):
         self.assertEqual(len(rgba), 32 * 32 * 4)
         self.assertEqual(rgba[:4], bytes([248, 248, 248, 255]))
         self.assertEqual(rgba[4:8], bytes(4))
+        flip_h = mvl.obj_sprite_rgba(
+            sample, {"tile": 256, "palette": 7, "large": 1, "hflip": True})
+        flip_v = mvl.obj_sprite_rgba(
+            sample, {"tile": 256, "palette": 7, "large": 1, "vflip": True})
+        flip_both = mvl.obj_sprite_rgba(
+            sample, {"tile": 256, "palette": 7, "large": 1,
+                     "hflip": True, "vflip": True})
+        source_pixel = rgba[:4]
+        self.assertEqual(flip_h[31 * 4:32 * 4], source_pixel)
+        self.assertEqual(flip_v[31 * 32 * 4:31 * 32 * 4 + 4], source_pixel)
+        self.assertEqual(flip_both[(32 * 32 - 1) * 4:], source_pixel)
+        self.assertEqual(flip_both[:4], bytes(4))
         # A BG character base mistakenly substituted for OBSEL would
         # decode this all-transparent or from the wrong page.
         sample.fillram.clear()
         with self.assertRaisesRegex(ValueError, "OBJSEL"):
             mvl.obj_sprite_rgba(sample, {"tile": 256, "palette": 7, "large": 1})
+
+    def test_oam_sprite_flip_flags_are_preserved(self) -> None:
+        oam = bytearray(544)
+        oam[0:4] = bytes([79, 70, 8, (7 << 1) | 0xC0])
+        oam[512] = 2  # 32x32 large-size sprite
+        observed = mvl.sprites(oam)
+        self.assertEqual(observed[0]["tile"], 8)
+        self.assertTrue(observed[0]["hflip"])
+        self.assertTrue(observed[0]["vflip"])
+        self.assertEqual(observed[0]["palette"], 7)
 
     def test_source_cursor_atlas_16_poses_manifest_and_forgery_fail_closed(self) -> None:
         with tempfile.TemporaryDirectory() as td:

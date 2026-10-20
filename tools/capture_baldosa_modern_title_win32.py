@@ -224,8 +224,8 @@ def main() -> int:
     # stock-sized window default. Request an actual 16:9 SDL drawable so
     # prepare_frame selects 342x224, while a separate QA journey verifies
     # real compact 256x224 at 1024x768.
-    config.write_text("[Graphics]\\nWindowSize = 1280x720\\n"
-                      "[Sound]\\nEnableAudio = 0\\n", encoding="utf-8")
+    config.write_text("[Graphics]\nWindowSize = 1280x720\n"
+                      "[Sound]\nEnableAudio = 0\n", encoding="utf-8")
     environment = dict(os.environ)
     environment.update({
         "SDL_VIDEODRIVER": "dummy",

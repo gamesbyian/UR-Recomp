@@ -1,0 +1,356 @@
+{
+  "schema": "QA08-current-epoch-Win32-effective-PPU-eight-anchor-unadmitted/1",
+  "date_utc": "2026-10-20",
+  "workflow_run_id": 39350709648,
+  "artifact_id": 12233560894,
+  "artifact_zip_sha256": "b4dd0417d1e9f158ac6abf798251a895ac256488f2218805231b2b21f4e0430c",
+  "on_source_log_sha256": "9c4183debe10aa01dce25b87e7a5c9c9aed7747f3e411e06d8a5d4fc036cf080",
+  "real_windows_off_PE_sha256": "58768c3f90d4bbab37d1a235530b1bcf022fe3c1814e9576a953bcfda1714fb1",
+  "real_windows_on_PE_sha256": "b11de819d513fed8384319faa31ee246440a1a46aac28194ba07b1c92d384030",
+  "original_2014_cgram_source_artifact": 12013432991,
+  "native_historical_original_frame_source_artifact": 12151839452,
+  "source_branch": "agent7/qa08-late-effective-ppu-optin-probe-20261019",
+  "actual_renderer": "legacy",
+  "observed_guest_fields": [
+    5176,
+    5177,
+    5178,
+    5179,
+    5180,
+    5181,
+    5182,
+    5183,
+    5184,
+    5185,
+    5186
+  ],
+  "source_records": 176,
+  "final_records": 88,
+  "logged_pixel_positions_per_guest": 8,
+  "actual_full_guest_frames_ON": 5484,
+  "actual_full_guest_frames_OFF": 5484,
+  "actual_guest_CRC_SHA256_ON_OFF": "61826faa8a7c09c91a6013b5aabc5c3f1bd794d960396c76ce62fa34f7968bf8",
+  "on_off_complete_guest_CRC_equality": true,
+  "archived_RF017_guest_CRC_sha256": "b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568",
+  "historical_RF017_guest_equality": false,
+  "per_guest_palette_6c_to_6f": [
+    {
+      "guest": 5176,
+      "values": [
+        "4210",
+        "56b5",
+        "4a52",
+        "4631"
+      ]
+    },
+    {
+      "guest": 5177,
+      "values": [
+        "56b5",
+        "4a52",
+        "4631",
+        "4210"
+      ]
+    },
+    {
+      "guest": 5178,
+      "values": [
+        "56b5",
+        "4a52",
+        "4631",
+        "4210"
+      ]
+    },
+    {
+      "guest": 5179,
+      "values": [
+        "56b5",
+        "4a52",
+        "4631",
+        "4210"
+      ]
+    },
+    {
+      "guest": 5180,
+      "values": [
+        "56b5",
+        "4a52",
+        "4631",
+        "4210"
+      ]
+    },
+    {
+      "guest": 5181,
+      "values": [
+        "56b5",
+        "4a52",
+        "4631",
+        "4210"
+      ]
+    },
+    {
+      "guest": 5182,
+      "values": [
+        "56b5",
+        "4a52",
+        "4631",
+        "4210"
+      ]
+    },
+    {
+      "guest": 5183,
+      "values": [
+        "56b5",
+        "4a52",
+        "4631",
+        "4210"
+      ]
+    },
+    {
+      "guest": 5184,
+      "values": [
+        "4a52",
+        "4631",
+        "4210",
+        "56b5"
+      ]
+    },
+    {
+      "guest": 5185,
+      "values": [
+        "4a52",
+        "4631",
+        "4210",
+        "56b5"
+      ]
+    },
+    {
+      "guest": 5186,
+      "values": [
+        "4a52",
+        "4631",
+        "4210",
+        "56b5"
+      ]
+    }
+  ],
+  "genuine_observed_guest_5184_pixel_samples": [
+    {
+      "xy": [
+        70,
+        58
+      ],
+      "cgram_index": "6c",
+      "actual_native_PPU_CGRAM_word": "4a52",
+      "original_2014_CGRAM_word": "56b5",
+      "actual_native_RGB5": [
+        17,
+        17,
+        17
+      ],
+      "source_original_RGB5": [
+        20,
+        20,
+        20
+      ],
+      "ppu_layer": 0,
+      "ppu_directcolor": false,
+      "host_OBJ_override": false,
+      "ppu_inidisp": "0e",
+      "register_cgadsub": "7f",
+      "register_cgwsel": "02",
+      "consistent_with_prior_genuine_gray_error_class": true
+    },
+    {
+      "xy": [
+        202,
+        182
+      ],
+      "cgram_index": "6c",
+      "actual_native_PPU_CGRAM_word": "4a52",
+      "original_2014_CGRAM_word": "56b5",
+      "actual_native_RGB5": [
+        17,
+        17,
+        17
+      ],
+      "source_original_RGB5": [
+        20,
+        20,
+        20
+      ],
+      "ppu_layer": 0,
+      "ppu_directcolor": false,
+      "host_OBJ_override": false,
+      "ppu_inidisp": "0e",
+      "register_cgadsub": "7f",
+      "register_cgwsel": "02",
+      "consistent_with_prior_genuine_gray_error_class": true
+    },
+    {
+      "xy": [
+        84,
+        77
+      ],
+      "cgram_index": "6f",
+      "actual_native_PPU_CGRAM_word": "56b5",
+      "original_2014_CGRAM_word": "4210",
+      "actual_native_RGB5": [
+        20,
+        20,
+        20
+      ],
+      "source_original_RGB5": [
+        15,
+        15,
+        15
+      ],
+      "ppu_layer": 0,
+      "ppu_directcolor": false,
+      "host_OBJ_override": false,
+      "ppu_inidisp": "0e",
+      "register_cgadsub": "7f",
+      "register_cgwsel": "02",
+      "consistent_with_prior_genuine_gray_error_class": true
+    },
+    {
+      "xy": [
+        175,
+        145
+      ],
+      "cgram_index": "6f",
+      "actual_native_PPU_CGRAM_word": "56b5",
+      "original_2014_CGRAM_word": "4210",
+      "actual_native_RGB5": [
+        20,
+        20,
+        20
+      ],
+      "source_original_RGB5": [
+        15,
+        15,
+        15
+      ],
+      "ppu_layer": 0,
+      "ppu_directcolor": false,
+      "host_OBJ_override": false,
+      "ppu_inidisp": "0e",
+      "register_cgadsub": "7f",
+      "register_cgwsel": "02",
+      "consistent_with_prior_genuine_gray_error_class": true
+    },
+    {
+      "xy": [
+        53,
+        41
+      ],
+      "cgram_index": "6e",
+      "actual_native_PPU_CGRAM_word": "4210",
+      "original_2014_CGRAM_word": "4631",
+      "actual_native_RGB5": [
+        15,
+        15,
+        15
+      ],
+      "source_original_RGB5": [
+        16,
+        16,
+        16
+      ],
+      "ppu_layer": 0,
+      "ppu_directcolor": false,
+      "host_OBJ_override": false,
+      "ppu_inidisp": "0e",
+      "register_cgadsub": "7f",
+      "register_cgwsel": "02",
+      "consistent_with_prior_genuine_gray_error_class": true
+    },
+    {
+      "xy": [
+        187,
+        160
+      ],
+      "cgram_index": "6e",
+      "actual_native_PPU_CGRAM_word": "4210",
+      "original_2014_CGRAM_word": "4631",
+      "actual_native_RGB5": [
+        15,
+        15,
+        15
+      ],
+      "source_original_RGB5": [
+        16,
+        16,
+        16
+      ],
+      "ppu_layer": 0,
+      "ppu_directcolor": false,
+      "host_OBJ_override": false,
+      "ppu_inidisp": "0e",
+      "register_cgadsub": "7f",
+      "register_cgwsel": "02",
+      "consistent_with_prior_genuine_gray_error_class": true
+    },
+    {
+      "xy": [
+        65,
+        52
+      ],
+      "cgram_index": "6d",
+      "actual_native_PPU_CGRAM_word": "4631",
+      "original_2014_CGRAM_word": "4a52",
+      "actual_native_RGB5": [
+        16,
+        16,
+        16
+      ],
+      "source_original_RGB5": [
+        17,
+        17,
+        17
+      ],
+      "ppu_layer": 0,
+      "ppu_directcolor": false,
+      "host_OBJ_override": false,
+      "ppu_inidisp": "0e",
+      "register_cgadsub": "7f",
+      "register_cgwsel": "02",
+      "consistent_with_prior_genuine_gray_error_class": true
+    },
+    {
+      "xy": [
+        190,
+        161
+      ],
+      "cgram_index": "6d",
+      "actual_native_PPU_CGRAM_word": "4631",
+      "original_2014_CGRAM_word": "4a52",
+      "actual_native_RGB5": [
+        16,
+        16,
+        16
+      ],
+      "source_original_RGB5": [
+        17,
+        17,
+        17
+      ],
+      "ppu_layer": 0,
+      "ppu_directcolor": false,
+      "host_OBJ_override": false,
+      "ppu_inidisp": "0e",
+      "register_cgadsub": "7f",
+      "register_cgwsel": "02",
+      "consistent_with_prior_genuine_gray_error_class": true
+    }
+  ],
+  "same_original_native_guest_epoch_proven": false,
+  "original_Snes9x_PPU_beam_equivalence_proven": false,
+  "ON_OFF_full_P7_noninterference_proven": false,
+  "guest_CPU_timing_root_cause_proven": false,
+  "source_recolour_or_global_shift_authorized": false,
+  "QA08_QA10_release_accepted": false,
+  "corrected_raster_pixels": 0,
+  "recoverable_reporter_failure": "Direct-mode missing summarize_trace fallback import after authentic ON/OFF execution. Corrected on branch c758e64765c2cc8ceef3ca855b44b248132dfaae.",
+  "interpretation": "Eight authentic source-coordinate classes at native guest5184 consume the predicted rotated RGB555 palette words on the compiled current epoch's actual legacy PPU path; original 2014 snapshot retains earlier palette words. SAME-EPOCH Win32 ON/OFF 5484-frame CRCs agree, but both differ from archived RF017 guest CRC; these are source-only diagnostic observations, not qualified source-epoch original/native PPU equivalence or release proof."
+}

@@ -40,7 +40,8 @@ jobs:
           python -m unittest \
             tests.unit.test_qa_modern_visual_native_capture \
             tests.unit.test_qa_modern_visual_win32_capture_driver \
-            tests.unit.test_check_modern_visual_capture_bundle
+            tests.unit.test_check_modern_visual_capture_bundle \
+            tests.unit.test_qa_authentic_presdl_sdl_rgb_parity
           python tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
       - name: Stage original Modern native host and opt-in SDL3 readback
         run: |
@@ -158,8 +159,16 @@ jobs:
               --route authentic-stock
             test -s "$RUNNER_TEMP/ur-authentic-win32-control-$size/actual-sdl-drawable.png"
             test -s "$RUNNER_TEMP/ur-authentic-win32-control-$size/readback-receipt.json"
+            # Stronger than a nonblank SDL frame: compare every observed RGB
+            # pixel to the pinned native host's post-ComposeOsd source P6.
+            # This fails on any art mutation, incorrect scaling, letterbox
+            # contamination, missing data or source-image format drift.
+            python tools/qa_authentic_presdl_sdl_rgb_parity.py \
+              "$RUNNER_TEMP/ur-authentic-win32-control-$size/probe_first/stock-composed-before-sdl.ppm" \
+              "$RUNNER_TEMP/ur-authentic-win32-control-$size/probe_first/actual-sdl-drawable.pam" \
+              --receipt "$RUNNER_TEMP/ur-authentic-win32-control-$size/probe_first/authentic-exact-rgb-parity.json"
           done
-          echo "Genuine Authenticated-mode stock execution with no Modern frontend observed. Source guest CRC, physical display and visual identity still require independent checks." >> "$GITHUB_STEP_SUMMARY"
+          echo "Genuine Authentic stock RGB exact P6-to-SDL readback parity at 16:9/4:3; alpha, guest CRC, physical screen and human signoff remain unapproved." >> "$GITHUB_STEP_SUMMARY"
       - name: Retain independent Authentic control output only
         if: always()
         uses: actions/upload-artifact@v4
@@ -172,12 +181,14 @@ jobs:
             ${{ runner.temp }}/ur-authentic-win32-control-1280x720/probe_first/native-process.log
             ${{ runner.temp }}/ur-authentic-win32-control-1280x720/probe_first/stock-composed-before-sdl.ppm
             ${{ runner.temp }}/ur-authentic-win32-control-1280x720/probe_first/authentic-source-vs-sdl.json
+            ${{ runner.temp }}/ur-authentic-win32-control-1280x720/probe_first/authentic-exact-rgb-parity.json
             ${{ runner.temp }}/ur-authentic-win32-control-1024x768/actual-sdl-drawable.png
             ${{ runner.temp }}/ur-authentic-win32-control-1024x768/readback-receipt.json
             ${{ runner.temp }}/ur-authentic-win32-control-1024x768/probe_first/actual-sdl-drawable.pam
             ${{ runner.temp }}/ur-authentic-win32-control-1024x768/probe_first/native-process.log
             ${{ runner.temp }}/ur-authentic-win32-control-1024x768/probe_first/stock-composed-before-sdl.ppm
             ${{ runner.temp }}/ur-authentic-win32-control-1024x768/probe_first/authentic-source-vs-sdl.json
+            ${{ runner.temp }}/ur-authentic-win32-control-1024x768/probe_first/authentic-exact-rgb-parity.json
           if-no-files-found: warn
           retention-days: 7
       - name: Retain exact widescreen and 4-to-3 SDL output without player data

@@ -9,7 +9,6 @@ import struct
 import subprocess
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageOps
 
 NAMES = ("p1-leads", "p2-leads")
 SAMPLES = (30, 120, 210, 300, 390, 480, 570, 660, 750, 840)
@@ -69,6 +68,8 @@ def read_guest_dump_witnesses(work_root: Path, name: str) -> list[dict]:
 
 
 def inspect(folder, route_manifest, binary_file, rom_sha, source_sha, names=NAMES, work_root=None):
+    # Unit-level guest-position tests must work without optional media dependencies.
+    from PIL import Image, ImageDraw, ImageOps
     route_data = json.loads(Path(route_manifest).read_text())
     routes = route_data.get("routes", route_data.get("cases"))
     if not isinstance(routes, dict) or not names or len(names) != len(set(names)):

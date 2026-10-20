@@ -347,13 +347,17 @@ inline bool render_modern_root_overlay(
                     ? "X SWITCH ACTIVE P1"
                     : view.racer_shortcuts_available
                     ? "X/F2 RACERS   F1 HELP"
-                    : "RACER SETUP NOT YET LINKED");
-    paint.draw_text(pixels, stride, surface_height,
-        x + 8 * scale, y + 193 * scale,
-        fit_modern_overlay_text(racer_hint, modern_overlay_text_cells(panel_w))
-            .c_str(),
-        !view.root_notice.empty() ? palette.title_yellow
-                                  : palette.cursor_blue, scale);
+                    : ""); // No nonexistent button or internal engineering status.
+    // Empty means this host has no available setup shortcut. The selected
+    // racer's identity is already displayed above, and navigation help is
+    // already at y+181; do not paint a fabricated/duplicated footer.
+    if (!racer_hint.empty())
+        paint.draw_text(pixels, stride, surface_height,
+            x + 8 * scale, y + 193 * scale,
+            fit_modern_overlay_text(racer_hint, modern_overlay_text_cells(panel_w))
+                .c_str(),
+            !view.root_notice.empty() ? palette.title_yellow
+                                      : palette.cursor_blue, scale);
     if (view.practice_picker_open || view.practice_launch_pending) {
         const int bx = x + 12 * scale, by = y + 43 * scale;
         const int bw = (panel_w - 24) * scale, bh = 137 * scale;

@@ -95,6 +95,8 @@ inline const char* modern_native_destination_stage(
     }
     if (v.unbound_two_player_warning_open)
         return "multiplayer-unrecorded-warning";
+    if (v.quit_confirm) return "quit-confirm";
+    if (!v.root_notice.empty()) return "root-notice";
     return "root";
 }
 

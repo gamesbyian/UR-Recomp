@@ -1278,8 +1278,16 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         // correlate this stage with its independently captured final pixels.
         // No imagined controller events, synthetic results or guest writes.
         const char* stage = ur::product::modern_native_destination_stage(view);
-        if (g_last_native_destination_stage != stage) {
-            g_last_native_destination_stage = stage;
+        // The same selected state can be resized 342->256 or vice versa
+        // without another controller edge. The source receipt must include
+        // geometry in its change identity or capture evidence goes stale.
+        const std::string stage_key = std::string(stage) + ":" +
+            std::to_string(width) + "x" + std::to_string(height) + ":" +
+            std::to_string(root_rect.x) + "," + std::to_string(root_rect.y) +
+            "," + std::to_string(root_rect.width) + "," +
+            std::to_string(root_rect.height);
+        if (g_last_native_destination_stage != stage_key) {
+            g_last_native_destination_stage = stage_key;
             std::fprintf(stderr,
                 "UR_BALDOSA_MODERN_DESTINATION stage=%s "
                 "raster=%dx%d root=%d,%d,%d,%d "

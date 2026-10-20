@@ -66,6 +66,8 @@ on:
       - "tests/unit/test_baldosa_native_options_cpp.py"
       - "tools/baldosa_native_modern_root.cpp"
       - "tools/capture_baldosa_modern_title_win32.py"
+      - "tools/verify_baldosa_modern_title_authentic_inert.py"
+      - "tests/unit/test_verify_baldosa_modern_title_authentic_inert.py"
       - "native/product/modern_title_presenter.hpp"
       - "native/product/modern_title_retail_reference.hpp"
       - "tests/native/modern_title_presenter_test.cpp"
@@ -246,6 +248,7 @@ jobs:
           python tests/unit/test_baldosa_modern_user_data_spike.py
           python tests/unit/test_baldosa_modern_profile_activation_spike.py
           python tests/unit/test_modern_title_presenter_cpp.py
+          python tests/unit/test_verify_baldosa_modern_title_authentic_inert.py
           python tests/unit/test_baldosa_modern_options_spike.py
           python tests/unit/test_baldosa_native_options_cpp.py
           python tests/unit/test_baldosa_native_options_probe.py
@@ -356,7 +359,13 @@ jobs:
             --reduced-motion \
             --out "$RUNNER_TEMP/modern-title-native-reduced-pr2043" \
             --timeout 100
-          echo "Verified original title pixels and actual native host presentations on 342-wide 16:9, 256-wide 4:3, and steady reduced-motion title; SDL drawable and physical device approval remain pending." >> "$GITHUB_STEP_SUMMARY"
+          python tools/verify_baldosa_modern_title_authentic_inert.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-native-capture.script" \
+            --out "$RUNNER_TEMP/modern-title-authentic-inert-pr2043" \
+            --timeout 100
+          echo "Verified original title pixels and real host presentations on 16:9, 4:3 and reduced motion, plus two identical Authentic source/host timelines. SDL drawable and physical device approval remain pending." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain native Modern title capture or failure diagnostics
         if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
@@ -367,6 +376,7 @@ jobs:
             ${{ runner.temp }}/modern-title-native-pr2043
             ${{ runner.temp }}/modern-title-native-4by3-pr2043
             ${{ runner.temp }}/modern-title-native-reduced-pr2043
+            ${{ runner.temp }}/modern-title-authentic-inert-pr2043
           if-no-files-found: warn
           retention-days: 14
 

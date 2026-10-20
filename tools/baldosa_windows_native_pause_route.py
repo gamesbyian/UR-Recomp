@@ -2555,6 +2555,53 @@ def run_native_prewrite_intent_abandon(
     short.write_text("turbo on\nwait 6\nquit\n", encoding="ascii")
     command = [str(exe), "--no-launcher", "--config", str(config),
                "--script", str(short), str(rom)]
+    # Actual original Win32 guest negative: a foreign filesystem object may
+    # occupy the archive name exactly when the valid old/old intent needs
+    # preservation. The production archive-first step must never retire the
+    # pending NEW guest bytes when publication is impossible. Do not fake a
+    # disk-full or torn write: this is a real path/name collision only.
+    generations = re.findall(rb"(?m)^generation=([0-9]+)$",
+                             before["typed-profile"])
+    if len(generations) != 1:
+        raise ValueError("Prewrite collision lacks exactly one old generation")
+    previous_generation = int(generations[0])
+    prefix = b"UR-BALDOSA-NATIVE-SRAM-INTENT/1\n"
+    if not intent.startswith(prefix):
+        raise ValueError("Prewrite collision lacks original intent framing")
+    digest64 = 14695981039346656037
+    for octet in intent:
+        digest64 = ((digest64 ^ octet) * 1099511628211) & 0xffffffffffffffff
+    hostile = profile / (
+        f"native-sram-uncommitted-{previous_generation}-to-"
+        f"{previous_generation + 1}-{digest64:016x}.txt")
+    hostile.mkdir()
+    sentinel = hostile / "foreign-entry-do-not-delete.bin"
+    sentinel.write_bytes(b"foreign recovery evidence must survive refusal")
+    refused = subprocess.run(
+        command, cwd=out, env=clean, capture_output=True, text=True,
+        errors="replace", timeout=timeout)
+    refusal_log = refused.stdout + "\n" + refused.stderr
+    (out / "archive-name-collision-refusal.log").write_text(
+        refusal_log, encoding="utf-8")
+    if (refused.returncode != 7 or
+        "UR_BALDOSA_NATIVE_PROFILE RECOVERY_REJECTED status=" not in refusal_log or
+        "native_sram_recovery_unsafe" not in refusal_log or
+        "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM " in refusal_log or
+        "PREWRITE_GUEST_INTENT_ARCHIVED" in refusal_log):
+        raise ValueError(
+            "Original Win32 guest did not refuse occupied forensic archive: " +
+            refusal_log[-900:])
+    if ({name: path.read_bytes() for name, path in sources.items()} != before or
+        not pending.is_file() or pending.read_bytes() != intent or
+        sentinel.read_bytes() != b"foreign recovery evidence must survive refusal" or
+        list(profile.glob("native-sram-uncommitted-*.txt")) != [hostile] or
+        list(user_root.rglob("*.urrun"))):
+        raise ValueError(
+            "Refused original Win32 archive collision mutated old save, "
+            "pending new SRAM, occupied external name or earned records")
+    sentinel.unlink()
+    hostile.rmdir()
+
     stages = []
     retained_archive: bytes | None = None
     for index in (1, 2):
@@ -2624,6 +2671,7 @@ def run_native_prewrite_intent_abandon(
         "canonical_raw_and_typed_unchanged_at_cut": True,
         "intent_retired_only_during_first_cold": True,
         "exact_uncommitted_guest_intent_archived_before_retirement": True,
+        "original_win32_prewrite_archive_name_collision_refused_without_loss": True,
         "two_native_cold_boots_same_committed_generation": True,
         "all_18_evidence_files_SHA256_bound": True,
         "release_gate_credit": 0,

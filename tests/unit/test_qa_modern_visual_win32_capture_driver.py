@@ -143,7 +143,9 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
         self.assertEqual(driver.ROUTES["options-p1"][0], "12")
         self.assertEqual(driver.ROUTES["profile-first-p1"][0], "8")
         self.assertTrue(all(40 <= entry[1] < 100
-                            for entry in driver.ROUTES.values()))
+                            for key, entry in driver.ROUTES.items()
+                            if key != "authentic-stock"))
+        self.assertEqual(driver.ROUTES["authentic-stock"][1], 240)
 
     def test_native_destination_route_requires_actual_source_event(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -162,6 +164,35 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
                     driver.launch(stage / "exe", stage / "rom", stage,
                                   "options", (1280, 720), "windows", 10,
                                   route="options-p1")
+
+    def test_authentic_capture_rejects_actual_transparent_black_evidence(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            raw = Path(tmp) / "blank.pam"
+            width, height = 64, 64
+            header = (f"P7\\nWIDTH {width}\\nHEIGHT {height}\\nDEPTH 4\\n"
+                      "MAXVAL 255\\nTUPLTYPE RGB_ALPHA\\nENDHDR\\n").encode()
+            raw.write_bytes(header + bytes(width * height * 4))
+            with self.assertRaisesRegex(RuntimeError,
+                                        "blank/transparent/uniform"):
+                driver.validate_authentic_pixels(raw, (width, height))
+            self.assertFalse((Path(tmp) / "approved.json").exists())
+
+    def test_authentic_capture_requires_varied_visible_source_pixels(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            raw = Path(tmp) / "stock.pam"
+            width, height = 64, 64
+            header = (f"P7\\nWIDTH {width}\\nHEIGHT {height}\\nDEPTH 4\\n"
+                      "MAXVAL 255\\nTUPLTYPE RGB_ALPHA\\nENDHDR\\n").encode()
+            pixels = (b"\\xff\\x00\\x00\\xff" * 1400
+                      + b"\\x00\\xff\\x00\\xff" * 1400
+                      + b"\\x00\\x00\\xff\\xff" * 1296)
+            raw.write_bytes(header + pixels)
+            witness = driver.validate_authentic_pixels(raw, (width, height))
+            self.assertEqual(witness["visible_alpha_pixels"], width * height)
+            self.assertGreaterEqual(witness["sampled_colors"], 3)
+            self.assertIn("only", witness["pixel_witness"])
+            with self.assertRaisesRegex(ValueError, "geometry/length"):
+                driver.validate_authentic_pixels(raw, (65, height))
 
     def test_authentic_control_disallows_modern_frontend_leak(self):
         with tempfile.TemporaryDirectory() as tmp:

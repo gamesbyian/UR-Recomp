@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 from collections import Counter
 import hashlib
+import io
 import json
 from pathlib import Path
 import zipfile
@@ -23,6 +24,11 @@ EXPECTED_CRC = "b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568
 EXPECTED_ROUTE = "ef74ec51fa585aa76652f4a14d2727f0074434b3925522ab2607e3bd29aa0194"
 ORIGINAL_ZIP = "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e"
 ORIGINAL_5183_BGRX = "f0ee58c682776592d8a93003a42c508629c49973b206d6a6da2c71ec9dc993b7"
+ARCHIVED_NATIVE_OUTER = "832c08263e2d3013d5b15df82b2b0574fabfd3114194b7cbef9f6bb1b2959727"
+ARCHIVED_NATIVE_INNER = "c36fdd0238735e739219b013d25665e42a008a7827ee97631a322217c9f4f0cd"
+ARCHIVED_NATIVE_5184_P7 = "8dae60c1433aa26cd6edc20edda980d1dec17e8935a799d7edc6d0878ae387a8"
+P7_HEADER = (b"P7\\nWIDTH 256\\nHEIGHT 224\\nDEPTH 4\\nMAXVAL 255\\n"
+             b"TUPLTYPE RGB_ALPHA\\nENDHDR\\n")
 PREFIX_SOURCE = "UR_QA08_LATE_PPU_SOURCE "
 PREFIX_FINAL = "UR_QA08_LATE_PPU_FINAL "
 PREFIX_SPAN_SOURCE = "UR_QA08_LATE_SPAN_SOURCE "
@@ -186,8 +192,37 @@ def summarize_trace(trace: str) -> dict:
     }
 
 
+def verify_archived_native_pixels(native_outer: Path) -> dict:
+    """Recheck the original benchmark's eight native P7 positions from real ZIP."""
+    raw = native_outer.read_bytes()
+    if sha(raw) != ARCHIVED_NATIVE_OUTER:
+        raise ValueError("archived compiled Windows P7 outer ZIP SHA mismatch")
+    with zipfile.ZipFile(io.BytesIO(raw)) as outer:
+        nested = outer.read("qa08-premath-source-images.zip")
+    if sha(nested) != ARCHIVED_NATIVE_INNER:
+        raise ValueError("archived compiled Windows P7 nested ZIP SHA mismatch")
+    with zipfile.ZipFile(io.BytesIO(nested)) as images:
+        frame = images.read("source/ur-baldosa-original-source-005184.pam")
+    if (sha(frame) != ARCHIVED_NATIVE_5184_P7 or
+        len(frame) != len(P7_HEADER) + 256 * 224 * 4 or
+        not frame.startswith(P7_HEADER)):
+        raise ValueError("archived compiled Windows guest5184 P7 member changed")
+    for (x, y), (_, expected_native) in EXPECTED_GRAY.items():
+        pos = len(P7_HEADER) + (y * 256 + x) * 4
+        rgb = frame[pos:pos+4]
+        if len(rgb) != 4 or rgb[3] or tuple(v >> 3 for v in rgb[:3]) != (
+            expected_native,) * 3:
+            raise ValueError("archived Windows source RGB5 anchor changed")
+    return {
+        "archived_native_outer_SHA256": ARCHIVED_NATIVE_OUTER,
+        "archived_native_nested_SHA256": ARCHIVED_NATIVE_INNER,
+        "archived_native_5184_P7_SHA256": ARCHIVED_NATIVE_5184_P7,
+        "actual_archived_native_anchor_pixels_authenticated": 8,
+    }
+
+
 def verify(on: Path, off: Path, original: Path, crc_on: Path, crc_off: Path,
-           route_on: Path, route_off: Path) -> dict:
+           route_on: Path, route_off: Path, native_outer: Path) -> dict:
     for label, path, required in (
         ("observer ON guest CRC", crc_on, EXPECTED_CRC),
         ("observer OFF guest CRC", crc_off, EXPECTED_CRC),
@@ -207,6 +242,7 @@ def verify(on: Path, off: Path, original: Path, crc_on: Path, crc_off: Path,
         if (frame[pos + 2] >> 3, frame[pos + 1] >> 3,
             frame[pos] >> 3) != (expected,) * 3:
             raise ValueError("original source anchor RGB5 changed")
+    archived = verify_archived_native_pixels(native_outer)
     off_text = off.read_text(encoding="utf-8", errors="replace")
     if any(p in off_text for p in (
         PREFIX_SOURCE, PREFIX_FINAL, PREFIX_SPAN_SOURCE, PREFIX_SPAN_FINAL,
@@ -214,6 +250,7 @@ def verify(on: Path, off: Path, original: Path, crc_on: Path, crc_off: Path,
         raise ValueError("OFF control contains unexpected effective observer")
     result = summarize_trace(on.read_text(encoding="utf-8", errors="replace"))
     result.update({
+        **archived,
         "original_inner_SHA256": ORIGINAL_ZIP,
         "original_5183_BGRX_SHA256": ORIGINAL_5183_BGRX,
         "on_off_guest_CRC_transcript_SHA256": EXPECTED_CRC,
@@ -227,14 +264,14 @@ def verify(on: Path, off: Path, original: Path, crc_on: Path, crc_off: Path,
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ("on", "off", "original-inner", "crc-on", "crc-off",
+    for name in ("on", "off", "original-inner", "native-outer", "crc-on", "crc-off",
                  "route-on", "route-off"):
         parser.add_argument("--" + name, required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
     a = parser.parse_args()
     try:
         receipt = verify(a.on, a.off, a.original_inner, a.crc_on,
-                         a.crc_off, a.route_on, a.route_off)
+                         a.crc_off, a.route_on, a.route_off, a.native_outer)
         if a.out.exists():
             raise ValueError("would overwrite prior source evidence")
         a.out.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n",

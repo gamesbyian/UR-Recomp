@@ -37,8 +37,13 @@ inline constexpr std::array<int, kModernMenuMotionEntranceFrames>
 // Avoid ms*60 overflow while keeping a frame-precise externally supplied
 // clock. Wall-clock acquisition is deliberately not part of this model.
 constexpr std::uint64_t modern_menu_tick60(std::uint64_t milliseconds) noexcept {
-    return (milliseconds / 1000u) * 60u +
-           ((milliseconds % 1000u) * 60u) / 1000u;
+    const auto seconds = milliseconds / 1000u;
+    const auto fractional_ticks = (milliseconds % 1000u) * 60u / 1000u;
+    // SDL_GetTicks() normally never approaches this boundary, but a test
+    // clock or long-running host must not silently wrap animation backwards.
+    if (seconds > (UINT64_MAX - fractional_ticks) / 60u)
+        return UINT64_MAX;
+    return seconds * 60u + fractional_ticks;
 }
 
 // Explicit native acceptance capture clock. An external harness may pin a

@@ -33,7 +33,10 @@ class ModernNativeDestinationPresenterTest(unittest.TestCase):
         self.assertIn("view.two_seat_join_open = g_two_seat_join.open();", source)
         self.assertIn("view.practice_course_name = preview.course_name;", source)
         self.assertIn("view.first_racer_preset_name = presets[chosen].name;", source)
-        self.assertIn("width != 256 || height != 224", source)
+        self.assertIn("(width != 256 && width != 342)", source)
+        self.assertIn("width == 342 ? 320 : 240", source)
+        self.assertIn("root_rect, shell_view);", source)
+        self.assertIn("root_rect, view);", source)
         self.assertNotIn("SDL_", PRESENTER.read_text(encoding="utf-8"))
 
     def test_cpp_native_destination_views_compile_and_render(self):

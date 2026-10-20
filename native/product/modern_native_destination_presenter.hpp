@@ -64,6 +64,40 @@ inline bool modern_native_destination_is_open(
 // recorded time. Preserve the complete trailing time token in compact 4:3
 // instead of silently losing its hundredths when the course name grows.
 // Other too-long text is explicitly marked truncated with a final dot.
+// A stable, source-model-derived screen identifier for integration/capture
+// receipts. This exposes ONLY already-visible Modern view states. It never
+// reads guest RAM, launches a route, polls controllers or invents a result.
+inline const char* modern_native_destination_stage(
+    const ModernRootOverlayView& v) noexcept {
+    if (v.options_open)
+        return v.options_controls_help ? "options-help" : "options";
+    if (v.practice_launch_pending) return "practice-entering-stock";
+    if (v.practice_picker_open) return "practice-picker";
+    if (v.read_only_records_open)
+        return v.read_only_records_two_player ? "records-2p" : "records-1p";
+    if (v.two_seat_join_open)
+        return v.join_p1_confirmed && v.join_p2_confirmed
+            ? "multiplayer-both-ready"
+            : v.join_p1_confirmed ? "multiplayer-p1-ready"
+            : "multiplayer-join";
+    if (v.first_racer_open) {
+        if (v.first_racer_is_switch)
+            return v.first_racer_created ? "profile-switch-saved"
+                 : v.first_racer_failed ? "profile-switch-refused"
+                 : "profile-switch";
+        if (v.first_racer_is_second)
+            return v.first_racer_created ? "profile-second-saved"
+                 : v.first_racer_failed ? "profile-second-refused"
+                 : "profile-second";
+        return v.first_racer_created ? "profile-first-saved"
+             : v.first_racer_failed ? "profile-first-refused"
+             : "profile-first";
+    }
+    if (v.unbound_two_player_warning_open)
+        return "multiplayer-unrecorded-warning";
+    return "root";
+}
+
 inline std::string modern_native_destination_fit(
     std::string_view value, std::size_t cells,
     bool keep_last_token = false) {

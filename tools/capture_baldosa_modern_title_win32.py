@@ -66,7 +66,8 @@ def _pixel_match(reference: bytes, output: bytes,
 
 
 def verify_native_presented_frames(
-    present_dir: Path, source_dir: Path, expected_width: int = 342) -> dict:
+    present_dir: Path, source_dir: Path, expected_width: int = 342,
+    reduced_motion: bool = False) -> dict:
     """Require both title and root to reach the real host's present path.
 
     SNESRecomp's WritePpm is AFTER RtlDrawPpuFrame/ComposeOsd and BEFORE
@@ -119,6 +120,19 @@ def verify_native_presented_frames(
             "file": keep.name,
             "sha256": hashlib.sha256(keep.read_bytes()).hexdigest(),
         }
+    if reduced_motion:
+        _, _, title_source = read_pam(
+            source_dir / f"modern-native-title-{expected_width}x224.pam",
+            expected_width)
+        original_logo_region = ((expected_width - 238) // 2, 27, 238, 81)
+        before_confirm = [(frame, rgb) for frame, rgb, _ in photos if frame < 60]
+        if len(before_confirm) < 2:
+            raise ValueError("reduced-motion title needs two distinct pre-confirm presents")
+        for frame, rgb in before_confirm:
+            if _pixel_match(title_source, rgb, expected_width,
+                            original_logo_region) < 0.995:
+                raise ValueError(
+                    f"reduced-motion original title moved at present frame {frame}")
     if matches["title"]["present_frame"] >= matches["root"]["present_frame"]:
         raise ValueError("host-presented root precedes title")
     # Retain just the actual two host-presented matches and indexed CSV.
@@ -199,6 +213,8 @@ def main() -> int:
     parser.add_argument("--script", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--timeout", type=int, default=100)
+    parser.add_argument("--reduced-motion", action="store_true",
+                        help="require steady stock title art before P1 confirm")
     parser.add_argument("--aspect", choices=("wide", "4:3"), default="wide",
                         help="actual native SDL drawable shape, not crop")
     args = parser.parse_args()
@@ -237,6 +253,7 @@ def main() -> int:
         "UR_BALDOSA_MODERN_ROOT": "1",
         "UR_BALDOSA_MODERN_PROFILE_SELECT": "0",
         "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "15",
+        "UR_REDUCED_MOTION": "1" if args.reduced_motion else "0",
         "UR_BALDOSA_MODERN_TITLE_CAPTURE_DIR": str(captures),
         "SNESRECOMP_SCREENSHOT_DIR": str(presented),
         "SNESRECOMP_SCREENSHOT_FROM": "0",
@@ -262,8 +279,10 @@ def main() -> int:
     receipt = validate_native_capture(
         captures, log, exe_sha256=exe_hash, expected_width=expected_width)
     receipt["native_presented"] = verify_native_presented_frames(
-        presented, captures, expected_width=expected_width)
+        presented, captures, expected_width=expected_width,
+        reduced_motion=args.reduced_motion)
     receipt["drawable_aspect"] = args.aspect
+    receipt["reduced_motion"] = args.reduced_motion
     import json
     (target / "native-title-receipt.json").write_text(
         json.dumps(receipt, indent=2) + "\n", encoding="utf-8")

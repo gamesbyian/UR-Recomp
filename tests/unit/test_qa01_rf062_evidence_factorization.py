@@ -128,6 +128,8 @@ class BoundedObservationsRemainDistinct(unittest.TestCase):
             ("wrong_native_controller",4,("native",),"0"*64),
             ("forged_strict_verifier_pass",0,("runtime_RF062_logging_noninterference_supported",),True),
             ("host_video_total_unqualified",5,("single_host_video_totals_seconds_field_only_qualified",),False),
+            ("host_elapsed_off_forged",5,("actual_host_video_elapsed_seconds_off_on",),["109.567","109.591"]),
+            ("host_elapsed_on_forged",5,("actual_host_video_elapsed_seconds_off_on",),["109.566","109.590"]),
             ("host_guest_trace_changed",5,("all_other_native_guest_trace_rows_equal_after_host_only_metadata",),False),
         )
         for name,index,path,value in experiments:

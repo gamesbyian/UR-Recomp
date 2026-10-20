@@ -21,7 +21,7 @@ try:
 except ImportError:
     from baldosa_windows_native_pause_route import run_route
     from qa08_late_effective_trace_verify import (
-        EXPECTED_CRC, EXPECTED_ROUTE, verify)
+        EXPECTED_CRC, EXPECTED_ROUTE, verify, summarize_trace)
 
 ROM_SHA = "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
 ENV = "UR_QA08_LATE_EFFECTIVE_PIXEL_TRACE"

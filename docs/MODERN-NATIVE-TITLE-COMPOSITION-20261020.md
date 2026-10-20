@@ -137,3 +137,56 @@ leaves the retail title visible with a steady prompt and no intro or
 exit movement. A fresh confirm edge still hands off safely to the
 established Modern root. This is not yet a player-facing persistent Options
 setting, nor a completed reduced-motion/assistive-technology certification.
+
+## Exact packaged-native evidence: 2026-10-20
+
+The [title workstream Windows AOT run 39410474581](https://github.com/gamesbyian/UR-Recomp/actions/runs/39410474581)
+compiled the **real pinned Baldosa Windows x64 native title**, ran the
+existing host's 180-frame bound, captured the title/root from both the
+Modern painter and `RtlDrawPpuFrame` post-OSD presentation buffer, and
+accepted the independently verified original USA retail logo bitmap.
+The immutable artifact is GitHub Actions artifact **12259586510**
+(`modern-title-native-source-pr2043`, 14-day retention).
+The executable SHA256 is
+`e6e7a3e3bc0746005f54379536fae27c70870d440816d2fba7b41f19fc783fd0`.
+
+| Witness | Real clock | Source dimensions | SHA256 |
+|---|---|---|---|
+| Title painter `modern-native-title-342x224.pam` | guest frame 48 | 342×224 RGBA | `3aab97798e1652bc8b3e55eea5da410856a763f9aa05cc517bac40d5b5864a28` |
+| First root painter `modern-native-root-342x224.pam` | guest frame 80 | 342×224 RGBA | `dc17581d373169420b71c013390d3d186f032973ec2fcbf76e85416443482fb8` |
+| Title host-present `presented-title.ppm` | present frame 32 | 342×224 RGB | `319305142850fe2af563bc79039b395d575b65932192dd4f24be0e478b7a0cf5` |
+| Root host-present `presented-root.ppm` | present frame 80 | 342×224 RGB | `88e2f5c58fe06e399fde51fdd12e9462f078aa0bba8fb2519f076ee0f6bfdb6b` |
+
+`presents.csv` records **11 actual native host presentations**, guest
+frames 16,32,48,64,80,96,112,128,144,160,176. The retained title
+retail-crop area and root menu panel region each agree with their
+independently captured Modern painter output **pixel-for-pixel (100%)**,
+aside from explicitly excluded original host OSD. This evidences the
+actual native CPU presentation path through post-`ComposeOsd`, not
+the GPU's final SDL drawable or a physical display.
+
+One earlier run [39409224712](https://github.com/gamesbyian/UR-Recomp/actions/runs/39409224712)
+correctly failed the provisional **0..24** present collection window:
+Turbo emitted only frame16, while the source title capture was taken at
+frame48 after the entrance animation settled. Comparing the original
+238×81 retail art against that real frame16 present is only 50.6692%
+without alignment, **100.0000% after accounting for the intended +4px
+vertical title-entry motion**. The corrected capture covers 0..180,
+retains source-bound images from **both** states, and does not dilute
+its pixel-match gate. C++ regression also tests the exact 4px entry
+shift and held-confirm latch semantics.
+
+**Independent manual screenshot inspection on the native artifact:** the
+original logo remains unscaled/source-faithful, the small wheel vignette
+no longer crosses the subtitle, and the safe-area prompt remains visible.
+The separate root image still visibly contains the old narrow 240-wide
+engineering shell. This is correctly reserved for #2038/#2040 combined
+root styling rather than an approval of the temporary menu. No aesthetic
+signoff is inferred from the matching screenshots.
+
+**Still required before a visual-acceptance claim:** independent final
+SDL drawable capture at real 16:9 and 4:3, all resolutions/4K, true
+physical input devices, keyboard/Start/Back parity, reduced-motion and
+regional native journeys, scrolling/clipping/contrast assessment, human
+typography/background/logo review, and same-executable Authentic
+isolation. QA #2041 owns the final-output acceptance envelope.

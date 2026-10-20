@@ -40,7 +40,8 @@ ROUTES = {
     # screenshot request. Observe the opened, unmodified Options page first.
     "options-p1": ("12", 65, "UR_BALDOSA_MODERN_ROOT options_opened"),
     "profile-first-p1": ("8", 66, "UR_BALDOSA_MODERN_ROOT first_racer_opened=1"),
-    "authentic-stock": ("0", 40, ""),
+    # Boot-black at guest frame 40 is not visual parity evidence. Sample later.
+    "authentic-stock": ("0", 240, ""),
 }
 
 
@@ -116,6 +117,22 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
         raise RuntimeError("Actual native Modern root not observed")
     if stage_marker and stage_marker not in log:
         raise RuntimeError("Requested real native destination route not observed: " + route)
+    if execution_mode == "authentic" and capture.is_file():
+        # A valid SDL readback can be an entirely clear/transparent backbuffer.
+        # At guest frame 40 that happened in both 16:9 and 4:3 despite the
+        # host loading the stock ROM and no Modern handler firing. A black
+        # image cannot certify original graphics fidelity or source isolation.
+        # Reject empty/transparent *late* stock frames rather than granting a
+        # misleading green visual receipt.
+        raw = capture.read_bytes()
+        header = (f"P7\\nWIDTH {found[0]}\\nHEIGHT {found[1]}\\nDEPTH 4\\n"
+                  "MAXVAL 255\\nTUPLTYPE RGB_ALPHA\\nENDHDR\\n").encode("ascii")
+        if not raw.startswith(header) or len(raw) != len(header) + found[0] * found[1] * 4:
+            raise RuntimeError("Authentic stock SDL frame has invalid raster")
+        rgba = memoryview(raw)[len(header):]
+        if not any(rgba[i+3] and (rgba[i] or rgba[i+1] or rgba[i+2])
+                   for i in range(0, len(rgba), 4)):
+            raise RuntimeError("Authentic stock SDL framebuffer has no visible pixels")
     return {
         "stage": stage,
         "log": log,

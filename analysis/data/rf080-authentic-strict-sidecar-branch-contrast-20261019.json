@@ -1,0 +1,113 @@
+{
+  "schema": "ur-qa01-rf080-strict-native-sidecar-and-first-BPL-decision/1",
+  "date": "2026-10-19",
+  "disposition": "SOURCE_LOCAL_ORDINALS_QUALIFIED; EARLY_BRANCH_OUTCOME_DIFFERENCE; GAMEPLAY_CAUSALITY_HOLD",
+  "workflow_run_id": 39350169874,
+  "artifact_id": 12233102973,
+  "case_zip_sha256": "e23139e64f75099a43c0c77b6c53f3c4c87c1afb17ae12f82448f05f878ac412",
+  "zip_CRC_reopen_success": true,
+  "zip_member_count": 200,
+  "disposable_source_head_sha": "db5f2815f5bbede4c5b2b11f7e2904fc67d04703",
+  "actions_source_merge_checkout_sha": "0873395628f3655916b072cf1cf12871537da6a1",
+  "reference_original_log_sha256": "feba42a853b281b82b4430f3e9375edb7cb4421781c07e327ac2a1b0bf6cc050",
+  "native_raw_stderr_sha256": "0de2718c9aa339edca32c4c4881a8a79841f478dd2624121e4b13b7f5e4f153e",
+  "native_strict_RF047_sidecar_sha256": "1cab9fd4f9384d2043394957cf794daf9187b7fae5dd3b4ab4e59615d88dd424",
+  "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+  "source_replay_script_sha256": "1163b26e1f1c37cb600f64dfcd884990a22f4cbd7b5a87928d93cb482fab11a8",
+  "original_core_elf_sha256": "595c7577b2a39396d3d93c7ccef63a6da98155d40278a49de2c64bf5ae4af5d8",
+  "native_elf_sha256": "bd2eac53b31ff08f908aa00ffaec601bfb6078ff83567633de7c93756ed88037",
+  "native_binary_zip_sha256": "0f0baf99dac49e5e0e0edf4f09e28b3af3f89f3625250c7a0bda09cc7b9fdbd7",
+  "original_staged_source_sha256": "",
+  "native_staged_beam_sha256": "c119b6ebe853b11fae3c06f0329f338da75b8d1ba79055d27ae0bf54562795",
+  "native_staged_cpu_sha256": "ed66c405b5bf891aac8a1386098cafbd8d1e00c0ce04429e343e557d9b5b70f0",
+  "real_original_post_op_rows": 12958,
+  "real_native_strict_RF047_event_rows": 60819,
+  "native_RF047_ordinals_begin_at": 1,
+  "native_RF047_ordinals_end_at": 60819,
+  "native_RF047_missing_ordinals": 0,
+  "native_RF047_truncated": false,
+  "native_bit_real_return_rows": 6483,
+  "native_bpl_actual_input_rows": 6483,
+  "native_raw_stderr_source_rows_byte_exact_to_sidecar": 60744,
+  "native_raw_stderr_RF047_embedded_in_legacy_fragments": 75,
+  "native_raw_stderr_RF047_source_continuity_qualified": false,
+  "native_RF035_other_helper_log_truncated": true,
+  "original_RF079_event_stream_truncated": false,
+  "all_nine_native_scheduler_NMI_brackets_in_sidecar": true,
+  "per_frame": [
+    {
+      "frame": 1017,
+      "original_last_real_BIT_before_NMI": {
+        "source_seq": 6455,
+        "PC": "82D4EE",
+        "lazy_Nbyte": "00",
+        "N": 0,
+        "after_PC": "82D4F0",
+        "V": 225,
+        "H": 18
+      },
+      "original_first_BPL_after_NMI": {
+        "source_seq": 6456,
+        "PC": "82D4F0",
+        "N": 0,
+        "branch_taken": true,
+        "next_PC": "82D4EE",
+        "V": 226,
+        "H": 756
+      },
+      "native_first_real_BIT_after_NMI": {
+        "source_seq": 8,
+        "guestPC": "82D4EE",
+        "actual_read_addr": "00:0057",
+        "D": "0000",
+        "returned_byte": "FF",
+        "N_after_read": 1
+      },
+      "native_first_BPL_after_NMI": {
+        "source_seq": 10,
+        "guestPC": "82D4F0",
+        "N": 1,
+        "branch_taken": false
+      },
+      "first_BPL_decision_differs": true
+    },
+    {
+      "frame": 1018,
+      "original_first_BIT_after_NMI": {
+        "source_seq": 12957,
+        "guestPC": "82D4EE",
+        "N": 1,
+        "lazy_Nbyte": "FF"
+      },
+      "original_first_BPL_after_NMI": {
+        "source_seq": 12958,
+        "guestPC": "82D4F0",
+        "N": 1,
+        "branch_taken": false,
+        "next_PC": "82D4F2"
+      },
+      "native_first_real_BIT_after_NMI": {
+        "source_seq": 13233,
+        "guestPC": "82D4EE",
+        "actual_read_addr": "00:0057",
+        "returned_byte": "FF",
+        "N_after_read": 1
+      },
+      "native_first_BPL_after_NMI": {
+        "source_seq": 13235,
+        "guestPC": "82D4F0",
+        "N": 1,
+        "branch_taken": false
+      },
+      "first_BPL_decision_differs": false
+    }
+  ],
+  "raw_Wram_offset_0057_0059_exact_at_all_44_paired_checkpoints": true,
+  "source_clock_alignment_proven": false,
+  "first_post_reconvergence_STZ_direct_page_D_plus_0059_write_phase_proven": false,
+  "first_persistent_gameplay_state_divergence_proven": false,
+  "accepted_USA_events": 0,
+  "windows_release_QA_gates_accepted": 0,
+  "next_decisive_experiment": "At real original/native first common executed 82:D4F2 STZ D+$59, compare true first writer operand and source-local relative NMI/branch clocks without guest writes/reads or host-frame rebasing. Validate gameplay consequence independently."
+}

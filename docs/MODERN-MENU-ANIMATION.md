@@ -47,6 +47,21 @@ UR_MODERN_SOURCE_HERO_EXPERIMENTAL=1 ./path/to/actual/native/game
 
 Generate the header **before building** the native executable. Its exact pathname is ignored by git deliberately so a ROM-derived raster is not accidentally submitted. Optional review PNGs are genuine 64×64 original-raster pose plates with manifest-bound SHA-256, **not screenshots of the final native game**. The opt-in runtime experiment composes this source image at nearest-neighbour 4× on the 342px native root. Its alpha-safe overscan admits only fully transparent canvas padding outside the physical surface; an opaque pixel anywhere outside the safe rectangle in any registered pose refuses the entire draw. The original P1 source colour is fixed: this WIP is not yet a live profile/appearance preview, and no final acceptance may assume it matches the selected Modern racer. `tests/unit/test_build_modern_menu_stock_hero.py` independently rebuilds the true output in a disposable directory and compiles the resulting C++ on the precise source corpus when the ROM is available. No generated hero header or source pixels have been committed, and no native executable has yet been built from this optional generated header in this branch.
 
+### Original 32×32 spinning OBJ cursor reconstruction (additional source work)
+
+`tools/reconstruct_modern_menu_cursor.py` now consumes the **actual source PPU dumps** from the established `tests/input/menu-visual-language.script` capture, checks every one of its 64 chronological idle samples, OAM palette 7 arrow and palette 5 shadow, measured tile phase order `8,4,0,204,200,196,192,140,136,132,128,76,72,68,64,12`, two-frame holds, exact seven-pixel shadow displacement, original CGRAM colours and 32×32 OBJ tile geometry. It reconstructs a 16-phase 39×39 RGBA review atlas and SHA-bound dump manifest, rejecting missing or reordered captures and incomplete raster tiles. The regression test uses **clearly synthetic** VRAM/OAM to test decoder math and deliberate rejection paths; those test pixels never enter the product.
+
+The required original 64 PPU source dumps are not retained as files in the git repository, so the tool cannot yet produce a source-qualified original OBJ atlas in this environment. To run on a real source capture:
+
+```bash
+python3 tools/reconstruct_modern_menu_cursor.py \
+  --dump-dir /path/to/source-mvl-dumps \
+  --out-dir /tmp/original-cursor-review \
+  --manifest /tmp/original-cursor-evidence.json
+```
+
+The recovered sprite's actual appearance must be visually checked against original menu captures and native selection placement before it replaces the provisional two-pixel source-blue accent. The 32×32 source cursor, its +7px shadow and wide-screen layout are owned jointly with the shared visual grammar / root composition agents in #2038 / #2040. **No decoded original cursor is yet active in the native game.** This is source-reconstruction tooling only, not evidence of verified release artwork or final 4:3/16:9 screenshots.
+
 ## Three-project reuse preflight
 
 Consulted `tools/select_three_project_reuse.py` and its sourced `analysis/three-project-reuse-opportunities.json` / `analysis/data/three-project-apparatus-capability-matrix-20261010.json` with lane `modern-product`: retain **UR** typed root / renderer and evidence contracts, **Baldosa** pinned guest/SDL presentation lifecycle, and **Malmazuke** as a contextual frontend reference only. The registry classifies `modern-controller-journey` / `baldosa-native-core` as keep-existing and `candidate-evidence-envelope` as a shared provenance seam. Nothing justifies a new emulator, frontend authority, asset format or another menu engine. This preflight is source-inspection of the established algorithm and registry; no local full repository checkout was available to execute the command itself.

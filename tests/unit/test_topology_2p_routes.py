@@ -23,6 +23,30 @@ SOURCE = (
 )
 
 class TopologyTwoPlayerCaptureTest(unittest.TestCase):
+    def test_exact_pinned_upstream_two_player_route(self):
+        """The actual immutable upstream menu script must pass every route gate.
+
+        Synthetic fixtures alone are insufficient: a different prefix, dump,
+        GO marker or menu grammar would otherwise fail only after native build.
+        """
+        source = (ROOT / "tests/fixtures/pinned-baldosa-race-2p-split.txt").read_text()
+        self.assertIn(m.SOURCE_ANCHOR, source)
+        self.assertTrue(source.rstrip().endswith(D.EXPECTED_TAIL))
+        for course in m.TARGETS:
+            for profile in D.ROUTES:
+                with self.subTest(course=course, profile=profile):
+                    out, evidence = m.produce(source, course, profile)
+                    self.assertIn("dump cinematic-go\\n", out)
+                    self.assertIn("dump cinematic-lead\\n", out)
+                    self.assertIn("dump cinematic-middle\\n", out)
+                    self.assertIn("dump cinematic-late\\n", out)
+                    self.assertEqual(out.count("until 0E1F != 00\\n"), 1)
+                    self.assertEqual(out.count("until 00CE =="), 1)
+                    self.assertEqual(out.count("quit\\n"), 1)
+                    self.assertFalse(evidence["topology_visually_verified"])
+                    self.assertFalse(evidence["2p_tour_track_navigation_executed"])
+
+
     def test_catalog_and_both_profiles_rom_free(self):
         m.self_test()
 

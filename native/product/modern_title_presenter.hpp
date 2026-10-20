@@ -135,8 +135,6 @@ inline bool render_modern_title(
         const int lift = (24 - reveal) / 2;
         const int artwork_x = center - regional_title_asset::kWidth / 2;
         const int artwork_y = 27 + lift;
-        paint.draw_text(pixels, stride, surface_height,
-                        center - brand_chars * 4, 12, brand, grey, 1);
         paint.stroke_rect(pixels, stride, surface_height,
                           artwork_x - 2, artwork_y - 2,
                           regional_title_asset::kWidth + 4,

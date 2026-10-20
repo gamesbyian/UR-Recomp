@@ -852,6 +852,15 @@ jobs:
           assert d["legacy_raw_stderr_mixed_physical_lines"]==75
           assert d["legacy_raw_stderr_RF035_truncation_retained"] is True
           assert d["physical_WRAM_0057_0059_equal_sample_pairs"]==44
+          assert d["paired_unmasked_full_WRAM_images"]==44
+          assert d["fully_byte_equal_WRAM_pairs"]==27
+          assert d["unequal_WRAM_pairs"]==17
+          assert d["unmasked_full_WRAM_differing_byte_occurrences"]==82
+          assert d["paired_full_original_native_SRAM_equal"]==44
+          assert d["all_unmasked_difference_address_occurrences"]["7E:01ED"]==16
+          assert d["all_unmasked_difference_address_occurrences"]["7E:01EE"]==16
+          assert d["all_unmasked_difference_address_occurrences"]["7E:01EF"]==15
+          assert d["all_unmasked_difference_address_occurrences"]["7E:01F0"]==15
           assert [x["original_additional_N0_BPL_cycle"] for x in
                   d["source_local_branch_outcome_crosswalk"]]==[True,False]
           assert [x["native_next_selected_PC"] for x in

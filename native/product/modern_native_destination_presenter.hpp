@@ -17,6 +17,19 @@
 
 namespace ur::product {
 
+// Baldosa calls prepare_frame(drawable_w, drawable_h, ...) with REAL SDL
+// output dimensions, even when the guest framebuffer is held at its stock
+// 256x224. Prefer original-like compact 4:3 UI in <=3:2 host windows, and
+// use 342x224 widescreen only when the drawable has room to show it. Unknown
+// output falls back to the existing wide entry behavior rather than
+// accidentally selecting compact during first launch.
+inline bool modern_native_frontend_compact_drawable(
+    int drawable_width, int drawable_height) noexcept {
+    return drawable_width > 0 && drawable_height > 0 &&
+           static_cast<std::int64_t>(drawable_width) * 2 <=
+               static_cast<std::int64_t>(drawable_height) * 3;
+}
+
 struct ModernNativeDestinationCanvas {
     int x = 0;
     int y = 0;

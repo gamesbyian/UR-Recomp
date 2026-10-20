@@ -26,7 +26,7 @@ ART = ROOT / "media/showcase/art-reconstruction/2026-10-10"
 SOURCES = {
     "title": (RECRUIT/"native-menu/ur-native-title-menu-900f.mp4", "d58e0b0e20226981767dc1c33e0f34d9652e8ecdb6aa97bd914f7d6ddf0f61d3", 900, 60, "genuine_2026_10_10_native"),
     "reveal": (RECRUIT/"presentation-edits/authentic-widescreen-reveal-7s.mp4", "92ea56611a18ee001ae101f36bc0f2600dc9ca117581edd8072df9535f831414", 420, 60, "source_locked_presentation_edit"),
-    "race": (RECRUIT/"continuous/ur-native-2p-clean-600f.mp4", "182ef43ccf34f501dea4051312e71bf4d974a53dc6634cd98a5cbf3fae8ac130", 600, 60, "genuine_2026_10_10_native"),
+    "action": (ROOT/"media/showcase/2026-10-19/dynamic-native-2p/native-dynamic-2p-three-courses-15s.mp4", "46b5bf43bcfb4f8bdd4874e7a9994f70996688c2c86a259bef01d5102630598d", 900, 60, "genuine_three_distinct_original_native_sessions_with_editorial_cuts"),
     "modern": (RECRUIT/"modern-root/ur-modern-root-600f.mp4", "e43b1c8b9461e94ac2380d164d850545742c958c0dfef98c99987e40197de7db", 600, 60, "genuine_2026_10_10_native"),
     "code": (TECH/"04-machine-code-to-native.mp4", "c213ab1aa5472cb1940d5e35a5601bd30d9c00a9acb1e79cdf6dd1baca5e343d", 270, 30, "editorial_source_qualified"),
     "raster": (TECH/"03-source-raster-xray.mp4", "b818ad56f8da43e6db94b75561373bc3caf258b516abaca81d6ce8ac14285d5b", 180, 30, "editorial_real_raster_crops"),
@@ -43,7 +43,7 @@ FILM = [
     ("title", 270, 90, "THE ORIGINAL / 1994", "capture"),
     ("title", 420, 90, "AUTHENTIC ORIGINAL GAME MENU", "capture"),
     ("reveal", 0, 420, "43 NEW WORLD COLUMNS PER SIDE", "editing"),
-    ("race", 0, 240, "GENUINE 2P NATIVE RACE  /  SOURCE FRAMES 2100–2339", "capture"),
+    ("action", 0, 300, "MEGAJUMP  /  REAL 342-COLUMN TWO-PLAYER RACING", "capture"),
     ("card_windows", 0, 300, "SCRIPTED WIN32 JOURNEYS  /  OCT 19 EVIDENCE", "editorial"),
     ("code", 0, 270, "VERIFIED 65816 MAINLOOP → GENERATED C", "editorial"),
     ("raster", 0, 180, "SOURCE RASTER ARCHAEOLOGY", "editorial"),
@@ -52,7 +52,8 @@ FILM = [
     ("art", 0, 150, "EXPERIMENTAL 4× CHARACTER RECONSTRUCTION", "editorial"),
     ("animation", 0, 150, "ANIMATION ARCHAEOLOGY / SOURCE POSES", "editorial"),
     ("art_p2", 0, 150, "PROCEDURAL 4× STUDIES / LIKENESS NOT APPROVED", "editorial"),
-    ("race", 240, 360, "SAME ORIGINAL SESSION / CONTINUOUS FINAL 360 FRAMES", "capture"),
+    ("action", 300, 300, "JUMPS  /  INVERTED AIRBORNE RIDER", "capture"),
+    ("action", 600, 300, "LOOPER  /  ROLLING TRACK, NOT CERTIFIED FULL LOOP", "capture"),
     ("card_cta", 0, 540, "HELP BUILD THE NEXT VERSION", "editorial"),
 ]
 # 27-second portrait short, gameplay fitted rather than cutting either 2P band.
@@ -61,7 +62,8 @@ SHORT = [
     ("title", 420, 30, "AUTHENTIC CHECKERBOARD MENU", "capture"),
     ("reveal", 0, 420, "THE WORLD OPENS / ORIGINAL WIDE", "editing"),
     ("code", 0, 120, "65816 → NATIVE C / VERIFIED SOURCE", "editorial"),
-    ("race", 240, 360, "GENUINE TWO-PLAYER RACING", "capture"),
+    ("action", 0, 300, "MEGAJUMP  /  SEPARATED RACERS", "capture"),
+    ("action", 300, 300, "JUMPS  /  ACTUAL AIRBORNE RIDER", "capture"),
     ("card_cta", 0, 240, "JOIN THE REBUILD", "editorial"),
 ]
 FPS = 60
@@ -266,7 +268,7 @@ def make_film(shots,sources,cards,target,score,tmp,vertical=False):
                 if not vertical and key in ("reveal","code","raster","parity","art","animation","art_p2") else None))
         parts.append(part)
         total+=round(frames/source_fps*FPS)
-    expected=23 if vertical else 75
+    expected=27 if vertical else 80
     assert total==expected*FPS,(total,expected)
     listing=tmp/"concat.txt"
     listing.write_text("".join("file '"+str(p.resolve())+"'\n" for p in parts))
@@ -303,8 +305,8 @@ def main():
         cards["__artdir__"]=tmp/"blue-art"
         score=tmp/"original-flagship-score.wav"
         render_score(score)
-        master=a.outdir/"ur-recomp-blue-75s-1080p.mp4"
-        vertical=a.outdir/"ur-recomp-blue-23s-vertical.mp4"
+        master=a.outdir/"ur-recomp-blue-action-80s-1080p.mp4"
+        vertical=a.outdir/"ur-recomp-blue-action-27s-vertical.mp4"
         make_film(FILM,SOURCES,cards,master,score,tmp/"film")
         make_film(SHORT,SOURCES,cards,vertical,score,tmp/"short",vertical=True)
         im=Image.open(PAST_POSTER[0]).convert("RGB")
@@ -318,6 +320,9 @@ def main():
         "windows_release_QA_gates":"0/12 as of 2026-10-19",
         "source_gameplay_segments":"uninterpolated, source-contiguous per individual segment",
         "original_wide":"342x224 with 43 real additional source columns per side",
+        "action_reel":"Three separately captured authentic guest runs of MegaJump, Jumps, Looper, each 300 consecutive frames; editorial cuts and separate race sessions clearly identified",
+        "loop_claim":"Looper shows graded rolling geometry; no complete loop revolution confirmed",
+        "airborne_claim":"Jumps has independently reviewed inverted airborne rider source ordinal 570",
         "modern_footage":"October 10 verified native root clip, NOT the newer October 19 Windows journey",
         "windows_journey_card":"editorial recap of scripted Win32 result/profile/Records evidence; not live footage",
         "full_SDL_4k_card":"bounded 2026-10-10 real 3840x2160 SDL pixel readback for Original-mode frame 2208; not 4k video",
@@ -337,7 +342,7 @@ def main():
           "label":label,"classification":kind} for k,start,n,label,kind in SHORT],
         "output_sha256":{p.name:digest(p) for p in outputs},
         "claims_and_exclusions":claims,
-        "total_horizontal_frames":4500,"total_vertical_frames":1380,
+        "total_horizontal_frames":4800,"total_vertical_frames":1620,
         "no_interpolation":True,
         "editorial_cards_not_gameplay":True
     }

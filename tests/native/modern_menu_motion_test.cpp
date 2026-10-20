@@ -61,6 +61,34 @@ void test_motion() {
     assert(modern_menu_resolve_test_tick60(123u, "+12") == 123u);
     assert(modern_menu_resolve_test_tick60(123u, "-12") == 123u);
     assert(modern_menu_resolve_test_tick60(123u, " 12") == 123u);
+    // Static capture remains backward-compatible. Stepped capture uses the
+    // index of a REAL root presentation to reconstruct visible entrance and
+    // selection timing with no guest stepping or wall-clock dependence.
+    assert(modern_menu_capture_test_tick60(200u, "7", false, 15u) == 7u);
+    assert(modern_menu_capture_test_tick60(200u, "7", true, 0u) == 7u);
+    assert(modern_menu_capture_test_tick60(200u, "7", true, 1u) == 8u);
+    assert(modern_menu_capture_test_tick60(200u, "7", true, 12u) == 19u);
+    assert(modern_menu_capture_test_tick60(200u, "7", true, 39u) == 46u);
+    assert(modern_menu_capture_test_tick60(200u, "INVALID", true, 39u) == 200u);
+    assert(modern_menu_capture_test_tick60(200u, nullptr, true, 39u) == 200u);
+    assert(modern_menu_capture_test_tick60(200u,
+        "18446744073709551615", true, 1u) == UINT64_MAX);
+    assert(modern_menu_capture_test_tick60(200u,
+        "18446744073709551614", true, 1u) == UINT64_MAX);
+    assert(modern_menu_capture_test_tick60(200u,
+        "18446744073709551614", true, 2u) == UINT64_MAX);
+    // A source-capture presenter may pin 0 and collect 40 ACTUAL paints;
+    // the 39-frame entrance must really conclude at ordinal 39, not stay
+    // stuck on its initial pose as a frozen constant clock would.
+    ModernMenuMotionState capture{};
+    for (std::uint64_t index = 0; index <= 39u; ++index) {
+        const auto forced_tick = modern_menu_capture_test_tick60(
+            9999u, "0", true, index);
+        const auto capture_pose = advance_modern_menu_motion(
+            capture, {forced_tick, 0, true, false});
+        assert(capture_pose.entrance_distance_px ==
+               modern_menu_entrance_remaining(static_cast<int>(index)));
+    }
     ModernMenuMotionState state{};
     auto pose = advance_modern_menu_motion(state, {1000, 0, true, false});
     assert(pose.visible && pose.selection == 0);

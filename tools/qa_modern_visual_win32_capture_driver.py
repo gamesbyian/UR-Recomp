@@ -54,7 +54,7 @@ def sha256(path: Path) -> str:
 
 
 def validate_authentic_pixels(source: Path, expected: tuple[int, int]) -> dict:
-    """Reject empty/fully transparent stock captures before admitting evidence.
+    """Require actual visible RGB, retain alpha exactly as captured.
 
     Authentic mode can legitimately begin with an unlit raster during boot.
     A 40th-present screenshot proved to be ALL ZERO in a real Win32 capture.
@@ -73,17 +73,30 @@ def validate_authentic_pixels(source: Path, expected: tuple[int, int]) -> dict:
     size = (int(match.group(1)), int(match.group(2)))
     if size != expected or len(rgba) != size[0] * size[1] * 4:
         raise ValueError("Authentic SDL P7 geometry/length differs")
-    opaque = sum(a != 0 for a in rgba[3::4])
-    # Sample throughout the raster rather than accepting one boot pixel.
+    # SDL3's RGB render target may legitimately report alpha=0 even when
+    # it presents genuine original artwork. An exact real Win32 frame240
+    # contains 691200 nonblack RGB pixels and 17 RGBA colours, but every
+    # alpha byte is zero (see combined rehearsal #2053 run 39516011669).
+    # Inspect raw RGB WITHOUT rewriting the P7/PNG or pretending opaque alpha.
+    visible_rgb = sum(
+        rgba[i] != 0 or rgba[i + 1] != 0 or rgba[i + 2] != 0
+        for i in range(0, len(rgba), 4))
+    alpha_nonzero = sum(a != 0 for a in rgba[3::4])
+    # Sample throughout the real drawable, ignoring alpha for the visible
+    # colour count. The background must contain varied actual RGB ink.
     pitch = max(4, (len(rgba) // (4096 * 4)) * 4)
-    distinct = len({rgba[i:i + 4] for i in range(0, len(rgba), pitch)})
-    if opaque < max(1024, size[0] * size[1] // 1000) or distinct < 3:
+    distinct_rgb = len({
+        bytes(rgba[i:i + 3]) for i in range(0, len(rgba), pitch)})
+    if visible_rgb < max(1024, size[0] * size[1] // 100) or distinct_rgb < 3:
         raise RuntimeError(
-            "Authentic SDL control is blank/transparent/uniform; "
-            "no source visual isolation evidence (visible=%d colors=%d)"
-            % (opaque, distinct))
-    return {"visible_alpha_pixels": opaque, "sampled_colors": distinct,
-            "pixel_witness": "nonblank-authentic-sdl-readback-only"}
+            "Authentic SDL control has blank/uniform RGB; "
+            "no positive stock visual witness (rgb=%d colors=%d alpha=%d)"
+            % (visible_rgb, distinct_rgb, alpha_nonzero))
+    return {"visible_rgb_pixels": visible_rgb,
+            "sampled_rgb_colors": distinct_rgb,
+            "alpha_nonzero_pixels": alpha_nonzero,
+            "alpha_note": "original SDL render-target alpha retained unchanged",
+            "pixel_witness": "visible-authentic-sdl-rgb-readback-only"}
 
 
 def launch(exe: Path, rom: Path, root: Path, name: str,

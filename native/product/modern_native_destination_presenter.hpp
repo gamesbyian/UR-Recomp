@@ -160,7 +160,7 @@ inline bool render_modern_native_destination(
         if (v.options_controls_help) {
             static constexpr const char* lines[] = {
                 "UP/DOWN  MOVE", "A/ENTER  SELECT", "B/ESC  BACK",
-                "LEFT/RIGHT  CHANGE", "X  RACER SETUP"};
+                "LEFT/RIGHT  CHANGE", "B  CLOSE HELP"};
             for (std::size_t i = 0; i < 5; ++i)
                 modern_native_destination_line(
                     p, pixels, stride, surface_height, c,
@@ -244,10 +244,13 @@ inline bool render_modern_native_destination(
             v.records_recent, 0xFFFFFFFFu);
         if (v.read_only_records_two_player && !v.records_detail.empty())
             modern_native_destination_line(
-                p, pixels, stride, surface_height, c, 103,
+                p, pixels, stride, surface_height, c, 101,
                 v.records_detail, col.secondary_grey);
         modern_native_destination_line(
-            p, pixels, stride, surface_height, c, 124,
+            p, pixels, stride, surface_height, c, 114,
+            "READ ONLY - NO REPLAY", col.secondary_grey);
+        modern_native_destination_line(
+            p, pixels, stride, surface_height, c, 125,
             v.read_only_records_pages_available
                 ? "UP/DOWN PAGE  B BACK"
                 : "B BACK  /  READ ONLY", col.cursor_blue);

@@ -123,14 +123,14 @@ def inventory(root: Path) -> dict:
     text = (root_source.read_text(encoding="utf-8")
             if root_source.is_file() and not root_source.is_symlink() else "")
     motion_draw = re.search(
-        r"paint_modern_menu_selection_motion\\s*\\([\\s\\S]{0,420}?\\);", text)
+        r"paint_modern_menu_selection_motion\s*\([\s\S]{0,420}?\);", text)
     if motion_draw is None:
         motion_draw = re.search(
-            r"paint_modern_menu_selection_motion\\s*\\([\\s\\S]{0,600}?\\);", text)
+            r"paint_modern_menu_selection_motion\s*\([\s\S]{0,600}?\);", text)
     conflicts = []
     if (motion_draw and
-            re.search(r"HostOverlayRect\\s*\\{\\s*\\(width\\s*-\\s*240\\)\\s*/\\s*2\\s*,"
-                      r"\\s*10\\s*,\\s*240\\s*,\\s*204\\s*\\}", motion_draw.group())):
+            re.search(r"HostOverlayRect\s*\{\s*\(width\s*-\s*240\)\s*/\s*2\s*,"
+                      r"\s*10\s*,\s*240\s*,\s*204\s*\}", motion_draw.group())):
         conflicts.append("motion_uses_240px_root_under_342px_child_canvas")
     return {
         "schema_version": 1,

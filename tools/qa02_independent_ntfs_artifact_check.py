@@ -35,6 +35,11 @@ def refuse_constant(token):
     raise ValueError('nonfinite NTFS source receipt constant: ' + token)
 
 
+def require(condition, explanation='NTFS source evidence condition failed'):
+    if not condition:
+        raise ValueError(explanation)
+
+
 def sha(data):
     return hashlib.sha256(data).hexdigest()
 
@@ -48,23 +53,23 @@ def check(path, expected_schema, expected_sha):
     if sha(raw) != expected_sha:
         raise ValueError('external source ZIP SHA256 mismatch')
     with zipfile.ZipFile(path) as z:
-        assert z.testzip() is None, 'ZIP CRC mismatch'
+        require(z.testzip() is None, 'ZIP CRC mismatch')
         names=z.namelist()
-        assert len(names)==len(set(names)), 'duplicate archive members'
-        assert all(not n.startswith('/') and '..' not in Path(n).parts for n in names)
+        require(len(names)==len(set(names)), 'duplicate archive members')
+        require(all(not n.startswith('/') and '..' not in Path(n).parts for n in names))
         result=json.loads(z.read('result.json'), object_pairs_hook=unique_keys,
                           parse_float=finite_float, parse_constant=refuse_constant)
-        assert result['schema']==expected_schema
-        assert type(result.get('release_gate_credit')) is int and result['release_gate_credit']==0
-        assert result['human_operator'] is False
+        require(result['schema']==expected_schema)
+        require(type(result.get('release_gate_credit')) is int and result['release_gate_credit']==0)
+        require(result['human_operator'] is False)
         members=result.get('exact_before_full_two_cold_binary_members',
                            result.get('actual_source_bytes'))
-        assert isinstance(members,dict) and members
-        assert {n[len('source-bytes/'):] for n in names if n.startswith('source-bytes/')} == set(members), 'unlisted source archive members'
+        require(isinstance(members,dict) and members)
+        require({n[len('source-bytes/'):] for n in names if n.startswith('source-bytes/')} == set(members), 'unlisted source archive members')
         for name,claim in members.items():
             data=z.read('source-bytes/'+name)
-            assert len(data)==claim['bytes'],name+' length'
-            assert sha(data)==claim['sha256'],name+' SHA'
+            require(len(data)==claim['bytes'],name+' length')
+            require(sha(data)==claim['sha256'],name+' SHA')
         return result,len(members),sha(raw)
 
 
@@ -75,25 +80,25 @@ def main():
     a=p.parse_args()
     pre,npre,hpre=check(a.pre_intent,'ur-real-original-cmd-ntfs-disk-full/1',PRE_SHA)
     post,npost,hpost=check(a.postraw,'ur-real-win32-ntfs-full-postraw-typed/1',POST_SHA)
-    assert pre['actual_isolated_vhd_ntfs_full'] is True
-    assert pre['actual_native_cmd_exit8_during_original_guest_save'] is True
-    assert pre['real_power_loss_or_partial_write'] is False
-    assert post['actual_raw_plus_durable_intent_before_disk_full'] is True
-    assert post['original_source_postraw_typed_refused_exit8'] is True
-    assert post['independent_second_process_win32_error']==112
-    assert post['recovery_intent_reconciled_once'] is True
-    assert post['two_fresh_original_Windows_cold_boots'] is True
-    assert post['electrical_power_cut_or_partial_disk_write'] is False
+    require(pre['actual_isolated_vhd_ntfs_full'] is True)
+    require(pre['actual_native_cmd_exit8_during_original_guest_save'] is True)
+    require(pre['real_power_loss_or_partial_write'] is False)
+    require(post['actual_raw_plus_durable_intent_before_disk_full'] is True)
+    require(post['original_source_postraw_typed_refused_exit8'] is True)
+    require(post['independent_second_process_win32_error']==112)
+    require(post['recovery_intent_reconciled_once'] is True)
+    require(post['two_fresh_original_Windows_cold_boots'] is True)
+    require(post['electrical_power_cut_or_partial_disk_write'] is False)
     def digest(r, n):return r['actual_source_bytes'][n]['sha256']
-    assert digest(post,'postraw.raw.bin')!=digest(post,'before.raw.bin')
-    assert digest(post,'postraw.typed.bin')==digest(post,'before.typed.bin')
-    assert digest(post,'recovered.raw.bin')==digest(post,'postraw.raw.bin')
-    assert digest(post,'recovered.typed.bin')!=digest(post,'postraw.typed.bin')
-    assert digest(post,'cold2.raw.bin')==digest(post,'recovered.raw.bin')
-    assert digest(post,'cold2.typed.bin')==digest(post,'recovered.typed.bin')
-    assert digest(post,'denied.typed.bin')==digest(post,'before.typed.bin')
-    assert digest(post,'denied.raw.bin')==digest(post,'postraw.raw.bin')
-    assert pre['original_cmd_sha256']==post['original_cmd_sha256']
+    require(digest(post,'postraw.raw.bin')!=digest(post,'before.raw.bin'))
+    require(digest(post,'postraw.typed.bin')==digest(post,'before.typed.bin'))
+    require(digest(post,'recovered.raw.bin')==digest(post,'postraw.raw.bin'))
+    require(digest(post,'recovered.typed.bin')!=digest(post,'postraw.typed.bin'))
+    require(digest(post,'cold2.raw.bin')==digest(post,'recovered.raw.bin'))
+    require(digest(post,'cold2.typed.bin')==digest(post,'recovered.typed.bin'))
+    require(digest(post,'denied.typed.bin')==digest(post,'before.typed.bin'))
+    require(digest(post,'denied.raw.bin')==digest(post,'postraw.raw.bin'))
+    require(pre['original_cmd_sha256']==post['original_cmd_sha256'])
     print(json.dumps({'status':'PASS','scope':'hosted original Windows NTFS artifact receipts only',
       'pre_intent_zip_sha256':hpre,'postraw_zip_sha256':hpost,
       'verified_binary_members':npre+npost,'actual_full_volume':True,

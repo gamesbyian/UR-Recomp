@@ -50,6 +50,35 @@ class LateEffectiveSourceProof(unittest.TestCase):
         self.assertFalse(result["instrumentation_noninterference_proven_by_text"])
         self.assertFalse(result["QA08_QA10_or_release_authorized"])
 
+    def test_full_window_requires_every_main_source_and_composed_pixel(self):
+        rows = []
+        for frame in range(5176, 5187):
+            for x, y in witness.POINTS:
+                rows.extend((source(x, y, frame=frame),
+                             final(x, y, frame=frame)))
+        full = "\n".join(rows)
+        result = witness.summarize_trace(full, require_full_window=True)
+        self.assertEqual(result["bounded_source_observations"], 88)
+        self.assertEqual(result["bounded_final_observations"], 88)
+        with self.assertRaisesRegex(ValueError, "incomplete 11-frame"):
+            witness.summarize_trace("\n".join(rows[:-1]),
+                                    require_full_window=True)
+        with self.assertRaisesRegex(ValueError, "incomplete 11-frame"):
+            witness.summarize_trace("\n".join(rows[1:]),
+                                    require_full_window=True)
+
+    def test_mixed_renderer_across_different_frames_refused(self):
+        rows = []
+        for frame in range(5176, 5187):
+            for x, y in witness.POINTS:
+                rows.extend((source(x, y, frame=frame),
+                             final(x, y, frame=frame)))
+        rows[0] = rows[0].replace("UR_QA08_LATE_PPU_SOURCE ",
+                                  "UR_QA08_LATE_SPAN_SOURCE ")
+        with self.assertRaisesRegex(ValueError, "mixed renderer identities"):
+            witness.summarize_trace("\n".join(rows),
+                                    require_full_window=True)
+
     def test_duplicate_missing_and_changing_selected_CGRAM_rejected(self):
         lines = "\n".join(source(x,y) + "\n" + final(x,y)
                           for x,y in witness.POINTS)

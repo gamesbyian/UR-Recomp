@@ -45,31 +45,45 @@ def png_frame(rgba: bytes) -> bytes:
     return encode_png_rgba(CANVAS, CANVAS, rgba)
 
 
-def original_obj_base_word(dump: mvl.Dump) -> int:
+def original_obj_base_word(dump: mvl.Dump, tile: int = 0) -> int:
     field = dump.fillram.get("2101")
     if not isinstance(field, str) or len(field) != 2:
         raise ValueError("missing exact $2101 OBJ name-base register")
     obsel = int(field, 16)
-    # SNES OBSEL lowest three bits select the 8 KiB OBJ character base;
-    # 8 KiB = 0x1000 word-address units in 64 KiB VRAM.
-    return (obsel & 7) * 0x1000
+    if not 0 <= tile < 512:
+        raise ValueError("invalid source OAM name table tile index")
+    # SNES $2101 name-base bits select a 16 KiB-aligned block:
+    # 0x2000 VRAM WORDS per step. This differs from the secondary-name
+    # offset, which advances in 0x1000-word (8 KiB) increments.
+    # Independent hardware spec: SNESdev OBJSEL / Fullsnes OBSEL; also
+    # cross-checked against the source-grammar owner's OBJ decoder.
+    base = (obsel & 7) * 0x2000
+    if tile & 0x100:
+        base += (((obsel >> 3) & 3) + 1) * 0x1000
+    return base
 
 
 def draw_sprite(d: mvl.Dump, sprite: dict, frame: bytearray,
                 ox: int, oy: int) -> None:
     if len(d.vram) != 65536 or len(d.cgram) != 512:
         raise ValueError("wrong original PPU dump geometry")
-    if sprite["tile"] >= 256 or sprite["large"] != 1:
-        # Original known cursor uses one unflipped 32x32 OBJ in the first
-        # tile name table. Extended tile names require a separate OBSEL bank.
+    field = d.fillram.get("2101")
+    if not isinstance(field, str) or len(field) != 2:
+        raise ValueError("missing exact $2101 OBJ name-base register")
+    obsel = int(field, 16)
+    # OAM's "large" bit does not, by itself, prove a 32x32 sprite.
+    # Source OBJ size pairs 1, 3 and 7 are the only large-32 modes.
+    if (sprite["large"] != 1 or (obsel >> 5) not in (1, 3, 7) or
+            not 0 <= sprite["tile"] < 512):
         raise ValueError("unsupported or non-source 32x32 cursor OBJ")
-    base_word = original_obj_base_word(d)
     for ty in range(4):
         for tx in range(4):
-            tile = sprite["tile"] + ty * 16 + tx
-            if tile >= 256:
-                raise ValueError("original cursor OBJ tile exceeded name table")
-            raster = mvl.tile_pixels(d.vram, base_word, tile, 4)
+            # 32x32 OBJ subtiles advance on a 16-tile row; preserve the
+            # upper name-table page and wrap only the low 8 tile bits.
+            tile = (sprite["tile"] & 256) | (
+                (sprite["tile"] + ty * 16 + tx) & 255)
+            base_word = original_obj_base_word(d, tile)
+            raster = mvl.tile_pixels(d.vram, base_word, tile & 255, 4)
             for py, row in enumerate(raster):
                 for px, ci in enumerate(row):
                     if ci == 0:

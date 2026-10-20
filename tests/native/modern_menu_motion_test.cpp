@@ -235,8 +235,11 @@ void test_source_stock_hero() {
 
     // An actual 4x-density native compositing buffer, not a resized mock.
     std::vector<std::uint32_t> wide(1536u * 896u, 0xff101010u);
-    auto wide_pose = advance_modern_menu_motion(
+    (void)advance_modern_menu_motion(
         animator, {18, 0, true, false});
+    auto wide_pose = advance_modern_menu_motion(
+        animator, {26, 0, true, false});
+    assert(wide_pose.hero_frame_ordinal == 7);
     assert(paint_modern_menu_stock_hero(
         wide.data(), 1536, 896, {0, 0, 1536, 896},
         {650, 280, 4}, sequence, wide_pose) ==

@@ -46,6 +46,8 @@ Unlocks a real course parser, renderer, custom-course path and stronger Widescre
 
 **Unknown/conflict:** The best Zoo witness still has nonzero unmasked stack/sound WRAM differences at sampled frames. Genuine original/native post-NMI source phases and the first persistent consumed divergence remain unclosed. A scored result and same relative next-event entry are insufficient to certify continuous course equivalence.
 
+**Narrowed by genuine RF081 (merged #1985):** For labels 1017 and 1018, original S9xSetByte and paced native both commit zero to D+$59 after the fetched STZ at 82:D4F2. This closes that specific write-value question, not subsequent stack/PLP/RTS causality. The 44/12 original and 62/62 native intervals use distinct source-clock boundaries and are not directly subtractable.
+
 **Smallest useful test:** Use one source-and-binary-qualified Zoo case to compare the actual first causally relevant post-NMI read/write, original fetched PC, native executed marker and unchanged input stream; independently reopen retained raw guest memory. Keep original movie, fresh original and native clock origins distinct.
 
 **Payoff:** Separates a harmless transient from a gameplay-affecting divergence and gives independent QA a falsifiable first-event acceptance candidate. [QA01 evidence authority](../QA01-INDEPENDENT-FIRST-USA-EVENT-ACCEPTANCE-20261018.md) owns detailed obligations and release adjudication.

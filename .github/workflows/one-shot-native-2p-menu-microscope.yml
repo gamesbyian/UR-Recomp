@@ -5,6 +5,9 @@ on:
     paths: [.github/workflows/one-shot-native-2p-menu-microscope.yml]
 permissions:
   contents: write
+concurrency:
+  group: ur-native-two-player-menu-microscope
+  cancel-in-progress: false
 jobs:
   menu-state:
     runs-on: ubuntu-22.04

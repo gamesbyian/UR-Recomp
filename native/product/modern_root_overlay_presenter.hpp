@@ -220,12 +220,9 @@ inline bool render_modern_root_overlay(
     paint.stroke_rect(pixels, stride, surface_height,
         x, y, rect.width, rect.height, palette.frame_grey);
     const char* title = view.europe ? "UNIRALLY" : "UNIRACERS";
-    paint.draw_text(pixels, stride, surface_height,
-        x + 10 * scale, y + 7 * scale, title,
-        palette.shadow_black, 2 * scale);
-    paint.draw_text(pixels, stride, surface_height,
-        x + 9 * scale, y + 6 * scale, title,
-        palette.title_yellow, 2 * scale);
+    modern_menu_paint_shadowed_heading(
+        paint, pixels, stride, surface_height,
+        x + 9 * scale, y + 6 * scale, title, 2, scale);
     const std::string identity = fit_modern_overlay_text(
         std::string("RACER: ") + std::string(view.racer_name),
         modern_overlay_text_cells(panel_w));

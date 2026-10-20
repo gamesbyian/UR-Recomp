@@ -112,14 +112,18 @@ def run(exe: Path, rom: Path, out: Path, source_sha: str, video: str,
             not rom.is_file() or rom.is_symlink() or
             sha256(rom) != USA_SHA256):
         raise ValueError("Missing native executable, exact USA ROM or source SHA")
+    # Validate caller geometry before creating any evidence root. An invalid
+    # cohort may never leave a directory that a later exact-size run mistakes
+    # for a prior native screenshot, including on unattended retry.
+    if window_size is not None and (
+            len(window_size) != 2 or
+            not (320 <= window_size[0] <= MAX_DIM[0] and
+                 224 <= window_size[1] <= MAX_DIM[1])):
+        raise ValueError("Unsafe exact native Win32 output request")
     if out.exists() or out.is_symlink():
         raise ValueError("Output directory already exists")
     out.mkdir(parents=True)
     if window_size is not None:
-        if (len(window_size) != 2 or
-                not (320 <= window_size[0] <= MAX_DIM[0] and
-                     224 <= window_size[1] <= MAX_DIM[1])):
-            raise ValueError("Unsafe exact native Win32 output request")
         first = launch(exe, rom, out, "probe_first", window_size, video, timeout,
                        window_size=window_size)
         # Never silently downgrade an explicit 16:9/4:3 Windows request to

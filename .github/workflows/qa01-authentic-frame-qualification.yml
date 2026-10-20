@@ -34,6 +34,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check repository hygiene before accepting archived research sources
+        run: python3 tools/check_repo_hygiene.py
+
       - name: ROM-free frame and adversarial audit tests
         run: |
           set -euo pipefail

@@ -9,6 +9,8 @@ import json
 
 def adjudicate(checkpoint_revision, trusted_revision, *, checkpoint_present=True,
                trusted_anchor_present=True):
+    if type(checkpoint_present) is not bool or type(trusted_anchor_present) is not bool:
+        return {'admit':False,'reason':'invalid anchor presence flags'}
     if not checkpoint_present or not trusted_anchor_present:
         return {'admit':False,'reason':'missing checkpoint or trusted anchor'}
     if type(checkpoint_revision) is not int or type(trusted_revision) is not int or (

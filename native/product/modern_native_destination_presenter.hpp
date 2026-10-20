@@ -79,6 +79,7 @@ inline const char* modern_native_destination_stage(
         return v.join_p1_confirmed && v.join_p2_confirmed
             ? "multiplayer-both-ready"
             : v.join_p1_confirmed ? "multiplayer-p1-ready"
+            : v.join_p2_confirmed ? "multiplayer-p2-ready"
             : "multiplayer-join";
     if (v.first_racer_open) {
         if (v.first_racer_is_switch)

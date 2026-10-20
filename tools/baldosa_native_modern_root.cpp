@@ -1241,8 +1241,19 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     const HostOverlayRect root_rect{8,10,240,204};
     const int stride = static_cast<int>(pitch / 4);
     auto* pixels = reinterpret_cast<std::uint32_t*>(dst);
+    // Hide the legacy child from the shell pass. It has translucent ink;
+    // stacking a redesigned child over legacy text would leave ghost glyphs.
+    // Only this local presentation copy is changed, never product state.
+    auto shell_view = view;
+    shell_view.practice_picker_open = false;
+    shell_view.practice_launch_pending = false;
+    shell_view.options_open = false;
+    shell_view.read_only_records_open = false;
+    shell_view.two_seat_join_open = false;
+    shell_view.first_racer_open = false;
+    shell_view.unbound_two_player_warning_open = false;
     const bool drawn = ur::product::render_modern_root_overlay(
-        painter, pixels, stride, height, 1, 240, root_rect, view);
+        painter, pixels, stride, height, 1, 240, root_rect, shell_view);
     if (drawn)
         ur::product::render_modern_native_destination(
             painter, pixels, stride, height, 1, 240, root_rect, view);

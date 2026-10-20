@@ -128,8 +128,8 @@ class LateEffectiveSourceProof(unittest.TestCase):
         self.assertEqual(witness.ARCHIVED_NATIVE_5184_P7,
                          "8dae60c1433aa26cd6edc20edda980d1dec17e8935a799d7edc6d0878ae387a8")
         self.assertEqual(witness.P7_HEADER,
-                         b"P7\\nWIDTH 256\\nHEIGHT 224\\nDEPTH 4\\nMAXVAL 255\\n"
-                         b"TUPLTYPE RGB_ALPHA\\nENDHDR\\n")
+                         b"P7\nWIDTH 256\nHEIGHT 224\nDEPTH 4\nMAXVAL 255\n"
+                         b"TUPLTYPE RGB_ALPHA\nENDHDR\n")
         with patch.object(witness.Path, "read_bytes", return_value=b"forged"):
             with self.assertRaisesRegex(ValueError, "outer ZIP SHA"):
                 witness.verify_archived_native_pixels(Path("fake.zip"))

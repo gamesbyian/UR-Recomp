@@ -40,9 +40,10 @@ class ModernNativeDestinationPresenterTest(unittest.TestCase):
         # Native diagnostic receipts are emitted only *after* successful
         # painting from the authoritative view, with the actual root/raster.
         self.assertIn("modern_native_destination_stage(view)", source)
-        self.assertIn("g_last_native_destination_stage != stage_key", source)
-        self.assertIn("std::to_string(root_rect.width)", source)
-        self.assertIn("std::to_string(root_rect.height)", source)
+        self.assertIn("g_last_native_destination_stage != stage", source)
+        self.assertIn("g_last_native_destination_geometry.matches(", source)
+        self.assertIn("width, height, root_rect.x, root_rect.y,", source)
+        self.assertNotIn("std::to_string(root_rect.width)", source)
         self.assertIn("UR_BALDOSA_MODERN_DESTINATION stage=%s", source)
         self.assertIn("raster=%dx%d root=%d,%d,%d,%d", source)
         self.assertIn("source=modern_product_view", source)

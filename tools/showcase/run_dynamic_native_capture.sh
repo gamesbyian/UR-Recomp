@@ -3,14 +3,15 @@
 # complete pinned Baldosa + SNESRecomp checkout, installed SDL2/Xvfb/FFmpeg.
 # Writes all footage OUTSIDE the repo. No GitHub Actions or Git writes.
 set -euo pipefail
-if [ "$#" != 3 ]; then
-  echo "Usage: bash tools/showcase/run_dynamic_native_capture.sh BALDOSA_CHECKOUT USA_ROM OUT_DIRECTORY" >&2
+if [ "$#" -lt 3 ] || [ "$#" -gt 4 ] || { [ "$#" -eq 4 ] && [ "$4" != "--topology" ] && [ "$4" != "--topology-hill" ]; }; then
+  echo "Usage: bash tools/showcase/run_dynamic_native_capture.sh BALDOSA_CHECKOUT USA_ROM OUT_DIRECTORY [--topology|--topology-hill]" >&2
   exit 2
 fi
 UR_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 BALDOSA="$(realpath "$1")"
 ROM="$(realpath "$2")"
 OUT="$(realpath -m "$3")"
+MODE="${4:-original-dragster}"
 export GITHUB_WORKSPACE="$UR_ROOT"
 export USA_ROM_SHA256=859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478
 test "$(git -C "$BALDOSA" rev-parse HEAD)" = "10b864b9d14a7b7416dd909eb7b054c88faef101"
@@ -32,8 +33,23 @@ python3 "$UR_ROOT/tools/baldosa_hd_host_spike.py" --game "$BALDOSA" --ur-root "$
 python3 "$UR_ROOT/tools/baldosa_ws24_framework_split_patch.py" --root "$UR_ROOT" --framework "$BALDOSA/snesrecomp"
 python3 "$UR_ROOT/tools/baldosa_ws24_host_spike.py" --game "$BALDOSA" --ur-root "$UR_ROOT"
 python3 "$UR_ROOT/tools/showcase/stage_continuous_native_capture.py" --framework "$BALDOSA/snesrecomp"
-python3 "$UR_ROOT/tools/showcase/build_dynamic_2p_routes.py" \
-  --source "$BALDOSA/tests/routes/race_2p_split.txt" --output "$OUT/routes"
+if [ "$MODE" = "--topology" ] || [ "$MODE" = "--topology-hill" ]; then
+  python3 "$UR_ROOT/tools/showcase/build_topology_2p_routes.py" --self-test
+  python3 "$UR_ROOT/tools/showcase/build_topology_2p_routes.py" \
+    --source "$BALDOSA/tests/routes/race_2p_split.txt" --out "$OUT/routes" \
+    --cases looper megajump jumps hill-climb --profiles p1-leads p2-leads
+  route_manifest="$OUT/routes/topology-candidate-manifest.json"
+  if [ "$MODE" = "--topology-hill" ]; then
+    names=(looper-p1-leads megajump-p2-leads jumps-p1-leads hill-climb-p2-leads)
+  else
+    names=(looper-p1-leads megajump-p2-leads jumps-p1-leads)
+  fi
+else
+  python3 "$UR_ROOT/tools/showcase/build_dynamic_2p_routes.py" \
+    --source "$BALDOSA/tests/routes/race_2p_split.txt" --output "$OUT/routes"
+  route_manifest="$OUT/routes/controller-provenance.json"
+  names=(p1-leads p2-leads)
+fi
 cmake -S "$BALDOSA" -B "$BALDOSA/build" -G Ninja -DCMAKE_BUILD_TYPE=Release \
   -DSNESRECOMP_SDL_BACKEND=SDL2 -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
 cmake --build "$BALDOSA/build" --target UniracersSNESRecomp -j 3
@@ -53,7 +69,7 @@ if ! xdpyinfo -display "${DISPLAY:-:99}" >/dev/null 2>&1; then
   sleep 2
 fi
 xdpyinfo -display "$DISPLAY" >/dev/null
-for name in p1-leads p2-leads; do
+for name in "${names[@]}"; do
   script="$OUT/routes/$name.txt"
   bash "$BALDOSA/tools/run_route.sh" "$script" "$OUT/working/$name-control"
   UR_NATIVE_VIDEO_START=2100 UR_NATIVE_VIDEO_COUNT=900 \
@@ -77,9 +93,10 @@ for name in p1-leads p2-leads; do
 done
 python3 "$UR_ROOT/tools/showcase/audit_dynamic_native_2p.py" \
   --publish "$OUT/published" \
-  --route-manifest "$OUT/routes/controller-provenance.json" \
+  --route-manifest "$route_manifest" \
   --native-sha "$OUT/working/native-binary-sha256.txt" \
   --rom-sha "$USA_ROM_SHA256" \
-  --source-sha "$(git -C "$UR_ROOT" rev-parse HEAD)"
-echo "Both source-verified candidate videos and contact sheets: $OUT/published"
+  --source-sha "$(git -C "$UR_ROOT" rev-parse HEAD)" \
+  --names "${names[@]}"
+echo "Source-verified candidate videos and contact sheets: $OUT/published"
 echo "No airborne/trick claim accepted until independent visual review."

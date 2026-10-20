@@ -63,3 +63,31 @@ If both candidate captures are flat or stunt inputs fail visually, report that s
 ## Current execution
 
 The source-only scripts and workflow integration specification are staged here. The initial automatic native workflow submission was blocked before running, so no output clips or player separation claims exist as of this update. Do not merge empty video claims or claim capture success. A permissioned runner or existing team media agent can execute the above reusable pipeline. Restrict CI to one bounded build, two distinct predeclared routes and no per-experiment workflow residue. 
+
+## Topology-specific production plan (source-grounded candidates, not yet filmed)
+
+The [45-course canonical corpus](../../../analysis/data/course-corpus.json) identifies the following official courses and stock family/slot combinations:
+
+| Priority | Exact source course | Original menu tour/slot | Expected visual attraction | Evidence status |
+| --- | --- | --- | --- | --- |
+| 1 | **Looper** (stream 11) | Shuffler, race slot 1 | A complete, visible loop if encountered | Source course name, family and menu index only; loop passage not yet visually confirmed |
+| 1 | **MegaJump** (stream 12) | Shuffler, circuit slot 2 | Rising ramp, steep takeoff, airborne racer | Real course identity; ramp and takeoff still to inspect |
+| 1 | **Jumps** (stream 13) | Shuffler, stunt slot 3 | Repeated ramps and aerial rotation | Existing independent original-menu Jumps route is confirmed; 2P transition requires new execution |
+| 2 | **Hill Climb** (stream 23) | Walker, stunt slot 3 | Strong slope / altitude and changing track profile | Walker is a tier-zero tour; second Down edge inferred, not proven for 2P |
+| 3 | **Two Loops** (stream 42) | Hunter, circuit slot 2 | Multiple loop structures | Hunter unlock/stock navigation not verified; deliberately not scheduled |
+
+Names are **search candidates**, not proofs that a hill, full loop or ramp is encountered in the first 900 filmed frames. The route generator `tools/showcase/build_topology_2p_routes.py` retains the exact original two-player boot/rider selection, uses stock menu edges and source-tested Crawler/Shuffler tour selection, then hard-gates `7E:009F` tour/track/now-playing, active race `7E:0313==01`, and the **actual selected course identity `7E:00CE = stream_index-1`** before GO. The 2P adaptation of those menus remains prospective until real native execution. It cannot silently substitute Dragster for a failed selection.
+
+On a permissioned native machine already configured for the existing capture runner, the **initial three-course scout** can be executed with:
+
+```bash
+bash tools/showcase/run_dynamic_native_capture.sh \
+  /absolute/path/to/pinned/baldosa \
+  /absolute/path/to/owned/Uniracers_USA.sfc \
+  /tmp/ur-dynamic-topology --topology
+```
+
+This produces one `looper-p1-leads`, one `megajump-p2-leads` and one `jumps-p1-leads` 15-second source-run video from a **single pinned native build**, after three pairwise control/recording full-WRAM CRC comparisons. Use `--topology-hill` for a fourth, `hill-climb-p2-leads` prospective case once the lower-cost three-course scout succeeds. The validated early menu path into Shuffler and Jumps is taken from `tools/probe_original_non_dragster_course_entry.py` and its exact original course-byte gate. There is no Hunter unlock shortcut or forced track-memory write.
+
+**Visual admission test:** Independently verify from continuous decoded video at least one recognizable actual ramp/steep slope/closed loop, genuine racer airborne frames and physically plausible landing, camera divergence from distinct P1/P2 track progress, unaltered original HUD and sprites, and consistent visual geometry beyond the center 256 columns. Compare the scene against source video/hash and sidecar ordinals. A name containing 'Jump' or 'Loop' and a button press never establishes the event occurred. If the segment shows no visible topology, retain the negative and extend the *genuine* source recording through that course before changing the editorial storyboard. Do not fabricate a loop, stitch unrelated players as one execution or crop both racers into a falsely shared arena.
+

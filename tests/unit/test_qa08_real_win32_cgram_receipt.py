@@ -13,6 +13,19 @@ RECEIPT = ROOT / "analysis/data/qa08-current-epoch-effective-ppu-unadmitted-2026
 
 
 class QAA08ActualWin32UnadmittedSource(unittest.TestCase):
+    def assert_exact_anchor_inventory(self, rows, expected):
+        # A length check alone silently accepts one duplicated genuine anchor
+        # in place of a missing independent source coordinate.
+        self.assertEqual(len(rows), len(expected))
+        self.assertEqual({tuple(row["xy"]) for row in rows}, set(expected))
+
+    def test_duplicate_anchor_cannot_replace_missing_source_pixel(self):
+        expected = {(70, 58), (202, 182)}
+        forged = [{"xy": [70, 58]}, {"xy": [70, 58]}]
+        with self.assertRaises(AssertionError):
+            self.assert_exact_anchor_inventory(forged, expected)
+
+
     def test_two_actual_pe_cohorts_and_guest_crc_provenance(self):
         d = json.loads(RECEIPT.read_text(encoding="utf-8"))
         self.assertEqual(d["workflow_run_id"], 39350709648)
@@ -50,7 +63,7 @@ class QAA08ActualWin32UnadmittedSource(unittest.TestCase):
             (65,52):("6d","4a52","4631",17,16),
             (190,161):("6d","4a52","4631",17,16),
         }
-        self.assertEqual(len(rows),8)
+        self.assert_exact_anchor_inventory(rows, expected)
         self.assertEqual(d["actual_renderer"],"legacy")
         for row in rows:
             xy=tuple(row["xy"])

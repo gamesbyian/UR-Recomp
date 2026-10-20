@@ -65,6 +65,11 @@ on:
       - "tests/native/baldosa_native_options_test.cpp"
       - "tests/unit/test_baldosa_native_options_cpp.py"
       - "tools/baldosa_native_modern_root.cpp"
+      - "tools/capture_baldosa_modern_title_win32.py"
+      - "native/product/modern_title_presenter.hpp"
+      - "native/product/modern_title_retail_reference.hpp"
+      - "tests/native/modern_title_presenter_test.cpp"
+      - "tests/unit/test_modern_title_presenter_cpp.py"
       - "tools/baldosa_modern_profile_activation.cpp"
       - "tools/baldosa_modern_profile_native_fixture.cpp"
       - "tests/native/baldosa_modern_profile_activation_test.cpp"
@@ -238,6 +243,7 @@ jobs:
           python tests/unit/test_baldosa_native_first_racer_real_run_probe.py
           python tests/unit/test_baldosa_modern_user_data_spike.py
           python tests/unit/test_baldosa_modern_profile_activation_spike.py
+          python tests/unit/test_modern_title_presenter_cpp.py
           python tests/unit/test_baldosa_modern_options_spike.py
           python tests/unit/test_baldosa_native_options_cpp.py
           python tests/unit/test_baldosa_native_options_probe.py
@@ -319,6 +325,31 @@ jobs:
             --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
             --source-epoch "$SOURCE_DATE_EPOCH"
           echo "PASS: original linked AMD64 PE COFF/debug timestamps are exact source epoch; no post-link mutation, no release QA credit." >> "$GITHUB_STEP_SUMMARY"
+
+      # Title branch only: compile the existing exact Windows AOT candidate
+      # above, then exercise its REAL Modern title and native renderer. Its
+      # PAMs are source pixels with guest-frame/EXE hashes, not final SDL
+      # drawable/hardware certification or an independently approved release.
+      - name: Capture genuine Modern title-to-root native source frames
+        if: ${{ github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
+        run: |
+          set -euo pipefail
+          python tools/capture_baldosa_modern_title_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/baldosa/tests/routes/race_2p_split.txt" \
+            --out "$RUNNER_TEMP/modern-title-native-pr2043" \
+            --timeout 100
+          echo "Verified exact original source title raster and actual native title→root guest-frame ordering; final drawable/human visual approval remain pending." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain native Modern title capture or failure diagnostics
+        if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-title-native-source-pr2043
+          path: ${{ runner.temp }}/modern-title-native-pr2043
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Prove Win32 immutable SRAM recovery archive cannot replace occupied name
         run: |

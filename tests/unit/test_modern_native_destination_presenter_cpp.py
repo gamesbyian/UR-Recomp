@@ -45,7 +45,7 @@ class ModernNativeDestinationPresenterTest(unittest.TestCase):
                  "-o", str(executable)],
                 capture_output=True, text=True)
             if build.returncode != 0:
-                print("native destination build failure (bounded):",
+                print("FAIL: native destination build (bounded):",
                       (build.stdout + build.stderr)[-3000:], flush=True)
             self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
             run = subprocess.run(
@@ -55,7 +55,7 @@ class ModernNativeDestinationPresenterTest(unittest.TestCase):
             # in the job log so the first defect is actionable without polling
             # or downloading every shard.
             if run.returncode != 0:
-                print("native destination runtime failure (bounded):",
+                print("FAIL: native destination runtime (bounded):",
                       (run.stdout + run.stderr)[-3000:], flush=True)
             self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
             self.assertIn("PASS: Modern native destination views", run.stdout)

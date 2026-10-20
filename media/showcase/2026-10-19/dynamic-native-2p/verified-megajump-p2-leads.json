@@ -1,0 +1,30 @@
+{
+  "consecutive_host_presentations": 900,
+  "control_guest_crc_sha256": "65c527f4a6fa2119174b173b54932a86b9274fb2487e8ac0a17d58eb6de8cb69",
+  "dimensions": {
+    "actual_sdl_drawable": [
+      960,
+      540
+    ],
+    "logical_source": [
+      342,
+      224
+    ]
+  },
+  "dropped_or_skipped_host_frame_ids": 0,
+  "git_commit": "447f8acc59a1196c6619ad47d0af659ad22aa6fa",
+  "guest_frame_end": 2889,
+  "guest_frame_start": 1990,
+  "host_log_sha256": "257ee3e1512011216ccd464d37eb7f50d07a757f1d7961e65a818b513025ecaf",
+  "index_sha256": "e54ba680b3815a8fdfb6c9abb391831cb69be8eab8f781748f86e5318ba37676",
+  "master": {
+    "codec": "ffv1",
+    "fps_nominal": "60/1",
+    "sha256": "bbf07e855902bd3bdbc588e87544e6e2583e54347a23573ef1dc1f944403cc36"
+  },
+  "recorded_guest_crc_sha256": "65c527f4a6fa2119174b173b54932a86b9274fb2487e8ac0a17d58eb6de8cb69",
+  "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "route": "dynamic-megajump-p2-leads",
+  "status": "verified_consecutive_host_presentations",
+  "warning": "60-fps encoded cadence describes consecutive host presentations, not independently certified 60-Hz guest timing"
+}

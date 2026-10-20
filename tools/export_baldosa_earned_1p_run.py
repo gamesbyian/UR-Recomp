@@ -11,6 +11,9 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import os
+import shutil
+import tempfile
 
 MAX_RUN_BYTES = 64 * 1024 * 1024
 MAX_REPORT_BYTES = 32 * 1024
@@ -37,8 +40,11 @@ def export(journey: Path, destination: Path) -> dict[str, object]:
     report = json.loads(report_bytes)
     if not isinstance(report, dict) or report.get('scope') != SOURCE_SCOPE or any(
         report.get(key) is not True for key in (
+            'first_game_created_first_named_racer',
             'second_game_loaded_named_sram_and_finished_real_source_race',
             'third_game_reopened_exact_earned_run_read_only',
+            'active_selector_and_catalog_preserved',
+            'anonymous_sram_preserved',
         )
     ) or report.get('release_gate_credit') != 0 or any(
         report.get(key) is not False for key in (
@@ -59,27 +65,40 @@ def export(journey: Path, destination: Path) -> dict[str, object]:
     actual = hashlib.sha256(data).hexdigest()
     if actual != expected:
         raise ValueError('Source-earned run differs from original Windows report')
-    destination.mkdir(parents=True, exist_ok=False)
-    members = {
-        'earned.urrun': data,
-        'source-report.json': report_bytes,
-    }
-    for name, payload in members.items():
-        with (destination / name).open('xb') as output:
-            output.write(payload)
-        if _regular_bytes(destination / name, MAX_RUN_BYTES) != payload:
-            raise ValueError('CI evidence copy differs from original bytes')
-    manifest = {
-        'schema_version': 1,
-        'source_run_filename': candidates[0].name,
-        'source_scope': SOURCE_SCOPE,
-        'members': {name: {'sha256': hashlib.sha256(data).hexdigest(),
-                           'bytes': len(data)} for name, data in members.items()},
-        'independent_release_acceptance': False,
-    }
-    with (destination / 'manifest.json').open('x', encoding='utf-8') as output:
-        json.dump(manifest, output, indent=2, sort_keys=True)
-        output.write('\n')
+    if destination.exists() or destination.is_symlink():
+        raise FileExistsError(f'Evidence destination already exists: {destination}')
+    if not destination.parent.is_dir():
+        raise ValueError('Evidence destination parent does not exist')
+    staging = Path(tempfile.mkdtemp(prefix='.pending-earned-1p-',
+                                    dir=destination.parent))
+    try:
+        members = {
+            'earned.urrun': data,
+            'source-report.json': report_bytes,
+        }
+        for name, payload in members.items():
+            with (staging / name).open('xb') as output:
+                output.write(payload)
+            if _regular_bytes(staging / name, MAX_RUN_BYTES) != payload:
+                raise ValueError('CI evidence copy differs from original bytes')
+        manifest = {
+            'schema_version': 1,
+            'source_run_filename': candidates[0].name,
+            'source_scope': SOURCE_SCOPE,
+            'members': {name: {'sha256': hashlib.sha256(payload).hexdigest(),
+                               'bytes': len(payload)}
+                        for name, payload in members.items()},
+            'independent_release_acceptance': False,
+        }
+        with (staging / 'manifest.json').open('x', encoding='utf-8') as output:
+            json.dump(manifest, output, indent=2, sort_keys=True)
+            output.write('\n')
+        if destination.exists() or destination.is_symlink():
+            raise FileExistsError(f'Evidence destination already exists: {destination}')
+        os.rename(staging, destination)
+    finally:
+        if staging.exists():
+            shutil.rmtree(staging)
     return manifest
 
 

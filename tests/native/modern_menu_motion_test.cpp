@@ -141,6 +141,23 @@ void test_raster() {
         assert(first_pixel != 0xFF111111u);
         assert(pixels[0] == 0xFF111111u); // framebuffer elsewhere untouched
 
+        // Original blue cursor remains blue throughout the 32-frame phase:
+        // visual breathing is a small geometric inset, never flashing color.
+        pose.cursor_spin_phase = 8;
+        draws = {};
+        assert(paint_modern_menu_selection_motion(
+            FakePainter{}, pixels.data(), w, h, scale, panel, pose));
+        assert(draws.colour == kModernStockMenuPalette.cursor_blue);
+        assert(draws.y == panel.y + (57 + 21 + 1) * scale);
+        assert(draws.height == 10 * scale);
+        pose.reduced_motion = true;
+        draws = {};
+        assert(paint_modern_menu_selection_motion(
+            FakePainter{}, pixels.data(), w, h, scale, panel, pose));
+        assert(draws.y == panel.y + (57 + 21) * scale);
+        assert(draws.height == 12 * scale);
+        pose.reduced_motion = false;
+
         pose.visible = false;
         assert(!paint_modern_menu_selection_motion(
             FakePainter{}, pixels.data(), w, h, scale, panel, pose));

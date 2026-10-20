@@ -28,6 +28,8 @@ class StockHeroOriginalExtractionTest(unittest.TestCase):
             hero.verified_clip(bytes(2_097_152), self.registry, self.source)
         # Dependency injected only to reject the source-registration preflight:
         # no test fakes that noncanonical raster data is source-verified.
+        if not hero.ROM.is_file():
+            self.skipTest("canonical private ROM unavailable")
         rom = hero.ROM.read_bytes()
         bad = copy.deepcopy(self.registry)
         bad["motion_review_sequence"]["frames"] = bad["motion_review_sequence"]["frames"][:-1]

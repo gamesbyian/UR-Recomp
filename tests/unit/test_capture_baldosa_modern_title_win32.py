@@ -10,7 +10,7 @@ from pathlib import Path
 from tools.capture_baldosa_modern_title_win32 import (
     read_pam, retail_art_digest, fnv_pixels, validate_native_capture,
     EXPECTED_RETAIL_BGR_FNV, read_present_ppm,
-    verify_native_presented_frames,
+    verify_native_presented_frames, verify_native_title_entry,
 )
 
 
@@ -20,6 +20,22 @@ def pam(width: int, height: int, pixels: bytes) -> bytes:
 
 
 class ModernTitleNativeCaptureTests(unittest.TestCase):
+    def test_real_p1_native_entry_order_depends_only_on_reduced_motion(self):
+        opened = "UR_BALDOSA_MODERN_ROOT opened=1"
+        pressed = "UR_BALDOSA_MODERN_TITLE native_p1_start=1 frame=60"
+        entered = "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=60 input_owned=1"
+        painted = "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared"
+        ordinary = "\n".join((opened, pressed, entered, painted))
+        immediate = "\n".join((opened, entered, pressed, painted))
+        verify_native_title_entry(ordinary)
+        verify_native_title_entry(immediate, reduced_motion=True)
+        with self.assertRaisesRegex(ValueError, "missing/out-of-order"):
+            verify_native_title_entry(immediate)
+        with self.assertRaisesRegex(ValueError, "missing/out-of-order"):
+            verify_native_title_entry(ordinary, reduced_motion=True)
+        with self.assertRaisesRegex(ValueError, "missing/duplicate"):
+            verify_native_title_entry(ordinary + "\n" + pressed)
+
     def test_bad_header_and_dimensions_rejected(self):
         with tempfile.TemporaryDirectory() as root:
             path = Path(root) / "capture.pam"

@@ -1,6 +1,7 @@
 """H18 QA08 archive/observation boundary regressions, not native pixel parity."""
 import io
 import hashlib
+import struct
 import sys
 import unittest
 import zipfile
@@ -39,6 +40,31 @@ class H18EvidenceBoundaries(unittest.TestCase):
         with zipfile.ZipFile(io.BytesIO(data)) as z:
             with self.assertRaisesRegex(ValueError, "prefix|central-directory"):
                 audit._strict_zip_envelope(data, z)
+
+    def test_unindexed_gap_between_local_members_is_rejected(self):
+        original = archive_bytes()
+        with zipfile.ZipFile(io.BytesIO(original)) as zipfile_reader:
+            members = zipfile_reader.infolist()
+            insertion = members[1].header_offset
+            central = zipfile_reader.start_dir
+        padding = b"UNINDEXED-HIDDEN-BYTES"
+        patched = bytearray(original[:insertion] + padding + original[insertion:])
+        shifted = central + len(padding)
+        eocd = patched.rfind(b"PK\x05\x06")
+        self.assertGreaterEqual(eocd, 0)
+        struct.pack_into("<I", patched, eocd + 16, shifted)
+        cursor = shifted
+        for _ in range(5):
+            self.assertEqual(patched[cursor:cursor+4], b"PK\x01\x02")
+            old_offset = struct.unpack_from("<I", patched, cursor+42)[0]
+            if old_offset >= insertion:
+                struct.pack_into("<I", patched, cursor+42, old_offset+len(padding))
+            name_len, extra_len, comment_len = struct.unpack_from("<HHH", patched, cursor+28)
+            cursor += 46+name_len+extra_len+comment_len
+        with zipfile.ZipFile(io.BytesIO(patched)) as z:
+            self.assertIsNone(z.testzip())
+            with self.assertRaisesRegex(ValueError, "unindexed|gap"):
+                audit._strict_zip_envelope(bytes(patched), z)
 
     def test_canonical_observation_requires_full_source_schema(self):
         fields = dict(frame="5176", x="53", logical_y="41", ppu_line="42",

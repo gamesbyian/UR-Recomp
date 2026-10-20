@@ -85,7 +85,13 @@ void test_motion() {
     pose = advance_modern_menu_motion(state, {1014, 2, true, false});
     assert(pose.cursor_remainder_px == -21);
     pose = advance_modern_menu_motion(state, {1015, 1, true, false});
-    assert(pose.cursor_remainder_px == 21);
+    // Physical cursor continued from pixel 26 (5 below destination 1),
+    // rather than teleporting from selected destination 2, pixel 42.
+    assert(pose.cursor_remainder_px == 5);
+    pose = advance_modern_menu_motion(state, {1015, 2, true, false});
+    assert(pose.cursor_remainder_px == -16);
+    pose = advance_modern_menu_motion(state, {1015, 1, true, false});
+    assert(pose.cursor_remainder_px == 5);
     pose = advance_modern_menu_motion(state, {1016, 4, true, false});
     assert(pose.selection == 4 && pose.cursor_remainder_px == 0);
     pose = advance_modern_menu_motion(state, {1017, 0, true, false});

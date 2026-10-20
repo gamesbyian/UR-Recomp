@@ -286,7 +286,7 @@ inline bool render_modern_native_destination(
             "STOCK 2P IS STILL PLAYABLE", 0xFFFFFFFFu);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 85,
-            "NO MATCH HISTORY WILL SAVE", col.secondary_grey);
+            "NO MATCH HISTORY SAVED", col.secondary_grey);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 124,
             "P1 A ANYWAY   B BACK", col.cursor_blue);

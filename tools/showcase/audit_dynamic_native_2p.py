@@ -50,7 +50,7 @@ def read_guest_dump_witnesses(work_root: Path, name: str) -> list[dict]:
     rec_log = (rec / "log.txt").read_text(errors="replace")
     out = []
     for tag in cases:
-        pattern = r"script f=(\\d+) dump " + re.escape(tag) + r" ok"
+        pattern = r"script f=(\d+) dump " + re.escape(tag) + r" ok"
         a = re.findall(pattern, ctrl_log)
         b = re.findall(pattern, rec_log)
         if len(a) != 1 or len(b) != 1 or a[0] != b[0]:

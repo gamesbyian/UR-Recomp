@@ -44,9 +44,19 @@ class ModernNativeDestinationPresenterTest(unittest.TestCase):
                  "-Werror", "-pedantic", "-I", str(ROOT), str(TEST),
                  "-o", str(executable)],
                 capture_output=True, text=True)
+            if build.returncode != 0:
+                print("native destination build failure (bounded):",
+                      (build.stdout + build.stderr)[-3000:], flush=True)
             self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
             run = subprocess.run(
                 [str(executable)], capture_output=True, text=True)
+            # CI's parallel unit runner redirects full tracebacks into retained
+            # shard artifacts. Also surface a bounded exact failing assertion
+            # in the job log so the first defect is actionable without polling
+            # or downloading every shard.
+            if run.returncode != 0:
+                print("native destination runtime failure (bounded):",
+                      (run.stdout + run.stderr)[-3000:], flush=True)
             self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
             self.assertIn("PASS: Modern native destination views", run.stdout)
 

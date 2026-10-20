@@ -43,6 +43,7 @@ extern "C" {
 #include "modern_main_menu_strip.hpp"
 #include "modern_root_menu.hpp"
 #include "modern_root_overlay_presenter.hpp"
+#include "modern_menu_motion.hpp"
 #include "next_event_derivation.hpp"
 #include "modern_challenge_tier_selector.hpp"
 #include "quick_practice_catalog.hpp"
@@ -183,6 +184,8 @@ std::string g_main_menu_strip_reported;
 ur::product::ModernRootMenu g_modern_root_menu{};
 bool g_modern_root_quit_confirm = false;
 bool g_modern_root_draw_reported = false;
+// UI-only presentation state. Never fed back to the guest or controller model.
+ur::product::ModernMenuMotionState g_modern_root_motion{};
 bool g_modern_root_transfer = false;
 // Bounded stock-title cursor handoff to 1P or 2P. No guest SRAM or shadow
 // gameplay/menu authority; input is sent through the existing route transport.
@@ -8895,6 +8898,9 @@ extern "C" void ur_uniracers_modern_system_overlay(
         return;
     }
     update_frontend_modal_hold();
+    // Root motion must not accrue hidden wall time while a race, title,
+    // modal, or original guest surface is presented.
+    if (!modern_root_visible()) g_modern_root_motion = {};
 
     // The existing SDL virtual-pad native acceptance normally advances on
     // emulated frames. The human Modern root correctly freezes those frames,
@@ -10051,9 +10057,30 @@ extern "C" void ur_uniracers_modern_system_overlay(
         const ur::product::ModernRootOverlayPainter painter{
             &snes_ovl_fill_rect, &snes_ovl_stroke_rect, &snes_ovl_draw_text
         };
-        (void)ur::product::render_modern_root_overlay(
+        const bool drawn = ur::product::render_modern_root_overlay(
             painter, pixels, stride, height, scale, panel_w,
             layout.presentation_rect, view);
+        if (drawn && !view.quit_confirm) {
+            // Inject a 60Hz clock independent of the held guest. The pure
+            // motion model has no SDL or gameplay timing dependencies.
+            const auto pose = ur::product::advance_modern_menu_motion(
+                g_modern_root_motion,
+                {ur::product::modern_menu_resolve_test_tick60(
+                     ur::product::modern_menu_tick60(
+                         static_cast<std::uint64_t>(SDL_GetTicks())),
+                     std::getenv("UR_MODERN_MENU_TEST_TICK60")),
+                 static_cast<std::uint8_t>(
+                     ur::product::modern_root_destination_index(
+                         ur::product::modern_root_menu_selected(view.menu))),
+                 true,
+                 [] {
+                     const char* value = std::getenv("UR_REDUCED_MOTION");
+                     return value && std::strcmp(value, "1") == 0;
+                 }()});
+            (void)ur::product::paint_modern_menu_selection_motion(
+                painter, pixels, stride, height, scale,
+                layout.presentation_rect, pose);
+        }
         return;
     }
 

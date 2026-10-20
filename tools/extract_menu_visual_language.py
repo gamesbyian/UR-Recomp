@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import array
+import hashlib
 import json
 import math
 import re
@@ -209,7 +210,8 @@ def sprites(oam: bytes) -> list[dict]:
         if 224 <= y < 240 or not -64 < x < 256:
             continue
         out.append({"x": x, "y": y, "tile": tile | (attr & 1) << 8, "palette": (attr >> 1) & 7,
-                    "priority": (attr >> 4) & 3, "large": hi >> 1})
+                    "priority": (attr >> 4) & 3, "large": hi >> 1,
+                    "hflip": bool(attr & 0x40), "vflip": bool(attr & 0x80)})
     return out
 
 
@@ -430,6 +432,24 @@ def write_png(path: Path, width: int, height: int, rgba: bytes) -> None:
                      + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b""))
 
 
+def original_big_font_manifest(path: Path, d: Dump, char_base: int) -> dict:
+    """Source-qualified digest for the existing original 640x16 glyph atlas."""
+    return {
+        "schema_version": 1,
+        "source_fixture": SCRIPT,
+        "source_tag": d.tag,
+        "source_vram_sha256": hashlib.sha256(d.vram).hexdigest(),
+        "source_cgram_sha256": hashlib.sha256(d.cgram).hexdigest(),
+        "source_char_base_word": char_base,
+        "dimensions": [640, 16],
+        "glyph_cell": [16, 16],
+        "palette": 7,
+        "slots": [char_for_slot(slot) for slot in range(FONT_SLOTS)],
+        "image_png_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "distribution": "Locally extracted original game art; never commit image",
+    }
+
+
 def write_atlas(path: Path, d: Dump, char_base: int) -> None:
     width, height = FONT_SLOTS * 16, 16
     buf = bytearray(width * height * 4)
@@ -441,6 +461,359 @@ def write_atlas(path: Path, d: Dump, char_base: int) -> None:
                         px = ((q // 2) * 8 + y) * width + slot * 16 + (q % 2) * 8 + x
                         buf[px * 4:px * 4 + 4] = bytes(bgr555(d.cgram, 7 * 16 + v) + [255])
     write_png(path, width, height, bytes(buf))
+
+
+# -------------------------------------------- original BG1 backdrop art ---
+# Draw *only BG1* from the canonical PPU capture. The original UNIRACERS
+# logo, checkerboard and leaf motif live on this static 8bpp layer. It is
+# not a final-screen screenshot: BG2 letters, OBJ arrow, colour math, output
+# scale and other layers are deliberately absent. Never commit extracted PNG.
+def original_menu_bg1_rgba(d: Dump, width: int = 256,
+                           height: int = 224) -> bytes:
+    """Decode real MODE3 BG1 tiles, tilemap flips and source horizontal scroll."""
+    if not (1 <= width <= 512 and 1 <= height <= 448):
+        raise ValueError("bounded reference capture dimensions required")
+    if len(d.vram) != 65536 or len(d.cgram) != 512:
+        raise ValueError("incorrect original PPU VRAM/CGRAM lengths")
+    if "2105" not in d.fillram:
+        raise ValueError("source PPU capture is missing BGMODE ($2105)")
+    mode = int(d.fillram["2105"], 16)
+    if (mode & 7) != 3:
+        raise ValueError("the original menu BG1 reference requires MODE3 8bpp")
+    map_base, char_base, map_w, map_h = bg_layout(d.fillram, 0)
+    cell = 16 if mode & 0x10 else 8
+    bg = d.ppu["bg"][0]
+    hofs, vofs = int(bg["hofs"]), int(bg["vofs"])
+    decoded_tiles: dict[int, list[list[int]]] = {}
+    output = bytearray(width * height * 4)
+    opaque = 0
+    for y in range(height):
+        sy = (y + vofs) % (map_h * cell)
+        row = sy // cell
+        cy = sy % cell
+        for x in range(width):
+            sx = (x + hofs) % (map_w * cell)
+            column, cx = sx // cell, sx % cell
+            entry = tilemap_entry(d.vram, map_base, map_w, column, row)
+            u = cell - 1 - cx if entry & 0x4000 else cx
+            v = cell - 1 - cy if entry & 0x8000 else cy
+            # 16px BG characters consist of an adjacent 2x2 8px tile
+            # block; source tile number advances +1 right and +16 down.
+            tile = ((entry & 0x3FF) +
+                    (u // 8) + (v // 8) * 16) & 0x3FF
+            if tile not in decoded_tiles:
+                decoded_tiles[tile] = tile_pixels(d.vram, char_base, tile, 8)
+            value = decoded_tiles[tile][v % 8][u % 8]
+            if value == 0:
+                continue  # BG1 transparent index, no invented backdrop
+            idx = (y * width + x) * 4
+            output[idx:idx + 4] = bytes(bgr555(d.cgram, value) + [255])
+            opaque += 1
+    if opaque == 0:
+        raise ValueError("source BG1 art decodes completely transparent")
+    return bytes(output)
+
+
+def write_original_menu_bg1(path: Path, d: Dump) -> dict:
+    rgba = original_menu_bg1_rgba(d)
+    write_png(path, 256, 224, rgba)
+    return {
+        "schema_version": 1,
+        "source_tag": d.tag,
+        "source_fixture": SCRIPT,
+        "layers": ["BG1 8bpp MODE3 only"],
+        "not_included": ["BG2 labels", "OBJ cursor", "colour math", "host scaling"],
+        "dimensions": [256, 224],
+        "source_bg_mode": int(d.fillram["2105"], 16),
+        "source_bg1_char_base_word": bg_layout(d.fillram, 0)[1],
+        "source_bg1_map_base_word": bg_layout(d.fillram, 0)[0],
+        "source_bg1_scroll": [int(d.ppu["bg"][0]["hofs"]), int(d.ppu["bg"][0]["vofs"])],
+        "source_registers_sha256": hashlib.sha256(json.dumps(
+            {"fillram": d.fillram, "ppu": d.ppu},
+            sort_keys=True, separators=(",", ":")).encode()).hexdigest(),
+        "vram_sha256": hashlib.sha256(d.vram).hexdigest(),
+        "cgram_sha256": hashlib.sha256(d.cgram).hexdigest(),
+        "rgba_sha256": hashlib.sha256(rgba).hexdigest(),
+        "png_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "distribution": "Locally extracted original game art; never commit image",
+    }
+
+
+# ------------------------------------------------- original small font art ---
+# Exact BG2 8x16 stock font is a different tile family from 16x16 titles.
+# Export when requested to enable a faithful reconstructed native text path;
+# all extracted pixels remain user-local and outside source control.
+SMALL_ATLAS_PAIRS = (
+    [(str(i), SMALL_FONT_FIRST_TILE + i) for i in range(10)]
+    + [(chr(c), SMALL_FONT_FIRST_TILE + 10 + c - 65 -
+        (1 if c > ord("O") else 0))
+       for c in range(ord("A"), ord("Z") + 1) if c != ord("O")]
+    + [("O", SMALL_FONT_FIRST_TILE)]
+    + [(ch, tile) for tile, ch in sorted(SMALL_FONT_PUNCTUATION.items())]
+    + [(")", 0xA4), (" ", SMALL_FONT_SPACE_TILE)]
+)
+
+
+def write_small_font_atlas(path: Path, d: Dump, char_base: int) -> dict:
+    """One true original 8x16 glyph per cell; ')' is hardware H-flip of '('."""
+    if len(d.vram) != 65536 or len(d.cgram) != 512:
+        raise ValueError("incorrect original PPU VRAM/CGRAM lengths")
+    width, height = len(SMALL_ATLAS_PAIRS) * 8, 16
+    rgba = bytearray(width * height * 4)
+    glyphs = []
+    for n, (ch, tile) in enumerate(SMALL_ATLAS_PAIRS):
+        if ch == " ":
+            glyphs.append({"character": ch, "tile": tile, "hflip": False})
+            continue
+        rows = (tile_pixels(d.vram, char_base, tile, 4)
+                + tile_pixels(d.vram, char_base,
+                              tile + SMALL_FONT_BOTTOM_OFFSET, 4))
+        flip = ch == ")"
+        for y, row in enumerate(rows):
+            for x, value in enumerate(row):
+                if value:
+                    px = n * 8 + (7 - x if flip else x)
+                    offset = (y * width + px) * 4
+                    rgba[offset:offset + 4] = bytes(
+                        bgr555(d.cgram, 7 * 16 + value) + [255])
+        glyphs.append({"character": ch, "tile": tile, "hflip": flip})
+    write_png(path, width, height, bytes(rgba))
+    return {
+        "dimensions": [width, height],
+        "glyph_cell": [8, 16],
+        "palette": 7,
+        "source_fixture": SCRIPT,
+        "source_tag": d.tag,
+        "source_vram_sha256": hashlib.sha256(d.vram).hexdigest(),
+        "source_cgram_sha256": hashlib.sha256(d.cgram).hexdigest(),
+        "source_char_base_word": char_base,
+        "glyphs": glyphs,
+        "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "distribution": "User-local original game art; do not commit the PNG",
+    }
+
+
+# --------------------------------------------------- original OBJ cursor art ---
+# The existing --atlas-out exports the real BG2 title font from the player's
+# own original PPU capture. This sibling exporter extracts the stock *OBJ*
+# cursor and +7,+7 shadow. Neither exported bitmap belongs in version control.
+#
+# Hardware: $2101 OBJSEL base is in 16-KiB byte steps; name-select locates
+# the second 8-KiB page (SNESdev PPU registers / OBJ). The 32x32 sprite uses
+# 4x4 8x8 4bpp tiles at +1 horizontally and +16 vertically. The high name
+# bit selects the second page. Transparent palette index 0 is never painted.
+# Keep this addressing independent of BG2's $210C title glyph base.
+# (small width,height), (large width,height) per $2101. Modes 6/7
+# contain rectangular OBJs; refusing a 32x64 as "32x32" matters because
+# that would silently crop source art while yielding a plausible PNG.
+OBJ_SIZE_PAIR = (
+    ((8, 8), (16, 16)),
+    ((8, 8), (32, 32)),
+    ((8, 8), (64, 64)),
+    ((16, 16), (32, 32)),
+    ((16, 16), (64, 64)),
+    ((32, 32), (64, 64)),
+    ((16, 32), (32, 64)),
+    ((16, 32), (32, 32)),
+)
+CURSOR_SOURCE_TILE_CYCLE = (8, 4, 0, 204, 200, 196, 192, 140,
+                            136, 132, 128, 76, 72, 68, 64, 12)
+CURSOR_SOURCE_SHADOW_OFFSET = (7, 7)
+
+
+def obj_tile_pixels(d: Dump, tile: int) -> list[list[int]]:
+    """Read one OBJ 4bpp tile at the actual $2101 base/name-select page."""
+    if "2101" not in d.fillram:
+        raise ValueError("source PPU capture is missing OBJSEL ($2101)")
+    obsel = int(d.fillram["2101"], 16)
+    base_word = (obsel & 7) * 0x2000
+    page = (tile >> 8) & 1
+    if page:
+        base_word += (((obsel >> 3) & 3) + 1) * 0x1000
+    return tile_pixels(d.vram, base_word, tile & 255, 4)
+
+
+def obj_sprite_rgba(d: Dump, sprite: dict) -> bytes:
+    """Decode only an unflipped, true 32x32 OBJ sprite; no guessed tilemaps."""
+    if "2101" not in d.fillram:
+        raise ValueError("source PPU capture is missing OBJSEL ($2101)")
+    obsel = int(d.fillram["2101"], 16)
+    size = OBJ_SIZE_PAIR[(obsel >> 5) & 7][int(sprite["large"])]
+    if size != (32, 32) or not (0 <= int(sprite["palette"]) <= 7):
+        raise ValueError("source cursor requires an actual 32x32 OBJ")
+    if len(d.vram) != 65536 or len(d.cgram) != 512:
+        raise ValueError("incorrect original PPU VRAM/CGRAM lengths")
+    base_tile = int(sprite["tile"])
+    if not (0 <= base_tile < 512):
+        raise ValueError("invalid original OBJ tile index")
+    rgba = bytearray(32 * 32 * 4)
+    palette_base = 128 + int(sprite["palette"]) * 16
+    for ty in range(4):
+        for tx in range(4):
+            # OBJ name advances on a 16-tile grid. High page stays fixed.
+            tile = (base_tile & 256) | ((base_tile + ty * 16 + tx) & 255)
+            for py, row in enumerate(obj_tile_pixels(d, tile)):
+                for px, value in enumerate(row):
+                    if value:
+                        # A genuine OAM H/V flip transforms the completed
+                        # 32x32 sprite, not each 8px CHR tile in isolation.
+                        dst_x = 31 - (tx * 8 + px) if sprite.get("hflip") else tx * 8 + px
+                        dst_y = 31 - (ty * 8 + py) if sprite.get("vflip") else ty * 8 + py
+                        offset = (dst_y * 32 + dst_x) * 4
+                        rgba[offset:offset + 4] = bytes(
+                            bgr555(d.cgram, palette_base + value) + [255])
+    return bytes(rgba)
+
+
+def original_menu_cursor_pose(d: Dump) -> tuple[int, bytes]:
+    """Composite stock shadow and arrow, preserving the actual 7px offset."""
+    obj = sprites(d.oam)
+    arrow = [s for s in obj if s["palette"] == 7]
+    shadow = [s for s in obj if s["palette"] == 5]
+    if len(arrow) != 1 or len(shadow) != 1:
+        raise ValueError("expected exactly one visible arrow and shadow OBJ")
+    a, b = arrow[0], shadow[0]
+    if (b["x"] - a["x"], b["y"] - a["y"]) != CURSOR_SOURCE_SHADOW_OFFSET:
+        raise ValueError("original cursor/shadow origin mismatch")
+    foreground = obj_sprite_rgba(d, a)
+    backdrop = obj_sprite_rgba(d, b)
+    size = 32 + CURSOR_SOURCE_SHADOW_OFFSET[0]
+    composite = bytearray(size * size * 4)
+    for rgba, shift in ((backdrop, 7), (foreground, 0)):
+        for y in range(32):
+            for x in range(32):
+                src = (y * 32 + x) * 4
+                if rgba[src + 3] == 0:
+                    continue
+                dst = ((y + shift) * size + x + shift) * 4
+                composite[dst:dst + 4] = rgba[src:src + 4]
+    return int(a["tile"]), bytes(composite)
+
+
+def export_cursor_atlas(directory: Path, path: Path,
+                        manifest_out: Path | None = None) -> dict:
+    """16 source PPU poses, no synthesized interpolation or source art commit."""
+    unique: dict[int, tuple[Dump, bytes]] = {}
+    idle = series(directory, "idle")
+    for sample in idle:
+        tile, rgba = original_menu_cursor_pose(sample)
+        unique.setdefault(tile, (sample, rgba))
+    if tuple(unique) != CURSOR_SOURCE_TILE_CYCLE:
+        raise ValueError("stock arrow tile sequence/phase evidence changed")
+    pose_width = 39
+    pixels = bytearray(16 * pose_width * pose_width * 4)
+    frames = []
+    for phase, (tile, (sample, rgba)) in enumerate(unique.items()):
+        if not any(rgba[i] for i in range(3, len(rgba), 4)):
+            raise ValueError("decoded original cursor pose is fully transparent")
+        for y in range(pose_width):
+            dst = (y * (16 * pose_width) + phase * pose_width) * 4
+            start = y * pose_width * 4
+            pixels[dst:dst + pose_width * 4] = rgba[start:start + pose_width * 4]
+        stem = directory / sample.tag
+        frames.append({
+            "phase": phase,
+            "source_obj_tile": tile,
+            "source_tag": sample.tag,
+            "source_obj_sel": int(sample.fillram["2101"], 16),
+            "arrow_oam_hflip": next(s["hflip"] for s in sprites(sample.oam) if s["palette"] == 7),
+            "arrow_oam_vflip": next(s["vflip"] for s in sprites(sample.oam) if s["palette"] == 7),
+            "ppu_sha256": {
+                ext: hashlib.sha256(Path(f"{stem}.{ext}.bin").read_bytes()).hexdigest()
+                for ext in ("vram", "cgram", "oam")
+            },
+            "pose_rgba_sha256": hashlib.sha256(rgba).hexdigest(),
+        })
+    write_png(path, 16 * pose_width, pose_width, bytes(pixels))
+    manifest = {
+        "schema_version": 1,
+        "source_fixture": SCRIPT,
+        "atlas_rgba_dimensions": [16 * pose_width, pose_width],
+        "sprite_dimensions": [32, 32],
+        "shadow_offset": [7, 7],
+        "frames_per_pose": 2,
+        "cycle_frames": 32,
+        "atlas_png_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "source_frames": frames,
+        "distribution": "Research-only locally extracted original game art; do not commit PNG",
+    }
+    if manifest_out is not None:
+        manifest_out.write_text(json.dumps(manifest, indent=2) + "\n")
+    return manifest
+
+
+# --------------------------------------- source-only four-asset bundle ------
+def build_menu_source_art_bundle(big: dict, small: dict,
+                                 cursor: dict, bg1: dict) -> dict:
+    """Join four locally generated receipts only when their PPU roots match.
+
+    The BG1 layer, big font and first cursor animation phase all come from
+    the same mvl-idle-00 original snapshot. The small font comes from the
+    track-select snapshot of the same named capture family, where the grey
+    detail glyph tiles are known present. A bundle is evidence of source
+    consistency, NOT a license or a runtime activation bit.
+    """
+    reports = [big, small, cursor, bg1]
+    if any(not isinstance(r, dict) or r.get("source_fixture") != SCRIPT
+           for r in reports):
+        raise ValueError("all four assets require matching reference fixture")
+    phases = cursor.get("source_frames")
+    if not isinstance(phases, list) or len(phases) != 16:
+        raise ValueError("original cursor phase sequence is incomplete")
+    if [p.get("source_obj_tile") for p in phases] != list(CURSOR_SOURCE_TILE_CYCLE):
+        raise ValueError("original cursor source phase order mismatch")
+    original = phases[0]
+    source_tag = big.get("source_tag")
+    if (not isinstance(source_tag, str) or not source_tag.startswith("mvl-idle-") or
+        source_tag != bg1.get("source_tag") or
+        source_tag != original.get("source_tag")):
+        raise ValueError("original BG1/title/cursor first phase source tags disagree")
+    input_hashes = original.get("ppu_sha256")
+    if (not isinstance(input_hashes, dict) or
+        big.get("source_vram_sha256") != bg1.get("vram_sha256") or
+        big.get("source_cgram_sha256") != bg1.get("cgram_sha256") or
+        big.get("source_vram_sha256") != input_hashes.get("vram") or
+        big.get("source_cgram_sha256") != input_hashes.get("cgram")):
+        raise ValueError("original BG1/title/cursor VRAM/CGRAM roots disagree")
+    if (not isinstance(small.get("source_tag"), str) or
+        not small["source_tag"].startswith("mvl-track-") or
+        big.get("dimensions") != [640, 16] or
+        small.get("dimensions") != [360, 16] or
+        cursor.get("atlas_rgba_dimensions") != [624, 39] or
+        bg1.get("dimensions") != [256, 224]):
+        raise ValueError("source font/cursor/background geometry or track tag changed")
+    sha = (
+        big.get("image_png_sha256"), small.get("sha256"),
+        cursor.get("atlas_png_sha256"), bg1.get("png_sha256"),
+        big.get("source_vram_sha256"), big.get("source_cgram_sha256"),
+        small.get("source_vram_sha256"), small.get("source_cgram_sha256"),
+    )
+    if any(not isinstance(value, str) or
+           re.fullmatch(r"[0-9a-f]{64}", value) is None for value in sha):
+        raise ValueError("incomplete source image or PPU digest")
+    if not isinstance(small.get("source_char_base_word"), int):
+        raise ValueError("small font source CHR base missing")
+    return {
+        "schema_version": 1,
+        "source_fixture": SCRIPT,
+        "source_main_tag": source_tag,
+        "source_detail_tag": small["source_tag"],
+        "reference_only": True,
+        "asset_png_sha256": {
+            "heading": sha[0], "detail": sha[1],
+            "cursor": sha[2], "bg1": sha[3],
+        },
+        "source_ppu_sha256": {
+            "main_vram": sha[4], "main_cgram": sha[5],
+            "detail_vram": sha[6], "detail_cgram": sha[7],
+        },
+        "output_dimensions": {
+            "heading": [640, 16], "detail": [360, 16],
+            "cursor": [624, 39], "bg1": [256, 224],
+        },
+        "asset_distribution_approved": False,
+        "native_render_and_visual_acceptance": False,
+    }
 
 
 def setup_screens(directory: Path, map_base: int, width: int, height: int) -> tuple[dict, dict, dict]:
@@ -572,6 +945,14 @@ def main() -> int:
     ap.add_argument("dump_dir", type=Path, help=f"snesref dump directory from {SCRIPT}")
     ap.add_argument("--out", type=Path, default=ROOT / "analysis/generated/menu-visual-language.json")
     ap.add_argument("--atlas-out", type=Path, help="optional PNG of the decoded glyph sheet (do not commit)")
+    ap.add_argument("--atlas-manifest-out", type=Path, help="optional verified 16x16 glyph source/PNG digest receipt")
+    ap.add_argument("--bg1-out", type=Path, help="optional source BG1 logo/grey checker/leaf PNG (do not commit)")
+    ap.add_argument("--bg1-manifest-out", type=Path, help="optional source/PNG SHA receipt for --bg1-out")
+    ap.add_argument("--small-atlas-out", type=Path, help="optional original grey 8x16 detail font PNG (do not commit)")
+    ap.add_argument("--small-atlas-manifest-out", type=Path, help="optional small-font charset, aliases and atlas digest")
+    ap.add_argument("--cursor-atlas-out", type=Path, help="optional decoded original 16-pose OBJ cursor PNG (do not commit)")
+    ap.add_argument("--cursor-manifest-out", type=Path, help="optional SHA-bound source/atlas receipt for --cursor-atlas-out")
+    ap.add_argument("--bundle-manifest-out", type=Path, help="optional one-source receipt for all four locally exported PNGs")
     ap.add_argument("--log", type=Path, help="snesref stdout log of the menu run (for press frames)")
     ap.add_argument("--wav", type=Path, help="SNESREF_WAV output of the menu run")
     ap.add_argument("--control-wav", type=Path, help="SNESREF_WAV output of menu-visual-language-control.script")
@@ -596,8 +977,41 @@ def main() -> int:
         contract["sound_timing"] = sound_timing(args.log, args.wav, args.control_wav)
         contract["not_covered"] = [n for n in contract["not_covered"] if n != "menu sounds"] + ["menu SFX identity (timing only)"]
     args.out.write_text(json.dumps(contract, indent=1) + "\n")
+    if args.atlas_manifest_out and not args.atlas_out:
+        ap.error("--atlas-manifest-out requires --atlas-out")
     if args.atlas_out:
         write_atlas(args.atlas_out, main_dump, char_base)
+        if args.atlas_manifest_out:
+            args.atlas_manifest_out.write_text(json.dumps(
+                original_big_font_manifest(args.atlas_out, main_dump, char_base), indent=2) + "\n")
+    if args.bg1_manifest_out and not args.bg1_out:
+        ap.error("--bg1-manifest-out requires --bg1-out")
+    if args.bg1_out:
+        backdrop = write_original_menu_bg1(args.bg1_out, main_dump)
+        if args.bg1_manifest_out:
+            args.bg1_manifest_out.write_text(json.dumps(backdrop, indent=2) + "\n")
+    if args.small_atlas_manifest_out and not args.small_atlas_out:
+        ap.error("--small-atlas-manifest-out requires --small-atlas-out")
+    if args.small_atlas_out:
+        track_dump = series(args.dump_dir, "track")[-1]
+        track_char_base = bg_layout(track_dump.fillram, 1)[1]
+        small = write_small_font_atlas(args.small_atlas_out, track_dump, track_char_base)
+        if args.small_atlas_manifest_out:
+            args.small_atlas_manifest_out.write_text(json.dumps(small, indent=2) + "\n")
+    if args.cursor_manifest_out and not args.cursor_atlas_out:
+        ap.error("--cursor-manifest-out requires --cursor-atlas-out")
+    if args.cursor_atlas_out:
+        cursor_report = export_cursor_atlas(
+            args.dump_dir, args.cursor_atlas_out, args.cursor_manifest_out)
+    if args.bundle_manifest_out:
+        if not all((args.atlas_out, args.small_atlas_out,
+                    args.cursor_atlas_out, args.bg1_out)):
+            ap.error("--bundle-manifest-out requires all four --atlas-out/"
+                     "--small-atlas-out/--cursor-atlas-out/--bg1-out options")
+        report = build_menu_source_art_bundle(
+            original_big_font_manifest(args.atlas_out, main_dump, char_base),
+            small, cursor_report, backdrop)
+        args.bundle_manifest_out.write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(contract["checks"], indent=2))
     return 0 if contract["all_checks_pass"] else 1
 

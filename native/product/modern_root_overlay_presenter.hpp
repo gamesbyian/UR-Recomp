@@ -7,6 +7,7 @@
 
 #include "modern_root_menu.hpp"
 #include "modern_stock_menu_palette.hpp"
+#include "modern_menu_visual_grammar.hpp"
 #include "modern_overlay_composition.hpp"
 #include "modern_overlay_text_fit.hpp"
 
@@ -157,10 +158,10 @@ inline void render_modern_options_modal(
                 const bool selected = i == view.options_selected;
                 const int row_y = by + (24 + static_cast<int>(i) * 14) * scale;
                 if (selected)
-                    paint.fill_rect(pixels, stride, surface_height,
-                                    bx + 4 * scale, row_y - 3 * scale,
-                                    bw - 8 * scale, 13 * scale,
-                                    palette.cursor_blue);
+                    modern_menu_paint_focus_band(
+                        paint, pixels, stride, surface_height,
+                        bx + 4 * scale, row_y - 3 * scale,
+                        bw - 8 * scale, 13 * scale, scale);
                 const auto& row = view.options_rows[i];
                 std::string value(row.value);
                 if (row.adjustable && selected) value = "< " + value + " >";
@@ -171,7 +172,7 @@ inline void render_modern_options_modal(
                                 fit_modern_overlay_text(
                                     std::string(selected ? ">" : " ") +
                                     label + value, cells).c_str(),
-                                selected ? palette.shadow_black : 0xFFFFFFFFu,
+                                selected ? palette.title_yellow : 0xFFFFFFFFu,
                                 scale);
             }
             const bool has_status = !view.options_status.empty();
@@ -211,19 +212,17 @@ inline bool render_modern_root_overlay(
     const auto& palette = kModernStockMenuPalette;
     const bool wide = panel_w >= 320;
     const int list_w = wide ? 168 : panel_w - 16;
-    paint.fill_rect(pixels, stride, surface_height,
-        x, y, rect.width, rect.height, palette.background);
+    modern_menu_paint_checker_backdrop(
+        paint, pixels, stride, surface_height,
+        x, y, rect.width, rect.height, scale);
     paint.fill_rect(pixels, stride, surface_height,
         x, y, rect.width, 27 * scale, palette.header_band);
     paint.stroke_rect(pixels, stride, surface_height,
         x, y, rect.width, rect.height, palette.frame_grey);
     const char* title = view.europe ? "UNIRALLY" : "UNIRACERS";
-    paint.draw_text(pixels, stride, surface_height,
-        x + 10 * scale, y + 7 * scale, title,
-        palette.shadow_black, 2 * scale);
-    paint.draw_text(pixels, stride, surface_height,
-        x + 9 * scale, y + 6 * scale, title,
-        palette.title_yellow, 2 * scale);
+    modern_menu_paint_shadowed_heading(
+        paint, pixels, stride, surface_height,
+        x + 9 * scale, y + 6 * scale, title, 2, scale);
     const std::string identity = fit_modern_overlay_text(
         std::string("RACER: ") + std::string(view.racer_name),
         modern_overlay_text_cells(panel_w));
@@ -240,12 +239,10 @@ inline bool render_modern_root_overlay(
         const int row_y = y + (kRootFirstRow +
             static_cast<int>(i) * kRootRowStride) * scale;
         if (selected) {
-            paint.fill_rect(pixels, stride, surface_height,
+            modern_menu_paint_focus_band(
+                paint, pixels, stride, surface_height,
                 x + 5 * scale, row_y - 3 * scale,
-                list_w * scale, 17 * scale, palette.cursor_blue);
-            paint.stroke_rect(pixels, stride, surface_height,
-                x + 5 * scale, row_y - 3 * scale,
-                list_w * scale, 17 * scale, palette.frame_grey);
+                list_w * scale, 17 * scale, scale);
         }
         const std::string label = std::string(selected ? "> " : "  ") +
             modern_root_destination_label(destination);
@@ -253,7 +250,7 @@ inline bool render_modern_root_overlay(
             x + 9 * scale, row_y,
             label.c_str(),
             !available ? palette.secondary_grey :
-            selected ? palette.shadow_black : 0xFFFFFFFFu, scale);
+            selected ? palette.title_yellow : 0xFFFFFFFFu, scale);
         if (!available)
             paint.draw_text(pixels, stride, surface_height,
                 x + (list_w - 43) * scale, row_y,

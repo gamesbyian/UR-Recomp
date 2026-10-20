@@ -78,3 +78,7 @@ notes/private/
 # Reproducible local research toolchain / workbenches
 .tools/
 workbench/
+
+# Generated proprietary stock racer pose header: rebuild from verified ROM.
+# Never commit generated cartridge-derived racer pixels by accident.
+native/product/modern_menu_stock_hero_original.generated.hpp

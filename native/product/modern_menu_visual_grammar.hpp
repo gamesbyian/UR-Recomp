@@ -119,6 +119,30 @@ constexpr bool modern_menu_native_canvas(int width, int height) noexcept {
     return height == 224 && (width == 256 || width == 342);
 }
 
+// This is the exact existing host text-shadow composition, factored into a
+// common type primitive. Actual source glyph shape/shading remains subject to
+// original-atlas reconstruction; the host fallback draw_text is still ASCII.
+// The caller positions the heading and fits its text before drawing.
+template <typename Painter>
+inline void modern_menu_paint_shadowed_heading(
+    const Painter& paint, std::uint32_t* pixels,
+    int stride, int surface_height,
+    int x, int y, const char* label,
+    int glyph_scale, int physical_scale) {
+    if (!paint.draw_text || !pixels || !label ||
+        stride <= 0 || surface_height <= 0 ||
+        x < 0 || y < 0 || x >= stride || y >= surface_height ||
+        glyph_scale < 1 || glyph_scale > 2 ||
+        physical_scale < 1 || physical_scale > 4) return;
+    paint.draw_text(pixels, stride, surface_height,
+                    x + physical_scale, y + physical_scale,
+                    label, kModernStockMenuPalette.shadow_black,
+                    glyph_scale * physical_scale);
+    paint.draw_text(pixels, stride, surface_height,
+                    x, y, label, kModernStockMenuPalette.title_yellow,
+                    glyph_scale * physical_scale);
+}
+
 // A restrained reuse of stock BG1's measured grey checkerboard motif.
 // Host-only and clipped by caller-owned panel rect, never replaces the real
 // logo, recovered leaf artwork, or stock guest presentation. The checker

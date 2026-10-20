@@ -130,6 +130,9 @@ def parse(original:str,native:str)->dict:
                    if e.get("stage")=="bpl_actual_input"]
         must(prior_bpl and int(prior_bpl[0]["seq"])<int(native_write["seq"]),
              "native real first BPL decision did not precede first STZ write")
+        must(int(prior_bpl[0]["master"])<=int(prior_opcode["master"])<=
+             int(native_write["master"])<=int(next_opcode["master"]),
+             "native BPL/STZ commit/next-opcode source master clock regressed")
         native_local_delta=int(native_write["master"])-int(prior_bpl[0]["master"])
         must(native_local_delta>=0,"native BPL pre-op to STZ write local master clock regressed")
         rows.append({

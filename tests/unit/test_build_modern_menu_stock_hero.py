@@ -55,7 +55,16 @@ class StockHeroOriginalExtractionTest(unittest.TestCase):
             out = Path(tmp)
             header = out / "modern_menu_stock_hero_original.generated.hpp"
             manifest = out / "source-hero-manifest.json"
-            result = hero.build(hero.ROM, header, manifest)
+            pngs = out / "source-plates"
+            result = hero.build(hero.ROM, header, manifest, pngs)
+            self.assertEqual(len(list(pngs.glob("original-stock-*.png"))), 8)
+            for row in result["frames"]:
+                image = pngs / f"original-stock-{row['original_guest_frame']:04d}.png"
+                raster = image.read_bytes()
+                self.assertEqual(raster[:8], b"\\x89PNG\\r\\n\\x1a\\n")
+                self.assertEqual(int.from_bytes(raster[16:20], "big"), 64)
+                self.assertEqual(int.from_bytes(raster[20:24], "big"), 64)
+                self.assertTrue(len(row["review_png_sha256"]) == 64)
             self.assertEqual(result["original_rom_sha256"],
                              self.source["rom_sha256"])
             self.assertEqual(len(result["frames"]), 8)

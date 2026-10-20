@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Compile and exercise the actual C++ Modern menu motion and native pixels."""
 from pathlib import Path
+import json
+import re
 import shutil
 import subprocess
 import tempfile
@@ -40,6 +42,32 @@ class ModernMenuMotionTest(unittest.TestCase):
         self.assertIn("paint_modern_menu_selection_motion(", baldosa)
         self.assertIn("!view.quit_confirm", baldosa)
         self.assertIn("!view.two_seat_join_open", baldosa)
+
+    def test_source_measured_stock_motion_deltas_are_unchanged(self):
+        source = json.loads(
+            (ROOT / "analysis/generated/menu-visual-language.json").read_text(
+                encoding="utf-8"))
+        header = MOTION.read_text(encoding="utf-8")
+        for name, expected in (
+            ("kModernMenuMotionSourceCursorSteps",
+             source["cursor"]["move_y_per_frame"]),
+            ("kModernMenuMotionSourceEntranceDelta",
+             source["transition_main_to_options"][
+                 "enter_velocity_px_per_frame"]),
+        ):
+            pattern = rf"\\b{name}\\s*\\{{\\{{(.*?)\\}}\\}};"
+            match = re.search(pattern, header, flags=re.DOTALL)
+            self.assertIsNotNone(match, name)
+            observed = [int(x) for x in re.findall(r"\\b\\d+\\b",
+                                                     match.group(1))]
+            self.assertEqual(observed, expected)
+        self.assertTrue(source["cursor"]["move_response_same_frame"])
+        self.assertEqual(len(source["cursor"]["move_y_per_frame"]), 12)
+        self.assertEqual(source["transition_main_to_options"]["distance_px"],
+                         sum(source["transition_main_to_options"][
+                             "enter_velocity_px_per_frame"]))
+        self.assertEqual(
+            source["transition_main_to_options"]["enter_frames"], 39)
 
     def test_compiled_60hz_and_native_rgba(self):
         compiler = shutil.which("g++") or shutil.which("clang++")

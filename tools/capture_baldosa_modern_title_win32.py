@@ -98,7 +98,7 @@ def verify_native_presented_frames(present_dir: Path, source_dir: Path) -> dict:
         ("title", ((342 - 238) // 2, 27, 238, 81)),
         ("root", (61, 17, 218, 142)),
     ):
-        _, _, source = read_pam(present_dir.parent / "captures" /
+        _, _, source = read_pam(source_dir /
                                f"modern-native-{stage}-342x224.pam")
         best = max(
             (( _pixel_match(source, rgb, 342, bounds), frame, file)

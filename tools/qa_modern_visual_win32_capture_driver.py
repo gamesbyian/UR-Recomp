@@ -19,10 +19,10 @@ import subprocess
 import sys
 
 try:
-    from tools.qa_modern_visual_pam_png import convert
+    from tools.qa_modern_visual_pam_png import convert, HEADER
     from tools.baldosa_windows_native_pause_route import USA_SHA256
 except ModuleNotFoundError:  # direct python tools/... command
-    from qa_modern_visual_pam_png import convert
+    from qa_modern_visual_pam_png import convert, HEADER
     from baldosa_windows_native_pause_route import USA_SHA256
 
 READBACK = re.compile(
@@ -37,7 +37,7 @@ ROUTES = {
     "records-keyboard": ("1", 64, "UR_BALDOSA_MODERN_ROOT records_opened=1"),
     "options-p1": ("12", 74, "UR_BALDOSA_MODERN_ROOT options_opened"),
     "profile-first-p1": ("8", 66, "UR_BALDOSA_MODERN_ROOT first_racer_opened=1"),
-    "authentic-stock": ("0", 40, ""),
+    "authentic-stock": ("0", 240, ""),
 }
 
 
@@ -47,6 +47,39 @@ def sha256(path: Path) -> str:
         for chunk in iter(lambda: src.read(1024 * 1024), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+def validate_authentic_pixels(source: Path, expected: tuple[int, int]) -> dict:
+    """Reject empty/fully transparent stock captures before admitting evidence.
+
+    Authentic mode can legitimately begin with an unlit raster during boot.
+    A 40th-present screenshot proved to be ALL ZERO in a real Win32 capture.
+    Sample a later real SDL frame and require visible varied pixels instead
+    of granting false source-isolation credit for a transparent drawable.
+    This is a necessary *evidence* precondition, not proof of pixel parity.
+    """
+    if not source.is_file() or source.is_symlink():
+        raise ValueError("Authentic source capture missing/redirected")
+    data = source.read_bytes()
+    if len(data) > MAX_DIM[0] * MAX_DIM[1] * 4 + 256:
+        raise ValueError("Authentic SDL P7 exceeds bounded geometry")
+    header, marker, rgba = data.partition(b"ENDHDR\\n")
+    if not marker or (match := HEADER.fullmatch(header + marker)) is None:
+        raise ValueError("Authentic SDL P7 header invalid")
+    size = (int(match.group(1)), int(match.group(2)))
+    if size != expected or len(rgba) != size[0] * size[1] * 4:
+        raise ValueError("Authentic SDL P7 geometry/length differs")
+    opaque = sum(a != 0 for a in rgba[3::4])
+    # Sample throughout the raster rather than accepting one boot pixel.
+    pitch = max(4, (len(rgba) // (4096 * 4)) * 4)
+    distinct = len({rgba[i:i + 4] for i in range(0, len(rgba), pitch)})
+    if opaque < max(1024, size[0] * size[1] // 1000) or distinct < 3:
+        raise RuntimeError(
+            "Authentic SDL control is blank/transparent/uniform; "
+            "no source visual isolation evidence (visible=%d colors=%d)"
+            % (opaque, distinct))
+    return {"visible_alpha_pixels": opaque, "sampled_colors": distinct,
+            "pixel_witness": "nonblank-authentic-sdl-readback-only"}
 
 
 def launch(exe: Path, rom: Path, root: Path, name: str,
@@ -169,6 +202,8 @@ def run(exe: Path, rom: Path, out: Path, source_sha: str, video: str,
     if not selected["readback_saved"] or selected["observed"] != selected["expected"]:
         raise RuntimeError("Exact-size real SDL drawable not captured")
     raw = selected["capture"]
+    authentic_pixels = (validate_authentic_pixels(raw, selected["observed"])
+                        if route == "authentic-stock" else None)
     png = out / "actual-sdl-drawable.png"
     conversion = convert(raw, png, selected["observed"])
     receipt = {
@@ -181,6 +216,7 @@ def run(exe: Path, rom: Path, out: Path, source_sha: str, video: str,
         "observed_in_draw": selected["capture_draw"],
         "native_semantic_route": route,
         "execution_mode": selected["execution_mode"],
+        "authentic_visible_raster_precondition": authentic_pixels,
         "native_route_marker_observed": bool(ROUTES[route][2]),
 
         "requested_window_size": list(window_size) if window_size else None,

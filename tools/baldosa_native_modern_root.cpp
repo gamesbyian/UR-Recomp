@@ -1165,6 +1165,16 @@ extern "C" int ur_baldosa_modern_root_gamepad(
     return 1;
 }
 
+extern "C" void ur_baldosa_modern_root_prepare_frame(
+    int, int, int* logical_width, int* logical_height) {
+    // Only host-owned Modern frontend output widens. Authentic, guest
+    // menus, racing and result frames keep their original raster unchanged.
+    if (!logical_width || !logical_height || !configured() || !g_visible)
+        return;
+    *logical_width = 342;
+    *logical_height = 224;
+}
+
 extern "C" int ur_baldosa_modern_root_draw_frame(
     std::uint8_t* dst, std::size_t pitch, const std::uint8_t* field,
     int width, int height, double) {
@@ -1264,7 +1274,7 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     const bool drawn = ur::product::render_modern_root_overlay(
         painter, reinterpret_cast<std::uint32_t*>(dst),
         static_cast<int>(pitch / 4), height, 1, 240,
-        HostOverlayRect{8,10,240,204}, view);
+        HostOverlayRect{(width - 240) / 2,10,240,204}, view);
     if (drawn) {
         ++g_paint_count;
         if (g_reentry_needs_paint) {

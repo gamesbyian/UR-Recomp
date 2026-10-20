@@ -212,6 +212,28 @@ class WindowsPhysicalWitnessPacketTests(unittest.TestCase):
         finally:
             self.paths[0].write_text(old, encoding="utf-8")
 
+    def test_refuses_claimed_two_pad_observation_without_p2_original(self):
+        old = self.paths[0].read_text(encoding="utf-8")
+        try:
+            change(self.paths[0], lambda x:
+                   x.__setitem__("attachments", [
+                       a for a in x["attachments"] if a["kind"] != "controller-p2"
+                   ]))
+            with self.assertRaisesRegex(ValueError, "missing independent observations"):
+                self.review()
+        finally:
+            self.paths[0].write_text(old, encoding="utf-8")
+
+    def test_vm_must_be_clean_and_cannot_self_claim_physical_devices(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            paths = [make_packet(root, "pc1"),
+                     make_packet(root, "pc2"),
+                     make_packet(root, "vm3", environment="isolated-clean-vm",
+                                 clean=False)]
+            with self.assertRaisesRegex(ValueError, "VM must be a clean installation"):
+                self.review(paths)
+
     def test_refuses_manufactured_release_claim_and_self_review(self):
         for key, val in (("release_gate_credit", 1),
                          ("physical_hardware_verified", True),

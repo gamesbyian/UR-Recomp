@@ -77,7 +77,7 @@ class ModernTitleNativeCaptureTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "missing native present"):
                 verify_native_presented_frames(present, present.parent / "captures")
             ppm = present / "present_000000.ppm"
-            ppm.write_bytes(b"P6\\n342 224\\n255\\n" + bytes(2))
+            ppm.write_bytes(b"P6\n342 224\n255\n" + bytes(2))
             with self.assertRaisesRegex(ValueError, "dimensions"):
                 read_present_ppm(ppm)
             ppm.write_bytes(b"not a ppm")
@@ -102,11 +102,11 @@ class ModernTitleNativeCaptureTests(unittest.TestCase):
                 (source / f"modern-native-{stage}-342x224.pam").write_bytes(
                     pam(w, h, rgba))
                 (presented / f"present_{n:06d}.ppm").write_bytes(
-                    b"P6\\n342 224\\n255\\n" + rgb)
+                    b"P6\n342 224\n255\n" + rgb)
             (presented / "presents.csv").write_text(
-                "present,frame,alpha,crc32,luma\\n"
-                "0,20,0.0,12345678,44.0\\n"
-                "1,100,0.0,abcdef12,96.0\\n")
+                "present,frame,alpha,crc32,luma\n"
+                "0,20,0.0,12345678,44.0\n"
+                "1,100,0.0,abcdef12,96.0\n")
             result = verify_native_presented_frames(presented, source)
             self.assertEqual(result["presentations_examined"], 2)
             self.assertEqual(result["matched"]["title"]["present_frame"], 20)
@@ -116,9 +116,9 @@ class ModernTitleNativeCaptureTests(unittest.TestCase):
             # One forged nonblank frame cannot claim both title and root.
             (presented / "presented-root.ppm").unlink()
             (presented / "present_000000.ppm").write_bytes(
-                b"P6\\n342 224\\n255\\n" + (pairs[0][1][:3] * (w * h)))
+                b"P6\n342 224\n255\n" + (pairs[0][1][:3] * (w * h)))
             (presented / "present_000001.ppm").write_bytes(
-                b"P6\\n342 224\\n255\\n" + (pairs[0][1][:3] * (w * h)))
+                b"P6\n342 224\n255\n" + (pairs[0][1][:3] * (w * h)))
             with self.assertRaisesRegex(ValueError, "root never reached"):
                 verify_native_presented_frames(presented, source)
 

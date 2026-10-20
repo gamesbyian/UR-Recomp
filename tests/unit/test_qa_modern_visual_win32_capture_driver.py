@@ -88,6 +88,55 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
             self.assertFalse((out / "Uniracers_USA.sfc").exists())
             self.assertTrue((out / "capture_observed" / "native-process.log").is_file())
 
+    def test_exact_native_output_config_written_without_default_fallback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            seen = []
+
+            def fake_native(command, **kw):
+                stage = Path(kw["cwd"])
+                cfg = (stage / "config.ini").read_text()
+                self.assertIn("[Graphics]\nWindowSize = 1280x720\n", cfg)
+                self.assertIn("[Sound]\nEnableAudio = 0\n", cfg)
+                seen.append(cfg)
+                return subprocess.CompletedProcess(
+                    command, 0,
+                    stdout=("UR_BALDOSA_MODERN_ROOT opened=1\n"
+                            "UR_MODERN_VISUAL_SDL_CAPTURE refused=output-size "
+                            "draw=40 observed=640x480 requested=1280x720\n"),
+                    stderr="")
+
+            def fake_sha(path):
+                return driver.USA_SHA256 if path == rom else "a" * 64
+
+            rom = base / "fake-copyrighted-ROM"
+            exe = base / "fake-executable"
+            rom.write_bytes(b"fake rom for test only")
+            exe.write_bytes(b"fake exe for test only")
+            with (patch.object(driver.subprocess, "run", side_effect=fake_native),
+                  patch.object(driver, "sha256", side_effect=fake_sha)):
+                with self.assertRaisesRegex(RuntimeError, "Exact requested SDL drawable"):
+                    driver.run(exe, rom, base / "out", "a" * 40,
+                               "windows", 10, window_size=(1280, 720))
+            self.assertEqual(len(seen), 1)
+            self.assertTrue((base / "out" / "probe_first" /
+                             "native-process.log").is_file())
+            self.assertFalse((base / "out" / "capture_observed").exists())
+
+    def test_explicit_output_geometry_limits(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            exe, rom = base / "exe", base / "rom"
+            exe.write_bytes(b"fixture")
+            rom.write_bytes(b"fixture")
+            with patch.object(driver, "sha256", side_effect=lambda p:
+                              driver.USA_SHA256 if p == rom else "a" * 64):
+                for size in [(320, 0), (3841, 2160), (640, 2161)]:
+                    with self.subTest(size=size), self.assertRaisesRegex(
+                            ValueError, "Unsafe exact native Win32 output"):
+                        driver.run(exe, rom, base / "output", "a" * 40,
+                                   "windows", 10, window_size=size)
+
     def test_missing_real_native_root_refused(self):
         with tempfile.TemporaryDirectory() as tmp:
             stage = Path(tmp)

@@ -1256,8 +1256,10 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
             reduced && std::strcmp(reduced, "1") == 0;
         const auto phase = ur::product::advance_modern_menu_motion(
             g_native_menu_motion,
-            {ur::product::modern_menu_tick60(
-                 static_cast<std::uint64_t>(SDL_GetTicks())),
+            {ur::product::modern_menu_resolve_test_tick60(
+                 ur::product::modern_menu_tick60(
+                     static_cast<std::uint64_t>(SDL_GetTicks())),
+                 std::getenv("UR_MODERN_MENU_TEST_TICK60")),
              static_cast<std::uint8_t>(
                  ur::product::modern_root_destination_index(
                      ur::product::modern_root_menu_selected(g_menu))),

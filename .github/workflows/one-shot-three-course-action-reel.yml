@@ -1,4 +1,4 @@
-name: One-shot genuine three-course racing reel
+name: One-shot genuine three-course racing reel v2
 on:
   push:
     branches: [media/oct19-dynamic-native-racing]
@@ -61,4 +61,6 @@ jobs:
           git add media/showcase/2026-10-19/dynamic-native-2p/
           git rm -f .github/workflows/one-shot-three-course-action-reel.yml
           git commit -m 'media: publish authentic three-course 15s racing reel and visual source receipts'
+          git fetch origin "${GITHUB_REF_NAME}"
+          git rebase "origin/${GITHUB_REF_NAME}"
           git push origin "HEAD:${GITHUB_REF_NAME}"

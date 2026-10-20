@@ -1,4 +1,5 @@
 #include "native/product/modern_menu_motion.hpp"
+#include "native/product/modern_menu_stock_hero.hpp"
 
 #include <cassert>
 #include <cstdint>
@@ -140,11 +141,95 @@ void test_raster() {
             FakePainter{}, pixels.data(), w, h, scale, offscreen, pose));
     }
 }
+
+void test_source_stock_hero() {
+    // Test pixels are deliberately synthetic and never supplied to the
+    // running game. Only source-verified reconstructed original poses can
+    // pass the real host consumer.
+    std::vector<std::uint32_t> first(kModernMenuStockHeroPixels, 0u);
+    std::vector<std::uint32_t> second(kModernMenuStockHeroPixels, 0u);
+    constexpr std::size_t kCentre = 32u * 64u + 32u;
+    first[kCentre] = 0xffff0000u;
+    second[kCentre] = 0xff0000ffu;
+    ModernMenuStockHeroFrame frames[2]{
+        {first.data(), first.size(), 0x0541,
+         modern_menu_stock_hero_digest(first.data(), first.size()), true},
+        {second.data(), second.size(), 0x0540,
+         modern_menu_stock_hero_digest(second.data(), second.size()), true},
+    };
+    ModernMenuStockHeroSequence sequence{frames, 2, true};
+    assert(modern_menu_stock_hero_sequence_eligible(sequence));
+    ModernMenuMotionState animator{};
+    auto pose = advance_modern_menu_motion(animator, {0, 0, true, false});
+    std::vector<std::uint32_t> output(256u * 224u, 0xff101010u);
+    const HostOverlayRect safe{0, 0, 256, 224};
+    const ModernMenuStockHeroPlacement placement{60, 40, 2};
+    assert(paint_modern_menu_stock_hero(
+        output.data(), 256, 224, safe, placement, sequence, pose) ==
+        ModernMenuStockHeroDraw::Drawn);
+    assert(output[static_cast<std::size_t>(40 + 64) * 256u + 60u + 64u]
+           == 0xffff0000u);
+    assert(output[0] == 0xff101010u);
+
+    pose = advance_modern_menu_motion(animator, {6, 0, true, false});
+    assert(pose.hero_frame_ordinal == 1);
+    assert(paint_modern_menu_stock_hero(
+        output.data(), 256, 224, safe, placement, sequence, pose) ==
+        ModernMenuStockHeroDraw::Drawn);
+    assert(output[static_cast<std::size_t>(40 + 64) * 256u + 60u + 64u]
+           == 0xff0000ffu);
+
+    // A wrong digest or unproven order never touches a pixel.
+    const auto before = output;
+    frames[1].source_argb_digest ^= 1u;
+    assert(paint_modern_menu_stock_hero(
+        output.data(), 256, 224, safe, placement, sequence, pose) ==
+        ModernMenuStockHeroDraw::Unverified);
+    assert(output == before);
+    frames[1].source_argb_digest ^= 1u;
+    sequence.original_pose_order_verified = false;
+    assert(paint_modern_menu_stock_hero(
+        output.data(), 256, 224, safe, placement, sequence, pose) ==
+        ModernMenuStockHeroDraw::Unverified);
+    assert(output == before);
+    sequence.original_pose_order_verified = true;
+
+    assert(paint_modern_menu_stock_hero(
+        output.data(), 256, 224, safe, {200, 40, 2}, sequence, pose) ==
+        ModernMenuStockHeroDraw::OutOfBounds);
+    assert(output == before);
+    assert(paint_modern_menu_stock_hero(
+        nullptr, 256, 224, safe, placement, sequence, pose) ==
+        ModernMenuStockHeroDraw::OutOfBounds);
+
+    auto quiet = advance_modern_menu_motion(
+        animator, {12, 0, true, true});
+    assert(quiet.hero_frame_ordinal == 0);
+    assert(quiet.hero_bob_px == 0 && quiet.hero_lean_px == 0);
+    assert(paint_modern_menu_stock_hero(
+        output.data(), 256, 224, safe, placement, sequence, quiet) ==
+        ModernMenuStockHeroDraw::Drawn);
+    assert(output[static_cast<std::size_t>(40 + 64) * 256u + 60u + 64u]
+           == 0xffff0000u);
+
+    // An actual 4x-density native compositing buffer, not a resized mock.
+    std::vector<std::uint32_t> wide(1536u * 896u, 0xff101010u);
+    auto wide_pose = advance_modern_menu_motion(
+        animator, {18, 0, true, false});
+    assert(paint_modern_menu_stock_hero(
+        wide.data(), 1536, 896, {0, 0, 1536, 896},
+        {650, 280, 4}, sequence, wide_pose) ==
+        ModernMenuStockHeroDraw::Drawn);
+    assert(wide[static_cast<std::size_t>(280 + 128) * 1536u +
+                650u + 128u] == 0xff0000ffu);
+    assert(wide[0] == 0xff101010u);
+}
 } // namespace
 
 int main() {
     test_motion();
     test_raster();
+    test_source_stock_hero();
     std::puts("PASS: Modern native menu motion 60Hz, 4:3/16:9, reduced motion");
     return 0;
 }

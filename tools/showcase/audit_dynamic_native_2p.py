@@ -21,8 +21,11 @@ def sha(path):
     return h.hexdigest()
 
 
-def inspect(folder, route_manifest, binary_file, rom_sha, source_sha):
-    routes = json.loads(Path(route_manifest).read_text())["routes"]
+def inspect(folder, route_manifest, binary_file, rom_sha, source_sha, names=NAMES):
+    route_data = json.loads(Path(route_manifest).read_text())
+    routes = route_data.get("routes", route_data.get("cases"))
+    if not isinstance(routes, dict) or not names or len(names) != len(set(names)):
+        raise ValueError("Missing/duplicate proposed routes")
     out = {
         "schema": "UR-GENUINE-ASYNCHRONOUS-NATIVE-2P/1",
         "source_head": source_sha,
@@ -39,7 +42,7 @@ def inspect(folder, route_manifest, binary_file, rom_sha, source_sha):
         "review_status": "awaiting visual inspection, inputs alone are not trick proof",
         "routes": {}
     }
-    for name in NAMES:
+    for name in names:
         if name not in routes:
             raise ValueError("Missing variant in controller manifest")
         movie = folder / f"native-{name}-900f.mp4"
@@ -109,10 +112,11 @@ def main():
     p.add_argument("--native-sha", type=Path, required=True)
     p.add_argument("--rom-sha", required=True)
     p.add_argument("--source-sha", required=True)
+    p.add_argument("--names", nargs="+", default=list(NAMES))
     a = p.parse_args()
     a.publish.mkdir(parents=True, exist_ok=True)
     doc = inspect(a.publish, a.route_manifest, a.native_sha, a.rom_sha,
-                  a.source_sha)
+                  a.source_sha, names=a.names)
     (a.publish / "dynamic-racing-provenance.json").write_text(
         json.dumps(doc, sort_keys=True, indent=2) + "\n")
     print(json.dumps({"movies": {k: v["sha256"] for k, v in doc["routes"].items()},

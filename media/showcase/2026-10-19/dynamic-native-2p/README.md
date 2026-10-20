@@ -66,7 +66,7 @@ The source-only scripts and workflow integration specification are staged here. 
 
 ## Topology-specific production plan (source-grounded candidates, not yet filmed)
 
-The [45-course canonical corpus](../../../analysis/data/course-corpus.json) identifies the following official courses and stock family/slot combinations:
+The [45-course canonical corpus](../../../../analysis/data/course-corpus.json) identifies the following official courses and stock family/slot combinations:
 
 | Priority | Exact source course | Original menu tour/slot | Expected visual attraction | Evidence status |
 | --- | --- | --- | --- | --- |

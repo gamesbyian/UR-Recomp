@@ -172,6 +172,61 @@ class IndependentVisualBundleTest(unittest.TestCase):
         with self.assertRaisesRegex(qa.CaptureError, "nonapproval invariant"):
             self.run_audit()
 
+    def prepare_authentic_case(self):
+        from tools import qa_authentic_presdl_sdl_rgb_parity as stock
+        self.row["mode"] = "authentic"
+        self.entry["mode"] = "authentic"
+        # The unit's 4x3 P7 holds constant RGB/alpha. A source 256x224
+        # raster with those same RGB values maps byte-exact through 4:3.
+        original = b"P6\n256 224\n255\n" + b"\xff\x21\x42" * (256 * 224)
+        self.root.joinpath("original.ppm").write_bytes(original)
+        self.entry["authentic_source_p6"] = "original.ppm"
+        self.entry["authentic_source_p6_sha256"] = sha(original)
+        report = stock.verify(self.root / "original.ppm", self.root / "sdl.pam")
+        encoded = json.dumps(report).encode("utf-8")
+        self.root.joinpath("stock-rgb.json").write_bytes(encoded)
+        self.entry["authentic_rgb_receipt"] = "stock-rgb.json"
+        self.entry["authentic_rgb_receipt_sha256"] = sha(encoded)
+        original_log = (
+            b"[snes_load] name=UNIRACERS\n"
+            b"UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=1 guest_frame=1 "
+            b"output=4x3 source=SDL_RenderReadPixels backend=sdl3\n"
+        )
+        self.root.joinpath("route.log").write_bytes(original_log)
+        self.entry["route_log_sha256"] = sha(original_log)
+        self.entry["route_markers"] = ["[snes_load] name=UNIRACERS"]
+
+    def test_authentic_cases_require_stock_guest_p6_pixel_oracle(self):
+        self.row["mode"] = "authentic"
+        self.entry["mode"] = "authentic"
+        with self.assertRaisesRegex(qa.CaptureError, "missing/noncanonical SHA256"):
+            self.run_audit()
+        self.prepare_authentic_case()
+        result = self.run_audit()
+        self.assertTrue(result["structurally_complete"])
+        self.assertFalse(result["authentic_isolation_approved"])
+        self.assertEqual(result["release_gate_credit"], 0)
+
+    def test_authentic_original_source_pixel_edit_rejected_even_with_new_hash(self):
+        self.prepare_authentic_case()
+        path = self.root / "original.ppm"
+        original = bytearray(path.read_bytes())
+        # Source centre for SDL x=0 y=0 on 4x3 is original x=32, y=37.
+        original[len(b"P6\n256 224\n255\n") + 3 * (37 * 256 + 32)] ^= 1
+        path.write_bytes(original)
+        self.entry["authentic_source_p6_sha256"] = sha(original)
+        with self.assertRaisesRegex(qa.CaptureError, "Authentic original RGB source/SDL"):
+            self.run_audit()
+
+    def test_authentic_modern_root_leak_refused_despite_valid_pixels(self):
+        self.prepare_authentic_case()
+        data = self.root.joinpath("route.log").read_bytes()
+        altered = data + b"UR_BALDOSA_MODERN_ROOT opened=1\n"
+        self.root.joinpath("route.log").write_bytes(altered)
+        self.entry["route_log_sha256"] = sha(altered)
+        with self.assertRaisesRegex(qa.CaptureError, "isolation markers"):
+            self.run_audit()
+
     def test_wrong_dimensions_rejected(self):
         other = png(8, 6)
         self.root.joinpath("capture.png").write_bytes(other)

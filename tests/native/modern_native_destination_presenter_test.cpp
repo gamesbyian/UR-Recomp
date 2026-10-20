@@ -77,6 +77,9 @@ int main() {
     state = {};
     state.two_seat_join_open = true;
     assert(std::string_view(modern_native_destination_stage(state)) == "multiplayer-join");
+    state.join_p2_confirmed = true;
+    assert(std::string_view(modern_native_destination_stage(state)) == "multiplayer-p2-ready");
+    state.join_p2_confirmed = false;
     state.join_p1_confirmed = true;
     assert(std::string_view(modern_native_destination_stage(state)) == "multiplayer-p1-ready");
     state.join_p2_confirmed = true;

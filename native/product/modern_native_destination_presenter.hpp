@@ -64,14 +64,15 @@ inline void modern_native_destination_line(
     int stride, int surface_height,
     const ModernNativeDestinationCanvas& c,
     int y, std::string_view value, std::uint32_t colour,
-    int x = 10, int text_scale = 1) {
+    int x = 9, int text_scale = 1) {
     // All text is contained within the panel. Never silently crop the right
     // edge of a stock name, saved time, controls legend or options value.
-    const int available = c.w / c.scale - x - 9;
+    const int available = c.w / c.scale - x - 5;
     if (available < 8 * text_scale || y + 8 * text_scale > c.h / c.scale)
         return;
     const auto fit = fit_modern_overlay_text(
-        value, modern_overlay_text_cells(available / text_scale));
+        value, static_cast<std::size_t>(
+            available / (kModernOverlayCellPixels * text_scale)));
     p.draw_text(pixels, stride, surface_height,
                 c.x + x * c.scale, c.y + y * c.scale, fit.c_str(),
                 colour, text_scale * c.scale);
@@ -170,7 +171,7 @@ inline bool render_modern_native_destination(
                 status ? col.title_yellow : col.secondary_grey);
             modern_native_destination_line(
                 p, pixels, stride, surface_height, c,
-                125, "LEFT/RIGHT  CHANGE   B BACK", col.cursor_blue);
+                125, "L/R CHANGE   B BACK", col.cursor_blue);
         }
     } else if (v.practice_picker_open || v.practice_launch_pending) {
         modern_native_destination_line(
@@ -200,7 +201,7 @@ inline bool render_modern_native_destination(
             p, pixels, stride, surface_height, c, 122,
             v.practice_launch_pending ? "B CANCEL" :
             v.practice_courses_open > 1
-                ? "A START   UP/DOWN COURSE   B BACK"
+                ? "A START  UP/DN  B BACK"
                 : "A START   B BACK", col.cursor_blue);
     } else if (v.read_only_records_open) {
         modern_native_destination_row(
@@ -224,7 +225,7 @@ inline bool render_modern_native_destination(
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 124,
             v.read_only_records_pages_available
-                ? "UP/DOWN PAGE  B BACK  /  READ ONLY"
+                ? "UP/DOWN PAGE  B BACK"
                 : "B BACK  /  READ ONLY", col.cursor_blue);
     } else if (v.two_seat_join_open) {
         modern_native_destination_row(
@@ -286,7 +287,7 @@ inline bool render_modern_native_destination(
             "NO MATCH HISTORY WILL SAVE", col.secondary_grey);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 124,
-            "P1 A PLAY ANYWAY   B BACK", col.cursor_blue);
+            "P1 A ANYWAY   B BACK", col.cursor_blue);
     }
     return true;
 }

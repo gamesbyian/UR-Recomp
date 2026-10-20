@@ -144,10 +144,12 @@ def verify_source_frames(dumps: list[mvl.Dump], contract: dict) -> list[dict]:
         if d.tag != f"mvl-idle-{i:03d}":
             raise ValueError("source frame sequence reordered or missing")
         sprites = mvl.sprites(d.oam)
-        arrow = next((obj for obj in sprites if obj["palette"] == 7), None)
-        shadow = next((obj for obj in sprites if obj["palette"] == 5), None)
-        if not arrow or not shadow or \
-           arrow["tile"] != expected_tiles[(i // 2) % FRAMES] or \
+        arrows = [obj for obj in sprites if obj["palette"] == 7]
+        shadows = [obj for obj in sprites if obj["palette"] == 5]
+        if len(arrows) != 1 or len(shadows) != 1:
+            raise ValueError("source OAM cursor/shadow sprites are ambiguous")
+        arrow, shadow = arrows[0], shadows[0]
+        if arrow["tile"] != expected_tiles[(i // 2) % FRAMES] or \
            arrow["x"] + SHADOW_OFFSET != shadow["x"] or \
            arrow["y"] + SHADOW_OFFSET != shadow["y"]:
             raise ValueError("source OAM cursor tile/pose/shadow mismatch")

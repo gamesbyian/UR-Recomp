@@ -97,6 +97,70 @@ class MenuVisualLanguageTests(unittest.TestCase):
         self.assertEqual(mvl.run_lengths([8, 8, 4, 4, 0]), [[8, 2], [4, 2], [0, 1]])
         self.assertEqual(mvl.deltas([0, 1, 3, 6]), [1, 2, 3])
 
+    def test_original_bg1_mode3_8bpp_source_flips_scroll_and_16px(self) -> None:
+        class Sample:
+            pass
+
+        d = Sample()
+        d.tag = "mvl-idle-00"
+        d.vram = bytearray(65536)
+        d.cgram = bytearray(512)
+        d.fillram = {"2105": "03", "2107": "04", "210B": "00"}
+        d.ppu = {"bg": [{"hofs": 0, "vofs": 0}]}
+        # Tilemap starts at 0x400 words (0x800 bytes), separate from
+        # BG1 8bpp tile1's VRAM character address 0x40.
+        d.vram[0x800:0x802] = (1).to_bytes(2, "little")
+        d.vram[1 * 64] = 0x80  # tile1 x0/y0, palette index 1
+        d.cgram[2:4] = (0x001F).to_bytes(2, "little")  # red = 248
+        rgba = mvl.original_menu_bg1_rgba(d)
+        self.assertEqual(rgba[0:4], bytes([248, 0, 0, 255]))
+        self.assertEqual(rgba[4:8], bytes(4))  # transparent BG1 index 0
+        # Hardware H-flip mirrors the real tile sample to the last column.
+        d.vram[0x800:0x802] = (1 | 0x4000).to_bytes(2, "little")
+        rgba = mvl.original_menu_bg1_rgba(d)
+        self.assertEqual(rgba[0:4], bytes(4))
+        self.assertEqual(rgba[7 * 4:8 * 4], bytes([248, 0, 0, 255]))
+        # The source hscroll register moves that rightmost red source
+        # pixel to host x6, never a duplicate overlay.
+        d.ppu["bg"][0]["hofs"] = 1
+        rgba = mvl.original_menu_bg1_rgba(d)
+        self.assertEqual(rgba[6 * 4:7 * 4], bytes([248, 0, 0, 255]))
+        d.ppu["bg"][0]["hofs"] = 0
+        # 16x16 BG tiles are 2x2 8x8 tiles, with right tile at +1.
+        d.fillram["2105"] = "13"
+        d.vram[0x800:0x802] = (1).to_bytes(2, "little")
+        d.vram[2 * 64] = 0x80
+        rgba = mvl.original_menu_bg1_rgba(d)
+        self.assertEqual(rgba[8 * 4:9 * 4], bytes([248, 0, 0, 255]))
+        with self.assertRaisesRegex(ValueError, "MODE3"):
+            d.fillram["2105"] = "01"
+            mvl.original_menu_bg1_rgba(d)
+        with self.assertRaisesRegex(ValueError, "BGMODE"):
+            d.fillram.pop("2105")
+            mvl.original_menu_bg1_rgba(d)
+
+    def test_bg1_source_art_output_manifest_is_layer_specific(self) -> None:
+        class Sample:
+            pass
+
+        d = Sample()
+        d.tag = "mvl-idle-00"
+        d.vram = bytearray(65536)
+        d.cgram = bytearray(512)
+        d.fillram = {"2105": "03", "2107": "04", "210B": "00"}
+        d.ppu = {"bg": [{"hofs": 0, "vofs": 0}]}
+        d.vram[0x800:0x802] = (1).to_bytes(2, "little")
+        d.vram[1 * 64] = 0x80
+        d.cgram[2:4] = (0x001F).to_bytes(2, "little")
+        with tempfile.TemporaryDirectory() as td:
+            out = Path(td) / "bg1.png"
+            info = mvl.write_original_menu_bg1(out, d)
+            self.assertEqual(info["dimensions"], [256, 224])
+            self.assertEqual(info["layers"], ["BG1 8bpp MODE3 only"])
+            self.assertEqual(info["png_sha256"], hashlib.sha256(out.read_bytes()).hexdigest())
+            self.assertEqual(info["rgba_sha256"],
+                             hashlib.sha256(mvl.original_menu_bg1_rgba(d)).hexdigest())
+
     def test_original_small_font_atlas_uses_real_vram_and_hflip(self) -> None:
         class Sample:
             pass

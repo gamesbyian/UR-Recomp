@@ -35,7 +35,10 @@ MAX_DIM = (3840, 2160)
 ROUTES = {
     "root-quit": ("14", 40, ""),
     "records-keyboard": ("1", 64, "UR_BALDOSA_MODERN_ROOT records_opened=1"),
-    "options-p1": ("12", 74, "UR_BALDOSA_MODERN_ROOT options_opened"),
+    # Options opens at guest frame 64; frame 66 adjusts Display, changing
+    # the host drawable to borderless and invalidating an explicit window-size
+    # screenshot request. Observe the opened, unmodified Options page first.
+    "options-p1": ("12", 65, "UR_BALDOSA_MODERN_ROOT options_opened"),
     "profile-first-p1": ("8", 66, "UR_BALDOSA_MODERN_ROOT first_racer_opened=1"),
     "authentic-stock": ("0", 40, ""),
 }

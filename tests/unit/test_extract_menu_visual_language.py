@@ -247,6 +247,7 @@ class MenuVisualLanguageTests(unittest.TestCase):
             pass
 
         sample = Sample()
+        sample.tag = "mvl-track-00"
         sample.vram = bytearray(65536)
         sample.cgram = bytearray(512)
         pal = 7 * 16 + 9  # measured small-font grey ramp

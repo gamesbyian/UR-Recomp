@@ -63,6 +63,34 @@ def original_obj_base_word(dump: mvl.Dump, tile: int = 0) -> int:
     return base
 
 
+def source_sprite_flips(d: mvl.Dump, sprite: dict) -> tuple[bool, bool]:
+    """Read the actual OAM H/V attributes, not an inferred CHR rotation.
+
+    The older first-party mvl.sprites() contract exposes tile, size and
+    palette but may omit attr bit6/7. Resolve the exact visible OAM record
+    with its high-table X and size bits. Ambiguity is a source failure.
+    """
+    if len(d.oam) != 544:
+        raise ValueError("original OAM source must contain 544 bytes")
+    matches = []
+    for i in range(128):
+        x, y, tile_low, attr = d.oam[4 * i:4 * i + 4]
+        high = (d.oam[512 + i // 4] >> ((i % 4) * 2)) & 3
+        x |= (high & 1) << 8
+        if x >= 256:
+            x -= 512
+        tile = tile_low | ((attr & 1) << 8)
+        if (x == sprite["x"] and y == sprite["y"] and
+                tile == sprite["tile"] and
+                ((attr >> 1) & 7) == sprite["palette"] and
+                (high >> 1) == sprite["large"] and
+                ((attr >> 4) & 3) == sprite["priority"]):
+            matches.append((bool(attr & 0x40), bool(attr & 0x80)))
+    if len(matches) != 1:
+        raise ValueError("unmatched or ambiguous source OAM cursor flags")
+    return matches[0]
+
+
 def draw_sprite(d: mvl.Dump, sprite: dict, frame: bytearray,
                 ox: int, oy: int) -> None:
     if len(d.vram) != 65536 or len(d.cgram) != 512:
@@ -76,6 +104,7 @@ def draw_sprite(d: mvl.Dump, sprite: dict, frame: bytearray,
     if (sprite["large"] != 1 or (obsel >> 5) not in (1, 3, 7) or
             not 0 <= sprite["tile"] < 512):
         raise ValueError("unsupported or non-source 32x32 cursor OBJ")
+    horizontal_flip, vertical_flip = source_sprite_flips(d, sprite)
     for ty in range(4):
         for tx in range(4):
             # 32x32 OBJ subtiles advance on a 16-tile row; preserve the
@@ -88,8 +117,12 @@ def draw_sprite(d: mvl.Dump, sprite: dict, frame: bytearray,
                 for px, ci in enumerate(row):
                     if ci == 0:
                         continue
-                    x = ox + tx * 8 + px
-                    y = oy + ty * 8 + py
+                    # H/V flip applies to the COMPLETE 32x32 sprite,
+                    # not individually to each 8x8 CHR tile.
+                    src_x = tx * 8 + px
+                    src_y = ty * 8 + py
+                    x = ox + (SIDE - 1 - src_x if horizontal_flip else src_x)
+                    y = oy + (SIDE - 1 - src_y if vertical_flip else src_y)
                     if not 0 <= x < CANVAS or not 0 <= y < CANVAS:
                         raise ValueError("original cursor OBJ escaped review canvas")
                     loc = (y * CANVAS + x) * 4
@@ -121,9 +154,19 @@ def verify_source_frames(dumps: list[mvl.Dump], contract: dict) -> list[dict]:
         if [mvl.bgr555(d.cgram, 128 + 7 * 16 + j) for j in range(16)] != \
            cursor["arrow_palette_rgb"]:
             raise ValueError("original cursor palette drifted")
+        arrow_flip = source_sprite_flips(d, arrow)
+        shadow_flip = source_sprite_flips(d, shadow)
+        if i % 2 and (arrow_flip != report[-1]["arrow_flip"] or
+                      shadow_flip != report[-1]["shadow_flip"]):
+            raise ValueError("two-frame source cursor hold changed OAM flipping")
+        if i >= 32 and (arrow_flip != report[i - 32]["arrow_flip"] or
+                        shadow_flip != report[i - 32]["shadow_flip"]):
+            raise ValueError("second source cursor cycle OAM flips diverged")
         report.append({"frame": i, "tile": arrow["tile"],
                        "arrow_xy": [arrow["x"], arrow["y"]],
-                       "shadow_xy": [shadow["x"], shadow["y"]]})
+                       "shadow_xy": [shadow["x"], shadow["y"]],
+                       "arrow_flip": arrow_flip,
+                       "shadow_flip": shadow_flip})
     return report
 
 

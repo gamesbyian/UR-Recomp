@@ -170,10 +170,14 @@ jobs:
             ${{ runner.temp }}/ur-authentic-win32-control-1280x720/readback-receipt.json
             ${{ runner.temp }}/ur-authentic-win32-control-1280x720/probe_first/actual-sdl-drawable.pam
             ${{ runner.temp }}/ur-authentic-win32-control-1280x720/probe_first/native-process.log
+            ${{ runner.temp }}/ur-authentic-win32-control-1280x720/probe_first/stock-composed-before-sdl.ppm
+            ${{ runner.temp }}/ur-authentic-win32-control-1280x720/probe_first/authentic-source-vs-sdl.json
             ${{ runner.temp }}/ur-authentic-win32-control-1024x768/actual-sdl-drawable.png
             ${{ runner.temp }}/ur-authentic-win32-control-1024x768/readback-receipt.json
             ${{ runner.temp }}/ur-authentic-win32-control-1024x768/probe_first/actual-sdl-drawable.pam
             ${{ runner.temp }}/ur-authentic-win32-control-1024x768/probe_first/native-process.log
+            ${{ runner.temp }}/ur-authentic-win32-control-1024x768/probe_first/stock-composed-before-sdl.ppm
+            ${{ runner.temp }}/ur-authentic-win32-control-1024x768/probe_first/authentic-source-vs-sdl.json
           if-no-files-found: warn
           retention-days: 7
       - name: Retain exact widescreen and 4-to-3 SDL output without player data

@@ -61,6 +61,26 @@ def authentic_presents(folder: Path) -> dict[int, bytes]:
     return pairs
 
 
+def authentic_ink_visible(rgb: bytes) -> bool:
+    """Reject early black/uniform host images as original-picture evidence.
+
+    Samples ORIGINAL host RGB pixels, with no fabricated/overlaid replacement.
+    A real source title/race frame must contain at least five RGB triplets
+    and at least 1% nonblack pixels to distinguish from a blank clear.
+    """
+    if len(rgb) != 256 * 224 * 3:
+        return False
+    palette = set()
+    painted = 0
+    for start in range(0, len(rgb), 3):
+        color = rgb[start:start + 3]
+        if color != b"\x00\x00\x00":
+            painted += 1
+        if len(palette) < 5:
+            palette.add(color)
+    return len(palette) >= 5 and painted >= (256 * 224) // 100
+
+
 def check_inert(source: dict, enabled: dict) -> dict:
     for label, run in (("original", source), ("title-enabled", enabled)):
         if "UR_BALDOSA_MODERN_TITLE painted=1" in run["log"] or (
@@ -75,10 +95,21 @@ def check_inert(source: dict, enabled: dict) -> dict:
     for frame in common:
         if source["frames"][frame] != enabled["frames"][frame]:
             raise ValueError(f"Modern title toggled Authentic displayed pixels at frame {frame}")
+    # Early Authentic guest startup can yield genuine all-black frames.
+    # Those prove timeline parity but say nothing about eventual visible
+    # original title/game output. Require a *late* native source-rendered
+    # image with materially varied ink from the very same matched frames.
+    visible = [frame for frame in common if frame >= 224 and
+               authentic_ink_visible(source["frames"][frame])]
+    if not visible:
+        raise ValueError(
+            "Authentic original host output remained blank/uniform after "
+            "frame 224; do not credit identical black captures")
     digest = hashlib.sha256("".join(source["crc"]).encode("ascii")).hexdigest()
     return {
         "original_frames": len(source["crc"]),
         "common_present_frames": common,
+        "visible_original_guest_present_frames": visible,
         "source_wram_crc_timeline_sha256": digest,
         "identical_host_presented_pixels": True,
         "modern_title_or_root_present": False,
@@ -107,7 +138,7 @@ def run_once(exe: Path, rom: Path, script: Path, target: Path,
         "SNESRECOMP_FRAMEDUMP_PIXELS": "0",
         "SNESRECOMP_SCREENSHOT_DIR": str(shots),
         "SNESRECOMP_SCREENSHOT_FROM": "0",
-        "SNESRECOMP_SCREENSHOT_TO": "180",
+        "SNESRECOMP_SCREENSHOT_TO": "320",
         "UR_EXECUTION_MODE": "authentic",
         "UR_BALDOSA_MODERN_ROOT": "1" if root_enabled else "0",
         "UR_BALDOSA_MODERN_PROFILE_SELECT": "0",

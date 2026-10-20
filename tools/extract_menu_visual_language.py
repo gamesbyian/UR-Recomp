@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import array
+import hashlib
 import json
 import math
 import re
@@ -443,6 +444,139 @@ def write_atlas(path: Path, d: Dump, char_base: int) -> None:
     write_png(path, width, height, bytes(buf))
 
 
+# --------------------------------------------------- original OBJ cursor art ---
+# The existing --atlas-out exports the real BG2 title font from the player's
+# own original PPU capture. This sibling exporter extracts the stock *OBJ*
+# cursor and +7,+7 shadow. Neither exported bitmap belongs in version control.
+#
+# Hardware: $2101 OBJSEL base is in 16-KiB byte steps; name-select locates
+# the second 8-KiB page (SNESdev PPU registers / OBJ). The 32x32 sprite uses
+# 4x4 8x8 4bpp tiles at +1 horizontally and +16 vertically. The high name
+# bit selects the second page. Transparent palette index 0 is never painted.
+# Keep this addressing independent of BG2's $210C title glyph base.
+OBJ_SIZE_PAIR = (
+    (8, 16), (8, 32), (8, 64), (16, 32),
+    (16, 64), (32, 64), (16, 32), (16, 32),
+)
+CURSOR_SOURCE_TILE_CYCLE = (8, 4, 0, 204, 200, 196, 192, 140,
+                            136, 132, 128, 76, 72, 68, 64, 12)
+CURSOR_SOURCE_SHADOW_OFFSET = (7, 7)
+
+
+def obj_tile_pixels(d: Dump, tile: int) -> list[list[int]]:
+    """Read one OBJ 4bpp tile at the actual $2101 base/name-select page."""
+    if "2101" not in d.fillram:
+        raise ValueError("source PPU capture is missing OBJSEL ($2101)")
+    obsel = int(d.fillram["2101"], 16)
+    base_word = (obsel & 7) * 0x2000
+    page = (tile >> 8) & 1
+    if page:
+        base_word += (((obsel >> 3) & 3) + 1) * 0x1000
+    return tile_pixels(d.vram, base_word, tile & 255, 4)
+
+
+def obj_sprite_rgba(d: Dump, sprite: dict) -> bytes:
+    """Decode only an unflipped, true 32x32 OBJ sprite; no guessed tilemaps."""
+    if "2101" not in d.fillram:
+        raise ValueError("source PPU capture is missing OBJSEL ($2101)")
+    obsel = int(d.fillram["2101"], 16)
+    size = OBJ_SIZE_PAIR[(obsel >> 5) & 7][int(sprite["large"])]
+    if size != 32 or not (0 <= int(sprite["palette"]) <= 7):
+        raise ValueError("source cursor requires an actual 32x32 OBJ")
+    if len(d.vram) != 65536 or len(d.cgram) != 512:
+        raise ValueError("incorrect original PPU VRAM/CGRAM lengths")
+    base_tile = int(sprite["tile"])
+    if not (0 <= base_tile < 512):
+        raise ValueError("invalid original OBJ tile index")
+    rgba = bytearray(32 * 32 * 4)
+    palette_base = 128 + int(sprite["palette"]) * 16
+    for ty in range(4):
+        for tx in range(4):
+            # OBJ name advances on a 16-tile grid. High page stays fixed.
+            tile = (base_tile & 256) | ((base_tile + ty * 16 + tx) & 255)
+            for py, row in enumerate(obj_tile_pixels(d, tile)):
+                for px, value in enumerate(row):
+                    if value:
+                        offset = ((ty * 8 + py) * 32 + tx * 8 + px) * 4
+                        rgba[offset:offset + 4] = bytes(
+                            bgr555(d.cgram, palette_base + value) + [255])
+    return bytes(rgba)
+
+
+def original_menu_cursor_pose(d: Dump) -> tuple[int, bytes]:
+    """Composite stock shadow and arrow, preserving the actual 7px offset."""
+    obj = sprites(d.oam)
+    arrow = [s for s in obj if s["palette"] == 7]
+    shadow = [s for s in obj if s["palette"] == 5]
+    if len(arrow) != 1 or len(shadow) != 1:
+        raise ValueError("expected exactly one visible arrow and shadow OBJ")
+    a, b = arrow[0], shadow[0]
+    if (b["x"] - a["x"], b["y"] - a["y"]) != CURSOR_SOURCE_SHADOW_OFFSET:
+        raise ValueError("original cursor/shadow origin mismatch")
+    foreground = obj_sprite_rgba(d, a)
+    backdrop = obj_sprite_rgba(d, b)
+    size = 32 + CURSOR_SOURCE_SHADOW_OFFSET[0]
+    composite = bytearray(size * size * 4)
+    for rgba, shift in ((backdrop, 7), (foreground, 0)):
+        for y in range(32):
+            for x in range(32):
+                src = (y * 32 + x) * 4
+                if rgba[src + 3] == 0:
+                    continue
+                dst = ((y + shift) * size + x + shift) * 4
+                composite[dst:dst + 4] = rgba[src:src + 4]
+    return int(a["tile"]), bytes(composite)
+
+
+def export_cursor_atlas(directory: Path, path: Path,
+                        manifest_out: Path | None = None) -> dict:
+    """16 source PPU poses, no synthesized interpolation or source art commit."""
+    unique: dict[int, tuple[Dump, bytes]] = {}
+    idle = series(directory, "idle")
+    for sample in idle:
+        tile, rgba = original_menu_cursor_pose(sample)
+        unique.setdefault(tile, (sample, rgba))
+    if tuple(unique) != CURSOR_SOURCE_TILE_CYCLE:
+        raise ValueError("stock arrow tile sequence/phase evidence changed")
+    pose_width = 39
+    pixels = bytearray(16 * pose_width * pose_width * 4)
+    frames = []
+    for phase, (tile, (sample, rgba)) in enumerate(unique.items()):
+        if not any(rgba[i] for i in range(3, len(rgba), 4)):
+            raise ValueError("decoded original cursor pose is fully transparent")
+        for y in range(pose_width):
+            dst = (y * (16 * pose_width) + phase * pose_width) * 4
+            start = y * pose_width * 4
+            pixels[dst:dst + pose_width * 4] = rgba[start:start + pose_width * 4]
+        stem = directory / sample.tag
+        frames.append({
+            "phase": phase,
+            "source_obj_tile": tile,
+            "source_tag": sample.tag,
+            "ppu_sha256": {
+                ext: hashlib.sha256(Path(f"{stem}.{ext}.bin").read_bytes()).hexdigest()
+                for ext in ("vram", "cgram", "oam")
+            },
+            "pose_rgba_sha256": hashlib.sha256(rgba).hexdigest(),
+        })
+    write_png(path, 16 * pose_width, pose_width, bytes(pixels))
+    manifest = {
+        "schema_version": 1,
+        "source_fixture": SCRIPT,
+        "atlas_rgba_dimensions": [16 * pose_width, pose_width],
+        "sprite_dimensions": [32, 32],
+        "shadow_offset": [7, 7],
+        "frames_per_pose": 2,
+        "cycle_frames": 32,
+        "atlas_png_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "source_frames": frames,
+        "distribution": "Research-only locally extracted original game art; do not commit PNG",
+    }
+    if manifest_out is not None:
+        manifest_out.write_text(json.dumps(manifest, indent=2) + "\n")
+    return manifest
+
+
 def setup_screens(directory: Path, map_base: int, width: int, height: int) -> tuple[dict, dict, dict]:
     screens, checks, usage = {}, {}, Counter()
     for name, expect in SETUP_SCREEN_LABELS.items():
@@ -572,6 +706,8 @@ def main() -> int:
     ap.add_argument("dump_dir", type=Path, help=f"snesref dump directory from {SCRIPT}")
     ap.add_argument("--out", type=Path, default=ROOT / "analysis/generated/menu-visual-language.json")
     ap.add_argument("--atlas-out", type=Path, help="optional PNG of the decoded glyph sheet (do not commit)")
+    ap.add_argument("--cursor-atlas-out", type=Path, help="optional decoded original 16-pose OBJ cursor PNG (do not commit)")
+    ap.add_argument("--cursor-manifest-out", type=Path, help="optional SHA-bound source/atlas receipt for --cursor-atlas-out")
     ap.add_argument("--log", type=Path, help="snesref stdout log of the menu run (for press frames)")
     ap.add_argument("--wav", type=Path, help="SNESREF_WAV output of the menu run")
     ap.add_argument("--control-wav", type=Path, help="SNESREF_WAV output of menu-visual-language-control.script")
@@ -598,6 +734,10 @@ def main() -> int:
     args.out.write_text(json.dumps(contract, indent=1) + "\n")
     if args.atlas_out:
         write_atlas(args.atlas_out, main_dump, char_base)
+    if args.cursor_manifest_out and not args.cursor_atlas_out:
+        ap.error("--cursor-manifest-out requires --cursor-atlas-out")
+    if args.cursor_atlas_out:
+        export_cursor_atlas(args.dump_dir, args.cursor_atlas_out, args.cursor_manifest_out)
     print(json.dumps(contract["checks"], indent=2))
     return 0 if contract["all_checks_pass"] else 1
 

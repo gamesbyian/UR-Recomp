@@ -1277,24 +1277,46 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         const char* reduced = std::getenv("UR_REDUCED_MOTION");
         const bool reduced_motion =
             reduced && std::strcmp(reduced, "1") == 0;
+        const char* seed = std::getenv("UR_MODERN_MENU_TEST_TICK60");
+        std::uint64_t parsed_seed = 0;
+        const bool provenance_log = stepped_capture &&
+            ur::product::modern_menu_parse_test_tick60(seed, parsed_seed);
+        const auto ordinal = g_native_menu_motion_root_presents;
+        const auto capture_tick = ur::product::modern_menu_capture_test_tick60(
+            ur::product::modern_menu_tick60(
+                static_cast<std::uint64_t>(SDL_GetTicks())),
+            seed, stepped_capture, ordinal);
         const auto phase = ur::product::advance_modern_menu_motion(
             g_native_menu_motion,
-            {ur::product::modern_menu_capture_test_tick60(
-                 ur::product::modern_menu_tick60(
-                     static_cast<std::uint64_t>(SDL_GetTicks())),
-                 std::getenv("UR_MODERN_MENU_TEST_TICK60"),
-                 stepped_capture, g_native_menu_motion_root_presents),
+            {capture_tick,
              static_cast<std::uint8_t>(
                  ur::product::modern_root_destination_index(
                      ur::product::modern_root_menu_selected(g_menu))),
              root_focus_visible, reduced_motion});
         if (root_focus_visible) {
+            const bool motion_painted =
+                ur::product::paint_modern_menu_selection_motion(
+                    painter, reinterpret_cast<std::uint32_t*>(dst),
+                    static_cast<int>(pitch / 4), height, 1,
+                    root_rect, phase);
+            // Native QA only: one attested host PRESENT per record, including
+            // the exact root and semantic focus. Never synthesize/claim a
+            // guest frame. The final P7 SDL readback must be checked separately.
+            if (provenance_log) {
+                std::fprintf(stderr,
+                    "UR_MODERN_MENU_MOTION_CAPTURE ordinal=%llu tick60=%llu "
+                    "selection=%u spin=%d offset=%d entrance=%d reduced=%d "
+                    "root_x=%d root_w=%d surface_w=%d surface_h=%d painted=%d\n",
+                    static_cast<unsigned long long>(ordinal),
+                    static_cast<unsigned long long>(capture_tick),
+                    static_cast<unsigned>(phase.selection),
+                    phase.cursor_spin_phase, phase.cursor_remainder_px,
+                    phase.entrance_distance_px, reduced_motion ? 1 : 0,
+                    root_rect.x, root_rect.width, width, height,
+                    motion_painted ? 1 : 0);
+            }
             if (g_native_menu_motion_root_presents < UINT64_MAX)
                 ++g_native_menu_motion_root_presents;
-            (void)ur::product::paint_modern_menu_selection_motion(
-                painter, reinterpret_cast<std::uint32_t*>(dst),
-                static_cast<int>(pitch / 4), height, 1,
-                root_rect, phase);
 #if defined(UR_NATIVE_ORIGINAL_HERO_EXPERIMENTAL_AVAILABLE)
             // Real game opt-in ONLY. These are original cartridge racer poses,
             // but their one-shot 2P-race clip is NOT approved as title artwork

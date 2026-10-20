@@ -37,7 +37,7 @@ def refuse_constant(token):
 
 def require(condition, explanation='NTFS source evidence condition failed'):
     if not condition:
-        raise ValueError(explanation)
+        raise AssertionError(explanation)
 
 
 def sha(data):

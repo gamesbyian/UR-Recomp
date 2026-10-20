@@ -226,6 +226,7 @@ bool g_render_reported = false;
 unsigned g_paint_count = 0;
 // Native UI clock only, no guest or input simulation state.
 ur::product::ModernMenuMotionState g_native_menu_motion{};
+std::uint64_t g_native_menu_motion_root_presents = 0;
 int g_stock_target = -1;
 std::uint16_t g_stock_settle = 0;
 std::uint32_t g_stock_budget = 0;
@@ -1179,6 +1180,7 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         &snes_ovl_fill_rect, &snes_ovl_stroke_rect, &snes_ovl_draw_text};
     if (!g_visible) {
         g_native_menu_motion = {};
+        g_native_menu_motion_root_presents = 0;
         return ur::product::render_baldosa_native_run_save_feedback(
             painter, reinterpret_cast<std::uint32_t*>(dst),
             static_cast<int>(pitch / 4), height, g_run_save_feedback) ? 1 : 0;
@@ -1267,20 +1269,28 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
             !view.options_open && !view.read_only_records_open &&
             !view.two_seat_join_open && !view.first_racer_open &&
             !view.unbound_two_player_warning_open;
+        if (!root_focus_visible) g_native_menu_motion_root_presents = 0;
+        const char* capture_advance =
+            std::getenv("UR_MODERN_MENU_TEST_ADVANCE_PER_PRESENT");
+        const bool stepped_capture = capture_advance &&
+            std::strcmp(capture_advance, "1") == 0;
         const char* reduced = std::getenv("UR_REDUCED_MOTION");
         const bool reduced_motion =
             reduced && std::strcmp(reduced, "1") == 0;
         const auto phase = ur::product::advance_modern_menu_motion(
             g_native_menu_motion,
-            {ur::product::modern_menu_resolve_test_tick60(
+            {ur::product::modern_menu_capture_test_tick60(
                  ur::product::modern_menu_tick60(
                      static_cast<std::uint64_t>(SDL_GetTicks())),
-                 std::getenv("UR_MODERN_MENU_TEST_TICK60")),
+                 std::getenv("UR_MODERN_MENU_TEST_TICK60"),
+                 stepped_capture, g_native_menu_motion_root_presents),
              static_cast<std::uint8_t>(
                  ur::product::modern_root_destination_index(
                      ur::product::modern_root_menu_selected(g_menu))),
              root_focus_visible, reduced_motion});
         if (root_focus_visible) {
+            if (g_native_menu_motion_root_presents < UINT64_MAX)
+                ++g_native_menu_motion_root_presents;
             (void)ur::product::paint_modern_menu_selection_motion(
                 painter, reinterpret_cast<std::uint32_t*>(dst),
                 static_cast<int>(pitch / 4), height, 1,

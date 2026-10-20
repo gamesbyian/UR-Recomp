@@ -54,7 +54,7 @@ def patch(source:str)->str:
             raise ValueError('RF080 exact source recorder layout changed')
     original_write_count=source.count('write(2, line, (size_t)n);')
     original_emit_count=source.count('ur_rf047_emit(')
-    res=source.replace(HEADER,HEADER+'#include <fcntl.h>\n',1)
+    res=source.replace(HEADER,HEADER+'#include <fcntl.h>\n#include <stdlib.h>\n',1)
     res=res.replace(EMIT,PATCH+EMIT,1)
     res=res.replace(TAIL,'  ur_rf080_source_event_write(line,(size_t)n);\n'+TAIL,1)
     if (res.count(STAMP)!=1 or

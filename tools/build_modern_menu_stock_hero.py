@@ -21,7 +21,11 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
-from prototype_racer_hd_replacement import build_stock_rgba
+from prototype_racer_hd_replacement import (
+    alpha_contact_anchor_x2_y2,
+    build_stock_rgba,
+    object_flip_pivot_x2_y2,
+)
 
 MANIFEST = ROOT / "analysis/data/racer-hd-replacement-prototype.json"
 SOURCE = ROOT / "analysis/generated/racer-presentation-family.json"
@@ -91,6 +95,13 @@ def verified_clip(rom: bytes, registry: dict, source: dict) -> tuple[list[dict],
         opaque = sum(bool(p >> 24) for p in argb)
         if opaque < 100 or opaque > 2000:
             raise ValueError("original pose alpha occupancy outside admission window")
+        anchor = entry.get("registration", {}).get("semantic_anchors", {})
+        stock_contact = alpha_contact_anchor_x2_y2(rgba, WIDTH, HEIGHT)
+        if (anchor.get("fixed_point_scale") != 2 or
+            stock_contact != anchor.get("wheel_contact_x2_y2") or
+            anchor.get("flip_pivot_x2_y2") !=
+                object_flip_pivot_x2_y2(WIDTH, HEIGHT)):
+            raise ValueError("source Original wheel contact or flip pivot disagrees with registration")
         report.append({
             "original_guest_frame": row["frame"],
             "representation_id": representation,
@@ -99,11 +110,20 @@ def verified_clip(rom: bytes, registry: dict, source: dict) -> tuple[list[dict],
             "source_rgba_sha256": hashlib.sha256(rgba).hexdigest(),
             "argb_fnv1a64": f"{source_digest(argb):016x}",
             "opaque_pixels": opaque,
+            "stock_contact_x2_y2": stock_contact,
+            "stock_flip_pivot_x2_y2": anchor["flip_pivot_x2_y2"],
             "composition_guards": entry["composition_guards"],
         })
         buffer.append(argb)
     if len({r["semantic_frame_id"] for r in report}) < 3:
         raise ValueError("source clip lacks qualified distinct poses")
+    signatures = [r["source_rgba_sha256"] for r in report]
+    # These pairs are byte-static in the measured Original guest: a single
+    # semantic state is held for two consecutive 60Hz frames.
+    if signatures[0] != signatures[1] or signatures[2] != signatures[3]:
+        raise ValueError("Original source retained static-pose pairs diverged")
+    if signatures[1] == signatures[2] or len(set(signatures)) < 3:
+        raise ValueError("Original source motion unexpectedly frozen")
     return report, buffer
 
 

@@ -10,6 +10,8 @@ until the full interactive procedure runs outside that development runner.
 
 The exact ZIP/sidecar verification described here is necessary but not sufficient for external beta. QA-04 in [ADVERSARIAL-QA-AND-RELEASE-READINESS.md](ADVERSARIAL-QA-AND-RELEASE-READINESS.md) additionally requires the same candidate on dissimilar physical Windows hardware with actual graphics, controller input, audio and ordinary player journeys (J-01/J-10). Attach build SHA, ZIP hash, OS/GPU/display/audio/driver/controller data and reproducible outcomes. Hosted offscreen Win32 and native ZIP extraction remain L2/L4 build evidence, not independent physical L5 hardware proof.
 
+For the **separate physical Windows QA-04 release witness campaign**, use [the private three-setup evidence packet procedure](QA04-PRIVATE-PHYSICAL-WINDOWS-WITNESS-PACKETS-20261019.md) and `tools/check_qa04_physical_windows_packets.py` after actually testing the same independently pinned package on distinct machines. It verifies original private attachment hashes and structural machine diversity, **not** real hardware automatically; QA-04 stays unverified until separate human review. These physical packets do not replace this verifier's full-shipping-ZIP format checks or make the four-member ROM-free Baldosa preview a full Windows shipping package.
+
 ## Purpose
 
 `tools/Test-URRecompPortable.ps1` accepts the exact private portable Windows

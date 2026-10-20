@@ -1,0 +1,62 @@
+{
+  "schema": "ur-qa01-rf062-four-archive-immutable-source-script-review-receipt/1",
+  "date": "2026-10-19",
+  "true_source_archives": {
+    "rf054_original_zip": {
+      "artifact_id": 12149640496,
+      "sha256": "3ccb209a92045e9e89113442e68af51b85a453a160a9b9efaf8ca0d59e79631c",
+      "members": 18
+    },
+    "rf062_native_zip": {
+      "artifact_id": 12214214743,
+      "sha256": "b8287234d2fe515ee32b19b3d2a9b0e1bb58104b437de3a5cbe2e32e3af093ff",
+      "members": 407
+    },
+    "rf062_binaries_zip": {
+      "artifact_id": 12215541266,
+      "sha256": "5d6ffbf1313d83961f496f3c7dc83021323d76fcd977dfc2662ef9afbf6c7b46",
+      "members": 5
+    },
+    "rf062_3frame_raw_zip": {
+      "artifact_id": 12216270293,
+      "sha256": "85b8585539001210e4a9d2b22e5484034679fbda5d40808300d221e1ec583aed",
+      "members": 431
+    }
+  },
+  "independent_archive_only_verification": {
+    "run_id": 39318682289,
+    "conclusion": "success",
+    "artifact_id": 12219177786,
+    "verdict_zip_sha256": "351d2971745afedbdb46a8601f274ff2bf176546b72f18c053a53ec766403ad2",
+    "json_sha256": "71faa14164297881e98a7b00baeb92bc0590b54918a2d9b431cf4be4c03c9714",
+    "all_four_member_CRCs_verified": true
+  },
+  "no_raw_script_sha256": "1eb3e8416b7fa40935d097c78d281ca98537c9a555e23f1906a99912dcdb2c52",
+  "raw_script_sha256": "92012c94af3a27c54144e34c9d1d7a6cdb97ddf3e519d3f24c375c7c76bf6bc2",
+  "script_source_delta": {
+    "commands_only_added": [
+      "dump qa01-frame-005105",
+      "dump qa01-frame-005106",
+      "dump qa01-frame-005107"
+    ],
+    "original_wait_frame_total": 20,
+    "raw_partition_wait_frames": [
+      5,
+      1,
+      1,
+      13
+    ],
+    "other_control_commands_changed": false,
+    "original_supplied_guest_input_bytes_identical_between_two_native_case_archives": true,
+    "native_supplied_guest_input_bytes_identical_between_two_native_case_archives": true
+  },
+  "strict_original_script_SHA_input_equality_passed": false,
+  "strict_original_reviewer_rejected_for_known_changed_script": true,
+  "semantic_instr_observer_noninterference_proven": false,
+  "cold_record_reload_on_changed_script_proven": false,
+  "original_native_synchronized_instruction_phase_proven": false,
+  "native_656_to_655_helper_shift_explained_as_benign": false,
+  "USA_complete_events_accepted": 0,
+  "Windows_release_QA_gates": 0,
+  "adjudication": "HOLD. Exact 4 immutable archives and script-only source textual delta qualified; true cold replay script SHA mismatch and observer effects remain unresolved"
+}

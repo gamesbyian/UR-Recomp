@@ -2577,6 +2577,7 @@ def run_native_prewrite_intent_abandon(
     hostile.mkdir()
     sentinel = hostile / "foreign-entry-do-not-delete.bin"
     sentinel.write_bytes(b"foreign recovery evidence must survive refusal")
+    foreign_before = sentinel.read_bytes()
     refused = subprocess.run(
         command, cwd=out, env=clean, capture_output=True, text=True,
         errors="replace", timeout=timeout)
@@ -2591,9 +2592,16 @@ def run_native_prewrite_intent_abandon(
         raise ValueError(
             "Original Win32 guest did not refuse occupied forensic archive: " +
             refusal_log[-900:])
-    if ({name: path.read_bytes() for name, path in sources.items()} != before or
-        not pending.is_file() or pending.read_bytes() != intent or
-        sentinel.read_bytes() != b"foreign recovery evidence must survive refusal" or
+    # Capture independent binary receipts from the ACTUAL rejected original
+    # process before removing our disposable collision. This allows QA to
+    # compare canonical, pending and foreign obstruction bytes at the cut,
+    # rather than relying only on assertions in this producer.
+    refused_canonical = {name: path.read_bytes() for name, path in sources.items()}
+    refused_pending = pending.read_bytes() if pending.is_file() else None
+    foreign_refused = sentinel.read_bytes() if sentinel.is_file() else None
+    if (refused_canonical != before or
+        refused_pending != intent or
+        foreign_refused != foreign_before or
         list(profile.glob("native-sram-uncommitted-*.txt")) != [hostile] or
         list(user_root.rglob("*.urrun"))):
         raise ValueError(
@@ -2658,12 +2666,29 @@ def run_native_prewrite_intent_abandon(
     hashes["intent.uncommitted-archive.bin"] = {
         "sha256": hashlib.sha256(retained_archive).hexdigest(),
         "bytes": len(retained_archive)}
+    # Seven extra original Win32 refusal-stage witnesses. The first four are
+    # the full canonical pair/selector/catalog, the fifth is the *pending*
+    # guest-authored NEW intent, and the last two prove the disposable
+    # foreign file survived the actual failed original game boot.
+    refusal_bytes = {
+        **{f"{label}.archive-refused.bin": data
+           for label, data in refused_canonical.items()},
+        "intent.archive-refused.bin": refused_pending,
+        "foreign-sentinel.before.bin": foreign_before,
+        "foreign-sentinel.archive-refused.bin": foreign_refused,
+    }
+    if any(data is None for data in refusal_bytes.values()):
+        raise ValueError("F1 archive collision missing exact refusal bytes")
+    for name, data in refusal_bytes.items():
+        (evidence / name).write_bytes(data)
+        hashes[name] = {
+            "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data)}
     (evidence / "file-receipt.json").write_text(
         json.dumps(hashes, sort_keys=True, indent=2) + "\n",
         encoding="utf-8")
-    if (len(hashes) != 18 or
+    if (len(hashes) != 25 or
         any(stages[i] != before for i in (0, 1))):
-        raise ValueError("F1 prewrite evidence export incomplete")
+        raise ValueError("F1 prewrite + collision evidence export incomplete")
     return {
         "genuine_original_win32_guest_frame": 1952,
         "source_process_cut_after_durable_intent": 84,
@@ -2673,7 +2698,8 @@ def run_native_prewrite_intent_abandon(
         "exact_uncommitted_guest_intent_archived_before_retirement": True,
         "original_win32_prewrite_archive_name_collision_refused_without_loss": True,
         "two_native_cold_boots_same_committed_generation": True,
-        "all_18_evidence_files_SHA256_bound": True,
+        "all_25_evidence_files_SHA256_bound": True,
+        "actual_win32_collision_canonical_and_foreign_byte_receipts": True,
         "release_gate_credit": 0,
     }
 

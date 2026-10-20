@@ -283,3 +283,45 @@ must remain a dedicated first render/edge owner. The root's changed
 selected-state motion, 320×204 wide panel, source-derived cursor,
 child modal contracts, and independent final-output screenshot
 instrumentation belong to #2038, #2040, #2042 and #2041 respectively.
+
+## Exact-head full native title acceptance: final green owner candidate
+
+Branch commit `bebab7c426564156640e1849c79ecb5f635f0912`
+passes **all three** required native checks, each on exactly this
+branch, not older source or an unrelated synthetic fallback:
+
+- [Tooling unit run 39484356608](https://github.com/gamesbyian/UR-Recomp/actions/runs/39484356608): success, including real compiled C++ retail title bitmap CRC, 342/256 safety, physical-held A/Start/Enter, reduced-motion stage and native QA verifier regression contracts.
+- [Baldosa exact pinned Win32 x64 AOT run 39484356731](https://github.com/gamesbyian/UR-Recomp/actions/runs/39484356731): **success**, including the actual unchanged extracted Windows CMD launcher, original guest and profile/save journeys, title-specific acceptance and PE dependencies. Pinned Windows game executable SHA256 `40dcea66009e6a84eef7df51f447c626bf94fbc6393048c52727276fcbd23425`.
+- [Native authority/staging 39484356639](https://github.com/gamesbyian/UR-Recomp/actions/runs/39484356639): success, pinned host source and whitelist intact.
+
+The exact title screenshot/guest-frame evidence is stored in the
+Windows run's 14-day retained artifact
+`modern-title-native-source-pr2043` (**artifact ID 12292508492**).
+I downloaded and independently inspected the four source-bound
+`native-title-receipt.json` files:
+
+| Actual Windows process | Painter captures | Real host-presented RGB matches | Accepted |
+| --- | --- | --- | --- |
+| Modern native widescreen, 342×224 | guest title 48, root 80 | 11 native presentations, original title ROI 1.000, root panel ROI 1.000; title present32, root present80 | **Yes** |
+| Modern 960×720 4:3 window, native 256×224 | guest title 48, root 80 | 11 native presentations, independent original title ROI 1.000, root panel ROI 1.000; title present32, root present80 | **Yes** |
+| `UR_REDUCED_MOTION=1` at widescreen | guest title16, root64 | 11 native presentations, title ROI 1.000 on all pre-confirm frames16/32/48, root ROI 1.000; normal 14-frame motion intentionally bypassed | **Yes** |
+| `UR_EXECUTION_MODE=authentic` Modern root toggle `0` vs `1`, same source PE | **180** original guest frames in each run | All **11** overlapping real 256×224 host-presented RGB frames exactly identical; WRAM CRC timeline SHA256 `d1322d5d99e57113b9af6b7695b084beada390938d7b1015531eccadc2ca5847`; no Modern ink | **Yes** |
+
+All 3 Modern launches share the verified same executable digest
+and use independent user-data directories and original USA retail ROM
+checksum `859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478`.
+The title's actual original retail logo pixels were verified inside
+each source raster; independent P6 comparisons protect against source
+pixels that never reach the native host compositor. The Authentic test
+only certifies 180 bounded frames of **same-executable Modern-hook
+inertness**, without claiming a cycle-accurate snesref oracle.
+
+**Disposition:** The title owner's native implementation and its unit /
+AOT / 4:3 / reduced motion / Authentic source-buffer acceptance are
+**complete and green** on this pinned branch. The independent #2041
+GPU/SDL *final drawable*, 4K/physical pad and human visual review are
+still open. The integration rehearsal #2053 must reconcile its
+currently older title/host/capture code with these owner blobs while
+retaining sibling #2038, #2040 and #2042 menu/cursor/animation
+contracts. Do not promote the merged release gates or merge this PR
+based solely on isolated title-native checks.

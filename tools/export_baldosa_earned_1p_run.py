@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 import re
 import os
@@ -33,11 +34,34 @@ def _regular_bytes(path: Path, limit: int) -> bytes:
     return data
 
 
+def _unique_report_fields(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    """Do not allow last-wins JSON keys to forge a qualified source journey."""
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError('Duplicate earned-run source report key: ' + key)
+        result[key] = value
+    return result
+
+
+def _finite_report_float(token: str) -> float:
+    value = float(token)
+    if not math.isfinite(value):
+        raise ValueError('Nonfinite earned-run source report number: ' + token)
+    return value
+
+
+def _reject_report_constant(token: str) -> None:
+    raise ValueError('Nonfinite earned-run source report constant: ' + token)
+
+
 def export(journey: Path, destination: Path) -> dict[str, object]:
     if journey.is_symlink() or not journey.is_dir():
         raise ValueError('Missing/redirected native Windows journey')
     report_bytes = _regular_bytes(journey / 'report.json', MAX_REPORT_BYTES)
-    report = json.loads(report_bytes)
+    report = json.loads(report_bytes, object_pairs_hook=_unique_report_fields,
+                        parse_float=_finite_report_float,
+                        parse_constant=_reject_report_constant)
     if not isinstance(report, dict) or report.get('scope') != SOURCE_SCOPE or any(
         report.get(key) is not True for key in (
             'first_game_created_first_named_racer',

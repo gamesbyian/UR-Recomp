@@ -83,6 +83,49 @@ class OriginalStockCursorTests(unittest.TestCase):
         self.assertTrue(all(record["opaque_pixels"] >= 1024
                             for record in evidence if "opaque_pixels" in record))
 
+    def test_oam_flip_is_applied_to_entire_32px_sprite(self):
+        dumps, _ = fixture()
+        d = dumps[0]
+        sprite = next(s for s in cursor.mvl.sprites(d.oam)
+                      if s["palette"] == 7)
+        # Unique top-left ink from just the first CHR tile. Every other
+        # raster pixel is transparent. A tile-wise flip would leave this
+        # at (7,0), not the genuine whole-sprite endpoint (31,0).
+        vram = bytearray(len(d.vram))
+        vram[sprite["tile"] * 32] = 0x80
+        d.vram = bytes(vram)
+
+        def paint(flips):
+            oam = bytearray(d.oam)
+            oam[3] = (oam[3] & 0x3F) | flips
+            d.oam = bytes(oam)
+            frame = bytearray(cursor.CANVAS * cursor.CANVAS * 4)
+            cursor.draw_sprite(d, sprite, frame, 0, 0)
+            opaque = [(x, y) for y in range(cursor.CANVAS)
+                      for x in range(cursor.CANVAS)
+                      if frame[(y * cursor.CANVAS + x) * 4 + 3]]
+            return opaque
+
+        self.assertEqual(paint(0), [(0, 0)])
+        self.assertEqual(paint(0x40), [(31, 0)])
+        self.assertEqual(paint(0x80), [(0, 31)])
+        self.assertEqual(paint(0xC0), [(31, 31)])
+
+    def test_oam_flip_change_inside_two_tick_hold_is_rejected(self):
+        dumps, contract = fixture()
+        bad = deepcopy(dumps)
+        attr = bytearray(bad[1].oam)
+        attr[3] ^= 0x40
+        bad[1].oam = bytes(attr)
+        with self.assertRaisesRegex(ValueError, "hold changed OAM flipping"):
+            cursor.verify_source_frames(bad, contract)
+        bad = deepcopy(dumps)
+        attr = bytearray(bad[32].oam)
+        attr[3] ^= 0x80
+        bad[32].oam = bytes(attr)
+        with self.assertRaisesRegex(ValueError, "cycle OAM flips diverged"):
+            cursor.verify_source_frames(bad, contract)
+
     def test_nonzero_obj_name_base_and_secondary_name_page(self):
         dumps, contract = fixture()
         _, original_evidence = cursor.reconstruct(dumps, contract)

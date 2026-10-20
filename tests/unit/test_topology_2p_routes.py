@@ -36,13 +36,13 @@ class TopologyTwoPlayerCaptureTest(unittest.TestCase):
             for profile in D.ROUTES:
                 with self.subTest(course=course, profile=profile):
                     out, evidence = m.produce(source, course, profile)
-                    self.assertIn("dump cinematic-go\\n", out)
-                    self.assertIn("dump cinematic-lead\\n", out)
-                    self.assertIn("dump cinematic-middle\\n", out)
-                    self.assertIn("dump cinematic-late\\n", out)
-                    self.assertEqual(out.count("until 0E1F != 00\\n"), 1)
+                    self.assertIn("dump cinematic-go\n", out)
+                    self.assertIn("dump cinematic-lead\n", out)
+                    self.assertIn("dump cinematic-middle\n", out)
+                    self.assertIn("dump cinematic-late\n", out)
+                    self.assertEqual(out.count("until 0E1F != 00\n"), 1)
                     self.assertEqual(out.count("until 00CE =="), 1)
-                    self.assertEqual(out.count("quit\\n"), 1)
+                    self.assertEqual(out.count("quit\n"), 1)
                     self.assertFalse(evidence["topology_visually_verified"])
                     self.assertFalse(evidence["2p_tour_track_navigation_executed"])
 

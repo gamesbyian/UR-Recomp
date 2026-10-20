@@ -133,7 +133,7 @@ inline bool modern_menu_paint_source_text(
     const ModernMenuSourcePixels& atlas, ModernMenuSourceSheet sheet,
     std::uint32_t* destination, std::size_t destination_count,
     int stride, int height, int left, int top,
-    std::string_view value, int scale) noexcept {
+    std::string_view value, int scale, int heading_word_gap_px = 16) noexcept {
     if (sheet != ModernMenuSourceSheet::Heading &&
         sheet != ModernMenuSourceSheet::Detail) return false;
     const int cw = sheet == ModernMenuSourceSheet::Heading ? 16 : 8;
@@ -145,15 +145,23 @@ inline bool modern_menu_paint_source_text(
                             static_cast<std::size_t>(height) ||
         left < 0 || top < 0 || scale < 1 || scale > 4 ||
         value.empty() || value.size() > 256 ||
-        static_cast<std::int64_t>(left) +
-            static_cast<std::int64_t>(value.size()) * cw * scale > stride ||
+        (sheet == ModernMenuSourceSheet::Heading &&
+         heading_word_gap_px != 8 && heading_word_gap_px != 16) ||
         static_cast<std::int64_t>(top) + 16 * scale > height)
         return false;
+    // Stock BG2 has both 8px (rider title) and 16px (main/options)
+    // word gaps despite the fixed 16px heading glyph width. Preflight the
+    // entire string against the selected source-measured pitch.
+    std::int64_t text_width = 0;
     for (char c : value) {
         const int index = sheet == ModernMenuSourceSheet::Heading
             ? modern_menu_heading_slot(c) : modern_menu_detail_slot(c);
         if (index == -1) return false;
+        text_width += sheet == ModernMenuSourceSheet::Heading && c == ' '
+            ? heading_word_gap_px : cw;
     }
+    if (static_cast<std::int64_t>(left) + text_width * scale > stride)
+        return false;
     // Validate all referenced alpha up front to avoid partial rendering in
     // case a non-source atlas with unsupported translucent pixels sneaks in.
     for (char c : value) {
@@ -169,14 +177,16 @@ inline bool modern_menu_paint_source_text(
                 if (alpha != 0 && alpha != 255) return false;
             }
     }
-    for (std::size_t n = 0; n < value.size(); ++n) {
+    int pen_x = left;
+    for (char c : value) {
         const int index = sheet == ModernMenuSourceSheet::Heading
-            ? modern_menu_heading_slot(value[n]) : modern_menu_detail_slot(value[n]);
-        if (index == -2) continue;
-        if (!modern_menu_paint_source_cell(
+            ? modern_menu_heading_slot(c) : modern_menu_detail_slot(c);
+        if (index != -2 &&
+            !modern_menu_paint_source_cell(
                 atlas, sheet, destination, destination_count,
-                stride, height, left + static_cast<int>(n) * cw * scale,
-                top, index, scale)) return false;
+                stride, height, pen_x, top, index, scale)) return false;
+        pen_x += (sheet == ModernMenuSourceSheet::Heading && c == ' '
+            ? heading_word_gap_px : cw) * scale;
     }
     return true;
 }

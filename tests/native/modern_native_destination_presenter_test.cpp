@@ -137,7 +137,15 @@ int main() {
                                              1,240,original,v));
     assert(has("> VSYNC    < ON >"));
     assert(has("SAVED") && has("OPTIONS"));
+    assert(has("L/R CHANGE   B BACK"));
     clear();
+    v.options_selected = 3; // Controls opens with A, not left/right
+    assert(render_modern_native_destination(painter,scratch,256,224,
+                                             1,240,original,v));
+    assert(has("A SELECT   B BACK"));
+    assert(!has("L/R CHANGE   B BACK"));
+    clear();
+    v.options_selected = 1;
     v.options_controls_help = true;
     assert(render_modern_native_destination(painter,scratch,256,224,
                                              1,240,original,v));

@@ -39,7 +39,7 @@ jobs:
           python3 tools/showcase/audit_dynamic_native_2p.py \
             --publish "$root/published" \
             --route-manifest "$root/routes/topology-candidate-manifest.json" \
-            --native-sha "$root/working/native-binary-sha256.txt" \
+            --salvage-artifact-without-native-binary-hash \
             --rom-sha 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478 \
             --source-sha 447f8acc59a1196c6619ad47d0af659ad22aa6fa \
             --work-root "$root/working" \

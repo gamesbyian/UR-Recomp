@@ -55,10 +55,10 @@ class ModernMenuMotionTest(unittest.TestCase):
              source["transition_main_to_options"][
                  "enter_velocity_px_per_frame"]),
         ):
-            pattern = rf"\\b{name}\\s*\\{{\\{{(.*?)\\}}\\}};"
+            pattern = rf"\b{name}\s*\{{\{{(.*?)\}}\}};"
             match = re.search(pattern, header, flags=re.DOTALL)
             self.assertIsNotNone(match, name)
-            observed = [int(x) for x in re.findall(r"\\b\\d+\\b",
+            observed = [int(x) for x in re.findall(r"\b\d+\b",
                                                      match.group(1))]
             self.assertEqual(observed, expected)
         self.assertTrue(source["cursor"]["move_response_same_frame"])

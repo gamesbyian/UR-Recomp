@@ -17,14 +17,14 @@ qa = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(qa)
 
 
-def png(width=4, height=3):
+def png(width=4, height=3, *, raw=None, compressed=None):
     def chunk(tag, payload):
         return (struct.pack(">I", len(payload)) + tag + payload +
                 struct.pack(">I", zlib.crc32(tag + payload) & 0xFFFFFFFF))
     header = struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0)
-    pixels = b"".join(b"\x00" + b"\xff\x21\x42\xff" * width for _ in range(height))
+    pixels = b"".join(b"\\x00" + b"\\xff\\x21\\x42\\xff" * width for _ in range(height)) if raw is None else raw
     return (qa.PNG_SIG + chunk(b"IHDR", header) +
-            chunk(b"IDAT", zlib.compress(pixels)) + chunk(b"IEND", b""))
+            chunk(b"IDAT", compressed if compressed is not None else zlib.compress(pixels)) + chunk(b"IEND", b""))
 
 
 def sha(data):
@@ -90,6 +90,26 @@ class IndependentVisualBundleTest(unittest.TestCase):
         self.entry["png_sha256"] = sha(altered)
         with self.assertRaisesRegex(qa.CaptureError, "CRC"):
             self.run_audit()
+
+    def test_crc_valid_but_broken_compressed_raster_rejected(self):
+        forged = png(compressed=b"bogus-compressed-data")
+        self.root.joinpath("capture.png").write_bytes(forged)
+        self.entry["png_sha256"] = sha(forged)
+        with self.assertRaisesRegex(qa.CaptureError, "PNG image data"):
+            self.run_audit()
+
+    def test_crc_valid_but_invalid_filter_and_truncated_raster_rejected(self):
+        scanline = b"\x00" + b"\x22\x33\x44\xff" * 4
+        for raw, expected in [
+            (b"\x05" + scanline[1:] + scanline * 2, "scanline filter"),
+            (scanline, "invalid/truncated PNG image raster"),
+        ]:
+            with self.subTest(expected=expected):
+                forged = png(raw=raw)
+                self.root.joinpath("capture.png").write_bytes(forged)
+                self.entry["png_sha256"] = sha(forged)
+                with self.assertRaisesRegex(qa.CaptureError, expected):
+                    self.run_audit()
 
     def test_wrong_dimensions_rejected(self):
         other = png(8, 6)

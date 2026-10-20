@@ -38,14 +38,14 @@ def read_pam(path: Path, expected_width: int = 342) -> tuple[int, int, bytes]:
     return width, height, payload
 
 
-def read_present_ppm(path: Path) -> tuple[int, int, bytes]:
+def read_present_ppm(path: Path, expected_width: int = 342) -> tuple[int, int, bytes]:
     raw = path.read_bytes()
     match = PPM_HEADER.match(raw)
     if match is None:
         raise ValueError(f"{path}: not a host P6 presented screenshot")
     w, h = (int(x) for x in match.groups())
     payload = raw[match.end():]
-    if w != 342 or h != 224 or len(payload) != w * h * 3:
+    if w != expected_width or h != 224 or len(payload) != w * h * 3:
         raise ValueError(f"{path}: invalid host-presented raster dimensions")
     return w, h, payload
 
@@ -65,7 +65,8 @@ def _pixel_match(reference: bytes, output: bytes,
     return matched / (rw * rh)
 
 
-def verify_native_presented_frames(present_dir: Path, source_dir: Path) -> dict:
+def verify_native_presented_frames(
+    present_dir: Path, source_dir: Path, expected_width: int = 342) -> dict:
     """Require both title and root to reach the real host's present path.
 
     SNESRecomp's WritePpm is AFTER RtlDrawPpuFrame/ComposeOsd and BEFORE
@@ -91,17 +92,18 @@ def verify_native_presented_frames(present_dir: Path, source_dir: Path) -> dict:
         if len(row["crc32"]) != 8:
             raise ValueError("missing native presented CRC")
         file = present_dir / f"present_{index:06d}.ppm"
-        width, height, rgb = read_present_ppm(file)
+        width, height, rgb = read_present_ppm(file, expected_width)
         photos.append((frame, rgb, file))
     matches = {}
     for stage, bounds in (
-        ("title", ((342 - 238) // 2, 27, 238, 81)),
-        ("root", (61, 17, 218, 142)),
+        ("title", ((expected_width - 238) // 2, 27, 238, 81)),
+        ("root", ((expected_width - 240) // 2 + 10, 17, 218, 142)),
     ):
         _, _, source = read_pam(source_dir /
-                               f"modern-native-{stage}-342x224.pam")
+                               f"modern-native-{stage}-{expected_width}x224.pam",
+                               expected_width)
         best = max(
-            (( _pixel_match(source, rgb, 342, bounds), frame, file)
+            ((_pixel_match(source, rgb, expected_width, bounds), frame, file)
              for frame, rgb, file in photos),
             key=lambda result: result[0])
         ratio, frame, file = best
@@ -144,7 +146,8 @@ def retail_art_digest(width: int, rgba: bytes) -> int:
     return fnv_pixels(bgr)
 
 
-def validate_native_capture(folder: Path, log: str, *, exe_sha256: str) -> dict:
+def validate_native_capture(
+    folder: Path, log: str, *, exe_sha256: str, expected_width: int = 342) -> dict:
     witness = (
         "UR_BALDOSA_MODERN_ROOT opened=1",
         "UR_BALDOSA_MODERN_TITLE native_p1_start=1 frame=60",
@@ -159,9 +162,9 @@ def validate_native_capture(folder: Path, log: str, *, exe_sha256: str) -> dict:
         prev = pos
     output = {"executable_sha256": exe_sha256, "captures": []}
     for stage in ("title", "root"):
-        name = f"modern-native-{stage}-342x224.pam"
+        name = f"modern-native-{stage}-{expected_width}x224.pam"
         file = folder / name
-        w, h, rgba = read_pam(file)
+        w, h, rgba = read_pam(file, expected_width)
         if len(set(rgba)) < 3:
             raise ValueError(f"{name}: implausibly uniform native image")
         stamp = re.search(
@@ -196,6 +199,8 @@ def main() -> int:
     parser.add_argument("--script", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--timeout", type=int, default=100)
+    parser.add_argument("--aspect", choices=("wide", "4:3"), default="wide",
+                        help="actual native SDL drawable shape, not crop")
     args = parser.parse_args()
     if os.name != "nt":
         parser.error("real Windows AOT title capture requires Windows runner")
@@ -220,7 +225,9 @@ def main() -> int:
     framedump = target / "framedump"
     framedump.mkdir()
     config = target / "config.ini"
-    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="utf-8")
+    config.write_text("[Sound]\nEnableAudio = 0\n" +
+                      ("[Graphics]\nWindowSize = 960x720\n"
+                       if args.aspect == "4:3" else ""), encoding="utf-8")
     environment = dict(os.environ)
     environment.update({
         "SDL_VIDEODRIVER": "dummy",
@@ -251,8 +258,12 @@ def main() -> int:
     if result.returncode != 0:
         raise RuntimeError(f"native title process exit {result.returncode}: {log[-2400:]}")
     exe_hash = hashlib.sha256(image).hexdigest()
-    receipt = validate_native_capture(captures, log, exe_sha256=exe_hash)
-    receipt["native_presented"] = verify_native_presented_frames(presented, captures)
+    expected_width = 256 if args.aspect == "4:3" else 342
+    receipt = validate_native_capture(
+        captures, log, exe_sha256=exe_hash, expected_width=expected_width)
+    receipt["native_presented"] = verify_native_presented_frames(
+        presented, captures, expected_width=expected_width)
+    receipt["drawable_aspect"] = args.aspect
     import json
     (target / "native-title-receipt.json").write_text(
         json.dumps(receipt, indent=2) + "\n", encoding="utf-8")

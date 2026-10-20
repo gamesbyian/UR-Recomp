@@ -61,7 +61,7 @@ class StockHeroOriginalExtractionTest(unittest.TestCase):
             for row in result["frames"]:
                 image = pngs / f"original-stock-{row['original_guest_frame']:04d}.png"
                 raster = image.read_bytes()
-                self.assertEqual(raster[:8], b"\\x89PNG\\r\\n\\x1a\\n")
+                self.assertEqual(raster[:8], bytes.fromhex("89504e470d0a1a0a"))
                 self.assertEqual(int.from_bytes(raster[16:20], "big"), 64)
                 self.assertEqual(int.from_bytes(raster[20:24], "big"), 64)
                 self.assertTrue(len(row["review_png_sha256"]) == 64)

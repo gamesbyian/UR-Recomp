@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 from verify_baldosa_modern_title_authentic_inert import (
     check_inert, source_wram_crcs, authentic_presents,
-    authentic_ink_visible,
+    authentic_ink_visible, retain_authentic_visible_frame,
 )
 
 
@@ -92,6 +92,36 @@ class TitleAuthenticInertTests(unittest.TestCase):
                 "present,frame,alpha,crc32\n0,16,0,12345678\n")
             with self.assertRaisesRegex(ValueError, "schema drift"):
                 authentic_presents(folder)
+
+    def test_exact_late_original_ppm_bytes_retained_only_once(self):
+        import hashlib
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            original = root / "authentic-root-disabled"
+            screenshots = original / "presented"
+            screenshots.mkdir(parents=True)
+            (screenshots / "presents.csv").write_text(
+                "present,frame,alpha,crc32,luma\n"
+                "0,320,0,00112233,100\n")
+            source_bytes = b"P6\n256 224\n255\n" + INK
+            (screenshots / "present_000000.ppm").write_bytes(source_bytes)
+            record = retain_authentic_visible_frame(
+                original, root, 320, "disabled")
+            retained = root / record["file"]
+            self.assertEqual(retained.read_bytes(), source_bytes)
+            self.assertEqual(record["sha256"],
+                             hashlib.sha256(source_bytes).hexdigest())
+            self.assertEqual(record["origin"],
+                             "actual_baldosa_post_osd_before_sdl_upload")
+            with self.assertRaisesRegex(ValueError, "already exists"):
+                retain_authentic_visible_frame(original, root, 320, "disabled")
+            retained.unlink()
+            (screenshots / "present_000000.ppm").write_bytes(
+                b"P6\n256 224\n255\n" + BLACK)
+            with self.assertRaisesRegex(ValueError, "uniform/blank"):
+                retain_authentic_visible_frame(original, root, 320, "disabled")
+            with self.assertRaisesRegex(ValueError, "missing or duplicated"):
+                retain_authentic_visible_frame(original, root, 319, "disabled")
 
     def test_windows_runner_hooks_remain_mode_gated(self):
         source = (ROOT / "tools/baldosa_native_modern_root.cpp").read_text()

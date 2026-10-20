@@ -117,7 +117,7 @@ def parse_row(line: str) -> tuple[str, dict] | None:
     return kind, row
 
 
-def summarize_trace(trace: str) -> dict:
+def summarize_trace(trace: str, *, require_full_window: bool = False) -> dict:
     if len(trace) > 24_000_000:
         raise ValueError("unbounded native observer output")
     source, final = {}, {}
@@ -142,6 +142,16 @@ def summarize_trace(trace: str) -> dict:
             final[key] = row
     if not source or not final:
         raise ValueError("missing actual source or final pixel observations")
+    renderers = {r["renderer"] for r in source.values()} | {
+        r["renderer"] for r in final.values()}
+    if len(renderers) != 1:
+        raise ValueError("mixed renderer identities across effective-PPU window")
+    if require_full_window:
+        expected = {(frame, x, y)
+                    for frame in range(5176, 5187) for x, y in POINTS}
+        main_keys = {key[:3] for key in source if key[3] == 0}
+        if main_keys != expected or set(final) != expected:
+            raise ValueError("incomplete 11-frame main-source/final window")
     results = []
     for x, y in POINTS:
         key = (5184, x, y)
@@ -248,7 +258,8 @@ def verify(on: Path, off: Path, original: Path, crc_on: Path, crc_off: Path,
         PREFIX_SOURCE, PREFIX_FINAL, PREFIX_SPAN_SOURCE, PREFIX_SPAN_FINAL,
         PREFIX_SPAN_OBJECT_OVERRIDE)):
         raise ValueError("OFF control contains unexpected effective observer")
-    result = summarize_trace(on.read_text(encoding="utf-8", errors="replace"))
+    result = summarize_trace(on.read_text(encoding="utf-8", errors="replace"),
+                             require_full_window=True)
     result.update({
         **archived,
         "original_inner_SHA256": ORIGINAL_ZIP,

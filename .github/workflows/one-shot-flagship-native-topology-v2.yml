@@ -1,0 +1,74 @@
+name: One-shot genuine topology upgrade for 85s flagship
+on:
+  push:
+    branches: [media/oct19-flagship-real-topology-v2]
+    paths: [.github/workflows/one-shot-flagship-native-topology-v2.yml]
+permissions:
+  contents: write
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install media-only dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg python3-pil
+          python3 -m py_compile tools/showcase/build_flagship_dynamic_course_v2.py
+      - name: Assemble 85s from unchanged audio and genuine Original-mode 2P race clips
+        run: |
+          python3 tools/showcase/build_flagship_dynamic_course_v2.py \
+            --flagship media/showcase/2026-10-19/flagship/ur-recomp-flagship-85s-1080p.mp4 \
+            --sources media/showcase/2026-10-19/dynamic-native-2p \
+            --outdir media/showcase/2026-10-19/flagship/
+      - name: Source, output hashes, exact frames and title/race transition audit
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json,subprocess
+          from PIL import Image
+          root=Path("media/showcase/2026-10-19/flagship")
+          m=json.loads((root/"dynamic-flagship-v2-provenance.json").read_text())
+          v=root/m["film"]
+          assert hashlib.sha256(v.read_bytes()).hexdigest()==m["sha256"]
+          assert m["frames"]==5100 and len(m["shots"])==6
+          assert sum(s["count"] for s in m["shots"])==5100
+          assert m["no_temporal_interpolation"] and m["unchanged_original_music"]
+          assert not m["complete_closed_loop_certified"] and not m["hill_climb_capture_certified"]
+          for frame in (675,945,4250,4430):
+             dest=root/f"native-course-v2-review-{frame:04d}.png"
+             subprocess.run(["ffmpeg","-nostdin","-hide_banner","-loglevel","error","-y",
+               "-i",str(v),"-vf",f"select=eq(n\\,{frame})",
+               "-vsync","vfr","-frames:v","1",str(dest)],check=True)
+             with Image.open(dest) as im:
+                assert im.size==(1920,1080)
+                im.load()
+             with Image.open(dest) as im: im.verify()
+             m.setdefault("output_review_frame_sha256",{})[dest.name]=hashlib.sha256(dest.read_bytes()).hexdigest()
+          (root/"dynamic-flagship-v2-provenance.json").write_text(json.dumps(m,indent=2,sort_keys=True)+"\n")
+          print("AUTHENTIC_NEW_COURSES_AND_85S_SOURCE_AUDIT_PASS",m["sha256"])
+          PY
+      - name: Keep decoded witnesses and encoded film for independent visual review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-locked-85s-native-topology-v2
+          path: |
+            media/showcase/2026-10-19/flagship/ur-recomp-flagship-85s-dynamic-courses-1080p.mp4
+            media/showcase/2026-10-19/flagship/dynamic-flagship-v2-provenance.json
+            media/showcase/2026-10-19/flagship/native-course-v2-review-*.png
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Publish and retire one-shot encoder
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add media/showcase/2026-10-19/flagship/
+          git rm -f .github/workflows/one-shot-flagship-native-topology-v2.yml
+          git commit -m "media: replace flat race shots with authentic vertical 2P course geometry"
+          git fetch origin "${GITHUB_REF_NAME}"
+          git rebase "origin/${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

@@ -163,6 +163,41 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
                                   "options", (1280, 720), "windows", 10,
                                   route="options-p1")
 
+    def test_authentic_control_disallows_modern_frontend_leak(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            stage = Path(tmp)
+            def fake_native(command, **kw):
+                env = kw["env"]
+                self.assertEqual(env["UR_EXECUTION_MODE"], "authentic")
+                self.assertEqual(env["UR_BALDOSA_MODERN_ROOT"], "1")
+                return subprocess.CompletedProcess(command, 0, stdout=(
+                    "[snes_load] name=UNIRACERS\\n"
+                    "UR_BALDOSA_MODERN_ROOT opened=1\\n"
+                    "UR_MODERN_VISUAL_SDL_CAPTURE refused=output-size "
+                    "draw=40 observed=640x480 requested=1280x720"),
+                    stderr="")
+            with patch.object(driver.subprocess, "run", side_effect=fake_native):
+                with self.assertRaisesRegex(RuntimeError, "leaked into Authentic"):
+                    driver.launch(stage / "exe", stage / "rom", stage,
+                                  "authentic", (1280, 720), "windows", 10,
+                                  route="authentic-stock")
+
+    def test_authentic_guest_allowed_without_modern_menu_art(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            stage = Path(tmp)
+            def fake_native(command, **kw):
+                return subprocess.CompletedProcess(command, 0, stdout=(
+                    "[snes_load] name=UNIRACERS\\n"
+                    "UR_MODERN_VISUAL_SDL_CAPTURE refused=output-size "
+                    "draw=40 observed=640x480 requested=1280x720"),
+                    stderr="")
+            with patch.object(driver.subprocess, "run", side_effect=fake_native):
+                result = driver.launch(stage / "exe", stage / "rom", stage,
+                                       "authentic", (1280, 720), "windows", 10,
+                                       route="authentic-stock")
+                self.assertEqual(result["execution_mode"], "authentic")
+                self.assertEqual(result["observed"], (640, 480))
+
     def test_unknown_route_fails_before_output_root_is_created(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

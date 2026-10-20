@@ -24,7 +24,8 @@ class FourKGeometryReference(unittest.TestCase):
         result = json.loads(subprocess.check_output([sys.executable, str(SCRIPT)], text=True))
         self.assertEqual(result['original']['physical_extent_exact'], ['2880','2160'])
         self.assertEqual(result['original']['physical_margins_exact'], ['480','0'])
-        self.assertEqual(result['wide']['physical_extent_exact'], ['3840','860160/399'])
+        self.assertEqual(F(result['wide']['physical_extent_exact'][0]), F(3840))
+        self.assertEqual(F(result['wide']['physical_extent_exact'][1]), F(860160,399))
         self.assertEqual(F(result['wide']['physical_margins_exact'][1]), F(840,399))
 
 if __name__ == '__main__':

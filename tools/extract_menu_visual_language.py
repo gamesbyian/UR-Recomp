@@ -210,7 +210,8 @@ def sprites(oam: bytes) -> list[dict]:
         if 224 <= y < 240 or not -64 < x < 256:
             continue
         out.append({"x": x, "y": y, "tile": tile | (attr & 1) << 8, "palette": (attr >> 1) & 7,
-                    "priority": (attr >> 4) & 3, "large": hi >> 1})
+                    "priority": (attr >> 4) & 3, "large": hi >> 1,
+                    "hflip": bool(attr & 0x40), "vflip": bool(attr & 0x80)})
     return out
 
 
@@ -615,7 +616,11 @@ def obj_sprite_rgba(d: Dump, sprite: dict) -> bytes:
             for py, row in enumerate(obj_tile_pixels(d, tile)):
                 for px, value in enumerate(row):
                     if value:
-                        offset = ((ty * 8 + py) * 32 + tx * 8 + px) * 4
+                        # A genuine OAM H/V flip transforms the completed
+                        # 32x32 sprite, not each 8px CHR tile in isolation.
+                        dst_x = 31 - (tx * 8 + px) if sprite.get("hflip") else tx * 8 + px
+                        dst_y = 31 - (ty * 8 + py) if sprite.get("vflip") else ty * 8 + py
+                        offset = (dst_y * 32 + dst_x) * 4
                         rgba[offset:offset + 4] = bytes(
                             bgr555(d.cgram, palette_base + value) + [255])
     return bytes(rgba)
@@ -671,6 +676,8 @@ def export_cursor_atlas(directory: Path, path: Path,
             "phase": phase,
             "source_obj_tile": tile,
             "source_tag": sample.tag,
+            "arrow_oam_hflip": next(s["hflip"] for s in sprites(sample.oam) if s["palette"] == 7),
+            "arrow_oam_vflip": next(s["vflip"] for s in sprites(sample.oam) if s["palette"] == 7),
             "ppu_sha256": {
                 ext: hashlib.sha256(Path(f"{stem}.{ext}.bin").read_bytes()).hexdigest()
                 for ext in ("vram", "cgram", "oam")

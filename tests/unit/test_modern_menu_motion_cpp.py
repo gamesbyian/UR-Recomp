@@ -40,6 +40,13 @@ class ModernMenuMotionTest(unittest.TestCase):
         self.assertIn("#if !__has_include(", baldosa)
         self.assertIn('#error "Opt-in original menu hero build requires', baldosa)
         self.assertIn("paint_modern_menu_selection_motion(", baldosa)
+        # A 342-wide owner build must not paint the moving focus relative
+        # to a different rectangle than the background shell. Integration
+        # may widen/recentre root_rect but must pass it to BOTH painters.
+        self.assertIn("const HostOverlayRect root_rect{8,10,240,204}", baldosa)
+        self.assertIn("root_rect, view);", baldosa)
+        self.assertIn("root_rect, phase);", baldosa)
+        self.assertNotIn("HostOverlayRect{(width - 240) / 2", baldosa)
         self.assertIn("!view.quit_confirm", baldosa)
         self.assertIn("!view.two_seat_join_open", baldosa)
 

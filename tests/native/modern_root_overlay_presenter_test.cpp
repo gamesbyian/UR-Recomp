@@ -173,8 +173,12 @@ int main() {
     assert(contains("> RECORDS"));
     assert(count("SOON") == 3);
     assert(contains("NOT YET AVAILABLE"));
-    assert(contains("RACER SETUP NOT YET LINKED"));
+    // No setup route is advertised for a host with no shortcut. The former
+    // "RACER SETUP NOT YET LINKED" was an internal false player instruction.
+    assert(!contains("RACER SETUP NOT YET LINKED"));
     assert(!contains("X/F2 RACERS   F1 HELP"));
+    assert(!contains("")); // do not issue an empty draw-text command
+    assert(contains("A/ENTER SELECT   B/ESC QUIT"));
     painted.clear();
     view.available_destinations = 0x1fu;
     view.racer_shortcuts_available = true;

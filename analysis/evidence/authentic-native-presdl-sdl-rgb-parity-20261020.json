@@ -75,5 +75,51 @@
     "integrated_redesign_title_accepted": false,
     "final_25_cases_accepted": 0,
     "release_gate_credit": 0
+  },
+  "revalidated_same_source_method": {
+    "workflow_run": 39485012221,
+    "artifact_id": 12293541719,
+    "verifier": "independent all-pixel nearest-centre read of retained raw P6/P7, before adding workflow enforcement",
+    "original_source_sha256": "a53524f883bf15bbc57297e3a8d5fd0670320aecbc165a6036a8ad316edbc6ee",
+    "cases": [
+      {
+        "output": [
+          1280,
+          720
+        ],
+        "p7_sha256": "2fd965fa672cf0f2ece5381b4bcbada2cd9bb761c6531bc6e867bde31b08a8b7",
+        "viewport": [
+          160,
+          0,
+          960,
+          720
+        ],
+        "matched_content_rgb_pixels": 691200,
+        "matched_outer_black_pixels": 230400,
+        "actual_output_pixels": 921600,
+        "nonzero_alpha_pixels": 0
+      },
+      {
+        "output": [
+          1024,
+          768
+        ],
+        "p7_sha256": "02e12619ff3692abbcd44c8fd4eb1805b33bc21aacc4d9e5caaefe5601e0aad2",
+        "viewport": [
+          0,
+          0,
+          1024,
+          768
+        ],
+        "matched_content_rgb_pixels": 786432,
+        "matched_outer_black_pixels": 0,
+        "actual_output_pixels": 786432,
+        "nonzero_alpha_pixels": 0
+      }
+    ],
+    "result": "exact RGB source-to-SDL mapping for every pixel at both aspect ratios",
+    "constraints": "no separate hardware compositor or emulated guest CRC oracle, no integrated redesign art verified",
+    "approved_final_cases": 0,
+    "release_gate_credit": 0
   }
 }

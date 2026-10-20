@@ -16,6 +16,7 @@ import tempfile
 import wave
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageStat
+from blue_trailer_art_direction import produce as produce_blue_assets
 
 ROOT = Path(__file__).resolve().parents[2]
 RECRUIT = ROOT / "media/showcase/2026-10-10/recruitment"
@@ -43,7 +44,6 @@ FILM = [
     ("title", 420, 90, "AUTHENTIC ORIGINAL GAME MENU", "capture"),
     ("reveal", 0, 420, "43 NEW WORLD COLUMNS PER SIDE", "editing"),
     ("race", 0, 240, "GENUINE 2P NATIVE RACE  /  SOURCE FRAMES 2100–2339", "capture"),
-    ("modern", 0, 600, "REAL MODERN ROOT CAPTURE  /  OCT 10 BUILD", "capture"),
     ("card_windows", 0, 300, "SCRIPTED WIN32 JOURNEYS  /  OCT 19 EVIDENCE", "editorial"),
     ("code", 0, 270, "VERIFIED 65816 MAINLOOP → GENERATED C", "editorial"),
     ("raster", 0, 180, "SOURCE RASTER ARCHAEOLOGY", "editorial"),
@@ -60,7 +60,6 @@ SHORT = [
     ("title", 270, 90, "THE ORIGINAL / 1994", "capture"),
     ("title", 420, 30, "AUTHENTIC CHECKERBOARD MENU", "capture"),
     ("reveal", 0, 420, "THE WORLD OPENS / ORIGINAL WIDE", "editing"),
-    ("modern", 0, 240, "A REAL MODERN FRONTEND CAPTURE", "capture"),
     ("code", 0, 120, "65816 → NATIVE C / VERIFIED SOURCE", "editorial"),
     ("race", 240, 360, "GENUINE TWO-PLAYER RACING", "capture"),
     ("card_cta", 0, 240, "JOIN THE REBUILD", "editorial"),
@@ -244,7 +243,7 @@ def make_film(shots,sources,cards,target,score,tmp,vertical=False):
             make_segment(input_path,start,frames,source_fps,caption,kind,part,vertical)
         parts.append(part)
         total+=round(frames/source_fps*FPS)
-    expected=27 if vertical else 85
+    expected=23 if vertical else 75
     assert total==expected*FPS,(total,expected)
     listing=tmp/"concat.txt"
     listing.write_text("".join("file '"+str(p.resolve())+"'\n" for p in parts))
@@ -276,11 +275,12 @@ def main():
     # fabricated Remastered gameplay still.
     with tempfile.TemporaryDirectory(prefix="ur-flagship-") as t:
         tmp=Path(t)
-        cards=make_cards(tmp)
+        produce_blue_assets(tmp / "blue-art")
+        cards={k:tmp/"blue-art"/(k.removeprefix("card_")+".png") for k in ("card_windows","card_4k","card_cta")}
         score=tmp/"original-flagship-score.wav"
         render_score(score)
-        master=a.outdir/"ur-recomp-flagship-85s-1080p.mp4"
-        vertical=a.outdir/"ur-recomp-flagship-27s-vertical.mp4"
+        master=a.outdir/"ur-recomp-blue-75s-1080p.mp4"
+        vertical=a.outdir/"ur-recomp-blue-23s-vertical.mp4"
         make_film(FILM,SOURCES,cards,master,score,tmp/"film")
         make_film(SHORT,SOURCES,cards,vertical,score,tmp/"short",vertical=True)
         im=Image.open(PAST_POSTER[0]).convert("RGB")
@@ -313,7 +313,7 @@ def main():
           "label":label,"classification":kind} for k,start,n,label,kind in SHORT],
         "output_sha256":{p.name:digest(p) for p in outputs},
         "claims_and_exclusions":claims,
-        "total_horizontal_frames":5100,"total_vertical_frames":1620,
+        "total_horizontal_frames":4500,"total_vertical_frames":1380,
         "no_interpolation":True,
         "editorial_cards_not_gameplay":True
     }

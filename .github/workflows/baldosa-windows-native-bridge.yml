@@ -31,6 +31,8 @@ on:
       - "tests/unit/test_baldosa_native_second_racer_probe.py"
       - "tools/baldosa_native_first_racer_real_run_probe.py"
       - "tests/unit/test_baldosa_native_first_racer_real_run_probe.py"
+      - "tools/export_baldosa_earned_1p_run.py"
+      - "tests/unit/test_export_baldosa_earned_1p_run.py"
       - "native/product/baldosa_native_first_profile.hpp"
       - "native/product/baldosa_native_second_profile.hpp"
       - "native/product/modern_root_overlay_presenter.hpp"
@@ -743,6 +745,15 @@ jobs:
             --video windows --timeout 240
           echo "PASS: ten original Practice courses (race, circuit and stunt; four tours per unlock state) entered with source course identity, plus a Practice game with native pause and delayed Restart rewinding to the race anchor with unchanged SRAM and two Practice games opening the shared Options panel from the frozen pause menu (SDL keys, then semantic P1 pad edges), on real Win32 native games; Hunter closed, saves unchanged, nothing published. Semantic pad edges; not all 45 and no physical-pad or release credit." >> "$GITHUB_STEP_SUMMARY"
 
+      # Both parallel and serial genuine Windows journeys generate this one run.
+      - name: Export original source-earned 1P run for independent QA
+        if: ${{ success() }}
+        run: |
+          set -euo pipefail
+          python tools/export_baldosa_earned_1p_run.py \
+            --journey "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_first_racer_earned_records" \
+            --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route/native_first_racer_earned_records/ci-owned-earned-1p-run"
+
       # Separate, bounded evidence for independent QA. The fixed strict
       # baldosa-win32-native-pause-evidence ZIP is deliberately NOT touched.
       # Only producer reports and the named native source logs of these two
@@ -899,6 +910,16 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/with_named_profile/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/corrupt_named_profile/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/different_named_profile/log.txt
+
+      # Separate from strict fixed-member QA12 ZIP; no ROM, executable or SRAM.
+      - name: Retain original source-earned 1P run for independent byte audit
+        if: ${{ always() && (github.event_name == 'pull_request' || inputs.parallel_journeys != true) }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-native-earned-1p-run
+          if-no-files-found: warn
+          retention-days: 14
+          path: ${{ runner.temp }}/UR Baldosa Win32 Pause Route/native_first_racer_earned_records/ci-owned-earned-1p-run/
 
       # Do NOT place pre-view bytes inside the independently fixed-members
       # baldosa-win32-native-pause-evidence ZIP. QA-12 #1549 rejects additional

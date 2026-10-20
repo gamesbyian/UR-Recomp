@@ -214,6 +214,19 @@ bool g_render_reported = false;
 unsigned g_paint_count = 0;
 // Presentation-only receipt: change of real root/child surface, not a route.
 std::string g_last_native_destination_stage;
+// This is evaluated every rendered menu frame. Store the last observed
+// geometry as POD to avoid constructing a formatted std::string and
+// allocating at 60Hz when only the source guest/UI is idling.
+struct NativeDestinationReceiptGeometry {
+    int raster_w = -1, raster_h = -1;
+    int x = -1, y = -1, w = -1, h = -1;
+    bool matches(int rw, int rh, ur::product::HostOverlayRect rect) const noexcept {
+        return raster_w == rw && raster_h == rh &&
+               x == rect.x && y == rect.y &&
+               w == rect.width && h == rect.height;
+    }
+};
+NativeDestinationReceiptGeometry g_last_native_destination_geometry{};
 int g_stock_target = -1;
 std::uint16_t g_stock_settle = 0;
 std::uint32_t g_stock_budget = 0;
@@ -1278,16 +1291,16 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         // correlate this stage with its independently captured final pixels.
         // No imagined controller events, synthetic results or guest writes.
         const char* stage = ur::product::modern_native_destination_stage(view);
-        // The same selected state can be resized 342->256 or vice versa
-        // without another controller edge. The source receipt must include
-        // geometry in its change identity or capture evidence goes stale.
-        const std::string stage_key = std::string(stage) + ":" +
-            std::to_string(width) + "x" + std::to_string(height) + ":" +
-            std::to_string(root_rect.x) + "," + std::to_string(root_rect.y) +
-            "," + std::to_string(root_rect.width) + "," +
-            std::to_string(root_rect.height);
-        if (g_last_native_destination_stage != stage_key) {
-            g_last_native_destination_stage = stage_key;
+        // The same named screen can resize 342->256 and back without
+        // another controller edge. Re-emit evidence for changed geometry,
+        // but do no heap formatting at 60Hz for an unchanged menu.
+        if (g_last_native_destination_stage != stage ||
+            !g_last_native_destination_geometry.matches(width, height,
+                                                         root_rect)) {
+            g_last_native_destination_stage = stage;
+            g_last_native_destination_geometry = {
+                width, height, root_rect.x, root_rect.y,
+                root_rect.width, root_rect.height};
             std::fprintf(stderr,
                 "UR_BALDOSA_MODERN_DESTINATION stage=%s "
                 "raster=%dx%d root=%d,%d,%d,%d "

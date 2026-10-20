@@ -885,7 +885,7 @@ def main() -> int:
         write_atlas(args.atlas_out, main_dump, char_base)
         if args.atlas_manifest_out:
             args.atlas_manifest_out.write_text(json.dumps(
-                original_big_font_manifest(args.atlas_out, main_dump), indent=2) + "\\n")
+                original_big_font_manifest(args.atlas_out, main_dump), indent=2) + "\n")
     if args.bg1_manifest_out and not args.bg1_out:
         ap.error("--bg1-manifest-out requires --bg1-out")
     if args.bg1_out:

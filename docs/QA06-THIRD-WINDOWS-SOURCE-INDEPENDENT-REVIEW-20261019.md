@@ -2,6 +2,8 @@
 
 **Decision: bounded source-qualified Windows engineering positive; release HOLD.** This is an independent offline byte review of the actual original Windows Actions archives, not physical playtesting or acceptance of any Windows release gate. Exact machine-readable SHA/denominator receipt: [qa06-third-windows-independent-candidate-20261019.json](../analysis/evidence/qa06-third-windows-independent-candidate-20261019.json).
 
+**Follow-on repeatability:** The fourth independently reviewed distinct Windows executable and source/ZIP/PE identity are consolidated alongside this one and two earlier builds in [the four-build Windows regression baseline](QA06-FOUR-WINDOWS-CANDIDATE-REGRESSION-BASELINE-20261019.md). That matrix is zero-credit evidence only, not a fourth release candidate nomination.
+
 ## Actual source and package (never splice versions)
 
 Original [successful Win32 run 39342967638](https://github.com/gamesbyian/UR-Recomp/actions/runs/39342967638) tested the **GitHub synthetic PR merge** `6179a312c50d304116dfe3f16e32d0641c1ba24e` with independently checked parent commits `c10d6e3a9ed0ca925d95330684f0e5226e0559b1` (then-main) and `94cf196f12fe617de3c89555ad668b4353824c0a` (Agent 5 PR #1990 head). This is **not** merged main and must not inherit or pass evidence on the old October 15 owner's source, or the separate `f7db1b92…` / `f639277f…` Win32 builds.

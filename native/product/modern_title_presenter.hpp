@@ -101,9 +101,10 @@ inline bool render_modern_title(
         const int y = 160 + (hill - 12) / 2;
         const std::uint32_t deck = (x / 18) % 3 == 2
             ? 0xFF24456Du : 0xFF32628Cu;
-        paint.fill_rect(pixels, stride, surface_height, x, y, 3, 17, deck);
-        paint.fill_rect(pixels, stride, surface_height, x, y, 3, 2, blue);
-        paint.fill_rect(pixels, stride, surface_height, x, y + 16, 3, 2,
+        const int section_w = std::min(3, w - x);
+        paint.fill_rect(pixels, stride, surface_height, x, y, section_w, 17, deck);
+        paint.fill_rect(pixels, stride, surface_height, x, y, section_w, 2, blue);
+        paint.fill_rect(pixels, stride, surface_height, x, y + 16, section_w, 2,
                         0xFF07101Bu);
     }
 

@@ -65,6 +65,16 @@ int main() {
     assert(!modern_native_destination_canvas(256,224,2147483647,240,original).scale);
     assert(!modern_native_destination_canvas(342,224,1,100000,wide).scale);
     assert(!modern_native_destination_canvas(256,224,1,240,{40,10,240,204}).scale);
+    // Source-backed last times are useful only if the suffix remains exact.
+    assert(modern_native_destination_fit(
+        "LAST: VERY LONG COURSE NAME 00:15.50", 25, true).substr(17)
+        == "00:15.50");
+    assert(modern_native_destination_fit(
+        "LAST: VERY LONG COURSE NAME 00:15.50", 25, true).find("..")
+        != std::string::npos);
+    assert(modern_native_destination_fit(
+        "UNEXPECTEDLY LONG STORAGE NOTICE", 25).back() == '.');
+    assert(modern_native_destination_fit("A", 0).empty());
     assert(!modern_native_destination_is_open(v));
     assert(!render_modern_native_destination(painter,scratch,256,224,
                                              1,240,original,v));
@@ -112,6 +122,22 @@ int main() {
     assert(has("> 1P RUNS"));
     assert(has("  2P MATCHES"));
     assert(has("LAST: course:02 00:15.50")); // untruncated hundredths
+    clear();
+    v.records_recent = "LAST: VERY LONG COURSE NAME 00:15.50";
+    assert(render_modern_native_destination(painter,scratch,256,224,
+                                             1,240,original,v));
+    bool tail_preserved = false;
+    for (const auto& label : text_seen)
+        if (label.find("..") != std::string::npos &&
+            label.size() >= 8 &&
+            label.substr(label.size() - 8) == "00:15.50")
+            tail_preserved = true;
+    assert(tail_preserved);
+    bounds(256,224);
+    clear();
+    v.records_recent = "LAST: course:02 00:15.50";
+    assert(render_modern_native_destination(painter,scratch,256,224,
+                                             1,240,original,v));
     assert(has("UP/DOWN PAGE  B BACK"));
     assert(has("READ ONLY - NO REPLAY"));
     clear();

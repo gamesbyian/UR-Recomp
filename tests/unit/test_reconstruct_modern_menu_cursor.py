@@ -83,6 +83,41 @@ class OriginalStockCursorTests(unittest.TestCase):
         self.assertTrue(all(record["opaque_pixels"] >= 1024
                             for record in evidence if "opaque_pixels" in record))
 
+    def test_every_source_ppu_raster_retains_two_frame_hold_and_full_revolution(self):
+        dumps, contract = fixture()
+        frames, records = cursor.reconstruct(dumps, contract)
+        self.assertEqual(len(frames), 16)
+        self.assertEqual(len(records), 64)
+        self.assertTrue(all("rgba_sha256" in record for record in records))
+        self.assertEqual(records[0]["rgba_sha256"], records[1]["rgba_sha256"])
+        self.assertEqual(records[0]["rgba_sha256"], records[32]["rgba_sha256"])
+        self.assertEqual(records[31]["rgba_sha256"], records[63]["rgba_sha256"])
+        first_tile = contract["cursor"]["spin_cycle_tiles"][0]
+        corrupted_pos = first_tile * 32
+
+        bad = deepcopy(dumps)
+        pixels = bytearray(bad[1].vram)
+        pixels[corrupted_pos] ^= 0x80
+        bad[1].vram = bytes(pixels)
+        with self.assertRaisesRegex(ValueError, "raster hold diverged"):
+            cursor.reconstruct(bad, contract)
+
+        bad = deepcopy(dumps)
+        pixels = bytearray(bad[32].vram)
+        pixels[corrupted_pos] ^= 0x80
+        bad[32].vram = bytes(pixels)
+        with self.assertRaisesRegex(ValueError, "raster revolution diverged"):
+            cursor.reconstruct(bad, contract)
+
+    def test_source_shadow_palette_must_match_every_original_ppu_capture(self):
+        dumps, contract = fixture()
+        bad = deepcopy(dumps)
+        data = bytearray(bad[17].cgram)
+        data[2 * (128 + 5 * 16 + 1)] ^= 0x1f
+        bad[17].cgram = bytes(data)
+        with self.assertRaisesRegex(ValueError, "shadow CGRAM colour drifted"):
+            cursor.verify_source_frames(bad, contract)
+
     def test_oam_flip_is_applied_to_entire_32px_sprite(self):
         dumps, _ = fixture()
         d = dumps[0]

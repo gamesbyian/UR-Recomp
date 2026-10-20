@@ -25,7 +25,7 @@ REQUIRED_VM = frozenset(("portable-verifier", "startup-log", "played-journey"))
 MAX_FILE_BYTES = 32 * 1024 * 1024
 MAX_TOTAL_BYTES = 128 * 1024 * 1024
 RECEIPT_FIELDS = frozenset((
-    "schema", "source_commit", "artifact_sha256",
+    "schema", "layer", "source_commit", "artifact_sha256",
     "tested_executable_sha256", "zip_sha256_before_launch",
     "zip_sha256_after_launch", "pe_sha256_before_launch",
     "pe_sha256_after_launch", "package_unchanged_after_launch",
@@ -94,6 +94,8 @@ def inspect_packet(path: Path, *, commit: str, zip_sha: str,
         "producer may not self-admit release gates")
     require(set(receipt) == RECEIPT_FIELDS,
             "receipt has missing, extra or forbidden metadata fields")
+    require(receipt.get("layer") == "L5",
+            "hardware source evidence must be recorded at L5")
     for key, expected in (("source_commit", commit),
                           ("artifact_sha256", zip_sha),
                           ("tested_executable_sha256", pe_sha)):

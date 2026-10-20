@@ -142,6 +142,11 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
         self.assertEqual(driver.ROUTES["records-keyboard"][0], "1")
         self.assertEqual(driver.ROUTES["options-p1"][0], "12")
         self.assertEqual(driver.ROUTES["profile-first-p1"][0], "8")
+        self.assertEqual(driver.ROUTES["practice-picker-p1"][:2], ("11", 63))
+        self.assertEqual(driver.ROUTES["multiplayer-unbound"][:2], ("2", 65))
+        self.assertIn("practice_opened=1", driver.ROUTES["practice-picker-p1"][2])
+        self.assertIn("unbound_2p_warning_open=1",
+                      driver.ROUTES["multiplayer-unbound"][2])
         self.assertTrue(all(40 <= entry[1] < 100
                             for key, entry in driver.ROUTES.items()
                             if key != "authentic-stock"))

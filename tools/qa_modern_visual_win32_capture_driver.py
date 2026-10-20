@@ -37,6 +37,10 @@ ROUTES = {
     "records-keyboard": ("1", 64, "UR_BALDOSA_MODERN_ROOT records_opened=1"),
     "options-p1": ("12", 74, "UR_BALDOSA_MODERN_ROOT options_opened"),
     "profile-first-p1": ("8", 66, "UR_BALDOSA_MODERN_ROOT first_racer_opened=1"),
+    # True native guest-frame+SDL paths; capture BEFORE the test-only next A
+    # enters stock Practice or consents to unrecorded Multiplayer.
+    "practice-picker-p1": ("11", 63, "UR_BALDOSA_MODERN_ROOT practice_opened=1"),
+    "multiplayer-unbound": ("2", 65, "UR_BALDOSA_MODERN_ROOT unbound_2p_warning_open=1"),
     "authentic-stock": ("0", 240, ""),
 }
 

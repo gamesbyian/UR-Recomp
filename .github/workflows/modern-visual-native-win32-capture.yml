@@ -111,7 +111,7 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           # Each route drives the real native production edge handler,
           # in a separate clean process on the SAME PE.
-          for spec in records-keyboard:1024x768 options-p1:observed profile-first-p1:1280x720; do
+          for spec in records-keyboard:1024x768 options-p1:observed profile-first-p1:1280x720 practice-picker-p1:1024x768 multiplayer-unbound:1024x768; do
             route="${spec%%:*}"
             size="${spec#*:}"
             # Options can change the live host display. Preserve its *observed*
@@ -148,6 +148,14 @@ jobs:
             ${{ runner.temp }}/ur-modern-win32-journey-profile-first-p1/readback-receipt.json
             ${{ runner.temp }}/ur-modern-win32-journey-profile-first-p1/probe_first/actual-sdl-drawable.pam
             ${{ runner.temp }}/ur-modern-win32-journey-profile-first-p1/probe_first/native-process.log
+            ${{ runner.temp }}/ur-modern-win32-journey-practice-picker-p1/actual-sdl-drawable.png
+            ${{ runner.temp }}/ur-modern-win32-journey-practice-picker-p1/readback-receipt.json
+            ${{ runner.temp }}/ur-modern-win32-journey-practice-picker-p1/probe_first/actual-sdl-drawable.pam
+            ${{ runner.temp }}/ur-modern-win32-journey-practice-picker-p1/probe_first/native-process.log
+            ${{ runner.temp }}/ur-modern-win32-journey-multiplayer-unbound/actual-sdl-drawable.png
+            ${{ runner.temp }}/ur-modern-win32-journey-multiplayer-unbound/readback-receipt.json
+            ${{ runner.temp }}/ur-modern-win32-journey-multiplayer-unbound/probe_first/actual-sdl-drawable.pam
+            ${{ runner.temp }}/ur-modern-win32-journey-multiplayer-unbound/probe_first/native-process.log
           if-no-files-found: warn
           retention-days: 7
       - name: Capture stock Authentic control at 16-to-9 and 4-to-3

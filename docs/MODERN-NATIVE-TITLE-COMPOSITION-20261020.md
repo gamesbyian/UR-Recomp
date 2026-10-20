@@ -190,3 +190,40 @@ physical input devices, keyboard/Start/Back parity, reduced-motion and
 regional native journeys, scrolling/clipping/contrast assessment, human
 typography/background/logo review, and same-executable Authentic
 isolation. QA #2041 owns the final-output acceptance envelope.
+
+## 4:3 responsive title and extracted launcher correction
+
+The baseline native Modern host initially inherited the stock 320×240
+SDL window base even while rasterizing the Modern title at 342×224: the
+first Windows screenshots correctly qualified the logical source image,
+but the default consumer window remained an old 4:3 drawable with extra
+letterboxing. The pinned host actually exposes `SnesDesktopHostGame`'s
+`window_base_width` hook. The title now uses that original host callback
+to choose a 428×240 logical *window* base in Modern boot, preserving
+320×240 in Authentic mode. The `prepare_frame` callback checks the
+actual drawable each frame: widths at 16:9 or 16:10 display the 342×224
+source title/root, while 4:3/3:2 uses separately composed 256×224.
+Neither mode changes the guest raster or original simulation code.
+
+The existing packaged-Windows CMD test originally insisted on the root
+presenter painting immediately after boot without a user Confirm edge.
+That contradicts the title-first product interaction. The test now
+requires `UR_BALDOSA_MODERN_TITLE painted=1 raster=342x224 host=modern`
+*exactly once* on genuine ordinary modern launch, and forbids a silent
+root paint; the separately qualified native P1-A route remains the
+positive test of title→root access. First-racer, Options, original
+SRAM and existing negative CMD launcher gates remain unchanged.
+
+A second invocation of the pinned native AOT test now uses a real
+`[Graphics] WindowSize = 960x720` guest-independent native window,
+requires a 256×224 output in **both** host painter P7 and post-OSD
+presented P6 captures, and tests the same USA retail logo crop digest,
+title-first/controller handoff/ordered-root evidence and RGB pixel
+consistency. It is not synthetic 342 cropping. Each run has a distinct
+bounded user-data/output root and shares the same exact Windows
+executable digest. C++ `static_assert` checks 4:3, 3:2, 16:10, 16:9,
+overflow-bound dimensions and Authentic width, while the Python unit
+suite tests 256-specific P6/P7 geometry. **New Windows outcome
+pending at this branch head**: do not treat these edits as successful
+native 4:3/physical display approval until the Windows workflow and
+artifact are independently inspected.

@@ -117,7 +117,7 @@ class MenuVisualLanguageTests(unittest.TestCase):
             sample, {"tile": 256, "palette": 7, "large": 1})
         self.assertEqual(len(rgba), 32 * 32 * 4)
         self.assertEqual(rgba[:4], bytes([248, 248, 248, 255]))
-        self.assertEqual(rgba[4:8], b"\\0" * 4)
+        self.assertEqual(rgba[4:8], bytes(4))
         # A BG character base mistakenly substituted for OBSEL would
         # decode this all-transparent or from the wrong page.
         sample.fillram.clear()

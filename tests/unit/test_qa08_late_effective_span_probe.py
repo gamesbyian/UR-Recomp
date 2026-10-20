@@ -148,6 +148,11 @@ static void PpuDrawWholeLine(Ppu *ppu, uint y) {
 """ + span.TRACE + """
   PpuWriteOverlayRenderLine(ppu, kPpuOverlaySource_Obj, y);
 }
+int main(void) {
+  Ppu p = {0};
+  PpuDrawWholeLine(&p, 59u);
+  return 0;
+}
 """
         with tempfile.TemporaryDirectory() as d:
             source = Path(d) / "qa08_span_syntax.c"

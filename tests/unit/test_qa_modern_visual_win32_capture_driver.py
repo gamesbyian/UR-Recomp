@@ -191,16 +191,32 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
                 head = (b"P7\nWIDTH 320\nHEIGHT 224\nDEPTH 4\n"
                         b"MAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n")
                 path.write_bytes(head + bytes(320 * 224 * 4))
+                # Real guest/compose source is visible, but the SDL backbuffer
+                # was lost: independent first divergence must be rejected.
+                ppm = Path(kw["cwd"]) / "stock-composed-before-sdl.ppm"
+                ppm.write_bytes(b"P6\n256 224\n255\n" + b"\xff\x66\x33" * (256 * 224))
                 return subprocess.CompletedProcess(command, 0, stdout=(
                     "[snes_load] name=UNIRACERS\n"
                     "UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=240 "
                     "guest_frame=240 output=320x224 "
                     "source=SDL_RenderReadPixels backend=sdl3\n"), stderr="")
             with patch.object(driver.subprocess, "run", side_effect=fake_native):
-                with self.assertRaisesRegex(RuntimeError, "no visible pixels"):
+                with self.assertRaisesRegex(RuntimeError, "composed source has pixels but SDL drawable empty"):
                     driver.launch(stage / "exe", stage / "rom", stage,
                                   "authentic", (320, 224), "windows", 10,
                                   route="authentic-stock")
+
+    def test_authentic_pre_sdl_ppm_diagnostic_requires_source_pixels(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            ppm = Path(tmp) / "source.ppm"
+            ppm.write_bytes(b"P6\n3 2\n255\n" + b"\x00" * (3 * 2 * 3))
+            self.assertEqual(driver.upstream_ppm_visibility(ppm)["nonblack_rgb_pixels"], 0)
+            ppm.write_bytes(b"P6\n3 2\n255\n" + b"\xff\x12\x33" +
+                            b"\x00" * (3 * 2 * 3 - 3))
+            self.assertEqual(driver.upstream_ppm_visibility(ppm)["nonblack_rgb_pixels"], 1)
+            ppm.write_bytes(b"P6\n3 2\n255\n" + b"\xff" * 3)
+            with self.assertRaisesRegex(RuntimeError, "size invalid"):
+                driver.upstream_ppm_visibility(ppm)
 
     def test_authentic_guest_allowed_without_modern_menu_art(self):
         with tempfile.TemporaryDirectory() as tmp:

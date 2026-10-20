@@ -38,11 +38,12 @@ Run from the repository root, only in an authorized private workspace:
 python3 tools/build_modern_menu_stock_hero.py \
   --rom reference/roms/retail/Uniracers_USA.sfc \
   --header native/product/modern_menu_stock_hero_original.generated.hpp \
-  --manifest /tmp/modern-original-hero-provenance.json
+  --manifest /tmp/modern-original-hero-provenance.json \
+  --frames-dir /tmp/modern-original-pose-review
 UR_MODERN_SOURCE_HERO_EXPERIMENTAL=1 ./path/to/actual/native/game
 ```
 
-Generate the header **before building** the native executable. Its exact pathname is ignored by git deliberately so a ROM-derived raster is not accidentally submitted. `tests/unit/test_build_modern_menu_stock_hero.py` independently rebuilds the true output in a disposable directory and compiles the resulting C++ on the precise source corpus when the ROM is available. No generated hero header or source pixels have been committed, and no native executable has yet been built from this optional generated header in this branch.
+Generate the header **before building** the native executable. Its exact pathname is ignored by git deliberately so a ROM-derived raster is not accidentally submitted. Optional review PNGs are genuine 64×64 original-raster pose plates with manifest-bound SHA-256, **not screenshots of the final native game**. The opt-in runtime experiment composes this source image at nearest-neighbour 4× on the 342px native root. Its alpha-safe overscan admits only fully transparent canvas padding outside the physical surface; an opaque pixel anywhere outside the safe rectangle in any registered pose refuses the entire draw. The original P1 source colour is fixed: this WIP is not yet a live profile/appearance preview, and no final acceptance may assume it matches the selected Modern racer. `tests/unit/test_build_modern_menu_stock_hero.py` independently rebuilds the true output in a disposable directory and compiles the resulting C++ on the precise source corpus when the ROM is available. No generated hero header or source pixels have been committed, and no native executable has yet been built from this optional generated header in this branch.
 
 ## Three-project reuse preflight
 

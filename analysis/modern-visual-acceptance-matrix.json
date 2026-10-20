@@ -1,0 +1,355 @@
+{
+  "schema_version": 1,
+  "authority": "docs/MODERN-UI-VISUAL-FIDELITY.md",
+  "purpose": "Source-bound native final-output screenshot inventory; no generated item is automatically accepted",
+  "required_fields": [
+    "id",
+    "screen",
+    "mode",
+    "aspect",
+    "pixels",
+    "input",
+    "state",
+    "review_target"
+  ],
+  "human_checks": [
+    "original likeness",
+    "typography fidelity",
+    "text clipping and legibility",
+    "safe area",
+    "contrast",
+    "selected-state focus",
+    "motion and reduced-motion quality",
+    "speaker-audible cue",
+    "physical controller ownership",
+    "physical monitor output",
+    "Original/Authentic pixel and state isolation"
+  ],
+  "cases": [
+    {
+      "id": "title-wide-1080",
+      "screen": "title",
+      "mode": "modern",
+      "aspect": "16:9",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "input": "pad-p1",
+      "state": "default",
+      "review_target": "entry-animation / focus / overscan"
+    },
+    {
+      "id": "title-wide-keyboard",
+      "screen": "title",
+      "mode": "modern",
+      "aspect": "16:9",
+      "pixels": [
+        1280,
+        720
+      ],
+      "input": "keyboard",
+      "state": "default",
+      "review_target": "Enter/Start semantic parity and title-to-root latch"
+    },
+    {
+      "id": "title-compact-43",
+      "screen": "title",
+      "mode": "modern",
+      "aspect": "4:3",
+      "pixels": [
+        640,
+        480
+      ],
+      "input": "pad-p1",
+      "state": "default",
+      "review_target": "logo, safe area and transition under compact viewport"
+    },
+    {
+      "id": "title-reduced-motion",
+      "screen": "title",
+      "mode": "modern",
+      "aspect": "16:9",
+      "pixels": [
+        1280,
+        720
+      ],
+      "input": "pad-p1",
+      "state": "reduced-motion",
+      "review_target": "stable/frozen hero and entry without flashing"
+    },
+    {
+      "id": "root-wide-720",
+      "screen": "root",
+      "mode": "modern",
+      "aspect": "16:9",
+      "pixels": [
+        1280,
+        720
+      ],
+      "input": "pad-p1",
+      "state": "normal",
+      "review_target": "five rows, cursor, footer, visible focus"
+    },
+    {
+      "id": "root-wide-1080",
+      "screen": "root",
+      "mode": "modern",
+      "aspect": "16:9",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "input": "pad-p1",
+      "state": "normal",
+      "review_target": "spacing, typography and scaling"
+    },
+    {
+      "id": "root-wide-4k-virtual",
+      "screen": "root",
+      "mode": "modern",
+      "aspect": "16:9",
+      "pixels": [
+        3840,
+        2160
+      ],
+      "input": "pad-p1",
+      "state": "virtual-output",
+      "review_target": "image dimensions only: not physical monitor/4K signoff"
+    },
+    {
+      "id": "root-43-768",
+      "screen": "root",
+      "mode": "modern",
+      "aspect": "4:3",
+      "pixels": [
+        1024,
+        768
+      ],
+      "input": "pad-p1",
+      "state": "normal",
+      "review_target": "clipping, safe area, information hierarchy"
+    },
+    {
+      "id": "root-43-480",
+      "screen": "root",
+      "mode": "modern",
+      "aspect": "4:3",
+      "pixels": [
+        640,
+        480
+      ],
+      "input": "pad-p1",
+      "state": "normal",
+      "review_target": "small-type readable, no overlap"
+    },
+    {
+      "id": "root-moved-selection",
+      "screen": "root",
+      "mode": "modern",
+      "aspect": "16:9",
+      "pixels": [
+        1280,
+        720
+      ],
+      "input": "pad-p1",
+      "state": "selection-moved",
+      "review_target": "selected highlight stays unambiguous"
+    },
+    {
+      "id": "root-keyboard",
+      "screen": "root",
+      "mode": "modern",
+      "aspect": "16:9",
+      "pixels": [
+        1280,
+        720
+      ],
+      "input": "keyboard",
+      "state": "normal",
+      "review_target": "focus parity and mapped input hints"
+    },
+    {
+      "id": "root-disabled",
+      "screen": "root",
+      "mode": "modern",
+      "aspect": "16:9",
+      "pixels": [
+        1280,
+        720
+      ],
+      "input": "pad-p1",
+      "state": "stale-profile",
+      "review_target": "Play blocked and reason visible"
+    },
+    {
+      "id": "profile-first-run",
+      "screen": "profiles",
+      "mode": "modern",
+      "aspect": "16:9",
+      "pixels": [
+        1280,
+        720
+      ],
+      "input": "pad-p1",
+      "state": "no-profile",
+      "review_target": "creation, original preset and next-boot feedback"
+    },
+    {
+      "id": "profile-switch-existing",
+      "screen": "profiles",
+      "mode": "modern",
+      "aspect": "4:3",
+      "pixels": [
+        1024,
+        768
+      ],
+      "input": "pad-p1",
+      "state": "existing-profiles",
+      "review_target": "selection persists and does not hot-swap guest"
+    },
+    {
+      "id": "multiplayer-p2-owner",
+      "screen": "multiplayer",
+      "mode": "modern",
+      "aspect": "16:9",
+      "pixels": [
+        1280,
+        720
+      ],
+      "input": "pad-p2",
+      "state": "p1-p2-named",
+      "review_target": "P2 ownership, distinct profile join and release edges"
+    },
+    {
+      "id": "practice-locked",
+      "screen": "practice",
+      "mode": "modern",
+      "aspect": "16:9",
+      "pixels": [
+        1280,
+        720
+      ],
+      "input": "pad-p1",
+      "state": "locked-course",
+      "review_target": "actual locked-course explanation and Back"
+    },
+    {
+      "id": "options-available",
+      "screen": "options",
+      "mode": "modern",
+      "aspect": "4:3",
+      "pixels": [
+        1024,
+        768
+      ],
+      "input": "pad-p1",
+      "state": "normal",
+      "review_target": "applied settings only, controls and defaults"
+    },
+    {
+      "id": "options-refused",
+      "screen": "options",
+      "mode": "modern",
+      "aspect": "16:9",
+      "pixels": [
+        1280,
+        720
+      ],
+      "input": "keyboard",
+      "state": "display-apply-refused",
+      "review_target": "NOT APPLIED or honest refusal message"
+    },
+    {
+      "id": "records-empty",
+      "screen": "records",
+      "mode": "modern",
+      "aspect": "16:9",
+      "pixels": [
+        1280,
+        720
+      ],
+      "input": "pad-p1",
+      "state": "no-records",
+      "review_target": "empty state and navigation"
+    },
+    {
+      "id": "records-earned-1p",
+      "screen": "records",
+      "mode": "modern",
+      "aspect": "16:9",
+      "pixels": [
+        1920,
+        1080
+      ],
+      "input": "pad-p1",
+      "state": "earned-1p",
+      "review_target": "correct source-earned record after fresh process"
+    },
+    {
+      "id": "records-earned-2p",
+      "screen": "records",
+      "mode": "modern",
+      "aspect": "4:3",
+      "pixels": [
+        1024,
+        768
+      ],
+      "input": "pad-p2",
+      "state": "earned-2p",
+      "review_target": "P1/P2 winner and time aligned to raw paired record"
+    },
+    {
+      "id": "transition-back-release",
+      "screen": "transition",
+      "mode": "modern",
+      "aspect": "16:9",
+      "pixels": [
+        1280,
+        720
+      ],
+      "input": "pad-p1",
+      "state": "held-confirm-back",
+      "review_target": "held input does not bleed into destination"
+    },
+    {
+      "id": "authentic-title-stock",
+      "screen": "title",
+      "mode": "authentic",
+      "aspect": "4:3",
+      "pixels": [
+        640,
+        480
+      ],
+      "input": "keyboard",
+      "state": "original",
+      "review_target": "unaltered stock rendering/route; needs reference comparison"
+    },
+    {
+      "id": "authentic-stock-wide",
+      "screen": "root",
+      "mode": "authentic",
+      "aspect": "16:9",
+      "pixels": [
+        1280,
+        720
+      ],
+      "input": "pad-p1",
+      "state": "original",
+      "review_target": "Modern root must not be painted in Authentic"
+    },
+    {
+      "id": "focus-loss-modal",
+      "screen": "options",
+      "mode": "modern",
+      "aspect": "16:9",
+      "pixels": [
+        1280,
+        720
+      ],
+      "input": "pad-p1",
+      "state": "focus-lost",
+      "review_target": "ownership and safe return; no guest input bleed"
+    }
+  ]
+}

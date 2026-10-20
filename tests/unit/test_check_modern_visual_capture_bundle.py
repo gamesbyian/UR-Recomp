@@ -37,7 +37,16 @@ class IndependentVisualBundleTest(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        self.binary = b"native PE simulated test fixture, not a release executable"
+        # Structurally plausible fake PE header for receipt UNIT testing.
+        # No guest executable or release binary has run here.
+        fixture = bytearray(70000)
+        fixture[:2] = b"MZ"
+        struct.pack_into("<I", fixture, 0x3c, 0x80)
+        fixture[0x80:0x84] = b"PE\x00\x00"
+        struct.pack_into("<HHIIIHH", fixture, 0x84,
+                         0x8664, 1, 0, 0, 0, 240, 2)
+        struct.pack_into("<H", fixture, 0x98, 0x20b)
+        self.binary = bytes(fixture)
         self.root.joinpath("native.exe").write_bytes(self.binary)
         self.root.joinpath("capture.png").write_bytes(png())
         self.p7 = (b"P7\nWIDTH 4\nHEIGHT 3\nDEPTH 4\nMAXVAL 255\n"
@@ -169,6 +178,17 @@ class IndependentVisualBundleTest(unittest.TestCase):
         self.entry["png_sha256"] = sha(other)
         with self.assertRaisesRegex(qa.CaptureError, "output size"):
             self.run_audit()
+
+    def test_native_exe_requires_plausible_amd64_pe32plus(self):
+        for bogus in (b"not an exe" * 7000,
+                      self.binary[:0x84] + b"FAKE" + self.binary[0x88:],
+                      self.binary[:0x84] + b"\x4c\x01" + self.binary[0x86:]):
+            with self.subTest(sha=sha(bogus)):
+                self.root.joinpath("native.exe").write_bytes(bogus)
+                self.bundle["exe_sha256"] = sha(bogus)
+                self.entry["exe_sha256"] = sha(bogus)
+                with self.assertRaisesRegex(qa.CaptureError, "PE|MZ"):
+                    self.run_audit()
 
     def test_wrong_mode_and_input_owner_rejected(self):
         self.entry["mode"] = "authentic"

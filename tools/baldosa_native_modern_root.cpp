@@ -1152,9 +1152,11 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     if (!g_visible &&
         g_run_save_feedback == ur::product::BaldosaNativeRunSaveFeedback::None)
         return 0;
-    // Retain the stock 256x224 output and exact pitch. The HD/widescreen
-    // compositors own all other raster modes; no attempt to fake density.
-    if (!dst || !field || width != 256 || height != 224 ||
+    // Render the existing Modern root at true stock or prepared 342-wide
+    // logical geometry. The native presentation owner decides whether a
+    // 342-wide buffer exists; this painter never requests it and never
+    // changes guest/gameplay/Authentic raster policy.
+    if (!dst || !field || (width != 256 && width != 342) || height != 224 ||
         pitch < static_cast<std::size_t>(width) * 4 ||
         pitch % 4 != 0) return 0;
     for (int y = 0; y < height; ++y)
@@ -1238,7 +1240,11 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     // Let the shared root/title owner draw the five-entry shell first.
     // Native destination children then overpaint ONLY their former modal.
     // All semantics, option values, roster and persistence stay in `view`.
-    const HostOverlayRect root_rect{8,10,240,204};
+    // Source-verified two-column grammar begins at 320 logical pixels.
+    // Preserve the original 240-wide fallback and always share this rect
+    // between the root shell and the child destination painter.
+    const int panel_w = width == 342 ? 320 : 240;
+    const HostOverlayRect root_rect{(width - panel_w) / 2,10,panel_w,204};
     const int stride = static_cast<int>(pitch / 4);
     auto* pixels = reinterpret_cast<std::uint32_t*>(dst);
     // Hide the legacy child from the shell pass. It has translucent ink;
@@ -1253,10 +1259,10 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     shell_view.first_racer_open = false;
     shell_view.unbound_two_player_warning_open = false;
     const bool drawn = ur::product::render_modern_root_overlay(
-        painter, pixels, stride, height, 1, 240, root_rect, shell_view);
+        painter, pixels, stride, height, 1, panel_w, root_rect, shell_view);
     if (drawn)
         ur::product::render_modern_native_destination(
-            painter, pixels, stride, height, 1, 240, root_rect, view);
+            painter, pixels, stride, height, 1, panel_w, root_rect, view);
     if (drawn) {
         ++g_paint_count;
         if (g_reentry_needs_paint) {

@@ -1,0 +1,260 @@
+{
+  "build_edition": "2026-10-19",
+  "claims_and_exclusions": {
+    "art_demo": "procedural 4x prototypes under October 10 visual likeness veto, never finished approved character designs",
+    "full_SDL_4k_card": "bounded 2026-10-10 real 3840x2160 SDL pixel readback for Original-mode frame 2208; not 4k video",
+    "independently_accepted_USA_events": "0/45 as of 2026-10-19",
+    "modern_footage": "October 10 verified native root clip, NOT the newer October 19 Windows journey",
+    "original_wide": "342x224 with 43 real additional source columns per side",
+    "release_status": "NOT A FINISHED BETA",
+    "soundtrack": "new deterministic original synth, no sampled copyrighted music",
+    "source_gameplay_segments": "uninterpolated, source-contiguous per individual segment",
+    "technical_65816_C": "same genuine MainLoop opcode and pinned generated C; no whole-game execution parity claim",
+    "windows_journey_card": "editorial recap of scripted Win32 result/profile/Records evidence; not live footage",
+    "windows_release_QA_gates": "0/12 as of 2026-10-19"
+  },
+  "editorial_cards_not_gameplay": true,
+  "horizontal_shots": [
+    {
+      "classification": "capture",
+      "label": "THE ORIGINAL / 1994",
+      "source": "title",
+      "source_first_ordinal": 270,
+      "source_frame_count": 90
+    },
+    {
+      "classification": "capture",
+      "label": "AUTHENTIC ORIGINAL GAME MENU",
+      "source": "title",
+      "source_first_ordinal": 420,
+      "source_frame_count": 90
+    },
+    {
+      "classification": "editing",
+      "label": "43 NEW WORLD COLUMNS PER SIDE",
+      "source": "reveal",
+      "source_first_ordinal": 0,
+      "source_frame_count": 420
+    },
+    {
+      "classification": "capture",
+      "label": "GENUINE 2P NATIVE RACE  /  SOURCE FRAMES 2100\u20132339",
+      "source": "race",
+      "source_first_ordinal": 0,
+      "source_frame_count": 240
+    },
+    {
+      "classification": "capture",
+      "label": "REAL MODERN ROOT CAPTURE  /  OCT 10 BUILD",
+      "source": "modern",
+      "source_first_ordinal": 0,
+      "source_frame_count": 600
+    },
+    {
+      "classification": "editorial",
+      "label": "SCRIPTED WIN32 JOURNEYS  /  OCT 19 EVIDENCE",
+      "source": "card_windows",
+      "source_first_ordinal": 0,
+      "source_frame_count": 300
+    },
+    {
+      "classification": "editorial",
+      "label": "VERIFIED 65816 MAINLOOP \u2192 GENERATED C",
+      "source": "code",
+      "source_first_ordinal": 0,
+      "source_frame_count": 270
+    },
+    {
+      "classification": "editorial",
+      "label": "SOURCE RASTER ARCHAEOLOGY",
+      "source": "raster",
+      "source_first_ordinal": 0,
+      "source_frame_count": 180
+    },
+    {
+      "classification": "editorial",
+      "label": "0 / 57,344 SOURCE CENTRE PIXELS DIFFER",
+      "source": "parity",
+      "source_first_ordinal": 0,
+      "source_frame_count": 180
+    },
+    {
+      "classification": "editorial",
+      "label": "ACTUAL 3840 \u00d7 2160 FRAMEBUFFER WITNESS",
+      "source": "card_4k",
+      "source_first_ordinal": 0,
+      "source_frame_count": 300
+    },
+    {
+      "classification": "editorial",
+      "label": "EXPERIMENTAL 4\u00d7 CHARACTER RECONSTRUCTION",
+      "source": "art",
+      "source_first_ordinal": 0,
+      "source_frame_count": 150
+    },
+    {
+      "classification": "editorial",
+      "label": "ANIMATION ARCHAEOLOGY / SOURCE POSES",
+      "source": "animation",
+      "source_first_ordinal": 0,
+      "source_frame_count": 150
+    },
+    {
+      "classification": "editorial",
+      "label": "PROCEDURAL 4\u00d7 STUDIES / LIKENESS NOT APPROVED",
+      "source": "art_p2",
+      "source_first_ordinal": 0,
+      "source_frame_count": 150
+    },
+    {
+      "classification": "capture",
+      "label": "SAME ORIGINAL SESSION / CONTINUOUS FINAL 360 FRAMES",
+      "source": "race",
+      "source_first_ordinal": 240,
+      "source_frame_count": 360
+    },
+    {
+      "classification": "editorial",
+      "label": "HELP BUILD THE NEXT VERSION",
+      "source": "card_cta",
+      "source_first_ordinal": 0,
+      "source_frame_count": 540
+    }
+  ],
+  "no_interpolation": true,
+  "output_sha256": {
+    "ur-recomp-flagship-27s-vertical.mp4": "9ed939f52a5582dd76a4aad79957bc487653609450d90737ea14fff39b163ba3",
+    "ur-recomp-flagship-85s-1080p.mp4": "7abe4201ff47eb32a80df776d312fa3628221d4bf556e93685b017bb11f4969c",
+    "ur-recomp-flagship-poster.png": "af85d31667800f67ab7a2112b3e8618a5dfc12e71299be6d05120699f239475e"
+  },
+  "poster_source": {
+    "path": "media/showcase/2026-10-10/recruitment/definitive-film/ur-recomp-recruitment-final-poster.png",
+    "sha256": "d9bcbda5335a2656f81c79607be1fd540ca7403acba403111ad12f4b4270189a"
+  },
+  "schema": "UR-FLAGSHIP-RECRUITMENT/1",
+  "source_identity": {
+    "animation": {
+      "classification": "editorial_experimental_art",
+      "fps": 30,
+      "frames": 210,
+      "path": "media/showcase/art-reconstruction/2026-10-10/02-animation-archaeology.mp4",
+      "sha256": "c1326b641eb119375bc7708a6780ce7950be81b7f287d4b010c0c11328750e2a"
+    },
+    "art": {
+      "classification": "editorial_experimental_art",
+      "fps": 30,
+      "frames": 210,
+      "path": "media/showcase/art-reconstruction/2026-10-10/01-original-4x-remastered.mp4",
+      "sha256": "0ae94aaa407979ec749bef17d245331c7d8d3595d8a76347b2644f655924bfe4"
+    },
+    "art_p2": {
+      "classification": "editorial_experimental_art",
+      "fps": 30,
+      "frames": 150,
+      "path": "media/showcase/art-reconstruction/2026-10-10/03-remaster-progress.mp4",
+      "sha256": "27731d18bb7197848d082f97eaf6d9393f16996a774dcb80b2c0ae6a67252d52"
+    },
+    "code": {
+      "classification": "editorial_source_qualified",
+      "fps": 30,
+      "frames": 270,
+      "path": "media/showcase/2026-10-10/technical-motion/04-machine-code-to-native.mp4",
+      "sha256": "c213ab1aa5472cb1940d5e35a5601bd30d9c00a9acb1e79cdf6dd1baca5e343d"
+    },
+    "modern": {
+      "classification": "genuine_2026_10_10_native",
+      "fps": 60,
+      "frames": 600,
+      "path": "media/showcase/2026-10-10/recruitment/modern-root/ur-modern-root-600f.mp4",
+      "sha256": "e43b1c8b9461e94ac2380d164d850545742c958c0dfef98c99987e40197de7db"
+    },
+    "parity": {
+      "classification": "editorial_bounded_QA08",
+      "fps": 30,
+      "frames": 180,
+      "path": "media/showcase/2026-10-10/technical-motion/01-source-centre-parity.mp4",
+      "sha256": "7ebe9163aec9e2c0ab350cf7f402cf3b653202f14a1c544424c5ed879e48b4c6"
+    },
+    "race": {
+      "classification": "genuine_2026_10_10_native",
+      "fps": 60,
+      "frames": 600,
+      "path": "media/showcase/2026-10-10/recruitment/continuous/ur-native-2p-clean-600f.mp4",
+      "sha256": "182ef43ccf34f501dea4051312e71bf4d974a53dc6634cd98a5cbf3fae8ac130"
+    },
+    "raster": {
+      "classification": "editorial_real_raster_crops",
+      "fps": 30,
+      "frames": 180,
+      "path": "media/showcase/2026-10-10/technical-motion/03-source-raster-xray.mp4",
+      "sha256": "b818ad56f8da43e6db94b75561373bc3caf258b516abaca81d6ce8ac14285d5b"
+    },
+    "reveal": {
+      "classification": "source_locked_presentation_edit",
+      "fps": 60,
+      "frames": 420,
+      "path": "media/showcase/2026-10-10/recruitment/presentation-edits/authentic-widescreen-reveal-7s.mp4",
+      "sha256": "92ea56611a18ee001ae101f36bc0f2600dc9ca117581edd8072df9535f831414"
+    },
+    "title": {
+      "classification": "genuine_2026_10_10_native",
+      "fps": 60,
+      "frames": 900,
+      "path": "media/showcase/2026-10-10/recruitment/native-menu/ur-native-title-menu-900f.mp4",
+      "sha256": "d58e0b0e20226981767dc1c33e0f34d9652e8ecdb6aa97bd914f7d6ddf0f61d3"
+    }
+  },
+  "total_horizontal_frames": 5100,
+  "total_vertical_frames": 1620,
+  "vertical_shots": [
+    {
+      "classification": "capture",
+      "label": "THE ORIGINAL / 1994",
+      "source": "title",
+      "source_first_ordinal": 270,
+      "source_frame_count": 90
+    },
+    {
+      "classification": "capture",
+      "label": "AUTHENTIC CHECKERBOARD MENU",
+      "source": "title",
+      "source_first_ordinal": 420,
+      "source_frame_count": 30
+    },
+    {
+      "classification": "editing",
+      "label": "THE WORLD OPENS / ORIGINAL WIDE",
+      "source": "reveal",
+      "source_first_ordinal": 0,
+      "source_frame_count": 420
+    },
+    {
+      "classification": "capture",
+      "label": "A REAL MODERN FRONTEND CAPTURE",
+      "source": "modern",
+      "source_first_ordinal": 0,
+      "source_frame_count": 240
+    },
+    {
+      "classification": "editorial",
+      "label": "65816 \u2192 NATIVE C / VERIFIED SOURCE",
+      "source": "code",
+      "source_first_ordinal": 0,
+      "source_frame_count": 120
+    },
+    {
+      "classification": "capture",
+      "label": "GENUINE TWO-PLAYER RACING",
+      "source": "race",
+      "source_first_ordinal": 240,
+      "source_frame_count": 360
+    },
+    {
+      "classification": "editorial",
+      "label": "JOIN THE REBUILD",
+      "source": "card_cta",
+      "source_first_ordinal": 0,
+      "source_frame_count": 240
+    }
+  ]
+}

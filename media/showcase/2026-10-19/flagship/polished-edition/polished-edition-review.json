@@ -1,0 +1,13 @@
+{
+  "editorial_cards_changed_only": true,
+  "human_full_screening": false,
+  "no_new_gameplay_frames": true,
+  "review_sha256": {
+    "ur-recomp-flagship-27s-vertical-review-1500.png": "6c924b7e01516d8a7605c188540fd10976d7b74ff76ad857e294dd34dc066819",
+    "ur-recomp-flagship-85s-1080p-review-1500.png": "5e751ac0fc64a98c3636c6c5edf613ccbb14592a24c640c100932c2759386b3e",
+    "ur-recomp-flagship-85s-1080p-review-3150.png": "7ad12acffc9364ece6665f06e315c80a02a34a74e2333fcf7114e4a428567797",
+    "ur-recomp-flagship-85s-1080p-review-4860.png": "07c5c48928f7e09753fda3b1c31cc8b251430d3a6845ce580269b6f8d33e3681"
+  },
+  "schema": "UR-FLAGSHIP-POLISHED-RENDER-QA/1",
+  "source_manifest_sha256": "5881a4f1bc6fa3227207471b374e098d5f68a66a89b76812cc16809269f24b64"
+}

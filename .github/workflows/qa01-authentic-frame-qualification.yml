@@ -14,6 +14,8 @@ on:
       - "tools/qa01_zoo_raw_archive_audit.py"
       - "tools/qa01_rf076_original_fetch_archive.py"
       - "tools/qa01_rf079_bit_bpl_archive.py"
+      - "tools/qa01_rf080_sidecar_archive.py"
+      - "tests/unit/test_qa01_rf080_sidecar_archive.py"
       - "tests/unit/test_qa01_rf079_bit_bpl_archive.py"
       - "tests/unit/test_qa01_rf076_original_fetch_archive.py"
       - "tests/unit/test_qa01_zoo_raw_archive_audit.py"
@@ -44,7 +46,7 @@ jobs:
       - name: ROM-free frame and adversarial audit tests
         run: |
           set -euo pipefail
-          python3 -m unittest tests.unit.test_qa01_continuous_frame_capture tests.unit.test_qa01_fidelity_evidence_pilots tests.unit.test_qa01_frame_delta_atlas tests.unit.test_qa01_zoo_archived_frame_atlas tests.unit.test_qa01_independent_zoo_capture_ab_archive tests.unit.test_qa01_zoo_raw_archive_audit tests.unit.test_qa01_rf076_original_fetch_archive tests.unit.test_qa01_rf079_bit_bpl_archive -v
+          python3 -m unittest tests.unit.test_qa01_continuous_frame_capture tests.unit.test_qa01_fidelity_evidence_pilots tests.unit.test_qa01_frame_delta_atlas tests.unit.test_qa01_zoo_archived_frame_atlas tests.unit.test_qa01_independent_zoo_capture_ab_archive tests.unit.test_qa01_zoo_raw_archive_audit tests.unit.test_qa01_rf076_original_fetch_archive tests.unit.test_qa01_rf079_bit_bpl_archive tests.unit.test_qa01_rf080_sidecar_archive -v
 
       - name: Reopen exact real original/native 2014 Bowl evidence archive
         env:
@@ -779,6 +781,62 @@ jobs:
             ${{ runner.temp }}/qa01-rf079/original-case.zip
             ${{ runner.temp }}/qa01-rf079/original-binaries.zip
             ${{ runner.temp }}/qa01-rf079/independent-bit-bpl-verdict.json
+
+      - name: Independently authenticate genuine RF080 event-only sidecar and STZ boundary
+        # Reuses one finished original/native two-frame case, NO guest run.
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/qa01-rf080"
+          mkdir -p "$ROOT"
+          curl --fail --show-error --silent --location --retry 2 \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -o "$ROOT/original-case.zip" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12233102973/zip"
+          curl --fail --show-error --silent --location --retry 2 \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -o "$ROOT/original-binaries.zip" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12232972370/zip"
+          python3 tools/qa01_rf080_sidecar_archive.py \
+            --case "$ROOT/original-case.zip" \
+            --binaries "$ROOT/original-binaries.zip" \
+            --out "$ROOT/independent-strict-sidecar-verdict.json"
+          python3 - "$ROOT/independent-strict-sidecar-verdict.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          assert d["strict_native_sidecar_complete_isolated_ordinals"]==60819
+          assert d["strict_native_actual_BIT_bus_return_events"]==6483
+          assert d["strict_native_BPL_input_events"]==6483
+          assert d["legacy_raw_stderr_mixed_physical_lines"]==75
+          assert d["legacy_raw_stderr_RF035_truncation_retained"] is True
+          assert d["physical_WRAM_0057_0059_equal_sample_pairs"]==44
+          assert [x["original_additional_N0_BPL_cycle"] for x in
+                  d["source_local_branch_outcome_crosswalk"]]==[True,False]
+          assert [x["native_next_selected_PC"] for x in
+                  d["source_local_branch_outcome_crosswalk"]]==["82D4F2","82D4F2"]
+          assert d["original_actual_bus_read_0057_proven"] is False
+          assert d["first_0059_STZ_writer_consumption_proven"] is False
+          assert d["original_native_intraframe_phase_equivalence_proven"] is False
+          assert d["accepted_USA_events"]==d["accepted_Windows_gates"]==0
+          assert d["adjudication"]=="HOLD"
+          print("Genuine RF080 isolated sidecar verified: 60819 events, 44 equal DP samples, causal STZ HOLD 0/45")
+          PY
+
+      - name: Preserve original RF080 research case, executable ZIP and QA sidecar verdict
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-rf080-authentic-strict-native-sidecar-research
+          retention-days: 90
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/qa01-rf080/original-case.zip
+            ${{ runner.temp }}/qa01-rf080/original-binaries.zip
+            ${{ runner.temp }}/qa01-rf080/independent-strict-sidecar-verdict.json
 
       - name: Preserve original 2014 Bowl source bytes before October 25 expiry
         # The source-original 39168164480 artifact 12151357791 expires

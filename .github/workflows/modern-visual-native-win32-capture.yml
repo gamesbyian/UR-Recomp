@@ -1,0 +1,112 @@
+name: Modern visual QA native SDL baseline
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".github/workflows/modern-visual-native-win32-capture.yml"
+      - "tools/qa_modern_visual_sdl_capture.py"
+      - "tools/qa_modern_visual_win32_capture_driver.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: modern-visual-native-qa-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  actual-sdl-root:
+    # Bounded QA branch only. Not a release or four-visual-PR integration check.
+    if: github.event_name != 'pull_request' || github.event.pull_request.number == 2041
+    runs-on: windows-2022
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out exact visual QA source
+        uses: actions/checkout@v4
+      - name: Check out pinned Baldosa AOT and SDL framework
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+      - name: Verify source, retail ROM and capture unit contracts
+        run: |
+          set -euo pipefail
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          python tests/unit/test_qa_modern_visual_native_capture.py
+          python tests/unit/test_check_modern_visual_capture_bundle.py
+          python tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+      - name: Stage original Modern native host and opt-in SDL2 readback
+        run: |
+          set -euo pipefail
+          python tools/baldosa_dram_refresh_beam_rate_patch.py --game baldosa
+          python tools/baldosa_io_access_clock_order_patch.py --game baldosa
+          (cd baldosa && bash tools/regen.sh --cfg-roots \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc")
+          python tools/baldosa_io_access_clock_order_patch.py --game baldosa --verify-gen
+          python tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_product_execution_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_product_pause_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_modern_user_data_spike.py --game baldosa
+          python tools/baldosa_modern_user_data_spike.py --game baldosa
+          python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_modern_options_spike.py --game baldosa
+          python tools/baldosa_modern_options_spike.py --game baldosa
+          python tools/qa_modern_visual_sdl_capture.py --framework baldosa/snesrecomp
+          grep -Fq UR_MODERN_UI_SDL_DRAWABLE_CAPTURE \
+            baldosa/snesrecomp/runner/src/desktop/host_main.c
+      - name: Acquire pinned native Windows Clang
+        run: |
+          bash baldosa/snesrecomp/tools/ci/fetch_toolchain.sh \
+            --artifact windows-x64 --tag v1.0.14
+      - name: Compile real Win32 Baldosa Modern product with one SDL observer
+        run: |
+          set -euo pipefail
+          source "$TOOLCHAIN_DIR/env.sh"
+          clang --version | head -n1 | grep -F "22.1.8"
+          export SOURCE_DATE_EPOCH="$(git show -s --format=%ct "$GITHUB_SHA")"
+          cmake -S baldosa -B baldosa/build-ur-visual -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_ENABLE_TRACE=OFF
+          cmake --build baldosa/build-ur-visual --target UniracersSNESRecomp -j 3
+          test -s baldosa/build-ur-visual/UniracersSNESRecomp.exe
+          python tools/check_windows_pe_timestamp.py \
+            --exe baldosa/build-ur-visual/UniracersSNESRecomp.exe \
+            --source-epoch "$SOURCE_DATE_EPOCH"
+      - name: Launch real Win32 root and capture actual SDL drawable
+        run: |
+          set -euo pipefail
+          python tools/qa_modern_visual_win32_capture_driver.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --source-sha "$(git rev-parse HEAD)" \
+            --out "$RUNNER_TEMP/ur-modern-win32-visual-baseline" \
+            --video windows --timeout 100
+          test -s "$RUNNER_TEMP/ur-modern-win32-visual-baseline/actual-sdl-drawable.png"
+          echo "Real Win32 original Modern root only; no integrated visual skin, physical pads, release or visual approval." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain exact readback, logs, hash receipts, no ROM/user saves
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-visual-win32-root-drawable
+          path: |
+            ${{ runner.temp }}/ur-modern-win32-visual-baseline/actual-sdl-drawable.png
+            ${{ runner.temp }}/ur-modern-win32-visual-baseline/readback-receipt.json
+            ${{ runner.temp }}/ur-modern-win32-visual-baseline/probe_first/native-process.log
+            ${{ runner.temp }}/ur-modern-win32-visual-baseline/probe_first/actual-sdl-drawable.pam
+            ${{ runner.temp }}/ur-modern-win32-visual-baseline/capture_observed/native-process.log
+            ${{ runner.temp }}/ur-modern-win32-visual-baseline/capture_observed/actual-sdl-drawable.pam
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Retain exact tested AMD64 executable separately
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-visual-win32-native-executable
+          path: baldosa/build-ur-visual/UniracersSNESRecomp.exe
+          if-no-files-found: warn
+          retention-days: 7

@@ -432,7 +432,7 @@ def write_png(path: Path, width: int, height: int, rgba: bytes) -> None:
                      + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b""))
 
 
-def original_big_font_manifest(path: Path, d: Dump) -> dict:
+def original_big_font_manifest(path: Path, d: Dump, char_base: int) -> dict:
     """Source-qualified digest for the existing original 640x16 glyph atlas."""
     return {
         "schema_version": 1,
@@ -440,6 +440,7 @@ def original_big_font_manifest(path: Path, d: Dump) -> dict:
         "source_tag": d.tag,
         "source_vram_sha256": hashlib.sha256(d.vram).hexdigest(),
         "source_cgram_sha256": hashlib.sha256(d.cgram).hexdigest(),
+        "source_char_base_word": char_base,
         "dimensions": [640, 16],
         "glyph_cell": [16, 16],
         "palette": 7,
@@ -523,6 +524,13 @@ def write_original_menu_bg1(path: Path, d: Dump) -> dict:
         "layers": ["BG1 8bpp MODE3 only"],
         "not_included": ["BG2 labels", "OBJ cursor", "colour math", "host scaling"],
         "dimensions": [256, 224],
+        "source_bg_mode": int(d.fillram["2105"], 16),
+        "source_bg1_char_base_word": bg_layout(d.fillram, 0)[1],
+        "source_bg1_map_base_word": bg_layout(d.fillram, 0)[0],
+        "source_bg1_scroll": [int(d.ppu["bg"][0]["hofs"]), int(d.ppu["bg"][0]["vofs"])],
+        "source_registers_sha256": hashlib.sha256(json.dumps(
+            {"fillram": d.fillram, "ppu": d.ppu},
+            sort_keys=True, separators=(",", ":")).encode()).hexdigest(),
         "vram_sha256": hashlib.sha256(d.vram).hexdigest(),
         "cgram_sha256": hashlib.sha256(d.cgram).hexdigest(),
         "rgba_sha256": hashlib.sha256(rgba).hexdigest(),
@@ -574,6 +582,11 @@ def write_small_font_atlas(path: Path, d: Dump, char_base: int) -> dict:
         "dimensions": [width, height],
         "glyph_cell": [8, 16],
         "palette": 7,
+        "source_fixture": SCRIPT,
+        "source_tag": d.tag,
+        "source_vram_sha256": hashlib.sha256(d.vram).hexdigest(),
+        "source_cgram_sha256": hashlib.sha256(d.cgram).hexdigest(),
+        "source_char_base_word": char_base,
         "glyphs": glyphs,
         "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
         "distribution": "User-local original game art; do not commit the PNG",
@@ -702,6 +715,7 @@ def export_cursor_atlas(directory: Path, path: Path,
             "phase": phase,
             "source_obj_tile": tile,
             "source_tag": sample.tag,
+            "source_obj_sel": int(sample.fillram["2101"], 16),
             "arrow_oam_hflip": next(s["hflip"] for s in sprites(sample.oam) if s["palette"] == 7),
             "arrow_oam_vflip": next(s["vflip"] for s in sprites(sample.oam) if s["palette"] == 7),
             "ppu_sha256": {
@@ -894,7 +908,7 @@ def main() -> int:
         write_atlas(args.atlas_out, main_dump, char_base)
         if args.atlas_manifest_out:
             args.atlas_manifest_out.write_text(json.dumps(
-                original_big_font_manifest(args.atlas_out, main_dump), indent=2) + "\n")
+                original_big_font_manifest(args.atlas_out, main_dump, char_base), indent=2) + "\n")
     if args.bg1_manifest_out and not args.bg1_out:
         ap.error("--bg1-manifest-out requires --bg1-out")
     if args.bg1_out:

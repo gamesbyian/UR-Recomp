@@ -1,0 +1,211 @@
+{
+  "schema": "ur-agent6-independent-third-windows-candidate-qa/1",
+  "reviewed_at": "2026-10-19",
+  "run_id": 39342967638,
+  "run_event": "pull_request",
+  "run_conclusion": "success",
+  "pr": 1990,
+  "tested_source": {
+    "actual_checkout_sha": "6179a312c50d304116dfe3f16e32d0641c1ba24e",
+    "parent_then_main": "c10d6e3a9ed0ca925d95330684f0e5226e0559b1",
+    "parent_pr_head": "94cf196f12fe617de3c89555ad668b4353824c0a",
+    "is_final_merged_main": false
+  },
+  "actual_downloaded_archives": {
+    "candidate": {
+      "id": 12229893445,
+      "sha256": "203845f87ff0cf46d646da76006ea9e5f77a80a94727e36694c4ff9099ef7a8a",
+      "members": 2
+    },
+    "binding": {
+      "id": 12229918402,
+      "sha256": "c23f7bcda1d7420350a9f4629ade7fae8a4f583ac7ddd8c1c820bbab262876e2",
+      "members": 1
+    },
+    "ntfs_preintent": {
+      "id": 12229803843,
+      "sha256": "420fc62830f88b3af2c08991a8c4fb486736510597095638639cc958148e7686",
+      "members": 25
+    },
+    "ntfs_postraw": {
+      "id": 12229893492,
+      "sha256": "e1244c90b9d4ec86c7e5b47f2015066917492cecd25fe1513ef81fa9380a8c55",
+      "members": 29
+    },
+    "windows_played_2p": {
+      "id": 12230235801,
+      "sha256": "c2ed60074d9de60e555ced7d7ab3bdffd932c7d88f9efc810ba24e35bbe0e059",
+      "members": 52
+    },
+    "prerecords_pair": {
+      "id": 12229898540,
+      "sha256": "25f100d18c75b1f85ad946b87f7c8c670b8b09f9a72887936e38aa35f1e82eca",
+      "members": 3
+    },
+    "win32_sharing_denial": {
+      "id": 12230350598,
+      "sha256": "463af4bc643426ebb342580ed05836414b61c3e303b438925e92d6fe520c12e2",
+      "members": 29
+    },
+    "pending_file_delete_denial": {
+      "id": 12230290671,
+      "sha256": "5aecf8bc969a567ea838d953468798ce9afecede2f49faef448fecfbe3066c60",
+      "members": 32
+    },
+    "postsave_two_process_selector_conflict": {
+      "id": 12230585375,
+      "sha256": "081cb48d4d3ca81304c759905c1f013b1adb382dd2ce77fb945813d3b1f4eac5",
+      "members": 28
+    },
+    "player2_catalog_stage_archive": {
+      "id": 12230068102,
+      "sha256": "d70b483f32c32463433db647e0f9deec55af2102a928c2449af1624e75e97ad0",
+      "members": 37
+    },
+    "parallel_hosted_player_journeys": {
+      "id": 12229618508,
+      "sha256": "3001b49a34a3280bc3b13e39caa5012af8626798c43d219c76f4353a4fe43946",
+      "members": 1
+    }
+  },
+  "package": {
+    "inner_zip_sha256": "4b01a28f1f42db00ce1562d6a5817dfc64a79c5d76a468f3027eb445965bde0f",
+    "inner_zip_bytes": 6058231,
+    "embedded_exe_sha256": "2488ad4f3f6f5f0c47e08585472e9422fd8ca7da17167ba3b620c757793b6c95",
+    "embedded_exe_bytes": 20334592,
+    "launcher_sha256": "2f2a6cdbe9d4c37e331b82577ed3c947342e545a19bd0c022d0b940fa7cac8e0",
+    "rom_bundled": false,
+    "profile_data_bundled": false,
+    "manifest_member_count": 3,
+    "source_manifest_equal_actual_checkout": true,
+    "real_pe_header_verified": true,
+    "crc_all_members_passed": true
+  },
+  "independent_original_ntfs_checker": {
+    "checker": "tools/check_qa06_ntfs_original_archives.py",
+    "both_actual_outer_pins_verified": true,
+    "preintent_original_raw_members": 16,
+    "postraw_original_raw_members": 22,
+    "preintent_exit8": true,
+    "postraw_exit8": true,
+    "win32_disk_full_error": 112,
+    "raw_changed_positions": 74,
+    "typed_before_generation": 1,
+    "typed_after_generation": 2,
+    "all_four_state_files_reconcile_on_first_cold": true,
+    "second_cold_files_identical": true,
+    "old_guest_boot_sram_fnv1a32": "63568e07",
+    "recovered_guest_boot_sram_fnv1a32": "255e468b",
+    "two_qualified_original_guest_cold_boots": true,
+    "checker_run_locally_on_downloaded_original_bytes": true
+  },
+  "independent_player_2p": {
+    "actual_created_named_profiles": [
+      "mike",
+      "martin"
+    ],
+    "played_source_result_host_frame": 4379,
+    "played_input_frames": 2232,
+    "results": {
+      "mike": "LOSS 00:27.61",
+      "martin": "WIN 00:27.57"
+    },
+    "original_raw_member_sha_count": 9,
+    "old_and_new_8k_raw_sram_equal_respective_typed_stock_sram": true,
+    "run_sha256": "d54ade82fdeb213db2c48bd7e4338c5bcae0f2af981fd70c27a467366acbc487",
+    "match_sha256": "d16eb5d8ce868c8df6ef59169cd5b83ff5b1ed93235c4ad58624de30f8050749",
+    "run_fnv1a64": "a8327800e49e4c44",
+    "match_fnv1a64": "5838b68b19e040cb",
+    "both_original_pre_records_files_equal_post_records_bytes": true,
+    "SDL_real_joysticks_observed": 0,
+    "audio_driver": "dummy"
+  },
+  "additional_windows_storage": {
+    "sharing_denial_original_member_hash_count": 22,
+    "pending_delete_denial_original_member_hash_count": 24,
+    "sharing_denial_original_exit8_and_win32_error5_source_report": true,
+    "pending_delete_first_explicit_T_restores_raw_before_retirement_denied": true,
+    "pending_delete_fail_closed_exit7_preserves_typed_catalog_selector_and_pending_file": true,
+    "pending_delete_second_T_after_handle_release_recovers": true,
+    "physical_torn_write_proven": false
+  },
+  "independence": "All archived source/member bytes read locally and outer SHA independently recomputed. Exact source commit checked via GitHub parent relation. No Windows executable was executed by independent agent.",
+  "excluded": {
+    "current_main_built_and_tested": false,
+    "full_Windows_release_gate": false,
+    "physical_two_gamepads": false,
+    "actual_non_dummy_audio": false,
+    "physical_UHD_display": false,
+    "electrical_power_cut": false,
+    "human_clean_machine_acceptance": false,
+    "independently_accepted_original_native_USA_course": false
+  },
+  "ledger": {
+    "accepted_windows_gates": 0,
+    "accepted_USA_events": 0,
+    "physical_hardware_verified": false,
+    "release_decision": "not_assessed",
+    "credit": 0
+  },
+  "decision": "THIRD distinctly built Windows synthetic PR candidate authentic hosted NTFS and genuine saved 2P positive; NO release or physical acceptance",
+  "postsave_two_process_selector_conflict": {
+    "actual_original_binary_members_sha_and_length_verified": 24,
+    "actors": "original native game + external writer using existing canonical product selector transaction",
+    "profile_mike_before_after_saved_different": true,
+    "mike_raw_and_typed_save_published_together": true,
+    "profile_andrew_raw_and_typed_unchanged": true,
+    "profile_catalog_unchanged": true,
+    "original_selector_before_equals_after_guest_save": true,
+    "selector_changed_only_after_external_actor": true,
+    "selector_after_original_refusal_equals_after_external_actor": true,
+    "original_guest_exit": 9,
+    "diagnostic": "Current racer save completed; requested next racer could not be selected.",
+    "release_gate_credit": 0,
+    "noncooperating_hostile_writer_stress_proven": false
+  },
+  "source_created_p2_catalog_recovery": {
+    "five_stages": [
+      "after-p1-created",
+      "after-p2-created",
+      "catalog-row-lost",
+      "after-p2-recovered",
+      "after-source-go"
+    ],
+    "total_original_stage_binary_members_sha_and_length_verified": 32,
+    "stages_member_counts": [
+      4,
+      7,
+      7,
+      7,
+      7
+    ],
+    "actual_row_loss_changed_only": "profiles-v1.txt",
+    "created_vs_recovered_all_original_files_byte_equal": true,
+    "source_GO_changed_only": [
+      "saves/profile-mike/save.srm",
+      "saves/profile-mike/host-profile.txt"
+    ],
+    "player_martin_raw_and_typed_bytes_unchanged_after_GO": true,
+    "all_available_mike_martin_stage_raw_8192_equals_full_typed_stock_sram": true,
+    "canonical_urmutex_0byte_lock_files_preserved_in_manifest": true,
+    "source_emulated_real_two_player_result_in_this_artifact": false,
+    "human_intervention": false,
+    "release_gate_credit": 0
+  },
+  "parallel_hosted_journeys": {
+    "source_and_executable_sha_match_actual_candidate": true,
+    "workers": 3,
+    "executed_cases": 13,
+    "expected_cases": 13,
+    "all_original_case_exit_codes_zero": true,
+    "overlap_baseline": true,
+    "elapsed_wall_seconds": 260.219,
+    "sum_separate_case_seconds": 723,
+    "identity_changed": false,
+    "missing_cases": [],
+    "archive_contains_process_logs": false,
+    "arbitrary_noncooperating_same_profile_writer_tested": false,
+    "physical_hardware_tested": false,
+    "release_gate_credit": 0
+  }
+}

@@ -12,6 +12,8 @@ on:
       - "tools/qa01_zoo_archived_frame_atlas.py"
       - "tools/qa01_independent_zoo_capture_ab_archive.py"
       - "tools/qa01_zoo_raw_archive_audit.py"
+      - "tools/qa01_rf076_original_fetch_archive.py"
+      - "tests/unit/test_qa01_rf076_original_fetch_archive.py"
       - "tests/unit/test_qa01_zoo_raw_archive_audit.py"
       - "tests/unit/test_qa01_frame_delta_atlas.py"
       - "tests/unit/test_qa01_zoo_archived_frame_atlas.py"
@@ -34,10 +36,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check repository hygiene before accepting archived research sources
+        run: python3 tools/check_repo_hygiene.py
+
       - name: ROM-free frame and adversarial audit tests
         run: |
           set -euo pipefail
-          python3 -m unittest tests.unit.test_qa01_continuous_frame_capture tests.unit.test_qa01_fidelity_evidence_pilots tests.unit.test_qa01_frame_delta_atlas tests.unit.test_qa01_zoo_archived_frame_atlas tests.unit.test_qa01_independent_zoo_capture_ab_archive tests.unit.test_qa01_zoo_raw_archive_audit -v
+          python3 -m unittest tests.unit.test_qa01_continuous_frame_capture tests.unit.test_qa01_fidelity_evidence_pilots tests.unit.test_qa01_frame_delta_atlas tests.unit.test_qa01_zoo_archived_frame_atlas tests.unit.test_qa01_independent_zoo_capture_ab_archive tests.unit.test_qa01_zoo_raw_archive_audit tests.unit.test_qa01_rf076_original_fetch_archive -v
 
       - name: Reopen exact real original/native 2014 Bowl evidence archive
         env:
@@ -49,11 +54,40 @@ jobs:
           # refuses any preexisting destination to prevent mixing runs.
           # This is GitHub's immutable 39168164480 / 12151357791 evidence,
           # not a newly simulated race or a generated ROM-free fixture.
+          # The original 2014 Bowl provider artifact expires 2026-10-25.
+          # Verify its 90-day authenticated nested original ZIP even while
+          # the original provider still exists, refusing source substitutions.
           curl --fail --show-error --silent --location --retry 2 \
             --header "Accept: application/vnd.github+json" \
             --header "Authorization: Bearer $GITHUB_TOKEN" \
-            --output "$RUNNER_TEMP/qa01-archive/genuine-bowl.zip" \
-            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12151357791/zip"
+            --output "$RUNNER_TEMP/qa01-archive/bowl-preserved-wrapper.zip" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12231290433/zip"
+          python3 - "$RUNNER_TEMP/qa01-archive/bowl-preserved-wrapper.zip" \
+                    "$RUNNER_TEMP/qa01-archive/bowl-source-backup.zip" <<'PY'
+          import hashlib,io,sys,zipfile
+          from pathlib import Path
+          outer=Path(sys.argv[1]).read_bytes()
+          assert hashlib.sha256(outer).hexdigest()=="1a3f11c178c5c0f6eb170b97c1ff7336e548e3d80b452d135dfcb1a64babe9b1"
+          with zipfile.ZipFile(io.BytesIO(outer)) as z:
+              assert z.namelist()==["genuine-bowl.zip"] and z.testzip() is None
+              original=z.read("genuine-bowl.zip")
+          assert hashlib.sha256(original).hexdigest()=="2924534f2700714c655647b43e2453c54d4e76f0e258566bcf500439d962ea79"
+          Path(sys.argv[2]).write_bytes(original)
+          print("2014 Bowl original research source ZIP independently retained and SHA256 pinned")
+          PY
+          if curl --fail --show-error --silent --location --retry 2 \
+              --header "Accept: application/vnd.github+json" \
+              --header "Authorization: Bearer $GITHUB_TOKEN" \
+              --output "$RUNNER_TEMP/qa01-archive/genuine-bowl.zip" \
+              "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12151357791/zip"; then
+            cmp "$RUNNER_TEMP/qa01-archive/genuine-bowl.zip" \
+                "$RUNNER_TEMP/qa01-archive/bowl-source-backup.zip"
+            echo "Bowl original 2014 provider ZIP equals independently retained source"
+          else
+            cp "$RUNNER_TEMP/qa01-archive/bowl-source-backup.zip" \
+               "$RUNNER_TEMP/qa01-archive/genuine-bowl.zip"
+            echo "Bowl provider artifact expired: exact original inner SHA256 backup used"
+          fi
           sha256sum "$RUNNER_TEMP/qa01-archive/genuine-bowl.zip"
           python3 tools/qa01_qualify_authentic_bowl_frames.py \
             --archive "$RUNNER_TEMP/qa01-archive/genuine-bowl.zip" \
@@ -340,6 +374,304 @@ jobs:
             qa01-rf076-source-audit/immutable-binaries.zip
             qa01-rf076-source-audit/independent-raw.json
 
+      - name: Independently qualify true nine-native-NMI RF076 archived original and binary bytes
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/qa01-rf076-nine"
+          mkdir -p "$ROOT/source"
+          # The original research provider objects expire 2026-10-26.
+          # Qualify the 90-day wrapper (12230088756) and original inner ZIPs
+          # before using either path; never mistake the wrapper SHA for source.
+          curl --fail --show-error --silent --location --retry 2 \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -o "$ROOT/preserved-wrapper.zip" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12230088756/zip"
+          python3 - "$ROOT/preserved-wrapper.zip" "$ROOT" <<'PY'
+          import hashlib,io,sys,zipfile
+          from pathlib import Path
+          outer=Path(sys.argv[1]).read_bytes()
+          assert hashlib.sha256(outer).hexdigest()=="b041dace391e3cbcc5cf02862515617e122aec23364ec2970fb951c31d48a66e"
+          with zipfile.ZipFile(io.BytesIO(outer)) as z:
+              assert set(z.namelist())=={
+                  "case.zip","binaries.zip","independent-nine-nmi.json","independent-raw.json"}
+              assert len(z.infolist())==4 and z.testzip() is None
+              for name,expected in [
+                  ("case.zip","33119ca55e3868981e7760c83e1796daa47b6fc72274c14588f72086b37609e4"),
+                  ("binaries.zip","68bcdc28dbd2751cf61a9a8206414ea8d63bac10c987877fe30e7471504e0a39")]:
+                  original=z.read(name)
+                  assert hashlib.sha256(original).hexdigest()==expected
+                  (Path(sys.argv[2])/("backup-"+name)).write_bytes(original)
+          print("RF076 nine-NMI preserved wrapper and both original inner source ZIPs SHA256 qualified")
+          PY
+          if curl --fail --show-error --silent --location --retry 2 \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -o "$ROOT/case.zip" \
+              "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12229745143/zip"; then
+            cmp "$ROOT/case.zip" "$ROOT/backup-case.zip"
+            echo "Original RF076 nine-NMI case and byte-preserved backup identical"
+          else
+            cp "$ROOT/backup-case.zip" "$ROOT/case.zip"
+            echo "Original RF076 nine-NMI case expired: original-inner-SHA backup used"
+          fi
+          if curl --fail --show-error --silent --location --retry 2 \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -o "$ROOT/binaries.zip" \
+              "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12229240455/zip"; then
+            cmp "$ROOT/binaries.zip" "$ROOT/backup-binaries.zip"
+            echo "Original RF076 nine-NMI binaries and byte-preserved backup identical"
+          else
+            cp "$ROOT/backup-binaries.zip" "$ROOT/binaries.zip"
+            echo "Original RF076 nine-NMI binaries expired: original-inner-SHA backup used"
+          fi
+          python3 - "$ROOT/case.zip" "$ROOT/binaries.zip" "$ROOT/source" "$ROOT/independent-nine-nmi.json" <<'PY'
+          import collections,hashlib,io,json,re,stat,sys,zipfile
+          from pathlib import Path
+          case_sha="33119ca55e3868981e7760c83e1796daa47b6fc72274c14588f72086b37609e4"
+          binary_sha="68bcdc28dbd2751cf61a9a8206414ea8d63bac10c987877fe30e7471504e0a39"
+          def pinned(path,sha,count,limit):
+              raw=Path(path).read_bytes()
+              assert hashlib.sha256(raw).hexdigest()==sha
+              z=zipfile.ZipFile(io.BytesIO(raw));infos=z.infolist()
+              assert len(infos)==count and len({m.filename for m in infos})==count
+              assert sum(m.file_size for m in infos)<limit and z.testzip() is None
+              for m in infos:
+                  n=m.filename
+                  assert 0<len(n)<512 and not m.is_dir() and not(m.flag_bits&1)
+                  assert not n.startswith("/") and chr(92) not in n and ":" not in n
+                  assert all(t not in ("",".","..") and not t.endswith((" ",".")) for t in n.split("/"))
+                  assert stat.S_IFMT(m.external_attr>>16) in (0,stat.S_IFREG)
+                  assert m.file_size<20_000_000
+              return z
+          with pinned(sys.argv[1],case_sha,416,65_000_000) as c, \
+               pinned(sys.argv[2],binary_sha,9,25_000_000) as b:
+              case=json.loads(c.read("case-result.json"))
+              assert case["source_sha"]=="477d738bad9fd514ad0f11e97c9b1561391f0859"
+              assert case["case"]=="zoom-zoo" and case["course_id"]=="course:02"
+              assert case["disposition"]=="strict_candidate" and case["release_credit"]==0
+              manifest=c.read("SHA256SUMS")
+              assert manifest==b.read("SHA256SUMS")
+              exe={}
+              for line in manifest.decode("ascii").splitlines():
+                  match=re.fullmatch(r"([a-f0-9]{64})  (snesref|native|snes9x_libretro[.]so)",line)
+                  assert match and match.group(2) not in exe
+                  exe[match.group(2)]=match.group(1)
+                  assert hashlib.sha256(b.read(match.group(2))).hexdigest()==match.group(1)
+              assert len(exe)==3 and exe["native"]==case["evidence"]["native_sha256"]
+              assert exe["snes9x_libretro.so"]==case["evidence"]["core_sha256"]
+              native=c.read("work/zoom-zoo/replay/native.log")
+              original=c.read("work/zoom-zoo/replay/reference.log")
+              assert hashlib.sha256(native).hexdigest()=="eda4004608338d82b7947e942a1f9a9969c2fe6e6d4389382a002ca4d7779421"
+              assert hashlib.sha256(original).hexdigest()=="f357f876f61b687aae8f42aa10c2505aa81ea8438a266925192dbb318967d308"
+              assert b"QA01RF047NATIVE_TRUNCATED" not in native
+              events=[];mixed=collections.Counter();stages=collections.Counter()
+              for line in native.decode("utf8").splitlines():
+                  tag="QA01RF047NATIVE seq="
+                  if tag not in line:continue
+                  assert line.count(tag)==1
+                  prefix,_,rest=line.partition(tag)
+                  match=re.fullmatch(r"(\d+) (.*)",rest)
+                  assert match and int(match.group(1))==len(events)+1
+                  items=re.findall(r"([A-Za-z][A-Za-z0-9]*)=([^\s]+)",match.group(2))
+                  assert items and " ".join(k+"="+v for k,v in items)==match.group(2)
+                  row=dict(items)
+                  assert len(row)==len(items) and 1017<=int(row["f"])<=1025
+                  stages[row["stage"]]+=1
+                  if prefix:mixed[row["stage"]]+=1
+                  row["seq"]=len(events)+1
+                  events.append(row)
+              assert len(events)==47853
+              assert stages==collections.Counter({"opcode":45103,"read":2705,**{
+                  k:9 for k in ("entry","resume_origin","after_push","compiled_rti","handler_return")}})
+              assert mixed==collections.Counter({"read":73,"compiled_rti":2})
+              frame_ordinals={}
+              for frame in range(1017,1026):
+                  rows=[(i,e) for i,e in enumerate(events) if int(e["f"])==frame
+                        and e["stage"] in ("entry","resume_origin","after_push","compiled_rti","handler_return")]
+                  assert [e["stage"] for _,e in rows]==[
+                      "entry","resume_origin","after_push","compiled_rti","handler_return"]
+                  (_,entry),(_,source),(_,push),(_,rti),(end,done)=rows
+                  assert source["site"]=="deadline_unwind" and source["kind"]=="set"
+                  assert source["sourceFound"]==source["originMatches"]=="1"
+                  assert source["sourceFrame"]==str(frame-1)
+                  assert source["waiBeforeNMI"]==source["waiAtPush"]=="0"
+                  assert all(x["resume"]=="82D4EE" for x in (entry,source,push,done))
+                  after=next((x for x in events[end+1:] if x["stage"]=="opcode"),None)
+                  assert after and after["f"]==str(frame)
+                  assert after["tier"]=="aot" and after["guestPC"]=="82D4EE"
+                  frame_ordinals[str(frame)]=[entry["seq"],done["seq"],after["seq"]]
+              rf74=json.loads(c.read("rf074-native-resume-origin.json"))
+              rf76=json.loads(c.read("rf076-native-opcode-vs-scheduler.json"))
+              assert rf74["native_resume_assignment_bound_to_actual_NMI_before_push_count"]==9
+              assert rf76["native_NMI_brackets"]==9 and rf76["native_event_count"]==len(events)
+              assert rf76["native_opcode_target_event_count"]==stages["opcode"]
+              assert not rf76["same_semantic_phase_original_native_proven"]
+              assert not rf76["first_differing_consumed_byte_proven"]
+              assert rf74["accepted_USA_events"]==rf76["accepted_USA_events"]==0
+              root=Path(sys.argv[3])
+              for member in c.infolist():
+                  out=root/member.filename
+                  out.parent.mkdir(parents=True,exist_ok=True)
+                  out.write_bytes(c.read(member))
+              receipt={"schema":"ur-qa01-rf076-native-nine-independent-archive/1",
+                       "case_sha256":case_sha,"binary_sha256":binary_sha,
+                       "actual_compiled_elf_sha256":exe,
+                       "observed_RF047_event_count":len(events),
+                       "native_nine_complete_NMI_brackets":9,
+                       "selected_native_opcode_marker_count":stages["opcode"],
+                       "physically_interleaved_RF044_prefix_rows":sum(mixed.values()),
+                       "interleaved_stage_counts":dict(mixed),"nine_frame_ordinals":frame_ordinals,
+                       "original_native_first_consumed_byte_proven":False,
+                       "native_physical_log_atomic_isolation_proven":False,
+                       "complete_USA_event_credit":0,"adjudication":"HOLD"}
+              Path(sys.argv[4]).write_text(json.dumps(receipt,indent=2,sort_keys=True)+"\n")
+              print("Authentic RF076 nine native NMI source brackets, 75 mixed physical rows; no cross-guest parity")
+          PY
+          python3 tools/qa01_zoo_raw_archive_audit.py \
+            --artifact-root "$ROOT/source" --out "$ROOT/independent-raw.json"
+          python3 - "$ROOT/independent-raw.json" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          assert (d["full_zoo_mesh_rehashed_original_native_128k_pairs"],
+                  d["full_zoo_mesh_exact_pairs"],d["full_zoo_mesh_nonexact_pairs"],
+                  d["full_zoo_mesh_unmasked_differing_byte_occurrences"])==(78,51,27,92)
+          assert d["next_bowl_wram_unequal_offsets"]==[266,280]
+          assert d["next_bowl_sram_unequal_offsets"]==[]
+          assert d["independent_usa_event_adjudication"]=="HOLD"
+          assert d["accepted_usa_events"]==0
+          print("Independent 78 raw 128KiB Zoo pairs and cold earned SRAM requalified: HOLD 0/45")
+          PY
+
+      - name: Retain original nine-NMI ZIP bytes and independent source verdicts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-rf076-nine-nmi-exact-source-and-independent-verdict
+          retention-days: 90
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/qa01-rf076-nine/case.zip
+            ${{ runner.temp }}/qa01-rf076-nine/binaries.zip
+            ${{ runner.temp }}/qa01-rf076-nine/independent-nine-nmi.json
+            ${{ runner.temp }}/qa01-rf076-nine/independent-raw.json
+
+      - name: Independently qualify original actual fetched-PC NMI versus native selected opcode
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/qa01-rf076-original-fetch"
+          mkdir -p "$ROOT/unpacked"
+          # Provider originals expire 2026-10-26. Validate the existing
+          # qualified 90-day backup WRAPPER plus both original INNER ZIP
+          # digests, then independently compare original provider bytes while
+          # they exist. Only the same authenticated inner bytes can substitute.
+          curl --fail --show-error --silent --location --retry 2 \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -o "$ROOT/preserved-originals-wrapper.zip" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12231814011/zip"
+          python3 - "$ROOT/preserved-originals-wrapper.zip" "$ROOT" <<'PY'
+          import hashlib,io,sys,zipfile
+          from pathlib import Path
+          data=Path(sys.argv[1]).read_bytes()
+          assert hashlib.sha256(data).hexdigest()=="2a334b8ed7a3636c5fa715cf6f513829c52ff9be4cd0e2e94516f8a9cd3543a1"
+          with zipfile.ZipFile(io.BytesIO(data)) as z:
+              assert len(z.infolist())==4 and set(z.namelist())=={
+                  "genuine-case.zip","genuine-binaries.zip",
+                  "independent-opcode-NMI.json","independent-zoo-raw.json"}
+              assert z.testzip() is None
+              for name,source_sha in (
+                  ("genuine-case.zip","402d3ee176307af4415fc24d579b00fb7c763996e02dfefe537f0c698b848b55"),
+                  ("genuine-binaries.zip","713cac1696fdeacd4b079f3b53e768b879f5f7a506c77e2b617cf24e3452188d")):
+                  original=z.read(name)
+                  assert hashlib.sha256(original).hexdigest()==source_sha
+                  Path(sys.argv[2],"backup-"+name).write_bytes(original)
+          print("Fourth RF076 original source/binary inner SHA256s verified independently of wrapper")
+          PY
+          if curl --fail --show-error --silent --location --retry 2 \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -o "$ROOT/genuine-case.zip" \
+              "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12231020072/zip"; then
+            cmp "$ROOT/genuine-case.zip" "$ROOT/backup-genuine-case.zip"
+            echo "Original fetched-PC source case identical to authenticated preserved inner ZIP"
+          else
+            cp "$ROOT/backup-genuine-case.zip" "$ROOT/genuine-case.zip"
+            echo "Original fetched-PC source expired; SHA-pinned original inner ZIP substituted"
+          fi
+          if curl --fail --show-error --silent --location --retry 2 \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -o "$ROOT/genuine-binaries.zip" \
+              "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12229419837/zip"; then
+            cmp "$ROOT/genuine-binaries.zip" "$ROOT/backup-genuine-binaries.zip"
+            echo "Original fetched-PC executables identical to authenticated preserved inner ZIP"
+          else
+            cp "$ROOT/backup-genuine-binaries.zip" "$ROOT/genuine-binaries.zip"
+            echo "Original fetched-PC binaries expired; SHA-pinned original inner ZIP substituted"
+          fi
+          python3 tools/qa01_rf076_original_fetch_archive.py \
+            --case "$ROOT/genuine-case.zip" \
+            --binaries "$ROOT/genuine-binaries.zip" \
+            --out "$ROOT/independent-opcode-NMI.json"
+          # Extract only after the exact published original ZIP SHA/CRC and
+          # all source/actual ELF/guest log and ordinal checks above passed.
+          python3 - "$ROOT/genuine-case.zip" "$ROOT/unpacked" <<'PY'
+          import io,hashlib,sys,zipfile
+          from pathlib import Path
+          raw=Path(sys.argv[1]).read_bytes()
+          assert hashlib.sha256(raw).hexdigest()=="402d3ee176307af4415fc24d579b00fb7c763996e02dfefe537f0c698b848b55"
+          with zipfile.ZipFile(io.BytesIO(raw)) as z:
+              assert z.testzip() is None and len(z.infolist())==418
+              for m in z.infolist():
+                  p=Path(sys.argv[2])/m.filename
+                  p.parent.mkdir(parents=True,exist_ok=True)
+                  p.write_bytes(z.read(m))
+          PY
+          python3 tools/qa01_zoo_raw_archive_audit.py \
+            --artifact-root "$ROOT/unpacked" --out "$ROOT/independent-zoo-raw.json"
+          python3 - "$ROOT/independent-opcode-NMI.json" "$ROOT/independent-zoo-raw.json" <<'PY'
+          import json,sys
+          report,raw=(json.load(open(p)) for p in sys.argv[1:])
+          assert report["original_actual_selected_opcode_fetch_count"]==45045
+          assert report["original_actual_nmi_brackets"]==9
+          assert report["native_NMI_brackets"]==9
+          assert report["native_nonatomic_physical_RF047_rows"]==75
+          assert report["different_selected_post_NMI_PCs_at_matching_host_frame_labels"]==[1017,1019,1021,1023]
+          assert report["original_native_semantic_phase_proven"] is False
+          assert report["first_actually_consumed_differing_operand_proven"] is False
+          assert report["accepted_USA_events"]==report["release_QA_gates"]==0
+          assert (raw["full_zoo_mesh_rehashed_original_native_128k_pairs"],
+                  raw["full_zoo_mesh_exact_pairs"],
+                  raw["full_zoo_mesh_nonexact_pairs"],
+                  raw["full_zoo_mesh_unmasked_differing_byte_occurrences"])==(78,51,27,92)
+          assert raw["next_bowl_wram_unequal_offsets"]==[266,280]
+          assert raw["next_bowl_sram_unequal_offsets"]==[]
+          assert raw["independent_usa_event_adjudication"]=="HOLD"
+          assert raw["accepted_usa_events"]==0
+          print("True original 45,045 opcode fetches; four host-label differences; 78/78 raw WRAM recomputed, scientific HOLD 0/45")
+          PY
+
+      - name: Preserve original RF076 fetched-NMI source and actual binaries
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-rf076-original-fetch-source-and-binary-original-bytes
+          retention-days: 90
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/qa01-rf076-original-fetch/genuine-case.zip
+            ${{ runner.temp }}/qa01-rf076-original-fetch/genuine-binaries.zip
+            ${{ runner.temp }}/qa01-rf076-original-fetch/independent-opcode-NMI.json
+            ${{ runner.temp }}/qa01-rf076-original-fetch/independent-zoo-raw.json
+
       - name: Preserve 260-KB original Actions ZIP bytes before source expires
         # Original provider artifact 12167633197 expires 2026-10-26.
         # Keep the exact authentic nested ZIP, never reconstruct raw images or
@@ -349,6 +681,18 @@ jobs:
         with:
           name: qa01-zoo-original-ab-immutable-source-preservation
           path: ${{ runner.temp }}/qa01-zoo-authenticated/real-zoo-ab.zip
+          retention-days: 90
+          if-no-files-found: error
+
+      - name: Preserve original 2014 Bowl source bytes before October 25 expiry
+        # The source-original 39168164480 artifact 12151357791 expires
+        # 2026-10-25 21:38 UTC. Preserve only after the full independent Bowl
+        # archive audit above passes; do not alter the original ZIP digest.
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-bowl-original-2014-immutable-source-preservation
+          path: ${{ runner.temp }}/qa01-archive/genuine-bowl.zip
           retention-days: 90
           if-no-files-found: error
 

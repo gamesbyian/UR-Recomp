@@ -111,6 +111,9 @@ std::string g_practice_previous_save_root;
 ModernRootMenu g_menu{};
 ur::product::ModernTitleState g_title{};
 bool g_title_logged = false;
+unsigned g_title_guest_frame = 0;
+bool g_title_intro_captured = false;
+bool g_title_root_captured = false;
 // Native OPTIONS: only controls the pinned host genuinely applies.
 ur::product::BaldosaNativeOptions g_options{};
 bool options_host_get_display(void*, int* fullscreen, int* vsync) {
@@ -997,6 +1000,8 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     g_title = ur::product::modern_title_boot(
         !(fixture && *fixture && std::strcmp(fixture, "15") != 0));
     g_title_logged = false;
+    g_title_intro_captured = false;
+    g_title_root_captured = false;
     g_navigation_edges.reset();
     g_p2_join_edges.reset();
     g_two_seat_join.cancel();
@@ -1175,6 +1180,67 @@ extern "C" void ur_baldosa_modern_root_prepare_frame(
     *logical_height = 224;
 }
 
+// Diagnostic source-raster capture, never a claim about the physical SDL
+// drawable. QA must separately bind this PAM and the route to exact executable
+// identity and inspect real 16:9 presented pixels. Opt-in and write-once.
+void capture_modern_title_native_frame(
+    const std::uint8_t* source, std::size_t pitch, int width, int height,
+    const char* stage) {
+    const char* directory = std::getenv("UR_BALDOSA_MODERN_TITLE_CAPTURE_DIR");
+    if (!directory || !*directory || !source || width < 256 || height != 224 ||
+        pitch < static_cast<std::size_t>(width) * 4) return;
+    const std::filesystem::path file =
+        std::filesystem::path(directory) /
+        (std::string("modern-native-") + stage + "-" +
+         std::to_string(width) + "x224.pam");
+    std::FILE* out = std::fopen(file.string().c_str(), "wb");
+    if (!out) {
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_TITLE capture_error stage=%s open_failed=1\n",
+            stage);
+        return;
+    }
+    const std::string header =
+        "P7\nWIDTH " + std::to_string(width) +
+        "\nHEIGHT 224\nDEPTH 4\nMAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n";
+    bool written = std::fwrite(header.data(), 1, header.size(), out) ==
+                   header.size();
+    std::uint64_t hash = 1469598103934665603ull;
+    for (int y = 0; y < height && written; ++y) {
+        const auto* line = source + static_cast<std::size_t>(y) * pitch;
+        for (int x = 0; x < width; ++x) {
+            std::uint32_t argb{};
+            std::memcpy(&argb, line + static_cast<std::size_t>(x) * 4, 4);
+            const std::uint8_t rgba[4] = {
+                static_cast<std::uint8_t>(argb >> 16),
+                static_cast<std::uint8_t>(argb >> 8),
+                static_cast<std::uint8_t>(argb),
+                static_cast<std::uint8_t>(argb >> 24)};
+            for (std::uint8_t c : rgba) {
+                hash ^= c;
+                hash *= 1099511628211ull;
+            }
+            if (std::fwrite(rgba, 1, sizeof(rgba), out) != sizeof(rgba)) {
+                written = false;
+                break;
+            }
+        }
+    }
+    if (std::fclose(out) != 0) written = false;
+    if (!written) {
+        std::remove(file.string().c_str());
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_TITLE capture_error stage=%s write_failed=1\n",
+            stage);
+        return;
+    }
+    std::fprintf(stderr,
+        "UR_BALDOSA_MODERN_TITLE native_capture=1 stage=%s guest_frame=%u "
+        "raster=%dx%d rgba_fnv1a64=%016llx path=%s\n",
+        stage, g_title_guest_frame, width, height,
+        static_cast<unsigned long long>(hash), file.string().c_str());
+}
+
 extern "C" int ur_baldosa_modern_root_draw_frame(
     std::uint8_t* dst, std::size_t pitch, const std::uint8_t* field,
     int width, int height, double) {
@@ -1200,7 +1266,16 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         const bool drawn = ur::product::render_modern_title(
             painter, reinterpret_cast<std::uint32_t*>(dst),
             static_cast<int>(pitch / 4), height, width, g_title);
-        if (drawn) ++g_paint_count;
+        if (drawn) {
+            ++g_paint_count;
+            if (!g_title_intro_captured &&
+                g_title.phase == ur::product::ModernTitlePhase::Intro &&
+                g_title.age >= 40) {
+                g_title_intro_captured = true;
+                capture_modern_title_native_frame(dst, pitch, width,
+                    height, "title");
+            }
+        }
         return drawn ? 1 : 0;
     }
     ModernRootOverlayView view{
@@ -1277,6 +1352,11 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         HostOverlayRect{(width - 240) / 2,10,240,204}, view);
     if (drawn) {
         ++g_paint_count;
+        if (g_title_logged && !g_title_root_captured) {
+            g_title_root_captured = true;
+            capture_modern_title_native_frame(dst, pitch, width,
+                height, "root");
+        }
         if (g_reentry_needs_paint) {
             std::fprintf(stderr,
                 "UR_BALDOSA_MODERN_ROOT reopened_painted=1 renderer=shared\n");
@@ -1466,6 +1546,7 @@ extern "C" void ur_baldosa_modern_root_stock_observe_guest(void) {
 }
 
 extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
+    g_title_guest_frame = frame;
     ur_baldosa_modern_root_stock_observe_guest();
     if (g_visible && ur::product::modern_title_active(g_title)) {
         g_title = ur::product::modern_title_advance(g_title);

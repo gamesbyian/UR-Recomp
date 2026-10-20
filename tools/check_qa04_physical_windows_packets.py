@@ -24,11 +24,32 @@ REQUIRED_PHYSICAL = KINDS
 REQUIRED_VM = frozenset(("portable-verifier", "startup-log", "played-journey"))
 MAX_FILE_BYTES = 32 * 1024 * 1024
 MAX_TOTAL_BYTES = 128 * 1024 * 1024
+RECEIPT_FIELDS = frozenset((
+    "schema", "source_commit", "artifact_sha256",
+    "tested_executable_sha256", "zip_sha256_before_launch",
+    "zip_sha256_after_launch", "pe_sha256_before_launch",
+    "pe_sha256_after_launch", "package_unchanged_after_launch",
+    "independent_review_completed", "operator_notes", "hardware",
+    "attachments",
+))
+HARDWARE_FIELDS = frozenset((
+    "setup_id", "environment", "clean_environment", "windows_version",
+    "gpu", "display", "controller", "audio", "physical_controller_observed",
+    "audible_output_observed", "visible_display_observed",
+))
 
 
 def require(ok: bool, message: str) -> None:
     if not ok:
         raise ValueError("QA04_PACKET_REJECTED: " + message)
+
+
+def unique_json_fields(pairs: list[tuple[str, object]]) -> dict:
+    result = {}
+    for key, value in pairs:
+        require(key not in result, "duplicate JSON key: " + key)
+        result[key] = value
+    return result
 
 
 def sha256_file(path: Path) -> str:
@@ -62,7 +83,8 @@ def inspect_packet(path: Path, *, commit: str, zip_sha: str,
     require(path.is_file() and not path.is_symlink()
             and 0 < path.stat().st_size <= 1024 * 1024,
             "missing/unsafe receipt JSON")
-    receipt = json.loads(path.read_text(encoding="utf-8"))
+    receipt = json.loads(path.read_text(encoding="utf-8"),
+                         object_pairs_hook=unique_json_fields)
     require(type(receipt) is dict
             and receipt.get("schema") == "ur-windows-physical-witness/1",
             "unrecognized witness receipt")
@@ -70,6 +92,8 @@ def inspect_packet(path: Path, *, commit: str, zip_sha: str,
         "release_gate_credit", "gate_passed", "physical_hardware_verified",
         "independently_accepted", "release_decision")),
         "producer may not self-admit release gates")
+    require(set(receipt) == RECEIPT_FIELDS,
+            "receipt has missing, extra or forbidden metadata fields")
     for key, expected in (("source_commit", commit),
                           ("artifact_sha256", zip_sha),
                           ("tested_executable_sha256", pe_sha)):
@@ -82,7 +106,9 @@ def inspect_packet(path: Path, *, commit: str, zip_sha: str,
             and receipt.get("pe_sha256_after_launch") == pe_sha,
             "inconsistent before/after package hashes")
     hw = receipt.get("hardware")
-    require(type(hw) is dict and type(hw.get("setup_id")) is str
+    require(type(hw) is dict and set(hw) == HARDWARE_FIELDS,
+            "hardware metadata fields must be explicit and privacy-bounded")
+    require(type(hw.get("setup_id")) is str
             and bool(hw["setup_id"].strip())
             and type(hw.get("environment")) is str
             and hw["environment"] in ("physical", "isolated-clean-vm")

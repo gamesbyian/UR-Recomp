@@ -319,8 +319,8 @@ def main():
         d=ImageDraw.Draw(im)
         d.rectangle((0,0,1920,93),fill=INK)
         d.rectangle((0,985,1920,1080),fill=INK)
-        text_fit(d,(102,14),"UNIRACERS RECOMP  /  NATIVE WIDESCREEN",46,YELLOW,True)
-        text_fit(d,(108,1007),"JUMPS COURSE  •  AUTHENTIC GAMEPLAY FRAME",32,CREAM,True)
+        text_fit(d,(102,14),"UNIRACERS RECOMP  /  NATIVE WIDESCREEN",46,GOLD,True)
+        text_fit(d,(108,1007),"JUMPS COURSE  •  AUTHENTIC GAMEPLAY FRAME",32,LIGHT,True)
         poster=a.outdir/"ur-recomp-blue-action-poster.png";im.save(poster)
     claims={
         "release_status":"NOT A FINISHED BETA",

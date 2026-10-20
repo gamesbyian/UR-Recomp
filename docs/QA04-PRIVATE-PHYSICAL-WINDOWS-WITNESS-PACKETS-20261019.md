@@ -27,6 +27,7 @@ The original **archive SHA** is different from the **outer GitHub Actions artifa
 ```json
 {
   "schema": "ur-windows-physical-witness/1",
+  "layer": "L5",
   "source_commit": "40 lowercase hex of nominated source",
   "artifact_sha256": "64 lowercase hex of the nominated playable ZIP",
   "tested_executable_sha256": "64 lowercase hex of the extracted actual PE",

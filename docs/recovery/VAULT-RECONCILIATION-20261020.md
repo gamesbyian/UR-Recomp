@@ -10,13 +10,13 @@ Drive folder: `UR-Recomp Agent Recovery Vault` (folder ID `1AAZyC49ZXFY81GB0hI31
 
 ## Independently inspected latest lane archives
 
-Raw ZIP bytes were fetched and checked with Python `zipfile.testzip()`; all five had no duplicate member names and no CRC failure. Where an exhaustive SHA256 member manifest was present, the actual member census, sizes and hashes were independently compared:
+Raw ZIP bytes were fetched and checked with Python `zipfile.testzip()`; all five had no duplicate member names and no CRC failure. All five bundles contained exhaustive SHA256 member manifests (Agent 3's was named `H23-MANIFEST.json`); actual member census, sizes and hashes were independently compared:
 
 | Latest lane archive | Members | Declared payloads | Independent verdict |
 | --- | ---: | ---: | --- |
 | Agent 1 H23, `20261020T23-agent1-five-line-recovery.zip` | 95 | 94 | Exact declared census and member SHA256 matches |
 | Agent 2 H20, `20261020T2007Z-agent2-h20-five-line-recovery.zip` | 31 | 30 | Exact declared census and member SHA256 matches |
-| Agent 3 H23 v2, `20261020T2328Z-agent3-h23-five-line-recovery-v2.zip` | 29 | None | CRC clean; **no comprehensive manifest**, requires separate source verification |
+| Agent 3 H23 v2, `20261020T2328Z-agent3-h23-five-line-recovery-v2.zip` | 29 | 28 | Exact `H23-MANIFEST.json` census and member SHA256 matches |
 | Agent 4 H22, `20261020T223840Z-agent4-h22-five-line-recovery.zip` | 72 | 71 | Exact declared census and member SHA256 matches |
 | Agent 5 H22, `20261020T2255Z-agent5-h22-five-line-recovery.zip` | 41 | 40 | Exact declared census and member SHA256 matches |
 

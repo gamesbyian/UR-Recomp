@@ -90,7 +90,7 @@ class ExportEarnedRunTests(unittest.TestCase):
 
     def test_rejects_boolean_release_credit(self):
         self.report['release_gate_credit'] = False
-        self.report_path.write_text(json.dumps(self.report), encoding='utf-8')
+        self.write_report()
         with self.assertRaises(ValueError):
             export(self.journey, self.out)
         self.assertFalse(self.out.exists())

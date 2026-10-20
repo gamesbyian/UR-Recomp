@@ -72,10 +72,24 @@ xdpyinfo -display "$DISPLAY" >/dev/null
 for name in "${names[@]}"; do
   script="$OUT/routes/$name.txt"
   bash "$BALDOSA/tools/run_route.sh" "$script" "$OUT/working/$name-control"
-  UR_NATIVE_VIDEO_START=2100 UR_NATIVE_VIDEO_COUNT=900 \
+  # host_main.c ScriptDump prints "script f=<guest ID> dump cinematic-go ok".
+  # Reject zero or multiple GO observations instead of presuming the old
+  # Dragster GO=1989 applies to Looper/MegaJump/Hill Climb.
+  mapfile -t go_matches < <(sed -n -E 's/.*script f=([0-9]+) dump cinematic-go ok.*/\1/p' "$OUT/working/$name-control/log.txt")
+  test "${#go_matches[@]}" -eq 1
+  go="${go_matches[0]}"
+  [[ "$go" =~ ^[0-9]+$ ]]
+  start=$((go + 111))
+  if [ "$start" -lt 1990 ]; then start=1990; fi
+  UR_NATIVE_VIDEO_START="$start" UR_NATIVE_VIDEO_COUNT=900 \
     UR_NATIVE_VIDEO_OUTPUT="native-$name-lossless.mkv" \
     bash "$BALDOSA/tools/run_route.sh" "$script" "$OUT/working/$name-recorded"
   rec="$OUT/working/$name-recorded"
+  mapfile -t recorded_go < <(sed -n -E 's/.*script f=([0-9]+) dump cinematic-go ok.*/\1/p' "$rec/log.txt")
+  test "${#recorded_go[@]}" -eq 1
+  test "${recorded_go[0]}" = "$go"
+  printf '{"source_go_guest_frame":%d,"capture_start_guest_frame":%d,"capture_end_guest_frame":%d,"go_offset_requested":111,"source_control_equals_recorded_go":true}\n' \
+    "$go" "$start" "$((start + 899))" > "$OUT/published/capture-clock-$name.json"
   cmp "$OUT/working/$name-control/fd/crc.txt" "$rec/fd/crc.txt"
   python3 "$UR_ROOT/tools/showcase/validate_continuous_native_capture.py" \
     --master "$rec/native-$name-lossless.mkv" \

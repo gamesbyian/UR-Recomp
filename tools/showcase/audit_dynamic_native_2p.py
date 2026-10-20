@@ -33,7 +33,7 @@ def inspect(folder, route_manifest, binary_file, rom_sha, source_sha, names=NAME
         "native_binary_sha256": Path(binary_file).read_text().split()[0],
         "source_game_commit": "10b864b9d14a7b7416dd909eb7b054c88faef101",
         "source_framework_commit": "075fbe4c8e0d97b0013be541795c39cb644a9709",
-        "recorded_capture_guest_frame_ids": [2100, 2999],
+        "recording_origin": "111 guest frames after observed stock race GO, bounded below by absolute source frame 1990",
         "two_player_gameplay_confirmed": False,
         "visible_airborne_or_completed_trick_confirmed": False,
         "source_is_genuine_continuous_native_frames": True,
@@ -55,11 +55,17 @@ def inspect(folder, route_manifest, binary_file, rom_sha, source_sha, names=NAME
         if (stream["width"], stream["height"], stream["r_frame_rate"],
                 int(stream["nb_read_frames"])) != (1920, 1080, "60/1", 900):
             raise ValueError(f"Unexpected movie duration and geometry {name}: {stream}")
-        if (verified["control_guest_crc_sha256"] != verified["recorded_guest_crc_sha256"]
-                or verified["dropped_or_skipped_host_frame_ids"] != 0
-                or verified["guest_frame_start"] != 2100
-                or verified["guest_frame_end"] != 2999):
-            raise ValueError(f"Failed no-video / recording non-interference: {name}")
+        clock_path = folder / f"capture-clock-{name}.json"
+        clock = json.loads(clock_path.read_text())
+        expected_start = max(1990, clock["source_go_guest_frame"] + 111)
+        if (not clock["source_control_equals_recorded_go"]
+                or clock["capture_start_guest_frame"] != expected_start
+                or clock["capture_end_guest_frame"] != expected_start + 899
+                or verified["guest_frame_start"] != expected_start
+                or verified["guest_frame_end"] != expected_start + 899
+                or verified["control_guest_crc_sha256"] != verified["recorded_guest_crc_sha256"]
+                or verified["dropped_or_skipped_host_frame_ids"] != 0):
+            raise ValueError(f"Failed GO-relative/guest non-interference: {name}")
         expr = "+".join(f"eq(n\\,{n})" for n in SAMPLES)
         target = folder / f"{name}-sample-%02d.png"
         subprocess.run(["ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error",
@@ -92,6 +98,9 @@ def inspect(folder, route_manifest, binary_file, rom_sha, source_sha, names=NAME
         out["routes"][name] = {
             **routes[name],
             "movie": movie.name,
+            "capture_go_frame": clock["source_go_guest_frame"],
+            "capture_frame_start_end": [expected_start, expected_start + 899],
+            "capture_clock_sha256": sha(clock_path),
             "sha256": sha(movie),
             "recording_input_versus_control_crc_sha256": verified["recorded_guest_crc_sha256"],
             "source_lossless_sha256": verified["master"]["sha256"],

@@ -46,7 +46,7 @@ python3 tools/showcase/build_dynamic_2p_routes.py \
 For each generated `p1-leads.txt` and `p2-leads.txt`, use the pinned `baldosa/tools/run_route.sh` once with no recording, then a second time with:
 
 ```sh
-UR_NATIVE_VIDEO_START=2100 UR_NATIVE_VIDEO_COUNT=900 \
+UR_NATIVE_VIDEO_START=<calibrated-go-plus-111> UR_NATIVE_VIDEO_COUNT=900 \
 UR_NATIVE_VIDEO_OUTPUT=native-p1-leads-lossless.mkv
 ```
 
@@ -91,3 +91,7 @@ This produces one `looper-p1-leads`, one `megajump-p2-leads` and one `jumps-p1-l
 
 **Visual admission test:** Independently verify from continuous decoded video at least one recognizable actual ramp/steep slope/closed loop, genuine racer airborne frames and physically plausible landing, camera divergence from distinct P1/P2 track progress, unaltered original HUD and sprites, and consistent visual geometry beyond the center 256 columns. Compare the scene against source video/hash and sidecar ordinals. A name containing 'Jump' or 'Loop' and a button press never establishes the event occurred. If the segment shows no visible topology, retain the negative and extend the *genuine* source recording through that course before changing the editorial storyboard. Do not fabricate a loop, stitch unrelated players as one execution or crop both racers into a falsely shared arena.
 
+
+### Guest-frame alignment across different courses
+
+The original SDL2 framework prints `script f=<frame> dump cinematic-go ok` from its native `ScriptDump` method. The capture runner now parses the single source-control GO clock and captures **900 consecutive original guest presentations** starting at `max(1990, go_frame+111)`. It rechecks that the same GO guest frame occurs in the recorded run, verifies full-WRAM CRC equality, hashes `capture-clock-<case>.json` and requires the FFV1 sidecar's actual first/end frame IDs to equal the derived window. Fixed original Dragster 2100/2999 is not reused blindly for new course topologies. Missing, duplicated or different GO markers reject the run.

@@ -99,7 +99,7 @@ def produce(source: str, route: str) -> tuple[str, dict]:
         "unchanged_menu_and_go": True,
         "post_go_turbo_off": True,
         "post_go_scripted_frames": count,
-        "capture_requested": {"start_guest_frame": 2100, "frame_count": 900},
+        "capture_requested": {"start_guest_frame": None, "frames_after_observed_go": 111, "minimum_guest_start": 1990, "frame_count": 900},
         "controller_commands": [
             {"mask": mask, "duration": duration} for mask, duration in ROUTES[route]
         ],

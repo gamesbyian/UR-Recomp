@@ -8,6 +8,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 HOST = ROOT / "native/product/uniracers_modern_host.cpp"
+BALDOSA = ROOT / "tools/baldosa_native_modern_root.cpp"
 MOTION = ROOT / "native/product/modern_menu_motion.hpp"
 TEST = ROOT / "tests/native/modern_menu_motion_test.cpp"
 
@@ -27,6 +28,14 @@ class ModernMenuMotionTest(unittest.TestCase):
         self.assertIn("SDL_GetTicks()", host)
         self.assertIn("UR_REDUCED_MOTION", host)
         self.assertIn("paint_modern_menu_selection_motion(", host)
+        baldosa = BALDOSA.read_text(encoding="utf-8")
+        self.assertIn('#include "modern_menu_motion.hpp"', baldosa)
+        self.assertIn("modern_menu_tick60(", baldosa)
+        self.assertIn("SDL_GetTicks()", baldosa)
+        self.assertIn("UR_REDUCED_MOTION", baldosa)
+        self.assertIn("paint_modern_menu_selection_motion(", baldosa)
+        self.assertIn("!view.quit_confirm", baldosa)
+        self.assertIn("!view.two_seat_join_open", baldosa)
 
     def test_compiled_60hz_and_native_rgba(self):
         compiler = shutil.which("g++") or shutil.which("clang++")

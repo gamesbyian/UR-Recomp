@@ -250,6 +250,30 @@ void test_source_stock_hero() {
                     650 + wide_pose.hero_lean_px * 4 + 128)] ==
            0xff0000ffu);
     assert(wide[0] == 0xff101010u);
+
+    // Alpha-safe overscan: the padded 64x64 raster is larger than the 4x
+    // viewport but every opaque pixel is still faithfully visible.
+    std::vector<std::uint32_t> cropped(256u * 224u, 0xff101010u);
+    assert(paint_modern_menu_stock_hero(
+        cropped.data(), 256, 224, safe, {100, -50, 4},
+        sequence, quiet) == ModernMenuStockHeroDraw::Drawn);
+    assert(cropped[static_cast<std::size_t>(78) * 256u + 228u] ==
+           0xffff0000u);
+    assert(cropped[0] == 0xff101010u);
+
+    // Opaque overscan in EVEN ANOTHER registered source frame rejects the
+    // entire image before touching any frame-0 pixels.
+    const auto unchanged = cropped;
+    second[63u * 64u + 63u] = 0xffffffffu;
+    frames[1].source_argb_digest =
+        modern_menu_stock_hero_digest(second.data(), second.size());
+    assert(paint_modern_menu_stock_hero(
+        cropped.data(), 256, 224, safe, {100, -50, 4},
+        sequence, quiet) == ModernMenuStockHeroDraw::OutOfBounds);
+    assert(cropped == unchanged);
+    second[63u * 64u + 63u] = 0u;
+    frames[1].source_argb_digest =
+        modern_menu_stock_hero_digest(second.data(), second.size());
 }
 } // namespace
 

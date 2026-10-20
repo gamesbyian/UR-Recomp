@@ -169,8 +169,8 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             raw = Path(tmp) / "blank.pam"
             width, height = 64, 64
-            header = (f"P7\\nWIDTH {width}\\nHEIGHT {height}\\nDEPTH 4\\n"
-                      "MAXVAL 255\\nTUPLTYPE RGB_ALPHA\\nENDHDR\\n").encode()
+            header = (f"P7\nWIDTH {width}\nHEIGHT {height}\nDEPTH 4\n"
+                      "MAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n").encode()
             raw.write_bytes(header + bytes(width * height * 4))
             with self.assertRaisesRegex(RuntimeError,
                                         "blank/transparent/uniform"):
@@ -181,11 +181,11 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             raw = Path(tmp) / "stock.pam"
             width, height = 64, 64
-            header = (f"P7\\nWIDTH {width}\\nHEIGHT {height}\\nDEPTH 4\\n"
-                      "MAXVAL 255\\nTUPLTYPE RGB_ALPHA\\nENDHDR\\n").encode()
-            pixels = (b"\\xff\\x00\\x00\\xff" * 1400
-                      + b"\\x00\\xff\\x00\\xff" * 1400
-                      + b"\\x00\\x00\\xff\\xff" * 1296)
+            header = (f"P7\nWIDTH {width}\nHEIGHT {height}\nDEPTH 4\n"
+                      "MAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n").encode()
+            pixels = (b"\xff\x00\x00\xff" * 1400
+                      + b"\x00\xff\x00\xff" * 1400
+                      + b"\x00\x00\xff\xff" * 1296)
             raw.write_bytes(header + pixels)
             witness = driver.validate_authentic_pixels(raw, (width, height))
             self.assertEqual(witness["visible_alpha_pixels"], width * height)

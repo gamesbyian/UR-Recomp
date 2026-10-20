@@ -1290,7 +1290,7 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
                         reinterpret_cast<std::uint32_t*>(dst),
                         static_cast<int>(pitch / 4), height,
                         HostOverlayRect{0, 0, width, height},
-                        ur::product::ModernMenuStockHeroPlacement{120, 25, 3},
+                        ur::product::ModernMenuStockHeroPlacement{90, 12, 4},
                         ur::product::modern_menu_source_hero::kClip, phase);
                 if (drawn_hero ==
                     ur::product::ModernMenuStockHeroDraw::Drawn)

@@ -349,7 +349,14 @@ jobs:
             --aspect 4:3 \
             --out "$RUNNER_TEMP/modern-title-native-4by3-pr2043" \
             --timeout 100
-          echo "Verified original title pixels and native title→root host presentations on both 342-wide 16:9 and 256-wide 4:3 drawables; physical device approval remains pending." >> "$GITHUB_STEP_SUMMARY"
+          python tools/capture_baldosa_modern_title_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-native-capture.script" \
+            --reduced-motion \
+            --out "$RUNNER_TEMP/modern-title-native-reduced-pr2043" \
+            --timeout 100
+          echo "Verified original title pixels and actual native host presentations on 342-wide 16:9, 256-wide 4:3, and steady reduced-motion title; SDL drawable and physical device approval remain pending." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain native Modern title capture or failure diagnostics
         if: ${{ always() && github.event_name == 'pull_request' && github.head_ref == 'visual/modern-native-widescreen-title-20261020' }}
@@ -359,6 +366,7 @@ jobs:
           path: |
             ${{ runner.temp }}/modern-title-native-pr2043
             ${{ runner.temp }}/modern-title-native-4by3-pr2043
+            ${{ runner.temp }}/modern-title-native-reduced-pr2043
           if-no-files-found: warn
           retention-days: 14
 

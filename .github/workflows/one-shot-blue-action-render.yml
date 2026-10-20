@@ -1,0 +1,110 @@
+name: One-shot final blue recruitment with real jumps and track terrain
+on:
+  push:
+    branches: [media/blue-art-direction-recruitment-20261020]
+    paths: [.github/workflows/one-shot-blue-action-render.yml]
+permissions:
+  contents: write
+concurrency:
+  group: ur-blue-genuine-action-20261020
+  cancel-in-progress: false
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+      - name: Merge source-authentic new 3-course captures from main
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git merge --no-edit origin/main
+      - name: FFmpeg/Pillow for media only
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq python3-pil ffmpeg
+          python3 -m py_compile tools/showcase/build_flagship_recruitment_20261019.py tools/showcase/blue_trailer_art_direction.py
+      - name: Render blue art direction with 3 independently accepted native 2P courses
+        run: |
+          set -euo pipefail
+          python3 tools/showcase/build_flagship_recruitment_20261019.py \
+            --outdir media/showcase/2026-10-20/blue-action-final
+      - name: Prove source and output hashes, frame counts and real action shots
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,json,subprocess
+          from pathlib import Path
+          from PIL import Image
+          root=Path('media/showcase/2026-10-20/blue-action-final')
+          x=json.loads((root/'flagship-provenance.json').read_text())
+          assert x['total_horizontal_frames']==4800
+          assert x['total_vertical_frames']==1620
+          action=x['source_identity']['action']
+          assert action['sha256']=='46b5bf43bcfb4f8bdd4874e7a9994f70996688c2c86a259bef01d5102630598d'
+          assert [s['source_first_ordinal'] for s in x['horizontal_shots'] if s['source']=='action']==[0,300,600]
+          assert [s['source_frame_count'] for s in x['horizontal_shots'] if s['source']=='action']==[300,300,300]
+          assert not any(s['source'] in ('race','modern') for s in x['horizontal_shots'])
+          assert x['claims_and_exclusions']['loop_claim'].startswith('Looper')
+          sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+          clips={'ur-recomp-blue-action-80s-1080p.mp4':(1920,1080,4800,[75,480,650,1300,2150,2850,3500,4000,4500]),
+                 'ur-recomp-blue-action-27s-vertical.mp4':(1080,1920,1620,[90,420,775,1140,1450])}
+          proofs={}
+          for name,(w,h,frames,ordinals) in clips.items():
+            movie=root/name
+            assert sha(movie)==x['output_sha256'][name]
+            s=json.loads(subprocess.check_output(['ffprobe','-v','error','-count_frames',
+               '-select_streams','v:0','-show_entries','stream=width,height,r_frame_rate,nb_read_frames',
+               '-of','json',str(movie)]))['streams'][0]
+            assert (s['width'],s['height'],s['r_frame_rate'],int(s['nb_read_frames']))==(w,h,'60/1',frames),(name,s)
+            expr='+'.join('eq(n\\,'+str(v)+')' for v in ordinals)
+            mask=root/(name+'.qc-%02d.png')
+            subprocess.run(['ffmpeg','-nostdin','-hide_banner','-loglevel','error','-y',
+                '-i',str(movie),'-vf','select='+expr,'-fps_mode','vfr',
+                '-frames:v',str(len(ordinals)),'-start_number','0',str(mask)],check=True)
+            for i,v in enumerate(ordinals):
+              temp=root/(name+f'.qc-{i:02d}.png')
+              out=root/(name.removesuffix('.mp4')+f'-frame-{v:04d}.png')
+              temp.rename(out)
+              with Image.open(out) as im:
+                assert im.size==(w,h)
+                im.load()
+              with Image.open(out) as im:im.verify()
+              proofs[out.name]=sha(out)
+          poster=root/'ur-recomp-blue-action-poster.png'
+          assert sha(poster)==x['output_sha256'][poster.name]
+          with Image.open(poster) as im:
+            assert im.size==(1920,1080);im.verify()
+          (root/'blue-action-review.json').write_text(json.dumps({
+            'schema':'UR-BLUE-ACTION-FINAL-QA/1',
+            'original_guest_action_verified_through_sources':True,
+            'new_three_course_sessions':True,
+            'closed_loop_claimed':False,
+            'obsolete_grey_menus_removed':True,
+            'source_manifest_sha256':sha(root/'flagship-provenance.json'),
+            'review_frames_sha256':proofs,
+            'screening_status':'decode+source+hash verified; representative visual QA pending'
+          },indent=2,sort_keys=True)+'\n')
+          print('PASS 80s and 27s actual new-course footage + poster and',len(proofs),'witnesses')
+          PY
+      - name: Retain render artifact even if publish needs recovery
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ur-blue-genuine-action-render
+          path: media/showcase/2026-10-20/blue-action-final/
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Publish verified media, retire one-shot
+        run: |
+          set -euo pipefail
+          git add media/showcase/2026-10-20/blue-action-final/
+          git rm -f .github/workflows/one-shot-blue-action-render.yml
+          git commit -m "media: source-verified blue 80s film with real MegaJump Jumps and Looper footage"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

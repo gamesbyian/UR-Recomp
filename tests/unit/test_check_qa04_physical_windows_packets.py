@@ -34,6 +34,7 @@ def make_packet(root: Path, key: str, *, environment: str = "physical",
         })
     receipt = {
         "schema": "ur-windows-physical-witness/1",
+        "layer": "L5",
         "source_commit": SOURCE,
         "artifact_sha256": ZIP,
         "tested_executable_sha256": PE,

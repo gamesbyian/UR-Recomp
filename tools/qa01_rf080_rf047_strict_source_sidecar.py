@@ -52,6 +52,8 @@ def patch(source:str)->str:
     for token in (HEADER,EMIT,TAIL):
         if source.count(token)!=1:
             raise ValueError('RF080 exact source recorder layout changed')
+    if source.count('write(2, line, (size_t)n);') != 1:
+        raise ValueError('RF080 native source event writer ambiguous or duplicated')
     original_write_count=source.count('write(2, line, (size_t)n);')
     original_emit_count=source.count('ur_rf047_emit(')
     res=source.replace(HEADER,HEADER+'#include <fcntl.h>\n#include <stdlib.h>\n',1)

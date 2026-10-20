@@ -44,6 +44,20 @@ class PaletteCorrelationBoundaries(unittest.TestCase):
         self.assertFalse(result["whole_frame_P7_noninterference_proven"])
         self.assertEqual(result["release_gate_credit"], 0)
 
+    def test_source_cannot_impersonate_final_stage(self):
+        rows = synthetic_rows()
+        i = next(i for i,line in enumerate(rows) if line.startswith("UR_QA08_LATE_PPU_FINAL"))
+        rows[i] = rows[i].replace("UR_QA08_LATE_PPU_FINAL", "UR_QA08_LATE_PPU_SOURCE") + " sub=final"
+        with self.assertRaisesRegex(ValueError, "impersonate final"):
+            audit.parse_rows(rows)
+
+    def test_final_cannot_carry_source_sub_stage(self):
+        rows = synthetic_rows()
+        i = next(i for i,line in enumerate(rows) if line.startswith("UR_QA08_LATE_PPU_FINAL"))
+        rows[i] += " sub=0"
+        with self.assertRaisesRegex(ValueError, "final row cannot carry"):
+            audit.parse_rows(rows)
+
     def test_slot_corruption_is_rejected(self):
         rows = synthetic_rows()
         rows[0] = rows[0].replace("cgram6c=4210", "cgram6c=1111")

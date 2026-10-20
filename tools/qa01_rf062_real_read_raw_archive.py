@@ -14,7 +14,10 @@ import argparse
 import collections
 import difflib
 import hashlib
+import io
 import json
+import re
+import stat
 import tempfile
 import zipfile
 from pathlib import Path
@@ -23,6 +26,11 @@ import qa01_verify_frame_capture as raw_verify
 
 SCHEMA = "ur-qa01-rf062-authentic-opcode-raw-independent-intake/1"
 BASELINE_SHA = "3ccb209a92045e9e89113442e68af51b85a453a160a9b9efaf8ca0d59e79631c"
+# Independently published immutable source ZIPs from the *genuine* research
+# runs. A digest calculated only after parsing does NOT source-qualify a case.
+NATIVE_CASE_SHA = "b8287234d2fe515ee32b19b3d2a9b0e1bb58104b437de3a5cbe2e32e3af093ff"
+NATIVE_BINARIES_SHA = "5d6ffbf1313d83961f496f3c7dc83021323d76fcd977dfc2662ef9afbf6c7b46"
+RAW_PAIR_CASE_SHA = "85b8585539001210e4a9d2b22e5484034679fbda5d40808300d221e1ec583aed"
 ORIG = "work/zoom-zoo/replay/reference.log"
 NATIVE = "work/zoom-zoo/replay/native.log"
 FRAME_ROOT = "work/zoom-zoo/replay/qa01-frame-evidence/"
@@ -46,6 +54,66 @@ def sha_file(path: Path) -> str:
         for chunk in iter(lambda: f.read(1 << 20), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+def safe_zip_member(member: zipfile.ZipInfo) -> bool:
+    """Reject ZIP names/types with ambiguous extraction semantics on other hosts.
+
+    The consumer reads source-owned members directly, but accepting backslash,
+    drive/ADS or dot-segment aliases gives a misleading general CRC-qualified
+    receipt. UNIX non-regular files are not source evidence members either.
+    A mode with no encoded UNIX file type is permitted for portable ZIPs.
+    """
+    name = member.filename
+    mode = member.external_attr >> 16
+    return (
+        bool(name) and len(name) <= 4096 and
+        not name.startswith("/") and
+        "\\" not in name and ":" not in name and
+        all(ord(c) >= 32 and ord(c) != 127 for c in name) and
+        all(part not in ("", ".", "..") and not part.endswith((" ", "."))
+            for part in name.split("/")) and
+        not member.is_dir() and
+        stat.S_IFMT(mode) in (0, stat.S_IFREG) and
+        0 <= member.file_size <= 50_000_000
+    )
+
+
+def qualified_zip_snapshot(path: Path, expected: str,
+                           label: str) -> tuple[str, bytes]:
+    """Pin and CRC-check the exact immutable bytes consumed by the reviewer.
+
+    Hashing a pathname then reopening it would permit a replaced file to be
+    parsed after source qualification. Hold one size-bounded byte snapshot
+    through all later ZIP reads; never reread mutable archive pathnames.
+    """
+    need(type(expected) is str and
+         re.fullmatch(r"[0-9a-f]{64}", expected) is not None,
+         "invalid published "+label+" original ZIP SHA256 pin")
+    need(path.is_file() and not path.is_symlink() and
+         path.stat().st_size <= 128_000_000,
+         "missing, symlinked or oversized immutable "+label+" ZIP")
+    with path.open("rb") as file:
+        raw = file.read(128_000_001)
+    need(len(raw) <= 128_000_000,
+         "missing, symlinked or oversized immutable "+label+" ZIP")
+    actual = sha(raw)
+    need(actual == expected, "immutable "+label+" ZIP SHA256 differs from source archive")
+    with zipfile.ZipFile(io.BytesIO(raw)) as z:
+        members = z.infolist()
+        names = [m.filename for m in members]
+        need(bool(members) and len(members) <= 2500 and
+             len(names) == len(set(names)) and
+             all(safe_zip_member(m) for m in members) and
+             sum(m.file_size for m in members) <= 256_000_000,
+             "unsafe, ambiguous or oversized immutable "+label+" ZIP members")
+        need(z.testzip() is None, "corrupt original/native "+label+" ZIP member CRC")
+    return actual, raw
+
+
+def independently_pin_zip(path: Path, expected: str, label: str) -> str:
+    """Backward-compatible identity check over a stable qualified snapshot."""
+    return qualified_zip_snapshot(path, expected, label)[0]
 
 
 def content(z: zipfile.ZipFile, name: str, limit: int = 2_000_000) -> bytes:
@@ -288,9 +356,18 @@ def compare_frame_raw(z: zipfile.ZipFile, candidate: dict) -> dict:
 
 
 def audit(baseline: Path, native: Path, binaries: Path, paired: Path) -> dict:
-    need(sha_file(baseline) == BASELINE_SHA, "immutable independent original baseline SHA changed")
-    with zipfile.ZipFile(baseline) as b, zipfile.ZipFile(native) as n, \
-         zipfile.ZipFile(binaries) as v, zipfile.ZipFile(paired) as p:
+    qualified = {
+        "baseline": qualified_zip_snapshot(baseline, BASELINE_SHA, "original RF054 baseline"),
+        "native": qualified_zip_snapshot(native, NATIVE_CASE_SHA, "executed RF062 native"),
+        "binaries": qualified_zip_snapshot(
+            binaries, NATIVE_BINARIES_SHA, "compiled RF062 binary"),
+        "raw_pair": qualified_zip_snapshot(
+            paired, RAW_PAIR_CASE_SHA, "paired source/native raw"),
+    }
+    with zipfile.ZipFile(io.BytesIO(qualified["baseline"][1])) as b, \
+         zipfile.ZipFile(io.BytesIO(qualified["native"][1])) as n, \
+         zipfile.ZipFile(io.BytesIO(qualified["binaries"][1])) as v, \
+         zipfile.ZipFile(io.BytesIO(qualified["raw_pair"][1])) as p:
         old = json.loads(content(b,"producer-report.json",2_000_000))
         early = json.loads(content(n,"producer-report.json",2_000_000))
         late = json.loads(content(p,"producer-report.json",2_000_000))
@@ -335,10 +412,12 @@ def audit(baseline: Path, native: Path, binaries: Path, paired: Path) -> dict:
     return {
         "schema":SCHEMA,
         "qualification":"bounded actual native ROM opcode return + historical original operand + post-script-dump full memory; NO whole-event acceptance",
-        "baseline_original_archive_sha256":BASELINE_SHA,
-        "native_case_archive_sha256":sha_file(native),
-        "native_static_and_binaries_archive_sha256":sha_file(binaries),
-        "raw_pair_case_archive_sha256":sha_file(paired),
+        "baseline_original_archive_sha256":qualified["baseline"][0],
+        "native_case_archive_sha256":qualified["native"][0],
+        "native_static_and_binaries_archive_sha256":qualified["binaries"][0],
+        "raw_pair_case_archive_sha256":qualified["raw_pair"][0],
+        "all_four_actual_original_native_ZIP_SHA256_pins_verified": True,
+        "all_four_ZIP_member_names_unique_and_CRC_qualified": True,
         "candidate_source_sha":early_case["source_sha"],
         "raw_pair_source_sha":late_case["source_sha"],
         "rom_sha256":ROM,"movie_sha256":MOVIE,

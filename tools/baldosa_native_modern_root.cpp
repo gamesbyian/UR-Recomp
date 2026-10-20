@@ -212,6 +212,8 @@ std::string g_records_two_detail;
 bool g_records_two_player = false;
 bool g_render_reported = false;
 unsigned g_paint_count = 0;
+// Presentation-only receipt: change of real root/child surface, not a route.
+std::string g_last_native_destination_stage;
 int g_stock_target = -1;
 std::uint16_t g_stock_settle = 0;
 std::uint32_t g_stock_budget = 0;
@@ -1165,10 +1167,12 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
                     static_cast<std::size_t>(width) * 4);
     const ModernRootOverlayPainter painter{
         &snes_ovl_fill_rect, &snes_ovl_stroke_rect, &snes_ovl_draw_text};
-    if (!g_visible)
+    if (!g_visible) {
+        g_last_native_destination_stage.clear();
         return ur::product::render_baldosa_native_run_save_feedback(
             painter, reinterpret_cast<std::uint32_t*>(dst),
             static_cast<int>(pitch / 4), height, g_run_save_feedback) ? 1 : 0;
+    }
     ModernRootOverlayView view{
         g_menu, false, g_racer_name,
         false, g_confirm_quit, kNativeRootAvailable, false,
@@ -1265,6 +1269,20 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
             painter, pixels, stride, height, 1, panel_w, root_rect, view);
     if (drawn) {
         ++g_paint_count;
+        // Receipts are produced by the ACTUAL native draw with real product
+        // view fields and actual raster geometry. External screenshot QA can
+        // correlate this stage with its independently captured final pixels.
+        // No imagined controller events, synthetic results or guest writes.
+        const char* stage = ur::product::modern_native_destination_stage(view);
+        if (g_last_native_destination_stage != stage) {
+            g_last_native_destination_stage = stage;
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_DESTINATION stage=%s "
+                "raster=%dx%d root=%d,%d,%d,%d "
+                "source=modern_product_view\\n",
+                stage, width, height, root_rect.x, root_rect.y,
+                root_rect.width, root_rect.height);
+        }
         if (g_reentry_needs_paint) {
             std::fprintf(stderr,
                 "UR_BALDOSA_MODERN_ROOT reopened_painted=1 renderer=shared\n");

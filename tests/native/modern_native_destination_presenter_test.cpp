@@ -96,6 +96,14 @@ int main() {
     state.unbound_two_player_warning_open = true;
     assert(std::string_view(modern_native_destination_stage(state)) ==
            "multiplayer-unrecorded-warning");
+    state = {};
+    state.quit_confirm = true;
+    assert(std::string_view(modern_native_destination_stage(state)) ==
+           "quit-confirm");
+    state = {};
+    state.root_notice = "SOURCE COURSE UNREACHABLE";
+    assert(std::string_view(modern_native_destination_stage(state)) ==
+           "root-notice");
     const auto narrow = modern_native_destination_canvas(256,224,1,240,original);
     const auto expanded = modern_native_destination_canvas(342,224,1,320,wide);
     assert(narrow.scale == 1 && !narrow.wide && narrow.w == 218);

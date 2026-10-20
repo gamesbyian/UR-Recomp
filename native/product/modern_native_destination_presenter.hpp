@@ -294,4 +294,43 @@ inline bool render_modern_native_destination(
     return true;
 }
 
+
+// The in-race pause Options entry has the same authoritative host settings,
+// but its root is centred over the FROZEN guest image rather than the title.
+// Compose its frame and identical destination child without drawing the old
+// translucent Options modal first. No second options state or input handler.
+inline bool render_modern_native_pause_destination(
+    const ModernRootOverlayPainter& p,
+    std::uint32_t* pixels, int stride,
+    int width, int height,
+    const ModernRootOverlayView& view) {
+    if (!p.valid() || !pixels || !view.options_open ||
+        width < 256 || stride < width || height < 224) return false;
+    const int scale = width >= 512 && height >= 448 ? 2 : 1;
+    constexpr int logical_w = 240;
+    constexpr int logical_h = 204;
+    const HostOverlayRect root{
+        (width - logical_w * scale) / 2,
+        (height - logical_h * scale) / 2,
+        logical_w * scale, logical_h * scale};
+    if (root.x < 0 || root.y < 0 ||
+        root.width > width - root.x ||
+        root.height > height - root.y) return false;
+    const auto& pal = kModernStockMenuPalette;
+    p.fill_rect(pixels, stride, height, root.x, root.y,
+                root.width, root.height, pal.background);
+    p.fill_rect(pixels, stride, height, root.x, root.y,
+                root.width, 27 * scale, pal.header_band);
+    p.stroke_rect(pixels, stride, height, root.x, root.y,
+                  root.width, root.height, pal.frame_grey);
+    p.draw_text(pixels, stride, height,
+                root.x + 9 * scale, root.y + 6 * scale,
+                "UNIRACERS", pal.title_yellow, 2 * scale);
+    p.draw_text(pixels, stride, height,
+                root.x + 8 * scale, root.y + 36 * scale,
+                "PAUSED - GUEST FROZEN", pal.secondary_grey, scale);
+    return render_modern_native_destination(
+        p, pixels, stride, height, scale, logical_w, root, view);
+}
+
 }  // namespace ur::product

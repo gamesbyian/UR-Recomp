@@ -23,7 +23,7 @@ ur::product::advance_modern_menu_motion(
 ur::product::paint_modern_menu_selection_motion(
 modern_title_confirm(
 modern_title_active(
-*logical_width = 342;
+*logical_width = ur::product::modern_title_logical_width(
 if (width != 342) return;
 g_navigation_edges.p1_gamepad(
 g_navigation_edges.keyboard(
@@ -52,6 +52,7 @@ class ModernCombinedNativeHooksTest(unittest.TestCase):
         self.assertTrue(result["eligible_for_native_acceptance_run"])
         self.assertEqual(result["missing"], [])
         self.assertEqual(result["missing_native_integration_hooks"], [])
+        self.assertEqual(result["known_host_geometry_conflicts"], [])
         self.assertFalse(result["native_executed"])
         self.assertEqual(result["screenshots_captured"], 0)
         self.assertFalse(result["human_visual_approved"])
@@ -76,6 +77,29 @@ class ModernCombinedNativeHooksTest(unittest.TestCase):
         self.assertIn("native_motion_updated", result["missing_native_integration_hooks"])
         self.assertIn("authentic_mode_can_disable_root",
                       result["missing_native_integration_hooks"])
+
+    def test_unmerged_240px_motion_rect_rejected_with_other_hooks_present(self):
+        file = self.root / "tools/baldosa_native_modern_root.cpp"
+        source = FIXTURE[file.relative_to(self.root).as_posix()]
+        source += ("\nur::product::paint_modern_menu_selection_motion("
+                   "painter, pixels, stride, height, 1, "
+                   "HostOverlayRect{(width - 240) / 2, 10, 240, 204}, phase);")
+        file.write_text(source, encoding="utf-8")
+        result = check.inventory(self.root)
+        self.assertEqual(result["missing_native_integration_hooks"], [])
+        self.assertFalse(result["eligible_for_native_acceptance_run"])
+        self.assertEqual(result["known_host_geometry_conflicts"],
+                         ["motion_uses_240px_root_under_342px_child_canvas"])
+
+    def test_motion_using_shared_root_rect_is_eligible_to_be_run(self):
+        file = self.root / "tools/baldosa_native_modern_root.cpp"
+        source = FIXTURE[file.relative_to(self.root).as_posix()]
+        source += ("\nur::product::paint_modern_menu_selection_motion("
+                   "painter, pixels, stride, height, 1, root_rect, phase);")
+        file.write_text(source, encoding="utf-8")
+        result = check.inventory(self.root)
+        self.assertEqual(result["known_host_geometry_conflicts"], [])
+        self.assertTrue(result["eligible_for_native_acceptance_run"])
 
     def test_missing_source_module_and_symlink_rejected(self):
         file = self.root / "native/product/modern_title_presenter.hpp"

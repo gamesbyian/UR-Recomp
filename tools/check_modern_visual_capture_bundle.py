@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Fail-closed *structural* audit of actual native Modern UI capture bundles.
 
-This verifies retained executable, PNG and route-log bytes, fixed presentation
-sizes, exact case metadata and per-file SHA256. It does not infer that an image
+This verifies retained executable, P7, lossless PNG and route-log bytes,
+fixed presentation sizes, exact case metadata and per-file SHA256. It does not infer that an image
 was produced by that executable, that its pixels are correct, or that hardware
 or human visual acceptance has occurred. See docs/MODERN-VISUAL-ACCEPTANCE.md.
 """
@@ -139,6 +139,79 @@ def png_pixels(data: bytes) -> tuple[int, int]:
     raise CaptureError("PNG missing IEND")
 
 
+def check_lossless_sdl_conversion(
+    root: Path, shot: dict, pixels: tuple[int, int],
+    png_path: Path, route_log: str,
+) -> None:
+    """Independently prove retained SDL-P7 bytes equal screenshot RGBA rows.
+
+    A capture's *origin* still requires same-process/PE source verification.
+    Both this check and the PNG byte scanner cannot infer genuine native
+    origin from plausible strings alone, and confer no visual approval.
+    """
+    w, h = pixels
+    source = checked_hash(
+        root, shot.get("capture_p7"), shot.get("capture_p7_sha256"))
+    expected_header = (
+        f"P7\nWIDTH {w}\nHEIGHT {h}\nDEPTH 4\n"
+        f"MAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n"
+    ).encode("ascii")
+    data = source.read_bytes()
+    if (not data.startswith(expected_header) or
+            len(data) != len(expected_header) + w * h * 4):
+        raise CaptureError("SDL readback P7 geometry, format or length invalid")
+    # The diagnostic writes exactly once; require its actual observed
+    # dimensions and SDL readback method on the SAME retained route log.
+    native_lines = [
+        line for line in route_log.splitlines()
+        if "UR_MODERN_VISUAL_SDL_CAPTURE status=saved " in line
+        and f" output={w}x{h} source=SDL_RenderReadPixels" in line
+    ]
+    if len(native_lines) != 1:
+        raise CaptureError("missing/ambiguous actual SDL readback route log")
+
+    converted = checked_hash(
+        root, shot.get("conversion_receipt"), shot.get("conversion_receipt_sha256"))
+    try:
+        receipt = json.loads(converted.read_text(encoding="utf-8"))
+    except (UnicodeError, ValueError) as exc:
+        raise CaptureError("invalid SDL PNG conversion receipt") from exc
+    if (not isinstance(receipt, dict) or
+            receipt.get("source_p7_sha256") != shot.get("capture_p7_sha256") or
+            receipt.get("converted_png_sha256") != shot.get("png_sha256") or
+            receipt.get("pixels") != [w, h] or
+            receipt.get("source_bytes") != len(data) or
+            receipt.get("png_bytes") != png_path.stat().st_size or
+            receipt.get("transform") != "row-exact-P7-RGBA-to-filter0-PNG-RGBA" or
+            receipt.get("visual_approved") is not False or
+            receipt.get("actual_sdl_proven") is not False or
+            receipt.get("release_gate_credit") != 0):
+        raise CaptureError("SDL PNG conversion receipt mismatch/nonapproval invariant")
+
+    encoded = png_path.read_bytes()
+    if (encoded[25] != 6 or encoded[24] != 8):  # RGBA, 8-bit
+        raise CaptureError("SDL screenshot PNG must be 8-bit RGBA")
+    pos, compressed = len(PNG_SIG), bytearray()
+    while pos < len(encoded):
+        n = struct.unpack_from(">I", encoded, pos)[0]
+        if encoded[pos + 4:pos + 8] == b"IDAT":
+            compressed.extend(encoded[pos + 8:pos + 8 + n])
+        pos += 12 + n
+    # png_pixels() has already bounded, decoded and CRC-verified these
+    # chunks. Re-inflate only the already-validated source size to compare
+    # filter-0 RGBA bytes byte-for-byte with retained P7 raw sample order.
+    raw = zlib.decompress(bytes(compressed))
+    stride = w * 4
+    if len(raw) != (stride + 1) * h:
+        raise CaptureError("unexpected decoded SDL PNG raster length")
+    for y in range(h):
+        if (raw[y * (stride + 1)] != 0 or
+                raw[y * (stride + 1) + 1:(y + 1) * (stride + 1)] !=
+                data[len(expected_header) + y * stride:
+                     len(expected_header) + (y + 1) * stride]):
+            raise CaptureError("SDL P7/PNG exact RGBA pixel mismatch")
+
+
 def read_matrix(matrix: dict) -> dict:
     if matrix.get("schema_version") != 1 or not isinstance(matrix.get("cases"), list):
         raise CaptureError("unsupported visual case matrix")
@@ -207,6 +280,7 @@ def audit(matrix: dict, bundle: dict, evidence_root: Path) -> dict:
                 any(not isinstance(m, str) or len(m) < 12 or m not in observed
                     for m in markers)):
             raise CaptureError(key + ": route marker absent from retained native log")
+        check_lossless_sdl_conversion(evidence_root, shot, actual, frame, observed)
         checked.append(key)
     missing = sorted(set(cases) - seen)
     return {
@@ -220,7 +294,7 @@ def audit(matrix: dict, bundle: dict, evidence_root: Path) -> dict:
         "hardware_approved": False,
         "authentic_isolation_approved": False,
         "release_gate_credit": 0,
-        "scope": "byte/metadata/PNG geometry and cited log substring checks only",
+        "scope": "actual SDL-log marker, byte-bound P7/PNG lossless rows, executable/hash/route metadata; independent source and human review pending",
     }
 
 

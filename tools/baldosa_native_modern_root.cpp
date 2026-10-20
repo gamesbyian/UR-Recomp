@@ -1907,7 +1907,7 @@ extern "C" int ur_baldosa_modern_root_pause_options_draw(
     std::array<ur::product::BaldosaOptionsRowText,
                ur::product::kBaldosaOptionsRowCount> option_text{};
     fill_options_view(view, option_text);
-    return ur::product::render_native_modern_pause_options(
+    return ur::product::render_modern_native_pause_destination(
         painter, reinterpret_cast<std::uint32_t*>(pixels),
         static_cast<int>(pitch / 4), width, height, view) ? 1 : 0;
 }

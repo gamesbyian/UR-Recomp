@@ -257,24 +257,42 @@ int main() {
     assert(render_modern_native_destination(painter,scratch,256,224,
                                              1,240,original,v));
     assert(has("TWO PLAYER"));
-    assert(has("> P1  MIKE  ACTIVE"));
+    assert(has("  P1  MIKE  ACTIVE"));
+    assert(!has("> P1  MIKE  ACTIVE"));
     assert(has("> P2  MARTIN  CHOOSE"));
     assert(has("STOCK: MIKE / MARTIN"));
+    assert(std::count_if(painted.begin(), painted.end(),
+        [](const Rectangle& box) {
+            return box.colour == kModernStockMenuPalette.cursor_blue;
+        }) == 1); // only P2 owns the selection band
     clear();
+    v.join_p1_confirmed = true;
+    v.join_p2_confirmed = true;
+    assert(render_modern_native_destination(painter,scratch,256,224,
+                                             1,240,original,v));
+    assert(has("  P1  MIKE  READY"));
+    assert(has("  P2  MARTIN  READY"));
+    assert(std::count_if(painted.begin(), painted.end(),
+        [](const Rectangle& box) {
+            return box.colour == kModernStockMenuPalette.cursor_blue;
+        }) == 0);
+    clear();
+    v.join_p1_confirmed = false;
+    v.join_p2_confirmed = false;
     // Long profile names must not consume the READY/CHOOSE status. The full
     // identity remains in the product catalog; compact copy marks overflow.
     v.join_p1_name = "ABCDEFGHIJKLMNOPQRST";
     v.join_p2_name = "QRSTUVWXYZABCDEFGHIJ";
     assert(render_modern_native_destination(painter,scratch,256,224,
                                              1,240,original,v));
-    assert(has("> P1  ABCDEFGHIJ.  ACTIVE"));
+    assert(has("  P1  ABCDEFGHIJ.  ACTIVE"));
     assert(has("> P2  QRSTUVWXYZ.  CHOOSE"));
     bounds(256,224);
     clear();
     // In 342-wide composition both complete 20-character names fit.
     assert(render_modern_native_destination(painter,scratch,342,224,
                                              1,320,wide,v));
-    assert(has("> P1  ABCDEFGHIJKLMNOPQRST  ACTIVE"));
+    assert(has("  P1  ABCDEFGHIJKLMNOPQRST  ACTIVE"));
     assert(has("> P2  QRSTUVWXYZABCDEFGHIJ  CHOOSE"));
     bounds(342,224);
     clear();

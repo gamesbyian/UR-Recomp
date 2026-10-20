@@ -138,6 +138,64 @@ void test_motion() {
     assert(pose.entrance_distance_px == 0);
     assert(pose.cursor_remainder_px == 0);
 }
+void test_motion_adversarial_event_stream() {
+    // 10,000 deterministic host-only menu events. Includes A/B button churn,
+    // semantic skips, same-tick events, hidden cycles, reduced-motion changes
+    // and clock rewinds. This does not send, simulate or mutate guest input.
+    ModernMenuMotionState state{};
+    std::uint32_t seed = 0x4d4f544eu;
+    std::uint64_t tick = 100u;
+    for (int step = 0; step < 10000; ++step) {
+        seed = seed * 1664525u + 1013904223u;
+        const auto selection = static_cast<std::uint8_t>(
+            (seed >> 24) % kModernMenuMotionRows);
+        const bool visible = ((seed >> 16) % 41u) != 0u;
+        const bool reduced = ((seed >> 8) % 19u) == 0u;
+        if ((seed & 127u) == 0u) {
+            // Host clock reset/rollover, not a guest-frame rewind.
+            tick = 1u;
+        } else {
+            tick += ((seed >> 3) % 4u);
+        }
+        const ModernMenuMotionInput input{
+            tick, selection, visible, reduced};
+        const auto pose = advance_modern_menu_motion(state, input);
+        const auto repeated = advance_modern_menu_motion(state, input);
+        assert(pose.visible == visible);
+        assert(pose.visible == repeated.visible);
+        assert(pose.selection == repeated.selection);
+        assert(pose.cursor_remainder_px ==
+               repeated.cursor_remainder_px);
+        assert(pose.cursor_spin_phase == repeated.cursor_spin_phase);
+        assert(pose.entrance_distance_px ==
+               repeated.entrance_distance_px);
+        assert(pose.hero_frame_ordinal ==
+               repeated.hero_frame_ordinal);
+        if (!visible) {
+            assert(!state.visible);
+            continue;
+        }
+        assert(pose.selection == selection);
+        assert(pose.cursor_spin_phase >= 0 &&
+               pose.cursor_spin_phase < 16);
+        assert(pose.hero_frame_ordinal >= 0 &&
+               pose.hero_frame_ordinal < 8);
+        assert(pose.entrance_distance_px >= 0 &&
+               pose.entrance_distance_px <= 256);
+        if (reduced) {
+            assert(pose.cursor_remainder_px == 0);
+            assert(pose.entrance_distance_px == 0);
+            assert(pose.hero_bob_px == 0 && pose.hero_lean_px == 0);
+        } else {
+            // Even instant multi-row navigation and direction reversals must
+            // keep the physical cursor between the first and fifth rows.
+            const int physical = static_cast<int>(selection) * 21 +
+                                 pose.cursor_remainder_px;
+            assert(physical >= 0 && physical <= 4 * 21);
+        }
+    }
+}
+
 void test_raster() {
     // Actual source/modern host geometry: 256x224 compact and 342x224
     // widescreen, each at 1x and 4x. A fictitious 384-wide logical panel
@@ -344,6 +402,7 @@ void test_source_stock_hero() {
 
 int main() {
     test_motion();
+    test_motion_adversarial_event_stream();
     test_raster();
     test_source_stock_hero();
     std::puts("PASS: Modern native menu motion 60Hz, 4:3/16:9, reduced motion");

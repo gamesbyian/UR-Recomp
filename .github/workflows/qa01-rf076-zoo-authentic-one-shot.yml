@@ -1,6 +1,6 @@
-# TEMP RF080 strict-source-sidecar retry of RF079 true two-frame BIT/BPL return value.
-# NO gameplay/graphics/release edits. Do not merge this workflow.
-name: RF079 genuine Zoo actual BIT return and BPL branch-value one-shot
+# TEMP RF081 exact genuine original/native first STZ D+$59 writer source replay
+# Bounded frames 1017/1018, native RF047 isolated sidecar, no independent QA credit
+name: RF081 genuine Zoo first STZ original/native committed-writer one-shot
 
 on:
   pull_request:
@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: qa01-rf079-bit-bpl-branch-${{ github.event.pull_request.number }}
+  group: qa01-rf081-stz-first-writer-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:

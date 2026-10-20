@@ -40,7 +40,29 @@ class IndependentVisualBundleTest(unittest.TestCase):
         self.binary = b"native PE simulated test fixture, not a release executable"
         self.root.joinpath("native.exe").write_bytes(self.binary)
         self.root.joinpath("capture.png").write_bytes(png())
-        self.log = b"UR_BALDOSA_MODERN_ROOT opened=1\nsemantic pad P1 accepted\n"
+        self.p7 = (b"P7\nWIDTH 4\nHEIGHT 3\nDEPTH 4\nMAXVAL 255\n"
+                   b"TUPLTYPE RGB_ALPHA\nENDHDR\n" +
+                   (b"\xff\x21\x42\xff" * 4) * 3)
+        self.root.joinpath("sdl.pam").write_bytes(self.p7)
+        self.receipt = {
+            "source_p7_sha256": sha(self.p7),
+            "converted_png_sha256": sha(png()),
+            "source_bytes": len(self.p7),
+            "png_bytes": len(png()),
+            "pixels": [4, 3],
+            "transform": "row-exact-P7-RGBA-to-filter0-PNG-RGBA",
+            "actual_sdl_proven": False,
+            "visual_approved": False,
+            "hardware_approved": False,
+            "release_gate_credit": 0,
+        }
+        self.receipt_raw = json.dumps(self.receipt).encode("utf-8")
+        self.root.joinpath("conversion.json").write_bytes(self.receipt_raw)
+        self.log = (
+            b"UR_BALDOSA_MODERN_ROOT opened=1\nsemantic pad P1 accepted\n"
+            b"UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=1 "
+            b"guest_frame=1 output=4x3 source=SDL_RenderReadPixels\n"
+        )
         self.root.joinpath("route.log").write_bytes(self.log)
         self.row = {
             "id": "root", "screen": "root", "mode": "modern",
@@ -55,6 +77,9 @@ class IndependentVisualBundleTest(unittest.TestCase):
             "exe_sha256": sha(self.binary),
             "driver": "native-semantic-pad",
             "png": "capture.png", "png_sha256": sha(png()),
+            "capture_p7": "sdl.pam", "capture_p7_sha256": sha(self.p7),
+            "conversion_receipt": "conversion.json",
+            "conversion_receipt_sha256": sha(self.receipt_raw),
             "route_log": "route.log", "route_log_sha256": sha(self.log),
             "route_markers": ["UR_BALDOSA_MODERN_ROOT opened=1"]
         }
@@ -111,6 +136,32 @@ class IndependentVisualBundleTest(unittest.TestCase):
                 self.entry["png_sha256"] = sha(forged)
                 with self.assertRaisesRegex(qa.CaptureError, expected):
                     self.run_audit()
+
+    def test_retained_p7_pixel_substitution_rejected_even_with_new_shas(self):
+        corrupt = self.p7[:-4] + b"\x00\x00\x00\xff"
+        self.root.joinpath("sdl.pam").write_bytes(corrupt)
+        self.entry["capture_p7_sha256"] = sha(corrupt)
+        self.receipt["source_p7_sha256"] = sha(corrupt)
+        changed = json.dumps(self.receipt).encode()
+        self.root.joinpath("conversion.json").write_bytes(changed)
+        self.entry["conversion_receipt_sha256"] = sha(changed)
+        with self.assertRaisesRegex(qa.CaptureError, "RGBA pixel mismatch"):
+            self.run_audit()
+
+    def test_missing_actual_sdl_output_marker_rejected(self):
+        altered = b"UR_BALDOSA_MODERN_ROOT opened=1\nsemantic pad P1 accepted\n"
+        self.root.joinpath("route.log").write_bytes(altered)
+        self.entry["route_log_sha256"] = sha(altered)
+        with self.assertRaisesRegex(qa.CaptureError, "SDL readback route log"):
+            self.run_audit()
+
+    def test_conversion_receipt_cannot_claim_human_or_native_certification(self):
+        self.receipt["visual_approved"] = True
+        changed = json.dumps(self.receipt).encode()
+        self.root.joinpath("conversion.json").write_bytes(changed)
+        self.entry["conversion_receipt_sha256"] = sha(changed)
+        with self.assertRaisesRegex(qa.CaptureError, "nonapproval invariant"):
+            self.run_audit()
 
     def test_wrong_dimensions_rejected(self):
         other = png(8, 6)

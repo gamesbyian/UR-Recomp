@@ -17,7 +17,7 @@ import sys
 try:
     from tools.baldosa_windows_native_pause_route import run_route
     from tools.qa08_late_effective_trace_verify import (
-        EXPECTED_CRC, EXPECTED_ROUTE, verify)
+        EXPECTED_CRC, EXPECTED_ROUTE, verify, summarize_trace)
 except ImportError:
     from baldosa_windows_native_pause_route import run_route
     from qa08_late_effective_trace_verify import (
@@ -62,6 +62,9 @@ def run_pair(off: Path, on: Path, rom: Path, route: Path, original: Path,
         "actual_on_executable_sha256": on_sha,
         "actual_source_process_runs": 0,
         "complete_guest_replay_equivalence_proven": False,
+        "same_epoch_ON_OFF_guest_CRC_equal": False,
+        "historical_RF017_guest_CRC_qualified": False,
+        "unadmitted_PPU_observation_only": False,
         "actual_source_P7_ON_OFF_noninterference_proven": False,
         "QA08_QA10_release_accepted": False,
     }
@@ -93,14 +96,44 @@ def run_pair(off: Path, on: Path, rom: Path, route: Path, original: Path,
             results[f"{label}_CRC_sha256"] = sha(path.read_bytes())
             results[f"{label}_bounded_source_rows"] = len(
                 (out / f"{label}-source.log").read_text().splitlines())
-            if results[f"{label}_CRC_sha256"] != EXPECTED_CRC:
-                raise ValueError(f"real {label} guest CRC deviated from authentic RF017 script")
+            results[f"{label}_matches_historical_RF017_CRC"] = (
+                results[f"{label}_CRC_sha256"] == EXPECTED_CRC)
+            results[f"{label}_actual_guest_frames"] = len(crcs)
+        results["same_epoch_ON_OFF_guest_CRC_equal"] = (
+            results["off_CRC_sha256"] == results["on_CRC_sha256"] and
+            results["off_actual_guest_frames"] == 5484 and
+            results["on_actual_guest_frames"] == 5484)
+        if not results["same_epoch_ON_OFF_guest_CRC_equal"]:
+            raise ValueError("observer ON/OFF changed real guest CRC or full 5484-frame inventory")
+        if not results["off_matches_historical_RF017_CRC"]:
+            # Newer host/guest epoch: inspect selected PPU words without
+            # pretending old source frames or input epochs are equivalent.
+            try:
+                selected = summarize_trace(
+                    (out / "on-source.log").read_text(encoding="utf-8"))
+                results["unadmitted_live_PPU_sample"] = [{
+                    "xy": row["xy"],
+                    "actual_renderer": row["actual_renderer"],
+                    "main_layer": row["main_layer"],
+                    "main_directcolor": row["main_directcolor"],
+                    "main_selected_palette_index": row["main_selected_palette_index"],
+                    "main_actual_resolved_rgb555": row["main_actual_resolved_rgb555"],
+                    "main_current_index_CGRAM_word": row["main_current_index_CGRAM_word"],
+                    "current_main_CGRAM_6c_6f": row["current_main_CGRAM_6c_6f"],
+                    "new_native_final_RGB5": row["new_native_final_RGB5"],
+                    "same_historical_original_native_source_epoch_proven": False,
+                } for row in selected["anchors"]]
+                results["unadmitted_PPU_observation_only"] = True
+            except (ValueError, OSError) as exc:
+                results["unadmitted_observer_refusal"] = str(exc)[:1000]
+            raise ValueError("same-epoch ON/OFF guest CRC matched but historic RF017 CRC did not")
         attested = verify(
             out / "on-source.log", out / "off-source.log", original,
             out / "on-guest-crc.txt", out / "off-guest-crc.txt",
             out / "on-route.bin", out / "off-route.bin", native)
         results["effective_source"] = attested
         results["complete_guest_replay_equivalence_proven"] = True
+        results["historical_RF017_guest_CRC_qualified"] = True
         # Whole-P7 ON/OFF capture is still a separate required experiment.
         results["final_diagnostic_outcome"] = "source-only accepted; P7/beam/release HOLD"
         return results

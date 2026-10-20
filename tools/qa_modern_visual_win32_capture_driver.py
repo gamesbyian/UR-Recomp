@@ -37,6 +37,7 @@ ROUTES = {
     "records-keyboard": ("1", 64, "UR_BALDOSA_MODERN_ROOT records_opened=1"),
     "options-p1": ("12", 74, "UR_BALDOSA_MODERN_ROOT options_opened"),
     "profile-first-p1": ("8", 66, "UR_BALDOSA_MODERN_ROOT first_racer_opened=1"),
+    "authentic-stock": ("0", 40, ""),
 }
 
 
@@ -67,10 +68,11 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
     script.write_text("wait 480\nquit\n", encoding="ascii")
     capture = stage / "actual-sdl-drawable.pam"
     smoke, capture_draw, stage_marker = ROUTES[route]
+    execution_mode = "authentic" if route == "authentic-stock" else "modern"
     env = dict(os.environ)
     env.update({
         "SNESRECOMP_USER_DATA_DIR": str(home),
-        "UR_EXECUTION_MODE": "modern",
+        "UR_EXECUTION_MODE": execution_mode,
         "UR_BALDOSA_MODERN_ROOT": "1",
         "UR_BALDOSA_MODERN_INPUT": "1",
         "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
@@ -101,7 +103,13 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
     if not (320 <= found[0] <= MAX_DIM[0] and
             224 <= found[1] <= MAX_DIM[1]):
         raise RuntimeError("Unqualified SDL drawable geometry: " + str(found))
-    if "UR_BALDOSA_MODERN_ROOT opened=1" not in log:
+    root_opened = "UR_BALDOSA_MODERN_ROOT opened=1" in log
+    if execution_mode == "authentic":
+        if root_opened or "UR_BALDOSA_MODERN_ROOT painted=1" in log:
+            raise RuntimeError("Modern frontend leaked into Authentic execution")
+        if "[snes_load]" not in log:
+            raise RuntimeError("Authentic guest ROM load was not observed")
+    elif not root_opened:
         raise RuntimeError("Actual native Modern root not observed")
     if stage_marker and stage_marker not in log:
         raise RuntimeError("Requested real native destination route not observed: " + route)
@@ -111,6 +119,7 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
         "capture": capture,
         "expected": expected,
         "route": route,
+        "execution_mode": execution_mode,
         "capture_draw": capture_draw,
         "observed": found,
         "readback_saved": (
@@ -164,13 +173,14 @@ def run(exe: Path, rom: Path, out: Path, source_sha: str, video: str,
     conversion = convert(raw, png, selected["observed"])
     receipt = {
         "schema_version": 1,
-        "scope": "one real Windows Modern *baseline* root, not four-agent visual integration",
+        "scope": "one real Windows native display baseline/control, not four-agent visual integration",
         "source_sha": source_sha,
         "exe_sha256": sha256(exe),
         "native_process_exit": 0,
         "actual_sdl_renderer_output": list(selected["observed"]),
         "observed_in_draw": selected["capture_draw"],
         "native_semantic_route": route,
+        "execution_mode": selected["execution_mode"],
         "native_route_marker_observed": bool(ROUTES[route][2]),
 
         "requested_window_size": list(window_size) if window_size else None,

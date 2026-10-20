@@ -143,6 +143,39 @@ jobs:
             ${{ runner.temp }}/ur-modern-win32-journey-profile-first-p1/probe_first/native-process.log
           if-no-files-found: warn
           retention-days: 7
+      - name: Capture stock Authentic control at 16-to-9 and 4-to-3
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/baldosa/build-ur-visual/UniracersSNESRecomp.exe"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          # Same native PE and exact Windows display sizes, but execution
+          # mode=authentic; fail if Modern root opens or paints at all.
+          for size in 1280x720 1024x768; do
+            python tools/qa_modern_visual_win32_capture_driver.py \
+              --exe "$EXE" --rom "$ROM" --source-sha "$(git rev-parse HEAD)" \
+              --out "$RUNNER_TEMP/ur-authentic-win32-control-$size" \
+              --video windows --timeout 100 --window-size "$size" \
+              --route authentic-stock
+            test -s "$RUNNER_TEMP/ur-authentic-win32-control-$size/actual-sdl-drawable.png"
+            test -s "$RUNNER_TEMP/ur-authentic-win32-control-$size/readback-receipt.json"
+          done
+          echo "Genuine Authenticated-mode stock execution with no Modern frontend observed. Source guest CRC, physical display and visual identity still require independent checks." >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain independent Authentic control output only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-visual-win32-authentic-isolation-control
+          path: |
+            ${{ runner.temp }}/ur-authentic-win32-control-1280x720/actual-sdl-drawable.png
+            ${{ runner.temp }}/ur-authentic-win32-control-1280x720/readback-receipt.json
+            ${{ runner.temp }}/ur-authentic-win32-control-1280x720/probe_first/actual-sdl-drawable.pam
+            ${{ runner.temp }}/ur-authentic-win32-control-1280x720/probe_first/native-process.log
+            ${{ runner.temp }}/ur-authentic-win32-control-1024x768/actual-sdl-drawable.png
+            ${{ runner.temp }}/ur-authentic-win32-control-1024x768/readback-receipt.json
+            ${{ runner.temp }}/ur-authentic-win32-control-1024x768/probe_first/actual-sdl-drawable.pam
+            ${{ runner.temp }}/ur-authentic-win32-control-1024x768/probe_first/native-process.log
+          if-no-files-found: warn
+          retention-days: 7
       - name: Retain exact widescreen and 4-to-3 SDL output without player data
         if: always()
         uses: actions/upload-artifact@v4

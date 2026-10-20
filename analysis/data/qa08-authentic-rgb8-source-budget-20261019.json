@@ -1,0 +1,82 @@
+{
+  "schema": "QA08-263frame-fullsource-RGB5-versus-RGB8-census/1",
+  "analysis_date": "2026-10-19",
+  "original_2014_Snes9x_inner_sha256": "72b7b152d08d8abb3636053bfd132db64926a5bf188f4dbba7e30b20d9583e9e",
+  "native_legacy_Win32_outer_sha256": "832c08263e2d3013d5b15df82b2b0574fabfd3114194b7cbef9f6bb1b2959727",
+  "native_nested_P7_sha256": "c36fdd0238735e739219b013d25665e42a008a7827ee97631a322217c9f4f0cd",
+  "original_callback_to_guest_registration": "2014_Snes9x_callback=f-1; Win32_native_guest=f; f=1280..5472 step16",
+  "total_genuine_source_frames": 263,
+  "total_source_pixel_positions": 15081472,
+  "wrong_RGB5_positions": 890205,
+  "wrong_RGB8_positions": 13293424,
+  "RGB5_exact_but_RGB8_different": 12403219,
+  "both_precision_exact_pixel_positions": 1788048,
+  "RGB5_exact_frames": 132,
+  "RGB8_exact_frames": 18,
+  "source_raw_8bit_identical_DAC_proven": false,
+  "same_2014_SNESC_hardware_color_implementation_proven": false,
+  "native_effective_CGRAM_causality_proven": false,
+  "global_recolor_or_brightness_fix_authorized": false,
+  "QA08_QA10_or_release_accepted": false,
+  "native_guest_5484_CRC_sha256": "b735b0183b296ce32db009b282fab18bc9f9cf26668c02231373e9740184c568",
+  "independent_original_2014_brightness_observation": {
+    "artifact_id": 12013432991,
+    "original_field_5183_regs_SHA256": "8816b95e8e1832af2002b82c8a841a7d258f8d31390f31723a2f97cc86961a0f",
+    "original_field_5184_regs_SHA256": "960108750128708828579592469049fc38fd627b545143949f94147130c7af85",
+    "original_fields": [
+      5183,
+      5184
+    ],
+    "fillram_INIDISP": "0E",
+    "brightness": 14,
+    "forced_blank": false
+  },
+  "palette_brightness_source_examples": [
+    {
+      "word": "56b5",
+      "actual_RGB555_gray_channel": 21,
+      "native_expanded_scaled_RGB8": 161,
+      "compared_RGB5": 20,
+      "authentic_original_Snes9x_BGRX_as_RGB": [
+        165,
+        166,
+        165
+      ]
+    },
+    {
+      "word": "4a52",
+      "actual_RGB555_gray_channel": 18,
+      "native_expanded_scaled_RGB8": 138,
+      "compared_RGB5": 17,
+      "authentic_original_Snes9x_BGRX_as_RGB": [
+        140,
+        142,
+        140
+      ]
+    },
+    {
+      "word": "4631",
+      "actual_RGB555_gray_channel": 17,
+      "native_expanded_scaled_RGB8": 130,
+      "compared_RGB5": 16,
+      "authentic_original_Snes9x_BGRX_as_RGB": [
+        132,
+        134,
+        132
+      ]
+    },
+    {
+      "word": "4210",
+      "actual_RGB555_gray_channel": 16,
+      "native_expanded_scaled_RGB8": 123,
+      "compared_RGB5": 15,
+      "authentic_original_Snes9x_BGRX_as_RGB": [
+        123,
+        121,
+        123
+      ]
+    }
+  ],
+  "diagnostic_note": "Historic original Snes9x produces RGB565-derived BGRX8888; compiled Win32 source produces RGBA P7. The 12,403,219 RGB5-identical but RGB8-different pixels cannot be used as extra CGRAM/beam parity failures without an independently qualified color-space conversion contract. Arithmetic reproduces RGB5 classes, not byte-exact Snes9x RGB8.",
+  "original_native_raw_pixel_data_committed": false
+}

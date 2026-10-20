@@ -166,9 +166,15 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
     } else if (selection != state.selection) {
         const int previous = static_cast<int>(state.selection);
         const int old_target_y = previous * row_pitch;
-        const int elapsed = modern_menu_clamp_age(
+        int elapsed = modern_menu_clamp_age(
             input.tick60, state.selection_tick,
             kModernMenuMotionSelectionFrames);
+        // The original input trace records a same-frame 6px step. Model a
+        // moving marker after that first measured step even when the caller
+        // repeats the exact UI tick for deterministic capture.
+        if (state.cursor_origin_y != old_target_y &&
+            elapsed < kModernMenuMotionSelectionFrames)
+            ++elapsed;
         const int old_display_y = old_target_y +
             modern_menu_cursor_remaining_offset(
                 state.cursor_origin_y - old_target_y, elapsed);
@@ -217,8 +223,11 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
     const int current = static_cast<int>(state.selection);
     // Focus semantics are immediate; only the last rendered marker location
     // eases to the new row. Interrupting mid-travel does not jump backwards.
+    const int cursor_age =
+        state.cursor_origin_y != current * row_pitch &&
+        age < kModernMenuMotionSelectionFrames ? age + 1 : age;
     pose.cursor_remainder_px = modern_menu_cursor_remaining_offset(
-        state.cursor_origin_y - current * row_pitch, age);
+        state.cursor_origin_y - current * row_pitch, cursor_age);
 
     // A low-amplitude preview transform, never a new semantic rider pose.
     // Source racer artwork is a separate, approval-gated input; this model

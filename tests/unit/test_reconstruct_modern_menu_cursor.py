@@ -62,7 +62,7 @@ def fixture() -> tuple[list[SimpleNamespace], dict]:
             tag=f"mvl-idle-{i:03d}",
             oam=bytes(oam),
             vram=bytes(vram), cgram=bytes(cgram),
-            fillram={"2101": "00"},
+            fillram={"2101": "20"},  # source-like large-32 OBJ size pair
         ))
     return result, contract
 
@@ -82,6 +82,31 @@ class OriginalStockCursorTests(unittest.TestCase):
         self.assertEqual(len(frames[0]), 39 * 39 * 4)
         self.assertTrue(all(record["opaque_pixels"] >= 1024
                             for record in evidence if "opaque_pixels" in record))
+
+    def test_nonzero_obj_name_base_and_secondary_name_page(self):
+        dumps, contract = fixture()
+        _, original_evidence = cursor.reconstruct(dumps, contract)
+        assert original_evidence
+        original, _ = cursor.reconstruct(dumps, contract)
+        # Shift actual 8 KiB source OBJ tile data from VRAM word 0 to
+        # word 0x2000 (0x4000 bytes). The renderer must follow $2101 base,
+        # rather than quietly reading the stale word-0 tile bank.
+        src = dumps[0].vram
+        relocated = bytearray(len(src))
+        relocated[0x4000:0x6000] = src[:0x2000]
+        for d in dumps:
+            d.vram = bytes(relocated)
+            d.fillram["2101"] = "21"
+        shifted, _ = cursor.reconstruct(dumps, contract)
+        self.assertEqual(shifted, original)
+        self.assertEqual(cursor.original_obj_base_word(dumps[0]), 0x2000)
+        # A separate name-select page is 0x1000 words (8 KiB), not 0x2000.
+        dumps[0].fillram["2101"] = "29"  # size1, name-select1, base1
+        self.assertEqual(cursor.original_obj_base_word(dumps[0], 0x100),
+                         0x4000)
+        dumps[0].fillram["2101"] = "20"  # size1, name-select0, base0
+        self.assertEqual(cursor.original_obj_base_word(dumps[0], 0x100),
+                         0x1000)
 
     def test_source_oam_and_colour_contract_refuses_mismatch(self):
         dumps, contract = fixture()

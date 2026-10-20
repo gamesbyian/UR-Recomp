@@ -64,9 +64,9 @@ class ModernTitleNativeCaptureTests(unittest.TestCase):
             for stage in ("title", "root"):
                 (folder / f"modern-native-{stage}-342x224.pam").write_bytes(
                     pam(342, 224, bytes(342 * 224 * 4)))
-            with self.assertRaisesRegex(ValueError, "missing/out-of-order"):
+            with self.assertRaisesRegex(ValueError, "missing/duplicate"):
                 validate_native_capture(folder, "", exe_sha256="invalid")
-            with self.assertRaisesRegex(ValueError, "missing/out-of-order"):
+            with self.assertRaisesRegex(ValueError, "missing/duplicate"):
                 validate_native_capture(
                     folder, "UR_BALDOSA_MODERN_ROOT opened=1\n",
                     exe_sha256="invalid")

@@ -19,7 +19,10 @@
 // Original art is generated only from a verified USA ROM by
 // tools/build_modern_menu_stock_hero.py before the native build. It is absent
 // in normal builds: never replace it with vetoed procedural 4x racer art.
-#if __has_include("modern_menu_stock_hero_original.generated.hpp")
+#if defined(UR_MODERN_SOURCE_HERO_EXPERIMENTAL_BUILD)
+#if !__has_include("modern_menu_stock_hero_original.generated.hpp")
+#error "Opt-in original menu hero build requires canonical ROM-derived generated sprite header"
+#endif
 #include "modern_menu_stock_hero_original.generated.hpp"
 #define UR_NATIVE_ORIGINAL_HERO_EXPERIMENTAL_AVAILABLE 1
 #endif

@@ -1,0 +1,203 @@
+#pragma once
+
+// Presentation-only Modern menu kinetics. No SDL, guest memory, physics,
+// saved settings, controller ownership, or replacement-racer selection.
+// Timing measurements: analysis/generated/menu-visual-language.json:
+// original cursor 16 tile phases x 2 frames, 12-frame selection settle,
+// and the 39-frame BG2 entrance profile. All clocks are injected 60Hz ticks.
+// Geometry is supplied separately so title/root composition agents own layout.
+
+#include "modern_overlay_composition.hpp"
+#include "modern_stock_menu_palette.hpp"
+
+#include <array>
+#include <cstddef>
+#include <cstdint>
+
+namespace ur::product {
+
+inline constexpr int kModernMenuMotionRows = 5;
+inline constexpr int kModernMenuMotionSourcePeriod = 32;
+inline constexpr int kModernMenuMotionSelectionFrames = 12;
+inline constexpr int kModernMenuMotionEntranceFrames = 39;
+
+// Measured source values, not a physics easing simulation.
+inline constexpr std::array<int, kModernMenuMotionSelectionFrames>
+    kModernMenuMotionSourceCursorSteps{{6, 4, 3, 3, 2, 1, 1, 1, 1, 0, 0, 1}};
+inline constexpr std::array<int, kModernMenuMotionEntranceFrames>
+    kModernMenuMotionSourceEntranceDelta{{
+        1, 2, 3, 4, 5, 6, 7, 8,
+        8, 8, 8, 8, 8, 8, 8, 8,
+        8, 8, 8, 8, 8, 8, 8, 8,
+        8, 8, 8, 8, 8, 8, 8, 8,
+        7, 6, 5, 4, 3, 2, 1
+    }};
+
+// Avoid ms*60 overflow while keeping a frame-precise externally supplied
+// clock. Wall-clock acquisition is deliberately not part of this model.
+constexpr std::uint64_t modern_menu_tick60(std::uint64_t milliseconds) noexcept {
+    return (milliseconds / 1000u) * 60u +
+           ((milliseconds % 1000u) * 60u) / 1000u;
+}
+
+struct ModernMenuMotionInput {
+    std::uint64_t tick60 = 0;
+    std::uint8_t selection = 0;
+    bool visible = false;
+    bool reduced_motion = false;
+};
+
+struct ModernMenuMotionState {
+    bool visible = false;
+    std::uint8_t selection = 0;
+    std::uint8_t previous_selection = 0;
+    std::uint64_t first_tick = 0;
+    std::uint64_t selection_tick = 0;
+    std::uint64_t last_tick = 0;
+};
+
+struct ModernMenuMotionPose {
+    bool visible = false;
+    std::uint8_t selection = 0;
+    int cursor_spin_phase = 0;  // 0..15, 2 source ticks per phase
+    int cursor_remainder_px = 0; // signed, relative to selected row
+    int entrance_distance_px = 0; // measured stock BG2 slide remaining
+    int hero_bob_px = 0;       // host composition only, opt-in stock hero
+    int hero_lean_px = 0;      // host composition only, opt-in stock hero
+    bool reduced_motion = false;
+};
+
+constexpr int modern_menu_clamp_age(std::uint64_t now,
+                                   std::uint64_t then, int maximum) noexcept {
+    return now < then ? 0 :
+        (now - then >= static_cast<std::uint64_t>(maximum)
+            ? maximum : static_cast<int>(now - then));
+}
+
+constexpr int modern_menu_entrance_remaining(int age) noexcept {
+    if (age >= kModernMenuMotionEntranceFrames) return 0;
+    int total = 256;
+    for (int i = 0; i < age; ++i)
+        total -= kModernMenuMotionSourceEntranceDelta[
+            static_cast<std::size_t>(i)];
+    return total;
+}
+
+constexpr int modern_menu_cursor_distance(int age, int row_pitch) noexcept {
+    if (age >= kModernMenuMotionSelectionFrames) return 0;
+    int travelled = 0;
+    for (int i = 0; i < age; ++i)
+        travelled += kModernMenuMotionSourceCursorSteps[
+            static_cast<std::size_t>(i)];
+    // Source steps total 23px for a 24px stock row. Normalize onto the
+    // Modern visual row pitch without changing the semantic focus row.
+    return row_pitch - (travelled * row_pitch + 11) / 23;
+}
+
+// Pure with respect to every guest state: repeated inputs return the same
+// pose. Hide or backwards clock resets entry; selection changes interrupt
+// immediately and keep the next input authoritative even during animation.
+inline ModernMenuMotionPose advance_modern_menu_motion(
+    ModernMenuMotionState& state, ModernMenuMotionInput input,
+    int row_pitch = 21) noexcept {
+    if (!input.visible) {
+        state = {};
+        return {};
+    }
+    const auto selection = static_cast<std::uint8_t>(
+        input.selection % kModernMenuMotionRows);
+    if (!state.visible || input.tick60 < state.last_tick) {
+        state.visible = true;
+        state.selection = selection;
+        state.previous_selection = selection;
+        state.first_tick = input.tick60;
+        state.selection_tick = input.tick60;
+    } else if (selection != state.selection) {
+        state.previous_selection = state.selection;
+        state.selection = selection;
+        state.selection_tick = input.tick60;
+    }
+    state.last_tick = input.tick60;
+    ModernMenuMotionPose pose{};
+    pose.visible = true;
+    pose.selection = selection;
+    pose.reduced_motion = input.reduced_motion;
+    if (input.reduced_motion) return pose;
+
+    pose.cursor_spin_phase = static_cast<int>(
+        (input.tick60 / 2u) % 16u);
+    const int entry_age = modern_menu_clamp_age(
+        input.tick60, state.first_tick, kModernMenuMotionEntranceFrames);
+    pose.entrance_distance_px = modern_menu_entrance_remaining(entry_age);
+
+    const int age = modern_menu_clamp_age(
+        input.tick60, state.selection_tick,
+        kModernMenuMotionSelectionFrames);
+    const int previous = static_cast<int>(state.previous_selection);
+    const int current = static_cast<int>(state.selection);
+    // Wrap/repeated/multi-row transitions are not interpolated through
+    // unrelated menu destinations. The selected row switches immediately.
+    if (previous + 1 == current)
+        pose.cursor_remainder_px = -modern_menu_cursor_distance(age, row_pitch);
+    else if (previous - 1 == current)
+        pose.cursor_remainder_px = modern_menu_cursor_distance(age, row_pitch);
+
+    // A low-amplitude preview transform, never a new semantic rider pose.
+    // Source racer artwork is a separate, approval-gated input; this model
+    // cannot conjure new stock sprites, especially vetoed procedural 4x art.
+    constexpr std::array<int, 16> kIdleBob{{
+        0, 0, 0, -1, -1, -1, -2, -2,
+        -2, -1, -1, -1, 0, 0, 0, 0
+    }};
+    const auto bob = static_cast<std::size_t>((input.tick60 / 4u) % 16u);
+    pose.hero_bob_px = kIdleBob[bob];
+    pose.hero_lean_px = (age < 4 && previous != current)
+        ? (previous < current ? 1 : -1) : 0;
+    return pose;
+}
+
+// Selection ornament for the actual native root framebuffer. A source-
+// measured moving arrow *accent*, not an assertion that the stock OBJ arrow
+// tiles have been extracted. The screen owner supplies its row anchors.
+// UI focus/highlighting and route authority remain in ModernRootMenu.
+struct ModernMenuMotionAnchors {
+    int first_row_y = 57;
+    int row_pitch = 21;
+    int left_x = 5;
+};
+
+template <typename Painter>
+inline bool paint_modern_menu_selection_motion(
+    const Painter& paint, std::uint32_t* pixels,
+    int stride, int height, int scale, HostOverlayRect rect,
+    const ModernMenuMotionPose& pose,
+    ModernMenuMotionAnchors anchors = {}) {
+    if (!pose.visible || !paint.valid() || !pixels ||
+        stride <= 0 || height <= 0 || scale <= 0 ||
+        rect.x < 0 || rect.y < 0 || rect.width <= 0 || rect.height <= 0 ||
+        rect.x > stride || rect.y > height ||
+        rect.width > stride - rect.x || rect.height > height - rect.y ||
+        anchors.row_pitch <= 0 || anchors.left_x < 0)
+        return false;
+    const int px = rect.x + anchors.left_x * scale;
+    const int py = rect.y +
+        (anchors.first_row_y +
+         static_cast<int>(pose.selection) * anchors.row_pitch +
+         pose.cursor_remainder_px) * scale;
+    // Narrow enough to leave the existing selected text, panel and modal
+    // completely intact; 4:3 and 16:9 both use the same semantic anchor.
+    const int marker_height = 12 * scale;
+    if (px < rect.x || px + 2 * scale > rect.x + rect.width ||
+        py < rect.y || py + marker_height > rect.y + rect.height)
+        return false;
+    const auto& palette = kModernStockMenuPalette;
+    // The original 32-tick cursor cycle drives a deliberately restrained
+    // yellow/blue alternating rim on top of the current selection highlight.
+    const auto colour = (pose.cursor_spin_phase & 3) < 2
+        ? palette.title_yellow : palette.cursor_blue;
+    paint.fill_rect(pixels, stride, height,
+        px, py, 2 * scale, marker_height, colour);
+    return true;
+}
+
+}  // namespace ur::product

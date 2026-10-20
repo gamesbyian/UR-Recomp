@@ -1,0 +1,642 @@
+{
+  "motion_interpolation": false,
+  "native_binary_sha256": null,
+  "native_binary_sha256_unavailable_reason": "original artifact excluded its binary checksum text file; native source commits and signed CI provenance retained",
+  "recording_origin": "111 guest frames after observed stock race GO, bounded below by absolute source frame 1990",
+  "review_status": "awaiting visual inspection, inputs alone are not trick proof",
+  "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "routes": {
+    "jumps-p1-leads": {
+      "2p_tour_track_navigation_executed": false,
+      "capture_clock_sha256": "3958771705e8008f367d01ec3ab44599bb6547e88912e398df9b28ddedb5fadc",
+      "capture_frame_start_end": [
+        1990,
+        2889
+      ],
+      "capture_go_frame": 1702,
+      "capture_requested": {
+        "frame_count": 900,
+        "frames_after_observed_go": 111,
+        "minimum_guest_start": 1990,
+        "start_guest_frame": null
+      },
+      "capture_status": "candidate_source_only_must_execute_and_check",
+      "captured_physical_drawable": [
+        960,
+        540
+      ],
+      "contact_sheet_sha256": "2be421febd86b8c8690e71b097345536ef6e77085362268daa1e78d6ddd0e826",
+      "controller_commands": [
+        {
+          "duration": 170,
+          "mask": "right"
+        },
+        {
+          "duration": 24,
+          "mask": "right+b"
+        },
+        {
+          "duration": 8,
+          "mask": "right+b+r"
+        },
+        {
+          "duration": 30,
+          "mask": "right"
+        },
+        {
+          "duration": 115,
+          "mask": "p2:right"
+        },
+        {
+          "duration": 24,
+          "mask": "p2:right+p2:b"
+        },
+        {
+          "duration": 8,
+          "mask": "p2:right+p2:b+p2:l"
+        },
+        {
+          "duration": 32,
+          "mask": "p2:right"
+        },
+        {
+          "duration": 60,
+          "mask": "right+p2:right"
+        },
+        {
+          "duration": 24,
+          "mask": "right+b+p2:right"
+        },
+        {
+          "duration": 8,
+          "mask": "right+b+l+p2:right"
+        },
+        {
+          "duration": 48,
+          "mask": "right+p2:right"
+        },
+        {
+          "duration": 24,
+          "mask": "right+p2:right+p2:b"
+        },
+        {
+          "duration": 8,
+          "mask": "right+p2:right+p2:b+p2:r"
+        },
+        {
+          "duration": 65,
+          "mask": "right+p2:right"
+        },
+        {
+          "duration": 24,
+          "mask": "right+b+p2:right"
+        },
+        {
+          "duration": 18,
+          "mask": "right+a+p2:right"
+        },
+        {
+          "duration": 90,
+          "mask": "right+p2:right"
+        },
+        {
+          "duration": 24,
+          "mask": "right+p2:right+p2:b"
+        },
+        {
+          "duration": 16,
+          "mask": "right+p2:right+p2:a"
+        },
+        {
+          "duration": 240,
+          "mask": "right+p2:right"
+        },
+        {
+          "duration": 24,
+          "mask": "right+b+p2:right+p2:b"
+        },
+        {
+          "duration": 8,
+          "mask": "right+b+r+p2:right+p2:b+p2:l"
+        },
+        {
+          "duration": 330,
+          "mask": "right+p2:right"
+        }
+      ],
+      "controls_are_attempts_not_visual_or_landing_proof": true,
+      "course": "Jumps",
+      "course_result_or_parity_claim": false,
+      "delivery_drawable": [
+        1920,
+        1080
+      ],
+      "frame_index_sha256": "e54ba680b3815a8fdfb6c9abb391831cb69be8eab8f781748f86e5318ba37676",
+      "frame_sample_sha256": {
+        "jumps-p1-leads-frame-0030.png": "2bc13b2c10e4fec465ba6fe51ce5dcf72990e9d91f0e16841ce26fde8698606d",
+        "jumps-p1-leads-frame-0120.png": "c5cc1d0da9f56dae54cade4ae7926b39ad5db5b23a5888f11d86ca321063b3c3",
+        "jumps-p1-leads-frame-0210.png": "dc149202b8d961e60161234792e67229aae57351a4313a6c9685a19e0ae0bef9",
+        "jumps-p1-leads-frame-0300.png": "efce421556349af65567cf6dc59a9f25b165668e801adecb2ba65d8c1a3d1be1",
+        "jumps-p1-leads-frame-0390.png": "40da524bc95e609a0ffe4d4e7d02902759c723be5851331bd72f3ad9e9dbd0b2",
+        "jumps-p1-leads-frame-0480.png": "ebe852871f5133611c1ba2eb5cd36a9720c62a517e03213e0774560f332d1880",
+        "jumps-p1-leads-frame-0570.png": "c754a262208109100471af2e8246d7f85fb1f5e94589b460c93b233525d5c48e",
+        "jumps-p1-leads-frame-0660.png": "e16926673cc7b7db0df186eef2c063347cd21158a6e7298efe7371f9d1148597",
+        "jumps-p1-leads-frame-0750.png": "6351aa4209efc54cc2ee578a1fd973a82644c140400b6983f87d4ab26551b21d",
+        "jumps-p1-leads-frame-0840.png": "4f44be9c78bacc1fe94aa6696c63ee79a19f653c2f3c52686795993670e08318"
+      },
+      "menu_selection_source_identity": "source-derived original menu controls; 2P route must independently execute",
+      "movie": "native-jumps-p1-leads-900f.mp4",
+      "post_go_scripted_frames": 1422,
+      "post_go_turbo_off": true,
+      "presented_gameplay": "source-frame-authentic native 342-column Original renderer",
+      "read_only_guest_position_dumps": [
+        "cinematic-lead",
+        "cinematic-middle",
+        "cinematic-late"
+      ],
+      "real_guest_world_position_witnesses": [
+        {
+          "control_vs_recorded_wram_sha256": "7dc8c314a2ba1a43889b3f0b307c3a22a7f4a738f098a21b0891938f0975f9d4",
+          "distance_status": "raw_coordinate_difference_not_course_arc_distance",
+          "guest_frame": 1873,
+          "p1_world_x_u16": 4566,
+          "p1_world_y_u16": 6447,
+          "p2_world_x_u16": 2192,
+          "p2_world_y_u16": 6348,
+          "raw_abs_x_difference": 2374,
+          "raw_abs_y_difference": 99,
+          "tag": "cinematic-lead"
+        },
+        {
+          "control_vs_recorded_wram_sha256": "2932ce6055bfe47558eb168205d6285901a70983b960e10dcf1d1c713c8fbac6",
+          "distance_status": "raw_coordinate_difference_not_course_arc_distance",
+          "guest_frame": 2207,
+          "p1_world_x_u16": 4601,
+          "p1_world_y_u16": 6037,
+          "p2_world_x_u16": 4636,
+          "p2_world_y_u16": 5948,
+          "raw_abs_x_difference": 35,
+          "raw_abs_y_difference": 89,
+          "tag": "cinematic-middle"
+        },
+        {
+          "control_vs_recorded_wram_sha256": "d4de5254473e6165b06c2544022df4d6e943b68392dc7627891b766f61b21abe",
+          "distance_status": "raw_coordinate_difference_not_course_arc_distance",
+          "guest_frame": 2783,
+          "p1_world_x_u16": 4784,
+          "p1_world_y_u16": 5959,
+          "p2_world_x_u16": 4534,
+          "p2_world_y_u16": 6431,
+          "raw_abs_x_difference": 250,
+          "raw_abs_y_difference": 472,
+          "tag": "cinematic-late"
+        }
+      ],
+      "recording_input_versus_control_crc_sha256": "aa5e731c65efa58e17230da4f232b75172aa391409258563c4395b2333a82cb4",
+      "rendering_geometry_and_guest_unchanged": true,
+      "route": "p1-leads",
+      "route_sha256": "26865dab86b532c0576b4eeb66ec4ba1fbf67ec31d892d7e0978c34a782cba05",
+      "runtime_expected_track_byte_7E00CE": "0C",
+      "sha256": "46283d6fb1f698868a736df0cee857aa8928cc587f39d88c77a41c41813c9b03",
+      "source_catalog_sha256": "c44b01675b0ae7885fa7e8ec9b44d0e4f4408e2f8d56650de2290f5722d7276f",
+      "source_lossless_sha256": "be8dbc63b90872703f47aea7715d133cbf48021cb1896afc1f3b0dcf9f6920f7",
+      "source_original_native_menu_sha256": "5402e2199fdd3b4566b8959a55ae6ad44dde54a0f2a161b9a761dc8364f8ffb8",
+      "source_pre_go_prefix_sha256": "e16c8bac2b637432ff31000f5bc37555d89b7c8255b650ac199f46f296023441",
+      "source_sha256": "f2cb7b0a7e8a547841f9a39dc9bdd08c52b7cf0bd5f5d0784b204eff3c8c6616",
+      "stream_index": 13,
+      "successful_tricks_executed": false,
+      "topology_expectation": "repeated-ramp stunt scout",
+      "topology_visually_verified": false,
+      "tour_index_zero_based": 2,
+      "tour_navigation_evidence": "2P Shuffler A/Start 009F=92 and 009F=16 source-probed in run 39355869639",
+      "track_kind_catalogued": "stunt",
+      "track_row_zero_based": 2,
+      "unchanged_menu_and_go": true,
+      "world_position_measurement_caveat": "raw original 7E:0411/0413 and 0415/0417 words; do not assert track-arc distance"
+    },
+    "looper-p1-leads": {
+      "2p_tour_track_navigation_executed": false,
+      "capture_clock_sha256": "d80ff0a840d9ae1beacfbf6626f5e282b2eb9ca58189823c377a7c2bf0a23962",
+      "capture_frame_start_end": [
+        1990,
+        2889
+      ],
+      "capture_go_frame": 1762,
+      "capture_requested": {
+        "frame_count": 900,
+        "frames_after_observed_go": 111,
+        "minimum_guest_start": 1990,
+        "start_guest_frame": null
+      },
+      "capture_status": "candidate_source_only_must_execute_and_check",
+      "captured_physical_drawable": [
+        960,
+        540
+      ],
+      "contact_sheet_sha256": "844054d1290c455905f4f2815e23b1a70d4e50af7038e062cebfcd78a0963bd4",
+      "controller_commands": [
+        {
+          "duration": 170,
+          "mask": "right"
+        },
+        {
+          "duration": 24,
+          "mask": "right+b"
+        },
+        {
+          "duration": 8,
+          "mask": "right+b+r"
+        },
+        {
+          "duration": 30,
+          "mask": "right"
+        },
+        {
+          "duration": 115,
+          "mask": "p2:right"
+        },
+        {
+          "duration": 24,
+          "mask": "p2:right+p2:b"
+        },
+        {
+          "duration": 8,
+          "mask": "p2:right+p2:b+p2:l"
+        },
+        {
+          "duration": 32,
+          "mask": "p2:right"
+        },
+        {
+          "duration": 60,
+          "mask": "right+p2:right"
+        },
+        {
+          "duration": 24,
+          "mask": "right+b+p2:right"
+        },
+        {
+          "duration": 8,
+          "mask": "right+b+l+p2:right"
+        },
+        {
+          "duration": 48,
+          "mask": "right+p2:right"
+        },
+        {
+          "duration": 24,
+          "mask": "right+p2:right+p2:b"
+        },
+        {
+          "duration": 8,
+          "mask": "right+p2:right+p2:b+p2:r"
+        },
+        {
+          "duration": 65,
+          "mask": "right+p2:right"
+        },
+        {
+          "duration": 24,
+          "mask": "right+b+p2:right"
+        },
+        {
+          "duration": 18,
+          "mask": "right+a+p2:right"
+        },
+        {
+          "duration": 90,
+          "mask": "right+p2:right"
+        },
+        {
+          "duration": 24,
+          "mask": "right+p2:right+p2:b"
+        },
+        {
+          "duration": 16,
+          "mask": "right+p2:right+p2:a"
+        },
+        {
+          "duration": 240,
+          "mask": "right+p2:right"
+        },
+        {
+          "duration": 24,
+          "mask": "right+b+p2:right+p2:b"
+        },
+        {
+          "duration": 8,
+          "mask": "right+b+r+p2:right+p2:b+p2:l"
+        },
+        {
+          "duration": 330,
+          "mask": "right+p2:right"
+        }
+      ],
+      "controls_are_attempts_not_visual_or_landing_proof": true,
+      "course": "Looper",
+      "course_result_or_parity_claim": false,
+      "delivery_drawable": [
+        1920,
+        1080
+      ],
+      "frame_index_sha256": "e54ba680b3815a8fdfb6c9abb391831cb69be8eab8f781748f86e5318ba37676",
+      "frame_sample_sha256": {
+        "looper-p1-leads-frame-0030.png": "6ef004f81d04bd221dd603ad18a73a923018a4e86f4e135a0265a13fc41e8186",
+        "looper-p1-leads-frame-0120.png": "c60a1510e6f0cb1fd487610872f7e789d6122d27329e95e5de0b6e0cf1831ff5",
+        "looper-p1-leads-frame-0210.png": "b733b6c1647a608fe4475a0d6a2cb89a2f5e489530a4d2dda4f7b55c5d661f64",
+        "looper-p1-leads-frame-0300.png": "47df100af9734d301f0492f0e1800dfdb83ab59ab4b8d2a5807b709025ba9ba4",
+        "looper-p1-leads-frame-0390.png": "a459ee336db4ed5041e5a9c8f85c965e1142d93d805eb81125301e97e8a6fa7c",
+        "looper-p1-leads-frame-0480.png": "927cd19e86720200a5c7e533c61d7647871e2a026ac6596fa1f6966accc8c8c6",
+        "looper-p1-leads-frame-0570.png": "9f1e4f931792e409fb64b409f315d298dbdbf64021d83b561bb3ab873b68acf5",
+        "looper-p1-leads-frame-0660.png": "fa4cdd26993144c0b376ed991a7da82ec3c020200f94399b0efb320b82e4ed1a",
+        "looper-p1-leads-frame-0750.png": "2755311db422351367b2c05c1faa04a24cdf3a92782cf6bc2facfe6d607ac99e",
+        "looper-p1-leads-frame-0840.png": "6bb61111c1937715838438112e76d24657e9630927bde3cc224874e07e3de671"
+      },
+      "menu_selection_source_identity": "source-derived original menu controls; 2P route must independently execute",
+      "movie": "native-looper-p1-leads-900f.mp4",
+      "post_go_scripted_frames": 1422,
+      "post_go_turbo_off": true,
+      "presented_gameplay": "source-frame-authentic native 342-column Original renderer",
+      "read_only_guest_position_dumps": [
+        "cinematic-lead",
+        "cinematic-middle",
+        "cinematic-late"
+      ],
+      "real_guest_world_position_witnesses": [
+        {
+          "control_vs_recorded_wram_sha256": "b63379755e28add5199b35c684f05fc3bee176f026a27ddbb3e3f6b8f1b76f4c",
+          "distance_status": "raw_coordinate_difference_not_course_arc_distance",
+          "guest_frame": 1933,
+          "p1_world_x_u16": 4045,
+          "p1_world_y_u16": 1392,
+          "p2_world_x_u16": 1776,
+          "p2_world_y_u16": 681,
+          "raw_abs_x_difference": 2269,
+          "raw_abs_y_difference": 711,
+          "tag": "cinematic-lead"
+        },
+        {
+          "control_vs_recorded_wram_sha256": "b51b5f1dac43f7da2970aa3d052fc4909388f095d848db169f0c19e09e7541a5",
+          "distance_status": "raw_coordinate_difference_not_course_arc_distance",
+          "guest_frame": 2267,
+          "p1_world_x_u16": 2951,
+          "p1_world_y_u16": 1930,
+          "p2_world_x_u16": 3952,
+          "p2_world_y_u16": 1499,
+          "raw_abs_x_difference": 1001,
+          "raw_abs_y_difference": 431,
+          "tag": "cinematic-middle"
+        },
+        {
+          "control_vs_recorded_wram_sha256": "f7b920db1c940738cab6615fe134debb31ab538a05582e29ebcf895faa9de8a8",
+          "distance_status": "raw_coordinate_difference_not_course_arc_distance",
+          "guest_frame": 2843,
+          "p1_world_x_u16": 3922,
+          "p1_world_y_u16": 1497,
+          "p2_world_x_u16": 3781,
+          "p2_world_y_u16": 1511,
+          "raw_abs_x_difference": 141,
+          "raw_abs_y_difference": 14,
+          "tag": "cinematic-late"
+        }
+      ],
+      "recording_input_versus_control_crc_sha256": "1925fbd79e9a159c24f9ee4d543288b57309554db4049d884a59fdd2274ebfcf",
+      "rendering_geometry_and_guest_unchanged": true,
+      "route": "p1-leads",
+      "route_sha256": "defdef1d35505d08af904154f3038e343779a9208832ba012021381dab4e17f7",
+      "runtime_expected_track_byte_7E00CE": "0A",
+      "sha256": "3de690c458b70d802af692418a155b31bb0381d595e61c897a62be492aeecbe3",
+      "source_catalog_sha256": "c44b01675b0ae7885fa7e8ec9b44d0e4f4408e2f8d56650de2290f5722d7276f",
+      "source_lossless_sha256": "7928ea14cfcae2dac6a72de461e607ddbd26a68f4631afd39e3863576e8ff0a2",
+      "source_original_native_menu_sha256": "5402e2199fdd3b4566b8959a55ae6ad44dde54a0f2a161b9a761dc8364f8ffb8",
+      "source_pre_go_prefix_sha256": "60fd3858aae7e1cebb07e8de5744e50d88b45d768889238c027c5741714ac059",
+      "source_sha256": "b5a885c0a015df9edb4710ec3096b17118a5b4731e177cf03c6e51a0531e8947",
+      "stream_index": 11,
+      "successful_tricks_executed": false,
+      "topology_expectation": "loop topology scout",
+      "topology_visually_verified": false,
+      "tour_index_zero_based": 2,
+      "tour_navigation_evidence": "2P Shuffler A/Start 009F=92 and 009F=16 source-probed in run 39355869639",
+      "track_kind_catalogued": "race-a",
+      "track_row_zero_based": 0,
+      "unchanged_menu_and_go": true,
+      "world_position_measurement_caveat": "raw original 7E:0411/0413 and 0415/0417 words; do not assert track-arc distance"
+    },
+    "megajump-p2-leads": {
+      "2p_tour_track_navigation_executed": false,
+      "capture_clock_sha256": "acda09840df41a2b1277fb42e344443a5d3bd9b086acce00d9ae3d8589a229dc",
+      "capture_frame_start_end": [
+        1990,
+        2889
+      ],
+      "capture_go_frame": 1717,
+      "capture_requested": {
+        "frame_count": 900,
+        "frames_after_observed_go": 111,
+        "minimum_guest_start": 1990,
+        "start_guest_frame": null
+      },
+      "capture_status": "candidate_source_only_must_execute_and_check",
+      "captured_physical_drawable": [
+        960,
+        540
+      ],
+      "contact_sheet_sha256": "22c9b64a1ce6e38a7b623320115377bd3d1298558c45dcac462a4cd02e5a489f",
+      "controller_commands": [
+        {
+          "duration": 195,
+          "mask": "p2:right"
+        },
+        {
+          "duration": 24,
+          "mask": "p2:right+p2:b"
+        },
+        {
+          "duration": 8,
+          "mask": "p2:right+p2:b+p2:r"
+        },
+        {
+          "duration": 35,
+          "mask": "p2:right"
+        },
+        {
+          "duration": 120,
+          "mask": "right"
+        },
+        {
+          "duration": 24,
+          "mask": "right+b"
+        },
+        {
+          "duration": 8,
+          "mask": "right+b+l"
+        },
+        {
+          "duration": 35,
+          "mask": "right"
+        },
+        {
+          "duration": 80,
+          "mask": "right+p2:right"
+        },
+        {
+          "duration": 24,
+          "mask": "right+p2:right+p2:b"
+        },
+        {
+          "duration": 16,
+          "mask": "right+p2:right+p2:a"
+        },
+        {
+          "duration": 60,
+          "mask": "right+p2:right"
+        },
+        {
+          "duration": 24,
+          "mask": "right+b+p2:right"
+        },
+        {
+          "duration": 8,
+          "mask": "right+b+r+p2:right"
+        },
+        {
+          "duration": 110,
+          "mask": "right+p2:right"
+        },
+        {
+          "duration": 24,
+          "mask": "right+p2:right+p2:b"
+        },
+        {
+          "duration": 8,
+          "mask": "right+p2:right+p2:b+p2:l"
+        },
+        {
+          "duration": 70,
+          "mask": "right+p2:right"
+        },
+        {
+          "duration": 24,
+          "mask": "right+b+p2:right"
+        },
+        {
+          "duration": 24,
+          "mask": "right+a+p2:right"
+        },
+        {
+          "duration": 310,
+          "mask": "right+p2:right"
+        },
+        {
+          "duration": 24,
+          "mask": "right+p2:right+p2:b"
+        },
+        {
+          "duration": 8,
+          "mask": "right+p2:right+p2:b+p2:r"
+        },
+        {
+          "duration": 240,
+          "mask": "right+p2:right"
+        }
+      ],
+      "controls_are_attempts_not_visual_or_landing_proof": true,
+      "course": "MegaJump",
+      "course_result_or_parity_claim": false,
+      "delivery_drawable": [
+        1920,
+        1080
+      ],
+      "frame_index_sha256": "e54ba680b3815a8fdfb6c9abb391831cb69be8eab8f781748f86e5318ba37676",
+      "frame_sample_sha256": {
+        "megajump-p2-leads-frame-0030.png": "3062c040652a2a295edfb274f4fb43ea9e01b7ec866ef98520ff7769ad0102ea",
+        "megajump-p2-leads-frame-0120.png": "aed7b1377fa9569c9410daa31db47ef42d3d632edb59201a08d67e09c8b70a5d",
+        "megajump-p2-leads-frame-0210.png": "e9915dcc36dfd4d7998cf8d2e2fa3888acb2088ccde8a0e5c52403a481b2c99d",
+        "megajump-p2-leads-frame-0300.png": "449bfc9487abb733c26cbeb385673ad4bf829687ef04eb668f9fbd6a90ddb7b9",
+        "megajump-p2-leads-frame-0390.png": "c08e13e6329c01c6a885dee57b320b9657de948fa45bdfba5c853c8eda7cf7f0",
+        "megajump-p2-leads-frame-0480.png": "a793c12a40bfe9ac38528188553709ed61c10e8496c93e55b83a33cb87552a59",
+        "megajump-p2-leads-frame-0570.png": "9be669b4aa6f4a75c46044b4653c7df50770eca31b6cbbfe4f42dc2996e040d1",
+        "megajump-p2-leads-frame-0660.png": "fc572d3cde4c686ddb5e7640fc9ec0ea299a2ecef17bdd1cb10af54e36220e1e",
+        "megajump-p2-leads-frame-0750.png": "adc8c50983e6a3de21baa378b5a874ca44adbc4447a1cbc067e2a33dd33d4249",
+        "megajump-p2-leads-frame-0840.png": "e632032f7875e2b72f653c0596095cb06afc14022e450286274e9c9a19a69206"
+      },
+      "menu_selection_source_identity": "source-derived original menu controls; 2P route must independently execute",
+      "movie": "native-megajump-p2-leads-900f.mp4",
+      "post_go_scripted_frames": 1503,
+      "post_go_turbo_off": true,
+      "presented_gameplay": "source-frame-authentic native 342-column Original renderer",
+      "read_only_guest_position_dumps": [
+        "cinematic-lead",
+        "cinematic-middle",
+        "cinematic-late"
+      ],
+      "real_guest_world_position_witnesses": [
+        {
+          "control_vs_recorded_wram_sha256": "7a46fd58282f76f303675fbf31b95185bb321e5db2bcf4fbd370a15b03a95743",
+          "distance_status": "raw_coordinate_difference_not_course_arc_distance",
+          "guest_frame": 1913,
+          "p1_world_x_u16": 9488,
+          "p1_world_y_u16": 3305,
+          "p2_world_x_u16": 12107,
+          "p2_world_y_u16": 3306,
+          "raw_abs_x_difference": 2619,
+          "raw_abs_y_difference": 1,
+          "tag": "cinematic-lead"
+        },
+        {
+          "control_vs_recorded_wram_sha256": "9c57f34bc9b3e81cee2d83fa714e2dd09c5287977ef76d9458f7875eaf0ed0a3",
+          "distance_status": "raw_coordinate_difference_not_course_arc_distance",
+          "guest_frame": 2255,
+          "p1_world_x_u16": 13447,
+          "p1_world_y_u16": 3312,
+          "p2_world_x_u16": 14756,
+          "p2_world_y_u16": 3769,
+          "raw_abs_x_difference": 1309,
+          "raw_abs_y_difference": 457,
+          "tag": "cinematic-middle"
+        },
+        {
+          "control_vs_recorded_wram_sha256": "7d19c9a112d42e31195febf46a1ca431b87e89ce85bde80b04ed6e1146d9b1c3",
+          "distance_status": "raw_coordinate_difference_not_course_arc_distance",
+          "guest_frame": 2969,
+          "p1_world_x_u16": 14691,
+          "p1_world_y_u16": 3758,
+          "p2_world_x_u16": 15031,
+          "p2_world_y_u16": 3352,
+          "raw_abs_x_difference": 340,
+          "raw_abs_y_difference": 406,
+          "tag": "cinematic-late"
+        }
+      ],
+      "recording_input_versus_control_crc_sha256": "65c527f4a6fa2119174b173b54932a86b9274fb2487e8ac0a17d58eb6de8cb69",
+      "rendering_geometry_and_guest_unchanged": true,
+      "route": "p2-leads",
+      "route_sha256": "0cf2369a7190bd75269aca30b7a455825c49e24b9a57b3b970cd7d32b4c7b0d1",
+      "runtime_expected_track_byte_7E00CE": "0B",
+      "sha256": "cee7dbdf271068896c9636206c6613bda302ba938a1c473ac4483ab6369617a4",
+      "source_catalog_sha256": "c44b01675b0ae7885fa7e8ec9b44d0e4f4408e2f8d56650de2290f5722d7276f",
+      "source_lossless_sha256": "bbf07e855902bd3bdbc588e87544e6e2583e54347a23573ef1dc1f944403cc36",
+      "source_original_native_menu_sha256": "5402e2199fdd3b4566b8959a55ae6ad44dde54a0f2a161b9a761dc8364f8ffb8",
+      "source_pre_go_prefix_sha256": "fb4762e62c46cfab3b95e989e21eae17075133b71a379477915ed411004e7584",
+      "source_sha256": "98d830c1e76d5c36087c74b151cf0db3124f8627c0a0c8b709c568b51237fa64",
+      "stream_index": 12,
+      "successful_tricks_executed": false,
+      "topology_expectation": "ramp/jump scout",
+      "topology_visually_verified": false,
+      "tour_index_zero_based": 2,
+      "tour_navigation_evidence": "2P Shuffler A/Start 009F=92 and 009F=16 source-probed in run 39355869639",
+      "track_kind_catalogued": "circuit-a",
+      "track_row_zero_based": 1,
+      "unchanged_menu_and_go": true,
+      "world_position_measurement_caveat": "raw original 7E:0411/0413 and 0415/0417 words; do not assert track-arc distance"
+    }
+  },
+  "schema": "UR-GENUINE-ASYNCHRONOUS-NATIVE-2P/1",
+  "source_framework_commit": "075fbe4c8e0d97b0013be541795c39cb644a9709",
+  "source_game_commit": "10b864b9d14a7b7416dd909eb7b054c88faef101",
+  "source_head": "447f8acc59a1196c6619ad47d0af659ad22aa6fa",
+  "source_is_genuine_continuous_native_frames": true,
+  "source_logic_or_physics_modified": false,
+  "two_player_gameplay_confirmed": false,
+  "visible_airborne_or_completed_trick_confirmed": false
+}

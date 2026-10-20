@@ -1,0 +1,68 @@
+{
+  "schema": "UR-GENUINE-NATIVE-2P-STOCK-MENU-MICROSCOPE/1",
+  "source_run_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/39355869639",
+  "artifact_id": 12235556376,
+  "original_menu_state_sha256": "a80205cc78845e8df5bd1831b1878cff6cdf5b8a42be2be4a2a622cc97aa5457",
+  "pinned_original_game_commit": "10b864b9d14a7b7416dd909eb7b054c88faef101",
+  "pinned_original_guest_framework": "075fbe4c8e0d97b0013be541795c39cb644a9709",
+  "observed_variants": [
+    "all-start",
+    "all-a",
+    "start-then-a",
+    "a-then-start"
+  ],
+  "conclusion": "All four real source-input variants traverse 7E009F=0x6D tour select, 0x92 course row select, 0x16 selected course loaded, 0xE5 loading/pre-race; after-race-accept guest state not yet active.",
+  "ui_steps": [
+    {
+      "scene": "touring Shuffler",
+      "f": 1123,
+      "menu_state": "0x6D",
+      "selected_cursor": "0x02",
+      "guest_track_byte": "0x00",
+      "guest_race_state": "0x3C"
+    },
+    {
+      "scene": "tour accepted",
+      "f": 1216,
+      "menu_state": "0x92",
+      "selected_cursor": "0x00",
+      "guest_track_byte": "0x00",
+      "guest_race_state": "0x00"
+    },
+    {
+      "scene": "course row 1 selected",
+      "f": 1259,
+      "menu_state": "0x92",
+      "selected_cursor": "0x01",
+      "guest_track_byte": "0x00",
+      "guest_race_state": "0x00"
+    },
+    {
+      "scene": "MegaJump course loaded",
+      "f": 1352,
+      "menu_state": "0x16",
+      "selected_cursor": "0x00",
+      "guest_track_byte": "0x0B",
+      "guest_race_state": "0x00"
+    },
+    {
+      "scene": "post-game-confirm loading",
+      "f": 1445,
+      "menu_state": "0xE5",
+      "selected_cursor": "0x01",
+      "guest_track_byte": "0x0B",
+      "guest_race_state": "0x00",
+      "pc_state_7E0053": "0x8610",
+      "timer_7E0E1F": 0
+    }
+  ],
+  "source_wram_snapshots_sha256": {
+    "touring-shuffler": "13f5281f1a3fdb40f77bae7d64639ad7c32cf4c62b0b191d18d42937736f7872",
+    "after-tour-accept": "65e7ed79279cd732fee37629277662bcf13a77fa3e61133f98bc0f1fddcb34aa",
+    "selected-course-row": "f7e0c39d5d1b6cd5bd5f9a5ff716d920aed9d596dd36be2b07a7167885220372",
+    "after-track-accept": "29945baba6461e66f8f13e9a93d0e3c4c6c62d72c11b64db25cee7536ad623be",
+    "after-race-accept": "344929be69d9f4f188aa318a605132339ffdbda0635787e28338eae165461f3c"
+  },
+  "limitations": "This proves 2P tour/course menu and MegaJump selection after a stock boot, not finished native event, visible loop/ramp/hill, P1/P2 separated race, or active gameplay; 0313 remains 00 at scene f1445. No ROM or raw 128KiB WRAM committed.",
+  "new_route_gate": "009F=92 rather than incorrect 91. Require specific course 7E00CE before continuing; after 0053=8610 wait for guest 0313=01 and timer tick."
+}

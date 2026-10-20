@@ -201,10 +201,44 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
                     "guest_frame=240 output=320x224 "
                     "source=SDL_RenderReadPixels backend=sdl3\n"), stderr="")
             with patch.object(driver.subprocess, "run", side_effect=fake_native):
-                with self.assertRaisesRegex(RuntimeError, "composed source has pixels but SDL drawable empty"):
+                with self.assertRaisesRegex(RuntimeError, "composed source has RGB but SDL readback RGB empty"):
                     driver.launch(stage / "exe", stage / "rom", stage,
                                   "authentic", (320, 224), "windows", 10,
                                   route="authentic-stock")
+
+    def test_original_rgb_present_even_when_sdl3_readback_alpha_zero(self):
+        """Zero-alpha native RGB is meaningful but not monitor certification."""
+        import json
+        with tempfile.TemporaryDirectory() as tmp:
+            stage = Path(tmp)
+            def fake_native(command, **kw):
+                output = Path(kw["env"]["UR_MODERN_VISUAL_SDL_CAPTURE_FILE"])
+                head = (b"P7\nWIDTH 320\nHEIGHT 224\nDEPTH 4\n"
+                        b"MAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n")
+                # Every sample has visible RGB content, but SDL3 alpha is 0.
+                output.write_bytes(head + b"\xa0\x20\x30\x00" * (320 * 224))
+                composed = Path(kw["cwd"]) / "stock-composed-before-sdl.ppm"
+                composed.write_bytes(
+                    b"P6\n256 224\n255\n" + b"\xa0\x20\x30" * (256 * 224))
+                return subprocess.CompletedProcess(command, 0, stdout=(
+                    "[snes_load] name=UNIRACERS\n"
+                    "UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=240 "
+                    "guest_frame=240 output=320x224 "
+                    "source=SDL_RenderReadPixels backend=sdl3\n"), stderr="")
+            with patch.object(driver.subprocess, "run", side_effect=fake_native):
+                result = driver.launch(stage / "exe", stage / "rom", stage,
+                                       "authentic", (320, 224), "windows", 10,
+                                       route="authentic-stock")
+            self.assertTrue(result["readback_saved"])
+            receipt = json.loads((stage / "authentic" /
+                                  "authentic-source-vs-sdl.json").read_text())
+            self.assertEqual(receipt["sdl_nonblack_rgb_pixels"], 320 * 224)
+            self.assertEqual(receipt["sdl_nonzero_alpha_pixels"], 0)
+            self.assertEqual(receipt["sdl_nonblack_rgb_with_alpha_pixels"], 0)
+            self.assertEqual(receipt["original_source_pixels"]["nonblack_rgb_pixels"],
+                             256 * 224)
+            self.assertFalse(receipt["authentic_isolation_approved"])
+            self.assertEqual(receipt["release_gate_credit"], 0)
 
     def test_authentic_pre_sdl_ppm_diagnostic_requires_source_pixels(self):
         with tempfile.TemporaryDirectory() as tmp:

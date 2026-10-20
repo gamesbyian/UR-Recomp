@@ -111,13 +111,20 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           # Each route drives the real native production edge handler,
           # in a separate clean process on the SAME PE.
-          for spec in records-keyboard:1024x768 options-p1:1280x720 profile-first-p1:1280x720; do
+          for spec in records-keyboard:1024x768 options-p1:observed profile-first-p1:1280x720; do
             route="${spec%%:*}"
             size="${spec#*:}"
+            # Options can change the live host display. Preserve its *observed*
+            # output size via the existing independent two-run size probe;
+            # root/Records/profile retain strict requested WxH and no fallback.
+            size_args=()
+            if [ "$size" != "observed" ]; then
+              size_args=(--window-size "$size")
+            fi
             python tools/qa_modern_visual_win32_capture_driver.py \
               --exe "$EXE" --rom "$ROM" --source-sha "$(git rev-parse HEAD)" \
               --out "$RUNNER_TEMP/ur-modern-win32-journey-$route" \
-              --video windows --timeout 110 --window-size "$size" \
+              --video windows --timeout 110 "${size_args[@]}" \
               --route "$route"
             test -s "$RUNNER_TEMP/ur-modern-win32-journey-$route/actual-sdl-drawable.png"
             test -s "$RUNNER_TEMP/ur-modern-win32-journey-$route/readback-receipt.json"

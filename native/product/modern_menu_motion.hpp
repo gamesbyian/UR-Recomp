@@ -20,6 +20,7 @@ inline constexpr int kModernMenuMotionRows = 5;
 inline constexpr int kModernMenuMotionSourcePeriod = 32;
 inline constexpr int kModernMenuMotionSelectionFrames = 12;
 inline constexpr int kModernMenuMotionEntranceFrames = 39;
+inline constexpr int kModernMenuStockHeroMaxCycle = 8;
 
 // Measured source values, not a physics easing simulation.
 inline constexpr std::array<int, kModernMenuMotionSelectionFrames>
@@ -64,6 +65,7 @@ struct ModernMenuMotionPose {
     int entrance_distance_px = 0; // measured stock BG2 slide remaining
     int hero_bob_px = 0;       // host composition only, opt-in stock hero
     int hero_lean_px = 0;      // host composition only, opt-in stock hero
+    int hero_frame_ordinal = 0; // provisional 6-tick stock pose preview
     bool reduced_motion = false;
 };
 
@@ -151,6 +153,11 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
     }};
     const auto bob = static_cast<std::size_t>((input.tick60 / 4u) % 16u);
     pose.hero_bob_px = kIdleBob[bob];
+    // Original pose animation cadence remains unqualified. The six-tick
+    // preview cycle is host-only and requires a separately verified ordered
+    // stock pose family before it can be drawn, never guessed frame IDs.
+    pose.hero_frame_ordinal =
+        static_cast<int>((input.tick60 / 6u) % kModernMenuStockHeroMaxCycle);
     pose.hero_lean_px = (age < 4 && previous != current)
         ? (previous < current ? 1 : -1) : 0;
     return pose;

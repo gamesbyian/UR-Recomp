@@ -223,9 +223,23 @@ inline bool render_modern_root_overlay(
     modern_menu_paint_shadowed_heading(
         paint, pixels, stride, surface_height,
         x + 9 * scale, y + 6 * scale, title, 2, scale);
-    const std::string identity = fit_modern_overlay_text(
-        std::string("RACER: ") + std::string(view.racer_name),
-        modern_overlay_text_cells(panel_w));
+    // A stock anonymous rider is a state, not a long player name. Keep
+    // that status readable at the real 240-logical-pixel 4:3 fallback.
+    const std::string_view racer_name =
+        view.racer_name == "STOCK RACER - NO PROFILE"
+            ? std::string_view("NO PROFILE") : view.racer_name;
+    std::string identity = std::string("RACER: ") + std::string(racer_name);
+    const auto identity_cells = modern_overlay_text_cells(panel_w);
+    if (identity.size() > identity_cells) {
+        // Never silently present a clipped prefix as a complete racer name.
+        // Keep the fixed identity label and mark unusually long names.
+        if (identity_cells >= 3) {
+            identity.resize(identity_cells - 3);
+            identity += "...";
+        } else {
+            identity = fit_modern_overlay_text(identity, identity_cells);
+        }
+    }
     paint.draw_text(pixels, stride, surface_height,
         x + 8 * scale, y + 36 * scale,
         identity.c_str(), palette.secondary_grey, scale);
@@ -263,6 +277,16 @@ inline bool render_modern_root_overlay(
         "RUNS AND BEST TIMES",
         "DISPLAY AND CONTROLS"
     };
+    // The right-side preview at a 320px panel offers just 13 ASCII cells.
+    // Intentional two-line copy preserves each route's full meaning. This is
+    // a layout vocabulary, not a route or guest-state change.
+    constexpr const char* kWideDetails[][2] = {
+        {"TOUR AND", "CONTINUE"},
+        {"CHOOSE A", "COURSE"},
+        {"LOCAL", "TWO PLAYER"},
+        {"RUNS AND", "BEST TIMES"},
+        {"DISPLAY AND", "CONTROLS"}
+    };
     const auto selected_index = modern_root_destination_index(
         modern_root_menu_selected(view.menu));
     if (wide) {
@@ -272,13 +296,22 @@ inline bool render_modern_root_overlay(
         paint.draw_text(pixels, stride, surface_height,
             x + 193 * scale, y + 64 * scale,
             "SELECTED", palette.title_yellow, scale);
-        paint.draw_text(pixels, stride, surface_height,
-            x + 193 * scale, y + 85 * scale,
-            fit_modern_overlay_text(
-                (view.available_destinations & (1u << selected_index))
-                    ? kDetails[selected_index] : "NOT YET AVAILABLE",
-                modern_overlay_text_cells(panel_w - 193)
-            ).c_str(), 0xFFFFFFFFu, scale);
+        const bool preview_available =
+            (view.available_destinations & (1u << selected_index)) != 0;
+        const char* const* preview = preview_available
+            ? kWideDetails[selected_index] : nullptr;
+        const auto preview_cells = modern_overlay_text_cells(panel_w - 193);
+        // These two words/lines are deliberately short, not truncated
+        // source status. Never print an incomplete route as if complete.
+        for (int line = 0; line < 2; ++line) {
+            const char* copy = preview_available
+                ? preview[line]
+                : (line == 0 ? "NOT YET" : "AVAILABLE");
+            paint.draw_text(pixels, stride, surface_height,
+                x + 193 * scale, y + (85 + 12 * line) * scale,
+                fit_modern_overlay_text(copy, preview_cells).c_str(),
+                0xFFFFFFFFu, scale);
+        }
         if (selected_index == 0 && view.tour_continue_available) {
             paint.draw_text(pixels, stride, surface_height,
                 x + 193 * scale, y + 111 * scale,
@@ -314,13 +347,17 @@ inline bool render_modern_root_overlay(
                     ? "X SWITCH ACTIVE P1"
                     : view.racer_shortcuts_available
                     ? "X/F2 RACERS   F1 HELP"
-                    : "RACER SETUP NOT YET LINKED");
-    paint.draw_text(pixels, stride, surface_height,
-        x + 8 * scale, y + 193 * scale,
-        fit_modern_overlay_text(racer_hint, modern_overlay_text_cells(panel_w))
-            .c_str(),
-        !view.root_notice.empty() ? palette.title_yellow
-                                  : palette.cursor_blue, scale);
+                    : ""); // No nonexistent button or internal engineering status.
+    // Empty means this host has no available setup shortcut. The selected
+    // racer's identity is already displayed above, and navigation help is
+    // already at y+181; do not paint a fabricated/duplicated footer.
+    if (!racer_hint.empty())
+        paint.draw_text(pixels, stride, surface_height,
+            x + 8 * scale, y + 193 * scale,
+            fit_modern_overlay_text(racer_hint, modern_overlay_text_cells(panel_w))
+                .c_str(),
+            !view.root_notice.empty() ? palette.title_yellow
+                                      : palette.cursor_blue, scale);
     if (view.practice_picker_open || view.practice_launch_pending) {
         const int bx = x + 12 * scale, by = y + 43 * scale;
         const int bw = (panel_w - 24) * scale, bh = 137 * scale;

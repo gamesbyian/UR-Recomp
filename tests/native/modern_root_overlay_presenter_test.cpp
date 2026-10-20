@@ -12,6 +12,8 @@ using namespace ur::product;
 
 namespace {
 std::vector<std::string> painted;
+struct TextDraw { int x; int y; int scale; std::string content; };
+std::vector<TextDraw> text_draws;
 std::uint32_t chosen_color;
 void fill(std::uint32_t*,int,int,int,int,int,int,std::uint32_t color) {
     painted.emplace_back("fill");
@@ -20,8 +22,10 @@ void fill(std::uint32_t*,int,int,int,int,int,int,std::uint32_t color) {
 void stroke(std::uint32_t*,int,int,int,int,int,int,std::uint32_t) {
     painted.emplace_back("stroke");
 }
-void text(std::uint32_t*,int,int,int,int,const char* t,std::uint32_t,int) {
+void text(std::uint32_t*,int,int,int x,int y,const char* t,
+          std::uint32_t,int scale) {
     painted.emplace_back(t);
+    text_draws.push_back({x, y, scale, t});
 }
 bool contains(const std::string& s) {
     for (const auto& item : painted) if (item == s) return true;
@@ -31,6 +35,18 @@ int count(const std::string& s) {
     int result=0;
     for (const auto& item : painted) if (item == s) ++result;
     return result;
+}
+// First-party native text ABI draws 8px source glyphs at integer scale.
+// Check actual coordinates, not just that particular strings were sent.
+bool text_draws_fit(HostOverlayRect panel) {
+    for (const auto& draw : text_draws) {
+        if (draw.scale <= 0 || draw.x < panel.x || draw.y < panel.y ||
+            draw.x + static_cast<int>(draw.content.size()) * 8 * draw.scale >
+                panel.x + panel.width ||
+            draw.y + 8 * draw.scale > panel.y + panel.height)
+            return false;
+    }
+    return true;
 }
 } // namespace
 
@@ -56,6 +72,24 @@ int main() {
     assert(contains("A/ENTER SELECT   B/ESC QUIT"));
     assert(count("UNIRACERS") == 2); // unchanged title/shadow
     assert(!contains("SELECTED")); // narrow default shell
+    assert(text_draws_fit(old_view)); // every root label stays in 240px panel
+    // Real 640x480 SDL baseline: the anonymous rider was previously printed
+    // as "RACER: STOCK RACER - NO PROF", losing the source state.
+    painted.clear();
+    view.racer_name = "STOCK RACER - NO PROFILE";
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("RACER: NO PROFILE"));
+    assert(!contains("RACER: STOCK RACER - NO PROF"));
+    // In narrow mode the identity is truthful and never overflows.
+    assert(text_draws_fit(old_view));
+    painted.clear();
+    view.racer_name = "THIS IS AN EXCESSIVELY LONG RACER NAME";
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("RACER: THIS IS AN EXCESSI..."));
+    assert(!contains("RACER: THIS IS AN EXCESSIV"));
+    painted.clear();
 
     painted.clear();
     view.europe = true;
@@ -72,9 +106,11 @@ int main() {
     assert(contains("RACER: CUSTOM RACER"));
     assert(contains("> RECORDS"));
     assert(contains("SELECTED"));
-    // The shared painter applies the existing cell budget to detail copy.
-    assert(contains(fit_modern_overlay_text(
-        "RUNS AND BEST TIMES", modern_overlay_text_cells(356 - 193))));
+    // Original stock-family wide context must expose both complete clauses.
+    // Earlier 320px-panel output silently emitted only "RUNS AND BEST".
+    assert(contains("RUNS AND"));
+    assert(contains("BEST TIMES"));
+    assert(!contains("RUNS AND BEST"));
     assert(contains("QUIT TO DESKTOP?"));
     assert(contains("A/ENTER YES   B/ESC NO"));
     assert(!contains("CONTINUE READY")); // only on selected Play
@@ -85,6 +121,42 @@ int main() {
                                       wide_view,view));
     assert(contains("CONTINUE READY"));
 
+    painted.clear();
+    // The actual 320-logical-pixel Modern root admits just 13 text cells
+    // in the secondary column, at both 1x logical size and 4x scaling.
+    constexpr HostOverlayRect real_wide_view{0,0,320*4,204*4};
+    view.available_destinations = 0x1fu;
+    view.quit_confirm = false;
+    view.tour_continue_available = false;
+    constexpr const char* expected_lines[][2] = {
+        {"TOUR AND", "CONTINUE"},
+        {"CHOOSE A", "COURSE"},
+        {"LOCAL", "TWO PLAYER"},
+        {"RUNS AND", "BEST TIMES"},
+        {"DISPLAY AND", "CONTROLS"}
+    };
+    for (unsigned i = 0; i < kModernRootDestinationCount; ++i) {
+        painted.clear();
+        text_draws.clear();
+        view.menu = modern_root_menu_reset();
+        for (unsigned j = 0; j < i; ++j)
+            view.menu = modern_root_menu_move(view.menu, 1);
+        assert(render_modern_root_overlay(painter,pixels,1536,896,4,320,
+                                          real_wide_view,view));
+        assert(contains(expected_lines[i][0]));
+        assert(contains(expected_lines[i][1]));
+        assert(text_draws_fit(real_wide_view));
+        assert(!contains("TOUR AND CONT")); // old silently cropped copy
+        assert(!contains("DISPLAY AND CON")); // old silently cropped copy
+    }
+    painted.clear();
+    view.menu = modern_root_menu_reset();
+    view.available_destinations = 0;
+    assert(render_modern_root_overlay(painter,pixels,1536,896,4,320,
+                                      real_wide_view,view));
+    assert(contains("NOT YET"));
+    assert(contains("AVAILABLE"));
+    assert(!contains("NOT YET AVAI"));
     painted.clear();
     // Native Baldosa exposes only Play and Multiplayer until the underlying
     // Modern routes are wired. The shared ship renderer remains unchanged.
@@ -101,8 +173,12 @@ int main() {
     assert(contains("> RECORDS"));
     assert(count("SOON") == 3);
     assert(contains("NOT YET AVAILABLE"));
-    assert(contains("RACER SETUP NOT YET LINKED"));
+    // No setup route is advertised for a host with no shortcut. The former
+    // "RACER SETUP NOT YET LINKED" was an internal false player instruction.
+    assert(!contains("RACER SETUP NOT YET LINKED"));
     assert(!contains("X/F2 RACERS   F1 HELP"));
+    assert(!contains("")); // do not issue an empty draw-text command
+    assert(contains("A/ENTER SELECT   B/ESC QUIT"));
     painted.clear();
     view.available_destinations = 0x1fu;
     view.racer_shortcuts_available = true;

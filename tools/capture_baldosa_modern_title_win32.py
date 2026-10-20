@@ -233,7 +233,7 @@ def main() -> int:
         "UR_BALDOSA_MODERN_TITLE_CAPTURE_DIR": str(captures),
         "SNESRECOMP_SCREENSHOT_DIR": str(presented),
         "SNESRECOMP_SCREENSHOT_FROM": "0",
-        "SNESRECOMP_SCREENSHOT_TO": "24",
+        "SNESRECOMP_SCREENSHOT_TO": "180",
         "SNESRECOMP_FRAMEDUMP_PIXELS": "0",
         "SNESRECOMP_DUMP_DIR": str(target / "saves"),
     })

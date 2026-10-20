@@ -16,6 +16,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 
 from capture_baldosa_modern_title_win32 import read_present_ppm, EXPECTED_USA_ROM
@@ -117,6 +118,43 @@ def check_inert(source: dict, enabled: dict) -> dict:
     }
 
 
+def retain_authentic_visible_frame(
+    source_dir: Path, artifact_dir: Path, frame: int, label: str
+) -> dict:
+    """Retain exact native host-produced P6 bytes, not a reconstructed image.
+
+    This is CPU/post-OSD before SDL texture upload. The admitted source
+    frame was already shown identical by the two-run CRC+pixel comparator.
+    Only one late picture per configuration is persisted, no ROM/SRAM.
+    """
+    capture_dir = source_dir / "presented"
+    table = capture_dir / "presents.csv"
+    with table.open(newline="", encoding="utf-8") as f:
+        records = list(csv.DictReader(f))
+    selected = [r for r in records if int(r["frame"]) == frame]
+    if len(selected) != 1:
+        raise ValueError(f"Real original host present frame {frame} is missing or duplicated")
+    index = int(selected[0]["present"])
+    if index < 0 or index >= len(records):
+        raise ValueError("Retained source present ordinal outside actual host trace")
+    original = capture_dir / f"present_{index:06d}.ppm"
+    width, height, pixels = read_present_ppm(original, 256)
+    if (width, height) != (256, 224) or not authentic_ink_visible(pixels):
+        raise ValueError("Refusing to retain uniform/blank Authentic screenshot")
+    target = artifact_dir / f"authentic-{label}-frame-{frame:06d}-256x224.ppm"
+    if target.exists():
+        raise ValueError("Authentic witness output path already exists")
+    shutil.copyfile(original, target)
+    original_hash = hashlib.sha256(original.read_bytes()).hexdigest()
+    if hashlib.sha256(target.read_bytes()).hexdigest() != original_hash:
+        raise ValueError("Native Authentic P6 changed during independent retention")
+    return {
+        "frame": frame, "present_index": index, "file": target.name,
+        "source_raster": "256x224", "sha256": original_hash,
+        "origin": "actual_baldosa_post_osd_before_sdl_upload",
+    }
+
+
 def run_once(exe: Path, rom: Path, script: Path, target: Path,
              root_enabled: bool, timeout: int) -> dict:
     target.mkdir(parents=True, exist_ok=False)
@@ -179,6 +217,20 @@ def main() -> int:
     variant = run_once(exe, rom, script, out / "authentic-root-enabled",
                        True, args.timeout)
     receipt = check_inert(reference, variant)
+    # The prior gate proves both actual game-image byte arrays are identical.
+    # Persist the last visible stock P6 from EACH true original game launch
+    # for independent screenshot auditors after this Actions run expires.
+    late_frame = receipt["visible_original_guest_present_frames"][-1]
+    before = retain_authentic_visible_frame(
+        out / "authentic-root-disabled", out, late_frame, "disabled")
+    after = retain_authentic_visible_frame(
+        out / "authentic-root-enabled", out, late_frame, "enabled")
+    if before["sha256"] != after["sha256"]:
+        raise ValueError("Persisted Authentic source image copies diverged")
+    receipt["native_original_visible_pixel_witness"] = {
+        "frame": late_frame, "modern_root_disabled": before,
+        "modern_root_enabled": after, "identical_sha256": True,
+    }
     receipt.update({"executable_sha256": hashlib.sha256(exe.read_bytes()).hexdigest(),
                     "original_rom_sha256": EXPECTED_USA_ROM,
                     "release_gate_credit": 0})
@@ -187,10 +239,9 @@ def main() -> int:
     print("UR_MODERN_TITLE_AUTHENTIC_INERT=passed")
     print(json.dumps({k: v for k, v in receipt.items()
                       if k != "common_present_frames"}, sort_keys=True))
-    # Keep the actual source logs and receipt, not hundreds of RAM/screenshot
-    # frames; exact feature toggles have been checked with their original bytes.
+    # Retain the two genuine late P6 original game pictures, source logs and
+    # receipt only. No ROM, SRAM, or hundreds of transient WRAM screenshots.
     for target in (out / "authentic-root-disabled", out / "authentic-root-enabled"):
-        import shutil
         shutil.rmtree(target / "framedump")
         shutil.rmtree(target / "presented")
     return 0

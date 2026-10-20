@@ -72,8 +72,10 @@ class OriginalStockCursorTests(unittest.TestCase):
         dumps, contract = fixture()
         frames, evidence = cursor.reconstruct(dumps, contract)
         self.assertEqual(len(frames), 16)
+        # Sixty-four original idle dumps cover two complete 32-tick
+        # rotations, while the atlas stores one 16-pose cycle.
         self.assertEqual([item["tile"] for item in evidence[::2]],
-                         contract["cursor"]["spin_cycle_tiles"])
+                         contract["cursor"]["spin_cycle_tiles"] * 2)
         self.assertGreaterEqual(len({f for f in frames}), 8)
         self.assertEqual(frames[0][0:4], bytes((40, 48, 88, 255)))
         self.assertEqual(len(cursor.png_frame(frames[0])) > 100, True)

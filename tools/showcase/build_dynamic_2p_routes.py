@@ -3,7 +3,7 @@
 
 Only alters controller commands *after* the game's genuine GO gate.
 Never edits guest execution, track geometry, menus, race physics or rendering.
-B=jump, L/R=airborne flip/roll, A=twist, per official instruction manual.
+B=jump, L/R=airborne flip/roll, A=twist. Held B 24 + B+L/R 8\nfollows independently documented original route race-rotation-left.script.
 A button press is only an *attempt*: presence of a trick must be witnessed.
 """
 from __future__ import annotations
@@ -22,49 +22,51 @@ EXPECTED_TAIL = ("press right+p2:right 60\ndump t060\n"
 
 # Include landings after each pulse: a pressed button is not proof a stunt lands.
 ROUTES = {
+    # Native first-race airborne precedent is sustained B 24 frames followed
+    # by B+L/R 8 frames, then a recovery interval (race-rotation-left.script).
+    # Each B+rotation is an attempt, never proof it triggered/landed a trick.
     "p1-leads": [
         ("right", 170),
-        ("right+b", 2), ("right+r", 22), ("right", 30),
-        ("p2:right", 115), ("p2:right+p2:b", 2),
-        ("p2:right+p2:l", 24), ("p2:right", 32),
-        ("right+p2:right", 60), ("right+b+p2:right", 2),
-        ("right+l+p2:right", 21), ("right+p2:right", 48),
-        ("right+p2:right+p2:b", 2),
-        ("right+p2:right+p2:r", 24), ("right+p2:right", 65),
-        ("right+b+p2:right", 2), ("right+a+p2:right", 18),
+        ("right+b", 24), ("right+b+r", 8), ("right", 30),
+        ("p2:right", 115), ("p2:right+p2:b", 24),
+        ("p2:right+p2:b+p2:l", 8), ("p2:right", 32),
+        ("right+p2:right", 60), ("right+b+p2:right", 24),
+        ("right+b+l+p2:right", 8), ("right+p2:right", 48),
+        ("right+p2:right+p2:b", 24),
+        ("right+p2:right+p2:b+p2:r", 8), ("right+p2:right", 65),
+        ("right+b+p2:right", 24), ("right+a+p2:right", 18),
         ("right+p2:right", 90),
-        ("right+p2:right+p2:b", 2),
+        ("right+p2:right+p2:b", 24),
         ("right+p2:right+p2:a", 16),
         ("right+p2:right", 240),
-        ("right+b+p2:right+p2:b", 2),
-        ("right+r+p2:right+p2:l", 30),
+        ("right+b+p2:right+p2:b", 24),
+        ("right+b+r+p2:right+p2:b+p2:l", 8),
         ("right+p2:right", 330),
     ],
     "p2-leads": [
         ("p2:right", 195),
-        ("p2:right+p2:b", 2), ("p2:right+p2:r", 21),
+        ("p2:right+p2:b", 24), ("p2:right+p2:b+p2:r", 8),
         ("p2:right", 35),
-        ("right", 120), ("right+b", 2),
-        ("right+l", 23), ("right", 35),
+        ("right", 120), ("right+b", 24),
+        ("right+b+l", 8), ("right", 35),
         ("right+p2:right", 80),
-        ("right+p2:right+p2:b", 2),
+        ("right+p2:right+p2:b", 24),
         ("right+p2:right+p2:a", 16),
         ("right+p2:right", 60),
-        ("right+b+p2:right", 2),
-        ("right+r+p2:right", 25),
+        ("right+b+p2:right", 24),
+        ("right+b+r+p2:right", 8),
         ("right+p2:right", 110),
-        ("right+p2:right+p2:b", 2),
-        ("right+p2:right+p2:l", 26),
+        ("right+p2:right+p2:b", 24),
+        ("right+p2:right+p2:b+p2:l", 8),
         ("right+p2:right", 70),
-        ("right+b+p2:right", 2),
+        ("right+b+p2:right", 24),
         ("right+a+p2:right", 24),
         ("right+p2:right", 310),
-        ("right+p2:right+p2:b", 2),
-        ("right+p2:right+p2:r", 25),
+        ("right+p2:right+p2:b", 24),
+        ("right+p2:right+p2:b+p2:r", 8),
         ("right+p2:right", 240),
     ],
 }
-
 
 def sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()

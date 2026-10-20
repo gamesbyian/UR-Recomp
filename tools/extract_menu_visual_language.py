@@ -444,6 +444,55 @@ def write_atlas(path: Path, d: Dump, char_base: int) -> None:
     write_png(path, width, height, bytes(buf))
 
 
+# ------------------------------------------------- original small font art ---
+# Exact BG2 8x16 stock font is a different tile family from 16x16 titles.
+# Export when requested to enable a faithful reconstructed native text path;
+# all extracted pixels remain user-local and outside source control.
+SMALL_ATLAS_PAIRS = (
+    [(str(i), SMALL_FONT_FIRST_TILE + i) for i in range(10)]
+    + [(chr(c), SMALL_FONT_FIRST_TILE + 10 + c - 65 -
+        (1 if c > ord("O") else 0))
+       for c in range(ord("A"), ord("Z") + 1) if c != ord("O")]
+    + [("O", SMALL_FONT_FIRST_TILE)]
+    + [(ch, tile) for tile, ch in sorted(SMALL_FONT_PUNCTUATION.items())]
+    + [(")", 0xA4), (" ", SMALL_FONT_SPACE_TILE)]
+)
+
+
+def write_small_font_atlas(path: Path, d: Dump, char_base: int) -> dict:
+    """One true original 8x16 glyph per cell; ')' is hardware H-flip of '('."""
+    if len(d.vram) != 65536 or len(d.cgram) != 512:
+        raise ValueError("incorrect original PPU VRAM/CGRAM lengths")
+    width, height = len(SMALL_ATLAS_PAIRS) * 8, 16
+    rgba = bytearray(width * height * 4)
+    glyphs = []
+    for n, (ch, tile) in enumerate(SMALL_ATLAS_PAIRS):
+        if ch == " ":
+            glyphs.append({"character": ch, "tile": tile, "hflip": False})
+            continue
+        rows = (tile_pixels(d.vram, char_base, tile, 4)
+                + tile_pixels(d.vram, char_base,
+                              tile + SMALL_FONT_BOTTOM_OFFSET, 4))
+        flip = ch == ")"
+        for y, row in enumerate(rows):
+            for x, value in enumerate(row):
+                if value:
+                    px = n * 8 + (7 - x if flip else x)
+                    offset = (y * width + px) * 4
+                    rgba[offset:offset + 4] = bytes(
+                        bgr555(d.cgram, 7 * 16 + value) + [255])
+        glyphs.append({"character": ch, "tile": tile, "hflip": flip})
+    write_png(path, width, height, bytes(rgba))
+    return {
+        "dimensions": [width, height],
+        "glyph_cell": [8, 16],
+        "palette": 7,
+        "glyphs": glyphs,
+        "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "distribution": "User-local original game art; do not commit the PNG",
+    }
+
+
 # --------------------------------------------------- original OBJ cursor art ---
 # The existing --atlas-out exports the real BG2 title font from the player's
 # own original PPU capture. This sibling exporter extracts the stock *OBJ*
@@ -706,6 +755,8 @@ def main() -> int:
     ap.add_argument("dump_dir", type=Path, help=f"snesref dump directory from {SCRIPT}")
     ap.add_argument("--out", type=Path, default=ROOT / "analysis/generated/menu-visual-language.json")
     ap.add_argument("--atlas-out", type=Path, help="optional PNG of the decoded glyph sheet (do not commit)")
+    ap.add_argument("--small-atlas-out", type=Path, help="optional original grey 8x16 detail font PNG (do not commit)")
+    ap.add_argument("--small-atlas-manifest-out", type=Path, help="optional small-font charset, aliases and atlas digest")
     ap.add_argument("--cursor-atlas-out", type=Path, help="optional decoded original 16-pose OBJ cursor PNG (do not commit)")
     ap.add_argument("--cursor-manifest-out", type=Path, help="optional SHA-bound source/atlas receipt for --cursor-atlas-out")
     ap.add_argument("--log", type=Path, help="snesref stdout log of the menu run (for press frames)")
@@ -734,6 +785,14 @@ def main() -> int:
     args.out.write_text(json.dumps(contract, indent=1) + "\n")
     if args.atlas_out:
         write_atlas(args.atlas_out, main_dump, char_base)
+    if args.small_atlas_manifest_out and not args.small_atlas_out:
+        ap.error("--small-atlas-manifest-out requires --small-atlas-out")
+    if args.small_atlas_out:
+        track_dump = series(args.dump_dir, "track")[-1]
+        track_char_base = bg_layout(track_dump.fillram, 1)[1]
+        small = write_small_font_atlas(args.small_atlas_out, track_dump, track_char_base)
+        if args.small_atlas_manifest_out:
+            args.small_atlas_manifest_out.write_text(json.dumps(small, indent=2) + "\n")
     if args.cursor_manifest_out and not args.cursor_atlas_out:
         ap.error("--cursor-manifest-out requires --cursor-atlas-out")
     if args.cursor_atlas_out:

@@ -791,16 +791,54 @@ jobs:
           set -euo pipefail
           ROOT="$RUNNER_TEMP/qa01-rf080"
           mkdir -p "$ROOT"
+          # Exact original RF080 provider ZIPs expire October 27. The
+          # source-validated archived copy 12234675074 preserves their
+          # *original bytes*. SHA256 both the wrapper and each inner ZIP;
+          # never trust the wrapper digest as the execution's case digest.
           curl --fail --show-error --silent --location --retry 2 \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -o "$ROOT/original-case.zip" \
-            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12233102973/zip"
-          curl --fail --show-error --silent --location --retry 2 \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -o "$ROOT/original-binaries.zip" \
-            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12232972370/zip"
+            -o "$ROOT/preserved-wrapper.zip" \
+            "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12234675074/zip"
+          python3 - "$ROOT/preserved-wrapper.zip" "$ROOT" <<'PY'
+          import hashlib,io,sys,zipfile
+          from pathlib import Path
+          raw=Path(sys.argv[1]).read_bytes()
+          assert hashlib.sha256(raw).hexdigest()=="01bf4bc4e229075028275d829533782a54a0c5149b5550bb6dc433a73f044cf5"
+          with zipfile.ZipFile(io.BytesIO(raw)) as z:
+              assert len(z.infolist())==3 and set(z.namelist())=={
+                  "original-case.zip","original-binaries.zip","independent-strict-sidecar-verdict.json"}
+              assert z.testzip() is None
+              for name,original_sha in (
+                  ("original-case.zip","e23139e64f75099a43c0c77b6c53f3c4c87c1afb17ae12f82448f05f878ac412"),
+                  ("original-binaries.zip","0f0baf99dac49e5e0e0edf4f09e28b3af3f89f3625250c7a0bda09cc7b9fdbd7")):
+                  inner=z.read(name)
+                  assert hashlib.sha256(inner).hexdigest()==original_sha
+                  (Path(sys.argv[2])/("backup-"+name)).write_bytes(inner)
+          print("RF080 archived original case/binaries pinned to original executed ZIP digests")
+          PY
+          if curl --fail --show-error --silent --location --retry 2 \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -o "$ROOT/original-case.zip" \
+              "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12233102973/zip"; then
+            cmp "$ROOT/original-case.zip" "$ROOT/backup-original-case.zip"
+            echo "Original RF080 case and 90-day preserved source byte-identical"
+          else
+            cp "$ROOT/backup-original-case.zip" "$ROOT/original-case.zip"
+            echo "Original RF080 case unavailable; exact original inner ZIP SHA preserved"
+          fi
+          if curl --fail --show-error --silent --location --retry 2 \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -o "$ROOT/original-binaries.zip" \
+              "https://api.github.com/repos/gamesbyian/UR-Recomp/actions/artifacts/12232972370/zip"; then
+            cmp "$ROOT/original-binaries.zip" "$ROOT/backup-original-binaries.zip"
+            echo "Actual original/native executable archive byte-identical to preserved source"
+          else
+            cp "$ROOT/backup-original-binaries.zip" "$ROOT/original-binaries.zip"
+            echo "Original RF080 binary archive unavailable; exact source bytes preserved"
+          fi
           python3 tools/qa01_rf080_sidecar_archive.py \
             --case "$ROOT/original-case.zip" \
             --binaries "$ROOT/original-binaries.zip" \

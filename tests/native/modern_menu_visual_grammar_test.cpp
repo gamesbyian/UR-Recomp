@@ -11,6 +11,15 @@ using namespace ur::product;
 
 namespace {
 int paints = 0;
+int text_draws = 0;
+std::uint32_t last_heading_colour = 0u;
+int last_heading_scale = 0;
+void text_stub(std::uint32_t*, int, int, int, int, const char*,
+               std::uint32_t colour, int size) {
+    ++text_draws;
+    last_heading_colour = colour;
+    last_heading_scale = size;
+}
 void fill(std::uint32_t* pixels, int stride, int height,
           int x, int y, int w, int h, std::uint32_t color) {
     assert(x >= 0 && y >= 0 && w > 0 && h > 0);
@@ -22,6 +31,7 @@ void fill(std::uint32_t* pixels, int stride, int height,
 }
 struct Painter {
     decltype(&fill) fill_rect = &fill;
+    decltype(&text_stub) draw_text = &text_stub;
 };
 } // namespace
 
@@ -81,6 +91,15 @@ int main() {
 
     constexpr Painter painter{};
     std::uint32_t framebuffer[256 * 224]{};
+    modern_menu_paint_shadowed_heading(
+        painter, framebuffer, 256, 224, 20, 6, "UNIRACERS", 2, 1);
+    assert(text_draws == 2);
+    assert(last_heading_colour == kModernStockMenuPalette.title_yellow);
+    assert(last_heading_scale == 2);
+    modern_menu_paint_shadowed_heading(
+        painter, framebuffer, 256, 224, 20, 6, "UNIRACERS", 3, 1);
+    assert(text_draws == 2); // invalid text density fails closed
+
     modern_menu_paint_checker_backdrop(
         painter, framebuffer, 256, 224, 8, 10, 240, 204, 1);
     assert(paints > 30);

@@ -52,6 +52,16 @@ void bounds(int width, int height) {
 int main() {
     std::uint32_t scratch[64]{};
     constexpr ModernRootOverlayPainter painter{&fill,&stroke,&draw};
+    // Same exact drawable sizes as the pinned Windows SDL final-readback
+    // acceptance journey. A 4:3 WINDOW now renders a true compact source;
+    // the 16:9 window presents the original-derived two-column wide view.
+    assert(modern_native_frontend_compact_drawable(1024,768));
+    assert(modern_native_frontend_compact_drawable(640,480));
+    assert(modern_native_frontend_compact_drawable(960,640));
+    assert(!modern_native_frontend_compact_drawable(1280,720));
+    assert(!modern_native_frontend_compact_drawable(3840,2160));
+    assert(!modern_native_frontend_compact_drawable(0,0));
+    assert(!modern_native_frontend_compact_drawable(-1,224));
     constexpr HostOverlayRect original{8,10,240,204};
     // 342x224 logical pixels with 7:6 PAR project to physical 16:9.
     constexpr HostOverlayRect wide{11,10,320,204};

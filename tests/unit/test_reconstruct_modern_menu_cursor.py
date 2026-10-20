@@ -186,6 +186,17 @@ class OriginalStockCursorTests(unittest.TestCase):
         self.assertEqual(cursor.original_obj_base_word(dumps[0], 0x100),
                          0x1000)
 
+    def test_duplicate_original_cursor_or_shadow_oam_is_not_admitted(self):
+        dumps, contract = fixture()
+        for existing in (0, 1):
+            bad = deepcopy(dumps)
+            oam = bytearray(bad[0].oam)
+            oam[8:12] = oam[existing * 4:existing * 4 + 4]
+            oam[512] |= 0b00100000  # third sprite marked large, 32x32
+            bad[0].oam = bytes(oam)
+            with self.assertRaisesRegex(ValueError, "ambiguous"):
+                cursor.verify_source_frames(bad, contract)
+
     def test_source_oam_and_colour_contract_refuses_mismatch(self):
         dumps, contract = fixture()
         invalid = deepcopy(contract)

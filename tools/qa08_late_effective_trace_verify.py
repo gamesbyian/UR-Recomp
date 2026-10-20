@@ -108,6 +108,11 @@ def parse_row(line: str) -> tuple[str, dict] | None:
             raise ValueError("impossible native effective-source state")
         if not row["directcolor"] and row["selected_rgb555"] != row["cgram_index_word"]:
             raise ValueError("resolver selected colour disagrees with CGRAM")
+        # Independently logged slots must match an indexed selected word.
+        if not row["directcolor"] and 0x6c <= row["index"] <= 0x6f:
+            slot = ("cgram6c", "cgram6d", "cgram6e", "cgram6f")[row["index"] - 0x6c]
+            if row["cgram_index_word"] != row[slot]:
+                raise ValueError("indexed effective CGRAM word disagrees with slot snapshot")
         if row["directcolor"] and row["layer"] >= 4:
             raise ValueError("direct color cannot be OBJ or backdrop")
     elif (any(c > 255 for c in row["RGB8"]) or

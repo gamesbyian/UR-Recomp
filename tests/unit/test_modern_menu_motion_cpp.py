@@ -34,6 +34,7 @@ class ModernMenuMotionTest(unittest.TestCase):
         self.assertIn("SDL_GetTicks()", baldosa)
         self.assertIn("UR_REDUCED_MOTION", baldosa)
         self.assertIn("UR_MODERN_SOURCE_HERO_EXPERIMENTAL_BUILD", baldosa)
+        self.assertIn("UR_MODERN_SOURCE_HERO_EXPERIMENTAL_BUILD == 1", baldosa)
         self.assertIn("#if !__has_include(", baldosa)
         self.assertIn('#error "Opt-in original menu hero build requires', baldosa)
         self.assertIn("paint_modern_menu_selection_motion(", baldosa)

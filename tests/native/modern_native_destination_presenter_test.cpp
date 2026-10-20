@@ -56,6 +56,46 @@ int main() {
     // 342x224 logical pixels with 7:6 PAR project to physical 16:9.
     constexpr HostOverlayRect wide{11,10,320,204};
     ModernRootOverlayView v{};
+    // Screenshot QA consumes only real view-derived state names. No
+    // alternate scene controller or guessed result metadata is permitted.
+    ModernRootOverlayView state{};
+    assert(std::string_view(modern_native_destination_stage(state)) == "root");
+    state.options_open = true;
+    assert(std::string_view(modern_native_destination_stage(state)) == "options");
+    state.options_controls_help = true;
+    assert(std::string_view(modern_native_destination_stage(state)) == "options-help");
+    state = {};
+    state.practice_picker_open = true;
+    assert(std::string_view(modern_native_destination_stage(state)) == "practice-picker");
+    state.practice_launch_pending = true;
+    assert(std::string_view(modern_native_destination_stage(state)) == "practice-entering-stock");
+    state = {};
+    state.read_only_records_open = true;
+    assert(std::string_view(modern_native_destination_stage(state)) == "records-1p");
+    state.read_only_records_two_player = true;
+    assert(std::string_view(modern_native_destination_stage(state)) == "records-2p");
+    state = {};
+    state.two_seat_join_open = true;
+    assert(std::string_view(modern_native_destination_stage(state)) == "multiplayer-join");
+    state.join_p1_confirmed = true;
+    assert(std::string_view(modern_native_destination_stage(state)) == "multiplayer-p1-ready");
+    state.join_p2_confirmed = true;
+    assert(std::string_view(modern_native_destination_stage(state)) == "multiplayer-both-ready");
+    state = {};
+    state.first_racer_open = true;
+    assert(std::string_view(modern_native_destination_stage(state)) == "profile-first");
+    state.first_racer_failed = true;
+    assert(std::string_view(modern_native_destination_stage(state)) == "profile-first-refused");
+    state.first_racer_failed = false;
+    state.first_racer_is_second = true;
+    assert(std::string_view(modern_native_destination_stage(state)) == "profile-second");
+    state.first_racer_is_switch = true;
+    state.first_racer_created = true;
+    assert(std::string_view(modern_native_destination_stage(state)) == "profile-switch-saved");
+    state = {};
+    state.unbound_two_player_warning_open = true;
+    assert(std::string_view(modern_native_destination_stage(state)) ==
+           "multiplayer-unrecorded-warning");
     const auto narrow = modern_native_destination_canvas(256,224,1,240,original);
     const auto expanded = modern_native_destination_canvas(342,224,1,320,wide);
     assert(narrow.scale == 1 && !narrow.wide && narrow.w == 218);

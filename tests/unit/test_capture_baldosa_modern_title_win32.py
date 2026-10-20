@@ -32,6 +32,7 @@ class ModernTitleNativeCaptureTests(unittest.TestCase):
             path.write_bytes(pam(256, 224, bytes(256 * 224 * 4)))
             with self.assertRaisesRegex(ValueError, "geometry"):
                 read_pam(path)
+            self.assertEqual(read_pam(path, expected_width=256)[:2], (256, 224))
             path.write_bytes(pam(342, 224, bytes(342 * 224 * 4)))
             self.assertEqual(read_pam(path)[:2], (342, 224))
 
@@ -53,6 +54,36 @@ class ModernTitleNativeCaptureTests(unittest.TestCase):
                 validate_native_capture(
                     folder, "UR_BALDOSA_MODERN_ROOT opened=1\n",
                     exe_sha256="invalid")
+
+    def test_native_four_by_three_host_raster_contract(self):
+        # Test the actual 256-wide original-density shape, with the retail
+        # picture centred separately (not a crop of the 342-wide output).
+        with tempfile.TemporaryDirectory() as root:
+            where = Path(root)
+            photos = where / "presented"
+            source = where / "captures"
+            photos.mkdir()
+            source.mkdir()
+            w, h = 256, 224
+            for n, (stage, pixel) in enumerate((
+                ("title", bytes((36, 52, 67, 255))),
+                ("root", bytes((70, 90, 110, 255))),
+            )):
+                (source / f"modern-native-{stage}-256x224.pam").write_bytes(
+                    pam(w, h, pixel * (w * h)))
+                (photos / f"present_{n:06d}.ppm").write_bytes(
+                    b"P6\n256 224\n255\n" + pixel[:3] * (w * h))
+            (photos / "presents.csv").write_text(
+                "present,frame,alpha,crc32,luma\n"
+                "0,32,0.0,12345678,32.0\n"
+                "1,80,0.0,abcdef12,80.0\n")
+            receipt = verify_native_presented_frames(photos, source, expected_width=256)
+            self.assertEqual(receipt["matched"]["title"]["source_match_fraction"], 1.0)
+            self.assertEqual(receipt["matched"]["root"]["source_match_fraction"], 1.0)
+            self.assertEqual(read_present_ppm(photos / "presented-root.ppm", 256)[:2],
+                             (256, 224))
+            with self.assertRaisesRegex(ValueError, "dimensions"):
+                read_present_ppm(photos / "presented-root.ppm", 342)
 
     def test_fake_log_cannot_turn_empty_pixels_into_real_art(self):
         with tempfile.TemporaryDirectory() as root:

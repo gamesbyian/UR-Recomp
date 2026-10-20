@@ -333,7 +333,8 @@ inline bool render_modern_native_pause_destination(
     const ModernRootOverlayView& view) {
     if (!p.valid() || !pixels || !view.options_open ||
         width < 256 || stride < width || height < 224) return false;
-    const int scale = width >= 512 && height >= 448 ? 2 : 1;
+    const int scale = width >= 1024 && height >= 896 ? 4 :
+        width >= 512 && height >= 448 ? 2 : 1;
     constexpr int logical_w = 240;
     constexpr int logical_h = 204;
     const HostOverlayRect root{

@@ -282,6 +282,8 @@ jobs:
           python3 tools/qa01_rf076_original_opcode_fetch_source.py --root "$CORE_SRC"
           # RF079 one-case source-only: after true BIT/BPL instruction, no guest read.
           python3 tools/qa01_rf079_original_post_bit_branch.py --root "$CORE_SRC"
+          # RF081 genuine original S9xSetByte + completed STZ after real BPL
+          python3 tools/qa01_rf081_original_stz_first_writer.py --root "$CORE_SRC"
           # RF069: invalidate all stock *.o compiled before getset.h was
           # instrumented. The pinned 2014 Makefile does NOT depend on headers.
           make -C "$CORE_SRC/libretro" clean
@@ -370,6 +372,8 @@ jobs:
           # RF079 one-case native real BIT returned-byte and BPL N source reporter.
           python3 tools/qa01_rf079_native_real_bit_branch.py --root baldosa
           python3 tools/qa01_rf080_rf047_strict_source_sidecar.py --root baldosa
+          # RF081 native actual already-executed paced D+$59 STZ writer
+          python3 tools/qa01_rf081_native_stz_first_writer.py --root baldosa
           cmake -S baldosa -B baldosa/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
             -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
@@ -382,6 +386,7 @@ jobs:
           sha256sum "$CORE_SRC/getset.h" "$CORE_SRC/cpuexec.cpp" "$CORE_SRC/cpuops.cpp" > "$OUT/rf066-original-source-sha256.txt"
           cp "$RUNNER_TEMP/qa01-rf069-actual-ELF-guards.json" "$OUT/rf069-actual-ELF-guards.json"
           sha256sum "$CORE_SRC/cpuexec.cpp" > "$OUT/rf076-original-opcode-source-sha256.txt"
+          sha256sum "$CORE_SRC/cpuexec.cpp" "$CORE_SRC/getset.h" > "$OUT/rf081-original-setbyte-source-sha256.txt"
           sha256sum baldosa/snesrecomp/runner/src/beam_frame_driver.c \
             baldosa/snesrecomp/runner/src/cpu_state.c > "$OUT/rf079-native-staged-source-sha256.txt"
           cp "$RUNNER_TEMP/rf074-native-exec-preflight.json" "$OUT/rf074-native-exec-preflight.json"
@@ -460,6 +465,7 @@ jobs:
           UR_QA01_RF066_ORIGINAL_CONSUMED_ORDER: "1"
           UR_QA01_RF076_ORIGINAL_FETCH_PC: "1"
           UR_QA01_RF079_ORIGINAL_BIT_BPL: "1"
+          UR_QA01_RF081_ORIGINAL_STZ: "1"
           UR_QA01_RF079_NATIVE_BIT_BPL: "1"
           UR_QA01_RF047_EVENT_SIDECAR: ${{ runner.temp }}/qa01-case/rf079-native-rf047-strict.log
           UR_QA01_RF035_SOUND_CONSUMER: "1"
@@ -695,6 +701,39 @@ jobs:
             echo "RF076 original fetch HOLD: missing/incomplete/invalid real original source event chronology" >> "$GITHUB_STEP_SUMMARY"
             test -e "$ROOT/rf076-original-readiness.txt" || echo "original RF076 source log absent" > "$ROOT/rf076-original-readiness.txt"
           fi
+      - name: Qualify RF081 true original/native STZ first committed writers
+        if: ${{ always() && matrix.case == 'zoom-zoo' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/qa01-case"
+          if [[ -s "$ROOT/work/zoom-zoo/replay/reference.log" &&
+                -s "$ROOT/work/zoom-zoo/replay/native.log" &&
+                -s "$ROOT/rf079-native-rf047-strict.log" ]]; then
+            python3 - "$ROOT" <<'PYTHON'
+          from pathlib import Path
+          import sys, zipfile
+          root=Path(sys.argv[1])
+          with zipfile.ZipFile(root/'rf081-source-only-temp.zip','w',compression=zipfile.ZIP_DEFLATED) as z:
+              for name,path in (
+                ('work/zoom-zoo/replay/reference.log',root/'work/zoom-zoo/replay/reference.log'),
+                ('work/zoom-zoo/replay/native.log',root/'work/zoom-zoo/replay/native.log'),
+                ('rf079-native-rf047-strict.log',root/'rf079-native-rf047-strict.log'),
+              ):
+                  z.write(path,name)
+          PYTHON
+            if python3 tools/qa01_rf081_stz_first_writer_report.py \
+                   --case-zip "$ROOT/rf081-source-only-temp.zip" \
+                   --out "$ROOT/rf081-true-writer.json" > "$ROOT/rf081-readiness.txt" 2>&1; then
+              echo 'RF081 real source-local STZ writers qualified, clock parity and gameplay cause HOLD' >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo 'RF081 actual writer evidence HOLD; negative recorded, no gate waiver' >> "$GITHUB_STEP_SUMMARY"
+            fi
+            rm -f "$ROOT/rf081-source-only-temp.zip"
+          else
+            echo 'RF081 original/native guest logs or isolated native event stream missing' > "$ROOT/rf081-readiness.txt"
+            echo 'RF081 source evidence missing, no credit' >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Verify authentic native resume origin against actual RF047 stack brackets
         if: ${{ always() && matrix.case == 'zoom-zoo' }}
         shell: bash
@@ -746,6 +785,8 @@ jobs:
             ${{ runner.temp }}/qa01-case/rf076-original-readiness.txt
             ${{ runner.temp }}/qa01-case/rf076-native-opcode-vs-scheduler.json
             ${{ runner.temp }}/qa01-case/rf079-native-rf047-strict.log
+            ${{ runner.temp }}/qa01-case/rf081-true-writer.json
+            ${{ runner.temp }}/qa01-case/rf081-readiness.txt
             ${{ runner.temp }}/qa01-case/rf076-readiness.txt
             ${{ runner.temp }}/qa01-case/rf074-readiness.txt
             ${{ runner.temp }}/qa01-case/rf066-original-readiness.txt

@@ -74,6 +74,18 @@ class StzFirstWriter(unittest.TestCase):
             with self.subTest(case=oo[:35]+nn[:35]),self.assertRaises(ValueError):
                 m.parse(oo,nn)
 
+    def test_source_clock_regression_rejected(self):
+        original, native = fixture()
+        bad_original = original.replace(
+            "committed=1 v=226 h=995", "committed=1 v=226 h=969", 1)
+        with self.assertRaises(ValueError):
+            m.parse(bad_original, native)
+        bad_native = native.replace(
+            "stage=stz_real_commit f=1017 master=209",
+            "stage=stz_real_commit f=1017 master=199", 1)
+        with self.assertRaises(ValueError):
+            m.parse(original, bad_native)
+
     def test_missing_actual_source_does_not_turn_marker_into_write(self):
         o,n=fixture()
         for oo,nn in (

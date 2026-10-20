@@ -1,3 +1,5 @@
+import hashlib
+import json
 import struct
 import sys
 import tempfile
@@ -94,6 +96,77 @@ class MenuVisualLanguageTests(unittest.TestCase):
     def test_run_lengths_and_deltas(self) -> None:
         self.assertEqual(mvl.run_lengths([8, 8, 4, 4, 0]), [[8, 2], [4, 2], [0, 1]])
         self.assertEqual(mvl.deltas([0, 1, 3, 6]), [1, 2, 3])
+
+    def test_real_obj_vram_page_palette_and_transparency_contract(self) -> None:
+        # Synthetic ORIGINAL-PPU-format bytes; no ROM/binary art in tests.
+        class Sample:
+            pass
+
+        sample = Sample()
+        sample.fillram = {"2101": "29"}  # base=1, OBJ size 8/32, name select=1
+        sample.vram = bytearray(65536)
+        sample.cgram = bytearray(512)
+        # Tile 0x100 names the second OBJ tile page at base + 16 KiB.
+        # 4bpp pixel0=palette index1: first bit set in plane 0.
+        # base=0x2000 words; name-select=1 => +0x2000 words.
+        second_page_byte = ((0x2000 + 0x2000) * 2) % 65536
+        sample.vram[second_page_byte] = 0x80
+        pal = 128 + 7 * 16 + 1
+        sample.cgram[2 * pal:2 * pal + 2] = (0x7FFF).to_bytes(2, "little")
+        rgba = mvl.obj_sprite_rgba(
+            sample, {"tile": 256, "palette": 7, "large": 1})
+        self.assertEqual(len(rgba), 32 * 32 * 4)
+        self.assertEqual(rgba[:4], bytes([248, 248, 248, 255]))
+        self.assertEqual(rgba[4:8], b"\\0" * 4)
+        # A BG character base mistakenly substituted for OBSEL would
+        # decode this all-transparent or from the wrong page.
+        sample.fillram.clear()
+        with self.assertRaisesRegex(ValueError, "OBJSEL"):
+            mvl.obj_sprite_rgba(sample, {"tile": 256, "palette": 7, "large": 1})
+
+    def test_source_cursor_atlas_16_poses_manifest_and_forgery_fail_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            dump_dir = Path(td) / "source"
+            dump_dir.mkdir()
+            vram = bytearray(65536)
+            cgram = bytearray(512)
+            arrow = 128 + 7 * 16 + 1
+            shadow = 128 + 5 * 16 + 1
+            cgram[2 * arrow:2 * arrow + 2] = (0x7FFF).to_bytes(2, "little")
+            cgram[2 * shadow:2 * shadow + 2] = (0x4210).to_bytes(2, "little")
+            for phase, tile in enumerate(mvl.CURSOR_SOURCE_TILE_CYCLE):
+                # Identical source pixel for all frames; tile identity is
+                # separately and strictly checked from authentic OAM.
+                vram[tile * 32] = 0x80
+                vram[(16 + tile) * 32] = 0x80
+                vram[(tile + 4) * 32] = 0x80
+                oam = bytearray(544)
+                oam[0:4] = bytes([79, 70, tile, 7 << 1])
+                oam[4:8] = bytes([86, 77, (tile + 4) & 255, 5 << 1])
+                oam[512] = 0x0A  # OAM 0,1 use large=32 mode1
+                tag = f"mvl-idle-{phase:02d}"
+                (dump_dir / f"{tag}.vram.bin").write_bytes(vram)
+                (dump_dir / f"{tag}.cgram.bin").write_bytes(cgram)
+                (dump_dir / f"{tag}.oam.bin").write_bytes(oam)
+                (dump_dir / f"{tag}.wram.bin").write_bytes(bytes(0x20000))
+                (dump_dir / f"{tag}.regs.json").write_text(json.dumps(
+                    {"fillram": {"2101": "20"}, "ppu": {"bg": []}}
+                ))
+            png = Path(td) / "cursor.png"
+            manifest = Path(td) / "cursor.json"
+            receipt = mvl.export_cursor_atlas(dump_dir, png, manifest)
+            self.assertEqual(receipt["atlas_rgba_dimensions"], [624, 39])
+            self.assertEqual(len(receipt["source_frames"]), 16)
+            self.assertEqual([f["source_obj_tile"] for f in receipt["source_frames"]],
+                             list(mvl.CURSOR_SOURCE_TILE_CYCLE))
+            self.assertEqual(hashlib.sha256(png.read_bytes()).hexdigest(),
+                             receipt["atlas_png_sha256"])
+            self.assertEqual(json.loads(manifest.read_text()), receipt)
+            # Remove one phase: under no circumstances emit an invented
+            # replacement frame and call a 15-pose sequence source-derived.
+            (dump_dir / "mvl-idle-15.oam.bin").unlink()
+            with self.assertRaises(FileNotFoundError):
+                mvl.export_cursor_atlas(dump_dir, png)
 
     def test_png_writer_emits_valid_stream(self) -> None:
         with tempfile.TemporaryDirectory() as td:

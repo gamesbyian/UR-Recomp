@@ -295,7 +295,7 @@ def main():
         assert digest(path)==expected,(key,"source checksum mismatch")
         p=probe(path)
         assert (p["width"],p["height"],p["r_frame_rate"],int(p["nb_read_frames"]))==(1920,1080,f"{fps}/1",frames),(key,p)
-    assert digest(PAST_POSTER[0])==PAST_POSTER[1]
+    # Historical poster only for documentation; new edition uses source Jumps frame.
     # A source-derived poster remains an original-game recording, not a
     # fabricated Remastered gameplay still.
     with tempfile.TemporaryDirectory(prefix="ur-flagship-") as t:
@@ -309,11 +309,19 @@ def main():
         vertical=a.outdir/"ur-recomp-blue-action-27s-vertical.mp4"
         make_film(FILM,SOURCES,cards,master,score,tmp/"film")
         make_film(SHORT,SOURCES,cards,vertical,score,tmp/"short",vertical=True)
-        im=Image.open(PAST_POSTER[0]).convert("RGB")
+        # Genuine Jumps track/racer frame (source ordinal 570 in the verified
+        # 900-frame three-course reel), never an invented promotional scene.
+        still=tmp/"verified-jumps-gameplay-still.png"
+        run("ffmpeg","-nostdin","-hide_banner","-loglevel","error","-y",
+            "-i",SOURCES["action"][0],"-vf","select=eq(n\\\\,570)",
+            "-vsync","vfr","-frames:v","1",still)
+        im=Image.open(still).convert("RGB")
         d=ImageDraw.Draw(im)
-        d.rectangle((0,0,1920,58),fill=INK)
-        text_fit(d,(85,7),"THE GAME IS RUNNING     /     THE REBUILD CONTINUES",35,GOLD,True)
-        poster=a.outdir/"ur-recomp-flagship-poster.png";im.save(poster)
+        d.rectangle((0,0,1920,93),fill=INK)
+        d.rectangle((0,985,1920,1080),fill=INK)
+        text_fit(d,(102,14),"UNIRACERS RECOMP  /  NATIVE WIDESCREEN",46,YELLOW,True)
+        text_fit(d,(108,1007),"JUMPS COURSE  •  AUTHENTIC GAMEPLAY FRAME",32,CREAM,True)
+        poster=a.outdir/"ur-recomp-blue-action-poster.png";im.save(poster)
     claims={
         "release_status":"NOT A FINISHED BETA",
         "independently_accepted_USA_events":"0/45 as of 2026-10-19",
@@ -323,7 +331,7 @@ def main():
         "action_reel":"Three separately captured authentic guest runs of MegaJump, Jumps, Looper, each 300 consecutive frames; editorial cuts and separate race sessions clearly identified",
         "loop_claim":"Looper shows graded rolling geometry; no complete loop revolution confirmed",
         "airborne_claim":"Jumps has independently reviewed inverted airborne rider source ordinal 570",
-        "modern_footage":"October 10 verified native root clip, NOT the newer October 19 Windows journey",
+        "modern_footage":"The obsolete October 10 temporary Modern menu video is excluded from this edition",
         "windows_journey_card":"editorial recap of scripted Win32 result/profile/Records evidence; not live footage",
         "full_SDL_4k_card":"bounded 2026-10-10 real 3840x2160 SDL pixel readback for Original-mode frame 2208; not 4k video",
         "art_demo":"procedural 4x prototypes under October 10 visual likeness veto, never finished approved character designs",
@@ -335,7 +343,7 @@ def main():
         "schema":"UR-FLAGSHIP-RECRUITMENT/1",
         "build_edition":"2026-10-19",
         "source_identity":{k:{"path":str(v[0].relative_to(ROOT)),"sha256":v[1],"frames":v[2],"fps":v[3],"classification":v[4]} for k,v in SOURCES.items()},
-        "poster_source":{"path":str(PAST_POSTER[0].relative_to(ROOT)),"sha256":PAST_POSTER[1]},
+        "poster_source":{"path":str(SOURCES["action"][0].relative_to(ROOT)),"sha256":SOURCES["action"][1],"source_ordinal":570,"actual_inverted_airborne_rider_source":True},
         "horizontal_shots":[{"source":k,"source_first_ordinal":start,"source_frame_count":n,
           "label":label,"classification":kind} for k,start,n,label,kind in FILM],
         "vertical_shots":[{"source":k,"source_first_ordinal":start,"source_frame_count":n,

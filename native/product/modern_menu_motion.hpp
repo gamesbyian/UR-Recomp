@@ -151,7 +151,10 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
     }
     const auto selection = static_cast<std::uint8_t>(
         input.selection % kModernMenuMotionRows);
-    if (row_pitch <= 0) row_pitch = 21;
+    // Native row metrics are compact logical pixels, not untrusted
+    // framebuffer extents. Reject pathological widths before multiplying
+    // semantic row indices into stored 32-bit coordinates.
+    if (row_pitch <= 0 || row_pitch > 64) row_pitch = 21;
     if (!state.visible || input.tick60 < state.last_tick ||
         state.cursor_row_pitch != row_pitch) {
         state.visible = true;
@@ -269,23 +272,32 @@ inline bool paint_modern_menu_selection_motion(
     const ModernMenuMotionPose& pose,
     ModernMenuMotionAnchors anchors = {}) {
     if (!pose.visible || !paint.valid() || !pixels ||
-        stride <= 0 || height <= 0 || scale <= 0 ||
+        stride <= 0 || height <= 0 || scale < 1 || scale > 4 ||
         rect.x < 0 || rect.y < 0 || rect.width <= 0 || rect.height <= 0 ||
         rect.x > stride || rect.y > height ||
         rect.width > stride - rect.x || rect.height > height - rect.y ||
-        anchors.row_pitch <= 0 || anchors.left_x < 0)
+        anchors.row_pitch <= 0 || anchors.left_x < 0 ||
+        pose.selection >= kModernMenuMotionRows)
         return false;
-    const int px = rect.x + anchors.left_x * scale;
-    const int py = rect.y +
-        (anchors.first_row_y +
-         static_cast<int>(pose.selection) * anchors.row_pitch +
-         pose.cursor_remainder_px) * scale;
+    // Do all layout arithmetic in 64 bits. Synthetic test/host callers must
+    // not trigger signed 32-bit overflow with malformed anchors or offsets.
+    const std::int64_t px64 = static_cast<std::int64_t>(rect.x) +
+        static_cast<std::int64_t>(anchors.left_x) * scale;
+    const std::int64_t py64 = static_cast<std::int64_t>(rect.y) +
+        (static_cast<std::int64_t>(anchors.first_row_y) +
+         static_cast<std::int64_t>(pose.selection) * anchors.row_pitch +
+         static_cast<std::int64_t>(pose.cursor_remainder_px)) * scale;
     // Narrow enough to leave the existing selected text, panel and modal
     // completely intact; 4:3 and 16:9 both use the same semantic anchor.
     const int marker_height = 12 * scale;
-    if (px < rect.x || px + 2 * scale > rect.x + rect.width ||
-        py < rect.y || py + marker_height > rect.y + rect.height)
+    if (px64 < rect.x ||
+        px64 + 2 * scale > static_cast<std::int64_t>(rect.x) + rect.width ||
+        py64 < rect.y ||
+        py64 + marker_height >
+            static_cast<std::int64_t>(rect.y) + rect.height)
         return false;
+    const int px = static_cast<int>(px64);
+    const int py = static_cast<int>(py64);
     const auto& palette = kModernStockMenuPalette;
     // Original cursor OBJ is blue. Avoid fabricated rapid yellow/blue
     // flashing until the genuine 32x32 spinning source sprite is extracted.

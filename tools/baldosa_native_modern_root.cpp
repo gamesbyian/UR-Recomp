@@ -1152,8 +1152,12 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     std::uint8_t* dst, std::size_t pitch, const std::uint8_t* field,
     int width, int height, double) {
     if (!g_visible &&
-        g_run_save_feedback == ur::product::BaldosaNativeRunSaveFeedback::None)
+        g_run_save_feedback == ur::product::BaldosaNativeRunSaveFeedback::None) {
+        // A later source-observed return to Modern must issue a fresh view
+        // receipt even when it reopens the same previously selected screen.
+        g_last_native_destination_stage.clear();
         return 0;
+    }
     // Render the existing Modern root at true stock or prepared 342-wide
     // logical geometry. The native presentation owner decides whether a
     // 342-wide buffer exists; this painter never requests it and never

@@ -49,6 +49,38 @@ constexpr bool modern_menu_source_buffer(const ModernMenuSourcePixels& atlas,
                           static_cast<std::size_t>(atlas.height);
 }
 
+// Source PNG decompression yields straight RGBA *bytes*. Do not cast that
+// memory to uint32_t*: the framebuffer ABI is AARRGGBB words and host byte
+// order differs. This narrow packer works after a separately verified PNG
+// decode and source/asset hash check, not as a PNG/manifest parser.
+// No writes occur if a buffer is undersized or source alpha is invalid.
+inline bool modern_menu_pack_source_rgba(
+    ModernMenuSourceSheet sheet,
+    const std::uint8_t* rgba, std::size_t rgba_byte_count,
+    std::uint32_t* out_argb, std::size_t out_pixel_count,
+    int width, int height) noexcept {
+    if (!modern_menu_source_dimensions(sheet, width, height) ||
+        !rgba || !out_argb || width <= 0 || height <= 0)
+        return false;
+    const std::size_t count = static_cast<std::size_t>(width) *
+                              static_cast<std::size_t>(height);
+    if (rgba_byte_count < count * 4 || out_pixel_count < count)
+        return false;
+    for (std::size_t i = 0; i < count; ++i) {
+        const auto a = rgba[i * 4 + 3];
+        if (a != 0 && a != 255) return false;
+    }
+    for (std::size_t i = 0; i < count; ++i) {
+        const auto a = rgba[i * 4 + 3];
+        out_argb[i] = a == 0 ? 0u :
+            (0xFF000000u |
+             (static_cast<std::uint32_t>(rgba[i * 4 + 0]) << 16) |
+             (static_cast<std::uint32_t>(rgba[i * 4 + 1]) << 8) |
+              static_cast<std::uint32_t>(rgba[i * 4 + 2]));
+    }
+    return true;
+}
+
 constexpr int modern_menu_heading_slot(char c) noexcept {
     if (c >= '0' && c <= '9') return c - '0';
     if (c == 'O') return 0; // the original title font draws letter O as zero

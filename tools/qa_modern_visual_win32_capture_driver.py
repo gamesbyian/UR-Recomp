@@ -151,16 +151,27 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
         if not raw.startswith(header) or len(raw) != len(header) + found[0] * found[1] * 4:
             raise RuntimeError("Authentic stock SDL frame has invalid raster")
         rgba = memoryview(raw)[len(header):]
-        visible = sum(1 for i in range(0, len(rgba), 4)
-                      if rgba[i+3] and (rgba[i] or rgba[i+1] or rgba[i+2]))
+        # SDL3 Windows software readback can expose valid stock RGB with
+        # alpha=0 in *every* pixel. Distinguish native RGB content from alpha
+        # semantics; never silently rewrite the source P7 or certify actual
+        # monitor composition on this basis.
+        rgb_nonzero = sum(1 for i in range(0, len(rgba), 4)
+                          if rgba[i] or rgba[i + 1] or rgba[i + 2])
+        nonzero_alpha = sum(1 for i in range(3, len(rgba), 4) if rgba[i])
+        alpha_visible_rgb = sum(1 for i in range(0, len(rgba), 4)
+                                if rgba[i + 3] and
+                                (rgba[i] or rgba[i + 1] or rgba[i + 2]))
         composed = stage / "stock-composed-before-sdl.ppm"
         source_visibility = upstream_ppm_visibility(composed) if composed.is_file() else None
         diagnostic = {
             "source": "pinned-host-composed-before-SDL",
             "original_source_pixels": source_visibility,
             "sdl_drawable_pixels": list(found),
-            "sdl_visible_rgba_pixels": visible,
-            "meaning": "independent first-divergence diagnostic, NOT Authentic approval",
+            "sdl_nonblack_rgb_pixels": rgb_nonzero,
+            "sdl_nonzero_alpha_pixels": nonzero_alpha,
+            "sdl_nonblack_rgb_with_alpha_pixels": alpha_visible_rgb,
+            "alpha_warning": "Alpha zero can coexist with valid Nintendo splash RGB; no monitor-alpha interpretation or normalization is inferred.",
+            "meaning": "independent first-divergence diagnostic, NOT Authentic parity approval",
             "authentic_isolation_approved": False,
             "release_gate_credit": 0,
         }
@@ -169,9 +180,9 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
         if source_visibility is None:
             raise RuntimeError("Authentic host pre-SDL source capture missing")
         if source_visibility["nonblack_rgb_pixels"] == 0:
-            raise RuntimeError("Authentic guest composition and SDL both visually empty")
-        if not visible:
-            raise RuntimeError("Authentic composed source has pixels but SDL drawable empty")
+            raise RuntimeError("Authentic pre-SDL guest composition has no RGB pixels")
+        if not rgb_nonzero:
+            raise RuntimeError("Authentic composed source has RGB but SDL readback RGB empty")
     return {
         "stage": stage,
         "log": log,

@@ -63,7 +63,8 @@ jobs:
         run: |
           set -euo pipefail
           bash baldosa/snesrecomp/tools/ci/fetch_toolchain.sh --artifact windows-x64 --tag v1.0.14
-          source "$TOOLCHAIN_DIR/env.sh"
+          test -s ".cache/toolchain-pack/env.sh"
+          source ".cache/toolchain-pack/env.sh"
           clang --version | head -n1 | grep -F '22.1.8'
           export SOURCE_DATE_EPOCH="$(git show -s --format=%ct "$GITHUB_SHA")"
           cmake -S baldosa -B baldosa/build-qa08-off -G Ninja \

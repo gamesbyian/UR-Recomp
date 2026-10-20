@@ -84,7 +84,7 @@ def menu_route(source: str, key: str) -> str:
         section += [f"until 009B == {tour:02X} 600", "wait 30"]
     section += [
         "press start 2",
-        "until 009F == 91 1200",
+        "until 009F == 92 1200",
         "wait 60",
     ]
     for _ in range(row):
@@ -95,11 +95,12 @@ def menu_route(source: str, key: str) -> str:
         "press start 2",
         "until 009F == 16 1200",
         "wait 60",
-        "press start 2",
-        "until 0313 == 01 1800",
         f"until 00CE == {stream-1:02X} 600",
-        f"dump verified-course-{stream:02d}-entry",
+        f"dump verified-course-{stream:02d}-loaded",
+        "press start 2",
         "until16 0053 == 8610",
+        "until 0313 == 01 1800",
+        f"dump verified-course-{stream:02d}-active",
     ]
     return source.replace(SOURCE_ANCHOR, "\n".join(section) + "\n", 1)
 
@@ -119,7 +120,7 @@ def produce(source: str, key: str, profile: str) -> tuple[str, dict]:
         "tour_index_zero_based": tour,
         "track_row_zero_based": row,
         "menu_selection_source_identity": "source-derived original menu controls; 2P route must independently execute",
-        "tour_navigation_evidence": ("first Shuffler down edge source verified" if tour == 2 else ("default Crawler" if tour == 0 else "prospective second down edge, NOT source-verified in 2P")),
+        "tour_navigation_evidence": ("2P Shuffler A/Start 009F=92 and 009F=16 source-probed in run 39355869639" if tour == 2 else ("default Crawler" if tour == 0 else "prospective second down edge, NOT source-verified in 2P")),
         "source_catalog_sha256": hashlib.sha256(CATALOG.read_bytes()).hexdigest(),
         "source_original_native_menu_sha256": sha(source),
         "topology_expectation": expectation,

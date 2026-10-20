@@ -27,6 +27,20 @@ struct ModernTitleState {
     bool reduced_motion = false;
 };
 
+// Choose logical output from the actual drawable, not the host's window
+// setting alone. At a 4:3 (or 3:2) window, compose the original-density
+// 256x224 4:3 title. At 16:10/16:9, keep the full 342x224 width; gameplay
+// and all Authentic output remain the native 256 raster either way.
+constexpr int modern_title_logical_width(
+    int drawable_width, int drawable_height, bool modern_visible) noexcept {
+    if (!modern_visible) return 256;
+    if (drawable_width > 0 && drawable_height > 0 &&
+        static_cast<std::int64_t>(drawable_width) * 2 <=
+        static_cast<std::int64_t>(drawable_height) * 3)
+        return 256;
+    return 342;
+}
+
 constexpr ModernTitleState modern_title_boot(
     bool enabled, bool reduced_motion = false) noexcept {
     return {enabled ? ModernTitlePhase::Intro : ModernTitlePhase::Root,
@@ -121,8 +135,6 @@ inline bool render_modern_title(
         const int lift = (24 - reveal) / 2;
         const int artwork_x = center - regional_title_asset::kWidth / 2;
         const int artwork_y = 27 + lift;
-        paint.draw_text(pixels, stride, surface_height,
-                        center - brand_chars * 4, 12, brand, grey, 1);
         paint.stroke_rect(pixels, stride, surface_height,
                           artwork_x - 2, artwork_y - 2,
                           regional_title_asset::kWidth + 4,
@@ -206,9 +218,9 @@ inline bool render_modern_title(
                     0, h - 31, w, 2, gold);
     if (state.phase == ModernTitlePhase::Intro) {
         const bool bright = state.reduced_motion || (state.age / 30u) % 2u == 0u;
-        constexpr char prompt[] = "PRESS A / START";
+        constexpr char prompt[] = "PRESS A / START / ENTER";
         paint.draw_text(pixels, stride, surface_height,
-                        center - 15 * 4, h - 21, prompt,
+                        center - 23 * 4, h - 21, prompt,
                         bright ? gold : grey, 1);
     } else {
         // An exact fourteen-guest-frame exit sweep announces the handoff,

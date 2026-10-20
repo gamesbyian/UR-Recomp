@@ -74,7 +74,9 @@ void test_motion() {
 
     pose = advance_modern_menu_motion(state, {1001, 1, true, false});
     assert(pose.selection == 1);
-    assert(pose.cursor_remainder_px == -21);
+    // The original cursor responds in the press frame, rather than lagging
+    // one host draw: measured 6/23 of the modern 21px row is already travelled.
+    assert(pose.cursor_remainder_px == -16);
     pose = advance_modern_menu_motion(state, {1002, 1, true, false});
     assert(pose.cursor_remainder_px < 0 && pose.cursor_remainder_px > -21);
     pose = advance_modern_menu_motion(state, {1013, 1, true, false});
@@ -83,15 +85,15 @@ void test_motion() {
     // Selection response interrupts the earlier animation immediately,
     // including a new selection on the very next 60Hz tick.
     pose = advance_modern_menu_motion(state, {1014, 2, true, false});
-    assert(pose.cursor_remainder_px == -21);
-    pose = advance_modern_menu_motion(state, {1015, 1, true, false});
-    // Physical cursor continued from pixel 26 (5 below destination 1),
-    // rather than teleporting from selected destination 2, pixel 42.
-    assert(pose.cursor_remainder_px == 5);
-    pose = advance_modern_menu_motion(state, {1015, 2, true, false});
     assert(pose.cursor_remainder_px == -16);
     pose = advance_modern_menu_motion(state, {1015, 1, true, false});
-    assert(pose.cursor_remainder_px == 5);
+    // Physical cursor continued from near pixel 30 and immediately eased
+    // toward destination 1 (pixel 21), instead of jumping from target 2.
+    assert(pose.cursor_remainder_px == 7);
+    pose = advance_modern_menu_motion(state, {1015, 2, true, false});
+    assert(pose.cursor_remainder_px == -10);
+    pose = advance_modern_menu_motion(state, {1015, 1, true, false});
+    assert(pose.cursor_remainder_px == 8);
     pose = advance_modern_menu_motion(state, {1016, 4, true, false});
     assert(pose.selection == 4 && pose.cursor_remainder_px == 0);
     pose = advance_modern_menu_motion(state, {1017, 0, true, false});
@@ -116,14 +118,34 @@ void test_motion() {
     assert(pose.entrance_distance_px == 0);
     pose = advance_modern_menu_motion(state, {52, 3, true, false});
     assert(pose.selection == 3);
-    assert(pose.cursor_remainder_px == -modern_menu_cursor_distance(1, 21));
+    assert(pose.cursor_remainder_px == 0);
+    assert(pose.entrance_distance_px == 0);
+    assert(pose.hero_frame_ordinal == 7);
+    // A genuine new selection after motion is re-enabled animates again.
+    pose = advance_modern_menu_motion(state, {53, 4, true, false});
+    assert(pose.selection == 4);
+    assert(pose.cursor_remainder_px == -16);
+    assert(pose.entrance_distance_px == 0);
+    assert(pose.hero_frame_ordinal == 0);
+    // Even if reduced motion is toggled inside an incomplete entrance, the
+    // previous 39-frame sweep does not suddenly restart when re-enabled.
+    ModernMenuMotionState reentry{};
+    pose = advance_modern_menu_motion(reentry, {1, 0, true, false});
+    assert(pose.entrance_distance_px == 256);
+    pose = advance_modern_menu_motion(reentry, {2, 0, true, true});
+    assert(pose.entrance_distance_px == 0);
+    pose = advance_modern_menu_motion(reentry, {3, 0, true, false});
+    assert(pose.entrance_distance_px == 0);
+    assert(pose.cursor_remainder_px == 0);
 }
 void test_raster() {
-    // Real native pixel-buffer writes for both original and wide dimensions.
-    for (int scale : {1, 4}) {
-        const int w = scale == 1 ? 256 : 1536;
+    // Actual source/modern host geometry: 256x224 compact and 342x224
+    // widescreen, each at 1x and 4x. A fictitious 384-wide logical panel
+    // must not be mistaken for the shipping 16:9 composition.
+    for (int logical_width : {256, 342}) for (int scale : {1, 4}) {
+        const int w = logical_width * scale;
         const int h = 224 * scale;
-        const int panel_w = scale == 1 ? 240 : 356;
+        const int panel_w = logical_width == 342 ? 320 : 240;
         const HostOverlayRect panel{
             (w - panel_w * scale) / 2, 10 * scale,
             panel_w * scale, 204 * scale};
@@ -176,6 +198,26 @@ void test_raster() {
         const HostOverlayRect offscreen{w - 3, 0, 40, 204};
         assert(!paint_modern_menu_selection_motion(
             FakePainter{}, pixels.data(), w, h, scale, offscreen, pose));
+        // Invalid client geometry must neither overflow signed arithmetic
+        // nor render to a wrong focus row (even at 4x density).
+        const auto unchanged = pixels;
+        pose.cursor_remainder_px = INT32_MAX;
+        assert(!paint_modern_menu_selection_motion(
+            FakePainter{}, pixels.data(), w, h, scale, panel, pose));
+        pose.cursor_remainder_px = INT32_MIN;
+        assert(!paint_modern_menu_selection_motion(
+            FakePainter{}, pixels.data(), w, h, scale, panel, pose));
+        pose.cursor_remainder_px = 0;
+        assert(!paint_modern_menu_selection_motion(
+            FakePainter{}, pixels.data(), w, h, INT32_MAX, panel, pose));
+        assert(!paint_modern_menu_selection_motion(
+            FakePainter{}, pixels.data(), w, h, scale, panel, pose,
+            {INT32_MAX, INT32_MAX, INT32_MAX}));
+        pose.selection = 255;
+        assert(!paint_modern_menu_selection_motion(
+            FakePainter{}, pixels.data(), w, h, scale, panel, pose));
+        pose.selection = 1;
+        assert(pixels == unchanged);
     }
 }
 

@@ -2,6 +2,7 @@
 // Each text/rectangle goes through the same painter ABI as the real Baldosa
 // host; the model comes only from ModernRootOverlayView.
 #include "native/product/modern_native_destination_presenter.hpp"
+#include "native/product/modern_title_presenter.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -52,16 +53,14 @@ void bounds(int width, int height) {
 int main() {
     std::uint32_t scratch[64]{};
     constexpr ModernRootOverlayPainter painter{&fill,&stroke,&draw};
-    // Same exact drawable sizes as the pinned Windows SDL final-readback
-    // acceptance journey. A 4:3 WINDOW now renders a true compact source;
-    // the 16:9 window presents the original-derived two-column wide view.
-    assert(modern_native_frontend_compact_drawable(1024,768));
-    assert(modern_native_frontend_compact_drawable(640,480));
-    assert(modern_native_frontend_compact_drawable(960,640));
-    assert(!modern_native_frontend_compact_drawable(1280,720));
-    assert(!modern_native_frontend_compact_drawable(3840,2160));
-    assert(!modern_native_frontend_compact_drawable(0,0));
-    assert(!modern_native_frontend_compact_drawable(-1,224));
+    // Source-authoritative native title layout applies to destination frames.
+    assert(modern_title_logical_width(1024, 768, true) == 256);
+    assert(modern_title_logical_width(640, 480, true) == 256);
+    assert(modern_title_logical_width(960, 640, true) == 256);
+    assert(modern_title_logical_width(1280, 720, true) == 342);
+    assert(modern_title_logical_width(3840, 2160, true) == 342);
+    assert(modern_title_logical_width(0, 0, true) == 342);
+    assert(modern_title_logical_width(1280, 720, false) == 256);
     constexpr HostOverlayRect original{8,10,240,204};
     // 342x224 logical pixels with 7:6 PAR project to physical 16:9.
     constexpr HostOverlayRect wide{11,10,320,204};

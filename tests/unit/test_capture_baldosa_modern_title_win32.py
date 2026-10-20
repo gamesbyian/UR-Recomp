@@ -10,7 +10,7 @@ from pathlib import Path
 from tools.capture_baldosa_modern_title_win32 import (
     read_pam, retail_art_digest, fnv_pixels, validate_native_capture,
     EXPECTED_RETAIL_BGR_FNV, read_present_ppm,
-    verify_native_presented_frames,
+    verify_native_presented_frames, verify_native_title_entry,
 )
 
 
@@ -20,6 +20,22 @@ def pam(width: int, height: int, pixels: bytes) -> bytes:
 
 
 class ModernTitleNativeCaptureTests(unittest.TestCase):
+    def test_real_p1_native_entry_order_depends_only_on_reduced_motion(self):
+        opened = "UR_BALDOSA_MODERN_ROOT opened=1"
+        pressed = "UR_BALDOSA_MODERN_TITLE native_p1_start=1 frame=60"
+        entered = "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=60 input_owned=1"
+        painted = "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared"
+        ordinary = "\n".join((opened, pressed, entered, painted))
+        immediate = "\n".join((opened, entered, pressed, painted))
+        verify_native_title_entry(ordinary)
+        verify_native_title_entry(immediate, reduced_motion=True)
+        with self.assertRaisesRegex(ValueError, "missing/out-of-order"):
+            verify_native_title_entry(immediate)
+        with self.assertRaisesRegex(ValueError, "missing/out-of-order"):
+            verify_native_title_entry(ordinary, reduced_motion=True)
+        with self.assertRaisesRegex(ValueError, "missing/duplicate"):
+            verify_native_title_entry(ordinary + "\n" + pressed)
+
     def test_bad_header_and_dimensions_rejected(self):
         with tempfile.TemporaryDirectory() as root:
             path = Path(root) / "capture.pam"
@@ -32,6 +48,7 @@ class ModernTitleNativeCaptureTests(unittest.TestCase):
             path.write_bytes(pam(256, 224, bytes(256 * 224 * 4)))
             with self.assertRaisesRegex(ValueError, "geometry"):
                 read_pam(path)
+            self.assertEqual(read_pam(path, expected_width=256)[:2], (256, 224))
             path.write_bytes(pam(342, 224, bytes(342 * 224 * 4)))
             self.assertEqual(read_pam(path)[:2], (342, 224))
 
@@ -47,12 +64,77 @@ class ModernTitleNativeCaptureTests(unittest.TestCase):
             for stage in ("title", "root"):
                 (folder / f"modern-native-{stage}-342x224.pam").write_bytes(
                     pam(342, 224, bytes(342 * 224 * 4)))
-            with self.assertRaisesRegex(ValueError, "missing/out-of-order"):
+            with self.assertRaisesRegex(ValueError, "missing/duplicate"):
                 validate_native_capture(folder, "", exe_sha256="invalid")
-            with self.assertRaisesRegex(ValueError, "missing/out-of-order"):
+            with self.assertRaisesRegex(ValueError, "missing/duplicate"):
                 validate_native_capture(
                     folder, "UR_BALDOSA_MODERN_ROOT opened=1\n",
                     exe_sha256="invalid")
+
+    def test_native_four_by_three_host_raster_contract(self):
+        # Test the actual 256-wide original-density shape, with the retail
+        # picture centred separately (not a crop of the 342-wide output).
+        with tempfile.TemporaryDirectory() as root:
+            where = Path(root)
+            photos = where / "presented"
+            source = where / "captures"
+            photos.mkdir()
+            source.mkdir()
+            w, h = 256, 224
+            for n, (stage, pixel) in enumerate((
+                ("title", bytes((36, 52, 67, 255))),
+                ("root", bytes((70, 90, 110, 255))),
+            )):
+                (source / f"modern-native-{stage}-256x224.pam").write_bytes(
+                    pam(w, h, pixel * (w * h)))
+                (photos / f"present_{n:06d}.ppm").write_bytes(
+                    b"P6\n256 224\n255\n" + pixel[:3] * (w * h))
+            (photos / "presents.csv").write_text(
+                "present,frame,alpha,crc32,luma\n"
+                "0,32,0.0,12345678,32.0\n"
+                "1,80,0.0,abcdef12,80.0\n")
+            receipt = verify_native_presented_frames(photos, source, expected_width=256)
+            self.assertEqual(receipt["matched"]["title"]["source_match_fraction"], 1.0)
+            self.assertEqual(receipt["matched"]["root"]["source_match_fraction"], 1.0)
+            self.assertEqual(read_present_ppm(photos / "presented-root.ppm", 256)[:2],
+                             (256, 224))
+            with self.assertRaisesRegex(ValueError, "dimensions"):
+                read_present_ppm(photos / "presented-root.ppm", 342)
+
+    def test_reduced_motion_uses_unmoving_original_logo_in_native_presents(self):
+        # Source and PPM fixtures exercise the checker, never masquerade as
+        # actual SDL native acceptance or replace verified retail-art SHA.
+        with tempfile.TemporaryDirectory() as root:
+            base = Path(root)
+            source = base / "captures"
+            presented = base / "presented"
+            source.mkdir()
+            presented.mkdir()
+            width, height = 342, 224
+            title_pixel = bytes((15, 80, 132, 255))
+            root_pixel = bytes((83, 96, 100, 255))
+            for name, pixel in (("title", title_pixel), ("root", root_pixel)):
+                (source / f"modern-native-{name}-342x224.pam").write_bytes(
+                    pam(width, height, pixel * (width * height)))
+            def write_present(index, pixel):
+                (presented / f"present_{index:06d}.ppm").write_bytes(
+                    b"P6\n342 224\n255\n" + pixel[:3] * (width * height))
+            write_present(0, title_pixel)
+            write_present(1, root_pixel)  # forged movement before confirm
+            write_present(2, root_pixel)
+            (presented / "presents.csv").write_text(
+                "present,frame,alpha,crc32,luma\n"
+                "0,16,0,12345678,11\n"
+                "1,32,0,12345678,11\n"
+                "2,80,0,12345678,11\n")
+            with self.assertRaisesRegex(ValueError, "reduced-motion original title moved"):
+                verify_native_presented_frames(
+                    presented, source, expected_width=width, reduced_motion=True)
+            write_present(1, title_pixel)
+            accepted = verify_native_presented_frames(
+                presented, source, expected_width=width, reduced_motion=True)
+            self.assertEqual(accepted["presentations_examined"], 3)
+            self.assertEqual(accepted["matched"]["root"]["present_frame"], 80)
 
     def test_fake_log_cannot_turn_empty_pixels_into_real_art(self):
         with tempfile.TemporaryDirectory() as root:

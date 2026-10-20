@@ -78,6 +78,10 @@ struct ModernMenuMotionState {
     // never teleport to the previous semantic row.
     int cursor_origin_y = 0;
     int cursor_row_pitch = 21;
+    // Reduced-motion mode semantically completes an already-visible entrance.
+    // Re-enabling animation must not resurrect an old transition.
+    bool intro_suppressed = false;
+    bool hero_hold_pose = false;
     std::uint64_t first_tick = 0;
     std::uint64_t selection_tick = 0;
     std::uint64_t last_tick = 0;
@@ -147,7 +151,10 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
     }
     const auto selection = static_cast<std::uint8_t>(
         input.selection % kModernMenuMotionRows);
-    if (row_pitch <= 0) row_pitch = 21;
+    // Native row metrics are compact logical pixels, not untrusted
+    // framebuffer extents. Reject pathological widths before multiplying
+    // semantic row indices into stored 32-bit coordinates.
+    if (row_pitch <= 0 || row_pitch > 64) row_pitch = 21;
     if (!state.visible || input.tick60 < state.last_tick ||
         state.cursor_row_pitch != row_pitch) {
         state.visible = true;
@@ -155,19 +162,31 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
         state.previous_selection = selection;
         state.cursor_origin_y = static_cast<int>(selection) * row_pitch;
         state.cursor_row_pitch = row_pitch;
+        state.intro_suppressed = false;
+        state.hero_hold_pose = false;
         state.first_tick = input.tick60;
         state.selection_tick = input.tick60;
     } else if (selection != state.selection) {
         const int previous = static_cast<int>(state.selection);
         const int old_target_y = previous * row_pitch;
-        const int elapsed = modern_menu_clamp_age(
+        int elapsed = modern_menu_clamp_age(
             input.tick60, state.selection_tick,
             kModernMenuMotionSelectionFrames);
+        // The original input trace records a same-frame 6px step. Model a
+        // moving marker after that first measured step even when the caller
+        // repeats the exact UI tick for deterministic capture.
+        if (state.cursor_origin_y != old_target_y &&
+            elapsed < kModernMenuMotionSelectionFrames)
+            ++elapsed;
         const int old_display_y = old_target_y +
             modern_menu_cursor_remaining_offset(
                 state.cursor_origin_y - old_target_y, elapsed);
         state.previous_selection = state.selection;
         state.selection = selection;
+        // A fresh enabled focus edge can animate its source clip again;
+        // the already-suppressed screen entrance must stay settled.
+        if (!input.reduced_motion)
+            state.hero_hold_pose = false;
         // Only adjacent movement has a meaningful continuous path. Wrapped
         // or external multi-step focus switches snap to the real new target.
         const int target = static_cast<int>(selection);
@@ -181,13 +200,24 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
     pose.visible = true;
     pose.selection = selection;
     pose.reduced_motion = input.reduced_motion;
-    if (input.reduced_motion) return pose;
+    if (input.reduced_motion) {
+        // The semantic focus is already on this row. Suppress any ongoing
+        // interpolation and entrance for this visible root session, so
+        // switching reduced motion off cannot replay stale movement.
+        state.cursor_origin_y = static_cast<int>(selection) * row_pitch;
+        state.previous_selection = selection;
+        state.selection_tick = input.tick60;
+        state.intro_suppressed = true;
+        state.hero_hold_pose = true;
+        return pose;
+    }
 
     pose.cursor_spin_phase = static_cast<int>(
         (input.tick60 / 2u) % 16u);
     const int entry_age = modern_menu_clamp_age(
         input.tick60, state.first_tick, kModernMenuMotionEntranceFrames);
-    pose.entrance_distance_px = modern_menu_entrance_remaining(entry_age);
+    pose.entrance_distance_px = state.intro_suppressed ? 0 :
+        modern_menu_entrance_remaining(entry_age);
 
     const int age = modern_menu_clamp_age(
         input.tick60, state.selection_tick,
@@ -196,8 +226,11 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
     const int current = static_cast<int>(state.selection);
     // Focus semantics are immediate; only the last rendered marker location
     // eases to the new row. Interrupting mid-travel does not jump backwards.
+    const int cursor_age =
+        state.cursor_origin_y != current * row_pitch &&
+        age < kModernMenuMotionSelectionFrames ? age + 1 : age;
     pose.cursor_remainder_px = modern_menu_cursor_remaining_offset(
-        state.cursor_origin_y - current * row_pitch, age);
+        state.cursor_origin_y - current * row_pitch, cursor_age);
 
     // A low-amplitude preview transform, never a new semantic rider pose.
     // Source racer artwork is a separate, approval-gated input; this model
@@ -213,9 +246,10 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
     // then HOLD the last pose. There is no evidence 1213..1220 loops:
     // cycling it would invent a jump from source frame 1220 to 1213.
     // Source sprite admission is separately required by the hero compositor.
-    pose.hero_frame_ordinal =
-        age >= kModernMenuStockHeroMaxCycle
-            ? kModernMenuStockHeroMaxCycle - 1 : age;
+    pose.hero_frame_ordinal = state.hero_hold_pose ?
+        kModernMenuStockHeroMaxCycle - 1 :
+        (age >= kModernMenuStockHeroMaxCycle
+            ? kModernMenuStockHeroMaxCycle - 1 : age);
     pose.hero_lean_px = (age < 4 && previous != current)
         ? (previous < current ? 1 : -1) : 0;
     return pose;
@@ -238,23 +272,32 @@ inline bool paint_modern_menu_selection_motion(
     const ModernMenuMotionPose& pose,
     ModernMenuMotionAnchors anchors = {}) {
     if (!pose.visible || !paint.valid() || !pixels ||
-        stride <= 0 || height <= 0 || scale <= 0 ||
+        stride <= 0 || height <= 0 || scale < 1 || scale > 4 ||
         rect.x < 0 || rect.y < 0 || rect.width <= 0 || rect.height <= 0 ||
         rect.x > stride || rect.y > height ||
         rect.width > stride - rect.x || rect.height > height - rect.y ||
-        anchors.row_pitch <= 0 || anchors.left_x < 0)
+        anchors.row_pitch <= 0 || anchors.left_x < 0 ||
+        pose.selection >= kModernMenuMotionRows)
         return false;
-    const int px = rect.x + anchors.left_x * scale;
-    const int py = rect.y +
-        (anchors.first_row_y +
-         static_cast<int>(pose.selection) * anchors.row_pitch +
-         pose.cursor_remainder_px) * scale;
+    // Do all layout arithmetic in 64 bits. Synthetic test/host callers must
+    // not trigger signed 32-bit overflow with malformed anchors or offsets.
+    const std::int64_t px64 = static_cast<std::int64_t>(rect.x) +
+        static_cast<std::int64_t>(anchors.left_x) * scale;
+    const std::int64_t py64 = static_cast<std::int64_t>(rect.y) +
+        (static_cast<std::int64_t>(anchors.first_row_y) +
+         static_cast<std::int64_t>(pose.selection) * anchors.row_pitch +
+         static_cast<std::int64_t>(pose.cursor_remainder_px)) * scale;
     // Narrow enough to leave the existing selected text, panel and modal
     // completely intact; 4:3 and 16:9 both use the same semantic anchor.
     const int marker_height = 12 * scale;
-    if (px < rect.x || px + 2 * scale > rect.x + rect.width ||
-        py < rect.y || py + marker_height > rect.y + rect.height)
+    if (px64 < rect.x ||
+        px64 + 2 * scale > static_cast<std::int64_t>(rect.x) + rect.width ||
+        py64 < rect.y ||
+        py64 + marker_height >
+            static_cast<std::int64_t>(rect.y) + rect.height)
         return false;
+    const int px = static_cast<int>(px64);
+    const int py = static_cast<int>(py64);
     const auto& palette = kModernStockMenuPalette;
     // Original cursor OBJ is blue. Avoid fabricated rapid yellow/blue
     // flashing until the genuine 32x32 spinning source sprite is extracted.

@@ -1092,6 +1092,19 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT opened=1\n");
 }
 
+void confirm_modern_native_title() {
+    g_title = ur::product::modern_title_confirm(g_title);
+    // Reduced motion intentionally bypasses the 14-frame sweep. Publish
+    // the SAME genuine transition witness and let the root capture on its
+    // first draw, rather than silently losing the native entry receipt.
+    if (!ur::product::modern_title_active(g_title) && !g_title_logged) {
+        g_title_logged = true;
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=%u input_owned=1\n",
+            g_title_guest_frame);
+    }
+}
+
 extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
     int action = 0;
     std::size_t physical = 0;
@@ -1116,7 +1129,7 @@ extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
     if (!first_press) return 1;
     if (ur::product::modern_title_active(g_title)) {
         if (action == 2)
-            g_title = ur::product::modern_title_confirm(g_title);
+            confirm_modern_native_title();
         return 1;
     }
     g_root_notice.clear();
@@ -1174,7 +1187,7 @@ extern "C" int ur_baldosa_modern_root_gamepad(
     if (!first_press) return 1;
     if (ur::product::modern_title_active(g_title)) {
         if (action == 2)
-            g_title = ur::product::modern_title_confirm(g_title);
+            confirm_modern_native_title();
         return 1;
     }
     g_root_notice.clear();
@@ -1187,19 +1200,23 @@ extern "C" int ur_baldosa_modern_root_gamepad(
     return 1;
 }
 
+extern "C" int ur_baldosa_modern_root_window_base_width(int) {
+    // The native host initializes its SDL window before its first present.
+    // The default Modern window is 16:9 in display pixels (428x240 base),
+    // while Authentic continues using the untouched 4:3 stock 320x240.
+    // Resizing to a 4:3 drawable selects a native 256-width title below.
+    return configured() ? 428 : 320;
+}
+
 extern "C" void ur_baldosa_modern_root_prepare_frame(
     int drawable_width, int drawable_height,
     int* logical_width, int* logical_height) {
-    // The original guest, Authentic mode, racing and results retain their
-    // stock raster. Only the real Modern frontend chooses host presentation
-    // geometry from the actual SDL output measured by PreparePpuFrame().
+    // Only visible Modern frontend frames switch logical composition.
+    // Guest races/results and Authentic always preserve original 256x224.
     if (!logical_width || !logical_height || !configured() || !g_visible)
         return;
-    if (ur::product::modern_native_frontend_compact_drawable(
-            drawable_width, drawable_height))
-        *logical_width = 256;
-    else
-        *logical_width = 342;
+    *logical_width = ur::product::modern_title_logical_width(
+        drawable_width, drawable_height, true);
     *logical_height = 224;
 }
 

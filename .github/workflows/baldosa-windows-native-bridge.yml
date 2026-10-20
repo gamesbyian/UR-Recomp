@@ -71,6 +71,9 @@ on:
       - "tests/unit/test_baldosa_native_options_cpp.py"
       - "tools/baldosa_native_modern_root.cpp"
       - "tools/capture_baldosa_modern_title_win32.py"
+      - "tools/verify_baldosa_modern_title_authentic_inert.py"
+      - "tests/unit/test_verify_baldosa_modern_title_authentic_inert.py"
+      - "tests/input/baldosa-authentic-title-inert.script"
       - "native/product/modern_title_presenter.hpp"
       - "native/product/modern_title_retail_reference.hpp"
       - "tests/native/modern_title_presenter_test.cpp"
@@ -251,6 +254,7 @@ jobs:
           python tests/unit/test_baldosa_modern_user_data_spike.py
           python tests/unit/test_baldosa_modern_profile_activation_spike.py
           python tests/unit/test_modern_title_presenter_cpp.py
+          python tests/unit/test_verify_baldosa_modern_title_authentic_inert.py
           python tests/unit/test_baldosa_modern_options_spike.py
           python tests/unit/test_baldosa_native_options_cpp.py
           python tests/unit/test_baldosa_native_options_probe.py
@@ -347,14 +351,38 @@ jobs:
             --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-native-capture.script" \
             --out "$RUNNER_TEMP/modern-title-native-integration" \
             --timeout 100
-          echo "Verified exact original source title raster and actual native title→root guest-frame ordering; final drawable/human visual approval remain pending." >> "$GITHUB_STEP_SUMMARY"
+          python tools/capture_baldosa_modern_title_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-native-capture.script" \
+            --aspect 4:3 \
+            --out "$RUNNER_TEMP/modern-title-native-4by3-integration" \
+            --timeout 100
+          python tools/capture_baldosa_modern_title_win32.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-modern-title-native-capture.script" \
+            --reduced-motion \
+            --out "$RUNNER_TEMP/modern-title-native-reduced-integration" \
+            --timeout 100
+          python tools/verify_baldosa_modern_title_authentic_inert.py \
+            --exe "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/baldosa-authentic-title-inert.script" \
+            --out "$RUNNER_TEMP/modern-title-authentic-inert-integration" \
+            --timeout 100
+          echo "Verified original title pixels and real host presentations on 16:9, 4:3 and reduced motion, plus two identical Authentic source/host timelines. SDL drawable and physical device approval remain pending." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain native Modern title capture or failure diagnostics
         if: ${{ always() && github.event_name == 'pull_request' && (github.head_ref == 'visual/modern-native-widescreen-title-20261020' || github.head_ref == 'integration/modern-visual-rehearsal-20261020') }}
         uses: actions/upload-artifact@v4
         with:
           name: modern-title-native-source-integration
-          path: ${{ runner.temp }}/modern-title-native-integration
+          path: |
+            ${{ runner.temp }}/modern-title-native-integration
+            ${{ runner.temp }}/modern-title-native-4by3-integration
+            ${{ runner.temp }}/modern-title-native-reduced-integration
+            ${{ runner.temp }}/modern-title-authentic-inert-integration
           if-no-files-found: warn
           retention-days: 14
 

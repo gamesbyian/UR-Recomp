@@ -190,3 +190,138 @@ physical input devices, keyboard/Start/Back parity, reduced-motion and
 regional native journeys, scrolling/clipping/contrast assessment, human
 typography/background/logo review, and same-executable Authentic
 isolation. QA #2041 owns the final-output acceptance envelope.
+
+## 4:3 responsive title and extracted launcher correction
+
+The baseline native Modern host initially inherited the stock 320×240
+SDL window base even while rasterizing the Modern title at 342×224: the
+first Windows screenshots correctly qualified the logical source image,
+but the default consumer window remained an old 4:3 drawable with extra
+letterboxing. The pinned host actually exposes `SnesDesktopHostGame`'s
+`window_base_width` hook. The title now uses that original host callback
+to choose a 428×240 logical *window* base in Modern boot, preserving
+320×240 in Authentic mode. The `prepare_frame` callback checks the
+actual drawable each frame: widths at 16:9 or 16:10 display the 342×224
+source title/root, while 4:3/3:2 uses separately composed 256×224.
+Neither mode changes the guest raster or original simulation code.
+
+The existing packaged-Windows CMD test originally insisted on the root
+presenter painting immediately after boot without a user Confirm edge.
+That contradicts the title-first product interaction. The test now
+requires `UR_BALDOSA_MODERN_TITLE painted=1 raster=342x224 host=modern`
+*exactly once* on genuine ordinary modern launch, and forbids a silent
+root paint; the separately qualified native P1-A route remains the
+positive test of title→root access. First-racer, Options, original
+SRAM and existing negative CMD launcher gates remain unchanged.
+
+A second invocation of the pinned native AOT test now uses a real
+`[Graphics] WindowSize = 960x720` guest-independent native window,
+requires a 256×224 output in **both** host painter P7 and post-OSD
+presented P6 captures, and tests the same USA retail logo crop digest,
+title-first/controller handoff/ordered-root evidence and RGB pixel
+consistency. It is not synthetic 342 cropping. Each run has a distinct
+bounded user-data/output root and shares the same exact Windows
+executable digest. C++ `static_assert` checks 4:3, 3:2, 16:10, 16:9,
+overflow-bound dimensions and Authentic width, while the Python unit
+suite tests 256-specific P6/P7 geometry. **New Windows outcome
+pending at this branch head**: do not treat these edits as successful
+native 4:3/physical display approval until the Windows workflow and
+artifact are independently inspected.
+
+## Corrected title-first packaged Windows acceptance
+
+The [prior exact-head Win32 run 39411604926](https://github.com/gamesbyian/UR-Recomp/actions/runs/39411604926)
+**passed** pinned AOT compilation, native title→root P7 capture,
+post-OSD P6 source pixel matching and PE dependency checks, but the
+general extracted-CMD acceptance failed later in an unrelated test
+expectation: the old launcher test required
+`UR_BALDOSA_MODERN_ROOT painted=1` **without a confirm input**, whereas
+the title-first product now deliberately waits at Press Start.
+
+The now-corrected harness requires a one-shot
+`UR_BALDOSA_MODERN_TITLE painted=1 raster=342x224 host=modern` from the
+**exact packaged executable** during an untouched cold Modern launch,
+and explicitly rejects any premature root paint. Test-only scripted
+journeys that start directly at root continue bypassing the title by
+their existing fixture IDs, while the separate P1-A native route 15
+establishes actual title→root reachability.
+
+The pinned Windows source-bound acceptance includes **three independent
+fresh processes** using the same PE/ROM hashes and isolated profile roots:
+1. A default 342×224 widescreen title and root with the original retail
+   logo and post-OSD native host-presented RGB matches.
+2. A **real 960×720 4:3 native drawable** composed at 256×224, with the
+   source-retail 238×81 logo independently centred, no 342-pixel crop.
+3. `UR_REDUCED_MOTION=1`: stable original title art on at least two
+   separate native presents before P1 A, then a direct root handoff
+   with a logged native transition. The first root frame is captured
+   even when the title intentionally skips the fourteen-frame exit.
+
+These routes are test-only output captures on the real game process,
+not a second renderer or a fake SDL/window simulation. No physical
+gamepad, final SDL texture/readback, physical 4K/4:3 monitor or human
+approval is claimed until #2041's independently recorded review.
+The three-process acceptance is **pending a successful exact-head
+Windows CI result**; earlier standalone 342-width acceptance cannot
+substitute for the added 4:3 and reduced-motion tests.
+
+### Visual polish, held input, and ownership
+
+The primary original bitmap itself has no duplicate narrow-font brand
+label above it. The full title is already image-based, so the duplicate
+text was redundant. C++ tests now verify the **complete retail-art RGB
+digest** at both aspect widths rather than treating a redundant text
+label as logo proof. The stock-colour subtitle and safe-area controller
+prompt remain. Keyboard Enter and physically distinct P1 A/Start
+latches are independently tested for held-through-transition input
+suppression. The reduced-motion path is free of artificial delay and
+now records the same native title→root witness as the normal path.
+
+When the shared/menu animation/destination branches integrate, the
+existing title presenter and its native host preparation callbacks
+must remain a dedicated first render/edge owner. The root's changed
+selected-state motion, 320×204 wide panel, source-derived cursor,
+child modal contracts, and independent final-output screenshot
+instrumentation belong to #2038, #2040, #2042 and #2041 respectively.
+
+## Exact-head full native title acceptance: final green owner candidate
+
+Branch commit `bebab7c426564156640e1849c79ecb5f635f0912`
+passes **all three** required native checks, each on exactly this
+branch, not older source or an unrelated synthetic fallback:
+
+- [Tooling unit run 39484356608](https://github.com/gamesbyian/UR-Recomp/actions/runs/39484356608): success, including real compiled C++ retail title bitmap CRC, 342/256 safety, physical-held A/Start/Enter, reduced-motion stage and native QA verifier regression contracts.
+- [Baldosa exact pinned Win32 x64 AOT run 39484356731](https://github.com/gamesbyian/UR-Recomp/actions/runs/39484356731): **success**, including the actual unchanged extracted Windows CMD launcher, original guest and profile/save journeys, title-specific acceptance and PE dependencies. Pinned Windows game executable SHA256 `40dcea66009e6a84eef7df51f447c626bf94fbc6393048c52727276fcbd23425`.
+- [Native authority/staging 39484356639](https://github.com/gamesbyian/UR-Recomp/actions/runs/39484356639): success, pinned host source and whitelist intact.
+
+The exact title screenshot/guest-frame evidence is stored in the
+Windows run's 14-day retained artifact
+`modern-title-native-source-pr2043` (**artifact ID 12292508492**).
+I downloaded and independently inspected the four source-bound
+`native-title-receipt.json` files:
+
+| Actual Windows process | Painter captures | Real host-presented RGB matches | Accepted |
+| --- | --- | --- | --- |
+| Modern native widescreen, 342×224 | guest title 48, root 80 | 11 native presentations, original title ROI 1.000, root panel ROI 1.000; title present32, root present80 | **Yes** |
+| Modern 960×720 4:3 window, native 256×224 | guest title 48, root 80 | 11 native presentations, independent original title ROI 1.000, root panel ROI 1.000; title present32, root present80 | **Yes** |
+| `UR_REDUCED_MOTION=1` at widescreen | guest title16, root64 | 11 native presentations, title ROI 1.000 on all pre-confirm frames16/32/48, root ROI 1.000; normal 14-frame motion intentionally bypassed | **Yes** |
+| `UR_EXECUTION_MODE=authentic` Modern root toggle `0` vs `1`, same source PE | **180** original guest frames in each run | All **11** overlapping real 256×224 host-presented RGB frames exactly identical; WRAM CRC timeline SHA256 `d1322d5d99e57113b9af6b7695b084beada390938d7b1015531eccadc2ca5847`; no Modern ink | **Yes** |
+
+All 3 Modern launches share the verified same executable digest
+and use independent user-data directories and original USA retail ROM
+checksum `859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478`.
+The title's actual original retail logo pixels were verified inside
+each source raster; independent P6 comparisons protect against source
+pixels that never reach the native host compositor. The Authentic test
+only certifies 180 bounded frames of **same-executable Modern-hook
+inertness**, without claiming a cycle-accurate snesref oracle.
+
+**Disposition:** The title owner's native implementation and its unit /
+AOT / 4:3 / reduced motion / Authentic source-buffer acceptance are
+**complete and green** on this pinned branch. The independent #2041
+GPU/SDL *final drawable*, 4K/physical pad and human visual review are
+still open. The integration rehearsal #2053 must reconcile its
+currently older title/host/capture code with these owner blobs while
+retaining sibling #2038, #2040 and #2042 menu/cursor/animation
+contracts. Do not promote the merged release gates or merge this PR
+based solely on isolated title-native checks.

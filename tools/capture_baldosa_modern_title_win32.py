@@ -38,14 +38,14 @@ def read_pam(path: Path, expected_width: int = 342) -> tuple[int, int, bytes]:
     return width, height, payload
 
 
-def read_present_ppm(path: Path) -> tuple[int, int, bytes]:
+def read_present_ppm(path: Path, expected_width: int = 342) -> tuple[int, int, bytes]:
     raw = path.read_bytes()
     match = PPM_HEADER.match(raw)
     if match is None:
         raise ValueError(f"{path}: not a host P6 presented screenshot")
     w, h = (int(x) for x in match.groups())
     payload = raw[match.end():]
-    if w != 342 or h != 224 or len(payload) != w * h * 3:
+    if w != expected_width or h != 224 or len(payload) != w * h * 3:
         raise ValueError(f"{path}: invalid host-presented raster dimensions")
     return w, h, payload
 
@@ -65,7 +65,9 @@ def _pixel_match(reference: bytes, output: bytes,
     return matched / (rw * rh)
 
 
-def verify_native_presented_frames(present_dir: Path, source_dir: Path) -> dict:
+def verify_native_presented_frames(
+    present_dir: Path, source_dir: Path, expected_width: int = 342,
+    reduced_motion: bool = False) -> dict:
     """Require both title and root to reach the real host's present path.
 
     SNESRecomp's WritePpm is AFTER RtlDrawPpuFrame/ComposeOsd and BEFORE
@@ -91,17 +93,18 @@ def verify_native_presented_frames(present_dir: Path, source_dir: Path) -> dict:
         if len(row["crc32"]) != 8:
             raise ValueError("missing native presented CRC")
         file = present_dir / f"present_{index:06d}.ppm"
-        width, height, rgb = read_present_ppm(file)
+        width, height, rgb = read_present_ppm(file, expected_width)
         photos.append((frame, rgb, file))
     matches = {}
     for stage, bounds in (
-        ("title", ((342 - 238) // 2, 27, 238, 81)),
-        ("root", (61, 17, 218, 142)),
+        ("title", ((expected_width - 238) // 2, 27, 238, 81)),
+        ("root", ((expected_width - 240) // 2 + 10, 17, 218, 142)),
     ):
         _, _, source = read_pam(source_dir /
-                               f"modern-native-{stage}-342x224.pam")
+                               f"modern-native-{stage}-{expected_width}x224.pam",
+                               expected_width)
         best = max(
-            (( _pixel_match(source, rgb, 342, bounds), frame, file)
+            ((_pixel_match(source, rgb, expected_width, bounds), frame, file)
              for frame, rgb, file in photos),
             key=lambda result: result[0])
         ratio, frame, file = best
@@ -117,6 +120,19 @@ def verify_native_presented_frames(present_dir: Path, source_dir: Path) -> dict:
             "file": keep.name,
             "sha256": hashlib.sha256(keep.read_bytes()).hexdigest(),
         }
+    if reduced_motion:
+        _, _, title_source = read_pam(
+            source_dir / f"modern-native-title-{expected_width}x224.pam",
+            expected_width)
+        original_logo_region = ((expected_width - 238) // 2, 27, 238, 81)
+        before_confirm = [(frame, rgb) for frame, rgb, _ in photos if frame < 60]
+        if len(before_confirm) < 2:
+            raise ValueError("reduced-motion title needs two distinct pre-confirm presents")
+        for frame, rgb in before_confirm:
+            if _pixel_match(title_source, rgb, expected_width,
+                            original_logo_region) < 0.995:
+                raise ValueError(
+                    f"reduced-motion original title moved at present frame {frame}")
     if matches["title"]["present_frame"] >= matches["root"]["present_frame"]:
         raise ValueError("host-presented root precedes title")
     # Retain just the actual two host-presented matches and indexed CSV.
@@ -144,24 +160,38 @@ def retail_art_digest(width: int, rgba: bytes) -> int:
     return fnv_pixels(bgr)
 
 
-def validate_native_capture(folder: Path, log: str, *, exe_sha256: str) -> dict:
+def verify_native_title_entry(log: str, *, reduced_motion: bool = False) -> None:
+    # Real native P1 A is applied INSIDE the gamepad callback. With reduced
+    # motion it immediately enters root before the CI script can report the
+    # *successful* gamepad call; ordinary motion logs only after 14 frames.
+    # Both orders are causally correct but MUST be explicitly selected.
+    opened = "UR_BALDOSA_MODERN_ROOT opened=1"
+    input_ack = "UR_BALDOSA_MODERN_TITLE native_p1_start=1 frame=60"
+    entered = "UR_BALDOSA_MODERN_TITLE entered_root=1"
+    root_paint = "UR_BALDOSA_MODERN_ROOT painted=1"
     witness = (
-        "UR_BALDOSA_MODERN_ROOT opened=1",
-        "UR_BALDOSA_MODERN_TITLE native_p1_start=1 frame=60",
-        "UR_BALDOSA_MODERN_TITLE entered_root=1",
-        "UR_BALDOSA_MODERN_ROOT painted=1",
+        (opened, entered, input_ack, root_paint) if reduced_motion
+        else (opened, input_ack, entered, root_paint)
     )
     prev = -1
     for marker in witness:
+        if log.count(marker) != 1:
+            raise ValueError(f"missing/duplicate genuine native guest witness: {marker}")
         pos = log.find(marker, prev + 1)
         if pos < 0:
             raise ValueError(f"missing/out-of-order genuine native guest witness: {marker}")
         prev = pos
+
+
+def validate_native_capture(
+    folder: Path, log: str, *, exe_sha256: str,
+    expected_width: int = 342, reduced_motion: bool = False) -> dict:
+    verify_native_title_entry(log, reduced_motion=reduced_motion)
     output = {"executable_sha256": exe_sha256, "captures": []}
     for stage in ("title", "root"):
-        name = f"modern-native-{stage}-342x224.pam"
+        name = f"modern-native-{stage}-{expected_width}x224.pam"
         file = folder / name
-        w, h, rgba = read_pam(file)
+        w, h, rgba = read_pam(file, expected_width)
         if len(set(rgba)) < 3:
             raise ValueError(f"{name}: implausibly uniform native image")
         stamp = re.search(
@@ -196,6 +226,10 @@ def main() -> int:
     parser.add_argument("--script", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--timeout", type=int, default=100)
+    parser.add_argument("--reduced-motion", action="store_true",
+                        help="require steady stock title art before P1 confirm")
+    parser.add_argument("--aspect", choices=("wide", "4:3"), default="wide",
+                        help="actual native SDL drawable shape, not crop")
     args = parser.parse_args()
     if os.name != "nt":
         parser.error("real Windows AOT title capture requires Windows runner")
@@ -220,12 +254,9 @@ def main() -> int:
     framedump = target / "framedump"
     framedump.mkdir()
     config = target / "config.ini"
-    # Title acceptance proves the true widescreen canvas, not the host's
-    # stock-sized window default. Request an actual 16:9 SDL drawable so
-    # prepare_frame selects 342x224, while a separate QA journey verifies
-    # real compact 256x224 at 1024x768.
-    config.write_text("[Graphics]\nWindowSize = 1280x720\n"
-                      "[Sound]\nEnableAudio = 0\n", encoding="utf-8")
+    config.write_text("[Sound]\nEnableAudio = 0\n" +
+                      ("[Graphics]\nWindowSize = 960x720\n"
+                       if args.aspect == "4:3" else ""), encoding="utf-8")
     environment = dict(os.environ)
     environment.update({
         "SDL_VIDEODRIVER": "dummy",
@@ -235,6 +266,7 @@ def main() -> int:
         "UR_BALDOSA_MODERN_ROOT": "1",
         "UR_BALDOSA_MODERN_PROFILE_SELECT": "0",
         "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "15",
+        "UR_REDUCED_MOTION": "1" if args.reduced_motion else "0",
         "UR_BALDOSA_MODERN_TITLE_CAPTURE_DIR": str(captures),
         "SNESRECOMP_SCREENSHOT_DIR": str(presented),
         "SNESRECOMP_SCREENSHOT_FROM": "0",
@@ -256,8 +288,15 @@ def main() -> int:
     if result.returncode != 0:
         raise RuntimeError(f"native title process exit {result.returncode}: {log[-2400:]}")
     exe_hash = hashlib.sha256(image).hexdigest()
-    receipt = validate_native_capture(captures, log, exe_sha256=exe_hash)
-    receipt["native_presented"] = verify_native_presented_frames(presented, captures)
+    expected_width = 256 if args.aspect == "4:3" else 342
+    receipt = validate_native_capture(
+        captures, log, exe_sha256=exe_hash, expected_width=expected_width,
+        reduced_motion=args.reduced_motion)
+    receipt["native_presented"] = verify_native_presented_frames(
+        presented, captures, expected_width=expected_width,
+        reduced_motion=args.reduced_motion)
+    receipt["drawable_aspect"] = args.aspect
+    receipt["reduced_motion"] = args.reduced_motion
     import json
     (target / "native-title-receipt.json").write_text(
         json.dumps(receipt, indent=2) + "\n", encoding="utf-8")

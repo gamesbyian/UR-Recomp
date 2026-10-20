@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
+#include <cstring>
 #include <string>
 #include <vector>
 
@@ -33,8 +34,16 @@ void stroke(std::uint32_t* p, int stride, int height,
     fill(p, stride, height, x, y, w, 1, color);
     fill(p, stride, height, x, y + h - 1, w, 1, color);
 }
-void text(std::uint32_t*, int, int, int, int,
-          const char* value, std::uint32_t, int) {
+void text(std::uint32_t*, int stride, int height, int x, int y,
+          const char* value, std::uint32_t, int scale) {
+    assert(value != nullptr);
+    assert(scale > 0);
+    assert(x >= 0 && y >= 0);
+    // Host stock menu glyphs occupy an 8x8 logical cell. Prove that text
+    // remains fully inside the actual source-buffer rectangle, including
+    // the 23-character A / Start / Enter prompt at original 256 width.
+    assert(x + static_cast<int>(std::strlen(value)) * 8 * scale <= stride);
+    assert(y + 8 * scale <= height);
     words.emplace_back(value);
 }
 bool saw(const char* text) {
@@ -126,6 +135,15 @@ int main() {
 
     // Every pixel of the original retail title stays identical while
     // its 24-tick entry lift settles (at tick16: exactly +4 rows).
+    static_assert(modern_title_logical_width(1280, 720, true) == 342);
+    static_assert(modern_title_logical_width(1024, 640, true) == 342);
+    static_assert(modern_title_logical_width(960, 720, true) == 256);
+    static_assert(modern_title_logical_width(900, 600, true) == 256);
+    static_assert(modern_title_logical_width(1280, 720, false) == 256);
+    static_assert(modern_title_logical_width(0, 0, true) == 342);
+    static_assert(modern_title_logical_width(2147483647, 1, true) == 342);
+    static_assert(modern_title_logical_width(1, 2147483647, true) == 256);
+
     for (int width : {256, 342}) {
         Surface entering(width);
         Surface settled(width);
@@ -158,9 +176,11 @@ int main() {
             opening = modern_title_advance(opening);
         assert(render_modern_title(paint, surf.pixels.data(),
                 surf.stride, surf.height, width, opening));
-        assert(saw("UNIRACERS"));
+        // The brand appears as pixel-exact original retail artwork;
+        // avoid a second stock-font copy of the game name above it.
+        assert(!saw("UNIRACERS"));
         assert(saw("THE ONE-WHEEL RACING CLASSIC"));
-        assert(saw("PRESS A / START"));
+        assert(saw("PRESS A / START / ENTER"));
         assert(!saw("UNIRALLY"));
         // Full original-title pixel art is read from the verified retail
         // asset, not procedurally reconstructed. Digest the exact unscaled
@@ -187,7 +207,7 @@ int main() {
         words.clear();
         assert(render_modern_title(paint, surf.pixels.data(),
                 surf.stride, surf.height, width, opening, true));
-        assert(saw("UNIRALLY"));
+        assert(!saw("UNIRALLY"));
         assert(!saw("UNIRACERS"));
         assert(asset_digest() == regional_title_asset::kTargetCropBgrFnv1a64);
         words.clear();
@@ -195,7 +215,7 @@ int main() {
         assert(render_modern_title(paint, surf.pixels.data(),
                 surf.stride, surf.height, width, opening));
         assert(saw("SELECTING RACER"));
-        assert(!saw("PRESS A / START"));
+        assert(!saw("PRESS A / START / ENTER"));
         words.clear();
         assert(!render_modern_title(paint, surf.pixels.data(),
                 surf.stride, surf.height, width, modern_title_boot(false)));

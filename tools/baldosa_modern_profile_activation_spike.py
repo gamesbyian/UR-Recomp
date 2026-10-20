@@ -48,6 +48,7 @@ def patch_main(source: str) -> str:
         "extern int ur_baldosa_modern_run_recovery_command(void);\n"
         "extern void ur_baldosa_modern_profile_before_run_frame(void);\n"
         "extern void ur_baldosa_modern_root_after_config(void);\n"
+        "extern int ur_baldosa_modern_root_window_base_width(int);\n"
         "extern void ur_baldosa_modern_root_prepare_frame(\n"
         "    int, int, int*, int*);\n"
         "static void ur_baldosa_modern_root_viewport(\n"
@@ -84,6 +85,7 @@ def patch_main(source: str) -> str:
         "    .before_run_frame    = &ur_baldosa_modern_profile_before_run_frame,\n"
         "    .draw_frame          = &ur_baldosa_modern_root_draw_frame,\n"
         "    .native_widescreen   = 1,\n"
+        "    .window_base_width  = &ur_baldosa_modern_root_window_base_width,\n"
         "    .prepare_frame       = &ur_baldosa_modern_root_prepare_frame,\n"
         "    .compute_viewport    = &ur_baldosa_modern_root_viewport,\n"
         + MAIN_PAUSE, 1)

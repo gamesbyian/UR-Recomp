@@ -163,6 +163,12 @@ int main() {
     assert(has("OPTIONS"));
     bounds(512,448);
     clear();
+    assert(render_modern_native_pause_destination(
+        painter,scratch,1368,1368,896,v));
+    assert(has("UNIRACERS") && has("PAUSED - GUEST FROZEN"));
+    assert(has("OPTIONS"));
+    bounds(1368,896);
+    clear();
     assert(!render_modern_native_pause_destination(
         painter,scratch,240,240,224,v));
     assert(painted.empty());

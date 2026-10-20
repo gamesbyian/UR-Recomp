@@ -1,6 +1,8 @@
 """RF079 real source-local BIT operand and BPL decision report tests."""
 import sys
 import unittest
+import tempfile
+import zipfile
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'tools'))
 import qa01_rf079_real_bit_bpl_report as r
@@ -78,6 +80,44 @@ class RealBitBranch(unittest.TestCase):
         ):
             with self.subTest(modified=modified[:100]),self.assertRaises(ValueError):
                 r.inspect(modified,n)
+
+    def test_zip_requires_explicit_strict_sidecar_even_with_good_raw_stderr(self):
+        o,n=sample()
+        with tempfile.TemporaryDirectory() as temp:
+            path=Path(temp)/'same-case.zip'
+            with zipfile.ZipFile(path,'w') as z:
+                z.writestr(r.ORIG,o)
+                z.writestr(r.NATIVE,n)
+            with self.assertRaisesRegex(ValueError,'strict native event sidecar absent'):
+                r.case_archive(path)
+
+    def test_strict_sidecar_runs_and_preserves_original_raw_stderr_bytes(self):
+        o,n=sample()
+        with tempfile.TemporaryDirectory() as temp:
+            path=Path(temp)/'same-case.zip'
+            raw_stderr='LEGACY_FRAGMENT '+n
+            with zipfile.ZipFile(path,'w') as z:
+                z.writestr(r.ORIG,o)
+                z.writestr(r.NATIVE,raw_stderr)
+                z.writestr(r.STRICT_SIDECAR,n)
+            report=r.case_archive(path)
+            self.assertTrue(report['native_RF047_dedicated_source_ordinals_verified'])
+            self.assertTrue(report['native_raw_stderr_separately_preserved_unchanged'])
+            self.assertFalse(report['native_stderr_full_RF047_source_continuity_claimed'])
+            self.assertEqual(report['source_two_frame_brackets_compared'],2)
+
+    def test_non_source_or_mixed_line_inside_sidecar_is_strict_failure(self):
+        o,n=sample()
+        with tempfile.TemporaryDirectory() as temp:
+            path=Path(temp)/'bad-case.zip'
+            with zipfile.ZipFile(path,'w') as z:
+                z.writestr(r.ORIG,o)
+                z.writestr(r.NATIVE,n)
+                z.writestr(r.STRICT_SIDECAR,
+                           n.replace('QA01RF047NATIVE seq=7 ',
+                                     'LEGACY_INTERLEAVED QA01RF047NATIVE seq=7 ',1))
+            with self.assertRaisesRegex(ValueError,'non-source line'):
+                r.case_archive(path)
 
     def test_missing_nmi_and_missing_postopcode_fail(self):
         o,n=sample()

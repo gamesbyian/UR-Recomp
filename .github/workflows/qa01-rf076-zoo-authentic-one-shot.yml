@@ -1,12 +1,6 @@
-# TEMP RF076 REAL RF044-STAGED ORIGINAL FETCH FOLLOWUP source-qualified original/native Zoom Zoo NMI one-shot.
-# Attempt 2: qualify native AOT sound markers and interpreter fetch source.
-# Historic v2 narrow source-regex missed 5 D4 AOT call sites; authentic
-# run 39337657773 EXECUTED thousands of tier=aot D4 markers and
-# saturated strict RF047 at 8192 in frame 1018. Never call these absent.
-# Third and final bounded witness retains all 9 native NMI brackets via an
-# explicit 131072-event finite cap, never suppressing TRUNCATED.
-# Do NOT merge this file or the temporary campaign modifications to main.
-name: RF076 genuine Zoo original/native resume-origin and executed opcode one-shot
+# TEMP RF079 one authentic Zoom Zoo two-frame BIT/BPL returned-value test.
+# NO gameplay/graphics/release edits. Do not merge this workflow.
+name: RF079 genuine Zoo actual BIT return and BPL branch-value one-shot
 
 on:
   pull_request:
@@ -18,7 +12,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: qa01-rf076-guest-scheduler-origin-${{ github.event.pull_request.number }}
+  group: qa01-rf079-bit-bpl-branch-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
@@ -26,16 +20,16 @@ jobs:
     uses: ./.github/workflows/qa01-event-campaign.yml
     with:
       selected: zoom-zoo
-      zoo_terminal_phase: true
-      zoo_race_mesh: true
-      zoo_dp_window: true
+      zoo_terminal_phase: false
+      zoo_race_mesh: false
+      zoo_dp_window: false
       qa01_apu_phase: false
-      source_followthrough: true
+      source_followthrough: false
       baldosa_refresh_beam_rate: true
       baldosa_io_clock_order: true
       baldosa_spc_reference_rate: true
       baldosa_dp_pointer_once: true
       baldosa_hdma_cpu_stall: true
       baldosa_spc_interrupt_stage: true
-      qa01_cold_guest_reload: true
-      zoo_next_bowl: true
+      qa01_cold_guest_reload: false
+      zoo_next_bowl: false

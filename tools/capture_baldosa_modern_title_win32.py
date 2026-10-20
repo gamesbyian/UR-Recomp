@@ -8,6 +8,7 @@ An actual SDL drawable still needs #2041 independent capture/inspection.
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import os
 from pathlib import Path
@@ -18,6 +19,7 @@ EXPECTED_USA_ROM = "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68eb
 EXPECTED_RETAIL_BGR_FNV = 0xD998C3B6CC123D5F
 K_FNV_BASIS = 1469598103934665603
 K_FNV_PRIME = 1099511628211
+PPM_HEADER = re.compile(rb"\AP6\n(\d+) (\d+)\n255\n")
 PAM_HEADER = re.compile(
     rb"\AP7\nWIDTH (\d+)\nHEIGHT (\d+)\nDEPTH 4\n"
     rb"MAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n"
@@ -34,6 +36,93 @@ def read_pam(path: Path, expected_width: int = 342) -> tuple[int, int, bytes]:
     if width != expected_width or height != 224 or len(payload) != 4 * width * height:
         raise ValueError(f"{path}: incorrect original-source raster geometry")
     return width, height, payload
+
+
+def read_present_ppm(path: Path) -> tuple[int, int, bytes]:
+    raw = path.read_bytes()
+    match = PPM_HEADER.match(raw)
+    if match is None:
+        raise ValueError(f"{path}: not a host P6 presented screenshot")
+    w, h = (int(x) for x in match.groups())
+    payload = raw[match.end():]
+    if w != 342 or h != 224 or len(payload) != w * h * 3:
+        raise ValueError(f"{path}: invalid host-presented raster dimensions")
+    return w, h, payload
+
+
+def _pixel_match(reference: bytes, output: bytes,
+                 width: int, bounds: tuple[int, int, int, int]) -> float:
+    x0, y0, rw, rh = bounds
+    if min(x0, y0, rw, rh) < 0 or x0 + rw > width or y0 + rh > 224:
+        raise ValueError("comparison bounds outside host frame")
+    matched = 0
+    for y in range(y0, y0 + rh):
+        for x in range(x0, x0 + rw):
+            src = (y * width + x) * 4
+            dst = (y * width + x) * 3
+            matched += (
+                reference[src:src+3] == output[dst:dst+3])
+    return matched / (rw * rh)
+
+
+def verify_native_presented_frames(present_dir: Path, source_dir: Path) -> dict:
+    """Require both title and root to reach the real host's present path.
+
+    SNESRecomp's WritePpm is AFTER RtlDrawPpuFrame/ComposeOsd and BEFORE
+    SDL texture upload, not a GPU backbuffer read. The guest-frame receipt
+    and exact-host executable identity are separately checked elsewhere.
+    """
+    table = present_dir / "presents.csv"
+    if not table.is_file():
+        raise ValueError("missing native present-frame CSV")
+    with table.open(newline="", encoding="utf-8") as inp:
+        reader = csv.DictReader(inp)
+        if reader.fieldnames != ["present", "frame", "alpha", "crc32", "luma"]:
+            raise ValueError("native present CSV schema changed")
+        records = list(reader)
+    if not records or len(records) > 30:
+        raise ValueError("unexpected native presentation count")
+    photos = []
+    for row in records:
+        index = int(row["present"])
+        frame = int(row["frame"])
+        if index != len(photos) or frame < 0 or frame > 180:
+            raise ValueError("native presentation indices/clock invalid")
+        if len(row["crc32"]) != 8:
+            raise ValueError("missing native presented CRC")
+        file = present_dir / f"present_{index:06d}.ppm"
+        width, height, rgb = read_present_ppm(file)
+        photos.append((frame, rgb, file))
+    matches = {}
+    for stage, bounds in (
+        ("title", ((342 - 238) // 2, 27, 238, 81)),
+        ("root", (61, 17, 218, 142)),
+    ):
+        _, _, source = read_pam(present_dir.parent / "captures" /
+                               f"modern-native-{stage}-342x224.pam")
+        best = max(
+            (( _pixel_match(source, rgb, 342, bounds), frame, file)
+             for frame, rgb, file in photos),
+            key=lambda result: result[0])
+        ratio, frame, file = best
+        if ratio < 0.995:
+            raise ValueError(
+                f"{stage} never reached native host-presented pixels; "
+                f"best matching fraction {ratio:.6f}")
+        keep = present_dir / f"presented-{stage}.ppm"
+        keep.write_bytes(file.read_bytes())
+        matches[stage] = {
+            "present_frame": frame,
+            "source_match_fraction": round(ratio, 6),
+            "file": keep.name,
+            "sha256": hashlib.sha256(keep.read_bytes()).hexdigest(),
+        }
+    if matches["title"]["present_frame"] >= matches["root"]["present_frame"]:
+        raise ValueError("host-presented root precedes title")
+    # Retain just the actual two host-presented matches and indexed CSV.
+    for _, _, f in photos:
+        f.unlink()
+    return {"presentations_examined": len(photos), "matched": matches}
 
 
 def fnv_pixels(pixels: bytes) -> int:
@@ -123,6 +212,8 @@ def main() -> int:
     target.mkdir(parents=True, exist_ok=False)
     captures = target / "captures"
     captures.mkdir()
+    presented = target / "presented"
+    presented.mkdir()
     user = target / "player"
     user.mkdir()
     (target / "saves").mkdir()
@@ -140,6 +231,9 @@ def main() -> int:
         "UR_BALDOSA_MODERN_PROFILE_SELECT": "0",
         "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "15",
         "UR_BALDOSA_MODERN_TITLE_CAPTURE_DIR": str(captures),
+        "SNESRECOMP_SCREENSHOT_DIR": str(presented),
+        "SNESRECOMP_SCREENSHOT_FROM": "0",
+        "SNESRECOMP_SCREENSHOT_TO": "24",
         "SNESRECOMP_FRAMEDUMP_PIXELS": "0",
         "SNESRECOMP_DUMP_DIR": str(target / "saves"),
     })
@@ -158,10 +252,12 @@ def main() -> int:
         raise RuntimeError(f"native title process exit {result.returncode}: {log[-2400:]}")
     exe_hash = hashlib.sha256(image).hexdigest()
     receipt = validate_native_capture(captures, log, exe_sha256=exe_hash)
+    receipt["native_presented"] = verify_native_presented_frames(presented, captures)
     import json
     (target / "native-title-receipt.json").write_text(
         json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
     print("UR_MODERN_TITLE_NATIVE_CAPTURE=passed")
+    print("UR_MODERN_TITLE_HOST_PRESENT=passed")
     print(f"exe_sha256={exe_hash}")
     for c in receipt["captures"]:
         print(f"stage={c['stage']} guest_frame={c['guest_frame']} "

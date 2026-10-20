@@ -152,11 +152,11 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
                 self.assertEqual(
                     kw["env"]["UR_BALDOSA_MODERN_ROOT_KEY_SMOKE"], "12")
                 self.assertEqual(
-                    kw["env"]["UR_MODERN_VISUAL_SDL_CAPTURE_DRAW"], "74")
+                    kw["env"]["UR_MODERN_VISUAL_SDL_CAPTURE_DRAW"], "65")
                 return subprocess.CompletedProcess(command, 0, stdout=(
                     "UR_BALDOSA_MODERN_ROOT opened=1\\n"
                     "UR_MODERN_VISUAL_SDL_CAPTURE refused=output-size "
-                    "draw=74 observed=800x600 requested=1280x720"), stderr="")
+                    "draw=65 observed=800x600 requested=1280x720"), stderr="")
             with patch.object(driver.subprocess, "run", side_effect=false_open):
                 with self.assertRaisesRegex(RuntimeError, "destination route not observed"):
                     driver.launch(stage / "exe", stage / "rom", stage,

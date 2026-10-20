@@ -1,6 +1,7 @@
 // The host Modern title must work at genuine 342x224 and in 256 fallback.
 // Use the exact production presenter with a bounds-checking painter.
 #include "native/product/modern_title_presenter.hpp"
+#include "native/product/modern_root_physical_edges.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -68,6 +69,85 @@ int main() {
     assert(quiet.age >= 24);
     quiet = modern_title_confirm(quiet);
     assert(!modern_title_active(quiet));
+
+    // Compose the real input edge coalescer with the title state. Holding
+    // P1 A through the 14-frame handoff must never select Play on root.
+    ModernRootPhysicalEdges physical{};
+    auto held_title = modern_title_boot(true);
+    int root_activations = 0;
+    const auto p1_confirm = [&](std::size_t key, bool down) {
+        if (!physical.p1_gamepad(key, down)) return;
+        if (modern_title_active(held_title))
+            held_title = modern_title_confirm(held_title);
+        else
+            ++root_activations;
+    };
+    p1_confirm(2, true);  // A confirms title
+    assert(held_title.phase == ModernTitlePhase::Leaving);
+    for (int tick = 0; tick < 14; ++tick)
+        held_title = modern_title_advance(held_title);
+    assert(!modern_title_active(held_title));
+    p1_confirm(2, true);  // repeated held SDL input, no second edge
+    assert(root_activations == 0);
+    p1_confirm(2, false);
+    p1_confirm(2, true);  // a genuinely NEW A press may select Play
+    assert(root_activations == 1);
+    // A and Start are separately latched. Both pressed DURING the
+    // title transition must not leak into the root after the handoff.
+    physical.reset();
+    held_title = modern_title_boot(true);
+    root_activations = 0;
+    p1_confirm(3, true);  // Start
+    p1_confirm(2, true);  // A during exit
+    for (int tick = 0; tick < 14; ++tick)
+        held_title = modern_title_advance(held_title);
+    p1_confirm(2, true);
+    p1_confirm(3, true);
+    assert(root_activations == 0);
+    physical.reset();
+    // Keyboard Enter uses the same physical-edge policy as P1 A/Start.
+    auto key_title = modern_title_boot(true);
+    int keyboard_root_activations = 0;
+    const auto enter = [&](bool down) {
+        if (!physical.keyboard(2, down)) return;
+        if (modern_title_active(key_title))
+            key_title = modern_title_confirm(key_title);
+        else
+            ++keyboard_root_activations;
+    };
+    enter(true);
+    for (int tick = 0; tick < 14; ++tick)
+        key_title = modern_title_advance(key_title);
+    enter(true);
+    assert(keyboard_root_activations == 0);
+    enter(false);
+    enter(true);
+    assert(keyboard_root_activations == 1);
+
+    // Every pixel of the original retail title stays identical while
+    // its 24-tick entry lift settles (at tick16: exactly +4 rows).
+    for (int width : {256, 342}) {
+        Surface entering(width);
+        Surface settled(width);
+        auto entering_state = modern_title_boot(true);
+        auto settled_state = modern_title_boot(true);
+        for (int tick = 0; tick < 16; ++tick)
+            entering_state = modern_title_advance(entering_state);
+        for (int tick = 0; tick < 48; ++tick)
+            settled_state = modern_title_advance(settled_state);
+        words.clear();
+        assert(render_modern_title(paint, entering.pixels.data(), width, 224,
+                                   width, entering_state));
+        assert(render_modern_title(paint, settled.pixels.data(), width, 224,
+                                   width, settled_state));
+        const int left = (width - regional_title_asset::kWidth) / 2;
+        for (int y = 0; y < regional_title_asset::kHeight; ++y) {
+            for (int x = 0; x < regional_title_asset::kWidth; ++x) {
+                assert(entering.pixels[(31 + y) * width + left + x] ==
+                       settled.pixels[(27 + y) * width + left + x]);
+            }
+        }
+    }
 
     for (int width : {256, 342}) {
         Surface surf(width);

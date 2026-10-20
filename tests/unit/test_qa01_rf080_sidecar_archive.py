@@ -62,6 +62,14 @@ class RF080NativeSidecarTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"unqualified native paced BIT return"):
             self.checked(bad)
 
+    def test_unmasked_raw_images_compare_every_physical_byte(self):
+        self.assertEqual(audit.raw_byte_differences(b"same", b"same", 4), [])
+        self.assertEqual(audit.raw_byte_differences(b"abca", b"dbcf", 4), [0, 3])
+        with self.assertRaisesRegex(ValueError, "complete original/native physical image"):
+            audit.raw_byte_differences(b"abc", b"abc", 4)
+        with self.assertRaisesRegex(ValueError, "complete original/native physical image"):
+            audit.raw_byte_differences(b"abc", b"abcd", 4)
+
     def test_missing_or_wrong_immutable_sidecar_digest_refused(self):
         with self.assertRaisesRegex(ValueError,"SHA256"):
             audit.qualify_sidecar(self.valid)

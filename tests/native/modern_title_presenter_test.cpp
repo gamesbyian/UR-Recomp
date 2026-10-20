@@ -61,6 +61,13 @@ int main() {
     assert(!modern_title_active(state));
     state = modern_title_confirm(state);
     assert(state.phase == ModernTitlePhase::Root);
+    // Match the independently owned root animation's UR_REDUCED_MOTION=1
+    // policy: the title remains readable, but there is no pulse/slide.
+    auto quiet = modern_title_boot(true, true);
+    assert(modern_title_active(quiet));
+    assert(quiet.age >= 24);
+    quiet = modern_title_confirm(quiet);
+    assert(!modern_title_active(quiet));
 
     for (int width : {256, 342}) {
         Surface surf(width);

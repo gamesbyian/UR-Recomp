@@ -105,6 +105,32 @@ class ExportEarnedRunTests(unittest.TestCase):
         self.assertNotEqual(run.returncode, 0)
         self.assertFalse(self.out.exists())
 
+    def test_atomic_publish_refuses_existing_empty_directory(self):
+        from export_baldosa_earned_1p_run import _publish_directory_no_replace
+        stage = self.base / 'atomic-stage'
+        stage.mkdir()
+        (stage / 'marker.txt').write_text('evidence', encoding='utf-8')
+        incumbent = self.base / 'incumbent'
+        incumbent.mkdir()
+        with self.assertRaises(OSError):
+            _publish_directory_no_replace(stage, incumbent)
+        self.assertTrue(stage.is_dir())
+        self.assertEqual(list(incumbent.iterdir()), [])
+        self.assertEqual((stage / 'marker.txt').read_text(), 'evidence')
+
+    def test_atomic_publish_moves_directory_without_replacement(self):
+        from export_baldosa_earned_1p_run import _publish_directory_no_replace
+        import os
+        if not (sys.platform.startswith('linux') or os.name == 'nt'):
+            self.skipTest('no audited atomic directory primitive on this host')
+        stage = self.base / 'atomic-stage'
+        stage.mkdir()
+        (stage / 'marker.txt').write_text('evidence', encoding='utf-8')
+        destination = self.base / 'published'
+        _publish_directory_no_replace(stage, destination)
+        self.assertFalse(stage.exists())
+        self.assertEqual((destination / 'marker.txt').read_text(), 'evidence')
+
     def test_rejects_duplicate_empty_oversized_and_symlinked_run(self):
         duplicate = self.runs / 'second.urrun'
         duplicate.write_bytes(b'extra')

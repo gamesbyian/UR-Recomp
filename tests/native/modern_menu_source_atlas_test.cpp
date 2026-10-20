@@ -59,6 +59,19 @@ int main() {
     assert(screen[2*342+2] == 0xFFF8F800u);
     assert(screen[2*342+2+16] == 0xFF101010u); // blank space
     assert(screen[2*342+2+32] == 0xFFC8C800u);
+    // Authentic source rider heading "PICK YOUR UNI" uses 8px
+    // intra-word blanks, unlike the main/options 16px word pitch.
+    assert(modern_menu_paint_source_text(
+        big_view,ModernMenuSourceSheet::Heading,
+        screen.data(),screen.size(),342,224,8,70,"O P",1,8));
+    assert(screen[70*342+8] == 0xFFF8F800u);
+    assert(screen[70*342+8+24] == 0xFFC8C800u);
+    assert(screen[70*342+8+32] == 0xFF101010u);
+    const auto before_invalid_gap = screen;
+    assert(!modern_menu_paint_source_text(
+        big_view,ModernMenuSourceSheet::Heading,
+        screen.data(),screen.size(),342,224,8,90,"O P",1,12));
+    assert(screen == before_invalid_gap);
 
     // Real detail/Records original font includes source closing-paren image.
     small[35*8] = 0xFF989898u; // O's duplicate cell

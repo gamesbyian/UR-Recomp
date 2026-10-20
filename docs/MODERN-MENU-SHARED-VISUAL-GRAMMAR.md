@@ -47,6 +47,7 @@ Run from a privately available canonical clean-boot `tests/input/menu-visual-lan
 python3 tools/extract_menu_visual_language.py "$CAPTURE_DIR" \
   --out "$TMPDIR/menu-visual-language.json" \
   --atlas-out "$TMPDIR/stock-16px-font.png" \
+  --atlas-manifest-out "$TMPDIR/stock-16px-font.json" \
   --small-atlas-out "$TMPDIR/stock-8px-font.png" \
   --small-atlas-manifest-out "$TMPDIR/stock-8px-font.json" \
   --cursor-atlas-out "$TMPDIR/stock-cursor-16poses.png" \
@@ -55,7 +56,7 @@ python3 tools/extract_menu_visual_language.py "$CAPTURE_DIR" \
   --bg1-manifest-out "$TMPDIR/stock-bg1-layer.json"
 ```
 
-The command is a **reproducible source-asset research route**, not a claim that this session executed it on an original ROM or delivered shippable game assets. It requires the separate authentic input capture; no binary atlas, ROM, game art or host screenshot is added to this PR. The original 16×16 font's older standalone `--atlas-out` has no manifest; downstream should retain the exact PPU source identity and hash any local export before making asset decisions.
+The command is a **reproducible source-asset research route**, not a claim that this session executed it on an original ROM or delivered shippable game assets. It requires the separate authentic input capture; no binary atlas, ROM, game art or host screenshot is added to this PR. The original 16×16 font now also emits an optional `--atlas-manifest-out` receipt with all 40 source slots and original PPU VRAM/CGRAM hashes, making all four art exports independently source-bound; do not substitute a self-authored image with a copied receipt.
 
 A source-extracted image is eligible for artistic comparison and a **separately licensed/integrated renderer proposal**. It does not automatically grant redistribution rights, author approval, runtime native font/arrow rendering or packaged-Windows screenshot QA. RGB5-to-RGB8 sampling uses the existing shift-by-3 decoder: other PPU output-brightness/color-math effects are explicitly outside this reference layer.
 

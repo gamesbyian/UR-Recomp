@@ -185,7 +185,7 @@ void test_source_stock_hero() {
            == 0xffff0000u);
     assert(output[0] == 0xff101010u);
 
-    pose = advance_modern_menu_motion(animator, {6, 0, true, false});
+    pose = advance_modern_menu_motion(animator, {1, 0, true, false});
     assert(pose.hero_frame_ordinal == 1);
     assert(paint_modern_menu_stock_hero(
         output.data(), 256, 224, safe, placement, sequence, pose) ==
@@ -193,6 +193,13 @@ void test_source_stock_hero() {
     assert(output[static_cast<std::size_t>(40 + 64) * 256u + 60u + 64u]
            == 0xff0000ffu);
 
+    // This source sequence is one-shot, not a guessed seamless idle loop.
+    pose = advance_modern_menu_motion(animator, {100, 0, true, false});
+    assert(pose.hero_frame_ordinal == 7);
+    pose = advance_modern_menu_motion(animator, {101, 0, true, false});
+    assert(pose.hero_frame_ordinal == 7);
+    pose = advance_modern_menu_motion(animator, {102, 1, true, false});
+    assert(pose.hero_frame_ordinal == 0);
     // A wrong digest or unproven order never touches a pixel.
     const auto before = output;
     frames[1].source_argb_digest ^= 1u;

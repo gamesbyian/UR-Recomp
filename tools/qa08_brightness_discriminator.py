@@ -6,7 +6,7 @@ cannot prove hardware colour maths, P7 equivalence or historical source epoch.
 """
 from pathlib import Path
 from collections import Counter
-import hashlib, json, zipfile
+import hashlib, json, zipfile, io
 
 ARCHIVE_SHA='10bd91c7be06e3ac832675f2b5268bf179a2b03b5f07dcf8fd632fad18372ec2'
 ANCHORS={(53,41),(65,52),(70,58),(84,77),(175,145),(187,160),(190,161),(202,182)}
@@ -39,6 +39,10 @@ def parse(rows):
         if frame not in FRAMES or xy not in ANCHORS or int(fields['ppu_line'])!=xy[1]+1:
             raise ValueError('source coordinate out of scope')
         stage='final' if typ.endswith('FINAL') else fields['sub']
+        if typ.endswith('SOURCE') and stage not in ('0','1'):
+            raise ValueError('source cannot impersonate final')
+        if typ.endswith('FINAL') and 'sub' in fields:
+            raise ValueError('final cannot carry source stage')
         if stage not in ('0','1','final'):raise ValueError('unknown source stage')
         key=(frame,xy)
         if stage in pairs.setdefault(key,{}):raise ValueError('duplicate source stage')
@@ -75,7 +79,7 @@ def audit(path):
     blob=Path(path).read_bytes()
     if hashlib.sha256(blob).hexdigest()!=ARCHIVE_SHA:
         raise ValueError('immutable source archive mismatch')
-    with zipfile.ZipFile(path) as z:
+    with zipfile.ZipFile(io.BytesIO(blob)) as z:
         if z.testzip() is not None:raise ValueError('ZIP CRC')
         return parse(z.read('on-source.log').decode('ascii').splitlines())
 if __name__=='__main__':

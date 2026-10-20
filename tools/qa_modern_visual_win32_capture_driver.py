@@ -18,8 +18,12 @@ import re
 import subprocess
 import sys
 
-from qa_modern_visual_pam_png import convert
-from baldosa_windows_native_pause_route import USA_SHA256
+try:
+    from tools.qa_modern_visual_pam_png import convert
+    from tools.baldosa_windows_native_pause_route import USA_SHA256
+except ModuleNotFoundError:  # direct python tools/... command
+    from qa_modern_visual_pam_png import convert
+    from baldosa_windows_native_pause_route import USA_SHA256
 
 READBACK = re.compile(
     r"UR_MODERN_VISUAL_SDL_CAPTURE (?:status=saved draw=\d+ guest_frame=\d+ output="
@@ -78,8 +82,8 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
         raise RuntimeError("No unambiguous actual SDL readback size in " + name +
                            "\n" + log[-2800:])
     found = tuple(int(x) for x in matches[0])
-    if not all(320 <= found[0] <= MAX_DIM[0] and 224 <= found[1] <= MAX_DIM[1]
-               for _ in (0,)):
+    if not (320 <= found[0] <= MAX_DIM[0] and
+            224 <= found[1] <= MAX_DIM[1]):
         raise RuntimeError("Unqualified SDL drawable geometry: " + str(found))
     if "UR_BALDOSA_MODERN_ROOT opened=1" not in log:
         raise RuntimeError("Actual native Modern root not observed")
@@ -138,11 +142,8 @@ def run(exe: Path, rom: Path, out: Path, source_sha: str, video: str,
         "release_gate_credit": 0,
     }
     (out / "readback-receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
-    # Do not archive raw user state or ROM, only bounded diagnostic bytes/log.
-    for stage in (out / "probe_first", out / "capture_observed"):
-        if stage.exists():
-            (stage / "Fresh Modern Screenshot State").rename(
-                stage / "save-root-DO-NOT-ARCHIVE")
+    # Upload workflow lists fixed receipts, PNG/P7 and logs only. Per-process
+    # private user root and copyrighted ROM never belong in the artifact.
     return receipt
 
 
@@ -160,7 +161,7 @@ def main() -> int:
                      args.video, args.timeout)
         print(json.dumps(result, indent=2))
         return 0
-    except (OSError, ValueError, subprocess.SubprocessError) as exc:
+    except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as exc:
         print("UR_MODERN_NATIVE_VISUAL_CAPTURE_REJECTED:", exc)
         return 2
 

@@ -20,6 +20,7 @@ jobs:
           python3 tools/showcase/build_dynamic_2p_routes.py --self-test
           python3 tools/showcase/build_topology_2p_routes.py --self-test
           python3 -m unittest tests.unit.test_topology_2p_routes tests.unit.test_dynamic_native_2p_routes
+          echo 'SOURCE_ROUTE_TEST_GATE_PASSED'
       - name: Confirm legally supplied local ROM is already accessible
         id: rom
         run: |

@@ -1,0 +1,55 @@
+name: One-shot polished Uniracers editorial card review
+on:
+  push:
+    branches: [media/polished-editorial-frames-20261019]
+    paths: [.github/workflows/one-shot-polished-trailer-cards.yml]
+permissions:
+  contents: write
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pillow dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq python3-pil
+          python3 -m py_compile tools/showcase/polished_editorial_cards.py tools/showcase/build_flagship_recruitment_20261019.py
+      - name: Render cards from exact known genuine-race poster
+        run: |
+          python3 tools/showcase/polished_editorial_cards.py \
+            --poster media/showcase/2026-10-10/recruitment/definitive-film/ur-recomp-recruitment-final-poster.png \
+            --outdir media/showcase/2026-10-19/flagship/polished-cards
+      - name: Exact dimensions and strong visual-text bounds
+        run: |
+          python3 - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          import hashlib, json
+          root=Path('media/showcase/2026-10-19/flagship/polished-cards')
+          names=['polished-card_windows.png','polished-card_4k.png','polished-card_cta.png']
+          info={}
+          for name in names:
+              p=root/name
+              with Image.open(p) as im:
+                  assert im.size==(1920,1080),name
+                  im.load()
+              with Image.open(p) as im: im.verify()
+              info[name]=hashlib.sha256(p.read_bytes()).hexdigest()
+          (root/'polished-card-provenance.json').write_text(json.dumps({
+              'schema':'UR-POLISHED-EDITORIAL-CARDS/1',
+              'source_poster_sha256':'d9bcbda5335a2656f81c79607be1fd540ca7403acba403111ad12f4b4270189a',
+              'source_kind':'previously verified native race poster, intentionally blurred to editorial background',
+              'editorial_not_gameplay':True,
+              'output_sha256':info},indent=2,sort_keys=True)+'\n')
+          print(info)
+          PY
+      - name: Publish inspectable cards and retire one-shot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add media/showcase/2026-10-19/flagship/polished-cards/
+          git rm -f .github/workflows/one-shot-polished-trailer-cards.yml
+          git commit -m "media: publish visually inspectable source-backed typography cards"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

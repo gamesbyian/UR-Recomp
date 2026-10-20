@@ -94,7 +94,10 @@ inline bool modern_menu_stock_hero_sequence_eligible(
 // Draw a source-gated hero into an existing native host compositing buffer.
 // The owner of the surrounding 16:9/4:3 layout supplies placement. The pose
 // model contributes bob/reaction offsets, not a new wheel or stunt sprite.
-// Any attempt to crop/overflow the logical asset fails closed.
+// Only fully transparent 64x64 padding may extend beyond the screen.
+// Every opaque pixel of EVERY registered original pose must remain inside
+// the supplied safe area at the requested scale, or the entire draw is
+// refused before touching destination pixels. No visible clipping allowed.
 inline ModernMenuStockHeroDraw paint_modern_menu_stock_hero(
     std::uint32_t* destination, int pitch_pixels, int surface_height,
     HostOverlayRect safe_area, ModernMenuStockHeroPlacement placement,
@@ -113,15 +116,42 @@ inline ModernMenuStockHeroDraw paint_modern_menu_stock_hero(
         safe_area.height > surface_height - safe_area.y)
         return ModernMenuStockHeroDraw::OutOfBounds;
 
-    const int draw_x = placement.left +
-        (motion.reduced_motion ? 0 : motion.hero_lean_px) * placement.scale;
-    const int draw_y = placement.top +
-        (motion.reduced_motion ? 0 : motion.hero_bob_px) * placement.scale;
-    const int extent = kModernMenuStockHeroCanvas * placement.scale;
-    if (draw_x < safe_area.x || draw_y < safe_area.y ||
-        extent > safe_area.x + safe_area.width - draw_x ||
-        extent > safe_area.y + safe_area.height - draw_y)
-        return ModernMenuStockHeroDraw::OutOfBounds;
+    const std::int64_t draw_x =
+        static_cast<std::int64_t>(placement.left) +
+        static_cast<std::int64_t>(
+            motion.reduced_motion ? 0 : motion.hero_lean_px) * placement.scale;
+    const std::int64_t draw_y =
+        static_cast<std::int64_t>(placement.top) +
+        static_cast<std::int64_t>(
+            motion.reduced_motion ? 0 : motion.hero_bob_px) * placement.scale;
+    const std::int64_t safe_right =
+        static_cast<std::int64_t>(safe_area.x) + safe_area.width;
+    const std::int64_t safe_bottom =
+        static_cast<std::int64_t>(safe_area.y) + safe_area.height;
+
+    // Prevalidate all poses at this placement, not just today's frame.
+    // This prevents frame-specific jumps from drawing a cropped racer.
+    for (std::size_t n = 0; n < sequence.frame_count; ++n) {
+        const auto* frame = sequence.frames[n].argb_pixels;
+        bool occupied = false;
+        for (int y = 0; y < kModernMenuStockHeroCanvas; ++y) {
+            for (int x = 0; x < kModernMenuStockHeroCanvas; ++x) {
+                if ((frame[static_cast<std::size_t>(y) *
+                           kModernMenuStockHeroCanvas + x] >> 24) == 0u)
+                    continue;
+                occupied = true;
+                const auto target_x = draw_x +
+                    static_cast<std::int64_t>(x) * placement.scale;
+                const auto target_y = draw_y +
+                    static_cast<std::int64_t>(y) * placement.scale;
+                if (target_x < safe_area.x || target_y < safe_area.y ||
+                    target_x + placement.scale > safe_right ||
+                    target_y + placement.scale > safe_bottom)
+                    return ModernMenuStockHeroDraw::OutOfBounds;
+            }
+        }
+        if (!occupied) return ModernMenuStockHeroDraw::Unverified;
+    }
 
     const std::size_t phase = motion.reduced_motion ? 0u :
         static_cast<std::size_t>(motion.hero_frame_ordinal) %
@@ -134,13 +164,16 @@ inline ModernMenuStockHeroDraw paint_modern_menu_stock_hero(
                     kModernMenuStockHeroCanvas + x];
             const std::uint32_t alpha = (pixel >> 24) & 255u;
             if (alpha == 0) continue;
+            const auto x_origin = static_cast<int>(
+                draw_x + static_cast<std::int64_t>(x) * placement.scale);
+            const auto y_origin = static_cast<int>(
+                draw_y + static_cast<std::int64_t>(y) * placement.scale);
             for (int sy = 0; sy < placement.scale; ++sy) {
                 auto* line = destination +
-                    static_cast<std::size_t>(draw_y +
-                        y * placement.scale + sy) *
+                    static_cast<std::size_t>(y_origin + sy) *
                         static_cast<std::size_t>(pitch_pixels);
                 for (int sx = 0; sx < placement.scale; ++sx) {
-                    auto& dst = line[draw_x + x * placement.scale + sx];
+                    auto& dst = line[x_origin + sx];
                     if (alpha == 255u) {
                         dst = pixel;
                     } else {

@@ -63,6 +63,68 @@ class Win32PairedWitnessTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "output collision"):
                 pair.run_pair(*args, out, 360)
 
+    def test_same_epoch_controls_run_both_before_historical_refusal(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            paths = [root / x for x in ("off.exe", "on.exe", "rom.sfc",
+                                       "route.txt", "orig.zip", "native.zip")]
+            for path, data in zip(paths, (b"off", b"on", b"ROM", b"input",
+                                          b"historical", b"native")):
+                path.write_bytes(data)
+            crc = [f"0x{i:08x}" for i in range(5484)]
+            fake = {"anchors": [{
+                "xy": [70, 58], "actual_renderer": "span", "main_layer": 0,
+                "main_directcolor": False, "main_selected_palette_index": 108,
+                "main_actual_resolved_rgb555": "4a52",
+                "main_current_index_CGRAM_word": "4a52",
+                "current_main_CGRAM_6c_6f": ["4a52", "4631", "4210", "56b5"],
+                "new_native_final_RGB5": [17, 17, 17],
+            }]}
+            out = root / "campaign"
+            with (patch.object(pair, "ROM_SHA", pair.sha(b"ROM")),
+                  patch.object(pair, "EXPECTED_ROUTE", pair.sha(b"input")),
+                  patch.object(pair, "run_route", side_effect=[
+                      (crc, "unrelated control stdout"), (crc, "unrelated observer stdout")]) as native,
+                  patch.object(pair, "summarize_trace", return_value=fake),
+                  patch.object(pair, "verify", side_effect=AssertionError("historical promoted"))):
+                with self.assertRaisesRegex(ValueError,
+                                            "historic RF017 CRC did not"):
+                    pair.run_pair(*paths, out, 360)
+            self.assertEqual(native.call_count, 2)
+            receipt = json.loads((out/"status.json").read_text())
+            self.assertEqual(receipt["actual_source_process_runs"], 2)
+            self.assertEqual(receipt["off_CRC_sha256"],receipt["on_CRC_sha256"])
+            self.assertTrue(receipt["same_epoch_ON_OFF_guest_CRC_equal"])
+            self.assertFalse(receipt["historical_RF017_guest_CRC_qualified"])
+            self.assertTrue(receipt["unadmitted_PPU_observation_only"])
+            self.assertFalse(receipt["QA08_QA10_release_accepted"])
+            self.assertEqual(receipt["unadmitted_live_PPU_sample"][0]["main_selected_palette_index"],108)
+            self.assertIs(receipt["unadmitted_live_PPU_sample"][0]["same_historical_original_native_source_epoch_proven"],False)
+            self.assertEqual(receipt["final_diagnostic_outcome"],"REFUSED")
+            self.assertNotIn("effective_source",receipt)
+
+    def test_on_off_crc_divergence_is_refusal_without_palette_promotion(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            paths=[root/x for x in ("off","on","rom","route","original","native")]
+            for p,data in zip(paths,(b"a",b"b",b"r",b"s",b"o",b"n")):
+                p.write_bytes(data)
+            off=["0x00000000"]*5484
+            on=off[:]
+            on[-1]="0x00000001"
+            with (patch.object(pair,"ROM_SHA",pair.sha(b"r")),
+                  patch.object(pair,"EXPECTED_ROUTE",pair.sha(b"s")),
+                  patch.object(pair,"run_route",side_effect=[(off,""),(on,"")]) as native,
+                  patch.object(pair,"summarize_trace",side_effect=AssertionError("promoted"))):
+                with self.assertRaisesRegex(ValueError,"changed real guest CRC"):
+                    pair.run_pair(*paths,root/"out",360)
+            receipt=json.loads((root/"out/status.json").read_text())
+            self.assertEqual(native.call_count,2)
+            self.assertFalse(receipt["same_epoch_ON_OFF_guest_CRC_equal"])
+            self.assertFalse(receipt["unadmitted_PPU_observation_only"])
+            self.assertFalse(receipt["complete_guest_replay_equivalence_proven"])
+            self.assertFalse(receipt["QA08_QA10_release_accepted"])
+
     def test_real_cli_rejects_unprovided_source_paths(self):
         result = subprocess.run(
             [sys.executable, str(ROOT/"tools/qa08_late_effective_windows_pair.py"),

@@ -1,3 +1,15 @@
+## Final accepted source-verified action-film render
+
+The new definitive playable review candidate is in [../blue-action-final](../blue-action-final/flagship-provenance.json). It supersedes the earlier blue-cut prototype, which is retained solely as an editing audit.
+
+- [80-second 1080p source-faithful recruitment film](../blue-action-final/ur-recomp-blue-action-80s-1080p.mp4), SHA-256 `78ce2109ba1f2133657d665583ab66b94077b173e8dd6a4eb79c4dfec9cd4a0b`.
+- [27-second vertical recruitment short](../blue-action-final/ur-recomp-blue-action-27s-vertical.mp4), SHA-256 `7ae46fca497c0a53e4bbc59b4ee2700844fcdc595edc0c63e27ce705fd5e2ded`.
+- [Poster from the real upside-down Jumps rider](../blue-action-final/ur-recomp-blue-action-poster.png), SHA-256 `f3dd40d8c18bf88624d0ec3e41e705dd0e800561136ea16efcfeec46613762aa`.
+- [Accepted exact source identities, three course cuts and 80-second timeline](../blue-action-final/flagship-provenance.json).
+- [14 independently decoded output frame witnesses](../blue-action-final/blue-action-review.json).
+
+The rendering stage passed in [Actions run 39381149305](https://github.com/gamesbyian/UR-Recomp/actions/runs/39381149305); the encoding result was rescued, source-audited, poster-generated and published without redundant re-encoding in [run 39381556246](https://github.com/gamesbyian/UR-Recomp/actions/runs/39381556246). No temporary editing workflows remain in the branch. Independent visual screening of the actual new cut sampled its authentic blue-framed reveal, course topography, separated players, Jumps inverted airborne rider, engineering/animation cards and final CTA. Full human play-through and media public redistribution rights are separate.
+
 # Blue-box-art editorial overhaul, October 20
 
 The three user-supplied references establish the visual brief: bright blue rather than grey/black cards, chunky yellow lettering with purple dimensional shadows, looping rainbow tubular track, gloss on the wheel/body, playful spots of confetti and a consistent Uniracers-inspired unicycle footer. This is an independently authored editorial treatment and **does not reproduce the game's official logo or claim the original designers authored these materials**.

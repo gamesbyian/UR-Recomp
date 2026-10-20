@@ -31,10 +31,10 @@ class TopologyTwoPlayerCaptureTest(unittest.TestCase):
             with self.subTest(target=target):
                 script = m.menu_route(SOURCE, target)
                 self.assertIn("until 009F == 6D 1200", script)
-                self.assertIn("until 009F == 91 1200", script)
+                self.assertIn("until 009F == 92 1200", script)
                 self.assertIn("until 0313 == 01 1800", script)
                 self.assertIn("until 0E1F != 00", script)
-                self.assertEqual(script.count("dump verified-course-"), 1)
+                self.assertEqual(script.count("dump verified-course-"), 2)
                 self.assertEqual(script.count("until 00CE =="), 1)
                 self.assertNotIn("poke", script)
                 self.assertNotIn("write ", script)

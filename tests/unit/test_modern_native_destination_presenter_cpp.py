@@ -18,6 +18,13 @@ class ModernNativeDestinationPresenterTest(unittest.TestCase):
         self.assertIn('#include "modern_native_destination_presenter.hpp"', source)
         self.assertEqual(source.count("render_modern_native_destination("), 1)
         self.assertIn("if (drawn)", source)
+        self.assertIn("auto shell_view = view;", source)
+        self.assertIn("root_rect, shell_view);", source)
+        for flag in ("options_open", "read_only_records_open",
+                     "practice_picker_open", "practice_launch_pending",
+                     "two_seat_join_open", "first_racer_open",
+                     "unbound_two_player_warning_open"):
+            self.assertIn(f"shell_view.{flag} = false;", source)
         self.assertIn("g_options.open) fill_options_view(view, option_text);", source)
         self.assertIn("view.records_detail = g_records_detail;", source)
         self.assertIn("view.two_seat_join_open = g_two_seat_join.open();", source)

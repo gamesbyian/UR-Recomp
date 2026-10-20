@@ -79,3 +79,35 @@ Each review was posted directly to the owning PR. **These findings are at the in
 **Integration dependency:** Title's new Baldosa \`prepare_frame\` and 342-wide draw seam in #2043 may unlock geometry blocked at the earlier #2040 snapshot, but these branches still independently edit \`tools/baldosa_native_modern_root.cpp\`; neither can be awarded wide screen reachability from **another PR's unmerged code**. Rebase and compose single ownership of native title/root/child/motion once, then run **same executable** 4:3/16:9 keyboard/P1/P2/modal, held-edge/reduced-motion and source parity cases. Present ownership cannot be decided by unit-level painter width assertions alone.
 
 None of these are an approval/veto of visual taste. They identify traceable code/readiness gaps, with human aesthetic comparison and attached physical device checks explicitly deferred.
+
+
+## Opt-in actual SDL drawable readback (independent QA transport)
+
+The repository already has an empirical 3840×2160 SDL readback probe for graphics QA at \`tools/baldosa_sdl_physical_4k_capture_spike.py\`. To avoid mistaking an internal 342×224 host source raster for a consumer-visible 16:9 screenshot, this QA lane adds the **separate disposable** \`tools/qa_modern_visual_sdl_capture.py\` with a strict exact-native SDL2 renderer anchor. Nothing in the normal game binary is changed unless this test-only script is explicitly staged into a **throwaway copy** of the pinned Baldosa framework before native compilation. Source-drift/ambiguous anchors fail closed. The adapter is disabled unless all four environment variables are set; there is one capture per *real SDL EndDraw ordinal*, not per paused guest frame.
+
+Example execution within an already established pinned Windows native source/build workflow, **before the CMake build**:
+
+\`\`\`sh
+python3 tools/qa_modern_visual_sdl_capture.py --framework baldosa/snesrecomp
+# Rebuild the native game from that modified disposable host.
+
+# During one isolated existing original-native + Modern title/menu process:
+export UR_MODERN_VISUAL_SDL_CAPTURE_DRAW=70
+export UR_MODERN_VISUAL_SDL_CAPTURE_FILE="$RUNNER_TEMP/actual-drawable.pam"
+export UR_MODERN_VISUAL_SDL_CAPTURE_EXPECT_WIDTH=1280
+export UR_MODERN_VISUAL_SDL_CAPTURE_EXPECT_HEIGHT=720
+# Invoke the already-established real native executable and controller route.
+# Retain same-process stderr, script/semantic buttons, exact PE and source SHA.
+
+python3 tools/qa_modern_visual_pam_png.py \
+  "$RUNNER_TEMP/actual-drawable.pam" \
+  "$RUNNER_TEMP/actual-drawable.png" \
+  --expect 1280x720 \
+  --receipt "$RUNNER_TEMP/drawable-conversion.json"
+\`\`\`
+
+The readback is taken **after host texture composition and before SDL_RenderPresent**. It uses \`SDL_RenderReadPixels\` into an actual drawable-sized RGBA P7, enforcing a caller-specified observed width/height (maximum 3840×2160), and prints \`UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=N guest_frame=F output=WxH source=SDL_RenderReadPixels\` in the genuine native process log. A mismatch, invalid parameter, absent renderer, existing output, failed allocation or readback does not create accepted evidence. This diagnostic has an explicit SDL2 guard; an SDL3-only host is unsupported rather than silently treated as equivalent.
+
+The PNG converter validates a strict P7 RGB_ALPHA header, size and complete raw length. It preserves RGBA samples exactly, inserts only required PNG per-scanline filter bytes, CRCs each native PNG chunk, and records both P7 and PNG SHA256s. Its tests decompress the resulting image again and compare the entire row stream to the source. It cannot prove the supplied P7 was captured from SDL, that the native executable matches its filename, or that the image looks correct. The independent capture manifest must retain the actual game log's SDL readback marker, input route evidence, exact native PE, source SHA, **P7 and conversion receipt** in addition to the PNG. The primary 25-case verifier checks final-output PNG hashes/dimensions/route markers and never grants approval. Cross-file provenance from P7 and the source binary still needs independent investigation; future instrumented runs must bind these bytes to one immutable executable.
+
+**Execution status:** new adapter, converter and adversarial fixtures committed, but **not yet staged into a native Windows source build or run against an attached drawable**. No claim of a newly captured image, Windows package, physical display or reachable 342-wide destination follows from these tests alone. The next meaningful run belongs to the eventual **combined title + shared-grammar + destinations + motion native PR head**, otherwise an isolated capture may show only one or two producers' code. Confirm output size with the real SDL readback, then inspect readable focus/text and controller response frame-by-frame.

@@ -40,6 +40,12 @@ class ModernMenuMotionTest(unittest.TestCase):
         self.assertIn("UR_REDUCED_MOTION", baldosa)
         self.assertIn("UR_MODERN_MENU_TEST_ADVANCE_PER_PRESENT", baldosa)
         self.assertIn("modern_menu_capture_test_tick60(", baldosa)
+        self.assertIn("UR_MODERN_MENU_MOTION_CAPTURE ordinal=%llu tick60=%llu ", baldosa)
+        for token in ("selection=%u", "spin=%d", "offset=%d",
+                      "entrance=%d", "root_x=%d", "root_w=%d",
+                      "surface_w=%d", "surface_h=%d", "painted=%d"):
+            self.assertIn(token, baldosa)
+        self.assertIn("if (provenance_log)", baldosa)
         self.assertIn("g_native_menu_motion_root_presents = 0", baldosa)
         self.assertIn("UR_MODERN_SOURCE_HERO_EXPERIMENTAL_BUILD", baldosa)
         self.assertIn("UR_MODERN_SOURCE_HERO_EXPERIMENTAL_BUILD == 1", baldosa)

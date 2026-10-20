@@ -219,7 +219,7 @@
       ],
       "input": "pad-p2",
       "state": "p1-p2-named",
-      "review_target": "P2 ownership, distinct profile join and release edges"
+      "review_target": "P1 opens join; P2 owns only its seat, confirmed/released independently; no P2 root navigation claim"
     },
     {
       "id": "practice-locked",
@@ -295,9 +295,9 @@
         1024,
         768
       ],
-      "input": "pad-p2",
+      "input": "pad-p1",
       "state": "earned-2p",
-      "review_target": "P1/P2 winner and time aligned to raw paired record"
+      "review_target": "P1 root Records after genuine 2P result, inspect both source-bound participants and their exact time; P2 remains join-only"
     },
     {
       "id": "transition-back-release",

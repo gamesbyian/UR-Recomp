@@ -108,9 +108,10 @@ class MenuVisualLanguageTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             atlas = Path(td) / "main-title.png"
             mvl.write_atlas(atlas, d, 0)
-            receipt = mvl.original_big_font_manifest(atlas, d)
+            receipt = mvl.original_big_font_manifest(atlas, d, 0)
             self.assertEqual(receipt["dimensions"], [640, 16])
             self.assertEqual(receipt["glyph_cell"], [16, 16])
+            self.assertEqual(receipt["source_char_base_word"], 0)
             self.assertEqual(len(receipt["slots"]), 40)
             self.assertEqual(receipt["slots"][0], "0")
             self.assertNotIn("O", receipt["slots"])
@@ -183,6 +184,14 @@ class MenuVisualLanguageTests(unittest.TestCase):
             info = mvl.write_original_menu_bg1(out, d)
             self.assertEqual(info["dimensions"], [256, 224])
             self.assertEqual(info["layers"], ["BG1 8bpp MODE3 only"])
+            self.assertEqual(info["source_bg_mode"], 3)
+            self.assertEqual(info["source_bg1_map_base_word"], 0x400)
+            self.assertEqual(info["source_bg1_char_base_word"], 0)
+            self.assertEqual(info["source_bg1_scroll"], [0, 0])
+            self.assertEqual(info["source_registers_sha256"], hashlib.sha256(
+                json.dumps({"fillram": d.fillram, "ppu": d.ppu},
+                           sort_keys=True, separators=(",", ":")).encode()
+            ).hexdigest())
             self.assertEqual(info["png_sha256"], hashlib.sha256(out.read_bytes()).hexdigest())
             self.assertEqual(info["rgba_sha256"],
                              hashlib.sha256(mvl.original_menu_bg1_rgba(d)).hexdigest())
@@ -209,6 +218,11 @@ class MenuVisualLanguageTests(unittest.TestCase):
             self.assertEqual(glyphs[positions[")"]]["tile"], 0xA4)
             self.assertTrue(glyphs[positions[")"]]["hflip"])
             self.assertEqual(info["glyph_cell"], [8, 16])
+            self.assertEqual(info["source_char_base_word"], 0)
+            self.assertEqual(info["source_vram_sha256"], hashlib.sha256(
+                sample.vram).hexdigest())
+            self.assertEqual(info["source_cgram_sha256"], hashlib.sha256(
+                sample.cgram).hexdigest())
             self.assertEqual(info["dimensions"], [len(glyphs) * 8, 16])
             self.assertEqual(info["sha256"],
                              hashlib.sha256(path.read_bytes()).hexdigest())
@@ -323,6 +337,8 @@ class MenuVisualLanguageTests(unittest.TestCase):
             receipt = mvl.export_cursor_atlas(dump_dir, png, manifest)
             self.assertEqual(receipt["atlas_rgba_dimensions"], [624, 39])
             self.assertEqual(len(receipt["source_frames"]), 16)
+            self.assertEqual({f["source_obj_sel"]
+                              for f in receipt["source_frames"]}, {0x20})
             self.assertEqual([f["source_obj_tile"] for f in receipt["source_frames"]],
                              list(mvl.CURSOR_SOURCE_TILE_CYCLE))
             self.assertEqual(hashlib.sha256(png.read_bytes()).hexdigest(),

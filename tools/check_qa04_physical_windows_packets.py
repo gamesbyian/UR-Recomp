@@ -140,6 +140,9 @@ def inspect_packet(path: Path, *, commit: str, zip_sha: str,
                      "attachment_count": len(attachments),
                      "attachment_bytes": total,
                      "attached_kind_names": sorted(observed_kinds),
+                     "attachment_digest_by_kind": {
+                         item["kind"]: item["sha256"] for item in attachments
+                     },
                      "local_attachment_sha256_verified": True}
 
 
@@ -158,6 +161,12 @@ def audit(paths: list[Path], *, source_sha: str,
                                            pe_sha=executable_sha)
         receipts.append(witness)
         summaries.append(summary)
+    all_attachment_digests = [
+        digest for summary in summaries
+        for digest in summary["attachment_digest_by_kind"].values()
+    ]
+    require(len(set(all_attachment_digests)) == len(all_attachment_digests),
+            "same original evidence bytes reused across independent setups")
     require(qa04_physical_coverage(receipts),
             "not three dissimilar source-bound L5 physical/clean-machine setups")
     return {

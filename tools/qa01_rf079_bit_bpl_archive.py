@@ -143,7 +143,7 @@ def inspect(case_zip, binary_zip):
         per_frame=[]
         for frame in (1017,1018):
             before=first_after(ol,oe,"stage=nmi_before",frame,3 if frame==1017 else 2)
-            after=first_after(nl,ne,"stage=handler_return",frame,4)
+            after=first_after(nl,ne,"stage=handler_return",frame,5)
             if frame==1017:
                 a,bit,branch=before
                 require(a["before"]=="82D4F0" and a["opcode"]=="10"
@@ -157,7 +157,7 @@ def inspect(case_zip, binary_zip):
                     and branch["opcode"]=="10" and branch["N"]=="1"
                     and branch["Nbyte"]=="FF" and branch["after"]=="82D4F2",
                     "original BIT N=1/BPL fallthrough unproven")
-            first,returned,following,used=after
+            first,returned,following,used,next_pc=after
             require(first["stage"]=="opcode" and first["guestPC"]=="82D4EE"
                     and first["tier"]=="aot" and returned["stage"]=="bit_real_return"
                     and returned["guestPC"]=="82D4EE" and
@@ -166,7 +166,8 @@ def inspect(case_zip, binary_zip):
                     following["stage"]=="opcode" and following["guestPC"]=="82D4F0"
                     and used["stage"]=="bpl_actual_input" and
                     used["guestPC"]=="82D4F0" and used["N"]=="1"
-                    and used["bitReadSeen"]=="1",
+                    and used["bitReadSeen"]=="1" and
+                    next_pc["stage"]=="opcode" and next_pc["guestPC"]=="82D4F2",
                     "native actual BIT return/BPL negative flag unqualified")
             per_frame.append({
                 "matching_host_label_only":frame,

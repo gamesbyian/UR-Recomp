@@ -66,6 +66,30 @@ def checked_hash(root: Path, rel: object, expected: object) -> Path:
     return path
 
 
+def check_pe32plus_x64(path: Path) -> None:
+    """Reject a non-native placeholder or wrong-platform program.
+
+    A structurally plausible PE32+ is still NOT proof of a genuine built
+    game, clean-machine operation or its relationship to claimed source SHA.
+    """
+    size = path.stat().st_size
+    if size <= 65536 or size > 512 * 1024 * 1024:
+        raise CaptureError("native executable has implausible PE file size")
+    with path.open("rb") as src:
+        header = src.read(4096)
+    if len(header) < 512 or header[:2] != b"MZ":
+        raise CaptureError("native executable is not an MZ image")
+    peoff = struct.unpack_from("<I", header, 0x3c)[0]
+    if peoff < 64 or peoff + 112 > len(header) or header[peoff:peoff + 4] != b"PE\x00\x00":
+        raise CaptureError("native executable has invalid PE signature/offset")
+    machine, sections, _timestamp, _syms, _nsyms, opt_size, _flags = struct.unpack_from(
+        "<HHIIIHH", header, peoff + 4)
+    if (machine != 0x8664 or not 1 <= sections <= 96 or
+            opt_size < 112 or peoff + 24 + opt_size > size or
+            struct.unpack_from("<H", header, peoff + 24)[0] != 0x20b):
+        raise CaptureError("native executable is not an AMD64 PE32+ image")
+
+
 def png_pixels(data: bytes) -> tuple[int, int]:
     """Verify CRC-checked PNG envelope and unambiguous RGBA/RGB IHDR dimensions.
 
@@ -247,7 +271,8 @@ def audit(matrix: dict, bundle: dict, evidence_root: Path) -> dict:
         raise CaptureError("exe_sha256 must be full lowercase SHA256")
     if bundle.get("capture_runtime") != "native-sdl-final-output":
         raise CaptureError("mock/producer-only capture is not native final output")
-    checked_hash(evidence_root, bundle.get("executable"), binary_sha)
+    executable = checked_hash(evidence_root, bundle.get("executable"), binary_sha)
+    check_pe32plus_x64(executable)
     captures = bundle.get("captures")
     if not isinstance(captures, list):
         raise CaptureError("captures must be a list")

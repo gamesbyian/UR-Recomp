@@ -72,7 +72,8 @@ inline std::uint64_t modern_menu_resolve_test_tick60(
 }
 
 // Exact-head source/SDL capture may advance a pinned presentation clock
-// by ONE tick per actual root present, not per guest CPU/frame or thread tick.
+// by ONE tick per real root compositor draw, not a certified SDL present
+// and never a guest CPU/frame or thread tick.
 // Fixed mode remains backwards compatible. Invalid seed always falls back
 // to real SDL time, and cumulative capture arithmetic saturates.
 // A named host-present ordinal must accompany any resulting pixel evidence.

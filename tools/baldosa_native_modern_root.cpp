@@ -1251,10 +1251,14 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     std::array<ur::product::BaldosaOptionsRowText,
                ur::product::kBaldosaOptionsRowCount> option_text{};
     if (g_options.open) fill_options_view(view, option_text);
+    // The focus accent and the native root MUST use one identical rectangle.
+    // The standalone animation lane leaves widescreen reflow to #2040/#2053,
+    // whose reconciled host computes a 320-wide centred wide root rectangle.
+    const HostOverlayRect root_rect{8,10,240,204};
     const bool drawn = ur::product::render_modern_root_overlay(
         painter, reinterpret_cast<std::uint32_t*>(dst),
         static_cast<int>(pitch / 4), height, 1, 240,
-        HostOverlayRect{8,10,240,204}, view);
+        root_rect, view);
     if (drawn) {
         // Host-only motion overlays the existing focus row. Do not animate
         // through a modal, quit prompt or source guest handoff.
@@ -1280,7 +1284,7 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
             (void)ur::product::paint_modern_menu_selection_motion(
                 painter, reinterpret_cast<std::uint32_t*>(dst),
                 static_cast<int>(pitch / 4), height, 1,
-                HostOverlayRect{(width - 240) / 2, 10, 240, 204}, phase);
+                root_rect, phase);
 #if defined(UR_NATIVE_ORIGINAL_HERO_EXPERIMENTAL_AVAILABLE)
             // Real game opt-in ONLY. These are original cartridge racer poses,
             // but their one-shot 2P-race clip is NOT approved as title artwork

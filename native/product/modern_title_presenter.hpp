@@ -27,6 +27,20 @@ struct ModernTitleState {
     bool reduced_motion = false;
 };
 
+// Choose logical output from the actual drawable, not the host's window
+// setting alone. At a 4:3 (or 3:2) window, compose the original-density
+// 256x224 4:3 title. At 16:10/16:9, keep the full 342x224 width; gameplay
+// and all Authentic output remain the native 256 raster either way.
+constexpr int modern_title_logical_width(
+    int drawable_width, int drawable_height, bool modern_visible) noexcept {
+    if (!modern_visible) return 256;
+    if (drawable_width > 0 && drawable_height > 0 &&
+        static_cast<std::int64_t>(drawable_width) * 2 <=
+        static_cast<std::int64_t>(drawable_height) * 3)
+        return 256;
+    return 342;
+}
+
 constexpr ModernTitleState modern_title_boot(
     bool enabled, bool reduced_motion = false) noexcept {
     return {enabled ? ModernTitlePhase::Intro : ModernTitlePhase::Root,

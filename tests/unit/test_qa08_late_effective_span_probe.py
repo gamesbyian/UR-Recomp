@@ -80,7 +80,7 @@ class SpanEffectiveObserverTest(unittest.TestCase):
             def versions(path):
                 return span.CORE_REV if path.resolve() == (game/"snesrecomp").resolve() else span.GAME_REV
             with patch.object(span, "pinned_revision", side_effect=versions):
-                self.assertEqual(span.apply_game(game,write=False),target)
+                self.assertTrue(span.apply_game(game,write=False).samefile(target))
                 self.assertEqual(target.read_text(),BASE)
                 span.apply_game(game,write=True)
                 self.assertEqual(target.read_text(),span.patch_source(BASE))

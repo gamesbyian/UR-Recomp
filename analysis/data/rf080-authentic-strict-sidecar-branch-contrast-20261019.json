@@ -18,7 +18,7 @@
   "original_core_elf_sha256": "595c7577b2a39396d3d93c7ccef63a6da98155d40278a49de2c64bf5ae4af5d8",
   "native_elf_sha256": "bd2eac53b31ff08f908aa00ffaec601bfb6078ff83567633de7c93756ed88037",
   "native_binary_zip_sha256": "0f0baf99dac49e5e0e0edf4f09e28b3af3f89f3625250c7a0bda09cc7b9fdbd7",
-  "original_staged_source_sha256": "",
+  "original_staged_source_sha256": "2f43161ca3221e65bb233936b1e3f9b0f27849a5fd9513084d91a245284b9c58",
   "native_staged_beam_sha256": "c119b6ebe853b11fae3c06f0329f338da75b8d1ba79055d27ae0bf54562795",
   "native_staged_cpu_sha256": "ed66c405b5bf891aac8a1386098cafbd8d1e00c0ce04429e343e557d9b5b70f0",
   "real_original_post_op_rows": 12958,

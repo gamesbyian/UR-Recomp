@@ -6,6 +6,7 @@
  * launch, Records callbacks, or route completeness for other destinations.
  */
 #include "modern_root_overlay_presenter.hpp"
+#include "modern_native_destination_presenter.hpp"
 #include "modern_root_physical_edges.hpp"
 #include "baldosa_native_records_summary.hpp"
 #include "baldosa_native_multiplayer_records_summary.hpp"
@@ -1234,10 +1235,17 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     std::array<ur::product::BaldosaOptionsRowText,
                ur::product::kBaldosaOptionsRowCount> option_text{};
     if (g_options.open) fill_options_view(view, option_text);
+    // Let the shared root/title owner draw the five-entry shell first.
+    // Native destination children then overpaint ONLY their former modal.
+    // All semantics, option values, roster and persistence stay in `view`.
+    const HostOverlayRect root_rect{8,10,240,204};
+    const int stride = static_cast<int>(pitch / 4);
+    auto* pixels = reinterpret_cast<std::uint32_t*>(dst);
     const bool drawn = ur::product::render_modern_root_overlay(
-        painter, reinterpret_cast<std::uint32_t*>(dst),
-        static_cast<int>(pitch / 4), height, 1, 240,
-        HostOverlayRect{8,10,240,204}, view);
+        painter, pixels, stride, height, 1, 240, root_rect, view);
+    if (drawn)
+        ur::product::render_modern_native_destination(
+            painter, pixels, stride, height, 1, 240, root_rect, view);
     if (drawn) {
         ++g_paint_count;
         if (g_reentry_needs_paint) {

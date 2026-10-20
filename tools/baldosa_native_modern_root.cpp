@@ -14,6 +14,7 @@
 #include "baldosa_native_two_seat_join.hpp"
 #include "baldosa_native_options.hpp"
 #include "modern_pause_overlay_presenter.hpp"
+#include "modern_menu_motion.hpp"
 #include "quick_practice_route.hpp"
 #include "quick_practice_input_mask.hpp"
 #include "quick_practice_launch.hpp"
@@ -211,6 +212,8 @@ std::string g_records_two_detail;
 bool g_records_two_player = false;
 bool g_render_reported = false;
 unsigned g_paint_count = 0;
+// Native UI clock only, no guest or input simulation state.
+ur::product::ModernMenuMotionState g_native_menu_motion{};
 int g_stock_target = -1;
 std::uint16_t g_stock_settle = 0;
 std::uint32_t g_stock_budget = 0;
@@ -1162,10 +1165,12 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
                     static_cast<std::size_t>(width) * 4);
     const ModernRootOverlayPainter painter{
         &snes_ovl_fill_rect, &snes_ovl_stroke_rect, &snes_ovl_draw_text};
-    if (!g_visible)
+    if (!g_visible) {
+        g_native_menu_motion = {};
         return ur::product::render_baldosa_native_run_save_feedback(
             painter, reinterpret_cast<std::uint32_t*>(dst),
             static_cast<int>(pitch / 4), height, g_run_save_feedback) ? 1 : 0;
+    }
     ModernRootOverlayView view{
         g_menu, false, g_racer_name,
         false, g_confirm_quit, kNativeRootAvailable, false,
@@ -1239,6 +1244,30 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         static_cast<int>(pitch / 4), height, 1, 240,
         HostOverlayRect{8,10,240,204}, view);
     if (drawn) {
+        // Host-only motion overlays the existing focus row. Do not animate
+        // through a modal, quit prompt or source guest handoff.
+        const bool root_focus_visible = !view.quit_confirm &&
+            !view.practice_picker_open && !view.practice_launch_pending &&
+            !view.options_open && !view.read_only_records_open &&
+            !view.two_seat_join_open && !view.first_racer_open &&
+            !view.unbound_two_player_warning_open;
+        const char* reduced = std::getenv("UR_REDUCED_MOTION");
+        const bool reduced_motion =
+            reduced && std::strcmp(reduced, "1") == 0;
+        const auto phase = ur::product::advance_modern_menu_motion(
+            g_native_menu_motion,
+            {ur::product::modern_menu_tick60(
+                 static_cast<std::uint64_t>(SDL_GetTicks())),
+             static_cast<std::uint8_t>(
+                 ur::product::modern_root_destination_index(
+                     ur::product::modern_root_menu_selected(g_menu))),
+             root_focus_visible, reduced_motion});
+        if (root_focus_visible) {
+            (void)ur::product::paint_modern_menu_selection_motion(
+                painter, reinterpret_cast<std::uint32_t*>(dst),
+                static_cast<int>(pitch / 4), height, 1,
+                HostOverlayRect{(width - 240) / 2, 10, 240, 204}, phase);
+        }
         ++g_paint_count;
         if (g_reentry_needs_paint) {
             std::fprintf(stderr,

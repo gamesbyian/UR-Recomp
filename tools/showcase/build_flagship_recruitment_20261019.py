@@ -313,7 +313,7 @@ def main():
         # 900-frame three-course reel), never an invented promotional scene.
         still=tmp/"verified-jumps-gameplay-still.png"
         run("ffmpeg","-nostdin","-hide_banner","-loglevel","error","-y",
-            "-i",SOURCES["action"][0],"-vf","select=eq(n\\\\,570)",
+            "-i",SOURCES["action"][0],"-vf","select=eq(n\\,570)",
             "-vsync","vfr","-frames:v","1",still)
         im=Image.open(still).convert("RGB")
         d=ImageDraw.Draw(im)

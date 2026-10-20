@@ -590,9 +590,18 @@ def write_small_font_atlas(path: Path, d: Dump, char_base: int) -> dict:
 # 4x4 8x8 4bpp tiles at +1 horizontally and +16 vertically. The high name
 # bit selects the second page. Transparent palette index 0 is never painted.
 # Keep this addressing independent of BG2's $210C title glyph base.
+# (small width,height), (large width,height) per $2101. Modes 6/7
+# contain rectangular OBJs; refusing a 32x64 as "32x32" matters because
+# that would silently crop source art while yielding a plausible PNG.
 OBJ_SIZE_PAIR = (
-    (8, 16), (8, 32), (8, 64), (16, 32),
-    (16, 64), (32, 64), (16, 32), (16, 32),
+    ((8, 8), (16, 16)),
+    ((8, 8), (32, 32)),
+    ((8, 8), (64, 64)),
+    ((16, 16), (32, 32)),
+    ((16, 16), (64, 64)),
+    ((32, 32), (64, 64)),
+    ((16, 32), (32, 64)),
+    ((16, 32), (32, 32)),
 )
 CURSOR_SOURCE_TILE_CYCLE = (8, 4, 0, 204, 200, 196, 192, 140,
                             136, 132, 128, 76, 72, 68, 64, 12)
@@ -617,7 +626,7 @@ def obj_sprite_rgba(d: Dump, sprite: dict) -> bytes:
         raise ValueError("source PPU capture is missing OBJSEL ($2101)")
     obsel = int(d.fillram["2101"], 16)
     size = OBJ_SIZE_PAIR[(obsel >> 5) & 7][int(sprite["large"])]
-    if size != 32 or not (0 <= int(sprite["palette"]) <= 7):
+    if size != (32, 32) or not (0 <= int(sprite["palette"]) <= 7):
         raise ValueError("source cursor requires an actual 32x32 OBJ")
     if len(d.vram) != 65536 or len(d.cgram) != 512:
         raise ValueError("incorrect original PPU VRAM/CGRAM lengths")

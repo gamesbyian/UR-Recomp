@@ -116,7 +116,25 @@ void test_motion() {
     assert(pose.entrance_distance_px == 0);
     pose = advance_modern_menu_motion(state, {52, 3, true, false});
     assert(pose.selection == 3);
-    assert(pose.cursor_remainder_px == -modern_menu_cursor_distance(1, 21));
+    assert(pose.cursor_remainder_px == 0);
+    assert(pose.entrance_distance_px == 0);
+    assert(pose.hero_frame_ordinal == 7);
+    // A genuine new selection after motion is re-enabled animates again.
+    pose = advance_modern_menu_motion(state, {53, 4, true, false});
+    assert(pose.selection == 4);
+    assert(pose.cursor_remainder_px == -21);
+    assert(pose.entrance_distance_px == 0);
+    assert(pose.hero_frame_ordinal == 0);
+    // Even if reduced motion is toggled inside an incomplete entrance, the
+    // previous 39-frame sweep does not suddenly restart when re-enabled.
+    ModernMenuMotionState reentry{};
+    pose = advance_modern_menu_motion(reentry, {1, 0, true, false});
+    assert(pose.entrance_distance_px == 256);
+    pose = advance_modern_menu_motion(reentry, {2, 0, true, true});
+    assert(pose.entrance_distance_px == 0);
+    pose = advance_modern_menu_motion(reentry, {3, 0, true, false});
+    assert(pose.entrance_distance_px == 0);
+    assert(pose.cursor_remainder_px == 0);
 }
 void test_raster() {
     // Real native pixel-buffer writes for both original and wide dimensions.

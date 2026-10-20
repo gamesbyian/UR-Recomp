@@ -144,41 +144,58 @@ inline bool render_modern_title(
                         center - 28 * 4, 116 + lift, strap, grey, 1);
     }
 
-    // Silhouette: a native vector/pixel treatment of a single wheel, not
-    // the unapproved procedural 4x gameplay-racer asset. The two rim rings,
-    // spokes, hub, fork and saddle remain legible at both source densities.
-    const int wheel_cx = wide ? w - 68 : w - 43;
-    const int wheel_cy = 166;
+    // A disciplined small unicycle vignette within the track strip, clear
+    // of the authentic title plate and subtitle. Source title art above
+    // remains the authoritative hero, with no substituted gameplay sprite.
+    const int wheel_cx = wide ? w - 51 : w - 39;
+    const int wheel_cy = 170;
+    constexpr int radius = 18;
     if (state.age >= 12 || state.phase == ModernTitlePhase::Leaving) {
-        for (int dy = -27; dy <= 27; ++dy) {
-            const double unit = static_cast<double>(dy) / 28.0;
-            const int outer = static_cast<int>(
-                std::sqrt(std::max(0.0, 1.0 - unit * unit)) * 21.0);
-            const int inner = static_cast<int>(
-                std::sqrt(std::max(0.0, 1.0 - unit * unit)) * 17.0);
-            paint.fill_rect(pixels, stride, surface_height,
-                            wheel_cx - outer, wheel_cy + dy, 2, 1, gold);
-            paint.fill_rect(pixels, stride, surface_height,
-                            wheel_cx + outer - 1, wheel_cy + dy, 2, 1, gold);
-            if ((dy & 1) == 0) {
+        // Eight fixed-radius, integer-only spoke paths: reproducible 1x
+        // raster regardless of host math implementations or frame rate.
+        constexpr int spokes[8][2] = {
+            {0, -14}, {10, -10}, {14, 0}, {10, 10},
+            {0, 14}, {-10, 10}, {-14, 0}, {-10, -10}};
+        for (const auto& spoke : spokes) {
+            for (int n = 0; n <= 14; ++n) {
+                const int px = wheel_cx + (spoke[0] * n) / 14;
+                const int py = wheel_cy + (spoke[1] * n) / 14;
                 paint.fill_rect(pixels, stride, surface_height,
-                                wheel_cx - inner, wheel_cy + dy, 1, 1, blue);
-                paint.fill_rect(pixels, stride, surface_height,
-                                wheel_cx + inner, wheel_cy + dy, 1, 1, blue);
+                    px, py, 1, 1, cobalt);
             }
         }
+        // Pixel-rim ring and dark tyre. Every scanline explicitly paints
+        // the top/bottom points, never leaves the wheel as open brackets.
+        for (int dy = -radius; dy <= radius; ++dy) {
+            const double unit = static_cast<double>(dy) / radius;
+            const int extent = static_cast<int>(
+                std::sqrt(std::max(0.0, 1.0 - unit * unit)) * radius);
+            const int y = wheel_cy + dy;
+            paint.fill_rect(pixels, stride, surface_height,
+                wheel_cx - extent, y, 2, 1, gold);
+            paint.fill_rect(pixels, stride, surface_height,
+                wheel_cx + extent - 1, y, 2, 1, gold);
+        }
+        // Bounded fork and seat register. Unlike the earlier tall graphic,
+        // the saddle begins BELOW the slogan and cannot cut its glyphs.
         paint.fill_rect(pixels, stride, surface_height,
-                        wheel_cx - 19, wheel_cy - 1, 38, 2, cobalt);
+            wheel_cx - 1, 134, 3, 33, blue);
         paint.fill_rect(pixels, stride, surface_height,
-                        wheel_cx - 1, wheel_cy - 26, 2, 52, cobalt);
+            wheel_cx - 8, 130, 17, 4, gold);
         paint.fill_rect(pixels, stride, surface_height,
-                        wheel_cx - 3, wheel_cy - 3, 7, 7, gold);
+            wheel_cx - 5, 129, 11, 1, blue);
+        for (int n = 0; n < 17; ++n) {
+            paint.fill_rect(pixels, stride, surface_height,
+                wheel_cx - 3 - n / 5, 152 + n, 2, 1, blue);
+            paint.fill_rect(pixels, stride, surface_height,
+                wheel_cx + 2 + n / 5, 152 + n, 2, 1, blue);
+        }
         paint.fill_rect(pixels, stride, surface_height,
-                        wheel_cx - 3, wheel_cy - 48, 6, 23, blue);
+            wheel_cx - 2, wheel_cy - 2, 5, 5, gold);
         paint.fill_rect(pixels, stride, surface_height,
-                        wheel_cx - 11, wheel_cy - 52, 24, 5, gold);
+            wheel_cx - 1, wheel_cy + 3, 2, 7, blue);
         paint.fill_rect(pixels, stride, surface_height,
-                        wheel_cx - 6, wheel_cy - 53, 19, 2, blue);
+            wheel_cx - 8, wheel_cy + 10, 8, 2, gold);
     }
 
     // A short controller-first affordance sits in a steady safe-area.

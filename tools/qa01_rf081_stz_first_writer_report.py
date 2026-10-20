@@ -93,6 +93,9 @@ def parse(original:str,native:str)->dict:
              "original opcode return did not prove one real committed zero byte")
         must(int(original_set["seq"])+1==int(original_commit["seq"]),
              "original STZ setter-to-commit source ordinal not adjacent")
+        original_commit_delta=(int(original_commit["v"])-int(original_set["v"]))*1364+(int(original_commit["h"])-int(original_set["h"]))
+        must(original_commit_delta>=0,
+             "original STZ setter-to-completion source clock regressed")
         subset=[e for e in events if int(e["f"])==frame]
         interrupt=[i for i,e in enumerate(subset)
                    if e.get("stage")=="handler_return"]

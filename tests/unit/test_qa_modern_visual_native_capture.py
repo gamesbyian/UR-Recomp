@@ -39,7 +39,14 @@ class NativeSDLStageTests(unittest.TestCase):
         self.assertIn("UR_MODERN_VISUAL_SDL_CAPTURE_FILE", result)
         self.assertIn("UR_MODERN_VISUAL_SDL_CAPTURE_EXPECT_WIDTH", result)
         self.assertIn("UR_MODERN_VISUAL_SDL_CAPTURE_EXPECT_HEIGHT", result)
-        self.assertIn("#if !SNESRECOMP_SDL3", result)
+        # SDL3 returns a surface; SDL2 writes into the supplied array.
+        # Both must call this same observer in the real EndDraw path.
+        self.assertIn("#if SNESRECOMP_SDL3", result)
+        self.assertIn("SDL_Surface *native = SDL_RenderReadPixels(g_renderer, NULL);", result)
+        self.assertIn("SDL_ConvertSurface(native, SDL_PIXELFORMAT_ARGB8888)", result)
+        self.assertIn("SDL_DestroySurface(argb)", result)
+        self.assertIn("SDL_RenderReadPixels(g_renderer, NULL, SDL_PIXELFORMAT_ARGB8888,", result)
+        self.assertNotIn("#if !SNESRECOMP_SDL3\\n  UrQaModernReadDrawable();", result)
         self.assertIn("if (!target || !*target || !output || !*output", result)
         self.assertEqual(sdl.patch_host(result), result)
 

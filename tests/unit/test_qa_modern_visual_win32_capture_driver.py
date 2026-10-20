@@ -142,8 +142,9 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
         self.assertEqual(driver.ROUTES["records-keyboard"][0], "1")
         self.assertEqual(driver.ROUTES["options-p1"][0], "12")
         self.assertEqual(driver.ROUTES["profile-first-p1"][0], "8")
-        self.assertTrue(all(40 <= entry[1] < 100
-                            for entry in driver.ROUTES.values()))
+        self.assertTrue(all(40 <= entry[1] < 100 for name, entry
+                            in driver.ROUTES.items() if name != "authentic-stock"))
+        self.assertEqual(driver.ROUTES["authentic-stock"][1], 240)
 
     def test_native_destination_route_requires_actual_source_event(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -180,6 +181,25 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, "leaked into Authentic"):
                     driver.launch(stage / "exe", stage / "rom", stage,
                                   "authentic", (1280, 720), "windows", 10,
+                                  route="authentic-stock")
+
+    def test_black_authentic_sdl_capture_is_not_accepted_as_visual_parity(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            stage = Path(tmp)
+            def fake_native(command, **kw):
+                path = Path(kw["env"]["UR_MODERN_VISUAL_SDL_CAPTURE_FILE"])
+                head = (b"P7\nWIDTH 320\nHEIGHT 224\nDEPTH 4\n"
+                        b"MAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n")
+                path.write_bytes(head + bytes(320 * 224 * 4))
+                return subprocess.CompletedProcess(command, 0, stdout=(
+                    "[snes_load] name=UNIRACERS\n"
+                    "UR_MODERN_VISUAL_SDL_CAPTURE status=saved draw=240 "
+                    "guest_frame=240 output=320x224 "
+                    "source=SDL_RenderReadPixels backend=sdl3\n"), stderr="")
+            with patch.object(driver.subprocess, "run", side_effect=fake_native):
+                with self.assertRaisesRegex(RuntimeError, "no visible pixels"):
+                    driver.launch(stage / "exe", stage / "rom", stage,
+                                  "authentic", (320, 224), "windows", 10,
                                   route="authentic-stock")
 
     def test_authentic_guest_allowed_without_modern_menu_art(self):

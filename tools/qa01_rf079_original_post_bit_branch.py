@@ -37,7 +37,7 @@ static inline void ur_rf079_original_post_op(unsigned pre_pc, uint8 opcode) {
         " V=%u H=%d phase=after_real_guest_opcode\n",
         ++ur_rf079_original_seq,(unsigned)ICPU.Frame,pre_pc,
         (unsigned)opcode,after,(unsigned)Registers.D.W,
-        (unsigned)CheckMemory(),neg,(unsigned)((neg & 0x80u)!=0),
+        (unsigned)(CheckMemory()!=0),neg,(unsigned)((neg & 0x80u)!=0),
         (unsigned)CPU.V_Counter,(int)CPU.Cycles);
 }
 '''

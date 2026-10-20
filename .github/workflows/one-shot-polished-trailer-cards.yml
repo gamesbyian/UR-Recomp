@@ -52,4 +52,6 @@ jobs:
           git add media/showcase/2026-10-19/flagship/polished-cards/
           git rm -f .github/workflows/one-shot-polished-trailer-cards.yml
           git commit -m "media: publish visually inspectable source-backed typography cards"
+          git fetch origin "${GITHUB_REF_NAME}"
+          git rebase "origin/${GITHUB_REF_NAME}"
           git push origin "HEAD:${GITHUB_REF_NAME}"

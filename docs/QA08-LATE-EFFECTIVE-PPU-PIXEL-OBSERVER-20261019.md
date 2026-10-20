@@ -113,3 +113,18 @@ This code establishes **a mechanism capable of rendering a historical field with
 **Specific falsifiers for the active Windows experiment:** At guest5184, source-authenticated wrong pixel anchors must be checked for the actually selected PPU layer/index, the live CGRAM word at that index (or direct-colour/OBJ negative), main/sub math and final RGB. If the native span/legacy observer logs the older original CGRAM values for their winning pixels, an overly early native CGRAM update alone cannot explain the sampled final error. If the newer rotated words are confirmed at the winning indices in the same compiled PE, the precise missing step becomes correlating the original consumption phase and the native field's CPU/HDMA beam before considering a **palette replay/snapshot** repair. Any candidate must be benchmarked with exact original/native 263-frame RGB5 totals, guest CRC, ON/OFF logger noninterference, 1P/2P moving and result frames and clean Original fallback. No global recolour, guessed extra video shift, unqualified beam adjustment or CPU-clock modification is licensed by this memo.
 
 The dedicated [research-only Windows workflow](../.github/workflows/qa08-native-effective-cgram-windows.yml) runs separately linked OFF/ON Windows PEs and exact source checks. It is scoped to this draft branch, retains **bounded text evidence only**, and does not alter the release workflow. Failure, including a missing observer row, incompatible native palette selection, changed guest CRC or expired source artifact, must remain a visible refusal.
+
+
+
+## Preregistered per-pixel CGRAM-index falsification (before reviewing Win32 logs)
+
+The existing genuine 2014 Snes9x full-memory palette and separately qualified current Win32 CPU-submitted packet imply a *specific* test, not a license to relabel a sample when it disagrees. These predictions use exact full 256×224 source coordinates and the original/native RGB5 class crossjoin. They are **not** presently confirmed pixel CGRAM owners:
+
+| Authentic source anchors | Actual original → archived native RGB5 | Hypothesized winning CGRAM slot | Original 2014 readback at source 5184 | Native guest5183 CPU-submitted word |
+| --- | --- | --- | --- | --- |
+| (70,58), (202,182) | 20→17 | $6C | 56B5 | 4A52 |
+| (84,77), (175,145) | 15→20 | $6F | 4210 | 56B5 |
+| (53,41), (187,160) | 16→15 | $6E | 4631 | 4210 |
+| (65,52), (190,161) | 17→16 | $6D | 4A52 | 4631 |
+
+A future compiled Windows observation supports this candidate only if its **actual rendered main palette index and effective RGB555 word** at guest5184 agree with the predicted slot and new word, with PPU register, winning layer, native guest/host source stage and final physical pixel qualified. A different index, direct-colour source, host OBJ override, renderer-path mismatch or older effective CGRAM word refutes this particular per-pixel attribution; those outcomes must be recorded as failures of the hypothesis, not shifted to another field or recoloured. Even eight perfect matches do **not** establish the original CPU/beam clock or validate all 318,775 wrong pixels. The independent original/native 263-frame full-raster comparison, moving 1P/2P, forced-black guest4016, medal chromatic error and 3840×2160/art release authorities remain separate.

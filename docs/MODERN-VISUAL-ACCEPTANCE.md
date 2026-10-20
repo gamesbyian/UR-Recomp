@@ -1,9 +1,25 @@
 # Independent Modern visual acceptance: native title and menus
 
-**Status 2026-10-20: HOLD / evidence infrastructure, not visual sign-off.**
-Owner: separate QA/visual-integration lane. The real Modern/Baldosa five-destination native root exists; the new intentional title, shared visual tokens, full destination skin and animated hero are simultaneous owner work. This review is based on `main` **`2cfe3350325f489d5db8347d90a5fecbc1526f4a`**, not a subsequently merged combined visual build. No new native executable was built or run while authoring this review. **0/25 newly source-captured cases; 0 passed final visual approvals.** Do not change `docs/RELEASE-QUALITY-LEDGER.json`.
+**Status 2026-10-20: HOLD for the integrated redesign; actual Windows native SDL3 baseline now proven.** The first source review used `main` `2cfe335...`; later QA commits successfully built and captured the existing Baldosa Modern engineering root at 640×480, 1280×720 and 1024×768. The four independent title/grammar/destination/motion visual PRs remain unmerged. **0/25 integrated-redesign acceptance cases, 0 final visual approvals.** Do not change `docs/RELEASE-QUALITY-LEDGER.json`. All pre-capture observations later in this document refer to historical snapshots, not the latest native baseline.
 
 The quality authority is [MODERN-UI-VISUAL-FIDELITY.md](MODERN-UI-VISUAL-FIDELITY.md); navigation and animation intent are in [MODERN-FRONTEND-MASTER-DESIGN.md](MODERN-FRONTEND-MASTER-DESIGN.md). Functional host limitations and the actual player path are in [MODERN-FRONTEND-SHIPPING-STATUS.md](MODERN-FRONTEND-SHIPPING-STATUS.md), [MODERN-NATIVE-PLAYER-JOURNEY.md](MODERN-NATIVE-PLAYER-JOURNEY.md), [QA-PLAYER-JOURNEYS.md](QA-PLAYER-JOURNEYS.md) and [WORK-QUEUE.md](WORK-QUEUE.md). This is a per-candidate visual evidence **consumer**, never another frontend, renderer, route authority or release-gate owner.
+
+## Actual source-exact Windows SDL3 baseline (independent, 2026-10-20)
+
+[Workflow run #39413231035](https://github.com/gamesbyian/UR-Recomp/actions/runs/39413231035) passed native capture, tooling tests and repository hygiene at QA PR head `7b9d756fc1f0427c98279657d4be39912cc1a435`. Its checked-out PR merge source SHA is `2a24fb734f2c5f9b38dcb767e27f751c7ecc4b3e` and the actual Win32 PE SHA256 is `5cbcd8ee8224d72be6eba7b55fdfc810f0b0f6c8e5ec74c1ee2d6426c9386e48`. The real renderer reported SDL3, exactly 62 simulations and 62 presentations, with the selected **40th SDL present** captured after the original five-destination root reached native painting. The source-derived input route used the P1 semantic quit handler without an attached physical pad, and the original ROM/private saves were excluded from the artifact.
+
+The [retained original Windows artifact](https://github.com/gamesbyian/UR-Recomp/actions/runs/39413231035/artifacts/12259948598) contains each P7 SDL readback, a losslessly converted PNG, exact log and hash receipt. Independent local re-reading verified every RGBA component of each saved PNG equals its corresponding P7 raw pixel, without resize or crop:
+
+| Output | Captured non-black content bounds (inclusive) | PNG SHA256 | Baseline observation |
+| --- | --- | --- | --- |
+| 1280×720, 16:9 | x=190..1089, y=32..687, actual content 900×656 | `5ca95395eaf12ead9e5fbccdaef717a5cf7be2ee47d97ee4b6f18adf6a4189ca` | Entire menu remains 4:3-proportioned inside pillarboxes; no true widescreen composition |
+| 1024×768, 4:3 | x=32..991, y=34..733, content 960×700 | `16ca946a0e97ee2d98a5c62c609563c4c3387750817bcb69e64a1ff425942201` | Source 4:3 engineering menu is centered with black perimeter |
+
+Both images visibly abbreviate the identifying text after `RACER: STOCK RACER - NO PROF`, so the label's complete meaning is absent. This is a **present, native, observed baseline defect**, independent of the final visual agents' upcoming layout. Track source identity and the missing characters separately in the redesigned 16:9 and 4:3 screenshots; do not hide the issue behind a shorter string without an explicit UX decision. Structured hashes/bounds and conservative zero-credit claims live in [`analysis/evidence/modern-visual-native-baseline-20261020.json`](../analysis/evidence/modern-visual-native-baseline-20261020.json).
+
+A baseline 16:9 *SDL output* is not evidence that the Modern 342×224 logical **world/UI** ever became wide, because that particular engineering build pillarboxes its existing 256-wide frontend. Likewise, green Windows and unit checks here do not certify redesigned styling, physical pads, 4K monitor output, sound, profile persistence, stock simulation parity or any of the 25 case gates. Human review remains pending.
+
+The subsequent QA workflow now also drives preexisting test-only **native keyboard Records, P1 Options and P1 profile** handlers after their real input edges, with dedicated logged SDL draw ordinals and separately archived screenshots. Those new journey states remain unaccepted until their own exact-head Windows run and pixel evidence succeed.
 
 ## Three-project reuse preflight
 

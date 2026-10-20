@@ -1079,6 +1079,19 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT opened=1\n");
 }
 
+void confirm_modern_native_title() {
+    g_title = ur::product::modern_title_confirm(g_title);
+    // Reduced motion intentionally bypasses the 14-frame sweep. Publish
+    // the SAME genuine transition witness and let the root capture on its
+    // first draw, rather than silently losing the native entry receipt.
+    if (!ur::product::modern_title_active(g_title) && !g_title_logged) {
+        g_title_logged = true;
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_TITLE entered_root=1 frame=%u input_owned=1\n",
+            g_title_guest_frame);
+    }
+}
+
 extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
     int action = 0;
     std::size_t physical = 0;
@@ -1103,7 +1116,7 @@ extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
     if (!first_press) return 1;
     if (ur::product::modern_title_active(g_title)) {
         if (action == 2)
-            g_title = ur::product::modern_title_confirm(g_title);
+            confirm_modern_native_title();
         return 1;
     }
     g_root_notice.clear();
@@ -1161,7 +1174,7 @@ extern "C" int ur_baldosa_modern_root_gamepad(
     if (!first_press) return 1;
     if (ur::product::modern_title_active(g_title)) {
         if (action == 2)
-            g_title = ur::product::modern_title_confirm(g_title);
+            confirm_modern_native_title();
         return 1;
     }
     g_root_notice.clear();

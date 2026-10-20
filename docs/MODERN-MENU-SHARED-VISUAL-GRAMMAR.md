@@ -57,6 +57,19 @@ python3 tools/extract_menu_visual_language.py "$CAPTURE_DIR" \
   --bundle-manifest-out "$TMPDIR/stock-source-bundle.json"
 ```
 
+The independently executable verifier `tools/verify_menu_source_art_bundle.py` accepts **only these four locally generated PNGs plus the bundle JSON**:
+
+```sh
+python3 tools/verify_menu_source_art_bundle.py \
+  --bundle "$TMPDIR/stock-source-bundle.json" \
+  --heading "$TMPDIR/stock-16px-font.png" \
+  --detail "$TMPDIR/stock-8px-font.png" \
+  --cursor "$TMPDIR/stock-cursor-16poses.png" \
+  --bg1 "$TMPDIR/stock-bg1-layer.png"
+```
+
+It recomputes each SHA256 and decodes/validates the precise simple first-party **8-bit RGBA, unfiltered PNG** layout, CRCs, bounded scanlines, source dimensions and binary alpha. It independently checks the small font's identical zero/O glyphs, horizontally flipped parentheses and blank-space cell, plus a visible pixel in all sixteen source cursor phases. Corrupt or substituted images fail closed even when a caller has copied their new hashes into a synthetic receipt. The output explicitly denies asset distribution and final-screen approval. This is an additional integrity handoff, **not a cryptographic signature proving ownership of a captured original**, a native packaged-game screenshot or redistribution authority.
+
 The command is a **reproducible source-asset research route**, not a claim that this session executed it on an original ROM or delivered shippable game assets. It requires the separate authentic input capture; no binary atlas, ROM, game art or host screenshot is added to this PR. The original 16×16 font now also emits an optional `--atlas-manifest-out` receipt with all 40 source slots and original PPU VRAM/CGRAM hashes, making all four art exports independently source-bound; do not substitute a self-authored image with a copied receipt.
 
 `--bundle-manifest-out` requires all four PNG outputs and verifies their **mutual** provenance: big font, BG1 and first cursor pose must have identical original idle-snapshot VRAM/CGRAM roots and tags; the small font must originate from a track-select source snapshot; every sheet must have its exact measured dimensions and the cursor must include all 16 ordered CHR phases. A mixed-capture bundle fails with an explicit error. The resulting JSON is a source research receipt and deliberately sets `asset_distribution_approved` and `native_render_and_visual_acceptance` to false. It contains hashes, not original art or redistribution permission.

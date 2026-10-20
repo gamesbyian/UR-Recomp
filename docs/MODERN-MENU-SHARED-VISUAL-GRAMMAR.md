@@ -61,6 +61,18 @@ A source-extracted image is eligible for artistic comparison and a **separately 
 
 The automated ROM-free checks in `tests/unit/test_extract_menu_visual_language.py` synthesize 8bpp BG1 tilemap H-flip and scroll, 8×16 punctuation/H-flip, OBJ second-page addressing, RGBA transparency, palette choice, 7px arrow/shadow displacement, phase enumeration and exact source hash receipts. Full output from original PPU frames remains a **pending real-domain acceptance step**.
 
+## Native renderer seam for verified atlas rasters
+
+`native/product/modern_menu_source_atlas.hpp` is a separate, dependency-free C++17 presentation adapter for **caller-supplied** pixel buffers. The shared `modern_menu_visual_grammar.hpp` re-exports it for title, root, destination and animation owners without creating another renderer or requiring any source graphics to be checked in.
+
+- It recognizes **only** the recovered source atlas geometries: yellow heading **640×16** (40 16px cells), grey detail **360×16** (45 8px cells), cursor **624×39** (16 39px cells with shadow), and reference BG1 **256×224**.
+- `modern_menu_paint_source_text` maps original uppercase/digit characters; title O reuses tile zero, small O uses its duplicated slot, the known original punctuation has explicitly indexed source cells. Unsupported characters fail the entire text operation instead of displaying a guessed substitute. UI owners must provide supported copy or use a deliberately labeled host fallback for modern-only text.
+- `modern_menu_paint_source_cell` paints a particular cursor animation frame, complete source BG1 layer, or font cell with 1×–4× nearest-neighbour scale. Transparent pixels preserve the host buffer and opaque pixels transfer verbatim. The adapter rejects unsupported translucent alpha, malformed allocation geometry, out-of-bounds destinations and cropped glyphs **before** touching output.
+- Inputs are a pixel span in **host AARRGGBB** words, with stride, dimensions and allocated element count. Extractor PNGs store straight **RGBA bytes**; the host is responsible for decoding and channel packing. Do not reinterpret file bytes as native `uint32_t` words or substitute unverified palette conversions.
+- **Deliberate shipping hold:** there is no runtime source-art loader/manifest approval or bundled graphics in this PR. The original bitmap exports stay local, and this opt-in native painter does not activate without an explicitly supplied approved buffer. The existing ASCII/blue-band fallback stays visible and controller-readable. This is ready for visual and rights review, not an assertion that actual source fonts or cursors are already rendered in a packaged Windows build.
+
+`tests/native/modern_menu_source_atlas_test.cpp` and `tests/unit/test_modern_menu_source_atlas_cpp.py` verify the real first-party native C++ header against exact pixels and negative cases. They are source-independent synthetic checks, not source-ROM capture or visual approval. Any later asset loader must validate the original source/PNG manifest and run the separate native final-frame/Authentic regression suite before being enabled.
+
 ## 4:3 and 16:9 design rules
 
 | Layout | Native logical field | Shared compositor policy | Screen composition freedom |

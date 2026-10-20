@@ -1,4 +1,4 @@
-name: One-shot native topology footage (media only)
+name: One-shot native topology footage (menu-state corrected)
 on:
   push:
     branches: [media/oct19-dynamic-native-racing]

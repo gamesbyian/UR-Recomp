@@ -742,6 +742,80 @@ def export_cursor_atlas(directory: Path, path: Path,
     return manifest
 
 
+# --------------------------------------- source-only four-asset bundle ------
+def build_menu_source_art_bundle(big: dict, small: dict,
+                                 cursor: dict, bg1: dict) -> dict:
+    """Join four locally generated receipts only when their PPU roots match.
+
+    The BG1 layer, big font and first cursor animation phase all come from
+    the same mvl-idle-00 original snapshot. The small font comes from the
+    track-select snapshot of the same named capture family, where the grey
+    detail glyph tiles are known present. A bundle is evidence of source
+    consistency, NOT a license or a runtime activation bit.
+    """
+    reports = [big, small, cursor, bg1]
+    if any(not isinstance(r, dict) or r.get("source_fixture") != SCRIPT
+           for r in reports):
+        raise ValueError("all four assets require matching reference fixture")
+    phases = cursor.get("source_frames")
+    if not isinstance(phases, list) or len(phases) != 16:
+        raise ValueError("original cursor phase sequence is incomplete")
+    if [p.get("source_obj_tile") for p in phases] != list(CURSOR_SOURCE_TILE_CYCLE):
+        raise ValueError("original cursor source phase order mismatch")
+    original = phases[0]
+    source_tag = big.get("source_tag")
+    if (not isinstance(source_tag, str) or not source_tag.startswith("mvl-idle-") or
+        source_tag != bg1.get("source_tag") or
+        source_tag != original.get("source_tag")):
+        raise ValueError("original BG1/title/cursor first phase source tags disagree")
+    input_hashes = original.get("ppu_sha256")
+    if (not isinstance(input_hashes, dict) or
+        big.get("source_vram_sha256") != bg1.get("vram_sha256") or
+        big.get("source_cgram_sha256") != bg1.get("cgram_sha256") or
+        big.get("source_vram_sha256") != input_hashes.get("vram") or
+        big.get("source_cgram_sha256") != input_hashes.get("cgram")):
+        raise ValueError("original BG1/title/cursor VRAM/CGRAM roots disagree")
+    if (not isinstance(small.get("source_tag"), str) or
+        not small["source_tag"].startswith("mvl-track-") or
+        big.get("dimensions") != [640, 16] or
+        small.get("dimensions") != [360, 16] or
+        cursor.get("atlas_rgba_dimensions") != [624, 39] or
+        bg1.get("dimensions") != [256, 224]):
+        raise ValueError("source font/cursor/background geometry or track tag changed")
+    sha = (
+        big.get("image_png_sha256"), small.get("sha256"),
+        cursor.get("atlas_png_sha256"), bg1.get("png_sha256"),
+        big.get("source_vram_sha256"), big.get("source_cgram_sha256"),
+        small.get("source_vram_sha256"), small.get("source_cgram_sha256"),
+    )
+    if any(not isinstance(value, str) or
+           re.fullmatch(r"[0-9a-f]{64}", value) is None for value in sha):
+        raise ValueError("incomplete source image or PPU digest")
+    if not isinstance(small.get("source_char_base_word"), int):
+        raise ValueError("small font source CHR base missing")
+    return {
+        "schema_version": 1,
+        "source_fixture": SCRIPT,
+        "source_main_tag": source_tag,
+        "source_detail_tag": small["source_tag"],
+        "reference_only": True,
+        "asset_png_sha256": {
+            "heading": sha[0], "detail": sha[1],
+            "cursor": sha[2], "bg1": sha[3],
+        },
+        "source_ppu_sha256": {
+            "main_vram": sha[4], "main_cgram": sha[5],
+            "detail_vram": sha[6], "detail_cgram": sha[7],
+        },
+        "output_dimensions": {
+            "heading": [640, 16], "detail": [360, 16],
+            "cursor": [624, 39], "bg1": [256, 224],
+        },
+        "asset_distribution_approved": False,
+        "native_render_and_visual_acceptance": False,
+    }
+
+
 def setup_screens(directory: Path, map_base: int, width: int, height: int) -> tuple[dict, dict, dict]:
     screens, checks, usage = {}, {}, Counter()
     for name, expect in SETUP_SCREEN_LABELS.items():
@@ -878,6 +952,7 @@ def main() -> int:
     ap.add_argument("--small-atlas-manifest-out", type=Path, help="optional small-font charset, aliases and atlas digest")
     ap.add_argument("--cursor-atlas-out", type=Path, help="optional decoded original 16-pose OBJ cursor PNG (do not commit)")
     ap.add_argument("--cursor-manifest-out", type=Path, help="optional SHA-bound source/atlas receipt for --cursor-atlas-out")
+    ap.add_argument("--bundle-manifest-out", type=Path, help="optional one-source receipt for all four locally exported PNGs")
     ap.add_argument("--log", type=Path, help="snesref stdout log of the menu run (for press frames)")
     ap.add_argument("--wav", type=Path, help="SNESREF_WAV output of the menu run")
     ap.add_argument("--control-wav", type=Path, help="SNESREF_WAV output of menu-visual-language-control.script")
@@ -926,7 +1001,17 @@ def main() -> int:
     if args.cursor_manifest_out and not args.cursor_atlas_out:
         ap.error("--cursor-manifest-out requires --cursor-atlas-out")
     if args.cursor_atlas_out:
-        export_cursor_atlas(args.dump_dir, args.cursor_atlas_out, args.cursor_manifest_out)
+        cursor_report = export_cursor_atlas(
+            args.dump_dir, args.cursor_atlas_out, args.cursor_manifest_out)
+    if args.bundle_manifest_out:
+        if not all((args.atlas_out, args.small_atlas_out,
+                    args.cursor_atlas_out, args.bg1_out)):
+            ap.error("--bundle-manifest-out requires all four --atlas-out/"
+                     "--small-atlas-out/--cursor-atlas-out/--bg1-out options")
+        report = build_menu_source_art_bundle(
+            original_big_font_manifest(args.atlas_out, main_dump, char_base),
+            small, cursor_report, backdrop)
+        args.bundle_manifest_out.write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(contract["checks"], indent=2))
     return 0 if contract["all_checks_pass"] else 1
 

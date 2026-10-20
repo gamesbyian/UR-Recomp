@@ -49,7 +49,10 @@ def launch(exe: Path, rom: Path, root: Path, name: str,
     config = stage / "config.ini"
     config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
     script = stage / "stock-guest.route"
-    script.write_text("turbo on\nwait 480\nquit\n", encoding="ascii")
+    # Capture host PRESENT 40, not guest frame 40. Turbo can simulate 62
+    # guest frames in ~60ms while SDL draws only three frames, making that
+    # ordinal unreachable. Use the normal native 60Hz presentation clock.
+    script.write_text("wait 480\nquit\n", encoding="ascii")
     capture = stage / "actual-sdl-drawable.pam"
     env = dict(os.environ)
     env.update({

@@ -1,0 +1,54 @@
+name: One-shot standalone blue card design proof sheets
+on:
+  push:
+    branches: [media/blue-art-direction-recruitment-20261020]
+    paths: [.github/workflows/one-shot-blue-card-previews.yml]
+permissions:
+  contents: write
+concurrency:
+  group: ur-blue-design-preview
+  cancel-in-progress: false
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pillow and card generator
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq python3-pil
+          mkdir -p media/showcase/2026-10-20/blue-cut/preview
+          python3 tools/showcase/blue_trailer_art_direction.py \
+            --out media/showcase/2026-10-20/blue-cut/preview
+      - name: Create visual review sheet with every title frame type
+        run: |
+          python3 - <<'PY'
+          from PIL import Image,ImageOps,ImageDraw
+          from pathlib import Path
+          import hashlib,json
+          root=Path('media/showcase/2026-10-20/blue-cut/preview')
+          files=sorted(root.glob('*.png'))
+          assert len(files)==12,(len(files),[p.name for p in files])
+          grid=Image.new('RGB',(1440,((len(files)+2)//3)*360),(14,25,54))
+          d=ImageDraw.Draw(grid)
+          proofs={}
+          for i,p in enumerate(files):
+            im=Image.open(p).convert('RGB')
+            assert im.size==(1920,1080)
+            small=ImageOps.fit(im,(470,264))
+            x=(i%3)*480+5;y=(i//3)*360+40
+            grid.paste(small,(x,y))
+            d.text((x,y-25),p.stem,fill='white')
+            proofs[p.name]=hashlib.sha256(p.read_bytes()).hexdigest()
+          grid.save(root/'complete-editorial-card-family.png')
+          (root/'preview-provenance.json').write_text(json.dumps({'sha256':proofs,'source':'deterministic blue_trailer_art_direction.py','gameplay_footage':False},indent=2)+'\n')
+          PY
+      - name: Publish all static editorial cards and retire workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add media/showcase/2026-10-20/blue-cut/preview
+          git rm -f .github/workflows/one-shot-blue-card-previews.yml
+          git commit -m "media: publish independently inspectable complete blue editorial-card family"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

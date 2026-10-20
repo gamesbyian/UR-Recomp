@@ -179,7 +179,7 @@ def render_score(path,seconds=85,rate=22050):
             if len(buf)>=32768:f.writeframesraw(buf);buf.clear()
         if buf:f.writeframesraw(buf)
 
-def make_segment(src,start,frames,source_fps,caption,kind,output,vertical=False):
+def make_segment(src,start,frames,source_fps,caption,kind,output,vertical=False,blue_frame=None):
     dur=frames/source_fps
     if vertical:
         width,height=1080,1920
@@ -204,6 +204,27 @@ def make_segment(src,start,frames,source_fps,caption,kind,output,vertical=False)
         raise ValueError("Missing source for editorial card")
     fade="fade=t=in:st=0:d=0.10,fade=t=out:st="+str(max(0,dur-0.12))+":d=0.12"
     vf="fps=60,"+visual+stamp+","+fade+",format=yuv420p"
+    if blue_frame and not vertical:
+        filter_graph=(
+            "[0:v]fps=60,scale=1120:630:flags=neighbor,format=rgba[clip];"
+            "[1:v]format=rgba[design];"
+            "[design][clip]overlay=x=400:y=270:shortest=1,"
+            +fade+",format=yuv420p[final]")
+        run("ffmpeg","-nostdin","-hide_banner","-loglevel","error","-y",
+            "-loop","1","-framerate","60","-i",blue_frame,
+            "-ss",str(start/source_fps),"-i",src,
+            "-t",str(dur),"-filter_complex",
+            "[1:v]fps=60,scale=1120:630:flags=neighbor,format=rgba[clip];"
+            "[0:v]format=rgba[design];"
+            "[design][clip]overlay=x=400:y=270:shortest=1,"
+            +fade+",format=yuv420p[final]",
+            "-map","[final]","-an","-frames:v",str(round(dur*FPS)),
+            "-r","60","-c:v","libx264","-preset","ultrafast","-crf","20",
+            "-pix_fmt","yuv420p","-video_track_timescale","60000",output)
+        o=probe(output)
+        assert (o["width"],o["height"],o["r_frame_rate"],int(o["nb_read_frames"]))==(
+            1920,1080,"60/1",round(dur*FPS)),(output,o)
+        return
     run("ffmpeg","-nostdin","-hide_banner","-loglevel","error","-y",
         "-ss",str(start/source_fps),"-i",src,
         "-t",str(dur),"-vf",vf,"-an","-frames:v",str(round(dur*FPS)),
@@ -240,7 +261,9 @@ def make_film(shots,sources,cards,target,score,tmp,vertical=False):
         else:
             input_path,_,_,source_fps,_=sources[key]
             part=tmp/f"part-{i:02d}.mp4"
-            make_segment(input_path,start,frames,source_fps,caption,kind,part,vertical)
+            make_segment(input_path,start,frames,source_fps,caption,kind,part,vertical,
+                blue_frame=(cards["__artdir__"] / (key+"-frame.png")
+                if not vertical and key in ("reveal","code","raster","parity","art","animation","art_p2") else None))
         parts.append(part)
         total+=round(frames/source_fps*FPS)
     expected=23 if vertical else 75
@@ -277,6 +300,7 @@ def main():
         tmp=Path(t)
         produce_blue_assets(tmp / "blue-art")
         cards={k:tmp/"blue-art"/(k.removeprefix("card_")+".png") for k in ("card_windows","card_4k","card_cta")}
+        cards["__artdir__"]=tmp/"blue-art"
         score=tmp/"original-flagship-score.wav"
         render_score(score)
         master=a.outdir/"ur-recomp-blue-75s-1080p.mp4"

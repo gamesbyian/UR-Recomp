@@ -218,9 +218,9 @@ inline bool render_modern_title(
                     0, h - 31, w, 2, gold);
     if (state.phase == ModernTitlePhase::Intro) {
         const bool bright = state.reduced_motion || (state.age / 30u) % 2u == 0u;
-        constexpr char prompt[] = "PRESS A / START";
+        constexpr char prompt[] = "PRESS A / START / ENTER";
         paint.draw_text(pixels, stride, surface_height,
-                        center - 15 * 4, h - 21, prompt,
+                        center - 23 * 4, h - 21, prompt,
                         bright ? gold : grey, 1);
     } else {
         // An exact fourteen-guest-frame exit sweep announces the handoff,

@@ -33,6 +33,40 @@ def _regular_bytes(path: Path, limit: int) -> bytes:
     return data
 
 
+def _publish_directory_no_replace(staging: Path, destination: Path) -> None:
+    """Publish an evidence directory atomically without replacing an incumbent.
+
+    Linux renameat2(RENAME_NOREPLACE) and Windows MoveFileW refuse an
+    existing destination in the filesystem operation itself. Other hosts fail
+    closed instead of silently weakening the publication guarantee.
+    """
+    import ctypes
+    import sys
+
+    if sys.platform.startswith('linux'):
+        libc = ctypes.CDLL(None, use_errno=True)
+        operation = getattr(libc, 'renameat2', None)
+        if operation is None:
+            raise OSError('Linux renameat2 RENAME_NOREPLACE unavailable')
+        operation.argtypes = (ctypes.c_int, ctypes.c_char_p,
+                              ctypes.c_int, ctypes.c_char_p, ctypes.c_uint)
+        operation.restype = ctypes.c_int
+        result = operation(-100, os.fsencode(staging), -100,
+                           os.fsencode(destination), 1)
+        if result != 0:
+            error = ctypes.get_errno()
+            raise OSError(error, os.strerror(error), str(destination))
+    elif os.name == 'nt':
+        kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+        operation = kernel.MoveFileW
+        operation.argtypes = (ctypes.c_wchar_p, ctypes.c_wchar_p)
+        operation.restype = ctypes.c_int
+        if not operation(str(staging), str(destination)):
+            raise ctypes.WinError(ctypes.get_last_error())
+    else:
+        raise OSError('No audited atomic no-replace directory publish on this host')
+
+
 def export(journey: Path, destination: Path) -> dict[str, object]:
     if journey.is_symlink() or not journey.is_dir():
         raise ValueError('Missing/redirected native Windows journey')
@@ -95,7 +129,7 @@ def export(journey: Path, destination: Path) -> dict[str, object]:
             output.write('\n')
         if destination.exists() or destination.is_symlink():
             raise FileExistsError(f'Evidence destination already exists: {destination}')
-        os.rename(staging, destination)
+        _publish_directory_no_replace(staging, destination)
     finally:
         if staging.exists():
             shutil.rmtree(staging)

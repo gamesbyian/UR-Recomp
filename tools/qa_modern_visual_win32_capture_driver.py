@@ -63,7 +63,7 @@ def validate_authentic_pixels(source: Path, expected: tuple[int, int]) -> dict:
     data = source.read_bytes()
     if len(data) > MAX_DIM[0] * MAX_DIM[1] * 4 + 256:
         raise ValueError("Authentic SDL P7 exceeds bounded geometry")
-    header, marker, rgba = data.partition(b"ENDHDR\\n")
+    header, marker, rgba = data.partition(b"ENDHDR\n")
     if not marker or (match := HEADER.fullmatch(header + marker)) is None:
         raise ValueError("Authentic SDL P7 header invalid")
     size = (int(match.group(1)), int(match.group(2)))

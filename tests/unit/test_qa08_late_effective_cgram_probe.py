@@ -75,7 +75,7 @@ class ExactSourceProbe(unittest.TestCase):
             (root/'src/gen/dispatch_v2.c').write_text('generated\n')
             source_file.write_text(BASE)
             def revisions(p):
-                return probe.GAME_REV if p==root else probe.CORE_REV
+                return probe.GAME_REV if p.resolve()==root.resolve() else probe.CORE_REV
             with patch.object(probe,'pinned_revision',side_effect=revisions):
                 path=probe.apply_game(root,write=False)
                 self.assertEqual(path,source_file)

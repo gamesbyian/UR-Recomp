@@ -178,7 +178,7 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
                       "MAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n").encode()
             raw.write_bytes(header + bytes(width * height * 4))
             with self.assertRaisesRegex(RuntimeError,
-                                        "blank/transparent/uniform"):
+                                        "blank/uniform RGB"):
                 driver.validate_authentic_pixels(raw, (width, height))
             self.assertFalse((Path(tmp) / "approved.json").exists())
 
@@ -193,11 +193,43 @@ class NativeWindowsCaptureDriverTest(unittest.TestCase):
                       + b"\x00\x00\xff\xff" * 1296)
             raw.write_bytes(header + pixels)
             witness = driver.validate_authentic_pixels(raw, (width, height))
-            self.assertEqual(witness["visible_alpha_pixels"], width * height)
-            self.assertGreaterEqual(witness["sampled_colors"], 3)
+            self.assertEqual(witness["visible_rgb_pixels"], width * height)
+            self.assertEqual(witness["alpha_nonzero_pixels"], width * height)
+            self.assertGreaterEqual(witness["sampled_rgb_colors"], 3)
             self.assertIn("only", witness["pixel_witness"])
             with self.assertRaisesRegex(ValueError, "geometry/length"):
                 driver.validate_authentic_pixels(raw, (65, height))
+
+    def test_authentic_genuine_rgb_with_zero_sdl3_alpha_is_not_blank(self):
+        # Real Win32 SDL3 readback observed original Nintendo-title RGB while
+        # every alpha byte was zero. Never rewrite the original RGBA evidence
+        # or turn this positive-RGB prerequisite into artwork approval.
+        with tempfile.TemporaryDirectory() as tmp:
+            raw = Path(tmp) / "authentic-original-rgb.pam"
+            width, height = 64, 64
+            header = (f"P7\\nWIDTH {width}\\nHEIGHT {height}\\nDEPTH 4\\n"
+                      "MAXVAL 255\\nTUPLTYPE RGB_ALPHA\\nENDHDR\\n").encode()
+            rgb = (b"\\xc0\\x1e\\x07\\x00" * 1400 +
+                   b"\\x7b\\x7b\\x7b\\x00" * 1400 +
+                   b"\\x4c\\x4c\\x4c\\x00" * 1296)
+            raw.write_bytes(header + rgb)
+            before = raw.read_bytes()
+            witness = driver.validate_authentic_pixels(raw, (width, height))
+            self.assertEqual(witness["alpha_nonzero_pixels"], 0)
+            self.assertEqual(witness["visible_rgb_pixels"], width * height)
+            self.assertGreaterEqual(witness["sampled_rgb_colors"], 3)
+            self.assertEqual(raw.read_bytes(), before)
+            self.assertIn("retained unchanged", witness["alpha_note"])
+
+    def test_authentic_alpha_only_does_not_forge_rgb_content(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            raw = Path(tmp) / "no-rgb.pam"
+            width, height = 64, 64
+            header = (f"P7\\nWIDTH {width}\\nHEIGHT {height}\\nDEPTH 4\\n"
+                      "MAXVAL 255\\nTUPLTYPE RGB_ALPHA\\nENDHDR\\n").encode()
+            raw.write_bytes(header + b"\\x00\\x00\\x00\\xff" * (width * height))
+            with self.assertRaisesRegex(RuntimeError, "blank/uniform RGB"):
+                driver.validate_authentic_pixels(raw, (width, height))
 
     def test_authentic_control_disallows_modern_frontend_leak(self):
         with tempfile.TemporaryDirectory() as tmp:

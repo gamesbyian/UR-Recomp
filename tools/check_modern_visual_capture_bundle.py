@@ -77,6 +77,9 @@ def png_pixels(data: bytes) -> tuple[int, int]:
     pos, size = len(PNG_SIG), len(data)
     dims = None
     saw_idat = False
+    closed_idat = False
+    compressed = bytearray()
+    channels = 0
     while pos < size:
         if size - pos < 12:
             raise CaptureError("truncated PNG chunk")
@@ -98,13 +101,39 @@ def png_pixels(data: bytes) -> tuple[int, int]:
                     comp != 0 or filt != 0 or interlace != 0):
                 raise CaptureError("unsupported PNG raster")
             dims = (w, h)
+            channels = 3 if color == 2 else 4
         elif tag == b"IHDR":
             raise CaptureError("duplicate PNG IHDR")
         if tag == b"IDAT":
+            if closed_idat:
+                raise CaptureError("out-of-order PNG IDAT")
+            compressed.extend(payload)
+            if len(compressed) > MAX_BYTES:
+                raise CaptureError("oversized PNG compressed data")
             saw_idat = True
+        elif saw_idat:
+            closed_idat = True
         if tag == b"IEND":
             if n != 0 or end != size or not saw_idat:
                 raise CaptureError("incomplete/trailing PNG")
+            # A valid chunk envelope alone can contain garbage IDAT bytes.
+            # Decode bounded raster bytes and check scanline filter syntax,
+            # still WITHOUT claiming a visual-content or native-source verdict.
+            width, height = dims
+            scanline = 1 + width * channels
+            expected_raw = scanline * height
+            if expected_raw > MAX_BYTES:
+                raise CaptureError("PNG decoded raster too large")
+            try:
+                decoder = zlib.decompressobj()
+                raw = decoder.decompress(bytes(compressed), expected_raw + 1)
+            except zlib.error as exc:
+                raise CaptureError("invalid PNG image data") from exc
+            if (len(raw) != expected_raw or not decoder.eof or
+                    decoder.unused_data or decoder.unconsumed_tail):
+                raise CaptureError("invalid/truncated PNG image raster")
+            if any(raw[y * scanline] > 4 for y in range(height)):
+                raise CaptureError("invalid PNG scanline filter")
             return dims
         pos = end
     raise CaptureError("PNG missing IEND")

@@ -116,6 +116,7 @@ def classify(ab: dict, cross: dict, executed: dict, report: dict,
             host_stats.get("strict_existing_native_source_comparator_nonRF062_passed") is False and
             host_stats.get("single_host_video_totals_seconds_field_only_qualified") is True and
             host_stats.get("same_simulations_and_presentations_off_on") == [6460,6460] and
+            host_stats.get("actual_host_video_elapsed_seconds_off_on") == ["109.566","109.591"] and
             host_stats.get("all_other_native_guest_trace_rows_equal_after_host_only_metadata") is True and
             host_stats.get("RF062_direct_logged_rows_excluded") == 10 and
             host_stats.get("guest_CPU_Wram_or_audio_equivalence_beyond_samples_proven") is False,

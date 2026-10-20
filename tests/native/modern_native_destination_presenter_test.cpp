@@ -129,9 +129,11 @@ int main() {
     assert(painted.empty());
 
     v.practice_picker_open = true;
-    v.practice_course_name = "ZOOM ZOO";
-    v.practice_tour_name = "CRAWLER";
-    v.practice_kind_label = "CIRCUIT";
+    v.practice_course_name = "Zoom Zoo";
+    v.practice_tour_name = "Crawler";
+    v.practice_kind_label = "Circuit";
+    assert(modern_native_display_caps(v.practice_course_name) == "ZOOM ZOO");
+    assert(modern_native_display_caps("Down+Up / Boo!") == "DOWN+UP / BOO!");
     v.practice_courses_open = 5;
     assert(render_modern_native_destination(painter,scratch,256,224,
                                              1,240,original,v));

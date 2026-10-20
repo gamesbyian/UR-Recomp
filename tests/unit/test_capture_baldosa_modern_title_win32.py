@@ -102,15 +102,15 @@ class ModernTitleNativeCaptureTests(unittest.TestCase):
                     pam(width, height, pixel * (width * height)))
             def write_present(index, pixel):
                 (presented / f"present_{index:06d}.ppm").write_bytes(
-                    b"P6\\n342 224\\n255\\n" + pixel[:3] * (width * height))
+                    b"P6\n342 224\n255\n" + pixel[:3] * (width * height))
             write_present(0, title_pixel)
             write_present(1, root_pixel)  # forged movement before confirm
             write_present(2, root_pixel)
             (presented / "presents.csv").write_text(
-                "present,frame,alpha,crc32,luma\\n"
-                "0,16,0,12345678,11\\n"
-                "1,32,0,12345678,11\\n"
-                "2,80,0,12345678,11\\n")
+                "present,frame,alpha,crc32,luma\n"
+                "0,16,0,12345678,11\n"
+                "1,32,0,12345678,11\n"
+                "2,80,0,12345678,11\n")
             with self.assertRaisesRegex(ValueError, "reduced-motion original title moved"):
                 verify_native_presented_frames(
                     presented, source, expected_width=width, reduced_motion=True)

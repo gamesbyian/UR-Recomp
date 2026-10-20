@@ -227,3 +227,59 @@ suite tests 256-specific P6/P7 geometry. **New Windows outcome
 pending at this branch head**: do not treat these edits as successful
 native 4:3/physical display approval until the Windows workflow and
 artifact are independently inspected.
+
+## Corrected title-first packaged Windows acceptance
+
+The [prior exact-head Win32 run 39411604926](https://github.com/gamesbyian/UR-Recomp/actions/runs/39411604926)
+**passed** pinned AOT compilation, native title→root P7 capture,
+post-OSD P6 source pixel matching and PE dependency checks, but the
+general extracted-CMD acceptance failed later in an unrelated test
+expectation: the old launcher test required
+`UR_BALDOSA_MODERN_ROOT painted=1` **without a confirm input**, whereas
+the title-first product now deliberately waits at Press Start.
+
+The now-corrected harness requires a one-shot
+`UR_BALDOSA_MODERN_TITLE painted=1 raster=342x224 host=modern` from the
+**exact packaged executable** during an untouched cold Modern launch,
+and explicitly rejects any premature root paint. Test-only scripted
+journeys that start directly at root continue bypassing the title by
+their existing fixture IDs, while the separate P1-A native route 15
+establishes actual title→root reachability.
+
+The pinned Windows source-bound acceptance includes **three independent
+fresh processes** using the same PE/ROM hashes and isolated profile roots:
+1. A default 342×224 widescreen title and root with the original retail
+   logo and post-OSD native host-presented RGB matches.
+2. A **real 960×720 4:3 native drawable** composed at 256×224, with the
+   source-retail 238×81 logo independently centred, no 342-pixel crop.
+3. `UR_REDUCED_MOTION=1`: stable original title art on at least two
+   separate native presents before P1 A, then a direct root handoff
+   with a logged native transition. The first root frame is captured
+   even when the title intentionally skips the fourteen-frame exit.
+
+These routes are test-only output captures on the real game process,
+not a second renderer or a fake SDL/window simulation. No physical
+gamepad, final SDL texture/readback, physical 4K/4:3 monitor or human
+approval is claimed until #2041's independently recorded review.
+The three-process acceptance is **pending a successful exact-head
+Windows CI result**; earlier standalone 342-width acceptance cannot
+substitute for the added 4:3 and reduced-motion tests.
+
+### Visual polish, held input, and ownership
+
+The primary original bitmap itself has no duplicate narrow-font brand
+label above it. The full title is already image-based, so the duplicate
+text was redundant. C++ tests now verify the **complete retail-art RGB
+digest** at both aspect widths rather than treating a redundant text
+label as logo proof. The stock-colour subtitle and safe-area controller
+prompt remain. Keyboard Enter and physically distinct P1 A/Start
+latches are independently tested for held-through-transition input
+suppression. The reduced-motion path is free of artificial delay and
+now records the same native title→root witness as the normal path.
+
+When the shared/menu animation/destination branches integrate, the
+existing title presenter and its native host preparation callbacks
+must remain a dedicated first render/edge owner. The root's changed
+selected-state motion, 320×204 wide panel, source-derived cursor,
+child modal contracts, and independent final-output screenshot
+instrumentation belong to #2038, #2040, #2042 and #2041 respectively.

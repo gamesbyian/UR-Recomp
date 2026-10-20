@@ -262,6 +262,18 @@ class MenuVisualLanguageTests(unittest.TestCase):
         self.assertEqual(flip_v[31 * 32 * 4:31 * 32 * 4 + 4], source_pixel)
         self.assertEqual(flip_both[(32 * 32 - 1) * 4:], source_pixel)
         self.assertEqual(flip_both[:4], bytes(4))
+        # Original OBJSEL size modes 6/7 use rectangular sprite pairs.
+        # Mode6 large is 32x64, and mode7 small is 16x32; neither can be
+        # falsely exported as an original square 32x32 cursor.
+        sample.fillram["2101"] = "C1"  # mode6, base1
+        with self.assertRaisesRegex(ValueError, "32x32"):
+            mvl.obj_sprite_rgba(sample, {"tile": 256, "palette": 7, "large": 1})
+        sample.fillram["2101"] = "E1"  # mode7, base1
+        with self.assertRaisesRegex(ValueError, "32x32"):
+            mvl.obj_sprite_rgba(sample, {"tile": 256, "palette": 7, "large": 0})
+        self.assertEqual(len(mvl.obj_sprite_rgba(
+            sample, {"tile": 256, "palette": 7, "large": 1})), 4096)
+        sample.fillram["2101"] = "29"
         # A BG character base mistakenly substituted for OBSEL would
         # decode this all-transparent or from the wrong page.
         sample.fillram.clear()

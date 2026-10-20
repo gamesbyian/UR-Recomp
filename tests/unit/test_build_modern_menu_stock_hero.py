@@ -41,7 +41,7 @@ class StockHeroOriginalExtractionTest(unittest.TestCase):
         bad = copy.deepcopy(self.registry)
         target = next(item for item in bad["entries"]
                       if item["representation_id"] ==
-                      original[0]["p1_representation_id"])
+                      next(x for x in original if x["frame"] == 1213)["p1_representation_id"])
         target["palette_asset_id"] = "0x07"
         with self.assertRaisesRegex(ValueError, "unknown original P1"):
             hero.verified_clip(rom, bad, self.source)

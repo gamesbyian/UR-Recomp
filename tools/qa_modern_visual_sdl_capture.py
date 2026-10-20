@@ -12,7 +12,10 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from baldosa_sdl_physical_4k_capture_spike import ANCHOR
+try:
+    from tools.baldosa_sdl_physical_4k_capture_spike import ANCHOR
+except ModuleNotFoundError:  # direct "python tools/qa_modern_visual_sdl_capture.py" CLI
+    from baldosa_sdl_physical_4k_capture_spike import ANCHOR
 
 MARK = "UR_MODERN_UI_SDL_DRAWABLE_CAPTURE"
 START = "static void SdlRenderer_EndDraw(void)"

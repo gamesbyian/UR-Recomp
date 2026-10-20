@@ -115,6 +115,7 @@ def inspect_packet(path: Path, *, commit: str, zip_sha: str,
                 and type(size) is int and 0 < size <= MAX_FILE_BYTES,
                 "invalid attachment hash or bounded size")
         filename = item["path"]
+        require(type(filename) is str, "evidence path must be a relative filename")
         require(filename.casefold() not in observed_files,
                 "duplicated or Windows-case-alias evidence path")
         observed_kinds.add(kind)

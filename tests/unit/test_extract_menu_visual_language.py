@@ -351,6 +351,30 @@ class MenuVisualLanguageTests(unittest.TestCase):
         self.assertTrue(observed[0]["vflip"])
         self.assertEqual(observed[0]["palette"], 7)
 
+    def test_obj_name_base_is_16kib_bytes_not_8kib(self) -> None:
+        # SNESdev PPU $2101: name-base WORD address = (bBB << 13).
+        # This discriminates a parallel research extractor's erroneous
+        # *0x1000-word formula. Do not silently accept a plausible decoy.
+        class Sample:
+            pass
+
+        source = Sample()
+        source.fillram = {"2101": "21"}  # large 8/32 mode, base=1, select=0
+        source.vram = bytearray(65536)
+        # Real base=0x2000 words -> 0x4000 bytes. Wrong base=0x1000
+        # words would read a deliberately distinct second location.
+        source.vram[0x4000] = 0x80  # source tile 0, pixel 0 = index 1
+        source.vram[0x2001] = 0x80  # decoy wrong-base index 2
+        self.assertEqual(mvl.obj_tile_pixels(source, 0)[0][0], 1)
+        self.assertEqual(mvl.tile_pixels(
+            source.vram, 0x1000, 0, 4)[0][0], 2)
+        # High name bit uses (NN+1)*0x1000 WORDS relative to that
+        # base. With NN=1, the high-table tile 0x100 moves +0x2000
+        # words, not +0x2000 bytes.
+        source.fillram["2101"] = "29"  # base1 / name select1
+        source.vram[0x8000] = 0x80  # (0x2000+0x2000) words *2 bytes
+        self.assertEqual(mvl.obj_tile_pixels(source, 256)[0][0], 1)
+
     def test_source_cursor_atlas_16_poses_manifest_and_forgery_fail_closed(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             dump_dir = Path(td) / "source"

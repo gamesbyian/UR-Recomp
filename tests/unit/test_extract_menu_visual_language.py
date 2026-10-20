@@ -101,7 +101,7 @@ class MenuVisualLanguageTests(unittest.TestCase):
     def test_four_atlas_bundle_rejects_mixed_source_captures(self) -> None:
         # Synthetic SHA-only fixtures, never game or exported asset bytes.
         h = lambda c: c * 64
-        tag = "mvl-idle-00"
+        tag = "mvl-idle-000"
         big = {"source_fixture": mvl.SCRIPT, "source_tag": tag,
                "dimensions": [640, 16], "image_png_sha256": h("a"),
                "source_vram_sha256": h("b"), "source_cgram_sha256": h("c")}
@@ -113,7 +113,7 @@ class MenuVisualLanguageTests(unittest.TestCase):
                   "atlas_png_sha256": h("a"), "captured_idle_frames": 64,
                   "frames_per_pose": 2, "cycle_frames": 32,
                   "source_frames": [
-                      {"source_tag": f"mvl-idle-{i:02d}",
+                      {"source_tag": f"mvl-idle-{i * 2:03d}",
                        "source_obj_tile": tile,
                        "ppu_sha256": {"vram": h("b"), "cgram": h("c"), "oam": h("f")}}
                       for i, tile in enumerate(mvl.CURSOR_SOURCE_TILE_CYCLE)]}
@@ -139,6 +139,8 @@ class MenuVisualLanguageTests(unittest.TestCase):
         rejects(1, lambda a: a.update(source_char_base_word=None))
         rejects(2, lambda a: a.update(atlas_rgba_dimensions=[623, 39]))
         rejects(2, lambda a: a["source_frames"][0].update(source_obj_tile=4))
+        rejects(2, lambda a: a["source_frames"][1].update(
+            source_tag="mvl-idle-003"))
         rejects(2, lambda a: a["source_frames"][0]["ppu_sha256"].update(vram=h("f")))
         rejects(3, lambda a: a.update(source_tag="mvl-idle-09"))
         rejects(3, lambda a: a.update(cgram_sha256=""))

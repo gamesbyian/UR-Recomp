@@ -36,7 +36,7 @@ class DynamicTwoPlayerMediaRoutesTest(unittest.TestCase):
         self.assertGreaterEqual(meta1["post_go_scripted_frames"], 1150)
         self.assertGreaterEqual(meta2["post_go_scripted_frames"], 1150)
         for route in (one, two):
-            self.assertIn("press right+b 2\n", route)
+            self.assertIn("press right+b 24\n", route)
             self.assertTrue("p2:b" in route)
             self.assertIn("right+p2:right", route)
             self.assertTrue("+r" in route or "+l" in route)

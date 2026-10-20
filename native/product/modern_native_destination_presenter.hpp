@@ -319,18 +319,25 @@ inline bool render_modern_native_destination(
                 ? "UP/DOWN PAGE  B BACK"
                 : "B BACK  /  READ ONLY", col.cursor_blue);
     } else if (v.two_seat_join_open) {
-        modern_native_destination_row(
+        // P1 is fixed to the active loaded profile and may confirm readiness,
+        // while P2 alone moves the candidate cursor. Never paint two identical
+        // blue focus bands suggesting P1 can browse P2's choices.
+        modern_native_destination_line(
             p, pixels, stride, surface_height, c, 39,
-            !v.join_p1_confirmed,
-            modern_native_join_label(
+            "  " + modern_native_join_label(
                 c, "P1", v.join_p1_name,
-                v.join_p1_confirmed ? "READY" : "ACTIVE"));
-        modern_native_destination_row(
-            p, pixels, stride, surface_height, c, 59,
-            !v.join_p2_confirmed,
-            modern_native_join_label(
-                c, "P2", v.join_p2_name,
-                v.join_p2_confirmed ? "READY" : "CHOOSE"));
+                v.join_p1_confirmed ? "READY" : "ACTIVE"),
+            v.join_p1_confirmed ? col.title_yellow : 0xFFFFFFFFu);
+        const auto p2 = modern_native_join_label(
+            c, "P2", v.join_p2_name,
+            v.join_p2_confirmed ? "READY" : "CHOOSE");
+        if (v.join_p2_confirmed)
+            modern_native_destination_line(
+                p, pixels, stride, surface_height, c, 59,
+                "  " + p2, col.title_yellow);
+        else
+            modern_native_destination_row(
+                p, pixels, stride, surface_height, c, 59, true, p2);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 84,
             std::string("STOCK: ") + std::string(v.join_p1_stock) +

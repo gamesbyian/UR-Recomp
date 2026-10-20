@@ -17,7 +17,7 @@ def fixture():
     for line in original.splitlines():
         o.append(line)
         if line.startswith("QA01RF079ORIG ") and "before=82D4F0 " in line:
-            frame=int(re.search(r"f=(\\d+)",line).group(1))
+            frame=int(re.search(r"f=(\d+)",line).group(1))
             o.append(f"QA01RF076ORIGPC seq={frame-1016} stage=fetch f={frame}"
                      " actualFetchedPC=82D4F2 fetchedOpcode=64 S=01F0 v=226 h=964 wai=0")
             ordinal+=1

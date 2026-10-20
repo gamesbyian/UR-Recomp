@@ -1174,13 +1174,23 @@ extern "C" int ur_baldosa_modern_root_gamepad(
     return 1;
 }
 
+extern "C" int ur_baldosa_modern_root_window_base_width(int) {
+    // The native host initializes its SDL window before its first present.
+    // The default Modern window is 16:9 in display pixels (428x240 base),
+    // while Authentic continues using the untouched 4:3 stock 320x240.
+    // Resizing to a 4:3 drawable selects a native 256-width title below.
+    return configured() ? 428 : 320;
+}
+
 extern "C" void ur_baldosa_modern_root_prepare_frame(
-    int, int, int* logical_width, int* logical_height) {
-    // Only host-owned Modern frontend output widens. Authentic, guest
-    // menus, racing and result frames keep their original raster unchanged.
+    int drawable_width, int drawable_height,
+    int* logical_width, int* logical_height) {
+    // Only visible Modern frontend frames switch logical composition.
+    // Guest races/results and Authentic always preserve original 256x224.
     if (!logical_width || !logical_height || !configured() || !g_visible)
         return;
-    *logical_width = 342;
+    *logical_width = ur::product::modern_title_logical_width(
+        drawable_width, drawable_height, true);
     *logical_height = 224;
 }
 

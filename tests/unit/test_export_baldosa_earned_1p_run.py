@@ -88,6 +88,49 @@ class ExportEarnedRunTests(unittest.TestCase):
         self.assertFalse(self.out.exists())
         self.assertFalse(list(self.journey.glob('.pending-earned-1p-*')))
 
+    def test_rejects_boolean_release_credit(self):
+        self.report['release_gate_credit'] = False
+        self.write_report()
+        with self.assertRaises(ValueError):
+            export(self.journey, self.out)
+        self.assertFalse(self.out.exists())
+
+    def test_cli_rejects_symlinked_journey(self):
+        import subprocess
+        script = Path(__file__).resolve().parents[2] / 'tools' / 'export_baldosa_earned_1p_run.py'
+        link = self.base / 'linked journey'
+        link.symlink_to(self.journey, target_is_directory=True)
+        run = subprocess.run([sys.executable, str(script), '--journey', str(link),
+                              '--out', str(self.out)], capture_output=True, text=True)
+        self.assertNotEqual(run.returncode, 0)
+        self.assertFalse(self.out.exists())
+
+    def test_atomic_publish_refuses_existing_empty_directory(self):
+        from export_baldosa_earned_1p_run import _publish_directory_no_replace
+        stage = self.base / 'atomic-stage'
+        stage.mkdir()
+        (stage / 'marker.txt').write_text('evidence', encoding='utf-8')
+        incumbent = self.base / 'incumbent'
+        incumbent.mkdir()
+        with self.assertRaises(OSError):
+            _publish_directory_no_replace(stage, incumbent)
+        self.assertTrue(stage.is_dir())
+        self.assertEqual(list(incumbent.iterdir()), [])
+        self.assertEqual((stage / 'marker.txt').read_text(), 'evidence')
+
+    def test_atomic_publish_moves_directory_without_replacement(self):
+        from export_baldosa_earned_1p_run import _publish_directory_no_replace
+        import os
+        if not (sys.platform.startswith('linux') or os.name == 'nt'):
+            self.skipTest('no audited atomic directory primitive on this host')
+        stage = self.base / 'atomic-stage'
+        stage.mkdir()
+        (stage / 'marker.txt').write_text('evidence', encoding='utf-8')
+        destination = self.base / 'published'
+        _publish_directory_no_replace(stage, destination)
+        self.assertFalse(stage.exists())
+        self.assertEqual((destination / 'marker.txt').read_text(), 'evidence')
+
     def test_rejects_duplicate_empty_oversized_and_symlinked_run(self):
         duplicate = self.runs / 'second.urrun'
         duplicate.write_bytes(b'extra')

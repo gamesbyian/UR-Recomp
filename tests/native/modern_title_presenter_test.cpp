@@ -171,7 +171,7 @@ int main() {
         // avoid a second stock-font copy of the game name above it.
         assert(!saw("UNIRACERS"));
         assert(saw("THE ONE-WHEEL RACING CLASSIC"));
-        assert(saw("PRESS A / START"));
+        assert(saw("PRESS A / START / ENTER"));
         assert(!saw("UNIRALLY"));
         // Full original-title pixel art is read from the verified retail
         // asset, not procedurally reconstructed. Digest the exact unscaled
@@ -206,7 +206,7 @@ int main() {
         assert(render_modern_title(paint, surf.pixels.data(),
                 surf.stride, surf.height, width, opening));
         assert(saw("SELECTING RACER"));
-        assert(!saw("PRESS A / START"));
+        assert(!saw("PRESS A / START / ENTER"));
         words.clear();
         assert(!render_modern_title(paint, surf.pixels.data(),
                 surf.stride, surf.height, width, modern_title_boot(false)));

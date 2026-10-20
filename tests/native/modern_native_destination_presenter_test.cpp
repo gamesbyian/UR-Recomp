@@ -111,6 +111,7 @@ int main() {
     assert(has("  2P MATCHES"));
     assert(has("LAST: course:02 00:15.50")); // untruncated hundredths
     assert(has("UP/DOWN PAGE  B BACK"));
+    assert(has("READ ONLY - NO REPLAY"));
     clear();
     v.read_only_records_two_player = true;
     v.records_status = "MY 2P 1  UNAVAILABLE 3";
@@ -140,7 +141,8 @@ int main() {
     v.options_controls_help = true;
     assert(render_modern_native_destination(painter,scratch,256,224,
                                              1,240,original,v));
-    assert(has("LEFT/RIGHT  CHANGE") && has("X  RACER SETUP"));
+    assert(has("LEFT/RIGHT  CHANGE") && has("B  CLOSE HELP"));
+    assert(!has("X  RACER SETUP"));
     assert(!has("> VSYNC    < ON >"));
     clear();
 

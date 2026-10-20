@@ -118,12 +118,16 @@ def _publish_directory_no_replace(staging: Path, destination: Path) -> None:
 def export(journey: Path, destination: Path) -> dict[str, object]:
     root_name = journey.name
     stem = root_name.split('.', 1)[0].upper().translate(str.maketrans('¹²³', '123'))
+    reserved = {'CON', 'PRN', 'AUX', 'NUL'}
+    reserved.update(f'{prefix}{n}' for prefix in ('COM', 'LPT') for n in range(1, 10))
     if (not root_name or root_name.endswith((' ', '.')) or
             unicodedata.normalize('NFC', root_name) != root_name or
             len(root_name.encode('utf-16-le')) // 2 > 255 or
             any(ord(ch) < 32 or unicodedata.category(ch) in ('Cf', 'Cs')
                 or ch in '<>:"|?*\\/' for ch in root_name) or
-            stem in {'CON','PRN','AUX','NUL','CONIN    if destination == journey or journey in destination.parents:
+            stem in reserved):
+        raise ValueError('Nonportable source journey root name')
+    if destination == journey or journey in destination.parents:
         raise ValueError('Evidence destination must be outside source journey')
     if (journey.is_symlink() or not journey.is_dir() or
             journey.resolve(strict=True) != journey.absolute()):

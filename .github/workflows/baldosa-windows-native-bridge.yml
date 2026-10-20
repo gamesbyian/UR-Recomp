@@ -39,6 +39,7 @@ on:
       - "native/product/baldosa_native_first_profile.hpp"
       - "native/product/baldosa_native_second_profile.hpp"
       - "native/product/modern_root_overlay_presenter.hpp"
+      - "native/product/modern_native_destination_presenter.hpp"
       - "native/product/modern_root_physical_edges.hpp"
       - "tests/native/baldosa_native_first_profile_test.cpp"
       - "tests/unit/test_baldosa_native_first_profile_cpp.py"

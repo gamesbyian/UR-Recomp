@@ -1,10 +1,10 @@
 ## Current owner art direction: long continuous footer (20 October 2026)
 
-The next film regeneration MUST use `uniracers_footer_long.png`, the owner-supplied 1536×512 longer graph-paper drawing with the continuous foreground and background track, loop, wheel and fine drafting marks. Preserve it as the source asset, crop **only** blank top and bottom margins, scale uniformly to the entire 1920-pixel card width, and align it flush to the card bottom. No synthesized left-hand extension, procedural wave or regenerated line work. This supersedes `uniracers_track_unicycle.jpg` (retained for historical production provenance).
+The next film regeneration MUST use `uniracers_footer_long.jpg`, the owner-supplied 1536×512 longer graph-paper drawing with the continuous foreground and background track, loop, wheel and fine drafting marks. Preserve it as the source asset, crop **only** blank top and bottom margins, scale uniformly to the entire 1920-pixel card width, and align it flush to the card bottom. No synthesized left-hand extension, procedural wave or regenerated line work. This supersedes `uniracers_track_unicycle.jpg` (retained for historical production provenance).
 
 The hand-drawn text logo remains `uniracers_graphpaper_logo.jpg` and should remain the default header illustration.
 
-**Intake status:** GitHub's connected file APIs support textual updates and base64 blobs, but the image's bytes could not be transferred from the chat upload into the GitHub connector in this session. The new renderer explicitly **refuses regeneration** until `uniracers_footer_long.png` is actually committed. Do not classify this art-intake task complete, and do not change the SHA of the already-published film. The user supplied the reference in the October 20 ChatGPT conversation.
+**Intake status:** The exact original image is 1536×512 JPEG despite the upload's `.png` filename. The uploaded source is 154,531 bytes, SHA-256 `744d61c5855be55b113c16313b44d2e0a37479a4019363ef4a9c8690a8029fd7`; the renderer now refuses any other bytes. The source is available as a handoff ZIP from the owner's conversation but has **not** been added to GitHub, because the GitHub connector cannot receive these local file bytes. The new renderer explicitly **refuses regeneration** until `uniracers_footer_long.jpg` is actually committed. Do not classify this art-intake task complete, and do not change the SHA of the already-published film. The user supplied the reference in the October 20 ChatGPT conversation.
 
 # Graph-paper illustrated recruitment edition (20 October 2026)
 

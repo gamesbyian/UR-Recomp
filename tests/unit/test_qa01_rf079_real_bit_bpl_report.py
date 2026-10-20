@@ -104,6 +104,8 @@ class RealBitBranch(unittest.TestCase):
             self.assertTrue(report['native_RF047_dedicated_source_ordinals_verified'])
             self.assertTrue(report['native_raw_stderr_separately_preserved_unchanged'])
             self.assertFalse(report['native_stderr_full_RF047_source_continuity_claimed'])
+            self.assertEqual(report['native_raw_stderr_missing_complete_RF047_source_events'],1)
+            self.assertEqual(report['native_raw_stderr_malformed_or_mismatched_RF047_prefix_rows'],0)
             self.assertEqual(report['source_two_frame_brackets_compared'],2)
 
     def test_non_source_or_mixed_line_inside_sidecar_is_strict_failure(self):

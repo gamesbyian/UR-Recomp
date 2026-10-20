@@ -4,8 +4,8 @@
 Stages in a *cloned* pinned Baldosa framework runner; never patches repository
 game code or the shipping user's executable. Screenshot pixels are captured
 after SDL_RenderCopy/texture composition and before SDL_RenderPresent. This is
-independent of the guest logical framebuffer. SDL2 path only; no silent SDL3
-fallback. Reuses the pinning pattern of baldosa_sdl_physical_4k_capture_spike.
+independent of the guest logical framebuffer. Both the pinned shipping SDL3
+and opt-in SDL2 have explicit, separate readback APIs, no silent fallbacks. Reuses the pinning pattern of baldosa_sdl_physical_4k_capture_spike.
 """
 from __future__ import annotations
 
@@ -26,9 +26,8 @@ STOP = "static void SdlRenderer_Reconfigure(void)"
 # Output P7 is *raw observed SDL pixels*, not a resized source-frame PNG.
 INSTRUMENT = r"""/* UR_MODERN_UI_SDL_DRAWABLE_CAPTURE: QA-only, never a release feature.
  * Draw index counts actual SDL EndDraw calls even while guest frames are
- * paused. Explicit one-shot, output-size-checked SDL2 readback. An opt-in
+ * paused. Explicit one-shot, output-size-checked SDL2/SDL3 readback. An opt-in
  * fixture can convert the exact P7 bytes to lossless PNG independently. */
-#if !SNESRECOMP_SDL3
 static void UrQaModernReadDrawable(void) {
   static unsigned present_calls = 0;
   static int completed = 0;
@@ -69,13 +68,42 @@ static void UrQaModernReadDrawable(void) {
     fprintf(stderr, "UR_MODERN_VISUAL_SDL_CAPTURE refused=allocation\n");
     return;
   }
-  if (SDL_RenderReadPixels(g_renderer, NULL, SDL_PIXELFORMAT_ARGB8888,
-                           rgba, (int)pitch) != 0) {
+#if SNESRECOMP_SDL3
+  /* SDL3 (the actual default shipping backend) RETURNS an SDL_Surface.
+   * Its two-argument readback signature cannot be called with SDL2's
+   * four-argument destination-buffer ABI. Normalize to ARGB8888 BEFORE
+   * writing the exact final drawable's observed P7 sample order. */
+  SDL_Surface *native = SDL_RenderReadPixels(g_renderer, NULL);
+  if (!native) {
     fprintf(stderr, "UR_MODERN_VISUAL_SDL_CAPTURE refused=readback"
-            " sdl_error=%s\n", SDL_GetError());
+            " backend=sdl3 error=%s\n", SDL_GetError());
     free(rgba);
     return;
   }
+  SDL_Surface *argb = SDL_ConvertSurface(native, SDL_PIXELFORMAT_ARGB8888);
+  SDL_DestroySurface(native);
+  if (!argb || argb->w != w || argb->h != h || !argb->pixels ||
+      argb->pitch < (int)pitch) {
+    fprintf(stderr, "UR_MODERN_VISUAL_SDL_CAPTURE refused=convert"
+            " backend=sdl3 error=%s\n", SDL_GetError());
+    if (argb) SDL_DestroySurface(argb);
+    free(rgba);
+    return;
+  }
+  for (int y = 0; y < h; ++y)
+    memcpy(rgba + (size_t)y * pitch,
+           (const uint8_t *)argb->pixels + (size_t)y * (size_t)argb->pitch,
+           pitch);
+  SDL_DestroySurface(argb);
+#else
+  if (SDL_RenderReadPixels(g_renderer, NULL, SDL_PIXELFORMAT_ARGB8888,
+                           rgba, (int)pitch) != 0) {
+    fprintf(stderr, "UR_MODERN_VISUAL_SDL_CAPTURE refused=readback"
+            " backend=sdl2 error=%s\n", SDL_GetError());
+    free(rgba);
+    return;
+  }
+#endif
   /* Do not silently overwrite another capture from the same user run. */
   FILE *existing = fopen(output, "rb");
   if (existing) {
@@ -108,17 +136,21 @@ static void UrQaModernReadDrawable(void) {
   if (!ok && file) remove(output);
   free(rgba);
   fprintf(stderr, "UR_MODERN_VISUAL_SDL_CAPTURE status=%s"
-          " draw=%u guest_frame=%u output=%dx%d source=SDL_RenderReadPixels\n",
-          ok ? "saved" : "failed", present_calls, g_present_frame, w, h);
-}
+          " draw=%u guest_frame=%u output=%dx%d source=SDL_RenderReadPixels"
+          " backend=%s\n",
+          ok ? "saved" : "failed", present_calls, g_present_frame, w, h,
+#if SNESRECOMP_SDL3
+          "sdl3"
+#else
+          "sdl2"
 #endif
+  );
+}
 """
 
 REPLACEMENT = """  snesrecomp_sdl_render_texture(g_renderer, g_texture, &g_sdl_renderer_rect,
                                 &g_sdl_present_rect);
-#if !SNESRECOMP_SDL3
   UrQaModernReadDrawable();
-#endif
   SDL_RenderPresent(g_renderer);
 """
 

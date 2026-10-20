@@ -1,0 +1,165 @@
+name: One-shot recover authentic blue action videos and finish source poster
+on:
+  push:
+    branches: [media/blue-art-direction-recruitment-20261020]
+    paths: [.github/workflows/one-shot-blue-action-recovery.yml]
+permissions:
+  contents: write
+  actions: read
+jobs:
+  complete:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Synchronize accepted native capture source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git merge --no-edit origin/main
+      - uses: actions/download-artifact@v4
+        with:
+          name: ur-blue-genuine-action-render
+          run-id: 39381149305
+          github-token: ${{ github.token }}
+          path: media/showcase/2026-10-20/blue-action-final/
+      - name: Install light verification tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg python3-pil
+      - name: Finish actual airborne game poster and exact output provenance
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,importlib.util,json,subprocess,sys
+          from pathlib import Path
+          from PIL import Image,ImageDraw
+          sys.path.insert(0,'tools/showcase')
+          path=Path('tools/showcase/build_flagship_recruitment_20261019.py')
+          spec=importlib.util.spec_from_file_location('source_locked_blue_edit',path)
+          module=importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(module)
+          root=Path('media/showcase/2026-10-20/blue-action-final')
+          action=module.SOURCES['action'][0]
+          sha=lambda f:hashlib.sha256(Path(f).read_bytes()).hexdigest()
+          assert sha(action)==module.SOURCES['action'][1]
+          master=root/'ur-recomp-blue-action-80s-1080p.mp4'
+          portrait=root/'ur-recomp-blue-action-27s-vertical.mp4'
+          for movie,w,h,frames in [(master,1920,1080,4800),(portrait,1080,1920,1620)]:
+            assert movie.exists() and movie.stat().st_size>100000
+            probe=json.loads(subprocess.check_output(['ffprobe','-v','error','-count_frames',
+                '-select_streams','v:0','-show_entries','stream=width,height,r_frame_rate,nb_read_frames',
+                '-of','json',str(movie)]))['streams'][0]
+            assert (probe['width'],probe['height'],probe['r_frame_rate'],int(probe['nb_read_frames']))==(w,h,'60/1',frames),(movie,probe)
+          still=root/'verified-source-action-ordinal-0570.png'
+          subprocess.run(['ffmpeg','-nostdin','-hide_banner','-loglevel','error','-y',
+              '-i',str(action),'-vf','select=eq(n\\,570)',
+              '-frames:v','1',str(still)],check=True)
+          with Image.open(still) as src:
+            assert src.size==(1920,1080)
+            im=src.convert('RGB')
+          d=ImageDraw.Draw(im)
+          d.rectangle((0,0,1920,93),fill=module.INK)
+          d.rectangle((0,985,1920,1080),fill=module.INK)
+          module.text_fit(d,(102,14),'UNIRACERS RECOMP / NATIVE WIDESCREEN',46,module.GOLD,True)
+          module.text_fit(d,(108,1007),'JUMPS COURSE / AUTHENTIC GAMEPLAY FRAME',32,module.LIGHT,True)
+          poster=root/'ur-recomp-blue-action-poster.png'
+          im.save(poster)
+          claims={
+            'release_status':'NOT A FINISHED BETA',
+            'independently_accepted_USA_events':'0/45 as of 2026-10-19',
+            'windows_release_QA_gates':'0/12 as of 2026-10-19',
+            'source_gameplay_segments':'uninterpolated, source-contiguous per individual segment',
+            'original_wide':'342x224 with 43 real additional source columns per side',
+            'action_reel':'Three separately captured authentic guest runs of MegaJump, Jumps, Looper, each 300 consecutive frames; editorial cuts and separate race sessions clearly identified',
+            'loop_claim':'Looper shows graded rolling geometry; no complete loop revolution confirmed',
+            'airborne_claim':'Jumps has independently reviewed inverted airborne rider source ordinal 570',
+            'modern_footage':'Obsolete October 10 temporary Modern menu footage excluded',
+            'windows_journey_card':'editorial recap of scripted Win32 profiles and Records evidence, not live footage',
+            'full_SDL_4k_card':'bounded real 3840x2160 SDL frame evidence, not filmed 4K gameplay',
+            'art_demo':'experimental 4x character likeness under explicit art veto',
+            'technical_65816_C':'pinned original MainLoop and generated C, no whole-game parity assertion',
+            'soundtrack':'independently synthesized original composition'
+          }
+          assert [(k,n) for k,start,n,*_ in module.FILM if k=='action']==[('action',300)]*3
+          m={
+            'schema':'UR-FLAGSHIP-RECRUITMENT/1',
+            'build_edition':'2026-10-20',
+            'source_identity':{k:{'path':str(v[0].relative_to(module.ROOT)),'sha256':v[1],'frames':v[2],'fps':v[3],'classification':v[4]} for k,v in module.SOURCES.items()},
+            'poster_source':{'path':str(action.relative_to(module.ROOT)),'sha256':module.SOURCES['action'][1],'source_ordinal':570,'actual_airborne_rider_source':True},
+            'horizontal_shots':[{'source':k,'source_first_ordinal':start,'source_frame_count':n,'label':label,'classification':kind} for k,start,n,label,kind in module.FILM],
+            'vertical_shots':[{'source':k,'source_first_ordinal':start,'source_frame_count':n,'label':label,'classification':kind} for k,start,n,label,kind in module.SHORT],
+            'output_sha256':{p.name:sha(p) for p in (master,portrait,poster)},
+            'claims_and_exclusions':claims,
+            'total_horizontal_frames':4800,'total_vertical_frames':1620,
+            'no_interpolation':True,'editorial_cards_not_gameplay':True
+          }
+          (root/'flagship-provenance.json').write_text(json.dumps(m,indent=2,sort_keys=True)+'\n')
+          print('RECOVERED EXACT ORIGINAL FILMS',m['output_sha256'])
+          PY
+      - name: Decode a representative frame from each actual game and artwork segment
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,json,subprocess
+          from pathlib import Path
+          from PIL import Image
+          root=Path('media/showcase/2026-10-20/blue-action-final')
+          x=json.loads((root/'flagship-provenance.json').read_text())
+          sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+          shots={'ur-recomp-blue-action-80s-1080p.mp4':(1920,1080,4800,[90,570,805,1110,1930,2700,3330,3980,4290]),
+                 'ur-recomp-blue-action-27s-vertical.mp4':(1080,1920,1620,[90,420,820,1170,1500])}
+          witness={}
+          for name,(w,h,frames,ordinals) in shots.items():
+            f=root/name
+            assert sha(f)==x['output_sha256'][name]
+            expr='+'.join('eq(n\\,'+str(n)+')' for n in ordinals)
+            subprocess.run(['ffmpeg','-nostdin','-hide_banner','-loglevel','error','-y',
+              '-i',str(f),'-vf','select='+expr,'-fps_mode','vfr','-frames:v',str(len(ordinals)),
+              '-start_number','0',str(root/(name+'.check-%02d.png'))],check=True)
+            for i,n in enumerate(ordinals):
+              tmp=root/(name+f'.check-{i:02d}.png')
+              out=root/(name.removesuffix('.mp4')+f'-frame-{n:04d}.png')
+              tmp.rename(out)
+              with Image.open(out) as im:
+                assert im.size==(w,h)
+                im.verify()
+              witness[out.name]=sha(out)
+          poster=root/'ur-recomp-blue-action-poster.png'
+          with Image.open(poster) as im:
+            assert im.size==(1920,1080)
+            im.verify()
+          assert sha(poster)==x['output_sha256'][poster.name]
+          (root/'blue-action-review.json').write_text(json.dumps({
+            'schema':'UR-BLUE-ACTION-FINAL-QA/1',
+            'exact_source_hash':sha(root/'flagship-provenance.json'),
+            'decoded_witness_sha256':witness,
+            'grey_temp_menus_removed':True,
+            'three_qualified_original_2p_sessions':True,
+            'fully_closed_loop_claimed':False,
+            'status':'source and frame accepted; model visual review pending'
+          },indent=2,sort_keys=True)+'\n')
+          print('ACCEPTED',len(witness),'decoded witnesses')
+          PY
+      - name: Preserve reviewable video files
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ur-blue-action-final-accepted
+          path: media/showcase/2026-10-20/blue-action-final/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Publish final blue 80s and 27s without rerender
+        run: |
+          set -euo pipefail
+          git add media/showcase/2026-10-20/blue-action-final/
+          git rm -f .github/workflows/one-shot-blue-action-render.yml
+          git rm -f .github/workflows/one-shot-blue-action-recovery.yml
+          git diff --cached --check
+          git commit -m "media: publish source-qualified 80s blue 3-course action trailer and poster"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

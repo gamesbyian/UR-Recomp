@@ -38,6 +38,7 @@ jobs:
           test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
           test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
           python tests/unit/test_qa_modern_visual_native_capture.py
+          python tests/unit/test_qa_modern_visual_win32_capture_driver.py
           python tests/unit/test_check_modern_visual_capture_bundle.py
           python tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
       - name: Stage original Modern native host and opt-in SDL2 readback

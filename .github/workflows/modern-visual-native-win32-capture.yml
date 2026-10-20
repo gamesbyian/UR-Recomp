@@ -103,7 +103,15 @@ jobs:
             test -s "$RUNNER_TEMP/ur-modern-win32-visual-$size/actual-sdl-drawable.png"
             test -s "$RUNNER_TEMP/ur-modern-win32-visual-$size/readback-receipt.json"
           done
-          echo "Actual combined-head SDL drawable at 1280x720 and 1024x768; same PE, separate clean runs; no human/physical-device approval." >> "$GITHUB_STEP_SUMMARY"
+          # Explicit native-source witness alongside exact SDL sizes: neither
+          # a resized screenshot nor a 342px frame letterboxed into 4:3
+          # counts as the compact Modern renderer. These stage lines were
+          # observed in the same-process original captured Windows logs.
+          grep -Fq 'UR_BALDOSA_MODERN_DESTINATION stage=root raster=342x224 root=11,10,320,204 source=modern_product_view' \
+            "$RUNNER_TEMP/ur-modern-win32-visual-1280x720/probe_first/native-process.log"
+          grep -Fq 'UR_BALDOSA_MODERN_DESTINATION stage=root raster=256x224 root=8,10,240,204 source=modern_product_view' \
+            "$RUNNER_TEMP/ur-modern-win32-visual-1024x768/probe_first/native-process.log"
+          echo "Actual combined-head SDL output 1280x720 / 1024x768 AND same-process native root 342x224 / 256x224 verified; human/physical-device approval remains pending." >> "$GITHUB_STEP_SUMMARY"
       - name: Capture native Records keyboard, P1 Options and P1 profile states
         run: |
           set -euo pipefail

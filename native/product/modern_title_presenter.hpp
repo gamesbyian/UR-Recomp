@@ -80,12 +80,12 @@ inline bool render_modern_title(
     // Full-bleed horizontal bands leave readable letterforms on either
     // screen size. All geometry is resolution-independent logical pixels.
     paint.fill_rect(pixels, stride, surface_height, 0, 0, w, h, black);
-    paint.fill_rect(pixels, stride, surface_height, 0, 0, w, 124, midnight);
-    paint.fill_rect(pixels, stride, surface_height, 0, 122, w, 2, cobalt);
+    paint.fill_rect(pixels, stride, surface_height, 0, 0, w, 130, midnight);
+    paint.fill_rect(pixels, stride, surface_height, 0, 129, w, 2, cobalt);
     // Fine-grid technical register references the original cartridge's
     // fast strip/racing grammar without borrowing unapproved HD rider art.
     for (int x = 13; x < w; x += 24)
-        paint.fill_rect(pixels, stride, surface_height, x, 125, 1, 99,
+        paint.fill_rect(pixels, stride, surface_height, x, 132, 1, 92,
                         0xFF152943u);
     for (int y = 139; y < h; y += 16)
         paint.fill_rect(pixels, stride, surface_height, 0, y, w, 1,

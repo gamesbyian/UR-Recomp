@@ -74,7 +74,9 @@ void test_motion() {
 
     pose = advance_modern_menu_motion(state, {1001, 1, true, false});
     assert(pose.selection == 1);
-    assert(pose.cursor_remainder_px == -21);
+    // The original cursor responds in the press frame, rather than lagging
+    // one host draw: measured 6/23 of the modern 21px row is already travelled.
+    assert(pose.cursor_remainder_px == -16);
     pose = advance_modern_menu_motion(state, {1002, 1, true, false});
     assert(pose.cursor_remainder_px < 0 && pose.cursor_remainder_px > -21);
     pose = advance_modern_menu_motion(state, {1013, 1, true, false});
@@ -83,15 +85,15 @@ void test_motion() {
     // Selection response interrupts the earlier animation immediately,
     // including a new selection on the very next 60Hz tick.
     pose = advance_modern_menu_motion(state, {1014, 2, true, false});
-    assert(pose.cursor_remainder_px == -21);
-    pose = advance_modern_menu_motion(state, {1015, 1, true, false});
-    // Physical cursor continued from pixel 26 (5 below destination 1),
-    // rather than teleporting from selected destination 2, pixel 42.
-    assert(pose.cursor_remainder_px == 5);
-    pose = advance_modern_menu_motion(state, {1015, 2, true, false});
     assert(pose.cursor_remainder_px == -16);
     pose = advance_modern_menu_motion(state, {1015, 1, true, false});
-    assert(pose.cursor_remainder_px == 5);
+    // Physical cursor continued from near pixel 30 and immediately eased
+    // toward destination 1 (pixel 21), instead of jumping from target 2.
+    assert(pose.cursor_remainder_px == 7);
+    pose = advance_modern_menu_motion(state, {1015, 2, true, false});
+    assert(pose.cursor_remainder_px == -10);
+    pose = advance_modern_menu_motion(state, {1015, 1, true, false});
+    assert(pose.cursor_remainder_px == 8);
     pose = advance_modern_menu_motion(state, {1016, 4, true, false});
     assert(pose.selection == 4 && pose.cursor_remainder_px == 0);
     pose = advance_modern_menu_motion(state, {1017, 0, true, false});
@@ -122,7 +124,7 @@ void test_motion() {
     // A genuine new selection after motion is re-enabled animates again.
     pose = advance_modern_menu_motion(state, {53, 4, true, false});
     assert(pose.selection == 4);
-    assert(pose.cursor_remainder_px == -21);
+    assert(pose.cursor_remainder_px == -16);
     assert(pose.entrance_distance_px == 0);
     assert(pose.hero_frame_ordinal == 0);
     // Even if reduced motion is toggled inside an incomplete entrance, the

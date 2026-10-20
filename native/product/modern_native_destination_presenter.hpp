@@ -32,7 +32,8 @@ struct ModernNativeDestinationCanvas {
 inline ModernNativeDestinationCanvas modern_native_destination_canvas(
     int stride, int surface_height, int scale, int panel_w,
     HostOverlayRect root) noexcept {
-    if (scale <= 0 || panel_w < 176 || stride <= 0 ||
+    if (scale <= 0 || scale > 4 || panel_w < 176 || panel_w > 342 ||
+        stride <= 0 ||
         surface_height <= 0 || root.x < 0 || root.y < 0 ||
         root.width <= 0 || root.height <= 0 ||
         root.x > stride || root.width > stride - root.x ||
@@ -48,7 +49,7 @@ inline ModernNativeDestinationCanvas modern_native_destination_canvas(
     if (x < root.x || y < root.y ||
         width > root.x + root.width - x ||
         height > root.y + root.height - y) return {};
-    return {x, y, width, height, scale, panel_w >= 300};
+    return {x, y, width, height, scale, panel_w >= 320};
 }
 
 inline bool modern_native_destination_is_open(

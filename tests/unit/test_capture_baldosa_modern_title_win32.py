@@ -85,6 +85,41 @@ class ModernTitleNativeCaptureTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "dimensions"):
                 read_present_ppm(photos / "presented-root.ppm", 342)
 
+    def test_reduced_motion_uses_unmoving_original_logo_in_native_presents(self):
+        # Source and PPM fixtures exercise the checker, never masquerade as
+        # actual SDL native acceptance or replace verified retail-art SHA.
+        with tempfile.TemporaryDirectory() as root:
+            base = Path(root)
+            source = base / "captures"
+            presented = base / "presented"
+            source.mkdir()
+            presented.mkdir()
+            width, height = 342, 224
+            title_pixel = bytes((15, 80, 132, 255))
+            root_pixel = bytes((83, 96, 100, 255))
+            for name, pixel in (("title", title_pixel), ("root", root_pixel)):
+                (source / f"modern-native-{name}-342x224.pam").write_bytes(
+                    pam(width, height, pixel * (width * height)))
+            def write_present(index, pixel):
+                (presented / f"present_{index:06d}.ppm").write_bytes(
+                    b"P6\\n342 224\\n255\\n" + pixel[:3] * (width * height))
+            write_present(0, title_pixel)
+            write_present(1, root_pixel)  # forged movement before confirm
+            write_present(2, root_pixel)
+            (presented / "presents.csv").write_text(
+                "present,frame,alpha,crc32,luma\\n"
+                "0,16,0,12345678,11\\n"
+                "1,32,0,12345678,11\\n"
+                "2,80,0,12345678,11\\n")
+            with self.assertRaisesRegex(ValueError, "reduced-motion original title moved"):
+                verify_native_presented_frames(
+                    presented, source, expected_width=width, reduced_motion=True)
+            write_present(1, title_pixel)
+            accepted = verify_native_presented_frames(
+                presented, source, expected_width=width, reduced_motion=True)
+            self.assertEqual(accepted["presentations_examined"], 3)
+            self.assertEqual(accepted["matched"]["root"]["present_frame"], 80)
+
     def test_fake_log_cannot_turn_empty_pixels_into_real_art(self):
         with tempfile.TemporaryDirectory() as root:
             folder = Path(root)

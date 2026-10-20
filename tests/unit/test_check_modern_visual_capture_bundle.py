@@ -22,7 +22,8 @@ def png(width=4, height=3, *, raw=None, compressed=None):
         return (struct.pack(">I", len(payload)) + tag + payload +
                 struct.pack(">I", zlib.crc32(tag + payload) & 0xFFFFFFFF))
     header = struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0)
-    pixels = b"".join(b"\\x00" + b"\\xff\\x21\\x42\\xff" * width for _ in range(height)) if raw is None else raw
+    pixels = (b"".join(b"\x00" + b"\xff\x21\x42\xff" * width for _ in range(height))
+              if raw is None else raw)
     return (qa.PNG_SIG + chunk(b"IHDR", header) +
             chunk(b"IDAT", compressed if compressed is not None else zlib.compress(pixels)) + chunk(b"IEND", b""))
 

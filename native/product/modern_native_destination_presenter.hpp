@@ -98,6 +98,28 @@ inline void modern_native_destination_row(
         selected ? color.shadow_black : 0xFFFFFFFFu);
 }
 
+// Compact seat labels must not let a long catalog name push the important
+// READY/ACTIVE/CHOOSE status offscreen. The native model retains the *full*
+// identity; only this one painter string is shortened, visibly with a dot.
+inline std::string modern_native_join_label(
+    const ModernNativeDestinationCanvas& c,
+    std::string_view seat, std::string_view name,
+    std::string_view status) {
+    constexpr std::size_t cursor_cells = 2;
+    const std::size_t text_cells = c.scale > 0
+        ? static_cast<std::size_t>(
+            (c.w / c.scale - 9 - 5) / kModernOverlayCellPixels)
+        : 0u;
+    const std::size_t fixed = cursor_cells + seat.size() +
+        2u + 2u + status.size();
+    const std::size_t available = text_cells > fixed ? text_cells - fixed : 0u;
+    std::string shown(name.substr(0, available));
+    if (shown.size() < name.size() && !shown.empty())
+        shown.back() = '.';
+    return std::string(seat) + "  " + shown + "  " +
+        std::string(status);
+}
+
 inline bool render_modern_native_destination(
     const ModernRootOverlayPainter& p,
     std::uint32_t* pixels, int stride, int surface_height,
@@ -232,14 +254,16 @@ inline bool render_modern_native_destination(
     } else if (v.two_seat_join_open) {
         modern_native_destination_row(
             p, pixels, stride, surface_height, c, 39,
-            !v.join_p1_confirmed, std::string("P1  ") +
-            std::string(v.join_p1_name) +
-            (v.join_p1_confirmed ? "  READY" : "  ACTIVE"));
+            !v.join_p1_confirmed,
+            modern_native_join_label(
+                c, "P1", v.join_p1_name,
+                v.join_p1_confirmed ? "READY" : "ACTIVE"));
         modern_native_destination_row(
             p, pixels, stride, surface_height, c, 59,
-            !v.join_p2_confirmed, std::string("P2  ") +
-            std::string(v.join_p2_name) +
-            (v.join_p2_confirmed ? "  READY" : "  CHOOSE"));
+            !v.join_p2_confirmed,
+            modern_native_join_label(
+                c, "P2", v.join_p2_name,
+                v.join_p2_confirmed ? "READY" : "CHOOSE"));
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 84,
             std::string("STOCK: ") + std::string(v.join_p1_stock) +
@@ -283,7 +307,7 @@ inline bool render_modern_native_destination(
             "TWO NAMED RACERS NEEDED", col.title_yellow);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 63,
-            "STOCK 2P IS STILL PLAYABLE", 0xFFFFFFFFu);
+            "STOCK 2P STILL PLAYABLE", 0xFFFFFFFFu);
         modern_native_destination_line(
             p, pixels, stride, surface_height, c, 85,
             "NO MATCH HISTORY SAVED", col.secondary_grey);

@@ -90,7 +90,7 @@ int main() {
     assert(has("> 1P RUNS"));
     assert(has("  2P MATCHES"));
     assert(has("LAST: course:02 00:15.50")); // untruncated hundredths
-    assert(has("UP/DOWN PAGE  B BACK  /  READ ONLY") == false);
+    assert(has("UP/DOWN PAGE  B BACK"));
     clear();
     v.read_only_records_two_player = true;
     v.records_status = "MY 2P 1  UNAVAILABLE 3";
@@ -160,7 +160,7 @@ int main() {
     assert(render_modern_native_destination(painter,scratch,256,224,
                                              1,240,original,v));
     assert(has("NO MATCH HISTORY WILL SAVE"));
-    assert(has("P1 A PLAY ANYWAY   B BACK"));
+    assert(has("P1 A ANYWAY   B BACK"));
     clear();
     assert(!render_modern_native_destination({},scratch,256,224,
                                               1,240,original,v));

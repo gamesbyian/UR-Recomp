@@ -47,6 +47,7 @@ jobs:
           export DISPLAY=:99 SDL_VIDEODRIVER=x11 SDL_AUDIODRIVER=dummy
           export SNESRECOMP_ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           export BALDOSA_REAL_BIN="$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp"
+          chmod +x tools/showcase/native_dynamic_media_wrapper.sh
           export BIN="$GITHUB_WORKSPACE/tools/showcase/native_dynamic_media_wrapper.sh"
           export PIXELS=0 KEEP_WRAM=0 TMO=60 UR_BALDOSA_HD=1 UR_BALDOSA_HD_DENSITY=1
           export UR_BALDOSA_WS342=1 UR_BALDOSA_WS342_LIVE=1 UR_RACER_HD=0

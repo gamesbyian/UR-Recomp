@@ -90,6 +90,16 @@ class LateEffectiveSourceProof(unittest.TestCase):
             witness.parse_row(source().replace("selected_rgb555=56b5",
                                                "selected_rgb555=4210"))
 
+    def test_indexed_cgram_word_must_match_logged_slot_on_both_renderers(self):
+        for renderer in ("UR_QA08_LATE_PPU_SOURCE ", "UR_QA08_LATE_SPAN_SOURCE "):
+            row = source().replace("UR_QA08_LATE_PPU_SOURCE ", renderer)
+            with self.subTest(renderer=renderer):
+                with self.assertRaisesRegex(ValueError, "indexed effective CGRAM"):
+                    witness.parse_row(row.replace("cgram6c=56b5", "cgram6c=4a52"))
+                self.assertEqual(witness.parse_row(row)[1]["index"], 0x6c)
+                direct = row.replace("directcolor=0", "directcolor=1")
+                witness.parse_row(direct.replace("cgram6c=56b5", "cgram6c=4a52"))
+
     def test_directcolor_is_not_mislabeled_CGRAM(self):
         kind,row=witness.parse_row(
             source(direct=1).replace("selected_rgb555=56b5",

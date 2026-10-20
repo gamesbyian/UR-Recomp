@@ -1,5 +1,20 @@
 # Genuine dynamic widescreen 2P cinematic capture: candidate, not accepted footage
 
+## Recovered genuine source recordings (2026-10-19)
+
+The latest [native capture run 39356424570](https://github.com/gamesbyian/UR-Recomp/actions/runs/39356424570) successfully completed three original-mode 342-column, 900-consecutive-frame 2P controls and video recordings **before the fourth Hill Climb menu route failed**. The [independent artifact-only recovery run 39359002789](https://github.com/gamesbyian/UR-Recomp/actions/runs/39359002789) restored and revalidated those exact originals with unchanged control/recorded CRCs, read-only real P1/P2 world-position witnesses, verified video hashes, 30 individual decoded source frames and three contact sheets, with no native rebuild.
+
+- [Looper, 15 seconds](native-looper-p1-leads-900f.mp4): authentic sloping curved segments and clearly separated racers. Its captured 15 seconds do **not yet certify a complete closed loop**. SHA-256 `3de690c458b70d802af692418a155b31bb0381d595e61c897a62be492aeecbe3`.
+- [MegaJump, 15 seconds](native-megajump-p2-leads-900f.mp4): steep upward/downward walls and dramatic topology, genuinely distinct cameras/riders. SHA-256 `cee7dbdf271068896c9636206c6613bda302ba938a1c473ac4483ab6369617a4`.
+- [Jumps, 15 seconds](native-jumps-p1-leads-900f.mp4): real sloped ramp terrain and an inverted airborne green rider in an independently decoded frame (source video ordinal 570). SHA-256 `46283d6fb1f698868a736df0cee857aa8928cc587f39d88c77a41c41813c9b03`.
+
+[Exact source, selected course, controller clocks, frame hashes and positional witnesses](dynamic-racing-provenance.json). Captures come from separate genuine gameplay sessions, not one fictitious contiguous 2P run. The donor artifact did **not** retain the native executable SHA text receipt: this limitation is marked `null` in the provenance, not fabricated. Source commits, actual 900-frame videos, matching WRAM replay CRCs and guest-position dumps remain independently verified. The private ROM is not committed.
+
+[Candidate 15-second genuine dynamic action reel](native-dynamic-2p-three-courses-15s.mp4) is assembled as **three visible editorial hard cuts**, each using 300 consecutive frames from one of these three approved real recordings. A separate SHA/shot manifest is provided in [the montage provenance](dynamic-three-course-reel-provenance.json). This short is qualified as source-authentic racing, **not** proof of a closed loop or a completed Hill Climb run.
+
+The attempt to enter Hill Climb, fourth in the original run, exited 3 before recording. Hill Climb must remain an independent route-research task rather than suppressing three successful native videos. There is no accepted native Hill Climb footage yet.
+
+
 ## Objective
 
 The October 10 600-frame native race clips replay `press right+p2:right` throughout the post-GO movement. That causes two nearly co-located unicycles on visually similar flat track spans. The October 19 recruitment cut is therefore authentic but not an effective display of Uniracers' jumping, flips, twists or player separation.

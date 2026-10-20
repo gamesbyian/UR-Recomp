@@ -1,0 +1,75 @@
+name: Graph-paper illustrated trailer one-shot
+on:
+  push:
+    branches:
+      - media/graphpaper-illustrated-recruitment-20261020
+    paths:
+      - .github/workflows/ur-graphpaper-trailer-one-shot.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: ur-graphpaper-illustrated-film
+  cancel-in-progress: false
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Prepare reference rendering dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg python3-pil
+          python3 -c "from PIL import Image; print(Image.__version__)"
+          ffmpeg -version | head -1
+      - name: Produce all illustrated source card plates
+        run: |
+          python3 tools/showcase/build_graphpaper_recruitment_20261020.py --cards-only --outdir media/showcase/2026-10-20/graphpaper-final/cards
+          test "$(find media/showcase/2026-10-20/graphpaper-final/cards -maxdepth 1 -name '*.png' | wc -l)" -eq 12
+      - name: Source-gated authentic 80s and 27s film renders
+        run: |
+          python3 tools/showcase/build_graphpaper_recruitment_20261020.py --outdir media/showcase/2026-10-20/graphpaper-final
+      - name: Independently decode four representative source-video/card frames
+        shell: bash
+        run: |
+          set -euo pipefail
+          d=media/showcase/2026-10-20/graphpaper-final
+          for pair in "0270 reveal" "1000 windows" "3820 action" "4600 cta"; do
+            set -- $pair
+            ffmpeg -nostdin -v error -i "$d/ur-recomp-graphpaper-action-80s-1080p.mp4" -vf "select=eq(n\,$1)" -vsync vfr -frames:v 1 "$d/qa-$2-frame-$1.png"
+          done
+          python3 - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          from PIL import Image
+          d=Path("media/showcase/2026-10-20/graphpaper-final")
+          m=json.loads((d/"flagship-provenance.json").read_text())
+          assert len(list((d/"cards").glob("*.png")))==12
+          assert set(m["output_sha256"])=={"ur-recomp-graphpaper-action-80s-1080p.mp4","ur-recomp-graphpaper-action-27s-vertical.mp4","ur-recomp-graphpaper-action-poster.png"}
+          assert all(hashlib.sha256((d/k).read_bytes()).hexdigest()==v for k,v in m["output_sha256"].items())
+          assert len(list(d.glob("qa-*-frame-*.png")))==4
+          for p in list(d.glob("qa-*-frame-*.png"))+list((d/"cards").glob("*.png")):
+              assert Image.open(p).size==(1920,1080),p
+          assert not any(x["source"]=="modern" for x in m["horizontal_shots"])
+          assert sum(x["source_frame_count"] for x in m["horizontal_shots"])==4800
+          assert sum(x["source_frame_count"] for x in m["vertical_shots"])==1620
+          print("four samples, twelve cards, exact original source and output SHA receipts verified")
+          PY
+      - name: Preserve media deliverables even if publication permission is unavailable
+        uses: actions/upload-artifact@v4
+        with:
+          name: ur-graphpaper-recruitment-80s-27s-and-plates
+          path: media/showcase/2026-10-20/graphpaper-final/
+          retention-days: 30
+      - name: Publish validated artifacts and retire one-shot workflow
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add media/showcase/2026-10-20/graphpaper-final
+          git rm .github/workflows/ur-graphpaper-trailer-one-shot.yml
+          git commit -m "media: publish decoded graph-paper 80s/27s films, 12 plates and source receipts"
+          git push origin HEAD:media/graphpaper-illustrated-recruitment-20261020

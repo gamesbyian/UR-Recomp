@@ -389,13 +389,17 @@ class MenuVisualLanguageTests(unittest.TestCase):
             shadow = 128 + 5 * 16 + 1
             cgram[2 * arrow:2 * arrow + 2] = (0x7FFF).to_bytes(2, "little")
             cgram[2 * shadow:2 * shadow + 2] = (0x4210).to_bytes(2, "little")
-            for index in range(64):
-                tile = mvl.CURSOR_SOURCE_TILE_CYCLE[(index // 2) % 16]
-                # Identical source pixel for all frames; tile identity is
-                # separately and strictly checked from authentic OAM.
+            # Stock VRAM is ALREADY POPULATED before the idle animation
+            # starts. Filling CHR tiles progressively inside the frame loop
+            # falsely makes the cursor shadow acquire new pixels mid-cycle.
+            for tile in mvl.CURSOR_SOURCE_TILE_CYCLE:
                 vram[tile * 32] = 0x80
                 vram[(16 + tile) * 32] = 0x80
                 vram[(tile + 4) * 32] = 0x80
+            for index in range(64):
+                tile = mvl.CURSOR_SOURCE_TILE_CYCLE[(index // 2) % 16]
+                # Every source snapshot sees the same preloaded CHR atlas.
+                # Only original OAM selects the rotating pose each frame.
                 oam = bytearray(544)
                 oam[0:4] = bytes([79, 70, tile, 7 << 1])
                 oam[4:8] = bytes([86, 77, (tile + 4) & 255, 5 << 1])

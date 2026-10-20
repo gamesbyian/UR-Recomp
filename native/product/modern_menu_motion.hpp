@@ -73,6 +73,11 @@ struct ModernMenuMotionState {
     bool visible = false;
     std::uint8_t selection = 0;
     std::uint8_t previous_selection = 0;
+    // Absolute logical Y of the marker at the most recent focus change.
+    // Rapid direction changes resume from the interpolated visible marker,
+    // never teleport to the previous semantic row.
+    int cursor_origin_y = 0;
+    int cursor_row_pitch = 21;
     std::uint64_t first_tick = 0;
     std::uint64_t selection_tick = 0;
     std::uint64_t last_tick = 0;
@@ -117,6 +122,19 @@ constexpr int modern_menu_cursor_distance(int age, int row_pitch) noexcept {
     return row_pitch - (travelled * row_pitch + 11) / 23;
 }
 
+// Scale any origin-target distance by the measured remaining 23/23 cursor
+// movement envelope. Round symmetrically to preserve exact endpoints.
+constexpr int modern_menu_cursor_remaining_offset(int distance,
+                                                    int age) noexcept {
+    const int remaining = modern_menu_cursor_distance(age, 23);
+    const auto absolute = distance < 0 ?
+        -static_cast<std::int64_t>(distance) :
+        static_cast<std::int64_t>(distance);
+    const auto amount = static_cast<int>(
+        (absolute * remaining + 11) / 23);
+    return distance < 0 ? -amount : amount;
+}
+
 // Pure with respect to every guest state: repeated inputs return the same
 // pose. Hide or backwards clock resets entry; selection changes interrupt
 // immediately and keep the next input authoritative even during animation.
@@ -129,15 +147,33 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
     }
     const auto selection = static_cast<std::uint8_t>(
         input.selection % kModernMenuMotionRows);
-    if (!state.visible || input.tick60 < state.last_tick) {
+    if (row_pitch <= 0) row_pitch = 21;
+    if (!state.visible || input.tick60 < state.last_tick ||
+        state.cursor_row_pitch != row_pitch) {
         state.visible = true;
         state.selection = selection;
         state.previous_selection = selection;
+        state.cursor_origin_y = static_cast<int>(selection) * row_pitch;
+        state.cursor_row_pitch = row_pitch;
         state.first_tick = input.tick60;
         state.selection_tick = input.tick60;
     } else if (selection != state.selection) {
+        const int previous = static_cast<int>(state.selection);
+        const int old_target_y = previous * row_pitch;
+        const int elapsed = modern_menu_clamp_age(
+            input.tick60, state.selection_tick,
+            kModernMenuMotionSelectionFrames);
+        const int old_display_y = old_target_y +
+            modern_menu_cursor_remaining_offset(
+                state.cursor_origin_y - old_target_y, elapsed);
         state.previous_selection = state.selection;
         state.selection = selection;
+        // Only adjacent movement has a meaningful continuous path. Wrapped
+        // or external multi-step focus switches snap to the real new target.
+        const int target = static_cast<int>(selection);
+        state.cursor_origin_y = (target == previous + 1 ||
+                                 target == previous - 1)
+            ? old_display_y : target * row_pitch;
         state.selection_tick = input.tick60;
     }
     state.last_tick = input.tick60;
@@ -158,12 +194,10 @@ inline ModernMenuMotionPose advance_modern_menu_motion(
         kModernMenuMotionSelectionFrames);
     const int previous = static_cast<int>(state.previous_selection);
     const int current = static_cast<int>(state.selection);
-    // Wrap/repeated/multi-row transitions are not interpolated through
-    // unrelated menu destinations. The selected row switches immediately.
-    if (previous + 1 == current)
-        pose.cursor_remainder_px = -modern_menu_cursor_distance(age, row_pitch);
-    else if (previous - 1 == current)
-        pose.cursor_remainder_px = modern_menu_cursor_distance(age, row_pitch);
+    // Focus semantics are immediate; only the last rendered marker location
+    // eases to the new row. Interrupting mid-travel does not jump backwards.
+    pose.cursor_remainder_px = modern_menu_cursor_remaining_offset(
+        state.cursor_origin_y - current * row_pitch, age);
 
     // A low-amplitude preview transform, never a new semantic rider pose.
     // Source racer artwork is a separate, approval-gated input; this model

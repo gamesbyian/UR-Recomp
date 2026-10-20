@@ -254,3 +254,30 @@ def report():
 
 if __name__ == "__main__":
     print(json.dumps(report(), indent=2, sort_keys=True))
+
+
+def audit_named_policy_sampling_coverage(roi, *, mode):
+    """Analytic source-centre coverage under an exact named native policy.
+
+    Preserving the full logical source interval does not imply every source
+    pixel centre is sampled when the output viewport is smaller.
+    """
+    modes={'original':(256,224,F(1)), 'world342':(342,224,F(512,513))}
+    if type(mode) is not str or mode not in modes:
+        raise ValueError('unknown presentation mode')
+    if type(roi) is not dict or type(roi.get('host')) is not list or len(roi['host']) != 2:
+        raise ValueError('invalid named-policy ROI receipt')
+    source_w,source_h,fit=modes[mode]
+    expected=raster_roi(source_w,source_h,*roi['host'],horizontal_fit=fit)
+    if not _typed_receipt_equal(roi,expected):
+        raise ValueError('ROI does not match exact named native geometry')
+    _,_,output_w,output_h=expected['roi_xywh']
+    horizontal=_sampled_coverage(source_w,output_w)
+    vertical=_sampled_coverage(source_h,output_h)
+    covered=horizontal['covered']*vertical['covered']
+    return {'schema':'qa06-analytic-source-centre-coverage/1',
+            'mode':mode,'source_pixels':source_w*source_h,
+            'sampled_source_pixels':covered,
+            'skipped_source_pixels':source_w*source_h-covered,
+            'full_source_centre_coverage':covered==source_w*source_h,
+            'physical_screenshot_observed':False,'release_gate_credit':0}
